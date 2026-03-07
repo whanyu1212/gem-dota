@@ -88,3 +88,8 @@ nav:
     - Send Tables: reference/sendtable.md
     - Field Decoders: reference/field_decoder.md
     - Field Paths: reference/field_path.md
+    - String Tables: reference/string_table.md
+    - Entities: reference/entities.md
+    - ReplayParser: reference/parser.md
+    - Game Events: reference/game_events.md
+    - Combat Log: reference/combatlog.md

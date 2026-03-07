@@ -2,7 +2,7 @@
 
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green?logo=opensourceinitiative&logoColor=white)
-![Phase](https://img.shields.io/badge/phase-2%20of%206-orange)
+![Phase](https://img.shields.io/badge/phase-3%20of%206-orange)
 ![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)
 ![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)
 
@@ -17,24 +17,21 @@ Reads Source 2 `.dem` binary replay files and exposes structured output: per-tic
 Existing parsers (Clarity, Manta, OpenDota/parser) are built for backend services in Java or Go. `gem` brings that to Python without touching JVM toolchains or writing binary parsers from scratch.
 
 ```python
-from gem.stream import DemoStream
-from gem.sendtable import parse_send_tables
+from gem.parser import ReplayParser
+from gem.entities import EntityOp
 
-# Phase 1 — stream outer messages
-with DemoStream("my_replay.dem") as stream:
-    for tick, msg_type, data in stream:
-        ...
+# Phase 3 — entity lifecycle
+parser = ReplayParser("my_replay.dem")
 
-# Phase 2 — inspect the entity schema
-with DemoStream("my_replay.dem") as stream:
-    for tick, msg_type, data in stream:
-        if (msg_type & ~0x40) == 4:  # CDemoSendTables
-            serializers = parse_send_tables(data)
-            break
+def on_entity(entity, op):
+    if op.has(EntityOp.CREATED):
+        name = entity.get_class_name()
+        if "Hero" in name:
+            hp, ok = entity.get_int32("m_iHealth")
+            print(f"{name}: {hp} HP")
 
-axe = serializers["CDOTA_Unit_Hero_Axe"]
-for f in axe.fields:
-    print(f.var_name, f.var_type, f.encoder)
+parser.on_entity(on_entity)
+parser.parse()
 
 # Phase 6 — full match output (coming soon)
 # match = gem.parse("my_replay.dem")
@@ -49,7 +46,7 @@ for f in axe.fields:
 |---|---|---|
 | 1 | `BitReader`, `DemoStream` — binary frame iteration | ✅ Complete |
 | 2 | `sendtable`, `field_decoder`, `field_path` — schema layer | ✅ Complete |
-| 3 | String tables, entity lifecycle | 🔲 Planned |
+| 3 | String tables, entity lifecycle | ✅ Complete |
 | 4 | Game events, combat log | 🔲 Planned |
 | 5 | Gold/XP timelines, teamfights, objectives | 🔲 Planned |
 | 6 | `gem.parse()` — full match output, DataFrame export | 🔲 Planned |
