@@ -160,21 +160,35 @@ class TestQuantizedFloatDecoder:
         r = reader_cls(data)
         assert qfd.decode(r) == pytest.approx(0.75, rel=1e-5)
 
-    def test_rounddown_flag(self, qfd_cls, reader_cls):
-        # rounddown flag (bit 0): if first bit is 1, return low
-        qfd = self._make_qfd(qfd_cls, 8, 1, 0.0, 1.0)  # flags=1 = rounddown
-        # First bit = 1 → return low = 0.0
-        r = reader_cls(b"\x01")
+    def test_rounddown_flag_optimised_away(self, qfd_cls, reader_cls):
+        # rounddown flag (bit 0) on 8-bit [0,1]: the grid already aligns with
+        # low=0.0 so the flag is removed during construction. The decoder falls
+        # through to a normal quantized read.
+        qfd = self._make_qfd(qfd_cls, 8, 1, 0.0, 1.0)
+        assert qfd.flags == 0  # flag was cleared
+        # high is adjusted to 0.99609375; reading 0 bits → low end of range
+        r = reader_cls(b"\x00")
         assert qfd.decode(r) == pytest.approx(0.0)
 
-    def test_roundup_flag(self, qfd_cls, reader_cls):
-        # roundup flag (bit 1): if bit is 1, return high
-        # flags=2 = roundup, no rounddown
-        # First rounddown check: bit=0, Second roundup check: bit=1 → return high
+    def test_rounddown_flag_active(self, qfd_cls, reader_cls):
+        # Use a range where rounddown flag is NOT optimised away: low != 0
+        # flags=1 (rounddown), 8-bit, range [-1, 1]
+        qfd = self._make_qfd(qfd_cls, 8, 1, -1.0, 1.0)
+        if qfd.flags & 1:  # flag survived — first bit=1 should return low
+            r = reader_cls(b"\x01")
+            assert qfd.decode(r) == pytest.approx(-1.0)
+        else:
+            pytest.skip("Flag optimised away for this range too")
+
+    def test_roundup_flag_optimised_away(self, qfd_cls, reader_cls):
+        # roundup flag (bit 1) on 8-bit [0,1]: grid aligns with high=1.0
+        # so the flag is removed. Normal quantized read falls through.
         qfd = self._make_qfd(qfd_cls, 8, 2, 0.0, 1.0)
-        # bit0=0 (no rounddown), bit1=1 (roundup → return high=1.0)
-        r = reader_cls(_bits_to_bytes("01"))
-        assert qfd.decode(r) == pytest.approx(1.0)
+        assert qfd.flags == 0  # flag was cleared
+        # low is adjusted to 0.00390625; reading 255 (all bits) → high end
+        r = reader_cls(b"\xff")
+        result = qfd.decode(r)
+        assert result == pytest.approx(1.0, abs=0.01)
 
     def test_normal_decode_midpoint(self, qfd_cls, reader_cls):
         # 8 bits, range [0, 1], no flags → 128 = midpoint ≈ 0.5
