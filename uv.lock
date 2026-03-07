@@ -421,7 +421,7 @@ wheels = [
 ]
 
 [[package]]
-name = "gem"
+name = "gem-dota"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

@@ -8,6 +8,9 @@ Run any example from the project root (with the venv activated):
 ```bash
 python examples/phase1_stream.py                          # uses default fixture
 python examples/phase1_stream.py path/to/your.dem        # or supply your own
+python examples/phase2_schema.py path/to/your.dem        # inspect entity schema
+python examples/phase2_schema.py path/to/your.dem --class CDOTA_Unit_Hero_Axe
+python examples/phase2_schema.py path/to/your.dem --list  # all 3000+ classes
 ```
 
 ## Progress
@@ -15,7 +18,7 @@ python examples/phase1_stream.py path/to/your.dem        # or supply your own
 | Script | Phase | What it demonstrates | Status |
 |---|---|---|---|
 | `phase1_stream.py` | 1 | Header validation, message type breakdown, tick range, throughput | ✅ |
-| `phase2_schema.py` | 2 | SendTable parsing, serializer/field tree, decoder resolution | 🔜 |
+| `phase2_schema.py` | 2 | SendTable parsing, serializer/field tree, decoder resolution | ✅ |
 | `phase3_entities.py` | 3 | Entity create/update/delete, reading hero HP/position/gold per tick | 🔜 |
 | `phase4_events.py` | 4 | Game events, combat log entries (damage, kills, abilities) | 🔜 |
 | `phase5_extract.py` | 5 | Per-player time-series: gold, XP, LH/DN, ward placements | 🔜 |

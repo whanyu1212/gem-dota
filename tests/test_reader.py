@@ -259,6 +259,8 @@ class TestBoundary:
         assert r.rem_bits() == 8
 
     def test_empty_buffer_raises(self, reader_cls):
+        from gem.reader import BufferError as GemBufferError
+
         r = reader_cls(b"")
-        with pytest.raises(BufferError):
+        with pytest.raises(GemBufferError):
             r.read_bits(1)

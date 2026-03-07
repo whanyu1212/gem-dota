@@ -18,6 +18,6 @@ repos:
     rev: v1.19.1
     hooks:
       - id: mypy
-        args: [--config-file=pyproject.toml, "--exclude=src/gem/proto/"]
+        args: [--config-file=pyproject.toml, "--exclude=src/gem/proto/", "--no-error-summary"]
         additional_dependencies: [types-protobuf]
         exclude: ^(src/gem/proto/|tests/)

@@ -1,8 +1,8 @@
-site_name: gem
-site_description: A Python Dota 2 replay parser for data science and machine learning.
-site_url: https://whanyu1212.github.io/gem
-repo_url: https://github.com/whanyu1212/gem
-repo_name: whanyu1212/gem
+site_name: gem-dota
+site_description: A Python Dota 2 replay parser.
+site_url: https://whanyu1212.github.io/gem-dota
+repo_url: https://github.com/whanyu1212/gem-dota
+repo_name: whanyu1212/gem-dota
 
 theme:
   name: material
@@ -76,11 +76,15 @@ nav:
   - Tutorials:
     - tutorials/index.md
     - "01 · Reading a Replay": tutorials/01_reading_a_replay.md
-    - "02 · Entity State": tutorials/02_entity_state.md
-    - "03 · Combat Log": tutorials/03_combat_log.md
-    - "04 · Time-Series Data": tutorials/04_timeseries.md
-    - "05 · Full Match Output": tutorials/05_full_match.md
+    - "02 · Inspecting the Schema": tutorials/02_schema.md
+    - "03 · Entity State": tutorials/02_entity_state.md
+    - "04 · Combat Log": tutorials/03_combat_log.md
+    - "05 · Time-Series Data": tutorials/04_timeseries.md
+    - "06 · Full Match Output": tutorials/05_full_match.md
   - API Reference:
     - reference/index.md
     - BitReader: reference/reader.md
     - DemoStream: reference/stream.md
+    - Send Tables: reference/sendtable.md
+    - Field Decoders: reference/field_decoder.md
+    - Field Paths: reference/field_path.md
