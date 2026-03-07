@@ -1,0 +1,62 @@
+from typing import ClassVar as _ClassVar
+
+from google.protobuf import descriptor as _descriptor
+from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+
+DESCRIPTOR: _descriptor.FileDescriptor
+
+class EHeroSelectionText(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    k_EHeroSelectionText_Invalid: _ClassVar[EHeroSelectionText]
+    k_EHeroSelectionText_None: _ClassVar[EHeroSelectionText]
+    k_EHeroSelectionText_ChooseHero: _ClassVar[EHeroSelectionText]
+    k_EHeroSelectionText_AllDraft_Planning_YouFirst: _ClassVar[EHeroSelectionText]
+    k_EHeroSelectionText_AllDraft_Planning_TheyFirst: _ClassVar[EHeroSelectionText]
+    k_EHeroSelectionText_AllDraft_Banning: _ClassVar[EHeroSelectionText]
+    k_EHeroSelectionText_AllDraft_Ban_Waiting: _ClassVar[EHeroSelectionText]
+    k_EHeroSelectionText_AllDraft_PickTwo: _ClassVar[EHeroSelectionText]
+    k_EHeroSelectionText_AllDraft_PickOneMore: _ClassVar[EHeroSelectionText]
+    k_EHeroSelectionText_AllDraft_PickOne: _ClassVar[EHeroSelectionText]
+    k_EHeroSelectionText_AllDraft_WaitingRadiant: _ClassVar[EHeroSelectionText]
+    k_EHeroSelectionText_AllDraft_WaitingDire: _ClassVar[EHeroSelectionText]
+    k_EHeroSelectionText_AllDraft_TeammateRandomed: _ClassVar[EHeroSelectionText]
+    k_EHeroSelectionText_AllDraft_YouPicking_LosingGold: _ClassVar[EHeroSelectionText]
+    k_EHeroSelectionText_AllDraft_TheyPicking_LosingGold: _ClassVar[EHeroSelectionText]
+    k_EHeroSelectionText_CaptainsMode_ChooseCaptain: _ClassVar[EHeroSelectionText]
+    k_EHeroSelectionText_CaptainsMode_WaitingForChooseCaptain: _ClassVar[EHeroSelectionText]
+    k_EHeroSelectionText_CaptainsMode_YouSelect: _ClassVar[EHeroSelectionText]
+    k_EHeroSelectionText_CaptainsMode_TheySelect: _ClassVar[EHeroSelectionText]
+    k_EHeroSelectionText_CaptainsMode_YouBan: _ClassVar[EHeroSelectionText]
+    k_EHeroSelectionText_CaptainsMode_TheyBan: _ClassVar[EHeroSelectionText]
+    k_EHeroSelectionText_RandomDraft_HeroReview: _ClassVar[EHeroSelectionText]
+    k_EHeroSelectionText_RandomDraft_RoundDisplay: _ClassVar[EHeroSelectionText]
+    k_EHeroSelectionText_RandomDraft_Waiting: _ClassVar[EHeroSelectionText]
+    k_EHeroSelectionText_EventGame_BanPhase: _ClassVar[EHeroSelectionText]
+
+k_EHeroSelectionText_Invalid: EHeroSelectionText
+k_EHeroSelectionText_None: EHeroSelectionText
+k_EHeroSelectionText_ChooseHero: EHeroSelectionText
+k_EHeroSelectionText_AllDraft_Planning_YouFirst: EHeroSelectionText
+k_EHeroSelectionText_AllDraft_Planning_TheyFirst: EHeroSelectionText
+k_EHeroSelectionText_AllDraft_Banning: EHeroSelectionText
+k_EHeroSelectionText_AllDraft_Ban_Waiting: EHeroSelectionText
+k_EHeroSelectionText_AllDraft_PickTwo: EHeroSelectionText
+k_EHeroSelectionText_AllDraft_PickOneMore: EHeroSelectionText
+k_EHeroSelectionText_AllDraft_PickOne: EHeroSelectionText
+k_EHeroSelectionText_AllDraft_WaitingRadiant: EHeroSelectionText
+k_EHeroSelectionText_AllDraft_WaitingDire: EHeroSelectionText
+k_EHeroSelectionText_AllDraft_TeammateRandomed: EHeroSelectionText
+k_EHeroSelectionText_AllDraft_YouPicking_LosingGold: EHeroSelectionText
+k_EHeroSelectionText_AllDraft_TheyPicking_LosingGold: EHeroSelectionText
+k_EHeroSelectionText_CaptainsMode_ChooseCaptain: EHeroSelectionText
+k_EHeroSelectionText_CaptainsMode_WaitingForChooseCaptain: EHeroSelectionText
+k_EHeroSelectionText_CaptainsMode_YouSelect: EHeroSelectionText
+k_EHeroSelectionText_CaptainsMode_TheySelect: EHeroSelectionText
+k_EHeroSelectionText_CaptainsMode_YouBan: EHeroSelectionText
+k_EHeroSelectionText_CaptainsMode_TheyBan: EHeroSelectionText
+k_EHeroSelectionText_RandomDraft_HeroReview: EHeroSelectionText
+k_EHeroSelectionText_RandomDraft_RoundDisplay: EHeroSelectionText
+k_EHeroSelectionText_RandomDraft_Waiting: EHeroSelectionText
+k_EHeroSelectionText_EventGame_BanPhase: EHeroSelectionText
+HUD_LOCALIZE_TOKEN_FIELD_NUMBER: _ClassVar[int]
+hud_localize_token: _descriptor.FieldDescriptor

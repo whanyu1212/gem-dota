@@ -1,0 +1,2008 @@
+from typing import ClassVar as _ClassVar
+
+from google.protobuf import descriptor as _descriptor
+from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+
+DESCRIPTOR: _descriptor.FileDescriptor
+
+class EDOTAGCMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    k_EMsgGCDOTABase: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCGameMatchSignOut: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCGameMatchSignOutResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCJoinChatChannel: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCJoinChatChannelResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCOtherJoinedChannel: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCOtherLeftChannel: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCRequestStatus: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCStartFindingMatch: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCConnectedPlayers: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCAbandonCurrentGame: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCStopFindingMatch: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCPracticeLobbyCreate: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCPracticeLobbyLeave: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCPracticeLobbyLaunch: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCPracticeLobbyList: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCPracticeLobbyListResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCPracticeLobbyJoin: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCPracticeLobbySetDetails: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCPracticeLobbySetTeamSlot: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCInitialQuestionnaireResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCPracticeLobbyResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCBroadcastNotification: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCLiveScoreboardUpdate: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCRequestChatChannelList: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCRequestChatChannelListResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCReadyUp: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCKickedFromMatchmakingQueue: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCLeaverDetected: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCSpectateFriendGame: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCSpectateFriendGameResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCReportsRemainingRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCReportsRemainingResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCSubmitPlayerReport: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCSubmitPlayerReportResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCPracticeLobbyKick: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCSubmitPlayerReportV2: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCSubmitPlayerReportResponseV2: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCRequestSaveGames: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCRequestSaveGamesServer: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCRequestSaveGamesResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCLeaverDetectedResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCPlayerFailedToConnect: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCGCToRelayConnect: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCGCToRelayConnectresponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCWatchGame: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCWatchGameResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCBanStatusRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCBanStatusResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCMatchDetailsRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCMatchDetailsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCCancelWatchGame: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCPopup: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCFriendPracticeLobbyListRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCFriendPracticeLobbyListResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCPracticeLobbyJoinResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCCreateTeam: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCCreateTeamResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCTeamInvite_InviterToGC: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCTeamInvite_GCImmediateResponseToInviter: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCTeamInvite_GCRequestToInvitee: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCTeamInvite_InviteeResponseToGC: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCTeamInvite_GCResponseToInviter: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCTeamInvite_GCResponseToInvitee: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCKickTeamMember: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCKickTeamMemberResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCLeaveTeam: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCLeaveTeamResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCApplyTeamToPracticeLobby: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCTransferTeamAdmin: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCPracticeLobbyJoinBroadcastChannel: _ClassVar[EDOTAGCMsg]
+    k_EMsgGC_TournamentItemEvent: _ClassVar[EDOTAGCMsg]
+    k_EMsgGC_TournamentItemEventResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgTeamFanfare: _ClassVar[EDOTAGCMsg]
+    k_EMsgResponseTeamFanfare: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCEditTeamDetails: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCEditTeamDetailsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCReadyUpStatus: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCMatchCompleted: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCBalancedShuffleLobby: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCMatchmakingStatsRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCMatchmakingStatsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCBotGameCreate: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCSetMatchHistoryAccess: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCSetMatchHistoryAccessResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgUpgradeLeagueItem: _ClassVar[EDOTAGCMsg]
+    k_EMsgUpgradeLeagueItemResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCWatchDownloadedReplay: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientsRejoinChatChannels: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetUserChatInfo: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetUserChatInfoResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCLeaveAllChatChannels: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCUpdateAccountChatBan: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCCanInviteUserToTeam: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCCanInviteUserToTeamResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetUserRank: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetUserRankResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCAdjustUserRank: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCAdjustUserRankResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCUpdateTeamStats: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCValidateTeam: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCValidateTeamResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetLeagueAdmin: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetLeagueAdminResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCLeaveChatChannel: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCChatMessage: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCGetHeroStandings: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCGetHeroStandingsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCItemEditorReservationsRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCItemEditorReservationsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCItemEditorReserveItemDef: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCItemEditorReserveItemDefResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCItemEditorReleaseReservation: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCItemEditorReleaseReservationResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCFantasyLivePlayerStats: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCFantasyFinalPlayerStats: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCFlipLobbyTeams: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCEvaluateReportedPlayer: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCEvaluateReportedPlayerResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCProcessPlayerReportForTarget: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCProcessReportSuccess: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCNotifyAccountFlagsChange: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCSetProfilePrivacy: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCSetProfilePrivacyResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCClientSuspended: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCPartyMemberSetCoach: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCPracticeLobbySetCoach: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCChatModeratorBan: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCLobbyUpdateBroadcastChannelInfo: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGrantTournamentItem: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCUpgradeTwitchViewerItems: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetLiveMatchAffiliates: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetLiveMatchAffiliatesResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCUpdatePlayerPennantCounts: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetPlayerPennantCounts: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetPlayerPennantCountsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCGameMatchSignOutPermissionRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCGameMatchSignOutPermissionResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgDOTAAwardEventPoints: _ClassVar[EDOTAGCMsg]
+    k_EMsgDOTAGetEventPoints: _ClassVar[EDOTAGCMsg]
+    k_EMsgDOTAGetEventPointsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCPartyLeaderWatchGamePrompt: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCCompendiumSetSelection: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCCompendiumDataRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCCompendiumDataResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgDOTAGetPlayerMatchHistory: _ClassVar[EDOTAGCMsg]
+    k_EMsgDOTAGetPlayerMatchHistoryResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCMatchmakingAddParty: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCMatchmakingRemoveParty: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCMatchmakingRemoveAllParties: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCMatchmakingMatchFound: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCUpdateMatchManagementStats: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCUpdateMatchmakingStats: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToServerPingRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToServerPingResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToServerEvaluateToxicChat: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCEvaluateToxicChat: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCEvaluateToxicChatResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCProcessMatchLeaver: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCNotificationsRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCNotificationsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCModifyNotification: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCLeagueAdminList: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCNotificationsMarkReadRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCRequestBatchPlayerResources: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCRequestBatchPlayerResourcesResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCCompendiumSetSelectionResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCRankedPlayerInfoSubmit: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCRankedPlayerInfoSubmitResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCPlayerInfoSubmit: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCPlayerInfoSubmitResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetAccountLevel: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetAccountLevelResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgDOTAGetWeekendTourneySchedule: _ClassVar[EDOTAGCMsg]
+    k_EMsgDOTAWeekendTourneySchedule: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCJoinableCustomGameModesRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCJoinableCustomGameModesResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCJoinableCustomLobbiesRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCJoinableCustomLobbiesResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCQuickJoinCustomLobby: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCQuickJoinCustomLobbyResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGrantEventPointAction: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCSetCompendiumSelection: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCHasItemQuery: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCHasItemResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGrantEventPointActionMsg: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetCompendiumSelections: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetCompendiumSelectionsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCMatchConnectionStats: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientTournamentItemDrop: _ClassVar[EDOTAGCMsg]
+    k_EMsgSQLDelayedGrantLeagueDrop: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerGCUpdateSpectatorCount: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCEmoticonUnlock: _ClassVar[EDOTAGCMsg]
+    k_EMsgSignOutDraftInfo: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCEmoticonDataRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientEmoticonData: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCPracticeLobbyToggleBroadcastChannelCameramanStatus: _ClassVar[EDOTAGCMsg]
+    k_EMsgDOTARedeemItem: _ClassVar[EDOTAGCMsg]
+    k_EMsgDOTARedeemItemResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetAllHeroProgress: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetAllHeroProgressResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetServerForClient: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetServerForClientResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgSQLProcessTournamentGameOutcome: _ClassVar[EDOTAGCMsg]
+    k_EMsgSQLGrantTrophyToAccount: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetTrophyList: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetTrophyListResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientTrophyAwarded: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCGameBotMatchSignOut: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCGameBotMatchSignOutPermissionRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgSignOutBotInfo: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCUpdateProfileCards: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetProfileCard: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetProfileCardResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetBattleReport: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetBattleReportResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSetProfileCardSlots: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientProfileCardUpdated: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCVictoryPredictions: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetBattleReportAggregateStats: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetBattleReportAggregateStatsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetBattleReportInfo: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetBattleReportInfoResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgSignOutCommunicationSummary: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCRequestStatus_Response: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCreateHeroStatue: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientHeroStatueCreateResult: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCGCToLANServerRelayConnect: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCAcknowledgeBattleReport: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCAcknowledgeBattleReportResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetBattleReportMatchHistory: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetBattleReportMatchHistoryResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCReportKillSummaries: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCUpdatePlayerPredictions: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToServerPredictionResult: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCReplayMonitorValidateReplay: _ClassVar[EDOTAGCMsg]
+    k_EMsgLobbyEventPoints: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetCustomGameTickets: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetCustomGameTicketsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCCustomGamePlayed: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGrantEventPointsToUser: _ClassVar[EDOTAGCMsg]
+    k_EMsgGameserverCrashReport: _ClassVar[EDOTAGCMsg]
+    k_EMsgGameserverCrashReportResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientSteamDatagramTicket: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCSendAccountsEventPoints: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRerollPlayerChallenge: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCRerollPlayerChallenge: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCRerollPlayerChallengeResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgSignOutUpdatePlayerChallenge: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSetPartyLeader: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCancelPartyInvites: _ClassVar[EDOTAGCMsg]
+    k_EMsgSQLGrantLeagueMatchToTicketHolders: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCEmoticonUnlockNoRollback: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCApplyGemCombiner: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetAllHeroOrder: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetAllHeroOrderResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgSQLGCToGCGrantBadgePoints: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCCheckOwnsEntireEmoticonRange: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCCheckOwnsEntireEmoticonRangeResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientRequestLaneSelection: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientRequestLaneSelectionResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCCavernCrawlIsHeroActive: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCCavernCrawlIsHeroActiveResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCPlayerCardSpecificPurchaseRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCPlayerCardSpecificPurchaseResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgSQLSetIsLeagueAdmin: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetLiveLeagueMatches: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetLiveLeagueMatchesResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgDOTALeagueInfoListAdminsRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgDOTALeagueInfoListAdminsReponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCLeagueMatchStarted: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCLeagueMatchCompleted: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCLeagueMatchStartedResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgDOTALeagueAvailableLobbyNodesRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgDOTALeagueAvailableLobbyNodes: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCLeagueRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCLeagueResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCLeagueNodeGroupRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCLeagueNodeGroupResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCLeagueNodeRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCLeagueNodeResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCRealtimeStatsTerseRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCRealtimeStatsTerseResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetTopMatchesRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetTopMatchesResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetFilteredPlayers: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientGetFilteredPlayersResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRemoveFilteredPlayer: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientRemoveFilteredPlayerResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientPlayerBeaconState: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientPartyBeaconUpdate: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientPartySearchInvite: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCUpdatePartyBeacon: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestActiveBeaconParties: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientRequestActiveBeaconPartiesResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCManageFavorites: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientManageFavoritesResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCJoinPartyFromBeacon: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientJoinPartyFromBeaconResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetFavoritePlayers: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientGetFavoritePlayersResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCVerifyFavoritePlayers: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientVerifyFavoritePlayersResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientPartySearchInvites: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientRequestMMInfo: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMMInfo: _ClassVar[EDOTAGCMsg]
+    k_EMsgSignOutTextMuteInfo: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCPurchaseLabyrinthBlessings: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCPurchaseLabyrinthBlessingsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCPurchaseFilteredPlayerSlot: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientPurchaseFilteredPlayerSlotResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCUpdateFilteredPlayerNote: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientUpdateFilteredPlayerNoteResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCClaimSwag: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientClaimSwagResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCLockCharmTrading: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCPlayerStatsRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientPlayerStatsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCClearPracticeLobbyTeam: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCFindTopSourceTVGames: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientFindTopSourceTVGamesResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCLobbyList: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCLobbyListResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCPlayerStatsMatchSignOut: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSocialFeedPostCommentRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientSocialFeedPostCommentResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCustomGamesFriendsPlayedRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientCustomGamesFriendsPlayedResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCFriendsPlayedCustomGameRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientFriendsPlayedCustomGameResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCTopCustomGamesList: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSetPartyOpen: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMergePartyInvite: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientMergeGroupInviteReply: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMergePartyResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientMergePartyResponseReply: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetProfileCardStats: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetProfileCardStatsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCTopLeagueMatchesRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCTopFriendMatchesRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientProfileCardStatsUpdated: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCRealtimeStats: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToServerRealtimeStatsStartStop: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetServersForClients: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetServersForClientsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCPracticeLobbyKickFromTeam: _ClassVar[EDOTAGCMsg]
+    k_EMsgDOTAChatGetMemberCount: _ClassVar[EDOTAGCMsg]
+    k_EMsgDOTAChatGetMemberCountResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSocialFeedPostMessageRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientSocialFeedPostMessageResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgCustomGameListenServerStartedLoading: _ClassVar[EDOTAGCMsg]
+    k_EMsgCustomGameClientFinishedLoading: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCPracticeLobbyCloseBroadcastChannel: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCStartFindingMatchResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgSQLGCToGCGrantAccountFlag: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientTopLeagueMatchesResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientTopFriendMatchesResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMatchesMinimalRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMatchesMinimalResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientChatRegionsEnabled: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCPingData: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCEnsureAccountInParty: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCEnsureAccountInPartyResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetProfileTickets: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetProfileTicketsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientMatchGroupsVersion: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCH264Unsupported: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCWatchingBroadcast: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetQuestProgress: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetQuestProgressResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgSignOutXPCoins: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientMatchSignedOut: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCGetHeroStatsHistory: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCGetHeroStatsHistoryResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCPrivateChatInvite: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCPrivateChatKick: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCPrivateChatPromote: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCPrivateChatDemote: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientPrivateChatResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCLatestConductScorecardRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCLatestConductScorecard: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCWageringRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientWageringResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCEventGoalsRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCEventGoalsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCLeaguePredictionsUpdate: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCAddUserToPostGameChat: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCHasPlayerVotedForMVP: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCHasPlayerVotedForMVPResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCVoteForMVP: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCVoteForMVPResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetEventParticipation: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetEventParticipationResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientAutomatedTournamentStateChange: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCWeekendTourneyOpts: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCWeekendTourneyOptsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCWeekendTourneyLeave: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCWeekendTourneyLeaveResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCTeammateStatsRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCTeammateStatsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetGiftPermissions: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetGiftPermissionsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCVoteForArcana: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCVoteForArcanaResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestArcanaVotesRemaining: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestArcanaVotesRemainingResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCTransferTeamAdminResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientTeamInfo: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientTeamsInfo: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMyTeamInfoRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCPublishUserStat: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCSignoutSpendWager: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCSubmitLobbyMVPVote: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCSubmitLobbyMVPVoteResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgSignOutCommunityGoalProgress: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientLobbyMVPAwarded: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientQuestProgressUpdated: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientWageringUpdate: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientArcanaVotesUpdate: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSetSpectatorLobbyDetails: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSetSpectatorLobbyDetailsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCreateSpectatorLobby: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCreateSpectatorLobbyResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSpectatorLobbyList: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSpectatorLobbyListResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgSpectatorLobbyGameDetails: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCCompendiumInGamePredictionResults: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCCloseCompendiumInGamePredictionVoting: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOpenPlayerCardPack: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOpenPlayerCardPackResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSelectCompendiumInGamePrediction: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSelectCompendiumInGamePredictionResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCWeekendTourneyGetPlayerStats: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCWeekendTourneyGetPlayerStatsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRecyclePlayerCard: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRecyclePlayerCardResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCreatePlayerCardPack: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCreatePlayerCardPackResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetPlayerCardRosterRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetPlayerCardRosterResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSetPlayerCardRosterRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSetPlayerCardRosterResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCCloseCompendiumInGamePredictionVotingResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgLobbyBattleCupVictory: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCGetPlayerCardItemInfo: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCGetPlayerCardItemInfoResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestSteamDatagramTicket: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestSteamDatagramTicketResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientBattlePassRollupRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientBattlePassRollupResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCTransferSeasonalMMRRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCTransferSeasonalMMRResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCPublicChatCommunicationBan: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCUpdateAccountInfo: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCChatReportPublicSpam: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSetPartyBuilderOptions: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSetPartyBuilderOptionsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientPlaytestStatus: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCJoinPlaytest: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCJoinPlaytestResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgLobbyPlaytestDetails: _ClassVar[EDOTAGCMsg]
+    k_EMsgDOTASetFavoriteTeam: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientBattlePassRollupListRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientBattlePassRollupListResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgDOTAClaimEventAction: _ClassVar[EDOTAGCMsg]
+    k_EMsgDOTAClaimEventActionResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgDOTAGetPeriodicResource: _ClassVar[EDOTAGCMsg]
+    k_EMsgDOTAGetPeriodicResourceResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgDOTAPeriodicResourceUpdated: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCSpendWager: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCSignoutSpendWagerToken: _ClassVar[EDOTAGCMsg]
+    k_EMsgSubmitTriviaQuestionAnswer: _ClassVar[EDOTAGCMsg]
+    k_EMsgSubmitTriviaQuestionAnswerResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGiveTip: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGiveTipResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgStartTriviaSession: _ClassVar[EDOTAGCMsg]
+    k_EMsgStartTriviaSessionResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgAnchorPhoneNumberRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgAnchorPhoneNumberResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgUnanchorPhoneNumberRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgUnanchorPhoneNumberResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCSignoutSpendRankWager: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetFavoriteTeam: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetFavoriteTeamResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgSignOutEventGameData: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCQuickStatsRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCQuickStatsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCSubtractEventPointsFromUser: _ClassVar[EDOTAGCMsg]
+    k_EMsgSelectionPriorityChoiceRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgSelectionPriorityChoiceResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCCompendiumInGamePredictionResults: _ClassVar[EDOTAGCMsg]
+    k_EMsgGameAutographReward: _ClassVar[EDOTAGCMsg]
+    k_EMsgGameAutographRewardResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgDestroyLobbyRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgDestroyLobbyResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgPurchaseItemWithEventPoints: _ClassVar[EDOTAGCMsg]
+    k_EMsgPurchaseItemWithEventPointsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCMatchPlayerItemPurchaseHistory: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGrantPlusHeroMatchResults: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCMatchStateHistory: _ClassVar[EDOTAGCMsg]
+    k_EMsgPurchaseHeroRandomRelic: _ClassVar[EDOTAGCMsg]
+    k_EMsgPurchaseHeroRandomRelicResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCClaimEventActionUsingItem: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCClaimEventActionUsingItemResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgPartyReadyCheckRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgPartyReadyCheckResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgPartyReadyCheckAcknowledge: _ClassVar[EDOTAGCMsg]
+    k_EMsgGetRecentPlayTimeFriendsRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGetRecentPlayTimeFriendsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientCommendNotification: _ClassVar[EDOTAGCMsg]
+    k_EMsgProfileRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgProfileResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgProfileUpdate: _ClassVar[EDOTAGCMsg]
+    k_EMsgProfileUpdateResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgHeroGlobalDataRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgHeroGlobalDataResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestPlusWeeklyChallengeResult: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestPlusWeeklyChallengeResultResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGrantPlusPrepaidTime: _ClassVar[EDOTAGCMsg]
+    k_EMsgPrivateMetadataKeyRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgPrivateMetadataKeyResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCReconcilePlusStatus: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCCheckPlusStatus: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCCheckPlusStatusResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCReconcilePlusAutoGrantItems: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCReconcilePlusStatusUnreliable: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientCavernCrawlMapPathCompleted: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCavernCrawlClaimRoom: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCavernCrawlClaimRoomResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCavernCrawlUseItemOnRoom: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCavernCrawlUseItemOnRoomResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCavernCrawlUseItemOnPath: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCavernCrawlUseItemOnPathResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCavernCrawlRequestMapState: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCavernCrawlRequestMapStateResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgSignOutTips: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestEventPointLogV2: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestEventPointLogResponseV2: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestEventTipsSummary: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestEventTipsSummaryResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestSocialFeed: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestSocialFeedResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestSocialFeedComments: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestSocialFeedCommentsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCavernCrawlGetClaimedRoomCount: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCavernCrawlGetClaimedRoomCountResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCReconcilePlusAutoGrantItemsUnreliable: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCAddBroadcastTimelineEvent: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToServerUpdateSteamBroadcasting: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRecordContestVote: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientRecordContestVoteResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGrantAutograph: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGrantAutographResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgSignOutConsumableUsage: _ClassVar[EDOTAGCMsg]
+    k_EMsgLobbyEventGameDetails: _ClassVar[EDOTAGCMsg]
+    k_EMsgDevGrantEventPoints: _ClassVar[EDOTAGCMsg]
+    k_EMsgDevGrantEventPointsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgDevGrantEventAction: _ClassVar[EDOTAGCMsg]
+    k_EMsgDevGrantEventActionResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgDevResetEventState: _ClassVar[EDOTAGCMsg]
+    k_EMsgDevResetEventStateResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCReconcileEventOwnership: _ClassVar[EDOTAGCMsg]
+    k_EMsgConsumeEventSupportGrantItem: _ClassVar[EDOTAGCMsg]
+    k_EMsgConsumeEventSupportGrantItemResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientClaimEventActionUsingItemCompleted: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientCavernCrawlMapUpdated: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCRequestPlayerRecentAccomplishments: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCRequestPlayerRecentAccomplishmentsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestPlayerRecentAccomplishments: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestPlayerRecentAccomplishmentsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestPlayerHeroRecentAccomplishments: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestPlayerHeroRecentAccomplishmentsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgSignOutEventActionGrants: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestPlayerCoachMatches: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestPlayerCoachMatchesResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSubmitCoachTeammateRating: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSubmitCoachTeammateRatingResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientCoachTeammateRatingsChanged: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestPlayerCoachMatch: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestPlayerCoachMatchResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestContestVotes: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestContestVotesResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMVPVoteTimeout: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMVPVoteTimeoutResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgMatchMatchmakingStats: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSubmitPlayerMatchSurvey: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSubmitPlayerMatchSurveyResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgSQLGCToGCGrantAllHeroProgressAccount: _ClassVar[EDOTAGCMsg]
+    k_EMsgSQLGCToGCGrantAllHeroProgressVictory: _ClassVar[EDOTAGCMsg]
+    k_EMsgDevDeleteEventActions: _ClassVar[EDOTAGCMsg]
+    k_EMsgDevDeleteEventActionsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgDevReloadAllEvents: _ClassVar[EDOTAGCMsg]
+    k_EMsgDevReloadAllEventsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetAllHeroCurrent: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetAllHeroCurrentResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCSubmitPlayerAvoidRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCSubmitPlayerAvoidRequestResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientNotificationsUpdated: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCtoGCAssociatedExploiterAccountInfo: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCtoGCAssociatedExploiterAccountInfoResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCtoGCRequestRecalibrationCheck: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientVACReminder: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCUnderDraftBuy: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCUnderDraftBuyResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCUnderDraftReroll: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCUnderDraftRerollResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgNeutralItemStats: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCreateGuild: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCreateGuildResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSetGuildInfo: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSetGuildInfoResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCAddGuildRole: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCAddGuildRoleResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCModifyGuildRole: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCModifyGuildRoleResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRemoveGuildRole: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRemoveGuildRoleResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCJoinGuild: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCJoinGuildResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCLeaveGuild: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCLeaveGuildResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCInviteToGuild: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCInviteToGuildResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCDeclineInviteToGuild: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCDeclineInviteToGuildResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCancelInviteToGuild: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCancelInviteToGuildResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCKickGuildMember: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCKickGuildMemberResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSetGuildMemberRole: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSetGuildMemberRoleResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestGuildData: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestGuildDataResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientGuildDataUpdated: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestGuildMembership: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestGuildMembershipResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientGuildMembershipUpdated: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCAcceptInviteToGuild: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCAcceptInviteToGuildResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSetGuildRoleOrder: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSetGuildRoleOrderResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestGuildFeed: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestGuildFeedResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestAccountGuildEventData: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestAccountGuildEventDataResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientAccountGuildEventDataUpdated: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestActiveGuildContracts: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestActiveGuildContractsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientActiveGuildContractsUpdated: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientGuildFeedUpdated: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSelectGuildContract: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSelectGuildContractResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCCompleteGuildContracts: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCAddPlayerToGuildChat: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCAddPlayerToGuildChatResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCUnderDraftSell: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCUnderDraftSellResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCUnderDraftRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCUnderDraftResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCUnderDraftRedeemReward: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCUnderDraftRedeemRewardResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToServerLobbyHeroBanRates: _ClassVar[EDOTAGCMsg]
+    k_EMsgSignOutGuildContractProgress: _ClassVar[EDOTAGCMsg]
+    k_EMsgSignOutMVPStats: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestActiveGuildChallenge: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestActiveGuildChallengeResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientActiveGuildChallengeUpdated: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestReporterUpdates: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestReporterUpdatesResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCAcknowledgeReporterUpdates: _ClassVar[EDOTAGCMsg]
+    k_EMsgSignOutGuildChallengeProgress: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestGuildEventMembers: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestGuildEventMembersResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCReportGuildContent: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCReportGuildContentResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestAccountGuildPersonaInfo: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestAccountGuildPersonaInfoResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestAccountGuildPersonaInfoBatch: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestAccountGuildPersonaInfoBatchResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientUnderDraftGoldUpdated: _ClassVar[EDOTAGCMsg]
+    k_EMsgSignOutBounties: _ClassVar[EDOTAGCMsg]
+    k_EMsgLobbyFeaturedGamemodeProgress: _ClassVar[EDOTAGCMsg]
+    k_EMsgLobbyGauntletProgress: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSubmitDraftTriviaMatchAnswer: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSubmitDraftTriviaMatchAnswerResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCSignoutSpendBounty: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCApplyGauntletTicket: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCUnderDraftRollBackBench: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCUnderDraftRollBackBenchResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetEventActionScore: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetEventActionScoreResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCGetGuildContracts: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCGetGuildContractsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgLobbyEventGameData: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientGuildMembersDataUpdated: _ClassVar[EDOTAGCMsg]
+    k_EMsgSignOutReportActivityMarkers: _ClassVar[EDOTAGCMsg]
+    k_EMsgSignOutDiretideCandy: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientPostGameItemAwardNotification: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetOWMatchDetails: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetOWMatchDetailsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSubmitOWConviction: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSubmitOWConvictionResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetAccountSteamChina: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGetAccountSteamChinaResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCClaimLeaderboardRewards: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCClaimLeaderboardRewardsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRecalibrateMMR: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRecalibrateMMRResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGrantEventPointActionList: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCChinaSSAURLRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCChinaSSAURLResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCChinaSSAAcceptedRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCChinaSSAAcceptedResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgSignOutOverwatchSuspicion: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCGetSuspicionConfig: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCGetSuspicionConfigResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGrantPlusHeroChallengeMatchResults: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientOverwatchCasesAvailable: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCAccountCheck: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCStartWatchingOverwatch: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCStopWatchingOverwatch: _ClassVar[EDOTAGCMsg]
+    k_EMsgSignOutPerfData: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetDPCFavorites: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetDPCFavoritesResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSetDPCFavoriteState: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSetDPCFavoriteStateResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverwatchReplayError: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCPlayerChallengeHistory: _ClassVar[EDOTAGCMsg]
+    k_EMsgSignOutBanData: _ClassVar[EDOTAGCMsg]
+    k_EMsgWebapiDPCSeasonResults: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCoachFriend: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCoachFriendResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestPrivateCoachingSession: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRequestPrivateCoachingSessionResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCAcceptPrivateCoachingSession: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCAcceptPrivateCoachingSessionResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCLeavePrivateCoachingSession: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCLeavePrivateCoachingSessionResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetCurrentPrivateCoachingSession: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetCurrentPrivateCoachingSessionResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientPrivateCoachingSessionUpdated: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSubmitPrivateCoachingSessionRating: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSubmitPrivateCoachingSessionRatingResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetAvailablePrivateCoachingSessions: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetAvailablePrivateCoachingSessionsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetAvailablePrivateCoachingSessionsSummary: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetAvailablePrivateCoachingSessionsSummaryResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCJoinPrivateCoachingSessionLobby: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCJoinPrivateCoachingSessionLobbyResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRespondToCoachFriendRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRespondToCoachFriendRequestResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSetEventActiveSeasonID: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSetEventActiveSeasonIDResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCMatchPlayerNeutralItemEquipHistory: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCCompendiumChosenInGamePredictions: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCreateTeamPlayerCardPack: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCreateTeamPlayerCardPackResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToServerSubmitCheerData: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToServerCheerConfig: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCGetCheerConfig: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCGetCheerConfigResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToGCGrantAutographByID: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToServerCheerScalesOverride: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToServerGetCheerState: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCReportCheerState: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToServerScenarioSave: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToServerAbilityDraftLobbyData: _ClassVar[EDOTAGCMsg]
+    k_EMsgSignOutReportCommunications: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCBatchGetPlayerCardRosterRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCBatchGetPlayerCardRosterResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetStickerbookRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetStickerbookResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCreateStickerbookPageRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCreateStickerbookPageResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCDeleteStickerbookPageRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCDeleteStickerbookPageResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCPlaceStickersRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCPlaceStickersResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCPlaceCollectionStickersRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCPlaceCollectionStickersResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOrderStickerbookTeamPageRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOrderStickerbookTeamPageResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCGetStickerHeroes: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCGetStickerHeroesResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCandyShopGetUserData: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCandyShopGetUserDataResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientCandyShopUserDataUpdated: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCandyShopPurchaseReward: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCandyShopPurchaseRewardResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCandyShopDoExchange: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCandyShopDoExchangeResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCandyShopDoVariableExchange: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCandyShopDoVariableExchangeResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCandyShopRerollRewards: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCandyShopRerollRewardsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSetHeroSticker: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSetHeroStickerResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetHeroStickers: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetHeroStickersResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSetFavoritePage: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSetFavoritePageResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCandyShopDevGrantCandy: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCandyShopDevGrantCandyResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCandyShopDevClearInventory: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCandyShopDevClearInventoryResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCandyShopOpenBags: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCandyShopOpenBagsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCandyShopDevGrantCandyBags: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCandyShopDevGrantCandyBagsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCandyShopDevShuffleExchange: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCandyShopDevShuffleExchangeResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCandyShopDevGrantRerollCharges: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCandyShopDevGrantRerollChargesResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgLobbyAdditionalAccountData: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCLobbyInitialized: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCollectorsCacheAvailableDataRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientCollectorsCacheAvailableDataResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCUploadMatchClip: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientUploadMatchClipResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgSignOutMuertaMinigame: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToServerLobbyHeroRoleStats: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRankRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientRankResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientRankUpdate: _ClassVar[EDOTAGCMsg]
+    k_EMsgSignOutMapStats: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMapStatsRequest: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientMapStatsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCShowcaseGetUserData: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCShowcaseGetUserDataResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCShowcaseSetUserData: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCShowcaseSetUserDataResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCFantasyCraftingGetData: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCFantasyCraftingGetDataResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCFantasyCraftingPerformOperation: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCFantasyCraftingPerformOperationResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientFantasyCraftingGetDataUpdated: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCFantasyCraftingDevModifyTablet: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCFantasyCraftingDevModifyTabletResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRoadToTIGetQuests: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRoadToTIGetQuestsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRoadToTIGetActiveQuest: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRoadToTIGetActiveQuestResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCBingoGetUserData: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCBingoGetUserDataResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCBingoClaimRow: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCBingoClaimRowResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCBingoDevRerollCard: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCBingoDevRerollCardResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCBingoGetStatsData: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCBingoGetStatsDataResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientBingoUserDataUpdated: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientRoadToTIQuestDataUpdated: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRoadToTIUseItem: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRoadToTIUseItemResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCShowcaseSubmitReport: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCShowcaseSubmitReportResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCShowcaseAdminGetReportsRollupList: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCShowcaseAdminGetReportsRollupListResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCShowcaseAdminGetReportsRollup: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCShowcaseAdminGetReportsRollupResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCShowcaseAdminGetUserDetails: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCShowcaseAdminGetUserDetailsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCShowcaseAdminConvict: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCShowcaseAdminConvictResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCShowcaseAdminExonerate: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCShowcaseAdminExonerateResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCShowcaseAdminReset: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCShowcaseAdminResetResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCShowcaseAdminLockAccount: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCShowcaseAdminLockAccountResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCFantasyCraftingSelectPlayer: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCFantasyCraftingSelectPlayerResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCFantasyCraftingGenerateTablets: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCFantasyCraftingGenerateTabletsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGcFantasyCraftingUpgradeTablets: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGcFantasyCraftingUpgradeTabletsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCFantasyCraftingRerollOptions: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCFantasyCraftingRerollOptionsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCRoadToTIDevForceQuest: _ClassVar[EDOTAGCMsg]
+    k_EMsgLobbyRoadToTIMatchQuestData: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCShowcaseModerationGetQueue: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCShowcaseModerationGetQueueResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCShowcaseModerationApplyModeration: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCShowcaseModerationApplyModerationResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldGetUserData: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldGetUserDataResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldCompletePath: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldCompletePathResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldClaimEncounterReward: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldClaimEncounterRewardResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldDevResetAll: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldDevResetAllResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldDevResetNode: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldDevResetNodeResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldDevResetPath: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldDevResetPathResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldDevGrantTokens: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldDevGrantTokensResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldDevClearInventory: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldDevClearInventoryResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCNewBloomGift: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCNewBloomGiftResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientOverworldUserDataUpdated: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldMoveToNode: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldMoveToNodeResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCNewBloomGift: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCNewBloomGiftResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgSignOutOverworld: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSetBannedHeroes: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldTradeTokens: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldTradeTokensResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgOverworldEncounterTokenTreasureData: _ClassVar[EDOTAGCMsg]
+    k_EMsgOverworldEncounterTokenQuestData: _ClassVar[EDOTAGCMsg]
+    k_EMsgOverworldEncounterChooseHeroData: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCUpdateComicBookStats: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCandyShopDevResetShop: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCandyShopDevResetShopResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgOverworldEncounterProgressData: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldFeedback: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldFeedbackResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldVisitEncounter: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldVisitEncounterResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldGiftTokens: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldGiftTokensResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCDotaLabsFeedback: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCDotaLabsFeedbackResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgOverworldEncounterPitFighterRewardData: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldGetDynamicImage: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldGetDynamicImageResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCFightingGameChallengeFriend: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCFightingGameChallengeFriendResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCFightingGameCancelChallengeFriend: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCFightingGameAnswerChallenge: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCFightingGameAnswerChallengeResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientFightingGameChallenge: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientFightingGameStartMatch: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientFightingGameChallengeCanceled: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCBingoShuffleCard: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCBingoShuffleCardResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCBingoModifySquare: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCBingoModifySquareResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCBingoDevAddTokens: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCBingoDevAddTokensResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCBingoDevClearInventory: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCBingoDevClearInventoryResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCCompendiumRemoveAllSelections: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCCompendiumRemoveAllSelectionsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldMinigameAction: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldMinigameActionResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSurvivorsTelemetry: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCSurvivorsTelemetryResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldRequestTokensNeededByFriend: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldRequestTokensNeededByFriendResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCraftworksGetUserData: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCraftworksGetUserDataResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientCraftworksUserDataUpdated: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCraftworksCraftRecipe: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCraftworksCraftRecipeResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCraftworksDevModifyComponents: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCCraftworksDevModifyComponentsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgSignOutCraftworks: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMonsterHunterGetUserData: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMonsterHunterGetUserDataResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMonsterHunterClaimReward: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMonsterHunterClaimRewardResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMonsterHunterTradeMaterials: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMonsterHunterTradeMaterialsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMonsterHunterGiftMaterials: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMonsterHunterGiftMaterialsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMonsterHunterRequestMaterialsNeededByFriend: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMonsterHunterRequestMaterialsNeededByFriendResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMonsterHunterDevResetAll: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMonsterHunterDevResetAllResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMonsterHunterDevGrantMaterials: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMonsterHunterDevGrantMaterialsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMonsterHunterDevClearInventory: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMonsterHunterDevClearInventoryResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMonsterHunterDevClaimInvestigationRewards: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMonsterHunterDevClaimInvestigationRewardsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientMonsterHunterUserDataUpdated: _ClassVar[EDOTAGCMsg]
+    k_EMsgSignOutMonsterHunter: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCClaimGatedEvent: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCClaimGatedEventResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMonsterHunterDevModifyHeroCodex: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMonsterHunterDevModifyHeroCodexResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMonsterHunterClaimCodexReward: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMonsterHunterClaimCodexRewardResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMonsterHunterClaimSetReward: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCMonsterHunterClaimSetRewardResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetEventRanking: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetEventRankingResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetEventCoupon: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCGetEventCouponResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCConvertEventPoints: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCConvertEventPointsResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCWarningLowServerFramerate: _ClassVar[EDOTAGCMsg]
+    k_EMsgServerToGCWarningInvalidBotAbilityUsage: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCInviteToDemoMode: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientInviteToDemoMode: _ClassVar[EDOTAGCMsg]
+
+k_EMsgGCDOTABase: EDOTAGCMsg
+k_EMsgGCGameMatchSignOut: EDOTAGCMsg
+k_EMsgGCGameMatchSignOutResponse: EDOTAGCMsg
+k_EMsgGCJoinChatChannel: EDOTAGCMsg
+k_EMsgGCJoinChatChannelResponse: EDOTAGCMsg
+k_EMsgGCOtherJoinedChannel: EDOTAGCMsg
+k_EMsgGCOtherLeftChannel: EDOTAGCMsg
+k_EMsgServerToGCRequestStatus: EDOTAGCMsg
+k_EMsgGCStartFindingMatch: EDOTAGCMsg
+k_EMsgGCConnectedPlayers: EDOTAGCMsg
+k_EMsgGCAbandonCurrentGame: EDOTAGCMsg
+k_EMsgGCStopFindingMatch: EDOTAGCMsg
+k_EMsgGCPracticeLobbyCreate: EDOTAGCMsg
+k_EMsgGCPracticeLobbyLeave: EDOTAGCMsg
+k_EMsgGCPracticeLobbyLaunch: EDOTAGCMsg
+k_EMsgGCPracticeLobbyList: EDOTAGCMsg
+k_EMsgGCPracticeLobbyListResponse: EDOTAGCMsg
+k_EMsgGCPracticeLobbyJoin: EDOTAGCMsg
+k_EMsgGCPracticeLobbySetDetails: EDOTAGCMsg
+k_EMsgGCPracticeLobbySetTeamSlot: EDOTAGCMsg
+k_EMsgGCInitialQuestionnaireResponse: EDOTAGCMsg
+k_EMsgGCPracticeLobbyResponse: EDOTAGCMsg
+k_EMsgGCBroadcastNotification: EDOTAGCMsg
+k_EMsgGCLiveScoreboardUpdate: EDOTAGCMsg
+k_EMsgGCRequestChatChannelList: EDOTAGCMsg
+k_EMsgGCRequestChatChannelListResponse: EDOTAGCMsg
+k_EMsgGCReadyUp: EDOTAGCMsg
+k_EMsgGCKickedFromMatchmakingQueue: EDOTAGCMsg
+k_EMsgGCLeaverDetected: EDOTAGCMsg
+k_EMsgGCSpectateFriendGame: EDOTAGCMsg
+k_EMsgGCSpectateFriendGameResponse: EDOTAGCMsg
+k_EMsgGCReportsRemainingRequest: EDOTAGCMsg
+k_EMsgGCReportsRemainingResponse: EDOTAGCMsg
+k_EMsgGCSubmitPlayerReport: EDOTAGCMsg
+k_EMsgGCSubmitPlayerReportResponse: EDOTAGCMsg
+k_EMsgGCPracticeLobbyKick: EDOTAGCMsg
+k_EMsgGCSubmitPlayerReportV2: EDOTAGCMsg
+k_EMsgGCSubmitPlayerReportResponseV2: EDOTAGCMsg
+k_EMsgGCRequestSaveGames: EDOTAGCMsg
+k_EMsgGCRequestSaveGamesServer: EDOTAGCMsg
+k_EMsgGCRequestSaveGamesResponse: EDOTAGCMsg
+k_EMsgGCLeaverDetectedResponse: EDOTAGCMsg
+k_EMsgGCPlayerFailedToConnect: EDOTAGCMsg
+k_EMsgGCGCToRelayConnect: EDOTAGCMsg
+k_EMsgGCGCToRelayConnectresponse: EDOTAGCMsg
+k_EMsgGCWatchGame: EDOTAGCMsg
+k_EMsgGCWatchGameResponse: EDOTAGCMsg
+k_EMsgGCBanStatusRequest: EDOTAGCMsg
+k_EMsgGCBanStatusResponse: EDOTAGCMsg
+k_EMsgGCMatchDetailsRequest: EDOTAGCMsg
+k_EMsgGCMatchDetailsResponse: EDOTAGCMsg
+k_EMsgGCCancelWatchGame: EDOTAGCMsg
+k_EMsgGCPopup: EDOTAGCMsg
+k_EMsgGCFriendPracticeLobbyListRequest: EDOTAGCMsg
+k_EMsgGCFriendPracticeLobbyListResponse: EDOTAGCMsg
+k_EMsgGCPracticeLobbyJoinResponse: EDOTAGCMsg
+k_EMsgGCCreateTeam: EDOTAGCMsg
+k_EMsgGCCreateTeamResponse: EDOTAGCMsg
+k_EMsgGCTeamInvite_InviterToGC: EDOTAGCMsg
+k_EMsgGCTeamInvite_GCImmediateResponseToInviter: EDOTAGCMsg
+k_EMsgGCTeamInvite_GCRequestToInvitee: EDOTAGCMsg
+k_EMsgGCTeamInvite_InviteeResponseToGC: EDOTAGCMsg
+k_EMsgGCTeamInvite_GCResponseToInviter: EDOTAGCMsg
+k_EMsgGCTeamInvite_GCResponseToInvitee: EDOTAGCMsg
+k_EMsgGCKickTeamMember: EDOTAGCMsg
+k_EMsgGCKickTeamMemberResponse: EDOTAGCMsg
+k_EMsgGCLeaveTeam: EDOTAGCMsg
+k_EMsgGCLeaveTeamResponse: EDOTAGCMsg
+k_EMsgGCApplyTeamToPracticeLobby: EDOTAGCMsg
+k_EMsgGCTransferTeamAdmin: EDOTAGCMsg
+k_EMsgGCPracticeLobbyJoinBroadcastChannel: EDOTAGCMsg
+k_EMsgGC_TournamentItemEvent: EDOTAGCMsg
+k_EMsgGC_TournamentItemEventResponse: EDOTAGCMsg
+k_EMsgTeamFanfare: EDOTAGCMsg
+k_EMsgResponseTeamFanfare: EDOTAGCMsg
+k_EMsgGCEditTeamDetails: EDOTAGCMsg
+k_EMsgGCEditTeamDetailsResponse: EDOTAGCMsg
+k_EMsgGCReadyUpStatus: EDOTAGCMsg
+k_EMsgGCToGCMatchCompleted: EDOTAGCMsg
+k_EMsgGCBalancedShuffleLobby: EDOTAGCMsg
+k_EMsgGCMatchmakingStatsRequest: EDOTAGCMsg
+k_EMsgGCMatchmakingStatsResponse: EDOTAGCMsg
+k_EMsgGCBotGameCreate: EDOTAGCMsg
+k_EMsgGCSetMatchHistoryAccess: EDOTAGCMsg
+k_EMsgGCSetMatchHistoryAccessResponse: EDOTAGCMsg
+k_EMsgUpgradeLeagueItem: EDOTAGCMsg
+k_EMsgUpgradeLeagueItemResponse: EDOTAGCMsg
+k_EMsgGCWatchDownloadedReplay: EDOTAGCMsg
+k_EMsgClientsRejoinChatChannels: EDOTAGCMsg
+k_EMsgGCToGCGetUserChatInfo: EDOTAGCMsg
+k_EMsgGCToGCGetUserChatInfoResponse: EDOTAGCMsg
+k_EMsgGCToGCLeaveAllChatChannels: EDOTAGCMsg
+k_EMsgGCToGCUpdateAccountChatBan: EDOTAGCMsg
+k_EMsgGCToGCCanInviteUserToTeam: EDOTAGCMsg
+k_EMsgGCToGCCanInviteUserToTeamResponse: EDOTAGCMsg
+k_EMsgGCToGCGetUserRank: EDOTAGCMsg
+k_EMsgGCToGCGetUserRankResponse: EDOTAGCMsg
+k_EMsgGCToGCAdjustUserRank: EDOTAGCMsg
+k_EMsgGCToGCAdjustUserRankResponse: EDOTAGCMsg
+k_EMsgGCToGCUpdateTeamStats: EDOTAGCMsg
+k_EMsgGCToGCValidateTeam: EDOTAGCMsg
+k_EMsgGCToGCValidateTeamResponse: EDOTAGCMsg
+k_EMsgGCToGCGetLeagueAdmin: EDOTAGCMsg
+k_EMsgGCToGCGetLeagueAdminResponse: EDOTAGCMsg
+k_EMsgGCLeaveChatChannel: EDOTAGCMsg
+k_EMsgGCChatMessage: EDOTAGCMsg
+k_EMsgGCGetHeroStandings: EDOTAGCMsg
+k_EMsgGCGetHeroStandingsResponse: EDOTAGCMsg
+k_EMsgGCItemEditorReservationsRequest: EDOTAGCMsg
+k_EMsgGCItemEditorReservationsResponse: EDOTAGCMsg
+k_EMsgGCItemEditorReserveItemDef: EDOTAGCMsg
+k_EMsgGCItemEditorReserveItemDefResponse: EDOTAGCMsg
+k_EMsgGCItemEditorReleaseReservation: EDOTAGCMsg
+k_EMsgGCItemEditorReleaseReservationResponse: EDOTAGCMsg
+k_EMsgGCFantasyLivePlayerStats: EDOTAGCMsg
+k_EMsgGCFantasyFinalPlayerStats: EDOTAGCMsg
+k_EMsgGCFlipLobbyTeams: EDOTAGCMsg
+k_EMsgGCToGCEvaluateReportedPlayer: EDOTAGCMsg
+k_EMsgGCToGCEvaluateReportedPlayerResponse: EDOTAGCMsg
+k_EMsgGCToGCProcessPlayerReportForTarget: EDOTAGCMsg
+k_EMsgGCToGCProcessReportSuccess: EDOTAGCMsg
+k_EMsgGCNotifyAccountFlagsChange: EDOTAGCMsg
+k_EMsgGCSetProfilePrivacy: EDOTAGCMsg
+k_EMsgGCSetProfilePrivacyResponse: EDOTAGCMsg
+k_EMsgGCClientSuspended: EDOTAGCMsg
+k_EMsgGCPartyMemberSetCoach: EDOTAGCMsg
+k_EMsgGCPracticeLobbySetCoach: EDOTAGCMsg
+k_EMsgGCChatModeratorBan: EDOTAGCMsg
+k_EMsgGCLobbyUpdateBroadcastChannelInfo: EDOTAGCMsg
+k_EMsgGCToGCGrantTournamentItem: EDOTAGCMsg
+k_EMsgGCToGCUpgradeTwitchViewerItems: EDOTAGCMsg
+k_EMsgGCToGCGetLiveMatchAffiliates: EDOTAGCMsg
+k_EMsgGCToGCGetLiveMatchAffiliatesResponse: EDOTAGCMsg
+k_EMsgGCToGCUpdatePlayerPennantCounts: EDOTAGCMsg
+k_EMsgGCToGCGetPlayerPennantCounts: EDOTAGCMsg
+k_EMsgGCToGCGetPlayerPennantCountsResponse: EDOTAGCMsg
+k_EMsgGCGameMatchSignOutPermissionRequest: EDOTAGCMsg
+k_EMsgGCGameMatchSignOutPermissionResponse: EDOTAGCMsg
+k_EMsgDOTAAwardEventPoints: EDOTAGCMsg
+k_EMsgDOTAGetEventPoints: EDOTAGCMsg
+k_EMsgDOTAGetEventPointsResponse: EDOTAGCMsg
+k_EMsgGCPartyLeaderWatchGamePrompt: EDOTAGCMsg
+k_EMsgGCCompendiumSetSelection: EDOTAGCMsg
+k_EMsgGCCompendiumDataRequest: EDOTAGCMsg
+k_EMsgGCCompendiumDataResponse: EDOTAGCMsg
+k_EMsgDOTAGetPlayerMatchHistory: EDOTAGCMsg
+k_EMsgDOTAGetPlayerMatchHistoryResponse: EDOTAGCMsg
+k_EMsgGCToGCMatchmakingAddParty: EDOTAGCMsg
+k_EMsgGCToGCMatchmakingRemoveParty: EDOTAGCMsg
+k_EMsgGCToGCMatchmakingRemoveAllParties: EDOTAGCMsg
+k_EMsgGCToGCMatchmakingMatchFound: EDOTAGCMsg
+k_EMsgGCToGCUpdateMatchManagementStats: EDOTAGCMsg
+k_EMsgGCToGCUpdateMatchmakingStats: EDOTAGCMsg
+k_EMsgGCToServerPingRequest: EDOTAGCMsg
+k_EMsgGCToServerPingResponse: EDOTAGCMsg
+k_EMsgGCToServerEvaluateToxicChat: EDOTAGCMsg
+k_EMsgServerToGCEvaluateToxicChat: EDOTAGCMsg
+k_EMsgServerToGCEvaluateToxicChatResponse: EDOTAGCMsg
+k_EMsgGCToGCProcessMatchLeaver: EDOTAGCMsg
+k_EMsgGCNotificationsRequest: EDOTAGCMsg
+k_EMsgGCNotificationsResponse: EDOTAGCMsg
+k_EMsgGCToGCModifyNotification: EDOTAGCMsg
+k_EMsgGCLeagueAdminList: EDOTAGCMsg
+k_EMsgGCNotificationsMarkReadRequest: EDOTAGCMsg
+k_EMsgServerToGCRequestBatchPlayerResources: EDOTAGCMsg
+k_EMsgServerToGCRequestBatchPlayerResourcesResponse: EDOTAGCMsg
+k_EMsgGCCompendiumSetSelectionResponse: EDOTAGCMsg
+k_EMsgGCRankedPlayerInfoSubmit: EDOTAGCMsg
+k_EMsgGCRankedPlayerInfoSubmitResponse: EDOTAGCMsg
+k_EMsgGCPlayerInfoSubmit: EDOTAGCMsg
+k_EMsgGCPlayerInfoSubmitResponse: EDOTAGCMsg
+k_EMsgGCToGCGetAccountLevel: EDOTAGCMsg
+k_EMsgGCToGCGetAccountLevelResponse: EDOTAGCMsg
+k_EMsgDOTAGetWeekendTourneySchedule: EDOTAGCMsg
+k_EMsgDOTAWeekendTourneySchedule: EDOTAGCMsg
+k_EMsgGCJoinableCustomGameModesRequest: EDOTAGCMsg
+k_EMsgGCJoinableCustomGameModesResponse: EDOTAGCMsg
+k_EMsgGCJoinableCustomLobbiesRequest: EDOTAGCMsg
+k_EMsgGCJoinableCustomLobbiesResponse: EDOTAGCMsg
+k_EMsgGCQuickJoinCustomLobby: EDOTAGCMsg
+k_EMsgGCQuickJoinCustomLobbyResponse: EDOTAGCMsg
+k_EMsgGCToGCGrantEventPointAction: EDOTAGCMsg
+k_EMsgGCToGCSetCompendiumSelection: EDOTAGCMsg
+k_EMsgGCHasItemQuery: EDOTAGCMsg
+k_EMsgGCHasItemResponse: EDOTAGCMsg
+k_EMsgGCToGCGrantEventPointActionMsg: EDOTAGCMsg
+k_EMsgGCToGCGetCompendiumSelections: EDOTAGCMsg
+k_EMsgGCToGCGetCompendiumSelectionsResponse: EDOTAGCMsg
+k_EMsgServerToGCMatchConnectionStats: EDOTAGCMsg
+k_EMsgGCToClientTournamentItemDrop: EDOTAGCMsg
+k_EMsgSQLDelayedGrantLeagueDrop: EDOTAGCMsg
+k_EMsgServerGCUpdateSpectatorCount: EDOTAGCMsg
+k_EMsgGCToGCEmoticonUnlock: EDOTAGCMsg
+k_EMsgSignOutDraftInfo: EDOTAGCMsg
+k_EMsgClientToGCEmoticonDataRequest: EDOTAGCMsg
+k_EMsgGCToClientEmoticonData: EDOTAGCMsg
+k_EMsgGCPracticeLobbyToggleBroadcastChannelCameramanStatus: EDOTAGCMsg
+k_EMsgDOTARedeemItem: EDOTAGCMsg
+k_EMsgDOTARedeemItemResponse: EDOTAGCMsg
+k_EMsgClientToGCGetAllHeroProgress: EDOTAGCMsg
+k_EMsgClientToGCGetAllHeroProgressResponse: EDOTAGCMsg
+k_EMsgGCToGCGetServerForClient: EDOTAGCMsg
+k_EMsgGCToGCGetServerForClientResponse: EDOTAGCMsg
+k_EMsgSQLProcessTournamentGameOutcome: EDOTAGCMsg
+k_EMsgSQLGrantTrophyToAccount: EDOTAGCMsg
+k_EMsgClientToGCGetTrophyList: EDOTAGCMsg
+k_EMsgClientToGCGetTrophyListResponse: EDOTAGCMsg
+k_EMsgGCToClientTrophyAwarded: EDOTAGCMsg
+k_EMsgGCGameBotMatchSignOut: EDOTAGCMsg
+k_EMsgGCGameBotMatchSignOutPermissionRequest: EDOTAGCMsg
+k_EMsgSignOutBotInfo: EDOTAGCMsg
+k_EMsgGCToGCUpdateProfileCards: EDOTAGCMsg
+k_EMsgClientToGCGetProfileCard: EDOTAGCMsg
+k_EMsgClientToGCGetProfileCardResponse: EDOTAGCMsg
+k_EMsgClientToGCGetBattleReport: EDOTAGCMsg
+k_EMsgClientToGCGetBattleReportResponse: EDOTAGCMsg
+k_EMsgClientToGCSetProfileCardSlots: EDOTAGCMsg
+k_EMsgGCToClientProfileCardUpdated: EDOTAGCMsg
+k_EMsgServerToGCVictoryPredictions: EDOTAGCMsg
+k_EMsgClientToGCGetBattleReportAggregateStats: EDOTAGCMsg
+k_EMsgClientToGCGetBattleReportAggregateStatsResponse: EDOTAGCMsg
+k_EMsgClientToGCGetBattleReportInfo: EDOTAGCMsg
+k_EMsgClientToGCGetBattleReportInfoResponse: EDOTAGCMsg
+k_EMsgSignOutCommunicationSummary: EDOTAGCMsg
+k_EMsgServerToGCRequestStatus_Response: EDOTAGCMsg
+k_EMsgClientToGCCreateHeroStatue: EDOTAGCMsg
+k_EMsgGCToClientHeroStatueCreateResult: EDOTAGCMsg
+k_EMsgGCGCToLANServerRelayConnect: EDOTAGCMsg
+k_EMsgClientToGCAcknowledgeBattleReport: EDOTAGCMsg
+k_EMsgClientToGCAcknowledgeBattleReportResponse: EDOTAGCMsg
+k_EMsgClientToGCGetBattleReportMatchHistory: EDOTAGCMsg
+k_EMsgClientToGCGetBattleReportMatchHistoryResponse: EDOTAGCMsg
+k_EMsgServerToGCReportKillSummaries: EDOTAGCMsg
+k_EMsgGCToGCUpdatePlayerPredictions: EDOTAGCMsg
+k_EMsgGCToServerPredictionResult: EDOTAGCMsg
+k_EMsgGCToGCReplayMonitorValidateReplay: EDOTAGCMsg
+k_EMsgLobbyEventPoints: EDOTAGCMsg
+k_EMsgGCToGCGetCustomGameTickets: EDOTAGCMsg
+k_EMsgGCToGCGetCustomGameTicketsResponse: EDOTAGCMsg
+k_EMsgGCToGCCustomGamePlayed: EDOTAGCMsg
+k_EMsgGCToGCGrantEventPointsToUser: EDOTAGCMsg
+k_EMsgGameserverCrashReport: EDOTAGCMsg
+k_EMsgGameserverCrashReportResponse: EDOTAGCMsg
+k_EMsgGCToClientSteamDatagramTicket: EDOTAGCMsg
+k_EMsgGCToGCSendAccountsEventPoints: EDOTAGCMsg
+k_EMsgClientToGCRerollPlayerChallenge: EDOTAGCMsg
+k_EMsgServerToGCRerollPlayerChallenge: EDOTAGCMsg
+k_EMsgGCRerollPlayerChallengeResponse: EDOTAGCMsg
+k_EMsgSignOutUpdatePlayerChallenge: EDOTAGCMsg
+k_EMsgClientToGCSetPartyLeader: EDOTAGCMsg
+k_EMsgClientToGCCancelPartyInvites: EDOTAGCMsg
+k_EMsgSQLGrantLeagueMatchToTicketHolders: EDOTAGCMsg
+k_EMsgGCToGCEmoticonUnlockNoRollback: EDOTAGCMsg
+k_EMsgClientToGCApplyGemCombiner: EDOTAGCMsg
+k_EMsgClientToGCGetAllHeroOrder: EDOTAGCMsg
+k_EMsgClientToGCGetAllHeroOrderResponse: EDOTAGCMsg
+k_EMsgSQLGCToGCGrantBadgePoints: EDOTAGCMsg
+k_EMsgGCToGCCheckOwnsEntireEmoticonRange: EDOTAGCMsg
+k_EMsgGCToGCCheckOwnsEntireEmoticonRangeResponse: EDOTAGCMsg
+k_EMsgGCToClientRequestLaneSelection: EDOTAGCMsg
+k_EMsgGCToClientRequestLaneSelectionResponse: EDOTAGCMsg
+k_EMsgServerToGCCavernCrawlIsHeroActive: EDOTAGCMsg
+k_EMsgServerToGCCavernCrawlIsHeroActiveResponse: EDOTAGCMsg
+k_EMsgClientToGCPlayerCardSpecificPurchaseRequest: EDOTAGCMsg
+k_EMsgClientToGCPlayerCardSpecificPurchaseResponse: EDOTAGCMsg
+k_EMsgSQLSetIsLeagueAdmin: EDOTAGCMsg
+k_EMsgGCToGCGetLiveLeagueMatches: EDOTAGCMsg
+k_EMsgGCToGCGetLiveLeagueMatchesResponse: EDOTAGCMsg
+k_EMsgDOTALeagueInfoListAdminsRequest: EDOTAGCMsg
+k_EMsgDOTALeagueInfoListAdminsReponse: EDOTAGCMsg
+k_EMsgGCToGCLeagueMatchStarted: EDOTAGCMsg
+k_EMsgGCToGCLeagueMatchCompleted: EDOTAGCMsg
+k_EMsgGCToGCLeagueMatchStartedResponse: EDOTAGCMsg
+k_EMsgDOTALeagueAvailableLobbyNodesRequest: EDOTAGCMsg
+k_EMsgDOTALeagueAvailableLobbyNodes: EDOTAGCMsg
+k_EMsgGCToGCLeagueRequest: EDOTAGCMsg
+k_EMsgGCToGCLeagueResponse: EDOTAGCMsg
+k_EMsgGCToGCLeagueNodeGroupRequest: EDOTAGCMsg
+k_EMsgGCToGCLeagueNodeGroupResponse: EDOTAGCMsg
+k_EMsgGCToGCLeagueNodeRequest: EDOTAGCMsg
+k_EMsgGCToGCLeagueNodeResponse: EDOTAGCMsg
+k_EMsgGCToGCRealtimeStatsTerseRequest: EDOTAGCMsg
+k_EMsgGCToGCRealtimeStatsTerseResponse: EDOTAGCMsg
+k_EMsgGCToGCGetTopMatchesRequest: EDOTAGCMsg
+k_EMsgGCToGCGetTopMatchesResponse: EDOTAGCMsg
+k_EMsgClientToGCGetFilteredPlayers: EDOTAGCMsg
+k_EMsgGCToClientGetFilteredPlayersResponse: EDOTAGCMsg
+k_EMsgClientToGCRemoveFilteredPlayer: EDOTAGCMsg
+k_EMsgGCToClientRemoveFilteredPlayerResponse: EDOTAGCMsg
+k_EMsgGCToClientPlayerBeaconState: EDOTAGCMsg
+k_EMsgGCToClientPartyBeaconUpdate: EDOTAGCMsg
+k_EMsgGCToClientPartySearchInvite: EDOTAGCMsg
+k_EMsgClientToGCUpdatePartyBeacon: EDOTAGCMsg
+k_EMsgClientToGCRequestActiveBeaconParties: EDOTAGCMsg
+k_EMsgGCToClientRequestActiveBeaconPartiesResponse: EDOTAGCMsg
+k_EMsgClientToGCManageFavorites: EDOTAGCMsg
+k_EMsgGCToClientManageFavoritesResponse: EDOTAGCMsg
+k_EMsgClientToGCJoinPartyFromBeacon: EDOTAGCMsg
+k_EMsgGCToClientJoinPartyFromBeaconResponse: EDOTAGCMsg
+k_EMsgClientToGCGetFavoritePlayers: EDOTAGCMsg
+k_EMsgGCToClientGetFavoritePlayersResponse: EDOTAGCMsg
+k_EMsgClientToGCVerifyFavoritePlayers: EDOTAGCMsg
+k_EMsgGCToClientVerifyFavoritePlayersResponse: EDOTAGCMsg
+k_EMsgGCToClientPartySearchInvites: EDOTAGCMsg
+k_EMsgGCToClientRequestMMInfo: EDOTAGCMsg
+k_EMsgClientToGCMMInfo: EDOTAGCMsg
+k_EMsgSignOutTextMuteInfo: EDOTAGCMsg
+k_EMsgClientToGCPurchaseLabyrinthBlessings: EDOTAGCMsg
+k_EMsgClientToGCPurchaseLabyrinthBlessingsResponse: EDOTAGCMsg
+k_EMsgClientToGCPurchaseFilteredPlayerSlot: EDOTAGCMsg
+k_EMsgGCToClientPurchaseFilteredPlayerSlotResponse: EDOTAGCMsg
+k_EMsgClientToGCUpdateFilteredPlayerNote: EDOTAGCMsg
+k_EMsgGCToClientUpdateFilteredPlayerNoteResponse: EDOTAGCMsg
+k_EMsgClientToGCClaimSwag: EDOTAGCMsg
+k_EMsgGCToClientClaimSwagResponse: EDOTAGCMsg
+k_EMsgServerToGCLockCharmTrading: EDOTAGCMsg
+k_EMsgClientToGCPlayerStatsRequest: EDOTAGCMsg
+k_EMsgGCToClientPlayerStatsResponse: EDOTAGCMsg
+k_EMsgGCClearPracticeLobbyTeam: EDOTAGCMsg
+k_EMsgClientToGCFindTopSourceTVGames: EDOTAGCMsg
+k_EMsgGCToClientFindTopSourceTVGamesResponse: EDOTAGCMsg
+k_EMsgGCLobbyList: EDOTAGCMsg
+k_EMsgGCLobbyListResponse: EDOTAGCMsg
+k_EMsgGCPlayerStatsMatchSignOut: EDOTAGCMsg
+k_EMsgClientToGCSocialFeedPostCommentRequest: EDOTAGCMsg
+k_EMsgGCToClientSocialFeedPostCommentResponse: EDOTAGCMsg
+k_EMsgClientToGCCustomGamesFriendsPlayedRequest: EDOTAGCMsg
+k_EMsgGCToClientCustomGamesFriendsPlayedResponse: EDOTAGCMsg
+k_EMsgClientToGCFriendsPlayedCustomGameRequest: EDOTAGCMsg
+k_EMsgGCToClientFriendsPlayedCustomGameResponse: EDOTAGCMsg
+k_EMsgGCTopCustomGamesList: EDOTAGCMsg
+k_EMsgClientToGCSetPartyOpen: EDOTAGCMsg
+k_EMsgClientToGCMergePartyInvite: EDOTAGCMsg
+k_EMsgGCToClientMergeGroupInviteReply: EDOTAGCMsg
+k_EMsgClientToGCMergePartyResponse: EDOTAGCMsg
+k_EMsgGCToClientMergePartyResponseReply: EDOTAGCMsg
+k_EMsgClientToGCGetProfileCardStats: EDOTAGCMsg
+k_EMsgClientToGCGetProfileCardStatsResponse: EDOTAGCMsg
+k_EMsgClientToGCTopLeagueMatchesRequest: EDOTAGCMsg
+k_EMsgClientToGCTopFriendMatchesRequest: EDOTAGCMsg
+k_EMsgGCToClientProfileCardStatsUpdated: EDOTAGCMsg
+k_EMsgServerToGCRealtimeStats: EDOTAGCMsg
+k_EMsgGCToServerRealtimeStatsStartStop: EDOTAGCMsg
+k_EMsgGCToGCGetServersForClients: EDOTAGCMsg
+k_EMsgGCToGCGetServersForClientsResponse: EDOTAGCMsg
+k_EMsgGCPracticeLobbyKickFromTeam: EDOTAGCMsg
+k_EMsgDOTAChatGetMemberCount: EDOTAGCMsg
+k_EMsgDOTAChatGetMemberCountResponse: EDOTAGCMsg
+k_EMsgClientToGCSocialFeedPostMessageRequest: EDOTAGCMsg
+k_EMsgGCToClientSocialFeedPostMessageResponse: EDOTAGCMsg
+k_EMsgCustomGameListenServerStartedLoading: EDOTAGCMsg
+k_EMsgCustomGameClientFinishedLoading: EDOTAGCMsg
+k_EMsgGCPracticeLobbyCloseBroadcastChannel: EDOTAGCMsg
+k_EMsgGCStartFindingMatchResponse: EDOTAGCMsg
+k_EMsgSQLGCToGCGrantAccountFlag: EDOTAGCMsg
+k_EMsgGCToClientTopLeagueMatchesResponse: EDOTAGCMsg
+k_EMsgGCToClientTopFriendMatchesResponse: EDOTAGCMsg
+k_EMsgClientToGCMatchesMinimalRequest: EDOTAGCMsg
+k_EMsgClientToGCMatchesMinimalResponse: EDOTAGCMsg
+k_EMsgGCToClientChatRegionsEnabled: EDOTAGCMsg
+k_EMsgClientToGCPingData: EDOTAGCMsg
+k_EMsgGCToGCEnsureAccountInParty: EDOTAGCMsg
+k_EMsgGCToGCEnsureAccountInPartyResponse: EDOTAGCMsg
+k_EMsgClientToGCGetProfileTickets: EDOTAGCMsg
+k_EMsgClientToGCGetProfileTicketsResponse: EDOTAGCMsg
+k_EMsgGCToClientMatchGroupsVersion: EDOTAGCMsg
+k_EMsgClientToGCH264Unsupported: EDOTAGCMsg
+k_EMsgClientToGCWatchingBroadcast: EDOTAGCMsg
+k_EMsgClientToGCGetQuestProgress: EDOTAGCMsg
+k_EMsgClientToGCGetQuestProgressResponse: EDOTAGCMsg
+k_EMsgSignOutXPCoins: EDOTAGCMsg
+k_EMsgGCToClientMatchSignedOut: EDOTAGCMsg
+k_EMsgGCGetHeroStatsHistory: EDOTAGCMsg
+k_EMsgGCGetHeroStatsHistoryResponse: EDOTAGCMsg
+k_EMsgClientToGCPrivateChatInvite: EDOTAGCMsg
+k_EMsgClientToGCPrivateChatKick: EDOTAGCMsg
+k_EMsgClientToGCPrivateChatPromote: EDOTAGCMsg
+k_EMsgClientToGCPrivateChatDemote: EDOTAGCMsg
+k_EMsgGCToClientPrivateChatResponse: EDOTAGCMsg
+k_EMsgClientToGCLatestConductScorecardRequest: EDOTAGCMsg
+k_EMsgClientToGCLatestConductScorecard: EDOTAGCMsg
+k_EMsgClientToGCWageringRequest: EDOTAGCMsg
+k_EMsgGCToClientWageringResponse: EDOTAGCMsg
+k_EMsgClientToGCEventGoalsRequest: EDOTAGCMsg
+k_EMsgClientToGCEventGoalsResponse: EDOTAGCMsg
+k_EMsgGCToGCLeaguePredictionsUpdate: EDOTAGCMsg
+k_EMsgGCToGCAddUserToPostGameChat: EDOTAGCMsg
+k_EMsgClientToGCHasPlayerVotedForMVP: EDOTAGCMsg
+k_EMsgClientToGCHasPlayerVotedForMVPResponse: EDOTAGCMsg
+k_EMsgClientToGCVoteForMVP: EDOTAGCMsg
+k_EMsgClientToGCVoteForMVPResponse: EDOTAGCMsg
+k_EMsgGCToGCGetEventParticipation: EDOTAGCMsg
+k_EMsgGCToGCGetEventParticipationResponse: EDOTAGCMsg
+k_EMsgGCToClientAutomatedTournamentStateChange: EDOTAGCMsg
+k_EMsgClientToGCWeekendTourneyOpts: EDOTAGCMsg
+k_EMsgClientToGCWeekendTourneyOptsResponse: EDOTAGCMsg
+k_EMsgClientToGCWeekendTourneyLeave: EDOTAGCMsg
+k_EMsgClientToGCWeekendTourneyLeaveResponse: EDOTAGCMsg
+k_EMsgClientToGCTeammateStatsRequest: EDOTAGCMsg
+k_EMsgClientToGCTeammateStatsResponse: EDOTAGCMsg
+k_EMsgClientToGCGetGiftPermissions: EDOTAGCMsg
+k_EMsgClientToGCGetGiftPermissionsResponse: EDOTAGCMsg
+k_EMsgClientToGCVoteForArcana: EDOTAGCMsg
+k_EMsgClientToGCVoteForArcanaResponse: EDOTAGCMsg
+k_EMsgClientToGCRequestArcanaVotesRemaining: EDOTAGCMsg
+k_EMsgClientToGCRequestArcanaVotesRemainingResponse: EDOTAGCMsg
+k_EMsgGCTransferTeamAdminResponse: EDOTAGCMsg
+k_EMsgGCToClientTeamInfo: EDOTAGCMsg
+k_EMsgGCToClientTeamsInfo: EDOTAGCMsg
+k_EMsgClientToGCMyTeamInfoRequest: EDOTAGCMsg
+k_EMsgClientToGCPublishUserStat: EDOTAGCMsg
+k_EMsgGCToGCSignoutSpendWager: EDOTAGCMsg
+k_EMsgGCSubmitLobbyMVPVote: EDOTAGCMsg
+k_EMsgGCSubmitLobbyMVPVoteResponse: EDOTAGCMsg
+k_EMsgSignOutCommunityGoalProgress: EDOTAGCMsg
+k_EMsgGCToClientLobbyMVPAwarded: EDOTAGCMsg
+k_EMsgGCToClientQuestProgressUpdated: EDOTAGCMsg
+k_EMsgGCToClientWageringUpdate: EDOTAGCMsg
+k_EMsgGCToClientArcanaVotesUpdate: EDOTAGCMsg
+k_EMsgClientToGCSetSpectatorLobbyDetails: EDOTAGCMsg
+k_EMsgClientToGCSetSpectatorLobbyDetailsResponse: EDOTAGCMsg
+k_EMsgClientToGCCreateSpectatorLobby: EDOTAGCMsg
+k_EMsgClientToGCCreateSpectatorLobbyResponse: EDOTAGCMsg
+k_EMsgClientToGCSpectatorLobbyList: EDOTAGCMsg
+k_EMsgClientToGCSpectatorLobbyListResponse: EDOTAGCMsg
+k_EMsgSpectatorLobbyGameDetails: EDOTAGCMsg
+k_EMsgServerToGCCompendiumInGamePredictionResults: EDOTAGCMsg
+k_EMsgServerToGCCloseCompendiumInGamePredictionVoting: EDOTAGCMsg
+k_EMsgClientToGCOpenPlayerCardPack: EDOTAGCMsg
+k_EMsgClientToGCOpenPlayerCardPackResponse: EDOTAGCMsg
+k_EMsgClientToGCSelectCompendiumInGamePrediction: EDOTAGCMsg
+k_EMsgClientToGCSelectCompendiumInGamePredictionResponse: EDOTAGCMsg
+k_EMsgClientToGCWeekendTourneyGetPlayerStats: EDOTAGCMsg
+k_EMsgClientToGCWeekendTourneyGetPlayerStatsResponse: EDOTAGCMsg
+k_EMsgClientToGCRecyclePlayerCard: EDOTAGCMsg
+k_EMsgClientToGCRecyclePlayerCardResponse: EDOTAGCMsg
+k_EMsgClientToGCCreatePlayerCardPack: EDOTAGCMsg
+k_EMsgClientToGCCreatePlayerCardPackResponse: EDOTAGCMsg
+k_EMsgClientToGCGetPlayerCardRosterRequest: EDOTAGCMsg
+k_EMsgClientToGCGetPlayerCardRosterResponse: EDOTAGCMsg
+k_EMsgClientToGCSetPlayerCardRosterRequest: EDOTAGCMsg
+k_EMsgClientToGCSetPlayerCardRosterResponse: EDOTAGCMsg
+k_EMsgServerToGCCloseCompendiumInGamePredictionVotingResponse: EDOTAGCMsg
+k_EMsgLobbyBattleCupVictory: EDOTAGCMsg
+k_EMsgGCGetPlayerCardItemInfo: EDOTAGCMsg
+k_EMsgGCGetPlayerCardItemInfoResponse: EDOTAGCMsg
+k_EMsgClientToGCRequestSteamDatagramTicket: EDOTAGCMsg
+k_EMsgClientToGCRequestSteamDatagramTicketResponse: EDOTAGCMsg
+k_EMsgGCToClientBattlePassRollupRequest: EDOTAGCMsg
+k_EMsgGCToClientBattlePassRollupResponse: EDOTAGCMsg
+k_EMsgClientToGCTransferSeasonalMMRRequest: EDOTAGCMsg
+k_EMsgClientToGCTransferSeasonalMMRResponse: EDOTAGCMsg
+k_EMsgGCToGCPublicChatCommunicationBan: EDOTAGCMsg
+k_EMsgGCToGCUpdateAccountInfo: EDOTAGCMsg
+k_EMsgGCChatReportPublicSpam: EDOTAGCMsg
+k_EMsgClientToGCSetPartyBuilderOptions: EDOTAGCMsg
+k_EMsgClientToGCSetPartyBuilderOptionsResponse: EDOTAGCMsg
+k_EMsgGCToClientPlaytestStatus: EDOTAGCMsg
+k_EMsgClientToGCJoinPlaytest: EDOTAGCMsg
+k_EMsgClientToGCJoinPlaytestResponse: EDOTAGCMsg
+k_EMsgLobbyPlaytestDetails: EDOTAGCMsg
+k_EMsgDOTASetFavoriteTeam: EDOTAGCMsg
+k_EMsgGCToClientBattlePassRollupListRequest: EDOTAGCMsg
+k_EMsgGCToClientBattlePassRollupListResponse: EDOTAGCMsg
+k_EMsgDOTAClaimEventAction: EDOTAGCMsg
+k_EMsgDOTAClaimEventActionResponse: EDOTAGCMsg
+k_EMsgDOTAGetPeriodicResource: EDOTAGCMsg
+k_EMsgDOTAGetPeriodicResourceResponse: EDOTAGCMsg
+k_EMsgDOTAPeriodicResourceUpdated: EDOTAGCMsg
+k_EMsgServerToGCSpendWager: EDOTAGCMsg
+k_EMsgGCToGCSignoutSpendWagerToken: EDOTAGCMsg
+k_EMsgSubmitTriviaQuestionAnswer: EDOTAGCMsg
+k_EMsgSubmitTriviaQuestionAnswerResponse: EDOTAGCMsg
+k_EMsgClientToGCGiveTip: EDOTAGCMsg
+k_EMsgClientToGCGiveTipResponse: EDOTAGCMsg
+k_EMsgStartTriviaSession: EDOTAGCMsg
+k_EMsgStartTriviaSessionResponse: EDOTAGCMsg
+k_EMsgAnchorPhoneNumberRequest: EDOTAGCMsg
+k_EMsgAnchorPhoneNumberResponse: EDOTAGCMsg
+k_EMsgUnanchorPhoneNumberRequest: EDOTAGCMsg
+k_EMsgUnanchorPhoneNumberResponse: EDOTAGCMsg
+k_EMsgGCToGCSignoutSpendRankWager: EDOTAGCMsg
+k_EMsgGCToGCGetFavoriteTeam: EDOTAGCMsg
+k_EMsgGCToGCGetFavoriteTeamResponse: EDOTAGCMsg
+k_EMsgSignOutEventGameData: EDOTAGCMsg
+k_EMsgClientToGCQuickStatsRequest: EDOTAGCMsg
+k_EMsgClientToGCQuickStatsResponse: EDOTAGCMsg
+k_EMsgGCToGCSubtractEventPointsFromUser: EDOTAGCMsg
+k_EMsgSelectionPriorityChoiceRequest: EDOTAGCMsg
+k_EMsgSelectionPriorityChoiceResponse: EDOTAGCMsg
+k_EMsgGCToGCCompendiumInGamePredictionResults: EDOTAGCMsg
+k_EMsgGameAutographReward: EDOTAGCMsg
+k_EMsgGameAutographRewardResponse: EDOTAGCMsg
+k_EMsgDestroyLobbyRequest: EDOTAGCMsg
+k_EMsgDestroyLobbyResponse: EDOTAGCMsg
+k_EMsgPurchaseItemWithEventPoints: EDOTAGCMsg
+k_EMsgPurchaseItemWithEventPointsResponse: EDOTAGCMsg
+k_EMsgServerToGCMatchPlayerItemPurchaseHistory: EDOTAGCMsg
+k_EMsgGCToGCGrantPlusHeroMatchResults: EDOTAGCMsg
+k_EMsgServerToGCMatchStateHistory: EDOTAGCMsg
+k_EMsgPurchaseHeroRandomRelic: EDOTAGCMsg
+k_EMsgPurchaseHeroRandomRelicResponse: EDOTAGCMsg
+k_EMsgClientToGCClaimEventActionUsingItem: EDOTAGCMsg
+k_EMsgClientToGCClaimEventActionUsingItemResponse: EDOTAGCMsg
+k_EMsgPartyReadyCheckRequest: EDOTAGCMsg
+k_EMsgPartyReadyCheckResponse: EDOTAGCMsg
+k_EMsgPartyReadyCheckAcknowledge: EDOTAGCMsg
+k_EMsgGetRecentPlayTimeFriendsRequest: EDOTAGCMsg
+k_EMsgGetRecentPlayTimeFriendsResponse: EDOTAGCMsg
+k_EMsgGCToClientCommendNotification: EDOTAGCMsg
+k_EMsgProfileRequest: EDOTAGCMsg
+k_EMsgProfileResponse: EDOTAGCMsg
+k_EMsgProfileUpdate: EDOTAGCMsg
+k_EMsgProfileUpdateResponse: EDOTAGCMsg
+k_EMsgHeroGlobalDataRequest: EDOTAGCMsg
+k_EMsgHeroGlobalDataResponse: EDOTAGCMsg
+k_EMsgClientToGCRequestPlusWeeklyChallengeResult: EDOTAGCMsg
+k_EMsgClientToGCRequestPlusWeeklyChallengeResultResponse: EDOTAGCMsg
+k_EMsgGCToGCGrantPlusPrepaidTime: EDOTAGCMsg
+k_EMsgPrivateMetadataKeyRequest: EDOTAGCMsg
+k_EMsgPrivateMetadataKeyResponse: EDOTAGCMsg
+k_EMsgGCToGCReconcilePlusStatus: EDOTAGCMsg
+k_EMsgGCToGCCheckPlusStatus: EDOTAGCMsg
+k_EMsgGCToGCCheckPlusStatusResponse: EDOTAGCMsg
+k_EMsgGCToGCReconcilePlusAutoGrantItems: EDOTAGCMsg
+k_EMsgGCToGCReconcilePlusStatusUnreliable: EDOTAGCMsg
+k_EMsgGCToClientCavernCrawlMapPathCompleted: EDOTAGCMsg
+k_EMsgClientToGCCavernCrawlClaimRoom: EDOTAGCMsg
+k_EMsgClientToGCCavernCrawlClaimRoomResponse: EDOTAGCMsg
+k_EMsgClientToGCCavernCrawlUseItemOnRoom: EDOTAGCMsg
+k_EMsgClientToGCCavernCrawlUseItemOnRoomResponse: EDOTAGCMsg
+k_EMsgClientToGCCavernCrawlUseItemOnPath: EDOTAGCMsg
+k_EMsgClientToGCCavernCrawlUseItemOnPathResponse: EDOTAGCMsg
+k_EMsgClientToGCCavernCrawlRequestMapState: EDOTAGCMsg
+k_EMsgClientToGCCavernCrawlRequestMapStateResponse: EDOTAGCMsg
+k_EMsgSignOutTips: EDOTAGCMsg
+k_EMsgClientToGCRequestEventPointLogV2: EDOTAGCMsg
+k_EMsgClientToGCRequestEventPointLogResponseV2: EDOTAGCMsg
+k_EMsgClientToGCRequestEventTipsSummary: EDOTAGCMsg
+k_EMsgClientToGCRequestEventTipsSummaryResponse: EDOTAGCMsg
+k_EMsgClientToGCRequestSocialFeed: EDOTAGCMsg
+k_EMsgClientToGCRequestSocialFeedResponse: EDOTAGCMsg
+k_EMsgClientToGCRequestSocialFeedComments: EDOTAGCMsg
+k_EMsgClientToGCRequestSocialFeedCommentsResponse: EDOTAGCMsg
+k_EMsgClientToGCCavernCrawlGetClaimedRoomCount: EDOTAGCMsg
+k_EMsgClientToGCCavernCrawlGetClaimedRoomCountResponse: EDOTAGCMsg
+k_EMsgGCToGCReconcilePlusAutoGrantItemsUnreliable: EDOTAGCMsg
+k_EMsgServerToGCAddBroadcastTimelineEvent: EDOTAGCMsg
+k_EMsgGCToServerUpdateSteamBroadcasting: EDOTAGCMsg
+k_EMsgClientToGCRecordContestVote: EDOTAGCMsg
+k_EMsgGCToClientRecordContestVoteResponse: EDOTAGCMsg
+k_EMsgGCToGCGrantAutograph: EDOTAGCMsg
+k_EMsgGCToGCGrantAutographResponse: EDOTAGCMsg
+k_EMsgSignOutConsumableUsage: EDOTAGCMsg
+k_EMsgLobbyEventGameDetails: EDOTAGCMsg
+k_EMsgDevGrantEventPoints: EDOTAGCMsg
+k_EMsgDevGrantEventPointsResponse: EDOTAGCMsg
+k_EMsgDevGrantEventAction: EDOTAGCMsg
+k_EMsgDevGrantEventActionResponse: EDOTAGCMsg
+k_EMsgDevResetEventState: EDOTAGCMsg
+k_EMsgDevResetEventStateResponse: EDOTAGCMsg
+k_EMsgGCToGCReconcileEventOwnership: EDOTAGCMsg
+k_EMsgConsumeEventSupportGrantItem: EDOTAGCMsg
+k_EMsgConsumeEventSupportGrantItemResponse: EDOTAGCMsg
+k_EMsgGCToClientClaimEventActionUsingItemCompleted: EDOTAGCMsg
+k_EMsgGCToClientCavernCrawlMapUpdated: EDOTAGCMsg
+k_EMsgServerToGCRequestPlayerRecentAccomplishments: EDOTAGCMsg
+k_EMsgServerToGCRequestPlayerRecentAccomplishmentsResponse: EDOTAGCMsg
+k_EMsgClientToGCRequestPlayerRecentAccomplishments: EDOTAGCMsg
+k_EMsgClientToGCRequestPlayerRecentAccomplishmentsResponse: EDOTAGCMsg
+k_EMsgClientToGCRequestPlayerHeroRecentAccomplishments: EDOTAGCMsg
+k_EMsgClientToGCRequestPlayerHeroRecentAccomplishmentsResponse: EDOTAGCMsg
+k_EMsgSignOutEventActionGrants: EDOTAGCMsg
+k_EMsgClientToGCRequestPlayerCoachMatches: EDOTAGCMsg
+k_EMsgClientToGCRequestPlayerCoachMatchesResponse: EDOTAGCMsg
+k_EMsgClientToGCSubmitCoachTeammateRating: EDOTAGCMsg
+k_EMsgClientToGCSubmitCoachTeammateRatingResponse: EDOTAGCMsg
+k_EMsgGCToClientCoachTeammateRatingsChanged: EDOTAGCMsg
+k_EMsgClientToGCRequestPlayerCoachMatch: EDOTAGCMsg
+k_EMsgClientToGCRequestPlayerCoachMatchResponse: EDOTAGCMsg
+k_EMsgClientToGCRequestContestVotes: EDOTAGCMsg
+k_EMsgClientToGCRequestContestVotesResponse: EDOTAGCMsg
+k_EMsgClientToGCMVPVoteTimeout: EDOTAGCMsg
+k_EMsgClientToGCMVPVoteTimeoutResponse: EDOTAGCMsg
+k_EMsgMatchMatchmakingStats: EDOTAGCMsg
+k_EMsgClientToGCSubmitPlayerMatchSurvey: EDOTAGCMsg
+k_EMsgClientToGCSubmitPlayerMatchSurveyResponse: EDOTAGCMsg
+k_EMsgSQLGCToGCGrantAllHeroProgressAccount: EDOTAGCMsg
+k_EMsgSQLGCToGCGrantAllHeroProgressVictory: EDOTAGCMsg
+k_EMsgDevDeleteEventActions: EDOTAGCMsg
+k_EMsgDevDeleteEventActionsResponse: EDOTAGCMsg
+k_EMsgDevReloadAllEvents: EDOTAGCMsg
+k_EMsgDevReloadAllEventsResponse: EDOTAGCMsg
+k_EMsgGCToGCGetAllHeroCurrent: EDOTAGCMsg
+k_EMsgGCToGCGetAllHeroCurrentResponse: EDOTAGCMsg
+k_EMsgGCSubmitPlayerAvoidRequest: EDOTAGCMsg
+k_EMsgGCSubmitPlayerAvoidRequestResponse: EDOTAGCMsg
+k_EMsgGCToClientNotificationsUpdated: EDOTAGCMsg
+k_EMsgGCtoGCAssociatedExploiterAccountInfo: EDOTAGCMsg
+k_EMsgGCtoGCAssociatedExploiterAccountInfoResponse: EDOTAGCMsg
+k_EMsgGCtoGCRequestRecalibrationCheck: EDOTAGCMsg
+k_EMsgGCToClientVACReminder: EDOTAGCMsg
+k_EMsgClientToGCUnderDraftBuy: EDOTAGCMsg
+k_EMsgClientToGCUnderDraftBuyResponse: EDOTAGCMsg
+k_EMsgClientToGCUnderDraftReroll: EDOTAGCMsg
+k_EMsgClientToGCUnderDraftRerollResponse: EDOTAGCMsg
+k_EMsgNeutralItemStats: EDOTAGCMsg
+k_EMsgClientToGCCreateGuild: EDOTAGCMsg
+k_EMsgClientToGCCreateGuildResponse: EDOTAGCMsg
+k_EMsgClientToGCSetGuildInfo: EDOTAGCMsg
+k_EMsgClientToGCSetGuildInfoResponse: EDOTAGCMsg
+k_EMsgClientToGCAddGuildRole: EDOTAGCMsg
+k_EMsgClientToGCAddGuildRoleResponse: EDOTAGCMsg
+k_EMsgClientToGCModifyGuildRole: EDOTAGCMsg
+k_EMsgClientToGCModifyGuildRoleResponse: EDOTAGCMsg
+k_EMsgClientToGCRemoveGuildRole: EDOTAGCMsg
+k_EMsgClientToGCRemoveGuildRoleResponse: EDOTAGCMsg
+k_EMsgClientToGCJoinGuild: EDOTAGCMsg
+k_EMsgClientToGCJoinGuildResponse: EDOTAGCMsg
+k_EMsgClientToGCLeaveGuild: EDOTAGCMsg
+k_EMsgClientToGCLeaveGuildResponse: EDOTAGCMsg
+k_EMsgClientToGCInviteToGuild: EDOTAGCMsg
+k_EMsgClientToGCInviteToGuildResponse: EDOTAGCMsg
+k_EMsgClientToGCDeclineInviteToGuild: EDOTAGCMsg
+k_EMsgClientToGCDeclineInviteToGuildResponse: EDOTAGCMsg
+k_EMsgClientToGCCancelInviteToGuild: EDOTAGCMsg
+k_EMsgClientToGCCancelInviteToGuildResponse: EDOTAGCMsg
+k_EMsgClientToGCKickGuildMember: EDOTAGCMsg
+k_EMsgClientToGCKickGuildMemberResponse: EDOTAGCMsg
+k_EMsgClientToGCSetGuildMemberRole: EDOTAGCMsg
+k_EMsgClientToGCSetGuildMemberRoleResponse: EDOTAGCMsg
+k_EMsgClientToGCRequestGuildData: EDOTAGCMsg
+k_EMsgClientToGCRequestGuildDataResponse: EDOTAGCMsg
+k_EMsgGCToClientGuildDataUpdated: EDOTAGCMsg
+k_EMsgClientToGCRequestGuildMembership: EDOTAGCMsg
+k_EMsgClientToGCRequestGuildMembershipResponse: EDOTAGCMsg
+k_EMsgGCToClientGuildMembershipUpdated: EDOTAGCMsg
+k_EMsgClientToGCAcceptInviteToGuild: EDOTAGCMsg
+k_EMsgClientToGCAcceptInviteToGuildResponse: EDOTAGCMsg
+k_EMsgClientToGCSetGuildRoleOrder: EDOTAGCMsg
+k_EMsgClientToGCSetGuildRoleOrderResponse: EDOTAGCMsg
+k_EMsgClientToGCRequestGuildFeed: EDOTAGCMsg
+k_EMsgClientToGCRequestGuildFeedResponse: EDOTAGCMsg
+k_EMsgClientToGCRequestAccountGuildEventData: EDOTAGCMsg
+k_EMsgClientToGCRequestAccountGuildEventDataResponse: EDOTAGCMsg
+k_EMsgGCToClientAccountGuildEventDataUpdated: EDOTAGCMsg
+k_EMsgClientToGCRequestActiveGuildContracts: EDOTAGCMsg
+k_EMsgClientToGCRequestActiveGuildContractsResponse: EDOTAGCMsg
+k_EMsgGCToClientActiveGuildContractsUpdated: EDOTAGCMsg
+k_EMsgGCToClientGuildFeedUpdated: EDOTAGCMsg
+k_EMsgClientToGCSelectGuildContract: EDOTAGCMsg
+k_EMsgClientToGCSelectGuildContractResponse: EDOTAGCMsg
+k_EMsgGCToGCCompleteGuildContracts: EDOTAGCMsg
+k_EMsgClientToGCAddPlayerToGuildChat: EDOTAGCMsg
+k_EMsgClientToGCAddPlayerToGuildChatResponse: EDOTAGCMsg
+k_EMsgClientToGCUnderDraftSell: EDOTAGCMsg
+k_EMsgClientToGCUnderDraftSellResponse: EDOTAGCMsg
+k_EMsgClientToGCUnderDraftRequest: EDOTAGCMsg
+k_EMsgClientToGCUnderDraftResponse: EDOTAGCMsg
+k_EMsgClientToGCUnderDraftRedeemReward: EDOTAGCMsg
+k_EMsgClientToGCUnderDraftRedeemRewardResponse: EDOTAGCMsg
+k_EMsgGCToServerLobbyHeroBanRates: EDOTAGCMsg
+k_EMsgSignOutGuildContractProgress: EDOTAGCMsg
+k_EMsgSignOutMVPStats: EDOTAGCMsg
+k_EMsgClientToGCRequestActiveGuildChallenge: EDOTAGCMsg
+k_EMsgClientToGCRequestActiveGuildChallengeResponse: EDOTAGCMsg
+k_EMsgGCToClientActiveGuildChallengeUpdated: EDOTAGCMsg
+k_EMsgClientToGCRequestReporterUpdates: EDOTAGCMsg
+k_EMsgClientToGCRequestReporterUpdatesResponse: EDOTAGCMsg
+k_EMsgClientToGCAcknowledgeReporterUpdates: EDOTAGCMsg
+k_EMsgSignOutGuildChallengeProgress: EDOTAGCMsg
+k_EMsgClientToGCRequestGuildEventMembers: EDOTAGCMsg
+k_EMsgClientToGCRequestGuildEventMembersResponse: EDOTAGCMsg
+k_EMsgClientToGCReportGuildContent: EDOTAGCMsg
+k_EMsgClientToGCReportGuildContentResponse: EDOTAGCMsg
+k_EMsgClientToGCRequestAccountGuildPersonaInfo: EDOTAGCMsg
+k_EMsgClientToGCRequestAccountGuildPersonaInfoResponse: EDOTAGCMsg
+k_EMsgClientToGCRequestAccountGuildPersonaInfoBatch: EDOTAGCMsg
+k_EMsgClientToGCRequestAccountGuildPersonaInfoBatchResponse: EDOTAGCMsg
+k_EMsgGCToClientUnderDraftGoldUpdated: EDOTAGCMsg
+k_EMsgSignOutBounties: EDOTAGCMsg
+k_EMsgLobbyFeaturedGamemodeProgress: EDOTAGCMsg
+k_EMsgLobbyGauntletProgress: EDOTAGCMsg
+k_EMsgClientToGCSubmitDraftTriviaMatchAnswer: EDOTAGCMsg
+k_EMsgClientToGCSubmitDraftTriviaMatchAnswerResponse: EDOTAGCMsg
+k_EMsgGCToGCSignoutSpendBounty: EDOTAGCMsg
+k_EMsgClientToGCApplyGauntletTicket: EDOTAGCMsg
+k_EMsgClientToGCUnderDraftRollBackBench: EDOTAGCMsg
+k_EMsgClientToGCUnderDraftRollBackBenchResponse: EDOTAGCMsg
+k_EMsgGCToGCGetEventActionScore: EDOTAGCMsg
+k_EMsgGCToGCGetEventActionScoreResponse: EDOTAGCMsg
+k_EMsgServerToGCGetGuildContracts: EDOTAGCMsg
+k_EMsgServerToGCGetGuildContractsResponse: EDOTAGCMsg
+k_EMsgLobbyEventGameData: EDOTAGCMsg
+k_EMsgGCToClientGuildMembersDataUpdated: EDOTAGCMsg
+k_EMsgSignOutReportActivityMarkers: EDOTAGCMsg
+k_EMsgSignOutDiretideCandy: EDOTAGCMsg
+k_EMsgGCToClientPostGameItemAwardNotification: EDOTAGCMsg
+k_EMsgClientToGCGetOWMatchDetails: EDOTAGCMsg
+k_EMsgClientToGCGetOWMatchDetailsResponse: EDOTAGCMsg
+k_EMsgClientToGCSubmitOWConviction: EDOTAGCMsg
+k_EMsgClientToGCSubmitOWConvictionResponse: EDOTAGCMsg
+k_EMsgGCToGCGetAccountSteamChina: EDOTAGCMsg
+k_EMsgGCToGCGetAccountSteamChinaResponse: EDOTAGCMsg
+k_EMsgClientToGCClaimLeaderboardRewards: EDOTAGCMsg
+k_EMsgClientToGCClaimLeaderboardRewardsResponse: EDOTAGCMsg
+k_EMsgClientToGCRecalibrateMMR: EDOTAGCMsg
+k_EMsgClientToGCRecalibrateMMRResponse: EDOTAGCMsg
+k_EMsgGCToGCGrantEventPointActionList: EDOTAGCMsg
+k_EMsgClientToGCChinaSSAURLRequest: EDOTAGCMsg
+k_EMsgClientToGCChinaSSAURLResponse: EDOTAGCMsg
+k_EMsgClientToGCChinaSSAAcceptedRequest: EDOTAGCMsg
+k_EMsgClientToGCChinaSSAAcceptedResponse: EDOTAGCMsg
+k_EMsgSignOutOverwatchSuspicion: EDOTAGCMsg
+k_EMsgServerToGCGetSuspicionConfig: EDOTAGCMsg
+k_EMsgServerToGCGetSuspicionConfigResponse: EDOTAGCMsg
+k_EMsgGCToGCGrantPlusHeroChallengeMatchResults: EDOTAGCMsg
+k_EMsgGCToClientOverwatchCasesAvailable: EDOTAGCMsg
+k_EMsgServerToGCAccountCheck: EDOTAGCMsg
+k_EMsgClientToGCStartWatchingOverwatch: EDOTAGCMsg
+k_EMsgClientToGCStopWatchingOverwatch: EDOTAGCMsg
+k_EMsgSignOutPerfData: EDOTAGCMsg
+k_EMsgClientToGCGetDPCFavorites: EDOTAGCMsg
+k_EMsgClientToGCGetDPCFavoritesResponse: EDOTAGCMsg
+k_EMsgClientToGCSetDPCFavoriteState: EDOTAGCMsg
+k_EMsgClientToGCSetDPCFavoriteStateResponse: EDOTAGCMsg
+k_EMsgClientToGCOverwatchReplayError: EDOTAGCMsg
+k_EMsgServerToGCPlayerChallengeHistory: EDOTAGCMsg
+k_EMsgSignOutBanData: EDOTAGCMsg
+k_EMsgWebapiDPCSeasonResults: EDOTAGCMsg
+k_EMsgClientToGCCoachFriend: EDOTAGCMsg
+k_EMsgClientToGCCoachFriendResponse: EDOTAGCMsg
+k_EMsgClientToGCRequestPrivateCoachingSession: EDOTAGCMsg
+k_EMsgClientToGCRequestPrivateCoachingSessionResponse: EDOTAGCMsg
+k_EMsgClientToGCAcceptPrivateCoachingSession: EDOTAGCMsg
+k_EMsgClientToGCAcceptPrivateCoachingSessionResponse: EDOTAGCMsg
+k_EMsgClientToGCLeavePrivateCoachingSession: EDOTAGCMsg
+k_EMsgClientToGCLeavePrivateCoachingSessionResponse: EDOTAGCMsg
+k_EMsgClientToGCGetCurrentPrivateCoachingSession: EDOTAGCMsg
+k_EMsgClientToGCGetCurrentPrivateCoachingSessionResponse: EDOTAGCMsg
+k_EMsgGCToClientPrivateCoachingSessionUpdated: EDOTAGCMsg
+k_EMsgClientToGCSubmitPrivateCoachingSessionRating: EDOTAGCMsg
+k_EMsgClientToGCSubmitPrivateCoachingSessionRatingResponse: EDOTAGCMsg
+k_EMsgClientToGCGetAvailablePrivateCoachingSessions: EDOTAGCMsg
+k_EMsgClientToGCGetAvailablePrivateCoachingSessionsResponse: EDOTAGCMsg
+k_EMsgClientToGCGetAvailablePrivateCoachingSessionsSummary: EDOTAGCMsg
+k_EMsgClientToGCGetAvailablePrivateCoachingSessionsSummaryResponse: EDOTAGCMsg
+k_EMsgClientToGCJoinPrivateCoachingSessionLobby: EDOTAGCMsg
+k_EMsgClientToGCJoinPrivateCoachingSessionLobbyResponse: EDOTAGCMsg
+k_EMsgClientToGCRespondToCoachFriendRequest: EDOTAGCMsg
+k_EMsgClientToGCRespondToCoachFriendRequestResponse: EDOTAGCMsg
+k_EMsgClientToGCSetEventActiveSeasonID: EDOTAGCMsg
+k_EMsgClientToGCSetEventActiveSeasonIDResponse: EDOTAGCMsg
+k_EMsgServerToGCMatchPlayerNeutralItemEquipHistory: EDOTAGCMsg
+k_EMsgServerToGCCompendiumChosenInGamePredictions: EDOTAGCMsg
+k_EMsgClientToGCCreateTeamPlayerCardPack: EDOTAGCMsg
+k_EMsgClientToGCCreateTeamPlayerCardPackResponse: EDOTAGCMsg
+k_EMsgGCToServerSubmitCheerData: EDOTAGCMsg
+k_EMsgGCToServerCheerConfig: EDOTAGCMsg
+k_EMsgServerToGCGetCheerConfig: EDOTAGCMsg
+k_EMsgServerToGCGetCheerConfigResponse: EDOTAGCMsg
+k_EMsgGCToGCGrantAutographByID: EDOTAGCMsg
+k_EMsgGCToServerCheerScalesOverride: EDOTAGCMsg
+k_EMsgGCToServerGetCheerState: EDOTAGCMsg
+k_EMsgServerToGCReportCheerState: EDOTAGCMsg
+k_EMsgGCToServerScenarioSave: EDOTAGCMsg
+k_EMsgGCToServerAbilityDraftLobbyData: EDOTAGCMsg
+k_EMsgSignOutReportCommunications: EDOTAGCMsg
+k_EMsgClientToGCBatchGetPlayerCardRosterRequest: EDOTAGCMsg
+k_EMsgClientToGCBatchGetPlayerCardRosterResponse: EDOTAGCMsg
+k_EMsgClientToGCGetStickerbookRequest: EDOTAGCMsg
+k_EMsgClientToGCGetStickerbookResponse: EDOTAGCMsg
+k_EMsgClientToGCCreateStickerbookPageRequest: EDOTAGCMsg
+k_EMsgClientToGCCreateStickerbookPageResponse: EDOTAGCMsg
+k_EMsgClientToGCDeleteStickerbookPageRequest: EDOTAGCMsg
+k_EMsgClientToGCDeleteStickerbookPageResponse: EDOTAGCMsg
+k_EMsgClientToGCPlaceStickersRequest: EDOTAGCMsg
+k_EMsgClientToGCPlaceStickersResponse: EDOTAGCMsg
+k_EMsgClientToGCPlaceCollectionStickersRequest: EDOTAGCMsg
+k_EMsgClientToGCPlaceCollectionStickersResponse: EDOTAGCMsg
+k_EMsgClientToGCOrderStickerbookTeamPageRequest: EDOTAGCMsg
+k_EMsgClientToGCOrderStickerbookTeamPageResponse: EDOTAGCMsg
+k_EMsgServerToGCGetStickerHeroes: EDOTAGCMsg
+k_EMsgServerToGCGetStickerHeroesResponse: EDOTAGCMsg
+k_EMsgClientToGCCandyShopGetUserData: EDOTAGCMsg
+k_EMsgClientToGCCandyShopGetUserDataResponse: EDOTAGCMsg
+k_EMsgGCToClientCandyShopUserDataUpdated: EDOTAGCMsg
+k_EMsgClientToGCCandyShopPurchaseReward: EDOTAGCMsg
+k_EMsgClientToGCCandyShopPurchaseRewardResponse: EDOTAGCMsg
+k_EMsgClientToGCCandyShopDoExchange: EDOTAGCMsg
+k_EMsgClientToGCCandyShopDoExchangeResponse: EDOTAGCMsg
+k_EMsgClientToGCCandyShopDoVariableExchange: EDOTAGCMsg
+k_EMsgClientToGCCandyShopDoVariableExchangeResponse: EDOTAGCMsg
+k_EMsgClientToGCCandyShopRerollRewards: EDOTAGCMsg
+k_EMsgClientToGCCandyShopRerollRewardsResponse: EDOTAGCMsg
+k_EMsgClientToGCSetHeroSticker: EDOTAGCMsg
+k_EMsgClientToGCSetHeroStickerResponse: EDOTAGCMsg
+k_EMsgClientToGCGetHeroStickers: EDOTAGCMsg
+k_EMsgClientToGCGetHeroStickersResponse: EDOTAGCMsg
+k_EMsgClientToGCSetFavoritePage: EDOTAGCMsg
+k_EMsgClientToGCSetFavoritePageResponse: EDOTAGCMsg
+k_EMsgClientToGCCandyShopDevGrantCandy: EDOTAGCMsg
+k_EMsgClientToGCCandyShopDevGrantCandyResponse: EDOTAGCMsg
+k_EMsgClientToGCCandyShopDevClearInventory: EDOTAGCMsg
+k_EMsgClientToGCCandyShopDevClearInventoryResponse: EDOTAGCMsg
+k_EMsgClientToGCCandyShopOpenBags: EDOTAGCMsg
+k_EMsgClientToGCCandyShopOpenBagsResponse: EDOTAGCMsg
+k_EMsgClientToGCCandyShopDevGrantCandyBags: EDOTAGCMsg
+k_EMsgClientToGCCandyShopDevGrantCandyBagsResponse: EDOTAGCMsg
+k_EMsgClientToGCCandyShopDevShuffleExchange: EDOTAGCMsg
+k_EMsgClientToGCCandyShopDevShuffleExchangeResponse: EDOTAGCMsg
+k_EMsgClientToGCCandyShopDevGrantRerollCharges: EDOTAGCMsg
+k_EMsgClientToGCCandyShopDevGrantRerollChargesResponse: EDOTAGCMsg
+k_EMsgLobbyAdditionalAccountData: EDOTAGCMsg
+k_EMsgServerToGCLobbyInitialized: EDOTAGCMsg
+k_EMsgClientToGCCollectorsCacheAvailableDataRequest: EDOTAGCMsg
+k_EMsgGCToClientCollectorsCacheAvailableDataResponse: EDOTAGCMsg
+k_EMsgClientToGCUploadMatchClip: EDOTAGCMsg
+k_EMsgGCToClientUploadMatchClipResponse: EDOTAGCMsg
+k_EMsgSignOutMuertaMinigame: EDOTAGCMsg
+k_EMsgGCToServerLobbyHeroRoleStats: EDOTAGCMsg
+k_EMsgClientToGCRankRequest: EDOTAGCMsg
+k_EMsgGCToClientRankResponse: EDOTAGCMsg
+k_EMsgGCToClientRankUpdate: EDOTAGCMsg
+k_EMsgSignOutMapStats: EDOTAGCMsg
+k_EMsgClientToGCMapStatsRequest: EDOTAGCMsg
+k_EMsgGCToClientMapStatsResponse: EDOTAGCMsg
+k_EMsgClientToGCShowcaseGetUserData: EDOTAGCMsg
+k_EMsgClientToGCShowcaseGetUserDataResponse: EDOTAGCMsg
+k_EMsgClientToGCShowcaseSetUserData: EDOTAGCMsg
+k_EMsgClientToGCShowcaseSetUserDataResponse: EDOTAGCMsg
+k_EMsgClientToGCFantasyCraftingGetData: EDOTAGCMsg
+k_EMsgClientToGCFantasyCraftingGetDataResponse: EDOTAGCMsg
+k_EMsgClientToGCFantasyCraftingPerformOperation: EDOTAGCMsg
+k_EMsgClientToGCFantasyCraftingPerformOperationResponse: EDOTAGCMsg
+k_EMsgGCToClientFantasyCraftingGetDataUpdated: EDOTAGCMsg
+k_EMsgClientToGCFantasyCraftingDevModifyTablet: EDOTAGCMsg
+k_EMsgClientToGCFantasyCraftingDevModifyTabletResponse: EDOTAGCMsg
+k_EMsgClientToGCRoadToTIGetQuests: EDOTAGCMsg
+k_EMsgClientToGCRoadToTIGetQuestsResponse: EDOTAGCMsg
+k_EMsgClientToGCRoadToTIGetActiveQuest: EDOTAGCMsg
+k_EMsgClientToGCRoadToTIGetActiveQuestResponse: EDOTAGCMsg
+k_EMsgClientToGCBingoGetUserData: EDOTAGCMsg
+k_EMsgClientToGCBingoGetUserDataResponse: EDOTAGCMsg
+k_EMsgClientToGCBingoClaimRow: EDOTAGCMsg
+k_EMsgClientToGCBingoClaimRowResponse: EDOTAGCMsg
+k_EMsgClientToGCBingoDevRerollCard: EDOTAGCMsg
+k_EMsgClientToGCBingoDevRerollCardResponse: EDOTAGCMsg
+k_EMsgClientToGCBingoGetStatsData: EDOTAGCMsg
+k_EMsgClientToGCBingoGetStatsDataResponse: EDOTAGCMsg
+k_EMsgGCToClientBingoUserDataUpdated: EDOTAGCMsg
+k_EMsgGCToClientRoadToTIQuestDataUpdated: EDOTAGCMsg
+k_EMsgClientToGCRoadToTIUseItem: EDOTAGCMsg
+k_EMsgClientToGCRoadToTIUseItemResponse: EDOTAGCMsg
+k_EMsgClientToGCShowcaseSubmitReport: EDOTAGCMsg
+k_EMsgClientToGCShowcaseSubmitReportResponse: EDOTAGCMsg
+k_EMsgClientToGCShowcaseAdminGetReportsRollupList: EDOTAGCMsg
+k_EMsgClientToGCShowcaseAdminGetReportsRollupListResponse: EDOTAGCMsg
+k_EMsgClientToGCShowcaseAdminGetReportsRollup: EDOTAGCMsg
+k_EMsgClientToGCShowcaseAdminGetReportsRollupResponse: EDOTAGCMsg
+k_EMsgClientToGCShowcaseAdminGetUserDetails: EDOTAGCMsg
+k_EMsgClientToGCShowcaseAdminGetUserDetailsResponse: EDOTAGCMsg
+k_EMsgClientToGCShowcaseAdminConvict: EDOTAGCMsg
+k_EMsgClientToGCShowcaseAdminConvictResponse: EDOTAGCMsg
+k_EMsgClientToGCShowcaseAdminExonerate: EDOTAGCMsg
+k_EMsgClientToGCShowcaseAdminExonerateResponse: EDOTAGCMsg
+k_EMsgClientToGCShowcaseAdminReset: EDOTAGCMsg
+k_EMsgClientToGCShowcaseAdminResetResponse: EDOTAGCMsg
+k_EMsgClientToGCShowcaseAdminLockAccount: EDOTAGCMsg
+k_EMsgClientToGCShowcaseAdminLockAccountResponse: EDOTAGCMsg
+k_EMsgClientToGCFantasyCraftingSelectPlayer: EDOTAGCMsg
+k_EMsgClientToGCFantasyCraftingSelectPlayerResponse: EDOTAGCMsg
+k_EMsgClientToGCFantasyCraftingGenerateTablets: EDOTAGCMsg
+k_EMsgClientToGCFantasyCraftingGenerateTabletsResponse: EDOTAGCMsg
+k_EMsgClientToGcFantasyCraftingUpgradeTablets: EDOTAGCMsg
+k_EMsgClientToGcFantasyCraftingUpgradeTabletsResponse: EDOTAGCMsg
+k_EMsgClientToGCFantasyCraftingRerollOptions: EDOTAGCMsg
+k_EMsgClientToGCFantasyCraftingRerollOptionsResponse: EDOTAGCMsg
+k_EMsgClientToGCRoadToTIDevForceQuest: EDOTAGCMsg
+k_EMsgLobbyRoadToTIMatchQuestData: EDOTAGCMsg
+k_EMsgClientToGCShowcaseModerationGetQueue: EDOTAGCMsg
+k_EMsgClientToGCShowcaseModerationGetQueueResponse: EDOTAGCMsg
+k_EMsgClientToGCShowcaseModerationApplyModeration: EDOTAGCMsg
+k_EMsgClientToGCShowcaseModerationApplyModerationResponse: EDOTAGCMsg
+k_EMsgClientToGCOverworldGetUserData: EDOTAGCMsg
+k_EMsgClientToGCOverworldGetUserDataResponse: EDOTAGCMsg
+k_EMsgClientToGCOverworldCompletePath: EDOTAGCMsg
+k_EMsgClientToGCOverworldCompletePathResponse: EDOTAGCMsg
+k_EMsgClientToGCOverworldClaimEncounterReward: EDOTAGCMsg
+k_EMsgClientToGCOverworldClaimEncounterRewardResponse: EDOTAGCMsg
+k_EMsgClientToGCOverworldDevResetAll: EDOTAGCMsg
+k_EMsgClientToGCOverworldDevResetAllResponse: EDOTAGCMsg
+k_EMsgClientToGCOverworldDevResetNode: EDOTAGCMsg
+k_EMsgClientToGCOverworldDevResetNodeResponse: EDOTAGCMsg
+k_EMsgClientToGCOverworldDevResetPath: EDOTAGCMsg
+k_EMsgClientToGCOverworldDevResetPathResponse: EDOTAGCMsg
+k_EMsgClientToGCOverworldDevGrantTokens: EDOTAGCMsg
+k_EMsgClientToGCOverworldDevGrantTokensResponse: EDOTAGCMsg
+k_EMsgClientToGCOverworldDevClearInventory: EDOTAGCMsg
+k_EMsgClientToGCOverworldDevClearInventoryResponse: EDOTAGCMsg
+k_EMsgServerToGCNewBloomGift: EDOTAGCMsg
+k_EMsgServerToGCNewBloomGiftResponse: EDOTAGCMsg
+k_EMsgGCToClientOverworldUserDataUpdated: EDOTAGCMsg
+k_EMsgClientToGCOverworldMoveToNode: EDOTAGCMsg
+k_EMsgClientToGCOverworldMoveToNodeResponse: EDOTAGCMsg
+k_EMsgClientToGCNewBloomGift: EDOTAGCMsg
+k_EMsgClientToGCNewBloomGiftResponse: EDOTAGCMsg
+k_EMsgSignOutOverworld: EDOTAGCMsg
+k_EMsgClientToGCSetBannedHeroes: EDOTAGCMsg
+k_EMsgClientToGCOverworldTradeTokens: EDOTAGCMsg
+k_EMsgClientToGCOverworldTradeTokensResponse: EDOTAGCMsg
+k_EMsgOverworldEncounterTokenTreasureData: EDOTAGCMsg
+k_EMsgOverworldEncounterTokenQuestData: EDOTAGCMsg
+k_EMsgOverworldEncounterChooseHeroData: EDOTAGCMsg
+k_EMsgClientToGCUpdateComicBookStats: EDOTAGCMsg
+k_EMsgClientToGCCandyShopDevResetShop: EDOTAGCMsg
+k_EMsgClientToGCCandyShopDevResetShopResponse: EDOTAGCMsg
+k_EMsgOverworldEncounterProgressData: EDOTAGCMsg
+k_EMsgClientToGCOverworldFeedback: EDOTAGCMsg
+k_EMsgClientToGCOverworldFeedbackResponse: EDOTAGCMsg
+k_EMsgClientToGCOverworldVisitEncounter: EDOTAGCMsg
+k_EMsgClientToGCOverworldVisitEncounterResponse: EDOTAGCMsg
+k_EMsgClientToGCOverworldGiftTokens: EDOTAGCMsg
+k_EMsgClientToGCOverworldGiftTokensResponse: EDOTAGCMsg
+k_EMsgClientToGCDotaLabsFeedback: EDOTAGCMsg
+k_EMsgClientToGCDotaLabsFeedbackResponse: EDOTAGCMsg
+k_EMsgOverworldEncounterPitFighterRewardData: EDOTAGCMsg
+k_EMsgClientToGCOverworldGetDynamicImage: EDOTAGCMsg
+k_EMsgClientToGCOverworldGetDynamicImageResponse: EDOTAGCMsg
+k_EMsgClientToGCFightingGameChallengeFriend: EDOTAGCMsg
+k_EMsgClientToGCFightingGameChallengeFriendResponse: EDOTAGCMsg
+k_EMsgClientToGCFightingGameCancelChallengeFriend: EDOTAGCMsg
+k_EMsgClientToGCFightingGameAnswerChallenge: EDOTAGCMsg
+k_EMsgClientToGCFightingGameAnswerChallengeResponse: EDOTAGCMsg
+k_EMsgGCToClientFightingGameChallenge: EDOTAGCMsg
+k_EMsgGCToClientFightingGameStartMatch: EDOTAGCMsg
+k_EMsgGCToClientFightingGameChallengeCanceled: EDOTAGCMsg
+k_EMsgClientToGCBingoShuffleCard: EDOTAGCMsg
+k_EMsgClientToGCBingoShuffleCardResponse: EDOTAGCMsg
+k_EMsgClientToGCBingoModifySquare: EDOTAGCMsg
+k_EMsgClientToGCBingoModifySquareResponse: EDOTAGCMsg
+k_EMsgClientToGCBingoDevAddTokens: EDOTAGCMsg
+k_EMsgClientToGCBingoDevAddTokensResponse: EDOTAGCMsg
+k_EMsgClientToGCBingoDevClearInventory: EDOTAGCMsg
+k_EMsgClientToGCBingoDevClearInventoryResponse: EDOTAGCMsg
+k_EMsgGCCompendiumRemoveAllSelections: EDOTAGCMsg
+k_EMsgGCCompendiumRemoveAllSelectionsResponse: EDOTAGCMsg
+k_EMsgClientToGCOverworldMinigameAction: EDOTAGCMsg
+k_EMsgClientToGCOverworldMinigameActionResponse: EDOTAGCMsg
+k_EMsgClientToGCSurvivorsTelemetry: EDOTAGCMsg
+k_EMsgClientToGCSurvivorsTelemetryResponse: EDOTAGCMsg
+k_EMsgClientToGCOverworldRequestTokensNeededByFriend: EDOTAGCMsg
+k_EMsgClientToGCOverworldRequestTokensNeededByFriendResponse: EDOTAGCMsg
+k_EMsgClientToGCCraftworksGetUserData: EDOTAGCMsg
+k_EMsgClientToGCCraftworksGetUserDataResponse: EDOTAGCMsg
+k_EMsgGCToClientCraftworksUserDataUpdated: EDOTAGCMsg
+k_EMsgClientToGCCraftworksCraftRecipe: EDOTAGCMsg
+k_EMsgClientToGCCraftworksCraftRecipeResponse: EDOTAGCMsg
+k_EMsgClientToGCCraftworksDevModifyComponents: EDOTAGCMsg
+k_EMsgClientToGCCraftworksDevModifyComponentsResponse: EDOTAGCMsg
+k_EMsgSignOutCraftworks: EDOTAGCMsg
+k_EMsgClientToGCMonsterHunterGetUserData: EDOTAGCMsg
+k_EMsgClientToGCMonsterHunterGetUserDataResponse: EDOTAGCMsg
+k_EMsgClientToGCMonsterHunterClaimReward: EDOTAGCMsg
+k_EMsgClientToGCMonsterHunterClaimRewardResponse: EDOTAGCMsg
+k_EMsgClientToGCMonsterHunterTradeMaterials: EDOTAGCMsg
+k_EMsgClientToGCMonsterHunterTradeMaterialsResponse: EDOTAGCMsg
+k_EMsgClientToGCMonsterHunterGiftMaterials: EDOTAGCMsg
+k_EMsgClientToGCMonsterHunterGiftMaterialsResponse: EDOTAGCMsg
+k_EMsgClientToGCMonsterHunterRequestMaterialsNeededByFriend: EDOTAGCMsg
+k_EMsgClientToGCMonsterHunterRequestMaterialsNeededByFriendResponse: EDOTAGCMsg
+k_EMsgClientToGCMonsterHunterDevResetAll: EDOTAGCMsg
+k_EMsgClientToGCMonsterHunterDevResetAllResponse: EDOTAGCMsg
+k_EMsgClientToGCMonsterHunterDevGrantMaterials: EDOTAGCMsg
+k_EMsgClientToGCMonsterHunterDevGrantMaterialsResponse: EDOTAGCMsg
+k_EMsgClientToGCMonsterHunterDevClearInventory: EDOTAGCMsg
+k_EMsgClientToGCMonsterHunterDevClearInventoryResponse: EDOTAGCMsg
+k_EMsgClientToGCMonsterHunterDevClaimInvestigationRewards: EDOTAGCMsg
+k_EMsgClientToGCMonsterHunterDevClaimInvestigationRewardsResponse: EDOTAGCMsg
+k_EMsgGCToClientMonsterHunterUserDataUpdated: EDOTAGCMsg
+k_EMsgSignOutMonsterHunter: EDOTAGCMsg
+k_EMsgClientToGCClaimGatedEvent: EDOTAGCMsg
+k_EMsgClientToGCClaimGatedEventResponse: EDOTAGCMsg
+k_EMsgClientToGCMonsterHunterDevModifyHeroCodex: EDOTAGCMsg
+k_EMsgClientToGCMonsterHunterDevModifyHeroCodexResponse: EDOTAGCMsg
+k_EMsgClientToGCMonsterHunterClaimCodexReward: EDOTAGCMsg
+k_EMsgClientToGCMonsterHunterClaimCodexRewardResponse: EDOTAGCMsg
+k_EMsgClientToGCMonsterHunterClaimSetReward: EDOTAGCMsg
+k_EMsgClientToGCMonsterHunterClaimSetRewardResponse: EDOTAGCMsg
+k_EMsgClientToGCGetEventRanking: EDOTAGCMsg
+k_EMsgClientToGCGetEventRankingResponse: EDOTAGCMsg
+k_EMsgClientToGCGetEventCoupon: EDOTAGCMsg
+k_EMsgClientToGCGetEventCouponResponse: EDOTAGCMsg
+k_EMsgClientToGCConvertEventPoints: EDOTAGCMsg
+k_EMsgClientToGCConvertEventPointsResponse: EDOTAGCMsg
+k_EMsgServerToGCWarningLowServerFramerate: EDOTAGCMsg
+k_EMsgServerToGCWarningInvalidBotAbilityUsage: EDOTAGCMsg
+k_EMsgClientToGCInviteToDemoMode: EDOTAGCMsg
+k_EMsgGCToClientInviteToDemoMode: EDOTAGCMsg

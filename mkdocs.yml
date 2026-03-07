@@ -1,0 +1,86 @@
+site_name: gem
+site_description: A Python Dota 2 replay parser for data science and machine learning.
+site_url: https://whanyu1212.github.io/gem
+repo_url: https://github.com/whanyu1212/gem
+repo_name: whanyu1212/gem
+
+theme:
+  name: material
+  palette:
+    - scheme: slate
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+    - scheme: default
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - content.code.copy
+    - content.code.annotate
+    - search.highlight
+    - search.suggest
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_signature_annotations: true
+            members_order: source
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Concepts:
+    - concepts/index.md
+    - The .dem Format: concepts/dem_format.md
+    - Protobuf: concepts/protobuf.md
+    - The Entity System: concepts/entity_system.md
+    - Combat Log: concepts/combat_log.md
+  - Tutorials:
+    - tutorials/index.md
+    - "01 · Reading a Replay": tutorials/01_reading_a_replay.md
+    - "02 · Entity State": tutorials/02_entity_state.md
+    - "03 · Combat Log": tutorials/03_combat_log.md
+    - "04 · Time-Series Data": tutorials/04_timeseries.md
+    - "05 · Full Match Output": tutorials/05_full_match.md
+  - API Reference:
+    - reference/index.md
+    - BitReader: reference/reader.md
+    - DemoStream: reference/stream.md

@@ -1,0 +1,83 @@
+[project]
+name = "gem-dota"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "whanyu1212", email = "whanyu1212@hotmail.com" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=2.2.6",
+    "pandas>=2.3.3",
+    "protobuf>=7.34.0",
+    "protoc-wheel-0>=30.2",
+    "python-snappy>=0.7.3",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.8,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "mkdocs-material>=9.7.4",
+    "mkdocstrings[python]>=1.0.3",
+    "mypy>=1.19.1",
+    "pre-commit>=4.5.1",
+    "pymdown-extensions>=10.21",
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+    "ruff>=0.15.5",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"
+markers = [
+    "slow: marks tests that require real replay files",
+    "integration: marks integration tests against full replays",
+]
+
+[tool.coverage.run]
+source = ["gem"]
+omit = ["src/gem/proto/*"]
+
+[tool.coverage.report]
+show_missing = true
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+exclude = ["src/gem/proto/", ".venv/"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes (unused imports, undefined names)
+    "I",   # isort
+    "UP",  # pyupgrade (modern Python syntax)
+    "B",   # flake8-bugbear (common bugs/footguns)
+    "SIM", # flake8-simplify
+    "C4",  # flake8-comprehensions (list/dict/set comp style)
+]
+ignore = [
+    "E501",  # line too long — handled by ruff-format
+    "B008",  # do not perform function calls in default args
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["gem"]
+
+[tool.mypy]
+python_version = "3.10"
+mypy_path = "src"
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+ignore_missing_imports = true
+exclude = ["src/gem/proto/", "\\.venv/", "tests/"]

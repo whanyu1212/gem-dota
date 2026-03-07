@@ -1,0 +1,3077 @@
+from typing import ClassVar as _ClassVar
+
+from google.protobuf import descriptor as _descriptor
+from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+
+DESCRIPTOR: _descriptor.FileDescriptor
+
+class EMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    k_EMsgInvalid: _ClassVar[EMsg]
+    k_EMsgMulti: _ClassVar[EMsg]
+    k_EMsgProtobufWrapped: _ClassVar[EMsg]
+    k_EMsgBaseGeneral: _ClassVar[EMsg]
+    k_EMsgGenericReply: _ClassVar[EMsg]
+    k_EMsgDestJobFailed: _ClassVar[EMsg]
+    k_EMsgAlert: _ClassVar[EMsg]
+    k_EMsgSCIDRequest: _ClassVar[EMsg]
+    k_EMsgSCIDResponse: _ClassVar[EMsg]
+    k_EMsgJobHeartbeat: _ClassVar[EMsg]
+    k_EMsgHubConnect: _ClassVar[EMsg]
+    k_EMsgSubscribe: _ClassVar[EMsg]
+    k_EMRouteMessage: _ClassVar[EMsg]
+    k_EMsgWGRequest: _ClassVar[EMsg]
+    k_EMsgWGResponse: _ClassVar[EMsg]
+    k_EMsgKeepAlive: _ClassVar[EMsg]
+    k_EMsgWebAPIJobRequest: _ClassVar[EMsg]
+    k_EMsgWebAPIJobResponse: _ClassVar[EMsg]
+    k_EMsgClientSessionStart: _ClassVar[EMsg]
+    k_EMsgClientSessionEnd: _ClassVar[EMsg]
+    k_EMsgClientSessionUpdate: _ClassVar[EMsg]
+    k_EMsgStatsDeprecated: _ClassVar[EMsg]
+    k_EMsgPing: _ClassVar[EMsg]
+    k_EMsgPingResponse: _ClassVar[EMsg]
+    k_EMsgStats: _ClassVar[EMsg]
+    k_EMsgRequestFullStatsBlock: _ClassVar[EMsg]
+    k_EMsgLoadDBOCacheItem: _ClassVar[EMsg]
+    k_EMsgLoadDBOCacheItemResponse: _ClassVar[EMsg]
+    k_EMsgInvalidateDBOCacheItems: _ClassVar[EMsg]
+    k_EMsgServiceMethod: _ClassVar[EMsg]
+    k_EMsgServiceMethodResponse: _ClassVar[EMsg]
+    k_EMsgClientPackageVersions: _ClassVar[EMsg]
+    k_EMsgTimestampRequest: _ClassVar[EMsg]
+    k_EMsgTimestampResponse: _ClassVar[EMsg]
+    k_EMsgServiceMethodCallFromClient: _ClassVar[EMsg]
+    k_EMsgServiceMethodSendToClient: _ClassVar[EMsg]
+    k_EMsgBaseShell: _ClassVar[EMsg]
+    k_EMsgAssignSysID: _ClassVar[EMsg]
+    k_EMsgExit: _ClassVar[EMsg]
+    k_EMsgDirRequest: _ClassVar[EMsg]
+    k_EMsgDirResponse: _ClassVar[EMsg]
+    k_EMsgZipRequest: _ClassVar[EMsg]
+    k_EMsgZipResponse: _ClassVar[EMsg]
+    k_EMsgUpdateRecordResponse: _ClassVar[EMsg]
+    k_EMsgUpdateCreditCardRequest: _ClassVar[EMsg]
+    k_EMsgUpdateUserBanResponse: _ClassVar[EMsg]
+    k_EMsgPrepareToExit: _ClassVar[EMsg]
+    k_EMsgContentDescriptionUpdate: _ClassVar[EMsg]
+    k_EMsgTestResetServer: _ClassVar[EMsg]
+    k_EMsgUniverseChanged: _ClassVar[EMsg]
+    k_EMsgShellConfigInfoUpdate: _ClassVar[EMsg]
+    k_EMsgRequestWindowsEventLogEntries: _ClassVar[EMsg]
+    k_EMsgProvideWindowsEventLogEntries: _ClassVar[EMsg]
+    k_EMsgShellSearchLogs: _ClassVar[EMsg]
+    k_EMsgShellSearchLogsResponse: _ClassVar[EMsg]
+    k_EMsgShellCheckWindowsUpdates: _ClassVar[EMsg]
+    k_EMsgShellCheckWindowsUpdatesResponse: _ClassVar[EMsg]
+    k_EMsgTestFlushDelayedSQL: _ClassVar[EMsg]
+    k_EMsgTestFlushDelayedSQLResponse: _ClassVar[EMsg]
+    k_EMsgEnsureExecuteScheduledTask_TEST: _ClassVar[EMsg]
+    k_EMsgEnsureExecuteScheduledTaskResponse_TEST: _ClassVar[EMsg]
+    k_EMsgUpdateScheduledTaskEnableState_TEST: _ClassVar[EMsg]
+    k_EMsgUpdateScheduledTaskEnableStateResponse_TEST: _ClassVar[EMsg]
+    k_EMsgContentDescriptionDeltaUpdate: _ClassVar[EMsg]
+    k_EMsgGMShellAndServerAddressUpdates: _ClassVar[EMsg]
+    k_EMsgBaseGM: _ClassVar[EMsg]
+    k_EMsgHeartbeat: _ClassVar[EMsg]
+    k_EMsgShellFailed: _ClassVar[EMsg]
+    k_EMsgExitShells: _ClassVar[EMsg]
+    k_EMsgExitShell: _ClassVar[EMsg]
+    k_EMsgGracefulExitShell: _ClassVar[EMsg]
+    k_EMsgLicenseProcessingComplete: _ClassVar[EMsg]
+    k_EMsgSetTestFlag: _ClassVar[EMsg]
+    k_EMsgQueuedEmailsComplete: _ClassVar[EMsg]
+    k_EMsgGMDRMSync: _ClassVar[EMsg]
+    k_EMsgPhysicalBoxInventory: _ClassVar[EMsg]
+    k_EMsgUpdateConfigFile: _ClassVar[EMsg]
+    k_EMsgTestInitDB: _ClassVar[EMsg]
+    k_EMsgGMWriteConfigToSQL: _ClassVar[EMsg]
+    k_EMsgGMLoadActivationCodes: _ClassVar[EMsg]
+    k_EMsgGMQueueForFBS: _ClassVar[EMsg]
+    k_EMsgGMSchemaConversionResults: _ClassVar[EMsg]
+    k_EMsgGMWriteShellFailureToSQL: _ClassVar[EMsg]
+    k_EMsgGMWriteStatsToSOS: _ClassVar[EMsg]
+    k_EMsgGMGetServiceMethodRouting: _ClassVar[EMsg]
+    k_EMsgGMGetServiceMethodRoutingResponse: _ClassVar[EMsg]
+    k_EMsgGMTestNextBuildSchemaConversion: _ClassVar[EMsg]
+    k_EMsgGMTestNextBuildSchemaConversionResponse: _ClassVar[EMsg]
+    k_EMsgExpectShellRestart: _ClassVar[EMsg]
+    k_EMsgHotFixProgress: _ClassVar[EMsg]
+    k_EMsgGMStatsForwardToAdminConnections: _ClassVar[EMsg]
+    k_EMsgGMGetModifiedConVars: _ClassVar[EMsg]
+    k_EMsgGMGetModifiedConVarsResponse: _ClassVar[EMsg]
+    k_EMsgBaseAIS: _ClassVar[EMsg]
+    k_EMsgAISRequestContentDescription: _ClassVar[EMsg]
+    k_EMsgAISUpdateAppInfo: _ClassVar[EMsg]
+    k_EMsgAISGetPackageChangeNumber: _ClassVar[EMsg]
+    k_EMsgAISGetPackageChangeNumberResponse: _ClassVar[EMsg]
+    k_EMsgAIGetAppGCFlags: _ClassVar[EMsg]
+    k_EMsgAIGetAppGCFlagsResponse: _ClassVar[EMsg]
+    k_EMsgAIGetAppList: _ClassVar[EMsg]
+    k_EMsgAIGetAppListResponse: _ClassVar[EMsg]
+    k_EMsgAISGetCouponDefinition: _ClassVar[EMsg]
+    k_EMsgAISGetCouponDefinitionResponse: _ClassVar[EMsg]
+    k_EMsgAISUpdateSubordinateContentDescription: _ClassVar[EMsg]
+    k_EMsgAISUpdateSubordinateContentDescriptionResponse: _ClassVar[EMsg]
+    k_EMsgAISTestEnableGC: _ClassVar[EMsg]
+    k_EMsgBaseAM: _ClassVar[EMsg]
+    k_EMsgAMUpdateUserBanRequest: _ClassVar[EMsg]
+    k_EMsgAMAddLicense: _ClassVar[EMsg]
+    k_EMsgAMSendSystemIMToUser: _ClassVar[EMsg]
+    k_EMsgAMExtendLicense: _ClassVar[EMsg]
+    k_EMsgAMAddMinutesToLicense: _ClassVar[EMsg]
+    k_EMsgAMCancelLicense: _ClassVar[EMsg]
+    k_EMsgAMInitPurchase: _ClassVar[EMsg]
+    k_EMsgAMPurchaseResponse: _ClassVar[EMsg]
+    k_EMsgAMGetFinalPrice: _ClassVar[EMsg]
+    k_EMsgAMGetFinalPriceResponse: _ClassVar[EMsg]
+    k_EMsgAMGetLegacyGameKey: _ClassVar[EMsg]
+    k_EMsgAMGetLegacyGameKeyResponse: _ClassVar[EMsg]
+    k_EMsgAMFindHungTransactions: _ClassVar[EMsg]
+    k_EMsgAMSetAccountTrustedRequest: _ClassVar[EMsg]
+    k_EMsgAMCancelPurchase: _ClassVar[EMsg]
+    k_EMsgAMNewChallenge: _ClassVar[EMsg]
+    k_EMsgAMLoadOEMTickets: _ClassVar[EMsg]
+    k_EMsgAMFixPendingPurchase: _ClassVar[EMsg]
+    k_EMsgAMFixPendingPurchaseResponse: _ClassVar[EMsg]
+    k_EMsgAMIsUserBanned: _ClassVar[EMsg]
+    k_EMsgAMRegisterKey: _ClassVar[EMsg]
+    k_EMsgAMLoadActivationCodes: _ClassVar[EMsg]
+    k_EMsgAMLoadActivationCodesResponse: _ClassVar[EMsg]
+    k_EMsgAMLookupKeyResponse: _ClassVar[EMsg]
+    k_EMsgAMLookupKey: _ClassVar[EMsg]
+    k_EMsgAMChatCleanup: _ClassVar[EMsg]
+    k_EMsgAMClanCleanup: _ClassVar[EMsg]
+    k_EMsgAMFixPendingRefund: _ClassVar[EMsg]
+    k_EMsgAMReverseChargeback: _ClassVar[EMsg]
+    k_EMsgAMReverseChargebackResponse: _ClassVar[EMsg]
+    k_EMsgAMClanCleanupList: _ClassVar[EMsg]
+    k_EMsgAMGetLicenses: _ClassVar[EMsg]
+    k_EMsgAMGetLicensesResponse: _ClassVar[EMsg]
+    k_EMsgAMSendCartRepurchase: _ClassVar[EMsg]
+    k_EMsgAMSendCartRepurchaseResponse: _ClassVar[EMsg]
+    k_EMsgAllowUserToPlayQuery: _ClassVar[EMsg]
+    k_EMsgAllowUserToPlayResponse: _ClassVar[EMsg]
+    k_EMsgAMVerfiyUser: _ClassVar[EMsg]
+    k_EMsgAMClientNotPlaying: _ClassVar[EMsg]
+    k_EMsgAMClientRequestFriendship: _ClassVar[EMsg]
+    k_EMsgAMRelayPublishStatus: _ClassVar[EMsg]
+    k_EMsgAMInitPurchaseResponse: _ClassVar[EMsg]
+    k_EMsgAMRevokePurchaseResponse: _ClassVar[EMsg]
+    k_EMsgAMRefreshGuestPasses: _ClassVar[EMsg]
+    k_EMsgAMGrantGuestPasses: _ClassVar[EMsg]
+    k_EMsgAMClanDataUpdated: _ClassVar[EMsg]
+    k_EMsgAMReloadAccount: _ClassVar[EMsg]
+    k_EMsgAMClientChatMsgRelay: _ClassVar[EMsg]
+    k_EMsgAMChatMulti: _ClassVar[EMsg]
+    k_EMsgAMClientChatInviteRelay: _ClassVar[EMsg]
+    k_EMsgAMChatInvite: _ClassVar[EMsg]
+    k_EMsgAMClientJoinChatRelay: _ClassVar[EMsg]
+    k_EMsgAMClientChatMemberInfoRelay: _ClassVar[EMsg]
+    k_EMsgAMPublishChatMemberInfo: _ClassVar[EMsg]
+    k_EMsgAMClientAcceptFriendInvite: _ClassVar[EMsg]
+    k_EMsgAMChatEnter: _ClassVar[EMsg]
+    k_EMsgAMClientPublishRemovalFromSource: _ClassVar[EMsg]
+    k_EMsgAMChatActionResult: _ClassVar[EMsg]
+    k_EMsgAMFindAccounts: _ClassVar[EMsg]
+    k_EMsgAMFindAccountsResponse: _ClassVar[EMsg]
+    k_EMsgAMIsAccountNameInUse: _ClassVar[EMsg]
+    k_EMsgAMIsAccountNameInUseResponse: _ClassVar[EMsg]
+    k_EMsgAMSetAccountFlags: _ClassVar[EMsg]
+    k_EMsgAMCreateClan: _ClassVar[EMsg]
+    k_EMsgAMCreateClanResponse: _ClassVar[EMsg]
+    k_EMsgAMGetClanDetails: _ClassVar[EMsg]
+    k_EMsgAMGetClanDetailsResponse: _ClassVar[EMsg]
+    k_EMsgAMSetPersonaName: _ClassVar[EMsg]
+    k_EMsgAMSetAvatar: _ClassVar[EMsg]
+    k_EMsgAMAuthenticateUser: _ClassVar[EMsg]
+    k_EMsgAMAuthenticateUserResponse: _ClassVar[EMsg]
+    k_EMsgAMP2PIntroducerMessage: _ClassVar[EMsg]
+    k_EMsgClientChatAction: _ClassVar[EMsg]
+    k_EMsgAMClientChatActionRelay: _ClassVar[EMsg]
+    k_EMsgBaseVS: _ClassVar[EMsg]
+    k_EMsgReqChallenge: _ClassVar[EMsg]
+    k_EMsgVACResponse: _ClassVar[EMsg]
+    k_EMsgReqChallengeTest: _ClassVar[EMsg]
+    k_EMsgVSMarkCheat: _ClassVar[EMsg]
+    k_EMsgVSAddCheat: _ClassVar[EMsg]
+    k_EMsgVSPurgeCodeModDB: _ClassVar[EMsg]
+    k_EMsgVSGetChallengeResults: _ClassVar[EMsg]
+    k_EMsgVSChallengeResultText: _ClassVar[EMsg]
+    k_EMsgVSReportLingerer: _ClassVar[EMsg]
+    k_EMsgVSRequestManagedChallenge: _ClassVar[EMsg]
+    k_EMsgVSLoadDBFinished: _ClassVar[EMsg]
+    k_EMsgBaseDRMS: _ClassVar[EMsg]
+    k_EMsgDRMBuildBlobRequest: _ClassVar[EMsg]
+    k_EMsgDRMBuildBlobResponse: _ClassVar[EMsg]
+    k_EMsgDRMResolveGuidRequest: _ClassVar[EMsg]
+    k_EMsgDRMResolveGuidResponse: _ClassVar[EMsg]
+    k_EMsgDRMVariabilityReport: _ClassVar[EMsg]
+    k_EMsgDRMVariabilityReportResponse: _ClassVar[EMsg]
+    k_EMsgDRMStabilityReport: _ClassVar[EMsg]
+    k_EMsgDRMStabilityReportResponse: _ClassVar[EMsg]
+    k_EMsgDRMDetailsReportRequest: _ClassVar[EMsg]
+    k_EMsgDRMDetailsReportResponse: _ClassVar[EMsg]
+    k_EMsgDRMProcessFile: _ClassVar[EMsg]
+    k_EMsgDRMAdminUpdate: _ClassVar[EMsg]
+    k_EMsgDRMAdminUpdateResponse: _ClassVar[EMsg]
+    k_EMsgDRMSync: _ClassVar[EMsg]
+    k_EMsgDRMSyncResponse: _ClassVar[EMsg]
+    k_EMsgDRMProcessFileResponse: _ClassVar[EMsg]
+    k_EMsgDRMEmptyGuidCache: _ClassVar[EMsg]
+    k_EMsgDRMEmptyGuidCacheResponse: _ClassVar[EMsg]
+    k_EMsgBaseCS: _ClassVar[EMsg]
+    k_EMsgBaseClient: _ClassVar[EMsg]
+    k_EMsgClientLogOn_Deprecated: _ClassVar[EMsg]
+    k_EMsgClientAnonLogOn_Deprecated: _ClassVar[EMsg]
+    k_EMsgClientHeartBeat: _ClassVar[EMsg]
+    k_EMsgClientVACResponse: _ClassVar[EMsg]
+    k_EMsgClientGamesPlayed_obsolete: _ClassVar[EMsg]
+    k_EMsgClientLogOff: _ClassVar[EMsg]
+    k_EMsgClientNoUDPConnectivity: _ClassVar[EMsg]
+    k_EMsgClientConnectionStats: _ClassVar[EMsg]
+    k_EMsgClientPingResponse: _ClassVar[EMsg]
+    k_EMsgClientRemoveFriend: _ClassVar[EMsg]
+    k_EMsgClientGamesPlayedNoDataBlob: _ClassVar[EMsg]
+    k_EMsgClientChangeStatus: _ClassVar[EMsg]
+    k_EMsgClientVacStatusResponse: _ClassVar[EMsg]
+    k_EMsgClientFriendMsg: _ClassVar[EMsg]
+    k_EMsgClientGameConnect_obsolete: _ClassVar[EMsg]
+    k_EMsgClientGamesPlayed2_obsolete: _ClassVar[EMsg]
+    k_EMsgClientGameEnded_obsolete: _ClassVar[EMsg]
+    k_EMsgClientSystemIM: _ClassVar[EMsg]
+    k_EMsgClientSystemIMAck: _ClassVar[EMsg]
+    k_EMsgClientGetLicenses: _ClassVar[EMsg]
+    k_EMsgClientGetLegacyGameKey: _ClassVar[EMsg]
+    k_EMsgClientContentServerLogOn_Deprecated: _ClassVar[EMsg]
+    k_EMsgClientAckVACBan2: _ClassVar[EMsg]
+    k_EMsgClientGetPurchaseReceipts: _ClassVar[EMsg]
+    k_EMsgClientGamesPlayed3_obsolete: _ClassVar[EMsg]
+    k_EMsgClientAckGuestPass: _ClassVar[EMsg]
+    k_EMsgClientRedeemGuestPass: _ClassVar[EMsg]
+    k_EMsgClientGamesPlayed: _ClassVar[EMsg]
+    k_EMsgClientRegisterKey: _ClassVar[EMsg]
+    k_EMsgClientInviteUserToClan: _ClassVar[EMsg]
+    k_EMsgClientAcknowledgeClanInvite: _ClassVar[EMsg]
+    k_EMsgClientPurchaseWithMachineID: _ClassVar[EMsg]
+    k_EMsgClientAppUsageEvent: _ClassVar[EMsg]
+    k_EMsgClientLogOnResponse: _ClassVar[EMsg]
+    k_EMsgClientSetHeartbeatRate: _ClassVar[EMsg]
+    k_EMsgClientNotLoggedOnDeprecated: _ClassVar[EMsg]
+    k_EMsgClientLoggedOff: _ClassVar[EMsg]
+    k_EMsgGSApprove: _ClassVar[EMsg]
+    k_EMsgGSDeny: _ClassVar[EMsg]
+    k_EMsgGSKick: _ClassVar[EMsg]
+    k_EMsgClientPurchaseResponse: _ClassVar[EMsg]
+    k_EMsgClientPing: _ClassVar[EMsg]
+    k_EMsgClientNOP: _ClassVar[EMsg]
+    k_EMsgClientPersonaState: _ClassVar[EMsg]
+    k_EMsgClientFriendsList: _ClassVar[EMsg]
+    k_EMsgClientAccountInfo: _ClassVar[EMsg]
+    k_EMsgClientNewsUpdate: _ClassVar[EMsg]
+    k_EMsgClientGameConnectDeny: _ClassVar[EMsg]
+    k_EMsgGSStatusReply: _ClassVar[EMsg]
+    k_EMsgClientGameConnectTokens: _ClassVar[EMsg]
+    k_EMsgClientLicenseList: _ClassVar[EMsg]
+    k_EMsgClientVACBanStatus: _ClassVar[EMsg]
+    k_EMsgClientCMList: _ClassVar[EMsg]
+    k_EMsgClientEncryptPct: _ClassVar[EMsg]
+    k_EMsgClientGetLegacyGameKeyResponse: _ClassVar[EMsg]
+    k_EMsgClientAddFriend: _ClassVar[EMsg]
+    k_EMsgClientAddFriendResponse: _ClassVar[EMsg]
+    k_EMsgClientAckGuestPassResponse: _ClassVar[EMsg]
+    k_EMsgClientRedeemGuestPassResponse: _ClassVar[EMsg]
+    k_EMsgClientUpdateGuestPassesList: _ClassVar[EMsg]
+    k_EMsgClientChatMsg: _ClassVar[EMsg]
+    k_EMsgClientChatInvite: _ClassVar[EMsg]
+    k_EMsgClientJoinChat: _ClassVar[EMsg]
+    k_EMsgClientChatMemberInfo: _ClassVar[EMsg]
+    k_EMsgClientLogOnWithCredentials_Deprecated: _ClassVar[EMsg]
+    k_EMsgClientPasswordChangeResponse: _ClassVar[EMsg]
+    k_EMsgClientChatEnter: _ClassVar[EMsg]
+    k_EMsgClientFriendRemovedFromSource: _ClassVar[EMsg]
+    k_EMsgClientCreateChat: _ClassVar[EMsg]
+    k_EMsgClientCreateChatResponse: _ClassVar[EMsg]
+    k_EMsgClientP2PIntroducerMessage: _ClassVar[EMsg]
+    k_EMsgClientChatActionResult: _ClassVar[EMsg]
+    k_EMsgClientRequestFriendData: _ClassVar[EMsg]
+    k_EMsgClientGetUserStats: _ClassVar[EMsg]
+    k_EMsgClientGetUserStatsResponse: _ClassVar[EMsg]
+    k_EMsgClientStoreUserStats: _ClassVar[EMsg]
+    k_EMsgClientStoreUserStatsResponse: _ClassVar[EMsg]
+    k_EMsgClientClanState: _ClassVar[EMsg]
+    k_EMsgClientServiceModule: _ClassVar[EMsg]
+    k_EMsgClientServiceCall: _ClassVar[EMsg]
+    k_EMsgClientServiceCallResponse: _ClassVar[EMsg]
+    k_EMsgClientNatTraversalStatEvent: _ClassVar[EMsg]
+    k_EMsgClientSteamUsageEvent: _ClassVar[EMsg]
+    k_EMsgClientCheckPassword: _ClassVar[EMsg]
+    k_EMsgClientResetPassword: _ClassVar[EMsg]
+    k_EMsgClientCheckPasswordResponse: _ClassVar[EMsg]
+    k_EMsgClientResetPasswordResponse: _ClassVar[EMsg]
+    k_EMsgClientSessionToken: _ClassVar[EMsg]
+    k_EMsgClientDRMProblemReport: _ClassVar[EMsg]
+    k_EMsgClientSetIgnoreFriend: _ClassVar[EMsg]
+    k_EMsgClientSetIgnoreFriendResponse: _ClassVar[EMsg]
+    k_EMsgClientGetAppOwnershipTicket: _ClassVar[EMsg]
+    k_EMsgClientGetAppOwnershipTicketResponse: _ClassVar[EMsg]
+    k_EMsgClientGetLobbyListResponse: _ClassVar[EMsg]
+    k_EMsgClientServerList: _ClassVar[EMsg]
+    k_EMsgClientDRMBlobRequest: _ClassVar[EMsg]
+    k_EMsgClientDRMBlobResponse: _ClassVar[EMsg]
+    k_EMsgBaseGameServer: _ClassVar[EMsg]
+    k_EMsgGSDisconnectNotice: _ClassVar[EMsg]
+    k_EMsgGSStatus: _ClassVar[EMsg]
+    k_EMsgGSUserPlaying: _ClassVar[EMsg]
+    k_EMsgGSStatus2: _ClassVar[EMsg]
+    k_EMsgGSStatusUpdate_Unused: _ClassVar[EMsg]
+    k_EMsgGSServerType: _ClassVar[EMsg]
+    k_EMsgGSPlayerList: _ClassVar[EMsg]
+    k_EMsgGSGetUserAchievementStatus: _ClassVar[EMsg]
+    k_EMsgGSGetUserAchievementStatusResponse: _ClassVar[EMsg]
+    k_EMsgGSGetPlayStats: _ClassVar[EMsg]
+    k_EMsgGSGetPlayStatsResponse: _ClassVar[EMsg]
+    k_EMsgGSGetUserGroupStatus: _ClassVar[EMsg]
+    k_EMsgAMGetUserGroupStatus: _ClassVar[EMsg]
+    k_EMsgAMGetUserGroupStatusResponse: _ClassVar[EMsg]
+    k_EMsgGSGetUserGroupStatusResponse: _ClassVar[EMsg]
+    k_EMsgGSGetReputation: _ClassVar[EMsg]
+    k_EMsgGSGetReputationResponse: _ClassVar[EMsg]
+    k_EMsgGSAssociateWithClan: _ClassVar[EMsg]
+    k_EMsgGSAssociateWithClanResponse: _ClassVar[EMsg]
+    k_EMsgGSComputeNewPlayerCompatibility: _ClassVar[EMsg]
+    k_EMsgGSComputeNewPlayerCompatibilityResponse: _ClassVar[EMsg]
+    k_EMsgBaseAdmin: _ClassVar[EMsg]
+    k_EMsgAdminCmd: _ClassVar[EMsg]
+    k_EMsgAdminCmdResponse: _ClassVar[EMsg]
+    k_EMsgAdminLogListenRequest: _ClassVar[EMsg]
+    k_EMsgAdminLogEvent: _ClassVar[EMsg]
+    k_EMsgUniverseData: _ClassVar[EMsg]
+    k_EMsgAdminSpew: _ClassVar[EMsg]
+    k_EMsgAdminConsoleTitle: _ClassVar[EMsg]
+    k_EMsgAdminGCSpew: _ClassVar[EMsg]
+    k_EMsgAdminGCCommand: _ClassVar[EMsg]
+    k_EMsgAdminGCGetCommandList: _ClassVar[EMsg]
+    k_EMsgAdminGCGetCommandListResponse: _ClassVar[EMsg]
+    k_EMsgFBSConnectionData: _ClassVar[EMsg]
+    k_EMsgAdminMsgSpew: _ClassVar[EMsg]
+    k_EMsgBaseFBS: _ClassVar[EMsg]
+    k_EMsgFBSReqVersion: _ClassVar[EMsg]
+    k_EMsgFBSVersionInfo: _ClassVar[EMsg]
+    k_EMsgFBSForceRefresh: _ClassVar[EMsg]
+    k_EMsgFBSForceBounce: _ClassVar[EMsg]
+    k_EMsgFBSDeployPackage: _ClassVar[EMsg]
+    k_EMsgFBSDeployResponse: _ClassVar[EMsg]
+    k_EMsgFBSUpdateBootstrapper: _ClassVar[EMsg]
+    k_EMsgFBSSetState: _ClassVar[EMsg]
+    k_EMsgFBSApplyOSUpdates: _ClassVar[EMsg]
+    k_EMsgFBSRunCMDScript: _ClassVar[EMsg]
+    k_EMsgFBSRebootBox: _ClassVar[EMsg]
+    k_EMsgFBSSetBigBrotherMode: _ClassVar[EMsg]
+    k_EMsgFBSMinidumpServer: _ClassVar[EMsg]
+    k_EMsgFBSDeployHotFixPackage: _ClassVar[EMsg]
+    k_EMsgFBSDeployHotFixResponse: _ClassVar[EMsg]
+    k_EMsgFBSDownloadHotFix: _ClassVar[EMsg]
+    k_EMsgFBSDownloadHotFixResponse: _ClassVar[EMsg]
+    k_EMsgFBSUpdateTargetConfigFile: _ClassVar[EMsg]
+    k_EMsgFBSApplyAccountCred: _ClassVar[EMsg]
+    k_EMsgFBSApplyAccountCredResponse: _ClassVar[EMsg]
+    k_EMsgFBSSetShellCount: _ClassVar[EMsg]
+    k_EMsgFBSTerminateShell: _ClassVar[EMsg]
+    k_EMsgFBSQueryGMForRequest: _ClassVar[EMsg]
+    k_EMsgFBSQueryGMResponse: _ClassVar[EMsg]
+    k_EMsgFBSTerminateZombies: _ClassVar[EMsg]
+    k_EMsgFBSInfoFromBootstrapper: _ClassVar[EMsg]
+    k_EMsgFBSRebootBoxResponse: _ClassVar[EMsg]
+    k_EMsgFBSBootstrapperPackageRequest: _ClassVar[EMsg]
+    k_EMsgFBSBootstrapperPackageResponse: _ClassVar[EMsg]
+    k_EMsgFBSBootstrapperGetPackageChunk: _ClassVar[EMsg]
+    k_EMsgFBSBootstrapperGetPackageChunkResponse: _ClassVar[EMsg]
+    k_EMsgFBSBootstrapperPackageTransferProgress: _ClassVar[EMsg]
+    k_EMsgFBSRestartBootstrapper: _ClassVar[EMsg]
+    k_EMsgFBSPauseFrozenDumps: _ClassVar[EMsg]
+    k_EMsgBaseFileXfer: _ClassVar[EMsg]
+    k_EMsgFileXferRequest: _ClassVar[EMsg]
+    k_EMsgFileXferResponse: _ClassVar[EMsg]
+    k_EMsgFileXferData: _ClassVar[EMsg]
+    k_EMsgFileXferEnd: _ClassVar[EMsg]
+    k_EMsgFileXferDataAck: _ClassVar[EMsg]
+    k_EMsgBaseChannelAuth: _ClassVar[EMsg]
+    k_EMsgChannelAuthChallenge: _ClassVar[EMsg]
+    k_EMsgChannelAuthResponse: _ClassVar[EMsg]
+    k_EMsgChannelAuthResult: _ClassVar[EMsg]
+    k_EMsgChannelEncryptRequest: _ClassVar[EMsg]
+    k_EMsgChannelEncryptResponse: _ClassVar[EMsg]
+    k_EMsgChannelEncryptResult: _ClassVar[EMsg]
+    k_EMsgBaseBS: _ClassVar[EMsg]
+    k_EMsgBSPurchaseStart: _ClassVar[EMsg]
+    k_EMsgBSPurchaseResponse: _ClassVar[EMsg]
+    k_EMsgBSAuthenticateCCTrans: _ClassVar[EMsg]
+    k_EMsgBSAuthenticateCCTransResponse: _ClassVar[EMsg]
+    k_EMsgBSSettleComplete: _ClassVar[EMsg]
+    k_EMsgBSInitPayPalTxn: _ClassVar[EMsg]
+    k_EMsgBSInitPayPalTxnResponse: _ClassVar[EMsg]
+    k_EMsgBSGetPayPalUserInfo: _ClassVar[EMsg]
+    k_EMsgBSGetPayPalUserInfoResponse: _ClassVar[EMsg]
+    k_EMsgBSPaymentInstrBan: _ClassVar[EMsg]
+    k_EMsgBSPaymentInstrBanResponse: _ClassVar[EMsg]
+    k_EMsgBSInitGCBankXferTxn: _ClassVar[EMsg]
+    k_EMsgBSInitGCBankXferTxnResponse: _ClassVar[EMsg]
+    k_EMsgBSCommitGCTxn: _ClassVar[EMsg]
+    k_EMsgBSQueryTransactionStatus: _ClassVar[EMsg]
+    k_EMsgBSQueryTransactionStatusResponse: _ClassVar[EMsg]
+    k_EMsgBSQueryTxnExtendedInfo: _ClassVar[EMsg]
+    k_EMsgBSQueryTxnExtendedInfoResponse: _ClassVar[EMsg]
+    k_EMsgBSUpdateConversionRates: _ClassVar[EMsg]
+    k_EMsgBSPurchaseRunFraudChecks: _ClassVar[EMsg]
+    k_EMsgBSPurchaseRunFraudChecksResponse: _ClassVar[EMsg]
+    k_EMsgBSQueryBankInformation: _ClassVar[EMsg]
+    k_EMsgBSQueryBankInformationResponse: _ClassVar[EMsg]
+    k_EMsgBSValidateXsollaSignature: _ClassVar[EMsg]
+    k_EMsgBSValidateXsollaSignatureResponse: _ClassVar[EMsg]
+    k_EMsgBSQiwiWalletInvoice: _ClassVar[EMsg]
+    k_EMsgBSQiwiWalletInvoiceResponse: _ClassVar[EMsg]
+    k_EMsgBSUpdateInventoryFromProPack: _ClassVar[EMsg]
+    k_EMsgBSUpdateInventoryFromProPackResponse: _ClassVar[EMsg]
+    k_EMsgBSSendShippingRequest: _ClassVar[EMsg]
+    k_EMsgBSSendShippingRequestResponse: _ClassVar[EMsg]
+    k_EMsgBSGetProPackOrderStatus: _ClassVar[EMsg]
+    k_EMsgBSGetProPackOrderStatusResponse: _ClassVar[EMsg]
+    k_EMsgBSCheckJobRunning: _ClassVar[EMsg]
+    k_EMsgBSCheckJobRunningResponse: _ClassVar[EMsg]
+    k_EMsgBSResetPackagePurchaseRateLimit: _ClassVar[EMsg]
+    k_EMsgBSResetPackagePurchaseRateLimitResponse: _ClassVar[EMsg]
+    k_EMsgBSUpdatePaymentData: _ClassVar[EMsg]
+    k_EMsgBSUpdatePaymentDataResponse: _ClassVar[EMsg]
+    k_EMsgBSGetBillingAddress: _ClassVar[EMsg]
+    k_EMsgBSGetBillingAddressResponse: _ClassVar[EMsg]
+    k_EMsgBSGetCreditCardInfo: _ClassVar[EMsg]
+    k_EMsgBSGetCreditCardInfoResponse: _ClassVar[EMsg]
+    k_EMsgBSRemoveExpiredPaymentData: _ClassVar[EMsg]
+    k_EMsgBSRemoveExpiredPaymentDataResponse: _ClassVar[EMsg]
+    k_EMsgBSConvertToCurrentKeys: _ClassVar[EMsg]
+    k_EMsgBSConvertToCurrentKeysResponse: _ClassVar[EMsg]
+    k_EMsgBSInitPurchase: _ClassVar[EMsg]
+    k_EMsgBSInitPurchaseResponse: _ClassVar[EMsg]
+    k_EMsgBSCompletePurchase: _ClassVar[EMsg]
+    k_EMsgBSCompletePurchaseResponse: _ClassVar[EMsg]
+    k_EMsgBSPruneCardUsageStats: _ClassVar[EMsg]
+    k_EMsgBSPruneCardUsageStatsResponse: _ClassVar[EMsg]
+    k_EMsgBSStoreBankInformation: _ClassVar[EMsg]
+    k_EMsgBSStoreBankInformationResponse: _ClassVar[EMsg]
+    k_EMsgBSVerifyPOSAKey: _ClassVar[EMsg]
+    k_EMsgBSVerifyPOSAKeyResponse: _ClassVar[EMsg]
+    k_EMsgBSReverseRedeemPOSAKey: _ClassVar[EMsg]
+    k_EMsgBSReverseRedeemPOSAKeyResponse: _ClassVar[EMsg]
+    k_EMsgBSQueryFindCreditCard: _ClassVar[EMsg]
+    k_EMsgBSQueryFindCreditCardResponse: _ClassVar[EMsg]
+    k_EMsgBSStatusInquiryPOSAKey: _ClassVar[EMsg]
+    k_EMsgBSStatusInquiryPOSAKeyResponse: _ClassVar[EMsg]
+    k_EMsgBSBoaCompraConfirmProductDelivery: _ClassVar[EMsg]
+    k_EMsgBSBoaCompraConfirmProductDeliveryResponse: _ClassVar[EMsg]
+    k_EMsgBSGenerateBoaCompraMD5: _ClassVar[EMsg]
+    k_EMsgBSGenerateBoaCompraMD5Response: _ClassVar[EMsg]
+    k_EMsgBSCommitWPTxn: _ClassVar[EMsg]
+    k_EMsgBSCommitAdyenTxn: _ClassVar[EMsg]
+    k_EMsgBaseATS: _ClassVar[EMsg]
+    k_EMsgATSStartStressTest: _ClassVar[EMsg]
+    k_EMsgATSStopStressTest: _ClassVar[EMsg]
+    k_EMsgATSRunFailServerTest: _ClassVar[EMsg]
+    k_EMsgATSUFSPerfTestTask: _ClassVar[EMsg]
+    k_EMsgATSUFSPerfTestResponse: _ClassVar[EMsg]
+    k_EMsgATSCycleTCM: _ClassVar[EMsg]
+    k_EMsgATSInitDRMSStressTest: _ClassVar[EMsg]
+    k_EMsgATSCallTest: _ClassVar[EMsg]
+    k_EMsgATSCallTestReply: _ClassVar[EMsg]
+    k_EMsgATSStartExternalStress: _ClassVar[EMsg]
+    k_EMsgATSExternalStressJobStart: _ClassVar[EMsg]
+    k_EMsgATSExternalStressJobQueued: _ClassVar[EMsg]
+    k_EMsgATSExternalStressJobRunning: _ClassVar[EMsg]
+    k_EMsgATSExternalStressJobStopped: _ClassVar[EMsg]
+    k_EMsgATSExternalStressJobStopAll: _ClassVar[EMsg]
+    k_EMsgATSExternalStressActionResult: _ClassVar[EMsg]
+    k_EMsgATSStarted: _ClassVar[EMsg]
+    k_EMsgATSCSPerfTestTask: _ClassVar[EMsg]
+    k_EMsgATSCSPerfTestResponse: _ClassVar[EMsg]
+    k_EMsgBaseDP: _ClassVar[EMsg]
+    k_EMsgDPSetPublishingState: _ClassVar[EMsg]
+    k_EMsgDPUniquePlayersStat: _ClassVar[EMsg]
+    k_EMsgDPStreamingUniquePlayersStat: _ClassVar[EMsg]
+    k_EMsgDPBlockingStats: _ClassVar[EMsg]
+    k_EMsgDPNatTraversalStats: _ClassVar[EMsg]
+    k_EMsgDPCloudStats: _ClassVar[EMsg]
+    k_EMsgDPGetPlayerCount: _ClassVar[EMsg]
+    k_EMsgDPGetPlayerCountResponse: _ClassVar[EMsg]
+    k_EMsgDPGameServersPlayersStats: _ClassVar[EMsg]
+    k_EMsgClientDPCheckSpecialSurvey: _ClassVar[EMsg]
+    k_EMsgClientDPCheckSpecialSurveyResponse: _ClassVar[EMsg]
+    k_EMsgClientDPSendSpecialSurveyResponse: _ClassVar[EMsg]
+    k_EMsgClientDPSendSpecialSurveyResponseReply: _ClassVar[EMsg]
+    k_EMsgDPStoreSaleStatistics: _ClassVar[EMsg]
+    k_EMsgDPPartnerMicroTxns: _ClassVar[EMsg]
+    k_EMsgDPPartnerMicroTxnsResponse: _ClassVar[EMsg]
+    k_EMsgDPVRUniquePlayersStat: _ClassVar[EMsg]
+    k_EMsgBaseCM: _ClassVar[EMsg]
+    k_EMsgCMSetAllowState: _ClassVar[EMsg]
+    k_EMsgCMSpewAllowState: _ClassVar[EMsg]
+    k_EMsgCMSessionRejected: _ClassVar[EMsg]
+    k_EMsgCMSetSecrets: _ClassVar[EMsg]
+    k_EMsgCMGetSecrets: _ClassVar[EMsg]
+    k_EMsgBaseGC: _ClassVar[EMsg]
+    k_EMsgGCCmdRevive: _ClassVar[EMsg]
+    k_EMsgGCCmdDown: _ClassVar[EMsg]
+    k_EMsgGCCmdDeploy: _ClassVar[EMsg]
+    k_EMsgGCCmdDeployResponse: _ClassVar[EMsg]
+    k_EMsgGCCmdSwitch: _ClassVar[EMsg]
+    k_EMsgAMRefreshSessions: _ClassVar[EMsg]
+    k_EMsgGCAchievementAwarded: _ClassVar[EMsg]
+    k_EMsgGCSystemMessage: _ClassVar[EMsg]
+    k_EMsgGCCmdStatus: _ClassVar[EMsg]
+    k_EMsgGCRegisterWebInterfaces_Deprecated: _ClassVar[EMsg]
+    k_EMsgGCGetAccountDetails_DEPRECATED: _ClassVar[EMsg]
+    k_EMsgGCInterAppMessage: _ClassVar[EMsg]
+    k_EMsgGCGetEmailTemplate: _ClassVar[EMsg]
+    k_EMsgGCGetEmailTemplateResponse: _ClassVar[EMsg]
+    k_EMsgGCHRelay: _ClassVar[EMsg]
+    k_EMsgGCHRelayToClient: _ClassVar[EMsg]
+    k_EMsgGCHUpdateSession: _ClassVar[EMsg]
+    k_EMsgGCHRequestUpdateSession: _ClassVar[EMsg]
+    k_EMsgGCHRequestStatus: _ClassVar[EMsg]
+    k_EMsgGCHRequestStatusResponse: _ClassVar[EMsg]
+    k_EMsgGCHAccountVacStatusChange: _ClassVar[EMsg]
+    k_EMsgGCHSpawnGC: _ClassVar[EMsg]
+    k_EMsgGCHSpawnGCResponse: _ClassVar[EMsg]
+    k_EMsgGCHKillGC: _ClassVar[EMsg]
+    k_EMsgGCHKillGCResponse: _ClassVar[EMsg]
+    k_EMsgGCHAccountTradeBanStatusChange: _ClassVar[EMsg]
+    k_EMsgGCHAccountLockStatusChange: _ClassVar[EMsg]
+    k_EMsgGCHVacVerificationChange: _ClassVar[EMsg]
+    k_EMsgGCHAccountPhoneNumberChange: _ClassVar[EMsg]
+    k_EMsgGCHAccountTwoFactorChange: _ClassVar[EMsg]
+    k_EMsgGCHInviteUserToLobby: _ClassVar[EMsg]
+    k_EMsgGCHUpdateMultipleSessions: _ClassVar[EMsg]
+    k_EMsgGCHMarkAppSessionsAuthoritative: _ClassVar[EMsg]
+    k_EMsgGCHRecurringSubscriptionStatusChange: _ClassVar[EMsg]
+    k_EMsgGCHAppCheersReceived: _ClassVar[EMsg]
+    k_EMsgGCHAppCheersGetAllowedTypes: _ClassVar[EMsg]
+    k_EMsgGCHAppCheersGetAllowedTypesResponse: _ClassVar[EMsg]
+    k_EMsgGCHRoutingRulesFromGCHtoGM: _ClassVar[EMsg]
+    k_EMsgGCHRoutingRulesToGCHfromGM: _ClassVar[EMsg]
+    k_EMsgUpdateCMMessageRateRules: _ClassVar[EMsg]
+    k_EMsgBaseP2P: _ClassVar[EMsg]
+    k_EMsgP2PIntroducerMessage: _ClassVar[EMsg]
+    k_EMsgBaseSM: _ClassVar[EMsg]
+    k_EMsgSMExpensiveReport: _ClassVar[EMsg]
+    k_EMsgSMHourlyReport: _ClassVar[EMsg]
+    k_EMsgSMPartitionRenames: _ClassVar[EMsg]
+    k_EMsgSMMonitorSpace: _ClassVar[EMsg]
+    k_EMsgSMTestNextBuildSchemaConversion: _ClassVar[EMsg]
+    k_EMsgSMTestNextBuildSchemaConversionResponse: _ClassVar[EMsg]
+    k_EMsgBaseTest: _ClassVar[EMsg]
+    k_EMsgFailServer: _ClassVar[EMsg]
+    k_EMsgJobHeartbeatTest: _ClassVar[EMsg]
+    k_EMsgJobHeartbeatTestResponse: _ClassVar[EMsg]
+    k_EMsgBaseFTSRange: _ClassVar[EMsg]
+    k_EMsgBaseCCSRange: _ClassVar[EMsg]
+    k_EMsgCCSDeleteAllCommentsByAuthor: _ClassVar[EMsg]
+    k_EMsgCCSDeleteAllCommentsByAuthorResponse: _ClassVar[EMsg]
+    k_EMsgBaseLBSRange: _ClassVar[EMsg]
+    k_EMsgLBSSetScore: _ClassVar[EMsg]
+    k_EMsgLBSSetScoreResponse: _ClassVar[EMsg]
+    k_EMsgLBSFindOrCreateLB: _ClassVar[EMsg]
+    k_EMsgLBSFindOrCreateLBResponse: _ClassVar[EMsg]
+    k_EMsgLBSGetLBEntries: _ClassVar[EMsg]
+    k_EMsgLBSGetLBEntriesResponse: _ClassVar[EMsg]
+    k_EMsgLBSGetLBList: _ClassVar[EMsg]
+    k_EMsgLBSGetLBListResponse: _ClassVar[EMsg]
+    k_EMsgLBSSetLBDetails: _ClassVar[EMsg]
+    k_EMsgLBSDeleteLB: _ClassVar[EMsg]
+    k_EMsgLBSDeleteLBEntry: _ClassVar[EMsg]
+    k_EMsgLBSResetLB: _ClassVar[EMsg]
+    k_EMsgLBSResetLBResponse: _ClassVar[EMsg]
+    k_EMsgLBSDeleteLBResponse: _ClassVar[EMsg]
+    k_EMsgBaseOGS: _ClassVar[EMsg]
+    k_EMsgOGSBeginSession: _ClassVar[EMsg]
+    k_EMsgOGSBeginSessionResponse: _ClassVar[EMsg]
+    k_EMsgOGSEndSession: _ClassVar[EMsg]
+    k_EMsgOGSEndSessionResponse: _ClassVar[EMsg]
+    k_EMsgOGSWriteAppSessionRow: _ClassVar[EMsg]
+    k_EMsgBaseBRP: _ClassVar[EMsg]
+    k_EMsgBRPPostTransactionTax: _ClassVar[EMsg]
+    k_EMsgBRPPostTransactionTaxResponse: _ClassVar[EMsg]
+    k_EMsgBaseAMRange2: _ClassVar[EMsg]
+    k_EMsgAMCreateChat: _ClassVar[EMsg]
+    k_EMsgAMCreateChatResponse: _ClassVar[EMsg]
+    k_EMsgAMSetProfileURL: _ClassVar[EMsg]
+    k_EMsgAMGetAccountEmailAddress: _ClassVar[EMsg]
+    k_EMsgAMGetAccountEmailAddressResponse: _ClassVar[EMsg]
+    k_EMsgAMRequestClanData: _ClassVar[EMsg]
+    k_EMsgAMRouteToClients: _ClassVar[EMsg]
+    k_EMsgAMLeaveClan: _ClassVar[EMsg]
+    k_EMsgAMClanPermissions: _ClassVar[EMsg]
+    k_EMsgAMClanPermissionsResponse: _ClassVar[EMsg]
+    k_EMsgAMCreateClanEventDummyForRateLimiting: _ClassVar[EMsg]
+    k_EMsgAMUpdateClanEventDummyForRateLimiting: _ClassVar[EMsg]
+    k_EMsgAMSetClanPermissionSettings: _ClassVar[EMsg]
+    k_EMsgAMSetClanPermissionSettingsResponse: _ClassVar[EMsg]
+    k_EMsgAMGetClanPermissionSettings: _ClassVar[EMsg]
+    k_EMsgAMGetClanPermissionSettingsResponse: _ClassVar[EMsg]
+    k_EMsgAMPublishChatRoomInfo: _ClassVar[EMsg]
+    k_EMsgClientChatRoomInfo: _ClassVar[EMsg]
+    k_EMsgAMGetClanHistory: _ClassVar[EMsg]
+    k_EMsgAMGetClanHistoryResponse: _ClassVar[EMsg]
+    k_EMsgAMGetClanPermissionBits: _ClassVar[EMsg]
+    k_EMsgAMGetClanPermissionBitsResponse: _ClassVar[EMsg]
+    k_EMsgAMSetClanPermissionBits: _ClassVar[EMsg]
+    k_EMsgAMSetClanPermissionBitsResponse: _ClassVar[EMsg]
+    k_EMsgAMSessionInfoRequest: _ClassVar[EMsg]
+    k_EMsgAMSessionInfoResponse: _ClassVar[EMsg]
+    k_EMsgAMValidateWGToken: _ClassVar[EMsg]
+    k_EMsgAMGetClanRank: _ClassVar[EMsg]
+    k_EMsgAMGetClanRankResponse: _ClassVar[EMsg]
+    k_EMsgAMSetClanRank: _ClassVar[EMsg]
+    k_EMsgAMSetClanRankResponse: _ClassVar[EMsg]
+    k_EMsgAMGetClanPOTW: _ClassVar[EMsg]
+    k_EMsgAMGetClanPOTWResponse: _ClassVar[EMsg]
+    k_EMsgAMSetClanPOTW: _ClassVar[EMsg]
+    k_EMsgAMSetClanPOTWResponse: _ClassVar[EMsg]
+    k_EMsgAMDumpUser: _ClassVar[EMsg]
+    k_EMsgAMKickUserFromClan: _ClassVar[EMsg]
+    k_EMsgAMAddFounderToClan: _ClassVar[EMsg]
+    k_EMsgAMValidateWGTokenResponse: _ClassVar[EMsg]
+    k_EMsgAMSetAccountDetails: _ClassVar[EMsg]
+    k_EMsgAMGetChatBanList: _ClassVar[EMsg]
+    k_EMsgAMGetChatBanListResponse: _ClassVar[EMsg]
+    k_EMsgAMUnBanFromChat: _ClassVar[EMsg]
+    k_EMsgAMSetClanDetails: _ClassVar[EMsg]
+    k_EMsgUGSGetUserGameStats: _ClassVar[EMsg]
+    k_EMsgUGSGetUserGameStatsResponse: _ClassVar[EMsg]
+    k_EMsgAMCheckClanMembership: _ClassVar[EMsg]
+    k_EMsgAMGetClanMembers: _ClassVar[EMsg]
+    k_EMsgAMGetClanMembersResponse: _ClassVar[EMsg]
+    k_EMsgAMNotifyChatOfClanChange: _ClassVar[EMsg]
+    k_EMsgAMResubmitPurchase: _ClassVar[EMsg]
+    k_EMsgAMAddFriend: _ClassVar[EMsg]
+    k_EMsgAMAddFriendResponse: _ClassVar[EMsg]
+    k_EMsgAMRemoveFriend: _ClassVar[EMsg]
+    k_EMsgAMDumpClan: _ClassVar[EMsg]
+    k_EMsgAMChangeClanOwner: _ClassVar[EMsg]
+    k_EMsgAMCancelEasyCollect: _ClassVar[EMsg]
+    k_EMsgAMCancelEasyCollectResponse: _ClassVar[EMsg]
+    k_EMsgAMClansInCommon: _ClassVar[EMsg]
+    k_EMsgAMClansInCommonResponse: _ClassVar[EMsg]
+    k_EMsgAMIsValidAccountID: _ClassVar[EMsg]
+    k_EMsgAMWipeFriendsList: _ClassVar[EMsg]
+    k_EMsgAMSetIgnored: _ClassVar[EMsg]
+    k_EMsgAMClansInCommonCountResponse: _ClassVar[EMsg]
+    k_EMsgAMFriendsList: _ClassVar[EMsg]
+    k_EMsgAMFriendsListResponse: _ClassVar[EMsg]
+    k_EMsgAMFriendsInCommon: _ClassVar[EMsg]
+    k_EMsgAMFriendsInCommonResponse: _ClassVar[EMsg]
+    k_EMsgAMFriendsInCommonCountResponse: _ClassVar[EMsg]
+    k_EMsgAMClansInCommonCount: _ClassVar[EMsg]
+    k_EMsgAMChallengeVerdict: _ClassVar[EMsg]
+    k_EMsgAMChallengeNotification: _ClassVar[EMsg]
+    k_EMsgAMFindGSByIP: _ClassVar[EMsg]
+    k_EMsgAMFoundGSByIP: _ClassVar[EMsg]
+    k_EMsgAMGiftRevoked: _ClassVar[EMsg]
+    k_EMsgAMUserClanList: _ClassVar[EMsg]
+    k_EMsgAMUserClanListResponse: _ClassVar[EMsg]
+    k_EMsgAMGetAccountDetails2: _ClassVar[EMsg]
+    k_EMsgAMGetAccountDetailsResponse2: _ClassVar[EMsg]
+    k_EMsgAMSetCommunityProfileSettings: _ClassVar[EMsg]
+    k_EMsgAMSetCommunityProfileSettingsResponse: _ClassVar[EMsg]
+    k_EMsgAMGetCommunityPrivacyState: _ClassVar[EMsg]
+    k_EMsgAMGetCommunityPrivacyStateResponse: _ClassVar[EMsg]
+    k_EMsgAMCheckClanInviteRateLimiting: _ClassVar[EMsg]
+    k_EMsgUGSGetUserAchievementStatus: _ClassVar[EMsg]
+    k_EMsgAMGetIgnored: _ClassVar[EMsg]
+    k_EMsgAMGetIgnoredResponse: _ClassVar[EMsg]
+    k_EMsgAMSetIgnoredResponse: _ClassVar[EMsg]
+    k_EMsgAMSetFriendRelationshipNone: _ClassVar[EMsg]
+    k_EMsgAMGetFriendRelationship: _ClassVar[EMsg]
+    k_EMsgAMGetFriendRelationshipResponse: _ClassVar[EMsg]
+    k_EMsgAMServiceModulesCache: _ClassVar[EMsg]
+    k_EMsgAMServiceModulesCall: _ClassVar[EMsg]
+    k_EMsgAMServiceModulesCallResponse: _ClassVar[EMsg]
+    k_EMsgCommunityAddFriendNews: _ClassVar[EMsg]
+    k_EMsgAMFindClanUser: _ClassVar[EMsg]
+    k_EMsgAMFindClanUserResponse: _ClassVar[EMsg]
+    k_EMsgAMBanFromChat: _ClassVar[EMsg]
+    k_EMsgAMGetUserNewsSubscriptions: _ClassVar[EMsg]
+    k_EMsgAMGetUserNewsSubscriptionsResponse: _ClassVar[EMsg]
+    k_EMsgAMSetUserNewsSubscriptions: _ClassVar[EMsg]
+    k_EMsgAMSendQueuedEmails: _ClassVar[EMsg]
+    k_EMsgAMSetLicenseFlags: _ClassVar[EMsg]
+    k_EMsgCommunityDeleteUserNews: _ClassVar[EMsg]
+    k_EMsgAMGetAccountStatus: _ClassVar[EMsg]
+    k_EMsgAMGetAccountStatusResponse: _ClassVar[EMsg]
+    k_EMsgAMEditBanReason: _ClassVar[EMsg]
+    k_EMsgAMCheckClanMembershipResponse: _ClassVar[EMsg]
+    k_EMsgAMProbeClanMembershipList: _ClassVar[EMsg]
+    k_EMsgAMProbeClanMembershipListResponse: _ClassVar[EMsg]
+    k_EMsgUGSGetUserAchievementStatusResponse: _ClassVar[EMsg]
+    k_EMsgAMGetFriendsLobbies: _ClassVar[EMsg]
+    k_EMsgAMGetFriendsLobbiesResponse: _ClassVar[EMsg]
+    k_EMsgAMGetUserFriendNewsResponse: _ClassVar[EMsg]
+    k_EMsgCommunityGetUserFriendNews: _ClassVar[EMsg]
+    k_EMsgAMGetUserClansNewsResponse: _ClassVar[EMsg]
+    k_EMsgAMGetUserClansNews: _ClassVar[EMsg]
+    k_EMsgAMGetPreviousCBAccount: _ClassVar[EMsg]
+    k_EMsgAMGetPreviousCBAccountResponse: _ClassVar[EMsg]
+    k_EMsgAMGetUserLicenseHistory: _ClassVar[EMsg]
+    k_EMsgAMGetUserLicenseHistoryResponse: _ClassVar[EMsg]
+    k_EMsgAMSupportChangePassword: _ClassVar[EMsg]
+    k_EMsgAMSupportChangeEmail: _ClassVar[EMsg]
+    k_EMsgAMResetUserVerificationGSByIP: _ClassVar[EMsg]
+    k_EMsgAMUpdateGSPlayStats: _ClassVar[EMsg]
+    k_EMsgAMSupportEnableOrDisable: _ClassVar[EMsg]
+    k_EMsgAMGetPurchaseStatus: _ClassVar[EMsg]
+    k_EMsgAMSupportIsAccountEnabled: _ClassVar[EMsg]
+    k_EMsgAMSupportIsAccountEnabledResponse: _ClassVar[EMsg]
+    k_EMsgUGSGetUserStats: _ClassVar[EMsg]
+    k_EMsgAMGSSearch: _ClassVar[EMsg]
+    k_EMsgChatServerRouteFriendMsg: _ClassVar[EMsg]
+    k_EMsgAMTicketAuthRequestOrResponse: _ClassVar[EMsg]
+    k_EMsgAMAddFreeLicense: _ClassVar[EMsg]
+    k_EMsgAMValidateEmailLink: _ClassVar[EMsg]
+    k_EMsgAMValidateEmailLinkResponse: _ClassVar[EMsg]
+    k_EMsgUGSStoreUserStats: _ClassVar[EMsg]
+    k_EMsgAMDeleteStoredCard: _ClassVar[EMsg]
+    k_EMsgAMRevokeLegacyGameKeys: _ClassVar[EMsg]
+    k_EMsgAMGetWalletDetails: _ClassVar[EMsg]
+    k_EMsgAMGetWalletDetailsResponse: _ClassVar[EMsg]
+    k_EMsgAMDeleteStoredPaymentInfo: _ClassVar[EMsg]
+    k_EMsgAMGetStoredPaymentSummary: _ClassVar[EMsg]
+    k_EMsgAMGetStoredPaymentSummaryResponse: _ClassVar[EMsg]
+    k_EMsgAMGetWalletConversionRate: _ClassVar[EMsg]
+    k_EMsgAMGetWalletConversionRateResponse: _ClassVar[EMsg]
+    k_EMsgAMConvertWallet: _ClassVar[EMsg]
+    k_EMsgAMConvertWalletResponse: _ClassVar[EMsg]
+    k_EMsgAMSetPreApproval: _ClassVar[EMsg]
+    k_EMsgAMSetPreApprovalResponse: _ClassVar[EMsg]
+    k_EMsgAMCreateRefund: _ClassVar[EMsg]
+    k_EMsgAMCreateChargeback: _ClassVar[EMsg]
+    k_EMsgAMCreateDispute: _ClassVar[EMsg]
+    k_EMsgAMClearDispute: _ClassVar[EMsg]
+    k_EMsgAMCreateFinancialAdjustment: _ClassVar[EMsg]
+    k_EMsgAMPlayerNicknameList: _ClassVar[EMsg]
+    k_EMsgAMPlayerNicknameListResponse: _ClassVar[EMsg]
+    k_EMsgAMGetUserCurrentGameInfo: _ClassVar[EMsg]
+    k_EMsgAMGetUserCurrentGameInfoResponse: _ClassVar[EMsg]
+    k_EMsgAMGetGSPlayerList: _ClassVar[EMsg]
+    k_EMsgAMGetGSPlayerListResponse: _ClassVar[EMsg]
+    k_EMsgAMGetSteamIDForMicroTxn: _ClassVar[EMsg]
+    k_EMsgAMGetSteamIDForMicroTxnResponse: _ClassVar[EMsg]
+    k_EMsgAMSetPartnerMember: _ClassVar[EMsg]
+    k_EMsgAMRemovePublisherUser: _ClassVar[EMsg]
+    k_EMsgAMGetUserLicenseList: _ClassVar[EMsg]
+    k_EMsgAMGetUserLicenseListResponse: _ClassVar[EMsg]
+    k_EMsgAMReloadGameGroupPolicy: _ClassVar[EMsg]
+    k_EMsgAMAddFreeLicenseResponse: _ClassVar[EMsg]
+    k_EMsgAMVACStatusUpdate: _ClassVar[EMsg]
+    k_EMsgAMGetAccountDetails: _ClassVar[EMsg]
+    k_EMsgAMGetAccountDetailsResponse: _ClassVar[EMsg]
+    k_EMsgAMGetPlayerLinkDetails: _ClassVar[EMsg]
+    k_EMsgAMGetPlayerLinkDetailsResponse: _ClassVar[EMsg]
+    k_EMsgAMGetAccountFlagsForWGSpoofing: _ClassVar[EMsg]
+    k_EMsgAMGetAccountFlagsForWGSpoofingResponse: _ClassVar[EMsg]
+    k_EMsgAMGetClanOfficers: _ClassVar[EMsg]
+    k_EMsgAMGetClanOfficersResponse: _ClassVar[EMsg]
+    k_EMsgAMNameChange: _ClassVar[EMsg]
+    k_EMsgAMGetNameHistory: _ClassVar[EMsg]
+    k_EMsgAMGetNameHistoryResponse: _ClassVar[EMsg]
+    k_EMsgAMUpdateProviderStatus: _ClassVar[EMsg]
+    k_EMsgAMSupportRemoveAccountSecurity: _ClassVar[EMsg]
+    k_EMsgAMIsAccountInCaptchaGracePeriod: _ClassVar[EMsg]
+    k_EMsgAMIsAccountInCaptchaGracePeriodResponse: _ClassVar[EMsg]
+    k_EMsgAMAccountPS3Unlink: _ClassVar[EMsg]
+    k_EMsgAMAccountPS3UnlinkResponse: _ClassVar[EMsg]
+    k_EMsgUGSStoreUserStatsResponse: _ClassVar[EMsg]
+    k_EMsgAMGetAccountPSNInfo: _ClassVar[EMsg]
+    k_EMsgAMGetAccountPSNInfoResponse: _ClassVar[EMsg]
+    k_EMsgAMAuthenticatedPlayerList: _ClassVar[EMsg]
+    k_EMsgAMGetUserGifts: _ClassVar[EMsg]
+    k_EMsgAMGetUserGiftsResponse: _ClassVar[EMsg]
+    k_EMsgAMTransferLockedGifts: _ClassVar[EMsg]
+    k_EMsgAMTransferLockedGiftsResponse: _ClassVar[EMsg]
+    k_EMsgAMPlayerHostedOnGameServer: _ClassVar[EMsg]
+    k_EMsgAMGetAccountBanInfo: _ClassVar[EMsg]
+    k_EMsgAMGetAccountBanInfoResponse: _ClassVar[EMsg]
+    k_EMsgAMRecordBanEnforcement: _ClassVar[EMsg]
+    k_EMsgAMRollbackGiftTransfer: _ClassVar[EMsg]
+    k_EMsgAMRollbackGiftTransferResponse: _ClassVar[EMsg]
+    k_EMsgAMHandlePendingTransaction: _ClassVar[EMsg]
+    k_EMsgAMRequestClanDetails: _ClassVar[EMsg]
+    k_EMsgAMDeleteStoredPaypalAgreement: _ClassVar[EMsg]
+    k_EMsgAMGameServerUpdate: _ClassVar[EMsg]
+    k_EMsgAMGameServerRemove: _ClassVar[EMsg]
+    k_EMsgAMGetPaypalAgreements: _ClassVar[EMsg]
+    k_EMsgAMGetPaypalAgreementsResponse: _ClassVar[EMsg]
+    k_EMsgAMGameServerPlayerCompatibilityCheck: _ClassVar[EMsg]
+    k_EMsgAMGameServerPlayerCompatibilityCheckResponse: _ClassVar[EMsg]
+    k_EMsgAMRenewLicense: _ClassVar[EMsg]
+    k_EMsgAMGetAccountCommunityBanInfo: _ClassVar[EMsg]
+    k_EMsgAMGetAccountCommunityBanInfoResponse: _ClassVar[EMsg]
+    k_EMsgAMGameServerAccountChangePassword: _ClassVar[EMsg]
+    k_EMsgAMGameServerAccountDeleteAccount: _ClassVar[EMsg]
+    k_EMsgAMRenewAgreement: _ClassVar[EMsg]
+    k_EMsgAMXsollaPayment: _ClassVar[EMsg]
+    k_EMsgAMXsollaPaymentResponse: _ClassVar[EMsg]
+    k_EMsgAMAcctAllowedToPurchase: _ClassVar[EMsg]
+    k_EMsgAMAcctAllowedToPurchaseResponse: _ClassVar[EMsg]
+    k_EMsgAMSwapKioskDeposit: _ClassVar[EMsg]
+    k_EMsgAMSwapKioskDepositResponse: _ClassVar[EMsg]
+    k_EMsgAMSetUserGiftUnowned: _ClassVar[EMsg]
+    k_EMsgAMSetUserGiftUnownedResponse: _ClassVar[EMsg]
+    k_EMsgAMClaimUnownedUserGift: _ClassVar[EMsg]
+    k_EMsgAMClaimUnownedUserGiftResponse: _ClassVar[EMsg]
+    k_EMsgAMSetClanName: _ClassVar[EMsg]
+    k_EMsgAMSetClanNameResponse: _ClassVar[EMsg]
+    k_EMsgAMGrantCoupon: _ClassVar[EMsg]
+    k_EMsgAMGrantCouponResponse: _ClassVar[EMsg]
+    k_EMsgAMIsPackageRestrictedInUserCountry: _ClassVar[EMsg]
+    k_EMsgAMIsPackageRestrictedInUserCountryResponse: _ClassVar[EMsg]
+    k_EMsgAMHandlePendingTransactionResponse: _ClassVar[EMsg]
+    k_EMsgAMGrantGuestPasses2: _ClassVar[EMsg]
+    k_EMsgAMGrantGuestPasses2Response: _ClassVar[EMsg]
+    k_EMsgAMGetPlayerBanDetails: _ClassVar[EMsg]
+    k_EMsgAMGetPlayerBanDetailsResponse: _ClassVar[EMsg]
+    k_EMsgAMFinalizePurchase: _ClassVar[EMsg]
+    k_EMsgAMFinalizePurchaseResponse: _ClassVar[EMsg]
+    k_EMsgAMPersonaChangeResponse: _ClassVar[EMsg]
+    k_EMsgAMGetClanDetailsForForumCreation: _ClassVar[EMsg]
+    k_EMsgAMGetClanDetailsForForumCreationResponse: _ClassVar[EMsg]
+    k_EMsgAMGetPendingNotificationCount: _ClassVar[EMsg]
+    k_EMsgAMGetPendingNotificationCountResponse: _ClassVar[EMsg]
+    k_EMsgAMPasswordHashUpgrade: _ClassVar[EMsg]
+    k_EMsgAMBoaCompraPayment: _ClassVar[EMsg]
+    k_EMsgAMBoaCompraPaymentResponse: _ClassVar[EMsg]
+    k_EMsgAMCompleteExternalPurchase: _ClassVar[EMsg]
+    k_EMsgAMCompleteExternalPurchaseResponse: _ClassVar[EMsg]
+    k_EMsgAMResolveNegativeWalletCredits: _ClassVar[EMsg]
+    k_EMsgAMResolveNegativeWalletCreditsResponse: _ClassVar[EMsg]
+    k_EMsgAMPlayerGetClanBasicDetails: _ClassVar[EMsg]
+    k_EMsgAMPlayerGetClanBasicDetailsResponse: _ClassVar[EMsg]
+    k_EMsgAMMOLPayment: _ClassVar[EMsg]
+    k_EMsgAMMOLPaymentResponse: _ClassVar[EMsg]
+    k_EMsgGetUserIPCountry: _ClassVar[EMsg]
+    k_EMsgGetUserIPCountryResponse: _ClassVar[EMsg]
+    k_EMsgNotificationOfSuspiciousActivity: _ClassVar[EMsg]
+    k_EMsgAMDegicaPayment: _ClassVar[EMsg]
+    k_EMsgAMDegicaPaymentResponse: _ClassVar[EMsg]
+    k_EMsgAMEClubPayment: _ClassVar[EMsg]
+    k_EMsgAMEClubPaymentResponse: _ClassVar[EMsg]
+    k_EMsgAMPayPalPaymentsHubPayment: _ClassVar[EMsg]
+    k_EMsgAMPayPalPaymentsHubPaymentResponse: _ClassVar[EMsg]
+    k_EMsgAMTwoFactorRecoverAuthenticatorRequest: _ClassVar[EMsg]
+    k_EMsgAMTwoFactorRecoverAuthenticatorResponse: _ClassVar[EMsg]
+    k_EMsgAMSmart2PayPayment: _ClassVar[EMsg]
+    k_EMsgAMSmart2PayPaymentResponse: _ClassVar[EMsg]
+    k_EMsgAMValidatePasswordResetCodeAndSendSmsRequest: _ClassVar[EMsg]
+    k_EMsgAMValidatePasswordResetCodeAndSendSmsResponse: _ClassVar[EMsg]
+    k_EMsgAMGetAccountResetDetailsRequest: _ClassVar[EMsg]
+    k_EMsgAMGetAccountResetDetailsResponse: _ClassVar[EMsg]
+    k_EMsgAMBitPayPayment: _ClassVar[EMsg]
+    k_EMsgAMBitPayPaymentResponse: _ClassVar[EMsg]
+    k_EMsgAMSendAccountInfoUpdate: _ClassVar[EMsg]
+    k_EMsgAMSendScheduledGift: _ClassVar[EMsg]
+    k_EMsgAMNodwinPayment: _ClassVar[EMsg]
+    k_EMsgAMNodwinPaymentResponse: _ClassVar[EMsg]
+    k_EMsgAMResolveWalletRevoke: _ClassVar[EMsg]
+    k_EMsgAMResolveWalletReverseRevoke: _ClassVar[EMsg]
+    k_EMsgAMFundedPayment: _ClassVar[EMsg]
+    k_EMsgAMFundedPaymentResponse: _ClassVar[EMsg]
+    k_EMsgAMRequestPersonaUpdateForChatServer: _ClassVar[EMsg]
+    k_EMsgAMPerfectWorldPayment: _ClassVar[EMsg]
+    k_EMsgAMPerfectWorldPaymentResponse: _ClassVar[EMsg]
+    k_EMsgAMECommPayPayment: _ClassVar[EMsg]
+    k_EMsgAMECommPayPaymentResponse: _ClassVar[EMsg]
+    k_EMsgAMSetRemoteClientID: _ClassVar[EMsg]
+    k_EMsgBasePSRange: _ClassVar[EMsg]
+    k_EMsgPSCreateShoppingCart: _ClassVar[EMsg]
+    k_EMsgPSCreateShoppingCartResponse: _ClassVar[EMsg]
+    k_EMsgPSIsValidShoppingCart: _ClassVar[EMsg]
+    k_EMsgPSIsValidShoppingCartResponse: _ClassVar[EMsg]
+    k_EMsgPSRemoveLineItemFromShoppingCart: _ClassVar[EMsg]
+    k_EMsgPSRemoveLineItemFromShoppingCartResponse: _ClassVar[EMsg]
+    k_EMsgPSGetShoppingCartContents: _ClassVar[EMsg]
+    k_EMsgPSGetShoppingCartContentsResponse: _ClassVar[EMsg]
+    k_EMsgPSAddWalletCreditToShoppingCart: _ClassVar[EMsg]
+    k_EMsgPSAddWalletCreditToShoppingCartResponse: _ClassVar[EMsg]
+    k_EMsgBaseUFSRange: _ClassVar[EMsg]
+    k_EMsgClientUFSUploadFileRequest: _ClassVar[EMsg]
+    k_EMsgClientUFSUploadFileResponse: _ClassVar[EMsg]
+    k_EMsgClientUFSUploadFileChunk: _ClassVar[EMsg]
+    k_EMsgClientUFSUploadFileFinished: _ClassVar[EMsg]
+    k_EMsgClientUFSGetFileListForApp: _ClassVar[EMsg]
+    k_EMsgClientUFSGetFileListForAppResponse: _ClassVar[EMsg]
+    k_EMsgClientUFSDownloadRequest: _ClassVar[EMsg]
+    k_EMsgClientUFSDownloadResponse: _ClassVar[EMsg]
+    k_EMsgClientUFSDownloadChunk: _ClassVar[EMsg]
+    k_EMsgClientUFSLoginRequest: _ClassVar[EMsg]
+    k_EMsgClientUFSLoginResponse: _ClassVar[EMsg]
+    k_EMsgUFSReloadPartitionInfo: _ClassVar[EMsg]
+    k_EMsgClientUFSTransferHeartbeat: _ClassVar[EMsg]
+    k_EMsgUFSSynchronizeFile: _ClassVar[EMsg]
+    k_EMsgUFSSynchronizeFileResponse: _ClassVar[EMsg]
+    k_EMsgClientUFSDeleteFileRequest: _ClassVar[EMsg]
+    k_EMsgClientUFSDeleteFileResponse: _ClassVar[EMsg]
+    k_EMsgClientUFSGetUGCDetails: _ClassVar[EMsg]
+    k_EMsgClientUFSGetUGCDetailsResponse: _ClassVar[EMsg]
+    k_EMsgUFSUpdateFileFlags: _ClassVar[EMsg]
+    k_EMsgUFSUpdateFileFlagsResponse: _ClassVar[EMsg]
+    k_EMsgClientUFSGetSingleFileInfo: _ClassVar[EMsg]
+    k_EMsgClientUFSGetSingleFileInfoResponse: _ClassVar[EMsg]
+    k_EMsgClientUFSShareFile: _ClassVar[EMsg]
+    k_EMsgClientUFSShareFileResponse: _ClassVar[EMsg]
+    k_EMsgUFSReloadAccount: _ClassVar[EMsg]
+    k_EMsgUFSReloadAccountResponse: _ClassVar[EMsg]
+    k_EMsgUFSUpdateRecordBatched: _ClassVar[EMsg]
+    k_EMsgUFSUpdateRecordBatchedResponse: _ClassVar[EMsg]
+    k_EMsgUFSMigrateFile: _ClassVar[EMsg]
+    k_EMsgUFSMigrateFileResponse: _ClassVar[EMsg]
+    k_EMsgUFSGetUGCURLs: _ClassVar[EMsg]
+    k_EMsgUFSGetUGCURLsResponse: _ClassVar[EMsg]
+    k_EMsgUFSHttpUploadFileFinishRequest: _ClassVar[EMsg]
+    k_EMsgUFSHttpUploadFileFinishResponse: _ClassVar[EMsg]
+    k_EMsgUFSDownloadStartRequest: _ClassVar[EMsg]
+    k_EMsgUFSDownloadStartResponse: _ClassVar[EMsg]
+    k_EMsgUFSDownloadChunkRequest: _ClassVar[EMsg]
+    k_EMsgUFSDownloadChunkResponse: _ClassVar[EMsg]
+    k_EMsgUFSDownloadFinishRequest: _ClassVar[EMsg]
+    k_EMsgUFSDownloadFinishResponse: _ClassVar[EMsg]
+    k_EMsgUFSFlushURLCache: _ClassVar[EMsg]
+    k_EMsgClientUFSUploadCommit: _ClassVar[EMsg]
+    k_EMsgClientUFSUploadCommitResponse: _ClassVar[EMsg]
+    k_EMsgUFSMigrateFileAppID: _ClassVar[EMsg]
+    k_EMsgUFSMigrateFileAppIDResponse: _ClassVar[EMsg]
+    k_EMsgBaseClient2: _ClassVar[EMsg]
+    k_EMsgClientRequestForgottenPasswordEmail: _ClassVar[EMsg]
+    k_EMsgClientRequestForgottenPasswordEmailResponse: _ClassVar[EMsg]
+    k_EMsgClientCreateAccountResponse: _ClassVar[EMsg]
+    k_EMsgClientResetForgottenPassword: _ClassVar[EMsg]
+    k_EMsgClientResetForgottenPasswordResponse: _ClassVar[EMsg]
+    k_EMsgClientInformOfResetForgottenPassword: _ClassVar[EMsg]
+    k_EMsgClientInformOfResetForgottenPasswordResponse: _ClassVar[EMsg]
+    k_EMsgClientAnonUserLogOn_Deprecated: _ClassVar[EMsg]
+    k_EMsgClientGamesPlayedWithDataBlob: _ClassVar[EMsg]
+    k_EMsgClientUpdateUserGameInfo: _ClassVar[EMsg]
+    k_EMsgClientFileToDownload: _ClassVar[EMsg]
+    k_EMsgClientFileToDownloadResponse: _ClassVar[EMsg]
+    k_EMsgClientLBSSetScore: _ClassVar[EMsg]
+    k_EMsgClientLBSSetScoreResponse: _ClassVar[EMsg]
+    k_EMsgClientLBSFindOrCreateLB: _ClassVar[EMsg]
+    k_EMsgClientLBSFindOrCreateLBResponse: _ClassVar[EMsg]
+    k_EMsgClientLBSGetLBEntries: _ClassVar[EMsg]
+    k_EMsgClientLBSGetLBEntriesResponse: _ClassVar[EMsg]
+    k_EMsgClientChatDeclined: _ClassVar[EMsg]
+    k_EMsgClientFriendMsgIncoming: _ClassVar[EMsg]
+    k_EMsgClientAuthList_Deprecated: _ClassVar[EMsg]
+    k_EMsgClientTicketAuthComplete: _ClassVar[EMsg]
+    k_EMsgClientIsLimitedAccount: _ClassVar[EMsg]
+    k_EMsgClientRequestAuthList: _ClassVar[EMsg]
+    k_EMsgClientAuthList: _ClassVar[EMsg]
+    k_EMsgClientStat: _ClassVar[EMsg]
+    k_EMsgClientP2PConnectionInfo: _ClassVar[EMsg]
+    k_EMsgClientP2PConnectionFailInfo: _ClassVar[EMsg]
+    k_EMsgClientGetDepotDecryptionKey: _ClassVar[EMsg]
+    k_EMsgClientGetDepotDecryptionKeyResponse: _ClassVar[EMsg]
+    k_EMsgClientEnableTestLicense: _ClassVar[EMsg]
+    k_EMsgClientEnableTestLicenseResponse: _ClassVar[EMsg]
+    k_EMsgClientDisableTestLicense: _ClassVar[EMsg]
+    k_EMsgClientDisableTestLicenseResponse: _ClassVar[EMsg]
+    k_EMsgClientRequestValidationMail: _ClassVar[EMsg]
+    k_EMsgClientRequestValidationMailResponse: _ClassVar[EMsg]
+    k_EMsgClientCheckAppBetaPassword: _ClassVar[EMsg]
+    k_EMsgClientCheckAppBetaPasswordResponse: _ClassVar[EMsg]
+    k_EMsgClientToGC: _ClassVar[EMsg]
+    k_EMsgClientFromGC: _ClassVar[EMsg]
+    k_EMsgClientEmailAddrInfo: _ClassVar[EMsg]
+    k_EMsgClientPasswordChange3: _ClassVar[EMsg]
+    k_EMsgClientEmailChange3: _ClassVar[EMsg]
+    k_EMsgClientPersonalQAChange3: _ClassVar[EMsg]
+    k_EMsgClientResetForgottenPassword3: _ClassVar[EMsg]
+    k_EMsgClientRequestForgottenPasswordEmail3: _ClassVar[EMsg]
+    k_EMsgClientNewLoginKey: _ClassVar[EMsg]
+    k_EMsgClientNewLoginKeyAccepted: _ClassVar[EMsg]
+    k_EMsgClientLogOnWithHash_Deprecated: _ClassVar[EMsg]
+    k_EMsgClientStoreUserStats2: _ClassVar[EMsg]
+    k_EMsgClientStatsUpdated: _ClassVar[EMsg]
+    k_EMsgClientActivateOEMLicense: _ClassVar[EMsg]
+    k_EMsgClientRegisterOEMMachine: _ClassVar[EMsg]
+    k_EMsgClientRegisterOEMMachineResponse: _ClassVar[EMsg]
+    k_EMsgClientRequestedClientStats: _ClassVar[EMsg]
+    k_EMsgClientStat2Int32: _ClassVar[EMsg]
+    k_EMsgClientStat2: _ClassVar[EMsg]
+    k_EMsgClientVerifyPassword: _ClassVar[EMsg]
+    k_EMsgClientVerifyPasswordResponse: _ClassVar[EMsg]
+    k_EMsgClientDRMDownloadRequest: _ClassVar[EMsg]
+    k_EMsgClientDRMDownloadResponse: _ClassVar[EMsg]
+    k_EMsgClientDRMFinalResult: _ClassVar[EMsg]
+    k_EMsgClientGetFriendsWhoPlayGame: _ClassVar[EMsg]
+    k_EMsgClientGetFriendsWhoPlayGameResponse: _ClassVar[EMsg]
+    k_EMsgClientOGSBeginSession: _ClassVar[EMsg]
+    k_EMsgClientOGSBeginSessionResponse: _ClassVar[EMsg]
+    k_EMsgClientOGSEndSession: _ClassVar[EMsg]
+    k_EMsgClientOGSEndSessionResponse: _ClassVar[EMsg]
+    k_EMsgClientOGSWriteRow: _ClassVar[EMsg]
+    k_EMsgClientGetPeerContentInfo: _ClassVar[EMsg]
+    k_EMsgClientGetPeerContentInfoResponse: _ClassVar[EMsg]
+    k_EMsgClientStartPeerContentServer: _ClassVar[EMsg]
+    k_EMsgClientStartPeerContentServerResponse: _ClassVar[EMsg]
+    k_EMsgClientServerUnavailable: _ClassVar[EMsg]
+    k_EMsgClientServersAvailable: _ClassVar[EMsg]
+    k_EMsgClientRegisterAuthTicketWithCM: _ClassVar[EMsg]
+    k_EMsgClientGCMsgFailed: _ClassVar[EMsg]
+    k_EMsgClientMicroTxnAuthRequest: _ClassVar[EMsg]
+    k_EMsgClientMicroTxnAuthorize: _ClassVar[EMsg]
+    k_EMsgClientMicroTxnAuthorizeResponse: _ClassVar[EMsg]
+    k_EMsgClientGetMicroTxnInfo: _ClassVar[EMsg]
+    k_EMsgClientGetMicroTxnInfoResponse: _ClassVar[EMsg]
+    k_EMsgClientDeregisterWithServer: _ClassVar[EMsg]
+    k_EMsgClientSubscribeToPersonaFeed: _ClassVar[EMsg]
+    k_EMsgClientLogon: _ClassVar[EMsg]
+    k_EMsgClientGetClientDetails: _ClassVar[EMsg]
+    k_EMsgClientGetClientDetailsResponse: _ClassVar[EMsg]
+    k_EMsgClientReportOverlayDetourFailure: _ClassVar[EMsg]
+    k_EMsgClientGetClientAppList: _ClassVar[EMsg]
+    k_EMsgClientGetClientAppListResponse: _ClassVar[EMsg]
+    k_EMsgClientInstallClientApp: _ClassVar[EMsg]
+    k_EMsgClientInstallClientAppResponse: _ClassVar[EMsg]
+    k_EMsgClientUninstallClientApp: _ClassVar[EMsg]
+    k_EMsgClientUninstallClientAppResponse: _ClassVar[EMsg]
+    k_EMsgClientSetClientAppUpdateState: _ClassVar[EMsg]
+    k_EMsgClientSetClientAppUpdateStateResponse: _ClassVar[EMsg]
+    k_EMsgClientRequestEncryptedAppTicket: _ClassVar[EMsg]
+    k_EMsgClientRequestEncryptedAppTicketResponse: _ClassVar[EMsg]
+    k_EMsgClientWalletInfoUpdate: _ClassVar[EMsg]
+    k_EMsgClientLBSSetUGC: _ClassVar[EMsg]
+    k_EMsgClientLBSSetUGCResponse: _ClassVar[EMsg]
+    k_EMsgClientAMGetClanOfficers: _ClassVar[EMsg]
+    k_EMsgClientAMGetClanOfficersResponse: _ClassVar[EMsg]
+    k_EMsgClientFriendProfileInfo: _ClassVar[EMsg]
+    k_EMsgClientFriendProfileInfoResponse: _ClassVar[EMsg]
+    k_EMsgClientUpdateMachineAuth: _ClassVar[EMsg]
+    k_EMsgClientUpdateMachineAuthResponse: _ClassVar[EMsg]
+    k_EMsgClientReadMachineAuth: _ClassVar[EMsg]
+    k_EMsgClientReadMachineAuthResponse: _ClassVar[EMsg]
+    k_EMsgClientRequestMachineAuth: _ClassVar[EMsg]
+    k_EMsgClientRequestMachineAuthResponse: _ClassVar[EMsg]
+    k_EMsgClientScreenshotsChanged: _ClassVar[EMsg]
+    k_EMsgClientGetCDNAuthToken: _ClassVar[EMsg]
+    k_EMsgClientGetCDNAuthTokenResponse: _ClassVar[EMsg]
+    k_EMsgClientDownloadRateStatistics: _ClassVar[EMsg]
+    k_EMsgClientRequestAccountData: _ClassVar[EMsg]
+    k_EMsgClientRequestAccountDataResponse: _ClassVar[EMsg]
+    k_EMsgClientResetForgottenPassword4: _ClassVar[EMsg]
+    k_EMsgClientHideFriend: _ClassVar[EMsg]
+    k_EMsgClientFriendsGroupsList: _ClassVar[EMsg]
+    k_EMsgClientGetClanActivityCounts: _ClassVar[EMsg]
+    k_EMsgClientGetClanActivityCountsResponse: _ClassVar[EMsg]
+    k_EMsgClientOGSReportString: _ClassVar[EMsg]
+    k_EMsgClientOGSReportBug: _ClassVar[EMsg]
+    k_EMsgClientSentLogs: _ClassVar[EMsg]
+    k_EMsgClientLogonGameServer: _ClassVar[EMsg]
+    k_EMsgAMClientCreateFriendsGroup: _ClassVar[EMsg]
+    k_EMsgAMClientCreateFriendsGroupResponse: _ClassVar[EMsg]
+    k_EMsgAMClientDeleteFriendsGroup: _ClassVar[EMsg]
+    k_EMsgAMClientDeleteFriendsGroupResponse: _ClassVar[EMsg]
+    k_EMsgAMClientManageFriendsGroup: _ClassVar[EMsg]
+    k_EMsgAMClientManageFriendsGroupResponse: _ClassVar[EMsg]
+    k_EMsgAMClientAddFriendToGroup: _ClassVar[EMsg]
+    k_EMsgAMClientAddFriendToGroupResponse: _ClassVar[EMsg]
+    k_EMsgAMClientRemoveFriendFromGroup: _ClassVar[EMsg]
+    k_EMsgAMClientRemoveFriendFromGroupResponse: _ClassVar[EMsg]
+    k_EMsgClientAMGetPersonaNameHistory: _ClassVar[EMsg]
+    k_EMsgClientAMGetPersonaNameHistoryResponse: _ClassVar[EMsg]
+    k_EMsgClientRequestFreeLicense: _ClassVar[EMsg]
+    k_EMsgClientRequestFreeLicenseResponse: _ClassVar[EMsg]
+    k_EMsgClientDRMDownloadRequestWithCrashData: _ClassVar[EMsg]
+    k_EMsgClientAuthListAck: _ClassVar[EMsg]
+    k_EMsgClientItemAnnouncements: _ClassVar[EMsg]
+    k_EMsgClientRequestItemAnnouncements: _ClassVar[EMsg]
+    k_EMsgClientFriendMsgEchoToSender: _ClassVar[EMsg]
+    k_EMsgClientCommentNotifications: _ClassVar[EMsg]
+    k_EMsgClientRequestCommentNotifications: _ClassVar[EMsg]
+    k_EMsgClientPersonaChangeResponse: _ClassVar[EMsg]
+    k_EMsgClientRequestWebAPIAuthenticateUserNonce: _ClassVar[EMsg]
+    k_EMsgClientRequestWebAPIAuthenticateUserNonceResponse: _ClassVar[EMsg]
+    k_EMsgClientPlayerNicknameList: _ClassVar[EMsg]
+    k_EMsgAMClientSetPlayerNickname: _ClassVar[EMsg]
+    k_EMsgAMClientSetPlayerNicknameResponse: _ClassVar[EMsg]
+    k_EMsgClientGetNumberOfCurrentPlayersDP: _ClassVar[EMsg]
+    k_EMsgClientGetNumberOfCurrentPlayersDPResponse: _ClassVar[EMsg]
+    k_EMsgClientServiceMethodLegacy: _ClassVar[EMsg]
+    k_EMsgClientServiceMethodLegacyResponse: _ClassVar[EMsg]
+    k_EMsgClientFriendUserStatusPublished: _ClassVar[EMsg]
+    k_EMsgClientCurrentUIMode: _ClassVar[EMsg]
+    k_EMsgClientVanityURLChangedNotification: _ClassVar[EMsg]
+    k_EMsgClientUserNotifications: _ClassVar[EMsg]
+    k_EMsgBaseDFS: _ClassVar[EMsg]
+    k_EMsgDFSGetFile: _ClassVar[EMsg]
+    k_EMsgDFSInstallLocalFile: _ClassVar[EMsg]
+    k_EMsgDFSConnection: _ClassVar[EMsg]
+    k_EMsgDFSConnectionReply: _ClassVar[EMsg]
+    k_EMsgClientDFSAuthenticateRequest: _ClassVar[EMsg]
+    k_EMsgClientDFSAuthenticateResponse: _ClassVar[EMsg]
+    k_EMsgClientDFSEndSession: _ClassVar[EMsg]
+    k_EMsgDFSPurgeFile: _ClassVar[EMsg]
+    k_EMsgDFSRouteFile: _ClassVar[EMsg]
+    k_EMsgDFSGetFileFromServer: _ClassVar[EMsg]
+    k_EMsgDFSAcceptedResponse: _ClassVar[EMsg]
+    k_EMsgDFSRequestPingback: _ClassVar[EMsg]
+    k_EMsgDFSRecvTransmitFile: _ClassVar[EMsg]
+    k_EMsgDFSSendTransmitFile: _ClassVar[EMsg]
+    k_EMsgDFSRequestPingback2: _ClassVar[EMsg]
+    k_EMsgDFSResponsePingback2: _ClassVar[EMsg]
+    k_EMsgClientDFSDownloadStatus: _ClassVar[EMsg]
+    k_EMsgDFSStartTransfer: _ClassVar[EMsg]
+    k_EMsgDFSTransferComplete: _ClassVar[EMsg]
+    k_EMsgDFSRouteFileResponse: _ClassVar[EMsg]
+    k_EMsgClientNetworkingCertRequest: _ClassVar[EMsg]
+    k_EMsgClientNetworkingCertRequestResponse: _ClassVar[EMsg]
+    k_EMsgClientChallengeRequest: _ClassVar[EMsg]
+    k_EMsgClientChallengeResponse: _ClassVar[EMsg]
+    k_EMsgBadgeCraftedNotification: _ClassVar[EMsg]
+    k_EMsgClientNetworkingMobileCertRequest: _ClassVar[EMsg]
+    k_EMsgClientNetworkingMobileCertRequestResponse: _ClassVar[EMsg]
+    k_EMsgBaseMDS: _ClassVar[EMsg]
+    k_EMsgMDSGetDepotDecryptionKey: _ClassVar[EMsg]
+    k_EMsgMDSGetDepotDecryptionKeyResponse: _ClassVar[EMsg]
+    k_EMsgMDSContentServerConfigRequest: _ClassVar[EMsg]
+    k_EMsgMDSContentServerConfig: _ClassVar[EMsg]
+    k_EMsgMDSGetDepotManifest: _ClassVar[EMsg]
+    k_EMsgMDSGetDepotManifestResponse: _ClassVar[EMsg]
+    k_EMsgMDSGetDepotManifestChunk: _ClassVar[EMsg]
+    k_EMsgMDSGetDepotChunk: _ClassVar[EMsg]
+    k_EMsgMDSGetDepotChunkResponse: _ClassVar[EMsg]
+    k_EMsgMDSGetDepotChunkChunk: _ClassVar[EMsg]
+    k_EMsgMDSToCSFlushChunk: _ClassVar[EMsg]
+    k_EMsgMDSMigrateChunk: _ClassVar[EMsg]
+    k_EMsgMDSMigrateChunkResponse: _ClassVar[EMsg]
+    k_EMsgMDSToCSFlushManifest: _ClassVar[EMsg]
+    k_EMsgCSBase: _ClassVar[EMsg]
+    k_EMsgCSPing: _ClassVar[EMsg]
+    k_EMsgCSPingResponse: _ClassVar[EMsg]
+    k_EMsgGMSBase: _ClassVar[EMsg]
+    k_EMsgGMSGameServerReplicate: _ClassVar[EMsg]
+    k_EMsgClientGMSServerQuery: _ClassVar[EMsg]
+    k_EMsgGMSClientServerQueryResponse: _ClassVar[EMsg]
+    k_EMsgAMGMSGameServerUpdate: _ClassVar[EMsg]
+    k_EMsgAMGMSGameServerRemove: _ClassVar[EMsg]
+    k_EMsgGameServerOutOfDate: _ClassVar[EMsg]
+    k_EMsgDeviceAuthorizationBase: _ClassVar[EMsg]
+    k_EMsgClientAuthorizeLocalDeviceRequest: _ClassVar[EMsg]
+    k_EMsgClientAuthorizeLocalDeviceResponse: _ClassVar[EMsg]
+    k_EMsgClientDeauthorizeDeviceRequest: _ClassVar[EMsg]
+    k_EMsgClientDeauthorizeDevice: _ClassVar[EMsg]
+    k_EMsgClientUseLocalDeviceAuthorizations: _ClassVar[EMsg]
+    k_EMsgClientGetAuthorizedDevices: _ClassVar[EMsg]
+    k_EMsgClientGetAuthorizedDevicesResponse: _ClassVar[EMsg]
+    k_EMsgAMNotifySessionDeviceAuthorized: _ClassVar[EMsg]
+    k_EMsgClientAuthorizeLocalDeviceNotification: _ClassVar[EMsg]
+    k_EMsgMMSBase: _ClassVar[EMsg]
+    k_EMsgClientMMSCreateLobby: _ClassVar[EMsg]
+    k_EMsgClientMMSCreateLobbyResponse: _ClassVar[EMsg]
+    k_EMsgClientMMSJoinLobby: _ClassVar[EMsg]
+    k_EMsgClientMMSJoinLobbyResponse: _ClassVar[EMsg]
+    k_EMsgClientMMSLeaveLobby: _ClassVar[EMsg]
+    k_EMsgClientMMSLeaveLobbyResponse: _ClassVar[EMsg]
+    k_EMsgClientMMSGetLobbyList: _ClassVar[EMsg]
+    k_EMsgClientMMSGetLobbyListResponse: _ClassVar[EMsg]
+    k_EMsgClientMMSSetLobbyData: _ClassVar[EMsg]
+    k_EMsgClientMMSSetLobbyDataResponse: _ClassVar[EMsg]
+    k_EMsgClientMMSGetLobbyData: _ClassVar[EMsg]
+    k_EMsgClientMMSLobbyData: _ClassVar[EMsg]
+    k_EMsgClientMMSSendLobbyChatMsg: _ClassVar[EMsg]
+    k_EMsgClientMMSLobbyChatMsg: _ClassVar[EMsg]
+    k_EMsgClientMMSSetLobbyOwner: _ClassVar[EMsg]
+    k_EMsgClientMMSSetLobbyOwnerResponse: _ClassVar[EMsg]
+    k_EMsgClientMMSSetLobbyGameServer: _ClassVar[EMsg]
+    k_EMsgClientMMSLobbyGameServerSet: _ClassVar[EMsg]
+    k_EMsgClientMMSUserJoinedLobby: _ClassVar[EMsg]
+    k_EMsgClientMMSUserLeftLobby: _ClassVar[EMsg]
+    k_EMsgClientMMSInviteToLobby: _ClassVar[EMsg]
+    k_EMsgClientMMSFlushFrenemyListCache: _ClassVar[EMsg]
+    k_EMsgClientMMSFlushFrenemyListCacheResponse: _ClassVar[EMsg]
+    k_EMsgClientMMSSetLobbyLinked: _ClassVar[EMsg]
+    k_EMsgClientMMSSetRatelimitPolicyOnClient: _ClassVar[EMsg]
+    k_EMsgClientMMSGetLobbyStatus: _ClassVar[EMsg]
+    k_EMsgClientMMSGetLobbyStatusResponse: _ClassVar[EMsg]
+    k_EMsgMMSGetLobbyList: _ClassVar[EMsg]
+    k_EMsgMMSGetLobbyListResponse: _ClassVar[EMsg]
+    k_EMsgNonStdMsgBase: _ClassVar[EMsg]
+    k_EMsgNonStdMsgMemcached: _ClassVar[EMsg]
+    k_EMsgNonStdMsgHTTPServer: _ClassVar[EMsg]
+    k_EMsgNonStdMsgHTTPClient: _ClassVar[EMsg]
+    k_EMsgNonStdMsgWGResponse: _ClassVar[EMsg]
+    k_EMsgNonStdMsgPHPSimulator: _ClassVar[EMsg]
+    k_EMsgNonStdMsgChase: _ClassVar[EMsg]
+    k_EMsgNonStdMsgDFSTransfer: _ClassVar[EMsg]
+    k_EMsgNonStdMsgTests: _ClassVar[EMsg]
+    k_EMsgNonStdMsgUMQpipeAAPL: _ClassVar[EMsg]
+    k_EMSgNonStdMsgSyslog: _ClassVar[EMsg]
+    k_EMsgNonStdMsgLogsink: _ClassVar[EMsg]
+    k_EMsgNonStdMsgSteam2Emulator: _ClassVar[EMsg]
+    k_EMsgNonStdMsgRTMPServer: _ClassVar[EMsg]
+    k_EMsgNonStdMsgWebSocket: _ClassVar[EMsg]
+    k_EMsgNonStdMsgRedis: _ClassVar[EMsg]
+    k_EMsgUDSBase: _ClassVar[EMsg]
+    k_EMsgClientUDSP2PSessionStarted: _ClassVar[EMsg]
+    k_EMsgClientUDSP2PSessionEnded: _ClassVar[EMsg]
+    k_EMsgUDSRenderUserAuth: _ClassVar[EMsg]
+    k_EMsgUDSRenderUserAuthResponse: _ClassVar[EMsg]
+    k_EMsgClientInviteToGame: _ClassVar[EMsg]
+    k_EMsgUDSHasSession: _ClassVar[EMsg]
+    k_EMsgUDSHasSessionResponse: _ClassVar[EMsg]
+    k_EMsgMPASBase: _ClassVar[EMsg]
+    k_EMsgMPASVacBanReset: _ClassVar[EMsg]
+    k_EMsgKGSBase: _ClassVar[EMsg]
+    k_EMsgUCMBase: _ClassVar[EMsg]
+    k_EMsgClientUCMAddScreenshot: _ClassVar[EMsg]
+    k_EMsgClientUCMAddScreenshotResponse: _ClassVar[EMsg]
+    k_EMsgUCMResetCommunityContent: _ClassVar[EMsg]
+    k_EMsgUCMResetCommunityContentResponse: _ClassVar[EMsg]
+    k_EMsgClientUCMDeleteScreenshot: _ClassVar[EMsg]
+    k_EMsgClientUCMDeleteScreenshotResponse: _ClassVar[EMsg]
+    k_EMsgClientUCMPublishFile: _ClassVar[EMsg]
+    k_EMsgClientUCMPublishFileResponse: _ClassVar[EMsg]
+    k_EMsgClientUCMDeletePublishedFile: _ClassVar[EMsg]
+    k_EMsgClientUCMDeletePublishedFileResponse: _ClassVar[EMsg]
+    k_EMsgClientUCMUpdatePublishedFile: _ClassVar[EMsg]
+    k_EMsgClientUCMUpdatePublishedFileResponse: _ClassVar[EMsg]
+    k_EMsgUCMUpdatePublishedFile: _ClassVar[EMsg]
+    k_EMsgUCMUpdatePublishedFileResponse: _ClassVar[EMsg]
+    k_EMsgUCMUpdatePublishedFileStat: _ClassVar[EMsg]
+    k_EMsgUCMReloadPublishedFile: _ClassVar[EMsg]
+    k_EMsgUCMReloadUserFileListCaches: _ClassVar[EMsg]
+    k_EMsgUCMPublishedFileReported: _ClassVar[EMsg]
+    k_EMsgUCMPublishedFilePreviewAdd: _ClassVar[EMsg]
+    k_EMsgUCMPublishedFilePreviewAddResponse: _ClassVar[EMsg]
+    k_EMsgUCMPublishedFilePreviewRemove: _ClassVar[EMsg]
+    k_EMsgUCMPublishedFilePreviewRemoveResponse: _ClassVar[EMsg]
+    k_EMsgUCMPublishedFileSubscribed: _ClassVar[EMsg]
+    k_EMsgUCMPublishedFileUnsubscribed: _ClassVar[EMsg]
+    k_EMsgUCMPublishFile: _ClassVar[EMsg]
+    k_EMsgUCMPublishFileResponse: _ClassVar[EMsg]
+    k_EMsgUCMPublishedFileChildAdd: _ClassVar[EMsg]
+    k_EMsgUCMPublishedFileChildAddResponse: _ClassVar[EMsg]
+    k_EMsgUCMPublishedFileChildRemove: _ClassVar[EMsg]
+    k_EMsgUCMPublishedFileChildRemoveResponse: _ClassVar[EMsg]
+    k_EMsgUCMPublishedFileParentChanged: _ClassVar[EMsg]
+    k_EMsgClientUCMSetUserPublishedFileAction: _ClassVar[EMsg]
+    k_EMsgClientUCMSetUserPublishedFileActionResponse: _ClassVar[EMsg]
+    k_EMsgClientUCMEnumeratePublishedFilesByUserAction: _ClassVar[EMsg]
+    k_EMsgClientUCMEnumeratePublishedFilesByUserActionResponse: _ClassVar[EMsg]
+    k_EMsgUCMGetUserSubscribedFiles: _ClassVar[EMsg]
+    k_EMsgUCMGetUserSubscribedFilesResponse: _ClassVar[EMsg]
+    k_EMsgUCMFixStatsPublishedFile: _ClassVar[EMsg]
+    k_EMsgClientUCMEnumerateUserSubscribedFilesWithUpdates: _ClassVar[EMsg]
+    k_EMsgClientUCMEnumerateUserSubscribedFilesWithUpdatesResponse: _ClassVar[EMsg]
+    k_EMsgUCMPublishedFileContentUpdated: _ClassVar[EMsg]
+    k_EMsgClientUCMPublishedFileUpdated: _ClassVar[EMsg]
+    k_EMsgFSBase: _ClassVar[EMsg]
+    k_EMsgClientRichPresenceUpload: _ClassVar[EMsg]
+    k_EMsgClientRichPresenceRequest: _ClassVar[EMsg]
+    k_EMsgClientRichPresenceInfo: _ClassVar[EMsg]
+    k_EMsgFSRichPresenceRequest: _ClassVar[EMsg]
+    k_EMsgFSRichPresenceResponse: _ClassVar[EMsg]
+    k_EMsgFSComputeFrenematrix: _ClassVar[EMsg]
+    k_EMsgFSComputeFrenematrixResponse: _ClassVar[EMsg]
+    k_EMsgFSPlayStatusNotification: _ClassVar[EMsg]
+    k_EMsgFSAddOrRemoveFollower: _ClassVar[EMsg]
+    k_EMsgFSAddOrRemoveFollowerResponse: _ClassVar[EMsg]
+    k_EMsgFSUpdateFollowingList: _ClassVar[EMsg]
+    k_EMsgFSCommentNotification: _ClassVar[EMsg]
+    k_EMsgFSCommentNotificationViewed: _ClassVar[EMsg]
+    k_EMsgClientFSGetFollowerCount: _ClassVar[EMsg]
+    k_EMsgClientFSGetFollowerCountResponse: _ClassVar[EMsg]
+    k_EMsgClientFSGetIsFollowing: _ClassVar[EMsg]
+    k_EMsgClientFSGetIsFollowingResponse: _ClassVar[EMsg]
+    k_EMsgClientFSEnumerateFollowingList: _ClassVar[EMsg]
+    k_EMsgClientFSEnumerateFollowingListResponse: _ClassVar[EMsg]
+    k_EMsgFSGetPendingNotificationCount: _ClassVar[EMsg]
+    k_EMsgFSGetPendingNotificationCountResponse: _ClassVar[EMsg]
+    k_EMsgClientChatOfflineMessageNotification: _ClassVar[EMsg]
+    k_EMsgClientChatRequestOfflineMessageCount: _ClassVar[EMsg]
+    k_EMsgClientChatGetFriendMessageHistory: _ClassVar[EMsg]
+    k_EMsgClientChatGetFriendMessageHistoryResponse: _ClassVar[EMsg]
+    k_EMsgClientChatGetFriendMessageHistoryForOfflineMessages: _ClassVar[EMsg]
+    k_EMsgClientFSGetFriendsSteamLevels: _ClassVar[EMsg]
+    k_EMsgClientFSGetFriendsSteamLevelsResponse: _ClassVar[EMsg]
+    k_EMsgAMRequestFriendData: _ClassVar[EMsg]
+    k_EMsgDRMRange2: _ClassVar[EMsg]
+    k_EMsgCEGVersionSetEnableDisableRequest: _ClassVar[EMsg]
+    k_EMsgCEGVersionSetEnableDisableResponse: _ClassVar[EMsg]
+    k_EMsgCEGPropStatusDRMSRequest: _ClassVar[EMsg]
+    k_EMsgCEGPropStatusDRMSResponse: _ClassVar[EMsg]
+    k_EMsgCEGWhackFailureReportRequest: _ClassVar[EMsg]
+    k_EMsgCEGWhackFailureReportResponse: _ClassVar[EMsg]
+    k_EMsgDRMSFetchVersionSet: _ClassVar[EMsg]
+    k_EMsgDRMSFetchVersionSetResponse: _ClassVar[EMsg]
+    k_EMsgEconBase: _ClassVar[EMsg]
+    k_EMsgEconTrading_InitiateTradeRequest: _ClassVar[EMsg]
+    k_EMsgEconTrading_InitiateTradeProposed: _ClassVar[EMsg]
+    k_EMsgEconTrading_InitiateTradeResponse: _ClassVar[EMsg]
+    k_EMsgEconTrading_InitiateTradeResult: _ClassVar[EMsg]
+    k_EMsgEconTrading_StartSession: _ClassVar[EMsg]
+    k_EMsgEconTrading_CancelTradeRequest: _ClassVar[EMsg]
+    k_EMsgEconFlushInventoryCache: _ClassVar[EMsg]
+    k_EMsgEconFlushInventoryCacheResponse: _ClassVar[EMsg]
+    k_EMsgEconCDKeyProcessTransaction: _ClassVar[EMsg]
+    k_EMsgEconCDKeyProcessTransactionResponse: _ClassVar[EMsg]
+    k_EMsgEconGetErrorLogs: _ClassVar[EMsg]
+    k_EMsgEconGetErrorLogsResponse: _ClassVar[EMsg]
+    k_EMsgRMRange: _ClassVar[EMsg]
+    k_EMsgRMTestVerisignOTP: _ClassVar[EMsg]
+    k_EMsgRMTestVerisignOTPResponse: _ClassVar[EMsg]
+    k_EMsgRMDeleteMemcachedKeys: _ClassVar[EMsg]
+    k_EMsgRMRemoteInvoke: _ClassVar[EMsg]
+    k_EMsgBadLoginIPList: _ClassVar[EMsg]
+    k_EMsgRMMsgTraceAddTrigger: _ClassVar[EMsg]
+    k_EMsgRMMsgTraceRemoveTrigger: _ClassVar[EMsg]
+    k_EMsgRMMsgTraceEvent: _ClassVar[EMsg]
+    k_EMsgUGSBase: _ClassVar[EMsg]
+    k_EMsgUGSUpdateGlobalStats: _ClassVar[EMsg]
+    k_EMsgClientUGSGetGlobalStats: _ClassVar[EMsg]
+    k_EMsgClientUGSGetGlobalStatsResponse: _ClassVar[EMsg]
+    k_EMsgStoreBase: _ClassVar[EMsg]
+    k_EMsgUMQBase: _ClassVar[EMsg]
+    k_EMsgUMQLogonRequest: _ClassVar[EMsg]
+    k_EMsgUMQLogonResponse: _ClassVar[EMsg]
+    k_EMsgUMQLogoffRequest: _ClassVar[EMsg]
+    k_EMsgUMQLogoffResponse: _ClassVar[EMsg]
+    k_EMsgUMQSendChatMessage: _ClassVar[EMsg]
+    k_EMsgUMQIncomingChatMessage: _ClassVar[EMsg]
+    k_EMsgUMQPoll: _ClassVar[EMsg]
+    k_EMsgUMQPollResults: _ClassVar[EMsg]
+    k_EMsgUMQ2AM_ClientMsgBatch: _ClassVar[EMsg]
+    k_EMsgWorkshopBase: _ClassVar[EMsg]
+    k_EMsgWebAPIBase: _ClassVar[EMsg]
+    k_EMsgWebAPIValidateOAuth2Token: _ClassVar[EMsg]
+    k_EMsgWebAPIValidateOAuth2TokenResponse: _ClassVar[EMsg]
+    k_EMsgWebAPIRegisterGCInterfaces: _ClassVar[EMsg]
+    k_EMsgWebAPIInvalidateOAuthClientCache: _ClassVar[EMsg]
+    k_EMsgWebAPIInvalidateOAuthTokenCache: _ClassVar[EMsg]
+    k_EMsgWebAPISetSecrets: _ClassVar[EMsg]
+    k_EMsgBackpackBase: _ClassVar[EMsg]
+    k_EMsgBackpackAddToCurrency: _ClassVar[EMsg]
+    k_EMsgBackpackAddToCurrencyResponse: _ClassVar[EMsg]
+    k_EMsgCREBase: _ClassVar[EMsg]
+    k_EMsgCREItemVoteSummary: _ClassVar[EMsg]
+    k_EMsgCREItemVoteSummaryResponse: _ClassVar[EMsg]
+    k_EMsgCREUpdateUserPublishedItemVote: _ClassVar[EMsg]
+    k_EMsgCREUpdateUserPublishedItemVoteResponse: _ClassVar[EMsg]
+    k_EMsgCREGetUserPublishedItemVoteDetails: _ClassVar[EMsg]
+    k_EMsgCREGetUserPublishedItemVoteDetailsResponse: _ClassVar[EMsg]
+    k_EMsgSecretsBase: _ClassVar[EMsg]
+    k_EMsgSecretsRequestCredentialPair: _ClassVar[EMsg]
+    k_EMsgSecretsCredentialPairResponse: _ClassVar[EMsg]
+    k_EMsgBoxMonitorBase: _ClassVar[EMsg]
+    k_EMsgBoxMonitorReportRequest: _ClassVar[EMsg]
+    k_EMsgBoxMonitorReportResponse: _ClassVar[EMsg]
+    k_EMsgLogsinkBase: _ClassVar[EMsg]
+    k_EMsgLogsinkWriteReport: _ClassVar[EMsg]
+    k_EMsgPICSBase: _ClassVar[EMsg]
+    k_EMsgClientPICSChangesSinceRequest: _ClassVar[EMsg]
+    k_EMsgClientPICSChangesSinceResponse: _ClassVar[EMsg]
+    k_EMsgClientPICSProductInfoRequest: _ClassVar[EMsg]
+    k_EMsgClientPICSProductInfoResponse: _ClassVar[EMsg]
+    k_EMsgClientPICSAccessTokenRequest: _ClassVar[EMsg]
+    k_EMsgClientPICSAccessTokenResponse: _ClassVar[EMsg]
+    k_EMsgWorkerProcess: _ClassVar[EMsg]
+    k_EMsgWorkerProcessPingRequest: _ClassVar[EMsg]
+    k_EMsgWorkerProcessPingResponse: _ClassVar[EMsg]
+    k_EMsgWorkerProcessShutdown: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcess: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessDRMAndSign: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessDRMAndSignResponse: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessSteamworksInfoRequest: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessSteamworksInfoResponse: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessInstallDRMDLLRequest: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessInstallDRMDLLResponse: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessSecretIdStringRequest: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessSecretIdStringResponse: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessInstallProcessedFilesRequest: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessInstallProcessedFilesResponse: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessExamineBlobRequest: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessExamineBlobResponse: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessDescribeSecretRequest: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessDescribeSecretResponse: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessBackfillOriginalRequest: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessBackfillOriginalResponse: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessValidateDRMDLLRequest: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessValidateDRMDLLResponse: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessValidateFileRequest: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessValidateFileResponse: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessSplitAndInstallRequest: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessSplitAndInstallResponse: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessGetBlobRequest: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessGetBlobResponse: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessEvaluateCrashRequest: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessEvaluateCrashResponse: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessAnalyzeFileRequest: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessAnalyzeFileResponse: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessUnpackBlobRequest: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessUnpackBlobResponse: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessInstallAllRequest: _ClassVar[EMsg]
+    k_EMsgDRMWorkerProcessInstallAllResponse: _ClassVar[EMsg]
+    k_EMsgTestWorkerProcess: _ClassVar[EMsg]
+    k_EMsgTestWorkerProcessLoadUnloadModuleRequest: _ClassVar[EMsg]
+    k_EMsgTestWorkerProcessLoadUnloadModuleResponse: _ClassVar[EMsg]
+    k_EMsgTestWorkerProcessServiceModuleCallRequest: _ClassVar[EMsg]
+    k_EMsgTestWorkerProcessServiceModuleCallResponse: _ClassVar[EMsg]
+    k_EMsgQuestServerBase: _ClassVar[EMsg]
+    k_EMsgClientGetEmoticonList: _ClassVar[EMsg]
+    k_EMsgClientEmoticonList: _ClassVar[EMsg]
+    k_EMsgSLCBase: _ClassVar[EMsg]
+    k_EMsgSLCUserSessionStatus: _ClassVar[EMsg]
+    k_EMsgSLCRequestUserSessionStatus: _ClassVar[EMsg]
+    k_EMsgSLCSharedLicensesLockStatus: _ClassVar[EMsg]
+    k_EMsgClientSharedLibraryLockStatus: _ClassVar[EMsg]
+    k_EMsgClientSharedLibraryStopPlaying: _ClassVar[EMsg]
+    k_EMsgSLCOwnerLibraryChanged: _ClassVar[EMsg]
+    k_EMsgSLCSharedLibraryChanged: _ClassVar[EMsg]
+    k_EMsgRemoteClientBase: _ClassVar[EMsg]
+    k_EMsgRemoteClientAuth_OBSOLETE: _ClassVar[EMsg]
+    k_EMsgRemoteClientAuthResponse_OBSOLETE: _ClassVar[EMsg]
+    k_EMsgRemoteClientAppStatus: _ClassVar[EMsg]
+    k_EMsgRemoteClientStartStream: _ClassVar[EMsg]
+    k_EMsgRemoteClientStartStreamResponse: _ClassVar[EMsg]
+    k_EMsgRemoteClientPing: _ClassVar[EMsg]
+    k_EMsgRemoteClientPingResponse: _ClassVar[EMsg]
+    k_EMsgClientUnlockH264: _ClassVar[EMsg]
+    k_EMsgClientUnlockH264Response: _ClassVar[EMsg]
+    k_EMsgRemoteClientAcceptEULA: _ClassVar[EMsg]
+    k_EMsgRemoteClientGetControllerConfig: _ClassVar[EMsg]
+    k_EMsgRemoteClientGetControllerConfigResponse: _ClassVar[EMsg]
+    k_EMsgRemoteClientStreamingEnabled: _ClassVar[EMsg]
+    k_EMsgClientUnlockHEVC_OBSOLETE: _ClassVar[EMsg]
+    k_EMsgClientUnlockHEVCResponse_OBSOLETE: _ClassVar[EMsg]
+    k_EMsgRemoteClientStatusRequest: _ClassVar[EMsg]
+    k_EMsgRemoteClientStatusResponse: _ClassVar[EMsg]
+    k_EMsgClientConcurrentSessionsBase: _ClassVar[EMsg]
+    k_EMsgClientPlayingSessionState: _ClassVar[EMsg]
+    k_EMsgClientKickPlayingSession: _ClassVar[EMsg]
+    k_EMsgClientBroadcastBase: _ClassVar[EMsg]
+    k_EMsgClientBroadcastInit: _ClassVar[EMsg]
+    k_EMsgClientBroadcastFrames: _ClassVar[EMsg]
+    k_EMsgClientBroadcastDisconnect: _ClassVar[EMsg]
+    k_EMsgClientBroadcastUploadConfig: _ClassVar[EMsg]
+    k_EMsgBaseClient3: _ClassVar[EMsg]
+    k_EMsgClientVoiceCallPreAuthorize: _ClassVar[EMsg]
+    k_EMsgClientVoiceCallPreAuthorizeResponse: _ClassVar[EMsg]
+    k_EMsgClientServerTimestampRequest: _ClassVar[EMsg]
+    k_EMsgClientServerTimestampResponse: _ClassVar[EMsg]
+    k_EMsgServiceMethodCallFromClientNonAuthed: _ClassVar[EMsg]
+    k_EMsgClientHello: _ClassVar[EMsg]
+    k_EMsgClientEnableOrDisableDownloads: _ClassVar[EMsg]
+    k_EMsgClientEnableOrDisableDownloadsResponse: _ClassVar[EMsg]
+    k_EMsgClientLANP2PBase: _ClassVar[EMsg]
+    k_EMsgClientLANP2PRequestChunk: _ClassVar[EMsg]
+    k_EMsgClientLANP2PRequestChunkResponse: _ClassVar[EMsg]
+    k_EMsgClientPeerChunkRequest: _ClassVar[EMsg]
+    k_EMsgClientPeerChunkResponse: _ClassVar[EMsg]
+    k_EMsgClientLANP2PMax: _ClassVar[EMsg]
+    k_EMsgBaseWatchdogServer: _ClassVar[EMsg]
+    k_EMsgNotifyWatchdog: _ClassVar[EMsg]
+    k_EMsgClientSiteLicenseBase: _ClassVar[EMsg]
+    k_EMsgClientSiteLicenseSiteInfoNotification: _ClassVar[EMsg]
+    k_EMsgClientSiteLicenseCheckout: _ClassVar[EMsg]
+    k_EMsgClientSiteLicenseCheckoutResponse: _ClassVar[EMsg]
+    k_EMsgClientSiteLicenseGetAvailableSeats: _ClassVar[EMsg]
+    k_EMsgClientSiteLicenseGetAvailableSeatsResponse: _ClassVar[EMsg]
+    k_EMsgClientSiteLicenseGetContentCacheInfo: _ClassVar[EMsg]
+    k_EMsgClientSiteLicenseGetContentCacheInfoResponse: _ClassVar[EMsg]
+    k_EMsgBaseChatServer: _ClassVar[EMsg]
+    k_EMsgChatServerGetPendingNotificationCount: _ClassVar[EMsg]
+    k_EMsgChatServerGetPendingNotificationCountResponse: _ClassVar[EMsg]
+    k_EMsgBaseSecretServer: _ClassVar[EMsg]
+    k_EMsgServerSecretChanged: _ClassVar[EMsg]
+    k_EMsgBaseWG: _ClassVar[EMsg]
+    k_EMsgWGConnectionProtocolError: _ClassVar[EMsg]
+    k_EMsgWGConnectionValidateUserToken: _ClassVar[EMsg]
+    k_EMsgWGConnectionValidateUserTokenResponse: _ClassVar[EMsg]
+    k_EMsgWGConnectionLegacyWGRequest: _ClassVar[EMsg]
+    k_EMsgWGConnectionLegacyWGResponse: _ClassVar[EMsg]
+
+class EClientPersonaStateFlag(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    k_EClientPersonaStateFlagStatus: _ClassVar[EClientPersonaStateFlag]
+    k_EClientPersonaStateFlagPlayerName: _ClassVar[EClientPersonaStateFlag]
+    k_EClientPersonaStateFlagQueryPort: _ClassVar[EClientPersonaStateFlag]
+    k_EClientPersonaStateFlagSourceID: _ClassVar[EClientPersonaStateFlag]
+    k_EClientPersonaStateFlagPresence: _ClassVar[EClientPersonaStateFlag]
+    k_EClientPersonaStateFlagLastSeen: _ClassVar[EClientPersonaStateFlag]
+    k_EClientPersonaStateFlagUserClanRank: _ClassVar[EClientPersonaStateFlag]
+    k_EClientPersonaStateGameExtraInfo: _ClassVar[EClientPersonaStateFlag]
+    k_EClientPersonaStateGameDataBlob: _ClassVar[EClientPersonaStateFlag]
+    k_EClientPersonaStateFlagClanData: _ClassVar[EClientPersonaStateFlag]
+    k_EClientPersonaStateFlagFacebook: _ClassVar[EClientPersonaStateFlag]
+    k_EClientPersonaStateFlagRichPresence: _ClassVar[EClientPersonaStateFlag]
+    k_EClientPersonaStateFlagBroadcast: _ClassVar[EClientPersonaStateFlag]
+    k_EClientPersonaStateFlagWatching: _ClassVar[EClientPersonaStateFlag]
+
+class EMsgClanAccountFlags(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    k_EMsgClanAccountFlagPublic: _ClassVar[EMsgClanAccountFlags]
+    k_EMsgClanAccountFlagLarge: _ClassVar[EMsgClanAccountFlags]
+    k_EMsgClanAccountFlagLocked: _ClassVar[EMsgClanAccountFlags]
+    k_EMsgClanAccountFlagDisabled: _ClassVar[EMsgClanAccountFlags]
+    k_EMsgClanAccountFlagOGG: _ClassVar[EMsgClanAccountFlags]
+
+class ESteamReviewScore(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    k_ESteamReviewScore_OverwhelminglyPositive: _ClassVar[ESteamReviewScore]
+    k_ESteamReviewScore_VeryPositive: _ClassVar[ESteamReviewScore]
+    k_ESteamReviewScore_Positive: _ClassVar[ESteamReviewScore]
+    k_ESteamReviewScore_MostlyPositive: _ClassVar[ESteamReviewScore]
+    k_ESteamReviewScore_Mixed: _ClassVar[ESteamReviewScore]
+    k_ESteamReviewScore_MostlyNegative: _ClassVar[ESteamReviewScore]
+    k_ESteamReviewScore_Negative: _ClassVar[ESteamReviewScore]
+    k_ESteamReviewScore_VeryNegative: _ClassVar[ESteamReviewScore]
+    k_ESteamReviewScore_OverwhelminglyNegative: _ClassVar[ESteamReviewScore]
+    k_ESteamReviewScore_None: _ClassVar[ESteamReviewScore]
+
+class ECodecUsagePlatform(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    k_ECodecUsagePlatformUnknown: _ClassVar[ECodecUsagePlatform]
+    k_ECodecUsagePlatformWindows: _ClassVar[ECodecUsagePlatform]
+    k_ECodecUsagePlatformMacOS: _ClassVar[ECodecUsagePlatform]
+    k_ECodecUsagePlatformLinux: _ClassVar[ECodecUsagePlatform]
+    k_ECodecUsagePlatformSteamDeck: _ClassVar[ECodecUsagePlatform]
+
+class ECodecUsageReason(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    k_ECodecUsageReasonUnknown: _ClassVar[ECodecUsageReason]
+    k_ECodecUsageReasonRemotePlay: _ClassVar[ECodecUsageReason]
+    k_ECodecUsageReasonBroadcasting: _ClassVar[ECodecUsageReason]
+    k_ECodecUsageReasonGameVideo: _ClassVar[ECodecUsageReason]
+
+k_EMsgInvalid: EMsg
+k_EMsgMulti: EMsg
+k_EMsgProtobufWrapped: EMsg
+k_EMsgBaseGeneral: EMsg
+k_EMsgGenericReply: EMsg
+k_EMsgDestJobFailed: EMsg
+k_EMsgAlert: EMsg
+k_EMsgSCIDRequest: EMsg
+k_EMsgSCIDResponse: EMsg
+k_EMsgJobHeartbeat: EMsg
+k_EMsgHubConnect: EMsg
+k_EMsgSubscribe: EMsg
+k_EMRouteMessage: EMsg
+k_EMsgWGRequest: EMsg
+k_EMsgWGResponse: EMsg
+k_EMsgKeepAlive: EMsg
+k_EMsgWebAPIJobRequest: EMsg
+k_EMsgWebAPIJobResponse: EMsg
+k_EMsgClientSessionStart: EMsg
+k_EMsgClientSessionEnd: EMsg
+k_EMsgClientSessionUpdate: EMsg
+k_EMsgStatsDeprecated: EMsg
+k_EMsgPing: EMsg
+k_EMsgPingResponse: EMsg
+k_EMsgStats: EMsg
+k_EMsgRequestFullStatsBlock: EMsg
+k_EMsgLoadDBOCacheItem: EMsg
+k_EMsgLoadDBOCacheItemResponse: EMsg
+k_EMsgInvalidateDBOCacheItems: EMsg
+k_EMsgServiceMethod: EMsg
+k_EMsgServiceMethodResponse: EMsg
+k_EMsgClientPackageVersions: EMsg
+k_EMsgTimestampRequest: EMsg
+k_EMsgTimestampResponse: EMsg
+k_EMsgServiceMethodCallFromClient: EMsg
+k_EMsgServiceMethodSendToClient: EMsg
+k_EMsgBaseShell: EMsg
+k_EMsgAssignSysID: EMsg
+k_EMsgExit: EMsg
+k_EMsgDirRequest: EMsg
+k_EMsgDirResponse: EMsg
+k_EMsgZipRequest: EMsg
+k_EMsgZipResponse: EMsg
+k_EMsgUpdateRecordResponse: EMsg
+k_EMsgUpdateCreditCardRequest: EMsg
+k_EMsgUpdateUserBanResponse: EMsg
+k_EMsgPrepareToExit: EMsg
+k_EMsgContentDescriptionUpdate: EMsg
+k_EMsgTestResetServer: EMsg
+k_EMsgUniverseChanged: EMsg
+k_EMsgShellConfigInfoUpdate: EMsg
+k_EMsgRequestWindowsEventLogEntries: EMsg
+k_EMsgProvideWindowsEventLogEntries: EMsg
+k_EMsgShellSearchLogs: EMsg
+k_EMsgShellSearchLogsResponse: EMsg
+k_EMsgShellCheckWindowsUpdates: EMsg
+k_EMsgShellCheckWindowsUpdatesResponse: EMsg
+k_EMsgTestFlushDelayedSQL: EMsg
+k_EMsgTestFlushDelayedSQLResponse: EMsg
+k_EMsgEnsureExecuteScheduledTask_TEST: EMsg
+k_EMsgEnsureExecuteScheduledTaskResponse_TEST: EMsg
+k_EMsgUpdateScheduledTaskEnableState_TEST: EMsg
+k_EMsgUpdateScheduledTaskEnableStateResponse_TEST: EMsg
+k_EMsgContentDescriptionDeltaUpdate: EMsg
+k_EMsgGMShellAndServerAddressUpdates: EMsg
+k_EMsgBaseGM: EMsg
+k_EMsgHeartbeat: EMsg
+k_EMsgShellFailed: EMsg
+k_EMsgExitShells: EMsg
+k_EMsgExitShell: EMsg
+k_EMsgGracefulExitShell: EMsg
+k_EMsgLicenseProcessingComplete: EMsg
+k_EMsgSetTestFlag: EMsg
+k_EMsgQueuedEmailsComplete: EMsg
+k_EMsgGMDRMSync: EMsg
+k_EMsgPhysicalBoxInventory: EMsg
+k_EMsgUpdateConfigFile: EMsg
+k_EMsgTestInitDB: EMsg
+k_EMsgGMWriteConfigToSQL: EMsg
+k_EMsgGMLoadActivationCodes: EMsg
+k_EMsgGMQueueForFBS: EMsg
+k_EMsgGMSchemaConversionResults: EMsg
+k_EMsgGMWriteShellFailureToSQL: EMsg
+k_EMsgGMWriteStatsToSOS: EMsg
+k_EMsgGMGetServiceMethodRouting: EMsg
+k_EMsgGMGetServiceMethodRoutingResponse: EMsg
+k_EMsgGMTestNextBuildSchemaConversion: EMsg
+k_EMsgGMTestNextBuildSchemaConversionResponse: EMsg
+k_EMsgExpectShellRestart: EMsg
+k_EMsgHotFixProgress: EMsg
+k_EMsgGMStatsForwardToAdminConnections: EMsg
+k_EMsgGMGetModifiedConVars: EMsg
+k_EMsgGMGetModifiedConVarsResponse: EMsg
+k_EMsgBaseAIS: EMsg
+k_EMsgAISRequestContentDescription: EMsg
+k_EMsgAISUpdateAppInfo: EMsg
+k_EMsgAISGetPackageChangeNumber: EMsg
+k_EMsgAISGetPackageChangeNumberResponse: EMsg
+k_EMsgAIGetAppGCFlags: EMsg
+k_EMsgAIGetAppGCFlagsResponse: EMsg
+k_EMsgAIGetAppList: EMsg
+k_EMsgAIGetAppListResponse: EMsg
+k_EMsgAISGetCouponDefinition: EMsg
+k_EMsgAISGetCouponDefinitionResponse: EMsg
+k_EMsgAISUpdateSubordinateContentDescription: EMsg
+k_EMsgAISUpdateSubordinateContentDescriptionResponse: EMsg
+k_EMsgAISTestEnableGC: EMsg
+k_EMsgBaseAM: EMsg
+k_EMsgAMUpdateUserBanRequest: EMsg
+k_EMsgAMAddLicense: EMsg
+k_EMsgAMSendSystemIMToUser: EMsg
+k_EMsgAMExtendLicense: EMsg
+k_EMsgAMAddMinutesToLicense: EMsg
+k_EMsgAMCancelLicense: EMsg
+k_EMsgAMInitPurchase: EMsg
+k_EMsgAMPurchaseResponse: EMsg
+k_EMsgAMGetFinalPrice: EMsg
+k_EMsgAMGetFinalPriceResponse: EMsg
+k_EMsgAMGetLegacyGameKey: EMsg
+k_EMsgAMGetLegacyGameKeyResponse: EMsg
+k_EMsgAMFindHungTransactions: EMsg
+k_EMsgAMSetAccountTrustedRequest: EMsg
+k_EMsgAMCancelPurchase: EMsg
+k_EMsgAMNewChallenge: EMsg
+k_EMsgAMLoadOEMTickets: EMsg
+k_EMsgAMFixPendingPurchase: EMsg
+k_EMsgAMFixPendingPurchaseResponse: EMsg
+k_EMsgAMIsUserBanned: EMsg
+k_EMsgAMRegisterKey: EMsg
+k_EMsgAMLoadActivationCodes: EMsg
+k_EMsgAMLoadActivationCodesResponse: EMsg
+k_EMsgAMLookupKeyResponse: EMsg
+k_EMsgAMLookupKey: EMsg
+k_EMsgAMChatCleanup: EMsg
+k_EMsgAMClanCleanup: EMsg
+k_EMsgAMFixPendingRefund: EMsg
+k_EMsgAMReverseChargeback: EMsg
+k_EMsgAMReverseChargebackResponse: EMsg
+k_EMsgAMClanCleanupList: EMsg
+k_EMsgAMGetLicenses: EMsg
+k_EMsgAMGetLicensesResponse: EMsg
+k_EMsgAMSendCartRepurchase: EMsg
+k_EMsgAMSendCartRepurchaseResponse: EMsg
+k_EMsgAllowUserToPlayQuery: EMsg
+k_EMsgAllowUserToPlayResponse: EMsg
+k_EMsgAMVerfiyUser: EMsg
+k_EMsgAMClientNotPlaying: EMsg
+k_EMsgAMClientRequestFriendship: EMsg
+k_EMsgAMRelayPublishStatus: EMsg
+k_EMsgAMInitPurchaseResponse: EMsg
+k_EMsgAMRevokePurchaseResponse: EMsg
+k_EMsgAMRefreshGuestPasses: EMsg
+k_EMsgAMGrantGuestPasses: EMsg
+k_EMsgAMClanDataUpdated: EMsg
+k_EMsgAMReloadAccount: EMsg
+k_EMsgAMClientChatMsgRelay: EMsg
+k_EMsgAMChatMulti: EMsg
+k_EMsgAMClientChatInviteRelay: EMsg
+k_EMsgAMChatInvite: EMsg
+k_EMsgAMClientJoinChatRelay: EMsg
+k_EMsgAMClientChatMemberInfoRelay: EMsg
+k_EMsgAMPublishChatMemberInfo: EMsg
+k_EMsgAMClientAcceptFriendInvite: EMsg
+k_EMsgAMChatEnter: EMsg
+k_EMsgAMClientPublishRemovalFromSource: EMsg
+k_EMsgAMChatActionResult: EMsg
+k_EMsgAMFindAccounts: EMsg
+k_EMsgAMFindAccountsResponse: EMsg
+k_EMsgAMIsAccountNameInUse: EMsg
+k_EMsgAMIsAccountNameInUseResponse: EMsg
+k_EMsgAMSetAccountFlags: EMsg
+k_EMsgAMCreateClan: EMsg
+k_EMsgAMCreateClanResponse: EMsg
+k_EMsgAMGetClanDetails: EMsg
+k_EMsgAMGetClanDetailsResponse: EMsg
+k_EMsgAMSetPersonaName: EMsg
+k_EMsgAMSetAvatar: EMsg
+k_EMsgAMAuthenticateUser: EMsg
+k_EMsgAMAuthenticateUserResponse: EMsg
+k_EMsgAMP2PIntroducerMessage: EMsg
+k_EMsgClientChatAction: EMsg
+k_EMsgAMClientChatActionRelay: EMsg
+k_EMsgBaseVS: EMsg
+k_EMsgReqChallenge: EMsg
+k_EMsgVACResponse: EMsg
+k_EMsgReqChallengeTest: EMsg
+k_EMsgVSMarkCheat: EMsg
+k_EMsgVSAddCheat: EMsg
+k_EMsgVSPurgeCodeModDB: EMsg
+k_EMsgVSGetChallengeResults: EMsg
+k_EMsgVSChallengeResultText: EMsg
+k_EMsgVSReportLingerer: EMsg
+k_EMsgVSRequestManagedChallenge: EMsg
+k_EMsgVSLoadDBFinished: EMsg
+k_EMsgBaseDRMS: EMsg
+k_EMsgDRMBuildBlobRequest: EMsg
+k_EMsgDRMBuildBlobResponse: EMsg
+k_EMsgDRMResolveGuidRequest: EMsg
+k_EMsgDRMResolveGuidResponse: EMsg
+k_EMsgDRMVariabilityReport: EMsg
+k_EMsgDRMVariabilityReportResponse: EMsg
+k_EMsgDRMStabilityReport: EMsg
+k_EMsgDRMStabilityReportResponse: EMsg
+k_EMsgDRMDetailsReportRequest: EMsg
+k_EMsgDRMDetailsReportResponse: EMsg
+k_EMsgDRMProcessFile: EMsg
+k_EMsgDRMAdminUpdate: EMsg
+k_EMsgDRMAdminUpdateResponse: EMsg
+k_EMsgDRMSync: EMsg
+k_EMsgDRMSyncResponse: EMsg
+k_EMsgDRMProcessFileResponse: EMsg
+k_EMsgDRMEmptyGuidCache: EMsg
+k_EMsgDRMEmptyGuidCacheResponse: EMsg
+k_EMsgBaseCS: EMsg
+k_EMsgBaseClient: EMsg
+k_EMsgClientLogOn_Deprecated: EMsg
+k_EMsgClientAnonLogOn_Deprecated: EMsg
+k_EMsgClientHeartBeat: EMsg
+k_EMsgClientVACResponse: EMsg
+k_EMsgClientGamesPlayed_obsolete: EMsg
+k_EMsgClientLogOff: EMsg
+k_EMsgClientNoUDPConnectivity: EMsg
+k_EMsgClientConnectionStats: EMsg
+k_EMsgClientPingResponse: EMsg
+k_EMsgClientRemoveFriend: EMsg
+k_EMsgClientGamesPlayedNoDataBlob: EMsg
+k_EMsgClientChangeStatus: EMsg
+k_EMsgClientVacStatusResponse: EMsg
+k_EMsgClientFriendMsg: EMsg
+k_EMsgClientGameConnect_obsolete: EMsg
+k_EMsgClientGamesPlayed2_obsolete: EMsg
+k_EMsgClientGameEnded_obsolete: EMsg
+k_EMsgClientSystemIM: EMsg
+k_EMsgClientSystemIMAck: EMsg
+k_EMsgClientGetLicenses: EMsg
+k_EMsgClientGetLegacyGameKey: EMsg
+k_EMsgClientContentServerLogOn_Deprecated: EMsg
+k_EMsgClientAckVACBan2: EMsg
+k_EMsgClientGetPurchaseReceipts: EMsg
+k_EMsgClientGamesPlayed3_obsolete: EMsg
+k_EMsgClientAckGuestPass: EMsg
+k_EMsgClientRedeemGuestPass: EMsg
+k_EMsgClientGamesPlayed: EMsg
+k_EMsgClientRegisterKey: EMsg
+k_EMsgClientInviteUserToClan: EMsg
+k_EMsgClientAcknowledgeClanInvite: EMsg
+k_EMsgClientPurchaseWithMachineID: EMsg
+k_EMsgClientAppUsageEvent: EMsg
+k_EMsgClientLogOnResponse: EMsg
+k_EMsgClientSetHeartbeatRate: EMsg
+k_EMsgClientNotLoggedOnDeprecated: EMsg
+k_EMsgClientLoggedOff: EMsg
+k_EMsgGSApprove: EMsg
+k_EMsgGSDeny: EMsg
+k_EMsgGSKick: EMsg
+k_EMsgClientPurchaseResponse: EMsg
+k_EMsgClientPing: EMsg
+k_EMsgClientNOP: EMsg
+k_EMsgClientPersonaState: EMsg
+k_EMsgClientFriendsList: EMsg
+k_EMsgClientAccountInfo: EMsg
+k_EMsgClientNewsUpdate: EMsg
+k_EMsgClientGameConnectDeny: EMsg
+k_EMsgGSStatusReply: EMsg
+k_EMsgClientGameConnectTokens: EMsg
+k_EMsgClientLicenseList: EMsg
+k_EMsgClientVACBanStatus: EMsg
+k_EMsgClientCMList: EMsg
+k_EMsgClientEncryptPct: EMsg
+k_EMsgClientGetLegacyGameKeyResponse: EMsg
+k_EMsgClientAddFriend: EMsg
+k_EMsgClientAddFriendResponse: EMsg
+k_EMsgClientAckGuestPassResponse: EMsg
+k_EMsgClientRedeemGuestPassResponse: EMsg
+k_EMsgClientUpdateGuestPassesList: EMsg
+k_EMsgClientChatMsg: EMsg
+k_EMsgClientChatInvite: EMsg
+k_EMsgClientJoinChat: EMsg
+k_EMsgClientChatMemberInfo: EMsg
+k_EMsgClientLogOnWithCredentials_Deprecated: EMsg
+k_EMsgClientPasswordChangeResponse: EMsg
+k_EMsgClientChatEnter: EMsg
+k_EMsgClientFriendRemovedFromSource: EMsg
+k_EMsgClientCreateChat: EMsg
+k_EMsgClientCreateChatResponse: EMsg
+k_EMsgClientP2PIntroducerMessage: EMsg
+k_EMsgClientChatActionResult: EMsg
+k_EMsgClientRequestFriendData: EMsg
+k_EMsgClientGetUserStats: EMsg
+k_EMsgClientGetUserStatsResponse: EMsg
+k_EMsgClientStoreUserStats: EMsg
+k_EMsgClientStoreUserStatsResponse: EMsg
+k_EMsgClientClanState: EMsg
+k_EMsgClientServiceModule: EMsg
+k_EMsgClientServiceCall: EMsg
+k_EMsgClientServiceCallResponse: EMsg
+k_EMsgClientNatTraversalStatEvent: EMsg
+k_EMsgClientSteamUsageEvent: EMsg
+k_EMsgClientCheckPassword: EMsg
+k_EMsgClientResetPassword: EMsg
+k_EMsgClientCheckPasswordResponse: EMsg
+k_EMsgClientResetPasswordResponse: EMsg
+k_EMsgClientSessionToken: EMsg
+k_EMsgClientDRMProblemReport: EMsg
+k_EMsgClientSetIgnoreFriend: EMsg
+k_EMsgClientSetIgnoreFriendResponse: EMsg
+k_EMsgClientGetAppOwnershipTicket: EMsg
+k_EMsgClientGetAppOwnershipTicketResponse: EMsg
+k_EMsgClientGetLobbyListResponse: EMsg
+k_EMsgClientServerList: EMsg
+k_EMsgClientDRMBlobRequest: EMsg
+k_EMsgClientDRMBlobResponse: EMsg
+k_EMsgBaseGameServer: EMsg
+k_EMsgGSDisconnectNotice: EMsg
+k_EMsgGSStatus: EMsg
+k_EMsgGSUserPlaying: EMsg
+k_EMsgGSStatus2: EMsg
+k_EMsgGSStatusUpdate_Unused: EMsg
+k_EMsgGSServerType: EMsg
+k_EMsgGSPlayerList: EMsg
+k_EMsgGSGetUserAchievementStatus: EMsg
+k_EMsgGSGetUserAchievementStatusResponse: EMsg
+k_EMsgGSGetPlayStats: EMsg
+k_EMsgGSGetPlayStatsResponse: EMsg
+k_EMsgGSGetUserGroupStatus: EMsg
+k_EMsgAMGetUserGroupStatus: EMsg
+k_EMsgAMGetUserGroupStatusResponse: EMsg
+k_EMsgGSGetUserGroupStatusResponse: EMsg
+k_EMsgGSGetReputation: EMsg
+k_EMsgGSGetReputationResponse: EMsg
+k_EMsgGSAssociateWithClan: EMsg
+k_EMsgGSAssociateWithClanResponse: EMsg
+k_EMsgGSComputeNewPlayerCompatibility: EMsg
+k_EMsgGSComputeNewPlayerCompatibilityResponse: EMsg
+k_EMsgBaseAdmin: EMsg
+k_EMsgAdminCmd: EMsg
+k_EMsgAdminCmdResponse: EMsg
+k_EMsgAdminLogListenRequest: EMsg
+k_EMsgAdminLogEvent: EMsg
+k_EMsgUniverseData: EMsg
+k_EMsgAdminSpew: EMsg
+k_EMsgAdminConsoleTitle: EMsg
+k_EMsgAdminGCSpew: EMsg
+k_EMsgAdminGCCommand: EMsg
+k_EMsgAdminGCGetCommandList: EMsg
+k_EMsgAdminGCGetCommandListResponse: EMsg
+k_EMsgFBSConnectionData: EMsg
+k_EMsgAdminMsgSpew: EMsg
+k_EMsgBaseFBS: EMsg
+k_EMsgFBSReqVersion: EMsg
+k_EMsgFBSVersionInfo: EMsg
+k_EMsgFBSForceRefresh: EMsg
+k_EMsgFBSForceBounce: EMsg
+k_EMsgFBSDeployPackage: EMsg
+k_EMsgFBSDeployResponse: EMsg
+k_EMsgFBSUpdateBootstrapper: EMsg
+k_EMsgFBSSetState: EMsg
+k_EMsgFBSApplyOSUpdates: EMsg
+k_EMsgFBSRunCMDScript: EMsg
+k_EMsgFBSRebootBox: EMsg
+k_EMsgFBSSetBigBrotherMode: EMsg
+k_EMsgFBSMinidumpServer: EMsg
+k_EMsgFBSDeployHotFixPackage: EMsg
+k_EMsgFBSDeployHotFixResponse: EMsg
+k_EMsgFBSDownloadHotFix: EMsg
+k_EMsgFBSDownloadHotFixResponse: EMsg
+k_EMsgFBSUpdateTargetConfigFile: EMsg
+k_EMsgFBSApplyAccountCred: EMsg
+k_EMsgFBSApplyAccountCredResponse: EMsg
+k_EMsgFBSSetShellCount: EMsg
+k_EMsgFBSTerminateShell: EMsg
+k_EMsgFBSQueryGMForRequest: EMsg
+k_EMsgFBSQueryGMResponse: EMsg
+k_EMsgFBSTerminateZombies: EMsg
+k_EMsgFBSInfoFromBootstrapper: EMsg
+k_EMsgFBSRebootBoxResponse: EMsg
+k_EMsgFBSBootstrapperPackageRequest: EMsg
+k_EMsgFBSBootstrapperPackageResponse: EMsg
+k_EMsgFBSBootstrapperGetPackageChunk: EMsg
+k_EMsgFBSBootstrapperGetPackageChunkResponse: EMsg
+k_EMsgFBSBootstrapperPackageTransferProgress: EMsg
+k_EMsgFBSRestartBootstrapper: EMsg
+k_EMsgFBSPauseFrozenDumps: EMsg
+k_EMsgBaseFileXfer: EMsg
+k_EMsgFileXferRequest: EMsg
+k_EMsgFileXferResponse: EMsg
+k_EMsgFileXferData: EMsg
+k_EMsgFileXferEnd: EMsg
+k_EMsgFileXferDataAck: EMsg
+k_EMsgBaseChannelAuth: EMsg
+k_EMsgChannelAuthChallenge: EMsg
+k_EMsgChannelAuthResponse: EMsg
+k_EMsgChannelAuthResult: EMsg
+k_EMsgChannelEncryptRequest: EMsg
+k_EMsgChannelEncryptResponse: EMsg
+k_EMsgChannelEncryptResult: EMsg
+k_EMsgBaseBS: EMsg
+k_EMsgBSPurchaseStart: EMsg
+k_EMsgBSPurchaseResponse: EMsg
+k_EMsgBSAuthenticateCCTrans: EMsg
+k_EMsgBSAuthenticateCCTransResponse: EMsg
+k_EMsgBSSettleComplete: EMsg
+k_EMsgBSInitPayPalTxn: EMsg
+k_EMsgBSInitPayPalTxnResponse: EMsg
+k_EMsgBSGetPayPalUserInfo: EMsg
+k_EMsgBSGetPayPalUserInfoResponse: EMsg
+k_EMsgBSPaymentInstrBan: EMsg
+k_EMsgBSPaymentInstrBanResponse: EMsg
+k_EMsgBSInitGCBankXferTxn: EMsg
+k_EMsgBSInitGCBankXferTxnResponse: EMsg
+k_EMsgBSCommitGCTxn: EMsg
+k_EMsgBSQueryTransactionStatus: EMsg
+k_EMsgBSQueryTransactionStatusResponse: EMsg
+k_EMsgBSQueryTxnExtendedInfo: EMsg
+k_EMsgBSQueryTxnExtendedInfoResponse: EMsg
+k_EMsgBSUpdateConversionRates: EMsg
+k_EMsgBSPurchaseRunFraudChecks: EMsg
+k_EMsgBSPurchaseRunFraudChecksResponse: EMsg
+k_EMsgBSQueryBankInformation: EMsg
+k_EMsgBSQueryBankInformationResponse: EMsg
+k_EMsgBSValidateXsollaSignature: EMsg
+k_EMsgBSValidateXsollaSignatureResponse: EMsg
+k_EMsgBSQiwiWalletInvoice: EMsg
+k_EMsgBSQiwiWalletInvoiceResponse: EMsg
+k_EMsgBSUpdateInventoryFromProPack: EMsg
+k_EMsgBSUpdateInventoryFromProPackResponse: EMsg
+k_EMsgBSSendShippingRequest: EMsg
+k_EMsgBSSendShippingRequestResponse: EMsg
+k_EMsgBSGetProPackOrderStatus: EMsg
+k_EMsgBSGetProPackOrderStatusResponse: EMsg
+k_EMsgBSCheckJobRunning: EMsg
+k_EMsgBSCheckJobRunningResponse: EMsg
+k_EMsgBSResetPackagePurchaseRateLimit: EMsg
+k_EMsgBSResetPackagePurchaseRateLimitResponse: EMsg
+k_EMsgBSUpdatePaymentData: EMsg
+k_EMsgBSUpdatePaymentDataResponse: EMsg
+k_EMsgBSGetBillingAddress: EMsg
+k_EMsgBSGetBillingAddressResponse: EMsg
+k_EMsgBSGetCreditCardInfo: EMsg
+k_EMsgBSGetCreditCardInfoResponse: EMsg
+k_EMsgBSRemoveExpiredPaymentData: EMsg
+k_EMsgBSRemoveExpiredPaymentDataResponse: EMsg
+k_EMsgBSConvertToCurrentKeys: EMsg
+k_EMsgBSConvertToCurrentKeysResponse: EMsg
+k_EMsgBSInitPurchase: EMsg
+k_EMsgBSInitPurchaseResponse: EMsg
+k_EMsgBSCompletePurchase: EMsg
+k_EMsgBSCompletePurchaseResponse: EMsg
+k_EMsgBSPruneCardUsageStats: EMsg
+k_EMsgBSPruneCardUsageStatsResponse: EMsg
+k_EMsgBSStoreBankInformation: EMsg
+k_EMsgBSStoreBankInformationResponse: EMsg
+k_EMsgBSVerifyPOSAKey: EMsg
+k_EMsgBSVerifyPOSAKeyResponse: EMsg
+k_EMsgBSReverseRedeemPOSAKey: EMsg
+k_EMsgBSReverseRedeemPOSAKeyResponse: EMsg
+k_EMsgBSQueryFindCreditCard: EMsg
+k_EMsgBSQueryFindCreditCardResponse: EMsg
+k_EMsgBSStatusInquiryPOSAKey: EMsg
+k_EMsgBSStatusInquiryPOSAKeyResponse: EMsg
+k_EMsgBSBoaCompraConfirmProductDelivery: EMsg
+k_EMsgBSBoaCompraConfirmProductDeliveryResponse: EMsg
+k_EMsgBSGenerateBoaCompraMD5: EMsg
+k_EMsgBSGenerateBoaCompraMD5Response: EMsg
+k_EMsgBSCommitWPTxn: EMsg
+k_EMsgBSCommitAdyenTxn: EMsg
+k_EMsgBaseATS: EMsg
+k_EMsgATSStartStressTest: EMsg
+k_EMsgATSStopStressTest: EMsg
+k_EMsgATSRunFailServerTest: EMsg
+k_EMsgATSUFSPerfTestTask: EMsg
+k_EMsgATSUFSPerfTestResponse: EMsg
+k_EMsgATSCycleTCM: EMsg
+k_EMsgATSInitDRMSStressTest: EMsg
+k_EMsgATSCallTest: EMsg
+k_EMsgATSCallTestReply: EMsg
+k_EMsgATSStartExternalStress: EMsg
+k_EMsgATSExternalStressJobStart: EMsg
+k_EMsgATSExternalStressJobQueued: EMsg
+k_EMsgATSExternalStressJobRunning: EMsg
+k_EMsgATSExternalStressJobStopped: EMsg
+k_EMsgATSExternalStressJobStopAll: EMsg
+k_EMsgATSExternalStressActionResult: EMsg
+k_EMsgATSStarted: EMsg
+k_EMsgATSCSPerfTestTask: EMsg
+k_EMsgATSCSPerfTestResponse: EMsg
+k_EMsgBaseDP: EMsg
+k_EMsgDPSetPublishingState: EMsg
+k_EMsgDPUniquePlayersStat: EMsg
+k_EMsgDPStreamingUniquePlayersStat: EMsg
+k_EMsgDPBlockingStats: EMsg
+k_EMsgDPNatTraversalStats: EMsg
+k_EMsgDPCloudStats: EMsg
+k_EMsgDPGetPlayerCount: EMsg
+k_EMsgDPGetPlayerCountResponse: EMsg
+k_EMsgDPGameServersPlayersStats: EMsg
+k_EMsgClientDPCheckSpecialSurvey: EMsg
+k_EMsgClientDPCheckSpecialSurveyResponse: EMsg
+k_EMsgClientDPSendSpecialSurveyResponse: EMsg
+k_EMsgClientDPSendSpecialSurveyResponseReply: EMsg
+k_EMsgDPStoreSaleStatistics: EMsg
+k_EMsgDPPartnerMicroTxns: EMsg
+k_EMsgDPPartnerMicroTxnsResponse: EMsg
+k_EMsgDPVRUniquePlayersStat: EMsg
+k_EMsgBaseCM: EMsg
+k_EMsgCMSetAllowState: EMsg
+k_EMsgCMSpewAllowState: EMsg
+k_EMsgCMSessionRejected: EMsg
+k_EMsgCMSetSecrets: EMsg
+k_EMsgCMGetSecrets: EMsg
+k_EMsgBaseGC: EMsg
+k_EMsgGCCmdRevive: EMsg
+k_EMsgGCCmdDown: EMsg
+k_EMsgGCCmdDeploy: EMsg
+k_EMsgGCCmdDeployResponse: EMsg
+k_EMsgGCCmdSwitch: EMsg
+k_EMsgAMRefreshSessions: EMsg
+k_EMsgGCAchievementAwarded: EMsg
+k_EMsgGCSystemMessage: EMsg
+k_EMsgGCCmdStatus: EMsg
+k_EMsgGCRegisterWebInterfaces_Deprecated: EMsg
+k_EMsgGCGetAccountDetails_DEPRECATED: EMsg
+k_EMsgGCInterAppMessage: EMsg
+k_EMsgGCGetEmailTemplate: EMsg
+k_EMsgGCGetEmailTemplateResponse: EMsg
+k_EMsgGCHRelay: EMsg
+k_EMsgGCHRelayToClient: EMsg
+k_EMsgGCHUpdateSession: EMsg
+k_EMsgGCHRequestUpdateSession: EMsg
+k_EMsgGCHRequestStatus: EMsg
+k_EMsgGCHRequestStatusResponse: EMsg
+k_EMsgGCHAccountVacStatusChange: EMsg
+k_EMsgGCHSpawnGC: EMsg
+k_EMsgGCHSpawnGCResponse: EMsg
+k_EMsgGCHKillGC: EMsg
+k_EMsgGCHKillGCResponse: EMsg
+k_EMsgGCHAccountTradeBanStatusChange: EMsg
+k_EMsgGCHAccountLockStatusChange: EMsg
+k_EMsgGCHVacVerificationChange: EMsg
+k_EMsgGCHAccountPhoneNumberChange: EMsg
+k_EMsgGCHAccountTwoFactorChange: EMsg
+k_EMsgGCHInviteUserToLobby: EMsg
+k_EMsgGCHUpdateMultipleSessions: EMsg
+k_EMsgGCHMarkAppSessionsAuthoritative: EMsg
+k_EMsgGCHRecurringSubscriptionStatusChange: EMsg
+k_EMsgGCHAppCheersReceived: EMsg
+k_EMsgGCHAppCheersGetAllowedTypes: EMsg
+k_EMsgGCHAppCheersGetAllowedTypesResponse: EMsg
+k_EMsgGCHRoutingRulesFromGCHtoGM: EMsg
+k_EMsgGCHRoutingRulesToGCHfromGM: EMsg
+k_EMsgUpdateCMMessageRateRules: EMsg
+k_EMsgBaseP2P: EMsg
+k_EMsgP2PIntroducerMessage: EMsg
+k_EMsgBaseSM: EMsg
+k_EMsgSMExpensiveReport: EMsg
+k_EMsgSMHourlyReport: EMsg
+k_EMsgSMPartitionRenames: EMsg
+k_EMsgSMMonitorSpace: EMsg
+k_EMsgSMTestNextBuildSchemaConversion: EMsg
+k_EMsgSMTestNextBuildSchemaConversionResponse: EMsg
+k_EMsgBaseTest: EMsg
+k_EMsgFailServer: EMsg
+k_EMsgJobHeartbeatTest: EMsg
+k_EMsgJobHeartbeatTestResponse: EMsg
+k_EMsgBaseFTSRange: EMsg
+k_EMsgBaseCCSRange: EMsg
+k_EMsgCCSDeleteAllCommentsByAuthor: EMsg
+k_EMsgCCSDeleteAllCommentsByAuthorResponse: EMsg
+k_EMsgBaseLBSRange: EMsg
+k_EMsgLBSSetScore: EMsg
+k_EMsgLBSSetScoreResponse: EMsg
+k_EMsgLBSFindOrCreateLB: EMsg
+k_EMsgLBSFindOrCreateLBResponse: EMsg
+k_EMsgLBSGetLBEntries: EMsg
+k_EMsgLBSGetLBEntriesResponse: EMsg
+k_EMsgLBSGetLBList: EMsg
+k_EMsgLBSGetLBListResponse: EMsg
+k_EMsgLBSSetLBDetails: EMsg
+k_EMsgLBSDeleteLB: EMsg
+k_EMsgLBSDeleteLBEntry: EMsg
+k_EMsgLBSResetLB: EMsg
+k_EMsgLBSResetLBResponse: EMsg
+k_EMsgLBSDeleteLBResponse: EMsg
+k_EMsgBaseOGS: EMsg
+k_EMsgOGSBeginSession: EMsg
+k_EMsgOGSBeginSessionResponse: EMsg
+k_EMsgOGSEndSession: EMsg
+k_EMsgOGSEndSessionResponse: EMsg
+k_EMsgOGSWriteAppSessionRow: EMsg
+k_EMsgBaseBRP: EMsg
+k_EMsgBRPPostTransactionTax: EMsg
+k_EMsgBRPPostTransactionTaxResponse: EMsg
+k_EMsgBaseAMRange2: EMsg
+k_EMsgAMCreateChat: EMsg
+k_EMsgAMCreateChatResponse: EMsg
+k_EMsgAMSetProfileURL: EMsg
+k_EMsgAMGetAccountEmailAddress: EMsg
+k_EMsgAMGetAccountEmailAddressResponse: EMsg
+k_EMsgAMRequestClanData: EMsg
+k_EMsgAMRouteToClients: EMsg
+k_EMsgAMLeaveClan: EMsg
+k_EMsgAMClanPermissions: EMsg
+k_EMsgAMClanPermissionsResponse: EMsg
+k_EMsgAMCreateClanEventDummyForRateLimiting: EMsg
+k_EMsgAMUpdateClanEventDummyForRateLimiting: EMsg
+k_EMsgAMSetClanPermissionSettings: EMsg
+k_EMsgAMSetClanPermissionSettingsResponse: EMsg
+k_EMsgAMGetClanPermissionSettings: EMsg
+k_EMsgAMGetClanPermissionSettingsResponse: EMsg
+k_EMsgAMPublishChatRoomInfo: EMsg
+k_EMsgClientChatRoomInfo: EMsg
+k_EMsgAMGetClanHistory: EMsg
+k_EMsgAMGetClanHistoryResponse: EMsg
+k_EMsgAMGetClanPermissionBits: EMsg
+k_EMsgAMGetClanPermissionBitsResponse: EMsg
+k_EMsgAMSetClanPermissionBits: EMsg
+k_EMsgAMSetClanPermissionBitsResponse: EMsg
+k_EMsgAMSessionInfoRequest: EMsg
+k_EMsgAMSessionInfoResponse: EMsg
+k_EMsgAMValidateWGToken: EMsg
+k_EMsgAMGetClanRank: EMsg
+k_EMsgAMGetClanRankResponse: EMsg
+k_EMsgAMSetClanRank: EMsg
+k_EMsgAMSetClanRankResponse: EMsg
+k_EMsgAMGetClanPOTW: EMsg
+k_EMsgAMGetClanPOTWResponse: EMsg
+k_EMsgAMSetClanPOTW: EMsg
+k_EMsgAMSetClanPOTWResponse: EMsg
+k_EMsgAMDumpUser: EMsg
+k_EMsgAMKickUserFromClan: EMsg
+k_EMsgAMAddFounderToClan: EMsg
+k_EMsgAMValidateWGTokenResponse: EMsg
+k_EMsgAMSetAccountDetails: EMsg
+k_EMsgAMGetChatBanList: EMsg
+k_EMsgAMGetChatBanListResponse: EMsg
+k_EMsgAMUnBanFromChat: EMsg
+k_EMsgAMSetClanDetails: EMsg
+k_EMsgUGSGetUserGameStats: EMsg
+k_EMsgUGSGetUserGameStatsResponse: EMsg
+k_EMsgAMCheckClanMembership: EMsg
+k_EMsgAMGetClanMembers: EMsg
+k_EMsgAMGetClanMembersResponse: EMsg
+k_EMsgAMNotifyChatOfClanChange: EMsg
+k_EMsgAMResubmitPurchase: EMsg
+k_EMsgAMAddFriend: EMsg
+k_EMsgAMAddFriendResponse: EMsg
+k_EMsgAMRemoveFriend: EMsg
+k_EMsgAMDumpClan: EMsg
+k_EMsgAMChangeClanOwner: EMsg
+k_EMsgAMCancelEasyCollect: EMsg
+k_EMsgAMCancelEasyCollectResponse: EMsg
+k_EMsgAMClansInCommon: EMsg
+k_EMsgAMClansInCommonResponse: EMsg
+k_EMsgAMIsValidAccountID: EMsg
+k_EMsgAMWipeFriendsList: EMsg
+k_EMsgAMSetIgnored: EMsg
+k_EMsgAMClansInCommonCountResponse: EMsg
+k_EMsgAMFriendsList: EMsg
+k_EMsgAMFriendsListResponse: EMsg
+k_EMsgAMFriendsInCommon: EMsg
+k_EMsgAMFriendsInCommonResponse: EMsg
+k_EMsgAMFriendsInCommonCountResponse: EMsg
+k_EMsgAMClansInCommonCount: EMsg
+k_EMsgAMChallengeVerdict: EMsg
+k_EMsgAMChallengeNotification: EMsg
+k_EMsgAMFindGSByIP: EMsg
+k_EMsgAMFoundGSByIP: EMsg
+k_EMsgAMGiftRevoked: EMsg
+k_EMsgAMUserClanList: EMsg
+k_EMsgAMUserClanListResponse: EMsg
+k_EMsgAMGetAccountDetails2: EMsg
+k_EMsgAMGetAccountDetailsResponse2: EMsg
+k_EMsgAMSetCommunityProfileSettings: EMsg
+k_EMsgAMSetCommunityProfileSettingsResponse: EMsg
+k_EMsgAMGetCommunityPrivacyState: EMsg
+k_EMsgAMGetCommunityPrivacyStateResponse: EMsg
+k_EMsgAMCheckClanInviteRateLimiting: EMsg
+k_EMsgUGSGetUserAchievementStatus: EMsg
+k_EMsgAMGetIgnored: EMsg
+k_EMsgAMGetIgnoredResponse: EMsg
+k_EMsgAMSetIgnoredResponse: EMsg
+k_EMsgAMSetFriendRelationshipNone: EMsg
+k_EMsgAMGetFriendRelationship: EMsg
+k_EMsgAMGetFriendRelationshipResponse: EMsg
+k_EMsgAMServiceModulesCache: EMsg
+k_EMsgAMServiceModulesCall: EMsg
+k_EMsgAMServiceModulesCallResponse: EMsg
+k_EMsgCommunityAddFriendNews: EMsg
+k_EMsgAMFindClanUser: EMsg
+k_EMsgAMFindClanUserResponse: EMsg
+k_EMsgAMBanFromChat: EMsg
+k_EMsgAMGetUserNewsSubscriptions: EMsg
+k_EMsgAMGetUserNewsSubscriptionsResponse: EMsg
+k_EMsgAMSetUserNewsSubscriptions: EMsg
+k_EMsgAMSendQueuedEmails: EMsg
+k_EMsgAMSetLicenseFlags: EMsg
+k_EMsgCommunityDeleteUserNews: EMsg
+k_EMsgAMGetAccountStatus: EMsg
+k_EMsgAMGetAccountStatusResponse: EMsg
+k_EMsgAMEditBanReason: EMsg
+k_EMsgAMCheckClanMembershipResponse: EMsg
+k_EMsgAMProbeClanMembershipList: EMsg
+k_EMsgAMProbeClanMembershipListResponse: EMsg
+k_EMsgUGSGetUserAchievementStatusResponse: EMsg
+k_EMsgAMGetFriendsLobbies: EMsg
+k_EMsgAMGetFriendsLobbiesResponse: EMsg
+k_EMsgAMGetUserFriendNewsResponse: EMsg
+k_EMsgCommunityGetUserFriendNews: EMsg
+k_EMsgAMGetUserClansNewsResponse: EMsg
+k_EMsgAMGetUserClansNews: EMsg
+k_EMsgAMGetPreviousCBAccount: EMsg
+k_EMsgAMGetPreviousCBAccountResponse: EMsg
+k_EMsgAMGetUserLicenseHistory: EMsg
+k_EMsgAMGetUserLicenseHistoryResponse: EMsg
+k_EMsgAMSupportChangePassword: EMsg
+k_EMsgAMSupportChangeEmail: EMsg
+k_EMsgAMResetUserVerificationGSByIP: EMsg
+k_EMsgAMUpdateGSPlayStats: EMsg
+k_EMsgAMSupportEnableOrDisable: EMsg
+k_EMsgAMGetPurchaseStatus: EMsg
+k_EMsgAMSupportIsAccountEnabled: EMsg
+k_EMsgAMSupportIsAccountEnabledResponse: EMsg
+k_EMsgUGSGetUserStats: EMsg
+k_EMsgAMGSSearch: EMsg
+k_EMsgChatServerRouteFriendMsg: EMsg
+k_EMsgAMTicketAuthRequestOrResponse: EMsg
+k_EMsgAMAddFreeLicense: EMsg
+k_EMsgAMValidateEmailLink: EMsg
+k_EMsgAMValidateEmailLinkResponse: EMsg
+k_EMsgUGSStoreUserStats: EMsg
+k_EMsgAMDeleteStoredCard: EMsg
+k_EMsgAMRevokeLegacyGameKeys: EMsg
+k_EMsgAMGetWalletDetails: EMsg
+k_EMsgAMGetWalletDetailsResponse: EMsg
+k_EMsgAMDeleteStoredPaymentInfo: EMsg
+k_EMsgAMGetStoredPaymentSummary: EMsg
+k_EMsgAMGetStoredPaymentSummaryResponse: EMsg
+k_EMsgAMGetWalletConversionRate: EMsg
+k_EMsgAMGetWalletConversionRateResponse: EMsg
+k_EMsgAMConvertWallet: EMsg
+k_EMsgAMConvertWalletResponse: EMsg
+k_EMsgAMSetPreApproval: EMsg
+k_EMsgAMSetPreApprovalResponse: EMsg
+k_EMsgAMCreateRefund: EMsg
+k_EMsgAMCreateChargeback: EMsg
+k_EMsgAMCreateDispute: EMsg
+k_EMsgAMClearDispute: EMsg
+k_EMsgAMCreateFinancialAdjustment: EMsg
+k_EMsgAMPlayerNicknameList: EMsg
+k_EMsgAMPlayerNicknameListResponse: EMsg
+k_EMsgAMGetUserCurrentGameInfo: EMsg
+k_EMsgAMGetUserCurrentGameInfoResponse: EMsg
+k_EMsgAMGetGSPlayerList: EMsg
+k_EMsgAMGetGSPlayerListResponse: EMsg
+k_EMsgAMGetSteamIDForMicroTxn: EMsg
+k_EMsgAMGetSteamIDForMicroTxnResponse: EMsg
+k_EMsgAMSetPartnerMember: EMsg
+k_EMsgAMRemovePublisherUser: EMsg
+k_EMsgAMGetUserLicenseList: EMsg
+k_EMsgAMGetUserLicenseListResponse: EMsg
+k_EMsgAMReloadGameGroupPolicy: EMsg
+k_EMsgAMAddFreeLicenseResponse: EMsg
+k_EMsgAMVACStatusUpdate: EMsg
+k_EMsgAMGetAccountDetails: EMsg
+k_EMsgAMGetAccountDetailsResponse: EMsg
+k_EMsgAMGetPlayerLinkDetails: EMsg
+k_EMsgAMGetPlayerLinkDetailsResponse: EMsg
+k_EMsgAMGetAccountFlagsForWGSpoofing: EMsg
+k_EMsgAMGetAccountFlagsForWGSpoofingResponse: EMsg
+k_EMsgAMGetClanOfficers: EMsg
+k_EMsgAMGetClanOfficersResponse: EMsg
+k_EMsgAMNameChange: EMsg
+k_EMsgAMGetNameHistory: EMsg
+k_EMsgAMGetNameHistoryResponse: EMsg
+k_EMsgAMUpdateProviderStatus: EMsg
+k_EMsgAMSupportRemoveAccountSecurity: EMsg
+k_EMsgAMIsAccountInCaptchaGracePeriod: EMsg
+k_EMsgAMIsAccountInCaptchaGracePeriodResponse: EMsg
+k_EMsgAMAccountPS3Unlink: EMsg
+k_EMsgAMAccountPS3UnlinkResponse: EMsg
+k_EMsgUGSStoreUserStatsResponse: EMsg
+k_EMsgAMGetAccountPSNInfo: EMsg
+k_EMsgAMGetAccountPSNInfoResponse: EMsg
+k_EMsgAMAuthenticatedPlayerList: EMsg
+k_EMsgAMGetUserGifts: EMsg
+k_EMsgAMGetUserGiftsResponse: EMsg
+k_EMsgAMTransferLockedGifts: EMsg
+k_EMsgAMTransferLockedGiftsResponse: EMsg
+k_EMsgAMPlayerHostedOnGameServer: EMsg
+k_EMsgAMGetAccountBanInfo: EMsg
+k_EMsgAMGetAccountBanInfoResponse: EMsg
+k_EMsgAMRecordBanEnforcement: EMsg
+k_EMsgAMRollbackGiftTransfer: EMsg
+k_EMsgAMRollbackGiftTransferResponse: EMsg
+k_EMsgAMHandlePendingTransaction: EMsg
+k_EMsgAMRequestClanDetails: EMsg
+k_EMsgAMDeleteStoredPaypalAgreement: EMsg
+k_EMsgAMGameServerUpdate: EMsg
+k_EMsgAMGameServerRemove: EMsg
+k_EMsgAMGetPaypalAgreements: EMsg
+k_EMsgAMGetPaypalAgreementsResponse: EMsg
+k_EMsgAMGameServerPlayerCompatibilityCheck: EMsg
+k_EMsgAMGameServerPlayerCompatibilityCheckResponse: EMsg
+k_EMsgAMRenewLicense: EMsg
+k_EMsgAMGetAccountCommunityBanInfo: EMsg
+k_EMsgAMGetAccountCommunityBanInfoResponse: EMsg
+k_EMsgAMGameServerAccountChangePassword: EMsg
+k_EMsgAMGameServerAccountDeleteAccount: EMsg
+k_EMsgAMRenewAgreement: EMsg
+k_EMsgAMXsollaPayment: EMsg
+k_EMsgAMXsollaPaymentResponse: EMsg
+k_EMsgAMAcctAllowedToPurchase: EMsg
+k_EMsgAMAcctAllowedToPurchaseResponse: EMsg
+k_EMsgAMSwapKioskDeposit: EMsg
+k_EMsgAMSwapKioskDepositResponse: EMsg
+k_EMsgAMSetUserGiftUnowned: EMsg
+k_EMsgAMSetUserGiftUnownedResponse: EMsg
+k_EMsgAMClaimUnownedUserGift: EMsg
+k_EMsgAMClaimUnownedUserGiftResponse: EMsg
+k_EMsgAMSetClanName: EMsg
+k_EMsgAMSetClanNameResponse: EMsg
+k_EMsgAMGrantCoupon: EMsg
+k_EMsgAMGrantCouponResponse: EMsg
+k_EMsgAMIsPackageRestrictedInUserCountry: EMsg
+k_EMsgAMIsPackageRestrictedInUserCountryResponse: EMsg
+k_EMsgAMHandlePendingTransactionResponse: EMsg
+k_EMsgAMGrantGuestPasses2: EMsg
+k_EMsgAMGrantGuestPasses2Response: EMsg
+k_EMsgAMGetPlayerBanDetails: EMsg
+k_EMsgAMGetPlayerBanDetailsResponse: EMsg
+k_EMsgAMFinalizePurchase: EMsg
+k_EMsgAMFinalizePurchaseResponse: EMsg
+k_EMsgAMPersonaChangeResponse: EMsg
+k_EMsgAMGetClanDetailsForForumCreation: EMsg
+k_EMsgAMGetClanDetailsForForumCreationResponse: EMsg
+k_EMsgAMGetPendingNotificationCount: EMsg
+k_EMsgAMGetPendingNotificationCountResponse: EMsg
+k_EMsgAMPasswordHashUpgrade: EMsg
+k_EMsgAMBoaCompraPayment: EMsg
+k_EMsgAMBoaCompraPaymentResponse: EMsg
+k_EMsgAMCompleteExternalPurchase: EMsg
+k_EMsgAMCompleteExternalPurchaseResponse: EMsg
+k_EMsgAMResolveNegativeWalletCredits: EMsg
+k_EMsgAMResolveNegativeWalletCreditsResponse: EMsg
+k_EMsgAMPlayerGetClanBasicDetails: EMsg
+k_EMsgAMPlayerGetClanBasicDetailsResponse: EMsg
+k_EMsgAMMOLPayment: EMsg
+k_EMsgAMMOLPaymentResponse: EMsg
+k_EMsgGetUserIPCountry: EMsg
+k_EMsgGetUserIPCountryResponse: EMsg
+k_EMsgNotificationOfSuspiciousActivity: EMsg
+k_EMsgAMDegicaPayment: EMsg
+k_EMsgAMDegicaPaymentResponse: EMsg
+k_EMsgAMEClubPayment: EMsg
+k_EMsgAMEClubPaymentResponse: EMsg
+k_EMsgAMPayPalPaymentsHubPayment: EMsg
+k_EMsgAMPayPalPaymentsHubPaymentResponse: EMsg
+k_EMsgAMTwoFactorRecoverAuthenticatorRequest: EMsg
+k_EMsgAMTwoFactorRecoverAuthenticatorResponse: EMsg
+k_EMsgAMSmart2PayPayment: EMsg
+k_EMsgAMSmart2PayPaymentResponse: EMsg
+k_EMsgAMValidatePasswordResetCodeAndSendSmsRequest: EMsg
+k_EMsgAMValidatePasswordResetCodeAndSendSmsResponse: EMsg
+k_EMsgAMGetAccountResetDetailsRequest: EMsg
+k_EMsgAMGetAccountResetDetailsResponse: EMsg
+k_EMsgAMBitPayPayment: EMsg
+k_EMsgAMBitPayPaymentResponse: EMsg
+k_EMsgAMSendAccountInfoUpdate: EMsg
+k_EMsgAMSendScheduledGift: EMsg
+k_EMsgAMNodwinPayment: EMsg
+k_EMsgAMNodwinPaymentResponse: EMsg
+k_EMsgAMResolveWalletRevoke: EMsg
+k_EMsgAMResolveWalletReverseRevoke: EMsg
+k_EMsgAMFundedPayment: EMsg
+k_EMsgAMFundedPaymentResponse: EMsg
+k_EMsgAMRequestPersonaUpdateForChatServer: EMsg
+k_EMsgAMPerfectWorldPayment: EMsg
+k_EMsgAMPerfectWorldPaymentResponse: EMsg
+k_EMsgAMECommPayPayment: EMsg
+k_EMsgAMECommPayPaymentResponse: EMsg
+k_EMsgAMSetRemoteClientID: EMsg
+k_EMsgBasePSRange: EMsg
+k_EMsgPSCreateShoppingCart: EMsg
+k_EMsgPSCreateShoppingCartResponse: EMsg
+k_EMsgPSIsValidShoppingCart: EMsg
+k_EMsgPSIsValidShoppingCartResponse: EMsg
+k_EMsgPSRemoveLineItemFromShoppingCart: EMsg
+k_EMsgPSRemoveLineItemFromShoppingCartResponse: EMsg
+k_EMsgPSGetShoppingCartContents: EMsg
+k_EMsgPSGetShoppingCartContentsResponse: EMsg
+k_EMsgPSAddWalletCreditToShoppingCart: EMsg
+k_EMsgPSAddWalletCreditToShoppingCartResponse: EMsg
+k_EMsgBaseUFSRange: EMsg
+k_EMsgClientUFSUploadFileRequest: EMsg
+k_EMsgClientUFSUploadFileResponse: EMsg
+k_EMsgClientUFSUploadFileChunk: EMsg
+k_EMsgClientUFSUploadFileFinished: EMsg
+k_EMsgClientUFSGetFileListForApp: EMsg
+k_EMsgClientUFSGetFileListForAppResponse: EMsg
+k_EMsgClientUFSDownloadRequest: EMsg
+k_EMsgClientUFSDownloadResponse: EMsg
+k_EMsgClientUFSDownloadChunk: EMsg
+k_EMsgClientUFSLoginRequest: EMsg
+k_EMsgClientUFSLoginResponse: EMsg
+k_EMsgUFSReloadPartitionInfo: EMsg
+k_EMsgClientUFSTransferHeartbeat: EMsg
+k_EMsgUFSSynchronizeFile: EMsg
+k_EMsgUFSSynchronizeFileResponse: EMsg
+k_EMsgClientUFSDeleteFileRequest: EMsg
+k_EMsgClientUFSDeleteFileResponse: EMsg
+k_EMsgClientUFSGetUGCDetails: EMsg
+k_EMsgClientUFSGetUGCDetailsResponse: EMsg
+k_EMsgUFSUpdateFileFlags: EMsg
+k_EMsgUFSUpdateFileFlagsResponse: EMsg
+k_EMsgClientUFSGetSingleFileInfo: EMsg
+k_EMsgClientUFSGetSingleFileInfoResponse: EMsg
+k_EMsgClientUFSShareFile: EMsg
+k_EMsgClientUFSShareFileResponse: EMsg
+k_EMsgUFSReloadAccount: EMsg
+k_EMsgUFSReloadAccountResponse: EMsg
+k_EMsgUFSUpdateRecordBatched: EMsg
+k_EMsgUFSUpdateRecordBatchedResponse: EMsg
+k_EMsgUFSMigrateFile: EMsg
+k_EMsgUFSMigrateFileResponse: EMsg
+k_EMsgUFSGetUGCURLs: EMsg
+k_EMsgUFSGetUGCURLsResponse: EMsg
+k_EMsgUFSHttpUploadFileFinishRequest: EMsg
+k_EMsgUFSHttpUploadFileFinishResponse: EMsg
+k_EMsgUFSDownloadStartRequest: EMsg
+k_EMsgUFSDownloadStartResponse: EMsg
+k_EMsgUFSDownloadChunkRequest: EMsg
+k_EMsgUFSDownloadChunkResponse: EMsg
+k_EMsgUFSDownloadFinishRequest: EMsg
+k_EMsgUFSDownloadFinishResponse: EMsg
+k_EMsgUFSFlushURLCache: EMsg
+k_EMsgClientUFSUploadCommit: EMsg
+k_EMsgClientUFSUploadCommitResponse: EMsg
+k_EMsgUFSMigrateFileAppID: EMsg
+k_EMsgUFSMigrateFileAppIDResponse: EMsg
+k_EMsgBaseClient2: EMsg
+k_EMsgClientRequestForgottenPasswordEmail: EMsg
+k_EMsgClientRequestForgottenPasswordEmailResponse: EMsg
+k_EMsgClientCreateAccountResponse: EMsg
+k_EMsgClientResetForgottenPassword: EMsg
+k_EMsgClientResetForgottenPasswordResponse: EMsg
+k_EMsgClientInformOfResetForgottenPassword: EMsg
+k_EMsgClientInformOfResetForgottenPasswordResponse: EMsg
+k_EMsgClientAnonUserLogOn_Deprecated: EMsg
+k_EMsgClientGamesPlayedWithDataBlob: EMsg
+k_EMsgClientUpdateUserGameInfo: EMsg
+k_EMsgClientFileToDownload: EMsg
+k_EMsgClientFileToDownloadResponse: EMsg
+k_EMsgClientLBSSetScore: EMsg
+k_EMsgClientLBSSetScoreResponse: EMsg
+k_EMsgClientLBSFindOrCreateLB: EMsg
+k_EMsgClientLBSFindOrCreateLBResponse: EMsg
+k_EMsgClientLBSGetLBEntries: EMsg
+k_EMsgClientLBSGetLBEntriesResponse: EMsg
+k_EMsgClientChatDeclined: EMsg
+k_EMsgClientFriendMsgIncoming: EMsg
+k_EMsgClientAuthList_Deprecated: EMsg
+k_EMsgClientTicketAuthComplete: EMsg
+k_EMsgClientIsLimitedAccount: EMsg
+k_EMsgClientRequestAuthList: EMsg
+k_EMsgClientAuthList: EMsg
+k_EMsgClientStat: EMsg
+k_EMsgClientP2PConnectionInfo: EMsg
+k_EMsgClientP2PConnectionFailInfo: EMsg
+k_EMsgClientGetDepotDecryptionKey: EMsg
+k_EMsgClientGetDepotDecryptionKeyResponse: EMsg
+k_EMsgClientEnableTestLicense: EMsg
+k_EMsgClientEnableTestLicenseResponse: EMsg
+k_EMsgClientDisableTestLicense: EMsg
+k_EMsgClientDisableTestLicenseResponse: EMsg
+k_EMsgClientRequestValidationMail: EMsg
+k_EMsgClientRequestValidationMailResponse: EMsg
+k_EMsgClientCheckAppBetaPassword: EMsg
+k_EMsgClientCheckAppBetaPasswordResponse: EMsg
+k_EMsgClientToGC: EMsg
+k_EMsgClientFromGC: EMsg
+k_EMsgClientEmailAddrInfo: EMsg
+k_EMsgClientPasswordChange3: EMsg
+k_EMsgClientEmailChange3: EMsg
+k_EMsgClientPersonalQAChange3: EMsg
+k_EMsgClientResetForgottenPassword3: EMsg
+k_EMsgClientRequestForgottenPasswordEmail3: EMsg
+k_EMsgClientNewLoginKey: EMsg
+k_EMsgClientNewLoginKeyAccepted: EMsg
+k_EMsgClientLogOnWithHash_Deprecated: EMsg
+k_EMsgClientStoreUserStats2: EMsg
+k_EMsgClientStatsUpdated: EMsg
+k_EMsgClientActivateOEMLicense: EMsg
+k_EMsgClientRegisterOEMMachine: EMsg
+k_EMsgClientRegisterOEMMachineResponse: EMsg
+k_EMsgClientRequestedClientStats: EMsg
+k_EMsgClientStat2Int32: EMsg
+k_EMsgClientStat2: EMsg
+k_EMsgClientVerifyPassword: EMsg
+k_EMsgClientVerifyPasswordResponse: EMsg
+k_EMsgClientDRMDownloadRequest: EMsg
+k_EMsgClientDRMDownloadResponse: EMsg
+k_EMsgClientDRMFinalResult: EMsg
+k_EMsgClientGetFriendsWhoPlayGame: EMsg
+k_EMsgClientGetFriendsWhoPlayGameResponse: EMsg
+k_EMsgClientOGSBeginSession: EMsg
+k_EMsgClientOGSBeginSessionResponse: EMsg
+k_EMsgClientOGSEndSession: EMsg
+k_EMsgClientOGSEndSessionResponse: EMsg
+k_EMsgClientOGSWriteRow: EMsg
+k_EMsgClientGetPeerContentInfo: EMsg
+k_EMsgClientGetPeerContentInfoResponse: EMsg
+k_EMsgClientStartPeerContentServer: EMsg
+k_EMsgClientStartPeerContentServerResponse: EMsg
+k_EMsgClientServerUnavailable: EMsg
+k_EMsgClientServersAvailable: EMsg
+k_EMsgClientRegisterAuthTicketWithCM: EMsg
+k_EMsgClientGCMsgFailed: EMsg
+k_EMsgClientMicroTxnAuthRequest: EMsg
+k_EMsgClientMicroTxnAuthorize: EMsg
+k_EMsgClientMicroTxnAuthorizeResponse: EMsg
+k_EMsgClientGetMicroTxnInfo: EMsg
+k_EMsgClientGetMicroTxnInfoResponse: EMsg
+k_EMsgClientDeregisterWithServer: EMsg
+k_EMsgClientSubscribeToPersonaFeed: EMsg
+k_EMsgClientLogon: EMsg
+k_EMsgClientGetClientDetails: EMsg
+k_EMsgClientGetClientDetailsResponse: EMsg
+k_EMsgClientReportOverlayDetourFailure: EMsg
+k_EMsgClientGetClientAppList: EMsg
+k_EMsgClientGetClientAppListResponse: EMsg
+k_EMsgClientInstallClientApp: EMsg
+k_EMsgClientInstallClientAppResponse: EMsg
+k_EMsgClientUninstallClientApp: EMsg
+k_EMsgClientUninstallClientAppResponse: EMsg
+k_EMsgClientSetClientAppUpdateState: EMsg
+k_EMsgClientSetClientAppUpdateStateResponse: EMsg
+k_EMsgClientRequestEncryptedAppTicket: EMsg
+k_EMsgClientRequestEncryptedAppTicketResponse: EMsg
+k_EMsgClientWalletInfoUpdate: EMsg
+k_EMsgClientLBSSetUGC: EMsg
+k_EMsgClientLBSSetUGCResponse: EMsg
+k_EMsgClientAMGetClanOfficers: EMsg
+k_EMsgClientAMGetClanOfficersResponse: EMsg
+k_EMsgClientFriendProfileInfo: EMsg
+k_EMsgClientFriendProfileInfoResponse: EMsg
+k_EMsgClientUpdateMachineAuth: EMsg
+k_EMsgClientUpdateMachineAuthResponse: EMsg
+k_EMsgClientReadMachineAuth: EMsg
+k_EMsgClientReadMachineAuthResponse: EMsg
+k_EMsgClientRequestMachineAuth: EMsg
+k_EMsgClientRequestMachineAuthResponse: EMsg
+k_EMsgClientScreenshotsChanged: EMsg
+k_EMsgClientGetCDNAuthToken: EMsg
+k_EMsgClientGetCDNAuthTokenResponse: EMsg
+k_EMsgClientDownloadRateStatistics: EMsg
+k_EMsgClientRequestAccountData: EMsg
+k_EMsgClientRequestAccountDataResponse: EMsg
+k_EMsgClientResetForgottenPassword4: EMsg
+k_EMsgClientHideFriend: EMsg
+k_EMsgClientFriendsGroupsList: EMsg
+k_EMsgClientGetClanActivityCounts: EMsg
+k_EMsgClientGetClanActivityCountsResponse: EMsg
+k_EMsgClientOGSReportString: EMsg
+k_EMsgClientOGSReportBug: EMsg
+k_EMsgClientSentLogs: EMsg
+k_EMsgClientLogonGameServer: EMsg
+k_EMsgAMClientCreateFriendsGroup: EMsg
+k_EMsgAMClientCreateFriendsGroupResponse: EMsg
+k_EMsgAMClientDeleteFriendsGroup: EMsg
+k_EMsgAMClientDeleteFriendsGroupResponse: EMsg
+k_EMsgAMClientManageFriendsGroup: EMsg
+k_EMsgAMClientManageFriendsGroupResponse: EMsg
+k_EMsgAMClientAddFriendToGroup: EMsg
+k_EMsgAMClientAddFriendToGroupResponse: EMsg
+k_EMsgAMClientRemoveFriendFromGroup: EMsg
+k_EMsgAMClientRemoveFriendFromGroupResponse: EMsg
+k_EMsgClientAMGetPersonaNameHistory: EMsg
+k_EMsgClientAMGetPersonaNameHistoryResponse: EMsg
+k_EMsgClientRequestFreeLicense: EMsg
+k_EMsgClientRequestFreeLicenseResponse: EMsg
+k_EMsgClientDRMDownloadRequestWithCrashData: EMsg
+k_EMsgClientAuthListAck: EMsg
+k_EMsgClientItemAnnouncements: EMsg
+k_EMsgClientRequestItemAnnouncements: EMsg
+k_EMsgClientFriendMsgEchoToSender: EMsg
+k_EMsgClientCommentNotifications: EMsg
+k_EMsgClientRequestCommentNotifications: EMsg
+k_EMsgClientPersonaChangeResponse: EMsg
+k_EMsgClientRequestWebAPIAuthenticateUserNonce: EMsg
+k_EMsgClientRequestWebAPIAuthenticateUserNonceResponse: EMsg
+k_EMsgClientPlayerNicknameList: EMsg
+k_EMsgAMClientSetPlayerNickname: EMsg
+k_EMsgAMClientSetPlayerNicknameResponse: EMsg
+k_EMsgClientGetNumberOfCurrentPlayersDP: EMsg
+k_EMsgClientGetNumberOfCurrentPlayersDPResponse: EMsg
+k_EMsgClientServiceMethodLegacy: EMsg
+k_EMsgClientServiceMethodLegacyResponse: EMsg
+k_EMsgClientFriendUserStatusPublished: EMsg
+k_EMsgClientCurrentUIMode: EMsg
+k_EMsgClientVanityURLChangedNotification: EMsg
+k_EMsgClientUserNotifications: EMsg
+k_EMsgBaseDFS: EMsg
+k_EMsgDFSGetFile: EMsg
+k_EMsgDFSInstallLocalFile: EMsg
+k_EMsgDFSConnection: EMsg
+k_EMsgDFSConnectionReply: EMsg
+k_EMsgClientDFSAuthenticateRequest: EMsg
+k_EMsgClientDFSAuthenticateResponse: EMsg
+k_EMsgClientDFSEndSession: EMsg
+k_EMsgDFSPurgeFile: EMsg
+k_EMsgDFSRouteFile: EMsg
+k_EMsgDFSGetFileFromServer: EMsg
+k_EMsgDFSAcceptedResponse: EMsg
+k_EMsgDFSRequestPingback: EMsg
+k_EMsgDFSRecvTransmitFile: EMsg
+k_EMsgDFSSendTransmitFile: EMsg
+k_EMsgDFSRequestPingback2: EMsg
+k_EMsgDFSResponsePingback2: EMsg
+k_EMsgClientDFSDownloadStatus: EMsg
+k_EMsgDFSStartTransfer: EMsg
+k_EMsgDFSTransferComplete: EMsg
+k_EMsgDFSRouteFileResponse: EMsg
+k_EMsgClientNetworkingCertRequest: EMsg
+k_EMsgClientNetworkingCertRequestResponse: EMsg
+k_EMsgClientChallengeRequest: EMsg
+k_EMsgClientChallengeResponse: EMsg
+k_EMsgBadgeCraftedNotification: EMsg
+k_EMsgClientNetworkingMobileCertRequest: EMsg
+k_EMsgClientNetworkingMobileCertRequestResponse: EMsg
+k_EMsgBaseMDS: EMsg
+k_EMsgMDSGetDepotDecryptionKey: EMsg
+k_EMsgMDSGetDepotDecryptionKeyResponse: EMsg
+k_EMsgMDSContentServerConfigRequest: EMsg
+k_EMsgMDSContentServerConfig: EMsg
+k_EMsgMDSGetDepotManifest: EMsg
+k_EMsgMDSGetDepotManifestResponse: EMsg
+k_EMsgMDSGetDepotManifestChunk: EMsg
+k_EMsgMDSGetDepotChunk: EMsg
+k_EMsgMDSGetDepotChunkResponse: EMsg
+k_EMsgMDSGetDepotChunkChunk: EMsg
+k_EMsgMDSToCSFlushChunk: EMsg
+k_EMsgMDSMigrateChunk: EMsg
+k_EMsgMDSMigrateChunkResponse: EMsg
+k_EMsgMDSToCSFlushManifest: EMsg
+k_EMsgCSBase: EMsg
+k_EMsgCSPing: EMsg
+k_EMsgCSPingResponse: EMsg
+k_EMsgGMSBase: EMsg
+k_EMsgGMSGameServerReplicate: EMsg
+k_EMsgClientGMSServerQuery: EMsg
+k_EMsgGMSClientServerQueryResponse: EMsg
+k_EMsgAMGMSGameServerUpdate: EMsg
+k_EMsgAMGMSGameServerRemove: EMsg
+k_EMsgGameServerOutOfDate: EMsg
+k_EMsgDeviceAuthorizationBase: EMsg
+k_EMsgClientAuthorizeLocalDeviceRequest: EMsg
+k_EMsgClientAuthorizeLocalDeviceResponse: EMsg
+k_EMsgClientDeauthorizeDeviceRequest: EMsg
+k_EMsgClientDeauthorizeDevice: EMsg
+k_EMsgClientUseLocalDeviceAuthorizations: EMsg
+k_EMsgClientGetAuthorizedDevices: EMsg
+k_EMsgClientGetAuthorizedDevicesResponse: EMsg
+k_EMsgAMNotifySessionDeviceAuthorized: EMsg
+k_EMsgClientAuthorizeLocalDeviceNotification: EMsg
+k_EMsgMMSBase: EMsg
+k_EMsgClientMMSCreateLobby: EMsg
+k_EMsgClientMMSCreateLobbyResponse: EMsg
+k_EMsgClientMMSJoinLobby: EMsg
+k_EMsgClientMMSJoinLobbyResponse: EMsg
+k_EMsgClientMMSLeaveLobby: EMsg
+k_EMsgClientMMSLeaveLobbyResponse: EMsg
+k_EMsgClientMMSGetLobbyList: EMsg
+k_EMsgClientMMSGetLobbyListResponse: EMsg
+k_EMsgClientMMSSetLobbyData: EMsg
+k_EMsgClientMMSSetLobbyDataResponse: EMsg
+k_EMsgClientMMSGetLobbyData: EMsg
+k_EMsgClientMMSLobbyData: EMsg
+k_EMsgClientMMSSendLobbyChatMsg: EMsg
+k_EMsgClientMMSLobbyChatMsg: EMsg
+k_EMsgClientMMSSetLobbyOwner: EMsg
+k_EMsgClientMMSSetLobbyOwnerResponse: EMsg
+k_EMsgClientMMSSetLobbyGameServer: EMsg
+k_EMsgClientMMSLobbyGameServerSet: EMsg
+k_EMsgClientMMSUserJoinedLobby: EMsg
+k_EMsgClientMMSUserLeftLobby: EMsg
+k_EMsgClientMMSInviteToLobby: EMsg
+k_EMsgClientMMSFlushFrenemyListCache: EMsg
+k_EMsgClientMMSFlushFrenemyListCacheResponse: EMsg
+k_EMsgClientMMSSetLobbyLinked: EMsg
+k_EMsgClientMMSSetRatelimitPolicyOnClient: EMsg
+k_EMsgClientMMSGetLobbyStatus: EMsg
+k_EMsgClientMMSGetLobbyStatusResponse: EMsg
+k_EMsgMMSGetLobbyList: EMsg
+k_EMsgMMSGetLobbyListResponse: EMsg
+k_EMsgNonStdMsgBase: EMsg
+k_EMsgNonStdMsgMemcached: EMsg
+k_EMsgNonStdMsgHTTPServer: EMsg
+k_EMsgNonStdMsgHTTPClient: EMsg
+k_EMsgNonStdMsgWGResponse: EMsg
+k_EMsgNonStdMsgPHPSimulator: EMsg
+k_EMsgNonStdMsgChase: EMsg
+k_EMsgNonStdMsgDFSTransfer: EMsg
+k_EMsgNonStdMsgTests: EMsg
+k_EMsgNonStdMsgUMQpipeAAPL: EMsg
+k_EMSgNonStdMsgSyslog: EMsg
+k_EMsgNonStdMsgLogsink: EMsg
+k_EMsgNonStdMsgSteam2Emulator: EMsg
+k_EMsgNonStdMsgRTMPServer: EMsg
+k_EMsgNonStdMsgWebSocket: EMsg
+k_EMsgNonStdMsgRedis: EMsg
+k_EMsgUDSBase: EMsg
+k_EMsgClientUDSP2PSessionStarted: EMsg
+k_EMsgClientUDSP2PSessionEnded: EMsg
+k_EMsgUDSRenderUserAuth: EMsg
+k_EMsgUDSRenderUserAuthResponse: EMsg
+k_EMsgClientInviteToGame: EMsg
+k_EMsgUDSHasSession: EMsg
+k_EMsgUDSHasSessionResponse: EMsg
+k_EMsgMPASBase: EMsg
+k_EMsgMPASVacBanReset: EMsg
+k_EMsgKGSBase: EMsg
+k_EMsgUCMBase: EMsg
+k_EMsgClientUCMAddScreenshot: EMsg
+k_EMsgClientUCMAddScreenshotResponse: EMsg
+k_EMsgUCMResetCommunityContent: EMsg
+k_EMsgUCMResetCommunityContentResponse: EMsg
+k_EMsgClientUCMDeleteScreenshot: EMsg
+k_EMsgClientUCMDeleteScreenshotResponse: EMsg
+k_EMsgClientUCMPublishFile: EMsg
+k_EMsgClientUCMPublishFileResponse: EMsg
+k_EMsgClientUCMDeletePublishedFile: EMsg
+k_EMsgClientUCMDeletePublishedFileResponse: EMsg
+k_EMsgClientUCMUpdatePublishedFile: EMsg
+k_EMsgClientUCMUpdatePublishedFileResponse: EMsg
+k_EMsgUCMUpdatePublishedFile: EMsg
+k_EMsgUCMUpdatePublishedFileResponse: EMsg
+k_EMsgUCMUpdatePublishedFileStat: EMsg
+k_EMsgUCMReloadPublishedFile: EMsg
+k_EMsgUCMReloadUserFileListCaches: EMsg
+k_EMsgUCMPublishedFileReported: EMsg
+k_EMsgUCMPublishedFilePreviewAdd: EMsg
+k_EMsgUCMPublishedFilePreviewAddResponse: EMsg
+k_EMsgUCMPublishedFilePreviewRemove: EMsg
+k_EMsgUCMPublishedFilePreviewRemoveResponse: EMsg
+k_EMsgUCMPublishedFileSubscribed: EMsg
+k_EMsgUCMPublishedFileUnsubscribed: EMsg
+k_EMsgUCMPublishFile: EMsg
+k_EMsgUCMPublishFileResponse: EMsg
+k_EMsgUCMPublishedFileChildAdd: EMsg
+k_EMsgUCMPublishedFileChildAddResponse: EMsg
+k_EMsgUCMPublishedFileChildRemove: EMsg
+k_EMsgUCMPublishedFileChildRemoveResponse: EMsg
+k_EMsgUCMPublishedFileParentChanged: EMsg
+k_EMsgClientUCMSetUserPublishedFileAction: EMsg
+k_EMsgClientUCMSetUserPublishedFileActionResponse: EMsg
+k_EMsgClientUCMEnumeratePublishedFilesByUserAction: EMsg
+k_EMsgClientUCMEnumeratePublishedFilesByUserActionResponse: EMsg
+k_EMsgUCMGetUserSubscribedFiles: EMsg
+k_EMsgUCMGetUserSubscribedFilesResponse: EMsg
+k_EMsgUCMFixStatsPublishedFile: EMsg
+k_EMsgClientUCMEnumerateUserSubscribedFilesWithUpdates: EMsg
+k_EMsgClientUCMEnumerateUserSubscribedFilesWithUpdatesResponse: EMsg
+k_EMsgUCMPublishedFileContentUpdated: EMsg
+k_EMsgClientUCMPublishedFileUpdated: EMsg
+k_EMsgFSBase: EMsg
+k_EMsgClientRichPresenceUpload: EMsg
+k_EMsgClientRichPresenceRequest: EMsg
+k_EMsgClientRichPresenceInfo: EMsg
+k_EMsgFSRichPresenceRequest: EMsg
+k_EMsgFSRichPresenceResponse: EMsg
+k_EMsgFSComputeFrenematrix: EMsg
+k_EMsgFSComputeFrenematrixResponse: EMsg
+k_EMsgFSPlayStatusNotification: EMsg
+k_EMsgFSAddOrRemoveFollower: EMsg
+k_EMsgFSAddOrRemoveFollowerResponse: EMsg
+k_EMsgFSUpdateFollowingList: EMsg
+k_EMsgFSCommentNotification: EMsg
+k_EMsgFSCommentNotificationViewed: EMsg
+k_EMsgClientFSGetFollowerCount: EMsg
+k_EMsgClientFSGetFollowerCountResponse: EMsg
+k_EMsgClientFSGetIsFollowing: EMsg
+k_EMsgClientFSGetIsFollowingResponse: EMsg
+k_EMsgClientFSEnumerateFollowingList: EMsg
+k_EMsgClientFSEnumerateFollowingListResponse: EMsg
+k_EMsgFSGetPendingNotificationCount: EMsg
+k_EMsgFSGetPendingNotificationCountResponse: EMsg
+k_EMsgClientChatOfflineMessageNotification: EMsg
+k_EMsgClientChatRequestOfflineMessageCount: EMsg
+k_EMsgClientChatGetFriendMessageHistory: EMsg
+k_EMsgClientChatGetFriendMessageHistoryResponse: EMsg
+k_EMsgClientChatGetFriendMessageHistoryForOfflineMessages: EMsg
+k_EMsgClientFSGetFriendsSteamLevels: EMsg
+k_EMsgClientFSGetFriendsSteamLevelsResponse: EMsg
+k_EMsgAMRequestFriendData: EMsg
+k_EMsgDRMRange2: EMsg
+k_EMsgCEGVersionSetEnableDisableRequest: EMsg
+k_EMsgCEGVersionSetEnableDisableResponse: EMsg
+k_EMsgCEGPropStatusDRMSRequest: EMsg
+k_EMsgCEGPropStatusDRMSResponse: EMsg
+k_EMsgCEGWhackFailureReportRequest: EMsg
+k_EMsgCEGWhackFailureReportResponse: EMsg
+k_EMsgDRMSFetchVersionSet: EMsg
+k_EMsgDRMSFetchVersionSetResponse: EMsg
+k_EMsgEconBase: EMsg
+k_EMsgEconTrading_InitiateTradeRequest: EMsg
+k_EMsgEconTrading_InitiateTradeProposed: EMsg
+k_EMsgEconTrading_InitiateTradeResponse: EMsg
+k_EMsgEconTrading_InitiateTradeResult: EMsg
+k_EMsgEconTrading_StartSession: EMsg
+k_EMsgEconTrading_CancelTradeRequest: EMsg
+k_EMsgEconFlushInventoryCache: EMsg
+k_EMsgEconFlushInventoryCacheResponse: EMsg
+k_EMsgEconCDKeyProcessTransaction: EMsg
+k_EMsgEconCDKeyProcessTransactionResponse: EMsg
+k_EMsgEconGetErrorLogs: EMsg
+k_EMsgEconGetErrorLogsResponse: EMsg
+k_EMsgRMRange: EMsg
+k_EMsgRMTestVerisignOTP: EMsg
+k_EMsgRMTestVerisignOTPResponse: EMsg
+k_EMsgRMDeleteMemcachedKeys: EMsg
+k_EMsgRMRemoteInvoke: EMsg
+k_EMsgBadLoginIPList: EMsg
+k_EMsgRMMsgTraceAddTrigger: EMsg
+k_EMsgRMMsgTraceRemoveTrigger: EMsg
+k_EMsgRMMsgTraceEvent: EMsg
+k_EMsgUGSBase: EMsg
+k_EMsgUGSUpdateGlobalStats: EMsg
+k_EMsgClientUGSGetGlobalStats: EMsg
+k_EMsgClientUGSGetGlobalStatsResponse: EMsg
+k_EMsgStoreBase: EMsg
+k_EMsgUMQBase: EMsg
+k_EMsgUMQLogonRequest: EMsg
+k_EMsgUMQLogonResponse: EMsg
+k_EMsgUMQLogoffRequest: EMsg
+k_EMsgUMQLogoffResponse: EMsg
+k_EMsgUMQSendChatMessage: EMsg
+k_EMsgUMQIncomingChatMessage: EMsg
+k_EMsgUMQPoll: EMsg
+k_EMsgUMQPollResults: EMsg
+k_EMsgUMQ2AM_ClientMsgBatch: EMsg
+k_EMsgWorkshopBase: EMsg
+k_EMsgWebAPIBase: EMsg
+k_EMsgWebAPIValidateOAuth2Token: EMsg
+k_EMsgWebAPIValidateOAuth2TokenResponse: EMsg
+k_EMsgWebAPIRegisterGCInterfaces: EMsg
+k_EMsgWebAPIInvalidateOAuthClientCache: EMsg
+k_EMsgWebAPIInvalidateOAuthTokenCache: EMsg
+k_EMsgWebAPISetSecrets: EMsg
+k_EMsgBackpackBase: EMsg
+k_EMsgBackpackAddToCurrency: EMsg
+k_EMsgBackpackAddToCurrencyResponse: EMsg
+k_EMsgCREBase: EMsg
+k_EMsgCREItemVoteSummary: EMsg
+k_EMsgCREItemVoteSummaryResponse: EMsg
+k_EMsgCREUpdateUserPublishedItemVote: EMsg
+k_EMsgCREUpdateUserPublishedItemVoteResponse: EMsg
+k_EMsgCREGetUserPublishedItemVoteDetails: EMsg
+k_EMsgCREGetUserPublishedItemVoteDetailsResponse: EMsg
+k_EMsgSecretsBase: EMsg
+k_EMsgSecretsRequestCredentialPair: EMsg
+k_EMsgSecretsCredentialPairResponse: EMsg
+k_EMsgBoxMonitorBase: EMsg
+k_EMsgBoxMonitorReportRequest: EMsg
+k_EMsgBoxMonitorReportResponse: EMsg
+k_EMsgLogsinkBase: EMsg
+k_EMsgLogsinkWriteReport: EMsg
+k_EMsgPICSBase: EMsg
+k_EMsgClientPICSChangesSinceRequest: EMsg
+k_EMsgClientPICSChangesSinceResponse: EMsg
+k_EMsgClientPICSProductInfoRequest: EMsg
+k_EMsgClientPICSProductInfoResponse: EMsg
+k_EMsgClientPICSAccessTokenRequest: EMsg
+k_EMsgClientPICSAccessTokenResponse: EMsg
+k_EMsgWorkerProcess: EMsg
+k_EMsgWorkerProcessPingRequest: EMsg
+k_EMsgWorkerProcessPingResponse: EMsg
+k_EMsgWorkerProcessShutdown: EMsg
+k_EMsgDRMWorkerProcess: EMsg
+k_EMsgDRMWorkerProcessDRMAndSign: EMsg
+k_EMsgDRMWorkerProcessDRMAndSignResponse: EMsg
+k_EMsgDRMWorkerProcessSteamworksInfoRequest: EMsg
+k_EMsgDRMWorkerProcessSteamworksInfoResponse: EMsg
+k_EMsgDRMWorkerProcessInstallDRMDLLRequest: EMsg
+k_EMsgDRMWorkerProcessInstallDRMDLLResponse: EMsg
+k_EMsgDRMWorkerProcessSecretIdStringRequest: EMsg
+k_EMsgDRMWorkerProcessSecretIdStringResponse: EMsg
+k_EMsgDRMWorkerProcessInstallProcessedFilesRequest: EMsg
+k_EMsgDRMWorkerProcessInstallProcessedFilesResponse: EMsg
+k_EMsgDRMWorkerProcessExamineBlobRequest: EMsg
+k_EMsgDRMWorkerProcessExamineBlobResponse: EMsg
+k_EMsgDRMWorkerProcessDescribeSecretRequest: EMsg
+k_EMsgDRMWorkerProcessDescribeSecretResponse: EMsg
+k_EMsgDRMWorkerProcessBackfillOriginalRequest: EMsg
+k_EMsgDRMWorkerProcessBackfillOriginalResponse: EMsg
+k_EMsgDRMWorkerProcessValidateDRMDLLRequest: EMsg
+k_EMsgDRMWorkerProcessValidateDRMDLLResponse: EMsg
+k_EMsgDRMWorkerProcessValidateFileRequest: EMsg
+k_EMsgDRMWorkerProcessValidateFileResponse: EMsg
+k_EMsgDRMWorkerProcessSplitAndInstallRequest: EMsg
+k_EMsgDRMWorkerProcessSplitAndInstallResponse: EMsg
+k_EMsgDRMWorkerProcessGetBlobRequest: EMsg
+k_EMsgDRMWorkerProcessGetBlobResponse: EMsg
+k_EMsgDRMWorkerProcessEvaluateCrashRequest: EMsg
+k_EMsgDRMWorkerProcessEvaluateCrashResponse: EMsg
+k_EMsgDRMWorkerProcessAnalyzeFileRequest: EMsg
+k_EMsgDRMWorkerProcessAnalyzeFileResponse: EMsg
+k_EMsgDRMWorkerProcessUnpackBlobRequest: EMsg
+k_EMsgDRMWorkerProcessUnpackBlobResponse: EMsg
+k_EMsgDRMWorkerProcessInstallAllRequest: EMsg
+k_EMsgDRMWorkerProcessInstallAllResponse: EMsg
+k_EMsgTestWorkerProcess: EMsg
+k_EMsgTestWorkerProcessLoadUnloadModuleRequest: EMsg
+k_EMsgTestWorkerProcessLoadUnloadModuleResponse: EMsg
+k_EMsgTestWorkerProcessServiceModuleCallRequest: EMsg
+k_EMsgTestWorkerProcessServiceModuleCallResponse: EMsg
+k_EMsgQuestServerBase: EMsg
+k_EMsgClientGetEmoticonList: EMsg
+k_EMsgClientEmoticonList: EMsg
+k_EMsgSLCBase: EMsg
+k_EMsgSLCUserSessionStatus: EMsg
+k_EMsgSLCRequestUserSessionStatus: EMsg
+k_EMsgSLCSharedLicensesLockStatus: EMsg
+k_EMsgClientSharedLibraryLockStatus: EMsg
+k_EMsgClientSharedLibraryStopPlaying: EMsg
+k_EMsgSLCOwnerLibraryChanged: EMsg
+k_EMsgSLCSharedLibraryChanged: EMsg
+k_EMsgRemoteClientBase: EMsg
+k_EMsgRemoteClientAuth_OBSOLETE: EMsg
+k_EMsgRemoteClientAuthResponse_OBSOLETE: EMsg
+k_EMsgRemoteClientAppStatus: EMsg
+k_EMsgRemoteClientStartStream: EMsg
+k_EMsgRemoteClientStartStreamResponse: EMsg
+k_EMsgRemoteClientPing: EMsg
+k_EMsgRemoteClientPingResponse: EMsg
+k_EMsgClientUnlockH264: EMsg
+k_EMsgClientUnlockH264Response: EMsg
+k_EMsgRemoteClientAcceptEULA: EMsg
+k_EMsgRemoteClientGetControllerConfig: EMsg
+k_EMsgRemoteClientGetControllerConfigResponse: EMsg
+k_EMsgRemoteClientStreamingEnabled: EMsg
+k_EMsgClientUnlockHEVC_OBSOLETE: EMsg
+k_EMsgClientUnlockHEVCResponse_OBSOLETE: EMsg
+k_EMsgRemoteClientStatusRequest: EMsg
+k_EMsgRemoteClientStatusResponse: EMsg
+k_EMsgClientConcurrentSessionsBase: EMsg
+k_EMsgClientPlayingSessionState: EMsg
+k_EMsgClientKickPlayingSession: EMsg
+k_EMsgClientBroadcastBase: EMsg
+k_EMsgClientBroadcastInit: EMsg
+k_EMsgClientBroadcastFrames: EMsg
+k_EMsgClientBroadcastDisconnect: EMsg
+k_EMsgClientBroadcastUploadConfig: EMsg
+k_EMsgBaseClient3: EMsg
+k_EMsgClientVoiceCallPreAuthorize: EMsg
+k_EMsgClientVoiceCallPreAuthorizeResponse: EMsg
+k_EMsgClientServerTimestampRequest: EMsg
+k_EMsgClientServerTimestampResponse: EMsg
+k_EMsgServiceMethodCallFromClientNonAuthed: EMsg
+k_EMsgClientHello: EMsg
+k_EMsgClientEnableOrDisableDownloads: EMsg
+k_EMsgClientEnableOrDisableDownloadsResponse: EMsg
+k_EMsgClientLANP2PBase: EMsg
+k_EMsgClientLANP2PRequestChunk: EMsg
+k_EMsgClientLANP2PRequestChunkResponse: EMsg
+k_EMsgClientPeerChunkRequest: EMsg
+k_EMsgClientPeerChunkResponse: EMsg
+k_EMsgClientLANP2PMax: EMsg
+k_EMsgBaseWatchdogServer: EMsg
+k_EMsgNotifyWatchdog: EMsg
+k_EMsgClientSiteLicenseBase: EMsg
+k_EMsgClientSiteLicenseSiteInfoNotification: EMsg
+k_EMsgClientSiteLicenseCheckout: EMsg
+k_EMsgClientSiteLicenseCheckoutResponse: EMsg
+k_EMsgClientSiteLicenseGetAvailableSeats: EMsg
+k_EMsgClientSiteLicenseGetAvailableSeatsResponse: EMsg
+k_EMsgClientSiteLicenseGetContentCacheInfo: EMsg
+k_EMsgClientSiteLicenseGetContentCacheInfoResponse: EMsg
+k_EMsgBaseChatServer: EMsg
+k_EMsgChatServerGetPendingNotificationCount: EMsg
+k_EMsgChatServerGetPendingNotificationCountResponse: EMsg
+k_EMsgBaseSecretServer: EMsg
+k_EMsgServerSecretChanged: EMsg
+k_EMsgBaseWG: EMsg
+k_EMsgWGConnectionProtocolError: EMsg
+k_EMsgWGConnectionValidateUserToken: EMsg
+k_EMsgWGConnectionValidateUserTokenResponse: EMsg
+k_EMsgWGConnectionLegacyWGRequest: EMsg
+k_EMsgWGConnectionLegacyWGResponse: EMsg
+k_EClientPersonaStateFlagStatus: EClientPersonaStateFlag
+k_EClientPersonaStateFlagPlayerName: EClientPersonaStateFlag
+k_EClientPersonaStateFlagQueryPort: EClientPersonaStateFlag
+k_EClientPersonaStateFlagSourceID: EClientPersonaStateFlag
+k_EClientPersonaStateFlagPresence: EClientPersonaStateFlag
+k_EClientPersonaStateFlagLastSeen: EClientPersonaStateFlag
+k_EClientPersonaStateFlagUserClanRank: EClientPersonaStateFlag
+k_EClientPersonaStateGameExtraInfo: EClientPersonaStateFlag
+k_EClientPersonaStateGameDataBlob: EClientPersonaStateFlag
+k_EClientPersonaStateFlagClanData: EClientPersonaStateFlag
+k_EClientPersonaStateFlagFacebook: EClientPersonaStateFlag
+k_EClientPersonaStateFlagRichPresence: EClientPersonaStateFlag
+k_EClientPersonaStateFlagBroadcast: EClientPersonaStateFlag
+k_EClientPersonaStateFlagWatching: EClientPersonaStateFlag
+k_EMsgClanAccountFlagPublic: EMsgClanAccountFlags
+k_EMsgClanAccountFlagLarge: EMsgClanAccountFlags
+k_EMsgClanAccountFlagLocked: EMsgClanAccountFlags
+k_EMsgClanAccountFlagDisabled: EMsgClanAccountFlags
+k_EMsgClanAccountFlagOGG: EMsgClanAccountFlags
+k_ESteamReviewScore_OverwhelminglyPositive: ESteamReviewScore
+k_ESteamReviewScore_VeryPositive: ESteamReviewScore
+k_ESteamReviewScore_Positive: ESteamReviewScore
+k_ESteamReviewScore_MostlyPositive: ESteamReviewScore
+k_ESteamReviewScore_Mixed: ESteamReviewScore
+k_ESteamReviewScore_MostlyNegative: ESteamReviewScore
+k_ESteamReviewScore_Negative: ESteamReviewScore
+k_ESteamReviewScore_VeryNegative: ESteamReviewScore
+k_ESteamReviewScore_OverwhelminglyNegative: ESteamReviewScore
+k_ESteamReviewScore_None: ESteamReviewScore
+k_ECodecUsagePlatformUnknown: ECodecUsagePlatform
+k_ECodecUsagePlatformWindows: ECodecUsagePlatform
+k_ECodecUsagePlatformMacOS: ECodecUsagePlatform
+k_ECodecUsagePlatformLinux: ECodecUsagePlatform
+k_ECodecUsagePlatformSteamDeck: ECodecUsagePlatform
+k_ECodecUsageReasonUnknown: ECodecUsageReason
+k_ECodecUsageReasonRemotePlay: ECodecUsageReason
+k_ECodecUsageReasonBroadcasting: ECodecUsageReason
+k_ECodecUsageReasonGameVideo: ECodecUsageReason

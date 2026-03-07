@@ -1,0 +1,32 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Replay files — too large to commit
+tests/fixtures/*.dem
+# Truncated fixtures ARE committed (small, used for unit tests)
+!tests/fixtures/*_truncated.dem
+
+# Downloaded proto source files
+proto_definitions/
+
+# Docs build output
+site/
+
+# Reference repos (cloned locally, not part of the project)
+refs/
+
+# Internal development strategy doc
+STRATEGY.md
+
+# Test/coverage artifacts
+.pytest_cache/
+.coverage
+htmlcov/
