@@ -102,7 +102,8 @@ class TestParseStringTable:
             for ch in key.encode("utf-8"):
                 for i in range(8):
                     bits.append((ch >> i) & 1)
-            bits.append(0)  # null terminator
+            for _ in range(8):
+                bits.append(0)  # null terminator (full zero byte)
         else:
             bits.append(0)
 
@@ -176,10 +177,48 @@ class TestParseStringTable:
         )
         assert items == []
 
+    def _build_bits(self, incr: bool, key: str | None, value: bytes | None) -> list[int]:
+        """Return the raw bit list for a single entry (no byte-padding)."""
+        bits: list[int] = []
+        bits.append(1 if incr else 0)
+        if key is not None:
+            bits.append(1)
+            bits.append(0)  # use_history = False
+            for ch in key.encode("utf-8"):
+                for i in range(8):
+                    bits.append((ch >> i) & 1)
+            for _ in range(8):
+                bits.append(0)  # null terminator
+        else:
+            bits.append(0)
+        if value is not None:
+            bits.append(1)
+            size_bits = len(value)
+            for i in range(17):
+                bits.append((size_bits >> i) & 1)
+            for byte in value:
+                for i in range(8):
+                    bits.append((byte >> i) & 1)
+        else:
+            bits.append(0)
+        return bits
+
+    def _pack_bits(self, bits: list[int]) -> bytes:
+        padded = bits + [0] * (-len(bits) % 8)
+        result = []
+        for i in range(0, len(padded), 8):
+            byte = 0
+            for j in range(8):
+                if padded[i + j]:
+                    byte |= 1 << j
+            result.append(byte)
+        return bytes(result)
+
     def test_multiple_entries_incrementing(self, parse_string_table):
-        entry0 = self._build_entry(incr=True, key="a", value=b"\x01")
-        entry1 = self._build_entry(incr=True, key="b", value=b"\x02")
-        data = entry0 + entry1
+        # Build both entries into a single continuous bit stream
+        all_bits = self._build_bits(incr=True, key="a", value=b"\x01")
+        all_bits += self._build_bits(incr=True, key="b", value=b"\x02")
+        data = self._pack_bits(all_bits)
         items = parse_string_table(
             buf=data,
             num_updates=2,

@@ -61,6 +61,16 @@ extractors/        ← per-tick polling of entity state for output
 When translating from Manta, the Go file maps 1:1 to the Python module:
 `manta/reader.go` → `reader.py`, `manta/entity.go` → `entities.py`, etc.
 
+### ReplayParser — the main entry point (Phase 3+)
+
+`parser.py` wires all subsystems together. Key implementation details:
+
+- **Outer vs inner messages**: `DemoStream` yields outer `EDemoCommands` frames. `DEM_Packet`/`DEM_SignonPacket`/`DEM_FullPacket` contain a `CDemoPacket` whose `.data` is a packed stream of `{ubit_var type_id, varuint32 size, bytes}` inner net messages — these must be unpacked separately with `BitReader`.
+- **`svc_ServerInfo` arrives before `DEM_SendTables`**: the `_pending_server_info` pattern caches it and applies it immediately after the entity manager is created in `_on_send_tables`.
+- **Inner message priority**: string table messages (priority -10) are sorted before `svc_PacketEntities` (+5) within the same packet to ensure baselines are ready before entity deltas are applied.
+- **Outer IDs**: `DEM_SendTables=4`, `DEM_ClassInfo=5`, `DEM_Packet=7`, `DEM_SignonPacket=8`, `DEM_FullPacket=13`
+- **Inner IDs**: `net_Tick=4`, `svc_ServerInfo=40`, `svc_CreateStringTable=44`, `svc_UpdateStringTable=45`, `svc_PacketEntities=55`
+
 ### The entity system (most complex part)
 
 Entities are game objects (heroes, towers, items, game rules). Their schema is defined in `CDemoSendTables` → `CSVCMsg_FlattenedSerializer`, parsed into a tree of `Serializer` → `Field` objects. Each field has a decoder function resolved once at schema-parse time.

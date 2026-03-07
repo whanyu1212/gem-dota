@@ -60,7 +60,7 @@ gem is being built incrementally. Here's what's available today:
 |---|---|---|
 | 1 — Binary framing | Iterate outer messages, tick range, message type counts | ✅ Done |
 | 2 — Schema | Parse send tables, resolve field types and decoders | ✅ Done |
-| 3 — Entity state | Read hero HP, position, gold, items per tick | 🔜 Next |
-| 4 — Events | Game events, combat log (damage, kills, abilities) | 🔜 |
+| 3 — Entity state | Read hero HP, position, gold, items per tick | ✅ Done |
+| 4 — Events | Game events, combat log (damage, kills, abilities) | 🔜 Next |
 | 5 — Extraction | Per-player time-series DataFrames | 🔜 |
 | 6 — Full output | `ParsedMatch` object, JSON export | 🔜 |
