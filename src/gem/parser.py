@@ -1,8 +1,9 @@
 """High-level replay parser for Dota 2 Source 2 .dem files.
 
-Ties together the stream reader, sendtable schema, string tables, and entity
-manager into a single ``ReplayParser`` class.  Callers register callbacks for
-the events they care about and then call ``parse()`` to drive the loop.
+Ties together the stream reader, sendtable schema, string tables, entity
+manager, game events, and combat log into a single ``ReplayParser`` class.
+Callers register callbacks for the events they care about and then call
+``parse()`` to drive the loop.
 
 Outer message layout
 --------------------
@@ -17,18 +18,21 @@ Each outer message has one of these EDemoCommands type IDs:
 Inner message layout inside CDemoPacket.data
 --------------------------------------------
 Each inner message is encoded as:
-  ubit_var   → message type ID  (SVC_Messages / NET_Messages)
+  ubit_var   → message type ID  (SVC_Messages / NET_Messages / EBaseGameEvents)
   varuint32  → byte length
   bytes      → protobuf payload
 
 Relevant inner IDs:
-  net_Tick               =  4
-  svc_ServerInfo         = 40
-  svc_CreateStringTable  = 44
-  svc_UpdateStringTable  = 45
-  svc_PacketEntities     = 55
+  net_Tick                        =   4
+  svc_ServerInfo                  =  40
+  svc_CreateStringTable           =  44
+  svc_UpdateStringTable           =  45
+  svc_PacketEntities              =  55
+  svc_UserMessage                 =  72
+  GE_Source1LegacyGameEventList   = 205
+  GE_Source1LegacyGameEvent       = 207
 
-Reference: manta/parser.go, manta/demo_packet.go
+Reference: manta/parser.go, manta/demo_packet.go, manta/game_event.go
 """
 
 from __future__ import annotations
@@ -39,17 +43,28 @@ from pathlib import Path
 # Proto side-effect import order is critical
 from google.protobuf import descriptor_pb2  # noqa: F401
 
+from gem.combatlog import CombatLogHandler, CombatLogProcessor
 from gem.entities import Entity, EntityManager, EntityOp
+from gem.game_events import GameEventHandler, GameEventManager
 from gem.proto.dota2 import (
+    dota_commonmessages_pb2,  # noqa: F401
+    dota_shared_enums_pb2,  # noqa: F401
     network_connection_pb2,  # noqa: F401
     networkbasetypes_pb2,  # noqa: F401
 )
 from gem.proto.dota2.demo_pb2 import CDemoClassInfo, CDemoFullPacket, CDemoPacket
+from gem.proto.dota2.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
+from gem.proto.dota2.dota_usermessages_pb2 import CDOTAUserMsg_CombatLogBulkData
+from gem.proto.dota2.gameevents_pb2 import (
+    CMsgSource1LegacyGameEvent,
+    CMsgSource1LegacyGameEventList,
+)
 from gem.proto.dota2.netmessages_pb2 import (
     CSVCMsg_CreateStringTable,
     CSVCMsg_PacketEntities,
     CSVCMsg_ServerInfo,
     CSVCMsg_UpdateStringTable,
+    CSVCMsg_UserMessage,
 )
 from gem.reader import BitReader
 from gem.sendtable import parse_send_tables
@@ -65,12 +80,25 @@ _DEM_PACKET = 7
 _DEM_SIGNON_PACKET = 8
 _DEM_FULL_PACKET = 13
 
-# Inner SVC/NET message IDs
+# Inner SVC/NET/Game-event message IDs
 _NET_TICK = 4
 _SVC_SERVER_INFO = 40
 _SVC_CREATE_STRING_TABLE = 44
 _SVC_UPDATE_STRING_TABLE = 45
 _SVC_PACKET_ENTITIES = 55
+_SVC_USER_MESSAGE = 72
+_GE_GAME_EVENT_LIST = 205
+_GE_GAME_EVENT = 207
+
+# DOTA user-message sub-type IDs (inside CSVCMsg_UserMessage.msg_type)
+_DOTA_UM_COMBAT_LOG_DATA = 468  # CDOTAUserMsg_CombatLogBulkData (S2)
+_DOTA_UM_COMBAT_LOG_BULK_DATA = 470  # CDOTAUserMsg_CombatLogBulkData (alternate)
+
+# Direct inner message type for S2 combat log (not wrapped in svc_UserMessage)
+_DOTA_UM_COMBAT_LOG_HLTV = 554  # CMsgDOTACombatLogEntry (direct, one entry per message)
+
+# CombatLogNames string table name
+_COMBAT_LOG_NAMES_TABLE = "CombatLogNames"
 
 EntityCallback = Callable[[Entity, EntityOp], None]
 
@@ -103,6 +131,8 @@ class ReplayParser:
 
         parser = ReplayParser("game.dem")
         parser.on_entity(lambda e, op: print(e, op))
+        parser.on_game_event("dota_combatlog", lambda e: print(e))
+        parser.on_combat_log_entry(lambda e: print(e))
         parser.parse()
 
     Attributes:
@@ -111,6 +141,8 @@ class ReplayParser:
         game_build: Build number extracted from CSVCMsg_ServerInfo.
         string_tables: All string tables created so far.
         entity_manager: Live entity table.
+        game_event_manager: Game event schema and handler registry.
+        combat_log: Combat log processor for S1 and S2 entries.
     """
 
     def __init__(self, source: str | Path | bytes) -> None:
@@ -120,6 +152,8 @@ class ReplayParser:
         self.game_build: int = 0
         self.string_tables = StringTables()
         self.entity_manager: EntityManager | None = None
+        self.game_event_manager = GameEventManager()
+        self.combat_log = CombatLogProcessor()
         self._entity_callbacks: list[EntityCallback] = []
         self._stop_at_tick: int | None = None
         self._pending_server_info: CSVCMsg_ServerInfo | None = None
@@ -137,6 +171,23 @@ class ReplayParser:
         self._entity_callbacks.append(callback)
         if self.entity_manager is not None:
             self.entity_manager.on_entity(callback)
+
+    def on_game_event(self, name: str, handler: GameEventHandler) -> None:
+        """Register a handler for the named game event.
+
+        Args:
+            name: Event name, e.g. ``"dota_combatlog"``.
+            handler: ``(GameEvent) -> None``.
+        """
+        self.game_event_manager.on_game_event(name, handler)
+
+    def on_combat_log_entry(self, handler: CombatLogHandler) -> None:
+        """Register a handler for all combat log entries (S1 + S2).
+
+        Args:
+            handler: ``(CombatLogEntry) -> None``.
+        """
+        self.combat_log.on_combat_log_entry(handler)
 
     def stop_after_tick(self, tick: int) -> None:
         """Stop parsing after this tick (inclusive).
@@ -214,6 +265,8 @@ class ReplayParser:
                 return -10
             if type_id == _SVC_PACKET_ENTITIES:
                 return 5
+            if type_id in (_GE_GAME_EVENT, _DOTA_UM_COMBAT_LOG_HLTV):
+                return 10
             return 0
 
         messages.sort(key=lambda m: _priority(m[0]))
@@ -254,6 +307,28 @@ class ReplayParser:
             pe_msg.ParseFromString(payload)
             self.entity_manager.on_packet_entities(pe_msg)
 
+        elif type_id == _SVC_USER_MESSAGE:
+            um_msg = CSVCMsg_UserMessage()
+            um_msg.ParseFromString(payload)
+            self._on_user_message(um_msg)
+
+        elif type_id == _GE_GAME_EVENT_LIST:
+            gel_msg = CMsgSource1LegacyGameEventList()
+            gel_msg.ParseFromString(payload)
+            self._on_game_event_list(gel_msg)
+
+        elif type_id == _GE_GAME_EVENT:
+            ge_msg = CMsgSource1LegacyGameEvent()
+            ge_msg.ParseFromString(payload)
+            self._on_game_event(ge_msg)
+
+        elif type_id == _DOTA_UM_COMBAT_LOG_HLTV:
+            entry_msg = CMsgDOTACombatLogEntry()
+            entry_msg.ParseFromString(payload)
+            name_table = self.string_tables.get_by_name(_COMBAT_LOG_NAMES_TABLE)
+            if name_table is not None:
+                self.combat_log.process_s2_entry(entry_msg, name_table, tick=self.tick)
+
     # ------------------------------------------------------------------
     # Subsystem handlers
     # ------------------------------------------------------------------
@@ -280,3 +355,34 @@ class ReplayParser:
         if self.entity_manager is not None:
             self.entity_manager.on_class_info(msg)
             self.entity_manager.on_baseline_updated()
+
+    def _on_game_event_list(self, msg: CMsgSource1LegacyGameEventList) -> None:
+        for descriptor in msg.descriptors:
+            schema_dict = {
+                "eventid": descriptor.eventid,
+                "name": descriptor.name,
+                "keys": [{"name": k.name, "type": k.type} for k in descriptor.keys],
+            }
+            self.game_event_manager.register_schema(schema_dict)
+
+    def _on_game_event(self, msg: CMsgSource1LegacyGameEvent) -> None:
+        self.game_event_manager.dispatch(msg)
+
+        # S1 combat log path: dota_combatlog game event
+        schema = self.game_event_manager._schemas_by_id.get(msg.eventid)
+        if schema is not None and schema.name == "dota_combatlog":
+            name_table = self.string_tables.get_by_name(_COMBAT_LOG_NAMES_TABLE)
+            if name_table is not None:
+                from gem.game_events import GameEvent
+
+                event = GameEvent(schema=schema, msg=msg)
+                self.combat_log.process_s1_event(event, name_table, tick=self.tick)
+
+    def _on_user_message(self, msg: CSVCMsg_UserMessage) -> None:
+        msg_type = msg.msg_type
+        if msg_type in (_DOTA_UM_COMBAT_LOG_DATA, _DOTA_UM_COMBAT_LOG_BULK_DATA):
+            bulk_msg = CDOTAUserMsg_CombatLogBulkData()
+            bulk_msg.ParseFromString(msg.msg_data)
+            name_table = self.string_tables.get_by_name(_COMBAT_LOG_NAMES_TABLE)
+            if name_table is not None:
+                self.combat_log.process_s2_bulk(bulk_msg, name_table, tick=self.tick)

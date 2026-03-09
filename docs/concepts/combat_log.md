@@ -126,17 +126,21 @@ class CombatLogEntry:
 
 ---
 
-## Using the combat log (Phase 4+)
+## Using the combat log
 
 ```python
-# Coming in Phase 4
-parser.on_combat_log_entry(lambda entry: ...)
+from gem.parser import ReplayParser
+
+parser = ReplayParser("game.dem")
+parser.on_combat_log_entry(lambda entry: print(entry))
+parser.parse()
 ```
 
 Example — sum total damage dealt by each hero:
 
 ```python
 from collections import defaultdict
+from gem.parser import ReplayParser
 
 damage_by_hero = defaultdict(int)
 
@@ -144,9 +148,74 @@ def on_entry(entry):
     if entry.log_type == "DAMAGE" and entry.attacker_is_hero:
         damage_by_hero[entry.attacker_name] += entry.value
 
+parser = ReplayParser("game.dem")
 parser.on_combat_log_entry(on_entry)
-parser.start()
+parser.parse()
 
 for hero, total in sorted(damage_by_hero.items(), key=lambda x: -x[1]):
     print(f"{hero}: {total:,} damage")
 ```
+
+---
+
+## Known limitations and edge cases
+
+### Ward coordinates
+
+The combat log records *who* placed a ward and *when* via `ITEM` events
+(`item_ward_observer`, `item_ward_dispenser`, `item_ward_sentry`), but
+does not include coordinates.
+
+Exact coordinates come from the entity stream via `CBodyComponent.m_cellX/Y`
+and `m_vecX/Y` fields. Two things are required for 100% coverage:
+
+1. **Accept all non-DELETED entity events** — recycled entity slots emit `UPDATED`
+   (not `CREATED`) but still carry the full position. Filtering to `CREATED` only
+   gives ~35% coverage.
+2. **Allow entity records to match multiple placements** — the same slot is reused
+   across the game. A greedy matcher that globally consumes records will block later
+   placements from matching the same slot.
+
+Matching strategy: for each combat log `ITEM` placement event, find the entity event
+with the smallest tick delta within ±60 ticks, without marking records as consumed.
+This gives 100% exact coordinates.
+
+Reference: `refs/parser/src/main/java/opendota/processors/warding/Wards.java` uses
+`m_lifeState==0` transitions rather than op type — either approach works as long as
+both points above are satisfied.
+
+### Smoke of Deceit — empty group edge case
+
+When a hero uses Smoke of Deceit, the combat log fires in sequence:
+
+1. An `ITEM` event (`inflictor_name = "item_smoke_of_deceit"`) — the item is consumed
+2. One `MODIFIER_ADD` event per hero that receives the smoke buff
+   (`inflictor_name = "modifier_smoke_of_deceit"`, `target_is_hero = True`)
+
+**Empty group**: if the activating hero is standing inside a sentry ward's
+truesight radius at the moment they activate, the game engine instantly removes
+the smoke. Step 1 fires (item consumed), but step 2 never fires for anyone —
+not even the activator. The result is a recorded smoke usage with an empty group.
+
+This is correct game behaviour, not a parsing bug. The item was genuinely wasted.
+When you see a smoke event with no heroes in the group, it means the smoke broke
+the instant it was activated.
+
+Filter `MODIFIER_ADD` events by `target_is_hero = True` to exclude summoned units
+(e.g. Beastmaster boars) from smoke group membership — these receive the modifier
+but are not meaningful members of a smoke group.
+
+**Alternative approach**: the `ActiveModifiers` string table carries
+`CDOTAModifierBuffTableEntry` protobufs with a `player_ids` field (comma-separated
+player slot numbers) for each active modifier. Reading this table directly (as
+`refs/clarity` does) would give equivalent results — including an empty `player_ids`
+for the instant-break case. This is not currently implemented; it would require
+parsing an additional string table of protobuf messages.
+
+### Roshan drop items not in combat log
+
+Aegis of the Immortal, Cheese, Refresher Shard, and Aghanim's Blessing
+dropped by Roshan are **not** recorded as `ITEM` log entries when picked
+up. Roshan kills themselves are recorded as `DEATH` events
+(`target_name = "npc_dota_roshan"`). To track which hero picks up each
+drop, use entity state tracking or `CDOTAUserMsg_ItemPurchased`.
