@@ -50,7 +50,7 @@ class GameEvent:
 
     def __init__(self, schema: GameEventSchema, msg: Any) -> None:
         self.schema = schema
-        self._keys = list(msg.get_keys())
+        self._keys = list(msg.keys)
 
     def _get_key(self, name: str) -> tuple[Any, str | None]:
         """Return (key_obj, error_str) for the named field."""
@@ -75,7 +75,7 @@ class GameEvent:
         _, type_id = entry
         if type_id != _TYPE_STRING:
             return "", f"field {name!r} is type {type_id}, not string"
-        return key.get_val_string(), None
+        return key.val_string, None
 
     def get_float(self, name: str) -> tuple[float, str | None]:
         """Return (value, None) as float, or (0.0, error) on failure.
@@ -89,7 +89,7 @@ class GameEvent:
         _, type_id = self.schema.fields[name]
         if type_id != _TYPE_FLOAT:
             return 0.0, f"field {name!r} is type {type_id}, not float"
-        return key.get_val_float(), None
+        return key.val_float, None
 
     def get_int32(self, name: str) -> tuple[int, str | None]:
         """Return (value, None) as int32 (long/short/byte), or (0, error).
@@ -104,11 +104,11 @@ class GameEvent:
             return 0, err
         _, type_id = self.schema.fields[name]
         if type_id == _TYPE_LONG:
-            return key.get_val_long(), None
+            return key.val_long, None
         if type_id == _TYPE_SHORT:
-            return key.get_val_short(), None
+            return key.val_short, None
         if type_id == _TYPE_BYTE:
-            return key.get_val_byte(), None
+            return key.val_byte, None
         return 0, f"field {name!r} is type {type_id}, not an integer type"
 
     def get_bool(self, name: str) -> tuple[bool, str | None]:
@@ -123,7 +123,7 @@ class GameEvent:
         _, type_id = self.schema.fields[name]
         if type_id != _TYPE_BOOL:
             return False, f"field {name!r} is type {type_id}, not bool"
-        return key.get_val_bool(), None
+        return key.val_bool, None
 
     def get_uint64(self, name: str) -> tuple[int, str | None]:
         """Return (value, None) as uint64, or (0, error) on failure.
@@ -137,7 +137,7 @@ class GameEvent:
         _, type_id = self.schema.fields[name]
         if type_id != _TYPE_UINT64:
             return 0, f"field {name!r} is type {type_id}, not uint64"
-        return key.get_val_uint64(), None
+        return key.val_uint64, None
 
 
 GameEventHandler = Callable[[GameEvent], None]
@@ -193,13 +193,13 @@ class GameEventManager:
         self._handlers.setdefault(name, []).append(handler)
 
     def dispatch(self, raw_event: Any) -> None:
-        """Dispatch a raw CSVCMsg_GameEvent message to registered handlers.
+        """Dispatch a raw CMsgSource1LegacyGameEvent message to registered handlers.
 
         Args:
-            raw_event: A ``CSVCMsg_GameEvent``-like object with
-                ``get_eventid()`` and ``get_keys()`` methods.
+            raw_event: A ``CMsgSource1LegacyGameEvent``-like object with
+                ``eventid`` and ``keys`` attributes.
         """
-        event_id: int = raw_event.get_eventid()
+        event_id: int = raw_event.eventid
         schema = self._schemas_by_id.get(event_id)
         if schema is None:
             return

@@ -86,6 +86,30 @@ The `instancebaseline` string table holds default field values per class — app
 
 Both paths must produce the same `CombatLogEntry` output. See `refs/clarity/src/main/java/skadistats/clarity/processor/gameevents/CombatLog.java`.
 
+### Ward coordinates — how to get 100% coverage
+
+The combat log `ITEM` event (`item_ward_observer`, `item_ward_dispenser`, `item_ward_sentry`) records who placed a ward and when, but not where. Coordinates come from the entity stream.
+
+**Do not** filter to `EntityOp.CREATED` only — recycled entity slots emit `UPDATED` (not `CREATED`) but still carry the full position. Record every entity event on live ward entities (excluding `DELETED`).
+
+**Do not** globally consume entity records in the matcher — the same slot is reused across the game, so it must be matchable to multiple placements at different ticks.
+
+Correct approach: for each combat log placement event, find the entity event with the smallest tick delta within ±60 ticks, allowing reuse. This gives 100% exact coordinates.
+
+Reference: `refs/parser/src/main/java/opendota/processors/warding/Wards.java` — uses `m_lifeState==0` transitions instead of op type. Either works; what matters is accepting all non-DELETED events and not consuming entity records globally in the matcher.
+
+### Smoke of Deceit — empty group edge case
+
+Tracking smoke:
+1. `ITEM` event (`inflictor_name = "item_smoke_of_deceit"`) — item consumed
+2. `MODIFIER_ADD` events (`inflictor_name = "modifier_smoke_of_deceit"`, `target_is_hero = True`) — one per hero that receives the buff
+
+Filter `MODIFIER_ADD` by `target_is_hero = True` to exclude summoned units (e.g. Beastmaster boars) from the group.
+
+**Empty group edge case**: if the activating hero is standing inside a sentry ward's truesight radius at activation time, the smoke breaks instantly before any `MODIFIER_ADD` fires. The `ITEM` event is still recorded (item consumed) but zero modifier events follow. This is correct game behaviour — the item was wasted — not a parsing gap. Output this as a smoke usage with an empty group.
+
+Alternative approach (refs): read the `ActiveModifiers` string table directly — each entry is a `CDOTAModifierBuffTableEntry` protobuf with a `player_ids` field (comma-separated player slots). Would give the same result for empty-group cases. Not currently implemented; requires parsing an additional string table of protobufs.
+
 ## Code Style
 
 - **Not a direct translation** — code must be idiomatic Python, not Go/Java transliterated
