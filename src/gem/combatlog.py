@@ -93,6 +93,12 @@ class CombatLogEntry:
         ability_level: Ability level (for ability/item events).
         gold_reason: Gold reason code (for GOLD events).
         xp_reason: XP reason code (for XP events).
+        health: Remaining health of the target after the event (S2 only).
+        timestamp: Game time in seconds (S2 only).
+        is_ability_toggle_on: True if this event toggled an ability on (S2 only).
+        is_ability_toggle_off: True if this event toggled an ability off (S2 only).
+        value_name: Resolved name for the ``value`` field when log_type is
+            ``PURCHASE`` — the item name purchased. Empty for other log types.
     """
 
     tick: int
@@ -108,6 +114,11 @@ class CombatLogEntry:
     ability_level: int = 0
     gold_reason: int = 0
     xp_reason: int = 0
+    value_name: str = ""
+    health: int = 0
+    timestamp: float = 0.0
+    is_ability_toggle_on: bool = False
+    is_ability_toggle_off: bool = False
 
 
 CombatLogHandler = Callable[[CombatLogEntry], None]
@@ -253,6 +264,15 @@ class CombatLogProcessor:
             target_name = name_table.get(msg.target_name, "")
             inflictor_name = name_table.get(msg.inflictor_name, "")
 
+        # For PURCHASE events, msg.value is a CombatLogNames index for the item name.
+        # Reference: odota/Parse.java cle.getValueName() for DOTA_COMBATLOG_PURCHASE
+        value_name = ""
+        if log_type == "PURCHASE":
+            if hasattr(name_table, "items") and isinstance(name_table.items, dict):
+                value_name = _resolve_name(name_table, msg.value)
+            elif hasattr(name_table, "get"):
+                value_name = name_table.get(msg.value, "")
+
         entry = CombatLogEntry(
             tick=tick,
             log_type=log_type,
@@ -267,5 +287,10 @@ class CombatLogProcessor:
             ability_level=msg.ability_level,
             gold_reason=msg.gold_reason,
             xp_reason=msg.xp_reason,
+            value_name=value_name,
+            health=msg.health,
+            timestamp=msg.timestamp,
+            is_ability_toggle_on=msg.is_ability_toggle_on,
+            is_ability_toggle_off=msg.is_ability_toggle_off,
         )
         self._emit(entry)
