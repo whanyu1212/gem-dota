@@ -40,6 +40,9 @@ XP_LEVEL: list[int] = _load("xp_level.json")
 # int_str -> internal_item_name, e.g. "1" -> "moon_shard"
 PERMANENT_BUFFS: dict[str, str] = _load("permanent_buffs.json")
 
+# leagueid (str) -> league name — premium/professional/amateur only
+LEAGUES: dict[str, str] = _load("leagues.json")
+
 
 # ---------------------------------------------------------------------------
 # Hero lookups
@@ -165,3 +168,23 @@ def permanent_buff_name(buff_id: int) -> str:
         Internal item name (e.g. ``"moon_shard"``), or ``str(buff_id)`` as fallback.
     """
     return PERMANENT_BUFFS.get(str(buff_id), str(buff_id))
+
+
+# ---------------------------------------------------------------------------
+# League helpers
+# ---------------------------------------------------------------------------
+
+
+def league_name(leagueid: int) -> str | None:
+    """Return the league name for a given league ID, or None if unknown/not found.
+
+    Args:
+        leagueid: Numeric Dota 2 league ID.
+
+    Returns:
+        League name string (e.g. ``"The International 2024"``), or ``None``
+        if the league is not in the bundled data (e.g. pub games, unknown leagues).
+    """
+    if not leagueid:
+        return None
+    return LEAGUES.get(str(leagueid))

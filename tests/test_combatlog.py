@@ -289,7 +289,7 @@ class TestS1CombatLog:
     def test_gold_reason(self):
         p, received = self._make_processor_with_handler()
         table = FakeNameTable({})
-        p.process_s1_event(self._make_event(type_val=7, gold_reason=5), table)
+        p.process_s1_event(self._make_event(type_val=8, gold_reason=5), table)
         e = received[0]
         assert e.log_type == "GOLD"
         assert e.gold_reason == 5
@@ -297,7 +297,7 @@ class TestS1CombatLog:
     def test_xp_reason(self):
         p, received = self._make_processor_with_handler()
         table = FakeNameTable({})
-        p.process_s1_event(self._make_event(type_val=8, xp_reason=3), table)
+        p.process_s1_event(self._make_event(type_val=10, xp_reason=3), table)
         e = received[0]
         assert e.log_type == "XP"
         assert e.xp_reason == 3
@@ -381,7 +381,7 @@ class TestS2CombatLog:
     def test_gold_entry(self):
         p, received = self._make_processor_with_handler()
         table = FakeNameTable({})
-        msg = FakeS2Entry(type=7, value=200, gold_reason=6)
+        msg = FakeS2Entry(type=8, value=200, gold_reason=6)
         p.process_s2_entry(msg, table)
         e = received[0]
         assert e.log_type == "GOLD"

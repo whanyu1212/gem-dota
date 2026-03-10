@@ -1,0 +1,13 @@
+{
+  "world_bounds": {
+    "xmin": 7563,
+    "xmax": 25900,
+    "ymin": 7800,
+    "ymax": 25600
+  },
+  "fountains": {
+    "radiant": {"x": 9684, "y": 9684},
+    "dire": {"x": 23120, "y": 22350}
+  },
+  "notes": "Calibrated against Game_map_7.40.jpg (patch 7.40). World coords are Source 2 units."
+}

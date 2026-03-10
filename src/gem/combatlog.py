@@ -35,10 +35,13 @@ COMBAT_LOG_TYPES: frozenset[str] = frozenset(
         "PURCHASE",
         "BUYBACK",
         "KILLSTREAK",
+        "PICKUP_RUNE",
     ]
 )
 
-# Mapping from DOTA_COMBATLOG_TYPES int → string label
+# Mapping from DOTA_COMBATLOG_TYPES int → string label.
+# Reference: refs/manta/dota/dota_shared_enums.proto DOTA_COMBATLOG_TYPES
+# Note: type=7 (LOCATION) and type=9 (GAME_STATE) are not surfaced.
 _LOG_TYPE_NAMES: dict[int, str] = {
     0: "DAMAGE",
     1: "HEAL",
@@ -47,11 +50,11 @@ _LOG_TYPE_NAMES: dict[int, str] = {
     4: "DEATH",
     5: "ABILITY",
     6: "ITEM",
-    7: "GOLD",
-    8: "XP",
-    9: "PURCHASE",
-    10: "BUYBACK",
-    11: "KILLSTREAK",
+    8: "GOLD",
+    10: "XP",
+    11: "PURCHASE",
+    12: "BUYBACK",
+    21: "PICKUP_RUNE",
 }
 
 # S1 dota_combatlog game event field names (from Clarity S1CombatLogIndices)
@@ -93,6 +96,7 @@ class CombatLogEntry:
         ability_level: Ability level (for ability/item events).
         gold_reason: Gold reason code (for GOLD events).
         xp_reason: XP reason code (for XP events).
+        value_name: Resolved name for the value field (PURCHASE events: item name).
     """
 
     tick: int
@@ -108,6 +112,7 @@ class CombatLogEntry:
     ability_level: int = 0
     gold_reason: int = 0
     xp_reason: int = 0
+    value_name: str = ""
 
 
 CombatLogHandler = Callable[[CombatLogEntry], None]
@@ -163,6 +168,22 @@ class CombatLogProcessor:
             handler: Callable ``(CombatLogEntry) -> None``.
         """
         self._handlers.append(handler)
+
+    def process_rune_pickup(self, player_slot: int, rune_type: int, tick: int = 0) -> None:
+        """Emit a PICKUP_RUNE CombatLogEntry from a CDOTAUserMsg_ChatEvent.
+
+        Args:
+            player_slot: Player slot (0-9) from ChatEvent.playerid_1.
+            rune_type: Rune type integer from ChatEvent.value.
+            tick: Current game tick.
+        """
+        entry = CombatLogEntry(
+            tick=tick,
+            log_type="PICKUP_RUNE",
+            value=player_slot,
+            gold_reason=rune_type,
+        )
+        self._emit(entry)
 
     def _emit(self, entry: Any) -> None:
         """Dispatch an entry to all registered handlers.
@@ -253,13 +274,28 @@ class CombatLogProcessor:
             target_name = name_table.get(msg.target_name, "")
             inflictor_name = name_table.get(msg.inflictor_name, "")
 
+        # For PURCHASE events, msg.value is a CombatLogNames index for the item name.
+        # Reference: odota/Parse.java cle.getValueName() for DOTA_COMBATLOG_PURCHASE
+        value_name = ""
+        if log_type == "PURCHASE":
+            if hasattr(name_table, "items") and isinstance(name_table.items, dict):
+                value_name = _resolve_name(name_table, msg.value)
+            elif hasattr(name_table, "get"):
+                value_name = name_table.get(msg.value, "")
+
+        # msg.value is proto uint32 but Dota encodes signed values (e.g. gold lost)
+        # as two's complement. Reinterpret as signed int32.
+        # Reference: clarity-examples/combatlog/Main.java — cle.getValue() < 0 check
+        raw_value = msg.value
+        value = raw_value if raw_value < 0x80000000 else raw_value - 0x100000000
+
         entry = CombatLogEntry(
             tick=tick,
             log_type=log_type,
             attacker_name=attacker_name,
             target_name=target_name,
             inflictor_name=inflictor_name,
-            value=msg.value,
+            value=value,
             attacker_is_hero=msg.is_attacker_hero,
             target_is_hero=msg.is_target_hero,
             attacker_is_illusion=msg.is_attacker_illusion,
@@ -267,5 +303,6 @@ class CombatLogProcessor:
             ability_level=msg.ability_level,
             gold_reason=msg.gold_reason,
             xp_reason=msg.xp_reason,
+            value_name=value_name,
         )
         self._emit(entry)
