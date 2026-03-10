@@ -174,6 +174,10 @@ class PlayerTimeSeries:
         lh_t: Last-hit count at each sample tick.
         dn_t: Deny count at each sample tick.
         xp_t: Cumulative XP at each sample tick.
+        hp_t: Current hit points at each sample tick.
+        mana_t: Current mana at each sample tick.
+        x_t: World x coordinate at each sample tick (``None`` if unavailable).
+        y_t: World y coordinate at each sample tick (``None`` if unavailable).
     """
 
     player_id: int
@@ -183,6 +187,10 @@ class PlayerTimeSeries:
     lh_t: list[int] = field(default_factory=list)
     dn_t: list[int] = field(default_factory=list)
     xp_t: list[int] = field(default_factory=list)
+    hp_t: list[int] = field(default_factory=list)
+    mana_t: list[float] = field(default_factory=list)
+    x_t: list[float | None] = field(default_factory=list)
+    y_t: list[float | None] = field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
@@ -224,6 +232,14 @@ class PlayerExtractor:
         self._heroes_by_npc: dict[str, Entity] = {}
         # player_id → Entity (CDOTAPlayerController)
         self._controllers: dict[int, Entity] = {}
+        # CDOTADataRadiant / CDOTADataDire entities (authoritative gold/LH/DN per team)
+        self._data_radiant: Entity | None = None
+        self._data_dire: Entity | None = None
+        # player_id (0-9) → team slot (0-4) within CDOTADataRadiant/Dire
+        # Read from CDOTA_PlayerResource.m_vecPlayerTeamData.%04d.m_iTeamSlot
+        self._player_team_slot: dict[int, int] = {}
+        # CDOTA_PlayerResource entity for slot lookups
+        self._player_resource: Entity | None = None
         self.snapshots = []
         # set of player_ids whose starting inventory has been emitted
         self._inventory_initialized: set[int] = set()
@@ -271,6 +287,10 @@ class PlayerExtractor:
             ts.lh_t.append(snap.lh)
             ts.dn_t.append(snap.dn)
             ts.xp_t.append(snap.xp)
+            ts.hp_t.append(snap.hp)
+            ts.mana_t.append(snap.mana)
+            ts.x_t.append(snap.x)
+            ts.y_t.append(snap.y)
         return ts
 
     def _on_entity(self, entity: Entity, op: EntityOp) -> None:
@@ -306,6 +326,29 @@ class PlayerExtractor:
                 else:
                     self._controllers[pid] = entity
 
+        elif cls in ("CDOTADataRadiant", "CDOTA_DataRadiant"):
+            self._data_radiant = None if op.has(EntityOp.DELETED) else entity
+
+        elif cls in ("CDOTADataDire", "CDOTA_DataDire"):
+            self._data_dire = None if op.has(EntityOp.DELETED) else entity
+
+        elif cls == "CDOTA_PlayerResource":
+            if op.has(EntityOp.DELETED):
+                self._player_resource = None
+            else:
+                self._player_resource = entity
+                self._refresh_team_slots()
+
+    def _refresh_team_slots(self) -> None:
+        """Read m_iTeamSlot for each player from CDOTA_PlayerResource."""
+        pr = self._player_resource
+        if pr is None:
+            return
+        for i in range(10):
+            slot, ok = pr.get_int32(f"m_vecPlayerTeamData.{i:04d}.m_iTeamSlot")
+            if ok and slot >= 0:
+                self._player_team_slot[i] = slot
+
     def _maybe_sample(self) -> None:
         if self._parser is None:
             return
@@ -329,6 +372,27 @@ class PlayerExtractor:
                     snap.gold = gold
                 if ok_nw:
                     snap.net_worth = nw
+            # Overlay authoritative net worth + gold from CDOTADataRadiant/Dire.
+            # The field index is the team slot (0-4), read from CDOTA_PlayerResource.
+            # Reference: refs/parser/Parse.java getEntityProperty(dataTeam, "m_vecDataTeam.%i.*", teamSlot)
+            data_entity = self._data_radiant if snap.team == _TEAM_RADIANT else self._data_dire
+            if data_entity is not None:
+                # Prefer authoritative team slot; fall back to pid % 5
+                team_slot = self._player_team_slot.get(snap.player_id, snap.player_id % 5)
+                prefix = f"m_vecDataTeam.{team_slot:04d}"
+                nw, ok_nw = data_entity.get_int32(f"{prefix}.m_iNetWorth")
+                if ok_nw and nw > 0:
+                    snap.net_worth = nw
+                if snap.gold == 0:
+                    teg, ok_teg = data_entity.get_int32(f"{prefix}.m_iTotalEarnedGold")
+                    if ok_teg and teg > 0:
+                        snap.gold = teg
+                lh, ok_lh = data_entity.get_int32(f"{prefix}.m_iLastHitCount")
+                if ok_lh and lh > 0:
+                    snap.lh = lh
+                dn, ok_dn = data_entity.get_int32(f"{prefix}.m_iDenyCount")
+                if ok_dn and dn > 0:
+                    snap.dn = dn
             self.snapshots.append(snap)
             self._diff_inventory(entity, snap.player_id, snap.npc_name, tick)
 

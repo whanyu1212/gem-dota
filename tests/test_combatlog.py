@@ -57,6 +57,10 @@ class FakeS2Entry:
         ability_level=0,
         gold_reason=0,
         xp_reason=0,
+        health=0,
+        timestamp=0.0,
+        is_ability_toggle_on=False,
+        is_ability_toggle_off=False,
     ):
         self.type = type
         self.attacker_name = attacker_name
@@ -70,6 +74,10 @@ class FakeS2Entry:
         self.ability_level = ability_level
         self.gold_reason = gold_reason
         self.xp_reason = xp_reason
+        self.health = health
+        self.timestamp = timestamp
+        self.is_ability_toggle_on = is_ability_toggle_on
+        self.is_ability_toggle_off = is_ability_toggle_off
 
 
 class FakeBulkMsg:
