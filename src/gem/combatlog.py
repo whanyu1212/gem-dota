@@ -35,10 +35,13 @@ COMBAT_LOG_TYPES: frozenset[str] = frozenset(
         "PURCHASE",
         "BUYBACK",
         "KILLSTREAK",
+        "PICKUP_RUNE",
     ]
 )
 
-# Mapping from DOTA_COMBATLOG_TYPES int → string label
+# Mapping from DOTA_COMBATLOG_TYPES int → string label.
+# Reference: refs/manta/dota/dota_shared_enums.proto DOTA_COMBATLOG_TYPES
+# Note: type=7 (LOCATION) and type=9 (GAME_STATE) are not surfaced.
 _LOG_TYPE_NAMES: dict[int, str] = {
     0: "DAMAGE",
     1: "HEAL",
@@ -47,11 +50,11 @@ _LOG_TYPE_NAMES: dict[int, str] = {
     4: "DEATH",
     5: "ABILITY",
     6: "ITEM",
-    7: "GOLD",
-    8: "XP",
-    9: "PURCHASE",
-    10: "BUYBACK",
-    11: "KILLSTREAK",
+    8: "GOLD",
+    10: "XP",
+    11: "PURCHASE",
+    12: "BUYBACK",
+    21: "PICKUP_RUNE",
 }
 
 # S1 dota_combatlog game event field names (from Clarity S1CombatLogIndices)
@@ -93,12 +96,7 @@ class CombatLogEntry:
         ability_level: Ability level (for ability/item events).
         gold_reason: Gold reason code (for GOLD events).
         xp_reason: XP reason code (for XP events).
-        health: Remaining health of the target after the event (S2 only).
-        timestamp: Game time in seconds (S2 only).
-        is_ability_toggle_on: True if this event toggled an ability on (S2 only).
-        is_ability_toggle_off: True if this event toggled an ability off (S2 only).
-        value_name: Resolved name for the ``value`` field when log_type is
-            ``PURCHASE`` — the item name purchased. Empty for other log types.
+        value_name: Resolved name for the value field (PURCHASE events: item name).
     """
 
     tick: int
@@ -115,10 +113,6 @@ class CombatLogEntry:
     gold_reason: int = 0
     xp_reason: int = 0
     value_name: str = ""
-    health: int = 0
-    timestamp: float = 0.0
-    is_ability_toggle_on: bool = False
-    is_ability_toggle_off: bool = False
 
 
 CombatLogHandler = Callable[[CombatLogEntry], None]
@@ -174,6 +168,22 @@ class CombatLogProcessor:
             handler: Callable ``(CombatLogEntry) -> None``.
         """
         self._handlers.append(handler)
+
+    def process_rune_pickup(self, player_slot: int, rune_type: int, tick: int = 0) -> None:
+        """Emit a PICKUP_RUNE CombatLogEntry from a CDOTAUserMsg_ChatEvent.
+
+        Args:
+            player_slot: Player slot (0-9) from ChatEvent.playerid_1.
+            rune_type: Rune type integer from ChatEvent.value.
+            tick: Current game tick.
+        """
+        entry = CombatLogEntry(
+            tick=tick,
+            log_type="PICKUP_RUNE",
+            value=player_slot,
+            gold_reason=rune_type,
+        )
+        self._emit(entry)
 
     def _emit(self, entry: Any) -> None:
         """Dispatch an entry to all registered handlers.
@@ -273,13 +283,19 @@ class CombatLogProcessor:
             elif hasattr(name_table, "get"):
                 value_name = name_table.get(msg.value, "")
 
+        # msg.value is proto uint32 but Dota encodes signed values (e.g. gold lost)
+        # as two's complement. Reinterpret as signed int32.
+        # Reference: clarity-examples/combatlog/Main.java — cle.getValue() < 0 check
+        raw_value = msg.value
+        value = raw_value if raw_value < 0x80000000 else raw_value - 0x100000000
+
         entry = CombatLogEntry(
             tick=tick,
             log_type=log_type,
             attacker_name=attacker_name,
             target_name=target_name,
             inflictor_name=inflictor_name,
-            value=msg.value,
+            value=value,
             attacker_is_hero=msg.is_attacker_hero,
             target_is_hero=msg.is_target_hero,
             attacker_is_illusion=msg.is_attacker_illusion,
@@ -288,9 +304,5 @@ class CombatLogProcessor:
             gold_reason=msg.gold_reason,
             xp_reason=msg.xp_reason,
             value_name=value_name,
-            health=msg.health,
-            timestamp=msg.timestamp,
-            is_ability_toggle_on=msg.is_ability_toggle_on,
-            is_ability_toggle_off=msg.is_ability_toggle_off,
         )
         self._emit(entry)

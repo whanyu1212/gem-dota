@@ -9,7 +9,7 @@ Reference: examples/ward_smoke_rosh.py, refs/parser/src/main/java/opendota/Parse
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from gem.combatlog import CombatLogEntry
 
@@ -22,6 +22,11 @@ if TYPE_CHECKING:
 
 _TEAM_RADIANT = 2
 _TEAM_DIRE = 3
+
+# CDOTAUserMsg_ChatEvent type constants for Aegis
+_CHAT_MSG_AEGIS = 8
+_CHAT_MSG_AEGIS_STOLEN = 53
+_CHAT_MSG_DENIED_AEGIS = 51
 
 # Tower NPC name prefix → owning team
 _TOWER_TEAM: dict[str, int] = {
@@ -106,6 +111,22 @@ class BarracksKill:
     barracks_name: str
 
 
+@dataclass
+class AegisEvent:
+    """An Aegis of the Immortal pickup, steal, or denial event.
+
+    Attributes:
+        tick: Game tick of the event.
+        player_id: Player slot (0–9) who picked up / stole / denied the Aegis.
+            -1 if the event had no player attribution.
+        event_type: ``"pickup"``, ``"stolen"``, or ``"denied"``.
+    """
+
+    tick: int
+    player_id: int
+    event_type: str
+
+
 # ---------------------------------------------------------------------------
 # Extractor
 # ---------------------------------------------------------------------------
@@ -126,16 +147,19 @@ class ObjectivesExtractor:
         tower_kills: All tower kill events in chronological order.
         roshan_kills: All Roshan kill events in chronological order.
         barracks_kills: All barracks kill events in chronological order.
+        aegis_events: All Aegis pickup / steal / denial events.
     """
 
     tower_kills: list[TowerKill]
     roshan_kills: list[RoshanKill]
     barracks_kills: list[BarracksKill]
+    aegis_events: list[AegisEvent]
 
     def __init__(self) -> None:
         self.tower_kills = []
         self.roshan_kills = []
         self.barracks_kills = []
+        self.aegis_events = []
 
     def attach(self, parser: ReplayParser) -> None:
         """Register this extractor's callbacks with a parser.
@@ -144,6 +168,21 @@ class ObjectivesExtractor:
             parser: The ``ReplayParser`` instance to attach to.
         """
         parser.on_combat_log_entry(self._on_combat_log)
+        parser.on_chat_event(self._on_chat_event)
+
+    def _on_chat_event(self, msg: Any, tick: int) -> None:
+        if msg.type == _CHAT_MSG_AEGIS:
+            self.aegis_events.append(
+                AegisEvent(tick=tick, player_id=msg.playerid_1, event_type="pickup")
+            )
+        elif msg.type == _CHAT_MSG_AEGIS_STOLEN:
+            self.aegis_events.append(
+                AegisEvent(tick=tick, player_id=msg.playerid_1, event_type="stolen")
+            )
+        elif msg.type == _CHAT_MSG_DENIED_AEGIS:
+            self.aegis_events.append(
+                AegisEvent(tick=tick, player_id=msg.playerid_1, event_type="denied")
+            )
 
     def _on_combat_log(self, entry: CombatLogEntry) -> None:
         if entry.log_type != "DEATH":

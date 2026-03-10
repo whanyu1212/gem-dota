@@ -46,15 +46,20 @@ from google.protobuf import descriptor_pb2  # noqa: F401
 from gem.combatlog import CombatLogHandler, CombatLogProcessor
 from gem.entities import Entity, EntityManager, EntityOp
 from gem.game_events import GameEventHandler, GameEventManager
+from gem.models import ChatEntry
 from gem.proto.dota2 import (
     dota_commonmessages_pb2,  # noqa: F401
     dota_shared_enums_pb2,  # noqa: F401
     network_connection_pb2,  # noqa: F401
     networkbasetypes_pb2,  # noqa: F401
 )
-from gem.proto.dota2.demo_pb2 import CDemoClassInfo, CDemoFullPacket, CDemoPacket
+from gem.proto.dota2.demo_pb2 import CDemoClassInfo, CDemoFileInfo, CDemoFullPacket, CDemoPacket
 from gem.proto.dota2.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
-from gem.proto.dota2.dota_usermessages_pb2 import CDOTAUserMsg_CombatLogBulkData
+from gem.proto.dota2.dota_usermessages_pb2 import (
+    CDOTAUserMsg_ChatEvent,
+    CDOTAUserMsg_ChatMessage,
+    CDOTAUserMsg_CombatLogBulkData,
+)
 from gem.proto.dota2.gameevents_pb2 import (
     CMsgSource1LegacyGameEvent,
     CMsgSource1LegacyGameEventList,
@@ -74,6 +79,7 @@ from gem.string_table import StringTables, handle_create, handle_update
 # ---------------------------------------------------------------------------
 # Outer EDemoCommands IDs (stripped of DEM_IsCompressed = 0x40)
 # ---------------------------------------------------------------------------
+_DEM_FILE_INFO = 2
 _DEM_SEND_TABLES = 4
 _DEM_CLASS_INFO = 5
 _DEM_PACKET = 7
@@ -94,13 +100,19 @@ _GE_GAME_EVENT = 207
 _DOTA_UM_COMBAT_LOG_DATA = 468  # CDOTAUserMsg_CombatLogBulkData (S2)
 _DOTA_UM_COMBAT_LOG_BULK_DATA = 470  # CDOTAUserMsg_CombatLogBulkData (alternate)
 
-# Direct inner message type for S2 combat log (not wrapped in svc_UserMessage)
+# Direct inner message types (not wrapped in svc_UserMessage)
 _DOTA_UM_COMBAT_LOG_HLTV = 554  # CMsgDOTACombatLogEntry (direct, one entry per message)
+_DOTA_UM_CHAT_EVENT = 466  # CDOTAUserMsg_ChatEvent (direct)
+_DOTA_UM_CHAT_MESSAGE = 612  # CDOTAUserMsg_ChatMessage (direct)
+
+_CHAT_MSG_RUNE_PICKUP = 22  # DOTA_CHAT_MESSAGE.CHAT_MESSAGE_RUNE_PICKUP
 
 # CombatLogNames string table name
 _COMBAT_LOG_NAMES_TABLE = "CombatLogNames"
 
 EntityCallback = Callable[[Entity, EntityOp], None]
+ChatCallback = Callable[["ChatEntry"], None]
+ChatEventCallback = Callable[["CDOTAUserMsg_ChatEvent", int], None]
 
 
 def _read_inner_messages(data: bytes) -> list[tuple[int, bytes]]:
@@ -155,8 +167,13 @@ class ReplayParser:
         self.game_event_manager = GameEventManager()
         self.combat_log = CombatLogProcessor()
         self._entity_callbacks: list[EntityCallback] = []
+        self._chat_callbacks: list[ChatCallback] = []
+        self._chat_event_callbacks: list[ChatEventCallback] = []
         self._stop_at_tick: int | None = None
         self._pending_server_info: CSVCMsg_ServerInfo | None = None
+        self.match_id: int = 0
+        self.game_mode: int = 0
+        self.leagueid: int = 0
 
     # ------------------------------------------------------------------
     # Public callback registration
@@ -189,6 +206,22 @@ class ReplayParser:
         """
         self.combat_log.on_combat_log_entry(handler)
 
+    def on_chat_message(self, handler: ChatCallback) -> None:
+        """Register a handler for all-chat and team-chat messages.
+
+        Args:
+            handler: ``(ChatEntry) -> None``.
+        """
+        self._chat_callbacks.append(handler)
+
+    def on_chat_event(self, handler: ChatEventCallback) -> None:
+        """Register a handler for all CDOTAUserMsg_ChatEvent messages.
+
+        Args:
+            handler: ``(CDOTAUserMsg_ChatEvent, tick) -> None``.
+        """
+        self._chat_event_callbacks.append(handler)
+
     def stop_after_tick(self, tick: int) -> None:
         """Stop parsing after this tick (inclusive).
 
@@ -219,12 +252,40 @@ class ReplayParser:
             # Truncated files raise on final corrupt snappy block — that's OK
             pass
 
+        # Read match metadata from CDOTAGamerulesProxy entity if DEM_FileInfo
+        # didn't populate them (e.g. truncated replays or early stop).
+        # Reference: refs/parser/src/main/java/opendota/Parse.java — uses
+        # CDOTAGamerulesProxy.m_pGameRules.m_unMatchID64 / m_iGameMode
+        if self.entity_manager is not None and (not self.match_id or not self.game_mode):
+            grp = self.entity_manager.find_by_class_name("CDOTAGamerulesProxy")
+            if grp is not None:
+                if not self.match_id:
+                    v, ok = grp.get_uint32("m_pGameRules.m_unMatchID64")
+                    if ok and v:
+                        self.match_id = v
+                if not self.game_mode:
+                    v, ok = grp.get_int32("m_pGameRules.m_iGameMode")
+                    if ok and v:
+                        self.game_mode = v
+                if not self.leagueid:
+                    v, ok = grp.get_uint32("m_pGameRules.m_unLeagueID")
+                    if ok and v:
+                        self.leagueid = v
+
     # ------------------------------------------------------------------
     # Outer message dispatch
     # ------------------------------------------------------------------
 
     def _dispatch_outer(self, msg_type: int, data: bytes) -> None:
-        if msg_type == _DEM_SEND_TABLES:
+        if msg_type == _DEM_FILE_INFO:
+            fi = CDemoFileInfo()
+            fi.ParseFromString(data)
+            dota = fi.game_info.dota
+            self.match_id = dota.match_id
+            self.game_mode = dota.game_mode
+            self.leagueid = dota.leagueid
+
+        elif msg_type == _DEM_SEND_TABLES:
             self._on_send_tables(data)
 
         elif msg_type == _DEM_CLASS_INFO:
@@ -329,6 +390,19 @@ class ReplayParser:
             if name_table is not None:
                 self.combat_log.process_s2_entry(entry_msg, name_table, tick=self.tick)
 
+        elif type_id == _DOTA_UM_CHAT_EVENT:
+            chat_event = CDOTAUserMsg_ChatEvent()
+            chat_event.ParseFromString(payload)
+            if chat_event.type == _CHAT_MSG_RUNE_PICKUP:
+                self.combat_log.process_rune_pickup(
+                    chat_event.playerid_1, chat_event.value, tick=self.tick
+                )
+            for cb in self._chat_event_callbacks:
+                cb(chat_event, self.tick)
+
+        elif type_id == _DOTA_UM_CHAT_MESSAGE:
+            self._emit_chat_message(payload)
+
     # ------------------------------------------------------------------
     # Subsystem handlers
     # ------------------------------------------------------------------
@@ -379,10 +453,25 @@ class ReplayParser:
                 self.combat_log.process_s1_event(event, name_table, tick=self.tick)
 
     def _on_user_message(self, msg: CSVCMsg_UserMessage) -> None:
-        msg_type = msg.msg_type
-        if msg_type in (_DOTA_UM_COMBAT_LOG_DATA, _DOTA_UM_COMBAT_LOG_BULK_DATA):
+        if msg.msg_type in (_DOTA_UM_COMBAT_LOG_DATA, _DOTA_UM_COMBAT_LOG_BULK_DATA):
             bulk_msg = CDOTAUserMsg_CombatLogBulkData()
             bulk_msg.ParseFromString(msg.msg_data)
             name_table = self.string_tables.get_by_name(_COMBAT_LOG_NAMES_TABLE)
             if name_table is not None:
                 self.combat_log.process_s2_bulk(bulk_msg, name_table, tick=self.tick)
+
+    def _emit_chat_message(self, payload: bytes) -> None:
+        if not self._chat_callbacks:
+            return
+        chat_msg = CDOTAUserMsg_ChatMessage()
+        chat_msg.ParseFromString(payload)
+        # channel_type 11 = all-chat; anything else treated as team-chat
+        channel = "all" if chat_msg.channel_type == 11 else "team"
+        entry = ChatEntry(
+            tick=self.tick,
+            player_slot=chat_msg.source_player_id,
+            channel=channel,
+            text=chat_msg.message_text,
+        )
+        for cb in self._chat_callbacks:
+            cb(entry)

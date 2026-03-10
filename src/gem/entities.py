@@ -709,6 +709,17 @@ class EntityManager:
         """
         return [e for e in self.entities if e is not None and predicate(e)]
 
+    def find_by_class_name(self, class_name: str) -> Entity | None:
+        """Return the first active entity whose class name matches, or None.
+
+        Args:
+            class_name: Entity class name, e.g. ``"CDOTAGamerulesProxy"``.
+        """
+        for e in self.entities:
+            if e is not None and e.active and e.get_class_name() == class_name:
+                return e
+        return None
+
     def all_active(self) -> list[Entity]:
         """Return all currently active entities."""
         return [e for e in self.entities if e is not None and e.active]

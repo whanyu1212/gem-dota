@@ -8,6 +8,7 @@ Reference: examples/extraction_demo.py, refs/parser/src/main/java/opendota/Parse
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -15,6 +16,15 @@ from gem.entities import Entity, EntityOp
 
 if TYPE_CHECKING:
     from gem.parser import ReplayParser
+
+# ---------------------------------------------------------------------------
+# Inventory constants
+# ---------------------------------------------------------------------------
+
+# Slots 0-5 = main inventory, 6-8 = backpack, 9-16 = stash
+# Reference: refs/parser/src/main/java/opendota/Parse.java getHeroItem() comment
+_ITEM_SLOTS = 17  # total slots to scan (0-16)
+_NULL_HANDLE = 0xFFFFFF  # empty slot sentinel
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -79,10 +89,17 @@ def _snapshot_hero(entity: Entity, tick: int) -> PlayerStateSnapshot | None:
 
     pos = _pos(entity)
 
+    # Convert entity class name to the canonical NPC name (camelCase → snake_case).
+    # "CDOTA_Unit_Hero_TemplarAssassin" → "npc_dota_hero_templar_assassin"
+    # "CDOTA_Unit_Hero_Nyx_Assassin"   → "npc_dota_hero_nyx_assassin" (already underscored)
+    # This matches dotaconstants keys and the combat log string table.
+    # Reference: refs/parser/Parse.java combatLogName2
+    _ending = entity.get_class_name()[len("CDOTA_Unit_Hero_") :].replace("_", "")
+    _npc_name = "npc_dota_hero" + re.sub(r"([A-Z])", r"_\1", _ending).lower()
     return PlayerStateSnapshot(
         tick=tick,
         player_id=player_id,
-        npc_name=entity.get_class_name().replace("CDOTA_Unit_Hero_", "npc_dota_hero_").lower(),
+        npc_name=_npc_name,
         team=team,
         level=level,
         xp=xp,
@@ -224,6 +241,11 @@ class PlayerExtractor:
         # CDOTA_PlayerResource entity for slot lookups
         self._player_resource: Entity | None = None
         self.snapshots = []
+        # set of player_ids whose starting inventory has been emitted
+        self._inventory_initialized: set[int] = set()
+        # player_id → tick of first inventory snapshot (used to suppress
+        # duplicate combat log PURCHASE events for the same window)
+        self.first_snapshot_tick: dict[int, int] = {}
 
     def attach(self, parser: ReplayParser) -> None:
         """Register callbacks with the parser.
@@ -276,13 +298,21 @@ class PlayerExtractor:
 
         if cls.startswith("CDOTA_Unit_Hero_"):
             idx = entity.get_index()
-            npc = cls.replace("CDOTA_Unit_Hero_", "npc_dota_hero_").lower()
+            ending = cls[len("CDOTA_Unit_Hero_") :]
+            # Register two name forms to cover inconsistent combat log names.
+            # "combatLogName":  simple lowercase ("npc_dota_hero_templarassassin")
+            # "combatLogName2": insert _ before each capital ("npc_dota_hero_templar_assassin")
+            # Reference: refs/parser/src/main/java/opendota/Parse.java
+            npc1 = "npc_dota_hero_" + ending.lower()
+            npc2 = "npc_dota_hero" + re.sub(r"([A-Z])", r"_\1", ending.replace("_", "")).lower()
             if op.has(EntityOp.DELETED):
                 self._heroes.pop(idx, None)
-                self._heroes_by_npc.pop(npc, None)
+                self._heroes_by_npc.pop(npc1, None)
+                self._heroes_by_npc.pop(npc2, None)
             else:
                 self._heroes[idx] = entity
-                self._heroes_by_npc[npc] = entity
+                self._heroes_by_npc[npc1] = entity
+                self._heroes_by_npc[npc2] = entity
                 self._maybe_sample()
 
         elif cls == "CDOTAPlayerController":
@@ -364,3 +394,81 @@ class PlayerExtractor:
                 if ok_dn and dn > 0:
                     snap.dn = dn
             self.snapshots.append(snap)
+            self._diff_inventory(entity, snap.player_id, snap.npc_name, tick)
+
+    def _read_inventory(self, hero: Entity) -> dict[int, str]:
+        """Read current item names from a hero entity's item slots.
+
+        Reads ``m_hItems.0000``–``m_hItems.{_ITEM_SLOTS-1:04d}``, resolving each
+        handle via the entity manager and looking up the item name from the
+        ``EntityNames`` string table.
+
+        Args:
+            hero: The hero entity to read from.
+
+        Returns:
+            Mapping of slot index → item name for all occupied slots.
+        """
+        if self._parser is None:
+            return {}
+        em = self._parser.entity_manager
+        if em is None:
+            return {}
+        entity_names = self._parser.string_tables.get_by_name("EntityNames")
+        if entity_names is None:
+            return {}
+
+        result: dict[int, str] = {}
+        for slot in range(_ITEM_SLOTS):
+            handle, ok = hero.get_uint32(f"m_hItems.{slot:04d}")
+            if not ok or handle == _NULL_HANDLE:
+                continue
+            item_entity = em.find_by_handle(handle)
+            if item_entity is None:
+                continue
+            name_idx, ok2 = item_entity.get_int32("m_pEntity.m_nameStringableIndex")
+            if not ok2 or name_idx < 0:
+                continue
+            # EntityNames items are stored as (key_str, value_bytes); key_str is the name
+            item = entity_names.items.get(name_idx)
+            if item is None:
+                continue
+            name = item[0] if isinstance(item, tuple) else str(item)
+            if name:
+                result[slot] = name
+        return result
+
+    def _diff_inventory(self, hero: Entity, player_id: int, npc_name: str, tick: int) -> None:
+        """Emit synthetic PURCHASE entries for a player's starting inventory.
+
+        Called on the first snapshot per player. Reads all occupied item slots
+        and emits a ``PURCHASE`` ``CombatLogEntry`` for each, filling the gap
+        before the combat log stream begins recording.
+
+        Args:
+            hero: The hero entity.
+            player_id: Player slot (0-9).
+            npc_name: Hero NPC name for the combat log entry.
+            tick: Current game tick.
+        """
+        if self._parser is None or player_id in self._inventory_initialized:
+            return
+        current = self._read_inventory(hero)
+
+        from gem.combatlog import CombatLogEntry
+
+        if player_id not in self._inventory_initialized:
+            # First snapshot — emit all current items as starting inventory.
+            # Subsequent purchases are covered by DOTA_COMBATLOG_PURCHASE events.
+            # Reference: refs/parser/Parse.java isPlayerStartingItemsWritten pattern
+            self._inventory_initialized.add(player_id)
+            self.first_snapshot_tick[player_id] = tick
+            for item_name in current.values():
+                if item_name and not item_name.startswith("item_recipe"):
+                    entry = CombatLogEntry(
+                        tick=tick,
+                        log_type="PURCHASE",
+                        target_name=npc_name,
+                        value_name=item_name,
+                    )
+                    self._parser.combat_log._emit(entry)

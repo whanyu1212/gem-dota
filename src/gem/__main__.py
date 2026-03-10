@@ -25,24 +25,46 @@ def main() -> None:
 
     match = parse(path)
 
-    print(f"\nMatch ID: {match.match_id}")
-    print(f"Towers killed: {len(match.towers)}")
-    print(f"Barracks killed: {len(match.barracks)}")
-    print(f"Roshan kills: {len(match.roshans)}")
-    print(f"Ward placements: {len(match.wards)}")
-    print(f"Combat log entries: {len(match.combat_log)}")
+    # Derived match-level counts
+    hero_kills = sum(1 for e in match.combat_log if e.log_type == "DEATH" and e.target_is_hero)
+    total_buybacks = sum(len(pp.buyback_log) for pp in match.players)
+    total_runes = sum(len(pp.runes_log) for pp in match.players)
+
+    # Duration from last sample tick (ticks / 30 ≈ seconds)
+    all_ticks = [t for pp in match.players for t in pp.times]
+    if all_ticks:
+        last_tick = max(all_ticks)
+        total_secs = int(last_tick / 30)
+        duration_str = f"{total_secs // 60}:{total_secs % 60:02d}"
+    else:
+        duration_str = "?"
+
+    print(
+        f"\nSummary: {hero_kills} hero kills  |  "
+        f"{len(match.towers)} towers  |  "
+        f"{len(match.barracks)} barracks  |  "
+        f"{len(match.roshans)} Roshan kill(s)  |  "
+        f"{len(match.aegis_events)} aegis event(s)  |  "
+        f"{len(match.wards)} wards  |  "
+        f"{total_buybacks} buybacks  |  "
+        f"{total_runes} runes  |  "
+        f"{len(match.chat)} chat msgs  |  "
+        f"duration {duration_str}"
+    )
     print()
 
     for pp in match.players:
         if not pp.hero_name:
             continue
         team_str = "Radiant" if pp.team == 2 else "Dire"
-        samples = len(pp.times)
         final_gold = pp.gold_t[-1] if pp.gold_t else 0
         final_lh = pp.lh_t[-1] if pp.lh_t else 0
         print(
-            f"  [{team_str}] {pp.hero_name:40s}  "
-            f"LH={final_lh:4d}  gold={final_gold:5d}  samples={samples}"
+            f"  [{team_str}] {pp.hero_name:42s}  "
+            f"LH={final_lh:4d}  gold={final_gold:5d}  "
+            f"purchases={len(pp.purchase_log):3d}  "
+            f"runes={len(pp.runes_log)}  "
+            f"buys={len(pp.buyback_log)}"
         )
 
 

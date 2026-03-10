@@ -89,12 +89,18 @@ class FakeParser:
         self.tick = tick
         self._entity_handlers = []
         self._combat_log_handlers = []
+        self._chat_event_handlers = []
+        self.entity_manager = None
+        self.string_tables = type("ST", (), {"get_by_name": lambda self, n: None})()
 
     def on_entity(self, handler) -> None:
         self._entity_handlers.append(handler)
 
     def on_combat_log_entry(self, handler) -> None:
         self._combat_log_handlers.append(handler)
+
+    def on_chat_event(self, handler) -> None:
+        self._chat_event_handlers.append(handler)
 
     def fire_entity(self, entity, op) -> None:
         for h in self._entity_handlers:

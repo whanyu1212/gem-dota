@@ -11,8 +11,26 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from gem.combatlog import CombatLogEntry
-from gem.extractors.objectives import BarracksKill, RoshanKill, TowerKill
+from gem.extractors.objectives import AegisEvent, BarracksKill, RoshanKill, TowerKill
 from gem.extractors.wards import WardEvent
+
+
+@dataclass
+class ChatEntry:
+    """A single chat message from the match.
+
+    Attributes:
+        tick: Game tick when the message was sent.
+        player_slot: Source player slot (0–9).
+        channel: ``"all"`` for all-chat, ``"team"`` for team-chat, or raw channel type string.
+        text: Message text.
+    """
+
+    tick: int
+    player_slot: int
+    channel: str
+    text: str
+
 
 # ---------------------------------------------------------------------------
 # Per-player aggregated output
@@ -26,6 +44,7 @@ class ParsedPlayer:
     Attributes:
         player_id: Player slot (0–9; 0–4 Radiant, 5–9 Dire).
         hero_name: NPC hero name, e.g. ``"npc_dota_hero_axe"``.
+        player_name: Steam persona name (nickname), e.g. ``"Ame"``.
         team: Team number (2=Radiant, 3=Dire).
         times: Sample tick values (parallel to gold_t / lh_t / …).
         gold_t: Gold at each sample tick.
@@ -43,10 +62,17 @@ class ParsedPlayer:
         xp_reasons: XP received per reason code.
         kills_log: Combat log DEATH entries where this player was the attacker.
         purchase_log: PURCHASE combat log entries for this player.
+        runes_log: ITEM combat log entries for rune pickups.
+        buyback_log: BUYBACK combat log entries for this player.
+        lane_pos: Dwell-tick counts keyed by ``"x_y"`` grid cell (64-unit resolution).
+        position_log: Time-ordered ``(tick, x, y)`` tuples sampled at the
+            extractor's interval. Useful for movement time-series and
+            animated visualisations.
     """
 
     player_id: int
     hero_name: str = ""
+    player_name: str = ""
     team: int = 0
     times: list[int] = field(default_factory=list)
     gold_t: list[int] = field(default_factory=list)
@@ -64,6 +90,10 @@ class ParsedPlayer:
     xp_reasons: dict[str, int] = field(default_factory=dict)
     kills_log: list[CombatLogEntry] = field(default_factory=list)
     purchase_log: list[CombatLogEntry] = field(default_factory=list)
+    runes_log: list[CombatLogEntry] = field(default_factory=list)
+    buyback_log: list[CombatLogEntry] = field(default_factory=list)
+    lane_pos: dict[str, int] = field(default_factory=dict)
+    position_log: list[tuple[int, float, float]] = field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
@@ -77,24 +107,32 @@ class ParsedMatch:
 
     Attributes:
         match_id: Dota 2 match ID, or 0 if unavailable.
+        game_mode: Game mode integer (e.g. 22 = All Pick Ranked).
+        leagueid: League ID, or 0 for non-league matches.
         players: One ``ParsedPlayer`` per player slot (index 0–9).
         towers: All tower kill events in chronological order.
         barracks: All barracks kill events in chronological order.
         roshans: All Roshan kill events in chronological order.
+        aegis_events: All Aegis pickup / steal / denial events.
         wards: All ward placement events with coordinates.
         radiant_gold_adv: Radiant gold advantage at each minute boundary.
         radiant_xp_adv: Radiant XP advantage at each minute boundary.
         combat_log: All raw combat log entries (unfiltered).
+        chat: All chat messages in chronological order.
     """
 
     match_id: int = 0
+    game_mode: int = 0
+    leagueid: int = 0
     players: list[ParsedPlayer] = field(
         default_factory=lambda: [ParsedPlayer(player_id=i) for i in range(10)]
     )
     towers: list[TowerKill] = field(default_factory=list)
     barracks: list[BarracksKill] = field(default_factory=list)
     roshans: list[RoshanKill] = field(default_factory=list)
+    aegis_events: list[AegisEvent] = field(default_factory=list)
     wards: list[WardEvent] = field(default_factory=list)
     radiant_gold_adv: list[int] = field(default_factory=list)
     radiant_xp_adv: list[int] = field(default_factory=list)
     combat_log: list[CombatLogEntry] = field(default_factory=list)
+    chat: list[ChatEntry] = field(default_factory=list)

@@ -627,6 +627,133 @@ def report_purchases(match: gem.ParsedMatch) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Section 8 — Buybacks
+# ---------------------------------------------------------------------------
+
+
+def report_buybacks(match: gem.ParsedMatch) -> None:
+    total = sum(len(p.buyback_log) for p in match.players)
+    console.print()
+    console.print(Rule("[bold cyan]BUYBACKS[/bold cyan]"))
+
+    if total == 0:
+        console.print("  [dim](no buybacks recorded)[/dim]")
+        return
+
+    tbl = Table(box=box.SIMPLE, show_header=True, header_style="bold", pad_edge=False)
+    tbl.add_column("Time", min_width=7)
+    tbl.add_column("Hero", min_width=22)
+    tbl.add_column("Team", min_width=8)
+
+    for pp in sorted(match.players, key=lambda p: p.team):
+        if not pp.buyback_log:
+            continue
+        color = TEAM_COLOR.get(pp.team, "white")
+        for entry in sorted(pp.buyback_log, key=lambda e: e.tick):
+            tbl.add_row(
+                _fmt_tick(entry.tick),
+                _hero(pp.hero_name),
+                Text(_team_name(pp.team), style=f"bold {color}"),
+            )
+    console.print(tbl)
+    console.print(f"  Total buybacks: [bold]{total}[/bold]")
+
+
+# ---------------------------------------------------------------------------
+# Section 9 — Rune pickups
+# ---------------------------------------------------------------------------
+
+
+def report_runes(match: gem.ParsedMatch) -> None:
+    total = sum(len(p.runes_log) for p in match.players)
+    console.print()
+    console.print(Rule("[bold cyan]RUNE PICKUPS[/bold cyan]"))
+
+    if total == 0:
+        console.print("  [dim](no rune pickups recorded)[/dim]")
+        return
+
+    from gem.constants import item_display as _item_disp
+
+    tbl = Table(box=box.SIMPLE, show_header=True, header_style="bold", pad_edge=False)
+    tbl.add_column("Time", min_width=7)
+    tbl.add_column("Hero", min_width=22)
+    tbl.add_column("Team", min_width=8)
+    tbl.add_column("Rune")
+
+    for pp in sorted(match.players, key=lambda p: p.team):
+        if not pp.runes_log:
+            continue
+        color = TEAM_COLOR.get(pp.team, "white")
+        for entry in sorted(pp.runes_log, key=lambda e: e.tick):
+            tbl.add_row(
+                _fmt_tick(entry.tick),
+                _hero(pp.hero_name),
+                Text(_team_name(pp.team), style=f"bold {color}"),
+                _item_disp(entry.inflictor_name),
+            )
+    console.print(tbl)
+
+    # Per-player summary
+    tbl2 = Table(box=box.SIMPLE, show_header=True, header_style="bold", pad_edge=False)
+    tbl2.add_column("Hero", min_width=22)
+    tbl2.add_column("Team", min_width=8)
+    tbl2.add_column("Runes", justify="right", min_width=6)
+    for pp in sorted(match.players, key=lambda p: (-len(p.runes_log), p.team)):
+        if not pp.runes_log:
+            continue
+        color = TEAM_COLOR.get(pp.team, "white")
+        tbl2.add_row(
+            _hero(pp.hero_name),
+            Text(_team_name(pp.team), style=f"bold {color}"),
+            str(len(pp.runes_log)),
+        )
+    console.print(tbl2)
+
+
+# ---------------------------------------------------------------------------
+# Section 10 — Chat log
+# ---------------------------------------------------------------------------
+
+
+def report_chat(match: gem.ParsedMatch) -> None:
+    console.print()
+    console.print(Rule("[bold cyan]CHAT LOG[/bold cyan]"))
+
+    if not match.chat:
+        console.print("  [dim](no chat messages recorded)[/dim]")
+        return
+
+    # Build player_slot → hero name map
+    slot_to_hero: dict[int, tuple[str, int]] = {}
+    for pp in match.players:
+        if pp.hero_name:
+            slot_to_hero[pp.player_id] = (pp.hero_name, pp.team)
+
+    tbl = Table(box=box.SIMPLE, show_header=True, header_style="bold", pad_edge=False)
+    tbl.add_column("Time", min_width=7)
+    tbl.add_column("Hero", min_width=22)
+    tbl.add_column("Ch", min_width=4)
+    tbl.add_column("Message")
+
+    for msg in match.chat:
+        hero_name, team = slot_to_hero.get(msg.player_slot, ("?", 0))
+        color = TEAM_COLOR.get(team, "white")
+        ch_text = Text(
+            "ALL" if msg.channel == "all" else "TM",
+            style="bold yellow" if msg.channel == "all" else f"bold {color}",
+        )
+        tbl.add_row(
+            _fmt_tick(msg.tick),
+            Text(_hero(hero_name), style=color),
+            ch_text,
+            msg.text,
+        )
+    console.print(tbl)
+    console.print(f"  Total messages: [bold]{len(match.chat)}[/bold]")
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -658,6 +785,9 @@ def main() -> None:
     report_damage(match)
     report_kill_feed(match)
     report_purchases(match)
+    report_buybacks(match)
+    report_runes(match)
+    report_chat(match)
 
     console.print()
     console.print(Rule())
@@ -666,11 +796,15 @@ def main() -> None:
         for e in match.combat_log
         if e.log_type == "DEATH" and e.attacker_is_hero and e.target_is_hero
     )
+    total_buybacks = sum(len(p.buyback_log) for p in match.players)
+    total_runes = sum(len(p.runes_log) for p in match.players)
     console.print(
         f"[bold]Summary:[/bold] {hvh_kills} hero kills  |  "
         f"{len(match.towers)} towers  |  {len(match.barracks)} barracks  |  "
         f"{len(match.roshans)} Roshan kill(s)  |  "
-        f"{len(match.wards)} wards  |  duration [bold]{duration}[/bold]"
+        f"{len(match.wards)} wards  |  {total_buybacks} buybacks  |  "
+        f"{total_runes} runes  |  {len(match.chat)} chat msgs  |  "
+        f"duration [bold]{duration}[/bold]"
     )
 
 

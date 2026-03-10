@@ -61,6 +61,18 @@ extractors/        ← per-tick polling of entity state for output
 When translating from Manta, the Go file maps 1:1 to the Python module:
 `manta/reader.go` → `reader.py`, `manta/entity.go` → `entities.py`, etc.
 
+### MANDATORY: Check refs before implementing
+
+**Do not write any implementation code before reading the relevant reference files.** This is a hard rule, not a suggestion.
+
+Before implementing any feature or fixing any bug:
+1. Read the relevant file(s) in `refs/manta/` (Go — primary)
+2. Cross-check with `refs/clarity/` (Java — edge cases) and `refs/parser/` (Java — output schema)
+3. Verify field names, enum values, message types, and data flow against the refs
+4. Only then write code
+
+Rushing to implement without checking refs leads to wrong enum mappings, wrong message types, wrong field attributions, and hours of debugging. When in doubt, grep all three ref dirs before touching any source file.
+
 ### ReplayParser — the main entry point (Phase 3+)
 
 `parser.py` wires all subsystems together. Key implementation details:
