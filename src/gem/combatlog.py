@@ -97,6 +97,7 @@ class CombatLogEntry:
         gold_reason: Gold reason code (for GOLD events).
         xp_reason: XP reason code (for XP events).
         value_name: Resolved name for the value field (PURCHASE events: item name).
+        stun_duration: Duration of stun applied by this event in seconds (S2 only; 0.0 if none).
     """
 
     tick: int
@@ -113,6 +114,7 @@ class CombatLogEntry:
     gold_reason: int = 0
     xp_reason: int = 0
     value_name: str = ""
+    stun_duration: float = 0.0
 
 
 CombatLogHandler = Callable[[CombatLogEntry], None]
@@ -289,6 +291,8 @@ class CombatLogProcessor:
         raw_value = msg.value
         value = raw_value if raw_value < 0x80000000 else raw_value - 0x100000000
 
+        stun_duration = msg.stun_duration if msg.HasField("stun_duration") else 0.0
+
         entry = CombatLogEntry(
             tick=tick,
             log_type=log_type,
@@ -304,5 +308,6 @@ class CombatLogProcessor:
             gold_reason=msg.gold_reason,
             xp_reason=msg.xp_reason,
             value_name=value_name,
+            stun_duration=stun_duration,
         )
         self._emit(entry)

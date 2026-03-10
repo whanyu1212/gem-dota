@@ -61,6 +61,7 @@ class FakeS2Entry:
         timestamp=0.0,
         is_ability_toggle_on=False,
         is_ability_toggle_off=False,
+        stun_duration=0.0,
     ):
         self.type = type
         self.attacker_name = attacker_name
@@ -78,6 +79,10 @@ class FakeS2Entry:
         self.timestamp = timestamp
         self.is_ability_toggle_on = is_ability_toggle_on
         self.is_ability_toggle_off = is_ability_toggle_off
+        self.stun_duration = stun_duration
+
+    def HasField(self, name: str) -> bool:
+        return name == "stun_duration" and self.stun_duration != 0.0
 
 
 class FakeBulkMsg:

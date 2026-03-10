@@ -12,6 +12,12 @@ wheels/
 # Virtual environments
 .venv
 
+# Downloaded hero portrait icons — fetched by scripts/fetch_hero_icons.py, not committed
+src/gem/data/hero_icons/
+
+# Generated HTML output files (e.g. draft_summary, match_report)
+*.html
+
 # Replay files — too large to commit
 tests/fixtures/*.dem
 # Truncated fixtures ARE committed (small, used for unit tests)

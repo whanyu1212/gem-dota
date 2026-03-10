@@ -2,53 +2,44 @@
 
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green?logo=opensourceinitiative&logoColor=white)
-![Phase](https://img.shields.io/badge/phase-4%20of%206-orange)
+![Phase](https://img.shields.io/badge/phase-8%20of%209-orange)
 ![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)
 ![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)
 
 **Gem of True Sight** — a Python Dota 2 replay parser.
 
-Reads Source 2 `.dem` binary replay files and exposes structured output: per-tick entity state, combat events, ward placements, smoke usage, Roshan kills, gold/XP timelines, and more.
+Reads Source 2 `.dem` binary replay files and exposes structured output: per-tick hero state, combat events, ward placements, smoke usage, Roshan kills, gold/XP timelines, draft picks/bans, courier state, ability levels, and more.
 
 ---
 
 ## Why gem?
 
-Existing parsers (Clarity, Manta, OpenDota/parser) are built for backend services in Java or Go. `gem` brings that to Python without touching JVM toolchains or writing binary parsers from scratch.
+Existing parsers (Clarity, Manta, OpenDota/parser) are built for backend services in Java or Go. `gem` brings that to Python without touching JVM toolchains — with a clean API designed for data science and ML workflows.
 
 ```python
-from gem.parser import ReplayParser
-from gem.constants import hero_display
+import gem
 
-# Combat log — who dealt the most damage?
-damage: dict[str, int] = {}
+match = gem.parse("my_replay.dem")
 
-def on_entry(entry):
-    if entry.log_type == "DAMAGE" and entry.attacker_is_hero:
-        damage[entry.attacker_name] = damage.get(entry.attacker_name, 0) + entry.value
+# Draft — who was picked and banned?
+for event in match.draft:
+    action = "PICK" if event.is_pick else "BAN"
+    print(f"{action}: {gem.constants.hero_display(event.hero_name)}")
 
-parser = ReplayParser("my_replay.dem")
-parser.on_combat_log_entry(on_entry)
-parser.parse()
-
-for npc, total in sorted(damage.items(), key=lambda x: -x[1])[:5]:
-    print(f"{hero_display(npc)}: {total:,} dmg")
+# Per-player summary
+for player in match.players:
+    print(
+        f"{player.player_name} ({gem.constants.hero_display(player.hero_name)}): "
+        f"{player.kills}/{player.deaths}/{player.assists}  "
+        f"{player.net_worth:,} NW  {player.stuns_dealt:.1f}s stuns"
+    )
 ```
 
 ```python
-# Entity state — read hero HP/position/level every tick
-from gem.parser import ReplayParser
-from gem.entities import EntityOp
-
-parser = ReplayParser("my_replay.dem")
-
-def on_entity(entity, op):
-    if op & EntityOp.CREATED and "Hero" in entity.get_class_name():
-        hp, _ = entity.get_int32("m_iHealth")
-        print(f"{entity.get_class_name()}: {hp} HP")
-
-parser.on_entity(on_entity)
-parser.parse()
+# Gold/XP timeline as DataFrames
+dfs = gem.parse_to_dataframe("my_replay.dem")
+snapshots = dfs["snapshots"]   # one row per player per sample tick
+combat    = dfs["combat_log"]  # all combat log entries
 ```
 
 ---
@@ -59,26 +50,36 @@ parser.parse()
 |---|---|---|
 | 1 | `BitReader`, `DemoStream` — binary frame iteration | ✅ Complete |
 | 2 | `sendtable`, `field_decoder`, `field_path` — schema layer | ✅ Complete |
-| 3 | String tables, entity lifecycle | ✅ Complete |
-| 4 | Game events, combat log, `gem.constants` | ✅ Complete |
-| 5 | Gold/XP timelines, teamfights, objectives | 🔲 Planned |
-| 6 | `gem.parse()` — full match output, DataFrame export | 🔲 Planned |
+| 3 | String tables, entity lifecycle, game events, combat log | ✅ Complete |
+| 4 | `gem.constants` — bundled hero/item/ability display names | ✅ Complete |
+| 5 | Extractors — player timelines, objectives, ward coordinates | ✅ Complete |
+| 6 | `gem.parse()` — `ParsedMatch`/`ParsedPlayer`, DataFrame export, CLI | ✅ Complete |
+| 7 | Rune pickups, buybacks, aegis, lane heatmaps, chat, purchase log, movement heatmap | ✅ Complete |
+| 8 | Ability levels, courier state, draft extraction, stun duration | ✅ Complete |
+| 9 | Teamfights | 🔲 Planned |
 
 ---
 
-## What you can extract today (Phase 4)
+## What you can extract (Phase 8)
 
-| Data | Source |
+| Data | Field / Source |
 |---|---|
-| Damage, heals, kills per hero | Combat log `DAMAGE` / `HEAL` / `DEATH` |
-| Abilities cast, items used | Combat log `ABILITY` / `ITEM` |
-| Gold and XP gained with reason codes | Combat log `GOLD` / `XP` |
-| Ward placements (who, when, ~where) | Combat log `ITEM` + entity coords |
-| Smoke of Deceit activations + groups | Combat log `ITEM` + `MODIFIER_ADD` |
-| Roshan kills + respawn windows | Combat log `DEATH` |
-| Hero HP, mana, position, level per tick | Entity state polling |
-| Tower health over time | Entity state polling |
-| Hero display names, item names, ability names | `gem.constants` (bundled) |
+| Hero picks and bans with timestamps | `ParsedMatch.draft` |
+| Courier state snapshots per team | `ParsedMatch.courier_snapshots` |
+| Ability levels per hero per tick | `PlayerStateSnapshot.ability_levels` |
+| Stun seconds dealt per player | `ParsedPlayer.stuns_dealt` |
+| Damage, heals, kills, assists, deaths | `ParsedPlayer.damage` etc. |
+| Gold and net worth over time | `ParsedPlayer.snapshots` |
+| Ward placements with exact coordinates | `ParsedMatch.wards` |
+| Smoke of Deceit activations + groups | `ParsedMatch.wards` (smoke entries) |
+| Roshan kills + aegis events | `ParsedMatch.roshans`, `.aegis_events` |
+| Rune pickups per player | `ParsedPlayer.runes_log` |
+| Buybacks per player | `ParsedPlayer.buyback_log` |
+| Tower and barracks kills | `ParsedMatch.towers`, `.barracks` |
+| Lane position heatmaps | `ParsedPlayer.lane_pos` |
+| Chat messages | `ParsedMatch.chat` |
+| Purchase log per player | `ParsedPlayer.purchase_log` |
+| Hero display names, item/ability names | `gem.constants` |
 
 ---
 
@@ -100,11 +101,16 @@ uv sync
 # Full replay summary — combat log + entity snapshots
 python examples/extraction_demo.py path/to/your.dem
 
-# Focused vision/objective report — wards, smokes, Roshan
+# Ward placements, smoke groups, Roshan kills
 python examples/ward_smoke_rosh.py path/to/your.dem
-```
 
-Both scripts work without arguments and use the bundled test fixture.
+# Interactive movement heatmap (Plotly)
+python examples/movement_heatmap.py path/to/your.dem
+
+# HTML draft summary with hero icons
+python scripts/fetch_hero_icons.py          # one-time icon download
+python examples/draft_summary.py path/to/your.dem
+```
 
 ---
 
@@ -116,12 +122,13 @@ Full concepts, tutorials, and API reference at the project docs site (built with
 uv run mkdocs serve
 ```
 
-Topics covered: DEM binary format, varint encoding, Protocol Buffers, the entity delta system, combat log ingestion, and known data limitations (ward coordinate coverage, smoke edge cases).
+Topics covered: DEM binary format, varint encoding, Protocol Buffers, the entity delta system, combat log ingestion, and known data limitations.
 
 ---
 
 ## Known limitations
 
-- **Ward coordinates** — 100% of placements have exact entity coordinates. Match combat log `ITEM` events to entity events within ±60 ticks without globally consuming entity records (slots are reused).
-- **Smoke empty groups** — if a smoke breaks instantly on activation (sentry ward truesight), the group list is empty. This is correct game behaviour.
-- **Roshan drops** — Aegis, Cheese, and other Roshan drops are not in the combat log. Planned for Phase 5.
+- **Roshan drops** — Aegis, Cheese, and other Roshan drops are not in the combat log; tracked via chat events instead.
+- **Smoke empty groups** — if a smoke breaks instantly on activation (hero inside sentry truesight), the group list is empty. This is correct game behaviour.
+- **Hero icons** — not bundled in the package. Run `python scripts/fetch_hero_icons.py` to download them locally for use with `examples/draft_summary.py`.
+- **Hero IDs in draft** — modern replays store pick/ban IDs as `api_id * 2`; resolved via live entity map + halving fallback (see `extractors/draft.py`).

@@ -161,8 +161,50 @@ Key message classes used throughout the parser:
 - `dota_commonmessages_pb2` — `CMsgDOTACombatLogEntry`
 - `dota_usermessages_pb2` — `CDOTAUserMsg_*`
 
-## Tests
+## Implementation status
 
-Tests are written against the public API of each module and fail with `ModuleNotFoundError` until the corresponding module is implemented. This is by design — the test suite drives implementation phase by phase.
+| Phase | Scope | Status |
+|---|---|---|
+| 1 | `reader.py`, `stream.py` | ✅ Complete |
+| 2 | `sendtable.py`, `field_decoder.py`, `field_path.py` | ✅ Complete |
+| 3 | `string_table.py`, `entities.py`, `game_events.py`, `combatlog.py`, `parser.py` | ✅ Complete |
+| 4 | `constants.py` + bundled `src/gem/data/` JSON assets | ✅ Complete |
+| 5 | `extractors/players.py`, `objectives.py`, `wards.py` | ✅ Complete |
+| 6 | `models.py`, `__init__.py` (`parse()`/`parse_to_dataframe()`), `__main__.py` (CLI) | ✅ Complete |
+| 7 | Rune pickups, buybacks, aegis, lane heatmaps, chat, purchase log, movement heatmap example | ✅ Complete |
+| 8 | `extractors/courier.py`, `extractors/draft.py`, ability levels on snapshots, stun duration | ✅ Complete |
+| 9 | Teamfights | 🔲 Planned |
 
-Fixtures (small binary blobs for unit tests) go in `tests/fixtures/`. Real `.dem` files for integration tests should be fetched with `scripts/fetch_replays.py` and are marked `@pytest.mark.integration`.
+## Test files
+
+| File | Covers |
+|---|---|
+| `test_reader.py` | `BitReader` primitives |
+| `test_stream.py` | `DemoStream` outer message loop |
+| `test_sendtable.py` | Send table / serializer parsing |
+| `test_field_decoder.py` | All field type decoders |
+| `test_field_path.py` | Huffman field path ops |
+| `test_string_table.py` | String table create/update |
+| `test_entities.py` | Entity lifecycle and typed getters |
+| `test_game_events.py` | Game event schema and dispatch |
+| `test_combatlog.py` | S1 and S2 combat log paths |
+| `test_extractors.py` | `PlayerExtractor`, `ObjectivesExtractor`, `WardsExtractor` |
+| `test_ability_courier_draft_stuns.py` | Ability levels, `CourierExtractor`, `DraftExtractor`, stun duration |
+
+Fixtures go in `tests/fixtures/`. Real `.dem` files for integration tests are marked `@pytest.mark.integration` and `@pytest.mark.slow`.
+
+## Examples
+
+| Script | Description |
+|---|---|
+| `examples/extraction_demo.py` | Combat log summary + entity state snapshots |
+| `examples/ward_smoke_rosh.py` | Ward placements with coords, smoke groups, Roshan kills |
+| `examples/movement_heatmap.py` | Interactive Plotly heatmap — hero positions, ability levels, stun dealt |
+| `examples/draft_summary.py` | Self-contained HTML draft summary with hero portrait icons |
+| `examples/match_report.py` | Full match report (WIP) |
+
+Hero icons for `draft_summary.py` are downloaded separately — not committed or shipped in the package:
+
+```bash
+python scripts/fetch_hero_icons.py   # downloads to src/gem/data/hero_icons/
+```

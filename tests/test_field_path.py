@@ -112,13 +112,25 @@ class TestFieldPath:
 
 class TestReadFieldPaths:
     def test_returns_list(self, read_field_paths, reader_cls):
-        # A stream with only FieldPathEncodeFinish should return empty list
-        # We need to know the Huffman encoding of FinishEncoding
-        # Since we can't easily hardcode it without running the tree, just
-        # verify the function returns a list without crashing on valid input.
-        # Use a pytest.skip if we can't construct a valid bit stream yet.
-        pytest.skip("Requires known Huffman bit sequences — add once tree is verified")
+        """read_field_paths returns a list (even a one-element list for PlusOne + Finish).
+
+        Huffman bit sequences (LSB-first, verified against the built tree):
+          PlusOne              = 0
+          FieldPathEncodeFinish = 10
+        """
+        # PlusOne (0) then FieldPathEncodeFinish (10), padded to a full byte: 0b00000100 = 0x04
+        data = _bits_to_bytes("010")
+        r = reader_cls(data)
+        result = read_field_paths(r)
+        assert isinstance(result, list)
+        assert len(result) == 1
 
     def test_empty_result_on_immediate_finish(self, read_field_paths, reader_cls):
-        """If the first op decoded is FinishEncoding, result should be empty."""
-        pytest.skip("Requires known Huffman encoding of FinishEncoding bit sequence")
+        """If the first op decoded is FinishEncoding, result should be empty.
+
+        FieldPathEncodeFinish = bits 1,0 (LSB-first).
+        """
+        data = _bits_to_bytes("10")
+        r = reader_cls(data)
+        result = read_field_paths(r)
+        assert result == []

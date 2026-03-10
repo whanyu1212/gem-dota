@@ -24,6 +24,7 @@ if TYPE_CHECKING:
 # Slots 0-5 = main inventory, 6-8 = backpack, 9-16 = stash
 # Reference: refs/parser/src/main/java/opendota/Parse.java getHeroItem() comment
 _ITEM_SLOTS = 17  # total slots to scan (0-16)
+_ABILITY_SLOTS = 32  # m_hAbilities.0000-0031 per hero entity
 _NULL_HANDLE = 0xFFFFFF  # empty slot sentinel
 
 # ---------------------------------------------------------------------------
@@ -142,6 +143,7 @@ class PlayerStateSnapshot:
         max_mana: Maximum mana.
         x: World x coordinate, or ``None`` if unavailable.
         y: World y coordinate, or ``None`` if unavailable.
+        ability_levels: Ability name → level mapping for learned abilities.
     """
 
     tick: int
@@ -160,6 +162,7 @@ class PlayerStateSnapshot:
     max_mana: float
     x: float | None
     y: float | None
+    ability_levels: dict[str, int] = field(default_factory=dict)
 
 
 @dataclass
@@ -393,8 +396,56 @@ class PlayerExtractor:
                 dn, ok_dn = data_entity.get_int32(f"{prefix}.m_iDenyCount")
                 if ok_dn and dn > 0:
                     snap.dn = dn
+            snap.ability_levels = self._read_abilities(entity)
             self.snapshots.append(snap)
             self._diff_inventory(entity, snap.player_id, snap.npc_name, tick)
+
+    def _read_abilities(self, hero: Entity) -> dict[str, int]:
+        """Read current ability names and levels from a hero entity.
+
+        Iterates ``m_hAbilities.0000``–``m_hAbilities.0031``, falling back to
+        ``m_vecAbilities.*`` for older replays. Resolves each handle to an
+        ability entity and reads ``m_iLevel`` and the name from the
+        ``EntityNames`` string table.
+
+        Args:
+            hero: The hero entity to read from.
+
+        Returns:
+            Mapping of ability name → level for all abilities with level > 0.
+        """
+        if self._parser is None:
+            return {}
+        em = self._parser.entity_manager
+        if em is None:
+            return {}
+        entity_names = self._parser.string_tables.get_by_name("EntityNames")
+        if entity_names is None:
+            return {}
+
+        result: dict[str, int] = {}
+        for slot in range(_ABILITY_SLOTS):
+            handle, ok = hero.get_uint32(f"m_hAbilities.{slot:04d}")
+            if not ok:
+                handle, ok = hero.get_uint32(f"m_vecAbilities.{slot:04d}")
+            if not ok or handle == _NULL_HANDLE:
+                continue
+            ability_entity = em.find_by_handle(handle)
+            if ability_entity is None:
+                continue
+            name_idx, ok2 = ability_entity.get_int32("m_pEntity.m_nameStringableIndex")
+            if not ok2 or name_idx < 0:
+                continue
+            item = entity_names.items.get(name_idx)
+            if item is None:
+                continue
+            name = item[0] if isinstance(item, tuple) else str(item)
+            if not name:
+                continue
+            level, _ = ability_entity.get_int32("m_iLevel")
+            if level > 0:
+                result[name] = level
+        return result
 
     def _read_inventory(self, hero: Entity) -> dict[int, str]:
         """Read current item names from a hero entity's item slots.
