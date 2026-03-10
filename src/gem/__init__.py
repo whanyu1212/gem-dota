@@ -69,6 +69,8 @@ def parse(path: str | Path) -> ParsedMatch:
     Returns:
         A :class:`ParsedMatch` with all extracted data populated.
     """
+    from gem.extractors.courier import CourierExtractor
+    from gem.extractors.draft import DraftExtractor
     from gem.extractors.objectives import ObjectivesExtractor
     from gem.extractors.players import PlayerExtractor
     from gem.extractors.wards import WardsExtractor
@@ -78,10 +80,14 @@ def parse(path: str | Path) -> ParsedMatch:
     player_ext = PlayerExtractor()
     obj_ext = ObjectivesExtractor()
     ward_ext = WardsExtractor()
+    courier_ext = CourierExtractor()
+    draft_ext = DraftExtractor()
 
     player_ext.attach(p)
     obj_ext.attach(p)
     ward_ext.attach(p)
+    courier_ext.attach(p)
+    draft_ext.attach(p)
 
     # Aggregate combat log entries per player
     _combat_aggregator = _CombatAggregator(player_ext)
@@ -96,6 +102,9 @@ def parse(path: str | Path) -> ParsedMatch:
 
     p.parse()
 
+    # Backfill hero names for draft events recorded before hero entities spawned.
+    draft_ext.finalize()
+
     match = ParsedMatch(
         match_id=p.match_id,
         game_mode=p.game_mode,
@@ -107,6 +116,8 @@ def parse(path: str | Path) -> ParsedMatch:
         wards=ward_ext.ward_events,
         combat_log=all_entries,
         chat=chat_entries,
+        courier_snapshots=courier_ext.snapshots,
+        draft=draft_ext.draft_events,
     )
 
     # Post-process buybacks (7b).
@@ -159,6 +170,7 @@ def parse(path: str | Path) -> ParsedMatch:
             )
             pp.runes_log = agg.runes_log
             pp.buyback_log = agg.buyback_log
+            pp.stuns_dealt = agg.stuns_dealt
 
         # Lane position heatmap (7d) — post-process existing snapshots
         for snap in player_ext.snapshots:
@@ -320,6 +332,7 @@ class _ParsedPlayerAgg:
         "purchase_log",
         "runes_log",
         "buyback_log",
+        "stuns_dealt",
     )
 
     def __init__(self) -> None:
@@ -334,6 +347,7 @@ class _ParsedPlayerAgg:
         self.purchase_log: list = []
         self.runes_log: list = []
         self.buyback_log: list = []
+        self.stuns_dealt: float = 0.0
 
 
 class _CombatAggregator:
@@ -374,6 +388,11 @@ class _CombatAggregator:
             and entry.log_type in ("GOLD", "XP", "PURCHASE")
         ):
             target_pid = self._hero_to_pid(entry.target_name)
+
+        # Accumulate stun duration dealt by the attacker (8d).
+        if entry.stun_duration > 0 and attacker_pid is not None:
+            self._agg(attacker_pid).stuns_dealt += entry.stun_duration
+
         match entry.log_type:
             case "DAMAGE":
                 if attacker_pid is not None:

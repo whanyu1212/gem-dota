@@ -27,7 +27,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 import plotly.graph_objects as go
 
 import gem
-from gem.constants import hero_display, item_display, league_name
+from gem.constants import ability_display, hero_display, item_display, league_name
 
 # ---------------------------------------------------------------------------
 # Dota 2 map coordinate system
@@ -101,22 +101,26 @@ _ACTIVITY_WINDOW = 150  # ticks (~5 seconds) to look back for recent activity
 _MAX_ACTIVITY = 5  # max recent events to show in hover
 
 
-def _build_hover_cache(match: gem.ParsedMatch) -> dict[int, dict]:
+def _build_hover_cache(
+    match: gem.ParsedMatch, player_snapshots: dict[int, list]
+) -> dict[int, dict]:
     """Pre-build per-player lookup structures for enriched hover text.
 
     Returns a dict keyed by player_id containing:
       - ``times``: sorted list of sample ticks
       - ``gold_t``, ``lh_t``, ``xp_t``: parallel lists
-      - ``items_by_tick``: dict[tick -> list[str]] — cumulative item names at each tick
+      - ``purchase_by_tick``: sorted list of (tick, item_name)
       - ``combat``: list of (tick, str) recent activity strings, sorted by tick
+      - ``ability_levels_by_tick``: list of (tick, dict[name, level]) snapshots
+      - ``stuns_dealt``: total stun duration in seconds
 
     Args:
         match: Parsed match data.
+        player_snapshots: player_id → list of PlayerStateSnapshot (from extractor).
 
     Returns:
         Dict mapping player_id to precomputed hover data.
     """
-    # Pre-index combat log by attacker hero name for O(1) per-player lookup
     from collections import defaultdict
 
     combat_by_hero: dict[str, list] = defaultdict(list)
@@ -129,13 +133,11 @@ def _build_hover_cache(match: gem.ParsedMatch) -> dict[int, dict]:
         if not pp.position_log:
             continue
 
-        # Gold/XP/LH lookup by tick
         times = pp.times
         gold_t = pp.gold_t
         lh_t = pp.lh_t
         xp_t = pp.xp_t
 
-        # Cumulative items at each sample tick (from purchase log)
         purchase_by_tick: list[tuple[int, str]] = sorted(
             (e.tick, e.value_name) for e in pp.purchase_log if e.value_name
         )
@@ -147,12 +149,19 @@ def _build_hover_cache(match: gem.ParsedMatch) -> dict[int, dict]:
             combat.append((e.tick, f"Kill: {target}"))
         for e in combat_by_hero.get(pp.hero_name.lower(), []):
             if e.log_type == "ABILITY" and e.inflictor_name:
-                aname = e.inflictor_name.replace("_", " ").title()
+                aname = ability_display(e.inflictor_name)
                 combat.append((e.tick, f"Ability: {aname}"))
             elif e.log_type == "DAMAGE" and e.value > 0:
                 target = e.target_name.removeprefix("npc_dota_hero_").replace("_", " ").title()
                 combat.append((e.tick, f"Damage: {target} -{e.value}"))
         combat.sort(key=lambda x: x[0])
+
+        # Ability level snapshots: list of (tick, {ability_name: level})
+        ability_levels_by_tick: list[tuple[int, dict[str, int]]] = [
+            (snap.tick, snap.ability_levels)
+            for snap in player_snapshots.get(pp.player_id, [])
+            if snap.ability_levels
+        ]
 
         cache[pp.player_id] = {
             "times": times,
@@ -161,6 +170,8 @@ def _build_hover_cache(match: gem.ParsedMatch) -> dict[int, dict]:
             "xp_t": xp_t,
             "purchase_by_tick": purchase_by_tick,
             "combat": combat,
+            "ability_levels_by_tick": ability_levels_by_tick,
+            "stuns_dealt": pp.stuns_dealt,
         }
     return cache
 
@@ -201,12 +212,28 @@ def _hover_text(pp: gem.ParsedPlayer, tick: int, cache: dict, label: str, team: 
         for t, name in d["purchase_by_tick"]
         if t <= tick and not name.startswith("item_recipe")
     ]
-    items_str = "  ".join(items[-6:]) if items else "—"  # show last 6
+    items_str = "  ".join(items[-6:]) if items else "—"
+
+    # Ability levels at nearest snapshot tick
+    ability_snap: dict[str, int] = {}
+    for t, levels in d["ability_levels_by_tick"]:
+        if t <= tick:
+            ability_snap = levels
+        else:
+            break
+    abilities_str = (
+        "  ".join(f"{ability_display(n)} Lv{lv}" for n, lv in sorted(ability_snap.items()))
+        if ability_snap
+        else "—"
+    )
+
+    # Stun duration dealt (cumulative for the whole match)
+    stuns = d["stuns_dealt"]
+    stuns_str = f"{stuns:.1f}s" if stuns > 0 else "—"
 
     # Recent combat activity in the window before this tick
     window_start = tick - _ACTIVITY_WINDOW
     recent = [text for t, text in d["combat"] if window_start <= t <= tick]
-    # Deduplicate consecutive identical events (e.g. repeated ability casts)
     seen: list[str] = []
     for r in reversed(recent):
         if not seen or seen[-1] != r:
@@ -221,19 +248,30 @@ def _hover_text(pp: gem.ParsedPlayer, tick: int, cache: dict, label: str, team: 
         f"<br>"
         f"Gold: {gold:,}  LH: {lh}  XP: {xp:,}<br>"
         f"Items: {items_str}<br>"
+        f"Abilities: {abilities_str}<br>"
+        f"Stuns dealt: {stuns_str}<br>"
         f"<br>"
         f"<i>Recent (±5s):</i><br>"
         f"{recent_str}"
     )
 
 
-def build_figure(match: gem.ParsedMatch, map_path: Path, dem_stem: str) -> go.Figure:
+def build_figure(
+    match: gem.ParsedMatch,
+    map_path: Path,
+    dem_stem: str,
+    player_snapshots: dict[int, list] | None = None,
+) -> go.Figure:
     """Build the Plotly figure with map background and animated hero traces.
 
     Args:
         match: Parsed match data.
         map_path: Path to the map image file.
         dem_stem: Replay filename stem used as fallback title.
+        player_snapshots: Optional mapping of player_id → list of
+            ``PlayerStateSnapshot`` objects, used to populate ability levels
+            in hover text. Pass the result of grouping
+            ``PlayerExtractor.snapshots`` by player_id.
 
     Returns:
         A Plotly ``Figure`` ready to be written to HTML.
@@ -247,7 +285,7 @@ def build_figure(match: gem.ParsedMatch, map_path: Path, dem_stem: str) -> go.Fi
     active_players = [pp for pp in match.players if pp.position_log]
 
     # Pre-build hover data cache (done once, not per frame)
-    hover_cache = _build_hover_cache(match)
+    hover_cache = _build_hover_cache(match, player_snapshots or {})
 
     fig = go.Figure()
 
@@ -614,7 +652,27 @@ def main() -> None:
         sys.exit(1)
 
     print(f"Parsing {args.replay} ...")
+    from collections import defaultdict
+
+    from gem.extractors.players import PlayerExtractor
+    from gem.parser import ReplayParser
+
+    p = ReplayParser(args.replay)
+    player_ext = PlayerExtractor()
+    player_ext.attach(p)
+
+    # Use gem.parse internals via the public API but also retain snapshots
     match = gem.parse(args.replay)
+
+    # Re-run a lightweight parse just for snapshots (ability levels)
+    p2 = ReplayParser(args.replay)
+    player_ext2 = PlayerExtractor()
+    player_ext2.attach(p2)
+    p2.parse()
+    player_snapshots: dict[int, list] = defaultdict(list)
+    for snap in player_ext2.snapshots:
+        player_snapshots[snap.player_id].append(snap)
+
     total_positions = sum(len(pp.position_log) for pp in match.players)
     print(
         f"Done — match {match.match_id or 'unknown'}  |  {len(match.players)} players  |  {total_positions} position samples"
@@ -622,7 +680,7 @@ def main() -> None:
 
     print("Building figure ...")
     dem_stem = Path(args.replay).stem
-    fig = build_figure(match, map_path, dem_stem)
+    fig = build_figure(match, map_path, dem_stem, player_snapshots=dict(player_snapshots))
 
     if args.out:
         out_path = Path(args.out)

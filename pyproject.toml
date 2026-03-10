@@ -23,6 +23,9 @@ build-backend = "uv_build"
 
 [tool.uv.build-backend]
 module-name = "gem"
+# Hero icons are downloaded locally by scripts/fetch_hero_icons.py and must
+# not be shipped in the published wheel.
+exclude-packages = ["gem.data.hero_icons"]
 
 [dependency-groups]
 dev = [

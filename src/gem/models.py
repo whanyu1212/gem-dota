@@ -11,6 +11,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from gem.combatlog import CombatLogEntry
+from gem.extractors.courier import CourierSnapshot
+from gem.extractors.draft import DraftEvent
 from gem.extractors.objectives import AegisEvent, BarracksKill, RoshanKill, TowerKill
 from gem.extractors.wards import WardEvent
 
@@ -68,6 +70,7 @@ class ParsedPlayer:
         position_log: Time-ordered ``(tick, x, y)`` tuples sampled at the
             extractor's interval. Useful for movement time-series and
             animated visualisations.
+        stuns_dealt: Total stun duration dealt (seconds) accumulated from combat log.
     """
 
     player_id: int
@@ -94,6 +97,7 @@ class ParsedPlayer:
     buyback_log: list[CombatLogEntry] = field(default_factory=list)
     lane_pos: dict[str, int] = field(default_factory=dict)
     position_log: list[tuple[int, float, float]] = field(default_factory=list)
+    stuns_dealt: float = 0.0
 
 
 # ---------------------------------------------------------------------------
@@ -119,6 +123,8 @@ class ParsedMatch:
         radiant_xp_adv: Radiant XP advantage at each minute boundary.
         combat_log: All raw combat log entries (unfiltered).
         chat: All chat messages in chronological order.
+        courier_snapshots: Courier state snapshots at each sample interval.
+        draft: Hero pick and ban events from the draft phase.
     """
 
     match_id: int = 0
@@ -136,3 +142,5 @@ class ParsedMatch:
     radiant_xp_adv: list[int] = field(default_factory=list)
     combat_log: list[CombatLogEntry] = field(default_factory=list)
     chat: list[ChatEntry] = field(default_factory=list)
+    courier_snapshots: list[CourierSnapshot] = field(default_factory=list)
+    draft: list[DraftEvent] = field(default_factory=list)
