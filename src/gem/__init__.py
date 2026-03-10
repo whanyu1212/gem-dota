@@ -203,6 +203,19 @@ def parse(path: str | Path) -> ParsedMatch:
             else:
                 pp.sen_log.append(ward)
 
+    # Detect teamfights (Phase 9)
+    from gem.extractors.teamfights import detect_teamfights
+
+    hero_to_slot = {pp.hero_name: pp.player_id for pp in match.players if pp.hero_name}
+    player_snaps = {
+        pid: [s for s in player_ext.snapshots if s.player_id == pid] for pid in range(10)
+    }
+    match.teamfights = detect_teamfights(
+        all_entries,
+        hero_to_slot=hero_to_slot,
+        player_snapshots=player_snaps,
+    )
+
     return match
 
 

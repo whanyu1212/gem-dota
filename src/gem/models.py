@@ -14,6 +14,7 @@ from gem.combatlog import CombatLogEntry
 from gem.extractors.courier import CourierSnapshot
 from gem.extractors.draft import DraftEvent
 from gem.extractors.objectives import AegisEvent, BarracksKill, RoshanKill, TowerKill
+from gem.extractors.teamfights import Teamfight
 from gem.extractors.wards import WardEvent
 
 
@@ -125,6 +126,7 @@ class ParsedMatch:
         chat: All chat messages in chronological order.
         courier_snapshots: Courier state snapshots at each sample interval.
         draft: Hero pick and ban events from the draft phase.
+        teamfights: All detected teamfight windows with per-player breakdowns.
     """
 
     match_id: int = 0
@@ -144,3 +146,4 @@ class ParsedMatch:
     chat: list[ChatEntry] = field(default_factory=list)
     courier_snapshots: list[CourierSnapshot] = field(default_factory=list)
     draft: list[DraftEvent] = field(default_factory=list)
+    teamfights: list[Teamfight] = field(default_factory=list)
