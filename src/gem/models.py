@@ -14,6 +14,7 @@ from gem.combatlog import CombatLogEntry
 from gem.extractors.courier import CourierSnapshot
 from gem.extractors.draft import DraftEvent
 from gem.extractors.objectives import AegisEvent, BarracksKill, RoshanKill, TowerKill
+from gem.extractors.teamfights import Teamfight
 from gem.extractors.wards import WardEvent
 
 
@@ -49,10 +50,22 @@ class ParsedPlayer:
         player_name: Steam persona name (nickname), e.g. ``"Ame"``.
         team: Team number (2=Radiant, 3=Dire).
         times: Sample tick values (parallel to gold_t / lh_t / …).
-        gold_t: Gold at each sample tick.
+            Default sampling is every 30 ticks (1 game-second).
+        gold_t: Reliable (spendable) gold at each sample tick.
+        net_worth_t: Net worth (gold + item value) at each sample tick.
         lh_t: Last-hit count at each sample tick.
         dn_t: Deny count at each sample tick.
         xp_t: Cumulative XP at each sample tick.
+        times_min: Tick values at each game-minute boundary (OpenDota-aligned).
+        gold_t_min: Spendable gold at each game-minute boundary.
+        total_earned_gold_t_min: Cumulative total earned gold at each game-minute boundary
+            (``m_iTotalEarnedGold``). Used for ``radiant_gold_adv`` computation.
+        total_earned_xp_t_min: Cumulative total earned XP at each game-minute boundary
+            (``m_iTotalEarnedXP``). Used for ``radiant_xp_adv`` computation.
+        net_worth_t_min: Net worth at each game-minute boundary.
+        lh_t_min: Last-hit count at each game-minute boundary.
+        dn_t_min: Deny count at each game-minute boundary.
+        xp_t_min: Cumulative XP at each game-minute boundary.
         obs_log: Observer ward placement events for this player.
         sen_log: Sentry ward placement events for this player.
         damage: Total damage dealt, keyed by target NPC name.
@@ -79,9 +92,18 @@ class ParsedPlayer:
     team: int = 0
     times: list[int] = field(default_factory=list)
     gold_t: list[int] = field(default_factory=list)
+    net_worth_t: list[int] = field(default_factory=list)
     lh_t: list[int] = field(default_factory=list)
     dn_t: list[int] = field(default_factory=list)
     xp_t: list[int] = field(default_factory=list)
+    times_min: list[int] = field(default_factory=list)
+    gold_t_min: list[int] = field(default_factory=list)
+    total_earned_gold_t_min: list[int] = field(default_factory=list)
+    total_earned_xp_t_min: list[int] = field(default_factory=list)
+    net_worth_t_min: list[int] = field(default_factory=list)
+    lh_t_min: list[int] = field(default_factory=list)
+    dn_t_min: list[int] = field(default_factory=list)
+    xp_t_min: list[int] = field(default_factory=list)
     obs_log: list[WardEvent] = field(default_factory=list)
     sen_log: list[WardEvent] = field(default_factory=list)
     damage: dict[str, int] = field(default_factory=dict)
@@ -113,6 +135,7 @@ class ParsedMatch:
         match_id: Dota 2 match ID, or 0 if unavailable.
         game_mode: Game mode integer (e.g. 22 = All Pick Ranked).
         leagueid: League ID, or 0 for non-league matches.
+        radiant_win: True if Radiant won, False if Dire won, None if unknown.
         players: One ``ParsedPlayer`` per player slot (index 0–9).
         towers: All tower kill events in chronological order.
         barracks: All barracks kill events in chronological order.
@@ -125,11 +148,13 @@ class ParsedMatch:
         chat: All chat messages in chronological order.
         courier_snapshots: Courier state snapshots at each sample interval.
         draft: Hero pick and ban events from the draft phase.
+        teamfights: All detected teamfight windows with per-player breakdowns.
     """
 
     match_id: int = 0
     game_mode: int = 0
     leagueid: int = 0
+    radiant_win: bool | None = None
     players: list[ParsedPlayer] = field(
         default_factory=lambda: [ParsedPlayer(player_id=i) for i in range(10)]
     )
@@ -144,3 +169,4 @@ class ParsedMatch:
     chat: list[ChatEntry] = field(default_factory=list)
     courier_snapshots: list[CourierSnapshot] = field(default_factory=list)
     draft: list[DraftEvent] = field(default_factory=list)
+    teamfights: list[Teamfight] = field(default_factory=list)

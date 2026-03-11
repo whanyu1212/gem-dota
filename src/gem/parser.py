@@ -170,10 +170,16 @@ class ReplayParser:
         self._chat_callbacks: list[ChatCallback] = []
         self._chat_event_callbacks: list[ChatEventCallback] = []
         self._stop_at_tick: int | None = None
+        self._grp_game_start_seen: bool = False
         self._pending_server_info: CSVCMsg_ServerInfo | None = None
         self.match_id: int = 0
         self.game_mode: int = 0
         self.leagueid: int = 0
+        self.radiant_win: bool | None = None
+        self.game_start_tick: int | None = None
+        self._game_start_callbacks: list = []
+        self._game_end_callbacks: list = []
+        self._game_ended: bool = False
 
     # ------------------------------------------------------------------
     # Public callback registration
@@ -188,6 +194,19 @@ class ReplayParser:
         self._entity_callbacks.append(callback)
         if self.entity_manager is not None:
             self.entity_manager.on_entity(callback)
+
+    def _on_entity_game_start(self, entity: Entity, op: EntityOp) -> None:
+        if self._grp_game_start_seen:
+            return
+        if entity.get_class_name() != "CDOTAGamerulesProxy":
+            return
+        v, ok = entity.get_float32("m_pGameRules.m_flGameStartTime")
+        if not ok or v == 0.0:
+            return
+        self._grp_game_start_seen = True
+        self.game_start_tick = self.tick
+        for cb in self._game_start_callbacks:
+            cb(self.tick)
 
     def on_game_event(self, name: str, handler: GameEventHandler) -> None:
         """Register a handler for the named game event.
@@ -222,6 +241,30 @@ class ReplayParser:
         """
         self._chat_event_callbacks.append(handler)
 
+    def on_game_start(self, callback: Callable[[int], None]) -> None:
+        """Register a handler called once when game time reaches zero.
+
+        The callback receives the game-start tick as its only argument.
+        Fires when ``m_pGameRules.m_flGameStartTime`` transitions from 0 to
+        non-zero on the ``CDOTAGamerulesProxy`` entity.
+
+        Args:
+            callback: ``(game_start_tick: int) -> None``.
+        """
+        self._game_start_callbacks.append(callback)
+
+    def on_game_end(self, callback: Callable[[int], None]) -> None:
+        """Register a handler called once when the ancient is destroyed.
+
+        The callback receives the final game tick as its only argument.
+        Fires when ``DOTA_COMBATLOG_GAME_STATE == 6`` is seen in the
+        combat log, matching OpenDota's ``postGame`` sentinel.
+
+        Args:
+            callback: ``(tick: int) -> None``.
+        """
+        self._game_end_callbacks.append(callback)
+
     def stop_after_tick(self, tick: int) -> None:
         """Stop parsing after this tick (inclusive).
 
@@ -241,6 +284,7 @@ class ReplayParser:
         from DEM_Packet / DEM_SignonPacket / DEM_FullPacket, and routing
         each to the appropriate subsystem handler.
         """
+        self.on_entity(self._on_entity_game_start)
         try:
             with DemoStream(self._source) as stream:
                 for tick, msg_type, data in stream:
@@ -256,7 +300,7 @@ class ReplayParser:
         # didn't populate them (e.g. truncated replays or early stop).
         # Reference: refs/parser/src/main/java/opendota/Parse.java — uses
         # CDOTAGamerulesProxy.m_pGameRules.m_unMatchID64 / m_iGameMode
-        if self.entity_manager is not None and (not self.match_id or not self.game_mode):
+        if self.entity_manager is not None:
             grp = self.entity_manager.find_by_class_name("CDOTAGamerulesProxy")
             if grp is not None:
                 if not self.match_id:
@@ -271,6 +315,16 @@ class ReplayParser:
                     v, ok = grp.get_uint32("m_pGameRules.m_unLeagueID")
                     if ok and v:
                         self.leagueid = v
+                # Fallback for radiant_win when CDemoFileInfo.game_winner == 0
+                # (common in tournament/HLTV replays). Uses EMatchOutcome:
+                # 2 = RadVictory, 3 = DireVictory.
+                # Reference: refs/manta/dota/dota_shared_enums.proto
+                if self.radiant_win is None:
+                    v, ok = grp.get_int32("m_pGameRules.m_nGameWinner")
+                    if ok and v == 2:
+                        self.radiant_win = True
+                    elif ok and v == 3:
+                        self.radiant_win = False
 
     # ------------------------------------------------------------------
     # Outer message dispatch
@@ -284,6 +338,11 @@ class ReplayParser:
             self.match_id = dota.match_id
             self.game_mode = dota.game_mode
             self.leagueid = dota.leagueid
+            # game_winner: 2 = Radiant, 3 = Dire, 0 = unknown
+            if dota.game_winner == 2:
+                self.radiant_win = True
+            elif dota.game_winner == 3:
+                self.radiant_win = False
 
         elif msg_type == _DEM_SEND_TABLES:
             self._on_send_tables(data)
@@ -389,6 +448,12 @@ class ReplayParser:
             name_table = self.string_tables.get_by_name(_COMBAT_LOG_NAMES_TABLE)
             if name_table is not None:
                 self.combat_log.process_s2_entry(entry_msg, name_table, tick=self.tick)
+            # DOTA_COMBATLOG_GAME_STATE == 6 → ancient destroyed (postGame)
+            # Reference: refs/parser/src/main/java/opendota/Parse.java line 373
+            if not self._game_ended and entry_msg.type == 9 and entry_msg.value == 6:
+                self._game_ended = True
+                for cb in self._game_end_callbacks:
+                    cb(self.tick)
 
         elif type_id == _DOTA_UM_CHAT_EVENT:
             chat_event = CDOTAUserMsg_ChatEvent()
@@ -451,6 +516,13 @@ class ReplayParser:
 
                 event = GameEvent(schema=schema, msg=msg)
                 self.combat_log.process_s1_event(event, name_table, tick=self.tick)
+                # DOTA_COMBATLOG_GAME_STATE == 6 → ancient destroyed (postGame)
+                type_val, _ = event.get_int32("type")
+                value_val, _ = event.get_int32("value")
+                if not self._game_ended and type_val == 9 and value_val == 6:
+                    self._game_ended = True
+                    for cb in self._game_end_callbacks:
+                        cb(self.tick)
 
     def _on_user_message(self, msg: CSVCMsg_UserMessage) -> None:
         if msg.msg_type in (_DOTA_UM_COMBAT_LOG_DATA, _DOTA_UM_COMBAT_LOG_BULK_DATA):

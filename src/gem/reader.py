@@ -64,6 +64,9 @@ class BitReader:
     def read_bits(self, n: int) -> int:
         """Read n bits from the buffer in LSB-first order.
 
+        Refills the bit buffer in 4-byte chunks using struct.unpack_from
+        when possible to reduce Python loop iterations.
+
         Args:
             n: Number of bits to read (0 ≤ n ≤ 32).
 
@@ -74,8 +77,21 @@ class BitReader:
             BufferError: If the buffer is exhausted before n bits are read.
         """
         while n > self._bit_count:
-            self._bit_val |= self._next_byte() << self._bit_count
-            self._bit_count += 8
+            # Fast path: load 4 bytes at once if available
+            remaining = self._size - self._pos
+            if remaining >= 4:
+                self._bit_val |= (
+                    struct.unpack_from("<I", self._buf, self._pos)[0] << self._bit_count
+                )
+                self._pos += 4
+                self._bit_count += 32
+            elif remaining > 0:
+                self._bit_val |= self._next_byte() << self._bit_count
+                self._bit_count += 8
+            else:
+                raise BufferError(
+                    f"insufficient buffer: need {n} bits at pos {self._pos}, size {self._size}"
+                )
 
         x = self._bit_val & ((1 << n) - 1)
         self._bit_val >>= n
@@ -88,7 +104,19 @@ class BitReader:
         Returns:
             bool: True if the bit is 1, False if 0.
         """
-        return self.read_bits(1) == 1
+        if self._bit_count == 0:
+            remaining = self._size - self._pos
+            if remaining >= 4:
+                self._bit_val = struct.unpack_from("<I", self._buf, self._pos)[0]
+                self._pos += 4
+                self._bit_count = 32
+            else:
+                self._bit_val = self._next_byte()
+                self._bit_count = 8
+        bit = self._bit_val & 1
+        self._bit_val >>= 1
+        self._bit_count -= 1
+        return bit == 1
 
     # ------------------------------------------------------------------
     # Byte-level reads
@@ -128,7 +156,10 @@ class BitReader:
             self._pos = end
             return chunk
 
-        return bytes(self.read_bits(8) for _ in range(n))
+        out = bytearray(n)
+        for i in range(n):
+            out[i] = self.read_bits(8)
+        return bytes(out)
 
     def read_bits_as_bytes(self, n: int) -> bytes:
         """Read n bits, returning them packed into bytes.

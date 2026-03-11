@@ -2,7 +2,8 @@
 
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green?logo=opensourceinitiative&logoColor=white)
-![Phase](https://img.shields.io/badge/phase-8%20of%209-orange)
+![Phase](https://img.shields.io/badge/phase-10%20of%2012-blue)
+![Coverage](https://img.shields.io/badge/coverage-77%25-green)
 ![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)
 ![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)
 
@@ -56,11 +57,14 @@ combat    = dfs["combat_log"]  # all combat log entries
 | 6 | `gem.parse()` — `ParsedMatch`/`ParsedPlayer`, DataFrame export, CLI | ✅ Complete |
 | 7 | Rune pickups, buybacks, aegis, lane heatmaps, chat, purchase log, movement heatmap | ✅ Complete |
 | 8 | Ability levels, courier state, draft extraction, stun duration | ✅ Complete |
-| 9 | Teamfights | 🔲 Planned |
+| 9 | Teamfight detection — per-player breakdown, minimap report | ✅ Complete |
+| 10 | Validation against OpenDota API, fuzz tests, gold/XP advantage curves | ✅ Complete |
+| 11 | Performance — benchmark tooling, Python optimisations, Rust extension (PyO3) | 🚧 Planned |
+| 12 | Distribution — PyPI packaging, CI/CD | 🚧 Planned |
 
 ---
 
-## What you can extract (Phase 8)
+## What you can extract
 
 | Data | Field / Source |
 |---|---|
@@ -80,6 +84,10 @@ combat    = dfs["combat_log"]  # all combat log entries
 | Chat messages | `ParsedMatch.chat` |
 | Purchase log per player | `ParsedPlayer.purchase_log` |
 | Hero display names, item/ability names | `gem.constants` |
+| Teamfights with per-player stats (damage, deaths, buybacks, XP) | `ParsedMatch.teamfights` |
+| Teamfight minimap report with hero icons and live filters | `examples/teamfight_report.py` |
+| Radiant gold / XP advantage curves (per-minute) | `ParsedMatch.radiant_gold_adv`, `.radiant_xp_adv` |
+| Match info from Steam API (K/D/A, GPM, XPM, hero damage) | `examples/steam_match_info.py` |
 
 ---
 
@@ -110,6 +118,12 @@ python examples/movement_heatmap.py path/to/your.dem
 # HTML draft summary with hero icons
 python scripts/fetch_hero_icons.py          # one-time icon download
 python examples/draft_summary.py path/to/your.dem
+
+# HTML teamfight report — minimap, hero icons, live filters
+python examples/teamfight_report.py path/to/your.dem
+
+# Match info from Steam API (requires STEAM_API_KEY env var)
+python examples/steam_match_info.py <match_id>
 ```
 
 ---
@@ -128,7 +142,6 @@ Topics covered: DEM binary format, varint encoding, Protocol Buffers, the entity
 
 ## Known limitations
 
-- **Roshan drops** — Aegis, Cheese, and other Roshan drops are not in the combat log; tracked via chat events instead.
-- **Smoke empty groups** — if a smoke breaks instantly on activation (hero inside sentry truesight), the group list is empty. This is correct game behaviour.
-- **Hero icons** — not bundled in the package. Run `python scripts/fetch_hero_icons.py` to download them locally for use with `examples/draft_summary.py`.
-- **Hero IDs in draft** — modern replays store pick/ban IDs as `api_id * 2`; resolved via live entity map + halving fallback (see `extractors/draft.py`).
+- **Roshan drops** — Aegis, Cheese, Refresher Shard, and Aghanim's Blessing pickups are not in the combat log. Roshan kills are tracked, but the specific drop items are not.
+- **Smoke empty groups** — if a smoke breaks instantly on activation (hero inside sentry truesight), the group list will be empty. This is correct game behaviour, not a parsing gap.
+- **Hero icons** — not bundled in the package. Run `python scripts/fetch_hero_icons.py` to download them locally before using `examples/draft_summary.py` or `examples/teamfight_report.py`.

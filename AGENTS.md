@@ -5,11 +5,13 @@ This file provides guidance to agents (i.e., ADAL) when working with code in thi
 ## Project Snapshot
 
 - **Project**: `gem` — Source 2 Dota 2 replay parser (Python)
-- **Current plan status**: Early-phase implementation (see `STRATEGY.md`)
+- **Current state**: Core parser + extractors are implemented through **Phase 10**
+- **Current branch**: `feature/teamfights`
 - **Package manager / env**: `uv` with local `.venv`
-- **Primary reference implementations**:
-  - `refs/manta/` (Go; primary behavioral reference)
-  - `refs/clarity/` (Java; secondary reference)
+- **Primary references**:
+  - `refs/manta/` (Go; primary implementation/behavior reference)
+  - `refs/clarity/` (Java; edge-case/correctness authority)
+  - `refs/parser/` (OpenDota parser; output schema authority)
 
 ---
 
@@ -22,7 +24,7 @@ uv sync
 source .venv/bin/activate
 ```
 
-**Gotcha**: Run `uv sync` first so tools like `pytest`, `ruff`, `mypy`, and proto tooling exist in the environment.
+**Gotcha**: Run `uv sync` first so `pytest`, `ruff`, `mypy`, and proto tooling are available.
 
 ### Development / Protobuf Generation
 
@@ -32,13 +34,13 @@ uv run python scripts/compile_protos.py --force
 uv run python scripts/compile_protos.py --verbose
 ```
 
-- `compile_protos.py` orchestrates protobuf generation and is the canonical workflow.
-- Prefer this script over ad-hoc `protoc` commands.
+- `scripts/compile_protos.py` is the canonical proto workflow.
+- Do not rely on system `protoc`.
 
 ### Test Commands
 
 ```bash
-# full test suite
+# full suite
 python -m pytest tests/
 
 # single file
@@ -47,11 +49,11 @@ python -m pytest tests/test_reader.py
 # single test
 python -m pytest tests/test_reader.py::TestReadBits::test_read_8_bits
 
-# integration-only tests (requires replay files)
+# integration tests only (needs replay files)
 python -m pytest tests/ -m "integration"
 ```
 
-Integration tests require real `.dem` replays — fetch first:
+Integration tests need real `.dem` files:
 
 ```bash
 python scripts/fetch_replays.py
@@ -65,69 +67,119 @@ uv run ruff format .
 uv run mypy src
 ```
 
-### Docs
+---
 
-```bash
-uv run mkdocs serve
-```
+## MANDATORY: Check References Before Implementing
+
+Do **not** implement features blindly from memory.
+
+Before any feature or bugfix:
+1. Read relevant code in `refs/manta/` first
+2. Cross-check with `refs/clarity/` and `refs/parser/`
+3. Verify enums, field names, message paths, and data flow
+4. Then implement in idiomatic Python
+
+Skipping this leads to common failures: wrong enum values, wrong message path, incorrect player attribution, and broken combat-log handling.
 
 ---
 
-## Critical Gotchas (Read Before Editing)
+## Current Architecture (implemented)
 
-1. **Use `uv` workflows**
-   This repo assumes `uv`-managed dependencies and local virtualenv semantics.
+### End-to-end pipeline
 
-2. **Proto toolchain version skew risk**
-   `scripts/compile_protos.py` uses packaged tooling (`protoc-wheel-0` path).
-   If generation fails, re-run `uv sync` first. Avoid relying on system `protoc`.
+```text
+stream.py → reader.py → sendtable.py → field_decoder.py → field_path.py → string_table.py → entities.py → parser.py → extractors/*
+```
 
-3. **Match reference behavior, not Go syntax**
-   Preserve logic parity with `refs/manta`, but write idiomatic Python (no mechanical transliteration).
+### Core modules
 
-4. **Module dependency order matters**
-   Implementation/reading order: `reader.py` → `stream.py` → `sendtable.py` → `field_decoder.py` → `field_path.py` → `string_table.py` → `entities.py`
+1. **`src/gem/stream.py`**
+   - Validates `PBDEMS2` magic
+   - Reads outer demo commands (tick/type/size)
+   - Handles Snappy decompression
 
-5. **Entity system is the hot/complex path**
-   Huffman-coded field paths + serializer metadata + packet entity deltas must stay consistent across modules.
+2. **`src/gem/reader.py`**
+   - LSB-first bit primitives (`read_bits`, varints, `read_ubit_var`, coord/angle/normal)
 
-6. **Coding conventions** (from `CLAUDE.md` / `STRATEGY.md`):
-   - `@dataclass` for structured value containers
-   - `__slots__` on hot-path classes (`BitReader`, `FieldPath`)
-   - Google-style docstrings on public functions
-   - Don't jump ahead of foundational parsing layers (phased plan)
+3. **`src/gem/sendtable.py`**
+   - Parses `CSVCMsg_FlattenedSerializer`
+   - Builds serializer/field metadata tree and field models
+
+4. **`src/gem/field_decoder.py`**
+   - Decoder dispatch + quantized float support
+
+5. **`src/gem/field_path.py`**
+   - Huffman-coded field path decoding (40 ops)
+
+6. **`src/gem/string_table.py`**
+   - Create/update string tables
+   - Key-history logic
+   - Side tables like `instancebaseline` and `CombatLogNames`
+
+7. **`src/gem/entities.py`**
+   - Packet entities create/update/delete lifecycle
+   - Baseline + delta application
+   - Entity state mutation hot path
+
+8. **`src/gem/game_events.py` + `src/gem/combatlog.py`**
+   - Source1 game events
+   - S1 + S2 combat log ingestion into unified `CombatLogEntry`
+
+9. **`src/gem/parser.py`**
+   - Top-level replay orchestrator
+   - Handles outer + inner message dispatch
+   - Maintains ordering constraints (string tables before packet entities)
+
+10. **`src/gem/extractors/`**
+   - `players.py`, `objectives.py`, `wards.py`, `courier.py`, `draft.py`, `teamfights.py`
+
+11. **Public API**
+   - `gem.parse(path) -> ParsedMatch`
+   - `gem.parse_to_dataframe(path) -> dict[str, pd.DataFrame]`
+   - CLI: `python -m gem <replay.dem>`
 
 ---
 
-## Non-Obvious Architecture & Data Flow
+## Implemented Scope Status
 
-### End-to-end parsing pipeline
+- **Phases 1–10**: Completed (reader/stream, schema/decode, entities/string tables, events/combat log, extraction layer, output API, gap closures including teamfights, validation/fuzz baseline)
+- **Phase 11a**: Performance + Rust extension (planned/in progress)
+- **Phase 11b**: Refactor/cleanup for release quality (planned)
+- **Phase 12**: Packaging/distribution (planned)
 
-```
-stream.py → reader.py → sendtable.py → field_path.py → entities.py
-(container)  (bits)      (schema)       (Huffman paths)  (state mutations)
-```
+---
 
-1. **Container stream** — `src/gem/stream.py`
-   Validates `PBDEMS2` magic, reads outer demo commands, handles Snappy decompression.
+## High-Risk / Non-Obvious Behaviors
 
-2. **Bit-level primitives** — `src/gem/reader.py`
-   LSB-first bit extraction. Core forms: `varuint32`, zigzag varint, `ubit_var`. All higher layers depend on this.
+1. **Server info ordering**
+   - `svc_ServerInfo` can arrive before send tables; preserve pending handling before entity manager init.
 
-3. **Schema / serializer tree** — `src/gem/sendtable.py`
-   Decodes `CSVCMsg_FlattenedSerializer` into field metadata trees. Establishes decoder metadata for live entity updates.
+2. **Packet ordering**
+   - Within a packet, process string table updates before packet entities so baselines are available.
 
-4. **Field-path decode** — `src/gem/field_path.py`
-   Huffman-coded paths → addressable positions within serializer/entity trees. Decoder logic in `src/gem/field_decoder.py`.
+3. **Combat log has two paths**
+   - S1: `dota_combatlog` game event + `CombatLogNames` lookup
+   - S2: direct `CMsgDOTACombatLogEntry`
+   - Both must normalize to same output shape.
 
-5. **Entity lifecycle** — `src/gem/entities.py`
-   Applies packet-entity create/update/delete deltas. Uses schema + field decoders + path decode together. Main state mutation layer.
+4. **Ward coordinate matching**
+   - Do not restrict to only `CREATED`; recycled slots can produce `UPDATED` with full position.
+   - Do not globally consume slot records during matching; slot reuse is expected.
 
-### Combat log normalization (two-source merge)
+5. **Teamfight logic**
+   - Merge death windows using 15s (450 ticks), not 45s.
+   - Participation requires hero-vs-hero involvement; avoid neutrals/illusion noise.
 
-- **S1 path**: `dota_combatlog` game event → lookup via `CombatLogNames` string table (`src/gem/string_table.py`).
-- **S2 path**: `CMsgDOTACombatLogEntry` user message → direct protobuf parse.
-- Both converge into a unified `CombatLogEntry` dataclass.
+---
+
+## Coding Conventions
+
+- Preserve behavior parity with references, but write idiomatic Python
+- `@dataclass` for structured value containers
+- `__slots__` on hot-path objects (`BitReader`, `FieldPath`)
+- Type annotations on public APIs
+- Google-style docstrings for public classes/functions
+- Avoid transliterating Go/Java patterns directly
 
 ---
 
@@ -136,13 +188,32 @@ stream.py → reader.py → sendtable.py → field_path.py → entities.py
 | Problem | Start here |
 |---|---|
 | Bit parsing bug | `src/gem/reader.py` + `tests/test_reader.py` |
-| Outer message / decompression | `src/gem/stream.py` |
-| Wrong field decode in entities | `sendtable.py` + `field_decoder.py` + `field_path.py` + `entities.py` |
-| Combat log mismatch | `string_table.py` + combat-log normalization path |
-| Proto mismatch / build failure | `scripts/compile_protos.py` + generated proto outputs |
+| Outer message/decompression issue | `src/gem/stream.py` |
+| Schema/decoder mismatch | `sendtable.py` + `field_decoder.py` |
+| Field-path/entity decode issue | `field_path.py` + `entities.py` |
+| Combat-log mismatch | `string_table.py` + `combatlog.py` + `game_events.py` |
+| Teamfight discrepancy | `extractors/teamfights.py` + `tests/test_teamfights.py` |
+| Proto generation issue | `scripts/compile_protos.py` |
 
-### Scripts & support
+---
 
-- `scripts/compile_protos.py` — Canonical protobuf generation
-- `scripts/fetch_replays.py` — Fetch replay data for integration tests
-- `tests/fixtures/` — Small binary fixtures for deterministic unit tests
+## Key Scripts & Artifacts
+
+- `scripts/compile_protos.py` — canonical protobuf generation
+- `scripts/fetch_replays.py` — fetch integration replay fixtures
+- `scripts/validate_opendota.py` — output diff vs OpenDota
+- `tests/test_fuzz.py` — malformed/truncated replay robustness
+
+---
+
+## Practical Working Rules for Agents
+
+1. Use `uv` workflows (`uv sync`, `uv run ...`) consistently.
+2. Check references before code changes in parser/decoder/entity paths.
+3. Make surgical edits; avoid unrelated refactors.
+4. Run focused tests for touched modules before finishing.
+5. For parser logic changes, prioritize regression tests around:
+   - entities/string tables
+   - combat log normalization
+   - extractor output shape
+6. Never hand-edit generated protobuf modules under `src/gem/proto/`.

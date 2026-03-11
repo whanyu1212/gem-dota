@@ -104,7 +104,8 @@ def _snapshot_hero(entity: Entity, tick: int) -> PlayerStateSnapshot | None:
         team=team,
         level=level,
         xp=xp,
-        gold=0,  # gold lives on CDOTAPlayerController; set by extractor if available
+        gold=0,  # spendable gold — set by extractor from CDOTAPlayerController
+        total_earned_gold=0,  # cumulative — set by extractor from m_iTotalEarnedGold
         net_worth=0,
         lh=lh,
         dn=dn,
@@ -133,8 +134,10 @@ class PlayerStateSnapshot:
         team: Team number (2=Radiant, 3=Dire).
         level: Hero level (1-30).
         xp: Cumulative XP total.
-        gold: Reliable gold from ``CDOTAPlayerController``, or 0 if not read.
+        gold: Spendable gold from ``CDOTAPlayerController``, or 0 if not read.
         net_worth: Net worth from ``CDOTAPlayerController``, or 0 if not read.
+        total_earned_gold: Cumulative gold earned (``m_iTotalEarnedGold``), or 0 if not read.
+        total_earned_xp: Cumulative XP earned (``m_iTotalEarnedXP``), or 0 if not read.
         lh: Last-hit count.
         dn: Deny count.
         hp: Current hit points.
@@ -162,6 +165,8 @@ class PlayerStateSnapshot:
     max_mana: float
     x: float | None
     y: float | None
+    total_earned_gold: int = 0
+    total_earned_xp: int = 0
     ability_levels: dict[str, int] = field(default_factory=dict)
 
 
@@ -172,7 +177,9 @@ class PlayerTimeSeries:
     Attributes:
         player_id: Player slot (0-9).
         ticks: Tick values for each sample.
-        gold_t: Reliable gold at each sample tick.
+        gold_t: Spendable gold at each sample tick.
+        total_earned_gold_t: Cumulative total earned gold at each sample tick.
+        total_earned_xp_t: Cumulative total earned XP at each sample tick.
         net_worth_t: Net worth at each sample tick.
         lh_t: Last-hit count at each sample tick.
         dn_t: Deny count at each sample tick.
@@ -186,6 +193,8 @@ class PlayerTimeSeries:
     player_id: int
     ticks: list[int] = field(default_factory=list)
     gold_t: list[int] = field(default_factory=list)
+    total_earned_gold_t: list[int] = field(default_factory=list)
+    total_earned_xp_t: list[int] = field(default_factory=list)
     net_worth_t: list[int] = field(default_factory=list)
     lh_t: list[int] = field(default_factory=list)
     dn_t: list[int] = field(default_factory=list)
@@ -207,7 +216,7 @@ class PlayerExtractor:
     Attach to a ``ReplayParser`` before calling ``parse()``:
 
     Example:
-        >>> extractor = PlayerExtractor(sample_interval=150)
+        >>> extractor = PlayerExtractor(sample_interval=30)
         >>> extractor.attach(parser)
         >>> parser.parse()
         >>> ts = extractor.time_series(player_id=0)
@@ -219,16 +228,27 @@ class PlayerExtractor:
 
     snapshots: list[PlayerStateSnapshot]
 
-    def __init__(self, sample_interval: int = 150) -> None:
+    def __init__(self, sample_interval: int = 30, minute_snapshots: bool = True) -> None:
         """Initialise the extractor.
 
         Args:
             sample_interval: Minimum tick gap between successive snapshots.
-                Default 150 ticks ≈ 5 seconds at 30 ticks/sec.
+                Default 30 ticks = 1 second at 30 ticks/sec, producing a
+                dense per-second series suitable for smooth time-series and
+                ML features. Pass a larger value (e.g. 150) for sparser
+                sampling. The separate ``_min`` arrays always sample at exact
+                60-second game-time boundaries regardless of this setting.
+            minute_snapshots: If True, also record a snapshot at each
+                game-minute boundary (every 1800 ticks from game start),
+                matching OpenDota's ``gold_t`` / ``lh_t`` / ``xp_t`` sampling.
+                Requires the parser to fire ``on_game_start``. Default True.
         """
         self._sample_interval = sample_interval
+        self._minute_snapshots = minute_snapshots
         self._parser: ReplayParser | None = None
         self._last_sample: int = -sample_interval
+        self._game_start_tick: int | None = None
+        self._last_minute: int = -1  # last game-minute index sampled
         # entity index → Entity (mutable reference; entity is updated in place)
         self._heroes: dict[int, Entity] = {}
         # npc_name → Entity (for external position lookups)
@@ -243,7 +263,8 @@ class PlayerExtractor:
         self._player_team_slot: dict[int, int] = {}
         # CDOTA_PlayerResource entity for slot lookups
         self._player_resource: Entity | None = None
-        self.snapshots = []
+        self.snapshots: list[PlayerStateSnapshot] = []
+        self._minute_snaps: list[PlayerStateSnapshot] = []
         # set of player_ids whose starting inventory has been emitted
         self._inventory_initialized: set[int] = set()
         # player_id → tick of first inventory snapshot (used to suppress
@@ -258,6 +279,19 @@ class PlayerExtractor:
         """
         self._parser = parser
         parser.on_entity(self._on_entity)
+        if self._minute_snapshots:
+            parser.on_game_start(self._on_game_start)
+        parser.on_game_end(self._on_game_end)
+
+    def _on_game_start(self, game_start_tick: int) -> None:
+        self._game_start_tick = game_start_tick
+        # Align the 150-tick sampler to game start so both series share origin
+        self._last_sample = game_start_tick
+
+    def _on_game_end(self, tick: int) -> None:
+        # Force a final snapshot at the exact game-end tick so lh/nw/gold
+        # match OpenDota's end-of-game values (sampled at postGame boundary).
+        self._sample(tick, minute=False)
 
     def hero_pos(self, npc_name: str) -> tuple[float, float] | None:
         """Return the current world position of a hero by NPC name.
@@ -286,6 +320,56 @@ class PlayerExtractor:
                 continue
             ts.ticks.append(snap.tick)
             ts.gold_t.append(snap.gold)
+            ts.total_earned_gold_t.append(snap.total_earned_gold)
+            ts.total_earned_xp_t.append(snap.total_earned_xp)
+            ts.net_worth_t.append(snap.net_worth)
+            ts.lh_t.append(snap.lh)
+            ts.dn_t.append(snap.dn)
+            ts.xp_t.append(snap.xp)
+            ts.hp_t.append(snap.hp)
+            ts.mana_t.append(snap.mana)
+            ts.x_t.append(snap.x)
+            ts.y_t.append(snap.y)
+        return ts
+
+    def minute_time_series(self, player_id: int) -> PlayerTimeSeries:
+        """Aggregate per-minute snapshots for one player into time-series lists.
+
+        Returns a ``PlayerTimeSeries`` sampled at each game-minute boundary
+        (every 1800 ticks from game start), matching OpenDota's ``gold_t``,
+        ``lh_t``, and ``xp_t`` arrays exactly.
+
+        Only populated when ``minute_snapshots=True`` (the default) and the
+        parser fires the game-start event.
+
+        Args:
+            player_id: Player slot (0-9).
+
+        Returns:
+            A ``PlayerTimeSeries`` with one entry per game minute.
+        """
+        # Deduplicate by game minute — keep the last snap per minute index.
+        # Duplicates arise when on_game_end fires within the same minute as a
+        # regular boundary sample, or when entity callbacks fire multiple times
+        # at the same tick. Using a dict keyed by minute ensures one entry per
+        # minute, with the latest (most accurate) value winning.
+        seen: dict[int, PlayerStateSnapshot] = {}  # minute_index → snap
+        if self._game_start_tick is not None:
+            for snap in self._minute_snaps:
+                if snap.player_id != player_id:
+                    continue
+                minute = (snap.tick - self._game_start_tick) // 1800
+                seen[minute] = snap
+        else:
+            for i, snap in enumerate(s for s in self._minute_snaps if s.player_id == player_id):
+                seen[i] = snap
+
+        ts = PlayerTimeSeries(player_id=player_id)
+        for snap in (seen[k] for k in sorted(seen)):
+            ts.ticks.append(snap.tick)
+            ts.gold_t.append(snap.gold)
+            ts.total_earned_gold_t.append(snap.total_earned_gold)
+            ts.total_earned_xp_t.append(snap.total_earned_xp)
             ts.net_worth_t.append(snap.net_worth)
             ts.lh_t.append(snap.lh)
             ts.dn_t.append(snap.dn)
@@ -356,17 +440,32 @@ class PlayerExtractor:
         if self._parser is None:
             return
         tick = self._parser.tick
-        if tick - self._last_sample < self._sample_interval:
-            return
-        self._last_sample = tick
-        self._sample(tick)
 
-    def _sample(self, tick: int) -> None:
+        # Minute-boundary sampling (OpenDota-aligned)
+        minute_fired = False
+        if self._minute_snapshots and self._game_start_tick is not None:
+            elapsed = tick - self._game_start_tick
+            if elapsed >= 0:
+                current_minute = elapsed // 1800
+                if current_minute > self._last_minute:
+                    self._last_minute = current_minute
+                    self._sample(tick, minute=True)
+                    minute_fired = True
+
+        # Regular interval sampling — skip if minute boundary just fired at same tick
+        if tick - self._last_sample >= self._sample_interval:
+            self._last_sample = tick
+            if not minute_fired:
+                self._sample(tick, minute=False)
+
+    def _sample(self, tick: int, minute: bool = False) -> None:
         for entity in self._heroes.values():
             snap = _snapshot_hero(entity, tick)
             if snap is None:
                 continue
-            # Overlay gold/net_worth from the player controller if available
+            # Overlay spendable gold + net_worth from CDOTAPlayerController.
+            # m_iGold = current cash on hand (goes up/down as player earns/spends).
+            # m_iNetWorth = gold + item value (also on controller for convenience).
             ctrl = self._controllers.get(snap.player_id)
             if ctrl is not None:
                 gold, ok_g = ctrl.get_int32("m_iGold")
@@ -375,9 +474,20 @@ class PlayerExtractor:
                     snap.gold = gold
                 if ok_nw:
                     snap.net_worth = nw
-            # Overlay authoritative net worth + gold from CDOTADataRadiant/Dire.
-            # The field index is the team slot (0-4), read from CDOTA_PlayerResource.
-            # Reference: refs/parser/Parse.java getEntityProperty(dataTeam, "m_vecDataTeam.%i.*", teamSlot)
+            # Overlay authoritative cumulative stats from CDOTA_DataRadiant/Dire.
+            # These are the canonical sources for advantage curves — they differ
+            # from the hero/controller fields in important ways:
+            #
+            #   m_iTotalEarnedGold — monotonically increasing gold earned across
+            #     the whole game. Use this for radiant_gold_adv, NOT m_iGold
+            #     (spendable cash) which resets when items are purchased.
+            #
+            #   m_iTotalEarnedXP — monotonically increasing XP earned across the
+            #     whole game. Use this for radiant_xp_adv, NOT m_iCurrentXP from
+            #     the hero entity which resets to 0 on each level-up.
+            #
+            # Reference: refs/parser/Parse.java — getEntityProperty(dataTeam,
+            #   "m_vecDataTeam.%i.m_iTotalEarnedGold/XP", teamSlot)
             data_entity = self._data_radiant if snap.team == _TEAM_RADIANT else self._data_dire
             if data_entity is not None:
                 # Prefer authoritative team slot; fall back to pid % 5
@@ -386,10 +496,14 @@ class PlayerExtractor:
                 nw, ok_nw = data_entity.get_int32(f"{prefix}.m_iNetWorth")
                 if ok_nw and nw > 0:
                     snap.net_worth = nw
-                if snap.gold == 0:
-                    teg, ok_teg = data_entity.get_int32(f"{prefix}.m_iTotalEarnedGold")
-                    if ok_teg and teg > 0:
+                teg, ok_teg = data_entity.get_int32(f"{prefix}.m_iTotalEarnedGold")
+                if ok_teg and teg > 0:
+                    snap.total_earned_gold = teg
+                    if snap.gold == 0:
                         snap.gold = teg
+                tex, ok_tex = data_entity.get_int32(f"{prefix}.m_iTotalEarnedXP")
+                if ok_tex and tex > 0:
+                    snap.total_earned_xp = tex
                 lh, ok_lh = data_entity.get_int32(f"{prefix}.m_iLastHitCount")
                 if ok_lh and lh > 0:
                     snap.lh = lh
@@ -397,8 +511,11 @@ class PlayerExtractor:
                 if ok_dn and dn > 0:
                     snap.dn = dn
             snap.ability_levels = self._read_abilities(entity)
-            self.snapshots.append(snap)
-            self._diff_inventory(entity, snap.player_id, snap.npc_name, tick)
+            if minute:
+                self._minute_snaps.append(snap)
+            else:
+                self.snapshots.append(snap)
+                self._diff_inventory(entity, snap.player_id, snap.npc_name, tick)
 
     def _read_abilities(self, hero: Entity) -> dict[str, int]:
         """Read current ability names and levels from a hero entity.

@@ -173,7 +173,11 @@ Key message classes used throughout the parser:
 | 6 | `models.py`, `__init__.py` (`parse()`/`parse_to_dataframe()`), `__main__.py` (CLI) | ✅ Complete |
 | 7 | Rune pickups, buybacks, aegis, lane heatmaps, chat, purchase log, movement heatmap example | ✅ Complete |
 | 8 | `extractors/courier.py`, `extractors/draft.py`, ability levels on snapshots, stun duration | ✅ Complete |
-| 9 | Teamfights | 🔲 Planned |
+| 9 | Teamfights | ✅ Complete |
+| 10 | Validation (`scripts/validate_opendota.py`), fuzz tests (`test_fuzz.py`), Steam API example | ✅ Complete |
+| 11a | Performance — `scripts/benchmark.py`, Python quick-wins, Rust extension (PyO3 + maturin) | 🚧 Planned |
+| 11b | Refactor & Cleanup — API surface, pyproject.toml metadata, examples, tests, CHANGELOG | 🚧 Planned |
+| 12 | Distribution — PyPI packaging, CI/CD | 🚧 Planned |
 
 ## Test files
 
@@ -184,12 +188,18 @@ Key message classes used throughout the parser:
 | `test_sendtable.py` | Send table / serializer parsing |
 | `test_field_decoder.py` | All field type decoders |
 | `test_field_path.py` | Huffman field path ops |
+| `test_field_path_ops.py` | All 40 field path op functions |
 | `test_string_table.py` | String table create/update |
+| `test_string_table_extended.py` | Key history, value compression, handle_create/update edge cases |
 | `test_entities.py` | Entity lifecycle and typed getters |
 | `test_game_events.py` | Game event schema and dispatch |
 | `test_combatlog.py` | S1 and S2 combat log paths |
 | `test_extractors.py` | `PlayerExtractor`, `ObjectivesExtractor`, `WardsExtractor` |
 | `test_ability_courier_draft_stuns.py` | Ability levels, `CourierExtractor`, `DraftExtractor`, stun duration |
+| `test_constants.py` | `constants.py` — all lookup functions |
+| `test_draft_extractor.py` | `DraftExtractor` — resolution tiers, finalize, idempotency |
+| `test_teamfights.py` | `detect_teamfights` — window detection, stat attribution |
+| `test_fuzz.py` | Robustness: malformed/truncated/empty inputs don't hang or crash |
 
 Fixtures go in `tests/fixtures/`. Real `.dem` files for integration tests are marked `@pytest.mark.integration` and `@pytest.mark.slow`.
 
@@ -202,6 +212,8 @@ Fixtures go in `tests/fixtures/`. Real `.dem` files for integration tests are ma
 | `examples/movement_heatmap.py` | Interactive Plotly heatmap — hero positions, ability levels, stun dealt |
 | `examples/draft_summary.py` | Self-contained HTML draft summary with hero portrait icons |
 | `examples/match_report.py` | Full match report (WIP) |
+| `examples/teamfight_report.py` | HTML teamfight report — minimap, hero icons, live filters |
+| `examples/steam_match_info.py` | Fetch match info from Steam API and display with Rich tables |
 
 Hero icons for `draft_summary.py` are downloaded separately — not committed or shipped in the package:
 

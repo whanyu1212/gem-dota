@@ -56,6 +56,29 @@ def _dedup_purchase_log(entries: list, first_snap_tick: int | None, sample_inter
     return result
 
 
+def _radiant_win_from_ancient(combat_log: list) -> bool | None:
+    """Infer radiant_win from ancient DEATH events in the combat log.
+
+    The destroying team is inferred from which ancient (fort) was killed:
+    - ``npc_dota_badguys_fort`` dies → Radiant wins
+    - ``npc_dota_goodguys_fort`` dies → Dire wins
+
+    Args:
+        combat_log: Full list of CombatLogEntry objects from the replay.
+
+    Returns:
+        True if Radiant won, False if Dire won, None if no ancient death found.
+    """
+    for e in combat_log:
+        if e.log_type != "DEATH":
+            continue
+        if e.target_name == "npc_dota_badguys_fort":
+            return True
+        if e.target_name == "npc_dota_goodguys_fort":
+            return False
+    return None
+
+
 def parse(path: str | Path) -> ParsedMatch:
     """Parse a Dota 2 replay file and return structured match data.
 
@@ -105,10 +128,19 @@ def parse(path: str | Path) -> ParsedMatch:
     # Backfill hero names for draft events recorded before hero entities spawned.
     draft_ext.finalize()
 
+    # radiant_win resolution — three tiers in priority order:
+    #   1. CDemoFileInfo.game_winner (set during parse, empty for HLTV replays)
+    #   2. m_pGameRules.m_nGameWinner entity field (set post-parse in parser.py)
+    #   3. Ancient DEATH in combat log — no API needed
+    radiant_win = p.radiant_win
+    if radiant_win is None:
+        radiant_win = _radiant_win_from_ancient(all_entries)
+
     match = ParsedMatch(
         match_id=p.match_id,
         game_mode=p.game_mode,
         leagueid=p.leagueid,
+        radiant_win=radiant_win,
         towers=obj_ext.tower_kills,
         barracks=obj_ext.barracks_kills,
         roshans=obj_ext.roshan_kills,
@@ -137,9 +169,19 @@ def parse(path: str | Path) -> ParsedMatch:
         pp.player_id = player_id
         pp.times = ts.ticks
         pp.gold_t = ts.gold_t
+        pp.net_worth_t = ts.net_worth_t
         pp.lh_t = ts.lh_t
         pp.dn_t = ts.dn_t
         pp.xp_t = ts.xp_t
+        mts = player_ext.minute_time_series(player_id)
+        pp.times_min = mts.ticks
+        pp.gold_t_min = mts.gold_t
+        pp.total_earned_gold_t_min = mts.total_earned_gold_t
+        pp.total_earned_xp_t_min = mts.total_earned_xp_t
+        pp.net_worth_t_min = mts.net_worth_t
+        pp.lh_t_min = mts.lh_t
+        pp.dn_t_min = mts.dn_t
+        pp.xp_t_min = mts.xp_t
         pp.position_log = [
             (snap.tick, snap.x, snap.y)
             for snap in player_ext.snapshots
@@ -202,6 +244,45 @@ def parse(path: str | Path) -> ParsedMatch:
                 pp.obs_log.append(ward)
             else:
                 pp.sen_log.append(ward)
+
+    # Compute radiant_gold_adv / radiant_xp_adv per game-minute boundary.
+    # For each minute index, sum gold_t_min (spendable gold) across all players:
+    # Radiant players contribute positively, Dire players negatively.
+    # Use the minimum series length across all players so all 10 contribute
+    # to every minute bucket — prevents partial sums from skewing the curve.
+    # Reference: refs/parser/src/main/java/opendota/CreateParsedDataBlob.java processAllPlayers()
+    active_players = [
+        pp for pp in match.players if pp.total_earned_gold_t_min and pp.total_earned_xp_t_min
+    ]
+    if active_players:
+        n_minutes = min(
+            min(len(pp.total_earned_gold_t_min), len(pp.total_earned_xp_t_min))
+            for pp in active_players
+        )
+        gold_adv = [0] * n_minutes
+        xp_adv = [0] * n_minutes
+        for pp in active_players:
+            sign = 1 if pp.team == 2 else -1  # 2=Radiant, 3=Dire
+            for i in range(n_minutes):
+                gold_adv[i] += sign * pp.total_earned_gold_t_min[i]
+                xp_adv[i] += sign * (
+                    pp.total_earned_xp_t_min[i] if i < len(pp.total_earned_xp_t_min) else 0
+                )
+        match.radiant_gold_adv = gold_adv
+        match.radiant_xp_adv = xp_adv
+
+    # Detect teamfights (Phase 9)
+    from gem.extractors.teamfights import detect_teamfights
+
+    hero_to_slot = {pp.hero_name: pp.player_id for pp in match.players if pp.hero_name}
+    player_snaps = {
+        pid: [s for s in player_ext.snapshots if s.player_id == pid] for pid in range(10)
+    }
+    match.teamfights = detect_teamfights(
+        all_entries,
+        hero_to_slot=hero_to_slot,
+        player_snapshots=player_snaps,
+    )
 
     return match
 
