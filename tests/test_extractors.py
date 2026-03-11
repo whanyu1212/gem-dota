@@ -102,6 +102,12 @@ class FakeParser:
     def on_chat_event(self, handler) -> None:
         self._chat_event_handlers.append(handler)
 
+    def on_game_start(self, handler) -> None:
+        pass
+
+    def on_game_end(self, handler) -> None:
+        pass
+
     def fire_entity(self, entity, op) -> None:
         for h in self._entity_handlers:
             h(entity, op)
