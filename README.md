@@ -2,7 +2,7 @@
 
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green?logo=opensourceinitiative&logoColor=white)
-![Phase](https://img.shields.io/badge/phase-10%20of%2012-blue)
+![Phase](https://img.shields.io/badge/phase-11b%20of%2012-blue)
 ![Coverage](https://img.shields.io/badge/coverage-77%25-green)
 ![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)
 ![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)
@@ -88,6 +88,97 @@ combat    = dfs["combat_log"]  # all combat log entries
 | Teamfight minimap report with hero icons and live filters | `examples/teamfight_report.py` |
 | Radiant gold / XP advantage curves (per-minute) | `ParsedMatch.radiant_gold_adv`, `.radiant_xp_adv` |
 | Match info from Steam API (K/D/A, GPM, XPM, hero damage) | `examples/steam_match_info.py` |
+
+## Architecture diagrams
+
+For a dedicated architecture document, see [`docs/architecture.md`](docs/architecture.md).
+
+### Module architecture and data flow
+
+```mermaid
+flowchart TD
+    %% Entry points
+    A[gem.parse / gem.parse_to_dataframe] --> B[parser.py]
+    A --> M[dataframes.py]
+
+    %% Core parse pipeline
+    B --> C[stream.py]
+    B --> D[reader.py]
+    B --> E[sendtable.py]
+    E --> F[field_decoder.py]
+    B --> G[string_table.py]
+    B --> H[entities.py]
+    H --> I[field_path.py]
+    B --> J[game_events.py]
+    B --> K[combatlog.py]
+
+    %% Extractors
+    B --> X1[extractors.players]
+    B --> X2[extractors.objectives]
+    B --> X3[extractors.wards]
+    B --> X4[extractors.courier]
+    B --> X5[extractors.draft]
+    B --> X6[extractors.teamfights]
+
+    %% Assembly + aggregation
+    B --> L[combat_aggregator.py]
+    B --> N[match_builder.py]
+    L --> N
+    X1 --> N
+    X2 --> N
+    X3 --> N
+    X4 --> N
+    X5 --> N
+    X6 --> N
+    K --> L
+    K --> N
+    J --> N
+    H --> N
+
+    %% Output
+    N --> O[models.py ParsedMatch]
+    O --> M
+    M --> P[dict[str, DataFrame]]
+```
+
+### Key function interaction flow
+
+```mermaid
+flowchart LR
+    P0[ReplayParser.parse] --> P1[DemoStream iteration]
+    P0 --> P2[_read_inner_messages]
+    P0 --> P3[parse_send_tables]
+    P0 --> P4[string_table.handle_update]
+    P0 --> P5[EntityManager.on_packet_entities]
+    P5 --> P6[field_path.read_field_paths]
+    P0 --> P7[combatlog ingestion]
+    P0 --> P8[game event ingestion]
+    P0 --> P9[extractors polling/updates]
+    P0 --> P10[_CombatAggregator.on_entry]
+    P0 --> P11[build_parsed_match]
+    P11 --> P12[ParsedMatch]
+    P12 --> P13[parse_to_dataframe]
+```
+
+### Data model relationships (ER view)
+
+```mermaid
+erDiagram
+    ParsedMatch ||--o{ ParsedPlayer : contains
+    ParsedMatch ||--o{ Teamfight : has
+    ParsedMatch ||--o{ CombatLogEntry : includes
+    ParsedMatch ||--o{ WardEvent : includes
+    ParsedMatch ||--o{ ObjectiveEvent : includes
+    ParsedMatch ||--o{ CourierEvent : includes
+    ParsedMatch ||--o{ DraftEvent : includes
+
+    ParsedPlayer ||--o{ WardEvent : places_or_destroys
+    ParsedPlayer ||--o{ CombatLogEntry : attributed_events
+    Teamfight ||--o{ TeamfightPlayer : participants
+
+    EntityState ||--o{ FieldValue : stores
+    CombatLogEntry }o--|| ParsedPlayer : actor_target_attribution
+```
 
 ---
 
