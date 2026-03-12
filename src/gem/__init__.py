@@ -17,6 +17,8 @@ from typing import TYPE_CHECKING
 import gem.constants as constants  # re-export so `gem.constants.hero_display()` works
 from gem.models import ChatEntry, ParsedMatch, ParsedPlayer
 
+__version__ = "0.1.0"
+
 if TYPE_CHECKING:
     import pandas as pd
 
@@ -105,4 +107,12 @@ def parse_to_dataframe(path: str | Path) -> dict[str, pd.DataFrame]:
 
 
 # Re-export for convenience
-__all__ = ["parse", "parse_to_dataframe", "ParsedMatch", "ParsedPlayer", "constants"]
+__all__ = [
+    "__version__",
+    "parse",
+    "parse_to_dataframe",
+    "ParsedMatch",
+    "ParsedPlayer",
+    "ChatEntry",
+    "constants",
+]

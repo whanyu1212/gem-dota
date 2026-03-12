@@ -1,12 +1,26 @@
 [project]
 name = "gem-dota"
 version = "0.1.0"
-description = "Add your description here"
+description = "Dota 2 Source 2 replay parser for data science and ML workflows"
 readme = "README.md"
+license = { text = "MIT" }
 authors = [
     { name = "whanyu1212", email = "whanyu1212@hotmail.com" }
 ]
 requires-python = ">=3.10"
+keywords = ["dota2", "replay", "parser", "esports", "dem", "source2"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Games/Entertainment",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
 dependencies = [
     "numpy>=2.2.6",
     "pandas>=2.3.3",
@@ -16,6 +30,11 @@ dependencies = [
     "protoc-wheel-0>=30.2",
     "python-snappy>=0.7.3",
 ]
+
+[project.urls]
+Homepage = "https://github.com/whanyu1212/gem"
+Repository = "https://github.com/whanyu1212/gem"
+Issues = "https://github.com/whanyu1212/gem/issues"
 
 [build-system]
 requires = ["uv_build>=0.9.8,<0.10.0"]

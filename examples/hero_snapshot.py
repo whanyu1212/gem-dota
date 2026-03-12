@@ -26,47 +26,47 @@ ATTR_NAMES = {0: "Strength", 1: "Agility", 2: "Intelligence", 3: "Universal"}
 
 def world_pos(entity: Entity) -> tuple[float, float, float]:
     """Convert cell + sub-cell offset to world coordinates."""
-    cx, _ = entity.get_int32("CBodyComponent.m_cellX")
-    cy, _ = entity.get_int32("CBodyComponent.m_cellY")
-    cz, _ = entity.get_int32("CBodyComponent.m_cellZ")
-    vx, _ = entity.get_float32("CBodyComponent.m_vecX")
-    vy, _ = entity.get_float32("CBodyComponent.m_vecY")
-    vz, _ = entity.get_float32("CBodyComponent.m_vecZ")
+    cx = entity.get_int32("CBodyComponent.m_cellX") or 0
+    cy = entity.get_int32("CBodyComponent.m_cellY") or 0
+    cz = entity.get_int32("CBodyComponent.m_cellZ") or 0
+    vx = entity.get_float32("CBodyComponent.m_vecX") or 0.0
+    vy = entity.get_float32("CBodyComponent.m_vecY") or 0.0
+    vz = entity.get_float32("CBodyComponent.m_vecZ") or 0.0
     return (cx * _CELL_SIZE + vx, cy * _CELL_SIZE + vy, cz * _CELL_SIZE + vz)
 
 
 def print_hero(entity: Entity) -> None:
     name = entity.get_class_name()
-    team, _ = entity.get_int32("m_iTeamNum")
-    player_id, _ = entity.get_int32("m_iPlayerID")
-    level, _ = entity.get_int32("m_iCurrentLevel")
-    xp, _ = entity.get_int32("m_iCurrentXP")
+    team = entity.get_int32("m_iTeamNum") or 0
+    player_id = entity.get_int32("m_iPlayerID") or 0
+    level = entity.get_int32("m_iCurrentLevel") or 0
+    xp = entity.get_int32("m_iCurrentXP") or 0
 
-    hp, _ = entity.get_int32("m_iHealth")
-    max_hp, _ = entity.get_int32("m_iMaxHealth")
-    hp_regen, _ = entity.get_float32("m_flHealthRegen")
-    mana, _ = entity.get_float32("m_flMana")
-    max_mana, _ = entity.get_float32("m_flMaxMana")
-    mana_regen, _ = entity.get_float32("m_flManaRegen")
+    hp = entity.get_int32("m_iHealth") or 0
+    max_hp = entity.get_int32("m_iMaxHealth") or 0
+    hp_regen = entity.get_float32("m_flHealthRegen") or 0.0
+    mana = entity.get_float32("m_flMana") or 0.0
+    max_mana = entity.get_float32("m_flMaxMana") or 0.0
+    mana_regen = entity.get_float32("m_flManaRegen") or 0.0
 
-    str_base, _ = entity.get_float32("m_flStrength")
-    agi_base, _ = entity.get_float32("m_flAgility")
-    int_base, _ = entity.get_float32("m_flIntellect")
-    str_total, _ = entity.get_float32("m_flStrengthTotal")
-    agi_total, _ = entity.get_float32("m_flAgilityTotal")
-    int_total, _ = entity.get_float32("m_flIntellectTotal")
-    primary, _ = entity.get_int32("m_iPrimaryAttribute")
+    str_base = entity.get_float32("m_flStrength") or 0.0
+    agi_base = entity.get_float32("m_flAgility") or 0.0
+    int_base = entity.get_float32("m_flIntellect") or 0.0
+    str_total = entity.get_float32("m_flStrengthTotal") or 0.0
+    agi_total = entity.get_float32("m_flAgilityTotal") or 0.0
+    int_total = entity.get_float32("m_flIntellectTotal") or 0.0
+    primary = entity.get_int32("m_iPrimaryAttribute") or 0
 
-    dmg_min, _ = entity.get_int32("m_iDamageMin")
-    dmg_max, _ = entity.get_int32("m_iDamageMax")
-    attack_range, _ = entity.get_int32("m_iAttackRange")
-    bat, _ = entity.get_float32("m_flBaseAttackTime")
-    move_speed, _ = entity.get_int32("m_iMoveSpeed")
-    armor, _ = entity.get_float32("m_flPhysicalArmorValue")
-    magic_resist, _ = entity.get_float32("m_flMagicalResistanceValue")
+    dmg_min = entity.get_int32("m_iDamageMin") or 0
+    dmg_max = entity.get_int32("m_iDamageMax") or 0
+    attack_range = entity.get_int32("m_iAttackRange") or 0
+    bat = entity.get_float32("m_flBaseAttackTime") or 0.0
+    move_speed = entity.get_int32("m_iMoveSpeed") or 0
+    armor = entity.get_float32("m_flPhysicalArmorValue") or 0.0
+    magic_resist = entity.get_float32("m_flMagicalResistanceValue") or 0.0
 
-    day_vision, _ = entity.get_int32("m_iDayTimeVisionRange")
-    night_vision, _ = entity.get_int32("m_iNightTimeVisionRange")
+    day_vision = entity.get_int32("m_iDayTimeVisionRange") or 0
+    night_vision = entity.get_int32("m_iNightTimeVisionRange") or 0
 
     wx, wy, wz = world_pos(entity)
 
@@ -117,19 +117,19 @@ def main(dem_path: str) -> None:
         print("No heroes found — replay may be truncated.")
         return
 
-    radiant = [e for e in heroes.values() if e.get_int32("m_iTeamNum")[0] == 2]
-    dire = [e for e in heroes.values() if e.get_int32("m_iTeamNum")[0] == 3]
+    radiant = [e for e in heroes.values() if e.get_int32("m_iTeamNum") == 2]
+    dire = [e for e in heroes.values() if e.get_int32("m_iTeamNum") == 3]
 
     print(f"{'═' * 60}")
     print(f"  RADIANT  ({len(radiant)} heroes)")
     print(f"{'═' * 60}\n")
-    for e in sorted(radiant, key=lambda e: e.get_int32("m_iPlayerID")[0]):
+    for e in sorted(radiant, key=lambda e: e.get_int32("m_iPlayerID") or 0):
         print_hero(e)
 
     print(f"{'═' * 60}")
     print(f"  DIRE  ({len(dire)} heroes)")
     print(f"{'═' * 60}\n")
-    for e in sorted(dire, key=lambda e: e.get_int32("m_iPlayerID")[0]):
+    for e in sorted(dire, key=lambda e: e.get_int32("m_iPlayerID") or 0):
         print_hero(e)
 
     print(f"Game build: {parser.game_build}")

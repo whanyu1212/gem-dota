@@ -48,30 +48,29 @@ _CELL_SIZE = 128  # Source 2 world units per cell
 
 
 def _team(entity: Entity) -> str:
-    team, ok = entity.get_int32("m_iTeamNum")
-    return TEAM_NAMES.get(team, f"Team{team}") if ok else "?"
+    team = entity.get_int32("m_iTeamNum")
+    return TEAM_NAMES.get(team, f"Team{team}") if team is not None else "?"
 
 
 def _hp(entity: Entity) -> tuple[int, int]:
-    hp, _ = entity.get_int32("m_iHealth")
-    max_hp, _ = entity.get_int32("m_iMaxHealth")
+    hp = entity.get_int32("m_iHealth") or 0
+    max_hp = entity.get_int32("m_iMaxHealth") or 0
     return hp, max_hp
 
 
 def _mana(entity: Entity) -> tuple[float, float]:
-    mp, _ = entity.get_float32("m_flMana")
-    max_mp, _ = entity.get_float32("m_flMaxMana")
+    mp = entity.get_float32("m_flMana") or 0.0
+    max_mp = entity.get_float32("m_flMaxMana") or 0.0
     return mp, max_mp
 
 
 def _is_alive(entity: Entity) -> bool:
-    life, ok = entity.get_int32("m_lifeState")
-    return not ok or life != DEAD
+    life = entity.get_int32("m_lifeState")
+    return life is None or life != DEAD
 
 
 def _player_id(entity: Entity) -> int:
-    pid, _ = entity.get_int32("m_nPlayerOwnerID")
-    return pid
+    return entity.get_int32("m_nPlayerOwnerID") or 0
 
 
 def _pos(entity: Entity) -> tuple[float, float] | None:
@@ -80,11 +79,11 @@ def _pos(entity: Entity) -> tuple[float, float] | None:
     Source 2 stores position as a cell index (uint16) plus a quantized float
     offset within that cell:  world_coord = cell * 128 + vec.
     """
-    cell_x, ok_cx = entity.get_int32("CBodyComponent.m_cellX")
-    cell_y, ok_cy = entity.get_int32("CBodyComponent.m_cellY")
-    vec_x, ok_vx = entity.get_float32("CBodyComponent.m_vecX")
-    vec_y, ok_vy = entity.get_float32("CBodyComponent.m_vecY")
-    if not (ok_cx and ok_cy and ok_vx and ok_vy):
+    cell_x = entity.get_int32("CBodyComponent.m_cellX")
+    cell_y = entity.get_int32("CBodyComponent.m_cellY")
+    vec_x = entity.get_float32("CBodyComponent.m_vecX")
+    vec_y = entity.get_float32("CBodyComponent.m_vecY")
+    if cell_x is None or cell_y is None or vec_x is None or vec_y is None:
         return None
     return (cell_x * _CELL_SIZE + vec_x, cell_y * _CELL_SIZE + vec_y)
 
@@ -240,15 +239,15 @@ class EntityStatePoller:
         for entity in self.heroes.values():
             hp, max_hp = _hp(entity)
             mp, max_mp = _mana(entity)
-            level, _ = entity.get_int32("m_iCurrentLevel")
-            xp, _ = entity.get_int32("m_iCurrentXP")
+            level = entity.get_int32("m_iCurrentLevel") or 0
+            xp = entity.get_int32("m_iCurrentXP") or 0
             xp_next = xp_to_next_level(level, xp)
-            dmg_min, _ = entity.get_int32("m_iDamageMin")
-            dmg_max, _ = entity.get_int32("m_iDamageMax")
-            move, _ = entity.get_int32("m_iMoveSpeed")
-            str_total, _ = entity.get_float32("m_flStrengthTotal")
-            agi_total, _ = entity.get_float32("m_flAgilityTotal")
-            int_total, _ = entity.get_float32("m_flIntellectTotal")
+            dmg_min = entity.get_int32("m_iDamageMin") or 0
+            dmg_max = entity.get_int32("m_iDamageMax") or 0
+            move = entity.get_int32("m_iMoveSpeed") or 0
+            str_total = entity.get_float32("m_flStrengthTotal") or 0.0
+            agi_total = entity.get_float32("m_flAgilityTotal") or 0.0
+            int_total = entity.get_float32("m_flIntellectTotal") or 0.0
             npc_name = entity.get_class_name().replace("CDOTA_Unit_Hero_", "npc_dota_hero_").lower()
 
             self.hero_snapshots.append(

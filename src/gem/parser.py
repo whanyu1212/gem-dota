@@ -200,8 +200,8 @@ class ReplayParser:
             return
         if entity.get_class_name() != "CDOTAGamerulesProxy":
             return
-        v, ok = entity.get_float32("m_pGameRules.m_flGameStartTime")
-        if not ok or v == 0.0:
+        v = entity.get_float32("m_pGameRules.m_flGameStartTime")
+        if v is None or v == 0.0:
             return
         self._grp_game_start_seen = True
         self.game_start_tick = self.tick
@@ -304,26 +304,26 @@ class ReplayParser:
             grp = self.entity_manager.find_by_class_name("CDOTAGamerulesProxy")
             if grp is not None:
                 if not self.match_id:
-                    v, ok = grp.get_uint32("m_pGameRules.m_unMatchID64")
-                    if ok and v:
+                    v = grp.get_uint32("m_pGameRules.m_unMatchID64")
+                    if v:
                         self.match_id = v
                 if not self.game_mode:
-                    v, ok = grp.get_int32("m_pGameRules.m_iGameMode")
-                    if ok and v:
+                    v = grp.get_int32("m_pGameRules.m_iGameMode")
+                    if v:
                         self.game_mode = v
                 if not self.leagueid:
-                    v, ok = grp.get_uint32("m_pGameRules.m_unLeagueID")
-                    if ok and v:
+                    v = grp.get_uint32("m_pGameRules.m_unLeagueID")
+                    if v:
                         self.leagueid = v
                 # Fallback for radiant_win when CDemoFileInfo.game_winner == 0
                 # (common in tournament/HLTV replays). Uses EMatchOutcome:
                 # 2 = RadVictory, 3 = DireVictory.
                 # Reference: refs/manta/dota/dota_shared_enums.proto
                 if self.radiant_win is None:
-                    v, ok = grp.get_int32("m_pGameRules.m_nGameWinner")
-                    if ok and v == 2:
+                    v = grp.get_int32("m_pGameRules.m_nGameWinner")
+                    if v == 2:
                         self.radiant_win = True
-                    elif ok and v == 3:
+                    elif v == 3:
                         self.radiant_win = False
 
     # ------------------------------------------------------------------

@@ -69,11 +69,11 @@ def _pos(entity: Entity) -> tuple[float, float] | None:
     Returns:
         ``(x, y)`` world coordinates, or ``None`` if any field is missing.
     """
-    cell_x, ok_cx = entity.get_uint32("CBodyComponent.m_cellX")
-    cell_y, ok_cy = entity.get_uint32("CBodyComponent.m_cellY")
-    vec_x, ok_vx = entity.get_float32("CBodyComponent.m_vecX")
-    vec_y, ok_vy = entity.get_float32("CBodyComponent.m_vecY")
-    if not (ok_cx and ok_cy and ok_vx and ok_vy):
+    cell_x = entity.get_uint32("CBodyComponent.m_cellX")
+    cell_y = entity.get_uint32("CBodyComponent.m_cellY")
+    vec_x = entity.get_float32("CBodyComponent.m_vecX")
+    vec_y = entity.get_float32("CBodyComponent.m_vecY")
+    if cell_x is None or cell_y is None or vec_x is None or vec_y is None:
         return None
     return (cell_x * _CELL_SIZE + vec_x, cell_y * _CELL_SIZE + vec_y)
 
@@ -322,8 +322,8 @@ class WardsExtractor:
                 self._prev_lifestate.pop(idx, None)
                 return
 
-            life_state, ls_ok = entity.get_int32("m_lifeState")
-            if not ls_ok:
+            life_state = entity.get_int32("m_lifeState")
+            if life_state is None:
                 # No lifeState field — treat CREATED as alive, others as unknown
                 life_state = 0 if op.has(EntityOp.CREATED) else 2
 
@@ -343,7 +343,7 @@ class WardsExtractor:
                 pos = _pos(entity)
                 if pos is None:
                     return
-                team, _ = entity.get_int32("m_iTeamNum")
+                team = entity.get_int32("m_iTeamNum") or 0
                 state = _SpawnState(
                     spawn_tick=tick,
                     ward_type=ward_type,
@@ -432,14 +432,14 @@ class WardsExtractor:
         player_id = -1
         team = 0
         if hero is not None:
-            pid, ok = hero.get_int32("m_nPlayerID")
-            if not ok:
-                pid, ok = hero.get_int32("m_iPlayerID")
-            if ok and pid >= 0:
+            pid = hero.get_int32("m_nPlayerID")
+            if pid is None:
+                pid = hero.get_int32("m_iPlayerID")
+            if pid is not None and pid >= 0:
                 pid //= 2
                 player_id = pid
-            t, ok_t = hero.get_int32("m_iTeamNum")
-            if ok_t:
+            t = hero.get_int32("m_iTeamNum")
+            if t is not None:
                 team = t
 
         # Ward expiry: observer ~6 min (720 ticks), sentry ~3 min (360 ticks)

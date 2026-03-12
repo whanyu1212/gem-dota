@@ -83,42 +83,36 @@ class TestEntityState:
     def test_get_int32(self, entity_cls):
         e = self._make_entity(entity_cls)
         e._state["m_iHealth"] = 200
-        val, ok = e.get_int32("m_iHealth")
-        assert ok is True
+        val = e.get_int32("m_iHealth")
         assert val == 200
 
     def test_get_int32_missing(self, entity_cls):
         e = self._make_entity(entity_cls)
-        val, ok = e.get_int32("m_iHealth")
-        assert ok is False
-        assert val == 0
+        val = e.get_int32("m_iHealth")
+        assert val is None
 
     def test_get_float32(self, entity_cls):
         e = self._make_entity(entity_cls)
         e._state["m_flMoveSpeed"] = 300.0
-        val, ok = e.get_float32("m_flMoveSpeed")
-        assert ok is True
+        val = e.get_float32("m_flMoveSpeed")
         assert val == pytest.approx(300.0)
 
     def test_get_string(self, entity_cls):
         e = self._make_entity(entity_cls)
         e._state["m_iName"] = "npc_dota_hero_axe"
-        val, ok = e.get_string("m_iName")
-        assert ok is True
+        val = e.get_string("m_iName")
         assert val == "npc_dota_hero_axe"
 
     def test_get_bool(self, entity_cls):
         e = self._make_entity(entity_cls)
         e._state["m_bIsWaitingForChampionSelect"] = True
-        val, ok = e.get_bool("m_bIsWaitingForChampionSelect")
-        assert ok is True
+        val = e.get_bool("m_bIsWaitingForChampionSelect")
         assert val is True
 
     def test_get_uint32_from_uint64(self, entity_cls):
         e = self._make_entity(entity_cls)
         e._state["m_nHandle"] = 0xDEADBEEF
-        val, ok = e.get_uint32("m_nHandle")
-        assert ok is True
+        val = e.get_uint32("m_nHandle")
         assert val == 0xDEADBEEF
 
     def test_map_returns_all_fields(self, entity_cls):
@@ -295,66 +289,58 @@ class TestFieldState:
 
 
 class TestEntityTypedGetters:
-    def test_get_int32_from_float_returns_false(self):
+    def test_get_int32_from_float_returns_none(self):
         e = _entity()
         e._state["x"] = 1.5
-        val, ok = e.get_int32("x")
-        assert not ok
-        assert val == 0
+        val = e.get_int32("x")
+        assert val is None
 
     def test_get_float32_from_int_succeeds(self):
         e = _entity()
         e._state["x"] = 5
-        val, ok = e.get_float32("x")
-        assert ok
+        val = e.get_float32("x")
         assert val == pytest.approx(5.0)
 
-    def test_get_string_from_int_returns_false(self):
+    def test_get_string_from_int_returns_none(self):
         e = _entity()
         e._state["x"] = 42
-        val, ok = e.get_string("x")
-        assert not ok
-        assert val == ""
+        val = e.get_string("x")
+        assert val is None
 
     def test_get_bool_from_zero_is_false(self):
         e = _entity()
         e._state["x"] = 0
-        val, ok = e.get_bool("x")
-        assert ok
+        val = e.get_bool("x")
         assert val is False
 
     def test_get_bool_from_nonzero_is_true(self):
         e = _entity()
         e._state["x"] = 1
-        val, ok = e.get_bool("x")
-        assert ok
+        val = e.get_bool("x")
         assert val is True
 
-    def test_get_bool_from_string_returns_false(self):
+    def test_get_bool_from_string_returns_none(self):
         e = _entity()
         e._state["x"] = "yes"
-        val, ok = e.get_bool("x")
-        assert not ok
+        val = e.get_bool("x")
+        assert val is None
 
     def test_get_uint32_truncates_high_bits(self):
         e = _entity()
         e._state["h"] = 0x1_DEAD_BEEF
-        val, ok = e.get_uint32("h")
-        assert ok
+        val = e.get_uint32("h")
         assert val == 0xDEAD_BEEF
 
     def test_get_uint64_returns_full_value(self):
         e = _entity()
         e._state["h"] = 0xDEAD_BEEF_CAFE_1234
-        val, ok = e.get_uint64("h")
-        assert ok
+        val = e.get_uint64("h")
         assert val == 0xDEAD_BEEF_CAFE_1234
 
-    def test_get_uint64_missing_returns_false(self):
+    def test_get_uint64_missing_returns_none(self):
         e = _entity()
-        val, ok = e.get_uint64("missing")
-        assert not ok
-        assert val == 0
+        val = e.get_uint64("missing")
+        assert val is None
 
     def test_repr(self):
         e = _entity("MyClass", index=7)

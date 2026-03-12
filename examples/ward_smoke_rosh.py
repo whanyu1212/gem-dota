@@ -69,17 +69,17 @@ _ROSH_RESPAWN_MAX_TICKS = 11 * 60 * 30
 
 
 def _team(entity: Entity) -> str:
-    team, ok = entity.get_int32("m_iTeamNum")
-    return TEAM_NAMES.get(team, f"Team{team}") if ok else "?"
+    team = entity.get_int32("m_iTeamNum")
+    return TEAM_NAMES.get(team, f"Team{team}") if team is not None else "?"
 
 
 def _pos(entity: Entity) -> tuple[float, float] | None:
     """Return world (x, y) from cell+vec encoding, or None."""
-    cell_x, ok_cx = entity.get_int32("CBodyComponent.m_cellX")
-    cell_y, ok_cy = entity.get_int32("CBodyComponent.m_cellY")
-    vec_x, ok_vx = entity.get_float32("CBodyComponent.m_vecX")
-    vec_y, ok_vy = entity.get_float32("CBodyComponent.m_vecY")
-    if not (ok_cx and ok_cy and ok_vx and ok_vy):
+    cell_x = entity.get_int32("CBodyComponent.m_cellX")
+    cell_y = entity.get_int32("CBodyComponent.m_cellY")
+    vec_x = entity.get_float32("CBodyComponent.m_vecX")
+    vec_y = entity.get_float32("CBodyComponent.m_vecY")
+    if cell_x is None or cell_y is None or vec_x is None or vec_y is None:
         return None
     return (cell_x * _CELL_SIZE + vec_x, cell_y * _CELL_SIZE + vec_y)
 

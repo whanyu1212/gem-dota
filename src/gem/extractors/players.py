@@ -138,11 +138,11 @@ class PlayerExtractor:
         if pr is not None:
             for i in range(10):
                 prefix = f"m_vecPlayerTeamData.{i:04d}"
-                k, ok_k = pr.get_int32(f"{prefix}.m_iKills")
-                d, ok_d = pr.get_int32(f"{prefix}.m_iDeaths")
-                a, ok_a = pr.get_int32(f"{prefix}.m_iAssists")
-                if ok_k or ok_d or ok_a:
-                    self.scoreboard[i] = (k if ok_k else 0, d if ok_d else 0, a if ok_a else 0)
+                k = pr.get_int32(f"{prefix}.m_iKills")
+                d = pr.get_int32(f"{prefix}.m_iDeaths")
+                a = pr.get_int32(f"{prefix}.m_iAssists")
+                if k is not None or d is not None or a is not None:
+                    self.scoreboard[i] = (k or 0, d or 0, a or 0)
 
     def hero_pos(self, npc_name: str) -> tuple[float, float] | None:
         """Return the current world position of a hero by NPC name.
@@ -254,10 +254,10 @@ class PlayerExtractor:
                 self._maybe_sample()
 
         elif cls == "CDOTAPlayerController":
-            pid, ok = entity.get_int32("m_nPlayerID")
-            if not ok:
-                pid, ok = entity.get_int32("m_iPlayerID")
-            if ok and pid >= 0:
+            pid = entity.get_int32("m_nPlayerID")
+            if pid is None:
+                pid = entity.get_int32("m_iPlayerID")
+            if pid is not None and pid >= 0:
                 pid //= 2
                 if op.has(EntityOp.DELETED):
                     self._controllers.pop(pid, None)
@@ -283,8 +283,8 @@ class PlayerExtractor:
         if pr is None:
             return
         for i in range(10):
-            slot, ok = pr.get_int32(f"m_vecPlayerTeamData.{i:04d}.m_iTeamSlot")
-            if ok and slot >= 0:
+            slot = pr.get_int32(f"m_vecPlayerTeamData.{i:04d}.m_iTeamSlot")
+            if slot is not None and slot >= 0:
                 self._player_team_slot[i] = slot
 
     def _maybe_sample(self) -> None:
@@ -325,8 +325,8 @@ class PlayerExtractor:
             # The camelCase→snake_case conversion in _snapshot_hero inserts word
             # boundaries at every capital letter, which is wrong for compound names.
             if entity_names is not None:
-                name_idx, ok = entity.get_int32("m_pEntity.m_nameStringableIndex")
-                if ok and name_idx >= 0:
+                name_idx = entity.get_int32("m_pEntity.m_nameStringableIndex")
+                if name_idx is not None and name_idx >= 0:
                     item = entity_names.items.get(name_idx)
                     if item is not None:
                         snap.npc_name = item[0]
@@ -335,11 +335,11 @@ class PlayerExtractor:
             # m_iNetWorth = gold + item value (also on controller for convenience).
             ctrl = self._controllers.get(snap.player_id)
             if ctrl is not None:
-                gold, ok_g = ctrl.get_int32("m_iGold")
-                nw, ok_nw = ctrl.get_int32("m_iNetWorth")
-                if ok_g:
+                gold = ctrl.get_int32("m_iGold")
+                nw = ctrl.get_int32("m_iNetWorth")
+                if gold is not None:
                     snap.gold = gold
-                if ok_nw:
+                if nw is not None:
                     snap.net_worth = nw
             # Overlay authoritative cumulative stats from CDOTA_DataRadiant/Dire.
             # These are the canonical sources for advantage curves — they differ
@@ -360,22 +360,22 @@ class PlayerExtractor:
                 # Prefer authoritative team slot; fall back to pid % 5
                 team_slot = self._player_team_slot.get(snap.player_id, snap.player_id % 5)
                 prefix = f"m_vecDataTeam.{team_slot:04d}"
-                nw, ok_nw = data_entity.get_int32(f"{prefix}.m_iNetWorth")
-                if ok_nw and nw > 0:
+                nw = data_entity.get_int32(f"{prefix}.m_iNetWorth")
+                if nw is not None and nw > 0:
                     snap.net_worth = nw
-                teg, ok_teg = data_entity.get_int32(f"{prefix}.m_iTotalEarnedGold")
-                if ok_teg and teg > 0:
+                teg = data_entity.get_int32(f"{prefix}.m_iTotalEarnedGold")
+                if teg is not None and teg > 0:
                     snap.total_earned_gold = teg
                     if snap.gold == 0:
                         snap.gold = teg
-                tex, ok_tex = data_entity.get_int32(f"{prefix}.m_iTotalEarnedXP")
-                if ok_tex and tex > 0:
+                tex = data_entity.get_int32(f"{prefix}.m_iTotalEarnedXP")
+                if tex is not None and tex > 0:
                     snap.total_earned_xp = tex
-                lh, ok_lh = data_entity.get_int32(f"{prefix}.m_iLastHitCount")
-                if ok_lh and lh > 0:
+                lh = data_entity.get_int32(f"{prefix}.m_iLastHitCount")
+                if lh is not None and lh > 0:
                     snap.lh = lh
-                dn, ok_dn = data_entity.get_int32(f"{prefix}.m_iDenyCount")
-                if ok_dn and dn > 0:
+                dn = data_entity.get_int32(f"{prefix}.m_iDenyCount")
+                if dn is not None and dn > 0:
                     snap.dn = dn
             snap.ability_levels = self._read_abilities(entity)
             if minute:
@@ -409,16 +409,16 @@ class PlayerExtractor:
 
         result: dict[str, int] = {}
         for slot in range(_ABILITY_SLOTS):
-            handle, ok = hero.get_uint32(f"m_hAbilities.{slot:04d}")
-            if not ok:
-                handle, ok = hero.get_uint32(f"m_vecAbilities.{slot:04d}")
-            if not ok or handle == _NULL_HANDLE:
+            handle = hero.get_uint32(f"m_hAbilities.{slot:04d}")
+            if handle is None:
+                handle = hero.get_uint32(f"m_vecAbilities.{slot:04d}")
+            if handle is None or handle == _NULL_HANDLE:
                 continue
             ability_entity = em.find_by_handle(handle)
             if ability_entity is None:
                 continue
-            name_idx, ok2 = ability_entity.get_int32("m_pEntity.m_nameStringableIndex")
-            if not ok2 or name_idx < 0:
+            name_idx = ability_entity.get_int32("m_pEntity.m_nameStringableIndex")
+            if name_idx is None or name_idx < 0:
                 continue
             item = entity_names.items.get(name_idx)
             if item is None:
@@ -426,7 +426,7 @@ class PlayerExtractor:
             name = item[0] if isinstance(item, tuple) else str(item)
             if not name:
                 continue
-            level, _ = ability_entity.get_int32("m_iLevel")
+            level = ability_entity.get_int32("m_iLevel") or 0
             if level > 0:
                 result[name] = level
         return result
@@ -455,14 +455,14 @@ class PlayerExtractor:
 
         result: dict[int, str] = {}
         for slot in range(_ITEM_SLOTS):
-            handle, ok = hero.get_uint32(f"m_hItems.{slot:04d}")
-            if not ok or handle == _NULL_HANDLE:
+            handle = hero.get_uint32(f"m_hItems.{slot:04d}")
+            if handle is None or handle == _NULL_HANDLE:
                 continue
             item_entity = em.find_by_handle(handle)
             if item_entity is None:
                 continue
-            name_idx, ok2 = item_entity.get_int32("m_pEntity.m_nameStringableIndex")
-            if not ok2 or name_idx < 0:
+            name_idx = item_entity.get_int32("m_pEntity.m_nameStringableIndex")
+            if name_idx is None or name_idx < 0:
                 continue
             # EntityNames items are stored as (key_str, value_bytes); key_str is the name
             item = entity_names.items.get(name_idx)

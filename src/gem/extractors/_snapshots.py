@@ -36,11 +36,11 @@ def _pos(entity: Entity) -> tuple[float, float] | None:
     Returns:
         ``(x, y)`` world coordinates, or ``None`` if any field is missing.
     """
-    cell_x, ok_cx = entity.get_uint32("CBodyComponent.m_cellX")
-    cell_y, ok_cy = entity.get_uint32("CBodyComponent.m_cellY")
-    vec_x, ok_vx = entity.get_float32("CBodyComponent.m_vecX")
-    vec_y, ok_vy = entity.get_float32("CBodyComponent.m_vecY")
-    if not (ok_cx and ok_cy and ok_vx and ok_vy):
+    cell_x = entity.get_uint32("CBodyComponent.m_cellX")
+    cell_y = entity.get_uint32("CBodyComponent.m_cellY")
+    vec_x = entity.get_float32("CBodyComponent.m_vecX")
+    vec_y = entity.get_float32("CBodyComponent.m_vecY")
+    if cell_x is None or cell_y is None or vec_x is None or vec_y is None:
         return None
     return (cell_x * _CELL_SIZE + vec_x, cell_y * _CELL_SIZE + vec_y)
 
@@ -57,22 +57,22 @@ def _snapshot_hero(entity: Entity, tick: int) -> PlayerStateSnapshot | None:
     """
     # m_nPlayerID (post-7.31) or m_iPlayerID (pre-7.31) — raw value is doubled;
     # divide by 2 to get player slot 0-9. Reference: opendota/Parse.java getPlayerSlotFromEntity()
-    player_id, ok = entity.get_int32("m_nPlayerID")
-    if not ok:
-        player_id, ok = entity.get_int32("m_iPlayerID")
-    if not ok or player_id < 0:
+    player_id = entity.get_int32("m_nPlayerID")
+    if player_id is None:
+        player_id = entity.get_int32("m_iPlayerID")
+    if player_id is None or player_id < 0:
         return None
     player_id //= 2
 
-    team, _ = entity.get_int32("m_iTeamNum")
-    level, _ = entity.get_int32("m_nCurrentLevel")
-    xp, _ = entity.get_int32("m_iCurrentXP")
-    hp, _ = entity.get_int32("m_iHealth")
-    max_hp, _ = entity.get_int32("m_iMaxHealth")
-    mana, _ = entity.get_float32("m_flMana")
-    max_mana, _ = entity.get_float32("m_flMaxMana")
-    lh, _ = entity.get_int32("m_iLastHitCount")
-    dn, _ = entity.get_int32("m_iDenies")
+    team = entity.get_int32("m_iTeamNum") or 0
+    level = entity.get_int32("m_nCurrentLevel") or 0
+    xp = entity.get_int32("m_iCurrentXP") or 0
+    hp = entity.get_int32("m_iHealth") or 0
+    max_hp = entity.get_int32("m_iMaxHealth") or 0
+    mana = entity.get_float32("m_flMana") or 0.0
+    max_mana = entity.get_float32("m_flMaxMana") or 0.0
+    lh = entity.get_int32("m_iLastHitCount") or 0
+    dn = entity.get_int32("m_iDenies") or 0
 
     pos = _pos(entity)
 
