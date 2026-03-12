@@ -546,3 +546,17 @@ class TestWardLifespanConstants:
         from gem.extractors.wards import _OBSERVER_LIFESPAN_TICKS, _SENTRY_LIFESPAN_TICKS
 
         assert _OBSERVER_LIFESPAN_TICKS > _SENTRY_LIFESPAN_TICKS
+
+
+# ---------------------------------------------------------------------------
+# WardsExtractor.attach
+# ---------------------------------------------------------------------------
+
+
+class TestWardsExtractorAttach:
+    def test_attach_registers_both_callbacks(self):
+        ext = WardsExtractor()
+        parser = FakeParser()
+        ext.attach(parser)
+        assert len(parser._cl_handlers) == 1
+        assert len(parser._ent_handlers) == 1

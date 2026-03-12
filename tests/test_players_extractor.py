@@ -716,3 +716,46 @@ class TestHeroClassPrefix:
         src = inspect.getsource(pm)
         # The raw string literal should appear at most once (the definition line)
         assert src.count('"CDOTA_Unit_Hero_"') <= 1
+
+
+# ---------------------------------------------------------------------------
+# PlayerExtractor — attach and snapshot field coverage
+# ---------------------------------------------------------------------------
+
+
+class TestPlayerExtractorAttach:
+    def test_attach_registers_entity_callback(self):
+        ext = PlayerExtractor()
+        parser = FakeParser()
+        ext.attach(parser)
+        assert len(parser._handlers) == 1
+
+    def test_snapshot_fields_from_entity_state(self):
+        ext = PlayerExtractor(sample_interval=1)
+        parser = FakeParser(tick=300)
+        ext.attach(parser)
+        hero = _ent(
+            "CDOTA_Unit_Hero_Juggernaut",
+            **{
+                "m_nPlayerID": 2,  # player_id 1
+                "m_iTeamNum": 3,
+                "m_nCurrentLevel": 10,
+                "m_iCurrentXP": 5000,
+                "m_iHealth": 600,
+                "m_iMaxHealth": 800,
+                "m_flMana": 200.0,
+                "m_flMaxMana": 400.0,
+                "m_iLastHitCount": 50,
+                "m_iDenies": 7,
+            },
+        )
+        ext._on_entity(hero, EntityOp.CREATED_ENTERED)
+        snap = ext.snapshots[-1]
+        assert snap.player_id == 1
+        assert snap.team == 3
+        assert snap.level == 10
+        assert snap.xp == 5000
+        assert snap.hp == 600
+        assert snap.lh == 50
+        assert snap.dn == 7
+        assert snap.tick == 300
