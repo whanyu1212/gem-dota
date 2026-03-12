@@ -19,12 +19,13 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
-from gem.field_path import FieldPath, read_field_paths
+from gem.field_path import FieldPath
+from gem.field_reader import read_fields
+from gem.field_state import FieldState
 from gem.reader import BitReader
 from gem.sendtable import (
     FIELD_MODEL_FIXED_ARRAY,
     FIELD_MODEL_FIXED_TABLE,
-    FIELD_MODEL_SIMPLE,
     FIELD_MODEL_VARIABLE_ARRAY,
     FIELD_MODEL_VARIABLE_TABLE,
     Field,
@@ -71,130 +72,6 @@ class EntityOp(enum.IntFlag):
             True if the flag is set.
         """
         return bool(self & other)
-
-
-# ---------------------------------------------------------------------------
-# FieldState — nested list tree mirroring manta/field_state.go
-# ---------------------------------------------------------------------------
-
-
-class FieldState:
-    """Nested mutable tree that stores decoded field values.
-
-    The tree mirrors ``manta/field_state.go``: each node is a list of
-    ``Any``, where a slot may hold a leaf value or a child ``FieldState``.
-    Paths from ``read_field_paths`` index into this tree.
-    """
-
-    __slots__ = ("_state",)
-
-    def __init__(self) -> None:
-        self._state: list[Any] = [None] * 8
-
-    def _ensure(self, idx: int) -> None:
-        if len(self._state) < idx + 2:
-            new_len = max(idx + 2, len(self._state) * 2)
-            self._state.extend([None] * (new_len - len(self._state)))
-
-    def get(self, fp: FieldPath) -> Any:
-        """Read the value at the given field path.
-
-        Args:
-            fp: A FieldPath produced by read_field_paths.
-
-        Returns:
-            The stored value, or None if the slot is empty/missing.
-        """
-        node: FieldState = self
-        for i in range(fp.last + 1):
-            z = fp.path[i]
-            if len(node._state) < z + 2:
-                return None
-            if i == fp.last:
-                return node._state[z]
-            child = node._state[z]
-            if not isinstance(child, FieldState):
-                return None
-            node = child
-        return None
-
-    def set(self, fp: FieldPath, value: Any) -> None:
-        """Write a value at the given field path, growing the tree as needed.
-
-        Args:
-            fp: A FieldPath produced by read_field_paths.
-            value: The decoded value to store.
-        """
-        node: FieldState = self
-        for i in range(fp.last + 1):
-            z = fp.path[i]
-            node._ensure(z)
-            if i == fp.last:
-                if not isinstance(node._state[z], FieldState):
-                    node._state[z] = value
-                return
-            child = node._state[z]
-            if not isinstance(child, FieldState):
-                child = FieldState()
-                node._state[z] = child
-            node = child
-
-
-# ---------------------------------------------------------------------------
-# Decoder dispatch — mirrors manta/field.go getDecoderForFieldPath
-# ---------------------------------------------------------------------------
-
-
-def _get_decoder(serializer: Serializer, fp: FieldPath, pos: int) -> Any:
-    f: Field = serializer.fields[fp.path[pos]]
-    return _get_decoder_for_field(f, fp, pos + 1)
-
-
-def _get_decoder_for_field(f: Field, fp: FieldPath, pos: int) -> Any:
-    model = f.model
-
-    if model in (FIELD_MODEL_SIMPLE, FIELD_MODEL_FIXED_ARRAY):
-        return f.decoder
-
-    if model == FIELD_MODEL_FIXED_TABLE:
-        if fp.last == pos - 1:
-            return f.base_decoder
-        assert f.serializer is not None
-        return _get_decoder(f.serializer, fp, pos)
-
-    if model == FIELD_MODEL_VARIABLE_ARRAY:
-        if fp.last == pos:
-            return f.child_decoder
-        return f.base_decoder
-
-    if model == FIELD_MODEL_VARIABLE_TABLE:
-        if fp.last >= pos + 1:
-            assert f.serializer is not None
-            return _get_decoder(f.serializer, fp, pos + 1)
-        return f.base_decoder
-
-    return f.decoder
-
-
-# ---------------------------------------------------------------------------
-# read_fields — mirrors manta/field_reader.go
-# ---------------------------------------------------------------------------
-
-
-def read_fields(r: BitReader, serializer: Serializer, state: FieldState) -> None:
-    """Read all field-path/value pairs from *r* into *state*.
-
-    Args:
-        r: BitReader positioned at the start of the entity delta.
-        serializer: The Serializer schema for this entity class.
-        state: The FieldState tree to update.
-    """
-    fps = read_field_paths(r)
-    for fp in fps:
-        decoder = _get_decoder(serializer, fp, 0)
-        if decoder is not None:
-            value = decoder(r)
-            state.set(fp, value)
 
 
 # ---------------------------------------------------------------------------
