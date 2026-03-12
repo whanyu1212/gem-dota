@@ -84,6 +84,10 @@ class ParsedPlayer:
             extractor's interval. Useful for movement time-series and
             animated visualisations.
         stuns_dealt: Total stun duration dealt (seconds) accumulated from combat log.
+        kills: Kill count from server scoreboard (``m_iKills``). Correctly accounts
+            for reincarnation, summon kills, and all edge cases.
+        deaths: Death count from server scoreboard (``m_iDeaths``).
+        assists: Assist count from server scoreboard (``m_iAssists``).
     """
 
     player_id: int
@@ -120,6 +124,9 @@ class ParsedPlayer:
     lane_pos: dict[str, int] = field(default_factory=dict)
     position_log: list[tuple[int, float, float]] = field(default_factory=list)
     stuns_dealt: float = 0.0
+    kills: int = 0
+    deaths: int = 0
+    assists: int = 0
 
 
 # ---------------------------------------------------------------------------

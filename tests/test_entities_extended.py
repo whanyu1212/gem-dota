@@ -478,7 +478,7 @@ class TestEntityManagerServerInfo:
             game_dir = ""
 
         em.on_server_info(Msg())
-        assert len(em.entities) == 256
+        assert len(em.entities) == 1 << 14  # full Source 2 entity pool, not max_classes
 
     def test_game_build_zero_when_no_match(self):
         em = self._make_em()

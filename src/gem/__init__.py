@@ -214,6 +214,10 @@ def parse(path: str | Path) -> ParsedMatch:
             pp.buyback_log = agg.buyback_log
             pp.stuns_dealt = agg.stuns_dealt
 
+        kda = player_ext.scoreboard.get(player_id)
+        if kda is not None:
+            pp.kills, pp.deaths, pp.assists = kda
+
         # Lane position heatmap (7d) — post-process existing snapshots
         for snap in player_ext.snapshots:
             if snap.player_id != player_id or snap.x is None or snap.y is None:

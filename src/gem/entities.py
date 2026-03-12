@@ -548,7 +548,11 @@ class EntityManager:
         """
         max_classes: int = msg.max_classes  # type: ignore[attr-defined]
         self.class_id_size = int(math.log2(max_classes)) + 1
-        self.entities = [None] * max_classes
+        # Entity slot indices are drawn from the full Source 2 entity pool
+        # (up to 2^14 = 16384 slots), not bounded by the number of class types.
+        # Using max_classes here causes IndexError when a slot index > max_classes
+        # is assigned in on_packet_entities.
+        self.entities = [None] * (1 << 14)
 
         game_dir: str = msg.game_dir  # type: ignore[attr-defined]
         m = _GAME_BUILD_RE.search(game_dir)
