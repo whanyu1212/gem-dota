@@ -190,10 +190,10 @@ def build_parsed_match(
         if pr is not None:
             for player_id in range(10):
                 slot = f"{player_id:04d}"
-                name, ok = pr.get_string(f"m_vecPlayerData.{slot}.m_iszPlayerName")
-                if not ok or not name:
-                    name, ok = pr.get_string(f"m_iszPlayerNames.{slot}")
-                if ok and name:
+                name = pr.get_string(f"m_vecPlayerData.{slot}.m_iszPlayerName")
+                if not name:
+                    name = pr.get_string(f"m_iszPlayerNames.{slot}")
+                if name:
                     match.players[player_id].player_name = name
 
     # Attach ward logs per player

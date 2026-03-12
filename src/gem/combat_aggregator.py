@@ -112,10 +112,10 @@ class _CombatAggregator:
         entity = self._player_ext._heroes_by_npc.get(npc_name.lower())
         if entity is None:
             return None
-        pid, ok = entity.get_int32("m_nPlayerID")
-        if not ok:
-            pid, ok = entity.get_int32("m_iPlayerID")
-        if not ok or pid < 0:
+        pid = entity.get_int32("m_nPlayerID")
+        if pid is None:
+            pid = entity.get_int32("m_iPlayerID")
+        if pid is None or pid < 0:
             return None
         return pid // 2
 

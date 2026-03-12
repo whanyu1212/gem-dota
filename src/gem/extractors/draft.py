@@ -152,11 +152,11 @@ class DraftExtractor:
             return
         em = self._parser.entity_manager
         for i in range(_PICK_SLOTS):
-            hid, ok = pr.get_int32(f"m_vecPlayerTeamData.{i:04d}.m_nSelectedHeroID")
-            if not ok or hid <= 0 or hid in self._live_id_to_npc:
+            hid = pr.get_int32(f"m_vecPlayerTeamData.{i:04d}.m_nSelectedHeroID")
+            if hid is None or hid <= 0 or hid in self._live_id_to_npc:
                 continue
-            handle, ok2 = pr.get_uint32(f"m_vecPlayerTeamData.{i:04d}.m_hSelectedHero")
-            if not ok2:
+            handle = pr.get_uint32(f"m_vecPlayerTeamData.{i:04d}.m_hSelectedHero")
+            if handle is None:
                 continue
             hero_entity = em.find_by_handle(handle)
             if hero_entity is None:
@@ -184,8 +184,8 @@ class DraftExtractor:
 
         # Bans: m_pGameRules.m_BannedHeroes.0000-0013
         for i in range(_BAN_SLOTS):
-            hero_id, ok = entity.get_int32(f"m_pGameRules.m_BannedHeroes.{i:04d}")
-            if not ok or hero_id <= 0:
+            hero_id = entity.get_int32(f"m_pGameRules.m_BannedHeroes.{i:04d}")
+            if hero_id is None or hero_id <= 0:
                 continue
             key = (False, i, hero_id)
             if key in self._seen:
@@ -203,8 +203,8 @@ class DraftExtractor:
 
         # Picks: m_pGameRules.m_SelectedHeroes.0000-0009
         for i in range(_PICK_SLOTS):
-            hero_id, ok = entity.get_int32(f"m_pGameRules.m_SelectedHeroes.{i:04d}")
-            if not ok or hero_id <= 0:
+            hero_id = entity.get_int32(f"m_pGameRules.m_SelectedHeroes.{i:04d}")
+            if hero_id is None or hero_id <= 0:
                 continue
             key = (True, i, hero_id)
             if key in self._seen:

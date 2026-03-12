@@ -100,9 +100,9 @@ class CourierExtractor:
 
     def _sample(self, tick: int) -> None:
         for entity in self._couriers.values():
-            team, _ = entity.get_int32("m_iTeamNum")
-            state, _ = entity.get_int32("m_iCourierState")
-            flying, _ = entity.get_bool("m_bFlyingCourier")
+            team = entity.get_int32("m_iTeamNum") or 0
+            state = entity.get_int32("m_iCourierState") or 0
+            flying = entity.get_bool("m_bFlyingCourier") or False
             pos = _pos(entity)
             self.snapshots.append(
                 CourierSnapshot(

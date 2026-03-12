@@ -181,73 +181,79 @@ class Entity:
         """
         return self.get(name) is not None
 
-    def get_int32(self, name: str) -> tuple[int, bool]:
-        """Return (value, True) as int32, or (0, False) if absent/wrong type.
+    def get_int32(self, name: str) -> int | None:
+        """Return the value as int32, or None if absent/wrong type.
 
         Args:
             name: Field name.
+
+        Returns:
+            Integer value, or None if the field is absent or not an int.
         """
         v = self.get(name)
-        if isinstance(v, int):
-            return v, True
-        return 0, False
+        return v if isinstance(v, int) else None
 
-    def get_uint32(self, name: str) -> tuple[int, bool]:
-        """Return (value, True) as uint32, or (0, False) if absent.
+    def get_uint32(self, name: str) -> int | None:
+        """Return the value as uint32 (low 32 bits), or None if absent.
 
         Accepts both int and uint64 values (truncating to 32 bits if needed).
 
         Args:
             name: Field name.
+
+        Returns:
+            Integer value masked to 32 bits, or None if absent.
         """
         v = self.get(name)
-        if isinstance(v, int):
-            return v & 0xFFFFFFFF, True
-        return 0, False
+        return (v & 0xFFFFFFFF) if isinstance(v, int) else None
 
-    def get_uint64(self, name: str) -> tuple[int, bool]:
-        """Return (value, True) as uint64, or (0, False) if absent.
+    def get_uint64(self, name: str) -> int | None:
+        """Return the value as uint64, or None if absent.
 
         Args:
             name: Field name.
+
+        Returns:
+            Integer value, or None if absent.
         """
         v = self.get(name)
-        if isinstance(v, int):
-            return v, True
-        return 0, False
+        return v if isinstance(v, int) else None
 
-    def get_float32(self, name: str) -> tuple[float, bool]:
-        """Return (value, True) as float32, or (0.0, False) if absent.
+    def get_float32(self, name: str) -> float | None:
+        """Return the value as float32, or None if absent.
 
         Args:
             name: Field name.
+
+        Returns:
+            Float value, or None if absent or not numeric.
         """
         v = self.get(name)
-        if isinstance(v, (int, float)):
-            return float(v), True
-        return 0.0, False
+        return float(v) if isinstance(v, (int, float)) else None
 
-    def get_string(self, name: str) -> tuple[str, bool]:
-        """Return (value, True) as str, or ('', False) if absent.
+    def get_string(self, name: str) -> str | None:
+        """Return the value as str, or None if absent.
 
         Args:
             name: Field name.
+
+        Returns:
+            String value, or None if absent or not a string.
         """
         v = self.get(name)
-        if isinstance(v, str):
-            return v, True
-        return "", False
+        return v if isinstance(v, str) else None
 
-    def get_bool(self, name: str) -> tuple[bool, bool]:
-        """Return (value, True) as bool, or (False, False) if absent.
+    def get_bool(self, name: str) -> bool | None:
+        """Return the value as bool, or None if absent.
 
         Args:
             name: Field name.
+
+        Returns:
+            Boolean value, or None if absent or not a bool/int.
         """
         v = self.get(name)
-        if isinstance(v, (bool, int)):
-            return bool(v), True
-        return False, False
+        return bool(v) if isinstance(v, (bool, int)) else None
 
     def to_map(self) -> dict[str, Any]:
         """Return a snapshot of the flat _state dict.

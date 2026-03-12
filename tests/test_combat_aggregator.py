@@ -67,7 +67,7 @@ def _make_agg(player_id_raw: int = 0) -> tuple[_CombatAggregator, MagicMock]:
     """Return a _CombatAggregator wired to a single fake hero entity."""
     player_ext = MagicMock()
     hero_entity = MagicMock()
-    hero_entity.get_int32.return_value = (player_id_raw, True)
+    hero_entity.get_int32.return_value = player_id_raw
     player_ext._heroes_by_npc = {"npc_dota_hero_axe": hero_entity}
     return _CombatAggregator(player_ext), hero_entity
 
@@ -105,9 +105,9 @@ class TestCombatAggregatorDamage:
         player_ext = MagicMock()
         # attacker = axe (pid 0), target = mirana (pid 1)
         axe_entity = MagicMock()
-        axe_entity.get_int32.return_value = (0, True)
+        axe_entity.get_int32.return_value = 0
         mirana_entity = MagicMock()
-        mirana_entity.get_int32.return_value = (2, True)  # slot 1
+        mirana_entity.get_int32.return_value = 2  # slot 1
         player_ext._heroes_by_npc = {
             "npc_dota_hero_axe": axe_entity,
             "npc_dota_hero_mirana": mirana_entity,

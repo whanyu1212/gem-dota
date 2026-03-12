@@ -37,8 +37,8 @@ def main(dem_path: str) -> None:
         if not seen_first_packet and op.has(EntityOp.CREATED):
             name = entity.get_class_name()
             if "Hero" in name or "NPC" in name:
-                health, ok = entity.get_int32("m_iHealth")
-                print(f"  [{name}] m_iHealth={health if ok else '?'}")
+                health = entity.get_int32("m_iHealth")
+                print(f"  [{name}] m_iHealth={health if health is not None else '?'}")
 
     parser.on_entity(on_entity)
     parser.parse()
