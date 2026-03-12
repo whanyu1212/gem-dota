@@ -11,6 +11,7 @@ Reference: manta/field_path.go, manta/huffman.go
 from __future__ import annotations
 
 import heapq
+import struct
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
@@ -425,6 +426,66 @@ HUFF_TREE: _HNode = _build_huffman_tree([op.weight for op in FIELD_PATH_OPS])
 
 
 # ---------------------------------------------------------------------------
+# Flat Huffman decode table
+# ---------------------------------------------------------------------------
+
+
+def _build_decode_table(root: _HNode, table_bits: int) -> list[tuple[int, int]]:
+    """Build a flat O(1) decode table from the Huffman tree.
+
+    Each entry ``table[i] = (op_index, bits_consumed)`` covers all ``table_bits``-
+    bit integers whose leading bits match the Huffman code for ``op_index``.
+    Shorter codes fill multiple entries (one per possible suffix).
+
+    Args:
+        root: Root of the Huffman tree.
+        table_bits: Width of the table in bits (``2**table_bits`` entries).
+
+    Returns:
+        List of ``(op_index, bits_consumed)`` tuples, indexed by the
+        ``table_bits``-bit integer peeked from the bit stream.
+    """
+    size = 1 << table_bits
+    table: list[tuple[int, int]] = [(0, 0)] * size
+
+    stack: list[tuple[_HNode, int, int]] = [(root, 0, 0)]  # node, code, depth
+    while stack:
+        node, code, depth = stack.pop()
+        if node.is_leaf:
+            # Fill all entries whose top `depth` bits match `code`
+            suffix_count = 1 << (table_bits - depth)
+            for s in range(suffix_count):
+                table[code | (s << depth)] = (node.value, depth)
+        else:
+            if node.left is not None:
+                stack.append((node.left, code, depth + 1))
+            if node.right is not None:
+                stack.append((node.right, code | (1 << depth), depth + 1))
+
+    return table
+
+
+def _tree_depth(node: _HNode) -> int:
+    """Return the maximum depth of the Huffman tree.
+
+    Args:
+        node: Root node.
+
+    Returns:
+        int: Maximum leaf depth (root = depth 0).
+    """
+    if node.is_leaf:
+        return 0
+    left_d = _tree_depth(node.left) + 1 if node.left else 0
+    right_d = _tree_depth(node.right) + 1 if node.right else 0
+    return max(left_d, right_d)
+
+
+_HUFF_TABLE_BITS: int = _tree_depth(HUFF_TREE)
+_HUFF_DECODE_TABLE: list[tuple[int, int]] = _build_decode_table(HUFF_TREE, _HUFF_TABLE_BITS)
+
+
+# ---------------------------------------------------------------------------
 # Field path reading
 # ---------------------------------------------------------------------------
 
@@ -432,8 +493,13 @@ HUFF_TREE: _HNode = _build_huffman_tree([op.weight for op in FIELD_PATH_OPS])
 def read_field_paths(r: BitReader) -> list[FieldPath]:
     """Decode a Huffman-coded sequence of field paths from r.
 
-    Reads bits one at a time, traversing the Huffman tree until a leaf
-    operation is reached.  Repeats until ``FieldPathEncodeFinish`` is decoded.
+    Uses a flat O(1) decode table to resolve each Huffman op in a single
+    peek + skip rather than a per-bit tree walk.  The peek/skip/rem_bits
+    calls are inlined directly against BitReader's private attributes to
+    eliminate ~22M Python function calls per replay.
+
+    Falls back to the tree walk for the last few bits when fewer than
+    ``_HUFF_TABLE_BITS`` bits remain in the buffer.
 
     Args:
         r: BitReader positioned at the start of the field path sequence.
@@ -443,17 +509,46 @@ def read_field_paths(r: BitReader) -> list[FieldPath]:
         finish sentinel).
     """
     fp = FieldPath()
-    node = HUFF_TREE
     paths: list[FieldPath] = []
+    ops = FIELD_PATH_OPS
+    table = _HUFF_DECODE_TABLE
+    table_bits = _HUFF_TABLE_BITS
+    mask = (1 << table_bits) - 1
+
+    buf = r._buf
+    size = r._size
+    unpack_from = struct.unpack_from
 
     while not fp.done:
-        next_node = node.right if r.read_bits(1) else node.left
-        assert next_node is not None
-        node = next_node
-        if node.is_leaf:
-            FIELD_PATH_OPS[node.value].fn(r, fp)
-            if not fp.done:
-                paths.append(fp.copy())
+        # Inline rem_bits: (size - pos) * 8 + bit_count
+        if (size - r._pos) * 8 + r._bit_count >= table_bits:
+            # Inline peek_bits(table_bits): refill then read without consuming
+            while table_bits > r._bit_count:
+                remaining = size - r._pos
+                if remaining >= 4:
+                    r._bit_val |= unpack_from("<I", buf, r._pos)[0] << r._bit_count
+                    r._pos += 4
+                    r._bit_count += 32
+                elif remaining > 0:
+                    r._bit_val |= buf[r._pos] << r._bit_count
+                    r._pos += 1
+                    r._bit_count += 8
+                else:
+                    break
+            bits = r._bit_val & mask
+            op_idx, consumed = table[bits]
+            # Inline skip_bits(consumed)
+            r._bit_val >>= consumed
+            r._bit_count -= consumed
+        else:
+            # Fallback: tree walk for the last few bits
             node = HUFF_TREE
+            while not node.is_leaf:
+                node = node.right if r.read_bits(1) else node.left  # type: ignore[assignment]
+            op_idx = node.value
+
+        ops[op_idx].fn(r, fp)
+        if not fp.done:
+            paths.append(fp.copy())
 
     return paths

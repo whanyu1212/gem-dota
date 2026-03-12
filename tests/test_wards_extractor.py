@@ -523,3 +523,26 @@ class TestMakeEvent:
         ev = ext._make_event(wp, coord=None, spawn=spawn)
         assert ev.expires_tick is None
         assert ev.killed_tick is None
+
+
+# ---------------------------------------------------------------------------
+# Ward lifespan named constants
+# ---------------------------------------------------------------------------
+
+
+class TestWardLifespanConstants:
+    def test_values(self):
+        from gem.extractors.wards import (
+            _EXPIRY_TOLERANCE_TICKS,
+            _OBSERVER_LIFESPAN_TICKS,
+            _SENTRY_LIFESPAN_TICKS,
+        )
+
+        assert _OBSERVER_LIFESPAN_TICKS == 720
+        assert _SENTRY_LIFESPAN_TICKS == 360
+        assert _EXPIRY_TOLERANCE_TICKS == 30
+
+    def test_observer_longer_than_sentry(self):
+        from gem.extractors.wards import _OBSERVER_LIFESPAN_TICKS, _SENTRY_LIFESPAN_TICKS
+
+        assert _OBSERVER_LIFESPAN_TICKS > _SENTRY_LIFESPAN_TICKS

@@ -386,3 +386,28 @@ class TestLeagueName:
     def test_return_type_none_for_zero(self) -> None:
         result = C.league_name(0)
         assert result is None
+
+
+class TestConstantsReexport:
+    """gem.constants must be accessible as an attribute of the gem package."""
+
+    def test_accessible_as_gem_constants(self):
+        import gem
+
+        assert hasattr(gem, "constants")
+
+    def test_hero_display_callable(self):
+        import gem
+
+        assert callable(gem.constants.hero_display)
+
+    def test_hero_display_returns_nonempty_string(self):
+        import gem
+
+        result = gem.constants.hero_display("npc_dota_hero_axe")
+        assert isinstance(result, str) and result
+
+    def test_constants_in_all(self):
+        import gem
+
+        assert "constants" in gem.__all__

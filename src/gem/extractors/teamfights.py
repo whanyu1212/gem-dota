@@ -23,8 +23,12 @@ Reference: refs/parser/src/main/java/opendota/CreateParsedDataBlob.java
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 from gem.combatlog import CombatLogEntry
+
+if TYPE_CHECKING:
+    from gem.extractors.players import PlayerStateSnapshot
 
 # 15 seconds × 30 ticks/second  (reference uses 15s cooldown)
 _COOLDOWN_TICKS: int = 15 * 30
@@ -81,7 +85,7 @@ class Teamfight:
 def detect_teamfights(
     combat_log: list[CombatLogEntry],
     hero_to_slot: dict[str, int] | None = None,
-    player_snapshots: dict[int, list] | None = None,
+    player_snapshots: dict[int, list[PlayerStateSnapshot]] | None = None,
 ) -> list[Teamfight]:
     """Detect teamfights from a match combat log.
 

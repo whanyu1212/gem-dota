@@ -593,3 +593,97 @@ class TestExtractorsIntegration:
                 assert len(ts.ticks) == len(ts.xp_t) == len(ts.lh_t)
                 break
         assert found
+
+
+# ---------------------------------------------------------------------------
+# _find_team helper
+# ---------------------------------------------------------------------------
+
+
+class TestFindTeam:
+    def test_radiant_tower(self):
+        from gem.extractors.objectives import _TOWER_TEAM, _find_team
+
+        assert _find_team("npc_dota_goodguys_tower1", _TOWER_TEAM) == 2
+
+    def test_dire_tower(self):
+        from gem.extractors.objectives import _TOWER_TEAM, _find_team
+
+        assert _find_team("npc_dota_badguys_tower3", _TOWER_TEAM) == 3
+
+    def test_unknown_returns_zero(self):
+        from gem.extractors.objectives import _TOWER_TEAM, _find_team
+
+        assert _find_team("npc_dota_roshan", _TOWER_TEAM) == 0
+
+    def test_radiant_barracks(self):
+        from gem.extractors.objectives import _BARRACKS_TEAM, _find_team
+
+        assert _find_team("npc_dota_goodguys_melee_rax_top", _BARRACKS_TEAM) == 2
+
+    def test_dire_barracks(self):
+        from gem.extractors.objectives import _BARRACKS_TEAM, _find_team
+
+        assert _find_team("npc_dota_badguys_range_rax_bot", _BARRACKS_TEAM) == 3
+
+
+# ---------------------------------------------------------------------------
+# _AEGIS_EVENT_TYPE dispatch and _on_chat_event
+# ---------------------------------------------------------------------------
+
+
+class TestAegisEventType:
+    def test_all_three_types_mapped(self):
+        from gem.extractors.objectives import (
+            _AEGIS_EVENT_TYPE,
+            _CHAT_MSG_AEGIS,
+            _CHAT_MSG_AEGIS_STOLEN,
+            _CHAT_MSG_DENIED_AEGIS,
+        )
+
+        assert _AEGIS_EVENT_TYPE[_CHAT_MSG_AEGIS] == "pickup"
+        assert _AEGIS_EVENT_TYPE[_CHAT_MSG_AEGIS_STOLEN] == "stolen"
+        assert _AEGIS_EVENT_TYPE[_CHAT_MSG_DENIED_AEGIS] == "denied"
+
+    def test_unknown_type_not_present(self):
+        from gem.extractors.objectives import _AEGIS_EVENT_TYPE
+
+        assert _AEGIS_EVENT_TYPE.get(9999) is None
+
+    def test_on_chat_event_pickup(self):
+        from unittest.mock import MagicMock
+
+        from gem.extractors.objectives import _CHAT_MSG_AEGIS, ObjectivesExtractor
+
+        ext = ObjectivesExtractor()
+        msg = MagicMock(type=_CHAT_MSG_AEGIS, playerid_1=3)
+        ext._on_chat_event(msg, tick=1000)
+        assert ext.aegis_events[0].event_type == "pickup"
+        assert ext.aegis_events[0].player_id == 3
+
+    def test_on_chat_event_stolen(self):
+        from unittest.mock import MagicMock
+
+        from gem.extractors.objectives import _CHAT_MSG_AEGIS_STOLEN, ObjectivesExtractor
+
+        ext = ObjectivesExtractor()
+        ext._on_chat_event(MagicMock(type=_CHAT_MSG_AEGIS_STOLEN, playerid_1=7), tick=2000)
+        assert ext.aegis_events[0].event_type == "stolen"
+
+    def test_on_chat_event_denied(self):
+        from unittest.mock import MagicMock
+
+        from gem.extractors.objectives import _CHAT_MSG_DENIED_AEGIS, ObjectivesExtractor
+
+        ext = ObjectivesExtractor()
+        ext._on_chat_event(MagicMock(type=_CHAT_MSG_DENIED_AEGIS, playerid_1=5), tick=3000)
+        assert ext.aegis_events[0].event_type == "denied"
+
+    def test_on_chat_event_ignores_unknown(self):
+        from unittest.mock import MagicMock
+
+        from gem.extractors.objectives import ObjectivesExtractor
+
+        ext = ObjectivesExtractor()
+        ext._on_chat_event(MagicMock(type=9999), tick=500)
+        assert ext.aegis_events == []

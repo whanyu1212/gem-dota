@@ -122,6 +122,13 @@ Filter `MODIFIER_ADD` by `target_is_hero = True` to exclude summoned units (e.g.
 
 Alternative approach (refs): read the `ActiveModifiers` string table directly — each entry is a `CDOTAModifierBuffTableEntry` protobuf with a `player_ids` field (comma-separated player slots). Would give the same result for empty-group cases. Not currently implemented; requires parsing an additional string table of protobufs.
 
+## Workflow preferences
+
+- **Never run Bash commands in the background.** Always run foreground (blocking) so output is visible immediately. Efficiency is less important than observability.
+- When writing temporary investigation scripts to `/tmp/`, delete them after use (`rm /tmp/script.py`).
+- Kills by summoned units (Warlock Golem, Undying zombie, Pugna Nether Ward, etc.) should be credited to the owning hero's kill count.
+- Deaths count all causes (hero, tower, creep, neutral, summon) — not just hero-dealt deaths.
+
 ## Code Style
 
 - **Not a direct translation** — code must be idiomatic Python, not Go/Java transliterated

@@ -34,6 +34,7 @@ _NULL_HANDLE = 0xFFFFFF  # empty slot sentinel
 _CELL_SIZE = 128  # Source 2 world units per grid cell
 _TEAM_RADIANT = 2
 _TEAM_DIRE = 3
+_HERO_CLASS_PREFIX = "CDOTA_Unit_Hero_"
 
 
 # ---------------------------------------------------------------------------
@@ -95,7 +96,7 @@ def _snapshot_hero(entity: Entity, tick: int) -> PlayerStateSnapshot | None:
     # "CDOTA_Unit_Hero_Nyx_Assassin"   → "npc_dota_hero_nyx_assassin" (already underscored)
     # This matches dotaconstants keys and the combat log string table.
     # Reference: refs/parser/Parse.java combatLogName2
-    _ending = entity.get_class_name()[len("CDOTA_Unit_Hero_") :].replace("_", "")
+    _ending = entity.get_class_name()[len(_HERO_CLASS_PREFIX) :].replace("_", "")
     _npc_name = "npc_dota_hero" + re.sub(r"([A-Z])", r"_\1", _ending).lower()
     return PlayerStateSnapshot(
         tick=tick,
@@ -397,9 +398,9 @@ class PlayerExtractor:
     def _on_entity(self, entity: Entity, op: EntityOp) -> None:
         cls = entity.get_class_name()
 
-        if cls.startswith("CDOTA_Unit_Hero_"):
+        if cls.startswith(_HERO_CLASS_PREFIX):
             idx = entity.get_index()
-            ending = cls[len("CDOTA_Unit_Hero_") :]
+            ending = cls[len(_HERO_CLASS_PREFIX) :]
             # Register two name forms to cover inconsistent combat log names.
             # "combatLogName":  simple lowercase ("npc_dota_hero_templarassassin")
             # "combatLogName2": insert _ before each capital ("npc_dota_hero_templar_assassin")

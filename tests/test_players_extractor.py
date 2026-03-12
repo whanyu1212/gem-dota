@@ -695,3 +695,24 @@ class TestRefreshTeamSlots:
         ext._refresh_team_slots()
         assert ext._player_team_slot[0] == 2
         assert ext._player_team_slot[1] == 0
+
+
+# ---------------------------------------------------------------------------
+# _HERO_CLASS_PREFIX constant
+# ---------------------------------------------------------------------------
+
+
+class TestHeroClassPrefix:
+    def test_value(self):
+        from gem.extractors.players import _HERO_CLASS_PREFIX
+
+        assert _HERO_CLASS_PREFIX == "CDOTA_Unit_Hero_"
+
+    def test_literal_not_duplicated_in_source(self):
+        import inspect
+
+        import gem.extractors.players as pm
+
+        src = inspect.getsource(pm)
+        # The raw string literal should appear at most once (the definition line)
+        assert src.count('"CDOTA_Unit_Hero_"') <= 1

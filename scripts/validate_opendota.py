@@ -14,6 +14,28 @@ and the ``_min`` arrays at exact 60-second game-time boundaries.  A small
 residual difference (<5 %) between gem's last sample and OpenDota's final
 value is therefore expected and acceptable.
 
+OpenDota data availability
+--------------------------
+OpenDota has two data sources:
+
+1. **Steam API** (``GetMatchDetails``) — always available for any pub match.
+   Provides end-of-game scalars: kills, deaths, assists, net_worth, last_hits,
+   denies.  ``radiant_score`` / ``dire_score`` also come from here but can
+   disagree with the sum of per-player kills by ±1 (known API quirk); the
+   validator uses ``sum(player["kills"])`` instead.
+
+2. **OpenDota replay parser** — only runs when someone explicitly requests a
+   parse (POST ``/api/request/{match_id}`` or via the website).  Produces the
+   richer derived fields: ``radiant_gold_adv``, ``radiant_xp_adv``, teamfight
+   windows, ward placements, etc.  High-profile matches (e.g. TI finals) are
+   auto-parsed; ordinary pub matches are not.
+
+Consequence: for unanalysed pub replays the gold/XP advantage curve fields
+return ``null`` from the API.  The validator skips those comparisons rather
+than failing — this is an OpenDota data-availability limitation, not a gem
+bug.  To force a parse: ``curl -X POST https://api.opendota.com/api/request/{match_id}``
+then wait a few minutes and re-run.
+
 Usage:
     uv run python scripts/validate_opendota.py
     uv run python scripts/validate_opendota.py --match 8461735141
@@ -29,7 +51,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from gem.models import ParsedPlayer
+    pass
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -53,6 +75,7 @@ def _build_hero_id_map() -> dict[int, str]:
 REPLAYS: list[tuple[int, Path]] = [
     (8461735141, FIXTURES_DIR / "ti14_finals_g1_xg_vs_falcons.dem"),
     (8520062186, FIXTURES_DIR / "8520062186.dem"),
+    (8520014563, FIXTURES_DIR / "8520014563.dem"),
 ]
 
 
@@ -140,32 +163,6 @@ def _od_slot_to_gem_id(slot: int) -> int:
     return slot if slot < 128 else slot - 128 + 5
 
 
-def _gem_kills(gem_player: "ParsedPlayer", combat_log: list) -> int:
-    """Count kills credited to this hero via combat log DEATH events."""
-    hero = gem_player.hero_name
-    return sum(
-        1
-        for e in combat_log
-        if e.log_type == "DEATH"
-        and e.attacker_name == hero
-        and e.attacker_is_hero
-        and e.target_is_hero
-        and not e.target_is_illusion
-    )
-
-
-def _gem_deaths(gem_player: "ParsedPlayer", combat_log: list) -> int:
-    hero = gem_player.hero_name
-    return sum(
-        1
-        for e in combat_log
-        if e.log_type == "DEATH"
-        and e.target_name == hero
-        and e.target_is_hero
-        and not e.target_is_illusion
-    )
-
-
 # ---------------------------------------------------------------------------
 # Core validation
 # ---------------------------------------------------------------------------
@@ -207,12 +204,10 @@ def validate_match(match_id: int, fixture: Path) -> MatchResult:
     # Match-level fields
     # -----------------------------------------------------------------------
 
-    od_total_kills = od["radiant_score"] + od["dire_score"]
-    gem_total_kills = sum(
-        1
-        for e in m.combat_log
-        if e.log_type == "DEATH" and e.target_is_hero and not e.target_is_illusion
-    )
+    # Use sum of per-player kills rather than radiant_score+dire_score — OpenDota's
+    # team scores can disagree with their own per-player kills by ±1 (known API quirk).
+    od_total_kills = sum(p["kills"] for p in od["players"])
+    gem_total_kills = sum(p.kills for p in m.players)
     result.match_fields.append(FieldResult("total_kills", gem_total_kills, od_total_kills))
 
     # radiant_win is None for HLTV/tournament replays where CDemoFileInfo,
@@ -289,23 +284,58 @@ def validate_match(match_id: int, fixture: Path) -> MatchResult:
     gem_gold_adv = m.radiant_gold_adv or []
     gem_xp_adv = m.radiant_xp_adv or []
 
+    od_adv_missing = not od_gold_adv and not od_xp_adv
     result.match_fields.append(
-        FieldResult("radiant_gold_adv/length", len(gem_gold_adv), len(od_gold_adv))
+        FieldResult(
+            "radiant_gold_adv/length",
+            len(gem_gold_adv),
+            len(od_gold_adv),
+            skip=od_adv_missing,
+            note="OpenDota did not compute gold/XP advantage curves for this match."
+            if od_adv_missing
+            else "",
+        )
     )
     result.match_fields.append(
-        FieldResult("radiant_xp_adv/length", len(gem_xp_adv), len(od_xp_adv))
+        FieldResult(
+            "radiant_xp_adv/length",
+            len(gem_xp_adv),
+            len(od_xp_adv),
+            skip=od_adv_missing,
+            note="OpenDota did not compute gold/XP advantage curves for this match."
+            if od_adv_missing
+            else "",
+        )
     )
 
     # Final value comparison (last minute — most meaningful single scalar)
     gem_gold_final = gem_gold_adv[-1] if gem_gold_adv else None
     od_gold_final = od_gold_adv[-1] if od_gold_adv else None
     result.match_fields.append(
-        FieldResult("radiant_gold_adv/final", gem_gold_final, od_gold_final, tolerance=0.05)
+        FieldResult(
+            "radiant_gold_adv/final",
+            gem_gold_final,
+            od_gold_final,
+            tolerance=0.05,
+            skip=od_adv_missing,
+            note="OpenDota did not compute gold/XP advantage curves for this match."
+            if od_adv_missing
+            else "",
+        )
     )
     gem_xp_final = gem_xp_adv[-1] if gem_xp_adv else None
     od_xp_final = od_xp_adv[-1] if od_xp_adv else None
     result.match_fields.append(
-        FieldResult("radiant_xp_adv/final", gem_xp_final, od_xp_final, tolerance=0.05)
+        FieldResult(
+            "radiant_xp_adv/final",
+            gem_xp_final,
+            od_xp_final,
+            tolerance=0.05,
+            skip=od_adv_missing,
+            note="OpenDota did not compute gold/XP advantage curves for this match."
+            if od_adv_missing
+            else "",
+        )
     )
 
     # Max element-wise relative error across the curve (gem=actual %, ref=5% threshold).
@@ -400,12 +430,9 @@ def validate_match(match_id: int, fixture: Path) -> MatchResult:
         gem_dn_min = gp.dn_t_min[-1] if gp.dn_t_min else None
         fields.append(FieldResult(f"{label}/denies[min]", gem_dn_min, od_player["denies"]))
 
-        # kills / deaths via combat log
-        gem_k = _gem_kills(gp, m.combat_log)
-        fields.append(FieldResult(f"{label}/kills", gem_k, od_player["kills"]))
-
-        gem_d = _gem_deaths(gp, m.combat_log)
-        fields.append(FieldResult(f"{label}/deaths", gem_d, od_player["deaths"]))
+        # kills / deaths from server scoreboard (CDOTAPlayerResource)
+        fields.append(FieldResult(f"{label}/kills", gp.kills, od_player["kills"]))
+        fields.append(FieldResult(f"{label}/deaths", gp.deaths, od_player["deaths"]))
 
         result.player_fields.append(fields)
 

@@ -155,3 +155,37 @@ class TestEntityHandlers:
 
         assert len(received) == 1
         assert received[0][1].has(EntityOp.CREATED)
+
+
+# ---------------------------------------------------------------------------
+# ClassInfo — @dataclass(slots=True)
+# ---------------------------------------------------------------------------
+
+
+class TestClassInfo:
+    def test_is_dataclass(self):
+        from dataclasses import is_dataclass
+
+        from gem.entities import ClassInfo
+
+        assert is_dataclass(ClassInfo)
+
+    def test_has_slots(self):
+        from gem.entities import ClassInfo
+
+        assert hasattr(ClassInfo, "__slots__")
+
+    def test_construction(self):
+        from gem.entities import ClassInfo
+
+        ci = ClassInfo(class_id=42, name="CDOTA_Unit_Hero_Axe", serializer=None)
+        assert ci.class_id == 42
+        assert ci.name == "CDOTA_Unit_Hero_Axe"
+        assert ci.serializer is None
+
+    def test_field_names(self):
+        from dataclasses import fields
+
+        from gem.entities import ClassInfo
+
+        assert {f.name for f in fields(ClassInfo)} == {"class_id", "name", "serializer"}
