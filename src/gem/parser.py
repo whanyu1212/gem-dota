@@ -177,8 +177,8 @@ class ReplayParser:
         self.leagueid: int = 0
         self.radiant_win: bool | None = None
         self.game_start_tick: int | None = None
-        self._game_start_callbacks: list = []
-        self._game_end_callbacks: list = []
+        self._game_start_callbacks: list[Callable[[int], None]] = []
+        self._game_end_callbacks: list[Callable[[int], None]] = []
         self._game_ended: bool = False
 
     # ------------------------------------------------------------------
@@ -462,8 +462,8 @@ class ReplayParser:
                 self.combat_log.process_rune_pickup(
                     chat_event.playerid_1, chat_event.value, tick=self.tick
                 )
-            for cb in self._chat_event_callbacks:
-                cb(chat_event, self.tick)
+            for chat_cb in self._chat_event_callbacks:
+                chat_cb(chat_event, self.tick)
 
         elif type_id == _DOTA_UM_CHAT_MESSAGE:
             self._emit_chat_message(payload)

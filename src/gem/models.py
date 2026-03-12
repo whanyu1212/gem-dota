@@ -8,6 +8,7 @@ Reference: refs/parser/src/main/java/opendota/CreateParsedDataBlob.java
 
 from __future__ import annotations
 
+from collections import defaultdict
 from dataclasses import dataclass, field
 
 from gem.combatlog import CombatLogEntry
@@ -121,12 +122,20 @@ class ParsedPlayer:
     purchase_log: list[CombatLogEntry] = field(default_factory=list)
     runes_log: list[CombatLogEntry] = field(default_factory=list)
     buyback_log: list[CombatLogEntry] = field(default_factory=list)
-    lane_pos: dict[str, int] = field(default_factory=dict)
+    lane_pos: defaultdict[str, int] = field(default_factory=lambda: defaultdict(int))
     position_log: list[tuple[int, float, float]] = field(default_factory=list)
     stuns_dealt: float = 0.0
     kills: int = 0
     deaths: int = 0
     assists: int = 0
+
+    def __repr__(self) -> str:
+        hero = self.hero_name.removeprefix("npc_dota_hero_") if self.hero_name else "unknown"
+        team = "Radiant" if self.team == 2 else "Dire" if self.team == 3 else f"team={self.team}"
+        return (
+            f"ParsedPlayer(slot={self.player_id}, hero={hero}, team={team}, "
+            f"kda={self.kills}/{self.deaths}/{self.assists})"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -177,3 +186,15 @@ class ParsedMatch:
     courier_snapshots: list[CourierSnapshot] = field(default_factory=list)
     draft: list[DraftEvent] = field(default_factory=list)
     teamfights: list[Teamfight] = field(default_factory=list)
+
+    def __repr__(self) -> str:
+        winner = "Radiant" if self.radiant_win else "Dire" if self.radiant_win is False else "?"
+        duration_min = (
+            round(max(pp.times[-1] for pp in self.players if pp.times) / 30 / 60)
+            if any(pp.times for pp in self.players)
+            else 0
+        )
+        return (
+            f"ParsedMatch(match_id={self.match_id}, winner={winner}, "
+            f"duration=~{duration_min}min, players={len(self.players)})"
+        )

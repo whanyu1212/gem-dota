@@ -42,16 +42,16 @@ _BARRACKS_TEAM: dict[str, int] = {
     "npc_dota_badguys_range_rax": _TEAM_DIRE,
 }
 
+# CDOTAUserMsg_ChatEvent type → AegisEvent event_type string
+_AEGIS_EVENT_TYPE: dict[int, str] = {
+    _CHAT_MSG_AEGIS: "pickup",
+    _CHAT_MSG_AEGIS_STOLEN: "stolen",
+    _CHAT_MSG_DENIED_AEGIS: "denied",
+}
 
-def _tower_team(target_name: str) -> int:
-    for prefix, team in _TOWER_TEAM.items():
-        if target_name.startswith(prefix):
-            return team
-    return 0
 
-
-def _barracks_team(target_name: str) -> int:
-    for prefix, team in _BARRACKS_TEAM.items():
+def _find_team(target_name: str, mapping: dict[str, int]) -> int:
+    for prefix, team in mapping.items():
         if target_name.startswith(prefix):
             return team
     return 0
@@ -171,17 +171,10 @@ class ObjectivesExtractor:
         parser.on_chat_event(self._on_chat_event)
 
     def _on_chat_event(self, msg: Any, tick: int) -> None:
-        if msg.type == _CHAT_MSG_AEGIS:
+        event_type = _AEGIS_EVENT_TYPE.get(msg.type)
+        if event_type is not None:
             self.aegis_events.append(
-                AegisEvent(tick=tick, player_id=msg.playerid_1, event_type="pickup")
-            )
-        elif msg.type == _CHAT_MSG_AEGIS_STOLEN:
-            self.aegis_events.append(
-                AegisEvent(tick=tick, player_id=msg.playerid_1, event_type="stolen")
-            )
-        elif msg.type == _CHAT_MSG_DENIED_AEGIS:
-            self.aegis_events.append(
-                AegisEvent(tick=tick, player_id=msg.playerid_1, event_type="denied")
+                AegisEvent(tick=tick, player_id=msg.playerid_1, event_type=event_type)
             )
 
     def _on_combat_log(self, entry: CombatLogEntry) -> None:
@@ -202,7 +195,7 @@ class ObjectivesExtractor:
             self.tower_kills.append(
                 TowerKill(
                     tick=entry.tick,
-                    team=_tower_team(target),
+                    team=_find_team(target, _TOWER_TEAM),
                     killer=entry.attacker_name,
                     tower_name=target,
                 )
@@ -216,7 +209,7 @@ class ObjectivesExtractor:
             self.barracks_kills.append(
                 BarracksKill(
                     tick=entry.tick,
-                    team=_barracks_team(target),
+                    team=_find_team(target, _BARRACKS_TEAM),
                     killer=entry.attacker_name,
                     barracks_name=target,
                 )

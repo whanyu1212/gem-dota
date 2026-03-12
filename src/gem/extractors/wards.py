@@ -49,6 +49,11 @@ _WARD_CLASSES: frozenset[str] = frozenset(
     }
 )
 
+# Ward lifespan in ticks (~30 ticks/s at normal speed)
+_OBSERVER_LIFESPAN_TICKS = 720  # ~6 minutes
+_SENTRY_LIFESPAN_TICKS = 360  # ~3 minutes
+_EXPIRY_TOLERANCE_TICKS = 30  # grace window to classify natural expiry vs. kill
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -444,9 +449,10 @@ class WardsExtractor:
         killer = ""
 
         if spawn is not None and spawn.death_tick is not None:
-            natural_ticks = 720 if wp.ward_type == "observer" else 360
-            # Allow 30-tick tolerance for natural expiry
-            if spawn.death_tick >= spawn.spawn_tick + natural_ticks - 30:
+            natural_ticks = (
+                _OBSERVER_LIFESPAN_TICKS if wp.ward_type == "observer" else _SENTRY_LIFESPAN_TICKS
+            )
+            if spawn.death_tick >= spawn.spawn_tick + natural_ticks - _EXPIRY_TOLERANCE_TICKS:
                 expires_tick = spawn.death_tick
             else:
                 killed_tick = spawn.death_tick

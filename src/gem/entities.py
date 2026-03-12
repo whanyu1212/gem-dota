@@ -16,6 +16,7 @@ import enum
 import math
 import re
 from collections.abc import Callable
+from dataclasses import dataclass
 from typing import Any
 
 from gem.field_path import FieldPath, read_field_paths
@@ -201,6 +202,7 @@ def read_fields(r: BitReader, serializer: Serializer, state: FieldState) -> None
 # ---------------------------------------------------------------------------
 
 
+@dataclass(slots=True)
 class ClassInfo:
     """Mapping of a class ID to its name and Serializer.
 
@@ -210,12 +212,9 @@ class ClassInfo:
         serializer: The associated Serializer schema, or None.
     """
 
-    __slots__ = ("class_id", "name", "serializer")
-
-    def __init__(self, class_id: int, name: str, serializer: Serializer | None) -> None:
-        self.class_id = class_id
-        self.name = name
-        self.serializer = serializer
+    class_id: int
+    name: str
+    serializer: Serializer | None
 
 
 # ---------------------------------------------------------------------------

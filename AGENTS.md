@@ -5,8 +5,8 @@ This file provides guidance to agents (i.e., ADAL) when working with code in thi
 ## Project Snapshot
 
 - **Project**: `gem` — Source 2 Dota 2 replay parser (Python)
-- **Current state**: Core parser + extractors are implemented through **Phase 10**
-- **Current branch**: `feature/teamfights`
+- **Current state**: Core parser + extractors are implemented through **Phase 10**, with Phase 11b modularization landed (`match_builder.py`, `combat_aggregator.py`, `dataframes.py`)
+- **Current branch**: `validation`
 - **Package manager / env**: `uv` with local `.venv`
 - **Primary references**:
   - `refs/manta/` (Go; primary implementation/behavior reference)
@@ -88,7 +88,7 @@ Skipping this leads to common failures: wrong enum values, wrong message path, i
 ### End-to-end pipeline
 
 ```text
-stream.py → reader.py → sendtable.py → field_decoder.py → field_path.py → string_table.py → entities.py → parser.py → extractors/*
+stream.py → reader.py → sendtable.py → field_decoder.py → field_path.py → string_table.py → entities.py → parser.py → match_builder.py → combat_aggregator.py → dataframes.py → extractors/*
 ```
 
 ### Core modules
@@ -120,6 +120,7 @@ stream.py → reader.py → sendtable.py → field_decoder.py → field_path.py 
    - Packet entities create/update/delete lifecycle
    - Baseline + delta application
    - Entity state mutation hot path
+   - Field-state and field-reading logic remain in this module
 
 8. **`src/gem/game_events.py` + `src/gem/combatlog.py`**
    - Source1 game events
@@ -130,10 +131,20 @@ stream.py → reader.py → sendtable.py → field_decoder.py → field_path.py 
    - Handles outer + inner message dispatch
    - Maintains ordering constraints (string tables before packet entities)
 
-10. **`src/gem/extractors/`**
+10. **`src/gem/match_builder.py`**
+   - Assembles `ParsedMatch`
+   - Wires extraction outputs into final model fields (including teamfight integration)
+
+11. **`src/gem/combat_aggregator.py`**
+   - Aggregates combat-log-derived stats (damage/healing/purchases) for match/player outputs
+
+12. **`src/gem/dataframes.py`**
+   - Converts parsed match outputs into pandas DataFrames (`parse_to_dataframe` path)
+
+13. **`src/gem/extractors/`**
    - `players.py`, `objectives.py`, `wards.py`, `courier.py`, `draft.py`, `teamfights.py`
 
-11. **Public API**
+14. **Public API**
    - `gem.parse(path) -> ParsedMatch`
    - `gem.parse_to_dataframe(path) -> dict[str, pd.DataFrame]`
    - CLI: `python -m gem <replay.dem>`
@@ -143,8 +154,8 @@ stream.py → reader.py → sendtable.py → field_decoder.py → field_path.py 
 ## Implemented Scope Status
 
 - **Phases 1–10**: Completed (reader/stream, schema/decode, entities/string tables, events/combat log, extraction layer, output API, gap closures including teamfights, validation/fuzz baseline)
-- **Phase 11a**: Performance + Rust extension (planned/in progress)
-- **Phase 11b**: Refactor/cleanup for release quality (planned)
+- **Phase 11a**: Performance (Python optimizations complete; Rust extension planned/in progress)
+- **Phase 11b**: Refactor/cleanup for release quality (✅ completed: modularization into `match_builder.py`, `combat_aggregator.py`, `dataframes.py`)
 - **Phase 12**: Packaging/distribution (planned)
 
 ---
@@ -193,6 +204,8 @@ stream.py → reader.py → sendtable.py → field_decoder.py → field_path.py 
 | Field-path/entity decode issue | `field_path.py` + `entities.py` |
 | Combat-log mismatch | `string_table.py` + `combatlog.py` + `game_events.py` |
 | Teamfight discrepancy | `extractors/teamfights.py` + `tests/test_teamfights.py` |
+| Match assembly/output wiring | `parser.py` + `match_builder.py` + `dataframes.py` |
+| Combat aggregation mismatch | `combat_aggregator.py` + `combatlog.py` + `extractors/players.py` |
 | Proto generation issue | `scripts/compile_protos.py` |
 
 ---

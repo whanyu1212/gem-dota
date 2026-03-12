@@ -434,6 +434,51 @@ class BitReader:
     # State inspection
     # ------------------------------------------------------------------
 
+    def peek_bits(self, n: int) -> int:
+        """Read n bits without advancing the position.
+
+        Refills the internal bit buffer exactly as read_bits does, so the
+        reader is left in a state where a subsequent skip_bits(n) or
+        read_bits(n) will consume the same bits.
+
+        Args:
+            n: Number of bits to peek (0 ≤ n ≤ 32).
+
+        Returns:
+            int: The unsigned integer value of the next n bits.
+
+        Raises:
+            BufferError: If fewer than n bits remain.
+        """
+        while n > self._bit_count:
+            remaining = self._size - self._pos
+            if remaining >= 4:
+                self._bit_val |= (
+                    struct.unpack_from("<I", self._buf, self._pos)[0] << self._bit_count
+                )
+                self._pos += 4
+                self._bit_count += 32
+            elif remaining > 0:
+                self._bit_val |= self._next_byte() << self._bit_count
+                self._bit_count += 8
+            else:
+                raise BufferError(
+                    f"insufficient buffer: need {n} bits at pos {self._pos}, size {self._size}"
+                )
+        return self._bit_val & ((1 << n) - 1)
+
+    def skip_bits(self, n: int) -> None:
+        """Discard n bits that have already been loaded into the bit buffer.
+
+        Must only be called after a peek_bits(n) that has already refilled
+        the buffer.  Does not refill — callers must ensure n ≤ _bit_count.
+
+        Args:
+            n: Number of bits to skip.
+        """
+        self._bit_val >>= n
+        self._bit_count -= n
+
     def rem_bits(self) -> int:
         """Return the number of unread bits remaining in the buffer.
 
