@@ -265,6 +265,8 @@ class PlayerExtractor:
         self._player_resource: Entity | None = None
         self.snapshots: list[PlayerStateSnapshot] = []
         self._minute_snaps: list[PlayerStateSnapshot] = []
+        # player_id → (kills, deaths, assists) from server scoreboard at game end
+        self.scoreboard: dict[int, tuple[int, int, int]] = {}
         # set of player_ids whose starting inventory has been emitted
         self._inventory_initialized: set[int] = set()
         # player_id → tick of first inventory snapshot (used to suppress
@@ -292,6 +294,18 @@ class PlayerExtractor:
         # Force a final snapshot at the exact game-end tick so lh/nw/gold
         # match OpenDota's end-of-game values (sampled at postGame boundary).
         self._sample(tick, minute=False)
+        # Read authoritative kills/deaths/assists from the server scoreboard.
+        # Reference: refs/parser/src/main/java/opendota/Parse.java lines 666-668
+        # m_vecPlayerTeamData.%04d.m_iKills/Deaths/Assists on CDOTA_PlayerResource.
+        pr = self._player_resource
+        if pr is not None:
+            for i in range(10):
+                prefix = f"m_vecPlayerTeamData.{i:04d}"
+                k, ok_k = pr.get_int32(f"{prefix}.m_iKills")
+                d, ok_d = pr.get_int32(f"{prefix}.m_iDeaths")
+                a, ok_a = pr.get_int32(f"{prefix}.m_iAssists")
+                if ok_k or ok_d or ok_a:
+                    self.scoreboard[i] = (k if ok_k else 0, d if ok_d else 0, a if ok_a else 0)
 
     def hero_pos(self, npc_name: str) -> tuple[float, float] | None:
         """Return the current world position of a hero by NPC name.
@@ -459,10 +473,26 @@ class PlayerExtractor:
                 self._sample(tick, minute=False)
 
     def _sample(self, tick: int, minute: bool = False) -> None:
+        entity_names = (
+            self._parser.string_tables.get_by_name("EntityNames")
+            if self._parser is not None and self._parser.string_tables is not None
+            else None
+        )
         for entity in self._heroes.values():
             snap = _snapshot_hero(entity, tick)
             if snap is None:
                 continue
+            # Resolve canonical NPC name from the EntityNames string table so that
+            # heroes like QueenOfPain (class "CDOTA_Unit_Hero_QueenOfPain") map to
+            # "npc_dota_hero_queenofpain" rather than "npc_dota_hero_queen_of_pain".
+            # The camelCase→snake_case conversion in _snapshot_hero inserts word
+            # boundaries at every capital letter, which is wrong for compound names.
+            if entity_names is not None:
+                name_idx, ok = entity.get_int32("m_pEntity.m_nameStringableIndex")
+                if ok and name_idx >= 0:
+                    item = entity_names.items.get(name_idx)
+                    if item is not None:
+                        snap.npc_name = item[0]
             # Overlay spendable gold + net_worth from CDOTAPlayerController.
             # m_iGold = current cash on hand (goes up/down as player earns/spends).
             # m_iNetWorth = gold + item value (also on controller for convenience).
