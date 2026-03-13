@@ -20,6 +20,29 @@ from gem.extractors.wards import WardEvent
 
 
 @dataclass
+class SmokeEvent:
+    """One Smoke of Deceit activation.
+
+    Attributes:
+        tick: Game tick when the smoke item was consumed.
+        activator: NPC hero name of the player who used the smoke.
+        team: Team number (2=Radiant, 3=Dire), or 0 if unknown.
+        smoked: NPC hero names of all heroes that received the buff.
+        x: World x coordinate of the activating hero at activation tick,
+            or ``None`` if position data is unavailable.
+        y: World y coordinate of the activating hero at activation tick,
+            or ``None`` if position data is unavailable.
+    """
+
+    tick: int
+    activator: str
+    team: int
+    smoked: list[str] = field(default_factory=list)
+    x: float | None = None
+    y: float | None = None
+
+
+@dataclass
 class ChatEntry:
     """A single chat message from the match.
 
@@ -163,14 +186,21 @@ class ParsedMatch:
         combat_log: All raw combat log entries (unfiltered).
         chat: All chat messages in chronological order.
         courier_snapshots: Courier state snapshots at each sample interval.
+        smoke_events: All Smoke of Deceit activations with grouped heroes and
+            approximate activating-hero position.
         draft: Hero pick and ban events from the draft phase.
         teamfights: All detected teamfight windows with per-player breakdowns.
+        game_start_tick: Absolute tick when the game clock started (creeps spawn).
+            ``None`` if the transition was not observed.
+        game_end_tick: Absolute tick of the final parser tick.
     """
 
     match_id: int = 0
     game_mode: int = 0
     leagueid: int = 0
     radiant_win: bool | None = None
+    game_start_tick: int | None = None
+    game_end_tick: int = 0
     players: list[ParsedPlayer] = field(
         default_factory=lambda: [ParsedPlayer(player_id=i) for i in range(10)]
     )
@@ -184,6 +214,7 @@ class ParsedMatch:
     combat_log: list[CombatLogEntry] = field(default_factory=list)
     chat: list[ChatEntry] = field(default_factory=list)
     courier_snapshots: list[CourierSnapshot] = field(default_factory=list)
+    smoke_events: list[SmokeEvent] = field(default_factory=list)
     draft: list[DraftEvent] = field(default_factory=list)
     teamfights: list[Teamfight] = field(default_factory=list)
 

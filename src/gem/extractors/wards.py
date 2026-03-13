@@ -1,19 +1,16 @@
 """Ward placement extractor for Dota 2 replays.
 
-Combines the combat log (who placed a ward and when) with the entity stream
-(exact map coordinates) to produce complete ward placement records.
+Uses entity ``m_lifeState`` transitions as the primary placement signal — the
+same approach as the OpenDota reference parser.  When a ward entity transitions
+to ``m_lifeState == 0`` (alive) the entity already carries exact coordinates and
+``m_hOwnerEntity``, so no coordinate-matching window is needed.
 
-Key technique for 100% coordinate coverage:
-- Accept ALL non-DELETED entity events for ward entities, including UPDATED
-  events on recycled entity slots.
-- Do NOT globally consume entity records when matching — the same slot is
-  reused across the game, so the same entity event may match multiple
-  placements at different ticks.
-- For each combat log ITEM ward placement, find the entity event with the
-  smallest tick delta within ±``coord_window`` ticks.
+Ward death/expiry is detected on the transition to ``m_lifeState == 1``
+(dying).  The killer is read from the combat log ``DEATH`` queue that was
+populated for the matching ward class.
 
-Reference: examples/ward_smoke_rosh.py,
-           refs/parser/src/main/java/opendota/processors/warding/Wards.java
+Reference: refs/parser/src/main/java/opendota/processors/warding/Wards.java
+           refs/parser/src/main/java/opendota/Parse.java  (buildWardEntry)
 """
 
 from __future__ import annotations
@@ -33,21 +30,21 @@ if TYPE_CHECKING:
 
 _CELL_SIZE = 128
 
-_WARD_ITEMS: frozenset[str] = frozenset(
-    {"item_ward_observer", "item_ward_sentry", "item_ward_dispenser"}
-)
-_ITEM_TO_WARD_TYPE: dict[str, Literal["observer", "sentry"]] = {
-    "item_ward_observer": "observer",
-    "item_ward_dispenser": "observer",  # dispenser plants an observer ward
-    "item_ward_sentry": "sentry",
-}
-
 _WARD_CLASSES: frozenset[str] = frozenset(
     {
         "CDOTA_NPC_Observer_Ward",
         "CDOTA_NPC_Observer_Ward_TrueSight",
     }
 )
+
+# Combat-log target names used in DEATH events for wards (ref Wards.java)
+_WARD_TARGET_NAMES: frozenset[str] = frozenset({"npc_dota_observer_wards", "npc_dota_sentry_wards"})
+
+# Mapping from entity class → combat-log target name (for killer queue lookup)
+_CLASS_TO_TARGET: dict[str, str] = {
+    "CDOTA_NPC_Observer_Ward": "npc_dota_observer_wards",
+    "CDOTA_NPC_Observer_Ward_TrueSight": "npc_dota_sentry_wards",
+}
 
 # Ward lifespan in ticks (~30 ticks/s at normal speed)
 _OBSERVER_LIFESPAN_TICKS = 720  # ~6 minutes
@@ -78,29 +75,43 @@ def _pos(entity: Entity) -> tuple[float, float] | None:
     return (cell_x * _CELL_SIZE + vec_x, cell_y * _CELL_SIZE + vec_y)
 
 
+def _player_slot_from_entity(entity: Entity | None) -> int:
+    """Read the player slot from a hero/controller entity.
+
+    Mirrors ``getPlayerSlotFromEntity`` in Parse.java — tries ``m_nPlayerID``,
+    then ``m_iPlayerID``, then ``m_iPlayerOwnerID``, divides by 2.
+
+    Args:
+        entity: Entity to read from, or ``None``.
+
+    Returns:
+        Player slot (0-9), or -1 if unresolvable.
+    """
+    if entity is None:
+        return -1
+    for field_name in ("m_nPlayerID", "m_iPlayerID", "m_iPlayerOwnerID"):
+        val = entity.get_int32(field_name)
+        if val is not None and val >= 0:
+            return val // 2
+    return -1
+
+
 # ---------------------------------------------------------------------------
-# Internal placement record (pre-finalization)
+# Internal per-slot state
 # ---------------------------------------------------------------------------
 
 
 @dataclass
-class _WardPlacement:
-    tick: int
-    placer: str  # NPC hero name from combat log
-    ward_type: Literal["observer", "sentry"]
-
-
-@dataclass
-class _SpawnState:
-    """State tracked per active ward entity slot."""
+class _SlotState:
+    """Live state for one active ward entity slot."""
 
     spawn_tick: int
     ward_type: Literal["observer", "sentry"]
     team: int
     x: float
     y: float
-    death_tick: int | None = None  # tick when m_lifeState went non-zero
-    killer: str = ""  # from DEATH combat log entry
+    player_id: int
+    placer_npc: str  # resolved NPC name, e.g. "npc_dota_hero_shadow_demon"
 
 
 # ---------------------------------------------------------------------------
@@ -113,16 +124,17 @@ class WardEvent:
     """A complete ward placement record with coordinates.
 
     Attributes:
-        tick: Game tick when the ward was placed (from combat log).
+        tick: Game tick when the ward was placed.
         player_id: Player slot (0-9), or -1 if unresolvable.
         placer: NPC hero name of the hero who placed the ward.
         ward_type: ``"observer"`` or ``"sentry"``.
         team: Team number (2=Radiant, 3=Dire), or 0 if unknown.
-        x: World x coordinate of the ward, or ``None`` if no entity match found.
-        y: World y coordinate of the ward, or ``None`` if no entity match found.
+        x: World x coordinate of the ward.
+        y: World y coordinate of the ward.
         expires_tick: Tick when the ward expired naturally, or ``None``.
         killed_tick: Tick when the ward was killed by an enemy, or ``None``.
-        killer: NPC name of the unit that killed the ward, or ``""`` if not applicable.
+        killer: NPC name of the unit that killed the ward, or ``""`` if not
+            applicable.
     """
 
     tick: int
@@ -132,69 +144,9 @@ class WardEvent:
     team: int
     x: float | None
     y: float | None
-    # TODO Phase 6: populate expires_tick and killed_tick via m_lifeState tracking
     expires_tick: int | None
     killed_tick: int | None
     killer: str
-
-
-# ---------------------------------------------------------------------------
-# Entity spawn log entry type alias
-# ---------------------------------------------------------------------------
-
-# (tick, ward_type, team, x, y) — used in _match_coords
-_SpawnRecord = tuple[int, str, int, float, float]
-
-# Per-entity slot: index → list of _SpawnState (ordered by spawn_tick)
-_SlotHistory = dict[int, list[_SpawnState]]
-
-
-# ---------------------------------------------------------------------------
-# Coordinate matching
-# ---------------------------------------------------------------------------
-
-
-def _match_coords(
-    placements: list[_WardPlacement],
-    spawns: list[_SpawnRecord],
-    ward_type: Literal["observer", "sentry"],
-    window: int,
-) -> dict[int, tuple[float, float]]:
-    """Match placement ticks to entity spawn coordinates.
-
-    Finds the nearest entity event within ``window`` ticks for each placement.
-    The same spawn record may match multiple placements (entity slot reuse).
-
-    Args:
-        placements: Internal placement records of the given ``ward_type``.
-        spawns: All entity spawn records accumulated during parsing.
-        ward_type: Filter spawns to this type before matching.
-        window: Maximum tick delta to consider a match.
-
-    Returns:
-        Mapping from placement list index to ``(x, y)`` coordinates.
-        Placements with no match within the window are absent from the dict.
-    """
-    relevant = sorted(
-        [(t, x, y) for t, wt, _team, x, y in spawns if wt == ward_type],
-        key=lambda e: e[0],
-    )
-    result: dict[int, tuple[float, float]] = {}
-    for i, wp in enumerate(placements):
-        best_pos: tuple[float, float] | None = None
-        best_dt = window + 1
-        for et, ex, ey in relevant:
-            if et < wp.tick - window:
-                continue
-            if et > wp.tick + window:
-                break
-            dt = abs(et - wp.tick)
-            if dt < best_dt:
-                best_pos = (ex, ey)
-                best_dt = dt
-        if best_pos is not None:
-            result[i] = best_pos
-    return result
 
 
 # ---------------------------------------------------------------------------
@@ -203,15 +155,12 @@ def _match_coords(
 
 
 class WardsExtractor:
-    """Extracts ward placement events with exact map coordinates.
+    """Extracts ward placement, expiry, and kill events from the entity stream.
 
-    Combines two data streams:
-    - **Combat log** ``ITEM`` events: who placed a ward and at what tick.
-    - **Entity stream**: exact map coordinates from ward entity position fields.
-
-    Coordinate matching is performed lazily when ``ward_events`` is first
-    accessed (or explicitly via ``finalize()``). Access ``ward_events`` only
-    after ``parse()`` has completed.
+    Uses ``m_lifeState`` transitions on ward entities as the primary signal —
+    the same approach as the OpenDota reference parser.  Coordinates and placer
+    attribution are read directly from the entity at placement time via
+    ``m_hOwnerEntity``, so no post-parse coordinate matching is required.
 
     Example:
         >>> extractor = WardsExtractor()
@@ -221,31 +170,22 @@ class WardsExtractor:
         ...     print(event.tick, event.placer, event.x, event.y)
 
     Attributes:
-        coord_window: Tick window used for coordinate matching (default 60).
+        ward_events: Finalized ``WardEvent`` list (available after ``parse()``).
     """
 
-    def __init__(self, coord_window: int = 60) -> None:
-        """Initialise the extractor.
-
-        Args:
-            coord_window: Maximum tick delta when matching placements to entity
-                spawn records. Default 60 ticks ≈ 2 seconds.
-        """
-        self.coord_window = coord_window
+    def __init__(self) -> None:
+        """Initialise the extractor."""
         self._parser: ReplayParser | None = None
-        self._placements: list[_WardPlacement] = []
-        # Entity spawn log: (tick, ward_type, team, x, y) for coord matching
-        self._spawns: list[_SpawnRecord] = []
-        # Per-slot lifestate history: entity_index → [_SpawnState, ...]
-        self._slot_history: _SlotHistory = {}
-        # Previous m_lifeState per entity slot for transition detection
+        # Previous m_lifeState per entity index for transition detection
         self._prev_lifestate: dict[int, int] = {}
-        # Ward DEATH events: (target_npc_or_class_partial, tick) → killer
-        self._ward_deaths: list[tuple[int, str]] = []  # (tick, killer)
-        # Hero entity cache for player_id lookup: npc_name → Entity
-        self._heroes_by_npc: dict[str, Entity] = {}
-        # Cached finalized results
-        self._finalized: list[WardEvent] | None = None
+        # Live state per entity index (set on spawn, cleared on delete)
+        self._active: dict[int, _SlotState] = {}
+        # Killer queues per ward target name (matches Wards.java logic)
+        self._killer_queue: dict[str, list[str]] = {target: [] for target in _WARD_TARGET_NAMES}
+        # Hero NPC name by player_id — populated from entity stream
+        self._hero_by_player_id: dict[int, str] = {}
+        # Completed placement records
+        self.ward_events: list[WardEvent] = []
 
     def attach(self, parser: ReplayParser) -> None:
         """Register callbacks with the parser.
@@ -261,212 +201,172 @@ class WardsExtractor:
     def _tick(self) -> int:
         return self._parser.tick if self._parser is not None else 0
 
-    @property
-    def ward_events(self) -> list[WardEvent]:
-        """Finalized ward placement records with matched coordinates.
-
-        Triggers coordinate matching on first access. Access only after
-        ``parse()`` has completed; earlier access yields partial results.
-
-        Returns:
-            List of ``WardEvent`` objects in chronological order.
-        """
-        if self._finalized is None:
-            self._finalized = self._finalize()
-        return self._finalized
-
     def finalize(self) -> list[WardEvent]:
-        """Force coordinate matching and return results.
+        """Back-fill placer names and return ward events.
+
+        For pre-game wards where ``m_hOwnerEntity`` resolved to a
+        ``CDOTAPlayerController`` (hero not yet assigned), the hero NPC name
+        is filled in from the hero-by-player-id cache built during parsing.
 
         Returns:
             List of ``WardEvent`` objects in chronological order.
         """
-        self._finalized = self._finalize()
-        return self._finalized
+        for ev in self.ward_events:
+            if ev.placer == "" and ev.player_id >= 0:
+                npc = self._hero_by_player_id.get(ev.player_id, "")
+                ev.placer = npc
+        return self.ward_events
+
+    # ------------------------------------------------------------------
+    # Combat log — killer queues only (mirrors Wards.java onCombatLogEntry)
+    # ------------------------------------------------------------------
 
     def _on_combat_log(self, entry: CombatLogEntry) -> None:
-        if entry.log_type == "ITEM" and entry.inflictor_name in _WARD_ITEMS:
-            ward_type = _ITEM_TO_WARD_TYPE[entry.inflictor_name]
-            self._placements.append(
-                _WardPlacement(
-                    tick=entry.tick,
-                    placer=entry.attacker_name,
-                    ward_type=ward_type,
-                )
-            )
-        elif entry.log_type == "DEATH" and "ward" in entry.target_name.lower():
-            # Record ward DEATH events so we can attach killer info later
-            self._ward_deaths.append((entry.tick, entry.attacker_name))
+        if entry.log_type == "DEATH" and entry.target_name in _WARD_TARGET_NAMES:
+            killer = entry.attacker_name
+            if killer:
+                self._killer_queue[entry.target_name].append(killer)
+
+    # ------------------------------------------------------------------
+    # Entity stream — primary placement/death signal
+    # ------------------------------------------------------------------
 
     def _on_entity(self, entity: Entity, op: EntityOp) -> None:
         cls = entity.get_class_name()
 
-        # Track hero entities for player_id resolution
+        # Track heroes by player_id for late placer attribution
         if cls.startswith("CDOTA_Unit_Hero_"):
-            npc = cls.replace("CDOTA_Unit_Hero_", "npc_dota_hero_").lower()
-            if op.has(EntityOp.DELETED):
-                self._heroes_by_npc.pop(npc, None)
-            else:
-                self._heroes_by_npc[npc] = entity
-
-        # Record ward entity positions and track lifestate transitions
-        elif cls in _WARD_CLASSES:
-            idx = entity.get_index()
-            tick = self._tick
-            ward_type: Literal["observer", "sentry"] = (
-                "sentry" if "TrueSight" in cls else "observer"
-            )
-
-            if op.has(EntityOp.DELETED):
-                # Clean up lifestate tracking for this slot
-                self._prev_lifestate.pop(idx, None)
-                return
-
-            life_state = entity.get_int32("m_lifeState")
-            if life_state is None:
-                # No lifeState field — treat CREATED as alive, others as unknown
-                life_state = 0 if op.has(EntityOp.CREATED) else 2
-
-            prev_ls = self._prev_lifestate.get(idx, 2)
-            self._prev_lifestate[idx] = life_state
-
-            # Transition alive (0) → dead/dying: record death tick on the current spawn
-            if prev_ls == 0 and life_state != 0:
-                history = self._slot_history.get(idx)
-                if history:
-                    history[-1].death_tick = tick
-
-            # New spawn: lifestate transitions from dead/recycled to alive (0),
-            # or entity was freshly CREATED with lifestate 0
-            is_new_spawn = life_state == 0 and (prev_ls != 0 or op.has(EntityOp.CREATED))
-            if is_new_spawn:
-                pos = _pos(entity)
-                if pos is None:
-                    return
-                team = entity.get_int32("m_iTeamNum") or 0
-                state = _SpawnState(
-                    spawn_tick=tick,
-                    ward_type=ward_type,
-                    team=team,
-                    x=pos[0],
-                    y=pos[1],
-                )
-                self._slot_history.setdefault(idx, []).append(state)
-                # Also record in the flat spawn list for coord matching
-                self._spawns.append((tick, ward_type, team, pos[0], pos[1]))
-
-    def _find_spawn_state(
-        self, ward_type: Literal["observer", "sentry"], tick: int
-    ) -> _SpawnState | None:
-        """Find the _SpawnState closest to ``tick`` for the given ward type.
-
-        Args:
-            ward_type: Ward type to search for.
-            tick: Placement tick from combat log.
-
-        Returns:
-            The best-matching _SpawnState, or None if no match within window.
-        """
-        best: _SpawnState | None = None
-        best_dt = self.coord_window + 1
-        for states in self._slot_history.values():
-            for state in states:
-                if state.ward_type != ward_type:
-                    continue
-                dt = abs(state.spawn_tick - tick)
-                if dt < best_dt:
-                    best = state
-                    best_dt = dt
-        return best
-
-    def _find_killer(self, death_tick: int, window: int = 5) -> str:
-        """Find the killer name from ward DEATH combat log events near death_tick.
-
-        Args:
-            death_tick: Tick when the ward died (m_lifeState transition).
-            window: Tick window to search for matching DEATH event.
-
-        Returns:
-            Attacker name, or empty string if not found.
-        """
-        best_killer = ""
-        best_dt = window + 1
-        for tick, killer in self._ward_deaths:
-            dt = abs(tick - death_tick)
-            if dt < best_dt:
-                best_killer = killer
-                best_dt = dt
-        return best_killer
-
-    def _finalize(self) -> list[WardEvent]:
-        obs = [p for p in self._placements if p.ward_type == "observer"]
-        sen = [p for p in self._placements if p.ward_type == "sentry"]
-
-        obs_coords = _match_coords(obs, self._spawns, "observer", self.coord_window)
-        sen_coords = _match_coords(sen, self._spawns, "sentry", self.coord_window)
-
-        # Build separate index-to-event lists for each type, then merge by tick
-        events: list[WardEvent] = []
-
-        for i, wp in enumerate(obs):
-            coord = obs_coords.get(i)
-            spawn = self._find_spawn_state(wp.ward_type, wp.tick)
-            events.append(self._make_event(wp, coord, spawn))
-
-        for i, wp in enumerate(sen):
-            coord = sen_coords.get(i)
-            spawn = self._find_spawn_state(wp.ward_type, wp.tick)
-            events.append(self._make_event(wp, coord, spawn))
-
-        events.sort(key=lambda e: e.tick)
-        return events
-
-    def _make_event(
-        self,
-        wp: _WardPlacement,
-        coord: tuple[float, float] | None,
-        spawn: _SpawnState | None = None,
-    ) -> WardEvent:
-        # Resolve player_id from hero entity cache
-        hero = self._heroes_by_npc.get(wp.placer.lower())
-        player_id = -1
-        team = 0
-        if hero is not None:
-            pid = hero.get_int32("m_nPlayerID")
+            pid = entity.get_int32("m_nPlayerID")
             if pid is None:
-                pid = hero.get_int32("m_iPlayerID")
+                pid = entity.get_int32("m_iPlayerID")
             if pid is not None and pid >= 0:
-                pid //= 2
-                player_id = pid
-            t = hero.get_int32("m_iTeamNum")
-            if t is not None:
-                team = t
+                npc = "npc_dota_hero_" + cls[len("CDOTA_Unit_Hero_") :].lower()
+                self._hero_by_player_id[pid // 2] = npc
+            return
 
-        # Ward expiry: observer ~6 min (720 ticks), sentry ~3 min (360 ticks)
-        # death_tick < spawn_tick + natural_lifespan → natural expiry; otherwise killed
-        killed_tick: int | None = None
-        expires_tick: int | None = None
-        killer = ""
+        if cls not in _WARD_CLASSES:
+            return
 
-        if spawn is not None and spawn.death_tick is not None:
-            natural_ticks = (
-                _OBSERVER_LIFESPAN_TICKS if wp.ward_type == "observer" else _SENTRY_LIFESPAN_TICKS
-            )
-            if spawn.death_tick >= spawn.spawn_tick + natural_ticks - _EXPIRY_TOLERANCE_TICKS:
-                expires_tick = spawn.death_tick
-            else:
-                killed_tick = spawn.death_tick
-                killer = self._find_killer(spawn.death_tick)
+        idx = entity.get_index()
+        tick = self._tick
 
-        return WardEvent(
-            tick=wp.tick,
-            player_id=player_id,
-            placer=wp.placer,
-            ward_type=wp.ward_type,
+        if op.has(EntityOp.DELETED):
+            self._prev_lifestate.pop(idx, None)
+            self._active.pop(idx, None)
+            return
+
+        life_state = entity.get_int32("m_lifeState")
+        if life_state is None:
+            life_state = 0 if op.has(EntityOp.CREATED) else 2
+
+        prev_ls = self._prev_lifestate.get(idx, 2)
+        self._prev_lifestate[idx] = life_state
+
+        # ---- Transition to alive (0): ward placed ----
+        if life_state == 0 and prev_ls != 0:
+            self._on_ward_placed(entity, cls, idx, tick)
+
+        # ---- Transition to dying (1): ward killed or expired ----
+        elif life_state == 1 and prev_ls == 0:
+            self._on_ward_left(cls, idx, tick)
+
+    def _on_ward_placed(
+        self,
+        entity: Entity,
+        cls: str,
+        idx: int,
+        tick: int,
+    ) -> None:
+        pos = _pos(entity)
+        ward_type: Literal["observer", "sentry"] = "sentry" if "TrueSight" in cls else "observer"
+        team = entity.get_int32("m_iTeamNum") or 0
+
+        # Resolve placer via m_hOwnerEntity → owner entity → player slot
+        player_id = -1
+        placer_npc = ""
+        owner_handle = entity.get_uint32("m_hOwnerEntity")
+        if owner_handle is not None and self._parser is not None:
+            em = self._parser.entity_manager
+            if em is not None:
+                owner = em.find_by_handle(owner_handle)
+                player_id = _player_slot_from_entity(owner)
+                if owner is not None:
+                    owner_cls = owner.get_class_name()
+                    if owner_cls.startswith("CDOTA_Unit_Hero_"):
+                        placer_npc = "npc_dota_hero_" + owner_cls[len("CDOTA_Unit_Hero_") :].lower()
+
+        state = _SlotState(
+            spawn_tick=tick,
+            ward_type=ward_type,
             team=team,
-            x=coord[0] if coord is not None else None,
-            y=coord[1] if coord is not None else None,
-            expires_tick=expires_tick,
-            killed_tick=killed_tick,
-            killer=killer,
+            x=pos[0] if pos else 0.0,
+            y=pos[1] if pos else 0.0,
+            player_id=player_id,
+            placer_npc=placer_npc,
         )
+        self._active[idx] = state
+
+        self.ward_events.append(
+            WardEvent(
+                tick=tick,
+                player_id=player_id,
+                placer=placer_npc,
+                ward_type=ward_type,
+                team=team,
+                x=pos[0] if pos else None,
+                y=pos[1] if pos else None,
+                expires_tick=None,
+                killed_tick=None,
+                killer="",
+            )
+        )
+
+    def _on_ward_left(self, cls: str, idx: int, tick: int) -> None:
+        state = self._active.pop(idx, None)
+        if state is None:
+            return
+
+        # Find the matching WardEvent in the list (last one for this slot)
+        event = self._find_ward_event(state)
+        if event is None:
+            return
+
+        target_name = _CLASS_TO_TARGET.get(cls, "")
+        killer_queue = self._killer_queue.get(target_name, [])
+
+        natural_ticks = (
+            _OBSERVER_LIFESPAN_TICKS if state.ward_type == "observer" else _SENTRY_LIFESPAN_TICKS
+        )
+
+        if killer_queue:
+            killer = killer_queue.pop(0)
+            # Ward killing itself = natural expiry reported via combat log
+            if killer in _WARD_TARGET_NAMES:
+                event.expires_tick = tick
+            else:
+                event.killed_tick = tick
+                event.killer = killer
+        elif tick >= state.spawn_tick + natural_ticks - _EXPIRY_TOLERANCE_TICKS:
+            event.expires_tick = tick
+        else:
+            # Killed but no combat log killer arrived yet — mark as killed
+            event.killed_tick = tick
+
+    def _find_ward_event(self, state: _SlotState) -> WardEvent | None:
+        """Find the most recent WardEvent matching the given slot state.
+
+        Args:
+            state: The ``_SlotState`` for the dying ward slot.
+
+        Returns:
+            The matching ``WardEvent``, or ``None`` if not found.
+        """
+        # Scan backwards — most recent placement for this slot
+        for ev in reversed(self.ward_events):
+            if (
+                ev.tick == state.spawn_tick
+                and ev.ward_type == state.ward_type
+                and ev.player_id == state.player_id
+            ):
+                return ev
+        return None

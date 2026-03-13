@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from gem.extractors.objectives import ObjectivesExtractor
     from gem.extractors.players import PlayerExtractor
     from gem.extractors.wards import WardsExtractor
-    from gem.models import ChatEntry
+    from gem.models import ChatEntry, SmokeEvent
     from gem.parser import ReplayParser
 
 # Lane position grid resolution in world units (7d)
@@ -59,6 +59,7 @@ def build_parsed_match(
     combat_agg: _CombatAggregator,
     all_entries: list[CombatLogEntry],
     chat_entries: list[ChatEntry],
+    smoke_events: list[SmokeEvent] | None = None,
 ) -> ParsedMatch:
     """Assemble a :class:`ParsedMatch` from extractor state after a completed parse.
 
@@ -76,6 +77,7 @@ def build_parsed_match(
         combat_agg: Populated :class:`_CombatAggregator`.
         all_entries: All :class:`CombatLogEntry` objects from the replay.
         chat_entries: All :class:`ChatEntry` objects from the replay.
+        smoke_events: All :class:`SmokeEvent` objects collected during parse.
 
     Returns:
         Fully populated :class:`ParsedMatch`.
@@ -104,7 +106,10 @@ def build_parsed_match(
         combat_log=all_entries,
         chat=chat_entries,
         courier_snapshots=courier_ext.snapshots,
+        smoke_events=smoke_events or [],
         draft=draft_ext.draft_events,
+        game_start_tick=parser.game_start_tick,
+        game_end_tick=parser.tick,
     )
 
     # Post-process buybacks (7b).
