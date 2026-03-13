@@ -64,6 +64,54 @@ wards     = dfs["wards"]       # ward placements
 
 ---
 
+## Showcase — what you can do today
+
+`gem` can power a full match analysis workflow out of the box, including:
+- overview dashboards,
+- combat and teamfight breakdowns,
+- vision timelines/maps,
+- economy progression,
+- draft + objectives + chat context,
+- movement trails and time-series graphs.
+
+### Report screenshots
+
+<table width="100%" style="table-layout:fixed;border-collapse:separate;border-spacing:8px 8px;">
+  <tr>
+    <td align="center" valign="top" width="33.33%"><img src="assets/overview.png" alt="Overview" width="100%" height="auto"><br><sub>Overview</sub></td>
+    <td align="center" valign="top" width="33.33%"><img src="assets/gold_xp_graph.png" alt="Gold XP Graph" width="100%" height="auto"><br><sub>Gold / XP</sub></td>
+    <td align="center" valign="top" width="33.33%"><img src="assets/combat_log.png" alt="Combat Log" width="100%" height="auto"><br><sub>Combat</sub></td>
+  </tr>
+  <tr>
+    <td align="center" valign="top" width="33.33%"><img src="assets/teamfight.png" alt="Teamfight" width="100%" height="auto"><br><sub>Teamfight</sub></td>
+    <td align="center" valign="top" width="33.33%"><img src="assets/ward_map.png" alt="Ward Map" width="100%" height="auto"><br><sub>Vision Map</sub></td>
+    <td align="center" valign="top" width="33.33%"><img src="assets/warding_log.png" alt="Warding Log" width="100%" height="auto"><br><sub>Warding Log</sub></td>
+  </tr>
+  <tr>
+    <td align="center" valign="top" width="33.33%"><img src="assets/economy.png" alt="Economy" width="100%" height="auto"><br><sub>Economy</sub></td>
+    <td align="center" valign="top" width="33.33%"><img src="assets/draft.png" alt="Draft" width="100%" height="auto"><br><sub>Draft</sub></td>
+    <td align="center" valign="top" width="33.33%"><img src="assets/misc.png" alt="Misc" width="100%" height="auto"><br><sub>Misc</sub></td>
+  </tr>
+</table>
+
+<p align="center">
+  <img src="assets/movement_trail.png" alt="Movement Trail" width="45%"><br>
+  <sub>Movement Trail</sub>
+</p>
+
+### Reproduce this analysis
+
+Run the match report generator in `examples/`:
+
+```bash
+uv run python examples/match_report.py path/to/your_replay.dem
+```
+
+By default it writes:
+- `<replay_stem>_report.html` in the project root.
+
+---
+
 ## Expected output of `gem.parse(dem_path)`
 
 `gem.parse(dem_path)` returns a **`ParsedMatch`** object — a structured, analysis-ready view of the replay.
