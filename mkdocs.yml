@@ -3,6 +3,7 @@ site_description: A Python Dota 2 replay parser.
 site_url: https://whanyu1212.github.io/gem-dota
 repo_url: https://github.com/whanyu1212/gem-dota
 repo_name: whanyu1212/gem-dota
+edit_uri: edit/main/docs/
 
 theme:
   name: material
@@ -25,6 +26,7 @@ theme:
     - navigation.sections
     - navigation.expand
     - navigation.top
+    - content.action.edit
     - content.code.copy
     - content.code.annotate
     - search.highlight
@@ -67,29 +69,55 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - Concepts:
-    - concepts/index.md
-    - The .dem Format: concepts/dem_format.md
-    - Protobuf: concepts/protobuf.md
-    - The Entity System: concepts/entity_system.md
-    - Combat Log: concepts/combat_log.md
-  - Tutorials:
-    - tutorials/index.md
-    - "01 · Reading a Replay": tutorials/01_reading_a_replay.md
-    - "02 · Inspecting the Schema": tutorials/02_schema.md
-    - "03 · Entity State": tutorials/02_entity_state.md
-    - "04 · Combat Log": tutorials/03_combat_log.md
-    - "05 · Time-Series Data": tutorials/04_timeseries.md
-    - "06 · Full Match Output": tutorials/05_full_match.md
+  - Understanding the Format:
+    - understanding/index.md
+    - "1 · Protocol Buffers": understanding/01_protobuf.md
+    - "2 · The .dem Format": understanding/02_dem_format.md
+    - "3 · Snappy Compression": understanding/03_snappy.md
+    - "4 · Send Tables & Schema": understanding/04_send_tables.md
+    - "5 · Field Paths & Huffman": understanding/05_field_paths.md
+    - "6 · Field Decoders": understanding/06_field_decoders.md
+    - "7 · String Tables": understanding/07_string_tables.md
+    - "8 · The Entity System": understanding/08_entity_system.md
+    - "9 · The Combat Log": understanding/09_combat_log.md
+    - "10 · Game Events": understanding/10_game_events.md
+  - Guides:
+    - guides/index.md
+    - "Quickstart": guides/01_quickstart.md
+    - "Troubleshooting": guides/troubleshooting.md
+    - "Entity State": guides/02_entity_state.md
+    - "Combat Log": guides/03_combat_log.md
+    - "Full Match Data": guides/04_match_data.md
+    - "Time-Series & DataFrames": guides/05_timeseries.md
+    - "Teamfight Detection": guides/06_teamfights.md
+    - "Custom Extractors": guides/07_custom_extractors.md
+  - Architecture: architecture.md
   - API Reference:
-    - reference/index.md
-    - BitReader: reference/reader.md
-    - DemoStream: reference/stream.md
-    - Send Tables: reference/sendtable.md
-    - Field Decoders: reference/field_decoder.md
-    - Field Paths: reference/field_path.md
-    - String Tables: reference/string_table.md
-    - Entities: reference/entities.md
-    - ReplayParser: reference/parser.md
-    - Game Events: reference/game_events.md
-    - Combat Log: reference/combatlog.md
+    - Overview: reference/index.md
+    - Core Parsing:
+      - BitReader: reference/reader.md
+      - DemoStream: reference/stream.md
+      - Send Tables: reference/sendtable.md
+      - Field Decoders: reference/field_decoder.md
+      - Field Paths: reference/field_path.md
+      - String Tables: reference/string_table.md
+      - Entities: reference/entities.md
+      - ReplayParser: reference/parser.md
+    - Events & Combat:
+      - Game Events: reference/game_events.md
+      - Combat Log: reference/combatlog.md
+      - Combat Aggregator: reference/combat_aggregator.md
+    - Models & Outputs:
+      - Models: reference/models.md
+      - Reference Enums: reference/enums.md
+      - Constants: reference/constants.md
+      - Match Builder: reference/match_builder.md
+      - DataFrames: reference/dataframes.md
+    - Extractors:
+      - reference/extractors/index.md
+      - Players: reference/extractors/players.md
+      - Objectives: reference/extractors/objectives.md
+      - Wards: reference/extractors/wards.md
+      - Courier: reference/extractors/courier.md
+      - Draft: reference/extractors/draft.md
+      - Teamfights: reference/extractors/teamfights.md

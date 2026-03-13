@@ -438,6 +438,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "mkdocs" },
     { name = "mkdocs-material" },
     { name = "mkdocstrings", extra = ["python"] },
     { name = "mypy" },
@@ -462,8 +463,9 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "mkdocs-material", specifier = ">=9.7.4" },
-    { name = "mkdocstrings", extras = ["python"], specifier = ">=1.0.3" },
+    { name = "mkdocs", specifier = ">=1.6.1,<2.0.0" },
+    { name = "mkdocs-material", specifier = ">=9.7.4,<10.0.0" },
+    { name = "mkdocstrings", extras = ["python"], specifier = ">=1.0.3,<2.0.0" },
     { name = "mypy", specifier = ">=1.19.1" },
     { name = "pre-commit", specifier = ">=4.5.1" },
     { name = "pymdown-extensions", specifier = ">=10.21" },

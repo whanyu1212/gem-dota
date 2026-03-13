@@ -182,9 +182,11 @@ Key message classes used throughout the parser:
 | 8 | `extractors/courier.py`, `extractors/draft.py`, ability levels on snapshots, stun duration | ✅ Complete |
 | 9 | Teamfights | ✅ Complete |
 | 10 | Validation (`scripts/validate_opendota.py`), fuzz tests (`test_fuzz.py`), Steam API example | ✅ Complete |
-| 11a | Performance — `scripts/benchmark.py`, Python quick-wins, Rust extension (PyO3 + maturin) | 🚧 Planned |
-| 11b | Refactor & Cleanup — API surface, pyproject.toml metadata, examples, tests, CHANGELOG | 🚧 Planned |
-| 12 | Distribution — PyPI packaging, CI/CD | 🚧 Planned |
+| 11 | Performance — Python quick-wins (struct.unpack fast path, flat Huffman table) | ✅ Complete |
+| 11b | Refactor & Cleanup — API surface, pyproject.toml metadata, tests, entity typed getters | ✅ Complete |
+| 12 | Docs & README — bottom-up technical guide (`understanding/` 10 pages), guides, API reference | 🚧 In Progress |
+| 13 | Distribution — PyPI packaging, CI/CD | 🚧 Planned |
+| 14 | Rust extension (PyO3 + maturin) — full entity system in Rust for 3–5× speedup | 🚧 Deferred |
 
 ## Test files
 

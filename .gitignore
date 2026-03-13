@@ -12,8 +12,9 @@ wheels/
 # Virtual environments
 .venv
 
-# Downloaded hero portrait icons — fetched by scripts/fetch_hero_icons.py, not committed
+# Downloaded icons — fetched by scripts/fetch_hero_icons.py / fetch_item_icons.py, not committed
 src/gem/data/hero_icons/
+src/gem/data/item_icons/
 
 # Generated HTML output files (e.g. draft_summary, match_report)
 *.html

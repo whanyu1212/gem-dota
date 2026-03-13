@@ -42,14 +42,15 @@ build-backend = "uv_build"
 
 [tool.uv.build-backend]
 module-name = "gem"
-# Hero icons are downloaded locally by scripts/fetch_hero_icons.py and must
-# not be shipped in the published wheel.
-exclude-packages = ["gem.data.hero_icons"]
+# Icons are downloaded locally by fetch_hero_icons.py / fetch_item_icons.py
+# and must not be shipped in the published wheel.
+exclude-packages = ["gem.data.hero_icons", "gem.data.item_icons"]
 
 [dependency-groups]
 dev = [
-    "mkdocs-material>=9.7.4",
-    "mkdocstrings[python]>=1.0.3",
+    "mkdocs>=1.6.1,<2.0.0",
+    "mkdocs-material>=9.7.4,<10.0.0",
+    "mkdocstrings[python]>=1.0.3,<2.0.0",
     "mypy>=1.19.1",
     "pre-commit>=4.5.1",
     "pymdown-extensions>=10.21",

@@ -1,8 +1,7 @@
-# gem
+# Gem
 
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green?logo=opensourceinitiative&logoColor=white)
-![Phase](https://img.shields.io/badge/phase-11b%20of%2012-blue)
 ![Coverage](https://img.shields.io/badge/coverage-77%25-green)
 ![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)
 ![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)
@@ -13,9 +12,27 @@ Reads Source 2 `.dem` binary replay files and exposes structured output: per-tic
 
 ---
 
-## Why gem?
+## Why Gem?
 
-Existing parsers (Clarity, Manta, OpenDota/parser) are built for backend services in Java or Go. `gem` brings that to Python without touching JVM toolchains — with a clean API designed for data science and ML workflows.
+“Gem” is inspired by **Gem of True Sight** in Dota — something that reveals what is normally hidden. Replays are dense binary data; this library aims to surface that hidden information in a form people can actually work with.
+
+We built `gem` in **Python** because most people in data, ML, and AI workflows already live in Python ecosystems. Go/Java parsers are excellent, but they are often not the first language for this audience. The goal here is to democratize replay parsing: make it approachable from scratch, easy to inspect, and simple to plug into notebooks, pandas, and ML pipelines.
+
+---
+
+## Installation
+
+Requires Python 3.10+. Uses [`uv`](https://github.com/astral-sh/uv) for dependency management.
+
+```bash
+git clone https://github.com/whanyu1212/gem
+cd gem
+uv sync
+```
+
+---
+
+## Quick start
 
 ```python
 import gem
@@ -37,164 +54,79 @@ for player in match.players:
 ```
 
 ```python
-# Gold/XP timeline as DataFrames
+# Parse to DataFrames
 dfs = gem.parse_to_dataframe("my_replay.dem")
-snapshots = dfs["snapshots"]   # one row per player per sample tick
+players   = dfs["players"]     # one row per player per sample tick
+positions = dfs["positions"]   # one row per (player, tick) with x/y coords
 combat    = dfs["combat_log"]  # all combat log entries
+wards     = dfs["wards"]       # ward placements
 ```
 
 ---
 
-## Implementation Status
+## Expected output of `gem.parse(dem_path)`
 
-| Phase | Scope | Status |
-|---|---|---|
-| 1 | `BitReader`, `DemoStream` — binary frame iteration | ✅ Complete |
-| 2 | `sendtable`, `field_decoder`, `field_path` — schema layer | ✅ Complete |
-| 3 | String tables, entity lifecycle, game events, combat log | ✅ Complete |
-| 4 | `gem.constants` — bundled hero/item/ability display names | ✅ Complete |
-| 5 | Extractors — player timelines, objectives, ward coordinates | ✅ Complete |
-| 6 | `gem.parse()` — `ParsedMatch`/`ParsedPlayer`, DataFrame export, CLI | ✅ Complete |
-| 7 | Rune pickups, buybacks, aegis, lane heatmaps, chat, purchase log, movement heatmap | ✅ Complete |
-| 8 | Ability levels, courier state, draft extraction, stun duration | ✅ Complete |
-| 9 | Teamfight detection — per-player breakdown, minimap report | ✅ Complete |
-| 10 | Validation against OpenDota API, fuzz tests, gold/XP advantage curves | ✅ Complete |
-| 11 | Performance — benchmark tooling, Python optimisations, Rust extension (PyO3) | 🚧 Planned |
-| 12 | Distribution — PyPI packaging, CI/CD | 🚧 Planned |
+`gem.parse(dem_path)` returns a **`ParsedMatch`** object — a structured, analysis-ready view of the replay.
+
+High-level shape:
+- **Match metadata**: match ID, timing/tick context, and global match-level fields.
+- **Players (`match.players`)**: one `ParsedPlayer` per player with summary stats (K/D/A, damage, net worth, stuns, logs) plus time-series snapshots.
+- **Timeline/event collections**: draft events, combat log entries, wards/smokes, Roshan/aegis events, objectives, chat, teamfights, and courier snapshots.
+- **Advantage/time-series arrays**: values like radiant gold/XP advantage across game time.
+
+In short: think of `ParsedMatch` as one container holding both **per-player summaries** and **time-ordered match events**, ready for direct Python analysis or conversion via `parse_to_dataframe`.
 
 ---
 
 ## What you can extract
 
-| Data | Field / Source |
+| Data | API |
 |---|---|
 | Hero picks and bans with timestamps | `ParsedMatch.draft` |
+| Per-player K/D/A, damage, net worth | `ParsedPlayer.kills` / `.damage` / `.net_worth` |
+| Gold and XP over time | `ParsedPlayer.snapshots` |
+| Radiant gold / XP advantage curves | `ParsedMatch.radiant_gold_adv` / `.radiant_xp_adv` |
+| Ward placements with exact coordinates | `ParsedMatch.wards` |
+| Smoke of Deceit activations + groups | `ParsedMatch.wards` (smoke entries) |
+| Roshan kills + aegis events | `ParsedMatch.roshans` / `.aegis_events` |
+| Tower and barracks kills | `ParsedMatch.towers` / `.barracks` |
+| Teamfights with per-player breakdown | `ParsedMatch.teamfights` |
 | Courier state snapshots per team | `ParsedMatch.courier_snapshots` |
 | Ability levels per hero per tick | `PlayerStateSnapshot.ability_levels` |
 | Stun seconds dealt per player | `ParsedPlayer.stuns_dealt` |
-| Damage, heals, kills, assists, deaths | `ParsedPlayer.damage` etc. |
-| Gold and net worth over time | `ParsedPlayer.snapshots` |
-| Ward placements with exact coordinates | `ParsedMatch.wards` |
-| Smoke of Deceit activations + groups | `ParsedMatch.wards` (smoke entries) |
-| Roshan kills + aegis events | `ParsedMatch.roshans`, `.aegis_events` |
 | Rune pickups per player | `ParsedPlayer.runes_log` |
 | Buybacks per player | `ParsedPlayer.buyback_log` |
-| Tower and barracks kills | `ParsedMatch.towers`, `.barracks` |
 | Lane position heatmaps | `ParsedPlayer.lane_pos` |
 | Chat messages | `ParsedMatch.chat` |
 | Purchase log per player | `ParsedPlayer.purchase_log` |
-| Hero display names, item/ability names | `gem.constants` |
-| Teamfights with per-player stats (damage, deaths, buybacks, XP) | `ParsedMatch.teamfights` |
-| Teamfight minimap report with hero icons and live filters | `examples/teamfight_report.py` |
-| Radiant gold / XP advantage curves (per-minute) | `ParsedMatch.radiant_gold_adv`, `.radiant_xp_adv` |
-| Match info from Steam API (K/D/A, GPM, XPM, hero damage) | `examples/steam_match_info.py` |
-
-## Architecture diagrams
-
-For a dedicated architecture document, see [`docs/architecture.md`](docs/architecture.md).
-
-### Module architecture and data flow
-
-```mermaid
-flowchart TD
-    %% Entry points
-    A[gem.parse / gem.parse_to_dataframe] --> B[parser.py]
-    A --> M[dataframes.py]
-
-    %% Core parse pipeline
-    B --> C[stream.py]
-    B --> D[reader.py]
-    B --> E[sendtable.py]
-    E --> F[field_decoder.py]
-    B --> G[string_table.py]
-    B --> H[entities.py]
-    H --> I[field_path.py]
-    B --> J[game_events.py]
-    B --> K[combatlog.py]
-
-    %% Extractors
-    B --> X1[extractors.players]
-    B --> X2[extractors.objectives]
-    B --> X3[extractors.wards]
-    B --> X4[extractors.courier]
-    B --> X5[extractors.draft]
-    B --> X6[extractors.teamfights]
-
-    %% Assembly + aggregation
-    B --> L[combat_aggregator.py]
-    B --> N[match_builder.py]
-    L --> N
-    X1 --> N
-    X2 --> N
-    X3 --> N
-    X4 --> N
-    X5 --> N
-    X6 --> N
-    K --> L
-    K --> N
-    J --> N
-    H --> N
-
-    %% Output
-    N --> O[models.py ParsedMatch]
-    O --> M
-    M --> P[dict[str, DataFrame]]
-```
-
-### Key function interaction flow
-
-```mermaid
-flowchart LR
-    P0[ReplayParser.parse] --> P1[DemoStream iteration]
-    P0 --> P2[_read_inner_messages]
-    P0 --> P3[parse_send_tables]
-    P0 --> P4[string_table.handle_update]
-    P0 --> P5[EntityManager.on_packet_entities]
-    P5 --> P6[field_path.read_field_paths]
-    P0 --> P7[combatlog ingestion]
-    P0 --> P8[game event ingestion]
-    P0 --> P9[extractors polling/updates]
-    P0 --> P10[_CombatAggregator.on_entry]
-    P0 --> P11[build_parsed_match]
-    P11 --> P12[ParsedMatch]
-    P12 --> P13[parse_to_dataframe]
-```
-
-### Data model relationships (ER view)
-
-```mermaid
-erDiagram
-    ParsedMatch ||--o{ ParsedPlayer : contains
-    ParsedMatch ||--o{ Teamfight : has
-    ParsedMatch ||--o{ CombatLogEntry : includes
-    ParsedMatch ||--o{ WardEvent : includes
-    ParsedMatch ||--o{ ObjectiveEvent : includes
-    ParsedMatch ||--o{ CourierEvent : includes
-    ParsedMatch ||--o{ DraftEvent : includes
-
-    ParsedPlayer ||--o{ WardEvent : places_or_destroys
-    ParsedPlayer ||--o{ CombatLogEntry : attributed_events
-    Teamfight ||--o{ TeamfightPlayer : participants
-
-    EntityState ||--o{ FieldValue : stores
-    CombatLogEntry }o--|| ParsedPlayer : actor_target_attribution
-```
+| Hero / item / ability display names | `gem.constants` |
 
 ---
 
-## Installation
+## Components
 
-Requires Python 3.10+. Uses [`uv`](https://github.com/astral-sh/uv) for dependency management.
-
-```bash
-git clone https://github.com/whanyu1212/gem
-cd gem
-uv sync
-```
+| Component | Description |
+|---|---|
+| `reader.py` | `BitReader` — LSB-first bit reading, varint decoding, all binary primitives |
+| `stream.py` | `DemoStream` — outer message loop, Snappy decompression, magic check |
+| `sendtable.py` | Schema layer — serializer + field tree parsed from `CDemoSendTables` |
+| `field_decoder.py` | Type-dispatch decoders including quantized floats |
+| `field_path.py` | Huffman-coded field path ops for addressing into the serializer tree |
+| `field_state.py` | Nested mutable field-value tree for entity state storage |
+| `field_reader.py` | Field decoder dispatch and entity field reading |
+| `string_table.py` | Incremental key-history string tables |
+| `entities.py` | Entity create/update/delete lifecycle and state |
+| `game_events.py` | Game event schema and typed dispatch |
+| `combatlog.py` | S1 (game event) and S2 (user message) combat log ingestion |
+| `parser.py` | Top-level orchestrator wiring all subsystems together |
+| `models.py` | `ParsedMatch` / `ParsedPlayer` output dataclasses |
+| `constants.py` | Bundled hero, item, ability display names |
+| `extractors/` | Per-tick polling of entity state — players, objectives, wards, courier, draft, teamfights |
+| `dataframes.py` | DataFrame export from `ParsedMatch` |
 
 ---
 
-## Quick start
+## Examples
 
 ```bash
 # Full replay summary — combat log + entity snapshots
@@ -221,13 +153,41 @@ python examples/steam_match_info.py <match_id>
 
 ## Documentation
 
-Full concepts, tutorials, and API reference at the project docs site (built with MkDocs Material):
+Full concepts guide, API reference, and architecture diagrams:
 
 ```bash
 uv run mkdocs serve
 ```
 
-Topics covered: DEM binary format, varint encoding, Protocol Buffers, the entity delta system, combat log ingestion, and known data limitations.
+Or visit the hosted docs at [whanyu1212.github.io/gem](https://whanyu1212.github.io/gem).
+
+Topics covered: DEM binary format, Protocol Buffers, varint encoding, the entity delta system, field paths, combat log ingestion, and more.
+
+---
+
+## Performance & benchmarking (cross-language)
+
+Replay parsers in **Go** and **Java** are often faster in raw throughput, while `gem` prioritizes **Python-native ergonomics** for data/ML/AI workflows. Our goal is to be fast enough for research/production analysis while remaining easy to inspect, extend, and integrate with pandas/notebooks.
+
+To keep comparisons fair, benchmark parsers with the same:
+- replay set (size + patch range),
+- extracted outputs (same scope),
+- hardware/CPU and OS,
+- warmup policy and run count.
+
+> Benchmark results vary heavily by extraction scope (event-only vs full per-tick state), so we recommend reporting both **replays/sec** and **time per replay** with replay sizes.
+
+| Parser | Language | Scope | Throughput (replays/sec) | Notes |
+|---|---|---|---:|---|
+| gem | Python | Full extraction | TBD | Focused on analytics-first workflows |
+| Manta (reference) | Go | TBD | TBD | High-throughput backend-oriented parser |
+| Clarity (reference) | Java | TBD | TBD | Mature JVM parser ecosystem |
+
+If you run a benchmark, please open an issue/PR with:
+- hardware specs,
+- command/config used,
+- replay sample list,
+- median/p95 numbers.
 
 ---
 
@@ -235,4 +195,20 @@ Topics covered: DEM binary format, varint encoding, Protocol Buffers, the entity
 
 - **Roshan drops** — Aegis, Cheese, Refresher Shard, and Aghanim's Blessing pickups are not in the combat log. Roshan kills are tracked, but the specific drop items are not.
 - **Smoke empty groups** — if a smoke breaks instantly on activation (hero inside sentry truesight), the group list will be empty. This is correct game behaviour, not a parsing gap.
-- **Hero icons** — not bundled in the package. Run `python scripts/fetch_hero_icons.py` to download them locally before using `examples/draft_summary.py` or `examples/teamfight_report.py`.
+- **Truncated/live replays** — incomplete replays may return partial parsed output (or stop near the final corrupt block) instead of a perfect full-match result.
+- **Draft ID quirks** — replay pick/ban IDs can differ from static hero API IDs in some patches/formats (commonly transformed IDs). `gem` normalizes these, but edge cases may still appear.
+- **Purchase attribution in spectator/HLTV paths** — purchase events are not always directly hero-attributed in combat log data; reconstruction relies on entity state and may be incomplete in edge cases.
+- **Summon ownership edge cases** — most summoned-unit attribution is handled, but complex ownership cases can still produce occasional mismatches.
+- **Hero icons** — not bundled in the package. Run `python scripts/fetch_hero_icons.py` to download them locally before using the draft or teamfight report examples.
+
+---
+
+## Roadmap
+
+| Item | Status |
+|---|---|
+| Release `v0.1` on PyPI (packaging + metadata) | Planned |
+| CI on GitHub Actions (tests, lint, type checks) | Planned |
+| Validation harness against OpenDota-style outputs | Ongoing |
+| Docs expansion (cookbook + parsing-from-scratch walkthroughs) | Planned |
+| Rust acceleration for selected hot paths (PyO3 + maturin) | Deferred |
