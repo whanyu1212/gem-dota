@@ -4,6 +4,8 @@ Tabs and their sections:
 
   Overview   — Match header (always visible), Scoreboard, Gold & XP chart
   Combat     — Damage breakdown, Kill feed
+  Laning     — Lane role minimap, LH/DN/Gold/XP@10, Eff%, Gold/XP advantage
+  Teamfights — Fight cards with minimap, participants, per-player stats
   Vision     — Ward map (interactive canvas with playback)
   Economy    — Purchase timeline, Buybacks, Runes
   Draft      — Pick/ban sequence + team picks with hero portraits
@@ -73,6 +75,9 @@ from report.html_sections import (
 )
 from report.html_sections import (
     build_kill_feed as _ext_build_kill_feed,
+)
+from report.html_sections import (
+    build_laning as _ext_build_laning,
 )
 from report.html_sections import (
     build_objectives as _ext_build_objectives,
@@ -252,6 +257,7 @@ def build_html(match: gem.ParsedMatch, map_b64: str | None = None) -> str:
                 )
             ),
         ),
+        ("Laning", _ext_build_laning(match, map_b64)),
         ("Teamfights", _ext_build_teamfights(match, map_b64)),
         ("Vision", _ext_build_wards(match, map_b64)),
         (

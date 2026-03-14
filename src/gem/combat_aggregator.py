@@ -31,6 +31,8 @@ class _ParsedPlayerAgg:
 
     damage: defaultdict[str, int] = field(default_factory=_int_counter)
     damage_taken: defaultdict[str, int] = field(default_factory=_int_counter)
+    damage_by_type: defaultdict[str, int] = field(default_factory=_int_counter)
+    damage_taken_by_type: defaultdict[str, int] = field(default_factory=_int_counter)
     healing: defaultdict[str, int] = field(default_factory=_int_counter)
     ability_uses: defaultdict[str, int] = field(default_factory=_int_counter)
     item_uses: defaultdict[str, int] = field(default_factory=_int_counter)
@@ -144,8 +146,12 @@ class _CombatAggregator:
             case "DAMAGE":
                 if attacker_pid is not None:
                     self._agg(attacker_pid).damage[entry.target_name] += entry.value
+                    if entry.damage_type:
+                        self._agg(attacker_pid).damage_by_type[entry.damage_type] += entry.value
                 if target_pid is not None:
                     self._agg(target_pid).damage_taken[entry.attacker_name] += entry.value
+                    if entry.damage_type:
+                        self._agg(target_pid).damage_taken_by_type[entry.damage_type] += entry.value
             case "HEAL":
                 if attacker_pid is not None:
                     self._agg(attacker_pid).healing[entry.target_name] += entry.value

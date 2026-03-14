@@ -216,6 +216,44 @@ tbody td.r { text-align: right; font-variant-numeric: tabular-nums; }
     background: #21262d; border-radius: 4px; vertical-align: middle; }
 .dmg-bar-fill { height: 100%; border-radius: 4px; }
 
+/* ---- Damage type mini bar ---- */
+.dmg-type-mini {
+    margin-top: 4px;
+    width: 120px;
+    height: 6px;
+    background: #21262d;
+    border-radius: 3px;
+    overflow: hidden;
+    display: inline-flex;
+}
+.dmg-type-seg { height: 100%; display: inline-block; }
+.dmg-type-physical { background: #9aa4b2; }
+.dmg-type-magical { background: #4ea1ff; }
+.dmg-type-pure { background: #d946ef; }
+.dmg-type-others { background: #4d5562; }
+
+/* ---- Damage type legend ---- */
+.dmg-legend {
+    margin: 6px 0 0 0;
+    font-size: 0.78em;
+    color: #8b949e;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+.dmg-legend-swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    vertical-align: middle;
+}
+.dmg-legend-note {
+    color: #555e6b;
+    font-style: italic;
+}
+
 /* ---- Chart container ---- */
 .chart-wrap {
     position: relative;
@@ -245,6 +283,41 @@ tbody td.r { text-align: right; font-variant-numeric: tabular-nums; }
 details[open].sub-accordion > summary::before {
     transform: rotate(90deg);
 }
+
+/* ---- Laning tab ---- */
+.lane-map-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-bottom: 16px;
+    align-items: flex-start;
+}
+.lane-map-svg { flex-shrink: 0; }
+.lane-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    font-size: 12px;
+    align-content: flex-start;
+}
+.lane-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.lane-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.lane-adv-pos { color: #4caf50; font-weight: 600; }
+.lane-adv-neg { color: #f44336; font-weight: 600; }
+.lane-adv-neu { color: #8b949e; }
+.lane-eff-bar-wrap {
+    display: inline-block; width: 80px; height: 6px;
+    background: #21262d; border-radius: 3px; vertical-align: middle;
+}
+.lane-eff-bar-fill { height: 100%; border-radius: 3px; }
 
 /* ---- Misc ---- */
 .dim { color: #6e7681; font-style: italic; }

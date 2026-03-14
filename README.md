@@ -274,6 +274,15 @@ If you run a benchmark, please open an issue/PR with:
 
 ---
 
+## Acknowledgements
+
+`gem` stands on top of years of open work by the Dota replay community.
+
+- **Manta** (Go), **Clarity** (Java), and the **OpenDota parser** — invaluable references for protocol behavior, edge cases, and output conventions.
+- **Valve** for the Dota 2 replay ecosystem and continuously evolving game data surface.
+
+---
+
 ## Roadmap
 
 | Item | Status |

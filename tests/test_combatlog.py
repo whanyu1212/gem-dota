@@ -62,6 +62,7 @@ class FakeS2Entry:
         is_ability_toggle_on=False,
         is_ability_toggle_off=False,
         stun_duration=0.0,
+        damage_type=0,
     ):
         self.type = type
         self.attacker_name = attacker_name
@@ -80,6 +81,7 @@ class FakeS2Entry:
         self.is_ability_toggle_on = is_ability_toggle_on
         self.is_ability_toggle_off = is_ability_toggle_off
         self.stun_duration = stun_duration
+        self.damage_type = damage_type
 
     def HasField(self, name: str) -> bool:
         return name == "stun_duration" and self.stun_duration != 0.0
@@ -352,6 +354,7 @@ class TestS2CombatLog:
             value=150,
             is_attacker_hero=True,
             is_target_hero=True,
+            damage_type=2,  # 2=magical in CMsgDOTACombatLogEntry wire format (1=physical, 2=magical, 4=pure)
         )
         p.process_s2_entry(msg, table, tick=5000)
         assert len(received) == 1
@@ -362,14 +365,16 @@ class TestS2CombatLog:
         assert e.value == 150
         assert e.tick == 5000
         assert e.attacker_is_hero is True
+        assert e.damage_type == "magical"
 
     def test_heal_entry(self):
         p, received = self._make_processor_with_handler()
         table = FakeNameTable({1: "npc_dota_hero_omniknight"})
-        msg = FakeS2Entry(type=1, attacker_name=1, value=300)
+        msg = FakeS2Entry(type=1, attacker_name=1, value=300, damage_type=2)
         p.process_s2_entry(msg, table)
         assert received[0].log_type == "HEAL"
         assert received[0].value == 300
+        assert received[0].damage_type == ""
 
     def test_death_entry(self):
         p, received = self._make_processor_with_handler()

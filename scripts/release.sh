@@ -38,15 +38,17 @@ if ! grep -q "^## \\[$VERSION\\]" CHANGELOG.md; then
   exit 1
 fi
 
-python - <<PY
+VERSION="$VERSION" python - <<'PY'
 from pathlib import Path
+import os
 import re
 
+version = os.environ["VERSION"]
 path = Path("pyproject.toml")
 text = path.read_text(encoding="utf-8")
 new_text, n = re.subn(
     r'^version = ".*"$',
-    f'version = "{VERSION}"',
+    f'version = "{version}"',
     text,
     count=1,
     flags=re.MULTILINE,
@@ -54,7 +56,7 @@ new_text, n = re.subn(
 if n != 1:
     raise SystemExit("Could not find exactly one version line in pyproject.toml")
 path.write_text(new_text, encoding="utf-8")
-print(f"Updated pyproject.toml version -> {VERSION}")
+print(f"Updated pyproject.toml version -> {version}")
 PY
 
 echo "Running quick checks..."

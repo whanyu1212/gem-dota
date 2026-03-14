@@ -157,6 +157,77 @@ class TestDetectTeamfights:
 
 
 # ---------------------------------------------------------------------------
+# Spatial split tests
+# ---------------------------------------------------------------------------
+
+
+def _make_snaps(hero: str, slot: int, tick: int, x: float, y: float):
+    """Return a minimal player_snapshots dict with one snapshot."""
+    from gem.extractors._snapshots import PlayerStateSnapshot
+
+    snap = PlayerStateSnapshot(
+        tick=tick,
+        player_id=slot,
+        npc_name=hero,
+        team=2,
+        level=1,
+        xp=0,
+        gold=0,
+        net_worth=0,
+        total_earned_gold=0,
+        total_earned_xp=0,
+        lh=0,
+        dn=0,
+        hp=500,
+        max_hp=500,
+        mana=0,
+        max_mana=0,
+        x=x,
+        y=y,
+    )
+    return {slot: [snap]}
+
+
+class TestSpatialSplit:
+    def test_nearby_deaths_not_split(self):
+        """Two deaths close together on map stay in one fight."""
+        h2s = {"npc_dota_hero_axe": 0, "npc_dota_hero_pudge": 1}
+        snaps = {
+            **_make_snaps("npc_dota_hero_axe", 0, 1000, 2000.0, 2000.0),
+            **_make_snaps("npc_dota_hero_pudge", 1, 1200, 2500.0, 2000.0),
+        }
+        entries = [
+            _death(1000, "npc_dota_hero_axe"),
+            _death(1200, "npc_dota_hero_pudge"),
+        ]
+        fights = detect_teamfights(entries, hero_to_slot=h2s, player_snapshots=snaps)
+        assert len(fights) == 1
+        assert fights[0].deaths == 2
+
+    def test_far_deaths_do_not_split_with_temporal_detection(self):
+        """Two deaths within cooldown stay in one fight even if far apart."""
+        h2s = {"npc_dota_hero_axe": 0, "npc_dota_hero_pudge": 1}
+        snaps = {
+            **_make_snaps("npc_dota_hero_axe", 0, 1000, 0.0, 0.0),
+            **_make_snaps("npc_dota_hero_pudge", 1, 1200, 5000.0, 5000.0),  # far away
+        }
+        entries = [
+            _death(1000, "npc_dota_hero_axe"),
+            _death(1200, "npc_dota_hero_pudge"),
+        ]
+        fights = detect_teamfights(entries, hero_to_slot=h2s, player_snapshots=snaps)
+        assert len(fights) == 1
+        assert fights[0].deaths == 2
+
+    def test_no_snapshots_falls_back_to_temporal_only(self):
+        """Without position data spatial split is skipped; temporal logic still works."""
+        entries = [_death(1000), _death(1200)]
+        fights = detect_teamfights(entries)
+        assert len(fights) == 1
+        assert fights[0].deaths == 2
+
+
+# ---------------------------------------------------------------------------
 # Integration tests
 # ---------------------------------------------------------------------------
 
