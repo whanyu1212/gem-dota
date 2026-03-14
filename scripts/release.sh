@@ -27,6 +27,17 @@ if ! git diff --quiet || ! git diff --cached --quiet; then
   exit 1
 fi
 
+if [[ ! -f "CHANGELOG.md" ]]; then
+  echo "Error: CHANGELOG.md not found."
+  exit 1
+fi
+
+if ! grep -q "^## \\[$VERSION\\]" CHANGELOG.md; then
+  echo "Error: CHANGELOG.md is missing a section for v$VERSION."
+  echo "Add a heading like: ## [$VERSION] - YYYY-MM-DD"
+  exit 1
+fi
+
 python - <<PY
 from pathlib import Path
 import re
@@ -54,7 +65,7 @@ uv run pytest tests/ -m "not integration" -q
 echo "Building dist artifacts..."
 uv build
 
-git add pyproject.toml
+git add pyproject.toml CHANGELOG.md
 git commit -m "chore(release): v$VERSION"
 git tag "v$VERSION"
 
