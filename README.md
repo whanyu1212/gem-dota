@@ -5,6 +5,8 @@
 ![Coverage](https://img.shields.io/badge/coverage-77%25-green)
 ![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)
 ![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)
+[![PyPI version](https://img.shields.io/pypi/v/gem-dota.svg)](https://pypi.org/project/gem-dota/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/gem-dota.svg)](https://pypi.org/project/gem-dota/)
 [![Sponsor](https://img.shields.io/badge/Sponsor-GitHub-pink?logo=github)](https://github.com/sponsors/whanyu1212)
 
 **Gem of True Sight** — a Python Dota 2 replay parser.
@@ -251,8 +253,6 @@ If you run a benchmark, please open an issue/PR with:
 
 | Item | Status |
 |---|---|
-| Release `v0.1` on PyPI (packaging + metadata) | Planned |
-| CI on GitHub Actions (tests, lint, type checks) | Planned |
 | Validation harness against OpenDota-style outputs | Ongoing |
 | Docs expansion (cookbook + parsing-from-scratch walkthroughs) | Planned |
 | Frontend demo application (interactive replay analysis UI showcasing parser capabilities) | Planned |
