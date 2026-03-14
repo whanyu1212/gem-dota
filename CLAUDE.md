@@ -61,6 +61,28 @@ extractors/        ← per-tick polling of entity state for output
 When translating from Manta, the Go file maps 1:1 to the Python module:
 `manta/reader.go` → `reader.py`, `manta/entity.go` → `entities.py`, etc.
 
+### MANDATORY: Check refs before implementing
+
+**Do not write any implementation code before reading the relevant reference files.** This is a hard rule, not a suggestion.
+
+Before implementing any feature or fixing any bug:
+1. Read the relevant file(s) in `refs/manta/` (Go — primary)
+2. Cross-check with `refs/clarity/` (Java — edge cases) and `refs/parser/` (Java — output schema)
+3. Verify field names, enum values, message types, and data flow against the refs
+4. Only then write code
+
+Rushing to implement without checking refs leads to wrong enum mappings, wrong message types, wrong field attributions, and hours of debugging. When in doubt, grep all three ref dirs before touching any source file.
+
+### ReplayParser — the main entry point (Phase 3+)
+
+`parser.py` wires all subsystems together. Key implementation details:
+
+- **Outer vs inner messages**: `DemoStream` yields outer `EDemoCommands` frames. `DEM_Packet`/`DEM_SignonPacket`/`DEM_FullPacket` contain a `CDemoPacket` whose `.data` is a packed stream of `{ubit_var type_id, varuint32 size, bytes}` inner net messages — these must be unpacked separately with `BitReader`.
+- **`svc_ServerInfo` arrives before `DEM_SendTables`**: the `_pending_server_info` pattern caches it and applies it immediately after the entity manager is created in `_on_send_tables`.
+- **Inner message priority**: string table messages (priority -10) are sorted before `svc_PacketEntities` (+5) within the same packet to ensure baselines are ready before entity deltas are applied.
+- **Outer IDs**: `DEM_SendTables=4`, `DEM_ClassInfo=5`, `DEM_Packet=7`, `DEM_SignonPacket=8`, `DEM_FullPacket=13`
+- **Inner IDs**: `net_Tick=4`, `svc_ServerInfo=40`, `svc_CreateStringTable=44`, `svc_UpdateStringTable=45`, `svc_PacketEntities=55`
+
 ### The entity system (most complex part)
 
 Entities are game objects (heroes, towers, items, game rules). Their schema is defined in `CDemoSendTables` → `CSVCMsg_FlattenedSerializer`, parsed into a tree of `Serializer` → `Field` objects. Each field has a decoder function resolved once at schema-parse time.
@@ -75,6 +97,37 @@ The `instancebaseline` string table holds default field values per class — app
 - **S2 (newer replays)**: arrives as `CMsgDOTACombatLogEntry` user message with names already resolved.
 
 Both paths must produce the same `CombatLogEntry` output. See `refs/clarity/src/main/java/skadistats/clarity/processor/gameevents/CombatLog.java`.
+
+### Ward coordinates — how to get 100% coverage
+
+The combat log `ITEM` event (`item_ward_observer`, `item_ward_dispenser`, `item_ward_sentry`) records who placed a ward and when, but not where. Coordinates come from the entity stream.
+
+**Do not** filter to `EntityOp.CREATED` only — recycled entity slots emit `UPDATED` (not `CREATED`) but still carry the full position. Record every entity event on live ward entities (excluding `DELETED`).
+
+**Do not** globally consume entity records in the matcher — the same slot is reused across the game, so it must be matchable to multiple placements at different ticks.
+
+Correct approach: for each combat log placement event, find the entity event with the smallest tick delta within ±60 ticks, allowing reuse. This gives 100% exact coordinates.
+
+Reference: `refs/parser/src/main/java/opendota/processors/warding/Wards.java` — uses `m_lifeState==0` transitions instead of op type. Either works; what matters is accepting all non-DELETED events and not consuming entity records globally in the matcher.
+
+### Smoke of Deceit — empty group edge case
+
+Tracking smoke:
+1. `ITEM` event (`inflictor_name = "item_smoke_of_deceit"`) — item consumed
+2. `MODIFIER_ADD` events (`inflictor_name = "modifier_smoke_of_deceit"`, `target_is_hero = True`) — one per hero that receives the buff
+
+Filter `MODIFIER_ADD` by `target_is_hero = True` to exclude summoned units (e.g. Beastmaster boars) from the group.
+
+**Empty group edge case**: if the activating hero is standing inside a sentry ward's truesight radius at activation time, the smoke breaks instantly before any `MODIFIER_ADD` fires. The `ITEM` event is still recorded (item consumed) but zero modifier events follow. This is correct game behaviour — the item was wasted — not a parsing gap. Output this as a smoke usage with an empty group.
+
+Alternative approach (refs): read the `ActiveModifiers` string table directly — each entry is a `CDOTAModifierBuffTableEntry` protobuf with a `player_ids` field (comma-separated player slots). Would give the same result for empty-group cases. Not currently implemented; requires parsing an additional string table of protobufs.
+
+## Workflow preferences
+
+- **Never run Bash commands in the background.** Always run foreground (blocking) so output is visible immediately. Efficiency is less important than observability.
+- When writing temporary investigation scripts to `/tmp/`, delete them after use (`rm /tmp/script.py`).
+- Kills by summoned units (Warlock Golem, Undying zombie, Pugna Nether Ward, etc.) should be credited to the owning hero's kill count.
+- Deaths count all causes (hero, tower, creep, neutral, summon) — not just hero-dealt deaths.
 
 ## Code Style
 
@@ -115,8 +168,60 @@ Key message classes used throughout the parser:
 - `dota_commonmessages_pb2` — `CMsgDOTACombatLogEntry`
 - `dota_usermessages_pb2` — `CDOTAUserMsg_*`
 
-## Tests
+## Implementation status
 
-Tests are written against the public API of each module and fail with `ModuleNotFoundError` until the corresponding module is implemented. This is by design — the test suite drives implementation phase by phase.
+| Phase | Scope | Status |
+|---|---|---|
+| 1 | `reader.py`, `stream.py` | ✅ Complete |
+| 2 | `sendtable.py`, `field_decoder.py`, `field_path.py` | ✅ Complete |
+| 3 | `string_table.py`, `entities.py`, `game_events.py`, `combatlog.py`, `parser.py` | ✅ Complete |
+| 4 | `constants.py` + bundled `src/gem/data/` JSON assets | ✅ Complete |
+| 5 | `extractors/players.py`, `objectives.py`, `wards.py` | ✅ Complete |
+| 6 | `models.py`, `__init__.py` (`parse()`/`parse_to_dataframe()`), `__main__.py` (CLI) | ✅ Complete |
+| 7 | Rune pickups, buybacks, aegis, lane heatmaps, chat, purchase log, movement heatmap example | ✅ Complete |
+| 8 | `extractors/courier.py`, `extractors/draft.py`, ability levels on snapshots, stun duration | ✅ Complete |
+| 9 | Teamfights | ✅ Complete |
+| 10 | Validation (`scripts/validate_opendota.py`), fuzz tests (`test_fuzz.py`), Steam API example | ✅ Complete |
+| 11 | Performance — Python quick-wins (struct.unpack fast path, flat Huffman table) | ✅ Complete |
+| 11b | Refactor & Cleanup — API surface, pyproject.toml metadata, tests, entity typed getters | ✅ Complete |
+| 12 | Docs & README — bottom-up technical guide (`understanding/` 10 pages), guides, API reference | 🚧 In Progress |
+| 13 | Distribution — PyPI packaging, CI/CD | 🚧 Planned |
+| 14 | Rust extension (PyO3 + maturin) — full entity system in Rust for 3–5× speedup | 🚧 Deferred |
 
-Fixtures (small binary blobs for unit tests) go in `tests/fixtures/`. Real `.dem` files for integration tests should be fetched with `scripts/fetch_replays.py` and are marked `@pytest.mark.integration`.
+## Test files
+
+| File | Covers |
+|---|---|
+| `test_reader.py` | `BitReader` primitives |
+| `test_stream.py` | `DemoStream` outer message loop |
+| `test_sendtable.py` | Send table / serializer parsing |
+| `test_field_decoder.py` | All field type decoders |
+| `test_field_path.py` | Huffman field path ops |
+| `test_field_path_ops.py` | All 40 field path op functions |
+| `test_string_table.py` | String table create/update |
+| `test_string_table_extended.py` | Key history, value compression, handle_create/update edge cases |
+| `test_entities.py` | Entity lifecycle and typed getters |
+| `test_game_events.py` | Game event schema and dispatch |
+| `test_combatlog.py` | S1 and S2 combat log paths |
+| `test_extractors.py` | `PlayerExtractor`, `ObjectivesExtractor`, `WardsExtractor` |
+| `test_ability_courier_draft_stuns.py` | Ability levels, `CourierExtractor`, `DraftExtractor`, stun duration |
+| `test_constants.py` | `constants.py` — all lookup functions |
+| `test_draft_extractor.py` | `DraftExtractor` — resolution tiers, finalize, idempotency |
+| `test_teamfights.py` | `detect_teamfights` — window detection, stat attribution |
+| `test_fuzz.py` | Robustness: malformed/truncated/empty inputs don't hang or crash |
+
+Fixtures go in `tests/fixtures/`. Real `.dem` files for integration tests are marked `@pytest.mark.integration` and `@pytest.mark.slow`.
+
+## Examples
+
+| Script | Description |
+|---|---|
+| `examples/match_report.py` | Full match dashboard (Draft, Combat, Vision, Teamfights, Economy) |
+| `examples/extraction_demo.py` | Developer guide for combat log extraction and entity polling |
+| `examples/steam_match_info.py` | Fetch match info from Steam API and display with Rich tables |
+
+Hero and item icons for `match_report.py` are downloaded separately — not committed or shipped in the package:
+
+```bash
+python scripts/fetch_hero_icons.py   # downloads to src/gem/data/hero_icons/
+```

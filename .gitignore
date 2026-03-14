@@ -1,3 +1,6 @@
+# macOS metadata
+.DS_Store
+
 # Python-generated files
 __pycache__/
 *.py[oc]
@@ -8,6 +11,13 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Downloaded icons — fetched by scripts/fetch_hero_icons.py / fetch_item_icons.py, not committed
+src/gem/data/hero_icons/
+src/gem/data/item_icons/
+
+# Generated HTML output files (e.g. draft_summary, match_report)
+*.html
 
 # Replay files — too large to commit
 tests/fixtures/*.dem

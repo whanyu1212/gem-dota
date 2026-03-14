@@ -1,22 +1,45 @@
 # examples/
 
-Each script in this directory corresponds to an implementation phase from `STRATEGY.md`.
-As more phases are completed, new examples unlock progressively deeper replay data.
-
+Runnable scripts demonstrating gem's replay parsing capabilities.
 Run any example from the project root (with the venv activated):
 
 ```bash
-python examples/phase1_stream.py                          # uses default fixture
-python examples/phase1_stream.py path/to/your.dem        # or supply your own
+python examples/match_report.py path/to/your.dem          # comprehensive HTML report
+python examples/extraction_demo.py                        # uses bundled fixture
+python examples/extraction_demo.py path/to/your.dem       # or supply your own
+python examples/steam_match_info.py <match_id>            # Steam API integration
 ```
 
-## Progress
+## Scripts
 
-| Script | Phase | What it demonstrates | Status |
-|---|---|---|---|
-| `phase1_stream.py` | 1 | Header validation, message type breakdown, tick range, throughput | ✅ |
-| `phase2_schema.py` | 2 | SendTable parsing, serializer/field tree, decoder resolution | 🔜 |
-| `phase3_entities.py` | 3 | Entity create/update/delete, reading hero HP/position/gold per tick | 🔜 |
-| `phase4_events.py` | 4 | Game events, combat log entries (damage, kills, abilities) | 🔜 |
-| `phase5_extract.py` | 5 | Per-player time-series: gold, XP, LH/DN, ward placements | 🔜 |
-| `phase6_output.py` | 6 | Full `ParsedMatch` → DataFrame, JSON export | 🔜 |
+| Script | What it demonstrates |
+|---|---|
+| `match_report.py` | Comprehensive HTML replay analysis dashboard (overview, combat, vision, economy, movement, draft, teamfights, and more) |
+| `extraction_demo.py` | Developer-oriented baseline: full replay parse with combat log summary and periodic entity snapshots |
+| `steam_match_info.py` | Fetches and displays match metadata from the Steam Web API (`STEAM_API_KEY` required) |
+
+## Ward coordinates
+
+All ward placements get exact entity coordinates. The key: every entity event on a live
+ward carries its position — including `UPDATED` events on recycled slots. Match each
+combat log `ITEM` event to the nearest entity event within ±60 ticks, without globally
+consuming entity records (slots are reused across the game).
+
+## Smoke "no heroes resolved"
+
+If a smoke `ITEM` event is recorded but the group list is empty, it means the hero
+activated smoke while already inside a sentry ward's truesight radius (or another
+instant-dispel condition). The item was genuinely consumed but broke before anyone
+received the buff. This is correct game behaviour, not a parsing gap.
+
+## gem.constants
+
+Both examples use `gem.constants` for display names (heroes, items, abilities) and
+XP thresholds. The bundled data lives in `src/gem/data/` and is regenerated from
+`refs/dotaconstants/` by running:
+
+```bash
+python scripts/build_constants.py
+```
+
+The `refs/` folder is a development reference only and is not required at runtime.

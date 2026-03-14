@@ -1,33 +1,62 @@
 [project]
 name = "gem-dota"
 version = "0.1.0"
-description = "Add your description here"
+description = "Dota 2 Source 2 replay parser for data science and ML workflows"
 readme = "README.md"
+license = { text = "MIT" }
 authors = [
     { name = "whanyu1212", email = "whanyu1212@hotmail.com" }
 ]
 requires-python = ">=3.10"
+keywords = ["dota2", "replay", "parser", "esports", "dem", "source2"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Games/Entertainment",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
 dependencies = [
     "numpy>=2.2.6",
     "pandas>=2.3.3",
+    "pillow>=12.1.1",
+    "plotly>=6.6.0",
     "protobuf>=7.34.0",
     "protoc-wheel-0>=30.2",
     "python-snappy>=0.7.3",
 ]
 
+[project.urls]
+Homepage = "https://github.com/whanyu1212/gem"
+Repository = "https://github.com/whanyu1212/gem"
+Issues = "https://github.com/whanyu1212/gem/issues"
+
 [build-system]
 requires = ["uv_build>=0.9.8,<0.10.0"]
 build-backend = "uv_build"
 
+[tool.uv.build-backend]
+module-name = "gem"
+# Icons are downloaded locally by fetch_hero_icons.py / fetch_item_icons.py
+# and must not be shipped in the published wheel.
+exclude-packages = ["gem.data.hero_icons", "gem.data.item_icons"]
+
 [dependency-groups]
 dev = [
-    "mkdocs-material>=9.7.4",
-    "mkdocstrings[python]>=1.0.3",
+    "mkdocs>=1.6.1,<2.0.0",
+    "mkdocs-material>=9.7.4,<10.0.0",
+    "mkdocstrings[python]>=1.0.3,<2.0.0",
     "mypy>=1.19.1",
     "pre-commit>=4.5.1",
     "pymdown-extensions>=10.21",
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
+    "rich>=14.0.0",
     "ruff>=0.15.5",
 ]
 
@@ -80,4 +109,8 @@ no_implicit_optional = true
 warn_redundant_casts = true
 warn_unused_ignores = true
 ignore_missing_imports = true
-exclude = ["src/gem/proto/", "\\.venv/", "tests/"]
+exclude = ["src/gem/proto/", "\\.venv/", "tests/", ".*_pb2\\.pyi$"]
+
+[[tool.mypy.overrides]]
+module = "gem.proto.*"
+ignore_errors = true
