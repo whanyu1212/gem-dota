@@ -57,6 +57,19 @@ _LOG_TYPE_NAMES: dict[int, str] = {
     21: "PICKUP_RUNE",
 }
 
+# Mapping from CMsgDOTACombatLogEntry.damage_type uint32 → normalized label.
+# Despite the HeroDamageType proto enum using 0/1/2, the combat-log wire value
+# uses a 1-based scheme: 1=physical, 2=magical, 4=pure.
+# Value 0 = field unset (proto default) — occurs for damage against non-hero units
+# (wards, creeps, zombies) where Valve does not populate the type field.
+# Verified empirically against real replay data.
+_DAMAGE_TYPE_NAMES: dict[int, str] = {
+    0: "others",
+    1: "physical",
+    2: "magical",
+    4: "pure",
+}
+
 # S1 dota_combatlog game event field names (from Clarity S1CombatLogIndices)
 _S1_FIELD_TYPE = "type"
 _S1_FIELD_TARGET = "targetname"
@@ -97,6 +110,7 @@ class CombatLogEntry:
         gold_reason: Gold reason code (for GOLD events).
         xp_reason: XP reason code (for XP events).
         value_name: Resolved name for the value field (PURCHASE events: item name).
+        damage_type: Damage type label for DAMAGE events ("physical", "magical", "pure").
         stun_duration: Duration of stun applied by this event in seconds (S2 only; 0.0 if none).
     """
 
@@ -114,6 +128,7 @@ class CombatLogEntry:
     gold_reason: int = 0
     xp_reason: int = 0
     value_name: str = ""
+    damage_type: str = ""
     stun_duration: float = 0.0
 
 
@@ -292,6 +307,9 @@ class CombatLogProcessor:
         value = raw_value if raw_value < 0x80000000 else raw_value - 0x100000000
 
         stun_duration = msg.stun_duration if msg.HasField("stun_duration") else 0.0
+        damage_type = ""
+        if log_type == "DAMAGE" and hasattr(msg, "damage_type"):
+            damage_type = _DAMAGE_TYPE_NAMES.get(msg.damage_type, "")
 
         entry = CombatLogEntry(
             tick=tick,
@@ -308,6 +326,7 @@ class CombatLogProcessor:
             gold_reason=msg.gold_reason,
             xp_reason=msg.xp_reason,
             value_name=value_name,
+            damage_type=damage_type,
             stun_duration=stun_duration,
         )
         self._emit(entry)

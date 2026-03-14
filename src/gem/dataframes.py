@@ -48,6 +48,12 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                     "lh": pp.lh_t[i] if i < len(pp.lh_t) else 0,
                     "dn": pp.dn_t[i] if i < len(pp.dn_t) else 0,
                     "xp": pp.xp_t[i] if i < len(pp.xp_t) else 0,
+                    "damage_physical": pp.damage_by_type.get("physical", 0),
+                    "damage_magical": pp.damage_by_type.get("magical", 0),
+                    "damage_pure": pp.damage_by_type.get("pure", 0),
+                    "damage_taken_physical": pp.damage_taken_by_type.get("physical", 0),
+                    "damage_taken_magical": pp.damage_taken_by_type.get("magical", 0),
+                    "damage_taken_pure": pp.damage_taken_by_type.get("pure", 0),
                 }
             )
     players_df = pd.DataFrame(player_rows)

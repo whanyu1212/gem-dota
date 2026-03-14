@@ -22,6 +22,7 @@ Reference: refs/parser/src/main/java/opendota/CreateParsedDataBlob.java
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -32,6 +33,12 @@ if TYPE_CHECKING:
 
 # 15 seconds × 30 ticks/second  (reference uses 15s cooldown)
 _COOLDOWN_TICKS: int = 15 * 30
+
+# Maximum distance (world units) between a new death and the current fight's
+# centroid before treating it as a separate fight.  Top-to-bottom lane is
+# ~8 000 units; a threshold of 3 000 cleanly separates simultaneous skirmishes
+# on different parts of the map while keeping deaths within the same fight grouped.
+_SPATIAL_THRESHOLD: float = 3000.0
 
 
 @dataclass
@@ -82,6 +89,25 @@ class Teamfight:
     players: list[TeamfightPlayer] = field(default_factory=list)
 
 
+def _hero_pos_at_tick(
+    hero_name: str,
+    tick: int,
+    hero_to_slot: dict[str, int],
+    player_snapshots: dict[int, list[PlayerStateSnapshot]],
+) -> tuple[float, float] | None:
+    """Return the (x, y) world position of a hero nearest to ``tick``, or None."""
+    slot = hero_to_slot.get(hero_name)
+    if slot is None:
+        return None
+    snaps = player_snapshots.get(slot)
+    if not snaps:
+        return None
+    nearest = min(snaps, key=lambda s: abs(s.tick - tick))
+    if nearest.x is None or nearest.y is None:
+        return None
+    return (float(nearest.x), float(nearest.y))
+
+
 def detect_teamfights(
     combat_log: list[CombatLogEntry],
     hero_to_slot: dict[str, int] | None = None,
@@ -89,13 +115,18 @@ def detect_teamfights(
 ) -> list[Teamfight]:
     """Detect teamfights from a match combat log.
 
+    Uses a temporal rolling window (hero deaths within ``_COOLDOWN_TICKS``) and
+    a spatial check: if a death occurs within the cooldown but the dying hero's
+    position is more than ``_SPATIAL_THRESHOLD`` world units from the current
+    fight's death centroid, it is treated as a new separate fight.
+
     Args:
         combat_log: All ``CombatLogEntry`` objects from ``ParsedMatch.combat_log``.
         hero_to_slot: Mapping of NPC hero name → player slot (0–9).  Built from
             ``{pp.hero_name: pp.player_id for pp in match.players}``.  Used to
             attribute damage/healing/ability events to the correct player slot.
         player_snapshots: Optional mapping of ``player_id → list[PlayerStateSnapshot]``
-            used to compute XP deltas across the fight window.
+            used to compute XP deltas and death positions for spatial splitting.
 
     Returns:
         List of ``Teamfight`` objects in chronological order.  No minimum-death
@@ -103,17 +134,39 @@ def detect_teamfights(
         participation count.
     """
     h2s: dict[str, int] = hero_to_slot or {}
+    snaps: dict[int, list[PlayerStateSnapshot]] = player_snapshots or {}
     entries = sorted(combat_log, key=lambda e: e.tick)
 
     # --- Pass 1: detect fight windows from hero deaths ----------------------
     fights: list[Teamfight] = []
     current: Teamfight | None = None
+    # Track centroid of death positions for the current fight (for spatial split).
+    centroid_sum: list[float] = [0.0, 0.0]
+    centroid_count: int = 0
 
     for entry in entries:
         if entry.log_type != "DEATH":
             continue
         if not entry.target_is_hero or entry.target_is_illusion:
             continue
+
+        death_pos = _hero_pos_at_tick(entry.target_name, entry.tick, h2s, snaps)
+
+        # Determine if this death should extend current fight or start a new one.
+        temporal_gap = (
+            current is not None and entry.tick - current.last_death_tick >= _COOLDOWN_TICKS
+        )
+        spatial_split = False
+        if (
+            current is not None
+            and not temporal_gap
+            and death_pos is not None
+            and centroid_count > 0
+        ):
+            cx = centroid_sum[0] / centroid_count
+            cy = centroid_sum[1] / centroid_count
+            dist = math.hypot(death_pos[0] - cx, death_pos[1] - cy)
+            spatial_split = dist > _SPATIAL_THRESHOLD
 
         if current is None:
             current = Teamfight(
@@ -123,8 +176,10 @@ def detect_teamfights(
                 deaths=0,
                 players=[TeamfightPlayer(player_id=i) for i in range(10)],
             )
-        elif entry.tick - current.last_death_tick >= _COOLDOWN_TICKS:
-            # Gap exceeds cooldown — close current fight, open a new one
+            centroid_sum = [0.0, 0.0]
+            centroid_count = 0
+        elif temporal_gap or spatial_split:
+            # Close current fight and open a new one
             current.end_tick = current.last_death_tick + _COOLDOWN_TICKS
             fights.append(current)
             current = Teamfight(
@@ -134,9 +189,16 @@ def detect_teamfights(
                 deaths=0,
                 players=[TeamfightPlayer(player_id=i) for i in range(10)],
             )
+            centroid_sum = [0.0, 0.0]
+            centroid_count = 0
 
         current.last_death_tick = entry.tick
         current.deaths += 1
+        # Update centroid with this death's position
+        if death_pos is not None:
+            centroid_sum[0] += death_pos[0]
+            centroid_sum[1] += death_pos[1]
+            centroid_count += 1
 
     if current is not None:
         current.end_tick = current.last_death_tick + _COOLDOWN_TICKS
@@ -201,11 +263,11 @@ def detect_teamfights(
     # --- Pass 3: XP deltas from snapshots -----------------------------------
     if player_snapshots:
         for fight in fights:
-            for pid, snaps in player_snapshots.items():
-                if not snaps or pid >= 10:
+            for pid, pid_snaps in player_snapshots.items():
+                if not pid_snaps or pid >= 10:
                     continue
-                xp_start = _nearest_xp(snaps, fight.start_tick)
-                xp_end = _nearest_xp(snaps, fight.end_tick)
+                xp_start = _nearest_xp(pid_snaps, fight.start_tick)
+                xp_end = _nearest_xp(pid_snaps, fight.end_tick)
                 if xp_start is not None and xp_end is not None:
                     fight.players[pid].xp_delta = max(0, xp_end - xp_start)
 

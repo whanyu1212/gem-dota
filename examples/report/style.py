@@ -216,6 +216,44 @@ tbody td.r { text-align: right; font-variant-numeric: tabular-nums; }
     background: #21262d; border-radius: 4px; vertical-align: middle; }
 .dmg-bar-fill { height: 100%; border-radius: 4px; }
 
+/* ---- Damage type mini bar ---- */
+.dmg-type-mini {
+    margin-top: 4px;
+    width: 120px;
+    height: 6px;
+    background: #21262d;
+    border-radius: 3px;
+    overflow: hidden;
+    display: inline-flex;
+}
+.dmg-type-seg { height: 100%; display: inline-block; }
+.dmg-type-physical { background: #9aa4b2; }
+.dmg-type-magical { background: #4ea1ff; }
+.dmg-type-pure { background: #d946ef; }
+.dmg-type-others { background: #4d5562; }
+
+/* ---- Damage type legend ---- */
+.dmg-legend {
+    margin: 6px 0 0 0;
+    font-size: 0.78em;
+    color: #8b949e;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+.dmg-legend-swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    vertical-align: middle;
+}
+.dmg-legend-note {
+    color: #555e6b;
+    font-style: italic;
+}
+
 /* ---- Chart container ---- */
 .chart-wrap {
     position: relative;

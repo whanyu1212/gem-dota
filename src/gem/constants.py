@@ -114,23 +114,57 @@ def item_display(internal: str) -> str:
 # ---------------------------------------------------------------------------
 
 
+# Known hero NPC name prefixes to strip when prettifying unknown ability names.
+_HERO_PREFIXES: frozenset[str] = frozenset(HEROES.keys()) if HEROES else frozenset()
+
+
+def _prettify_ability(internal: str) -> str:
+    """Best-effort prettify for ability names not found in ABILITIES.
+
+    Strips the hero name prefix (e.g. ``arc_warden_``) and title-cases the
+    remainder so ``arc_warden_scepter`` → ``"Scepter"`` and
+    ``ability_lamp_use`` → ``"Lamp Use"``.
+
+    Args:
+        internal: Raw internal ability name.
+
+    Returns:
+        Prettified display string.
+    """
+    name = internal
+    # Strip leading "ability_" prefix (generic hidden abilities)
+    if name.startswith("ability_"):
+        name = name[len("ability_") :]
+    else:
+        # Try to strip a hero NPC prefix (npc_dota_hero_<hero>) then plain <hero>_ prefix
+        for hero_npc in _HERO_PREFIXES:
+            # hero_npc looks like "npc_dota_hero_arc_warden"; derive short prefix "arc_warden_"
+            short = hero_npc.replace("npc_dota_hero_", "") + "_"
+            if name.startswith(short):
+                name = name[len(short) :]
+                break
+    return name.replace("_", " ").title()
+
+
 def ability_display(internal: str) -> str:
     """Return display name for an ability or item internal name.
 
-    Falls back to ``item_display`` for ``item_*`` names not found in abilities.
+    Falls back to ``item_display`` for ``item_*`` names, and to a
+    prettified version of the internal name for any unrecognised ability
+    (strips hero prefix, title-cases remainder).
 
     Args:
         internal: Internal ability or item name.
 
     Returns:
-        Display name, or the raw string as fallback.
+        Display name string.
     """
     dname = ABILITIES.get(internal)
     if dname:
         return dname
     if internal.startswith("item_"):
         return item_display(internal)
-    return internal
+    return _prettify_ability(internal)
 
 
 # ---------------------------------------------------------------------------

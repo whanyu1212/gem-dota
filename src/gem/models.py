@@ -94,6 +94,10 @@ class ParsedPlayer:
         sen_log: Sentry ward placement events for this player.
         damage: Total damage dealt, keyed by target NPC name.
         damage_taken: Total damage received, keyed by attacker NPC name.
+        damage_by_type: Total damage dealt, keyed by damage type label
+            (``"physical"``, ``"magical"``, ``"pure"``).
+        damage_taken_by_type: Total damage received, keyed by damage type label
+            (``"physical"``, ``"magical"``, ``"pure"``).
         healing: Total healing dealt, keyed by target NPC name.
         ability_uses: Ability usage counts, keyed by ability name.
         item_uses: Item usage counts, keyed by item name.
@@ -136,6 +140,8 @@ class ParsedPlayer:
     sen_log: list[WardEvent] = field(default_factory=list)
     damage: dict[str, int] = field(default_factory=dict)
     damage_taken: dict[str, int] = field(default_factory=dict)
+    damage_by_type: dict[str, int] = field(default_factory=dict)
+    damage_taken_by_type: dict[str, int] = field(default_factory=dict)
     healing: dict[str, int] = field(default_factory=dict)
     ability_uses: dict[str, int] = field(default_factory=dict)
     item_uses: dict[str, int] = field(default_factory=dict)

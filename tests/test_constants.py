@@ -244,9 +244,11 @@ class TestAbilityDisplay:
         raw = "item_completely_fake_item_xyz"
         assert C.ability_display(raw) == raw
 
-    def test_unknown_ability_no_item_prefix_returns_raw(self) -> None:
+    def test_unknown_ability_no_item_prefix_prettified(self) -> None:
+        # Unknown abilities are now prettified (title-cased, underscores → spaces)
+        # rather than returned as raw internal names.
         raw = "completely_unknown_ability_xyz"
-        assert C.ability_display(raw) == raw
+        assert C.ability_display(raw) == "Completely Unknown Ability Xyz"
 
     def test_known_ability_pudge_meat_hook(self) -> None:
         result = C.ability_display("pudge_meat_hook")
