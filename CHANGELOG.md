@@ -7,8 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-03-14
+
 ### Added
-- Changelog tracking for future releases.
+- Laning extraction and decomposition via `gem.extractors.lane`.
+- Lane-related outputs in parsed match models and dataframe export.
+- Damage-type breakdown in combat aggregation outputs.
+- Extended ability metadata and parsing support for Aghanim's Scepter/Shard interactions.
+
+### Changed
+- Teamfight detection uses temporal windowing only (spatial split behavior removed).
 
 ## [0.1.0] - 2026-03-14
 
@@ -21,5 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLI and example scripts, including HTML match report.
 - Validation, fuzzing, and parser robustness foundations.
 
-[Unreleased]: https://github.com/whanyu1212/gem/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/whanyu1212/gem/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/whanyu1212/gem/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/whanyu1212/gem/releases/tag/v0.1.0
