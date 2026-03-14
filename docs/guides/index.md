@@ -17,4 +17,5 @@ and click "Download Replay".
 | [Full Match Data](04_match_data.md) | Walk through everything in `ParsedMatch` |
 | [Time-Series & DataFrames](05_timeseries.md) | Per-minute gold/XP curves and pandas export |
 | [Teamfight Detection](06_teamfights.md) | `match.teamfights` — windows, participants, stats |
+| [Laning Analysis](08_laning.md) | Lane role classification, lane efficiency %, gold/XP advantage |
 | [Custom Extractors](07_custom_extractors.md) | Attach parser callbacks to build your own outputs |

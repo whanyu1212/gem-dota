@@ -9,6 +9,7 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any
 
+from gem.extractors.lane import classify_lane
 from gem.models import ParsedMatch
 
 if TYPE_CHECKING:
@@ -24,6 +25,8 @@ if TYPE_CHECKING:
 
 # Lane position grid resolution in world units (7d)
 _LANE_GRID = 64
+# First 10 game-minutes in ticks (600s × 30 ticks/s)
+_LANE_WINDOW = 600 * 30
 
 
 def _radiant_win_from_ancient(combat_log: list[CombatLogEntry]) -> bool | None:
@@ -122,6 +125,9 @@ def build_parsed_match(
         if 0 <= pid < 10:
             combat_agg._agg(pid).buyback_log.append(entry)
 
+    # Capture game_start_tick once — used for lane_pos time filter below
+    game_start_tick = parser.game_start_tick
+
     # Build per-player time series and overlay combat log aggregates
     for player_id in range(10):
         ts = player_ext.time_series(player_id)
@@ -180,13 +186,55 @@ def build_parsed_match(
         if kda is not None:
             pp.kills, pp.deaths, pp.assists = kda
 
-        # Lane position heatmap (7d) — post-process existing snapshots
+        # Lane position heatmap — restricted to first 10 game-minutes (OpenDota: t<=600s).
+        # position_log above is left unfiltered; this loop is separate and independent.
         lane_pos: defaultdict[str, int] = defaultdict(int)
         for snap in player_ext.snapshots:
             if snap.player_id != player_id or snap.x is None or snap.y is None:
                 continue
+            if game_start_tick is not None and (
+                snap.tick < game_start_tick or snap.tick > game_start_tick + _LANE_WINDOW
+            ):
+                continue
             lane_pos[f"{int(snap.x) // _LANE_GRID}_{int(snap.y) // _LANE_GRID}"] += 1
         pp.lane_pos = lane_pos
+
+        # Lane role and 10-minute raw stats
+        pp.lane_role = classify_lane(pp.lane_pos, pp.team)
+        _LM = 10  # minute-series index for the 10-minute mark
+        if len(pp.lh_t_min) > _LM:
+            pp.lane_last_hits = pp.lh_t_min[_LM]
+        if len(pp.dn_t_min) > _LM:
+            pp.lane_denies = pp.dn_t_min[_LM]
+        if len(pp.total_earned_gold_t_min) > _LM:
+            pp.lane_total_gold = pp.total_earned_gold_t_min[_LM]
+        if len(pp.total_earned_xp_t_min) > _LM:
+            pp.lane_total_xp = pp.total_earned_xp_t_min[_LM]
+
+        # Tier-1: lane efficiency % (OpenDota formula, same denominator for all players)
+        # Reference: odota/core svc/util/compute.ts
+        # melee(40×60) + ranged(45×20) + siege(74×2) + passive(600×1.5) + starting(600) = 4948
+        _LANE_GOLD_BASELINE = 4948
+        if pp.lane_total_gold > 0:
+            pp.lane_efficiency_pct = int(pp.lane_total_gold / _LANE_GOLD_BASELINE * 100)
+
+    # Tier-2: lane advantage vs opponents (Dotabuff-style relative comparison).
+    # For each player find opposing-team players with the same lane_role and compute
+    # gold/xp delta. Jungle (4) and roaming (5) are excluded — no direct opponent.
+    _LANE_ROLES_WITH_OPPONENTS = {1, 2, 3}
+    for pp in match.players:
+        if pp.lane_role not in _LANE_ROLES_WITH_OPPONENTS:
+            continue
+        opp_team = 3 if pp.team == 2 else 2
+        opponents = [
+            op for op in match.players if op.team == opp_team and op.lane_role == pp.lane_role
+        ]
+        if not opponents:
+            continue
+        opp_gold = sum(op.lane_total_gold for op in opponents)
+        opp_xp = sum(op.lane_total_xp for op in opponents)
+        pp.lane_gold_adv = pp.lane_total_gold - opp_gold
+        pp.lane_xp_adv = pp.lane_total_xp - opp_xp
 
     # Extract player names from CDOTA_PlayerResource entity.
     # Two field path variants: newer replays use m_vecPlayerData.{slot}.m_iszPlayerName,

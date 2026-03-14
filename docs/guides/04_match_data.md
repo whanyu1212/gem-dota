@@ -69,6 +69,9 @@ player.hero_damage      # int: total hero-to-hero damage dealt
 player.tower_damage     # int
 player.hero_healing     # int: healing dealt to allied heroes
 
+player.damage_by_type        # dict[str, int]: damage dealt keyed by "physical"/"magical"/"pure"/"others"
+player.damage_taken_by_type  # dict[str, int]: damage received keyed by damage type
+
 player.level           # int: hero level at game end
 player.stuns_dealt     # float: total stun seconds dealt to enemy heroes
 ```
@@ -88,6 +91,79 @@ player.buyback_log     # list[{"tick": int, "cost": int}]: buyback events
 player.runes_log       # list[{"tick": int, "type": int}]: rune pickups
 
 player.lane_pos        # dict[str, int]: grid cell → visit count (first 10 minutes)
+
+player.lane_role           # int: 1=safe, 2=mid, 3=off, 4=jungle, 5=roaming, 0=unknown
+player.lane_last_hits      # int: last-hit count at the 10-minute mark
+player.lane_denies         # int: deny count at the 10-minute mark
+player.lane_total_gold     # int: cumulative total earned gold at the 10-minute mark
+player.lane_total_xp       # int: cumulative total earned XP at the 10-minute mark
+player.lane_efficiency_pct # int: floor(lane_total_gold / 4948 × 100); can exceed 100
+player.lane_gold_adv       # int | None: gold vs lane opponents at 10 min (None for jungle/roaming)
+player.lane_xp_adv         # int | None: XP vs lane opponents at 10 min (None for jungle/roaming)
+```
+
+`lane_pos` is restricted to the first 10 game-minutes (OpenDota convention). `lane_role` is
+inferred by aggregating `lane_pos` into coarse lane zones — see
+[Lane Classification](#lane-classification) below.
+
+---
+
+## Lane classification
+
+`lane_role` is inferred from each hero's position heatmap over the first 10 game-minutes.
+gem aggregates the `lane_pos` heatmap into coarse lane zones and assigns the role of
+whichever zone dominated the hero's time.
+
+| `lane_role` | Label | Description |
+|---|---|---|
+| 1 | Safe lane | Radiant bottom / Dire top |
+| 2 | Mid lane | Diagonal corridor |
+| 3 | Off lane | Radiant top / Dire bottom |
+| 4 | Jungle | Interior camps, off lane corridors |
+| 5 | Roaming | No dominant zone (spread across map) |
+| 0 | Unknown | Insufficient position data |
+
+```python
+LANE_NAMES = {1: "Safe", 2: "Mid", 3: "Off", 4: "Jungle", 5: "Roaming", 0: "Unknown"}
+
+for player in match.players:
+    from gem.constants import hero_display
+    print(
+        f"{hero_display(player.hero_name):<20}"
+        f"  lane: {LANE_NAMES[player.lane_role]:<8}"
+        f"  LH@10: {player.lane_last_hits:>3}"
+        f"  gold@10: {player.lane_total_gold:>6,}"
+    )
+```
+
+The safe/off assignment is team-aware: Radiant safe lane is the bottom-right of the map,
+Dire safe lane is the top-left.  See [Laning Analysis](08_laning.md) for a full explanation
+of the zone-aggregation algorithm, the lane efficiency formula, and gold/XP advantage
+computation.
+
+---
+
+## Damage type breakdown
+
+```python
+player.damage_by_type        # {"physical": int, "magical": int, "pure": int, "others": int}
+player.damage_taken_by_type  # same keys
+```
+
+These are populated from the `damage_type` field on `DAMAGE` combat log entries. The
+`"others"` bucket covers damage to non-hero units (creeps, wards, zombies) where Valve
+does not populate the type field.
+
+```python
+for player in match.players:
+    d = player.damage_by_type
+    total = sum(d.values())
+    if total:
+        phys_pct = 100 * d.get("physical", 0) / total
+        mag_pct  = 100 * d.get("magical",  0) / total
+        pure_pct = 100 * d.get("pure",     0) / total
+        print(f"{hero_display(player.hero_name)}: "
+              f"phys {phys_pct:.0f}%  mag {mag_pct:.0f}%  pure {pure_pct:.0f}%")
 ```
 
 ---
