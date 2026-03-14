@@ -1,43 +1,22 @@
-"""Interactive movement heatmap — overlay hero positions on the Dota 2 map.
-
-Produces a self-contained HTML file with a Plotly figure showing each hero's
-movement trail over time, with a range slider and play/pause controls.
-Each hero's current position is shown as a labelled dot with the hero's
-short name, individually toggleable via the legend.
-
-Usage::
-
-    python examples/movement_heatmap.py <replay.dem> [--map <map.jpg>] [--out <output.html>]
-
-Example::
-
-    python examples/movement_heatmap.py tests/fixtures/8520062186.dem \\
-        --map tests/fixtures/Game_map_7.40.jpg
-"""
+"""Movement heatmap figure builder used by match_report."""
 
 from __future__ import annotations
 
-import argparse
 import base64
-import sys
+from collections import defaultdict
 from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 import plotly.graph_objects as go
 
 import gem
 from gem.constants import ability_display, hero_display, item_display, league_name
+from report.helpers import MAP_XMAX, MAP_XMIN, MAP_YMAX, MAP_YMIN
 
 # ---------------------------------------------------------------------------
 # Dota 2 map coordinate system
 # Calibrated against Game_map_7.40.jpg using fountain positions as anchors.
 # Radiant fountain: (9684, 9684)  Dire fountain: (23120, 22350)
 # ---------------------------------------------------------------------------
-_XMIN = 7563
-_XMAX = 25900
-_YMIN = 7800
-_YMAX = 25600
 
 _TICKS_PER_SEC = 30
 _TRAIL = 12  # number of past samples to show in the moving window
@@ -77,8 +56,8 @@ _GAME_MODE = {
 
 def _world_to_frac(wx: float, wy: float) -> tuple[float, float]:
     """Convert world (x, y) to [0, 1] fractions for Plotly axis coordinates."""
-    fx = (wx - _XMIN) / (_XMAX - _XMIN)
-    fy = (wy - _YMIN) / (_YMAX - _YMIN)
+    fx = (wx - MAP_XMIN) / (MAP_XMAX - MAP_XMIN)
+    fy = (wy - MAP_YMIN) / (MAP_YMAX - MAP_YMIN)
     return fx, fy
 
 
@@ -104,25 +83,7 @@ _MAX_ACTIVITY = 5  # max recent events to show in hover
 def _build_hover_cache(
     match: gem.ParsedMatch, player_snapshots: dict[int, list]
 ) -> dict[int, dict]:
-    """Pre-build per-player lookup structures for enriched hover text.
-
-    Returns a dict keyed by player_id containing:
-      - ``times``: sorted list of sample ticks
-      - ``gold_t``, ``lh_t``, ``xp_t``: parallel lists
-      - ``purchase_by_tick``: sorted list of (tick, item_name)
-      - ``combat``: list of (tick, str) recent activity strings, sorted by tick
-      - ``ability_levels_by_tick``: list of (tick, dict[name, level]) snapshots
-      - ``stuns_dealt``: total stun duration in seconds
-
-    Args:
-        match: Parsed match data.
-        player_snapshots: player_id → list of PlayerStateSnapshot (from extractor).
-
-    Returns:
-        Dict mapping player_id to precomputed hover data.
-    """
-    from collections import defaultdict
-
+    """Pre-build per-player lookup structures for enriched hover text."""
     combat_by_hero: dict[str, list] = defaultdict(list)
     for e in match.combat_log:
         if e.attacker_name:
@@ -156,7 +117,6 @@ def _build_hover_cache(
                 combat.append((e.tick, f"Damage: {target} -{e.value}"))
         combat.sort(key=lambda x: x[0])
 
-        # Ability level snapshots: list of (tick, {ability_name: level})
         ability_levels_by_tick: list[tuple[int, dict[str, int]]] = [
             (snap.tick, snap.ability_levels)
             for snap in player_snapshots.get(pp.player_id, [])
@@ -177,23 +137,11 @@ def _build_hover_cache(
 
 
 def _hover_text(pp: gem.ParsedPlayer, tick: int, cache: dict, label: str, team: str) -> str:
-    """Build enriched hover HTML for a hero at a given tick.
-
-    Args:
-        pp: ParsedPlayer instance.
-        tick: Current animation tick.
-        cache: Pre-built hover cache from ``_build_hover_cache``.
-        label: Display label e.g. ``"Ame · Anti-Mage"``.
-        team: Team string e.g. ``"Radiant"``.
-
-    Returns:
-        HTML string for Plotly hovertemplate.
-    """
+    """Build enriched hover HTML for a hero at a given tick."""
     d = cache.get(pp.player_id)
     if not d:
         return f"<b>{label}</b><br>{team}<br>⏱ {_fmt_tick(tick)}"
 
-    # Find nearest sample tick
     times = d["times"]
     idx = 0
     for i, t in enumerate(times):
@@ -206,7 +154,6 @@ def _hover_text(pp: gem.ParsedPlayer, tick: int, cache: dict, label: str, team: 
     lh = d["lh_t"][idx] if idx < len(d["lh_t"]) else 0
     xp = d["xp_t"][idx] if idx < len(d["xp_t"]) else 0
 
-    # Items purchased up to this tick
     items = [
         item_display(name)
         for t, name in d["purchase_by_tick"]
@@ -214,7 +161,6 @@ def _hover_text(pp: gem.ParsedPlayer, tick: int, cache: dict, label: str, team: 
     ]
     items_str = "  ".join(items[-6:]) if items else "—"
 
-    # Ability levels at nearest snapshot tick
     ability_snap: dict[str, int] = {}
     for t, levels in d["ability_levels_by_tick"]:
         if t <= tick:
@@ -227,11 +173,9 @@ def _hover_text(pp: gem.ParsedPlayer, tick: int, cache: dict, label: str, team: 
         else "—"
     )
 
-    # Stun duration dealt (cumulative for the whole match)
     stuns = d["stuns_dealt"]
     stuns_str = f"{stuns:.1f}s" if stuns > 0 else "—"
 
-    # Recent combat activity in the window before this tick
     window_start = tick - _ACTIVITY_WINDOW
     recent = [text for t, text in d["combat"] if window_start <= t <= tick]
     seen: list[str] = []
@@ -262,20 +206,7 @@ def build_figure(
     dem_stem: str,
     player_snapshots: dict[int, list] | None = None,
 ) -> go.Figure:
-    """Build the Plotly figure with map background and animated hero traces.
-
-    Args:
-        match: Parsed match data.
-        map_path: Path to the map image file.
-        dem_stem: Replay filename stem used as fallback title.
-        player_snapshots: Optional mapping of player_id → list of
-            ``PlayerStateSnapshot`` objects, used to populate ability levels
-            in hover text. Pass the result of grouping
-            ``PlayerExtractor.snapshots`` by player_id.
-
-    Returns:
-        A Plotly ``Figure`` ready to be written to HTML.
-    """
+    """Build the Plotly figure with map background and animated hero traces."""
     with open(map_path, "rb") as f:
         img_b64 = base64.b64encode(f.read()).decode()
     suffix = map_path.suffix.lstrip(".").lower()
@@ -283,13 +214,10 @@ def build_figure(
     img_src = f"data:image/{mime};base64,{img_b64}"
 
     active_players = [pp for pp in match.players if pp.position_log]
-
-    # Pre-build hover data cache (done once, not per frame)
     hover_cache = _build_hover_cache(match, player_snapshots or {})
 
     fig = go.Figure()
 
-    # Map background — never touched by frames
     fig.add_layout_image(
         {
             "source": img_src,
@@ -304,12 +232,8 @@ def build_figure(
         }
     )
 
-    # All unique ticks across all players for frame/slider construction
     all_ticks: list[int] = sorted({tick for pp in match.players for tick, _, _ in pp.position_log})
 
-    # Static background traces (full trail, faint) — one per player.
-    # Each hero has its own legendgroup for individual toggle.
-    # Legend label: "Ame · Anti-Mage" if player_name available, else "[R1] Anti-Mage".
     for pp in active_players:
         color = _SLOT_COLORS[pp.player_id]
         team = "Radiant" if pp.team == 2 else "Dire"
@@ -336,7 +260,6 @@ def build_figure(
             )
         )
 
-    # Animated trail traces — one per player, no text (labels via annotations).
     for pp in active_players:
         color = _SLOT_COLORS[pp.player_id]
         team = "Radiant" if pp.team == 2 else "Dire"
@@ -363,19 +286,14 @@ def build_figure(
             )
         )
 
-    # --- Animation frames ---
-    # Each frame updates trace data + layout.annotations for hero name labels.
-    # Annotations are layout-level objects — no interpolation/fly-in artifacts.
     frames = []
     for tick in all_ticks:
         frame_data = []
         annotations = []
 
-        # Placeholders for static background traces (no update needed)
         for _ in active_players:
             frame_data.append(go.Scatter())
 
-        # Animated trail window per player
         for pp in active_players:
             color = _SLOT_COLORS[pp.player_id]
             name = hero_display(pp.hero_name)
@@ -460,7 +378,6 @@ def build_figure(
 
     fig.frames = frames
 
-    # Set initial annotations from the first frame
     if frames and frames[0].layout and frames[0].layout.annotations:
         fig.update_layout(annotations=list(frames[0].layout.annotations))
 
@@ -529,7 +446,6 @@ def build_figure(
             }
         ],
         updatemenus=[
-            # Play / Pause controls — right of plot, below legend
             {
                 "type": "buttons",
                 "showactive": False,
@@ -567,7 +483,6 @@ def build_figure(
                     },
                 ],
             },
-            # Speed selector — right of plot, below play/pause
             {
                 "type": "buttons",
                 "showactive": True,
@@ -633,65 +548,3 @@ def build_figure(
     )
 
     return fig
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Interactive hero movement heatmap.")
-    parser.add_argument("replay", help="Path to .dem replay file")
-    parser.add_argument(
-        "--map", default="tests/fixtures/Game_map_7.40.jpg", help="Path to map image"
-    )
-    parser.add_argument(
-        "--out", default=None, help="Output HTML file (default: <match_id>_movement.html)"
-    )
-    args = parser.parse_args()
-
-    map_path = Path(args.map)
-    if not map_path.exists():
-        print(f"Map image not found: {map_path}")
-        sys.exit(1)
-
-    print(f"Parsing {args.replay} ...")
-    from collections import defaultdict
-
-    from gem.extractors.players import PlayerExtractor
-    from gem.parser import ReplayParser
-
-    p = ReplayParser(args.replay)
-    player_ext = PlayerExtractor()
-    player_ext.attach(p)
-
-    # Use gem.parse internals via the public API but also retain snapshots
-    match = gem.parse(args.replay)
-
-    # Re-run a lightweight parse just for snapshots (ability levels)
-    p2 = ReplayParser(args.replay)
-    player_ext2 = PlayerExtractor()
-    player_ext2.attach(p2)
-    p2.parse()
-    player_snapshots: dict[int, list] = defaultdict(list)
-    for snap in player_ext2.snapshots:
-        player_snapshots[snap.player_id].append(snap)
-
-    total_positions = sum(len(pp.position_log) for pp in match.players)
-    print(
-        f"Done — match {match.match_id or 'unknown'}  |  {len(match.players)} players  |  {total_positions} position samples"
-    )
-
-    print("Building figure ...")
-    dem_stem = Path(args.replay).stem
-    fig = build_figure(match, map_path, dem_stem, player_snapshots=dict(player_snapshots))
-
-    if args.out:
-        out_path = Path(args.out)
-    else:
-        stem = str(match.match_id) if match.match_id else dem_stem
-        project_root = Path(__file__).parent.parent
-        out_path = project_root / f"{stem}_movement.html"
-
-    fig.write_html(str(out_path), include_plotlyjs="cdn")
-    print(f"Saved → {out_path.resolve()}")
-
-
-if __name__ == "__main__":
-    main()

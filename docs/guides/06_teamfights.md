@@ -96,14 +96,14 @@ significant_fights = [f for f in match.teamfights
 
 ## HTML teamfight report
 
-`examples/teamfight_report.py` generates a self-contained HTML report with:
+The Teamfights tab in `examples/match_report.py` generates a self-contained report with:
 - A minimap showing fight locations
 - Hero icon timelines
 - Live slider filters for minimum deaths and minimum participant count
 
 ```bash
-python examples/teamfight_report.py my_replay.dem
-# Outputs teamfight_report.html
+python examples/match_report.py my_replay.dem
+# Outputs an HTML report including the Teamfights tab
 ```
 
 ---

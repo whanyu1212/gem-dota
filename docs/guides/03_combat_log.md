@@ -211,5 +211,5 @@ ability_display("nevermore_shadowraze1")   # → "Shadowraze"
 
 ## Full working examples
 
-- `examples/extraction_demo.py` — combat log summary: damage, heals, kills, wards, smokes, gold
-- `examples/ward_smoke_rosh.py` — ward placements with coordinates, smoke groups, Roshan kills
+- `examples/match_report.py` — full dashboard including combat log, kills, and vision timelines
+- `examples/extraction_demo.py` — developer guide for custom combat log handlers

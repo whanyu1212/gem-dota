@@ -3,7 +3,7 @@
 Listens to combat log DEATH events and emits structured records for tower
 kills, Roshan kills, and barracks destructions.
 
-Reference: examples/ward_smoke_rosh.py, refs/parser/src/main/java/opendota/Parse.java
+Reference: refs/parser/src/main/java/opendota/Parse.java
 """
 
 from __future__ import annotations

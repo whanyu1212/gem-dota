@@ -143,11 +143,11 @@ plt.savefig("gold_adv.png", dpi=150)
 
 ## Full interactive example
 
-`examples/movement_heatmap.py` builds an interactive Plotly heatmap showing hero
+The Movement tab in `examples/match_report.py` builds an interactive Plotly heatmap showing hero
 positions, ability levels, and stun dealt over time. It demonstrates the full
 time-series pipeline:
 
 ```bash
-python examples/movement_heatmap.py my_replay.dem
-# Opens a browser window with the heatmap
+python examples/match_report.py my_replay.dem
+# Opens a browser window with the report (includes movement heatmap tab)
 ```

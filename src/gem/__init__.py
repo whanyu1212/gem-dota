@@ -71,7 +71,7 @@ def parse(path: str | Path) -> ParsedMatch:
     # Smoke of Deceit collection — three combat log event types.
     # Position is captured live at MODIFIER_ADD time (when each hero actually
     # receives the buff) and averaged to give the group centroid.
-    # Reference: examples/ward_smoke_rosh.py WardSmokeCollector
+    # Logic for SmokeEvent collection (item consumption + modifier arrival)
     from gem.models import SmokeEvent as _SmokeEvent
 
     _pending_smokes: dict[str, _SmokeEvent] = {}  # activator npc → active event

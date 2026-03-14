@@ -4,17 +4,19 @@ Runnable scripts demonstrating gem's replay parsing capabilities.
 Run any example from the project root (with the venv activated):
 
 ```bash
+python examples/match_report.py path/to/your.dem          # comprehensive HTML report
 python examples/extraction_demo.py                        # uses bundled fixture
 python examples/extraction_demo.py path/to/your.dem       # or supply your own
-python examples/ward_smoke_rosh.py path/to/your.dem       # focused vision/objective report
+python examples/steam_match_info.py <match_id>            # Steam API integration
 ```
 
 ## Scripts
 
 | Script | What it demonstrates |
 |---|---|
-| `extraction_demo.py` | Full replay parse: combat log summary (damage, kills, heals, abilities, gold/XP), entity state snapshots every ~1 min, ward placements, smoke events, hero level/XP progression |
-| `ward_smoke_rosh.py` | Focused: observer/sentry ward placements with coordinates, Smoke of Deceit activations with hero group composition, Roshan kills with respawn windows |
+| `match_report.py` | Comprehensive HTML replay analysis dashboard (overview, combat, vision, economy, movement, draft, teamfights, and more) |
+| `extraction_demo.py` | Developer-oriented baseline: full replay parse with combat log summary and periodic entity snapshots |
+| `steam_match_info.py` | Fetches and displays match metadata from the Steam Web API (`STEAM_API_KEY` required) |
 
 ## Ward coordinates
 
