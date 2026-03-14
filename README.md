@@ -16,7 +16,11 @@ Reads Source 2 `.dem` binary replay files and exposes structured output: per-tic
 
 “Gem” is inspired by **Gem of True Sight** in Dota — something that reveals what is normally hidden. Replays are dense binary data; this library aims to surface that hidden information in a form people can actually work with.
 
-We built `gem` in **Python** because most people in data, ML, and AI workflows already live in Python ecosystems. Go/Java parsers are excellent, but they are often not the first language for this audience. The goal here is to democratize replay parsing: make it approachable from scratch, easy to inspect, and simple to plug into notebooks, pandas, and ML pipelines.
+We built `gem` in **Python** because most people in data, ML, and AI workflows already live in Python ecosystems. Go/Java parsers are excellent, but they are often not the first language for this audience. The goal is to democratize replay parsing: make it approachable from scratch, easy to inspect, and simple to plug into notebooks, pandas, and ML pipelines.
+
+There is also a practical high-MMR reason: once your MMR is around **8500+**, ranked games are typically **Immortal Draft**, and many matches become effectively private to public stats ecosystems. In those cases, services like OpenDota, Dotabuff, and STRATZ often cannot parse or expose the game through normal API flows, so the most reliable path for serious self-review is parsing your own replays (or replays shared by trusted friends/pro teammates).
+
+Another core reason is data ownership and transparency. API/GraphQL outputs from sites like OpenDota and STRATZ are already processed interpretations, which can involve information loss and hidden assumptions. With `gem`, we want to help people understand replay parsing from first principles in a user-friendly, widely adopted language, with an implementation that is open source and inspectable end-to-end. Skadistats once open-sourced SMOKE years ago (Cython-based rather than pure Python), but it is no longer maintained; `gem` aims to help fill that gap for today’s Python/data community.
 
 ---
 
@@ -177,21 +181,11 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 ## Examples
 
 ```bash
-# Full replay summary — combat log + entity snapshots
+# Comprehensive HTML analysis report (draft, combat, vision, economy, movement, etc.)
+python examples/match_report.py path/to/your.dem
+
+# Full replay summary — combat log + entity snapshots (developer-oriented baseline)
 python examples/extraction_demo.py path/to/your.dem
-
-# Ward placements, smoke groups, Roshan kills
-python examples/ward_smoke_rosh.py path/to/your.dem
-
-# Interactive movement heatmap (Plotly)
-python examples/movement_heatmap.py path/to/your.dem
-
-# HTML draft summary with hero icons
-python scripts/fetch_hero_icons.py          # one-time icon download
-python examples/draft_summary.py path/to/your.dem
-
-# HTML teamfight report — minimap, hero icons, live filters
-python examples/teamfight_report.py path/to/your.dem
 
 # Match info from Steam API (requires STEAM_API_KEY env var)
 python examples/steam_match_info.py <match_id>
@@ -248,6 +242,7 @@ If you run a benchmark, please open an issue/PR with:
 - **Purchase attribution in spectator/HLTV paths** — purchase events are not always directly hero-attributed in combat log data; reconstruction relies on entity state and may be incomplete in edge cases.
 - **Summon ownership edge cases** — most summoned-unit attribution is handled, but complex ownership cases can still produce occasional mismatches.
 - **Hero icons** — not bundled in the package. Run `python scripts/fetch_hero_icons.py` to download them locally before using the draft or teamfight report examples.
+- **Item icons** — not bundled in the package. Run `python scripts/fetch_item_icons.py` to download them locally before using reports that render item/rune icons.
 
 ---
 
@@ -259,4 +254,5 @@ If you run a benchmark, please open an issue/PR with:
 | CI on GitHub Actions (tests, lint, type checks) | Planned |
 | Validation harness against OpenDota-style outputs | Ongoing |
 | Docs expansion (cookbook + parsing-from-scratch walkthroughs) | Planned |
+| Frontend demo application (interactive replay analysis UI showcasing parser capabilities) | Planned |
 | Rust acceleration for selected hot paths (PyO3 + maturin) | Deferred |
