@@ -1730,3 +1730,232 @@ def build_chat(match: gem.ParsedMatch) -> str:
 
     parts += ["</div>", "</details>", "</div>"]
     return "\n".join(parts)
+
+
+# ---------------------------------------------------------------------------
+# Lane role constants (mirroring gem.extractors.lane)
+# ---------------------------------------------------------------------------
+
+_LANE_ROLE_NAMES: dict[int, str] = {
+    1: "Safe",
+    2: "Mid",
+    3: "Off",
+    4: "Jungle",
+    5: "Roaming",
+    0: "—",
+}
+
+# Colours for lane zone rings on the minimap SVG
+_LANE_COLORS: dict[int, str] = {
+    1: "#4caf50",
+    2: "#58a6ff",
+    3: "#f44336",
+    4: "#ff9800",
+    5: "#ab47bc",
+}
+
+# Per-slot dot colours matching movement.py _SLOT_COLORS
+_SLOT_COLORS_LANE: list[str] = [
+    "#29b6f6",
+    "#0288d1",
+    "#26c6da",
+    "#66bb6a",
+    "#9ccc65",
+    "#ef5350",
+    "#ff7043",
+    "#ffca28",
+    "#ab47bc",
+    "#ec407a",
+]
+
+
+def _laning_minimap_svg(
+    match: gem.ParsedMatch,
+    map_b64: str | None,
+    size: int = 320,
+) -> str:
+    """Render a minimap SVG with each hero's dwell-weighted 10-min centroid."""
+    _XMIN, _XMAX = MAP_XMIN, MAP_XMAX
+    _YMIN, _YMAX = MAP_YMIN, MAP_YMAX
+    _GRID = 64
+
+    def _world_to_px(wx: float, wy: float) -> tuple[float, float]:
+        px = (wx - _XMIN) / (_XMAX - _XMIN) * size
+        py = (1.0 - (wy - _YMIN) / (_YMAX - _YMIN)) * size
+        return px, py
+
+    bg_img = (
+        f'<image href="data:image/jpeg;base64,{map_b64}" x="0" y="0" '
+        f'width="{size}" height="{size}" preserveAspectRatio="xMidYMid slice"/>'
+        if map_b64
+        else f'<rect width="{size}" height="{size}" fill="#0d1117"/>'
+    )
+
+    elements: list[str] = [bg_img]
+    icon_r = 13
+
+    for pp in match.players:
+        if not pp.lane_pos or not pp.hero_name:
+            continue
+        total = sum(pp.lane_pos.values())
+        if not total:
+            continue
+        wx_sum = wy_sum = 0.0
+        for key, cnt in pp.lane_pos.items():
+            gx_s, gy_s = key.split("_", 1)
+            wx_sum += (int(gx_s) * _GRID + _GRID // 2) * cnt
+            wy_sum += (int(gy_s) * _GRID + _GRID // 2) * cnt
+        cx, cy = _world_to_px(wx_sum / total, wy_sum / total)
+
+        slot = pp.player_id
+        ring_color = _LANE_COLORS.get(pp.lane_role, "#8b949e")
+        clip_id = f"lane_clip_{slot}"
+        src = hero_icon_src(pp.hero_name)
+        role_label = _LANE_ROLE_NAMES.get(pp.lane_role, "—")
+
+        elements.append(
+            f'<defs><clipPath id="{clip_id}">'
+            f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{icon_r}"/>'
+            f"</clipPath></defs>"
+            f'<image href="{src}" x="{cx - icon_r:.1f}" y="{cy - icon_r:.1f}" '
+            f'width="{icon_r * 2}" height="{icon_r * 2}" '
+            f'clip-path="url(#{clip_id})" preserveAspectRatio="xMidYMid slice"/>'
+            f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{icon_r}" fill="none" '
+            f'stroke="{ring_color}" stroke-width="2.5"/>'
+            f"<title>{e(hero(pp.hero_name))} ({role_label})</title>"
+        )
+
+    return (
+        f'<svg class="lane-map-svg" width="{size}" height="{size}" '
+        f'xmlns="http://www.w3.org/2000/svg" '
+        f'style="border-radius:8px;overflow:hidden;border:1px solid #30363d">'
+        + "".join(elements)
+        + "</svg>"
+    )
+
+
+def build_laning(match: gem.ParsedMatch, map_b64: str | None = None) -> str:
+    """Build the Laning tab: minimap + per-player 10-minute metrics table.
+
+    Shows inferred lane role, last hits / denies / gold / XP at 10 minutes,
+    Tier-1 lane efficiency % (OpenDota formula: gold@10 ÷ 4948), and
+    Tier-2 gold/XP advantage versus opposing lane opponents.
+
+    Args:
+        match: Parsed match data from ``gem.parse()``.
+        map_b64: Optional base64-encoded map JPEG for the minimap background.
+
+    Returns:
+        HTML string for the Laning tab content.
+    """
+    load_hero_icons([pp.hero_name for pp in match.players if pp.hero_name])
+
+    parts = [
+        '<div class="card">',
+        "<details open>",
+        "<summary>Laning Phase</summary>",
+        '<div class="card-body">',
+    ]
+
+    # Minimap + legend
+    svg = _laning_minimap_svg(match, map_b64)
+    legend_items = "".join(
+        f'<div class="lane-legend-item">'
+        f'<span class="lane-dot" style="background:{_LANE_COLORS[role]}"></span>'
+        f"<span>{name}</span>"
+        f"</div>"
+        for role, name in _LANE_ROLE_NAMES.items()
+        if role != 0
+    )
+    parts.append(
+        f'<div class="lane-map-wrap">'
+        f"{svg}"
+        f"<div>"
+        f'<p style="font-size:12px;color:#8b949e;margin-bottom:8px">'
+        f"Ring colour = inferred lane role (centroid of first-10-min heatmap)"
+        f"</p>"
+        f'<div class="lane-legend">{legend_items}</div>'
+        f"</div>"
+        f"</div>"
+    )
+
+    # Stats table — Radiant first, then Dire, each sorted by lane_role
+    players = sorted(
+        [pp for pp in match.players if pp.hero_name],
+        key=lambda p: (0 if p.team == 2 else 1, p.lane_role, p.player_id),
+    )
+
+    parts.append("<table>")
+    parts.append(
+        "<thead><tr>"
+        "<th>Hero</th>"
+        "<th>Team</th>"
+        "<th>Lane</th>"
+        '<th class="r" title="Last hits at 10 minutes">LH@10</th>'
+        '<th class="r" title="Denies at 10 minutes">DN@10</th>'
+        '<th class="r" title="Total earned gold at 10 minutes">Gold@10</th>'
+        '<th class="r" title="Total earned XP at 10 minutes">XP@10</th>'
+        '<th class="r" title="Lane Efficiency % — gold@10 ÷ 4948 baseline (OpenDota). '
+        'Values above 100 occur when the hero has kills.">Eff%</th>'
+        '<th class="r" title="Gold advantage vs lane opponents at 10 min. '
+        'N/A for jungle/roaming.">Gold Adv</th>'
+        '<th class="r" title="XP advantage vs lane opponents at 10 min. '
+        'N/A for jungle/roaming.">XP Adv</th>'
+        "<th>Eff Bar</th>"
+        "</tr></thead>"
+    )
+    parts.append("<tbody>")
+
+    for pp in players:
+        team_color = TEAM_COLOR_CSS.get(pp.team, "#888")
+        row_cls = "row-radiant" if pp.team == 2 else "row-dire"
+        role_name = _LANE_ROLE_NAMES.get(pp.lane_role, "—")
+        role_color = _LANE_COLORS.get(pp.lane_role, "#8b949e")
+
+        def _adv_cell(val: int | None) -> str:
+            if val is None:
+                return '<td class="r lane-adv-neu">N/A</td>'
+            cls = "lane-adv-pos" if val > 0 else ("lane-adv-neg" if val < 0 else "lane-adv-neu")
+            sign = "+" if val > 0 else ""
+            return f'<td class="r {cls}">{sign}{val:,}</td>'
+
+        # Efficiency bar — capped at 120% visually so >100% values still fit
+        eff_bar_width = min(pp.lane_efficiency_pct / 120 * 100, 100)
+        eff_bar = (
+            f'<div class="lane-eff-bar-wrap">'
+            f'<div class="lane-eff-bar-fill" '
+            f'style="width:{eff_bar_width:.1f}%;background:{team_color}"></div>'
+            f"</div>"
+        )
+
+        hero_cell_html = (
+            f'<img src="{hero_icon_src(pp.hero_name)}" width="20" height="12" '
+            f'style="object-fit:cover;border-radius:2px;vertical-align:middle;margin-right:5px">'
+            f'<span style="color:{team_color}">{e(hero(pp.hero_name))}</span>'
+        )
+
+        parts.append(
+            f'<tr class="{row_cls}">'
+            f'<td style="white-space:nowrap">{hero_cell_html}</td>'
+            f'<td><span style="color:{team_color}">{e(team_name(pp.team))}</span></td>'
+            f'<td><span style="color:{role_color};font-weight:600">{role_name}</span></td>'
+            f'<td class="r">{pp.lane_last_hits}</td>'
+            f'<td class="r">{pp.lane_denies}</td>'
+            f'<td class="r">{pp.lane_total_gold:,}</td>'
+            f'<td class="r">{pp.lane_total_xp:,}</td>'
+            f'<td class="r"><b>{pp.lane_efficiency_pct}%</b></td>'
+            f"{_adv_cell(pp.lane_gold_adv)}"
+            f"{_adv_cell(pp.lane_xp_adv)}"
+            f"<td>{eff_bar}</td>"
+            f"</tr>"
+        )
+
+    parts.append("</tbody></table>")
+    parts.append(
+        '<p class="section-note">'
+        "Eff% = total earned gold@10 ÷ 4948 (OpenDota baseline: lane creeps + passive income + starting gold). "
+        "Gold/XP Adv = vs opposing hero(es) in same lane. N/A = no opponent with matching lane role."
+        "</p>"
+    )
+    parts += ["</div>", "</details>", "</div>"]
+    return "\n".join(parts)

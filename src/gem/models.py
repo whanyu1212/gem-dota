@@ -116,6 +116,25 @@ class ParsedPlayer:
             for reincarnation, summon kills, and all edge cases.
         deaths: Death count from server scoreboard (``m_iDeaths``).
         assists: Assist count from server scoreboard (``m_iAssists``).
+        lane_role: Lane role inferred from the first-10-minute position heatmap.
+            1=safe lane, 2=mid, 3=off lane, 4=jungle, 5=roaming, 0=unknown.
+        lane_last_hits: Last-hit count at the 10-minute mark (``lh_t_min[10]``).
+        lane_denies: Deny count at the 10-minute mark (``dn_t_min[10]``).
+        lane_total_gold: Cumulative total earned gold at the 10-minute mark
+            (``total_earned_gold_t_min[10]``).
+        lane_total_xp: Cumulative total earned XP at the 10-minute mark
+            (``total_earned_xp_t_min[10]``).
+        lane_efficiency_pct: Tier-1 laning metric (OpenDota formula).
+            ``floor(lane_total_gold / 4948 * 100)``. The denominator 4948 is the
+            theoretical gold available from lane creeps + passive income + starting
+            gold over 10 minutes. Values above 100 are normal for heroes with kills.
+        lane_gold_adv: Tier-2 laning metric. Gold advantage at 10 minutes versus
+            lane opponents on the opposing team (``lane_total_gold`` minus the sum
+            of opponents' ``lane_total_gold``). Positive = ahead. ``None`` when no
+            opponent with a matching lane role exists.
+        lane_xp_adv: Tier-2 laning metric. XP advantage at 10 minutes versus
+            lane opponents on the opposing team. Same pairing logic as
+            ``lane_gold_adv``.
     """
 
     player_id: int
@@ -157,6 +176,14 @@ class ParsedPlayer:
     kills: int = 0
     deaths: int = 0
     assists: int = 0
+    lane_role: int = 0
+    lane_last_hits: int = 0
+    lane_denies: int = 0
+    lane_total_gold: int = 0
+    lane_total_xp: int = 0
+    lane_efficiency_pct: int = 0
+    lane_gold_adv: int | None = None
+    lane_xp_adv: int | None = None
 
     def __repr__(self) -> str:
         hero = self.hero_name.removeprefix("npc_dota_hero_") if self.hero_name else "unknown"

@@ -284,6 +284,41 @@ details[open].sub-accordion > summary::before {
     transform: rotate(90deg);
 }
 
+/* ---- Laning tab ---- */
+.lane-map-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-bottom: 16px;
+    align-items: flex-start;
+}
+.lane-map-svg { flex-shrink: 0; }
+.lane-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    font-size: 12px;
+    align-content: flex-start;
+}
+.lane-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.lane-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.lane-adv-pos { color: #4caf50; font-weight: 600; }
+.lane-adv-neg { color: #f44336; font-weight: 600; }
+.lane-adv-neu { color: #8b949e; }
+.lane-eff-bar-wrap {
+    display: inline-block; width: 80px; height: 6px;
+    background: #21262d; border-radius: 3px; vertical-align: middle;
+}
+.lane-eff-bar-fill { height: 100%; border-radius: 3px; }
+
 /* ---- Misc ---- */
 .dim { color: #6e7681; font-style: italic; }
 .radiant { color: #4caf50; }

@@ -130,6 +130,39 @@ automatically in `player.kills`.
 
 ---
 
+## Damage type breakdown
+
+`DAMAGE` entries include a `damage_type` field (`"physical"`, `"magical"`, `"pure"`, or
+`""` for unset). This lets you break down hero damage by school:
+
+```python
+from collections import defaultdict
+
+damage_by_type: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
+
+def on_entry(entry):
+    if entry.log_type == "DAMAGE" and entry.attacker_is_hero and entry.damage_type:
+        damage_by_type[entry.attacker_name][entry.damage_type] += entry.value
+
+parser.on_combat_log_entry(on_entry)
+parser.parse()
+
+for hero, by_type in sorted(damage_by_type.items()):
+    total = sum(by_type.values())
+    print(f"{hero}: {dict(by_type)}  (total {total:,})")
+```
+
+When using `gem.parse()`, the breakdown is pre-aggregated on each `ParsedPlayer` as
+`damage_by_type` and `damage_taken_by_type` (keys: `"physical"`, `"magical"`, `"pure"`,
+`"others"`).
+
+!!! note
+    `damage_type` is only populated for S2 combat log entries (modern replays).
+    The `"others"` bucket in the pre-aggregated dicts covers damage against non-hero
+    units where Valve does not set the type field.
+
+---
+
 ## Healing totals
 
 ```python
@@ -206,6 +239,21 @@ hero_display("npc_dota_hero_axe")          # → "Axe"
 item_display("item_blink")                 # → "Blink Dagger"
 ability_display("nevermore_shadowraze1")   # → "Shadowraze"
 ```
+
+`ability_display()` handles Aghanim's Scepter and Shard abilities correctly. These
+abilities use internal names like `arc_warden_scepter` or `ability_lamp_use` that do not
+appear in the dotaconstants abilities table. gem falls back to stripping the hero prefix
+and title-casing the remainder:
+
+```python
+ability_display("arc_warden_scepter")  # → "Scepter"
+ability_display("ability_lamp_use")    # → "Lamp Use"
+ability_display("zuus_shard")          # → "Shard"
+```
+
+Previously these returned the raw internal string. If you compare ability names across
+replays, use the raw `entry.inflictor_name` for stable matching rather than the display
+name.
 
 ---
 
