@@ -202,7 +202,7 @@ Full concepts guide, API reference, and architecture diagrams:
 uv run mkdocs serve
 ```
 
-Or visit the hosted docs at [whanyu1212.github.io/gem-dta](https://whanyu1212.github.io/gem-dota/).
+Or visit the hosted docs at [whanyu1212.github.io/gem-dota](https://whanyu1212.github.io/gem-dota/).
 
 Topics covered: DEM binary format, Protocol Buffers, varint encoding, the entity delta system, field paths, combat log ingestion, and more.
 
