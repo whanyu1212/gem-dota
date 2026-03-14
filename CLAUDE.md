@@ -182,9 +182,11 @@ Key message classes used throughout the parser:
 | 8 | `extractors/courier.py`, `extractors/draft.py`, ability levels on snapshots, stun duration | ✅ Complete |
 | 9 | Teamfights | ✅ Complete |
 | 10 | Validation (`scripts/validate_opendota.py`), fuzz tests (`test_fuzz.py`), Steam API example | ✅ Complete |
-| 11a | Performance — `scripts/benchmark.py`, Python quick-wins, Rust extension (PyO3 + maturin) | 🚧 Planned |
-| 11b | Refactor & Cleanup — API surface, pyproject.toml metadata, examples, tests, CHANGELOG | 🚧 Planned |
-| 12 | Distribution — PyPI packaging, CI/CD | 🚧 Planned |
+| 11 | Performance — Python quick-wins (struct.unpack fast path, flat Huffman table) | ✅ Complete |
+| 11b | Refactor & Cleanup — API surface, pyproject.toml metadata, tests, entity typed getters | ✅ Complete |
+| 12 | Docs & README — bottom-up technical guide (`understanding/` 10 pages), guides, API reference | 🚧 In Progress |
+| 13 | Distribution — PyPI packaging, CI/CD | 🚧 Planned |
+| 14 | Rust extension (PyO3 + maturin) — full entity system in Rust for 3–5× speedup | 🚧 Deferred |
 
 ## Test files
 
@@ -214,15 +216,11 @@ Fixtures go in `tests/fixtures/`. Real `.dem` files for integration tests are ma
 
 | Script | Description |
 |---|---|
-| `examples/extraction_demo.py` | Combat log summary + entity state snapshots |
-| `examples/ward_smoke_rosh.py` | Ward placements with coords, smoke groups, Roshan kills |
-| `examples/movement_heatmap.py` | Interactive Plotly heatmap — hero positions, ability levels, stun dealt |
-| `examples/draft_summary.py` | Self-contained HTML draft summary with hero portrait icons |
-| `examples/match_report.py` | Full match report (WIP) |
-| `examples/teamfight_report.py` | HTML teamfight report — minimap, hero icons, live filters |
+| `examples/match_report.py` | Full match dashboard (Draft, Combat, Vision, Teamfights, Economy) |
+| `examples/extraction_demo.py` | Developer guide for combat log extraction and entity polling |
 | `examples/steam_match_info.py` | Fetch match info from Steam API and display with Rich tables |
 
-Hero icons for `draft_summary.py` are downloaded separately — not committed or shipped in the package:
+Hero and item icons for `match_report.py` are downloaded separately — not committed or shipped in the package:
 
 ```bash
 python scripts/fetch_hero_icons.py   # downloads to src/gem/data/hero_icons/

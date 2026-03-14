@@ -67,6 +67,7 @@ class DraftEvent:
         hero_id: Dota 2 internal hero ID.
         hero_name: NPC hero name (e.g. ``"npc_dota_hero_axe"``), or ``""`` if unknown.
         is_pick: True for a pick, False for a ban.
+        team: Team number (2=Radiant, 3=Dire) that made this pick/ban, or 0 if unknown.
     """
 
     tick: int
@@ -74,6 +75,7 @@ class DraftEvent:
     hero_id: int
     hero_name: str
     is_pick: bool
+    team: int = 0
 
 
 class DraftExtractor:
@@ -181,6 +183,7 @@ class DraftExtractor:
 
     def _check_draft(self, entity: Entity) -> None:
         tick = self._parser.tick if self._parser else 0
+        active_team = entity.get_int32("m_pGameRules.m_iActiveTeam") or 0
 
         # Bans: m_pGameRules.m_BannedHeroes.0000-0013
         for i in range(_BAN_SLOTS):
@@ -198,6 +201,7 @@ class DraftExtractor:
                     hero_id=hero_id,
                     hero_name=self._resolve_name(hero_id),
                     is_pick=False,
+                    team=active_team,
                 )
             )
 
@@ -217,6 +221,7 @@ class DraftExtractor:
                     hero_id=hero_id,
                     hero_name=self._resolve_name(hero_id),
                     is_pick=True,
+                    team=active_team,
                 )
             )
 

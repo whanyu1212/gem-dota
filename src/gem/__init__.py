@@ -37,6 +37,7 @@ def parse(path: str | Path) -> ParsedMatch:
         A :class:`ParsedMatch` with all extracted data populated.
     """
     from gem.combat_aggregator import _CombatAggregator
+    from gem.combatlog import CombatLogEntry
     from gem.extractors.courier import CourierExtractor
     from gem.extractors.draft import DraftExtractor
     from gem.extractors.objectives import ObjectivesExtractor
@@ -61,14 +62,67 @@ def parse(path: str | Path) -> ParsedMatch:
     combat_agg = _CombatAggregator(player_ext)
     p.on_combat_log_entry(combat_agg.on_entry)
 
-    all_entries: list = []
+    all_entries: list[CombatLogEntry] = []
     p.on_combat_log_entry(all_entries.append)
 
     chat_entries: list[ChatEntry] = []
     p.on_chat_message(chat_entries.append)
 
+    # Smoke of Deceit collection — three combat log event types.
+    # Position is captured live at MODIFIER_ADD time (when each hero actually
+    # receives the buff) and averaged to give the group centroid.
+    # Logic for SmokeEvent collection (item consumption + modifier arrival)
+    from gem.models import SmokeEvent as _SmokeEvent
+
+    _pending_smokes: dict[str, _SmokeEvent] = {}  # activator npc → active event
+    # Per-event accumulated positions: activator npc → list of (x, y) live coords
+    _smoke_positions: dict[str, list[tuple[float, float]]] = {}
+    smoke_events: list[_SmokeEvent] = []
+
+    def _on_smoke_entry(entry: CombatLogEntry) -> None:
+        if entry.log_type == "ITEM" and entry.inflictor_name == "item_smoke_of_deceit":
+            new_ev = _SmokeEvent(tick=entry.tick, activator=entry.attacker_name, team=0)
+            _pending_smokes[entry.attacker_name] = new_ev
+            _smoke_positions[entry.attacker_name] = []
+            smoke_events.append(new_ev)
+        elif (
+            entry.log_type == "MODIFIER_ADD"
+            and entry.inflictor_name == "modifier_smoke_of_deceit"
+            and entry.target_is_hero
+        ):
+            pending_ev = _pending_smokes.get(entry.attacker_name)
+            if pending_ev is not None:
+                pending_ev.smoked.append(entry.target_name)
+                # Capture this hero's live position right now
+                pos = player_ext.hero_pos(entry.target_name)
+                if pos is not None:
+                    _smoke_positions[entry.attacker_name].append(pos)
+        elif (
+            entry.log_type == "MODIFIER_REMOVE"
+            and entry.inflictor_name == "modifier_smoke_of_deceit"
+            and entry.target_is_hero
+        ):
+            pending_ev = _pending_smokes.get(entry.attacker_name)
+            if pending_ev is not None and len(pending_ev.smoked) >= 1:
+                _pending_smokes.pop(entry.attacker_name, None)
+
+    p.on_combat_log_entry(_on_smoke_entry)
+
     p.parse()
     draft_ext.finalize()
+    ward_ext.finalize()
+
+    # Back-fill team; centroid x/y already collected live during MODIFIER_ADD
+    _team_by_npc: dict[str, int] = {
+        snap.npc_name: snap.team for snap in player_ext.snapshots if snap.team
+    }
+
+    for ev in smoke_events:
+        ev.team = _team_by_npc.get(ev.activator, 0)
+        positions = _smoke_positions.get(ev.activator, [])
+        if positions:
+            ev.x = sum(p[0] for p in positions) / len(positions)
+            ev.y = sum(p[1] for p in positions) / len(positions)
 
     return build_parsed_match(
         parser=p,
@@ -80,6 +134,7 @@ def parse(path: str | Path) -> ParsedMatch:
         combat_agg=combat_agg,
         all_entries=all_entries,
         chat_entries=chat_entries,
+        smoke_events=smoke_events,
     )
 
 

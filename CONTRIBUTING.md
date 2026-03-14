@@ -64,6 +64,19 @@ Thank you for your interest in contributing! This document covers everything you
    git checkout -b fix/issue-description
    ```
 
+### Docs toolchain stability (maintainers)
+
+We currently pin the docs stack to avoid accidental major-version breakage:
+- `mkdocs>=1.6.1,<2.0.0`
+- `mkdocs-material>=9.7.4,<10.0.0`
+- `mkdocstrings[python]>=1.0.3,<2.0.0`
+
+Please do not perform broad docs dependency upgrades without review (especially major versions).  
+If you intentionally upgrade docs tooling, open a dedicated PR that includes:
+- updated pins + lockfile,
+- `uv run mkdocs build --strict` output,
+- any required migration notes in this file.
+
 ## How to Contribute
 
 ### Reporting Bugs

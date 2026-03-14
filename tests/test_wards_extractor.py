@@ -1,8 +1,8 @@
-"""Unit tests for gem.extractors.wards.
+"""Unit tests for gem.extractors.wards (entity-based approach).
 
-Covers _match_coords, WardsExtractor._on_combat_log, _on_entity,
-_find_spawn_state, _find_killer, _make_event, finalize/ward_events,
-and hero player_id resolution.
+Covers WardsExtractor._on_combat_log (killer queues), _on_entity
+(placement detection, death detection, hero tracking), finalize
+(placer back-fill), and the public ward_events interface.
 """
 
 from __future__ import annotations
@@ -10,9 +10,10 @@ from __future__ import annotations
 from gem.combatlog import CombatLogEntry
 from gem.entities import Entity, EntityOp
 from gem.extractors.wards import (
+    _EXPIRY_TOLERANCE_TICKS,
+    _OBSERVER_LIFESPAN_TICKS,
+    _SENTRY_LIFESPAN_TICKS,
     WardsExtractor,
-    _match_coords,
-    _WardPlacement,
 )
 
 # ---------------------------------------------------------------------------
@@ -34,7 +35,7 @@ def _ent(class_name: str, index: int = 0, **state) -> Entity:
 
 
 def _observer_entity(
-    index: int = 0, tick_spawn: int = 100, x: float = 1000.0, y: float = 2000.0
+    index: int = 0, x: float = 1280.0, y: float = 2560.0, life_state: int = 0, team: int = 2
 ) -> Entity:
     cell_x = int(x) // 128
     vec_x = x - cell_x * 128
@@ -44,8 +45,8 @@ def _observer_entity(
         "CDOTA_NPC_Observer_Ward",
         index=index,
         **{
-            "m_lifeState": 0,
-            "m_iTeamNum": 2,
+            "m_lifeState": life_state,
+            "m_iTeamNum": team,
             "CBodyComponent.m_cellX": cell_x,
             "CBodyComponent.m_cellY": cell_y,
             "CBodyComponent.m_vecX": float(vec_x),
@@ -54,7 +55,9 @@ def _observer_entity(
     )
 
 
-def _sentry_entity(index: int = 1, x: float = 3000.0, y: float = 4000.0) -> Entity:
+def _sentry_entity(
+    index: int = 1, x: float = 3840.0, y: float = 5120.0, life_state: int = 0, team: int = 3
+) -> Entity:
     cell_x = int(x) // 128
     vec_x = x - cell_x * 128
     cell_y = int(y) // 128
@@ -63,8 +66,8 @@ def _sentry_entity(index: int = 1, x: float = 3000.0, y: float = 4000.0) -> Enti
         "CDOTA_NPC_Observer_Ward_TrueSight",
         index=index,
         **{
-            "m_lifeState": 0,
-            "m_iTeamNum": 3,
+            "m_lifeState": life_state,
+            "m_iTeamNum": team,
             "CBodyComponent.m_cellX": cell_x,
             "CBodyComponent.m_cellY": cell_y,
             "CBodyComponent.m_vecX": float(vec_x),
@@ -73,17 +76,12 @@ def _sentry_entity(index: int = 1, x: float = 3000.0, y: float = 4000.0) -> Enti
     )
 
 
-def _placement(
-    tick: int, placer: str = "npc_dota_hero_axe", ward_type: str = "observer"
-) -> _WardPlacement:
-    return _WardPlacement(tick=tick, placer=placer, ward_type=ward_type)
-
-
 class FakeParser:
     def __init__(self, tick: int = 0):
         self.tick = tick
         self._cl_handlers = []
         self._ent_handlers = []
+        self.entity_manager = None
 
     def on_combat_log_entry(self, h):
         self._cl_handlers.append(h)
@@ -100,125 +98,32 @@ def _ward_extractor(tick: int = 0) -> tuple[WardsExtractor, FakeParser]:
 
 
 # ---------------------------------------------------------------------------
-# _match_coords
+# _on_combat_log — killer queues
 # ---------------------------------------------------------------------------
 
 
-class TestMatchCoords:
-    def test_exact_tick_match(self):
-        placements = [_placement(100)]
-        spawns = [(100, "observer", 2, 500.0, 600.0)]
-        result = _match_coords(placements, spawns, "observer", 60)
-        assert 0 in result
-        assert result[0] == (500.0, 600.0)
-
-    def test_within_window(self):
-        placements = [_placement(100)]
-        spawns = [(130, "observer", 2, 700.0, 800.0)]
-        result = _match_coords(placements, spawns, "observer", 60)
-        assert 0 in result
-
-    def test_outside_window_no_match(self):
-        placements = [_placement(100)]
-        spawns = [(200, "observer", 2, 700.0, 800.0)]
-        result = _match_coords(placements, spawns, "observer", 60)
-        assert 0 not in result
-
-    def test_wrong_type_filtered(self):
-        placements = [_placement(100, ward_type="observer")]
-        spawns = [(100, "sentry", 2, 500.0, 600.0)]
-        result = _match_coords(placements, spawns, "observer", 60)
-        assert 0 not in result
-
-    def test_nearest_match_chosen(self):
-        placements = [_placement(100)]
-        spawns = [
-            (90, "observer", 2, 1.0, 1.0),  # dt=10
-            (105, "observer", 2, 2.0, 2.0),  # dt=5 — closer
-        ]
-        result = _match_coords(placements, spawns, "observer", 60)
-        assert result[0] == (2.0, 2.0)
-
-    def test_multiple_placements_same_spawn_reused(self):
-        placements = [_placement(100), _placement(200)]
-        spawns = [(100, "observer", 2, 5.0, 6.0), (200, "observer", 2, 7.0, 8.0)]
-        result = _match_coords(placements, spawns, "observer", 60)
-        assert result[0] == (5.0, 6.0)
-        assert result[1] == (7.0, 8.0)
-
-    def test_empty_placements(self):
-        result = _match_coords([], [(100, "observer", 2, 1.0, 2.0)], "observer", 60)
-        assert result == {}
-
-    def test_empty_spawns(self):
-        placements = [_placement(100)]
-        result = _match_coords(placements, [], "observer", 60)
-        assert result == {}
-
-
-# ---------------------------------------------------------------------------
-# WardsExtractor._on_combat_log
-# ---------------------------------------------------------------------------
-
-
-class TestOnCombatLog:
-    def test_observer_placement_recorded(self):
-        ext, _ = _ward_extractor()
-        entry = CombatLogEntry(
-            tick=100,
-            log_type="ITEM",
-            attacker_name="npc_dota_hero_axe",
-            inflictor_name="item_ward_observer",
-        )
-        ext._on_combat_log(entry)
-        assert len(ext._placements) == 1
-        assert ext._placements[0].ward_type == "observer"
-
-    def test_sentry_placement_recorded(self):
-        ext, _ = _ward_extractor()
-        entry = CombatLogEntry(
-            tick=200,
-            log_type="ITEM",
-            attacker_name="npc_dota_hero_lina",
-            inflictor_name="item_ward_sentry",
-        )
-        ext._on_combat_log(entry)
-        assert len(ext._placements) == 1
-        assert ext._placements[0].ward_type == "sentry"
-
-    def test_dispenser_item_also_recorded(self):
-        ext, _ = _ward_extractor()
-        entry = CombatLogEntry(
-            tick=50,
-            log_type="ITEM",
-            attacker_name="npc_dota_hero_axe",
-            inflictor_name="item_ward_dispenser",
-        )
-        ext._on_combat_log(entry)
-        assert len(ext._placements) == 1
-
-    def test_non_ward_item_ignored(self):
-        ext, _ = _ward_extractor()
-        entry = CombatLogEntry(
-            tick=100,
-            log_type="ITEM",
-            attacker_name="npc_dota_hero_axe",
-            inflictor_name="item_blink",
-        )
-        ext._on_combat_log(entry)
-        assert len(ext._placements) == 0
-
-    def test_ward_death_recorded(self):
+class TestOnCombatLogKillerQueue:
+    def test_ward_death_adds_to_killer_queue(self):
         ext, _ = _ward_extractor()
         entry = CombatLogEntry(
             tick=500,
             log_type="DEATH",
-            target_name="npc_dota_observer_ward",
+            target_name="npc_dota_observer_wards",
             attacker_name="npc_dota_hero_lina",
         )
         ext._on_combat_log(entry)
-        assert len(ext._ward_deaths) == 1
-        assert ext._ward_deaths[0] == (500, "npc_dota_hero_lina")
+        assert ext._killer_queue["npc_dota_observer_wards"] == ["npc_dota_hero_lina"]
+
+    def test_sentry_death_uses_sentry_queue(self):
+        ext, _ = _ward_extractor()
+        entry = CombatLogEntry(
+            tick=500,
+            log_type="DEATH",
+            target_name="npc_dota_sentry_wards",
+            attacker_name="npc_dota_hero_axe",
+        )
+        ext._on_combat_log(entry)
+        assert ext._killer_queue["npc_dota_sentry_wards"] == ["npc_dota_hero_axe"]
 
     def test_non_ward_death_ignored(self):
         ext, _ = _ward_extractor()
@@ -229,50 +134,98 @@ class TestOnCombatLog:
             attacker_name="npc_dota_hero_pudge",
         )
         ext._on_combat_log(entry)
-        assert len(ext._ward_deaths) == 0
+        assert ext._killer_queue["npc_dota_observer_wards"] == []
+        assert ext._killer_queue["npc_dota_sentry_wards"] == []
 
-
-# ---------------------------------------------------------------------------
-# WardsExtractor._on_entity — hero tracking
-# ---------------------------------------------------------------------------
-
-
-class TestOnEntityHero:
-    def test_hero_registered(self):
+    def test_empty_killer_not_queued(self):
         ext, _ = _ward_extractor()
-        e = _ent("CDOTA_Unit_Hero_Axe")
-        ext._on_entity(e, EntityOp.CREATED)
-        assert "npc_dota_hero_axe" in ext._heroes_by_npc
+        entry = CombatLogEntry(
+            tick=500,
+            log_type="DEATH",
+            target_name="npc_dota_observer_wards",
+            attacker_name="",
+        )
+        ext._on_combat_log(entry)
+        assert ext._killer_queue["npc_dota_observer_wards"] == []
 
-    def test_hero_removed_on_deleted(self):
+    def test_item_events_ignored(self):
         ext, _ = _ward_extractor()
-        e = _ent("CDOTA_Unit_Hero_Axe")
+        entry = CombatLogEntry(
+            tick=100,
+            log_type="ITEM",
+            target_name="npc_dota_observer_wards",
+            attacker_name="npc_dota_hero_axe",
+            inflictor_name="item_ward_observer",
+        )
+        ext._on_combat_log(entry)
+        assert ext._killer_queue["npc_dota_observer_wards"] == []
+
+
+# ---------------------------------------------------------------------------
+# _on_entity — hero tracking
+# ---------------------------------------------------------------------------
+
+
+class TestOnEntityHeroTracking:
+    def test_hero_player_id_recorded(self):
+        ext, _ = _ward_extractor()
+        e = _ent("CDOTA_Unit_Hero_Axe", **{"m_nPlayerID": 4, "m_iTeamNum": 2})
         ext._on_entity(e, EntityOp.CREATED)
-        ext._on_entity(e, EntityOp.DELETED)
-        assert "npc_dota_hero_axe" not in ext._heroes_by_npc
+        assert ext._hero_by_player_id[2] == "npc_dota_hero_axe"
+
+    def test_hero_fallback_to_m_iPlayerID(self):
+        ext, _ = _ward_extractor()
+        e = _ent("CDOTA_Unit_Hero_Lina", **{"m_iPlayerID": 6, "m_iTeamNum": 2})
+        ext._on_entity(e, EntityOp.CREATED)
+        assert ext._hero_by_player_id[3] == "npc_dota_hero_lina"
+
+    def test_non_hero_entity_not_tracked(self):
+        ext, _ = _ward_extractor()
+        e = _ent("CDOTAGamerulesProxy")
+        ext._on_entity(e, EntityOp.CREATED)
+        assert ext._hero_by_player_id == {}
 
 
 # ---------------------------------------------------------------------------
-# WardsExtractor._on_entity — ward entity spawn recording
+# _on_entity — ward placement detection
 # ---------------------------------------------------------------------------
 
 
-class TestOnEntityWard:
-    def test_observer_spawn_recorded_in_spawns(self):
+class TestOnEntityWardPlacement:
+    def test_created_with_lifestate_0_adds_event(self):
         ext, parser = _ward_extractor(tick=100)
-        e = _observer_entity(index=0, x=1280.0, y=2560.0)
+        e = _observer_entity(index=0, x=1280.0, y=2560.0, life_state=0)
         ext._on_entity(e, EntityOp.CREATED)
-        assert len(ext._spawns) == 1
-        tick, wt, team, x, y = ext._spawns[0]
-        assert wt == "observer"
-        assert tick == 100
+        assert len(ext.ward_events) == 1
+        ev = ext.ward_events[0]
+        assert ev.tick == 100
+        assert ev.ward_type == "observer"
+        assert ev.x == 1280.0
+        assert ev.y == 2560.0
+        assert ev.team == 2
 
-    def test_sentry_spawn_recorded(self):
+    def test_sentry_entity_detected(self):
         ext, parser = _ward_extractor(tick=200)
-        e = _sentry_entity(index=1, x=3840.0, y=5120.0)
+        e = _sentry_entity(index=1)
         ext._on_entity(e, EntityOp.CREATED)
-        assert len(ext._spawns) == 1
-        assert ext._spawns[0][1] == "sentry"
+        assert len(ext.ward_events) == 1
+        assert ext.ward_events[0].ward_type == "sentry"
+
+    def test_lifestate_transition_to_0_adds_event(self):
+        """UPDATED event with m_lifeState changing from 2 → 0 should register as placement."""
+        ext, parser = _ward_extractor(tick=50)
+        e_alive = _observer_entity(index=0, life_state=0)
+        # Simulate: previous state was non-zero (default prev=2)
+        ext._on_entity(e_alive, EntityOp.UPDATED)
+        assert len(ext.ward_events) == 1
+
+    def test_no_event_if_already_alive(self):
+        """UPDATED event with m_lifeState staying at 0 should NOT add another placement."""
+        ext, parser = _ward_extractor(tick=50)
+        e = _observer_entity(index=0, life_state=0)
+        ext._on_entity(e, EntityOp.CREATED)  # first spawn
+        ext._on_entity(e, EntityOp.UPDATED)  # another update, still life_state=0
+        assert len(ext.ward_events) == 1  # still only one
 
     def test_deleted_cleans_lifestate(self):
         ext, parser = _ward_extractor(tick=100)
@@ -280,101 +233,103 @@ class TestOnEntityWard:
         ext._prev_lifestate[5] = 0
         ext._on_entity(e, EntityOp.DELETED)
         assert 5 not in ext._prev_lifestate
+        assert 5 not in ext._active
 
-    def test_no_pos_entity_not_added_to_spawns(self):
+    def test_no_pos_entity_no_coords(self):
+        """Ward with missing position fields still creates event but with None coords."""
         ext, _ = _ward_extractor(tick=100)
-        # Observer ward but no position fields
         e = _ent("CDOTA_NPC_Observer_Ward", index=0, **{"m_lifeState": 0, "m_iTeamNum": 2})
         ext._on_entity(e, EntityOp.CREATED)
-        assert len(ext._spawns) == 0
+        assert len(ext.ward_events) == 1
+        assert ext.ward_events[0].x is None
+        assert ext.ward_events[0].y is None
 
-    def test_death_tick_recorded_on_lifestate_transition(self):
-        from gem.extractors.wards import _SpawnState
 
+# ---------------------------------------------------------------------------
+# _on_entity — ward death detection
+# ---------------------------------------------------------------------------
+
+
+class TestOnEntityWardDeath:
+    def test_death_sets_killed_tick(self):
         ext, parser = _ward_extractor(tick=100)
-        # Create a spawn history entry
-        state = _SpawnState(spawn_tick=100, ward_type="observer", team=2, x=0.0, y=0.0)
-        ext._slot_history[0] = [state]
-        ext._prev_lifestate[0] = 0  # was alive
+        # Place a ward
+        e = _observer_entity(index=0, x=1280.0, y=2560.0)
+        ext._on_entity(e, EntityOp.CREATED)
+        assert len(ext.ward_events) == 1
 
-        # Now entity updates with lifeState=1 (dying)
-        e = _ent(
-            "CDOTA_NPC_Observer_Ward",
-            index=0,
-            **{
-                "m_lifeState": 1,
-                "m_iTeamNum": 2,
-                "CBodyComponent.m_cellX": 10,
-                "CBodyComponent.m_cellY": 10,
-                "CBodyComponent.m_vecX": 0.0,
-                "CBodyComponent.m_vecY": 0.0,
-            },
+        # Add a killer to the queue
+        death_entry = CombatLogEntry(
+            tick=200,
+            log_type="DEATH",
+            target_name="npc_dota_observer_wards",
+            attacker_name="npc_dota_hero_lina",
         )
-        parser.tick = 500
-        ext._on_entity(e, EntityOp.UPDATED)
-        assert state.death_tick == 500
+        ext._on_combat_log(death_entry)
+
+        # Ward transitions to dying (m_lifeState=1)
+        parser.tick = 200
+        e_dying = _observer_entity(index=0, life_state=1)
+        ext._on_entity(e_dying, EntityOp.UPDATED)
+
+        ev = ext.ward_events[0]
+        assert ev.killed_tick == 200
+        assert ev.killer == "npc_dota_hero_lina"
+        assert ev.expires_tick is None
+
+    def test_natural_expiry_sets_expires_tick(self):
+        ext, parser = _ward_extractor(tick=100)
+        e = _observer_entity(index=0, x=1280.0, y=2560.0)
+        ext._on_entity(e, EntityOp.CREATED)
+
+        # No killer in queue; die at natural lifespan
+        natural_death_tick = 100 + _OBSERVER_LIFESPAN_TICKS
+        parser.tick = natural_death_tick
+        e_dying = _observer_entity(index=0, life_state=1)
+        ext._on_entity(e_dying, EntityOp.UPDATED)
+
+        ev = ext.ward_events[0]
+        assert ev.expires_tick == natural_death_tick
+        assert ev.killed_tick is None
+
+    def test_early_death_without_killer_sets_killed_tick(self):
+        ext, parser = _ward_extractor(tick=100)
+        e = _observer_entity(index=0, x=1280.0, y=2560.0)
+        ext._on_entity(e, EntityOp.CREATED)
+
+        # Die early (50 ticks), no killer in queue
+        parser.tick = 150
+        e_dying = _observer_entity(index=0, life_state=1)
+        ext._on_entity(e_dying, EntityOp.UPDATED)
+
+        ev = ext.ward_events[0]
+        assert ev.killed_tick == 150
+        assert ev.expires_tick is None
+        assert ev.killer == ""
+
+    def test_slot_reuse_second_spawn_independent(self):
+        """Same entity slot used twice — two separate WardEvents."""
+        ext, parser = _ward_extractor(tick=100)
+        e1 = _observer_entity(index=0, x=1280.0, y=2560.0, life_state=0)
+        ext._on_entity(e1, EntityOp.CREATED)
+
+        # Ward dies
+        parser.tick = 200
+        e_dying = _observer_entity(index=0, life_state=1)
+        ext._on_entity(e_dying, EntityOp.UPDATED)
+
+        # Same slot reused: new spawn
+        parser.tick = 300
+        e2 = _observer_entity(index=0, x=3840.0, y=5120.0, life_state=0)
+        ext._on_entity(e2, EntityOp.UPDATED)  # transition 1 → 0
+
+        assert len(ext.ward_events) == 2
+        assert ext.ward_events[0].tick == 100
+        assert ext.ward_events[1].tick == 300
 
 
 # ---------------------------------------------------------------------------
-# WardsExtractor._find_spawn_state
-# ---------------------------------------------------------------------------
-
-
-class TestFindSpawnState:
-    def test_returns_closest_match(self):
-        from gem.extractors.wards import _SpawnState
-
-        ext, _ = _ward_extractor()
-        s1 = _SpawnState(spawn_tick=100, ward_type="observer", team=2, x=1.0, y=2.0)
-        s2 = _SpawnState(spawn_tick=110, ward_type="observer", team=2, x=3.0, y=4.0)
-        ext._slot_history[0] = [s1, s2]
-        result = ext._find_spawn_state("observer", 112)
-        assert result is s2
-
-    def test_returns_none_when_no_match_within_window(self):
-        from gem.extractors.wards import _SpawnState
-
-        ext, _ = _ward_extractor()
-        s = _SpawnState(spawn_tick=100, ward_type="observer", team=2, x=1.0, y=2.0)
-        ext._slot_history[0] = [s]
-        result = ext._find_spawn_state("observer", 300)  # 200 ticks away > window
-        assert result is None
-
-    def test_type_filter_applied(self):
-        from gem.extractors.wards import _SpawnState
-
-        ext, _ = _ward_extractor()
-        s = _SpawnState(spawn_tick=100, ward_type="sentry", team=3, x=1.0, y=2.0)
-        ext._slot_history[0] = [s]
-        result = ext._find_spawn_state("observer", 100)  # looking for observer
-        assert result is None
-
-
-# ---------------------------------------------------------------------------
-# WardsExtractor._find_killer
-# ---------------------------------------------------------------------------
-
-
-class TestFindKiller:
-    def test_finds_closest_killer(self):
-        ext, _ = _ward_extractor()
-        # lina at 495 (dt=5), axe at 502 (dt=2) — axe is strictly closer
-        ext._ward_deaths = [(495, "npc_dota_hero_lina"), (502, "npc_dota_hero_axe")]
-        assert ext._find_killer(500) == "npc_dota_hero_axe"
-
-    def test_returns_empty_when_no_match(self):
-        ext, _ = _ward_extractor()
-        ext._ward_deaths = [(600, "npc_dota_hero_lina")]
-        assert ext._find_killer(100) == ""
-
-    def test_exact_tick_match(self):
-        ext, _ = _ward_extractor()
-        ext._ward_deaths = [(300, "npc_dota_hero_pudge")]
-        assert ext._find_killer(300) == "npc_dota_hero_pudge"
-
-
-# ---------------------------------------------------------------------------
-# WardsExtractor.finalize / ward_events
+# finalize — placer back-fill
 # ---------------------------------------------------------------------------
 
 
@@ -384,145 +339,44 @@ class TestFinalize:
         events = ext.finalize()
         assert events == []
 
-    def test_ward_events_property_triggers_finalize(self):
-        ext, _ = _ward_extractor()
-        assert ext._finalized is None
-        events = ext.ward_events
-        assert ext._finalized is not None
-        assert events == []
-
-    def test_ward_events_cached(self):
-        ext, _ = _ward_extractor()
-        e1 = ext.ward_events
-        e2 = ext.ward_events
-        assert e1 is e2
-
-    def test_placement_with_matching_spawn(self):
+    def test_back_fills_placer_for_known_player_id(self):
         ext, parser = _ward_extractor(tick=100)
-        # Record a combat log placement
-        entry = CombatLogEntry(
-            tick=100,
-            log_type="ITEM",
-            attacker_name="npc_dota_hero_axe",
-            inflictor_name="item_ward_observer",
-        )
-        ext._on_combat_log(entry)
-        # Record matching spawn
+        # Ward placed pre-game: player_id resolved from controller but placer unknown
+        e = _observer_entity(index=0, x=1280.0, y=2560.0)
+        # No m_hOwnerEntity → player_id=-1 initially; manually set for test
+        ext._on_entity(e, EntityOp.CREATED)
+        ev = ext.ward_events[0]
+        ev.player_id = 2  # simulate resolution from CDOTAPlayerController
+        ev.placer = ""
+
+        # Hero seen later in game
+        hero_e = _ent("CDOTA_Unit_Hero_Axe", **{"m_nPlayerID": 4, "m_iTeamNum": 2})
+        ext._on_entity(hero_e, EntityOp.UPDATED)
+
+        ext.finalize()
+        assert ev.placer == "npc_dota_hero_axe"
+
+    def test_no_back_fill_when_player_id_unknown(self):
+        ext, parser = _ward_extractor(tick=100)
         e = _observer_entity(index=0, x=1280.0, y=2560.0)
         ext._on_entity(e, EntityOp.CREATED)
+        ev = ext.ward_events[0]
+        ev.player_id = -1
+        ev.placer = ""
 
-        events = ext.finalize()
-        assert len(events) == 1
-        ev = events[0]
-        assert ev.tick == 100
-        assert ev.ward_type == "observer"
-        assert ev.placer == "npc_dota_hero_axe"
-        assert ev.x is not None
-        assert ev.y is not None
+        hero_e = _ent("CDOTA_Unit_Hero_Axe", **{"m_nPlayerID": 4, "m_iTeamNum": 2})
+        ext._on_entity(hero_e, EntityOp.UPDATED)
 
-    def test_placement_without_spawn_has_none_coords(self):
-        ext, _ = _ward_extractor()
-        entry = CombatLogEntry(
-            tick=500,
-            log_type="ITEM",
-            attacker_name="npc_dota_hero_pudge",
-            inflictor_name="item_ward_sentry",
-        )
-        ext._on_combat_log(entry)
-        events = ext.finalize()
-        assert len(events) == 1
-        assert events[0].x is None
-        assert events[0].y is None
+        ext.finalize()
+        assert ev.placer == ""  # player_id=-1, no fill
 
-    def test_events_sorted_by_tick(self):
-        ext, parser = _ward_extractor()
-        for tick in [300, 100, 200]:
-            parser.tick = tick
-            ext._on_combat_log(
-                CombatLogEntry(
-                    tick=tick,
-                    log_type="ITEM",
-                    attacker_name="npc_dota_hero_axe",
-                    inflictor_name="item_ward_observer",
-                )
-            )
-        events = ext.finalize()
-        ticks = [e.tick for e in events]
-        assert ticks == sorted(ticks)
-
-
-# ---------------------------------------------------------------------------
-# WardsExtractor._make_event — player_id and team resolution
-# ---------------------------------------------------------------------------
-
-
-class TestMakeEvent:
-    def test_player_id_resolved_from_hero(self):
-        ext, _ = _ward_extractor()
-        hero = _ent("CDOTA_Unit_Hero_Axe", **{"m_nPlayerID": 4, "m_iTeamNum": 2})
-        ext._heroes_by_npc["npc_dota_hero_axe"] = hero
-
-        wp = _placement(100, placer="npc_dota_hero_axe")
-        ev = ext._make_event(wp, coord=None, spawn=None)
-        assert ev.player_id == 2  # 4 // 2
-        assert ev.team == 2
-
-    def test_player_id_minus_one_when_hero_not_found(self):
-        ext, _ = _ward_extractor()
-        wp = _placement(100, placer="npc_dota_hero_unknown")
-        ev = ext._make_event(wp, coord=None, spawn=None)
-        assert ev.player_id == -1
-        assert ev.team == 0
-
-    def test_coords_from_coord_tuple(self):
-        ext, _ = _ward_extractor()
-        wp = _placement(100)
-        ev = ext._make_event(wp, coord=(1500.0, 2500.0), spawn=None)
-        assert ev.x == 1500.0
-        assert ev.y == 2500.0
-
-    def test_coords_none_when_no_coord(self):
-        ext, _ = _ward_extractor()
-        wp = _placement(100)
-        ev = ext._make_event(wp, coord=None, spawn=None)
-        assert ev.x is None
-        assert ev.y is None
-
-    def test_natural_expiry_detected(self):
-        from gem.extractors.wards import _SpawnState
-
-        ext, _ = _ward_extractor()
-        # Observer ward lasts 720 ticks; if death_tick >= spawn_tick + 690 → natural
-        spawn = _SpawnState(spawn_tick=100, ward_type="observer", team=2, x=0.0, y=0.0)
-        spawn.death_tick = 100 + 720  # exactly natural
-        wp = _placement(100)
-        ev = ext._make_event(wp, coord=None, spawn=spawn)
-        assert ev.expires_tick == 820
-        assert ev.killed_tick is None
-
-    def test_killed_detected(self):
-        from gem.extractors.wards import _SpawnState
-
-        ext, _ = _ward_extractor()
-        ext._ward_deaths = [(200, "npc_dota_hero_lina")]
-        spawn = _SpawnState(spawn_tick=100, ward_type="observer", team=2, x=0.0, y=0.0)
-        spawn.death_tick = 200  # well before natural expiry (100 + 690)
-        wp = _placement(100)
-        ev = ext._make_event(wp, coord=None, spawn=spawn)
-        assert ev.killed_tick == 200
-        assert ev.expires_tick is None
-        assert ev.killer == "npc_dota_hero_lina"
-
-    def test_no_death_tick_both_none(self):
-        from gem.extractors.wards import _SpawnState
-
-        ext, _ = _ward_extractor()
-        spawn = _SpawnState(spawn_tick=100, ward_type="observer", team=2, x=0.0, y=0.0)
-        # death_tick remains None (ward still alive)
-        wp = _placement(100)
-        ev = ext._make_event(wp, coord=None, spawn=spawn)
-        assert ev.expires_tick is None
-        assert ev.killed_tick is None
+    def test_finalize_returns_ward_events(self):
+        ext, parser = _ward_extractor(tick=100)
+        e = _observer_entity(index=0)
+        ext._on_entity(e, EntityOp.CREATED)
+        result = ext.finalize()
+        assert result is ext.ward_events
+        assert len(result) == 1
 
 
 # ---------------------------------------------------------------------------
@@ -532,19 +386,11 @@ class TestMakeEvent:
 
 class TestWardLifespanConstants:
     def test_values(self):
-        from gem.extractors.wards import (
-            _EXPIRY_TOLERANCE_TICKS,
-            _OBSERVER_LIFESPAN_TICKS,
-            _SENTRY_LIFESPAN_TICKS,
-        )
-
         assert _OBSERVER_LIFESPAN_TICKS == 720
         assert _SENTRY_LIFESPAN_TICKS == 360
         assert _EXPIRY_TOLERANCE_TICKS == 30
 
     def test_observer_longer_than_sentry(self):
-        from gem.extractors.wards import _OBSERVER_LIFESPAN_TICKS, _SENTRY_LIFESPAN_TICKS
-
         assert _OBSERVER_LIFESPAN_TICKS > _SENTRY_LIFESPAN_TICKS
 
 
