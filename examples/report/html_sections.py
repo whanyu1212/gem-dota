@@ -665,6 +665,53 @@ def build_damage(match: gem.ParsedMatch, hero_cell: Callable[[str, int], str]) -
             top_att_key = max(pp.damage_taken, key=pp.damage_taken.get)  # type: ignore[arg-type]
             top_attacker = f"Most from: {hero(top_att_key)} ({pp.damage_taken[top_att_key]:,})"
 
+        dmg_physical = pp.damage_by_type.get("physical", 0)
+        dmg_magical = pp.damage_by_type.get("magical", 0)
+        dmg_pure = pp.damage_by_type.get("pure", 0)
+        dmg_other = pp.damage_by_type.get("others", 0)
+        dmg_known_total = dmg_physical + dmg_magical + dmg_pure
+
+        dmg_type_parts = [
+            f"Physical: {dmg_physical:,}",
+            f"Magical: {dmg_magical:,}",
+            f"Pure: {dmg_pure:,}",
+            f"Others: {dmg_other:,}",
+        ]
+        dmg_type_title = "Damage type split — " + " | ".join(dmg_type_parts)
+
+        dmg_taken_physical = pp.damage_taken_by_type.get("physical", 0)
+        dmg_taken_magical = pp.damage_taken_by_type.get("magical", 0)
+        dmg_taken_pure = pp.damage_taken_by_type.get("pure", 0)
+        dmg_taken_known_total = dmg_taken_physical + dmg_taken_magical + dmg_taken_pure
+        dmg_taken_other = max(total_dmg_taken - dmg_taken_known_total, 0)
+        dmg_taken_type_parts = [
+            f"Physical: {dmg_taken_physical:,}",
+            f"Magical: {dmg_taken_magical:,}",
+            f"Pure: {dmg_taken_pure:,}",
+            f"Others: {dmg_taken_other:,}",
+        ]
+        dmg_taken_title = (
+            f"{top_attacker} | Incoming type split — {' | '.join(dmg_taken_type_parts)}"
+        )
+
+        dmg_others = pp.damage_by_type.get("others", 0)
+        dmg_bar_total = dmg_known_total + dmg_others or 1
+
+        type_bar_html = ""
+        if dmg_bar_total > 0:
+            p_pct = 100.0 * dmg_physical / dmg_bar_total
+            m_pct = 100.0 * dmg_magical / dmg_bar_total
+            u_pct = 100.0 * dmg_pure / dmg_bar_total
+            o_pct = max(0.0, 100.0 - p_pct - m_pct - u_pct)
+            type_bar_html = (
+                '<div class="dmg-type-mini">'
+                f'<span class="dmg-type-seg dmg-type-physical" style="width:{p_pct:.2f}%"></span>'
+                f'<span class="dmg-type-seg dmg-type-magical" style="width:{m_pct:.2f}%"></span>'
+                f'<span class="dmg-type-seg dmg-type-pure" style="width:{u_pct:.2f}%"></span>'
+                f'<span class="dmg-type-seg dmg-type-others" style="width:{o_pct:.2f}%"></span>'
+                "</div>"
+            )
+
         bar_pct = int(total_dmg / max_dmg * 100)
         team_color = TEAM_COLOR_CSS.get(pp.team, "#888")
         bar_html = (
@@ -673,12 +720,18 @@ def build_damage(match: gem.ParsedMatch, hero_cell: Callable[[str, int], str]) -
             f"</div>"
         )
         row_cls = "row-radiant" if pp.team == 2 else "row-dire"
-        dmg_taken_cell = f'<td class="r" title="{e(top_attacker)}">{total_dmg_taken:,}</td>'
+        dmg_taken_cell = f'<td class="r" title="{e(dmg_taken_title)}">{total_dmg_taken:,}</td>'
+        hero_dmg_cell = (
+            f'<td class="r" title="{e(dmg_type_title)}">'
+            f"<div>{total_dmg:,}</div>"
+            f"{type_bar_html}"
+            "</td>"
+        )
         parts.append(
             f'<tr class="{row_cls}">'
             f'<td style="white-space:nowrap">{hero_cell(pp.hero_name, pp.team)}</td>'
             f'<td><span style="color:{team_color}">{e(team_name(pp.team))}</span></td>'
-            f'<td class="r">{total_dmg:,}</td>'
+            f"{hero_dmg_cell}"
             f"<td>{top_ability}</td>"
             f"<td>{top3_str}</td>"
             f"{dmg_taken_cell}"
@@ -688,6 +741,17 @@ def build_damage(match: gem.ParsedMatch, hero_cell: Callable[[str, int], str]) -
             f"</tr>"
         )
     parts.append("</tbody></table>")
+    parts.append(
+        '<p class="dmg-legend">'
+        '<span class="dmg-legend-swatch dmg-type-physical"></span> Physical &nbsp;'
+        '<span class="dmg-legend-swatch dmg-type-magical"></span> Magical &nbsp;'
+        '<span class="dmg-legend-swatch dmg-type-pure"></span> Pure &nbsp;'
+        '<span class="dmg-legend-swatch dmg-type-others"></span> Others'
+        ' <span class="dmg-legend-note">'
+        "(Others = damage to non-hero units where type is untracked, e.g. wards, creeps, zombies)"
+        "</span>"
+        "</p>"
+    )
     parts += ["</div>", "</details>", "</div>"]
     return "\n".join(parts)
 

@@ -22,6 +22,8 @@ class TestParsedPlayerAgg:
         for attr in (
             "damage",
             "damage_taken",
+            "damage_by_type",
+            "damage_taken_by_type",
             "healing",
             "ability_uses",
             "item_uses",
@@ -83,6 +85,7 @@ def _entry(**kwargs) -> MagicMock:
         "value": 100,
         "gold_reason": 0,
         "xp_reason": 0,
+        "damage_type": "",
         "stun_duration": 0.0,
     }
     defaults.update(kwargs)
@@ -116,6 +119,35 @@ class TestCombatAggregatorDamage:
         e = _entry(attacker_is_hero=True, target_is_hero=True, value=100)
         agg.on_entry(e)
         assert agg.players[1].damage_taken["npc_dota_hero_axe"] == 100
+
+    def test_damage_by_type_accumulates_for_attacker(self):
+        agg, _ = _make_agg(0)
+        agg.on_entry(_entry(value=120, damage_type="physical"))
+        agg.on_entry(_entry(value=80, damage_type="magical"))
+        agg.on_entry(_entry(value=30, damage_type="physical"))
+        assert agg.players[0].damage_by_type["physical"] == 150
+        assert agg.players[0].damage_by_type["magical"] == 80
+
+    def test_damage_taken_by_type_accumulates_for_target(self):
+        player_ext = MagicMock()
+        axe_entity = MagicMock()
+        axe_entity.get_int32.return_value = 0
+        mirana_entity = MagicMock()
+        mirana_entity.get_int32.return_value = 2  # slot 1
+        player_ext._heroes_by_npc = {
+            "npc_dota_hero_axe": axe_entity,
+            "npc_dota_hero_mirana": mirana_entity,
+        }
+        agg = _CombatAggregator(player_ext)
+        agg.on_entry(
+            _entry(
+                attacker_is_hero=True,
+                target_is_hero=True,
+                value=90,
+                damage_type="pure",
+            )
+        )
+        assert agg.players[1].damage_taken_by_type["pure"] == 90
 
 
 class TestCombatAggregatorAbilityItem:
@@ -159,6 +191,52 @@ class TestCombatAggregatorGoldXP:
         )
         agg.on_entry(e)
         assert agg.players[0].xp_reasons["0"] == 200
+
+
+class TestDamageTypeConsistency:
+    """Verify damage_by_type sum tallies with total accumulated damage."""
+
+    def test_damage_by_type_sums_to_total_damage(self):
+        agg, _ = _make_agg(0)
+        agg.on_entry(_entry(value=120, damage_type="physical"))
+        agg.on_entry(_entry(value=80, damage_type="magical"))
+        agg.on_entry(_entry(value=50, damage_type="pure"))
+        player = agg.players[0]
+        total_damage = sum(player.damage.values())
+        total_by_type = sum(player.damage_by_type.values())
+        assert total_by_type == total_damage, (
+            f"damage_by_type sum ({total_by_type}) != total damage ({total_damage})"
+        )
+
+    def test_empty_damage_type_excluded_from_by_type(self):
+        """Entries with no damage_type (empty string) don't pollute damage_by_type."""
+        agg, _ = _make_agg(0)
+        agg.on_entry(_entry(value=100, damage_type="physical"))
+        agg.on_entry(_entry(value=200, damage_type=""))  # untyped entry
+        player = agg.players[0]
+        total_damage = sum(player.damage.values())
+        total_by_type = sum(player.damage_by_type.values())
+        assert total_damage == 300
+        assert total_by_type == 100  # only the typed entry counted
+        assert "" not in player.damage_by_type
+
+    def test_damage_taken_by_type_sums_to_total_taken(self):
+        player_ext = MagicMock()
+        axe_entity = MagicMock()
+        axe_entity.get_int32.return_value = 0
+        mirana_entity = MagicMock()
+        mirana_entity.get_int32.return_value = 2  # slot 1
+        player_ext._heroes_by_npc = {
+            "npc_dota_hero_axe": axe_entity,
+            "npc_dota_hero_mirana": mirana_entity,
+        }
+        agg = _CombatAggregator(player_ext)
+        for dmg_type, val in [("physical", 200), ("magical", 150), ("pure", 50)]:
+            agg.on_entry(
+                _entry(attacker_is_hero=True, target_is_hero=True, value=val, damage_type=dmg_type)
+            )
+        target = agg.players[1]
+        assert sum(target.damage_taken.values()) == sum(target.damage_taken_by_type.values())
 
 
 class TestCombatAggregatorRunes:

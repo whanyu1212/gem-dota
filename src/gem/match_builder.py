@@ -159,6 +159,8 @@ def build_parsed_match(
         if agg is not None:
             pp.damage = agg.damage
             pp.damage_taken = agg.damage_taken
+            pp.damage_by_type = agg.damage_by_type
+            pp.damage_taken_by_type = agg.damage_taken_by_type
             pp.healing = agg.healing
             pp.ability_uses = agg.ability_uses
             pp.item_uses = agg.item_uses
