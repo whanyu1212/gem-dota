@@ -42,6 +42,8 @@ jobs:
       url: https://pypi.org/p/gem-dota
     permissions:
       id-token: write
+    env:
+      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
     steps:
       - name: Download dist artifacts
         uses: actions/download-artifact@v4
@@ -50,15 +52,15 @@ jobs:
           path: dist/
 
       - name: Publish package to PyPI (API token)
-        if: ${{ secrets.PYPI_API_TOKEN != '' }}
+        if: ${{ env.PYPI_API_TOKEN != '' }}
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
           user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
+          password: ${{ env.PYPI_API_TOKEN }}
 
       - name: Publish package to PyPI (Trusted Publisher)
-        if: ${{ secrets.PYPI_API_TOKEN == '' }}
+        if: ${{ env.PYPI_API_TOKEN == '' }}
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
