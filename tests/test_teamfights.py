@@ -204,8 +204,8 @@ class TestSpatialSplit:
         assert len(fights) == 1
         assert fights[0].deaths == 2
 
-    def test_far_deaths_split_into_two(self):
-        """Two deaths within cooldown but far apart create separate fights."""
+    def test_far_deaths_do_not_split_with_temporal_detection(self):
+        """Two deaths within cooldown stay in one fight even if far apart."""
         h2s = {"npc_dota_hero_axe": 0, "npc_dota_hero_pudge": 1}
         snaps = {
             **_make_snaps("npc_dota_hero_axe", 0, 1000, 0.0, 0.0),
@@ -216,9 +216,8 @@ class TestSpatialSplit:
             _death(1200, "npc_dota_hero_pudge"),
         ]
         fights = detect_teamfights(entries, hero_to_slot=h2s, player_snapshots=snaps)
-        assert len(fights) == 2
-        assert fights[0].deaths == 1
-        assert fights[1].deaths == 1
+        assert len(fights) == 1
+        assert fights[0].deaths == 2
 
     def test_no_snapshots_falls_back_to_temporal_only(self):
         """Without position data spatial split is skipped; temporal logic still works."""
