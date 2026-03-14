@@ -5,6 +5,7 @@
 ![Coverage](https://img.shields.io/badge/coverage-77%25-green)
 ![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)
 ![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)
+[![Sponsor](https://img.shields.io/badge/Sponsor-GitHub-pink?logo=github)](https://github.com/sponsors/whanyu1212)
 
 **Gem of True Sight** — a Python Dota 2 replay parser.
 
