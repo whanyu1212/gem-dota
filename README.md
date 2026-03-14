@@ -29,13 +29,30 @@ Another core reason is data ownership and transparency. API/GraphQL outputs from
 
 ## Installation
 
-Requires Python 3.10+. Uses [`uv`](https://github.com/astral-sh/uv) for dependency management.
+Requires Python 3.10+.
+
+### Install from PyPI
+
+```bash
+# pip
+pip install gem-dota
+
+# poetry
+poetry add gem-dota
+
+# uv (project dependency)
+uv add gem-dota
+```
+
+### Development / Contributing setup
 
 ```bash
 git clone https://github.com/whanyu1212/gem
 cd gem
-uv sync
+uv sync --group dev
 ```
+
+> **Note:** Most users do not need to download hero/item icon assets. Icon fetching is only required for local report/example rendering that displays portraits or item/rune icons.
 
 ---
 
@@ -207,6 +224,14 @@ uv run mkdocs serve
 Or visit the hosted docs at [whanyu1212.github.io/gem-dota](https://whanyu1212.github.io/gem-dota/).
 
 Topics covered: DEM binary format, Protocol Buffers, varint encoding, the entity delta system, field paths, combat log ingestion, and more.
+
+---
+
+## AI-Assisted Development
+
+If you use AI coding tools, see [CLAUDE.md](CLAUDE.md) and [AGENTS.md](AGENTS.md) for project context, architecture, and coding conventions.
+
+Use AI as acceleration, not substitution: take ownership of what you submit. Understand the code, run tests, and avoid shipping unreviewed AI slop.
 
 ---
 
