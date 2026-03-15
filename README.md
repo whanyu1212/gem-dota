@@ -2,7 +2,7 @@
 
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green?logo=opensourceinitiative&logoColor=white)
-![Coverage](https://img.shields.io/badge/coverage-77%25-green)
+![Coverage](https://img.shields.io/badge/coverage-92%25-brightgreen)
 ![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)
 ![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)
 [![PyPI version](https://img.shields.io/pypi/v/gem-dota.svg)](https://pypi.org/project/gem-dota/)
@@ -47,7 +47,7 @@ uv add gem-dota
 ### Development / Contributing setup
 
 ```bash
-git clone https://github.com/whanyu1212/gem
+git clone https://github.com/whanyu1212/gem-dota
 cd gem
 uv sync --group dev
 ```
@@ -103,24 +103,24 @@ wards     = dfs["wards"]       # ward placements
 <table width="100%" style="table-layout:fixed;border-collapse:separate;border-spacing:8px 8px;">
   <tr>
     <td align="center" valign="top" width="33.33%"><img src="assets/overview.png" alt="Overview" width="100%" height="auto"><br><sub>Overview</sub></td>
-    <td align="center" valign="top" width="33.33%"><img src="assets/gold_xp_graph.png" alt="Gold XP Graph" width="100%" height="auto"><br><sub>Gold / XP</sub></td>
-    <td align="center" valign="top" width="33.33%"><img src="assets/combat_log.png" alt="Combat Log" width="100%" height="auto"><br><sub>Combat</sub></td>
+    <td align="center" valign="top" width="33.33%"><img src="assets/gold_xp_graphs.png" alt="Gold XP Graph" width="100%" height="auto"><br><sub>Gold / XP</sub></td>
+    <td align="center" valign="top" width="33.33%"><img src="assets/fight_breakdown_combat_log.png" alt="Fight Breakdown & Combat Log" width="100%" height="auto"><br><sub>Fight Breakdown & Combat</sub></td>
   </tr>
   <tr>
-    <td align="center" valign="top" width="33.33%"><img src="assets/teamfight.png" alt="Teamfight" width="100%" height="auto"><br><sub>Teamfight</sub></td>
-    <td align="center" valign="top" width="33.33%"><img src="assets/ward_map.png" alt="Ward Map" width="100%" height="auto"><br><sub>Vision Map</sub></td>
-    <td align="center" valign="top" width="33.33%"><img src="assets/warding_log.png" alt="Warding Log" width="100%" height="auto"><br><sub>Warding Log</sub></td>
+    <td align="center" valign="top" width="33.33%"><img src="assets/damage_breakdown.png" alt="Damage Breakdown" width="100%" height="auto"><br><sub>Damage Breakdown</sub></td>
+    <td align="center" valign="top" width="33.33%"><img src="assets/interactive_ward_map.png" alt="Interactive Ward Map" width="100%" height="auto"><br><sub>Interactive Vision Map</sub></td>
+    <td align="center" valign="top" width="33.33%"><img src="assets/objective_timeline.png" alt="Objective Timeline" width="100%" height="auto"><br><sub>Objective Timeline</sub></td>
   </tr>
   <tr>
-    <td align="center" valign="top" width="33.33%"><img src="assets/economy.png" alt="Economy" width="100%" height="auto"><br><sub>Economy</sub></td>
-    <td align="center" valign="top" width="33.33%"><img src="assets/draft.png" alt="Draft" width="100%" height="auto"><br><sub>Draft</sub></td>
-    <td align="center" valign="top" width="33.33%"><img src="assets/misc.png" alt="Misc" width="100%" height="auto"><br><sub>Misc</sub></td>
+    <td align="center" valign="top" width="33.33%"><img src="assets/purchase_log_buybacks.png" alt="Purchase Log & Buybacks" width="100%" height="auto"><br><sub>Purchase Log & Buybacks</sub></td>
+    <td align="center" valign="top" width="33.33%"><img src="assets/draft_summary.png" alt="Draft Summary" width="100%" height="auto"><br><sub>Draft Summary</sub></td>
+    <td align="center" valign="top" width="33.33%"><img src="assets/laning_efficiency.png" alt="Laning Efficiency" width="100%" height="auto"><br><sub>Laning Efficiency</sub></td>
   </tr>
 </table>
 
 <p align="center">
-  <img src="assets/movement_trail.png" alt="Movement Trail" width="45%"><br>
-  <sub>Movement Trail</sub>
+  <img src="assets/interactive_movement_trail.png" alt="Interactive Movement Trail" width="45%"><br>
+  <sub>Interactive Movement Trail</sub>
 </p>
 
 ### Reproduce this analysis
@@ -155,23 +155,55 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 | Data | API |
 |---|---|
 | Hero picks and bans with timestamps | `ParsedMatch.draft` |
-| Per-player K/D/A, damage, net worth | `ParsedPlayer.kills` / `.damage` / `.net_worth` |
-| Gold and XP over time | `ParsedPlayer.snapshots` |
+| Per-player K/D/A + core combat summaries | `ParsedPlayer.kills` / `.deaths` / `.assists` / `.damage` |
+| Gold / XP / net-worth time series | `ParsedPlayer.times`, `.gold_t`, `.xp_t`, `.net_worth_t` |
+| Minute-aligned economy/XP series | `ParsedPlayer.times_min`, `.total_earned_gold_t_min`, `.total_earned_xp_t_min` |
 | Radiant gold / XP advantage curves | `ParsedMatch.radiant_gold_adv` / `.radiant_xp_adv` |
 | Ward placements with exact coordinates | `ParsedMatch.wards` |
-| Smoke of Deceit activations + groups | `ParsedMatch.wards` (smoke entries) |
+| Smoke of Deceit activations + grouped heroes | `ParsedMatch.smoke_events` |
 | Roshan kills + aegis events | `ParsedMatch.roshans` / `.aegis_events` |
 | Tower and barracks kills | `ParsedMatch.towers` / `.barracks` |
 | Teamfights with per-player breakdown | `ParsedMatch.teamfights` |
 | Courier state snapshots per team | `ParsedMatch.courier_snapshots` |
-| Ability levels per hero per tick | `PlayerStateSnapshot.ability_levels` |
+| Damage by type (physical/magical/pure) | `ParsedPlayer.damage_by_type` / `.damage_taken_by_type` |
+| Laning signals (role + lane-phase metrics) | `ParsedPlayer.lane_role`, `.lane_efficiency_pct`, `.lane_gold_adv`, `.lane_xp_adv` |
+| Lane position heatmaps | `ParsedPlayer.lane_pos` |
 | Stun seconds dealt per player | `ParsedPlayer.stuns_dealt` |
 | Rune pickups per player | `ParsedPlayer.runes_log` |
 | Buybacks per player | `ParsedPlayer.buyback_log` |
-| Lane position heatmaps | `ParsedPlayer.lane_pos` |
 | Chat messages | `ParsedMatch.chat` |
 | Purchase log per player | `ParsedPlayer.purchase_log` |
 | Hero / item / ability display names | `gem.constants` |
+
+---
+
+## Releases
+
+### [v0.2.0](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.0)
+
+- **Buyback gold cost** — HTML report buyback table now shows gold spent per buyback using the exact Dota 2 formula `floor(200 + net_worth / 13)`.
+- **Removed `ParsedMatch.lotus_pickups`** — healing lotus pickups are not recorded in the `.dem` combat log under any event type; the field always returned an empty list and has been removed (breaking change).
+- **Known limitations documented** — healing lotus (not parseable from replays) and reliable vs unreliable gold distinction added to README.
+- **Repo URL fixes** — all links corrected from `whanyu1212/gem` to `whanyu1212/gem-dota`.
+- **Test coverage expanded** — teamfight helpers, `_dedup_purchase_log` edge cases, HEAL/gold/XP attribution.
+- **Screenshot refresh** — all report screenshots updated and resized to uniform dimensions.
+
+### [v0.1.1](https://github.com/whanyu1212/gem-dota/releases/tag/v0.1.1)
+
+- **Laning** — lane role detection, lane-phase gold/XP efficiency metrics, and positional heatmaps per player (`ParsedPlayer.lane_role`, `.lane_efficiency_pct`, `.lane_gold_adv`, `.lane_xp_adv`, `.lane_pos`).
+- **Damage type breakdown** — physical / magical / pure damage split for both dealt and taken (`ParsedPlayer.damage_by_type`, `.damage_taken_by_type`).
+- **Aghanim's Scepter/Shard abilities** — extended ability metadata and correct parsing of Aghs-upgraded abilities.
+- **Teamfight detection** — switched to pure temporal windowing; spatial centroid splitting removed for consistency.
+
+### [v0.1.0](https://github.com/whanyu1212/gem-dota/releases/tag/v0.1.0)
+
+- **Initial public release** of `gem-dota`.
+- Full Source 2 `.dem` parser pipeline — stream decoding, send tables, field paths, entity delta system, string tables.
+- Game events and combat log ingestion (Source 1 legacy + Source 2 HLTV paths).
+- Extractors: players (gold/XP/net worth time series, K/D/A, stuns), objectives (towers, barracks, Roshan, Tormentor), wards (with exact coordinates), courier, draft, teamfights.
+- Rune pickups, buybacks, aegis events, smoke groups, chat, purchase log.
+- `ParsedMatch` / `ParsedPlayer` output models, DataFrame export, and CLI.
+- HTML match report example (draft, combat, vision, economy, teamfights, movement).
 
 ---
 
@@ -191,9 +223,11 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 | `game_events.py` | Game event schema and typed dispatch |
 | `combatlog.py` | S1 (game event) and S2 (user message) combat log ingestion |
 | `parser.py` | Top-level orchestrator wiring all subsystems together |
+| `match_builder.py` | Assembles final `ParsedMatch` output from extractors/aggregates |
+| `combat_aggregator.py` | Combat-log aggregation for per-player damage/healing/items/economy stats |
 | `models.py` | `ParsedMatch` / `ParsedPlayer` output dataclasses |
 | `constants.py` | Bundled hero, item, ability display names |
-| `extractors/` | Per-tick polling of entity state — players, objectives, wards, courier, draft, teamfights |
+| `extractors/` | Per-tick polling of entity state — players, lane, objectives, wards, courier, draft, teamfights |
 | `dataframes.py` | DataFrame export from `ParsedMatch` |
 
 ---
@@ -264,6 +298,8 @@ If you run a benchmark, please open an issue/PR with:
 ## Known limitations
 
 - **Roshan drops** — Aegis, Cheese, Refresher Shard, and Aghanim's Blessing pickups are not in the combat log. Roshan kills are tracked, but the specific drop items are not.
+- **Healing Lotus pickups** — not recorded in the `.dem` combat log under any event type, across all tested patches. The `CDOTA_BaseNPC_LotusPool` entity does not emit per-pickup events either. The lotus count exists in `CMsgDOTAFantasyPlayerStats`, a Steam Game Coordinator message never written into the replay file. While the Steam Web API (`GetMatchDetails`) can provide this as a fallback, it has little practical value here: high-MMR and private matches — the primary audience for `gem` — are often not accessible via the public API, defeating the purpose.
+- **Reliable vs unreliable gold** — the combat log `GOLD` entries do not distinguish between reliable gold (from kills, objectives) and unreliable gold (from creep bounties). Only total gold earned per reason code is available.
 - **Smoke empty groups** — if a smoke breaks instantly on activation (hero inside sentry truesight), the group list will be empty. This is correct game behaviour, not a parsing gap.
 - **Truncated/live replays** — incomplete replays may return partial parsed output (or stop near the final corrupt block) instead of a perfect full-match result.
 - **Draft ID quirks** — replay pick/ban IDs can differ from static hero API IDs in some patches/formats (commonly transformed IDs). `gem` normalizes these, but edge cases may still appear.

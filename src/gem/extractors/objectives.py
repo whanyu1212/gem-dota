@@ -23,10 +23,12 @@ if TYPE_CHECKING:
 _TEAM_RADIANT = 2
 _TEAM_DIRE = 3
 
-# CDOTAUserMsg_ChatEvent type constants for Aegis
+# CDOTAUserMsg_ChatEvent type constants
 _CHAT_MSG_AEGIS = 8
 _CHAT_MSG_AEGIS_STOLEN = 53
 _CHAT_MSG_DENIED_AEGIS = 51
+_CHAT_MSG_SHRINE_KILLED = 101
+_CHAT_MSG_MINIBOSS_KILL = 117  # Tormentor kill
 
 # Tower NPC name prefix → owning team
 _TOWER_TEAM: dict[str, int] = {
@@ -112,6 +114,38 @@ class BarracksKill:
 
 
 @dataclass
+class TormentorKill:
+    """One Tormentor (miniboss) kill event.
+
+    Attributes:
+        tick: Game tick of the kill.
+        killer: NPC name of the unit that landed the killing blow,
+            or empty string if unknown.
+        killer_player_id: Player slot (0–9) of the killing player from the
+            ``CHAT_MESSAGE_MINIBOSS_KILL`` event, or ``-1`` if unavailable.
+        kill_number: Sequential kill number (1-indexed) for this game.
+    """
+
+    tick: int
+    killer: str
+    killer_player_id: int
+    kill_number: int
+
+
+@dataclass
+class ShrineKill:
+    """One Shrine of Wisdom destruction event.
+
+    Attributes:
+        tick: Game tick of the event.
+        team: Team that *owned* the destroyed shrine (2=Radiant, 3=Dire).
+    """
+
+    tick: int
+    team: int
+
+
+@dataclass
 class AegisEvent:
     """An Aegis of the Immortal pickup, steal, or denial event.
 
@@ -133,7 +167,7 @@ class AegisEvent:
 
 
 class ObjectivesExtractor:
-    """Extracts tower kills, Roshan kills, and barracks kills from a replay.
+    """Extracts tower kills, Roshan kills, barracks kills, tormentor kills, and shrine kills from a replay.
 
     Attach to a ``ReplayParser`` before calling ``parse()``:
 
@@ -148,18 +182,24 @@ class ObjectivesExtractor:
         roshan_kills: All Roshan kill events in chronological order.
         barracks_kills: All barracks kill events in chronological order.
         aegis_events: All Aegis pickup / steal / denial events.
+        tormentor_kills: All Tormentor (miniboss) kill events in chronological order.
+        shrine_kills: All Shrine of Wisdom destruction events in chronological order.
     """
 
     tower_kills: list[TowerKill]
     roshan_kills: list[RoshanKill]
     barracks_kills: list[BarracksKill]
     aegis_events: list[AegisEvent]
+    tormentor_kills: list[TormentorKill]
+    shrine_kills: list[ShrineKill]
 
     def __init__(self) -> None:
         self.tower_kills = []
         self.roshan_kills = []
         self.barracks_kills = []
         self.aegis_events = []
+        self.tormentor_kills = []
+        self.shrine_kills = []
 
     def attach(self, parser: ReplayParser) -> None:
         """Register this extractor's callbacks with a parser.
@@ -176,6 +216,14 @@ class ObjectivesExtractor:
             self.aegis_events.append(
                 AegisEvent(tick=tick, player_id=msg.playerid_1, event_type=event_type)
             )
+        elif msg.type == _CHAT_MSG_SHRINE_KILLED:
+            # value = team that owned the shrine (2=Radiant, 3=Dire)
+            self.shrine_kills.append(ShrineKill(tick=tick, team=msg.value or 0))
+        elif msg.type == _CHAT_MSG_MINIBOSS_KILL and self.tormentor_kills:
+            # playerid_1 = player slot of the killer. Patch the most recently
+            # recorded tormentor kill (from the DEATH combat log event) with
+            # the player slot attribution from this chat event.
+            self.tormentor_kills[-1].killer_player_id = msg.playerid_1
 
     def _on_combat_log(self, entry: CombatLogEntry) -> None:
         if entry.log_type != "DEATH":
@@ -187,6 +235,15 @@ class ObjectivesExtractor:
                     tick=entry.tick,
                     killer=entry.attacker_name,
                     kill_number=len(self.roshan_kills) + 1,
+                )
+            )
+        elif target == "npc_dota_miniboss":
+            self.tormentor_kills.append(
+                TormentorKill(
+                    tick=entry.tick,
+                    killer=entry.attacker_name,
+                    killer_player_id=-1,  # resolved from chat event if available
+                    kill_number=len(self.tormentor_kills) + 1,
                 )
             )
         elif target.startswith("npc_dota_goodguys_tower") or target.startswith(

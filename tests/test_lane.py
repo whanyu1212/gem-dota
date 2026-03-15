@@ -329,19 +329,24 @@ class TestLaneAdvantage:
     """Test the cross-player opponent pairing logic for lane_gold_adv/lane_xp_adv."""
 
     def _apply_adv(self, players: list[ParsedPlayer]) -> None:
-        """Replicate match_builder Tier-2 advantage computation."""
+        """Replicate match_builder Tier-2 rank-based advantage computation."""
         _LANE_ROLES_WITH_OPPONENTS = {1, 2, 3}
-        for pp in players:
-            if pp.lane_role not in _LANE_ROLES_WITH_OPPONENTS:
-                continue
-            opp_team = 3 if pp.team == 2 else 2
-            opponents = [
-                op for op in players if op.team == opp_team and op.lane_role == pp.lane_role
-            ]
-            if not opponents:
-                continue
-            pp.lane_gold_adv = pp.lane_total_gold - sum(op.lane_total_gold for op in opponents)
-            pp.lane_xp_adv = pp.lane_total_xp - sum(op.lane_total_xp for op in opponents)
+        for role in _LANE_ROLES_WITH_OPPONENTS:
+            radiant = sorted(
+                [pp for pp in players if pp.team == 2 and pp.lane_role == role],
+                key=lambda p: p.lane_total_gold,
+                reverse=True,
+            )
+            dire = sorted(
+                [pp for pp in players if pp.team == 3 and pp.lane_role == role],
+                key=lambda p: p.lane_total_gold,
+                reverse=True,
+            )
+            for rad, dire_opp in zip(radiant, dire, strict=False):
+                rad.lane_gold_adv = rad.lane_total_gold - dire_opp.lane_total_gold
+                rad.lane_xp_adv = rad.lane_total_xp - dire_opp.lane_total_xp
+                dire_opp.lane_gold_adv = dire_opp.lane_total_gold - rad.lane_total_gold
+                dire_opp.lane_xp_adv = dire_opp.lane_total_xp - rad.lane_total_xp
 
     def _make(self, pid: int, team: int, role: int, gold: int, xp: int) -> ParsedPlayer:
         pp = ParsedPlayer(player_id=pid)
@@ -392,14 +397,35 @@ class TestLaneAdvantage:
         self._apply_adv([roamer, opponent])
         assert roamer.lane_gold_adv is None
 
-    def test_dual_lane_sums_both_opponents(self):
-        # 2-hero safe lane vs solo: adv = our_gold - sum(both opponents)
-        rad = self._make(0, 2, 1, gold=2000, xp=3000)
-        dire1 = self._make(5, 3, 1, gold=1000, xp=1500)
-        dire2 = self._make(6, 3, 1, gold=800, xp=1200)
-        self._apply_adv([rad, dire1, dire2])
-        assert rad.lane_gold_adv == 2000 - (1000 + 800)
-        assert rad.lane_xp_adv == 3000 - (1500 + 1200)
+    def test_dual_lane_rank_pairing(self):
+        # 2v2 safe lane: rank by gold desc, pair high vs high, low vs low.
+        # Radiant: Sven=3000g, Bane=1200g  — Dire: Gyro=2500g, Pugna=900g
+        # Pairs: Sven(3000) vs Gyro(2500), Bane(1200) vs Pugna(900)
+        sven = self._make(0, 2, 1, gold=3000, xp=4000)
+        bane = self._make(1, 2, 1, gold=1200, xp=1500)
+        gyro = self._make(5, 3, 1, gold=2500, xp=3200)
+        pugna = self._make(6, 3, 1, gold=900, xp=1100)
+        self._apply_adv([sven, bane, gyro, pugna])
+        # Sven (highest gold on Radiant) pairs vs Gyro (highest gold on Dire)
+        assert sven.lane_gold_adv == 3000 - 2500
+        assert sven.lane_xp_adv == 4000 - 3200
+        # Bane (lowest gold on Radiant) pairs vs Pugna (lowest gold on Dire)
+        assert bane.lane_gold_adv == 1200 - 900
+        assert bane.lane_xp_adv == 1500 - 1100
+        # Mirror symmetry
+        assert gyro.lane_gold_adv == 2500 - 3000
+        assert pugna.lane_gold_adv == 900 - 1200
+
+    def test_unmatched_player_gets_no_adv(self):
+        # 2v1: extra player on one side has no opponent to pair with
+        rad1 = self._make(0, 2, 1, gold=3000, xp=4000)
+        rad2 = self._make(1, 2, 1, gold=1200, xp=1500)
+        dire = self._make(5, 3, 1, gold=2500, xp=3200)
+        self._apply_adv([rad1, rad2, dire])
+        # rad1 (highest gold) pairs vs dire
+        assert rad1.lane_gold_adv == 3000 - 2500
+        # rad2 (lower gold) has no dire counterpart — stays None
+        assert rad2.lane_gold_adv is None
 
 
 # ---------------------------------------------------------------------------

@@ -165,7 +165,7 @@ _DIRE_COLORS = ["#f44336", "#ff7043", "#ef9a9a", "#b71c1c", "#ff8a65"]
 def build_hero_timeseries_chart(match: gem.ParsedMatch) -> str:
     """Two side-by-side line charts: Net Worth and XP per hero over time."""
     players = [p for p in match.players if p.hero_name]
-    if not any(p.net_worth_t_min or p.xp_t_min for p in players):
+    if not any(p.net_worth_t_min or p.total_earned_xp_t_min for p in players):
         return ""
 
     times_min: list[int] = []
@@ -209,7 +209,7 @@ def build_hero_timeseries_chart(match: gem.ParsedMatch) -> str:
         xp_datasets.append(
             {
                 "label": label,
-                "data": list(p.xp_t_min),
+                "data": list(p.total_earned_xp_t_min),
                 "borderColor": color,
                 "backgroundColor": "transparent",
                 "borderWidth": 2,
@@ -548,34 +548,56 @@ def build_gold_xp_chart(match: gem.ParsedMatch) -> str:
     return chart_html
 
 
+def _clean_npc(name: str) -> str:
+    """Clean an NPC name into a human-readable label."""
+    return (
+        name.replace("npc_dota_", "")
+        .replace("goodguys_", "")
+        .replace("badguys_", "")
+        .replace("goodguys ", "")
+        .replace("badguys ", "")
+        .replace("_", " ")
+    )
+
+
+def _killer_label(killer: str) -> str:
+    """Return display name for a killer NPC (hero or structure/neutral)."""
+    if killer.startswith("npc_dota_hero_"):
+        return hero(killer)
+    return _clean_npc(killer) if killer else "unknown"
+
+
 def build_objectives(match: gem.ParsedMatch, fmt_tick_fn: Callable[[int], str]) -> str:
     """Build the objectives timeline section."""
+    # Build hero_name lookup: player_id → hero display name
+    pid_to_hero: dict[int, str] = {
+        pp.player_id: hero(pp.hero_name) for pp in match.players if pp.hero_name
+    }
+
     events: list[tuple[int, str, str, str]] = []
 
     for t in match.towers:
-        team_color = TEAM_COLOR_CSS.get(t.team, "#888")
-        name = t.tower_name.replace("npc_dota_", "").replace("_", " ")
-        killer = hero(t.killer) if t.killer.startswith("npc_dota_hero_") else t.killer
+        name = _clean_npc(t.tower_name)
+        killer = _killer_label(t.killer)
         desc = (
             f'<span style="color:{TEAM_COLOR_CSS.get(t.team, "#888")};font-weight:bold">'
             f"{e(team_name(t.team))}</span> "
             f"{e(name)} — killed by {e(killer)}"
         )
-        events.append((t.tick, "Tower", team_color, desc))
+        events.append((t.tick, "Tower", TEAM_COLOR_CSS.get(t.team, "#888"), desc))
 
     for b in match.barracks:
-        team_color = TEAM_COLOR_CSS.get(b.team, "#888")
-        name = b.barracks_name.replace("npc_dota_", "").replace("_", " ")
-        killer = hero(b.killer) if b.killer.startswith("npc_dota_hero_") else b.killer
+        name = _clean_npc(b.barracks_name)
+        killer = _killer_label(b.killer)
         desc = (
             f'<span style="color:{TEAM_COLOR_CSS.get(b.team, "#888")};font-weight:bold">'
             f"{e(team_name(b.team))}</span> "
             f"{e(name)} — killed by {e(killer)}"
         )
-        events.append((b.tick, "Barracks", team_color, desc))
+        events.append((b.tick, "Barracks", TEAM_COLOR_CSS.get(b.team, "#888"), desc))
 
     for n, r in enumerate(match.roshans, 1):
-        killer = hero(r.killer) if r.killer else "?"
+        killer = _killer_label(r.killer)
         respawn_min = fmt_tick_fn(r.tick + 8 * 30 * 60)
         respawn_max = fmt_tick_fn(r.tick + 11 * 30 * 60)
         desc = (
@@ -583,6 +605,31 @@ def build_objectives(match: gem.ParsedMatch, fmt_tick_fn: Callable[[int], str]) 
             f"— respawns {e(respawn_min)}–{e(respawn_max)}"
         )
         events.append((r.tick, f"Roshan #{n}", "#ffb74d", desc))
+
+    for n, tm in enumerate(match.tormentors, 1):
+        killer = _killer_label(tm.killer)
+        if tm.killer_player_id >= 0:
+            hero_name = pid_to_hero.get(tm.killer_player_id, killer)
+            killer = hero_name
+        desc = f'<span style="color:#ce93d8">Tormentor #{n}</span> killed by {e(killer)}'
+        events.append((tm.tick, f"Tormentor #{n}", "#ce93d8", desc))
+
+    for s in match.shrines:
+        team_color = TEAM_COLOR_CSS.get(s.team, "#888")
+        desc = (
+            f'<span style="color:{team_color};font-weight:bold">{e(team_name(s.team))}</span> '
+            f"Shrine of Wisdom destroyed"
+        )
+        events.append((s.tick, "Shrine", team_color, desc))
+
+    # Wisdom rune pickups — rune_type 8 in runes_log
+    for pp in match.players:
+        team_color = TEAM_COLOR_CSS.get(pp.team, "#888")
+        h = hero(pp.hero_name) if pp.hero_name else f"Player {pp.player_id}"
+        for entry in pp.runes_log:
+            if entry.gold_reason == 8:  # Wisdom rune
+                desc = f'<span style="color:{team_color}">{e(h)}</span> picked up Wisdom Rune'
+                events.append((entry.tick, "Wisdom Rune", "#80cbc4", desc))
 
     events.sort(key=lambda ent: ent[0])
 
@@ -877,6 +924,14 @@ def build_purchases(match: gem.ParsedMatch) -> str:
     return "\n".join(parts)
 
 
+def _net_worth_at(pp: gem.ParsedPlayer, tick: int) -> int:
+    """Return the closest sampled net worth for a player at the given tick."""
+    if not pp.times or not pp.net_worth_t:
+        return 0
+    best_idx = min(range(len(pp.times)), key=lambda i: abs(pp.times[i] - tick))
+    return pp.net_worth_t[best_idx]
+
+
 def build_buybacks(match: gem.ParsedMatch) -> str:
     """Build the buybacks section."""
     total = sum(len(p.buyback_log) for p in match.players)
@@ -892,20 +947,25 @@ def build_buybacks(match: gem.ParsedMatch) -> str:
         parts.append('<p class="dim">(no buybacks recorded)</p>')
     else:
         parts.append("<table>")
-        parts.append("<thead><tr><th>Time</th><th>Hero</th><th>Team</th></tr></thead>")
+        parts.append(
+            "<thead><tr><th>Time</th><th>Hero</th><th>Team</th><th>Gold Spent</th></tr></thead>"
+        )
         parts.append("<tbody>")
-        entries: list[tuple[int, str, int]] = []
+        entries: list[tuple[int, str, int, int]] = []
         for pp in match.players:
             for entry in pp.buyback_log:
-                entries.append((entry.tick, pp.hero_name, pp.team))
+                nw = _net_worth_at(pp, entry.tick)
+                cost = 200 + nw // 13
+                entries.append((entry.tick, pp.hero_name, pp.team, cost))
         entries.sort(key=lambda x: x[0])
-        for tick, hero_name, team in entries:
+        for tick, hero_name, team, cost in entries:
             team_color = TEAM_COLOR_CSS.get(team, "#888")
             parts.append(
                 f"<tr>"
                 f"<td>{e(fmt_tick(tick))}</td>"
                 f"<td>{e(hero(hero_name))}</td>"
                 f'<td><span style="color:{team_color}">{e(team_name(team))}</span></td>'
+                f'<td class="r">{cost:,}g</td>'
                 f"</tr>"
             )
         parts.append("</tbody></table>")
@@ -1402,6 +1462,155 @@ def _top_abilities_teamfight(ability_uses: dict[str, int], n: int = 3) -> str:
     return " · ".join(f"{e(ability_display(a))} ×{c}" for a, c in top)
 
 
+def _fight_combat_log_html(
+    fight_start: int,
+    fight_end: int,
+    combat_log: list,
+    slot_to_player: dict,
+    h2s: dict[str, int],
+    active_slots: list[int],
+) -> str:
+    """Build a chronological combat log for one teamfight window.
+
+    Only includes events where at least one of the attacker or target is an
+    active participant in this fight (as determined by ``active_slots``).
+    Creep/neutral-only events and heroes not involved in this fight are skipped.
+
+    Args:
+        fight_start: Window start tick.
+        fight_end: Window end tick.
+        combat_log: Full match combat log (all CombatLogEntry objects).
+        slot_to_player: Mapping of player slot → ParsedPlayer.
+        h2s: Mapping of hero NPC name → player slot.
+        active_slots: Player slots of active participants in this fight.
+
+    Returns:
+        HTML string for the combat log expander, or empty string if no events.
+    """
+    active_set = set(active_slots)
+    _RADIANT = "#4caf50"
+    _DIRE = "#f44336"
+    _NEUTRAL = "#8b949e"
+    _ABILITY_COLOR = "#58a6ff"
+    _ITEM_COLOR = "#e3b341"
+    _HEAL_COLOR = "#4caf50"
+    _DEATH_COLOR = "#f44336"
+
+    def _hero_span(npc_name: str) -> str:
+        pp = slot_to_player.get(h2s.get(npc_name, -1))
+        color = _RADIANT if pp and pp.team == 2 else _DIRE if pp and pp.team == 3 else _NEUTRAL
+        short = e(hero(npc_name)) if npc_name else "?"
+        return f'<span style="color:{color};font-weight:600">{short}</span>'
+
+    lines = []
+    entries = sorted(
+        (en for en in combat_log if fight_start <= en.tick <= fight_end),
+        key=lambda en: en.tick,
+    )
+
+    for en in entries:
+        log_type = en.log_type
+        atk = en.attacker_name
+        tgt = en.target_name
+        inf = en.inflictor_name
+        val = en.value
+
+        # Skip non-hero attacker AND non-hero target events (pure creep/neutral noise)
+        if not en.attacker_is_hero and not en.target_is_hero:
+            continue
+        # Skip illusions as attacker or target for clarity
+        if en.attacker_is_illusion or en.target_is_illusion:
+            continue
+        # Skip events where neither attacker nor target is an active participant
+        atk_slot = h2s.get(en.attacker_name)
+        tgt_slot = h2s.get(en.target_name)
+        if atk_slot not in active_set and tgt_slot not in active_set:
+            continue
+
+        tick_str = e(fmt_tick(en.tick))
+
+        if log_type == "DAMAGE" and en.attacker_is_hero and en.target_is_hero:
+            dmg_type = (
+                f" ({e(en.damage_type)})" if en.damage_type and en.damage_type != "others" else ""
+            )
+            via = f" via <em>{e(ability_display(inf))}</em>" if inf else ""
+            line = (
+                f"{_hero_span(atk)} deals "
+                f'<span style="color:#e6edf3;font-weight:600">{val:,}</span>'
+                f"{dmg_type} dmg to {_hero_span(tgt)}{via}"
+            )
+            css = ""
+
+        elif log_type == "DAMAGE" and en.target_is_hero and not en.attacker_is_hero:
+            # Non-hero source hitting a hero (tower, creep, neutral)
+            src_label = e(atk.replace("npc_dota_", "").replace("_", " ")) if atk else "unknown"
+            line = (
+                f"{_hero_span(tgt)} takes "
+                f'<span style="color:#e6edf3">{val:,}</span> dmg '
+                f'from <span style="color:{_NEUTRAL}">{src_label}</span>'
+            )
+            css = f"color:{_NEUTRAL}"
+
+        elif log_type == "DEATH" and en.target_is_hero:
+            killer = (
+                _hero_span(atk)
+                if en.attacker_is_hero and atk
+                else (
+                    f'<span style="color:{_NEUTRAL}">'
+                    f"{e(atk.replace('npc_dota_', '').replace('_', ' ')) if atk else 'unknown'}"
+                    f"</span>"
+                )
+            )
+            line = f"☠ {_hero_span(tgt)} dies — killed by {killer}"
+            css = f"color:{_DEATH_COLOR}"
+
+        elif log_type == "ABILITY" and en.attacker_is_hero and inf:
+            tgt_part = f" on {_hero_span(tgt)}" if tgt and en.target_is_hero else ""
+            line = (
+                f"{_hero_span(atk)} uses "
+                f'<span style="color:{_ABILITY_COLOR};font-weight:600">'
+                f"{e(ability_display(inf))}</span>{tgt_part}"
+            )
+            css = ""
+
+        elif log_type == "ITEM" and en.attacker_is_hero and inf:
+            tgt_part = f" on {_hero_span(tgt)}" if tgt and en.target_is_hero else ""
+            line = (
+                f"{_hero_span(atk)} uses "
+                f'<span style="color:{_ITEM_COLOR};font-weight:600">'
+                f"{e(item_display(inf))}</span>{tgt_part}"
+            )
+            css = ""
+
+        elif log_type == "HEAL" and en.attacker_is_hero and en.target_is_hero and atk != tgt:
+            via = f" via <em>{e(ability_display(inf))}</em>" if inf else ""
+            line = (
+                f"{_hero_span(atk)} heals {_hero_span(tgt)} for "
+                f'<span style="color:{_HEAL_COLOR};font-weight:600">{val:,}</span>{via}'
+            )
+            css = f"color:{_HEAL_COLOR}"
+
+        else:
+            continue
+
+        style = f' style="{css}"' if css else ""
+        lines.append(
+            f'<div class="tf-log-line"{style}>'
+            f'<span class="tf-log-time">{tick_str}</span>'
+            f'<span class="tf-log-text">{line}</span>'
+            f"</div>"
+        )
+
+    if not lines:
+        return ""
+
+    return (
+        '<details class="tf-log-expander">'
+        "<summary>Combat log</summary>"
+        '<div class="tf-log-body">' + "\n".join(lines) + "</div></details>"
+    )
+
+
 def _teamfight_minimap_svg(
     fight_idx: int,
     mid_tick: int,
@@ -1464,12 +1673,13 @@ def build_teamfights(match: gem.ParsedMatch, map_b64: str | None) -> str:
     fights = match.teamfights or []
     if not fights:
         return (
-            '<div class="card"><details open><summary>Teamfights</summary>'
-            '<div class="card-body"><p class="dim">(no teamfights detected)</p></div>'
+            '<div class="card"><details open><summary>Fights</summary>'
+            '<div class="card-body"><p class="dim">(no fights detected)</p></div>'
             "</details></div>"
         )
 
     slot_to_player: dict[int, gem.ParsedPlayer] = {pp.player_id: pp for pp in match.players}
+    h2s: dict[str, int] = {pp.hero_name: pp.player_id for pp in match.players if pp.hero_name}
     load_hero_icons([pp.hero_name for pp in match.players if pp.hero_name])
 
     max_deaths = max((tf.deaths for tf in fights), default=1)
@@ -1481,7 +1691,7 @@ def build_teamfights(match: gem.ParsedMatch, map_b64: str | None) -> str:
     parts = [
         '<div class="card">',
         "<details open>",
-        "<summary>Teamfights</summary>",
+        "<summary>Fights</summary>",
         '<div class="card-body">',
         f'<div class="tf-summary">Showing <strong id="tf-vis-count">{len(fights)}</strong> / {len(fights)} fights</div>',
         '<div class="tf-filter-bar">',
@@ -1576,6 +1786,17 @@ def build_teamfights(match: gem.ParsedMatch, map_b64: str | None) -> str:
                     f"</tr>"
                 )
             parts.append("</tbody></table></div>")
+
+        log_html = _fight_combat_log_html(
+            tf.start_tick,
+            tf.end_tick,
+            match.combat_log or [],
+            slot_to_player,
+            h2s,
+            active_slots,
+        )
+        if log_html:
+            parts.append(log_html)
 
         parts.append("</div></div></div>")
 

@@ -14,7 +14,14 @@ from dataclasses import dataclass, field
 from gem.combatlog import CombatLogEntry
 from gem.extractors.courier import CourierSnapshot
 from gem.extractors.draft import DraftEvent
-from gem.extractors.objectives import AegisEvent, BarracksKill, RoshanKill, TowerKill
+from gem.extractors.objectives import (
+    AegisEvent,
+    BarracksKill,
+    RoshanKill,
+    ShrineKill,
+    TormentorKill,
+    TowerKill,
+)
 from gem.extractors.teamfights import Teamfight
 from gem.extractors.wards import WardEvent
 
@@ -213,6 +220,8 @@ class ParsedMatch:
         barracks: All barracks kill events in chronological order.
         roshans: All Roshan kill events in chronological order.
         aegis_events: All Aegis pickup / steal / denial events.
+        tormentors: All Tormentor (miniboss) kill events in chronological order.
+        shrines: All Shrine of Wisdom destruction events in chronological order.
         wards: All ward placement events with coordinates.
         radiant_gold_adv: Radiant gold advantage at each minute boundary.
         radiant_xp_adv: Radiant XP advantage at each minute boundary.
@@ -241,6 +250,8 @@ class ParsedMatch:
     barracks: list[BarracksKill] = field(default_factory=list)
     roshans: list[RoshanKill] = field(default_factory=list)
     aegis_events: list[AegisEvent] = field(default_factory=list)
+    tormentors: list[TormentorKill] = field(default_factory=list)
+    shrines: list[ShrineKill] = field(default_factory=list)
     wards: list[WardEvent] = field(default_factory=list)
     radiant_gold_adv: list[int] = field(default_factory=list)
     radiant_xp_adv: list[int] = field(default_factory=list)

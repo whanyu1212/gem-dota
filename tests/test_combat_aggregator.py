@@ -1,6 +1,7 @@
 """Tests for gem.combat_aggregator.
 
-Covers _ParsedPlayerAgg structure and _CombatAggregator routing/accumulation.
+Covers _ParsedPlayerAgg structure, _CombatAggregator routing/accumulation,
+and _dedup_purchase_log deduplication logic.
 """
 
 from __future__ import annotations
@@ -9,7 +10,8 @@ from collections import defaultdict
 from dataclasses import fields
 from unittest.mock import MagicMock
 
-from gem.combat_aggregator import _CombatAggregator, _ParsedPlayerAgg
+from gem.combat_aggregator import _CombatAggregator, _dedup_purchase_log, _ParsedPlayerAgg
+from gem.combatlog import CombatLogEntry
 
 # ---------------------------------------------------------------------------
 # _ParsedPlayerAgg
@@ -251,3 +253,72 @@ class TestCombatAggregatorRunes:
         e = _entry(log_type="PICKUP_RUNE", attacker_is_hero=False, value=10)
         agg.on_entry(e)
         assert 10 not in agg.players
+
+
+# ---------------------------------------------------------------------------
+# _dedup_purchase_log
+# ---------------------------------------------------------------------------
+
+
+def _purchase(tick: int, item: str) -> CombatLogEntry:
+    return CombatLogEntry(tick=tick, log_type="PURCHASE", value_name=item)
+
+
+class TestDedupPurchaseLog:
+    def test_no_first_snap_returns_sorted(self):
+        entries = [_purchase(300, "item_branches"), _purchase(100, "item_tango")]
+        result = _dedup_purchase_log(entries, first_snap_tick=None, sample_interval=150)
+        assert [e.tick for e in result] == [100, 300]
+
+    def test_duplicate_within_window_removed(self):
+        # first_snap_tick=100, sample_interval=150 → cutoff=250
+        entries = [
+            _purchase(100, "item_branches"),
+            _purchase(100, "item_branches"),  # duplicate at same tick+item
+        ]
+        result = _dedup_purchase_log(entries, first_snap_tick=100, sample_interval=150)
+        assert len(result) == 1
+
+    def test_duplicate_outside_window_kept(self):
+        # cutoff = 100 + 150 = 250; tick 300 > 250 → both entries kept
+        entries = [
+            _purchase(100, "item_branches"),
+            _purchase(300, "item_branches"),  # same item but beyond cutoff
+        ]
+        result = _dedup_purchase_log(entries, first_snap_tick=100, sample_interval=150)
+        assert len(result) == 2
+
+    def test_different_items_at_same_tick_both_kept(self):
+        entries = [
+            _purchase(100, "item_tango"),
+            _purchase(100, "item_branches"),
+        ]
+        result = _dedup_purchase_log(entries, first_snap_tick=100, sample_interval=150)
+        assert len(result) == 2
+
+    def test_empty_list_returns_empty(self):
+        assert _dedup_purchase_log([], first_snap_tick=100, sample_interval=150) == []
+
+    def test_result_sorted_by_tick(self):
+        entries = [_purchase(500, "item_tango"), _purchase(200, "item_branches")]
+        result = _dedup_purchase_log(entries, first_snap_tick=100, sample_interval=150)
+        assert result[0].tick == 200
+        assert result[1].tick == 500
+
+    def test_cutoff_boundary_entry_is_deduplicated(self):
+        # Entry at exactly cutoff tick (100+150=250) is still inside window
+        entries = [
+            _purchase(250, "item_tango"),
+            _purchase(250, "item_tango"),
+        ]
+        result = _dedup_purchase_log(entries, first_snap_tick=100, sample_interval=150)
+        assert len(result) == 1
+
+    def test_entry_just_beyond_cutoff_is_kept(self):
+        # Entry at 251 > cutoff=250 → not deduplicated
+        entries = [
+            _purchase(250, "item_tango"),
+            _purchase(251, "item_tango"),
+        ]
+        result = _dedup_purchase_log(entries, first_snap_tick=100, sample_interval=150)
+        assert len(result) == 2
