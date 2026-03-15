@@ -103,24 +103,24 @@ wards     = dfs["wards"]       # ward placements
 <table width="100%" style="table-layout:fixed;border-collapse:separate;border-spacing:8px 8px;">
   <tr>
     <td align="center" valign="top" width="33.33%"><img src="assets/overview.png" alt="Overview" width="100%" height="auto"><br><sub>Overview</sub></td>
-    <td align="center" valign="top" width="33.33%"><img src="assets/gold_xp_graph.png" alt="Gold XP Graph" width="100%" height="auto"><br><sub>Gold / XP</sub></td>
-    <td align="center" valign="top" width="33.33%"><img src="assets/combat_log.png" alt="Combat Log" width="100%" height="auto"><br><sub>Combat</sub></td>
+    <td align="center" valign="top" width="33.33%"><img src="assets/gold_xp_graphs.png" alt="Gold XP Graph" width="100%" height="auto"><br><sub>Gold / XP</sub></td>
+    <td align="center" valign="top" width="33.33%"><img src="assets/fight_breakdown_combat_log.png" alt="Fight Breakdown & Combat Log" width="100%" height="auto"><br><sub>Fight Breakdown & Combat</sub></td>
   </tr>
   <tr>
-    <td align="center" valign="top" width="33.33%"><img src="assets/teamfight.png" alt="Teamfight" width="100%" height="auto"><br><sub>Teamfight</sub></td>
-    <td align="center" valign="top" width="33.33%"><img src="assets/ward_map.png" alt="Ward Map" width="100%" height="auto"><br><sub>Vision Map</sub></td>
-    <td align="center" valign="top" width="33.33%"><img src="assets/warding_log.png" alt="Warding Log" width="100%" height="auto"><br><sub>Warding Log</sub></td>
+    <td align="center" valign="top" width="33.33%"><img src="assets/damage_breakdown.png" alt="Damage Breakdown" width="100%" height="auto"><br><sub>Damage Breakdown</sub></td>
+    <td align="center" valign="top" width="33.33%"><img src="assets/interactive_ward_map.png" alt="Interactive Ward Map" width="100%" height="auto"><br><sub>Interactive Vision Map</sub></td>
+    <td align="center" valign="top" width="33.33%"><img src="assets/objective_timeline.png" alt="Objective Timeline" width="100%" height="auto"><br><sub>Objective Timeline</sub></td>
   </tr>
   <tr>
-    <td align="center" valign="top" width="33.33%"><img src="assets/economy.png" alt="Economy" width="100%" height="auto"><br><sub>Economy</sub></td>
-    <td align="center" valign="top" width="33.33%"><img src="assets/draft.png" alt="Draft" width="100%" height="auto"><br><sub>Draft</sub></td>
-    <td align="center" valign="top" width="33.33%"><img src="assets/misc.png" alt="Misc" width="100%" height="auto"><br><sub>Misc</sub></td>
+    <td align="center" valign="top" width="33.33%"><img src="assets/purchase_log_buybacks.png" alt="Purchase Log & Buybacks" width="100%" height="auto"><br><sub>Purchase Log & Buybacks</sub></td>
+    <td align="center" valign="top" width="33.33%"><img src="assets/draft_summary.png" alt="Draft Summary" width="100%" height="auto"><br><sub>Draft Summary</sub></td>
+    <td align="center" valign="top" width="33.33%"><img src="assets/laning_efficiency.png" alt="Laning Efficiency" width="100%" height="auto"><br><sub>Laning Efficiency</sub></td>
   </tr>
 </table>
 
 <p align="center">
-  <img src="assets/movement_trail.png" alt="Movement Trail" width="45%"><br>
-  <sub>Movement Trail</sub>
+  <img src="assets/interactive_movement_trail.png" alt="Interactive Movement Trail" width="45%"><br>
+  <sub>Interactive Movement Trail</sub>
 </p>
 
 ### Reproduce this analysis
@@ -178,6 +178,15 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 ---
 
 ## Releases
+
+### [v0.2.0](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.0)
+
+- **Buyback gold cost** — HTML report buyback table now shows gold spent per buyback using the exact Dota 2 formula `floor(200 + net_worth / 13)`.
+- **Removed `ParsedMatch.lotus_pickups`** — healing lotus pickups are not recorded in the `.dem` combat log under any event type; the field always returned an empty list and has been removed (breaking change).
+- **Known limitations documented** — healing lotus (not parseable from replays) and reliable vs unreliable gold distinction added to README.
+- **Repo URL fixes** — all links corrected from `whanyu1212/gem` to `whanyu1212/gem-dota`.
+- **Test coverage expanded** — teamfight helpers, `_dedup_purchase_log` edge cases, HEAL/gold/XP attribution.
+- **Screenshot refresh** — all report screenshots updated and resized to uniform dimensions.
 
 ### [v0.1.1](https://github.com/whanyu1212/gem-dota/releases/tag/v0.1.1)
 
