@@ -83,7 +83,9 @@ for player in match.players:
 
 ---
 
-## DataFrame export
+## Export formats
+
+### DataFrames
 
 `gem.parse_to_dataframe()` returns a dict of pandas DataFrames:
 
@@ -94,13 +96,35 @@ frames = gem.parse_to_dataframe("my_replay.dem")
 
 # Available DataFrames
 print(list(frames.keys()))
-# ['players', 'wards', 'objectives', 'teamfights', 'combat_log']
+# ['players', 'players_minute', 'positions', 'combat_log', 'wards',
+#  'objectives', 'chat', 'match', 'radiant_advantage', 'draft',
+#  'teamfights', 'smoke_events', 'courier_snapshots', ...]
 
-# Per-player snapshot time series
 df = frames["players"]
 print(df.columns.tolist())
-# ['tick', 'hero', 'gold', 'xp', 'hp', 'mana', 'x', 'y', 'lh', 'dn', ...]
 print(df.head())
+```
+
+### JSON
+
+```python
+# Parse directly to a JSON string
+json_str = gem.parse_to_json("my_replay.dem", indent=2)
+
+# Or convert an already-parsed match
+match = gem.parse("my_replay.dem")
+json_str = gem.to_json(match)
+data     = gem.to_dict(match)   # plain Python dict
+```
+
+### Parquet
+
+```python
+# One .parquet file per DataFrame table
+paths = gem.parse_to_parquet("my_replay.dem", output_dir="./out")
+
+# Or export from an already-parsed match
+paths = gem.to_parquet(match, output_dir="./out")
 ```
 
 ---
@@ -125,5 +149,5 @@ A typical 45-minute replay parses in 2–4 seconds in pure Python.
 - [Full Match Data](04_match_data.md) — all fields on `ParsedMatch` and `ParsedPlayer`
 - [Entity State](02_entity_state.md) — subscribe to per-tick entity events
 - [Combat Log](03_combat_log.md) — raw damage, heal, kill, ability events
-- [Time-Series & DataFrames](05_timeseries.md) — per-minute gold/XP advantage curves
+- [Time-Series & DataFrames](05_timeseries.md) — per-minute gold/XP advantage curves, JSON and Parquet export
 - [Understanding the Format](../understanding/index.md) — how the binary format works

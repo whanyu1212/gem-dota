@@ -86,6 +86,47 @@ combat    = dfs["combat_log"]  # all combat log entries
 wards     = dfs["wards"]       # ward placements
 ```
 
+```python
+# Parse to JSON
+json_str = gem.parse_to_json("my_replay.dem", indent=2)
+
+# Or convert an already-parsed match
+match = gem.parse("my_replay.dem")
+json_str = gem.to_json(match)
+data     = gem.to_dict(match)  # plain Python dict
+```
+
+```python
+# Export all DataFrames to Parquet files (one file per table)
+paths = gem.parse_to_parquet("my_replay.dem", output_dir="./parquet_out")
+
+# Or export from an already-parsed match
+paths = gem.to_parquet(match, output_dir="./parquet_out")
+```
+
+### CLI
+
+`gem` ships with a command-line interface for quick inspection and export:
+
+```bash
+# Print a match summary
+python -m gem match.dem
+
+# Export to JSON (stdout or file)
+python -m gem match.dem --format json
+python -m gem match.dem --format json --output out.json
+
+# Export all tables to Parquet
+python -m gem match.dem --format parquet --output ./parquet_out
+
+# Show live progress and a timing breakdown
+python -m gem match.dem --progress --timings
+```
+
+<p align="center">
+  <img src="assets/cli_example.png" alt="CLI example" width="80%">
+</p>
+
 ---
 
 ## Showcase — what you can do today
@@ -178,6 +219,14 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 ---
 
 ## Releases
+
+### [v0.2.1](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.1)
+
+- **JSON export** — `gem.to_json()`, `gem.to_dict()`, `gem.parse_to_json()` added to the public API.
+- **Parquet export** — `gem.to_parquet()`, `gem.parse_to_parquet()` added (requires `pyarrow` or `fastparquet`).
+- **Rich CLI** — live spinner progress, timing summary table, larger pixel-art banner in a box, per-player summary as a Rich table with Radiant/Dire colour coding.
+- **Docs** — architecture page redesigned, diamond icon added, laning pages added to nav, export formats documented throughout.
+- **Bug fixes** — two `mypy` type errors resolved in `__main__.py` and `dataframes.py`.
 
 ### [v0.2.0](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.0)
 

@@ -10,7 +10,7 @@ extractor's output properties are ready to read.
 | Extractor | Module | What it collects |
 |---|---|---|
 | `PlayerExtractor` | `gem.extractors.players` | Hero/player state snapshots, time series, rune pickups |
-| `ObjectivesExtractor` | `gem.extractors.objectives` | Tower kills, barracks, Roshan kills |
+| `ObjectivesExtractor` | `gem.extractors.objectives` | Tower kills, barracks, Roshan kills, Tormentor kills |
 | `WardsExtractor` | `gem.extractors.wards` | Ward placements with coordinates |
 | `CourierExtractor` | `gem.extractors.courier` | Courier state per tick |
 | `DraftExtractor` | `gem.extractors.draft` | Pick and ban events |

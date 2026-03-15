@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-03-16
+
+### Added
+- JSON export API — `gem.to_json()`, `gem.to_dict()`, `gem.parse_to_json()`.
+- Parquet export API — `gem.to_parquet()`, `gem.parse_to_parquet()` (requires `pyarrow` or `fastparquet`).
+- Rich CLI overhaul — live spinner progress (`--progress`), timing summary table (`--timings`), larger pixel-art banner centred in a `HEAVY` box, per-player summary rendered as a Rich table with Radiant/Dire colour coding.
+- Docs architecture page redesigned — single pipeline diagram, layer badge rows, output model table replacing the ER diagram; custom stylesheet added.
+- Diamond icon added to MkDocs nav bar and favicon.
+- Laning guide and Lane Classifier reference added to docs nav (were previously orphaned pages).
+- Export formats (JSON, Parquet) documented across home page, quickstart guide, and API reference index.
+
+### Fixed
+- `mypy` error in `__main__.py` — `_task_ids` typed as `dict[str, TaskID]` (was `dict[str, object]`), fixing `Progress.update()` argument type error.
+- `mypy` error in `dataframes.py` — tormentor loop variable renamed from `t` to `tm` to avoid type collision with the towers loop.
+
 ## [0.2.0] - 2026-03-15
 
 ### Added
@@ -45,7 +60,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLI and example scripts, including HTML match report.
 - Validation, fuzzing, and parser robustness foundations.
 
-[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/whanyu1212/gem-dota/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/whanyu1212/gem-dota/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/whanyu1212/gem-dota/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/whanyu1212/gem-dota/releases/tag/v0.1.0
