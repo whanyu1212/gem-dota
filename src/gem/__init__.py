@@ -11,8 +11,11 @@ Public API
 
 from __future__ import annotations
 
+import json
+from collections.abc import Mapping
+from dataclasses import fields, is_dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import gem.constants as constants  # re-export so `gem.constants.hero_display()` works
 from gem.models import ChatEntry, ParsedMatch, ParsedPlayer
@@ -138,34 +141,102 @@ def parse(path: str | Path) -> ParsedMatch:
     )
 
 
+def _to_json_compatible(value: Any) -> Any:
+    """Recursively convert values to JSON-compatible Python types."""
+    if is_dataclass(value):
+        return {f.name: _to_json_compatible(getattr(value, f.name)) for f in fields(value)}
+    if isinstance(value, Mapping):
+        return {str(k): _to_json_compatible(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_to_json_compatible(v) for v in value]
+    return value
+
+
+def to_dict(match: ParsedMatch) -> dict[str, Any]:
+    """Convert a :class:`ParsedMatch` to a JSON-serializable dictionary."""
+    return _to_json_compatible(match)
+
+
+def to_json(match: ParsedMatch, *, indent: int | None = None, sort_keys: bool = False) -> str:
+    """Serialize a :class:`ParsedMatch` to a JSON string."""
+    return json.dumps(to_dict(match), indent=indent, sort_keys=sort_keys)
+
+
+def parse_to_json(path: str | Path, *, indent: int | None = None, sort_keys: bool = False) -> str:
+    """Parse a replay and return the result as JSON."""
+    return to_json(parse(path), indent=indent, sort_keys=sort_keys)
+
+
 def parse_to_dataframe(path: str | Path) -> dict[str, pd.DataFrame]:
-    """Parse a replay and return key data as pandas DataFrames.
+    """Parse a replay and return tabular projections as pandas DataFrames.
 
     Convenience wrapper around :func:`parse` that converts the structured
-    output into tabular form suitable for analysis.
+    output into analysis-ready tables.
 
     Args:
         path: Path to the ``.dem`` replay file.
 
     Returns:
-        Dictionary with keys:
-        - ``"players"``: one row per player per sample tick (wide format).
-        - ``"positions"``: one row per ``(player, tick)`` with x/y coordinates.
-        - ``"combat_log"``: one row per combat log entry.
-        - ``"wards"``: one row per ward placement.
-        - ``"objectives"``: one row per tower/barracks/roshan kill.
-        - ``"chat"``: one row per chat message.
+        Dictionary of DataFrames including (at minimum):
+        - ``"players"``, ``"players_minute"``
+        - ``"positions"``, ``"combat_log"``, ``"wards"``, ``"objectives"``, ``"chat"``
+        - ``"match"``, ``"radiant_advantage"``
+        - ``"draft"``, ``"teamfights"``, ``"smoke_events"``, ``"courier_snapshots"``
+        - per-player event logs (kills/purchases/runes/buybacks)
     """
     from gem.dataframes import build_dataframes
 
     return build_dataframes(parse(path))
 
 
+def to_parquet(match: ParsedMatch, output_dir: str | Path, *, index: bool = False) -> list[Path]:
+    """Export DataFrame projections for a parsed match to parquet files.
+
+    One parquet file is written per DataFrame key as ``<key>.parquet``.
+
+    Args:
+        match: Parsed replay output.
+        output_dir: Directory to write parquet files into.
+        index: Whether to include the DataFrame index in parquet output.
+
+    Returns:
+        List of parquet file paths written.
+    """
+    from gem.dataframes import build_dataframes
+
+    out = Path(output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+
+    written: list[Path] = []
+    for key, df in build_dataframes(match).items():
+        file_path = out / f"{key}.parquet"
+        try:
+            df.to_parquet(file_path, index=index)
+        except ImportError as exc:
+            raise ImportError(
+                "Parquet export requires an optional engine. Install 'pyarrow' or 'fastparquet'."
+            ) from exc
+        written.append(file_path)
+    return written
+
+
+def parse_to_parquet(
+    path: str | Path, output_dir: str | Path, *, index: bool = False
+) -> list[Path]:
+    """Parse a replay and export DataFrame projections to parquet files."""
+    return to_parquet(parse(path), output_dir, index=index)
+
+
 # Re-export for convenience
 __all__ = [
     "__version__",
     "parse",
+    "to_dict",
+    "to_json",
+    "parse_to_json",
     "parse_to_dataframe",
+    "to_parquet",
+    "parse_to_parquet",
     "ParsedMatch",
     "ParsedPlayer",
     "ChatEntry",

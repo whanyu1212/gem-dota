@@ -1,91 +1,212 @@
 # Architecture
 
-This document maps module interactions, key function flow, and core data relationships in `gem`.
+`gem` turns a raw `.dem` binary into structured Python objects in a single pass.
+This page shows how the modules fit together and what each layer produces.
 
-## 1) Module Architecture and Data Flow
+---
+
+## Pipeline
 
 ```mermaid
 flowchart TD
-    %% Entry points
-    A["gem.parse / gem.parse_to_dataframe"] --> B[parser.py]
-    A --> M[dataframes.py]
+    A(["gem.parse()  /  gem.parse_to_dataframe()"])
 
-    %% Core parse pipeline
-    B --> C[stream.py]
-    B --> D[reader.py]
-    B --> E[sendtable.py]
-    E --> F[field_decoder.py]
-    B --> G[string_table.py]
-    B --> H[entities.py]
-    H --> I[field_path.py]
-    B --> J[game_events.py]
-    B --> K[combatlog.py]
+    subgraph BINARY ["Binary decoding"]
+        direction LR
+        B["stream.py\nouter frames"] --> C["reader.py\nbits & varints"]
+    end
 
-    %% Extractors
-    B --> X1["extractors.players"]
-    B --> X2["extractors.objectives"]
-    B --> X3["extractors.wards"]
-    B --> X4["extractors.courier"]
-    B --> X5["extractors.draft"]
-    B --> X6["extractors.teamfights"]
+    subgraph SCHEMA ["Schema & state"]
+        direction LR
+        D["sendtable.py\nserializer tree"] --> E["field_decoder.py\ntype dispatch"]
+        D --> F["field_path.py\nHuffman paths"]
+        G["string_table.py\nkey-value tables"]
+        H["entities.py\ndelta updates"]
+    end
 
-    %% Assembly + aggregation
-    B --> L[combat_aggregator.py]
-    B --> N[match_builder.py]
-    L --> N
-    X1 --> N
-    X2 --> N
-    X3 --> N
-    X4 --> N
-    X5 --> N
-    X6 --> N
-    K --> L
-    K --> N
-    J --> N
-    H --> N
+    subgraph EVENTS ["Events"]
+        direction LR
+        I["game_events.py"]
+        J["combatlog.py"]
+    end
 
-    %% Output
-    N --> O["models.py · ParsedMatch"]
-    O --> M
-    M --> P["dict[str, DataFrame]"]
+    subgraph EXTRACT ["Extractors"]
+        direction LR
+        X1["players"]
+        X2["objectives"]
+        X3["wards"]
+        X4["courier"]
+        X5["draft"]
+        X6["teamfights"]
+    end
+
+    subgraph ASSEMBLE ["Assembly"]
+        K["combat_aggregator.py"] --> L["match_builder.py"]
+    end
+
+    O(["ParsedMatch"])
+    P(["dict[str, DataFrame]  /  JSON  /  Parquet"])
+
+    A --> BINARY
+    BINARY --> SCHEMA
+    SCHEMA --> EVENTS
+    SCHEMA --> EXTRACT
+    EVENTS --> ASSEMBLE
+    EXTRACT --> ASSEMBLE
+    ASSEMBLE --> O
+    O --> P
 ```
 
-## 2) Key Function Interaction Flow
+---
 
-```mermaid
-flowchart LR
-    P0[ReplayParser.parse] --> P1[DemoStream iteration]
-    P0 --> P2[_read_inner_messages]
-    P0 --> P3[parse_send_tables]
-    P0 --> P4[string_table.handle_update]
-    P0 --> P5[EntityManager.on_packet_entities]
-    P5 --> P6[field_path.read_field_paths]
-    P0 --> P7[combatlog ingestion]
-    P0 --> P8[game event ingestion]
-    P0 --> P9[extractors polling/updates]
-    P0 --> P10[_CombatAggregator.on_entry]
-    P0 --> P11[build_parsed_match]
-    P11 --> P12[ParsedMatch]
-    P12 --> P13[parse_to_dataframe]
-```
+## Layers at a glance
 
-## 3) Data Model Relationships (ER View)
+<div class="arch-layers">
 
-```mermaid
-erDiagram
-    ParsedMatch ||--o{ ParsedPlayer : contains
-    ParsedMatch ||--o{ Teamfight : has
-    ParsedMatch ||--o{ CombatLogEntry : includes
-    ParsedMatch ||--o{ WardEvent : includes
-    ParsedMatch ||--o{ TowerKill : includes
-    ParsedMatch ||--o{ RoshanKill : includes
-    ParsedMatch ||--o{ BarracksKill : includes
-    ParsedMatch ||--o{ CourierEvent : includes
-    ParsedMatch ||--o{ DraftEvent : includes
+  <div class="arch-layer arch-layer--io">
+    <span class="arch-layer-label">Entry points</span>
+    <div class="arch-layer-modules">
+      <span class="arch-badge">gem.parse()</span>
+      <span class="arch-badge">gem.parse_to_dataframe()</span>
+      <span class="arch-badge">gem.parse_to_json()</span>
+      <span class="arch-badge">gem.parse_to_parquet()</span>
+    </div>
+  </div>
 
-    ParsedPlayer ||--o{ WardEvent : places_or_destroys
-    ParsedPlayer ||--o{ CombatLogEntry : attributed_events
-    Teamfight ||--o{ TeamfightPlayer : participants
+  <div class="arch-layer arch-layer--parse">
+    <span class="arch-layer-label">Binary decoding</span>
+    <div class="arch-layer-modules">
+      <span class="arch-badge">stream.py</span>
+      <span class="arch-badge">reader.py</span>
+      <span class="arch-badge">sendtable.py</span>
+      <span class="arch-badge">field_decoder.py</span>
+      <span class="arch-badge">field_path.py</span>
+      <span class="arch-badge">string_table.py</span>
+      <span class="arch-badge">entities.py</span>
+    </div>
+  </div>
 
-    CombatLogEntry }o--|| ParsedPlayer : actor_target_attribution
-```
+  <div class="arch-layer arch-layer--parse">
+    <span class="arch-layer-label">Events</span>
+    <div class="arch-layer-modules">
+      <span class="arch-badge">game_events.py</span>
+      <span class="arch-badge">combatlog.py</span>
+    </div>
+  </div>
+
+  <div class="arch-layer arch-layer--extract">
+    <span class="arch-layer-label">Extractors</span>
+    <div class="arch-layer-modules">
+      <span class="arch-badge">extractors/players.py</span>
+      <span class="arch-badge">extractors/objectives.py</span>
+      <span class="arch-badge">extractors/wards.py</span>
+      <span class="arch-badge">extractors/courier.py</span>
+      <span class="arch-badge">extractors/draft.py</span>
+      <span class="arch-badge">extractors/teamfights.py</span>
+    </div>
+  </div>
+
+  <div class="arch-layer arch-layer--assemble">
+    <span class="arch-layer-label">Assembly</span>
+    <div class="arch-layer-modules">
+      <span class="arch-badge">combat_aggregator.py</span>
+      <span class="arch-badge">match_builder.py</span>
+    </div>
+  </div>
+
+  <div class="arch-layer arch-layer--output">
+    <span class="arch-layer-label">Output</span>
+    <div class="arch-layer-modules">
+      <span class="arch-badge">models.py · ParsedMatch</span>
+      <span class="arch-badge">dataframes.py</span>
+    </div>
+  </div>
+
+</div>
+
+---
+
+## Output model
+
+`gem.parse()` returns a single `ParsedMatch`. Every field is either a scalar or
+a list of typed dataclasses — no raw dicts, no untyped payloads.
+
+<table class="output-table">
+  <thead>
+    <tr>
+      <th>Field</th>
+      <th>Type</th>
+      <th>What it contains</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>players</code></td>
+      <td><code>list[ParsedPlayer]</code></td>
+      <td>One entry per player — KDA, gold/XP series, purchases, runes, buybacks, positions</td>
+    </tr>
+    <tr>
+      <td><code>draft</code></td>
+      <td><code>list[DraftEvent]</code></td>
+      <td>Chronological pick and ban events with hero name and team</td>
+    </tr>
+    <tr>
+      <td><code>combat_log</code></td>
+      <td><code>list[CombatLogEntry]</code></td>
+      <td>Every damage, kill, heal, ability-use, and modifier event</td>
+    </tr>
+    <tr>
+      <td><code>towers / barracks</code></td>
+      <td><code>list[TowerKill / BarracksKill]</code></td>
+      <td>Objective deaths with tick, team, and killer</td>
+    </tr>
+    <tr>
+      <td><code>roshans</code></td>
+      <td><code>list[RoshanKill]</code></td>
+      <td>Roshan kills with kill number and killer slot</td>
+    </tr>
+    <tr>
+      <td><code>tormentors / shrines</code></td>
+      <td><code>list[TormentorKill / ShrineKill]</code></td>
+      <td>Tormentor and Shrine of Wisdom destruction events</td>
+    </tr>
+    <tr>
+      <td><code>wards</code></td>
+      <td><code>list[WardEvent]</code></td>
+      <td>Ward placements with exact map coordinates</td>
+    </tr>
+    <tr>
+      <td><code>teamfights</code></td>
+      <td><code>list[Teamfight]</code></td>
+      <td>Detected fight windows with per-player damage, kills, and healing</td>
+    </tr>
+    <tr>
+      <td><code>smoke_events</code></td>
+      <td><code>list[SmokeEvent]</code></td>
+      <td>Smoke activations with grouped heroes and centroid position</td>
+    </tr>
+    <tr>
+      <td><code>aegis_events</code></td>
+      <td><code>list[AegisEvent]</code></td>
+      <td>Aegis pickups, steals, and denies</td>
+    </tr>
+    <tr>
+      <td><code>courier_snapshots</code></td>
+      <td><code>list[CourierSnapshot]</code></td>
+      <td>Courier state sampled each tick</td>
+    </tr>
+    <tr>
+      <td><code>chat</code></td>
+      <td><code>list[ChatEntry]</code></td>
+      <td>All-chat and team-chat messages</td>
+    </tr>
+    <tr>
+      <td><code>radiant_gold_adv / radiant_xp_adv</code></td>
+      <td><code>list[int]</code></td>
+      <td>Per-minute Radiant gold and XP advantage curves</td>
+    </tr>
+  </tbody>
+</table>
+
+For the full field listing see the [Models reference](reference/models.md) and
+[Full Match Data guide](guides/04_match_data.md).
