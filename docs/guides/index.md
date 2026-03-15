@@ -18,4 +18,6 @@ and click "Download Replay".
 | [Time-Series & DataFrames](05_timeseries.md) | Per-minute gold/XP curves and pandas export |
 | [Teamfight Detection](06_teamfights.md) | `match.teamfights` — windows, participants, stats |
 | [Laning Analysis](08_laning.md) | Lane role classification, lane efficiency %, gold/XP advantage |
+| [CLI Reference](09_cli.md) | `parse` and `batch` subcommands, all flags, Python API equivalents |
+| [Annotated JSON Output](10_json_output.md) | Real TI14 replay output explained field by field |
 | [Custom Extractors](07_custom_extractors.md) | Attach parser callbacks to build your own outputs |

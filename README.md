@@ -106,7 +106,7 @@ paths = gem.to_parquet(match, output_dir="./parquet_out")
 
 ### CLI
 
-`gem` ships with a command-line interface for quick inspection and export:
+`gem` ships with a command-line interface for quick inspection, export, and batch processing:
 
 ```bash
 # Print a match summary
@@ -117,7 +117,13 @@ python -m gem match.dem --format json
 python -m gem match.dem --format json --output out.json
 
 # Export all tables to Parquet
-python -m gem match.dem --format parquet --output ./parquet_out
+python -m gem parse match.dem --format parquet --output ./parquet_out
+
+# Parse a whole folder in parallel (one Parquet subdir per replay)
+python -m gem batch replays/ --format parquet --output ./out --workers 4
+
+# Concatenate all replays into one set of DataFrames
+python -m gem batch replays/ --format dataframe --output ./out
 
 # Show live progress and a timing breakdown
 python -m gem match.dem --progress --timings
@@ -220,12 +226,18 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 
 ## Releases
 
+### [v0.2.2](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.2)
+
+- **Batch processing** — `gem.parse_many()`, `gem.parse_many_to_dataframe()`, `gem.parse_many_to_parquet()` for parallel multi-replay parsing via `ProcessPoolExecutor`.
+- **CLI `batch` subcommand** — `python -m gem batch replays/ --format parquet --output ./out`; legacy bare-path invocation preserved.
+- **Docs** — home page feature cards, annotated JSON output guide (real TI14 G1 XG vs Falcons replay), CLI reference guide, batch API reference page.
+
 ### [v0.2.1](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.1)
 
 - **JSON export** — `gem.to_json()`, `gem.to_dict()`, `gem.parse_to_json()` added to the public API.
 - **Parquet export** — `gem.to_parquet()`, `gem.parse_to_parquet()` added (requires `pyarrow` or `fastparquet`).
-- **Rich CLI** — live spinner progress, timing summary table, larger pixel-art banner in a box, per-player summary as a Rich table with Radiant/Dire colour coding.
-- **Docs** — architecture page redesigned, diamond icon added, laning pages added to nav, export formats documented throughout.
+- **Rich CLI** — live progress bar, timing summary, pixel-art banner in a box, Radiant/Dire colour-coded summary table.
+- **Docs** — architecture page redesigned, diamond icon, laning pages added to nav, export formats documented throughout.
 - **Bug fixes** — two `mypy` type errors resolved in `__main__.py` and `dataframes.py`.
 
 ### [v0.2.0](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.0)
@@ -293,6 +305,8 @@ python examples/extraction_demo.py path/to/your.dem
 # Match info from Steam API (requires STEAM_API_KEY env var)
 python examples/steam_match_info.py <match_id>
 ```
+
+`examples/ti14_sample.json` — annotated real JSON output from TI14 Grand Finals G1 (XG vs Falcons), used as the reference example in the docs.
 
 ---
 

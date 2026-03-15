@@ -1,3 +1,21 @@
+/* ── Home page hero ───────────────────────────────────────────────────────── */
+
+.hero-tagline {
+  font-size: 1.15rem;
+  line-height: 1.7;
+  max-width: 680px;
+  opacity: 0.85;
+  margin: 0.5rem 0 1.5rem;
+}
+
+.hero-actions {
+  margin-bottom: 2rem;
+}
+
+.hero-actions .md-button {
+  margin-right: 0.5rem;
+}
+
 /* ── Architecture diagram ─────────────────────────────────────────────────── */
 
 /* Centre and constrain Mermaid diagrams */

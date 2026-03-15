@@ -1,6 +1,6 @@
 [project]
 name = "gem-dota"
-version = "0.2.1"
+version = "0.2.2"
 description = "Dota 2 Source 2 replay parser for data science and ML workflows"
 readme = "README.md"
 license = { text = "MIT" }
@@ -49,7 +49,7 @@ exclude-packages = ["gem.data.hero_icons", "gem.data.item_icons"]
 [dependency-groups]
 dev = [
     "mkdocs>=1.6.1,<2.0.0",
-    "mkdocs-material>=9.7.4,<10.0.0",
+    "mkdocs-material>=9.5.0,<9.6.0",
     "mkdocstrings[python]>=1.0.3,<2.0.0",
     "mypy>=1.19.1",
     "pre-commit>=4.5.1",
