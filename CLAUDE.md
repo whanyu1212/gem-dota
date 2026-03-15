@@ -129,6 +129,27 @@ Alternative approach (refs): read the `ActiveModifiers` string table directly �
 - Kills by summoned units (Warlock Golem, Undying zombie, Pugna Nether Ward, etc.) should be credited to the owning hero's kill count.
 - Deaths count all causes (hero, tower, creep, neutral, summon) — not just hero-dealt deaths.
 
+## Deferred: buyback cost breakdown (reliable vs unreliable gold)
+
+The HTML report buybacks section shows only time/hero/team. Adding a reliable/unreliable gold
+cost breakdown was investigated but deferred. Key findings:
+
+- `m_vecDataTeam.{slot}.m_iReliableGold` / `m_iUnreliableGold` on `CDOTADataRadiant/Dire`
+  exist and are readable, but reflect **remaining gold after** the buyback deduction — not the
+  cost paid.
+- `CDOTAUserMsg_SendFinalGold` (type 514) provides per-player reliable/unreliable gold at game
+  end only — not per buyback event.
+- The buyback cost is not stored directly in the entity stream.
+
+**Approaches to explore when revisiting:**
+1. Event-driven sampling: hook the BUYBACK combat log entry and snapshot gold immediately before
+   it fires (requires sampling outside the periodic `_maybe_sample()` loop).
+2. Formula approximation: `cost ≈ 200 + net_worth / 12` (capped ~2100 in Dota 7.x). Net worth
+   at buyback tick is available from the nearest `PlayerStateSnapshot`.
+
+**Files to change:** `extractors/_snapshots.py`, `extractors/players.py`, `models.py`,
+`match_builder.py`, `examples/report/html_sections.py`. See `STRATEGY.md` section 7b+.
+
 ## Code Style
 
 - **Not a direct translation** — code must be idiomatic Python, not Go/Java transliterated

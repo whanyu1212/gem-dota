@@ -237,3 +237,96 @@ class TestAegisEventType:
         ext = ObjectivesExtractor()
         ext._on_chat_event(MagicMock(type=9999), tick=500)
         assert ext.aegis_events == []
+
+
+# ---------------------------------------------------------------------------
+# Tormentor kills
+# ---------------------------------------------------------------------------
+
+
+class TestTormentorKills:
+    def _make(self):
+        from gem.extractors.objectives import ObjectivesExtractor
+
+        ext = ObjectivesExtractor()
+        parser = FakeParser()
+        ext.attach(parser)
+        return ext, parser
+
+    def test_miniboss_death_detected(self):
+        ext, parser = self._make()
+        parser.fire_combat_log(
+            _make_combat_log_entry(
+                tick=1800, target_name="npc_dota_miniboss", attacker_name="npc_dota_hero_axe"
+            )
+        )
+        assert len(ext.tormentor_kills) == 1
+        tk = ext.tormentor_kills[0]
+        assert tk.tick == 1800
+        assert tk.killer == "npc_dota_hero_axe"
+        assert tk.kill_number == 1
+        assert tk.killer_player_id == -1  # no chat event yet
+
+    def test_kill_number_increments(self):
+        ext, parser = self._make()
+        for tick in (1800, 5400):
+            parser.fire_combat_log(
+                _make_combat_log_entry(tick=tick, target_name="npc_dota_miniboss")
+            )
+        assert [k.kill_number for k in ext.tormentor_kills] == [1, 2]
+
+    def test_chat_event_patches_killer_player_id(self):
+        from gem.extractors.objectives import _CHAT_MSG_MINIBOSS_KILL, ObjectivesExtractor
+
+        ext = ObjectivesExtractor()
+        # Simulate DEATH first, then MINIBOSS_KILL chat event
+        ext._on_combat_log(_make_combat_log_entry(tick=1800, target_name="npc_dota_miniboss"))
+        ext._on_chat_event(MagicMock(type=_CHAT_MSG_MINIBOSS_KILL, playerid_1=4), tick=1800)
+        assert ext.tormentor_kills[0].killer_player_id == 4
+
+    def test_chat_event_without_prior_death_is_ignored(self):
+        from gem.extractors.objectives import _CHAT_MSG_MINIBOSS_KILL, ObjectivesExtractor
+
+        ext = ObjectivesExtractor()
+        ext._on_chat_event(MagicMock(type=_CHAT_MSG_MINIBOSS_KILL, playerid_1=2), tick=1800)
+        assert ext.tormentor_kills == []
+
+    def test_non_miniboss_death_not_captured(self):
+        ext, parser = self._make()
+        parser.fire_combat_log(_make_combat_log_entry(tick=1800, target_name="npc_dota_roshan"))
+        assert ext.tormentor_kills == []
+
+
+# ---------------------------------------------------------------------------
+# Shrine kills
+# ---------------------------------------------------------------------------
+
+
+class TestShrineKills:
+    def test_shrine_killed_chat_event(self):
+        from gem.extractors.objectives import _CHAT_MSG_SHRINE_KILLED, ObjectivesExtractor
+
+        ext = ObjectivesExtractor()
+        # value = team that owned the shrine (2=Radiant, 3=Dire)
+        ext._on_chat_event(MagicMock(type=_CHAT_MSG_SHRINE_KILLED, value=3), tick=2500)
+        assert len(ext.shrine_kills) == 1
+        sk = ext.shrine_kills[0]
+        assert sk.tick == 2500
+        assert sk.team == 3
+
+    def test_multiple_shrine_kills(self):
+        from gem.extractors.objectives import _CHAT_MSG_SHRINE_KILLED, ObjectivesExtractor
+
+        ext = ObjectivesExtractor()
+        ext._on_chat_event(MagicMock(type=_CHAT_MSG_SHRINE_KILLED, value=2), tick=1000)
+        ext._on_chat_event(MagicMock(type=_CHAT_MSG_SHRINE_KILLED, value=3), tick=2000)
+        assert len(ext.shrine_kills) == 2
+        assert ext.shrine_kills[0].team == 2
+        assert ext.shrine_kills[1].team == 3
+
+    def test_shrine_kill_zero_value_defaults(self):
+        from gem.extractors.objectives import _CHAT_MSG_SHRINE_KILLED, ObjectivesExtractor
+
+        ext = ObjectivesExtractor()
+        ext._on_chat_event(MagicMock(type=_CHAT_MSG_SHRINE_KILLED, value=None), tick=500)
+        assert ext.shrine_kills[0].team == 0

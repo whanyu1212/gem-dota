@@ -105,6 +105,8 @@ def build_parsed_match(
         barracks=obj_ext.barracks_kills,
         roshans=obj_ext.roshan_kills,
         aegis_events=obj_ext.aegis_events,
+        tormentors=obj_ext.tormentor_kills,
+        shrines=obj_ext.shrine_kills,
         wards=ward_ext.ward_events,
         combat_log=all_entries,
         chat=chat_entries,
@@ -218,23 +220,29 @@ def build_parsed_match(
         if pp.lane_total_gold > 0:
             pp.lane_efficiency_pct = int(pp.lane_total_gold / _LANE_GOLD_BASELINE * 100)
 
-    # Tier-2: lane advantage vs opponents (Dotabuff-style relative comparison).
-    # For each player find opposing-team players with the same lane_role and compute
-    # gold/xp delta. Jungle (4) and roaming (5) are excluded — no direct opponent.
+    # Tier-2: lane advantage vs opponents — paired by gold rank within the lane.
+    # Players are sorted by lane_total_gold descending within each (team, lane_role)
+    # group, then matched by rank: richest vs richest, poorest vs poorest.
+    # This fairly pairs carries against carries and supports against supports
+    # without requiring an explicit position field.
+    # Jungle (4) and roaming (5) are excluded — no direct lane opponent.
     _LANE_ROLES_WITH_OPPONENTS = {1, 2, 3}
-    for pp in match.players:
-        if pp.lane_role not in _LANE_ROLES_WITH_OPPONENTS:
-            continue
-        opp_team = 3 if pp.team == 2 else 2
-        opponents = [
-            op for op in match.players if op.team == opp_team and op.lane_role == pp.lane_role
-        ]
-        if not opponents:
-            continue
-        opp_gold = sum(op.lane_total_gold for op in opponents)
-        opp_xp = sum(op.lane_total_xp for op in opponents)
-        pp.lane_gold_adv = pp.lane_total_gold - opp_gold
-        pp.lane_xp_adv = pp.lane_total_xp - opp_xp
+    for role in _LANE_ROLES_WITH_OPPONENTS:
+        radiant = sorted(
+            [pp for pp in match.players if pp.team == 2 and pp.lane_role == role],
+            key=lambda p: p.lane_total_gold,
+            reverse=True,
+        )
+        dire = sorted(
+            [pp for pp in match.players if pp.team == 3 and pp.lane_role == role],
+            key=lambda p: p.lane_total_gold,
+            reverse=True,
+        )
+        for rad, dire_opp in zip(radiant, dire, strict=False):
+            rad.lane_gold_adv = rad.lane_total_gold - dire_opp.lane_total_gold
+            rad.lane_xp_adv = rad.lane_total_xp - dire_opp.lane_total_xp
+            dire_opp.lane_gold_adv = dire_opp.lane_total_gold - rad.lane_total_gold
+            dire_opp.lane_xp_adv = dire_opp.lane_total_xp - rad.lane_total_xp
 
     # Extract player names from CDOTA_PlayerResource entity.
     # Two field path variants: newer replays use m_vecPlayerData.{slot}.m_iszPlayerName,
