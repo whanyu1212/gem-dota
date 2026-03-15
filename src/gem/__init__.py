@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, Any
 import gem.constants as constants  # re-export so `gem.constants.hero_display()` works
 from gem.models import ChatEntry, ParsedMatch, ParsedPlayer
 
-__version__ = "0.1.0"
+__version__ = "0.2.1"
 
 if TYPE_CHECKING:
     import pandas as pd

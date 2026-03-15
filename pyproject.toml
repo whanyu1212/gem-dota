@@ -1,6 +1,6 @@
 [project]
 name = "gem-dota"
-version = "0.2.0"
+version = "0.2.1"
 description = "Dota 2 Source 2 replay parser for data science and ML workflows"
 readme = "README.md"
 license = { text = "MIT" }

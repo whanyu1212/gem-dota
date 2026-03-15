@@ -220,6 +220,14 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 
 ## Releases
 
+### [v0.2.1](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.1)
+
+- **JSON export** — `gem.to_json()`, `gem.to_dict()`, `gem.parse_to_json()` added to the public API.
+- **Parquet export** — `gem.to_parquet()`, `gem.parse_to_parquet()` added (requires `pyarrow` or `fastparquet`).
+- **Rich CLI** — live spinner progress, timing summary table, larger pixel-art banner in a box, per-player summary as a Rich table with Radiant/Dire colour coding.
+- **Docs** — architecture page redesigned, diamond icon added, laning pages added to nav, export formats documented throughout.
+- **Bug fixes** — two `mypy` type errors resolved in `__main__.py` and `dataframes.py`.
+
 ### [v0.2.0](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.0)
 
 - **Buyback gold cost** — HTML report buyback table now shows gold spent per buyback using the exact Dota 2 formula `floor(200 + net_worth / 13)`.
