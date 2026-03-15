@@ -15,7 +15,7 @@ from rich.align import Align
 from rich.box import HEAVY
 from rich.console import Console
 from rich.panel import Panel
-from rich.progress import Progress, SpinnerColumn, TextColumn, TimeElapsedColumn
+from rich.progress import Progress, SpinnerColumn, TaskID, TextColumn, TimeElapsedColumn
 from rich.table import Table
 from rich.text import Text
 
@@ -96,7 +96,7 @@ class _PhaseTracker:
         self._active: dict[str, float] = {}
         self._durations: dict[str, float] = {}
         self._progress_ctx: Progress | None = None
-        self._task_ids: dict[str, object] = {}
+        self._task_ids: dict[str, TaskID] = {}
 
         if self._show_progress:
             self._progress_ctx = Progress(
