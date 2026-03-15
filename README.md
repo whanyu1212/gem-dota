@@ -325,5 +325,7 @@ If you run a benchmark, please open an issue/PR with:
 |---|---|
 | Validation harness against OpenDota-style outputs | Ongoing |
 | Docs expansion (cookbook + parsing-from-scratch walkthroughs) | Planned |
+| ML project — using parsed replay data to power supervised/unsupervised models for player and team performance analysis | Planned |
+| Agentic project — LLM-powered replay analysis agent that reasons over structured match data to generate insights and coaching feedback | Planned |
 | Frontend demo application (interactive replay analysis UI showcasing parser capabilities) | Planned |
 | Rust acceleration for selected hot paths (PyO3 + maturin) | Deferred |
