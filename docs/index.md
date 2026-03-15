@@ -1,6 +1,6 @@
-# gem
+# Gem
 
-**gem** reads Dota 2 `.dem` replay files and turns them into structured Python objects.
+**Gem** reads Dota 2 `.dem` replay files and turns them into structured Python objects.
 
 Named after the **Gem of True Sight** — it reveals what is hidden inside replay files.
 
@@ -47,24 +47,24 @@ for player in match.players:
 
 ---
 
-## DataFrame export
+## Export formats
 
 ```python
 import gem
-import pandas as pd
 
+# DataFrames (pandas)
 frames = gem.parse_to_dataframe("my_replay.dem")
+heroes_df = frames["players"]   # columns: tick, hero, gold, xp, lh, dn, ...
 
-# Per-minute gold/XP advantage
-adv = pd.DataFrame({
-    "minute":     range(len(match.radiant_gold_adv)),
-    "gold_adv":   match.radiant_gold_adv,
-    "xp_adv":     match.radiant_xp_adv,
-})
-print(adv.head())
+# JSON — to string or file
+json_str = gem.parse_to_json("my_replay.dem", indent=2)
+match = gem.parse("my_replay.dem")
+data = gem.to_dict(match)        # plain Python dict
+json_str = gem.to_json(match)
 
-# Player snapshot time series
-heroes_df = frames["players"]   # columns: tick, hero, gold, xp, hp, mana, x, y, lh, dn
+# Parquet — one file per DataFrame table
+paths = gem.parse_to_parquet("my_replay.dem", output_dir="./out")
+paths = gem.to_parquet(match, output_dir="./out")
 ```
 
 ---

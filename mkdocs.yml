@@ -5,8 +5,13 @@ repo_url: https://github.com/whanyu1212/gem-dota
 repo_name: whanyu1212/gem-dota
 edit_uri: edit/main/docs/
 
+extra_css:
+  - stylesheets/extra.css
+
 theme:
   name: material
+  icon:
+    logo: material/diamond
   palette:
     - scheme: slate
       primary: deep purple
@@ -91,6 +96,7 @@ nav:
     - "Time-Series & DataFrames": guides/05_timeseries.md
     - "Teamfight Detection": guides/06_teamfights.md
     - "Custom Extractors": guides/07_custom_extractors.md
+    - "Laning Analysis": guides/08_laning.md
   - Architecture: architecture.md
   - API Reference:
     - Overview: reference/index.md
@@ -121,3 +127,4 @@ nav:
       - Courier: reference/extractors/courier.md
       - Draft: reference/extractors/draft.md
       - Teamfights: reference/extractors/teamfights.md
+      - Lane Classifier: reference/extractors/lane.md

@@ -103,6 +103,18 @@ The `log_type` field is a string label from `DOTA_COMBATLOG_TYPES`:
 
 ---
 
+## Derived economy stats
+
+Some economy metrics are reconstructed during match assembly rather than read
+directly from raw combat-log payloads:
+
+- **Buyback gold cost** is derived in `match_builder` using
+  `floor(200 + net_worth / 13)`.
+- **Laning efficiency** is computed against a fixed 10-minute baseline of
+  `4948` gold.
+
+---
+
 ## Ward placements
 
 Ward placements appear as `ITEM` events with specific inflictor names:
