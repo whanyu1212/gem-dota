@@ -1,71 +1,92 @@
+---
+hide:
+  - navigation
+  - toc
+---
+
 # Gem
 
-**Gem** reads Dota 2 `.dem` replay files and turns them into structured Python objects.
+<div class="hero-tagline" markdown>
+**Gem** reads Dota 2 `.dem` replay files and turns them into structured Python objects —
+named after the *Gem of True Sight*, which reveals what is hidden.
+</div>
 
-Named after the **Gem of True Sight** — it reveals what is hidden inside replay files.
-
----
-
-## Install
-
-```bash
-pip install gem-dota
-```
-
-Or with `uv`:
-
-```bash
-uv add gem-dota
-```
+<div class="hero-actions" markdown>
+[Get started](guides/01_quickstart.md){ .md-button .md-button--primary }
+[API Reference](reference/index.md){ .md-button }
+</div>
 
 ---
 
-## Quickstart
+## What you can do
 
-```python
-import gem
+<div class="grid cards" markdown>
 
-match = gem.parse("my_replay.dem")
+-   :material-play-speed: **Parse in seconds**
 
-# KDA and net worth for each player
-for player in match.players:
-    print(
-        f"{player.hero_name:<30}"
-        f"  KDA {player.kills}/{player.deaths}/{player.assists}"
-        f"  NW {player.net_worth:,}"
-    )
+    ---
 
-# Draft
-for pick in match.draft:
-    if pick.is_pick:
-        print(f"  {'Radiant' if pick.team == 0 else 'Dire'} picks {pick.hero_name}")
+    A typical 45-minute replay parses in 2–4 seconds in pure Python — no compiled
+    extensions required.
 
-# Ward count per player
-for player in match.players:
-    print(f"  {player.hero_name}: {len(player.wards)} wards")
-```
+    ```python
+    import gem
+    match = gem.parse("my_replay.dem")
+    ```
 
----
+-   :material-account-group: **Full match data**
 
-## Export formats
+    ---
 
-```python
-import gem
+    Players, draft, combat log, wards, objectives, teamfights, couriers, smoke events,
+    aegis, chat — everything in one call.
 
-# DataFrames (pandas)
-frames = gem.parse_to_dataframe("my_replay.dem")
-heroes_df = frames["players"]   # columns: tick, hero, gold, xp, lh, dn, ...
+    [Full Match Data →](guides/04_match_data.md)
 
-# JSON — to string or file
-json_str = gem.parse_to_json("my_replay.dem", indent=2)
-match = gem.parse("my_replay.dem")
-data = gem.to_dict(match)        # plain Python dict
-json_str = gem.to_json(match)
+-   :material-export: **Export anywhere**
 
-# Parquet — one file per DataFrame table
-paths = gem.parse_to_parquet("my_replay.dem", output_dir="./out")
-paths = gem.to_parquet(match, output_dir="./out")
-```
+    ---
+
+    Convert to pandas DataFrames, JSON, or Parquet with a single function.
+
+    ```python
+    gem.parse_to_dataframe("replay.dem")
+    gem.parse_to_json("replay.dem", indent=2)
+    gem.parse_to_parquet("replay.dem", "./out")
+    ```
+
+-   :material-database-arrow-right: **Batch processing**
+
+    ---
+
+    Parse hundreds of replays in parallel using all CPU cores.
+    Failed replays are captured, not raised.
+
+    ```python
+    gem.parse_many_to_parquet("replays/", "./out", workers=8)
+    ```
+
+-   :material-map-marker-check: **Exact ward coordinates**
+
+    ---
+
+    Ward placements carry precise map coordinates extracted from the entity stream —
+    not approximations.
+
+    [Ward extractor →](reference/extractors/wards.md)
+
+-   :material-console: **CLI included**
+
+    ---
+
+    Parse, export, and batch-process replays directly from the terminal —
+    no Python code needed.
+
+    ```bash
+    python -m gem batch replays/ --format parquet --output ./out
+    ```
+
+</div>
 
 ---
 
@@ -89,3 +110,21 @@ paths = gem.to_parquet(match, output_dir="./out")
 
     Go to the [API Reference](reference/index.md). Every public class and function
     has a Google-style docstring.
+
+---
+
+## Install
+
+=== "pip"
+
+    ```bash
+    pip install gem-dota
+    ```
+
+=== "uv"
+
+    ```bash
+    uv add gem-dota
+    ```
+
+Python 3.10 or later required.

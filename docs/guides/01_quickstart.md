@@ -16,7 +16,9 @@ Or with `uv`:
 uv add gem-dota
 ```
 
-You need Python 3.10 or later.
+!!! info "Requirements"
+    Python **3.10 or later** is required. gem has no compiled extensions — it runs
+    in pure Python out of the box.
 
 ---
 
@@ -24,6 +26,10 @@ You need Python 3.10 or later.
 
 Download a `.dem` file from [opendota.com](https://www.opendota.com) — find any match
 and click "Download Replay".
+
+!!! tip
+    You can also find replays in your Dota 2 client under **Watch → Recent Games**,
+    then click the download icon next to any match.
 
 ---
 
@@ -119,6 +125,13 @@ data     = gem.to_dict(match)   # plain Python dict
 
 ### Parquet
 
+!!! note "Parquet dependency"
+    Parquet output requires an optional engine. Install `pyarrow` (recommended) or
+    `fastparquet`:
+    ```bash
+    pip install pyarrow
+    ```
+
 ```python
 # One .parquet file per DataFrame table
 paths = gem.parse_to_parquet("my_replay.dem", output_dir="./out")
@@ -126,6 +139,46 @@ paths = gem.parse_to_parquet("my_replay.dem", output_dir="./out")
 # Or export from an already-parsed match
 paths = gem.to_parquet(match, output_dir="./out")
 ```
+
+### Batch processing
+
+Parse a whole folder of replays in parallel with `gem.parse_many_to_dataframe()`:
+
+```python
+import gem
+
+# Concatenated DataFrames from every replay in the folder
+dfs = gem.parse_many_to_dataframe("replays/", workers=4)
+print(dfs["players"].head())   # has a match_path column for provenance
+```
+
+Or write each replay to its own Parquet subdirectory:
+
+```python
+gem.parse_many_to_parquet("replays/", output_dir="./out", workers=4)
+```
+
+---
+
+## Command-line interface
+
+gem can also be used from the terminal without writing Python code:
+
+```bash
+# Match summary
+python -m gem my_replay.dem
+
+# Export to JSON
+python -m gem my_replay.dem --format json > match.json
+
+# Export to Parquet
+python -m gem parse my_replay.dem --format parquet --output ./out
+
+# Batch — parse a folder in parallel
+python -m gem batch replays/ --format parquet --output ./out --workers 4
+```
+
+See the [CLI Reference](09_cli.md) for all flags and options.
 
 ---
 
@@ -147,6 +200,7 @@ A typical 45-minute replay parses in 2–4 seconds in pure Python.
 ## Next steps
 
 - [Full Match Data](04_match_data.md) — all fields on `ParsedMatch` and `ParsedPlayer`
+- [CLI Reference](09_cli.md) — `parse` and `batch` subcommands, all flags
 - [Entity State](02_entity_state.md) — subscribe to per-tick entity events
 - [Combat Log](03_combat_log.md) — raw damage, heal, kill, ability events
 - [Time-Series & DataFrames](05_timeseries.md) — per-minute gold/XP advantage curves, JSON and Parquet export

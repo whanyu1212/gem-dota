@@ -27,6 +27,7 @@ Auto-generated from source docstrings. All public classes and functions follow
 | [Match Builder](match_builder.md) | Assembles extractor output into `ParsedMatch` |
 | [Combat Aggregator](combat_aggregator.md) | Per-player combat stat aggregation |
 | [DataFrames](dataframes.md) | `parse_to_dataframe()`, `to_parquet()`, `to_json()`, `to_dict()` — export to pandas, Parquet, or JSON |
+| [Batch](batch.md) | `parse_many()`, `parse_many_to_dataframe()`, `parse_many_to_parquet()` — parallel multi-replay processing |
 
 ## Extractors
 
