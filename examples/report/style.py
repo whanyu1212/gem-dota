@@ -147,23 +147,23 @@ tbody td.r { text-align: right; font-variant-numeric: tabular-nums; }
     text-transform: uppercase; text-shadow: 0 0 3px #000;
 }
 .draft-cell.dc-ban-radiant .dc-type-badge { color: #4ade80; }
-.draft-cell.dc-ban-dire    .dc-type-badge { color: #fb923c; }
+.draft-cell.dc-ban-dire    .dc-type-badge { color: #f87171; }
 .draft-cell.dc-pick-radiant .dc-type-badge { color: #4ade80; }
-.draft-cell.dc-pick-dire    .dc-type-badge { color: #fb923c; }
+.draft-cell.dc-pick-dire    .dc-type-badge { color: #f87171; }
 .draft-cell .dc-time {
     font-size: 0.55rem; color: #484f58; font-family: monospace; padding-bottom: 3px;
 }
-/* Bans: greyscale + team-coloured border so you can still tell which side */
+/* Bans: greyscale image only — border/name keep team colour */
 .draft-cell.dc-ban-radiant {
     background: #0e1610; border-color: #1e5c28;
-    filter: grayscale(100%) brightness(0.55);
 }
+.draft-cell.dc-ban-radiant img { filter: grayscale(100%) brightness(0.5); }
 .draft-cell.dc-ban-radiant .dc-name { color: #4ade80; }
 .draft-cell.dc-ban-dire {
-    background: #160e0e; border-color: #6b2a10;
-    filter: grayscale(100%) brightness(0.55);
+    background: #160e0e; border-color: #5c1a1a;
 }
-.draft-cell.dc-ban-dire .dc-name { color: #fb923c; }
+.draft-cell.dc-ban-dire img { filter: grayscale(100%) brightness(0.5); }
+.draft-cell.dc-ban-dire .dc-name { color: #f87171; }
 /* ✕ overlay shared by both ban variants */
 .draft-cell.dc-ban-radiant::after,
 .draft-cell.dc-ban-dire::after {
@@ -449,6 +449,52 @@ details[open].sub-accordion > summary::before {
 }
 .tf-table tbody td { border-top: 1px solid #21262d; }
 .tf-table .r { text-align: right; font-variant-numeric: tabular-nums; }
+
+.tf-log-expander {
+    border-top: 1px solid #30363d;
+    padding: 0 12px;
+}
+.tf-log-expander > summary {
+    padding: 8px 0;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: #8b949e;
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+}
+.tf-log-expander > summary::before {
+    content: "▶ ";
+    font-size: 9px;
+}
+.tf-log-expander[open] > summary::before { content: "▼ "; }
+.tf-log-body {
+    padding: 6px 0 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    max-height: 320px;
+    overflow-y: auto;
+}
+.tf-log-line {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    font-size: 12px;
+    color: #c9d1d9;
+    padding: 2px 0;
+    border-bottom: 1px solid #21262d;
+}
+.tf-log-time {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    color: #8b949e;
+    flex-shrink: 0;
+    min-width: 38px;
+}
+.tf-log-text { flex: 1; }
 
 /* ---- Tab navigation ---- */
 .tab-bar {

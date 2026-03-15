@@ -39,4 +39,6 @@ STRATEGY.md
 # Test/coverage artifacts
 .pytest_cache/
 .coverage
+.coverage.*
+coverage.xml
 htmlcov/

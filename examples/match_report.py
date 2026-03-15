@@ -5,7 +5,7 @@ Tabs and their sections:
   Overview   — Match header (always visible), Scoreboard, Gold & XP chart
   Combat     — Damage breakdown, Kill feed
   Laning     — Lane role minimap, LH/DN/Gold/XP@10, Eff%, Gold/XP advantage
-  Teamfights — Fight cards with minimap, participants, per-player stats
+  Fights     — Fight cards with minimap, participants, per-player stats
   Vision     — Ward map (interactive canvas with playback)
   Economy    — Purchase timeline, Buybacks, Runes
   Draft      — Pick/ban sequence + team picks with hero portraits
@@ -179,8 +179,9 @@ def _build_movement_tab(match: gem.ParsedMatch, map_b64: str | None) -> str:
         m = _re.search(r'<div id="([^"]+)" class="plotly-graph-div"', plotly_div)
         div_id = m.group(1) if m else ""
 
-        # After Plotly initialises the figure, pause at frame 0 immediately.
-        # Plotly.animate(id, null, {mode:'immediate'}) cancels any queued animation.
+        # After Plotly initialises the figure, ensure it is paused at frame 0.
+        # Plotly.animate(id, [null], {mode:'immediate', frame:{duration:0}})
+        # stops any queued animation without advancing frames.
         pause_js = ""
         if div_id:
             pause_js = (
@@ -188,7 +189,11 @@ def _build_movement_tab(match: gem.ParsedMatch, map_b64: str | None) -> str:
                 f"(function waitForPlotly(){{"
                 f'  var el = document.getElementById("{div_id}");'
                 f"  if (!el || !el._fullLayout) {{ setTimeout(waitForPlotly, 50); return; }}"
-                f'  Plotly.animate("{div_id}", null, {{mode:"immediate"}});'
+                f'  Plotly.animate("{div_id}", [null], {{'
+                f'    mode:"immediate",'
+                f"    frame:{{duration:0,redraw:false}},"
+                f"    transition:{{duration:0}}"
+                f"  }});"
                 f"}})();"
                 f"</script>"
             )
@@ -258,7 +263,7 @@ def build_html(match: gem.ParsedMatch, map_b64: str | None = None) -> str:
             ),
         ),
         ("Laning", _ext_build_laning(match, map_b64)),
-        ("Teamfights", _ext_build_teamfights(match, map_b64)),
+        ("Fights", _ext_build_teamfights(match, map_b64)),
         ("Vision", _ext_build_wards(match, map_b64)),
         (
             "Economy",
@@ -268,7 +273,6 @@ def build_html(match: gem.ParsedMatch, map_b64: str | None = None) -> str:
                     [
                         _ext_build_purchases(match),
                         _ext_build_buybacks(match),
-                        _ext_build_runes(match, _hero_cell),
                     ],
                 )
             ),
@@ -281,6 +285,7 @@ def build_html(match: gem.ParsedMatch, map_b64: str | None = None) -> str:
                     None,
                     [
                         _ext_build_objectives(match, _fmt_tick),
+                        _ext_build_runes(match, _hero_cell),
                         _ext_build_chat(match),
                     ],
                 )
