@@ -141,23 +141,24 @@ def parse_many(
 
     results: list[ParseResult] = []
 
-    if progress:
-        from rich.progress import (
-            BarColumn,
-            MofNCompleteColumn,
-            Progress,
-            TextColumn,
-            TimeElapsedColumn,
-        )
+    from rich.progress import (
+        BarColumn,
+        MofNCompleteColumn,
+        Progress,
+        TextColumn,
+        TimeElapsedColumn,
+    )
 
-        rich_progress = Progress(
+    rich_progress: Progress | None = (
+        Progress(
             TextColumn("[progress.description]{task.description}"),
             BarColumn(),
             MofNCompleteColumn(),
             TimeElapsedColumn(),
         )
-    else:
-        rich_progress = None
+        if progress
+        else None
+    )
 
     def _run(executor: ProcessPoolExecutor) -> None:
         future_to_path: dict[Future[tuple], Path] = {
