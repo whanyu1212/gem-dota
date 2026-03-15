@@ -31,11 +31,17 @@ theme:
     - navigation.sections
     - navigation.expand
     - navigation.top
+    - navigation.path
+    - navigation.indexes
+    - toc.follow
     - content.action.edit
     - content.code.copy
     - content.code.annotate
+    - content.tooltips
+    - content.tabs.link
     - search.highlight
     - search.suggest
+    - search.share
 
 plugins:
   - search
@@ -50,7 +56,16 @@ plugins:
             show_signature_annotations: true
             members_order: source
 
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/whanyu1212/gem-dota
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/gem-dota
+
 markdown_extensions:
+  - attr_list
+  - md_in_html
   - admonition
   - pymdownx.details
   - pymdownx.superfences:
@@ -97,6 +112,8 @@ nav:
     - "Teamfight Detection": guides/06_teamfights.md
     - "Custom Extractors": guides/07_custom_extractors.md
     - "Laning Analysis": guides/08_laning.md
+    - "CLI Reference": guides/09_cli.md
+    - "Annotated JSON Output": guides/10_json_output.md
   - Architecture: architecture.md
   - API Reference:
     - Overview: reference/index.md
@@ -119,6 +136,7 @@ nav:
       - Constants: reference/constants.md
       - Match Builder: reference/match_builder.md
       - DataFrames: reference/dataframes.md
+      - Batch: reference/batch.md
     - Extractors:
       - reference/extractors/index.md
       - Players: reference/extractors/players.md

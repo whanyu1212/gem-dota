@@ -7,6 +7,15 @@ Public API
 
 ``parse_to_dataframe(path)``
     Parse a replay and return a dict of pandas DataFrames.
+
+``parse_many(source)``
+    Parse multiple replays in parallel; return ``list[ParseResult]``.
+
+``parse_many_to_dataframe(source)``
+    Parse multiple replays and concatenate into per-table DataFrames.
+
+``parse_many_to_parquet(source, output_dir)``
+    Parse multiple replays and write each to its own parquet subdirectory.
 """
 
 from __future__ import annotations
@@ -18,9 +27,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import gem.constants as constants  # re-export so `gem.constants.hero_display()` works
+from gem.batch import ParseResult, parse_many, parse_many_to_dataframe, parse_many_to_parquet
 from gem.models import ChatEntry, ParsedMatch, ParsedPlayer
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -237,6 +247,10 @@ __all__ = [
     "parse_to_dataframe",
     "to_parquet",
     "parse_to_parquet",
+    "ParseResult",
+    "parse_many",
+    "parse_many_to_dataframe",
+    "parse_many_to_parquet",
     "ParsedMatch",
     "ParsedPlayer",
     "ChatEntry",
