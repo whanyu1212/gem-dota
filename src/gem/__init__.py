@@ -31,7 +31,7 @@ from gem.batch import ParseResult, parse_many, parse_many_to_dataframe, parse_ma
 from gem.constants import hero_npc_name
 from gem.models import ChatEntry, ParsedMatch, ParsedPlayer
 
-__version__ = "0.2.2"
+__version__ = "0.2.3"
 
 if TYPE_CHECKING:
     import pandas as pd
