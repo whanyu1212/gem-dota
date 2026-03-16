@@ -150,6 +150,10 @@ def build_parsed_match(
         pp.lh_t_min = mts.lh_t
         pp.dn_t_min = mts.dn_t
         pp.xp_t_min = mts.xp_t
+        pp.total_hero_damage_t_min = mts.total_hero_damage_t
+        pp.total_hero_healing_t_min = mts.total_hero_healing_t
+        pp.total_deaths_t_min = mts.total_deaths_t
+        pp.total_stuns_t_min = mts.total_stuns_t
         pp.position_log = [
             (snap.tick, snap.x, snap.y)
             for snap in player_ext.snapshots

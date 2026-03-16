@@ -73,8 +73,16 @@ for player in match.players:
     print(
         f"{player.player_name} ({gem.constants.hero_display(player.hero_name)}): "
         f"{player.kills}/{player.deaths}/{player.assists}  "
-        f"{player.net_worth:,} NW  {player.stuns_dealt:.1f}s stuns"
+        f"{player.net_worth_t_min[-1] if player.net_worth_t_min else 0:,} NW  "
+        f"{player.stuns_dealt:.1f}s stuns"
     )
+
+# Look up a specific player by hero name (display name, NPC name, or bare suffix)
+axe    = gem.find_player(match, "Axe")
+am     = gem.find_player(match, "Anti-Mage")
+sf     = gem.find_player(match, "npc_dota_hero_nevermore")
+if axe:
+    print(f"Axe: {axe.kills}/{axe.deaths}/{axe.assists}")
 ```
 
 ```python

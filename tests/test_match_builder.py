@@ -50,6 +50,10 @@ class _FakeTimeSeries:
     xp_t: list[int] = field(default_factory=list)
     total_earned_gold_t: list[int] = field(default_factory=list)
     total_earned_xp_t: list[int] = field(default_factory=list)
+    total_hero_damage_t: list[int] = field(default_factory=list)
+    total_hero_healing_t: list[int] = field(default_factory=list)
+    total_deaths_t: list[int] = field(default_factory=list)
+    total_stuns_t: list[float] = field(default_factory=list)
 
 
 @dataclass

@@ -390,6 +390,61 @@ class TestLeagueName:
         assert result is None
 
 
+class TestHeroNpcName:
+    """hero_npc_name — reverse display-name → NPC name lookup."""
+
+    def test_exact_localized_name(self) -> None:
+        # "Axe" → npc_dota_hero_axe
+        result = C.hero_npc_name("Axe")
+        assert result == "npc_dota_hero_axe"
+
+    def test_case_insensitive(self) -> None:
+        assert C.hero_npc_name("axe") == "npc_dota_hero_axe"
+        assert C.hero_npc_name("AXE") == "npc_dota_hero_axe"
+
+    def test_hyphenated_name(self) -> None:
+        # "Anti-Mage" → npc_dota_hero_antimage
+        result = C.hero_npc_name("Anti-Mage")
+        assert result == "npc_dota_hero_antimage"
+
+    def test_hyphen_as_space(self) -> None:
+        assert C.hero_npc_name("anti mage") == "npc_dota_hero_antimage"
+
+    def test_underscore_variant(self) -> None:
+        assert C.hero_npc_name("anti_mage") == "npc_dota_hero_antimage"
+
+    def test_passthrough_npc_name(self) -> None:
+        # Already-qualified NPC names are returned unchanged
+        assert C.hero_npc_name("npc_dota_hero_axe") == "npc_dota_hero_axe"
+
+    def test_unknown_returns_none(self) -> None:
+        assert C.hero_npc_name("not_a_hero") is None
+
+    def test_empty_string_returns_none(self) -> None:
+        assert C.hero_npc_name("") is None
+
+    def test_unknown_npc_prefix_returns_none(self) -> None:
+        assert C.hero_npc_name("npc_dota_hero_doesnotexist") is None
+
+    def test_round_trip(self) -> None:
+        # hero_display(hero_npc_name(name)) == name (for a few spot-checks)
+        for display in ("Axe", "Anti-Mage", "Shadow Demon"):
+            npc = C.hero_npc_name(display)
+            if npc is not None:
+                assert C.hero_display(npc).lower() == display.lower()
+
+    def test_all_heroes_are_resolvable(self) -> None:
+        # Every hero in HEROES must be reverse-resolvable from its localized_name
+        for npc, data in C.HEROES.items():
+            loc = data.get("localized_name")
+            if not loc:
+                continue
+            resolved = C.hero_npc_name(loc)
+            assert resolved == npc, (
+                f"hero_npc_name({loc!r}) returned {resolved!r}, expected {npc!r}"
+            )
+
+
 class TestConstantsReexport:
     """gem.constants must be accessible as an attribute of the gem package."""
 
@@ -413,3 +468,24 @@ class TestConstantsReexport:
         import gem
 
         assert "constants" in gem.__all__
+
+    def test_hero_npc_name_exported(self) -> None:
+        import gem
+
+        assert callable(gem.hero_npc_name)
+        assert gem.hero_npc_name("Axe") == "npc_dota_hero_axe"
+
+    def test_find_player_exported(self) -> None:
+        import gem
+
+        assert callable(gem.find_player)
+
+    def test_find_player_in_all(self) -> None:
+        import gem
+
+        assert "find_player" in gem.__all__
+
+    def test_hero_npc_name_in_all(self) -> None:
+        import gem
+
+        assert "hero_npc_name" in gem.__all__

@@ -59,6 +59,9 @@ from report.html_sections import (
     build_chat as _ext_build_chat,
 )
 from report.html_sections import (
+    build_combat_timeseries_chart as _ext_build_combat_timeseries_chart,
+)
+from report.html_sections import (
     build_damage as _ext_build_damage,
 )
 from report.html_sections import (
@@ -256,6 +259,7 @@ def build_html(match: gem.ParsedMatch, map_b64: str | None = None) -> str:
                 filter(
                     None,
                     [
+                        _ext_build_combat_timeseries_chart(match),
                         _ext_build_damage(match, _hero_cell),
                         _ext_build_kill_feed(match, _hero_cell),
                     ],

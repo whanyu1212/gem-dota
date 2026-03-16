@@ -11,6 +11,7 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
+from gem.combatlog import CombatLogEntry
 from gem.entities import Entity, EntityOp
 from gem.extractors._snapshots import (
     _HERO_CLASS_PREFIX,
@@ -109,6 +110,12 @@ class PlayerExtractor:
         # player_id → tick of first inventory snapshot (used to suppress
         # duplicate combat log PURCHASE events for the same window)
         self.first_snapshot_tick: dict[int, int] = {}
+        # Running combat log totals per player — stamped into each snapshot.
+        # These are monotonically increasing so diffs give per-window rates.
+        self._total_hero_damage: dict[int, int] = {}
+        self._total_hero_healing: dict[int, int] = {}
+        self._total_deaths: dict[int, int] = {}
+        self._total_stuns: dict[int, float] = {}
 
     def attach(self, parser: ReplayParser) -> None:
         """Register callbacks with the parser.
@@ -118,6 +125,7 @@ class PlayerExtractor:
         """
         self._parser = parser
         parser.on_entity(self._on_entity)
+        parser.on_combat_log_entry(self._on_combat_log_entry)
         if self._minute_snapshots:
             parser.on_game_start(self._on_game_start)
         parser.on_game_end(self._on_game_end)
@@ -143,6 +151,56 @@ class PlayerExtractor:
                 a = pr.get_int32(f"{prefix}.m_iAssists")
                 if k is not None or d is not None or a is not None:
                     self.scoreboard[i] = (k or 0, d or 0, a or 0)
+
+    def _on_combat_log_entry(self, entry: CombatLogEntry) -> None:
+        """Accumulate per-player running totals from combat log entries.
+
+        Updates monotonically increasing counters for hero damage dealt,
+        healing dealt, deaths, and stun duration.  Called for every combat log
+        entry; irrelevant entry types are ignored cheaply.
+
+        Args:
+            entry: The incoming combat log entry.
+        """
+        if entry.log_type == "DAMAGE" and entry.attacker_is_hero and entry.target_is_hero:
+            pid = self._hero_to_pid(entry.attacker_name)
+            if pid is not None:
+                self._total_hero_damage[pid] = self._total_hero_damage.get(pid, 0) + entry.value
+
+        elif entry.log_type == "HEAL" and entry.attacker_is_hero and entry.target_is_hero:
+            pid = self._hero_to_pid(entry.attacker_name)
+            if pid is not None:
+                self._total_hero_healing[pid] = self._total_hero_healing.get(pid, 0) + entry.value
+
+        elif entry.log_type == "DEATH" and entry.target_is_hero:
+            pid = self._hero_to_pid(entry.target_name)
+            if pid is not None:
+                self._total_deaths[pid] = self._total_deaths.get(pid, 0) + 1
+
+        if entry.stun_duration > 0 and entry.attacker_is_hero:
+            pid = self._hero_to_pid(entry.attacker_name)
+            if pid is not None:
+                self._total_stuns[pid] = self._total_stuns.get(pid, 0.0) + entry.stun_duration
+
+    def _hero_to_pid(self, npc_name: str) -> int | None:
+        """Resolve an NPC hero name to a player slot (0-9).
+
+        Args:
+            npc_name: Hero NPC name as it appears in the combat log, e.g.
+                ``"npc_dota_hero_axe"``.
+
+        Returns:
+            Player slot 0-9, or ``None`` if the hero is not tracked.
+        """
+        entity = self._heroes_by_npc.get(npc_name.lower())
+        if entity is None:
+            return None
+        pid = entity.get_int32("m_nPlayerID")
+        if pid is None:
+            pid = entity.get_int32("m_iPlayerID")
+        if pid is None or pid < 0:
+            return None
+        return pid // 2
 
     def hero_pos(self, npc_name: str) -> tuple[float, float] | None:
         """Return the current world position of a hero by NPC name.
@@ -181,6 +239,10 @@ class PlayerExtractor:
             ts.mana_t.append(snap.mana)
             ts.x_t.append(snap.x)
             ts.y_t.append(snap.y)
+            ts.total_hero_damage_t.append(snap.total_hero_damage)
+            ts.total_hero_healing_t.append(snap.total_hero_healing)
+            ts.total_deaths_t.append(snap.total_deaths)
+            ts.total_stuns_t.append(snap.total_stuns)
         return ts
 
     def minute_time_series(self, player_id: int) -> PlayerTimeSeries:
@@ -229,6 +291,10 @@ class PlayerExtractor:
             ts.mana_t.append(snap.mana)
             ts.x_t.append(snap.x)
             ts.y_t.append(snap.y)
+            ts.total_hero_damage_t.append(snap.total_hero_damage)
+            ts.total_hero_healing_t.append(snap.total_hero_healing)
+            ts.total_deaths_t.append(snap.total_deaths)
+            ts.total_stuns_t.append(snap.total_stuns)
         return ts
 
     def _on_entity(self, entity: Entity, op: EntityOp) -> None:
@@ -378,6 +444,11 @@ class PlayerExtractor:
                 if dn is not None and dn > 0:
                     snap.dn = dn
             snap.ability_levels = self._read_abilities(entity)
+            pid = snap.player_id
+            snap.total_hero_damage = self._total_hero_damage.get(pid, 0)
+            snap.total_hero_healing = self._total_hero_healing.get(pid, 0)
+            snap.total_deaths = self._total_deaths.get(pid, 0)
+            snap.total_stuns = self._total_stuns.get(pid, 0.0)
             if minute:
                 self._minute_snaps.append(snap)
             else:
@@ -489,8 +560,6 @@ class PlayerExtractor:
         if self._parser is None or player_id in self._inventory_initialized:
             return
         current = self._read_inventory(hero)
-
-        from gem.combatlog import CombatLogEntry
 
         if player_id not in self._inventory_initialized:
             # First snapshot — emit all current items as starting inventory.
