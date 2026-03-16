@@ -24,14 +24,12 @@ extractors. A typical 45-minute replay takes 2–4 seconds.
 match.match_id             # int: Valve match ID
 match.duration_seconds     # float: game duration in seconds
 match.duration_minutes     # float: convenience property
-match.radiant_win          # bool
+match.radiant_win          # bool | None
 match.game_mode            # int: game mode enum
-match.lobby_type           # int: lobby type enum
-match.cluster              # int: server cluster ID
-match.game_build           # int: Dota 2 build number extracted from svc_ServerInfo
+match.leagueid             # int: league ID (0 for non-league)
 
-match.radiant_score        # int: Radiant kill count at game end
-match.dire_score           # int: Dire kill count at game end
+match.game_start_tick      # int | None: tick when creeps spawned
+match.game_end_tick        # int: last tick observed by the parser
 
 match.radiant_gold_adv     # list[int]: per-minute Radiant gold advantage
 match.radiant_xp_adv       # list[int]: per-minute Radiant XP advantage
@@ -51,6 +49,40 @@ for player in match.players:
     print(player.team)          # 2 = Radiant, 3 = Dire
 ```
 
+### Looking up a player by hero name
+
+Instead of iterating `match.players` manually, use `gem.find_player()`:
+
+```python
+import gem
+
+match = gem.parse("my_replay.dem")
+
+# All of these are equivalent:
+axe = gem.find_player(match, "Axe")               # display name
+axe = gem.find_player(match, "axe")               # case-insensitive
+axe = gem.find_player(match, "npc_dota_hero_axe") # full NPC name
+am  = gem.find_player(match, "Anti-Mage")         # hyphenated display name
+am  = gem.find_player(match, "anti mage")         # spaced variant
+
+if axe:
+    print(f"Axe: {axe.kills}/{axe.deaths}/{axe.assists}")
+```
+
+Returns `None` if the hero was not in the match.  For the reverse lookup
+(display name → NPC name) without a match object, use
+`gem.constants.hero_npc_name()`:
+
+```python
+from gem.constants import hero_npc_name
+
+hero_npc_name("Anti-Mage")   # → "npc_dota_hero_antimage"
+hero_npc_name("Shadow Fiend") # → "npc_dota_hero_nevermore"
+hero_npc_name("unknown")      # → None
+```
+
+---
+
 ### Per-player aggregate stats
 
 ```python
@@ -58,29 +90,21 @@ player.kills           # int: kills attributed (summons credited to owner)
 player.deaths          # int: deaths from any cause (hero, tower, creep, neutral)
 player.assists         # int
 
-player.last_hits       # int: creep last hits at game end
-player.denies          # int
+player.stuns_dealt     # float: total stun seconds dealt to enemy heroes
 
-player.net_worth       # int: total earned gold at game end
-player.gold_per_min    # int
-player.xp_per_min      # int
+# Net worth / gold / XP are time-series (sampled every tick or per minute)
+player.net_worth_t_min[-1]          # int: net worth at game end (last minute sample)
+player.total_earned_gold_t_min[-1]  # int: cumulative gold at game end
+player.lh_t_min[-1]                 # int: last-hit count at game end
+player.dn_t_min[-1]                 # int: deny count at game end
 
-player.hero_damage      # int: total hero-to-hero damage dealt
-player.tower_damage     # int
-player.hero_healing     # int: healing dealt to allied heroes
+# Total damage dealt / received — dicts keyed by target/attacker NPC name
+player.damage            # dict[str, int]: damage dealt per target
+player.damage_taken      # dict[str, int]: damage received per attacker
+sum(player.damage.values())       # total damage dealt across all targets
 
 player.damage_by_type        # dict[str, int]: damage dealt keyed by "physical"/"magical"/"pure"/"others"
 player.damage_taken_by_type  # dict[str, int]: damage received keyed by damage type
-
-player.level           # int: hero level at game end
-player.stuns_dealt     # float: total stun seconds dealt to enemy heroes
-```
-
-### Items and abilities
-
-```python
-player.item_builds     # list[str]: final inventory item names
-player.ability_upgrades  # list[dict]: each entry {"tick": int, "ability": str, "level": int}
 ```
 
 ### Time-series logs
@@ -190,13 +214,13 @@ for event in match.draft:
 ```python
 for ward in match.wards:
     print(
-        f"tick {ward.placed_tick:,}: "
-        f"{ward.placed_by} places {ward.ward_type} ward "
+        f"tick {ward.tick:,}: "
+        f"{ward.placer} places {ward.ward_type} ward "
         f"at ({ward.x:.0f}, {ward.y:.0f})"
     )
 ```
 
-`WardEvent` fields: `placed_tick`, `placed_by`, `ward_type` (`"observer"` or `"sentry"`),
+`WardEvent` fields: `tick`, `placer`, `ward_type` (`"observer"` or `"sentry"`),
 `x`, `y`, `killed_tick` (or `None`), `expires_tick` (or `None`).
 
 ---
@@ -262,17 +286,19 @@ from gem.constants import hero_display
 match = gem.parse("my_replay.dem")
 
 result = "Radiant" if match.radiant_win else "Dire"
-print(f"Winner: {result}  ({match.radiant_score}–{match.dire_score})")
+print(f"Winner: {result}")
 print(f"Duration: {match.duration_minutes:.1f} min")
 print()
 
 for player in match.players:
     hero = hero_display(player.hero_name)
     team = "R" if player.team == 2 else "D"
+    nw = player.net_worth_t_min[-1] if player.net_worth_t_min else 0
+    dmg = sum(player.damage.values())
     print(
         f"[{team}] {hero:<20}"
         f"  {player.kills}/{player.deaths}/{player.assists}"
-        f"  {player.net_worth:>7,} NW"
-        f"  {player.hero_damage:>8,} dmg"
+        f"  {nw:>7,} NW"
+        f"  {dmg:>8,} dmg"
     )
 ```

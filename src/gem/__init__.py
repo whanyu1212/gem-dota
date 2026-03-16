@@ -28,9 +28,10 @@ from typing import TYPE_CHECKING, Any
 
 import gem.constants as constants  # re-export so `gem.constants.hero_display()` works
 from gem.batch import ParseResult, parse_many, parse_many_to_dataframe, parse_many_to_parquet
+from gem.constants import hero_npc_name
 from gem.models import ChatEntry, ParsedMatch, ParsedPlayer
 
-__version__ = "0.2.2"
+__version__ = "0.2.3"
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -151,6 +152,26 @@ def parse(path: str | Path) -> ParsedMatch:
     )
 
 
+def find_player(match: ParsedMatch, hero: str) -> ParsedPlayer | None:
+    """Look up a player by hero name.
+
+    Accepts display names (``"Axe"``, ``"Anti-Mage"``), NPC names
+    (``"npc_dota_hero_axe"``), or bare NPC suffixes (``"axe"``).
+
+    Args:
+        match: A parsed replay.
+        hero: Hero display name, NPC name, or bare suffix.
+
+    Returns:
+        The matching :class:`ParsedPlayer`, or ``None`` if not found.
+    """
+    if hero.startswith("npc_dota_hero_"):
+        npc = hero
+    else:
+        npc = hero_npc_name(hero) or f"npc_dota_hero_{hero.lower()}"
+    return next((p for p in match.players if p.hero_name == npc), None)
+
+
 def _to_json_compatible(value: Any) -> Any:
     """Recursively convert values to JSON-compatible Python types."""
     if is_dataclass(value):
@@ -254,5 +275,7 @@ __all__ = [
     "ParsedMatch",
     "ParsedPlayer",
     "ChatEntry",
+    "find_player",
+    "hero_npc_name",
     "constants",
 ]

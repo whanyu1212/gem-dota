@@ -97,6 +97,10 @@ class ParsedPlayer:
         lh_t_min: Last-hit count at each game-minute boundary.
         dn_t_min: Deny count at each game-minute boundary.
         xp_t_min: Cumulative XP at each game-minute boundary.
+        total_hero_damage_t_min: Cumulative hero-vs-hero damage dealt at each game-minute boundary.
+        total_hero_healing_t_min: Cumulative healing dealt to allied heroes at each game-minute boundary.
+        total_deaths_t_min: Cumulative death count at each game-minute boundary.
+        total_stuns_t_min: Cumulative stun duration dealt (seconds) at each game-minute boundary.
         obs_log: Observer ward placement events for this player.
         sen_log: Sentry ward placement events for this player.
         damage: Total damage dealt, keyed by target NPC name.
@@ -162,6 +166,10 @@ class ParsedPlayer:
     lh_t_min: list[int] = field(default_factory=list)
     dn_t_min: list[int] = field(default_factory=list)
     xp_t_min: list[int] = field(default_factory=list)
+    total_hero_damage_t_min: list[int] = field(default_factory=list)
+    total_hero_healing_t_min: list[int] = field(default_factory=list)
+    total_deaths_t_min: list[int] = field(default_factory=list)
+    total_stuns_t_min: list[float] = field(default_factory=list)
     obs_log: list[WardEvent] = field(default_factory=list)
     sen_log: list[WardEvent] = field(default_factory=list)
     damage: dict[str, int] = field(default_factory=dict)
@@ -261,6 +269,17 @@ class ParsedMatch:
     smoke_events: list[SmokeEvent] = field(default_factory=list)
     draft: list[DraftEvent] = field(default_factory=list)
     teamfights: list[Teamfight] = field(default_factory=list)
+
+    @property
+    def duration_seconds(self) -> float:
+        """Game duration in seconds, derived from ``game_start_tick`` and ``game_end_tick``."""
+        start = self.game_start_tick or 0
+        return max(self.game_end_tick - start, 0) / 30.0
+
+    @property
+    def duration_minutes(self) -> float:
+        """Game duration in minutes, derived from ``game_start_tick`` and ``game_end_tick``."""
+        return self.duration_seconds / 60.0
 
     def __repr__(self) -> str:
         winner = "Radiant" if self.radiant_win else "Dire" if self.radiant_win is False else "?"

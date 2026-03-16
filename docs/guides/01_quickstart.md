@@ -47,8 +47,8 @@ for player in match.players:
     print(
         f"{player.hero_name:<30}"
         f"  KDA {player.kills}/{player.deaths}/{player.assists}"
-        f"  NW {player.net_worth:,}"
-        f"  LH/DN {player.last_hits}/{player.denies}"
+        f"  NW {player.net_worth_t_min[-1] if player.net_worth_t_min else 0:,}"
+        f"  LH/DN {player.lh_t_min[-1] if player.lh_t_min else 0}/{player.dn_t_min[-1] if player.dn_t_min else 0}"
     )
 ```
 
@@ -83,7 +83,7 @@ for event in match.draft:
 
 ```python
 for player in match.players:
-    wards = [w for w in match.wards if w.placed_by == player.hero_name]
+    wards = [w for w in match.wards if w.placer == player.hero_name]
     print(f"  {player.hero_name}: {len(wards)} wards placed")
 ```
 

@@ -73,8 +73,16 @@ for player in match.players:
     print(
         f"{player.player_name} ({gem.constants.hero_display(player.hero_name)}): "
         f"{player.kills}/{player.deaths}/{player.assists}  "
-        f"{player.net_worth:,} NW  {player.stuns_dealt:.1f}s stuns"
+        f"{player.net_worth_t_min[-1] if player.net_worth_t_min else 0:,} NW  "
+        f"{player.stuns_dealt:.1f}s stuns"
     )
+
+# Look up a specific player by hero name (display name, NPC name, or bare suffix)
+axe    = gem.find_player(match, "Axe")
+am     = gem.find_player(match, "Anti-Mage")
+sf     = gem.find_player(match, "npc_dota_hero_nevermore")
+if axe:
+    print(f"Axe: {axe.kills}/{axe.deaths}/{axe.assists}")
 ```
 
 ```python
@@ -216,15 +224,25 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 | Laning signals (role + lane-phase metrics) | `ParsedPlayer.lane_role`, `.lane_efficiency_pct`, `.lane_gold_adv`, `.lane_xp_adv` |
 | Lane position heatmaps | `ParsedPlayer.lane_pos` |
 | Stun seconds dealt per player | `ParsedPlayer.stuns_dealt` |
+| Per-minute hero damage / healing / deaths / stuns | `ParsedPlayer.total_hero_damage_t_min` / `total_hero_healing_t_min` / `total_deaths_t_min` / `total_stuns_t_min` |
 | Rune pickups per player | `ParsedPlayer.runes_log` |
 | Buybacks per player | `ParsedPlayer.buyback_log` |
 | Chat messages | `ParsedMatch.chat` |
 | Purchase log per player | `ParsedPlayer.purchase_log` |
 | Hero / item / ability display names | `gem.constants` |
+| Look up a player by hero name | `gem.find_player(match, "Axe")` |
 
 ---
 
 ## Releases
+
+### v0.2.3
+
+- **Per-minute combat totals** — `total_hero_damage_t_min`, `total_hero_healing_t_min`, `total_deaths_t_min`, `total_stuns_t_min` on `ParsedPlayer`. Monotonically increasing counters; diff any two indices for per-window rates. Targeted at ML feature extraction pipelines.
+- **`gem.find_player(match, hero)`** — look up a player by display name, NPC name, or bare suffix without manual iteration.
+- **`gem.constants.hero_npc_name(name)`** — reverse lookup from display name (e.g. `"Anti-Mage"`) to NPC name (`"npc_dota_hero_antimage"`).
+- **`ParsedMatch.duration_minutes` / `duration_seconds`** — convenience properties for match length.
+- **Doc fixes** — quickstart guide and match data guide had several references to nonexistent fields; all corrected and verified with a runnable `examples/quickstart.py`.
 
 ### [v0.2.2](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.2)
 
