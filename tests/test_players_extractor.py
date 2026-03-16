@@ -74,6 +74,9 @@ class FakeParser:
     def on_entity(self, h):
         self._handlers.append(h)
 
+    def on_combat_log_entry(self, h):
+        pass
+
     def on_game_start(self, h):
         pass
 

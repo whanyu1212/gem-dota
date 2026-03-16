@@ -78,6 +78,33 @@ def hero_short(npc_name: str) -> str:
     return hero_display("npc_dota_hero_" + npc_name)
 
 
+def hero_npc_name(name: str) -> str | None:
+    """Resolve a display name to its ``npc_dota_hero_*`` NPC name.
+
+    Accepts common spelling variants: ``"Anti-Mage"``, ``"anti mage"``,
+    ``"anti_mage"``, ``"antimage"`` all resolve to ``"npc_dota_hero_antimage"``.
+
+    Args:
+        name: Hero display name or NPC suffix (e.g. ``"Axe"``, ``"axe"``,
+            ``"npc_dota_hero_axe"``).
+
+    Returns:
+        The ``npc_dota_hero_*`` key (lowercase), or ``None`` if not found.
+    """
+    if name.startswith("npc_dota_hero_"):
+        return name.lower() if name.lower() in HEROES else None
+
+    def _norm(s: str) -> str:
+        return s.lower().replace("-", " ").replace("_", " ")
+
+    normalised = _norm(name)
+    for npc, data in HEROES.items():
+        loc = _norm(data.get("localized_name") or "")
+        if loc == normalised:
+            return npc
+    return None
+
+
 def hero_meta(npc_name: str) -> dict:
     """Return the full hero metadata dict, or an empty dict if not found.
 

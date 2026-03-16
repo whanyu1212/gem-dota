@@ -133,6 +133,10 @@ class PlayerStateSnapshot:
         x: World x coordinate, or ``None`` if unavailable.
         y: World y coordinate, or ``None`` if unavailable.
         ability_levels: Ability name → level mapping for learned abilities.
+        total_hero_damage: Cumulative hero-vs-hero damage dealt (from combat log).
+        total_hero_healing: Cumulative healing dealt to allied heroes (from combat log).
+        total_deaths: Cumulative death count (all causes, from combat log).
+        total_stuns: Cumulative stun duration dealt in seconds (from combat log).
     """
 
     tick: int
@@ -154,6 +158,10 @@ class PlayerStateSnapshot:
     total_earned_gold: int = 0
     total_earned_xp: int = 0
     ability_levels: dict[str, int] = field(default_factory=dict)
+    total_hero_damage: int = 0
+    total_hero_healing: int = 0
+    total_deaths: int = 0
+    total_stuns: float = 0.0
 
 
 @dataclass
@@ -174,6 +182,10 @@ class PlayerTimeSeries:
         mana_t: Current mana at each sample tick.
         x_t: World x coordinate at each sample tick (``None`` if unavailable).
         y_t: World y coordinate at each sample tick (``None`` if unavailable).
+        total_hero_damage_t: Cumulative hero-vs-hero damage dealt at each sample tick.
+        total_hero_healing_t: Cumulative healing dealt to allied heroes at each sample tick.
+        total_deaths_t: Cumulative death count at each sample tick.
+        total_stuns_t: Cumulative stun duration dealt (seconds) at each sample tick.
     """
 
     player_id: int
@@ -189,3 +201,7 @@ class PlayerTimeSeries:
     mana_t: list[float] = field(default_factory=list)
     x_t: list[float | None] = field(default_factory=list)
     y_t: list[float | None] = field(default_factory=list)
+    total_hero_damage_t: list[int] = field(default_factory=list)
+    total_hero_healing_t: list[int] = field(default_factory=list)
+    total_deaths_t: list[int] = field(default_factory=list)
+    total_stuns_t: list[float] = field(default_factory=list)

@@ -660,6 +660,148 @@ def build_objectives(match: gem.ParsedMatch, fmt_tick_fn: Callable[[int], str]) 
     return "\n".join(parts)
 
 
+def build_combat_timeseries_chart(match: gem.ParsedMatch) -> str:
+    """Four per-minute line charts: hero damage, healing, deaths, and stuns over time."""
+    players = [p for p in match.players if p.hero_name]
+    if not any(p.total_hero_damage_t_min for p in players):
+        return ""
+
+    times_min: list[int] = []
+    for p in players:
+        if len(p.times_min) > len(times_min):
+            times_min = p.times_min
+
+    n = max((len(p.total_hero_damage_t_min) for p in players), default=0)
+    labels: list[str] = []
+    for i in range(n):
+        if i < len(times_min):
+            secs = times_min[i] // TICKS_PER_SEC
+            labels.append(f"{secs // 60}")
+        else:
+            labels.append(str(i))
+
+    radiant_idx = dire_idx = 0
+    dmg_datasets: list[dict] = []
+    heal_datasets: list[dict] = []
+    deaths_datasets: list[dict] = []
+    stuns_datasets: list[dict] = []
+    for p in players:
+        if p.team == 2:
+            color = _RADIANT_COLORS[radiant_idx % len(_RADIANT_COLORS)]
+            radiant_idx += 1
+        else:
+            color = _DIRE_COLORS[dire_idx % len(_DIRE_COLORS)]
+            dire_idx += 1
+        label = hero(p.hero_name)
+        base = {
+            "label": label,
+            "borderColor": color,
+            "backgroundColor": "transparent",
+            "borderWidth": 2,
+            "pointRadius": 0,
+            "tension": 0.3,
+            "fill": False,
+        }
+
+        # Diff the cumulative totals to get per-minute values
+        def _per_min(totals: list) -> list:
+            if not totals:
+                return []
+            result = [totals[0]]
+            for i in range(1, len(totals)):
+                result.append(totals[i] - totals[i - 1])
+            return result
+
+        dmg_datasets.append({**base, "data": _per_min(list(p.total_hero_damage_t_min))})
+        heal_datasets.append({**base, "data": _per_min(list(p.total_hero_healing_t_min))})
+        deaths_datasets.append({**base, "data": _per_min(list(p.total_deaths_t_min))})
+        stuns_datasets.append(
+            {**base, "data": _per_min([round(v, 2) for v in p.total_stuns_t_min])}
+        )
+
+    labels_js = json.dumps(labels)
+    dmg_ds_js = json.dumps(dmg_datasets)
+    heal_ds_js = json.dumps(heal_datasets)
+    deaths_ds_js = json.dumps(deaths_datasets)
+    stuns_ds_js = json.dumps(stuns_datasets)
+
+    return f"""
+<div class="card">
+<details open>
+<summary>Combat Timeline (per minute)</summary>
+<div class="card-body">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+  <div>
+    <div style="font-size:0.7rem;color:#8b949e;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Hero Damage / Minute</div>
+    <div class="chart-wrap"><canvas id="combatDmgChart"></canvas></div>
+  </div>
+  <div>
+    <div style="font-size:0.7rem;color:#8b949e;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Healing / Minute</div>
+    <div class="chart-wrap"><canvas id="combatHealChart"></canvas></div>
+  </div>
+  <div>
+    <div style="font-size:0.7rem;color:#8b949e;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Deaths / Minute</div>
+    <div class="chart-wrap"><canvas id="combatDeathsChart"></canvas></div>
+  </div>
+  <div>
+    <div style="font-size:0.7rem;color:#8b949e;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Stun Duration / Minute (s)</div>
+    <div class="chart-wrap"><canvas id="combatStunsChart"></canvas></div>
+  </div>
+</div>
+<script>
+(function() {{
+  var labels = {labels_js};
+  function makeOpts(yTitle, isInt) {{
+    return {{
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {{ mode: 'index', intersect: false }},
+      plugins: {{
+        legend: {{ labels: {{ color: '#e6edf3', boxWidth: 12, font: {{ size: 11 }} }} }},
+        tooltip: {{
+          callbacks: {{
+            label: function(c) {{
+              var v = isInt ? Math.round(c.parsed.y).toLocaleString() : c.parsed.y.toFixed(1);
+              return c.dataset.label + ': ' + v;
+            }}
+          }}
+        }},
+      }},
+      scales: {{
+        x: {{
+          title: {{ display: true, text: 'Game Minute', color: '#8b949e' }},
+          ticks: {{ color: '#8b949e' }},
+          grid: {{ color: '#21262d' }},
+        }},
+        y: {{
+          title: {{ display: true, text: yTitle, color: '#8b949e' }},
+          beginAtZero: true,
+          ticks: {{ color: '#8b949e' }},
+          grid: {{ color: '#21262d' }},
+          border: {{ color: '#30363d' }},
+        }},
+      }},
+    }};
+  }}
+  new Chart(document.getElementById('combatDmgChart').getContext('2d'), {{
+    type: 'line', data: {{ labels: labels, datasets: {dmg_ds_js} }}, options: makeOpts('Damage', true),
+  }});
+  new Chart(document.getElementById('combatHealChart').getContext('2d'), {{
+    type: 'line', data: {{ labels: labels, datasets: {heal_ds_js} }}, options: makeOpts('Healing', true),
+  }});
+  new Chart(document.getElementById('combatDeathsChart').getContext('2d'), {{
+    type: 'line', data: {{ labels: labels, datasets: {deaths_ds_js} }}, options: makeOpts('Deaths', true),
+  }});
+  new Chart(document.getElementById('combatStunsChart').getContext('2d'), {{
+    type: 'line', data: {{ labels: labels, datasets: {stuns_ds_js} }}, options: makeOpts('Stun (s)', false),
+  }});
+}})();
+</script>
+</div>
+</details>
+</div>"""
+
+
 def build_damage(match: gem.ParsedMatch, hero_cell: Callable[[str, int], str]) -> str:
     """Build the damage breakdown section."""
     all_dmg = [(p, sum(p.damage.values())) for p in match.players if p.hero_name]
