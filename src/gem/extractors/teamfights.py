@@ -84,6 +84,11 @@ class Teamfight:
         end_tick: Window close tick (last_death_tick + cooldown).
         last_death_tick: Tick of the final hero death in the fight.
         deaths: Total hero deaths within the window.
+        radiant_kills: Hero kills scored by Radiant within the window.
+        dire_kills: Hero kills scored by Dire within the window.
+        winner: ``"radiant"`` if Radiant scored more kills, ``"dire"`` if Dire
+            scored more kills, ``"draw"`` if equal, or ``"unknown"`` if team
+            information is unavailable.
         centroid_x: Death-count-weighted mean X of all deaths in the window,
             or ``None`` when position data is unavailable.
         centroid_y: Death-count-weighted mean Y of all deaths in the window,
@@ -95,6 +100,9 @@ class Teamfight:
     end_tick: int
     last_death_tick: int
     deaths: int
+    radiant_kills: int = 0
+    dire_kills: int = 0
+    winner: str = "unknown"
     centroid_x: float | None = None
     centroid_y: float | None = None
     players: list[TeamfightPlayer] = field(default_factory=list)
@@ -104,6 +112,7 @@ def detect_teamfights(
     combat_log: list[CombatLogEntry],
     hero_to_slot: dict[str, int] | None = None,
     player_snapshots: dict[int, list[PlayerStateSnapshot]] | None = None,
+    slot_to_team: dict[int, int] | None = None,
 ) -> list[Teamfight]:
     """Detect teamfights from a match combat log.
 
@@ -124,6 +133,9 @@ def detect_teamfights(
         player_snapshots: Optional mapping of ``player_id → list[PlayerStateSnapshot]``
             used both to compute XP deltas and to resolve hero positions at death
             ticks for spatial clustering.
+        slot_to_team: Optional mapping of player slot → team number (2=Radiant,
+            3=Dire).  When provided, ``radiant_kills``, ``dire_kills``, and
+            ``winner`` are populated on each ``Teamfight``.
 
     Returns:
         List of ``Teamfight`` objects in chronological order.  No minimum-death
@@ -258,6 +270,13 @@ def detect_teamfights(
             elif entry.log_type == "DEATH":
                 if entry.target_is_hero and not entry.target_is_illusion and tgt_slot is not None:
                     fight.players[tgt_slot].deaths += 1
+                    # A Radiant hero dying = a kill for Dire, and vice versa.
+                    if slot_to_team:
+                        dying_team = slot_to_team.get(tgt_slot, 0)
+                        if dying_team == 2:
+                            fight.dire_kills += 1
+                        elif dying_team == 3:
+                            fight.radiant_kills += 1
 
             elif entry.log_type == "BUYBACK":
                 bslot = entry.value  # buyback value = player slot
@@ -292,6 +311,17 @@ def detect_teamfights(
                 xp_end = _nearest_xp(snaps, fight.end_tick)
                 if xp_start is not None and xp_end is not None:
                     fight.players[pid].xp_delta = max(0, xp_end - xp_start)
+
+    # --- Pass 4: compute winner from kill counts ----------------------------
+    if slot_to_team:
+        for fight in fights:
+            r, d = fight.radiant_kills, fight.dire_kills
+            if r > d:
+                fight.winner = "radiant"
+            elif d > r:
+                fight.winner = "dire"
+            else:
+                fight.winner = "draw"
 
     return fights
 

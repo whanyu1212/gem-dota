@@ -606,6 +606,41 @@ class EntityManager:
                 return e
         return None
 
+    def find_by_npc_name(self, npc_name: str) -> Entity | None:
+        """Return the first active entity whose NPC name matches, or None.
+
+        NPC names (e.g. ``"npc_dota_unit_warlock_golem"``) are stored in the
+        ``EntityNames`` string table and referenced via
+        ``m_pEntity.m_nameStringableIndex`` on each entity.
+
+        This is an O(N) scan over all active entities and is intended for
+        infrequent lookups (e.g. resolving summon ownership at combat log
+        processing time).
+
+        Args:
+            npc_name: NPC name as it appears in the combat log (lowercase),
+                e.g. ``"npc_dota_unit_warlock_golem"``.
+
+        Returns:
+            The first matching active entity, or ``None`` if not found.
+        """
+        names_table = self.string_tables.get_by_name("EntityNames")
+        if names_table is None:
+            return None
+        for e in self.entities:
+            if e is None or not e.active:
+                continue
+            idx = e.get_int32("m_pEntity.m_nameStringableIndex")
+            if idx is None:
+                continue
+            item = names_table.items.get(idx)
+            if item is None:
+                continue
+            key, _ = item
+            if key.lower() == npc_name.lower():
+                return e
+        return None
+
     def all_active(self) -> list[Entity]:
         """Return all currently active entities."""
         return [e for e in self.entities if e is not None and e.active]

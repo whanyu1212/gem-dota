@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from gem.extractors.objectives import ObjectivesExtractor
     from gem.extractors.players import PlayerExtractor
     from gem.extractors.wards import WardsExtractor
-    from gem.models import ChatEntry, SmokeEvent
+    from gem.models import ChatEntry, SmokeEvent, VisionModifierEvent
     from gem.parser import ReplayParser
 
 # Lane position grid resolution in world units (7d)
@@ -63,6 +63,7 @@ def build_parsed_match(
     all_entries: list[CombatLogEntry],
     chat_entries: list[ChatEntry],
     smoke_events: list[SmokeEvent] | None = None,
+    vision_modifier_events: list[VisionModifierEvent] | None = None,
 ) -> ParsedMatch:
     """Assemble a :class:`ParsedMatch` from extractor state after a completed parse.
 
@@ -81,6 +82,7 @@ def build_parsed_match(
         all_entries: All :class:`CombatLogEntry` objects from the replay.
         chat_entries: All :class:`ChatEntry` objects from the replay.
         smoke_events: All :class:`SmokeEvent` objects collected during parse.
+        vision_modifier_events: All :class:`VisionModifierEvent` objects collected during parse.
 
     Returns:
         Fully populated :class:`ParsedMatch`.
@@ -112,6 +114,7 @@ def build_parsed_match(
         chat=chat_entries,
         courier_snapshots=courier_ext.snapshots,
         smoke_events=smoke_events or [],
+        vision_modifiers=vision_modifier_events or [],
         draft=draft_ext.draft_events,
         game_start_tick=parser.game_start_tick,
         game_end_tick=parser.tick,
@@ -298,6 +301,7 @@ def build_parsed_match(
 
     # Detect teamfights (Phase 9)
     hero_to_slot = {pp.hero_name: pp.player_id for pp in match.players if pp.hero_name}
+    slot_to_team = {pp.player_id: pp.team for pp in match.players if pp.team}
     player_snaps: dict[int, Any] = {
         pid: [s for s in player_ext.snapshots if s.player_id == pid] for pid in range(10)
     }
@@ -305,6 +309,20 @@ def build_parsed_match(
         all_entries,
         hero_to_slot=hero_to_slot,
         player_snapshots=player_snaps,
+        slot_to_team=slot_to_team,
     )
+
+    # Build per-player ability level snapshots for ability_level_at_tick().
+    # Collect (tick, ability_levels) pairs from minute-boundary snapshots,
+    # sorted by tick, and attach as _ability_snapshots on each ParsedPlayer.
+    for player_id in range(10):
+        snaps = sorted(
+            (s for s in player_ext.snapshots if s.player_id == player_id and s.ability_levels),
+            key=lambda s: s.tick,
+        )
+        ability_snapshots: list[tuple[int, dict[str, int]]] = [
+            (s.tick, s.ability_levels) for s in snaps
+        ]
+        match.players[player_id]._ability_snapshots = ability_snapshots
 
     return match

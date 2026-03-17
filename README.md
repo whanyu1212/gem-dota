@@ -180,14 +180,16 @@ python -m gem match.dem --progress --timings
 
 ### Reproduce this analysis
 
+A live sample report (TI14 Grand Finals G1 — XG vs Falcons) is hosted on the docs site:
+[whanyu1212.github.io/gem-dota/reports/](https://whanyu1212.github.io/gem-dota/reports/)
+
 Run the match report generator in `examples/`:
 
 ```bash
 uv run python examples/match_report.py path/to/your_replay.dem
 ```
 
-By default it writes:
-- `<replay_stem>_report.html` in the project root.
+By default it writes `<replay_stem>_report.html` to the project root.
 
 ---
 
@@ -229,12 +231,24 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 | Buybacks per player | `ParsedPlayer.buyback_log` |
 | Chat messages | `ParsedMatch.chat` |
 | Purchase log per player | `ParsedPlayer.purchase_log` |
+| Vision modifier events (Slardar, BH Track, Dust, Gem) *(experimental)* | `ParsedMatch.vision_modifiers` |
+| Vision source estimation per point *(experimental)* | `gem.estimate_vision(match, team, tick, x, y)` |
 | Hero / item / ability display names | `gem.constants` |
 | Look up a player by hero name | `gem.find_player(match, "Axe")` |
 
 ---
 
 ## Releases
+
+### v0.2.4
+
+- **Vision modifier tracking** *(experimental)* — `ParsedMatch.vision_modifiers` is a new list of `VisionModifierEvent` records tracking every application of a vision-granting ability or item (Slardar Corrosive Haze, Bounty Hunter Track, Dust of Appearance, Gem of True Sight). Start/end ticks, caster, target, and team are all captured.
+- **`gem.estimate_vision(match, team, tick, x, y)`** *(experimental)* — geometry-based vision estimation for a given point at a given tick. Returns a ranked list of `VisionSource` objects covering allied heroes (day/night radius), observer wards, and active vision modifier reveals. See [API reference](docs/reference/analysis.md) for limitations.
+- **Ward killer attribution fix** — sentry/observer wards now correctly attribute the killer when the entity lifestate transition and the combat log DEATH event arrive at the same tick (same-tick ordering bug resolved).
+- **Fights tab — Active Reveals** — the match report Fights tab now shows which heroes were under vision modifiers (Corrosive Haze, Dust, Track, Gem) during each teamfight window.
+- **HTML report size fix** — report file size reduced from ~459 MB to ~58 MB by deduplicating base64 map/icon embeds. Map image (9 MB) was embedded 22× (once per teamfight minimap); hero icons were repeated up to 70× each. Both are now hoisted to JS globals and patched on load.
+- **Ward map heatmap y-flip fix** — vision coverage heatmap overlay was rendered upside-down relative to ward dot positions; corrected.
+- **Sample report gallery** — live TI14 G1 report hosted at [whanyu1212.github.io/gem-dota/reports/](https://whanyu1212.github.io/gem-dota/reports/).
 
 ### v0.2.3
 
@@ -378,6 +392,7 @@ If you run a benchmark, please open an issue/PR with:
 
 ## Known limitations
 
+- **Vision estimation is geometry-only** *(experimental)* — `gem.estimate_vision` and the vision features in the match report use straight-line distance only. Three things are not modelled: (1) high-ground vision penalties — cliff edges block uphill sight; (2) terrain line-of-sight blocking from trees and cliffs (requires a navmesh/walkability grid from `game/dota/pak01_dir.vpk`, which is not bundled); (3) per-hero vision range modifiers from abilities/items (e.g. Aghanim upgrades). Vision results should be treated as approximations.
 - **Roshan drops** — Aegis, Cheese, Refresher Shard, and Aghanim's Blessing pickups are not in the combat log. Roshan kills are tracked, but the specific drop items are not.
 - **Healing Lotus pickups** — not recorded in the `.dem` combat log under any event type, across all tested patches. The `CDOTA_BaseNPC_LotusPool` entity does not emit per-pickup events either. The lotus count exists in `CMsgDOTAFantasyPlayerStats`, a Steam Game Coordinator message never written into the replay file. While the Steam Web API (`GetMatchDetails`) can provide this as a fallback, it has little practical value here: high-MMR and private matches — the primary audience for `gem` — are often not accessible via the public API, defeating the purpose.
 - **Reliable vs unreliable gold** — the combat log `GOLD` entries do not distinguish between reliable gold (from kills, objectives) and unreliable gold (from creep bounties). Only total gold earned per reason code is available.
