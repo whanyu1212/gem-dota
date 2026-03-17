@@ -978,12 +978,16 @@ def build_kill_feed(match: gem.ParsedMatch, hero_cell: Callable[[str, int], str]
             ]
         )
 
+        npc_to_player: dict[str, gem.ParsedPlayer] = {
+            pp.hero_name: pp for pp in match.players if pp.hero_name
+        }
+
         parts.append(
             f'<p style="margin-bottom:8px;color:#8b949e">Total hero kills: <strong style="color:#e6edf3">{len(hvh)}</strong></p>'
         )
         parts.append("<table>")
         parts.append(
-            "<thead><tr><th>Time</th><th>Killer</th><th>Victim</th><th>Via</th></tr></thead>"
+            "<thead><tr><th>Time</th><th>Killer</th><th>Victim</th><th>Via</th><th>Vision</th></tr></thead>"
         )
         parts.append("<tbody>")
         for entry in hvh:
@@ -1002,12 +1006,30 @@ def build_kill_feed(match: gem.ParsedMatch, hero_cell: Callable[[str, int], str]
             else:
                 via = '<span style="color:#6e7681">auto-attack</span>'
 
+            # Vision badge: was the victim visible to the killer's team at death?
+            vision_badge = ""
+            if attacker_team in (2, 3):
+                victim_player = npc_to_player.get(entry.target_name)
+                if victim_player:
+                    pos = gem.position_at_tick(victim_player, entry.tick)
+                    if pos:
+                        sources = gem.estimate_vision(
+                            match, attacker_team, entry.tick, pos[0], pos[1]
+                        )
+                        if not sources:
+                            vision_badge = (
+                                '<span style="background:#21262d;border:1px solid #30363d;'
+                                "border-radius:10px;padding:1px 7px;font-size:11px;"
+                                'color:#6e7681;white-space:nowrap">🌫 blind</span>'
+                            )
+
             parts.append(
                 f"<tr>"
                 f'<td style="color:#8b949e">{e(fmt_tick(entry.tick))}</td>'
                 f"<td>{killer_cell}</td>"
                 f"<td>{victim_cell}</td>"
                 f"<td>{via}</td>"
+                f"<td>{vision_badge}</td>"
                 f"</tr>"
             )
         parts.append("</tbody></table>")
@@ -1231,6 +1253,8 @@ def build_wards(match: gem.ParsedMatch, map_b64: str | None) -> str:
             continue
         fx = (s.x - _XMIN) / (_XMAX - _XMIN)
         fy = 1.0 - (s.y - _YMIN) / (_YMAX - _YMIN)
+        enemy_team = 3 if s.team == 2 else 2
+        seen_by_enemy = bool(gem.estimate_vision(match, enemy_team, s.tick, s.x, s.y))
         smoke_data.append(
             {
                 "fx": round(fx, 5),
@@ -1241,11 +1265,12 @@ def build_wards(match: gem.ParsedMatch, map_b64: str | None) -> str:
                 "activator": _hero(s.activator),
                 "count": len(s.smoked),
                 "tick_fmt": _fmt_tick(s.tick),
+                "seen": seen_by_enemy,
             }
         )
     smokes_js = json.dumps(smoke_data)
 
-    img_src = f"data:image/jpeg;base64,{map_b64}" if map_b64 else ""
+    img_src_js = "window._GEM_MAP_SRC||''" if map_b64 else "''"
 
     canvas_html = f"""
 <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-bottom:16px">
@@ -1258,7 +1283,7 @@ def build_wards(match: gem.ParsedMatch, map_b64: str | None) -> str:
                color:#e6edf3;cursor:pointer;font-size:14px;padding:2px 10px;
                line-height:1.6;flex:0 0 auto"
         title="Play / Pause">&#9654;</button>
-      <select id="wardSpeed"
+<select id="wardSpeed"
         style="background:#21262d;border:1px solid #30363d;border-radius:4px;
                color:#8b949e;font-size:12px;padding:2px 4px;flex:0 0 auto">
         <option value="1">1×</option>
@@ -1295,7 +1320,7 @@ def build_wards(match: gem.ParsedMatch, map_b64: str | None) -> str:
 (function() {{
   var wards = {wards_js};
   var smokes = {smokes_js};
-  var imgSrc = {json.dumps(img_src)};
+var imgSrc = {img_src_js};
   var iconObsSrc = {json.dumps(ITEM_ICON_B64.get("ward_observer", ""))};
   var iconSenSrc = {json.dumps(ITEM_ICON_B64.get("ward_sentry", ""))};
   var iconSmokeSrc = {json.dumps(ITEM_ICON_B64.get("smoke_of_deceit", ""))};
@@ -1311,7 +1336,7 @@ def build_wards(match: gem.ParsedMatch, map_b64: str | None) -> str:
   var timeLabel = document.getElementById('wardTime');
   var tooltip = document.getElementById('wardTooltip');
   var playBtn = document.getElementById('wardPlayBtn');
-  var speedSel = document.getElementById('wardSpeed');
+var speedSel = document.getElementById('wardSpeed');
   var W = canvas.width, H = canvas.height;
   var currentTick = sliderMin;
   var playing = false;
@@ -1348,6 +1373,7 @@ def build_wards(match: gem.ParsedMatch, map_b64: str | None) -> str:
       ctx.fillStyle = '#1a2a1a';
       ctx.fillRect(0, 0, W, H);
     }}
+
 
     function drawIcon(img, cx, cy, size, borderColor, alpha) {{
       var half = size / 2;
@@ -1515,11 +1541,15 @@ def build_wards(match: gem.ParsedMatch, map_b64: str | None) -> str:
     }} else if (hit && hitType === 'smoke') {{
       var teamName = hit.team === 2 ? 'Radiant' : 'Dire';
       var teamColor = hit.team === 2 ? '#4caf50' : '#f44336';
+      var seenStr = hit.seen
+        ? '<span style="color:#f44336">&#128065; Enemy had vision &#10003;</span>'
+        : '<span style="color:#4caf50">&#10008; Undetected</span>';
       tooltip.innerHTML =
         '<strong style="color:#9c27b0">Smoke of Deceit</strong> &mdash; ' +
         '<span style="color:' + teamColor + '">' + teamName + '</span><br>' +
         'Activated: ' + hit.tick_fmt + ' by ' + hit.activator + '<br>' +
-        hit.count + ' hero' + (hit.count !== 1 ? 'es' : '') + ' smoked';
+        hit.count + ' hero' + (hit.count !== 1 ? 'es' : '') + ' smoked<br>' +
+        seenStr;
       canvas.style.cursor = 'pointer';
     }} else {{
       tooltip.innerHTML = '';
@@ -1538,7 +1568,7 @@ def build_wards(match: gem.ParsedMatch, map_b64: str | None) -> str:
     parts.append(
         "<thead><tr>"
         "<th>Time</th><th>Type</th><th>Hero</th><th>Team</th>"
-        "<th>Coords</th><th>Fate</th>"
+        '<th>Coords</th><th>Fate</th><th class="r">Enemies seen</th>'
         "</tr></thead>"
     )
     parts.append("<tbody>")
@@ -1558,6 +1588,11 @@ def build_wards(match: gem.ParsedMatch, map_b64: str | None) -> str:
         else:
             fate = '<span style="color:#ffb74d">Active / unknown</span>'
         team_color = TEAM_COLOR_CSS.get(w.team, "#888")
+        if w.ward_type == "observer":
+            enemies_seen = _ward_enemies_seen(w, match)
+            seen_cell = f'<td class="r">{enemies_seen}</td>'
+        else:
+            seen_cell = '<td class="r" style="color:#6e7681">—</td>'
         parts.append(
             f"<tr>"
             f"<td>{_e(_fmt_tick(w.tick))}</td>"
@@ -1566,6 +1601,7 @@ def build_wards(match: gem.ParsedMatch, map_b64: str | None) -> str:
             f'<td><span style="color:{team_color}">{_e(_team_name(w.team))}</span></td>'
             f'<td style="font-variant-numeric:tabular-nums">{_e(coords)}</td>'
             f"<td>{fate}</td>"
+            f"{seen_cell}"
             f"</tr>"
         )
     parts.append("</tbody></table></details>")
@@ -1644,11 +1680,63 @@ def _fight_combat_log_html(
         short = e(hero(npc_name)) if npc_name else "?"
         return f'<span style="color:{color};font-weight:600">{short}</span>'
 
-    lines = []
-    entries = sorted(
+    # Split window entries into two streams:
+    # 1. Hero-vs-hero DAMAGE with a named inflictor → group into AbilityCast records
+    # 2. Everything else → render individually as before
+    window_entries = sorted(
         (en for en in combat_log if fight_start <= en.tick <= fight_end),
         key=lambda en: en.tick,
     )
+
+    groupable = [
+        en
+        for en in window_entries
+        if (
+            en.log_type == "DAMAGE"
+            and en.attacker_is_hero
+            and en.target_is_hero
+            and en.inflictor_name
+            and not en.attacker_is_illusion
+            and not en.target_is_illusion
+            and (h2s.get(en.attacker_name) in active_set or h2s.get(en.target_name) in active_set)
+        )
+    ]
+    casts = gem.group_ability_hits(groupable)
+    # Build a set of entry ids that were absorbed into grouped casts (to skip in the loop)
+    grouped_entry_ids: set[int] = {id(en) for cast in casts for en in cast.entries}
+
+    # Produce (tick, html_line) pairs for cast records
+    cast_lines: list[tuple[int, str]] = []
+    for cast in casts:
+        atk = cast.caster
+        inf = cast.ability
+        n_targets = len(cast.targets)
+        total = cast.total_damage
+        dmg_type = cast.damage_type
+        dmg_type_str = f" ({e(dmg_type)})" if dmg_type and dmg_type != "others" else ""
+        if n_targets == 1:
+            tgt_str = f"→ {_hero_span(cast.targets[0])}"
+        else:
+            hero_names = ", ".join(_hero_span(t) for t in cast.targets)
+            tgt_str = f"→ {hero_names} ({n_targets} heroes)"
+        line = (
+            f"{_hero_span(atk)} casts "
+            f'<span style="color:#58a6ff;font-weight:600">{e(ability_display(inf))}</span> '
+            f"{tgt_str} for "
+            f'<span style="color:#e6edf3;font-weight:600">{total:,}</span>'
+            f"{dmg_type_str} dmg"
+        )
+        tick_str = e(fmt_tick(cast.tick))
+        cast_lines.append(
+            (
+                cast.tick,
+                f'<div class="tf-log-line"><span class="tf-log-time">{tick_str}</span>'
+                f'<span class="tf-log-text">{line}</span></div>',
+            )
+        )
+
+    lines = []
+    entries = window_entries
 
     for en in entries:
         log_type = en.log_type
@@ -1668,18 +1756,22 @@ def _fight_combat_log_html(
         tgt_slot = h2s.get(en.target_name)
         if atk_slot not in active_set and tgt_slot not in active_set:
             continue
+        # Skip hero-vs-hero DAMAGE with inflictor — these are rendered as grouped cast rows
+        if id(en) in grouped_entry_ids:
+            continue
 
         tick_str = e(fmt_tick(en.tick))
 
         if log_type == "DAMAGE" and en.attacker_is_hero and en.target_is_hero:
+            # Hero-vs-hero DAMAGE without an inflictor (right-click auto-attacks)
             dmg_type = (
                 f" ({e(en.damage_type)})" if en.damage_type and en.damage_type != "others" else ""
             )
-            via = f" via <em>{e(ability_display(inf))}</em>" if inf else ""
             line = (
-                f"{_hero_span(atk)} deals "
+                f"{_hero_span(atk)} attacks "
+                f"{_hero_span(tgt)} for "
                 f'<span style="color:#e6edf3;font-weight:600">{val:,}</span>'
-                f"{dmg_type} dmg to {_hero_span(tgt)}{via}"
+                f"{dmg_type} dmg"
             )
             css = ""
 
@@ -1737,19 +1829,24 @@ def _fight_combat_log_html(
 
         style = f' style="{css}"' if css else ""
         lines.append(
-            f'<div class="tf-log-line"{style}>'
-            f'<span class="tf-log-time">{tick_str}</span>'
-            f'<span class="tf-log-text">{line}</span>'
-            f"</div>"
+            (
+                en.tick,
+                f'<div class="tf-log-line"{style}>'
+                f'<span class="tf-log-time">{tick_str}</span>'
+                f'<span class="tf-log-text">{line}</span>'
+                f"</div>",
+            )
         )
 
-    if not lines:
+    # Merge cast lines and individual lines, sorted by tick
+    all_lines = sorted(cast_lines + lines, key=lambda t: t[0])
+    if not all_lines:
         return ""
 
     return (
         '<details class="tf-log-expander">'
         "<summary>Combat log</summary>"
-        '<div class="tf-log-body">' + "\n".join(lines) + "</div></details>"
+        '<div class="tf-log-body">' + "\n".join(html for _, html in all_lines) + "</div></details>"
     )
 
 
@@ -1794,7 +1891,7 @@ def _teamfight_minimap_svg(
         )
 
     bg_img = (
-        f'<image href="data:image/jpeg;base64,{map_b64}" x="0" y="0" width="{size}" height="{size}" '
+        f'<image class="gem-map-bg" href="" x="0" y="0" width="{size}" height="{size}" '
         f'preserveAspectRatio="xMidYMid slice"/>'
         if map_b64
         else ""
@@ -1807,6 +1904,123 @@ def _teamfight_minimap_svg(
         f"{bg_img}"
         f"{''.join(hero_elements)}"
         f"</svg>"
+    )
+
+
+def _ward_enemies_seen(ward: object, match: gem.ParsedMatch) -> int:
+    """Count distinct enemy heroes that passed within observer ward vision radius."""
+    if getattr(ward, "ward_type", "") != "observer":
+        return 0
+    wx, wy = getattr(ward, "x", None), getattr(ward, "y", None)
+    if wx is None or wy is None:
+        return 0
+    ward_tick = getattr(ward, "tick", 0)
+    end_tick = (
+        getattr(ward, "killed_tick", None)
+        or getattr(ward, "expires_tick", None)
+        or match.game_end_tick
+        or 0
+    )
+    enemy_team = 3 if getattr(ward, "team", 0) == 2 else 2
+    _WARD_VISION_SQ = 1600 * 1600
+    seen: set[str] = set()
+    for player in match.players:
+        if player.team != enemy_team:
+            continue
+        for tick, px, py in player.position_log:
+            if tick < ward_tick or tick > end_tick:
+                continue
+            if (px - wx) ** 2 + (py - wy) ** 2 <= _WARD_VISION_SQ:
+                seen.add(player.hero_name)
+                break  # one sighting is enough for this hero
+    return len(seen)
+
+
+# Friendly labels for tracked vision modifier names
+_MODIFIER_DISPLAY: dict[str, str] = {
+    "modifier_slardar_amplify_damage": "Corrosive Haze",
+    "modifier_bounty_hunter_track": "Track",
+    "modifier_item_dustofappearance": "Dust of Appearance",
+    "modifier_item_gem_of_true_sight": "Gem of True Sight",
+    "modifier_gem_active_truesight": "Gem of True Sight",
+}
+
+
+def _fight_reveals_html(
+    start_tick: int,
+    end_tick: int,
+    match: gem.ParsedMatch,
+) -> str:
+    """Return HTML for active vision-modifier reveals during a fight window.
+
+    Collects all VisionModifierEvents whose window overlaps [start_tick, end_tick],
+    de-duplicates by (modifier_name, target_name), and renders a compact badge row.
+    Returns empty string if no modifiers were active.
+    """
+    if not match.vision_modifiers:
+        return ""
+
+    # Collect modifiers that overlap the fight window
+    # Only show hero targets (skip neutrals/creep-heroes)
+    active: list[gem.VisionModifierEvent] = []
+    seen: set[tuple[str, str]] = set()
+    for ev in match.vision_modifiers:
+        if ev.tick > end_tick:
+            continue
+        if ev.end_tick is not None and ev.end_tick < start_tick:
+            continue
+        if not ev.target_name.startswith("npc_dota_hero_"):
+            continue
+        key = (ev.modifier_name, ev.target_name)
+        if key in seen:
+            continue
+        seen.add(key)
+        active.append(ev)
+
+    if not active:
+        return ""
+
+    # Group by caster team so Radiant reveals and Dire reveals are separate
+    rows: list[str] = []
+    for team_num, team_label, team_color in (
+        (2, "Radiant", "#4caf50"),
+        (3, "Dire", "#f44336"),
+    ):
+        team_evs = [ev for ev in active if ev.caster_team == team_num]
+        if not team_evs:
+            continue
+        badges: list[str] = []
+        for ev in team_evs:
+            mod_label = _MODIFIER_DISPLAY.get(ev.modifier_name, ev.modifier_name)
+            target_display = e(hero(ev.target_name))
+            target_color = "#f44336" if team_num == 2 else "#4caf50"  # target is enemy
+            src = hero_icon_src(ev.target_name)
+            badge = (
+                f'<span style="display:inline-flex;align-items:center;gap:4px;'
+                f"background:#21262d;border:1px solid #30363d;border-radius:4px;"
+                f'padding:2px 6px;font-size:11px;white-space:nowrap">'
+                f'<span style="color:#8b949e">{e(mod_label)}</span>'
+                f'<span style="color:#8b949e">→</span>'
+                f'<img src="{src}" width="16" height="10" '
+                f'style="object-fit:cover;border-radius:2px;vertical-align:middle">'
+                f'<span style="color:{target_color}">{target_display}</span>'
+                f"</span>"
+            )
+            badges.append(badge)
+        row = (
+            f'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">'
+            f'<span style="color:{team_color};font-size:11px;font-weight:600;'
+            f'min-width:52px">{e(team_label)}</span>' + "".join(badges) + "</div>"
+        )
+        rows.append(row)
+
+    return (
+        '<details style="margin-top:8px">'
+        '<summary style="color:#8b949e;font-size:12px;cursor:pointer">'
+        f"&#128065; Active reveals during fight ({len(active)})"
+        "</summary>"
+        '<div style="margin-top:6px;padding:6px 8px;background:#161b22;'
+        'border:1px solid #30363d;border-radius:6px">' + "\n".join(rows) + "</div></details>"
     )
 
 
@@ -1939,6 +2153,10 @@ def build_teamfights(match: gem.ParsedMatch, map_b64: str | None) -> str:
         )
         if log_html:
             parts.append(log_html)
+
+        reveals_html = _fight_reveals_html(tf.start_tick, tf.end_tick, match)
+        if reveals_html:
+            parts.append(reveals_html)
 
         parts.append("</div></div></div>")
 
@@ -2148,7 +2366,7 @@ def _laning_minimap_svg(
         return px, py
 
     bg_img = (
-        f'<image href="data:image/jpeg;base64,{map_b64}" x="0" y="0" '
+        f'<image class="gem-map-bg" href="" x="0" y="0" '
         f'width="{size}" height="{size}" preserveAspectRatio="xMidYMid slice"/>'
         if map_b64
         else f'<rect width="{size}" height="{size}" fill="#0d1117"/>'

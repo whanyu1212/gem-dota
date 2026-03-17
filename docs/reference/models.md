@@ -6,6 +6,7 @@ See also: [Full Match Data](../guides/04_match_data.md), [Quickstart](../guides/
 
 ## Notable recent fields
 
+- `ParsedMatch.vision_modifiers`: `list[VisionModifierEvent]` *(experimental)* — every application of a vision-granting modifier (Slardar Corrosive Haze, BH Track, Dust of Appearance, Gem of True Sight). See [`estimate_vision`](analysis.md) for how these integrate with the vision API.
 - `ParsedMatch.tormentors`: `list[TormentorKill]` — chronological Tormentor kill events.
 - `ParsedMatch.shrines`: `list[ShrineKill]` — chronological Shrine of Wisdom destruction events.
 - `ParsedPlayer.damage_by_type`: `dict[str, int]` — total damage dealt by damage type (`physical`, `magical`, `pure`).

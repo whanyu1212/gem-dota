@@ -24,6 +24,7 @@ from __future__ import annotations
 import argparse
 import base64
 import html
+import json
 import sys
 from pathlib import Path
 
@@ -131,6 +132,56 @@ def _hero_cell(npc_name: str, team: int = 0) -> str:
 # ---------------------------------------------------------------------------
 # HTML assembly
 # ---------------------------------------------------------------------------
+
+
+def _deduplicate_data_uris(html_body: str) -> str:
+    """Replace repeated base64 data URIs with JS-variable references.
+
+    Any data URI that appears more than once is hoisted into a single
+    ``<script>`` block as ``window._gem_icon_N = "data:..."`` and every
+    occurrence in src/href attributes is replaced with a sentinel placeholder
+    ``data:_gem_icon_N``.  A second ``<script>`` block patches all elements
+    on DOMContentLoaded.
+
+    Args:
+        html_body: Assembled HTML body string before the ``</body>`` close.
+
+    Returns:
+        HTML body with deduplicated data URIs.
+    """
+    import re as _re
+    from collections import Counter as _Counter
+
+    pattern = _re.compile(r"data:image/[^;]+;base64,[A-Za-z0-9+/=]+")
+    all_uris = pattern.findall(html_body)
+    counts = _Counter(all_uris)
+    duplicates = {uri for uri, count in counts.items() if count > 1}
+    if not duplicates:
+        return html_body
+
+    uri_to_var: dict[str, str] = {}
+    definitions: list[str] = []
+    for i, uri in enumerate(sorted(duplicates)):
+        var = f"_gem_icon_{i}"
+        uri_to_var[uri] = var
+        definitions.append(f"window.{var}={json.dumps(uri)};")
+
+    for uri, var in uri_to_var.items():
+        html_body = html_body.replace(f'src="{uri}"', f'data-gem-uri="{var}" src=""')
+        html_body = html_body.replace(f"src='{uri}'", f"data-gem-uri='{var}' src=''")
+        html_body = html_body.replace(f'href="{uri}"', f'data-gem-uri="{var}" href=""')
+
+    patch_js = (
+        'document.addEventListener("DOMContentLoaded",function(){'
+        'document.querySelectorAll("[data-gem-uri]").forEach(function(el){'
+        'var v=el.getAttribute("data-gem-uri");'
+        "var d=window[v];if(!d)return;"
+        'if(el.hasAttribute("href")){el.setAttribute("href",d);}'
+        "else{el.src=d;}});});"
+    )
+
+    dedup_script = "<script>" + "".join(definitions) + patch_js + "</script>"
+    return dedup_script + "\n" + html_body
 
 
 def _build_movement_tab(match: gem.ParsedMatch, map_b64: str | None) -> str:
@@ -383,8 +434,21 @@ def build_html(match: gem.ParsedMatch, map_b64: str | None = None) -> str:
 })();
 </script>"""
 
-    body_parts = [header_html, tab_bar, pages_html, tab_js]
+    # Emit map image once as a JS global; SVG <image class="gem-map-bg"> elements
+    # are patched on DOMContentLoaded to avoid embedding the same base64 N times.
+    map_js = ""
+    if map_b64:
+        map_js = (
+            f'<script>window._GEM_MAP_SRC="data:image/jpeg;base64,{map_b64}";</script>\n'
+            '<script>document.addEventListener("DOMContentLoaded",function(){'
+            "var src=window._GEM_MAP_SRC;"
+            'document.querySelectorAll("image.gem-map-bg").forEach(function(el){'
+            'el.setAttribute("href",src);});});</script>'
+        )
+
+    body_parts = [map_js, header_html, tab_bar, pages_html, tab_js]
     body = "\n".join(p for p in body_parts if p)
+    body = _deduplicate_data_uris(body)
 
     return "\n".join(
         [

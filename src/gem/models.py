@@ -27,6 +27,32 @@ from gem.extractors.wards import WardEvent
 
 
 @dataclass
+class VisionModifierEvent:
+    """A vision-granting modifier applied to a hero (Slardar ulti, BH Track, Dust, Gem, etc.).
+
+    Tracks the time window during which an enemy hero is revealed by a
+    vision-granting ability or item. Used by ``estimate_vision`` to extend the
+    geometry-based approximation with special-ability reveals.
+
+    Attributes:
+        tick: Game tick when the modifier was applied.
+        end_tick: Game tick when the modifier was removed, or ``None`` if still
+            active at game end or removal was not observed.
+        modifier_name: Internal modifier name, e.g. ``"modifier_slardar_amplify_damage"``.
+        target_name: NPC name of the hero who received the modifier (the revealed hero).
+        caster_name: NPC name of the hero who applied the modifier.
+        caster_team: Team of the caster (2=Radiant, 3=Dire), or 0 if unknown.
+    """
+
+    tick: int
+    end_tick: int | None
+    modifier_name: str
+    target_name: str
+    caster_name: str
+    caster_team: int
+
+
+@dataclass
 class SmokeEvent:
     """One Smoke of Deceit activation.
 
@@ -199,6 +225,7 @@ class ParsedPlayer:
     lane_efficiency_pct: int = 0
     lane_gold_adv: int | None = None
     lane_xp_adv: int | None = None
+    _ability_snapshots: list[tuple[int, dict[str, int]]] = field(default_factory=list)
 
     def __repr__(self) -> str:
         hero = self.hero_name.removeprefix("npc_dota_hero_") if self.hero_name else "unknown"
@@ -240,6 +267,9 @@ class ParsedMatch:
             approximate activating-hero position.
         draft: Hero pick and ban events from the draft phase.
         teamfights: All detected teamfight windows with per-player breakdowns.
+        vision_modifiers: Vision-granting modifier events (Slardar Corrosive Haze,
+            Bounty Hunter Track, Dust of Appearance, Gem of True Sight, etc.).
+            Used by ``estimate_vision`` to detect reveals beyond geometry.
         game_start_tick: Absolute tick when the game clock started (creeps spawn).
             ``None`` if the transition was not observed.
         game_end_tick: Absolute tick of the final parser tick.
@@ -269,6 +299,7 @@ class ParsedMatch:
     smoke_events: list[SmokeEvent] = field(default_factory=list)
     draft: list[DraftEvent] = field(default_factory=list)
     teamfights: list[Teamfight] = field(default_factory=list)
+    vision_modifiers: list[VisionModifierEvent] = field(default_factory=list)
 
     @property
     def duration_seconds(self) -> float:

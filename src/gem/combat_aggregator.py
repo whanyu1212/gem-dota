@@ -121,6 +121,54 @@ class _CombatAggregator:
             return None
         return pid // 2
 
+    def _summon_to_pid(self, npc_name: str) -> int | None:
+        """Resolve a summoned unit's NPC name to its owner's player slot.
+
+        Looks up the unit entity by class name in the entity manager, reads
+        ``m_hOwnerEntity``, resolves that handle to the owning hero entity,
+        and extracts the player slot via ``m_nPlayerID`` / ``m_iPlayerID``.
+
+        Returns ``None`` if the unit is not found, has no owner, or the owner
+        is not a tracked hero.
+
+        Args:
+            npc_name: The NPC class name as it appears in the combat log,
+                e.g. ``"npc_dota_unit_warlock_golem"``.
+
+        Returns:
+            Player slot 0-9, or ``None`` if unresolvable.
+        """
+        parser = self._player_ext._parser
+        if parser is None:
+            return None
+        em = parser.entity_manager
+        if em is None:
+            return None
+
+        # Find the summon entity by iterating current entities for this class.
+        # Combat log names are lowercase; entity class names are CamelCase with
+        # a "C" prefix, e.g. "npc_dota_unit_warlock_golem" → not directly
+        # searchable by class name. Instead resolve via the entity manager's
+        # find_by_class_name if available, else fall back to a cache lookup.
+        unit = em.find_by_npc_name(npc_name)
+        if unit is None:
+            return None
+
+        owner_handle = unit.get_uint32("m_hOwnerEntity")
+        if owner_handle is None:
+            return None
+
+        owner = em.find_by_handle(owner_handle)
+        if owner is None:
+            return None
+
+        pid = owner.get_int32("m_nPlayerID")
+        if pid is None:
+            pid = owner.get_int32("m_iPlayerID")
+        if pid is None or pid < 0:
+            return None
+        return pid // 2
+
     def on_entry(self, entry: Any) -> None:
         """Process a single combat log entry, routing it to the right bucket.
 
@@ -128,6 +176,16 @@ class _CombatAggregator:
             entry: A ``CombatLogEntry`` instance.
         """
         attacker_pid = self._hero_to_pid(entry.attacker_name) if entry.attacker_is_hero else None
+        # Credit summoned unit damage/stuns to the owning hero when the attacker
+        # is not a hero itself (Warlock Golem, LD bear, Chen creeps, Pugna ward, etc.)
+        # Only applies to DAMAGE/ABILITY/ITEM — not GOLD/XP/RUNE/etc.
+        if (
+            attacker_pid is None
+            and not entry.attacker_is_hero
+            and entry.attacker_name
+            and entry.log_type in ("DAMAGE", "ABILITY", "ITEM")
+        ):
+            attacker_pid = self._summon_to_pid(entry.attacker_name)
         target_pid = self._hero_to_pid(entry.target_name) if entry.target_is_hero else None
 
         # For GOLD/XP/PURCHASE in S2 replays, target_is_hero is False even for
