@@ -10,9 +10,11 @@ window.
 
 gem detects a fight by:
 
-1. Sliding a time window over the combat log.
-2. Looking for windows that contain at least one hero death.
-3. Merging adjacent windows that overlap (extending the fight while combat continues).
+1. Scanning for hero death events in the combat log.
+2. Opening a window of ±15 seconds around each death.
+3. Merging windows that share deaths — extending the fight while combat continues.
+4. Optionally splitting simultaneous skirmishes in different parts of the map using
+   spatial clustering (when position data is available).
 
 The result is a list of non-overlapping fight windows with per-participant statistics.
 
@@ -27,12 +29,12 @@ match = gem.parse("my_replay.dem")
 
 for fight in match.teamfights:
     duration = (fight.end_tick - fight.start_tick) / 30
-    deaths = sum(p.deaths for p in fight.players)
     print(
         f"Fight at tick {fight.start_tick:,}–{fight.end_tick:,}  "
         f"({duration:.0f}s)  "
-        f"{deaths} deaths  "
-        f"{len(fight.players)} participants"
+        f"{fight.deaths} deaths  "
+        f"winner: {fight.winner}  "
+        f"({fight.radiant_kills}–{fight.dire_kills})"
     )
 ```
 
@@ -41,9 +43,16 @@ for fight in match.teamfights:
 ## Teamfight fields
 
 ```python
-fight.start_tick    # int: tick the window opens
-fight.end_tick      # int: tick the window closes
-fight.players       # list[TeamfightPlayer]: one per active participant
+fight.start_tick      # int: tick the window opens
+fight.end_tick        # int: tick the window closes
+fight.last_death_tick # int: tick of the final death
+fight.deaths          # int: total hero deaths in the window
+fight.radiant_kills   # int: hero kills scored by Radiant
+fight.dire_kills      # int: hero kills scored by Dire
+fight.winner          # str: "radiant", "dire", "draw", or "unknown"
+fight.centroid_x      # float | None: weighted mean X of all deaths
+fight.centroid_y      # float | None: weighted mean Y of all deaths
+fight.players         # list[TeamfightPlayer]: one per slot (0–9)
 ```
 
 ---
@@ -52,14 +61,16 @@ fight.players       # list[TeamfightPlayer]: one per active participant
 
 ```python
 for player in fight.players:
-    print(player.hero_name)      # "CDOTA_Unit_Hero_Axe"
-    print(player.deaths)         # int: deaths in this fight window
-    print(player.damage_dealt)   # int: damage dealt to enemy heroes
-    print(player.damage_taken)   # int: damage taken from enemy heroes
-    print(player.healing)        # int: healing dealt to allied heroes (not self)
-    print(player.buybacks)       # int: buybacks used in this window
-    print(player.gold_delta)     # int: net gold change during the fight
-    print(player.xp_delta)       # int: net XP change during the fight
+    print(player.player_id)     # int: player slot 0–9
+    print(player.deaths)        # int: deaths in this fight window
+    print(player.damage_dealt)  # int: damage dealt to enemy heroes
+    print(player.damage_taken)  # int: damage taken from enemy heroes
+    print(player.healing)       # int: healing dealt to allied heroes (not self)
+    print(player.buybacks)      # int: buybacks used in this window
+    print(player.gold_delta)    # int: net gold change during the fight
+    print(player.xp_delta)      # int: net XP change during the fight
+    print(player.ability_uses)  # dict[str, int]: ability name → use count
+    print(player.item_uses)     # dict[str, int]: item name → use count
 ```
 
 ---
@@ -88,8 +99,36 @@ gem returns all detected windows without a minimum death threshold. Apply your o
 filter to match OpenDota's convention (3+ deaths = teamfight):
 
 ```python
-significant_fights = [f for f in match.teamfights
-                      if sum(p.deaths for p in f.players) >= 3]
+significant_fights = [f for f in match.teamfights if f.deaths >= 3]
+```
+
+---
+
+## Finding the fight at a specific tick
+
+Use `gem.teamfight_at_tick()` to look up which fight contains a given tick — useful when
+you have a combat log event and want its fight context:
+
+```python
+fight = gem.teamfight_at_tick(match, entry.tick)
+if fight:
+    print(f"Event happened during a fight: {fight.winner} won ({fight.deaths} deaths)")
+```
+
+---
+
+## Finding heroes near a fight location
+
+Use `gem.heroes_near()` to find all heroes within a radius of the fight centroid at
+initiation time — useful for answering "who was in position to join?":
+
+```python
+if fight.centroid_x is not None:
+    nearby = gem.heroes_near(match, fight.start_tick,
+                             fight.centroid_x, fight.centroid_y,
+                             radius=2000)
+    for player in nearby:
+        print(f"{player.hero_name} was near fight start")
 ```
 
 ---
@@ -97,13 +136,14 @@ significant_fights = [f for f in match.teamfights
 ## HTML teamfight report
 
 The Teamfights tab in `examples/match_report.py` generates a self-contained report with:
+
 - A minimap showing fight locations
 - Hero icon timelines
+- Per-fight combat log with AoE spells collapsed into grouped cast rows
 - Live slider filters for minimum deaths and minimum participant count
 
 ```bash
 python examples/match_report.py my_replay.dem
-# Outputs an HTML report including the Teamfights tab
 ```
 
 ---
@@ -112,15 +152,11 @@ python examples/match_report.py my_replay.dem
 
 Source: `src/gem/extractors/teamfights.py`
 
-`detect_teamfights(combat_log_entries, snapshots)` is the main function. It takes the
-complete list of `CombatLogEntry` objects and the player snapshot list, and returns a
-`list[Teamfight]`.
+`detect_teamfights(combat_log, hero_to_slot, player_snapshots, slot_to_team)` is the
+main function. It runs four passes:
 
-The windowing algorithm:
-
-1. Collect all hero death ticks.
-2. For each death, open a window of ±N ticks.
-3. Merge overlapping windows.
-4. For each merged window, filter combat log entries to those within the window.
-5. Determine active participants by the criteria above.
-6. Compute per-participant stats.
+1. **Pass 1** — detect fight windows from hero death events.
+2. **Pass 2** — accumulate per-player stats (damage, healing, deaths, kills) and
+   populate `radiant_kills` / `dire_kills`.
+3. **Pass 3** — compute XP deltas from bracketing snapshots.
+4. **Pass 4** — set `winner` from kill counts.

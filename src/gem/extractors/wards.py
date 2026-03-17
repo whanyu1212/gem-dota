@@ -222,10 +222,36 @@ class WardsExtractor:
     # ------------------------------------------------------------------
 
     def _on_combat_log(self, entry: CombatLogEntry) -> None:
-        if entry.log_type == "DEATH" and entry.target_name in _WARD_TARGET_NAMES:
-            killer = entry.attacker_name
-            if killer:
-                self._killer_queue[entry.target_name].append(killer)
+        if entry.log_type != "DEATH" or entry.target_name not in _WARD_TARGET_NAMES:
+            return
+        killer = entry.attacker_name
+        if not killer:
+            return
+        # First try to back-fill any ward event that was marked killed at this
+        # exact tick but whose killer queue was empty at lifestate-transition
+        # time (same-tick ordering: entity callback fires before combat log).
+        back_filled = False
+        for ev in reversed(self.ward_events):
+            if (
+                ev.killed_tick == entry.tick
+                and not ev.killer
+                and _CLASS_TO_TARGET.get(
+                    "CDOTA_NPC_Observer_Ward_TrueSight"
+                    if ev.ward_type == "sentry"
+                    else "CDOTA_NPC_Observer_Ward",
+                    "",
+                )
+                == entry.target_name
+            ):
+                if killer in _WARD_TARGET_NAMES:
+                    ev.killed_tick = None
+                    ev.expires_tick = entry.tick
+                else:
+                    ev.killer = killer
+                back_filled = True
+                break
+        if not back_filled:
+            self._killer_queue[entry.target_name].append(killer)
 
     # ------------------------------------------------------------------
     # Entity stream — primary placement/death signal

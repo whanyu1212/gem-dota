@@ -27,11 +27,21 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import gem.constants as constants  # re-export so `gem.constants.hero_display()` works
+from gem.analysis import (
+    AbilityCast,
+    VisionSource,
+    ability_level_at_tick,
+    estimate_vision,
+    group_ability_hits,
+    heroes_near,
+    position_at_tick,
+    teamfight_at_tick,
+)
 from gem.batch import ParseResult, parse_many, parse_many_to_dataframe, parse_many_to_parquet
 from gem.constants import hero_npc_name
-from gem.models import ChatEntry, ParsedMatch, ParsedPlayer
+from gem.models import ChatEntry, ParsedMatch, ParsedPlayer, VisionModifierEvent
 
-__version__ = "0.2.3"
+__version__ = "0.2.4"
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -87,6 +97,62 @@ def parse(path: str | Path) -> ParsedMatch:
     # receives the buff) and averaged to give the group centroid.
     # Logic for SmokeEvent collection (item consumption + modifier arrival)
     from gem.models import SmokeEvent as _SmokeEvent
+    from gem.models import VisionModifierEvent as _VisionModifierEvent
+
+    # Vision modifier tracking — modifiers that reveal/grant vision of enemy heroes.
+    # MODIFIER_ADD opens an event (end_tick=None); MODIFIER_REMOVE closes it.
+    # The same hero can have the same modifier applied multiple times (e.g. refreshed
+    # Dust), so we key by (modifier_name, target_name) and handle stacking by
+    # maintaining a list (LIFO: remove closes the most recently opened open event).
+    _VISION_MODIFIER_NAMES: frozenset[str] = frozenset(
+        {
+            # Slardar — Corrosive Haze (ultimate): true sight of target
+            "modifier_slardar_amplify_damage",
+            # Bounty Hunter — Track: true sight + gold bounty
+            "modifier_bounty_hunter_track",
+            # Dust of Appearance — item AoE reveal
+            "modifier_item_dustofappearance",
+            # Gem of True Sight — carrier aura (hero-level modifier on target)
+            "modifier_item_gem_of_true_sight",
+            "modifier_gem_active_truesight",
+            # Oracle — False Promise: not a reveal but often comboed; skip
+            # Zeus — Thundergods Wrath: global, not a per-hero modifier; skip
+        }
+    )
+    vision_modifier_events: list[_VisionModifierEvent] = []
+    # Track open (not-yet-closed) events: (modifier_name, target_name) → stack of events
+    _open_vision_mods: dict[tuple[str, str], list[_VisionModifierEvent]] = {}
+
+    def _on_vision_modifier_entry(entry: CombatLogEntry) -> None:
+        if entry.log_type == "MODIFIER_ADD":
+            mod = entry.inflictor_name
+            if mod not in _VISION_MODIFIER_NAMES:
+                return
+            ev = _VisionModifierEvent(
+                tick=entry.tick,
+                end_tick=None,
+                modifier_name=mod,
+                target_name=entry.target_name,
+                caster_name=entry.attacker_name,
+                caster_team=0,  # back-filled after parse
+            )
+            vision_modifier_events.append(ev)
+            key = (mod, entry.target_name)
+            if key not in _open_vision_mods:
+                _open_vision_mods[key] = []
+            _open_vision_mods[key].append(ev)
+        elif entry.log_type == "MODIFIER_REMOVE":
+            mod = entry.inflictor_name
+            if mod not in _VISION_MODIFIER_NAMES:
+                return
+            key = (mod, entry.target_name)
+            stack = _open_vision_mods.get(key)
+            if stack:
+                stack.pop().end_tick = entry.tick
+                if not stack:
+                    del _open_vision_mods[key]
+
+    p.on_combat_log_entry(_on_vision_modifier_entry)
 
     _pending_smokes: dict[str, _SmokeEvent] = {}  # activator npc → active event
     # Per-event accumulated positions: activator npc → list of (x, y) live coords
@@ -138,6 +204,9 @@ def parse(path: str | Path) -> ParsedMatch:
             ev.x = sum(p[0] for p in positions) / len(positions)
             ev.y = sum(p[1] for p in positions) / len(positions)
 
+    for vev in vision_modifier_events:
+        vev.caster_team = _team_by_npc.get(vev.caster_name, 0)
+
     return build_parsed_match(
         parser=p,
         player_ext=player_ext,
@@ -149,6 +218,7 @@ def parse(path: str | Path) -> ParsedMatch:
         all_entries=all_entries,
         chat_entries=chat_entries,
         smoke_events=smoke_events,
+        vision_modifier_events=vision_modifier_events,
     )
 
 
@@ -277,5 +347,14 @@ __all__ = [
     "ChatEntry",
     "find_player",
     "hero_npc_name",
+    "position_at_tick",
+    "group_ability_hits",
+    "AbilityCast",
+    "teamfight_at_tick",
+    "heroes_near",
+    "ability_level_at_tick",
+    "estimate_vision",
+    "VisionSource",
+    "VisionModifierEvent",
     "constants",
 ]

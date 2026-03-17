@@ -64,6 +64,7 @@ class _FakePlayerSnapshot:
     team: int
     x: float | None = None
     y: float | None = None
+    ability_levels: dict = field(default_factory=dict)
 
 
 def _make_parser(

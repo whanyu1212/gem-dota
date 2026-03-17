@@ -207,11 +207,21 @@ def build_figure(
     player_snapshots: dict[int, list] | None = None,
 ) -> go.Figure:
     """Build the Plotly figure with map background and animated hero traces."""
-    with open(map_path, "rb") as f:
-        img_b64 = base64.b64encode(f.read()).decode()
-    suffix = map_path.suffix.lstrip(".").lower()
-    mime = "jpeg" if suffix in ("jpg", "jpeg") else suffix
-    img_src = f"data:image/{mime};base64,{img_b64}"
+    import io as _io
+
+    try:
+        from PIL import Image as _Image
+
+        with _Image.open(map_path) as _img:
+            _img = _img.convert("RGB")
+            _img.thumbnail((1024, 1024), _Image.LANCZOS)
+            _buf = _io.BytesIO()
+            _img.save(_buf, format="JPEG", quality=70)
+            img_b64 = base64.b64encode(_buf.getvalue()).decode()
+    except ImportError:
+        with open(map_path, "rb") as f:
+            img_b64 = base64.b64encode(f.read()).decode()
+    img_src = f"data:image/jpeg;base64,{img_b64}"
 
     active_players = [pp for pp in match.players if pp.position_log]
     hover_cache = _build_hover_cache(match, player_snapshots or {})
@@ -232,7 +242,17 @@ def build_figure(
         }
     )
 
-    all_ticks: list[int] = sorted({tick for pp in match.players for tick, _, _ in pp.position_log})
+    _FRAME_INTERVAL = 150  # ~5 seconds between animation frames
+    all_ticks_raw: list[int] = sorted(
+        {tick for pp in match.players for tick, _, _ in pp.position_log}
+    )
+    all_ticks: list[int] = all_ticks_raw[
+        :: max(
+            1,
+            _FRAME_INTERVAL
+            // max(1, (all_ticks_raw[1] - all_ticks_raw[0]) if len(all_ticks_raw) > 1 else 1),
+        )
+    ]
 
     for pp in active_players:
         color = _SLOT_COLORS[pp.player_id]

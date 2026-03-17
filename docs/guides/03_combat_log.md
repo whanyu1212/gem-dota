@@ -261,3 +261,11 @@ name.
 
 - `examples/match_report.py` — full dashboard including combat log, kills, and vision timelines
 - `examples/extraction_demo.py` — developer guide for custom combat log handlers
+
+---
+
+## See also
+
+- [`gem.group_ability_hits()`](../reference/analysis.md) — collapse multi-target DAMAGE entries into per-cast `AbilityCast` records (Ravage, Black Hole, RP, etc.)
+- [`gem.ability_level_at_tick()`](../reference/analysis.md) — look up what level an ability was when it was cast
+- [`gem.teamfight_at_tick()`](../reference/analysis.md) — find the teamfight window containing any combat log event
