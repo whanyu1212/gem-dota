@@ -14,7 +14,7 @@ import pytest
 from gem.extractors.lane import classify_lane
 from gem.models import ParsedPlayer
 
-FIXTURE = Path(__file__).parent / "fixtures" / "ti14_finals_g1_xg_vs_falcons.dem"
+FIXTURE = Path(__file__).parent / "fixtures" / "ti14_finals_g3_xg_vs_falcons.dem"
 
 _GRID = 64  # must match extractors/lane._GRID and match_builder._LANE_GRID
 _LANE_WINDOW = 600 * 30  # 18000 ticks

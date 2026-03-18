@@ -20,7 +20,7 @@ from gem.extractors.teamfights import (
     detect_teamfights,
 )
 
-FIXTURE = Path(__file__).parent / "fixtures" / "ti14_finals_g1_xg_vs_falcons.dem"
+FIXTURE = Path(__file__).parent / "fixtures" / "ti14_finals_g3_xg_vs_falcons.dem"
 
 _COOLDOWN = 15 * 30  # 450 ticks
 

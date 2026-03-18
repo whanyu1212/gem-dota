@@ -24,7 +24,7 @@ from pathlib import Path
 import pytest
 
 FIXTURE_TRUNCATED = (
-    Path(__file__).parent / "fixtures" / "ti14_finals_g1_xg_vs_falcons_truncated.dem"
+    Path(__file__).parent / "fixtures" / "ti14_finals_g3_xg_vs_falcons_truncated.dem"
 )
 
 _MAGIC_S2 = b"PBDEMS2\x00"

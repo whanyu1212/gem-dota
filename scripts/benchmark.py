@@ -59,7 +59,7 @@ FIXTURES_DIR = REPO_ROOT / "tests" / "fixtures"
 
 # Default replay files used when no --file is given.
 DEFAULT_FILES: list[Path] = [
-    FIXTURES_DIR / "ti14_finals_g1_xg_vs_falcons.dem",
+    FIXTURES_DIR / "ti14_finals_g3_xg_vs_falcons.dem",
     FIXTURES_DIR / "8520062186.dem",
 ]
 

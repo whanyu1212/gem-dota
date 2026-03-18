@@ -48,7 +48,7 @@ class Replay:
 REPLAYS: list[Replay] = [
     Replay(
         match_id=8461735141,
-        label="ti14_finals_g1_xg_vs_falcons",
+        label="ti14_finals_g3_xg_vs_falcons",
         # cluster and salt pre-filled to avoid an extra API call
         cluster=274,
         salt=494961331,

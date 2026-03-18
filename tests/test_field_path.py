@@ -174,7 +174,7 @@ class TestDecodeTableCrossValidation:
         fixture = os.path.join(
             os.path.dirname(__file__),
             "fixtures",
-            "ti14_finals_g1_xg_vs_falcons_truncated.dem",
+            "ti14_finals_g3_xg_vs_falcons_truncated.dem",
         )
         if not os.path.exists(fixture):
             pytest.skip("truncated fixture not found")
