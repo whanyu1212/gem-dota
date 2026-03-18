@@ -1,0 +1,63 @@
+This file lists third-party projects whose work was used in the development of gem-dota,
+or whose files are bundled within this distribution.
+
+================================================================================
+BUNDLED DATA
+================================================================================
+
+--------------------------------------------------------------------------------
+dotaconstants
+https://github.com/odota/dotaconstants
+--------------------------------------------------------------------------------
+Files bundled in src/gem/data/:
+  heroes.json, items.json, abilities.json, xp_level.json,
+  permanent_buffs.json, leagues.json, map_constants.json
+
+MIT License
+
+Copyright (c) 2017 The OpenDota Project
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+================================================================================
+DEVELOPMENT REFERENCES
+================================================================================
+The following projects were used as references to understand the Dota 2 Source 2
+replay format and inform design decisions. No source code was copied or bundled.
+
+--------------------------------------------------------------------------------
+Manta
+https://github.com/dotabuff/manta
+License: MIT (Copyright (c) 2016 Elo Entertainment LLC.)
+Role: Primary reference for binary parsing logic and the entity delta system.
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Clarity
+https://github.com/skadistats/clarity
+License: BSD 3-Clause (Copyright (c) 2015 Martin Schrodt)
+Role: Correctness authority for edge cases and the two-path combat log design.
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+OpenDota parser
+https://github.com/odota/parser
+License: MIT (Copyright (c) 2017 The OpenDota Project)
+Role: Output schema authority for match data structure and conventions.
+--------------------------------------------------------------------------------

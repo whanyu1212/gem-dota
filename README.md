@@ -410,8 +410,13 @@ If you run a benchmark, please open an issue/PR with:
 
 `gem` stands on top of years of open work by the Dota replay community.
 
-- **Manta** (Go), **Clarity** (Java), and the **OpenDota parser** — invaluable references for protocol behavior, edge cases, and output conventions.
+- **[Manta](https://github.com/dotabuff/manta)** (Go, MIT) — primary reference for binary parsing logic and the entity delta system.
+- **[Clarity](https://github.com/skadistats/clarity)** (Java, BSD 3-Clause) — correctness authority for edge cases and the two-path combat log design.
+- **[OpenDota parser](https://github.com/odota/parser)** (Java, MIT) — output schema authority for match data structure and conventions.
+- **[dotaconstants](https://github.com/odota/dotaconstants)** (MIT) — hero, item, and ability metadata bundled as static assets.
 - **Valve** for the Dota 2 replay ecosystem and continuously evolving game data surface.
+
+No source code was copied from any of the above projects. They were used as reference implementations to understand protocol behaviour, verify correctness, and inform design decisions. All `gem` code is an independent Python reimplementation.
 
 ---
 
