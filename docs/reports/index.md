@@ -1,15 +1,15 @@
 # Sample Reports
 
-Live match reports generated from real `.dem` replay files using `gem`.
+Match reports generated from real `.dem` replay files using `gem`.
 
-## TI14 Finals — Game 1 · XG vs Falcons
+## TI14 Finals — Game 3 · XG vs Falcons
 
-[Open report :material-open-in-new:](ti14_g1_xg_vs_falcons.html){ .md-button .md-button--primary target="_blank" }
+[Download report :material-download:](https://github.com/whanyu1212/gem-dota/releases/download/v0.2.4/ti14_g1_xg_vs_falcons.html){ .md-button .md-button--primary }
 
 | | |
 |---|---|
 | **Event** | The International 14 |
-| **Match** | Grand Finals, Game 1 |
+| **Match** | Grand Finals, Game 3 |
 | **Teams** | Team XG vs Falcons |
 
 ---

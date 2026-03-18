@@ -73,7 +73,7 @@ def _build_hero_id_map() -> dict[int, str]:
 # ---------------------------------------------------------------------------
 
 REPLAYS: list[tuple[int, Path]] = [
-    (8461735141, FIXTURES_DIR / "ti14_finals_g1_xg_vs_falcons.dem"),
+    (8461735141, FIXTURES_DIR / "ti14_finals_g3_xg_vs_falcons.dem"),
     (8520062186, FIXTURES_DIR / "8520062186.dem"),
     (8520014563, FIXTURES_DIR / "8520014563.dem"),
 ]

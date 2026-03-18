@@ -571,7 +571,7 @@ def main() -> None:
         dem_path = sys.argv[1]
     else:
         dem_path = str(
-            Path(__file__).parent.parent / "tests" / "fixtures" / "ti14_finals_g1_xg_vs_falcons.dem"
+            Path(__file__).parent.parent / "tests" / "fixtures" / "ti14_finals_g3_xg_vs_falcons.dem"
         )
 
     print(f"Replay: {dem_path}")
