@@ -180,7 +180,7 @@ python -m gem match.dem --progress --timings
 
 ### Reproduce this analysis
 
-A live sample report (TI14 Grand Finals G1 — XG vs Falcons) is hosted on the docs site:
+A sample report (TI14 Grand Finals G3 — XG vs Falcons) is available as a download from the docs site:
 [whanyu1212.github.io/gem-dota/reports/](https://whanyu1212.github.io/gem-dota/reports/)
 
 Run the match report generator in `examples/`:
@@ -248,7 +248,7 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 - **Fights tab — Active Reveals** — the match report Fights tab now shows which heroes were under vision modifiers (Corrosive Haze, Dust, Track, Gem) during each teamfight window.
 - **HTML report size fix** — report file size reduced from ~459 MB to ~58 MB by deduplicating base64 map/icon embeds. Map image (9 MB) was embedded 22× (once per teamfight minimap); hero icons were repeated up to 70× each. Both are now hoisted to JS globals and patched on load.
 - **Ward map heatmap y-flip fix** — vision coverage heatmap overlay was rendered upside-down relative to ward dot positions; corrected.
-- **Sample report gallery** — live TI14 G1 report hosted at [whanyu1212.github.io/gem-dota/reports/](https://whanyu1212.github.io/gem-dota/reports/).
+- **Sample report gallery** — TI14 G3 report available as a download at [whanyu1212.github.io/gem-dota/reports/](https://whanyu1212.github.io/gem-dota/reports/).
 
 ### v0.2.3
 
@@ -262,7 +262,7 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 
 - **Batch processing** — `gem.parse_many()`, `gem.parse_many_to_dataframe()`, `gem.parse_many_to_parquet()` for parallel multi-replay parsing via `ProcessPoolExecutor`.
 - **CLI `batch` subcommand** — `python -m gem batch replays/ --format parquet --output ./out`; legacy bare-path invocation preserved.
-- **Docs** — home page feature cards, annotated JSON output guide (real TI14 G1 XG vs Falcons replay), CLI reference guide, batch API reference page.
+- **Docs** — home page feature cards, annotated JSON output guide (real TI14 G3 XG vs Falcons replay), CLI reference guide, batch API reference page.
 
 ### [v0.2.1](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.1)
 
@@ -338,7 +338,7 @@ python examples/extraction_demo.py path/to/your.dem
 python examples/steam_match_info.py <match_id>
 ```
 
-`examples/ti14_sample.json` — annotated real JSON output from TI14 Grand Finals G1 (XG vs Falcons), used as the reference example in the docs.
+`examples/ti14_sample.json` — annotated real JSON output from TI14 Grand Finals G3 (XG vs Falcons), used as the reference example in the docs.
 
 ---
 
