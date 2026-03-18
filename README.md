@@ -418,6 +418,8 @@ If you run a benchmark, please open an issue/PR with:
 
 No source code was copied from any of the above projects. They were used as reference implementations to understand protocol behaviour, verify correctness, and inform design decisions. All `gem` code is an independent Python reimplementation.
 
+See [`THIRD_PARTY_LICENSES`](THIRD_PARTY_LICENSES) for full license texts.
+
 ---
 
 ## Roadmap
