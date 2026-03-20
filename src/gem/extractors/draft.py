@@ -132,19 +132,14 @@ class DraftExtractor:
         1. Live map built from hero entity class names (most accurate; populated
            by ``_update_live_map`` once hero entities spawn in the game phase).
         2. ``heroes.json`` lookup with ``hero_id // 2`` — modern Dota 2 replays
-           store pick/ban IDs as ``api_id * 2`` in entity fields.  Only applied
-           when the halved value resolves to a hero AND the full ID does not (to
-           avoid misidentifying legacy direct-ID bans such as axe=2 or pudge=14).
-        3. Static ``heroes.json`` direct lookup — for legacy replays or IDs that
-           genuinely match the public hero ID (e.g. low-numbered ban slots).
+           store ALL pick/ban IDs as ``api_id * 2`` in entity fields, so halving
+           is always preferred over a direct lookup when the halved value resolves.
+        3. Static ``heroes.json`` direct lookup — fallback for legacy replays.
         """
         if hero_id in self._live_id_to_npc:
             return self._live_id_to_npc[hero_id]
         half = hero_id // 2
-        # Prefer //2 only when direct ID is NOT in the static dict, so that
-        # genuinely direct-ID bans (axe=2, pudge=14, riki=32, …) are not
-        # misidentified via halving.
-        if hero_id not in _HERO_ID_TO_NPC and half in _HERO_ID_TO_NPC:
+        if half in _HERO_ID_TO_NPC:
             return _HERO_ID_TO_NPC[half]
         return _HERO_ID_TO_NPC.get(hero_id, "")
 
