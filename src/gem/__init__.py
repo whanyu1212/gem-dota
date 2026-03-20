@@ -71,7 +71,7 @@ from gem.extractors.draft import resolve_pick_team
 from gem.models import ChatEntry, ParsedMatch, ParsedPlayer, VisionModifierEvent
 from gem.replay_fetch import download_and_decompress, fetch_replay, fetch_replay_url
 
-__version__ = "0.2.4"
+__version__ = "0.2.5"
 
 if TYPE_CHECKING:
     import pandas as pd
