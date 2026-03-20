@@ -251,10 +251,11 @@ def build_parsed_match(
             dire_opp.lane_gold_adv = dire_opp.lane_total_gold - rad.lane_total_gold
             dire_opp.lane_xp_adv = dire_opp.lane_total_xp - rad.lane_total_xp
 
-    # Extract player names from CDOTA_PlayerResource entity.
+    # Extract player names and Steam IDs from CDOTA_PlayerResource entity.
     # Two field path variants: newer replays use m_vecPlayerData.{slot}.m_iszPlayerName,
     # older replays use m_iszPlayerNames.{slot}.
-    # Reference: refs/manta/manta_test.go line ~703
+    # Reference: refs/manta/manta_test.go line ~703, refs/parser/Parse.java line ~602
+    _STEAM_ID_BASE = 76561197960265728
     if parser.entity_manager is not None:
         pr = parser.entity_manager.find_by_class_name("CDOTA_PlayerResource")
         if pr is not None:
@@ -265,6 +266,28 @@ def build_parsed_match(
                     name = pr.get_string(f"m_iszPlayerNames.{slot}")
                 if name:
                     match.players[player_id].player_name = name
+                steam_id = pr.get_uint64(f"m_vecPlayerData.{slot}.m_iPlayerSteamID")
+                if not steam_id:
+                    steam_id = pr.get_uint64(f"m_iPlayerSteamIDs.{slot}")
+                if isinstance(steam_id, int) and steam_id > 0:
+                    match.players[player_id].steam_id = steam_id
+                    if steam_id > _STEAM_ID_BASE:
+                        match.players[player_id].account_id = steam_id - _STEAM_ID_BASE
+
+        # Extract team names and tags from CDOTATeam entities.
+        # m_iTeamNum 2 = Radiant, 3 = Dire.
+        for ent in parser.entity_manager.entities:
+            if ent is None or not ent.active or ent.get_class_name() != "CDOTATeam":
+                continue
+            team_num = ent.get_int32("m_iTeamNum")
+            if team_num == 2:
+                match.radiant_team_id = ent.get_uint32("m_unTournamentTeamID") or 0
+                match.radiant_team_name = ent.get_string("m_szTeamname") or ""
+                match.radiant_team_tag = ent.get_string("m_szTag") or ""
+            elif team_num == 3:
+                match.dire_team_id = ent.get_uint32("m_unTournamentTeamID") or 0
+                match.dire_team_name = ent.get_string("m_szTeamname") or ""
+                match.dire_team_tag = ent.get_string("m_szTag") or ""
 
     # Attach ward logs per player
     for ward in match.wards:

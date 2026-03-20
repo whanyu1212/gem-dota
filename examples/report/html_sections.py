@@ -76,6 +76,72 @@ def build_header(
         f"  </div>",
         "</div>",
     ]
+
+    # ── Team & roster panel ──────────────────────────────────────────────────
+    # Only render if at least one team name is known (league/tournament games).
+    load_hero_icons([p.hero_name for p in match.players if p.hero_name])
+    team_rows: dict[int, list[str]] = {2: [], 3: []}
+    for pp in match.players:
+        if pp.team not in (2, 3):
+            continue
+        player_label = e(pp.player_name) if pp.player_name else "—"
+        if pp.account_id:
+            player_label = (
+                f'<a href="https://www.opendota.com/players/{pp.account_id}" '
+                f'target="_blank" rel="noopener" '
+                f'style="color:inherit;text-decoration:underline dotted">'
+                f"{player_label}</a>"
+            )
+        hero_cell_html = _hero_cell(pp.hero_name, pp.team) if pp.hero_name else "—"
+        team_rows[pp.team].append(
+            f"<tr>"
+            f'<td style="padding:3px 12px 3px 0">{player_label}</td>'
+            f'<td style="padding:3px 0;white-space:nowrap">{hero_cell_html}</td>'
+            f"</tr>"
+        )
+
+    def _team_block(team: int, color: str) -> str:
+        name = match.radiant_team_name if team == 2 else match.dire_team_name
+        tag = match.radiant_team_tag if team == 2 else match.dire_team_tag
+        team_id = match.radiant_team_id if team == 2 else match.dire_team_id
+        side = "Radiant" if team == 2 else "Dire"
+        if name:
+            heading = f"{e(name)}"
+            if tag:
+                heading += f' <span style="opacity:.6;font-size:.85em">[{e(tag)}]</span>'
+            if team_id:
+                heading += (
+                    f' <a href="https://www.opendota.com/teams/{team_id}" '
+                    f'target="_blank" rel="noopener" '
+                    f'style="opacity:.5;font-size:.75em;color:inherit;'
+                    f'text-decoration:underline dotted">#{team_id}</a>'
+                )
+        else:
+            heading = side
+        rows_html = "\n".join(team_rows[team])
+        return (
+            f'<div style="flex:1;min-width:220px">'
+            f'<div style="font-weight:600;color:{color};margin-bottom:6px">{heading}</div>'
+            f'<table style="border:none;font-size:.85em">{rows_html}</table>'
+            f"</div>"
+        )
+
+    radiant_block = _team_block(2, "#4caf50")
+    dire_block = _team_block(3, "#f44336")
+
+    parts.append(
+        '<div class="card" style="margin-top:12px">'
+        "<details open>"
+        "<summary>Rosters</summary>"
+        '<div class="card-body">'
+        '<div style="display:flex;gap:32px;flex-wrap:wrap">'
+        f"{radiant_block}{dire_block}"
+        "</div>"
+        "</div>"
+        "</details>"
+        "</div>"
+    )
+
     return "\n".join(parts)
 
 
@@ -129,9 +195,14 @@ def build_scoreboard(match: gem.ParsedMatch, hero_cell: Callable[[str, int], str
             smoke_count = sum(
                 1 for ent in pp.purchase_log if ent.value_name == "item_smoke_of_deceit"
             )
+            acct = (
+                f'<br><span style="font-size:0.75em;color:#8b949e">{pp.account_id}</span>'
+                if pp.account_id
+                else ""
+            )
             parts.append(
                 f'<tr class="{row_cls}">'
-                f'<td style="white-space:nowrap">{hero_cell(pp.hero_name, team)}</td>'
+                f'<td style="white-space:nowrap">{hero_cell(pp.hero_name, team)}{acct}</td>'
                 f'<td class="r">{pp.kills}</td>'
                 f'<td class="r">{pp.deaths}</td>'
                 f'<td class="r">{pp.assists}</td>'

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.6] - 2026-03-21
+
+### Added
+- `ParsedMatch.radiant_team_id`, `radiant_team_name`, `radiant_team_tag` — team identity for the Radiant side, extracted from `CDOTATeam` entities (field `m_unTournamentTeamID`, `m_szTeamname`, `m_szTag`). Defaults to `0`/`""` for pub games.
+- `ParsedMatch.dire_team_id`, `dire_team_name`, `dire_team_tag` — same for the Dire side.
+- `ParsedPlayer.steam_id` — 64-bit Steam ID from `CDOTA_PlayerResource.m_vecPlayerData.{slot}.m_iPlayerSteamID`. Defaults to `0`.
+- `ParsedPlayer.account_id` — 32-bit Steam account ID (the ID in OpenDota/Dotabuff URLs), derived as `steam_id - 76561197960265728`. Defaults to `0`.
+- Scoreboard in HTML match report now displays each player's account ID below their hero name.
+
 ## [0.2.5] - 2026-03-20
 
 ### Added
@@ -115,7 +124,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLI and example scripts, including HTML match report.
 - Validation, fuzzing, and parser robustness foundations.
 
-[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.2.5...HEAD
+[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.2.6...HEAD
+[0.2.6]: https://github.com/whanyu1212/gem-dota/compare/v0.2.5...v0.2.6
 [0.2.5]: https://github.com/whanyu1212/gem-dota/compare/v0.2.4...v0.2.5
 [0.2.4]: https://github.com/whanyu1212/gem-dota/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/whanyu1212/gem-dota/compare/v0.2.2...v0.2.3
