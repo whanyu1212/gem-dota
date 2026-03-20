@@ -240,7 +240,22 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 
 ## Releases
 
-### v0.2.4
+### [v0.2.6](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.6)
+
+- **Team identity fields** — `ParsedMatch.radiant_team_id`, `radiant_team_name`, `radiant_team_tag` and `dire_team_id`, `dire_team_name`, `dire_team_tag` extracted from `CDOTATeam` entities. Default to `0`/`""` for pub games.
+- **Player Steam/account IDs** — `ParsedPlayer.steam_id` (64-bit) and `ParsedPlayer.account_id` (32-bit, matches OpenDota/Dotabuff URLs) extracted from `CDOTA_PlayerResource`.
+- **HTML report scoreboard** — account ID now displayed below each hero name in the scoreboard roster.
+
+### [v0.2.5](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.5)
+
+- **`gem.fetch_replay(match_id, out_dir)`** — download and decompress a replay from OpenDota in one call. Lower-level helpers `fetch_replay_url` and `download_and_decompress` also exposed via the public API.
+- **`gem.resolve_pick_team(event, players)`** — resolves the team for a draft pick/ban using the post-game player roster (more reliable than `m_pGameRules.m_iActiveTeam` in HLTV/coach replays).
+- **`gem.net_worth_at(player, tick)`**, **`gem.ward_vision_impact(ward, match)`**, **`gem.is_active_teamfight_participant(player_stats)`**, **`gem.format_npc_name(name)`** — new analysis helpers.
+- **Draft fix** — `DraftExtractor._resolve_name()` now correctly halves doubled hero IDs (`api_id * 2`) before falling back to a direct lookup, fixing wrong hero resolution for bans in modern replays.
+- **Integration test** — `tests/test_draft_integration.py` verifies picks/bans against the OpenDota API across 5 captains-mode pro replays.
+- **Sample report** — TI14 Grand Finals G3 (XG vs Falcons) report available as a download from the [reports gallery](https://whanyu1212.github.io/gem-dota/reports/).
+
+### [v0.2.4](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.4)
 
 - **Vision modifier tracking** *(experimental)* — `ParsedMatch.vision_modifiers` is a new list of `VisionModifierEvent` records tracking every application of a vision-granting ability or item (Slardar Corrosive Haze, Bounty Hunter Track, Dust of Appearance, Gem of True Sight). Start/end ticks, caster, target, and team are all captured.
 - **`gem.estimate_vision(match, team, tick, x, y)`** *(experimental)* — geometry-based vision estimation for a given point at a given tick. Returns a ranked list of `VisionSource` objects covering allied heroes (day/night radius), observer wards, and active vision modifier reveals. See [API reference](docs/reference/analysis.md) for limitations.
