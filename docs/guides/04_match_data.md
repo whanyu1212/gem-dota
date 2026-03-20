@@ -35,6 +35,23 @@ match.radiant_gold_adv     # list[int]: per-minute Radiant gold advantage
 match.radiant_xp_adv       # list[int]: per-minute Radiant XP advantage
 ```
 
+### Team identity (league/tournament games)
+
+For league games, team names, tags, and IDs are extracted from `CDOTATeam` entities in the
+replay. These are empty/zero for pub games.
+
+```python
+match.radiant_team_id      # int: tournament team ID (e.g. 8261500 for Xtreme Gaming)
+match.radiant_team_name    # str: team name (e.g. "Xtreme Gaming")
+match.radiant_team_tag     # str: team tag (e.g. "XG")
+match.dire_team_id         # int: tournament team ID
+match.dire_team_name       # str: team name
+match.dire_team_tag        # str: team tag
+
+# Team IDs match the OpenDota /teams/{id} URL
+# e.g. https://www.opendota.com/teams/8261500
+```
+
 ---
 
 ## Players
@@ -44,9 +61,15 @@ ordering (slots 0–4 = Radiant, 5–9 = Dire).
 
 ```python
 for player in match.players:
-    print(player.hero_name)     # "CDOTA_Unit_Hero_Axe"
-    print(player.player_slot)   # 0–9
+    print(player.hero_name)     # "npc_dota_hero_axe"
+    print(player.player_id)     # 0–9
+    print(player.player_name)   # Steam persona name, e.g. "Ame"
     print(player.team)          # 2 = Radiant, 3 = Dire
+    print(player.steam_id)      # 64-bit Steam ID, e.g. 76561198859019881
+    print(player.account_id)    # 32-bit account ID, e.g. 898754153
+
+# account_id matches the OpenDota/Dotabuff player URL
+# e.g. https://www.opendota.com/players/898754153
 ```
 
 ### Looking up a player by hero name

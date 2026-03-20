@@ -105,6 +105,9 @@ class ParsedPlayer:
         player_id: Player slot (0–9; 0–4 Radiant, 5–9 Dire).
         hero_name: NPC hero name, e.g. ``"npc_dota_hero_axe"``.
         player_name: Steam persona name (nickname), e.g. ``"Ame"``.
+        steam_id: 64-bit Steam ID (e.g. ``76561197986172872``), or 0 if unavailable.
+        account_id: 32-bit Steam account ID (e.g. ``25907144``), or 0 if unavailable.
+            Derived as ``steam_id - 76561197960265728``.
         team: Team number (2=Radiant, 3=Dire).
         times: Sample tick values (parallel to gold_t / lh_t / …).
             Default sampling is every 30 ticks (1 game-second).
@@ -177,6 +180,8 @@ class ParsedPlayer:
     player_id: int
     hero_name: str = ""
     player_name: str = ""
+    steam_id: int = 0
+    account_id: int = 0
     team: int = 0
     times: list[int] = field(default_factory=list)
     gold_t: list[int] = field(default_factory=list)
@@ -250,6 +255,13 @@ class ParsedMatch:
         game_mode: Game mode integer (e.g. 22 = All Pick Ranked).
         leagueid: League ID, or 0 for non-league matches.
         radiant_win: True if Radiant won, False if Dire won, None if unknown.
+        radiant_team_id: Radiant tournament team ID (e.g. ``8261500``), or 0 for pub games.
+            Matches the OpenDota ``/teams/{id}`` URL.
+        radiant_team_name: Radiant team name (e.g. ``"Xtreme Gaming"``), or empty string.
+        radiant_team_tag: Radiant team tag (e.g. ``"XG"``), or empty string.
+        dire_team_id: Dire tournament team ID, or 0 for pub games.
+        dire_team_name: Dire team name (e.g. ``"Team Falcons"``), or empty string.
+        dire_team_tag: Dire team tag (e.g. ``"FLCN"``), or empty string.
         players: One ``ParsedPlayer`` per player slot (index 0–9).
         towers: All tower kill events in chronological order.
         barracks: All barracks kill events in chronological order.
@@ -279,6 +291,12 @@ class ParsedMatch:
     game_mode: int = 0
     leagueid: int = 0
     radiant_win: bool | None = None
+    radiant_team_id: int = 0
+    radiant_team_name: str = ""
+    radiant_team_tag: str = ""
+    dire_team_id: int = 0
+    dire_team_name: str = ""
+    dire_team_tag: str = ""
     game_start_tick: int | None = None
     game_end_tick: int = 0
     players: list[ParsedPlayer] = field(

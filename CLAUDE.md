@@ -36,18 +36,26 @@ Read `STRATEGY.md` for the full implementation plan. The short version:
 ### Module dependency order (implement and read in this order)
 
 ```
-reader.py          ← BitReader, all bit/byte/varint primitives
-stream.py          ← outer message loop, Snappy decompress, magic check
-sendtable.py       ← serializer + field tree (requires reader)
-field_decoder.py   ← type-dispatch decoders + QuantizedFloatDecoder
-field_path.py      ← Huffman-coded field path ops (requires reader)
-string_table.py    ← incremental key-history string tables
-entities.py        ← entity create/update/delete lifecycle + state
-game_events.py     ← game event schema + typed dispatch
-combatlog.py       ← S1 (game event) + S2 (user message) combat log
-models.py          ← ParsedMatch, ParsedPlayer output dataclasses
-parser.py          ← top-level orchestrator wiring everything together
-extractors/        ← per-tick polling of entity state for output
+reader.py               ← BitReader, all bit/byte/varint primitives
+stream.py               ← outer message loop, Snappy decompress, magic check
+sendtable.py            ← serializer + field tree (requires reader)
+field_decoder.py        ← type-dispatch decoders + QuantizedFloatDecoder
+field_path.py           ← Huffman-coded field path ops (requires reader)
+field_state.py          ← nested mutable field-value tree (mirrors manta/field_state.go)
+field_reader.py         ← field decoder dispatch + entity field reading (mirrors manta/field_reader.go)
+string_table.py         ← incremental key-history string tables
+entities.py             ← entity create/update/delete lifecycle + state
+game_events.py          ← game event schema + typed dispatch
+combatlog.py            ← S1 (game event) + S2 (user message) combat log
+combat_aggregator.py    ← per-player combat log accumulation → damage/heal/kill/purchase tallies
+models.py               ← ParsedMatch, ParsedPlayer output dataclasses
+match_builder.py        ← wires extractor outputs into ParsedMatch
+parser.py               ← top-level orchestrator wiring everything together
+extractors/             ← per-tick polling of entity state for output
+analysis.py             ← post-parse analysis helpers (higher-level transforms on ParsedMatch)
+dataframes.py           ← converts ParsedMatch to pandas DataFrames
+batch.py                ← bulk replay parsing (parse_many, parallel workers)
+replay_fetch.py         ← download + decompress replays from OpenDota/Valve CDN
 ```
 
 ### Reference implementations (cloned at `refs/`)
@@ -194,19 +202,21 @@ Key message classes used throughout the parser:
 | Phase | Scope | Status |
 |---|---|---|
 | 1 | `reader.py`, `stream.py` | ✅ Complete |
-| 2 | `sendtable.py`, `field_decoder.py`, `field_path.py` | ✅ Complete |
+| 2 | `sendtable.py`, `field_decoder.py`, `field_path.py`, `field_state.py`, `field_reader.py` | ✅ Complete |
 | 3 | `string_table.py`, `entities.py`, `game_events.py`, `combatlog.py`, `parser.py` | ✅ Complete |
 | 4 | `constants.py` + bundled `src/gem/data/` JSON assets | ✅ Complete |
-| 5 | `extractors/players.py`, `objectives.py`, `wards.py` | ✅ Complete |
+| 5 | `extractors/players.py`, `objectives.py`, `wards.py`, `lane.py` | ✅ Complete |
 | 6 | `models.py`, `__init__.py` (`parse()`/`parse_to_dataframe()`), `__main__.py` (CLI) | ✅ Complete |
 | 7 | Rune pickups, buybacks, aegis, lane heatmaps, chat, purchase log, movement heatmap example | ✅ Complete |
 | 8 | `extractors/courier.py`, `extractors/draft.py`, ability levels on snapshots, stun duration | ✅ Complete |
-| 9 | Teamfights | ✅ Complete |
+| 9 | Teamfights (`extractors/teamfights.py`) | ✅ Complete |
 | 10 | Validation (`scripts/validate_opendota.py`), fuzz tests (`test_fuzz.py`), Steam API example | ✅ Complete |
 | 11 | Performance — Python quick-wins (struct.unpack fast path, flat Huffman table) | ✅ Complete |
 | 11b | Refactor & Cleanup — API surface, pyproject.toml metadata, tests, entity typed getters | ✅ Complete |
-| 12 | Docs & README — bottom-up technical guide (`understanding/` 10 pages), guides, API reference | 🚧 In Progress |
-| 13 | Distribution — PyPI packaging, CI/CD | 🚧 Planned |
+| 11c | `combat_aggregator.py`, `match_builder.py`, `analysis.py` — extracted from parser/models | ✅ Complete |
+| 11d | `dataframes.py`, `batch.py` (`parse_many`), `replay_fetch.py`, `quickstart.py` example | ✅ Complete |
+| 12 | Docs & README — bottom-up technical guide (`understanding/` 10 pages), guides, API reference | ✅ Complete |
+| 13 | Distribution — PyPI packaging, CI/CD | 🚧 In Progress |
 | 14 | Rust extension (PyO3 + maturin) — full entity system in Rust for 3–5× speedup | 🚧 Deferred |
 
 ## Test files
@@ -219,16 +229,37 @@ Key message classes used throughout the parser:
 | `test_field_decoder.py` | All field type decoders |
 | `test_field_path.py` | Huffman field path ops |
 | `test_field_path_ops.py` | All 40 field path op functions |
+| `test_field_state.py` | `FieldState` nested tree get/set |
+| `test_field_reader.py` | Field decoder dispatch |
 | `test_string_table.py` | String table create/update |
-| `test_string_table_extended.py` | Key history, value compression, handle_create/update edge cases |
 | `test_entities.py` | Entity lifecycle and typed getters |
 | `test_game_events.py` | Game event schema and dispatch |
 | `test_combatlog.py` | S1 and S2 combat log paths |
+| `test_combat_aggregator.py` | Per-player combat log accumulation |
+| `test_match_builder.py` | `MatchBuilder` — extractor wiring into `ParsedMatch` |
 | `test_extractors.py` | `PlayerExtractor`, `ObjectivesExtractor`, `WardsExtractor` |
+| `test_players_extractor.py` | `PlayerExtractor` — detailed snapshot/timeseries tests |
+| `test_wards_extractor.py` | `WardsExtractor` — coord matching, edge cases |
+| `test_objectives_extractor.py` | `ObjectivesExtractor` — tower/rax/roshan kills |
 | `test_ability_courier_draft_stuns.py` | Ability levels, `CourierExtractor`, `DraftExtractor`, stun duration |
-| `test_constants.py` | `constants.py` — all lookup functions |
 | `test_draft_extractor.py` | `DraftExtractor` — resolution tiers, finalize, idempotency |
+| `test_draft_integration.py` | Draft extraction against real replays |
+| `test_lane.py` | `LaneExtractor` — lane position heatmaps |
+| `test_constants.py` | `constants.py` — all lookup functions |
 | `test_teamfights.py` | `detect_teamfights` — window detection, stat attribution |
+| `test_models.py` | `ParsedMatch` / `ParsedPlayer` dataclass construction |
+| `test_analysis.py` | `analysis.py` — post-parse helper functions |
+| `test_dataframes.py` | `dataframes.py` — DataFrame shape and column correctness |
+| `test_parquet_export.py` | Parquet serialisation round-trip |
+| `test_serialization.py` | JSON/dict serialisation of `ParsedMatch` |
+| `test_bulk.py` | `batch.py` — `parse_many` parallel processing |
+| `test_parser.py` | `ReplayParser` integration (unit-level) |
+| `test_cli.py` | `__main__.py` CLI argument handling |
+| `test_find_player.py` | `find_player` helper on `ParsedMatch` |
+| `test_agentic_helpers.py` | Agentic / LLM-facing helper utilities in `analysis.py` |
+| `test_ml_running_totals.py` | Running-total features for ML use cases |
+| `test_html_sections.py` | HTML report section builders (smoke tests) |
+| `test_vision.py` | Vision / ward-related analysis helpers |
 | `test_fuzz.py` | Robustness: malformed/truncated/empty inputs don't hang or crash |
 
 Fixtures go in `tests/fixtures/`. Real `.dem` files for integration tests are marked `@pytest.mark.integration` and `@pytest.mark.slow`.
@@ -240,9 +271,13 @@ Fixtures go in `tests/fixtures/`. Real `.dem` files for integration tests are ma
 | `examples/match_report.py` | Full match dashboard (Draft, Combat, Vision, Teamfights, Economy) |
 | `examples/extraction_demo.py` | Developer guide for combat log extraction and entity polling |
 | `examples/steam_match_info.py` | Fetch match info from Steam API and display with Rich tables |
+| `examples/quickstart.py` | Minimal quickstart: parse a replay and print per-minute gold/XP |
 
 Hero and item icons for `match_report.py` are downloaded separately — not committed or shipped in the package:
 
 ```bash
 python scripts/fetch_hero_icons.py   # downloads to src/gem/data/hero_icons/
+python scripts/fetch_item_icons.py   # downloads to src/gem/data/item_icons/
 ```
+
+Sample HTML reports live in `docs/reports/` — currently `ti14_finals_g3_xg_vs_falcons.html`.
