@@ -1,6 +1,6 @@
 [project]
 name = "gem-dota"
-version = "0.2.4"
+version = "0.2.5"
 description = "Dota 2 Source 2 replay parser for data science and ML workflows"
 readme = "README.md"
 license = { text = "MIT" }
@@ -22,6 +22,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Information Analysis",
 ]
 dependencies = [
+    "ipykernel>=6.0.0",
     "numpy>=2.2.6",
     "pandas>=2.3.3",
     "pillow>=12.1.1",

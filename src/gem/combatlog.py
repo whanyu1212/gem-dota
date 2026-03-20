@@ -310,7 +310,6 @@ class CombatLogProcessor:
         damage_type = ""
         if log_type == "DAMAGE" and hasattr(msg, "damage_type"):
             damage_type = _DAMAGE_TYPE_NAMES.get(msg.damage_type, "")
-
         entry = CombatLogEntry(
             tick=tick,
             log_type=log_type,
