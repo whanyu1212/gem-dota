@@ -8,12 +8,14 @@ Reference: refs/parser/src/main/java/opendota/Parse.java
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 from gem.combatlog import CombatLogEntry
+from gem.entities import EntityOp
 
 if TYPE_CHECKING:
+    from gem.entities import Entity
     from gem.parser import ReplayParser
 
 # ---------------------------------------------------------------------------
@@ -29,6 +31,14 @@ _CHAT_MSG_AEGIS_STOLEN = 53
 _CHAT_MSG_DENIED_AEGIS = 51
 _CHAT_MSG_SHRINE_KILLED = 101
 _CHAT_MSG_MINIBOSS_KILL = 117  # Tormentor kill
+
+# Roshan item entity class name → short drop name
+_ROSHAN_ITEM_DROPS: dict[str, str] = {
+    "CDOTA_Item_Aegis": "aegis",
+    "CDOTA_Item_Cheese": "cheese",
+    "CDOTA_Item_RefresherOrb_Shard": "refresher_shard",
+    "CDOTA_Item_Roshans_Banner": "banner",
+}
 
 # Tower NPC name prefix → owning team
 _TOWER_TEAM: dict[str, int] = {
@@ -89,11 +99,15 @@ class RoshanKill:
         tick: Game tick of the kill.
         killer: NPC name of the unit that landed the killing blow.
         kill_number: Sequential kill number (1-indexed) for this game.
+        drops: Short names of items dropped (e.g. ``["aegis", "cheese",
+            "refresher_shard", "banner"]``). Populated from entity state;
+            always includes ``"aegis"`` when Roshan is killed.
     """
 
     tick: int
     killer: str
     kill_number: int
+    drops: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -200,6 +214,8 @@ class ObjectivesExtractor:
         self.aegis_events = []
         self.tormentor_kills = []
         self.shrine_kills = []
+        # index → short drop name for currently-alive Roshan item entities
+        self._roshan_items: dict[int, str] = {}
 
     def attach(self, parser: ReplayParser) -> None:
         """Register this extractor's callbacks with a parser.
@@ -209,6 +225,18 @@ class ObjectivesExtractor:
         """
         parser.on_combat_log_entry(self._on_combat_log)
         parser.on_chat_event(self._on_chat_event)
+        parser.on_entity(self._on_entity)
+
+    def _on_entity(self, entity: Entity, op: EntityOp) -> None:
+        name = entity.get_class_name()
+        drop_name = _ROSHAN_ITEM_DROPS.get(name)
+        if drop_name is None:
+            return
+        idx = entity.get_index()
+        if op == EntityOp.DELETED_LEFT:
+            self._roshan_items.pop(idx, None)
+        else:
+            self._roshan_items[idx] = drop_name
 
     def _on_chat_event(self, msg: Any, tick: int) -> None:
         event_type = _AEGIS_EVENT_TYPE.get(msg.type)
@@ -230,11 +258,15 @@ class ObjectivesExtractor:
             return
         target = entry.target_name
         if target == "npc_dota_roshan":
+            # Snapshot alive Roshan item entities as drops. Items are created
+            # when Roshan spawns and deleted when picked up, so the set alive
+            # at the kill tick is exactly what Roshan dropped.
             self.roshan_kills.append(
                 RoshanKill(
                     tick=entry.tick,
                     killer=entry.attacker_name,
                     kill_number=len(self.roshan_kills) + 1,
+                    drops=sorted(self._roshan_items.values()),
                 )
             )
         elif target == "npc_dota_miniboss":

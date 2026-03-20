@@ -10,6 +10,10 @@ Functions:
     heroes_near: Find all heroes within a radius of a map position at a tick.
     ability_level_at_tick: Return the level of an ability at a given tick.
     estimate_vision: Estimate whether a team had vision of a map point at a tick.
+    net_worth_at: Return the closest sampled net worth for a player at a tick.
+    ward_vision_impact: Count distinct enemy heroes spotted by an observer ward.
+    is_active_teamfight_participant: Check if a player was active in a teamfight.
+    format_npc_name: Convert an NPC name to a human-readable label.
 """
 
 from __future__ import annotations
@@ -522,3 +526,178 @@ def estimate_vision(
 
     sources.sort(key=lambda s: s.distance)
     return sources
+
+
+# ---------------------------------------------------------------------------
+# net_worth_at
+# ---------------------------------------------------------------------------
+
+
+def net_worth_at(player: ParsedPlayer, tick: int) -> int:
+    """Return the closest sampled net worth for a player at the given tick.
+
+    Net worth is sampled at ~1-second intervals by the ``PlayerExtractor``
+    and stored in parallel arrays ``player.times`` / ``player.net_worth_t``.
+    This function finds the sample with the smallest tick distance to the
+    requested tick via a linear scan.
+
+    Args:
+        player: A ``ParsedPlayer`` with ``times`` and ``net_worth_t`` populated.
+        tick: The game tick to query.
+
+    Returns:
+        Net worth in gold at the nearest sample, or 0 if no data is available.
+
+    Example:
+        >>> nw = net_worth_at(player, fight.start_tick)
+        >>> print(f"{player.hero_name} had {nw} net worth at fight start")
+    """
+    if not player.times or not player.net_worth_t:
+        return 0
+    best_idx = min(range(len(player.times)), key=lambda i: abs(player.times[i] - tick))
+    return player.net_worth_t[best_idx]
+
+
+# ---------------------------------------------------------------------------
+# ward_vision_impact
+# ---------------------------------------------------------------------------
+
+_WARD_VISION_RADIUS_SQ: int = _WARD_VISION * _WARD_VISION
+
+
+def ward_vision_impact(ward: object, match: ParsedMatch) -> int:
+    """Count distinct enemy heroes spotted by an observer ward during its lifetime.
+
+    For each enemy hero, checks whether any position sample within the ward's
+    active window falls within the standard 1600-unit observer ward vision
+    radius.  Only the first sighting per hero is counted — the goal is to
+    measure how many distinct enemies the ward revealed, not how many times.
+
+    Only observer wards are evaluated; sentry wards return 0.
+
+    Args:
+        ward: A ward object (e.g. from ``match.wards``) with attributes:
+            ``ward_type``, ``x``, ``y``, ``tick``, ``killed_tick``,
+            ``expires_tick``, ``team``.
+        match: A parsed replay with ``players`` and ``game_end_tick`` populated.
+
+    Returns:
+        Number of distinct enemy heroes that entered the ward's vision radius
+        while it was alive. Returns 0 for sentry wards or wards with no
+        coordinate data.
+
+    Note:
+        This is an **approximation**, not ground-truth vision data:
+
+        - Position samples are taken every ~5 seconds (150 ticks), so heroes
+          passing through the ward's radius between samples go undetected.
+        - Vision is a flat 2D radius check — terrain, cliffs, and trees that
+          block line-of-sight in-game are not modelled.
+        - Night vision (800 units) is not distinguished from day vision (1600
+          units); the full 1600-unit radius is always used.
+
+        The result is suitable as a heuristic ward-quality signal, not a
+        precise replay-accurate vision count.
+
+    Example:
+        >>> impact = ward_vision_impact(ward, match)
+        >>> print(f"Ward spotted {impact} distinct enemy heroes")
+    """
+    if getattr(ward, "ward_type", "") != "observer":
+        return 0
+    wx = getattr(ward, "x", None)
+    wy = getattr(ward, "y", None)
+    if wx is None or wy is None:
+        return 0
+
+    ward_tick: int = getattr(ward, "tick", 0)
+    end_tick: int = (
+        getattr(ward, "killed_tick", None)
+        or getattr(ward, "expires_tick", None)
+        or match.game_end_tick
+        or 0
+    )
+    enemy_team = 3 if getattr(ward, "team", 0) == 2 else 2
+
+    seen: set[str] = set()
+    for player in match.players:
+        if player.team != enemy_team:
+            continue
+        for tick, px, py in player.position_log:
+            if tick < ward_tick or tick > end_tick:
+                continue
+            if (px - wx) ** 2 + (py - wy) ** 2 <= _WARD_VISION_RADIUS_SQ:
+                seen.add(player.hero_name)
+                break  # one sighting is enough per hero
+    return len(seen)
+
+
+# ---------------------------------------------------------------------------
+# is_active_teamfight_participant
+# ---------------------------------------------------------------------------
+
+
+def is_active_teamfight_participant(player_stats: object) -> bool:
+    """Return True if a player was an active participant in a teamfight.
+
+    A player is considered active if they had any direct hero-vs-hero combat
+    during the fight window: a death, dealing damage to an enemy hero, taking
+    damage from an enemy hero, or healing an allied hero.
+
+    Passive presence (e.g. farming nearby, casting only on creeps) does not
+    count. This mirrors the definition used by the HTML match report and the
+    teamfight detection logic documented in MEMORY.md.
+
+    Args:
+        player_stats: A teamfight player stats object with optional numeric
+            attributes: ``deaths``, ``damage_dealt``, ``damage_taken``,
+            ``healing``. Missing attributes are treated as 0.
+
+    Returns:
+        ``True`` if the player had direct combat involvement, ``False``
+        otherwise.
+
+    Example:
+        >>> fight = match.teamfights[0]
+        >>> active = [p for p in fight.players if is_active_teamfight_participant(p)]
+        >>> print(f"{len(active)} active participants in fight")
+    """
+    return (
+        getattr(player_stats, "deaths", 0) > 0
+        or getattr(player_stats, "damage_dealt", 0) > 0
+        or getattr(player_stats, "damage_taken", 0) > 0
+        or getattr(player_stats, "healing", 0) > 0
+    )
+
+
+# ---------------------------------------------------------------------------
+# format_npc_name
+# ---------------------------------------------------------------------------
+
+
+def format_npc_name(name: str) -> str:
+    """Convert an NPC name to a human-readable label.
+
+    Strips Dota 2 NPC name prefixes (``npc_dota_``, ``goodguys_``,
+    ``badguys_``) and replaces underscores with spaces.  Intended for
+    structures, neutrals, and other non-hero units.  For heroes, prefer
+    ``gem.constants.hero_display()`` which returns the official display name.
+
+    Args:
+        name: An NPC name string (e.g. ``"npc_dota_goodguys_tower_top_1"``).
+
+    Returns:
+        A human-readable label (e.g. ``"tower top 1"``).
+
+    Example:
+        >>> format_npc_name("npc_dota_goodguys_tower_top_1")
+        'tower top 1'
+        >>> format_npc_name("npc_dota_neutral_ogre_mauler")
+        'neutral ogre mauler'
+    """
+    return (
+        name.replace("npc_dota_", "")
+        .replace("goodguys_", "")
+        .replace("badguys_", "")
+        .replace("_", " ")
+    )

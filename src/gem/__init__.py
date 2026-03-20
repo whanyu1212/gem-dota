@@ -16,6 +16,30 @@ Public API
 
 ``parse_many_to_parquet(source, output_dir)``
     Parse multiple replays and write each to its own parquet subdirectory.
+
+``fetch_replay(match_id, out_dir)``
+    Download and decompress a replay from OpenDota in one call.
+
+``fetch_replay_url(match_id)``
+    Fetch the replay download URL for a match from the OpenDota API.
+
+``download_and_decompress(match_id, replay_url, out_dir)``
+    Download and decompress a ``.dem.bz2`` to a ``.dem`` file.
+
+``net_worth_at(player, tick)``
+    Return the closest sampled net worth for a player at a tick.
+
+``ward_vision_impact(ward, match)``
+    Count distinct enemy heroes spotted by an observer ward.
+
+``is_active_teamfight_participant(player_stats)``
+    Check if a player actively participated in a teamfight.
+
+``format_npc_name(name)``
+    Convert an NPC entity name to a human-readable label.
+
+``resolve_pick_team(event, players)``
+    Resolve the team (Radiant/Dire) for a draft pick/ban event.
 """
 
 from __future__ import annotations
@@ -32,14 +56,20 @@ from gem.analysis import (
     VisionSource,
     ability_level_at_tick,
     estimate_vision,
+    format_npc_name,
     group_ability_hits,
     heroes_near,
+    is_active_teamfight_participant,
+    net_worth_at,
     position_at_tick,
     teamfight_at_tick,
+    ward_vision_impact,
 )
 from gem.batch import ParseResult, parse_many, parse_many_to_dataframe, parse_many_to_parquet
 from gem.constants import hero_npc_name
+from gem.extractors.draft import resolve_pick_team
 from gem.models import ChatEntry, ParsedMatch, ParsedPlayer, VisionModifierEvent
+from gem.replay_fetch import download_and_decompress, fetch_replay, fetch_replay_url
 
 __version__ = "0.2.4"
 
@@ -356,5 +386,13 @@ __all__ = [
     "estimate_vision",
     "VisionSource",
     "VisionModifierEvent",
+    "net_worth_at",
+    "ward_vision_impact",
+    "is_active_teamfight_participant",
+    "format_npc_name",
+    "resolve_pick_team",
     "constants",
+    "fetch_replay",
+    "fetch_replay_url",
+    "download_and_decompress",
 ]

@@ -23,6 +23,7 @@ from gem.constants import HEROES
 from gem.entities import Entity, EntityOp
 
 if TYPE_CHECKING:
+    from gem.models import ParsedPlayer
     from gem.parser import ReplayParser
 
 # Build reverse mapping: hero_id (int) → npc_name (str) from bundled data.
@@ -76,6 +77,48 @@ class DraftEvent:
     hero_name: str
     is_pick: bool
     team: int = 0
+
+
+def resolve_pick_team(event: DraftEvent, players: list[ParsedPlayer]) -> int:
+    """Resolve the team (2=Radiant, 3=Dire) for a draft event.
+
+    ``DraftEvent.team`` is sourced from ``m_pGameRules.m_iActiveTeam`` — the
+    team whose turn it is to act during the draft phase.  This is reliable for
+    bans, but for picks it can be wrong in edge cases (HLTV replays, coach
+    slots shifting player indices, or encoding differences across patch versions).
+
+    For picks, the authoritative source is the post-game player roster: once the
+    game starts, the entity system tells us definitively which team each hero
+    played on via ``CDOTA_PlayerResource``.  We cross-reference the picked hero's
+    NPC name against the player list to get the correct team.
+
+    For bans there is no in-game hero entity to cross-reference, so ``ev.team``
+    is the only option.
+
+    Resolution order:
+    1. For picks: look up ``event.hero_name`` in the player roster → use
+       ``player.team`` (most accurate).
+    2. Fall back to ``event.team`` if it is a valid team number (2 or 3).
+    3. Last resort for picks: infer from ``slot_index`` (0–4 = Radiant, 5–9 = Dire).
+
+    Args:
+        event: A ``DraftEvent`` (pick or ban).
+        players: The ``ParsedMatch.players`` list.
+
+    Returns:
+        Team number: 2 for Radiant, 3 for Dire. Returns 2 as a safe default
+        if team cannot be determined.
+    """
+    if event.is_pick and event.hero_name:
+        hero_to_team = {p.hero_name: p.team for p in players if p.hero_name}
+        team = hero_to_team.get(event.hero_name)
+        if team in (2, 3):
+            return team
+    if event.team in (2, 3):
+        return event.team
+    if event.is_pick:
+        return 2 if event.slot_index < 5 else 3
+    return 2
 
 
 class DraftExtractor:
@@ -132,19 +175,14 @@ class DraftExtractor:
         1. Live map built from hero entity class names (most accurate; populated
            by ``_update_live_map`` once hero entities spawn in the game phase).
         2. ``heroes.json`` lookup with ``hero_id // 2`` — modern Dota 2 replays
-           store pick/ban IDs as ``api_id * 2`` in entity fields.  Only applied
-           when the halved value resolves to a hero AND the full ID does not (to
-           avoid misidentifying legacy direct-ID bans such as axe=2 or pudge=14).
-        3. Static ``heroes.json`` direct lookup — for legacy replays or IDs that
-           genuinely match the public hero ID (e.g. low-numbered ban slots).
+           store ALL pick/ban IDs as ``api_id * 2`` in entity fields, so halving
+           is always preferred over a direct lookup when the halved value resolves.
+        3. Static ``heroes.json`` direct lookup — fallback for legacy replays.
         """
         if hero_id in self._live_id_to_npc:
             return self._live_id_to_npc[hero_id]
         half = hero_id // 2
-        # Prefer //2 only when direct ID is NOT in the static dict, so that
-        # genuinely direct-ID bans (axe=2, pudge=14, riki=32, …) are not
-        # misidentified via halving.
-        if hero_id not in _HERO_ID_TO_NPC and half in _HERO_ID_TO_NPC:
+        if half in _HERO_ID_TO_NPC:
             return _HERO_ID_TO_NPC[half]
         return _HERO_ID_TO_NPC.get(hero_id, "")
 

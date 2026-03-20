@@ -6,7 +6,7 @@ data into higher-level structures for agentic and analytical use.
 > **Note:** `estimate_vision` and `match.vision_modifiers` are **experimental**. Vision
 > calculations use straight-line geometry only — high-ground penalties, terrain line-of-sight
 > (trees/cliffs), and per-hero vision range modifiers are not modelled. Treat results as
-> approximations. See [Known Limitations](../../README.md#known-limitations) for details.
+> approximations.
 
 All functions are exported directly from `gem.*`:
 

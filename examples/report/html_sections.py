@@ -550,14 +550,7 @@ def build_gold_xp_chart(match: gem.ParsedMatch) -> str:
 
 def _clean_npc(name: str) -> str:
     """Clean an NPC name into a human-readable label."""
-    return (
-        name.replace("npc_dota_", "")
-        .replace("goodguys_", "")
-        .replace("badguys_", "")
-        .replace("goodguys ", "")
-        .replace("badguys ", "")
-        .replace("_", " ")
-    )
+    return gem.format_npc_name(name)
 
 
 def _killer_label(killer: str) -> str:
@@ -600,8 +593,10 @@ def build_objectives(match: gem.ParsedMatch, fmt_tick_fn: Callable[[int], str]) 
         killer = _killer_label(r.killer)
         respawn_min = fmt_tick_fn(r.tick + 8 * 30 * 60)
         respawn_max = fmt_tick_fn(r.tick + 11 * 30 * 60)
+        drops_str = (", ".join(r.drops).replace("_", " ")) if r.drops else "none"
         desc = (
             f'<span style="color:#ffb74d">Roshan #{n}</span> killed by {e(killer)} '
+            f"— drops: {e(drops_str)} "
             f"— respawns {e(respawn_min)}–{e(respawn_max)}"
         )
         events.append((r.tick, f"Roshan #{n}", "#ffb74d", desc))
@@ -1090,10 +1085,7 @@ def build_purchases(match: gem.ParsedMatch) -> str:
 
 def _net_worth_at(pp: gem.ParsedPlayer, tick: int) -> int:
     """Return the closest sampled net worth for a player at the given tick."""
-    if not pp.times or not pp.net_worth_t:
-        return 0
-    best_idx = min(range(len(pp.times)), key=lambda i: abs(pp.times[i] - tick))
-    return pp.net_worth_t[best_idx]
+    return gem.net_worth_at(pp, tick)
 
 
 def build_buybacks(match: gem.ParsedMatch) -> str:
@@ -1624,12 +1616,7 @@ def _hero_cell(npc_name: str, team: int = 0) -> str:
 
 def _is_active_teamfight_player(p: object) -> bool:
     """Return True for active teamfight participants only."""
-    return (
-        getattr(p, "deaths", 0) > 0
-        or getattr(p, "damage_dealt", 0) > 0
-        or getattr(p, "damage_taken", 0) > 0
-        or getattr(p, "healing", 0) > 0
-    )
+    return gem.is_active_teamfight_participant(p)
 
 
 def _top_abilities_teamfight(ability_uses: dict[str, int], n: int = 3) -> str:
@@ -1909,31 +1896,7 @@ def _teamfight_minimap_svg(
 
 def _ward_enemies_seen(ward: object, match: gem.ParsedMatch) -> int:
     """Count distinct enemy heroes that passed within observer ward vision radius."""
-    if getattr(ward, "ward_type", "") != "observer":
-        return 0
-    wx, wy = getattr(ward, "x", None), getattr(ward, "y", None)
-    if wx is None or wy is None:
-        return 0
-    ward_tick = getattr(ward, "tick", 0)
-    end_tick = (
-        getattr(ward, "killed_tick", None)
-        or getattr(ward, "expires_tick", None)
-        or match.game_end_tick
-        or 0
-    )
-    enemy_team = 3 if getattr(ward, "team", 0) == 2 else 2
-    _WARD_VISION_SQ = 1600 * 1600
-    seen: set[str] = set()
-    for player in match.players:
-        if player.team != enemy_team:
-            continue
-        for tick, px, py in player.position_log:
-            if tick < ward_tick or tick > end_tick:
-                continue
-            if (px - wx) ** 2 + (py - wy) ** 2 <= _WARD_VISION_SQ:
-                seen.add(player.hero_name)
-                break  # one sighting is enough for this hero
-    return len(seen)
+    return gem.ward_vision_impact(ward, match)
 
 
 # Friendly labels for tracked vision modifier names
@@ -2179,17 +2142,10 @@ def build_draft(match: gem.ParsedMatch) -> str:
     }
 
     def _pick_team(event: object) -> int:
-        is_pick = bool(getattr(event, "is_pick", False))
-        hero_name = getattr(event, "hero_name", "")
-        team = getattr(event, "team", None)
-        slot_index = int(getattr(event, "slot_index", 0))
+        from gem.extractors.draft import DraftEvent, resolve_pick_team
 
-        if is_pick and hero_name and hero_name in hero_to_player:
-            return hero_to_player[hero_name].team
-        if team in (2, 3):
-            return int(team)
-        if is_pick:
-            return 2 if slot_index < 5 else 3
+        if isinstance(event, DraftEvent):
+            return resolve_pick_team(event, match.players)
         return 2
 
     load_hero_icons([ev.hero_name for ev in sorted_draft if ev.hero_name])
