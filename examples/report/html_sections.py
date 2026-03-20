@@ -600,8 +600,10 @@ def build_objectives(match: gem.ParsedMatch, fmt_tick_fn: Callable[[int], str]) 
         killer = _killer_label(r.killer)
         respawn_min = fmt_tick_fn(r.tick + 8 * 30 * 60)
         respawn_max = fmt_tick_fn(r.tick + 11 * 30 * 60)
+        drops_str = (", ".join(r.drops).replace("_", " ")) if r.drops else "none"
         desc = (
             f'<span style="color:#ffb74d">Roshan #{n}</span> killed by {e(killer)} '
+            f"— drops: {e(drops_str)} "
             f"— respawns {e(respawn_min)}–{e(respawn_max)}"
         )
         events.append((r.tick, f"Roshan #{n}", "#ffb74d", desc))
