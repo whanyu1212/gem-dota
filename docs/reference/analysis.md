@@ -274,4 +274,154 @@ for ev in match.vision_modifiers:
 
 ---
 
+## `net_worth_at`
+
+```python
+gem.net_worth_at(player: ParsedPlayer, tick: int) -> int
+```
+
+Return the closest sampled net worth for a player at a given tick.
+
+Uses a linear scan over `player.times` / `player.net_worth_t` to find the sample with
+the smallest tick distance. Returns `0` if no data is available.
+
+**Example:**
+
+```python
+for fight in match.teamfights:
+    for p in fight.players:
+        player = match.players[p.player_id]
+        nw = gem.net_worth_at(player, fight.start_tick)
+        print(f"{player.hero_name}: {nw:,} NW at fight start")
+```
+
+---
+
+## `ward_vision_impact`
+
+```python
+gem.ward_vision_impact(ward, match: ParsedMatch) -> int
+```
+
+Count distinct enemy heroes spotted by an observer ward during its lifetime.
+
+Checks whether any hero position sample falls within the 1600-unit observer ward vision
+radius while the ward was alive. Only the first sighting per hero is counted. Sentry
+wards return `0`.
+
+!!! warning "Approximation"
+    This is a heuristic — terrain, cliffs, trees, and night vision are not modelled.
+    Position samples are taken every ~5 seconds, so fast-moving heroes may be missed.
+
+**Example:**
+
+```python
+for ward in match.wards:
+    if ward.ward_type == "observer":
+        impact = gem.ward_vision_impact(ward, match)
+        print(f"Ward at ({ward.x:.0f}, {ward.y:.0f}) spotted {impact} enemy heroes")
+```
+
+---
+
+## `is_active_teamfight_participant`
+
+```python
+gem.is_active_teamfight_participant(player_stats) -> bool
+```
+
+Return `True` if a player was an active participant in a teamfight — i.e. they had
+direct hero-vs-hero combat: a death, damage dealt, damage taken, or healing.
+
+Passive presence (farming nearby, casting only on creeps) does not count.
+
+**Example:**
+
+```python
+fight = match.teamfights[0]
+active = [p for p in fight.players if gem.is_active_teamfight_participant(p)]
+print(f"{len(active)} active participants in fight")
+```
+
+---
+
+## `format_npc_name`
+
+```python
+gem.format_npc_name(name: str) -> str
+```
+
+Convert an NPC name to a human-readable label by stripping Dota 2 prefixes (`npc_dota_`,
+`goodguys_`, `badguys_`) and replacing underscores with spaces. For heroes, prefer
+`gem.constants.hero_display()` which returns the official display name.
+
+**Example:**
+
+```python
+gem.format_npc_name("npc_dota_goodguys_tower_top_1")
+# → "tower top 1"
+```
+
+---
+
+## `resolve_pick_team`
+
+```python
+gem.resolve_pick_team(event: DraftEvent, players: list[ParsedPlayer]) -> int
+```
+
+Resolve the correct team (2=Radiant, 3=Dire) for a draft event. `DraftEvent.team`
+comes from `m_pGameRules.m_iActiveTeam`, which is reliable for bans but can be wrong
+for picks in HLTV replays and coach-slot edge cases.
+
+For picks, cross-references the hero name against the post-game player roster. For bans,
+falls back to `event.team`.
+
+**Example:**
+
+```python
+for event in match.draft:
+    team = gem.resolve_pick_team(event, match.players)
+    side = "Radiant" if team == 2 else "Dire"
+    action = "picks" if event.is_pick else "bans"
+    print(f"{side} {action} {event.hero_name}")
+```
+
+---
+
+## Replay download helpers
+
+### `fetch_replay`
+
+```python
+gem.fetch_replay(match_id: int, out_dir: str | Path = ".") -> Path
+```
+
+Download and decompress a replay from OpenDota in one call. Returns the path to the
+decompressed `.dem` file.
+
+```python
+dem_path = gem.fetch_replay(8734577999, out_dir="replays/")
+match = gem.parse(str(dem_path))
+```
+
+### `fetch_replay_url`
+
+```python
+gem.fetch_replay_url(match_id: int) -> str
+```
+
+Fetch just the replay download URL from the OpenDota API. Raises `ValueError` if
+no replay URL is available.
+
+### `download_and_decompress`
+
+```python
+gem.download_and_decompress(match_id: int, replay_url: str, out_dir: str | Path = ".") -> Path
+```
+
+Lower-level helper: download from a known URL and decompress `.bz2` → `.dem`.
+
+---
+
 ::: gem.analysis
