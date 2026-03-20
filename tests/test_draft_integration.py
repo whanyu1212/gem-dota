@@ -21,7 +21,6 @@ Requires network access and ~500 MB of free disk space per match (temporary).
 
 from __future__ import annotations
 
-import bz2
 import json
 import ssl
 import tempfile
@@ -29,6 +28,8 @@ import urllib.request
 from pathlib import Path
 
 import pytest
+
+from gem.replay_fetch import download_and_decompress, fetch_replay_url
 
 SSL_CONTEXT = ssl.create_default_context()
 SSL_CONTEXT.check_hostname = False
@@ -61,13 +62,6 @@ def _build_od_hero_id_map() -> dict[int, str]:
     """Return OpenDota hero_id → npc_name from /api/heroes."""
     heroes = _fetch_json("https://api.opendota.com/api/heroes")
     return {h["id"]: h["name"] for h in heroes}
-
-
-def _download_and_decompress(replay_url: str, dest: Path) -> None:
-    req = urllib.request.Request(replay_url, headers={"User-Agent": "Mozilla/5.0"})
-    with urllib.request.urlopen(req, context=SSL_CONTEXT, timeout=120) as resp:
-        compressed = resp.read()
-    dest.write_bytes(bz2.decompress(compressed))
 
 
 def _scan_npc_heroes(obj: object, found: set[str]) -> None:
@@ -120,8 +114,7 @@ def test_draft_matches_opendota(match_id: int, od_hero_id_map: dict[int, str]) -
         f"Match {match_id} is not captains mode (game_mode={od.get('game_mode')})"
     )
 
-    replay_url = od.get("replay_url")
-    assert replay_url, f"Match {match_id} has no replay_url — may not be ingested yet"
+    replay_url = fetch_replay_url(match_id)
 
     picks_bans = od.get("picks_bans") or []
     assert len(picks_bans) == 24, f"Expected 24 draft actions, got {len(picks_bans)}"
@@ -143,7 +136,7 @@ def test_draft_matches_opendota(match_id: int, od_hero_id_map: dict[int, str]) -
     with tempfile.TemporaryDirectory() as tmpdir:
         dem_path = Path(tmpdir) / f"{match_id}.dem"
 
-        _download_and_decompress(replay_url, dem_path)
+        download_and_decompress(match_id, replay_url, Path(tmpdir))
         assert dem_path.exists(), "Failed to create .dem file"
 
         p = ReplayParser(str(dem_path))
