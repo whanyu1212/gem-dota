@@ -235,32 +235,44 @@ class TestResolveNameHalving:
         assert 135 in _HERO_ID_TO_NPC
         assert ext._resolve_name(270) == "npc_dota_hero_dawnbreaker"
 
-    def test_halving_not_applied_when_direct_id_in_dict(self):
-        # axe direct id=2 IS in _HERO_ID_TO_NPC → returns axe, not antimage (2//2=1)
+    def test_halving_always_applied_first(self):
+        # hero_id=2: 2//2=1 → antimage. halving always takes priority over direct lookup.
         ext = DraftExtractor()
-        assert ext._resolve_name(2) == "npc_dota_hero_axe"
+        assert ext._resolve_name(2) == "npc_dota_hero_antimage"
 
-    def test_halving_not_applied_for_pudge_direct(self):
-        # pudge direct id=14 IS in dict; 14//2=7 → earthshaker
-        # should still return pudge, not earthshaker
+    def test_halving_applied_for_pudge_doubled(self):
+        # pudge api_id=14; stored as 28 in modern replays (14*2); 28//2=14 → pudge
         ext = DraftExtractor()
-        assert ext._resolve_name(14) == "npc_dota_hero_pudge"
+        assert ext._resolve_name(28) == "npc_dota_hero_pudge"
+
+    def test_axe_doubled_id_resolves_via_halving(self):
+        # axe api_id=2; stored as 4 in modern replays (2*2); 4//2=2 → axe
+        ext = DraftExtractor()
+        assert ext._resolve_name(4) == "npc_dota_hero_axe"
 
 
 class TestResolveNameDirectLookup:
-    """Direct lookup (tier 3): when live map misses and halving doesn't apply."""
+    """Direct lookup (tier 3): fires when hero_id//2 is not in the dict.
 
-    def test_axe_id_2_direct(self):
-        ext = DraftExtractor()
-        assert ext._resolve_name(2) == "npc_dota_hero_axe"
+    Halving always runs first. Direct lookup only applies when the halved value
+    has no entry — e.g. odd IDs where (id//2) resolves to a different hero or
+    doesn't exist. In practice this tier is a safety net for legacy replays.
+    """
 
-    def test_antimage_id_1_direct(self):
+    def test_antimage_id_1_halved_to_0_falls_back_to_direct(self):
+        # 1//2=0, which is not in the dict → falls back to direct lookup of 1 → antimage
         ext = DraftExtractor()
         assert ext._resolve_name(1) == "npc_dota_hero_antimage"
 
-    def test_riki_id_32_direct(self):
+    def test_axe_doubled_resolves_via_halving_not_direct(self):
+        # Confirm axe is reached via halving (4//2=2 → axe), not direct lookup of 4
         ext = DraftExtractor()
-        assert ext._resolve_name(32) == "npc_dota_hero_riki"
+        assert ext._resolve_name(4) == "npc_dota_hero_axe"
+
+    def test_riki_doubled_resolves_via_halving(self):
+        # riki api_id=32; stored as 64 in modern replays; 64//2=32 → riki
+        ext = DraftExtractor()
+        assert ext._resolve_name(64) == "npc_dota_hero_riki"
 
 
 class TestResolveNameUnknown:
@@ -433,7 +445,7 @@ class TestCheckDraftIdempotency:
 
         entity = _make_entity(
             "CDOTAGamerulesProxy",
-            {"m_pGameRules.m_BannedHeroes.0000": 2},  # axe direct id → axe
+            {"m_pGameRules.m_BannedHeroes.0000": 4},  # axe doubled id (2*2) → axe via halving
         )
         ext._check_draft(entity)
         assert ext.draft_events[0].hero_name == "npc_dota_hero_axe"
@@ -444,7 +456,9 @@ class TestCheckDraftIdempotency:
 
         entity = _make_entity(
             "CDOTAGamerulesProxy",
-            {"m_pGameRules.m_SelectedHeroes.0000": 14},  # pudge direct id → pudge
+            {
+                "m_pGameRules.m_SelectedHeroes.0000": 28
+            },  # pudge doubled id (14*2) → pudge via halving
         )
         ext._check_draft(entity)
         assert ext.draft_events[0].hero_name == "npc_dota_hero_pudge"
