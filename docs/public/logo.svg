@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Gem">
+  <defs>
+    <linearGradient id="gemFill" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#8fe2b0" />
+      <stop offset="100%" stop-color="#259e57" />
+    </linearGradient>
+  </defs>
+
+  <!-- Flat top-surface cut: octagonal gem with facet lines -->
+  <polygon points="18,8 46,8 56,18 56,46 46,56 18,56 8,46 8,18" fill="url(#gemFill)" stroke="#0f5b32" stroke-width="2.5" stroke-linejoin="round" />
+
+  <polygon points="22,14 42,14 50,22 50,42 42,50 22,50 14,42 14,22" fill="#67cf92" opacity="0.45" />
+
+  <line x1="18" y1="8" x2="32" y2="32" stroke="#dfffea" stroke-width="1.8" opacity="0.9" />
+  <line x1="46" y1="8" x2="32" y2="32" stroke="#dfffea" stroke-width="1.8" opacity="0.9" />
+  <line x1="56" y1="18" x2="32" y2="32" stroke="#dfffea" stroke-width="1.8" opacity="0.8" />
+  <line x1="56" y1="46" x2="32" y2="32" stroke="#dfffea" stroke-width="1.8" opacity="0.8" />
+  <line x1="46" y1="56" x2="32" y2="32" stroke="#dfffea" stroke-width="1.8" opacity="0.9" />
+  <line x1="18" y1="56" x2="32" y2="32" stroke="#dfffea" stroke-width="1.8" opacity="0.9" />
+  <line x1="8" y1="46" x2="32" y2="32" stroke="#dfffea" stroke-width="1.8" opacity="0.8" />
+  <line x1="8" y1="18" x2="32" y2="32" stroke="#dfffea" stroke-width="1.8" opacity="0.8" />
+
+  <circle cx="24" cy="20" r="3" fill="#effff5" opacity="0.8" />
+</svg>

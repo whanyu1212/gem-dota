@@ -309,9 +309,10 @@ Checks whether any hero position sample falls within the 1600-unit observer ward
 radius while the ward was alive. Only the first sighting per hero is counted. Sentry
 wards return `0`.
 
-!!! warning "Approximation"
-    This is a heuristic — terrain, cliffs, trees, and night vision are not modelled.
-    Position samples are taken every ~5 seconds, so fast-moving heroes may be missed.
+::: warning Approximation
+This is a heuristic — terrain, cliffs, trees, and night vision are not modelled.
+Position samples are taken every ~5 seconds, so fast-moving heroes may be missed.
+:::
 
 **Example:**
 
@@ -424,4 +425,156 @@ Lower-level helper: download from a known URL and decompress `.bz2` → `.dem`.
 
 ---
 
-::: gem.analysis
+## Generated API
+
+## Module `gem.analysis`
+
+Post-parse analysis helpers for gem replay data.
+
+Source: [src/gem/analysis.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis.py#L1)
+
+### Top-level functions
+
+### `position_at_tick`
+
+```python
+def position_at_tick(player: ParsedPlayer, tick: int) -> tuple[float, float] | None
+```
+
+Return the closest recorded (x, y) position for a player at a given tick.
+
+Source: [src/gem/analysis.py:55](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis.py#L55)
+
+### `group_ability_hits`
+
+```python
+def group_ability_hits(combat_log: list[CombatLogEntry], window_ticks: int = 5) -> list[AbilityCast]
+```
+
+Group DAMAGE combat log entries into per-cast ``AbilityCast`` records.
+
+Source: [src/gem/analysis.py:129](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis.py#L129)
+
+### `teamfight_at_tick`
+
+```python
+def teamfight_at_tick(match: ParsedMatch, tick: int) -> Teamfight | None
+```
+
+Return the teamfight window that contains the given tick, or ``None``.
+
+Source: [src/gem/analysis.py:206](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis.py#L206)
+
+### `heroes_near`
+
+```python
+def heroes_near(match: ParsedMatch, tick: int, x: float, y: float, radius: float) -> list[ParsedPlayer]
+```
+
+Return all heroes within ``radius`` world units of ``(x, y)`` at ``tick``.
+
+Source: [src/gem/analysis.py:244](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis.py#L244)
+
+### `ability_level_at_tick`
+
+```python
+def ability_level_at_tick(player: ParsedPlayer, ability: str, tick: int) -> int
+```
+
+Return the level of an ability for a player at a given tick.
+
+Source: [src/gem/analysis.py:290](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis.py#L290)
+
+### `estimate_vision`
+
+```python
+def estimate_vision(match: ParsedMatch, team: int, tick: int, x: float, y: float) -> list[VisionSource]
+```
+
+Estimate which allied units were providing vision of ``(x, y)`` at ``tick``.
+
+Source: [src/gem/analysis.py:388](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis.py#L388)
+
+### `net_worth_at`
+
+```python
+def net_worth_at(player: ParsedPlayer, tick: int) -> int
+```
+
+Return the closest sampled net worth for a player at the given tick.
+
+Source: [src/gem/analysis.py:536](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis.py#L536)
+
+### `ward_vision_impact`
+
+```python
+def ward_vision_impact(ward: object, match: ParsedMatch) -> int
+```
+
+Count distinct enemy heroes spotted by an observer ward during its lifetime.
+
+Source: [src/gem/analysis.py:568](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis.py#L568)
+
+### `is_active_teamfight_participant`
+
+```python
+def is_active_teamfight_participant(player_stats: object) -> bool
+```
+
+Return True if a player was an active participant in a teamfight.
+
+Source: [src/gem/analysis.py:640](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis.py#L640)
+
+### `format_npc_name`
+
+```python
+def format_npc_name(name: str) -> str
+```
+
+Convert an NPC name to a human-readable label.
+
+Source: [src/gem/analysis.py:678](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis.py#L678)
+
+### Top-level classes
+
+### `AbilityCast`
+
+```python
+class AbilityCast
+```
+
+A single ability (or item) cast with all targets it hit.
+
+Source: [src/gem/analysis.py:104](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis.py#L104)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `tick` | `int` | `-` |
+| `caster` | `str` | `-` |
+| `ability` | `str` | `-` |
+| `targets` | `list[str]` | `field(...)` |
+| `total_damage` | `int` | `0` |
+| `damage_type` | `str` | `''` |
+| `stun_duration` | `float` | `0.0` |
+| `entries` | `list[CombatLogEntry]` | `field(...)` |
+
+### `VisionSource`
+
+```python
+class VisionSource
+```
+
+One unit that was providing vision of a map point at a given tick.
+
+Source: [src/gem/analysis.py:344](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis.py#L344)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `kind` | `Literal['hero', 'ward', 'modifier']` | `-` |
+| `name` | `str` | `-` |
+| `distance` | `float` | `-` |
+| `vision_radius` | `int` | `-` |

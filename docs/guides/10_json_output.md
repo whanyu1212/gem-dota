@@ -7,10 +7,11 @@ Every field is shown exactly as `gem.parse_to_json()` produces it, with annotati
 explaining what each value means. Arrays are truncated for readability — the full
 output is at [`examples/ti14_sample.json`](https://github.com/whanyu1212/gem-dota/blob/main/examples/ti14_sample.json).
 
-!!! tip "Generate your own"
-    ```bash
-    python -m gem parse my_replay.dem --format json > my_match.json
-    ```
+::: tip Generate your own
+```bash
+python -m gem parse my_replay.dem --format json > my_match.json
+```
+:::
 
 ---
 
@@ -221,21 +222,22 @@ All entries share the same schema; `log_type` tells you what happened.
 1. The hero who bought the item (`attacker_name` is empty for purchases).
 2. Item NPC name. Use `gem.constants.item_display("item_tango")` → `"Tango"`.
 
-!!! note "Common `log_type` values"
-    | Value | What it records |
-    |---|---|
-    | `DAMAGE` | Damage dealt (ability or auto-attack) |
-    | `KILL` | A unit died |
-    | `HEAL` | HP restoration |
-    | `ITEM` | Item activated (smoke, ward placed, etc.) |
-    | `PURCHASE` | Item purchased from shop |
-    | `ABILITY` | Ability cast |
-    | `MODIFIER_ADD` | Buff/debuff applied |
-    | `MODIFIER_REMOVE` | Buff/debuff expired or dispelled |
-    | `GOLD` | Gold gained |
-    | `XP` | XP gained |
-    | `PICKUP_RUNE` | Rune picked up |
-    | `BUYBACK` | Player bought back |
+::: info Common `log_type` values
+| Value | What it records |
+|---|---|
+| `DAMAGE` | Damage dealt (ability or auto-attack) |
+| `KILL` | A unit died |
+| `HEAL` | HP restoration |
+| `ITEM` | Item activated (smoke, ward placed, etc.) |
+| `PURCHASE` | Item purchased from shop |
+| `ABILITY` | Ability cast |
+| `MODIFIER_ADD` | Buff/debuff applied |
+| `MODIFIER_REMOVE` | Buff/debuff expired or dispelled |
+| `GOLD` | Gold gained |
+| `XP` | XP gained |
+| `PICKUP_RUNE` | Rune picked up |
+| `BUYBACK` | Player bought back |
+:::
 
 ---
 
@@ -343,10 +345,11 @@ Ward placements with exact map coordinates extracted from the entity stream.
 1. All heroes that received the smoke buff. Full 5-man smoke here.
 2. Centroid of the group's positions at activation time.
 
-!!! note "Empty group edge case"
-    If the activating hero was inside a sentry ward's truesight at activation time,
-    the smoke breaks instantly. `smoked` will be an empty list — the item was genuinely
-    wasted, not a parsing gap.
+::: info Empty group edge case
+If the activating hero was inside a sentry ward's truesight at activation time,
+the smoke breaks instantly. `smoked` will be an empty list — the item was genuinely
+wasted, not a parsing gap.
+:::
 
 ---
 
@@ -391,11 +394,12 @@ Detected fight windows where multiple heroes exchanged damage.
 1. Average position of all kill events during this fight window — useful for placing
    the fight on the map.
 
-!!! note "Participation vs. presence"
-    A player appears in `players[]` for every fight. They are considered an **active
-    participant** only if `deaths > 0`, `damage_dealt > 0`, `damage_taken > 0`, or
-    `healing > 0` (healing a *different* hero). Players with all-zero stats were
-    nearby but did not engage.
+::: info Participation vs. presence
+A player appears in `players[]` for every fight. They are considered an **active
+participant** only if `deaths > 0`, `damage_dealt > 0`, `damage_taken > 0`, or
+`healing > 0` (healing a *different* hero). Players with all-zero stats were
+nearby but did not engage.
+:::
 
 ---
 

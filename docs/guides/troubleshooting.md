@@ -28,10 +28,11 @@ uv run python -c "import snappy; print('snappy OK')"
 If docs fail locally:
 
 ```bash
-uv run mkdocs build --strict
+cd docs
+npm run docs:build
 ```
 
-If strict mode reports link issues, fix broken links in `docs/` rather than disabling strict checks.
+If build reports link issues, fix broken links in `docs/` rather than disabling checks.
 
 Maintainers: docs dependencies are intentionally pinned to avoid accidental major-version breakage.
 

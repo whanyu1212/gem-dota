@@ -67,6 +67,21 @@ uv run ruff format .
 uv run mypy src
 ```
 
+### Docs (VitePress)
+
+```bash
+cd docs
+npm install
+npm run docs:dev
+```
+
+Build-only check:
+
+```bash
+cd docs
+npm run docs:build
+```
+
 ---
 
 ## MANDATORY: Check References Before Implementing

@@ -38,9 +38,10 @@ python -m gem my_replay.dem --progress --timings
 python -m gem [parse] <path> [options]
 ```
 
-!!! note
-    The `parse` keyword is optional. `python -m gem match.dem` is identical to
-    `python -m gem parse match.dem`.
+::: info
+The `parse` keyword is optional. `python -m gem match.dem` is identical to
+`python -m gem parse match.dem`.
+:::
 
 | Option | Values | Default | Description |
 |---|---|---|---|
@@ -91,11 +92,12 @@ python -m gem parse my_replay.dem --format parquet --output ./out/
 # Writes: out/players.parquet, out/combat_log.parquet, out/wards.parquet, ...
 ```
 
-!!! note "Parquet dependency"
-    Requires `pyarrow` (recommended) or `fastparquet`:
-    ```bash
-    pip install pyarrow
-    ```
+::: info Parquet dependency
+Requires `pyarrow` (recommended) or `fastparquet`:
+```bash
+pip install pyarrow
+```
+:::
 
 ---
 
@@ -164,13 +166,15 @@ By default gem uses all CPU cores. Cap workers for lighter load:
 python -m gem batch replays/ --format parquet --output ./out --workers 4
 ```
 
-!!! warning "Exit codes"
-    The `batch` command exits with code `0` even when some replays fail.
-    A summary table of failed replays is printed to stderr — always check it.
+::: warning Exit codes
+The `batch` command exits with code `0` even when some replays fail.
+A summary table of failed replays is printed to stderr — always check it.
+:::
 
-!!! tip
-    Start with `--workers 4` on shared machines to leave cores free for other
-    processes. On a dedicated parsing box, omit `--workers` to use all cores.
+::: tip
+Start with `--workers 4` on shared machines to leave cores free for other
+processes. On a dedicated parsing box, omit `--workers` to use all cores.
+:::
 
 ---
 
