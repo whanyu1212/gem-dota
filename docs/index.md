@@ -1,130 +1,21 @@
----
-hide:
-  - navigation
-  - toc
----
-
 # Gem
 
-<div class="hero-tagline" markdown>
-**Gem** reads Dota 2 `.dem` replay files and turns them into structured Python objects —
-named after the *Gem of True Sight*, which reveals what is hidden.
+<div class="hero-card">
+  <h2>Python Dota 2 Replay Parser</h2>
+  <p>
+    <strong>gem</strong> reads Source 2 <code>.dem</code> replay files and turns them into structured match data.
+    This VitePress site is now the canonical documentation frontend.
+  </p>
+  <div class="hero-actions">
+    <a class="VPButton medium brand" href="/guides/01_quickstart">Quickstart</a>
+    <a class="VPButton medium alt" href="/understanding/index">Understanding</a>
+    <a class="VPButton medium alt" href="/replay-parser">Replay Parser</a>
+    <a class="VPButton medium alt" href="/reports/">Reports</a>
+  </div>
 </div>
 
-<div class="hero-actions" markdown>
-[Get started](guides/01_quickstart.md){ .md-button .md-button--primary }
-[API Reference](reference/index.md){ .md-button }
-</div>
+## What is already live
 
----
-
-## What you can do
-
-<div class="grid cards" markdown>
-
--   :material-play-speed: **Parse in seconds**
-
-    ---
-
-    A typical 45-minute replay parses in 2–4 seconds in pure Python — no compiled
-    extensions required.
-
-    ```python
-    import gem
-    match = gem.parse("my_replay.dem")
-    ```
-
--   :material-account-group: **Full match data**
-
-    ---
-
-    Players, draft, combat log, wards, objectives, teamfights, couriers, smoke events,
-    aegis, chat — everything in one call.
-
-    [Full Match Data →](guides/04_match_data.md)
-
--   :material-export: **Export anywhere**
-
-    ---
-
-    Convert to pandas DataFrames, JSON, or Parquet with a single function.
-
-    ```python
-    gem.parse_to_dataframe("replay.dem")
-    gem.parse_to_json("replay.dem", indent=2)
-    gem.parse_to_parquet("replay.dem", "./out")
-    ```
-
--   :material-database-arrow-right: **Batch processing**
-
-    ---
-
-    Parse hundreds of replays in parallel using all CPU cores.
-    Failed replays are captured, not raised.
-
-    ```python
-    gem.parse_many_to_parquet("replays/", "./out", workers=8)
-    ```
-
--   :material-map-marker-check: **Exact ward coordinates**
-
-    ---
-
-    Ward placements carry precise map coordinates extracted from the entity stream —
-    not approximations.
-
-    [Ward extractor →](reference/extractors/wards.md)
-
--   :material-console: **CLI included**
-
-    ---
-
-    Parse, export, and batch-process replays directly from the terminal —
-    no Python code needed.
-
-    ```bash
-    python -m gem batch replays/ --format parquet --output ./out
-    ```
-
-</div>
-
----
-
-## Where to start
-
-=== "I want to use it"
-
-    Jump to the [Guides](guides/index.md) — start with the
-    [Quickstart](guides/01_quickstart.md) for install-to-KDA in 10 lines, or go
-    straight to [Full Match Data](guides/04_match_data.md) for a walkthrough of
-    everything in `ParsedMatch`.
-
-=== "I want to understand the format"
-
-    Read [Understanding the Format](understanding/index.md). It explains the Dota 2
-    replay binary format from scratch — magic bytes, outer message framing, protobuf
-    payloads, the entity delta system, field path Huffman coding, string tables, and
-    the combat log. Each page builds on the previous.
-
-=== "I need the API"
-
-    Go to the [API Reference](reference/index.md). Every public class and function
-    has a Google-style docstring.
-
----
-
-## Install
-
-=== "pip"
-
-    ```bash
-    pip install gem-dota
-    ```
-
-=== "uv"
-
-    ```bash
-    uv add gem-dota
-    ```
-
-Python 3.10 or later required.
+- Fast replay parsing in Python (`gem.parse`, `gem.parse_to_dataframe`, JSON/Parquet exports).
+- Full extraction pipeline: players, objectives, wards, courier, draft, teamfights.
+- Full guides, format deep-dives, architecture docs, and generated API reference in one site.

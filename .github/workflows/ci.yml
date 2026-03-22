@@ -26,5 +26,13 @@ jobs:
       - name: Type check
         run: uv run mypy src/gem/
 
-      - name: Test
-        run: uv run pytest tests/ -m "not integration" -q
+      - name: Test with coverage
+        run: uv run pytest tests/ -m "not integration" -q --cov=gem --cov-report=xml --cov-report=term
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN || secrets.codecov_token }}
+          files: ./coverage.xml
+          fail_ci_if_error: true
+          verbose: true

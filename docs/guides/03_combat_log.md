@@ -156,10 +156,11 @@ When using `gem.parse()`, the breakdown is pre-aggregated on each `ParsedPlayer`
 `damage_by_type` and `damage_taken_by_type` (keys: `"physical"`, `"magical"`, `"pure"`,
 `"others"`).
 
-!!! note
-    `damage_type` is only populated for S2 combat log entries (modern replays).
-    The `"others"` bucket in the pre-aggregated dicts covers damage against non-hero
-    units where Valve does not set the type field.
+::: info
+`damage_type` is only populated for S2 combat log entries (modern replays).
+The `"others"` bucket in the pre-aggregated dicts covers damage against non-hero
+units where Valve does not set the type field.
+:::
 
 ---
 

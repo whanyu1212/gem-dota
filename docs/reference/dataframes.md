@@ -3,11 +3,12 @@
 Converts a `ParsedMatch` into a dictionary of pandas DataFrames, one per table.
 This is the primary interface for ML/data-science workflows.
 
-!!! note "Parquet dependency"
-    `to_parquet()` requires `pyarrow` (recommended) or `fastparquet`:
-    ```bash
-    pip install pyarrow
-    ```
+::: info Parquet dependency
+`to_parquet()` requires `pyarrow` (recommended) or `fastparquet`:
+```bash
+pip install pyarrow
+```
+:::
 
 ## Available tables
 
@@ -30,4 +31,22 @@ This is the primary interface for ML/data-science workflows.
 
 ---
 
-::: gem.dataframes
+## Generated API
+
+## Module `gem.dataframes`
+
+DataFrame conversion for :class:`ParsedMatch` output.
+
+Source: [src/gem/dataframes.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/dataframes.py#L1)
+
+### Top-level functions
+
+### `build_dataframes`
+
+```python
+def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]
+```
+
+Convert a :class:`ParsedMatch` into a dict of pandas DataFrames.
+
+Source: [src/gem/dataframes.py:17](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/dataframes.py#L17)

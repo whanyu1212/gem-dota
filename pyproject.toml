@@ -49,9 +49,6 @@ exclude-packages = ["gem.data.hero_icons", "gem.data.item_icons"]
 
 [dependency-groups]
 dev = [
-    "mkdocs>=1.6.1,<2.0.0",
-    "mkdocs-material>=9.5.0,<9.6.0",
-    "mkdocstrings[python]>=1.0.3,<2.0.0",
     "mypy>=1.19.1",
     "pre-commit>=4.5.1",
     "pymdown-extensions>=10.21",
