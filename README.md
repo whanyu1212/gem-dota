@@ -2,7 +2,7 @@
 
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green?logo=opensourceinitiative&logoColor=white)
-![Coverage](https://img.shields.io/badge/coverage-92%25-brightgreen)
+[![codecov](https://codecov.io/gh/whanyu1212/gem-dota/graph/badge.svg)](https://codecov.io/gh/whanyu1212/gem-dota)
 ![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)
 ![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)
 [![PyPI version](https://img.shields.io/pypi/v/gem-dota.svg)](https://pypi.org/project/gem-dota/)
@@ -359,10 +359,12 @@ python examples/steam_match_info.py <match_id>
 
 ## Documentation
 
-Full concepts guide, API reference, and architecture diagrams:
+VitePress docs (concepts guide, API reference, architecture diagrams, replay parser tab):
 
 ```bash
-uv run mkdocs serve
+cd docs
+npm install
+npm run docs:dev
 ```
 
 Or visit the hosted docs at [whanyu1212.github.io/gem-dota](https://whanyu1212.github.io/gem-dota/).

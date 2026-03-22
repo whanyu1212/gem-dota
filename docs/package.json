@@ -1,0 +1,15 @@
+{
+  "name": "gem-dota-docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "docs:gen-api": "python ../scripts/generate_vitepress_api_reference.py",
+    "docs:dev": "npm run docs:gen-api && vitepress dev",
+    "docs:build": "npm run docs:gen-api && vitepress build",
+    "docs:preview": "vitepress preview"
+  },
+  "devDependencies": {
+    "vitepress": "^1.6.4",
+    "vue": "^3.5.13"
+  }
+}

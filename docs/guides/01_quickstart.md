@@ -16,9 +16,10 @@ Or with `uv`:
 uv add gem-dota
 ```
 
-!!! info "Requirements"
-    Python **3.10 or later** is required. gem has no compiled extensions — it runs
-    in pure Python out of the box.
+::: info Requirements
+Python **3.10 or later** is required. gem has no compiled extensions — it runs
+in pure Python out of the box.
+:::
 
 ---
 
@@ -27,9 +28,10 @@ uv add gem-dota
 Download a `.dem` file from [opendota.com](https://www.opendota.com) — find any match
 and click "Download Replay".
 
-!!! tip
-    You can also find replays in your Dota 2 client under **Watch → Recent Games**,
-    then click the download icon next to any match.
+::: tip
+You can also find replays in your Dota 2 client under **Watch → Recent Games**,
+then click the download icon next to any match.
+:::
 
 ---
 
@@ -125,12 +127,13 @@ data     = gem.to_dict(match)   # plain Python dict
 
 ### Parquet
 
-!!! note "Parquet dependency"
-    Parquet output requires an optional engine. Install `pyarrow` (recommended) or
-    `fastparquet`:
-    ```bash
-    pip install pyarrow
-    ```
+::: info Parquet dependency
+Parquet output requires an optional engine. Install `pyarrow` (recommended) or
+`fastparquet`:
+```bash
+pip install pyarrow
+```
+:::
 
 ```python
 # One .parquet file per DataFrame table
