@@ -9,10 +9,12 @@ export default defineConfig({
   themeConfig: {
     logo: "/logo.svg",
     nav: [
-      { text: "Guides", link: "/guides/index" },
-      { text: "Understanding", link: "/understanding/index" },
-      { text: "Replay Parser", link: "/replay-parser" },
-      { text: "API Reference", link: "/reference/index" },
+      { text: "Getting Started", link: "/" },
+      { text: "Proto Cookbook", link: "/cookbook/" },
+      { text: "Deep Dives", link: "/deep-dives/" },
+      { text: "Guides", link: "/guides/" },
+      // { text: "Replay Parser", link: "/replay-parser" },
+      { text: "API Reference", link: "/reference/" },
       { text: "Reports", link: "/reports/" },
     ],
     sidebar: [
@@ -20,9 +22,43 @@ export default defineConfig({
         text: "Getting Started",
         items: [
           { text: "Home", link: "/" },
-          { text: "Guides Overview", link: "/guides/index" },
           { text: "Quickstart", link: "/guides/01_quickstart" },
           { text: "Troubleshooting", link: "/guides/troubleshooting" },
+          { text: "Bits & Bytes Primer", link: "/cookbook/bits-and-bytes-primer" },
+        ],
+      },
+      {
+        text: "Proto Cookbook",
+        items: [
+          { text: "Overview", link: "/cookbook/" },
+          { text: "How Proto Parsing Works", link: "/cookbook/proto-parsing-pipeline" },
+          { text: "Full Proto Dota2 Catalog", link: "/cookbook/proto-dota2-catalog" },
+          { text: "Proto Field Atlas", link: "/cookbook/proto-fields/" },
+        ],
+      },
+      {
+        text: "Deep Dives",
+        items: [
+          { text: "Overview", link: "/deep-dives/" },
+          { text: "Stream Layer", link: "/deep-dives/stream-layer" },
+          { text: "Parser Layer", link: "/deep-dives/parser-layer" },
+          { text: "SendTable Layer", link: "/deep-dives/sendtable-layer" },
+          {
+            text: "State Reconstruction Layer",
+            link: "/deep-dives/state-layer",
+          },
+          {
+            text: "Event Normalization Layer",
+            link: "/deep-dives/event-layer",
+          },
+          {
+            text: "Extractors Layer",
+            link: "/deep-dives/extractors-layer",
+          },
+          {
+            text: "Match Assembly Layer",
+            link: "/deep-dives/match-assembly-layer",
+          },
         ],
       },
       {
@@ -40,27 +76,11 @@ export default defineConfig({
         ],
       },
       {
-        text: "Understanding",
-        items: [
-          { text: "Overview", link: "/understanding/index" },
-          { text: "Protocol Buffers", link: "/understanding/01_protobuf" },
-          { text: "The .dem Format", link: "/understanding/02_dem_format" },
-          { text: "Snappy Compression", link: "/understanding/03_snappy" },
-          { text: "Send Tables and Schema", link: "/understanding/04_send_tables" },
-          { text: "Field Paths and Huffman", link: "/understanding/05_field_paths" },
-          { text: "Field Decoders", link: "/understanding/06_field_decoders" },
-          { text: "String Tables", link: "/understanding/07_string_tables" },
-          { text: "Entity System", link: "/understanding/08_entity_system" },
-          { text: "Combat Log", link: "/understanding/09_combat_log" },
-          { text: "Game Events", link: "/understanding/10_game_events" },
-        ],
-      },
-      {
         text: "Interactive",
         items: [
-          { text: "Replay Parser", link: "/replay-parser" },
-          { text: "Replay API Contract", link: "/guides/replay-api" },
-          { text: "Architecture", link: "/architecture" },
+          // { text: "Replay Parser", link: "/replay-parser" },
+          // { text: "Replay API Contract", link: "/guides/replay-api" },
+          // { text: "Architecture", link: "/architecture" },
           { text: "Reports", link: "/reports/" },
         ],
       },

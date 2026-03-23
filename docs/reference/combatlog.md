@@ -2,7 +2,7 @@
 
 Normalizes combat-log data from both Source 1 and Source 2 ingestion paths into a unified entry shape.
 
-See also: [The Combat Log](../understanding/09_combat_log.md), [Using the Combat Log](../guides/03_combat_log.md)
+See also: [Using the Combat Log](../guides/03_combat_log.md), [How Proto Parsing Works](../cookbook/proto-parsing-pipeline.md)
 
 
 ---

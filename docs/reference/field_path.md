@@ -2,7 +2,7 @@
 
 Decodes Huffman-coded field path operations used to address properties inside entity deltas.
 
-See also: [Field Paths & Huffman](../understanding/05_field_paths.md)
+See also: [How Proto Parsing Works](../cookbook/proto-parsing-pipeline.md)
 
 
 ---

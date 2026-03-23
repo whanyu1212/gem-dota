@@ -8,10 +8,17 @@ and click "Download Replay".
 
 ---
 
+## If you want parser internals first
+
+Parser internals now live in a dedicated section:
+
+1. [Bits & Bytes Primer](../cookbook/bits-and-bytes-primer.md)
+2. [Deep Dives](../deep-dives/index.md)
+
+---
+
 | Guide | What you will learn |
 |---|---|
-| [Quickstart](01_quickstart.md) | Install, parse a replay, print KDA and the draft |
-| [Troubleshooting](troubleshooting.md) | Fix common install, parsing, and docs build issues |
 | [Entity State](02_entity_state.md) | Subscribe to entity events and read field values |
 | [Combat Log](03_combat_log.md) | Filter events, count damage, track kills and wards |
 | [Full Match Data](04_match_data.md) | Walk through everything in `ParsedMatch` |
