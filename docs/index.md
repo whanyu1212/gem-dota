@@ -7,12 +7,11 @@
     Start with Quickstart, then use Troubleshooting and Bits & Bytes Primer if you are new to replay internals.
   </p>
   <div class="hero-actions">
-    <a class="VPButton medium brand" href="/guides/01_quickstart">Quickstart</a>
-    <a class="VPButton medium alt" href="/guides/troubleshooting">Troubleshooting</a>
-    <a class="VPButton medium alt" href="/cookbook/bits-and-bytes-primer">Bits & Bytes Primer</a>
-    <a class="VPButton medium alt" href="/cookbook/">Proto Cookbook</a>
-    <a class="VPButton medium alt" href="/replay-parser">Replay Parser</a>
-    <a class="VPButton medium alt" href="/reports/">Reports</a>
+    <a class="VPButton medium brand" href="guides/01_quickstart">Quickstart</a>
+    <a class="VPButton medium alt" href="guides/troubleshooting">Troubleshooting</a>
+    <a class="VPButton medium alt" href="cookbook/bits-and-bytes-primer">Bits & Bytes Primer</a>
+    <a class="VPButton medium alt" href="cookbook/">Proto Cookbook</a>
+    <a class="VPButton medium alt" href="reports/">Reports</a>
   </div>
 </div>
 
