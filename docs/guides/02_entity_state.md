@@ -4,8 +4,8 @@ Entities are the game objects inside a replay: heroes, towers, creeps, the game 
 object, runes, wards. Their state changes every tick. This guide shows how to subscribe
 to entity events and read field values.
 
-For a conceptual explanation of how the entity system works at the binary level, see
-[Understanding: The Entity System](../understanding/08_entity_system.md).
+For a conceptual explanation of how entity parsing fits into the overall pipeline, see
+[How Proto Parsing Works](../cookbook/proto-parsing-pipeline.md).
 
 ---
 

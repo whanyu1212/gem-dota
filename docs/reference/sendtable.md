@@ -2,7 +2,7 @@
 
 Parses flattened serializers into the schema tree used to decode packet entities and their fields.
 
-See also: [Send Tables & Schema](../understanding/04_send_tables.md)
+See also: [Proto Parsing Pipeline](../cookbook/proto-parsing-pipeline.md)
 
 
 ---

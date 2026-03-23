@@ -2,8 +2,6 @@
 
 Common setup and parsing issues, with quick fixes.
 
----
-
 ## Installation issues
 
 ### `python-snappy` build or import errors
@@ -21,8 +19,6 @@ uv sync
 uv run python -c "import snappy; print('snappy OK')"
 ```
 
----
-
 ## Docs build issues
 
 If docs fail locally:
@@ -35,8 +31,6 @@ npm run docs:build
 If build reports link issues, fix broken links in `docs/` rather than disabling checks.
 
 Maintainers: docs dependencies are intentionally pinned to avoid accidental major-version breakage.
-
----
 
 ## Replay parsing issues
 
@@ -60,8 +54,6 @@ Debug workflow:
 2. inspect available fields on that entity at runtime,
 3. update field access logic to tolerate missing/renamed fields.
 
----
-
 ## Performance issues
 
 ### Parsing feels slow on large replay sets
@@ -73,8 +65,6 @@ Use these checks first:
 - prefer targeted extraction over collecting every possible field.
 
 If needed, profile callback hotspots before optimizing parser internals.
-
----
 
 ## Still stuck?
 

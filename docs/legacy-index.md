@@ -103,10 +103,8 @@ everything in `ParsedMatch`.
 
 == I want to understand the format
 
-Read [Understanding the Format](understanding/index.md). It explains the Dota 2
-replay binary format from scratch — magic bytes, outer message framing, protobuf
-payloads, the entity delta system, field path Huffman coding, string tables, and
-the combat log. Each page builds on the previous.
+Start with [How Proto Parsing Works](cookbook/proto-parsing-pipeline.md), then use
+[Proto Field Atlas](cookbook/proto-fields/index.md) for per-message field details.
 
 
 == I need the API

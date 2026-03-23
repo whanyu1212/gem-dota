@@ -1,0 +1,87 @@
+# Proto Field Atlas
+
+Field-level catalog for every Dota 2 proto file. Each file page contains collapsible
+message and enum sections with declaration details.
+
+- Source proto files: **78**
+
+## Files
+
+- [base_gcmessages.proto](base-gcmessages.md) — messages: 62, enums: 6
+- [c_peer2peer_netmessages.proto](c-peer2peer-netmessages.md) — messages: 7, enums: 2
+- [clientmessages.proto](clientmessages.md) — messages: 7, enums: 2
+- [connectionless_netmessages.proto](connectionless-netmessages.md) — messages: 3, enums: 0
+- [demo.proto](demo.md) — messages: 27, enums: 1
+- [dota_broadcastmessages.proto](dota-broadcastmessages.md) — messages: 4, enums: 1
+- [dota_client_enums.proto](dota-client-enums.md) — messages: 0, enums: 7
+- [dota_clientmessages.proto](dota-clientmessages.md) — messages: 116, enums: 4
+- [dota_commonmessages.proto](dota-commonmessages.md) — messages: 13, enums: 4
+- [dota_fighting_game_p2p_messages.proto](dota-fighting-game-p2p-messages.md) — messages: 6, enums: 1
+- [dota_gcmessages_client.proto](dota-gcmessages-client.md) — messages: 475, enums: 86
+- [dota_gcmessages_client_bingo.proto](dota-gcmessages-client-bingo.md) — messages: 25, enums: 10
+- [dota_gcmessages_client_candy_shop.proto](dota-gcmessages-client-candy-shop.md) — messages: 34, enums: 9
+- [dota_gcmessages_client_chat.proto](dota-gcmessages-client-chat.md) — messages: 27, enums: 2
+- [dota_gcmessages_client_coaching.proto](dota-gcmessages-client-coaching.md) — messages: 35, enums: 17
+- [dota_gcmessages_client_craftworks.proto](dota-gcmessages-client-craftworks.md) — messages: 8, enums: 4
+- [dota_gcmessages_client_fantasy.proto](dota-gcmessages-client-fantasy.md) — messages: 59, enums: 13
+- [dota_gcmessages_client_guild.proto](dota-gcmessages-client-guild.md) — messages: 61, enums: 26
+- [dota_gcmessages_client_guild_events.proto](dota-gcmessages-client-guild-events.md) — messages: 22, enums: 7
+- [dota_gcmessages_client_match_management.proto](dota-gcmessages-client-match-management.md) — messages: 62, enums: 1
+- [dota_gcmessages_client_showcase.proto](dota-gcmessages-client-showcase.md) — messages: 60, enums: 20
+- [dota_gcmessages_client_team.proto](dota-gcmessages-client-team.md) — messages: 28, enums: 6
+- [dota_gcmessages_client_tournament.proto](dota-gcmessages-client-tournament.md) — messages: 20, enums: 1
+- [dota_gcmessages_client_watch.proto](dota-gcmessages-client-watch.md) — messages: 23, enums: 2
+- [dota_gcmessages_common.proto](dota-gcmessages-common.md) — messages: 187, enums: 29
+- [dota_gcmessages_common_battle_report.proto](dota-gcmessages-common-battle-report.md) — messages: 23, enums: 13
+- [dota_gcmessages_common_bot_script.proto](dota-gcmessages-common-bot-script.md) — messages: 18, enums: 2
+- [dota_gcmessages_common_craftworks.proto](dota-gcmessages-common-craftworks.md) — messages: 3, enums: 1
+- [dota_gcmessages_common_fighting_game.proto](dota-gcmessages-common-fighting-game.md) — messages: 8, enums: 2
+- [dota_gcmessages_common_league.proto](dota-gcmessages-common-league.md) — messages: 37, enums: 2
+- [dota_gcmessages_common_lobby.proto](dota-gcmessages-common-lobby.md) — messages: 32, enums: 5
+- [dota_gcmessages_common_match_management.proto](dota-gcmessages-common-match-management.md) — messages: 15, enums: 9
+- [dota_gcmessages_common_monster_hunter.proto](dota-gcmessages-common-monster-hunter.md) — messages: 36, enums: 16
+- [dota_gcmessages_common_overworld.proto](dota-gcmessages-common-overworld.md) — messages: 51, enums: 19
+- [dota_gcmessages_common_survivors.proto](dota-gcmessages-common-survivors.md) — messages: 5, enums: 1
+- [dota_gcmessages_msgid.proto](dota-gcmessages-msgid.md) — messages: 0, enums: 1
+- [dota_gcmessages_server.proto](dota-gcmessages-server.md) — messages: 186, enums: 6
+- [dota_gcmessages_webapi.proto](dota-gcmessages-webapi.md) — messages: 38, enums: 14
+- [dota_hud_types.proto](dota-hud-types.md) — messages: 0, enums: 1
+- [dota_match_metadata.proto](dota-match-metadata.md) — messages: 38, enums: 2
+- [dota_modifiers.proto](dota-modifiers.md) — messages: 2, enums: 1
+- [dota_scenariomessages.proto](dota-scenariomessages.md) — messages: 23, enums: 0
+- [dota_shared_enums.proto](dota-shared-enums.md) — messages: 14, enums: 54
+- [dota_usercmd.proto](dota-usercmd.md) — messages: 1, enums: 0
+- [dota_usermessages.proto](dota-usermessages.md) — messages: 190, enums: 19
+- [econ_gcmessages.proto](econ-gcmessages.md) — messages: 143, enums: 15
+- [econ_shared_enums.proto](econ-shared-enums.md) — messages: 1, enums: 3
+- [engine_gcmessages.proto](engine-gcmessages.md) — messages: 1, enums: 0
+- [enums_clientserver.proto](enums-clientserver.md) — messages: 0, enums: 6
+- [gameevents.proto](gameevents.md) — messages: 16, enums: 1
+- [gcsdk_gcmessages.proto](gcsdk-gcmessages.md) — messages: 74, enums: 3
+- [gcsystemmsgs.proto](gcsystemmsgs.md) — messages: 0, enums: 2
+- [netmessages.proto](netmessages.md) — messages: 82, enums: 13
+- [network_connection.proto](network-connection.md) — messages: 0, enums: 1
+- [networkbasetypes.proto](networkbasetypes.md) — messages: 27, enums: 3
+- [networksystem_protomessages.proto](networksystem-protomessages.md) — messages: 5, enums: 0
+- [prediction_events.proto](prediction-events.md) — messages: 3, enums: 1
+- [steamdatagram_messages_auth.proto](steamdatagram-messages-auth.md) — messages: 7, enums: 0
+- [steamdatagram_messages_sdr.proto](steamdatagram-messages-sdr.md) — messages: 42, enums: 10
+- [steammessages.proto](steammessages.md) — messages: 5, enums: 2
+- [steammessages_base.proto](steammessages-base.md) — messages: 21, enums: 4
+- [steammessages_cloud.steamworkssdk.proto](steammessages-cloud-steamworkssdk.md) — messages: 9, enums: 0
+- [steammessages_gamenetworkingui.proto](steammessages-gamenetworkingui.md) — messages: 5, enums: 0
+- [steammessages_helprequest.steamworkssdk.proto](steammessages-helprequest-steamworkssdk.md) — messages: 2, enums: 0
+- [steammessages_int.proto](steammessages-int.md) — messages: 82, enums: 3
+- [steammessages_oauth.steamworkssdk.proto](steammessages-oauth-steamworkssdk.md) — messages: 2, enums: 0
+- [steammessages_player.steamworkssdk.proto](steammessages-player-steamworkssdk.md) — messages: 38, enums: 1
+- [steammessages_publishedfile.steamworkssdk.proto](steammessages-publishedfile-steamworkssdk.md) — messages: 21, enums: 0
+- [steammessages_steamlearn.steamworkssdk.proto](steammessages-steamlearn-steamworkssdk.md) — messages: 52, enums: 7
+- [steammessages_unified_base.steamworkssdk.proto](steammessages-unified-base-steamworkssdk.md) — messages: 0, enums: 1
+- [steamnetworkingsockets_messages.proto](steamnetworkingsockets-messages.md) — messages: 16, enums: 2
+- [steamnetworkingsockets_messages_certs.proto](steamnetworkingsockets-messages-certs.md) — messages: 4, enums: 1
+- [steamnetworkingsockets_messages_udp.proto](steamnetworkingsockets-messages-udp.md) — messages: 7, enums: 2
+- [te.proto](te.md) — messages: 25, enums: 1
+- [uifontfile_format.proto](uifontfile-format.md) — messages: 3, enums: 0
+- [usercmd.proto](usercmd.md) — messages: 5, enums: 0
+- [usermessages.proto](usermessages.md) — messages: 107, enums: 5
+- [valveextensions.proto](valveextensions.md) — messages: 0, enums: 1
