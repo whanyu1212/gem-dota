@@ -4,8 +4,8 @@ The combat log records every meaningful game event at the entry level: damage, h
 kills, ability uses, item uses, gold changes, ward placements, buybacks. This guide shows
 how to subscribe to entries and derive common statistics.
 
-For a conceptual explanation of the two ingestion paths and edge cases, see
-[Understanding: The Combat Log](../understanding/09_combat_log.md).
+For a conceptual explanation of parser stages and message routing, see
+[How Proto Parsing Works](../cookbook/proto-parsing-pipeline.md).
 
 ---
 

@@ -1,17 +1,25 @@
-# Gem
+<h1 align="center">gem</h1>
 
-![Python](https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white)
-![License](https://img.shields.io/badge/license-MIT-green?logo=opensourceinitiative&logoColor=white)
-[![codecov](https://codecov.io/gh/whanyu1212/gem-dota/graph/badge.svg)](https://codecov.io/gh/whanyu1212/gem-dota)
-![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)
-![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)
-[![PyPI version](https://img.shields.io/pypi/v/gem-dota.svg)](https://pypi.org/project/gem-dota/)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/gem-dota.svg)](https://pypi.org/project/gem-dota/)
-[![Sponsor](https://img.shields.io/badge/Sponsor-GitHub-pink?logo=github)](https://github.com/sponsors/whanyu1212)
+<p align="center"><strong>Source 2 Dota 2 Replay Parsing, Analytics and Visualization in Python</strong></p>
 
-**Gem of True Sight** — a Python Dota 2 replay parser.
+<p align="center">
+  <img alt="Python" src="https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white">
+  <img alt="License" src="https://img.shields.io/badge/license-MIT-green?logo=opensourceinitiative&logoColor=white">
+  <a href="https://codecov.io/gh/whanyu1212/gem-dota"><img alt="codecov" src="https://codecov.io/gh/whanyu1212/gem-dota/graph/badge.svg"></a>
+  <img alt="pre-commit" src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white">
+  <img alt="Ruff" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json">
+  <a href="https://pypi.org/project/gem-dota/"><img alt="PyPI version" src="https://img.shields.io/pypi/v/gem-dota.svg"></a>
+  <a href="https://pypi.org/project/gem-dota/"><img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/gem-dota.svg"></a>
+  <a href="https://github.com/sponsors/whanyu1212"><img alt="Sponsor" src="https://img.shields.io/badge/Sponsor-GitHub-pink?logo=github"></a>
+</p>
 
-Reads Source 2 `.dem` binary replay files and exposes structured output: per-tick hero state, combat events, ward placements, smoke usage, Roshan kills, gold/XP timelines, draft picks/bans, courier state, ability levels, and more.
+💻 Parse Source 2 Dota 2 `.dem` replays in Python or with a command-line interface  
+⚔️ Access tick-level hero/entity state and combat/event timelines  
+📈 Calculate match and player statistics (K/D/A, economy curves, lane metrics, teamfights)  
+🔎 Decode replay internals from bytes to protobuf packets to normalized events  
+🗺️ Analyze spatial data (wards, movement trails, lane heatmaps, objective timelines)  
+🎞️ Generate HTML analysis reports with combat, vision, economy, draft, and movement views  
+🧰 Export analysis-ready outputs as structured models, DataFrames, JSON, and Parquet
 
 ---
 
@@ -30,6 +38,9 @@ Another core reason is data ownership and transparency. API/GraphQL outputs from
 ## Installation
 
 Requires Python 3.10+.
+
+> [!IMPORTANT]
+> Parquet export requires either `pyarrow` or `fastparquet` in your environment.
 
 ### Install from PyPI
 
@@ -52,11 +63,15 @@ cd gem
 uv sync --group dev
 ```
 
-> **Note:** Most users do not need to download hero/item icon assets. Icon fetching is only required for local report/example rendering that displays portraits or item/rune icons.
+> [!TIP]
+> Most users do not need to download hero/item icon assets. Icon fetching is only required for local report/example rendering that displays portraits or item/rune icons.
 
 ---
 
 ## Quick start
+
+> [!NOTE]
+> Replace `"my_replay.dem"` with your own replay path. The parser accepts plain `.dem` files and returns structured Python objects.
 
 ```python
 import gem
@@ -112,6 +127,9 @@ paths = gem.parse_to_parquet("my_replay.dem", output_dir="./parquet_out")
 paths = gem.to_parquet(match, output_dir="./parquet_out")
 ```
 
+> [!IMPORTANT]
+> If Parquet export fails, install `pyarrow` (recommended) or `fastparquet` and retry.
+
 ### CLI
 
 `gem` ships with a command-line interface for quick inspection, export, and batch processing:
@@ -136,6 +154,9 @@ python -m gem batch replays/ --format dataframe --output ./out
 # Show live progress and a timing breakdown
 python -m gem match.dem --progress --timings
 ```
+
+> [!TIP]
+> Start with `python -m gem match.dem` to validate parsing first, then add `--format json` or `--format parquet` for downstream workflows.
 
 <p align="center">
   <img src="assets/cli_example.png" alt="CLI example" width="80%">
@@ -190,6 +211,9 @@ uv run python examples/match_report.py path/to/your_replay.dem
 ```
 
 By default it writes `<replay_stem>_report.html` to the project root.
+
+> [!NOTE]
+> HTML report generation is heavier than plain parse/JSON export because it renders multiple charts, tables, and embedded assets.
 
 ---
 
@@ -371,6 +395,9 @@ Or visit the hosted docs at [whanyu1212.github.io/gem-dota](https://whanyu1212.g
 
 Topics covered: DEM binary format, Protocol Buffers, varint encoding, the entity delta system, field paths, combat log ingestion, and more.
 
+> [!TIP]
+> New to replay internals: start with **Getting Started → Bits and Bytes Primer**, then continue into the **Deep Dive** section for stream/parser/entity layers.
+
 ---
 
 ## AI-Assisted Development
@@ -408,6 +435,9 @@ If you run a benchmark, please open an issue/PR with:
 ---
 
 ## Known limitations
+
+> [!IMPORTANT]
+> Treat advanced outputs like vision estimation and some attribution paths as best-effort reconstructions, not ground-truth telemetry.
 
 - **Vision estimation is geometry-only** *(experimental)* — `gem.estimate_vision` and the vision features in the match report use straight-line distance only. Three things are not modelled: (1) high-ground vision penalties — cliff edges block uphill sight; (2) terrain line-of-sight blocking from trees and cliffs (requires a navmesh/walkability grid from `game/dota/pak01_dir.vpk`, which is not bundled); (3) per-hero vision range modifiers from abilities/items (e.g. Aghanim upgrades). Vision results should be treated as approximations.
 - **Roshan drops** — Aegis, Cheese, Refresher Shard, and Aghanim's Blessing pickups are not in the combat log. Roshan kills are tracked, but the specific drop items are not.

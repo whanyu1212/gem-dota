@@ -92,5 +92,5 @@ If a field lookup returns missing values:
 
 For lower-level mechanics, see:
 - [Entity State](02_entity_state.md)
-- [The Entity System](../understanding/08_entity_system.md)
+- [How Proto Parsing Works](../cookbook/proto-parsing-pipeline.md)
 - [Entities API Reference](../reference/entities.md)

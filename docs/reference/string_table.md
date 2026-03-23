@@ -2,7 +2,7 @@
 
 Manages incremental key/value side tables such as `instancebaseline` and `CombatLogNames`, including create/update flows.
 
-See also: [String Tables](../understanding/07_string_tables.md)
+See also: [How Proto Parsing Works](../cookbook/proto-parsing-pipeline.md)
 
 
 ---
