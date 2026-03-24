@@ -6,16 +6,18 @@ It is intentionally short-range for now. It is **not** backfilled with older rel
 
 ## March 2026
 
-### Roshan conversion report was added as an experimental feature
+::: tip Roshan Conversion Report
 
 There is now a dedicated `Roshan Conversion` report tab and a matching Experimental Features page.
 
 The new report separates:
 
-- the **conversion label** (`Low Conversion`, `Fight Conversion`, `Objective Conversion`, `Map Squeeze`, `Game-Closing Rosh`)
-- the **Aegis outcome** (`Consumed In Fight`, `Expired After Use`, `Expired Unused`, `Denied`, `Window Lost`, `Game Ended`, `Unknown`)
+- the **conversion label**
+  `Low Conversion`, `Fight Conversion`, `Objective Conversion`, `Map Squeeze`, `Game-Closing Rosh`
+- the **Aegis outcome**
+  `Consumed In Fight`, `Expired After Use`, `Expired Unused`, `Denied`, `Window Lost`, `Game Ended`, `Unknown`
 
-Recent refinements:
+**Recent refinements**
 
 - labels and Aegis outcomes are documented directly in the report
 - the old single score was removed from the UI
@@ -24,45 +26,51 @@ Recent refinements:
 
 This remains experimental because it is a replay-derived interpretation layer, not a native replay fact.
 
-### Player sampling now stops at game end
+:::
+
+::: warning Game-End Sampling Fix
 
 `PlayerExtractor` now forces one final snapshot at the exact game-end tick and stops sampling after that point.
 
-Why this mattered:
+**Why this mattered**
 
 - some player time series were drifting into the postgame scoreboard window
 - this could inflate late sampled values such as `net_worth_t`
 - it created false mismatches when validating against OpenDota
 
-Concrete impact:
+**Concrete impact**
 
 - the sampled end state now reflects the actual replay game-end boundary
 - the Tusk mismatch discovered during OpenDota validation was resolved by this fix
 
-### Gold series were split into two distinct meanings
+:::
+
+::: info Gold Series Split
 
 `gold_t` and `gold_t_min` now mean **current unspent gold only**.
 
 `total_earned_gold_t` and `total_earned_gold_t_min` now mean **cumulative earned gold**.
 
-Why this mattered:
+**Why this mattered**
 
 - the older fallback path could mix current gold and cumulative gold into the same field
 - that made economy analysis harder to reason about
 - buyback, purchase timing, and “cash on hand” questions need current unspent gold
 - advantage curves and lane-economy summaries need cumulative earned gold
 
-Current state:
+**Current state**
 
 - current unspent gold is exposed
 - cumulative earned gold is exposed
 - reliable and unreliable gold are **not** exposed separately yet
 
-### OpenDota validation harness was expanded
+:::
+
+::: tip OpenDota Validation Harness
 
 The OpenDota validator now supports more than a few pinned fixtures.
 
-It can now:
+**It can now**
 
 - randomly sample candidate matches from OpenDota feeds
 - download missing replays automatically
@@ -70,17 +78,19 @@ It can now:
 - request OpenDota replay parsing when richer fields are missing
 - write manifests and JSON result files for repeatable checks
 
-Important validator clarification:
+**Important validator clarification**
 
 - final scalar checks use end-of-game values
 - `[min]` fields are now treated as informational only
 - the last whole-minute sample can legitimately precede game end by up to 59 seconds
 
-### Farming-pattern context became more explainable
+:::
+
+::: tip Farming Patterns Context
 
 The experimental Farming Patterns work now has an explicit map-context layer.
 
-That layer uses:
+**That layer uses**
 
 - tower state
 - Roshan and Aegis timing
@@ -88,7 +98,7 @@ That layer uses:
 - net-worth and XP advantage
 - recent enemy presence by region
 
-Recent refinements:
+**Recent refinements**
 
 - labels were made easier to read
 - the old border/river special case was removed as a standalone category
@@ -97,7 +107,9 @@ Recent refinements:
 
 This feature is still experimental by design.
 
-### Replay edge cases are now documented directly
+:::
+
+::: info Replay Edge Cases
 
 There is now a dedicated deep-dive page for replay-specific pitfalls, including:
 
@@ -108,6 +120,8 @@ There is now a dedicated deep-dive page for replay-specific pitfalls, including:
 - inference limits for higher-level analytics
 
 If you are debugging parser behavior, read this together with the Deep Dives and Experimental Features sections.
+
+:::
 
 ## Recommended follow-up pages
 

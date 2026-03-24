@@ -7,7 +7,7 @@ The `Farming` tab in the HTML report is documented in
 
 ## TI14 Finals — Game 3 · XG vs Falcons
 
-<a class="VPButton medium brand" href="https://github.com/whanyu1212/gem-dota/releases/download/v0.2.4/ti14_g1_xg_vs_falcons.html">Download report</a>
+<a class="VPButton medium brand" href="./ti14_finals_g3_xg_vs_falcons_report.html">Open report</a>
 
 | | |
 |---|---|

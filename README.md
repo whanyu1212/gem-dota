@@ -264,6 +264,16 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 
 ## Releases
 
+### [v0.2.7](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.7)
+
+- **Experimental farming-pattern analysis** — objective-aware camp-path context, larger interactive report view, and detailed documentation for the heuristic model and its limits.
+- **Roshan conversion analysis** — `gem.build_rosh_conversions(match)` plus a dedicated `Roshan Conversion` report tab to show how each Roshan translated into fights, objectives, and map pressure.
+- **Sampling and validation fixes** — player time-series sampling now stops at game end, hero movement sampling uses each player's canonical selected hero entity, and the OpenDota validator now supports broader replay-sampling workflows.
+- **Economy series split** — `ParsedPlayer.gold_t` is now current unspent gold only, with cumulative earned gold exposed separately via `ParsedPlayer.total_earned_gold_t`.
+
+<details>
+<summary>Older releases</summary>
+
 ### [v0.2.6](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.6)
 
 - **Team identity fields** — `ParsedMatch.radiant_team_id`, `radiant_team_name`, `radiant_team_tag` and `dire_team_id`, `dire_team_name`, `dire_team_tag` extracted from `CDOTATeam` entities. Default to `0`/`""` for pub games.
@@ -336,6 +346,8 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 - Rune pickups, buybacks, aegis events, smoke groups, chat, purchase log.
 - `ParsedMatch` / `ParsedPlayer` output models, DataFrame export, and CLI.
 - HTML match report example (draft, combat, vision, economy, teamfights, movement).
+
+</details>
 
 ---
 
@@ -474,7 +486,7 @@ See [`THIRD_PARTY_LICENSES`](THIRD_PARTY_LICENSES) for full license texts.
 | Item | Status |
 |---|---|
 | Validation harness against OpenDota-style outputs | Ongoing |
-| Docs expansion (cookbook + parsing-from-scratch walkthroughs) | Planned |
+| Docs expansion (cookbook + parsing-from-scratch walkthroughs) | Done |
 | ML project — using parsed replay data to power supervised/unsupervised models for player and team performance analysis | Planned |
 | Agentic project — LLM-powered replay analysis agent that reasons over structured match data to generate insights and coaching feedback | Planned |
 | Frontend demo application (interactive replay analysis UI showcasing parser capabilities) | Planned |

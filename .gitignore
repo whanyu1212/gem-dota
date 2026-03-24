@@ -18,6 +18,7 @@ src/gem/data/item_icons/
 
 # Generated HTML output files (e.g. draft_summary, match_report)
 *.html
+!docs/reports/ti14_finals_g3_xg_vs_falcons_report.html
 
 # Replay files — too large to commit
 tests/fixtures/*.dem

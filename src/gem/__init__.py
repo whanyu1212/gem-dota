@@ -87,7 +87,7 @@ from gem.models import ChatEntry, ParsedMatch, ParsedPlayer, VisionModifierEvent
 from gem.replay_fetch import download_and_decompress, fetch_replay, fetch_replay_url
 from gem.rosh_conversion import RoshConversion, RoshTimelineEvent, build_rosh_conversions
 
-__version__ = "0.2.6"
+__version__ = "0.2.7"
 
 if TYPE_CHECKING:
     import pandas as pd
