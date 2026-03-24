@@ -15,6 +15,7 @@ class TestBuildDataframes:
             team=2,
             times=[30],
             gold_t=[500],
+            total_earned_gold_t=[900],
             lh_t=[10],
             dn_t=[2],
             xp_t=[600],
@@ -35,6 +36,8 @@ class TestBuildDataframes:
         assert "damage_taken_pure" in players_df.columns
 
         row = players_df.iloc[0]
+        assert row["gold"] == 500
+        assert row["total_earned_gold"] == 900
         assert row["damage_physical"] == 1200
         assert row["damage_magical"] == 300
         assert row["damage_pure"] == 50

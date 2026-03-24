@@ -111,13 +111,15 @@ class ParsedPlayer:
         team: Team number (2=Radiant, 3=Dire).
         times: Sample tick values (parallel to gold_t / lh_t / …).
             Default sampling is every 30 ticks (1 game-second).
-        gold_t: Reliable (spendable) gold at each sample tick.
+        gold_t: Current unspent gold at each sample tick.
+        total_earned_gold_t: Cumulative total earned gold at each sample tick
+            (``m_iTotalEarnedGold``).
         net_worth_t: Net worth (gold + item value) at each sample tick.
         lh_t: Last-hit count at each sample tick.
         dn_t: Deny count at each sample tick.
         xp_t: Cumulative XP at each sample tick.
         times_min: Tick values at each game-minute boundary (OpenDota-aligned).
-        gold_t_min: Spendable gold at each game-minute boundary.
+        gold_t_min: Current unspent gold at each game-minute boundary.
         total_earned_gold_t_min: Cumulative total earned gold at each game-minute boundary
             (``m_iTotalEarnedGold``). Used for ``radiant_gold_adv`` computation.
         total_earned_xp_t_min: Cumulative total earned XP at each game-minute boundary
@@ -185,6 +187,7 @@ class ParsedPlayer:
     team: int = 0
     times: list[int] = field(default_factory=list)
     gold_t: list[int] = field(default_factory=list)
+    total_earned_gold_t: list[int] = field(default_factory=list)
     net_worth_t: list[int] = field(default_factory=list)
     lh_t: list[int] = field(default_factory=list)
     dn_t: list[int] = field(default_factory=list)

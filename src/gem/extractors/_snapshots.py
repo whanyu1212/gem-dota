@@ -90,7 +90,7 @@ def _snapshot_hero(entity: Entity, tick: int) -> PlayerStateSnapshot | None:
         team=team,
         level=level,
         xp=xp,
-        gold=0,  # spendable gold — set by extractor from CDOTAPlayerController
+        gold=0,  # current unspent gold — set by extractor from CDOTAPlayerController
         total_earned_gold=0,  # cumulative — set by extractor from m_iTotalEarnedGold
         net_worth=0,
         lh=lh,
@@ -120,7 +120,7 @@ class PlayerStateSnapshot:
         team: Team number (2=Radiant, 3=Dire).
         level: Hero level (1-30).
         xp: Cumulative XP total.
-        gold: Spendable gold from ``CDOTAPlayerController``, or 0 if not read.
+        gold: Current unspent gold from ``CDOTAPlayerController``, or 0 if not read.
         net_worth: Net worth from ``CDOTAPlayerController``, or 0 if not read.
         total_earned_gold: Cumulative gold earned (``m_iTotalEarnedGold``), or 0 if not read.
         total_earned_xp: Cumulative XP earned (``m_iTotalEarnedXP``), or 0 if not read.
@@ -171,7 +171,7 @@ class PlayerTimeSeries:
     Attributes:
         player_id: Player slot (0-9).
         ticks: Tick values for each sample.
-        gold_t: Spendable gold at each sample tick.
+        gold_t: Current unspent gold at each sample tick.
         total_earned_gold_t: Cumulative total earned gold at each sample tick.
         total_earned_xp_t: Cumulative total earned XP at each sample tick.
         net_worth_t: Net worth at each sample tick.

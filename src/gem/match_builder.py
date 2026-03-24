@@ -140,6 +140,7 @@ def build_parsed_match(
         pp.player_id = player_id
         pp.times = ts.ticks
         pp.gold_t = ts.gold_t
+        pp.total_earned_gold_t = ts.total_earned_gold_t
         pp.net_worth_t = ts.net_worth_t
         pp.lh_t = ts.lh_t
         pp.dn_t = ts.dn_t
