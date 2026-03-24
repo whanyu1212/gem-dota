@@ -102,6 +102,10 @@ Two snapshot streams are produced:
 
 Minute snapshots are deduplicated by minute index so repeated same-minute events do not create duplicate buckets.
 
+::: warning Canonical Hero Entity Matters
+Do not assume "all `CDOTA_Unit_Hero_*` entities for this player" means "the player's real hero". Illusion-like and clone-like entities can create duplicate same-tick positions and corrupt movement trails. gem samples the player's selected hero handle first for this reason. See [Replay Edge Cases](replay-edge-cases.md).
+:::
+
 ### Special handling worth knowing
 
 1. Gold/XP source selection is intentional:

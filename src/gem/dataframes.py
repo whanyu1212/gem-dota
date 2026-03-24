@@ -49,6 +49,9 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                     "team": pp.team,
                     "tick": pp.times[i],
                     "gold": pp.gold_t[i] if i < len(pp.gold_t) else 0,
+                    "total_earned_gold": (
+                        pp.total_earned_gold_t[i] if i < len(pp.total_earned_gold_t) else 0
+                    ),
                     "net_worth": pp.net_worth_t[i] if i < len(pp.net_worth_t) else 0,
                     "lh": pp.lh_t[i] if i < len(pp.lh_t) else 0,
                     "dn": pp.dn_t[i] if i < len(pp.dn_t) else 0,

@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.7] - 2026-03-24
+
+### Added
+- Objective-aware farming context helpers for experimental farming-pattern analysis. These bucket tower state, Roshan/Aegis timing, ward counts, net-worth/XP advantage, and enemy presence into replay-time context that can be joined to camp visits.
+- `ParsedPlayer.total_earned_gold_t` — cumulative earned gold at regular sample cadence, exposed alongside the existing per-minute `total_earned_gold_t_min`.
+- Roshan conversion analysis (`gem.build_rosh_conversions`) plus a dedicated `Roshan Conversion` tab in the HTML report.
+
+### Changed
+- `ParsedPlayer.gold_t` / `gold_t_min` now represent current unspent gold only (`m_iGold`). They no longer fall back to cumulative earned-gold fields.
+- DataFrame export now includes both current unspent gold and cumulative earned gold at regular sample cadence.
+- OpenDota validator now supports random replay sampling/fetching and treats minute-snapshot fields (`[min]`) as informational only instead of pass/fail parity checks against final Steam scalars, since the last minute boundary can legitimately precede game end by up to 59 seconds.
+
+### Fixed
+- Player time-series sampling now stops immediately after the forced game-end snapshot. This removes postgame drift from sampled player stats, including inflated late `net_worth_t` values after `DOTA_COMBATLOG_GAME_STATE == 6`.
+- OpenDota scalar validation for `net_worth` now reflects the small residual divergence between replay-exposed net-worth fields and Steam's final server scalar.
+- Experimental farming-context labels and thresholds were refined to be easier to read in reports, and the old border/river special case was removed as a standalone category.
+- Player movement sampling now resolves each player through the canonical selected/assigned hero handle, preventing illusion/duplicate-hero entities from polluting position trails.
+
 ## [0.2.6] - 2026-03-21
 
 ### Added
@@ -124,7 +142,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLI and example scripts, including HTML match report.
 - Validation, fuzzing, and parser robustness foundations.
 
-[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.2.6...HEAD
+[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.2.7...HEAD
+[0.2.7]: https://github.com/whanyu1212/gem-dota/compare/v0.2.6...v0.2.7
 [0.2.6]: https://github.com/whanyu1212/gem-dota/compare/v0.2.5...v0.2.6
 [0.2.5]: https://github.com/whanyu1212/gem-dota/compare/v0.2.4...v0.2.5
 [0.2.4]: https://github.com/whanyu1212/gem-dota/compare/v0.2.3...v0.2.4

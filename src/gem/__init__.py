@@ -38,6 +38,15 @@ Public API
 ``format_npc_name(name)``
     Convert an NPC entity name to a human-readable label.
 
+``build_map_context_timeline(match, team, ...)``
+    Build objective-aware map-control context buckets for farming analysis.
+
+``score_camp_visit_context(...)``
+    Score a camp visit as safe/contested/defensive/invade with drivers.
+
+``build_rosh_conversions(match)``
+    Summarize how each Roshan translated into fights, objectives, and map pressure.
+
 ``resolve_pick_team(event, players)``
     Resolve the team (Radiant/Dire) for a draft pick/ban event.
 """
@@ -68,10 +77,17 @@ from gem.analysis import (
 from gem.batch import ParseResult, parse_many, parse_many_to_dataframe, parse_many_to_parquet
 from gem.constants import hero_npc_name
 from gem.extractors.draft import resolve_pick_team
+from gem.map_context import (
+    CampVisitContext,
+    MapContextBucket,
+    build_map_context_timeline,
+    score_camp_visit_context,
+)
 from gem.models import ChatEntry, ParsedMatch, ParsedPlayer, VisionModifierEvent
 from gem.replay_fetch import download_and_decompress, fetch_replay, fetch_replay_url
+from gem.rosh_conversion import RoshConversion, RoshTimelineEvent, build_rosh_conversions
 
-__version__ = "0.2.6"
+__version__ = "0.2.7"
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -390,6 +406,13 @@ __all__ = [
     "ward_vision_impact",
     "is_active_teamfight_participant",
     "format_npc_name",
+    "MapContextBucket",
+    "CampVisitContext",
+    "build_map_context_timeline",
+    "score_camp_visit_context",
+    "RoshTimelineEvent",
+    "RoshConversion",
+    "build_rosh_conversions",
     "resolve_pick_team",
     "constants",
     "fetch_replay",

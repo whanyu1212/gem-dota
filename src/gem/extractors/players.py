@@ -78,7 +78,9 @@ class PlayerExtractor:
                 60-second game-time boundaries regardless of this setting.
             minute_snapshots: If True, also record a snapshot at each
                 game-minute boundary (every 1800 ticks from game start),
-                matching OpenDota's ``gold_t`` / ``lh_t`` / ``xp_t`` sampling.
+                matching OpenDota's minute cadence. ``total_earned_gold_t`` /
+                ``total_earned_xp_t`` align with OpenDota's cumulative gold/XP
+                series; ``gold_t`` remains current unspent gold.
                 Requires the parser to fire ``on_game_start``. Default True.
         """
         self._sample_interval = sample_interval
@@ -86,6 +88,7 @@ class PlayerExtractor:
         self._parser: ReplayParser | None = None
         self._last_sample: int = -sample_interval
         self._game_start_tick: int | None = None
+        self._game_end_tick: int | None = None
         self._last_minute: int = -1  # last game-minute index sampled
         # entity index → Entity (mutable reference; entity is updated in place)
         self._heroes: dict[int, Entity] = {}
@@ -138,6 +141,7 @@ class PlayerExtractor:
     def _on_game_end(self, tick: int) -> None:
         # Force a final snapshot at the exact game-end tick so lh/nw/gold
         # match OpenDota's end-of-game values (sampled at postGame boundary).
+        self._game_end_tick = tick
         self._sample(tick, minute=False)
         # Read authoritative kills/deaths/assists from the server scoreboard.
         # Reference: refs/parser/src/main/java/opendota/Parse.java lines 666-668
@@ -212,7 +216,16 @@ class PlayerExtractor:
             ``(x, y)`` world coordinates, or ``None`` if the hero is not tracked.
         """
         entity = self._heroes_by_npc.get(npc_name.lower())
-        return _pos(entity) if entity is not None else None
+        if entity is None:
+            return None
+        pid = entity.get_int32("m_nPlayerID")
+        if pid is None:
+            pid = entity.get_int32("m_iPlayerID")
+        if pid is not None and pid >= 0:
+            canonical = self._canonical_hero_entity(pid // 2)
+            if canonical is not None:
+                return _pos(canonical)
+        return _pos(entity)
 
     def time_series(self, player_id: int) -> PlayerTimeSeries:
         """Aggregate snapshots for one player into time-series lists.
@@ -249,8 +262,9 @@ class PlayerExtractor:
         """Aggregate per-minute snapshots for one player into time-series lists.
 
         Returns a ``PlayerTimeSeries`` sampled at each game-minute boundary
-        (every 1800 ticks from game start), matching OpenDota's ``gold_t``,
-        ``lh_t``, and ``xp_t`` arrays exactly.
+        (every 1800 ticks from game start). ``total_earned_gold_t`` /
+        ``total_earned_xp_t`` match OpenDota's cumulative gold/XP semantics;
+        ``gold_t`` remains current unspent gold.
 
         Only populated when ``minute_snapshots=True`` (the default) and the
         parser fires the game-start event.
@@ -357,6 +371,8 @@ class PlayerExtractor:
         if self._parser is None:
             return
         tick = self._parser.tick
+        if self._game_end_tick is not None and tick >= self._game_end_tick:
+            return
 
         # Minute-boundary sampling (OpenDota-aligned)
         minute_fired = False
@@ -375,16 +391,52 @@ class PlayerExtractor:
             if not minute_fired:
                 self._sample(tick, minute=False)
 
+    def _hero_handle_for_player(self, player_id: int) -> int | None:
+        ctrl = self._controllers.get(player_id)
+        if ctrl is not None:
+            handle = ctrl.get_uint32("m_hAssignedHero")
+            if handle is not None and handle != _NULL_HANDLE:
+                return handle
+        pr = self._player_resource
+        if pr is None:
+            return None
+        handle = pr.get_uint32(f"m_vecPlayerTeamData.{player_id:04d}.m_hSelectedHero")
+        if handle is None or handle == _NULL_HANDLE:
+            return None
+        return handle
+
+    def _canonical_hero_entity(self, player_id: int) -> Entity | None:
+        if self._parser is None or self._parser.entity_manager is None:
+            return None
+        handle = self._hero_handle_for_player(player_id)
+        if handle is None:
+            return None
+        entity = self._parser.entity_manager.find_by_handle(handle)
+        if entity is None or not entity.get_class_name().startswith(_HERO_CLASS_PREFIX):
+            return None
+        return entity
+
     def _sample(self, tick: int, minute: bool = False) -> None:
         entity_names = (
             self._parser.string_tables.get_by_name("EntityNames")
             if self._parser is not None and self._parser.string_tables is not None
             else None
         )
-        for entity in self._heroes.values():
-            snap = _snapshot_hero(entity, tick)
-            if snap is None:
+        snaps_by_player: dict[int, tuple[Entity, PlayerStateSnapshot]] = {}
+        for player_id in range(10):
+            entity = self._canonical_hero_entity(player_id)
+            if entity is None:
                 continue
+            snap = _snapshot_hero(entity, tick)
+            if snap is not None:
+                snaps_by_player[snap.player_id] = (entity, snap)
+        for _, entity in sorted(self._heroes.items()):
+            snap = _snapshot_hero(entity, tick)
+            if snap is None or snap.player_id in snaps_by_player:
+                continue
+            snaps_by_player[snap.player_id] = (entity, snap)
+        for player_id in sorted(snaps_by_player):
+            entity, snap = snaps_by_player[player_id]
             # Resolve canonical NPC name from the EntityNames string table so that
             # heroes like QueenOfPain (class "CDOTA_Unit_Hero_QueenOfPain") map to
             # "npc_dota_hero_queenofpain" rather than "npc_dota_hero_queen_of_pain".
@@ -396,7 +448,7 @@ class PlayerExtractor:
                     item = entity_names.items.get(name_idx)
                     if item is not None:
                         snap.npc_name = item[0]
-            # Overlay spendable gold + net_worth from CDOTAPlayerController.
+            # Overlay current unspent gold + net_worth from CDOTAPlayerController.
             # m_iGold = current cash on hand (goes up/down as player earns/spends).
             # m_iNetWorth = gold + item value (also on controller for convenience).
             ctrl = self._controllers.get(snap.player_id)
@@ -432,8 +484,6 @@ class PlayerExtractor:
                 teg = data_entity.get_int32(f"{prefix}.m_iTotalEarnedGold")
                 if teg is not None and teg > 0:
                     snap.total_earned_gold = teg
-                    if snap.gold == 0:
-                        snap.gold = teg
                 tex = data_entity.get_int32(f"{prefix}.m_iTotalEarnedXP")
                 if tex is not None and tex > 0:
                     snap.total_earned_xp = tex

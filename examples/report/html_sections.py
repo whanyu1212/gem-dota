@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+import bisect
 import json
+import math
 from collections.abc import Callable
+from pathlib import Path
 
 import gem
 from gem.constants import ability_display, hero_display, item_display
+from gem.map_context import MapContextBucket, build_map_context_timeline, score_camp_visit_context
 from report.assets import (
     HERO_PLACEHOLDER_B64,
     ITEM_ICON_B64,
@@ -723,6 +727,279 @@ def build_objectives(match: gem.ParsedMatch, fmt_tick_fn: Callable[[int], str]) 
         parts.append("</tbody></table>")
 
     parts += ["</div>", "</details>", "</div>"]
+    return "\n".join(parts)
+
+
+_ROSH_LABEL_DISPLAY: dict[str, str] = {
+    "low_conversion": "Low Conversion",
+    "fight_conversion": "Fight Conversion",
+    "objective_conversion": "Objective Conversion",
+    "map_squeeze": "Map Squeeze",
+    "game_closing_rosh": "Game-Closing Rosh",
+}
+
+_ROSH_FATE_DISPLAY: dict[str, str] = {
+    "consumed": "Consumed",
+    "expired": "Expired",
+    "denied": "Denied",
+    "game_end": "Game End",
+    "unknown": "Unknown",
+}
+
+_ROSH_LABEL_EXPLANATION: dict[str, tuple[str, str]] = {
+    "low_conversion": (
+        "Roshan was secured, but the window did not clearly translate into fights, structures, or territorial squeeze.",
+        "Fallback when no stronger fight/objective/map-control signal fired.",
+    ),
+    "fight_conversion": (
+        "The team used Roshan mainly to win fights, but did not turn that advantage into major structural damage yet.",
+        "Assigned when post-Rosh fight results are favorable without large objective conversion.",
+    ),
+    "objective_conversion": (
+        "Roshan was translated into towers, barracks, or a clearly destructive push sequence.",
+        "Assigned when the Aegis team takes at least 2 towers or any barracks during the conversion window.",
+    ),
+    "map_squeeze": (
+        "The main gain was territorial: deeper warding or noticeably more farming presence in enemy territory.",
+        "Assigned when enemy-half warding or enemy-half presence expands without a stronger fight/objective label.",
+    ),
+    "game_closing_rosh": (
+        "This Roshan directly fed into the final closing sequence before the game ended.",
+        "Assigned when the Roshan-holding team ends the game before the next Roshan window.",
+    ),
+}
+
+_ROSH_AEGIS_OUTCOME_DISPLAY: dict[str, str] = {
+    "consumed_in_fight": "Consumed In Fight",
+    "expired_after_use": "Expired After Use",
+    "expired_unused": "Expired Unused",
+    "denied": "Denied",
+    "window_lost": "Window Lost",
+    "game_ended": "Game Ended",
+    "unknown": "Unknown",
+}
+
+_ROSH_AEGIS_OUTCOME_EXPLANATION: dict[str, tuple[str, str]] = {
+    "consumed_in_fight": (
+        "The holder died once and Aegis actually triggered during the evaluated window.",
+        "Inferred from the Aegis holder's first hero death before expiry.",
+    ),
+    "expired_after_use": (
+        "Aegis timed out, but the team still got meaningful use from the Roshan window first.",
+        "Used when Aegis expires after fights, structures, or map-control conversion.",
+    ),
+    "expired_unused": (
+        "Aegis expired without a second life and without meaningful downstream conversion.",
+        "Used when expiry happens with no fight wins and no structures.",
+    ),
+    "denied": (
+        "The Aegis was denied, so the team never got the immortality window.",
+        "Comes directly from the replay Aegis-denied event.",
+    ),
+    "window_lost": (
+        "The Aegis team lost momentum in the key window and did not offset that with structures.",
+        "Used when the Aegis side loses more fights than it wins and takes no towers or barracks.",
+    ),
+    "game_ended": (
+        "The game ended before Aegis could be consumed or expire normally.",
+        "Used when the replay ends during the Aegis ownership window.",
+    ),
+    "unknown": (
+        "The replay does not let us classify the Aegis lifecycle confidently.",
+        "Fallback when attribution is incomplete.",
+    ),
+}
+
+
+def build_rosh_conversion(match: gem.ParsedMatch) -> str:
+    """Build the Roshan conversion section."""
+    conversions = gem.build_rosh_conversions(match)
+    if not conversions:
+        return ""
+
+    label_rows = "".join(
+        (
+            "<tr>"
+            f'<td><span class="rosh-badge rosh-badge-{label_key}">{e(_ROSH_LABEL_DISPLAY[label_key])}</span></td>'
+            f"<td>{e(explanation)}</td>"
+            f'<td style="color:#8b949e">{e(rule)}</td>'
+            "</tr>"
+        )
+        for label_key, (explanation, rule) in _ROSH_LABEL_EXPLANATION.items()
+    )
+    aegis_outcome_rows = "".join(
+        (
+            "<tr>"
+            f'<td><span class="rosh-outcome-badge rosh-outcome-{outcome_key}">{e(_ROSH_AEGIS_OUTCOME_DISPLAY[outcome_key])}</span></td>'
+            f"<td>{e(explanation)}</td>"
+            f'<td style="color:#8b949e">{e(rule)}</td>'
+            "</tr>"
+        )
+        for outcome_key, (explanation, rule) in _ROSH_AEGIS_OUTCOME_EXPLANATION.items()
+    )
+    metric_rows = "".join(
+        (
+            "<tr>"
+            f"<td>{e(name)}</td>"
+            f"<td>{e(formula)}</td>"
+            f'<td style="color:#8b949e">{e(description)}</td>'
+            "</tr>"
+        )
+        for name, formula, description in [
+            (
+                "Immediate Window",
+                "Roshan kill -> +180s",
+                "Quick-read lens for whether the team acted on the spike immediately.",
+            ),
+            (
+                "Aegis Window",
+                "Aegis pickup -> inferred consume / expire / deny",
+                "Primary evaluation window. If Aegis is consumed mid-fight, the overlapping fight is still counted.",
+            ),
+            (
+                "Extended Window",
+                "Roshan kill -> next Roshan or game end",
+                "Used for broader context like game-closing sequences.",
+            ),
+            (
+                "Ward Delta",
+                "Aegis-side observer wards in enemy half - enemy observer wards in their own forward half",
+                "Positive means the Roshan team pushed vision deeper than the opponent did during the same Aegis window.",
+            ),
+            (
+                "Presence Delta",
+                "enemy_half_farm_share_during - enemy_half_farm_share_before",
+                "Before = % of holder-team position samples in enemy half during the 3 minutes before Roshan. During = % in enemy half during the first 3 minutes after Roshan. Reported in percentage points.",
+            ),
+        ]
+    )
+
+    parts = [
+        '<div class="card">',
+        "<details open>",
+        "<summary>Roshan Conversion</summary>",
+        '<div class="card-body">',
+        '<p class="section-note">'
+        "Each card asks whether a Roshan translated into fights, objectives, map expansion, "
+        "or a game-closing sequence. Aegis consume is inferred from the holder's first death, "
+        "so treat the timing as analytical rather than authoritative. No single score is shown "
+        "because late-game Roshan windows naturally have more game-ending leverage than early ones."
+        "</p>",
+        '<div class="rosh-guide-grid">'
+        '<div class="rosh-guide-block">'
+        '<div class="rosh-guide-title">Labels</div>'
+        f'<div class="rosh-table-wrap"><table class="rosh-guide-table"><thead><tr><th>Label</th><th>Meaning</th><th>Rule</th></tr></thead><tbody>{label_rows}</tbody></table></div>'
+        "</div>"
+        '<div class="rosh-guide-block">'
+        '<div class="rosh-guide-title">Aegis Outcomes</div>'
+        f'<div class="rosh-table-wrap"><table class="rosh-guide-table"><thead><tr><th>Outcome</th><th>Meaning</th><th>Rule</th></tr></thead><tbody>{aegis_outcome_rows}</tbody></table></div>'
+        "</div>"
+        '<div class="rosh-guide-block">'
+        '<div class="rosh-guide-title">Definitions</div>'
+        f'<div class="rosh-table-wrap"><table class="rosh-guide-table"><thead><tr><th>Metric</th><th>Formula</th><th>Interpretation</th></tr></thead><tbody>{metric_rows}</tbody></table></div>'
+        "</div>"
+        "</div>",
+        '<div class="rosh-card-grid">',
+    ]
+
+    for conversion in conversions:
+        team = conversion.holder_team
+        team_color = TEAM_COLOR_CSS.get(team or 0, "#8b949e")
+        team_label = team_name(team) if team in (2, 3) else "Unknown"
+        holder_label = hero(conversion.holder_name) if conversion.holder_name else "Unknown"
+        label_key = conversion.conversion_label
+        label_display = _ROSH_LABEL_DISPLAY.get(label_key, label_key.replace("_", " ").title())
+        fate_display = _ROSH_FATE_DISPLAY.get(conversion.aegis_fate, conversion.aegis_fate.title())
+        outcome_display = _ROSH_AEGIS_OUTCOME_DISPLAY.get(
+            conversion.aegis_outcome,
+            conversion.aegis_outcome.replace("_", " ").title(),
+        )
+        presence_delta_pct = round(conversion.enemy_half_farm_share_delta * 100)
+        first_fight = fmt_tick(conversion.first_fight_tick) if conversion.first_fight_tick else "—"
+        first_objective = (
+            fmt_tick(conversion.first_objective_tick) if conversion.first_objective_tick else "—"
+        )
+        chips = "".join(
+            f'<span class="rosh-chip rosh-chip-{event.kind}">'
+            f'<span class="rosh-chip-time">{e(fmt_tick(event.tick))}</span>'
+            f"{e(event.label)}</span>"
+            for event in conversion.timeline_events
+        )
+        drivers_html = (
+            '<ul class="rosh-driver-list">'
+            + "".join(f"<li>{e(driver)}</li>" for driver in conversion.drivers)
+            + "</ul>"
+            if conversion.drivers
+            else '<p class="dim">No strong downstream conversion signals were detected.</p>'
+        )
+        parts.append(
+            '<div class="rosh-card">'
+            '<div class="rosh-card-head">'
+            f'<div><div class="rosh-kicker">Roshan #{conversion.rosh_number}</div>'
+            f'<div class="rosh-title"><span style="color:{team_color}">{e(team_label)}</span>'
+            f" — {e(holder_label)}</div>"
+            f'<div class="rosh-meta">Rosh {e(fmt_tick(conversion.rosh_tick))} · '
+            f"Aegis {e(fate_display)} at {e(fmt_tick(conversion.aegis_end_tick))} · "
+            f"Extended window ends {e(fmt_tick(conversion.extended_end_tick))}</div></div>"
+            '<div class="rosh-head-right">'
+            f'<span class="rosh-badge rosh-badge-{e(label_key)}">{e(label_display)}</span>'
+            f'<span class="rosh-outcome-badge rosh-outcome-{e(conversion.aegis_outcome)}">{e(outcome_display)}</span>'
+            "</div>"
+            "</div>"
+            '<div class="rosh-metric-grid">'
+            f'<div class="rosh-metric"><span class="label">Fights</span><span class="value">{conversion.fights_won}-{conversion.fights_lost}-{conversion.fights_drawn}</span></div>'
+            f'<div class="rosh-metric"><span class="label">Objectives</span><span class="value">{conversion.towers_taken} T / {conversion.barracks_taken} Rax</span></div>'
+            f'<div class="rosh-metric"><span class="label">Enemy Buybacks</span><span class="value">{conversion.enemy_buybacks_forced}</span></div>'
+            f'<div class="rosh-metric"><span class="label">Ward Delta</span><span class="value">{conversion.enemy_half_observer_delta:+d}</span></div>'
+            f'<div class="rosh-metric"><span class="label">Presence Delta</span><span class="value">{presence_delta_pct:+d} pts</span></div>'
+            f'<div class="rosh-metric"><span class="label">First Fight / Obj</span><span class="value">{e(first_fight)} / {e(first_objective)}</span></div>'
+            "</div>"
+            f'<div class="rosh-timeline">{chips}</div>'
+            f"{drivers_html}"
+            "</div>"
+        )
+
+    parts.append("</div>")
+    parts.append('<div class="rosh-table-wrap"><table>')
+    parts.append(
+        "<thead><tr>"
+        "<th>Rosh</th><th>Team</th><th>Holder</th><th>Aegis</th><th>Outcome</th>"
+        '<th class="r">Fights</th><th class="r">Towers</th><th class="r">Rax</th>'
+        '<th class="r">Buybacks</th><th class="r">Ward Δ</th><th class="r">Presence Δ</th>'
+        "<th>Label</th>"
+        "</tr></thead><tbody>"
+    )
+    for conversion in conversions:
+        team = conversion.holder_team
+        team_color = TEAM_COLOR_CSS.get(team or 0, "#8b949e")
+        team_label = team_name(team) if team in (2, 3) else "Unknown"
+        holder_label = hero(conversion.holder_name) if conversion.holder_name else "Unknown"
+        label_key = conversion.conversion_label
+        label_display = _ROSH_LABEL_DISPLAY.get(label_key, label_key.replace("_", " ").title())
+        fate_display = _ROSH_FATE_DISPLAY.get(conversion.aegis_fate, conversion.aegis_fate.title())
+        outcome_display = _ROSH_AEGIS_OUTCOME_DISPLAY.get(
+            conversion.aegis_outcome,
+            conversion.aegis_outcome.replace("_", " ").title(),
+        )
+        presence_delta_pct = round(conversion.enemy_half_farm_share_delta * 100)
+        parts.append(
+            "<tr>"
+            f"<td>#{conversion.rosh_number}</td>"
+            f'<td><span style="color:{team_color}">{e(team_label)}</span></td>'
+            f"<td>{e(holder_label)}</td>"
+            f"<td>{e(fate_display)}</td>"
+            f"<td>{e(outcome_display)}</td>"
+            f'<td class="r">{conversion.fights_won}-{conversion.fights_lost}-{conversion.fights_drawn}</td>'
+            f'<td class="r">{conversion.towers_taken}</td>'
+            f'<td class="r">{conversion.barracks_taken}</td>'
+            f'<td class="r">{conversion.enemy_buybacks_forced}</td>'
+            f'<td class="r">{conversion.enemy_half_observer_delta:+d}</td>'
+            f'<td class="r">{presence_delta_pct:+d} pts</td>'
+            f"<td>{e(label_display)}</td>"
+            "</tr>"
+        )
+    parts.append("</tbody></table></div>")
+    parts.extend(["</div>", "</details>", "</div>"])
     return "\n".join(parts)
 
 
@@ -2567,3 +2844,933 @@ def build_laning(match: gem.ParsedMatch, map_b64: str | None = None) -> str:
     )
     parts += ["</div>", "</details>", "</div>"]
     return "\n".join(parts)
+
+
+# ---------------------------------------------------------------------------
+# Farming patterns
+# ---------------------------------------------------------------------------
+
+_FARM_CAMP_COLORS: dict[str, str] = {
+    "ancient": "#fbc02d",
+    "large": "#ef5350",
+    "medium": "#66bb6a",
+    "small": "#42a5f5",
+    "flooded_medium": "#ab47bc",
+    "flooded_small": "#5c6bc0",
+}
+
+_FARM_TEAM_TRAIL: dict[int, str] = {2: "#7ee787", 3: "#ff7b72"}
+
+
+def _load_camp_zones() -> dict:
+    path = Path(__file__).resolve().parents[2] / "src" / "gem" / "data" / "camp_zones.json"
+    try:
+        obj = json.loads(path.read_text(encoding="utf-8"))
+        camps = obj.get("camps", [])
+        if isinstance(camps, list):
+            return obj
+    except Exception:
+        pass
+    return {"camps": []}
+
+
+def _farm_world_to_px(wx: float, wy: float, size: int) -> tuple[float, float]:
+    px = (wx - MAP_XMIN) / (MAP_XMAX - MAP_XMIN) * size
+    py = (1.0 - (wy - MAP_YMIN) / (MAP_YMAX - MAP_YMIN)) * size
+    return px, py
+
+
+def _point_in_camp_zone(wx: float, wy: float, camp: dict) -> bool:
+    zone = camp.get("zone", {})
+    shape = zone.get("shape", "ellipse")
+    center = camp.get("center", {})
+    cx = float(center.get("x", 0.0))
+    cy = float(center.get("y", 0.0))
+
+    if shape == "ellipse":
+        rx = float(zone.get("rx", 0.0))
+        ry = float(zone.get("ry", 0.0))
+        if rx <= 0.0 or ry <= 0.0:
+            return False
+        angle = math.radians(float(zone.get("rotation_deg", 0.0)))
+        dx = wx - cx
+        dy = wy - cy
+        # Rotate query point into ellipse-local coordinates.
+        lx = dx * math.cos(angle) + dy * math.sin(angle)
+        ly = -dx * math.sin(angle) + dy * math.cos(angle)
+        return (lx * lx) / (rx * rx) + (ly * ly) / (ry * ry) <= 1.0
+
+    if shape == "polygon":
+        points = zone.get("points", [])
+        if not points:
+            return False
+        poly: list[tuple[float, float]] = []
+        for point in points:
+            if isinstance(point, dict):
+                poly.append((float(point.get("x", 0.0)), float(point.get("y", 0.0))))
+            else:
+                poly.append((float(point[0]), float(point[1])))
+        # Ray-casting point-in-polygon.
+        inside = False
+        j = len(poly) - 1
+        for i in range(len(poly)):
+            xi, yi = poly[i]
+            xj, yj = poly[j]
+            intersects = (yi > wy) != (yj > wy) and wx < (xj - xi) * (wy - yi) / (
+                (yj - yi) if (yj - yi) else 1e-9
+            ) + xi
+            if intersects:
+                inside = not inside
+            j = i
+        return inside
+
+    return False
+
+
+def _camp_for_point(wx: float, wy: float, camps: list[dict]) -> dict | None:
+    for camp in camps:
+        if _point_in_camp_zone(wx, wy, camp):
+            return camp
+    return None
+
+
+def _nearest_series_value(times: list[int], values: list[int], tick: int) -> int:
+    if not times or not values:
+        return 0
+    idx = bisect.bisect_left(times, tick)
+    if idx <= 0:
+        return values[0]
+    if idx >= len(times):
+        return values[-1]
+    before = idx - 1
+    after = idx
+    if tick - times[before] <= times[after] - tick:
+        return values[before]
+    return values[after]
+
+
+def _context_bucket_at(timeline: list[MapContextBucket], tick: int) -> MapContextBucket | None:
+    if not timeline:
+        return None
+    start = timeline[0].start_tick
+    width = timeline[0].end_tick - timeline[0].start_tick + 1
+    if width <= 0:
+        return timeline[-1]
+    idx = (tick - start) // width
+    if idx < 0:
+        return timeline[0]
+    if idx >= len(timeline):
+        return timeline[-1]
+    return timeline[int(idx)]
+
+
+def _farm_smooth_path(points: list[dict]) -> str:
+    if not points:
+        return ""
+    if len(points) == 1:
+        return f"M {float(points[0]['px']):.1f} {float(points[0]['py']):.1f}"
+    if len(points) == 2:
+        return (
+            f"M {float(points[0]['px']):.1f} {float(points[0]['py']):.1f} "
+            f"L {float(points[1]['px']):.1f} {float(points[1]['py']):.1f}"
+        )
+
+    cmds = [f"M {float(points[0]['px']):.1f} {float(points[0]['py']):.1f}"]
+    for idx in range(1, len(points) - 1):
+        x1 = float(points[idx]["px"])
+        y1 = float(points[idx]["py"])
+        x2 = float(points[idx + 1]["px"])
+        y2 = float(points[idx + 1]["py"])
+        mx = (x1 + x2) / 2.0
+        my = (y1 + y2) / 2.0
+        cmds.append(f"Q {x1:.1f} {y1:.1f} {mx:.1f} {my:.1f}")
+    prev = points[-2]
+    last = points[-1]
+    cmds.append(
+        f"Q {float(prev['px']):.1f} {float(prev['py']):.1f} "
+        f"{float(last['px']):.1f} {float(last['py']):.1f}"
+    )
+    return " ".join(cmds)
+
+
+def _build_player_farm_visits(
+    match: gem.ParsedMatch,
+    player: gem.ParsedPlayer,
+    camps: list[dict],
+    team_context: list[MapContextBucket],
+    min_tick: int = 0,
+) -> list[dict]:
+    if not player.position_log:
+        return []
+
+    samples: list[dict] = []
+    for tick, wx, wy in player.position_log:
+        if tick < min_tick:
+            continue
+        camp: dict | None = _camp_for_point(wx, wy, camps)
+        samples.append(
+            {
+                "tick": tick,
+                "x": wx,
+                "y": wy,
+                "camp_id": int(camp["id"]) if camp else None,
+                "camp_type": str(camp["type"]) if camp else "",
+            }
+        )
+
+    segments: list[tuple[int, int, int, str, int]] = []
+    current_camp: int | None = None
+    current_type = ""
+    start_tick = 0
+    last_tick = 0
+    sample_count = 0
+    max_gap_ticks = 300
+
+    for sample in samples:
+        camp_id = sample["camp_id"]
+        camp_type = sample["camp_type"]
+        tick = int(sample["tick"])
+
+        if current_camp is None:
+            if camp_id is not None:
+                current_camp = camp_id
+                current_type = camp_type
+                start_tick = tick
+                last_tick = tick
+                sample_count = 1
+            continue
+
+        if camp_id == current_camp and tick - last_tick <= max_gap_ticks:
+            last_tick = tick
+            sample_count += 1
+            continue
+
+        segments.append((current_camp, start_tick, last_tick, current_type, sample_count))
+        current_camp = None
+        current_type = ""
+        sample_count = 0
+        if camp_id is not None:
+            current_camp = camp_id
+            current_type = camp_type
+            start_tick = tick
+            last_tick = tick
+            sample_count = 1
+
+    if current_camp is not None:
+        segments.append((current_camp, start_tick, last_tick, current_type, sample_count))
+
+    neutral_entries = [
+        entry
+        for entry in match.combat_log
+        if entry.attacker_name == player.hero_name
+        and entry.target_name.startswith("npc_dota_neutral")
+    ]
+    camps_by_id: dict[int, dict] = {int(c["id"]): c for c in camps}
+
+    visits: list[dict] = []
+    order = 1
+    for camp_id, seg_start, seg_end, camp_type, sample_count in segments:
+        camp = camps_by_id.get(camp_id)
+        if camp is None:
+            continue
+
+        neutral_kills = 0
+        neutral_damage = 0
+        for entry in neutral_entries:
+            if entry.tick < seg_start or entry.tick > seg_end:
+                continue
+            # CombatLogEntry does not currently guarantee location fields.
+            # When absent, fall back to the visit time window instead of
+            # rejecting the event outright.
+            ex = getattr(entry, "location_x", None)
+            ey = getattr(entry, "location_y", None)
+            if ex is not None and ey is not None and not _point_in_camp_zone(ex, ey, camp):
+                continue
+            if entry.log_type == "DEATH":
+                neutral_kills += 1
+            elif entry.log_type == "DAMAGE" and entry.value > 0:
+                neutral_damage += entry.value
+
+        xp_start = _nearest_series_value(player.times, player.xp_t, seg_start)
+        xp_end = _nearest_series_value(player.times, player.xp_t, seg_end)
+        xp_gain = max(0, xp_end - xp_start)
+        has_support = neutral_kills > 0 or neutral_damage > 0 or xp_gain > 0
+        if sample_count < 2 and not has_support:
+            continue
+
+        mid_tick = (seg_start + seg_end) // 2
+        bucket = _context_bucket_at(team_context, mid_tick)
+        if bucket is not None:
+            ctx = score_camp_visit_context(
+                team=player.team,
+                camp_id=camp_id,
+                camp_type=camp_type,
+                neutral_kills=neutral_kills,
+                neutral_damage=neutral_damage,
+                xp_gain=xp_gain,
+                bucket=bucket,
+            )
+            context_label = ctx.context_label
+            context_drivers = ctx.context_drivers
+            context_scores = f"S:{ctx.farm_safety_score:.2f} P:{ctx.pressure_score:.2f} V:{ctx.expected_value_score:.2f}"
+        else:
+            context_label = "pressured_home_farm"
+            context_drivers = []
+            context_scores = "S:0.50 P:0.50 V:0.50"
+
+        visits.append(
+            {
+                "order": order,
+                "camp_id": camp_id,
+                "camp_type": camp_type,
+                "start_tick": seg_start,
+                "end_tick": seg_end,
+                "duration_s": (seg_end - seg_start) / TICKS_PER_SEC,
+                "sample_count": sample_count,
+                "neutral_kills": neutral_kills,
+                "neutral_damage": neutral_damage,
+                "xp_gain": xp_gain,
+                "context_label": context_label,
+                "context_drivers": context_drivers,
+                "context_scores": context_scores,
+            }
+        )
+        order += 1
+
+    return visits
+
+
+def _build_farming_map_svg(
+    *,
+    player: gem.ParsedPlayer,
+    camps: list[dict],
+    visits: list[dict],
+    map_b64: str | None,
+    start_tick: int = 0,
+    size: int = 680,
+) -> tuple[str, list[dict]]:
+    bg_img = (
+        f'<image class="gem-map-bg" href="" x="0" y="0" width="{size}" height="{size}" '
+        f'preserveAspectRatio="xMidYMid slice"/>'
+        if map_b64
+        else f'<rect x="0" y="0" width="{size}" height="{size}" fill="#0d1117"/>'
+    )
+
+    camp_elements: list[str] = []
+
+    for camp in camps:
+        center = camp["center"]
+        cx, cy = _farm_world_to_px(float(center["x"]), float(center["y"]), size)
+        zone = camp.get("zone", {})
+        rx_w = float(zone.get("rx", 600.0))
+        ry_w = float(zone.get("ry", 520.0))
+        rx = rx_w / (MAP_XMAX - MAP_XMIN) * size
+        ry = ry_w / (MAP_YMAX - MAP_YMIN) * size
+        color = _FARM_CAMP_COLORS.get(str(camp["type"]), "#58a6ff")
+        visited = any(int(v["camp_id"]) == int(camp["id"]) for v in visits)
+        fill_opacity = "0.22" if visited else "0.08"
+        stroke_opacity = "0.95" if visited else "0.35"
+        stroke_w = "1.8" if visited else "1"
+
+        camp_elements.append(
+            f'<ellipse cx="{cx:.1f}" cy="{cy:.1f}" rx="{rx:.1f}" ry="{ry:.1f}" '
+            f'fill="{color}" fill-opacity="{fill_opacity}" '
+            f'stroke="{color}" stroke-opacity="{stroke_opacity}" stroke-width="{stroke_w}"/>'
+        )
+
+    raw_points = [point for point in player.position_log if int(point[0]) >= start_tick]
+    if not raw_points:
+        raw_points = list(player.position_log)
+    step = max(1, math.ceil(len(raw_points) / 1400)) if raw_points else 1
+    trail_points = raw_points[::step]
+    if raw_points and trail_points and trail_points[-1][0] != raw_points[-1][0]:
+        trail_points.append(raw_points[-1])
+
+    timeline_points: list[dict] = []
+    for tick, wx, wy in trail_points:
+        px, py = _farm_world_to_px(wx, wy, size)
+        point_camp: dict | None = _camp_for_point(wx, wy, camps)
+        timeline_points.append(
+            {
+                "tick": int(tick),
+                "time": fmt_tick(int(tick)),
+                "px": round(px, 1),
+                "py": round(py, 1),
+                "camp_id": int(point_camp["id"]) if point_camp else None,
+                "camp_type": str(point_camp["type"]) if point_camp else "",
+            }
+        )
+    path_d = _farm_smooth_path(timeline_points)
+    trail_base = ""
+    trail_active = ""
+    if path_d:
+        color = _FARM_TEAM_TRAIL.get(player.team, "#58a6ff")
+        trail_base = (
+            f'<path d="{path_d}" fill="none" stroke="{color}" '
+            f'stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.08"/>'
+            f'<path d="{path_d}" fill="none" stroke="{color}" '
+            f'stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.24"/>'
+        )
+        first_path = _farm_smooth_path([timeline_points[0]])
+        trail_active = (
+            f'<path id="farm-active-trail-under-{player.player_id}" d="{first_path}" '
+            f'fill="none" stroke="#0d1117" stroke-width="6.6" stroke-linecap="round" '
+            f'stroke-linejoin="round" opacity="0.38"/>'
+            f'<path id="farm-active-trail-{player.player_id}" d="{first_path}" '
+            f'fill="none" stroke="{color}" stroke-width="3.8" stroke-linecap="round" '
+            f'stroke-linejoin="round" opacity="0.96"/>'
+        )
+
+    markers = ""
+    if timeline_points:
+        sx = float(timeline_points[0]["px"])
+        sy = float(timeline_points[0]["py"])
+        ex = float(timeline_points[-1]["px"])
+        ey = float(timeline_points[-1]["py"])
+        markers = (
+            f'<circle cx="{sx:.1f}" cy="{sy:.1f}" r="4.5" fill="#ffffff" stroke="#0d1117" stroke-width="1.5"/>'
+            f'<circle cx="{ex:.1f}" cy="{ey:.1f}" r="5.0" fill="#ffd54f" stroke="#0d1117" stroke-width="1.5"/>'
+        )
+    current_marker = ""
+    if timeline_points:
+        current_marker = (
+            f'<circle id="farm-current-point-{player.player_id}" cx="{timeline_points[0]["px"]:.1f}" '
+            f'cy="{timeline_points[0]["py"]:.1f}" r="6.5" fill="#f9fafb" '
+            f'stroke="#0d1117" stroke-width="2"/>'
+        )
+
+    svg = (
+        f'<svg viewBox="0 0 {size} {size}" xmlns="http://www.w3.org/2000/svg" '
+        f'class="farm-map-svg" style="border-radius:10px;overflow:hidden;border:1px solid #30363d">'
+        f"{bg_img}{''.join(camp_elements)}{trail_base}{trail_active}{markers}{current_marker}</svg>"
+    )
+    return svg, timeline_points
+
+
+def build_farming(match: gem.ParsedMatch, map_b64: str | None) -> str:
+    """Build the Farming tab: route map + camp visit timeline with context labels."""
+    context_label_display = {
+        "safe_home_farm": "Safe Home Farm",
+        "pressured_home_farm": "Cautious Home Farm",
+        "defensive_home_farm": "Forced Home Farm",
+        "safe_invade": "Safe Invade",
+        "pressure_invade": "Contested Invade",
+        "high_risk_invade": "High-Risk Invade",
+    }
+    context_label_class = {
+        "safe_home_farm": "farm-tag-safe",
+        "pressured_home_farm": "farm-tag-pressured",
+        "defensive_home_farm": "farm-tag-defensive",
+        "safe_invade": "farm-tag-invade-safe",
+        "pressure_invade": "farm-tag-invade-mid",
+        "high_risk_invade": "farm-tag-invade-risk",
+    }
+
+    camps_obj = _load_camp_zones()
+    camps = list(camps_obj.get("camps", []))
+    if not camps:
+        return ""
+
+    players = [player for player in match.players if player.hero_name and player.position_log]
+    if not players:
+        return ""
+
+    category_rows = [
+        (
+            "Safe Home Farm",
+            "Own-side farm with good cover and low contest risk.",
+            "home side and safety >= 0.68 and pressure <= 0.40 and not losing",
+        ),
+        (
+            "Cautious Home Farm",
+            "Own-side farm with contest risk, but the team is not clearly being forced inward.",
+            "fallback non-invade label when the visit is not safe and not forced",
+        ),
+        (
+            "Forced Home Farm",
+            "Own-side farm because the map state is pushing the team inward.",
+            "(losing and pressure >= 0.52) or (pressure >= 0.70 and not winning) or "
+            "(enemy Aegis and pressure >= 0.55 and not winning) or "
+            "(structural deficit and pressure >= 0.45 and not winning)",
+        ),
+        (
+            "Safe Invade",
+            "Enemy-side farm while ahead enough to own the area.",
+            "invading and safety >= 0.52 and pressure <= 0.48 and tower_diff >= -0.05 "
+            "and ward_diff >= -0.10 and no enemy Aegis and winning",
+        ),
+        (
+            "Contested Invade",
+            "Enemy-side farm with contest risk, but not the most punishable invade state.",
+            "fallback invade label when the visit is not safe invade and not high-risk invade",
+        ),
+        (
+            "High-Risk Invade",
+            "Enemy-side farm that looks highly punishable.",
+            "invading and (pressure >= 0.70 or "
+            "(enemy Aegis and (enemy presence in enemy half >= 0.35 or losing)))",
+        ),
+    ]
+    category_rows_html = "".join(
+        (f"<tr><td>{e(label)}</td><td>{e(explanation)}</td><td><code>{e(rule)}</code></td></tr>")
+        for label, explanation, rule in category_rows
+    )
+    score_rows_html = "".join(
+        (f"<tr><td>{e(label)}</td><td><code>{e(formula)}</code></td><td>{e(explanation)}</td></tr>")
+        for label, formula, explanation in [
+            (
+                "Safety",
+                "clamp(0.55 + 0.25*tower_diff + 0.20*ward_diff - 0.45*enemy_own_half "
+                "- 0.20*enemy_aegis - 0.15*invading - 0.08*border_zone)",
+                "Higher means the camp looks easier to hold from your team's perspective.",
+            ),
+            (
+                "Pressure",
+                "clamp(0.30 + 0.40*enemy_own_half + 0.20*enemy_river + "
+                "0.20*max(0,-tower_diff) + 0.20*enemy_aegis + invade_bonus + 0.08*border_zone)",
+                "Higher means the area looks more contestable or punishable.",
+            ),
+            (
+                "Invade Bonus",
+                "0.15 + 0.15*enemy_enemy_half when invading",
+                "Extra pressure added only when the camp is in enemy territory.",
+            ),
+            (
+                "Value",
+                "clamp(0.5*camp_value + 0.5*evidence)",
+                "Higher means the camp is more economically valuable or better supported by neutral/XP evidence.",
+            ),
+        ]
+    )
+    derived_rows_html = "".join(
+        (f"<tr><td>{e(label)}</td><td><code>{e(formula)}</code></td><td>{e(explanation)}</td></tr>")
+        for label, formula, explanation in [
+            (
+                "tower_diff",
+                "(own_towers - enemy_towers) / 11",
+                "Positive means your team still owns more towers.",
+            ),
+            (
+                "ward_diff",
+                "(own_observers - enemy_observers) / 6",
+                "Positive means your team has better observer coverage.",
+            ),
+            (
+                "winning",
+                "NW adv >= 3500 or XP adv >= 4500",
+                "Match-state shortcut for clearly ahead.",
+            ),
+            (
+                "losing",
+                "NW adv <= -3500 or XP adv <= -4500",
+                "Match-state shortcut for clearly behind.",
+            ),
+            (
+                "structural_deficit",
+                "tower_diff < -0.25 or (lost mid T1 and ward_diff < -0.20)",
+                "The map has opened up enough that own-side farm starts to look forced.",
+            ),
+            (
+                "border_zone",
+                "camp center in the diagonal strip abs(x - y) <= 1200",
+                "Border camps are treated as slightly less safe and slightly more pressured, but they do not get a separate label.",
+            ),
+        ]
+    )
+    driver_rows_html = "".join(
+        (
+            "<tr>"
+            f"<td><code>{e(driver)}</code></td>"
+            f"<td><code>{e(trigger)}</code></td>"
+            f"<td>{e(explanation)}</td>"
+            "</tr>"
+        )
+        for driver, trigger, explanation in [
+            (
+                "lost_t1_mid",
+                "own mid T1 is dead",
+                "Your mid entrance is more open than a normal own-side farm state.",
+            ),
+            (
+                "enemy_aegis_active",
+                "Aegis active and holder team is enemy",
+                "Temporary objective pressure that makes punish windows wider.",
+            ),
+            (
+                "enemy_presence_high_own_half",
+                "enemy_own_half >= 0.45",
+                "Recent enemy movement density on your side of the map is high.",
+            ),
+            (
+                "enemy_presence_high_river",
+                "enemy_river >= 0.45",
+                "Recent enemy movement density around the central border zone is high.",
+            ),
+            (
+                "vision_deficit",
+                "ward_diff < -0.15",
+                "The enemy currently has better observer coverage than your team.",
+            ),
+            (
+                "map_control_deficit",
+                "tower_diff < -0.15",
+                "Your team has lost enough towers that map ownership is materially worse.",
+            ),
+            (
+                "border_zone_farm",
+                "camp center falls in the diagonal border strip",
+                "The camp is near the central boundary where ownership is naturally less stable.",
+            ),
+            (
+                "invading_enemy_half",
+                "camp is on enemy half",
+                "The visit is happening in enemy-side territory.",
+            ),
+            (
+                "high_farm_value",
+                "value >= 0.70",
+                "The camp is inherently valuable or strongly supported by neutral/XP evidence.",
+            ),
+        ]
+    )
+    context_guide_html = (
+        '<div class="farm-guide">'
+        '<div class="farm-guide-section">'
+        '<div class="farm-guide-title">Score Formulas</div>'
+        '<div class="farm-table-wrap"><table class="farm-guide-table">'
+        "<thead><tr><th>Score</th><th>Formula</th><th>Meaning</th></tr></thead>"
+        f"<tbody>{score_rows_html}</tbody></table></div>"
+        "</div>"
+        '<div class="farm-guide-section">'
+        '<div class="farm-guide-title">Derived Terms</div>'
+        '<div class="farm-table-wrap"><table class="farm-guide-table">'
+        "<thead><tr><th>Term</th><th>Formula</th><th>Meaning</th></tr></thead>"
+        f"<tbody>{derived_rows_html}</tbody></table></div>"
+        "</div>"
+        '<div class="farm-guide-section">'
+        '<div class="farm-guide-title">Category Rules</div>'
+        '<div class="farm-table-wrap"><table class="farm-guide-table">'
+        "<thead><tr><th>Category</th><th>Meaning</th><th>Rule</th></tr></thead>"
+        f"<tbody>{category_rows_html}</tbody></table></div>"
+        "</div>"
+        '<div class="farm-guide-section">'
+        '<div class="farm-guide-title">Driver Triggers</div>'
+        '<div class="farm-table-wrap"><table class="farm-guide-table">'
+        "<thead><tr><th>Driver</th><th>Trigger</th><th>Meaning</th></tr></thead>"
+        f"<tbody>{driver_rows_html}</tbody></table></div>"
+        "</div>"
+        "</div>"
+    )
+
+    # Prioritize likely farm cores in the selector (higher final net worth first).
+    players = sorted(
+        players,
+        key=lambda player: player.net_worth_t[-1] if player.net_worth_t else 0,
+        reverse=True,
+    )
+    load_hero_icons([player.hero_name for player in players])
+
+    team_context = {
+        2: build_map_context_timeline(match, 2),
+        3: build_map_context_timeline(match, 3),
+    }
+
+    panels: list[str] = []
+    options: list[str] = []
+    for idx, player in enumerate(players):
+        visits = _build_player_farm_visits(
+            match,
+            player,
+            camps,
+            team_context.get(player.team, []),
+            min_tick=match.game_start_tick or 0,
+        )
+        map_svg, timeline_points = _build_farming_map_svg(
+            player=player,
+            camps=camps,
+            visits=visits,
+            map_b64=map_b64,
+            start_tick=match.game_start_tick or 0,
+        )
+
+        option_label = (
+            f"{hero(player.hero_name)} "
+            f"({team_name(player.team)}, NW {(player.net_worth_t[-1] if player.net_worth_t else 0):,})"
+        )
+        options.append(
+            f'<option value="{player.player_id}"{" selected" if idx == 0 else ""}>{e(option_label)}</option>'
+        )
+
+        rows: list[str] = []
+        visit_payload: list[dict] = []
+        for visit in visits:
+            drivers = ", ".join(visit["context_drivers"]) if visit["context_drivers"] else "—"
+            label_cls = context_label_class.get(str(visit["context_label"]), "farm-tag-pressured")
+            label_text = context_label_display.get(
+                str(visit["context_label"]), str(visit["context_label"])
+            )
+            support_parts: list[str] = []
+            if int(visit["neutral_kills"]) > 0:
+                support_parts.append(f"{int(visit['neutral_kills'])} neutral kill(s)")
+            if int(visit["xp_gain"]) > 0:
+                support_parts.append(f"XP +{int(visit['xp_gain']):,}")
+            if int(visit.get("sample_count", 0)) > 0:
+                support_parts.append(f"{int(visit['sample_count'])} in-zone sample(s)")
+            support_text = ", ".join(support_parts) if support_parts else "Route touch only"
+            visit_payload.append(
+                {
+                    "order": int(visit["order"]),
+                    "start_tick": int(visit["start_tick"]),
+                    "end_tick": int(visit["end_tick"]),
+                    "camp_id": int(visit["camp_id"]),
+                    "camp_type": str(visit["camp_type"]),
+                    "label_text": label_text,
+                }
+            )
+            rows.append(
+                f'<tr class="farm-visit-row" data-order="{int(visit["order"])}" '
+                f'data-start-tick="{int(visit["start_tick"])}" data-end-tick="{int(visit["end_tick"])}">'
+                f'<td class="r">{visit["order"]}</td>'
+                f"<td>{e(fmt_tick(int(visit['start_tick'])))}</td>"
+                f"<td>{e(fmt_tick(int(visit['end_tick'])))}</td>"
+                f'<td class="r">{int(visit["camp_id"])}</td>'
+                f"<td>{e(str(visit['camp_type']))}</td>"
+                f'<td class="r">{visit["duration_s"]:.1f}s</td>'
+                f'<td><span class="farm-tag {label_cls}">{e(label_text)}</span></td>'
+                f'<td style="max-width:180px;white-space:normal">{e(support_text)}</td>'
+                f'<td style="max-width:220px;white-space:normal">{e(drivers)}</td>'
+                "</tr>"
+            )
+        if not rows:
+            rows.append('<tr><td colspan="9" class="dim">No camp-path segments detected.</td></tr>')
+
+        display_style = "" if idx == 0 else "display:none"
+        initial_point = timeline_points[0] if timeline_points else None
+        initial_time = str(initial_point["time"]) if initial_point else "—"
+        initial_tick = str(int(initial_point["tick"])) if initial_point else "—"
+        if initial_point and initial_point.get("camp_id") is not None:
+            initial_camp = f"#{int(initial_point['camp_id'])} {str(initial_point.get('camp_type') or '').replace('_', ' ')}"
+        else:
+            initial_camp = "Transit"
+        initial_visit = None
+        if initial_point is not None:
+            for visit_item in visit_payload:
+                if visit_item["start_tick"] <= int(initial_point["tick"]) <= visit_item["end_tick"]:
+                    initial_visit = visit_item
+                    break
+        initial_context = str(initial_visit["label_text"]) if initial_visit else "Transit"
+        timeline_js = json.dumps(timeline_points)
+        visits_js = json.dumps(visit_payload)
+        panels.append(
+            f'<div class="farm-panel" id="farm-panel-{player.player_id}" style="{display_style}">'
+            f'<div class="farm-map-wrap">'
+            f'<div class="farm-toolbar">'
+            f'<button type="button" class="farm-play-btn" id="farm-play-{player.player_id}" '
+            f'data-player-id="{player.player_id}">Play</button>'
+            f'<input type="range" class="farm-slider" id="farm-slider-{player.player_id}" '
+            f'data-player-id="{player.player_id}" min="0" max="{max(0, len(timeline_points) - 1)}" '
+            f'value="0" step="1"/>'
+            f"</div>"
+            f'<div class="farm-meta">'
+            f'<div class="farm-meta-chip"><span class="label">Time</span><span class="value" id="farm-time-{player.player_id}">{e(initial_time)}</span></div>'
+            f'<div class="farm-meta-chip"><span class="label">Tick</span><span class="value" id="farm-tick-{player.player_id}">{e(initial_tick)}</span></div>'
+            f'<div class="farm-meta-chip"><span class="label">Camp</span><span class="value" id="farm-camp-{player.player_id}">{e(initial_camp)}</span></div>'
+            f'<div class="farm-meta-chip"><span class="label">Context</span><span class="value" id="farm-context-{player.player_id}">{e(initial_context)}</span></div>'
+            f"</div>"
+            f'<div class="farm-map-shell">'
+            f"{map_svg}"
+            f"</div>"
+            f'<p class="section-note">White dot: first sample. Yellow dot: last sample. '
+            f"Use the slider or Play button to scrub the route by time.</p>"
+            f'<script type="application/json" id="farm-data-{player.player_id}">{timeline_js}</script>'
+            f'<script type="application/json" id="farm-visits-{player.player_id}">{visits_js}</script>'
+            f"</div>"
+            f'<div class="farm-table-wrap">'
+            f"<table>"
+            f"<thead><tr>"
+            f'<th class="r">#</th><th>Start</th><th>End</th><th class="r">Camp</th><th>Type</th>'
+            f'<th class="r">Duration</th><th>Context</th><th>Support Signals</th><th>Drivers</th>'
+            f"</tr></thead>"
+            f"<tbody>{''.join(rows)}</tbody>"
+            f"</table>"
+            f"</div>"
+            f"</div>"
+        )
+
+    script = """
+<script>
+(function () {
+  var sel = document.getElementById('farm-player-select');
+  if (!sel) return;
+  var playerState = {};
+
+  function parseJsonScript(id) {
+    var el = document.getElementById(id);
+    if (!el) return [];
+    try {
+      return JSON.parse(el.textContent || '[]');
+    } catch (err) {
+      return [];
+    }
+  }
+
+  function findVisit(visits, tick) {
+    for (var i = 0; i < visits.length; i += 1) {
+      if (tick >= visits[i].start_tick && tick <= visits[i].end_tick) {
+        return visits[i];
+      }
+    }
+    return null;
+  }
+
+  function buildSmoothPath(points, index) {
+    if (!points.length) return '';
+    if (index <= 0) {
+      return 'M ' + points[0].px + ' ' + points[0].py;
+    }
+    if (index === 1) {
+      return 'M ' + points[0].px + ' ' + points[0].py + ' L ' + points[1].px + ' ' + points[1].py;
+    }
+    var cmd = ['M ' + points[0].px + ' ' + points[0].py];
+    for (var i = 1; i < index; i += 1) {
+      var x1 = points[i].px;
+      var y1 = points[i].py;
+      var x2 = points[i + 1].px;
+      var y2 = points[i + 1].py;
+      var mx = (x1 + x2) / 2;
+      var my = (y1 + y2) / 2;
+      cmd.push('Q ' + x1 + ' ' + y1 + ' ' + mx + ' ' + my);
+    }
+    cmd.push(
+      'Q ' + points[index - 1].px + ' ' + points[index - 1].py + ' ' + points[index].px + ' ' + points[index].py
+    );
+    return cmd.join(' ');
+  }
+
+  function renderPlayer(pid, idx) {
+    var state = playerState[pid];
+    if (!state || !state.points.length) return;
+    var index = Math.max(0, Math.min(idx, state.points.length - 1));
+    state.index = index;
+    state.slider.value = String(index);
+
+    var point = state.points[index];
+    var path = buildSmoothPath(state.points, index);
+    state.activeTrail.setAttribute('d', path);
+    if (state.activeTrailUnder) {
+      state.activeTrailUnder.setAttribute('d', path);
+    }
+    state.currentPoint.setAttribute('cx', point.px);
+    state.currentPoint.setAttribute('cy', point.py);
+    state.timeEl.textContent = point.time;
+    state.tickEl.textContent = String(point.tick);
+    state.campEl.textContent = point.camp_id ? ('#' + point.camp_id + ' ' + (point.camp_type || '').split('_').join(' ')) : 'Transit';
+
+    var visit = findVisit(state.visits, point.tick);
+    state.contextEl.textContent = visit ? visit.label_text : 'Transit';
+    state.rows.forEach(function (row) {
+      var active = visit && row.getAttribute('data-order') === String(visit.order);
+      row.classList.toggle('farm-visit-active', !!active);
+    });
+  }
+
+  function togglePlay(pid) {
+    var state = playerState[pid];
+    if (!state || !state.points.length) return;
+    if (state.timer) {
+      window.clearInterval(state.timer);
+      state.timer = null;
+      state.playBtn.textContent = 'Play';
+      return;
+    }
+    state.playBtn.textContent = 'Pause';
+    state.timer = window.setInterval(function () {
+      if (state.index >= state.points.length - 1) {
+        window.clearInterval(state.timer);
+        state.timer = null;
+        state.playBtn.textContent = 'Play';
+        return;
+      }
+      renderPlayer(pid, state.index + 1);
+    }, 90);
+  }
+
+  function ensurePanel(pid) {
+    if (playerState[pid]) return;
+    var slider = document.getElementById('farm-slider-' + pid);
+    var playBtn = document.getElementById('farm-play-' + pid);
+    var activeTrail = document.getElementById('farm-active-trail-' + pid);
+    var activeTrailUnder = document.getElementById('farm-active-trail-under-' + pid);
+    var currentPoint = document.getElementById('farm-current-point-' + pid);
+    if (!slider || !playBtn || !activeTrail || !currentPoint) return;
+    var points = parseJsonScript('farm-data-' + pid);
+    var visits = parseJsonScript('farm-visits-' + pid);
+    playerState[pid] = {
+      points: points,
+      visits: visits,
+      slider: slider,
+      playBtn: playBtn,
+      activeTrail: activeTrail,
+      activeTrailUnder: activeTrailUnder,
+      currentPoint: currentPoint,
+      timeEl: document.getElementById('farm-time-' + pid),
+      tickEl: document.getElementById('farm-tick-' + pid),
+      campEl: document.getElementById('farm-camp-' + pid),
+      contextEl: document.getElementById('farm-context-' + pid),
+      rows: Array.prototype.slice.call(document.querySelectorAll('#farm-panel-' + pid + ' .farm-visit-row')),
+      index: 0,
+      timer: null
+    };
+    slider.addEventListener('input', function () {
+      renderPlayer(pid, Number(slider.value || 0));
+    });
+    playBtn.addEventListener('click', function () {
+      togglePlay(pid);
+    });
+    renderPlayer(pid, Number(slider.value || 0));
+  }
+
+  function apply() {
+    var pid = sel.value;
+    document.querySelectorAll('.farm-panel').forEach(function (el) {
+      el.style.display = el.id === ('farm-panel-' + pid) ? '' : 'none';
+    });
+    Object.keys(playerState).forEach(function (key) {
+      if (key === pid) return;
+      var state = playerState[key];
+      if (state && state.timer) {
+        window.clearInterval(state.timer);
+        state.timer = null;
+        state.playBtn.textContent = 'Play';
+      }
+    });
+    ensurePanel(pid);
+  }
+  sel.addEventListener('change', apply);
+  apply();
+})();
+</script>
+"""
+
+    return (
+        '<div class="card">'
+        "<details open>"
+        "<summary>Farming Patterns</summary>"
+        '<div class="card-body">'
+        '<p class="section-note">'
+        "Camp-path segments are inferred from time spent routing through camp zones. "
+        "Neutral interaction and XP are supporting signals, not requirements. "
+        "Short route touches can introduce some noise, so use playback to judge exact pathing. "
+        "Context labels are objective-aware heuristics, not true fog-of-war ground truth."
+        "</p>"
+        f"{context_guide_html}"
+        '<div style="margin:10px 0 14px 0">'
+        '<label for="farm-player-select" style="font-size:12px;color:#8b949e;margin-right:8px">Hero</label>'
+        f'<select id="farm-player-select" class="farm-select">{"".join(options)}</select>'
+        "</div>"
+        f"{''.join(panels)}"
+        f"{script}"
+        "</div>"
+        "</details>"
+        "</div>"
+    )

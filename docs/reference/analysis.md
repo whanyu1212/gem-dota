@@ -7,6 +7,9 @@ data into higher-level structures for agentic and analytical use.
 > calculations use straight-line geometry only — high-ground penalties, terrain line-of-sight
 > (trees/cliffs), and per-hero vision range modifiers are not modelled. Treat results as
 > approximations.
+>
+> For the full derivation, data flow, and limitations, see
+> [Experimental Features → Estimate Vision](../experimental/estimate-vision.md).
 
 All functions are exported directly from `gem.*`:
 
@@ -176,6 +179,10 @@ for cast in casts:
 
 ## `estimate_vision` *(experimental)*
 
+Detailed explanation:
+
+1. [Experimental Features → Estimate Vision](../experimental/estimate-vision.md)
+
 ```python
 gem.estimate_vision(
     match: ParsedMatch,
@@ -237,6 +244,10 @@ else:
 ---
 
 ## Vision modifiers (`match.vision_modifiers`) *(experimental)*
+
+Detailed explanation:
+
+1. [Experimental Features → Vision Modifiers](../experimental/vision-modifiers.md)
 
 `ParsedMatch.vision_modifiers` is a `list[VisionModifierEvent]` populated by `gem.parse()`.
 It tracks every application of a vision-granting ability or item (Slardar Corrosive Haze,

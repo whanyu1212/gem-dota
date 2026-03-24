@@ -1,0 +1,554 @@
+{
+  "version": 1,
+  "source_image": "tests/fixtures/camp_annotated.png",
+  "world_bounds": {
+    "xmin": 7563,
+    "xmax": 25900,
+    "ymin": 7800,
+    "ymax": 25600
+  },
+  "defaults_by_type": {
+    "small": {
+      "shape": "ellipse",
+      "rx": 560,
+      "ry": 500,
+      "rotation_deg": 0
+    },
+    "medium": {
+      "shape": "ellipse",
+      "rx": 640,
+      "ry": 560,
+      "rotation_deg": 0
+    },
+    "large": {
+      "shape": "ellipse",
+      "rx": 760,
+      "ry": 660,
+      "rotation_deg": 0
+    },
+    "ancient": {
+      "shape": "ellipse",
+      "rx": 900,
+      "ry": 780,
+      "rotation_deg": 0
+    },
+    "flooded_small": {
+      "shape": "ellipse",
+      "rx": 600,
+      "ry": 540,
+      "rotation_deg": 0
+    },
+    "flooded_medium": {
+      "shape": "ellipse",
+      "rx": 700,
+      "ry": 620,
+      "rotation_deg": 0
+    }
+  },
+  "camps": [
+    {
+      "id": 1,
+      "type": "large",
+      "center": {
+        "x": 8647,
+        "y": 15564
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 760,
+        "ry": 660,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 2,
+      "type": "medium",
+      "center": {
+        "x": 8861,
+        "y": 14346
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 640,
+        "ry": 560,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 3,
+      "type": "ancient",
+      "center": {
+        "x": 11769,
+        "y": 16088
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 900,
+        "ry": 780,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 4,
+      "type": "large",
+      "center": {
+        "x": 11810,
+        "y": 20099
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 760,
+        "ry": 660,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 5,
+      "type": "ancient",
+      "center": {
+        "x": 12068,
+        "y": 24032
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 900,
+        "ry": 780,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 6,
+      "type": "large",
+      "center": {
+        "x": 12721,
+        "y": 16976
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 760,
+        "ry": 660,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 7,
+      "type": "small",
+      "center": {
+        "x": 12723,
+        "y": 21013
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 560,
+        "ry": 500,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 8,
+      "type": "flooded_small",
+      "center": {
+        "x": 13184,
+        "y": 24068
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 600,
+        "ry": 540,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 9,
+      "type": "medium",
+      "center": {
+        "x": 13876,
+        "y": 19918
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 640,
+        "ry": 560,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 10,
+      "type": "large",
+      "center": {
+        "x": 14178,
+        "y": 8225
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 760,
+        "ry": 660,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 11,
+      "type": "medium",
+      "center": {
+        "x": 14501,
+        "y": 11469
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 640,
+        "ry": 560,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 12,
+      "type": "large",
+      "center": {
+        "x": 15030,
+        "y": 12828
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 760,
+        "ry": 660,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 13,
+      "type": "flooded_medium",
+      "center": {
+        "x": 15732,
+        "y": 21124
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 700,
+        "ry": 620,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 14,
+      "type": "flooded_medium",
+      "center": {
+        "x": 16538,
+        "y": 24416
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 700,
+        "ry": 620,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 15,
+      "type": "flooded_medium",
+      "center": {
+        "x": 15770,
+        "y": 8798
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 700,
+        "ry": 620,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 16,
+      "type": "flooded_medium",
+      "center": {
+        "x": 16570,
+        "y": 10987
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 700,
+        "ry": 620,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 17,
+      "type": "large",
+      "center": {
+        "x": 17448,
+        "y": 18764
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 760,
+        "ry": 660,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 18,
+      "type": "medium",
+      "center": {
+        "x": 17608,
+        "y": 20360
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 640,
+        "ry": 560,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 19,
+      "type": "medium",
+      "center": {
+        "x": 18345,
+        "y": 12122
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 640,
+        "ry": 560,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 20,
+      "type": "large",
+      "center": {
+        "x": 18576,
+        "y": 24160
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 760,
+        "ry": 660,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 21,
+      "type": "flooded_small",
+      "center": {
+        "x": 19584,
+        "y": 8178
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 600,
+        "ry": 540,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 22,
+      "type": "large",
+      "center": {
+        "x": 19676,
+        "y": 14876
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 760,
+        "ry": 660,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 23,
+      "type": "small",
+      "center": {
+        "x": 20285,
+        "y": 11259
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 560,
+        "ry": 500,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 24,
+      "type": "ancient",
+      "center": {
+        "x": 20586,
+        "y": 16282
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 900,
+        "ry": 780,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 25,
+      "type": "large",
+      "center": {
+        "x": 20933,
+        "y": 12585
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 760,
+        "ry": 660,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 26,
+      "type": "ancient",
+      "center": {
+        "x": 21186,
+        "y": 8134
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 900,
+        "ry": 780,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 27,
+      "type": "large",
+      "center": {
+        "x": 24062,
+        "y": 16064
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 760,
+        "ry": 660,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    },
+    {
+      "id": 28,
+      "type": "medium",
+      "center": {
+        "x": 24514,
+        "y": 17447
+      },
+      "zone": {
+        "shape": "ellipse",
+        "rx": 640,
+        "ry": 560,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      }
+    }
+  ]
+}
