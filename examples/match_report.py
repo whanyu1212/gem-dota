@@ -5,6 +5,7 @@ Tabs and their sections:
   Overview   — Match header (always visible), Scoreboard, Gold & XP chart
   Combat     — Damage breakdown, Kill feed
   Laning     — Lane role minimap, LH/DN/Gold/XP@10, Eff%, Gold/XP advantage
+  Farming    — Carry/core movement trails with camp-session context labels
   Fights     — Fight cards with minimap, participants, per-player stats
   Vision     — Ward map (interactive canvas with playback)
   Economy    — Purchase timeline, Buybacks, Runes
@@ -69,6 +70,9 @@ from report.html_sections import (
     build_draft as _ext_build_draft,
 )
 from report.html_sections import (
+    build_farming as _ext_build_farming,
+)
+from report.html_sections import (
     build_gold_xp_chart as _ext_build_gold_xp_chart,
 )
 from report.html_sections import (
@@ -88,6 +92,9 @@ from report.html_sections import (
 )
 from report.html_sections import (
     build_purchases as _ext_build_purchases,
+)
+from report.html_sections import (
+    build_rosh_conversion as _ext_build_rosh_conversion,
 )
 from report.html_sections import (
     build_runes as _ext_build_runes,
@@ -318,7 +325,9 @@ def build_html(match: gem.ParsedMatch, map_b64: str | None = None) -> str:
             ),
         ),
         ("Laning", _ext_build_laning(match, map_b64)),
+        ("Farming", _ext_build_farming(match, map_b64)),
         ("Fights", _ext_build_teamfights(match, map_b64)),
+        ("Roshan Conversion", _ext_build_rosh_conversion(match)),
         ("Vision", _ext_build_wards(match, map_b64)),
         (
             "Economy",

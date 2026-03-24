@@ -319,6 +319,165 @@ details[open].sub-accordion > summary::before {
 }
 .lane-eff-bar-fill { height: 100%; border-radius: 3px; }
 
+/* ---- Farming tab ---- */
+.farm-select {
+    background: #0d1117;
+    color: #e6edf3;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 6px 10px;
+    min-width: 280px;
+}
+.farm-layout {
+    display: block;
+}
+.farm-map-wrap { margin-bottom: 14px; }
+.farm-map-shell {
+    width: min(100%, 760px);
+}
+.farm-map-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    background: #0d1117;
+}
+.farm-toolbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin: 10px 0 12px 0;
+    flex-wrap: wrap;
+}
+.farm-slider {
+    flex: 1 1 420px;
+    accent-color: #58a6ff;
+}
+.farm-play-btn {
+    background: #1f6feb;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-weight: 600;
+}
+.farm-play-btn:hover {
+    background: #388bfd;
+}
+.farm-meta {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+.farm-meta-chip {
+    min-width: 140px;
+    padding: 8px 10px;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    background: #11161d;
+}
+.farm-meta-chip .label {
+    display: block;
+    font-size: 11px;
+    color: #8b949e;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-bottom: 4px;
+}
+.farm-meta-chip .value {
+    display: block;
+    font-weight: 600;
+    color: #e6edf3;
+    word-break: break-word;
+}
+.farm-table-wrap {
+    overflow-x: auto;
+    margin-top: 12px;
+}
+.farm-guide {
+    margin: 12px 0 16px;
+    padding: 12px;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    background: #11161d;
+}
+.farm-guide-section + .farm-guide-section {
+    margin-top: 12px;
+}
+.farm-guide-title {
+    margin-bottom: 8px;
+    color: #e6edf3;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+.farm-guide-table {
+    width: 100%;
+}
+.farm-guide-table th,
+.farm-guide-table td {
+    vertical-align: top;
+}
+.farm-guide-table code {
+    font-size: 11px;
+    white-space: normal;
+    word-break: break-word;
+}
+.farm-visit-row.farm-visit-active {
+    background: rgba(88, 166, 255, 0.14) !important;
+}
+.farm-visit-row.farm-visit-active:hover {
+    background: rgba(88, 166, 255, 0.2) !important;
+}
+.farm-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid transparent;
+}
+.farm-tag-safe {
+    color: #4caf50;
+    background: rgba(76, 175, 80, 0.12);
+    border-color: rgba(76, 175, 80, 0.35);
+}
+.farm-tag-pressured {
+    color: #ffb74d;
+    background: rgba(255, 183, 77, 0.12);
+    border-color: rgba(255, 183, 77, 0.35);
+}
+.farm-tag-defensive {
+    color: #64b5f6;
+    background: rgba(100, 181, 246, 0.12);
+    border-color: rgba(100, 181, 246, 0.35);
+}
+.farm-tag-invade-safe {
+    color: #f06292;
+    background: rgba(240, 98, 146, 0.12);
+    border-color: rgba(240, 98, 146, 0.35);
+}
+.farm-tag-invade-mid {
+    color: #ef6c9a;
+    background: rgba(239, 108, 154, 0.12);
+    border-color: rgba(239, 108, 154, 0.35);
+}
+.farm-tag-invade-risk {
+    color: #f06292;
+    background: rgba(240, 98, 146, 0.2);
+    border-color: rgba(240, 98, 146, 0.5);
+}
+@media (max-width: 980px) {
+    .farm-map-wrap { min-width: 0; }
+    .farm-toolbar { align-items: stretch; }
+    .farm-play-btn { width: 100%; }
+    .farm-select { min-width: 220px; width: 100%; }
+    .farm-map-shell { width: 100%; }
+    .farm-meta-chip { min-width: 0; flex: 1 1 160px; }
+}
+
 /* ---- Misc ---- */
 .dim { color: #6e7681; font-style: italic; }
 .radiant { color: #4caf50; }
@@ -527,4 +686,160 @@ details[open].sub-accordion > summary::before {
 }
 .tab-page { display: none; }
 .tab-page.active { display: block; }
+
+/* ---- Roshan conversion ---- */
+.rosh-card-grid {
+    display: grid;
+    gap: 14px;
+}
+.rosh-card {
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    background: #0f141b;
+    padding: 14px;
+}
+.rosh-card-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+.rosh-kicker {
+    color: #8b949e;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: 4px;
+}
+.rosh-title {
+    font-size: 18px;
+    font-weight: 700;
+}
+.rosh-meta {
+    margin-top: 4px;
+    color: #8b949e;
+    font-size: 12px;
+}
+.rosh-head-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+}
+.rosh-badge {
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    border: 1px solid #30363d;
+}
+.rosh-badge-empty_rosh { background: #1b1f24; color: #c9d1d9; }
+.rosh-badge-low_conversion { background: #1b1f24; color: #c9d1d9; }
+.rosh-badge-fight_conversion { background: rgba(76, 175, 80, .14); color: #7ee787; }
+.rosh-badge-objective_conversion { background: rgba(255, 183, 77, .14); color: #ffb74d; }
+.rosh-badge-map_squeeze { background: rgba(56, 139, 253, .14); color: #79c0ff; }
+.rosh-badge-game_closing_rosh { background: rgba(201, 209, 217, .14); color: #e6edf3; }
+.rosh-outcome-badge {
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    border: 1px solid #30363d;
+}
+.rosh-outcome-consumed_in_fight { background: rgba(76, 175, 80, .14); color: #7ee787; }
+.rosh-outcome-expired_after_use { background: rgba(255, 183, 77, .14); color: #ffb74d; }
+.rosh-outcome-expired_unused { background: rgba(139, 148, 158, .16); color: #c9d1d9; }
+.rosh-outcome-denied { background: rgba(244, 67, 54, .14); color: #ff7b72; }
+.rosh-outcome-window_lost { background: rgba(244, 67, 54, .18); color: #ffa198; }
+.rosh-outcome-game_ended { background: rgba(121, 192, 255, .14); color: #79c0ff; }
+.rosh-outcome-unknown { background: rgba(139, 148, 158, .16); color: #c9d1d9; }
+.rosh-guide-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 14px;
+    margin-bottom: 14px;
+}
+.rosh-guide-block {
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    background: #0f141b;
+    padding: 12px;
+}
+.rosh-guide-title {
+    font-size: 12px;
+    color: #8b949e;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 10px;
+}
+.rosh-guide-table td, .rosh-guide-table th {
+    vertical-align: top;
+}
+.rosh-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
+}
+.rosh-metric {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 8px;
+    padding: 10px 12px;
+}
+.rosh-metric .label {
+    display: block;
+    color: #8b949e;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-bottom: 4px;
+}
+.rosh-metric .value {
+    font-size: 15px;
+    font-weight: 700;
+}
+.rosh-timeline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.rosh-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 9px;
+    border-radius: 999px;
+    border: 1px solid #30363d;
+    font-size: 12px;
+    background: #161b22;
+}
+.rosh-chip-time {
+    color: #8b949e;
+    font-variant-numeric: tabular-nums;
+}
+.rosh-chip-roshan { background: rgba(255, 183, 77, .14); }
+.rosh-chip-aegis_pickup { background: rgba(201, 209, 217, .12); }
+.rosh-chip-aegis_denied { background: rgba(244, 67, 54, .12); }
+.rosh-chip-fight_win { background: rgba(76, 175, 80, .14); }
+.rosh-chip-fight_loss { background: rgba(244, 67, 54, .14); }
+.rosh-chip-fight_draw { background: rgba(121, 192, 255, .12); }
+.rosh-chip-tower, .rosh-chip-barracks { background: rgba(56, 139, 253, .14); }
+.rosh-chip-buyback { background: rgba(188, 140, 255, .12); }
+.rosh-chip-aegis_end, .rosh-chip-game_end { background: rgba(139, 148, 158, .16); }
+.rosh-driver-list {
+    margin-left: 18px;
+    color: #c9d1d9;
+}
+.rosh-driver-list li + li {
+    margin-top: 4px;
+}
+.rosh-table-wrap {
+    margin-top: 14px;
+    overflow-x: auto;
+}
 """

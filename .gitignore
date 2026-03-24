@@ -35,6 +35,8 @@ refs/
 
 # Internal development strategy doc
 STRATEGY.md
+notes/
+competitor-feature-landscape.md
 
 # Test/coverage artifacts
 .pytest_cache/

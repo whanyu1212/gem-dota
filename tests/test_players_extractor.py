@@ -84,6 +84,14 @@ class FakeParser:
         pass
 
 
+class FakeEntityManager:
+    def __init__(self, by_handle=None):
+        self.by_handle = by_handle or {}
+
+    def find_by_handle(self, handle):
+        return self.by_handle.get(handle)
+
+
 # ---------------------------------------------------------------------------
 # _pos
 # ---------------------------------------------------------------------------
@@ -383,6 +391,39 @@ class TestHeroPos:
         ext.attach(parser)
         assert ext.hero_pos("npc_dota_hero_nonexistent") is None
 
+    def test_prefers_selected_hero_handle_over_last_seen_hero_entity(self):
+        ext = PlayerExtractor()
+        parser = FakeParser()
+        real = _hero(
+            "Sven",
+            player_id=0,
+            index=11,
+            **{
+                "CBodyComponent.m_cellX": 5,
+                "CBodyComponent.m_cellY": 6,
+                "CBodyComponent.m_vecX": 1.0,
+                "CBodyComponent.m_vecY": 2.0,
+            },
+        )
+        illusion = _hero(
+            "Sven",
+            player_id=0,
+            index=22,
+            **{
+                "CBodyComponent.m_cellX": 8,
+                "CBodyComponent.m_cellY": 9,
+                "CBodyComponent.m_vecX": 3.0,
+                "CBodyComponent.m_vecY": 4.0,
+            },
+        )
+        parser.entity_manager = FakeEntityManager({123: real})
+        ext.attach(parser)
+        ext._heroes_by_npc["npc_dota_hero_sven"] = illusion
+        ext._player_resource = _ent(
+            "CDOTA_PlayerResource", **{"m_vecPlayerTeamData.0000.m_hSelectedHero": 123}
+        )
+        assert ext.hero_pos("npc_dota_hero_sven") == (5 * 128 + 1.0, 6 * 128 + 2.0)
+
 
 # ---------------------------------------------------------------------------
 # PlayerExtractor._maybe_sample and _sample
@@ -414,6 +455,27 @@ class TestMaybeSample:
         ext = PlayerExtractor()
         ext._parser = None
         ext._maybe_sample()  # should not raise
+
+    def test_sampling_stops_after_game_end_tick(self):
+        ext = PlayerExtractor(sample_interval=0)
+        parser = FakeParser(tick=100)
+        ext.attach(parser)
+        ext._heroes[0] = _hero("Axe")
+        ext._on_game_end(100)
+        parser.tick = 130
+        ext._maybe_sample()
+        assert len(ext.snapshots) == 1
+
+    def test_game_end_forces_final_snapshot(self):
+        ext = PlayerExtractor(sample_interval=100)
+        parser = FakeParser(tick=250)
+        ext.attach(parser)
+        ext._heroes[0] = _hero("Axe")
+        ext._last_sample = 200
+        ext._on_game_end(250)
+        assert ext._game_end_tick == 250
+        assert len(ext.snapshots) == 1
+        assert ext.snapshots[0].tick == 250
 
     def test_controller_gold_overlay(self):
         ext = PlayerExtractor(sample_interval=0)
@@ -449,7 +511,8 @@ class TestMaybeSample:
         ext._sample(100)
         snap = ext.snapshots[0]
         assert snap.net_worth == 2000
-        assert snap.gold == 3000
+        assert snap.gold == 0
+        assert snap.total_earned_gold == 3000
         assert snap.lh == 50
         assert snap.dn == 5
 
@@ -489,6 +552,46 @@ class TestMaybeSample:
         snap = ext.snapshots[0]
         assert snap.net_worth == 1800
         assert snap.lh == 30
+
+    def test_sample_prefers_selected_hero_handle_and_dedupes_player(self):
+        from gem.string_table import StringTables
+
+        ext = PlayerExtractor(sample_interval=0)
+        parser = FakeParser(tick=100)
+        real = _hero(
+            "Sven",
+            player_id=0,
+            index=11,
+            **{
+                "CBodyComponent.m_cellX": 5,
+                "CBodyComponent.m_cellY": 6,
+                "CBodyComponent.m_vecX": 1.0,
+                "CBodyComponent.m_vecY": 2.0,
+            },
+        )
+        illusion = _hero(
+            "Sven",
+            player_id=0,
+            index=22,
+            **{
+                "CBodyComponent.m_cellX": 8,
+                "CBodyComponent.m_cellY": 9,
+                "CBodyComponent.m_vecX": 3.0,
+                "CBodyComponent.m_vecY": 4.0,
+            },
+        )
+        parser.entity_manager = FakeEntityManager({123: real})
+        parser.string_tables = StringTables()
+        ext.attach(parser)
+        ext._heroes[11] = real
+        ext._heroes[22] = illusion
+        ext._player_resource = _ent(
+            "CDOTA_PlayerResource", **{"m_vecPlayerTeamData.0000.m_hSelectedHero": 123}
+        )
+        ext._sample(100)
+        assert len(ext.snapshots) == 1
+        assert ext.snapshots[0].x == 5 * 128 + 1.0
+        assert ext.snapshots[0].y == 6 * 128 + 2.0
 
 
 # ---------------------------------------------------------------------------

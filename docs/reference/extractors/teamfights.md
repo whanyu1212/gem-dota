@@ -22,7 +22,7 @@ def detect_teamfights(combat_log: list[CombatLogEntry], hero_to_slot: dict[str, 
 
 Detect teamfights from a match combat log.
 
-Source: [src/gem/extractors/teamfights.py:111](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/teamfights.py#L111)
+Source: [src/gem/extractors/teamfights.py:114](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/teamfights.py#L114)
 
 ### Top-level classes
 
@@ -69,6 +69,7 @@ Source: [src/gem/extractors/teamfights.py:79](https://github.com/whanyu1212/gem-
 | `end_tick` | `int` | `-` |
 | `last_death_tick` | `int` | `-` |
 | `deaths` | `int` | `-` |
+| `first_death_tick` | `int` | `0` |
 | `radiant_kills` | `int` | `0` |
 | `dire_kills` | `int` | `0` |
 | `winner` | `str` | `'unknown'` |

@@ -12,6 +12,7 @@ Read these in order for full parser internals:
 6. [Event Normalization Layer](event-layer.md)
 7. [Extractors Layer](extractors-layer.md)
 8. [Match Assembly Layer](match-assembly-layer.md)
+9. [Replay Edge Cases](replay-edge-cases.md)
 
 ---
 
@@ -24,3 +25,7 @@ Read these in order for full parser internals:
 | [Event Normalization Layer](event-layer.md) | Game-event schema dispatch and S1/S2 combat-log normalization |
 | [Extractors Layer](extractors-layer.md) | Domain-specific timelines/time-series: players, objectives, wards, draft, courier, teamfights |
 | [Match Assembly Layer](match-assembly-layer.md) | Merge extractor outputs into ParsedMatch and project to DataFrames |
+
+Cross-cutting reference:
+
+1. [Replay Edge Cases](replay-edge-cases.md): duplicate hero entities, within-tick sampling, truncated replays, schema drift, and heuristic limits

@@ -82,6 +82,8 @@ class Teamfight:
     Attributes:
         start_tick: Window open tick (first_death_tick − cooldown).
         end_tick: Window close tick (last_death_tick + cooldown).
+        first_death_tick: Tick of the first hero death in the fight. Unlike
+            ``start_tick``, this is not padded backward by the cooldown window.
         last_death_tick: Tick of the final hero death in the fight.
         deaths: Total hero deaths within the window.
         radiant_kills: Hero kills scored by Radiant within the window.
@@ -100,6 +102,7 @@ class Teamfight:
     end_tick: int
     last_death_tick: int
     deaths: int
+    first_death_tick: int = 0
     radiant_kills: int = 0
     dire_kills: int = 0
     winner: str = "unknown"
@@ -202,6 +205,7 @@ def detect_teamfights(
                 end_tick=0,
                 last_death_tick=entry.tick,
                 deaths=0,
+                first_death_tick=entry.tick,
                 players=[TeamfightPlayer(player_id=i) for i in range(10)],
             )
             active.append(target_fight)
