@@ -264,6 +264,13 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 
 ## Releases
 
+### [v0.2.8](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.8)
+
+- **7.41 replay fixtures and constants** — OpenDota fixture tooling, DreamLeague Season 29 fixture metadata, and updated constants coverage for newer neutral item and ability data.
+- **Neutral item found events** — parser, model, dataframe, and validation coverage for neutral item discovery events exposed in modern replays.
+- **Camp annotation refresh** — replay-audit tooling, confirmed 7.41 camp type updates, and a regenerated annotated map fixture with type-colored rings and a legend.
+- **Icon cache checks** — hero and item icon fetch scripts avoid rewriting unchanged cached assets.
+
 ### [v0.2.7](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.7)
 
 - **Experimental farming-pattern analysis** — objective-aware camp-path context, larger interactive report view, and detailed documentation for the heuristic model and its limits.
