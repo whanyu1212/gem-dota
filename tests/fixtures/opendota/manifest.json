@@ -1,0 +1,40 @@
+{
+  "matches": [
+    {
+      "match_id": 8821954344,
+      "dem": "8821954344.dem",
+      "opendota_json": "8821954344.opendota.json",
+      "fetched_at": "2026-05-24T01:34:19Z",
+      "duration": 5763,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 60,
+      "replay_url": "http://replay272.valve.net/570/8821954344_416769358.dem.bz2",
+      "note": "DreamLeague Season 29 patch 60 long late-game fixture"
+    },
+    {
+      "match_id": 8822520406,
+      "dem": "8822520406.dem",
+      "opendota_json": "8822520406.opendota.json",
+      "fetched_at": "2026-05-24T01:33:43Z",
+      "duration": 1397,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 60,
+      "replay_url": "http://replay273.valve.net/570/8822520406_214683618.dem.bz2",
+      "note": "DreamLeague Season 29 patch 60 short playoff fixture"
+    },
+    {
+      "match_id": 8822593932,
+      "dem": "8822593932.dem",
+      "opendota_json": "8822593932.opendota.json",
+      "fetched_at": "2026-05-24T01:33:58Z",
+      "duration": 2612,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 60,
+      "replay_url": "http://replay274.valve.net/570/8822593932_1755614783.dem.bz2",
+      "note": "DreamLeague Season 29 patch 60 recent playoff fixture"
+    }
+  ]
+}
