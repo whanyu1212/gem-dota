@@ -35,6 +35,20 @@ match.radiant_gold_adv     # list[int]: per-minute Radiant gold advantage
 match.radiant_xp_adv       # list[int]: per-minute Radiant XP advantage
 ```
 
+### Neutral item finds
+
+Modern replays expose neutral item finds directly through `DOTA_UM_FoundNeutralItem`.
+`gem.parse()` stores those replay-observed events on `match.neutral_item_finds`:
+
+```python
+for event in match.neutral_item_finds:
+    print(event.tick, event.player_id, event.item_key, event.enhancement_key)
+```
+
+Each event keeps the raw numeric IDs (`item_ability_id`, `enhancement_ability_id`) and
+the resolved constants keys (`item_key`, `enhancement_key`). This is not inferred from
+neutral camp positions.
+
 ### Team identity (league/tournament games)
 
 For league games, team names, tags, and IDs are extracted from `CDOTATeam` entities in the

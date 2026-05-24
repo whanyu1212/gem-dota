@@ -22,6 +22,8 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
+import gem.models as model_module
+import gem.parser as parser_module
 from gem.parser import (
     _DEM_FILE_INFO,
     _DOTA_UM_CHAT_EVENT,
@@ -260,6 +262,16 @@ class TestCallbackRegistration:
         p.on_chat_event(cb)
         assert cb in p._chat_event_callbacks
 
+    def test_on_neutral_item_found_appends_callback(self):
+        p = ReplayParser(b"")
+
+        def cb(event):
+            return None
+
+        assert hasattr(p, "on_neutral_item_found")
+        p.on_neutral_item_found(cb)
+        assert cb in p._neutral_item_found_callbacks
+
     def test_on_game_start_appends_callback(self):
         p = ReplayParser(b"")
 
@@ -469,6 +481,61 @@ class TestDispatchInnerRouting:
         payload = msg.SerializeToString()
         # Should not raise
         p._dispatch_inner(_DOTA_UM_CHAT_MESSAGE, payload)
+
+    def test_dota_um_found_neutral_item_skipped_when_no_callbacks(self):
+        """When no callbacks are registered, found-neutral-item parsing should be skipped."""
+        p = ReplayParser(b"")
+        from gem.proto.dota2.dota_usermessages_pb2 import CDOTAUserMsg_FoundNeutralItem
+
+        type_id = getattr(parser_module, "_DOTA_UM_FOUND_NEUTRAL_ITEM", None)
+        assert type_id == 593
+
+        msg = CDOTAUserMsg_FoundNeutralItem()
+        msg.player_id = 6
+        msg.item_ability_id = 1861
+        msg.enhancement_ability_id = 1865
+
+        # Should not raise.
+        p._dispatch_inner(type_id, msg.SerializeToString())
+
+    def test_dota_um_found_neutral_item_emits_resolved_event(self):
+        p = ReplayParser(b"")
+        from gem.proto.dota2.dota_usermessages_pb2 import CDOTAUserMsg_FoundNeutralItem
+
+        neutral_event_cls = getattr(model_module, "NeutralItemFoundEvent", None)
+        assert neutral_event_cls is not None
+        type_id = getattr(parser_module, "_DOTA_UM_FOUND_NEUTRAL_ITEM", None)
+        assert type_id == 593
+
+        received = []
+        p.on_neutral_item_found(received.append)
+        p.tick = 29858
+
+        msg = CDOTAUserMsg_FoundNeutralItem()
+        msg.player_id = 6
+        msg.item_ability_id = 1861
+        msg.item_tier = 4
+        msg.tier_item_count = 2
+        msg.enhancement_ability_id = 1865
+        msg.enhancement_level = 1
+        msg.trinket_level = 1
+
+        p._dispatch_inner(type_id, msg.SerializeToString())
+
+        assert received == [
+            neutral_event_cls(
+                tick=29858,
+                player_id=6,
+                item_ability_id=1861,
+                item_key="stonefeather_satchel",
+                item_tier=4,
+                tier_item_count=2,
+                enhancement_ability_id=1865,
+                enhancement_key="enhancement_vital",
+                enhancement_level=1,
+                trinket_level=1,
+            )
+        ]
 
 
 # ---------------------------------------------------------------------------

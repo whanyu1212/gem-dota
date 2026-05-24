@@ -16,6 +16,7 @@ Common hooks:
 - `parser.on_entity(handler)` — `(entity, op)` for entity lifecycle + field updates
 - `parser.on_game_event(name, handler)` — typed Source 1 game events
 - `parser.on_combat_log_entry(handler)` — normalized combat log entries
+- `parser.on_neutral_item_found(handler)` — neutral item find user messages
 - `parser.on_game_start(handler)` — first game tick callback
 - `parser.on_game_end(handler)` — final tick callback
 
