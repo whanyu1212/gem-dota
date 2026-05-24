@@ -11,6 +11,7 @@ See also: [Full Match Data](../guides/04_match_data.md), [Quickstart](../guides/
 - `ParsedMatch.radiant_team_tag` / `dire_team_tag`: `str` — team tag (e.g. `"XG"`). Empty string for pub games.
 - `ParsedPlayer.steam_id`: `int` — 64-bit Steam ID. `0` if unavailable.
 - `ParsedPlayer.account_id`: `int` — 32-bit account ID (the ID in OpenDota/Dotabuff player URLs). `0` if unavailable.
+- `ParsedMatch.neutral_item_finds`: `list[NeutralItemFoundEvent]` — replay-observed neutral item finds from `DOTA_UM_FoundNeutralItem`, including resolved item and enhancement keys.
 - `ParsedMatch.vision_modifiers`: `list[VisionModifierEvent]` *(experimental)* — every application of a vision-granting modifier (Slardar Corrosive Haze, BH Track, Dust of Appearance, Gem of True Sight). See [`estimate_vision`](analysis.md) for how these integrate with the vision API.
 - `ParsedMatch.tormentors`: `list[TormentorKill]` — chronological Tormentor kill events.
 - `ParsedMatch.shrines`: `list[ShrineKill]` — chronological Shrine of Wisdom destruction events.
@@ -99,6 +100,31 @@ Source: [src/gem/models.py:79](https://github.com/whanyu1212/gem-dota/blob/main/
 | `channel` | `str` | `-` |
 | `text` | `str` | `-` |
 
+### `NeutralItemFoundEvent`
+
+```python
+class NeutralItemFoundEvent
+```
+
+A neutral item found event emitted by DOTA_UM_FoundNeutralItem.
+
+Source: [src/gem/models.py:96](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/models.py#L96)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `tick` | `int` | `-` |
+| `player_id` | `int` | `-` |
+| `item_ability_id` | `int` | `-` |
+| `item_key` | `str` | `''` |
+| `item_tier` | `int` | `0` |
+| `tier_item_count` | `int` | `0` |
+| `enhancement_ability_id` | `int` | `-1` |
+| `enhancement_key` | `str` | `''` |
+| `enhancement_level` | `int` | `0` |
+| `trinket_level` | `int` | `0` |
+
 ### `ParsedPlayer`
 
 ```python
@@ -107,7 +133,7 @@ class ParsedPlayer
 
 Aggregated statistics for one player over a full match.
 
-Source: [src/gem/models.py:101](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/models.py#L101)
+Source: [src/gem/models.py:130](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/models.py#L130)
 
 #### Dataclass fields
 
@@ -176,7 +202,7 @@ class ParsedMatch
 
 Top-level parsed output for a single Dota 2 replay.
 
-Source: [src/gem/models.py:253](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/models.py#L253)
+Source: [src/gem/models.py:282](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/models.py#L282)
 
 #### Dataclass fields
 
@@ -207,6 +233,7 @@ Source: [src/gem/models.py:253](https://github.com/whanyu1212/gem-dota/blob/main
 | `combat_log` | `list[CombatLogEntry]` | `field(...)` |
 | `chat` | `list[ChatEntry]` | `field(...)` |
 | `courier_snapshots` | `list[CourierSnapshot]` | `field(...)` |
+| `neutral_item_finds` | `list[NeutralItemFoundEvent]` | `field(...)` |
 | `smoke_events` | `list[SmokeEvent]` | `field(...)` |
 | `draft` | `list[DraftEvent]` | `field(...)` |
 | `teamfights` | `list[Teamfight]` | `field(...)` |
@@ -220,7 +247,7 @@ Signature: `def ParsedMatch.duration_seconds(self) -> float`
 
 Game duration in seconds, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/models.py:326](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/models.py#L326)
+Source: [src/gem/models.py:357](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/models.py#L357)
 
 ##### `duration_minutes`
 
@@ -228,4 +255,4 @@ Signature: `def ParsedMatch.duration_minutes(self) -> float`
 
 Game duration in minutes, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/models.py:332](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/models.py#L332)
+Source: [src/gem/models.py:363](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/models.py#L363)

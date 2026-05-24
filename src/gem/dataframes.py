@@ -268,6 +268,11 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         if match.courier_snapshots
         else pd.DataFrame()
     )
+    neutral_item_finds_df = (
+        pd.DataFrame([asdict(event) for event in match.neutral_item_finds])
+        if match.neutral_item_finds
+        else pd.DataFrame()
+    )
 
     return {
         "players": players_df,
@@ -283,6 +288,7 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         "teamfights": teamfights_df,
         "smoke_events": smoke_df,
         "courier_snapshots": courier_df,
+        "neutral_item_finds": neutral_item_finds_df,
         "player_kills_log": pd.DataFrame(player_kills_rows),
         "player_purchase_log": pd.DataFrame(player_purchase_rows),
         "player_runes_log": pd.DataFrame(player_runes_rows),

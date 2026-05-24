@@ -30,6 +30,9 @@ HEROES: dict[str, dict] = _load("heroes.json")
 
 # internal_key (without item_ prefix) -> {id, dname}
 ITEMS: dict[str, dict] = _load("items.json")
+_ITEM_KEYS_BY_ID: dict[int, str] = {
+    item["id"]: key for key, item in ITEMS.items() if isinstance(item.get("id"), int)
+}
 
 # internal_ability_name -> display_name str
 ABILITIES: dict[str, str] = _load("abilities.json")
@@ -134,6 +137,18 @@ def item_display(internal: str) -> str:
     key = internal.removeprefix("item_")
     item = ITEMS.get(key)
     return item["dname"] if item else internal
+
+
+def item_key_by_id(item_id: int) -> str | None:
+    """Return the internal item key for an item ability ID.
+
+    Args:
+        item_id: Numeric item ability ID from replay messages.
+
+    Returns:
+        Internal item key without the ``item_`` prefix, or ``None`` when unknown.
+    """
+    return _ITEM_KEYS_BY_ID.get(item_id)
 
 
 # ---------------------------------------------------------------------------

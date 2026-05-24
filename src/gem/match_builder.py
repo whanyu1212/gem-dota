@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from gem.extractors.objectives import ObjectivesExtractor
     from gem.extractors.players import PlayerExtractor
     from gem.extractors.wards import WardsExtractor
-    from gem.models import ChatEntry, SmokeEvent, VisionModifierEvent
+    from gem.models import ChatEntry, NeutralItemFoundEvent, SmokeEvent, VisionModifierEvent
     from gem.parser import ReplayParser
 
 # Lane position grid resolution in world units (7d)
@@ -64,6 +64,7 @@ def build_parsed_match(
     chat_entries: list[ChatEntry],
     smoke_events: list[SmokeEvent] | None = None,
     vision_modifier_events: list[VisionModifierEvent] | None = None,
+    neutral_item_finds: list[NeutralItemFoundEvent] | None = None,
 ) -> ParsedMatch:
     """Assemble a :class:`ParsedMatch` from extractor state after a completed parse.
 
@@ -83,6 +84,7 @@ def build_parsed_match(
         chat_entries: All :class:`ChatEntry` objects from the replay.
         smoke_events: All :class:`SmokeEvent` objects collected during parse.
         vision_modifier_events: All :class:`VisionModifierEvent` objects collected during parse.
+        neutral_item_finds: Neutral item found events collected during parse.
 
     Returns:
         Fully populated :class:`ParsedMatch`.
@@ -113,6 +115,7 @@ def build_parsed_match(
         combat_log=all_entries,
         chat=chat_entries,
         courier_snapshots=courier_ext.snapshots,
+        neutral_item_finds=neutral_item_finds or [],
         smoke_events=smoke_events or [],
         vision_modifiers=vision_modifier_events or [],
         draft=draft_ext.draft_events,

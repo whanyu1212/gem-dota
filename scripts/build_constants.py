@@ -50,11 +50,21 @@ def build_items() -> None:
     raw: dict = _load("items.json")  # type: ignore[assignment]
     out: dict[str, dict] = {}
     for key, item in raw.items():
-        dname = item.get("dname") or ""
+        dname = item.get("dname") or _derive_recipe_dname(key, raw)
         if dname:
             out[key] = {"id": item.get("id"), "dname": dname}
     _write("items.json", out)
     print(f"  items.json: {len(out)} entries")
+
+
+def _derive_recipe_dname(key: str, raw: dict) -> str:
+    """Return a recipe display name when dotaconstants omits one."""
+    if not key.startswith("recipe_"):
+        return ""
+
+    base = raw.get(key.removeprefix("recipe_"), {})
+    base_dname = base.get("dname") if isinstance(base, dict) else None
+    return f"{base_dname} Recipe" if base_dname else ""
 
 
 def build_abilities() -> None:
@@ -62,11 +72,22 @@ def build_abilities() -> None:
     raw: dict = _load("abilities.json")  # type: ignore[assignment]
     out: dict[str, str] = {}
     for name, ab in raw.items():
-        dname = ab.get("dname") or ""
+        dname = ab.get("dname") or _derive_ability_dname(name)
         if dname:
             out[name] = dname
     _write("abilities.json", out)
     print(f"  abilities.json: {len(out)} entries")
+
+
+def _derive_ability_dname(name: str) -> str:
+    """Return a readable display name when dotaconstants omits one."""
+    if name in {"dota_base_ability", "dota_empty_ability"}:
+        return ""
+    if name.startswith("special_bonus_"):
+        return ""
+
+    display = name.removeprefix("ability_")
+    return display.replace("_", " ").title()
 
 
 def build_xp_level() -> None:

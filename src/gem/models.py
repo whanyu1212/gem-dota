@@ -92,6 +92,35 @@ class ChatEntry:
     text: str
 
 
+@dataclass
+class NeutralItemFoundEvent:
+    """A neutral item found event emitted by DOTA_UM_FoundNeutralItem.
+
+    Attributes:
+        tick: Game tick when the event was observed.
+        player_id: Player slot that found the neutral item.
+        item_ability_id: Numeric item ability ID for the neutral item.
+        item_key: Internal item key resolved from ``item_ability_id``.
+        item_tier: Neutral tier reported by the replay message.
+        tier_item_count: Number of found items in this tier reported by the message.
+        enhancement_ability_id: Numeric item ability ID for the neutral enhancement.
+        enhancement_key: Internal item key resolved from ``enhancement_ability_id``.
+        enhancement_level: Enhancement level reported by the replay message.
+        trinket_level: Trinket level reported by the replay message.
+    """
+
+    tick: int
+    player_id: int
+    item_ability_id: int
+    item_key: str = ""
+    item_tier: int = 0
+    tier_item_count: int = 0
+    enhancement_ability_id: int = -1
+    enhancement_key: str = ""
+    enhancement_level: int = 0
+    trinket_level: int = 0
+
+
 # ---------------------------------------------------------------------------
 # Per-player aggregated output
 # ---------------------------------------------------------------------------
@@ -278,6 +307,7 @@ class ParsedMatch:
         combat_log: All raw combat log entries (unfiltered).
         chat: All chat messages in chronological order.
         courier_snapshots: Courier state snapshots at each sample interval.
+        neutral_item_finds: Neutral item find events from ``DOTA_UM_FoundNeutralItem``.
         smoke_events: All Smoke of Deceit activations with grouped heroes and
             approximate activating-hero position.
         draft: Hero pick and ban events from the draft phase.
@@ -317,6 +347,7 @@ class ParsedMatch:
     combat_log: list[CombatLogEntry] = field(default_factory=list)
     chat: list[ChatEntry] = field(default_factory=list)
     courier_snapshots: list[CourierSnapshot] = field(default_factory=list)
+    neutral_item_finds: list[NeutralItemFoundEvent] = field(default_factory=list)
     smoke_events: list[SmokeEvent] = field(default_factory=list)
     draft: list[DraftEvent] = field(default_factory=list)
     teamfights: list[Teamfight] = field(default_factory=list)
