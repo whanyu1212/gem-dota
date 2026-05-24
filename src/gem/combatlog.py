@@ -35,6 +35,7 @@ COMBAT_LOG_TYPES: frozenset[str] = frozenset(
         "PURCHASE",
         "BUYBACK",
         "KILLSTREAK",
+        "NEUTRAL_CAMP_STACK",
         "PICKUP_RUNE",
     ]
 )
@@ -54,6 +55,7 @@ _LOG_TYPE_NAMES: dict[int, str] = {
     10: "XP",
     11: "PURCHASE",
     12: "BUYBACK",
+    20: "NEUTRAL_CAMP_STACK",
     21: "PICKUP_RUNE",
 }
 
@@ -112,6 +114,10 @@ class CombatLogEntry:
         value_name: Resolved name for the value field (PURCHASE events: item name).
         damage_type: Damage type label for DAMAGE events ("physical", "magical", "pure").
         stun_duration: Duration of stun applied by this event in seconds (S2 only; 0.0 if none).
+        neutral_camp_type: Raw neutral camp type from the replay combat log, or 0 if absent.
+        neutral_camp_team: Raw neutral camp team from the replay combat log, or 0 if absent.
+        location_x: Raw combat-log event x coordinate, or ``None`` if absent.
+        location_y: Raw combat-log event y coordinate, or ``None`` if absent.
     """
 
     tick: int
@@ -130,6 +136,10 @@ class CombatLogEntry:
     value_name: str = ""
     damage_type: str = ""
     stun_duration: float = 0.0
+    neutral_camp_type: int = 0
+    neutral_camp_team: int = 0
+    location_x: float | None = None
+    location_y: float | None = None
 
 
 CombatLogHandler = Callable[[CombatLogEntry], None]
@@ -307,6 +317,10 @@ class CombatLogProcessor:
         value = raw_value if raw_value < 0x80000000 else raw_value - 0x100000000
 
         stun_duration = msg.stun_duration if msg.HasField("stun_duration") else 0.0
+        neutral_camp_type = msg.neutral_camp_type if msg.HasField("neutral_camp_type") else 0
+        neutral_camp_team = msg.neutral_camp_team if msg.HasField("neutral_camp_team") else 0
+        location_x = msg.location_x if msg.HasField("location_x") else None
+        location_y = msg.location_y if msg.HasField("location_y") else None
         damage_type = ""
         if log_type == "DAMAGE" and hasattr(msg, "damage_type"):
             damage_type = _DAMAGE_TYPE_NAMES.get(msg.damage_type, "")
@@ -327,5 +341,9 @@ class CombatLogProcessor:
             value_name=value_name,
             damage_type=damage_type,
             stun_duration=stun_duration,
+            neutral_camp_type=neutral_camp_type,
+            neutral_camp_team=neutral_camp_team,
+            location_x=location_x,
+            location_y=location_y,
         )
         self._emit(entry)
