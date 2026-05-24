@@ -541,9 +541,9 @@ def _nearby_gold(
             continue
         if abs(int(getattr(entry, "tick", 0)) - death_tick) > gold_window_ticks:
             continue
-        if getattr(entry, "attacker_name", "") not in ("", attacker_name) and getattr(
-            entry, "target_name", ""
-        ) not in ("", attacker_name):
+        entry_attacker = str(getattr(entry, "attacker_name", "") or "")
+        entry_target = str(getattr(entry, "target_name", "") or "")
+        if attacker_name not in {name for name in (entry_attacker, entry_target) if name}:
             continue
         value = int(getattr(entry, "value", 0))
         if value <= 0:

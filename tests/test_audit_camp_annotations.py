@@ -112,6 +112,51 @@ def test_collect_neutral_observations_assigns_deaths_to_camp_and_nearby_gold() -
     assert observations[0].position_source == "hero_position"
 
 
+def test_collect_neutral_observations_ignores_unscoped_nearby_gold() -> None:
+    player = ParsedPlayer(
+        player_id=0,
+        hero_name="npc_dota_hero_axe",
+        position_log=[(100, 100.0, 100.0)],
+    )
+    match = ParsedMatch(
+        match_id=123,
+        players=[player],
+        combat_log=[
+            CombatLogEntry(
+                tick=100,
+                log_type="DEATH",
+                attacker_name="npc_dota_hero_axe",
+                target_name="npc_dota_neutral_ancient_frog",
+            ),
+            CombatLogEntry(tick=101, log_type="GOLD", value=999),
+            CombatLogEntry(
+                tick=102,
+                log_type="GOLD",
+                attacker_name="npc_dota_hero_axe",
+                value=88,
+            ),
+            CombatLogEntry(
+                tick=103,
+                log_type="GOLD",
+                target_name="npc_dota_hero_axe",
+                value=12,
+            ),
+            CombatLogEntry(
+                tick=104,
+                log_type="GOLD",
+                attacker_name="npc_dota_hero_crystal_maiden",
+                value=77,
+            ),
+        ],
+    )
+    zones = (CampZone(id=1, type="large", x=100.0, y=100.0, shape="ellipse", rx=200.0, ry=200.0),)
+
+    observations = collect_neutral_observations(match, zones, max_position_delta_ticks=30)
+
+    assert observations[0].nearby_gold == 100
+    assert observations[0].nearby_gold_events == 2
+
+
 def test_collect_neutral_observations_prefers_combat_log_location() -> None:
     player = ParsedPlayer(
         player_id=0,
