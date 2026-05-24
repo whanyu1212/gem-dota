@@ -83,11 +83,17 @@ from gem.map_context import (
     build_map_context_timeline,
     score_camp_visit_context,
 )
-from gem.models import ChatEntry, ParsedMatch, ParsedPlayer, VisionModifierEvent
+from gem.models import (
+    ChatEntry,
+    NeutralItemFoundEvent,
+    ParsedMatch,
+    ParsedPlayer,
+    VisionModifierEvent,
+)
 from gem.replay_fetch import download_and_decompress, fetch_replay, fetch_replay_url
 from gem.rosh_conversion import RoshConversion, RoshTimelineEvent, build_rosh_conversions
 
-__version__ = "0.2.7"
+__version__ = "0.2.8"
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -137,6 +143,9 @@ def parse(path: str | Path) -> ParsedMatch:
 
     chat_entries: list[ChatEntry] = []
     p.on_chat_message(chat_entries.append)
+
+    neutral_item_finds: list[NeutralItemFoundEvent] = []
+    p.on_neutral_item_found(neutral_item_finds.append)
 
     # Smoke of Deceit collection — three combat log event types.
     # Position is captured live at MODIFIER_ADD time (when each hero actually
@@ -265,6 +274,7 @@ def parse(path: str | Path) -> ParsedMatch:
         chat_entries=chat_entries,
         smoke_events=smoke_events,
         vision_modifier_events=vision_modifier_events,
+        neutral_item_finds=neutral_item_finds,
     )
 
 
@@ -391,6 +401,7 @@ __all__ = [
     "ParsedMatch",
     "ParsedPlayer",
     "ChatEntry",
+    "NeutralItemFoundEvent",
     "find_player",
     "hero_npc_name",
     "position_at_tick",

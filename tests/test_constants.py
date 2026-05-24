@@ -214,6 +214,23 @@ class TestItemDisplay:
         # key "blink" IS in items.json so it should succeed
         assert C.item_display("blink") == "Blink Dagger"
 
+    def test_recipe_without_upstream_display_name_uses_base_item_display(self) -> None:
+        assert C.item_display("recipe_hydras_breath") == "Hydra's Breath Recipe"
+        assert C.item_display("recipe_specialists_array") == "Specialist's Array Recipe"
+
+
+class TestItemKeyById:
+    """Tests for gem.constants.item_key_by_id()."""
+
+    def test_new_neutral_item_id_resolves_to_key(self) -> None:
+        assert C.item_key_by_id(1861) == "stonefeather_satchel"
+
+    def test_neutral_enhancement_id_resolves_to_key(self) -> None:
+        assert C.item_key_by_id(1865) == "enhancement_vital"
+
+    def test_unknown_item_id_returns_none(self) -> None:
+        assert C.item_key_by_id(999999) is None
+
 
 # ---------------------------------------------------------------------------
 # ability_display()
@@ -259,6 +276,14 @@ class TestAbilityDisplay:
         # item_smoke_of_deceit should resolve via item_display
         result = C.ability_display("item_smoke_of_deceit")
         assert result == "Smoke of Deceit"
+
+    def test_dotaconstants_abilities_without_dname_are_bundled(self) -> None:
+        assert C.ABILITIES["courier_take_stash_and_transfer_items"] == (
+            "Courier Take Stash And Transfer Items"
+        )
+        assert C.ABILITIES["ability_lamp_use"] == "Lamp Use"
+        assert C.ABILITIES["twin_gate_portal_warp"] == "Twin Gate Portal Warp"
+        assert C.ABILITIES["ability_capture"] == "Capture"
 
 
 # ---------------------------------------------------------------------------

@@ -264,6 +264,13 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 
 ## Releases
 
+### [v0.2.8](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.8)
+
+- **7.41 replay fixtures and constants** — OpenDota fixture tooling, DreamLeague Season 29 fixture metadata, and updated constants coverage for newer neutral item and ability data.
+- **Neutral item found events** — parser, model, dataframe, and validation coverage for neutral item discovery events exposed in modern replays.
+- **Camp annotation refresh** — replay-audit tooling, confirmed 7.41 camp type updates, and a regenerated annotated map fixture with type-colored rings and a legend.
+- **Icon cache checks** — hero and item icon fetch scripts avoid rewriting unchanged cached assets.
+
 ### [v0.2.7](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.7)
 
 - **Experimental farming-pattern analysis** — objective-aware camp-path context, larger interactive report view, and detailed documentation for the heuristic model and its limits.
@@ -460,8 +467,8 @@ If you run a benchmark, please open an issue/PR with:
 - **Draft ID quirks** — replay pick/ban IDs can differ from static hero API IDs in some patches/formats (commonly transformed IDs). `gem` normalizes these, but edge cases may still appear.
 - **Purchase attribution in spectator/HLTV paths** — purchase events are not always directly hero-attributed in combat log data; reconstruction relies on entity state and may be incomplete in edge cases.
 - **Summon ownership edge cases** — most summoned-unit attribution is handled, but complex ownership cases can still produce occasional mismatches.
-- **Hero icons** — not bundled in the package. Run `python scripts/fetch_hero_icons.py` to download them locally before using the draft or teamfight report examples.
-- **Item icons** — not bundled in the package. Run `python scripts/fetch_item_icons.py` to download them locally before using reports that render item/rune icons.
+- **Hero icons** — not bundled in the package. Run `python scripts/fetch_hero_icons.py --check` to audit the local cache, or `python scripts/fetch_hero_icons.py` to download missing icons before using the draft or teamfight report examples.
+- **Item icons** — not bundled in the package. Run `python scripts/fetch_item_icons.py --check` to audit the local cache, or `python scripts/fetch_item_icons.py` to download missing non-recipe icons before using reports that render item/rune icons. Recipe icons are skipped by default; pass `--include-recipes` if you need them.
 
 ---
 

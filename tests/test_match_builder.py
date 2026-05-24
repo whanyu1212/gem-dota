@@ -14,6 +14,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+import gem.models as model_module
 from gem.combatlog import CombatLogEntry
 from gem.match_builder import _radiant_win_from_ancient, build_parsed_match
 from gem.models import ChatEntry, ParsedMatch, SmokeEvent
@@ -287,6 +288,9 @@ class TestBuildParsedMatchExtractorOutputs:
     def _base_build(self, **kw) -> ParsedMatch:
         parser = _make_parser()
         player_ext = _make_player_ext()
+        optional_kwargs = {}
+        if "neutral_item_finds" in kw:
+            optional_kwargs["neutral_item_finds"] = kw["neutral_item_finds"]
         return build_parsed_match(
             parser,
             player_ext,
@@ -298,6 +302,7 @@ class TestBuildParsedMatchExtractorOutputs:
             kw.get("entries", []),
             kw.get("chat", []),
             smoke_events=kw.get("smoke_events"),
+            **optional_kwargs,
         )
 
     def test_combat_log_stored(self):
@@ -318,6 +323,28 @@ class TestBuildParsedMatchExtractorOutputs:
     def test_smoke_events_defaults_to_empty_list_when_none(self):
         m = self._base_build(smoke_events=None)
         assert m.smoke_events == []
+
+    def test_neutral_item_finds_stored(self):
+        neutral_event_cls = getattr(model_module, "NeutralItemFoundEvent", None)
+        assert neutral_event_cls is not None
+        events = [
+            neutral_event_cls(
+                tick=29858,
+                player_id=6,
+                item_ability_id=1861,
+                item_key="stonefeather_satchel",
+                enhancement_ability_id=1865,
+                enhancement_key="enhancement_vital",
+            )
+        ]
+
+        m = self._base_build(neutral_item_finds=events)
+
+        assert m.neutral_item_finds is events
+
+    def test_neutral_item_finds_defaults_to_empty_list_when_none(self):
+        m = self._base_build(neutral_item_finds=None)
+        assert m.neutral_item_finds == []
 
     def test_draft_events_stored(self):
         from gem.extractors.draft import DraftEvent

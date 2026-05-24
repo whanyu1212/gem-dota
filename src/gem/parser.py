@@ -44,9 +44,10 @@ from pathlib import Path
 from google.protobuf import descriptor_pb2  # noqa: F401
 
 from gem.combatlog import CombatLogHandler, CombatLogProcessor
+from gem.constants import item_key_by_id
 from gem.entities import Entity, EntityManager, EntityOp
 from gem.game_events import GameEventHandler, GameEventManager
-from gem.models import ChatEntry
+from gem.models import ChatEntry, NeutralItemFoundEvent
 from gem.proto.dota2 import (
     dota_commonmessages_pb2,  # noqa: F401
     dota_shared_enums_pb2,  # noqa: F401
@@ -59,6 +60,7 @@ from gem.proto.dota2.dota_usermessages_pb2 import (
     CDOTAUserMsg_ChatEvent,
     CDOTAUserMsg_ChatMessage,
     CDOTAUserMsg_CombatLogBulkData,
+    CDOTAUserMsg_FoundNeutralItem,
 )
 from gem.proto.dota2.gameevents_pb2 import (
     CMsgSource1LegacyGameEvent,
@@ -103,6 +105,7 @@ _DOTA_UM_COMBAT_LOG_BULK_DATA = 470  # CDOTAUserMsg_CombatLogBulkData (alternate
 # Direct inner message types (not wrapped in svc_UserMessage)
 _DOTA_UM_COMBAT_LOG_HLTV = 554  # CMsgDOTACombatLogEntry (direct, one entry per message)
 _DOTA_UM_CHAT_EVENT = 466  # CDOTAUserMsg_ChatEvent (direct)
+_DOTA_UM_FOUND_NEUTRAL_ITEM = 593  # CDOTAUserMsg_FoundNeutralItem (direct)
 _DOTA_UM_CHAT_MESSAGE = 612  # CDOTAUserMsg_ChatMessage (direct)
 
 _CHAT_MSG_RUNE_PICKUP = 22  # DOTA_CHAT_MESSAGE.CHAT_MESSAGE_RUNE_PICKUP
@@ -113,6 +116,7 @@ _COMBAT_LOG_NAMES_TABLE = "CombatLogNames"
 EntityCallback = Callable[[Entity, EntityOp], None]
 ChatCallback = Callable[["ChatEntry"], None]
 ChatEventCallback = Callable[["CDOTAUserMsg_ChatEvent", int], None]
+NeutralItemFoundCallback = Callable[["NeutralItemFoundEvent"], None]
 
 
 def _read_inner_messages(data: bytes) -> list[tuple[int, bytes]]:
@@ -169,6 +173,7 @@ class ReplayParser:
         self._entity_callbacks: list[EntityCallback] = []
         self._chat_callbacks: list[ChatCallback] = []
         self._chat_event_callbacks: list[ChatEventCallback] = []
+        self._neutral_item_found_callbacks: list[NeutralItemFoundCallback] = []
         self._stop_at_tick: int | None = None
         self._grp_game_start_seen: bool = False
         self._pending_server_info: CSVCMsg_ServerInfo | None = None
@@ -240,6 +245,14 @@ class ReplayParser:
             handler: ``(CDOTAUserMsg_ChatEvent, tick) -> None``.
         """
         self._chat_event_callbacks.append(handler)
+
+    def on_neutral_item_found(self, handler: NeutralItemFoundCallback) -> None:
+        """Register a handler for neutral item found messages.
+
+        Args:
+            handler: ``(NeutralItemFoundEvent) -> None``.
+        """
+        self._neutral_item_found_callbacks.append(handler)
 
     def on_game_start(self, callback: Callable[[int], None]) -> None:
         """Register a handler called once when game time reaches zero.
@@ -465,6 +478,9 @@ class ReplayParser:
             for chat_cb in self._chat_event_callbacks:
                 chat_cb(chat_event, self.tick)
 
+        elif type_id == _DOTA_UM_FOUND_NEUTRAL_ITEM:
+            self._emit_neutral_item_found(payload)
+
         elif type_id == _DOTA_UM_CHAT_MESSAGE:
             self._emit_chat_message(payload)
 
@@ -547,3 +563,23 @@ class ReplayParser:
         )
         for cb in self._chat_callbacks:
             cb(entry)
+
+    def _emit_neutral_item_found(self, payload: bytes) -> None:
+        if not self._neutral_item_found_callbacks:
+            return
+        msg = CDOTAUserMsg_FoundNeutralItem()
+        msg.ParseFromString(payload)
+        event = NeutralItemFoundEvent(
+            tick=self.tick,
+            player_id=msg.player_id,
+            item_ability_id=msg.item_ability_id,
+            item_key=item_key_by_id(msg.item_ability_id) or "",
+            item_tier=msg.item_tier,
+            tier_item_count=msg.tier_item_count,
+            enhancement_ability_id=msg.enhancement_ability_id,
+            enhancement_key=item_key_by_id(msg.enhancement_ability_id) or "",
+            enhancement_level=msg.enhancement_level,
+            trinket_level=msg.trinket_level,
+        )
+        for cb in self._neutral_item_found_callbacks:
+            cb(event)

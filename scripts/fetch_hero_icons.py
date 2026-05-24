@@ -12,6 +12,7 @@ where ``{short}`` is derived from the NPC name by stripping ``npc_dota_hero_``.
 Usage::
 
     python scripts/fetch_hero_icons.py           # skip already-downloaded
+    python scripts/fetch_hero_icons.py --check   # report missing icons
     python scripts/fetch_hero_icons.py --force   # re-download all
 """
 
@@ -23,6 +24,7 @@ import ssl
 import sys
 import time
 import urllib.request
+from collections.abc import Sequence
 from pathlib import Path
 
 _HEROES_JSON = Path(__file__).parent.parent / "src" / "gem" / "data" / "heroes.json"
@@ -46,9 +48,38 @@ def _short(npc_name: str) -> str:
     return npc_name.removeprefix("npc_dota_hero_")
 
 
-def fetch(force: bool = False) -> None:
-    _OUT_DIR.mkdir(parents=True, exist_ok=True)
-    heroes: dict = json.loads(_HEROES_JSON.read_text(encoding="utf-8"))
+def _hero_shorts(heroes_path: Path) -> tuple[str, ...]:
+    heroes: dict = json.loads(heroes_path.read_text(encoding="utf-8"))
+    return tuple(_short(npc_name) for npc_name in sorted(heroes))
+
+
+def missing_icon_shorts(
+    heroes_path: Path = _HEROES_JSON,
+    out_dir: Path = _OUT_DIR,
+) -> tuple[str, ...]:
+    return tuple(
+        short for short in _hero_shorts(heroes_path) if not (out_dir / f"{short}.png").exists()
+    )
+
+
+def check(heroes_path: Path = _HEROES_JSON, out_dir: Path = _OUT_DIR) -> int:
+    missing = missing_icon_shorts(heroes_path, out_dir)
+    if not missing:
+        print(f"All hero icons present in {out_dir}")
+        return 0
+
+    print(f"Missing {len(missing)} hero icon{'s' if len(missing) != 1 else ''} in {out_dir}:")
+    for short in missing:
+        print(f"  - {short}")
+    return 1
+
+
+def fetch(
+    force: bool = False,
+    heroes_path: Path = _HEROES_JSON,
+    out_dir: Path = _OUT_DIR,
+) -> None:
+    out_dir.mkdir(parents=True, exist_ok=True)
 
     # macOS doesn't use system certs by default; disable verification for CDN
     ctx = ssl.create_default_context()
@@ -56,9 +87,8 @@ def fetch(force: bool = False) -> None:
     ctx.verify_mode = ssl.CERT_NONE
 
     ok = failed = skipped = 0
-    for npc_name in sorted(heroes):
-        short = _short(npc_name)
-        out_path = _OUT_DIR / f"{short}.png"
+    for short in _hero_shorts(heroes_path):
+        out_path = out_dir / f"{short}.png"
         if out_path.exists() and not force:
             skipped += 1
             continue
@@ -86,11 +116,25 @@ def fetch(force: bool = False) -> None:
             print(f"  FAIL {short}", file=sys.stderr)
             failed += 1
 
-    print(f"\nDone — {ok} downloaded, {skipped} skipped, {failed} failed → {_OUT_DIR}")
+    print(f"\nDone — {ok} downloaded, {skipped} skipped, {failed} failed -> {out_dir}")
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Download Dota 2 hero icons.")
+    parser.add_argument(
+        "--check", action="store_true", help="Report missing icons without downloading"
+    )
+    parser.add_argument("--force", action="store_true", help="Re-download existing files")
+    parser.add_argument("--heroes", type=Path, default=_HEROES_JSON, help="Path to heroes.json")
+    parser.add_argument("--out-dir", type=Path, default=_OUT_DIR, help="Icon output directory")
+    args = parser.parse_args(argv)
+
+    if args.check:
+        return check(args.heroes, args.out_dir)
+
+    fetch(force=args.force, heroes_path=args.heroes, out_dir=args.out_dir)
+    return 0
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Download Dota 2 hero icons.")
-    parser.add_argument("--force", action="store_true", help="Re-download existing files")
-    args = parser.parse_args()
-    fetch(force=args.force)
+    raise SystemExit(main())

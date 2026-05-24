@@ -28,6 +28,7 @@ pip install pyarrow
 | `"radiant_advantage"` | Per-minute gold and XP advantage curves |
 | `"chat"` | All-chat and team-chat messages |
 | `"courier_snapshots"` | Courier state sampled each tick |
+| `"neutral_item_finds"` | Neutral item finds with item and enhancement IDs/keys |
 
 ---
 

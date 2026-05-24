@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import gem.models as model_module
 from gem.dataframes import build_dataframes
 from gem.extractors.objectives import AegisEvent, ShrineKill, TormentorKill
 from gem.models import ParsedMatch, ParsedPlayer
@@ -63,10 +64,48 @@ class TestBuildDataframes:
         assert "teamfights" in dfs
         assert "smoke_events" in dfs
         assert "courier_snapshots" in dfs
+        assert "neutral_item_finds" in dfs
         assert "player_kills_log" in dfs
         assert "player_purchase_log" in dfs
         assert "player_runes_log" in dfs
         assert "player_buyback_log" in dfs
+
+        assert dfs["neutral_item_finds"].empty
+
+    def test_neutral_item_finds_dataframe_includes_event_fields(self):
+        neutral_event_cls = getattr(model_module, "NeutralItemFoundEvent", None)
+        assert neutral_event_cls is not None
+        match = ParsedMatch(
+            neutral_item_finds=[
+                neutral_event_cls(
+                    tick=29858,
+                    player_id=6,
+                    item_ability_id=1861,
+                    item_key="stonefeather_satchel",
+                    item_tier=4,
+                    tier_item_count=2,
+                    enhancement_ability_id=1865,
+                    enhancement_key="enhancement_vital",
+                    enhancement_level=1,
+                    trinket_level=1,
+                )
+            ]
+        )
+
+        df = build_dataframes(match)["neutral_item_finds"]
+
+        assert len(df) == 1
+        row = df.iloc[0]
+        assert row["tick"] == 29858
+        assert row["player_id"] == 6
+        assert row["item_ability_id"] == 1861
+        assert row["item_key"] == "stonefeather_satchel"
+        assert row["item_tier"] == 4
+        assert row["tier_item_count"] == 2
+        assert row["enhancement_ability_id"] == 1865
+        assert row["enhancement_key"] == "enhancement_vital"
+        assert row["enhancement_level"] == 1
+        assert row["trinket_level"] == 1
 
     def test_objectives_dataframe_includes_new_objective_types(self):
         match = ParsedMatch(

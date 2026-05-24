@@ -86,6 +86,7 @@ Available DataFrames:
 | `"objectives"` | Tower kills, barracks, Roshan kills |
 | `"teamfights"` | Teamfight windows with participant stats |
 | `"combat_log"` | Raw combat log entries |
+| `"neutral_item_finds"` | Neutral item find events with item/enhancement IDs and keys |
 
 ### Players DataFrame
 

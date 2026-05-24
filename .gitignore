@@ -22,8 +22,10 @@ src/gem/data/item_icons/
 
 # Replay files — too large to commit
 tests/fixtures/*.dem
+tests/fixtures/**/*.dem
 # Truncated fixtures ARE committed (small, used for unit tests)
 !tests/fixtures/*_truncated.dem
+!tests/fixtures/**/*_truncated.dem
 
 # Downloaded proto source files
 proto_definitions/
@@ -37,6 +39,7 @@ refs/
 # Internal development strategy doc
 STRATEGY.md
 notes/
+superpowers/
 competitor-feature-landscape.md
 
 # Test/coverage artifacts

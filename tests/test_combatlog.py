@@ -63,6 +63,10 @@ class FakeS2Entry:
         is_ability_toggle_off=False,
         stun_duration=0.0,
         damage_type=0,
+        neutral_camp_type=0,
+        neutral_camp_team=0,
+        location_x=0.0,
+        location_y=0.0,
     ):
         self.type = type
         self.attacker_name = attacker_name
@@ -82,9 +86,23 @@ class FakeS2Entry:
         self.is_ability_toggle_off = is_ability_toggle_off
         self.stun_duration = stun_duration
         self.damage_type = damage_type
+        self.neutral_camp_type = neutral_camp_type
+        self.neutral_camp_team = neutral_camp_team
+        self.location_x = location_x
+        self.location_y = location_y
 
     def HasField(self, name: str) -> bool:
-        return name == "stun_duration" and self.stun_duration != 0.0
+        if name == "stun_duration":
+            return self.stun_duration != 0.0
+        if name == "neutral_camp_type":
+            return self.neutral_camp_type != 0
+        if name == "neutral_camp_team":
+            return self.neutral_camp_team != 0
+        if name == "location_x":
+            return self.location_x != 0.0
+        if name == "location_y":
+            return self.location_y != 0.0
+        return False
 
 
 class FakeBulkMsg:
@@ -405,6 +423,43 @@ class TestS2CombatLog:
         assert e.log_type == "GOLD"
         assert e.value == 200
         assert e.gold_reason == 6
+
+    def test_neutral_camp_stack_preserves_camp_metadata(self):
+        p, received = self._make_processor_with_handler()
+        table = FakeNameTable({1: "npc_dota_hero_axe"})
+        msg = FakeS2Entry(
+            type=20,
+            attacker_name=1,
+            is_attacker_hero=True,
+            neutral_camp_type=3,
+            neutral_camp_team=2,
+        )
+
+        p.process_s2_entry(msg, table, tick=1234)
+
+        e = received[0]
+        assert e.log_type == "NEUTRAL_CAMP_STACK"
+        assert e.attacker_name == "npc_dota_hero_axe"
+        assert e.neutral_camp_type == 3
+        assert e.neutral_camp_team == 2
+
+    def test_s2_preserves_event_location_when_present(self):
+        p, received = self._make_processor_with_handler()
+        table = FakeNameTable({1: "npc_dota_hero_axe", 2: "npc_dota_neutral_ancient_frog"})
+        msg = FakeS2Entry(
+            type=4,
+            attacker_name=1,
+            target_name=2,
+            location_x=12345.5,
+            location_y=23456.25,
+        )
+
+        p.process_s2_entry(msg, table, tick=4321)
+
+        e = received[0]
+        assert e.log_type == "DEATH"
+        assert e.location_x == 12345.5
+        assert e.location_y == 23456.25
 
     def test_all_twelve_types(self):
         p, received = self._make_processor_with_handler()
