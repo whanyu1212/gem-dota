@@ -16,9 +16,9 @@ Modules covered:
 Prerequisites:
 
 1. [Bits & Bytes Primer](../cookbook/bits-and-bytes-primer.md)
-2. [Stream Layer (`stream.py`)](stream-layer.md)
+2. [Stream Layer (`binary/stream.py`)](stream-layer.md)
 3. [Parser Layer (`parser.py`)](parser-layer.md)
-4. [SendTable Layer (`sendtable.py`)](sendtable-layer.md)
+4. [SendTable Layer (`schema/sendtable.py`)](sendtable-layer.md)
 5. [State Reconstruction Layer (`string_table.py` + `entities.py`)](state-layer.md)
 6. [Event Normalization Layer (`game_events.py` + `combatlog.py`)](event-layer.md)
 

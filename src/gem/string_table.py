@@ -14,7 +14,7 @@ from typing import NamedTuple
 
 import snappy
 
-from gem.reader import BitReader
+from gem.binary.reader import BitReader
 
 # ---------------------------------------------------------------------------
 # Constants

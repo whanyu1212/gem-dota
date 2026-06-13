@@ -60,31 +60,31 @@ driven by a schema (send tables) decoded at replay start.
 Low-level binary parsing → entity reconstruction → extraction → output.
 
 ```
-reader.py               ← BitReader, all bit/byte/varint primitives
-stream.py               ← outer message loop, Snappy decompress, magic check
-sendtable.py            ← serializer + field tree (requires reader)
-field_decoder.py        ← type-dispatch decoders + QuantizedFloatDecoder
-field_path.py           ← Huffman-coded field path ops (requires reader)
-field_state.py          ← nested mutable field-value tree (mirrors manta/field_state.go)
-field_reader.py         ← field decoder dispatch + entity field reading (mirrors manta/field_reader.go)
-string_table.py         ← incremental key-history string tables
-entities.py             ← entity create/update/delete lifecycle + state
-game_events.py          ← game event schema + typed dispatch
-combatlog.py            ← S1 (game event) + S2 (user message) combat log
-combat_aggregator.py    ← per-player combat log accumulation → damage/heal/kill/purchase tallies
-parser.py               ← top-level orchestrator wiring everything together
-extractors/             ← per-tick polling of entity state for output (see below)
-constants.py            ← hero/item/ability/XP lookups over bundled src/gem/data/ JSON
-models.py               ← ParsedMatch, ParsedPlayer, ChatEntry, NeutralItemFoundEvent dataclasses
-match_builder.py        ← wires extractor outputs into ParsedMatch
-analysis.py             ← post-parse analysis helpers (higher-level transforms on ParsedMatch)
-map_context.py          ← objective-aware map-context buckets (experimental farming analysis)
-rosh_conversion.py      ← post-parse Roshan conversion records (did a Rosh convert to a win?)
-dataframes.py           ← converts ParsedMatch to pandas DataFrames
-batch.py                ← bulk replay parsing (parse_many, parallel workers)
-replay_fetch.py         ← download + decompress replays from OpenDota/Valve CDN
-__init__.py             ← public API surface (parse, ParsedMatch, analysis helpers, …)
-__main__.py             ← CLI entry point (python -m gem)
+binary/reader.py          ← BitReader, all bit/byte/varint primitives
+binary/stream.py          ← outer message loop, Snappy decompress, magic check
+schema/sendtable.py       ← serializer + field tree (requires reader)
+schema/field_decoder.py   ← type-dispatch decoders + QuantizedFloatDecoder
+schema/field_path.py      ← Huffman-coded field path ops (requires reader)
+schema/field_state.py     ← nested mutable field-value tree (mirrors manta/field_state.go)
+schema/field_reader.py    ← field decoder dispatch + entity field reading (mirrors manta/field_reader.go)
+string_table.py           ← incremental key-history string tables
+entities.py               ← entity create/update/delete lifecycle + state
+game_events.py            ← game event schema + typed dispatch
+combatlog.py              ← S1 (game event) + S2 (user message) combat log
+combat_aggregator.py      ← per-player combat log accumulation → damage/heal/kill/purchase tallies
+parser.py                 ← top-level orchestrator wiring everything together
+extractors/               ← per-tick polling of entity state for output (see below)
+constants.py              ← hero/item/ability/XP lookups over bundled src/gem/data/ JSON
+models.py                 ← ParsedMatch, ParsedPlayer, ChatEntry, NeutralItemFoundEvent dataclasses
+match_builder.py          ← wires extractor outputs into ParsedMatch
+analysis.py               ← post-parse analysis helpers (higher-level transforms on ParsedMatch)
+map_context.py            ← objective-aware map-context buckets (experimental farming analysis)
+rosh_conversion.py        ← post-parse Roshan conversion records (did a Rosh convert to a win?)
+dataframes.py             ← converts ParsedMatch to pandas DataFrames
+batch.py                  ← bulk replay parsing (parse_many, parallel workers)
+replay_fetch.py           ← download + decompress replays from OpenDota/Valve CDN
+__init__.py               ← public API surface (parse, ParsedMatch, analysis helpers, …)
+__main__.py               ← CLI entry point (python -m gem)
 ```
 
 The **`extractors/`** package polls entity/combat-log state during parse:
@@ -108,8 +108,9 @@ extractors/_snapshots.py    ← shared snapshot dataclasses/sampling helpers
 | `refs/clarity/` | Java | Correctness authority for edge cases; combat log two-path handling |
 | `refs/parser/` | Java | Output schema authority (`Entry.java`, `CreateParsedDataBlob.java`) |
 
-When translating from Manta, the Go file maps 1:1 to the Python module:
-`manta/reader.go` → `reader.py`, `manta/entity.go` → `entities.py`, etc.
+When translating from Manta, the Go file maps closely to the Python module:
+`manta/reader.go` → `binary/reader.py`, `manta/field_reader.go` →
+`schema/field_reader.py`, `manta/entity.go` → `entities.py`, etc.
 
 ### MANDATORY: Check refs before implementing
 
@@ -167,7 +168,7 @@ The CLI is `python -m gem` (`__main__.py`).
 
 Entities are game objects (heroes, towers, items, game rules). Their schema is defined in `CDemoSendTables` → `CSVCMsg_FlattenedSerializer`, parsed into a tree of `Serializer` → `Field` objects. Each field has a decoder function resolved once at schema-parse time.
 
-Entity state arrives as `CSVCMsg_PacketEntities`. Each packet carries a list of (index, 2-bit command, field deltas). Field deltas use Huffman-coded field paths (40 ops, `field_path.py`) to address into the serializer tree, then the field's decoder reads the value from the bit stream.
+Entity state arrives as `CSVCMsg_PacketEntities`. Each packet carries a list of (index, 2-bit command, field deltas). Field deltas use Huffman-coded field paths (40 ops, `schema/field_path.py`) to address into the serializer tree, then the field's decoder reads the value from the bit stream.
 
 The `instancebaseline` string table holds default field values per class — applied first when an entity is created, before the packet's own deltas.
 
@@ -357,7 +358,7 @@ state rather than trusting a static table here.
 ## Tests
 
 ~50 test files in `tests/`, conventionally one `test_<module>.py` per source
-module (e.g. `test_reader.py` → `reader.py`, `test_wards_extractor.py` →
+module or subsystem (e.g. `test_reader.py` → `binary/reader.py`, `test_wards_extractor.py` →
 `extractors/wards.py`). Newer additions cover `map_context.py`,
 `rosh_conversion.py`, neutral-item parsing, camp zones, and the audit/fetch
 scripts (`test_audit_camp_annotations.py`, `test_audit_opendota_fixture_constants.py`,

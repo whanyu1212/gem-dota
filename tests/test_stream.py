@@ -1,5 +1,5 @@
 """
-Tests for gem.stream — outer message reading and magic validation.
+Tests for gem.binary.stream — outer message reading and magic validation.
 
 Reference: manta/parser.go (NewStreamParser, readOuterMessage)
 """
@@ -44,7 +44,7 @@ def _build_dem(messages: list[tuple[int, int, bytes]]) -> bytes:
 
 @pytest.fixture
 def stream_cls():
-    from gem.stream import DemoStream
+    from gem.binary.stream import DemoStream
 
     return DemoStream
 

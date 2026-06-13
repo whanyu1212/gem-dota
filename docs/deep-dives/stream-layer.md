@@ -1,8 +1,8 @@
 # Stream Layer
 
-This page explains `src/gem/stream.py` line by line.
+This page explains `src/gem/binary/stream.py` line by line.
 
-`stream.py` is the outer container reader. It does **not** parse protobuf fields. It only turns replay bytes into normalized outer messages:
+`binary/stream.py` is the outer container reader. It does **not** parse protobuf fields. It only turns replay bytes into normalized outer messages:
 
 ```python
 (tick, msg_type, data)
@@ -111,7 +111,7 @@ If magic mismatches, parsing stops immediately. This protects every downstream l
 
 ## Varuint decoder (`_read_varuint32`)
 
-`stream.py` decodes varuint directly in-place for speed:
+`binary/stream.py` decodes varuint directly in-place for speed:
 
 ```python
 x = 0
@@ -135,7 +135,7 @@ This method is used for `command`, `tick`, and `size` fields in every outer mess
 
 ## Core parse step (`_read_message`)
 
-Real flow in `stream.py`:
+Real flow in `binary/stream.py`:
 
 ```python
 command = self._read_varuint32()
@@ -184,7 +184,7 @@ This isolates compression handling from main parser logic.
 ## End-to-end example
 
 ```python
-from gem.stream import DemoStream
+from gem.binary.stream import DemoStream
 
 with DemoStream("tests/fixtures/8520014563.dem") as stream:
     for i, (tick, msg_type, data) in enumerate(stream):

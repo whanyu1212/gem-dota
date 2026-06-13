@@ -19,11 +19,11 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
-from gem.field_path import FieldPath
-from gem.field_reader import read_fields
-from gem.field_state import FieldState
-from gem.reader import BitReader
-from gem.sendtable import (
+from gem.binary.reader import BitReader
+from gem.schema.field_path import FieldPath
+from gem.schema.field_reader import read_fields
+from gem.schema.field_state import FieldState
+from gem.schema.sendtable import (
     FIELD_MODEL_FIXED_ARRAY,
     FIELD_MODEL_FIXED_TABLE,
     FIELD_MODEL_VARIABLE_ARRAY,

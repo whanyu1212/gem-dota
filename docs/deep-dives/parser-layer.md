@@ -4,7 +4,7 @@ This page explains `src/gem/parser.py` in execution order.
 
 `parser.py` is the orchestrator layer. It connects:
 
-1. outer stream reading (`stream.py`),
+1. outer stream reading (`binary/stream.py`),
 2. protobuf decoding,
 3. inner message unpacking,
 4. stateful subsystems (send tables, string tables, entities, game events, combat log),
@@ -25,7 +25,7 @@ Prerequisite: [Bits & Bytes Primer](../cookbook/bits-and-bytes-primer.md)
 
 ### Outer command IDs
 
-These are outer `EDemoCommands` IDs (with compression bit already stripped by `stream.py`):
+These are outer `EDemoCommands` IDs (with compression bit already stripped by `binary/stream.py`):
 
 | Constant | Value | Seen where | Why parser cares |
 |---|---|---|---|
@@ -268,8 +268,8 @@ Meaning for users:
 
 Detailed decoding lives in:
 
-1. `reader.py` for bit primitives,
-2. `sendtable.py`, `field_decoder.py`, `field_path.py` for schema+field decode,
+1. `binary/reader.py` for bit primitives,
+2. `schema/sendtable.py`, `schema/field_decoder.py`, `schema/field_path.py` for schema+field decode,
 3. `entities.py` for delta application logic.
 
 When debugging:
@@ -279,7 +279,7 @@ When debugging:
 
 ## Next pages
 
-1. [SendTable Layer (`sendtable.py`)](sendtable-layer.md)
+1. [SendTable Layer (`schema/sendtable.py`)](sendtable-layer.md)
 2. [State Reconstruction Layer (`string_table.py` + `entities.py`)](state-layer.md)
 3. [Entity State](../guides/02_entity_state.md)
 4. [Combat Log](../guides/03_combat_log.md)

@@ -1,14 +1,14 @@
-"""Tests for gem.field_reader — field decoder dispatch and read_fields.
+"""Tests for gem.schema.field_reader — field decoder dispatch and read_fields.
 
 Reference: manta/field_reader.go, manta/field.go (getDecoderForFieldPath)
 """
 
 from __future__ import annotations
 
-from gem.field_path import FieldPath
-from gem.field_reader import _get_decoder, _get_decoder_for_field, read_fields
-from gem.field_state import FieldState
-from gem.sendtable import (
+from gem.schema.field_path import FieldPath
+from gem.schema.field_reader import _get_decoder, _get_decoder_for_field, read_fields
+from gem.schema.field_state import FieldState
+from gem.schema.sendtable import (
     FIELD_MODEL_FIXED_ARRAY,
     FIELD_MODEL_FIXED_TABLE,
     FIELD_MODEL_SIMPLE,
@@ -304,7 +304,7 @@ class TestReadFields:
 
     def test_read_fields_writes_decoded_value_into_state(self):
         """A PlusOne path followed by Finish should decode fields[0] once."""
-        from gem.reader import BitReader
+        from gem.binary.reader import BitReader
 
         # PlusOne (0) then FieldPathEncodeFinish (10) — see test_field_path.py
         data = self._bits_to_bytes("010")
@@ -329,7 +329,7 @@ class TestReadFields:
 
     def test_read_fields_no_paths_when_immediate_finish(self):
         """If the first Huffman op is FieldPathEncodeFinish, no fields are decoded."""
-        from gem.reader import BitReader
+        from gem.binary.reader import BitReader
 
         # FieldPathEncodeFinish immediately
         data = self._bits_to_bytes("10")
@@ -352,7 +352,7 @@ class TestReadFields:
     def test_read_fields_skips_none_decoder(self):
         """If a field has no decoder (None), read_fields must not call it
         and must leave the state slot untouched (i.e., None)."""
-        from gem.reader import BitReader
+        from gem.binary.reader import BitReader
 
         # PlusOne then Finish — targets fields[0]
         data = self._bits_to_bytes("010")
@@ -369,7 +369,7 @@ class TestReadFields:
 
     def test_read_fields_does_not_raise_on_empty_state(self):
         """read_fields on an empty/fresh FieldState must not raise."""
-        from gem.reader import BitReader
+        from gem.binary.reader import BitReader
 
         data = self._bits_to_bytes("10")  # immediate finish
         ser = _make_serializer()
@@ -379,7 +379,7 @@ class TestReadFields:
 
     def test_read_fields_calls_decoder_with_reader(self):
         """The decoder must receive the BitReader instance."""
-        from gem.reader import BitReader
+        from gem.binary.reader import BitReader
 
         data = self._bits_to_bytes("010")
 
@@ -401,7 +401,7 @@ class TestReadFields:
 
     def test_read_fields_returns_none(self):
         """read_fields is a void function — must return None."""
-        from gem.reader import BitReader
+        from gem.binary.reader import BitReader
 
         data = self._bits_to_bytes("10")
         f = _make_field(FIELD_MODEL_SIMPLE, decoder=lambda r: 0)

@@ -17,7 +17,7 @@ from gem.entities import (
     FieldState,
     _find_field_path,
 )
-from gem.field_path import FieldPath
+from gem.schema.field_path import FieldPath
 from gem.string_table import StringTable, StringTables
 
 
@@ -362,7 +362,7 @@ class TestEntityGetViaFieldState:
 
     def _make_simple_serializer(self):
         """Build a minimal serializer with one simple field."""
-        from gem.sendtable import FIELD_MODEL_SIMPLE, Field, Serializer
+        from gem.schema.sendtable import FIELD_MODEL_SIMPLE, Field, Serializer
 
         decoder = lambda r: 777  # noqa: E731
 
@@ -382,7 +382,7 @@ class TestEntityGetViaFieldState:
 
     def _make_array_serializer(self):
         """Build a minimal serializer with one fixed-array field."""
-        from gem.sendtable import FIELD_MODEL_FIXED_ARRAY, Field, Serializer
+        from gem.schema.sendtable import FIELD_MODEL_FIXED_ARRAY, Field, Serializer
 
         f = Field.__new__(Field)
         f.var_name = "m_Arr"
@@ -444,7 +444,7 @@ class TestEntityGetViaFieldState:
 
 class TestFindFieldPath:
     def _ser_with_fields(self, *var_names):
-        from gem.sendtable import FIELD_MODEL_SIMPLE, Field, Serializer
+        from gem.schema.sendtable import FIELD_MODEL_SIMPLE, Field, Serializer
 
         fields = []
         for name in var_names:
@@ -481,7 +481,7 @@ class TestFindFieldPath:
         assert _find_field_path(ser, "m_flSpeed") is None
 
     def test_nested_fixed_table(self):
-        from gem.sendtable import FIELD_MODEL_FIXED_TABLE, Field, Serializer
+        from gem.schema.sendtable import FIELD_MODEL_FIXED_TABLE, Field, Serializer
 
         inner = self._ser_with_fields("m_x")
 
@@ -505,7 +505,7 @@ class TestFindFieldPath:
         assert fp.last == 1
 
     def test_fixed_array_index(self):
-        from gem.sendtable import FIELD_MODEL_FIXED_ARRAY, Field, Serializer
+        from gem.schema.sendtable import FIELD_MODEL_FIXED_ARRAY, Field, Serializer
 
         f = Field.__new__(Field)
         f.var_name = "m_Items"
@@ -527,7 +527,7 @@ class TestFindFieldPath:
         assert fp.last == 1
 
     def test_variable_array_index(self):
-        from gem.sendtable import FIELD_MODEL_VARIABLE_ARRAY, Field, Serializer
+        from gem.schema.sendtable import FIELD_MODEL_VARIABLE_ARRAY, Field, Serializer
 
         f = Field.__new__(Field)
         f.var_name = "m_Vec"
@@ -547,7 +547,7 @@ class TestFindFieldPath:
         assert fp.path[1] == 7
 
     def test_variable_table_nested(self):
-        from gem.sendtable import FIELD_MODEL_VARIABLE_TABLE, Field, Serializer
+        from gem.schema.sendtable import FIELD_MODEL_VARIABLE_TABLE, Field, Serializer
 
         inner = self._ser_with_fields("m_val")
 
@@ -670,7 +670,7 @@ class TestEntityManagerClassInfo:
         assert "CDOTA_Unit_Hero_Axe" in em.classes_by_name
 
     def test_serializer_linked_when_present(self):
-        from gem.sendtable import Serializer
+        from gem.schema.sendtable import Serializer
 
         ser = Serializer.__new__(Serializer)
         ser.name = "CDOTA_Unit_Hero_Axe"

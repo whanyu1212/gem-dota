@@ -1,12 +1,12 @@
-"""Tests for gem.field_state — FieldState nested tree.
+"""Tests for gem.schema.field_state — FieldState nested tree.
 
 Reference: manta/field_state.go
 """
 
 import pytest
 
-from gem.field_path import FieldPath
-from gem.field_state import FieldState
+from gem.schema.field_path import FieldPath
+from gem.schema.field_state import FieldState
 
 # ---------------------------------------------------------------------------
 # Helpers

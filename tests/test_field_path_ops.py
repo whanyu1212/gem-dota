@@ -1,4 +1,4 @@
-"""Unit tests for the 40 Huffman field-path operations in gem.field_path.
+"""Unit tests for the 40 Huffman field-path operations in gem.schema.field_path.
 
 Each op function is tested in isolation by calling ``FIELD_PATH_OPS[i].fn``
 directly with a synthetic ``BitReader`` and a fresh ``FieldPath``, bypassing
@@ -11,8 +11,8 @@ from __future__ import annotations
 
 import pytest
 
-from gem.field_path import FIELD_PATH_OPS, FieldPath
-from gem.reader import BitReader
+from gem.binary.reader import BitReader
+from gem.schema.field_path import FIELD_PATH_OPS, FieldPath
 
 # ---------------------------------------------------------------------------
 # Helpers
