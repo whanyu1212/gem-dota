@@ -22,7 +22,7 @@ _runtime_version.ValidateProtobufRuntimeVersion(
 _sym_db = _symbol_database.Default()
 
 
-from steammessages_unified_base import steamworkssdk_pb2 as steammessages__unified__base_dot_steamworkssdk__pb2
+from ..steammessages_unified_base import steamworkssdk_pb2 as steammessages__unified__base_dot_steamworkssdk__pb2
 
 
 DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\'steammessages_oauth.steamworkssdk.proto\x1a.steammessages_unified_base.steamworkssdk.proto\"{\n)COAuthToken_ImplicitGrantNoPrompt_Request\x12N\n\x08\x63lientid\x18\x01 \x01(\tB<\x82\xb5\x18\x38\x43lient ID for which to count the number of issued tokens\"\xb7\x01\n*COAuthToken_ImplicitGrantNoPrompt_Response\x12\x39\n\x0c\x61\x63\x63\x65ss_token\x18\x01 \x01(\tB#\x82\xb5\x18\x1fOAuth Token, granted on success\x12N\n\x0credirect_uri\x18\x02 \x01(\tB8\x82\xb5\x18\x34Redirection URI provided during client registration.2\xb1\x02\n\nOAuthToken\x12\xeb\x01\n\x15ImplicitGrantNoPrompt\x12*.COAuthToken_ImplicitGrantNoPrompt_Request\x1a+.COAuthToken_ImplicitGrantNoPrompt_Response\"y\x82\xb5\x18uGrants an implicit OAuth token (grant type \'token\') for the specified client ID on behalf of a user without prompting\x1a\x35\x82\xb5\x18\x31Service containing methods to manage OAuth tokens')
