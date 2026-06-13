@@ -676,12 +676,19 @@ class TestTimeSeriesInclusion:
 @pytest.mark.slow
 @pytest.mark.integration
 class TestMLTotalsIntegration:
-    @pytest.fixture(autouse=True)
-    def _require_fixture(self):
+    @pytest.fixture(scope="class")
+    def player_ext(self):
+        """Parse the replay once per class and share the populated extractor.
+
+        Class-scoped so the 266 MB fixture is parsed a single time for the whole
+        class instead of once per test method.
+
+        Returns:
+            A ``PlayerExtractor`` populated from a full parse of the fixture.
+        """
         if not FIXTURE.exists():
             pytest.skip("Integration fixture not available")
 
-    def test_running_totals_populated(self):
         from gem.extractors.players import PlayerExtractor
         from gem.parser import ReplayParser
 
@@ -689,26 +696,20 @@ class TestMLTotalsIntegration:
         ext = PlayerExtractor(sample_interval=300)
         ext.attach(parser)
         parser.parse()
+        return ext
 
+    def test_running_totals_populated(self, player_ext):
         # At least one player should have non-zero hero damage by end of game
         total_damage_sum = sum(
-            ext.time_series(pid).total_hero_damage_t[-1]
+            player_ext.time_series(pid).total_hero_damage_t[-1]
             for pid in range(10)
-            if ext.time_series(pid).total_hero_damage_t
+            if player_ext.time_series(pid).total_hero_damage_t
         )
         assert total_damage_sum > 0, "expected non-zero total hero damage across all players"
 
-    def test_running_totals_monotonic_in_time_series(self):
-        from gem.extractors.players import PlayerExtractor
-        from gem.parser import ReplayParser
-
-        parser = ReplayParser(str(FIXTURE))
-        ext = PlayerExtractor(sample_interval=300)
-        ext.attach(parser)
-        parser.parse()
-
+    def test_running_totals_monotonic_in_time_series(self, player_ext):
         for pid in range(10):
-            ts = ext.time_series(pid)
+            ts = player_ext.time_series(pid)
             if not ts.total_hero_damage_t:
                 continue
             assert ts.total_hero_damage_t == sorted(ts.total_hero_damage_t), (
@@ -718,17 +719,9 @@ class TestMLTotalsIntegration:
                 f"player {pid}: total_deaths_t not monotonic"
             )
 
-    def test_time_series_list_lengths_equal(self):
-        from gem.extractors.players import PlayerExtractor
-        from gem.parser import ReplayParser
-
-        parser = ReplayParser(str(FIXTURE))
-        ext = PlayerExtractor(sample_interval=300)
-        ext.attach(parser)
-        parser.parse()
-
+    def test_time_series_list_lengths_equal(self, player_ext):
         for pid in range(10):
-            ts = ext.time_series(pid)
+            ts = player_ext.time_series(pid)
             n = len(ts.ticks)
             assert len(ts.total_hero_damage_t) == n, f"player {pid}: damage list length mismatch"
             assert len(ts.total_hero_healing_t) == n, f"player {pid}: healing list length mismatch"
