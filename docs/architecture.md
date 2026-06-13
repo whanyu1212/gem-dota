@@ -20,13 +20,13 @@ flowchart TD
         direction LR
         D["schema/sendtable.py\nserializer tree"] --> E["schema/field_decoder.py\ntype dispatch"]
         D --> F["schema/field_path.py\nHuffman paths"]
-        G["string_table.py\nkey-value tables"]
-        H["entities.py\ndelta updates"]
+        G["state/string_table.py\nkey-value tables"]
+        H["state/entities.py\ndelta updates"]
     end
 
     subgraph EVENTS ["Events"]
         direction LR
-        I["game_events.py"]
+        I["state/game_events.py"]
         J["combatlog.py"]
     end
 
@@ -87,15 +87,15 @@ flowchart TD
       <span class="arch-badge">schema/sendtable.py</span>
       <span class="arch-badge">schema/field_decoder.py</span>
       <span class="arch-badge">schema/field_path.py</span>
-      <span class="arch-badge">string_table.py</span>
-      <span class="arch-badge">entities.py</span>
+      <span class="arch-badge">state/string_table.py</span>
+      <span class="arch-badge">state/entities.py</span>
     </div>
   </div>
 
   <div class="arch-layer arch-layer--parse">
     <span class="arch-layer-label">Events</span>
     <div class="arch-layer-modules">
-      <span class="arch-badge">game_events.py</span>
+      <span class="arch-badge">state/game_events.py</span>
       <span class="arch-badge">combatlog.py</span>
     </div>
   </div>

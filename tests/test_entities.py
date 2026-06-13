@@ -1,5 +1,5 @@
 """
-Tests for gem.entities — entity lifecycle, state, and typed accessors.
+Tests for gem.state.entities — entity lifecycle, state, and typed accessors.
 
 Reference: manta/entity.go
 """
@@ -8,7 +8,8 @@ from __future__ import annotations
 
 import pytest
 
-from gem.entities import (
+from gem.schema.field_path import FieldPath
+from gem.state.entities import (
     ClassInfo,
     Entity,
     EntityManager,
@@ -17,20 +18,19 @@ from gem.entities import (
     FieldState,
     _find_field_path,
 )
-from gem.schema.field_path import FieldPath
-from gem.string_table import StringTable, StringTables
+from gem.state.string_table import StringTable, StringTables
 
 
 @pytest.fixture
 def entity_cls():
-    from gem.entities import Entity
+    from gem.state.entities import Entity
 
     return Entity
 
 
 @pytest.fixture
 def entity_op():
-    from gem.entities import EntityOp
+    from gem.state.entities import EntityOp
 
     return EntityOp
 
@@ -141,7 +141,7 @@ class TestEntityState:
 
 class TestEntityHandlers:
     def test_on_entity_called(self):
-        from gem.entities import EntityOp, EntityTracker
+        from gem.state.entities import EntityOp, EntityTracker
 
         tracker = EntityTracker()
         received = []
@@ -156,7 +156,7 @@ class TestEntityHandlers:
             class_id = 1
             serializer = None
 
-        from gem.entities import Entity
+        from gem.state.entities import Entity
 
         e = Entity(index=0, serial=0, cls=FakeClass())
         tracker._dispatch(e, EntityOp.CREATED_ENTERED)

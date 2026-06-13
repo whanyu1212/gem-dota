@@ -179,7 +179,7 @@ class TestDecodeTableCrossValidation:
         if not os.path.exists(fixture):
             pytest.skip("truncated fixture not found")
 
-        import gem.entities as entities_mod
+        import gem.state.entities as entities_mod
 
         buffers = []
         MAX_CAPTURE = 2000

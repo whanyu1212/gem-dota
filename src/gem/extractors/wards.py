@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal
 
 from gem.combatlog import CombatLogEntry
-from gem.entities import Entity, EntityOp
+from gem.state.entities import Entity, EntityOp
 
 if TYPE_CHECKING:
     from gem.parser import ReplayParser

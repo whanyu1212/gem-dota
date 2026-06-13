@@ -4,8 +4,8 @@ This page explains how gem turns packet updates into live world state.
 
 Modules covered:
 
-1. `src/gem/string_table.py`
-2. `src/gem/entities.py`
+1. `src/gem/state/string_table.py`
+2. `src/gem/state/entities.py`
 
 Prerequisites:
 
@@ -16,14 +16,14 @@ Prerequisites:
 
 ## Why these two modules are one layer
 
-`string_table.py` and `entities.py` are tightly coupled:
+`state/string_table.py` and `state/entities.py` are tightly coupled:
 
 1. String tables carry lookup data and baselines.
 2. Entities consume those baselines and decode deltas against them.
 
 Without string table updates, entity decoding is incomplete or wrong.
 
-## `string_table.py` constants and structures
+## `state/string_table.py` constants and structures
 
 ### Constants
 
@@ -59,7 +59,7 @@ For each update entry:
 
 Output is an ordered list of `(index, key, value)` updates.
 
-## Message handlers in `string_table.py`
+## Message handlers in `state/string_table.py`
 
 ### `handle_create(msg, string_tables)`
 
@@ -78,7 +78,7 @@ Output is an ordered list of `(index, key, value)` updates.
 
 This merge behavior is critical because updates may send only key or only value.
 
-## `entities.py` constants and structures
+## `state/entities.py` constants and structures
 
 ### Constants
 
@@ -238,6 +238,6 @@ When symptoms are “fields missing/wrong after parser is otherwise healthy,” 
 
 ## Next pages
 
-1. [Event Normalization Layer (`game_events.py` + `combatlog.py`)](event-layer.md)
+1. [Event Normalization Layer (`state/game_events.py` + `combatlog.py`)](event-layer.md)
 2. [Entity State](../guides/02_entity_state.md)
 3. [Combat Log](../guides/03_combat_log.md)

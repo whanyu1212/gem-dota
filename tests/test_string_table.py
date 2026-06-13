@@ -1,5 +1,5 @@
 """
-Tests for gem.string_table — string table creation, updates, and key-history compression.
+Tests for gem.state.string_table — string table creation, updates, and key-history compression.
 
 Reference: manta/string_table.go
 """
@@ -12,21 +12,21 @@ import snappy
 
 @pytest.fixture
 def string_tables_cls():
-    from gem.string_table import StringTables
+    from gem.state.string_table import StringTables
 
     return StringTables
 
 
 @pytest.fixture
 def string_table_cls():
-    from gem.string_table import StringTable
+    from gem.state.string_table import StringTable
 
     return StringTable
 
 
 @pytest.fixture
 def parse_string_table():
-    from gem.string_table import parse_string_table
+    from gem.state.string_table import parse_string_table
 
     return parse_string_table
 
@@ -777,7 +777,7 @@ class TestHandleCreate:
         return m
 
     def test_registers_table_in_container(self, string_tables_cls):
-        from gem.string_table import handle_create
+        from gem.state.string_table import handle_create
 
         st = string_tables_cls()
         msg = self._make_create_msg("instancebaseline")
@@ -785,7 +785,7 @@ class TestHandleCreate:
         assert st.get_by_name("instancebaseline") is tbl
 
     def test_table_index_starts_at_zero(self, string_tables_cls):
-        from gem.string_table import handle_create
+        from gem.state.string_table import handle_create
 
         st = string_tables_cls()
         msg = self._make_create_msg("first")
@@ -793,7 +793,7 @@ class TestHandleCreate:
         assert tbl.index == 0
 
     def test_next_index_increments_per_create(self, string_tables_cls):
-        from gem.string_table import handle_create
+        from gem.state.string_table import handle_create
 
         st = string_tables_cls()
         t0 = handle_create(self._make_create_msg("alpha"), st)
@@ -805,7 +805,7 @@ class TestHandleCreate:
         assert st._next_index == 3
 
     def test_creates_table_with_correct_metadata(self, string_tables_cls):
-        from gem.string_table import handle_create
+        from gem.state.string_table import handle_create
 
         st = string_tables_cls()
         msg = self._make_create_msg(
@@ -823,7 +823,7 @@ class TestHandleCreate:
         assert tbl.varint_bit_counts is True
 
     def test_parses_initial_items_into_table(self, string_tables_cls):
-        from gem.string_table import handle_create
+        from gem.state.string_table import handle_create
 
         bits = _build_entry_bits(incr=True, key="slot_0", value=b"\x01")
         bits += _build_entry_bits(incr=True, key="slot_1", value=b"\x02")
@@ -839,7 +839,7 @@ class TestHandleCreate:
         assert tbl.items[1] == ("slot_1", b"\x02")
 
     def test_data_compressed_blob_is_decompressed(self, string_tables_cls):
-        from gem.string_table import handle_create
+        from gem.state.string_table import handle_create
 
         bits = _build_entry_bits(incr=True, key="compressed_key", value=b"\xde\xad")
         raw_blob = _pack_bits(bits)
@@ -856,7 +856,7 @@ class TestHandleCreate:
         assert tbl.items[0] == ("compressed_key", b"\xde\xad")
 
     def test_data_compressed_lzss_raises(self, string_tables_cls):
-        from gem.string_table import handle_create
+        from gem.state.string_table import handle_create
 
         st = string_tables_cls()
         msg = self._make_create_msg(
@@ -868,7 +868,7 @@ class TestHandleCreate:
             handle_create(msg, st)
 
     def test_empty_data_creates_table_with_no_items(self, string_tables_cls):
-        from gem.string_table import handle_create
+        from gem.state.string_table import handle_create
 
         st = string_tables_cls()
         msg = self._make_create_msg("empty_table", string_data=b"", num_entries=0)
@@ -876,7 +876,7 @@ class TestHandleCreate:
         assert tbl.items == {}
 
     def test_get_by_id_returns_same_table(self, string_tables_cls):
-        from gem.string_table import handle_create
+        from gem.state.string_table import handle_create
 
         st = string_tables_cls()
         handle_create(self._make_create_msg("t0"), st)
@@ -910,7 +910,7 @@ class TestHandleUpdate:
         return m
 
     def _create_table_with_items(self, string_tables_cls, string_table_cls, name: str, items: dict):
-        from gem.string_table import StringTable
+        from gem.state.string_table import StringTable
 
         st = string_tables_cls()
         tbl = StringTable(index=0, name=name)
@@ -921,7 +921,7 @@ class TestHandleUpdate:
         return st, tbl
 
     def test_update_replaces_value_of_existing_entry(self, string_tables_cls, string_table_cls):
-        from gem.string_table import handle_update
+        from gem.state.string_table import handle_update
 
         st, tbl = self._create_table_with_items(
             string_tables_cls, string_table_cls, "test", {0: ("hero", b"\x01")}
@@ -932,7 +932,7 @@ class TestHandleUpdate:
         assert tbl.items[0] == ("hero", b"\x99")
 
     def test_update_blank_key_preserves_existing_key(self, string_tables_cls, string_table_cls):
-        from gem.string_table import handle_update
+        from gem.state.string_table import handle_update
 
         # Existing entry has key "oldkey"; update sends no key (key="")
         st, tbl = self._create_table_with_items(
@@ -947,7 +947,7 @@ class TestHandleUpdate:
         assert val == b"\x02"
 
     def test_update_blank_value_preserves_existing_value(self, string_tables_cls, string_table_cls):
-        from gem.string_table import handle_update
+        from gem.state.string_table import handle_update
 
         st, tbl = self._create_table_with_items(
             string_tables_cls, string_table_cls, "test", {0: ("mykey", b"\xde\xad")}
@@ -960,7 +960,7 @@ class TestHandleUpdate:
         assert val == b"\xde\xad"
 
     def test_update_inserts_new_entry(self, string_tables_cls, string_table_cls):
-        from gem.string_table import handle_update
+        from gem.state.string_table import handle_update
 
         st, tbl = self._create_table_with_items(string_tables_cls, string_table_cls, "test", {})
         bits = _build_entry_bits(incr=True, key="newkey", value=b"\xaa")
@@ -970,7 +970,7 @@ class TestHandleUpdate:
         assert tbl.items[0] == ("newkey", b"\xaa")
 
     def test_update_multiple_entries(self, string_tables_cls, string_table_cls):
-        from gem.string_table import handle_update
+        from gem.state.string_table import handle_update
 
         st, tbl = self._create_table_with_items(
             string_tables_cls,
@@ -986,7 +986,7 @@ class TestHandleUpdate:
         assert tbl.items[1] == ("b", b"\x20")
 
     def test_update_missing_table_raises_key_error(self, string_tables_cls):
-        from gem.string_table import handle_update
+        from gem.state.string_table import handle_update
 
         st = string_tables_cls()
         bits = _build_entry_bits(incr=True, key="k", value=b"\x01")
@@ -995,7 +995,7 @@ class TestHandleUpdate:
             handle_update(msg, st)
 
     def test_update_absolute_index_into_existing_table(self, string_tables_cls, string_table_cls):
-        from gem.string_table import handle_update
+        from gem.state.string_table import handle_update
 
         # Pre-populate entries 0..4; update jumps to absolute index 3.
         items = {i: (f"k{i}", bytes([i])) for i in range(5)}

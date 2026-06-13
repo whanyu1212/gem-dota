@@ -28,7 +28,7 @@ class FakeClass:
 
 
 def _make_entity(class_name: str, state: dict | None = None):
-    from gem.entities import Entity
+    from gem.state.entities import Entity
 
     e = Entity(index=0, serial=0, cls=FakeClass(class_name))
     if state:
@@ -528,7 +528,7 @@ class TestOnEntity:
         return FakeParser()
 
     def test_non_grp_entity_ignored(self):
-        from gem.entities import EntityOp
+        from gem.state.entities import EntityOp
 
         ext = DraftExtractor()
         parser = self._make_parser()
@@ -539,7 +539,7 @@ class TestOnEntity:
         assert ext.draft_events == []
 
     def test_grp_entity_triggers_check(self):
-        from gem.entities import EntityOp
+        from gem.state.entities import EntityOp
 
         ext = DraftExtractor()
         parser = self._make_parser()
@@ -553,7 +553,7 @@ class TestOnEntity:
         assert len(ext.draft_events) == 1
 
     def test_grp_deleted_clears_grp_ref(self):
-        from gem.entities import EntityOp
+        from gem.state.entities import EntityOp
 
         ext = DraftExtractor()
         parser = self._make_parser()
@@ -567,7 +567,7 @@ class TestOnEntity:
         assert ext._grp is None
 
     def test_grp_deleted_does_not_check_draft(self):
-        from gem.entities import EntityOp
+        from gem.state.entities import EntityOp
 
         ext = DraftExtractor()
         parser = self._make_parser()
@@ -582,7 +582,7 @@ class TestOnEntity:
         assert ext.draft_events == []
 
     def test_cdota_player_resource_does_not_trigger_draft(self):
-        from gem.entities import EntityOp
+        from gem.state.entities import EntityOp
 
         ext = DraftExtractor()
         parser = self._make_parser()

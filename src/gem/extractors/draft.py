@@ -20,7 +20,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from gem.constants import HEROES
-from gem.entities import Entity, EntityOp
+from gem.state.entities import Entity, EntityOp
 
 if TYPE_CHECKING:
     from gem.models import ParsedPlayer

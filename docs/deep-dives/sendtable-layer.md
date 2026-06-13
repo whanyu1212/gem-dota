@@ -18,7 +18,7 @@ Its job is to convert raw send-table payloads into a runtime schema:
 dict[str, Serializer]
 ```
 
-That schema is then used by `entities.py` to decode field deltas.
+That schema is then used by `state/entities.py` to decode field deltas.
 
 ## Input and output
 
@@ -84,7 +84,7 @@ Container for one class schema:
 2. `version`
 3. ordered `fields`
 
-`entities.py` depends on this order for field path resolution and field-state decode.
+`state/entities.py` depends on this order for field path resolution and field-state decode.
 
 ## Build-range patch subsystem
 
@@ -139,7 +139,7 @@ Decision order in code:
 3. Else if base type is vector container (`CUtlVector`, `CNetworkUtlVectorBase`) -> `FIELD_MODEL_VARIABLE_ARRAY`
 4. Else -> `FIELD_MODEL_SIMPLE`
 
-This decision is critical because `entities.py` decode path depends on model shape.
+This decision is critical because `state/entities.py` decode path depends on model shape.
 
 ## Real output snapshot
 
@@ -171,4 +171,4 @@ Symptoms usually appear later as entity fields being wrong or missing.
 
 ## Next page
 
-- [State Reconstruction Layer (`string_table.py` + `entities.py`)](state-layer.md)
+- [State Reconstruction Layer (`state/string_table.py` + `state/entities.py`)](state-layer.md)

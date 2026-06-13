@@ -47,8 +47,6 @@ from gem.binary.reader import BitReader
 from gem.binary.stream import DemoStream
 from gem.combatlog import CombatLogHandler, CombatLogProcessor
 from gem.constants import item_key_by_id
-from gem.entities import Entity, EntityManager, EntityOp
-from gem.game_events import GameEventHandler, GameEventManager
 from gem.models import ChatEntry, NeutralItemFoundEvent
 from gem.proto import (
     dota_commonmessages_pb2,  # noqa: F401
@@ -76,7 +74,9 @@ from gem.proto.netmessages_pb2 import (
     CSVCMsg_UserMessage,
 )
 from gem.schema.sendtable import parse_send_tables
-from gem.string_table import StringTables, handle_create, handle_update
+from gem.state.entities import Entity, EntityManager, EntityOp
+from gem.state.game_events import GameEventHandler, GameEventManager
+from gem.state.string_table import StringTables, handle_create, handle_update
 
 # ---------------------------------------------------------------------------
 # Outer EDemoCommands IDs (stripped of DEM_IsCompressed = 0x40)
@@ -528,7 +528,7 @@ class ReplayParser:
         if schema is not None and schema.name == "dota_combatlog":
             name_table = self.string_tables.get_by_name(_COMBAT_LOG_NAMES_TABLE)
             if name_table is not None:
-                from gem.game_events import GameEvent
+                from gem.state.game_events import GameEvent
 
                 event = GameEvent(schema=schema, msg=msg)
                 self.combat_log.process_s1_event(event, name_table, tick=self.tick)

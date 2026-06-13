@@ -21,7 +21,7 @@ See also: [How Proto Parsing Works](../cookbook/proto-parsing-pipeline.md)
 
 ## Generated API
 
-## `gem.string_table.StringTables`
+## `gem.state.string_table.StringTables`
 
 ### `StringTables`
 
@@ -31,7 +31,7 @@ class StringTables
 
 Container for all string tables registered during a replay.
 
-Source: [src/gem/string_table.py:61](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/string_table.py#L61)
+Source: [src/gem/state/string_table.py:61](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L61)
 
 #### Methods
 
@@ -41,7 +41,7 @@ Signature: `def StringTables.add(self, table: StringTable) -> None`
 
 Register a StringTable in the container.
 
-Source: [src/gem/string_table.py:74](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/string_table.py#L74)
+Source: [src/gem/state/string_table.py:74](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L74)
 
 ##### `get_by_name`
 
@@ -49,7 +49,7 @@ Signature: `def StringTables.get_by_name(self, name: str) -> StringTable | None`
 
 Return the table with the given name, or None if not found.
 
-Source: [src/gem/string_table.py:83](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/string_table.py#L83)
+Source: [src/gem/state/string_table.py:83](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L83)
 
 ##### `get_by_id`
 
@@ -57,9 +57,9 @@ Signature: `def StringTables.get_by_id(self, table_id: int) -> StringTable | Non
 
 Return the table with the given index, or None if not found.
 
-Source: [src/gem/string_table.py:97](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/string_table.py#L97)
+Source: [src/gem/state/string_table.py:97](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L97)
 
-## `gem.string_table.StringTable`
+## `gem.state.string_table.StringTable`
 
 ### `StringTable`
 
@@ -69,7 +69,7 @@ class StringTable
 
 A named string table with its metadata and current items.
 
-Source: [src/gem/string_table.py:39](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/string_table.py#L39)
+Source: [src/gem/state/string_table.py:39](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L39)
 
 #### Dataclass fields
 
@@ -83,7 +83,7 @@ Source: [src/gem/string_table.py:39](https://github.com/whanyu1212/gem-dota/blob
 | `flags` | `int` | `0` |
 | `varint_bit_counts` | `bool` | `False` |
 
-## `gem.string_table.StringTableItem`
+## `gem.state.string_table.StringTableItem`
 
 ### `StringTableItem`
 
@@ -93,9 +93,9 @@ class StringTableItem(NamedTuple)
 
 No docstring available.
 
-Source: [src/gem/string_table.py:32](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/string_table.py#L32)
+Source: [src/gem/state/string_table.py:32](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L32)
 
-## `gem.string_table.parse_string_table`
+## `gem.state.string_table.parse_string_table`
 
 ### `parse_string_table`
 
@@ -105,9 +105,9 @@ def parse_string_table(buf: bytes, num_updates: int, name: str, user_data_fixed_
 
 Parse a string table data blob into a list of item updates.
 
-Source: [src/gem/string_table.py:114](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/string_table.py#L114)
+Source: [src/gem/state/string_table.py:114](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L114)
 
-## `gem.string_table.handle_create`
+## `gem.state.string_table.handle_create`
 
 ### `handle_create`
 
@@ -117,9 +117,9 @@ def handle_create(msg: object, string_tables: StringTables) -> StringTable
 
 Process a CSVCMsg_CreateStringTable message.
 
-Source: [src/gem/string_table.py:204](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/string_table.py#L204)
+Source: [src/gem/state/string_table.py:204](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L204)
 
-## `gem.string_table.handle_update`
+## `gem.state.string_table.handle_update`
 
 ### `handle_update`
 
@@ -129,4 +129,4 @@ def handle_update(msg: object, string_tables: StringTables) -> StringTable
 
 Process a CSVCMsg_UpdateStringTable message.
 
-Source: [src/gem/string_table.py:260](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/string_table.py#L260)
+Source: [src/gem/state/string_table.py:260](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L260)

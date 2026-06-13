@@ -362,9 +362,9 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 | `schema/field_path.py` | Huffman-coded field path ops for addressing into the serializer tree |
 | `schema/field_state.py` | Nested mutable field-value tree for entity state storage |
 | `schema/field_reader.py` | Field decoder dispatch and entity field reading |
-| `string_table.py` | Incremental key-history string tables |
-| `entities.py` | Entity create/update/delete lifecycle and state |
-| `game_events.py` | Game event schema and typed dispatch |
+| `state/string_table.py` | Incremental key-history string tables |
+| `state/entities.py` | Entity create/update/delete lifecycle and state |
+| `state/game_events.py` | Game event schema and typed dispatch |
 | `combatlog.py` | S1 (game event) and S2 (user message) combat log ingestion |
 | `parser.py` | Top-level orchestrator wiring all subsystems together |
 | `match_builder.py` | Assembles final `ParsedMatch` output from extractors/aggregates |
