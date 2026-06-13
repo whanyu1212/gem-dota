@@ -26,7 +26,7 @@ class FakeClass:
 
 
 def _make_entity(class_name: str, state: dict | None = None):
-    from gem.entities import Entity
+    from gem.state.entities import Entity
 
     e = Entity(index=0, serial=0, cls=FakeClass(class_name))
     if state:
@@ -123,7 +123,7 @@ class TestCourierExtractor:
 
     def test_non_courier_entity_ignored(self):
         ext, parser = self._make()
-        from gem.entities import EntityOp
+        from gem.state.entities import EntityOp
 
         entity = _make_entity("CDOTA_Unit_Hero_Axe", {"m_iTeamNum": 2})
         parser.fire_entity(entity, EntityOp.CREATED)
@@ -131,7 +131,7 @@ class TestCourierExtractor:
 
     def test_courier_entity_creates_snapshot(self):
         ext, parser = self._make()
-        from gem.entities import EntityOp
+        from gem.state.entities import EntityOp
 
         entity = _make_entity(
             "CDOTA_Unit_Courier",
@@ -149,7 +149,7 @@ class TestCourierExtractor:
 
     def test_courier_deleted_removes_from_tracking(self):
         ext, parser = self._make()
-        from gem.entities import EntityOp
+        from gem.state.entities import EntityOp
 
         entity = _make_entity("CDOTA_Unit_Courier", {"m_iTeamNum": 2})
         entity_idx = entity.get_index()
@@ -166,7 +166,7 @@ class TestCourierExtractor:
         parser = FakeParser(tick=0)
         ext.attach(parser)
 
-        from gem.entities import EntityOp
+        from gem.state.entities import EntityOp
 
         entity = _make_entity("CDOTA_Unit_Courier", {"m_iTeamNum": 2})
         parser.fire_entity(entity, EntityOp.CREATED)
@@ -203,7 +203,7 @@ class TestDraftExtractor:
 
     def test_non_grp_entity_ignored(self):
         ext, parser = self._make()
-        from gem.entities import EntityOp
+        from gem.state.entities import EntityOp
 
         entity = _make_entity("CDOTA_Unit_Hero_Axe")
         parser.fire_entity(entity, EntityOp.CREATED)
@@ -211,7 +211,7 @@ class TestDraftExtractor:
 
     def test_ban_detected(self):
         ext, parser = self._make()
-        from gem.entities import EntityOp
+        from gem.state.entities import EntityOp
 
         entity = _make_entity(
             "CDOTAGamerulesProxy",
@@ -227,7 +227,7 @@ class TestDraftExtractor:
 
     def test_pick_detected(self):
         ext, parser = self._make()
-        from gem.entities import EntityOp
+        from gem.state.entities import EntityOp
 
         entity = _make_entity(
             "CDOTAGamerulesProxy",
@@ -241,7 +241,7 @@ class TestDraftExtractor:
 
     def test_idempotent_no_duplicate_events(self):
         ext, parser = self._make()
-        from gem.entities import EntityOp
+        from gem.state.entities import EntityOp
 
         entity = _make_entity(
             "CDOTAGamerulesProxy",
@@ -255,7 +255,7 @@ class TestDraftExtractor:
 
     def test_zero_hero_id_ignored(self):
         ext, parser = self._make()
-        from gem.entities import EntityOp
+        from gem.state.entities import EntityOp
 
         entity = _make_entity(
             "CDOTAGamerulesProxy",
@@ -266,7 +266,7 @@ class TestDraftExtractor:
 
     def test_deleted_clears_grp(self):
         ext, parser = self._make()
-        from gem.entities import EntityOp
+        from gem.state.entities import EntityOp
 
         entity = _make_entity("CDOTAGamerulesProxy")
         parser.fire_entity(entity, EntityOp.CREATED)

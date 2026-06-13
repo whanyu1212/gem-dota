@@ -270,7 +270,7 @@ Detailed decoding lives in:
 
 1. `binary/reader.py` for bit primitives,
 2. `schema/sendtable.py`, `schema/field_decoder.py`, `schema/field_path.py` for schema+field decode,
-3. `entities.py` for delta application logic.
+3. `state/entities.py` for delta application logic.
 
 When debugging:
 
@@ -280,6 +280,6 @@ When debugging:
 ## Next pages
 
 1. [SendTable Layer (`schema/sendtable.py`)](sendtable-layer.md)
-2. [State Reconstruction Layer (`string_table.py` + `entities.py`)](state-layer.md)
+2. [State Reconstruction Layer (`state/string_table.py` + `state/entities.py`)](state-layer.md)
 3. [Entity State](../guides/02_entity_state.md)
 4. [Combat Log](../guides/03_combat_log.md)

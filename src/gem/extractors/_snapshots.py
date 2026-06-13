@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from gem.entities import Entity
+    from gem.state.entities import Entity
 
 # ---------------------------------------------------------------------------
 # Constants

@@ -8,13 +8,13 @@ Covers WardsExtractor._on_combat_log (killer queues), _on_entity
 from __future__ import annotations
 
 from gem.combatlog import CombatLogEntry
-from gem.entities import Entity, EntityOp
 from gem.extractors.wards import (
     _EXPIRY_TOLERANCE_TICKS,
     _OBSERVER_LIFESPAN_TICKS,
     _SENTRY_LIFESPAN_TICKS,
     WardsExtractor,
 )
+from gem.state.entities import Entity, EntityOp
 
 # ---------------------------------------------------------------------------
 # Helpers

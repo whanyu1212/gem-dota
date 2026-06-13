@@ -32,8 +32,8 @@ from gem.constants import (
     item_display,
     xp_to_next_level,
 )
-from gem.entities import Entity, EntityOp
 from gem.parser import ReplayParser
+from gem.state.entities import Entity, EntityOp
 
 # ---------------------------------------------------------------------------
 # Entity helpers

@@ -12,7 +12,6 @@ import re
 from typing import TYPE_CHECKING
 
 from gem.combatlog import CombatLogEntry
-from gem.entities import Entity, EntityOp
 from gem.extractors._snapshots import (
     _HERO_CLASS_PREFIX,
     PlayerStateSnapshot,
@@ -20,6 +19,7 @@ from gem.extractors._snapshots import (
     _pos,
     _snapshot_hero,
 )
+from gem.state.entities import Entity, EntityOp
 
 if TYPE_CHECKING:
     from gem.parser import ReplayParser

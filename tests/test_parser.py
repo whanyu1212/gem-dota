@@ -187,7 +187,7 @@ class TestReplayParserInit:
         assert p.entity_manager is None
 
     def test_string_tables_empty(self):
-        from gem.string_table import StringTables
+        from gem.state.string_table import StringTables
 
         p = ReplayParser(b"")
         assert isinstance(p.string_tables, StringTables)
@@ -559,7 +559,7 @@ class TestGameEndCallback:
         p.tick = 50000
 
         # Add a CombatLogNames table so the entry is processed
-        from gem.string_table import StringTable
+        from gem.state.string_table import StringTable
 
         st = StringTable(index=0, name="CombatLogNames")
         p.string_tables.add(st)
@@ -574,7 +574,7 @@ class TestGameEndCallback:
         called = []
         p.on_game_end(lambda tick: called.append(tick))
 
-        from gem.string_table import StringTable
+        from gem.state.string_table import StringTable
 
         st = StringTable(index=0, name="CombatLogNames")
         p.string_tables.add(st)
@@ -589,7 +589,7 @@ class TestGameEndCallback:
         called = []
         p.on_game_end(lambda tick: called.append(tick))
 
-        from gem.string_table import StringTable
+        from gem.state.string_table import StringTable
 
         st = StringTable(index=0, name="CombatLogNames")
         p.string_tables.add(st)

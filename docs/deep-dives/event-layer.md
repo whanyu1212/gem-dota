@@ -4,7 +4,7 @@ This page explains how gem converts raw event payloads into typed game events an
 
 Modules covered:
 
-1. `src/gem/game_events.py`
+1. `src/gem/state/game_events.py`
 2. `src/gem/combatlog.py`
 
 Prerequisites:
@@ -13,7 +13,7 @@ Prerequisites:
 2. [Stream Layer (`binary/stream.py`)](stream-layer.md)
 3. [Parser Layer (`parser.py`)](parser-layer.md)
 4. [SendTable Layer (`schema/sendtable.py`)](sendtable-layer.md)
-5. [State Reconstruction Layer (`string_table.py` + `entities.py`)](state-layer.md)
+5. [State Reconstruction Layer (`state/string_table.py` + `state/entities.py`)](state-layer.md)
 
 ## Why this is the next layer
 
@@ -25,7 +25,7 @@ After entities/state are reconstructed, parser still needs to handle semantic ev
 
 This layer turns those channels into stable Python objects/callbacks.
 
-## `game_events.py`: schema-driven typed access
+## `state/game_events.py`: schema-driven typed access
 
 ### Core constants
 

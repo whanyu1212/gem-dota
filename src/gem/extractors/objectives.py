@@ -12,11 +12,11 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 from gem.combatlog import CombatLogEntry
-from gem.entities import EntityOp
+from gem.state.entities import EntityOp
 
 if TYPE_CHECKING:
-    from gem.entities import Entity
     from gem.parser import ReplayParser
+    from gem.state.entities import Entity
 
 # ---------------------------------------------------------------------------
 # Team constants

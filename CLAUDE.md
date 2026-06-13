@@ -67,9 +67,9 @@ schema/field_decoder.py   ← type-dispatch decoders + QuantizedFloatDecoder
 schema/field_path.py      ← Huffman-coded field path ops (requires reader)
 schema/field_state.py     ← nested mutable field-value tree (mirrors manta/field_state.go)
 schema/field_reader.py    ← field decoder dispatch + entity field reading (mirrors manta/field_reader.go)
-string_table.py           ← incremental key-history string tables
-entities.py               ← entity create/update/delete lifecycle + state
-game_events.py            ← game event schema + typed dispatch
+state/string_table.py           ← incremental key-history string tables
+state/entities.py               ← entity create/update/delete lifecycle + state
+state/game_events.py            ← game event schema + typed dispatch
 combatlog.py              ← S1 (game event) + S2 (user message) combat log
 combat_aggregator.py      ← per-player combat log accumulation → damage/heal/kill/purchase tallies
 parser.py                 ← top-level orchestrator wiring everything together
@@ -110,7 +110,7 @@ extractors/_snapshots.py    ← shared snapshot dataclasses/sampling helpers
 
 When translating from Manta, the Go file maps closely to the Python module:
 `manta/reader.go` → `binary/reader.py`, `manta/field_reader.go` →
-`schema/field_reader.py`, `manta/entity.go` → `entities.py`, etc.
+`schema/field_reader.py`, `manta/entity.go` → `state/entities.py`, etc.
 
 ### MANDATORY: Check refs before implementing
 

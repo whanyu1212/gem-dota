@@ -8,7 +8,6 @@ All tests use fake entities and a fake parser — no real .dem files.
 
 from __future__ import annotations
 
-from gem.entities import Entity, EntityOp
 from gem.extractors.players import (
     PlayerExtractor,
     PlayerStateSnapshot,
@@ -16,6 +15,7 @@ from gem.extractors.players import (
     _pos,
     _snapshot_hero,
 )
+from gem.state.entities import Entity, EntityOp
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -554,7 +554,7 @@ class TestMaybeSample:
         assert snap.lh == 30
 
     def test_sample_prefers_selected_hero_handle_and_dedupes_player(self):
-        from gem.string_table import StringTables
+        from gem.state.string_table import StringTables
 
         ext = PlayerExtractor(sample_interval=0)
         parser = FakeParser(tick=100)
@@ -704,7 +704,7 @@ class TestReadAbilities:
         assert ext._read_abilities(_hero("Axe")) == {}
 
     def test_no_entity_names_table_returns_empty(self):
-        from gem.string_table import StringTables
+        from gem.state.string_table import StringTables
 
         ext = PlayerExtractor()
         parser = FakeParser()
@@ -733,7 +733,7 @@ class TestReadInventory:
         assert ext._read_inventory(_hero("Axe")) == {}
 
     def test_no_entity_names_table_returns_empty(self):
-        from gem.string_table import StringTables
+        from gem.state.string_table import StringTables
 
         ext = PlayerExtractor()
         parser = FakeParser()
@@ -764,7 +764,7 @@ class TestDiffInventory:
         assert len(parser.combat_log.emitted) == 0
 
     def test_first_snapshot_sets_initialized(self):
-        from gem.string_table import StringTables
+        from gem.state.string_table import StringTables
 
         ext = PlayerExtractor()
         parser = FakeParser()

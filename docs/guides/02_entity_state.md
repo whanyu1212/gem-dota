@@ -16,7 +16,7 @@ The callback receives `(entity, op)` for every entity event in the replay.
 
 ```python
 from gem.parser import ReplayParser
-from gem.entities import EntityOp
+from gem.state.entities import EntityOp
 
 parser = ReplayParser("my_replay.dem")
 
@@ -187,7 +187,7 @@ for entity in parser.entity_manager.all_active():
 
 ## gem implementation
 
-Source: `src/gem/entities.py`, `src/gem/schema/field_state.py`
+Source: `src/gem/state/entities.py`, `src/gem/schema/field_state.py`
 
 `EntityManager.all_active()` returns all currently active entities.
 `EntityManager.get_by_handle(handle)` resolves an entity handle.

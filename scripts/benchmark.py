@@ -161,8 +161,8 @@ def _parse_instrumented(path: Path) -> RunResult:
         A ``RunResult`` with elapsed time, peak memory, and phase breakdown.
     """
     import gem
-    from gem.entities import EntityManager
     from gem.extractors.players import PlayerExtractor
+    from gem.state.entities import EntityManager
 
     phase = PhaseBreakdown()
 

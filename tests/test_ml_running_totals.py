@@ -31,7 +31,7 @@ class FakeClass:
 
 
 def _make_entity(class_name: str, state: dict | None = None):
-    from gem.entities import Entity
+    from gem.state.entities import Entity
 
     e = Entity(index=0, serial=0, cls=FakeClass(class_name))
     if state:
@@ -110,7 +110,7 @@ def _make_combat_entry(**kwargs):
 
 def _attach_hero(parser: FakeParser, npc_name: str, player_id_raw: int = 0):
     """Register a hero entity so _hero_to_pid() can resolve it."""
-    from gem.entities import EntityOp
+    from gem.state.entities import EntityOp
 
     # class name: strip "npc_dota_hero_" prefix, CamelCase it minimally
     suffix = npc_name.replace("npc_dota_hero_", "").replace("_", " ").title().replace(" ", "")
@@ -474,8 +474,8 @@ class TestPlayerExtractorAccumulation:
 
 class TestSnapshotStamping:
     def _build_snapshot_with_damage(self, damage: int):
-        from gem.entities import EntityOp
         from gem.extractors.players import PlayerExtractor
+        from gem.state.entities import EntityOp
 
         parser = FakeParser(tick=0)
         ext = PlayerExtractor(sample_interval=1, minute_snapshots=False)
@@ -506,8 +506,8 @@ class TestSnapshotStamping:
         assert snap.total_hero_damage == 400
 
     def test_snapshot_carries_zero_when_no_damage(self):
-        from gem.entities import EntityOp
         from gem.extractors.players import PlayerExtractor
+        from gem.state.entities import EntityOp
 
         parser = FakeParser(tick=0)
         ext = PlayerExtractor(sample_interval=1, minute_snapshots=False)
@@ -523,8 +523,8 @@ class TestSnapshotStamping:
 
     def test_snapshots_are_monotonic(self):
         """Running totals must never decrease across successive snapshots."""
-        from gem.entities import EntityOp
         from gem.extractors.players import PlayerExtractor
+        from gem.state.entities import EntityOp
 
         parser = FakeParser(tick=0)
         ext = PlayerExtractor(sample_interval=1, minute_snapshots=False)
@@ -557,8 +557,8 @@ class TestSnapshotStamping:
 
 class TestTimeSeriesInclusion:
     def _build_ext_with_events(self):
-        from gem.entities import EntityOp
         from gem.extractors.players import PlayerExtractor
+        from gem.state.entities import EntityOp
 
         parser = FakeParser(tick=0)
         ext = PlayerExtractor(sample_interval=1, minute_snapshots=True)
@@ -621,8 +621,8 @@ class TestTimeSeriesInclusion:
 
     def test_per_minute_diff_gives_interval_damage(self):
         """Diff of total_hero_damage_t between consecutive minutes = damage in that window."""
-        from gem.entities import EntityOp
         from gem.extractors.players import PlayerExtractor
+        from gem.state.entities import EntityOp
 
         parser = FakeParser(tick=0)
         ext = PlayerExtractor(sample_interval=1, minute_snapshots=True)
