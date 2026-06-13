@@ -9,7 +9,7 @@ See also: [Using the Combat Log](../guides/03_combat_log.md), [How Proto Parsing
 
 ## Generated API
 
-## `gem.combatlog.CombatLogProcessor`
+## `gem.combat.log.CombatLogProcessor`
 
 ### `CombatLogProcessor`
 
@@ -19,7 +19,7 @@ class CombatLogProcessor
 
 Parses and dispatches combat log entries.
 
-Source: [src/gem/combatlog.py:181](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combatlog.py#L181)
+Source: [src/gem/combat/log.py:181](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combat/log.py#L181)
 
 #### Methods
 
@@ -29,7 +29,7 @@ Signature: `def CombatLogProcessor.on_combat_log_entry(self, handler: CombatLogH
 
 Register a handler to receive decoded CombatLogEntry objects.
 
-Source: [src/gem/combatlog.py:191](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combatlog.py#L191)
+Source: [src/gem/combat/log.py:191](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combat/log.py#L191)
 
 ##### `process_rune_pickup`
 
@@ -37,7 +37,7 @@ Signature: `def CombatLogProcessor.process_rune_pickup(self, player_slot: int, r
 
 Emit a PICKUP_RUNE CombatLogEntry from a CDOTAUserMsg_ChatEvent.
 
-Source: [src/gem/combatlog.py:199](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combatlog.py#L199)
+Source: [src/gem/combat/log.py:199](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combat/log.py#L199)
 
 ##### `process_s1_event`
 
@@ -45,7 +45,7 @@ Signature: `def CombatLogProcessor.process_s1_event(self, game_event: Any, name_
 
 Parse a ``dota_combatlog`` S1 game event and emit a CombatLogEntry.
 
-Source: [src/gem/combatlog.py:224](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combatlog.py#L224)
+Source: [src/gem/combat/log.py:224](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combat/log.py#L224)
 
 ##### `process_s2_bulk`
 
@@ -53,7 +53,7 @@ Signature: `def CombatLogProcessor.process_s2_bulk(self, msg: Any, name_table: A
 
 Parse a CDOTAUserMsg_CombatLogBulkData and emit CombatLogEntry per entry.
 
-Source: [src/gem/combatlog.py:269](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combatlog.py#L269)
+Source: [src/gem/combat/log.py:269](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combat/log.py#L269)
 
 ##### `process_s2_entry`
 
@@ -61,9 +61,9 @@ Signature: `def CombatLogProcessor.process_s2_entry(self, msg: Any, name_table: 
 
 Parse a CMsgDOTACombatLogEntry and emit a CombatLogEntry.
 
-Source: [src/gem/combatlog.py:281](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combatlog.py#L281)
+Source: [src/gem/combat/log.py:281](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combat/log.py#L281)
 
-## `gem.combatlog.CombatLogEntry`
+## `gem.combat.log.CombatLogEntry`
 
 ### `CombatLogEntry`
 
@@ -73,7 +73,7 @@ class CombatLogEntry
 
 One decoded combat log entry.
 
-Source: [src/gem/combatlog.py:97](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combatlog.py#L97)
+Source: [src/gem/combat/log.py:97](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combat/log.py#L97)
 
 #### Dataclass fields
 

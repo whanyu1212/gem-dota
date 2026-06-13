@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from gem.combatlog import CombatLogEntry
+from gem.combat.log import CombatLogEntry
 from gem.extractors.objectives import AegisEvent, BarracksKill, RoshanKill, TowerKill
 from gem.extractors.teamfights import Teamfight, TeamfightPlayer
 from gem.extractors.wards import WardEvent

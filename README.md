@@ -365,10 +365,10 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 | `state/string_table.py` | Incremental key-history string tables |
 | `state/entities.py` | Entity create/update/delete lifecycle and state |
 | `state/game_events.py` | Game event schema and typed dispatch |
-| `combatlog.py` | S1 (game event) and S2 (user message) combat log ingestion |
+| `combat/log.py` | S1 (game event) and S2 (user message) combat log ingestion |
 | `parser.py` | Top-level orchestrator wiring all subsystems together |
 | `match_builder.py` | Assembles final `ParsedMatch` output from extractors/aggregates |
-| `combat_aggregator.py` | Combat-log aggregation for per-player damage/healing/items/economy stats |
+| `combat/aggregator.py` | Combat-log aggregation for per-player damage/healing/items/economy stats |
 | `models.py` | `ParsedMatch` / `ParsedPlayer` output dataclasses |
 | `constants.py` | Bundled hero, item, ability display names |
 | `extractors/` | Per-tick polling of entity state — players, lane, objectives, wards, courier, draft, teamfights |

@@ -5,7 +5,7 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 from gem.analysis import group_ability_hits, position_at_tick
-from gem.combatlog import CombatLogEntry
+from gem.combat.log import CombatLogEntry
 
 # ---------------------------------------------------------------------------
 # Helpers

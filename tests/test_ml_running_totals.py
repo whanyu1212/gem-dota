@@ -86,7 +86,7 @@ class FakeParser:
 
 def _make_combat_entry(**kwargs):
     """Build a CombatLogEntry with sensible defaults for unspecified fields."""
-    from gem.combatlog import CombatLogEntry
+    from gem.combat.log import CombatLogEntry
 
     defaults = {
         "tick": 0,

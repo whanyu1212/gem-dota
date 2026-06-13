@@ -290,20 +290,20 @@ class TestDraftExtractor:
 
 class TestStunDuration:
     def test_combat_log_entry_has_stun_duration_default(self):
-        from gem.combatlog import CombatLogEntry
+        from gem.combat.log import CombatLogEntry
 
         e = CombatLogEntry(tick=0, log_type="DAMAGE")
         assert e.stun_duration == 0.0
 
     def test_stun_duration_stored_on_entry(self):
-        from gem.combatlog import CombatLogEntry
+        from gem.combat.log import CombatLogEntry
 
         e = CombatLogEntry(tick=100, log_type="DAMAGE", stun_duration=1.5)
         assert e.stun_duration == 1.5
 
     def test_s2_entry_with_stun_duration(self):
         """process_s2_entry populates stun_duration via HasField."""
-        from gem.combatlog import CombatLogProcessor
+        from gem.combat.log import CombatLogProcessor
 
         class FakeMsg:
             type = 0  # DAMAGE
@@ -339,7 +339,7 @@ class TestStunDuration:
         assert collected[0].stun_duration == 2.5
 
     def test_s2_entry_without_stun_duration_defaults_zero(self):
-        from gem.combatlog import CombatLogProcessor
+        from gem.combat.log import CombatLogProcessor
 
         class FakeMsg:
             type = 0

@@ -29,8 +29,8 @@ MODULE_TARGET_HEADING_RE = re.compile(r"^##\s+Module\s+`(gem\.[^`]+)`\s*$")
 TARGETS_BY_PAGE: dict[str, list[str]] = {
     "analysis.md": ["gem.analysis"],
     "batch.md": ["gem.batch"],
-    "combat_aggregator.md": ["gem.combat_aggregator"],
-    "combatlog.md": ["gem.combatlog.CombatLogProcessor", "gem.combatlog.CombatLogEntry"],
+    "combat_aggregator.md": ["gem.combat.aggregator"],
+    "combatlog.md": ["gem.combat.log.CombatLogProcessor", "gem.combat.log.CombatLogEntry"],
     "constants.md": ["gem.constants"],
     "dataframes.md": ["gem.dataframes"],
     "entities.md": [

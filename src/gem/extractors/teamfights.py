@@ -32,7 +32,7 @@ import math
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from gem.combatlog import CombatLogEntry
+from gem.combat.log import CombatLogEntry
 
 if TYPE_CHECKING:
     from gem.extractors.players import PlayerStateSnapshot

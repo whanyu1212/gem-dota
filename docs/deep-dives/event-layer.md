@@ -5,7 +5,7 @@ This page explains how gem converts raw event payloads into typed game events an
 Modules covered:
 
 1. `src/gem/state/game_events.py`
-2. `src/gem/combatlog.py`
+2. `src/gem/combat/log.py`
 
 Prerequisites:
 
@@ -62,9 +62,9 @@ Why schema registration matters:
 - Raw events store keys as indexed values.
 - Schema converts those positional keys into named, typed fields.
 
-## `combatlog.py`: unify S1 + S2 combat channels
+## `combat/log.py`: unify S1 + S2 combat channels
 
-`combatlog.py` normalizes multiple input paths to one output model: `CombatLogEntry`.
+`combat/log.py` normalizes multiple input paths to one output model: `CombatLogEntry`.
 
 ### Key constants
 

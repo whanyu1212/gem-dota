@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from gem.combatlog import CombatLogEntry
+from gem.combat.log import CombatLogEntry
 from gem.extractors.teamfights import (
     Teamfight,
     _near_fight,

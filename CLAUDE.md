@@ -70,8 +70,8 @@ schema/field_reader.py    ← field decoder dispatch + entity field reading (mir
 state/string_table.py           ← incremental key-history string tables
 state/entities.py               ← entity create/update/delete lifecycle + state
 state/game_events.py            ← game event schema + typed dispatch
-combatlog.py              ← S1 (game event) + S2 (user message) combat log
-combat_aggregator.py      ← per-player combat log accumulation → damage/heal/kill/purchase tallies
+combat/log.py              ← S1 (game event) + S2 (user message) combat log
+combat/aggregator.py      ← per-player combat log accumulation → damage/heal/kill/purchase tallies
 parser.py                 ← top-level orchestrator wiring everything together
 extractors/               ← per-tick polling of entity state for output (see below)
 constants.py              ← hero/item/ability/XP lookups over bundled src/gem/data/ JSON

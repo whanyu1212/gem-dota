@@ -12,7 +12,7 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 from gem.analysis import ability_level_at_tick, heroes_near, teamfight_at_tick
-from gem.combatlog import CombatLogEntry
+from gem.combat.log import CombatLogEntry
 from gem.extractors.teamfights import (
     Teamfight,
     TeamfightPlayer,

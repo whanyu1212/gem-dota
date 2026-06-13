@@ -1,9 +1,9 @@
-"""Tests for gem.combatlog — S1 (game event) and S2 (user message) combat log.
+"""Tests for gem.combat.log — S1 (game event) and S2 (user message) combat log.
 
 Reference: clarity/CombatLog.java, odota/Parse.java
 """
 
-from gem.combatlog import (
+from gem.combat.log import (
     COMBAT_LOG_TYPES,
     CombatLogEntry,
     CombatLogProcessor,

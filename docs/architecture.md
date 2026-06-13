@@ -27,7 +27,7 @@ flowchart TD
     subgraph EVENTS ["Events"]
         direction LR
         I["state/game_events.py"]
-        J["combatlog.py"]
+        J["combat/log.py"]
     end
 
     subgraph EXTRACT ["Extractors"]
@@ -41,7 +41,7 @@ flowchart TD
     end
 
     subgraph ASSEMBLE ["Assembly"]
-        K["combat_aggregator.py"] --> L["match_builder.py"]
+        K["combat/aggregator.py"] --> L["match_builder.py"]
     end
 
     O(["ParsedMatch"])
@@ -96,7 +96,7 @@ flowchart TD
     <span class="arch-layer-label">Events</span>
     <div class="arch-layer-modules">
       <span class="arch-badge">state/game_events.py</span>
-      <span class="arch-badge">combatlog.py</span>
+      <span class="arch-badge">combat/log.py</span>
     </div>
   </div>
 
@@ -115,7 +115,7 @@ flowchart TD
   <div class="arch-layer arch-layer--assemble">
     <span class="arch-layer-label">Assembly</span>
     <div class="arch-layer-modules">
-      <span class="arch-badge">combat_aggregator.py</span>
+      <span class="arch-badge">combat/aggregator.py</span>
       <span class="arch-badge">match_builder.py</span>
     </div>
   </div>
