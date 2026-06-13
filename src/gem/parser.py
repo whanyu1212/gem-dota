@@ -48,25 +48,25 @@ from gem.constants import item_key_by_id
 from gem.entities import Entity, EntityManager, EntityOp
 from gem.game_events import GameEventHandler, GameEventManager
 from gem.models import ChatEntry, NeutralItemFoundEvent
-from gem.proto.dota2 import (
+from gem.proto import (
     dota_commonmessages_pb2,  # noqa: F401
     dota_shared_enums_pb2,  # noqa: F401
     network_connection_pb2,  # noqa: F401
     networkbasetypes_pb2,  # noqa: F401
 )
-from gem.proto.dota2.demo_pb2 import CDemoClassInfo, CDemoFileInfo, CDemoFullPacket, CDemoPacket
-from gem.proto.dota2.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
-from gem.proto.dota2.dota_usermessages_pb2 import (
+from gem.proto.demo_pb2 import CDemoClassInfo, CDemoFileInfo, CDemoFullPacket, CDemoPacket
+from gem.proto.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
+from gem.proto.dota_usermessages_pb2 import (
     CDOTAUserMsg_ChatEvent,
     CDOTAUserMsg_ChatMessage,
     CDOTAUserMsg_CombatLogBulkData,
     CDOTAUserMsg_FoundNeutralItem,
 )
-from gem.proto.dota2.gameevents_pb2 import (
+from gem.proto.gameevents_pb2 import (
     CMsgSource1LegacyGameEvent,
     CMsgSource1LegacyGameEventList,
 )
-from gem.proto.dota2.netmessages_pb2 import (
+from gem.proto.netmessages_pb2 import (
     CSVCMsg_CreateStringTable,
     CSVCMsg_PacketEntities,
     CSVCMsg_ServerInfo,

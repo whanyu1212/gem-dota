@@ -16,6 +16,6 @@
 
 ## Notes
 
-- [ ] Generated protobuf files under `src/gem/proto/dota2/` were not edited manually.
+- [ ] Generated protobuf files under `src/gem/proto/` were not edited manually.
 - [ ] Large replay artifacts are not committed unless explicitly required for tests.
 - [ ] Secrets and local credentials are not included.

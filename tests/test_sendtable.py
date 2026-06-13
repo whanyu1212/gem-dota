@@ -217,7 +217,7 @@ class TestParseSendTables:
         """Extract CDemoSendTables payload from the truncated fixture."""
         from pathlib import Path
 
-        from gem.proto.dota2 import (
+        from gem.proto import (
             network_connection_pb2,  # noqa: F401
             networkbasetypes_pb2,  # noqa: F401
         )

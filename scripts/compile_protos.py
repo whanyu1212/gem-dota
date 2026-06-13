@@ -6,9 +6,8 @@ is no dependency on a system-level protoc installation.
 
 Output layout:
     src/gem/proto/
-        dota2/
-            <name>_pb2.py      # generated message classes
-            <name>_pb2.pyi     # type stubs (for IDE support)
+        <name>_pb2.py          # generated message classes
+        <name>_pb2.pyi         # type stubs (for IDE support)
         __init__.py
 
 Usage:
@@ -24,8 +23,8 @@ import sys
 from pathlib import Path
 
 # protoc emits sibling imports in two shapes that both only resolve if the output
-# dir is on sys.path. Since the generated modules live inside the
-# `gem.proto.dota2` package, rewrite both to package-relative imports:
+# dir is on sys.path. Since the generated modules live inside the `gem.proto`
+# package, rewrite both to package-relative imports:
 #
 #   1. flat:   `import netmessages_pb2 as netmessages__pb2`
 #              -> `from . import netmessages_pb2 as netmessages__pb2`
@@ -46,7 +45,7 @@ _DOTTED_IMPORT_RE = re.compile(r"^from (\w+) import (\w+_pb2) as (\w+)$", re.MUL
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PROTO_SRC_DIR = REPO_ROOT / "proto_definitions" / "dota2"
-PROTO_OUT_DIR = REPO_ROOT / "src" / "gem" / "proto" / "dota2"
+PROTO_OUT_DIR = REPO_ROOT / "src" / "gem" / "proto"
 
 
 def find_protoc() -> Path:
@@ -141,7 +140,7 @@ def fix_relative_imports(out_dir: Path) -> int:
 
     protoc generates two cross-file import shapes that only resolve when
     ``out_dir`` is on ``sys.path``. Both are rewritten to package-relative form
-    so the generated modules import correctly as part of ``gem.proto.dota2``:
+    so the generated modules import correctly as part of ``gem.proto``:
 
     - flat: ``import foo_pb2 as foo__pb2`` -> ``from . import foo_pb2 as ...``
     - dotted: ``from subpkg import bar_pb2 as ...`` (a dependency under the
@@ -153,24 +152,25 @@ def fix_relative_imports(out_dir: Path) -> int:
     Idempotent — files already in relative form are left unchanged.
 
     Args:
-        out_dir: Root directory of the generated ``gem.proto.dota2`` package.
+        out_dir: Root directory of the generated ``gem.proto`` package.
 
     Returns:
         The number of files that were modified.
     """
     fixed = 0
-    for pb2 in out_dir.rglob("*_pb2.py"):
-        text = pb2.read_text()
+    generated_modules = list(out_dir.rglob("*_pb2.py")) + list(out_dir.rglob("*_pb2.pyi"))
+    for generated_module in generated_modules:
+        text = generated_module.read_text()
         new_text = _FLAT_IMPORT_RE.sub(r"from . import \1 as \2", text)
 
         # Depth below out_dir: top-level file -> 1 leading dot; one subpackage
         # deep -> 2 leading dots (up to out_dir, then into the sibling subpkg).
-        depth = len(pb2.relative_to(out_dir).parts) - 1
+        depth = len(generated_module.relative_to(out_dir).parts) - 1
         dots = "." * (depth + 1)
         new_text = _DOTTED_IMPORT_RE.sub(rf"from {dots}\1 import \2 as \3", new_text)
 
         if new_text != text:
-            pb2.write_text(new_text)
+            generated_module.write_text(new_text)
             fixed += 1
     return fixed
 
@@ -185,7 +185,7 @@ def ensure_subpackage_init_files(out_dir: Path) -> int:
     resolve.
 
     Args:
-        out_dir: Root directory of the generated ``gem.proto.dota2`` package.
+        out_dir: Root directory of the generated ``gem.proto`` package.
 
     Returns:
         The number of ``__init__.py`` files created.
@@ -264,14 +264,14 @@ def main() -> None:
         print(f"Created {inits} subpackage __init__.py file(s).")
 
     # protoc emits sibling/subpackage imports that break inside a package; rewrite
-    # them to package-relative form so `from gem.proto.dota2 import ...` works.
+    # them to package-relative form so `from gem.proto import ...` works.
     fixed = fix_relative_imports(PROTO_OUT_DIR)
     if fixed:
         print(f"Patched relative imports in {fixed} file(s).")
 
     print()
     print("Next step:")
-    print("  uv run python -c \"from gem.proto.dota2 import demo_pb2; print('OK')\"")
+    print("  uv run python -c \"from gem.proto import demo_pb2; print('OK')\"")
 
 
 if __name__ == "__main__":
