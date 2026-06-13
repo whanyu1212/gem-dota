@@ -323,7 +323,7 @@ cost breakdown was investigated but deferred. Key findings:
 
 ## Protobuf
 
-Generated protobuf classes live in `src/gem/proto/dota2/`. Do not hand-edit them.
+Generated protobuf classes live in `src/gem/proto/`. Do not hand-edit them.
 `.proto` sources live in `proto_definitions/`. To regenerate:
 
 ```bash

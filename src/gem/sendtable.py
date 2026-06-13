@@ -24,12 +24,12 @@ from dataclasses import dataclass, field
 from google.protobuf import descriptor_pb2  # noqa: F401 — must load first
 
 from gem.field_decoder import FieldDecoder, find_decoder, find_decoder_by_base_type
-from gem.proto.dota2 import (
+from gem.proto import (
     network_connection_pb2,  # noqa: F401 — side-effect import
     networkbasetypes_pb2,  # noqa: F401
 )
-from gem.proto.dota2.demo_pb2 import CDemoSendTables
-from gem.proto.dota2.netmessages_pb2 import CSVCMsg_FlattenedSerializer
+from gem.proto.demo_pb2 import CDemoSendTables
+from gem.proto.netmessages_pb2 import CSVCMsg_FlattenedSerializer
 
 # ---------------------------------------------------------------------------
 # Constants

@@ -450,7 +450,7 @@ class TestDispatchInnerRouting:
 
     def test_svc_user_message_dispatches_to_on_user_message(self):
         p = ReplayParser(b"")
-        from gem.proto.dota2.netmessages_pb2 import CSVCMsg_UserMessage
+        from gem.proto.netmessages_pb2 import CSVCMsg_UserMessage
 
         um = CSVCMsg_UserMessage()
         um.msg_type = 9999  # unknown type, but should not raise
@@ -461,7 +461,7 @@ class TestDispatchInnerRouting:
     def test_dota_um_combat_log_hltv_with_no_name_table_silently_skips(self):
         """If CombatLogNames table doesn't exist, S2 entry must be silently ignored."""
         p = ReplayParser(b"")
-        from gem.proto.dota2.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
+        from gem.proto.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
 
         entry = CMsgDOTACombatLogEntry()
         entry.type = 0
@@ -472,7 +472,7 @@ class TestDispatchInnerRouting:
     def test_dota_um_chat_message_skipped_when_no_callbacks(self):
         """When no chat callbacks are registered, parsing should be skipped."""
         p = ReplayParser(b"")
-        from gem.proto.dota2.dota_usermessages_pb2 import CDOTAUserMsg_ChatMessage
+        from gem.proto.dota_usermessages_pb2 import CDOTAUserMsg_ChatMessage
 
         msg = CDOTAUserMsg_ChatMessage()
         msg.channel_type = 11
@@ -485,7 +485,7 @@ class TestDispatchInnerRouting:
     def test_dota_um_found_neutral_item_skipped_when_no_callbacks(self):
         """When no callbacks are registered, found-neutral-item parsing should be skipped."""
         p = ReplayParser(b"")
-        from gem.proto.dota2.dota_usermessages_pb2 import CDOTAUserMsg_FoundNeutralItem
+        from gem.proto.dota_usermessages_pb2 import CDOTAUserMsg_FoundNeutralItem
 
         type_id = getattr(parser_module, "_DOTA_UM_FOUND_NEUTRAL_ITEM", None)
         assert type_id == 593
@@ -500,7 +500,7 @@ class TestDispatchInnerRouting:
 
     def test_dota_um_found_neutral_item_emits_resolved_event(self):
         p = ReplayParser(b"")
-        from gem.proto.dota2.dota_usermessages_pb2 import CDOTAUserMsg_FoundNeutralItem
+        from gem.proto.dota_usermessages_pb2 import CDOTAUserMsg_FoundNeutralItem
 
         neutral_event_cls = getattr(model_module, "NeutralItemFoundEvent", None)
         assert neutral_event_cls is not None
@@ -545,7 +545,7 @@ class TestDispatchInnerRouting:
 
 class TestGameEndCallback:
     def _make_combat_log_hltv_payload(self, type_id: int, value: int) -> bytes:
-        from gem.proto.dota2.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
+        from gem.proto.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
 
         entry = CMsgDOTACombatLogEntry()
         entry.type = type_id
@@ -608,7 +608,7 @@ class TestGameEndCallback:
 class TestEmitChatMessage:
     def test_chat_callback_receives_entry(self):
         from gem.models import ChatEntry
-        from gem.proto.dota2.dota_usermessages_pb2 import CDOTAUserMsg_ChatMessage
+        from gem.proto.dota_usermessages_pb2 import CDOTAUserMsg_ChatMessage
 
         p = ReplayParser(b"")
         received = []
@@ -630,7 +630,7 @@ class TestEmitChatMessage:
         assert entry.text == "wp"
 
     def test_team_chat_channel_label(self):
-        from gem.proto.dota2.dota_usermessages_pb2 import CDOTAUserMsg_ChatMessage
+        from gem.proto.dota_usermessages_pb2 import CDOTAUserMsg_ChatMessage
 
         p = ReplayParser(b"")
         received = []
@@ -645,7 +645,7 @@ class TestEmitChatMessage:
         assert received[0].channel == "team"
 
     def test_multiple_chat_callbacks_all_receive_entry(self):
-        from gem.proto.dota2.dota_usermessages_pb2 import CDOTAUserMsg_ChatMessage
+        from gem.proto.dota_usermessages_pb2 import CDOTAUserMsg_ChatMessage
 
         p = ReplayParser(b"")
         recv1, recv2 = [], []
@@ -669,7 +669,7 @@ class TestEmitChatMessage:
 
 class TestChatEventRune:
     def test_rune_pickup_routes_to_combat_log_processor(self):
-        from gem.proto.dota2.dota_usermessages_pb2 import CDOTAUserMsg_ChatEvent
+        from gem.proto.dota_usermessages_pb2 import CDOTAUserMsg_ChatEvent
 
         p = ReplayParser(b"")
         p.tick = 2000
@@ -684,7 +684,7 @@ class TestChatEventRune:
             mock_rune.assert_called_once_with(5, 3, tick=2000)
 
     def test_non_rune_chat_event_does_not_call_process_rune_pickup(self):
-        from gem.proto.dota2.dota_usermessages_pb2 import CDOTAUserMsg_ChatEvent
+        from gem.proto.dota_usermessages_pb2 import CDOTAUserMsg_ChatEvent
 
         p = ReplayParser(b"")
         msg = CDOTAUserMsg_ChatEvent()
@@ -695,7 +695,7 @@ class TestChatEventRune:
             mock_rune.assert_not_called()
 
     def test_chat_event_callbacks_receive_event_and_tick(self):
-        from gem.proto.dota2.dota_usermessages_pb2 import CDOTAUserMsg_ChatEvent
+        from gem.proto.dota_usermessages_pb2 import CDOTAUserMsg_ChatEvent
 
         p = ReplayParser(b"")
         p.tick = 3000
@@ -790,7 +790,7 @@ class TestInnerPacketPriority:
 
 class TestGameEventListAndEvent:
     def test_game_event_list_registers_schemas(self):
-        from gem.proto.dota2.gameevents_pb2 import (
+        from gem.proto.gameevents_pb2 import (
             CMsgSource1LegacyGameEventList,
         )
 
@@ -807,7 +807,7 @@ class TestGameEventListAndEvent:
         assert p.game_event_manager.has_event("test_event")
 
     def test_game_event_dispatches_to_game_event_manager(self):
-        from gem.proto.dota2.gameevents_pb2 import (
+        from gem.proto.gameevents_pb2 import (
             CMsgSource1LegacyGameEvent,
             CMsgSource1LegacyGameEventList,
         )
@@ -841,7 +841,7 @@ class TestOnClassInfo:
         em = MagicMock()
         p.entity_manager = em
 
-        from gem.proto.dota2.demo_pb2 import CDemoClassInfo
+        from gem.proto.demo_pb2 import CDemoClassInfo
 
         ci = CDemoClassInfo()
 
@@ -852,7 +852,7 @@ class TestOnClassInfo:
     def test_on_class_info_noop_when_no_entity_manager(self):
         p = ReplayParser(b"")
         assert p.entity_manager is None
-        from gem.proto.dota2.demo_pb2 import CDemoClassInfo
+        from gem.proto.demo_pb2 import CDemoClassInfo
 
         ci = CDemoClassInfo()
         # Should not raise
