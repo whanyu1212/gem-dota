@@ -45,7 +45,7 @@ from google.protobuf import descriptor_pb2  # noqa: F401
 
 from gem.binary.reader import BitReader
 from gem.binary.stream import DemoStream
-from gem.combatlog import CombatLogHandler, CombatLogProcessor
+from gem.combat.log import CombatLogHandler, CombatLogProcessor
 from gem.constants import item_key_by_id
 from gem.models import ChatEntry, NeutralItemFoundEvent
 from gem.proto import (

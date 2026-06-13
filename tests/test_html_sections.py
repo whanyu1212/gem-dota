@@ -102,7 +102,7 @@ class TestBuybackGoldCost:
     """Verify the buyback cost formula via build_buybacks output."""
 
     def _make_match(self, net_worth: int, buyback_tick: int = 500):
-        from gem.combatlog import CombatLogEntry
+        from gem.combat.log import CombatLogEntry
 
         buyback_entry = CombatLogEntry(tick=buyback_tick, log_type="BUYBACK", value=0)
 

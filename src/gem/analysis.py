@@ -24,7 +24,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal
 
 if TYPE_CHECKING:
-    from gem.combatlog import CombatLogEntry
+    from gem.combat.log import CombatLogEntry
     from gem.extractors.teamfights import Teamfight
     from gem.models import ParsedMatch, ParsedPlayer
 

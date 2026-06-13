@@ -11,7 +11,7 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
-from gem.combatlog import CombatLogEntry
+from gem.combat.log import CombatLogEntry
 from gem.extractors._snapshots import (
     _HERO_CLASS_PREFIX,
     PlayerStateSnapshot,

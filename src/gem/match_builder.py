@@ -13,8 +13,8 @@ from gem.extractors.lane import classify_lane
 from gem.models import ParsedMatch
 
 if TYPE_CHECKING:
-    from gem.combat_aggregator import _CombatAggregator
-    from gem.combatlog import CombatLogEntry
+    from gem.combat.aggregator import _CombatAggregator
+    from gem.combat.log import CombatLogEntry
     from gem.extractors.courier import CourierExtractor
     from gem.extractors.draft import DraftExtractor
     from gem.extractors.objectives import ObjectivesExtractor
@@ -89,7 +89,7 @@ def build_parsed_match(
     Returns:
         Fully populated :class:`ParsedMatch`.
     """
-    from gem.combat_aggregator import _dedup_purchase_log
+    from gem.combat.aggregator import _dedup_purchase_log
     from gem.extractors.teamfights import detect_teamfights
 
     # radiant_win resolution — three tiers in priority order:

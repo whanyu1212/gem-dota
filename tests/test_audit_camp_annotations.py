@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from gem.combatlog import CombatLogEntry
+from gem.combat.log import CombatLogEntry
 from gem.models import ParsedMatch, ParsedPlayer
 from scripts.audit_camp_annotations import (
     CampZone,

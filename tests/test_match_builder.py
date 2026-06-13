@@ -15,7 +15,7 @@ from unittest.mock import MagicMock
 import pytest
 
 import gem.models as model_module
-from gem.combatlog import CombatLogEntry
+from gem.combat.log import CombatLogEntry
 from gem.match_builder import _radiant_win_from_ancient, build_parsed_match
 from gem.models import ChatEntry, ParsedMatch, SmokeEvent
 
@@ -372,7 +372,7 @@ class TestBuildParsedMatchExtractorOutputs:
 
 class TestBuildParsedMatchBuyback:
     def test_buyback_entries_routed_to_correct_player(self):
-        from gem.combat_aggregator import _ParsedPlayerAgg
+        from gem.combat.aggregator import _ParsedPlayerAgg
 
         # Make real per-player aggregators
         aggs = {i: _ParsedPlayerAgg() for i in range(10)}
@@ -402,7 +402,7 @@ class TestBuildParsedMatchBuyback:
         assert entries[1] in aggs[7].buyback_log
 
     def test_buyback_with_invalid_pid_not_routed(self):
-        from gem.combat_aggregator import _ParsedPlayerAgg
+        from gem.combat.aggregator import _ParsedPlayerAgg
 
         aggs = {i: _ParsedPlayerAgg() for i in range(10)}
         combat_agg = MagicMock()
@@ -436,7 +436,7 @@ class TestBuildParsedMatchBuyback:
 
 class TestBuildParsedMatchPlayerCombatFields:
     def test_combat_agg_fields_applied_to_correct_player(self):
-        from gem.combat_aggregator import _ParsedPlayerAgg
+        from gem.combat.aggregator import _ParsedPlayerAgg
 
         agg3 = _ParsedPlayerAgg()
         agg3.damage = {"npc_dota_hero_axe": 1000}

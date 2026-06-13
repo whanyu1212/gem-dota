@@ -7,7 +7,7 @@ import gem.models as model_module
 
 def test_parse_collects_neutral_item_found_events(monkeypatch):
     import gem
-    import gem.combat_aggregator
+    import gem.combat.aggregator
     import gem.extractors.courier
     import gem.extractors.draft
     import gem.extractors.objectives
@@ -82,7 +82,7 @@ def test_parse_collects_neutral_item_found_events(monkeypatch):
     monkeypatch.setattr(gem.extractors.wards, "WardsExtractor", FakeExtractor)
     monkeypatch.setattr(gem.extractors.courier, "CourierExtractor", FakeExtractor)
     monkeypatch.setattr(gem.extractors.draft, "DraftExtractor", FakeExtractor)
-    monkeypatch.setattr(gem.combat_aggregator, "_CombatAggregator", FakeCombatAggregator)
+    monkeypatch.setattr(gem.combat.aggregator, "_CombatAggregator", FakeCombatAggregator)
     monkeypatch.setattr(gem.match_builder, "build_parsed_match", fake_build_parsed_match)
 
     match = gem.parse("dummy.dem")

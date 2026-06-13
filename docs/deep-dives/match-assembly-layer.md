@@ -8,7 +8,7 @@ This page explains how gem turns extractor state into final outputs:
 
 Modules covered:
 
-1. `src/gem/combat_aggregator.py`
+1. `src/gem/combat/aggregator.py`
 2. `src/gem/match_builder.py`
 3. `src/gem/dataframes.py`
 
@@ -19,7 +19,7 @@ Prerequisites:
 3. [Parser Layer (`parser.py`)](parser-layer.md)
 4. [SendTable Layer (`schema/sendtable.py`)](sendtable-layer.md)
 5. [State Reconstruction Layer (`state/string_table.py` + `state/entities.py`)](state-layer.md)
-6. [Event Normalization Layer (`state/game_events.py` + `combatlog.py`)](event-layer.md)
+6. [Event Normalization Layer (`state/game_events.py` + `combat/log.py`)](event-layer.md)
 7. [Extractors Layer](extractors-layer.md)
 
 ## Why this is the next layer
@@ -30,7 +30,7 @@ After extractors collect raw timelines, this layer:
 2. computes derived metrics (lane stats, advantages, teamfights)
 3. exposes table outputs for analytics pipelines
 
-## `combat_aggregator.py`: per-player combat counters
+## `combat/aggregator.py`: per-player combat counters
 
 `_CombatAggregator` consumes normalized `CombatLogEntry` events during parse and accumulates per-player buckets.
 

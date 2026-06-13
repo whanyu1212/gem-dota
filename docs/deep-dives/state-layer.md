@@ -238,6 +238,6 @@ When symptoms are “fields missing/wrong after parser is otherwise healthy,” 
 
 ## Next pages
 
-1. [Event Normalization Layer (`state/game_events.py` + `combatlog.py`)](event-layer.md)
+1. [Event Normalization Layer (`state/game_events.py` + `combat/log.py`)](event-layer.md)
 2. [Entity State](../guides/02_entity_state.md)
 3. [Combat Log](../guides/03_combat_log.md)

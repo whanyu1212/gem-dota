@@ -1,4 +1,4 @@
-"""Tests for gem.combat_aggregator.
+"""Tests for gem.combat.aggregator.
 
 Covers _ParsedPlayerAgg structure, _CombatAggregator routing/accumulation,
 and _dedup_purchase_log deduplication logic.
@@ -10,8 +10,8 @@ from collections import defaultdict
 from dataclasses import fields
 from unittest.mock import MagicMock
 
-from gem.combat_aggregator import _CombatAggregator, _dedup_purchase_log, _ParsedPlayerAgg
-from gem.combatlog import CombatLogEntry
+from gem.combat.aggregator import _CombatAggregator, _dedup_purchase_log, _ParsedPlayerAgg
+from gem.combat.log import CombatLogEntry
 
 # ---------------------------------------------------------------------------
 # _ParsedPlayerAgg

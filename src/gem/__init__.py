@@ -112,8 +112,8 @@ def parse(path: str | Path) -> ParsedMatch:
     Returns:
         A :class:`ParsedMatch` with all extracted data populated.
     """
-    from gem.combat_aggregator import _CombatAggregator
-    from gem.combatlog import CombatLogEntry
+    from gem.combat.aggregator import _CombatAggregator
+    from gem.combat.log import CombatLogEntry
     from gem.extractors.courier import CourierExtractor
     from gem.extractors.draft import DraftExtractor
     from gem.extractors.objectives import ObjectivesExtractor

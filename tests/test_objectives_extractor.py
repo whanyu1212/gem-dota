@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from gem.combatlog import CombatLogEntry
+from gem.combat.log import CombatLogEntry
 
 # ---------------------------------------------------------------------------
 # Helpers
