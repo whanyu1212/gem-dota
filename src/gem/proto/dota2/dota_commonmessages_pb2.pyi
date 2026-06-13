@@ -1,12 +1,10 @@
-from collections.abc import Iterable as _Iterable
-from collections.abc import Mapping as _Mapping
-from typing import ClassVar as _ClassVar
-
 import networkbasetypes_pb2 as _networkbasetypes_pb2
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -77,7 +75,6 @@ class EDOTAVersusScenePlayerBehavior(int, metaclass=_enum_type_wrapper.EnumTypeW
     VS_PLAYER_BEHAVIOR_PLAY_ACTIVITY: _ClassVar[EDOTAVersusScenePlayerBehavior]
     VS_PLAYER_BEHAVIOR_CHAT_WHEEL: _ClassVar[EDOTAVersusScenePlayerBehavior]
     VS_PLAYER_BEHAVIOR_PLAYBACK_RATE: _ClassVar[EDOTAVersusScenePlayerBehavior]
-
 k_ePingSource_Default: EPingSource
 k_ePingSource_Warning: EPingSource
 k_ePingSource_Wheel: EPingSource
@@ -143,9 +140,7 @@ class CDOTAMsg_PingWaypointPath(_message.Message):
     x: int
     y: int
     grid_nav_directions: bytes
-    def __init__(
-        self, x: int | None = ..., y: int | None = ..., grid_nav_directions: bytes | None = ...
-    ) -> None: ...
+    def __init__(self, x: _Optional[int] = ..., y: _Optional[int] = ..., grid_nav_directions: _Optional[bytes] = ...) -> None: ...
 
 class CDOTAMsg_LocationPing(_message.Message):
     __slots__ = ("x", "y", "target", "direct_ping", "type", "ping_source", "waypoint_path")
@@ -163,16 +158,7 @@ class CDOTAMsg_LocationPing(_message.Message):
     type: int
     ping_source: EPingSource
     waypoint_path: CDOTAMsg_PingWaypointPath
-    def __init__(
-        self,
-        x: int | None = ...,
-        y: int | None = ...,
-        target: int | None = ...,
-        direct_ping: bool = ...,
-        type: int | None = ...,
-        ping_source: EPingSource | str | None = ...,
-        waypoint_path: CDOTAMsg_PingWaypointPath | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, x: _Optional[int] = ..., y: _Optional[int] = ..., target: _Optional[int] = ..., direct_ping: bool = ..., type: _Optional[int] = ..., ping_source: _Optional[_Union[EPingSource, str]] = ..., waypoint_path: _Optional[_Union[CDOTAMsg_PingWaypointPath, _Mapping]] = ...) -> None: ...
 
 class CDOTAMsg_ItemAlert(_message.Message):
     __slots__ = ("x", "y", "item_ability_id")
@@ -182,9 +168,7 @@ class CDOTAMsg_ItemAlert(_message.Message):
     x: int
     y: int
     item_ability_id: int
-    def __init__(
-        self, x: int | None = ..., y: int | None = ..., item_ability_id: int | None = ...
-    ) -> None: ...
+    def __init__(self, x: _Optional[int] = ..., y: _Optional[int] = ..., item_ability_id: _Optional[int] = ...) -> None: ...
 
 class CDOTAMsg_MapLine(_message.Message):
     __slots__ = ("x", "y", "initial")
@@ -194,7 +178,7 @@ class CDOTAMsg_MapLine(_message.Message):
     x: int
     y: int
     initial: bool
-    def __init__(self, x: int | None = ..., y: int | None = ..., initial: bool = ...) -> None: ...
+    def __init__(self, x: _Optional[int] = ..., y: _Optional[int] = ..., initial: bool = ...) -> None: ...
 
 class CDOTAMsg_WorldLine(_message.Message):
     __slots__ = ("x", "y", "z", "initial", "end")
@@ -208,25 +192,10 @@ class CDOTAMsg_WorldLine(_message.Message):
     z: int
     initial: bool
     end: bool
-    def __init__(
-        self,
-        x: int | None = ...,
-        y: int | None = ...,
-        z: int | None = ...,
-        initial: bool = ...,
-        end: bool = ...,
-    ) -> None: ...
+    def __init__(self, x: _Optional[int] = ..., y: _Optional[int] = ..., z: _Optional[int] = ..., initial: bool = ..., end: bool = ...) -> None: ...
 
 class CDOTAMsg_SendStatPopup(_message.Message):
-    __slots__ = (
-        "style",
-        "stat_strings",
-        "stat_images",
-        "stat_image_types",
-        "duration",
-        "use_html",
-        "movie_name",
-    )
+    __slots__ = ("style", "stat_strings", "stat_images", "stat_image_types", "duration", "use_html", "movie_name")
     STYLE_FIELD_NUMBER: _ClassVar[int]
     STAT_STRINGS_FIELD_NUMBER: _ClassVar[int]
     STAT_IMAGES_FIELD_NUMBER: _ClassVar[int]
@@ -241,22 +210,13 @@ class CDOTAMsg_SendStatPopup(_message.Message):
     duration: float
     use_html: bool
     movie_name: str
-    def __init__(
-        self,
-        style: EDOTAStatPopupTypes | str | None = ...,
-        stat_strings: _Iterable[str] | None = ...,
-        stat_images: _Iterable[int] | None = ...,
-        stat_image_types: _Iterable[int] | None = ...,
-        duration: float | None = ...,
-        use_html: bool = ...,
-        movie_name: str | None = ...,
-    ) -> None: ...
+    def __init__(self, style: _Optional[_Union[EDOTAStatPopupTypes, str]] = ..., stat_strings: _Optional[_Iterable[str]] = ..., stat_images: _Optional[_Iterable[int]] = ..., stat_image_types: _Optional[_Iterable[int]] = ..., duration: _Optional[float] = ..., use_html: bool = ..., movie_name: _Optional[str] = ...) -> None: ...
 
 class CDOTAMsg_DismissAllStatPopups(_message.Message):
     __slots__ = ("time_delay",)
     TIME_DELAY_FIELD_NUMBER: _ClassVar[int]
     time_delay: float
-    def __init__(self, time_delay: float | None = ...) -> None: ...
+    def __init__(self, time_delay: _Optional[float] = ...) -> None: ...
 
 class CDOTAMsg_CoachHUDPing(_message.Message):
     __slots__ = ("x", "y", "tgtpath")
@@ -266,20 +226,10 @@ class CDOTAMsg_CoachHUDPing(_message.Message):
     x: int
     y: int
     tgtpath: str
-    def __init__(
-        self, x: int | None = ..., y: int | None = ..., tgtpath: str | None = ...
-    ) -> None: ...
+    def __init__(self, x: _Optional[int] = ..., y: _Optional[int] = ..., tgtpath: _Optional[str] = ...) -> None: ...
 
 class CDOTAMsg_UnitOrder(_message.Message):
-    __slots__ = (
-        "order_type",
-        "units",
-        "target_index",
-        "ability_index",
-        "position",
-        "sequence_number",
-        "flags",
-    )
+    __slots__ = ("order_type", "units", "target_index", "ability_index", "position", "sequence_number", "flags")
     ORDER_TYPE_FIELD_NUMBER: _ClassVar[int]
     UNITS_FIELD_NUMBER: _ClassVar[int]
     TARGET_INDEX_FIELD_NUMBER: _ClassVar[int]
@@ -294,16 +244,7 @@ class CDOTAMsg_UnitOrder(_message.Message):
     position: _networkbasetypes_pb2.CMsgVector
     sequence_number: int
     flags: int
-    def __init__(
-        self,
-        order_type: dotaunitorder_t | str | None = ...,
-        units: _Iterable[int] | None = ...,
-        target_index: int | None = ...,
-        ability_index: int | None = ...,
-        position: _networkbasetypes_pb2.CMsgVector | _Mapping | None = ...,
-        sequence_number: int | None = ...,
-        flags: int | None = ...,
-    ) -> None: ...
+    def __init__(self, order_type: _Optional[_Union[dotaunitorder_t, str]] = ..., units: _Optional[_Iterable[int]] = ..., target_index: _Optional[int] = ..., ability_index: _Optional[int] = ..., position: _Optional[_Union[_networkbasetypes_pb2.CMsgVector, _Mapping]] = ..., sequence_number: _Optional[int] = ..., flags: _Optional[int] = ...) -> None: ...
 
 class VersusScene_PlayActivity(_message.Message):
     __slots__ = ("activities", "playback_rate")
@@ -315,22 +256,12 @@ class VersusScene_PlayActivity(_message.Message):
         activity: str
         disable_auto_kill: bool
         force_looping: bool
-        def __init__(
-            self,
-            activity: str | None = ...,
-            disable_auto_kill: bool = ...,
-            force_looping: bool = ...,
-        ) -> None: ...
-
+        def __init__(self, activity: _Optional[str] = ..., disable_auto_kill: bool = ..., force_looping: bool = ...) -> None: ...
     ACTIVITIES_FIELD_NUMBER: _ClassVar[int]
     PLAYBACK_RATE_FIELD_NUMBER: _ClassVar[int]
     activities: _containers.RepeatedCompositeFieldContainer[VersusScene_PlayActivity.ActivityInfo]
     playback_rate: float
-    def __init__(
-        self,
-        activities: _Iterable[VersusScene_PlayActivity.ActivityInfo | _Mapping] | None = ...,
-        playback_rate: float | None = ...,
-    ) -> None: ...
+    def __init__(self, activities: _Optional[_Iterable[_Union[VersusScene_PlayActivity.ActivityInfo, _Mapping]]] = ..., playback_rate: _Optional[float] = ...) -> None: ...
 
 class VersusScene_ChatWheel(_message.Message):
     __slots__ = ("chat_message_id", "emoticon_id")
@@ -338,12 +269,10 @@ class VersusScene_ChatWheel(_message.Message):
     EMOTICON_ID_FIELD_NUMBER: _ClassVar[int]
     chat_message_id: int
     emoticon_id: int
-    def __init__(
-        self, chat_message_id: int | None = ..., emoticon_id: int | None = ...
-    ) -> None: ...
+    def __init__(self, chat_message_id: _Optional[int] = ..., emoticon_id: _Optional[int] = ...) -> None: ...
 
 class VersusScene_PlaybackRate(_message.Message):
     __slots__ = ("rate",)
     RATE_FIELD_NUMBER: _ClassVar[int]
     rate: float
-    def __init__(self, rate: float | None = ...) -> None: ...
+    def __init__(self, rate: _Optional[float] = ...) -> None: ...

@@ -1,7 +1,6 @@
-from typing import ClassVar as _ClassVar
-
-from google.protobuf import descriptor as _descriptor
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from google.protobuf import descriptor as _descriptor
+from typing import ClassVar as _ClassVar
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -996,6 +995,13 @@ class EDOTAGCMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgClientToGCMonsterHunterClaimCodexRewardResponse: _ClassVar[EDOTAGCMsg]
     k_EMsgClientToGCMonsterHunterClaimSetReward: _ClassVar[EDOTAGCMsg]
     k_EMsgClientToGCMonsterHunterClaimSetRewardResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCItemBattlerGetUserData: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCItemBattlerGetUserDataResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCItemBattlerGameAction: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCItemBattlerGameActionResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgGCToClientItemBattlerUserDataUpdated: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCItemBattlerDevGrantItem: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCItemBattlerDevGrantItemResponse: _ClassVar[EDOTAGCMsg]
     k_EMsgClientToGCGetEventRanking: _ClassVar[EDOTAGCMsg]
     k_EMsgClientToGCGetEventRankingResponse: _ClassVar[EDOTAGCMsg]
     k_EMsgClientToGCGetEventCoupon: _ClassVar[EDOTAGCMsg]
@@ -1006,7 +1012,12 @@ class EDOTAGCMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgServerToGCWarningInvalidBotAbilityUsage: _ClassVar[EDOTAGCMsg]
     k_EMsgClientToGCInviteToDemoMode: _ClassVar[EDOTAGCMsg]
     k_EMsgGCToClientInviteToDemoMode: _ClassVar[EDOTAGCMsg]
-
+    k_EMsgClientToGCOverworldDevSetFortune: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldDevSetFortuneResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldRequestFortune: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldRequestFortuneResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldDevClearFortune: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldDevClearFortuneResponse: _ClassVar[EDOTAGCMsg]
 k_EMsgGCDOTABase: EDOTAGCMsg
 k_EMsgGCGameMatchSignOut: EDOTAGCMsg
 k_EMsgGCGameMatchSignOutResponse: EDOTAGCMsg
@@ -1996,6 +2007,13 @@ k_EMsgClientToGCMonsterHunterClaimCodexReward: EDOTAGCMsg
 k_EMsgClientToGCMonsterHunterClaimCodexRewardResponse: EDOTAGCMsg
 k_EMsgClientToGCMonsterHunterClaimSetReward: EDOTAGCMsg
 k_EMsgClientToGCMonsterHunterClaimSetRewardResponse: EDOTAGCMsg
+k_EMsgClientToGCItemBattlerGetUserData: EDOTAGCMsg
+k_EMsgClientToGCItemBattlerGetUserDataResponse: EDOTAGCMsg
+k_EMsgClientToGCItemBattlerGameAction: EDOTAGCMsg
+k_EMsgClientToGCItemBattlerGameActionResponse: EDOTAGCMsg
+k_EMsgGCToClientItemBattlerUserDataUpdated: EDOTAGCMsg
+k_EMsgClientToGCItemBattlerDevGrantItem: EDOTAGCMsg
+k_EMsgClientToGCItemBattlerDevGrantItemResponse: EDOTAGCMsg
 k_EMsgClientToGCGetEventRanking: EDOTAGCMsg
 k_EMsgClientToGCGetEventRankingResponse: EDOTAGCMsg
 k_EMsgClientToGCGetEventCoupon: EDOTAGCMsg
@@ -2006,3 +2024,9 @@ k_EMsgServerToGCWarningLowServerFramerate: EDOTAGCMsg
 k_EMsgServerToGCWarningInvalidBotAbilityUsage: EDOTAGCMsg
 k_EMsgClientToGCInviteToDemoMode: EDOTAGCMsg
 k_EMsgGCToClientInviteToDemoMode: EDOTAGCMsg
+k_EMsgClientToGCOverworldDevSetFortune: EDOTAGCMsg
+k_EMsgClientToGCOverworldDevSetFortuneResponse: EDOTAGCMsg
+k_EMsgClientToGCOverworldRequestFortune: EDOTAGCMsg
+k_EMsgClientToGCOverworldRequestFortuneResponse: EDOTAGCMsg
+k_EMsgClientToGCOverworldDevClearFortune: EDOTAGCMsg
+k_EMsgClientToGCOverworldDevClearFortuneResponse: EDOTAGCMsg

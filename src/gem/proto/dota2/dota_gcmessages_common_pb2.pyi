@@ -1,12 +1,13 @@
-from collections.abc import Iterable as _Iterable
-from collections.abc import Mapping as _Mapping
-from typing import ClassVar as _ClassVar
-
+import steammessages_pb2 as _steammessages_pb2
+import gcsdk_gcmessages_pb2 as _gcsdk_gcmessages_pb2
 import dota_shared_enums_pb2 as _dota_shared_enums_pb2
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
+import networkbasetypes_pb2 as _networkbasetypes_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -34,15 +35,9 @@ class EDOTAGCSessionNeed(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
 
 class EDOTAMatchPlayerTimeCustomStat(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
-    k_EDOTA_MatchPlayerTimeCustomStat_HPRegenUnderT1Towers: _ClassVar[
-        EDOTAMatchPlayerTimeCustomStat
-    ]
-    k_EDOTA_MatchPlayerTimeCustomStat_MagicDamageReducedWithNewFormula_Absolute: _ClassVar[
-        EDOTAMatchPlayerTimeCustomStat
-    ]
-    k_EDOTA_MatchPlayerTimeCustomStat_MagicDamageReducedWithNewFormula_PercentOfTotalHP: _ClassVar[
-        EDOTAMatchPlayerTimeCustomStat
-    ]
+    k_EDOTA_MatchPlayerTimeCustomStat_HPRegenUnderT1Towers: _ClassVar[EDOTAMatchPlayerTimeCustomStat]
+    k_EDOTA_MatchPlayerTimeCustomStat_MagicDamageReducedWithNewFormula_Absolute: _ClassVar[EDOTAMatchPlayerTimeCustomStat]
+    k_EDOTA_MatchPlayerTimeCustomStat_MagicDamageReducedWithNewFormula_PercentOfTotalHP: _ClassVar[EDOTAMatchPlayerTimeCustomStat]
 
 class DOTA_TournamentEvents(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -140,7 +135,6 @@ class ENewBloomGiftingResponse(int, metaclass=_enum_type_wrapper.EnumTypeWrapper
     kENewBloomGifting_LobbyNotEligible: _ClassVar[ENewBloomGiftingResponse]
     kENewBloomGifting_TargetNotFriend: _ClassVar[ENewBloomGiftingResponse]
     kENewBloomGifting_TargetFriendDurationTooShort: _ClassVar[ENewBloomGiftingResponse]
-
 k_ESpecialPingValue_NoData: ESpecialPingValue
 k_ESpecialPingValue_Failed: ESpecialPingValue
 k_EDOTAGCSessionNeed_Unknown: EDOTAGCSessionNeed
@@ -158,12 +152,8 @@ k_EDOTAGCSessionNeed_GameServerIdle: EDOTAGCSessionNeed
 k_EDOTAGCSessionNeed_GameServerRelay: EDOTAGCSessionNeed
 k_EDOTAGCSessionNeed_GameServerLocalUpload: EDOTAGCSessionNeed
 k_EDOTA_MatchPlayerTimeCustomStat_HPRegenUnderT1Towers: EDOTAMatchPlayerTimeCustomStat
-k_EDOTA_MatchPlayerTimeCustomStat_MagicDamageReducedWithNewFormula_Absolute: (
-    EDOTAMatchPlayerTimeCustomStat
-)
-k_EDOTA_MatchPlayerTimeCustomStat_MagicDamageReducedWithNewFormula_PercentOfTotalHP: (
-    EDOTAMatchPlayerTimeCustomStat
-)
+k_EDOTA_MatchPlayerTimeCustomStat_MagicDamageReducedWithNewFormula_Absolute: EDOTAMatchPlayerTimeCustomStat
+k_EDOTA_MatchPlayerTimeCustomStat_MagicDamageReducedWithNewFormula_PercentOfTotalHP: EDOTAMatchPlayerTimeCustomStat
 TE_FIRST_BLOOD: DOTA_TournamentEvents
 TE_GAME_END: DOTA_TournamentEvents
 TE_MULTI_KILL: DOTA_TournamentEvents
@@ -236,72 +226,14 @@ kENewBloomGifting_TargetNotFriend: ENewBloomGiftingResponse
 kENewBloomGifting_TargetFriendDurationTooShort: ENewBloomGiftingResponse
 
 class CSODOTAGameAccountClient(_message.Message):
-    __slots__ = (
-        "account_id",
-        "wins",
-        "losses",
-        "xp",
-        "level",
-        "initial_skill",
-        "leaver_count",
-        "secondary_leaver_count",
-        "low_priority_until_date",
-        "prevent_text_chat_until_date",
-        "prevent_voice_until_date",
-        "prevent_public_text_chat_until_date",
-        "prevent_new_player_chat_until_date",
-        "last_abandoned_game_date",
-        "last_secondary_abandoned_game_date",
-        "leaver_penalty_count",
-        "completed_game_streak",
-        "account_disabled_until_date",
-        "account_disabled_count",
-        "match_disabled_until_date",
-        "match_disabled_count",
-        "shutdownlawterminatetimestamp",
-        "low_priority_games_remaining",
-        "recruitment_level",
-        "has_new_notifications",
-        "is_league_admin",
-        "casual_games_played",
-        "solo_competitive_games_played",
-        "party_competitive_games_played",
-        "casual_1v1_games_played",
-        "curr_all_hero_challenge_id",
-        "play_time_points",
-        "account_flags",
-        "play_time_level",
-        "player_behavior_seq_num_last_report",
-        "player_behavior_score_last_report",
-        "player_behavior_report_old_data",
-        "tourney_skill_level",
-        "tourney_recent_participation_date",
-        "anchored_phone_number_id",
-        "ranked_matchmaking_ban_until_date",
-        "recent_game_time_1",
-        "recent_game_time_2",
-        "recent_game_time_3",
-        "favorite_team_packed",
-        "recent_report_time",
-        "custom_game_disabled_until_date",
-        "recent_win_time_1",
-        "recent_win_time_2",
-        "recent_win_time_3",
-        "coach_rating",
-        "queue_points",
-        "role_handicaps",
-        "event_mode_recent_time",
-        "mmr_recalibration_time",
-        "banned_hero_ids",
-    )
+    __slots__ = ("account_id", "wins", "losses", "xp", "level", "initial_skill", "leaver_count", "secondary_leaver_count", "low_priority_until_date", "prevent_text_chat_until_date", "prevent_voice_until_date", "prevent_public_text_chat_until_date", "prevent_new_player_chat_until_date", "last_abandoned_game_date", "last_secondary_abandoned_game_date", "leaver_penalty_count", "completed_game_streak", "account_disabled_until_date", "account_disabled_count", "match_disabled_until_date", "match_disabled_count", "shutdownlawterminatetimestamp", "low_priority_games_remaining", "recruitment_level", "has_new_notifications", "is_league_admin", "casual_games_played", "solo_competitive_games_played", "party_competitive_games_played", "casual_1v1_games_played", "curr_all_hero_challenge_id", "play_time_points", "account_flags", "play_time_level", "player_behavior_seq_num_last_report", "player_behavior_score_last_report", "player_behavior_report_old_data", "tourney_skill_level", "tourney_recent_participation_date", "anchored_phone_number_id", "ranked_matchmaking_ban_until_date", "recent_game_time_1", "recent_game_time_2", "recent_game_time_3", "favorite_team_packed", "recent_report_time", "custom_game_disabled_until_date", "recent_win_time_1", "recent_win_time_2", "recent_win_time_3", "coach_rating", "queue_points", "role_handicaps", "event_mode_recent_time", "mmr_recalibration_time", "banned_hero_ids")
     class RoleHandicap(_message.Message):
         __slots__ = ("role", "handicap")
         ROLE_FIELD_NUMBER: _ClassVar[int]
         HANDICAP_FIELD_NUMBER: _ClassVar[int]
         role: int
         handicap: float
-        def __init__(self, role: int | None = ..., handicap: float | None = ...) -> None: ...
-
+        def __init__(self, role: _Optional[int] = ..., handicap: _Optional[float] = ...) -> None: ...
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     WINS_FIELD_NUMBER: _ClassVar[int]
     LOSSES_FIELD_NUMBER: _ClassVar[int]
@@ -410,83 +342,14 @@ class CSODOTAGameAccountClient(_message.Message):
     recent_win_time_3: int
     coach_rating: int
     queue_points: int
-    role_handicaps: _containers.RepeatedCompositeFieldContainer[
-        CSODOTAGameAccountClient.RoleHandicap
-    ]
+    role_handicaps: _containers.RepeatedCompositeFieldContainer[CSODOTAGameAccountClient.RoleHandicap]
     event_mode_recent_time: int
     mmr_recalibration_time: int
     banned_hero_ids: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(
-        self,
-        account_id: int | None = ...,
-        wins: int | None = ...,
-        losses: int | None = ...,
-        xp: int | None = ...,
-        level: int | None = ...,
-        initial_skill: int | None = ...,
-        leaver_count: int | None = ...,
-        secondary_leaver_count: int | None = ...,
-        low_priority_until_date: int | None = ...,
-        prevent_text_chat_until_date: int | None = ...,
-        prevent_voice_until_date: int | None = ...,
-        prevent_public_text_chat_until_date: int | None = ...,
-        prevent_new_player_chat_until_date: int | None = ...,
-        last_abandoned_game_date: int | None = ...,
-        last_secondary_abandoned_game_date: int | None = ...,
-        leaver_penalty_count: int | None = ...,
-        completed_game_streak: int | None = ...,
-        account_disabled_until_date: int | None = ...,
-        account_disabled_count: int | None = ...,
-        match_disabled_until_date: int | None = ...,
-        match_disabled_count: int | None = ...,
-        shutdownlawterminatetimestamp: int | None = ...,
-        low_priority_games_remaining: int | None = ...,
-        recruitment_level: int | None = ...,
-        has_new_notifications: bool = ...,
-        is_league_admin: bool = ...,
-        casual_games_played: int | None = ...,
-        solo_competitive_games_played: int | None = ...,
-        party_competitive_games_played: int | None = ...,
-        casual_1v1_games_played: int | None = ...,
-        curr_all_hero_challenge_id: int | None = ...,
-        play_time_points: int | None = ...,
-        account_flags: int | None = ...,
-        play_time_level: int | None = ...,
-        player_behavior_seq_num_last_report: int | None = ...,
-        player_behavior_score_last_report: int | None = ...,
-        player_behavior_report_old_data: bool = ...,
-        tourney_skill_level: int | None = ...,
-        tourney_recent_participation_date: int | None = ...,
-        anchored_phone_number_id: int | None = ...,
-        ranked_matchmaking_ban_until_date: int | None = ...,
-        recent_game_time_1: int | None = ...,
-        recent_game_time_2: int | None = ...,
-        recent_game_time_3: int | None = ...,
-        favorite_team_packed: int | None = ...,
-        recent_report_time: int | None = ...,
-        custom_game_disabled_until_date: int | None = ...,
-        recent_win_time_1: int | None = ...,
-        recent_win_time_2: int | None = ...,
-        recent_win_time_3: int | None = ...,
-        coach_rating: int | None = ...,
-        queue_points: int | None = ...,
-        role_handicaps: _Iterable[CSODOTAGameAccountClient.RoleHandicap | _Mapping] | None = ...,
-        event_mode_recent_time: int | None = ...,
-        mmr_recalibration_time: int | None = ...,
-        banned_hero_ids: _Iterable[int] | None = ...,
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., wins: _Optional[int] = ..., losses: _Optional[int] = ..., xp: _Optional[int] = ..., level: _Optional[int] = ..., initial_skill: _Optional[int] = ..., leaver_count: _Optional[int] = ..., secondary_leaver_count: _Optional[int] = ..., low_priority_until_date: _Optional[int] = ..., prevent_text_chat_until_date: _Optional[int] = ..., prevent_voice_until_date: _Optional[int] = ..., prevent_public_text_chat_until_date: _Optional[int] = ..., prevent_new_player_chat_until_date: _Optional[int] = ..., last_abandoned_game_date: _Optional[int] = ..., last_secondary_abandoned_game_date: _Optional[int] = ..., leaver_penalty_count: _Optional[int] = ..., completed_game_streak: _Optional[int] = ..., account_disabled_until_date: _Optional[int] = ..., account_disabled_count: _Optional[int] = ..., match_disabled_until_date: _Optional[int] = ..., match_disabled_count: _Optional[int] = ..., shutdownlawterminatetimestamp: _Optional[int] = ..., low_priority_games_remaining: _Optional[int] = ..., recruitment_level: _Optional[int] = ..., has_new_notifications: bool = ..., is_league_admin: bool = ..., casual_games_played: _Optional[int] = ..., solo_competitive_games_played: _Optional[int] = ..., party_competitive_games_played: _Optional[int] = ..., casual_1v1_games_played: _Optional[int] = ..., curr_all_hero_challenge_id: _Optional[int] = ..., play_time_points: _Optional[int] = ..., account_flags: _Optional[int] = ..., play_time_level: _Optional[int] = ..., player_behavior_seq_num_last_report: _Optional[int] = ..., player_behavior_score_last_report: _Optional[int] = ..., player_behavior_report_old_data: bool = ..., tourney_skill_level: _Optional[int] = ..., tourney_recent_participation_date: _Optional[int] = ..., anchored_phone_number_id: _Optional[int] = ..., ranked_matchmaking_ban_until_date: _Optional[int] = ..., recent_game_time_1: _Optional[int] = ..., recent_game_time_2: _Optional[int] = ..., recent_game_time_3: _Optional[int] = ..., favorite_team_packed: _Optional[int] = ..., recent_report_time: _Optional[int] = ..., custom_game_disabled_until_date: _Optional[int] = ..., recent_win_time_1: _Optional[int] = ..., recent_win_time_2: _Optional[int] = ..., recent_win_time_3: _Optional[int] = ..., coach_rating: _Optional[int] = ..., queue_points: _Optional[int] = ..., role_handicaps: _Optional[_Iterable[_Union[CSODOTAGameAccountClient.RoleHandicap, _Mapping]]] = ..., event_mode_recent_time: _Optional[int] = ..., mmr_recalibration_time: _Optional[int] = ..., banned_hero_ids: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CSODOTAGameAccountPlus(_message.Message):
-    __slots__ = (
-        "account_id",
-        "original_start_date",
-        "plus_flags",
-        "plus_status",
-        "prepaid_time_start",
-        "prepaid_time_balance",
-        "next_payment_date",
-        "steam_agreement_id",
-    )
+    __slots__ = ("account_id", "original_start_date", "plus_flags", "plus_status", "prepaid_time_start", "prepaid_time_balance", "next_payment_date", "steam_agreement_id")
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     ORIGINAL_START_DATE_FIELD_NUMBER: _ClassVar[int]
     PLUS_FLAGS_FIELD_NUMBER: _ClassVar[int]
@@ -503,23 +366,13 @@ class CSODOTAGameAccountPlus(_message.Message):
     prepaid_time_balance: int
     next_payment_date: int
     steam_agreement_id: int
-    def __init__(
-        self,
-        account_id: int | None = ...,
-        original_start_date: int | None = ...,
-        plus_flags: int | None = ...,
-        plus_status: int | None = ...,
-        prepaid_time_start: int | None = ...,
-        prepaid_time_balance: int | None = ...,
-        next_payment_date: int | None = ...,
-        steam_agreement_id: int | None = ...,
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., original_start_date: _Optional[int] = ..., plus_flags: _Optional[int] = ..., plus_status: _Optional[int] = ..., prepaid_time_start: _Optional[int] = ..., prepaid_time_balance: _Optional[int] = ..., next_payment_date: _Optional[int] = ..., steam_agreement_id: _Optional[int] = ...) -> None: ...
 
 class CSODOTAChatWheel(_message.Message):
     __slots__ = ("message_id",)
     MESSAGE_ID_FIELD_NUMBER: _ClassVar[int]
     message_id: int
-    def __init__(self, message_id: int | None = ...) -> None: ...
+    def __init__(self, message_id: _Optional[int] = ...) -> None: ...
 
 class CMsgLobbyFeaturedGamemodeProgress(_message.Message):
     __slots__ = ("accounts",)
@@ -531,35 +384,13 @@ class CMsgLobbyFeaturedGamemodeProgress(_message.Message):
         account_id: int
         current_value: int
         max_value: int
-        def __init__(
-            self,
-            account_id: int | None = ...,
-            current_value: int | None = ...,
-            max_value: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, account_id: _Optional[int] = ..., current_value: _Optional[int] = ..., max_value: _Optional[int] = ...) -> None: ...
     ACCOUNTS_FIELD_NUMBER: _ClassVar[int]
-    accounts: _containers.RepeatedCompositeFieldContainer[
-        CMsgLobbyFeaturedGamemodeProgress.AccountProgress
-    ]
-    def __init__(
-        self,
-        accounts: _Iterable[CMsgLobbyFeaturedGamemodeProgress.AccountProgress | _Mapping]
-        | None = ...,
-    ) -> None: ...
+    accounts: _containers.RepeatedCompositeFieldContainer[CMsgLobbyFeaturedGamemodeProgress.AccountProgress]
+    def __init__(self, accounts: _Optional[_Iterable[_Union[CMsgLobbyFeaturedGamemodeProgress.AccountProgress, _Mapping]]] = ...) -> None: ...
 
 class CMsgBattleCupVictory(_message.Message):
-    __slots__ = (
-        "account_id",
-        "win_date",
-        "valid_until",
-        "skill_level",
-        "tournament_id",
-        "division_id",
-        "team_id",
-        "streak",
-        "trophy_id",
-    )
+    __slots__ = ("account_id", "win_date", "valid_until", "skill_level", "tournament_id", "division_id", "team_id", "streak", "trophy_id")
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     WIN_DATE_FIELD_NUMBER: _ClassVar[int]
     VALID_UNTIL_FIELD_NUMBER: _ClassVar[int]
@@ -578,44 +409,22 @@ class CMsgBattleCupVictory(_message.Message):
     team_id: int
     streak: int
     trophy_id: int
-    def __init__(
-        self,
-        account_id: int | None = ...,
-        win_date: int | None = ...,
-        valid_until: int | None = ...,
-        skill_level: int | None = ...,
-        tournament_id: int | None = ...,
-        division_id: int | None = ...,
-        team_id: int | None = ...,
-        streak: int | None = ...,
-        trophy_id: int | None = ...,
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., win_date: _Optional[int] = ..., valid_until: _Optional[int] = ..., skill_level: _Optional[int] = ..., tournament_id: _Optional[int] = ..., division_id: _Optional[int] = ..., team_id: _Optional[int] = ..., streak: _Optional[int] = ..., trophy_id: _Optional[int] = ...) -> None: ...
 
 class CMsgLobbyBattleCupVictoryList(_message.Message):
     __slots__ = ("winners",)
     WINNERS_FIELD_NUMBER: _ClassVar[int]
     winners: _containers.RepeatedCompositeFieldContainer[CMsgBattleCupVictory]
-    def __init__(
-        self, winners: _Iterable[CMsgBattleCupVictory | _Mapping] | None = ...
-    ) -> None: ...
+    def __init__(self, winners: _Optional[_Iterable[_Union[CMsgBattleCupVictory, _Mapping]]] = ...) -> None: ...
 
 class CMsgDOTABroadcastNotification(_message.Message):
     __slots__ = ("message",)
     MESSAGE_FIELD_NUMBER: _ClassVar[int]
     message: str
-    def __init__(self, message: str | None = ...) -> None: ...
+    def __init__(self, message: _Optional[str] = ...) -> None: ...
 
 class CProtoItemHeroStatue(_message.Message):
-    __slots__ = (
-        "hero_id",
-        "status_effect_index",
-        "sequence_name",
-        "cycle",
-        "wearable",
-        "inscription",
-        "style",
-        "tournament_drop",
-    )
+    __slots__ = ("hero_id", "status_effect_index", "sequence_name", "cycle", "wearable", "inscription", "style", "tournament_drop")
     HERO_ID_FIELD_NUMBER: _ClassVar[int]
     STATUS_EFFECT_INDEX_FIELD_NUMBER: _ClassVar[int]
     SEQUENCE_NAME_FIELD_NUMBER: _ClassVar[int]
@@ -632,17 +441,7 @@ class CProtoItemHeroStatue(_message.Message):
     inscription: str
     style: _containers.RepeatedScalarFieldContainer[int]
     tournament_drop: bool
-    def __init__(
-        self,
-        hero_id: int | None = ...,
-        status_effect_index: int | None = ...,
-        sequence_name: str | None = ...,
-        cycle: float | None = ...,
-        wearable: _Iterable[int] | None = ...,
-        inscription: str | None = ...,
-        style: _Iterable[int] | None = ...,
-        tournament_drop: bool = ...,
-    ) -> None: ...
+    def __init__(self, hero_id: _Optional[int] = ..., status_effect_index: _Optional[int] = ..., sequence_name: _Optional[str] = ..., cycle: _Optional[float] = ..., wearable: _Optional[_Iterable[int]] = ..., inscription: _Optional[str] = ..., style: _Optional[_Iterable[int]] = ..., tournament_drop: bool = ...) -> None: ...
 
 class CMatchPlayerAbilityUpgrade(_message.Message):
     __slots__ = ("ability", "time")
@@ -650,7 +449,7 @@ class CMatchPlayerAbilityUpgrade(_message.Message):
     TIME_FIELD_NUMBER: _ClassVar[int]
     ability: int
     time: int
-    def __init__(self, ability: int | None = ..., time: int | None = ...) -> None: ...
+    def __init__(self, ability: _Optional[int] = ..., time: _Optional[int] = ...) -> None: ...
 
 class CMatchPlayerTimedCustomStat(_message.Message):
     __slots__ = ("stat", "value")
@@ -658,50 +457,10 @@ class CMatchPlayerTimedCustomStat(_message.Message):
     VALUE_FIELD_NUMBER: _ClassVar[int]
     stat: EDOTAMatchPlayerTimeCustomStat
     value: float
-    def __init__(
-        self, stat: EDOTAMatchPlayerTimeCustomStat | str | None = ..., value: float | None = ...
-    ) -> None: ...
+    def __init__(self, stat: _Optional[_Union[EDOTAMatchPlayerTimeCustomStat, str]] = ..., value: _Optional[float] = ...) -> None: ...
 
 class CMatchPlayerTimedStats(_message.Message):
-    __slots__ = (
-        "time",
-        "kills",
-        "deaths",
-        "assists",
-        "net_worth",
-        "xp",
-        "last_hits",
-        "denies",
-        "bounty_rune_gold",
-        "range_creep_upgrade_gold",
-        "observer_wards_dewarded",
-        "reliable_gold_earned",
-        "gold_loss_prevented",
-        "hero_kill_gold",
-        "creep_kill_gold",
-        "building_gold",
-        "other_gold",
-        "comeback_gold",
-        "experimental_gold",
-        "experimental2_gold",
-        "creep_deny_gold",
-        "tp_scrolls_purchased_1",
-        "tp_scrolls_purchased_2",
-        "tp_scrolls_purchased_3",
-        "tp_scrolls_purchased_4",
-        "tp_scrolls_purchased_5",
-        "neutral_gold",
-        "courier_gold",
-        "roshan_gold",
-        "income_gold",
-        "item_value",
-        "support_gold_spent",
-        "camps_stacked",
-        "wards_placed",
-        "triple_kills",
-        "rampages",
-        "custom_stats",
-    )
+    __slots__ = ("time", "kills", "deaths", "assists", "net_worth", "xp", "last_hits", "denies", "bounty_rune_gold", "range_creep_upgrade_gold", "observer_wards_dewarded", "reliable_gold_earned", "gold_loss_prevented", "hero_kill_gold", "creep_kill_gold", "building_gold", "other_gold", "comeback_gold", "experimental_gold", "experimental2_gold", "creep_deny_gold", "tp_scrolls_purchased_1", "tp_scrolls_purchased_2", "tp_scrolls_purchased_3", "tp_scrolls_purchased_4", "tp_scrolls_purchased_5", "neutral_gold", "courier_gold", "roshan_gold", "income_gold", "item_value", "support_gold_spent", "camps_stacked", "wards_placed", "triple_kills", "rampages", "custom_stats")
     TIME_FIELD_NUMBER: _ClassVar[int]
     KILLS_FIELD_NUMBER: _ClassVar[int]
     DEATHS_FIELD_NUMBER: _ClassVar[int]
@@ -776,55 +535,10 @@ class CMatchPlayerTimedStats(_message.Message):
     triple_kills: int
     rampages: int
     custom_stats: _containers.RepeatedCompositeFieldContainer[CMatchPlayerTimedCustomStat]
-    def __init__(
-        self,
-        time: int | None = ...,
-        kills: int | None = ...,
-        deaths: int | None = ...,
-        assists: int | None = ...,
-        net_worth: int | None = ...,
-        xp: int | None = ...,
-        last_hits: int | None = ...,
-        denies: int | None = ...,
-        bounty_rune_gold: int | None = ...,
-        range_creep_upgrade_gold: int | None = ...,
-        observer_wards_dewarded: int | None = ...,
-        reliable_gold_earned: int | None = ...,
-        gold_loss_prevented: int | None = ...,
-        hero_kill_gold: int | None = ...,
-        creep_kill_gold: int | None = ...,
-        building_gold: int | None = ...,
-        other_gold: int | None = ...,
-        comeback_gold: int | None = ...,
-        experimental_gold: int | None = ...,
-        experimental2_gold: int | None = ...,
-        creep_deny_gold: int | None = ...,
-        tp_scrolls_purchased_1: int | None = ...,
-        tp_scrolls_purchased_2: int | None = ...,
-        tp_scrolls_purchased_3: int | None = ...,
-        tp_scrolls_purchased_4: int | None = ...,
-        tp_scrolls_purchased_5: int | None = ...,
-        neutral_gold: int | None = ...,
-        courier_gold: int | None = ...,
-        roshan_gold: int | None = ...,
-        income_gold: int | None = ...,
-        item_value: int | None = ...,
-        support_gold_spent: int | None = ...,
-        camps_stacked: int | None = ...,
-        wards_placed: int | None = ...,
-        triple_kills: int | None = ...,
-        rampages: int | None = ...,
-        custom_stats: _Iterable[CMatchPlayerTimedCustomStat | _Mapping] | None = ...,
-    ) -> None: ...
+    def __init__(self, time: _Optional[int] = ..., kills: _Optional[int] = ..., deaths: _Optional[int] = ..., assists: _Optional[int] = ..., net_worth: _Optional[int] = ..., xp: _Optional[int] = ..., last_hits: _Optional[int] = ..., denies: _Optional[int] = ..., bounty_rune_gold: _Optional[int] = ..., range_creep_upgrade_gold: _Optional[int] = ..., observer_wards_dewarded: _Optional[int] = ..., reliable_gold_earned: _Optional[int] = ..., gold_loss_prevented: _Optional[int] = ..., hero_kill_gold: _Optional[int] = ..., creep_kill_gold: _Optional[int] = ..., building_gold: _Optional[int] = ..., other_gold: _Optional[int] = ..., comeback_gold: _Optional[int] = ..., experimental_gold: _Optional[int] = ..., experimental2_gold: _Optional[int] = ..., creep_deny_gold: _Optional[int] = ..., tp_scrolls_purchased_1: _Optional[int] = ..., tp_scrolls_purchased_2: _Optional[int] = ..., tp_scrolls_purchased_3: _Optional[int] = ..., tp_scrolls_purchased_4: _Optional[int] = ..., tp_scrolls_purchased_5: _Optional[int] = ..., neutral_gold: _Optional[int] = ..., courier_gold: _Optional[int] = ..., roshan_gold: _Optional[int] = ..., income_gold: _Optional[int] = ..., item_value: _Optional[int] = ..., support_gold_spent: _Optional[int] = ..., camps_stacked: _Optional[int] = ..., wards_placed: _Optional[int] = ..., triple_kills: _Optional[int] = ..., rampages: _Optional[int] = ..., custom_stats: _Optional[_Iterable[_Union[CMatchPlayerTimedCustomStat, _Mapping]]] = ...) -> None: ...
 
 class CMatchTeamTimedStats(_message.Message):
-    __slots__ = (
-        "time",
-        "enemy_towers_killed",
-        "enemy_barracks_killed",
-        "enemy_towers_status",
-        "enemy_barracks_status",
-    )
+    __slots__ = ("time", "enemy_towers_killed", "enemy_barracks_killed", "enemy_towers_status", "enemy_barracks_status")
     TIME_FIELD_NUMBER: _ClassVar[int]
     ENEMY_TOWERS_KILLED_FIELD_NUMBER: _ClassVar[int]
     ENEMY_BARRACKS_KILLED_FIELD_NUMBER: _ClassVar[int]
@@ -835,14 +549,7 @@ class CMatchTeamTimedStats(_message.Message):
     enemy_barracks_killed: int
     enemy_towers_status: int
     enemy_barracks_status: int
-    def __init__(
-        self,
-        time: int | None = ...,
-        enemy_towers_killed: int | None = ...,
-        enemy_barracks_killed: int | None = ...,
-        enemy_towers_status: int | None = ...,
-        enemy_barracks_status: int | None = ...,
-    ) -> None: ...
+    def __init__(self, time: _Optional[int] = ..., enemy_towers_killed: _Optional[int] = ..., enemy_barracks_killed: _Optional[int] = ..., enemy_towers_status: _Optional[int] = ..., enemy_barracks_status: _Optional[int] = ...) -> None: ...
 
 class CMatchAdditionalUnitInventory(_message.Message):
     __slots__ = ("unit_name", "items")
@@ -850,7 +557,7 @@ class CMatchAdditionalUnitInventory(_message.Message):
     ITEMS_FIELD_NUMBER: _ClassVar[int]
     unit_name: str
     items: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(self, unit_name: str | None = ..., items: _Iterable[int] | None = ...) -> None: ...
+    def __init__(self, unit_name: _Optional[str] = ..., items: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CMatchPlayerPermanentBuff(_message.Message):
     __slots__ = ("permanent_buff", "stack_count", "grant_time")
@@ -860,12 +567,7 @@ class CMatchPlayerPermanentBuff(_message.Message):
     permanent_buff: int
     stack_count: int
     grant_time: int
-    def __init__(
-        self,
-        permanent_buff: int | None = ...,
-        stack_count: int | None = ...,
-        grant_time: int | None = ...,
-    ) -> None: ...
+    def __init__(self, permanent_buff: _Optional[int] = ..., stack_count: _Optional[int] = ..., grant_time: _Optional[int] = ...) -> None: ...
 
 class CMatchHeroSelectEvent(_message.Message):
     __slots__ = ("is_pick", "team", "hero_id")
@@ -875,22 +577,10 @@ class CMatchHeroSelectEvent(_message.Message):
     is_pick: bool
     team: int
     hero_id: int
-    def __init__(
-        self, is_pick: bool = ..., team: int | None = ..., hero_id: int | None = ...
-    ) -> None: ...
+    def __init__(self, is_pick: bool = ..., team: _Optional[int] = ..., hero_id: _Optional[int] = ...) -> None: ...
 
 class CMatchClip(_message.Message):
-    __slots__ = (
-        "match_id",
-        "player_account_id",
-        "game_time_seconds",
-        "duration_seconds",
-        "player_id",
-        "hero_id",
-        "ability_id",
-        "camera_mode",
-        "comment",
-    )
+    __slots__ = ("match_id", "player_account_id", "game_time_seconds", "duration_seconds", "player_id", "hero_id", "ability_id", "camera_mode", "comment")
     MATCH_ID_FIELD_NUMBER: _ClassVar[int]
     PLAYER_ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     GAME_TIME_SECONDS_FIELD_NUMBER: _ClassVar[int]
@@ -909,18 +599,7 @@ class CMatchClip(_message.Message):
     ability_id: int
     camera_mode: int
     comment: str
-    def __init__(
-        self,
-        match_id: int | None = ...,
-        player_account_id: int | None = ...,
-        game_time_seconds: int | None = ...,
-        duration_seconds: int | None = ...,
-        player_id: int | None = ...,
-        hero_id: int | None = ...,
-        ability_id: int | None = ...,
-        camera_mode: int | None = ...,
-        comment: str | None = ...,
-    ) -> None: ...
+    def __init__(self, match_id: _Optional[int] = ..., player_account_id: _Optional[int] = ..., game_time_seconds: _Optional[int] = ..., duration_seconds: _Optional[int] = ..., player_id: _Optional[int] = ..., hero_id: _Optional[int] = ..., ability_id: _Optional[int] = ..., camera_mode: _Optional[int] = ..., comment: _Optional[str] = ...) -> None: ...
 
 class CPartySearchClientParty(_message.Message):
     __slots__ = ("party_id", "beacon_type", "party_members")
@@ -930,12 +609,7 @@ class CPartySearchClientParty(_message.Message):
     party_id: int
     beacon_type: int
     party_members: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(
-        self,
-        party_id: int | None = ...,
-        beacon_type: int | None = ...,
-        party_members: _Iterable[int] | None = ...,
-    ) -> None: ...
+    def __init__(self, party_id: _Optional[int] = ..., beacon_type: _Optional[int] = ..., party_members: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CMsgDOTAHasItemQuery(_message.Message):
     __slots__ = ("account_id", "item_id")
@@ -943,7 +617,7 @@ class CMsgDOTAHasItemQuery(_message.Message):
     ITEM_ID_FIELD_NUMBER: _ClassVar[int]
     account_id: int
     item_id: int
-    def __init__(self, account_id: int | None = ..., item_id: int | None = ...) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., item_id: _Optional[int] = ...) -> None: ...
 
 class CMsgDOTAHasItemResponse(_message.Message):
     __slots__ = ("has_item",)
@@ -959,12 +633,7 @@ class CMsgGCGetPlayerCardItemInfo(_message.Message):
     account_id: int
     player_card_item_ids: _containers.RepeatedScalarFieldContainer[int]
     all_for_event: int
-    def __init__(
-        self,
-        account_id: int | None = ...,
-        player_card_item_ids: _Iterable[int] | None = ...,
-        all_for_event: int | None = ...,
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., player_card_item_ids: _Optional[_Iterable[int]] = ..., all_for_event: _Optional[int] = ...) -> None: ...
 
 class CMsgGCGetPlayerCardItemInfoResponse(_message.Message):
     __slots__ = ("player_card_infos",)
@@ -976,22 +645,10 @@ class CMsgGCGetPlayerCardItemInfoResponse(_message.Message):
         player_card_item_id: int
         account_id: int
         packed_bonuses: int
-        def __init__(
-            self,
-            player_card_item_id: int | None = ...,
-            account_id: int | None = ...,
-            packed_bonuses: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, player_card_item_id: _Optional[int] = ..., account_id: _Optional[int] = ..., packed_bonuses: _Optional[int] = ...) -> None: ...
     PLAYER_CARD_INFOS_FIELD_NUMBER: _ClassVar[int]
-    player_card_infos: _containers.RepeatedCompositeFieldContainer[
-        CMsgGCGetPlayerCardItemInfoResponse.PlayerCardInfo
-    ]
-    def __init__(
-        self,
-        player_card_infos: _Iterable[CMsgGCGetPlayerCardItemInfoResponse.PlayerCardInfo | _Mapping]
-        | None = ...,
-    ) -> None: ...
+    player_card_infos: _containers.RepeatedCompositeFieldContainer[CMsgGCGetPlayerCardItemInfoResponse.PlayerCardInfo]
+    def __init__(self, player_card_infos: _Optional[_Iterable[_Union[CMsgGCGetPlayerCardItemInfoResponse.PlayerCardInfo, _Mapping]]] = ...) -> None: ...
 
 class CSODOTAMapLocationState(_message.Message):
     __slots__ = ("account_id", "location_id", "completed")
@@ -1001,34 +658,16 @@ class CSODOTAMapLocationState(_message.Message):
     account_id: int
     location_id: int
     completed: bool
-    def __init__(
-        self, account_id: int | None = ..., location_id: int | None = ..., completed: bool = ...
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., location_id: _Optional[int] = ..., completed: bool = ...) -> None: ...
 
 class CMsgLeagueAdminList(_message.Message):
     __slots__ = ("account_ids",)
     ACCOUNT_IDS_FIELD_NUMBER: _ClassVar[int]
     account_ids: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(self, account_ids: _Iterable[int] | None = ...) -> None: ...
+    def __init__(self, account_ids: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CMsgDOTAProfileCard(_message.Message):
-    __slots__ = (
-        "account_id",
-        "slots",
-        "badge_points",
-        "event_id",
-        "recent_battle_cup_victory",
-        "rank_tier",
-        "leaderboard_rank",
-        "is_plus_subscriber",
-        "plus_original_start_date",
-        "rank_tier_score",
-        "leaderboard_rank_core",
-        "title",
-        "favorite_team_packed",
-        "lifetime_games",
-        "event_level",
-    )
+    __slots__ = ("account_id", "slots", "badge_points", "event_id", "recent_battle_cup_victory", "rank_tier", "leaderboard_rank", "is_plus_subscriber", "plus_original_start_date", "rank_tier_score", "leaderboard_rank_core", "title", "favorite_team_packed", "lifetime_games", "event_level")
     class EStatID(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
         k_eStat_Wins: _ClassVar[CMsgDOTAProfileCard.EStatID]
@@ -1037,7 +676,6 @@ class CMsgDOTAProfileCard(_message.Message):
         k_eStat_FirstMatchDate: _ClassVar[CMsgDOTAProfileCard.EStatID]
         k_eStat_PreviousSeasonRank: _ClassVar[CMsgDOTAProfileCard.EStatID]
         k_eStat_GamesMVP: _ClassVar[CMsgDOTAProfileCard.EStatID]
-
     k_eStat_Wins: CMsgDOTAProfileCard.EStatID
     k_eStat_Commends: CMsgDOTAProfileCard.EStatID
     k_eStat_GamesPlayed: CMsgDOTAProfileCard.EStatID
@@ -1052,32 +690,21 @@ class CMsgDOTAProfileCard(_message.Message):
             TROPHY_SCORE_FIELD_NUMBER: _ClassVar[int]
             trophy_id: int
             trophy_score: int
-            def __init__(
-                self, trophy_id: int | None = ..., trophy_score: int | None = ...
-            ) -> None: ...
-
+            def __init__(self, trophy_id: _Optional[int] = ..., trophy_score: _Optional[int] = ...) -> None: ...
         class Stat(_message.Message):
             __slots__ = ("stat_id", "stat_score")
             STAT_ID_FIELD_NUMBER: _ClassVar[int]
             STAT_SCORE_FIELD_NUMBER: _ClassVar[int]
             stat_id: CMsgDOTAProfileCard.EStatID
             stat_score: int
-            def __init__(
-                self,
-                stat_id: CMsgDOTAProfileCard.EStatID | str | None = ...,
-                stat_score: int | None = ...,
-            ) -> None: ...
-
+            def __init__(self, stat_id: _Optional[_Union[CMsgDOTAProfileCard.EStatID, str]] = ..., stat_score: _Optional[int] = ...) -> None: ...
         class Item(_message.Message):
             __slots__ = ("serialized_item", "item_id")
             SERIALIZED_ITEM_FIELD_NUMBER: _ClassVar[int]
             ITEM_ID_FIELD_NUMBER: _ClassVar[int]
             serialized_item: bytes
             item_id: int
-            def __init__(
-                self, serialized_item: bytes | None = ..., item_id: int | None = ...
-            ) -> None: ...
-
+            def __init__(self, serialized_item: _Optional[bytes] = ..., item_id: _Optional[int] = ...) -> None: ...
         class Hero(_message.Message):
             __slots__ = ("hero_id", "hero_wins", "hero_losses")
             HERO_ID_FIELD_NUMBER: _ClassVar[int]
@@ -1086,25 +713,17 @@ class CMsgDOTAProfileCard(_message.Message):
             hero_id: int
             hero_wins: int
             hero_losses: int
-            def __init__(
-                self,
-                hero_id: int | None = ...,
-                hero_wins: int | None = ...,
-                hero_losses: int | None = ...,
-            ) -> None: ...
-
+            def __init__(self, hero_id: _Optional[int] = ..., hero_wins: _Optional[int] = ..., hero_losses: _Optional[int] = ...) -> None: ...
         class Emoticon(_message.Message):
             __slots__ = ("emoticon_id",)
             EMOTICON_ID_FIELD_NUMBER: _ClassVar[int]
             emoticon_id: int
-            def __init__(self, emoticon_id: int | None = ...) -> None: ...
-
+            def __init__(self, emoticon_id: _Optional[int] = ...) -> None: ...
         class Team(_message.Message):
             __slots__ = ("team_id",)
             TEAM_ID_FIELD_NUMBER: _ClassVar[int]
             team_id: int
-            def __init__(self, team_id: int | None = ...) -> None: ...
-
+            def __init__(self, team_id: _Optional[int] = ...) -> None: ...
         SLOT_ID_FIELD_NUMBER: _ClassVar[int]
         TROPHY_FIELD_NUMBER: _ClassVar[int]
         STAT_FIELD_NUMBER: _ClassVar[int]
@@ -1119,17 +738,7 @@ class CMsgDOTAProfileCard(_message.Message):
         hero: CMsgDOTAProfileCard.Slot.Hero
         emoticon: CMsgDOTAProfileCard.Slot.Emoticon
         team: CMsgDOTAProfileCard.Slot.Team
-        def __init__(
-            self,
-            slot_id: int | None = ...,
-            trophy: CMsgDOTAProfileCard.Slot.Trophy | _Mapping | None = ...,
-            stat: CMsgDOTAProfileCard.Slot.Stat | _Mapping | None = ...,
-            item: CMsgDOTAProfileCard.Slot.Item | _Mapping | None = ...,
-            hero: CMsgDOTAProfileCard.Slot.Hero | _Mapping | None = ...,
-            emoticon: CMsgDOTAProfileCard.Slot.Emoticon | _Mapping | None = ...,
-            team: CMsgDOTAProfileCard.Slot.Team | _Mapping | None = ...,
-        ) -> None: ...
-
+        def __init__(self, slot_id: _Optional[int] = ..., trophy: _Optional[_Union[CMsgDOTAProfileCard.Slot.Trophy, _Mapping]] = ..., stat: _Optional[_Union[CMsgDOTAProfileCard.Slot.Stat, _Mapping]] = ..., item: _Optional[_Union[CMsgDOTAProfileCard.Slot.Item, _Mapping]] = ..., hero: _Optional[_Union[CMsgDOTAProfileCard.Slot.Hero, _Mapping]] = ..., emoticon: _Optional[_Union[CMsgDOTAProfileCard.Slot.Emoticon, _Mapping]] = ..., team: _Optional[_Union[CMsgDOTAProfileCard.Slot.Team, _Mapping]] = ...) -> None: ...
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     SLOTS_FIELD_NUMBER: _ClassVar[int]
     BADGE_POINTS_FIELD_NUMBER: _ClassVar[int]
@@ -1160,45 +769,10 @@ class CMsgDOTAProfileCard(_message.Message):
     favorite_team_packed: int
     lifetime_games: int
     event_level: int
-    def __init__(
-        self,
-        account_id: int | None = ...,
-        slots: _Iterable[CMsgDOTAProfileCard.Slot | _Mapping] | None = ...,
-        badge_points: int | None = ...,
-        event_id: int | None = ...,
-        recent_battle_cup_victory: CMsgBattleCupVictory | _Mapping | None = ...,
-        rank_tier: int | None = ...,
-        leaderboard_rank: int | None = ...,
-        is_plus_subscriber: bool = ...,
-        plus_original_start_date: int | None = ...,
-        rank_tier_score: int | None = ...,
-        leaderboard_rank_core: int | None = ...,
-        title: int | None = ...,
-        favorite_team_packed: int | None = ...,
-        lifetime_games: int | None = ...,
-        event_level: int | None = ...,
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., slots: _Optional[_Iterable[_Union[CMsgDOTAProfileCard.Slot, _Mapping]]] = ..., badge_points: _Optional[int] = ..., event_id: _Optional[int] = ..., recent_battle_cup_victory: _Optional[_Union[CMsgBattleCupVictory, _Mapping]] = ..., rank_tier: _Optional[int] = ..., leaderboard_rank: _Optional[int] = ..., is_plus_subscriber: bool = ..., plus_original_start_date: _Optional[int] = ..., rank_tier_score: _Optional[int] = ..., leaderboard_rank_core: _Optional[int] = ..., title: _Optional[int] = ..., favorite_team_packed: _Optional[int] = ..., lifetime_games: _Optional[int] = ..., event_level: _Optional[int] = ...) -> None: ...
 
 class CSODOTAPlayerChallenge(_message.Message):
-    __slots__ = (
-        "account_id",
-        "event_id",
-        "slot_id",
-        "int_param_0",
-        "int_param_1",
-        "created_time",
-        "completed",
-        "sequence_id",
-        "challenge_tier",
-        "flags",
-        "attempts",
-        "complete_limit",
-        "quest_rank",
-        "max_quest_rank",
-        "instance_id",
-        "hero_id",
-        "template_id",
-    )
+    __slots__ = ("account_id", "event_id", "slot_id", "int_param_0", "int_param_1", "created_time", "completed", "sequence_id", "challenge_tier", "flags", "attempts", "complete_limit", "quest_rank", "max_quest_rank", "instance_id", "hero_id", "template_id")
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     EVENT_ID_FIELD_NUMBER: _ClassVar[int]
     SLOT_ID_FIELD_NUMBER: _ClassVar[int]
@@ -1233,26 +807,7 @@ class CSODOTAPlayerChallenge(_message.Message):
     instance_id: int
     hero_id: int
     template_id: int
-    def __init__(
-        self,
-        account_id: int | None = ...,
-        event_id: int | None = ...,
-        slot_id: int | None = ...,
-        int_param_0: int | None = ...,
-        int_param_1: int | None = ...,
-        created_time: int | None = ...,
-        completed: int | None = ...,
-        sequence_id: int | None = ...,
-        challenge_tier: int | None = ...,
-        flags: int | None = ...,
-        attempts: int | None = ...,
-        complete_limit: int | None = ...,
-        quest_rank: int | None = ...,
-        max_quest_rank: int | None = ...,
-        instance_id: int | None = ...,
-        hero_id: int | None = ...,
-        template_id: int | None = ...,
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., event_id: _Optional[int] = ..., slot_id: _Optional[int] = ..., int_param_0: _Optional[int] = ..., int_param_1: _Optional[int] = ..., created_time: _Optional[int] = ..., completed: _Optional[int] = ..., sequence_id: _Optional[int] = ..., challenge_tier: _Optional[int] = ..., flags: _Optional[int] = ..., attempts: _Optional[int] = ..., complete_limit: _Optional[int] = ..., quest_rank: _Optional[int] = ..., max_quest_rank: _Optional[int] = ..., instance_id: _Optional[int] = ..., hero_id: _Optional[int] = ..., template_id: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCRerollPlayerChallenge(_message.Message):
     __slots__ = ("event_id", "sequence_id", "hero_id")
@@ -1262,12 +817,7 @@ class CMsgClientToGCRerollPlayerChallenge(_message.Message):
     event_id: _dota_shared_enums_pb2.EEvent
     sequence_id: int
     hero_id: int
-    def __init__(
-        self,
-        event_id: _dota_shared_enums_pb2.EEvent | str | None = ...,
-        sequence_id: int | None = ...,
-        hero_id: int | None = ...,
-    ) -> None: ...
+    def __init__(self, event_id: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ..., sequence_id: _Optional[int] = ..., hero_id: _Optional[int] = ...) -> None: ...
 
 class CMsgGCRerollPlayerChallengeResponse(_message.Message):
     __slots__ = ("result",)
@@ -1278,7 +828,6 @@ class CMsgGCRerollPlayerChallengeResponse(_message.Message):
         eResult_NotFound: _ClassVar[CMsgGCRerollPlayerChallengeResponse.EResult]
         eResult_CantReroll: _ClassVar[CMsgGCRerollPlayerChallengeResponse.EResult]
         eResult_ServerError: _ClassVar[CMsgGCRerollPlayerChallengeResponse.EResult]
-
     eResult_Success: CMsgGCRerollPlayerChallengeResponse.EResult
     eResult_Dropped: CMsgGCRerollPlayerChallengeResponse.EResult
     eResult_NotFound: CMsgGCRerollPlayerChallengeResponse.EResult
@@ -1286,9 +835,7 @@ class CMsgGCRerollPlayerChallengeResponse(_message.Message):
     eResult_ServerError: CMsgGCRerollPlayerChallengeResponse.EResult
     RESULT_FIELD_NUMBER: _ClassVar[int]
     result: CMsgGCRerollPlayerChallengeResponse.EResult
-    def __init__(
-        self, result: CMsgGCRerollPlayerChallengeResponse.EResult | str | None = ...
-    ) -> None: ...
+    def __init__(self, result: _Optional[_Union[CMsgGCRerollPlayerChallengeResponse.EResult, str]] = ...) -> None: ...
 
 class CMsgGCTopCustomGamesList(_message.Message):
     __slots__ = ("top_custom_games", "game_of_the_day")
@@ -1296,26 +843,12 @@ class CMsgGCTopCustomGamesList(_message.Message):
     GAME_OF_THE_DAY_FIELD_NUMBER: _ClassVar[int]
     top_custom_games: _containers.RepeatedScalarFieldContainer[int]
     game_of_the_day: int
-    def __init__(
-        self, top_custom_games: _Iterable[int] | None = ..., game_of_the_day: int | None = ...
-    ) -> None: ...
+    def __init__(self, top_custom_games: _Optional[_Iterable[int]] = ..., game_of_the_day: _Optional[int] = ...) -> None: ...
 
 class CMsgDOTARealtimeGameStats(_message.Message):
     __slots__ = ("match", "teams", "buildings", "graph_data", "delta_frame")
     class TeamDetails(_message.Message):
-        __slots__ = (
-            "team_number",
-            "team_id",
-            "team_name",
-            "team_logo",
-            "team_tag",
-            "score",
-            "net_worth",
-            "players",
-            "only_team",
-            "cheers",
-            "team_logo_url",
-        )
+        __slots__ = ("team_number", "team_id", "team_name", "team_logo", "team_tag", "score", "net_worth", "players", "only_team", "cheers", "team_logo_url")
         TEAM_NUMBER_FIELD_NUMBER: _ClassVar[int]
         TEAM_ID_FIELD_NUMBER: _ClassVar[int]
         TEAM_NAME_FIELD_NUMBER: _ClassVar[int]
@@ -1334,27 +867,11 @@ class CMsgDOTARealtimeGameStats(_message.Message):
         team_tag: str
         score: int
         net_worth: int
-        players: _containers.RepeatedCompositeFieldContainer[
-            CMsgDOTARealtimeGameStats.PlayerDetails
-        ]
+        players: _containers.RepeatedCompositeFieldContainer[CMsgDOTARealtimeGameStats.PlayerDetails]
         only_team: bool
         cheers: int
         team_logo_url: str
-        def __init__(
-            self,
-            team_number: int | None = ...,
-            team_id: int | None = ...,
-            team_name: str | None = ...,
-            team_logo: int | None = ...,
-            team_tag: str | None = ...,
-            score: int | None = ...,
-            net_worth: int | None = ...,
-            players: _Iterable[CMsgDOTARealtimeGameStats.PlayerDetails | _Mapping] | None = ...,
-            only_team: bool = ...,
-            cheers: int | None = ...,
-            team_logo_url: str | None = ...,
-        ) -> None: ...
-
+        def __init__(self, team_number: _Optional[int] = ..., team_id: _Optional[int] = ..., team_name: _Optional[str] = ..., team_logo: _Optional[int] = ..., team_tag: _Optional[str] = ..., score: _Optional[int] = ..., net_worth: _Optional[int] = ..., players: _Optional[_Iterable[_Union[CMsgDOTARealtimeGameStats.PlayerDetails, _Mapping]]] = ..., only_team: bool = ..., cheers: _Optional[int] = ..., team_logo_url: _Optional[str] = ...) -> None: ...
     class ItemDetails(_message.Message):
         __slots__ = ("item_ability_id", "name", "time", "sold", "stackcount")
         ITEM_ABILITY_ID_FIELD_NUMBER: _ClassVar[int]
@@ -1367,15 +884,7 @@ class CMsgDOTARealtimeGameStats(_message.Message):
         time: int
         sold: bool
         stackcount: int
-        def __init__(
-            self,
-            item_ability_id: int | None = ...,
-            name: str | None = ...,
-            time: int | None = ...,
-            sold: bool = ...,
-            stackcount: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, item_ability_id: _Optional[int] = ..., name: _Optional[str] = ..., time: _Optional[int] = ..., sold: bool = ..., stackcount: _Optional[int] = ...) -> None: ...
     class AbilityDetails(_message.Message):
         __slots__ = ("id", "name", "level", "cooldown", "cooldown_max")
         ID_FIELD_NUMBER: _ClassVar[int]
@@ -1388,15 +897,7 @@ class CMsgDOTARealtimeGameStats(_message.Message):
         level: int
         cooldown: float
         cooldown_max: float
-        def __init__(
-            self,
-            id: int | None = ...,
-            name: str | None = ...,
-            level: int | None = ...,
-            cooldown: float | None = ...,
-            cooldown_max: float | None = ...,
-        ) -> None: ...
-
+        def __init__(self, id: _Optional[int] = ..., name: _Optional[str] = ..., level: _Optional[int] = ..., cooldown: _Optional[float] = ..., cooldown_max: _Optional[float] = ...) -> None: ...
     class HeroToHeroStats(_message.Message):
         __slots__ = ("victimid", "kills", "assists")
         VICTIMID_FIELD_NUMBER: _ClassVar[int]
@@ -1405,69 +906,14 @@ class CMsgDOTARealtimeGameStats(_message.Message):
         victimid: int
         kills: int
         assists: int
-        def __init__(
-            self, victimid: int | None = ..., kills: int | None = ..., assists: int | None = ...
-        ) -> None: ...
-
+        def __init__(self, victimid: _Optional[int] = ..., kills: _Optional[int] = ..., assists: _Optional[int] = ...) -> None: ...
     class AbilityList(_message.Message):
         __slots__ = ("id",)
         ID_FIELD_NUMBER: _ClassVar[int]
         id: _containers.RepeatedScalarFieldContainer[int]
-        def __init__(self, id: _Iterable[int] | None = ...) -> None: ...
-
+        def __init__(self, id: _Optional[_Iterable[int]] = ...) -> None: ...
     class PlayerDetails(_message.Message):
-        __slots__ = (
-            "accountid",
-            "playerid",
-            "name",
-            "team",
-            "heroid",
-            "healthpoints",
-            "maxhealthpoints",
-            "healthregenrate",
-            "manapoints",
-            "maxmanapoints",
-            "manaregenrate",
-            "base_strength",
-            "base_agility",
-            "base_intelligence",
-            "base_armor",
-            "base_movespeed",
-            "base_damage",
-            "strength",
-            "agility",
-            "intelligence",
-            "armor",
-            "movespeed",
-            "damage",
-            "hero_damage",
-            "tower_damage",
-            "abilities",
-            "level",
-            "kill_count",
-            "death_count",
-            "assists_count",
-            "denies_count",
-            "lh_count",
-            "hero_healing",
-            "gold_per_min",
-            "xp_per_min",
-            "net_gold",
-            "gold",
-            "x",
-            "y",
-            "respawn_time",
-            "ultimate_cooldown",
-            "has_buyback",
-            "items",
-            "stashitems",
-            "itemshoppinglist",
-            "levelpoints",
-            "hero_to_hero_stats",
-            "has_ultimate",
-            "has_ultimate_mana",
-            "team_slot",
-        )
+        __slots__ = ("accountid", "playerid", "name", "team", "heroid", "healthpoints", "maxhealthpoints", "healthregenrate", "manapoints", "maxmanapoints", "manaregenrate", "base_strength", "base_agility", "base_intelligence", "base_armor", "base_movespeed", "base_damage", "strength", "agility", "intelligence", "armor", "movespeed", "damage", "hero_damage", "tower_damage", "abilities", "level", "kill_count", "death_count", "assists_count", "denies_count", "lh_count", "hero_healing", "gold_per_min", "xp_per_min", "net_gold", "gold", "x", "y", "respawn_time", "ultimate_cooldown", "has_buyback", "items", "stashitems", "itemshoppinglist", "levelpoints", "hero_to_hero_stats", "has_ultimate", "has_ultimate_mana", "team_slot")
         ACCOUNTID_FIELD_NUMBER: _ClassVar[int]
         PLAYERID_FIELD_NUMBER: _ClassVar[int]
         NAME_FIELD_NUMBER: _ClassVar[int]
@@ -1543,9 +989,7 @@ class CMsgDOTARealtimeGameStats(_message.Message):
         damage: int
         hero_damage: int
         tower_damage: int
-        abilities: _containers.RepeatedCompositeFieldContainer[
-            CMsgDOTARealtimeGameStats.AbilityDetails
-        ]
+        abilities: _containers.RepeatedCompositeFieldContainer[CMsgDOTARealtimeGameStats.AbilityDetails]
         level: int
         kill_count: int
         death_count: int
@@ -1563,77 +1007,14 @@ class CMsgDOTARealtimeGameStats(_message.Message):
         ultimate_cooldown: int
         has_buyback: bool
         items: _containers.RepeatedCompositeFieldContainer[CMsgDOTARealtimeGameStats.ItemDetails]
-        stashitems: _containers.RepeatedCompositeFieldContainer[
-            CMsgDOTARealtimeGameStats.ItemDetails
-        ]
-        itemshoppinglist: _containers.RepeatedCompositeFieldContainer[
-            CMsgDOTARealtimeGameStats.ItemDetails
-        ]
-        levelpoints: _containers.RepeatedCompositeFieldContainer[
-            CMsgDOTARealtimeGameStats.AbilityList
-        ]
-        hero_to_hero_stats: _containers.RepeatedCompositeFieldContainer[
-            CMsgDOTARealtimeGameStats.HeroToHeroStats
-        ]
+        stashitems: _containers.RepeatedCompositeFieldContainer[CMsgDOTARealtimeGameStats.ItemDetails]
+        itemshoppinglist: _containers.RepeatedCompositeFieldContainer[CMsgDOTARealtimeGameStats.ItemDetails]
+        levelpoints: _containers.RepeatedCompositeFieldContainer[CMsgDOTARealtimeGameStats.AbilityList]
+        hero_to_hero_stats: _containers.RepeatedCompositeFieldContainer[CMsgDOTARealtimeGameStats.HeroToHeroStats]
         has_ultimate: bool
         has_ultimate_mana: bool
         team_slot: int
-        def __init__(
-            self,
-            accountid: int | None = ...,
-            playerid: int | None = ...,
-            name: str | None = ...,
-            team: int | None = ...,
-            heroid: int | None = ...,
-            healthpoints: int | None = ...,
-            maxhealthpoints: int | None = ...,
-            healthregenrate: float | None = ...,
-            manapoints: int | None = ...,
-            maxmanapoints: int | None = ...,
-            manaregenrate: float | None = ...,
-            base_strength: int | None = ...,
-            base_agility: int | None = ...,
-            base_intelligence: int | None = ...,
-            base_armor: int | None = ...,
-            base_movespeed: int | None = ...,
-            base_damage: int | None = ...,
-            strength: int | None = ...,
-            agility: int | None = ...,
-            intelligence: int | None = ...,
-            armor: int | None = ...,
-            movespeed: int | None = ...,
-            damage: int | None = ...,
-            hero_damage: int | None = ...,
-            tower_damage: int | None = ...,
-            abilities: _Iterable[CMsgDOTARealtimeGameStats.AbilityDetails | _Mapping] | None = ...,
-            level: int | None = ...,
-            kill_count: int | None = ...,
-            death_count: int | None = ...,
-            assists_count: int | None = ...,
-            denies_count: int | None = ...,
-            lh_count: int | None = ...,
-            hero_healing: int | None = ...,
-            gold_per_min: int | None = ...,
-            xp_per_min: int | None = ...,
-            net_gold: int | None = ...,
-            gold: int | None = ...,
-            x: float | None = ...,
-            y: float | None = ...,
-            respawn_time: int | None = ...,
-            ultimate_cooldown: int | None = ...,
-            has_buyback: bool = ...,
-            items: _Iterable[CMsgDOTARealtimeGameStats.ItemDetails | _Mapping] | None = ...,
-            stashitems: _Iterable[CMsgDOTARealtimeGameStats.ItemDetails | _Mapping] | None = ...,
-            itemshoppinglist: _Iterable[CMsgDOTARealtimeGameStats.ItemDetails | _Mapping]
-            | None = ...,
-            levelpoints: _Iterable[CMsgDOTARealtimeGameStats.AbilityList | _Mapping] | None = ...,
-            hero_to_hero_stats: _Iterable[CMsgDOTARealtimeGameStats.HeroToHeroStats | _Mapping]
-            | None = ...,
-            has_ultimate: bool = ...,
-            has_ultimate_mana: bool = ...,
-            team_slot: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, accountid: _Optional[int] = ..., playerid: _Optional[int] = ..., name: _Optional[str] = ..., team: _Optional[int] = ..., heroid: _Optional[int] = ..., healthpoints: _Optional[int] = ..., maxhealthpoints: _Optional[int] = ..., healthregenrate: _Optional[float] = ..., manapoints: _Optional[int] = ..., maxmanapoints: _Optional[int] = ..., manaregenrate: _Optional[float] = ..., base_strength: _Optional[int] = ..., base_agility: _Optional[int] = ..., base_intelligence: _Optional[int] = ..., base_armor: _Optional[int] = ..., base_movespeed: _Optional[int] = ..., base_damage: _Optional[int] = ..., strength: _Optional[int] = ..., agility: _Optional[int] = ..., intelligence: _Optional[int] = ..., armor: _Optional[int] = ..., movespeed: _Optional[int] = ..., damage: _Optional[int] = ..., hero_damage: _Optional[int] = ..., tower_damage: _Optional[int] = ..., abilities: _Optional[_Iterable[_Union[CMsgDOTARealtimeGameStats.AbilityDetails, _Mapping]]] = ..., level: _Optional[int] = ..., kill_count: _Optional[int] = ..., death_count: _Optional[int] = ..., assists_count: _Optional[int] = ..., denies_count: _Optional[int] = ..., lh_count: _Optional[int] = ..., hero_healing: _Optional[int] = ..., gold_per_min: _Optional[int] = ..., xp_per_min: _Optional[int] = ..., net_gold: _Optional[int] = ..., gold: _Optional[int] = ..., x: _Optional[float] = ..., y: _Optional[float] = ..., respawn_time: _Optional[int] = ..., ultimate_cooldown: _Optional[int] = ..., has_buyback: bool = ..., items: _Optional[_Iterable[_Union[CMsgDOTARealtimeGameStats.ItemDetails, _Mapping]]] = ..., stashitems: _Optional[_Iterable[_Union[CMsgDOTARealtimeGameStats.ItemDetails, _Mapping]]] = ..., itemshoppinglist: _Optional[_Iterable[_Union[CMsgDOTARealtimeGameStats.ItemDetails, _Mapping]]] = ..., levelpoints: _Optional[_Iterable[_Union[CMsgDOTARealtimeGameStats.AbilityList, _Mapping]]] = ..., hero_to_hero_stats: _Optional[_Iterable[_Union[CMsgDOTARealtimeGameStats.HeroToHeroStats, _Mapping]]] = ..., has_ultimate: bool = ..., has_ultimate_mana: bool = ..., team_slot: _Optional[int] = ...) -> None: ...
     class BuildingDetails(_message.Message):
         __slots__ = ("team", "heading", "lane", "tier", "type", "x", "y", "destroyed")
         TEAM_FIELD_NUMBER: _ClassVar[int]
@@ -1652,18 +1033,7 @@ class CMsgDOTARealtimeGameStats(_message.Message):
         x: float
         y: float
         destroyed: bool
-        def __init__(
-            self,
-            team: int | None = ...,
-            heading: float | None = ...,
-            lane: int | None = ...,
-            tier: int | None = ...,
-            type: int | None = ...,
-            x: float | None = ...,
-            y: float | None = ...,
-            destroyed: bool = ...,
-        ) -> None: ...
-
+        def __init__(self, team: _Optional[int] = ..., heading: _Optional[float] = ..., lane: _Optional[int] = ..., tier: _Optional[int] = ..., type: _Optional[int] = ..., x: _Optional[float] = ..., y: _Optional[float] = ..., destroyed: bool = ...) -> None: ...
     class KillDetails(_message.Message):
         __slots__ = ("player_id", "death_time", "killer_player_id")
         PLAYER_ID_FIELD_NUMBER: _ClassVar[int]
@@ -1672,51 +1042,21 @@ class CMsgDOTARealtimeGameStats(_message.Message):
         player_id: int
         death_time: int
         killer_player_id: int
-        def __init__(
-            self,
-            player_id: int | None = ...,
-            death_time: int | None = ...,
-            killer_player_id: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, player_id: _Optional[int] = ..., death_time: _Optional[int] = ..., killer_player_id: _Optional[int] = ...) -> None: ...
     class BroadcasterDetails(_message.Message):
         __slots__ = ("player_id",)
         PLAYER_ID_FIELD_NUMBER: _ClassVar[int]
         player_id: int
-        def __init__(self, player_id: int | None = ...) -> None: ...
-
+        def __init__(self, player_id: _Optional[int] = ...) -> None: ...
     class PickBanDetails(_message.Message):
         __slots__ = ("hero", "team")
         HERO_FIELD_NUMBER: _ClassVar[int]
         TEAM_FIELD_NUMBER: _ClassVar[int]
         hero: int
         team: int
-        def __init__(self, hero: int | None = ..., team: int | None = ...) -> None: ...
-
+        def __init__(self, hero: _Optional[int] = ..., team: _Optional[int] = ...) -> None: ...
     class MatchDetails(_message.Message):
-        __slots__ = (
-            "server_steam_id",
-            "match_id",
-            "timestamp",
-            "time_of_day",
-            "is_nightstalker_night",
-            "game_time",
-            "game_state",
-            "teamid_radiant",
-            "teamid_dire",
-            "picks",
-            "bans",
-            "kills",
-            "broadcasters",
-            "game_mode",
-            "league_id",
-            "league_node_id",
-            "single_team",
-            "cheers_peak",
-            "lobby_type",
-            "start_timestamp",
-            "is_player_draft",
-        )
+        __slots__ = ("server_steam_id", "match_id", "timestamp", "time_of_day", "is_nightstalker_night", "game_time", "game_state", "teamid_radiant", "teamid_dire", "picks", "bans", "kills", "broadcasters", "game_mode", "league_id", "league_node_id", "single_team", "cheers_peak", "lobby_type", "start_timestamp", "is_player_draft")
         SERVER_STEAM_ID_FIELD_NUMBER: _ClassVar[int]
         MATCH_ID_FIELD_NUMBER: _ClassVar[int]
         TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
@@ -1750,9 +1090,7 @@ class CMsgDOTARealtimeGameStats(_message.Message):
         picks: _containers.RepeatedCompositeFieldContainer[CMsgDOTARealtimeGameStats.PickBanDetails]
         bans: _containers.RepeatedCompositeFieldContainer[CMsgDOTARealtimeGameStats.PickBanDetails]
         kills: _containers.RepeatedCompositeFieldContainer[CMsgDOTARealtimeGameStats.KillDetails]
-        broadcasters: _containers.RepeatedCompositeFieldContainer[
-            CMsgDOTARealtimeGameStats.BroadcasterDetails
-        ]
+        broadcasters: _containers.RepeatedCompositeFieldContainer[CMsgDOTARealtimeGameStats.BroadcasterDetails]
         game_mode: int
         league_id: int
         league_node_id: int
@@ -1761,48 +1099,15 @@ class CMsgDOTARealtimeGameStats(_message.Message):
         lobby_type: int
         start_timestamp: int
         is_player_draft: bool
-        def __init__(
-            self,
-            server_steam_id: int | None = ...,
-            match_id: int | None = ...,
-            timestamp: int | None = ...,
-            time_of_day: float | None = ...,
-            is_nightstalker_night: bool = ...,
-            game_time: int | None = ...,
-            game_state: int | None = ...,
-            teamid_radiant: int | None = ...,
-            teamid_dire: int | None = ...,
-            picks: _Iterable[CMsgDOTARealtimeGameStats.PickBanDetails | _Mapping] | None = ...,
-            bans: _Iterable[CMsgDOTARealtimeGameStats.PickBanDetails | _Mapping] | None = ...,
-            kills: _Iterable[CMsgDOTARealtimeGameStats.KillDetails | _Mapping] | None = ...,
-            broadcasters: _Iterable[CMsgDOTARealtimeGameStats.BroadcasterDetails | _Mapping]
-            | None = ...,
-            game_mode: int | None = ...,
-            league_id: int | None = ...,
-            league_node_id: int | None = ...,
-            single_team: bool = ...,
-            cheers_peak: int | None = ...,
-            lobby_type: int | None = ...,
-            start_timestamp: int | None = ...,
-            is_player_draft: bool = ...,
-        ) -> None: ...
-
+        def __init__(self, server_steam_id: _Optional[int] = ..., match_id: _Optional[int] = ..., timestamp: _Optional[int] = ..., time_of_day: _Optional[float] = ..., is_nightstalker_night: bool = ..., game_time: _Optional[int] = ..., game_state: _Optional[int] = ..., teamid_radiant: _Optional[int] = ..., teamid_dire: _Optional[int] = ..., picks: _Optional[_Iterable[_Union[CMsgDOTARealtimeGameStats.PickBanDetails, _Mapping]]] = ..., bans: _Optional[_Iterable[_Union[CMsgDOTARealtimeGameStats.PickBanDetails, _Mapping]]] = ..., kills: _Optional[_Iterable[_Union[CMsgDOTARealtimeGameStats.KillDetails, _Mapping]]] = ..., broadcasters: _Optional[_Iterable[_Union[CMsgDOTARealtimeGameStats.BroadcasterDetails, _Mapping]]] = ..., game_mode: _Optional[int] = ..., league_id: _Optional[int] = ..., league_node_id: _Optional[int] = ..., single_team: bool = ..., cheers_peak: _Optional[int] = ..., lobby_type: _Optional[int] = ..., start_timestamp: _Optional[int] = ..., is_player_draft: bool = ...) -> None: ...
     class GraphData(_message.Message):
-        __slots__ = (
-            "graph_gold",
-            "graph_xp",
-            "graph_kill",
-            "graph_tower",
-            "graph_rax",
-            "team_loc_stats",
-        )
+        __slots__ = ("graph_gold", "graph_xp", "graph_kill", "graph_tower", "graph_rax", "team_loc_stats")
         class eStat(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
             __slots__ = ()
             CreepGoldEarned: _ClassVar[CMsgDOTARealtimeGameStats.GraphData.eStat]
             KillGoldEarned: _ClassVar[CMsgDOTARealtimeGameStats.GraphData.eStat]
             DeathAndBuybackGoldLost: _ClassVar[CMsgDOTARealtimeGameStats.GraphData.eStat]
             XPEarned: _ClassVar[CMsgDOTARealtimeGameStats.GraphData.eStat]
-
         CreepGoldEarned: CMsgDOTARealtimeGameStats.GraphData.eStat
         KillGoldEarned: CMsgDOTARealtimeGameStats.GraphData.eStat
         DeathAndBuybackGoldLost: CMsgDOTARealtimeGameStats.GraphData.eStat
@@ -1815,7 +1120,6 @@ class CMsgDOTARealtimeGameStats(_message.Message):
             Jungle: _ClassVar[CMsgDOTARealtimeGameStats.GraphData.eLocation]
             Ancients: _ClassVar[CMsgDOTARealtimeGameStats.GraphData.eLocation]
             Other: _ClassVar[CMsgDOTARealtimeGameStats.GraphData.eLocation]
-
         BotLane: CMsgDOTARealtimeGameStats.GraphData.eLocation
         MidLane: CMsgDOTARealtimeGameStats.GraphData.eLocation
         TopLane: CMsgDOTARealtimeGameStats.GraphData.eLocation
@@ -1826,20 +1130,12 @@ class CMsgDOTARealtimeGameStats(_message.Message):
             __slots__ = ("stats",)
             STATS_FIELD_NUMBER: _ClassVar[int]
             stats: _containers.RepeatedScalarFieldContainer[int]
-            def __init__(self, stats: _Iterable[int] | None = ...) -> None: ...
-
+            def __init__(self, stats: _Optional[_Iterable[int]] = ...) -> None: ...
         class TeamLocationStats(_message.Message):
             __slots__ = ("loc_stats",)
             LOC_STATS_FIELD_NUMBER: _ClassVar[int]
-            loc_stats: _containers.RepeatedCompositeFieldContainer[
-                CMsgDOTARealtimeGameStats.GraphData.LocationStats
-            ]
-            def __init__(
-                self,
-                loc_stats: _Iterable[CMsgDOTARealtimeGameStats.GraphData.LocationStats | _Mapping]
-                | None = ...,
-            ) -> None: ...
-
+            loc_stats: _containers.RepeatedCompositeFieldContainer[CMsgDOTARealtimeGameStats.GraphData.LocationStats]
+            def __init__(self, loc_stats: _Optional[_Iterable[_Union[CMsgDOTARealtimeGameStats.GraphData.LocationStats, _Mapping]]] = ...) -> None: ...
         GRAPH_GOLD_FIELD_NUMBER: _ClassVar[int]
         GRAPH_XP_FIELD_NUMBER: _ClassVar[int]
         GRAPH_KILL_FIELD_NUMBER: _ClassVar[int]
@@ -1851,22 +1147,8 @@ class CMsgDOTARealtimeGameStats(_message.Message):
         graph_kill: _containers.RepeatedScalarFieldContainer[int]
         graph_tower: _containers.RepeatedScalarFieldContainer[int]
         graph_rax: _containers.RepeatedScalarFieldContainer[int]
-        team_loc_stats: _containers.RepeatedCompositeFieldContainer[
-            CMsgDOTARealtimeGameStats.GraphData.TeamLocationStats
-        ]
-        def __init__(
-            self,
-            graph_gold: _Iterable[int] | None = ...,
-            graph_xp: _Iterable[int] | None = ...,
-            graph_kill: _Iterable[int] | None = ...,
-            graph_tower: _Iterable[int] | None = ...,
-            graph_rax: _Iterable[int] | None = ...,
-            team_loc_stats: _Iterable[
-                CMsgDOTARealtimeGameStats.GraphData.TeamLocationStats | _Mapping
-            ]
-            | None = ...,
-        ) -> None: ...
-
+        team_loc_stats: _containers.RepeatedCompositeFieldContainer[CMsgDOTARealtimeGameStats.GraphData.TeamLocationStats]
+        def __init__(self, graph_gold: _Optional[_Iterable[int]] = ..., graph_xp: _Optional[_Iterable[int]] = ..., graph_kill: _Optional[_Iterable[int]] = ..., graph_tower: _Optional[_Iterable[int]] = ..., graph_rax: _Optional[_Iterable[int]] = ..., team_loc_stats: _Optional[_Iterable[_Union[CMsgDOTARealtimeGameStats.GraphData.TeamLocationStats, _Mapping]]] = ...) -> None: ...
     MATCH_FIELD_NUMBER: _ClassVar[int]
     TEAMS_FIELD_NUMBER: _ClassVar[int]
     BUILDINGS_FIELD_NUMBER: _ClassVar[int]
@@ -1874,34 +1156,15 @@ class CMsgDOTARealtimeGameStats(_message.Message):
     DELTA_FRAME_FIELD_NUMBER: _ClassVar[int]
     match: CMsgDOTARealtimeGameStats.MatchDetails
     teams: _containers.RepeatedCompositeFieldContainer[CMsgDOTARealtimeGameStats.TeamDetails]
-    buildings: _containers.RepeatedCompositeFieldContainer[
-        CMsgDOTARealtimeGameStats.BuildingDetails
-    ]
+    buildings: _containers.RepeatedCompositeFieldContainer[CMsgDOTARealtimeGameStats.BuildingDetails]
     graph_data: CMsgDOTARealtimeGameStats.GraphData
     delta_frame: bool
-    def __init__(
-        self,
-        match: CMsgDOTARealtimeGameStats.MatchDetails | _Mapping | None = ...,
-        teams: _Iterable[CMsgDOTARealtimeGameStats.TeamDetails | _Mapping] | None = ...,
-        buildings: _Iterable[CMsgDOTARealtimeGameStats.BuildingDetails | _Mapping] | None = ...,
-        graph_data: CMsgDOTARealtimeGameStats.GraphData | _Mapping | None = ...,
-        delta_frame: bool = ...,
-    ) -> None: ...
+    def __init__(self, match: _Optional[_Union[CMsgDOTARealtimeGameStats.MatchDetails, _Mapping]] = ..., teams: _Optional[_Iterable[_Union[CMsgDOTARealtimeGameStats.TeamDetails, _Mapping]]] = ..., buildings: _Optional[_Iterable[_Union[CMsgDOTARealtimeGameStats.BuildingDetails, _Mapping]]] = ..., graph_data: _Optional[_Union[CMsgDOTARealtimeGameStats.GraphData, _Mapping]] = ..., delta_frame: bool = ...) -> None: ...
 
 class CMsgDOTARealtimeGameStatsTerse(_message.Message):
     __slots__ = ("match", "teams", "buildings", "graph_data", "delta_frame")
     class TeamDetails(_message.Message):
-        __slots__ = (
-            "team_number",
-            "team_id",
-            "team_name",
-            "team_tag",
-            "team_logo",
-            "score",
-            "net_worth",
-            "team_logo_url",
-            "players",
-        )
+        __slots__ = ("team_number", "team_id", "team_name", "team_tag", "team_logo", "score", "net_worth", "team_logo_url", "players")
         TEAM_NUMBER_FIELD_NUMBER: _ClassVar[int]
         TEAM_ID_FIELD_NUMBER: _ClassVar[int]
         TEAM_NAME_FIELD_NUMBER: _ClassVar[int]
@@ -1919,44 +1182,10 @@ class CMsgDOTARealtimeGameStatsTerse(_message.Message):
         score: int
         net_worth: int
         team_logo_url: str
-        players: _containers.RepeatedCompositeFieldContainer[
-            CMsgDOTARealtimeGameStatsTerse.PlayerDetails
-        ]
-        def __init__(
-            self,
-            team_number: int | None = ...,
-            team_id: int | None = ...,
-            team_name: str | None = ...,
-            team_tag: str | None = ...,
-            team_logo: int | None = ...,
-            score: int | None = ...,
-            net_worth: int | None = ...,
-            team_logo_url: str | None = ...,
-            players: _Iterable[CMsgDOTARealtimeGameStatsTerse.PlayerDetails | _Mapping]
-            | None = ...,
-        ) -> None: ...
-
+        players: _containers.RepeatedCompositeFieldContainer[CMsgDOTARealtimeGameStatsTerse.PlayerDetails]
+        def __init__(self, team_number: _Optional[int] = ..., team_id: _Optional[int] = ..., team_name: _Optional[str] = ..., team_tag: _Optional[str] = ..., team_logo: _Optional[int] = ..., score: _Optional[int] = ..., net_worth: _Optional[int] = ..., team_logo_url: _Optional[str] = ..., players: _Optional[_Iterable[_Union[CMsgDOTARealtimeGameStatsTerse.PlayerDetails, _Mapping]]] = ...) -> None: ...
     class PlayerDetails(_message.Message):
-        __slots__ = (
-            "accountid",
-            "playerid",
-            "name",
-            "team",
-            "heroid",
-            "level",
-            "kill_count",
-            "death_count",
-            "assists_count",
-            "denies_count",
-            "lh_count",
-            "gold",
-            "x",
-            "y",
-            "net_worth",
-            "abilities",
-            "items",
-            "team_slot",
-        )
+        __slots__ = ("accountid", "playerid", "name", "team", "heroid", "level", "kill_count", "death_count", "assists_count", "denies_count", "lh_count", "gold", "x", "y", "net_worth", "abilities", "items", "team_slot")
         ACCOUNTID_FIELD_NUMBER: _ClassVar[int]
         PLAYERID_FIELD_NUMBER: _ClassVar[int]
         NAME_FIELD_NUMBER: _ClassVar[int]
@@ -1993,28 +1222,7 @@ class CMsgDOTARealtimeGameStatsTerse(_message.Message):
         abilities: _containers.RepeatedScalarFieldContainer[int]
         items: _containers.RepeatedScalarFieldContainer[int]
         team_slot: int
-        def __init__(
-            self,
-            accountid: int | None = ...,
-            playerid: int | None = ...,
-            name: str | None = ...,
-            team: int | None = ...,
-            heroid: int | None = ...,
-            level: int | None = ...,
-            kill_count: int | None = ...,
-            death_count: int | None = ...,
-            assists_count: int | None = ...,
-            denies_count: int | None = ...,
-            lh_count: int | None = ...,
-            gold: int | None = ...,
-            x: float | None = ...,
-            y: float | None = ...,
-            net_worth: int | None = ...,
-            abilities: _Iterable[int] | None = ...,
-            items: _Iterable[int] | None = ...,
-            team_slot: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, accountid: _Optional[int] = ..., playerid: _Optional[int] = ..., name: _Optional[str] = ..., team: _Optional[int] = ..., heroid: _Optional[int] = ..., level: _Optional[int] = ..., kill_count: _Optional[int] = ..., death_count: _Optional[int] = ..., assists_count: _Optional[int] = ..., denies_count: _Optional[int] = ..., lh_count: _Optional[int] = ..., gold: _Optional[int] = ..., x: _Optional[float] = ..., y: _Optional[float] = ..., net_worth: _Optional[int] = ..., abilities: _Optional[_Iterable[int]] = ..., items: _Optional[_Iterable[int]] = ..., team_slot: _Optional[int] = ...) -> None: ...
     class BuildingDetails(_message.Message):
         __slots__ = ("team", "heading", "type", "lane", "tier", "x", "y", "destroyed")
         TEAM_FIELD_NUMBER: _ClassVar[int]
@@ -2033,43 +1241,16 @@ class CMsgDOTARealtimeGameStatsTerse(_message.Message):
         x: float
         y: float
         destroyed: bool
-        def __init__(
-            self,
-            team: int | None = ...,
-            heading: float | None = ...,
-            type: int | None = ...,
-            lane: int | None = ...,
-            tier: int | None = ...,
-            x: float | None = ...,
-            y: float | None = ...,
-            destroyed: bool = ...,
-        ) -> None: ...
-
+        def __init__(self, team: _Optional[int] = ..., heading: _Optional[float] = ..., type: _Optional[int] = ..., lane: _Optional[int] = ..., tier: _Optional[int] = ..., x: _Optional[float] = ..., y: _Optional[float] = ..., destroyed: bool = ...) -> None: ...
     class PickBanDetails(_message.Message):
         __slots__ = ("hero", "team")
         HERO_FIELD_NUMBER: _ClassVar[int]
         TEAM_FIELD_NUMBER: _ClassVar[int]
         hero: int
         team: int
-        def __init__(self, hero: int | None = ..., team: int | None = ...) -> None: ...
-
+        def __init__(self, hero: _Optional[int] = ..., team: _Optional[int] = ...) -> None: ...
     class MatchDetails(_message.Message):
-        __slots__ = (
-            "server_steam_id",
-            "match_id",
-            "timestamp",
-            "game_time",
-            "steam_broadcaster_account_ids",
-            "game_mode",
-            "league_id",
-            "league_node_id",
-            "game_state",
-            "picks",
-            "bans",
-            "lobby_type",
-            "start_timestamp",
-            "is_player_draft",
-        )
+        __slots__ = ("server_steam_id", "match_id", "timestamp", "game_time", "steam_broadcaster_account_ids", "game_mode", "league_id", "league_node_id", "game_state", "picks", "bans", "lobby_type", "start_timestamp", "is_player_draft")
         SERVER_STEAM_ID_FIELD_NUMBER: _ClassVar[int]
         MATCH_ID_FIELD_NUMBER: _ClassVar[int]
         TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
@@ -2093,39 +1274,17 @@ class CMsgDOTARealtimeGameStatsTerse(_message.Message):
         league_id: int
         league_node_id: int
         game_state: int
-        picks: _containers.RepeatedCompositeFieldContainer[
-            CMsgDOTARealtimeGameStatsTerse.PickBanDetails
-        ]
-        bans: _containers.RepeatedCompositeFieldContainer[
-            CMsgDOTARealtimeGameStatsTerse.PickBanDetails
-        ]
+        picks: _containers.RepeatedCompositeFieldContainer[CMsgDOTARealtimeGameStatsTerse.PickBanDetails]
+        bans: _containers.RepeatedCompositeFieldContainer[CMsgDOTARealtimeGameStatsTerse.PickBanDetails]
         lobby_type: int
         start_timestamp: int
         is_player_draft: bool
-        def __init__(
-            self,
-            server_steam_id: int | None = ...,
-            match_id: int | None = ...,
-            timestamp: int | None = ...,
-            game_time: int | None = ...,
-            steam_broadcaster_account_ids: _Iterable[int] | None = ...,
-            game_mode: int | None = ...,
-            league_id: int | None = ...,
-            league_node_id: int | None = ...,
-            game_state: int | None = ...,
-            picks: _Iterable[CMsgDOTARealtimeGameStatsTerse.PickBanDetails | _Mapping] | None = ...,
-            bans: _Iterable[CMsgDOTARealtimeGameStatsTerse.PickBanDetails | _Mapping] | None = ...,
-            lobby_type: int | None = ...,
-            start_timestamp: int | None = ...,
-            is_player_draft: bool = ...,
-        ) -> None: ...
-
+        def __init__(self, server_steam_id: _Optional[int] = ..., match_id: _Optional[int] = ..., timestamp: _Optional[int] = ..., game_time: _Optional[int] = ..., steam_broadcaster_account_ids: _Optional[_Iterable[int]] = ..., game_mode: _Optional[int] = ..., league_id: _Optional[int] = ..., league_node_id: _Optional[int] = ..., game_state: _Optional[int] = ..., picks: _Optional[_Iterable[_Union[CMsgDOTARealtimeGameStatsTerse.PickBanDetails, _Mapping]]] = ..., bans: _Optional[_Iterable[_Union[CMsgDOTARealtimeGameStatsTerse.PickBanDetails, _Mapping]]] = ..., lobby_type: _Optional[int] = ..., start_timestamp: _Optional[int] = ..., is_player_draft: bool = ...) -> None: ...
     class GraphData(_message.Message):
         __slots__ = ("graph_gold",)
         GRAPH_GOLD_FIELD_NUMBER: _ClassVar[int]
         graph_gold: _containers.RepeatedScalarFieldContainer[int]
-        def __init__(self, graph_gold: _Iterable[int] | None = ...) -> None: ...
-
+        def __init__(self, graph_gold: _Optional[_Iterable[int]] = ...) -> None: ...
     MATCH_FIELD_NUMBER: _ClassVar[int]
     TEAMS_FIELD_NUMBER: _ClassVar[int]
     BUILDINGS_FIELD_NUMBER: _ClassVar[int]
@@ -2133,20 +1292,10 @@ class CMsgDOTARealtimeGameStatsTerse(_message.Message):
     DELTA_FRAME_FIELD_NUMBER: _ClassVar[int]
     match: CMsgDOTARealtimeGameStatsTerse.MatchDetails
     teams: _containers.RepeatedCompositeFieldContainer[CMsgDOTARealtimeGameStatsTerse.TeamDetails]
-    buildings: _containers.RepeatedCompositeFieldContainer[
-        CMsgDOTARealtimeGameStatsTerse.BuildingDetails
-    ]
+    buildings: _containers.RepeatedCompositeFieldContainer[CMsgDOTARealtimeGameStatsTerse.BuildingDetails]
     graph_data: CMsgDOTARealtimeGameStatsTerse.GraphData
     delta_frame: bool
-    def __init__(
-        self,
-        match: CMsgDOTARealtimeGameStatsTerse.MatchDetails | _Mapping | None = ...,
-        teams: _Iterable[CMsgDOTARealtimeGameStatsTerse.TeamDetails | _Mapping] | None = ...,
-        buildings: _Iterable[CMsgDOTARealtimeGameStatsTerse.BuildingDetails | _Mapping]
-        | None = ...,
-        graph_data: CMsgDOTARealtimeGameStatsTerse.GraphData | _Mapping | None = ...,
-        delta_frame: bool = ...,
-    ) -> None: ...
+    def __init__(self, match: _Optional[_Union[CMsgDOTARealtimeGameStatsTerse.MatchDetails, _Mapping]] = ..., teams: _Optional[_Iterable[_Union[CMsgDOTARealtimeGameStatsTerse.TeamDetails, _Mapping]]] = ..., buildings: _Optional[_Iterable[_Union[CMsgDOTARealtimeGameStatsTerse.BuildingDetails, _Mapping]]] = ..., graph_data: _Optional[_Union[CMsgDOTARealtimeGameStatsTerse.GraphData, _Mapping]] = ..., delta_frame: bool = ...) -> None: ...
 
 class CMsgDOTABroadcastTimelineEvent(_message.Message):
     __slots__ = ("event", "timestamp", "data", "string_data")
@@ -2158,33 +1307,16 @@ class CMsgDOTABroadcastTimelineEvent(_message.Message):
     timestamp: int
     data: int
     string_data: str
-    def __init__(
-        self,
-        event: EBroadcastTimelineEvent | str | None = ...,
-        timestamp: int | None = ...,
-        data: int | None = ...,
-        string_data: str | None = ...,
-    ) -> None: ...
+    def __init__(self, event: _Optional[_Union[EBroadcastTimelineEvent, str]] = ..., timestamp: _Optional[int] = ..., data: _Optional[int] = ..., string_data: _Optional[str] = ...) -> None: ...
 
 class CMsgGCToClientMatchGroupsVersion(_message.Message):
     __slots__ = ("matchgroups_version",)
     MATCHGROUPS_VERSION_FIELD_NUMBER: _ClassVar[int]
     matchgroups_version: int
-    def __init__(self, matchgroups_version: int | None = ...) -> None: ...
+    def __init__(self, matchgroups_version: _Optional[int] = ...) -> None: ...
 
 class CMsgDOTASDOHeroStatsHistory(_message.Message):
-    __slots__ = (
-        "match_id",
-        "game_mode",
-        "lobby_type",
-        "start_time",
-        "won",
-        "gpm",
-        "xpm",
-        "kills",
-        "deaths",
-        "assists",
-    )
+    __slots__ = ("match_id", "game_mode", "lobby_type", "start_time", "won", "gpm", "xpm", "kills", "deaths", "assists")
     MATCH_ID_FIELD_NUMBER: _ClassVar[int]
     GAME_MODE_FIELD_NUMBER: _ClassVar[int]
     LOBBY_TYPE_FIELD_NUMBER: _ClassVar[int]
@@ -2205,19 +1337,7 @@ class CMsgDOTASDOHeroStatsHistory(_message.Message):
     kills: int
     deaths: int
     assists: int
-    def __init__(
-        self,
-        match_id: int | None = ...,
-        game_mode: int | None = ...,
-        lobby_type: int | None = ...,
-        start_time: int | None = ...,
-        won: bool = ...,
-        gpm: int | None = ...,
-        xpm: int | None = ...,
-        kills: int | None = ...,
-        deaths: int | None = ...,
-        assists: int | None = ...,
-    ) -> None: ...
+    def __init__(self, match_id: _Optional[int] = ..., game_mode: _Optional[int] = ..., lobby_type: _Optional[int] = ..., start_time: _Optional[int] = ..., won: bool = ..., gpm: _Optional[int] = ..., xpm: _Optional[int] = ..., kills: _Optional[int] = ..., deaths: _Optional[int] = ..., assists: _Optional[int] = ...) -> None: ...
 
 class CMsgPredictionChoice(_message.Message):
     __slots__ = ("value", "name", "min_raw_value", "max_raw_value")
@@ -2229,36 +1349,14 @@ class CMsgPredictionChoice(_message.Message):
     name: str
     min_raw_value: int
     max_raw_value: int
-    def __init__(
-        self,
-        value: int | None = ...,
-        name: str | None = ...,
-        min_raw_value: int | None = ...,
-        max_raw_value: int | None = ...,
-    ) -> None: ...
+    def __init__(self, value: _Optional[int] = ..., name: _Optional[str] = ..., min_raw_value: _Optional[int] = ..., max_raw_value: _Optional[int] = ...) -> None: ...
 
 class CMsgInGamePrediction(_message.Message):
-    __slots__ = (
-        "id",
-        "name",
-        "type",
-        "group",
-        "question",
-        "choices",
-        "required_heroes",
-        "query_name",
-        "query_values",
-        "answer_resolution_type",
-        "points_to_grant",
-        "reward_action",
-        "debug_force_selection",
-        "raw_value_type",
-    )
+    __slots__ = ("id", "name", "type", "group", "question", "choices", "required_heroes", "query_name", "query_values", "answer_resolution_type", "points_to_grant", "reward_action", "debug_force_selection", "raw_value_type")
     class ERawValueType_t(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
         Number: _ClassVar[CMsgInGamePrediction.ERawValueType_t]
         Time: _ClassVar[CMsgInGamePrediction.ERawValueType_t]
-
     Number: CMsgInGamePrediction.ERawValueType_t
     Time: CMsgInGamePrediction.ERawValueType_t
     class EPredictionType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
@@ -2270,7 +1368,6 @@ class CMsgInGamePrediction(_message.Message):
         Special: _ClassVar[CMsgInGamePrediction.EPredictionType]
         YesNo: _ClassVar[CMsgInGamePrediction.EPredictionType]
         QualifiersTeam: _ClassVar[CMsgInGamePrediction.EPredictionType]
-
     Generic: CMsgInGamePrediction.EPredictionType
     Hero: CMsgInGamePrediction.EPredictionType
     Team: CMsgInGamePrediction.EPredictionType
@@ -2289,7 +1386,6 @@ class CMsgInGamePrediction(_message.Message):
         SumQuery: _ClassVar[CMsgInGamePrediction.EResolutionType_t]
         MaxTeamSumToPassQuery: _ClassVar[CMsgInGamePrediction.EResolutionType_t]
         MinTeamSumToPassQuery: _ClassVar[CMsgInGamePrediction.EResolutionType_t]
-
     InvalidQuery: CMsgInGamePrediction.EResolutionType_t
     FirstToPassQuery: CMsgInGamePrediction.EResolutionType_t
     LastToPassQuery: CMsgInGamePrediction.EResolutionType_t
@@ -2305,7 +1401,6 @@ class CMsgInGamePrediction(_message.Message):
         MidGame: _ClassVar[CMsgInGamePrediction.ERandomSelectionGroup_t]
         LateGame: _ClassVar[CMsgInGamePrediction.ERandomSelectionGroup_t]
         Count: _ClassVar[CMsgInGamePrediction.ERandomSelectionGroup_t]
-
     EarlyGame: CMsgInGamePrediction.ERandomSelectionGroup_t
     MidGame: CMsgInGamePrediction.ERandomSelectionGroup_t
     LateGame: CMsgInGamePrediction.ERandomSelectionGroup_t
@@ -2316,8 +1411,7 @@ class CMsgInGamePrediction(_message.Message):
         VALUE_FIELD_NUMBER: _ClassVar[int]
         name: str
         value: str
-        def __init__(self, name: str | None = ..., value: str | None = ...) -> None: ...
-
+        def __init__(self, name: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
     ID_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     TYPE_FIELD_NUMBER: _ClassVar[int]
@@ -2346,54 +1440,12 @@ class CMsgInGamePrediction(_message.Message):
     reward_action: int
     debug_force_selection: int
     raw_value_type: CMsgInGamePrediction.ERawValueType_t
-    def __init__(
-        self,
-        id: int | None = ...,
-        name: str | None = ...,
-        type: CMsgInGamePrediction.EPredictionType | str | None = ...,
-        group: CMsgInGamePrediction.ERandomSelectionGroup_t | str | None = ...,
-        question: str | None = ...,
-        choices: _Iterable[CMsgPredictionChoice | _Mapping] | None = ...,
-        required_heroes: _Iterable[str] | None = ...,
-        query_name: str | None = ...,
-        query_values: _Iterable[CMsgInGamePrediction.QueryKeyValues | _Mapping] | None = ...,
-        answer_resolution_type: CMsgInGamePrediction.EResolutionType_t | str | None = ...,
-        points_to_grant: int | None = ...,
-        reward_action: int | None = ...,
-        debug_force_selection: int | None = ...,
-        raw_value_type: CMsgInGamePrediction.ERawValueType_t | str | None = ...,
-    ) -> None: ...
+    def __init__(self, id: _Optional[int] = ..., name: _Optional[str] = ..., type: _Optional[_Union[CMsgInGamePrediction.EPredictionType, str]] = ..., group: _Optional[_Union[CMsgInGamePrediction.ERandomSelectionGroup_t, str]] = ..., question: _Optional[str] = ..., choices: _Optional[_Iterable[_Union[CMsgPredictionChoice, _Mapping]]] = ..., required_heroes: _Optional[_Iterable[str]] = ..., query_name: _Optional[str] = ..., query_values: _Optional[_Iterable[_Union[CMsgInGamePrediction.QueryKeyValues, _Mapping]]] = ..., answer_resolution_type: _Optional[_Union[CMsgInGamePrediction.EResolutionType_t, str]] = ..., points_to_grant: _Optional[int] = ..., reward_action: _Optional[int] = ..., debug_force_selection: _Optional[int] = ..., raw_value_type: _Optional[_Union[CMsgInGamePrediction.ERawValueType_t, str]] = ...) -> None: ...
 
 class CMsgDOTASeasonPredictions(_message.Message):
-    __slots__ = (
-        "predictions",
-        "in_game_predictions",
-        "in_game_prediction_count_per_game",
-        "in_game_prediction_voting_period_minutes",
-    )
+    __slots__ = ("predictions", "in_game_predictions", "in_game_prediction_count_per_game", "in_game_prediction_voting_period_minutes")
     class Prediction(_message.Message):
-        __slots__ = (
-            "type",
-            "question",
-            "choices",
-            "selection_id",
-            "start_date",
-            "lock_date",
-            "reward",
-            "answer_type",
-            "answer_id",
-            "answers",
-            "query_name",
-            "lock_on_selection_id",
-            "lock_on_selection_value",
-            "lock_on_selection_set",
-            "use_answer_value_ranges",
-            "region",
-            "phases",
-            "reward_event",
-            "league_node_id",
-            "reward_event_action",
-        )
+        __slots__ = ("type", "question", "choices", "selection_id", "start_date", "lock_date", "reward", "answer_type", "answer_id", "answers", "query_name", "lock_on_selection_id", "lock_on_selection_value", "lock_on_selection_set", "use_answer_value_ranges", "region", "phases", "reward_event", "league_node_id", "reward_event_action")
         class EPredictionType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
             __slots__ = ()
             Generic: _ClassVar[CMsgDOTASeasonPredictions.Prediction.EPredictionType]
@@ -2404,7 +1456,6 @@ class CMsgDOTASeasonPredictions(_message.Message):
             YesNo: _ClassVar[CMsgDOTASeasonPredictions.Prediction.EPredictionType]
             QualifiersTeam: _ClassVar[CMsgDOTASeasonPredictions.Prediction.EPredictionType]
             LastChanceTeam: _ClassVar[CMsgDOTASeasonPredictions.Prediction.EPredictionType]
-
         Generic: CMsgDOTASeasonPredictions.Prediction.EPredictionType
         Hero: CMsgDOTASeasonPredictions.Prediction.EPredictionType
         Team: CMsgDOTASeasonPredictions.Prediction.EPredictionType
@@ -2423,7 +1474,6 @@ class CMsgDOTASeasonPredictions(_message.Message):
             SingleTime: _ClassVar[CMsgDOTASeasonPredictions.Prediction.EAnswerType]
             MultipleTime: _ClassVar[CMsgDOTASeasonPredictions.Prediction.EAnswerType]
             NoAnswer: _ClassVar[CMsgDOTASeasonPredictions.Prediction.EAnswerType]
-
         SingleInt: CMsgDOTASeasonPredictions.Prediction.EAnswerType
         SingleFloat: CMsgDOTASeasonPredictions.Prediction.EAnswerType
         MultipleInt: CMsgDOTASeasonPredictions.Prediction.EAnswerType
@@ -2436,8 +1486,7 @@ class CMsgDOTASeasonPredictions(_message.Message):
             __slots__ = ("answer_id",)
             ANSWER_ID_FIELD_NUMBER: _ClassVar[int]
             answer_id: int
-            def __init__(self, answer_id: int | None = ...) -> None: ...
-
+            def __init__(self, answer_id: _Optional[int] = ...) -> None: ...
         TYPE_FIELD_NUMBER: _ClassVar[int]
         QUESTION_FIELD_NUMBER: _ClassVar[int]
         CHOICES_FIELD_NUMBER: _ClassVar[int]
@@ -2467,9 +1516,7 @@ class CMsgDOTASeasonPredictions(_message.Message):
         reward: int
         answer_type: CMsgDOTASeasonPredictions.Prediction.EAnswerType
         answer_id: int
-        answers: _containers.RepeatedCompositeFieldContainer[
-            CMsgDOTASeasonPredictions.Prediction.Answers
-        ]
+        answers: _containers.RepeatedCompositeFieldContainer[CMsgDOTASeasonPredictions.Prediction.Answers]
         query_name: str
         lock_on_selection_id: int
         lock_on_selection_value: int
@@ -2480,31 +1527,7 @@ class CMsgDOTASeasonPredictions(_message.Message):
         reward_event: _dota_shared_enums_pb2.EEvent
         league_node_id: int
         reward_event_action: str
-        def __init__(
-            self,
-            type: CMsgDOTASeasonPredictions.Prediction.EPredictionType | str | None = ...,
-            question: str | None = ...,
-            choices: _Iterable[CMsgPredictionChoice | _Mapping] | None = ...,
-            selection_id: int | None = ...,
-            start_date: int | None = ...,
-            lock_date: int | None = ...,
-            reward: int | None = ...,
-            answer_type: CMsgDOTASeasonPredictions.Prediction.EAnswerType | str | None = ...,
-            answer_id: int | None = ...,
-            answers: _Iterable[CMsgDOTASeasonPredictions.Prediction.Answers | _Mapping]
-            | None = ...,
-            query_name: str | None = ...,
-            lock_on_selection_id: int | None = ...,
-            lock_on_selection_value: int | None = ...,
-            lock_on_selection_set: bool = ...,
-            use_answer_value_ranges: bool = ...,
-            region: _dota_shared_enums_pb2.ELeagueRegion | str | None = ...,
-            phases: _Iterable[_dota_shared_enums_pb2.ELeaguePhase | str] | None = ...,
-            reward_event: _dota_shared_enums_pb2.EEvent | str | None = ...,
-            league_node_id: int | None = ...,
-            reward_event_action: str | None = ...,
-        ) -> None: ...
-
+        def __init__(self, type: _Optional[_Union[CMsgDOTASeasonPredictions.Prediction.EPredictionType, str]] = ..., question: _Optional[str] = ..., choices: _Optional[_Iterable[_Union[CMsgPredictionChoice, _Mapping]]] = ..., selection_id: _Optional[int] = ..., start_date: _Optional[int] = ..., lock_date: _Optional[int] = ..., reward: _Optional[int] = ..., answer_type: _Optional[_Union[CMsgDOTASeasonPredictions.Prediction.EAnswerType, str]] = ..., answer_id: _Optional[int] = ..., answers: _Optional[_Iterable[_Union[CMsgDOTASeasonPredictions.Prediction.Answers, _Mapping]]] = ..., query_name: _Optional[str] = ..., lock_on_selection_id: _Optional[int] = ..., lock_on_selection_value: _Optional[int] = ..., lock_on_selection_set: bool = ..., use_answer_value_ranges: bool = ..., region: _Optional[_Union[_dota_shared_enums_pb2.ELeagueRegion, str]] = ..., phases: _Optional[_Iterable[_Union[_dota_shared_enums_pb2.ELeaguePhase, str]]] = ..., reward_event: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ..., league_node_id: _Optional[int] = ..., reward_event_action: _Optional[str] = ...) -> None: ...
     PREDICTIONS_FIELD_NUMBER: _ClassVar[int]
     IN_GAME_PREDICTIONS_FIELD_NUMBER: _ClassVar[int]
     IN_GAME_PREDICTION_COUNT_PER_GAME_FIELD_NUMBER: _ClassVar[int]
@@ -2513,13 +1536,7 @@ class CMsgDOTASeasonPredictions(_message.Message):
     in_game_predictions: _containers.RepeatedCompositeFieldContainer[CMsgInGamePrediction]
     in_game_prediction_count_per_game: int
     in_game_prediction_voting_period_minutes: int
-    def __init__(
-        self,
-        predictions: _Iterable[CMsgDOTASeasonPredictions.Prediction | _Mapping] | None = ...,
-        in_game_predictions: _Iterable[CMsgInGamePrediction | _Mapping] | None = ...,
-        in_game_prediction_count_per_game: int | None = ...,
-        in_game_prediction_voting_period_minutes: int | None = ...,
-    ) -> None: ...
+    def __init__(self, predictions: _Optional[_Iterable[_Union[CMsgDOTASeasonPredictions.Prediction, _Mapping]]] = ..., in_game_predictions: _Optional[_Iterable[_Union[CMsgInGamePrediction, _Mapping]]] = ..., in_game_prediction_count_per_game: _Optional[int] = ..., in_game_prediction_voting_period_minutes: _Optional[int] = ...) -> None: ...
 
 class CMsgAvailablePredictions(_message.Message):
     __slots__ = ("match_predictions",)
@@ -2529,21 +1546,10 @@ class CMsgAvailablePredictions(_message.Message):
         PREDICTIONS_FIELD_NUMBER: _ClassVar[int]
         match_id: int
         predictions: _containers.RepeatedCompositeFieldContainer[CMsgInGamePrediction]
-        def __init__(
-            self,
-            match_id: int | None = ...,
-            predictions: _Iterable[CMsgInGamePrediction | _Mapping] | None = ...,
-        ) -> None: ...
-
+        def __init__(self, match_id: _Optional[int] = ..., predictions: _Optional[_Iterable[_Union[CMsgInGamePrediction, _Mapping]]] = ...) -> None: ...
     MATCH_PREDICTIONS_FIELD_NUMBER: _ClassVar[int]
-    match_predictions: _containers.RepeatedCompositeFieldContainer[
-        CMsgAvailablePredictions.MatchPrediction
-    ]
-    def __init__(
-        self,
-        match_predictions: _Iterable[CMsgAvailablePredictions.MatchPrediction | _Mapping]
-        | None = ...,
-    ) -> None: ...
+    match_predictions: _containers.RepeatedCompositeFieldContainer[CMsgAvailablePredictions.MatchPrediction]
+    def __init__(self, match_predictions: _Optional[_Iterable[_Union[CMsgAvailablePredictions.MatchPrediction, _Mapping]]] = ...) -> None: ...
 
 class CMsgLeagueWatchedGames(_message.Message):
     __slots__ = ("leagues",)
@@ -2553,174 +1559,35 @@ class CMsgLeagueWatchedGames(_message.Message):
         GAME_FIELD_NUMBER: _ClassVar[int]
         node_id: int
         game: _containers.RepeatedScalarFieldContainer[int]
-        def __init__(
-            self, node_id: int | None = ..., game: _Iterable[int] | None = ...
-        ) -> None: ...
-
+        def __init__(self, node_id: _Optional[int] = ..., game: _Optional[_Iterable[int]] = ...) -> None: ...
     class League(_message.Message):
         __slots__ = ("league_id", "series")
         LEAGUE_ID_FIELD_NUMBER: _ClassVar[int]
         SERIES_FIELD_NUMBER: _ClassVar[int]
         league_id: int
         series: _containers.RepeatedCompositeFieldContainer[CMsgLeagueWatchedGames.Series]
-        def __init__(
-            self,
-            league_id: int | None = ...,
-            series: _Iterable[CMsgLeagueWatchedGames.Series | _Mapping] | None = ...,
-        ) -> None: ...
-
+        def __init__(self, league_id: _Optional[int] = ..., series: _Optional[_Iterable[_Union[CMsgLeagueWatchedGames.Series, _Mapping]]] = ...) -> None: ...
     LEAGUES_FIELD_NUMBER: _ClassVar[int]
     leagues: _containers.RepeatedCompositeFieldContainer[CMsgLeagueWatchedGames.League]
-    def __init__(
-        self, leagues: _Iterable[CMsgLeagueWatchedGames.League | _Mapping] | None = ...
-    ) -> None: ...
+    def __init__(self, leagues: _Optional[_Iterable[_Union[CMsgLeagueWatchedGames.League, _Mapping]]] = ...) -> None: ...
 
 class CMsgDOTAMatch(_message.Message):
-    __slots__ = (
-        "duration",
-        "starttime",
-        "players",
-        "match_id",
-        "tower_status",
-        "barracks_status",
-        "cluster",
-        "first_blood_time",
-        "replay_salt",
-        "server_ip",
-        "server_port",
-        "lobby_type",
-        "human_players",
-        "average_skill",
-        "game_balance",
-        "radiant_team_id",
-        "dire_team_id",
-        "leagueid",
-        "radiant_team_name",
-        "dire_team_name",
-        "radiant_team_logo",
-        "dire_team_logo",
-        "radiant_team_logo_url",
-        "dire_team_logo_url",
-        "radiant_team_complete",
-        "dire_team_complete",
-        "game_mode",
-        "picks_bans",
-        "match_seq_num",
-        "replay_state",
-        "radiant_guild_id",
-        "dire_guild_id",
-        "radiant_team_tag",
-        "dire_team_tag",
-        "series_id",
-        "series_type",
-        "broadcaster_channels",
-        "engine",
-        "custom_game_data",
-        "match_flags",
-        "private_metadata_key",
-        "radiant_team_score",
-        "dire_team_score",
-        "match_outcome",
-        "tournament_id",
-        "tournament_round",
-        "pre_game_duration",
-        "coaches",
-    )
+    __slots__ = ("duration", "starttime", "players", "match_id", "tower_status", "barracks_status", "cluster", "first_blood_time", "replay_salt", "server_ip", "server_port", "lobby_type", "human_players", "average_skill", "game_balance", "radiant_team_id", "dire_team_id", "leagueid", "radiant_team_name", "dire_team_name", "radiant_team_logo", "dire_team_logo", "radiant_team_logo_url", "dire_team_logo_url", "radiant_team_complete", "dire_team_complete", "game_mode", "picks_bans", "match_seq_num", "replay_state", "radiant_guild_id", "dire_guild_id", "radiant_team_tag", "dire_team_tag", "series_id", "series_type", "broadcaster_channels", "engine", "custom_game_data", "match_flags", "private_metadata_key", "radiant_team_score", "dire_team_score", "match_outcome", "tournament_id", "tournament_round", "pre_game_duration", "coaches")
     class ReplayState(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
         REPLAY_AVAILABLE: _ClassVar[CMsgDOTAMatch.ReplayState]
         REPLAY_NOT_RECORDED: _ClassVar[CMsgDOTAMatch.ReplayState]
         REPLAY_EXPIRED: _ClassVar[CMsgDOTAMatch.ReplayState]
-
     REPLAY_AVAILABLE: CMsgDOTAMatch.ReplayState
     REPLAY_NOT_RECORDED: CMsgDOTAMatch.ReplayState
     REPLAY_EXPIRED: CMsgDOTAMatch.ReplayState
     class Player(_message.Message):
-        __slots__ = (
-            "account_id",
-            "player_slot",
-            "hero_id",
-            "item_0",
-            "item_1",
-            "item_2",
-            "item_3",
-            "item_4",
-            "item_5",
-            "item_6",
-            "item_7",
-            "item_8",
-            "item_9",
-            "item_10",
-            "item_10_lvl",
-            "expected_team_contribution",
-            "scaled_metric",
-            "previous_rank",
-            "rank_change",
-            "mmr_type",
-            "kills",
-            "deaths",
-            "assists",
-            "leaver_status",
-            "gold",
-            "last_hits",
-            "denies",
-            "gold_per_min",
-            "xp_per_min",
-            "gold_spent",
-            "hero_damage",
-            "tower_damage",
-            "hero_healing",
-            "disable_duration",
-            "level",
-            "time_last_seen",
-            "player_name",
-            "support_ability_value",
-            "feeding_detected",
-            "search_rank",
-            "search_rank_uncertainty",
-            "rank_uncertainty_change",
-            "hero_play_count",
-            "party_id",
-            "scaled_hero_damage",
-            "scaled_tower_damage",
-            "scaled_hero_healing",
-            "scaled_kills",
-            "scaled_deaths",
-            "scaled_assists",
-            "claimed_farm_gold",
-            "support_gold",
-            "claimed_denies",
-            "claimed_misses",
-            "misses",
-            "ability_upgrades",
-            "additional_units_inventory",
-            "permanent_buffs",
-            "pro_name",
-            "real_name",
-            "custom_game_data",
-            "active_plus_subscription",
-            "net_worth",
-            "bot_difficulty",
-            "hero_pick_order",
-            "hero_was_randomed",
-            "hero_was_dota_plus_suggestion",
-            "hero_damage_received",
-            "hero_damage_dealt",
-            "seconds_dead",
-            "gold_lost_to_death",
-            "lane_selection_flags",
-            "bounty_runes",
-            "outposts_captured",
-            "team_number",
-            "team_slot",
-            "selected_facet",
-        )
+        __slots__ = ("account_id", "player_slot", "hero_id", "item_0", "item_1", "item_2", "item_3", "item_4", "item_5", "item_6", "item_7", "item_8", "item_9", "item_10", "item_10_lvl", "expected_team_contribution", "scaled_metric", "previous_rank", "rank_change", "mmr_type", "kills", "deaths", "assists", "leaver_status", "gold", "last_hits", "denies", "gold_per_min", "xp_per_min", "gold_spent", "hero_damage", "tower_damage", "hero_healing", "disable_duration", "level", "time_last_seen", "player_name", "support_ability_value", "feeding_detected", "search_rank", "search_rank_uncertainty", "rank_uncertainty_change", "hero_play_count", "party_id", "scaled_hero_damage", "scaled_tower_damage", "scaled_hero_healing", "scaled_kills", "scaled_deaths", "scaled_assists", "claimed_farm_gold", "support_gold", "claimed_denies", "claimed_misses", "misses", "ability_upgrades", "additional_units_inventory", "permanent_buffs", "pro_name", "real_name", "custom_game_data", "active_plus_subscription", "net_worth", "bot_difficulty", "hero_pick_order", "hero_was_randomed", "hero_was_dota_plus_suggestion", "hero_damage_received", "hero_damage_dealt", "seconds_dead", "gold_lost_to_death", "lane_selection_flags", "bounty_runes", "outposts_captured", "team_number", "team_slot", "selected_facet")
         class HeroDamageType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
             __slots__ = ()
             HERO_DAMAGE_PHYSICAL: _ClassVar[CMsgDOTAMatch.Player.HeroDamageType]
             HERO_DAMAGE_MAGICAL: _ClassVar[CMsgDOTAMatch.Player.HeroDamageType]
             HERO_DAMAGE_PURE: _ClassVar[CMsgDOTAMatch.Player.HeroDamageType]
-
         HERO_DAMAGE_PHYSICAL: CMsgDOTAMatch.Player.HeroDamageType
         HERO_DAMAGE_MAGICAL: CMsgDOTAMatch.Player.HeroDamageType
         HERO_DAMAGE_PURE: CMsgDOTAMatch.Player.HeroDamageType
@@ -2730,8 +1597,7 @@ class CMsgDOTAMatch(_message.Message):
             WINNER_FIELD_NUMBER: _ClassVar[int]
             dota_team: int
             winner: bool
-            def __init__(self, dota_team: int | None = ..., winner: bool = ...) -> None: ...
-
+            def __init__(self, dota_team: _Optional[int] = ..., winner: bool = ...) -> None: ...
         class HeroDamageReceived(_message.Message):
             __slots__ = ("pre_reduction", "post_reduction", "damage_type")
             PRE_REDUCTION_FIELD_NUMBER: _ClassVar[int]
@@ -2740,13 +1606,7 @@ class CMsgDOTAMatch(_message.Message):
             pre_reduction: int
             post_reduction: int
             damage_type: CMsgDOTAMatch.Player.HeroDamageType
-            def __init__(
-                self,
-                pre_reduction: int | None = ...,
-                post_reduction: int | None = ...,
-                damage_type: CMsgDOTAMatch.Player.HeroDamageType | str | None = ...,
-            ) -> None: ...
-
+            def __init__(self, pre_reduction: _Optional[int] = ..., post_reduction: _Optional[int] = ..., damage_type: _Optional[_Union[CMsgDOTAMatch.Player.HeroDamageType, str]] = ...) -> None: ...
         ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
         PLAYER_SLOT_FIELD_NUMBER: _ClassVar[int]
         HERO_ID_FIELD_NUMBER: _ClassVar[int]
@@ -2880,9 +1740,7 @@ class CMsgDOTAMatch(_message.Message):
         claimed_misses: int
         misses: int
         ability_upgrades: _containers.RepeatedCompositeFieldContainer[CMatchPlayerAbilityUpgrade]
-        additional_units_inventory: _containers.RepeatedCompositeFieldContainer[
-            CMatchAdditionalUnitInventory
-        ]
+        additional_units_inventory: _containers.RepeatedCompositeFieldContainer[CMatchAdditionalUnitInventory]
         permanent_buffs: _containers.RepeatedCompositeFieldContainer[CMatchPlayerPermanentBuff]
         pro_name: str
         real_name: str
@@ -2893,12 +1751,8 @@ class CMsgDOTAMatch(_message.Message):
         hero_pick_order: int
         hero_was_randomed: bool
         hero_was_dota_plus_suggestion: bool
-        hero_damage_received: _containers.RepeatedCompositeFieldContainer[
-            CMsgDOTAMatch.Player.HeroDamageReceived
-        ]
-        hero_damage_dealt: _containers.RepeatedCompositeFieldContainer[
-            CMsgDOTAMatch.Player.HeroDamageReceived
-        ]
+        hero_damage_received: _containers.RepeatedCompositeFieldContainer[CMsgDOTAMatch.Player.HeroDamageReceived]
+        hero_damage_dealt: _containers.RepeatedCompositeFieldContainer[CMsgDOTAMatch.Player.HeroDamageReceived]
         seconds_dead: int
         gold_lost_to_death: int
         lane_selection_flags: int
@@ -2907,98 +1761,14 @@ class CMsgDOTAMatch(_message.Message):
         team_number: _dota_shared_enums_pb2.DOTA_GC_TEAM
         team_slot: int
         selected_facet: int
-        def __init__(
-            self,
-            account_id: int | None = ...,
-            player_slot: int | None = ...,
-            hero_id: int | None = ...,
-            item_0: int | None = ...,
-            item_1: int | None = ...,
-            item_2: int | None = ...,
-            item_3: int | None = ...,
-            item_4: int | None = ...,
-            item_5: int | None = ...,
-            item_6: int | None = ...,
-            item_7: int | None = ...,
-            item_8: int | None = ...,
-            item_9: int | None = ...,
-            item_10: int | None = ...,
-            item_10_lvl: int | None = ...,
-            expected_team_contribution: float | None = ...,
-            scaled_metric: float | None = ...,
-            previous_rank: int | None = ...,
-            rank_change: int | None = ...,
-            mmr_type: int | None = ...,
-            kills: int | None = ...,
-            deaths: int | None = ...,
-            assists: int | None = ...,
-            leaver_status: int | None = ...,
-            gold: int | None = ...,
-            last_hits: int | None = ...,
-            denies: int | None = ...,
-            gold_per_min: int | None = ...,
-            xp_per_min: int | None = ...,
-            gold_spent: int | None = ...,
-            hero_damage: int | None = ...,
-            tower_damage: int | None = ...,
-            hero_healing: int | None = ...,
-            disable_duration: int | None = ...,
-            level: int | None = ...,
-            time_last_seen: int | None = ...,
-            player_name: str | None = ...,
-            support_ability_value: int | None = ...,
-            feeding_detected: bool = ...,
-            search_rank: int | None = ...,
-            search_rank_uncertainty: int | None = ...,
-            rank_uncertainty_change: int | None = ...,
-            hero_play_count: int | None = ...,
-            party_id: int | None = ...,
-            scaled_hero_damage: int | None = ...,
-            scaled_tower_damage: int | None = ...,
-            scaled_hero_healing: int | None = ...,
-            scaled_kills: float | None = ...,
-            scaled_deaths: float | None = ...,
-            scaled_assists: float | None = ...,
-            claimed_farm_gold: int | None = ...,
-            support_gold: int | None = ...,
-            claimed_denies: int | None = ...,
-            claimed_misses: int | None = ...,
-            misses: int | None = ...,
-            ability_upgrades: _Iterable[CMatchPlayerAbilityUpgrade | _Mapping] | None = ...,
-            additional_units_inventory: _Iterable[CMatchAdditionalUnitInventory | _Mapping]
-            | None = ...,
-            permanent_buffs: _Iterable[CMatchPlayerPermanentBuff | _Mapping] | None = ...,
-            pro_name: str | None = ...,
-            real_name: str | None = ...,
-            custom_game_data: CMsgDOTAMatch.Player.CustomGameData | _Mapping | None = ...,
-            active_plus_subscription: bool = ...,
-            net_worth: int | None = ...,
-            bot_difficulty: int | None = ...,
-            hero_pick_order: int | None = ...,
-            hero_was_randomed: bool = ...,
-            hero_was_dota_plus_suggestion: bool = ...,
-            hero_damage_received: _Iterable[CMsgDOTAMatch.Player.HeroDamageReceived | _Mapping]
-            | None = ...,
-            hero_damage_dealt: _Iterable[CMsgDOTAMatch.Player.HeroDamageReceived | _Mapping]
-            | None = ...,
-            seconds_dead: int | None = ...,
-            gold_lost_to_death: int | None = ...,
-            lane_selection_flags: int | None = ...,
-            bounty_runes: int | None = ...,
-            outposts_captured: int | None = ...,
-            team_number: _dota_shared_enums_pb2.DOTA_GC_TEAM | str | None = ...,
-            team_slot: int | None = ...,
-            selected_facet: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, account_id: _Optional[int] = ..., player_slot: _Optional[int] = ..., hero_id: _Optional[int] = ..., item_0: _Optional[int] = ..., item_1: _Optional[int] = ..., item_2: _Optional[int] = ..., item_3: _Optional[int] = ..., item_4: _Optional[int] = ..., item_5: _Optional[int] = ..., item_6: _Optional[int] = ..., item_7: _Optional[int] = ..., item_8: _Optional[int] = ..., item_9: _Optional[int] = ..., item_10: _Optional[int] = ..., item_10_lvl: _Optional[int] = ..., expected_team_contribution: _Optional[float] = ..., scaled_metric: _Optional[float] = ..., previous_rank: _Optional[int] = ..., rank_change: _Optional[int] = ..., mmr_type: _Optional[int] = ..., kills: _Optional[int] = ..., deaths: _Optional[int] = ..., assists: _Optional[int] = ..., leaver_status: _Optional[int] = ..., gold: _Optional[int] = ..., last_hits: _Optional[int] = ..., denies: _Optional[int] = ..., gold_per_min: _Optional[int] = ..., xp_per_min: _Optional[int] = ..., gold_spent: _Optional[int] = ..., hero_damage: _Optional[int] = ..., tower_damage: _Optional[int] = ..., hero_healing: _Optional[int] = ..., disable_duration: _Optional[int] = ..., level: _Optional[int] = ..., time_last_seen: _Optional[int] = ..., player_name: _Optional[str] = ..., support_ability_value: _Optional[int] = ..., feeding_detected: bool = ..., search_rank: _Optional[int] = ..., search_rank_uncertainty: _Optional[int] = ..., rank_uncertainty_change: _Optional[int] = ..., hero_play_count: _Optional[int] = ..., party_id: _Optional[int] = ..., scaled_hero_damage: _Optional[int] = ..., scaled_tower_damage: _Optional[int] = ..., scaled_hero_healing: _Optional[int] = ..., scaled_kills: _Optional[float] = ..., scaled_deaths: _Optional[float] = ..., scaled_assists: _Optional[float] = ..., claimed_farm_gold: _Optional[int] = ..., support_gold: _Optional[int] = ..., claimed_denies: _Optional[int] = ..., claimed_misses: _Optional[int] = ..., misses: _Optional[int] = ..., ability_upgrades: _Optional[_Iterable[_Union[CMatchPlayerAbilityUpgrade, _Mapping]]] = ..., additional_units_inventory: _Optional[_Iterable[_Union[CMatchAdditionalUnitInventory, _Mapping]]] = ..., permanent_buffs: _Optional[_Iterable[_Union[CMatchPlayerPermanentBuff, _Mapping]]] = ..., pro_name: _Optional[str] = ..., real_name: _Optional[str] = ..., custom_game_data: _Optional[_Union[CMsgDOTAMatch.Player.CustomGameData, _Mapping]] = ..., active_plus_subscription: bool = ..., net_worth: _Optional[int] = ..., bot_difficulty: _Optional[int] = ..., hero_pick_order: _Optional[int] = ..., hero_was_randomed: bool = ..., hero_was_dota_plus_suggestion: bool = ..., hero_damage_received: _Optional[_Iterable[_Union[CMsgDOTAMatch.Player.HeroDamageReceived, _Mapping]]] = ..., hero_damage_dealt: _Optional[_Iterable[_Union[CMsgDOTAMatch.Player.HeroDamageReceived, _Mapping]]] = ..., seconds_dead: _Optional[int] = ..., gold_lost_to_death: _Optional[int] = ..., lane_selection_flags: _Optional[int] = ..., bounty_runes: _Optional[int] = ..., outposts_captured: _Optional[int] = ..., team_number: _Optional[_Union[_dota_shared_enums_pb2.DOTA_GC_TEAM, str]] = ..., team_slot: _Optional[int] = ..., selected_facet: _Optional[int] = ...) -> None: ...
     class BroadcasterInfo(_message.Message):
         __slots__ = ("account_id", "name")
         ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
         NAME_FIELD_NUMBER: _ClassVar[int]
         account_id: int
         name: str
-        def __init__(self, account_id: int | None = ..., name: str | None = ...) -> None: ...
-
+        def __init__(self, account_id: _Optional[int] = ..., name: _Optional[str] = ...) -> None: ...
     class BroadcasterChannel(_message.Message):
         __slots__ = ("country_code", "description", "broadcaster_infos", "language_code")
         COUNTRY_CODE_FIELD_NUMBER: _ClassVar[int]
@@ -3007,27 +1777,11 @@ class CMsgDOTAMatch(_message.Message):
         LANGUAGE_CODE_FIELD_NUMBER: _ClassVar[int]
         country_code: str
         description: str
-        broadcaster_infos: _containers.RepeatedCompositeFieldContainer[
-            CMsgDOTAMatch.BroadcasterInfo
-        ]
+        broadcaster_infos: _containers.RepeatedCompositeFieldContainer[CMsgDOTAMatch.BroadcasterInfo]
         language_code: str
-        def __init__(
-            self,
-            country_code: str | None = ...,
-            description: str | None = ...,
-            broadcaster_infos: _Iterable[CMsgDOTAMatch.BroadcasterInfo | _Mapping] | None = ...,
-            language_code: str | None = ...,
-        ) -> None: ...
-
+        def __init__(self, country_code: _Optional[str] = ..., description: _Optional[str] = ..., broadcaster_infos: _Optional[_Iterable[_Union[CMsgDOTAMatch.BroadcasterInfo, _Mapping]]] = ..., language_code: _Optional[str] = ...) -> None: ...
     class Coach(_message.Message):
-        __slots__ = (
-            "account_id",
-            "coach_name",
-            "coach_rating",
-            "coach_team",
-            "coach_party_id",
-            "is_private_coach",
-        )
+        __slots__ = ("account_id", "coach_name", "coach_rating", "coach_team", "coach_party_id", "is_private_coach")
         ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
         COACH_NAME_FIELD_NUMBER: _ClassVar[int]
         COACH_RATING_FIELD_NUMBER: _ClassVar[int]
@@ -3040,26 +1794,14 @@ class CMsgDOTAMatch(_message.Message):
         coach_team: int
         coach_party_id: int
         is_private_coach: bool
-        def __init__(
-            self,
-            account_id: int | None = ...,
-            coach_name: str | None = ...,
-            coach_rating: int | None = ...,
-            coach_team: int | None = ...,
-            coach_party_id: int | None = ...,
-            is_private_coach: bool = ...,
-        ) -> None: ...
-
+        def __init__(self, account_id: _Optional[int] = ..., coach_name: _Optional[str] = ..., coach_rating: _Optional[int] = ..., coach_team: _Optional[int] = ..., coach_party_id: _Optional[int] = ..., is_private_coach: bool = ...) -> None: ...
     class CustomGameData(_message.Message):
         __slots__ = ("custom_game_id", "map_name")
         CUSTOM_GAME_ID_FIELD_NUMBER: _ClassVar[int]
         MAP_NAME_FIELD_NUMBER: _ClassVar[int]
         custom_game_id: int
         map_name: str
-        def __init__(
-            self, custom_game_id: int | None = ..., map_name: str | None = ...
-        ) -> None: ...
-
+        def __init__(self, custom_game_id: _Optional[int] = ..., map_name: _Optional[str] = ...) -> None: ...
     DURATION_FIELD_NUMBER: _ClassVar[int]
     STARTTIME_FIELD_NUMBER: _ClassVar[int]
     PLAYERS_FIELD_NUMBER: _ClassVar[int]
@@ -3144,9 +1886,7 @@ class CMsgDOTAMatch(_message.Message):
     dire_team_tag: str
     series_id: int
     series_type: int
-    broadcaster_channels: _containers.RepeatedCompositeFieldContainer[
-        CMsgDOTAMatch.BroadcasterChannel
-    ]
+    broadcaster_channels: _containers.RepeatedCompositeFieldContainer[CMsgDOTAMatch.BroadcasterChannel]
     engine: int
     custom_game_data: CMsgDOTAMatch.CustomGameData
     match_flags: int
@@ -3158,57 +1898,7 @@ class CMsgDOTAMatch(_message.Message):
     tournament_round: int
     pre_game_duration: int
     coaches: _containers.RepeatedCompositeFieldContainer[CMsgDOTAMatch.Coach]
-    def __init__(
-        self,
-        duration: int | None = ...,
-        starttime: int | None = ...,
-        players: _Iterable[CMsgDOTAMatch.Player | _Mapping] | None = ...,
-        match_id: int | None = ...,
-        tower_status: _Iterable[int] | None = ...,
-        barracks_status: _Iterable[int] | None = ...,
-        cluster: int | None = ...,
-        first_blood_time: int | None = ...,
-        replay_salt: int | None = ...,
-        server_ip: int | None = ...,
-        server_port: int | None = ...,
-        lobby_type: int | None = ...,
-        human_players: int | None = ...,
-        average_skill: int | None = ...,
-        game_balance: float | None = ...,
-        radiant_team_id: int | None = ...,
-        dire_team_id: int | None = ...,
-        leagueid: int | None = ...,
-        radiant_team_name: str | None = ...,
-        dire_team_name: str | None = ...,
-        radiant_team_logo: int | None = ...,
-        dire_team_logo: int | None = ...,
-        radiant_team_logo_url: str | None = ...,
-        dire_team_logo_url: str | None = ...,
-        radiant_team_complete: int | None = ...,
-        dire_team_complete: int | None = ...,
-        game_mode: _dota_shared_enums_pb2.DOTA_GameMode | str | None = ...,
-        picks_bans: _Iterable[CMatchHeroSelectEvent | _Mapping] | None = ...,
-        match_seq_num: int | None = ...,
-        replay_state: CMsgDOTAMatch.ReplayState | str | None = ...,
-        radiant_guild_id: int | None = ...,
-        dire_guild_id: int | None = ...,
-        radiant_team_tag: str | None = ...,
-        dire_team_tag: str | None = ...,
-        series_id: int | None = ...,
-        series_type: int | None = ...,
-        broadcaster_channels: _Iterable[CMsgDOTAMatch.BroadcasterChannel | _Mapping] | None = ...,
-        engine: int | None = ...,
-        custom_game_data: CMsgDOTAMatch.CustomGameData | _Mapping | None = ...,
-        match_flags: int | None = ...,
-        private_metadata_key: int | None = ...,
-        radiant_team_score: int | None = ...,
-        dire_team_score: int | None = ...,
-        match_outcome: _dota_shared_enums_pb2.EMatchOutcome | str | None = ...,
-        tournament_id: int | None = ...,
-        tournament_round: int | None = ...,
-        pre_game_duration: int | None = ...,
-        coaches: _Iterable[CMsgDOTAMatch.Coach | _Mapping] | None = ...,
-    ) -> None: ...
+    def __init__(self, duration: _Optional[int] = ..., starttime: _Optional[int] = ..., players: _Optional[_Iterable[_Union[CMsgDOTAMatch.Player, _Mapping]]] = ..., match_id: _Optional[int] = ..., tower_status: _Optional[_Iterable[int]] = ..., barracks_status: _Optional[_Iterable[int]] = ..., cluster: _Optional[int] = ..., first_blood_time: _Optional[int] = ..., replay_salt: _Optional[int] = ..., server_ip: _Optional[int] = ..., server_port: _Optional[int] = ..., lobby_type: _Optional[int] = ..., human_players: _Optional[int] = ..., average_skill: _Optional[int] = ..., game_balance: _Optional[float] = ..., radiant_team_id: _Optional[int] = ..., dire_team_id: _Optional[int] = ..., leagueid: _Optional[int] = ..., radiant_team_name: _Optional[str] = ..., dire_team_name: _Optional[str] = ..., radiant_team_logo: _Optional[int] = ..., dire_team_logo: _Optional[int] = ..., radiant_team_logo_url: _Optional[str] = ..., dire_team_logo_url: _Optional[str] = ..., radiant_team_complete: _Optional[int] = ..., dire_team_complete: _Optional[int] = ..., game_mode: _Optional[_Union[_dota_shared_enums_pb2.DOTA_GameMode, str]] = ..., picks_bans: _Optional[_Iterable[_Union[CMatchHeroSelectEvent, _Mapping]]] = ..., match_seq_num: _Optional[int] = ..., replay_state: _Optional[_Union[CMsgDOTAMatch.ReplayState, str]] = ..., radiant_guild_id: _Optional[int] = ..., dire_guild_id: _Optional[int] = ..., radiant_team_tag: _Optional[str] = ..., dire_team_tag: _Optional[str] = ..., series_id: _Optional[int] = ..., series_type: _Optional[int] = ..., broadcaster_channels: _Optional[_Iterable[_Union[CMsgDOTAMatch.BroadcasterChannel, _Mapping]]] = ..., engine: _Optional[int] = ..., custom_game_data: _Optional[_Union[CMsgDOTAMatch.CustomGameData, _Mapping]] = ..., match_flags: _Optional[int] = ..., private_metadata_key: _Optional[int] = ..., radiant_team_score: _Optional[int] = ..., dire_team_score: _Optional[int] = ..., match_outcome: _Optional[_Union[_dota_shared_enums_pb2.EMatchOutcome, str]] = ..., tournament_id: _Optional[int] = ..., tournament_round: _Optional[int] = ..., pre_game_duration: _Optional[int] = ..., coaches: _Optional[_Iterable[_Union[CMsgDOTAMatch.Coach, _Mapping]]] = ...) -> None: ...
 
 class CMsgPlayerCard(_message.Message):
     __slots__ = ("account_id", "stat_modifier")
@@ -3218,48 +1908,15 @@ class CMsgPlayerCard(_message.Message):
         VALUE_FIELD_NUMBER: _ClassVar[int]
         stat: int
         value: int
-        def __init__(self, stat: int | None = ..., value: int | None = ...) -> None: ...
-
+        def __init__(self, stat: _Optional[int] = ..., value: _Optional[int] = ...) -> None: ...
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     STAT_MODIFIER_FIELD_NUMBER: _ClassVar[int]
     account_id: int
     stat_modifier: _containers.RepeatedCompositeFieldContainer[CMsgPlayerCard.StatModifier]
-    def __init__(
-        self,
-        account_id: int | None = ...,
-        stat_modifier: _Iterable[CMsgPlayerCard.StatModifier | _Mapping] | None = ...,
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., stat_modifier: _Optional[_Iterable[_Union[CMsgPlayerCard.StatModifier, _Mapping]]] = ...) -> None: ...
 
 class CMsgDOTAFantasyPlayerStats(_message.Message):
-    __slots__ = (
-        "player_account_id",
-        "match_id",
-        "match_completed",
-        "team_id",
-        "league_id",
-        "delay",
-        "series_id",
-        "series_type",
-        "kills",
-        "deaths",
-        "cs",
-        "gpm",
-        "tower_kills",
-        "roshan_kills",
-        "teamfight_participation",
-        "wards_placed",
-        "camps_stacked",
-        "runes_grabbed",
-        "first_blood",
-        "stuns",
-        "smokes",
-        "watchers",
-        "lotuses",
-        "tormentors",
-        "courier_kills",
-        "title_stats",
-        "madstone",
-    )
+    __slots__ = ("player_account_id", "match_id", "match_completed", "team_id", "league_id", "delay", "series_id", "series_type", "kills", "deaths", "cs", "gpm", "tower_kills", "roshan_kills", "teamfight_participation", "wards_placed", "camps_stacked", "runes_grabbed", "first_blood", "stuns", "smokes", "watchers", "lotuses", "tormentors", "courier_kills", "title_stats", "madstone")
     PLAYER_ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     MATCH_ID_FIELD_NUMBER: _ClassVar[int]
     MATCH_COMPLETED_FIELD_NUMBER: _ClassVar[int]
@@ -3314,76 +1971,18 @@ class CMsgDOTAFantasyPlayerStats(_message.Message):
     courier_kills: int
     title_stats: int
     madstone: int
-    def __init__(
-        self,
-        player_account_id: int | None = ...,
-        match_id: int | None = ...,
-        match_completed: bool = ...,
-        team_id: int | None = ...,
-        league_id: int | None = ...,
-        delay: int | None = ...,
-        series_id: int | None = ...,
-        series_type: int | None = ...,
-        kills: int | None = ...,
-        deaths: int | None = ...,
-        cs: int | None = ...,
-        gpm: float | None = ...,
-        tower_kills: int | None = ...,
-        roshan_kills: int | None = ...,
-        teamfight_participation: float | None = ...,
-        wards_placed: int | None = ...,
-        camps_stacked: int | None = ...,
-        runes_grabbed: int | None = ...,
-        first_blood: int | None = ...,
-        stuns: float | None = ...,
-        smokes: int | None = ...,
-        watchers: int | None = ...,
-        lotuses: int | None = ...,
-        tormentors: int | None = ...,
-        courier_kills: int | None = ...,
-        title_stats: int | None = ...,
-        madstone: int | None = ...,
-    ) -> None: ...
+    def __init__(self, player_account_id: _Optional[int] = ..., match_id: _Optional[int] = ..., match_completed: bool = ..., team_id: _Optional[int] = ..., league_id: _Optional[int] = ..., delay: _Optional[int] = ..., series_id: _Optional[int] = ..., series_type: _Optional[int] = ..., kills: _Optional[int] = ..., deaths: _Optional[int] = ..., cs: _Optional[int] = ..., gpm: _Optional[float] = ..., tower_kills: _Optional[int] = ..., roshan_kills: _Optional[int] = ..., teamfight_participation: _Optional[float] = ..., wards_placed: _Optional[int] = ..., camps_stacked: _Optional[int] = ..., runes_grabbed: _Optional[int] = ..., first_blood: _Optional[int] = ..., stuns: _Optional[float] = ..., smokes: _Optional[int] = ..., watchers: _Optional[int] = ..., lotuses: _Optional[int] = ..., tormentors: _Optional[int] = ..., courier_kills: _Optional[int] = ..., title_stats: _Optional[int] = ..., madstone: _Optional[int] = ...) -> None: ...
 
 class CMsgDOTAFantasyPlayerMatchStats(_message.Message):
     __slots__ = ("matches",)
     MATCHES_FIELD_NUMBER: _ClassVar[int]
     matches: _containers.RepeatedCompositeFieldContainer[CMsgDOTAFantasyPlayerStats]
-    def __init__(
-        self, matches: _Iterable[CMsgDOTAFantasyPlayerStats | _Mapping] | None = ...
-    ) -> None: ...
+    def __init__(self, matches: _Optional[_Iterable[_Union[CMsgDOTAFantasyPlayerStats, _Mapping]]] = ...) -> None: ...
 
 class CMsgDOTABotDebugInfo(_message.Message):
-    __slots__ = (
-        "bots",
-        "desire_push_lane_top",
-        "desire_push_lane_mid",
-        "desire_push_lane_bot",
-        "desire_defend_lane_top",
-        "desire_defend_lane_mid",
-        "desire_defend_lane_bot",
-        "desire_farm_lane_top",
-        "desire_farm_lane_mid",
-        "desire_farm_lane_bot",
-        "desire_farm_roshan",
-        "execution_time",
-        "rune_status",
-    )
+    __slots__ = ("bots", "desire_push_lane_top", "desire_push_lane_mid", "desire_push_lane_bot", "desire_defend_lane_top", "desire_defend_lane_mid", "desire_defend_lane_bot", "desire_farm_lane_top", "desire_farm_lane_mid", "desire_farm_lane_bot", "desire_farm_roshan", "execution_time", "rune_status")
     class Bot(_message.Message):
-        __slots__ = (
-            "player_owner_id",
-            "hero_id",
-            "difficulty",
-            "power_current",
-            "power_max",
-            "move_target_x",
-            "move_target_y",
-            "move_target_z",
-            "active_mode_id",
-            "execution_time",
-            "modes",
-            "action",
-        )
+        __slots__ = ("player_owner_id", "hero_id", "difficulty", "power_current", "power_max", "move_target_x", "move_target_y", "move_target_z", "active_mode_id", "execution_time", "modes", "action")
         class Mode(_message.Message):
             __slots__ = ("mode_id", "desire", "target_entity", "target_x", "target_y", "target_z")
             MODE_ID_FIELD_NUMBER: _ClassVar[int]
@@ -3398,26 +1997,14 @@ class CMsgDOTABotDebugInfo(_message.Message):
             target_x: int
             target_y: int
             target_z: int
-            def __init__(
-                self,
-                mode_id: int | None = ...,
-                desire: float | None = ...,
-                target_entity: int | None = ...,
-                target_x: int | None = ...,
-                target_y: int | None = ...,
-                target_z: int | None = ...,
-            ) -> None: ...
-
+            def __init__(self, mode_id: _Optional[int] = ..., desire: _Optional[float] = ..., target_entity: _Optional[int] = ..., target_x: _Optional[int] = ..., target_y: _Optional[int] = ..., target_z: _Optional[int] = ...) -> None: ...
         class Action(_message.Message):
             __slots__ = ("action_id", "action_target")
             ACTION_ID_FIELD_NUMBER: _ClassVar[int]
             ACTION_TARGET_FIELD_NUMBER: _ClassVar[int]
             action_id: int
             action_target: str
-            def __init__(
-                self, action_id: int | None = ..., action_target: str | None = ...
-            ) -> None: ...
-
+            def __init__(self, action_id: _Optional[int] = ..., action_target: _Optional[str] = ...) -> None: ...
         PLAYER_OWNER_ID_FIELD_NUMBER: _ClassVar[int]
         HERO_ID_FIELD_NUMBER: _ClassVar[int]
         DIFFICULTY_FIELD_NUMBER: _ClassVar[int]
@@ -3442,22 +2029,7 @@ class CMsgDOTABotDebugInfo(_message.Message):
         execution_time: float
         modes: _containers.RepeatedCompositeFieldContainer[CMsgDOTABotDebugInfo.Bot.Mode]
         action: CMsgDOTABotDebugInfo.Bot.Action
-        def __init__(
-            self,
-            player_owner_id: int | None = ...,
-            hero_id: int | None = ...,
-            difficulty: int | None = ...,
-            power_current: int | None = ...,
-            power_max: int | None = ...,
-            move_target_x: int | None = ...,
-            move_target_y: int | None = ...,
-            move_target_z: int | None = ...,
-            active_mode_id: int | None = ...,
-            execution_time: float | None = ...,
-            modes: _Iterable[CMsgDOTABotDebugInfo.Bot.Mode | _Mapping] | None = ...,
-            action: CMsgDOTABotDebugInfo.Bot.Action | _Mapping | None = ...,
-        ) -> None: ...
-
+        def __init__(self, player_owner_id: _Optional[int] = ..., hero_id: _Optional[int] = ..., difficulty: _Optional[int] = ..., power_current: _Optional[int] = ..., power_max: _Optional[int] = ..., move_target_x: _Optional[int] = ..., move_target_y: _Optional[int] = ..., move_target_z: _Optional[int] = ..., active_mode_id: _Optional[int] = ..., execution_time: _Optional[float] = ..., modes: _Optional[_Iterable[_Union[CMsgDOTABotDebugInfo.Bot.Mode, _Mapping]]] = ..., action: _Optional[_Union[CMsgDOTABotDebugInfo.Bot.Action, _Mapping]] = ...) -> None: ...
     BOTS_FIELD_NUMBER: _ClassVar[int]
     DESIRE_PUSH_LANE_TOP_FIELD_NUMBER: _ClassVar[int]
     DESIRE_PUSH_LANE_MID_FIELD_NUMBER: _ClassVar[int]
@@ -3484,22 +2056,7 @@ class CMsgDOTABotDebugInfo(_message.Message):
     desire_farm_roshan: float
     execution_time: float
     rune_status: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(
-        self,
-        bots: _Iterable[CMsgDOTABotDebugInfo.Bot | _Mapping] | None = ...,
-        desire_push_lane_top: float | None = ...,
-        desire_push_lane_mid: float | None = ...,
-        desire_push_lane_bot: float | None = ...,
-        desire_defend_lane_top: float | None = ...,
-        desire_defend_lane_mid: float | None = ...,
-        desire_defend_lane_bot: float | None = ...,
-        desire_farm_lane_top: float | None = ...,
-        desire_farm_lane_mid: float | None = ...,
-        desire_farm_lane_bot: float | None = ...,
-        desire_farm_roshan: float | None = ...,
-        execution_time: float | None = ...,
-        rune_status: _Iterable[int] | None = ...,
-    ) -> None: ...
+    def __init__(self, bots: _Optional[_Iterable[_Union[CMsgDOTABotDebugInfo.Bot, _Mapping]]] = ..., desire_push_lane_top: _Optional[float] = ..., desire_push_lane_mid: _Optional[float] = ..., desire_push_lane_bot: _Optional[float] = ..., desire_defend_lane_top: _Optional[float] = ..., desire_defend_lane_mid: _Optional[float] = ..., desire_defend_lane_bot: _Optional[float] = ..., desire_farm_lane_top: _Optional[float] = ..., desire_farm_lane_mid: _Optional[float] = ..., desire_farm_lane_bot: _Optional[float] = ..., desire_farm_roshan: _Optional[float] = ..., execution_time: _Optional[float] = ..., rune_status: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CMsgSuccessfulHero(_message.Message):
     __slots__ = ("hero_id", "win_percent", "longest_streak")
@@ -3509,27 +2066,10 @@ class CMsgSuccessfulHero(_message.Message):
     hero_id: int
     win_percent: float
     longest_streak: int
-    def __init__(
-        self,
-        hero_id: int | None = ...,
-        win_percent: float | None = ...,
-        longest_streak: int | None = ...,
-    ) -> None: ...
+    def __init__(self, hero_id: _Optional[int] = ..., win_percent: _Optional[float] = ..., longest_streak: _Optional[int] = ...) -> None: ...
 
 class CMsgRecentMatchInfo(_message.Message):
-    __slots__ = (
-        "match_id",
-        "game_mode",
-        "kills",
-        "deaths",
-        "assists",
-        "duration",
-        "player_slot",
-        "match_outcome",
-        "timestamp",
-        "lobby_type",
-        "team_number",
-    )
+    __slots__ = ("match_id", "game_mode", "kills", "deaths", "assists", "duration", "player_slot", "match_outcome", "timestamp", "lobby_type", "team_number")
     MATCH_ID_FIELD_NUMBER: _ClassVar[int]
     GAME_MODE_FIELD_NUMBER: _ClassVar[int]
     KILLS_FIELD_NUMBER: _ClassVar[int]
@@ -3552,20 +2092,7 @@ class CMsgRecentMatchInfo(_message.Message):
     timestamp: int
     lobby_type: int
     team_number: int
-    def __init__(
-        self,
-        match_id: int | None = ...,
-        game_mode: _dota_shared_enums_pb2.DOTA_GameMode | str | None = ...,
-        kills: int | None = ...,
-        deaths: int | None = ...,
-        assists: int | None = ...,
-        duration: int | None = ...,
-        player_slot: int | None = ...,
-        match_outcome: _dota_shared_enums_pb2.EMatchOutcome | str | None = ...,
-        timestamp: int | None = ...,
-        lobby_type: int | None = ...,
-        team_number: int | None = ...,
-    ) -> None: ...
+    def __init__(self, match_id: _Optional[int] = ..., game_mode: _Optional[_Union[_dota_shared_enums_pb2.DOTA_GameMode, str]] = ..., kills: _Optional[int] = ..., deaths: _Optional[int] = ..., assists: _Optional[int] = ..., duration: _Optional[int] = ..., player_slot: _Optional[int] = ..., match_outcome: _Optional[_Union[_dota_shared_enums_pb2.EMatchOutcome, str]] = ..., timestamp: _Optional[int] = ..., lobby_type: _Optional[int] = ..., team_number: _Optional[int] = ...) -> None: ...
 
 class CMsgMatchTips(_message.Message):
     __slots__ = ("tips",)
@@ -3579,47 +2106,15 @@ class CMsgMatchTips(_message.Message):
         target_account_id: int
         tip_amount: int
         event_id: _dota_shared_enums_pb2.EEvent
-        def __init__(
-            self,
-            source_account_id: int | None = ...,
-            target_account_id: int | None = ...,
-            tip_amount: int | None = ...,
-            event_id: _dota_shared_enums_pb2.EEvent | str | None = ...,
-        ) -> None: ...
-
+        def __init__(self, source_account_id: _Optional[int] = ..., target_account_id: _Optional[int] = ..., tip_amount: _Optional[int] = ..., event_id: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ...) -> None: ...
     TIPS_FIELD_NUMBER: _ClassVar[int]
     tips: _containers.RepeatedCompositeFieldContainer[CMsgMatchTips.SingleTip]
-    def __init__(
-        self, tips: _Iterable[CMsgMatchTips.SingleTip | _Mapping] | None = ...
-    ) -> None: ...
+    def __init__(self, tips: _Optional[_Iterable[_Union[CMsgMatchTips.SingleTip, _Mapping]]] = ...) -> None: ...
 
 class CMsgDOTAMatchMinimal(_message.Message):
-    __slots__ = (
-        "match_id",
-        "start_time",
-        "duration",
-        "game_mode",
-        "players",
-        "tourney",
-        "match_outcome",
-        "radiant_score",
-        "dire_score",
-        "lobby_type",
-        "is_player_draft",
-    )
+    __slots__ = ("match_id", "start_time", "duration", "game_mode", "players", "tourney", "match_outcome", "radiant_score", "dire_score", "lobby_type", "is_player_draft")
     class Player(_message.Message):
-        __slots__ = (
-            "account_id",
-            "hero_id",
-            "kills",
-            "deaths",
-            "assists",
-            "items",
-            "player_slot",
-            "pro_name",
-            "level",
-            "team_number",
-        )
+        __slots__ = ("account_id", "hero_id", "kills", "deaths", "assists", "items", "player_slot", "pro_name", "level", "team_number")
         ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
         HERO_ID_FIELD_NUMBER: _ClassVar[int]
         KILLS_FIELD_NUMBER: _ClassVar[int]
@@ -3640,38 +2135,9 @@ class CMsgDOTAMatchMinimal(_message.Message):
         pro_name: str
         level: int
         team_number: _dota_shared_enums_pb2.DOTA_GC_TEAM
-        def __init__(
-            self,
-            account_id: int | None = ...,
-            hero_id: int | None = ...,
-            kills: int | None = ...,
-            deaths: int | None = ...,
-            assists: int | None = ...,
-            items: _Iterable[int] | None = ...,
-            player_slot: int | None = ...,
-            pro_name: str | None = ...,
-            level: int | None = ...,
-            team_number: _dota_shared_enums_pb2.DOTA_GC_TEAM | str | None = ...,
-        ) -> None: ...
-
+        def __init__(self, account_id: _Optional[int] = ..., hero_id: _Optional[int] = ..., kills: _Optional[int] = ..., deaths: _Optional[int] = ..., assists: _Optional[int] = ..., items: _Optional[_Iterable[int]] = ..., player_slot: _Optional[int] = ..., pro_name: _Optional[str] = ..., level: _Optional[int] = ..., team_number: _Optional[_Union[_dota_shared_enums_pb2.DOTA_GC_TEAM, str]] = ...) -> None: ...
     class Tourney(_message.Message):
-        __slots__ = (
-            "league_id",
-            "series_type",
-            "series_game",
-            "weekend_tourney_tournament_id",
-            "weekend_tourney_season_trophy_id",
-            "weekend_tourney_division",
-            "weekend_tourney_skill_level",
-            "radiant_team_id",
-            "radiant_team_name",
-            "radiant_team_logo",
-            "radiant_team_logo_url",
-            "dire_team_id",
-            "dire_team_name",
-            "dire_team_logo",
-            "dire_team_logo_url",
-        )
+        __slots__ = ("league_id", "series_type", "series_game", "weekend_tourney_tournament_id", "weekend_tourney_season_trophy_id", "weekend_tourney_division", "weekend_tourney_skill_level", "radiant_team_id", "radiant_team_name", "radiant_team_logo", "radiant_team_logo_url", "dire_team_id", "dire_team_name", "dire_team_logo", "dire_team_logo_url")
         LEAGUE_ID_FIELD_NUMBER: _ClassVar[int]
         SERIES_TYPE_FIELD_NUMBER: _ClassVar[int]
         SERIES_GAME_FIELD_NUMBER: _ClassVar[int]
@@ -3702,25 +2168,7 @@ class CMsgDOTAMatchMinimal(_message.Message):
         dire_team_name: str
         dire_team_logo: int
         dire_team_logo_url: str
-        def __init__(
-            self,
-            league_id: int | None = ...,
-            series_type: int | None = ...,
-            series_game: int | None = ...,
-            weekend_tourney_tournament_id: int | None = ...,
-            weekend_tourney_season_trophy_id: int | None = ...,
-            weekend_tourney_division: int | None = ...,
-            weekend_tourney_skill_level: int | None = ...,
-            radiant_team_id: int | None = ...,
-            radiant_team_name: str | None = ...,
-            radiant_team_logo: int | None = ...,
-            radiant_team_logo_url: str | None = ...,
-            dire_team_id: int | None = ...,
-            dire_team_name: str | None = ...,
-            dire_team_logo: int | None = ...,
-            dire_team_logo_url: str | None = ...,
-        ) -> None: ...
-
+        def __init__(self, league_id: _Optional[int] = ..., series_type: _Optional[int] = ..., series_game: _Optional[int] = ..., weekend_tourney_tournament_id: _Optional[int] = ..., weekend_tourney_season_trophy_id: _Optional[int] = ..., weekend_tourney_division: _Optional[int] = ..., weekend_tourney_skill_level: _Optional[int] = ..., radiant_team_id: _Optional[int] = ..., radiant_team_name: _Optional[str] = ..., radiant_team_logo: _Optional[int] = ..., radiant_team_logo_url: _Optional[str] = ..., dire_team_id: _Optional[int] = ..., dire_team_name: _Optional[str] = ..., dire_team_logo: _Optional[int] = ..., dire_team_logo_url: _Optional[str] = ...) -> None: ...
     MATCH_ID_FIELD_NUMBER: _ClassVar[int]
     START_TIME_FIELD_NUMBER: _ClassVar[int]
     DURATION_FIELD_NUMBER: _ClassVar[int]
@@ -3743,20 +2191,7 @@ class CMsgDOTAMatchMinimal(_message.Message):
     dire_score: int
     lobby_type: int
     is_player_draft: bool
-    def __init__(
-        self,
-        match_id: int | None = ...,
-        start_time: int | None = ...,
-        duration: int | None = ...,
-        game_mode: _dota_shared_enums_pb2.DOTA_GameMode | str | None = ...,
-        players: _Iterable[CMsgDOTAMatchMinimal.Player | _Mapping] | None = ...,
-        tourney: CMsgDOTAMatchMinimal.Tourney | _Mapping | None = ...,
-        match_outcome: _dota_shared_enums_pb2.EMatchOutcome | str | None = ...,
-        radiant_score: int | None = ...,
-        dire_score: int | None = ...,
-        lobby_type: int | None = ...,
-        is_player_draft: bool = ...,
-    ) -> None: ...
+    def __init__(self, match_id: _Optional[int] = ..., start_time: _Optional[int] = ..., duration: _Optional[int] = ..., game_mode: _Optional[_Union[_dota_shared_enums_pb2.DOTA_GameMode, str]] = ..., players: _Optional[_Iterable[_Union[CMsgDOTAMatchMinimal.Player, _Mapping]]] = ..., tourney: _Optional[_Union[CMsgDOTAMatchMinimal.Tourney, _Mapping]] = ..., match_outcome: _Optional[_Union[_dota_shared_enums_pb2.EMatchOutcome, str]] = ..., radiant_score: _Optional[int] = ..., dire_score: _Optional[int] = ..., lobby_type: _Optional[int] = ..., is_player_draft: bool = ...) -> None: ...
 
 class CMsgConsumableUsage(_message.Message):
     __slots__ = ("item_def", "quantity_change")
@@ -3764,7 +2199,7 @@ class CMsgConsumableUsage(_message.Message):
     QUANTITY_CHANGE_FIELD_NUMBER: _ClassVar[int]
     item_def: int
     quantity_change: int
-    def __init__(self, item_def: int | None = ..., quantity_change: int | None = ...) -> None: ...
+    def __init__(self, item_def: _Optional[int] = ..., quantity_change: _Optional[int] = ...) -> None: ...
 
 class CMsgMatchConsumableUsage(_message.Message):
     __slots__ = ("player_consumables_used",)
@@ -3774,21 +2209,10 @@ class CMsgMatchConsumableUsage(_message.Message):
         CONSUMABLES_USED_FIELD_NUMBER: _ClassVar[int]
         account_id: int
         consumables_used: _containers.RepeatedCompositeFieldContainer[CMsgConsumableUsage]
-        def __init__(
-            self,
-            account_id: int | None = ...,
-            consumables_used: _Iterable[CMsgConsumableUsage | _Mapping] | None = ...,
-        ) -> None: ...
-
+        def __init__(self, account_id: _Optional[int] = ..., consumables_used: _Optional[_Iterable[_Union[CMsgConsumableUsage, _Mapping]]] = ...) -> None: ...
     PLAYER_CONSUMABLES_USED_FIELD_NUMBER: _ClassVar[int]
-    player_consumables_used: _containers.RepeatedCompositeFieldContainer[
-        CMsgMatchConsumableUsage.PlayerUsage
-    ]
-    def __init__(
-        self,
-        player_consumables_used: _Iterable[CMsgMatchConsumableUsage.PlayerUsage | _Mapping]
-        | None = ...,
-    ) -> None: ...
+    player_consumables_used: _containers.RepeatedCompositeFieldContainer[CMsgMatchConsumableUsage.PlayerUsage]
+    def __init__(self, player_consumables_used: _Optional[_Iterable[_Union[CMsgMatchConsumableUsage.PlayerUsage, _Mapping]]] = ...) -> None: ...
 
 class CMsgMatchEventActionGrants(_message.Message):
     __slots__ = ("player_grants",)
@@ -3797,24 +2221,11 @@ class CMsgMatchEventActionGrants(_message.Message):
         ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
         ACTIONS_GRANTED_FIELD_NUMBER: _ClassVar[int]
         account_id: int
-        actions_granted: _containers.RepeatedCompositeFieldContainer[
-            _dota_shared_enums_pb2.CMsgPendingEventAward
-        ]
-        def __init__(
-            self,
-            account_id: int | None = ...,
-            actions_granted: _Iterable[_dota_shared_enums_pb2.CMsgPendingEventAward | _Mapping]
-            | None = ...,
-        ) -> None: ...
-
+        actions_granted: _containers.RepeatedCompositeFieldContainer[_dota_shared_enums_pb2.CMsgPendingEventAward]
+        def __init__(self, account_id: _Optional[int] = ..., actions_granted: _Optional[_Iterable[_Union[_dota_shared_enums_pb2.CMsgPendingEventAward, _Mapping]]] = ...) -> None: ...
     PLAYER_GRANTS_FIELD_NUMBER: _ClassVar[int]
-    player_grants: _containers.RepeatedCompositeFieldContainer[
-        CMsgMatchEventActionGrants.PlayerGrants
-    ]
-    def __init__(
-        self,
-        player_grants: _Iterable[CMsgMatchEventActionGrants.PlayerGrants | _Mapping] | None = ...,
-    ) -> None: ...
+    player_grants: _containers.RepeatedCompositeFieldContainer[CMsgMatchEventActionGrants.PlayerGrants]
+    def __init__(self, player_grants: _Optional[_Iterable[_Union[CMsgMatchEventActionGrants.PlayerGrants, _Mapping]]] = ...) -> None: ...
 
 class CMsgCustomGameWhitelist(_message.Message):
     __slots__ = ("version", "custom_games_whitelist", "disable_whitelist")
@@ -3824,12 +2235,7 @@ class CMsgCustomGameWhitelist(_message.Message):
     version: int
     custom_games_whitelist: _containers.RepeatedScalarFieldContainer[int]
     disable_whitelist: bool
-    def __init__(
-        self,
-        version: int | None = ...,
-        custom_games_whitelist: _Iterable[int] | None = ...,
-        disable_whitelist: bool = ...,
-    ) -> None: ...
+    def __init__(self, version: _Optional[int] = ..., custom_games_whitelist: _Optional[_Iterable[int]] = ..., disable_whitelist: bool = ...) -> None: ...
 
 class CMsgCustomGameWhitelistForEdit(_message.Message):
     __slots__ = ("whitelist_entries",)
@@ -3839,33 +2245,13 @@ class CMsgCustomGameWhitelistForEdit(_message.Message):
         WHITELIST_STATE_FIELD_NUMBER: _ClassVar[int]
         custom_game_id: int
         whitelist_state: ECustomGameWhitelistState
-        def __init__(
-            self,
-            custom_game_id: int | None = ...,
-            whitelist_state: ECustomGameWhitelistState | str | None = ...,
-        ) -> None: ...
-
+        def __init__(self, custom_game_id: _Optional[int] = ..., whitelist_state: _Optional[_Union[ECustomGameWhitelistState, str]] = ...) -> None: ...
     WHITELIST_ENTRIES_FIELD_NUMBER: _ClassVar[int]
-    whitelist_entries: _containers.RepeatedCompositeFieldContainer[
-        CMsgCustomGameWhitelistForEdit.WhitelistEntry
-    ]
-    def __init__(
-        self,
-        whitelist_entries: _Iterable[CMsgCustomGameWhitelistForEdit.WhitelistEntry | _Mapping]
-        | None = ...,
-    ) -> None: ...
+    whitelist_entries: _containers.RepeatedCompositeFieldContainer[CMsgCustomGameWhitelistForEdit.WhitelistEntry]
+    def __init__(self, whitelist_entries: _Optional[_Iterable[_Union[CMsgCustomGameWhitelistForEdit.WhitelistEntry, _Mapping]]] = ...) -> None: ...
 
 class CMsgPlayerRecentMatchInfo(_message.Message):
-    __slots__ = (
-        "match_id",
-        "timestamp",
-        "duration",
-        "win",
-        "hero_id",
-        "kills",
-        "deaths",
-        "assists",
-    )
+    __slots__ = ("match_id", "timestamp", "duration", "win", "hero_id", "kills", "deaths", "assists")
     MATCH_ID_FIELD_NUMBER: _ClassVar[int]
     TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
     DURATION_FIELD_NUMBER: _ClassVar[int]
@@ -3882,17 +2268,7 @@ class CMsgPlayerRecentMatchInfo(_message.Message):
     kills: int
     deaths: int
     assists: int
-    def __init__(
-        self,
-        match_id: int | None = ...,
-        timestamp: int | None = ...,
-        duration: int | None = ...,
-        win: bool = ...,
-        hero_id: int | None = ...,
-        kills: int | None = ...,
-        deaths: int | None = ...,
-        assists: int | None = ...,
-    ) -> None: ...
+    def __init__(self, match_id: _Optional[int] = ..., timestamp: _Optional[int] = ..., duration: _Optional[int] = ..., win: bool = ..., hero_id: _Optional[int] = ..., kills: _Optional[int] = ..., deaths: _Optional[int] = ..., assists: _Optional[int] = ...) -> None: ...
 
 class CMsgPlayerMatchRecord(_message.Message):
     __slots__ = ("wins", "losses")
@@ -3900,7 +2276,7 @@ class CMsgPlayerMatchRecord(_message.Message):
     LOSSES_FIELD_NUMBER: _ClassVar[int]
     wins: int
     losses: int
-    def __init__(self, wins: int | None = ..., losses: int | None = ...) -> None: ...
+    def __init__(self, wins: _Optional[int] = ..., losses: _Optional[int] = ...) -> None: ...
 
 class CMsgPlayerRecentMatchOutcomes(_message.Message):
     __slots__ = ("outcomes", "match_count")
@@ -3908,7 +2284,7 @@ class CMsgPlayerRecentMatchOutcomes(_message.Message):
     MATCH_COUNT_FIELD_NUMBER: _ClassVar[int]
     outcomes: int
     match_count: int
-    def __init__(self, outcomes: int | None = ..., match_count: int | None = ...) -> None: ...
+    def __init__(self, outcomes: _Optional[int] = ..., match_count: _Optional[int] = ...) -> None: ...
 
 class CMsgPlayerRecentCommends(_message.Message):
     __slots__ = ("commends", "match_count")
@@ -3916,19 +2292,10 @@ class CMsgPlayerRecentCommends(_message.Message):
     MATCH_COUNT_FIELD_NUMBER: _ClassVar[int]
     commends: int
     match_count: int
-    def __init__(self, commends: int | None = ..., match_count: int | None = ...) -> None: ...
+    def __init__(self, commends: _Optional[int] = ..., match_count: _Optional[int] = ...) -> None: ...
 
 class CMsgPlayerRecentAccomplishments(_message.Message):
-    __slots__ = (
-        "recent_outcomes",
-        "total_record",
-        "prediction_streak",
-        "plus_prediction_streak",
-        "recent_commends",
-        "first_match_timestamp",
-        "last_match",
-        "recent_mvps",
-    )
+    __slots__ = ("recent_outcomes", "total_record", "prediction_streak", "plus_prediction_streak", "recent_commends", "first_match_timestamp", "last_match", "recent_mvps")
     RECENT_OUTCOMES_FIELD_NUMBER: _ClassVar[int]
     TOTAL_RECORD_FIELD_NUMBER: _ClassVar[int]
     PREDICTION_STREAK_FIELD_NUMBER: _ClassVar[int]
@@ -3945,17 +2312,7 @@ class CMsgPlayerRecentAccomplishments(_message.Message):
     first_match_timestamp: int
     last_match: CMsgPlayerRecentMatchInfo
     recent_mvps: CMsgPlayerRecentMatchOutcomes
-    def __init__(
-        self,
-        recent_outcomes: CMsgPlayerRecentMatchOutcomes | _Mapping | None = ...,
-        total_record: CMsgPlayerMatchRecord | _Mapping | None = ...,
-        prediction_streak: int | None = ...,
-        plus_prediction_streak: int | None = ...,
-        recent_commends: CMsgPlayerRecentCommends | _Mapping | None = ...,
-        first_match_timestamp: int | None = ...,
-        last_match: CMsgPlayerRecentMatchInfo | _Mapping | None = ...,
-        recent_mvps: CMsgPlayerRecentMatchOutcomes | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, recent_outcomes: _Optional[_Union[CMsgPlayerRecentMatchOutcomes, _Mapping]] = ..., total_record: _Optional[_Union[CMsgPlayerMatchRecord, _Mapping]] = ..., prediction_streak: _Optional[int] = ..., plus_prediction_streak: _Optional[int] = ..., recent_commends: _Optional[_Union[CMsgPlayerRecentCommends, _Mapping]] = ..., first_match_timestamp: _Optional[int] = ..., last_match: _Optional[_Union[CMsgPlayerRecentMatchInfo, _Mapping]] = ..., recent_mvps: _Optional[_Union[CMsgPlayerRecentMatchOutcomes, _Mapping]] = ...) -> None: ...
 
 class CMsgPlayerHeroRecentAccomplishments(_message.Message):
     __slots__ = ("recent_outcomes", "total_record", "last_match")
@@ -3965,12 +2322,7 @@ class CMsgPlayerHeroRecentAccomplishments(_message.Message):
     recent_outcomes: CMsgPlayerRecentMatchOutcomes
     total_record: CMsgPlayerMatchRecord
     last_match: CMsgPlayerRecentMatchInfo
-    def __init__(
-        self,
-        recent_outcomes: CMsgPlayerRecentMatchOutcomes | _Mapping | None = ...,
-        total_record: CMsgPlayerMatchRecord | _Mapping | None = ...,
-        last_match: CMsgPlayerRecentMatchInfo | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, recent_outcomes: _Optional[_Union[CMsgPlayerRecentMatchOutcomes, _Mapping]] = ..., total_record: _Optional[_Union[CMsgPlayerMatchRecord, _Mapping]] = ..., last_match: _Optional[_Union[CMsgPlayerRecentMatchInfo, _Mapping]] = ...) -> None: ...
 
 class CMsgRecentAccomplishments(_message.Message):
     __slots__ = ("player_accomplishments", "hero_accomplishments")
@@ -3978,11 +2330,7 @@ class CMsgRecentAccomplishments(_message.Message):
     HERO_ACCOMPLISHMENTS_FIELD_NUMBER: _ClassVar[int]
     player_accomplishments: CMsgPlayerRecentAccomplishments
     hero_accomplishments: CMsgPlayerHeroRecentAccomplishments
-    def __init__(
-        self,
-        player_accomplishments: CMsgPlayerRecentAccomplishments | _Mapping | None = ...,
-        hero_accomplishments: CMsgPlayerHeroRecentAccomplishments | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, player_accomplishments: _Optional[_Union[CMsgPlayerRecentAccomplishments, _Mapping]] = ..., hero_accomplishments: _Optional[_Union[CMsgPlayerHeroRecentAccomplishments, _Mapping]] = ...) -> None: ...
 
 class CMsgServerToGCRequestPlayerRecentAccomplishments(_message.Message):
     __slots__ = ("account_id", "hero_id")
@@ -3990,34 +2338,27 @@ class CMsgServerToGCRequestPlayerRecentAccomplishments(_message.Message):
     HERO_ID_FIELD_NUMBER: _ClassVar[int]
     account_id: int
     hero_id: int
-    def __init__(self, account_id: int | None = ..., hero_id: int | None = ...) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., hero_id: _Optional[int] = ...) -> None: ...
 
 class CMsgServerToGCRequestPlayerRecentAccomplishmentsResponse(_message.Message):
     __slots__ = ("result", "player_accomplishments")
     class EResponse(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
-        k_eInternalError: _ClassVar[
-            CMsgServerToGCRequestPlayerRecentAccomplishmentsResponse.EResponse
-        ]
+        k_eInternalError: _ClassVar[CMsgServerToGCRequestPlayerRecentAccomplishmentsResponse.EResponse]
         k_eSuccess: _ClassVar[CMsgServerToGCRequestPlayerRecentAccomplishmentsResponse.EResponse]
         k_eTooBusy: _ClassVar[CMsgServerToGCRequestPlayerRecentAccomplishmentsResponse.EResponse]
         k_eDisabled: _ClassVar[CMsgServerToGCRequestPlayerRecentAccomplishmentsResponse.EResponse]
-
+        k_eForbidden: _ClassVar[CMsgServerToGCRequestPlayerRecentAccomplishmentsResponse.EResponse]
     k_eInternalError: CMsgServerToGCRequestPlayerRecentAccomplishmentsResponse.EResponse
     k_eSuccess: CMsgServerToGCRequestPlayerRecentAccomplishmentsResponse.EResponse
     k_eTooBusy: CMsgServerToGCRequestPlayerRecentAccomplishmentsResponse.EResponse
     k_eDisabled: CMsgServerToGCRequestPlayerRecentAccomplishmentsResponse.EResponse
+    k_eForbidden: CMsgServerToGCRequestPlayerRecentAccomplishmentsResponse.EResponse
     RESULT_FIELD_NUMBER: _ClassVar[int]
     PLAYER_ACCOMPLISHMENTS_FIELD_NUMBER: _ClassVar[int]
     result: CMsgServerToGCRequestPlayerRecentAccomplishmentsResponse.EResponse
     player_accomplishments: CMsgRecentAccomplishments
-    def __init__(
-        self,
-        result: CMsgServerToGCRequestPlayerRecentAccomplishmentsResponse.EResponse
-        | str
-        | None = ...,
-        player_accomplishments: CMsgRecentAccomplishments | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, result: _Optional[_Union[CMsgServerToGCRequestPlayerRecentAccomplishmentsResponse.EResponse, str]] = ..., player_accomplishments: _Optional[_Union[CMsgRecentAccomplishments, _Mapping]] = ...) -> None: ...
 
 class CMsgArcanaVoteMatchVotes(_message.Message):
     __slots__ = ("match_id", "hero_id", "vote_count")
@@ -4027,17 +2368,10 @@ class CMsgArcanaVoteMatchVotes(_message.Message):
     match_id: int
     hero_id: int
     vote_count: int
-    def __init__(
-        self, match_id: int | None = ..., hero_id: int | None = ..., vote_count: int | None = ...
-    ) -> None: ...
+    def __init__(self, match_id: _Optional[int] = ..., hero_id: _Optional[int] = ..., vote_count: _Optional[int] = ...) -> None: ...
 
 class CMsgGCtoGCAssociatedExploiterAccountInfo(_message.Message):
-    __slots__ = (
-        "account_id",
-        "num_matches_to_search",
-        "min_shared_match_count",
-        "num_additional_players",
-    )
+    __slots__ = ("account_id", "num_matches_to_search", "min_shared_match_count", "num_additional_players")
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     NUM_MATCHES_TO_SEARCH_FIELD_NUMBER: _ClassVar[int]
     MIN_SHARED_MATCH_COUNT_FIELD_NUMBER: _ClassVar[int]
@@ -4046,26 +2380,12 @@ class CMsgGCtoGCAssociatedExploiterAccountInfo(_message.Message):
     num_matches_to_search: int
     min_shared_match_count: int
     num_additional_players: int
-    def __init__(
-        self,
-        account_id: int | None = ...,
-        num_matches_to_search: int | None = ...,
-        min_shared_match_count: int | None = ...,
-        num_additional_players: int | None = ...,
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., num_matches_to_search: _Optional[int] = ..., min_shared_match_count: _Optional[int] = ..., num_additional_players: _Optional[int] = ...) -> None: ...
 
 class CMsgGCtoGCAssociatedExploiterAccountInfoResponse(_message.Message):
     __slots__ = ("accounts",)
     class Account(_message.Message):
-        __slots__ = (
-            "account_id",
-            "num_common_matches",
-            "earliest_common_match",
-            "latest_common_match",
-            "generation",
-            "persona",
-            "already_banned",
-        )
+        __slots__ = ("account_id", "num_common_matches", "earliest_common_match", "latest_common_match", "generation", "persona", "already_banned")
         ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
         NUM_COMMON_MATCHES_FIELD_NUMBER: _ClassVar[int]
         EARLIEST_COMMON_MATCH_FIELD_NUMBER: _ClassVar[int]
@@ -4080,26 +2400,10 @@ class CMsgGCtoGCAssociatedExploiterAccountInfoResponse(_message.Message):
         generation: int
         persona: str
         already_banned: bool
-        def __init__(
-            self,
-            account_id: int | None = ...,
-            num_common_matches: int | None = ...,
-            earliest_common_match: int | None = ...,
-            latest_common_match: int | None = ...,
-            generation: int | None = ...,
-            persona: str | None = ...,
-            already_banned: bool = ...,
-        ) -> None: ...
-
+        def __init__(self, account_id: _Optional[int] = ..., num_common_matches: _Optional[int] = ..., earliest_common_match: _Optional[int] = ..., latest_common_match: _Optional[int] = ..., generation: _Optional[int] = ..., persona: _Optional[str] = ..., already_banned: bool = ...) -> None: ...
     ACCOUNTS_FIELD_NUMBER: _ClassVar[int]
-    accounts: _containers.RepeatedCompositeFieldContainer[
-        CMsgGCtoGCAssociatedExploiterAccountInfoResponse.Account
-    ]
-    def __init__(
-        self,
-        accounts: _Iterable[CMsgGCtoGCAssociatedExploiterAccountInfoResponse.Account | _Mapping]
-        | None = ...,
-    ) -> None: ...
+    accounts: _containers.RepeatedCompositeFieldContainer[CMsgGCtoGCAssociatedExploiterAccountInfoResponse.Account]
+    def __init__(self, accounts: _Optional[_Iterable[_Union[CMsgGCtoGCAssociatedExploiterAccountInfoResponse.Account, _Mapping]]] = ...) -> None: ...
 
 class CMsgPullTabsData(_message.Message):
     __slots__ = ("slots", "jackpots", "last_board")
@@ -4115,15 +2419,7 @@ class CMsgPullTabsData(_message.Message):
         hero_id: int
         action_id: int
         redeemed: bool
-        def __init__(
-            self,
-            event_id: int | None = ...,
-            board_id: int | None = ...,
-            hero_id: int | None = ...,
-            action_id: int | None = ...,
-            redeemed: bool = ...,
-        ) -> None: ...
-
+        def __init__(self, event_id: _Optional[int] = ..., board_id: _Optional[int] = ..., hero_id: _Optional[int] = ..., action_id: _Optional[int] = ..., redeemed: bool = ...) -> None: ...
     class Jackpot(_message.Message):
         __slots__ = ("board_id", "action_id", "hero_id")
         BOARD_ID_FIELD_NUMBER: _ClassVar[int]
@@ -4132,22 +2428,14 @@ class CMsgPullTabsData(_message.Message):
         board_id: int
         action_id: int
         hero_id: int
-        def __init__(
-            self, board_id: int | None = ..., action_id: int | None = ..., hero_id: int | None = ...
-        ) -> None: ...
-
+        def __init__(self, board_id: _Optional[int] = ..., action_id: _Optional[int] = ..., hero_id: _Optional[int] = ...) -> None: ...
     SLOTS_FIELD_NUMBER: _ClassVar[int]
     JACKPOTS_FIELD_NUMBER: _ClassVar[int]
     LAST_BOARD_FIELD_NUMBER: _ClassVar[int]
     slots: _containers.RepeatedCompositeFieldContainer[CMsgPullTabsData.Slot]
     jackpots: _containers.RepeatedCompositeFieldContainer[CMsgPullTabsData.Jackpot]
     last_board: int
-    def __init__(
-        self,
-        slots: _Iterable[CMsgPullTabsData.Slot | _Mapping] | None = ...,
-        jackpots: _Iterable[CMsgPullTabsData.Jackpot | _Mapping] | None = ...,
-        last_board: int | None = ...,
-    ) -> None: ...
+    def __init__(self, slots: _Optional[_Iterable[_Union[CMsgPullTabsData.Slot, _Mapping]]] = ..., jackpots: _Optional[_Iterable[_Union[CMsgPullTabsData.Jackpot, _Mapping]]] = ..., last_board: _Optional[int] = ...) -> None: ...
 
 class CMsgUnderDraftData(_message.Message):
     __slots__ = ("bench_slots", "shop_slots", "gold", "total_gold", "not_restorable")
@@ -4159,10 +2447,7 @@ class CMsgUnderDraftData(_message.Message):
         slot_id: int
         hero_id: int
         stars: int
-        def __init__(
-            self, slot_id: int | None = ..., hero_id: int | None = ..., stars: int | None = ...
-        ) -> None: ...
-
+        def __init__(self, slot_id: _Optional[int] = ..., hero_id: _Optional[int] = ..., stars: _Optional[int] = ...) -> None: ...
     class ShopSlot(_message.Message):
         __slots__ = ("slot_id", "hero_id", "is_special_reward")
         SLOT_ID_FIELD_NUMBER: _ClassVar[int]
@@ -4171,13 +2456,7 @@ class CMsgUnderDraftData(_message.Message):
         slot_id: int
         hero_id: int
         is_special_reward: bool
-        def __init__(
-            self,
-            slot_id: int | None = ...,
-            hero_id: int | None = ...,
-            is_special_reward: bool = ...,
-        ) -> None: ...
-
+        def __init__(self, slot_id: _Optional[int] = ..., hero_id: _Optional[int] = ..., is_special_reward: bool = ...) -> None: ...
     BENCH_SLOTS_FIELD_NUMBER: _ClassVar[int]
     SHOP_SLOTS_FIELD_NUMBER: _ClassVar[int]
     GOLD_FIELD_NUMBER: _ClassVar[int]
@@ -4188,14 +2467,7 @@ class CMsgUnderDraftData(_message.Message):
     gold: int
     total_gold: int
     not_restorable: bool
-    def __init__(
-        self,
-        bench_slots: _Iterable[CMsgUnderDraftData.BenchSlot | _Mapping] | None = ...,
-        shop_slots: _Iterable[CMsgUnderDraftData.ShopSlot | _Mapping] | None = ...,
-        gold: int | None = ...,
-        total_gold: int | None = ...,
-        not_restorable: bool = ...,
-    ) -> None: ...
+    def __init__(self, bench_slots: _Optional[_Iterable[_Union[CMsgUnderDraftData.BenchSlot, _Mapping]]] = ..., shop_slots: _Optional[_Iterable[_Union[CMsgUnderDraftData.ShopSlot, _Mapping]]] = ..., gold: _Optional[int] = ..., total_gold: _Optional[int] = ..., not_restorable: bool = ...) -> None: ...
 
 class CMsgPlayerTitleData(_message.Message):
     __slots__ = ("title", "event_id", "active")
@@ -4205,22 +2477,10 @@ class CMsgPlayerTitleData(_message.Message):
     title: _containers.RepeatedScalarFieldContainer[int]
     event_id: _containers.RepeatedScalarFieldContainer[int]
     active: int
-    def __init__(
-        self,
-        title: _Iterable[int] | None = ...,
-        event_id: _Iterable[int] | None = ...,
-        active: int | None = ...,
-    ) -> None: ...
+    def __init__(self, title: _Optional[_Iterable[int]] = ..., event_id: _Optional[_Iterable[int]] = ..., active: _Optional[int] = ...) -> None: ...
 
 class CMsgDOTATriviaQuestion(_message.Message):
-    __slots__ = (
-        "question_id",
-        "category",
-        "timestamp",
-        "question_value",
-        "answer_values",
-        "correct_answer_index",
-    )
+    __slots__ = ("question_id", "category", "timestamp", "question_value", "answer_values", "correct_answer_index")
     QUESTION_ID_FIELD_NUMBER: _ClassVar[int]
     CATEGORY_FIELD_NUMBER: _ClassVar[int]
     TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
@@ -4233,15 +2493,7 @@ class CMsgDOTATriviaQuestion(_message.Message):
     question_value: str
     answer_values: _containers.RepeatedScalarFieldContainer[str]
     correct_answer_index: int
-    def __init__(
-        self,
-        question_id: int | None = ...,
-        category: EDOTATriviaQuestionCategory | str | None = ...,
-        timestamp: int | None = ...,
-        question_value: str | None = ...,
-        answer_values: _Iterable[str] | None = ...,
-        correct_answer_index: int | None = ...,
-    ) -> None: ...
+    def __init__(self, question_id: _Optional[int] = ..., category: _Optional[_Union[EDOTATriviaQuestionCategory, str]] = ..., timestamp: _Optional[int] = ..., question_value: _Optional[str] = ..., answer_values: _Optional[_Iterable[str]] = ..., correct_answer_index: _Optional[int] = ...) -> None: ...
 
 class CMsgDOTATriviaQuestionAnswersSummary(_message.Message):
     __slots__ = ("summary_available", "picked_count")
@@ -4249,9 +2501,7 @@ class CMsgDOTATriviaQuestionAnswersSummary(_message.Message):
     PICKED_COUNT_FIELD_NUMBER: _ClassVar[int]
     summary_available: bool
     picked_count: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(
-        self, summary_available: bool = ..., picked_count: _Iterable[int] | None = ...
-    ) -> None: ...
+    def __init__(self, summary_available: bool = ..., picked_count: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CMsgGameDataSpecialValueBonus(_message.Message):
     __slots__ = ("name", "value", "operation")
@@ -4261,22 +2511,10 @@ class CMsgGameDataSpecialValueBonus(_message.Message):
     name: str
     value: float
     operation: int
-    def __init__(
-        self, name: str | None = ..., value: float | None = ..., operation: int | None = ...
-    ) -> None: ...
+    def __init__(self, name: _Optional[str] = ..., value: _Optional[float] = ..., operation: _Optional[int] = ...) -> None: ...
 
 class CMsgGameDataSpecialValues(_message.Message):
-    __slots__ = (
-        "name",
-        "values_float",
-        "is_percentage",
-        "heading_loc",
-        "bonuses",
-        "values_shard",
-        "values_scepter",
-        "facet_bonus",
-        "required_facet",
-    )
+    __slots__ = ("name", "values_float", "is_percentage", "heading_loc", "bonuses", "values_shard", "values_scepter", "facet_bonus", "required_facet")
     NAME_FIELD_NUMBER: _ClassVar[int]
     VALUES_FLOAT_FIELD_NUMBER: _ClassVar[int]
     IS_PERCENTAGE_FIELD_NUMBER: _ClassVar[int]
@@ -4295,18 +2533,7 @@ class CMsgGameDataSpecialValues(_message.Message):
     values_scepter: _containers.RepeatedScalarFieldContainer[float]
     facet_bonus: CMsgGameDataFacetAbilityBonus
     required_facet: str
-    def __init__(
-        self,
-        name: str | None = ...,
-        values_float: _Iterable[float] | None = ...,
-        is_percentage: bool = ...,
-        heading_loc: str | None = ...,
-        bonuses: _Iterable[CMsgGameDataSpecialValueBonus | _Mapping] | None = ...,
-        values_shard: _Iterable[float] | None = ...,
-        values_scepter: _Iterable[float] | None = ...,
-        facet_bonus: CMsgGameDataFacetAbilityBonus | _Mapping | None = ...,
-        required_facet: str | None = ...,
-    ) -> None: ...
+    def __init__(self, name: _Optional[str] = ..., values_float: _Optional[_Iterable[float]] = ..., is_percentage: bool = ..., heading_loc: _Optional[str] = ..., bonuses: _Optional[_Iterable[_Union[CMsgGameDataSpecialValueBonus, _Mapping]]] = ..., values_shard: _Optional[_Iterable[float]] = ..., values_scepter: _Optional[_Iterable[float]] = ..., facet_bonus: _Optional[_Union[CMsgGameDataFacetAbilityBonus, _Mapping]] = ..., required_facet: _Optional[str] = ...) -> None: ...
 
 class CMsgGameDataFacetAbilityBonus(_message.Message):
     __slots__ = ("name", "values", "operation")
@@ -4316,56 +2543,10 @@ class CMsgGameDataFacetAbilityBonus(_message.Message):
     name: str
     values: _containers.RepeatedScalarFieldContainer[float]
     operation: int
-    def __init__(
-        self,
-        name: str | None = ...,
-        values: _Iterable[float] | None = ...,
-        operation: int | None = ...,
-    ) -> None: ...
+    def __init__(self, name: _Optional[str] = ..., values: _Optional[_Iterable[float]] = ..., operation: _Optional[int] = ...) -> None: ...
 
 class CMsgGameDataAbilityOrItem(_message.Message):
-    __slots__ = (
-        "id",
-        "name",
-        "name_loc",
-        "desc_loc",
-        "lore_loc",
-        "notes_loc",
-        "shard_loc",
-        "scepter_loc",
-        "facets_loc",
-        "type",
-        "behavior",
-        "target_team",
-        "target_type",
-        "flags",
-        "damage",
-        "immunity",
-        "dispellable",
-        "max_level",
-        "cast_ranges",
-        "cast_points",
-        "channel_times",
-        "cooldowns",
-        "durations",
-        "damages",
-        "mana_costs",
-        "gold_costs",
-        "health_costs",
-        "special_values",
-        "is_item",
-        "ability_has_scepter",
-        "ability_has_shard",
-        "ability_is_granted_by_scepter",
-        "ability_is_granted_by_shard",
-        "ability_is_innate",
-        "item_cost",
-        "item_initial_charges",
-        "item_neutral_tier",
-        "item_stock_max",
-        "item_stock_time",
-        "item_quality",
-    )
+    __slots__ = ("id", "name", "name_loc", "desc_loc", "lore_loc", "notes_loc", "shard_loc", "scepter_loc", "facets_loc", "type", "behavior", "target_team", "target_type", "flags", "damage", "immunity", "dispellable", "max_level", "cast_ranges", "cast_points", "channel_times", "cooldowns", "durations", "damages", "mana_costs", "gold_costs", "health_costs", "special_values", "is_item", "ability_has_scepter", "ability_has_shard", "ability_is_granted_by_scepter", "ability_is_granted_by_shard", "ability_is_innate", "item_cost", "item_initial_charges", "item_neutral_tier", "item_stock_max", "item_stock_time", "item_quality")
     ID_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     NAME_LOC_FIELD_NUMBER: _ClassVar[int]
@@ -4446,107 +2627,18 @@ class CMsgGameDataAbilityOrItem(_message.Message):
     item_stock_max: int
     item_stock_time: float
     item_quality: int
-    def __init__(
-        self,
-        id: int | None = ...,
-        name: str | None = ...,
-        name_loc: str | None = ...,
-        desc_loc: str | None = ...,
-        lore_loc: str | None = ...,
-        notes_loc: _Iterable[str] | None = ...,
-        shard_loc: str | None = ...,
-        scepter_loc: str | None = ...,
-        facets_loc: _Iterable[str] | None = ...,
-        type: int | None = ...,
-        behavior: int | None = ...,
-        target_team: int | None = ...,
-        target_type: int | None = ...,
-        flags: int | None = ...,
-        damage: int | None = ...,
-        immunity: int | None = ...,
-        dispellable: int | None = ...,
-        max_level: int | None = ...,
-        cast_ranges: _Iterable[int] | None = ...,
-        cast_points: _Iterable[float] | None = ...,
-        channel_times: _Iterable[float] | None = ...,
-        cooldowns: _Iterable[float] | None = ...,
-        durations: _Iterable[float] | None = ...,
-        damages: _Iterable[int] | None = ...,
-        mana_costs: _Iterable[int] | None = ...,
-        gold_costs: _Iterable[int] | None = ...,
-        health_costs: _Iterable[int] | None = ...,
-        special_values: _Iterable[CMsgGameDataSpecialValues | _Mapping] | None = ...,
-        is_item: bool = ...,
-        ability_has_scepter: bool = ...,
-        ability_has_shard: bool = ...,
-        ability_is_granted_by_scepter: bool = ...,
-        ability_is_granted_by_shard: bool = ...,
-        ability_is_innate: bool = ...,
-        item_cost: int | None = ...,
-        item_initial_charges: int | None = ...,
-        item_neutral_tier: int | None = ...,
-        item_stock_max: int | None = ...,
-        item_stock_time: float | None = ...,
-        item_quality: int | None = ...,
-    ) -> None: ...
+    def __init__(self, id: _Optional[int] = ..., name: _Optional[str] = ..., name_loc: _Optional[str] = ..., desc_loc: _Optional[str] = ..., lore_loc: _Optional[str] = ..., notes_loc: _Optional[_Iterable[str]] = ..., shard_loc: _Optional[str] = ..., scepter_loc: _Optional[str] = ..., facets_loc: _Optional[_Iterable[str]] = ..., type: _Optional[int] = ..., behavior: _Optional[int] = ..., target_team: _Optional[int] = ..., target_type: _Optional[int] = ..., flags: _Optional[int] = ..., damage: _Optional[int] = ..., immunity: _Optional[int] = ..., dispellable: _Optional[int] = ..., max_level: _Optional[int] = ..., cast_ranges: _Optional[_Iterable[int]] = ..., cast_points: _Optional[_Iterable[float]] = ..., channel_times: _Optional[_Iterable[float]] = ..., cooldowns: _Optional[_Iterable[float]] = ..., durations: _Optional[_Iterable[float]] = ..., damages: _Optional[_Iterable[int]] = ..., mana_costs: _Optional[_Iterable[int]] = ..., gold_costs: _Optional[_Iterable[int]] = ..., health_costs: _Optional[_Iterable[int]] = ..., special_values: _Optional[_Iterable[_Union[CMsgGameDataSpecialValues, _Mapping]]] = ..., is_item: bool = ..., ability_has_scepter: bool = ..., ability_has_shard: bool = ..., ability_is_granted_by_scepter: bool = ..., ability_is_granted_by_shard: bool = ..., ability_is_innate: bool = ..., item_cost: _Optional[int] = ..., item_initial_charges: _Optional[int] = ..., item_neutral_tier: _Optional[int] = ..., item_stock_max: _Optional[int] = ..., item_stock_time: _Optional[float] = ..., item_quality: _Optional[int] = ...) -> None: ...
 
 class CMsgGameDataAbilityOrItemList(_message.Message):
     __slots__ = ("abilities",)
     ABILITIES_FIELD_NUMBER: _ClassVar[int]
     abilities: _containers.RepeatedCompositeFieldContainer[CMsgGameDataAbilityOrItem]
-    def __init__(
-        self, abilities: _Iterable[CMsgGameDataAbilityOrItem | _Mapping] | None = ...
-    ) -> None: ...
+    def __init__(self, abilities: _Optional[_Iterable[_Union[CMsgGameDataAbilityOrItem, _Mapping]]] = ...) -> None: ...
 
 class CMsgGameDataHero(_message.Message):
-    __slots__ = (
-        "id",
-        "name",
-        "order_id",
-        "name_loc",
-        "bio_loc",
-        "hype_loc",
-        "npe_desc_loc",
-        "facets",
-        "str_base",
-        "str_gain",
-        "agi_base",
-        "agi_gain",
-        "int_base",
-        "int_gain",
-        "primary_attr",
-        "complexity",
-        "attack_capability",
-        "role_levels",
-        "damage_min",
-        "damage_max",
-        "attack_rate",
-        "attack_range",
-        "projectile_speed",
-        "armor",
-        "magic_resistance",
-        "movement_speed",
-        "turn_rate",
-        "sight_range_day",
-        "sight_range_night",
-        "max_health",
-        "health_regen",
-        "max_mana",
-        "mana_regen",
-        "abilities",
-        "talents",
-        "facet_abilities",
-    )
+    __slots__ = ("id", "name", "order_id", "name_loc", "bio_loc", "hype_loc", "npe_desc_loc", "facets", "str_base", "str_gain", "agi_base", "agi_gain", "int_base", "int_gain", "primary_attr", "complexity", "attack_capability", "role_levels", "damage_min", "damage_max", "attack_rate", "attack_range", "projectile_speed", "armor", "magic_resistance", "movement_speed", "turn_rate", "sight_range_day", "sight_range_night", "max_health", "health_regen", "max_mana", "mana_regen", "abilities", "talents", "facet_abilities")
     class Facet(_message.Message):
-        __slots__ = (
-            "color",
-            "title_loc",
-            "description_loc",
-            "name",
-            "icon",
-            "gradient_id",
-            "index",
-        )
+        __slots__ = ("color", "title_loc", "description_loc", "name", "icon", "gradient_id", "index")
         COLOR_FIELD_NUMBER: _ClassVar[int]
         TITLE_LOC_FIELD_NUMBER: _ClassVar[int]
         DESCRIPTION_LOC_FIELD_NUMBER: _ClassVar[int]
@@ -4561,17 +2653,7 @@ class CMsgGameDataHero(_message.Message):
         icon: str
         gradient_id: int
         index: int
-        def __init__(
-            self,
-            color: int | None = ...,
-            title_loc: str | None = ...,
-            description_loc: str | None = ...,
-            name: str | None = ...,
-            icon: str | None = ...,
-            gradient_id: int | None = ...,
-            index: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, color: _Optional[int] = ..., title_loc: _Optional[str] = ..., description_loc: _Optional[str] = ..., name: _Optional[str] = ..., icon: _Optional[str] = ..., gradient_id: _Optional[int] = ..., index: _Optional[int] = ...) -> None: ...
     ID_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     ORDER_ID_FIELD_NUMBER: _ClassVar[int]
@@ -4644,67 +2726,25 @@ class CMsgGameDataHero(_message.Message):
     abilities: _containers.RepeatedCompositeFieldContainer[CMsgGameDataAbilityOrItem]
     talents: _containers.RepeatedCompositeFieldContainer[CMsgGameDataAbilityOrItem]
     facet_abilities: _containers.RepeatedCompositeFieldContainer[CMsgGameDataAbilityOrItemList]
-    def __init__(
-        self,
-        id: int | None = ...,
-        name: str | None = ...,
-        order_id: int | None = ...,
-        name_loc: str | None = ...,
-        bio_loc: str | None = ...,
-        hype_loc: str | None = ...,
-        npe_desc_loc: str | None = ...,
-        facets: _Iterable[CMsgGameDataHero.Facet | _Mapping] | None = ...,
-        str_base: int | None = ...,
-        str_gain: float | None = ...,
-        agi_base: int | None = ...,
-        agi_gain: float | None = ...,
-        int_base: int | None = ...,
-        int_gain: float | None = ...,
-        primary_attr: int | None = ...,
-        complexity: int | None = ...,
-        attack_capability: int | None = ...,
-        role_levels: _Iterable[int] | None = ...,
-        damage_min: int | None = ...,
-        damage_max: int | None = ...,
-        attack_rate: float | None = ...,
-        attack_range: int | None = ...,
-        projectile_speed: int | None = ...,
-        armor: float | None = ...,
-        magic_resistance: int | None = ...,
-        movement_speed: int | None = ...,
-        turn_rate: float | None = ...,
-        sight_range_day: int | None = ...,
-        sight_range_night: int | None = ...,
-        max_health: int | None = ...,
-        health_regen: float | None = ...,
-        max_mana: int | None = ...,
-        mana_regen: float | None = ...,
-        abilities: _Iterable[CMsgGameDataAbilityOrItem | _Mapping] | None = ...,
-        talents: _Iterable[CMsgGameDataAbilityOrItem | _Mapping] | None = ...,
-        facet_abilities: _Iterable[CMsgGameDataAbilityOrItemList | _Mapping] | None = ...,
-    ) -> None: ...
+    def __init__(self, id: _Optional[int] = ..., name: _Optional[str] = ..., order_id: _Optional[int] = ..., name_loc: _Optional[str] = ..., bio_loc: _Optional[str] = ..., hype_loc: _Optional[str] = ..., npe_desc_loc: _Optional[str] = ..., facets: _Optional[_Iterable[_Union[CMsgGameDataHero.Facet, _Mapping]]] = ..., str_base: _Optional[int] = ..., str_gain: _Optional[float] = ..., agi_base: _Optional[int] = ..., agi_gain: _Optional[float] = ..., int_base: _Optional[int] = ..., int_gain: _Optional[float] = ..., primary_attr: _Optional[int] = ..., complexity: _Optional[int] = ..., attack_capability: _Optional[int] = ..., role_levels: _Optional[_Iterable[int]] = ..., damage_min: _Optional[int] = ..., damage_max: _Optional[int] = ..., attack_rate: _Optional[float] = ..., attack_range: _Optional[int] = ..., projectile_speed: _Optional[int] = ..., armor: _Optional[float] = ..., magic_resistance: _Optional[int] = ..., movement_speed: _Optional[int] = ..., turn_rate: _Optional[float] = ..., sight_range_day: _Optional[int] = ..., sight_range_night: _Optional[int] = ..., max_health: _Optional[int] = ..., health_regen: _Optional[float] = ..., max_mana: _Optional[int] = ..., mana_regen: _Optional[float] = ..., abilities: _Optional[_Iterable[_Union[CMsgGameDataAbilityOrItem, _Mapping]]] = ..., talents: _Optional[_Iterable[_Union[CMsgGameDataAbilityOrItem, _Mapping]]] = ..., facet_abilities: _Optional[_Iterable[_Union[CMsgGameDataAbilityOrItemList, _Mapping]]] = ...) -> None: ...
 
 class CMsgGameDataAbilities(_message.Message):
     __slots__ = ("abilities",)
     ABILITIES_FIELD_NUMBER: _ClassVar[int]
     abilities: _containers.RepeatedCompositeFieldContainer[CMsgGameDataAbilityOrItem]
-    def __init__(
-        self, abilities: _Iterable[CMsgGameDataAbilityOrItem | _Mapping] | None = ...
-    ) -> None: ...
+    def __init__(self, abilities: _Optional[_Iterable[_Union[CMsgGameDataAbilityOrItem, _Mapping]]] = ...) -> None: ...
 
 class CMsgGameDataItems(_message.Message):
     __slots__ = ("items",)
     ITEMS_FIELD_NUMBER: _ClassVar[int]
     items: _containers.RepeatedCompositeFieldContainer[CMsgGameDataAbilityOrItem]
-    def __init__(
-        self, items: _Iterable[CMsgGameDataAbilityOrItem | _Mapping] | None = ...
-    ) -> None: ...
+    def __init__(self, items: _Optional[_Iterable[_Union[CMsgGameDataAbilityOrItem, _Mapping]]] = ...) -> None: ...
 
 class CMsgGameDataHeroes(_message.Message):
     __slots__ = ("heroes",)
     HEROES_FIELD_NUMBER: _ClassVar[int]
     heroes: _containers.RepeatedCompositeFieldContainer[CMsgGameDataHero]
-    def __init__(self, heroes: _Iterable[CMsgGameDataHero | _Mapping] | None = ...) -> None: ...
+    def __init__(self, heroes: _Optional[_Iterable[_Union[CMsgGameDataHero, _Mapping]]] = ...) -> None: ...
 
 class CMsgGameDataHeroList(_message.Message):
     __slots__ = ("heroes",)
@@ -4722,42 +2762,20 @@ class CMsgGameDataHeroList(_message.Message):
         name_english_loc: str
         primary_attr: int
         complexity: int
-        def __init__(
-            self,
-            id: int | None = ...,
-            name: str | None = ...,
-            name_loc: str | None = ...,
-            name_english_loc: str | None = ...,
-            primary_attr: int | None = ...,
-            complexity: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, id: _Optional[int] = ..., name: _Optional[str] = ..., name_loc: _Optional[str] = ..., name_english_loc: _Optional[str] = ..., primary_attr: _Optional[int] = ..., complexity: _Optional[int] = ...) -> None: ...
     HEROES_FIELD_NUMBER: _ClassVar[int]
     heroes: _containers.RepeatedCompositeFieldContainer[CMsgGameDataHeroList.HeroInfo]
-    def __init__(
-        self, heroes: _Iterable[CMsgGameDataHeroList.HeroInfo | _Mapping] | None = ...
-    ) -> None: ...
+    def __init__(self, heroes: _Optional[_Iterable[_Union[CMsgGameDataHeroList.HeroInfo, _Mapping]]] = ...) -> None: ...
 
 class CMsgGameDataItemAbilityList(_message.Message):
     __slots__ = ("itemabilities",)
     class ItemAbilityInfo(_message.Message):
-        __slots__ = (
-            "id",
-            "name",
-            "name_loc",
-            "name_english_loc",
-            "neutral_item_tier",
-            "is_pregame_suggested",
-            "is_earlygame_suggested",
-            "is_lategame_suggested",
-            "recipes",
-        )
+        __slots__ = ("id", "name", "name_loc", "name_english_loc", "neutral_item_tier", "is_pregame_suggested", "is_earlygame_suggested", "is_lategame_suggested", "recipes", "is_innate")
         class Recipe(_message.Message):
             __slots__ = ("items",)
             ITEMS_FIELD_NUMBER: _ClassVar[int]
             items: _containers.RepeatedScalarFieldContainer[int]
-            def __init__(self, items: _Iterable[int] | None = ...) -> None: ...
-
+            def __init__(self, items: _Optional[_Iterable[int]] = ...) -> None: ...
         ID_FIELD_NUMBER: _ClassVar[int]
         NAME_FIELD_NUMBER: _ClassVar[int]
         NAME_LOC_FIELD_NUMBER: _ClassVar[int]
@@ -4767,6 +2785,7 @@ class CMsgGameDataItemAbilityList(_message.Message):
         IS_EARLYGAME_SUGGESTED_FIELD_NUMBER: _ClassVar[int]
         IS_LATEGAME_SUGGESTED_FIELD_NUMBER: _ClassVar[int]
         RECIPES_FIELD_NUMBER: _ClassVar[int]
+        IS_INNATE_FIELD_NUMBER: _ClassVar[int]
         id: int
         name: str
         name_loc: str
@@ -4775,32 +2794,12 @@ class CMsgGameDataItemAbilityList(_message.Message):
         is_pregame_suggested: bool
         is_earlygame_suggested: bool
         is_lategame_suggested: bool
-        recipes: _containers.RepeatedCompositeFieldContainer[
-            CMsgGameDataItemAbilityList.ItemAbilityInfo.Recipe
-        ]
-        def __init__(
-            self,
-            id: int | None = ...,
-            name: str | None = ...,
-            name_loc: str | None = ...,
-            name_english_loc: str | None = ...,
-            neutral_item_tier: int | None = ...,
-            is_pregame_suggested: bool = ...,
-            is_earlygame_suggested: bool = ...,
-            is_lategame_suggested: bool = ...,
-            recipes: _Iterable[CMsgGameDataItemAbilityList.ItemAbilityInfo.Recipe | _Mapping]
-            | None = ...,
-        ) -> None: ...
-
+        recipes: _containers.RepeatedCompositeFieldContainer[CMsgGameDataItemAbilityList.ItemAbilityInfo.Recipe]
+        is_innate: bool
+        def __init__(self, id: _Optional[int] = ..., name: _Optional[str] = ..., name_loc: _Optional[str] = ..., name_english_loc: _Optional[str] = ..., neutral_item_tier: _Optional[int] = ..., is_pregame_suggested: bool = ..., is_earlygame_suggested: bool = ..., is_lategame_suggested: bool = ..., recipes: _Optional[_Iterable[_Union[CMsgGameDataItemAbilityList.ItemAbilityInfo.Recipe, _Mapping]]] = ..., is_innate: bool = ...) -> None: ...
     ITEMABILITIES_FIELD_NUMBER: _ClassVar[int]
-    itemabilities: _containers.RepeatedCompositeFieldContainer[
-        CMsgGameDataItemAbilityList.ItemAbilityInfo
-    ]
-    def __init__(
-        self,
-        itemabilities: _Iterable[CMsgGameDataItemAbilityList.ItemAbilityInfo | _Mapping]
-        | None = ...,
-    ) -> None: ...
+    itemabilities: _containers.RepeatedCompositeFieldContainer[CMsgGameDataItemAbilityList.ItemAbilityInfo]
+    def __init__(self, itemabilities: _Optional[_Iterable[_Union[CMsgGameDataItemAbilityList.ItemAbilityInfo, _Mapping]]] = ...) -> None: ...
 
 class CMsgLobbyAbilityDraftData(_message.Message):
     __slots__ = ("shuffle_draft_order",)
@@ -4809,16 +2808,7 @@ class CMsgLobbyAbilityDraftData(_message.Message):
     def __init__(self, shuffle_draft_order: bool = ...) -> None: ...
 
 class CSOEconItemDropRateBonus(_message.Message):
-    __slots__ = (
-        "account_id",
-        "expiration_date",
-        "bonus",
-        "bonus_count",
-        "item_id",
-        "def_index",
-        "seconds_left",
-        "booster_type",
-    )
+    __slots__ = ("account_id", "expiration_date", "bonus", "bonus_count", "item_id", "def_index", "seconds_left", "booster_type")
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     EXPIRATION_DATE_FIELD_NUMBER: _ClassVar[int]
     BONUS_FIELD_NUMBER: _ClassVar[int]
@@ -4835,29 +2825,10 @@ class CSOEconItemDropRateBonus(_message.Message):
     def_index: int
     seconds_left: int
     booster_type: int
-    def __init__(
-        self,
-        account_id: int | None = ...,
-        expiration_date: int | None = ...,
-        bonus: float | None = ...,
-        bonus_count: int | None = ...,
-        item_id: int | None = ...,
-        def_index: int | None = ...,
-        seconds_left: int | None = ...,
-        booster_type: int | None = ...,
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., expiration_date: _Optional[int] = ..., bonus: _Optional[float] = ..., bonus_count: _Optional[int] = ..., item_id: _Optional[int] = ..., def_index: _Optional[int] = ..., seconds_left: _Optional[int] = ..., booster_type: _Optional[int] = ...) -> None: ...
 
 class CSOEconItemTournamentPassport(_message.Message):
-    __slots__ = (
-        "account_id",
-        "league_id",
-        "item_id",
-        "original_purchaser_id",
-        "passports_bought",
-        "version",
-        "def_index",
-        "reward_flags",
-    )
+    __slots__ = ("account_id", "league_id", "item_id", "original_purchaser_id", "passports_bought", "version", "def_index", "reward_flags")
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     LEAGUE_ID_FIELD_NUMBER: _ClassVar[int]
     ITEM_ID_FIELD_NUMBER: _ClassVar[int]
@@ -4874,31 +2845,10 @@ class CSOEconItemTournamentPassport(_message.Message):
     version: int
     def_index: int
     reward_flags: int
-    def __init__(
-        self,
-        account_id: int | None = ...,
-        league_id: int | None = ...,
-        item_id: int | None = ...,
-        original_purchaser_id: int | None = ...,
-        passports_bought: int | None = ...,
-        version: int | None = ...,
-        def_index: int | None = ...,
-        reward_flags: int | None = ...,
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., league_id: _Optional[int] = ..., item_id: _Optional[int] = ..., original_purchaser_id: _Optional[int] = ..., passports_bought: _Optional[int] = ..., version: _Optional[int] = ..., def_index: _Optional[int] = ..., reward_flags: _Optional[int] = ...) -> None: ...
 
 class CMsgStickerbookSticker(_message.Message):
-    __slots__ = (
-        "item_def_id",
-        "sticker_num",
-        "quality",
-        "position_x",
-        "position_y",
-        "position_z",
-        "rotation",
-        "scale",
-        "source_item_id",
-        "depth_bias",
-    )
+    __slots__ = ("item_def_id", "sticker_num", "quality", "position_x", "position_y", "position_z", "rotation", "scale", "source_item_id", "depth_bias")
     ITEM_DEF_ID_FIELD_NUMBER: _ClassVar[int]
     STICKER_NUM_FIELD_NUMBER: _ClassVar[int]
     QUALITY_FIELD_NUMBER: _ClassVar[int]
@@ -4919,19 +2869,7 @@ class CMsgStickerbookSticker(_message.Message):
     scale: float
     source_item_id: int
     depth_bias: int
-    def __init__(
-        self,
-        item_def_id: int | None = ...,
-        sticker_num: int | None = ...,
-        quality: int | None = ...,
-        position_x: float | None = ...,
-        position_y: float | None = ...,
-        position_z: float | None = ...,
-        rotation: float | None = ...,
-        scale: float | None = ...,
-        source_item_id: int | None = ...,
-        depth_bias: int | None = ...,
-    ) -> None: ...
+    def __init__(self, item_def_id: _Optional[int] = ..., sticker_num: _Optional[int] = ..., quality: _Optional[int] = ..., position_x: _Optional[float] = ..., position_y: _Optional[float] = ..., position_z: _Optional[float] = ..., rotation: _Optional[float] = ..., scale: _Optional[float] = ..., source_item_id: _Optional[int] = ..., depth_bias: _Optional[int] = ...) -> None: ...
 
 class CMsgStickerbookPage(_message.Message):
     __slots__ = ("page_num", "event_id", "team_id", "stickers", "page_type")
@@ -4945,20 +2883,13 @@ class CMsgStickerbookPage(_message.Message):
     team_id: int
     stickers: _containers.RepeatedCompositeFieldContainer[CMsgStickerbookSticker]
     page_type: EStickerbookPageType
-    def __init__(
-        self,
-        page_num: int | None = ...,
-        event_id: _dota_shared_enums_pb2.EEvent | str | None = ...,
-        team_id: int | None = ...,
-        stickers: _Iterable[CMsgStickerbookSticker | _Mapping] | None = ...,
-        page_type: EStickerbookPageType | str | None = ...,
-    ) -> None: ...
+    def __init__(self, page_num: _Optional[int] = ..., event_id: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ..., team_id: _Optional[int] = ..., stickers: _Optional[_Iterable[_Union[CMsgStickerbookSticker, _Mapping]]] = ..., page_type: _Optional[_Union[EStickerbookPageType, str]] = ...) -> None: ...
 
 class CMsgStickerbookTeamPageOrderSequence(_message.Message):
     __slots__ = ("page_numbers",)
     PAGE_NUMBERS_FIELD_NUMBER: _ClassVar[int]
     page_numbers: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(self, page_numbers: _Iterable[int] | None = ...) -> None: ...
+    def __init__(self, page_numbers: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CMsgStickerbook(_message.Message):
     __slots__ = ("pages", "team_page_order_sequence", "favorite_page_num")
@@ -4968,12 +2899,7 @@ class CMsgStickerbook(_message.Message):
     pages: _containers.RepeatedCompositeFieldContainer[CMsgStickerbookPage]
     team_page_order_sequence: CMsgStickerbookTeamPageOrderSequence
     favorite_page_num: int
-    def __init__(
-        self,
-        pages: _Iterable[CMsgStickerbookPage | _Mapping] | None = ...,
-        team_page_order_sequence: CMsgStickerbookTeamPageOrderSequence | _Mapping | None = ...,
-        favorite_page_num: int | None = ...,
-    ) -> None: ...
+    def __init__(self, pages: _Optional[_Iterable[_Union[CMsgStickerbookPage, _Mapping]]] = ..., team_page_order_sequence: _Optional[_Union[CMsgStickerbookTeamPageOrderSequence, _Mapping]] = ..., favorite_page_num: _Optional[int] = ...) -> None: ...
 
 class CMsgStickerHero(_message.Message):
     __slots__ = ("hero_id", "item_def_id", "quality", "source_item_id")
@@ -4985,19 +2911,13 @@ class CMsgStickerHero(_message.Message):
     item_def_id: int
     quality: int
     source_item_id: int
-    def __init__(
-        self,
-        hero_id: int | None = ...,
-        item_def_id: int | None = ...,
-        quality: int | None = ...,
-        source_item_id: int | None = ...,
-    ) -> None: ...
+    def __init__(self, hero_id: _Optional[int] = ..., item_def_id: _Optional[int] = ..., quality: _Optional[int] = ..., source_item_id: _Optional[int] = ...) -> None: ...
 
 class CMsgStickerHeroes(_message.Message):
     __slots__ = ("heroes",)
     HEROES_FIELD_NUMBER: _ClassVar[int]
     heroes: _containers.RepeatedCompositeFieldContainer[CMsgStickerHero]
-    def __init__(self, heroes: _Iterable[CMsgStickerHero | _Mapping] | None = ...) -> None: ...
+    def __init__(self, heroes: _Optional[_Iterable[_Union[CMsgStickerHero, _Mapping]]] = ...) -> None: ...
 
 class CMsgHeroRoleStats(_message.Message):
     __slots__ = ("lane_selection_flags", "match_count", "win_count")
@@ -5007,12 +2927,7 @@ class CMsgHeroRoleStats(_message.Message):
     lane_selection_flags: int
     match_count: int
     win_count: int
-    def __init__(
-        self,
-        lane_selection_flags: int | None = ...,
-        match_count: int | None = ...,
-        win_count: int | None = ...,
-    ) -> None: ...
+    def __init__(self, lane_selection_flags: _Optional[int] = ..., match_count: _Optional[int] = ..., win_count: _Optional[int] = ...) -> None: ...
 
 class CMsgHeroRoleHeroStats(_message.Message):
     __slots__ = ("hero_id", "role_stats")
@@ -5020,11 +2935,7 @@ class CMsgHeroRoleHeroStats(_message.Message):
     ROLE_STATS_FIELD_NUMBER: _ClassVar[int]
     hero_id: int
     role_stats: _containers.RepeatedCompositeFieldContainer[CMsgHeroRoleStats]
-    def __init__(
-        self,
-        hero_id: int | None = ...,
-        role_stats: _Iterable[CMsgHeroRoleStats | _Mapping] | None = ...,
-    ) -> None: ...
+    def __init__(self, hero_id: _Optional[int] = ..., role_stats: _Optional[_Iterable[_Union[CMsgHeroRoleStats, _Mapping]]] = ...) -> None: ...
 
 class CMsgHeroRoleRankStats(_message.Message):
     __slots__ = ("rank_tier", "hero_stats")
@@ -5032,11 +2943,7 @@ class CMsgHeroRoleRankStats(_message.Message):
     HERO_STATS_FIELD_NUMBER: _ClassVar[int]
     rank_tier: int
     hero_stats: _containers.RepeatedCompositeFieldContainer[CMsgHeroRoleHeroStats]
-    def __init__(
-        self,
-        rank_tier: int | None = ...,
-        hero_stats: _Iterable[CMsgHeroRoleHeroStats | _Mapping] | None = ...,
-    ) -> None: ...
+    def __init__(self, rank_tier: _Optional[int] = ..., hero_stats: _Optional[_Iterable[_Union[CMsgHeroRoleHeroStats, _Mapping]]] = ...) -> None: ...
 
 class CMsgHeroRoleAllRanksStats(_message.Message):
     __slots__ = ("start_timestamp", "end_timestamp", "rank_stats")
@@ -5046,26 +2953,10 @@ class CMsgHeroRoleAllRanksStats(_message.Message):
     start_timestamp: int
     end_timestamp: int
     rank_stats: _containers.RepeatedCompositeFieldContainer[CMsgHeroRoleRankStats]
-    def __init__(
-        self,
-        start_timestamp: int | None = ...,
-        end_timestamp: int | None = ...,
-        rank_stats: _Iterable[CMsgHeroRoleRankStats | _Mapping] | None = ...,
-    ) -> None: ...
+    def __init__(self, start_timestamp: _Optional[int] = ..., end_timestamp: _Optional[int] = ..., rank_stats: _Optional[_Iterable[_Union[CMsgHeroRoleRankStats, _Mapping]]] = ...) -> None: ...
 
 class CMsgMapStatsSnapshot(_message.Message):
-    __slots__ = (
-        "timestamp",
-        "lotuses_gained",
-        "wisdom_runes_gained",
-        "roshan_kills_day",
-        "roshan_kills_night",
-        "portals_used",
-        "watchers_taken",
-        "tormentor_kills",
-        "outposts_captured",
-        "shield_runes_gained",
-    )
+    __slots__ = ("timestamp", "lotuses_gained", "wisdom_runes_gained", "roshan_kills_day", "roshan_kills_night", "portals_used", "watchers_taken", "tormentor_kills", "outposts_captured", "shield_runes_gained")
     TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
     LOTUSES_GAINED_FIELD_NUMBER: _ClassVar[int]
     WISDOM_RUNES_GAINED_FIELD_NUMBER: _ClassVar[int]
@@ -5086,19 +2977,7 @@ class CMsgMapStatsSnapshot(_message.Message):
     tormentor_kills: int
     outposts_captured: int
     shield_runes_gained: int
-    def __init__(
-        self,
-        timestamp: int | None = ...,
-        lotuses_gained: int | None = ...,
-        wisdom_runes_gained: int | None = ...,
-        roshan_kills_day: int | None = ...,
-        roshan_kills_night: int | None = ...,
-        portals_used: int | None = ...,
-        watchers_taken: int | None = ...,
-        tormentor_kills: int | None = ...,
-        outposts_captured: int | None = ...,
-        shield_runes_gained: int | None = ...,
-    ) -> None: ...
+    def __init__(self, timestamp: _Optional[int] = ..., lotuses_gained: _Optional[int] = ..., wisdom_runes_gained: _Optional[int] = ..., roshan_kills_day: _Optional[int] = ..., roshan_kills_night: _Optional[int] = ..., portals_used: _Optional[int] = ..., watchers_taken: _Optional[int] = ..., tormentor_kills: _Optional[int] = ..., outposts_captured: _Optional[int] = ..., shield_runes_gained: _Optional[int] = ...) -> None: ...
 
 class CMsgGlobalMapStats(_message.Message):
     __slots__ = ("current", "window_start", "window_end")
@@ -5108,12 +2987,7 @@ class CMsgGlobalMapStats(_message.Message):
     current: CMsgMapStatsSnapshot
     window_start: CMsgMapStatsSnapshot
     window_end: CMsgMapStatsSnapshot
-    def __init__(
-        self,
-        current: CMsgMapStatsSnapshot | _Mapping | None = ...,
-        window_start: CMsgMapStatsSnapshot | _Mapping | None = ...,
-        window_end: CMsgMapStatsSnapshot | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, current: _Optional[_Union[CMsgMapStatsSnapshot, _Mapping]] = ..., window_start: _Optional[_Union[CMsgMapStatsSnapshot, _Mapping]] = ..., window_end: _Optional[_Union[CMsgMapStatsSnapshot, _Mapping]] = ...) -> None: ...
 
 class CMsgTrackedStat(_message.Message):
     __slots__ = ("tracked_stat_id", "tracked_stat_value")
@@ -5121,9 +2995,7 @@ class CMsgTrackedStat(_message.Message):
     TRACKED_STAT_VALUE_FIELD_NUMBER: _ClassVar[int]
     tracked_stat_id: int
     tracked_stat_value: int
-    def __init__(
-        self, tracked_stat_id: int | None = ..., tracked_stat_value: int | None = ...
-    ) -> None: ...
+    def __init__(self, tracked_stat_id: _Optional[int] = ..., tracked_stat_value: _Optional[int] = ...) -> None: ...
 
 class CMsgDOTAClaimEventActionResponse(_message.Message):
     __slots__ = ("result", "reward_results", "action_id")
@@ -5144,7 +3016,6 @@ class CMsgDOTAClaimEventActionResponse(_message.Message):
         RequiresPlusSubscription: _ClassVar[CMsgDOTAClaimEventActionResponse.ResultCode]
         InvalidItem: _ClassVar[CMsgDOTAClaimEventActionResponse.ResultCode]
         AsyncRewards: _ClassVar[CMsgDOTAClaimEventActionResponse.ResultCode]
-
     Success: CMsgDOTAClaimEventActionResponse.ResultCode
     InvalidEvent: CMsgDOTAClaimEventActionResponse.ResultCode
     EventNotActive: CMsgDOTAClaimEventActionResponse.ResultCode
@@ -5166,24 +3037,19 @@ class CMsgDOTAClaimEventActionResponse(_message.Message):
         ITEM_CATEGORY_FIELD_NUMBER: _ClassVar[int]
         item_def: int
         item_category: int
-        def __init__(self, item_def: int | None = ..., item_category: int | None = ...) -> None: ...
-
+        def __init__(self, item_def: _Optional[int] = ..., item_category: _Optional[int] = ...) -> None: ...
     class LootListRewardData(_message.Message):
         __slots__ = ("item_def",)
         ITEM_DEF_FIELD_NUMBER: _ClassVar[int]
         item_def: _containers.RepeatedScalarFieldContainer[int]
-        def __init__(self, item_def: _Iterable[int] | None = ...) -> None: ...
-
+        def __init__(self, item_def: _Optional[_Iterable[int]] = ...) -> None: ...
     class ActionListRewardData(_message.Message):
         __slots__ = ("action_id", "result_reward_data")
         ACTION_ID_FIELD_NUMBER: _ClassVar[int]
         RESULT_REWARD_DATA_FIELD_NUMBER: _ClassVar[int]
         action_id: int
         result_reward_data: bytes
-        def __init__(
-            self, action_id: int | None = ..., result_reward_data: bytes | None = ...
-        ) -> None: ...
-
+        def __init__(self, action_id: _Optional[int] = ..., result_reward_data: _Optional[bytes] = ...) -> None: ...
     class OverworldTokenRewardData(_message.Message):
         __slots__ = ("tokens",)
         class TokenQuantity(_message.Message):
@@ -5192,22 +3058,10 @@ class CMsgDOTAClaimEventActionResponse(_message.Message):
             TOKEN_COUNT_FIELD_NUMBER: _ClassVar[int]
             token_id: int
             token_count: int
-            def __init__(
-                self, token_id: int | None = ..., token_count: int | None = ...
-            ) -> None: ...
-
+            def __init__(self, token_id: _Optional[int] = ..., token_count: _Optional[int] = ...) -> None: ...
         TOKENS_FIELD_NUMBER: _ClassVar[int]
-        tokens: _containers.RepeatedCompositeFieldContainer[
-            CMsgDOTAClaimEventActionResponse.OverworldTokenRewardData.TokenQuantity
-        ]
-        def __init__(
-            self,
-            tokens: _Iterable[
-                CMsgDOTAClaimEventActionResponse.OverworldTokenRewardData.TokenQuantity | _Mapping
-            ]
-            | None = ...,
-        ) -> None: ...
-
+        tokens: _containers.RepeatedCompositeFieldContainer[CMsgDOTAClaimEventActionResponse.OverworldTokenRewardData.TokenQuantity]
+        def __init__(self, tokens: _Optional[_Iterable[_Union[CMsgDOTAClaimEventActionResponse.OverworldTokenRewardData.TokenQuantity, _Mapping]]] = ...) -> None: ...
     class MonsterHunterMaterialRewardData(_message.Message):
         __slots__ = ("materials",)
         class MaterialQuantity(_message.Message):
@@ -5216,23 +3070,10 @@ class CMsgDOTAClaimEventActionResponse(_message.Message):
             MATERIAL_COUNT_FIELD_NUMBER: _ClassVar[int]
             material_id: int
             material_count: int
-            def __init__(
-                self, material_id: int | None = ..., material_count: int | None = ...
-            ) -> None: ...
-
+            def __init__(self, material_id: _Optional[int] = ..., material_count: _Optional[int] = ...) -> None: ...
         MATERIALS_FIELD_NUMBER: _ClassVar[int]
-        materials: _containers.RepeatedCompositeFieldContainer[
-            CMsgDOTAClaimEventActionResponse.MonsterHunterMaterialRewardData.MaterialQuantity
-        ]
-        def __init__(
-            self,
-            materials: _Iterable[
-                CMsgDOTAClaimEventActionResponse.MonsterHunterMaterialRewardData.MaterialQuantity
-                | _Mapping
-            ]
-            | None = ...,
-        ) -> None: ...
-
+        materials: _containers.RepeatedCompositeFieldContainer[CMsgDOTAClaimEventActionResponse.MonsterHunterMaterialRewardData.MaterialQuantity]
+        def __init__(self, materials: _Optional[_Iterable[_Union[CMsgDOTAClaimEventActionResponse.MonsterHunterMaterialRewardData.MaterialQuantity, _Mapping]]] = ...) -> None: ...
     class GrantedRewardData(_message.Message):
         __slots__ = ("grant_index", "score_index", "reward_index", "reward_data", "action_id")
         GRANT_INDEX_FIELD_NUMBER: _ClassVar[int]
@@ -5245,30 +3086,14 @@ class CMsgDOTAClaimEventActionResponse(_message.Message):
         reward_index: int
         reward_data: bytes
         action_id: int
-        def __init__(
-            self,
-            grant_index: int | None = ...,
-            score_index: int | None = ...,
-            reward_index: int | None = ...,
-            reward_data: bytes | None = ...,
-            action_id: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, grant_index: _Optional[int] = ..., score_index: _Optional[int] = ..., reward_index: _Optional[int] = ..., reward_data: _Optional[bytes] = ..., action_id: _Optional[int] = ...) -> None: ...
     RESULT_FIELD_NUMBER: _ClassVar[int]
     REWARD_RESULTS_FIELD_NUMBER: _ClassVar[int]
     ACTION_ID_FIELD_NUMBER: _ClassVar[int]
     result: CMsgDOTAClaimEventActionResponse.ResultCode
-    reward_results: _containers.RepeatedCompositeFieldContainer[
-        CMsgDOTAClaimEventActionResponse.GrantedRewardData
-    ]
+    reward_results: _containers.RepeatedCompositeFieldContainer[CMsgDOTAClaimEventActionResponse.GrantedRewardData]
     action_id: int
-    def __init__(
-        self,
-        result: CMsgDOTAClaimEventActionResponse.ResultCode | str | None = ...,
-        reward_results: _Iterable[CMsgDOTAClaimEventActionResponse.GrantedRewardData | _Mapping]
-        | None = ...,
-        action_id: int | None = ...,
-    ) -> None: ...
+    def __init__(self, result: _Optional[_Union[CMsgDOTAClaimEventActionResponse.ResultCode, str]] = ..., reward_results: _Optional[_Iterable[_Union[CMsgDOTAClaimEventActionResponse.GrantedRewardData, _Mapping]]] = ..., action_id: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCDotaLabsFeedback(_message.Message):
     __slots__ = ("language", "feedback_item", "feedback")
@@ -5278,12 +3103,7 @@ class CMsgClientToGCDotaLabsFeedback(_message.Message):
     language: int
     feedback_item: int
     feedback: str
-    def __init__(
-        self,
-        language: int | None = ...,
-        feedback_item: int | None = ...,
-        feedback: str | None = ...,
-    ) -> None: ...
+    def __init__(self, language: _Optional[int] = ..., feedback_item: _Optional[int] = ..., feedback: _Optional[str] = ...) -> None: ...
 
 class CMsgClientToGCDotaLabsFeedbackResponse(_message.Message):
     __slots__ = ("response",)
@@ -5296,7 +3116,6 @@ class CMsgClientToGCDotaLabsFeedbackResponse(_message.Message):
         k_eTimeout: _ClassVar[CMsgClientToGCDotaLabsFeedbackResponse.EResponse]
         k_eNotAllowed: _ClassVar[CMsgClientToGCDotaLabsFeedbackResponse.EResponse]
         k_eInvalidItem: _ClassVar[CMsgClientToGCDotaLabsFeedbackResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCDotaLabsFeedbackResponse.EResponse
     k_eSuccess: CMsgClientToGCDotaLabsFeedbackResponse.EResponse
     k_eTooBusy: CMsgClientToGCDotaLabsFeedbackResponse.EResponse
@@ -5306,9 +3125,7 @@ class CMsgClientToGCDotaLabsFeedbackResponse(_message.Message):
     k_eInvalidItem: CMsgClientToGCDotaLabsFeedbackResponse.EResponse
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCDotaLabsFeedbackResponse.EResponse
-    def __init__(
-        self, response: CMsgClientToGCDotaLabsFeedbackResponse.EResponse | str | None = ...
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCDotaLabsFeedbackResponse.EResponse, str]] = ...) -> None: ...
 
 class CDotaMsg_PredictionResult(_message.Message):
     __slots__ = ("account_id", "match_id", "correct", "predictions")
@@ -5318,7 +3135,6 @@ class CDotaMsg_PredictionResult(_message.Message):
             __slots__ = ()
             k_eResult_ItemGranted: _ClassVar[CDotaMsg_PredictionResult.Prediction.EResult]
             k_eResult_Destroyed: _ClassVar[CDotaMsg_PredictionResult.Prediction.EResult]
-
         k_eResult_ItemGranted: CDotaMsg_PredictionResult.Prediction.EResult
         k_eResult_Destroyed: CDotaMsg_PredictionResult.Prediction.EResult
         ITEM_DEF_FIELD_NUMBER: _ClassVar[int]
@@ -5331,15 +3147,7 @@ class CDotaMsg_PredictionResult(_message.Message):
         num_fails: int
         result: CDotaMsg_PredictionResult.Prediction.EResult
         granted_item_defs: _containers.RepeatedScalarFieldContainer[int]
-        def __init__(
-            self,
-            item_def: int | None = ...,
-            num_correct: int | None = ...,
-            num_fails: int | None = ...,
-            result: CDotaMsg_PredictionResult.Prediction.EResult | str | None = ...,
-            granted_item_defs: _Iterable[int] | None = ...,
-        ) -> None: ...
-
+        def __init__(self, item_def: _Optional[int] = ..., num_correct: _Optional[int] = ..., num_fails: _Optional[int] = ..., result: _Optional[_Union[CDotaMsg_PredictionResult.Prediction.EResult, str]] = ..., granted_item_defs: _Optional[_Iterable[int]] = ...) -> None: ...
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     MATCH_ID_FIELD_NUMBER: _ClassVar[int]
     CORRECT_FIELD_NUMBER: _ClassVar[int]
@@ -5348,28 +3156,20 @@ class CDotaMsg_PredictionResult(_message.Message):
     match_id: int
     correct: bool
     predictions: _containers.RepeatedCompositeFieldContainer[CDotaMsg_PredictionResult.Prediction]
-    def __init__(
-        self,
-        account_id: int | None = ...,
-        match_id: int | None = ...,
-        correct: bool = ...,
-        predictions: _Iterable[CDotaMsg_PredictionResult.Prediction | _Mapping] | None = ...,
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., match_id: _Optional[int] = ..., correct: bool = ..., predictions: _Optional[_Iterable[_Union[CDotaMsg_PredictionResult.Prediction, _Mapping]]] = ...) -> None: ...
 
 class CDotaMsgStructuredTooltipProperties(_message.Message):
-    __slots__ = (
-        "ability_name_loc_token",
-        "ability_category_loc_token",
-        "ability_level",
-        "current_mana_cost",
-        "current_health_cost",
-        "current_cooldown",
-        "summary_description_loc_token",
-        "summary_description_level_up_loc_token",
-        "summary_description_embed_values",
-        "summary_description_facet",
-        "chunks",
-    )
+    __slots__ = ("ability_name_loc_token", "ability_category", "ability_level", "current_mana_cost", "current_health_cost", "current_cooldown", "summary_description_loc_token", "summary_description_embed_values", "summary_description_surfaced_lines", "summary_description_embedded_sub_abilities", "summary_description_aghs_scepter", "summary_description_aghs_shard", "preview_video_url", "chunks")
+    class EAbilityTooltipCategory(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        kPassive: _ClassVar[CDotaMsgStructuredTooltipProperties.EAbilityTooltipCategory]
+        kAutocast: _ClassVar[CDotaMsgStructuredTooltipProperties.EAbilityTooltipCategory]
+        kToggle: _ClassVar[CDotaMsgStructuredTooltipProperties.EAbilityTooltipCategory]
+        kChanneled: _ClassVar[CDotaMsgStructuredTooltipProperties.EAbilityTooltipCategory]
+    kPassive: CDotaMsgStructuredTooltipProperties.EAbilityTooltipCategory
+    kAutocast: CDotaMsgStructuredTooltipProperties.EAbilityTooltipCategory
+    kToggle: CDotaMsgStructuredTooltipProperties.EAbilityTooltipCategory
+    kChanneled: CDotaMsgStructuredTooltipProperties.EAbilityTooltipCategory
     class EAttributeType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
         kUnknown: _ClassVar[CDotaMsgStructuredTooltipProperties.EAttributeType]
@@ -5386,7 +3186,15 @@ class CDotaMsgStructuredTooltipProperties(_message.Message):
         kDebuffValue: _ClassVar[CDotaMsgStructuredTooltipProperties.EAttributeType]
         kBuffPercentage: _ClassVar[CDotaMsgStructuredTooltipProperties.EAttributeType]
         kBuffValue: _ClassVar[CDotaMsgStructuredTooltipProperties.EAttributeType]
-
+        kMagicalDamagePercentage: _ClassVar[CDotaMsgStructuredTooltipProperties.EAttributeType]
+        kHealthPercentage: _ClassVar[CDotaMsgStructuredTooltipProperties.EAttributeType]
+        kManaPercentage: _ClassVar[CDotaMsgStructuredTooltipProperties.EAttributeType]
+        kNumCharges: _ClassVar[CDotaMsgStructuredTooltipProperties.EAttributeType]
+        kDebuffDuration: _ClassVar[CDotaMsgStructuredTooltipProperties.EAttributeType]
+        kBuffDuration: _ClassVar[CDotaMsgStructuredTooltipProperties.EAttributeType]
+        kAbilityDefinedDamage: _ClassVar[CDotaMsgStructuredTooltipProperties.EAttributeType]
+        kDispellability: _ClassVar[CDotaMsgStructuredTooltipProperties.EAttributeType]
+        kSpellImmunityPiercing: _ClassVar[CDotaMsgStructuredTooltipProperties.EAttributeType]
     kUnknown: CDotaMsgStructuredTooltipProperties.EAttributeType
     kDuration: CDotaMsgStructuredTooltipProperties.EAttributeType
     kManaCost: CDotaMsgStructuredTooltipProperties.EAttributeType
@@ -5401,49 +3209,39 @@ class CDotaMsgStructuredTooltipProperties(_message.Message):
     kDebuffValue: CDotaMsgStructuredTooltipProperties.EAttributeType
     kBuffPercentage: CDotaMsgStructuredTooltipProperties.EAttributeType
     kBuffValue: CDotaMsgStructuredTooltipProperties.EAttributeType
+    kMagicalDamagePercentage: CDotaMsgStructuredTooltipProperties.EAttributeType
+    kHealthPercentage: CDotaMsgStructuredTooltipProperties.EAttributeType
+    kManaPercentage: CDotaMsgStructuredTooltipProperties.EAttributeType
+    kNumCharges: CDotaMsgStructuredTooltipProperties.EAttributeType
+    kDebuffDuration: CDotaMsgStructuredTooltipProperties.EAttributeType
+    kBuffDuration: CDotaMsgStructuredTooltipProperties.EAttributeType
+    kAbilityDefinedDamage: CDotaMsgStructuredTooltipProperties.EAttributeType
+    kDispellability: CDotaMsgStructuredTooltipProperties.EAttributeType
+    kSpellImmunityPiercing: CDotaMsgStructuredTooltipProperties.EAttributeType
     class AttributeValueValue(_message.Message):
         __slots__ = ("value", "is_active_value")
         VALUE_FIELD_NUMBER: _ClassVar[int]
         IS_ACTIVE_VALUE_FIELD_NUMBER: _ClassVar[int]
         value: float
         is_active_value: bool
-        def __init__(self, value: float | None = ..., is_active_value: bool = ...) -> None: ...
-
+        def __init__(self, value: _Optional[float] = ..., is_active_value: bool = ...) -> None: ...
     class AttributeValue_Single(_message.Message):
         __slots__ = ("single_value",)
         SINGLE_VALUE_FIELD_NUMBER: _ClassVar[int]
         single_value: CDotaMsgStructuredTooltipProperties.AttributeValueValue
-        def __init__(
-            self,
-            single_value: CDotaMsgStructuredTooltipProperties.AttributeValueValue
-            | _Mapping
-            | None = ...,
-        ) -> None: ...
-
+        def __init__(self, single_value: _Optional[_Union[CDotaMsgStructuredTooltipProperties.AttributeValueValue, _Mapping]] = ...) -> None: ...
     class AttributeValue_Variable(_message.Message):
         __slots__ = ("values",)
         VALUES_FIELD_NUMBER: _ClassVar[int]
-        values: _containers.RepeatedCompositeFieldContainer[
-            CDotaMsgStructuredTooltipProperties.AttributeValueValue
-        ]
-        def __init__(
-            self,
-            values: _Iterable[CDotaMsgStructuredTooltipProperties.AttributeValueValue | _Mapping]
-            | None = ...,
-        ) -> None: ...
-
+        values: _containers.RepeatedCompositeFieldContainer[CDotaMsgStructuredTooltipProperties.AttributeValueValue]
+        def __init__(self, values: _Optional[_Iterable[_Union[CDotaMsgStructuredTooltipProperties.AttributeValueValue, _Mapping]]] = ...) -> None: ...
     class AttributeValue_Delta(_message.Message):
         __slots__ = ("prev", "next")
         PREV_FIELD_NUMBER: _ClassVar[int]
         NEXT_FIELD_NUMBER: _ClassVar[int]
         prev: CDotaMsgStructuredTooltipProperties.AttributeValueValue
         next: CDotaMsgStructuredTooltipProperties.AttributeValueValue
-        def __init__(
-            self,
-            prev: CDotaMsgStructuredTooltipProperties.AttributeValueValue | _Mapping | None = ...,
-            next: CDotaMsgStructuredTooltipProperties.AttributeValueValue | _Mapping | None = ...,
-        ) -> None: ...
-
+        def __init__(self, prev: _Optional[_Union[CDotaMsgStructuredTooltipProperties.AttributeValueValue, _Mapping]] = ..., next: _Optional[_Union[CDotaMsgStructuredTooltipProperties.AttributeValueValue, _Mapping]] = ...) -> None: ...
     class AttributeValue(_message.Message):
         __slots__ = ("single", "variable", "delta")
         SINGLE_FIELD_NUMBER: _ClassVar[int]
@@ -5452,208 +3250,89 @@ class CDotaMsgStructuredTooltipProperties(_message.Message):
         single: CDotaMsgStructuredTooltipProperties.AttributeValue_Single
         variable: CDotaMsgStructuredTooltipProperties.AttributeValue_Variable
         delta: CDotaMsgStructuredTooltipProperties.AttributeValue_Delta
-        def __init__(
-            self,
-            single: CDotaMsgStructuredTooltipProperties.AttributeValue_Single
-            | _Mapping
-            | None = ...,
-            variable: CDotaMsgStructuredTooltipProperties.AttributeValue_Variable
-            | _Mapping
-            | None = ...,
-            delta: CDotaMsgStructuredTooltipProperties.AttributeValue_Delta | _Mapping | None = ...,
-        ) -> None: ...
-
-    class FacetDisplayProperties(_message.Message):
-        __slots__ = (
-            "facet_name_loc_token",
-            "facet_desc_loc_token",
-            "facet_icon_style_name",
-            "facet_color_style_name",
-            "facet_gradient_style_name",
-        )
-        FACET_NAME_LOC_TOKEN_FIELD_NUMBER: _ClassVar[int]
-        FACET_DESC_LOC_TOKEN_FIELD_NUMBER: _ClassVar[int]
-        FACET_ICON_STYLE_NAME_FIELD_NUMBER: _ClassVar[int]
-        FACET_COLOR_STYLE_NAME_FIELD_NUMBER: _ClassVar[int]
-        FACET_GRADIENT_STYLE_NAME_FIELD_NUMBER: _ClassVar[int]
-        facet_name_loc_token: str
-        facet_desc_loc_token: str
-        facet_icon_style_name: str
-        facet_color_style_name: str
-        facet_gradient_style_name: str
-        def __init__(
-            self,
-            facet_name_loc_token: str | None = ...,
-            facet_desc_loc_token: str | None = ...,
-            facet_icon_style_name: str | None = ...,
-            facet_color_style_name: str | None = ...,
-            facet_gradient_style_name: str | None = ...,
-        ) -> None: ...
-
+        def __init__(self, single: _Optional[_Union[CDotaMsgStructuredTooltipProperties.AttributeValue_Single, _Mapping]] = ..., variable: _Optional[_Union[CDotaMsgStructuredTooltipProperties.AttributeValue_Variable, _Mapping]] = ..., delta: _Optional[_Union[CDotaMsgStructuredTooltipProperties.AttributeValue_Delta, _Mapping]] = ...) -> None: ...
     class Attribute(_message.Message):
-        __slots__ = ("name_loc_token", "type", "value", "facet")
-        NAME_LOC_TOKEN_FIELD_NUMBER: _ClassVar[int]
+        __slots__ = ("internal_name", "localized_name_text", "type", "value")
+        INTERNAL_NAME_FIELD_NUMBER: _ClassVar[int]
+        LOCALIZED_NAME_TEXT_FIELD_NUMBER: _ClassVar[int]
         TYPE_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
-        FACET_FIELD_NUMBER: _ClassVar[int]
-        name_loc_token: str
+        internal_name: str
+        localized_name_text: str
         type: CDotaMsgStructuredTooltipProperties.EAttributeType
         value: CDotaMsgStructuredTooltipProperties.AttributeValue
-        facet: CDotaMsgStructuredTooltipProperties.FacetDisplayProperties
-        def __init__(
-            self,
-            name_loc_token: str | None = ...,
-            type: CDotaMsgStructuredTooltipProperties.EAttributeType | str | None = ...,
-            value: CDotaMsgStructuredTooltipProperties.AttributeValue | _Mapping | None = ...,
-            facet: CDotaMsgStructuredTooltipProperties.FacetDisplayProperties
-            | _Mapping
-            | None = ...,
-        ) -> None: ...
-
+        def __init__(self, internal_name: _Optional[str] = ..., localized_name_text: _Optional[str] = ..., type: _Optional[_Union[CDotaMsgStructuredTooltipProperties.EAttributeType, str]] = ..., value: _Optional[_Union[CDotaMsgStructuredTooltipProperties.AttributeValue, _Mapping]] = ...) -> None: ...
     class AttributeGroupDesc_Basic(_message.Message):
         __slots__ = ()
         def __init__(self) -> None: ...
-
     class AttributeGroupDesc_Specific(_message.Message):
         __slots__ = ("title_loc_token", "desc_loc_token")
         TITLE_LOC_TOKEN_FIELD_NUMBER: _ClassVar[int]
         DESC_LOC_TOKEN_FIELD_NUMBER: _ClassVar[int]
         title_loc_token: str
         desc_loc_token: str
-        def __init__(
-            self, title_loc_token: str | None = ..., desc_loc_token: str | None = ...
-        ) -> None: ...
-
-    class AttributeGroupDesc_Facet(_message.Message):
-        __slots__ = ("facet",)
-        FACET_FIELD_NUMBER: _ClassVar[int]
-        facet: CDotaMsgStructuredTooltipProperties.FacetDisplayProperties
-        def __init__(
-            self,
-            facet: CDotaMsgStructuredTooltipProperties.FacetDisplayProperties
-            | _Mapping
-            | None = ...,
-        ) -> None: ...
-
+        def __init__(self, title_loc_token: _Optional[str] = ..., desc_loc_token: _Optional[str] = ...) -> None: ...
     class AttributeGroupDescription(_message.Message):
-        __slots__ = ("basic", "specific", "facet")
+        __slots__ = ("basic", "characteristics", "specific")
         BASIC_FIELD_NUMBER: _ClassVar[int]
+        CHARACTERISTICS_FIELD_NUMBER: _ClassVar[int]
         SPECIFIC_FIELD_NUMBER: _ClassVar[int]
-        FACET_FIELD_NUMBER: _ClassVar[int]
         basic: CDotaMsgStructuredTooltipProperties.AttributeGroupDesc_Basic
+        characteristics: CDotaMsgStructuredTooltipProperties.AttributeGroupDesc_Basic
         specific: CDotaMsgStructuredTooltipProperties.AttributeGroupDesc_Specific
-        facet: CDotaMsgStructuredTooltipProperties.AttributeGroupDesc_Facet
-        def __init__(
-            self,
-            basic: CDotaMsgStructuredTooltipProperties.AttributeGroupDesc_Basic
-            | _Mapping
-            | None = ...,
-            specific: CDotaMsgStructuredTooltipProperties.AttributeGroupDesc_Specific
-            | _Mapping
-            | None = ...,
-            facet: CDotaMsgStructuredTooltipProperties.AttributeGroupDesc_Facet
-            | _Mapping
-            | None = ...,
-        ) -> None: ...
-
+        def __init__(self, basic: _Optional[_Union[CDotaMsgStructuredTooltipProperties.AttributeGroupDesc_Basic, _Mapping]] = ..., characteristics: _Optional[_Union[CDotaMsgStructuredTooltipProperties.AttributeGroupDesc_Basic, _Mapping]] = ..., specific: _Optional[_Union[CDotaMsgStructuredTooltipProperties.AttributeGroupDesc_Specific, _Mapping]] = ...) -> None: ...
     class AttributeGroup(_message.Message):
         __slots__ = ("desc", "attributes")
         DESC_FIELD_NUMBER: _ClassVar[int]
         ATTRIBUTES_FIELD_NUMBER: _ClassVar[int]
         desc: CDotaMsgStructuredTooltipProperties.AttributeGroupDescription
-        attributes: _containers.RepeatedCompositeFieldContainer[
-            CDotaMsgStructuredTooltipProperties.Attribute
-        ]
-        def __init__(
-            self,
-            desc: CDotaMsgStructuredTooltipProperties.AttributeGroupDescription
-            | _Mapping
-            | None = ...,
-            attributes: _Iterable[CDotaMsgStructuredTooltipProperties.Attribute | _Mapping]
-            | None = ...,
-        ) -> None: ...
-
+        attributes: _containers.RepeatedCompositeFieldContainer[CDotaMsgStructuredTooltipProperties.Attribute]
+        def __init__(self, desc: _Optional[_Union[CDotaMsgStructuredTooltipProperties.AttributeGroupDescription, _Mapping]] = ..., attributes: _Optional[_Iterable[_Union[CDotaMsgStructuredTooltipProperties.Attribute, _Mapping]]] = ...) -> None: ...
     class ContentChunk_AttributeGroup(_message.Message):
         __slots__ = ("groups",)
         GROUPS_FIELD_NUMBER: _ClassVar[int]
-        groups: _containers.RepeatedCompositeFieldContainer[
-            CDotaMsgStructuredTooltipProperties.AttributeGroup
-        ]
-        def __init__(
-            self,
-            groups: _Iterable[CDotaMsgStructuredTooltipProperties.AttributeGroup | _Mapping]
-            | None = ...,
-        ) -> None: ...
-
+        groups: _containers.RepeatedCompositeFieldContainer[CDotaMsgStructuredTooltipProperties.AttributeGroup]
+        def __init__(self, groups: _Optional[_Iterable[_Union[CDotaMsgStructuredTooltipProperties.AttributeGroup, _Mapping]]] = ...) -> None: ...
     class TooltipContentChunk(_message.Message):
         __slots__ = ("attribute_group",)
         ATTRIBUTE_GROUP_FIELD_NUMBER: _ClassVar[int]
         attribute_group: CDotaMsgStructuredTooltipProperties.ContentChunk_AttributeGroup
-        def __init__(
-            self,
-            attribute_group: CDotaMsgStructuredTooltipProperties.ContentChunk_AttributeGroup
-            | _Mapping
-            | None = ...,
-        ) -> None: ...
-
-    class SummaryDescriptionEmbedValue(_message.Message):
-        __slots__ = ("name", "type", "value")
-        NAME_FIELD_NUMBER: _ClassVar[int]
-        TYPE_FIELD_NUMBER: _ClassVar[int]
-        VALUE_FIELD_NUMBER: _ClassVar[int]
-        name: str
-        type: CDotaMsgStructuredTooltipProperties.EAttributeType
-        value: CDotaMsgStructuredTooltipProperties.AttributeValue
-        def __init__(
-            self,
-            name: str | None = ...,
-            type: CDotaMsgStructuredTooltipProperties.EAttributeType | str | None = ...,
-            value: CDotaMsgStructuredTooltipProperties.AttributeValue | _Mapping | None = ...,
-        ) -> None: ...
-
+        def __init__(self, attribute_group: _Optional[_Union[CDotaMsgStructuredTooltipProperties.ContentChunk_AttributeGroup, _Mapping]] = ...) -> None: ...
+    class SummaryDescriptionEmbeddedSubAbility(_message.Message):
+        __slots__ = ("ability_name_loc_token", "ability_desc_loc_token", "ability_icon_url")
+        ABILITY_NAME_LOC_TOKEN_FIELD_NUMBER: _ClassVar[int]
+        ABILITY_DESC_LOC_TOKEN_FIELD_NUMBER: _ClassVar[int]
+        ABILITY_ICON_URL_FIELD_NUMBER: _ClassVar[int]
+        ability_name_loc_token: str
+        ability_desc_loc_token: str
+        ability_icon_url: str
+        def __init__(self, ability_name_loc_token: _Optional[str] = ..., ability_desc_loc_token: _Optional[str] = ..., ability_icon_url: _Optional[str] = ...) -> None: ...
     ABILITY_NAME_LOC_TOKEN_FIELD_NUMBER: _ClassVar[int]
-    ABILITY_CATEGORY_LOC_TOKEN_FIELD_NUMBER: _ClassVar[int]
+    ABILITY_CATEGORY_FIELD_NUMBER: _ClassVar[int]
     ABILITY_LEVEL_FIELD_NUMBER: _ClassVar[int]
     CURRENT_MANA_COST_FIELD_NUMBER: _ClassVar[int]
     CURRENT_HEALTH_COST_FIELD_NUMBER: _ClassVar[int]
     CURRENT_COOLDOWN_FIELD_NUMBER: _ClassVar[int]
     SUMMARY_DESCRIPTION_LOC_TOKEN_FIELD_NUMBER: _ClassVar[int]
-    SUMMARY_DESCRIPTION_LEVEL_UP_LOC_TOKEN_FIELD_NUMBER: _ClassVar[int]
     SUMMARY_DESCRIPTION_EMBED_VALUES_FIELD_NUMBER: _ClassVar[int]
-    SUMMARY_DESCRIPTION_FACET_FIELD_NUMBER: _ClassVar[int]
+    SUMMARY_DESCRIPTION_SURFACED_LINES_FIELD_NUMBER: _ClassVar[int]
+    SUMMARY_DESCRIPTION_EMBEDDED_SUB_ABILITIES_FIELD_NUMBER: _ClassVar[int]
+    SUMMARY_DESCRIPTION_AGHS_SCEPTER_FIELD_NUMBER: _ClassVar[int]
+    SUMMARY_DESCRIPTION_AGHS_SHARD_FIELD_NUMBER: _ClassVar[int]
+    PREVIEW_VIDEO_URL_FIELD_NUMBER: _ClassVar[int]
     CHUNKS_FIELD_NUMBER: _ClassVar[int]
     ability_name_loc_token: str
-    ability_category_loc_token: str
+    ability_category: CDotaMsgStructuredTooltipProperties.EAbilityTooltipCategory
     ability_level: int
     current_mana_cost: int
     current_health_cost: int
     current_cooldown: float
     summary_description_loc_token: str
-    summary_description_level_up_loc_token: str
-    summary_description_embed_values: _containers.RepeatedCompositeFieldContainer[
-        CDotaMsgStructuredTooltipProperties.SummaryDescriptionEmbedValue
-    ]
-    summary_description_facet: CDotaMsgStructuredTooltipProperties.FacetDisplayProperties
-    chunks: _containers.RepeatedCompositeFieldContainer[
-        CDotaMsgStructuredTooltipProperties.TooltipContentChunk
-    ]
-    def __init__(
-        self,
-        ability_name_loc_token: str | None = ...,
-        ability_category_loc_token: str | None = ...,
-        ability_level: int | None = ...,
-        current_mana_cost: int | None = ...,
-        current_health_cost: int | None = ...,
-        current_cooldown: float | None = ...,
-        summary_description_loc_token: str | None = ...,
-        summary_description_level_up_loc_token: str | None = ...,
-        summary_description_embed_values: _Iterable[
-            CDotaMsgStructuredTooltipProperties.SummaryDescriptionEmbedValue | _Mapping
-        ]
-        | None = ...,
-        summary_description_facet: CDotaMsgStructuredTooltipProperties.FacetDisplayProperties
-        | _Mapping
-        | None = ...,
-        chunks: _Iterable[CDotaMsgStructuredTooltipProperties.TooltipContentChunk | _Mapping]
-        | None = ...,
-    ) -> None: ...
+    summary_description_embed_values: _containers.RepeatedCompositeFieldContainer[CDotaMsgStructuredTooltipProperties.Attribute]
+    summary_description_surfaced_lines: _containers.RepeatedScalarFieldContainer[str]
+    summary_description_embedded_sub_abilities: _containers.RepeatedCompositeFieldContainer[CDotaMsgStructuredTooltipProperties.SummaryDescriptionEmbeddedSubAbility]
+    summary_description_aghs_scepter: str
+    summary_description_aghs_shard: str
+    preview_video_url: str
+    chunks: _containers.RepeatedCompositeFieldContainer[CDotaMsgStructuredTooltipProperties.TooltipContentChunk]
+    def __init__(self, ability_name_loc_token: _Optional[str] = ..., ability_category: _Optional[_Union[CDotaMsgStructuredTooltipProperties.EAbilityTooltipCategory, str]] = ..., ability_level: _Optional[int] = ..., current_mana_cost: _Optional[int] = ..., current_health_cost: _Optional[int] = ..., current_cooldown: _Optional[float] = ..., summary_description_loc_token: _Optional[str] = ..., summary_description_embed_values: _Optional[_Iterable[_Union[CDotaMsgStructuredTooltipProperties.Attribute, _Mapping]]] = ..., summary_description_surfaced_lines: _Optional[_Iterable[str]] = ..., summary_description_embedded_sub_abilities: _Optional[_Iterable[_Union[CDotaMsgStructuredTooltipProperties.SummaryDescriptionEmbeddedSubAbility, _Mapping]]] = ..., summary_description_aghs_scepter: _Optional[str] = ..., summary_description_aghs_shard: _Optional[str] = ..., preview_video_url: _Optional[str] = ..., chunks: _Optional[_Iterable[_Union[CDotaMsgStructuredTooltipProperties.TooltipContentChunk, _Mapping]]] = ...) -> None: ...

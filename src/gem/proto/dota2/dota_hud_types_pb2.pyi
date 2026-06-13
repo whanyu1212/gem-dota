@@ -1,7 +1,7 @@
-from typing import ClassVar as _ClassVar
-
-from google.protobuf import descriptor as _descriptor
+from google.protobuf import descriptor_pb2 as _descriptor_pb2
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from google.protobuf import descriptor as _descriptor
+from typing import ClassVar as _ClassVar
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -32,7 +32,6 @@ class EHeroSelectionText(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EHeroSelectionText_RandomDraft_RoundDisplay: _ClassVar[EHeroSelectionText]
     k_EHeroSelectionText_RandomDraft_Waiting: _ClassVar[EHeroSelectionText]
     k_EHeroSelectionText_EventGame_BanPhase: _ClassVar[EHeroSelectionText]
-
 k_EHeroSelectionText_Invalid: EHeroSelectionText
 k_EHeroSelectionText_None: EHeroSelectionText
 k_EHeroSelectionText_ChooseHero: EHeroSelectionText

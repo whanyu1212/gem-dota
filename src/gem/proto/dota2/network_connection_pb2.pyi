@@ -1,7 +1,7 @@
-from typing import ClassVar as _ClassVar
-
-from google.protobuf import descriptor as _descriptor
+from google.protobuf import descriptor_pb2 as _descriptor_pb2
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from google.protobuf import descriptor as _descriptor
+from typing import ClassVar as _ClassVar
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -128,7 +128,6 @@ class ENetworkDisconnectionReason(int, metaclass=_enum_type_wrapper.EnumTypeWrap
     NETWORK_DISCONNECT_KICKED_INPUTAUTOMATION: _ClassVar[ENetworkDisconnectionReason]
     NETWORK_DISCONNECT_KICKED_VACNETABNORMALBEHAVIOR: _ClassVar[ENetworkDisconnectionReason]
     NETWORK_DISCONNECT_KICKED_INSECURECLIENT: _ClassVar[ENetworkDisconnectionReason]
-
 NETWORK_DISCONNECT_INVALID: ENetworkDisconnectionReason
 NETWORK_DISCONNECT_SHUTDOWN: ENetworkDisconnectionReason
 NETWORK_DISCONNECT_DISCONNECT_BY_USER: ENetworkDisconnectionReason

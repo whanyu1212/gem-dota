@@ -1,7 +1,6 @@
-from typing import ClassVar as _ClassVar
-
-from google.protobuf import descriptor as _descriptor
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from google.protobuf import descriptor as _descriptor
+from typing import ClassVar as _ClassVar
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -81,6 +80,7 @@ class EMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgLicenseProcessingComplete: _ClassVar[EMsg]
     k_EMsgSetTestFlag: _ClassVar[EMsg]
     k_EMsgQueuedEmailsComplete: _ClassVar[EMsg]
+    k_EMsgGMReportPHPError: _ClassVar[EMsg]
     k_EMsgGMDRMSync: _ClassVar[EMsg]
     k_EMsgPhysicalBoxInventory: _ClassVar[EMsg]
     k_EMsgUpdateConfigFile: _ClassVar[EMsg]
@@ -98,8 +98,6 @@ class EMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgExpectShellRestart: _ClassVar[EMsg]
     k_EMsgHotFixProgress: _ClassVar[EMsg]
     k_EMsgGMStatsForwardToAdminConnections: _ClassVar[EMsg]
-    k_EMsgGMGetModifiedConVars: _ClassVar[EMsg]
-    k_EMsgGMGetModifiedConVarsResponse: _ClassVar[EMsg]
     k_EMsgBaseAIS: _ClassVar[EMsg]
     k_EMsgAISRequestContentDescription: _ClassVar[EMsg]
     k_EMsgAISUpdateAppInfo: _ClassVar[EMsg]
@@ -508,8 +506,11 @@ class EMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgClientDPSendSpecialSurveyResponse: _ClassVar[EMsg]
     k_EMsgClientDPSendSpecialSurveyResponseReply: _ClassVar[EMsg]
     k_EMsgDPStoreSaleStatistics: _ClassVar[EMsg]
+    k_EMsgClientDPUpdateAppJobReport: _ClassVar[EMsg]
+    k_EMsgClientDPUnsignedInstallScript: _ClassVar[EMsg]
     k_EMsgDPPartnerMicroTxns: _ClassVar[EMsg]
     k_EMsgDPPartnerMicroTxnsResponse: _ClassVar[EMsg]
+    k_EMsgClientDPContentStatsReport: _ClassVar[EMsg]
     k_EMsgDPVRUniquePlayersStat: _ClassVar[EMsg]
     k_EMsgBaseCM: _ClassVar[EMsg]
     k_EMsgCMSetAllowState: _ClassVar[EMsg]
@@ -555,9 +556,6 @@ class EMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgGCHAppCheersReceived: _ClassVar[EMsg]
     k_EMsgGCHAppCheersGetAllowedTypes: _ClassVar[EMsg]
     k_EMsgGCHAppCheersGetAllowedTypesResponse: _ClassVar[EMsg]
-    k_EMsgGCHRoutingRulesFromGCHtoGM: _ClassVar[EMsg]
-    k_EMsgGCHRoutingRulesToGCHfromGM: _ClassVar[EMsg]
-    k_EMsgUpdateCMMessageRateRules: _ClassVar[EMsg]
     k_EMsgBaseP2P: _ClassVar[EMsg]
     k_EMsgP2PIntroducerMessage: _ClassVar[EMsg]
     k_EMsgBaseSM: _ClassVar[EMsg]
@@ -704,6 +702,8 @@ class EMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgAMSendQueuedEmails: _ClassVar[EMsg]
     k_EMsgAMSetLicenseFlags: _ClassVar[EMsg]
     k_EMsgCommunityDeleteUserNews: _ClassVar[EMsg]
+    k_EMsgAMAllowUserFilesRequest: _ClassVar[EMsg]
+    k_EMsgAMAllowUserFilesResponse: _ClassVar[EMsg]
     k_EMsgAMGetAccountStatus: _ClassVar[EMsg]
     k_EMsgAMGetAccountStatusResponse: _ClassVar[EMsg]
     k_EMsgAMEditBanReason: _ClassVar[EMsg]
@@ -731,6 +731,7 @@ class EMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgAMSupportIsAccountEnabledResponse: _ClassVar[EMsg]
     k_EMsgUGSGetUserStats: _ClassVar[EMsg]
     k_EMsgAMGSSearch: _ClassVar[EMsg]
+    k_EMsgMarketingMessageUpdate: _ClassVar[EMsg]
     k_EMsgChatServerRouteFriendMsg: _ClassVar[EMsg]
     k_EMsgAMTicketAuthRequestOrResponse: _ClassVar[EMsg]
     k_EMsgAMAddFreeLicense: _ClassVar[EMsg]
@@ -757,6 +758,7 @@ class EMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgAMCreateFinancialAdjustment: _ClassVar[EMsg]
     k_EMsgAMPlayerNicknameList: _ClassVar[EMsg]
     k_EMsgAMPlayerNicknameListResponse: _ClassVar[EMsg]
+    k_EMsgAMSetDRMTestConfig: _ClassVar[EMsg]
     k_EMsgAMGetUserCurrentGameInfo: _ClassVar[EMsg]
     k_EMsgAMGetUserCurrentGameInfoResponse: _ClassVar[EMsg]
     k_EMsgAMGetGSPlayerList: _ClassVar[EMsg]
@@ -887,7 +889,6 @@ class EMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgAMPerfectWorldPaymentResponse: _ClassVar[EMsg]
     k_EMsgAMECommPayPayment: _ClassVar[EMsg]
     k_EMsgAMECommPayPaymentResponse: _ClassVar[EMsg]
-    k_EMsgAMSetRemoteClientID: _ClassVar[EMsg]
     k_EMsgBasePSRange: _ClassVar[EMsg]
     k_EMsgPSCreateShoppingCart: _ClassVar[EMsg]
     k_EMsgPSCreateShoppingCartResponse: _ClassVar[EMsg]
@@ -977,6 +978,7 @@ class EMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgClientP2PConnectionFailInfo: _ClassVar[EMsg]
     k_EMsgClientGetDepotDecryptionKey: _ClassVar[EMsg]
     k_EMsgClientGetDepotDecryptionKeyResponse: _ClassVar[EMsg]
+    k_EMsgGSPerformHardwareSurvey: _ClassVar[EMsg]
     k_EMsgClientEnableTestLicense: _ClassVar[EMsg]
     k_EMsgClientEnableTestLicenseResponse: _ClassVar[EMsg]
     k_EMsgClientDisableTestLicense: _ClassVar[EMsg]
@@ -1016,10 +1018,8 @@ class EMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgClientOGSEndSession: _ClassVar[EMsg]
     k_EMsgClientOGSEndSessionResponse: _ClassVar[EMsg]
     k_EMsgClientOGSWriteRow: _ClassVar[EMsg]
-    k_EMsgClientGetPeerContentInfo: _ClassVar[EMsg]
-    k_EMsgClientGetPeerContentInfoResponse: _ClassVar[EMsg]
-    k_EMsgClientStartPeerContentServer: _ClassVar[EMsg]
-    k_EMsgClientStartPeerContentServerResponse: _ClassVar[EMsg]
+    k_EMsgClientDRMTest: _ClassVar[EMsg]
+    k_EMsgClientDRMTestResult: _ClassVar[EMsg]
     k_EMsgClientServerUnavailable: _ClassVar[EMsg]
     k_EMsgClientServersAvailable: _ClassVar[EMsg]
     k_EMsgClientRegisterAuthTicketWithCM: _ClassVar[EMsg]
@@ -1029,6 +1029,7 @@ class EMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgClientMicroTxnAuthorizeResponse: _ClassVar[EMsg]
     k_EMsgClientGetMicroTxnInfo: _ClassVar[EMsg]
     k_EMsgClientGetMicroTxnInfoResponse: _ClassVar[EMsg]
+    k_EMsgClientMarketingMessageUpdate2: _ClassVar[EMsg]
     k_EMsgClientDeregisterWithServer: _ClassVar[EMsg]
     k_EMsgClientSubscribeToPersonaFeed: _ClassVar[EMsg]
     k_EMsgClientLogon: _ClassVar[EMsg]
@@ -1243,6 +1244,8 @@ class EMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgClientUCMUpdatePublishedFileResponse: _ClassVar[EMsg]
     k_EMsgUCMUpdatePublishedFile: _ClassVar[EMsg]
     k_EMsgUCMUpdatePublishedFileResponse: _ClassVar[EMsg]
+    k_EMsgUCMDeletePublishedFile: _ClassVar[EMsg]
+    k_EMsgUCMDeletePublishedFileResponse: _ClassVar[EMsg]
     k_EMsgUCMUpdatePublishedFileStat: _ClassVar[EMsg]
     k_EMsgUCMReloadPublishedFile: _ClassVar[EMsg]
     k_EMsgUCMReloadUserFileListCaches: _ClassVar[EMsg]
@@ -1271,6 +1274,8 @@ class EMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgClientUCMEnumerateUserSubscribedFilesWithUpdatesResponse: _ClassVar[EMsg]
     k_EMsgUCMPublishedFileContentUpdated: _ClassVar[EMsg]
     k_EMsgClientUCMPublishedFileUpdated: _ClassVar[EMsg]
+    k_EMsgClientWorkshopItemChangesRequest: _ClassVar[EMsg]
+    k_EMsgClientWorkshopItemChangesResponse: _ClassVar[EMsg]
     k_EMsgFSBase: _ClassVar[EMsg]
     k_EMsgClientRichPresenceUpload: _ClassVar[EMsg]
     k_EMsgClientRichPresenceRequest: _ClassVar[EMsg]
@@ -1441,14 +1446,14 @@ class EMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgRemoteClientStartStreamResponse: _ClassVar[EMsg]
     k_EMsgRemoteClientPing: _ClassVar[EMsg]
     k_EMsgRemoteClientPingResponse: _ClassVar[EMsg]
-    k_EMsgClientUnlockH264: _ClassVar[EMsg]
-    k_EMsgClientUnlockH264Response: _ClassVar[EMsg]
+    k_EMsgClientUnlockStreaming: _ClassVar[EMsg]
+    k_EMsgClientUnlockStreamingResponse: _ClassVar[EMsg]
     k_EMsgRemoteClientAcceptEULA: _ClassVar[EMsg]
     k_EMsgRemoteClientGetControllerConfig: _ClassVar[EMsg]
     k_EMsgRemoteClientGetControllerConfigResponse: _ClassVar[EMsg]
     k_EMsgRemoteClientStreamingEnabled: _ClassVar[EMsg]
-    k_EMsgClientUnlockHEVC_OBSOLETE: _ClassVar[EMsg]
-    k_EMsgClientUnlockHEVCResponse_OBSOLETE: _ClassVar[EMsg]
+    k_EMsgClientUnlockHEVC: _ClassVar[EMsg]
+    k_EMsgClientUnlockHEVCResponse: _ClassVar[EMsg]
     k_EMsgRemoteClientStatusRequest: _ClassVar[EMsg]
     k_EMsgRemoteClientStatusResponse: _ClassVar[EMsg]
     k_EMsgClientConcurrentSessionsBase: _ClassVar[EMsg]
@@ -1458,6 +1463,7 @@ class EMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgClientBroadcastInit: _ClassVar[EMsg]
     k_EMsgClientBroadcastFrames: _ClassVar[EMsg]
     k_EMsgClientBroadcastDisconnect: _ClassVar[EMsg]
+    k_EMsgClientBroadcastScreenshot: _ClassVar[EMsg]
     k_EMsgClientBroadcastUploadConfig: _ClassVar[EMsg]
     k_EMsgBaseClient3: _ClassVar[EMsg]
     k_EMsgClientVoiceCallPreAuthorize: _ClassVar[EMsg]
@@ -1466,13 +1472,9 @@ class EMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgClientServerTimestampResponse: _ClassVar[EMsg]
     k_EMsgServiceMethodCallFromClientNonAuthed: _ClassVar[EMsg]
     k_EMsgClientHello: _ClassVar[EMsg]
-    k_EMsgClientEnableOrDisableDownloads: _ClassVar[EMsg]
-    k_EMsgClientEnableOrDisableDownloadsResponse: _ClassVar[EMsg]
     k_EMsgClientLANP2PBase: _ClassVar[EMsg]
     k_EMsgClientLANP2PRequestChunk: _ClassVar[EMsg]
     k_EMsgClientLANP2PRequestChunkResponse: _ClassVar[EMsg]
-    k_EMsgClientPeerChunkRequest: _ClassVar[EMsg]
-    k_EMsgClientPeerChunkResponse: _ClassVar[EMsg]
     k_EMsgClientLANP2PMax: _ClassVar[EMsg]
     k_EMsgBaseWatchdogServer: _ClassVar[EMsg]
     k_EMsgNotifyWatchdog: _ClassVar[EMsg]
@@ -1489,12 +1491,6 @@ class EMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgChatServerGetPendingNotificationCountResponse: _ClassVar[EMsg]
     k_EMsgBaseSecretServer: _ClassVar[EMsg]
     k_EMsgServerSecretChanged: _ClassVar[EMsg]
-    k_EMsgBaseWG: _ClassVar[EMsg]
-    k_EMsgWGConnectionProtocolError: _ClassVar[EMsg]
-    k_EMsgWGConnectionValidateUserToken: _ClassVar[EMsg]
-    k_EMsgWGConnectionValidateUserTokenResponse: _ClassVar[EMsg]
-    k_EMsgWGConnectionLegacyWGRequest: _ClassVar[EMsg]
-    k_EMsgWGConnectionLegacyWGResponse: _ClassVar[EMsg]
 
 class EClientPersonaStateFlag(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -1533,22 +1529,6 @@ class ESteamReviewScore(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_ESteamReviewScore_VeryNegative: _ClassVar[ESteamReviewScore]
     k_ESteamReviewScore_OverwhelminglyNegative: _ClassVar[ESteamReviewScore]
     k_ESteamReviewScore_None: _ClassVar[ESteamReviewScore]
-
-class ECodecUsagePlatform(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
-    __slots__ = ()
-    k_ECodecUsagePlatformUnknown: _ClassVar[ECodecUsagePlatform]
-    k_ECodecUsagePlatformWindows: _ClassVar[ECodecUsagePlatform]
-    k_ECodecUsagePlatformMacOS: _ClassVar[ECodecUsagePlatform]
-    k_ECodecUsagePlatformLinux: _ClassVar[ECodecUsagePlatform]
-    k_ECodecUsagePlatformSteamDeck: _ClassVar[ECodecUsagePlatform]
-
-class ECodecUsageReason(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
-    __slots__ = ()
-    k_ECodecUsageReasonUnknown: _ClassVar[ECodecUsageReason]
-    k_ECodecUsageReasonRemotePlay: _ClassVar[ECodecUsageReason]
-    k_ECodecUsageReasonBroadcasting: _ClassVar[ECodecUsageReason]
-    k_ECodecUsageReasonGameVideo: _ClassVar[ECodecUsageReason]
-
 k_EMsgInvalid: EMsg
 k_EMsgMulti: EMsg
 k_EMsgProtobufWrapped: EMsg
@@ -1623,6 +1603,7 @@ k_EMsgGracefulExitShell: EMsg
 k_EMsgLicenseProcessingComplete: EMsg
 k_EMsgSetTestFlag: EMsg
 k_EMsgQueuedEmailsComplete: EMsg
+k_EMsgGMReportPHPError: EMsg
 k_EMsgGMDRMSync: EMsg
 k_EMsgPhysicalBoxInventory: EMsg
 k_EMsgUpdateConfigFile: EMsg
@@ -1640,8 +1621,6 @@ k_EMsgGMTestNextBuildSchemaConversionResponse: EMsg
 k_EMsgExpectShellRestart: EMsg
 k_EMsgHotFixProgress: EMsg
 k_EMsgGMStatsForwardToAdminConnections: EMsg
-k_EMsgGMGetModifiedConVars: EMsg
-k_EMsgGMGetModifiedConVarsResponse: EMsg
 k_EMsgBaseAIS: EMsg
 k_EMsgAISRequestContentDescription: EMsg
 k_EMsgAISUpdateAppInfo: EMsg
@@ -2050,8 +2029,11 @@ k_EMsgClientDPCheckSpecialSurveyResponse: EMsg
 k_EMsgClientDPSendSpecialSurveyResponse: EMsg
 k_EMsgClientDPSendSpecialSurveyResponseReply: EMsg
 k_EMsgDPStoreSaleStatistics: EMsg
+k_EMsgClientDPUpdateAppJobReport: EMsg
+k_EMsgClientDPUnsignedInstallScript: EMsg
 k_EMsgDPPartnerMicroTxns: EMsg
 k_EMsgDPPartnerMicroTxnsResponse: EMsg
+k_EMsgClientDPContentStatsReport: EMsg
 k_EMsgDPVRUniquePlayersStat: EMsg
 k_EMsgBaseCM: EMsg
 k_EMsgCMSetAllowState: EMsg
@@ -2097,9 +2079,6 @@ k_EMsgGCHRecurringSubscriptionStatusChange: EMsg
 k_EMsgGCHAppCheersReceived: EMsg
 k_EMsgGCHAppCheersGetAllowedTypes: EMsg
 k_EMsgGCHAppCheersGetAllowedTypesResponse: EMsg
-k_EMsgGCHRoutingRulesFromGCHtoGM: EMsg
-k_EMsgGCHRoutingRulesToGCHfromGM: EMsg
-k_EMsgUpdateCMMessageRateRules: EMsg
 k_EMsgBaseP2P: EMsg
 k_EMsgP2PIntroducerMessage: EMsg
 k_EMsgBaseSM: EMsg
@@ -2246,6 +2225,8 @@ k_EMsgAMSetUserNewsSubscriptions: EMsg
 k_EMsgAMSendQueuedEmails: EMsg
 k_EMsgAMSetLicenseFlags: EMsg
 k_EMsgCommunityDeleteUserNews: EMsg
+k_EMsgAMAllowUserFilesRequest: EMsg
+k_EMsgAMAllowUserFilesResponse: EMsg
 k_EMsgAMGetAccountStatus: EMsg
 k_EMsgAMGetAccountStatusResponse: EMsg
 k_EMsgAMEditBanReason: EMsg
@@ -2273,6 +2254,7 @@ k_EMsgAMSupportIsAccountEnabled: EMsg
 k_EMsgAMSupportIsAccountEnabledResponse: EMsg
 k_EMsgUGSGetUserStats: EMsg
 k_EMsgAMGSSearch: EMsg
+k_EMsgMarketingMessageUpdate: EMsg
 k_EMsgChatServerRouteFriendMsg: EMsg
 k_EMsgAMTicketAuthRequestOrResponse: EMsg
 k_EMsgAMAddFreeLicense: EMsg
@@ -2299,6 +2281,7 @@ k_EMsgAMClearDispute: EMsg
 k_EMsgAMCreateFinancialAdjustment: EMsg
 k_EMsgAMPlayerNicknameList: EMsg
 k_EMsgAMPlayerNicknameListResponse: EMsg
+k_EMsgAMSetDRMTestConfig: EMsg
 k_EMsgAMGetUserCurrentGameInfo: EMsg
 k_EMsgAMGetUserCurrentGameInfoResponse: EMsg
 k_EMsgAMGetGSPlayerList: EMsg
@@ -2429,7 +2412,6 @@ k_EMsgAMPerfectWorldPayment: EMsg
 k_EMsgAMPerfectWorldPaymentResponse: EMsg
 k_EMsgAMECommPayPayment: EMsg
 k_EMsgAMECommPayPaymentResponse: EMsg
-k_EMsgAMSetRemoteClientID: EMsg
 k_EMsgBasePSRange: EMsg
 k_EMsgPSCreateShoppingCart: EMsg
 k_EMsgPSCreateShoppingCartResponse: EMsg
@@ -2519,6 +2501,7 @@ k_EMsgClientP2PConnectionInfo: EMsg
 k_EMsgClientP2PConnectionFailInfo: EMsg
 k_EMsgClientGetDepotDecryptionKey: EMsg
 k_EMsgClientGetDepotDecryptionKeyResponse: EMsg
+k_EMsgGSPerformHardwareSurvey: EMsg
 k_EMsgClientEnableTestLicense: EMsg
 k_EMsgClientEnableTestLicenseResponse: EMsg
 k_EMsgClientDisableTestLicense: EMsg
@@ -2558,10 +2541,8 @@ k_EMsgClientOGSBeginSessionResponse: EMsg
 k_EMsgClientOGSEndSession: EMsg
 k_EMsgClientOGSEndSessionResponse: EMsg
 k_EMsgClientOGSWriteRow: EMsg
-k_EMsgClientGetPeerContentInfo: EMsg
-k_EMsgClientGetPeerContentInfoResponse: EMsg
-k_EMsgClientStartPeerContentServer: EMsg
-k_EMsgClientStartPeerContentServerResponse: EMsg
+k_EMsgClientDRMTest: EMsg
+k_EMsgClientDRMTestResult: EMsg
 k_EMsgClientServerUnavailable: EMsg
 k_EMsgClientServersAvailable: EMsg
 k_EMsgClientRegisterAuthTicketWithCM: EMsg
@@ -2571,6 +2552,7 @@ k_EMsgClientMicroTxnAuthorize: EMsg
 k_EMsgClientMicroTxnAuthorizeResponse: EMsg
 k_EMsgClientGetMicroTxnInfo: EMsg
 k_EMsgClientGetMicroTxnInfoResponse: EMsg
+k_EMsgClientMarketingMessageUpdate2: EMsg
 k_EMsgClientDeregisterWithServer: EMsg
 k_EMsgClientSubscribeToPersonaFeed: EMsg
 k_EMsgClientLogon: EMsg
@@ -2785,6 +2767,8 @@ k_EMsgClientUCMUpdatePublishedFile: EMsg
 k_EMsgClientUCMUpdatePublishedFileResponse: EMsg
 k_EMsgUCMUpdatePublishedFile: EMsg
 k_EMsgUCMUpdatePublishedFileResponse: EMsg
+k_EMsgUCMDeletePublishedFile: EMsg
+k_EMsgUCMDeletePublishedFileResponse: EMsg
 k_EMsgUCMUpdatePublishedFileStat: EMsg
 k_EMsgUCMReloadPublishedFile: EMsg
 k_EMsgUCMReloadUserFileListCaches: EMsg
@@ -2813,6 +2797,8 @@ k_EMsgClientUCMEnumerateUserSubscribedFilesWithUpdates: EMsg
 k_EMsgClientUCMEnumerateUserSubscribedFilesWithUpdatesResponse: EMsg
 k_EMsgUCMPublishedFileContentUpdated: EMsg
 k_EMsgClientUCMPublishedFileUpdated: EMsg
+k_EMsgClientWorkshopItemChangesRequest: EMsg
+k_EMsgClientWorkshopItemChangesResponse: EMsg
 k_EMsgFSBase: EMsg
 k_EMsgClientRichPresenceUpload: EMsg
 k_EMsgClientRichPresenceRequest: EMsg
@@ -2983,14 +2969,14 @@ k_EMsgRemoteClientStartStream: EMsg
 k_EMsgRemoteClientStartStreamResponse: EMsg
 k_EMsgRemoteClientPing: EMsg
 k_EMsgRemoteClientPingResponse: EMsg
-k_EMsgClientUnlockH264: EMsg
-k_EMsgClientUnlockH264Response: EMsg
+k_EMsgClientUnlockStreaming: EMsg
+k_EMsgClientUnlockStreamingResponse: EMsg
 k_EMsgRemoteClientAcceptEULA: EMsg
 k_EMsgRemoteClientGetControllerConfig: EMsg
 k_EMsgRemoteClientGetControllerConfigResponse: EMsg
 k_EMsgRemoteClientStreamingEnabled: EMsg
-k_EMsgClientUnlockHEVC_OBSOLETE: EMsg
-k_EMsgClientUnlockHEVCResponse_OBSOLETE: EMsg
+k_EMsgClientUnlockHEVC: EMsg
+k_EMsgClientUnlockHEVCResponse: EMsg
 k_EMsgRemoteClientStatusRequest: EMsg
 k_EMsgRemoteClientStatusResponse: EMsg
 k_EMsgClientConcurrentSessionsBase: EMsg
@@ -3000,6 +2986,7 @@ k_EMsgClientBroadcastBase: EMsg
 k_EMsgClientBroadcastInit: EMsg
 k_EMsgClientBroadcastFrames: EMsg
 k_EMsgClientBroadcastDisconnect: EMsg
+k_EMsgClientBroadcastScreenshot: EMsg
 k_EMsgClientBroadcastUploadConfig: EMsg
 k_EMsgBaseClient3: EMsg
 k_EMsgClientVoiceCallPreAuthorize: EMsg
@@ -3008,13 +2995,9 @@ k_EMsgClientServerTimestampRequest: EMsg
 k_EMsgClientServerTimestampResponse: EMsg
 k_EMsgServiceMethodCallFromClientNonAuthed: EMsg
 k_EMsgClientHello: EMsg
-k_EMsgClientEnableOrDisableDownloads: EMsg
-k_EMsgClientEnableOrDisableDownloadsResponse: EMsg
 k_EMsgClientLANP2PBase: EMsg
 k_EMsgClientLANP2PRequestChunk: EMsg
 k_EMsgClientLANP2PRequestChunkResponse: EMsg
-k_EMsgClientPeerChunkRequest: EMsg
-k_EMsgClientPeerChunkResponse: EMsg
 k_EMsgClientLANP2PMax: EMsg
 k_EMsgBaseWatchdogServer: EMsg
 k_EMsgNotifyWatchdog: EMsg
@@ -3031,12 +3014,6 @@ k_EMsgChatServerGetPendingNotificationCount: EMsg
 k_EMsgChatServerGetPendingNotificationCountResponse: EMsg
 k_EMsgBaseSecretServer: EMsg
 k_EMsgServerSecretChanged: EMsg
-k_EMsgBaseWG: EMsg
-k_EMsgWGConnectionProtocolError: EMsg
-k_EMsgWGConnectionValidateUserToken: EMsg
-k_EMsgWGConnectionValidateUserTokenResponse: EMsg
-k_EMsgWGConnectionLegacyWGRequest: EMsg
-k_EMsgWGConnectionLegacyWGResponse: EMsg
 k_EClientPersonaStateFlagStatus: EClientPersonaStateFlag
 k_EClientPersonaStateFlagPlayerName: EClientPersonaStateFlag
 k_EClientPersonaStateFlagQueryPort: EClientPersonaStateFlag
@@ -3066,12 +3043,3 @@ k_ESteamReviewScore_Negative: ESteamReviewScore
 k_ESteamReviewScore_VeryNegative: ESteamReviewScore
 k_ESteamReviewScore_OverwhelminglyNegative: ESteamReviewScore
 k_ESteamReviewScore_None: ESteamReviewScore
-k_ECodecUsagePlatformUnknown: ECodecUsagePlatform
-k_ECodecUsagePlatformWindows: ECodecUsagePlatform
-k_ECodecUsagePlatformMacOS: ECodecUsagePlatform
-k_ECodecUsagePlatformLinux: ECodecUsagePlatform
-k_ECodecUsagePlatformSteamDeck: ECodecUsagePlatform
-k_ECodecUsageReasonUnknown: ECodecUsageReason
-k_ECodecUsageReasonRemotePlay: ECodecUsageReason
-k_ECodecUsageReasonBroadcasting: ECodecUsageReason
-k_ECodecUsageReasonGameVideo: ECodecUsageReason

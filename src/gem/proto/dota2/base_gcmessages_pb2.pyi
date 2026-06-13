@@ -1,14 +1,12 @@
-from collections.abc import Iterable as _Iterable
-from collections.abc import Mapping as _Mapping
-from typing import ClassVar as _ClassVar
-
-import gcsdk_gcmessages_pb2 as _gcsdk_gcmessages_pb2
 import steammessages_pb2 as _steammessages_pb2
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
+import gcsdk_gcmessages_pb2 as _gcsdk_gcmessages_pb2
+from steammessages_steamlearn import steamworkssdk_pb2 as _steamworkssdk_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
-from steammessages_steamlearn import steamworkssdk_pb2 as _steamworkssdk_pb2
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -51,7 +49,6 @@ class ECustomGameInstallStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper
     k_ECustomGameInstallStatus_CRCMismatch: _ClassVar[ECustomGameInstallStatus]
     k_ECustomGameInstallStatus_FailedSteam: _ClassVar[ECustomGameInstallStatus]
     k_ECustomGameInstallStatus_FailedCanceled: _ClassVar[ECustomGameInstallStatus]
-
 k_EMsgGCInviteToParty: EGCBaseMsg
 k_EMsgGCInvitationCreated: EGCBaseMsg
 k_EMsgGCPartyInviteResponse: EGCBaseMsg
@@ -88,14 +85,7 @@ k_ECustomGameInstallStatus_FailedSteam: ECustomGameInstallStatus
 k_ECustomGameInstallStatus_FailedCanceled: ECustomGameInstallStatus
 
 class CGCStorePurchaseInit_LineItem(_message.Message):
-    __slots__ = (
-        "item_def_id",
-        "quantity",
-        "cost_in_local_currency",
-        "purchase_type",
-        "source_reference_id",
-        "price_index",
-    )
+    __slots__ = ("item_def_id", "quantity", "cost_in_local_currency", "purchase_type", "source_reference_id", "price_index")
     ITEM_DEF_ID_FIELD_NUMBER: _ClassVar[int]
     QUANTITY_FIELD_NUMBER: _ClassVar[int]
     COST_IN_LOCAL_CURRENCY_FIELD_NUMBER: _ClassVar[int]
@@ -108,15 +98,7 @@ class CGCStorePurchaseInit_LineItem(_message.Message):
     purchase_type: int
     source_reference_id: int
     price_index: int
-    def __init__(
-        self,
-        item_def_id: int | None = ...,
-        quantity: int | None = ...,
-        cost_in_local_currency: int | None = ...,
-        purchase_type: int | None = ...,
-        source_reference_id: int | None = ...,
-        price_index: int | None = ...,
-    ) -> None: ...
+    def __init__(self, item_def_id: _Optional[int] = ..., quantity: _Optional[int] = ..., cost_in_local_currency: _Optional[int] = ..., purchase_type: _Optional[int] = ..., source_reference_id: _Optional[int] = ..., price_index: _Optional[int] = ...) -> None: ...
 
 class CMsgGCStorePurchaseInit(_message.Message):
     __slots__ = ("country", "language", "currency", "line_items")
@@ -128,13 +110,7 @@ class CMsgGCStorePurchaseInit(_message.Message):
     language: int
     currency: int
     line_items: _containers.RepeatedCompositeFieldContainer[CGCStorePurchaseInit_LineItem]
-    def __init__(
-        self,
-        country: str | None = ...,
-        language: int | None = ...,
-        currency: int | None = ...,
-        line_items: _Iterable[CGCStorePurchaseInit_LineItem | _Mapping] | None = ...,
-    ) -> None: ...
+    def __init__(self, country: _Optional[str] = ..., language: _Optional[int] = ..., currency: _Optional[int] = ..., line_items: _Optional[_Iterable[_Union[CGCStorePurchaseInit_LineItem, _Mapping]]] = ...) -> None: ...
 
 class CMsgGCStorePurchaseInitResponse(_message.Message):
     __slots__ = ("result", "txn_id")
@@ -142,16 +118,10 @@ class CMsgGCStorePurchaseInitResponse(_message.Message):
     TXN_ID_FIELD_NUMBER: _ClassVar[int]
     result: int
     txn_id: int
-    def __init__(self, result: int | None = ..., txn_id: int | None = ...) -> None: ...
+    def __init__(self, result: _Optional[int] = ..., txn_id: _Optional[int] = ...) -> None: ...
 
 class CMsgClientPingData(_message.Message):
-    __slots__ = (
-        "relay_codes",
-        "relay_pings",
-        "region_codes",
-        "region_pings",
-        "region_ping_failed_bitmask",
-    )
+    __slots__ = ("relay_codes", "relay_pings", "region_codes", "region_pings", "region_ping_failed_bitmask")
     RELAY_CODES_FIELD_NUMBER: _ClassVar[int]
     RELAY_PINGS_FIELD_NUMBER: _ClassVar[int]
     REGION_CODES_FIELD_NUMBER: _ClassVar[int]
@@ -162,14 +132,7 @@ class CMsgClientPingData(_message.Message):
     region_codes: _containers.RepeatedScalarFieldContainer[int]
     region_pings: _containers.RepeatedScalarFieldContainer[int]
     region_ping_failed_bitmask: int
-    def __init__(
-        self,
-        relay_codes: _Iterable[int] | None = ...,
-        relay_pings: _Iterable[int] | None = ...,
-        region_codes: _Iterable[int] | None = ...,
-        region_pings: _Iterable[int] | None = ...,
-        region_ping_failed_bitmask: int | None = ...,
-    ) -> None: ...
+    def __init__(self, relay_codes: _Optional[_Iterable[int]] = ..., relay_pings: _Optional[_Iterable[int]] = ..., region_codes: _Optional[_Iterable[int]] = ..., region_pings: _Optional[_Iterable[int]] = ..., region_ping_failed_bitmask: _Optional[int] = ...) -> None: ...
 
 class CMsgInviteToParty(_message.Message):
     __slots__ = ("steam_id", "client_version", "team_id", "as_coach", "ping_data")
@@ -183,14 +146,7 @@ class CMsgInviteToParty(_message.Message):
     team_id: int
     as_coach: bool
     ping_data: CMsgClientPingData
-    def __init__(
-        self,
-        steam_id: int | None = ...,
-        client_version: int | None = ...,
-        team_id: int | None = ...,
-        as_coach: bool = ...,
-        ping_data: CMsgClientPingData | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, steam_id: _Optional[int] = ..., client_version: _Optional[int] = ..., team_id: _Optional[int] = ..., as_coach: bool = ..., ping_data: _Optional[_Union[CMsgClientPingData, _Mapping]] = ...) -> None: ...
 
 class CMsgInviteToLobby(_message.Message):
     __slots__ = ("steam_id", "client_version")
@@ -198,7 +154,7 @@ class CMsgInviteToLobby(_message.Message):
     CLIENT_VERSION_FIELD_NUMBER: _ClassVar[int]
     steam_id: int
     client_version: int
-    def __init__(self, steam_id: int | None = ..., client_version: int | None = ...) -> None: ...
+    def __init__(self, steam_id: _Optional[int] = ..., client_version: _Optional[int] = ...) -> None: ...
 
 class CMsgInvitationCreated(_message.Message):
     __slots__ = ("group_id", "steam_id", "user_offline")
@@ -208,9 +164,7 @@ class CMsgInvitationCreated(_message.Message):
     group_id: int
     steam_id: int
     user_offline: bool
-    def __init__(
-        self, group_id: int | None = ..., steam_id: int | None = ..., user_offline: bool = ...
-    ) -> None: ...
+    def __init__(self, group_id: _Optional[int] = ..., steam_id: _Optional[int] = ..., user_offline: bool = ...) -> None: ...
 
 class CMsgPartyInviteResponse(_message.Message):
     __slots__ = ("party_id", "accept", "client_version", "ping_data")
@@ -222,13 +176,7 @@ class CMsgPartyInviteResponse(_message.Message):
     accept: bool
     client_version: int
     ping_data: CMsgClientPingData
-    def __init__(
-        self,
-        party_id: int | None = ...,
-        accept: bool = ...,
-        client_version: int | None = ...,
-        ping_data: CMsgClientPingData | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, party_id: _Optional[int] = ..., accept: bool = ..., client_version: _Optional[int] = ..., ping_data: _Optional[_Union[CMsgClientPingData, _Mapping]] = ...) -> None: ...
 
 class CMsgLobbyInviteResponse(_message.Message):
     __slots__ = ("lobby_id", "accept", "client_version", "custom_game_crc", "custom_game_timestamp")
@@ -242,20 +190,13 @@ class CMsgLobbyInviteResponse(_message.Message):
     client_version: int
     custom_game_crc: int
     custom_game_timestamp: int
-    def __init__(
-        self,
-        lobby_id: int | None = ...,
-        accept: bool = ...,
-        client_version: int | None = ...,
-        custom_game_crc: int | None = ...,
-        custom_game_timestamp: int | None = ...,
-    ) -> None: ...
+    def __init__(self, lobby_id: _Optional[int] = ..., accept: bool = ..., client_version: _Optional[int] = ..., custom_game_crc: _Optional[int] = ..., custom_game_timestamp: _Optional[int] = ...) -> None: ...
 
 class CMsgKickFromParty(_message.Message):
     __slots__ = ("steam_id",)
     STEAM_ID_FIELD_NUMBER: _ClassVar[int]
     steam_id: int
-    def __init__(self, steam_id: int | None = ...) -> None: ...
+    def __init__(self, steam_id: _Optional[int] = ...) -> None: ...
 
 class CMsgLeaveParty(_message.Message):
     __slots__ = ()
@@ -269,38 +210,22 @@ class CMsgCustomGameInstallStatus(_message.Message):
     status: ECustomGameInstallStatus
     message: str
     latest_timestamp_from_steam: int
-    def __init__(
-        self,
-        status: ECustomGameInstallStatus | str | None = ...,
-        message: str | None = ...,
-        latest_timestamp_from_steam: int | None = ...,
-    ) -> None: ...
+    def __init__(self, status: _Optional[_Union[ECustomGameInstallStatus, str]] = ..., message: _Optional[str] = ..., latest_timestamp_from_steam: _Optional[int] = ...) -> None: ...
 
 class CMsgServerAvailable(_message.Message):
     __slots__ = ("custom_game_install_status",)
     CUSTOM_GAME_INSTALL_STATUS_FIELD_NUMBER: _ClassVar[int]
     custom_game_install_status: CMsgCustomGameInstallStatus
-    def __init__(
-        self, custom_game_install_status: CMsgCustomGameInstallStatus | _Mapping | None = ...
-    ) -> None: ...
+    def __init__(self, custom_game_install_status: _Optional[_Union[CMsgCustomGameInstallStatus, _Mapping]] = ...) -> None: ...
 
 class CMsgLANServerAvailable(_message.Message):
     __slots__ = ("lobby_id",)
     LOBBY_ID_FIELD_NUMBER: _ClassVar[int]
     lobby_id: int
-    def __init__(self, lobby_id: int | None = ...) -> None: ...
+    def __init__(self, lobby_id: _Optional[int] = ...) -> None: ...
 
 class CSOEconGameAccountClient(_message.Message):
-    __slots__ = (
-        "additional_backpack_slots",
-        "trial_account",
-        "eligible_for_online_play",
-        "need_to_choose_most_helpful_friend",
-        "in_coaches_list",
-        "trade_ban_expiration",
-        "duel_ban_expiration",
-        "made_first_purchase",
-    )
+    __slots__ = ("additional_backpack_slots", "trial_account", "eligible_for_online_play", "need_to_choose_most_helpful_friend", "in_coaches_list", "trade_ban_expiration", "duel_ban_expiration", "made_first_purchase")
     ADDITIONAL_BACKPACK_SLOTS_FIELD_NUMBER: _ClassVar[int]
     TRIAL_ACCOUNT_FIELD_NUMBER: _ClassVar[int]
     ELIGIBLE_FOR_ONLINE_PLAY_FIELD_NUMBER: _ClassVar[int]
@@ -317,17 +242,7 @@ class CSOEconGameAccountClient(_message.Message):
     trade_ban_expiration: int
     duel_ban_expiration: int
     made_first_purchase: bool
-    def __init__(
-        self,
-        additional_backpack_slots: int | None = ...,
-        trial_account: bool = ...,
-        eligible_for_online_play: bool = ...,
-        need_to_choose_most_helpful_friend: bool = ...,
-        in_coaches_list: bool = ...,
-        trade_ban_expiration: int | None = ...,
-        duel_ban_expiration: int | None = ...,
-        made_first_purchase: bool = ...,
-    ) -> None: ...
+    def __init__(self, additional_backpack_slots: _Optional[int] = ..., trial_account: bool = ..., eligible_for_online_play: bool = ..., need_to_choose_most_helpful_friend: bool = ..., in_coaches_list: bool = ..., trade_ban_expiration: _Optional[int] = ..., duel_ban_expiration: _Optional[int] = ..., made_first_purchase: bool = ...) -> None: ...
 
 class CMsgApplyStrangePart(_message.Message):
     __slots__ = ("strange_part_item_id", "item_item_id")
@@ -335,9 +250,7 @@ class CMsgApplyStrangePart(_message.Message):
     ITEM_ITEM_ID_FIELD_NUMBER: _ClassVar[int]
     strange_part_item_id: int
     item_item_id: int
-    def __init__(
-        self, strange_part_item_id: int | None = ..., item_item_id: int | None = ...
-    ) -> None: ...
+    def __init__(self, strange_part_item_id: _Optional[int] = ..., item_item_id: _Optional[int] = ...) -> None: ...
 
 class CMsgApplyPennantUpgrade(_message.Message):
     __slots__ = ("upgrade_item_id", "pennant_item_id")
@@ -345,9 +258,7 @@ class CMsgApplyPennantUpgrade(_message.Message):
     PENNANT_ITEM_ID_FIELD_NUMBER: _ClassVar[int]
     upgrade_item_id: int
     pennant_item_id: int
-    def __init__(
-        self, upgrade_item_id: int | None = ..., pennant_item_id: int | None = ...
-    ) -> None: ...
+    def __init__(self, upgrade_item_id: _Optional[int] = ..., pennant_item_id: _Optional[int] = ...) -> None: ...
 
 class CMsgApplyEggEssence(_message.Message):
     __slots__ = ("essence_item_id", "egg_item_id")
@@ -355,9 +266,7 @@ class CMsgApplyEggEssence(_message.Message):
     EGG_ITEM_ID_FIELD_NUMBER: _ClassVar[int]
     essence_item_id: int
     egg_item_id: int
-    def __init__(
-        self, essence_item_id: int | None = ..., egg_item_id: int | None = ...
-    ) -> None: ...
+    def __init__(self, essence_item_id: _Optional[int] = ..., egg_item_id: _Optional[int] = ...) -> None: ...
 
 class CSOEconItemAttribute(_message.Message):
     __slots__ = ("def_index", "value", "value_bytes")
@@ -367,9 +276,7 @@ class CSOEconItemAttribute(_message.Message):
     def_index: int
     value: int
     value_bytes: bytes
-    def __init__(
-        self, def_index: int | None = ..., value: int | None = ..., value_bytes: bytes | None = ...
-    ) -> None: ...
+    def __init__(self, def_index: _Optional[int] = ..., value: _Optional[int] = ..., value_bytes: _Optional[bytes] = ...) -> None: ...
 
 class CSOEconItemEquipped(_message.Message):
     __slots__ = ("new_class", "new_slot")
@@ -377,25 +284,10 @@ class CSOEconItemEquipped(_message.Message):
     NEW_SLOT_FIELD_NUMBER: _ClassVar[int]
     new_class: int
     new_slot: int
-    def __init__(self, new_class: int | None = ..., new_slot: int | None = ...) -> None: ...
+    def __init__(self, new_class: _Optional[int] = ..., new_slot: _Optional[int] = ...) -> None: ...
 
 class CSOEconItem(_message.Message):
-    __slots__ = (
-        "id",
-        "account_id",
-        "inventory",
-        "def_index",
-        "quantity",
-        "level",
-        "quality",
-        "flags",
-        "origin",
-        "attribute",
-        "interior_item",
-        "style",
-        "original_id",
-        "equipped_state",
-    )
+    __slots__ = ("id", "account_id", "inventory", "def_index", "quantity", "level", "quality", "flags", "origin", "attribute", "interior_item", "style", "original_id", "equipped_state")
     ID_FIELD_NUMBER: _ClassVar[int]
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     INVENTORY_FIELD_NUMBER: _ClassVar[int]
@@ -424,29 +316,13 @@ class CSOEconItem(_message.Message):
     style: int
     original_id: int
     equipped_state: _containers.RepeatedCompositeFieldContainer[CSOEconItemEquipped]
-    def __init__(
-        self,
-        id: int | None = ...,
-        account_id: int | None = ...,
-        inventory: int | None = ...,
-        def_index: int | None = ...,
-        quantity: int | None = ...,
-        level: int | None = ...,
-        quality: int | None = ...,
-        flags: int | None = ...,
-        origin: int | None = ...,
-        attribute: _Iterable[CSOEconItemAttribute | _Mapping] | None = ...,
-        interior_item: CSOEconItem | _Mapping | None = ...,
-        style: int | None = ...,
-        original_id: int | None = ...,
-        equipped_state: _Iterable[CSOEconItemEquipped | _Mapping] | None = ...,
-    ) -> None: ...
+    def __init__(self, id: _Optional[int] = ..., account_id: _Optional[int] = ..., inventory: _Optional[int] = ..., def_index: _Optional[int] = ..., quantity: _Optional[int] = ..., level: _Optional[int] = ..., quality: _Optional[int] = ..., flags: _Optional[int] = ..., origin: _Optional[int] = ..., attribute: _Optional[_Iterable[_Union[CSOEconItemAttribute, _Mapping]]] = ..., interior_item: _Optional[_Union[CSOEconItem, _Mapping]] = ..., style: _Optional[int] = ..., original_id: _Optional[int] = ..., equipped_state: _Optional[_Iterable[_Union[CSOEconItemEquipped, _Mapping]]] = ...) -> None: ...
 
 class CMsgSortItems(_message.Message):
     __slots__ = ("sort_type",)
     SORT_TYPE_FIELD_NUMBER: _ClassVar[int]
     sort_type: int
-    def __init__(self, sort_type: int | None = ...) -> None: ...
+    def __init__(self, sort_type: _Optional[int] = ...) -> None: ...
 
 class CMsgItemAcknowledged(_message.Message):
     __slots__ = ("account_id", "inventory", "def_index", "quality", "rarity", "origin")
@@ -462,15 +338,7 @@ class CMsgItemAcknowledged(_message.Message):
     quality: int
     rarity: int
     origin: int
-    def __init__(
-        self,
-        account_id: int | None = ...,
-        inventory: int | None = ...,
-        def_index: int | None = ...,
-        quality: int | None = ...,
-        rarity: int | None = ...,
-        origin: int | None = ...,
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., inventory: _Optional[int] = ..., def_index: _Optional[int] = ..., quality: _Optional[int] = ..., rarity: _Optional[int] = ..., origin: _Optional[int] = ...) -> None: ...
 
 class CMsgSetItemPositions(_message.Message):
     __slots__ = ("item_positions",)
@@ -480,31 +348,28 @@ class CMsgSetItemPositions(_message.Message):
         POSITION_FIELD_NUMBER: _ClassVar[int]
         item_id: int
         position: int
-        def __init__(self, item_id: int | None = ..., position: int | None = ...) -> None: ...
-
+        def __init__(self, item_id: _Optional[int] = ..., position: _Optional[int] = ...) -> None: ...
     ITEM_POSITIONS_FIELD_NUMBER: _ClassVar[int]
     item_positions: _containers.RepeatedCompositeFieldContainer[CMsgSetItemPositions.ItemPosition]
-    def __init__(
-        self, item_positions: _Iterable[CMsgSetItemPositions.ItemPosition | _Mapping] | None = ...
-    ) -> None: ...
+    def __init__(self, item_positions: _Optional[_Iterable[_Union[CMsgSetItemPositions.ItemPosition, _Mapping]]] = ...) -> None: ...
 
 class CMsgGCStorePurchaseCancel(_message.Message):
     __slots__ = ("txn_id",)
     TXN_ID_FIELD_NUMBER: _ClassVar[int]
     txn_id: int
-    def __init__(self, txn_id: int | None = ...) -> None: ...
+    def __init__(self, txn_id: _Optional[int] = ...) -> None: ...
 
 class CMsgGCStorePurchaseCancelResponse(_message.Message):
     __slots__ = ("result",)
     RESULT_FIELD_NUMBER: _ClassVar[int]
     result: int
-    def __init__(self, result: int | None = ...) -> None: ...
+    def __init__(self, result: _Optional[int] = ...) -> None: ...
 
 class CMsgGCStorePurchaseFinalize(_message.Message):
     __slots__ = ("txn_id",)
     TXN_ID_FIELD_NUMBER: _ClassVar[int]
     txn_id: int
-    def __init__(self, txn_id: int | None = ...) -> None: ...
+    def __init__(self, txn_id: _Optional[int] = ...) -> None: ...
 
 class CMsgGCStorePurchaseFinalizeResponse(_message.Message):
     __slots__ = ("result", "item_ids")
@@ -512,13 +377,13 @@ class CMsgGCStorePurchaseFinalizeResponse(_message.Message):
     ITEM_IDS_FIELD_NUMBER: _ClassVar[int]
     result: int
     item_ids: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(self, result: int | None = ..., item_ids: _Iterable[int] | None = ...) -> None: ...
+    def __init__(self, result: _Optional[int] = ..., item_ids: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CMsgGCToGCBannedWordListUpdated(_message.Message):
     __slots__ = ("group_id",)
     GROUP_ID_FIELD_NUMBER: _ClassVar[int]
     group_id: int
-    def __init__(self, group_id: int | None = ...) -> None: ...
+    def __init__(self, group_id: _Optional[int] = ...) -> None: ...
 
 class CMsgGCToGCDirtySDOCache(_message.Message):
     __slots__ = ("sdo_type", "key_uint64")
@@ -526,7 +391,7 @@ class CMsgGCToGCDirtySDOCache(_message.Message):
     KEY_UINT64_FIELD_NUMBER: _ClassVar[int]
     sdo_type: int
     key_uint64: int
-    def __init__(self, sdo_type: int | None = ..., key_uint64: int | None = ...) -> None: ...
+    def __init__(self, sdo_type: _Optional[int] = ..., key_uint64: _Optional[int] = ...) -> None: ...
 
 class CMsgSDONoMemcached(_message.Message):
     __slots__ = ()
@@ -536,19 +401,19 @@ class CMsgGCToGCUpdateSQLKeyValue(_message.Message):
     __slots__ = ("key_name",)
     KEY_NAME_FIELD_NUMBER: _ClassVar[int]
     key_name: str
-    def __init__(self, key_name: str | None = ...) -> None: ...
+    def __init__(self, key_name: _Optional[str] = ...) -> None: ...
 
 class CMsgGCServerVersionUpdated(_message.Message):
     __slots__ = ("server_version",)
     SERVER_VERSION_FIELD_NUMBER: _ClassVar[int]
     server_version: int
-    def __init__(self, server_version: int | None = ...) -> None: ...
+    def __init__(self, server_version: _Optional[int] = ...) -> None: ...
 
 class CMsgGCClientVersionUpdated(_message.Message):
     __slots__ = ("client_version",)
     CLIENT_VERSION_FIELD_NUMBER: _ClassVar[int]
     client_version: int
-    def __init__(self, client_version: int | None = ...) -> None: ...
+    def __init__(self, client_version: _Optional[int] = ...) -> None: ...
 
 class CMsgGCToGCWebAPIAccountChanged(_message.Message):
     __slots__ = ()
@@ -562,12 +427,7 @@ class CMsgExtractGems(_message.Message):
     tool_item_id: int
     item_item_id: int
     item_socket_id: int
-    def __init__(
-        self,
-        tool_item_id: int | None = ...,
-        item_item_id: int | None = ...,
-        item_socket_id: int | None = ...,
-    ) -> None: ...
+    def __init__(self, tool_item_id: _Optional[int] = ..., item_item_id: _Optional[int] = ..., item_socket_id: _Optional[int] = ...) -> None: ...
 
 class CMsgExtractGemsResponse(_message.Message):
     __slots__ = ("item_id", "response")
@@ -578,7 +438,6 @@ class CMsgExtractGemsResponse(_message.Message):
         k_ExtractGems_Failed_ItemIsInvalid: _ClassVar[CMsgExtractGemsResponse.EExtractGems]
         k_ExtractGems_Failed_ToolCannotRemoveGem: _ClassVar[CMsgExtractGemsResponse.EExtractGems]
         k_ExtractGems_Failed_FailedToRemoveGem: _ClassVar[CMsgExtractGemsResponse.EExtractGems]
-
     k_ExtractGems_Succeeded: CMsgExtractGemsResponse.EExtractGems
     k_ExtractGems_Failed_ToolIsInvalid: CMsgExtractGemsResponse.EExtractGems
     k_ExtractGems_Failed_ItemIsInvalid: CMsgExtractGemsResponse.EExtractGems
@@ -588,11 +447,7 @@ class CMsgExtractGemsResponse(_message.Message):
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     item_id: int
     response: CMsgExtractGemsResponse.EExtractGems
-    def __init__(
-        self,
-        item_id: int | None = ...,
-        response: CMsgExtractGemsResponse.EExtractGems | str | None = ...,
-    ) -> None: ...
+    def __init__(self, item_id: _Optional[int] = ..., response: _Optional[_Union[CMsgExtractGemsResponse.EExtractGems, str]] = ...) -> None: ...
 
 class CMsgAddSocket(_message.Message):
     __slots__ = ("tool_item_id", "item_item_id", "unusual")
@@ -602,9 +457,7 @@ class CMsgAddSocket(_message.Message):
     tool_item_id: int
     item_item_id: int
     unusual: bool
-    def __init__(
-        self, tool_item_id: int | None = ..., item_item_id: int | None = ..., unusual: bool = ...
-    ) -> None: ...
+    def __init__(self, tool_item_id: _Optional[int] = ..., item_item_id: _Optional[int] = ..., unusual: bool = ...) -> None: ...
 
 class CMsgAddSocketResponse(_message.Message):
     __slots__ = ("item_id", "updated_socket_index", "response")
@@ -614,7 +467,6 @@ class CMsgAddSocketResponse(_message.Message):
         k_AddSocket_Failed_ToolIsInvalid: _ClassVar[CMsgAddSocketResponse.EAddSocket]
         k_AddSocket_Failed_ItemCannotBeSocketed: _ClassVar[CMsgAddSocketResponse.EAddSocket]
         k_AddSocket_Failed_FailedToAddSocket: _ClassVar[CMsgAddSocketResponse.EAddSocket]
-
     k_AddSocket_Succeeded: CMsgAddSocketResponse.EAddSocket
     k_AddSocket_Failed_ToolIsInvalid: CMsgAddSocketResponse.EAddSocket
     k_AddSocket_Failed_ItemCannotBeSocketed: CMsgAddSocketResponse.EAddSocket
@@ -625,12 +477,7 @@ class CMsgAddSocketResponse(_message.Message):
     item_id: int
     updated_socket_index: _containers.RepeatedScalarFieldContainer[int]
     response: CMsgAddSocketResponse.EAddSocket
-    def __init__(
-        self,
-        item_id: int | None = ...,
-        updated_socket_index: _Iterable[int] | None = ...,
-        response: CMsgAddSocketResponse.EAddSocket | str | None = ...,
-    ) -> None: ...
+    def __init__(self, item_id: _Optional[int] = ..., updated_socket_index: _Optional[_Iterable[int]] = ..., response: _Optional[_Union[CMsgAddSocketResponse.EAddSocket, str]] = ...) -> None: ...
 
 class CMsgAddItemToSocketData(_message.Message):
     __slots__ = ("gem_item_id", "socket_index")
@@ -638,7 +485,7 @@ class CMsgAddItemToSocketData(_message.Message):
     SOCKET_INDEX_FIELD_NUMBER: _ClassVar[int]
     gem_item_id: int
     socket_index: int
-    def __init__(self, gem_item_id: int | None = ..., socket_index: int | None = ...) -> None: ...
+    def __init__(self, gem_item_id: _Optional[int] = ..., socket_index: _Optional[int] = ...) -> None: ...
 
 class CMsgAddItemToSocket(_message.Message):
     __slots__ = ("item_item_id", "gems_to_socket")
@@ -646,11 +493,7 @@ class CMsgAddItemToSocket(_message.Message):
     GEMS_TO_SOCKET_FIELD_NUMBER: _ClassVar[int]
     item_item_id: int
     gems_to_socket: _containers.RepeatedCompositeFieldContainer[CMsgAddItemToSocketData]
-    def __init__(
-        self,
-        item_item_id: int | None = ...,
-        gems_to_socket: _Iterable[CMsgAddItemToSocketData | _Mapping] | None = ...,
-    ) -> None: ...
+    def __init__(self, item_item_id: _Optional[int] = ..., gems_to_socket: _Optional[_Iterable[_Union[CMsgAddItemToSocketData, _Mapping]]] = ...) -> None: ...
 
 class CMsgAddItemToSocketResponse(_message.Message):
     __slots__ = ("item_item_id", "updated_socket_index", "response")
@@ -664,7 +507,6 @@ class CMsgAddItemToSocketResponse(_message.Message):
         k_AddGem_Failed_InvalidGemTypeForHero: _ClassVar[CMsgAddItemToSocketResponse.EAddGem]
         k_AddGem_Failed_InvalidGemTypeForSlot: _ClassVar[CMsgAddItemToSocketResponse.EAddGem]
         k_AddGem_Failed_SocketContainsUnremovableGem: _ClassVar[CMsgAddItemToSocketResponse.EAddGem]
-
     k_AddGem_Succeeded: CMsgAddItemToSocketResponse.EAddGem
     k_AddGem_Failed_GemIsInvalid: CMsgAddItemToSocketResponse.EAddGem
     k_AddGem_Failed_ItemIsInvalid: CMsgAddItemToSocketResponse.EAddGem
@@ -679,12 +521,7 @@ class CMsgAddItemToSocketResponse(_message.Message):
     item_item_id: int
     updated_socket_index: _containers.RepeatedScalarFieldContainer[int]
     response: CMsgAddItemToSocketResponse.EAddGem
-    def __init__(
-        self,
-        item_item_id: int | None = ...,
-        updated_socket_index: _Iterable[int] | None = ...,
-        response: CMsgAddItemToSocketResponse.EAddGem | str | None = ...,
-    ) -> None: ...
+    def __init__(self, item_item_id: _Optional[int] = ..., updated_socket_index: _Optional[_Iterable[int]] = ..., response: _Optional[_Union[CMsgAddItemToSocketResponse.EAddGem, str]] = ...) -> None: ...
 
 class CMsgResetStrangeGemCount(_message.Message):
     __slots__ = ("item_item_id", "socket_index")
@@ -692,7 +529,7 @@ class CMsgResetStrangeGemCount(_message.Message):
     SOCKET_INDEX_FIELD_NUMBER: _ClassVar[int]
     item_item_id: int
     socket_index: int
-    def __init__(self, item_item_id: int | None = ..., socket_index: int | None = ...) -> None: ...
+    def __init__(self, item_item_id: _Optional[int] = ..., socket_index: _Optional[int] = ...) -> None: ...
 
 class CMsgResetStrangeGemCountResponse(_message.Message):
     __slots__ = ("response",)
@@ -703,7 +540,6 @@ class CMsgResetStrangeGemCountResponse(_message.Message):
         k_ResetGem_Failed_ItemIsInvalid: _ClassVar[CMsgResetStrangeGemCountResponse.EResetGem]
         k_ResetGem_Failed_InvalidSocketId: _ClassVar[CMsgResetStrangeGemCountResponse.EResetGem]
         k_ResetGem_Failed_SocketCannotBeReset: _ClassVar[CMsgResetStrangeGemCountResponse.EResetGem]
-
     k_ResetGem_Succeeded: CMsgResetStrangeGemCountResponse.EResetGem
     k_ResetGem_Failed_FailedToResetGem: CMsgResetStrangeGemCountResponse.EResetGem
     k_ResetGem_Failed_ItemIsInvalid: CMsgResetStrangeGemCountResponse.EResetGem
@@ -711,9 +547,7 @@ class CMsgResetStrangeGemCountResponse(_message.Message):
     k_ResetGem_Failed_SocketCannotBeReset: CMsgResetStrangeGemCountResponse.EResetGem
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     response: CMsgResetStrangeGemCountResponse.EResetGem
-    def __init__(
-        self, response: CMsgResetStrangeGemCountResponse.EResetGem | str | None = ...
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgResetStrangeGemCountResponse.EResetGem, str]] = ...) -> None: ...
 
 class CMsgGCToClientPollFileRequest(_message.Message):
     __slots__ = ("file_name", "client_version", "poll_id")
@@ -723,12 +557,7 @@ class CMsgGCToClientPollFileRequest(_message.Message):
     file_name: str
     client_version: int
     poll_id: int
-    def __init__(
-        self,
-        file_name: str | None = ...,
-        client_version: int | None = ...,
-        poll_id: int | None = ...,
-    ) -> None: ...
+    def __init__(self, file_name: _Optional[str] = ..., client_version: _Optional[int] = ..., poll_id: _Optional[int] = ...) -> None: ...
 
 class CMsgGCToClientPollFileResponse(_message.Message):
     __slots__ = ("poll_id", "file_size", "file_crc")
@@ -738,9 +567,7 @@ class CMsgGCToClientPollFileResponse(_message.Message):
     poll_id: int
     file_size: int
     file_crc: int
-    def __init__(
-        self, poll_id: int | None = ..., file_size: int | None = ..., file_crc: int | None = ...
-    ) -> None: ...
+    def __init__(self, poll_id: _Optional[int] = ..., file_size: _Optional[int] = ..., file_crc: _Optional[int] = ...) -> None: ...
 
 class CMsgGCToGCPerformManualOp(_message.Message):
     __slots__ = ("op_id", "group_code")
@@ -748,7 +575,7 @@ class CMsgGCToGCPerformManualOp(_message.Message):
     GROUP_CODE_FIELD_NUMBER: _ClassVar[int]
     op_id: int
     group_code: int
-    def __init__(self, op_id: int | None = ..., group_code: int | None = ...) -> None: ...
+    def __init__(self, op_id: _Optional[int] = ..., group_code: _Optional[int] = ...) -> None: ...
 
 class CMsgGCToGCPerformManualOpCompleted(_message.Message):
     __slots__ = ("success", "source_gc")
@@ -756,7 +583,7 @@ class CMsgGCToGCPerformManualOpCompleted(_message.Message):
     SOURCE_GC_FIELD_NUMBER: _ClassVar[int]
     success: bool
     source_gc: int
-    def __init__(self, success: bool = ..., source_gc: int | None = ...) -> None: ...
+    def __init__(self, success: bool = ..., source_gc: _Optional[int] = ...) -> None: ...
 
 class CMsgGCToGCReloadServerRegionSettings(_message.Message):
     __slots__ = ()
@@ -765,13 +592,8 @@ class CMsgGCToGCReloadServerRegionSettings(_message.Message):
 class CMsgGCAdditionalWelcomeMsgList(_message.Message):
     __slots__ = ("welcome_messages",)
     WELCOME_MESSAGES_FIELD_NUMBER: _ClassVar[int]
-    welcome_messages: _containers.RepeatedCompositeFieldContainer[
-        _gcsdk_gcmessages_pb2.CExtraMsgBlock
-    ]
-    def __init__(
-        self,
-        welcome_messages: _Iterable[_gcsdk_gcmessages_pb2.CExtraMsgBlock | _Mapping] | None = ...,
-    ) -> None: ...
+    welcome_messages: _containers.RepeatedCompositeFieldContainer[_gcsdk_gcmessages_pb2.CExtraMsgBlock]
+    def __init__(self, welcome_messages: _Optional[_Iterable[_Union[_gcsdk_gcmessages_pb2.CExtraMsgBlock, _Mapping]]] = ...) -> None: ...
 
 class CMsgApplyRemoteConVars(_message.Message):
     __slots__ = ("con_vars",)
@@ -787,32 +609,22 @@ class CMsgApplyRemoteConVars(_message.Message):
         version_min: int
         version_max: int
         platform: _steammessages_pb2.EGCPlatform
-        def __init__(
-            self,
-            name: str | None = ...,
-            value: str | None = ...,
-            version_min: int | None = ...,
-            version_max: int | None = ...,
-            platform: _steammessages_pb2.EGCPlatform | str | None = ...,
-        ) -> None: ...
-
+        def __init__(self, name: _Optional[str] = ..., value: _Optional[str] = ..., version_min: _Optional[int] = ..., version_max: _Optional[int] = ..., platform: _Optional[_Union[_steammessages_pb2.EGCPlatform, str]] = ...) -> None: ...
     CON_VARS_FIELD_NUMBER: _ClassVar[int]
     con_vars: _containers.RepeatedCompositeFieldContainer[CMsgApplyRemoteConVars.ConVar]
-    def __init__(
-        self, con_vars: _Iterable[CMsgApplyRemoteConVars.ConVar | _Mapping] | None = ...
-    ) -> None: ...
+    def __init__(self, con_vars: _Optional[_Iterable[_Union[CMsgApplyRemoteConVars.ConVar, _Mapping]]] = ...) -> None: ...
 
 class CMsgGCToClientApplyRemoteConVars(_message.Message):
     __slots__ = ("msg",)
     MSG_FIELD_NUMBER: _ClassVar[int]
     msg: CMsgApplyRemoteConVars
-    def __init__(self, msg: CMsgApplyRemoteConVars | _Mapping | None = ...) -> None: ...
+    def __init__(self, msg: _Optional[_Union[CMsgApplyRemoteConVars, _Mapping]] = ...) -> None: ...
 
 class CMsgGCToServerApplyRemoteConVars(_message.Message):
     __slots__ = ("msg",)
     MSG_FIELD_NUMBER: _ClassVar[int]
     msg: CMsgApplyRemoteConVars
-    def __init__(self, msg: CMsgApplyRemoteConVars | _Mapping | None = ...) -> None: ...
+    def __init__(self, msg: _Optional[_Union[CMsgApplyRemoteConVars, _Mapping]] = ...) -> None: ...
 
 class CMsgClientToGCIntegrityStatus(_message.Message):
     __slots__ = ("report", "secure_allowed", "diagnostics")
@@ -826,26 +638,14 @@ class CMsgClientToGCIntegrityStatus(_message.Message):
         extended: int
         value: int
         string_value: str
-        def __init__(
-            self,
-            id: int | None = ...,
-            extended: int | None = ...,
-            value: int | None = ...,
-            string_value: str | None = ...,
-        ) -> None: ...
-
+        def __init__(self, id: _Optional[int] = ..., extended: _Optional[int] = ..., value: _Optional[int] = ..., string_value: _Optional[str] = ...) -> None: ...
     REPORT_FIELD_NUMBER: _ClassVar[int]
     SECURE_ALLOWED_FIELD_NUMBER: _ClassVar[int]
     DIAGNOSTICS_FIELD_NUMBER: _ClassVar[int]
     report: str
     secure_allowed: bool
     diagnostics: _containers.RepeatedCompositeFieldContainer[CMsgClientToGCIntegrityStatus.keyvalue]
-    def __init__(
-        self,
-        report: str | None = ...,
-        secure_allowed: bool = ...,
-        diagnostics: _Iterable[CMsgClientToGCIntegrityStatus.keyvalue | _Mapping] | None = ...,
-    ) -> None: ...
+    def __init__(self, report: _Optional[str] = ..., secure_allowed: bool = ..., diagnostics: _Optional[_Iterable[_Union[CMsgClientToGCIntegrityStatus.keyvalue, _Mapping]]] = ...) -> None: ...
 
 class CMsgClientToGCAggregateMetrics(_message.Message):
     __slots__ = ("metrics",)
@@ -855,32 +655,22 @@ class CMsgClientToGCAggregateMetrics(_message.Message):
         METRIC_COUNT_FIELD_NUMBER: _ClassVar[int]
         metric_name: str
         metric_count: int
-        def __init__(
-            self, metric_name: str | None = ..., metric_count: int | None = ...
-        ) -> None: ...
-
+        def __init__(self, metric_name: _Optional[str] = ..., metric_count: _Optional[int] = ...) -> None: ...
     METRICS_FIELD_NUMBER: _ClassVar[int]
-    metrics: _containers.RepeatedCompositeFieldContainer[
-        CMsgClientToGCAggregateMetrics.SingleMetric
-    ]
-    def __init__(
-        self,
-        metrics: _Iterable[CMsgClientToGCAggregateMetrics.SingleMetric | _Mapping] | None = ...,
-    ) -> None: ...
+    metrics: _containers.RepeatedCompositeFieldContainer[CMsgClientToGCAggregateMetrics.SingleMetric]
+    def __init__(self, metrics: _Optional[_Iterable[_Union[CMsgClientToGCAggregateMetrics.SingleMetric, _Mapping]]] = ...) -> None: ...
 
 class CMsgGCToClientAggregateMetricsBackoff(_message.Message):
     __slots__ = ("upload_rate_modifier",)
     UPLOAD_RATE_MODIFIER_FIELD_NUMBER: _ClassVar[int]
     upload_rate_modifier: float
-    def __init__(self, upload_rate_modifier: float | None = ...) -> None: ...
+    def __init__(self, upload_rate_modifier: _Optional[float] = ...) -> None: ...
 
 class CMsgGCToServerSteamLearnAccessTokensChanged(_message.Message):
     __slots__ = ("access_tokens",)
     ACCESS_TOKENS_FIELD_NUMBER: _ClassVar[int]
     access_tokens: _steamworkssdk_pb2.CMsgSteamLearnAccessTokens
-    def __init__(
-        self, access_tokens: _steamworkssdk_pb2.CMsgSteamLearnAccessTokens | _Mapping | None = ...
-    ) -> None: ...
+    def __init__(self, access_tokens: _Optional[_Union[_steamworkssdk_pb2.CMsgSteamLearnAccessTokens, _Mapping]] = ...) -> None: ...
 
 class CMsgGCToServerSteamLearnUseHTTP(_message.Message):
     __slots__ = ("use_http",)

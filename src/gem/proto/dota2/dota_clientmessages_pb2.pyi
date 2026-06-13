@@ -1,14 +1,12 @@
-from collections.abc import Iterable as _Iterable
-from collections.abc import Mapping as _Mapping
-from typing import ClassVar as _ClassVar
-
-import base_gcmessages_pb2 as _base_gcmessages_pb2
 import dota_commonmessages_pb2 as _dota_commonmessages_pb2
 import dota_shared_enums_pb2 as _dota_shared_enums_pb2
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
+import base_gcmessages_pb2 as _base_gcmessages_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -138,7 +136,10 @@ class EDotaClientMessages(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     DOTA_CM_MonsterHunter_HuntAlert: _ClassVar[EDotaClientMessages]
     DOTA_CM_AbilitySpecificChannelRequiresHalt: _ClassVar[EDotaClientMessages]
     DOTA_CM_TormentorTimer: _ClassVar[EDotaClientMessages]
-
+    DOTA_CM_ChooseDeityBlessing: _ClassVar[EDotaClientMessages]
+    DOTA_CM_ChooseAghanimUpgrade: _ClassVar[EDotaClientMessages]
+    DOTA_CM_ChooseAbilityImbue: _ClassVar[EDotaClientMessages]
+    DOTA_CM_NetworkStats: _ClassVar[EDotaClientMessages]
 DOTA_CM_MapLine: EDotaClientMessages
 DOTA_CM_AspectRatio: EDotaClientMessages
 DOTA_CM_MapPing: EDotaClientMessages
@@ -263,33 +264,25 @@ DOTA_CM_MonsterHunter_SelectInvestigation: EDotaClientMessages
 DOTA_CM_MonsterHunter_HuntAlert: EDotaClientMessages
 DOTA_CM_AbilitySpecificChannelRequiresHalt: EDotaClientMessages
 DOTA_CM_TormentorTimer: EDotaClientMessages
+DOTA_CM_ChooseDeityBlessing: EDotaClientMessages
+DOTA_CM_ChooseAghanimUpgrade: EDotaClientMessages
+DOTA_CM_ChooseAbilityImbue: EDotaClientMessages
+DOTA_CM_NetworkStats: EDotaClientMessages
 
 class CDOTAClientMsg_MapPing(_message.Message):
     __slots__ = ("location_ping",)
     LOCATION_PING_FIELD_NUMBER: _ClassVar[int]
     location_ping: _dota_commonmessages_pb2.CDOTAMsg_LocationPing
-    def __init__(
-        self, location_ping: _dota_commonmessages_pb2.CDOTAMsg_LocationPing | _Mapping | None = ...
-    ) -> None: ...
+    def __init__(self, location_ping: _Optional[_Union[_dota_commonmessages_pb2.CDOTAMsg_LocationPing, _Mapping]] = ...) -> None: ...
 
 class CDOTAClientMsg_ItemAlert(_message.Message):
     __slots__ = ("item_alert",)
     ITEM_ALERT_FIELD_NUMBER: _ClassVar[int]
     item_alert: _dota_commonmessages_pb2.CDOTAMsg_ItemAlert
-    def __init__(
-        self, item_alert: _dota_commonmessages_pb2.CDOTAMsg_ItemAlert | _Mapping | None = ...
-    ) -> None: ...
+    def __init__(self, item_alert: _Optional[_Union[_dota_commonmessages_pb2.CDOTAMsg_ItemAlert, _Mapping]] = ...) -> None: ...
 
 class CDOTAClientMsg_EnemyItemAlert(_message.Message):
-    __slots__ = (
-        "item_entindex",
-        "rune_type",
-        "item_level",
-        "primary_charges",
-        "secondary_charges",
-        "ability_id",
-        "owner_entindex",
-    )
+    __slots__ = ("item_entindex", "rune_type", "item_level", "primary_charges", "secondary_charges", "ability_id", "owner_entindex")
     ITEM_ENTINDEX_FIELD_NUMBER: _ClassVar[int]
     RUNE_TYPE_FIELD_NUMBER: _ClassVar[int]
     ITEM_LEVEL_FIELD_NUMBER: _ClassVar[int]
@@ -304,16 +297,7 @@ class CDOTAClientMsg_EnemyItemAlert(_message.Message):
     secondary_charges: int
     ability_id: int
     owner_entindex: int
-    def __init__(
-        self,
-        item_entindex: int | None = ...,
-        rune_type: int | None = ...,
-        item_level: int | None = ...,
-        primary_charges: int | None = ...,
-        secondary_charges: int | None = ...,
-        ability_id: int | None = ...,
-        owner_entindex: int | None = ...,
-    ) -> None: ...
+    def __init__(self, item_entindex: _Optional[int] = ..., rune_type: _Optional[int] = ..., item_level: _Optional[int] = ..., primary_charges: _Optional[int] = ..., secondary_charges: _Optional[int] = ..., ability_id: _Optional[int] = ..., owner_entindex: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_ModifierAlert(_message.Message):
     __slots__ = ("buff_internal_index", "target_entindex")
@@ -321,9 +305,7 @@ class CDOTAClientMsg_ModifierAlert(_message.Message):
     TARGET_ENTINDEX_FIELD_NUMBER: _ClassVar[int]
     buff_internal_index: int
     target_entindex: int
-    def __init__(
-        self, buff_internal_index: int | None = ..., target_entindex: int | None = ...
-    ) -> None: ...
+    def __init__(self, buff_internal_index: _Optional[int] = ..., target_entindex: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_ClickedBuff(_message.Message):
     __slots__ = ("buff_internal_index", "target_entindex")
@@ -331,9 +313,7 @@ class CDOTAClientMsg_ClickedBuff(_message.Message):
     TARGET_ENTINDEX_FIELD_NUMBER: _ClassVar[int]
     buff_internal_index: int
     target_entindex: int
-    def __init__(
-        self, buff_internal_index: int | None = ..., target_entindex: int | None = ...
-    ) -> None: ...
+    def __init__(self, buff_internal_index: _Optional[int] = ..., target_entindex: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_HPManaAlert(_message.Message):
     __slots__ = ("target_entindex", "show_raw_values")
@@ -341,7 +321,7 @@ class CDOTAClientMsg_HPManaAlert(_message.Message):
     SHOW_RAW_VALUES_FIELD_NUMBER: _ClassVar[int]
     target_entindex: int
     show_raw_values: bool
-    def __init__(self, target_entindex: int | None = ..., show_raw_values: bool = ...) -> None: ...
+    def __init__(self, target_entindex: _Optional[int] = ..., show_raw_values: bool = ...) -> None: ...
 
 class CDOTAClientMsg_NeutralCampAlert(_message.Message):
     __slots__ = ("spawner_entindex", "unit_entindex", "stack_request")
@@ -351,12 +331,7 @@ class CDOTAClientMsg_NeutralCampAlert(_message.Message):
     spawner_entindex: int
     unit_entindex: int
     stack_request: bool
-    def __init__(
-        self,
-        spawner_entindex: int | None = ...,
-        unit_entindex: int | None = ...,
-        stack_request: bool = ...,
-    ) -> None: ...
+    def __init__(self, spawner_entindex: _Optional[int] = ..., unit_entindex: _Optional[int] = ..., stack_request: bool = ...) -> None: ...
 
 class CDOTAClientMsg_GlyphAlert(_message.Message):
     __slots__ = ("negative",)
@@ -374,15 +349,13 @@ class CDOTAClientMsg_MapLine(_message.Message):
     __slots__ = ("mapline",)
     MAPLINE_FIELD_NUMBER: _ClassVar[int]
     mapline: _dota_commonmessages_pb2.CDOTAMsg_MapLine
-    def __init__(
-        self, mapline: _dota_commonmessages_pb2.CDOTAMsg_MapLine | _Mapping | None = ...
-    ) -> None: ...
+    def __init__(self, mapline: _Optional[_Union[_dota_commonmessages_pb2.CDOTAMsg_MapLine, _Mapping]] = ...) -> None: ...
 
 class CDOTAClientMsg_AspectRatio(_message.Message):
     __slots__ = ("ratio",)
     RATIO_FIELD_NUMBER: _ClassVar[int]
     ratio: float
-    def __init__(self, ratio: float | None = ...) -> None: ...
+    def __init__(self, ratio: _Optional[float] = ...) -> None: ...
 
 class CDOTAClientMsg_UnitsAutoAttackMode(_message.Message):
     __slots__ = ("mode", "unit_type")
@@ -392,7 +365,6 @@ class CDOTAClientMsg_UnitsAutoAttackMode(_message.Message):
         NEVER: _ClassVar[CDOTAClientMsg_UnitsAutoAttackMode.EMode]
         AFTER_SPELLCAST: _ClassVar[CDOTAClientMsg_UnitsAutoAttackMode.EMode]
         ALWAYS: _ClassVar[CDOTAClientMsg_UnitsAutoAttackMode.EMode]
-
     INVALID: CDOTAClientMsg_UnitsAutoAttackMode.EMode
     NEVER: CDOTAClientMsg_UnitsAutoAttackMode.EMode
     AFTER_SPELLCAST: CDOTAClientMsg_UnitsAutoAttackMode.EMode
@@ -401,18 +373,13 @@ class CDOTAClientMsg_UnitsAutoAttackMode(_message.Message):
         __slots__ = ()
         NORMAL: _ClassVar[CDOTAClientMsg_UnitsAutoAttackMode.EUnitType]
         SUMMONED: _ClassVar[CDOTAClientMsg_UnitsAutoAttackMode.EUnitType]
-
     NORMAL: CDOTAClientMsg_UnitsAutoAttackMode.EUnitType
     SUMMONED: CDOTAClientMsg_UnitsAutoAttackMode.EUnitType
     MODE_FIELD_NUMBER: _ClassVar[int]
     UNIT_TYPE_FIELD_NUMBER: _ClassVar[int]
     mode: CDOTAClientMsg_UnitsAutoAttackMode.EMode
     unit_type: CDOTAClientMsg_UnitsAutoAttackMode.EUnitType
-    def __init__(
-        self,
-        mode: CDOTAClientMsg_UnitsAutoAttackMode.EMode | str | None = ...,
-        unit_type: CDOTAClientMsg_UnitsAutoAttackMode.EUnitType | str | None = ...,
-    ) -> None: ...
+    def __init__(self, mode: _Optional[_Union[CDOTAClientMsg_UnitsAutoAttackMode.EMode, str]] = ..., unit_type: _Optional[_Union[CDOTAClientMsg_UnitsAutoAttackMode.EUnitType, str]] = ...) -> None: ...
 
 class CDOTAClientMsg_UnitsAutoAttackAfterSpell(_message.Message):
     __slots__ = ("enabled",)
@@ -446,15 +413,13 @@ class CDOTAClientMsg_AbilitySpecificChannelRequiresHalt(_message.Message):
     ability_id: int
     default: bool
     enabled: bool
-    def __init__(
-        self, ability_id: int | None = ..., default: bool = ..., enabled: bool = ...
-    ) -> None: ...
+    def __init__(self, ability_id: _Optional[int] = ..., default: bool = ..., enabled: bool = ...) -> None: ...
 
 class CDOTAClientMsg_SearchString(_message.Message):
     __slots__ = ("search",)
     SEARCH_FIELD_NUMBER: _ClassVar[int]
     search: str
-    def __init__(self, search: str | None = ...) -> None: ...
+    def __init__(self, search: _Optional[str] = ...) -> None: ...
 
 class CDOTAClientMsg_Pause(_message.Message):
     __slots__ = ()
@@ -464,7 +429,7 @@ class CDOTAClientMsg_ShopViewMode(_message.Message):
     __slots__ = ("mode",)
     MODE_FIELD_NUMBER: _ClassVar[int]
     mode: int
-    def __init__(self, mode: int | None = ...) -> None: ...
+    def __init__(self, mode: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_SetUnitShareFlag(_message.Message):
     __slots__ = ("player_id", "flag", "state")
@@ -474,29 +439,25 @@ class CDOTAClientMsg_SetUnitShareFlag(_message.Message):
     player_id: int
     flag: int
     state: bool
-    def __init__(
-        self, player_id: int | None = ..., flag: int | None = ..., state: bool = ...
-    ) -> None: ...
+    def __init__(self, player_id: _Optional[int] = ..., flag: _Optional[int] = ..., state: bool = ...) -> None: ...
 
 class CDOTAClientMsg_SwapRequest(_message.Message):
     __slots__ = ("player_id",)
     PLAYER_ID_FIELD_NUMBER: _ClassVar[int]
     player_id: int
-    def __init__(self, player_id: int | None = ...) -> None: ...
+    def __init__(self, player_id: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_SwapAccept(_message.Message):
     __slots__ = ("player_id",)
     PLAYER_ID_FIELD_NUMBER: _ClassVar[int]
     player_id: int
-    def __init__(self, player_id: int | None = ...) -> None: ...
+    def __init__(self, player_id: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_WorldLine(_message.Message):
     __slots__ = ("worldline",)
     WORLDLINE_FIELD_NUMBER: _ClassVar[int]
     worldline: _dota_commonmessages_pb2.CDOTAMsg_WorldLine
-    def __init__(
-        self, worldline: _dota_commonmessages_pb2.CDOTAMsg_WorldLine | _Mapping | None = ...
-    ) -> None: ...
+    def __init__(self, worldline: _Optional[_Union[_dota_commonmessages_pb2.CDOTAMsg_WorldLine, _Mapping]] = ...) -> None: ...
 
 class CDOTAClientMsg_RequestGraphUpdate(_message.Message):
     __slots__ = ()
@@ -510,31 +471,19 @@ class CDOTAClientMsg_ChatWheel(_message.Message):
     chat_message_id: int
     param_hero_id: int
     emoticon_id: int
-    def __init__(
-        self,
-        chat_message_id: int | None = ...,
-        param_hero_id: int | None = ...,
-        emoticon_id: int | None = ...,
-    ) -> None: ...
+    def __init__(self, chat_message_id: _Optional[int] = ..., param_hero_id: _Optional[int] = ..., emoticon_id: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_SendStatPopup(_message.Message):
     __slots__ = ("statpopup",)
     STATPOPUP_FIELD_NUMBER: _ClassVar[int]
     statpopup: _dota_commonmessages_pb2.CDOTAMsg_SendStatPopup
-    def __init__(
-        self, statpopup: _dota_commonmessages_pb2.CDOTAMsg_SendStatPopup | _Mapping | None = ...
-    ) -> None: ...
+    def __init__(self, statpopup: _Optional[_Union[_dota_commonmessages_pb2.CDOTAMsg_SendStatPopup, _Mapping]] = ...) -> None: ...
 
 class CDOTAClientMsg_DismissAllStatPopups(_message.Message):
     __slots__ = ("dismissallmsg",)
     DISMISSALLMSG_FIELD_NUMBER: _ClassVar[int]
     dismissallmsg: _dota_commonmessages_pb2.CDOTAMsg_DismissAllStatPopups
-    def __init__(
-        self,
-        dismissallmsg: _dota_commonmessages_pb2.CDOTAMsg_DismissAllStatPopups
-        | _Mapping
-        | None = ...,
-    ) -> None: ...
+    def __init__(self, dismissallmsg: _Optional[_Union[_dota_commonmessages_pb2.CDOTAMsg_DismissAllStatPopups, _Mapping]] = ...) -> None: ...
 
 class CDOTAClientMsg_BeginLastHitChallenge(_message.Message):
     __slots__ = ("chosen_lane", "helper_enabled")
@@ -542,7 +491,7 @@ class CDOTAClientMsg_BeginLastHitChallenge(_message.Message):
     HELPER_ENABLED_FIELD_NUMBER: _ClassVar[int]
     chosen_lane: int
     helper_enabled: bool
-    def __init__(self, chosen_lane: int | None = ..., helper_enabled: bool = ...) -> None: ...
+    def __init__(self, chosen_lane: _Optional[int] = ..., helper_enabled: bool = ...) -> None: ...
 
 class CDOTAClientMsg_UpdateQuickBuyItem(_message.Message):
     __slots__ = ("item_ability_id", "purchasable", "top_level_item_ability_id")
@@ -552,12 +501,7 @@ class CDOTAClientMsg_UpdateQuickBuyItem(_message.Message):
     item_ability_id: int
     purchasable: bool
     top_level_item_ability_id: int
-    def __init__(
-        self,
-        item_ability_id: int | None = ...,
-        purchasable: bool = ...,
-        top_level_item_ability_id: int | None = ...,
-    ) -> None: ...
+    def __init__(self, item_ability_id: _Optional[int] = ..., purchasable: bool = ..., top_level_item_ability_id: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_UpdateQuickBuy(_message.Message):
     __slots__ = ("items", "goal_item_ability_ids")
@@ -565,22 +509,10 @@ class CDOTAClientMsg_UpdateQuickBuy(_message.Message):
     GOAL_ITEM_ABILITY_IDS_FIELD_NUMBER: _ClassVar[int]
     items: _containers.RepeatedCompositeFieldContainer[CDOTAClientMsg_UpdateQuickBuyItem]
     goal_item_ability_ids: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(
-        self,
-        items: _Iterable[CDOTAClientMsg_UpdateQuickBuyItem | _Mapping] | None = ...,
-        goal_item_ability_ids: _Iterable[int] | None = ...,
-    ) -> None: ...
+    def __init__(self, items: _Optional[_Iterable[_Union[CDOTAClientMsg_UpdateQuickBuyItem, _Mapping]]] = ..., goal_item_ability_ids: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CDOTAClientMsg_QuickBuyAction(_message.Message):
-    __slots__ = (
-        "action",
-        "item_ability_id",
-        "slot_index",
-        "purchaser_entindex",
-        "new_slot_index",
-        "top_level_item",
-        "old_slot_ability_ids",
-    )
+    __slots__ = ("action", "item_ability_id", "slot_index", "purchaser_entindex", "new_slot_index", "top_level_item", "old_slot_ability_ids")
     class EActionType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
         INVALID: _ClassVar[CDOTAClientMsg_QuickBuyAction.EActionType]
@@ -595,7 +527,6 @@ class CDOTAClientMsg_QuickBuyAction(_message.Message):
         DISABLE_BUYBACK_PROTECTION: _ClassVar[CDOTAClientMsg_QuickBuyAction.EActionType]
         QUEUE_FIRST_AND_MARK_FOR_BUY: _ClassVar[CDOTAClientMsg_QuickBuyAction.EActionType]
         CHANGE_SLOT: _ClassVar[CDOTAClientMsg_QuickBuyAction.EActionType]
-
     INVALID: CDOTAClientMsg_QuickBuyAction.EActionType
     PURCHASE: CDOTAClientMsg_QuickBuyAction.EActionType
     QUEUE: CDOTAClientMsg_QuickBuyAction.EActionType
@@ -622,22 +553,13 @@ class CDOTAClientMsg_QuickBuyAction(_message.Message):
     new_slot_index: int
     top_level_item: bool
     old_slot_ability_ids: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(
-        self,
-        action: CDOTAClientMsg_QuickBuyAction.EActionType | str | None = ...,
-        item_ability_id: int | None = ...,
-        slot_index: int | None = ...,
-        purchaser_entindex: int | None = ...,
-        new_slot_index: int | None = ...,
-        top_level_item: bool = ...,
-        old_slot_ability_ids: _Iterable[int] | None = ...,
-    ) -> None: ...
+    def __init__(self, action: _Optional[_Union[CDOTAClientMsg_QuickBuyAction.EActionType, str]] = ..., item_ability_id: _Optional[int] = ..., slot_index: _Optional[int] = ..., purchaser_entindex: _Optional[int] = ..., new_slot_index: _Optional[int] = ..., top_level_item: bool = ..., old_slot_ability_ids: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CDOTAClientMsg_RecordVote(_message.Message):
     __slots__ = ("choice_index",)
     CHOICE_INDEX_FIELD_NUMBER: _ClassVar[int]
     choice_index: int
-    def __init__(self, choice_index: int | None = ...) -> None: ...
+    def __init__(self, choice_index: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_WillPurchaseAlert(_message.Message):
     __slots__ = ("item_ability_id", "gold_remaining", "suggestion_player_id")
@@ -647,12 +569,7 @@ class CDOTAClientMsg_WillPurchaseAlert(_message.Message):
     item_ability_id: int
     gold_remaining: int
     suggestion_player_id: int
-    def __init__(
-        self,
-        item_ability_id: int | None = ...,
-        gold_remaining: int | None = ...,
-        suggestion_player_id: int | None = ...,
-    ) -> None: ...
+    def __init__(self, item_ability_id: _Optional[int] = ..., gold_remaining: _Optional[int] = ..., suggestion_player_id: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_BuyBackStateAlert(_message.Message):
     __slots__ = ()
@@ -668,13 +585,7 @@ class CDOTAClientMsg_QuickBuyAlert(_message.Message):
     gold_cost: int
     item_cooldown_seconds: int
     show_buyback: bool
-    def __init__(
-        self,
-        item_ability_id: int | None = ...,
-        gold_cost: int | None = ...,
-        item_cooldown_seconds: int | None = ...,
-        show_buyback: bool = ...,
-    ) -> None: ...
+    def __init__(self, item_ability_id: _Optional[int] = ..., gold_cost: _Optional[int] = ..., item_cooldown_seconds: _Optional[int] = ..., show_buyback: bool = ...) -> None: ...
 
 class CDOTAClientMsg_PlayerShowCase(_message.Message):
     __slots__ = ("showcase",)
@@ -686,7 +597,7 @@ class CDOTAClientMsg_CameraZoomAmount(_message.Message):
     __slots__ = ("zoom_amount",)
     ZOOM_AMOUNT_FIELD_NUMBER: _ClassVar[int]
     zoom_amount: float
-    def __init__(self, zoom_amount: float | None = ...) -> None: ...
+    def __init__(self, zoom_amount: _Optional[float] = ...) -> None: ...
 
 class CDOTAClientMsg_BroadcasterUsingCameraman(_message.Message):
     __slots__ = ("cameraman",)
@@ -710,33 +621,23 @@ class CDOTAClientMsg_HeroStatueLike(_message.Message):
     __slots__ = ("owner_player_id",)
     OWNER_PLAYER_ID_FIELD_NUMBER: _ClassVar[int]
     owner_player_id: int
-    def __init__(self, owner_player_id: int | None = ...) -> None: ...
+    def __init__(self, owner_player_id: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_EventCNY2015Cmd(_message.Message):
     __slots__ = ("data",)
     DATA_FIELD_NUMBER: _ClassVar[int]
     data: bytes
-    def __init__(self, data: bytes | None = ...) -> None: ...
+    def __init__(self, data: _Optional[bytes] = ...) -> None: ...
 
 class CDOTAClientMsg_DemoHero(_message.Message):
-    __slots__ = (
-        "hero_id",
-        "hero_id_to_spawn",
-        "preview_items",
-        "item_ids",
-        "style_index_override",
-        "keep_existing_demohero",
-        "item_data",
-        "hero_variant",
-    )
+    __slots__ = ("hero_id", "hero_id_to_spawn", "preview_items", "item_ids", "style_index_override", "keep_existing_demohero", "item_data", "hero_variant")
     class PreviewItem(_message.Message):
         __slots__ = ("item_def", "item_style")
         ITEM_DEF_FIELD_NUMBER: _ClassVar[int]
         ITEM_STYLE_FIELD_NUMBER: _ClassVar[int]
         item_def: int
         item_style: int
-        def __init__(self, item_def: int | None = ..., item_style: int | None = ...) -> None: ...
-
+        def __init__(self, item_def: _Optional[int] = ..., item_style: _Optional[int] = ...) -> None: ...
     HERO_ID_FIELD_NUMBER: _ClassVar[int]
     HERO_ID_TO_SPAWN_FIELD_NUMBER: _ClassVar[int]
     PREVIEW_ITEMS_FIELD_NUMBER: _ClassVar[int]
@@ -753,17 +654,7 @@ class CDOTAClientMsg_DemoHero(_message.Message):
     keep_existing_demohero: bool
     item_data: _containers.RepeatedCompositeFieldContainer[_base_gcmessages_pb2.CSOEconItem]
     hero_variant: int
-    def __init__(
-        self,
-        hero_id: int | None = ...,
-        hero_id_to_spawn: int | None = ...,
-        preview_items: _Iterable[CDOTAClientMsg_DemoHero.PreviewItem | _Mapping] | None = ...,
-        item_ids: _Iterable[int] | None = ...,
-        style_index_override: int | None = ...,
-        keep_existing_demohero: bool = ...,
-        item_data: _Iterable[_base_gcmessages_pb2.CSOEconItem | _Mapping] | None = ...,
-        hero_variant: int | None = ...,
-    ) -> None: ...
+    def __init__(self, hero_id: _Optional[int] = ..., hero_id_to_spawn: _Optional[int] = ..., preview_items: _Optional[_Iterable[_Union[CDOTAClientMsg_DemoHero.PreviewItem, _Mapping]]] = ..., item_ids: _Optional[_Iterable[int]] = ..., style_index_override: _Optional[int] = ..., keep_existing_demohero: bool = ..., item_data: _Optional[_Iterable[_Union[_base_gcmessages_pb2.CSOEconItem, _Mapping]]] = ..., hero_variant: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_ChallengeSelect(_message.Message):
     __slots__ = ("event_id", "slot_id", "sequence_id")
@@ -773,9 +664,7 @@ class CDOTAClientMsg_ChallengeSelect(_message.Message):
     event_id: int
     slot_id: int
     sequence_id: int
-    def __init__(
-        self, event_id: int | None = ..., slot_id: int | None = ..., sequence_id: int | None = ...
-    ) -> None: ...
+    def __init__(self, event_id: _Optional[int] = ..., slot_id: _Optional[int] = ..., sequence_id: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_ChallengeReroll(_message.Message):
     __slots__ = ("event_id", "slot_id", "sequence_id", "hero_id")
@@ -787,25 +676,19 @@ class CDOTAClientMsg_ChallengeReroll(_message.Message):
     slot_id: int
     sequence_id: int
     hero_id: int
-    def __init__(
-        self,
-        event_id: _dota_shared_enums_pb2.EEvent | str | None = ...,
-        slot_id: int | None = ...,
-        sequence_id: int | None = ...,
-        hero_id: int | None = ...,
-    ) -> None: ...
+    def __init__(self, event_id: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ..., slot_id: _Optional[int] = ..., sequence_id: _Optional[int] = ..., hero_id: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_CoinWager(_message.Message):
     __slots__ = ("wager_amount",)
     WAGER_AMOUNT_FIELD_NUMBER: _ClassVar[int]
     wager_amount: int
-    def __init__(self, wager_amount: int | None = ...) -> None: ...
+    def __init__(self, wager_amount: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_CoinWagerToken(_message.Message):
     __slots__ = ("wager_token_item_id",)
     WAGER_TOKEN_ITEM_ID_FIELD_NUMBER: _ClassVar[int]
     wager_token_item_id: int
-    def __init__(self, wager_token_item_id: int | None = ...) -> None: ...
+    def __init__(self, wager_token_item_id: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_RankWager(_message.Message):
     __slots__ = ("announce_wager",)
@@ -817,13 +700,13 @@ class CDOTAClientMsg_PlayerBounty(_message.Message):
     __slots__ = ("player_id",)
     PLAYER_ID_FIELD_NUMBER: _ClassVar[int]
     player_id: int
-    def __init__(self, player_id: int | None = ...) -> None: ...
+    def __init__(self, player_id: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_EventPointsTip(_message.Message):
     __slots__ = ("recipient_player_id",)
     RECIPIENT_PLAYER_ID_FIELD_NUMBER: _ClassVar[int]
     recipient_player_id: int
-    def __init__(self, recipient_player_id: int | None = ...) -> None: ...
+    def __init__(self, recipient_player_id: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_ExecuteOrders(_message.Message):
     __slots__ = ("orders", "last_order_latency")
@@ -831,11 +714,7 @@ class CDOTAClientMsg_ExecuteOrders(_message.Message):
     LAST_ORDER_LATENCY_FIELD_NUMBER: _ClassVar[int]
     orders: _containers.RepeatedCompositeFieldContainer[_dota_commonmessages_pb2.CDOTAMsg_UnitOrder]
     last_order_latency: int
-    def __init__(
-        self,
-        orders: _Iterable[_dota_commonmessages_pb2.CDOTAMsg_UnitOrder | _Mapping] | None = ...,
-        last_order_latency: int | None = ...,
-    ) -> None: ...
+    def __init__(self, orders: _Optional[_Iterable[_Union[_dota_commonmessages_pb2.CDOTAMsg_UnitOrder, _Mapping]]] = ..., last_order_latency: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_XPAlert(_message.Message):
     __slots__ = ("target_entindex", "damage_taken")
@@ -843,9 +722,7 @@ class CDOTAClientMsg_XPAlert(_message.Message):
     DAMAGE_TAKEN_FIELD_NUMBER: _ClassVar[int]
     target_entindex: int
     damage_taken: int
-    def __init__(
-        self, target_entindex: int | None = ..., damage_taken: int | None = ...
-    ) -> None: ...
+    def __init__(self, target_entindex: _Optional[int] = ..., damage_taken: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_TalentTreeAlert(_message.Message):
     __slots__ = ("target_entindex", "ability_id", "slot", "learned")
@@ -857,23 +734,10 @@ class CDOTAClientMsg_TalentTreeAlert(_message.Message):
     ability_id: int
     slot: int
     learned: bool
-    def __init__(
-        self,
-        target_entindex: int | None = ...,
-        ability_id: int | None = ...,
-        slot: int | None = ...,
-        learned: bool = ...,
-    ) -> None: ...
+    def __init__(self, target_entindex: _Optional[int] = ..., ability_id: _Optional[int] = ..., slot: _Optional[int] = ..., learned: bool = ...) -> None: ...
 
 class CDOTAClientMsg_KillcamDamageTaken(_message.Message):
-    __slots__ = (
-        "target_entindex",
-        "damage_taken",
-        "item_type",
-        "item_ability_id",
-        "hero_name",
-        "damage_color",
-    )
+    __slots__ = ("target_entindex", "damage_taken", "item_type", "item_ability_id", "hero_name", "damage_color")
     TARGET_ENTINDEX_FIELD_NUMBER: _ClassVar[int]
     DAMAGE_TAKEN_FIELD_NUMBER: _ClassVar[int]
     ITEM_TYPE_FIELD_NUMBER: _ClassVar[int]
@@ -886,30 +750,14 @@ class CDOTAClientMsg_KillcamDamageTaken(_message.Message):
     item_ability_id: int
     hero_name: str
     damage_color: str
-    def __init__(
-        self,
-        target_entindex: int | None = ...,
-        damage_taken: int | None = ...,
-        item_type: int | None = ...,
-        item_ability_id: int | None = ...,
-        hero_name: str | None = ...,
-        damage_color: str | None = ...,
-    ) -> None: ...
+    def __init__(self, target_entindex: _Optional[int] = ..., damage_taken: _Optional[int] = ..., item_type: _Optional[int] = ..., item_ability_id: _Optional[int] = ..., hero_name: _Optional[str] = ..., damage_color: _Optional[str] = ...) -> None: ...
 
 class CDOTAClientMsg_KillMyHero(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...
 
 class CDOTAClientMsg_QuestStatus(_message.Message):
-    __slots__ = (
-        "quest_id",
-        "challenge_id",
-        "progress",
-        "goal",
-        "query",
-        "fail_gametime",
-        "item_ability_id",
-    )
+    __slots__ = ("quest_id", "challenge_id", "progress", "goal", "query", "fail_gametime", "item_ability_id")
     QUEST_ID_FIELD_NUMBER: _ClassVar[int]
     CHALLENGE_ID_FIELD_NUMBER: _ClassVar[int]
     PROGRESS_FIELD_NUMBER: _ClassVar[int]
@@ -924,16 +772,7 @@ class CDOTAClientMsg_QuestStatus(_message.Message):
     query: int
     fail_gametime: float
     item_ability_id: int
-    def __init__(
-        self,
-        quest_id: int | None = ...,
-        challenge_id: int | None = ...,
-        progress: int | None = ...,
-        goal: int | None = ...,
-        query: int | None = ...,
-        fail_gametime: float | None = ...,
-        item_ability_id: int | None = ...,
-    ) -> None: ...
+    def __init__(self, quest_id: _Optional[int] = ..., challenge_id: _Optional[int] = ..., progress: _Optional[int] = ..., goal: _Optional[int] = ..., query: _Optional[int] = ..., fail_gametime: _Optional[float] = ..., item_ability_id: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_ToggleAutoattack(_message.Message):
     __slots__ = ("mode", "show_message")
@@ -941,7 +780,7 @@ class CDOTAClientMsg_ToggleAutoattack(_message.Message):
     SHOW_MESSAGE_FIELD_NUMBER: _ClassVar[int]
     mode: int
     show_message: bool
-    def __init__(self, mode: int | None = ..., show_message: bool = ...) -> None: ...
+    def __init__(self, mode: _Optional[int] = ..., show_message: bool = ...) -> None: ...
 
 class CDOTAClientMsg_SpecialAbility(_message.Message):
     __slots__ = ("ability_index", "target_entindex")
@@ -949,9 +788,7 @@ class CDOTAClientMsg_SpecialAbility(_message.Message):
     TARGET_ENTINDEX_FIELD_NUMBER: _ClassVar[int]
     ability_index: int
     target_entindex: int
-    def __init__(
-        self, ability_index: int | None = ..., target_entindex: int | None = ...
-    ) -> None: ...
+    def __init__(self, ability_index: _Optional[int] = ..., target_entindex: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_SetEnemyStartingPosition(_message.Message):
     __slots__ = ("enemy_player_id", "enemy_starting_position")
@@ -959,9 +796,7 @@ class CDOTAClientMsg_SetEnemyStartingPosition(_message.Message):
     ENEMY_STARTING_POSITION_FIELD_NUMBER: _ClassVar[int]
     enemy_player_id: int
     enemy_starting_position: int
-    def __init__(
-        self, enemy_player_id: int | None = ..., enemy_starting_position: int | None = ...
-    ) -> None: ...
+    def __init__(self, enemy_player_id: _Optional[int] = ..., enemy_starting_position: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_SetDesiredWardPlacement(_message.Message):
     __slots__ = ("ward_index", "ward_x", "ward_y")
@@ -971,9 +806,7 @@ class CDOTAClientMsg_SetDesiredWardPlacement(_message.Message):
     ward_index: int
     ward_x: float
     ward_y: float
-    def __init__(
-        self, ward_index: int | None = ..., ward_x: float | None = ..., ward_y: float | None = ...
-    ) -> None: ...
+    def __init__(self, ward_index: _Optional[int] = ..., ward_x: _Optional[float] = ..., ward_y: _Optional[float] = ...) -> None: ...
 
 class CDOTAClientMsg_RollDice(_message.Message):
     __slots__ = ("channel_type", "roll_min", "roll_max")
@@ -983,15 +816,13 @@ class CDOTAClientMsg_RollDice(_message.Message):
     channel_type: int
     roll_min: int
     roll_max: int
-    def __init__(
-        self, channel_type: int | None = ..., roll_min: int | None = ..., roll_max: int | None = ...
-    ) -> None: ...
+    def __init__(self, channel_type: _Optional[int] = ..., roll_min: _Optional[int] = ..., roll_max: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_FlipCoin(_message.Message):
     __slots__ = ("channel_type",)
     CHANNEL_TYPE_FIELD_NUMBER: _ClassVar[int]
     channel_type: int
-    def __init__(self, channel_type: int | None = ...) -> None: ...
+    def __init__(self, channel_type: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_RequestItemSuggestions(_message.Message):
     __slots__ = ()
@@ -1005,21 +836,10 @@ class CDOTAClientMsg_SuggestItemPreference(_message.Message):
         PREFERENCE_FIELD_NUMBER: _ClassVar[int]
         item_id: int
         preference: _dota_shared_enums_pb2.EItemSuggestPreference
-        def __init__(
-            self,
-            item_id: int | None = ...,
-            preference: _dota_shared_enums_pb2.EItemSuggestPreference | str | None = ...,
-        ) -> None: ...
-
+        def __init__(self, item_id: _Optional[int] = ..., preference: _Optional[_Union[_dota_shared_enums_pb2.EItemSuggestPreference, str]] = ...) -> None: ...
     ITEM_PREFERENCES_FIELD_NUMBER: _ClassVar[int]
-    item_preferences: _containers.RepeatedCompositeFieldContainer[
-        CDOTAClientMsg_SuggestItemPreference.ItemPreference
-    ]
-    def __init__(
-        self,
-        item_preferences: _Iterable[CDOTAClientMsg_SuggestItemPreference.ItemPreference | _Mapping]
-        | None = ...,
-    ) -> None: ...
+    item_preferences: _containers.RepeatedCompositeFieldContainer[CDOTAClientMsg_SuggestItemPreference.ItemPreference]
+    def __init__(self, item_preferences: _Optional[_Iterable[_Union[CDOTAClientMsg_SuggestItemPreference.ItemPreference, _Mapping]]] = ...) -> None: ...
 
 class CDOTAClientMsg_SuggestItemRefresh(_message.Message):
     __slots__ = ("is_out_of_items",)
@@ -1037,13 +857,13 @@ class CDOTAClientMsg_SuggestItemSelectVariant(_message.Message):
     __slots__ = ("variant",)
     VARIANT_FIELD_NUMBER: _ClassVar[int]
     variant: int
-    def __init__(self, variant: int | None = ...) -> None: ...
+    def __init__(self, variant: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_MakeTeamCaptain(_message.Message):
     __slots__ = ("player_id",)
     PLAYER_ID_FIELD_NUMBER: _ClassVar[int]
     player_id: int
-    def __init__(self, player_id: int | None = ...) -> None: ...
+    def __init__(self, player_id: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_HelpTipSystemStateChanged(_message.Message):
     __slots__ = ("tip_displayed",)
@@ -1061,13 +881,7 @@ class CDOTAClientMsg_RequestBulkCombatLog(_message.Message):
     duration: float
     recent_player_death: bool
     player_id: int
-    def __init__(
-        self,
-        game_time: float | None = ...,
-        duration: float | None = ...,
-        recent_player_death: bool = ...,
-        player_id: int | None = ...,
-    ) -> None: ...
+    def __init__(self, game_time: _Optional[float] = ..., duration: _Optional[float] = ..., recent_player_death: bool = ..., player_id: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_AbilityDraftRequestAbility(_message.Message):
     __slots__ = ("requested_ability_id", "ctrl_is_down", "requested_hero_id", "requested_facet_key")
@@ -1079,13 +893,7 @@ class CDOTAClientMsg_AbilityDraftRequestAbility(_message.Message):
     ctrl_is_down: bool
     requested_hero_id: int
     requested_facet_key: int
-    def __init__(
-        self,
-        requested_ability_id: int | None = ...,
-        ctrl_is_down: bool = ...,
-        requested_hero_id: int | None = ...,
-        requested_facet_key: int | None = ...,
-    ) -> None: ...
+    def __init__(self, requested_ability_id: _Optional[int] = ..., ctrl_is_down: bool = ..., requested_hero_id: _Optional[int] = ..., requested_facet_key: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_GuideSelectOption(_message.Message):
     __slots__ = ("option", "force_recalculate")
@@ -1093,7 +901,7 @@ class CDOTAClientMsg_GuideSelectOption(_message.Message):
     FORCE_RECALCULATE_FIELD_NUMBER: _ClassVar[int]
     option: int
     force_recalculate: bool
-    def __init__(self, option: int | None = ..., force_recalculate: bool = ...) -> None: ...
+    def __init__(self, option: _Optional[int] = ..., force_recalculate: bool = ...) -> None: ...
 
 class CDOTAClientMsg_GuideSelected(_message.Message):
     __slots__ = ("guide_workshop_id", "is_plus_guide")
@@ -1101,7 +909,7 @@ class CDOTAClientMsg_GuideSelected(_message.Message):
     IS_PLUS_GUIDE_FIELD_NUMBER: _ClassVar[int]
     guide_workshop_id: int
     is_plus_guide: bool
-    def __init__(self, guide_workshop_id: int | None = ..., is_plus_guide: bool = ...) -> None: ...
+    def __init__(self, guide_workshop_id: _Optional[int] = ..., is_plus_guide: bool = ...) -> None: ...
 
 class CDOTAClientMsg_DamageReport(_message.Message):
     __slots__ = ("target_hero_id", "source_hero_id", "damage_amount", "broadcast")
@@ -1113,13 +921,7 @@ class CDOTAClientMsg_DamageReport(_message.Message):
     source_hero_id: int
     damage_amount: int
     broadcast: bool
-    def __init__(
-        self,
-        target_hero_id: int | None = ...,
-        source_hero_id: int | None = ...,
-        damage_amount: int | None = ...,
-        broadcast: bool = ...,
-    ) -> None: ...
+    def __init__(self, target_hero_id: _Optional[int] = ..., source_hero_id: _Optional[int] = ..., damage_amount: _Optional[int] = ..., broadcast: bool = ...) -> None: ...
 
 class CDOTAClientMsg_SalutePlayer(_message.Message):
     __slots__ = ("target_player_id", "event_id")
@@ -1127,7 +929,7 @@ class CDOTAClientMsg_SalutePlayer(_message.Message):
     EVENT_ID_FIELD_NUMBER: _ClassVar[int]
     target_player_id: int
     event_id: int
-    def __init__(self, target_player_id: int | None = ..., event_id: int | None = ...) -> None: ...
+    def __init__(self, target_player_id: _Optional[int] = ..., event_id: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_GiftPlayer(_message.Message):
     __slots__ = ("target_player_id", "item_def_index")
@@ -1135,33 +937,31 @@ class CDOTAClientMsg_GiftPlayer(_message.Message):
     ITEM_DEF_INDEX_FIELD_NUMBER: _ClassVar[int]
     target_player_id: int
     item_def_index: int
-    def __init__(
-        self, target_player_id: int | None = ..., item_def_index: int | None = ...
-    ) -> None: ...
+    def __init__(self, target_player_id: _Optional[int] = ..., item_def_index: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_GiftEveryone(_message.Message):
     __slots__ = ("item_def_index",)
     ITEM_DEF_INDEX_FIELD_NUMBER: _ClassVar[int]
     item_def_index: int
-    def __init__(self, item_def_index: int | None = ...) -> None: ...
+    def __init__(self, item_def_index: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_TipAlert(_message.Message):
     __slots__ = ("tip_text",)
     TIP_TEXT_FIELD_NUMBER: _ClassVar[int]
     tip_text: str
-    def __init__(self, tip_text: str | None = ...) -> None: ...
+    def __init__(self, tip_text: _Optional[str] = ...) -> None: ...
 
 class CDOTAClientMsg_EmptyTeleportAlert(_message.Message):
     __slots__ = ("target_entindex",)
     TARGET_ENTINDEX_FIELD_NUMBER: _ClassVar[int]
     target_entindex: int
-    def __init__(self, target_entindex: int | None = ...) -> None: ...
+    def __init__(self, target_entindex: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_SetCavernMapVariant(_message.Message):
     __slots__ = ("map_variant",)
     MAP_VARIANT_FIELD_NUMBER: _ClassVar[int]
     map_variant: int
-    def __init__(self, map_variant: int | None = ...) -> None: ...
+    def __init__(self, map_variant: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_PauseGameOrder(_message.Message):
     __slots__ = ("order_id", "data")
@@ -1169,7 +969,7 @@ class CDOTAClientMsg_PauseGameOrder(_message.Message):
     DATA_FIELD_NUMBER: _ClassVar[int]
     order_id: int
     data: int
-    def __init__(self, order_id: int | None = ..., data: int | None = ...) -> None: ...
+    def __init__(self, order_id: _Optional[int] = ..., data: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_VersusScene_PlayerBehavior(_message.Message):
     __slots__ = ("behavior", "play_activity", "chat_wheel", "playback_rate")
@@ -1181,13 +981,7 @@ class CDOTAClientMsg_VersusScene_PlayerBehavior(_message.Message):
     play_activity: _dota_commonmessages_pb2.VersusScene_PlayActivity
     chat_wheel: _dota_commonmessages_pb2.VersusScene_ChatWheel
     playback_rate: _dota_commonmessages_pb2.VersusScene_PlaybackRate
-    def __init__(
-        self,
-        behavior: _dota_commonmessages_pb2.EDOTAVersusScenePlayerBehavior | str | None = ...,
-        play_activity: _dota_commonmessages_pb2.VersusScene_PlayActivity | _Mapping | None = ...,
-        chat_wheel: _dota_commonmessages_pb2.VersusScene_ChatWheel | _Mapping | None = ...,
-        playback_rate: _dota_commonmessages_pb2.VersusScene_PlaybackRate | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, behavior: _Optional[_Union[_dota_commonmessages_pb2.EDOTAVersusScenePlayerBehavior, str]] = ..., play_activity: _Optional[_Union[_dota_commonmessages_pb2.VersusScene_PlayActivity, _Mapping]] = ..., chat_wheel: _Optional[_Union[_dota_commonmessages_pb2.VersusScene_ChatWheel, _Mapping]] = ..., playback_rate: _Optional[_Union[_dota_commonmessages_pb2.VersusScene_PlaybackRate, _Mapping]] = ...) -> None: ...
 
 class CDOTAClientMsg_EmptyItemSlotAlert(_message.Message):
     __slots__ = ("target_entindex", "slot_index")
@@ -1195,7 +989,7 @@ class CDOTAClientMsg_EmptyItemSlotAlert(_message.Message):
     SLOT_INDEX_FIELD_NUMBER: _ClassVar[int]
     target_entindex: int
     slot_index: int
-    def __init__(self, target_entindex: int | None = ..., slot_index: int | None = ...) -> None: ...
+    def __init__(self, target_entindex: _Optional[int] = ..., slot_index: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_AddOverwatchReportMarker(_message.Message):
     __slots__ = ("target_player_id", "reason", "seconds_ago")
@@ -1205,24 +999,19 @@ class CDOTAClientMsg_AddOverwatchReportMarker(_message.Message):
     target_player_id: int
     reason: _dota_shared_enums_pb2.EOverwatchReportReason
     seconds_ago: int
-    def __init__(
-        self,
-        target_player_id: int | None = ...,
-        reason: _dota_shared_enums_pb2.EOverwatchReportReason | str | None = ...,
-        seconds_ago: int | None = ...,
-    ) -> None: ...
+    def __init__(self, target_player_id: _Optional[int] = ..., reason: _Optional[_Union[_dota_shared_enums_pb2.EOverwatchReportReason, str]] = ..., seconds_ago: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_AddCommunicationsReportMarker(_message.Message):
     __slots__ = ("target_player_id",)
     TARGET_PLAYER_ID_FIELD_NUMBER: _ClassVar[int]
     target_player_id: int
-    def __init__(self, target_player_id: int | None = ...) -> None: ...
+    def __init__(self, target_player_id: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_AddCommunicationsBlockMarker(_message.Message):
     __slots__ = ("target_player_id",)
     TARGET_PLAYER_ID_FIELD_NUMBER: _ClassVar[int]
     target_player_id: int
-    def __init__(self, target_player_id: int | None = ...) -> None: ...
+    def __init__(self, target_player_id: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_AghsStatusAlert(_message.Message):
     __slots__ = ("source_player_id", "target_player_id", "target_entindex", "alert_type")
@@ -1234,37 +1023,10 @@ class CDOTAClientMsg_AghsStatusAlert(_message.Message):
     target_player_id: int
     target_entindex: int
     alert_type: int
-    def __init__(
-        self,
-        source_player_id: int | None = ...,
-        target_player_id: int | None = ...,
-        target_entindex: int | None = ...,
-        alert_type: int | None = ...,
-    ) -> None: ...
+    def __init__(self, source_player_id: _Optional[int] = ..., target_player_id: _Optional[int] = ..., target_entindex: _Optional[int] = ..., alert_type: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_PerfReport(_message.Message):
-    __slots__ = (
-        "average_frame_time",
-        "max_frame_time",
-        "average_compute_time",
-        "max_compute_time",
-        "average_client_tick_time",
-        "max_client_tick_time",
-        "average_client_simulate_time",
-        "max_client_simulate_time",
-        "average_output_time",
-        "max_output_time",
-        "average_wait_for_rendering_to_complete_time",
-        "max_wait_for_rendering_to_complete_time",
-        "average_swap_time",
-        "max_swap_time",
-        "average_frame_update_time",
-        "max_frame_update_time",
-        "average_idle_time",
-        "max_idle_time",
-        "average_input_processing_time",
-        "max_input_processing_time",
-    )
+    __slots__ = ("average_frame_time", "max_frame_time", "average_compute_time", "max_compute_time", "average_client_tick_time", "max_client_tick_time", "average_client_simulate_time", "max_client_simulate_time", "average_output_time", "max_output_time", "average_wait_for_rendering_to_complete_time", "max_wait_for_rendering_to_complete_time", "average_swap_time", "max_swap_time", "average_frame_update_time", "max_frame_update_time", "average_idle_time", "max_idle_time", "average_input_processing_time", "max_input_processing_time", "average_missed_snapshot_rate", "max_missed_snapshot_rate")
     AVERAGE_FRAME_TIME_FIELD_NUMBER: _ClassVar[int]
     MAX_FRAME_TIME_FIELD_NUMBER: _ClassVar[int]
     AVERAGE_COMPUTE_TIME_FIELD_NUMBER: _ClassVar[int]
@@ -1285,6 +1047,8 @@ class CDOTAClientMsg_PerfReport(_message.Message):
     MAX_IDLE_TIME_FIELD_NUMBER: _ClassVar[int]
     AVERAGE_INPUT_PROCESSING_TIME_FIELD_NUMBER: _ClassVar[int]
     MAX_INPUT_PROCESSING_TIME_FIELD_NUMBER: _ClassVar[int]
+    AVERAGE_MISSED_SNAPSHOT_RATE_FIELD_NUMBER: _ClassVar[int]
+    MAX_MISSED_SNAPSHOT_RATE_FIELD_NUMBER: _ClassVar[int]
     average_frame_time: float
     max_frame_time: float
     average_compute_time: float
@@ -1305,29 +1069,9 @@ class CDOTAClientMsg_PerfReport(_message.Message):
     max_idle_time: float
     average_input_processing_time: float
     max_input_processing_time: float
-    def __init__(
-        self,
-        average_frame_time: float | None = ...,
-        max_frame_time: float | None = ...,
-        average_compute_time: float | None = ...,
-        max_compute_time: float | None = ...,
-        average_client_tick_time: float | None = ...,
-        max_client_tick_time: float | None = ...,
-        average_client_simulate_time: float | None = ...,
-        max_client_simulate_time: float | None = ...,
-        average_output_time: float | None = ...,
-        max_output_time: float | None = ...,
-        average_wait_for_rendering_to_complete_time: float | None = ...,
-        max_wait_for_rendering_to_complete_time: float | None = ...,
-        average_swap_time: float | None = ...,
-        max_swap_time: float | None = ...,
-        average_frame_update_time: float | None = ...,
-        max_frame_update_time: float | None = ...,
-        average_idle_time: float | None = ...,
-        max_idle_time: float | None = ...,
-        average_input_processing_time: float | None = ...,
-        max_input_processing_time: float | None = ...,
-    ) -> None: ...
+    average_missed_snapshot_rate: float
+    max_missed_snapshot_rate: float
+    def __init__(self, average_frame_time: _Optional[float] = ..., max_frame_time: _Optional[float] = ..., average_compute_time: _Optional[float] = ..., max_compute_time: _Optional[float] = ..., average_client_tick_time: _Optional[float] = ..., max_client_tick_time: _Optional[float] = ..., average_client_simulate_time: _Optional[float] = ..., max_client_simulate_time: _Optional[float] = ..., average_output_time: _Optional[float] = ..., max_output_time: _Optional[float] = ..., average_wait_for_rendering_to_complete_time: _Optional[float] = ..., max_wait_for_rendering_to_complete_time: _Optional[float] = ..., average_swap_time: _Optional[float] = ..., max_swap_time: _Optional[float] = ..., average_frame_update_time: _Optional[float] = ..., max_frame_update_time: _Optional[float] = ..., average_idle_time: _Optional[float] = ..., max_idle_time: _Optional[float] = ..., average_input_processing_time: _Optional[float] = ..., max_input_processing_time: _Optional[float] = ..., average_missed_snapshot_rate: _Optional[float] = ..., max_missed_snapshot_rate: _Optional[float] = ...) -> None: ...
 
 class CDOTAClientMsg_ContextualTips_Subscribe_Entry(_message.Message):
     __slots__ = ("unsubscribe", "tip_id", "prior_display_count", "variants_seen")
@@ -1339,21 +1083,13 @@ class CDOTAClientMsg_ContextualTips_Subscribe_Entry(_message.Message):
     tip_id: int
     prior_display_count: int
     variants_seen: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(
-        self,
-        unsubscribe: bool = ...,
-        tip_id: int | None = ...,
-        prior_display_count: int | None = ...,
-        variants_seen: _Iterable[int] | None = ...,
-    ) -> None: ...
+    def __init__(self, unsubscribe: bool = ..., tip_id: _Optional[int] = ..., prior_display_count: _Optional[int] = ..., variants_seen: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CDOTAClientMsg_ContextualTips_Subscribe(_message.Message):
     __slots__ = ("tips",)
     TIPS_FIELD_NUMBER: _ClassVar[int]
     tips: _containers.RepeatedCompositeFieldContainer[CDOTAClientMsg_ContextualTips_Subscribe_Entry]
-    def __init__(
-        self, tips: _Iterable[CDOTAClientMsg_ContextualTips_Subscribe_Entry | _Mapping] | None = ...
-    ) -> None: ...
+    def __init__(self, tips: _Optional[_Iterable[_Union[CDOTAClientMsg_ContextualTips_Subscribe_Entry, _Mapping]]] = ...) -> None: ...
 
 class CDOTAClientMsg_ChatMessage(_message.Message):
     __slots__ = ("channel_type", "message_text")
@@ -1361,7 +1097,7 @@ class CDOTAClientMsg_ChatMessage(_message.Message):
     MESSAGE_TEXT_FIELD_NUMBER: _ClassVar[int]
     channel_type: int
     message_text: str
-    def __init__(self, channel_type: int | None = ..., message_text: str | None = ...) -> None: ...
+    def __init__(self, channel_type: _Optional[int] = ..., message_text: _Optional[str] = ...) -> None: ...
 
 class CDOTAClientMsg_DuelAccepted(_message.Message):
     __slots__ = ("challenger_player_id", "accepter_player_id")
@@ -1369,9 +1105,7 @@ class CDOTAClientMsg_DuelAccepted(_message.Message):
     ACCEPTER_PLAYER_ID_FIELD_NUMBER: _ClassVar[int]
     challenger_player_id: int
     accepter_player_id: int
-    def __init__(
-        self, challenger_player_id: int | None = ..., accepter_player_id: int | None = ...
-    ) -> None: ...
+    def __init__(self, challenger_player_id: _Optional[int] = ..., accepter_player_id: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_ChooseNeutralItem(_message.Message):
     __slots__ = ("neutral_item_index", "target_entindex", "slot_index")
@@ -1381,12 +1115,7 @@ class CDOTAClientMsg_ChooseNeutralItem(_message.Message):
     neutral_item_index: int
     target_entindex: int
     slot_index: int
-    def __init__(
-        self,
-        neutral_item_index: int | None = ...,
-        target_entindex: int | None = ...,
-        slot_index: int | None = ...,
-    ) -> None: ...
+    def __init__(self, neutral_item_index: _Optional[int] = ..., target_entindex: _Optional[int] = ..., slot_index: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_RerollNeutralItem(_message.Message):
     __slots__ = ("target_entindex", "slot_index")
@@ -1394,19 +1123,19 @@ class CDOTAClientMsg_RerollNeutralItem(_message.Message):
     SLOT_INDEX_FIELD_NUMBER: _ClassVar[int]
     target_entindex: int
     slot_index: int
-    def __init__(self, target_entindex: int | None = ..., slot_index: int | None = ...) -> None: ...
+    def __init__(self, target_entindex: _Optional[int] = ..., slot_index: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_PlayerDraftPick(_message.Message):
     __slots__ = ("player_id",)
     PLAYER_ID_FIELD_NUMBER: _ClassVar[int]
     player_id: int
-    def __init__(self, player_id: int | None = ...) -> None: ...
+    def __init__(self, player_id: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_PlayerDraftSuggest(_message.Message):
     __slots__ = ("player_id",)
     PLAYER_ID_FIELD_NUMBER: _ClassVar[int]
     player_id: int
-    def __init__(self, player_id: int | None = ...) -> None: ...
+    def __init__(self, player_id: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_PlayerDraftPreferRole(_message.Message):
     __slots__ = ("role_idx", "desired")
@@ -1414,24 +1143,16 @@ class CDOTAClientMsg_PlayerDraftPreferRole(_message.Message):
     DESIRED_FIELD_NUMBER: _ClassVar[int]
     role_idx: int
     desired: bool
-    def __init__(self, role_idx: int | None = ..., desired: bool = ...) -> None: ...
+    def __init__(self, role_idx: _Optional[int] = ..., desired: bool = ...) -> None: ...
 
 class CDOTAClientMsg_PlayerDraftPreferTeam(_message.Message):
     __slots__ = ("team",)
     TEAM_FIELD_NUMBER: _ClassVar[int]
     team: int
-    def __init__(self, team: int | None = ...) -> None: ...
+    def __init__(self, team: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_AbilityAlert(_message.Message):
-    __slots__ = (
-        "ability_entindex",
-        "ctrl_held",
-        "owner_entindex",
-        "ability_id",
-        "primary_charges",
-        "secondary_charges",
-        "reclaim_time",
-    )
+    __slots__ = ("ability_entindex", "ctrl_held", "owner_entindex", "ability_id", "primary_charges", "secondary_charges", "reclaim_time")
     ABILITY_ENTINDEX_FIELD_NUMBER: _ClassVar[int]
     CTRL_HELD_FIELD_NUMBER: _ClassVar[int]
     OWNER_ENTINDEX_FIELD_NUMBER: _ClassVar[int]
@@ -1446,22 +1167,13 @@ class CDOTAClientMsg_AbilityAlert(_message.Message):
     primary_charges: int
     secondary_charges: int
     reclaim_time: float
-    def __init__(
-        self,
-        ability_entindex: int | None = ...,
-        ctrl_held: bool = ...,
-        owner_entindex: int | None = ...,
-        ability_id: int | None = ...,
-        primary_charges: int | None = ...,
-        secondary_charges: int | None = ...,
-        reclaim_time: float | None = ...,
-    ) -> None: ...
+    def __init__(self, ability_entindex: _Optional[int] = ..., ctrl_held: bool = ..., owner_entindex: _Optional[int] = ..., ability_id: _Optional[int] = ..., primary_charges: _Optional[int] = ..., secondary_charges: _Optional[int] = ..., reclaim_time: _Optional[float] = ...) -> None: ...
 
 class CDOTAClientMsg_SelectOverworldTokenRewards(_message.Message):
     __slots__ = ("token_ids",)
     TOKEN_IDS_FIELD_NUMBER: _ClassVar[int]
     token_ids: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(self, token_ids: _Iterable[int] | None = ...) -> None: ...
+    def __init__(self, token_ids: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CDOTAClientMsg_FacetAlert(_message.Message):
     __slots__ = ("facet_strhash", "hero_entindex", "ctrl_held")
@@ -1471,12 +1183,7 @@ class CDOTAClientMsg_FacetAlert(_message.Message):
     facet_strhash: int
     hero_entindex: int
     ctrl_held: bool
-    def __init__(
-        self,
-        facet_strhash: int | None = ...,
-        hero_entindex: int | None = ...,
-        ctrl_held: bool = ...,
-    ) -> None: ...
+    def __init__(self, facet_strhash: _Optional[int] = ..., hero_entindex: _Optional[int] = ..., ctrl_held: bool = ...) -> None: ...
 
 class CDOTAClientMsg_InnateAlert(_message.Message):
     __slots__ = ("ability_entindex", "ctrl_held")
@@ -1484,13 +1191,13 @@ class CDOTAClientMsg_InnateAlert(_message.Message):
     CTRL_HELD_FIELD_NUMBER: _ClassVar[int]
     ability_entindex: int
     ctrl_held: bool
-    def __init__(self, ability_entindex: int | None = ..., ctrl_held: bool = ...) -> None: ...
+    def __init__(self, ability_entindex: _Optional[int] = ..., ctrl_held: bool = ...) -> None: ...
 
 class CDOTAClientMsg_SelectOverworldID(_message.Message):
     __slots__ = ("overworld_id",)
     OVERWORLD_ID_FIELD_NUMBER: _ClassVar[int]
     overworld_id: int
-    def __init__(self, overworld_id: int | None = ...) -> None: ...
+    def __init__(self, overworld_id: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_RoshanTimer(_message.Message):
     __slots__ = ("negative",)
@@ -1516,26 +1223,19 @@ class CDOTAClientMsg_ChooseCraftedNeutralItem(_message.Message):
     neutral_item_index: int
     item_tier: int
     enhancement_index: int
-    def __init__(
-        self,
-        neutral_item_index: int | None = ...,
-        item_tier: int | None = ...,
-        enhancement_index: int | None = ...,
-    ) -> None: ...
+    def __init__(self, neutral_item_index: _Optional[int] = ..., item_tier: _Optional[int] = ..., enhancement_index: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_TimerAlert(_message.Message):
     __slots__ = ("timer_alert_type",)
     TIMER_ALERT_TYPE_FIELD_NUMBER: _ClassVar[int]
     timer_alert_type: _dota_shared_enums_pb2.ETimerAlertType
-    def __init__(
-        self, timer_alert_type: _dota_shared_enums_pb2.ETimerAlertType | str | None = ...
-    ) -> None: ...
+    def __init__(self, timer_alert_type: _Optional[_Union[_dota_shared_enums_pb2.ETimerAlertType, str]] = ...) -> None: ...
 
 class CDOTAClientMsg_MadstoneAlert(_message.Message):
     __slots__ = ("target_entindex",)
     TARGET_ENTINDEX_FIELD_NUMBER: _ClassVar[int]
     target_entindex: int
-    def __init__(self, target_entindex: int | None = ...) -> None: ...
+    def __init__(self, target_entindex: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_UpdateAutoCourierSettings(_message.Message):
     __slots__ = ("auto_deliver",)
@@ -1549,13 +1249,13 @@ class CDOTAClientMsg_AutoCourierExecute(_message.Message):
     IS_AUTO_DELIVER_FIELD_NUMBER: _ClassVar[int]
     target_entindex: int
     is_auto_deliver: bool
-    def __init__(self, target_entindex: int | None = ..., is_auto_deliver: bool = ...) -> None: ...
+    def __init__(self, target_entindex: _Optional[int] = ..., is_auto_deliver: bool = ...) -> None: ...
 
 class CDOTAClientMsg_MonsterHunter_SelectInvestigation(_message.Message):
     __slots__ = ("investigation_index",)
     INVESTIGATION_INDEX_FIELD_NUMBER: _ClassVar[int]
     investigation_index: int
-    def __init__(self, investigation_index: int | None = ...) -> None: ...
+    def __init__(self, investigation_index: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_MonsterHunter_HuntAlert(_message.Message):
     __slots__ = ("investigation_state_index", "ctrl_pressed")
@@ -1563,6 +1263,34 @@ class CDOTAClientMsg_MonsterHunter_HuntAlert(_message.Message):
     CTRL_PRESSED_FIELD_NUMBER: _ClassVar[int]
     investigation_state_index: int
     ctrl_pressed: bool
-    def __init__(
-        self, investigation_state_index: int | None = ..., ctrl_pressed: bool = ...
-    ) -> None: ...
+    def __init__(self, investigation_state_index: _Optional[int] = ..., ctrl_pressed: bool = ...) -> None: ...
+
+class CDOTAClientMsg_ChooseDeityBlessing(_message.Message):
+    __slots__ = ("blessing",)
+    BLESSING_FIELD_NUMBER: _ClassVar[int]
+    blessing: int
+    def __init__(self, blessing: _Optional[int] = ...) -> None: ...
+
+class CDOTAClientMsg_ChooseAghanimUpgrade(_message.Message):
+    __slots__ = ("aghanim_id", "scepter", "target_entindex")
+    AGHANIM_ID_FIELD_NUMBER: _ClassVar[int]
+    SCEPTER_FIELD_NUMBER: _ClassVar[int]
+    TARGET_ENTINDEX_FIELD_NUMBER: _ClassVar[int]
+    aghanim_id: int
+    scepter: bool
+    target_entindex: int
+    def __init__(self, aghanim_id: _Optional[int] = ..., scepter: bool = ..., target_entindex: _Optional[int] = ...) -> None: ...
+
+class CDOTAClientMsg_ChooseAbilityImbue(_message.Message):
+    __slots__ = ("ability_to_imbue",)
+    ABILITY_TO_IMBUE_FIELD_NUMBER: _ClassVar[int]
+    ability_to_imbue: int
+    def __init__(self, ability_to_imbue: _Optional[int] = ...) -> None: ...
+
+class CDOTAClientMsg_NetworkStats(_message.Message):
+    __slots__ = ("tick", "missed_snapshot_rate")
+    TICK_FIELD_NUMBER: _ClassVar[int]
+    MISSED_SNAPSHOT_RATE_FIELD_NUMBER: _ClassVar[int]
+    tick: int
+    missed_snapshot_rate: float
+    def __init__(self, tick: _Optional[int] = ..., missed_snapshot_rate: _Optional[float] = ...) -> None: ...

@@ -1,11 +1,10 @@
-from collections.abc import Iterable as _Iterable
-from collections.abc import Mapping as _Mapping
-from typing import ClassVar as _ClassVar
-
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
+from google.protobuf import descriptor_pb2 as _descriptor_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -26,7 +25,6 @@ class GCProtoBufMsgSrc(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     GCProtoBufMsgSrc_FromGC: _ClassVar[GCProtoBufMsgSrc]
     GCProtoBufMsgSrc_ReplySystem: _ClassVar[GCProtoBufMsgSrc]
     GCProtoBufMsgSrc_SpoofedSteamID: _ClassVar[GCProtoBufMsgSrc]
-
 k_eGCPlatform_None: EGCPlatform
 k_eGCPlatform_PC: EGCPlatform
 k_eGCPlatform_Mac: EGCPlatform
@@ -47,18 +45,7 @@ MSGPOOL_HARD_LIMIT_FIELD_NUMBER: _ClassVar[int]
 msgpool_hard_limit: _descriptor.FieldDescriptor
 
 class CMsgProtoBufHeader(_message.Message):
-    __slots__ = (
-        "client_steam_id",
-        "client_session_id",
-        "source_app_id",
-        "job_id_source",
-        "job_id_target",
-        "target_job_name",
-        "eresult",
-        "error_message",
-        "gc_msg_src",
-        "gc_dir_index_source",
-    )
+    __slots__ = ("client_steam_id", "client_session_id", "source_app_id", "job_id_source", "job_id_target", "target_job_name", "eresult", "error_message", "gc_msg_src", "gc_dir_index_source")
     CLIENT_STEAM_ID_FIELD_NUMBER: _ClassVar[int]
     CLIENT_SESSION_ID_FIELD_NUMBER: _ClassVar[int]
     SOURCE_APP_ID_FIELD_NUMBER: _ClassVar[int]
@@ -79,19 +66,7 @@ class CMsgProtoBufHeader(_message.Message):
     error_message: str
     gc_msg_src: GCProtoBufMsgSrc
     gc_dir_index_source: int
-    def __init__(
-        self,
-        client_steam_id: int | None = ...,
-        client_session_id: int | None = ...,
-        source_app_id: int | None = ...,
-        job_id_source: int | None = ...,
-        job_id_target: int | None = ...,
-        target_job_name: str | None = ...,
-        eresult: int | None = ...,
-        error_message: str | None = ...,
-        gc_msg_src: GCProtoBufMsgSrc | str | None = ...,
-        gc_dir_index_source: int | None = ...,
-    ) -> None: ...
+    def __init__(self, client_steam_id: _Optional[int] = ..., client_session_id: _Optional[int] = ..., source_app_id: _Optional[int] = ..., job_id_source: _Optional[int] = ..., job_id_target: _Optional[int] = ..., target_job_name: _Optional[str] = ..., eresult: _Optional[int] = ..., error_message: _Optional[str] = ..., gc_msg_src: _Optional[_Union[GCProtoBufMsgSrc, str]] = ..., gc_dir_index_source: _Optional[int] = ...) -> None: ...
 
 class CGCSystemMsg_GetAccountDetails(_message.Message):
     __slots__ = ("steamid", "appid")
@@ -99,48 +74,10 @@ class CGCSystemMsg_GetAccountDetails(_message.Message):
     APPID_FIELD_NUMBER: _ClassVar[int]
     steamid: int
     appid: int
-    def __init__(self, steamid: int | None = ..., appid: int | None = ...) -> None: ...
+    def __init__(self, steamid: _Optional[int] = ..., appid: _Optional[int] = ...) -> None: ...
 
 class CGCSystemMsg_GetAccountDetails_Response(_message.Message):
-    __slots__ = (
-        "eresult_deprecated",
-        "account_name",
-        "persona_name",
-        "is_profile_created",
-        "is_profile_public",
-        "is_inventory_public",
-        "is_vac_banned",
-        "is_cyber_cafe",
-        "is_school_account",
-        "is_limited",
-        "is_subscribed",
-        "package",
-        "is_free_trial_account",
-        "free_trial_expiration",
-        "is_low_violence",
-        "is_account_locked_down",
-        "is_community_banned",
-        "is_trade_banned",
-        "trade_ban_expiration",
-        "accountid",
-        "suspension_end_time",
-        "currency",
-        "steam_level",
-        "friend_count",
-        "account_creation_time",
-        "is_steamguard_enabled",
-        "is_phone_verified",
-        "is_two_factor_auth_enabled",
-        "two_factor_enabled_time",
-        "phone_verification_time",
-        "phone_id",
-        "is_phone_identifying",
-        "rt_identity_linked",
-        "rt_birth_date",
-        "txn_country_code",
-        "has_accepted_china_ssa",
-        "is_banned_steam_china",
-    )
+    __slots__ = ("eresult_deprecated", "account_name", "persona_name", "is_profile_created", "is_profile_public", "is_inventory_public", "is_vac_banned", "is_cyber_cafe", "is_school_account", "is_limited", "is_subscribed", "package", "is_free_trial_account", "free_trial_expiration", "is_low_violence", "is_account_locked_down", "is_community_banned", "is_trade_banned", "trade_ban_expiration", "accountid", "suspension_end_time", "currency", "steam_level", "friend_count", "account_creation_time", "is_steamguard_enabled", "is_phone_verified", "is_two_factor_auth_enabled", "two_factor_enabled_time", "phone_verification_time", "phone_id", "is_phone_identifying", "rt_identity_linked", "rt_birth_date", "txn_country_code", "has_accepted_china_ssa", "is_banned_steam_china")
     ERESULT_DEPRECATED_FIELD_NUMBER: _ClassVar[int]
     ACCOUNT_NAME_FIELD_NUMBER: _ClassVar[int]
     PERSONA_NAME_FIELD_NUMBER: _ClassVar[int]
@@ -215,46 +152,7 @@ class CGCSystemMsg_GetAccountDetails_Response(_message.Message):
     txn_country_code: str
     has_accepted_china_ssa: bool
     is_banned_steam_china: bool
-    def __init__(
-        self,
-        eresult_deprecated: int | None = ...,
-        account_name: str | None = ...,
-        persona_name: str | None = ...,
-        is_profile_created: bool = ...,
-        is_profile_public: bool = ...,
-        is_inventory_public: bool = ...,
-        is_vac_banned: bool = ...,
-        is_cyber_cafe: bool = ...,
-        is_school_account: bool = ...,
-        is_limited: bool = ...,
-        is_subscribed: bool = ...,
-        package: int | None = ...,
-        is_free_trial_account: bool = ...,
-        free_trial_expiration: int | None = ...,
-        is_low_violence: bool = ...,
-        is_account_locked_down: bool = ...,
-        is_community_banned: bool = ...,
-        is_trade_banned: bool = ...,
-        trade_ban_expiration: int | None = ...,
-        accountid: int | None = ...,
-        suspension_end_time: int | None = ...,
-        currency: str | None = ...,
-        steam_level: int | None = ...,
-        friend_count: int | None = ...,
-        account_creation_time: int | None = ...,
-        is_steamguard_enabled: bool = ...,
-        is_phone_verified: bool = ...,
-        is_two_factor_auth_enabled: bool = ...,
-        two_factor_enabled_time: int | None = ...,
-        phone_verification_time: int | None = ...,
-        phone_id: int | None = ...,
-        is_phone_identifying: bool = ...,
-        rt_identity_linked: int | None = ...,
-        rt_birth_date: int | None = ...,
-        txn_country_code: str | None = ...,
-        has_accepted_china_ssa: bool = ...,
-        is_banned_steam_china: bool = ...,
-    ) -> None: ...
+    def __init__(self, eresult_deprecated: _Optional[int] = ..., account_name: _Optional[str] = ..., persona_name: _Optional[str] = ..., is_profile_created: bool = ..., is_profile_public: bool = ..., is_inventory_public: bool = ..., is_vac_banned: bool = ..., is_cyber_cafe: bool = ..., is_school_account: bool = ..., is_limited: bool = ..., is_subscribed: bool = ..., package: _Optional[int] = ..., is_free_trial_account: bool = ..., free_trial_expiration: _Optional[int] = ..., is_low_violence: bool = ..., is_account_locked_down: bool = ..., is_community_banned: bool = ..., is_trade_banned: bool = ..., trade_ban_expiration: _Optional[int] = ..., accountid: _Optional[int] = ..., suspension_end_time: _Optional[int] = ..., currency: _Optional[str] = ..., steam_level: _Optional[int] = ..., friend_count: _Optional[int] = ..., account_creation_time: _Optional[int] = ..., is_steamguard_enabled: bool = ..., is_phone_verified: bool = ..., is_two_factor_auth_enabled: bool = ..., two_factor_enabled_time: _Optional[int] = ..., phone_verification_time: _Optional[int] = ..., phone_id: _Optional[int] = ..., is_phone_identifying: bool = ..., rt_identity_linked: _Optional[int] = ..., rt_birth_date: _Optional[int] = ..., txn_country_code: _Optional[str] = ..., has_accepted_china_ssa: bool = ..., is_banned_steam_china: bool = ...) -> None: ...
 
 class CIPLocationInfo(_message.Message):
     __slots__ = ("ip", "latitude", "longitude", "country", "state", "city")
@@ -270,18 +168,10 @@ class CIPLocationInfo(_message.Message):
     country: str
     state: str
     city: str
-    def __init__(
-        self,
-        ip: int | None = ...,
-        latitude: float | None = ...,
-        longitude: float | None = ...,
-        country: str | None = ...,
-        state: str | None = ...,
-        city: str | None = ...,
-    ) -> None: ...
+    def __init__(self, ip: _Optional[int] = ..., latitude: _Optional[float] = ..., longitude: _Optional[float] = ..., country: _Optional[str] = ..., state: _Optional[str] = ..., city: _Optional[str] = ...) -> None: ...
 
 class CGCMsgGetIPLocationResponse(_message.Message):
     __slots__ = ("infos",)
     INFOS_FIELD_NUMBER: _ClassVar[int]
     infos: _containers.RepeatedCompositeFieldContainer[CIPLocationInfo]
-    def __init__(self, infos: _Iterable[CIPLocationInfo | _Mapping] | None = ...) -> None: ...
+    def __init__(self, infos: _Optional[_Iterable[_Union[CIPLocationInfo, _Mapping]]] = ...) -> None: ...

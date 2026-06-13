@@ -1,40 +1,15 @@
-from collections.abc import Iterable as _Iterable
-from collections.abc import Mapping as _Mapping
-from typing import ClassVar as _ClassVar
-
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
+import valveextensions_pb2 as _valveextensions_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class CMsgBotWorldState(_message.Message):
-    __slots__ = (
-        "team_id",
-        "game_time",
-        "dota_time",
-        "game_state",
-        "hero_pick_state",
-        "time_of_day",
-        "glyph_cooldown",
-        "glyph_cooldown_enemy",
-        "players",
-        "units",
-        "dropped_items",
-        "dropped_items_deltas",
-        "rune_infos",
-        "rune_infos_deltas",
-        "incoming_teleports",
-        "linear_projectiles",
-        "avoidance_zones",
-        "couriers",
-        "ability_events",
-        "damage_events",
-        "courier_killed_events",
-        "roshan_killed_events",
-        "tree_events",
-    )
+    __slots__ = ("team_id", "game_time", "dota_time", "game_state", "hero_pick_state", "time_of_day", "glyph_cooldown", "glyph_cooldown_enemy", "players", "units", "dropped_items", "dropped_items_deltas", "rune_infos", "rune_infos_deltas", "incoming_teleports", "linear_projectiles", "avoidance_zones", "couriers", "ability_events", "damage_events", "courier_killed_events", "roshan_killed_events", "tree_events")
     class UnitType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
         INVALID: _ClassVar[CMsgBotWorldState.UnitType]
@@ -50,7 +25,6 @@ class CMsgBotWorldState(_message.Message):
         BUILDING: _ClassVar[CMsgBotWorldState.UnitType]
         COURIER: _ClassVar[CMsgBotWorldState.UnitType]
         WARD: _ClassVar[CMsgBotWorldState.UnitType]
-
     INVALID: CMsgBotWorldState.UnitType
     HERO: CMsgBotWorldState.UnitType
     CREEP_HERO: CMsgBotWorldState.UnitType
@@ -75,7 +49,6 @@ class CMsgBotWorldState(_message.Message):
         COURIER_STATE_DEAD: _ClassVar[CMsgBotWorldState.CourierState]
         COURIER_STATE_GOING_TO_SECRET_SHOP: _ClassVar[CMsgBotWorldState.CourierState]
         COURIER_STATE_AT_SECRET_SHOP: _ClassVar[CMsgBotWorldState.CourierState]
-
     COURIER_STATE_INIT: CMsgBotWorldState.CourierState
     COURIER_STATE_IDLE: CMsgBotWorldState.CourierState
     COURIER_STATE_AT_BASE: CMsgBotWorldState.CourierState
@@ -93,24 +66,9 @@ class CMsgBotWorldState(_message.Message):
         x: float
         y: float
         z: float
-        def __init__(
-            self, x: float | None = ..., y: float | None = ..., z: float | None = ...
-        ) -> None: ...
-
+        def __init__(self, x: _Optional[float] = ..., y: _Optional[float] = ..., z: _Optional[float] = ...) -> None: ...
     class Player(_message.Message):
-        __slots__ = (
-            "player_id",
-            "hero_id",
-            "is_alive",
-            "respawn_time",
-            "kills",
-            "deaths",
-            "assists",
-            "team_id",
-            "primary_unit_handle",
-            "mmr",
-            "location",
-        )
+        __slots__ = ("player_id", "hero_id", "is_alive", "respawn_time", "kills", "deaths", "assists", "team_id", "primary_unit_handle", "mmr", "location")
         PLAYER_ID_FIELD_NUMBER: _ClassVar[int]
         HERO_ID_FIELD_NUMBER: _ClassVar[int]
         IS_ALIVE_FIELD_NUMBER: _ClassVar[int]
@@ -133,42 +91,9 @@ class CMsgBotWorldState(_message.Message):
         primary_unit_handle: int
         mmr: int
         location: CMsgBotWorldState.Vector
-        def __init__(
-            self,
-            player_id: int | None = ...,
-            hero_id: int | None = ...,
-            is_alive: bool = ...,
-            respawn_time: float | None = ...,
-            kills: int | None = ...,
-            deaths: int | None = ...,
-            assists: int | None = ...,
-            team_id: int | None = ...,
-            primary_unit_handle: int | None = ...,
-            mmr: int | None = ...,
-            location: CMsgBotWorldState.Vector | _Mapping | None = ...,
-        ) -> None: ...
-
+        def __init__(self, player_id: _Optional[int] = ..., hero_id: _Optional[int] = ..., is_alive: bool = ..., respawn_time: _Optional[float] = ..., kills: _Optional[int] = ..., deaths: _Optional[int] = ..., assists: _Optional[int] = ..., team_id: _Optional[int] = ..., primary_unit_handle: _Optional[int] = ..., mmr: _Optional[int] = ..., location: _Optional[_Union[CMsgBotWorldState.Vector, _Mapping]] = ...) -> None: ...
     class Ability(_message.Message):
-        __slots__ = (
-            "handle",
-            "ability_id",
-            "slot",
-            "caster_handle",
-            "level",
-            "cast_range",
-            "channel_time",
-            "cooldown_remaining",
-            "is_activated",
-            "is_toggled",
-            "is_in_ability_phase",
-            "is_channeling",
-            "is_stolen",
-            "is_fully_castable",
-            "charges",
-            "secondary_charges",
-            "is_combined_locked",
-            "power_treads_stat",
-        )
+        __slots__ = ("handle", "ability_id", "slot", "caster_handle", "level", "cast_range", "channel_time", "cooldown_remaining", "is_activated", "is_toggled", "is_in_ability_phase", "is_channeling", "is_stolen", "is_fully_castable", "charges", "secondary_charges", "is_combined_locked", "power_treads_stat")
         HANDLE_FIELD_NUMBER: _ClassVar[int]
         ABILITY_ID_FIELD_NUMBER: _ClassVar[int]
         SLOT_FIELD_NUMBER: _ClassVar[int]
@@ -205,40 +130,14 @@ class CMsgBotWorldState(_message.Message):
         secondary_charges: int
         is_combined_locked: bool
         power_treads_stat: int
-        def __init__(
-            self,
-            handle: int | None = ...,
-            ability_id: int | None = ...,
-            slot: int | None = ...,
-            caster_handle: int | None = ...,
-            level: int | None = ...,
-            cast_range: int | None = ...,
-            channel_time: float | None = ...,
-            cooldown_remaining: float | None = ...,
-            is_activated: bool = ...,
-            is_toggled: bool = ...,
-            is_in_ability_phase: bool = ...,
-            is_channeling: bool = ...,
-            is_stolen: bool = ...,
-            is_fully_castable: bool = ...,
-            charges: int | None = ...,
-            secondary_charges: int | None = ...,
-            is_combined_locked: bool = ...,
-            power_treads_stat: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, handle: _Optional[int] = ..., ability_id: _Optional[int] = ..., slot: _Optional[int] = ..., caster_handle: _Optional[int] = ..., level: _Optional[int] = ..., cast_range: _Optional[int] = ..., channel_time: _Optional[float] = ..., cooldown_remaining: _Optional[float] = ..., is_activated: bool = ..., is_toggled: bool = ..., is_in_ability_phase: bool = ..., is_channeling: bool = ..., is_stolen: bool = ..., is_fully_castable: bool = ..., charges: _Optional[int] = ..., secondary_charges: _Optional[int] = ..., is_combined_locked: bool = ..., power_treads_stat: _Optional[int] = ...) -> None: ...
     class DroppedItem(_message.Message):
         __slots__ = ("item_id", "location")
         ITEM_ID_FIELD_NUMBER: _ClassVar[int]
         LOCATION_FIELD_NUMBER: _ClassVar[int]
         item_id: int
         location: CMsgBotWorldState.Vector
-        def __init__(
-            self,
-            item_id: int | None = ...,
-            location: CMsgBotWorldState.Vector | _Mapping | None = ...,
-        ) -> None: ...
-
+        def __init__(self, item_id: _Optional[int] = ..., location: _Optional[_Union[CMsgBotWorldState.Vector, _Mapping]] = ...) -> None: ...
     class RuneInfo(_message.Message):
         __slots__ = ("type", "location", "status", "time_since_seen")
         TYPE_FIELD_NUMBER: _ClassVar[int]
@@ -249,14 +148,7 @@ class CMsgBotWorldState(_message.Message):
         location: CMsgBotWorldState.Vector
         status: int
         time_since_seen: float
-        def __init__(
-            self,
-            type: int | None = ...,
-            location: CMsgBotWorldState.Vector | _Mapping | None = ...,
-            status: int | None = ...,
-            time_since_seen: float | None = ...,
-        ) -> None: ...
-
+        def __init__(self, type: _Optional[int] = ..., location: _Optional[_Union[CMsgBotWorldState.Vector, _Mapping]] = ..., status: _Optional[int] = ..., time_since_seen: _Optional[float] = ...) -> None: ...
     class TeleportInfo(_message.Message):
         __slots__ = ("player_id", "location", "time_remaining")
         PLAYER_ID_FIELD_NUMBER: _ClassVar[int]
@@ -265,23 +157,9 @@ class CMsgBotWorldState(_message.Message):
         player_id: int
         location: CMsgBotWorldState.Vector
         time_remaining: float
-        def __init__(
-            self,
-            player_id: int | None = ...,
-            location: CMsgBotWorldState.Vector | _Mapping | None = ...,
-            time_remaining: float | None = ...,
-        ) -> None: ...
-
+        def __init__(self, player_id: _Optional[int] = ..., location: _Optional[_Union[CMsgBotWorldState.Vector, _Mapping]] = ..., time_remaining: _Optional[float] = ...) -> None: ...
     class Modifier(_message.Message):
-        __slots__ = (
-            "handle",
-            "name",
-            "stack_count",
-            "ability_handle",
-            "ability_id",
-            "remaining_duration",
-            "auxiliary_units_handles",
-        )
+        __slots__ = ("handle", "name", "stack_count", "ability_handle", "ability_id", "remaining_duration", "auxiliary_units_handles")
         HANDLE_FIELD_NUMBER: _ClassVar[int]
         NAME_FIELD_NUMBER: _ClassVar[int]
         STACK_COUNT_FIELD_NUMBER: _ClassVar[int]
@@ -296,29 +174,9 @@ class CMsgBotWorldState(_message.Message):
         ability_id: int
         remaining_duration: float
         auxiliary_units_handles: _containers.RepeatedScalarFieldContainer[int]
-        def __init__(
-            self,
-            handle: int | None = ...,
-            name: str | None = ...,
-            stack_count: int | None = ...,
-            ability_handle: int | None = ...,
-            ability_id: int | None = ...,
-            remaining_duration: float | None = ...,
-            auxiliary_units_handles: _Iterable[int] | None = ...,
-        ) -> None: ...
-
+        def __init__(self, handle: _Optional[int] = ..., name: _Optional[str] = ..., stack_count: _Optional[int] = ..., ability_handle: _Optional[int] = ..., ability_id: _Optional[int] = ..., remaining_duration: _Optional[float] = ..., auxiliary_units_handles: _Optional[_Iterable[int]] = ...) -> None: ...
     class LinearProjectile(_message.Message):
-        __slots__ = (
-            "handle",
-            "caster_handle",
-            "caster_unit_type",
-            "caster_player_id",
-            "ability_handle",
-            "ability_id",
-            "location",
-            "velocity",
-            "radius",
-        )
+        __slots__ = ("handle", "caster_handle", "caster_unit_type", "caster_player_id", "ability_handle", "ability_id", "location", "velocity", "radius")
         HANDLE_FIELD_NUMBER: _ClassVar[int]
         CASTER_HANDLE_FIELD_NUMBER: _ClassVar[int]
         CASTER_UNIT_TYPE_FIELD_NUMBER: _ClassVar[int]
@@ -337,32 +195,9 @@ class CMsgBotWorldState(_message.Message):
         location: CMsgBotWorldState.Vector
         velocity: CMsgBotWorldState.Vector
         radius: int
-        def __init__(
-            self,
-            handle: int | None = ...,
-            caster_handle: int | None = ...,
-            caster_unit_type: CMsgBotWorldState.UnitType | str | None = ...,
-            caster_player_id: int | None = ...,
-            ability_handle: int | None = ...,
-            ability_id: int | None = ...,
-            location: CMsgBotWorldState.Vector | _Mapping | None = ...,
-            velocity: CMsgBotWorldState.Vector | _Mapping | None = ...,
-            radius: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, handle: _Optional[int] = ..., caster_handle: _Optional[int] = ..., caster_unit_type: _Optional[_Union[CMsgBotWorldState.UnitType, str]] = ..., caster_player_id: _Optional[int] = ..., ability_handle: _Optional[int] = ..., ability_id: _Optional[int] = ..., location: _Optional[_Union[CMsgBotWorldState.Vector, _Mapping]] = ..., velocity: _Optional[_Union[CMsgBotWorldState.Vector, _Mapping]] = ..., radius: _Optional[int] = ...) -> None: ...
     class TrackingProjectile(_message.Message):
-        __slots__ = (
-            "handle",
-            "caster_handle",
-            "caster_unit_type",
-            "caster_player_id",
-            "ability_handle",
-            "ability_id",
-            "location",
-            "velocity",
-            "is_dodgeable",
-            "is_attack",
-        )
+        __slots__ = ("handle", "caster_handle", "caster_unit_type", "caster_player_id", "ability_handle", "ability_id", "location", "velocity", "is_dodgeable", "is_attack")
         HANDLE_FIELD_NUMBER: _ClassVar[int]
         CASTER_HANDLE_FIELD_NUMBER: _ClassVar[int]
         CASTER_UNIT_TYPE_FIELD_NUMBER: _ClassVar[int]
@@ -383,30 +218,9 @@ class CMsgBotWorldState(_message.Message):
         velocity: int
         is_dodgeable: bool
         is_attack: bool
-        def __init__(
-            self,
-            handle: int | None = ...,
-            caster_handle: int | None = ...,
-            caster_unit_type: CMsgBotWorldState.UnitType | str | None = ...,
-            caster_player_id: int | None = ...,
-            ability_handle: int | None = ...,
-            ability_id: int | None = ...,
-            location: CMsgBotWorldState.Vector | _Mapping | None = ...,
-            velocity: int | None = ...,
-            is_dodgeable: bool = ...,
-            is_attack: bool = ...,
-        ) -> None: ...
-
+        def __init__(self, handle: _Optional[int] = ..., caster_handle: _Optional[int] = ..., caster_unit_type: _Optional[_Union[CMsgBotWorldState.UnitType, str]] = ..., caster_player_id: _Optional[int] = ..., ability_handle: _Optional[int] = ..., ability_id: _Optional[int] = ..., location: _Optional[_Union[CMsgBotWorldState.Vector, _Mapping]] = ..., velocity: _Optional[int] = ..., is_dodgeable: bool = ..., is_attack: bool = ...) -> None: ...
     class AvoidanceZone(_message.Message):
-        __slots__ = (
-            "location",
-            "caster_handle",
-            "caster_unit_type",
-            "caster_player_id",
-            "ability_handle",
-            "ability_id",
-            "radius",
-        )
+        __slots__ = ("location", "caster_handle", "caster_unit_type", "caster_player_id", "ability_handle", "ability_id", "radius")
         LOCATION_FIELD_NUMBER: _ClassVar[int]
         CASTER_HANDLE_FIELD_NUMBER: _ClassVar[int]
         CASTER_UNIT_TYPE_FIELD_NUMBER: _ClassVar[int]
@@ -421,17 +235,7 @@ class CMsgBotWorldState(_message.Message):
         ability_handle: int
         ability_id: int
         radius: int
-        def __init__(
-            self,
-            location: CMsgBotWorldState.Vector | _Mapping | None = ...,
-            caster_handle: int | None = ...,
-            caster_unit_type: CMsgBotWorldState.UnitType | str | None = ...,
-            caster_player_id: int | None = ...,
-            ability_handle: int | None = ...,
-            ability_id: int | None = ...,
-            radius: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, location: _Optional[_Union[CMsgBotWorldState.Vector, _Mapping]] = ..., caster_handle: _Optional[int] = ..., caster_unit_type: _Optional[_Union[CMsgBotWorldState.UnitType, str]] = ..., caster_player_id: _Optional[int] = ..., ability_handle: _Optional[int] = ..., ability_id: _Optional[int] = ..., radius: _Optional[int] = ...) -> None: ...
     class Courier(_message.Message):
         __slots__ = ("handle", "state", "player_id")
         HANDLE_FIELD_NUMBER: _ClassVar[int]
@@ -440,13 +244,7 @@ class CMsgBotWorldState(_message.Message):
         handle: int
         state: CMsgBotWorldState.CourierState
         player_id: int
-        def __init__(
-            self,
-            handle: int | None = ...,
-            state: CMsgBotWorldState.CourierState | str | None = ...,
-            player_id: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, handle: _Optional[int] = ..., state: _Optional[_Union[CMsgBotWorldState.CourierState, str]] = ..., player_id: _Optional[int] = ...) -> None: ...
     class EventAbility(_message.Message):
         __slots__ = ("ability_id", "player_id", "unit_handle", "location", "is_channel_start")
         ABILITY_ID_FIELD_NUMBER: _ClassVar[int]
@@ -459,24 +257,9 @@ class CMsgBotWorldState(_message.Message):
         unit_handle: int
         location: CMsgBotWorldState.Vector
         is_channel_start: bool
-        def __init__(
-            self,
-            ability_id: int | None = ...,
-            player_id: int | None = ...,
-            unit_handle: int | None = ...,
-            location: CMsgBotWorldState.Vector | _Mapping | None = ...,
-            is_channel_start: bool = ...,
-        ) -> None: ...
-
+        def __init__(self, ability_id: _Optional[int] = ..., player_id: _Optional[int] = ..., unit_handle: _Optional[int] = ..., location: _Optional[_Union[CMsgBotWorldState.Vector, _Mapping]] = ..., is_channel_start: bool = ...) -> None: ...
     class EventDamage(_message.Message):
-        __slots__ = (
-            "damage",
-            "victim_player_id",
-            "victim_unit_handle",
-            "attacker_player_id",
-            "attacker_unit_handle",
-            "ability_id",
-        )
+        __slots__ = ("damage", "victim_player_id", "victim_unit_handle", "attacker_player_id", "attacker_unit_handle", "ability_id")
         DAMAGE_FIELD_NUMBER: _ClassVar[int]
         VICTIM_PLAYER_ID_FIELD_NUMBER: _ClassVar[int]
         VICTIM_UNIT_HANDLE_FIELD_NUMBER: _ClassVar[int]
@@ -489,16 +272,7 @@ class CMsgBotWorldState(_message.Message):
         attacker_player_id: int
         attacker_unit_handle: int
         ability_id: int
-        def __init__(
-            self,
-            damage: int | None = ...,
-            victim_player_id: int | None = ...,
-            victim_unit_handle: int | None = ...,
-            attacker_player_id: int | None = ...,
-            attacker_unit_handle: int | None = ...,
-            ability_id: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, damage: _Optional[int] = ..., victim_player_id: _Optional[int] = ..., victim_unit_handle: _Optional[int] = ..., attacker_player_id: _Optional[int] = ..., attacker_unit_handle: _Optional[int] = ..., ability_id: _Optional[int] = ...) -> None: ...
     class EventCourierKilled(_message.Message):
         __slots__ = ("team_id", "courier_unit_handle", "killer_player_id", "killer_unit_handle")
         TEAM_ID_FIELD_NUMBER: _ClassVar[int]
@@ -509,24 +283,14 @@ class CMsgBotWorldState(_message.Message):
         courier_unit_handle: int
         killer_player_id: int
         killer_unit_handle: int
-        def __init__(
-            self,
-            team_id: int | None = ...,
-            courier_unit_handle: int | None = ...,
-            killer_player_id: int | None = ...,
-            killer_unit_handle: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, team_id: _Optional[int] = ..., courier_unit_handle: _Optional[int] = ..., killer_player_id: _Optional[int] = ..., killer_unit_handle: _Optional[int] = ...) -> None: ...
     class EventRoshanKilled(_message.Message):
         __slots__ = ("killer_player_id", "killer_unit_handle")
         KILLER_PLAYER_ID_FIELD_NUMBER: _ClassVar[int]
         KILLER_UNIT_HANDLE_FIELD_NUMBER: _ClassVar[int]
         killer_player_id: int
         killer_unit_handle: int
-        def __init__(
-            self, killer_player_id: int | None = ..., killer_unit_handle: int | None = ...
-        ) -> None: ...
-
+        def __init__(self, killer_player_id: _Optional[int] = ..., killer_unit_handle: _Optional[int] = ...) -> None: ...
     class EventTree(_message.Message):
         __slots__ = ("tree_id", "destroyed", "respawned", "location", "delayed")
         TREE_ID_FIELD_NUMBER: _ClassVar[int]
@@ -539,109 +303,9 @@ class CMsgBotWorldState(_message.Message):
         respawned: bool
         location: CMsgBotWorldState.Vector
         delayed: bool
-        def __init__(
-            self,
-            tree_id: int | None = ...,
-            destroyed: bool = ...,
-            respawned: bool = ...,
-            location: CMsgBotWorldState.Vector | _Mapping | None = ...,
-            delayed: bool = ...,
-        ) -> None: ...
-
+        def __init__(self, tree_id: _Optional[int] = ..., destroyed: bool = ..., respawned: bool = ..., location: _Optional[_Union[CMsgBotWorldState.Vector, _Mapping]] = ..., delayed: bool = ...) -> None: ...
     class Unit(_message.Message):
-        __slots__ = (
-            "handle",
-            "unit_type",
-            "name",
-            "team_id",
-            "level",
-            "location",
-            "is_alive",
-            "player_id",
-            "bounding_radius",
-            "facing",
-            "ground_height",
-            "vision_range_daytime",
-            "vision_range_nighttime",
-            "health",
-            "health_max",
-            "health_regen",
-            "mana",
-            "mana_max",
-            "mana_regen",
-            "base_movement_speed",
-            "current_movement_speed",
-            "anim_activity",
-            "anim_cycle",
-            "base_damage",
-            "base_damage_variance",
-            "bonus_damage",
-            "attack_damage",
-            "attack_range",
-            "attack_speed",
-            "attack_anim_point",
-            "attack_acquisition_range",
-            "attack_projectile_speed",
-            "attack_target_handle",
-            "attack_target_name",
-            "attacks_per_second",
-            "last_attack_time",
-            "bounty_xp",
-            "bounty_gold_min",
-            "bounty_gold_max",
-            "is_channeling",
-            "active_ability_handle",
-            "is_attack_immune",
-            "is_blind",
-            "is_block_disabled",
-            "is_disarmed",
-            "is_dominated",
-            "is_evade_disabled",
-            "is_hexed",
-            "is_invisible",
-            "is_invulnerable",
-            "is_magic_immune",
-            "is_muted",
-            "is_nightmared",
-            "is_rooted",
-            "is_silenced",
-            "is_specially_deniable",
-            "is_stunned",
-            "is_unable_to_miss",
-            "has_scepter",
-            "is_specially_undeniable",
-            "abilities",
-            "items",
-            "modifiers",
-            "incoming_tracking_projectiles",
-            "action_type",
-            "ability_target_handle",
-            "ability_target_name",
-            "is_using_ability",
-            "primary_attribute",
-            "is_illusion",
-            "respawn_time",
-            "buyback_cost",
-            "buyback_cooldown",
-            "spell_amplification",
-            "armor",
-            "magic_resist",
-            "evasion",
-            "xp_needed_to_level",
-            "ability_points",
-            "reliable_gold",
-            "unreliable_gold",
-            "last_hits",
-            "denies",
-            "net_worth",
-            "strength",
-            "agility",
-            "intelligence",
-            "remaining_lifespan",
-            "flying_courier",
-            "shrine_cooldown",
-            "is_shrine_healing",
-        )
+        __slots__ = ("handle", "unit_type", "name", "team_id", "level", "location", "is_alive", "player_id", "bounding_radius", "facing", "ground_height", "vision_range_daytime", "vision_range_nighttime", "health", "health_max", "health_regen", "mana", "mana_max", "mana_regen", "base_movement_speed", "current_movement_speed", "anim_activity", "anim_cycle", "base_damage", "base_damage_variance", "bonus_damage", "attack_damage", "attack_range", "attack_speed", "attack_anim_point", "attack_acquisition_range", "attack_projectile_speed", "attack_target_handle", "attack_target_name", "attacks_per_second", "last_attack_time", "bounty_xp", "bounty_gold_min", "bounty_gold_max", "is_channeling", "active_ability_handle", "is_attack_immune", "is_blind", "is_block_disabled", "is_disarmed", "is_dominated", "is_evade_disabled", "is_hexed", "is_invisible", "is_invulnerable", "is_magic_immune", "is_muted", "is_nightmared", "is_rooted", "is_silenced", "is_specially_deniable", "is_stunned", "is_unable_to_miss", "has_scepter", "is_specially_undeniable", "abilities", "items", "modifiers", "incoming_tracking_projectiles", "action_type", "ability_target_handle", "ability_target_name", "is_using_ability", "primary_attribute", "is_illusion", "respawn_time", "buyback_cost", "buyback_cooldown", "spell_amplification", "armor", "magic_resist", "evasion", "xp_needed_to_level", "ability_points", "reliable_gold", "unreliable_gold", "last_hits", "denies", "net_worth", "strength", "agility", "intelligence", "remaining_lifespan", "flying_courier", "shrine_cooldown", "is_shrine_healing")
         HANDLE_FIELD_NUMBER: _ClassVar[int]
         UNIT_TYPE_FIELD_NUMBER: _ClassVar[int]
         NAME_FIELD_NUMBER: _ClassVar[int]
@@ -796,9 +460,7 @@ class CMsgBotWorldState(_message.Message):
         abilities: _containers.RepeatedCompositeFieldContainer[CMsgBotWorldState.Ability]
         items: _containers.RepeatedCompositeFieldContainer[CMsgBotWorldState.Ability]
         modifiers: _containers.RepeatedCompositeFieldContainer[CMsgBotWorldState.Modifier]
-        incoming_tracking_projectiles: _containers.RepeatedCompositeFieldContainer[
-            CMsgBotWorldState.TrackingProjectile
-        ]
+        incoming_tracking_projectiles: _containers.RepeatedCompositeFieldContainer[CMsgBotWorldState.TrackingProjectile]
         action_type: int
         ability_target_handle: int
         ability_target_name: str
@@ -826,104 +488,7 @@ class CMsgBotWorldState(_message.Message):
         flying_courier: bool
         shrine_cooldown: float
         is_shrine_healing: bool
-        def __init__(
-            self,
-            handle: int | None = ...,
-            unit_type: CMsgBotWorldState.UnitType | str | None = ...,
-            name: str | None = ...,
-            team_id: int | None = ...,
-            level: int | None = ...,
-            location: CMsgBotWorldState.Vector | _Mapping | None = ...,
-            is_alive: bool = ...,
-            player_id: int | None = ...,
-            bounding_radius: int | None = ...,
-            facing: int | None = ...,
-            ground_height: int | None = ...,
-            vision_range_daytime: int | None = ...,
-            vision_range_nighttime: int | None = ...,
-            health: int | None = ...,
-            health_max: int | None = ...,
-            health_regen: float | None = ...,
-            mana: int | None = ...,
-            mana_max: int | None = ...,
-            mana_regen: float | None = ...,
-            base_movement_speed: int | None = ...,
-            current_movement_speed: int | None = ...,
-            anim_activity: int | None = ...,
-            anim_cycle: float | None = ...,
-            base_damage: int | None = ...,
-            base_damage_variance: int | None = ...,
-            bonus_damage: int | None = ...,
-            attack_damage: int | None = ...,
-            attack_range: int | None = ...,
-            attack_speed: float | None = ...,
-            attack_anim_point: float | None = ...,
-            attack_acquisition_range: int | None = ...,
-            attack_projectile_speed: int | None = ...,
-            attack_target_handle: int | None = ...,
-            attack_target_name: str | None = ...,
-            attacks_per_second: int | None = ...,
-            last_attack_time: float | None = ...,
-            bounty_xp: int | None = ...,
-            bounty_gold_min: int | None = ...,
-            bounty_gold_max: int | None = ...,
-            is_channeling: bool = ...,
-            active_ability_handle: int | None = ...,
-            is_attack_immune: bool = ...,
-            is_blind: bool = ...,
-            is_block_disabled: bool = ...,
-            is_disarmed: bool = ...,
-            is_dominated: bool = ...,
-            is_evade_disabled: bool = ...,
-            is_hexed: bool = ...,
-            is_invisible: bool = ...,
-            is_invulnerable: bool = ...,
-            is_magic_immune: bool = ...,
-            is_muted: bool = ...,
-            is_nightmared: bool = ...,
-            is_rooted: bool = ...,
-            is_silenced: bool = ...,
-            is_specially_deniable: bool = ...,
-            is_stunned: bool = ...,
-            is_unable_to_miss: bool = ...,
-            has_scepter: bool = ...,
-            is_specially_undeniable: bool = ...,
-            abilities: _Iterable[CMsgBotWorldState.Ability | _Mapping] | None = ...,
-            items: _Iterable[CMsgBotWorldState.Ability | _Mapping] | None = ...,
-            modifiers: _Iterable[CMsgBotWorldState.Modifier | _Mapping] | None = ...,
-            incoming_tracking_projectiles: _Iterable[
-                CMsgBotWorldState.TrackingProjectile | _Mapping
-            ]
-            | None = ...,
-            action_type: int | None = ...,
-            ability_target_handle: int | None = ...,
-            ability_target_name: str | None = ...,
-            is_using_ability: bool = ...,
-            primary_attribute: int | None = ...,
-            is_illusion: bool = ...,
-            respawn_time: float | None = ...,
-            buyback_cost: int | None = ...,
-            buyback_cooldown: float | None = ...,
-            spell_amplification: float | None = ...,
-            armor: float | None = ...,
-            magic_resist: float | None = ...,
-            evasion: float | None = ...,
-            xp_needed_to_level: int | None = ...,
-            ability_points: int | None = ...,
-            reliable_gold: int | None = ...,
-            unreliable_gold: int | None = ...,
-            last_hits: int | None = ...,
-            denies: int | None = ...,
-            net_worth: int | None = ...,
-            strength: int | None = ...,
-            agility: int | None = ...,
-            intelligence: int | None = ...,
-            remaining_lifespan: float | None = ...,
-            flying_courier: bool = ...,
-            shrine_cooldown: float | None = ...,
-            is_shrine_healing: bool = ...,
-        ) -> None: ...
-
+        def __init__(self, handle: _Optional[int] = ..., unit_type: _Optional[_Union[CMsgBotWorldState.UnitType, str]] = ..., name: _Optional[str] = ..., team_id: _Optional[int] = ..., level: _Optional[int] = ..., location: _Optional[_Union[CMsgBotWorldState.Vector, _Mapping]] = ..., is_alive: bool = ..., player_id: _Optional[int] = ..., bounding_radius: _Optional[int] = ..., facing: _Optional[int] = ..., ground_height: _Optional[int] = ..., vision_range_daytime: _Optional[int] = ..., vision_range_nighttime: _Optional[int] = ..., health: _Optional[int] = ..., health_max: _Optional[int] = ..., health_regen: _Optional[float] = ..., mana: _Optional[int] = ..., mana_max: _Optional[int] = ..., mana_regen: _Optional[float] = ..., base_movement_speed: _Optional[int] = ..., current_movement_speed: _Optional[int] = ..., anim_activity: _Optional[int] = ..., anim_cycle: _Optional[float] = ..., base_damage: _Optional[int] = ..., base_damage_variance: _Optional[int] = ..., bonus_damage: _Optional[int] = ..., attack_damage: _Optional[int] = ..., attack_range: _Optional[int] = ..., attack_speed: _Optional[float] = ..., attack_anim_point: _Optional[float] = ..., attack_acquisition_range: _Optional[int] = ..., attack_projectile_speed: _Optional[int] = ..., attack_target_handle: _Optional[int] = ..., attack_target_name: _Optional[str] = ..., attacks_per_second: _Optional[int] = ..., last_attack_time: _Optional[float] = ..., bounty_xp: _Optional[int] = ..., bounty_gold_min: _Optional[int] = ..., bounty_gold_max: _Optional[int] = ..., is_channeling: bool = ..., active_ability_handle: _Optional[int] = ..., is_attack_immune: bool = ..., is_blind: bool = ..., is_block_disabled: bool = ..., is_disarmed: bool = ..., is_dominated: bool = ..., is_evade_disabled: bool = ..., is_hexed: bool = ..., is_invisible: bool = ..., is_invulnerable: bool = ..., is_magic_immune: bool = ..., is_muted: bool = ..., is_nightmared: bool = ..., is_rooted: bool = ..., is_silenced: bool = ..., is_specially_deniable: bool = ..., is_stunned: bool = ..., is_unable_to_miss: bool = ..., has_scepter: bool = ..., is_specially_undeniable: bool = ..., abilities: _Optional[_Iterable[_Union[CMsgBotWorldState.Ability, _Mapping]]] = ..., items: _Optional[_Iterable[_Union[CMsgBotWorldState.Ability, _Mapping]]] = ..., modifiers: _Optional[_Iterable[_Union[CMsgBotWorldState.Modifier, _Mapping]]] = ..., incoming_tracking_projectiles: _Optional[_Iterable[_Union[CMsgBotWorldState.TrackingProjectile, _Mapping]]] = ..., action_type: _Optional[int] = ..., ability_target_handle: _Optional[int] = ..., ability_target_name: _Optional[str] = ..., is_using_ability: bool = ..., primary_attribute: _Optional[int] = ..., is_illusion: bool = ..., respawn_time: _Optional[float] = ..., buyback_cost: _Optional[int] = ..., buyback_cooldown: _Optional[float] = ..., spell_amplification: _Optional[float] = ..., armor: _Optional[float] = ..., magic_resist: _Optional[float] = ..., evasion: _Optional[float] = ..., xp_needed_to_level: _Optional[int] = ..., ability_points: _Optional[int] = ..., reliable_gold: _Optional[int] = ..., unreliable_gold: _Optional[int] = ..., last_hits: _Optional[int] = ..., denies: _Optional[int] = ..., net_worth: _Optional[int] = ..., strength: _Optional[int] = ..., agility: _Optional[int] = ..., intelligence: _Optional[int] = ..., remaining_lifespan: _Optional[float] = ..., flying_courier: bool = ..., shrine_cooldown: _Optional[float] = ..., is_shrine_healing: bool = ...) -> None: ...
     TEAM_ID_FIELD_NUMBER: _ClassVar[int]
     GAME_TIME_FIELD_NUMBER: _ClassVar[int]
     DOTA_TIME_FIELD_NUMBER: _ClassVar[int]
@@ -962,45 +527,12 @@ class CMsgBotWorldState(_message.Message):
     rune_infos: _containers.RepeatedCompositeFieldContainer[CMsgBotWorldState.RuneInfo]
     rune_infos_deltas: _containers.RepeatedScalarFieldContainer[int]
     incoming_teleports: _containers.RepeatedCompositeFieldContainer[CMsgBotWorldState.TeleportInfo]
-    linear_projectiles: _containers.RepeatedCompositeFieldContainer[
-        CMsgBotWorldState.LinearProjectile
-    ]
+    linear_projectiles: _containers.RepeatedCompositeFieldContainer[CMsgBotWorldState.LinearProjectile]
     avoidance_zones: _containers.RepeatedCompositeFieldContainer[CMsgBotWorldState.AvoidanceZone]
     couriers: _containers.RepeatedCompositeFieldContainer[CMsgBotWorldState.Courier]
     ability_events: _containers.RepeatedCompositeFieldContainer[CMsgBotWorldState.EventAbility]
     damage_events: _containers.RepeatedCompositeFieldContainer[CMsgBotWorldState.EventDamage]
-    courier_killed_events: _containers.RepeatedCompositeFieldContainer[
-        CMsgBotWorldState.EventCourierKilled
-    ]
-    roshan_killed_events: _containers.RepeatedCompositeFieldContainer[
-        CMsgBotWorldState.EventRoshanKilled
-    ]
+    courier_killed_events: _containers.RepeatedCompositeFieldContainer[CMsgBotWorldState.EventCourierKilled]
+    roshan_killed_events: _containers.RepeatedCompositeFieldContainer[CMsgBotWorldState.EventRoshanKilled]
     tree_events: _containers.RepeatedCompositeFieldContainer[CMsgBotWorldState.EventTree]
-    def __init__(
-        self,
-        team_id: int | None = ...,
-        game_time: float | None = ...,
-        dota_time: float | None = ...,
-        game_state: int | None = ...,
-        hero_pick_state: int | None = ...,
-        time_of_day: float | None = ...,
-        glyph_cooldown: float | None = ...,
-        glyph_cooldown_enemy: float | None = ...,
-        players: _Iterable[CMsgBotWorldState.Player | _Mapping] | None = ...,
-        units: _Iterable[CMsgBotWorldState.Unit | _Mapping] | None = ...,
-        dropped_items: _Iterable[CMsgBotWorldState.DroppedItem | _Mapping] | None = ...,
-        dropped_items_deltas: _Iterable[int] | None = ...,
-        rune_infos: _Iterable[CMsgBotWorldState.RuneInfo | _Mapping] | None = ...,
-        rune_infos_deltas: _Iterable[int] | None = ...,
-        incoming_teleports: _Iterable[CMsgBotWorldState.TeleportInfo | _Mapping] | None = ...,
-        linear_projectiles: _Iterable[CMsgBotWorldState.LinearProjectile | _Mapping] | None = ...,
-        avoidance_zones: _Iterable[CMsgBotWorldState.AvoidanceZone | _Mapping] | None = ...,
-        couriers: _Iterable[CMsgBotWorldState.Courier | _Mapping] | None = ...,
-        ability_events: _Iterable[CMsgBotWorldState.EventAbility | _Mapping] | None = ...,
-        damage_events: _Iterable[CMsgBotWorldState.EventDamage | _Mapping] | None = ...,
-        courier_killed_events: _Iterable[CMsgBotWorldState.EventCourierKilled | _Mapping]
-        | None = ...,
-        roshan_killed_events: _Iterable[CMsgBotWorldState.EventRoshanKilled | _Mapping]
-        | None = ...,
-        tree_events: _Iterable[CMsgBotWorldState.EventTree | _Mapping] | None = ...,
-    ) -> None: ...
+    def __init__(self, team_id: _Optional[int] = ..., game_time: _Optional[float] = ..., dota_time: _Optional[float] = ..., game_state: _Optional[int] = ..., hero_pick_state: _Optional[int] = ..., time_of_day: _Optional[float] = ..., glyph_cooldown: _Optional[float] = ..., glyph_cooldown_enemy: _Optional[float] = ..., players: _Optional[_Iterable[_Union[CMsgBotWorldState.Player, _Mapping]]] = ..., units: _Optional[_Iterable[_Union[CMsgBotWorldState.Unit, _Mapping]]] = ..., dropped_items: _Optional[_Iterable[_Union[CMsgBotWorldState.DroppedItem, _Mapping]]] = ..., dropped_items_deltas: _Optional[_Iterable[int]] = ..., rune_infos: _Optional[_Iterable[_Union[CMsgBotWorldState.RuneInfo, _Mapping]]] = ..., rune_infos_deltas: _Optional[_Iterable[int]] = ..., incoming_teleports: _Optional[_Iterable[_Union[CMsgBotWorldState.TeleportInfo, _Mapping]]] = ..., linear_projectiles: _Optional[_Iterable[_Union[CMsgBotWorldState.LinearProjectile, _Mapping]]] = ..., avoidance_zones: _Optional[_Iterable[_Union[CMsgBotWorldState.AvoidanceZone, _Mapping]]] = ..., couriers: _Optional[_Iterable[_Union[CMsgBotWorldState.Courier, _Mapping]]] = ..., ability_events: _Optional[_Iterable[_Union[CMsgBotWorldState.EventAbility, _Mapping]]] = ..., damage_events: _Optional[_Iterable[_Union[CMsgBotWorldState.EventDamage, _Mapping]]] = ..., courier_killed_events: _Optional[_Iterable[_Union[CMsgBotWorldState.EventCourierKilled, _Mapping]]] = ..., roshan_killed_events: _Optional[_Iterable[_Union[CMsgBotWorldState.EventRoshanKilled, _Mapping]]] = ..., tree_events: _Optional[_Iterable[_Union[CMsgBotWorldState.EventTree, _Mapping]]] = ...) -> None: ...

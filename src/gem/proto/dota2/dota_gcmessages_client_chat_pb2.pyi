@@ -1,12 +1,10 @@
-from collections.abc import Iterable as _Iterable
-from collections.abc import Mapping as _Mapping
-from typing import ClassVar as _ClassVar
-
 import dota_shared_enums_pb2 as _dota_shared_enums_pb2
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -16,9 +14,7 @@ class CMsgClientToGCPrivateChatInvite(_message.Message):
     INVITED_ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     private_chat_channel_name: str
     invited_account_id: int
-    def __init__(
-        self, private_chat_channel_name: str | None = ..., invited_account_id: int | None = ...
-    ) -> None: ...
+    def __init__(self, private_chat_channel_name: _Optional[str] = ..., invited_account_id: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCPrivateChatKick(_message.Message):
     __slots__ = ("private_chat_channel_name", "kick_account_id")
@@ -26,9 +22,7 @@ class CMsgClientToGCPrivateChatKick(_message.Message):
     KICK_ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     private_chat_channel_name: str
     kick_account_id: int
-    def __init__(
-        self, private_chat_channel_name: str | None = ..., kick_account_id: int | None = ...
-    ) -> None: ...
+    def __init__(self, private_chat_channel_name: _Optional[str] = ..., kick_account_id: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCPrivateChatPromote(_message.Message):
     __slots__ = ("private_chat_channel_name", "promote_account_id")
@@ -36,9 +30,7 @@ class CMsgClientToGCPrivateChatPromote(_message.Message):
     PROMOTE_ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     private_chat_channel_name: str
     promote_account_id: int
-    def __init__(
-        self, private_chat_channel_name: str | None = ..., promote_account_id: int | None = ...
-    ) -> None: ...
+    def __init__(self, private_chat_channel_name: _Optional[str] = ..., promote_account_id: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCPrivateChatDemote(_message.Message):
     __slots__ = ("private_chat_channel_name", "demote_account_id")
@@ -46,9 +38,7 @@ class CMsgClientToGCPrivateChatDemote(_message.Message):
     DEMOTE_ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     private_chat_channel_name: str
     demote_account_id: int
-    def __init__(
-        self, private_chat_channel_name: str | None = ..., demote_account_id: int | None = ...
-    ) -> None: ...
+    def __init__(self, private_chat_channel_name: _Optional[str] = ..., demote_account_id: _Optional[int] = ...) -> None: ...
 
 class CMsgGCToClientPrivateChatResponse(_message.Message):
     __slots__ = ("private_chat_channel_name", "result", "username")
@@ -69,7 +59,6 @@ class CMsgGCToClientPrivateChatResponse(_message.Message):
         FAILURE_UNKNOWN_ERROR: _ClassVar[CMsgGCToClientPrivateChatResponse.Result]
         FAILURE_CANNOT_KICK_ADMIN: _ClassVar[CMsgGCToClientPrivateChatResponse.Result]
         FAILURE_ALREADY_ADMIN: _ClassVar[CMsgGCToClientPrivateChatResponse.Result]
-
     SUCCESS: CMsgGCToClientPrivateChatResponse.Result
     FAILURE_CREATION_LOCK: CMsgGCToClientPrivateChatResponse.Result
     FAILURE_SQL_TRANSACTION: CMsgGCToClientPrivateChatResponse.Result
@@ -91,12 +80,7 @@ class CMsgGCToClientPrivateChatResponse(_message.Message):
     private_chat_channel_name: str
     result: CMsgGCToClientPrivateChatResponse.Result
     username: str
-    def __init__(
-        self,
-        private_chat_channel_name: str | None = ...,
-        result: CMsgGCToClientPrivateChatResponse.Result | str | None = ...,
-        username: str | None = ...,
-    ) -> None: ...
+    def __init__(self, private_chat_channel_name: _Optional[str] = ..., result: _Optional[_Union[CMsgGCToClientPrivateChatResponse.Result, str]] = ..., username: _Optional[str] = ...) -> None: ...
 
 class CMsgDOTAJoinChatChannel(_message.Message):
     __slots__ = ("channel_name", "channel_type", "silent_rejection")
@@ -106,18 +90,13 @@ class CMsgDOTAJoinChatChannel(_message.Message):
     channel_name: str
     channel_type: _dota_shared_enums_pb2.DOTAChatChannelType_t
     silent_rejection: bool
-    def __init__(
-        self,
-        channel_name: str | None = ...,
-        channel_type: _dota_shared_enums_pb2.DOTAChatChannelType_t | str | None = ...,
-        silent_rejection: bool = ...,
-    ) -> None: ...
+    def __init__(self, channel_name: _Optional[str] = ..., channel_type: _Optional[_Union[_dota_shared_enums_pb2.DOTAChatChannelType_t, str]] = ..., silent_rejection: bool = ...) -> None: ...
 
 class CMsgDOTALeaveChatChannel(_message.Message):
     __slots__ = ("channel_id",)
     CHANNEL_ID_FIELD_NUMBER: _ClassVar[int]
     channel_id: int
-    def __init__(self, channel_id: int | None = ...) -> None: ...
+    def __init__(self, channel_id: _Optional[int] = ...) -> None: ...
 
 class CMsgGCChatReportPublicSpam(_message.Message):
     __slots__ = ("channel_id", "channel_user_id")
@@ -125,7 +104,7 @@ class CMsgGCChatReportPublicSpam(_message.Message):
     CHANNEL_USER_ID_FIELD_NUMBER: _ClassVar[int]
     channel_id: int
     channel_user_id: int
-    def __init__(self, channel_id: int | None = ..., channel_user_id: int | None = ...) -> None: ...
+    def __init__(self, channel_id: _Optional[int] = ..., channel_user_id: _Optional[int] = ...) -> None: ...
 
 class CMsgDOTAChatModeratorBan(_message.Message):
     __slots__ = ("channel_id", "account_id", "duration")
@@ -135,55 +114,10 @@ class CMsgDOTAChatModeratorBan(_message.Message):
     channel_id: int
     account_id: int
     duration: int
-    def __init__(
-        self, channel_id: int | None = ..., account_id: int | None = ..., duration: int | None = ...
-    ) -> None: ...
+    def __init__(self, channel_id: _Optional[int] = ..., account_id: _Optional[int] = ..., duration: _Optional[int] = ...) -> None: ...
 
 class CMsgDOTAChatMessage(_message.Message):
-    __slots__ = (
-        "account_id",
-        "channel_id",
-        "persona_name",
-        "text",
-        "timestamp",
-        "suggest_invite_account_id",
-        "suggest_invite_name",
-        "fantasy_draft_owner_account_id",
-        "fantasy_draft_player_account_id",
-        "event_id",
-        "suggest_invite_to_lobby",
-        "coin_flip",
-        "player_id",
-        "share_profile_account_id",
-        "channel_user_id",
-        "dice_roll",
-        "share_party_id",
-        "share_lobby_id",
-        "share_lobby_custom_game_id",
-        "share_lobby_passkey",
-        "private_chat_channel_id",
-        "status",
-        "legacy_battle_cup_victory",
-        "battle_cup_streak",
-        "badge_level",
-        "suggest_pick_hero_id",
-        "suggest_pick_hero_role",
-        "suggest_ban_hero_id",
-        "trivia_answer",
-        "requested_ability_id",
-        "chat_flags",
-        "started_finding_match",
-        "ctrl_is_down",
-        "favorite_team_id",
-        "favorite_team_quality",
-        "suggest_player_draft_pick",
-        "player_draft_pick",
-        "chat_wheel_message",
-        "event_level",
-        "suggest_pick_hero_facet",
-        "requested_hero_id",
-        "requested_hero_facet_key",
-    )
+    __slots__ = ("account_id", "channel_id", "persona_name", "text", "timestamp", "suggest_invite_account_id", "suggest_invite_name", "fantasy_draft_owner_account_id", "fantasy_draft_player_account_id", "event_id", "suggest_invite_to_lobby", "coin_flip", "player_id", "share_profile_account_id", "channel_user_id", "dice_roll", "share_party_id", "share_lobby_id", "share_lobby_custom_game_id", "share_lobby_passkey", "private_chat_channel_id", "status", "legacy_battle_cup_victory", "battle_cup_streak", "badge_level", "suggest_pick_hero_id", "suggest_pick_hero_role", "suggest_ban_hero_id", "trivia_answer", "requested_ability_id", "chat_flags", "started_finding_match", "ctrl_is_down", "favorite_team_id", "favorite_team_quality", "suggest_player_draft_pick", "player_draft_pick", "chat_wheel_message", "event_level", "suggest_pick_hero_facet", "requested_hero_id", "requested_hero_facet_key")
     class DiceRoll(_message.Message):
         __slots__ = ("roll_min", "roll_max", "result")
         ROLL_MIN_FIELD_NUMBER: _ClassVar[int]
@@ -192,18 +126,9 @@ class CMsgDOTAChatMessage(_message.Message):
         roll_min: int
         roll_max: int
         result: int
-        def __init__(
-            self, roll_min: int | None = ..., roll_max: int | None = ..., result: int | None = ...
-        ) -> None: ...
-
+        def __init__(self, roll_min: _Optional[int] = ..., roll_max: _Optional[int] = ..., result: _Optional[int] = ...) -> None: ...
     class TriviaAnswered(_message.Message):
-        __slots__ = (
-            "question_id",
-            "answer_index",
-            "party_questions_correct",
-            "party_questions_viewed",
-            "party_trivia_points",
-        )
+        __slots__ = ("question_id", "answer_index", "party_questions_correct", "party_questions_viewed", "party_trivia_points")
         QUESTION_ID_FIELD_NUMBER: _ClassVar[int]
         ANSWER_INDEX_FIELD_NUMBER: _ClassVar[int]
         PARTY_QUESTIONS_CORRECT_FIELD_NUMBER: _ClassVar[int]
@@ -214,23 +139,14 @@ class CMsgDOTAChatMessage(_message.Message):
         party_questions_correct: int
         party_questions_viewed: int
         party_trivia_points: int
-        def __init__(
-            self,
-            question_id: int | None = ...,
-            answer_index: int | None = ...,
-            party_questions_correct: int | None = ...,
-            party_questions_viewed: int | None = ...,
-            party_trivia_points: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, question_id: _Optional[int] = ..., answer_index: _Optional[int] = ..., party_questions_correct: _Optional[int] = ..., party_questions_viewed: _Optional[int] = ..., party_trivia_points: _Optional[int] = ...) -> None: ...
     class PlayerDraftPick(_message.Message):
         __slots__ = ("player_id", "team")
         PLAYER_ID_FIELD_NUMBER: _ClassVar[int]
         TEAM_FIELD_NUMBER: _ClassVar[int]
         player_id: int
         team: int
-        def __init__(self, player_id: int | None = ..., team: int | None = ...) -> None: ...
-
+        def __init__(self, player_id: _Optional[int] = ..., team: _Optional[int] = ...) -> None: ...
     class ChatWheelMessage(_message.Message):
         __slots__ = ("message_id", "emoticon_id", "message_text", "hero_badge_tier")
         MESSAGE_ID_FIELD_NUMBER: _ClassVar[int]
@@ -241,14 +157,7 @@ class CMsgDOTAChatMessage(_message.Message):
         emoticon_id: int
         message_text: str
         hero_badge_tier: int
-        def __init__(
-            self,
-            message_id: int | None = ...,
-            emoticon_id: int | None = ...,
-            message_text: str | None = ...,
-            hero_badge_tier: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, message_id: _Optional[int] = ..., emoticon_id: _Optional[int] = ..., message_text: _Optional[str] = ..., hero_badge_tier: _Optional[int] = ...) -> None: ...
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     CHANNEL_ID_FIELD_NUMBER: _ClassVar[int]
     PERSONA_NAME_FIELD_NUMBER: _ClassVar[int]
@@ -333,51 +242,7 @@ class CMsgDOTAChatMessage(_message.Message):
     suggest_pick_hero_facet: int
     requested_hero_id: int
     requested_hero_facet_key: int
-    def __init__(
-        self,
-        account_id: int | None = ...,
-        channel_id: int | None = ...,
-        persona_name: str | None = ...,
-        text: str | None = ...,
-        timestamp: int | None = ...,
-        suggest_invite_account_id: int | None = ...,
-        suggest_invite_name: str | None = ...,
-        fantasy_draft_owner_account_id: int | None = ...,
-        fantasy_draft_player_account_id: int | None = ...,
-        event_id: int | None = ...,
-        suggest_invite_to_lobby: bool = ...,
-        coin_flip: bool = ...,
-        player_id: int | None = ...,
-        share_profile_account_id: int | None = ...,
-        channel_user_id: int | None = ...,
-        dice_roll: CMsgDOTAChatMessage.DiceRoll | _Mapping | None = ...,
-        share_party_id: int | None = ...,
-        share_lobby_id: int | None = ...,
-        share_lobby_custom_game_id: int | None = ...,
-        share_lobby_passkey: str | None = ...,
-        private_chat_channel_id: int | None = ...,
-        status: int | None = ...,
-        legacy_battle_cup_victory: bool = ...,
-        battle_cup_streak: int | None = ...,
-        badge_level: int | None = ...,
-        suggest_pick_hero_id: int | None = ...,
-        suggest_pick_hero_role: str | None = ...,
-        suggest_ban_hero_id: int | None = ...,
-        trivia_answer: CMsgDOTAChatMessage.TriviaAnswered | _Mapping | None = ...,
-        requested_ability_id: int | None = ...,
-        chat_flags: int | None = ...,
-        started_finding_match: bool = ...,
-        ctrl_is_down: bool = ...,
-        favorite_team_id: int | None = ...,
-        favorite_team_quality: int | None = ...,
-        suggest_player_draft_pick: int | None = ...,
-        player_draft_pick: CMsgDOTAChatMessage.PlayerDraftPick | _Mapping | None = ...,
-        chat_wheel_message: CMsgDOTAChatMessage.ChatWheelMessage | _Mapping | None = ...,
-        event_level: int | None = ...,
-        suggest_pick_hero_facet: int | None = ...,
-        requested_hero_id: int | None = ...,
-        requested_hero_facet_key: int | None = ...,
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., channel_id: _Optional[int] = ..., persona_name: _Optional[str] = ..., text: _Optional[str] = ..., timestamp: _Optional[int] = ..., suggest_invite_account_id: _Optional[int] = ..., suggest_invite_name: _Optional[str] = ..., fantasy_draft_owner_account_id: _Optional[int] = ..., fantasy_draft_player_account_id: _Optional[int] = ..., event_id: _Optional[int] = ..., suggest_invite_to_lobby: bool = ..., coin_flip: bool = ..., player_id: _Optional[int] = ..., share_profile_account_id: _Optional[int] = ..., channel_user_id: _Optional[int] = ..., dice_roll: _Optional[_Union[CMsgDOTAChatMessage.DiceRoll, _Mapping]] = ..., share_party_id: _Optional[int] = ..., share_lobby_id: _Optional[int] = ..., share_lobby_custom_game_id: _Optional[int] = ..., share_lobby_passkey: _Optional[str] = ..., private_chat_channel_id: _Optional[int] = ..., status: _Optional[int] = ..., legacy_battle_cup_victory: bool = ..., battle_cup_streak: _Optional[int] = ..., badge_level: _Optional[int] = ..., suggest_pick_hero_id: _Optional[int] = ..., suggest_pick_hero_role: _Optional[str] = ..., suggest_ban_hero_id: _Optional[int] = ..., trivia_answer: _Optional[_Union[CMsgDOTAChatMessage.TriviaAnswered, _Mapping]] = ..., requested_ability_id: _Optional[int] = ..., chat_flags: _Optional[int] = ..., started_finding_match: bool = ..., ctrl_is_down: bool = ..., favorite_team_id: _Optional[int] = ..., favorite_team_quality: _Optional[int] = ..., suggest_player_draft_pick: _Optional[int] = ..., player_draft_pick: _Optional[_Union[CMsgDOTAChatMessage.PlayerDraftPick, _Mapping]] = ..., chat_wheel_message: _Optional[_Union[CMsgDOTAChatMessage.ChatWheelMessage, _Mapping]] = ..., event_level: _Optional[int] = ..., suggest_pick_hero_facet: _Optional[int] = ..., requested_hero_id: _Optional[int] = ..., requested_hero_facet_key: _Optional[int] = ...) -> None: ...
 
 class CMsgDOTAChatMember(_message.Message):
     __slots__ = ("steam_id", "persona_name", "channel_user_id", "status")
@@ -389,28 +254,10 @@ class CMsgDOTAChatMember(_message.Message):
     persona_name: str
     channel_user_id: int
     status: int
-    def __init__(
-        self,
-        steam_id: int | None = ...,
-        persona_name: str | None = ...,
-        channel_user_id: int | None = ...,
-        status: int | None = ...,
-    ) -> None: ...
+    def __init__(self, steam_id: _Optional[int] = ..., persona_name: _Optional[str] = ..., channel_user_id: _Optional[int] = ..., status: _Optional[int] = ...) -> None: ...
 
 class CMsgDOTAJoinChatChannelResponse(_message.Message):
-    __slots__ = (
-        "response",
-        "channel_name",
-        "channel_id",
-        "max_members",
-        "members",
-        "channel_type",
-        "result",
-        "gc_initiated_join",
-        "channel_user_id",
-        "welcome_message",
-        "special_privileges",
-    )
+    __slots__ = ("response", "channel_name", "channel_id", "max_members", "members", "channel_type", "result", "gc_initiated_join", "channel_user_id", "welcome_message", "special_privileges")
     class Result(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
         JOIN_SUCCESS: _ClassVar[CMsgDOTAJoinChatChannelResponse.Result]
@@ -432,7 +279,6 @@ class CMsgDOTAJoinChatChannelResponse(_message.Message):
         NEW_PLAYER_USER_NOT_ELIGIBLE: _ClassVar[CMsgDOTAJoinChatChannelResponse.Result]
         SILENT_ERROR: _ClassVar[CMsgDOTAJoinChatChannelResponse.Result]
         NEW_PLAYER_USER_BANNED: _ClassVar[CMsgDOTAJoinChatChannelResponse.Result]
-
     JOIN_SUCCESS: CMsgDOTAJoinChatChannelResponse.Result
     INVALID_CHANNEL_TYPE: CMsgDOTAJoinChatChannelResponse.Result
     ACCOUNT_NOT_FOUND: CMsgDOTAJoinChatChannelResponse.Result
@@ -474,20 +320,7 @@ class CMsgDOTAJoinChatChannelResponse(_message.Message):
     channel_user_id: int
     welcome_message: str
     special_privileges: _dota_shared_enums_pb2.EChatSpecialPrivileges
-    def __init__(
-        self,
-        response: int | None = ...,
-        channel_name: str | None = ...,
-        channel_id: int | None = ...,
-        max_members: int | None = ...,
-        members: _Iterable[CMsgDOTAChatMember | _Mapping] | None = ...,
-        channel_type: _dota_shared_enums_pb2.DOTAChatChannelType_t | str | None = ...,
-        result: CMsgDOTAJoinChatChannelResponse.Result | str | None = ...,
-        gc_initiated_join: bool = ...,
-        channel_user_id: int | None = ...,
-        welcome_message: str | None = ...,
-        special_privileges: _dota_shared_enums_pb2.EChatSpecialPrivileges | str | None = ...,
-    ) -> None: ...
+    def __init__(self, response: _Optional[int] = ..., channel_name: _Optional[str] = ..., channel_id: _Optional[int] = ..., max_members: _Optional[int] = ..., members: _Optional[_Iterable[_Union[CMsgDOTAChatMember, _Mapping]]] = ..., channel_type: _Optional[_Union[_dota_shared_enums_pb2.DOTAChatChannelType_t, str]] = ..., result: _Optional[_Union[CMsgDOTAJoinChatChannelResponse.Result, str]] = ..., gc_initiated_join: bool = ..., channel_user_id: _Optional[int] = ..., welcome_message: _Optional[str] = ..., special_privileges: _Optional[_Union[_dota_shared_enums_pb2.EChatSpecialPrivileges, str]] = ...) -> None: ...
 
 class CMsgDOTAOtherJoinedChatChannel(_message.Message):
     __slots__ = ("channel_id", "persona_name", "steam_id", "channel_user_id", "status")
@@ -501,14 +334,7 @@ class CMsgDOTAOtherJoinedChatChannel(_message.Message):
     steam_id: int
     channel_user_id: int
     status: int
-    def __init__(
-        self,
-        channel_id: int | None = ...,
-        persona_name: str | None = ...,
-        steam_id: int | None = ...,
-        channel_user_id: int | None = ...,
-        status: int | None = ...,
-    ) -> None: ...
+    def __init__(self, channel_id: _Optional[int] = ..., persona_name: _Optional[str] = ..., steam_id: _Optional[int] = ..., channel_user_id: _Optional[int] = ..., status: _Optional[int] = ...) -> None: ...
 
 class CMsgDOTAOtherLeftChatChannel(_message.Message):
     __slots__ = ("channel_id", "steam_id", "channel_user_id")
@@ -518,12 +344,7 @@ class CMsgDOTAOtherLeftChatChannel(_message.Message):
     channel_id: int
     steam_id: int
     channel_user_id: int
-    def __init__(
-        self,
-        channel_id: int | None = ...,
-        steam_id: int | None = ...,
-        channel_user_id: int | None = ...,
-    ) -> None: ...
+    def __init__(self, channel_id: _Optional[int] = ..., steam_id: _Optional[int] = ..., channel_user_id: _Optional[int] = ...) -> None: ...
 
 class CMsgDOTARequestChatChannelList(_message.Message):
     __slots__ = ()
@@ -539,22 +360,10 @@ class CMsgDOTARequestChatChannelListResponse(_message.Message):
         channel_name: str
         num_members: int
         channel_type: _dota_shared_enums_pb2.DOTAChatChannelType_t
-        def __init__(
-            self,
-            channel_name: str | None = ...,
-            num_members: int | None = ...,
-            channel_type: _dota_shared_enums_pb2.DOTAChatChannelType_t | str | None = ...,
-        ) -> None: ...
-
+        def __init__(self, channel_name: _Optional[str] = ..., num_members: _Optional[int] = ..., channel_type: _Optional[_Union[_dota_shared_enums_pb2.DOTAChatChannelType_t, str]] = ...) -> None: ...
     CHANNELS_FIELD_NUMBER: _ClassVar[int]
-    channels: _containers.RepeatedCompositeFieldContainer[
-        CMsgDOTARequestChatChannelListResponse.ChatChannel
-    ]
-    def __init__(
-        self,
-        channels: _Iterable[CMsgDOTARequestChatChannelListResponse.ChatChannel | _Mapping]
-        | None = ...,
-    ) -> None: ...
+    channels: _containers.RepeatedCompositeFieldContainer[CMsgDOTARequestChatChannelListResponse.ChatChannel]
+    def __init__(self, channels: _Optional[_Iterable[_Union[CMsgDOTARequestChatChannelListResponse.ChatChannel, _Mapping]]] = ...) -> None: ...
 
 class CMsgDOTAChatGetUserListResponse(_message.Message):
     __slots__ = ("channel_id", "members")
@@ -568,23 +377,12 @@ class CMsgDOTAChatGetUserListResponse(_message.Message):
         persona_name: str
         channel_user_id: int
         status: int
-        def __init__(
-            self,
-            steam_id: int | None = ...,
-            persona_name: str | None = ...,
-            channel_user_id: int | None = ...,
-            status: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, steam_id: _Optional[int] = ..., persona_name: _Optional[str] = ..., channel_user_id: _Optional[int] = ..., status: _Optional[int] = ...) -> None: ...
     CHANNEL_ID_FIELD_NUMBER: _ClassVar[int]
     MEMBERS_FIELD_NUMBER: _ClassVar[int]
     channel_id: int
     members: _containers.RepeatedCompositeFieldContainer[CMsgDOTAChatGetUserListResponse.Member]
-    def __init__(
-        self,
-        channel_id: int | None = ...,
-        members: _Iterable[CMsgDOTAChatGetUserListResponse.Member | _Mapping] | None = ...,
-    ) -> None: ...
+    def __init__(self, channel_id: _Optional[int] = ..., members: _Optional[_Iterable[_Union[CMsgDOTAChatGetUserListResponse.Member, _Mapping]]] = ...) -> None: ...
 
 class CMsgDOTAChatGetMemberCount(_message.Message):
     __slots__ = ("channel_name", "channel_type")
@@ -592,11 +390,7 @@ class CMsgDOTAChatGetMemberCount(_message.Message):
     CHANNEL_TYPE_FIELD_NUMBER: _ClassVar[int]
     channel_name: str
     channel_type: _dota_shared_enums_pb2.DOTAChatChannelType_t
-    def __init__(
-        self,
-        channel_name: str | None = ...,
-        channel_type: _dota_shared_enums_pb2.DOTAChatChannelType_t | str | None = ...,
-    ) -> None: ...
+    def __init__(self, channel_name: _Optional[str] = ..., channel_type: _Optional[_Union[_dota_shared_enums_pb2.DOTAChatChannelType_t, str]] = ...) -> None: ...
 
 class CMsgDOTAChatGetMemberCountResponse(_message.Message):
     __slots__ = ("channel_name", "channel_type", "member_count")
@@ -606,12 +400,7 @@ class CMsgDOTAChatGetMemberCountResponse(_message.Message):
     channel_name: str
     channel_type: _dota_shared_enums_pb2.DOTAChatChannelType_t
     member_count: int
-    def __init__(
-        self,
-        channel_name: str | None = ...,
-        channel_type: _dota_shared_enums_pb2.DOTAChatChannelType_t | str | None = ...,
-        member_count: int | None = ...,
-    ) -> None: ...
+    def __init__(self, channel_name: _Optional[str] = ..., channel_type: _Optional[_Union[_dota_shared_enums_pb2.DOTAChatChannelType_t, str]] = ..., member_count: _Optional[int] = ...) -> None: ...
 
 class CMsgDOTAChatRegionsEnabled(_message.Message):
     __slots__ = ("enable_all_regions", "enabled_regions")
@@ -625,20 +414,9 @@ class CMsgDOTAChatRegionsEnabled(_message.Message):
         max_latitude: float
         min_longitude: float
         max_longitude: float
-        def __init__(
-            self,
-            min_latitude: float | None = ...,
-            max_latitude: float | None = ...,
-            min_longitude: float | None = ...,
-            max_longitude: float | None = ...,
-        ) -> None: ...
-
+        def __init__(self, min_latitude: _Optional[float] = ..., max_latitude: _Optional[float] = ..., min_longitude: _Optional[float] = ..., max_longitude: _Optional[float] = ...) -> None: ...
     ENABLE_ALL_REGIONS_FIELD_NUMBER: _ClassVar[int]
     ENABLED_REGIONS_FIELD_NUMBER: _ClassVar[int]
     enable_all_regions: bool
     enabled_regions: _containers.RepeatedCompositeFieldContainer[CMsgDOTAChatRegionsEnabled.Region]
-    def __init__(
-        self,
-        enable_all_regions: bool = ...,
-        enabled_regions: _Iterable[CMsgDOTAChatRegionsEnabled.Region | _Mapping] | None = ...,
-    ) -> None: ...
+    def __init__(self, enable_all_regions: bool = ..., enabled_regions: _Optional[_Iterable[_Union[CMsgDOTAChatRegionsEnabled.Region, _Mapping]]] = ...) -> None: ...

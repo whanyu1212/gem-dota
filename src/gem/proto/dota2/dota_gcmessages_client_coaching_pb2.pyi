@@ -1,13 +1,11 @@
-from collections.abc import Iterable as _Iterable
-from collections.abc import Mapping as _Mapping
-from typing import ClassVar as _ClassVar
-
-import dota_gcmessages_common_lobby_pb2 as _dota_gcmessages_common_lobby_pb2
 import dota_shared_enums_pb2 as _dota_shared_enums_pb2
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
+import dota_gcmessages_common_lobby_pb2 as _dota_gcmessages_common_lobby_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -37,7 +35,6 @@ class EPlayerCoachMatchFlag(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
     k_EPlayerCoachMatchFlag_EligibleForRewards: _ClassVar[EPlayerCoachMatchFlag]
     k_EPlayerCoachMatchFlag_PrivateCoach: _ClassVar[EPlayerCoachMatchFlag]
-
 k_ECoachTeammateRating_None: ECoachTeammateRating
 k_ECoachTeammateRating_Positive: ECoachTeammateRating
 k_ECoachTeammateRating_Negative: ECoachTeammateRating
@@ -55,15 +52,7 @@ k_EPlayerCoachMatchFlag_EligibleForRewards: EPlayerCoachMatchFlag
 k_EPlayerCoachMatchFlag_PrivateCoach: EPlayerCoachMatchFlag
 
 class CMsgPlayerCoachMatch(_message.Message):
-    __slots__ = (
-        "match_id",
-        "match_outcome",
-        "coached_team",
-        "start_time",
-        "duration",
-        "teammate_ratings",
-        "coach_flags",
-    )
+    __slots__ = ("match_id", "match_outcome", "coached_team", "start_time", "duration", "teammate_ratings", "coach_flags")
     MATCH_ID_FIELD_NUMBER: _ClassVar[int]
     MATCH_OUTCOME_FIELD_NUMBER: _ClassVar[int]
     COACHED_TEAM_FIELD_NUMBER: _ClassVar[int]
@@ -78,16 +67,7 @@ class CMsgPlayerCoachMatch(_message.Message):
     duration: int
     teammate_ratings: _containers.RepeatedScalarFieldContainer[ECoachTeammateRating]
     coach_flags: int
-    def __init__(
-        self,
-        match_id: int | None = ...,
-        match_outcome: _dota_shared_enums_pb2.EMatchOutcome | str | None = ...,
-        coached_team: int | None = ...,
-        start_time: int | None = ...,
-        duration: int | None = ...,
-        teammate_ratings: _Iterable[ECoachTeammateRating | str] | None = ...,
-        coach_flags: int | None = ...,
-    ) -> None: ...
+    def __init__(self, match_id: _Optional[int] = ..., match_outcome: _Optional[_Union[_dota_shared_enums_pb2.EMatchOutcome, str]] = ..., coached_team: _Optional[int] = ..., start_time: _Optional[int] = ..., duration: _Optional[int] = ..., teammate_ratings: _Optional[_Iterable[_Union[ECoachTeammateRating, str]]] = ..., coach_flags: _Optional[int] = ...) -> None: ...
 
 class CMsgPrivateCoachingSessionMember(_message.Message):
     __slots__ = ("account_id", "member_flags", "member_session_rating")
@@ -97,25 +77,10 @@ class CMsgPrivateCoachingSessionMember(_message.Message):
     account_id: int
     member_flags: int
     member_session_rating: ECoachTeammateRating
-    def __init__(
-        self,
-        account_id: int | None = ...,
-        member_flags: int | None = ...,
-        member_session_rating: ECoachTeammateRating | str | None = ...,
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., member_flags: _Optional[int] = ..., member_session_rating: _Optional[_Union[ECoachTeammateRating, str]] = ...) -> None: ...
 
 class CMsgPrivateCoachingSession(_message.Message):
-    __slots__ = (
-        "private_coaching_session_id",
-        "requested_timestamp",
-        "requested_language",
-        "coaching_session_state",
-        "session_members",
-        "current_lobby_id",
-        "current_server_steam_id",
-        "accepted_timestamp",
-        "completed_timestamp",
-    )
+    __slots__ = ("private_coaching_session_id", "requested_timestamp", "requested_language", "coaching_session_state", "session_members", "current_lobby_id", "current_server_steam_id", "accepted_timestamp", "completed_timestamp")
     PRIVATE_COACHING_SESSION_ID_FIELD_NUMBER: _ClassVar[int]
     REQUESTED_TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
     REQUESTED_LANGUAGE_FIELD_NUMBER: _ClassVar[int]
@@ -134,18 +99,7 @@ class CMsgPrivateCoachingSession(_message.Message):
     current_server_steam_id: int
     accepted_timestamp: int
     completed_timestamp: int
-    def __init__(
-        self,
-        private_coaching_session_id: int | None = ...,
-        requested_timestamp: int | None = ...,
-        requested_language: int | None = ...,
-        coaching_session_state: EPrivateCoachingSessionState | str | None = ...,
-        session_members: _Iterable[CMsgPrivateCoachingSessionMember | _Mapping] | None = ...,
-        current_lobby_id: int | None = ...,
-        current_server_steam_id: int | None = ...,
-        accepted_timestamp: int | None = ...,
-        completed_timestamp: int | None = ...,
-    ) -> None: ...
+    def __init__(self, private_coaching_session_id: _Optional[int] = ..., requested_timestamp: _Optional[int] = ..., requested_language: _Optional[int] = ..., coaching_session_state: _Optional[_Union[EPrivateCoachingSessionState, str]] = ..., session_members: _Optional[_Iterable[_Union[CMsgPrivateCoachingSessionMember, _Mapping]]] = ..., current_lobby_id: _Optional[int] = ..., current_server_steam_id: _Optional[int] = ..., accepted_timestamp: _Optional[int] = ..., completed_timestamp: _Optional[int] = ...) -> None: ...
 
 class CMsgPrivateCoachingSessionStatus(_message.Message):
     __slots__ = ("requester_competitive_rank_tier", "requester_games_played")
@@ -153,11 +107,7 @@ class CMsgPrivateCoachingSessionStatus(_message.Message):
     REQUESTER_GAMES_PLAYED_FIELD_NUMBER: _ClassVar[int]
     requester_competitive_rank_tier: int
     requester_games_played: int
-    def __init__(
-        self,
-        requester_competitive_rank_tier: int | None = ...,
-        requester_games_played: int | None = ...,
-    ) -> None: ...
+    def __init__(self, requester_competitive_rank_tier: _Optional[int] = ..., requester_games_played: _Optional[int] = ...) -> None: ...
 
 class CMsgAvailablePrivateCoachingSession(_message.Message):
     __slots__ = ("coaching_session", "coaching_session_status")
@@ -165,29 +115,19 @@ class CMsgAvailablePrivateCoachingSession(_message.Message):
     COACHING_SESSION_STATUS_FIELD_NUMBER: _ClassVar[int]
     coaching_session: CMsgPrivateCoachingSession
     coaching_session_status: CMsgPrivateCoachingSessionStatus
-    def __init__(
-        self,
-        coaching_session: CMsgPrivateCoachingSession | _Mapping | None = ...,
-        coaching_session_status: CMsgPrivateCoachingSessionStatus | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, coaching_session: _Optional[_Union[CMsgPrivateCoachingSession, _Mapping]] = ..., coaching_session_status: _Optional[_Union[CMsgPrivateCoachingSessionStatus, _Mapping]] = ...) -> None: ...
 
 class CMsgAvailablePrivateCoachingSessionList(_message.Message):
     __slots__ = ("available_coaching_sessions",)
     AVAILABLE_COACHING_SESSIONS_FIELD_NUMBER: _ClassVar[int]
-    available_coaching_sessions: _containers.RepeatedCompositeFieldContainer[
-        CMsgAvailablePrivateCoachingSession
-    ]
-    def __init__(
-        self,
-        available_coaching_sessions: _Iterable[CMsgAvailablePrivateCoachingSession | _Mapping]
-        | None = ...,
-    ) -> None: ...
+    available_coaching_sessions: _containers.RepeatedCompositeFieldContainer[CMsgAvailablePrivateCoachingSession]
+    def __init__(self, available_coaching_sessions: _Optional[_Iterable[_Union[CMsgAvailablePrivateCoachingSession, _Mapping]]] = ...) -> None: ...
 
 class CMsgAvailablePrivateCoachingSessionSummary(_message.Message):
     __slots__ = ("coaching_session_count",)
     COACHING_SESSION_COUNT_FIELD_NUMBER: _ClassVar[int]
     coaching_session_count: int
-    def __init__(self, coaching_session_count: int | None = ...) -> None: ...
+    def __init__(self, coaching_session_count: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCRequestPlayerCoachMatches(_message.Message):
     __slots__ = ()
@@ -201,7 +141,6 @@ class CMsgClientToGCRequestPlayerCoachMatchesResponse(_message.Message):
         k_eSuccess: _ClassVar[CMsgClientToGCRequestPlayerCoachMatchesResponse.EResponse]
         k_eTooBusy: _ClassVar[CMsgClientToGCRequestPlayerCoachMatchesResponse.EResponse]
         k_eDisabled: _ClassVar[CMsgClientToGCRequestPlayerCoachMatchesResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCRequestPlayerCoachMatchesResponse.EResponse
     k_eSuccess: CMsgClientToGCRequestPlayerCoachMatchesResponse.EResponse
     k_eTooBusy: CMsgClientToGCRequestPlayerCoachMatchesResponse.EResponse
@@ -210,17 +149,13 @@ class CMsgClientToGCRequestPlayerCoachMatchesResponse(_message.Message):
     COACH_MATCHES_FIELD_NUMBER: _ClassVar[int]
     result: CMsgClientToGCRequestPlayerCoachMatchesResponse.EResponse
     coach_matches: _containers.RepeatedCompositeFieldContainer[CMsgPlayerCoachMatch]
-    def __init__(
-        self,
-        result: CMsgClientToGCRequestPlayerCoachMatchesResponse.EResponse | str | None = ...,
-        coach_matches: _Iterable[CMsgPlayerCoachMatch | _Mapping] | None = ...,
-    ) -> None: ...
+    def __init__(self, result: _Optional[_Union[CMsgClientToGCRequestPlayerCoachMatchesResponse.EResponse, str]] = ..., coach_matches: _Optional[_Iterable[_Union[CMsgPlayerCoachMatch, _Mapping]]] = ...) -> None: ...
 
 class CMsgClientToGCRequestPlayerCoachMatch(_message.Message):
     __slots__ = ("match_id",)
     MATCH_ID_FIELD_NUMBER: _ClassVar[int]
     match_id: int
-    def __init__(self, match_id: int | None = ...) -> None: ...
+    def __init__(self, match_id: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCRequestPlayerCoachMatchResponse(_message.Message):
     __slots__ = ("result", "coach_match")
@@ -230,7 +165,6 @@ class CMsgClientToGCRequestPlayerCoachMatchResponse(_message.Message):
         k_eSuccess: _ClassVar[CMsgClientToGCRequestPlayerCoachMatchResponse.EResponse]
         k_eTooBusy: _ClassVar[CMsgClientToGCRequestPlayerCoachMatchResponse.EResponse]
         k_eDisabled: _ClassVar[CMsgClientToGCRequestPlayerCoachMatchResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCRequestPlayerCoachMatchResponse.EResponse
     k_eSuccess: CMsgClientToGCRequestPlayerCoachMatchResponse.EResponse
     k_eTooBusy: CMsgClientToGCRequestPlayerCoachMatchResponse.EResponse
@@ -239,11 +173,7 @@ class CMsgClientToGCRequestPlayerCoachMatchResponse(_message.Message):
     COACH_MATCH_FIELD_NUMBER: _ClassVar[int]
     result: CMsgClientToGCRequestPlayerCoachMatchResponse.EResponse
     coach_match: CMsgPlayerCoachMatch
-    def __init__(
-        self,
-        result: CMsgClientToGCRequestPlayerCoachMatchResponse.EResponse | str | None = ...,
-        coach_match: CMsgPlayerCoachMatch | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, result: _Optional[_Union[CMsgClientToGCRequestPlayerCoachMatchResponse.EResponse, str]] = ..., coach_match: _Optional[_Union[CMsgPlayerCoachMatch, _Mapping]] = ...) -> None: ...
 
 class CMsgClientToGCSubmitCoachTeammateRating(_message.Message):
     __slots__ = ("match_id", "coach_account_id", "rating", "reason")
@@ -255,13 +185,7 @@ class CMsgClientToGCSubmitCoachTeammateRating(_message.Message):
     coach_account_id: int
     rating: ECoachTeammateRating
     reason: str
-    def __init__(
-        self,
-        match_id: int | None = ...,
-        coach_account_id: int | None = ...,
-        rating: ECoachTeammateRating | str | None = ...,
-        reason: str | None = ...,
-    ) -> None: ...
+    def __init__(self, match_id: _Optional[int] = ..., coach_account_id: _Optional[int] = ..., rating: _Optional[_Union[ECoachTeammateRating, str]] = ..., reason: _Optional[str] = ...) -> None: ...
 
 class CMsgClientToGCSubmitCoachTeammateRatingResponse(_message.Message):
     __slots__ = ("result",)
@@ -276,14 +200,9 @@ class CMsgClientToGCSubmitCoachTeammateRatingResponse(_message.Message):
         k_eVotingFinished: _ClassVar[CMsgClientToGCSubmitCoachTeammateRatingResponse.EResponse]
         k_ePlayerNotInMatch: _ClassVar[CMsgClientToGCSubmitCoachTeammateRatingResponse.EResponse]
         k_eCoachNotInMatch: _ClassVar[CMsgClientToGCSubmitCoachTeammateRatingResponse.EResponse]
-        k_ePlayerNotOnCoachTeam: _ClassVar[
-            CMsgClientToGCSubmitCoachTeammateRatingResponse.EResponse
-        ]
-        k_ePlayerInSamePartyAsCoach: _ClassVar[
-            CMsgClientToGCSubmitCoachTeammateRatingResponse.EResponse
-        ]
+        k_ePlayerNotOnCoachTeam: _ClassVar[CMsgClientToGCSubmitCoachTeammateRatingResponse.EResponse]
+        k_ePlayerInSamePartyAsCoach: _ClassVar[CMsgClientToGCSubmitCoachTeammateRatingResponse.EResponse]
         k_eMatchNotEligible: _ClassVar[CMsgClientToGCSubmitCoachTeammateRatingResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCSubmitCoachTeammateRatingResponse.EResponse
     k_eSuccess: CMsgClientToGCSubmitCoachTeammateRatingResponse.EResponse
     k_eTooBusy: CMsgClientToGCSubmitCoachTeammateRatingResponse.EResponse
@@ -298,21 +217,19 @@ class CMsgClientToGCSubmitCoachTeammateRatingResponse(_message.Message):
     k_eMatchNotEligible: CMsgClientToGCSubmitCoachTeammateRatingResponse.EResponse
     RESULT_FIELD_NUMBER: _ClassVar[int]
     result: CMsgClientToGCSubmitCoachTeammateRatingResponse.EResponse
-    def __init__(
-        self, result: CMsgClientToGCSubmitCoachTeammateRatingResponse.EResponse | str | None = ...
-    ) -> None: ...
+    def __init__(self, result: _Optional[_Union[CMsgClientToGCSubmitCoachTeammateRatingResponse.EResponse, str]] = ...) -> None: ...
 
 class CMsgGCToClientCoachTeammateRatingsChanged(_message.Message):
     __slots__ = ("coach_match",)
     COACH_MATCH_FIELD_NUMBER: _ClassVar[int]
     coach_match: CMsgPlayerCoachMatch
-    def __init__(self, coach_match: CMsgPlayerCoachMatch | _Mapping | None = ...) -> None: ...
+    def __init__(self, coach_match: _Optional[_Union[CMsgPlayerCoachMatch, _Mapping]] = ...) -> None: ...
 
 class CMsgClientToGCRequestPrivateCoachingSession(_message.Message):
     __slots__ = ("language",)
     LANGUAGE_FIELD_NUMBER: _ClassVar[int]
     language: int
-    def __init__(self, language: int | None = ...) -> None: ...
+    def __init__(self, language: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCRequestPrivateCoachingSessionResponse(_message.Message):
     __slots__ = ("result", "coaching_session")
@@ -323,28 +240,15 @@ class CMsgClientToGCRequestPrivateCoachingSessionResponse(_message.Message):
         k_eTooBusy: _ClassVar[CMsgClientToGCRequestPrivateCoachingSessionResponse.EResponse]
         k_eDisabled: _ClassVar[CMsgClientToGCRequestPrivateCoachingSessionResponse.EResponse]
         k_eTimeout: _ClassVar[CMsgClientToGCRequestPrivateCoachingSessionResponse.EResponse]
-        k_eAlreadyInSession: _ClassVar[
-            CMsgClientToGCRequestPrivateCoachingSessionResponse.EResponse
-        ]
-        k_eBehaviorScoreTooLow: _ClassVar[
-            CMsgClientToGCRequestPrivateCoachingSessionResponse.EResponse
-        ]
-        k_eInvalidLobbyType: _ClassVar[
-            CMsgClientToGCRequestPrivateCoachingSessionResponse.EResponse
-        ]
-        k_eLowPriorityPlayer: _ClassVar[
-            CMsgClientToGCRequestPrivateCoachingSessionResponse.EResponse
-        ]
-        k_eLowPriorityLobby: _ClassVar[
-            CMsgClientToGCRequestPrivateCoachingSessionResponse.EResponse
-        ]
-        k_eLowPriorityParty: _ClassVar[
-            CMsgClientToGCRequestPrivateCoachingSessionResponse.EResponse
-        ]
+        k_eAlreadyInSession: _ClassVar[CMsgClientToGCRequestPrivateCoachingSessionResponse.EResponse]
+        k_eBehaviorScoreTooLow: _ClassVar[CMsgClientToGCRequestPrivateCoachingSessionResponse.EResponse]
+        k_eInvalidLobbyType: _ClassVar[CMsgClientToGCRequestPrivateCoachingSessionResponse.EResponse]
+        k_eLowPriorityPlayer: _ClassVar[CMsgClientToGCRequestPrivateCoachingSessionResponse.EResponse]
+        k_eLowPriorityLobby: _ClassVar[CMsgClientToGCRequestPrivateCoachingSessionResponse.EResponse]
+        k_eLowPriorityParty: _ClassVar[CMsgClientToGCRequestPrivateCoachingSessionResponse.EResponse]
         k_eTextChatBan: _ClassVar[CMsgClientToGCRequestPrivateCoachingSessionResponse.EResponse]
         k_eVoiceChatBan: _ClassVar[CMsgClientToGCRequestPrivateCoachingSessionResponse.EResponse]
         k_eMatchBan: _ClassVar[CMsgClientToGCRequestPrivateCoachingSessionResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCRequestPrivateCoachingSessionResponse.EResponse
     k_eSuccess: CMsgClientToGCRequestPrivateCoachingSessionResponse.EResponse
     k_eTooBusy: CMsgClientToGCRequestPrivateCoachingSessionResponse.EResponse
@@ -363,17 +267,13 @@ class CMsgClientToGCRequestPrivateCoachingSessionResponse(_message.Message):
     COACHING_SESSION_FIELD_NUMBER: _ClassVar[int]
     result: CMsgClientToGCRequestPrivateCoachingSessionResponse.EResponse
     coaching_session: CMsgPrivateCoachingSession
-    def __init__(
-        self,
-        result: CMsgClientToGCRequestPrivateCoachingSessionResponse.EResponse | str | None = ...,
-        coaching_session: CMsgPrivateCoachingSession | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, result: _Optional[_Union[CMsgClientToGCRequestPrivateCoachingSessionResponse.EResponse, str]] = ..., coaching_session: _Optional[_Union[CMsgPrivateCoachingSession, _Mapping]] = ...) -> None: ...
 
 class CMsgClientToGCAcceptPrivateCoachingSession(_message.Message):
     __slots__ = ("coaching_session_id",)
     COACHING_SESSION_ID_FIELD_NUMBER: _ClassVar[int]
     coaching_session_id: int
-    def __init__(self, coaching_session_id: int | None = ...) -> None: ...
+    def __init__(self, coaching_session_id: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCAcceptPrivateCoachingSessionResponse(_message.Message):
     __slots__ = ("result", "coaching_session")
@@ -386,34 +286,21 @@ class CMsgClientToGCAcceptPrivateCoachingSessionResponse(_message.Message):
         k_eTimeout: _ClassVar[CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse]
         k_eUnknownSession: _ClassVar[CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse]
         k_eAlreadyHasCoach: _ClassVar[CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse]
-        k_eAlreadyHasSession: _ClassVar[
-            CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse
-        ]
+        k_eAlreadyHasSession: _ClassVar[CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse]
         k_eInvalidUser: _ClassVar[CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse]
         k_eAlreadyFinished: _ClassVar[CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse]
         k_eInvalidLobbyType: _ClassVar[CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse]
         k_eAlreadyInLobby: _ClassVar[CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse]
         k_eLobbyIsLan: _ClassVar[CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse]
         k_eLobbyIsLeague: _ClassVar[CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse]
-        k_eInvalidLobbyState: _ClassVar[
-            CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse
-        ]
-        k_eRequesterIsNotPlayer: _ClassVar[
-            CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse
-        ]
+        k_eInvalidLobbyState: _ClassVar[CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse]
+        k_eRequesterIsNotPlayer: _ClassVar[CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse]
         k_eTooManyCoaches: _ClassVar[CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse]
         k_eCoachWasPlayer: _ClassVar[CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse]
-        k_eCoachBehaviorScoreTooLow: _ClassVar[
-            CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse
-        ]
-        k_eCoachRankNotCalibrated: _ClassVar[
-            CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse
-        ]
-        k_eCoachRankNotEligible: _ClassVar[
-            CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse
-        ]
+        k_eCoachBehaviorScoreTooLow: _ClassVar[CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse]
+        k_eCoachRankNotCalibrated: _ClassVar[CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse]
+        k_eCoachRankNotEligible: _ClassVar[CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse]
         k_eCoachRankTooLow: _ClassVar[CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse
     k_eSuccess: CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse
     k_eTooBusy: CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse
@@ -440,11 +327,7 @@ class CMsgClientToGCAcceptPrivateCoachingSessionResponse(_message.Message):
     COACHING_SESSION_FIELD_NUMBER: _ClassVar[int]
     result: CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse
     coaching_session: CMsgPrivateCoachingSession
-    def __init__(
-        self,
-        result: CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse | str | None = ...,
-        coaching_session: CMsgPrivateCoachingSession | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, result: _Optional[_Union[CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse, str]] = ..., coaching_session: _Optional[_Union[CMsgPrivateCoachingSession, _Mapping]] = ...) -> None: ...
 
 class CMsgClientToGCLeavePrivateCoachingSession(_message.Message):
     __slots__ = ()
@@ -461,7 +344,6 @@ class CMsgClientToGCLeavePrivateCoachingSessionResponse(_message.Message):
         k_eTimeout: _ClassVar[CMsgClientToGCLeavePrivateCoachingSessionResponse.EResponse]
         k_eNoSession: _ClassVar[CMsgClientToGCLeavePrivateCoachingSessionResponse.EResponse]
         k_eAlreadyLeft: _ClassVar[CMsgClientToGCLeavePrivateCoachingSessionResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCLeavePrivateCoachingSessionResponse.EResponse
     k_eSuccess: CMsgClientToGCLeavePrivateCoachingSessionResponse.EResponse
     k_eTooBusy: CMsgClientToGCLeavePrivateCoachingSessionResponse.EResponse
@@ -471,9 +353,7 @@ class CMsgClientToGCLeavePrivateCoachingSessionResponse(_message.Message):
     k_eAlreadyLeft: CMsgClientToGCLeavePrivateCoachingSessionResponse.EResponse
     RESULT_FIELD_NUMBER: _ClassVar[int]
     result: CMsgClientToGCLeavePrivateCoachingSessionResponse.EResponse
-    def __init__(
-        self, result: CMsgClientToGCLeavePrivateCoachingSessionResponse.EResponse | str | None = ...
-    ) -> None: ...
+    def __init__(self, result: _Optional[_Union[CMsgClientToGCLeavePrivateCoachingSessionResponse.EResponse, str]] = ...) -> None: ...
 
 class CMsgClientToGCGetCurrentPrivateCoachingSession(_message.Message):
     __slots__ = ()
@@ -483,14 +363,11 @@ class CMsgClientToGCGetCurrentPrivateCoachingSessionResponse(_message.Message):
     __slots__ = ("result", "current_session")
     class EResponse(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
-        k_eInternalError: _ClassVar[
-            CMsgClientToGCGetCurrentPrivateCoachingSessionResponse.EResponse
-        ]
+        k_eInternalError: _ClassVar[CMsgClientToGCGetCurrentPrivateCoachingSessionResponse.EResponse]
         k_eSuccess: _ClassVar[CMsgClientToGCGetCurrentPrivateCoachingSessionResponse.EResponse]
         k_eTooBusy: _ClassVar[CMsgClientToGCGetCurrentPrivateCoachingSessionResponse.EResponse]
         k_eDisabled: _ClassVar[CMsgClientToGCGetCurrentPrivateCoachingSessionResponse.EResponse]
         k_eTimeout: _ClassVar[CMsgClientToGCGetCurrentPrivateCoachingSessionResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCGetCurrentPrivateCoachingSessionResponse.EResponse
     k_eSuccess: CMsgClientToGCGetCurrentPrivateCoachingSessionResponse.EResponse
     k_eTooBusy: CMsgClientToGCGetCurrentPrivateCoachingSessionResponse.EResponse
@@ -500,19 +377,13 @@ class CMsgClientToGCGetCurrentPrivateCoachingSessionResponse(_message.Message):
     CURRENT_SESSION_FIELD_NUMBER: _ClassVar[int]
     result: CMsgClientToGCGetCurrentPrivateCoachingSessionResponse.EResponse
     current_session: CMsgPrivateCoachingSession
-    def __init__(
-        self,
-        result: CMsgClientToGCGetCurrentPrivateCoachingSessionResponse.EResponse | str | None = ...,
-        current_session: CMsgPrivateCoachingSession | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, result: _Optional[_Union[CMsgClientToGCGetCurrentPrivateCoachingSessionResponse.EResponse, str]] = ..., current_session: _Optional[_Union[CMsgPrivateCoachingSession, _Mapping]] = ...) -> None: ...
 
 class CMsgGCToClientPrivateCoachingSessionUpdated(_message.Message):
     __slots__ = ("coaching_session",)
     COACHING_SESSION_FIELD_NUMBER: _ClassVar[int]
     coaching_session: CMsgPrivateCoachingSession
-    def __init__(
-        self, coaching_session: CMsgPrivateCoachingSession | _Mapping | None = ...
-    ) -> None: ...
+    def __init__(self, coaching_session: _Optional[_Union[CMsgPrivateCoachingSession, _Mapping]] = ...) -> None: ...
 
 class CMsgClientToGCSubmitPrivateCoachingSessionRating(_message.Message):
     __slots__ = ("coaching_session_id", "session_rating")
@@ -520,41 +391,24 @@ class CMsgClientToGCSubmitPrivateCoachingSessionRating(_message.Message):
     SESSION_RATING_FIELD_NUMBER: _ClassVar[int]
     coaching_session_id: int
     session_rating: ECoachTeammateRating
-    def __init__(
-        self,
-        coaching_session_id: int | None = ...,
-        session_rating: ECoachTeammateRating | str | None = ...,
-    ) -> None: ...
+    def __init__(self, coaching_session_id: _Optional[int] = ..., session_rating: _Optional[_Union[ECoachTeammateRating, str]] = ...) -> None: ...
 
 class CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse(_message.Message):
     __slots__ = ("result",)
     class EResponse(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
-        k_eInternalError: _ClassVar[
-            CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse.EResponse
-        ]
+        k_eInternalError: _ClassVar[CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse.EResponse]
         k_eSuccess: _ClassVar[CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse.EResponse]
         k_eTooBusy: _ClassVar[CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse.EResponse]
         k_eDisabled: _ClassVar[CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse.EResponse]
         k_eTimeout: _ClassVar[CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse.EResponse]
-        k_eUnknownSession: _ClassVar[
-            CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse.EResponse
-        ]
+        k_eUnknownSession: _ClassVar[CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse.EResponse]
         k_eNotMember: _ClassVar[CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse.EResponse]
-        k_eAlreadySubmitted: _ClassVar[
-            CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse.EResponse
-        ]
-        k_eSessionActive: _ClassVar[
-            CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse.EResponse
-        ]
-        k_eSessionTooShort: _ClassVar[
-            CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse.EResponse
-        ]
+        k_eAlreadySubmitted: _ClassVar[CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse.EResponse]
+        k_eSessionActive: _ClassVar[CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse.EResponse]
+        k_eSessionTooShort: _ClassVar[CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse.EResponse]
         k_eNoCoach: _ClassVar[CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse.EResponse]
-        k_eInvalidRating: _ClassVar[
-            CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse.EResponse
-        ]
-
+        k_eInvalidRating: _ClassVar[CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse.EResponse]
     k_eInternalError: CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse.EResponse
     k_eSuccess: CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse.EResponse
     k_eTooBusy: CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse.EResponse
@@ -569,31 +423,23 @@ class CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse(_message.Message)
     k_eInvalidRating: CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse.EResponse
     RESULT_FIELD_NUMBER: _ClassVar[int]
     result: CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse.EResponse
-    def __init__(
-        self,
-        result: CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse.EResponse
-        | str
-        | None = ...,
-    ) -> None: ...
+    def __init__(self, result: _Optional[_Union[CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse.EResponse, str]] = ...) -> None: ...
 
 class CMsgClientToGCGetAvailablePrivateCoachingSessions(_message.Message):
     __slots__ = ("language",)
     LANGUAGE_FIELD_NUMBER: _ClassVar[int]
     language: int
-    def __init__(self, language: int | None = ...) -> None: ...
+    def __init__(self, language: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCGetAvailablePrivateCoachingSessionsResponse(_message.Message):
     __slots__ = ("result", "available_sessions_list")
     class EResponse(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
-        k_eInternalError: _ClassVar[
-            CMsgClientToGCGetAvailablePrivateCoachingSessionsResponse.EResponse
-        ]
+        k_eInternalError: _ClassVar[CMsgClientToGCGetAvailablePrivateCoachingSessionsResponse.EResponse]
         k_eSuccess: _ClassVar[CMsgClientToGCGetAvailablePrivateCoachingSessionsResponse.EResponse]
         k_eTooBusy: _ClassVar[CMsgClientToGCGetAvailablePrivateCoachingSessionsResponse.EResponse]
         k_eDisabled: _ClassVar[CMsgClientToGCGetAvailablePrivateCoachingSessionsResponse.EResponse]
         k_eTimeout: _ClassVar[CMsgClientToGCGetAvailablePrivateCoachingSessionsResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCGetAvailablePrivateCoachingSessionsResponse.EResponse
     k_eSuccess: CMsgClientToGCGetAvailablePrivateCoachingSessionsResponse.EResponse
     k_eTooBusy: CMsgClientToGCGetAvailablePrivateCoachingSessionsResponse.EResponse
@@ -603,13 +449,7 @@ class CMsgClientToGCGetAvailablePrivateCoachingSessionsResponse(_message.Message
     AVAILABLE_SESSIONS_LIST_FIELD_NUMBER: _ClassVar[int]
     result: CMsgClientToGCGetAvailablePrivateCoachingSessionsResponse.EResponse
     available_sessions_list: CMsgAvailablePrivateCoachingSessionList
-    def __init__(
-        self,
-        result: CMsgClientToGCGetAvailablePrivateCoachingSessionsResponse.EResponse
-        | str
-        | None = ...,
-        available_sessions_list: CMsgAvailablePrivateCoachingSessionList | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, result: _Optional[_Union[CMsgClientToGCGetAvailablePrivateCoachingSessionsResponse.EResponse, str]] = ..., available_sessions_list: _Optional[_Union[CMsgAvailablePrivateCoachingSessionList, _Mapping]] = ...) -> None: ...
 
 class CMsgClientToGCGetAvailablePrivateCoachingSessionsSummary(_message.Message):
     __slots__ = ()
@@ -619,22 +459,11 @@ class CMsgClientToGCGetAvailablePrivateCoachingSessionsSummaryResponse(_message.
     __slots__ = ("result", "coaching_session_summary")
     class EResponse(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
-        k_eInternalError: _ClassVar[
-            CMsgClientToGCGetAvailablePrivateCoachingSessionsSummaryResponse.EResponse
-        ]
-        k_eSuccess: _ClassVar[
-            CMsgClientToGCGetAvailablePrivateCoachingSessionsSummaryResponse.EResponse
-        ]
-        k_eTooBusy: _ClassVar[
-            CMsgClientToGCGetAvailablePrivateCoachingSessionsSummaryResponse.EResponse
-        ]
-        k_eDisabled: _ClassVar[
-            CMsgClientToGCGetAvailablePrivateCoachingSessionsSummaryResponse.EResponse
-        ]
-        k_eTimeout: _ClassVar[
-            CMsgClientToGCGetAvailablePrivateCoachingSessionsSummaryResponse.EResponse
-        ]
-
+        k_eInternalError: _ClassVar[CMsgClientToGCGetAvailablePrivateCoachingSessionsSummaryResponse.EResponse]
+        k_eSuccess: _ClassVar[CMsgClientToGCGetAvailablePrivateCoachingSessionsSummaryResponse.EResponse]
+        k_eTooBusy: _ClassVar[CMsgClientToGCGetAvailablePrivateCoachingSessionsSummaryResponse.EResponse]
+        k_eDisabled: _ClassVar[CMsgClientToGCGetAvailablePrivateCoachingSessionsSummaryResponse.EResponse]
+        k_eTimeout: _ClassVar[CMsgClientToGCGetAvailablePrivateCoachingSessionsSummaryResponse.EResponse]
     k_eInternalError: CMsgClientToGCGetAvailablePrivateCoachingSessionsSummaryResponse.EResponse
     k_eSuccess: CMsgClientToGCGetAvailablePrivateCoachingSessionsSummaryResponse.EResponse
     k_eTooBusy: CMsgClientToGCGetAvailablePrivateCoachingSessionsSummaryResponse.EResponse
@@ -644,15 +473,7 @@ class CMsgClientToGCGetAvailablePrivateCoachingSessionsSummaryResponse(_message.
     COACHING_SESSION_SUMMARY_FIELD_NUMBER: _ClassVar[int]
     result: CMsgClientToGCGetAvailablePrivateCoachingSessionsSummaryResponse.EResponse
     coaching_session_summary: CMsgAvailablePrivateCoachingSessionSummary
-    def __init__(
-        self,
-        result: CMsgClientToGCGetAvailablePrivateCoachingSessionsSummaryResponse.EResponse
-        | str
-        | None = ...,
-        coaching_session_summary: CMsgAvailablePrivateCoachingSessionSummary
-        | _Mapping
-        | None = ...,
-    ) -> None: ...
+    def __init__(self, result: _Optional[_Union[CMsgClientToGCGetAvailablePrivateCoachingSessionsSummaryResponse.EResponse, str]] = ..., coaching_session_summary: _Optional[_Union[CMsgAvailablePrivateCoachingSessionSummary, _Mapping]] = ...) -> None: ...
 
 class CMsgClientToGCJoinPrivateCoachingSessionLobby(_message.Message):
     __slots__ = ()
@@ -668,35 +489,20 @@ class CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse(_message.Message):
         k_eDisabled: _ClassVar[CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse]
         k_eTimeout: _ClassVar[CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse]
         k_eNoSession: _ClassVar[CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse]
-        k_eSessionFinished: _ClassVar[
-            CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse
-        ]
+        k_eSessionFinished: _ClassVar[CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse]
         k_eAlreadyLeft: _ClassVar[CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse]
         k_eNotACoach: _ClassVar[CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse]
         k_eNoLobby: _ClassVar[CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse]
-        k_eCoachInThisLobby: _ClassVar[
-            CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse
-        ]
+        k_eCoachInThisLobby: _ClassVar[CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse]
         k_eCoachInALobby: _ClassVar[CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse]
         k_eLobbyIsLan: _ClassVar[CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse]
         k_eLobbyIsLeague: _ClassVar[CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse]
-        k_eInvalidLobbyType: _ClassVar[
-            CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse
-        ]
-        k_eInvalidLobbyState: _ClassVar[
-            CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse
-        ]
-        k_eRequesterIsNotPlayer: _ClassVar[
-            CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse
-        ]
-        k_eTooManyCoaches: _ClassVar[
-            CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse
-        ]
-        k_eCoachWasPlayer: _ClassVar[
-            CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse
-        ]
+        k_eInvalidLobbyType: _ClassVar[CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse]
+        k_eInvalidLobbyState: _ClassVar[CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse]
+        k_eRequesterIsNotPlayer: _ClassVar[CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse]
+        k_eTooManyCoaches: _ClassVar[CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse]
+        k_eCoachWasPlayer: _ClassVar[CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse]
         k_eJoinFailed: _ClassVar[CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse
     k_eSuccess: CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse
     k_eTooBusy: CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse
@@ -719,16 +525,13 @@ class CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse(_message.Message):
     k_eJoinFailed: CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse
     RESULT_FIELD_NUMBER: _ClassVar[int]
     result: CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse
-    def __init__(
-        self,
-        result: CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse | str | None = ...,
-    ) -> None: ...
+    def __init__(self, result: _Optional[_Union[CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse, str]] = ...) -> None: ...
 
 class CMsgClientToGCCoachFriend(_message.Message):
     __slots__ = ("target_account_id",)
     TARGET_ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     target_account_id: int
-    def __init__(self, target_account_id: int | None = ...) -> None: ...
+    def __init__(self, target_account_id: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCCoachFriendResponse(_message.Message):
     __slots__ = ("result",)
@@ -754,7 +557,6 @@ class CMsgClientToGCCoachFriendResponse(_message.Message):
         k_eLobbyIsLeague: _ClassVar[CMsgClientToGCCoachFriendResponse.EResponse]
         k_eCoachWasPlayer: _ClassVar[CMsgClientToGCCoachFriendResponse.EResponse]
         k_eRequestRejected: _ClassVar[CMsgClientToGCCoachFriendResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCCoachFriendResponse.EResponse
     k_eSuccess: CMsgClientToGCCoachFriendResponse.EResponse
     k_eTooBusy: CMsgClientToGCCoachFriendResponse.EResponse
@@ -777,9 +579,7 @@ class CMsgClientToGCCoachFriendResponse(_message.Message):
     k_eRequestRejected: CMsgClientToGCCoachFriendResponse.EResponse
     RESULT_FIELD_NUMBER: _ClassVar[int]
     result: CMsgClientToGCCoachFriendResponse.EResponse
-    def __init__(
-        self, result: CMsgClientToGCCoachFriendResponse.EResponse | str | None = ...
-    ) -> None: ...
+    def __init__(self, result: _Optional[_Union[CMsgClientToGCCoachFriendResponse.EResponse, str]] = ...) -> None: ...
 
 class CMsgClientToGCRespondToCoachFriendRequest(_message.Message):
     __slots__ = ("coach_account_id", "response")
@@ -787,13 +587,7 @@ class CMsgClientToGCRespondToCoachFriendRequest(_message.Message):
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     coach_account_id: int
     response: _dota_gcmessages_common_lobby_pb2.ELobbyMemberCoachRequestState
-    def __init__(
-        self,
-        coach_account_id: int | None = ...,
-        response: _dota_gcmessages_common_lobby_pb2.ELobbyMemberCoachRequestState
-        | str
-        | None = ...,
-    ) -> None: ...
+    def __init__(self, coach_account_id: _Optional[int] = ..., response: _Optional[_Union[_dota_gcmessages_common_lobby_pb2.ELobbyMemberCoachRequestState, str]] = ...) -> None: ...
 
 class CMsgClientToGCRespondToCoachFriendRequestResponse(_message.Message):
     __slots__ = ("result",)
@@ -812,7 +606,6 @@ class CMsgClientToGCRespondToCoachFriendRequestResponse(_message.Message):
         k_eNoRequest: _ClassVar[CMsgClientToGCRespondToCoachFriendRequestResponse.EResponse]
         k_eInvalidResponse: _ClassVar[CMsgClientToGCRespondToCoachFriendRequestResponse.EResponse]
         k_eAlreadyResponded: _ClassVar[CMsgClientToGCRespondToCoachFriendRequestResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCRespondToCoachFriendRequestResponse.EResponse
     k_eSuccess: CMsgClientToGCRespondToCoachFriendRequestResponse.EResponse
     k_eTooBusy: CMsgClientToGCRespondToCoachFriendRequestResponse.EResponse
@@ -828,6 +621,4 @@ class CMsgClientToGCRespondToCoachFriendRequestResponse(_message.Message):
     k_eAlreadyResponded: CMsgClientToGCRespondToCoachFriendRequestResponse.EResponse
     RESULT_FIELD_NUMBER: _ClassVar[int]
     result: CMsgClientToGCRespondToCoachFriendRequestResponse.EResponse
-    def __init__(
-        self, result: CMsgClientToGCRespondToCoachFriendRequestResponse.EResponse | str | None = ...
-    ) -> None: ...
+    def __init__(self, result: _Optional[_Union[CMsgClientToGCRespondToCoachFriendRequestResponse.EResponse, str]] = ...) -> None: ...

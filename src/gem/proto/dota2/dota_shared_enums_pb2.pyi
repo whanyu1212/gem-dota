@@ -1,11 +1,9 @@
-from collections.abc import Iterable as _Iterable
-from collections.abc import Mapping as _Mapping
-from typing import ClassVar as _ClassVar
-
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -134,6 +132,7 @@ class EEvent(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     EVENT_ID_SUMMER_2026: _ClassVar[EEvent]
     EVENT_ID_FALL_2026: _ClassVar[EEvent]
     EVENT_ID_WINTER_2026: _ClassVar[EEvent]
+    EVENT_ID_INTERNATIONAL_2026: _ClassVar[EEvent]
 
 class ERankType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -446,6 +445,10 @@ class DOTA_BOT_MODE(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     DOTA_BOT_MODE_MINION: _ClassVar[DOTA_BOT_MODE]
     DOTA_BOT_MODE_OUTPOST: _ClassVar[DOTA_BOT_MODE]
     DOTA_BOT_MODE_BOT_CHALLENGE_ENDGAME: _ClassVar[DOTA_BOT_MODE]
+    DOTA_BOT_MODE_WATCHER: _ClassVar[DOTA_BOT_MODE]
+    DOTA_BOT_MODE_WISDOM_SHRINE: _ClassVar[DOTA_BOT_MODE]
+    DOTA_BOT_MODE_LOTUS_POOL: _ClassVar[DOTA_BOT_MODE]
+    DOTA_BOT_MODE_DEWARD: _ClassVar[DOTA_BOT_MODE]
 
 class MatchLanguages(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -714,9 +717,7 @@ class EPlayerChallengeHistoryType(int, metaclass=_enum_type_wrapper.EnumTypeWrap
     k_EPlayerChallengeHistoryType_Invalid: _ClassVar[EPlayerChallengeHistoryType]
     k_EPlayerChallengeHistoryType_KillEater: _ClassVar[EPlayerChallengeHistoryType]
     k_EPlayerChallengeHistoryType_DotaPlusRelic: _ClassVar[EPlayerChallengeHistoryType]
-    k_EPlayerChallengeHistoryType_DotaPlusHeroPlayerChallenge: _ClassVar[
-        EPlayerChallengeHistoryType
-    ]
+    k_EPlayerChallengeHistoryType_DotaPlusHeroPlayerChallenge: _ClassVar[EPlayerChallengeHistoryType]
     k_EPlayerChallengeHistoryType_InGameEventChallenge: _ClassVar[EPlayerChallengeHistoryType]
     k_EPlayerChallengeHistoryType_GuildContract: _ClassVar[EPlayerChallengeHistoryType]
 
@@ -749,7 +750,6 @@ class ETimerAlertType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_TimerAlertType_WisdomShrine: _ClassVar[ETimerAlertType]
     k_TimerAlertType_JungleCamps: _ClassVar[ETimerAlertType]
     k_TimerAlertType_LotusPool: _ClassVar[ETimerAlertType]
-
 DOTA_GAMEMODE_NONE: DOTA_GameMode
 DOTA_GAMEMODE_AP: DOTA_GameMode
 DOTA_GAMEMODE_CM: DOTA_GameMode
@@ -864,6 +864,7 @@ EVENT_ID_SPRING_2026: EEvent
 EVENT_ID_SUMMER_2026: EEvent
 EVENT_ID_FALL_2026: EEvent
 EVENT_ID_WINTER_2026: EEvent
+EVENT_ID_INTERNATIONAL_2026: EEvent
 k_ERankType_Invalid: ERankType
 k_ERankType_Casual: ERankType
 k_ERankType_Ranked: ERankType
@@ -1092,6 +1093,10 @@ DOTA_BOT_MODE_TUTORIAL_BOSS: DOTA_BOT_MODE
 DOTA_BOT_MODE_MINION: DOTA_BOT_MODE
 DOTA_BOT_MODE_OUTPOST: DOTA_BOT_MODE
 DOTA_BOT_MODE_BOT_CHALLENGE_ENDGAME: DOTA_BOT_MODE
+DOTA_BOT_MODE_WATCHER: DOTA_BOT_MODE
+DOTA_BOT_MODE_WISDOM_SHRINE: DOTA_BOT_MODE
+DOTA_BOT_MODE_LOTUS_POOL: DOTA_BOT_MODE
+DOTA_BOT_MODE_DEWARD: DOTA_BOT_MODE
 MATCH_LANGUAGE_INVALID: MatchLanguages
 MATCH_LANGUAGE_ENGLISH: MatchLanguages
 MATCH_LANGUAGE_RUSSIAN: MatchLanguages
@@ -1329,15 +1334,7 @@ k_TimerAlertType_JungleCamps: ETimerAlertType
 k_TimerAlertType_LotusPool: ETimerAlertType
 
 class CDOTAClientHardwareSpecs(_message.Message):
-    __slots__ = (
-        "logical_processors",
-        "cpu_cycles_per_second",
-        "total_physical_memory",
-        "is_64_bit_os",
-        "upload_measurement",
-        "prefer_not_host",
-        "crc",
-    )
+    __slots__ = ("logical_processors", "cpu_cycles_per_second", "total_physical_memory", "is_64_bit_os", "upload_measurement", "prefer_not_host", "crc")
     LOGICAL_PROCESSORS_FIELD_NUMBER: _ClassVar[int]
     CPU_CYCLES_PER_SECOND_FIELD_NUMBER: _ClassVar[int]
     TOTAL_PHYSICAL_MEMORY_FIELD_NUMBER: _ClassVar[int]
@@ -1352,16 +1349,7 @@ class CDOTAClientHardwareSpecs(_message.Message):
     upload_measurement: int
     prefer_not_host: bool
     crc: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(
-        self,
-        logical_processors: int | None = ...,
-        cpu_cycles_per_second: int | None = ...,
-        total_physical_memory: int | None = ...,
-        is_64_bit_os: bool = ...,
-        upload_measurement: int | None = ...,
-        prefer_not_host: bool = ...,
-        crc: _Iterable[int] | None = ...,
-    ) -> None: ...
+    def __init__(self, logical_processors: _Optional[int] = ..., cpu_cycles_per_second: _Optional[int] = ..., total_physical_memory: _Optional[int] = ..., is_64_bit_os: bool = ..., upload_measurement: _Optional[int] = ..., prefer_not_host: bool = ..., crc: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CDOTASaveGame(_message.Message):
     __slots__ = ("match_id", "save_time", "players", "save_instances")
@@ -1373,30 +1361,16 @@ class CDOTASaveGame(_message.Message):
         team: DOTA_GC_TEAM
         name: str
         hero: str
-        def __init__(
-            self,
-            team: DOTA_GC_TEAM | str | None = ...,
-            name: str | None = ...,
-            hero: str | None = ...,
-        ) -> None: ...
-
+        def __init__(self, team: _Optional[_Union[DOTA_GC_TEAM, str]] = ..., name: _Optional[str] = ..., hero: _Optional[str] = ...) -> None: ...
     class SaveInstance(_message.Message):
-        __slots__ = (
-            "game_time",
-            "team1_score",
-            "team2_score",
-            "player_positions",
-            "save_id",
-            "save_time",
-        )
+        __slots__ = ("game_time", "team1_score", "team2_score", "player_positions", "save_id", "save_time")
         class PlayerPositions(_message.Message):
             __slots__ = ("x", "y")
             X_FIELD_NUMBER: _ClassVar[int]
             Y_FIELD_NUMBER: _ClassVar[int]
             x: float
             y: float
-            def __init__(self, x: float | None = ..., y: float | None = ...) -> None: ...
-
+            def __init__(self, x: _Optional[float] = ..., y: _Optional[float] = ...) -> None: ...
         GAME_TIME_FIELD_NUMBER: _ClassVar[int]
         TEAM1_SCORE_FIELD_NUMBER: _ClassVar[int]
         TEAM2_SCORE_FIELD_NUMBER: _ClassVar[int]
@@ -1406,22 +1380,10 @@ class CDOTASaveGame(_message.Message):
         game_time: int
         team1_score: int
         team2_score: int
-        player_positions: _containers.RepeatedCompositeFieldContainer[
-            CDOTASaveGame.SaveInstance.PlayerPositions
-        ]
+        player_positions: _containers.RepeatedCompositeFieldContainer[CDOTASaveGame.SaveInstance.PlayerPositions]
         save_id: int
         save_time: int
-        def __init__(
-            self,
-            game_time: int | None = ...,
-            team1_score: int | None = ...,
-            team2_score: int | None = ...,
-            player_positions: _Iterable[CDOTASaveGame.SaveInstance.PlayerPositions | _Mapping]
-            | None = ...,
-            save_id: int | None = ...,
-            save_time: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, game_time: _Optional[int] = ..., team1_score: _Optional[int] = ..., team2_score: _Optional[int] = ..., player_positions: _Optional[_Iterable[_Union[CDOTASaveGame.SaveInstance.PlayerPositions, _Mapping]]] = ..., save_id: _Optional[int] = ..., save_time: _Optional[int] = ...) -> None: ...
     MATCH_ID_FIELD_NUMBER: _ClassVar[int]
     SAVE_TIME_FIELD_NUMBER: _ClassVar[int]
     PLAYERS_FIELD_NUMBER: _ClassVar[int]
@@ -1430,97 +1392,10 @@ class CDOTASaveGame(_message.Message):
     save_time: int
     players: _containers.RepeatedCompositeFieldContainer[CDOTASaveGame.Player]
     save_instances: _containers.RepeatedCompositeFieldContainer[CDOTASaveGame.SaveInstance]
-    def __init__(
-        self,
-        match_id: int | None = ...,
-        save_time: int | None = ...,
-        players: _Iterable[CDOTASaveGame.Player | _Mapping] | None = ...,
-        save_instances: _Iterable[CDOTASaveGame.SaveInstance | _Mapping] | None = ...,
-    ) -> None: ...
+    def __init__(self, match_id: _Optional[int] = ..., save_time: _Optional[int] = ..., players: _Optional[_Iterable[_Union[CDOTASaveGame.Player, _Mapping]]] = ..., save_instances: _Optional[_Iterable[_Union[CDOTASaveGame.SaveInstance, _Mapping]]] = ...) -> None: ...
 
 class CMsgDOTACombatLogEntry(_message.Message):
-    __slots__ = (
-        "type",
-        "target_name",
-        "target_source_name",
-        "attacker_name",
-        "damage_source_name",
-        "inflictor_name",
-        "is_attacker_illusion",
-        "is_attacker_hero",
-        "is_target_illusion",
-        "is_target_hero",
-        "is_visible_radiant",
-        "is_visible_dire",
-        "value",
-        "health",
-        "timestamp",
-        "stun_duration",
-        "slow_duration",
-        "is_ability_toggle_on",
-        "is_ability_toggle_off",
-        "ability_level",
-        "location_x",
-        "location_y",
-        "gold_reason",
-        "timestamp_raw",
-        "modifier_duration",
-        "xp_reason",
-        "last_hits",
-        "attacker_team",
-        "target_team",
-        "obs_wards_placed",
-        "assist_player0",
-        "assist_player1",
-        "assist_player2",
-        "assist_player3",
-        "stack_count",
-        "hidden_modifier",
-        "is_target_building",
-        "neutral_camp_type",
-        "rune_type",
-        "assist_players",
-        "is_heal_save",
-        "is_ultimate_ability",
-        "attacker_hero_level",
-        "target_hero_level",
-        "xpm",
-        "gpm",
-        "event_location",
-        "target_is_self",
-        "damage_type",
-        "invisibility_modifier",
-        "damage_category",
-        "networth",
-        "building_type",
-        "modifier_elapsed_duration",
-        "silence_modifier",
-        "heal_from_lifesteal",
-        "modifier_purged",
-        "spell_evaded",
-        "motion_controller_modifier",
-        "long_range_kill",
-        "modifier_purge_ability",
-        "modifier_purge_npc",
-        "root_modifier",
-        "total_unit_death_count",
-        "aura_modifier",
-        "armor_debuff_modifier",
-        "no_physical_damage_modifier",
-        "modifier_ability",
-        "modifier_hidden",
-        "inflictor_is_stolen_ability",
-        "kill_eater_event",
-        "unit_status_label",
-        "spell_generated_attack",
-        "at_night_time",
-        "attacker_has_scepter",
-        "neutral_camp_team",
-        "regenerated_health",
-        "will_reincarnate",
-        "uses_charges",
-        "tracked_stat_id",
-    )
+    __slots__ = ("type", "target_name", "target_source_name", "attacker_name", "damage_source_name", "inflictor_name", "is_attacker_illusion", "is_attacker_hero", "is_target_illusion", "is_target_hero", "is_visible_radiant", "is_visible_dire", "value", "health", "timestamp", "stun_duration", "slow_duration", "is_ability_toggle_on", "is_ability_toggle_off", "ability_level", "location_x", "location_y", "gold_reason", "timestamp_raw", "modifier_duration", "xp_reason", "last_hits", "attacker_team", "target_team", "obs_wards_placed", "assist_player0", "assist_player1", "assist_player2", "assist_player3", "stack_count", "hidden_modifier", "is_target_building", "neutral_camp_type", "rune_type", "assist_players", "is_heal_save", "is_ultimate_ability", "attacker_hero_level", "target_hero_level", "xpm", "gpm", "event_location", "target_is_self", "damage_type", "invisibility_modifier", "damage_category", "networth", "building_type", "modifier_elapsed_duration", "silence_modifier", "heal_from_lifesteal", "modifier_purged", "spell_evaded", "motion_controller_modifier", "long_range_kill", "modifier_purge_ability", "modifier_purge_npc", "root_modifier", "total_unit_death_count", "aura_modifier", "armor_debuff_modifier", "no_physical_damage_modifier", "modifier_ability", "modifier_hidden", "inflictor_is_stolen_ability", "kill_eater_event", "unit_status_label", "spell_generated_attack", "at_night_time", "attacker_has_scepter", "neutral_camp_team", "regenerated_health", "will_reincarnate", "uses_charges", "tracked_stat_id", "modifier_purged_duration", "heal_from_regen")
     TYPE_FIELD_NUMBER: _ClassVar[int]
     TARGET_NAME_FIELD_NUMBER: _ClassVar[int]
     TARGET_SOURCE_NAME_FIELD_NUMBER: _ClassVar[int]
@@ -1601,6 +1476,8 @@ class CMsgDOTACombatLogEntry(_message.Message):
     WILL_REINCARNATE_FIELD_NUMBER: _ClassVar[int]
     USES_CHARGES_FIELD_NUMBER: _ClassVar[int]
     TRACKED_STAT_ID_FIELD_NUMBER: _ClassVar[int]
+    MODIFIER_PURGED_DURATION_FIELD_NUMBER: _ClassVar[int]
+    HEAL_FROM_REGEN_FIELD_NUMBER: _ClassVar[int]
     type: DOTA_COMBATLOG_TYPES
     target_name: int
     target_source_name: int
@@ -1681,99 +1558,12 @@ class CMsgDOTACombatLogEntry(_message.Message):
     will_reincarnate: bool
     uses_charges: bool
     tracked_stat_id: int
-    def __init__(
-        self,
-        type: DOTA_COMBATLOG_TYPES | str | None = ...,
-        target_name: int | None = ...,
-        target_source_name: int | None = ...,
-        attacker_name: int | None = ...,
-        damage_source_name: int | None = ...,
-        inflictor_name: int | None = ...,
-        is_attacker_illusion: bool = ...,
-        is_attacker_hero: bool = ...,
-        is_target_illusion: bool = ...,
-        is_target_hero: bool = ...,
-        is_visible_radiant: bool = ...,
-        is_visible_dire: bool = ...,
-        value: int | None = ...,
-        health: int | None = ...,
-        timestamp: float | None = ...,
-        stun_duration: float | None = ...,
-        slow_duration: float | None = ...,
-        is_ability_toggle_on: bool = ...,
-        is_ability_toggle_off: bool = ...,
-        ability_level: int | None = ...,
-        location_x: float | None = ...,
-        location_y: float | None = ...,
-        gold_reason: int | None = ...,
-        timestamp_raw: float | None = ...,
-        modifier_duration: float | None = ...,
-        xp_reason: int | None = ...,
-        last_hits: int | None = ...,
-        attacker_team: int | None = ...,
-        target_team: int | None = ...,
-        obs_wards_placed: int | None = ...,
-        assist_player0: int | None = ...,
-        assist_player1: int | None = ...,
-        assist_player2: int | None = ...,
-        assist_player3: int | None = ...,
-        stack_count: int | None = ...,
-        hidden_modifier: bool = ...,
-        is_target_building: bool = ...,
-        neutral_camp_type: int | None = ...,
-        rune_type: int | None = ...,
-        assist_players: _Iterable[int] | None = ...,
-        is_heal_save: bool = ...,
-        is_ultimate_ability: bool = ...,
-        attacker_hero_level: int | None = ...,
-        target_hero_level: int | None = ...,
-        xpm: int | None = ...,
-        gpm: int | None = ...,
-        event_location: int | None = ...,
-        target_is_self: bool = ...,
-        damage_type: int | None = ...,
-        invisibility_modifier: bool = ...,
-        damage_category: int | None = ...,
-        networth: int | None = ...,
-        building_type: int | None = ...,
-        modifier_elapsed_duration: float | None = ...,
-        silence_modifier: bool = ...,
-        heal_from_lifesteal: bool = ...,
-        modifier_purged: bool = ...,
-        spell_evaded: bool = ...,
-        motion_controller_modifier: bool = ...,
-        long_range_kill: bool = ...,
-        modifier_purge_ability: int | None = ...,
-        modifier_purge_npc: int | None = ...,
-        root_modifier: bool = ...,
-        total_unit_death_count: int | None = ...,
-        aura_modifier: bool = ...,
-        armor_debuff_modifier: bool = ...,
-        no_physical_damage_modifier: bool = ...,
-        modifier_ability: int | None = ...,
-        modifier_hidden: bool = ...,
-        inflictor_is_stolen_ability: bool = ...,
-        kill_eater_event: int | None = ...,
-        unit_status_label: int | None = ...,
-        spell_generated_attack: bool = ...,
-        at_night_time: bool = ...,
-        attacker_has_scepter: bool = ...,
-        neutral_camp_team: int | None = ...,
-        regenerated_health: float | None = ...,
-        will_reincarnate: bool = ...,
-        uses_charges: bool = ...,
-        tracked_stat_id: int | None = ...,
-    ) -> None: ...
+    modifier_purged_duration: float
+    heal_from_regen: bool
+    def __init__(self, type: _Optional[_Union[DOTA_COMBATLOG_TYPES, str]] = ..., target_name: _Optional[int] = ..., target_source_name: _Optional[int] = ..., attacker_name: _Optional[int] = ..., damage_source_name: _Optional[int] = ..., inflictor_name: _Optional[int] = ..., is_attacker_illusion: bool = ..., is_attacker_hero: bool = ..., is_target_illusion: bool = ..., is_target_hero: bool = ..., is_visible_radiant: bool = ..., is_visible_dire: bool = ..., value: _Optional[int] = ..., health: _Optional[int] = ..., timestamp: _Optional[float] = ..., stun_duration: _Optional[float] = ..., slow_duration: _Optional[float] = ..., is_ability_toggle_on: bool = ..., is_ability_toggle_off: bool = ..., ability_level: _Optional[int] = ..., location_x: _Optional[float] = ..., location_y: _Optional[float] = ..., gold_reason: _Optional[int] = ..., timestamp_raw: _Optional[float] = ..., modifier_duration: _Optional[float] = ..., xp_reason: _Optional[int] = ..., last_hits: _Optional[int] = ..., attacker_team: _Optional[int] = ..., target_team: _Optional[int] = ..., obs_wards_placed: _Optional[int] = ..., assist_player0: _Optional[int] = ..., assist_player1: _Optional[int] = ..., assist_player2: _Optional[int] = ..., assist_player3: _Optional[int] = ..., stack_count: _Optional[int] = ..., hidden_modifier: bool = ..., is_target_building: bool = ..., neutral_camp_type: _Optional[int] = ..., rune_type: _Optional[int] = ..., assist_players: _Optional[_Iterable[int]] = ..., is_heal_save: bool = ..., is_ultimate_ability: bool = ..., attacker_hero_level: _Optional[int] = ..., target_hero_level: _Optional[int] = ..., xpm: _Optional[int] = ..., gpm: _Optional[int] = ..., event_location: _Optional[int] = ..., target_is_self: bool = ..., damage_type: _Optional[int] = ..., invisibility_modifier: bool = ..., damage_category: _Optional[int] = ..., networth: _Optional[int] = ..., building_type: _Optional[int] = ..., modifier_elapsed_duration: _Optional[float] = ..., silence_modifier: bool = ..., heal_from_lifesteal: bool = ..., modifier_purged: bool = ..., spell_evaded: bool = ..., motion_controller_modifier: bool = ..., long_range_kill: bool = ..., modifier_purge_ability: _Optional[int] = ..., modifier_purge_npc: _Optional[int] = ..., root_modifier: bool = ..., total_unit_death_count: _Optional[int] = ..., aura_modifier: bool = ..., armor_debuff_modifier: bool = ..., no_physical_damage_modifier: bool = ..., modifier_ability: _Optional[int] = ..., modifier_hidden: bool = ..., inflictor_is_stolen_ability: bool = ..., kill_eater_event: _Optional[int] = ..., unit_status_label: _Optional[int] = ..., spell_generated_attack: bool = ..., at_night_time: bool = ..., attacker_has_scepter: bool = ..., neutral_camp_team: _Optional[int] = ..., regenerated_health: _Optional[float] = ..., will_reincarnate: bool = ..., uses_charges: bool = ..., tracked_stat_id: _Optional[int] = ..., modifier_purged_duration: _Optional[float] = ..., heal_from_regen: bool = ...) -> None: ...
 
 class CMsgPendingEventAward(_message.Message):
-    __slots__ = (
-        "event_id",
-        "action_id",
-        "num_to_grant",
-        "score_mode",
-        "audit_action",
-        "audit_data",
-    )
+    __slots__ = ("event_id", "action_id", "num_to_grant", "score_mode", "audit_action", "audit_data")
     EVENT_ID_FIELD_NUMBER: _ClassVar[int]
     ACTION_ID_FIELD_NUMBER: _ClassVar[int]
     NUM_TO_GRANT_FIELD_NUMBER: _ClassVar[int]
@@ -1786,15 +1576,7 @@ class CMsgPendingEventAward(_message.Message):
     score_mode: EEventActionScoreMode
     audit_action: int
     audit_data: int
-    def __init__(
-        self,
-        event_id: EEvent | str | None = ...,
-        action_id: int | None = ...,
-        num_to_grant: int | None = ...,
-        score_mode: EEventActionScoreMode | str | None = ...,
-        audit_action: int | None = ...,
-        audit_data: int | None = ...,
-    ) -> None: ...
+    def __init__(self, event_id: _Optional[_Union[EEvent, str]] = ..., action_id: _Optional[int] = ..., num_to_grant: _Optional[int] = ..., score_mode: _Optional[_Union[EEventActionScoreMode, str]] = ..., audit_action: _Optional[int] = ..., audit_data: _Optional[int] = ...) -> None: ...
 
 class CMsgMonsterHunterMaterialQuantity(_message.Message):
     __slots__ = ("material_counts",)
@@ -1804,17 +1586,10 @@ class CMsgMonsterHunterMaterialQuantity(_message.Message):
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: int
         value: int
-        def __init__(self, key: int | None = ..., value: int | None = ...) -> None: ...
-
+        def __init__(self, key: _Optional[int] = ..., value: _Optional[int] = ...) -> None: ...
     MATERIAL_COUNTS_FIELD_NUMBER: _ClassVar[int]
-    material_counts: _containers.RepeatedCompositeFieldContainer[
-        CMsgMonsterHunterMaterialQuantity.MaterialCountsEntry
-    ]
-    def __init__(
-        self,
-        material_counts: _Iterable[CMsgMonsterHunterMaterialQuantity.MaterialCountsEntry | _Mapping]
-        | None = ...,
-    ) -> None: ...
+    material_counts: _containers.RepeatedCompositeFieldContainer[CMsgMonsterHunterMaterialQuantity.MaterialCountsEntry]
+    def __init__(self, material_counts: _Optional[_Iterable[_Union[CMsgMonsterHunterMaterialQuantity.MaterialCountsEntry, _Mapping]]] = ...) -> None: ...
 
 class CMsgMonsterHunterInvestigation(_message.Message):
     __slots__ = ("hero_id", "persona_id", "match_rewards", "hunt_rewards", "success_state")
@@ -1828,14 +1603,7 @@ class CMsgMonsterHunterInvestigation(_message.Message):
     match_rewards: CMsgMonsterHunterMaterialQuantity
     hunt_rewards: CMsgMonsterHunterMaterialQuantity
     success_state: bool
-    def __init__(
-        self,
-        hero_id: int | None = ...,
-        persona_id: int | None = ...,
-        match_rewards: CMsgMonsterHunterMaterialQuantity | _Mapping | None = ...,
-        hunt_rewards: CMsgMonsterHunterMaterialQuantity | _Mapping | None = ...,
-        success_state: bool = ...,
-    ) -> None: ...
+    def __init__(self, hero_id: _Optional[int] = ..., persona_id: _Optional[int] = ..., match_rewards: _Optional[_Union[CMsgMonsterHunterMaterialQuantity, _Mapping]] = ..., hunt_rewards: _Optional[_Union[CMsgMonsterHunterMaterialQuantity, _Mapping]] = ..., success_state: bool = ...) -> None: ...
 
 class CMsgMonsterHunterInvestigationGameState(_message.Message):
     __slots__ = ("selected_investigation", "hunted_by")
@@ -1849,26 +1617,12 @@ class CMsgMonsterHunterInvestigationGameState(_message.Message):
         persona_id: int
         hunt_rewards: CMsgMonsterHunterMaterialQuantity
         success_state: bool
-        def __init__(
-            self,
-            hero_id: int | None = ...,
-            persona_id: int | None = ...,
-            hunt_rewards: CMsgMonsterHunterMaterialQuantity | _Mapping | None = ...,
-            success_state: bool = ...,
-        ) -> None: ...
-
+        def __init__(self, hero_id: _Optional[int] = ..., persona_id: _Optional[int] = ..., hunt_rewards: _Optional[_Union[CMsgMonsterHunterMaterialQuantity, _Mapping]] = ..., success_state: bool = ...) -> None: ...
     SELECTED_INVESTIGATION_FIELD_NUMBER: _ClassVar[int]
     HUNTED_BY_FIELD_NUMBER: _ClassVar[int]
     selected_investigation: CMsgMonsterHunterInvestigation
-    hunted_by: _containers.RepeatedCompositeFieldContainer[
-        CMsgMonsterHunterInvestigationGameState.HuntedBy
-    ]
-    def __init__(
-        self,
-        selected_investigation: CMsgMonsterHunterInvestigation | _Mapping | None = ...,
-        hunted_by: _Iterable[CMsgMonsterHunterInvestigationGameState.HuntedBy | _Mapping]
-        | None = ...,
-    ) -> None: ...
+    hunted_by: _containers.RepeatedCompositeFieldContainer[CMsgMonsterHunterInvestigationGameState.HuntedBy]
+    def __init__(self, selected_investigation: _Optional[_Union[CMsgMonsterHunterInvestigation, _Mapping]] = ..., hunted_by: _Optional[_Iterable[_Union[CMsgMonsterHunterInvestigationGameState.HuntedBy, _Mapping]]] = ...) -> None: ...
 
 class CMsgMonsterHunterCodexUpdateData(_message.Message):
     __slots__ = ("player_hero", "allies", "enemies", "player_kills")
@@ -1878,8 +1632,7 @@ class CMsgMonsterHunterCodexUpdateData(_message.Message):
         KILL_COUNT_FIELD_NUMBER: _ClassVar[int]
         hero_id: int
         kill_count: int
-        def __init__(self, hero_id: int | None = ..., kill_count: int | None = ...) -> None: ...
-
+        def __init__(self, hero_id: _Optional[int] = ..., kill_count: _Optional[int] = ...) -> None: ...
     PLAYER_HERO_FIELD_NUMBER: _ClassVar[int]
     ALLIES_FIELD_NUMBER: _ClassVar[int]
     ENEMIES_FIELD_NUMBER: _ClassVar[int]
@@ -1887,13 +1640,5 @@ class CMsgMonsterHunterCodexUpdateData(_message.Message):
     player_hero: int
     allies: _containers.RepeatedScalarFieldContainer[int]
     enemies: _containers.RepeatedScalarFieldContainer[int]
-    player_kills: _containers.RepeatedCompositeFieldContainer[
-        CMsgMonsterHunterCodexUpdateData.KillInfo
-    ]
-    def __init__(
-        self,
-        player_hero: int | None = ...,
-        allies: _Iterable[int] | None = ...,
-        enemies: _Iterable[int] | None = ...,
-        player_kills: _Iterable[CMsgMonsterHunterCodexUpdateData.KillInfo | _Mapping] | None = ...,
-    ) -> None: ...
+    player_kills: _containers.RepeatedCompositeFieldContainer[CMsgMonsterHunterCodexUpdateData.KillInfo]
+    def __init__(self, player_hero: _Optional[int] = ..., allies: _Optional[_Iterable[int]] = ..., enemies: _Optional[_Iterable[int]] = ..., player_kills: _Optional[_Iterable[_Union[CMsgMonsterHunterCodexUpdateData.KillInfo, _Mapping]]] = ...) -> None: ...

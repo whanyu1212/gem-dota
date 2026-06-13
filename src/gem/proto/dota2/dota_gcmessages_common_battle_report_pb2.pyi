@@ -1,11 +1,16 @@
-from collections.abc import Iterable as _Iterable
-from collections.abc import Mapping as _Mapping
-from typing import ClassVar as _ClassVar
-
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
+import steammessages_pb2 as _steammessages_pb2
+import dota_shared_enums_pb2 as _dota_shared_enums_pb2
+import dota_gcmessages_common_pb2 as _dota_gcmessages_common_pb2
+import gcsdk_gcmessages_pb2 as _gcsdk_gcmessages_pb2
+import base_gcmessages_pb2 as _base_gcmessages_pb2
+import econ_gcmessages_pb2 as _econ_gcmessages_pb2
+import valveextensions_pb2 as _valveextensions_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -128,7 +133,6 @@ class CMsgBattleReport_ELaneOutcome(int, metaclass=_enum_type_wrapper.EnumTypeWr
     k_eWonLane: _ClassVar[CMsgBattleReport_ELaneOutcome]
     k_eLostLane: _ClassVar[CMsgBattleReport_ELaneOutcome]
     k_eEvenLane: _ClassVar[CMsgBattleReport_ELaneOutcome]
-
 k_eHighlightTypeInvalid: CMsgBattleReport_HighlightType
 k_eGameWinrate: CMsgBattleReport_HighlightType
 k_eLaneWinrate: CMsgBattleReport_HighlightType
@@ -234,63 +238,10 @@ class CMsgClientToGCGetBattleReport(_message.Message):
     account_id: int
     timestamp: int
     duration: int
-    def __init__(
-        self, account_id: int | None = ..., timestamp: int | None = ..., duration: int | None = ...
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., timestamp: _Optional[int] = ..., duration: _Optional[int] = ...) -> None: ...
 
 class CMsgBattleReport_Game(_message.Message):
-    __slots__ = (
-        "hero_id",
-        "kills",
-        "deaths",
-        "assists",
-        "rank_change",
-        "last_hits",
-        "denies",
-        "gpm",
-        "xpm",
-        "role",
-        "outcome",
-        "lane_outcome",
-        "ranked",
-        "match_id",
-        "lane_selection_flags",
-        "predicted_position",
-        "seconds_dead",
-        "winning_team",
-        "player_slot",
-        "party_game",
-        "start_time",
-        "bounty_runes",
-        "water_runes",
-        "power_runes",
-        "time_enemy_t1_tower_destroyed",
-        "time_friendly_t1_tower_destroyed",
-        "enemy_roshan_kills",
-        "teleports_used",
-        "dewards",
-        "camps_stacked",
-        "support_gold",
-        "hero_damage",
-        "hero_healing",
-        "tower_damage",
-        "successful_smokes",
-        "stun_duration",
-        "duration",
-        "friendly_roshan_kills",
-        "previous_rank",
-        "game_mode",
-        "lobby_type",
-        "time_purchased_shard",
-        "time_purchased_scepter",
-        "item0",
-        "item1",
-        "item2",
-        "item3",
-        "item4",
-        "item5",
-        "selected_facet",
-    )
+    __slots__ = ("hero_id", "kills", "deaths", "assists", "rank_change", "last_hits", "denies", "gpm", "xpm", "role", "outcome", "lane_outcome", "ranked", "match_id", "lane_selection_flags", "predicted_position", "seconds_dead", "winning_team", "player_slot", "party_game", "start_time", "bounty_runes", "water_runes", "power_runes", "time_enemy_t1_tower_destroyed", "time_friendly_t1_tower_destroyed", "enemy_roshan_kills", "teleports_used", "dewards", "camps_stacked", "support_gold", "hero_damage", "hero_healing", "tower_damage", "successful_smokes", "stun_duration", "duration", "friendly_roshan_kills", "previous_rank", "game_mode", "lobby_type", "time_purchased_shard", "time_purchased_scepter", "item0", "item1", "item2", "item3", "item4", "item5", "selected_facet")
     HERO_ID_FIELD_NUMBER: _ClassVar[int]
     KILLS_FIELD_NUMBER: _ClassVar[int]
     DEATHS_FIELD_NUMBER: _ClassVar[int]
@@ -391,65 +342,13 @@ class CMsgBattleReport_Game(_message.Message):
     item4: int
     item5: int
     selected_facet: int
-    def __init__(
-        self,
-        hero_id: int | None = ...,
-        kills: int | None = ...,
-        deaths: int | None = ...,
-        assists: int | None = ...,
-        rank_change: int | None = ...,
-        last_hits: int | None = ...,
-        denies: int | None = ...,
-        gpm: int | None = ...,
-        xpm: int | None = ...,
-        role: CMsgBattleReport_Role | str | None = ...,
-        outcome: CMsgBattleReport_EOutcome | str | None = ...,
-        lane_outcome: CMsgBattleReport_ELaneOutcome | str | None = ...,
-        ranked: bool = ...,
-        match_id: int | None = ...,
-        lane_selection_flags: int | None = ...,
-        predicted_position: int | None = ...,
-        seconds_dead: int | None = ...,
-        winning_team: int | None = ...,
-        player_slot: int | None = ...,
-        party_game: bool = ...,
-        start_time: int | None = ...,
-        bounty_runes: int | None = ...,
-        water_runes: int | None = ...,
-        power_runes: int | None = ...,
-        time_enemy_t1_tower_destroyed: int | None = ...,
-        time_friendly_t1_tower_destroyed: int | None = ...,
-        enemy_roshan_kills: int | None = ...,
-        teleports_used: int | None = ...,
-        dewards: int | None = ...,
-        camps_stacked: int | None = ...,
-        support_gold: int | None = ...,
-        hero_damage: int | None = ...,
-        hero_healing: int | None = ...,
-        tower_damage: int | None = ...,
-        successful_smokes: int | None = ...,
-        stun_duration: int | None = ...,
-        duration: int | None = ...,
-        friendly_roshan_kills: int | None = ...,
-        previous_rank: int | None = ...,
-        game_mode: int | None = ...,
-        lobby_type: int | None = ...,
-        time_purchased_shard: float | None = ...,
-        time_purchased_scepter: float | None = ...,
-        item0: int | None = ...,
-        item1: int | None = ...,
-        item2: int | None = ...,
-        item3: int | None = ...,
-        item4: int | None = ...,
-        item5: int | None = ...,
-        selected_facet: int | None = ...,
-    ) -> None: ...
+    def __init__(self, hero_id: _Optional[int] = ..., kills: _Optional[int] = ..., deaths: _Optional[int] = ..., assists: _Optional[int] = ..., rank_change: _Optional[int] = ..., last_hits: _Optional[int] = ..., denies: _Optional[int] = ..., gpm: _Optional[int] = ..., xpm: _Optional[int] = ..., role: _Optional[_Union[CMsgBattleReport_Role, str]] = ..., outcome: _Optional[_Union[CMsgBattleReport_EOutcome, str]] = ..., lane_outcome: _Optional[_Union[CMsgBattleReport_ELaneOutcome, str]] = ..., ranked: bool = ..., match_id: _Optional[int] = ..., lane_selection_flags: _Optional[int] = ..., predicted_position: _Optional[int] = ..., seconds_dead: _Optional[int] = ..., winning_team: _Optional[int] = ..., player_slot: _Optional[int] = ..., party_game: bool = ..., start_time: _Optional[int] = ..., bounty_runes: _Optional[int] = ..., water_runes: _Optional[int] = ..., power_runes: _Optional[int] = ..., time_enemy_t1_tower_destroyed: _Optional[int] = ..., time_friendly_t1_tower_destroyed: _Optional[int] = ..., enemy_roshan_kills: _Optional[int] = ..., teleports_used: _Optional[int] = ..., dewards: _Optional[int] = ..., camps_stacked: _Optional[int] = ..., support_gold: _Optional[int] = ..., hero_damage: _Optional[int] = ..., hero_healing: _Optional[int] = ..., tower_damage: _Optional[int] = ..., successful_smokes: _Optional[int] = ..., stun_duration: _Optional[int] = ..., duration: _Optional[int] = ..., friendly_roshan_kills: _Optional[int] = ..., previous_rank: _Optional[int] = ..., game_mode: _Optional[int] = ..., lobby_type: _Optional[int] = ..., time_purchased_shard: _Optional[float] = ..., time_purchased_scepter: _Optional[float] = ..., item0: _Optional[int] = ..., item1: _Optional[int] = ..., item2: _Optional[int] = ..., item3: _Optional[int] = ..., item4: _Optional[int] = ..., item5: _Optional[int] = ..., selected_facet: _Optional[int] = ...) -> None: ...
 
 class CMsgBattleReport_GameList(_message.Message):
     __slots__ = ("games",)
     GAMES_FIELD_NUMBER: _ClassVar[int]
     games: _containers.RepeatedCompositeFieldContainer[CMsgBattleReport_Game]
-    def __init__(self, games: _Iterable[CMsgBattleReport_Game | _Mapping] | None = ...) -> None: ...
+    def __init__(self, games: _Optional[_Iterable[_Union[CMsgBattleReport_Game, _Mapping]]] = ...) -> None: ...
 
 class CMsgBattleReport(_message.Message):
     __slots__ = ("games", "highlights")
@@ -463,27 +362,9 @@ class CMsgBattleReport(_message.Message):
         win_percent: float
         mmr_delta: int
         highlight_score: float
-        def __init__(
-            self,
-            win_loss_window: int | None = ...,
-            win_percent: float | None = ...,
-            mmr_delta: int | None = ...,
-            highlight_score: float | None = ...,
-        ) -> None: ...
-
+        def __init__(self, win_loss_window: _Optional[int] = ..., win_percent: _Optional[float] = ..., mmr_delta: _Optional[int] = ..., highlight_score: _Optional[float] = ...) -> None: ...
     class Highlight(_message.Message):
-        __slots__ = (
-            "highlight_id",
-            "category",
-            "tier",
-            "rarity",
-            "score",
-            "confidence",
-            "hero_id",
-            "role",
-            "comparison_delta_value",
-            "context",
-        )
+        __slots__ = ("highlight_id", "category", "tier", "rarity", "score", "confidence", "hero_id", "role", "comparison_delta_value", "context")
         HIGHLIGHT_ID_FIELD_NUMBER: _ClassVar[int]
         CATEGORY_FIELD_NUMBER: _ClassVar[int]
         TIER_FIELD_NUMBER: _ClassVar[int]
@@ -504,40 +385,15 @@ class CMsgBattleReport(_message.Message):
         role: CMsgBattleReport_Role
         comparison_delta_value: float
         context: CMsgBattleReport_CompareContext
-        def __init__(
-            self,
-            highlight_id: int | None = ...,
-            category: CMsgBattleReport_HighlightCategory | str | None = ...,
-            tier: CMsgBattleReport_HighlightTier | str | None = ...,
-            rarity: CMsgBattleReport_HighlightRarity | str | None = ...,
-            score: float | None = ...,
-            confidence: float | None = ...,
-            hero_id: int | None = ...,
-            role: CMsgBattleReport_Role | str | None = ...,
-            comparison_delta_value: float | None = ...,
-            context: CMsgBattleReport_CompareContext | str | None = ...,
-        ) -> None: ...
-
+        def __init__(self, highlight_id: _Optional[int] = ..., category: _Optional[_Union[CMsgBattleReport_HighlightCategory, str]] = ..., tier: _Optional[_Union[CMsgBattleReport_HighlightTier, str]] = ..., rarity: _Optional[_Union[CMsgBattleReport_HighlightRarity, str]] = ..., score: _Optional[float] = ..., confidence: _Optional[float] = ..., hero_id: _Optional[int] = ..., role: _Optional[_Union[CMsgBattleReport_Role, str]] = ..., comparison_delta_value: _Optional[float] = ..., context: _Optional[_Union[CMsgBattleReport_CompareContext, str]] = ...) -> None: ...
     GAMES_FIELD_NUMBER: _ClassVar[int]
     HIGHLIGHTS_FIELD_NUMBER: _ClassVar[int]
     games: _containers.RepeatedCompositeFieldContainer[CMsgBattleReport_Game]
     highlights: CMsgBattleReportHighlights
-    def __init__(
-        self,
-        games: _Iterable[CMsgBattleReport_Game | _Mapping] | None = ...,
-        highlights: CMsgBattleReportHighlights | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, games: _Optional[_Iterable[_Union[CMsgBattleReport_Game, _Mapping]]] = ..., highlights: _Optional[_Union[CMsgBattleReportHighlights, _Mapping]] = ...) -> None: ...
 
 class CMsgBattleReportInfo(_message.Message):
-    __slots__ = (
-        "timestamp",
-        "duration",
-        "acknowledged",
-        "featured_hero_id",
-        "featured_position",
-        "games_played",
-        "medal_counts",
-    )
+    __slots__ = ("timestamp", "duration", "acknowledged", "featured_hero_id", "featured_position", "games_played", "medal_counts")
     TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
     DURATION_FIELD_NUMBER: _ClassVar[int]
     ACKNOWLEDGED_FIELD_NUMBER: _ClassVar[int]
@@ -552,32 +408,19 @@ class CMsgBattleReportInfo(_message.Message):
     featured_position: int
     games_played: int
     medal_counts: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(
-        self,
-        timestamp: int | None = ...,
-        duration: int | None = ...,
-        acknowledged: bool = ...,
-        featured_hero_id: int | None = ...,
-        featured_position: int | None = ...,
-        games_played: int | None = ...,
-        medal_counts: _Iterable[int] | None = ...,
-    ) -> None: ...
+    def __init__(self, timestamp: _Optional[int] = ..., duration: _Optional[int] = ..., acknowledged: bool = ..., featured_hero_id: _Optional[int] = ..., featured_position: _Optional[int] = ..., games_played: _Optional[int] = ..., medal_counts: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CMsgBattleReportInfoList(_message.Message):
     __slots__ = ("battle_report_info",)
     BATTLE_REPORT_INFO_FIELD_NUMBER: _ClassVar[int]
     battle_report_info: _containers.RepeatedCompositeFieldContainer[CMsgBattleReportInfo]
-    def __init__(
-        self, battle_report_info: _Iterable[CMsgBattleReportInfo | _Mapping] | None = ...
-    ) -> None: ...
+    def __init__(self, battle_report_info: _Optional[_Iterable[_Union[CMsgBattleReportInfo, _Mapping]]] = ...) -> None: ...
 
 class CMsgBattleReportHighlights(_message.Message):
     __slots__ = ("highlights",)
     HIGHLIGHTS_FIELD_NUMBER: _ClassVar[int]
     highlights: _containers.RepeatedCompositeFieldContainer[CMsgBattleReport.Highlight]
-    def __init__(
-        self, highlights: _Iterable[CMsgBattleReport.Highlight | _Mapping] | None = ...
-    ) -> None: ...
+    def __init__(self, highlights: _Optional[_Iterable[_Union[CMsgBattleReport.Highlight, _Mapping]]] = ...) -> None: ...
 
 class CMsgBattleReportAggregateStats(_message.Message):
     __slots__ = ("result",)
@@ -587,42 +430,9 @@ class CMsgBattleReportAggregateStats(_message.Message):
         STDEV_FIELD_NUMBER: _ClassVar[int]
         mean: float
         stdev: float
-        def __init__(self, mean: float | None = ..., stdev: float | None = ...) -> None: ...
-
+        def __init__(self, mean: _Optional[float] = ..., stdev: _Optional[float] = ...) -> None: ...
     class CMsgBattleReportAggregate(_message.Message):
-        __slots__ = (
-            "hero_id",
-            "predicted_position",
-            "game_count",
-            "win_count",
-            "lane_win_count",
-            "kills",
-            "deaths",
-            "assists",
-            "rank_change",
-            "last_hits",
-            "denies",
-            "gpm",
-            "xpm",
-            "seconds_dead",
-            "bounty_runes",
-            "water_runes",
-            "power_runes",
-            "time_enemy_t1_tower_destroyed",
-            "time_friendly_t1_tower_destroyed",
-            "enemy_roshan_kills",
-            "teleports_used",
-            "dewards",
-            "camps_stacked",
-            "support_gold",
-            "hero_damage",
-            "hero_healing",
-            "tower_damage",
-            "successful_smokes",
-            "stun_duration",
-            "duration",
-            "friendly_roshan_kills",
-        )
+        __slots__ = ("hero_id", "predicted_position", "game_count", "win_count", "lane_win_count", "kills", "deaths", "assists", "rank_change", "last_hits", "denies", "gpm", "xpm", "seconds_dead", "bounty_runes", "water_runes", "power_runes", "time_enemy_t1_tower_destroyed", "time_friendly_t1_tower_destroyed", "enemy_roshan_kills", "teleports_used", "dewards", "camps_stacked", "support_gold", "hero_damage", "hero_healing", "tower_damage", "successful_smokes", "stun_duration", "duration", "friendly_roshan_kills")
         HERO_ID_FIELD_NUMBER: _ClassVar[int]
         PREDICTED_POSITION_FIELD_NUMBER: _ClassVar[int]
         GAME_COUNT_FIELD_NUMBER: _ClassVar[int]
@@ -685,84 +495,10 @@ class CMsgBattleReportAggregateStats(_message.Message):
         stun_duration: CMsgBattleReportAggregateStats.CMsgBattleReportStat
         duration: CMsgBattleReportAggregateStats.CMsgBattleReportStat
         friendly_roshan_kills: CMsgBattleReportAggregateStats.CMsgBattleReportStat
-        def __init__(
-            self,
-            hero_id: int | None = ...,
-            predicted_position: int | None = ...,
-            game_count: int | None = ...,
-            win_count: int | None = ...,
-            lane_win_count: int | None = ...,
-            kills: CMsgBattleReportAggregateStats.CMsgBattleReportStat | _Mapping | None = ...,
-            deaths: CMsgBattleReportAggregateStats.CMsgBattleReportStat | _Mapping | None = ...,
-            assists: CMsgBattleReportAggregateStats.CMsgBattleReportStat | _Mapping | None = ...,
-            rank_change: CMsgBattleReportAggregateStats.CMsgBattleReportStat
-            | _Mapping
-            | None = ...,
-            last_hits: CMsgBattleReportAggregateStats.CMsgBattleReportStat | _Mapping | None = ...,
-            denies: CMsgBattleReportAggregateStats.CMsgBattleReportStat | _Mapping | None = ...,
-            gpm: CMsgBattleReportAggregateStats.CMsgBattleReportStat | _Mapping | None = ...,
-            xpm: CMsgBattleReportAggregateStats.CMsgBattleReportStat | _Mapping | None = ...,
-            seconds_dead: CMsgBattleReportAggregateStats.CMsgBattleReportStat
-            | _Mapping
-            | None = ...,
-            bounty_runes: CMsgBattleReportAggregateStats.CMsgBattleReportStat
-            | _Mapping
-            | None = ...,
-            water_runes: CMsgBattleReportAggregateStats.CMsgBattleReportStat
-            | _Mapping
-            | None = ...,
-            power_runes: CMsgBattleReportAggregateStats.CMsgBattleReportStat
-            | _Mapping
-            | None = ...,
-            time_enemy_t1_tower_destroyed: CMsgBattleReportAggregateStats.CMsgBattleReportStat
-            | _Mapping
-            | None = ...,
-            time_friendly_t1_tower_destroyed: CMsgBattleReportAggregateStats.CMsgBattleReportStat
-            | _Mapping
-            | None = ...,
-            enemy_roshan_kills: CMsgBattleReportAggregateStats.CMsgBattleReportStat
-            | _Mapping
-            | None = ...,
-            teleports_used: CMsgBattleReportAggregateStats.CMsgBattleReportStat
-            | _Mapping
-            | None = ...,
-            dewards: CMsgBattleReportAggregateStats.CMsgBattleReportStat | _Mapping | None = ...,
-            camps_stacked: CMsgBattleReportAggregateStats.CMsgBattleReportStat
-            | _Mapping
-            | None = ...,
-            support_gold: CMsgBattleReportAggregateStats.CMsgBattleReportStat
-            | _Mapping
-            | None = ...,
-            hero_damage: CMsgBattleReportAggregateStats.CMsgBattleReportStat
-            | _Mapping
-            | None = ...,
-            hero_healing: CMsgBattleReportAggregateStats.CMsgBattleReportStat
-            | _Mapping
-            | None = ...,
-            tower_damage: CMsgBattleReportAggregateStats.CMsgBattleReportStat
-            | _Mapping
-            | None = ...,
-            successful_smokes: CMsgBattleReportAggregateStats.CMsgBattleReportStat
-            | _Mapping
-            | None = ...,
-            stun_duration: CMsgBattleReportAggregateStats.CMsgBattleReportStat
-            | _Mapping
-            | None = ...,
-            duration: CMsgBattleReportAggregateStats.CMsgBattleReportStat | _Mapping | None = ...,
-            friendly_roshan_kills: CMsgBattleReportAggregateStats.CMsgBattleReportStat
-            | _Mapping
-            | None = ...,
-        ) -> None: ...
-
+        def __init__(self, hero_id: _Optional[int] = ..., predicted_position: _Optional[int] = ..., game_count: _Optional[int] = ..., win_count: _Optional[int] = ..., lane_win_count: _Optional[int] = ..., kills: _Optional[_Union[CMsgBattleReportAggregateStats.CMsgBattleReportStat, _Mapping]] = ..., deaths: _Optional[_Union[CMsgBattleReportAggregateStats.CMsgBattleReportStat, _Mapping]] = ..., assists: _Optional[_Union[CMsgBattleReportAggregateStats.CMsgBattleReportStat, _Mapping]] = ..., rank_change: _Optional[_Union[CMsgBattleReportAggregateStats.CMsgBattleReportStat, _Mapping]] = ..., last_hits: _Optional[_Union[CMsgBattleReportAggregateStats.CMsgBattleReportStat, _Mapping]] = ..., denies: _Optional[_Union[CMsgBattleReportAggregateStats.CMsgBattleReportStat, _Mapping]] = ..., gpm: _Optional[_Union[CMsgBattleReportAggregateStats.CMsgBattleReportStat, _Mapping]] = ..., xpm: _Optional[_Union[CMsgBattleReportAggregateStats.CMsgBattleReportStat, _Mapping]] = ..., seconds_dead: _Optional[_Union[CMsgBattleReportAggregateStats.CMsgBattleReportStat, _Mapping]] = ..., bounty_runes: _Optional[_Union[CMsgBattleReportAggregateStats.CMsgBattleReportStat, _Mapping]] = ..., water_runes: _Optional[_Union[CMsgBattleReportAggregateStats.CMsgBattleReportStat, _Mapping]] = ..., power_runes: _Optional[_Union[CMsgBattleReportAggregateStats.CMsgBattleReportStat, _Mapping]] = ..., time_enemy_t1_tower_destroyed: _Optional[_Union[CMsgBattleReportAggregateStats.CMsgBattleReportStat, _Mapping]] = ..., time_friendly_t1_tower_destroyed: _Optional[_Union[CMsgBattleReportAggregateStats.CMsgBattleReportStat, _Mapping]] = ..., enemy_roshan_kills: _Optional[_Union[CMsgBattleReportAggregateStats.CMsgBattleReportStat, _Mapping]] = ..., teleports_used: _Optional[_Union[CMsgBattleReportAggregateStats.CMsgBattleReportStat, _Mapping]] = ..., dewards: _Optional[_Union[CMsgBattleReportAggregateStats.CMsgBattleReportStat, _Mapping]] = ..., camps_stacked: _Optional[_Union[CMsgBattleReportAggregateStats.CMsgBattleReportStat, _Mapping]] = ..., support_gold: _Optional[_Union[CMsgBattleReportAggregateStats.CMsgBattleReportStat, _Mapping]] = ..., hero_damage: _Optional[_Union[CMsgBattleReportAggregateStats.CMsgBattleReportStat, _Mapping]] = ..., hero_healing: _Optional[_Union[CMsgBattleReportAggregateStats.CMsgBattleReportStat, _Mapping]] = ..., tower_damage: _Optional[_Union[CMsgBattleReportAggregateStats.CMsgBattleReportStat, _Mapping]] = ..., successful_smokes: _Optional[_Union[CMsgBattleReportAggregateStats.CMsgBattleReportStat, _Mapping]] = ..., stun_duration: _Optional[_Union[CMsgBattleReportAggregateStats.CMsgBattleReportStat, _Mapping]] = ..., duration: _Optional[_Union[CMsgBattleReportAggregateStats.CMsgBattleReportStat, _Mapping]] = ..., friendly_roshan_kills: _Optional[_Union[CMsgBattleReportAggregateStats.CMsgBattleReportStat, _Mapping]] = ...) -> None: ...
     RESULT_FIELD_NUMBER: _ClassVar[int]
-    result: _containers.RepeatedCompositeFieldContainer[
-        CMsgBattleReportAggregateStats.CMsgBattleReportAggregate
-    ]
-    def __init__(
-        self,
-        result: _Iterable[CMsgBattleReportAggregateStats.CMsgBattleReportAggregate | _Mapping]
-        | None = ...,
-    ) -> None: ...
+    result: _containers.RepeatedCompositeFieldContainer[CMsgBattleReportAggregateStats.CMsgBattleReportAggregate]
+    def __init__(self, result: _Optional[_Iterable[_Union[CMsgBattleReportAggregateStats.CMsgBattleReportAggregate, _Mapping]]] = ...) -> None: ...
 
 class CMsgBattleReportAggregatedGeneralStats(_message.Message):
     __slots__ = ()
@@ -784,7 +520,6 @@ class CMsgClientToGCGetBattleReportResponse(_message.Message):
         k_eUnableToSaveBattleReport: _ClassVar[CMsgClientToGCGetBattleReportResponse.EResponse]
         k_eUnableToGetAggregates: _ClassVar[CMsgClientToGCGetBattleReportResponse.EResponse]
         k_eNotEnoughGamesPlayed: _ClassVar[CMsgClientToGCGetBattleReportResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCGetBattleReportResponse.EResponse
     k_eSuccess: CMsgClientToGCGetBattleReportResponse.EResponse
     k_eTooBusy: CMsgClientToGCGetBattleReportResponse.EResponse
@@ -805,13 +540,7 @@ class CMsgClientToGCGetBattleReportResponse(_message.Message):
     response: CMsgClientToGCGetBattleReportResponse.EResponse
     aggregate_stats: CMsgBattleReportAggregateStats
     info: CMsgBattleReportInfo
-    def __init__(
-        self,
-        report: CMsgBattleReport | _Mapping | None = ...,
-        response: CMsgClientToGCGetBattleReportResponse.EResponse | str | None = ...,
-        aggregate_stats: CMsgBattleReportAggregateStats | _Mapping | None = ...,
-        info: CMsgBattleReportInfo | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, report: _Optional[_Union[CMsgBattleReport, _Mapping]] = ..., response: _Optional[_Union[CMsgClientToGCGetBattleReportResponse.EResponse, str]] = ..., aggregate_stats: _Optional[_Union[CMsgBattleReportAggregateStats, _Mapping]] = ..., info: _Optional[_Union[CMsgBattleReportInfo, _Mapping]] = ...) -> None: ...
 
 class CMsgClientToGCGetBattleReportAggregateStats(_message.Message):
     __slots__ = ("aggregate_keys", "timestamp", "duration", "rank")
@@ -821,30 +550,16 @@ class CMsgClientToGCGetBattleReportAggregateStats(_message.Message):
         PREDICTED_POSITION_FIELD_NUMBER: _ClassVar[int]
         hero_id: int
         predicted_position: int
-        def __init__(
-            self, hero_id: int | None = ..., predicted_position: int | None = ...
-        ) -> None: ...
-
+        def __init__(self, hero_id: _Optional[int] = ..., predicted_position: _Optional[int] = ...) -> None: ...
     AGGREGATE_KEYS_FIELD_NUMBER: _ClassVar[int]
     TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
     DURATION_FIELD_NUMBER: _ClassVar[int]
     RANK_FIELD_NUMBER: _ClassVar[int]
-    aggregate_keys: _containers.RepeatedCompositeFieldContainer[
-        CMsgClientToGCGetBattleReportAggregateStats.CMsgBattleReportAggregateKey
-    ]
+    aggregate_keys: _containers.RepeatedCompositeFieldContainer[CMsgClientToGCGetBattleReportAggregateStats.CMsgBattleReportAggregateKey]
     timestamp: int
     duration: int
     rank: int
-    def __init__(
-        self,
-        aggregate_keys: _Iterable[
-            CMsgClientToGCGetBattleReportAggregateStats.CMsgBattleReportAggregateKey | _Mapping
-        ]
-        | None = ...,
-        timestamp: int | None = ...,
-        duration: int | None = ...,
-        rank: int | None = ...,
-    ) -> None: ...
+    def __init__(self, aggregate_keys: _Optional[_Iterable[_Union[CMsgClientToGCGetBattleReportAggregateStats.CMsgBattleReportAggregateKey, _Mapping]]] = ..., timestamp: _Optional[int] = ..., duration: _Optional[int] = ..., rank: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCGetBattleReportAggregateStatsResponse(_message.Message):
     __slots__ = ("aggregate_stats", "response")
@@ -854,14 +569,9 @@ class CMsgClientToGCGetBattleReportAggregateStatsResponse(_message.Message):
         k_eSuccess: _ClassVar[CMsgClientToGCGetBattleReportAggregateStatsResponse.EResponse]
         k_eTooBusy: _ClassVar[CMsgClientToGCGetBattleReportAggregateStatsResponse.EResponse]
         k_eDisabled: _ClassVar[CMsgClientToGCGetBattleReportAggregateStatsResponse.EResponse]
-        k_ePermissionDenied: _ClassVar[
-            CMsgClientToGCGetBattleReportAggregateStatsResponse.EResponse
-        ]
+        k_ePermissionDenied: _ClassVar[CMsgClientToGCGetBattleReportAggregateStatsResponse.EResponse]
         k_eInvalidParams: _ClassVar[CMsgClientToGCGetBattleReportAggregateStatsResponse.EResponse]
-        k_eNotSubscribedToDotaPlus: _ClassVar[
-            CMsgClientToGCGetBattleReportAggregateStatsResponse.EResponse
-        ]
-
+        k_eNotSubscribedToDotaPlus: _ClassVar[CMsgClientToGCGetBattleReportAggregateStatsResponse.EResponse]
     k_eInternalError: CMsgClientToGCGetBattleReportAggregateStatsResponse.EResponse
     k_eSuccess: CMsgClientToGCGetBattleReportAggregateStatsResponse.EResponse
     k_eTooBusy: CMsgClientToGCGetBattleReportAggregateStatsResponse.EResponse
@@ -873,17 +583,13 @@ class CMsgClientToGCGetBattleReportAggregateStatsResponse(_message.Message):
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     aggregate_stats: CMsgBattleReportAggregateStats
     response: CMsgClientToGCGetBattleReportAggregateStatsResponse.EResponse
-    def __init__(
-        self,
-        aggregate_stats: CMsgBattleReportAggregateStats | _Mapping | None = ...,
-        response: CMsgClientToGCGetBattleReportAggregateStatsResponse.EResponse | str | None = ...,
-    ) -> None: ...
+    def __init__(self, aggregate_stats: _Optional[_Union[CMsgBattleReportAggregateStats, _Mapping]] = ..., response: _Optional[_Union[CMsgClientToGCGetBattleReportAggregateStatsResponse.EResponse, str]] = ...) -> None: ...
 
 class CMsgClientToGCGetBattleReportInfo(_message.Message):
     __slots__ = ("account_id",)
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     account_id: int
-    def __init__(self, account_id: int | None = ...) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCGetBattleReportInfoResponse(_message.Message):
     __slots__ = ("battle_report_info_list", "response")
@@ -895,7 +601,6 @@ class CMsgClientToGCGetBattleReportInfoResponse(_message.Message):
         k_eDisabled: _ClassVar[CMsgClientToGCGetBattleReportInfoResponse.EResponse]
         k_ePermissionDenied: _ClassVar[CMsgClientToGCGetBattleReportInfoResponse.EResponse]
         k_eNotSubscribedToDotaPlus: _ClassVar[CMsgClientToGCGetBattleReportInfoResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCGetBattleReportInfoResponse.EResponse
     k_eSuccess: CMsgClientToGCGetBattleReportInfoResponse.EResponse
     k_eTooBusy: CMsgClientToGCGetBattleReportInfoResponse.EResponse
@@ -906,11 +611,7 @@ class CMsgClientToGCGetBattleReportInfoResponse(_message.Message):
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     battle_report_info_list: CMsgBattleReportInfoList
     response: CMsgClientToGCGetBattleReportInfoResponse.EResponse
-    def __init__(
-        self,
-        battle_report_info_list: CMsgBattleReportInfoList | _Mapping | None = ...,
-        response: CMsgClientToGCGetBattleReportInfoResponse.EResponse | str | None = ...,
-    ) -> None: ...
+    def __init__(self, battle_report_info_list: _Optional[_Union[CMsgBattleReportInfoList, _Mapping]] = ..., response: _Optional[_Union[CMsgClientToGCGetBattleReportInfoResponse.EResponse, str]] = ...) -> None: ...
 
 class CMsgClientToGCAcknowledgeBattleReport(_message.Message):
     __slots__ = ("account_id", "timestamp", "duration")
@@ -920,9 +621,7 @@ class CMsgClientToGCAcknowledgeBattleReport(_message.Message):
     account_id: int
     timestamp: int
     duration: int
-    def __init__(
-        self, account_id: int | None = ..., timestamp: int | None = ..., duration: int | None = ...
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., timestamp: _Optional[int] = ..., duration: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCAcknowledgeBattleReportResponse(_message.Message):
     __slots__ = ("response", "shards_awarded")
@@ -934,16 +633,11 @@ class CMsgClientToGCAcknowledgeBattleReportResponse(_message.Message):
         k_eDisabled: _ClassVar[CMsgClientToGCAcknowledgeBattleReportResponse.EResponse]
         k_eTimeout: _ClassVar[CMsgClientToGCAcknowledgeBattleReportResponse.EResponse]
         k_ePermissionDenied: _ClassVar[CMsgClientToGCAcknowledgeBattleReportResponse.EResponse]
-        k_eUnableToLoadBattleReport: _ClassVar[
-            CMsgClientToGCAcknowledgeBattleReportResponse.EResponse
-        ]
+        k_eUnableToLoadBattleReport: _ClassVar[CMsgClientToGCAcknowledgeBattleReportResponse.EResponse]
         k_eAlreadyAcknowledged: _ClassVar[CMsgClientToGCAcknowledgeBattleReportResponse.EResponse]
         k_eUnknownReport: _ClassVar[CMsgClientToGCAcknowledgeBattleReportResponse.EResponse]
-        k_eNotSubscribedToDotaPlus: _ClassVar[
-            CMsgClientToGCAcknowledgeBattleReportResponse.EResponse
-        ]
+        k_eNotSubscribedToDotaPlus: _ClassVar[CMsgClientToGCAcknowledgeBattleReportResponse.EResponse]
         k_eNotEnoughGamesPlayed: _ClassVar[CMsgClientToGCAcknowledgeBattleReportResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCAcknowledgeBattleReportResponse.EResponse
     k_eSuccess: CMsgClientToGCAcknowledgeBattleReportResponse.EResponse
     k_eTooBusy: CMsgClientToGCAcknowledgeBattleReportResponse.EResponse
@@ -959,11 +653,7 @@ class CMsgClientToGCAcknowledgeBattleReportResponse(_message.Message):
     SHARDS_AWARDED_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCAcknowledgeBattleReportResponse.EResponse
     shards_awarded: int
-    def __init__(
-        self,
-        response: CMsgClientToGCAcknowledgeBattleReportResponse.EResponse | str | None = ...,
-        shards_awarded: int | None = ...,
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCAcknowledgeBattleReportResponse.EResponse, str]] = ..., shards_awarded: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCGetBattleReportMatchHistory(_message.Message):
     __slots__ = ("account_id", "timestamp", "duration")
@@ -973,9 +663,7 @@ class CMsgClientToGCGetBattleReportMatchHistory(_message.Message):
     account_id: int
     timestamp: int
     duration: int
-    def __init__(
-        self, account_id: int | None = ..., timestamp: int | None = ..., duration: int | None = ...
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., timestamp: _Optional[int] = ..., duration: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCGetBattleReportMatchHistoryResponse(_message.Message):
     __slots__ = ("response", "games")
@@ -987,10 +675,7 @@ class CMsgClientToGCGetBattleReportMatchHistoryResponse(_message.Message):
         k_eDisabled: _ClassVar[CMsgClientToGCGetBattleReportMatchHistoryResponse.EResponse]
         k_eTimeout: _ClassVar[CMsgClientToGCGetBattleReportMatchHistoryResponse.EResponse]
         k_ePermissionDenied: _ClassVar[CMsgClientToGCGetBattleReportMatchHistoryResponse.EResponse]
-        k_eNotSubscribedToDotaPlus: _ClassVar[
-            CMsgClientToGCGetBattleReportMatchHistoryResponse.EResponse
-        ]
-
+        k_eNotSubscribedToDotaPlus: _ClassVar[CMsgClientToGCGetBattleReportMatchHistoryResponse.EResponse]
     k_eInternalError: CMsgClientToGCGetBattleReportMatchHistoryResponse.EResponse
     k_eSuccess: CMsgClientToGCGetBattleReportMatchHistoryResponse.EResponse
     k_eTooBusy: CMsgClientToGCGetBattleReportMatchHistoryResponse.EResponse
@@ -1002,8 +687,4 @@ class CMsgClientToGCGetBattleReportMatchHistoryResponse(_message.Message):
     GAMES_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCGetBattleReportMatchHistoryResponse.EResponse
     games: CMsgBattleReport_GameList
-    def __init__(
-        self,
-        response: CMsgClientToGCGetBattleReportMatchHistoryResponse.EResponse | str | None = ...,
-        games: CMsgBattleReport_GameList | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCGetBattleReportMatchHistoryResponse.EResponse, str]] = ..., games: _Optional[_Union[CMsgBattleReport_GameList, _Mapping]] = ...) -> None: ...

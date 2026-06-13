@@ -1,8 +1,7 @@
-from typing import ClassVar as _ClassVar
-
+from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from typing import ClassVar as _ClassVar, Optional as _Optional
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -38,7 +37,9 @@ class EGCMsgUseItemResponse(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EGCMsgUseItemResponse_EmoticonUnlock_NoNew: _ClassVar[EGCMsgUseItemResponse]
     k_EGCMsgUseItemResponse_EmoticonUnlock_Complete: _ClassVar[EGCMsgUseItemResponse]
     k_EGCMsgUseItemResponse_ItemUsed_Compendium: _ClassVar[EGCMsgUseItemResponse]
-
+    k_EGCMsgUseItemResponse_CannotUseWhileUntradable: _ClassVar[EGCMsgUseItemResponse]
+    k_EGCMsgUseItemResponse_CannotBeUsedByAccount: _ClassVar[EGCMsgUseItemResponse]
+    k_EGCMsgUseItemResponse_RecipientCannotRecieve: _ClassVar[EGCMsgUseItemResponse]
 k_EMsgGCGenericResult: EGCEconBaseMsg
 k_EGCMsgResponseOK: EGCMsgResponse
 k_EGCMsgResponseDenied: EGCMsgResponse
@@ -63,6 +64,9 @@ k_EGCMsgUseItemResponse_MissingRequirement: EGCMsgUseItemResponse
 k_EGCMsgUseItemResponse_EmoticonUnlock_NoNew: EGCMsgUseItemResponse
 k_EGCMsgUseItemResponse_EmoticonUnlock_Complete: EGCMsgUseItemResponse
 k_EGCMsgUseItemResponse_ItemUsed_Compendium: EGCMsgUseItemResponse
+k_EGCMsgUseItemResponse_CannotUseWhileUntradable: EGCMsgUseItemResponse
+k_EGCMsgUseItemResponse_CannotBeUsedByAccount: EGCMsgUseItemResponse
+k_EGCMsgUseItemResponse_RecipientCannotRecieve: EGCMsgUseItemResponse
 
 class CMsgGenericResult(_message.Message):
     __slots__ = ("eresult", "debug_message")
@@ -70,4 +74,4 @@ class CMsgGenericResult(_message.Message):
     DEBUG_MESSAGE_FIELD_NUMBER: _ClassVar[int]
     eresult: int
     debug_message: str
-    def __init__(self, eresult: int | None = ..., debug_message: str | None = ...) -> None: ...
+    def __init__(self, eresult: _Optional[int] = ..., debug_message: _Optional[str] = ...) -> None: ...

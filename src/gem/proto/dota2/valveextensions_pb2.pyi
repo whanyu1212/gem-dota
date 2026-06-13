@@ -1,7 +1,7 @@
-from typing import ClassVar as _ClassVar
-
-from google.protobuf import descriptor as _descriptor
+from google.protobuf import descriptor_pb2 as _descriptor_pb2
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from google.protobuf import descriptor as _descriptor
+from typing import ClassVar as _ClassVar
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -12,7 +12,6 @@ class EProtoDebugVisiblity(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EProtoDebugVisibility_ValveServer: _ClassVar[EProtoDebugVisiblity]
     k_EProtoDebugVisibility_GC: _ClassVar[EProtoDebugVisiblity]
     k_EProtoDebugVisibility_Never: _ClassVar[EProtoDebugVisiblity]
-
 k_EProtoDebugVisibility_Always: EProtoDebugVisiblity
 k_EProtoDebugVisibility_Server: EProtoDebugVisiblity
 k_EProtoDebugVisibility_ValveServer: EProtoDebugVisiblity

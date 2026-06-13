@@ -18,9 +18,18 @@ Usage:
 """
 
 import argparse
+import re
 import subprocess
 import sys
 from pathlib import Path
+
+# protoc emits flat sibling imports like `import netmessages_pb2 as netmessages__pb2`.
+# Those only resolve if the output dir is on sys.path. Since the generated modules
+# live inside the `gem.proto.dota2` package, rewrite them to package-relative
+# imports (`from . import netmessages_pb2 as netmessages__pb2`). google.protobuf
+# imports are left untouched. The match anchors on a leading `import <name>_pb2`,
+# so re-running on already-fixed files is a no-op (idempotent).
+_FLAT_IMPORT_RE = re.compile(r"^import (\w+_pb2) as (\w+)$", re.MULTILINE)
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -118,6 +127,31 @@ def compile_proto(
     return True
 
 
+def fix_relative_imports(out_dir: Path) -> int:
+    """Rewrite flat sibling _pb2 imports to package-relative imports.
+
+    protoc generates ``import foo_pb2 as foo__pb2`` for cross-file references,
+    which only resolves when ``out_dir`` is on ``sys.path``. Since these modules
+    are imported as part of the ``gem.proto.dota2`` package, each such line is
+    rewritten to ``from . import foo_pb2 as foo__pb2``. Idempotent — already
+    rewritten files are left unchanged.
+
+    Args:
+        out_dir: Directory containing the generated ``*_pb2.py`` files.
+
+    Returns:
+        The number of files that were modified.
+    """
+    fixed = 0
+    for pb2 in out_dir.glob("*_pb2.py"):
+        text = pb2.read_text()
+        new_text = _FLAT_IMPORT_RE.sub(r"from . import \1 as \2", text)
+        if new_text != text:
+            pb2.write_text(new_text)
+            fixed += 1
+    return fixed
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Compile Dota 2 .proto files to Python.")
     parser.add_argument("--force", action="store_true", help="Recompile even if up to date.")
@@ -172,6 +206,12 @@ def main() -> None:
 
     if failed:
         sys.exit(1)
+
+    # protoc emits flat sibling imports that break inside a package; rewrite them
+    # to package-relative form so `from gem.proto.dota2 import ...` works.
+    fixed = fix_relative_imports(PROTO_OUT_DIR)
+    if fixed:
+        print(f"Patched relative imports in {fixed} file(s).")
 
     print()
     print("Next step:")
