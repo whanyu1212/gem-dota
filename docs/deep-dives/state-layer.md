@@ -10,9 +10,9 @@ Modules covered:
 Prerequisites:
 
 1. [Bits & Bytes Primer](../cookbook/bits-and-bytes-primer.md)
-2. [Stream Layer (`stream.py`)](stream-layer.md)
+2. [Stream Layer (`binary/stream.py`)](stream-layer.md)
 3. [Parser Layer (`parser.py`)](parser-layer.md)
-4. [SendTable Layer (`sendtable.py`)](sendtable-layer.md)
+4. [SendTable Layer (`schema/sendtable.py`)](sendtable-layer.md)
 
 ## Why these two modules are one layer
 

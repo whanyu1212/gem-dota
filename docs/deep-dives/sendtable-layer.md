@@ -1,16 +1,16 @@
 # SendTable Layer
 
-This page explains `src/gem/sendtable.py`, the schema-construction layer.
+This page explains `src/gem/schema/sendtable.py`, the schema-construction layer.
 
 Prerequisites:
 
 1. [Bits & Bytes Primer](../cookbook/bits-and-bytes-primer.md)
-2. [Stream Layer (`stream.py`)](stream-layer.md)
+2. [Stream Layer (`binary/stream.py`)](stream-layer.md)
 3. [Parser Layer (`parser.py`)](parser-layer.md)
 
 ## Where this layer sits
 
-`sendtable.py` runs when parser receives outer `DEM_SendTables`.
+`schema/sendtable.py` runs when parser receives outer `DEM_SendTables`.
 
 Its job is to convert raw send-table payloads into a runtime schema:
 
@@ -88,7 +88,7 @@ Container for one class schema:
 
 ## Build-range patch subsystem
 
-`sendtable.py` includes patch hooks to match known build-specific quirks.
+`schema/sendtable.py` includes patch hooks to match known build-specific quirks.
 
 Patch components:
 

@@ -12,7 +12,7 @@ See also: [How Proto Parsing Works](../cookbook/proto-parsing-pipeline.md)
 
 ## Generated API
 
-## `gem.field_path.read_field_paths`
+## `gem.schema.field_path.read_field_paths`
 
 ### `read_field_paths`
 
@@ -22,9 +22,9 @@ def read_field_paths(r: BitReader) -> list[FieldPath]
 
 Decode a Huffman-coded sequence of field paths from r.
 
-Source: [src/gem/field_path.py:493](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/field_path.py#L493)
+Source: [src/gem/schema/field_path.py:493](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/field_path.py#L493)
 
-## `gem.field_path.FieldPath`
+## `gem.schema.field_path.FieldPath`
 
 ### `FieldPath`
 
@@ -34,7 +34,7 @@ class FieldPath
 
 A mutable path of up to 7 integer field indices.
 
-Source: [src/gem/field_path.py:29](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/field_path.py#L29)
+Source: [src/gem/schema/field_path.py:29](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/field_path.py#L29)
 
 #### Methods
 
@@ -44,7 +44,7 @@ Signature: `def FieldPath.reset(self) -> None`
 
 Reset to the initial empty state.
 
-Source: [src/gem/field_path.py:48](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/field_path.py#L48)
+Source: [src/gem/schema/field_path.py:48](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/field_path.py#L48)
 
 ##### `pop`
 
@@ -52,7 +52,7 @@ Signature: `def FieldPath.pop(self, n: int) -> None`
 
 Pop n levels off the path, zeroing the vacated slots.
 
-Source: [src/gem/field_path.py:54](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/field_path.py#L54)
+Source: [src/gem/schema/field_path.py:54](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/field_path.py#L54)
 
 ##### `copy`
 
@@ -60,7 +60,7 @@ Signature: `def FieldPath.copy(self) -> FieldPath`
 
 Return an independent copy of this path.
 
-Source: [src/gem/field_path.py:64](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/field_path.py#L64)
+Source: [src/gem/schema/field_path.py:64](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/field_path.py#L64)
 
 ##### `to_tuple`
 
@@ -68,7 +68,7 @@ Signature: `def FieldPath.to_tuple(self) -> tuple[int, ...]`
 
 Return the active indices as an immutable tuple.
 
-Source: [src/gem/field_path.py:76](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/field_path.py#L76)
+Source: [src/gem/schema/field_path.py:76](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/field_path.py#L76)
 
 ##### `to_str`
 
@@ -76,7 +76,7 @@ Signature: `def FieldPath.to_str(self) -> str`
 
 Return a slash-separated string of active indices.
 
-Source: [src/gem/field_path.py:84](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/field_path.py#L84)
+Source: [src/gem/schema/field_path.py:84](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/field_path.py#L84)
 
 ##### `plus_one`
 
@@ -84,9 +84,9 @@ Signature: `def FieldPath.plus_one(self) -> None`
 
 Increment the deepest index by 1.
 
-Source: [src/gem/field_path.py:92](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/field_path.py#L92)
+Source: [src/gem/schema/field_path.py:92](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/field_path.py#L92)
 
-## `gem.field_path.FieldPathOp`
+## `gem.schema.field_path.FieldPathOp`
 
 ### `FieldPathOp`
 
@@ -96,7 +96,7 @@ class FieldPathOp
 
 A single field-path operation with its Huffman weight.
 
-Source: [src/gem/field_path.py:150](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/field_path.py#L150)
+Source: [src/gem/schema/field_path.py:150](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/field_path.py#L150)
 
 #### Dataclass fields
 

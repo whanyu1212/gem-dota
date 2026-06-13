@@ -1,5 +1,5 @@
 """
-Tests for gem.reader.BitReader
+Tests for gem.binary.reader.BitReader
 
 Reference: manta/reader.go
 """
@@ -10,7 +10,7 @@ import struct
 
 import pytest
 
-from gem.reader import BitReader, BufferError
+from gem.binary.reader import BitReader, BufferError
 
 # ---------------------------------------------------------------------------
 # Helpers to build raw byte sequences for testing
@@ -44,7 +44,7 @@ def _pack_varint32_zigzag(value: int) -> bytes:
 
 @pytest.fixture
 def reader_cls():
-    from gem.reader import BitReader
+    from gem.binary.reader import BitReader
 
     return BitReader
 
@@ -263,7 +263,7 @@ class TestBoundary:
         assert r.rem_bits() == 8
 
     def test_empty_buffer_raises(self, reader_cls):
-        from gem.reader import BufferError as GemBufferError
+        from gem.binary.reader import BufferError as GemBufferError
 
         r = reader_cls(b"")
         with pytest.raises(GemBufferError):

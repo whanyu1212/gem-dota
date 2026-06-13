@@ -1,5 +1,5 @@
 """
-Tests for gem.field_path — Huffman field path decoding.
+Tests for gem.schema.field_path — Huffman field path decoding.
 
 Reference: manta/field_path.go, manta/huffman.go
 """
@@ -11,14 +11,14 @@ import pytest
 
 @pytest.fixture
 def read_field_paths():
-    from gem.field_path import read_field_paths
+    from gem.schema.field_path import read_field_paths
 
     return read_field_paths
 
 
 @pytest.fixture
 def reader_cls():
-    from gem.reader import BitReader
+    from gem.binary.reader import BitReader
 
     return BitReader
 
@@ -40,26 +40,26 @@ class TestHuffmanTree:
     """Verify the Huffman tree is built with correct shape."""
 
     def test_tree_built_on_import(self):
-        from gem.field_path import HUFF_TREE
+        from gem.schema.field_path import HUFF_TREE
 
         assert HUFF_TREE is not None
 
     def test_finish_op_is_most_common(self):
         """FieldPathEncodeFinish has weight 25474 — highest weight, so should be shallow in tree."""
-        from gem.field_path import FIELD_PATH_OPS
+        from gem.schema.field_path import FIELD_PATH_OPS
 
         finish_op = next(op for op in FIELD_PATH_OPS if op.name == "FieldPathEncodeFinish")
         assert finish_op.weight == 25474
 
     def test_40_ops_defined(self):
-        from gem.field_path import FIELD_PATH_OPS
+        from gem.schema.field_path import FIELD_PATH_OPS
 
         assert len(FIELD_PATH_OPS) == 40
 
 
 class TestFieldPath:
     def test_plus_one_increments_last(self):
-        from gem.field_path import FieldPath
+        from gem.schema.field_path import FieldPath
 
         fp = FieldPath()
         fp.path[0] = 5
@@ -67,7 +67,7 @@ class TestFieldPath:
         assert fp.path[0] == 6
 
     def test_pop_reduces_depth(self):
-        from gem.field_path import FieldPath
+        from gem.schema.field_path import FieldPath
 
         fp = FieldPath()
         fp.last = 2
@@ -78,7 +78,7 @@ class TestFieldPath:
         assert fp.path[2] == 0  # zeroed
 
     def test_pop_all_but_one(self):
-        from gem.field_path import FieldPath
+        from gem.schema.field_path import FieldPath
 
         fp = FieldPath()
         fp.last = 3
@@ -86,7 +86,7 @@ class TestFieldPath:
         assert fp.last == 0
 
     def test_copy_is_independent(self):
-        from gem.field_path import FieldPath
+        from gem.schema.field_path import FieldPath
 
         fp = FieldPath()
         fp.path[0] = 10
@@ -95,7 +95,7 @@ class TestFieldPath:
         assert fp.path[0] == 10
 
     def test_string_representation(self):
-        from gem.field_path import FieldPath
+        from gem.schema.field_path import FieldPath
 
         fp = FieldPath()
         fp.path[0] = 3
@@ -103,7 +103,7 @@ class TestFieldPath:
         assert fp.to_str() == "3"
 
     def test_string_multi_level(self):
-        from gem.field_path import FieldPath
+        from gem.schema.field_path import FieldPath
 
         fp = FieldPath()
         fp.path[0] = 1
@@ -140,7 +140,7 @@ class TestReadFieldPaths:
 
 def _read_field_paths_tree_walk(r):
     """Reference implementation: original bit-at-a-time Huffman tree walk."""
-    from gem.field_path import FIELD_PATH_OPS, HUFF_TREE, FieldPath
+    from gem.schema.field_path import FIELD_PATH_OPS, HUFF_TREE, FieldPath
 
     fp = FieldPath()
     node = HUFF_TREE
@@ -224,10 +224,10 @@ class TestDecodeTableCrossValidation:
         requiring a full parse.
         """
         try:
-            from gem.field_path import _HUFF_DECODE_TABLE, _HUFF_TABLE_BITS
+            from gem.schema.field_path import _HUFF_DECODE_TABLE, _HUFF_TABLE_BITS
         except ImportError:
             pytest.skip("decode table not yet implemented")
-        from gem.field_path import FIELD_PATH_OPS, HUFF_TREE, FieldPath
+        from gem.schema.field_path import FIELD_PATH_OPS, HUFF_TREE, FieldPath
 
         mismatches = 0
         total = 0

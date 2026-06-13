@@ -43,6 +43,8 @@ from pathlib import Path
 # Proto side-effect import order is critical
 from google.protobuf import descriptor_pb2  # noqa: F401
 
+from gem.binary.reader import BitReader
+from gem.binary.stream import DemoStream
 from gem.combatlog import CombatLogHandler, CombatLogProcessor
 from gem.constants import item_key_by_id
 from gem.entities import Entity, EntityManager, EntityOp
@@ -73,9 +75,7 @@ from gem.proto.netmessages_pb2 import (
     CSVCMsg_UpdateStringTable,
     CSVCMsg_UserMessage,
 )
-from gem.reader import BitReader
-from gem.sendtable import parse_send_tables
-from gem.stream import DemoStream
+from gem.schema.sendtable import parse_send_tables
 from gem.string_table import StringTables, handle_create, handle_update
 
 # ---------------------------------------------------------------------------

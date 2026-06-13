@@ -355,13 +355,13 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 
 | Component | Description |
 |---|---|
-| `reader.py` | `BitReader` — LSB-first bit reading, varint decoding, all binary primitives |
-| `stream.py` | `DemoStream` — outer message loop, Snappy decompression, magic check |
-| `sendtable.py` | Schema layer — serializer + field tree parsed from `CDemoSendTables` |
-| `field_decoder.py` | Type-dispatch decoders including quantized floats |
-| `field_path.py` | Huffman-coded field path ops for addressing into the serializer tree |
-| `field_state.py` | Nested mutable field-value tree for entity state storage |
-| `field_reader.py` | Field decoder dispatch and entity field reading |
+| `binary/reader.py` | `BitReader` — LSB-first bit reading, varint decoding, all binary primitives |
+| `binary/stream.py` | `DemoStream` — outer message loop, Snappy decompression, magic check |
+| `schema/sendtable.py` | Schema layer — serializer + field tree parsed from `CDemoSendTables` |
+| `schema/field_decoder.py` | Type-dispatch decoders including quantized floats |
+| `schema/field_path.py` | Huffman-coded field path ops for addressing into the serializer tree |
+| `schema/field_state.py` | Nested mutable field-value tree for entity state storage |
+| `schema/field_reader.py` | Field decoder dispatch and entity field reading |
 | `string_table.py` | Incremental key-history string tables |
 | `entities.py` | Entity create/update/delete lifecycle and state |
 | `game_events.py` | Game event schema and typed dispatch |

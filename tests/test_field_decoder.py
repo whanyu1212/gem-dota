@@ -1,5 +1,5 @@
 """
-Tests for gem.field_decoder — all field type decoders and QuantizedFloatDecoder.
+Tests for gem.schema.field_decoder — all field type decoders and QuantizedFloatDecoder.
 
 Reference: manta/field_decoder.go, manta/quantizedfloat.go
 """
@@ -11,7 +11,8 @@ import struct
 
 import pytest
 
-from gem.field_decoder import (
+from gem.binary.reader import BitReader
+from gem.schema.field_decoder import (
     _QFF_ENCODE_INTEGERS,
     _QFF_ENCODE_ZERO,
     _QFF_ROUNDDOWN,
@@ -34,7 +35,6 @@ from gem.field_decoder import (
     unsigned64_decoder,
     unsigned_decoder,
 )
-from gem.reader import BitReader
 
 
 def _bits_to_bytes(bit_str: str) -> bytes:
@@ -66,14 +66,14 @@ def _pack_varuint32(value: int) -> bytes:
 
 @pytest.fixture
 def reader_cls():
-    from gem.reader import BitReader
+    from gem.binary.reader import BitReader
 
     return BitReader
 
 
 @pytest.fixture
 def decoders():
-    from gem.field_decoder import (
+    from gem.schema.field_decoder import (
         boolean_decoder,
         component_decoder,
         float_coord_decoder,
@@ -173,7 +173,7 @@ class TestComponentDecoder:
 class TestQuantizedFloatDecoder:
     @pytest.fixture
     def qfd_cls(self):
-        from gem.field_decoder import QuantizedFloatDecoder
+        from gem.schema.field_decoder import QuantizedFloatDecoder
 
         return QuantizedFloatDecoder
 
@@ -231,7 +231,7 @@ class TestFindDecoder:
 
     @pytest.fixture
     def find_decoder(self):
-        from gem.field_decoder import find_decoder
+        from gem.schema.field_decoder import find_decoder
 
         return find_decoder
 
