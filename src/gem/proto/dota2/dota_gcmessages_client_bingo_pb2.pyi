@@ -1,11 +1,18 @@
-from collections.abc import Iterable as _Iterable
-from collections.abc import Mapping as _Mapping
-from typing import ClassVar as _ClassVar
-
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
+import steammessages_pb2 as _steammessages_pb2
+import dota_shared_enums_pb2 as _dota_shared_enums_pb2
+import dota_gcmessages_common_pb2 as _dota_gcmessages_common_pb2
+import dota_gcmessages_webapi_pb2 as _dota_gcmessages_webapi_pb2
+import gcsdk_gcmessages_pb2 as _gcsdk_gcmessages_pb2
+import base_gcmessages_pb2 as _base_gcmessages_pb2
+import econ_gcmessages_pb2 as _econ_gcmessages_pb2
+import dota_gcmessages_client_pb2 as _dota_gcmessages_client_pb2
+import valveextensions_pb2 as _valveextensions_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -22,7 +29,6 @@ class EBingoAuditAction(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_eBingoAuditAction_EventActionTokenGrant: _ClassVar[EBingoAuditAction]
     k_eBingoAuditAction_SupportGrantTokens: _ClassVar[EBingoAuditAction]
     k_eBingoAuditAction_SupportStatThresholdFixup: _ClassVar[EBingoAuditAction]
-
 k_eBingoAuditAction_Invalid: EBingoAuditAction
 k_eBingoAuditAction_DevModifyTokens: EBingoAuditAction
 k_eBingoAuditAction_DevClearInventory: EBingoAuditAction
@@ -43,24 +49,19 @@ class CMsgBingoSquare(_message.Message):
     stat_id: int
     stat_threshold: int
     upgrade_level: int
-    def __init__(
-        self,
-        stat_id: int | None = ...,
-        stat_threshold: int | None = ...,
-        upgrade_level: int | None = ...,
-    ) -> None: ...
+    def __init__(self, stat_id: _Optional[int] = ..., stat_threshold: _Optional[int] = ..., upgrade_level: _Optional[int] = ...) -> None: ...
 
 class CMsgBingoTokens(_message.Message):
     __slots__ = ("token_count",)
     TOKEN_COUNT_FIELD_NUMBER: _ClassVar[int]
     token_count: int
-    def __init__(self, token_count: int | None = ...) -> None: ...
+    def __init__(self, token_count: _Optional[int] = ...) -> None: ...
 
 class CMsgBingoCard(_message.Message):
     __slots__ = ("squares",)
     SQUARES_FIELD_NUMBER: _ClassVar[int]
     squares: _containers.RepeatedCompositeFieldContainer[CMsgBingoSquare]
-    def __init__(self, squares: _Iterable[CMsgBingoSquare | _Mapping] | None = ...) -> None: ...
+    def __init__(self, squares: _Optional[_Iterable[_Union[CMsgBingoSquare, _Mapping]]] = ...) -> None: ...
 
 class CMsgBingoUserData(_message.Message):
     __slots__ = ("bingo_cards", "bingo_tokens")
@@ -70,35 +71,25 @@ class CMsgBingoUserData(_message.Message):
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: int
         value: CMsgBingoCard
-        def __init__(
-            self, key: int | None = ..., value: CMsgBingoCard | _Mapping | None = ...
-        ) -> None: ...
-
+        def __init__(self, key: _Optional[int] = ..., value: _Optional[_Union[CMsgBingoCard, _Mapping]] = ...) -> None: ...
     class BingoTokensEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: int
         value: CMsgBingoTokens
-        def __init__(
-            self, key: int | None = ..., value: CMsgBingoTokens | _Mapping | None = ...
-        ) -> None: ...
-
+        def __init__(self, key: _Optional[int] = ..., value: _Optional[_Union[CMsgBingoTokens, _Mapping]] = ...) -> None: ...
     BINGO_CARDS_FIELD_NUMBER: _ClassVar[int]
     BINGO_TOKENS_FIELD_NUMBER: _ClassVar[int]
     bingo_cards: _containers.RepeatedCompositeFieldContainer[CMsgBingoUserData.BingoCardsEntry]
     bingo_tokens: _containers.RepeatedCompositeFieldContainer[CMsgBingoUserData.BingoTokensEntry]
-    def __init__(
-        self,
-        bingo_cards: _Iterable[CMsgBingoUserData.BingoCardsEntry | _Mapping] | None = ...,
-        bingo_tokens: _Iterable[CMsgBingoUserData.BingoTokensEntry | _Mapping] | None = ...,
-    ) -> None: ...
+    def __init__(self, bingo_cards: _Optional[_Iterable[_Union[CMsgBingoUserData.BingoCardsEntry, _Mapping]]] = ..., bingo_tokens: _Optional[_Iterable[_Union[CMsgBingoUserData.BingoTokensEntry, _Mapping]]] = ...) -> None: ...
 
 class CMsgClientToGCBingoGetUserData(_message.Message):
     __slots__ = ("league_id",)
     LEAGUE_ID_FIELD_NUMBER: _ClassVar[int]
     league_id: int
-    def __init__(self, league_id: int | None = ...) -> None: ...
+    def __init__(self, league_id: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCBingoGetUserDataResponse(_message.Message):
     __slots__ = ("response", "user_data")
@@ -109,7 +100,6 @@ class CMsgClientToGCBingoGetUserDataResponse(_message.Message):
         k_eTooBusy: _ClassVar[CMsgClientToGCBingoGetUserDataResponse.EResponse]
         k_eDisabled: _ClassVar[CMsgClientToGCBingoGetUserDataResponse.EResponse]
         k_eTimeout: _ClassVar[CMsgClientToGCBingoGetUserDataResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCBingoGetUserDataResponse.EResponse
     k_eSuccess: CMsgClientToGCBingoGetUserDataResponse.EResponse
     k_eTooBusy: CMsgClientToGCBingoGetUserDataResponse.EResponse
@@ -119,11 +109,7 @@ class CMsgClientToGCBingoGetUserDataResponse(_message.Message):
     USER_DATA_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCBingoGetUserDataResponse.EResponse
     user_data: CMsgBingoUserData
-    def __init__(
-        self,
-        response: CMsgClientToGCBingoGetUserDataResponse.EResponse | str | None = ...,
-        user_data: CMsgBingoUserData | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCBingoGetUserDataResponse.EResponse, str]] = ..., user_data: _Optional[_Union[CMsgBingoUserData, _Mapping]] = ...) -> None: ...
 
 class CMsgBingoIndividualStatData(_message.Message):
     __slots__ = ("stat_id", "stat_value")
@@ -131,15 +117,13 @@ class CMsgBingoIndividualStatData(_message.Message):
     STAT_VALUE_FIELD_NUMBER: _ClassVar[int]
     stat_id: int
     stat_value: int
-    def __init__(self, stat_id: int | None = ..., stat_value: int | None = ...) -> None: ...
+    def __init__(self, stat_id: _Optional[int] = ..., stat_value: _Optional[int] = ...) -> None: ...
 
 class CMsgBingoStatsData(_message.Message):
     __slots__ = ("stats_data",)
     STATS_DATA_FIELD_NUMBER: _ClassVar[int]
     stats_data: _containers.RepeatedCompositeFieldContainer[CMsgBingoIndividualStatData]
-    def __init__(
-        self, stats_data: _Iterable[CMsgBingoIndividualStatData | _Mapping] | None = ...
-    ) -> None: ...
+    def __init__(self, stats_data: _Optional[_Iterable[_Union[CMsgBingoIndividualStatData, _Mapping]]] = ...) -> None: ...
 
 class CMsgClientToGCBingoGetStatsData(_message.Message):
     __slots__ = ("league_id", "league_phase")
@@ -147,7 +131,7 @@ class CMsgClientToGCBingoGetStatsData(_message.Message):
     LEAGUE_PHASE_FIELD_NUMBER: _ClassVar[int]
     league_id: int
     league_phase: int
-    def __init__(self, league_id: int | None = ..., league_phase: int | None = ...) -> None: ...
+    def __init__(self, league_id: _Optional[int] = ..., league_phase: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCBingoGetStatsDataResponse(_message.Message):
     __slots__ = ("response", "stats_data")
@@ -158,7 +142,6 @@ class CMsgClientToGCBingoGetStatsDataResponse(_message.Message):
         k_eTooBusy: _ClassVar[CMsgClientToGCBingoGetStatsDataResponse.EResponse]
         k_eDisabled: _ClassVar[CMsgClientToGCBingoGetStatsDataResponse.EResponse]
         k_eTimeout: _ClassVar[CMsgClientToGCBingoGetStatsDataResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCBingoGetStatsDataResponse.EResponse
     k_eSuccess: CMsgClientToGCBingoGetStatsDataResponse.EResponse
     k_eTooBusy: CMsgClientToGCBingoGetStatsDataResponse.EResponse
@@ -168,11 +151,7 @@ class CMsgClientToGCBingoGetStatsDataResponse(_message.Message):
     STATS_DATA_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCBingoGetStatsDataResponse.EResponse
     stats_data: CMsgBingoStatsData
-    def __init__(
-        self,
-        response: CMsgClientToGCBingoGetStatsDataResponse.EResponse | str | None = ...,
-        stats_data: CMsgBingoStatsData | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCBingoGetStatsDataResponse.EResponse, str]] = ..., stats_data: _Optional[_Union[CMsgBingoStatsData, _Mapping]] = ...) -> None: ...
 
 class CMsgGCToClientBingoUserDataUpdated(_message.Message):
     __slots__ = ("league_id", "user_data")
@@ -180,9 +159,7 @@ class CMsgGCToClientBingoUserDataUpdated(_message.Message):
     USER_DATA_FIELD_NUMBER: _ClassVar[int]
     league_id: int
     user_data: CMsgBingoUserData
-    def __init__(
-        self, league_id: int | None = ..., user_data: CMsgBingoUserData | _Mapping | None = ...
-    ) -> None: ...
+    def __init__(self, league_id: _Optional[int] = ..., user_data: _Optional[_Union[CMsgBingoUserData, _Mapping]] = ...) -> None: ...
 
 class CMsgClientToGCBingoClaimRow(_message.Message):
     __slots__ = ("league_id", "league_phase", "row_index")
@@ -192,12 +169,7 @@ class CMsgClientToGCBingoClaimRow(_message.Message):
     league_id: int
     league_phase: int
     row_index: int
-    def __init__(
-        self,
-        league_id: int | None = ...,
-        league_phase: int | None = ...,
-        row_index: int | None = ...,
-    ) -> None: ...
+    def __init__(self, league_id: _Optional[int] = ..., league_phase: _Optional[int] = ..., row_index: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCBingoClaimRowResponse(_message.Message):
     __slots__ = ("response",)
@@ -210,7 +182,6 @@ class CMsgClientToGCBingoClaimRowResponse(_message.Message):
         k_eTimeout: _ClassVar[CMsgClientToGCBingoClaimRowResponse.EResponse]
         k_eInvalidRow: _ClassVar[CMsgClientToGCBingoClaimRowResponse.EResponse]
         k_eExpiredCard: _ClassVar[CMsgClientToGCBingoClaimRowResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCBingoClaimRowResponse.EResponse
     k_eSuccess: CMsgClientToGCBingoClaimRowResponse.EResponse
     k_eTooBusy: CMsgClientToGCBingoClaimRowResponse.EResponse
@@ -220,9 +191,7 @@ class CMsgClientToGCBingoClaimRowResponse(_message.Message):
     k_eExpiredCard: CMsgClientToGCBingoClaimRowResponse.EResponse
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCBingoClaimRowResponse.EResponse
-    def __init__(
-        self, response: CMsgClientToGCBingoClaimRowResponse.EResponse | str | None = ...
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCBingoClaimRowResponse.EResponse, str]] = ...) -> None: ...
 
 class CMsgClientToGCBingoShuffleCard(_message.Message):
     __slots__ = ("league_id", "league_phase")
@@ -230,7 +199,7 @@ class CMsgClientToGCBingoShuffleCard(_message.Message):
     LEAGUE_PHASE_FIELD_NUMBER: _ClassVar[int]
     league_id: int
     league_phase: int
-    def __init__(self, league_id: int | None = ..., league_phase: int | None = ...) -> None: ...
+    def __init__(self, league_id: _Optional[int] = ..., league_phase: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCBingoShuffleCardResponse(_message.Message):
     __slots__ = ("response",)
@@ -244,7 +213,6 @@ class CMsgClientToGCBingoShuffleCardResponse(_message.Message):
         k_eExpiredCard: _ClassVar[CMsgClientToGCBingoShuffleCardResponse.EResponse]
         k_eNotAllowed: _ClassVar[CMsgClientToGCBingoShuffleCardResponse.EResponse]
         k_eInsufficientTokens: _ClassVar[CMsgClientToGCBingoShuffleCardResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCBingoShuffleCardResponse.EResponse
     k_eSuccess: CMsgClientToGCBingoShuffleCardResponse.EResponse
     k_eTooBusy: CMsgClientToGCBingoShuffleCardResponse.EResponse
@@ -255,9 +223,7 @@ class CMsgClientToGCBingoShuffleCardResponse(_message.Message):
     k_eInsufficientTokens: CMsgClientToGCBingoShuffleCardResponse.EResponse
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCBingoShuffleCardResponse.EResponse
-    def __init__(
-        self, response: CMsgClientToGCBingoShuffleCardResponse.EResponse | str | None = ...
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCBingoShuffleCardResponse.EResponse, str]] = ...) -> None: ...
 
 class CMsgClientToGCBingoModifySquare(_message.Message):
     __slots__ = ("league_id", "league_phase", "square_index", "action")
@@ -265,7 +231,6 @@ class CMsgClientToGCBingoModifySquare(_message.Message):
         __slots__ = ()
         k_eRerollStat: _ClassVar[CMsgClientToGCBingoModifySquare.EModifyAction]
         k_eUpgrade: _ClassVar[CMsgClientToGCBingoModifySquare.EModifyAction]
-
     k_eRerollStat: CMsgClientToGCBingoModifySquare.EModifyAction
     k_eUpgrade: CMsgClientToGCBingoModifySquare.EModifyAction
     LEAGUE_ID_FIELD_NUMBER: _ClassVar[int]
@@ -276,13 +241,7 @@ class CMsgClientToGCBingoModifySquare(_message.Message):
     league_phase: int
     square_index: int
     action: CMsgClientToGCBingoModifySquare.EModifyAction
-    def __init__(
-        self,
-        league_id: int | None = ...,
-        league_phase: int | None = ...,
-        square_index: int | None = ...,
-        action: CMsgClientToGCBingoModifySquare.EModifyAction | str | None = ...,
-    ) -> None: ...
+    def __init__(self, league_id: _Optional[int] = ..., league_phase: _Optional[int] = ..., square_index: _Optional[int] = ..., action: _Optional[_Union[CMsgClientToGCBingoModifySquare.EModifyAction, str]] = ...) -> None: ...
 
 class CMsgClientToGCBingoModifySquareResponse(_message.Message):
     __slots__ = ("response",)
@@ -299,7 +258,6 @@ class CMsgClientToGCBingoModifySquareResponse(_message.Message):
         k_eCantUpgrade: _ClassVar[CMsgClientToGCBingoModifySquareResponse.EResponse]
         k_eCantReroll: _ClassVar[CMsgClientToGCBingoModifySquareResponse.EResponse]
         k_eInvalidSquare: _ClassVar[CMsgClientToGCBingoModifySquareResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCBingoModifySquareResponse.EResponse
     k_eSuccess: CMsgClientToGCBingoModifySquareResponse.EResponse
     k_eTooBusy: CMsgClientToGCBingoModifySquareResponse.EResponse
@@ -313,9 +271,7 @@ class CMsgClientToGCBingoModifySquareResponse(_message.Message):
     k_eInvalidSquare: CMsgClientToGCBingoModifySquareResponse.EResponse
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCBingoModifySquareResponse.EResponse
-    def __init__(
-        self, response: CMsgClientToGCBingoModifySquareResponse.EResponse | str | None = ...
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCBingoModifySquareResponse.EResponse, str]] = ...) -> None: ...
 
 class CMsgClientToGCBingoDevRerollCard(_message.Message):
     __slots__ = ("league_id", "league_phase")
@@ -323,7 +279,7 @@ class CMsgClientToGCBingoDevRerollCard(_message.Message):
     LEAGUE_PHASE_FIELD_NUMBER: _ClassVar[int]
     league_id: int
     league_phase: int
-    def __init__(self, league_id: int | None = ..., league_phase: int | None = ...) -> None: ...
+    def __init__(self, league_id: _Optional[int] = ..., league_phase: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCBingoDevRerollCardResponse(_message.Message):
     __slots__ = ("response",)
@@ -336,7 +292,6 @@ class CMsgClientToGCBingoDevRerollCardResponse(_message.Message):
         k_eTimeout: _ClassVar[CMsgClientToGCBingoDevRerollCardResponse.EResponse]
         k_eExpiredCard: _ClassVar[CMsgClientToGCBingoDevRerollCardResponse.EResponse]
         k_eNotAllowed: _ClassVar[CMsgClientToGCBingoDevRerollCardResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCBingoDevRerollCardResponse.EResponse
     k_eSuccess: CMsgClientToGCBingoDevRerollCardResponse.EResponse
     k_eTooBusy: CMsgClientToGCBingoDevRerollCardResponse.EResponse
@@ -346,9 +301,7 @@ class CMsgClientToGCBingoDevRerollCardResponse(_message.Message):
     k_eNotAllowed: CMsgClientToGCBingoDevRerollCardResponse.EResponse
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCBingoDevRerollCardResponse.EResponse
-    def __init__(
-        self, response: CMsgClientToGCBingoDevRerollCardResponse.EResponse | str | None = ...
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCBingoDevRerollCardResponse.EResponse, str]] = ...) -> None: ...
 
 class CMsgClientToGCBingoDevAddTokens(_message.Message):
     __slots__ = ("league_id", "league_phase", "token_count")
@@ -358,12 +311,7 @@ class CMsgClientToGCBingoDevAddTokens(_message.Message):
     league_id: int
     league_phase: int
     token_count: int
-    def __init__(
-        self,
-        league_id: int | None = ...,
-        league_phase: int | None = ...,
-        token_count: int | None = ...,
-    ) -> None: ...
+    def __init__(self, league_id: _Optional[int] = ..., league_phase: _Optional[int] = ..., token_count: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCBingoDevAddTokensResponse(_message.Message):
     __slots__ = ("response",)
@@ -376,7 +324,6 @@ class CMsgClientToGCBingoDevAddTokensResponse(_message.Message):
         k_eTimeout: _ClassVar[CMsgClientToGCBingoDevAddTokensResponse.EResponse]
         k_eExpiredCard: _ClassVar[CMsgClientToGCBingoDevAddTokensResponse.EResponse]
         k_eNotAllowed: _ClassVar[CMsgClientToGCBingoDevAddTokensResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCBingoDevAddTokensResponse.EResponse
     k_eSuccess: CMsgClientToGCBingoDevAddTokensResponse.EResponse
     k_eTooBusy: CMsgClientToGCBingoDevAddTokensResponse.EResponse
@@ -386,15 +333,13 @@ class CMsgClientToGCBingoDevAddTokensResponse(_message.Message):
     k_eNotAllowed: CMsgClientToGCBingoDevAddTokensResponse.EResponse
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCBingoDevAddTokensResponse.EResponse
-    def __init__(
-        self, response: CMsgClientToGCBingoDevAddTokensResponse.EResponse | str | None = ...
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCBingoDevAddTokensResponse.EResponse, str]] = ...) -> None: ...
 
 class CMsgClientToGCBingoDevClearInventory(_message.Message):
     __slots__ = ("league_id",)
     LEAGUE_ID_FIELD_NUMBER: _ClassVar[int]
     league_id: int
-    def __init__(self, league_id: int | None = ...) -> None: ...
+    def __init__(self, league_id: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCBingoDevClearInventoryResponse(_message.Message):
     __slots__ = ("response",)
@@ -407,7 +352,6 @@ class CMsgClientToGCBingoDevClearInventoryResponse(_message.Message):
         k_eTimeout: _ClassVar[CMsgClientToGCBingoDevClearInventoryResponse.EResponse]
         k_eExpiredCard: _ClassVar[CMsgClientToGCBingoDevClearInventoryResponse.EResponse]
         k_eNotAllowed: _ClassVar[CMsgClientToGCBingoDevClearInventoryResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCBingoDevClearInventoryResponse.EResponse
     k_eSuccess: CMsgClientToGCBingoDevClearInventoryResponse.EResponse
     k_eTooBusy: CMsgClientToGCBingoDevClearInventoryResponse.EResponse
@@ -417,6 +361,4 @@ class CMsgClientToGCBingoDevClearInventoryResponse(_message.Message):
     k_eNotAllowed: CMsgClientToGCBingoDevClearInventoryResponse.EResponse
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCBingoDevClearInventoryResponse.EResponse
-    def __init__(
-        self, response: CMsgClientToGCBingoDevClearInventoryResponse.EResponse | str | None = ...
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCBingoDevClearInventoryResponse.EResponse, str]] = ...) -> None: ...

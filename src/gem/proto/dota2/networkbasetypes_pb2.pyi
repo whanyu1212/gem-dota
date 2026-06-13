@@ -1,11 +1,11 @@
-from collections.abc import Iterable as _Iterable
-from collections.abc import Mapping as _Mapping
-from typing import ClassVar as _ClassVar
-
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
+from google.protobuf import descriptor_pb2 as _descriptor_pb2
+import network_connection_pb2 as _network_connection_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -46,7 +46,6 @@ class SpawnGroupFlags_t(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     SPAWN_GROUP_BLOCK_UNTIL_LOADED: _ClassVar[SpawnGroupFlags_t]
     SPAWN_GROUP_LOAD_STREAMING_DATA: _ClassVar[SpawnGroupFlags_t]
     SPAWN_GROUP_CREATE_NEW_SCENE_WORLD: _ClassVar[SpawnGroupFlags_t]
-
 SIGNONSTATE_NONE: SignonState_t
 SIGNONSTATE_CHALLENGE: SignonState_t
 SIGNONSTATE_CONNECTED: SignonState_t
@@ -89,13 +88,7 @@ class CMsgVector(_message.Message):
     y: float
     z: float
     w: float
-    def __init__(
-        self,
-        x: float | None = ...,
-        y: float | None = ...,
-        z: float | None = ...,
-        w: float | None = ...,
-    ) -> None: ...
+    def __init__(self, x: _Optional[float] = ..., y: _Optional[float] = ..., z: _Optional[float] = ..., w: _Optional[float] = ...) -> None: ...
 
 class CMsgVector2D(_message.Message):
     __slots__ = ("x", "y")
@@ -103,7 +96,7 @@ class CMsgVector2D(_message.Message):
     Y_FIELD_NUMBER: _ClassVar[int]
     x: float
     y: float
-    def __init__(self, x: float | None = ..., y: float | None = ...) -> None: ...
+    def __init__(self, x: _Optional[float] = ..., y: _Optional[float] = ...) -> None: ...
 
 class CMsgQAngle(_message.Message):
     __slots__ = ("x", "y", "z")
@@ -113,9 +106,7 @@ class CMsgQAngle(_message.Message):
     x: float
     y: float
     z: float
-    def __init__(
-        self, x: float | None = ..., y: float | None = ..., z: float | None = ...
-    ) -> None: ...
+    def __init__(self, x: _Optional[float] = ..., y: _Optional[float] = ..., z: _Optional[float] = ...) -> None: ...
 
 class CMsgQuaternion(_message.Message):
     __slots__ = ("x", "y", "z", "w")
@@ -127,13 +118,7 @@ class CMsgQuaternion(_message.Message):
     y: float
     z: float
     w: float
-    def __init__(
-        self,
-        x: float | None = ...,
-        y: float | None = ...,
-        z: float | None = ...,
-        w: float | None = ...,
-    ) -> None: ...
+    def __init__(self, x: _Optional[float] = ..., y: _Optional[float] = ..., z: _Optional[float] = ..., w: _Optional[float] = ...) -> None: ...
 
 class CMsgTransform(_message.Message):
     __slots__ = ("position", "scale", "orientation")
@@ -143,12 +128,7 @@ class CMsgTransform(_message.Message):
     position: CMsgVector
     scale: float
     orientation: CMsgQuaternion
-    def __init__(
-        self,
-        position: CMsgVector | _Mapping | None = ...,
-        scale: float | None = ...,
-        orientation: CMsgQuaternion | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, position: _Optional[_Union[CMsgVector, _Mapping]] = ..., scale: _Optional[float] = ..., orientation: _Optional[_Union[CMsgQuaternion, _Mapping]] = ...) -> None: ...
 
 class CMsgRGBA(_message.Message):
     __slots__ = ("r", "g", "b", "a")
@@ -160,9 +140,7 @@ class CMsgRGBA(_message.Message):
     g: int
     b: int
     a: int
-    def __init__(
-        self, r: int | None = ..., g: int | None = ..., b: int | None = ..., a: int | None = ...
-    ) -> None: ...
+    def __init__(self, r: _Optional[int] = ..., g: _Optional[int] = ..., b: _Optional[int] = ..., a: _Optional[int] = ...) -> None: ...
 
 class CMsgPlayerInfo(_message.Message):
     __slots__ = ("name", "xuid", "userid", "steamid", "fakeplayer", "ishltv")
@@ -178,21 +156,13 @@ class CMsgPlayerInfo(_message.Message):
     steamid: int
     fakeplayer: bool
     ishltv: bool
-    def __init__(
-        self,
-        name: str | None = ...,
-        xuid: int | None = ...,
-        userid: int | None = ...,
-        steamid: int | None = ...,
-        fakeplayer: bool = ...,
-        ishltv: bool = ...,
-    ) -> None: ...
+    def __init__(self, name: _Optional[str] = ..., xuid: _Optional[int] = ..., userid: _Optional[int] = ..., steamid: _Optional[int] = ..., fakeplayer: bool = ..., ishltv: bool = ...) -> None: ...
 
 class CEntityMsg(_message.Message):
     __slots__ = ("target_entity",)
     TARGET_ENTITY_FIELD_NUMBER: _ClassVar[int]
     target_entity: int
-    def __init__(self, target_entity: int | None = ...) -> None: ...
+    def __init__(self, target_entity: _Optional[int] = ...) -> None: ...
 
 class CMsg_CVars(_message.Message):
     __slots__ = ("cvars",)
@@ -202,11 +172,10 @@ class CMsg_CVars(_message.Message):
         VALUE_FIELD_NUMBER: _ClassVar[int]
         name: str
         value: str
-        def __init__(self, name: str | None = ..., value: str | None = ...) -> None: ...
-
+        def __init__(self, name: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
     CVARS_FIELD_NUMBER: _ClassVar[int]
     cvars: _containers.RepeatedCompositeFieldContainer[CMsg_CVars.CVar]
-    def __init__(self, cvars: _Iterable[CMsg_CVars.CVar | _Mapping] | None = ...) -> None: ...
+    def __init__(self, cvars: _Optional[_Iterable[_Union[CMsg_CVars.CVar, _Mapping]]] = ...) -> None: ...
 
 class CNETMsg_NOP(_message.Message):
     __slots__ = ()
@@ -216,21 +185,10 @@ class CNETMsg_SplitScreenUser(_message.Message):
     __slots__ = ("slot",)
     SLOT_FIELD_NUMBER: _ClassVar[int]
     slot: int
-    def __init__(self, slot: int | None = ...) -> None: ...
+    def __init__(self, slot: _Optional[int] = ...) -> None: ...
 
 class CNETMsg_Tick(_message.Message):
-    __slots__ = (
-        "tick",
-        "host_computationtime",
-        "host_computationtime_std_deviation",
-        "legacy_host_loss",
-        "host_unfiltered_frametime",
-        "hltv_replay_flags",
-        "expected_long_tick",
-        "expected_long_tick_reason",
-        "host_frame_dropped_pct_x10",
-        "host_frame_irregular_arrival_pct_x10",
-    )
+    __slots__ = ("tick", "host_computationtime", "host_computationtime_std_deviation", "legacy_host_loss", "host_unfiltered_frametime", "hltv_replay_flags", "expected_long_tick", "expected_long_tick_reason", "host_frame_dropped_pct_x10", "host_frame_irregular_arrival_pct_x10")
     TICK_FIELD_NUMBER: _ClassVar[int]
     HOST_COMPUTATIONTIME_FIELD_NUMBER: _ClassVar[int]
     HOST_COMPUTATIONTIME_STD_DEVIATION_FIELD_NUMBER: _ClassVar[int]
@@ -251,19 +209,7 @@ class CNETMsg_Tick(_message.Message):
     expected_long_tick_reason: str
     host_frame_dropped_pct_x10: int
     host_frame_irregular_arrival_pct_x10: int
-    def __init__(
-        self,
-        tick: int | None = ...,
-        host_computationtime: int | None = ...,
-        host_computationtime_std_deviation: int | None = ...,
-        legacy_host_loss: int | None = ...,
-        host_unfiltered_frametime: int | None = ...,
-        hltv_replay_flags: int | None = ...,
-        expected_long_tick: int | None = ...,
-        expected_long_tick_reason: str | None = ...,
-        host_frame_dropped_pct_x10: int | None = ...,
-        host_frame_irregular_arrival_pct_x10: int | None = ...,
-    ) -> None: ...
+    def __init__(self, tick: _Optional[int] = ..., host_computationtime: _Optional[int] = ..., host_computationtime_std_deviation: _Optional[int] = ..., legacy_host_loss: _Optional[int] = ..., host_unfiltered_frametime: _Optional[int] = ..., hltv_replay_flags: _Optional[int] = ..., expected_long_tick: _Optional[int] = ..., expected_long_tick_reason: _Optional[str] = ..., host_frame_dropped_pct_x10: _Optional[int] = ..., host_frame_irregular_arrival_pct_x10: _Optional[int] = ...) -> None: ...
 
 class CNETMsg_StringCmd(_message.Message):
     __slots__ = ("command", "prediction_sync")
@@ -271,23 +217,16 @@ class CNETMsg_StringCmd(_message.Message):
     PREDICTION_SYNC_FIELD_NUMBER: _ClassVar[int]
     command: str
     prediction_sync: int
-    def __init__(self, command: str | None = ..., prediction_sync: int | None = ...) -> None: ...
+    def __init__(self, command: _Optional[str] = ..., prediction_sync: _Optional[int] = ...) -> None: ...
 
 class CNETMsg_SetConVar(_message.Message):
     __slots__ = ("convars",)
     CONVARS_FIELD_NUMBER: _ClassVar[int]
     convars: CMsg_CVars
-    def __init__(self, convars: CMsg_CVars | _Mapping | None = ...) -> None: ...
+    def __init__(self, convars: _Optional[_Union[CMsg_CVars, _Mapping]] = ...) -> None: ...
 
 class CNETMsg_SignonState(_message.Message):
-    __slots__ = (
-        "signon_state",
-        "spawn_count",
-        "num_server_players",
-        "players_networkids",
-        "map_name",
-        "addons",
-    )
+    __slots__ = ("signon_state", "spawn_count", "num_server_players", "players_networkids", "map_name", "addons")
     SIGNON_STATE_FIELD_NUMBER: _ClassVar[int]
     SPAWN_COUNT_FIELD_NUMBER: _ClassVar[int]
     NUM_SERVER_PLAYERS_FIELD_NUMBER: _ClassVar[int]
@@ -300,29 +239,12 @@ class CNETMsg_SignonState(_message.Message):
     players_networkids: _containers.RepeatedScalarFieldContainer[str]
     map_name: str
     addons: str
-    def __init__(
-        self,
-        signon_state: SignonState_t | str | None = ...,
-        spawn_count: int | None = ...,
-        num_server_players: int | None = ...,
-        players_networkids: _Iterable[str] | None = ...,
-        map_name: str | None = ...,
-        addons: str | None = ...,
-    ) -> None: ...
+    def __init__(self, signon_state: _Optional[_Union[SignonState_t, str]] = ..., spawn_count: _Optional[int] = ..., num_server_players: _Optional[int] = ..., players_networkids: _Optional[_Iterable[str]] = ..., map_name: _Optional[str] = ..., addons: _Optional[str] = ...) -> None: ...
 
 class CSVCMsg_GameEvent(_message.Message):
     __slots__ = ("event_name", "eventid", "keys")
     class key_t(_message.Message):
-        __slots__ = (
-            "type",
-            "val_string",
-            "val_float",
-            "val_long",
-            "val_short",
-            "val_byte",
-            "val_bool",
-            "val_uint64",
-        )
+        __slots__ = ("type", "val_string", "val_float", "val_long", "val_short", "val_byte", "val_bool", "val_uint64")
         TYPE_FIELD_NUMBER: _ClassVar[int]
         VAL_STRING_FIELD_NUMBER: _ClassVar[int]
         VAL_FLOAT_FIELD_NUMBER: _ClassVar[int]
@@ -339,30 +261,14 @@ class CSVCMsg_GameEvent(_message.Message):
         val_byte: int
         val_bool: bool
         val_uint64: int
-        def __init__(
-            self,
-            type: int | None = ...,
-            val_string: str | None = ...,
-            val_float: float | None = ...,
-            val_long: int | None = ...,
-            val_short: int | None = ...,
-            val_byte: int | None = ...,
-            val_bool: bool = ...,
-            val_uint64: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, type: _Optional[int] = ..., val_string: _Optional[str] = ..., val_float: _Optional[float] = ..., val_long: _Optional[int] = ..., val_short: _Optional[int] = ..., val_byte: _Optional[int] = ..., val_bool: bool = ..., val_uint64: _Optional[int] = ...) -> None: ...
     EVENT_NAME_FIELD_NUMBER: _ClassVar[int]
     EVENTID_FIELD_NUMBER: _ClassVar[int]
     KEYS_FIELD_NUMBER: _ClassVar[int]
     event_name: str
     eventid: int
     keys: _containers.RepeatedCompositeFieldContainer[CSVCMsg_GameEvent.key_t]
-    def __init__(
-        self,
-        event_name: str | None = ...,
-        eventid: int | None = ...,
-        keys: _Iterable[CSVCMsg_GameEvent.key_t | _Mapping] | None = ...,
-    ) -> None: ...
+    def __init__(self, event_name: _Optional[str] = ..., eventid: _Optional[int] = ..., keys: _Optional[_Iterable[_Union[CSVCMsg_GameEvent.key_t, _Mapping]]] = ...) -> None: ...
 
 class CSVCMsgList_GameEvents(_message.Message):
     __slots__ = ("events",)
@@ -372,39 +278,13 @@ class CSVCMsgList_GameEvents(_message.Message):
         EVENT_FIELD_NUMBER: _ClassVar[int]
         tick: int
         event: CSVCMsg_GameEvent
-        def __init__(
-            self, tick: int | None = ..., event: CSVCMsg_GameEvent | _Mapping | None = ...
-        ) -> None: ...
-
+        def __init__(self, tick: _Optional[int] = ..., event: _Optional[_Union[CSVCMsg_GameEvent, _Mapping]] = ...) -> None: ...
     EVENTS_FIELD_NUMBER: _ClassVar[int]
     events: _containers.RepeatedCompositeFieldContainer[CSVCMsgList_GameEvents.event_t]
-    def __init__(
-        self, events: _Iterable[CSVCMsgList_GameEvents.event_t | _Mapping] | None = ...
-    ) -> None: ...
+    def __init__(self, events: _Optional[_Iterable[_Union[CSVCMsgList_GameEvents.event_t, _Mapping]]] = ...) -> None: ...
 
 class CNETMsg_SpawnGroup_Load(_message.Message):
-    __slots__ = (
-        "worldname",
-        "entitylumpname",
-        "entityfiltername",
-        "spawngrouphandle",
-        "spawngroupownerhandle",
-        "world_offset_pos",
-        "world_offset_angle",
-        "spawngroupmanifest",
-        "flags",
-        "tickcount",
-        "manifestincomplete",
-        "localnamefixup",
-        "parentnamefixup",
-        "manifestloadpriority",
-        "worldgroupid",
-        "creationsequence",
-        "savegamefilename",
-        "spawngroupparenthandle",
-        "leveltransition",
-        "worldgroupname",
-    )
+    __slots__ = ("worldname", "entitylumpname", "entityfiltername", "spawngrouphandle", "spawngroupownerhandle", "world_offset_pos", "world_offset_angle", "spawngroupmanifest", "flags", "tickcount", "manifestincomplete", "localnamefixup", "parentnamefixup", "manifestloadpriority", "worldgroupid", "creationsequence", "savegamefilename", "spawngroupparenthandle", "leveltransition", "worldgroupname")
     WORLDNAME_FIELD_NUMBER: _ClassVar[int]
     ENTITYLUMPNAME_FIELD_NUMBER: _ClassVar[int]
     ENTITYFILTERNAME_FIELD_NUMBER: _ClassVar[int]
@@ -445,29 +325,7 @@ class CNETMsg_SpawnGroup_Load(_message.Message):
     spawngroupparenthandle: int
     leveltransition: bool
     worldgroupname: str
-    def __init__(
-        self,
-        worldname: str | None = ...,
-        entitylumpname: str | None = ...,
-        entityfiltername: str | None = ...,
-        spawngrouphandle: int | None = ...,
-        spawngroupownerhandle: int | None = ...,
-        world_offset_pos: CMsgVector | _Mapping | None = ...,
-        world_offset_angle: CMsgQAngle | _Mapping | None = ...,
-        spawngroupmanifest: bytes | None = ...,
-        flags: int | None = ...,
-        tickcount: int | None = ...,
-        manifestincomplete: bool = ...,
-        localnamefixup: str | None = ...,
-        parentnamefixup: str | None = ...,
-        manifestloadpriority: int | None = ...,
-        worldgroupid: int | None = ...,
-        creationsequence: int | None = ...,
-        savegamefilename: str | None = ...,
-        spawngroupparenthandle: int | None = ...,
-        leveltransition: bool = ...,
-        worldgroupname: str | None = ...,
-    ) -> None: ...
+    def __init__(self, worldname: _Optional[str] = ..., entitylumpname: _Optional[str] = ..., entityfiltername: _Optional[str] = ..., spawngrouphandle: _Optional[int] = ..., spawngroupownerhandle: _Optional[int] = ..., world_offset_pos: _Optional[_Union[CMsgVector, _Mapping]] = ..., world_offset_angle: _Optional[_Union[CMsgQAngle, _Mapping]] = ..., spawngroupmanifest: _Optional[bytes] = ..., flags: _Optional[int] = ..., tickcount: _Optional[int] = ..., manifestincomplete: bool = ..., localnamefixup: _Optional[str] = ..., parentnamefixup: _Optional[str] = ..., manifestloadpriority: _Optional[int] = ..., worldgroupid: _Optional[int] = ..., creationsequence: _Optional[int] = ..., savegamefilename: _Optional[str] = ..., spawngroupparenthandle: _Optional[int] = ..., leveltransition: bool = ..., worldgroupname: _Optional[str] = ...) -> None: ...
 
 class CNETMsg_SpawnGroup_ManifestUpdate(_message.Message):
     __slots__ = ("spawngrouphandle", "spawngroupmanifest", "manifestincomplete")
@@ -477,12 +335,7 @@ class CNETMsg_SpawnGroup_ManifestUpdate(_message.Message):
     spawngrouphandle: int
     spawngroupmanifest: bytes
     manifestincomplete: bool
-    def __init__(
-        self,
-        spawngrouphandle: int | None = ...,
-        spawngroupmanifest: bytes | None = ...,
-        manifestincomplete: bool = ...,
-    ) -> None: ...
+    def __init__(self, spawngrouphandle: _Optional[int] = ..., spawngroupmanifest: _Optional[bytes] = ..., manifestincomplete: bool = ...) -> None: ...
 
 class CNETMsg_SpawnGroup_SetCreationTick(_message.Message):
     __slots__ = ("spawngrouphandle", "tickcount", "creationsequence")
@@ -492,12 +345,7 @@ class CNETMsg_SpawnGroup_SetCreationTick(_message.Message):
     spawngrouphandle: int
     tickcount: int
     creationsequence: int
-    def __init__(
-        self,
-        spawngrouphandle: int | None = ...,
-        tickcount: int | None = ...,
-        creationsequence: int | None = ...,
-    ) -> None: ...
+    def __init__(self, spawngrouphandle: _Optional[int] = ..., tickcount: _Optional[int] = ..., creationsequence: _Optional[int] = ...) -> None: ...
 
 class CNETMsg_SpawnGroup_Unload(_message.Message):
     __slots__ = ("spawngrouphandle", "flags", "tickcount")
@@ -507,41 +355,16 @@ class CNETMsg_SpawnGroup_Unload(_message.Message):
     spawngrouphandle: int
     flags: int
     tickcount: int
-    def __init__(
-        self,
-        spawngrouphandle: int | None = ...,
-        flags: int | None = ...,
-        tickcount: int | None = ...,
-    ) -> None: ...
+    def __init__(self, spawngrouphandle: _Optional[int] = ..., flags: _Optional[int] = ..., tickcount: _Optional[int] = ...) -> None: ...
 
 class CNETMsg_SpawnGroup_LoadCompleted(_message.Message):
     __slots__ = ("spawngrouphandle",)
     SPAWNGROUPHANDLE_FIELD_NUMBER: _ClassVar[int]
     spawngrouphandle: int
-    def __init__(self, spawngrouphandle: int | None = ...) -> None: ...
+    def __init__(self, spawngrouphandle: _Optional[int] = ...) -> None: ...
 
 class CSVCMsg_GameSessionConfiguration(_message.Message):
-    __slots__ = (
-        "is_multiplayer",
-        "is_loadsavegame",
-        "is_background_map",
-        "is_headless",
-        "min_client_limit",
-        "max_client_limit",
-        "max_clients",
-        "tick_interval",
-        "hostname",
-        "savegamename",
-        "s1_mapname",
-        "gamemode",
-        "server_ip_address",
-        "data",
-        "is_localonly",
-        "no_steam_server",
-        "is_transition",
-        "previouslevel",
-        "landmarkname",
-    )
+    __slots__ = ("is_multiplayer", "is_loadsavegame", "is_background_map", "is_headless", "min_client_limit", "max_client_limit", "max_clients", "tick_interval", "hostname", "savegamename", "s1_mapname", "gamemode", "server_ip_address", "data", "is_localonly", "no_steam_server", "is_transition", "previouslevel", "landmarkname")
     IS_MULTIPLAYER_FIELD_NUMBER: _ClassVar[int]
     IS_LOADSAVEGAME_FIELD_NUMBER: _ClassVar[int]
     IS_BACKGROUND_MAP_FIELD_NUMBER: _ClassVar[int]
@@ -580,28 +403,7 @@ class CSVCMsg_GameSessionConfiguration(_message.Message):
     is_transition: bool
     previouslevel: str
     landmarkname: str
-    def __init__(
-        self,
-        is_multiplayer: bool = ...,
-        is_loadsavegame: bool = ...,
-        is_background_map: bool = ...,
-        is_headless: bool = ...,
-        min_client_limit: int | None = ...,
-        max_client_limit: int | None = ...,
-        max_clients: int | None = ...,
-        tick_interval: int | None = ...,
-        hostname: str | None = ...,
-        savegamename: str | None = ...,
-        s1_mapname: str | None = ...,
-        gamemode: str | None = ...,
-        server_ip_address: str | None = ...,
-        data: bytes | None = ...,
-        is_localonly: bool = ...,
-        no_steam_server: bool = ...,
-        is_transition: bool = ...,
-        previouslevel: str | None = ...,
-        landmarkname: str | None = ...,
-    ) -> None: ...
+    def __init__(self, is_multiplayer: bool = ..., is_loadsavegame: bool = ..., is_background_map: bool = ..., is_headless: bool = ..., min_client_limit: _Optional[int] = ..., max_client_limit: _Optional[int] = ..., max_clients: _Optional[int] = ..., tick_interval: _Optional[int] = ..., hostname: _Optional[str] = ..., savegamename: _Optional[str] = ..., s1_mapname: _Optional[str] = ..., gamemode: _Optional[str] = ..., server_ip_address: _Optional[str] = ..., data: _Optional[bytes] = ..., is_localonly: bool = ..., no_steam_server: bool = ..., is_transition: bool = ..., previouslevel: _Optional[str] = ..., landmarkname: _Optional[str] = ...) -> None: ...
 
 class CNETMsg_DebugOverlay(_message.Message):
     __slots__ = ("etype", "vectors", "colors", "dimensions", "times", "bools", "uint64s", "strings")
@@ -621,14 +423,4 @@ class CNETMsg_DebugOverlay(_message.Message):
     bools: _containers.RepeatedScalarFieldContainer[bool]
     uint64s: _containers.RepeatedScalarFieldContainer[int]
     strings: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(
-        self,
-        etype: int | None = ...,
-        vectors: _Iterable[CMsgVector | _Mapping] | None = ...,
-        colors: _Iterable[CMsgRGBA | _Mapping] | None = ...,
-        dimensions: _Iterable[float] | None = ...,
-        times: _Iterable[float] | None = ...,
-        bools: _Iterable[bool] | None = ...,
-        uint64s: _Iterable[int] | None = ...,
-        strings: _Iterable[str] | None = ...,
-    ) -> None: ...
+    def __init__(self, etype: _Optional[int] = ..., vectors: _Optional[_Iterable[_Union[CMsgVector, _Mapping]]] = ..., colors: _Optional[_Iterable[_Union[CMsgRGBA, _Mapping]]] = ..., dimensions: _Optional[_Iterable[float]] = ..., times: _Optional[_Iterable[float]] = ..., bools: _Optional[_Iterable[bool]] = ..., uint64s: _Optional[_Iterable[int]] = ..., strings: _Optional[_Iterable[str]] = ...) -> None: ...

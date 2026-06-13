@@ -1,10 +1,9 @@
-from collections.abc import Iterable as _Iterable
-from collections.abc import Mapping as _Mapping
-from typing import ClassVar as _ClassVar
-
+from steammessages_unified_base import steamworkssdk_pb2 as _steamworkssdk_pb2
+from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from google.protobuf.internal import containers as _containers
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -12,13 +11,13 @@ class CCloud_GetUploadServerInfo_Request(_message.Message):
     __slots__ = ("appid",)
     APPID_FIELD_NUMBER: _ClassVar[int]
     appid: int
-    def __init__(self, appid: int | None = ...) -> None: ...
+    def __init__(self, appid: _Optional[int] = ...) -> None: ...
 
 class CCloud_GetUploadServerInfo_Response(_message.Message):
     __slots__ = ("server_url",)
     SERVER_URL_FIELD_NUMBER: _ClassVar[int]
     server_url: str
-    def __init__(self, server_url: str | None = ...) -> None: ...
+    def __init__(self, server_url: _Optional[str] = ...) -> None: ...
 
 class CCloud_GetFileDetails_Request(_message.Message):
     __slots__ = ("ugcid", "appid")
@@ -26,7 +25,7 @@ class CCloud_GetFileDetails_Request(_message.Message):
     APPID_FIELD_NUMBER: _ClassVar[int]
     ugcid: int
     appid: int
-    def __init__(self, ugcid: int | None = ..., appid: int | None = ...) -> None: ...
+    def __init__(self, ugcid: _Optional[int] = ..., appid: _Optional[int] = ...) -> None: ...
 
 class CCloud_UserFile(_message.Message):
     __slots__ = ("appid", "ugcid", "filename", "timestamp", "file_size", "url", "steamid_creator")
@@ -44,22 +43,13 @@ class CCloud_UserFile(_message.Message):
     file_size: int
     url: str
     steamid_creator: int
-    def __init__(
-        self,
-        appid: int | None = ...,
-        ugcid: int | None = ...,
-        filename: str | None = ...,
-        timestamp: int | None = ...,
-        file_size: int | None = ...,
-        url: str | None = ...,
-        steamid_creator: int | None = ...,
-    ) -> None: ...
+    def __init__(self, appid: _Optional[int] = ..., ugcid: _Optional[int] = ..., filename: _Optional[str] = ..., timestamp: _Optional[int] = ..., file_size: _Optional[int] = ..., url: _Optional[str] = ..., steamid_creator: _Optional[int] = ...) -> None: ...
 
 class CCloud_GetFileDetails_Response(_message.Message):
     __slots__ = ("details",)
     DETAILS_FIELD_NUMBER: _ClassVar[int]
     details: CCloud_UserFile
-    def __init__(self, details: CCloud_UserFile | _Mapping | None = ...) -> None: ...
+    def __init__(self, details: _Optional[_Union[CCloud_UserFile, _Mapping]] = ...) -> None: ...
 
 class CCloud_EnumerateUserFiles_Request(_message.Message):
     __slots__ = ("appid", "extended_details", "count", "start_index")
@@ -71,13 +61,7 @@ class CCloud_EnumerateUserFiles_Request(_message.Message):
     extended_details: bool
     count: int
     start_index: int
-    def __init__(
-        self,
-        appid: int | None = ...,
-        extended_details: bool = ...,
-        count: int | None = ...,
-        start_index: int | None = ...,
-    ) -> None: ...
+    def __init__(self, appid: _Optional[int] = ..., extended_details: bool = ..., count: _Optional[int] = ..., start_index: _Optional[int] = ...) -> None: ...
 
 class CCloud_EnumerateUserFiles_Response(_message.Message):
     __slots__ = ("files", "total_files")
@@ -85,11 +69,7 @@ class CCloud_EnumerateUserFiles_Response(_message.Message):
     TOTAL_FILES_FIELD_NUMBER: _ClassVar[int]
     files: _containers.RepeatedCompositeFieldContainer[CCloud_UserFile]
     total_files: int
-    def __init__(
-        self,
-        files: _Iterable[CCloud_UserFile | _Mapping] | None = ...,
-        total_files: int | None = ...,
-    ) -> None: ...
+    def __init__(self, files: _Optional[_Iterable[_Union[CCloud_UserFile, _Mapping]]] = ..., total_files: _Optional[int] = ...) -> None: ...
 
 class CCloud_Delete_Request(_message.Message):
     __slots__ = ("filename", "appid")
@@ -97,7 +77,7 @@ class CCloud_Delete_Request(_message.Message):
     APPID_FIELD_NUMBER: _ClassVar[int]
     filename: str
     appid: int
-    def __init__(self, filename: str | None = ..., appid: int | None = ...) -> None: ...
+    def __init__(self, filename: _Optional[str] = ..., appid: _Optional[int] = ...) -> None: ...
 
 class CCloud_Delete_Response(_message.Message):
     __slots__ = ()

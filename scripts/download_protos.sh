@@ -9,7 +9,9 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 DEST_DIR="proto_definitions/dota2"
-API_URL="https://api.github.com/repos/SteamDatabase/Protobufs/contents/dota2"
+# Note: the upstream repo was renamed SteamDatabase/Protobufs -> SteamTracking/Protobufs.
+# All curl calls use -L so the GitHub redirect from the old name is followed.
+API_URL="https://api.github.com/repos/SteamTracking/Protobufs/contents/dota2"
 
 # Optional: set GITHUB_TOKEN env var to avoid API rate limits (60 req/hr unauthenticated)
 AUTH_HEADER=""
@@ -24,7 +26,7 @@ mkdir -p "$DEST_DIR"
 
 # Fetch file list via GitHub API — use python3 to parse JSON properly
 echo -e "${YELLOW}Fetching file list from GitHub API...${NC}"
-API_RESPONSE=$(curl -sf ${AUTH_HEADER:+"-H" "Authorization: Bearer $GITHUB_TOKEN"} "$API_URL") || {
+API_RESPONSE=$(curl -sfL ${AUTH_HEADER:+"-H" "Authorization: Bearer $GITHUB_TOKEN"} "$API_URL") || {
     echo -e "${RED}Failed to reach GitHub API. Check your internet connection.${NC}"
     exit 1
 }
@@ -71,7 +73,7 @@ while IFS='|' read -r filename url; do
     fi
 
     echo -n "  $filename ... "
-    if curl -sf -o "$dest" "$url"; then
+    if curl -sfL -o "$dest" "$url"; then
         echo -e "${GREEN}✓${NC}"
         ((DOWNLOADED++))
     else
@@ -91,7 +93,7 @@ echo "Total proto files in $DEST_DIR: $TOTAL"
 
 echo ""
 echo -e "${GREEN}Next step:${NC}"
-echo "  python scripts/compile_protos.py"
+echo "  uv run python scripts/compile_protos.py"
 echo ""
 echo "Tip: to force re-download all files, run:"
 echo "  FORCE=1 bash scripts/download_protos.sh"

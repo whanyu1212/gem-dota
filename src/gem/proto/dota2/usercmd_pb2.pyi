@@ -1,11 +1,9 @@
-from collections.abc import Iterable as _Iterable
-from collections.abc import Mapping as _Mapping
-from typing import ClassVar as _ClassVar
-
 import networkbasetypes_pb2 as _networkbasetypes_pb2
+from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from google.protobuf.internal import containers as _containers
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -17,23 +15,10 @@ class CInButtonStatePB(_message.Message):
     buttonstate1: int
     buttonstate2: int
     buttonstate3: int
-    def __init__(
-        self,
-        buttonstate1: int | None = ...,
-        buttonstate2: int | None = ...,
-        buttonstate3: int | None = ...,
-    ) -> None: ...
+    def __init__(self, buttonstate1: _Optional[int] = ..., buttonstate2: _Optional[int] = ..., buttonstate3: _Optional[int] = ...) -> None: ...
 
 class CSubtickMoveStep(_message.Message):
-    __slots__ = (
-        "button",
-        "pressed",
-        "when",
-        "analog_forward_delta",
-        "analog_left_delta",
-        "pitch_delta",
-        "yaw_delta",
-    )
+    __slots__ = ("button", "pressed", "when", "analog_forward_delta", "analog_left_delta", "pitch_delta", "yaw_delta")
     BUTTON_FIELD_NUMBER: _ClassVar[int]
     PRESSED_FIELD_NUMBER: _ClassVar[int]
     WHEN_FIELD_NUMBER: _ClassVar[int]
@@ -48,45 +33,16 @@ class CSubtickMoveStep(_message.Message):
     analog_left_delta: float
     pitch_delta: float
     yaw_delta: float
-    def __init__(
-        self,
-        button: int | None = ...,
-        pressed: bool = ...,
-        when: float | None = ...,
-        analog_forward_delta: float | None = ...,
-        analog_left_delta: float | None = ...,
-        pitch_delta: float | None = ...,
-        yaw_delta: float | None = ...,
-    ) -> None: ...
+    def __init__(self, button: _Optional[int] = ..., pressed: bool = ..., when: _Optional[float] = ..., analog_forward_delta: _Optional[float] = ..., analog_left_delta: _Optional[float] = ..., pitch_delta: _Optional[float] = ..., yaw_delta: _Optional[float] = ...) -> None: ...
 
 class CBaseUserCmdExecutionNotes(_message.Message):
     __slots__ = ("ignored_reason",)
     IGNORED_REASON_FIELD_NUMBER: _ClassVar[int]
     ignored_reason: str
-    def __init__(self, ignored_reason: str | None = ...) -> None: ...
+    def __init__(self, ignored_reason: _Optional[str] = ...) -> None: ...
 
 class CBaseUserCmdPB(_message.Message):
-    __slots__ = (
-        "legacy_command_number",
-        "client_tick",
-        "prediction_offset_ticks_x256",
-        "buttons_pb",
-        "viewangles",
-        "forwardmove",
-        "leftmove",
-        "upmove",
-        "impulse",
-        "weaponselect",
-        "random_seed",
-        "mousedx",
-        "mousedy",
-        "pawn_entity_handle",
-        "subtick_moves",
-        "move_crc",
-        "consumed_server_angle_changes",
-        "cmd_flags",
-        "execution_notes",
-    )
+    __slots__ = ("legacy_command_number", "client_tick", "prediction_offset_ticks_x256", "buttons_pb", "viewangles", "forwardmove", "leftmove", "upmove", "impulse", "weaponselect", "random_seed", "mousedx", "mousedy", "pawn_entity_handle", "subtick_moves", "move_crc", "consumed_server_angle_changes", "cmd_flags", "execution_notes")
     LEGACY_COMMAND_NUMBER_FIELD_NUMBER: _ClassVar[int]
     CLIENT_TICK_FIELD_NUMBER: _ClassVar[int]
     PREDICTION_OFFSET_TICKS_X256_FIELD_NUMBER: _ClassVar[int]
@@ -125,31 +81,10 @@ class CBaseUserCmdPB(_message.Message):
     consumed_server_angle_changes: int
     cmd_flags: int
     execution_notes: CBaseUserCmdExecutionNotes
-    def __init__(
-        self,
-        legacy_command_number: int | None = ...,
-        client_tick: int | None = ...,
-        prediction_offset_ticks_x256: int | None = ...,
-        buttons_pb: CInButtonStatePB | _Mapping | None = ...,
-        viewangles: _networkbasetypes_pb2.CMsgQAngle | _Mapping | None = ...,
-        forwardmove: float | None = ...,
-        leftmove: float | None = ...,
-        upmove: float | None = ...,
-        impulse: int | None = ...,
-        weaponselect: int | None = ...,
-        random_seed: int | None = ...,
-        mousedx: int | None = ...,
-        mousedy: int | None = ...,
-        pawn_entity_handle: int | None = ...,
-        subtick_moves: _Iterable[CSubtickMoveStep | _Mapping] | None = ...,
-        move_crc: bytes | None = ...,
-        consumed_server_angle_changes: int | None = ...,
-        cmd_flags: int | None = ...,
-        execution_notes: CBaseUserCmdExecutionNotes | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, legacy_command_number: _Optional[int] = ..., client_tick: _Optional[int] = ..., prediction_offset_ticks_x256: _Optional[int] = ..., buttons_pb: _Optional[_Union[CInButtonStatePB, _Mapping]] = ..., viewangles: _Optional[_Union[_networkbasetypes_pb2.CMsgQAngle, _Mapping]] = ..., forwardmove: _Optional[float] = ..., leftmove: _Optional[float] = ..., upmove: _Optional[float] = ..., impulse: _Optional[int] = ..., weaponselect: _Optional[int] = ..., random_seed: _Optional[int] = ..., mousedx: _Optional[int] = ..., mousedy: _Optional[int] = ..., pawn_entity_handle: _Optional[int] = ..., subtick_moves: _Optional[_Iterable[_Union[CSubtickMoveStep, _Mapping]]] = ..., move_crc: _Optional[bytes] = ..., consumed_server_angle_changes: _Optional[int] = ..., cmd_flags: _Optional[int] = ..., execution_notes: _Optional[_Union[CBaseUserCmdExecutionNotes, _Mapping]] = ...) -> None: ...
 
 class CUserCmdBasePB(_message.Message):
     __slots__ = ("base",)
     BASE_FIELD_NUMBER: _ClassVar[int]
     base: CBaseUserCmdPB
-    def __init__(self, base: CBaseUserCmdPB | _Mapping | None = ...) -> None: ...
+    def __init__(self, base: _Optional[_Union[CBaseUserCmdPB, _Mapping]] = ...) -> None: ...

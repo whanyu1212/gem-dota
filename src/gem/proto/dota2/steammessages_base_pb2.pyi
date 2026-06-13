@@ -1,11 +1,10 @@
-from collections.abc import Iterable as _Iterable
-from collections.abc import Mapping as _Mapping
-from typing import ClassVar as _ClassVar
-
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
+from google.protobuf import descriptor_pb2 as _descriptor_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -64,7 +63,6 @@ class PartnerEventNotificationType(int, metaclass=_enum_type_wrapper.EnumTypeWra
     k_EEventBroadcastStart: _ClassVar[PartnerEventNotificationType]
     k_EEventMatchStart: _ClassVar[PartnerEventNotificationType]
     k_EEventPartnerMaxType: _ClassVar[PartnerEventNotificationType]
-
 k_EBanContentCheckResult_NotScanned: EBanContentCheckResult
 k_EBanContentCheckResult_Reset: EBanContentCheckResult
 k_EBanContentCheckResult_NeedsChecking: EBanContentCheckResult
@@ -129,7 +127,7 @@ class CMsgIPAddress(_message.Message):
     V6_FIELD_NUMBER: _ClassVar[int]
     v4: int
     v6: bytes
-    def __init__(self, v4: int | None = ..., v6: bytes | None = ...) -> None: ...
+    def __init__(self, v4: _Optional[int] = ..., v6: _Optional[bytes] = ...) -> None: ...
 
 class CMsgIPAddressBucket(_message.Message):
     __slots__ = ("original_ip_address", "bucket")
@@ -137,63 +135,10 @@ class CMsgIPAddressBucket(_message.Message):
     BUCKET_FIELD_NUMBER: _ClassVar[int]
     original_ip_address: CMsgIPAddress
     bucket: int
-    def __init__(
-        self, original_ip_address: CMsgIPAddress | _Mapping | None = ..., bucket: int | None = ...
-    ) -> None: ...
-
-class CMsgGCRoutingProtoBufHeader(_message.Message):
-    __slots__ = ("dst_gcid_queue", "dst_gc_dir_index")
-    DST_GCID_QUEUE_FIELD_NUMBER: _ClassVar[int]
-    DST_GC_DIR_INDEX_FIELD_NUMBER: _ClassVar[int]
-    dst_gcid_queue: int
-    dst_gc_dir_index: int
-    def __init__(
-        self, dst_gcid_queue: int | None = ..., dst_gc_dir_index: int | None = ...
-    ) -> None: ...
+    def __init__(self, original_ip_address: _Optional[_Union[CMsgIPAddress, _Mapping]] = ..., bucket: _Optional[int] = ...) -> None: ...
 
 class CMsgProtoBufHeader(_message.Message):
-    __slots__ = (
-        "steamid",
-        "client_sessionid",
-        "routing_appid",
-        "jobid_source",
-        "jobid_target",
-        "target_job_name",
-        "seq_num",
-        "eresult",
-        "error_message",
-        "auth_account_flags",
-        "token_source",
-        "admin_spoofing_user",
-        "transport_error",
-        "messageid",
-        "publisher_group_id",
-        "sysid",
-        "trace_tag",
-        "webapi_key_id",
-        "is_from_external_source",
-        "forward_to_sysid",
-        "cm_sysid",
-        "launcher_type",
-        "realm",
-        "timeout_ms",
-        "debug_source",
-        "debug_source_string_index",
-        "token_id",
-        "routing_gc",
-        "session_disposition",
-        "wg_token",
-        "webui_auth_key",
-        "ip",
-        "ip_v6",
-    )
-    class ESessionDisposition(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
-        __slots__ = ()
-        k_ESessionDispositionNormal: _ClassVar[CMsgProtoBufHeader.ESessionDisposition]
-        k_ESessionDispositionDisconnect: _ClassVar[CMsgProtoBufHeader.ESessionDisposition]
-
-    k_ESessionDispositionNormal: CMsgProtoBufHeader.ESessionDisposition
-    k_ESessionDispositionDisconnect: CMsgProtoBufHeader.ESessionDisposition
+    __slots__ = ("steamid", "client_sessionid", "routing_appid", "jobid_source", "jobid_target", "target_job_name", "seq_num", "eresult", "error_message", "auth_account_flags", "token_source", "admin_spoofing_user", "transport_error", "messageid", "publisher_group_id", "sysid", "trace_tag", "webapi_key_id", "is_from_external_source", "forward_to_sysid", "cm_sysid", "launcher_type", "realm", "timeout_ms", "debug_source", "ip", "ip_v6")
     STEAMID_FIELD_NUMBER: _ClassVar[int]
     CLIENT_SESSIONID_FIELD_NUMBER: _ClassVar[int]
     ROUTING_APPID_FIELD_NUMBER: _ClassVar[int]
@@ -219,12 +164,6 @@ class CMsgProtoBufHeader(_message.Message):
     REALM_FIELD_NUMBER: _ClassVar[int]
     TIMEOUT_MS_FIELD_NUMBER: _ClassVar[int]
     DEBUG_SOURCE_FIELD_NUMBER: _ClassVar[int]
-    DEBUG_SOURCE_STRING_INDEX_FIELD_NUMBER: _ClassVar[int]
-    TOKEN_ID_FIELD_NUMBER: _ClassVar[int]
-    ROUTING_GC_FIELD_NUMBER: _ClassVar[int]
-    SESSION_DISPOSITION_FIELD_NUMBER: _ClassVar[int]
-    WG_TOKEN_FIELD_NUMBER: _ClassVar[int]
-    WEBUI_AUTH_KEY_FIELD_NUMBER: _ClassVar[int]
     IP_FIELD_NUMBER: _ClassVar[int]
     IP_V6_FIELD_NUMBER: _ClassVar[int]
     steamid: int
@@ -252,50 +191,9 @@ class CMsgProtoBufHeader(_message.Message):
     realm: int
     timeout_ms: int
     debug_source: str
-    debug_source_string_index: int
-    token_id: int
-    routing_gc: CMsgGCRoutingProtoBufHeader
-    session_disposition: CMsgProtoBufHeader.ESessionDisposition
-    wg_token: str
-    webui_auth_key: str
     ip: int
     ip_v6: bytes
-    def __init__(
-        self,
-        steamid: int | None = ...,
-        client_sessionid: int | None = ...,
-        routing_appid: int | None = ...,
-        jobid_source: int | None = ...,
-        jobid_target: int | None = ...,
-        target_job_name: str | None = ...,
-        seq_num: int | None = ...,
-        eresult: int | None = ...,
-        error_message: str | None = ...,
-        auth_account_flags: int | None = ...,
-        token_source: int | None = ...,
-        admin_spoofing_user: bool = ...,
-        transport_error: int | None = ...,
-        messageid: int | None = ...,
-        publisher_group_id: int | None = ...,
-        sysid: int | None = ...,
-        trace_tag: int | None = ...,
-        webapi_key_id: int | None = ...,
-        is_from_external_source: bool = ...,
-        forward_to_sysid: _Iterable[int] | None = ...,
-        cm_sysid: int | None = ...,
-        launcher_type: int | None = ...,
-        realm: int | None = ...,
-        timeout_ms: int | None = ...,
-        debug_source: str | None = ...,
-        debug_source_string_index: int | None = ...,
-        token_id: int | None = ...,
-        routing_gc: CMsgGCRoutingProtoBufHeader | _Mapping | None = ...,
-        session_disposition: CMsgProtoBufHeader.ESessionDisposition | str | None = ...,
-        wg_token: str | None = ...,
-        webui_auth_key: str | None = ...,
-        ip: int | None = ...,
-        ip_v6: bytes | None = ...,
-    ) -> None: ...
+    def __init__(self, steamid: _Optional[int] = ..., client_sessionid: _Optional[int] = ..., routing_appid: _Optional[int] = ..., jobid_source: _Optional[int] = ..., jobid_target: _Optional[int] = ..., target_job_name: _Optional[str] = ..., seq_num: _Optional[int] = ..., eresult: _Optional[int] = ..., error_message: _Optional[str] = ..., auth_account_flags: _Optional[int] = ..., token_source: _Optional[int] = ..., admin_spoofing_user: bool = ..., transport_error: _Optional[int] = ..., messageid: _Optional[int] = ..., publisher_group_id: _Optional[int] = ..., sysid: _Optional[int] = ..., trace_tag: _Optional[int] = ..., webapi_key_id: _Optional[int] = ..., is_from_external_source: bool = ..., forward_to_sysid: _Optional[_Iterable[int]] = ..., cm_sysid: _Optional[int] = ..., launcher_type: _Optional[int] = ..., realm: _Optional[int] = ..., timeout_ms: _Optional[int] = ..., debug_source: _Optional[str] = ..., ip: _Optional[int] = ..., ip_v6: _Optional[bytes] = ...) -> None: ...
 
 class CMsgMulti(_message.Message):
     __slots__ = ("size_unzipped", "message_body")
@@ -303,28 +201,16 @@ class CMsgMulti(_message.Message):
     MESSAGE_BODY_FIELD_NUMBER: _ClassVar[int]
     size_unzipped: int
     message_body: bytes
-    def __init__(
-        self, size_unzipped: int | None = ..., message_body: bytes | None = ...
-    ) -> None: ...
+    def __init__(self, size_unzipped: _Optional[int] = ..., message_body: _Optional[bytes] = ...) -> None: ...
 
 class CMsgProtobufWrapped(_message.Message):
     __slots__ = ("message_body",)
     MESSAGE_BODY_FIELD_NUMBER: _ClassVar[int]
     message_body: bytes
-    def __init__(self, message_body: bytes | None = ...) -> None: ...
+    def __init__(self, message_body: _Optional[bytes] = ...) -> None: ...
 
 class CMsgAuthTicket(_message.Message):
-    __slots__ = (
-        "estate",
-        "eresult",
-        "steamid",
-        "gameid",
-        "h_steam_pipe",
-        "ticket_crc",
-        "ticket",
-        "server_secret",
-        "ticket_type",
-    )
+    __slots__ = ("estate", "eresult", "steamid", "gameid", "h_steam_pipe", "ticket_crc", "ticket")
     ESTATE_FIELD_NUMBER: _ClassVar[int]
     ERESULT_FIELD_NUMBER: _ClassVar[int]
     STEAMID_FIELD_NUMBER: _ClassVar[int]
@@ -332,8 +218,6 @@ class CMsgAuthTicket(_message.Message):
     H_STEAM_PIPE_FIELD_NUMBER: _ClassVar[int]
     TICKET_CRC_FIELD_NUMBER: _ClassVar[int]
     TICKET_FIELD_NUMBER: _ClassVar[int]
-    SERVER_SECRET_FIELD_NUMBER: _ClassVar[int]
-    TICKET_TYPE_FIELD_NUMBER: _ClassVar[int]
     estate: int
     eresult: int
     steamid: int
@@ -341,39 +225,10 @@ class CMsgAuthTicket(_message.Message):
     h_steam_pipe: int
     ticket_crc: int
     ticket: bytes
-    server_secret: bytes
-    ticket_type: int
-    def __init__(
-        self,
-        estate: int | None = ...,
-        eresult: int | None = ...,
-        steamid: int | None = ...,
-        gameid: int | None = ...,
-        h_steam_pipe: int | None = ...,
-        ticket_crc: int | None = ...,
-        ticket: bytes | None = ...,
-        server_secret: bytes | None = ...,
-        ticket_type: int | None = ...,
-    ) -> None: ...
+    def __init__(self, estate: _Optional[int] = ..., eresult: _Optional[int] = ..., steamid: _Optional[int] = ..., gameid: _Optional[int] = ..., h_steam_pipe: _Optional[int] = ..., ticket_crc: _Optional[int] = ..., ticket: _Optional[bytes] = ...) -> None: ...
 
 class CCDDBAppDetailCommon(_message.Message):
-    __slots__ = (
-        "appid",
-        "name",
-        "icon",
-        "tool",
-        "demo",
-        "media",
-        "community_visible_stats",
-        "friendly_name",
-        "propagation",
-        "has_adult_content",
-        "is_visible_in_steam_china",
-        "app_type",
-        "has_adult_content_sex",
-        "has_adult_content_violence",
-        "content_descriptorids",
-    )
+    __slots__ = ("appid", "name", "icon", "tool", "demo", "media", "community_visible_stats", "friendly_name", "propagation", "has_adult_content", "is_visible_in_steam_china", "app_type")
     APPID_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     ICON_FIELD_NUMBER: _ClassVar[int]
@@ -386,9 +241,6 @@ class CCDDBAppDetailCommon(_message.Message):
     HAS_ADULT_CONTENT_FIELD_NUMBER: _ClassVar[int]
     IS_VISIBLE_IN_STEAM_CHINA_FIELD_NUMBER: _ClassVar[int]
     APP_TYPE_FIELD_NUMBER: _ClassVar[int]
-    HAS_ADULT_CONTENT_SEX_FIELD_NUMBER: _ClassVar[int]
-    HAS_ADULT_CONTENT_VIOLENCE_FIELD_NUMBER: _ClassVar[int]
-    CONTENT_DESCRIPTORIDS_FIELD_NUMBER: _ClassVar[int]
     appid: int
     name: str
     icon: str
@@ -401,48 +253,10 @@ class CCDDBAppDetailCommon(_message.Message):
     has_adult_content: bool
     is_visible_in_steam_china: bool
     app_type: int
-    has_adult_content_sex: bool
-    has_adult_content_violence: bool
-    content_descriptorids: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(
-        self,
-        appid: int | None = ...,
-        name: str | None = ...,
-        icon: str | None = ...,
-        tool: bool = ...,
-        demo: bool = ...,
-        media: bool = ...,
-        community_visible_stats: bool = ...,
-        friendly_name: str | None = ...,
-        propagation: str | None = ...,
-        has_adult_content: bool = ...,
-        is_visible_in_steam_china: bool = ...,
-        app_type: int | None = ...,
-        has_adult_content_sex: bool = ...,
-        has_adult_content_violence: bool = ...,
-        content_descriptorids: _Iterable[int] | None = ...,
-    ) -> None: ...
+    def __init__(self, appid: _Optional[int] = ..., name: _Optional[str] = ..., icon: _Optional[str] = ..., tool: bool = ..., demo: bool = ..., media: bool = ..., community_visible_stats: bool = ..., friendly_name: _Optional[str] = ..., propagation: _Optional[str] = ..., has_adult_content: bool = ..., is_visible_in_steam_china: bool = ..., app_type: _Optional[int] = ...) -> None: ...
 
 class CMsgAppRights(_message.Message):
-    __slots__ = (
-        "edit_info",
-        "publish",
-        "view_error_data",
-        "download",
-        "upload_cdkeys",
-        "generate_cdkeys",
-        "view_financials",
-        "manage_ceg",
-        "manage_signing",
-        "manage_cdkeys",
-        "edit_marketing",
-        "economy_support",
-        "economy_support_supervisor",
-        "manage_pricing",
-        "broadcast_live",
-        "view_marketing_traffic",
-        "edit_store_display_content",
-    )
+    __slots__ = ("edit_info", "publish", "view_error_data", "download", "upload_cdkeys", "generate_cdkeys", "view_financials", "manage_ceg", "manage_signing", "manage_cdkeys", "edit_marketing", "economy_support", "economy_support_supervisor", "manage_pricing", "broadcast_live", "view_marketing_traffic", "edit_store_display_content")
     EDIT_INFO_FIELD_NUMBER: _ClassVar[int]
     PUBLISH_FIELD_NUMBER: _ClassVar[int]
     VIEW_ERROR_DATA_FIELD_NUMBER: _ClassVar[int]
@@ -477,44 +291,10 @@ class CMsgAppRights(_message.Message):
     broadcast_live: bool
     view_marketing_traffic: bool
     edit_store_display_content: bool
-    def __init__(
-        self,
-        edit_info: bool = ...,
-        publish: bool = ...,
-        view_error_data: bool = ...,
-        download: bool = ...,
-        upload_cdkeys: bool = ...,
-        generate_cdkeys: bool = ...,
-        view_financials: bool = ...,
-        manage_ceg: bool = ...,
-        manage_signing: bool = ...,
-        manage_cdkeys: bool = ...,
-        edit_marketing: bool = ...,
-        economy_support: bool = ...,
-        economy_support_supervisor: bool = ...,
-        manage_pricing: bool = ...,
-        broadcast_live: bool = ...,
-        view_marketing_traffic: bool = ...,
-        edit_store_display_content: bool = ...,
-    ) -> None: ...
+    def __init__(self, edit_info: bool = ..., publish: bool = ..., view_error_data: bool = ..., download: bool = ..., upload_cdkeys: bool = ..., generate_cdkeys: bool = ..., view_financials: bool = ..., manage_ceg: bool = ..., manage_signing: bool = ..., manage_cdkeys: bool = ..., edit_marketing: bool = ..., economy_support: bool = ..., economy_support_supervisor: bool = ..., manage_pricing: bool = ..., broadcast_live: bool = ..., view_marketing_traffic: bool = ..., edit_store_display_content: bool = ...) -> None: ...
 
 class CCuratorPreferences(_message.Message):
-    __slots__ = (
-        "supported_languages",
-        "platform_windows",
-        "platform_mac",
-        "platform_linux",
-        "vr_content",
-        "adult_content_violence",
-        "adult_content_sex",
-        "timestamp_updated",
-        "tagids_curated",
-        "tagids_filtered",
-        "website_title",
-        "website_url",
-        "discussion_url",
-        "show_broadcast",
-    )
+    __slots__ = ("supported_languages", "platform_windows", "platform_mac", "platform_linux", "vr_content", "adult_content_violence", "adult_content_sex", "timestamp_updated", "tagids_curated", "tagids_filtered", "website_title", "website_url", "discussion_url", "show_broadcast")
     SUPPORTED_LANGUAGES_FIELD_NUMBER: _ClassVar[int]
     PLATFORM_WINDOWS_FIELD_NUMBER: _ClassVar[int]
     PLATFORM_MAC_FIELD_NUMBER: _ClassVar[int]
@@ -543,23 +323,7 @@ class CCuratorPreferences(_message.Message):
     website_url: str
     discussion_url: str
     show_broadcast: bool
-    def __init__(
-        self,
-        supported_languages: int | None = ...,
-        platform_windows: bool = ...,
-        platform_mac: bool = ...,
-        platform_linux: bool = ...,
-        vr_content: bool = ...,
-        adult_content_violence: bool = ...,
-        adult_content_sex: bool = ...,
-        timestamp_updated: int | None = ...,
-        tagids_curated: _Iterable[int] | None = ...,
-        tagids_filtered: _Iterable[int] | None = ...,
-        website_title: str | None = ...,
-        website_url: str | None = ...,
-        discussion_url: str | None = ...,
-        show_broadcast: bool = ...,
-    ) -> None: ...
+    def __init__(self, supported_languages: _Optional[int] = ..., platform_windows: bool = ..., platform_mac: bool = ..., platform_linux: bool = ..., vr_content: bool = ..., adult_content_violence: bool = ..., adult_content_sex: bool = ..., timestamp_updated: _Optional[int] = ..., tagids_curated: _Optional[_Iterable[int]] = ..., tagids_filtered: _Optional[_Iterable[int]] = ..., website_title: _Optional[str] = ..., website_url: _Optional[str] = ..., discussion_url: _Optional[str] = ..., show_broadcast: bool = ...) -> None: ...
 
 class CLocalizationToken(_message.Message):
     __slots__ = ("language", "localized_string")
@@ -567,21 +331,10 @@ class CLocalizationToken(_message.Message):
     LOCALIZED_STRING_FIELD_NUMBER: _ClassVar[int]
     language: int
     localized_string: str
-    def __init__(self, language: int | None = ..., localized_string: str | None = ...) -> None: ...
+    def __init__(self, language: _Optional[int] = ..., localized_string: _Optional[str] = ...) -> None: ...
 
 class CClanEventUserNewsTuple(_message.Message):
-    __slots__ = (
-        "clanid",
-        "event_gid",
-        "announcement_gid",
-        "rtime_start",
-        "rtime_end",
-        "priority_score",
-        "type",
-        "clamp_range_slot",
-        "appid",
-        "rtime32_last_modified",
-    )
+    __slots__ = ("clanid", "event_gid", "announcement_gid", "rtime_start", "rtime_end", "priority_score", "type", "clamp_range_slot", "appid", "rtime32_last_modified")
     CLANID_FIELD_NUMBER: _ClassVar[int]
     EVENT_GID_FIELD_NUMBER: _ClassVar[int]
     ANNOUNCEMENT_GID_FIELD_NUMBER: _ClassVar[int]
@@ -602,19 +355,7 @@ class CClanEventUserNewsTuple(_message.Message):
     clamp_range_slot: int
     appid: int
     rtime32_last_modified: int
-    def __init__(
-        self,
-        clanid: int | None = ...,
-        event_gid: int | None = ...,
-        announcement_gid: int | None = ...,
-        rtime_start: int | None = ...,
-        rtime_end: int | None = ...,
-        priority_score: int | None = ...,
-        type: int | None = ...,
-        clamp_range_slot: int | None = ...,
-        appid: int | None = ...,
-        rtime32_last_modified: int | None = ...,
-    ) -> None: ...
+    def __init__(self, clanid: _Optional[int] = ..., event_gid: _Optional[int] = ..., announcement_gid: _Optional[int] = ..., rtime_start: _Optional[int] = ..., rtime_end: _Optional[int] = ..., priority_score: _Optional[int] = ..., type: _Optional[int] = ..., clamp_range_slot: _Optional[int] = ..., appid: _Optional[int] = ..., rtime32_last_modified: _Optional[int] = ...) -> None: ...
 
 class CClanMatchEventByRange(_message.Message):
     __slots__ = ("rtime_before", "rtime_after", "qualified", "events")
@@ -626,34 +367,10 @@ class CClanMatchEventByRange(_message.Message):
     rtime_after: int
     qualified: int
     events: _containers.RepeatedCompositeFieldContainer[CClanEventUserNewsTuple]
-    def __init__(
-        self,
-        rtime_before: int | None = ...,
-        rtime_after: int | None = ...,
-        qualified: int | None = ...,
-        events: _Iterable[CClanEventUserNewsTuple | _Mapping] | None = ...,
-    ) -> None: ...
+    def __init__(self, rtime_before: _Optional[int] = ..., rtime_after: _Optional[int] = ..., qualified: _Optional[int] = ..., events: _Optional[_Iterable[_Union[CClanEventUserNewsTuple, _Mapping]]] = ...) -> None: ...
 
 class CCommunity_ClanAnnouncementInfo(_message.Message):
-    __slots__ = (
-        "gid",
-        "clanid",
-        "posterid",
-        "headline",
-        "posttime",
-        "updatetime",
-        "body",
-        "commentcount",
-        "tags",
-        "language",
-        "hidden",
-        "forum_topic_id",
-        "event_gid",
-        "voteupcount",
-        "votedowncount",
-        "ban_check_result",
-        "banned",
-    )
+    __slots__ = ("gid", "clanid", "posterid", "headline", "posttime", "updatetime", "body", "commentcount", "tags", "language", "hidden", "forum_topic_id", "event_gid", "voteupcount", "votedowncount", "ban_check_result")
     GID_FIELD_NUMBER: _ClassVar[int]
     CLANID_FIELD_NUMBER: _ClassVar[int]
     POSTERID_FIELD_NUMBER: _ClassVar[int]
@@ -670,7 +387,6 @@ class CCommunity_ClanAnnouncementInfo(_message.Message):
     VOTEUPCOUNT_FIELD_NUMBER: _ClassVar[int]
     VOTEDOWNCOUNT_FIELD_NUMBER: _ClassVar[int]
     BAN_CHECK_RESULT_FIELD_NUMBER: _ClassVar[int]
-    BANNED_FIELD_NUMBER: _ClassVar[int]
     gid: int
     clanid: int
     posterid: int
@@ -687,61 +403,10 @@ class CCommunity_ClanAnnouncementInfo(_message.Message):
     voteupcount: int
     votedowncount: int
     ban_check_result: EBanContentCheckResult
-    banned: bool
-    def __init__(
-        self,
-        gid: int | None = ...,
-        clanid: int | None = ...,
-        posterid: int | None = ...,
-        headline: str | None = ...,
-        posttime: int | None = ...,
-        updatetime: int | None = ...,
-        body: str | None = ...,
-        commentcount: int | None = ...,
-        tags: _Iterable[str] | None = ...,
-        language: int | None = ...,
-        hidden: bool = ...,
-        forum_topic_id: int | None = ...,
-        event_gid: int | None = ...,
-        voteupcount: int | None = ...,
-        votedowncount: int | None = ...,
-        ban_check_result: EBanContentCheckResult | str | None = ...,
-        banned: bool = ...,
-    ) -> None: ...
+    def __init__(self, gid: _Optional[int] = ..., clanid: _Optional[int] = ..., posterid: _Optional[int] = ..., headline: _Optional[str] = ..., posttime: _Optional[int] = ..., updatetime: _Optional[int] = ..., body: _Optional[str] = ..., commentcount: _Optional[int] = ..., tags: _Optional[_Iterable[str]] = ..., language: _Optional[int] = ..., hidden: bool = ..., forum_topic_id: _Optional[int] = ..., event_gid: _Optional[int] = ..., voteupcount: _Optional[int] = ..., votedowncount: _Optional[int] = ..., ban_check_result: _Optional[_Union[EBanContentCheckResult, str]] = ...) -> None: ...
 
 class CClanEventData(_message.Message):
-    __slots__ = (
-        "gid",
-        "clan_steamid",
-        "event_name",
-        "event_type",
-        "appid",
-        "server_address",
-        "server_password",
-        "rtime32_start_time",
-        "rtime32_end_time",
-        "comment_count",
-        "creator_steamid",
-        "last_update_steamid",
-        "event_notes",
-        "jsondata",
-        "announcement_body",
-        "published",
-        "hidden",
-        "rtime32_visibility_start",
-        "rtime32_visibility_end",
-        "broadcaster_accountid",
-        "follower_count",
-        "ignore_count",
-        "forum_topic_id",
-        "rtime32_last_modified",
-        "news_post_gid",
-        "rtime_mod_reviewed",
-        "featured_app_tagid",
-        "referenced_appids",
-        "build_id",
-        "build_branch",
-    )
+    __slots__ = ("gid", "clan_steamid", "event_name", "event_type", "appid", "server_address", "server_password", "rtime32_start_time", "rtime32_end_time", "comment_count", "creator_steamid", "last_update_steamid", "event_notes", "jsondata", "announcement_body", "published", "hidden", "rtime32_visibility_start", "rtime32_visibility_end", "broadcaster_accountid", "follower_count", "ignore_count", "forum_topic_id", "rtime32_last_modified", "news_post_gid", "rtime_mod_reviewed", "featured_app_tagid", "referenced_appids", "build_id", "build_branch")
     GID_FIELD_NUMBER: _ClassVar[int]
     CLAN_STEAMID_FIELD_NUMBER: _ClassVar[int]
     EVENT_NAME_FIELD_NUMBER: _ClassVar[int]
@@ -802,53 +467,10 @@ class CClanEventData(_message.Message):
     referenced_appids: _containers.RepeatedScalarFieldContainer[int]
     build_id: int
     build_branch: str
-    def __init__(
-        self,
-        gid: int | None = ...,
-        clan_steamid: int | None = ...,
-        event_name: str | None = ...,
-        event_type: EProtoClanEventType | str | None = ...,
-        appid: int | None = ...,
-        server_address: str | None = ...,
-        server_password: str | None = ...,
-        rtime32_start_time: int | None = ...,
-        rtime32_end_time: int | None = ...,
-        comment_count: int | None = ...,
-        creator_steamid: int | None = ...,
-        last_update_steamid: int | None = ...,
-        event_notes: str | None = ...,
-        jsondata: str | None = ...,
-        announcement_body: CCommunity_ClanAnnouncementInfo | _Mapping | None = ...,
-        published: bool = ...,
-        hidden: bool = ...,
-        rtime32_visibility_start: int | None = ...,
-        rtime32_visibility_end: int | None = ...,
-        broadcaster_accountid: int | None = ...,
-        follower_count: int | None = ...,
-        ignore_count: int | None = ...,
-        forum_topic_id: int | None = ...,
-        rtime32_last_modified: int | None = ...,
-        news_post_gid: int | None = ...,
-        rtime_mod_reviewed: int | None = ...,
-        featured_app_tagid: int | None = ...,
-        referenced_appids: _Iterable[int] | None = ...,
-        build_id: int | None = ...,
-        build_branch: str | None = ...,
-    ) -> None: ...
+    def __init__(self, gid: _Optional[int] = ..., clan_steamid: _Optional[int] = ..., event_name: _Optional[str] = ..., event_type: _Optional[_Union[EProtoClanEventType, str]] = ..., appid: _Optional[int] = ..., server_address: _Optional[str] = ..., server_password: _Optional[str] = ..., rtime32_start_time: _Optional[int] = ..., rtime32_end_time: _Optional[int] = ..., comment_count: _Optional[int] = ..., creator_steamid: _Optional[int] = ..., last_update_steamid: _Optional[int] = ..., event_notes: _Optional[str] = ..., jsondata: _Optional[str] = ..., announcement_body: _Optional[_Union[CCommunity_ClanAnnouncementInfo, _Mapping]] = ..., published: bool = ..., hidden: bool = ..., rtime32_visibility_start: _Optional[int] = ..., rtime32_visibility_end: _Optional[int] = ..., broadcaster_accountid: _Optional[int] = ..., follower_count: _Optional[int] = ..., ignore_count: _Optional[int] = ..., forum_topic_id: _Optional[int] = ..., rtime32_last_modified: _Optional[int] = ..., news_post_gid: _Optional[int] = ..., rtime_mod_reviewed: _Optional[int] = ..., featured_app_tagid: _Optional[int] = ..., referenced_appids: _Optional[_Iterable[int]] = ..., build_id: _Optional[int] = ..., build_branch: _Optional[str] = ...) -> None: ...
 
 class CBilling_Address(_message.Message):
-    __slots__ = (
-        "first_name",
-        "last_name",
-        "address1",
-        "address2",
-        "city",
-        "us_state",
-        "country_code",
-        "postcode",
-        "zip_plus4",
-        "phone",
-    )
+    __slots__ = ("first_name", "last_name", "address1", "address2", "city", "us_state", "country_code", "postcode", "zip_plus4", "phone")
     FIRST_NAME_FIELD_NUMBER: _ClassVar[int]
     LAST_NAME_FIELD_NUMBER: _ClassVar[int]
     ADDRESS1_FIELD_NUMBER: _ClassVar[int]
@@ -869,31 +491,10 @@ class CBilling_Address(_message.Message):
     postcode: str
     zip_plus4: int
     phone: str
-    def __init__(
-        self,
-        first_name: str | None = ...,
-        last_name: str | None = ...,
-        address1: str | None = ...,
-        address2: str | None = ...,
-        city: str | None = ...,
-        us_state: str | None = ...,
-        country_code: str | None = ...,
-        postcode: str | None = ...,
-        zip_plus4: int | None = ...,
-        phone: str | None = ...,
-    ) -> None: ...
+    def __init__(self, first_name: _Optional[str] = ..., last_name: _Optional[str] = ..., address1: _Optional[str] = ..., address2: _Optional[str] = ..., city: _Optional[str] = ..., us_state: _Optional[str] = ..., country_code: _Optional[str] = ..., postcode: _Optional[str] = ..., zip_plus4: _Optional[int] = ..., phone: _Optional[str] = ...) -> None: ...
 
 class CPackageReservationStatus(_message.Message):
-    __slots__ = (
-        "packageid",
-        "reservation_state",
-        "queue_position",
-        "total_queue_size",
-        "reservation_country_code",
-        "expired",
-        "time_expires",
-        "time_reserved",
-    )
+    __slots__ = ("packageid", "reservation_state", "queue_position", "total_queue_size", "reservation_country_code", "expired", "time_expires", "time_reserved")
     PACKAGEID_FIELD_NUMBER: _ClassVar[int]
     RESERVATION_STATE_FIELD_NUMBER: _ClassVar[int]
     QUEUE_POSITION_FIELD_NUMBER: _ClassVar[int]
@@ -910,17 +511,7 @@ class CPackageReservationStatus(_message.Message):
     expired: bool
     time_expires: int
     time_reserved: int
-    def __init__(
-        self,
-        packageid: int | None = ...,
-        reservation_state: int | None = ...,
-        queue_position: int | None = ...,
-        total_queue_size: int | None = ...,
-        reservation_country_code: str | None = ...,
-        expired: bool = ...,
-        time_expires: int | None = ...,
-        time_reserved: int | None = ...,
-    ) -> None: ...
+    def __init__(self, packageid: _Optional[int] = ..., reservation_state: _Optional[int] = ..., queue_position: _Optional[int] = ..., total_queue_size: _Optional[int] = ..., reservation_country_code: _Optional[str] = ..., expired: bool = ..., time_expires: _Optional[int] = ..., time_reserved: _Optional[int] = ...) -> None: ...
 
 class CMsgKeyValuePair(_message.Message):
     __slots__ = ("name", "value")
@@ -928,34 +519,10 @@ class CMsgKeyValuePair(_message.Message):
     VALUE_FIELD_NUMBER: _ClassVar[int]
     name: str
     value: str
-    def __init__(self, name: str | None = ..., value: str | None = ...) -> None: ...
+    def __init__(self, name: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
 
 class CMsgKeyValueSet(_message.Message):
     __slots__ = ("pairs",)
     PAIRS_FIELD_NUMBER: _ClassVar[int]
     pairs: _containers.RepeatedCompositeFieldContainer[CMsgKeyValuePair]
-    def __init__(self, pairs: _Iterable[CMsgKeyValuePair | _Mapping] | None = ...) -> None: ...
-
-class UserContentDescriptorPreferences(_message.Message):
-    __slots__ = ("content_descriptors_to_exclude",)
-    class ContentDescriptor(_message.Message):
-        __slots__ = ("content_descriptorid", "timestamp_added")
-        CONTENT_DESCRIPTORID_FIELD_NUMBER: _ClassVar[int]
-        TIMESTAMP_ADDED_FIELD_NUMBER: _ClassVar[int]
-        content_descriptorid: int
-        timestamp_added: int
-        def __init__(
-            self, content_descriptorid: int | None = ..., timestamp_added: int | None = ...
-        ) -> None: ...
-
-    CONTENT_DESCRIPTORS_TO_EXCLUDE_FIELD_NUMBER: _ClassVar[int]
-    content_descriptors_to_exclude: _containers.RepeatedCompositeFieldContainer[
-        UserContentDescriptorPreferences.ContentDescriptor
-    ]
-    def __init__(
-        self,
-        content_descriptors_to_exclude: _Iterable[
-            UserContentDescriptorPreferences.ContentDescriptor | _Mapping
-        ]
-        | None = ...,
-    ) -> None: ...
+    def __init__(self, pairs: _Optional[_Iterable[_Union[CMsgKeyValuePair, _Mapping]]] = ...) -> None: ...

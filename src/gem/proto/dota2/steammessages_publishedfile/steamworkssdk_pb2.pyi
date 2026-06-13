@@ -1,10 +1,9 @@
-from collections.abc import Iterable as _Iterable
-from collections.abc import Mapping as _Mapping
-from typing import ClassVar as _ClassVar
-
+from steammessages_unified_base import steamworkssdk_pb2 as _steamworkssdk_pb2
+from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from google.protobuf.internal import containers as _containers
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -18,13 +17,7 @@ class CPublishedFile_Subscribe_Request(_message.Message):
     list_type: int
     appid: int
     notify_client: bool
-    def __init__(
-        self,
-        publishedfileid: int | None = ...,
-        list_type: int | None = ...,
-        appid: int | None = ...,
-        notify_client: bool = ...,
-    ) -> None: ...
+    def __init__(self, publishedfileid: _Optional[int] = ..., list_type: _Optional[int] = ..., appid: _Optional[int] = ..., notify_client: bool = ...) -> None: ...
 
 class CPublishedFile_Subscribe_Response(_message.Message):
     __slots__ = ()
@@ -40,37 +33,14 @@ class CPublishedFile_Unsubscribe_Request(_message.Message):
     list_type: int
     appid: int
     notify_client: bool
-    def __init__(
-        self,
-        publishedfileid: int | None = ...,
-        list_type: int | None = ...,
-        appid: int | None = ...,
-        notify_client: bool = ...,
-    ) -> None: ...
+    def __init__(self, publishedfileid: _Optional[int] = ..., list_type: _Optional[int] = ..., appid: _Optional[int] = ..., notify_client: bool = ...) -> None: ...
 
 class CPublishedFile_Unsubscribe_Response(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...
 
 class CPublishedFile_Publish_Request(_message.Message):
-    __slots__ = (
-        "appid",
-        "consumer_appid",
-        "cloudfilename",
-        "preview_cloudfilename",
-        "title",
-        "file_description",
-        "file_type",
-        "consumer_shortcut_name",
-        "youtube_username",
-        "youtube_videoid",
-        "visibility",
-        "redirect_uri",
-        "tags",
-        "collection_type",
-        "game_type",
-        "url",
-    )
+    __slots__ = ("appid", "consumer_appid", "cloudfilename", "preview_cloudfilename", "title", "file_description", "file_type", "consumer_shortcut_name", "youtube_username", "youtube_videoid", "visibility", "redirect_uri", "tags", "collection_type", "game_type", "url")
     APPID_FIELD_NUMBER: _ClassVar[int]
     CONSUMER_APPID_FIELD_NUMBER: _ClassVar[int]
     CLOUDFILENAME_FIELD_NUMBER: _ClassVar[int]
@@ -103,25 +73,7 @@ class CPublishedFile_Publish_Request(_message.Message):
     collection_type: str
     game_type: str
     url: str
-    def __init__(
-        self,
-        appid: int | None = ...,
-        consumer_appid: int | None = ...,
-        cloudfilename: str | None = ...,
-        preview_cloudfilename: str | None = ...,
-        title: str | None = ...,
-        file_description: str | None = ...,
-        file_type: int | None = ...,
-        consumer_shortcut_name: str | None = ...,
-        youtube_username: str | None = ...,
-        youtube_videoid: str | None = ...,
-        visibility: int | None = ...,
-        redirect_uri: str | None = ...,
-        tags: _Iterable[str] | None = ...,
-        collection_type: str | None = ...,
-        game_type: str | None = ...,
-        url: str | None = ...,
-    ) -> None: ...
+    def __init__(self, appid: _Optional[int] = ..., consumer_appid: _Optional[int] = ..., cloudfilename: _Optional[str] = ..., preview_cloudfilename: _Optional[str] = ..., title: _Optional[str] = ..., file_description: _Optional[str] = ..., file_type: _Optional[int] = ..., consumer_shortcut_name: _Optional[str] = ..., youtube_username: _Optional[str] = ..., youtube_videoid: _Optional[str] = ..., visibility: _Optional[int] = ..., redirect_uri: _Optional[str] = ..., tags: _Optional[_Iterable[str]] = ..., collection_type: _Optional[str] = ..., game_type: _Optional[str] = ..., url: _Optional[str] = ...) -> None: ...
 
 class CPublishedFile_Publish_Response(_message.Message):
     __slots__ = ("publishedfileid", "redirect_uri")
@@ -129,20 +81,10 @@ class CPublishedFile_Publish_Response(_message.Message):
     REDIRECT_URI_FIELD_NUMBER: _ClassVar[int]
     publishedfileid: int
     redirect_uri: str
-    def __init__(
-        self, publishedfileid: int | None = ..., redirect_uri: str | None = ...
-    ) -> None: ...
+    def __init__(self, publishedfileid: _Optional[int] = ..., redirect_uri: _Optional[str] = ...) -> None: ...
 
 class CPublishedFile_GetDetails_Request(_message.Message):
-    __slots__ = (
-        "publishedfileids",
-        "includetags",
-        "includeadditionalpreviews",
-        "includechildren",
-        "includekvtags",
-        "includevotes",
-        "short_description",
-    )
+    __slots__ = ("publishedfileids", "includetags", "includeadditionalpreviews", "includechildren", "includekvtags", "includevotes", "short_description")
     PUBLISHEDFILEIDS_FIELD_NUMBER: _ClassVar[int]
     INCLUDETAGS_FIELD_NUMBER: _ClassVar[int]
     INCLUDEADDITIONALPREVIEWS_FIELD_NUMBER: _ClassVar[int]
@@ -157,84 +99,17 @@ class CPublishedFile_GetDetails_Request(_message.Message):
     includekvtags: bool
     includevotes: bool
     short_description: bool
-    def __init__(
-        self,
-        publishedfileids: _Iterable[int] | None = ...,
-        includetags: bool = ...,
-        includeadditionalpreviews: bool = ...,
-        includechildren: bool = ...,
-        includekvtags: bool = ...,
-        includevotes: bool = ...,
-        short_description: bool = ...,
-    ) -> None: ...
+    def __init__(self, publishedfileids: _Optional[_Iterable[int]] = ..., includetags: bool = ..., includeadditionalpreviews: bool = ..., includechildren: bool = ..., includekvtags: bool = ..., includevotes: bool = ..., short_description: bool = ...) -> None: ...
 
 class PublishedFileDetails(_message.Message):
-    __slots__ = (
-        "result",
-        "publishedfileid",
-        "creator",
-        "creator_appid",
-        "consumer_appid",
-        "consumer_shortcutid",
-        "filename",
-        "file_size",
-        "preview_file_size",
-        "file_url",
-        "preview_url",
-        "youtubevideoid",
-        "url",
-        "hcontent_file",
-        "hcontent_preview",
-        "title",
-        "file_description",
-        "short_description",
-        "time_created",
-        "time_updated",
-        "visibility",
-        "flags",
-        "workshop_file",
-        "workshop_accepted",
-        "show_subscribe_all",
-        "num_comments_developer",
-        "num_comments_public",
-        "banned",
-        "ban_reason",
-        "banner",
-        "can_be_deleted",
-        "incompatible",
-        "app_name",
-        "file_type",
-        "can_subscribe",
-        "subscriptions",
-        "favorited",
-        "followers",
-        "lifetime_subscriptions",
-        "lifetime_favorited",
-        "lifetime_followers",
-        "views",
-        "image_width",
-        "image_height",
-        "image_url",
-        "spoiler_tag",
-        "shortcutid",
-        "shortcutname",
-        "num_children",
-        "num_reports",
-        "previews",
-        "tags",
-        "children",
-        "kvtags",
-        "vote_data",
-        "time_subscribed",
-    )
+    __slots__ = ("result", "publishedfileid", "creator", "creator_appid", "consumer_appid", "consumer_shortcutid", "filename", "file_size", "preview_file_size", "file_url", "preview_url", "youtubevideoid", "url", "hcontent_file", "hcontent_preview", "title", "file_description", "short_description", "time_created", "time_updated", "visibility", "flags", "workshop_file", "workshop_accepted", "show_subscribe_all", "num_comments_developer", "num_comments_public", "banned", "ban_reason", "banner", "can_be_deleted", "incompatible", "app_name", "file_type", "can_subscribe", "subscriptions", "favorited", "followers", "lifetime_subscriptions", "lifetime_favorited", "lifetime_followers", "views", "image_width", "image_height", "image_url", "spoiler_tag", "shortcutid", "shortcutname", "num_children", "num_reports", "previews", "tags", "children", "kvtags", "vote_data", "time_subscribed")
     class Tag(_message.Message):
         __slots__ = ("tag", "adminonly")
         TAG_FIELD_NUMBER: _ClassVar[int]
         ADMINONLY_FIELD_NUMBER: _ClassVar[int]
         tag: str
         adminonly: bool
-        def __init__(self, tag: str | None = ..., adminonly: bool = ...) -> None: ...
-
+        def __init__(self, tag: _Optional[str] = ..., adminonly: bool = ...) -> None: ...
     class Preview(_message.Message):
         __slots__ = ("previewid", "sortorder", "url", "size", "filename", "youtubevideoid")
         PREVIEWID_FIELD_NUMBER: _ClassVar[int]
@@ -249,16 +124,7 @@ class PublishedFileDetails(_message.Message):
         size: int
         filename: str
         youtubevideoid: str
-        def __init__(
-            self,
-            previewid: int | None = ...,
-            sortorder: int | None = ...,
-            url: str | None = ...,
-            size: int | None = ...,
-            filename: str | None = ...,
-            youtubevideoid: str | None = ...,
-        ) -> None: ...
-
+        def __init__(self, previewid: _Optional[int] = ..., sortorder: _Optional[int] = ..., url: _Optional[str] = ..., size: _Optional[int] = ..., filename: _Optional[str] = ..., youtubevideoid: _Optional[str] = ...) -> None: ...
     class Child(_message.Message):
         __slots__ = ("publishedfileid", "sortorder", "file_type")
         PUBLISHEDFILEID_FIELD_NUMBER: _ClassVar[int]
@@ -267,21 +133,14 @@ class PublishedFileDetails(_message.Message):
         publishedfileid: int
         sortorder: int
         file_type: int
-        def __init__(
-            self,
-            publishedfileid: int | None = ...,
-            sortorder: int | None = ...,
-            file_type: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, publishedfileid: _Optional[int] = ..., sortorder: _Optional[int] = ..., file_type: _Optional[int] = ...) -> None: ...
     class KVTag(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: str
         value: str
-        def __init__(self, key: str | None = ..., value: str | None = ...) -> None: ...
-
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
     class VoteData(_message.Message):
         __slots__ = ("score", "votes_up", "votes_down")
         SCORE_FIELD_NUMBER: _ClassVar[int]
@@ -290,13 +149,7 @@ class PublishedFileDetails(_message.Message):
         score: float
         votes_up: int
         votes_down: int
-        def __init__(
-            self,
-            score: float | None = ...,
-            votes_up: int | None = ...,
-            votes_down: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, score: _Optional[float] = ..., votes_up: _Optional[int] = ..., votes_down: _Optional[int] = ...) -> None: ...
     RESULT_FIELD_NUMBER: _ClassVar[int]
     PUBLISHEDFILEID_FIELD_NUMBER: _ClassVar[int]
     CREATOR_FIELD_NUMBER: _ClassVar[int]
@@ -409,86 +262,16 @@ class PublishedFileDetails(_message.Message):
     kvtags: _containers.RepeatedCompositeFieldContainer[PublishedFileDetails.KVTag]
     vote_data: PublishedFileDetails.VoteData
     time_subscribed: int
-    def __init__(
-        self,
-        result: int | None = ...,
-        publishedfileid: int | None = ...,
-        creator: int | None = ...,
-        creator_appid: int | None = ...,
-        consumer_appid: int | None = ...,
-        consumer_shortcutid: int | None = ...,
-        filename: str | None = ...,
-        file_size: int | None = ...,
-        preview_file_size: int | None = ...,
-        file_url: str | None = ...,
-        preview_url: str | None = ...,
-        youtubevideoid: str | None = ...,
-        url: str | None = ...,
-        hcontent_file: int | None = ...,
-        hcontent_preview: int | None = ...,
-        title: str | None = ...,
-        file_description: str | None = ...,
-        short_description: str | None = ...,
-        time_created: int | None = ...,
-        time_updated: int | None = ...,
-        visibility: int | None = ...,
-        flags: int | None = ...,
-        workshop_file: bool = ...,
-        workshop_accepted: bool = ...,
-        show_subscribe_all: bool = ...,
-        num_comments_developer: int | None = ...,
-        num_comments_public: int | None = ...,
-        banned: bool = ...,
-        ban_reason: str | None = ...,
-        banner: int | None = ...,
-        can_be_deleted: bool = ...,
-        incompatible: bool = ...,
-        app_name: str | None = ...,
-        file_type: int | None = ...,
-        can_subscribe: bool = ...,
-        subscriptions: int | None = ...,
-        favorited: int | None = ...,
-        followers: int | None = ...,
-        lifetime_subscriptions: int | None = ...,
-        lifetime_favorited: int | None = ...,
-        lifetime_followers: int | None = ...,
-        views: int | None = ...,
-        image_width: int | None = ...,
-        image_height: int | None = ...,
-        image_url: str | None = ...,
-        spoiler_tag: bool = ...,
-        shortcutid: int | None = ...,
-        shortcutname: str | None = ...,
-        num_children: int | None = ...,
-        num_reports: int | None = ...,
-        previews: _Iterable[PublishedFileDetails.Preview | _Mapping] | None = ...,
-        tags: _Iterable[PublishedFileDetails.Tag | _Mapping] | None = ...,
-        children: _Iterable[PublishedFileDetails.Child | _Mapping] | None = ...,
-        kvtags: _Iterable[PublishedFileDetails.KVTag | _Mapping] | None = ...,
-        vote_data: PublishedFileDetails.VoteData | _Mapping | None = ...,
-        time_subscribed: int | None = ...,
-    ) -> None: ...
+    def __init__(self, result: _Optional[int] = ..., publishedfileid: _Optional[int] = ..., creator: _Optional[int] = ..., creator_appid: _Optional[int] = ..., consumer_appid: _Optional[int] = ..., consumer_shortcutid: _Optional[int] = ..., filename: _Optional[str] = ..., file_size: _Optional[int] = ..., preview_file_size: _Optional[int] = ..., file_url: _Optional[str] = ..., preview_url: _Optional[str] = ..., youtubevideoid: _Optional[str] = ..., url: _Optional[str] = ..., hcontent_file: _Optional[int] = ..., hcontent_preview: _Optional[int] = ..., title: _Optional[str] = ..., file_description: _Optional[str] = ..., short_description: _Optional[str] = ..., time_created: _Optional[int] = ..., time_updated: _Optional[int] = ..., visibility: _Optional[int] = ..., flags: _Optional[int] = ..., workshop_file: bool = ..., workshop_accepted: bool = ..., show_subscribe_all: bool = ..., num_comments_developer: _Optional[int] = ..., num_comments_public: _Optional[int] = ..., banned: bool = ..., ban_reason: _Optional[str] = ..., banner: _Optional[int] = ..., can_be_deleted: bool = ..., incompatible: bool = ..., app_name: _Optional[str] = ..., file_type: _Optional[int] = ..., can_subscribe: bool = ..., subscriptions: _Optional[int] = ..., favorited: _Optional[int] = ..., followers: _Optional[int] = ..., lifetime_subscriptions: _Optional[int] = ..., lifetime_favorited: _Optional[int] = ..., lifetime_followers: _Optional[int] = ..., views: _Optional[int] = ..., image_width: _Optional[int] = ..., image_height: _Optional[int] = ..., image_url: _Optional[str] = ..., spoiler_tag: bool = ..., shortcutid: _Optional[int] = ..., shortcutname: _Optional[str] = ..., num_children: _Optional[int] = ..., num_reports: _Optional[int] = ..., previews: _Optional[_Iterable[_Union[PublishedFileDetails.Preview, _Mapping]]] = ..., tags: _Optional[_Iterable[_Union[PublishedFileDetails.Tag, _Mapping]]] = ..., children: _Optional[_Iterable[_Union[PublishedFileDetails.Child, _Mapping]]] = ..., kvtags: _Optional[_Iterable[_Union[PublishedFileDetails.KVTag, _Mapping]]] = ..., vote_data: _Optional[_Union[PublishedFileDetails.VoteData, _Mapping]] = ..., time_subscribed: _Optional[int] = ...) -> None: ...
 
 class CPublishedFile_GetDetails_Response(_message.Message):
     __slots__ = ("publishedfiledetails",)
     PUBLISHEDFILEDETAILS_FIELD_NUMBER: _ClassVar[int]
     publishedfiledetails: _containers.RepeatedCompositeFieldContainer[PublishedFileDetails]
-    def __init__(
-        self, publishedfiledetails: _Iterable[PublishedFileDetails | _Mapping] | None = ...
-    ) -> None: ...
+    def __init__(self, publishedfiledetails: _Optional[_Iterable[_Union[PublishedFileDetails, _Mapping]]] = ...) -> None: ...
 
 class CPublishedFile_GetUserFiles_Request(_message.Message):
-    __slots__ = (
-        "appid",
-        "page",
-        "numperpage",
-        "sortmethod",
-        "totalonly",
-        "privacy",
-        "ids_only",
-        "requiredtags",
-        "excludedtags",
-    )
+    __slots__ = ("appid", "page", "numperpage", "sortmethod", "totalonly", "privacy", "ids_only", "requiredtags", "excludedtags")
     APPID_FIELD_NUMBER: _ClassVar[int]
     PAGE_FIELD_NUMBER: _ClassVar[int]
     NUMPERPAGE_FIELD_NUMBER: _ClassVar[int]
@@ -507,18 +290,7 @@ class CPublishedFile_GetUserFiles_Request(_message.Message):
     ids_only: bool
     requiredtags: _containers.RepeatedScalarFieldContainer[str]
     excludedtags: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(
-        self,
-        appid: int | None = ...,
-        page: int | None = ...,
-        numperpage: int | None = ...,
-        sortmethod: str | None = ...,
-        totalonly: bool = ...,
-        privacy: int | None = ...,
-        ids_only: bool = ...,
-        requiredtags: _Iterable[str] | None = ...,
-        excludedtags: _Iterable[str] | None = ...,
-    ) -> None: ...
+    def __init__(self, appid: _Optional[int] = ..., page: _Optional[int] = ..., numperpage: _Optional[int] = ..., sortmethod: _Optional[str] = ..., totalonly: bool = ..., privacy: _Optional[int] = ..., ids_only: bool = ..., requiredtags: _Optional[_Iterable[str]] = ..., excludedtags: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class CPublishedFile_GetUserFiles_Response(_message.Message):
     __slots__ = ("total", "startindex", "publishedfiledetails", "apps")
@@ -532,14 +304,7 @@ class CPublishedFile_GetUserFiles_Response(_message.Message):
         name: str
         shortcutid: int
         private: bool
-        def __init__(
-            self,
-            appid: int | None = ...,
-            name: str | None = ...,
-            shortcutid: int | None = ...,
-            private: bool = ...,
-        ) -> None: ...
-
+        def __init__(self, appid: _Optional[int] = ..., name: _Optional[str] = ..., shortcutid: _Optional[int] = ..., private: bool = ...) -> None: ...
     TOTAL_FIELD_NUMBER: _ClassVar[int]
     STARTINDEX_FIELD_NUMBER: _ClassVar[int]
     PUBLISHEDFILEDETAILS_FIELD_NUMBER: _ClassVar[int]
@@ -548,25 +313,10 @@ class CPublishedFile_GetUserFiles_Response(_message.Message):
     startindex: int
     publishedfiledetails: _containers.RepeatedCompositeFieldContainer[PublishedFileDetails]
     apps: _containers.RepeatedCompositeFieldContainer[CPublishedFile_GetUserFiles_Response.App]
-    def __init__(
-        self,
-        total: int | None = ...,
-        startindex: int | None = ...,
-        publishedfiledetails: _Iterable[PublishedFileDetails | _Mapping] | None = ...,
-        apps: _Iterable[CPublishedFile_GetUserFiles_Response.App | _Mapping] | None = ...,
-    ) -> None: ...
+    def __init__(self, total: _Optional[int] = ..., startindex: _Optional[int] = ..., publishedfiledetails: _Optional[_Iterable[_Union[PublishedFileDetails, _Mapping]]] = ..., apps: _Optional[_Iterable[_Union[CPublishedFile_GetUserFiles_Response.App, _Mapping]]] = ...) -> None: ...
 
 class CPublishedFile_Update_Request(_message.Message):
-    __slots__ = (
-        "appid",
-        "publishedfileid",
-        "title",
-        "file_description",
-        "visibility",
-        "tags",
-        "filename",
-        "preview_filename",
-    )
+    __slots__ = ("appid", "publishedfileid", "title", "file_description", "visibility", "tags", "filename", "preview_filename")
     APPID_FIELD_NUMBER: _ClassVar[int]
     PUBLISHEDFILEID_FIELD_NUMBER: _ClassVar[int]
     TITLE_FIELD_NUMBER: _ClassVar[int]
@@ -583,31 +333,14 @@ class CPublishedFile_Update_Request(_message.Message):
     tags: _containers.RepeatedScalarFieldContainer[str]
     filename: str
     preview_filename: str
-    def __init__(
-        self,
-        appid: int | None = ...,
-        publishedfileid: int | None = ...,
-        title: str | None = ...,
-        file_description: str | None = ...,
-        visibility: int | None = ...,
-        tags: _Iterable[str] | None = ...,
-        filename: str | None = ...,
-        preview_filename: str | None = ...,
-    ) -> None: ...
+    def __init__(self, appid: _Optional[int] = ..., publishedfileid: _Optional[int] = ..., title: _Optional[str] = ..., file_description: _Optional[str] = ..., visibility: _Optional[int] = ..., tags: _Optional[_Iterable[str]] = ..., filename: _Optional[str] = ..., preview_filename: _Optional[str] = ...) -> None: ...
 
 class CPublishedFile_Update_Response(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...
 
 class CPublishedFile_RefreshVotingQueue_Request(_message.Message):
-    __slots__ = (
-        "appid",
-        "matching_file_type",
-        "tags",
-        "match_all_tags",
-        "excluded_tags",
-        "desired_queue_size",
-    )
+    __slots__ = ("appid", "matching_file_type", "tags", "match_all_tags", "excluded_tags", "desired_queue_size")
     APPID_FIELD_NUMBER: _ClassVar[int]
     MATCHING_FILE_TYPE_FIELD_NUMBER: _ClassVar[int]
     TAGS_FIELD_NUMBER: _ClassVar[int]
@@ -620,15 +353,7 @@ class CPublishedFile_RefreshVotingQueue_Request(_message.Message):
     match_all_tags: bool
     excluded_tags: _containers.RepeatedScalarFieldContainer[str]
     desired_queue_size: int
-    def __init__(
-        self,
-        appid: int | None = ...,
-        matching_file_type: int | None = ...,
-        tags: _Iterable[str] | None = ...,
-        match_all_tags: bool = ...,
-        excluded_tags: _Iterable[str] | None = ...,
-        desired_queue_size: int | None = ...,
-    ) -> None: ...
+    def __init__(self, appid: _Optional[int] = ..., matching_file_type: _Optional[int] = ..., tags: _Optional[_Iterable[str]] = ..., match_all_tags: bool = ..., excluded_tags: _Optional[_Iterable[str]] = ..., desired_queue_size: _Optional[int] = ...) -> None: ...
 
 class CPublishedFile_RefreshVotingQueue_Response(_message.Message):
     __slots__ = ()

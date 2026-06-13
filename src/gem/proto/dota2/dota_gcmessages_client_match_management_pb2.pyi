@@ -1,15 +1,14 @@
-from collections.abc import Iterable as _Iterable
-from collections.abc import Mapping as _Mapping
-from typing import ClassVar as _ClassVar
-
-import base_gcmessages_pb2 as _base_gcmessages_pb2
-import dota_client_enums_pb2 as _dota_client_enums_pb2
-import dota_gcmessages_common_lobby_pb2 as _dota_gcmessages_common_lobby_pb2
+import steammessages_pb2 as _steammessages_pb2
 import dota_shared_enums_pb2 as _dota_shared_enums_pb2
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
+import dota_client_enums_pb2 as _dota_client_enums_pb2
+import base_gcmessages_pb2 as _base_gcmessages_pb2
+import dota_gcmessages_common_lobby_pb2 as _dota_gcmessages_common_lobby_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -34,21 +33,15 @@ class EStartFindingMatchResult(int, metaclass=_enum_type_wrapper.EnumTypeWrapper
     k_EStartFindingMatchResult_MemberNotVACVerified: _ClassVar[EStartFindingMatchResult]
     k_EStartFindingMatchResult_WeekendTourneyBadPartySize: _ClassVar[EStartFindingMatchResult]
     k_EStartFindingMatchResult_WeekendTourneyTeamBuyInTooSmall: _ClassVar[EStartFindingMatchResult]
-    k_EStartFindingMatchResult_WeekendTourneyIndividualBuyInTooLarge: _ClassVar[
-        EStartFindingMatchResult
-    ]
+    k_EStartFindingMatchResult_WeekendTourneyIndividualBuyInTooLarge: _ClassVar[EStartFindingMatchResult]
     k_EStartFindingMatchResult_WeekendTourneyTeamBuyInTooLarge: _ClassVar[EStartFindingMatchResult]
     k_EStartFindingMatchResult_MemberMissingEventOwnership: _ClassVar[EStartFindingMatchResult]
     k_EStartFindingMatchResult_WeekendTourneyNotUnlocked: _ClassVar[EStartFindingMatchResult]
-    k_EStartFindingMatchResult_WeekendTourneyRecentParticipation: _ClassVar[
-        EStartFindingMatchResult
-    ]
+    k_EStartFindingMatchResult_WeekendTourneyRecentParticipation: _ClassVar[EStartFindingMatchResult]
     k_EStartFindingMatchResult_MemberMissingAnchoredPhoneNumber: _ClassVar[EStartFindingMatchResult]
     k_EStartFindingMatchResult_NotMemberOfClan: _ClassVar[EStartFindingMatchResult]
     k_EStartFindingMatchResult_CoachesChallengeBadPartySize: _ClassVar[EStartFindingMatchResult]
-    k_EStartFindingMatchResult_CoachesChallengeRequirementsNotMet: _ClassVar[
-        EStartFindingMatchResult
-    ]
+    k_EStartFindingMatchResult_CoachesChallengeRequirementsNotMet: _ClassVar[EStartFindingMatchResult]
     k_EStartFindingMatchResult_InvalidRoleSelections: _ClassVar[EStartFindingMatchResult]
     k_EStartFindingMatchResult_PhoneNumberDiscrepancy: _ClassVar[EStartFindingMatchResult]
     k_EStartFindingMatchResult_NoQueuePoints: _ClassVar[EStartFindingMatchResult]
@@ -62,7 +55,6 @@ class EStartFindingMatchResult(int, metaclass=_enum_type_wrapper.EnumTypeWrapper
     k_EStartFindingMatchResult_RestrictedFromRanked: _ClassVar[EStartFindingMatchResult]
     k_EStartFindingMatchResult_RankPreventsParties: _ClassVar[EStartFindingMatchResult]
     k_EStartFindingMatchResult_RegisteredNameRequired: _ClassVar[EStartFindingMatchResult]
-
 k_EStartFindingMatchResult_Invalid: EStartFindingMatchResult
 k_EStartFindingMatchResult_OK: EStartFindingMatchResult
 k_EStartFindingMatchResult_AlreadySearching: EStartFindingMatchResult
@@ -106,28 +98,7 @@ k_EStartFindingMatchResult_RankPreventsParties: EStartFindingMatchResult
 k_EStartFindingMatchResult_RegisteredNameRequired: EStartFindingMatchResult
 
 class CMsgStartFindingMatch(_message.Message):
-    __slots__ = (
-        "key",
-        "matchgroups",
-        "client_version",
-        "game_modes",
-        "match_type",
-        "matchlanguages",
-        "team_id",
-        "game_language_enum",
-        "game_language_name",
-        "ping_data",
-        "region_select_flags",
-        "solo_queue",
-        "steam_clan_account_id",
-        "is_challenge_match",
-        "lane_selection_flags",
-        "high_priority_disabled",
-        "disable_experimental_gameplay",
-        "custom_game_difficulty_mask",
-        "bot_difficulty_mask",
-        "bot_script_index_mask",
-    )
+    __slots__ = ("key", "matchgroups", "client_version", "game_modes", "match_type", "matchlanguages", "team_id", "game_language_enum", "game_language_name", "ping_data", "region_select_flags", "solo_queue", "steam_clan_account_id", "is_challenge_match", "lane_selection_flags", "high_priority_disabled", "disable_experimental_gameplay", "custom_game_difficulty_mask", "bot_difficulty_mask", "bot_script_index_mask")
     KEY_FIELD_NUMBER: _ClassVar[int]
     MATCHGROUPS_FIELD_NUMBER: _ClassVar[int]
     CLIENT_VERSION_FIELD_NUMBER: _ClassVar[int]
@@ -168,39 +139,10 @@ class CMsgStartFindingMatch(_message.Message):
     custom_game_difficulty_mask: int
     bot_difficulty_mask: int
     bot_script_index_mask: int
-    def __init__(
-        self,
-        key: str | None = ...,
-        matchgroups: int | None = ...,
-        client_version: int | None = ...,
-        game_modes: int | None = ...,
-        match_type: _dota_shared_enums_pb2.MatchType | str | None = ...,
-        matchlanguages: int | None = ...,
-        team_id: int | None = ...,
-        game_language_enum: _dota_shared_enums_pb2.MatchLanguages | str | None = ...,
-        game_language_name: str | None = ...,
-        ping_data: _base_gcmessages_pb2.CMsgClientPingData | _Mapping | None = ...,
-        region_select_flags: int | None = ...,
-        solo_queue: bool = ...,
-        steam_clan_account_id: int | None = ...,
-        is_challenge_match: bool = ...,
-        lane_selection_flags: int | None = ...,
-        high_priority_disabled: bool = ...,
-        disable_experimental_gameplay: bool = ...,
-        custom_game_difficulty_mask: int | None = ...,
-        bot_difficulty_mask: int | None = ...,
-        bot_script_index_mask: int | None = ...,
-    ) -> None: ...
+    def __init__(self, key: _Optional[str] = ..., matchgroups: _Optional[int] = ..., client_version: _Optional[int] = ..., game_modes: _Optional[int] = ..., match_type: _Optional[_Union[_dota_shared_enums_pb2.MatchType, str]] = ..., matchlanguages: _Optional[int] = ..., team_id: _Optional[int] = ..., game_language_enum: _Optional[_Union[_dota_shared_enums_pb2.MatchLanguages, str]] = ..., game_language_name: _Optional[str] = ..., ping_data: _Optional[_Union[_base_gcmessages_pb2.CMsgClientPingData, _Mapping]] = ..., region_select_flags: _Optional[int] = ..., solo_queue: bool = ..., steam_clan_account_id: _Optional[int] = ..., is_challenge_match: bool = ..., lane_selection_flags: _Optional[int] = ..., high_priority_disabled: bool = ..., disable_experimental_gameplay: bool = ..., custom_game_difficulty_mask: _Optional[int] = ..., bot_difficulty_mask: _Optional[int] = ..., bot_script_index_mask: _Optional[int] = ...) -> None: ...
 
 class CMsgStartFindingMatchResult(_message.Message):
-    __slots__ = (
-        "legacy_generic_eresult",
-        "result",
-        "error_token",
-        "debug_message",
-        "responsible_party_members",
-        "result_metadata",
-    )
+    __slots__ = ("legacy_generic_eresult", "result", "error_token", "debug_message", "responsible_party_members", "result_metadata")
     LEGACY_GENERIC_ERESULT_FIELD_NUMBER: _ClassVar[int]
     RESULT_FIELD_NUMBER: _ClassVar[int]
     ERROR_TOKEN_FIELD_NUMBER: _ClassVar[int]
@@ -213,15 +155,7 @@ class CMsgStartFindingMatchResult(_message.Message):
     debug_message: str
     responsible_party_members: _containers.RepeatedScalarFieldContainer[int]
     result_metadata: int
-    def __init__(
-        self,
-        legacy_generic_eresult: int | None = ...,
-        result: EStartFindingMatchResult | str | None = ...,
-        error_token: str | None = ...,
-        debug_message: str | None = ...,
-        responsible_party_members: _Iterable[int] | None = ...,
-        result_metadata: int | None = ...,
-    ) -> None: ...
+    def __init__(self, legacy_generic_eresult: _Optional[int] = ..., result: _Optional[_Union[EStartFindingMatchResult, str]] = ..., error_token: _Optional[str] = ..., debug_message: _Optional[str] = ..., responsible_party_members: _Optional[_Iterable[int]] = ..., result_metadata: _Optional[int] = ...) -> None: ...
 
 class CMsgStopFindingMatch(_message.Message):
     __slots__ = ("accept_cooldown",)
@@ -241,14 +175,7 @@ class CMsgPartyBuilderOptions(_message.Message):
     matchgroups: int
     client_version: int
     language: _dota_shared_enums_pb2.MatchLanguages
-    def __init__(
-        self,
-        additional_slots: int | None = ...,
-        match_type: _dota_shared_enums_pb2.MatchType | str | None = ...,
-        matchgroups: int | None = ...,
-        client_version: int | None = ...,
-        language: _dota_shared_enums_pb2.MatchLanguages | str | None = ...,
-    ) -> None: ...
+    def __init__(self, additional_slots: _Optional[int] = ..., match_type: _Optional[_Union[_dota_shared_enums_pb2.MatchType, str]] = ..., matchgroups: _Optional[int] = ..., client_version: _Optional[int] = ..., language: _Optional[_Union[_dota_shared_enums_pb2.MatchLanguages, str]] = ...) -> None: ...
 
 class CMsgReadyUp(_message.Message):
     __slots__ = ("state", "ready_up_key", "hardware_specs")
@@ -258,22 +185,10 @@ class CMsgReadyUp(_message.Message):
     state: _dota_shared_enums_pb2.DOTALobbyReadyState
     ready_up_key: int
     hardware_specs: _dota_shared_enums_pb2.CDOTAClientHardwareSpecs
-    def __init__(
-        self,
-        state: _dota_shared_enums_pb2.DOTALobbyReadyState | str | None = ...,
-        ready_up_key: int | None = ...,
-        hardware_specs: _dota_shared_enums_pb2.CDOTAClientHardwareSpecs | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, state: _Optional[_Union[_dota_shared_enums_pb2.DOTALobbyReadyState, str]] = ..., ready_up_key: _Optional[int] = ..., hardware_specs: _Optional[_Union[_dota_shared_enums_pb2.CDOTAClientHardwareSpecs, _Mapping]] = ...) -> None: ...
 
 class CMsgReadyUpStatus(_message.Message):
-    __slots__ = (
-        "lobby_id",
-        "accepted_ids",
-        "declined_ids",
-        "accepted_indices",
-        "declined_indices",
-        "local_ready_state",
-    )
+    __slots__ = ("lobby_id", "accepted_ids", "declined_ids", "accepted_indices", "declined_indices", "local_ready_state")
     LOBBY_ID_FIELD_NUMBER: _ClassVar[int]
     ACCEPTED_IDS_FIELD_NUMBER: _ClassVar[int]
     DECLINED_IDS_FIELD_NUMBER: _ClassVar[int]
@@ -286,15 +201,7 @@ class CMsgReadyUpStatus(_message.Message):
     accepted_indices: _containers.RepeatedScalarFieldContainer[int]
     declined_indices: _containers.RepeatedScalarFieldContainer[int]
     local_ready_state: _dota_shared_enums_pb2.DOTALobbyReadyState
-    def __init__(
-        self,
-        lobby_id: int | None = ...,
-        accepted_ids: _Iterable[int] | None = ...,
-        declined_ids: _Iterable[int] | None = ...,
-        accepted_indices: _Iterable[int] | None = ...,
-        declined_indices: _Iterable[int] | None = ...,
-        local_ready_state: _dota_shared_enums_pb2.DOTALobbyReadyState | str | None = ...,
-    ) -> None: ...
+    def __init__(self, lobby_id: _Optional[int] = ..., accepted_ids: _Optional[_Iterable[int]] = ..., declined_ids: _Optional[_Iterable[int]] = ..., accepted_indices: _Optional[_Iterable[int]] = ..., declined_indices: _Optional[_Iterable[int]] = ..., local_ready_state: _Optional[_Union[_dota_shared_enums_pb2.DOTALobbyReadyState, str]] = ...) -> None: ...
 
 class CMsgAbandonCurrentGame(_message.Message):
     __slots__ = ()
@@ -306,60 +213,15 @@ class CMsgLobbyScenarioSave(_message.Message):
     DATA_FIELD_NUMBER: _ClassVar[int]
     version: int
     data: bytes
-    def __init__(self, version: int | None = ..., data: bytes | None = ...) -> None: ...
+    def __init__(self, version: _Optional[int] = ..., data: _Optional[bytes] = ...) -> None: ...
 
 class CMsgPracticeLobbySetDetails(_message.Message):
-    __slots__ = (
-        "lobby_id",
-        "game_name",
-        "team_details",
-        "server_region",
-        "game_mode",
-        "cm_pick",
-        "bot_difficulty_radiant",
-        "allow_cheats",
-        "fill_with_bots",
-        "allow_spectating",
-        "pass_key",
-        "leagueid",
-        "penalty_level_radiant",
-        "penalty_level_dire",
-        "series_type",
-        "radiant_series_wins",
-        "dire_series_wins",
-        "allchat",
-        "dota_tv_delay",
-        "lan",
-        "custom_game_mode",
-        "custom_map_name",
-        "custom_difficulty",
-        "custom_game_id",
-        "custom_min_players",
-        "custom_max_players",
-        "visibility",
-        "custom_game_crc",
-        "custom_game_timestamp",
-        "previous_match_override",
-        "pause_setting",
-        "bot_difficulty_dire",
-        "bot_radiant",
-        "bot_dire",
-        "selection_priority_rules",
-        "custom_game_penalties",
-        "lan_host_ping_location",
-        "league_node_id",
-        "requested_hero_ids",
-        "scenario_save",
-        "ability_draft_specific_details",
-        "do_player_draft",
-        "requested_hero_teams",
-    )
+    __slots__ = ("lobby_id", "game_name", "team_details", "server_region", "game_mode", "cm_pick", "bot_difficulty_radiant", "allow_cheats", "fill_with_bots", "allow_spectating", "pass_key", "leagueid", "penalty_level_radiant", "penalty_level_dire", "series_type", "radiant_series_wins", "dire_series_wins", "allchat", "dota_tv_delay", "lan", "custom_game_mode", "custom_map_name", "custom_difficulty", "custom_game_id", "custom_min_players", "custom_max_players", "visibility", "custom_game_crc", "custom_game_timestamp", "previous_match_override", "pause_setting", "bot_difficulty_dire", "bot_radiant", "bot_dire", "selection_priority_rules", "custom_game_penalties", "lan_host_ping_location", "league_node_id", "requested_hero_ids", "scenario_save", "ability_draft_specific_details", "do_player_draft", "requested_hero_teams")
     class AbilityDraftSpecificDetails(_message.Message):
         __slots__ = ("shuffle_draft_order",)
         SHUFFLE_DRAFT_ORDER_FIELD_NUMBER: _ClassVar[int]
         shuffle_draft_order: bool
         def __init__(self, shuffle_draft_order: bool = ...) -> None: ...
-
     LOBBY_ID_FIELD_NUMBER: _ClassVar[int]
     GAME_NAME_FIELD_NUMBER: _ClassVar[int]
     TEAM_DETAILS_FIELD_NUMBER: _ClassVar[int]
@@ -405,9 +267,7 @@ class CMsgPracticeLobbySetDetails(_message.Message):
     REQUESTED_HERO_TEAMS_FIELD_NUMBER: _ClassVar[int]
     lobby_id: int
     game_name: str
-    team_details: _containers.RepeatedCompositeFieldContainer[
-        _dota_gcmessages_common_lobby_pb2.CLobbyTeamDetails
-    ]
+    team_details: _containers.RepeatedCompositeFieldContainer[_dota_gcmessages_common_lobby_pb2.CLobbyTeamDetails]
     server_region: int
     game_mode: int
     cm_pick: _dota_shared_enums_pb2.DOTA_CM_PICK
@@ -448,57 +308,7 @@ class CMsgPracticeLobbySetDetails(_message.Message):
     ability_draft_specific_details: CMsgPracticeLobbySetDetails.AbilityDraftSpecificDetails
     do_player_draft: bool
     requested_hero_teams: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(
-        self,
-        lobby_id: int | None = ...,
-        game_name: str | None = ...,
-        team_details: _Iterable[_dota_gcmessages_common_lobby_pb2.CLobbyTeamDetails | _Mapping]
-        | None = ...,
-        server_region: int | None = ...,
-        game_mode: int | None = ...,
-        cm_pick: _dota_shared_enums_pb2.DOTA_CM_PICK | str | None = ...,
-        bot_difficulty_radiant: _dota_shared_enums_pb2.DOTABotDifficulty | str | None = ...,
-        allow_cheats: bool = ...,
-        fill_with_bots: bool = ...,
-        allow_spectating: bool = ...,
-        pass_key: str | None = ...,
-        leagueid: int | None = ...,
-        penalty_level_radiant: int | None = ...,
-        penalty_level_dire: int | None = ...,
-        series_type: int | None = ...,
-        radiant_series_wins: int | None = ...,
-        dire_series_wins: int | None = ...,
-        allchat: bool = ...,
-        dota_tv_delay: _dota_gcmessages_common_lobby_pb2.LobbyDotaTVDelay | str | None = ...,
-        lan: bool = ...,
-        custom_game_mode: str | None = ...,
-        custom_map_name: str | None = ...,
-        custom_difficulty: int | None = ...,
-        custom_game_id: int | None = ...,
-        custom_min_players: int | None = ...,
-        custom_max_players: int | None = ...,
-        visibility: _dota_shared_enums_pb2.DOTALobbyVisibility | str | None = ...,
-        custom_game_crc: int | None = ...,
-        custom_game_timestamp: int | None = ...,
-        previous_match_override: int | None = ...,
-        pause_setting: _dota_gcmessages_common_lobby_pb2.LobbyDotaPauseSetting | str | None = ...,
-        bot_difficulty_dire: _dota_shared_enums_pb2.DOTABotDifficulty | str | None = ...,
-        bot_radiant: int | None = ...,
-        bot_dire: int | None = ...,
-        selection_priority_rules: _dota_shared_enums_pb2.DOTASelectionPriorityRules
-        | str
-        | None = ...,
-        custom_game_penalties: bool = ...,
-        lan_host_ping_location: str | None = ...,
-        league_node_id: int | None = ...,
-        requested_hero_ids: _Iterable[int] | None = ...,
-        scenario_save: CMsgLobbyScenarioSave | _Mapping | None = ...,
-        ability_draft_specific_details: CMsgPracticeLobbySetDetails.AbilityDraftSpecificDetails
-        | _Mapping
-        | None = ...,
-        do_player_draft: bool = ...,
-        requested_hero_teams: _Iterable[int] | None = ...,
-    ) -> None: ...
+    def __init__(self, lobby_id: _Optional[int] = ..., game_name: _Optional[str] = ..., team_details: _Optional[_Iterable[_Union[_dota_gcmessages_common_lobby_pb2.CLobbyTeamDetails, _Mapping]]] = ..., server_region: _Optional[int] = ..., game_mode: _Optional[int] = ..., cm_pick: _Optional[_Union[_dota_shared_enums_pb2.DOTA_CM_PICK, str]] = ..., bot_difficulty_radiant: _Optional[_Union[_dota_shared_enums_pb2.DOTABotDifficulty, str]] = ..., allow_cheats: bool = ..., fill_with_bots: bool = ..., allow_spectating: bool = ..., pass_key: _Optional[str] = ..., leagueid: _Optional[int] = ..., penalty_level_radiant: _Optional[int] = ..., penalty_level_dire: _Optional[int] = ..., series_type: _Optional[int] = ..., radiant_series_wins: _Optional[int] = ..., dire_series_wins: _Optional[int] = ..., allchat: bool = ..., dota_tv_delay: _Optional[_Union[_dota_gcmessages_common_lobby_pb2.LobbyDotaTVDelay, str]] = ..., lan: bool = ..., custom_game_mode: _Optional[str] = ..., custom_map_name: _Optional[str] = ..., custom_difficulty: _Optional[int] = ..., custom_game_id: _Optional[int] = ..., custom_min_players: _Optional[int] = ..., custom_max_players: _Optional[int] = ..., visibility: _Optional[_Union[_dota_shared_enums_pb2.DOTALobbyVisibility, str]] = ..., custom_game_crc: _Optional[int] = ..., custom_game_timestamp: _Optional[int] = ..., previous_match_override: _Optional[int] = ..., pause_setting: _Optional[_Union[_dota_gcmessages_common_lobby_pb2.LobbyDotaPauseSetting, str]] = ..., bot_difficulty_dire: _Optional[_Union[_dota_shared_enums_pb2.DOTABotDifficulty, str]] = ..., bot_radiant: _Optional[int] = ..., bot_dire: _Optional[int] = ..., selection_priority_rules: _Optional[_Union[_dota_shared_enums_pb2.DOTASelectionPriorityRules, str]] = ..., custom_game_penalties: bool = ..., lan_host_ping_location: _Optional[str] = ..., league_node_id: _Optional[int] = ..., requested_hero_ids: _Optional[_Iterable[int]] = ..., scenario_save: _Optional[_Union[CMsgLobbyScenarioSave, _Mapping]] = ..., ability_draft_specific_details: _Optional[_Union[CMsgPracticeLobbySetDetails.AbilityDraftSpecificDetails, _Mapping]] = ..., do_player_draft: bool = ..., requested_hero_teams: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CMsgPracticeLobbyCreate(_message.Message):
     __slots__ = ("search_key", "pass_key", "client_version", "lobby_details")
@@ -510,13 +320,7 @@ class CMsgPracticeLobbyCreate(_message.Message):
     pass_key: str
     client_version: int
     lobby_details: CMsgPracticeLobbySetDetails
-    def __init__(
-        self,
-        search_key: str | None = ...,
-        pass_key: str | None = ...,
-        client_version: int | None = ...,
-        lobby_details: CMsgPracticeLobbySetDetails | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, search_key: _Optional[str] = ..., pass_key: _Optional[str] = ..., client_version: _Optional[int] = ..., lobby_details: _Optional[_Union[CMsgPracticeLobbySetDetails, _Mapping]] = ...) -> None: ...
 
 class CMsgPracticeLobbySetTeamSlot(_message.Message):
     __slots__ = ("team", "slot", "bot_difficulty")
@@ -526,26 +330,16 @@ class CMsgPracticeLobbySetTeamSlot(_message.Message):
     team: _dota_shared_enums_pb2.DOTA_GC_TEAM
     slot: int
     bot_difficulty: _dota_shared_enums_pb2.DOTABotDifficulty
-    def __init__(
-        self,
-        team: _dota_shared_enums_pb2.DOTA_GC_TEAM | str | None = ...,
-        slot: int | None = ...,
-        bot_difficulty: _dota_shared_enums_pb2.DOTABotDifficulty | str | None = ...,
-    ) -> None: ...
+    def __init__(self, team: _Optional[_Union[_dota_shared_enums_pb2.DOTA_GC_TEAM, str]] = ..., slot: _Optional[int] = ..., bot_difficulty: _Optional[_Union[_dota_shared_enums_pb2.DOTABotDifficulty, str]] = ...) -> None: ...
 
 class CMsgPracticeLobbySetCoach(_message.Message):
     __slots__ = ("team",)
     TEAM_FIELD_NUMBER: _ClassVar[int]
     team: _dota_shared_enums_pb2.DOTA_GC_TEAM
-    def __init__(self, team: _dota_shared_enums_pb2.DOTA_GC_TEAM | str | None = ...) -> None: ...
+    def __init__(self, team: _Optional[_Union[_dota_shared_enums_pb2.DOTA_GC_TEAM, str]] = ...) -> None: ...
 
 class CMsgPracticeLobbyJoinBroadcastChannel(_message.Message):
-    __slots__ = (
-        "channel",
-        "preferred_description",
-        "preferred_country_code",
-        "preferred_language_code",
-    )
+    __slots__ = ("channel", "preferred_description", "preferred_country_code", "preferred_language_code")
     CHANNEL_FIELD_NUMBER: _ClassVar[int]
     PREFERRED_DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
     PREFERRED_COUNTRY_CODE_FIELD_NUMBER: _ClassVar[int]
@@ -554,19 +348,13 @@ class CMsgPracticeLobbyJoinBroadcastChannel(_message.Message):
     preferred_description: str
     preferred_country_code: str
     preferred_language_code: str
-    def __init__(
-        self,
-        channel: int | None = ...,
-        preferred_description: str | None = ...,
-        preferred_country_code: str | None = ...,
-        preferred_language_code: str | None = ...,
-    ) -> None: ...
+    def __init__(self, channel: _Optional[int] = ..., preferred_description: _Optional[str] = ..., preferred_country_code: _Optional[str] = ..., preferred_language_code: _Optional[str] = ...) -> None: ...
 
 class CMsgPracticeLobbyCloseBroadcastChannel(_message.Message):
     __slots__ = ("channel",)
     CHANNEL_FIELD_NUMBER: _ClassVar[int]
     channel: int
-    def __init__(self, channel: int | None = ...) -> None: ...
+    def __init__(self, channel: _Optional[int] = ...) -> None: ...
 
 class CMsgPracticeLobbyToggleBroadcastChannelCameramanStatus(_message.Message):
     __slots__ = ()
@@ -576,13 +364,13 @@ class CMsgPracticeLobbyKick(_message.Message):
     __slots__ = ("account_id",)
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     account_id: int
-    def __init__(self, account_id: int | None = ...) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ...) -> None: ...
 
 class CMsgPracticeLobbyKickFromTeam(_message.Message):
     __slots__ = ("account_id",)
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     account_id: int
-    def __init__(self, account_id: int | None = ...) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ...) -> None: ...
 
 class CMsgPracticeLobbyLeave(_message.Message):
     __slots__ = ()
@@ -592,13 +380,13 @@ class CMsgPracticeLobbyLaunch(_message.Message):
     __slots__ = ("client_version",)
     CLIENT_VERSION_FIELD_NUMBER: _ClassVar[int]
     client_version: int
-    def __init__(self, client_version: int | None = ...) -> None: ...
+    def __init__(self, client_version: _Optional[int] = ...) -> None: ...
 
 class CMsgApplyTeamToPracticeLobby(_message.Message):
     __slots__ = ("team_id",)
     TEAM_ID_FIELD_NUMBER: _ClassVar[int]
     team_id: int
-    def __init__(self, team_id: int | None = ...) -> None: ...
+    def __init__(self, team_id: _Optional[int] = ...) -> None: ...
 
 class CMsgPracticeLobbyList(_message.Message):
     __slots__ = ("pass_key", "region", "game_mode")
@@ -608,40 +396,17 @@ class CMsgPracticeLobbyList(_message.Message):
     pass_key: str
     region: int
     game_mode: _dota_shared_enums_pb2.DOTA_GameMode
-    def __init__(
-        self,
-        pass_key: str | None = ...,
-        region: int | None = ...,
-        game_mode: _dota_shared_enums_pb2.DOTA_GameMode | str | None = ...,
-    ) -> None: ...
+    def __init__(self, pass_key: _Optional[str] = ..., region: _Optional[int] = ..., game_mode: _Optional[_Union[_dota_shared_enums_pb2.DOTA_GameMode, str]] = ...) -> None: ...
 
 class CMsgPracticeLobbyListResponseEntry(_message.Message):
-    __slots__ = (
-        "id",
-        "members",
-        "requires_pass_key",
-        "leader_account_id",
-        "name",
-        "custom_game_mode",
-        "game_mode",
-        "friend_present",
-        "players",
-        "custom_map_name",
-        "max_player_count",
-        "server_region",
-        "league_id",
-        "lan_host_ping_location",
-        "min_player_count",
-        "penalties_enabled",
-    )
+    __slots__ = ("id", "members", "requires_pass_key", "leader_account_id", "name", "custom_game_mode", "game_mode", "friend_present", "players", "custom_map_name", "max_player_count", "server_region", "league_id", "lan_host_ping_location", "min_player_count", "penalties_enabled")
     class CLobbyMember(_message.Message):
         __slots__ = ("account_id", "player_name")
         ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
         PLAYER_NAME_FIELD_NUMBER: _ClassVar[int]
         account_id: int
         player_name: str
-        def __init__(self, account_id: int | None = ..., player_name: str | None = ...) -> None: ...
-
+        def __init__(self, account_id: _Optional[int] = ..., player_name: _Optional[str] = ...) -> None: ...
     ID_FIELD_NUMBER: _ClassVar[int]
     MEMBERS_FIELD_NUMBER: _ClassVar[int]
     REQUIRES_PASS_KEY_FIELD_NUMBER: _ClassVar[int]
@@ -659,9 +424,7 @@ class CMsgPracticeLobbyListResponseEntry(_message.Message):
     MIN_PLAYER_COUNT_FIELD_NUMBER: _ClassVar[int]
     PENALTIES_ENABLED_FIELD_NUMBER: _ClassVar[int]
     id: int
-    members: _containers.RepeatedCompositeFieldContainer[
-        CMsgPracticeLobbyListResponseEntry.CLobbyMember
-    ]
+    members: _containers.RepeatedCompositeFieldContainer[CMsgPracticeLobbyListResponseEntry.CLobbyMember]
     requires_pass_key: bool
     leader_account_id: int
     name: str
@@ -676,33 +439,13 @@ class CMsgPracticeLobbyListResponseEntry(_message.Message):
     lan_host_ping_location: str
     min_player_count: int
     penalties_enabled: bool
-    def __init__(
-        self,
-        id: int | None = ...,
-        members: _Iterable[CMsgPracticeLobbyListResponseEntry.CLobbyMember | _Mapping] | None = ...,
-        requires_pass_key: bool = ...,
-        leader_account_id: int | None = ...,
-        name: str | None = ...,
-        custom_game_mode: str | None = ...,
-        game_mode: _dota_shared_enums_pb2.DOTA_GameMode | str | None = ...,
-        friend_present: bool = ...,
-        players: int | None = ...,
-        custom_map_name: str | None = ...,
-        max_player_count: int | None = ...,
-        server_region: int | None = ...,
-        league_id: int | None = ...,
-        lan_host_ping_location: str | None = ...,
-        min_player_count: int | None = ...,
-        penalties_enabled: bool = ...,
-    ) -> None: ...
+    def __init__(self, id: _Optional[int] = ..., members: _Optional[_Iterable[_Union[CMsgPracticeLobbyListResponseEntry.CLobbyMember, _Mapping]]] = ..., requires_pass_key: bool = ..., leader_account_id: _Optional[int] = ..., name: _Optional[str] = ..., custom_game_mode: _Optional[str] = ..., game_mode: _Optional[_Union[_dota_shared_enums_pb2.DOTA_GameMode, str]] = ..., friend_present: bool = ..., players: _Optional[int] = ..., custom_map_name: _Optional[str] = ..., max_player_count: _Optional[int] = ..., server_region: _Optional[int] = ..., league_id: _Optional[int] = ..., lan_host_ping_location: _Optional[str] = ..., min_player_count: _Optional[int] = ..., penalties_enabled: bool = ...) -> None: ...
 
 class CMsgPracticeLobbyListResponse(_message.Message):
     __slots__ = ("lobbies",)
     LOBBIES_FIELD_NUMBER: _ClassVar[int]
     lobbies: _containers.RepeatedCompositeFieldContainer[CMsgPracticeLobbyListResponseEntry]
-    def __init__(
-        self, lobbies: _Iterable[CMsgPracticeLobbyListResponseEntry | _Mapping] | None = ...
-    ) -> None: ...
+    def __init__(self, lobbies: _Optional[_Iterable[_Union[CMsgPracticeLobbyListResponseEntry, _Mapping]]] = ...) -> None: ...
 
 class CMsgLobbyList(_message.Message):
     __slots__ = ("server_region", "game_mode")
@@ -710,28 +453,16 @@ class CMsgLobbyList(_message.Message):
     GAME_MODE_FIELD_NUMBER: _ClassVar[int]
     server_region: int
     game_mode: _dota_shared_enums_pb2.DOTA_GameMode
-    def __init__(
-        self,
-        server_region: int | None = ...,
-        game_mode: _dota_shared_enums_pb2.DOTA_GameMode | str | None = ...,
-    ) -> None: ...
+    def __init__(self, server_region: _Optional[int] = ..., game_mode: _Optional[_Union[_dota_shared_enums_pb2.DOTA_GameMode, str]] = ...) -> None: ...
 
 class CMsgLobbyListResponse(_message.Message):
     __slots__ = ("lobbies",)
     LOBBIES_FIELD_NUMBER: _ClassVar[int]
     lobbies: _containers.RepeatedCompositeFieldContainer[CMsgPracticeLobbyListResponseEntry]
-    def __init__(
-        self, lobbies: _Iterable[CMsgPracticeLobbyListResponseEntry | _Mapping] | None = ...
-    ) -> None: ...
+    def __init__(self, lobbies: _Optional[_Iterable[_Union[CMsgPracticeLobbyListResponseEntry, _Mapping]]] = ...) -> None: ...
 
 class CMsgPracticeLobbyJoin(_message.Message):
-    __slots__ = (
-        "lobby_id",
-        "client_version",
-        "pass_key",
-        "custom_game_crc",
-        "custom_game_timestamp",
-    )
+    __slots__ = ("lobby_id", "client_version", "pass_key", "custom_game_crc", "custom_game_timestamp")
     LOBBY_ID_FIELD_NUMBER: _ClassVar[int]
     CLIENT_VERSION_FIELD_NUMBER: _ClassVar[int]
     PASS_KEY_FIELD_NUMBER: _ClassVar[int]
@@ -742,42 +473,31 @@ class CMsgPracticeLobbyJoin(_message.Message):
     pass_key: str
     custom_game_crc: int
     custom_game_timestamp: int
-    def __init__(
-        self,
-        lobby_id: int | None = ...,
-        client_version: int | None = ...,
-        pass_key: str | None = ...,
-        custom_game_crc: int | None = ...,
-        custom_game_timestamp: int | None = ...,
-    ) -> None: ...
+    def __init__(self, lobby_id: _Optional[int] = ..., client_version: _Optional[int] = ..., pass_key: _Optional[str] = ..., custom_game_crc: _Optional[int] = ..., custom_game_timestamp: _Optional[int] = ...) -> None: ...
 
 class CMsgPracticeLobbyJoinResponse(_message.Message):
     __slots__ = ("result",)
     RESULT_FIELD_NUMBER: _ClassVar[int]
     result: _dota_shared_enums_pb2.DOTAJoinLobbyResult
-    def __init__(
-        self, result: _dota_shared_enums_pb2.DOTAJoinLobbyResult | str | None = ...
-    ) -> None: ...
+    def __init__(self, result: _Optional[_Union[_dota_shared_enums_pb2.DOTAJoinLobbyResult, str]] = ...) -> None: ...
 
 class CMsgFriendPracticeLobbyListRequest(_message.Message):
     __slots__ = ("friends",)
     FRIENDS_FIELD_NUMBER: _ClassVar[int]
     friends: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(self, friends: _Iterable[int] | None = ...) -> None: ...
+    def __init__(self, friends: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CMsgFriendPracticeLobbyListResponse(_message.Message):
     __slots__ = ("lobbies",)
     LOBBIES_FIELD_NUMBER: _ClassVar[int]
     lobbies: _containers.RepeatedCompositeFieldContainer[CMsgPracticeLobbyListResponseEntry]
-    def __init__(
-        self, lobbies: _Iterable[CMsgPracticeLobbyListResponseEntry | _Mapping] | None = ...
-    ) -> None: ...
+    def __init__(self, lobbies: _Optional[_Iterable[_Union[CMsgPracticeLobbyListResponseEntry, _Mapping]]] = ...) -> None: ...
 
 class CMsgJoinableCustomGameModesRequest(_message.Message):
     __slots__ = ("server_region",)
     SERVER_REGION_FIELD_NUMBER: _ClassVar[int]
     server_region: int
-    def __init__(self, server_region: int | None = ...) -> None: ...
+    def __init__(self, server_region: _Optional[int] = ...) -> None: ...
 
 class CMsgJoinableCustomGameModesResponseEntry(_message.Message):
     __slots__ = ("custom_game_id", "lobby_count", "player_count")
@@ -787,23 +507,13 @@ class CMsgJoinableCustomGameModesResponseEntry(_message.Message):
     custom_game_id: int
     lobby_count: int
     player_count: int
-    def __init__(
-        self,
-        custom_game_id: int | None = ...,
-        lobby_count: int | None = ...,
-        player_count: int | None = ...,
-    ) -> None: ...
+    def __init__(self, custom_game_id: _Optional[int] = ..., lobby_count: _Optional[int] = ..., player_count: _Optional[int] = ...) -> None: ...
 
 class CMsgJoinableCustomGameModesResponse(_message.Message):
     __slots__ = ("game_modes",)
     GAME_MODES_FIELD_NUMBER: _ClassVar[int]
-    game_modes: _containers.RepeatedCompositeFieldContainer[
-        CMsgJoinableCustomGameModesResponseEntry
-    ]
-    def __init__(
-        self,
-        game_modes: _Iterable[CMsgJoinableCustomGameModesResponseEntry | _Mapping] | None = ...,
-    ) -> None: ...
+    game_modes: _containers.RepeatedCompositeFieldContainer[CMsgJoinableCustomGameModesResponseEntry]
+    def __init__(self, game_modes: _Optional[_Iterable[_Union[CMsgJoinableCustomGameModesResponseEntry, _Mapping]]] = ...) -> None: ...
 
 class CMsgJoinableCustomLobbiesRequest(_message.Message):
     __slots__ = ("server_region", "custom_game_id")
@@ -811,29 +521,10 @@ class CMsgJoinableCustomLobbiesRequest(_message.Message):
     CUSTOM_GAME_ID_FIELD_NUMBER: _ClassVar[int]
     server_region: int
     custom_game_id: int
-    def __init__(
-        self, server_region: int | None = ..., custom_game_id: int | None = ...
-    ) -> None: ...
+    def __init__(self, server_region: _Optional[int] = ..., custom_game_id: _Optional[int] = ...) -> None: ...
 
 class CMsgJoinableCustomLobbiesResponseEntry(_message.Message):
-    __slots__ = (
-        "lobby_id",
-        "custom_game_id",
-        "lobby_name",
-        "member_count",
-        "leader_account_id",
-        "leader_name",
-        "custom_map_name",
-        "max_player_count",
-        "server_region",
-        "has_pass_key",
-        "lan_host_ping_location",
-        "lobby_creation_time",
-        "custom_game_timestamp",
-        "custom_game_crc",
-        "min_player_count",
-        "penalties_enabled",
-    )
+    __slots__ = ("lobby_id", "custom_game_id", "lobby_name", "member_count", "leader_account_id", "leader_name", "custom_map_name", "max_player_count", "server_region", "has_pass_key", "lan_host_ping_location", "lobby_creation_time", "custom_game_timestamp", "custom_game_crc", "min_player_count", "penalties_enabled")
     LOBBY_ID_FIELD_NUMBER: _ClassVar[int]
     CUSTOM_GAME_ID_FIELD_NUMBER: _ClassVar[int]
     LOBBY_NAME_FIELD_NUMBER: _ClassVar[int]
@@ -866,44 +557,16 @@ class CMsgJoinableCustomLobbiesResponseEntry(_message.Message):
     custom_game_crc: int
     min_player_count: int
     penalties_enabled: bool
-    def __init__(
-        self,
-        lobby_id: int | None = ...,
-        custom_game_id: int | None = ...,
-        lobby_name: str | None = ...,
-        member_count: int | None = ...,
-        leader_account_id: int | None = ...,
-        leader_name: str | None = ...,
-        custom_map_name: str | None = ...,
-        max_player_count: int | None = ...,
-        server_region: int | None = ...,
-        has_pass_key: bool = ...,
-        lan_host_ping_location: str | None = ...,
-        lobby_creation_time: int | None = ...,
-        custom_game_timestamp: int | None = ...,
-        custom_game_crc: int | None = ...,
-        min_player_count: int | None = ...,
-        penalties_enabled: bool = ...,
-    ) -> None: ...
+    def __init__(self, lobby_id: _Optional[int] = ..., custom_game_id: _Optional[int] = ..., lobby_name: _Optional[str] = ..., member_count: _Optional[int] = ..., leader_account_id: _Optional[int] = ..., leader_name: _Optional[str] = ..., custom_map_name: _Optional[str] = ..., max_player_count: _Optional[int] = ..., server_region: _Optional[int] = ..., has_pass_key: bool = ..., lan_host_ping_location: _Optional[str] = ..., lobby_creation_time: _Optional[int] = ..., custom_game_timestamp: _Optional[int] = ..., custom_game_crc: _Optional[int] = ..., min_player_count: _Optional[int] = ..., penalties_enabled: bool = ...) -> None: ...
 
 class CMsgJoinableCustomLobbiesResponse(_message.Message):
     __slots__ = ("lobbies",)
     LOBBIES_FIELD_NUMBER: _ClassVar[int]
     lobbies: _containers.RepeatedCompositeFieldContainer[CMsgJoinableCustomLobbiesResponseEntry]
-    def __init__(
-        self, lobbies: _Iterable[CMsgJoinableCustomLobbiesResponseEntry | _Mapping] | None = ...
-    ) -> None: ...
+    def __init__(self, lobbies: _Optional[_Iterable[_Union[CMsgJoinableCustomLobbiesResponseEntry, _Mapping]]] = ...) -> None: ...
 
 class CMsgQuickJoinCustomLobby(_message.Message):
-    __slots__ = (
-        "legacy_server_region",
-        "custom_game_id",
-        "client_version",
-        "create_lobby_details",
-        "allow_any_map",
-        "legacy_region_pings",
-        "ping_data",
-    )
+    __slots__ = ("legacy_server_region", "custom_game_id", "client_version", "create_lobby_details", "allow_any_map", "legacy_region_pings", "ping_data")
     class LegacyRegionPing(_message.Message):
         __slots__ = ("server_region", "ping", "region_code")
         SERVER_REGION_FIELD_NUMBER: _ClassVar[int]
@@ -912,13 +575,7 @@ class CMsgQuickJoinCustomLobby(_message.Message):
         server_region: int
         ping: int
         region_code: int
-        def __init__(
-            self,
-            server_region: int | None = ...,
-            ping: int | None = ...,
-            region_code: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, server_region: _Optional[int] = ..., ping: _Optional[int] = ..., region_code: _Optional[int] = ...) -> None: ...
     LEGACY_SERVER_REGION_FIELD_NUMBER: _ClassVar[int]
     CUSTOM_GAME_ID_FIELD_NUMBER: _ClassVar[int]
     CLIENT_VERSION_FIELD_NUMBER: _ClassVar[int]
@@ -931,39 +588,18 @@ class CMsgQuickJoinCustomLobby(_message.Message):
     client_version: int
     create_lobby_details: CMsgPracticeLobbySetDetails
     allow_any_map: bool
-    legacy_region_pings: _containers.RepeatedCompositeFieldContainer[
-        CMsgQuickJoinCustomLobby.LegacyRegionPing
-    ]
+    legacy_region_pings: _containers.RepeatedCompositeFieldContainer[CMsgQuickJoinCustomLobby.LegacyRegionPing]
     ping_data: _base_gcmessages_pb2.CMsgClientPingData
-    def __init__(
-        self,
-        legacy_server_region: int | None = ...,
-        custom_game_id: int | None = ...,
-        client_version: int | None = ...,
-        create_lobby_details: CMsgPracticeLobbySetDetails | _Mapping | None = ...,
-        allow_any_map: bool = ...,
-        legacy_region_pings: _Iterable[CMsgQuickJoinCustomLobby.LegacyRegionPing | _Mapping]
-        | None = ...,
-        ping_data: _base_gcmessages_pb2.CMsgClientPingData | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, legacy_server_region: _Optional[int] = ..., custom_game_id: _Optional[int] = ..., client_version: _Optional[int] = ..., create_lobby_details: _Optional[_Union[CMsgPracticeLobbySetDetails, _Mapping]] = ..., allow_any_map: bool = ..., legacy_region_pings: _Optional[_Iterable[_Union[CMsgQuickJoinCustomLobby.LegacyRegionPing, _Mapping]]] = ..., ping_data: _Optional[_Union[_base_gcmessages_pb2.CMsgClientPingData, _Mapping]] = ...) -> None: ...
 
 class CMsgQuickJoinCustomLobbyResponse(_message.Message):
     __slots__ = ("result",)
     RESULT_FIELD_NUMBER: _ClassVar[int]
     result: _dota_shared_enums_pb2.DOTAJoinLobbyResult
-    def __init__(
-        self, result: _dota_shared_enums_pb2.DOTAJoinLobbyResult | str | None = ...
-    ) -> None: ...
+    def __init__(self, result: _Optional[_Union[_dota_shared_enums_pb2.DOTAJoinLobbyResult, str]] = ...) -> None: ...
 
 class CMsgBotGameCreate(_message.Message):
-    __slots__ = (
-        "search_key",
-        "client_version",
-        "difficulty_radiant",
-        "team",
-        "game_mode",
-        "difficulty_dire",
-    )
+    __slots__ = ("search_key", "client_version", "difficulty_radiant", "team", "game_mode", "difficulty_dire")
     SEARCH_KEY_FIELD_NUMBER: _ClassVar[int]
     CLIENT_VERSION_FIELD_NUMBER: _ClassVar[int]
     DIFFICULTY_RADIANT_FIELD_NUMBER: _ClassVar[int]
@@ -976,15 +612,7 @@ class CMsgBotGameCreate(_message.Message):
     team: _dota_shared_enums_pb2.DOTA_GC_TEAM
     game_mode: int
     difficulty_dire: _dota_shared_enums_pb2.DOTABotDifficulty
-    def __init__(
-        self,
-        search_key: str | None = ...,
-        client_version: int | None = ...,
-        difficulty_radiant: _dota_shared_enums_pb2.DOTABotDifficulty | str | None = ...,
-        team: _dota_shared_enums_pb2.DOTA_GC_TEAM | str | None = ...,
-        game_mode: int | None = ...,
-        difficulty_dire: _dota_shared_enums_pb2.DOTABotDifficulty | str | None = ...,
-    ) -> None: ...
+    def __init__(self, search_key: _Optional[str] = ..., client_version: _Optional[int] = ..., difficulty_radiant: _Optional[_Union[_dota_shared_enums_pb2.DOTABotDifficulty, str]] = ..., team: _Optional[_Union[_dota_shared_enums_pb2.DOTA_GC_TEAM, str]] = ..., game_mode: _Optional[int] = ..., difficulty_dire: _Optional[_Union[_dota_shared_enums_pb2.DOTABotDifficulty, str]] = ...) -> None: ...
 
 class CMsgDOTAPartyMemberSetCoach(_message.Message):
     __slots__ = ("wants_coach",)
@@ -996,7 +624,7 @@ class CMsgDOTASetGroupLeader(_message.Message):
     __slots__ = ("new_leader_steamid",)
     NEW_LEADER_STEAMID_FIELD_NUMBER: _ClassVar[int]
     new_leader_steamid: int
-    def __init__(self, new_leader_steamid: int | None = ...) -> None: ...
+    def __init__(self, new_leader_steamid: _Optional[int] = ...) -> None: ...
 
 class CMsgDOTACancelGroupInvites(_message.Message):
     __slots__ = ("invited_steamids", "invited_groupids")
@@ -1004,11 +632,7 @@ class CMsgDOTACancelGroupInvites(_message.Message):
     INVITED_GROUPIDS_FIELD_NUMBER: _ClassVar[int]
     invited_steamids: _containers.RepeatedScalarFieldContainer[int]
     invited_groupids: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(
-        self,
-        invited_steamids: _Iterable[int] | None = ...,
-        invited_groupids: _Iterable[int] | None = ...,
-    ) -> None: ...
+    def __init__(self, invited_steamids: _Optional[_Iterable[int]] = ..., invited_groupids: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CMsgDOTASetGroupOpenStatus(_message.Message):
     __slots__ = ("open",)
@@ -1020,7 +644,7 @@ class CMsgDOTAGroupMergeInvite(_message.Message):
     __slots__ = ("other_group_id",)
     OTHER_GROUP_ID_FIELD_NUMBER: _ClassVar[int]
     other_group_id: int
-    def __init__(self, other_group_id: int | None = ...) -> None: ...
+    def __init__(self, other_group_id: _Optional[int] = ...) -> None: ...
 
 class CMsgDOTAGroupMergeResponse(_message.Message):
     __slots__ = ("initiator_group_id", "accept")
@@ -1028,29 +652,16 @@ class CMsgDOTAGroupMergeResponse(_message.Message):
     ACCEPT_FIELD_NUMBER: _ClassVar[int]
     initiator_group_id: int
     accept: bool
-    def __init__(self, initiator_group_id: int | None = ..., accept: bool = ...) -> None: ...
+    def __init__(self, initiator_group_id: _Optional[int] = ..., accept: bool = ...) -> None: ...
 
 class CMsgDOTAGroupMergeReply(_message.Message):
     __slots__ = ("result",)
     RESULT_FIELD_NUMBER: _ClassVar[int]
     result: _dota_client_enums_pb2.EDOTAGroupMergeResult
-    def __init__(
-        self, result: _dota_client_enums_pb2.EDOTAGroupMergeResult | str | None = ...
-    ) -> None: ...
+    def __init__(self, result: _Optional[_Union[_dota_client_enums_pb2.EDOTAGroupMergeResult, str]] = ...) -> None: ...
 
 class CMsgSpectatorLobbyGameDetails(_message.Message):
-    __slots__ = (
-        "language",
-        "match_id",
-        "server_steam_id",
-        "stream_url",
-        "stream_name",
-        "league_id",
-        "series_type",
-        "series_game",
-        "radiant_team",
-        "dire_team",
-    )
+    __slots__ = ("language", "match_id", "server_steam_id", "stream_url", "stream_name", "league_id", "series_type", "series_game", "radiant_team", "dire_team")
     class Team(_message.Message):
         __slots__ = ("team_id", "team_name", "team_logo")
         TEAM_ID_FIELD_NUMBER: _ClassVar[int]
@@ -1059,13 +670,7 @@ class CMsgSpectatorLobbyGameDetails(_message.Message):
         team_id: int
         team_name: str
         team_logo: int
-        def __init__(
-            self,
-            team_id: int | None = ...,
-            team_name: str | None = ...,
-            team_logo: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, team_id: _Optional[int] = ..., team_name: _Optional[str] = ..., team_logo: _Optional[int] = ...) -> None: ...
     LANGUAGE_FIELD_NUMBER: _ClassVar[int]
     MATCH_ID_FIELD_NUMBER: _ClassVar[int]
     SERVER_STEAM_ID_FIELD_NUMBER: _ClassVar[int]
@@ -1086,19 +691,7 @@ class CMsgSpectatorLobbyGameDetails(_message.Message):
     series_game: int
     radiant_team: CMsgSpectatorLobbyGameDetails.Team
     dire_team: CMsgSpectatorLobbyGameDetails.Team
-    def __init__(
-        self,
-        language: int | None = ...,
-        match_id: int | None = ...,
-        server_steam_id: int | None = ...,
-        stream_url: str | None = ...,
-        stream_name: str | None = ...,
-        league_id: int | None = ...,
-        series_type: int | None = ...,
-        series_game: int | None = ...,
-        radiant_team: CMsgSpectatorLobbyGameDetails.Team | _Mapping | None = ...,
-        dire_team: CMsgSpectatorLobbyGameDetails.Team | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, language: _Optional[int] = ..., match_id: _Optional[int] = ..., server_steam_id: _Optional[int] = ..., stream_url: _Optional[str] = ..., stream_name: _Optional[str] = ..., league_id: _Optional[int] = ..., series_type: _Optional[int] = ..., series_game: _Optional[int] = ..., radiant_team: _Optional[_Union[CMsgSpectatorLobbyGameDetails.Team, _Mapping]] = ..., dire_team: _Optional[_Union[CMsgSpectatorLobbyGameDetails.Team, _Mapping]] = ...) -> None: ...
 
 class CMsgSetSpectatorLobbyDetails(_message.Message):
     __slots__ = ("lobby_id", "lobby_name", "pass_key", "game_details")
@@ -1110,13 +703,7 @@ class CMsgSetSpectatorLobbyDetails(_message.Message):
     lobby_name: str
     pass_key: str
     game_details: CMsgSpectatorLobbyGameDetails
-    def __init__(
-        self,
-        lobby_id: int | None = ...,
-        lobby_name: str | None = ...,
-        pass_key: str | None = ...,
-        game_details: CMsgSpectatorLobbyGameDetails | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, lobby_id: _Optional[int] = ..., lobby_name: _Optional[str] = ..., pass_key: _Optional[str] = ..., game_details: _Optional[_Union[CMsgSpectatorLobbyGameDetails, _Mapping]] = ...) -> None: ...
 
 class CMsgCreateSpectatorLobby(_message.Message):
     __slots__ = ("client_version", "details")
@@ -1124,11 +711,7 @@ class CMsgCreateSpectatorLobby(_message.Message):
     DETAILS_FIELD_NUMBER: _ClassVar[int]
     client_version: int
     details: CMsgSetSpectatorLobbyDetails
-    def __init__(
-        self,
-        client_version: int | None = ...,
-        details: CMsgSetSpectatorLobbyDetails | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, client_version: _Optional[int] = ..., details: _Optional[_Union[CMsgSetSpectatorLobbyDetails, _Mapping]] = ...) -> None: ...
 
 class CMsgSpectatorLobbyList(_message.Message):
     __slots__ = ()
@@ -1137,14 +720,7 @@ class CMsgSpectatorLobbyList(_message.Message):
 class CMsgSpectatorLobbyListResponse(_message.Message):
     __slots__ = ("lobbies",)
     class SpectatorLobby(_message.Message):
-        __slots__ = (
-            "lobby_id",
-            "game_name",
-            "requires_pass_key",
-            "leader_account_id",
-            "member_count",
-            "game_details",
-        )
+        __slots__ = ("lobby_id", "game_name", "requires_pass_key", "leader_account_id", "member_count", "game_details")
         LOBBY_ID_FIELD_NUMBER: _ClassVar[int]
         GAME_NAME_FIELD_NUMBER: _ClassVar[int]
         REQUIRES_PASS_KEY_FIELD_NUMBER: _ClassVar[int]
@@ -1157,30 +733,16 @@ class CMsgSpectatorLobbyListResponse(_message.Message):
         leader_account_id: int
         member_count: int
         game_details: CMsgSpectatorLobbyGameDetails
-        def __init__(
-            self,
-            lobby_id: int | None = ...,
-            game_name: str | None = ...,
-            requires_pass_key: bool = ...,
-            leader_account_id: int | None = ...,
-            member_count: int | None = ...,
-            game_details: CMsgSpectatorLobbyGameDetails | _Mapping | None = ...,
-        ) -> None: ...
-
+        def __init__(self, lobby_id: _Optional[int] = ..., game_name: _Optional[str] = ..., requires_pass_key: bool = ..., leader_account_id: _Optional[int] = ..., member_count: _Optional[int] = ..., game_details: _Optional[_Union[CMsgSpectatorLobbyGameDetails, _Mapping]] = ...) -> None: ...
     LOBBIES_FIELD_NUMBER: _ClassVar[int]
-    lobbies: _containers.RepeatedCompositeFieldContainer[
-        CMsgSpectatorLobbyListResponse.SpectatorLobby
-    ]
-    def __init__(
-        self,
-        lobbies: _Iterable[CMsgSpectatorLobbyListResponse.SpectatorLobby | _Mapping] | None = ...,
-    ) -> None: ...
+    lobbies: _containers.RepeatedCompositeFieldContainer[CMsgSpectatorLobbyListResponse.SpectatorLobby]
+    def __init__(self, lobbies: _Optional[_Iterable[_Union[CMsgSpectatorLobbyListResponse.SpectatorLobby, _Mapping]]] = ...) -> None: ...
 
 class CMsgClientToGCRequestSteamDatagramTicket(_message.Message):
     __slots__ = ("server_steam_id",)
     SERVER_STEAM_ID_FIELD_NUMBER: _ClassVar[int]
     server_steam_id: int
-    def __init__(self, server_steam_id: int | None = ...) -> None: ...
+    def __init__(self, server_steam_id: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCRequestSteamDatagramTicketResponse(_message.Message):
     __slots__ = ("serialized_ticket", "message")
@@ -1188,22 +750,10 @@ class CMsgClientToGCRequestSteamDatagramTicketResponse(_message.Message):
     MESSAGE_FIELD_NUMBER: _ClassVar[int]
     serialized_ticket: bytes
     message: str
-    def __init__(
-        self, serialized_ticket: bytes | None = ..., message: str | None = ...
-    ) -> None: ...
+    def __init__(self, serialized_ticket: _Optional[bytes] = ..., message: _Optional[str] = ...) -> None: ...
 
 class CMsgGCToClientSteamDatagramTicket(_message.Message):
-    __slots__ = (
-        "legacy_time_expiry",
-        "legacy_authorized_steam_id",
-        "legacy_authorized_public_ip",
-        "legacy_gameserver_steam_id",
-        "legacy_gameserver_net_id",
-        "legacy_signature",
-        "legacy_app_id",
-        "legacy_extra_fields",
-        "serialized_ticket",
-    )
+    __slots__ = ("legacy_time_expiry", "legacy_authorized_steam_id", "legacy_authorized_public_ip", "legacy_gameserver_steam_id", "legacy_gameserver_net_id", "legacy_signature", "legacy_app_id", "legacy_extra_fields", "serialized_ticket")
     LEGACY_TIME_EXPIRY_FIELD_NUMBER: _ClassVar[int]
     LEGACY_AUTHORIZED_STEAM_ID_FIELD_NUMBER: _ClassVar[int]
     LEGACY_AUTHORIZED_PUBLIC_IP_FIELD_NUMBER: _ClassVar[int]
@@ -1222,18 +772,7 @@ class CMsgGCToClientSteamDatagramTicket(_message.Message):
     legacy_app_id: int
     legacy_extra_fields: _containers.RepeatedScalarFieldContainer[bytes]
     serialized_ticket: bytes
-    def __init__(
-        self,
-        legacy_time_expiry: int | None = ...,
-        legacy_authorized_steam_id: int | None = ...,
-        legacy_authorized_public_ip: int | None = ...,
-        legacy_gameserver_steam_id: int | None = ...,
-        legacy_gameserver_net_id: int | None = ...,
-        legacy_signature: bytes | None = ...,
-        legacy_app_id: int | None = ...,
-        legacy_extra_fields: _Iterable[bytes] | None = ...,
-        serialized_ticket: bytes | None = ...,
-    ) -> None: ...
+    def __init__(self, legacy_time_expiry: _Optional[int] = ..., legacy_authorized_steam_id: _Optional[int] = ..., legacy_authorized_public_ip: _Optional[int] = ..., legacy_gameserver_steam_id: _Optional[int] = ..., legacy_gameserver_net_id: _Optional[int] = ..., legacy_signature: _Optional[bytes] = ..., legacy_app_id: _Optional[int] = ..., legacy_extra_fields: _Optional[_Iterable[bytes]] = ..., serialized_ticket: _Optional[bytes] = ...) -> None: ...
 
 class CMsgGCToClientRequestLaneSelection(_message.Message):
     __slots__ = ()
@@ -1245,9 +784,7 @@ class CMsgGCToClientRequestLaneSelectionResponse(_message.Message):
     HIGH_PRIORITY_DISABLED_FIELD_NUMBER: _ClassVar[int]
     lane_selection_flags: int
     high_priority_disabled: bool
-    def __init__(
-        self, lane_selection_flags: int | None = ..., high_priority_disabled: bool = ...
-    ) -> None: ...
+    def __init__(self, lane_selection_flags: _Optional[int] = ..., high_priority_disabled: bool = ...) -> None: ...
 
 class CMsgGCToClientRequestMMInfo(_message.Message):
     __slots__ = ()
@@ -1259,6 +796,4 @@ class CMsgClientToGCMMInfo(_message.Message):
     HIGH_PRIORITY_DISABLED_FIELD_NUMBER: _ClassVar[int]
     lane_selection_flags: int
     high_priority_disabled: bool
-    def __init__(
-        self, lane_selection_flags: int | None = ..., high_priority_disabled: bool = ...
-    ) -> None: ...
+    def __init__(self, lane_selection_flags: _Optional[int] = ..., high_priority_disabled: bool = ...) -> None: ...

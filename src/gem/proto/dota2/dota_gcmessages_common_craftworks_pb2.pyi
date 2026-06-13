@@ -1,11 +1,12 @@
-from collections.abc import Iterable as _Iterable
-from collections.abc import Mapping as _Mapping
-from typing import ClassVar as _ClassVar
-
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
+import steammessages_pb2 as _steammessages_pb2
+import dota_shared_enums_pb2 as _dota_shared_enums_pb2
+import gcsdk_gcmessages_pb2 as _gcsdk_gcmessages_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -15,7 +16,6 @@ class ECraftworksAuditAction(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_eRecipeCrafted: _ClassVar[ECraftworksAuditAction]
     k_eMatchRewards: _ClassVar[ECraftworksAuditAction]
     k_eMatchRewardsTurbo: _ClassVar[ECraftworksAuditAction]
-
 k_eInvalid: ECraftworksAuditAction
 k_eRecipeCrafted: ECraftworksAuditAction
 k_eMatchRewards: ECraftworksAuditAction
@@ -29,19 +29,10 @@ class CMsgCraftworksComponents(_message.Message):
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: int
         value: int
-        def __init__(self, key: int | None = ..., value: int | None = ...) -> None: ...
-
+        def __init__(self, key: _Optional[int] = ..., value: _Optional[int] = ...) -> None: ...
     COMPONENT_QUANTITIES_FIELD_NUMBER: _ClassVar[int]
-    component_quantities: _containers.RepeatedCompositeFieldContainer[
-        CMsgCraftworksComponents.ComponentQuantitiesEntry
-    ]
-    def __init__(
-        self,
-        component_quantities: _Iterable[
-            CMsgCraftworksComponents.ComponentQuantitiesEntry | _Mapping
-        ]
-        | None = ...,
-    ) -> None: ...
+    component_quantities: _containers.RepeatedCompositeFieldContainer[CMsgCraftworksComponents.ComponentQuantitiesEntry]
+    def __init__(self, component_quantities: _Optional[_Iterable[_Union[CMsgCraftworksComponents.ComponentQuantitiesEntry, _Mapping]]] = ...) -> None: ...
 
 class CMsgCraftworksQuestReward(_message.Message):
     __slots__ = ("quest_id", "reward_components", "stat_value")
@@ -51,9 +42,4 @@ class CMsgCraftworksQuestReward(_message.Message):
     quest_id: int
     reward_components: CMsgCraftworksComponents
     stat_value: int
-    def __init__(
-        self,
-        quest_id: int | None = ...,
-        reward_components: CMsgCraftworksComponents | _Mapping | None = ...,
-        stat_value: int | None = ...,
-    ) -> None: ...
+    def __init__(self, quest_id: _Optional[int] = ..., reward_components: _Optional[_Union[CMsgCraftworksComponents, _Mapping]] = ..., stat_value: _Optional[int] = ...) -> None: ...

@@ -1,14 +1,13 @@
-from collections.abc import Iterable as _Iterable
-from collections.abc import Mapping as _Mapping
-from typing import ClassVar as _ClassVar
-
-import base_gcmessages_pb2 as _base_gcmessages_pb2
+import steammessages_pb2 as _steammessages_pb2
 import econ_shared_enums_pb2 as _econ_shared_enums_pb2
 import gcsdk_gcmessages_pb2 as _gcsdk_gcmessages_pb2
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
+import base_gcmessages_pb2 as _base_gcmessages_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -164,9 +163,7 @@ class EGCMsgInitiateTradeResponse(int, metaclass=_enum_type_wrapper.EnumTypeWrap
     k_EGCMsgInitiateTradeResponse_TooSoonPenalty: _ClassVar[EGCMsgInitiateTradeResponse]
     k_EGCMsgInitiateTradeResponse_Trade_Banned_Initiator: _ClassVar[EGCMsgInitiateTradeResponse]
     k_EGCMsgInitiateTradeResponse_Trade_Banned_Target: _ClassVar[EGCMsgInitiateTradeResponse]
-    k_EGCMsgInitiateTradeResponse_Free_Account_Initiator_DEPRECATED: _ClassVar[
-        EGCMsgInitiateTradeResponse
-    ]
+    k_EGCMsgInitiateTradeResponse_Free_Account_Initiator_DEPRECATED: _ClassVar[EGCMsgInitiateTradeResponse]
     k_EGCMsgInitiateTradeResponse_Shared_Account_Initiator: _ClassVar[EGCMsgInitiateTradeResponse]
     k_EGCMsgInitiateTradeResponse_Service_Unavailable: _ClassVar[EGCMsgInitiateTradeResponse]
     k_EGCMsgInitiateTradeResponse_Target_Blocked: _ClassVar[EGCMsgInitiateTradeResponse]
@@ -179,7 +176,6 @@ class EGCMsgInitiateTradeResponse(int, metaclass=_enum_type_wrapper.EnumTypeWrap
     k_EGCMsgInitiateTradeResponse_Sent_Invalid_Cookie: _ClassVar[EGCMsgInitiateTradeResponse]
     k_EGCMsgInitiateTradeResponse_TooRecentFriend: _ClassVar[EGCMsgInitiateTradeResponse]
     k_EGCMsgInitiateTradeResponse_WalledFundsNotTrusted: _ClassVar[EGCMsgInitiateTradeResponse]
-
 k_EMsgGCBase: EGCItemMsg
 k_EMsgGCSetItemPosition: EGCItemMsg
 k_EMsgClientToGCPackBundle: EGCItemMsg
@@ -347,9 +343,7 @@ class CMsgApplyAutograph(_message.Message):
     ITEM_ITEM_ID_FIELD_NUMBER: _ClassVar[int]
     autograph_item_id: int
     item_item_id: int
-    def __init__(
-        self, autograph_item_id: int | None = ..., item_item_id: int | None = ...
-    ) -> None: ...
+    def __init__(self, autograph_item_id: _Optional[int] = ..., item_item_id: _Optional[int] = ...) -> None: ...
 
 class CMsgAdjustItemEquippedState(_message.Message):
     __slots__ = ("item_id", "new_class", "new_slot", "style_index")
@@ -361,13 +355,7 @@ class CMsgAdjustItemEquippedState(_message.Message):
     new_class: int
     new_slot: int
     style_index: int
-    def __init__(
-        self,
-        item_id: int | None = ...,
-        new_class: int | None = ...,
-        new_slot: int | None = ...,
-        style_index: int | None = ...,
-    ) -> None: ...
+    def __init__(self, item_id: _Optional[int] = ..., new_class: _Optional[int] = ..., new_slot: _Optional[int] = ..., style_index: _Optional[int] = ...) -> None: ...
 
 class CMsgEconPlayerStrangeCountAdjustment(_message.Message):
     __slots__ = ("account_id", "strange_count_adjustments", "turbo_mode")
@@ -379,36 +367,20 @@ class CMsgEconPlayerStrangeCountAdjustment(_message.Message):
         event_type: int
         item_id: int
         adjustment: int
-        def __init__(
-            self,
-            event_type: int | None = ...,
-            item_id: int | None = ...,
-            adjustment: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, event_type: _Optional[int] = ..., item_id: _Optional[int] = ..., adjustment: _Optional[int] = ...) -> None: ...
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     STRANGE_COUNT_ADJUSTMENTS_FIELD_NUMBER: _ClassVar[int]
     TURBO_MODE_FIELD_NUMBER: _ClassVar[int]
     account_id: int
-    strange_count_adjustments: _containers.RepeatedCompositeFieldContainer[
-        CMsgEconPlayerStrangeCountAdjustment.CStrangeCountAdjustment
-    ]
+    strange_count_adjustments: _containers.RepeatedCompositeFieldContainer[CMsgEconPlayerStrangeCountAdjustment.CStrangeCountAdjustment]
     turbo_mode: bool
-    def __init__(
-        self,
-        account_id: int | None = ...,
-        strange_count_adjustments: _Iterable[
-            CMsgEconPlayerStrangeCountAdjustment.CStrangeCountAdjustment | _Mapping
-        ]
-        | None = ...,
-        turbo_mode: bool = ...,
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., strange_count_adjustments: _Optional[_Iterable[_Union[CMsgEconPlayerStrangeCountAdjustment.CStrangeCountAdjustment, _Mapping]]] = ..., turbo_mode: bool = ...) -> None: ...
 
 class CMsgCraftingResponse(_message.Message):
     __slots__ = ("item_ids",)
     ITEM_IDS_FIELD_NUMBER: _ClassVar[int]
     item_ids: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(self, item_ids: _Iterable[int] | None = ...) -> None: ...
+    def __init__(self, item_ids: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CMsgGCRequestStoreSalesData(_message.Message):
     __slots__ = ("version", "currency")
@@ -416,7 +388,7 @@ class CMsgGCRequestStoreSalesData(_message.Message):
     CURRENCY_FIELD_NUMBER: _ClassVar[int]
     version: int
     currency: int
-    def __init__(self, version: int | None = ..., currency: int | None = ...) -> None: ...
+    def __init__(self, version: _Optional[int] = ..., currency: _Optional[int] = ...) -> None: ...
 
 class CMsgGCRequestStoreSalesDataResponse(_message.Message):
     __slots__ = ("sale_price", "version", "expiration_time")
@@ -426,22 +398,14 @@ class CMsgGCRequestStoreSalesDataResponse(_message.Message):
         PRICE_FIELD_NUMBER: _ClassVar[int]
         item_def: int
         price: int
-        def __init__(self, item_def: int | None = ..., price: int | None = ...) -> None: ...
-
+        def __init__(self, item_def: _Optional[int] = ..., price: _Optional[int] = ...) -> None: ...
     SALE_PRICE_FIELD_NUMBER: _ClassVar[int]
     VERSION_FIELD_NUMBER: _ClassVar[int]
     EXPIRATION_TIME_FIELD_NUMBER: _ClassVar[int]
-    sale_price: _containers.RepeatedCompositeFieldContainer[
-        CMsgGCRequestStoreSalesDataResponse.Price
-    ]
+    sale_price: _containers.RepeatedCompositeFieldContainer[CMsgGCRequestStoreSalesDataResponse.Price]
     version: int
     expiration_time: int
-    def __init__(
-        self,
-        sale_price: _Iterable[CMsgGCRequestStoreSalesDataResponse.Price | _Mapping] | None = ...,
-        version: int | None = ...,
-        expiration_time: int | None = ...,
-    ) -> None: ...
+    def __init__(self, sale_price: _Optional[_Iterable[_Union[CMsgGCRequestStoreSalesDataResponse.Price, _Mapping]]] = ..., version: _Optional[int] = ..., expiration_time: _Optional[int] = ...) -> None: ...
 
 class CMsgGCRequestStoreSalesDataUpToDateResponse(_message.Message):
     __slots__ = ("version", "expiration_time")
@@ -449,7 +413,7 @@ class CMsgGCRequestStoreSalesDataUpToDateResponse(_message.Message):
     EXPIRATION_TIME_FIELD_NUMBER: _ClassVar[int]
     version: int
     expiration_time: int
-    def __init__(self, version: int | None = ..., expiration_time: int | None = ...) -> None: ...
+    def __init__(self, version: _Optional[int] = ..., expiration_time: _Optional[int] = ...) -> None: ...
 
 class CMsgGCToGCPingRequest(_message.Message):
     __slots__ = ()
@@ -463,7 +427,7 @@ class CMsgGCToGCGetUserSessionServer(_message.Message):
     __slots__ = ("account_id",)
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     account_id: int
-    def __init__(self, account_id: int | None = ...) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ...) -> None: ...
 
 class CMsgGCToGCGetUserSessionServerResponse(_message.Message):
     __slots__ = ("server_steam_id", "is_online")
@@ -471,7 +435,7 @@ class CMsgGCToGCGetUserSessionServerResponse(_message.Message):
     IS_ONLINE_FIELD_NUMBER: _ClassVar[int]
     server_steam_id: int
     is_online: bool
-    def __init__(self, server_steam_id: int | None = ..., is_online: bool = ...) -> None: ...
+    def __init__(self, server_steam_id: _Optional[int] = ..., is_online: bool = ...) -> None: ...
 
 class CMsgGCToGCGetUserServerMembers(_message.Message):
     __slots__ = ("account_id", "max_spectators")
@@ -479,19 +443,19 @@ class CMsgGCToGCGetUserServerMembers(_message.Message):
     MAX_SPECTATORS_FIELD_NUMBER: _ClassVar[int]
     account_id: int
     max_spectators: int
-    def __init__(self, account_id: int | None = ..., max_spectators: int | None = ...) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., max_spectators: _Optional[int] = ...) -> None: ...
 
 class CMsgGCToGCGetUserServerMembersResponse(_message.Message):
     __slots__ = ("member_account_id",)
     MEMBER_ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     member_account_id: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(self, member_account_id: _Iterable[int] | None = ...) -> None: ...
+    def __init__(self, member_account_id: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CMsgLookupMultipleAccountNames(_message.Message):
     __slots__ = ("accountids",)
     ACCOUNTIDS_FIELD_NUMBER: _ClassVar[int]
     accountids: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(self, accountids: _Iterable[int] | None = ...) -> None: ...
+    def __init__(self, accountids: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CMsgLookupMultipleAccountNamesResponse(_message.Message):
     __slots__ = ("accounts",)
@@ -501,22 +465,16 @@ class CMsgLookupMultipleAccountNamesResponse(_message.Message):
         PERSONA_FIELD_NUMBER: _ClassVar[int]
         accountid: int
         persona: str
-        def __init__(self, accountid: int | None = ..., persona: str | None = ...) -> None: ...
-
+        def __init__(self, accountid: _Optional[int] = ..., persona: _Optional[str] = ...) -> None: ...
     ACCOUNTS_FIELD_NUMBER: _ClassVar[int]
-    accounts: _containers.RepeatedCompositeFieldContainer[
-        CMsgLookupMultipleAccountNamesResponse.Account
-    ]
-    def __init__(
-        self,
-        accounts: _Iterable[CMsgLookupMultipleAccountNamesResponse.Account | _Mapping] | None = ...,
-    ) -> None: ...
+    accounts: _containers.RepeatedCompositeFieldContainer[CMsgLookupMultipleAccountNamesResponse.Account]
+    def __init__(self, accounts: _Optional[_Iterable[_Union[CMsgLookupMultipleAccountNamesResponse.Account, _Mapping]]] = ...) -> None: ...
 
 class CMsgRequestCrateItems(_message.Message):
     __slots__ = ("crate_item_def",)
     CRATE_ITEM_DEF_FIELD_NUMBER: _ClassVar[int]
     crate_item_def: int
-    def __init__(self, crate_item_def: int | None = ...) -> None: ...
+    def __init__(self, crate_item_def: _Optional[int] = ...) -> None: ...
 
 class CMsgRequestCrateItemsResponse(_message.Message):
     __slots__ = ("response", "item_defs", "peek_item_defs", "peek_items")
@@ -524,7 +482,6 @@ class CMsgRequestCrateItemsResponse(_message.Message):
         __slots__ = ()
         k_Succeeded: _ClassVar[CMsgRequestCrateItemsResponse.EResult]
         k_Failed: _ClassVar[CMsgRequestCrateItemsResponse.EResult]
-
     k_Succeeded: CMsgRequestCrateItemsResponse.EResult
     k_Failed: CMsgRequestCrateItemsResponse.EResult
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
@@ -535,33 +492,20 @@ class CMsgRequestCrateItemsResponse(_message.Message):
     item_defs: _containers.RepeatedScalarFieldContainer[int]
     peek_item_defs: _containers.RepeatedScalarFieldContainer[int]
     peek_items: _containers.RepeatedCompositeFieldContainer[_base_gcmessages_pb2.CSOEconItem]
-    def __init__(
-        self,
-        response: int | None = ...,
-        item_defs: _Iterable[int] | None = ...,
-        peek_item_defs: _Iterable[int] | None = ...,
-        peek_items: _Iterable[_base_gcmessages_pb2.CSOEconItem | _Mapping] | None = ...,
-    ) -> None: ...
+    def __init__(self, response: _Optional[int] = ..., item_defs: _Optional[_Iterable[int]] = ..., peek_item_defs: _Optional[_Iterable[int]] = ..., peek_items: _Optional[_Iterable[_Union[_base_gcmessages_pb2.CSOEconItem, _Mapping]]] = ...) -> None: ...
 
 class CMsgRequestCrateEscalationLevel(_message.Message):
     __slots__ = ("crate_item_def",)
     CRATE_ITEM_DEF_FIELD_NUMBER: _ClassVar[int]
     crate_item_def: int
-    def __init__(self, crate_item_def: int | None = ...) -> None: ...
+    def __init__(self, crate_item_def: _Optional[int] = ...) -> None: ...
 
 class CMsgRequestCrateEscalationLevelResponse(_message.Message):
-    __slots__ = (
-        "response",
-        "escalation_level0",
-        "escalation_level1",
-        "escalation_level2",
-        "escalation_level3",
-    )
+    __slots__ = ("response", "escalation_level0", "escalation_level1", "escalation_level2", "escalation_level3")
     class EResult(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
         k_Succeeded: _ClassVar[CMsgRequestCrateEscalationLevelResponse.EResult]
         k_Failed: _ClassVar[CMsgRequestCrateEscalationLevelResponse.EResult]
-
     k_Succeeded: CMsgRequestCrateEscalationLevelResponse.EResult
     k_Failed: CMsgRequestCrateEscalationLevelResponse.EResult
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
@@ -574,23 +518,10 @@ class CMsgRequestCrateEscalationLevelResponse(_message.Message):
     escalation_level1: int
     escalation_level2: int
     escalation_level3: int
-    def __init__(
-        self,
-        response: int | None = ...,
-        escalation_level0: int | None = ...,
-        escalation_level1: int | None = ...,
-        escalation_level2: int | None = ...,
-        escalation_level3: int | None = ...,
-    ) -> None: ...
+    def __init__(self, response: _Optional[int] = ..., escalation_level0: _Optional[int] = ..., escalation_level1: _Optional[int] = ..., escalation_level2: _Optional[int] = ..., escalation_level3: _Optional[int] = ...) -> None: ...
 
 class CMsgGCToGCCanUseDropRateBonus(_message.Message):
-    __slots__ = (
-        "account_id",
-        "drop_rate_bonus",
-        "booster_type",
-        "exclusive_item_def",
-        "allow_equal_rate",
-    )
+    __slots__ = ("account_id", "drop_rate_bonus", "booster_type", "exclusive_item_def", "allow_equal_rate")
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     DROP_RATE_BONUS_FIELD_NUMBER: _ClassVar[int]
     BOOSTER_TYPE_FIELD_NUMBER: _ClassVar[int]
@@ -601,25 +532,10 @@ class CMsgGCToGCCanUseDropRateBonus(_message.Message):
     booster_type: int
     exclusive_item_def: int
     allow_equal_rate: bool
-    def __init__(
-        self,
-        account_id: int | None = ...,
-        drop_rate_bonus: float | None = ...,
-        booster_type: int | None = ...,
-        exclusive_item_def: int | None = ...,
-        allow_equal_rate: bool = ...,
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., drop_rate_bonus: _Optional[float] = ..., booster_type: _Optional[int] = ..., exclusive_item_def: _Optional[int] = ..., allow_equal_rate: bool = ...) -> None: ...
 
 class CMsgSQLAddDropRateBonus(_message.Message):
-    __slots__ = (
-        "account_id",
-        "item_id",
-        "item_def",
-        "drop_rate_bonus",
-        "booster_type",
-        "seconds_duration",
-        "end_time_stamp",
-    )
+    __slots__ = ("account_id", "item_id", "item_def", "drop_rate_bonus", "booster_type", "seconds_duration", "end_time_stamp")
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     ITEM_ID_FIELD_NUMBER: _ClassVar[int]
     ITEM_DEF_FIELD_NUMBER: _ClassVar[int]
@@ -634,16 +550,7 @@ class CMsgSQLAddDropRateBonus(_message.Message):
     booster_type: int
     seconds_duration: int
     end_time_stamp: int
-    def __init__(
-        self,
-        account_id: int | None = ...,
-        item_id: int | None = ...,
-        item_def: int | None = ...,
-        drop_rate_bonus: float | None = ...,
-        booster_type: int | None = ...,
-        seconds_duration: int | None = ...,
-        end_time_stamp: int | None = ...,
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., item_id: _Optional[int] = ..., item_def: _Optional[int] = ..., drop_rate_bonus: _Optional[float] = ..., booster_type: _Optional[int] = ..., seconds_duration: _Optional[int] = ..., end_time_stamp: _Optional[int] = ...) -> None: ...
 
 class CMsgSQLUpgradeBattleBooster(_message.Message):
     __slots__ = ("account_id", "item_def", "bonus_to_add", "booster_type")
@@ -655,13 +562,7 @@ class CMsgSQLUpgradeBattleBooster(_message.Message):
     item_def: int
     bonus_to_add: float
     booster_type: int
-    def __init__(
-        self,
-        account_id: int | None = ...,
-        item_def: int | None = ...,
-        bonus_to_add: float | None = ...,
-        booster_type: int | None = ...,
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., item_def: _Optional[int] = ..., bonus_to_add: _Optional[float] = ..., booster_type: _Optional[int] = ...) -> None: ...
 
 class CMsgGCToGCRefreshSOCache(_message.Message):
     __slots__ = ("account_id", "reload")
@@ -669,7 +570,7 @@ class CMsgGCToGCRefreshSOCache(_message.Message):
     RELOAD_FIELD_NUMBER: _ClassVar[int]
     account_id: int
     reload: bool
-    def __init__(self, account_id: int | None = ..., reload: bool = ...) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., reload: bool = ...) -> None: ...
 
 class CMsgGCToGCAddSubscriptionTime(_message.Message):
     __slots__ = ("account_id", "matching_subscription_def_indexes", "additional_seconds")
@@ -679,26 +580,12 @@ class CMsgGCToGCAddSubscriptionTime(_message.Message):
     account_id: int
     matching_subscription_def_indexes: _containers.RepeatedScalarFieldContainer[int]
     additional_seconds: int
-    def __init__(
-        self,
-        account_id: int | None = ...,
-        matching_subscription_def_indexes: _Iterable[int] | None = ...,
-        additional_seconds: int | None = ...,
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., matching_subscription_def_indexes: _Optional[_Iterable[int]] = ..., additional_seconds: _Optional[int] = ...) -> None: ...
 
 class CMsgGCToGCGrantAccountRolledItems(_message.Message):
     __slots__ = ("account_id", "items", "audit_action", "audit_data")
     class Item(_message.Message):
-        __slots__ = (
-            "item_def",
-            "loot_lists",
-            "ignore_limit",
-            "origin",
-            "dynamic_attributes",
-            "additional_audit_entries",
-            "inventory_token",
-            "quality",
-        )
+        __slots__ = ("item_def", "loot_lists", "ignore_limit", "origin", "dynamic_attributes", "additional_audit_entries", "inventory_token", "quality")
         class DynamicAttribute(_message.Message):
             __slots__ = ("name", "value_uint32", "value_float", "value_string")
             NAME_FIELD_NUMBER: _ClassVar[int]
@@ -709,14 +596,7 @@ class CMsgGCToGCGrantAccountRolledItems(_message.Message):
             value_uint32: int
             value_float: float
             value_string: str
-            def __init__(
-                self,
-                name: str | None = ...,
-                value_uint32: int | None = ...,
-                value_float: float | None = ...,
-                value_string: str | None = ...,
-            ) -> None: ...
-
+            def __init__(self, name: _Optional[str] = ..., value_uint32: _Optional[int] = ..., value_float: _Optional[float] = ..., value_string: _Optional[str] = ...) -> None: ...
         class AdditionalAuditEntry(_message.Message):
             __slots__ = ("owner_account_id", "audit_action", "audit_data")
             OWNER_ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
@@ -725,13 +605,7 @@ class CMsgGCToGCGrantAccountRolledItems(_message.Message):
             owner_account_id: int
             audit_action: int
             audit_data: int
-            def __init__(
-                self,
-                owner_account_id: int | None = ...,
-                audit_action: int | None = ...,
-                audit_data: int | None = ...,
-            ) -> None: ...
-
+            def __init__(self, owner_account_id: _Optional[int] = ..., audit_action: _Optional[int] = ..., audit_data: _Optional[int] = ...) -> None: ...
         ITEM_DEF_FIELD_NUMBER: _ClassVar[int]
         LOOT_LISTS_FIELD_NUMBER: _ClassVar[int]
         IGNORE_LIMIT_FIELD_NUMBER: _ClassVar[int]
@@ -744,32 +618,11 @@ class CMsgGCToGCGrantAccountRolledItems(_message.Message):
         loot_lists: _containers.RepeatedScalarFieldContainer[str]
         ignore_limit: bool
         origin: int
-        dynamic_attributes: _containers.RepeatedCompositeFieldContainer[
-            CMsgGCToGCGrantAccountRolledItems.Item.DynamicAttribute
-        ]
-        additional_audit_entries: _containers.RepeatedCompositeFieldContainer[
-            CMsgGCToGCGrantAccountRolledItems.Item.AdditionalAuditEntry
-        ]
+        dynamic_attributes: _containers.RepeatedCompositeFieldContainer[CMsgGCToGCGrantAccountRolledItems.Item.DynamicAttribute]
+        additional_audit_entries: _containers.RepeatedCompositeFieldContainer[CMsgGCToGCGrantAccountRolledItems.Item.AdditionalAuditEntry]
         inventory_token: int
         quality: int
-        def __init__(
-            self,
-            item_def: int | None = ...,
-            loot_lists: _Iterable[str] | None = ...,
-            ignore_limit: bool = ...,
-            origin: int | None = ...,
-            dynamic_attributes: _Iterable[
-                CMsgGCToGCGrantAccountRolledItems.Item.DynamicAttribute | _Mapping
-            ]
-            | None = ...,
-            additional_audit_entries: _Iterable[
-                CMsgGCToGCGrantAccountRolledItems.Item.AdditionalAuditEntry | _Mapping
-            ]
-            | None = ...,
-            inventory_token: int | None = ...,
-            quality: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, item_def: _Optional[int] = ..., loot_lists: _Optional[_Iterable[str]] = ..., ignore_limit: bool = ..., origin: _Optional[int] = ..., dynamic_attributes: _Optional[_Iterable[_Union[CMsgGCToGCGrantAccountRolledItems.Item.DynamicAttribute, _Mapping]]] = ..., additional_audit_entries: _Optional[_Iterable[_Union[CMsgGCToGCGrantAccountRolledItems.Item.AdditionalAuditEntry, _Mapping]]] = ..., inventory_token: _Optional[int] = ..., quality: _Optional[int] = ...) -> None: ...
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     ITEMS_FIELD_NUMBER: _ClassVar[int]
     AUDIT_ACTION_FIELD_NUMBER: _ClassVar[int]
@@ -778,13 +631,7 @@ class CMsgGCToGCGrantAccountRolledItems(_message.Message):
     items: _containers.RepeatedCompositeFieldContainer[CMsgGCToGCGrantAccountRolledItems.Item]
     audit_action: int
     audit_data: int
-    def __init__(
-        self,
-        account_id: int | None = ...,
-        items: _Iterable[CMsgGCToGCGrantAccountRolledItems.Item | _Mapping] | None = ...,
-        audit_action: int | None = ...,
-        audit_data: int | None = ...,
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., items: _Optional[_Iterable[_Union[CMsgGCToGCGrantAccountRolledItems.Item, _Mapping]]] = ..., audit_action: _Optional[int] = ..., audit_data: _Optional[int] = ...) -> None: ...
 
 class CMsgGCToGCBetaDeleteItems(_message.Message):
     __slots__ = ("account_id", "item_ids", "item_defs")
@@ -794,12 +641,7 @@ class CMsgGCToGCBetaDeleteItems(_message.Message):
     account_id: int
     item_ids: _containers.RepeatedScalarFieldContainer[int]
     item_defs: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(
-        self,
-        account_id: int | None = ...,
-        item_ids: _Iterable[int] | None = ...,
-        item_defs: _Iterable[int] | None = ...,
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., item_ids: _Optional[_Iterable[int]] = ..., item_defs: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CMsgGCToGCGrantSelfMadeItemToAccount(_message.Message):
     __slots__ = ("item_def_index", "accountid")
@@ -807,7 +649,7 @@ class CMsgGCToGCGrantSelfMadeItemToAccount(_message.Message):
     ACCOUNTID_FIELD_NUMBER: _ClassVar[int]
     item_def_index: int
     accountid: int
-    def __init__(self, item_def_index: int | None = ..., accountid: int | None = ...) -> None: ...
+    def __init__(self, item_def_index: _Optional[int] = ..., accountid: _Optional[int] = ...) -> None: ...
 
 class CMsgGCToGCUnlockCrate(_message.Message):
     __slots__ = ("account_id", "crate_item_id", "key_item_id")
@@ -817,22 +659,10 @@ class CMsgGCToGCUnlockCrate(_message.Message):
     account_id: int
     crate_item_id: int
     key_item_id: int
-    def __init__(
-        self,
-        account_id: int | None = ...,
-        crate_item_id: int | None = ...,
-        key_item_id: int | None = ...,
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., crate_item_id: _Optional[int] = ..., key_item_id: _Optional[int] = ...) -> None: ...
 
 class CMsgUseItem(_message.Message):
-    __slots__ = (
-        "item_id",
-        "target_steam_id",
-        "gift__potential_targets",
-        "duel__class_lock",
-        "initiator_steam_id",
-        "itempack__ack_immediately",
-    )
+    __slots__ = ("item_id", "target_steam_id", "gift__potential_targets", "duel__class_lock", "initiator_steam_id", "itempack__ack_immediately")
     ITEM_ID_FIELD_NUMBER: _ClassVar[int]
     TARGET_STEAM_ID_FIELD_NUMBER: _ClassVar[int]
     GIFT__POTENTIAL_TARGETS_FIELD_NUMBER: _ClassVar[int]
@@ -845,15 +675,7 @@ class CMsgUseItem(_message.Message):
     duel__class_lock: int
     initiator_steam_id: int
     itempack__ack_immediately: bool
-    def __init__(
-        self,
-        item_id: int | None = ...,
-        target_steam_id: int | None = ...,
-        gift__potential_targets: _Iterable[int] | None = ...,
-        duel__class_lock: int | None = ...,
-        initiator_steam_id: int | None = ...,
-        itempack__ack_immediately: bool = ...,
-    ) -> None: ...
+    def __init__(self, item_id: _Optional[int] = ..., target_steam_id: _Optional[int] = ..., gift__potential_targets: _Optional[_Iterable[int]] = ..., duel__class_lock: _Optional[int] = ..., initiator_steam_id: _Optional[int] = ..., itempack__ack_immediately: bool = ...) -> None: ...
 
 class CMsgServerUseItem(_message.Message):
     __slots__ = ("initiator_account_id", "use_item_msg")
@@ -861,17 +683,13 @@ class CMsgServerUseItem(_message.Message):
     USE_ITEM_MSG_FIELD_NUMBER: _ClassVar[int]
     initiator_account_id: int
     use_item_msg: CMsgUseItem
-    def __init__(
-        self,
-        initiator_account_id: int | None = ...,
-        use_item_msg: CMsgUseItem | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, initiator_account_id: _Optional[int] = ..., use_item_msg: _Optional[_Union[CMsgUseItem, _Mapping]] = ...) -> None: ...
 
 class CMsgUseMultipleItems(_message.Message):
     __slots__ = ("item_ids",)
     ITEM_IDS_FIELD_NUMBER: _ClassVar[int]
     item_ids: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(self, item_ids: _Iterable[int] | None = ...) -> None: ...
+    def __init__(self, item_ids: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CGCStoreRechargeRedirect_LineItem(_message.Message):
     __slots__ = ("item_def_id", "quantity")
@@ -879,16 +697,10 @@ class CGCStoreRechargeRedirect_LineItem(_message.Message):
     QUANTITY_FIELD_NUMBER: _ClassVar[int]
     item_def_id: int
     quantity: int
-    def __init__(self, item_def_id: int | None = ..., quantity: int | None = ...) -> None: ...
+    def __init__(self, item_def_id: _Optional[int] = ..., quantity: _Optional[int] = ...) -> None: ...
 
 class CMsgGCEconSQLWorkItemEmbeddedRollbackData(_message.Message):
-    __slots__ = (
-        "account_id",
-        "deleted_item_id",
-        "old_audit_action",
-        "new_audit_action",
-        "expected_audit_action",
-    )
+    __slots__ = ("account_id", "deleted_item_id", "old_audit_action", "new_audit_action", "expected_audit_action")
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     DELETED_ITEM_ID_FIELD_NUMBER: _ClassVar[int]
     OLD_AUDIT_ACTION_FIELD_NUMBER: _ClassVar[int]
@@ -899,14 +711,7 @@ class CMsgGCEconSQLWorkItemEmbeddedRollbackData(_message.Message):
     old_audit_action: int
     new_audit_action: int
     expected_audit_action: int
-    def __init__(
-        self,
-        account_id: int | None = ...,
-        deleted_item_id: int | None = ...,
-        old_audit_action: int | None = ...,
-        new_audit_action: int | None = ...,
-        expected_audit_action: int | None = ...,
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., deleted_item_id: _Optional[int] = ..., old_audit_action: _Optional[int] = ..., new_audit_action: _Optional[int] = ..., expected_audit_action: _Optional[int] = ...) -> None: ...
 
 class CMsgCraftStatue(_message.Message):
     __slots__ = ("heroid", "sequencename", "cycle", "description", "pedestal_itemdef", "toolid")
@@ -922,21 +727,13 @@ class CMsgCraftStatue(_message.Message):
     description: str
     pedestal_itemdef: int
     toolid: int
-    def __init__(
-        self,
-        heroid: int | None = ...,
-        sequencename: str | None = ...,
-        cycle: float | None = ...,
-        description: str | None = ...,
-        pedestal_itemdef: int | None = ...,
-        toolid: int | None = ...,
-    ) -> None: ...
+    def __init__(self, heroid: _Optional[int] = ..., sequencename: _Optional[str] = ..., cycle: _Optional[float] = ..., description: _Optional[str] = ..., pedestal_itemdef: _Optional[int] = ..., toolid: _Optional[int] = ...) -> None: ...
 
 class CMsgRedeemCode(_message.Message):
     __slots__ = ("code",)
     CODE_FIELD_NUMBER: _ClassVar[int]
     code: str
-    def __init__(self, code: str | None = ...) -> None: ...
+    def __init__(self, code: _Optional[str] = ...) -> None: ...
 
 class CMsgRedeemCodeResponse(_message.Message):
     __slots__ = ("response", "item_id")
@@ -946,7 +743,6 @@ class CMsgRedeemCodeResponse(_message.Message):
         k_Failed_CodeNotFound: _ClassVar[CMsgRedeemCodeResponse.EResultCode]
         k_Failed_CodeAlreadyUsed: _ClassVar[CMsgRedeemCodeResponse.EResultCode]
         k_Failed_OtherError: _ClassVar[CMsgRedeemCodeResponse.EResultCode]
-
     k_Succeeded: CMsgRedeemCodeResponse.EResultCode
     k_Failed_CodeNotFound: CMsgRedeemCodeResponse.EResultCode
     k_Failed_CodeAlreadyUsed: CMsgRedeemCodeResponse.EResultCode
@@ -955,7 +751,7 @@ class CMsgRedeemCodeResponse(_message.Message):
     ITEM_ID_FIELD_NUMBER: _ClassVar[int]
     response: int
     item_id: int
-    def __init__(self, response: int | None = ..., item_id: int | None = ...) -> None: ...
+    def __init__(self, response: _Optional[int] = ..., item_id: _Optional[int] = ...) -> None: ...
 
 class CMsgDevNewItemRequest(_message.Message):
     __slots__ = ("item_def_name", "loot_list_name", "attr_def_name", "attr_value", "item_quality")
@@ -969,14 +765,7 @@ class CMsgDevNewItemRequest(_message.Message):
     attr_def_name: _containers.RepeatedScalarFieldContainer[str]
     attr_value: _containers.RepeatedScalarFieldContainer[str]
     item_quality: int
-    def __init__(
-        self,
-        item_def_name: str | None = ...,
-        loot_list_name: str | None = ...,
-        attr_def_name: _Iterable[str] | None = ...,
-        attr_value: _Iterable[str] | None = ...,
-        item_quality: int | None = ...,
-    ) -> None: ...
+    def __init__(self, item_def_name: _Optional[str] = ..., loot_list_name: _Optional[str] = ..., attr_def_name: _Optional[_Iterable[str]] = ..., attr_value: _Optional[_Iterable[str]] = ..., item_quality: _Optional[int] = ...) -> None: ...
 
 class CMsgDevNewItemRequestResponse(_message.Message):
     __slots__ = ("success",)
@@ -988,7 +777,7 @@ class CMsgDevUnlockAllItemStyles(_message.Message):
     __slots__ = ("item_id",)
     ITEM_ID_FIELD_NUMBER: _ClassVar[int]
     item_id: int
-    def __init__(self, item_id: int | None = ...) -> None: ...
+    def __init__(self, item_id: _Optional[int] = ...) -> None: ...
 
 class CMsgDevUnlockAllItemStylesResponse(_message.Message):
     __slots__ = ("success",)
@@ -1000,22 +789,16 @@ class CMsgGCGetAccountSubscriptionItem(_message.Message):
     __slots__ = ("account_id",)
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     account_id: int
-    def __init__(self, account_id: int | None = ...) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ...) -> None: ...
 
 class CMsgGCGetAccountSubscriptionItemResponse(_message.Message):
     __slots__ = ("def_index",)
     DEF_INDEX_FIELD_NUMBER: _ClassVar[int]
     def_index: int
-    def __init__(self, def_index: int | None = ...) -> None: ...
+    def __init__(self, def_index: _Optional[int] = ...) -> None: ...
 
 class CMsgGCAddGiftItem(_message.Message):
-    __slots__ = (
-        "gifter_account_id",
-        "receiver_account_id",
-        "wrapped_item",
-        "gift_message",
-        "is_wallet_cash_trusted",
-    )
+    __slots__ = ("gifter_account_id", "receiver_account_id", "wrapped_item", "gift_message", "is_wallet_cash_trusted")
     GIFTER_ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     RECEIVER_ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     WRAPPED_ITEM_FIELD_NUMBER: _ClassVar[int]
@@ -1026,14 +809,7 @@ class CMsgGCAddGiftItem(_message.Message):
     wrapped_item: _base_gcmessages_pb2.CSOEconItem
     gift_message: str
     is_wallet_cash_trusted: bool
-    def __init__(
-        self,
-        gifter_account_id: int | None = ...,
-        receiver_account_id: int | None = ...,
-        wrapped_item: _base_gcmessages_pb2.CSOEconItem | _Mapping | None = ...,
-        gift_message: str | None = ...,
-        is_wallet_cash_trusted: bool = ...,
-    ) -> None: ...
+    def __init__(self, gifter_account_id: _Optional[int] = ..., receiver_account_id: _Optional[int] = ..., wrapped_item: _Optional[_Union[_base_gcmessages_pb2.CSOEconItem, _Mapping]] = ..., gift_message: _Optional[str] = ..., is_wallet_cash_trusted: bool = ...) -> None: ...
 
 class CMsgClientToGCWrapAndDeliverGift(_message.Message):
     __slots__ = ("item_id", "give_to_account_id", "gift_message")
@@ -1043,12 +819,7 @@ class CMsgClientToGCWrapAndDeliverGift(_message.Message):
     item_id: int
     give_to_account_id: int
     gift_message: str
-    def __init__(
-        self,
-        item_id: int | None = ...,
-        give_to_account_id: int | None = ...,
-        gift_message: str | None = ...,
-    ) -> None: ...
+    def __init__(self, item_id: _Optional[int] = ..., give_to_account_id: _Optional[int] = ..., gift_message: _Optional[str] = ...) -> None: ...
 
 class CMsgSQLGCToGCRevokeUntrustedGift(_message.Message):
     __slots__ = ("account_id", "sent_item_id")
@@ -1056,18 +827,10 @@ class CMsgSQLGCToGCRevokeUntrustedGift(_message.Message):
     SENT_ITEM_ID_FIELD_NUMBER: _ClassVar[int]
     account_id: int
     sent_item_id: int
-    def __init__(self, account_id: int | None = ..., sent_item_id: int | None = ...) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., sent_item_id: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCWrapAndDeliverGiftResponse(_message.Message):
-    __slots__ = (
-        "response",
-        "gifting_charge_uses",
-        "gifting_charge_max",
-        "gifting_uses",
-        "gifting_max",
-        "gifting_window_hours",
-        "trade_restriction",
-    )
+    __slots__ = ("response", "gifting_charge_uses", "gifting_charge_max", "gifting_uses", "gifting_max", "gifting_window_hours", "trade_restriction")
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     GIFTING_CHARGE_USES_FIELD_NUMBER: _ClassVar[int]
     GIFTING_CHARGE_MAX_FIELD_NUMBER: _ClassVar[int]
@@ -1082,48 +845,27 @@ class CMsgClientToGCWrapAndDeliverGiftResponse(_message.Message):
     gifting_max: int
     gifting_window_hours: int
     trade_restriction: EGCMsgInitiateTradeResponse
-    def __init__(
-        self,
-        response: _econ_shared_enums_pb2.EGCMsgResponse | str | None = ...,
-        gifting_charge_uses: int | None = ...,
-        gifting_charge_max: int | None = ...,
-        gifting_uses: int | None = ...,
-        gifting_max: int | None = ...,
-        gifting_window_hours: int | None = ...,
-        trade_restriction: EGCMsgInitiateTradeResponse | str | None = ...,
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[_econ_shared_enums_pb2.EGCMsgResponse, str]] = ..., gifting_charge_uses: _Optional[int] = ..., gifting_charge_max: _Optional[int] = ..., gifting_uses: _Optional[int] = ..., gifting_max: _Optional[int] = ..., gifting_window_hours: _Optional[int] = ..., trade_restriction: _Optional[_Union[EGCMsgInitiateTradeResponse, str]] = ...) -> None: ...
 
 class CMsgClientToGCUnwrapGift(_message.Message):
     __slots__ = ("item_id",)
     ITEM_ID_FIELD_NUMBER: _ClassVar[int]
     item_id: int
-    def __init__(self, item_id: int | None = ...) -> None: ...
+    def __init__(self, item_id: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCGetGiftPermissions(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...
 
 class CMsgClientToGCGetGiftPermissionsResponse(_message.Message):
-    __slots__ = (
-        "is_unlimited",
-        "has_two_factor",
-        "sender_permission",
-        "friendship_age_requirement",
-        "friendship_age_requirement_two_factor",
-        "friend_permissions",
-    )
+    __slots__ = ("is_unlimited", "has_two_factor", "sender_permission", "friendship_age_requirement", "friendship_age_requirement_two_factor", "friend_permissions")
     class FriendPermission(_message.Message):
         __slots__ = ("account_id", "permission")
         ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
         PERMISSION_FIELD_NUMBER: _ClassVar[int]
         account_id: int
         permission: EGCMsgInitiateTradeResponse
-        def __init__(
-            self,
-            account_id: int | None = ...,
-            permission: EGCMsgInitiateTradeResponse | str | None = ...,
-        ) -> None: ...
-
+        def __init__(self, account_id: _Optional[int] = ..., permission: _Optional[_Union[EGCMsgInitiateTradeResponse, str]] = ...) -> None: ...
     IS_UNLIMITED_FIELD_NUMBER: _ClassVar[int]
     HAS_TWO_FACTOR_FIELD_NUMBER: _ClassVar[int]
     SENDER_PERMISSION_FIELD_NUMBER: _ClassVar[int]
@@ -1135,57 +877,29 @@ class CMsgClientToGCGetGiftPermissionsResponse(_message.Message):
     sender_permission: EGCMsgInitiateTradeResponse
     friendship_age_requirement: int
     friendship_age_requirement_two_factor: int
-    friend_permissions: _containers.RepeatedCompositeFieldContainer[
-        CMsgClientToGCGetGiftPermissionsResponse.FriendPermission
-    ]
-    def __init__(
-        self,
-        is_unlimited: bool = ...,
-        has_two_factor: bool = ...,
-        sender_permission: EGCMsgInitiateTradeResponse | str | None = ...,
-        friendship_age_requirement: int | None = ...,
-        friendship_age_requirement_two_factor: int | None = ...,
-        friend_permissions: _Iterable[
-            CMsgClientToGCGetGiftPermissionsResponse.FriendPermission | _Mapping
-        ]
-        | None = ...,
-    ) -> None: ...
+    friend_permissions: _containers.RepeatedCompositeFieldContainer[CMsgClientToGCGetGiftPermissionsResponse.FriendPermission]
+    def __init__(self, is_unlimited: bool = ..., has_two_factor: bool = ..., sender_permission: _Optional[_Union[EGCMsgInitiateTradeResponse, str]] = ..., friendship_age_requirement: _Optional[int] = ..., friendship_age_requirement_two_factor: _Optional[int] = ..., friend_permissions: _Optional[_Iterable[_Union[CMsgClientToGCGetGiftPermissionsResponse.FriendPermission, _Mapping]]] = ...) -> None: ...
 
 class CMsgClientToGCUnpackBundle(_message.Message):
     __slots__ = ("item_id",)
     ITEM_ID_FIELD_NUMBER: _ClassVar[int]
     item_id: int
-    def __init__(self, item_id: int | None = ...) -> None: ...
+    def __init__(self, item_id: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCUnpackBundleResponse(_message.Message):
     __slots__ = ("unpacked_item_ids", "response", "unpacked_item_def_indexes")
     class EUnpackBundle(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
         k_UnpackBundle_Succeeded: _ClassVar[CMsgClientToGCUnpackBundleResponse.EUnpackBundle]
-        k_UnpackBundle_Failed_ItemIsNotBundle: _ClassVar[
-            CMsgClientToGCUnpackBundleResponse.EUnpackBundle
-        ]
-        k_UnpackBundle_Failed_UnableToCreateContainedItem: _ClassVar[
-            CMsgClientToGCUnpackBundleResponse.EUnpackBundle
-        ]
-        k_UnpackBundle_Failed_SOCacheError: _ClassVar[
-            CMsgClientToGCUnpackBundleResponse.EUnpackBundle
-        ]
-        k_UnpackBundle_Failed_ItemIsInvalid: _ClassVar[
-            CMsgClientToGCUnpackBundleResponse.EUnpackBundle
-        ]
-        k_UnpackBundle_Failed_BadItemQuantity: _ClassVar[
-            CMsgClientToGCUnpackBundleResponse.EUnpackBundle
-        ]
-        k_UnpackBundle_Failed_UnableToDeleteItem: _ClassVar[
-            CMsgClientToGCUnpackBundleResponse.EUnpackBundle
-        ]
-
+        k_UnpackBundle_Failed_ItemIsNotBundle: _ClassVar[CMsgClientToGCUnpackBundleResponse.EUnpackBundle]
+        k_UnpackBundle_Failed_UnableToCreateContainedItem: _ClassVar[CMsgClientToGCUnpackBundleResponse.EUnpackBundle]
+        k_UnpackBundle_Failed_SOCacheError: _ClassVar[CMsgClientToGCUnpackBundleResponse.EUnpackBundle]
+        k_UnpackBundle_Failed_ItemIsInvalid: _ClassVar[CMsgClientToGCUnpackBundleResponse.EUnpackBundle]
+        k_UnpackBundle_Failed_BadItemQuantity: _ClassVar[CMsgClientToGCUnpackBundleResponse.EUnpackBundle]
+        k_UnpackBundle_Failed_UnableToDeleteItem: _ClassVar[CMsgClientToGCUnpackBundleResponse.EUnpackBundle]
     k_UnpackBundle_Succeeded: CMsgClientToGCUnpackBundleResponse.EUnpackBundle
     k_UnpackBundle_Failed_ItemIsNotBundle: CMsgClientToGCUnpackBundleResponse.EUnpackBundle
-    k_UnpackBundle_Failed_UnableToCreateContainedItem: (
-        CMsgClientToGCUnpackBundleResponse.EUnpackBundle
-    )
+    k_UnpackBundle_Failed_UnableToCreateContainedItem: CMsgClientToGCUnpackBundleResponse.EUnpackBundle
     k_UnpackBundle_Failed_SOCacheError: CMsgClientToGCUnpackBundleResponse.EUnpackBundle
     k_UnpackBundle_Failed_ItemIsInvalid: CMsgClientToGCUnpackBundleResponse.EUnpackBundle
     k_UnpackBundle_Failed_BadItemQuantity: CMsgClientToGCUnpackBundleResponse.EUnpackBundle
@@ -1196,12 +910,7 @@ class CMsgClientToGCUnpackBundleResponse(_message.Message):
     unpacked_item_ids: _containers.RepeatedScalarFieldContainer[int]
     response: CMsgClientToGCUnpackBundleResponse.EUnpackBundle
     unpacked_item_def_indexes: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(
-        self,
-        unpacked_item_ids: _Iterable[int] | None = ...,
-        response: CMsgClientToGCUnpackBundleResponse.EUnpackBundle | str | None = ...,
-        unpacked_item_def_indexes: _Iterable[int] | None = ...,
-    ) -> None: ...
+    def __init__(self, unpacked_item_ids: _Optional[_Iterable[int]] = ..., response: _Optional[_Union[CMsgClientToGCUnpackBundleResponse.EUnpackBundle, str]] = ..., unpacked_item_def_indexes: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CMsgClientToGCPackBundle(_message.Message):
     __slots__ = ("item_ids", "bundle_item_def_index")
@@ -1209,9 +918,7 @@ class CMsgClientToGCPackBundle(_message.Message):
     BUNDLE_ITEM_DEF_INDEX_FIELD_NUMBER: _ClassVar[int]
     item_ids: _containers.RepeatedScalarFieldContainer[int]
     bundle_item_def_index: int
-    def __init__(
-        self, item_ids: _Iterable[int] | None = ..., bundle_item_def_index: int | None = ...
-    ) -> None: ...
+    def __init__(self, item_ids: _Optional[_Iterable[int]] = ..., bundle_item_def_index: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCPackBundleResponse(_message.Message):
     __slots__ = ("item_id", "response")
@@ -1223,28 +930,15 @@ class CMsgClientToGCPackBundleResponse(_message.Message):
         k_PackBundle_Failed_SOCacheError: _ClassVar[CMsgClientToGCPackBundleResponse.EPackBundle]
         k_PackBundle_Failed_ItemIsInvalid: _ClassVar[CMsgClientToGCPackBundleResponse.EPackBundle]
         k_PackBundle_Failed_BadItemQuantity: _ClassVar[CMsgClientToGCPackBundleResponse.EPackBundle]
-        k_PackBundle_Failed_UnableToDeleteItem: _ClassVar[
-            CMsgClientToGCPackBundleResponse.EPackBundle
-        ]
-        k_PackBundle_Failed_BundleCannotBePacked: _ClassVar[
-            CMsgClientToGCPackBundleResponse.EPackBundle
-        ]
-        k_PackBundle_Failed_ItemIsUntradeable: _ClassVar[
-            CMsgClientToGCPackBundleResponse.EPackBundle
-        ]
+        k_PackBundle_Failed_UnableToDeleteItem: _ClassVar[CMsgClientToGCPackBundleResponse.EPackBundle]
+        k_PackBundle_Failed_BundleCannotBePacked: _ClassVar[CMsgClientToGCPackBundleResponse.EPackBundle]
+        k_PackBundle_Failed_ItemIsUntradeable: _ClassVar[CMsgClientToGCPackBundleResponse.EPackBundle]
         k_PackBundle_Failed_ItemIsEquipped: _ClassVar[CMsgClientToGCPackBundleResponse.EPackBundle]
         k_PackBundle_Failed_ItemHasGems: _ClassVar[CMsgClientToGCPackBundleResponse.EPackBundle]
-        k_PackBundle_Failed_ItemMixedQuality: _ClassVar[
-            CMsgClientToGCPackBundleResponse.EPackBundle
-        ]
-        k_PackBundle_Failed_ItemInvalidQuality: _ClassVar[
-            CMsgClientToGCPackBundleResponse.EPackBundle
-        ]
-        k_PackBundle_Failed_ItemIsNonEconomy: _ClassVar[
-            CMsgClientToGCPackBundleResponse.EPackBundle
-        ]
+        k_PackBundle_Failed_ItemMixedQuality: _ClassVar[CMsgClientToGCPackBundleResponse.EPackBundle]
+        k_PackBundle_Failed_ItemInvalidQuality: _ClassVar[CMsgClientToGCPackBundleResponse.EPackBundle]
+        k_PackBundle_Failed_ItemIsNonEconomy: _ClassVar[CMsgClientToGCPackBundleResponse.EPackBundle]
         k_PackBundle_Failed_Disabled: _ClassVar[CMsgClientToGCPackBundleResponse.EPackBundle]
-
     k_PackBundle_Succeeded: CMsgClientToGCPackBundleResponse.EPackBundle
     k_PackBundle_Failed_InternalError: CMsgClientToGCPackBundleResponse.EPackBundle
     k_PackBundle_Failed_ItemIsNotBundle: CMsgClientToGCPackBundleResponse.EPackBundle
@@ -1264,11 +958,7 @@ class CMsgClientToGCPackBundleResponse(_message.Message):
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     item_id: int
     response: CMsgClientToGCPackBundleResponse.EPackBundle
-    def __init__(
-        self,
-        item_id: int | None = ...,
-        response: CMsgClientToGCPackBundleResponse.EPackBundle | str | None = ...,
-    ) -> None: ...
+    def __init__(self, item_id: _Optional[int] = ..., response: _Optional[_Union[CMsgClientToGCPackBundleResponse.EPackBundle, str]] = ...) -> None: ...
 
 class CMsgGCToClientStoreTransactionCompleted(_message.Message):
     __slots__ = ("txn_id", "item_ids")
@@ -1276,21 +966,19 @@ class CMsgGCToClientStoreTransactionCompleted(_message.Message):
     ITEM_IDS_FIELD_NUMBER: _ClassVar[int]
     txn_id: int
     item_ids: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(self, txn_id: int | None = ..., item_ids: _Iterable[int] | None = ...) -> None: ...
+    def __init__(self, txn_id: _Optional[int] = ..., item_ids: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CMsgClientToGCEquipItems(_message.Message):
     __slots__ = ("equips",)
     EQUIPS_FIELD_NUMBER: _ClassVar[int]
     equips: _containers.RepeatedCompositeFieldContainer[CMsgAdjustItemEquippedState]
-    def __init__(
-        self, equips: _Iterable[CMsgAdjustItemEquippedState | _Mapping] | None = ...
-    ) -> None: ...
+    def __init__(self, equips: _Optional[_Iterable[_Union[CMsgAdjustItemEquippedState, _Mapping]]] = ...) -> None: ...
 
 class CMsgClientToGCEquipItemsResponse(_message.Message):
     __slots__ = ("so_cache_version_id",)
     SO_CACHE_VERSION_ID_FIELD_NUMBER: _ClassVar[int]
     so_cache_version_id: int
-    def __init__(self, so_cache_version_id: int | None = ...) -> None: ...
+    def __init__(self, so_cache_version_id: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCSetItemStyle(_message.Message):
     __slots__ = ("item_id", "style_index")
@@ -1298,7 +986,7 @@ class CMsgClientToGCSetItemStyle(_message.Message):
     STYLE_INDEX_FIELD_NUMBER: _ClassVar[int]
     item_id: int
     style_index: int
-    def __init__(self, item_id: int | None = ..., style_index: int | None = ...) -> None: ...
+    def __init__(self, item_id: _Optional[int] = ..., style_index: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCSetItemStyleResponse(_message.Message):
     __slots__ = ("response",)
@@ -1307,15 +995,12 @@ class CMsgClientToGCSetItemStyleResponse(_message.Message):
         k_SetStyle_Succeeded: _ClassVar[CMsgClientToGCSetItemStyleResponse.ESetStyle]
         k_SetStyle_Failed: _ClassVar[CMsgClientToGCSetItemStyleResponse.ESetStyle]
         k_SetStyle_Failed_StyleIsLocked: _ClassVar[CMsgClientToGCSetItemStyleResponse.ESetStyle]
-
     k_SetStyle_Succeeded: CMsgClientToGCSetItemStyleResponse.ESetStyle
     k_SetStyle_Failed: CMsgClientToGCSetItemStyleResponse.ESetStyle
     k_SetStyle_Failed_StyleIsLocked: CMsgClientToGCSetItemStyleResponse.ESetStyle
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCSetItemStyleResponse.ESetStyle
-    def __init__(
-        self, response: CMsgClientToGCSetItemStyleResponse.ESetStyle | str | None = ...
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCSetItemStyleResponse.ESetStyle, str]] = ...) -> None: ...
 
 class CMsgClientToGCUnlockItemStyle(_message.Message):
     __slots__ = ("item_to_unlock", "style_index", "consumable_item_ids")
@@ -1325,12 +1010,7 @@ class CMsgClientToGCUnlockItemStyle(_message.Message):
     item_to_unlock: int
     style_index: int
     consumable_item_ids: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(
-        self,
-        item_to_unlock: int | None = ...,
-        style_index: int | None = ...,
-        consumable_item_ids: _Iterable[int] | None = ...,
-    ) -> None: ...
+    def __init__(self, item_to_unlock: _Optional[int] = ..., style_index: _Optional[int] = ..., consumable_item_ids: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CMsgClientToGCUnlockItemStyleResponse(_message.Message):
     __slots__ = ("response", "item_id", "style_index", "style_prereq")
@@ -1338,37 +1018,16 @@ class CMsgClientToGCUnlockItemStyleResponse(_message.Message):
         __slots__ = ()
         k_UnlockStyle_Succeeded: _ClassVar[CMsgClientToGCUnlockItemStyleResponse.EUnlockStyle]
         k_UnlockStyle_Failed_PreReq: _ClassVar[CMsgClientToGCUnlockItemStyleResponse.EUnlockStyle]
-        k_UnlockStyle_Failed_CantAfford: _ClassVar[
-            CMsgClientToGCUnlockItemStyleResponse.EUnlockStyle
-        ]
-        k_UnlockStyle_Failed_CantCommit: _ClassVar[
-            CMsgClientToGCUnlockItemStyleResponse.EUnlockStyle
-        ]
-        k_UnlockStyle_Failed_CantLockCache: _ClassVar[
-            CMsgClientToGCUnlockItemStyleResponse.EUnlockStyle
-        ]
-        k_UnlockStyle_Failed_CantAffordAttrib: _ClassVar[
-            CMsgClientToGCUnlockItemStyleResponse.EUnlockStyle
-        ]
-        k_UnlockStyle_Failed_CantAffordGem: _ClassVar[
-            CMsgClientToGCUnlockItemStyleResponse.EUnlockStyle
-        ]
-        k_UnlockStyle_Failed_NoCompendiumLevel: _ClassVar[
-            CMsgClientToGCUnlockItemStyleResponse.EUnlockStyle
-        ]
-        k_UnlockStyle_Failed_AlreadyUnlocked: _ClassVar[
-            CMsgClientToGCUnlockItemStyleResponse.EUnlockStyle
-        ]
-        k_UnlockStyle_Failed_OtherError: _ClassVar[
-            CMsgClientToGCUnlockItemStyleResponse.EUnlockStyle
-        ]
-        k_UnlockStyle_Failed_ItemIsInvalid: _ClassVar[
-            CMsgClientToGCUnlockItemStyleResponse.EUnlockStyle
-        ]
-        k_UnlockStyle_Failed_ToolIsInvalid: _ClassVar[
-            CMsgClientToGCUnlockItemStyleResponse.EUnlockStyle
-        ]
-
+        k_UnlockStyle_Failed_CantAfford: _ClassVar[CMsgClientToGCUnlockItemStyleResponse.EUnlockStyle]
+        k_UnlockStyle_Failed_CantCommit: _ClassVar[CMsgClientToGCUnlockItemStyleResponse.EUnlockStyle]
+        k_UnlockStyle_Failed_CantLockCache: _ClassVar[CMsgClientToGCUnlockItemStyleResponse.EUnlockStyle]
+        k_UnlockStyle_Failed_CantAffordAttrib: _ClassVar[CMsgClientToGCUnlockItemStyleResponse.EUnlockStyle]
+        k_UnlockStyle_Failed_CantAffordGem: _ClassVar[CMsgClientToGCUnlockItemStyleResponse.EUnlockStyle]
+        k_UnlockStyle_Failed_NoCompendiumLevel: _ClassVar[CMsgClientToGCUnlockItemStyleResponse.EUnlockStyle]
+        k_UnlockStyle_Failed_AlreadyUnlocked: _ClassVar[CMsgClientToGCUnlockItemStyleResponse.EUnlockStyle]
+        k_UnlockStyle_Failed_OtherError: _ClassVar[CMsgClientToGCUnlockItemStyleResponse.EUnlockStyle]
+        k_UnlockStyle_Failed_ItemIsInvalid: _ClassVar[CMsgClientToGCUnlockItemStyleResponse.EUnlockStyle]
+        k_UnlockStyle_Failed_ToolIsInvalid: _ClassVar[CMsgClientToGCUnlockItemStyleResponse.EUnlockStyle]
     k_UnlockStyle_Succeeded: CMsgClientToGCUnlockItemStyleResponse.EUnlockStyle
     k_UnlockStyle_Failed_PreReq: CMsgClientToGCUnlockItemStyleResponse.EUnlockStyle
     k_UnlockStyle_Failed_CantAfford: CMsgClientToGCUnlockItemStyleResponse.EUnlockStyle
@@ -1389,13 +1048,7 @@ class CMsgClientToGCUnlockItemStyleResponse(_message.Message):
     item_id: int
     style_index: int
     style_prereq: int
-    def __init__(
-        self,
-        response: CMsgClientToGCUnlockItemStyleResponse.EUnlockStyle | str | None = ...,
-        item_id: int | None = ...,
-        style_index: int | None = ...,
-        style_prereq: int | None = ...,
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCUnlockItemStyleResponse.EUnlockStyle, str]] = ..., item_id: _Optional[int] = ..., style_index: _Optional[int] = ..., style_prereq: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCSetItemInventoryCategory(_message.Message):
     __slots__ = ("item_ids", "set_to_value", "remove_categories", "add_categories")
@@ -1407,13 +1060,7 @@ class CMsgClientToGCSetItemInventoryCategory(_message.Message):
     set_to_value: int
     remove_categories: int
     add_categories: int
-    def __init__(
-        self,
-        item_ids: _Iterable[int] | None = ...,
-        set_to_value: int | None = ...,
-        remove_categories: int | None = ...,
-        add_categories: int | None = ...,
-    ) -> None: ...
+    def __init__(self, item_ids: _Optional[_Iterable[int]] = ..., set_to_value: _Optional[int] = ..., remove_categories: _Optional[int] = ..., add_categories: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCUnlockCrate(_message.Message):
     __slots__ = ("crate_item_id", "key_item_id")
@@ -1421,7 +1068,7 @@ class CMsgClientToGCUnlockCrate(_message.Message):
     KEY_ITEM_ID_FIELD_NUMBER: _ClassVar[int]
     crate_item_id: int
     key_item_id: int
-    def __init__(self, crate_item_id: int | None = ..., key_item_id: int | None = ...) -> None: ...
+    def __init__(self, crate_item_id: _Optional[int] = ..., key_item_id: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCUnlockCrateResponse(_message.Message):
     __slots__ = ("result", "granted_items")
@@ -1431,66 +1078,38 @@ class CMsgClientToGCUnlockCrateResponse(_message.Message):
         DEF_INDEX_FIELD_NUMBER: _ClassVar[int]
         item_id: int
         def_index: int
-        def __init__(self, item_id: int | None = ..., def_index: int | None = ...) -> None: ...
-
+        def __init__(self, item_id: _Optional[int] = ..., def_index: _Optional[int] = ...) -> None: ...
     RESULT_FIELD_NUMBER: _ClassVar[int]
     GRANTED_ITEMS_FIELD_NUMBER: _ClassVar[int]
     result: _econ_shared_enums_pb2.EGCMsgResponse
-    granted_items: _containers.RepeatedCompositeFieldContainer[
-        CMsgClientToGCUnlockCrateResponse.Item
-    ]
-    def __init__(
-        self,
-        result: _econ_shared_enums_pb2.EGCMsgResponse | str | None = ...,
-        granted_items: _Iterable[CMsgClientToGCUnlockCrateResponse.Item | _Mapping] | None = ...,
-    ) -> None: ...
+    granted_items: _containers.RepeatedCompositeFieldContainer[CMsgClientToGCUnlockCrateResponse.Item]
+    def __init__(self, result: _Optional[_Union[_econ_shared_enums_pb2.EGCMsgResponse, str]] = ..., granted_items: _Optional[_Iterable[_Union[CMsgClientToGCUnlockCrateResponse.Item, _Mapping]]] = ...) -> None: ...
 
 class CMsgClientToGCRemoveItemAttribute(_message.Message):
     __slots__ = ("item_id",)
     ITEM_ID_FIELD_NUMBER: _ClassVar[int]
     item_id: int
-    def __init__(self, item_id: int | None = ...) -> None: ...
+    def __init__(self, item_id: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCRemoveItemAttributeResponse(_message.Message):
     __slots__ = ("response", "item_id")
     class ERemoveItemAttribute(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
-        k_RemoveItemAttribute_Succeeded: _ClassVar[
-            CMsgClientToGCRemoveItemAttributeResponse.ERemoveItemAttribute
-        ]
-        k_RemoveItemAttribute_Failed: _ClassVar[
-            CMsgClientToGCRemoveItemAttributeResponse.ERemoveItemAttribute
-        ]
-        k_RemoveItemAttribute_Failed_ItemIsInvalid: _ClassVar[
-            CMsgClientToGCRemoveItemAttributeResponse.ERemoveItemAttribute
-        ]
-        k_RemoveItemAttribute_Failed_AttributeCannotBeRemoved: _ClassVar[
-            CMsgClientToGCRemoveItemAttributeResponse.ERemoveItemAttribute
-        ]
-        k_RemoveItemAttribute_Failed_AttributeDoesntExist: _ClassVar[
-            CMsgClientToGCRemoveItemAttributeResponse.ERemoveItemAttribute
-        ]
-
+        k_RemoveItemAttribute_Succeeded: _ClassVar[CMsgClientToGCRemoveItemAttributeResponse.ERemoveItemAttribute]
+        k_RemoveItemAttribute_Failed: _ClassVar[CMsgClientToGCRemoveItemAttributeResponse.ERemoveItemAttribute]
+        k_RemoveItemAttribute_Failed_ItemIsInvalid: _ClassVar[CMsgClientToGCRemoveItemAttributeResponse.ERemoveItemAttribute]
+        k_RemoveItemAttribute_Failed_AttributeCannotBeRemoved: _ClassVar[CMsgClientToGCRemoveItemAttributeResponse.ERemoveItemAttribute]
+        k_RemoveItemAttribute_Failed_AttributeDoesntExist: _ClassVar[CMsgClientToGCRemoveItemAttributeResponse.ERemoveItemAttribute]
     k_RemoveItemAttribute_Succeeded: CMsgClientToGCRemoveItemAttributeResponse.ERemoveItemAttribute
     k_RemoveItemAttribute_Failed: CMsgClientToGCRemoveItemAttributeResponse.ERemoveItemAttribute
-    k_RemoveItemAttribute_Failed_ItemIsInvalid: (
-        CMsgClientToGCRemoveItemAttributeResponse.ERemoveItemAttribute
-    )
-    k_RemoveItemAttribute_Failed_AttributeCannotBeRemoved: (
-        CMsgClientToGCRemoveItemAttributeResponse.ERemoveItemAttribute
-    )
-    k_RemoveItemAttribute_Failed_AttributeDoesntExist: (
-        CMsgClientToGCRemoveItemAttributeResponse.ERemoveItemAttribute
-    )
+    k_RemoveItemAttribute_Failed_ItemIsInvalid: CMsgClientToGCRemoveItemAttributeResponse.ERemoveItemAttribute
+    k_RemoveItemAttribute_Failed_AttributeCannotBeRemoved: CMsgClientToGCRemoveItemAttributeResponse.ERemoveItemAttribute
+    k_RemoveItemAttribute_Failed_AttributeDoesntExist: CMsgClientToGCRemoveItemAttributeResponse.ERemoveItemAttribute
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     ITEM_ID_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCRemoveItemAttributeResponse.ERemoveItemAttribute
     item_id: int
-    def __init__(
-        self,
-        response: CMsgClientToGCRemoveItemAttributeResponse.ERemoveItemAttribute | str | None = ...,
-        item_id: int | None = ...,
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCRemoveItemAttributeResponse.ERemoveItemAttribute, str]] = ..., item_id: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCNameItem(_message.Message):
     __slots__ = ("subject_item_id", "tool_item_id", "name")
@@ -1500,12 +1119,7 @@ class CMsgClientToGCNameItem(_message.Message):
     subject_item_id: int
     tool_item_id: int
     name: str
-    def __init__(
-        self,
-        subject_item_id: int | None = ...,
-        tool_item_id: int | None = ...,
-        name: str | None = ...,
-    ) -> None: ...
+    def __init__(self, subject_item_id: _Optional[int] = ..., tool_item_id: _Optional[int] = ..., name: _Optional[str] = ...) -> None: ...
 
 class CMsgClientToGCNameItemResponse(_message.Message):
     __slots__ = ("response", "item_id")
@@ -1516,7 +1130,6 @@ class CMsgClientToGCNameItemResponse(_message.Message):
         k_NameItem_Failed_ToolIsInvalid: _ClassVar[CMsgClientToGCNameItemResponse.ENameItem]
         k_NameItem_Failed_ItemIsInvalid: _ClassVar[CMsgClientToGCNameItemResponse.ENameItem]
         k_NameItem_Failed_NameIsInvalid: _ClassVar[CMsgClientToGCNameItemResponse.ENameItem]
-
     k_NameItem_Succeeded: CMsgClientToGCNameItemResponse.ENameItem
     k_NameItem_Failed: CMsgClientToGCNameItemResponse.ENameItem
     k_NameItem_Failed_ToolIsInvalid: CMsgClientToGCNameItemResponse.ENameItem
@@ -1526,11 +1139,7 @@ class CMsgClientToGCNameItemResponse(_message.Message):
     ITEM_ID_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCNameItemResponse.ENameItem
     item_id: int
-    def __init__(
-        self,
-        response: CMsgClientToGCNameItemResponse.ENameItem | str | None = ...,
-        item_id: int | None = ...,
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCNameItemResponse.ENameItem, str]] = ..., item_id: _Optional[int] = ...) -> None: ...
 
 class CMsgGCSetItemPosition(_message.Message):
     __slots__ = ("item_id", "new_position")
@@ -1538,21 +1147,10 @@ class CMsgGCSetItemPosition(_message.Message):
     NEW_POSITION_FIELD_NUMBER: _ClassVar[int]
     item_id: int
     new_position: int
-    def __init__(self, item_id: int | None = ..., new_position: int | None = ...) -> None: ...
+    def __init__(self, item_id: _Optional[int] = ..., new_position: _Optional[int] = ...) -> None: ...
 
 class CAttribute_ItemDynamicRecipeComponent(_message.Message):
-    __slots__ = (
-        "item_def",
-        "item_quality",
-        "item_flags",
-        "attributes_string",
-        "item_count",
-        "items_fulfilled",
-        "item_rarity",
-        "lootlist",
-        "fulfilled_item_id",
-        "associated_item_def",
-    )
+    __slots__ = ("item_def", "item_quality", "item_flags", "attributes_string", "item_count", "items_fulfilled", "item_rarity", "lootlist", "fulfilled_item_id", "associated_item_def")
     ITEM_DEF_FIELD_NUMBER: _ClassVar[int]
     ITEM_QUALITY_FIELD_NUMBER: _ClassVar[int]
     ITEM_FLAGS_FIELD_NUMBER: _ClassVar[int]
@@ -1573,30 +1171,10 @@ class CAttribute_ItemDynamicRecipeComponent(_message.Message):
     lootlist: str
     fulfilled_item_id: int
     associated_item_def: int
-    def __init__(
-        self,
-        item_def: int | None = ...,
-        item_quality: int | None = ...,
-        item_flags: int | None = ...,
-        attributes_string: str | None = ...,
-        item_count: int | None = ...,
-        items_fulfilled: int | None = ...,
-        item_rarity: int | None = ...,
-        lootlist: str | None = ...,
-        fulfilled_item_id: int | None = ...,
-        associated_item_def: int | None = ...,
-    ) -> None: ...
+    def __init__(self, item_def: _Optional[int] = ..., item_quality: _Optional[int] = ..., item_flags: _Optional[int] = ..., attributes_string: _Optional[str] = ..., item_count: _Optional[int] = ..., items_fulfilled: _Optional[int] = ..., item_rarity: _Optional[int] = ..., lootlist: _Optional[str] = ..., fulfilled_item_id: _Optional[int] = ..., associated_item_def: _Optional[int] = ...) -> None: ...
 
 class CProtoItemSocket(_message.Message):
-    __slots__ = (
-        "item_id",
-        "attr_def_index",
-        "required_type",
-        "required_hero",
-        "gem_def_index",
-        "not_tradable",
-        "required_item_slot",
-    )
+    __slots__ = ("item_id", "attr_def_index", "required_type", "required_hero", "gem_def_index", "not_tradable", "required_item_slot")
     ITEM_ID_FIELD_NUMBER: _ClassVar[int]
     ATTR_DEF_INDEX_FIELD_NUMBER: _ClassVar[int]
     REQUIRED_TYPE_FIELD_NUMBER: _ClassVar[int]
@@ -1611,22 +1189,13 @@ class CProtoItemSocket(_message.Message):
     gem_def_index: int
     not_tradable: bool
     required_item_slot: str
-    def __init__(
-        self,
-        item_id: int | None = ...,
-        attr_def_index: int | None = ...,
-        required_type: int | None = ...,
-        required_hero: str | None = ...,
-        gem_def_index: int | None = ...,
-        not_tradable: bool = ...,
-        required_item_slot: str | None = ...,
-    ) -> None: ...
+    def __init__(self, item_id: _Optional[int] = ..., attr_def_index: _Optional[int] = ..., required_type: _Optional[int] = ..., required_hero: _Optional[str] = ..., gem_def_index: _Optional[int] = ..., not_tradable: bool = ..., required_item_slot: _Optional[str] = ...) -> None: ...
 
 class CProtoItemSocket_Empty(_message.Message):
     __slots__ = ("socket",)
     SOCKET_FIELD_NUMBER: _ClassVar[int]
     socket: CProtoItemSocket
-    def __init__(self, socket: CProtoItemSocket | _Mapping | None = ...) -> None: ...
+    def __init__(self, socket: _Optional[_Union[CProtoItemSocket, _Mapping]] = ...) -> None: ...
 
 class CProtoItemSocket_Effect(_message.Message):
     __slots__ = ("socket", "effect")
@@ -1634,9 +1203,7 @@ class CProtoItemSocket_Effect(_message.Message):
     EFFECT_FIELD_NUMBER: _ClassVar[int]
     socket: CProtoItemSocket
     effect: int
-    def __init__(
-        self, socket: CProtoItemSocket | _Mapping | None = ..., effect: int | None = ...
-    ) -> None: ...
+    def __init__(self, socket: _Optional[_Union[CProtoItemSocket, _Mapping]] = ..., effect: _Optional[int] = ...) -> None: ...
 
 class CProtoItemSocket_Color(_message.Message):
     __slots__ = ("socket", "red", "green", "blue")
@@ -1648,13 +1215,7 @@ class CProtoItemSocket_Color(_message.Message):
     red: int
     green: int
     blue: int
-    def __init__(
-        self,
-        socket: CProtoItemSocket | _Mapping | None = ...,
-        red: int | None = ...,
-        green: int | None = ...,
-        blue: int | None = ...,
-    ) -> None: ...
+    def __init__(self, socket: _Optional[_Union[CProtoItemSocket, _Mapping]] = ..., red: _Optional[int] = ..., green: _Optional[int] = ..., blue: _Optional[int] = ...) -> None: ...
 
 class CProtoItemSocket_Strange(_message.Message):
     __slots__ = ("socket", "strange_type", "strange_value")
@@ -1664,12 +1225,7 @@ class CProtoItemSocket_Strange(_message.Message):
     socket: CProtoItemSocket
     strange_type: int
     strange_value: int
-    def __init__(
-        self,
-        socket: CProtoItemSocket | _Mapping | None = ...,
-        strange_type: int | None = ...,
-        strange_value: int | None = ...,
-    ) -> None: ...
+    def __init__(self, socket: _Optional[_Union[CProtoItemSocket, _Mapping]] = ..., strange_type: _Optional[int] = ..., strange_value: _Optional[int] = ...) -> None: ...
 
 class CProtoItemSocket_Strange_DESERIALIZE_FROM_STRING_ONLY(_message.Message):
     __slots__ = ("socket", "strange_type", "strange_value", "ability_effect")
@@ -1681,13 +1237,7 @@ class CProtoItemSocket_Strange_DESERIALIZE_FROM_STRING_ONLY(_message.Message):
     strange_type: int
     strange_value: int
     ability_effect: int
-    def __init__(
-        self,
-        socket: CProtoItemSocket | _Mapping | None = ...,
-        strange_type: int | None = ...,
-        strange_value: int | None = ...,
-        ability_effect: int | None = ...,
-    ) -> None: ...
+    def __init__(self, socket: _Optional[_Union[CProtoItemSocket, _Mapping]] = ..., strange_type: _Optional[int] = ..., strange_value: _Optional[int] = ..., ability_effect: _Optional[int] = ...) -> None: ...
 
 class CProtoItemSocket_Spectator(_message.Message):
     __slots__ = ("socket", "games_viewed", "corporation_id", "league_id", "team_id")
@@ -1701,14 +1251,7 @@ class CProtoItemSocket_Spectator(_message.Message):
     corporation_id: int
     league_id: int
     team_id: int
-    def __init__(
-        self,
-        socket: CProtoItemSocket | _Mapping | None = ...,
-        games_viewed: int | None = ...,
-        corporation_id: int | None = ...,
-        league_id: int | None = ...,
-        team_id: int | None = ...,
-    ) -> None: ...
+    def __init__(self, socket: _Optional[_Union[CProtoItemSocket, _Mapping]] = ..., games_viewed: _Optional[int] = ..., corporation_id: _Optional[int] = ..., league_id: _Optional[int] = ..., team_id: _Optional[int] = ...) -> None: ...
 
 class CProtoItemSocket_AssetModifier(_message.Message):
     __slots__ = ("socket", "asset_modifier")
@@ -1716,9 +1259,7 @@ class CProtoItemSocket_AssetModifier(_message.Message):
     ASSET_MODIFIER_FIELD_NUMBER: _ClassVar[int]
     socket: CProtoItemSocket
     asset_modifier: int
-    def __init__(
-        self, socket: CProtoItemSocket | _Mapping | None = ..., asset_modifier: int | None = ...
-    ) -> None: ...
+    def __init__(self, socket: _Optional[_Union[CProtoItemSocket, _Mapping]] = ..., asset_modifier: _Optional[int] = ...) -> None: ...
 
 class CProtoItemSocket_AssetModifier_DESERIALIZE_FROM_STRING_ONLY(_message.Message):
     __slots__ = ("socket", "asset_modifier", "anim_modifier", "ability_effect")
@@ -1730,13 +1271,7 @@ class CProtoItemSocket_AssetModifier_DESERIALIZE_FROM_STRING_ONLY(_message.Messa
     asset_modifier: int
     anim_modifier: int
     ability_effect: int
-    def __init__(
-        self,
-        socket: CProtoItemSocket | _Mapping | None = ...,
-        asset_modifier: int | None = ...,
-        anim_modifier: int | None = ...,
-        ability_effect: int | None = ...,
-    ) -> None: ...
+    def __init__(self, socket: _Optional[_Union[CProtoItemSocket, _Mapping]] = ..., asset_modifier: _Optional[int] = ..., anim_modifier: _Optional[int] = ..., ability_effect: _Optional[int] = ...) -> None: ...
 
 class CProtoItemSocket_Autograph(_message.Message):
     __slots__ = ("socket", "autograph", "autograph_id", "autograph_score")
@@ -1748,25 +1283,19 @@ class CProtoItemSocket_Autograph(_message.Message):
     autograph: str
     autograph_id: int
     autograph_score: int
-    def __init__(
-        self,
-        socket: CProtoItemSocket | _Mapping | None = ...,
-        autograph: str | None = ...,
-        autograph_id: int | None = ...,
-        autograph_score: int | None = ...,
-    ) -> None: ...
+    def __init__(self, socket: _Optional[_Union[CProtoItemSocket, _Mapping]] = ..., autograph: _Optional[str] = ..., autograph_id: _Optional[int] = ..., autograph_score: _Optional[int] = ...) -> None: ...
 
 class CProtoItemSocket_StaticVisuals(_message.Message):
     __slots__ = ("socket",)
     SOCKET_FIELD_NUMBER: _ClassVar[int]
     socket: CProtoItemSocket
-    def __init__(self, socket: CProtoItemSocket | _Mapping | None = ...) -> None: ...
+    def __init__(self, socket: _Optional[_Union[CProtoItemSocket, _Mapping]] = ...) -> None: ...
 
 class CAttribute_String(_message.Message):
     __slots__ = ("value",)
     VALUE_FIELD_NUMBER: _ClassVar[int]
     value: str
-    def __init__(self, value: str | None = ...) -> None: ...
+    def __init__(self, value: _Optional[str] = ...) -> None: ...
 
 class CWorkshop_GetItemDailyRevenue_Request(_message.Message):
     __slots__ = ("appid", "item_id", "date_start", "date_end")
@@ -1778,13 +1307,7 @@ class CWorkshop_GetItemDailyRevenue_Request(_message.Message):
     item_id: int
     date_start: int
     date_end: int
-    def __init__(
-        self,
-        appid: int | None = ...,
-        item_id: int | None = ...,
-        date_start: int | None = ...,
-        date_end: int | None = ...,
-    ) -> None: ...
+    def __init__(self, appid: _Optional[int] = ..., item_id: _Optional[int] = ..., date_start: _Optional[int] = ..., date_end: _Optional[int] = ...) -> None: ...
 
 class CWorkshop_GetItemDailyRevenue_Response(_message.Message):
     __slots__ = ("country_revenue",)
@@ -1798,25 +1321,10 @@ class CWorkshop_GetItemDailyRevenue_Response(_message.Message):
         date: int
         revenue_usd: int
         units: int
-        def __init__(
-            self,
-            country_code: str | None = ...,
-            date: int | None = ...,
-            revenue_usd: int | None = ...,
-            units: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, country_code: _Optional[str] = ..., date: _Optional[int] = ..., revenue_usd: _Optional[int] = ..., units: _Optional[int] = ...) -> None: ...
     COUNTRY_REVENUE_FIELD_NUMBER: _ClassVar[int]
-    country_revenue: _containers.RepeatedCompositeFieldContainer[
-        CWorkshop_GetItemDailyRevenue_Response.CountryDailyRevenue
-    ]
-    def __init__(
-        self,
-        country_revenue: _Iterable[
-            CWorkshop_GetItemDailyRevenue_Response.CountryDailyRevenue | _Mapping
-        ]
-        | None = ...,
-    ) -> None: ...
+    country_revenue: _containers.RepeatedCompositeFieldContainer[CWorkshop_GetItemDailyRevenue_Response.CountryDailyRevenue]
+    def __init__(self, country_revenue: _Optional[_Iterable[_Union[CWorkshop_GetItemDailyRevenue_Response.CountryDailyRevenue, _Mapping]]] = ...) -> None: ...
 
 class CWorkshop_GetPackageDailyRevenue_Request(_message.Message):
     __slots__ = ("packageid", "date_start", "date_end")
@@ -1826,9 +1334,7 @@ class CWorkshop_GetPackageDailyRevenue_Request(_message.Message):
     packageid: int
     date_start: int
     date_end: int
-    def __init__(
-        self, packageid: int | None = ..., date_start: int | None = ..., date_end: int | None = ...
-    ) -> None: ...
+    def __init__(self, packageid: _Optional[int] = ..., date_start: _Optional[int] = ..., date_end: _Optional[int] = ...) -> None: ...
 
 class CWorkshop_GetPackageDailyRevenue_Response(_message.Message):
     __slots__ = ("country_revenue",)
@@ -1842,25 +1348,10 @@ class CWorkshop_GetPackageDailyRevenue_Response(_message.Message):
         date: int
         revenue_usd: int
         units: int
-        def __init__(
-            self,
-            country_code: str | None = ...,
-            date: int | None = ...,
-            revenue_usd: int | None = ...,
-            units: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, country_code: _Optional[str] = ..., date: _Optional[int] = ..., revenue_usd: _Optional[int] = ..., units: _Optional[int] = ...) -> None: ...
     COUNTRY_REVENUE_FIELD_NUMBER: _ClassVar[int]
-    country_revenue: _containers.RepeatedCompositeFieldContainer[
-        CWorkshop_GetPackageDailyRevenue_Response.CountryDailyRevenue
-    ]
-    def __init__(
-        self,
-        country_revenue: _Iterable[
-            CWorkshop_GetPackageDailyRevenue_Response.CountryDailyRevenue | _Mapping
-        ]
-        | None = ...,
-    ) -> None: ...
+    country_revenue: _containers.RepeatedCompositeFieldContainer[CWorkshop_GetPackageDailyRevenue_Response.CountryDailyRevenue]
+    def __init__(self, country_revenue: _Optional[_Iterable[_Union[CWorkshop_GetPackageDailyRevenue_Response.CountryDailyRevenue, _Mapping]]] = ...) -> None: ...
 
 class CMsgSQLGCToGCGrantBackpackSlots(_message.Message):
     __slots__ = ("account_id", "add_slots")
@@ -1868,13 +1359,13 @@ class CMsgSQLGCToGCGrantBackpackSlots(_message.Message):
     ADD_SLOTS_FIELD_NUMBER: _ClassVar[int]
     account_id: int
     add_slots: int
-    def __init__(self, account_id: int | None = ..., add_slots: int | None = ...) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., add_slots: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCLookupAccountName(_message.Message):
     __slots__ = ("account_id",)
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     account_id: int
-    def __init__(self, account_id: int | None = ...) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCLookupAccountNameResponse(_message.Message):
     __slots__ = ("account_id", "account_name")
@@ -1882,7 +1373,7 @@ class CMsgClientToGCLookupAccountNameResponse(_message.Message):
     ACCOUNT_NAME_FIELD_NUMBER: _ClassVar[int]
     account_id: int
     account_name: str
-    def __init__(self, account_id: int | None = ..., account_name: str | None = ...) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., account_name: _Optional[str] = ...) -> None: ...
 
 class CMsgClientToGCCreateStaticRecipe(_message.Message):
     __slots__ = ("items", "recipe_def_index")
@@ -1892,17 +1383,12 @@ class CMsgClientToGCCreateStaticRecipe(_message.Message):
         SLOT_ID_FIELD_NUMBER: _ClassVar[int]
         item_id: int
         slot_id: int
-        def __init__(self, item_id: int | None = ..., slot_id: int | None = ...) -> None: ...
-
+        def __init__(self, item_id: _Optional[int] = ..., slot_id: _Optional[int] = ...) -> None: ...
     ITEMS_FIELD_NUMBER: _ClassVar[int]
     RECIPE_DEF_INDEX_FIELD_NUMBER: _ClassVar[int]
     items: _containers.RepeatedCompositeFieldContainer[CMsgClientToGCCreateStaticRecipe.Item]
     recipe_def_index: int
-    def __init__(
-        self,
-        items: _Iterable[CMsgClientToGCCreateStaticRecipe.Item | _Mapping] | None = ...,
-        recipe_def_index: int | None = ...,
-    ) -> None: ...
+    def __init__(self, items: _Optional[_Iterable[_Union[CMsgClientToGCCreateStaticRecipe.Item, _Mapping]]] = ..., recipe_def_index: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCCreateStaticRecipeResponse(_message.Message):
     __slots__ = ("response", "output_items", "input_errors", "additional_outputs")
@@ -1914,7 +1400,6 @@ class CMsgClientToGCCreateStaticRecipeResponse(_message.Message):
         eResponse_InternalError: _ClassVar[CMsgClientToGCCreateStaticRecipeResponse.EResponse]
         eResponse_MissingLeague: _ClassVar[CMsgClientToGCCreateStaticRecipeResponse.EResponse]
         eResponse_MissingEvent: _ClassVar[CMsgClientToGCCreateStaticRecipeResponse.EResponse]
-
     eResponse_Success: CMsgClientToGCCreateStaticRecipeResponse.EResponse
     eResponse_OfferingDisabled: CMsgClientToGCCreateStaticRecipeResponse.EResponse
     eResponse_InvalidItems: CMsgClientToGCCreateStaticRecipeResponse.EResponse
@@ -1929,82 +1414,35 @@ class CMsgClientToGCCreateStaticRecipeResponse(_message.Message):
         def_index: int
         item_id: int
         slot_id: int
-        def __init__(
-            self, def_index: int | None = ..., item_id: int | None = ..., slot_id: int | None = ...
-        ) -> None: ...
-
+        def __init__(self, def_index: _Optional[int] = ..., item_id: _Optional[int] = ..., slot_id: _Optional[int] = ...) -> None: ...
     class InputError(_message.Message):
         __slots__ = ("slot_id", "error")
         SLOT_ID_FIELD_NUMBER: _ClassVar[int]
         ERROR_FIELD_NUMBER: _ClassVar[int]
         slot_id: int
         error: CMsgClientToGCCreateStaticRecipeResponse.EResponse
-        def __init__(
-            self,
-            slot_id: int | None = ...,
-            error: CMsgClientToGCCreateStaticRecipeResponse.EResponse | str | None = ...,
-        ) -> None: ...
-
+        def __init__(self, slot_id: _Optional[int] = ..., error: _Optional[_Union[CMsgClientToGCCreateStaticRecipeResponse.EResponse, str]] = ...) -> None: ...
     class AdditionalOutput(_message.Message):
         __slots__ = ("slot_id", "value")
         SLOT_ID_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
         slot_id: int
         value: int
-        def __init__(self, slot_id: int | None = ..., value: int | None = ...) -> None: ...
-
+        def __init__(self, slot_id: _Optional[int] = ..., value: _Optional[int] = ...) -> None: ...
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     OUTPUT_ITEMS_FIELD_NUMBER: _ClassVar[int]
     INPUT_ERRORS_FIELD_NUMBER: _ClassVar[int]
     ADDITIONAL_OUTPUTS_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCCreateStaticRecipeResponse.EResponse
-    output_items: _containers.RepeatedCompositeFieldContainer[
-        CMsgClientToGCCreateStaticRecipeResponse.OutputItem
-    ]
-    input_errors: _containers.RepeatedCompositeFieldContainer[
-        CMsgClientToGCCreateStaticRecipeResponse.InputError
-    ]
-    additional_outputs: _containers.RepeatedCompositeFieldContainer[
-        CMsgClientToGCCreateStaticRecipeResponse.AdditionalOutput
-    ]
-    def __init__(
-        self,
-        response: CMsgClientToGCCreateStaticRecipeResponse.EResponse | str | None = ...,
-        output_items: _Iterable[CMsgClientToGCCreateStaticRecipeResponse.OutputItem | _Mapping]
-        | None = ...,
-        input_errors: _Iterable[CMsgClientToGCCreateStaticRecipeResponse.InputError | _Mapping]
-        | None = ...,
-        additional_outputs: _Iterable[
-            CMsgClientToGCCreateStaticRecipeResponse.AdditionalOutput | _Mapping
-        ]
-        | None = ...,
-    ) -> None: ...
+    output_items: _containers.RepeatedCompositeFieldContainer[CMsgClientToGCCreateStaticRecipeResponse.OutputItem]
+    input_errors: _containers.RepeatedCompositeFieldContainer[CMsgClientToGCCreateStaticRecipeResponse.InputError]
+    additional_outputs: _containers.RepeatedCompositeFieldContainer[CMsgClientToGCCreateStaticRecipeResponse.AdditionalOutput]
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCCreateStaticRecipeResponse.EResponse, str]] = ..., output_items: _Optional[_Iterable[_Union[CMsgClientToGCCreateStaticRecipeResponse.OutputItem, _Mapping]]] = ..., input_errors: _Optional[_Iterable[_Union[CMsgClientToGCCreateStaticRecipeResponse.InputError, _Mapping]]] = ..., additional_outputs: _Optional[_Iterable[_Union[CMsgClientToGCCreateStaticRecipeResponse.AdditionalOutput, _Mapping]]] = ...) -> None: ...
 
 class CMsgProcessTransactionOrder(_message.Message):
-    __slots__ = (
-        "txn_id",
-        "steam_txn_id",
-        "partner_txn_id",
-        "steam_id",
-        "time_stamp",
-        "watermark",
-        "purchase_report_status",
-        "currency",
-        "items",
-    )
+    __slots__ = ("txn_id", "steam_txn_id", "partner_txn_id", "steam_id", "time_stamp", "watermark", "purchase_report_status", "currency", "items")
     class Item(_message.Message):
-        __slots__ = (
-            "item_def_index",
-            "item_price",
-            "quantity",
-            "category_desc",
-            "store_purchase_type",
-            "source_reference_id",
-            "parent_stack_index",
-            "default_price",
-            "is_user_facing",
-            "price_index",
-        )
+        __slots__ = ("item_def_index", "item_price", "quantity", "category_desc", "store_purchase_type", "source_reference_id", "parent_stack_index", "default_price", "is_user_facing", "price_index")
         ITEM_DEF_INDEX_FIELD_NUMBER: _ClassVar[int]
         ITEM_PRICE_FIELD_NUMBER: _ClassVar[int]
         QUANTITY_FIELD_NUMBER: _ClassVar[int]
@@ -2025,20 +1463,7 @@ class CMsgProcessTransactionOrder(_message.Message):
         default_price: bool
         is_user_facing: bool
         price_index: int
-        def __init__(
-            self,
-            item_def_index: int | None = ...,
-            item_price: int | None = ...,
-            quantity: int | None = ...,
-            category_desc: str | None = ...,
-            store_purchase_type: int | None = ...,
-            source_reference_id: int | None = ...,
-            parent_stack_index: int | None = ...,
-            default_price: bool = ...,
-            is_user_facing: bool = ...,
-            price_index: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, item_def_index: _Optional[int] = ..., item_price: _Optional[int] = ..., quantity: _Optional[int] = ..., category_desc: _Optional[str] = ..., store_purchase_type: _Optional[int] = ..., source_reference_id: _Optional[int] = ..., parent_stack_index: _Optional[int] = ..., default_price: bool = ..., is_user_facing: bool = ..., price_index: _Optional[int] = ...) -> None: ...
     TXN_ID_FIELD_NUMBER: _ClassVar[int]
     STEAM_TXN_ID_FIELD_NUMBER: _ClassVar[int]
     PARTNER_TXN_ID_FIELD_NUMBER: _ClassVar[int]
@@ -2057,18 +1482,7 @@ class CMsgProcessTransactionOrder(_message.Message):
     purchase_report_status: int
     currency: int
     items: _containers.RepeatedCompositeFieldContainer[CMsgProcessTransactionOrder.Item]
-    def __init__(
-        self,
-        txn_id: int | None = ...,
-        steam_txn_id: int | None = ...,
-        partner_txn_id: int | None = ...,
-        steam_id: int | None = ...,
-        time_stamp: int | None = ...,
-        watermark: int | None = ...,
-        purchase_report_status: int | None = ...,
-        currency: int | None = ...,
-        items: _Iterable[CMsgProcessTransactionOrder.Item | _Mapping] | None = ...,
-    ) -> None: ...
+    def __init__(self, txn_id: _Optional[int] = ..., steam_txn_id: _Optional[int] = ..., partner_txn_id: _Optional[int] = ..., steam_id: _Optional[int] = ..., time_stamp: _Optional[int] = ..., watermark: _Optional[int] = ..., purchase_report_status: _Optional[int] = ..., currency: _Optional[int] = ..., items: _Optional[_Iterable[_Union[CMsgProcessTransactionOrder.Item, _Mapping]]] = ...) -> None: ...
 
 class CMsgGCToGCStoreProcessCDKeyTransaction(_message.Message):
     __slots__ = ("order", "reason_code", "partner")
@@ -2078,12 +1492,7 @@ class CMsgGCToGCStoreProcessCDKeyTransaction(_message.Message):
     order: CMsgProcessTransactionOrder
     reason_code: int
     partner: int
-    def __init__(
-        self,
-        order: CMsgProcessTransactionOrder | _Mapping | None = ...,
-        reason_code: int | None = ...,
-        partner: int | None = ...,
-    ) -> None: ...
+    def __init__(self, order: _Optional[_Union[CMsgProcessTransactionOrder, _Mapping]] = ..., reason_code: _Optional[int] = ..., partner: _Optional[int] = ...) -> None: ...
 
 class CMsgGCToGCStoreProcessCDKeyTransactionResponse(_message.Message):
     __slots__ = ("success",)
@@ -2095,7 +1504,7 @@ class CMsgGCToGCStoreProcessSettlement(_message.Message):
     __slots__ = ("order",)
     ORDER_FIELD_NUMBER: _ClassVar[int]
     order: CMsgProcessTransactionOrder
-    def __init__(self, order: CMsgProcessTransactionOrder | _Mapping | None = ...) -> None: ...
+    def __init__(self, order: _Optional[_Union[CMsgProcessTransactionOrder, _Mapping]] = ...) -> None: ...
 
 class CMsgGCToGCStoreProcessSettlementResponse(_message.Message):
     __slots__ = ("success",)
@@ -2115,14 +1524,7 @@ class CMsgGCToGCBroadcastConsoleCommand(_message.Message):
     sending_gc: int
     output_initiator: str
     sender_source: str
-    def __init__(
-        self,
-        con_command: str | None = ...,
-        report_output: bool = ...,
-        sending_gc: int | None = ...,
-        output_initiator: str | None = ...,
-        sender_source: str | None = ...,
-    ) -> None: ...
+    def __init__(self, con_command: _Optional[str] = ..., report_output: bool = ..., sending_gc: _Optional[int] = ..., output_initiator: _Optional[str] = ..., sender_source: _Optional[str] = ...) -> None: ...
 
 class CMsgGCToGCConsoleOutput(_message.Message):
     __slots__ = ("initiator", "sending_gc", "msgs", "is_last_for_source_job")
@@ -2132,8 +1534,7 @@ class CMsgGCToGCConsoleOutput(_message.Message):
         SPEW_LEVEL_FIELD_NUMBER: _ClassVar[int]
         text: str
         spew_level: int
-        def __init__(self, text: str | None = ..., spew_level: int | None = ...) -> None: ...
-
+        def __init__(self, text: _Optional[str] = ..., spew_level: _Optional[int] = ...) -> None: ...
     INITIATOR_FIELD_NUMBER: _ClassVar[int]
     SENDING_GC_FIELD_NUMBER: _ClassVar[int]
     MSGS_FIELD_NUMBER: _ClassVar[int]
@@ -2142,13 +1543,7 @@ class CMsgGCToGCConsoleOutput(_message.Message):
     sending_gc: int
     msgs: _containers.RepeatedCompositeFieldContainer[CMsgGCToGCConsoleOutput.OutputLine]
     is_last_for_source_job: bool
-    def __init__(
-        self,
-        initiator: str | None = ...,
-        sending_gc: int | None = ...,
-        msgs: _Iterable[CMsgGCToGCConsoleOutput.OutputLine | _Mapping] | None = ...,
-        is_last_for_source_job: bool = ...,
-    ) -> None: ...
+    def __init__(self, initiator: _Optional[str] = ..., sending_gc: _Optional[int] = ..., msgs: _Optional[_Iterable[_Union[CMsgGCToGCConsoleOutput.OutputLine, _Mapping]]] = ..., is_last_for_source_job: bool = ...) -> None: ...
 
 class CMsgItemAges(_message.Message):
     __slots__ = ("max_item_id_timestamps",)
@@ -2158,27 +1553,13 @@ class CMsgItemAges(_message.Message):
         MAX_ITEM_ID_FIELD_NUMBER: _ClassVar[int]
         timestamp: int
         max_item_id: int
-        def __init__(self, timestamp: int | None = ..., max_item_id: int | None = ...) -> None: ...
-
+        def __init__(self, timestamp: _Optional[int] = ..., max_item_id: _Optional[int] = ...) -> None: ...
     MAX_ITEM_ID_TIMESTAMPS_FIELD_NUMBER: _ClassVar[int]
-    max_item_id_timestamps: _containers.RepeatedCompositeFieldContainer[
-        CMsgItemAges.MaxItemIDTimestamp
-    ]
-    def __init__(
-        self,
-        max_item_id_timestamps: _Iterable[CMsgItemAges.MaxItemIDTimestamp | _Mapping] | None = ...,
-    ) -> None: ...
+    max_item_id_timestamps: _containers.RepeatedCompositeFieldContainer[CMsgItemAges.MaxItemIDTimestamp]
+    def __init__(self, max_item_id_timestamps: _Optional[_Iterable[_Union[CMsgItemAges.MaxItemIDTimestamp, _Mapping]]] = ...) -> None: ...
 
 class CMsgGCToGCInternalTestMsg(_message.Message):
-    __slots__ = (
-        "sending_gc",
-        "sender_id",
-        "context",
-        "message_id",
-        "message_body",
-        "job_id_source",
-        "job_id_target",
-    )
+    __slots__ = ("sending_gc", "sender_id", "context", "message_id", "message_body", "job_id_source", "job_id_target")
     SENDING_GC_FIELD_NUMBER: _ClassVar[int]
     SENDER_ID_FIELD_NUMBER: _ClassVar[int]
     CONTEXT_FIELD_NUMBER: _ClassVar[int]
@@ -2193,25 +1574,10 @@ class CMsgGCToGCInternalTestMsg(_message.Message):
     message_body: bytes
     job_id_source: int
     job_id_target: int
-    def __init__(
-        self,
-        sending_gc: int | None = ...,
-        sender_id: int | None = ...,
-        context: int | None = ...,
-        message_id: int | None = ...,
-        message_body: bytes | None = ...,
-        job_id_source: int | None = ...,
-        job_id_target: int | None = ...,
-    ) -> None: ...
+    def __init__(self, sending_gc: _Optional[int] = ..., sender_id: _Optional[int] = ..., context: _Optional[int] = ..., message_id: _Optional[int] = ..., message_body: _Optional[bytes] = ..., job_id_source: _Optional[int] = ..., job_id_target: _Optional[int] = ...) -> None: ...
 
 class CMsgGCToGCClientServerVersionsUpdated(_message.Message):
-    __slots__ = (
-        "client_min_allowed_version",
-        "client_active_version",
-        "server_active_version",
-        "server_deployed_version",
-        "what_changed",
-    )
+    __slots__ = ("client_min_allowed_version", "client_active_version", "server_active_version", "server_deployed_version", "what_changed")
     CLIENT_MIN_ALLOWED_VERSION_FIELD_NUMBER: _ClassVar[int]
     CLIENT_ACTIVE_VERSION_FIELD_NUMBER: _ClassVar[int]
     SERVER_ACTIVE_VERSION_FIELD_NUMBER: _ClassVar[int]
@@ -2222,14 +1588,7 @@ class CMsgGCToGCClientServerVersionsUpdated(_message.Message):
     server_active_version: int
     server_deployed_version: int
     what_changed: int
-    def __init__(
-        self,
-        client_min_allowed_version: int | None = ...,
-        client_active_version: int | None = ...,
-        server_active_version: int | None = ...,
-        server_deployed_version: int | None = ...,
-        what_changed: int | None = ...,
-    ) -> None: ...
+    def __init__(self, client_min_allowed_version: _Optional[int] = ..., client_active_version: _Optional[int] = ..., server_active_version: _Optional[int] = ..., server_deployed_version: _Optional[int] = ..., what_changed: _Optional[int] = ...) -> None: ...
 
 class CMsgGCToGCBroadcastMessageFromSub(_message.Message):
     __slots__ = ("msg_id", "serialized_msg", "account_id_list", "steam_id_list")
@@ -2241,13 +1600,7 @@ class CMsgGCToGCBroadcastMessageFromSub(_message.Message):
     serialized_msg: bytes
     account_id_list: _containers.RepeatedScalarFieldContainer[int]
     steam_id_list: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(
-        self,
-        msg_id: int | None = ...,
-        serialized_msg: bytes | None = ...,
-        account_id_list: _Iterable[int] | None = ...,
-        steam_id_list: _Iterable[int] | None = ...,
-    ) -> None: ...
+    def __init__(self, msg_id: _Optional[int] = ..., serialized_msg: _Optional[bytes] = ..., account_id_list: _Optional[_Iterable[int]] = ..., steam_id_list: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CMsgGCToClientCurrencyPricePoints(_message.Message):
     __slots__ = ("price_key", "currencies")
@@ -2257,21 +1610,12 @@ class CMsgGCToClientCurrencyPricePoints(_message.Message):
         CURRENCY_PRICE_FIELD_NUMBER: _ClassVar[int]
         currency_id: int
         currency_price: _containers.RepeatedScalarFieldContainer[int]
-        def __init__(
-            self, currency_id: int | None = ..., currency_price: _Iterable[int] | None = ...
-        ) -> None: ...
-
+        def __init__(self, currency_id: _Optional[int] = ..., currency_price: _Optional[_Iterable[int]] = ...) -> None: ...
     PRICE_KEY_FIELD_NUMBER: _ClassVar[int]
     CURRENCIES_FIELD_NUMBER: _ClassVar[int]
     price_key: _containers.RepeatedScalarFieldContainer[int]
-    currencies: _containers.RepeatedCompositeFieldContainer[
-        CMsgGCToClientCurrencyPricePoints.Currency
-    ]
-    def __init__(
-        self,
-        price_key: _Iterable[int] | None = ...,
-        currencies: _Iterable[CMsgGCToClientCurrencyPricePoints.Currency | _Mapping] | None = ...,
-    ) -> None: ...
+    currencies: _containers.RepeatedCompositeFieldContainer[CMsgGCToClientCurrencyPricePoints.Currency]
+    def __init__(self, price_key: _Optional[_Iterable[int]] = ..., currencies: _Optional[_Iterable[_Union[CMsgGCToClientCurrencyPricePoints.Currency, _Mapping]]] = ...) -> None: ...
 
 class CMsgBannedWordList(_message.Message):
     __slots__ = ("version", "banned_words")
@@ -2279,9 +1623,7 @@ class CMsgBannedWordList(_message.Message):
     BANNED_WORDS_FIELD_NUMBER: _ClassVar[int]
     version: int
     banned_words: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(
-        self, version: int | None = ..., banned_words: _Iterable[str] | None = ...
-    ) -> None: ...
+    def __init__(self, version: _Optional[int] = ..., banned_words: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class CMsgGCToGCFlushSteamInventoryCache(_message.Message):
     __slots__ = ("keys",)
@@ -2291,13 +1633,10 @@ class CMsgGCToGCFlushSteamInventoryCache(_message.Message):
         CONTEXTID_FIELD_NUMBER: _ClassVar[int]
         steamid: int
         contextid: int
-        def __init__(self, steamid: int | None = ..., contextid: int | None = ...) -> None: ...
-
+        def __init__(self, steamid: _Optional[int] = ..., contextid: _Optional[int] = ...) -> None: ...
     KEYS_FIELD_NUMBER: _ClassVar[int]
     keys: _containers.RepeatedCompositeFieldContainer[CMsgGCToGCFlushSteamInventoryCache.Key]
-    def __init__(
-        self, keys: _Iterable[CMsgGCToGCFlushSteamInventoryCache.Key | _Mapping] | None = ...
-    ) -> None: ...
+    def __init__(self, keys: _Optional[_Iterable[_Union[CMsgGCToGCFlushSteamInventoryCache.Key, _Mapping]]] = ...) -> None: ...
 
 class CMsgGCToGCUpdateSubscriptionItems(_message.Message):
     __slots__ = ("account_id", "always_notify")
@@ -2305,13 +1644,13 @@ class CMsgGCToGCUpdateSubscriptionItems(_message.Message):
     ALWAYS_NOTIFY_FIELD_NUMBER: _ClassVar[int]
     account_id: int
     always_notify: bool
-    def __init__(self, account_id: int | None = ..., always_notify: bool = ...) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., always_notify: bool = ...) -> None: ...
 
 class CMsgGCToGCSelfPing(_message.Message):
     __slots__ = ("sample_id",)
     SAMPLE_ID_FIELD_NUMBER: _ClassVar[int]
     sample_id: int
-    def __init__(self, sample_id: int | None = ...) -> None: ...
+    def __init__(self, sample_id: _Optional[int] = ...) -> None: ...
 
 class CMsgGCToGCGetInfuxIntervalStats(_message.Message):
     __slots__ = ()
@@ -2329,14 +1668,7 @@ class CMsgGCToGCGetInfuxIntervalStatsResponse(_message.Message):
     stat_samples: _containers.RepeatedScalarFieldContainer[int]
     stat_max: _containers.RepeatedScalarFieldContainer[int]
     sample_duration_ms: int
-    def __init__(
-        self,
-        stat_ids: _Iterable[int] | None = ...,
-        stat_total: _Iterable[int] | None = ...,
-        stat_samples: _Iterable[int] | None = ...,
-        stat_max: _Iterable[int] | None = ...,
-        sample_duration_ms: int | None = ...,
-    ) -> None: ...
+    def __init__(self, stat_ids: _Optional[_Iterable[int]] = ..., stat_total: _Optional[_Iterable[int]] = ..., stat_samples: _Optional[_Iterable[int]] = ..., stat_max: _Optional[_Iterable[int]] = ..., sample_duration_ms: _Optional[int] = ...) -> None: ...
 
 class CMsgGCToGCPurchaseSucceeded(_message.Message):
     __slots__ = ()
@@ -2346,7 +1678,7 @@ class CMsgClientToGCGetLimitedItemPurchaseQuantity(_message.Message):
     __slots__ = ("item_def",)
     ITEM_DEF_FIELD_NUMBER: _ClassVar[int]
     item_def: int
-    def __init__(self, item_def: int | None = ...) -> None: ...
+    def __init__(self, item_def: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCGetLimitedItemPurchaseQuantityResponse(_message.Message):
     __slots__ = ("result", "quantity_purchased")
@@ -2358,10 +1690,7 @@ class CMsgClientToGCGetLimitedItemPurchaseQuantityResponse(_message.Message):
         k_eDisabled: _ClassVar[CMsgClientToGCGetLimitedItemPurchaseQuantityResponse.EResponse]
         k_eTimeout: _ClassVar[CMsgClientToGCGetLimitedItemPurchaseQuantityResponse.EResponse]
         k_eInvalidItemDef: _ClassVar[CMsgClientToGCGetLimitedItemPurchaseQuantityResponse.EResponse]
-        k_eItemDefNotLimited: _ClassVar[
-            CMsgClientToGCGetLimitedItemPurchaseQuantityResponse.EResponse
-        ]
-
+        k_eItemDefNotLimited: _ClassVar[CMsgClientToGCGetLimitedItemPurchaseQuantityResponse.EResponse]
     k_eInternalError: CMsgClientToGCGetLimitedItemPurchaseQuantityResponse.EResponse
     k_eSuccess: CMsgClientToGCGetLimitedItemPurchaseQuantityResponse.EResponse
     k_eTooBusy: CMsgClientToGCGetLimitedItemPurchaseQuantityResponse.EResponse
@@ -2373,17 +1702,13 @@ class CMsgClientToGCGetLimitedItemPurchaseQuantityResponse(_message.Message):
     QUANTITY_PURCHASED_FIELD_NUMBER: _ClassVar[int]
     result: CMsgClientToGCGetLimitedItemPurchaseQuantityResponse.EResponse
     quantity_purchased: int
-    def __init__(
-        self,
-        result: CMsgClientToGCGetLimitedItemPurchaseQuantityResponse.EResponse | str | None = ...,
-        quantity_purchased: int | None = ...,
-    ) -> None: ...
+    def __init__(self, result: _Optional[_Union[CMsgClientToGCGetLimitedItemPurchaseQuantityResponse.EResponse, str]] = ..., quantity_purchased: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCGetInFlightItemCharges(_message.Message):
     __slots__ = ("item_def",)
     ITEM_DEF_FIELD_NUMBER: _ClassVar[int]
     item_def: int
-    def __init__(self, item_def: int | None = ...) -> None: ...
+    def __init__(self, item_def: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCGetInFlightItemChargesResponse(_message.Message):
     __slots__ = ("result", "charges_in_flight")
@@ -2395,7 +1720,6 @@ class CMsgClientToGCGetInFlightItemChargesResponse(_message.Message):
         k_eDisabled: _ClassVar[CMsgClientToGCGetInFlightItemChargesResponse.EResponse]
         k_eTimeout: _ClassVar[CMsgClientToGCGetInFlightItemChargesResponse.EResponse]
         k_eInvalidItemDef: _ClassVar[CMsgClientToGCGetInFlightItemChargesResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCGetInFlightItemChargesResponse.EResponse
     k_eSuccess: CMsgClientToGCGetInFlightItemChargesResponse.EResponse
     k_eTooBusy: CMsgClientToGCGetInFlightItemChargesResponse.EResponse
@@ -2406,11 +1730,7 @@ class CMsgClientToGCGetInFlightItemChargesResponse(_message.Message):
     CHARGES_IN_FLIGHT_FIELD_NUMBER: _ClassVar[int]
     result: CMsgClientToGCGetInFlightItemChargesResponse.EResponse
     charges_in_flight: int
-    def __init__(
-        self,
-        result: CMsgClientToGCGetInFlightItemChargesResponse.EResponse | str | None = ...,
-        charges_in_flight: int | None = ...,
-    ) -> None: ...
+    def __init__(self, result: _Optional[_Union[CMsgClientToGCGetInFlightItemChargesResponse.EResponse, str]] = ..., charges_in_flight: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCPurchaseChargeCostItems(_message.Message):
     __slots__ = ("items", "currency")
@@ -2424,23 +1744,12 @@ class CMsgClientToGCPurchaseChargeCostItems(_message.Message):
         quantity: int
         source_reference_id: int
         price_index: int
-        def __init__(
-            self,
-            item_def_index: int | None = ...,
-            quantity: int | None = ...,
-            source_reference_id: int | None = ...,
-            price_index: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, item_def_index: _Optional[int] = ..., quantity: _Optional[int] = ..., source_reference_id: _Optional[int] = ..., price_index: _Optional[int] = ...) -> None: ...
     ITEMS_FIELD_NUMBER: _ClassVar[int]
     CURRENCY_FIELD_NUMBER: _ClassVar[int]
     items: _containers.RepeatedCompositeFieldContainer[CMsgClientToGCPurchaseChargeCostItems.Item]
     currency: int
-    def __init__(
-        self,
-        items: _Iterable[CMsgClientToGCPurchaseChargeCostItems.Item | _Mapping] | None = ...,
-        currency: int | None = ...,
-    ) -> None: ...
+    def __init__(self, items: _Optional[_Iterable[_Union[CMsgClientToGCPurchaseChargeCostItems.Item, _Mapping]]] = ..., currency: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCPurchaseChargeCostItemsResponse(_message.Message):
     __slots__ = ("result", "item_ids")
@@ -2456,7 +1765,6 @@ class CMsgClientToGCPurchaseChargeCostItemsResponse(_message.Message):
         k_eInsufficientCharges: _ClassVar[CMsgClientToGCPurchaseChargeCostItemsResponse.EResponse]
         k_eLimitedItem: _ClassVar[CMsgClientToGCPurchaseChargeCostItemsResponse.EResponse]
         k_eMissingPrereq: _ClassVar[CMsgClientToGCPurchaseChargeCostItemsResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCPurchaseChargeCostItemsResponse.EResponse
     k_eSuccess: CMsgClientToGCPurchaseChargeCostItemsResponse.EResponse
     k_eTooBusy: CMsgClientToGCPurchaseChargeCostItemsResponse.EResponse
@@ -2471,11 +1779,7 @@ class CMsgClientToGCPurchaseChargeCostItemsResponse(_message.Message):
     ITEM_IDS_FIELD_NUMBER: _ClassVar[int]
     result: CMsgClientToGCPurchaseChargeCostItemsResponse.EResponse
     item_ids: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(
-        self,
-        result: CMsgClientToGCPurchaseChargeCostItemsResponse.EResponse | str | None = ...,
-        item_ids: _Iterable[int] | None = ...,
-    ) -> None: ...
+    def __init__(self, result: _Optional[_Union[CMsgClientToGCPurchaseChargeCostItemsResponse.EResponse, str]] = ..., item_ids: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CMsgGCToClientInFlightChargesUpdated(_message.Message):
     __slots__ = ("in_flight_charges",)
@@ -2485,31 +1789,22 @@ class CMsgGCToClientInFlightChargesUpdated(_message.Message):
         CHARGES_IN_FLIGHT_FIELD_NUMBER: _ClassVar[int]
         item_def: int
         charges_in_flight: int
-        def __init__(
-            self, item_def: int | None = ..., charges_in_flight: int | None = ...
-        ) -> None: ...
-
+        def __init__(self, item_def: _Optional[int] = ..., charges_in_flight: _Optional[int] = ...) -> None: ...
     IN_FLIGHT_CHARGES_FIELD_NUMBER: _ClassVar[int]
-    in_flight_charges: _containers.RepeatedCompositeFieldContainer[
-        CMsgGCToClientInFlightChargesUpdated.ItemCharges
-    ]
-    def __init__(
-        self,
-        in_flight_charges: _Iterable[CMsgGCToClientInFlightChargesUpdated.ItemCharges | _Mapping]
-        | None = ...,
-    ) -> None: ...
+    in_flight_charges: _containers.RepeatedCompositeFieldContainer[CMsgGCToClientInFlightChargesUpdated.ItemCharges]
+    def __init__(self, in_flight_charges: _Optional[_Iterable[_Union[CMsgGCToClientInFlightChargesUpdated.ItemCharges, _Mapping]]] = ...) -> None: ...
 
 class CMsgClientToGCCancelUnfinalizedTransactions(_message.Message):
     __slots__ = ("unused",)
     UNUSED_FIELD_NUMBER: _ClassVar[int]
     unused: int
-    def __init__(self, unused: int | None = ...) -> None: ...
+    def __init__(self, unused: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCCancelUnfinalizedTransactionsResponse(_message.Message):
     __slots__ = ("result",)
     RESULT_FIELD_NUMBER: _ClassVar[int]
     result: int
-    def __init__(self, result: int | None = ...) -> None: ...
+    def __init__(self, result: _Optional[int] = ...) -> None: ...
 
 class CMsgGCToGCUpdateWelcomeMsg(_message.Message):
     __slots__ = ("server", "new_msg", "broadcast")
@@ -2519,12 +1814,7 @@ class CMsgGCToGCUpdateWelcomeMsg(_message.Message):
     server: bool
     new_msg: _gcsdk_gcmessages_pb2.CExtraMsgBlock
     broadcast: bool
-    def __init__(
-        self,
-        server: bool = ...,
-        new_msg: _gcsdk_gcmessages_pb2.CExtraMsgBlock | _Mapping | None = ...,
-        broadcast: bool = ...,
-    ) -> None: ...
+    def __init__(self, server: bool = ..., new_msg: _Optional[_Union[_gcsdk_gcmessages_pb2.CExtraMsgBlock, _Mapping]] = ..., broadcast: bool = ...) -> None: ...
 
 class CMsgClientToGCRecycleMultipleItems(_message.Message):
     __slots__ = ("items",)
@@ -2536,23 +1826,13 @@ class CMsgClientToGCRecycleMultipleItems(_message.Message):
         item_id: int
         slot_id: int
         recipe_def_index: int
-        def __init__(
-            self,
-            item_id: int | None = ...,
-            slot_id: int | None = ...,
-            recipe_def_index: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, item_id: _Optional[int] = ..., slot_id: _Optional[int] = ..., recipe_def_index: _Optional[int] = ...) -> None: ...
     ITEMS_FIELD_NUMBER: _ClassVar[int]
     items: _containers.RepeatedCompositeFieldContainer[CMsgClientToGCRecycleMultipleItems.Item]
-    def __init__(
-        self, items: _Iterable[CMsgClientToGCRecycleMultipleItems.Item | _Mapping] | None = ...
-    ) -> None: ...
+    def __init__(self, items: _Optional[_Iterable[_Union[CMsgClientToGCRecycleMultipleItems.Item, _Mapping]]] = ...) -> None: ...
 
 class CMsgClientToGCRecycleMultipleItemsResponse(_message.Message):
     __slots__ = ("responses",)
     RESPONSES_FIELD_NUMBER: _ClassVar[int]
     responses: _containers.RepeatedCompositeFieldContainer[CMsgClientToGCCreateStaticRecipeResponse]
-    def __init__(
-        self, responses: _Iterable[CMsgClientToGCCreateStaticRecipeResponse | _Mapping] | None = ...
-    ) -> None: ...
+    def __init__(self, responses: _Optional[_Iterable[_Union[CMsgClientToGCCreateStaticRecipeResponse, _Mapping]]] = ...) -> None: ...

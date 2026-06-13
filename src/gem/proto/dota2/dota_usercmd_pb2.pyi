@@ -1,26 +1,14 @@
-from collections.abc import Mapping as _Mapping
-from typing import ClassVar as _ClassVar
-
 import networkbasetypes_pb2 as _networkbasetypes_pb2
 import usercmd_pb2 as _usercmd_pb2
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
+from collections.abc import Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class CDota2UserCmdPB(_message.Message):
-    __slots__ = (
-        "base",
-        "spectator_query_unit_entindex",
-        "crosshairtrace",
-        "cameraposition_x",
-        "cameraposition_y",
-        "clickbehavior",
-        "statspanel",
-        "shoppanel",
-        "stats_dropdown",
-        "stats_dropdown_sort",
-    )
+    __slots__ = ("base", "spectator_query_unit_entindex", "crosshairtrace", "cameraposition_x", "cameraposition_y", "clickbehavior", "statspanel", "shoppanel", "stats_dropdown", "stats_dropdown_sort")
     BASE_FIELD_NUMBER: _ClassVar[int]
     SPECTATOR_QUERY_UNIT_ENTINDEX_FIELD_NUMBER: _ClassVar[int]
     CROSSHAIRTRACE_FIELD_NUMBER: _ClassVar[int]
@@ -41,16 +29,4 @@ class CDota2UserCmdPB(_message.Message):
     shoppanel: int
     stats_dropdown: int
     stats_dropdown_sort: int
-    def __init__(
-        self,
-        base: _usercmd_pb2.CBaseUserCmdPB | _Mapping | None = ...,
-        spectator_query_unit_entindex: int | None = ...,
-        crosshairtrace: _networkbasetypes_pb2.CMsgVector | _Mapping | None = ...,
-        cameraposition_x: int | None = ...,
-        cameraposition_y: int | None = ...,
-        clickbehavior: int | None = ...,
-        statspanel: int | None = ...,
-        shoppanel: int | None = ...,
-        stats_dropdown: int | None = ...,
-        stats_dropdown_sort: int | None = ...,
-    ) -> None: ...
+    def __init__(self, base: _Optional[_Union[_usercmd_pb2.CBaseUserCmdPB, _Mapping]] = ..., spectator_query_unit_entindex: _Optional[int] = ..., crosshairtrace: _Optional[_Union[_networkbasetypes_pb2.CMsgVector, _Mapping]] = ..., cameraposition_x: _Optional[int] = ..., cameraposition_y: _Optional[int] = ..., clickbehavior: _Optional[int] = ..., statspanel: _Optional[int] = ..., shoppanel: _Optional[int] = ..., stats_dropdown: _Optional[int] = ..., stats_dropdown_sort: _Optional[int] = ...) -> None: ...

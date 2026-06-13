@@ -1,8 +1,7 @@
-from typing import ClassVar as _ClassVar
-
+from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -22,7 +21,6 @@ class EClientUIEvent(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     EClientUIEvent_Invalid: _ClassVar[EClientUIEvent]
     EClientUIEvent_DialogFinished: _ClassVar[EClientUIEvent]
     EClientUIEvent_FireOutput: _ClassVar[EClientUIEvent]
-
 CM_CustomGameEvent: EBaseClientMessages
 CM_CustomGameEventBounce: EBaseClientMessages
 CM_ClientUIEvent: EBaseClientMessages
@@ -41,7 +39,7 @@ class CClientMsg_CustomGameEvent(_message.Message):
     DATA_FIELD_NUMBER: _ClassVar[int]
     event_name: str
     data: bytes
-    def __init__(self, event_name: str | None = ..., data: bytes | None = ...) -> None: ...
+    def __init__(self, event_name: _Optional[str] = ..., data: _Optional[bytes] = ...) -> None: ...
 
 class CClientMsg_CustomGameEventBounce(_message.Message):
     __slots__ = ("event_name", "data", "player_slot")
@@ -51,9 +49,7 @@ class CClientMsg_CustomGameEventBounce(_message.Message):
     event_name: str
     data: bytes
     player_slot: int
-    def __init__(
-        self, event_name: str | None = ..., data: bytes | None = ..., player_slot: int | None = ...
-    ) -> None: ...
+    def __init__(self, event_name: _Optional[str] = ..., data: _Optional[bytes] = ..., player_slot: _Optional[int] = ...) -> None: ...
 
 class CClientMsg_ClientUIEvent(_message.Message):
     __slots__ = ("event", "ent_ehandle", "client_ehandle", "data1", "data2")
@@ -67,14 +63,7 @@ class CClientMsg_ClientUIEvent(_message.Message):
     client_ehandle: int
     data1: str
     data2: str
-    def __init__(
-        self,
-        event: EClientUIEvent | str | None = ...,
-        ent_ehandle: int | None = ...,
-        client_ehandle: int | None = ...,
-        data1: str | None = ...,
-        data2: str | None = ...,
-    ) -> None: ...
+    def __init__(self, event: _Optional[_Union[EClientUIEvent, str]] = ..., ent_ehandle: _Optional[int] = ..., client_ehandle: _Optional[int] = ..., data1: _Optional[str] = ..., data2: _Optional[str] = ...) -> None: ...
 
 class CClientMsg_DevPaletteVisibilityChangedEvent(_message.Message):
     __slots__ = ("visible",)
@@ -90,21 +79,16 @@ class CClientMsg_WorldUIControllerHasPanelChangedEvent(_message.Message):
     has_panel: bool
     client_ehandle: int
     literal_hand_type: int
-    def __init__(
-        self,
-        has_panel: bool = ...,
-        client_ehandle: int | None = ...,
-        literal_hand_type: int | None = ...,
-    ) -> None: ...
+    def __init__(self, has_panel: bool = ..., client_ehandle: _Optional[int] = ..., literal_hand_type: _Optional[int] = ...) -> None: ...
 
 class CClientMsg_RotateAnchor(_message.Message):
     __slots__ = ("angle",)
     ANGLE_FIELD_NUMBER: _ClassVar[int]
     angle: float
-    def __init__(self, angle: float | None = ...) -> None: ...
+    def __init__(self, angle: _Optional[float] = ...) -> None: ...
 
 class CClientMsg_ListenForResponseFound(_message.Message):
     __slots__ = ("player_slot",)
     PLAYER_SLOT_FIELD_NUMBER: _ClassVar[int]
     player_slot: int
-    def __init__(self, player_slot: int | None = ...) -> None: ...
+    def __init__(self, player_slot: _Optional[int] = ...) -> None: ...

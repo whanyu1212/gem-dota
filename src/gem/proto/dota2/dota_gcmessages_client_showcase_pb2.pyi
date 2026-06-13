@@ -1,14 +1,18 @@
-from collections.abc import Iterable as _Iterable
-from collections.abc import Mapping as _Mapping
-from typing import ClassVar as _ClassVar
-
-import base_gcmessages_pb2 as _base_gcmessages_pb2
-import dota_gcmessages_common_pb2 as _dota_gcmessages_common_pb2
+import steammessages_pb2 as _steammessages_pb2
 import dota_shared_enums_pb2 as _dota_shared_enums_pb2
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
+import dota_gcmessages_common_pb2 as _dota_gcmessages_common_pb2
+import dota_gcmessages_webapi_pb2 as _dota_gcmessages_webapi_pb2
+import gcsdk_gcmessages_pb2 as _gcsdk_gcmessages_pb2
+import base_gcmessages_pb2 as _base_gcmessages_pb2
+import econ_gcmessages_pb2 as _econ_gcmessages_pb2
+import dota_gcmessages_client_pb2 as _dota_gcmessages_client_pb2
+import valveextensions_pb2 as _valveextensions_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -62,7 +66,6 @@ class EShowcaseItemFlag_Hero(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_eShowcaseItemFlag_Hero_ShowHeroCard: _ClassVar[EShowcaseItemFlag_Hero]
     k_eShowcaseItemFlag_Hero_HeroCardHideName: _ClassVar[EShowcaseItemFlag_Hero]
     k_eShowcaseItemFlag_Hero_HeroCardUseMovie: _ClassVar[EShowcaseItemFlag_Hero]
-
 k_eShowcaseHeroPlusFlag_None: EShowcaseHeroPlusFlag
 k_eShowcaseHeroPlusFlag_BadgePosTop: EShowcaseHeroPlusFlag
 k_eShowcaseHeroPlusFlag_BadgePosBottom: EShowcaseHeroPlusFlag
@@ -107,19 +110,13 @@ class CMsgShowcaseEconItemReference(_message.Message):
     original_id: int
     definition_index: int
     equipment_slot_index: int
-    def __init__(
-        self,
-        id: int | None = ...,
-        original_id: int | None = ...,
-        definition_index: int | None = ...,
-        equipment_slot_index: int | None = ...,
-    ) -> None: ...
+    def __init__(self, id: _Optional[int] = ..., original_id: _Optional[int] = ..., definition_index: _Optional[int] = ..., equipment_slot_index: _Optional[int] = ...) -> None: ...
 
 class CMsgHeroPlusInfo(_message.Message):
     __slots__ = ("flags",)
     FLAGS_FIELD_NUMBER: _ClassVar[int]
     flags: int
-    def __init__(self, flags: int | None = ...) -> None: ...
+    def __init__(self, flags: _Optional[int] = ...) -> None: ...
 
 class CMsgShowcaseItem_Trophy(_message.Message):
     __slots__ = ("data", "trophy_id")
@@ -127,17 +124,12 @@ class CMsgShowcaseItem_Trophy(_message.Message):
         __slots__ = ("trophy_score",)
         TROPHY_SCORE_FIELD_NUMBER: _ClassVar[int]
         trophy_score: int
-        def __init__(self, trophy_score: int | None = ...) -> None: ...
-
+        def __init__(self, trophy_score: _Optional[int] = ...) -> None: ...
     DATA_FIELD_NUMBER: _ClassVar[int]
     TROPHY_ID_FIELD_NUMBER: _ClassVar[int]
     data: CMsgShowcaseItem_Trophy.Data
     trophy_id: int
-    def __init__(
-        self,
-        data: CMsgShowcaseItem_Trophy.Data | _Mapping | None = ...,
-        trophy_id: int | None = ...,
-    ) -> None: ...
+    def __init__(self, data: _Optional[_Union[CMsgShowcaseItem_Trophy.Data, _Mapping]] = ..., trophy_id: _Optional[int] = ...) -> None: ...
 
 class CMsgShowcaseItem_EconItem(_message.Message):
     __slots__ = ("data", "ref")
@@ -145,35 +137,15 @@ class CMsgShowcaseItem_EconItem(_message.Message):
         __slots__ = ("econ_item",)
         ECON_ITEM_FIELD_NUMBER: _ClassVar[int]
         econ_item: _base_gcmessages_pb2.CSOEconItem
-        def __init__(
-            self, econ_item: _base_gcmessages_pb2.CSOEconItem | _Mapping | None = ...
-        ) -> None: ...
-
+        def __init__(self, econ_item: _Optional[_Union[_base_gcmessages_pb2.CSOEconItem, _Mapping]] = ...) -> None: ...
     DATA_FIELD_NUMBER: _ClassVar[int]
     REF_FIELD_NUMBER: _ClassVar[int]
     data: CMsgShowcaseItem_EconItem.Data
     ref: CMsgShowcaseEconItemReference
-    def __init__(
-        self,
-        data: CMsgShowcaseItem_EconItem.Data | _Mapping | None = ...,
-        ref: CMsgShowcaseEconItemReference | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, data: _Optional[_Union[CMsgShowcaseItem_EconItem.Data, _Mapping]] = ..., ref: _Optional[_Union[CMsgShowcaseEconItemReference, _Mapping]] = ...) -> None: ...
 
 class CMsgShowcaseItem_Hero(_message.Message):
-    __slots__ = (
-        "data",
-        "hero_id",
-        "econ_item_refs",
-        "rotation",
-        "flags",
-        "plus_info",
-        "animation_name",
-        "animation_playback_speed",
-        "animation_offset",
-        "zoom",
-        "slot_index",
-        "model_index",
-    )
+    __slots__ = ("data", "hero_id", "econ_item_refs", "rotation", "flags", "plus_info", "animation_name", "animation_playback_speed", "animation_offset", "zoom", "slot_index", "model_index")
     class Data(_message.Message):
         __slots__ = ("econ_items", "actual_hero_id", "plus_hero_xp")
         ECON_ITEMS_FIELD_NUMBER: _ClassVar[int]
@@ -182,13 +154,7 @@ class CMsgShowcaseItem_Hero(_message.Message):
         econ_items: _containers.RepeatedCompositeFieldContainer[_base_gcmessages_pb2.CSOEconItem]
         actual_hero_id: int
         plus_hero_xp: int
-        def __init__(
-            self,
-            econ_items: _Iterable[_base_gcmessages_pb2.CSOEconItem | _Mapping] | None = ...,
-            actual_hero_id: int | None = ...,
-            plus_hero_xp: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, econ_items: _Optional[_Iterable[_Union[_base_gcmessages_pb2.CSOEconItem, _Mapping]]] = ..., actual_hero_id: _Optional[int] = ..., plus_hero_xp: _Optional[int] = ...) -> None: ...
     DATA_FIELD_NUMBER: _ClassVar[int]
     HERO_ID_FIELD_NUMBER: _ClassVar[int]
     ECON_ITEM_REFS_FIELD_NUMBER: _ClassVar[int]
@@ -213,21 +179,7 @@ class CMsgShowcaseItem_Hero(_message.Message):
     zoom: int
     slot_index: int
     model_index: int
-    def __init__(
-        self,
-        data: CMsgShowcaseItem_Hero.Data | _Mapping | None = ...,
-        hero_id: int | None = ...,
-        econ_item_refs: _Iterable[CMsgShowcaseEconItemReference | _Mapping] | None = ...,
-        rotation: int | None = ...,
-        flags: int | None = ...,
-        plus_info: CMsgHeroPlusInfo | _Mapping | None = ...,
-        animation_name: str | None = ...,
-        animation_playback_speed: int | None = ...,
-        animation_offset: int | None = ...,
-        zoom: int | None = ...,
-        slot_index: int | None = ...,
-        model_index: int | None = ...,
-    ) -> None: ...
+    def __init__(self, data: _Optional[_Union[CMsgShowcaseItem_Hero.Data, _Mapping]] = ..., hero_id: _Optional[int] = ..., econ_item_refs: _Optional[_Iterable[_Union[CMsgShowcaseEconItemReference, _Mapping]]] = ..., rotation: _Optional[int] = ..., flags: _Optional[int] = ..., plus_info: _Optional[_Union[CMsgHeroPlusInfo, _Mapping]] = ..., animation_name: _Optional[str] = ..., animation_playback_speed: _Optional[int] = ..., animation_offset: _Optional[int] = ..., zoom: _Optional[int] = ..., slot_index: _Optional[int] = ..., model_index: _Optional[int] = ...) -> None: ...
 
 class CMsgShowcaseItem_HeroIcon(_message.Message):
     __slots__ = ("data", "hero_id", "econ_item_ref")
@@ -235,22 +187,14 @@ class CMsgShowcaseItem_HeroIcon(_message.Message):
         __slots__ = ("econ_item",)
         ECON_ITEM_FIELD_NUMBER: _ClassVar[int]
         econ_item: _base_gcmessages_pb2.CSOEconItem
-        def __init__(
-            self, econ_item: _base_gcmessages_pb2.CSOEconItem | _Mapping | None = ...
-        ) -> None: ...
-
+        def __init__(self, econ_item: _Optional[_Union[_base_gcmessages_pb2.CSOEconItem, _Mapping]] = ...) -> None: ...
     DATA_FIELD_NUMBER: _ClassVar[int]
     HERO_ID_FIELD_NUMBER: _ClassVar[int]
     ECON_ITEM_REF_FIELD_NUMBER: _ClassVar[int]
     data: CMsgShowcaseItem_HeroIcon.Data
     hero_id: int
     econ_item_ref: CMsgShowcaseEconItemReference
-    def __init__(
-        self,
-        data: CMsgShowcaseItem_HeroIcon.Data | _Mapping | None = ...,
-        hero_id: int | None = ...,
-        econ_item_ref: CMsgShowcaseEconItemReference | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, data: _Optional[_Union[CMsgShowcaseItem_HeroIcon.Data, _Mapping]] = ..., hero_id: _Optional[int] = ..., econ_item_ref: _Optional[_Union[CMsgShowcaseEconItemReference, _Mapping]] = ...) -> None: ...
 
 class CMsgShowcaseItem_PlayerMatch(_message.Message):
     __slots__ = ("data", "match_id", "player_slot")
@@ -260,22 +204,12 @@ class CMsgShowcaseItem_PlayerMatch(_message.Message):
         k_eWin: _ClassVar[CMsgShowcaseItem_PlayerMatch.EPlayerOutcome]
         k_eLoss: _ClassVar[CMsgShowcaseItem_PlayerMatch.EPlayerOutcome]
         k_eNotScored: _ClassVar[CMsgShowcaseItem_PlayerMatch.EPlayerOutcome]
-
     k_eInvalid: CMsgShowcaseItem_PlayerMatch.EPlayerOutcome
     k_eWin: CMsgShowcaseItem_PlayerMatch.EPlayerOutcome
     k_eLoss: CMsgShowcaseItem_PlayerMatch.EPlayerOutcome
     k_eNotScored: CMsgShowcaseItem_PlayerMatch.EPlayerOutcome
     class Data(_message.Message):
-        __slots__ = (
-            "hero_id",
-            "timestamp",
-            "duration",
-            "game_mode",
-            "outcome",
-            "kills",
-            "deaths",
-            "assists",
-        )
+        __slots__ = ("hero_id", "timestamp", "duration", "game_mode", "outcome", "kills", "deaths", "assists")
         HERO_ID_FIELD_NUMBER: _ClassVar[int]
         TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
         DURATION_FIELD_NUMBER: _ClassVar[int]
@@ -292,82 +226,54 @@ class CMsgShowcaseItem_PlayerMatch(_message.Message):
         kills: int
         deaths: int
         assists: int
-        def __init__(
-            self,
-            hero_id: int | None = ...,
-            timestamp: int | None = ...,
-            duration: int | None = ...,
-            game_mode: _dota_shared_enums_pb2.DOTA_GameMode | str | None = ...,
-            outcome: CMsgShowcaseItem_PlayerMatch.EPlayerOutcome | str | None = ...,
-            kills: int | None = ...,
-            deaths: int | None = ...,
-            assists: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, hero_id: _Optional[int] = ..., timestamp: _Optional[int] = ..., duration: _Optional[int] = ..., game_mode: _Optional[_Union[_dota_shared_enums_pb2.DOTA_GameMode, str]] = ..., outcome: _Optional[_Union[CMsgShowcaseItem_PlayerMatch.EPlayerOutcome, str]] = ..., kills: _Optional[int] = ..., deaths: _Optional[int] = ..., assists: _Optional[int] = ...) -> None: ...
     DATA_FIELD_NUMBER: _ClassVar[int]
     MATCH_ID_FIELD_NUMBER: _ClassVar[int]
     PLAYER_SLOT_FIELD_NUMBER: _ClassVar[int]
     data: CMsgShowcaseItem_PlayerMatch.Data
     match_id: int
     player_slot: int
-    def __init__(
-        self,
-        data: CMsgShowcaseItem_PlayerMatch.Data | _Mapping | None = ...,
-        match_id: int | None = ...,
-        player_slot: int | None = ...,
-    ) -> None: ...
+    def __init__(self, data: _Optional[_Union[CMsgShowcaseItem_PlayerMatch.Data, _Mapping]] = ..., match_id: _Optional[int] = ..., player_slot: _Optional[int] = ...) -> None: ...
 
 class CMsgShowcaseItem_ChatWheel(_message.Message):
     __slots__ = ("data", "chat_wheel_message_id")
     class Data(_message.Message):
         __slots__ = ()
         def __init__(self) -> None: ...
-
     DATA_FIELD_NUMBER: _ClassVar[int]
     CHAT_WHEEL_MESSAGE_ID_FIELD_NUMBER: _ClassVar[int]
     data: CMsgShowcaseItem_ChatWheel.Data
     chat_wheel_message_id: int
-    def __init__(
-        self,
-        data: CMsgShowcaseItem_ChatWheel.Data | _Mapping | None = ...,
-        chat_wheel_message_id: int | None = ...,
-    ) -> None: ...
+    def __init__(self, data: _Optional[_Union[CMsgShowcaseItem_ChatWheel.Data, _Mapping]] = ..., chat_wheel_message_id: _Optional[int] = ...) -> None: ...
 
 class CMsgShowcaseItem_Emoticon(_message.Message):
     __slots__ = ("data", "emoticon_id")
     class Data(_message.Message):
         __slots__ = ()
         def __init__(self) -> None: ...
-
     DATA_FIELD_NUMBER: _ClassVar[int]
     EMOTICON_ID_FIELD_NUMBER: _ClassVar[int]
     data: CMsgShowcaseItem_Emoticon.Data
     emoticon_id: int
-    def __init__(
-        self,
-        data: CMsgShowcaseItem_Emoticon.Data | _Mapping | None = ...,
-        emoticon_id: int | None = ...,
-    ) -> None: ...
+    def __init__(self, data: _Optional[_Union[CMsgShowcaseItem_Emoticon.Data, _Mapping]] = ..., emoticon_id: _Optional[int] = ...) -> None: ...
 
 class CMsgShowcaseItem_SpiderGraph(_message.Message):
     __slots__ = ("data",)
     class Data(_message.Message):
         __slots__ = ()
         def __init__(self) -> None: ...
-
     DATA_FIELD_NUMBER: _ClassVar[int]
     data: CMsgShowcaseItem_SpiderGraph.Data
-    def __init__(self, data: CMsgShowcaseItem_SpiderGraph.Data | _Mapping | None = ...) -> None: ...
+    def __init__(self, data: _Optional[_Union[CMsgShowcaseItem_SpiderGraph.Data, _Mapping]] = ...) -> None: ...
 
 class CMsgShowcaseItem_UserFeed(_message.Message):
     __slots__ = ("data",)
     class Data(_message.Message):
         __slots__ = ()
         def __init__(self) -> None: ...
-
     DATA_FIELD_NUMBER: _ClassVar[int]
     data: CMsgShowcaseItem_UserFeed.Data
-    def __init__(self, data: CMsgShowcaseItem_UserFeed.Data | _Mapping | None = ...) -> None: ...
+    def __init__(self, data: _Optional[_Union[CMsgShowcaseItem_UserFeed.Data, _Mapping]] = ...) -> None: ...
 
 class CMsgShowcaseItem_Stat(_message.Message):
     __slots__ = ("data", "stat_id")
@@ -375,17 +281,12 @@ class CMsgShowcaseItem_Stat(_message.Message):
         __slots__ = ("stat_score",)
         STAT_SCORE_FIELD_NUMBER: _ClassVar[int]
         stat_score: int
-        def __init__(self, stat_score: int | None = ...) -> None: ...
-
+        def __init__(self, stat_score: _Optional[int] = ...) -> None: ...
     DATA_FIELD_NUMBER: _ClassVar[int]
     STAT_ID_FIELD_NUMBER: _ClassVar[int]
     data: CMsgShowcaseItem_Stat.Data
     stat_id: _dota_gcmessages_common_pb2.CMsgDOTAProfileCard.EStatID
-    def __init__(
-        self,
-        data: CMsgShowcaseItem_Stat.Data | _Mapping | None = ...,
-        stat_id: _dota_gcmessages_common_pb2.CMsgDOTAProfileCard.EStatID | str | None = ...,
-    ) -> None: ...
+    def __init__(self, data: _Optional[_Union[CMsgShowcaseItem_Stat.Data, _Mapping]] = ..., stat_id: _Optional[_Union[_dota_gcmessages_common_pb2.CMsgDOTAProfileCard.EStatID, str]] = ...) -> None: ...
 
 class CMsgShowcaseBackground(_message.Message):
     __slots__ = ("data", "loading_screen_ref", "dim", "blur", "background_id")
@@ -393,10 +294,7 @@ class CMsgShowcaseBackground(_message.Message):
         __slots__ = ("loading_screen",)
         LOADING_SCREEN_FIELD_NUMBER: _ClassVar[int]
         loading_screen: _base_gcmessages_pb2.CSOEconItem
-        def __init__(
-            self, loading_screen: _base_gcmessages_pb2.CSOEconItem | _Mapping | None = ...
-        ) -> None: ...
-
+        def __init__(self, loading_screen: _Optional[_Union[_base_gcmessages_pb2.CSOEconItem, _Mapping]] = ...) -> None: ...
     DATA_FIELD_NUMBER: _ClassVar[int]
     LOADING_SCREEN_REF_FIELD_NUMBER: _ClassVar[int]
     DIM_FIELD_NUMBER: _ClassVar[int]
@@ -407,38 +305,10 @@ class CMsgShowcaseBackground(_message.Message):
     dim: int
     blur: int
     background_id: int
-    def __init__(
-        self,
-        data: CMsgShowcaseBackground.Data | _Mapping | None = ...,
-        loading_screen_ref: CMsgShowcaseEconItemReference | _Mapping | None = ...,
-        dim: int | None = ...,
-        blur: int | None = ...,
-        background_id: int | None = ...,
-    ) -> None: ...
+    def __init__(self, data: _Optional[_Union[CMsgShowcaseBackground.Data, _Mapping]] = ..., loading_screen_ref: _Optional[_Union[CMsgShowcaseEconItemReference, _Mapping]] = ..., dim: _Optional[int] = ..., blur: _Optional[int] = ..., background_id: _Optional[int] = ...) -> None: ...
 
 class CMsgShowcaseItemData(_message.Message):
-    __slots__ = (
-        "trophy",
-        "econ_item_icon",
-        "sticker",
-        "hero_model",
-        "player_match",
-        "chat_wheel",
-        "spray",
-        "emoticon",
-        "courier",
-        "ward",
-        "hero_icon",
-        "spider_graph",
-        "user_feed",
-        "stat",
-        "roshan",
-        "creep",
-        "tower",
-        "effigy",
-        "decoration",
-        "background",
-    )
+    __slots__ = ("trophy", "econ_item_icon", "sticker", "hero_model", "player_match", "chat_wheel", "spray", "emoticon", "courier", "ward", "hero_icon", "spider_graph", "user_feed", "stat", "roshan", "creep", "tower", "effigy", "decoration", "background")
     TROPHY_FIELD_NUMBER: _ClassVar[int]
     ECON_ITEM_ICON_FIELD_NUMBER: _ClassVar[int]
     STICKER_FIELD_NUMBER: _ClassVar[int]
@@ -479,43 +349,10 @@ class CMsgShowcaseItemData(_message.Message):
     effigy: CMsgShowcaseItem_EconItem
     decoration: CMsgShowcaseItem_EconItem
     background: CMsgShowcaseBackground
-    def __init__(
-        self,
-        trophy: CMsgShowcaseItem_Trophy | _Mapping | None = ...,
-        econ_item_icon: CMsgShowcaseItem_EconItem | _Mapping | None = ...,
-        sticker: CMsgShowcaseItem_EconItem | _Mapping | None = ...,
-        hero_model: CMsgShowcaseItem_Hero | _Mapping | None = ...,
-        player_match: CMsgShowcaseItem_PlayerMatch | _Mapping | None = ...,
-        chat_wheel: CMsgShowcaseItem_ChatWheel | _Mapping | None = ...,
-        spray: CMsgShowcaseItem_ChatWheel | _Mapping | None = ...,
-        emoticon: CMsgShowcaseItem_Emoticon | _Mapping | None = ...,
-        courier: CMsgShowcaseItem_EconItem | _Mapping | None = ...,
-        ward: CMsgShowcaseItem_EconItem | _Mapping | None = ...,
-        hero_icon: CMsgShowcaseItem_HeroIcon | _Mapping | None = ...,
-        spider_graph: CMsgShowcaseItem_SpiderGraph | _Mapping | None = ...,
-        user_feed: CMsgShowcaseItem_UserFeed | _Mapping | None = ...,
-        stat: CMsgShowcaseItem_Stat | _Mapping | None = ...,
-        roshan: CMsgShowcaseItem_EconItem | _Mapping | None = ...,
-        creep: CMsgShowcaseItem_EconItem | _Mapping | None = ...,
-        tower: CMsgShowcaseItem_EconItem | _Mapping | None = ...,
-        effigy: CMsgShowcaseItem_EconItem | _Mapping | None = ...,
-        decoration: CMsgShowcaseItem_EconItem | _Mapping | None = ...,
-        background: CMsgShowcaseBackground | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, trophy: _Optional[_Union[CMsgShowcaseItem_Trophy, _Mapping]] = ..., econ_item_icon: _Optional[_Union[CMsgShowcaseItem_EconItem, _Mapping]] = ..., sticker: _Optional[_Union[CMsgShowcaseItem_EconItem, _Mapping]] = ..., hero_model: _Optional[_Union[CMsgShowcaseItem_Hero, _Mapping]] = ..., player_match: _Optional[_Union[CMsgShowcaseItem_PlayerMatch, _Mapping]] = ..., chat_wheel: _Optional[_Union[CMsgShowcaseItem_ChatWheel, _Mapping]] = ..., spray: _Optional[_Union[CMsgShowcaseItem_ChatWheel, _Mapping]] = ..., emoticon: _Optional[_Union[CMsgShowcaseItem_Emoticon, _Mapping]] = ..., courier: _Optional[_Union[CMsgShowcaseItem_EconItem, _Mapping]] = ..., ward: _Optional[_Union[CMsgShowcaseItem_EconItem, _Mapping]] = ..., hero_icon: _Optional[_Union[CMsgShowcaseItem_HeroIcon, _Mapping]] = ..., spider_graph: _Optional[_Union[CMsgShowcaseItem_SpiderGraph, _Mapping]] = ..., user_feed: _Optional[_Union[CMsgShowcaseItem_UserFeed, _Mapping]] = ..., stat: _Optional[_Union[CMsgShowcaseItem_Stat, _Mapping]] = ..., roshan: _Optional[_Union[CMsgShowcaseItem_EconItem, _Mapping]] = ..., creep: _Optional[_Union[CMsgShowcaseItem_EconItem, _Mapping]] = ..., tower: _Optional[_Union[CMsgShowcaseItem_EconItem, _Mapping]] = ..., effigy: _Optional[_Union[CMsgShowcaseItem_EconItem, _Mapping]] = ..., decoration: _Optional[_Union[CMsgShowcaseItem_EconItem, _Mapping]] = ..., background: _Optional[_Union[CMsgShowcaseBackground, _Mapping]] = ...) -> None: ...
 
 class CMsgShowcaseItemPosition(_message.Message):
-    __slots__ = (
-        "position_x",
-        "position_y",
-        "scale",
-        "width",
-        "height",
-        "rotation",
-        "parent_id",
-        "parent_attachment_point_id",
-        "attachment_anchor_x",
-        "attachment_anchor_y",
-    )
+    __slots__ = ("position_x", "position_y", "scale", "width", "height", "rotation", "parent_id", "parent_attachment_point_id", "attachment_anchor_x", "attachment_anchor_y")
     POSITION_X_FIELD_NUMBER: _ClassVar[int]
     POSITION_Y_FIELD_NUMBER: _ClassVar[int]
     SCALE_FIELD_NUMBER: _ClassVar[int]
@@ -536,19 +373,7 @@ class CMsgShowcaseItemPosition(_message.Message):
     parent_attachment_point_id: int
     attachment_anchor_x: int
     attachment_anchor_y: int
-    def __init__(
-        self,
-        position_x: int | None = ...,
-        position_y: int | None = ...,
-        scale: int | None = ...,
-        width: int | None = ...,
-        height: int | None = ...,
-        rotation: int | None = ...,
-        parent_id: int | None = ...,
-        parent_attachment_point_id: int | None = ...,
-        attachment_anchor_x: int | None = ...,
-        attachment_anchor_y: int | None = ...,
-    ) -> None: ...
+    def __init__(self, position_x: _Optional[int] = ..., position_y: _Optional[int] = ..., scale: _Optional[int] = ..., width: _Optional[int] = ..., height: _Optional[int] = ..., rotation: _Optional[int] = ..., parent_id: _Optional[int] = ..., parent_attachment_point_id: _Optional[int] = ..., attachment_anchor_x: _Optional[int] = ..., attachment_anchor_y: _Optional[int] = ...) -> None: ...
 
 class CMsgShowcaseItem(_message.Message):
     __slots__ = ("showcase_item_id", "item_position", "item_data", "state", "flags")
@@ -562,14 +387,7 @@ class CMsgShowcaseItem(_message.Message):
     item_data: CMsgShowcaseItemData
     state: EShowcaseItemState
     flags: int
-    def __init__(
-        self,
-        showcase_item_id: int | None = ...,
-        item_position: CMsgShowcaseItemPosition | _Mapping | None = ...,
-        item_data: CMsgShowcaseItemData | _Mapping | None = ...,
-        state: EShowcaseItemState | str | None = ...,
-        flags: int | None = ...,
-    ) -> None: ...
+    def __init__(self, showcase_item_id: _Optional[int] = ..., item_position: _Optional[_Union[CMsgShowcaseItemPosition, _Mapping]] = ..., item_data: _Optional[_Union[CMsgShowcaseItemData, _Mapping]] = ..., state: _Optional[_Union[EShowcaseItemState, str]] = ..., flags: _Optional[int] = ...) -> None: ...
 
 class CMsgShowcase(_message.Message):
     __slots__ = ("showcase_items", "background", "moderation_state")
@@ -577,7 +395,6 @@ class CMsgShowcase(_message.Message):
         __slots__ = ()
         k_eModerationState_Ok: _ClassVar[CMsgShowcase.EModerationState]
         k_eModerationState_PendingApproval: _ClassVar[CMsgShowcase.EModerationState]
-
     k_eModerationState_Ok: CMsgShowcase.EModerationState
     k_eModerationState_PendingApproval: CMsgShowcase.EModerationState
     SHOWCASE_ITEMS_FIELD_NUMBER: _ClassVar[int]
@@ -586,12 +403,7 @@ class CMsgShowcase(_message.Message):
     showcase_items: _containers.RepeatedCompositeFieldContainer[CMsgShowcaseItem]
     background: CMsgShowcaseItem
     moderation_state: CMsgShowcase.EModerationState
-    def __init__(
-        self,
-        showcase_items: _Iterable[CMsgShowcaseItem | _Mapping] | None = ...,
-        background: CMsgShowcaseItem | _Mapping | None = ...,
-        moderation_state: CMsgShowcase.EModerationState | str | None = ...,
-    ) -> None: ...
+    def __init__(self, showcase_items: _Optional[_Iterable[_Union[CMsgShowcaseItem, _Mapping]]] = ..., background: _Optional[_Union[CMsgShowcaseItem, _Mapping]] = ..., moderation_state: _Optional[_Union[CMsgShowcase.EModerationState, str]] = ...) -> None: ...
 
 class CMsgClientToGCShowcaseGetUserData(_message.Message):
     __slots__ = ("account_id", "showcase_type")
@@ -599,9 +411,7 @@ class CMsgClientToGCShowcaseGetUserData(_message.Message):
     SHOWCASE_TYPE_FIELD_NUMBER: _ClassVar[int]
     account_id: int
     showcase_type: EShowcaseType
-    def __init__(
-        self, account_id: int | None = ..., showcase_type: EShowcaseType | str | None = ...
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., showcase_type: _Optional[_Union[EShowcaseType, str]] = ...) -> None: ...
 
 class CMsgClientToGCShowcaseGetUserDataResponse(_message.Message):
     __slots__ = ("response", "showcase")
@@ -613,7 +423,6 @@ class CMsgClientToGCShowcaseGetUserDataResponse(_message.Message):
         k_eDisabled: _ClassVar[CMsgClientToGCShowcaseGetUserDataResponse.EResponse]
         k_eTimeout: _ClassVar[CMsgClientToGCShowcaseGetUserDataResponse.EResponse]
         k_eUnknownShowcase: _ClassVar[CMsgClientToGCShowcaseGetUserDataResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCShowcaseGetUserDataResponse.EResponse
     k_eSuccess: CMsgClientToGCShowcaseGetUserDataResponse.EResponse
     k_eTooBusy: CMsgClientToGCShowcaseGetUserDataResponse.EResponse
@@ -624,11 +433,7 @@ class CMsgClientToGCShowcaseGetUserDataResponse(_message.Message):
     SHOWCASE_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCShowcaseGetUserDataResponse.EResponse
     showcase: CMsgShowcase
-    def __init__(
-        self,
-        response: CMsgClientToGCShowcaseGetUserDataResponse.EResponse | str | None = ...,
-        showcase: CMsgShowcase | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCShowcaseGetUserDataResponse.EResponse, str]] = ..., showcase: _Optional[_Union[CMsgShowcase, _Mapping]] = ...) -> None: ...
 
 class CMsgClientToGCShowcaseSetUserData(_message.Message):
     __slots__ = ("showcase_type", "showcase", "format_version")
@@ -638,12 +443,7 @@ class CMsgClientToGCShowcaseSetUserData(_message.Message):
     showcase_type: EShowcaseType
     showcase: CMsgShowcase
     format_version: int
-    def __init__(
-        self,
-        showcase_type: EShowcaseType | str | None = ...,
-        showcase: CMsgShowcase | _Mapping | None = ...,
-        format_version: int | None = ...,
-    ) -> None: ...
+    def __init__(self, showcase_type: _Optional[_Union[EShowcaseType, str]] = ..., showcase: _Optional[_Union[CMsgShowcase, _Mapping]] = ..., format_version: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCShowcaseSetUserDataResponse(_message.Message):
     __slots__ = ("response", "validated_showcase", "locked_until_timestamp")
@@ -658,7 +458,6 @@ class CMsgClientToGCShowcaseSetUserDataResponse(_message.Message):
         k_eLockedFromEditing: _ClassVar[CMsgClientToGCShowcaseSetUserDataResponse.EResponse]
         k_eBudgetExceeded: _ClassVar[CMsgClientToGCShowcaseSetUserDataResponse.EResponse]
         k_eCommunicationScoreTooLow: _ClassVar[CMsgClientToGCShowcaseSetUserDataResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCShowcaseSetUserDataResponse.EResponse
     k_eSuccess: CMsgClientToGCShowcaseSetUserDataResponse.EResponse
     k_eTooBusy: CMsgClientToGCShowcaseSetUserDataResponse.EResponse
@@ -674,12 +473,7 @@ class CMsgClientToGCShowcaseSetUserDataResponse(_message.Message):
     response: CMsgClientToGCShowcaseSetUserDataResponse.EResponse
     validated_showcase: CMsgShowcase
     locked_until_timestamp: int
-    def __init__(
-        self,
-        response: CMsgClientToGCShowcaseSetUserDataResponse.EResponse | str | None = ...,
-        validated_showcase: CMsgShowcase | _Mapping | None = ...,
-        locked_until_timestamp: int | None = ...,
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCShowcaseSetUserDataResponse.EResponse, str]] = ..., validated_showcase: _Optional[_Union[CMsgShowcase, _Mapping]] = ..., locked_until_timestamp: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCShowcaseSubmitReport(_message.Message):
     __slots__ = ("target_account_id", "showcase_type", "report_comment")
@@ -689,12 +483,7 @@ class CMsgClientToGCShowcaseSubmitReport(_message.Message):
     target_account_id: int
     showcase_type: EShowcaseType
     report_comment: str
-    def __init__(
-        self,
-        target_account_id: int | None = ...,
-        showcase_type: EShowcaseType | str | None = ...,
-        report_comment: str | None = ...,
-    ) -> None: ...
+    def __init__(self, target_account_id: _Optional[int] = ..., showcase_type: _Optional[_Union[EShowcaseType, str]] = ..., report_comment: _Optional[str] = ...) -> None: ...
 
 class CMsgClientToGCShowcaseSubmitReportResponse(_message.Message):
     __slots__ = ("response",)
@@ -706,7 +495,6 @@ class CMsgClientToGCShowcaseSubmitReportResponse(_message.Message):
         k_eDisabled: _ClassVar[CMsgClientToGCShowcaseSubmitReportResponse.EResponse]
         k_eTimeout: _ClassVar[CMsgClientToGCShowcaseSubmitReportResponse.EResponse]
         k_eAlreadyReported: _ClassVar[CMsgClientToGCShowcaseSubmitReportResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCShowcaseSubmitReportResponse.EResponse
     k_eSuccess: CMsgClientToGCShowcaseSubmitReportResponse.EResponse
     k_eTooBusy: CMsgClientToGCShowcaseSubmitReportResponse.EResponse
@@ -715,9 +503,7 @@ class CMsgClientToGCShowcaseSubmitReportResponse(_message.Message):
     k_eAlreadyReported: CMsgClientToGCShowcaseSubmitReportResponse.EResponse
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCShowcaseSubmitReportResponse.EResponse
-    def __init__(
-        self, response: CMsgClientToGCShowcaseSubmitReportResponse.EResponse | str | None = ...
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCShowcaseSubmitReportResponse.EResponse, str]] = ...) -> None: ...
 
 class CMsgShowcaseReportsRollupInfo(_message.Message):
     __slots__ = ("rollup_id", "start_timestamp", "end_timestamp")
@@ -727,20 +513,13 @@ class CMsgShowcaseReportsRollupInfo(_message.Message):
     rollup_id: int
     start_timestamp: int
     end_timestamp: int
-    def __init__(
-        self,
-        rollup_id: int | None = ...,
-        start_timestamp: int | None = ...,
-        end_timestamp: int | None = ...,
-    ) -> None: ...
+    def __init__(self, rollup_id: _Optional[int] = ..., start_timestamp: _Optional[int] = ..., end_timestamp: _Optional[int] = ...) -> None: ...
 
 class CMsgShowcaseReportsRollupList(_message.Message):
     __slots__ = ("rollups",)
     ROLLUPS_FIELD_NUMBER: _ClassVar[int]
     rollups: _containers.RepeatedCompositeFieldContainer[CMsgShowcaseReportsRollupInfo]
-    def __init__(
-        self, rollups: _Iterable[CMsgShowcaseReportsRollupInfo | _Mapping] | None = ...
-    ) -> None: ...
+    def __init__(self, rollups: _Optional[_Iterable[_Union[CMsgShowcaseReportsRollupInfo, _Mapping]]] = ...) -> None: ...
 
 class CMsgShowcaseReportsRollupEntry(_message.Message):
     __slots__ = ("account_id", "showcase_type", "report_count")
@@ -750,12 +529,7 @@ class CMsgShowcaseReportsRollupEntry(_message.Message):
     account_id: int
     showcase_type: EShowcaseType
     report_count: int
-    def __init__(
-        self,
-        account_id: int | None = ...,
-        showcase_type: EShowcaseType | str | None = ...,
-        report_count: int | None = ...,
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., showcase_type: _Optional[_Union[EShowcaseType, str]] = ..., report_count: _Optional[int] = ...) -> None: ...
 
 class CMsgShowcaseReportsRollup(_message.Message):
     __slots__ = ("rollup_info", "rollup_entries")
@@ -763,11 +537,7 @@ class CMsgShowcaseReportsRollup(_message.Message):
     ROLLUP_ENTRIES_FIELD_NUMBER: _ClassVar[int]
     rollup_info: CMsgShowcaseReportsRollupInfo
     rollup_entries: _containers.RepeatedCompositeFieldContainer[CMsgShowcaseReportsRollupEntry]
-    def __init__(
-        self,
-        rollup_info: CMsgShowcaseReportsRollupInfo | _Mapping | None = ...,
-        rollup_entries: _Iterable[CMsgShowcaseReportsRollupEntry | _Mapping] | None = ...,
-    ) -> None: ...
+    def __init__(self, rollup_info: _Optional[_Union[CMsgShowcaseReportsRollupInfo, _Mapping]] = ..., rollup_entries: _Optional[_Iterable[_Union[CMsgShowcaseReportsRollupEntry, _Mapping]]] = ...) -> None: ...
 
 class CMsgClientToGCShowcaseAdminGetReportsRollupList(_message.Message):
     __slots__ = ()
@@ -777,17 +547,12 @@ class CMsgClientToGCShowcaseAdminGetReportsRollupListResponse(_message.Message):
     __slots__ = ("response", "rollup_list")
     class EResponse(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
-        k_eInternalError: _ClassVar[
-            CMsgClientToGCShowcaseAdminGetReportsRollupListResponse.EResponse
-        ]
+        k_eInternalError: _ClassVar[CMsgClientToGCShowcaseAdminGetReportsRollupListResponse.EResponse]
         k_eSuccess: _ClassVar[CMsgClientToGCShowcaseAdminGetReportsRollupListResponse.EResponse]
         k_eTooBusy: _ClassVar[CMsgClientToGCShowcaseAdminGetReportsRollupListResponse.EResponse]
         k_eDisabled: _ClassVar[CMsgClientToGCShowcaseAdminGetReportsRollupListResponse.EResponse]
         k_eTimeout: _ClassVar[CMsgClientToGCShowcaseAdminGetReportsRollupListResponse.EResponse]
-        k_eNoPermission: _ClassVar[
-            CMsgClientToGCShowcaseAdminGetReportsRollupListResponse.EResponse
-        ]
-
+        k_eNoPermission: _ClassVar[CMsgClientToGCShowcaseAdminGetReportsRollupListResponse.EResponse]
     k_eInternalError: CMsgClientToGCShowcaseAdminGetReportsRollupListResponse.EResponse
     k_eSuccess: CMsgClientToGCShowcaseAdminGetReportsRollupListResponse.EResponse
     k_eTooBusy: CMsgClientToGCShowcaseAdminGetReportsRollupListResponse.EResponse
@@ -798,19 +563,13 @@ class CMsgClientToGCShowcaseAdminGetReportsRollupListResponse(_message.Message):
     ROLLUP_LIST_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCShowcaseAdminGetReportsRollupListResponse.EResponse
     rollup_list: CMsgShowcaseReportsRollupList
-    def __init__(
-        self,
-        response: CMsgClientToGCShowcaseAdminGetReportsRollupListResponse.EResponse
-        | str
-        | None = ...,
-        rollup_list: CMsgShowcaseReportsRollupList | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCShowcaseAdminGetReportsRollupListResponse.EResponse, str]] = ..., rollup_list: _Optional[_Union[CMsgShowcaseReportsRollupList, _Mapping]] = ...) -> None: ...
 
 class CMsgClientToGCShowcaseAdminGetReportsRollup(_message.Message):
     __slots__ = ("rollup_id",)
     ROLLUP_ID_FIELD_NUMBER: _ClassVar[int]
     rollup_id: int
-    def __init__(self, rollup_id: int | None = ...) -> None: ...
+    def __init__(self, rollup_id: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCShowcaseAdminGetReportsRollupResponse(_message.Message):
     __slots__ = ("response", "rollup")
@@ -823,7 +582,6 @@ class CMsgClientToGCShowcaseAdminGetReportsRollupResponse(_message.Message):
         k_eTimeout: _ClassVar[CMsgClientToGCShowcaseAdminGetReportsRollupResponse.EResponse]
         k_eNoPermission: _ClassVar[CMsgClientToGCShowcaseAdminGetReportsRollupResponse.EResponse]
         k_eNotFound: _ClassVar[CMsgClientToGCShowcaseAdminGetReportsRollupResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCShowcaseAdminGetReportsRollupResponse.EResponse
     k_eSuccess: CMsgClientToGCShowcaseAdminGetReportsRollupResponse.EResponse
     k_eTooBusy: CMsgClientToGCShowcaseAdminGetReportsRollupResponse.EResponse
@@ -835,11 +593,7 @@ class CMsgClientToGCShowcaseAdminGetReportsRollupResponse(_message.Message):
     ROLLUP_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCShowcaseAdminGetReportsRollupResponse.EResponse
     rollup: CMsgShowcaseReportsRollup
-    def __init__(
-        self,
-        response: CMsgClientToGCShowcaseAdminGetReportsRollupResponse.EResponse | str | None = ...,
-        rollup: CMsgShowcaseReportsRollup | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCShowcaseAdminGetReportsRollupResponse.EResponse, str]] = ..., rollup: _Optional[_Union[CMsgShowcaseReportsRollup, _Mapping]] = ...) -> None: ...
 
 class CMsgShowcaseAuditEntry(_message.Message):
     __slots__ = ("showcase_type", "audit_action", "audit_data", "timestamp")
@@ -851,13 +605,7 @@ class CMsgShowcaseAuditEntry(_message.Message):
     audit_action: EShowcaseAuditAction
     audit_data: int
     timestamp: int
-    def __init__(
-        self,
-        showcase_type: EShowcaseType | str | None = ...,
-        audit_action: EShowcaseAuditAction | str | None = ...,
-        audit_data: int | None = ...,
-        timestamp: int | None = ...,
-    ) -> None: ...
+    def __init__(self, showcase_type: _Optional[_Union[EShowcaseType, str]] = ..., audit_action: _Optional[_Union[EShowcaseAuditAction, str]] = ..., audit_data: _Optional[int] = ..., timestamp: _Optional[int] = ...) -> None: ...
 
 class CMsgShowcaseReport(_message.Message):
     __slots__ = ("reporter_account_id", "showcase_type", "report_timestamp", "report_comment")
@@ -869,13 +617,7 @@ class CMsgShowcaseReport(_message.Message):
     showcase_type: EShowcaseType
     report_timestamp: int
     report_comment: str
-    def __init__(
-        self,
-        reporter_account_id: int | None = ...,
-        showcase_type: EShowcaseType | str | None = ...,
-        report_timestamp: int | None = ...,
-        report_comment: str | None = ...,
-    ) -> None: ...
+    def __init__(self, reporter_account_id: _Optional[int] = ..., showcase_type: _Optional[_Union[EShowcaseType, str]] = ..., report_timestamp: _Optional[int] = ..., report_comment: _Optional[str] = ...) -> None: ...
 
 class CMsgShowcaseAdminUserDetails(_message.Message):
     __slots__ = ("locked_until_timestamp", "audit_entries", "reports")
@@ -885,18 +627,13 @@ class CMsgShowcaseAdminUserDetails(_message.Message):
     locked_until_timestamp: int
     audit_entries: _containers.RepeatedCompositeFieldContainer[CMsgShowcaseAuditEntry]
     reports: _containers.RepeatedCompositeFieldContainer[CMsgShowcaseReport]
-    def __init__(
-        self,
-        locked_until_timestamp: int | None = ...,
-        audit_entries: _Iterable[CMsgShowcaseAuditEntry | _Mapping] | None = ...,
-        reports: _Iterable[CMsgShowcaseReport | _Mapping] | None = ...,
-    ) -> None: ...
+    def __init__(self, locked_until_timestamp: _Optional[int] = ..., audit_entries: _Optional[_Iterable[_Union[CMsgShowcaseAuditEntry, _Mapping]]] = ..., reports: _Optional[_Iterable[_Union[CMsgShowcaseReport, _Mapping]]] = ...) -> None: ...
 
 class CMsgClientToGCShowcaseAdminGetUserDetails(_message.Message):
     __slots__ = ("account_id",)
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     account_id: int
-    def __init__(self, account_id: int | None = ...) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCShowcaseAdminGetUserDetailsResponse(_message.Message):
     __slots__ = ("response", "user_details")
@@ -908,7 +645,6 @@ class CMsgClientToGCShowcaseAdminGetUserDetailsResponse(_message.Message):
         k_eDisabled: _ClassVar[CMsgClientToGCShowcaseAdminGetUserDetailsResponse.EResponse]
         k_eTimeout: _ClassVar[CMsgClientToGCShowcaseAdminGetUserDetailsResponse.EResponse]
         k_eNoPermission: _ClassVar[CMsgClientToGCShowcaseAdminGetUserDetailsResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCShowcaseAdminGetUserDetailsResponse.EResponse
     k_eSuccess: CMsgClientToGCShowcaseAdminGetUserDetailsResponse.EResponse
     k_eTooBusy: CMsgClientToGCShowcaseAdminGetUserDetailsResponse.EResponse
@@ -919,11 +655,7 @@ class CMsgClientToGCShowcaseAdminGetUserDetailsResponse(_message.Message):
     USER_DETAILS_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCShowcaseAdminGetUserDetailsResponse.EResponse
     user_details: CMsgShowcaseAdminUserDetails
-    def __init__(
-        self,
-        response: CMsgClientToGCShowcaseAdminGetUserDetailsResponse.EResponse | str | None = ...,
-        user_details: CMsgShowcaseAdminUserDetails | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCShowcaseAdminGetUserDetailsResponse.EResponse, str]] = ..., user_details: _Optional[_Union[CMsgShowcaseAdminUserDetails, _Mapping]] = ...) -> None: ...
 
 class CMsgClientToGCShowcaseAdminReset(_message.Message):
     __slots__ = ("target_account_id", "showcase_type")
@@ -931,9 +663,7 @@ class CMsgClientToGCShowcaseAdminReset(_message.Message):
     SHOWCASE_TYPE_FIELD_NUMBER: _ClassVar[int]
     target_account_id: int
     showcase_type: EShowcaseType
-    def __init__(
-        self, target_account_id: int | None = ..., showcase_type: EShowcaseType | str | None = ...
-    ) -> None: ...
+    def __init__(self, target_account_id: _Optional[int] = ..., showcase_type: _Optional[_Union[EShowcaseType, str]] = ...) -> None: ...
 
 class CMsgClientToGCShowcaseAdminResetResponse(_message.Message):
     __slots__ = ("response",)
@@ -945,7 +675,6 @@ class CMsgClientToGCShowcaseAdminResetResponse(_message.Message):
         k_eDisabled: _ClassVar[CMsgClientToGCShowcaseAdminResetResponse.EResponse]
         k_eTimeout: _ClassVar[CMsgClientToGCShowcaseAdminResetResponse.EResponse]
         k_eNoPermission: _ClassVar[CMsgClientToGCShowcaseAdminResetResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCShowcaseAdminResetResponse.EResponse
     k_eSuccess: CMsgClientToGCShowcaseAdminResetResponse.EResponse
     k_eTooBusy: CMsgClientToGCShowcaseAdminResetResponse.EResponse
@@ -954,9 +683,7 @@ class CMsgClientToGCShowcaseAdminResetResponse(_message.Message):
     k_eNoPermission: CMsgClientToGCShowcaseAdminResetResponse.EResponse
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCShowcaseAdminResetResponse.EResponse
-    def __init__(
-        self, response: CMsgClientToGCShowcaseAdminResetResponse.EResponse | str | None = ...
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCShowcaseAdminResetResponse.EResponse, str]] = ...) -> None: ...
 
 class CMsgClientToGCShowcaseAdminLockAccount(_message.Message):
     __slots__ = ("target_account_id", "locked_until_timestamp")
@@ -964,9 +691,7 @@ class CMsgClientToGCShowcaseAdminLockAccount(_message.Message):
     LOCKED_UNTIL_TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
     target_account_id: int
     locked_until_timestamp: int
-    def __init__(
-        self, target_account_id: int | None = ..., locked_until_timestamp: int | None = ...
-    ) -> None: ...
+    def __init__(self, target_account_id: _Optional[int] = ..., locked_until_timestamp: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCShowcaseAdminLockAccountResponse(_message.Message):
     __slots__ = ("response",)
@@ -978,7 +703,6 @@ class CMsgClientToGCShowcaseAdminLockAccountResponse(_message.Message):
         k_eDisabled: _ClassVar[CMsgClientToGCShowcaseAdminLockAccountResponse.EResponse]
         k_eTimeout: _ClassVar[CMsgClientToGCShowcaseAdminLockAccountResponse.EResponse]
         k_eNoPermission: _ClassVar[CMsgClientToGCShowcaseAdminLockAccountResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCShowcaseAdminLockAccountResponse.EResponse
     k_eSuccess: CMsgClientToGCShowcaseAdminLockAccountResponse.EResponse
     k_eTooBusy: CMsgClientToGCShowcaseAdminLockAccountResponse.EResponse
@@ -987,9 +711,7 @@ class CMsgClientToGCShowcaseAdminLockAccountResponse(_message.Message):
     k_eNoPermission: CMsgClientToGCShowcaseAdminLockAccountResponse.EResponse
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCShowcaseAdminLockAccountResponse.EResponse
-    def __init__(
-        self, response: CMsgClientToGCShowcaseAdminLockAccountResponse.EResponse | str | None = ...
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCShowcaseAdminLockAccountResponse.EResponse, str]] = ...) -> None: ...
 
 class CMsgClientToGCShowcaseAdminConvict(_message.Message):
     __slots__ = ("target_account_id", "showcase_type")
@@ -997,9 +719,7 @@ class CMsgClientToGCShowcaseAdminConvict(_message.Message):
     SHOWCASE_TYPE_FIELD_NUMBER: _ClassVar[int]
     target_account_id: int
     showcase_type: EShowcaseType
-    def __init__(
-        self, target_account_id: int | None = ..., showcase_type: EShowcaseType | str | None = ...
-    ) -> None: ...
+    def __init__(self, target_account_id: _Optional[int] = ..., showcase_type: _Optional[_Union[EShowcaseType, str]] = ...) -> None: ...
 
 class CMsgClientToGCShowcaseAdminConvictResponse(_message.Message):
     __slots__ = ("response",)
@@ -1012,7 +732,6 @@ class CMsgClientToGCShowcaseAdminConvictResponse(_message.Message):
         k_eTimeout: _ClassVar[CMsgClientToGCShowcaseAdminConvictResponse.EResponse]
         k_eNoPermission: _ClassVar[CMsgClientToGCShowcaseAdminConvictResponse.EResponse]
         k_eAlreadyConvicted: _ClassVar[CMsgClientToGCShowcaseAdminConvictResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCShowcaseAdminConvictResponse.EResponse
     k_eSuccess: CMsgClientToGCShowcaseAdminConvictResponse.EResponse
     k_eTooBusy: CMsgClientToGCShowcaseAdminConvictResponse.EResponse
@@ -1022,9 +741,7 @@ class CMsgClientToGCShowcaseAdminConvictResponse(_message.Message):
     k_eAlreadyConvicted: CMsgClientToGCShowcaseAdminConvictResponse.EResponse
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCShowcaseAdminConvictResponse.EResponse
-    def __init__(
-        self, response: CMsgClientToGCShowcaseAdminConvictResponse.EResponse | str | None = ...
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCShowcaseAdminConvictResponse.EResponse, str]] = ...) -> None: ...
 
 class CMsgClientToGCShowcaseAdminExonerate(_message.Message):
     __slots__ = ("target_account_id", "showcase_type")
@@ -1032,9 +749,7 @@ class CMsgClientToGCShowcaseAdminExonerate(_message.Message):
     SHOWCASE_TYPE_FIELD_NUMBER: _ClassVar[int]
     target_account_id: int
     showcase_type: EShowcaseType
-    def __init__(
-        self, target_account_id: int | None = ..., showcase_type: EShowcaseType | str | None = ...
-    ) -> None: ...
+    def __init__(self, target_account_id: _Optional[int] = ..., showcase_type: _Optional[_Union[EShowcaseType, str]] = ...) -> None: ...
 
 class CMsgClientToGCShowcaseAdminExonerateResponse(_message.Message):
     __slots__ = ("response",)
@@ -1047,7 +762,6 @@ class CMsgClientToGCShowcaseAdminExonerateResponse(_message.Message):
         k_eTimeout: _ClassVar[CMsgClientToGCShowcaseAdminExonerateResponse.EResponse]
         k_eNoPermission: _ClassVar[CMsgClientToGCShowcaseAdminExonerateResponse.EResponse]
         k_eAlreadyExonerated: _ClassVar[CMsgClientToGCShowcaseAdminExonerateResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCShowcaseAdminExonerateResponse.EResponse
     k_eSuccess: CMsgClientToGCShowcaseAdminExonerateResponse.EResponse
     k_eTooBusy: CMsgClientToGCShowcaseAdminExonerateResponse.EResponse
@@ -1057,9 +771,7 @@ class CMsgClientToGCShowcaseAdminExonerateResponse(_message.Message):
     k_eAlreadyExonerated: CMsgClientToGCShowcaseAdminExonerateResponse.EResponse
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCShowcaseAdminExonerateResponse.EResponse
-    def __init__(
-        self, response: CMsgClientToGCShowcaseAdminExonerateResponse.EResponse | str | None = ...
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCShowcaseAdminExonerateResponse.EResponse, str]] = ...) -> None: ...
 
 class CMsgShowcaseModerationInfo(_message.Message):
     __slots__ = ("account_id", "showcase_type", "showcase_timestamp")
@@ -1069,12 +781,7 @@ class CMsgShowcaseModerationInfo(_message.Message):
     account_id: int
     showcase_type: EShowcaseType
     showcase_timestamp: int
-    def __init__(
-        self,
-        account_id: int | None = ...,
-        showcase_type: EShowcaseType | str | None = ...,
-        showcase_timestamp: int | None = ...,
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., showcase_type: _Optional[_Union[EShowcaseType, str]] = ..., showcase_timestamp: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCShowcaseModerationGetQueue(_message.Message):
     __slots__ = ("start_timestamp", "result_count")
@@ -1082,9 +789,7 @@ class CMsgClientToGCShowcaseModerationGetQueue(_message.Message):
     RESULT_COUNT_FIELD_NUMBER: _ClassVar[int]
     start_timestamp: int
     result_count: int
-    def __init__(
-        self, start_timestamp: int | None = ..., result_count: int | None = ...
-    ) -> None: ...
+    def __init__(self, start_timestamp: _Optional[int] = ..., result_count: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCShowcaseModerationGetQueueResponse(_message.Message):
     __slots__ = ("response", "showcases")
@@ -1096,7 +801,6 @@ class CMsgClientToGCShowcaseModerationGetQueueResponse(_message.Message):
         k_eDisabled: _ClassVar[CMsgClientToGCShowcaseModerationGetQueueResponse.EResponse]
         k_eTimeout: _ClassVar[CMsgClientToGCShowcaseModerationGetQueueResponse.EResponse]
         k_eNoPermission: _ClassVar[CMsgClientToGCShowcaseModerationGetQueueResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCShowcaseModerationGetQueueResponse.EResponse
     k_eSuccess: CMsgClientToGCShowcaseModerationGetQueueResponse.EResponse
     k_eTooBusy: CMsgClientToGCShowcaseModerationGetQueueResponse.EResponse
@@ -1107,11 +811,7 @@ class CMsgClientToGCShowcaseModerationGetQueueResponse(_message.Message):
     SHOWCASES_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCShowcaseModerationGetQueueResponse.EResponse
     showcases: _containers.RepeatedCompositeFieldContainer[CMsgShowcaseModerationInfo]
-    def __init__(
-        self,
-        response: CMsgClientToGCShowcaseModerationGetQueueResponse.EResponse | str | None = ...,
-        showcases: _Iterable[CMsgShowcaseModerationInfo | _Mapping] | None = ...,
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCShowcaseModerationGetQueueResponse.EResponse, str]] = ..., showcases: _Optional[_Iterable[_Union[CMsgShowcaseModerationInfo, _Mapping]]] = ...) -> None: ...
 
 class CMsgClientToGCShowcaseModerationApplyModeration(_message.Message):
     __slots__ = ("account_id", "showcase_type", "showcase_timestamp", "approve")
@@ -1123,30 +823,19 @@ class CMsgClientToGCShowcaseModerationApplyModeration(_message.Message):
     showcase_type: EShowcaseType
     showcase_timestamp: int
     approve: bool
-    def __init__(
-        self,
-        account_id: int | None = ...,
-        showcase_type: EShowcaseType | str | None = ...,
-        showcase_timestamp: int | None = ...,
-        approve: bool = ...,
-    ) -> None: ...
+    def __init__(self, account_id: _Optional[int] = ..., showcase_type: _Optional[_Union[EShowcaseType, str]] = ..., showcase_timestamp: _Optional[int] = ..., approve: bool = ...) -> None: ...
 
 class CMsgClientToGCShowcaseModerationApplyModerationResponse(_message.Message):
     __slots__ = ("response",)
     class EResponse(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
-        k_eInternalError: _ClassVar[
-            CMsgClientToGCShowcaseModerationApplyModerationResponse.EResponse
-        ]
+        k_eInternalError: _ClassVar[CMsgClientToGCShowcaseModerationApplyModerationResponse.EResponse]
         k_eSuccess: _ClassVar[CMsgClientToGCShowcaseModerationApplyModerationResponse.EResponse]
         k_eTooBusy: _ClassVar[CMsgClientToGCShowcaseModerationApplyModerationResponse.EResponse]
         k_eDisabled: _ClassVar[CMsgClientToGCShowcaseModerationApplyModerationResponse.EResponse]
         k_eTimeout: _ClassVar[CMsgClientToGCShowcaseModerationApplyModerationResponse.EResponse]
-        k_eNoPermission: _ClassVar[
-            CMsgClientToGCShowcaseModerationApplyModerationResponse.EResponse
-        ]
+        k_eNoPermission: _ClassVar[CMsgClientToGCShowcaseModerationApplyModerationResponse.EResponse]
         k_eGone: _ClassVar[CMsgClientToGCShowcaseModerationApplyModerationResponse.EResponse]
-
     k_eInternalError: CMsgClientToGCShowcaseModerationApplyModerationResponse.EResponse
     k_eSuccess: CMsgClientToGCShowcaseModerationApplyModerationResponse.EResponse
     k_eTooBusy: CMsgClientToGCShowcaseModerationApplyModerationResponse.EResponse
@@ -1156,9 +845,4 @@ class CMsgClientToGCShowcaseModerationApplyModerationResponse(_message.Message):
     k_eGone: CMsgClientToGCShowcaseModerationApplyModerationResponse.EResponse
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCShowcaseModerationApplyModerationResponse.EResponse
-    def __init__(
-        self,
-        response: CMsgClientToGCShowcaseModerationApplyModerationResponse.EResponse
-        | str
-        | None = ...,
-    ) -> None: ...
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCShowcaseModerationApplyModerationResponse.EResponse, str]] = ...) -> None: ...

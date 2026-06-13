@@ -1,7 +1,7 @@
-from typing import ClassVar as _ClassVar
-
-from google.protobuf import descriptor as _descriptor
+from google.protobuf import descriptor_pb2 as _descriptor_pb2
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from google.protobuf import descriptor as _descriptor
+from typing import ClassVar as _ClassVar
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -9,7 +9,6 @@ class EProtoExecutionSite(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
     k_EProtoExecutionSiteUnknown: _ClassVar[EProtoExecutionSite]
     k_EProtoExecutionSiteSteamClient: _ClassVar[EProtoExecutionSite]
-
 k_EProtoExecutionSiteUnknown: EProtoExecutionSite
 k_EProtoExecutionSiteSteamClient: EProtoExecutionSite
 DESCRIPTION_FIELD_NUMBER: _ClassVar[int]

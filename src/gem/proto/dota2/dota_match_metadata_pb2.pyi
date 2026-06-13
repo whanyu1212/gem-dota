@@ -1,19 +1,19 @@
-from collections.abc import Iterable as _Iterable
-from collections.abc import Mapping as _Mapping
-from typing import ClassVar as _ClassVar
-
 import base_gcmessages_pb2 as _base_gcmessages_pb2
-import dota_gcmessages_common_craftworks_pb2 as _dota_gcmessages_common_craftworks_pb2
 import dota_gcmessages_common_match_management_pb2 as _dota_gcmessages_common_match_management_pb2
-import dota_gcmessages_common_monster_hunter_pb2 as _dota_gcmessages_common_monster_hunter_pb2
+import dota_gcmessages_common_lobby_pb2 as _dota_gcmessages_common_lobby_pb2
 import dota_gcmessages_common_overworld_pb2 as _dota_gcmessages_common_overworld_pb2
+import dota_gcmessages_common_craftworks_pb2 as _dota_gcmessages_common_craftworks_pb2
+import dota_gcmessages_common_monster_hunter_pb2 as _dota_gcmessages_common_monster_hunter_pb2
 import dota_gcmessages_common_pb2 as _dota_gcmessages_common_pb2
 import dota_shared_enums_pb2 as _dota_shared_enums_pb2
 import gcsdk_gcmessages_pb2 as _gcsdk_gcmessages_pb2
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
+import networkbasetypes_pb2 as _networkbasetypes_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -21,7 +21,6 @@ class EPlayerInventorySnapshotFlags(int, metaclass=_enum_type_wrapper.EnumTypeWr
     __slots__ = ()
     EPlayerInventorySnapshotFlags_HasScepter: _ClassVar[EPlayerInventorySnapshotFlags]
     EPlayerInventorySnapshotFlags_HasShard: _ClassVar[EPlayerInventorySnapshotFlags]
-
 EPlayerInventorySnapshotFlags_HasScepter: EPlayerInventorySnapshotFlags
 EPlayerInventorySnapshotFlags_HasShard: EPlayerInventorySnapshotFlags
 
@@ -35,29 +34,10 @@ class CDOTAMatchMetadataFile(_message.Message):
     match_id: int
     metadata: CDOTAMatchMetadata
     private_metadata: bytes
-    def __init__(
-        self,
-        version: int | None = ...,
-        match_id: int | None = ...,
-        metadata: CDOTAMatchMetadata | _Mapping | None = ...,
-        private_metadata: bytes | None = ...,
-    ) -> None: ...
+    def __init__(self, version: _Optional[int] = ..., match_id: _Optional[int] = ..., metadata: _Optional[_Union[CDOTAMatchMetadata, _Mapping]] = ..., private_metadata: _Optional[bytes] = ...) -> None: ...
 
 class CDOTAMatchMetadata(_message.Message):
-    __slots__ = (
-        "teams",
-        "lobby_id",
-        "report_until_time",
-        "event_game_custom_table",
-        "primary_event_id",
-        "matchmaking_stats",
-        "mvp_data",
-        "guild_challenge_progress",
-        "custom_post_game_table",
-        "match_tips",
-        "match_tracked_stats",
-        "primary_event_id_for_display",
-    )
+    __slots__ = ("teams", "lobby_id", "report_until_time", "event_game_custom_table", "primary_event_id", "matchmaking_stats", "mvp_data", "guild_challenge_progress", "custom_post_game_table", "match_tips", "match_tracked_stats", "primary_event_id_for_display")
     class EconItem(_message.Message):
         __slots__ = ("def_index", "quality", "attribute", "style", "equipped_state")
         DEF_INDEX_FIELD_NUMBER: _ClassVar[int]
@@ -67,69 +47,28 @@ class CDOTAMatchMetadata(_message.Message):
         EQUIPPED_STATE_FIELD_NUMBER: _ClassVar[int]
         def_index: int
         quality: int
-        attribute: _containers.RepeatedCompositeFieldContainer[
-            _base_gcmessages_pb2.CSOEconItemAttribute
-        ]
+        attribute: _containers.RepeatedCompositeFieldContainer[_base_gcmessages_pb2.CSOEconItemAttribute]
         style: int
-        equipped_state: _containers.RepeatedCompositeFieldContainer[
-            _base_gcmessages_pb2.CSOEconItemEquipped
-        ]
-        def __init__(
-            self,
-            def_index: int | None = ...,
-            quality: int | None = ...,
-            attribute: _Iterable[_base_gcmessages_pb2.CSOEconItemAttribute | _Mapping] | None = ...,
-            style: int | None = ...,
-            equipped_state: _Iterable[_base_gcmessages_pb2.CSOEconItemEquipped | _Mapping]
-            | None = ...,
-        ) -> None: ...
-
+        equipped_state: _containers.RepeatedCompositeFieldContainer[_base_gcmessages_pb2.CSOEconItemEquipped]
+        def __init__(self, def_index: _Optional[int] = ..., quality: _Optional[int] = ..., attribute: _Optional[_Iterable[_Union[_base_gcmessages_pb2.CSOEconItemAttribute, _Mapping]]] = ..., style: _Optional[int] = ..., equipped_state: _Optional[_Iterable[_Union[_base_gcmessages_pb2.CSOEconItemEquipped, _Mapping]]] = ...) -> None: ...
     class Team(_message.Message):
-        __slots__ = (
-            "dota_team",
-            "players",
-            "graph_experience",
-            "graph_gold_earned",
-            "graph_net_worth",
-            "cm_first_pick",
-            "cm_captain_player_id",
-            "cm_penalty",
-            "team_tracked_stats",
-            "kills",
-        )
+        __slots__ = ("dota_team", "players", "graph_experience", "graph_gold_earned", "graph_net_worth", "cm_first_pick", "cm_captain_player_id", "cm_penalty", "team_tracked_stats", "kills")
         class PlayerKill(_message.Message):
             __slots__ = ("victim_slot", "count")
             VICTIM_SLOT_FIELD_NUMBER: _ClassVar[int]
             COUNT_FIELD_NUMBER: _ClassVar[int]
             victim_slot: int
             count: int
-            def __init__(self, victim_slot: int | None = ..., count: int | None = ...) -> None: ...
-
+            def __init__(self, victim_slot: _Optional[int] = ..., count: _Optional[int] = ...) -> None: ...
         class ItemPurchase(_message.Message):
             __slots__ = ("item_id", "purchase_time")
             ITEM_ID_FIELD_NUMBER: _ClassVar[int]
             PURCHASE_TIME_FIELD_NUMBER: _ClassVar[int]
             item_id: int
             purchase_time: int
-            def __init__(
-                self, item_id: int | None = ..., purchase_time: int | None = ...
-            ) -> None: ...
-
+            def __init__(self, item_id: _Optional[int] = ..., purchase_time: _Optional[int] = ...) -> None: ...
         class InventorySnapshot(_message.Message):
-            __slots__ = (
-                "item_id",
-                "game_time",
-                "kills",
-                "deaths",
-                "assists",
-                "level",
-                "backpack_item_id",
-                "neutral_item_id",
-                "neutral_enhancement_id",
-                "last_hits",
-                "denies",
-                "flags",
-            )
+            __slots__ = ("item_id", "game_time", "kills", "deaths", "assists", "level", "backpack_item_id", "neutral_item_id", "neutral_enhancement_id", "last_hits", "denies", "flags")
             ITEM_ID_FIELD_NUMBER: _ClassVar[int]
             GAME_TIME_FIELD_NUMBER: _ClassVar[int]
             KILLS_FIELD_NUMBER: _ClassVar[int]
@@ -154,40 +93,16 @@ class CDOTAMatchMetadata(_message.Message):
             last_hits: int
             denies: int
             flags: int
-            def __init__(
-                self,
-                item_id: _Iterable[int] | None = ...,
-                game_time: int | None = ...,
-                kills: int | None = ...,
-                deaths: int | None = ...,
-                assists: int | None = ...,
-                level: int | None = ...,
-                backpack_item_id: _Iterable[int] | None = ...,
-                neutral_item_id: int | None = ...,
-                neutral_enhancement_id: int | None = ...,
-                last_hits: int | None = ...,
-                denies: int | None = ...,
-                flags: int | None = ...,
-            ) -> None: ...
-
+            def __init__(self, item_id: _Optional[_Iterable[int]] = ..., game_time: _Optional[int] = ..., kills: _Optional[int] = ..., deaths: _Optional[int] = ..., assists: _Optional[int] = ..., level: _Optional[int] = ..., backpack_item_id: _Optional[_Iterable[int]] = ..., neutral_item_id: _Optional[int] = ..., neutral_enhancement_id: _Optional[int] = ..., last_hits: _Optional[int] = ..., denies: _Optional[int] = ..., flags: _Optional[int] = ...) -> None: ...
         class AutoStyleCriteria(_message.Message):
             __slots__ = ("name_token", "value")
             NAME_TOKEN_FIELD_NUMBER: _ClassVar[int]
             VALUE_FIELD_NUMBER: _ClassVar[int]
             name_token: int
             value: float
-            def __init__(self, name_token: int | None = ..., value: float | None = ...) -> None: ...
-
+            def __init__(self, name_token: _Optional[int] = ..., value: _Optional[float] = ...) -> None: ...
         class StrangeGemProgress(_message.Message):
-            __slots__ = (
-                "kill_eater_type",
-                "gem_item_def_index",
-                "required_hero_id",
-                "starting_value",
-                "ending_value",
-                "owner_item_def_index",
-                "owner_item_id",
-            )
+            __slots__ = ("kill_eater_type", "gem_item_def_index", "required_hero_id", "starting_value", "ending_value", "owner_item_def_index", "owner_item_id")
             KILL_EATER_TYPE_FIELD_NUMBER: _ClassVar[int]
             GEM_ITEM_DEF_INDEX_FIELD_NUMBER: _ClassVar[int]
             REQUIRED_HERO_ID_FIELD_NUMBER: _ClassVar[int]
@@ -202,17 +117,7 @@ class CDOTAMatchMetadata(_message.Message):
             ending_value: int
             owner_item_def_index: int
             owner_item_id: int
-            def __init__(
-                self,
-                kill_eater_type: int | None = ...,
-                gem_item_def_index: int | None = ...,
-                required_hero_id: int | None = ...,
-                starting_value: int | None = ...,
-                ending_value: int | None = ...,
-                owner_item_def_index: int | None = ...,
-                owner_item_id: int | None = ...,
-            ) -> None: ...
-
+            def __init__(self, kill_eater_type: _Optional[int] = ..., gem_item_def_index: _Optional[int] = ..., required_hero_id: _Optional[int] = ..., starting_value: _Optional[int] = ..., ending_value: _Optional[int] = ..., owner_item_def_index: _Optional[int] = ..., owner_item_id: _Optional[int] = ...) -> None: ...
         class VictoryPrediction(_message.Message):
             __slots__ = ("item_id", "item_def_index", "starting_value", "is_victory")
             ITEM_ID_FIELD_NUMBER: _ClassVar[int]
@@ -223,14 +128,7 @@ class CDOTAMatchMetadata(_message.Message):
             item_def_index: int
             starting_value: int
             is_victory: bool
-            def __init__(
-                self,
-                item_id: int | None = ...,
-                item_def_index: int | None = ...,
-                starting_value: int | None = ...,
-                is_victory: bool = ...,
-            ) -> None: ...
-
+            def __init__(self, item_id: _Optional[int] = ..., item_def_index: _Optional[int] = ..., starting_value: _Optional[int] = ..., is_victory: bool = ...) -> None: ...
         class SubChallenge(_message.Message):
             __slots__ = ("slot_id", "start_value", "end_value", "completed")
             SLOT_ID_FIELD_NUMBER: _ClassVar[int]
@@ -241,24 +139,14 @@ class CDOTAMatchMetadata(_message.Message):
             start_value: int
             end_value: int
             completed: bool
-            def __init__(
-                self,
-                slot_id: int | None = ...,
-                start_value: int | None = ...,
-                end_value: int | None = ...,
-                completed: bool = ...,
-            ) -> None: ...
-
+            def __init__(self, slot_id: _Optional[int] = ..., start_value: _Optional[int] = ..., end_value: _Optional[int] = ..., completed: bool = ...) -> None: ...
         class CavernChallengeResult(_message.Message):
             __slots__ = ("completed_path_id", "claimed_room_id")
             COMPLETED_PATH_ID_FIELD_NUMBER: _ClassVar[int]
             CLAIMED_ROOM_ID_FIELD_NUMBER: _ClassVar[int]
             completed_path_id: int
             claimed_room_id: int
-            def __init__(
-                self, completed_path_id: int | None = ..., claimed_room_id: int | None = ...
-            ) -> None: ...
-
+            def __init__(self, completed_path_id: _Optional[int] = ..., claimed_room_id: _Optional[int] = ...) -> None: ...
         class ActionGrant(_message.Message):
             __slots__ = ("action_id", "quantity", "audit", "audit_data")
             ACTION_ID_FIELD_NUMBER: _ClassVar[int]
@@ -269,22 +157,14 @@ class CDOTAMatchMetadata(_message.Message):
             quantity: int
             audit: int
             audit_data: int
-            def __init__(
-                self,
-                action_id: int | None = ...,
-                quantity: int | None = ...,
-                audit: int | None = ...,
-                audit_data: int | None = ...,
-            ) -> None: ...
-
+            def __init__(self, action_id: _Optional[int] = ..., quantity: _Optional[int] = ..., audit: _Optional[int] = ..., audit_data: _Optional[int] = ...) -> None: ...
         class CandyGrant(_message.Message):
             __slots__ = ("points", "reason")
             POINTS_FIELD_NUMBER: _ClassVar[int]
             REASON_FIELD_NUMBER: _ClassVar[int]
             points: int
             reason: int
-            def __init__(self, points: int | None = ..., reason: int | None = ...) -> None: ...
-
+            def __init__(self, points: _Optional[int] = ..., reason: _Optional[int] = ...) -> None: ...
         class PeriodicResourceData(_message.Message):
             __slots__ = ("periodic_resource_id", "remaining", "max")
             PERIODIC_RESOURCE_ID_FIELD_NUMBER: _ClassVar[int]
@@ -293,42 +173,9 @@ class CDOTAMatchMetadata(_message.Message):
             periodic_resource_id: int
             remaining: int
             max: int
-            def __init__(
-                self,
-                periodic_resource_id: int | None = ...,
-                remaining: int | None = ...,
-                max: int | None = ...,
-            ) -> None: ...
-
+            def __init__(self, periodic_resource_id: _Optional[int] = ..., remaining: _Optional[int] = ..., max: _Optional[int] = ...) -> None: ...
         class EventData(_message.Message):
-            __slots__ = (
-                "event_id",
-                "event_points",
-                "challenge_instance_id",
-                "challenge_quest_id",
-                "challenge_quest_challenge_id",
-                "challenge_completed",
-                "challenge_rank_completed",
-                "challenge_rank_previously_completed",
-                "event_owned",
-                "sub_challenges_with_progress",
-                "wager_winnings",
-                "cavern_challenge_active",
-                "cavern_challenge_winnings",
-                "amount_wagered",
-                "periodic_point_adjustments",
-                "cavern_challenge_map_results",
-                "cavern_challenge_plus_shard_winnings",
-                "actions_granted",
-                "cavern_crawl_map_variant",
-                "team_wager_bonus_pct",
-                "wager_streak_pct",
-                "candy_points_granted",
-                "active_season_id",
-                "cavern_crawl_half_credit",
-                "periodic_resources",
-                "extra_event_messages",
-            )
+            __slots__ = ("event_id", "event_points", "challenge_instance_id", "challenge_quest_id", "challenge_quest_challenge_id", "challenge_completed", "challenge_rank_completed", "challenge_rank_previously_completed", "event_owned", "sub_challenges_with_progress", "wager_winnings", "cavern_challenge_active", "cavern_challenge_winnings", "amount_wagered", "periodic_point_adjustments", "cavern_challenge_map_results", "cavern_challenge_plus_shard_winnings", "actions_granted", "cavern_crawl_map_variant", "team_wager_bonus_pct", "wager_streak_pct", "candy_points_granted", "active_season_id", "cavern_crawl_half_credit", "periodic_resources", "extra_event_messages")
             EVENT_ID_FIELD_NUMBER: _ClassVar[int]
             EVENT_POINTS_FIELD_NUMBER: _ClassVar[int]
             CHALLENGE_INSTANCE_ID_FIELD_NUMBER: _ClassVar[int]
@@ -364,77 +211,24 @@ class CDOTAMatchMetadata(_message.Message):
             challenge_rank_completed: int
             challenge_rank_previously_completed: int
             event_owned: bool
-            sub_challenges_with_progress: _containers.RepeatedCompositeFieldContainer[
-                CDOTAMatchMetadata.Team.SubChallenge
-            ]
+            sub_challenges_with_progress: _containers.RepeatedCompositeFieldContainer[CDOTAMatchMetadata.Team.SubChallenge]
             wager_winnings: int
             cavern_challenge_active: bool
             cavern_challenge_winnings: int
             amount_wagered: int
             periodic_point_adjustments: int
-            cavern_challenge_map_results: _containers.RepeatedCompositeFieldContainer[
-                CDOTAMatchMetadata.Team.CavernChallengeResult
-            ]
+            cavern_challenge_map_results: _containers.RepeatedCompositeFieldContainer[CDOTAMatchMetadata.Team.CavernChallengeResult]
             cavern_challenge_plus_shard_winnings: int
-            actions_granted: _containers.RepeatedCompositeFieldContainer[
-                CDOTAMatchMetadata.Team.ActionGrant
-            ]
+            actions_granted: _containers.RepeatedCompositeFieldContainer[CDOTAMatchMetadata.Team.ActionGrant]
             cavern_crawl_map_variant: int
             team_wager_bonus_pct: int
             wager_streak_pct: int
-            candy_points_granted: _containers.RepeatedCompositeFieldContainer[
-                CDOTAMatchMetadata.Team.CandyGrant
-            ]
+            candy_points_granted: _containers.RepeatedCompositeFieldContainer[CDOTAMatchMetadata.Team.CandyGrant]
             active_season_id: int
             cavern_crawl_half_credit: bool
-            periodic_resources: _containers.RepeatedCompositeFieldContainer[
-                CDOTAMatchMetadata.Team.PeriodicResourceData
-            ]
-            extra_event_messages: _containers.RepeatedCompositeFieldContainer[
-                _gcsdk_gcmessages_pb2.CExtraMsgBlock
-            ]
-            def __init__(
-                self,
-                event_id: int | None = ...,
-                event_points: int | None = ...,
-                challenge_instance_id: int | None = ...,
-                challenge_quest_id: int | None = ...,
-                challenge_quest_challenge_id: int | None = ...,
-                challenge_completed: bool = ...,
-                challenge_rank_completed: int | None = ...,
-                challenge_rank_previously_completed: int | None = ...,
-                event_owned: bool = ...,
-                sub_challenges_with_progress: _Iterable[
-                    CDOTAMatchMetadata.Team.SubChallenge | _Mapping
-                ]
-                | None = ...,
-                wager_winnings: int | None = ...,
-                cavern_challenge_active: bool = ...,
-                cavern_challenge_winnings: int | None = ...,
-                amount_wagered: int | None = ...,
-                periodic_point_adjustments: int | None = ...,
-                cavern_challenge_map_results: _Iterable[
-                    CDOTAMatchMetadata.Team.CavernChallengeResult | _Mapping
-                ]
-                | None = ...,
-                cavern_challenge_plus_shard_winnings: int | None = ...,
-                actions_granted: _Iterable[CDOTAMatchMetadata.Team.ActionGrant | _Mapping]
-                | None = ...,
-                cavern_crawl_map_variant: int | None = ...,
-                team_wager_bonus_pct: int | None = ...,
-                wager_streak_pct: int | None = ...,
-                candy_points_granted: _Iterable[CDOTAMatchMetadata.Team.CandyGrant | _Mapping]
-                | None = ...,
-                active_season_id: int | None = ...,
-                cavern_crawl_half_credit: bool = ...,
-                periodic_resources: _Iterable[
-                    CDOTAMatchMetadata.Team.PeriodicResourceData | _Mapping
-                ]
-                | None = ...,
-                extra_event_messages: _Iterable[_gcsdk_gcmessages_pb2.CExtraMsgBlock | _Mapping]
-                | None = ...,
-            ) -> None: ...
-
+            periodic_resources: _containers.RepeatedCompositeFieldContainer[CDOTAMatchMetadata.Team.PeriodicResourceData]
+            extra_event_messages: _containers.RepeatedCompositeFieldContainer[_gcsdk_gcmessages_pb2.CExtraMsgBlock]
+            def __init__(self, event_id: _Optional[int] = ..., event_points: _Optional[int] = ..., challenge_instance_id: _Optional[int] = ..., challenge_quest_id: _Optional[int] = ..., challenge_quest_challenge_id: _Optional[int] = ..., challenge_completed: bool = ..., challenge_rank_completed: _Optional[int] = ..., challenge_rank_previously_completed: _Optional[int] = ..., event_owned: bool = ..., sub_challenges_with_progress: _Optional[_Iterable[_Union[CDOTAMatchMetadata.Team.SubChallenge, _Mapping]]] = ..., wager_winnings: _Optional[int] = ..., cavern_challenge_active: bool = ..., cavern_challenge_winnings: _Optional[int] = ..., amount_wagered: _Optional[int] = ..., periodic_point_adjustments: _Optional[int] = ..., cavern_challenge_map_results: _Optional[_Iterable[_Union[CDOTAMatchMetadata.Team.CavernChallengeResult, _Mapping]]] = ..., cavern_challenge_plus_shard_winnings: _Optional[int] = ..., actions_granted: _Optional[_Iterable[_Union[CDOTAMatchMetadata.Team.ActionGrant, _Mapping]]] = ..., cavern_crawl_map_variant: _Optional[int] = ..., team_wager_bonus_pct: _Optional[int] = ..., wager_streak_pct: _Optional[int] = ..., candy_points_granted: _Optional[_Iterable[_Union[CDOTAMatchMetadata.Team.CandyGrant, _Mapping]]] = ..., active_season_id: _Optional[int] = ..., cavern_crawl_half_credit: bool = ..., periodic_resources: _Optional[_Iterable[_Union[CDOTAMatchMetadata.Team.PeriodicResourceData, _Mapping]]] = ..., extra_event_messages: _Optional[_Iterable[_Union[_gcsdk_gcmessages_pb2.CExtraMsgBlock, _Mapping]]] = ...) -> None: ...
         class FeaturedGamemodeProgress(_message.Message):
             __slots__ = ("start_value", "end_value", "max_value")
             START_VALUE_FIELD_NUMBER: _ClassVar[int]
@@ -443,13 +237,7 @@ class CDOTAMatchMetadata(_message.Message):
             start_value: int
             end_value: int
             max_value: int
-            def __init__(
-                self,
-                start_value: int | None = ...,
-                end_value: int | None = ...,
-                max_value: int | None = ...,
-            ) -> None: ...
-
+            def __init__(self, start_value: _Optional[int] = ..., end_value: _Optional[int] = ..., max_value: _Optional[int] = ...) -> None: ...
         class KillInfo(_message.Message):
             __slots__ = ("kill_type", "victim_player_slot", "killer_player_slot", "time", "bounty")
             class KillType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
@@ -459,7 +247,6 @@ class CDOTAMatchMetadata(_message.Message):
                 KILL_TYPE_BARRACKS: _ClassVar[CDOTAMatchMetadata.Team.KillInfo.KillType]
                 KILL_TYPE_ROSHAN: _ClassVar[CDOTAMatchMetadata.Team.KillInfo.KillType]
                 KILL_TYPE_MINIBOSS: _ClassVar[CDOTAMatchMetadata.Team.KillInfo.KillType]
-
             KILL_TYPE_PLAYER: CDOTAMatchMetadata.Team.KillInfo.KillType
             KILL_TYPE_TOWER: CDOTAMatchMetadata.Team.KillInfo.KillType
             KILL_TYPE_BARRACKS: CDOTAMatchMetadata.Team.KillInfo.KillType
@@ -475,85 +262,11 @@ class CDOTAMatchMetadata(_message.Message):
             killer_player_slot: _containers.RepeatedScalarFieldContainer[int]
             time: int
             bounty: int
-            def __init__(
-                self,
-                kill_type: CDOTAMatchMetadata.Team.KillInfo.KillType | str | None = ...,
-                victim_player_slot: int | None = ...,
-                killer_player_slot: _Iterable[int] | None = ...,
-                time: int | None = ...,
-                bounty: int | None = ...,
-            ) -> None: ...
-
+            def __init__(self, kill_type: _Optional[_Union[CDOTAMatchMetadata.Team.KillInfo.KillType, str]] = ..., victim_player_slot: _Optional[int] = ..., killer_player_slot: _Optional[_Iterable[int]] = ..., time: _Optional[int] = ..., bounty: _Optional[int] = ...) -> None: ...
         class Player(_message.Message):
-            __slots__ = (
-                "ability_upgrades",
-                "player_slot",
-                "kills",
-                "items",
-                "avg_kills_x16",
-                "avg_deaths_x16",
-                "avg_assists_x16",
-                "avg_gpm_x16",
-                "avg_xpm_x16",
-                "best_kills_x16",
-                "best_assists_x16",
-                "best_gpm_x16",
-                "best_xpm_x16",
-                "win_streak",
-                "best_win_streak",
-                "fight_score",
-                "farm_score",
-                "support_score",
-                "push_score",
-                "level_up_times",
-                "graph_net_worth",
-                "inventory_snapshot",
-                "avg_stats_calibrated",
-                "auto_style_criteria",
-                "event_data",
-                "strange_gem_progress",
-                "hero_xp",
-                "camps_stacked",
-                "victory_prediction",
-                "lane_selection_flags",
-                "rampages",
-                "triple_kills",
-                "aegis_snatched",
-                "rapiers_purchased",
-                "couriers_killed",
-                "net_worth_rank",
-                "support_gold_spent",
-                "observer_wards_placed",
-                "sentry_wards_placed",
-                "wards_dewarded",
-                "stun_duration",
-                "rank_mmr_boost_type",
-                "contract_progress",
-                "guild_ids",
-                "graph_hero_damage",
-                "team_number",
-                "team_slot",
-                "featured_gamemode_progress",
-                "featured_hero_sticker_index",
-                "featured_hero_sticker_quality",
-                "equipped_econ_items",
-                "game_player_id",
-                "player_tracked_stats",
-                "overworld_rewards",
-                "craftworks_quest_rewards",
-                "ad_facet_hero_id",
-                "monster_hunter_rewards",
-            )
+            __slots__ = ("ability_upgrades", "player_slot", "kills", "items", "avg_kills_x16", "avg_deaths_x16", "avg_assists_x16", "avg_gpm_x16", "avg_xpm_x16", "best_kills_x16", "best_assists_x16", "best_gpm_x16", "best_xpm_x16", "win_streak", "best_win_streak", "fight_score", "farm_score", "support_score", "push_score", "level_up_times", "graph_net_worth", "inventory_snapshot", "avg_stats_calibrated", "auto_style_criteria", "event_data", "strange_gem_progress", "hero_xp", "camps_stacked", "victory_prediction", "lane_selection_flags", "rampages", "triple_kills", "aegis_snatched", "rapiers_purchased", "couriers_killed", "net_worth_rank", "support_gold_spent", "observer_wards_placed", "sentry_wards_placed", "wards_dewarded", "stun_duration", "rank_mmr_boost_type", "contract_progress", "guild_ids", "graph_hero_damage", "team_number", "team_slot", "featured_gamemode_progress", "featured_hero_sticker_index", "featured_hero_sticker_quality", "equipped_econ_items", "game_player_id", "player_tracked_stats", "overworld_rewards", "craftworks_quest_rewards", "ad_facet_hero_id", "monster_hunter_rewards")
             class ContractProgress(_message.Message):
-                __slots__ = (
-                    "guild_id",
-                    "event_id",
-                    "challenge_instance_id",
-                    "challenge_parameter",
-                    "contract_stars",
-                    "contract_slot",
-                    "completed",
-                )
+                __slots__ = ("guild_id", "event_id", "challenge_instance_id", "challenge_parameter", "contract_stars", "contract_slot", "completed")
                 GUILD_ID_FIELD_NUMBER: _ClassVar[int]
                 EVENT_ID_FIELD_NUMBER: _ClassVar[int]
                 CHALLENGE_INSTANCE_ID_FIELD_NUMBER: _ClassVar[int]
@@ -568,31 +281,14 @@ class CDOTAMatchMetadata(_message.Message):
                 contract_stars: int
                 contract_slot: int
                 completed: bool
-                def __init__(
-                    self,
-                    guild_id: int | None = ...,
-                    event_id: int | None = ...,
-                    challenge_instance_id: int | None = ...,
-                    challenge_parameter: int | None = ...,
-                    contract_stars: int | None = ...,
-                    contract_slot: int | None = ...,
-                    completed: bool = ...,
-                ) -> None: ...
-
+                def __init__(self, guild_id: _Optional[int] = ..., event_id: _Optional[int] = ..., challenge_instance_id: _Optional[int] = ..., challenge_parameter: _Optional[int] = ..., contract_stars: _Optional[int] = ..., contract_slot: _Optional[int] = ..., completed: bool = ...) -> None: ...
             class OverworldRewards(_message.Message):
                 __slots__ = ("overworld_id", "tokens")
                 OVERWORLD_ID_FIELD_NUMBER: _ClassVar[int]
                 TOKENS_FIELD_NUMBER: _ClassVar[int]
                 overworld_id: int
                 tokens: _dota_gcmessages_common_overworld_pb2.CMsgOverworldTokenQuantity
-                def __init__(
-                    self,
-                    overworld_id: int | None = ...,
-                    tokens: _dota_gcmessages_common_overworld_pb2.CMsgOverworldTokenQuantity
-                    | _Mapping
-                    | None = ...,
-                ) -> None: ...
-
+                def __init__(self, overworld_id: _Optional[int] = ..., tokens: _Optional[_Union[_dota_gcmessages_common_overworld_pb2.CMsgOverworldTokenQuantity, _Mapping]] = ...) -> None: ...
             ABILITY_UPGRADES_FIELD_NUMBER: _ClassVar[int]
             PLAYER_SLOT_FIELD_NUMBER: _ClassVar[int]
             KILLS_FIELD_NUMBER: _ClassVar[int]
@@ -671,24 +367,14 @@ class CDOTAMatchMetadata(_message.Message):
             push_score: float
             level_up_times: _containers.RepeatedScalarFieldContainer[int]
             graph_net_worth: _containers.RepeatedScalarFieldContainer[float]
-            inventory_snapshot: _containers.RepeatedCompositeFieldContainer[
-                CDOTAMatchMetadata.Team.InventorySnapshot
-            ]
+            inventory_snapshot: _containers.RepeatedCompositeFieldContainer[CDOTAMatchMetadata.Team.InventorySnapshot]
             avg_stats_calibrated: bool
-            auto_style_criteria: _containers.RepeatedCompositeFieldContainer[
-                CDOTAMatchMetadata.Team.AutoStyleCriteria
-            ]
-            event_data: _containers.RepeatedCompositeFieldContainer[
-                CDOTAMatchMetadata.Team.EventData
-            ]
-            strange_gem_progress: _containers.RepeatedCompositeFieldContainer[
-                CDOTAMatchMetadata.Team.StrangeGemProgress
-            ]
+            auto_style_criteria: _containers.RepeatedCompositeFieldContainer[CDOTAMatchMetadata.Team.AutoStyleCriteria]
+            event_data: _containers.RepeatedCompositeFieldContainer[CDOTAMatchMetadata.Team.EventData]
+            strange_gem_progress: _containers.RepeatedCompositeFieldContainer[CDOTAMatchMetadata.Team.StrangeGemProgress]
             hero_xp: int
             camps_stacked: int
-            victory_prediction: _containers.RepeatedCompositeFieldContainer[
-                CDOTAMatchMetadata.Team.VictoryPrediction
-            ]
+            victory_prediction: _containers.RepeatedCompositeFieldContainer[CDOTAMatchMetadata.Team.VictoryPrediction]
             lane_selection_flags: int
             rampages: int
             triple_kills: int
@@ -702,9 +388,7 @@ class CDOTAMatchMetadata(_message.Message):
             wards_dewarded: int
             stun_duration: float
             rank_mmr_boost_type: _dota_shared_enums_pb2.EDOTAMMRBoostType
-            contract_progress: _containers.RepeatedCompositeFieldContainer[
-                CDOTAMatchMetadata.Team.Player.ContractProgress
-            ]
+            contract_progress: _containers.RepeatedCompositeFieldContainer[CDOTAMatchMetadata.Team.Player.ContractProgress]
             guild_ids: _containers.RepeatedScalarFieldContainer[int]
             graph_hero_damage: _containers.RepeatedScalarFieldContainer[float]
             team_number: _dota_shared_enums_pb2.DOTA_GC_TEAM
@@ -712,103 +396,14 @@ class CDOTAMatchMetadata(_message.Message):
             featured_gamemode_progress: CDOTAMatchMetadata.Team.FeaturedGamemodeProgress
             featured_hero_sticker_index: int
             featured_hero_sticker_quality: int
-            equipped_econ_items: _containers.RepeatedCompositeFieldContainer[
-                CDOTAMatchMetadata.EconItem
-            ]
+            equipped_econ_items: _containers.RepeatedCompositeFieldContainer[CDOTAMatchMetadata.EconItem]
             game_player_id: int
-            player_tracked_stats: _containers.RepeatedCompositeFieldContainer[
-                _dota_gcmessages_common_pb2.CMsgTrackedStat
-            ]
+            player_tracked_stats: _containers.RepeatedCompositeFieldContainer[_dota_gcmessages_common_pb2.CMsgTrackedStat]
             overworld_rewards: CDOTAMatchMetadata.Team.Player.OverworldRewards
-            craftworks_quest_rewards: _containers.RepeatedCompositeFieldContainer[
-                _dota_gcmessages_common_craftworks_pb2.CMsgCraftworksQuestReward
-            ]
+            craftworks_quest_rewards: _containers.RepeatedCompositeFieldContainer[_dota_gcmessages_common_craftworks_pb2.CMsgCraftworksQuestReward]
             ad_facet_hero_id: int
-            monster_hunter_rewards: (
-                _dota_gcmessages_common_monster_hunter_pb2.CMsgMonsterHunterMatchRewards.Player
-            )
-            def __init__(
-                self,
-                ability_upgrades: _Iterable[int] | None = ...,
-                player_slot: int | None = ...,
-                kills: _Iterable[CDOTAMatchMetadata.Team.PlayerKill | _Mapping] | None = ...,
-                items: _Iterable[CDOTAMatchMetadata.Team.ItemPurchase | _Mapping] | None = ...,
-                avg_kills_x16: int | None = ...,
-                avg_deaths_x16: int | None = ...,
-                avg_assists_x16: int | None = ...,
-                avg_gpm_x16: int | None = ...,
-                avg_xpm_x16: int | None = ...,
-                best_kills_x16: int | None = ...,
-                best_assists_x16: int | None = ...,
-                best_gpm_x16: int | None = ...,
-                best_xpm_x16: int | None = ...,
-                win_streak: int | None = ...,
-                best_win_streak: int | None = ...,
-                fight_score: float | None = ...,
-                farm_score: float | None = ...,
-                support_score: float | None = ...,
-                push_score: float | None = ...,
-                level_up_times: _Iterable[int] | None = ...,
-                graph_net_worth: _Iterable[float] | None = ...,
-                inventory_snapshot: _Iterable[CDOTAMatchMetadata.Team.InventorySnapshot | _Mapping]
-                | None = ...,
-                avg_stats_calibrated: bool = ...,
-                auto_style_criteria: _Iterable[CDOTAMatchMetadata.Team.AutoStyleCriteria | _Mapping]
-                | None = ...,
-                event_data: _Iterable[CDOTAMatchMetadata.Team.EventData | _Mapping] | None = ...,
-                strange_gem_progress: _Iterable[
-                    CDOTAMatchMetadata.Team.StrangeGemProgress | _Mapping
-                ]
-                | None = ...,
-                hero_xp: int | None = ...,
-                camps_stacked: int | None = ...,
-                victory_prediction: _Iterable[CDOTAMatchMetadata.Team.VictoryPrediction | _Mapping]
-                | None = ...,
-                lane_selection_flags: int | None = ...,
-                rampages: int | None = ...,
-                triple_kills: int | None = ...,
-                aegis_snatched: int | None = ...,
-                rapiers_purchased: int | None = ...,
-                couriers_killed: int | None = ...,
-                net_worth_rank: int | None = ...,
-                support_gold_spent: int | None = ...,
-                observer_wards_placed: int | None = ...,
-                sentry_wards_placed: int | None = ...,
-                wards_dewarded: int | None = ...,
-                stun_duration: float | None = ...,
-                rank_mmr_boost_type: _dota_shared_enums_pb2.EDOTAMMRBoostType | str | None = ...,
-                contract_progress: _Iterable[
-                    CDOTAMatchMetadata.Team.Player.ContractProgress | _Mapping
-                ]
-                | None = ...,
-                guild_ids: _Iterable[int] | None = ...,
-                graph_hero_damage: _Iterable[float] | None = ...,
-                team_number: _dota_shared_enums_pb2.DOTA_GC_TEAM | str | None = ...,
-                team_slot: int | None = ...,
-                featured_gamemode_progress: CDOTAMatchMetadata.Team.FeaturedGamemodeProgress
-                | _Mapping
-                | None = ...,
-                featured_hero_sticker_index: int | None = ...,
-                featured_hero_sticker_quality: int | None = ...,
-                equipped_econ_items: _Iterable[CDOTAMatchMetadata.EconItem | _Mapping] | None = ...,
-                game_player_id: int | None = ...,
-                player_tracked_stats: _Iterable[
-                    _dota_gcmessages_common_pb2.CMsgTrackedStat | _Mapping
-                ]
-                | None = ...,
-                overworld_rewards: CDOTAMatchMetadata.Team.Player.OverworldRewards
-                | _Mapping
-                | None = ...,
-                craftworks_quest_rewards: _Iterable[
-                    _dota_gcmessages_common_craftworks_pb2.CMsgCraftworksQuestReward | _Mapping
-                ]
-                | None = ...,
-                ad_facet_hero_id: int | None = ...,
-                monster_hunter_rewards: _dota_gcmessages_common_monster_hunter_pb2.CMsgMonsterHunterMatchRewards.Player
-                | _Mapping
-                | None = ...,
-            ) -> None: ...
-
+            monster_hunter_rewards: _dota_gcmessages_common_monster_hunter_pb2.CMsgMonsterHunterMatchRewards.Player
+            def __init__(self, ability_upgrades: _Optional[_Iterable[int]] = ..., player_slot: _Optional[int] = ..., kills: _Optional[_Iterable[_Union[CDOTAMatchMetadata.Team.PlayerKill, _Mapping]]] = ..., items: _Optional[_Iterable[_Union[CDOTAMatchMetadata.Team.ItemPurchase, _Mapping]]] = ..., avg_kills_x16: _Optional[int] = ..., avg_deaths_x16: _Optional[int] = ..., avg_assists_x16: _Optional[int] = ..., avg_gpm_x16: _Optional[int] = ..., avg_xpm_x16: _Optional[int] = ..., best_kills_x16: _Optional[int] = ..., best_assists_x16: _Optional[int] = ..., best_gpm_x16: _Optional[int] = ..., best_xpm_x16: _Optional[int] = ..., win_streak: _Optional[int] = ..., best_win_streak: _Optional[int] = ..., fight_score: _Optional[float] = ..., farm_score: _Optional[float] = ..., support_score: _Optional[float] = ..., push_score: _Optional[float] = ..., level_up_times: _Optional[_Iterable[int]] = ..., graph_net_worth: _Optional[_Iterable[float]] = ..., inventory_snapshot: _Optional[_Iterable[_Union[CDOTAMatchMetadata.Team.InventorySnapshot, _Mapping]]] = ..., avg_stats_calibrated: bool = ..., auto_style_criteria: _Optional[_Iterable[_Union[CDOTAMatchMetadata.Team.AutoStyleCriteria, _Mapping]]] = ..., event_data: _Optional[_Iterable[_Union[CDOTAMatchMetadata.Team.EventData, _Mapping]]] = ..., strange_gem_progress: _Optional[_Iterable[_Union[CDOTAMatchMetadata.Team.StrangeGemProgress, _Mapping]]] = ..., hero_xp: _Optional[int] = ..., camps_stacked: _Optional[int] = ..., victory_prediction: _Optional[_Iterable[_Union[CDOTAMatchMetadata.Team.VictoryPrediction, _Mapping]]] = ..., lane_selection_flags: _Optional[int] = ..., rampages: _Optional[int] = ..., triple_kills: _Optional[int] = ..., aegis_snatched: _Optional[int] = ..., rapiers_purchased: _Optional[int] = ..., couriers_killed: _Optional[int] = ..., net_worth_rank: _Optional[int] = ..., support_gold_spent: _Optional[int] = ..., observer_wards_placed: _Optional[int] = ..., sentry_wards_placed: _Optional[int] = ..., wards_dewarded: _Optional[int] = ..., stun_duration: _Optional[float] = ..., rank_mmr_boost_type: _Optional[_Union[_dota_shared_enums_pb2.EDOTAMMRBoostType, str]] = ..., contract_progress: _Optional[_Iterable[_Union[CDOTAMatchMetadata.Team.Player.ContractProgress, _Mapping]]] = ..., guild_ids: _Optional[_Iterable[int]] = ..., graph_hero_damage: _Optional[_Iterable[float]] = ..., team_number: _Optional[_Union[_dota_shared_enums_pb2.DOTA_GC_TEAM, str]] = ..., team_slot: _Optional[int] = ..., featured_gamemode_progress: _Optional[_Union[CDOTAMatchMetadata.Team.FeaturedGamemodeProgress, _Mapping]] = ..., featured_hero_sticker_index: _Optional[int] = ..., featured_hero_sticker_quality: _Optional[int] = ..., equipped_econ_items: _Optional[_Iterable[_Union[CDOTAMatchMetadata.EconItem, _Mapping]]] = ..., game_player_id: _Optional[int] = ..., player_tracked_stats: _Optional[_Iterable[_Union[_dota_gcmessages_common_pb2.CMsgTrackedStat, _Mapping]]] = ..., overworld_rewards: _Optional[_Union[CDOTAMatchMetadata.Team.Player.OverworldRewards, _Mapping]] = ..., craftworks_quest_rewards: _Optional[_Iterable[_Union[_dota_gcmessages_common_craftworks_pb2.CMsgCraftworksQuestReward, _Mapping]]] = ..., ad_facet_hero_id: _Optional[int] = ..., monster_hunter_rewards: _Optional[_Union[_dota_gcmessages_common_monster_hunter_pb2.CMsgMonsterHunterMatchRewards.Player, _Mapping]] = ...) -> None: ...
         DOTA_TEAM_FIELD_NUMBER: _ClassVar[int]
         PLAYERS_FIELD_NUMBER: _ClassVar[int]
         GRAPH_EXPERIENCE_FIELD_NUMBER: _ClassVar[int]
@@ -827,46 +422,18 @@ class CDOTAMatchMetadata(_message.Message):
         cm_first_pick: bool
         cm_captain_player_id: int
         cm_penalty: int
-        team_tracked_stats: _containers.RepeatedCompositeFieldContainer[
-            _dota_gcmessages_common_pb2.CMsgTrackedStat
-        ]
+        team_tracked_stats: _containers.RepeatedCompositeFieldContainer[_dota_gcmessages_common_pb2.CMsgTrackedStat]
         kills: _containers.RepeatedCompositeFieldContainer[CDOTAMatchMetadata.Team.KillInfo]
-        def __init__(
-            self,
-            dota_team: int | None = ...,
-            players: _Iterable[CDOTAMatchMetadata.Team.Player | _Mapping] | None = ...,
-            graph_experience: _Iterable[float] | None = ...,
-            graph_gold_earned: _Iterable[float] | None = ...,
-            graph_net_worth: _Iterable[float] | None = ...,
-            cm_first_pick: bool = ...,
-            cm_captain_player_id: int | None = ...,
-            cm_penalty: int | None = ...,
-            team_tracked_stats: _Iterable[_dota_gcmessages_common_pb2.CMsgTrackedStat | _Mapping]
-            | None = ...,
-            kills: _Iterable[CDOTAMatchMetadata.Team.KillInfo | _Mapping] | None = ...,
-        ) -> None: ...
-
+        def __init__(self, dota_team: _Optional[int] = ..., players: _Optional[_Iterable[_Union[CDOTAMatchMetadata.Team.Player, _Mapping]]] = ..., graph_experience: _Optional[_Iterable[float]] = ..., graph_gold_earned: _Optional[_Iterable[float]] = ..., graph_net_worth: _Optional[_Iterable[float]] = ..., cm_first_pick: bool = ..., cm_captain_player_id: _Optional[int] = ..., cm_penalty: _Optional[int] = ..., team_tracked_stats: _Optional[_Iterable[_Union[_dota_gcmessages_common_pb2.CMsgTrackedStat, _Mapping]]] = ..., kills: _Optional[_Iterable[_Union[CDOTAMatchMetadata.Team.KillInfo, _Mapping]]] = ...) -> None: ...
     class GuildChallengeProgress(_message.Message):
-        __slots__ = (
-            "guild_id",
-            "event_id",
-            "challenge_instance_id",
-            "challenge_parameter",
-            "challenge_timestamp",
-            "challenge_progress_at_start",
-            "challenge_progress_accumulated",
-            "individual_progress",
-        )
+        __slots__ = ("guild_id", "event_id", "challenge_instance_id", "challenge_parameter", "challenge_timestamp", "challenge_progress_at_start", "challenge_progress_accumulated", "individual_progress")
         class IndividualProgress(_message.Message):
             __slots__ = ("progress", "player_slot")
             PROGRESS_FIELD_NUMBER: _ClassVar[int]
             PLAYER_SLOT_FIELD_NUMBER: _ClassVar[int]
             progress: int
             player_slot: int
-            def __init__(
-                self, progress: int | None = ..., player_slot: int | None = ...
-            ) -> None: ...
-
+            def __init__(self, progress: _Optional[int] = ..., player_slot: _Optional[int] = ...) -> None: ...
         GUILD_ID_FIELD_NUMBER: _ClassVar[int]
         EVENT_ID_FIELD_NUMBER: _ClassVar[int]
         CHALLENGE_INSTANCE_ID_FIELD_NUMBER: _ClassVar[int]
@@ -882,24 +449,8 @@ class CDOTAMatchMetadata(_message.Message):
         challenge_timestamp: int
         challenge_progress_at_start: int
         challenge_progress_accumulated: int
-        individual_progress: _containers.RepeatedCompositeFieldContainer[
-            CDOTAMatchMetadata.GuildChallengeProgress.IndividualProgress
-        ]
-        def __init__(
-            self,
-            guild_id: int | None = ...,
-            event_id: _dota_shared_enums_pb2.EEvent | str | None = ...,
-            challenge_instance_id: int | None = ...,
-            challenge_parameter: int | None = ...,
-            challenge_timestamp: int | None = ...,
-            challenge_progress_at_start: int | None = ...,
-            challenge_progress_accumulated: int | None = ...,
-            individual_progress: _Iterable[
-                CDOTAMatchMetadata.GuildChallengeProgress.IndividualProgress | _Mapping
-            ]
-            | None = ...,
-        ) -> None: ...
-
+        individual_progress: _containers.RepeatedCompositeFieldContainer[CDOTAMatchMetadata.GuildChallengeProgress.IndividualProgress]
+        def __init__(self, guild_id: _Optional[int] = ..., event_id: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ..., challenge_instance_id: _Optional[int] = ..., challenge_parameter: _Optional[int] = ..., challenge_timestamp: _Optional[int] = ..., challenge_progress_at_start: _Optional[int] = ..., challenge_progress_accumulated: _Optional[int] = ..., individual_progress: _Optional[_Iterable[_Union[CDOTAMatchMetadata.GuildChallengeProgress.IndividualProgress, _Mapping]]] = ...) -> None: ...
     class Tip(_message.Message):
         __slots__ = ("source_player_slot", "target_player_slot", "tip_amount", "event_id")
         SOURCE_PLAYER_SLOT_FIELD_NUMBER: _ClassVar[int]
@@ -910,14 +461,7 @@ class CDOTAMatchMetadata(_message.Message):
         target_player_slot: int
         tip_amount: int
         event_id: _dota_shared_enums_pb2.EEvent
-        def __init__(
-            self,
-            source_player_slot: int | None = ...,
-            target_player_slot: int | None = ...,
-            tip_amount: int | None = ...,
-            event_id: _dota_shared_enums_pb2.EEvent | str | None = ...,
-        ) -> None: ...
-
+        def __init__(self, source_player_slot: _Optional[int] = ..., target_player_slot: _Optional[int] = ..., tip_amount: _Optional[int] = ..., event_id: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ...) -> None: ...
     TEAMS_FIELD_NUMBER: _ClassVar[int]
     LOBBY_ID_FIELD_NUMBER: _ClassVar[int]
     REPORT_UNTIL_TIME_FIELD_NUMBER: _ClassVar[int]
@@ -937,64 +481,26 @@ class CDOTAMatchMetadata(_message.Message):
     primary_event_id: int
     matchmaking_stats: _dota_gcmessages_common_match_management_pb2.CMsgMatchMatchmakingStats
     mvp_data: _dota_gcmessages_common_match_management_pb2.CMvpData
-    guild_challenge_progress: _containers.RepeatedCompositeFieldContainer[
-        CDOTAMatchMetadata.GuildChallengeProgress
-    ]
+    guild_challenge_progress: _containers.RepeatedCompositeFieldContainer[CDOTAMatchMetadata.GuildChallengeProgress]
     custom_post_game_table: bytes
     match_tips: _containers.RepeatedCompositeFieldContainer[CDOTAMatchMetadata.Tip]
-    match_tracked_stats: _containers.RepeatedCompositeFieldContainer[
-        _dota_gcmessages_common_pb2.CMsgTrackedStat
-    ]
+    match_tracked_stats: _containers.RepeatedCompositeFieldContainer[_dota_gcmessages_common_pb2.CMsgTrackedStat]
     primary_event_id_for_display: int
-    def __init__(
-        self,
-        teams: _Iterable[CDOTAMatchMetadata.Team | _Mapping] | None = ...,
-        lobby_id: int | None = ...,
-        report_until_time: int | None = ...,
-        event_game_custom_table: bytes | None = ...,
-        primary_event_id: int | None = ...,
-        matchmaking_stats: _dota_gcmessages_common_match_management_pb2.CMsgMatchMatchmakingStats
-        | _Mapping
-        | None = ...,
-        mvp_data: _dota_gcmessages_common_match_management_pb2.CMvpData | _Mapping | None = ...,
-        guild_challenge_progress: _Iterable[CDOTAMatchMetadata.GuildChallengeProgress | _Mapping]
-        | None = ...,
-        custom_post_game_table: bytes | None = ...,
-        match_tips: _Iterable[CDOTAMatchMetadata.Tip | _Mapping] | None = ...,
-        match_tracked_stats: _Iterable[_dota_gcmessages_common_pb2.CMsgTrackedStat | _Mapping]
-        | None = ...,
-        primary_event_id_for_display: int | None = ...,
-    ) -> None: ...
+    def __init__(self, teams: _Optional[_Iterable[_Union[CDOTAMatchMetadata.Team, _Mapping]]] = ..., lobby_id: _Optional[int] = ..., report_until_time: _Optional[int] = ..., event_game_custom_table: _Optional[bytes] = ..., primary_event_id: _Optional[int] = ..., matchmaking_stats: _Optional[_Union[_dota_gcmessages_common_match_management_pb2.CMsgMatchMatchmakingStats, _Mapping]] = ..., mvp_data: _Optional[_Union[_dota_gcmessages_common_match_management_pb2.CMvpData, _Mapping]] = ..., guild_challenge_progress: _Optional[_Iterable[_Union[CDOTAMatchMetadata.GuildChallengeProgress, _Mapping]]] = ..., custom_post_game_table: _Optional[bytes] = ..., match_tips: _Optional[_Iterable[_Union[CDOTAMatchMetadata.Tip, _Mapping]]] = ..., match_tracked_stats: _Optional[_Iterable[_Union[_dota_gcmessages_common_pb2.CMsgTrackedStat, _Mapping]]] = ..., primary_event_id_for_display: _Optional[int] = ...) -> None: ...
 
 class CDOTAMatchPrivateMetadata(_message.Message):
-    __slots__ = ("teams", "graph_win_probability", "string_names")
+    __slots__ = ("teams", "graph_win_probability", "string_names", "contributions")
     class StringName(_message.Message):
         __slots__ = ("id", "name")
         ID_FIELD_NUMBER: _ClassVar[int]
         NAME_FIELD_NUMBER: _ClassVar[int]
         id: int
         name: str
-        def __init__(self, id: int | None = ..., name: str | None = ...) -> None: ...
-
+        def __init__(self, id: _Optional[int] = ..., name: _Optional[str] = ...) -> None: ...
     class Team(_message.Message):
         __slots__ = ("dota_team", "players", "buildings")
         class Player(_message.Message):
-            __slots__ = (
-                "player_slot",
-                "position_stream",
-                "combat_segments",
-                "damage_unit_names",
-                "buff_records",
-                "graph_kills",
-                "graph_deaths",
-                "graph_assists",
-                "graph_lasthits",
-                "graph_denies",
-                "gold_received",
-                "xp_received",
-                "team_number",
-                "team_slot",
-            )
+            __slots__ = ("player_slot", "position_stream", "combat_segments", "damage_unit_names", "buff_records", "graph_kills", "graph_deaths", "graph_assists", "graph_lasthits", "graph_denies", "gold_received", "xp_received", "team_number", "team_slot")
             class CombatSegment(_message.Message):
                 __slots__ = ("game_time", "damage_by_ability", "healing_by_ability")
                 class DamageByAbility(_message.Message):
@@ -1005,29 +511,14 @@ class CDOTAMatchPrivateMetadata(_message.Message):
                         DAMAGE_FIELD_NUMBER: _ClassVar[int]
                         hero_id: int
                         damage: int
-                        def __init__(
-                            self, hero_id: int | None = ..., damage: int | None = ...
-                        ) -> None: ...
-
+                        def __init__(self, hero_id: _Optional[int] = ..., damage: _Optional[int] = ...) -> None: ...
                     SOURCE_UNIT_INDEX_FIELD_NUMBER: _ClassVar[int]
                     ABILITY_ID_FIELD_NUMBER: _ClassVar[int]
                     BY_HERO_TARGETS_FIELD_NUMBER: _ClassVar[int]
                     source_unit_index: int
                     ability_id: int
-                    by_hero_targets: _containers.RepeatedCompositeFieldContainer[
-                        CDOTAMatchPrivateMetadata.Team.Player.CombatSegment.DamageByAbility.ByHeroTarget
-                    ]
-                    def __init__(
-                        self,
-                        source_unit_index: int | None = ...,
-                        ability_id: int | None = ...,
-                        by_hero_targets: _Iterable[
-                            CDOTAMatchPrivateMetadata.Team.Player.CombatSegment.DamageByAbility.ByHeroTarget
-                            | _Mapping
-                        ]
-                        | None = ...,
-                    ) -> None: ...
-
+                    by_hero_targets: _containers.RepeatedCompositeFieldContainer[CDOTAMatchPrivateMetadata.Team.Player.CombatSegment.DamageByAbility.ByHeroTarget]
+                    def __init__(self, source_unit_index: _Optional[int] = ..., ability_id: _Optional[int] = ..., by_hero_targets: _Optional[_Iterable[_Union[CDOTAMatchPrivateMetadata.Team.Player.CombatSegment.DamageByAbility.ByHeroTarget, _Mapping]]] = ...) -> None: ...
                 class HealingByAbility(_message.Message):
                     __slots__ = ("source_unit_index", "ability_id", "by_hero_targets")
                     class ByHeroTarget(_message.Message):
@@ -1036,54 +527,21 @@ class CDOTAMatchPrivateMetadata(_message.Message):
                         HEALING_FIELD_NUMBER: _ClassVar[int]
                         hero_id: int
                         healing: int
-                        def __init__(
-                            self, hero_id: int | None = ..., healing: int | None = ...
-                        ) -> None: ...
-
+                        def __init__(self, hero_id: _Optional[int] = ..., healing: _Optional[int] = ...) -> None: ...
                     SOURCE_UNIT_INDEX_FIELD_NUMBER: _ClassVar[int]
                     ABILITY_ID_FIELD_NUMBER: _ClassVar[int]
                     BY_HERO_TARGETS_FIELD_NUMBER: _ClassVar[int]
                     source_unit_index: int
                     ability_id: int
-                    by_hero_targets: _containers.RepeatedCompositeFieldContainer[
-                        CDOTAMatchPrivateMetadata.Team.Player.CombatSegment.HealingByAbility.ByHeroTarget
-                    ]
-                    def __init__(
-                        self,
-                        source_unit_index: int | None = ...,
-                        ability_id: int | None = ...,
-                        by_hero_targets: _Iterable[
-                            CDOTAMatchPrivateMetadata.Team.Player.CombatSegment.HealingByAbility.ByHeroTarget
-                            | _Mapping
-                        ]
-                        | None = ...,
-                    ) -> None: ...
-
+                    by_hero_targets: _containers.RepeatedCompositeFieldContainer[CDOTAMatchPrivateMetadata.Team.Player.CombatSegment.HealingByAbility.ByHeroTarget]
+                    def __init__(self, source_unit_index: _Optional[int] = ..., ability_id: _Optional[int] = ..., by_hero_targets: _Optional[_Iterable[_Union[CDOTAMatchPrivateMetadata.Team.Player.CombatSegment.HealingByAbility.ByHeroTarget, _Mapping]]] = ...) -> None: ...
                 GAME_TIME_FIELD_NUMBER: _ClassVar[int]
                 DAMAGE_BY_ABILITY_FIELD_NUMBER: _ClassVar[int]
                 HEALING_BY_ABILITY_FIELD_NUMBER: _ClassVar[int]
                 game_time: int
-                damage_by_ability: _containers.RepeatedCompositeFieldContainer[
-                    CDOTAMatchPrivateMetadata.Team.Player.CombatSegment.DamageByAbility
-                ]
-                healing_by_ability: _containers.RepeatedCompositeFieldContainer[
-                    CDOTAMatchPrivateMetadata.Team.Player.CombatSegment.HealingByAbility
-                ]
-                def __init__(
-                    self,
-                    game_time: int | None = ...,
-                    damage_by_ability: _Iterable[
-                        CDOTAMatchPrivateMetadata.Team.Player.CombatSegment.DamageByAbility
-                        | _Mapping
-                    ]
-                    | None = ...,
-                    healing_by_ability: _Iterable[
-                        CDOTAMatchPrivateMetadata.Team.Player.CombatSegment.HealingByAbility
-                        | _Mapping
-                    ]
-                    | None = ...,
-                ) -> None: ...
-
+                damage_by_ability: _containers.RepeatedCompositeFieldContainer[CDOTAMatchPrivateMetadata.Team.Player.CombatSegment.DamageByAbility]
+                healing_by_ability: _containers.RepeatedCompositeFieldContainer[CDOTAMatchPrivateMetadata.Team.Player.CombatSegment.HealingByAbility]
+                def __init__(self, game_time: _Optional[int] = ..., damage_by_ability: _Optional[_Iterable[_Union[CDOTAMatchPrivateMetadata.Team.Player.CombatSegment.DamageByAbility, _Mapping]]] = ..., healing_by_ability: _Optional[_Iterable[_Union[CDOTAMatchPrivateMetadata.Team.Player.CombatSegment.HealingByAbility, _Mapping]]] = ...) -> None: ...
             class BuffRecord(_message.Message):
                 __slots__ = ("buff_ability_id", "buff_modifier_name", "by_hero_targets")
                 class ByHeroTarget(_message.Message):
@@ -1096,43 +554,16 @@ class CDOTAMatchPrivateMetadata(_message.Message):
                     elapsed_duration: float
                     is_hidden: bool
                     instance_count: int
-                    def __init__(
-                        self,
-                        hero_id: int | None = ...,
-                        elapsed_duration: float | None = ...,
-                        is_hidden: bool = ...,
-                        instance_count: int | None = ...,
-                    ) -> None: ...
-
+                    def __init__(self, hero_id: _Optional[int] = ..., elapsed_duration: _Optional[float] = ..., is_hidden: bool = ..., instance_count: _Optional[int] = ...) -> None: ...
                 BUFF_ABILITY_ID_FIELD_NUMBER: _ClassVar[int]
                 BUFF_MODIFIER_NAME_FIELD_NUMBER: _ClassVar[int]
                 BY_HERO_TARGETS_FIELD_NUMBER: _ClassVar[int]
                 buff_ability_id: int
                 buff_modifier_name: str
-                by_hero_targets: _containers.RepeatedCompositeFieldContainer[
-                    CDOTAMatchPrivateMetadata.Team.Player.BuffRecord.ByHeroTarget
-                ]
-                def __init__(
-                    self,
-                    buff_ability_id: int | None = ...,
-                    buff_modifier_name: str | None = ...,
-                    by_hero_targets: _Iterable[
-                        CDOTAMatchPrivateMetadata.Team.Player.BuffRecord.ByHeroTarget | _Mapping
-                    ]
-                    | None = ...,
-                ) -> None: ...
-
+                by_hero_targets: _containers.RepeatedCompositeFieldContainer[CDOTAMatchPrivateMetadata.Team.Player.BuffRecord.ByHeroTarget]
+                def __init__(self, buff_ability_id: _Optional[int] = ..., buff_modifier_name: _Optional[str] = ..., by_hero_targets: _Optional[_Iterable[_Union[CDOTAMatchPrivateMetadata.Team.Player.BuffRecord.ByHeroTarget, _Mapping]]] = ...) -> None: ...
             class GoldReceived(_message.Message):
-                __slots__ = (
-                    "creep",
-                    "heroes",
-                    "bounty_runes",
-                    "passive",
-                    "buildings",
-                    "abilities",
-                    "wards",
-                    "other",
-                )
+                __slots__ = ("creep", "heroes", "bounty_runes", "passive", "buildings", "abilities", "wards", "other")
                 CREEP_FIELD_NUMBER: _ClassVar[int]
                 HEROES_FIELD_NUMBER: _ClassVar[int]
                 BOUNTY_RUNES_FIELD_NUMBER: _ClassVar[int]
@@ -1149,28 +580,9 @@ class CDOTAMatchPrivateMetadata(_message.Message):
                 abilities: int
                 wards: int
                 other: int
-                def __init__(
-                    self,
-                    creep: int | None = ...,
-                    heroes: int | None = ...,
-                    bounty_runes: int | None = ...,
-                    passive: int | None = ...,
-                    buildings: int | None = ...,
-                    abilities: int | None = ...,
-                    wards: int | None = ...,
-                    other: int | None = ...,
-                ) -> None: ...
-
+                def __init__(self, creep: _Optional[int] = ..., heroes: _Optional[int] = ..., bounty_runes: _Optional[int] = ..., passive: _Optional[int] = ..., buildings: _Optional[int] = ..., abilities: _Optional[int] = ..., wards: _Optional[int] = ..., other: _Optional[int] = ...) -> None: ...
             class XPReceived(_message.Message):
-                __slots__ = (
-                    "creep",
-                    "heroes",
-                    "roshan",
-                    "tome_of_knowledge",
-                    "outpost",
-                    "other",
-                    "abilities",
-                )
+                __slots__ = ("creep", "heroes", "roshan", "tome_of_knowledge", "outpost", "other", "abilities")
                 CREEP_FIELD_NUMBER: _ClassVar[int]
                 HEROES_FIELD_NUMBER: _ClassVar[int]
                 ROSHAN_FIELD_NUMBER: _ClassVar[int]
@@ -1185,17 +597,7 @@ class CDOTAMatchPrivateMetadata(_message.Message):
                 outpost: int
                 other: int
                 abilities: int
-                def __init__(
-                    self,
-                    creep: int | None = ...,
-                    heroes: int | None = ...,
-                    roshan: int | None = ...,
-                    tome_of_knowledge: int | None = ...,
-                    outpost: int | None = ...,
-                    other: int | None = ...,
-                    abilities: int | None = ...,
-                ) -> None: ...
-
+                def __init__(self, creep: _Optional[int] = ..., heroes: _Optional[int] = ..., roshan: _Optional[int] = ..., tome_of_knowledge: _Optional[int] = ..., outpost: _Optional[int] = ..., other: _Optional[int] = ..., abilities: _Optional[int] = ...) -> None: ...
             PLAYER_SLOT_FIELD_NUMBER: _ClassVar[int]
             POSITION_STREAM_FIELD_NUMBER: _ClassVar[int]
             COMBAT_SEGMENTS_FIELD_NUMBER: _ClassVar[int]
@@ -1212,13 +614,9 @@ class CDOTAMatchPrivateMetadata(_message.Message):
             TEAM_SLOT_FIELD_NUMBER: _ClassVar[int]
             player_slot: int
             position_stream: bytes
-            combat_segments: _containers.RepeatedCompositeFieldContainer[
-                CDOTAMatchPrivateMetadata.Team.Player.CombatSegment
-            ]
+            combat_segments: _containers.RepeatedCompositeFieldContainer[CDOTAMatchPrivateMetadata.Team.Player.CombatSegment]
             damage_unit_names: _containers.RepeatedScalarFieldContainer[str]
-            buff_records: _containers.RepeatedCompositeFieldContainer[
-                CDOTAMatchPrivateMetadata.Team.Player.BuffRecord
-            ]
+            buff_records: _containers.RepeatedCompositeFieldContainer[CDOTAMatchPrivateMetadata.Team.Player.BuffRecord]
             graph_kills: _containers.RepeatedScalarFieldContainer[float]
             graph_deaths: _containers.RepeatedScalarFieldContainer[float]
             graph_assists: _containers.RepeatedScalarFieldContainer[float]
@@ -1228,32 +626,7 @@ class CDOTAMatchPrivateMetadata(_message.Message):
             xp_received: CDOTAMatchPrivateMetadata.Team.Player.XPReceived
             team_number: _dota_shared_enums_pb2.DOTA_GC_TEAM
             team_slot: int
-            def __init__(
-                self,
-                player_slot: int | None = ...,
-                position_stream: bytes | None = ...,
-                combat_segments: _Iterable[
-                    CDOTAMatchPrivateMetadata.Team.Player.CombatSegment | _Mapping
-                ]
-                | None = ...,
-                damage_unit_names: _Iterable[str] | None = ...,
-                buff_records: _Iterable[CDOTAMatchPrivateMetadata.Team.Player.BuffRecord | _Mapping]
-                | None = ...,
-                graph_kills: _Iterable[float] | None = ...,
-                graph_deaths: _Iterable[float] | None = ...,
-                graph_assists: _Iterable[float] | None = ...,
-                graph_lasthits: _Iterable[float] | None = ...,
-                graph_denies: _Iterable[float] | None = ...,
-                gold_received: CDOTAMatchPrivateMetadata.Team.Player.GoldReceived
-                | _Mapping
-                | None = ...,
-                xp_received: CDOTAMatchPrivateMetadata.Team.Player.XPReceived
-                | _Mapping
-                | None = ...,
-                team_number: _dota_shared_enums_pb2.DOTA_GC_TEAM | str | None = ...,
-                team_slot: int | None = ...,
-            ) -> None: ...
-
+            def __init__(self, player_slot: _Optional[int] = ..., position_stream: _Optional[bytes] = ..., combat_segments: _Optional[_Iterable[_Union[CDOTAMatchPrivateMetadata.Team.Player.CombatSegment, _Mapping]]] = ..., damage_unit_names: _Optional[_Iterable[str]] = ..., buff_records: _Optional[_Iterable[_Union[CDOTAMatchPrivateMetadata.Team.Player.BuffRecord, _Mapping]]] = ..., graph_kills: _Optional[_Iterable[float]] = ..., graph_deaths: _Optional[_Iterable[float]] = ..., graph_assists: _Optional[_Iterable[float]] = ..., graph_lasthits: _Optional[_Iterable[float]] = ..., graph_denies: _Optional[_Iterable[float]] = ..., gold_received: _Optional[_Union[CDOTAMatchPrivateMetadata.Team.Player.GoldReceived, _Mapping]] = ..., xp_received: _Optional[_Union[CDOTAMatchPrivateMetadata.Team.Player.XPReceived, _Mapping]] = ..., team_number: _Optional[_Union[_dota_shared_enums_pb2.DOTA_GC_TEAM, str]] = ..., team_slot: _Optional[int] = ...) -> None: ...
         class Building(_message.Message):
             __slots__ = ("unit_name", "position_quant_x", "position_quant_y", "death_time")
             UNIT_NAME_FIELD_NUMBER: _ClassVar[int]
@@ -1264,38 +637,127 @@ class CDOTAMatchPrivateMetadata(_message.Message):
             position_quant_x: int
             position_quant_y: int
             death_time: float
-            def __init__(
-                self,
-                unit_name: str | None = ...,
-                position_quant_x: int | None = ...,
-                position_quant_y: int | None = ...,
-                death_time: float | None = ...,
-            ) -> None: ...
-
+            def __init__(self, unit_name: _Optional[str] = ..., position_quant_x: _Optional[int] = ..., position_quant_y: _Optional[int] = ..., death_time: _Optional[float] = ...) -> None: ...
         DOTA_TEAM_FIELD_NUMBER: _ClassVar[int]
         PLAYERS_FIELD_NUMBER: _ClassVar[int]
         BUILDINGS_FIELD_NUMBER: _ClassVar[int]
         dota_team: int
         players: _containers.RepeatedCompositeFieldContainer[CDOTAMatchPrivateMetadata.Team.Player]
-        buildings: _containers.RepeatedCompositeFieldContainer[
-            CDOTAMatchPrivateMetadata.Team.Building
-        ]
-        def __init__(
-            self,
-            dota_team: int | None = ...,
-            players: _Iterable[CDOTAMatchPrivateMetadata.Team.Player | _Mapping] | None = ...,
-            buildings: _Iterable[CDOTAMatchPrivateMetadata.Team.Building | _Mapping] | None = ...,
-        ) -> None: ...
-
+        buildings: _containers.RepeatedCompositeFieldContainer[CDOTAMatchPrivateMetadata.Team.Building]
+        def __init__(self, dota_team: _Optional[int] = ..., players: _Optional[_Iterable[_Union[CDOTAMatchPrivateMetadata.Team.Player, _Mapping]]] = ..., buildings: _Optional[_Iterable[_Union[CDOTAMatchPrivateMetadata.Team.Building, _Mapping]]] = ...) -> None: ...
+    class ContributionsCombatSegment(_message.Message):
+        __slots__ = ("game_time", "damage_contributions", "damage_mitigations", "healing_contributions", "healing_reductions", "killing_blows", "dispels")
+        class DamageContributionRecord(_message.Message):
+            __slots__ = ("attacker_ability_id", "attacker_hero_id", "target_hero_id", "contributor_ability_id", "contributor_hero_id", "value", "type")
+            ATTACKER_ABILITY_ID_FIELD_NUMBER: _ClassVar[int]
+            ATTACKER_HERO_ID_FIELD_NUMBER: _ClassVar[int]
+            TARGET_HERO_ID_FIELD_NUMBER: _ClassVar[int]
+            CONTRIBUTOR_ABILITY_ID_FIELD_NUMBER: _ClassVar[int]
+            CONTRIBUTOR_HERO_ID_FIELD_NUMBER: _ClassVar[int]
+            VALUE_FIELD_NUMBER: _ClassVar[int]
+            TYPE_FIELD_NUMBER: _ClassVar[int]
+            attacker_ability_id: int
+            attacker_hero_id: int
+            target_hero_id: int
+            contributor_ability_id: int
+            contributor_hero_id: int
+            value: int
+            type: int
+            def __init__(self, attacker_ability_id: _Optional[int] = ..., attacker_hero_id: _Optional[int] = ..., target_hero_id: _Optional[int] = ..., contributor_ability_id: _Optional[int] = ..., contributor_hero_id: _Optional[int] = ..., value: _Optional[int] = ..., type: _Optional[int] = ...) -> None: ...
+        class DamageMitigationRecord(_message.Message):
+            __slots__ = ("attacker_ability_id", "attacker_hero_id", "target_hero_id", "contributor_ability_id", "contributor_hero_id", "value", "type")
+            ATTACKER_ABILITY_ID_FIELD_NUMBER: _ClassVar[int]
+            ATTACKER_HERO_ID_FIELD_NUMBER: _ClassVar[int]
+            TARGET_HERO_ID_FIELD_NUMBER: _ClassVar[int]
+            CONTRIBUTOR_ABILITY_ID_FIELD_NUMBER: _ClassVar[int]
+            CONTRIBUTOR_HERO_ID_FIELD_NUMBER: _ClassVar[int]
+            VALUE_FIELD_NUMBER: _ClassVar[int]
+            TYPE_FIELD_NUMBER: _ClassVar[int]
+            attacker_ability_id: int
+            attacker_hero_id: int
+            target_hero_id: int
+            contributor_ability_id: int
+            contributor_hero_id: int
+            value: int
+            type: int
+            def __init__(self, attacker_ability_id: _Optional[int] = ..., attacker_hero_id: _Optional[int] = ..., target_hero_id: _Optional[int] = ..., contributor_ability_id: _Optional[int] = ..., contributor_hero_id: _Optional[int] = ..., value: _Optional[int] = ..., type: _Optional[int] = ...) -> None: ...
+        class HealingContributionRecord(_message.Message):
+            __slots__ = ("attacker_ability_id", "attacker_hero_id", "target_hero_id", "contributor_ability_id", "contributor_hero_id", "value", "type")
+            ATTACKER_ABILITY_ID_FIELD_NUMBER: _ClassVar[int]
+            ATTACKER_HERO_ID_FIELD_NUMBER: _ClassVar[int]
+            TARGET_HERO_ID_FIELD_NUMBER: _ClassVar[int]
+            CONTRIBUTOR_ABILITY_ID_FIELD_NUMBER: _ClassVar[int]
+            CONTRIBUTOR_HERO_ID_FIELD_NUMBER: _ClassVar[int]
+            VALUE_FIELD_NUMBER: _ClassVar[int]
+            TYPE_FIELD_NUMBER: _ClassVar[int]
+            attacker_ability_id: int
+            attacker_hero_id: int
+            target_hero_id: int
+            contributor_ability_id: int
+            contributor_hero_id: int
+            value: int
+            type: int
+            def __init__(self, attacker_ability_id: _Optional[int] = ..., attacker_hero_id: _Optional[int] = ..., target_hero_id: _Optional[int] = ..., contributor_ability_id: _Optional[int] = ..., contributor_hero_id: _Optional[int] = ..., value: _Optional[int] = ..., type: _Optional[int] = ...) -> None: ...
+        class HealingReductionRecord(_message.Message):
+            __slots__ = ("attacker_ability_id", "attacker_hero_id", "target_hero_id", "contributor_ability_id", "contributor_hero_id", "value", "type")
+            ATTACKER_ABILITY_ID_FIELD_NUMBER: _ClassVar[int]
+            ATTACKER_HERO_ID_FIELD_NUMBER: _ClassVar[int]
+            TARGET_HERO_ID_FIELD_NUMBER: _ClassVar[int]
+            CONTRIBUTOR_ABILITY_ID_FIELD_NUMBER: _ClassVar[int]
+            CONTRIBUTOR_HERO_ID_FIELD_NUMBER: _ClassVar[int]
+            VALUE_FIELD_NUMBER: _ClassVar[int]
+            TYPE_FIELD_NUMBER: _ClassVar[int]
+            attacker_ability_id: int
+            attacker_hero_id: int
+            target_hero_id: int
+            contributor_ability_id: int
+            contributor_hero_id: int
+            value: int
+            type: int
+            def __init__(self, attacker_ability_id: _Optional[int] = ..., attacker_hero_id: _Optional[int] = ..., target_hero_id: _Optional[int] = ..., contributor_ability_id: _Optional[int] = ..., contributor_hero_id: _Optional[int] = ..., value: _Optional[int] = ..., type: _Optional[int] = ...) -> None: ...
+        class KillingBlow(_message.Message):
+            __slots__ = ("attacker_hero_id", "target_hero_id", "inflictor_ability_id")
+            ATTACKER_HERO_ID_FIELD_NUMBER: _ClassVar[int]
+            TARGET_HERO_ID_FIELD_NUMBER: _ClassVar[int]
+            INFLICTOR_ABILITY_ID_FIELD_NUMBER: _ClassVar[int]
+            attacker_hero_id: int
+            target_hero_id: int
+            inflictor_ability_id: int
+            def __init__(self, attacker_hero_id: _Optional[int] = ..., target_hero_id: _Optional[int] = ..., inflictor_ability_id: _Optional[int] = ...) -> None: ...
+        class Dispel(_message.Message):
+            __slots__ = ("attacker_hero_id", "target_hero_id", "inflictor_ability_id", "modifier_ability_id", "duration_reduced")
+            ATTACKER_HERO_ID_FIELD_NUMBER: _ClassVar[int]
+            TARGET_HERO_ID_FIELD_NUMBER: _ClassVar[int]
+            INFLICTOR_ABILITY_ID_FIELD_NUMBER: _ClassVar[int]
+            MODIFIER_ABILITY_ID_FIELD_NUMBER: _ClassVar[int]
+            DURATION_REDUCED_FIELD_NUMBER: _ClassVar[int]
+            attacker_hero_id: int
+            target_hero_id: int
+            inflictor_ability_id: int
+            modifier_ability_id: int
+            duration_reduced: float
+            def __init__(self, attacker_hero_id: _Optional[int] = ..., target_hero_id: _Optional[int] = ..., inflictor_ability_id: _Optional[int] = ..., modifier_ability_id: _Optional[int] = ..., duration_reduced: _Optional[float] = ...) -> None: ...
+        GAME_TIME_FIELD_NUMBER: _ClassVar[int]
+        DAMAGE_CONTRIBUTIONS_FIELD_NUMBER: _ClassVar[int]
+        DAMAGE_MITIGATIONS_FIELD_NUMBER: _ClassVar[int]
+        HEALING_CONTRIBUTIONS_FIELD_NUMBER: _ClassVar[int]
+        HEALING_REDUCTIONS_FIELD_NUMBER: _ClassVar[int]
+        KILLING_BLOWS_FIELD_NUMBER: _ClassVar[int]
+        DISPELS_FIELD_NUMBER: _ClassVar[int]
+        game_time: int
+        damage_contributions: _containers.RepeatedCompositeFieldContainer[CDOTAMatchPrivateMetadata.ContributionsCombatSegment.DamageContributionRecord]
+        damage_mitigations: _containers.RepeatedCompositeFieldContainer[CDOTAMatchPrivateMetadata.ContributionsCombatSegment.DamageMitigationRecord]
+        healing_contributions: _containers.RepeatedCompositeFieldContainer[CDOTAMatchPrivateMetadata.ContributionsCombatSegment.HealingContributionRecord]
+        healing_reductions: _containers.RepeatedCompositeFieldContainer[CDOTAMatchPrivateMetadata.ContributionsCombatSegment.HealingReductionRecord]
+        killing_blows: _containers.RepeatedCompositeFieldContainer[CDOTAMatchPrivateMetadata.ContributionsCombatSegment.KillingBlow]
+        dispels: _containers.RepeatedCompositeFieldContainer[CDOTAMatchPrivateMetadata.ContributionsCombatSegment.Dispel]
+        def __init__(self, game_time: _Optional[int] = ..., damage_contributions: _Optional[_Iterable[_Union[CDOTAMatchPrivateMetadata.ContributionsCombatSegment.DamageContributionRecord, _Mapping]]] = ..., damage_mitigations: _Optional[_Iterable[_Union[CDOTAMatchPrivateMetadata.ContributionsCombatSegment.DamageMitigationRecord, _Mapping]]] = ..., healing_contributions: _Optional[_Iterable[_Union[CDOTAMatchPrivateMetadata.ContributionsCombatSegment.HealingContributionRecord, _Mapping]]] = ..., healing_reductions: _Optional[_Iterable[_Union[CDOTAMatchPrivateMetadata.ContributionsCombatSegment.HealingReductionRecord, _Mapping]]] = ..., killing_blows: _Optional[_Iterable[_Union[CDOTAMatchPrivateMetadata.ContributionsCombatSegment.KillingBlow, _Mapping]]] = ..., dispels: _Optional[_Iterable[_Union[CDOTAMatchPrivateMetadata.ContributionsCombatSegment.Dispel, _Mapping]]] = ...) -> None: ...
     TEAMS_FIELD_NUMBER: _ClassVar[int]
     GRAPH_WIN_PROBABILITY_FIELD_NUMBER: _ClassVar[int]
     STRING_NAMES_FIELD_NUMBER: _ClassVar[int]
+    CONTRIBUTIONS_FIELD_NUMBER: _ClassVar[int]
     teams: _containers.RepeatedCompositeFieldContainer[CDOTAMatchPrivateMetadata.Team]
     graph_win_probability: _containers.RepeatedScalarFieldContainer[float]
     string_names: _containers.RepeatedCompositeFieldContainer[CDOTAMatchPrivateMetadata.StringName]
-    def __init__(
-        self,
-        teams: _Iterable[CDOTAMatchPrivateMetadata.Team | _Mapping] | None = ...,
-        graph_win_probability: _Iterable[float] | None = ...,
-        string_names: _Iterable[CDOTAMatchPrivateMetadata.StringName | _Mapping] | None = ...,
-    ) -> None: ...
+    contributions: _containers.RepeatedCompositeFieldContainer[CDOTAMatchPrivateMetadata.ContributionsCombatSegment]
+    def __init__(self, teams: _Optional[_Iterable[_Union[CDOTAMatchPrivateMetadata.Team, _Mapping]]] = ..., graph_win_probability: _Optional[_Iterable[float]] = ..., string_names: _Optional[_Iterable[_Union[CDOTAMatchPrivateMetadata.StringName, _Mapping]]] = ..., contributions: _Optional[_Iterable[_Union[CDOTAMatchPrivateMetadata.ContributionsCombatSegment, _Mapping]]] = ...) -> None: ...

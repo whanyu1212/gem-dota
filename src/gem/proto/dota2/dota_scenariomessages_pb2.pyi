@@ -1,10 +1,9 @@
-from collections.abc import Iterable as _Iterable
-from collections.abc import Mapping as _Mapping
-from typing import ClassVar as _ClassVar
-
+import dota_shared_enums_pb2 as _dota_shared_enums_pb2
+from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from google.protobuf.internal import containers as _containers
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -14,7 +13,7 @@ class CScenario_Position(_message.Message):
     Y_FIELD_NUMBER: _ClassVar[int]
     x: float
     y: float
-    def __init__(self, x: float | None = ..., y: float | None = ...) -> None: ...
+    def __init__(self, x: _Optional[float] = ..., y: _Optional[float] = ...) -> None: ...
 
 class CScenarioGame_RoshanSpawner(_message.Message):
     __slots__ = ("kill_count", "state", "cooldown", "killer_team")
@@ -26,13 +25,7 @@ class CScenarioGame_RoshanSpawner(_message.Message):
     state: int
     cooldown: float
     killer_team: int
-    def __init__(
-        self,
-        kill_count: int | None = ...,
-        state: int | None = ...,
-        cooldown: float | None = ...,
-        killer_team: int | None = ...,
-    ) -> None: ...
+    def __init__(self, kill_count: _Optional[int] = ..., state: _Optional[int] = ..., cooldown: _Optional[float] = ..., killer_team: _Optional[int] = ...) -> None: ...
 
 class CScenarioEnt_Courier(_message.Message):
     __slots__ = ("team_number", "owner_player_id", "cooldown")
@@ -42,23 +35,10 @@ class CScenarioEnt_Courier(_message.Message):
     team_number: int
     owner_player_id: int
     cooldown: float
-    def __init__(
-        self,
-        team_number: int | None = ...,
-        owner_player_id: int | None = ...,
-        cooldown: float | None = ...,
-    ) -> None: ...
+    def __init__(self, team_number: _Optional[int] = ..., owner_player_id: _Optional[int] = ..., cooldown: _Optional[float] = ...) -> None: ...
 
 class CScenarioEnt_NPC(_message.Message):
-    __slots__ = (
-        "position",
-        "unit_name",
-        "team_number",
-        "health_frac",
-        "owning_camp",
-        "owning_camp_position",
-        "invade_goal",
-    )
+    __slots__ = ("position", "unit_name", "team_number", "health_frac", "owning_camp", "owning_camp_position", "invade_goal")
     POSITION_FIELD_NUMBER: _ClassVar[int]
     UNIT_NAME_FIELD_NUMBER: _ClassVar[int]
     TEAM_NUMBER_FIELD_NUMBER: _ClassVar[int]
@@ -73,16 +53,7 @@ class CScenarioEnt_NPC(_message.Message):
     owning_camp: str
     owning_camp_position: CScenario_Position
     invade_goal: str
-    def __init__(
-        self,
-        position: CScenario_Position | _Mapping | None = ...,
-        unit_name: str | None = ...,
-        team_number: int | None = ...,
-        health_frac: float | None = ...,
-        owning_camp: str | None = ...,
-        owning_camp_position: CScenario_Position | _Mapping | None = ...,
-        invade_goal: str | None = ...,
-    ) -> None: ...
+    def __init__(self, position: _Optional[_Union[CScenario_Position, _Mapping]] = ..., unit_name: _Optional[str] = ..., team_number: _Optional[int] = ..., health_frac: _Optional[float] = ..., owning_camp: _Optional[str] = ..., owning_camp_position: _Optional[_Union[CScenario_Position, _Mapping]] = ..., invade_goal: _Optional[str] = ...) -> None: ...
 
 class CScenarioEnt_SpiritBear(_message.Message):
     __slots__ = ("owner_id", "team_id")
@@ -90,26 +61,16 @@ class CScenarioEnt_SpiritBear(_message.Message):
     TEAM_ID_FIELD_NUMBER: _ClassVar[int]
     owner_id: int
     team_id: int
-    def __init__(self, owner_id: int | None = ..., team_id: int | None = ...) -> None: ...
+    def __init__(self, owner_id: _Optional[int] = ..., team_id: _Optional[int] = ...) -> None: ...
 
 class CScenarioEnt_DroppedItem(_message.Message):
     __slots__ = ("position",)
     POSITION_FIELD_NUMBER: _ClassVar[int]
     position: CScenario_Position
-    def __init__(self, position: CScenario_Position | _Mapping | None = ...) -> None: ...
+    def __init__(self, position: _Optional[_Union[CScenario_Position, _Mapping]] = ...) -> None: ...
 
 class CMsgDotaScenario(_message.Message):
-    __slots__ = (
-        "lobby_id",
-        "game",
-        "teams",
-        "heroes",
-        "stock",
-        "buildings",
-        "entities",
-        "items",
-        "modifiers",
-    )
+    __slots__ = ("lobby_id", "game", "teams", "heroes", "stock", "buildings", "entities", "items", "modifiers")
     class EntityRef(_message.Message):
         __slots__ = ("player_id", "neutral_stash_id", "entity_idx", "roshan", "ability_name")
         PLAYER_ID_FIELD_NUMBER: _ClassVar[int]
@@ -122,15 +83,7 @@ class CMsgDotaScenario(_message.Message):
         entity_idx: int
         roshan: bool
         ability_name: str
-        def __init__(
-            self,
-            player_id: int | None = ...,
-            neutral_stash_id: int | None = ...,
-            entity_idx: int | None = ...,
-            roshan: bool = ...,
-            ability_name: str | None = ...,
-        ) -> None: ...
-
+        def __init__(self, player_id: _Optional[int] = ..., neutral_stash_id: _Optional[int] = ..., entity_idx: _Optional[int] = ..., roshan: bool = ..., ability_name: _Optional[str] = ...) -> None: ...
     class Game(_message.Message):
         __slots__ = ("match_id", "game_mode", "clock_time", "internal_time", "roshan")
         MATCH_ID_FIELD_NUMBER: _ClassVar[int]
@@ -143,15 +96,7 @@ class CMsgDotaScenario(_message.Message):
         clock_time: float
         internal_time: float
         roshan: CScenarioGame_RoshanSpawner
-        def __init__(
-            self,
-            match_id: int | None = ...,
-            game_mode: int | None = ...,
-            clock_time: float | None = ...,
-            internal_time: float | None = ...,
-            roshan: CScenarioGame_RoshanSpawner | _Mapping | None = ...,
-        ) -> None: ...
-
+        def __init__(self, match_id: _Optional[int] = ..., game_mode: _Optional[int] = ..., clock_time: _Optional[float] = ..., internal_time: _Optional[float] = ..., roshan: _Optional[_Union[CScenarioGame_RoshanSpawner, _Mapping]] = ...) -> None: ...
     class TeamNeutralItem(_message.Message):
         __slots__ = ("name", "consumed", "tier")
         NAME_FIELD_NUMBER: _ClassVar[int]
@@ -160,20 +105,9 @@ class CMsgDotaScenario(_message.Message):
         name: str
         consumed: bool
         tier: int
-        def __init__(
-            self, name: str | None = ..., consumed: bool = ..., tier: int | None = ...
-        ) -> None: ...
-
+        def __init__(self, name: _Optional[str] = ..., consumed: bool = ..., tier: _Optional[int] = ...) -> None: ...
     class Team(_message.Message):
-        __slots__ = (
-            "team_number",
-            "neutral_items",
-            "hero_kills",
-            "tower_kills",
-            "barracks_kills",
-            "glyph_cooldown",
-            "radar_cooldown",
-        )
+        __slots__ = ("team_number", "neutral_items", "hero_kills", "tower_kills", "barracks_kills", "glyph_cooldown", "radar_cooldown")
         TEAM_NUMBER_FIELD_NUMBER: _ClassVar[int]
         NEUTRAL_ITEMS_FIELD_NUMBER: _ClassVar[int]
         HERO_KILLS_FIELD_NUMBER: _ClassVar[int]
@@ -188,41 +122,23 @@ class CMsgDotaScenario(_message.Message):
         barracks_kills: int
         glyph_cooldown: float
         radar_cooldown: float
-        def __init__(
-            self,
-            team_number: int | None = ...,
-            neutral_items: _Iterable[CMsgDotaScenario.TeamNeutralItem | _Mapping] | None = ...,
-            hero_kills: int | None = ...,
-            tower_kills: int | None = ...,
-            barracks_kills: int | None = ...,
-            glyph_cooldown: float | None = ...,
-            radar_cooldown: float | None = ...,
-        ) -> None: ...
-
+        def __init__(self, team_number: _Optional[int] = ..., neutral_items: _Optional[_Iterable[_Union[CMsgDotaScenario.TeamNeutralItem, _Mapping]]] = ..., hero_kills: _Optional[int] = ..., tower_kills: _Optional[int] = ..., barracks_kills: _Optional[int] = ..., glyph_cooldown: _Optional[float] = ..., radar_cooldown: _Optional[float] = ...) -> None: ...
     class HeroHeroInt(_message.Message):
         __slots__ = ("player_id", "value")
         PLAYER_ID_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
         player_id: int
         value: int
-        def __init__(self, player_id: int | None = ..., value: int | None = ...) -> None: ...
-
+        def __init__(self, player_id: _Optional[int] = ..., value: _Optional[int] = ...) -> None: ...
     class HeroHeroFloat(_message.Message):
         __slots__ = ("player_id", "value")
         PLAYER_ID_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
         player_id: int
         value: float
-        def __init__(self, player_id: int | None = ..., value: float | None = ...) -> None: ...
-
+        def __init__(self, player_id: _Optional[int] = ..., value: _Optional[float] = ...) -> None: ...
     class DamageStatsByType(_message.Message):
-        __slots__ = (
-            "damage_type",
-            "received_pre_reduction",
-            "received_post_reduction",
-            "outgoing_pre_reduction",
-            "outgoing_post_reduction",
-        )
+        __slots__ = ("damage_type", "received_pre_reduction", "received_post_reduction", "outgoing_pre_reduction", "outgoing_post_reduction")
         DAMAGE_TYPE_FIELD_NUMBER: _ClassVar[int]
         RECEIVED_PRE_REDUCTION_FIELD_NUMBER: _ClassVar[int]
         RECEIVED_POST_REDUCTION_FIELD_NUMBER: _ClassVar[int]
@@ -233,23 +149,16 @@ class CMsgDotaScenario(_message.Message):
         received_post_reduction: float
         outgoing_pre_reduction: float
         outgoing_post_reduction: float
-        def __init__(
-            self,
-            damage_type: int | None = ...,
-            received_pre_reduction: float | None = ...,
-            received_post_reduction: float | None = ...,
-            outgoing_pre_reduction: float | None = ...,
-            outgoing_post_reduction: float | None = ...,
-        ) -> None: ...
-
+        def __init__(self, damage_type: _Optional[int] = ..., received_pre_reduction: _Optional[float] = ..., received_post_reduction: _Optional[float] = ..., outgoing_pre_reduction: _Optional[float] = ..., outgoing_post_reduction: _Optional[float] = ...) -> None: ...
     class HeroAbility(_message.Message):
-        __slots__ = ("name", "level")
+        __slots__ = ("name", "level", "tome_upgraded")
         NAME_FIELD_NUMBER: _ClassVar[int]
         LEVEL_FIELD_NUMBER: _ClassVar[int]
+        TOME_UPGRADED_FIELD_NUMBER: _ClassVar[int]
         name: str
         level: int
-        def __init__(self, name: str | None = ..., level: int | None = ...) -> None: ...
-
+        tome_upgraded: bool
+        def __init__(self, name: _Optional[str] = ..., level: _Optional[int] = ..., tome_upgraded: bool = ...) -> None: ...
     class HeroNeutralChoice(_message.Message):
         __slots__ = ("choice_index", "artifact_name", "enchantment_name")
         CHOICE_INDEX_FIELD_NUMBER: _ClassVar[int]
@@ -258,13 +167,7 @@ class CMsgDotaScenario(_message.Message):
         choice_index: int
         artifact_name: str
         enchantment_name: str
-        def __init__(
-            self,
-            choice_index: int | None = ...,
-            artifact_name: str | None = ...,
-            enchantment_name: str | None = ...,
-        ) -> None: ...
-
+        def __init__(self, choice_index: _Optional[int] = ..., artifact_name: _Optional[str] = ..., enchantment_name: _Optional[str] = ...) -> None: ...
     class HeroNeutralTier(_message.Message):
         __slots__ = ("tier", "choices", "selected_artifact", "selected_enchantment")
         TIER_FIELD_NUMBER: _ClassVar[int]
@@ -275,85 +178,9 @@ class CMsgDotaScenario(_message.Message):
         choices: _containers.RepeatedCompositeFieldContainer[CMsgDotaScenario.HeroNeutralChoice]
         selected_artifact: int
         selected_enchantment: int
-        def __init__(
-            self,
-            tier: int | None = ...,
-            choices: _Iterable[CMsgDotaScenario.HeroNeutralChoice | _Mapping] | None = ...,
-            selected_artifact: int | None = ...,
-            selected_enchantment: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, tier: _Optional[int] = ..., choices: _Optional[_Iterable[_Union[CMsgDotaScenario.HeroNeutralChoice, _Mapping]]] = ..., selected_artifact: _Optional[int] = ..., selected_enchantment: _Optional[int] = ...) -> None: ...
     class Hero(_message.Message):
-        __slots__ = (
-            "steam_id",
-            "player_id",
-            "team_id",
-            "hero",
-            "total_xp",
-            "bkb_charges_used",
-            "aeon_charges_used",
-            "reliable_gold",
-            "unreliable_gold",
-            "total_earned_gold",
-            "shared_gold",
-            "hero_kill_gold",
-            "creep_kill_gold",
-            "neutral_kill_gold",
-            "courier_gold",
-            "bounty_gold",
-            "roshan_gold",
-            "building_gold",
-            "other_gold",
-            "income_gold",
-            "ward_kill_gold",
-            "ability_gold",
-            "denies",
-            "last_hits",
-            "last_hit_streak",
-            "last_hit_multikill",
-            "nearby_creep_death_count",
-            "claimed_deny_count",
-            "claimed_miss_count",
-            "miss_count",
-            "buyback_cooldown_time",
-            "buyback_gold_limit_time",
-            "stun_duration",
-            "healing",
-            "tower_kills",
-            "roshan_kills",
-            "observer_wards_placed",
-            "sentry_wards_placed",
-            "creeps_stacked",
-            "camps_stacked",
-            "rune_pickups",
-            "gold_spent_on_support",
-            "hero_damage",
-            "wards_purchased",
-            "wards_destroyed",
-            "gold_spent_on_consumables",
-            "gold_spent_on_items",
-            "gold_spent_on_buybacks",
-            "gold_lost_to_death",
-            "kills",
-            "assists",
-            "deaths",
-            "kill_streak",
-            "respawn_seconds",
-            "last_buyback_time",
-            "first_blood_claimed",
-            "first_blood_given",
-            "bounty_runes",
-            "outposts_captured",
-            "position",
-            "enemy_kills",
-            "damage_stats",
-            "abilities",
-            "hero_facet",
-            "total_madstone",
-            "current_madstone",
-            "neutral_tiers",
-            "refresher_charges_used",
-        )
+        __slots__ = ("steam_id", "player_id", "team_id", "hero", "total_xp", "bkb_charges_used", "aeon_charges_used", "reliable_gold", "unreliable_gold", "total_earned_gold", "shared_gold", "hero_kill_gold", "creep_kill_gold", "neutral_kill_gold", "courier_gold", "bounty_gold", "roshan_gold", "building_gold", "other_gold", "income_gold", "ward_kill_gold", "ability_gold", "denies", "last_hits", "last_hit_streak", "last_hit_multikill", "nearby_creep_death_count", "claimed_deny_count", "claimed_miss_count", "miss_count", "buyback_cooldown_time", "buyback_gold_limit_time", "stun_duration", "healing", "tower_kills", "roshan_kills", "observer_wards_placed", "sentry_wards_placed", "creeps_stacked", "camps_stacked", "rune_pickups", "gold_spent_on_support", "hero_damage", "wards_purchased", "wards_destroyed", "gold_spent_on_consumables", "gold_spent_on_items", "gold_spent_on_buybacks", "gold_lost_to_death", "kills", "assists", "deaths", "kill_streak", "respawn_seconds", "last_buyback_time", "first_blood_claimed", "first_blood_given", "bounty_runes", "outposts_captured", "position", "enemy_kills", "damage_stats", "abilities", "hero_facet", "total_madstone", "current_madstone", "neutral_tiers", "refresher_charges_used")
         STEAM_ID_FIELD_NUMBER: _ClassVar[int]
         PLAYER_ID_FIELD_NUMBER: _ClassVar[int]
         TEAM_ID_FIELD_NUMBER: _ClassVar[int]
@@ -483,87 +310,14 @@ class CMsgDotaScenario(_message.Message):
         outposts_captured: int
         position: CScenario_Position
         enemy_kills: _containers.RepeatedCompositeFieldContainer[CMsgDotaScenario.HeroHeroInt]
-        damage_stats: _containers.RepeatedCompositeFieldContainer[
-            CMsgDotaScenario.DamageStatsByType
-        ]
+        damage_stats: _containers.RepeatedCompositeFieldContainer[CMsgDotaScenario.DamageStatsByType]
         abilities: _containers.RepeatedCompositeFieldContainer[CMsgDotaScenario.HeroAbility]
         hero_facet: int
         total_madstone: int
         current_madstone: int
         neutral_tiers: _containers.RepeatedCompositeFieldContainer[CMsgDotaScenario.HeroNeutralTier]
         refresher_charges_used: int
-        def __init__(
-            self,
-            steam_id: int | None = ...,
-            player_id: int | None = ...,
-            team_id: int | None = ...,
-            hero: str | None = ...,
-            total_xp: int | None = ...,
-            bkb_charges_used: int | None = ...,
-            aeon_charges_used: int | None = ...,
-            reliable_gold: int | None = ...,
-            unreliable_gold: int | None = ...,
-            total_earned_gold: int | None = ...,
-            shared_gold: int | None = ...,
-            hero_kill_gold: int | None = ...,
-            creep_kill_gold: int | None = ...,
-            neutral_kill_gold: int | None = ...,
-            courier_gold: int | None = ...,
-            bounty_gold: int | None = ...,
-            roshan_gold: int | None = ...,
-            building_gold: int | None = ...,
-            other_gold: int | None = ...,
-            income_gold: int | None = ...,
-            ward_kill_gold: int | None = ...,
-            ability_gold: int | None = ...,
-            denies: int | None = ...,
-            last_hits: int | None = ...,
-            last_hit_streak: int | None = ...,
-            last_hit_multikill: int | None = ...,
-            nearby_creep_death_count: int | None = ...,
-            claimed_deny_count: int | None = ...,
-            claimed_miss_count: int | None = ...,
-            miss_count: int | None = ...,
-            buyback_cooldown_time: float | None = ...,
-            buyback_gold_limit_time: float | None = ...,
-            stun_duration: float | None = ...,
-            healing: float | None = ...,
-            tower_kills: int | None = ...,
-            roshan_kills: int | None = ...,
-            observer_wards_placed: int | None = ...,
-            sentry_wards_placed: int | None = ...,
-            creeps_stacked: int | None = ...,
-            camps_stacked: int | None = ...,
-            rune_pickups: int | None = ...,
-            gold_spent_on_support: int | None = ...,
-            hero_damage: float | None = ...,
-            wards_purchased: int | None = ...,
-            wards_destroyed: int | None = ...,
-            gold_spent_on_consumables: int | None = ...,
-            gold_spent_on_items: int | None = ...,
-            gold_spent_on_buybacks: int | None = ...,
-            gold_lost_to_death: int | None = ...,
-            kills: int | None = ...,
-            assists: int | None = ...,
-            deaths: int | None = ...,
-            kill_streak: int | None = ...,
-            respawn_seconds: int | None = ...,
-            last_buyback_time: int | None = ...,
-            first_blood_claimed: bool = ...,
-            first_blood_given: bool = ...,
-            bounty_runes: int | None = ...,
-            outposts_captured: int | None = ...,
-            position: CScenario_Position | _Mapping | None = ...,
-            enemy_kills: _Iterable[CMsgDotaScenario.HeroHeroInt | _Mapping] | None = ...,
-            damage_stats: _Iterable[CMsgDotaScenario.DamageStatsByType | _Mapping] | None = ...,
-            abilities: _Iterable[CMsgDotaScenario.HeroAbility | _Mapping] | None = ...,
-            hero_facet: int | None = ...,
-            total_madstone: int | None = ...,
-            current_madstone: int | None = ...,
-            neutral_tiers: _Iterable[CMsgDotaScenario.HeroNeutralTier | _Mapping] | None = ...,
-            refresher_charges_used: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, steam_id: _Optional[int] = ..., player_id: _Optional[int] = ..., team_id: _Optional[int] = ..., hero: _Optional[str] = ..., total_xp: _Optional[int] = ..., bkb_charges_used: _Optional[int] = ..., aeon_charges_used: _Optional[int] = ..., reliable_gold: _Optional[int] = ..., unreliable_gold: _Optional[int] = ..., total_earned_gold: _Optional[int] = ..., shared_gold: _Optional[int] = ..., hero_kill_gold: _Optional[int] = ..., creep_kill_gold: _Optional[int] = ..., neutral_kill_gold: _Optional[int] = ..., courier_gold: _Optional[int] = ..., bounty_gold: _Optional[int] = ..., roshan_gold: _Optional[int] = ..., building_gold: _Optional[int] = ..., other_gold: _Optional[int] = ..., income_gold: _Optional[int] = ..., ward_kill_gold: _Optional[int] = ..., ability_gold: _Optional[int] = ..., denies: _Optional[int] = ..., last_hits: _Optional[int] = ..., last_hit_streak: _Optional[int] = ..., last_hit_multikill: _Optional[int] = ..., nearby_creep_death_count: _Optional[int] = ..., claimed_deny_count: _Optional[int] = ..., claimed_miss_count: _Optional[int] = ..., miss_count: _Optional[int] = ..., buyback_cooldown_time: _Optional[float] = ..., buyback_gold_limit_time: _Optional[float] = ..., stun_duration: _Optional[float] = ..., healing: _Optional[float] = ..., tower_kills: _Optional[int] = ..., roshan_kills: _Optional[int] = ..., observer_wards_placed: _Optional[int] = ..., sentry_wards_placed: _Optional[int] = ..., creeps_stacked: _Optional[int] = ..., camps_stacked: _Optional[int] = ..., rune_pickups: _Optional[int] = ..., gold_spent_on_support: _Optional[int] = ..., hero_damage: _Optional[float] = ..., wards_purchased: _Optional[int] = ..., wards_destroyed: _Optional[int] = ..., gold_spent_on_consumables: _Optional[int] = ..., gold_spent_on_items: _Optional[int] = ..., gold_spent_on_buybacks: _Optional[int] = ..., gold_lost_to_death: _Optional[int] = ..., kills: _Optional[int] = ..., assists: _Optional[int] = ..., deaths: _Optional[int] = ..., kill_streak: _Optional[int] = ..., respawn_seconds: _Optional[int] = ..., last_buyback_time: _Optional[int] = ..., first_blood_claimed: bool = ..., first_blood_given: bool = ..., bounty_runes: _Optional[int] = ..., outposts_captured: _Optional[int] = ..., position: _Optional[_Union[CScenario_Position, _Mapping]] = ..., enemy_kills: _Optional[_Iterable[_Union[CMsgDotaScenario.HeroHeroInt, _Mapping]]] = ..., damage_stats: _Optional[_Iterable[_Union[CMsgDotaScenario.DamageStatsByType, _Mapping]]] = ..., abilities: _Optional[_Iterable[_Union[CMsgDotaScenario.HeroAbility, _Mapping]]] = ..., hero_facet: _Optional[int] = ..., total_madstone: _Optional[int] = ..., current_madstone: _Optional[int] = ..., neutral_tiers: _Optional[_Iterable[_Union[CMsgDotaScenario.HeroNeutralTier, _Mapping]]] = ..., refresher_charges_used: _Optional[int] = ...) -> None: ...
     class Stock(_message.Message):
         __slots__ = ("name", "team_number", "player_id", "current_stock", "cooldown", "bonus_stock")
         NAME_FIELD_NUMBER: _ClassVar[int]
@@ -578,16 +332,7 @@ class CMsgDotaScenario(_message.Message):
         current_stock: int
         cooldown: float
         bonus_stock: int
-        def __init__(
-            self,
-            name: str | None = ...,
-            team_number: int | None = ...,
-            player_id: int | None = ...,
-            current_stock: int | None = ...,
-            cooldown: float | None = ...,
-            bonus_stock: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, name: _Optional[str] = ..., team_number: _Optional[int] = ..., player_id: _Optional[int] = ..., current_stock: _Optional[int] = ..., cooldown: _Optional[float] = ..., bonus_stock: _Optional[int] = ...) -> None: ...
     class Building(_message.Message):
         __slots__ = ("entity_name", "entity_class", "team_id", "is_destroyed", "health_frac")
         ENTITY_NAME_FIELD_NUMBER: _ClassVar[int]
@@ -600,15 +345,7 @@ class CMsgDotaScenario(_message.Message):
         team_id: int
         is_destroyed: bool
         health_frac: float
-        def __init__(
-            self,
-            entity_name: str | None = ...,
-            entity_class: str | None = ...,
-            team_id: int | None = ...,
-            is_destroyed: bool = ...,
-            health_frac: float | None = ...,
-        ) -> None: ...
-
+        def __init__(self, entity_name: _Optional[str] = ..., entity_class: _Optional[str] = ..., team_id: _Optional[int] = ..., is_destroyed: bool = ..., health_frac: _Optional[float] = ...) -> None: ...
     class Entity(_message.Message):
         __slots__ = ("courier", "npc", "spirit_bear", "dropped_item")
         COURIER_FIELD_NUMBER: _ClassVar[int]
@@ -619,27 +356,9 @@ class CMsgDotaScenario(_message.Message):
         npc: CScenarioEnt_NPC
         spirit_bear: CScenarioEnt_SpiritBear
         dropped_item: CScenarioEnt_DroppedItem
-        def __init__(
-            self,
-            courier: CScenarioEnt_Courier | _Mapping | None = ...,
-            npc: CScenarioEnt_NPC | _Mapping | None = ...,
-            spirit_bear: CScenarioEnt_SpiritBear | _Mapping | None = ...,
-            dropped_item: CScenarioEnt_DroppedItem | _Mapping | None = ...,
-        ) -> None: ...
-
+        def __init__(self, courier: _Optional[_Union[CScenarioEnt_Courier, _Mapping]] = ..., npc: _Optional[_Union[CScenarioEnt_NPC, _Mapping]] = ..., spirit_bear: _Optional[_Union[CScenarioEnt_SpiritBear, _Mapping]] = ..., dropped_item: _Optional[_Union[CScenarioEnt_DroppedItem, _Mapping]] = ...) -> None: ...
     class Item(_message.Message):
-        __slots__ = (
-            "name",
-            "location",
-            "owner_id",
-            "item_slot",
-            "neutral_drop_team",
-            "charges",
-            "secondary_charges",
-            "lifetime",
-            "stored_rune_type",
-            "level",
-        )
+        __slots__ = ("name", "location", "owner_id", "item_slot", "neutral_drop_team", "charges", "secondary_charges", "lifetime", "stored_rune_type", "level")
         NAME_FIELD_NUMBER: _ClassVar[int]
         LOCATION_FIELD_NUMBER: _ClassVar[int]
         OWNER_ID_FIELD_NUMBER: _ClassVar[int]
@@ -660,39 +379,9 @@ class CMsgDotaScenario(_message.Message):
         lifetime: float
         stored_rune_type: int
         level: int
-        def __init__(
-            self,
-            name: str | None = ...,
-            location: CMsgDotaScenario.EntityRef | _Mapping | None = ...,
-            owner_id: int | None = ...,
-            item_slot: int | None = ...,
-            neutral_drop_team: int | None = ...,
-            charges: int | None = ...,
-            secondary_charges: int | None = ...,
-            lifetime: float | None = ...,
-            stored_rune_type: int | None = ...,
-            level: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, name: _Optional[str] = ..., location: _Optional[_Union[CMsgDotaScenario.EntityRef, _Mapping]] = ..., owner_id: _Optional[int] = ..., item_slot: _Optional[int] = ..., neutral_drop_team: _Optional[int] = ..., charges: _Optional[int] = ..., secondary_charges: _Optional[int] = ..., lifetime: _Optional[float] = ..., stored_rune_type: _Optional[int] = ..., level: _Optional[int] = ...) -> None: ...
     class Modifier(_message.Message):
-        __slots__ = (
-            "name",
-            "parent",
-            "caster",
-            "ability",
-            "duration",
-            "lifetime_remaining",
-            "stack_count",
-            "create_even_if_existing",
-            "create_without_caster",
-            "create_without_ability",
-            "moonshard_consumed_bonus",
-            "moonshard_consumed_bonus_night_vision",
-            "wardtruesight_range",
-            "ultimate_scepter_consumed_alchemist_bonus_all_stats",
-            "ultimate_scepter_consumed_alchemist_bonus_health",
-            "ultimate_scepter_consumed_alchemist_bonus_mana",
-        )
+        __slots__ = ("name", "parent", "caster", "ability", "duration", "lifetime_remaining", "stack_count", "create_even_if_existing", "create_without_caster", "create_without_ability", "moonshard_consumed_bonus", "moonshard_consumed_bonus_night_vision", "wardtruesight_range", "ultimate_scepter_consumed_alchemist_bonus_all_stats", "ultimate_scepter_consumed_alchemist_bonus_health", "ultimate_scepter_consumed_alchemist_bonus_mana")
         NAME_FIELD_NUMBER: _ClassVar[int]
         PARENT_FIELD_NUMBER: _ClassVar[int]
         CASTER_FIELD_NUMBER: _ClassVar[int]
@@ -725,26 +414,7 @@ class CMsgDotaScenario(_message.Message):
         ultimate_scepter_consumed_alchemist_bonus_all_stats: int
         ultimate_scepter_consumed_alchemist_bonus_health: int
         ultimate_scepter_consumed_alchemist_bonus_mana: int
-        def __init__(
-            self,
-            name: str | None = ...,
-            parent: CMsgDotaScenario.EntityRef | _Mapping | None = ...,
-            caster: CMsgDotaScenario.EntityRef | _Mapping | None = ...,
-            ability: CMsgDotaScenario.EntityRef | _Mapping | None = ...,
-            duration: float | None = ...,
-            lifetime_remaining: float | None = ...,
-            stack_count: int | None = ...,
-            create_even_if_existing: bool = ...,
-            create_without_caster: bool = ...,
-            create_without_ability: bool = ...,
-            moonshard_consumed_bonus: int | None = ...,
-            moonshard_consumed_bonus_night_vision: int | None = ...,
-            wardtruesight_range: int | None = ...,
-            ultimate_scepter_consumed_alchemist_bonus_all_stats: int | None = ...,
-            ultimate_scepter_consumed_alchemist_bonus_health: int | None = ...,
-            ultimate_scepter_consumed_alchemist_bonus_mana: int | None = ...,
-        ) -> None: ...
-
+        def __init__(self, name: _Optional[str] = ..., parent: _Optional[_Union[CMsgDotaScenario.EntityRef, _Mapping]] = ..., caster: _Optional[_Union[CMsgDotaScenario.EntityRef, _Mapping]] = ..., ability: _Optional[_Union[CMsgDotaScenario.EntityRef, _Mapping]] = ..., duration: _Optional[float] = ..., lifetime_remaining: _Optional[float] = ..., stack_count: _Optional[int] = ..., create_even_if_existing: bool = ..., create_without_caster: bool = ..., create_without_ability: bool = ..., moonshard_consumed_bonus: _Optional[int] = ..., moonshard_consumed_bonus_night_vision: _Optional[int] = ..., wardtruesight_range: _Optional[int] = ..., ultimate_scepter_consumed_alchemist_bonus_all_stats: _Optional[int] = ..., ultimate_scepter_consumed_alchemist_bonus_health: _Optional[int] = ..., ultimate_scepter_consumed_alchemist_bonus_mana: _Optional[int] = ...) -> None: ...
     LOBBY_ID_FIELD_NUMBER: _ClassVar[int]
     GAME_FIELD_NUMBER: _ClassVar[int]
     TEAMS_FIELD_NUMBER: _ClassVar[int]
@@ -763,15 +433,4 @@ class CMsgDotaScenario(_message.Message):
     entities: _containers.RepeatedCompositeFieldContainer[CMsgDotaScenario.Entity]
     items: _containers.RepeatedCompositeFieldContainer[CMsgDotaScenario.Item]
     modifiers: _containers.RepeatedCompositeFieldContainer[CMsgDotaScenario.Modifier]
-    def __init__(
-        self,
-        lobby_id: int | None = ...,
-        game: CMsgDotaScenario.Game | _Mapping | None = ...,
-        teams: _Iterable[CMsgDotaScenario.Team | _Mapping] | None = ...,
-        heroes: _Iterable[CMsgDotaScenario.Hero | _Mapping] | None = ...,
-        stock: _Iterable[CMsgDotaScenario.Stock | _Mapping] | None = ...,
-        buildings: _Iterable[CMsgDotaScenario.Building | _Mapping] | None = ...,
-        entities: _Iterable[CMsgDotaScenario.Entity | _Mapping] | None = ...,
-        items: _Iterable[CMsgDotaScenario.Item | _Mapping] | None = ...,
-        modifiers: _Iterable[CMsgDotaScenario.Modifier | _Mapping] | None = ...,
-    ) -> None: ...
+    def __init__(self, lobby_id: _Optional[int] = ..., game: _Optional[_Union[CMsgDotaScenario.Game, _Mapping]] = ..., teams: _Optional[_Iterable[_Union[CMsgDotaScenario.Team, _Mapping]]] = ..., heroes: _Optional[_Iterable[_Union[CMsgDotaScenario.Hero, _Mapping]]] = ..., stock: _Optional[_Iterable[_Union[CMsgDotaScenario.Stock, _Mapping]]] = ..., buildings: _Optional[_Iterable[_Union[CMsgDotaScenario.Building, _Mapping]]] = ..., entities: _Optional[_Iterable[_Union[CMsgDotaScenario.Entity, _Mapping]]] = ..., items: _Optional[_Iterable[_Union[CMsgDotaScenario.Item, _Mapping]]] = ..., modifiers: _Optional[_Iterable[_Union[CMsgDotaScenario.Modifier, _Mapping]]] = ...) -> None: ...
