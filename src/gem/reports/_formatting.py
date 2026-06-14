@@ -1,4 +1,4 @@
-"""Shared helper utilities for the example match report."""
+"""Shared formatting helpers for HTML match reports."""
 
 from __future__ import annotations
 

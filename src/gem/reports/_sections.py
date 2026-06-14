@@ -1,4 +1,4 @@
-"""HTML section builders for the example match report."""
+"""HTML section builders for generated match reports."""
 
 from __future__ import annotations
 
@@ -6,20 +6,23 @@ import bisect
 import json
 import math
 from collections.abc import Callable
-from pathlib import Path
 
-import gem
-from gem.analysis import MapContextBucket, build_map_context_timeline, score_camp_visit_context
-from gem.constants import ability_display, hero_display, item_display
-from report.assets import (
-    HERO_PLACEHOLDER_B64,
-    ITEM_ICON_B64,
-    hero_icon_src,
-    item_icon_tag,
-    load_hero_icons,
-    load_item_icons,
+from gem.analysis import (
+    MapContextBucket,
+    build_map_context_timeline,
+    build_rosh_conversions,
+    estimate_vision,
+    format_npc_name,
+    group_ability_hits,
+    is_active_teamfight_participant,
+    net_worth_at,
+    position_at_tick,
+    score_camp_visit_context,
+    ward_vision_impact,
 )
-from report.helpers import (
+from gem.catalog.map import load_camp_zones
+from gem.constants import ability_display, hero_display, item_display
+from gem.reports._formatting import (
     MAP_XMAX,
     MAP_XMIN,
     MAP_YMAX,
@@ -33,10 +36,19 @@ from report.helpers import (
     hero,
     team_name,
 )
+from gem.reports.assets import (
+    HERO_PLACEHOLDER_B64,
+    ITEM_ICON_B64,
+    hero_icon_src,
+    item_icon_tag,
+    load_hero_icons,
+    load_item_icons,
+)
+from gem.results.models import ParsedMatch, ParsedPlayer, VisionModifierEvent
 
 
 def build_header(
-    match: gem.ParsedMatch, fmt_tick: Callable[[int], str], game_modes: dict[int, str]
+    match: ParsedMatch, fmt_tick: Callable[[int], str], game_modes: dict[int, str]
 ) -> str:
     """Build the report header section."""
     last_tick = match.game_end_tick or max(
@@ -149,7 +161,7 @@ def build_header(
     return "\n".join(parts)
 
 
-def build_scoreboard(match: gem.ParsedMatch, hero_cell: Callable[[str, int], str]) -> str:
+def build_scoreboard(match: ParsedMatch, hero_cell: Callable[[str, int], str]) -> str:
     """Build the scoreboard section."""
     load_hero_icons([p.hero_name for p in match.players if p.hero_name])
 
@@ -237,7 +249,7 @@ _RADIANT_COLORS = ["#4caf50", "#81c784", "#a5d6a7", "#2e7d32", "#66bb6a"]
 _DIRE_COLORS = ["#f44336", "#ff7043", "#ef9a9a", "#b71c1c", "#ff8a65"]
 
 
-def build_hero_timeseries_chart(match: gem.ParsedMatch) -> str:
+def build_hero_timeseries_chart(match: ParsedMatch) -> str:
     """Two side-by-side line charts: Net Worth and XP per hero over time."""
     players = [p for p in match.players if p.hero_name]
     if not any(p.net_worth_t_min or p.total_earned_xp_t_min for p in players):
@@ -366,7 +378,7 @@ def build_hero_timeseries_chart(match: gem.ParsedMatch) -> str:
 </div>"""
 
 
-def build_gold_xp_chart(match: gem.ParsedMatch) -> str:
+def build_gold_xp_chart(match: ParsedMatch) -> str:
     """Build gold/xp charts section."""
     adv_gold = match.radiant_gold_adv
     adv_xp = match.radiant_xp_adv
@@ -625,7 +637,7 @@ def build_gold_xp_chart(match: gem.ParsedMatch) -> str:
 
 def _clean_npc(name: str) -> str:
     """Clean an NPC name into a human-readable label."""
-    return gem.format_npc_name(name)
+    return format_npc_name(name)
 
 
 def _killer_label(killer: str) -> str:
@@ -635,7 +647,7 @@ def _killer_label(killer: str) -> str:
     return _clean_npc(killer) if killer else "unknown"
 
 
-def build_objectives(match: gem.ParsedMatch, fmt_tick_fn: Callable[[int], str]) -> str:
+def build_objectives(match: ParsedMatch, fmt_tick_fn: Callable[[int], str]) -> str:
     """Build the objectives timeline section."""
     # Build hero_name lookup: player_id → hero display name
     pid_to_hero: dict[int, str] = {
@@ -811,9 +823,9 @@ _ROSH_AEGIS_OUTCOME_EXPLANATION: dict[str, tuple[str, str]] = {
 }
 
 
-def build_rosh_conversion(match: gem.ParsedMatch) -> str:
+def build_rosh_conversion(match: ParsedMatch) -> str:
     """Build the Roshan conversion section."""
-    conversions = gem.build_rosh_conversions(match)
+    conversions = build_rosh_conversions(match)
     if not conversions:
         return ""
 
@@ -1003,7 +1015,7 @@ def build_rosh_conversion(match: gem.ParsedMatch) -> str:
     return "\n".join(parts)
 
 
-def build_combat_timeseries_chart(match: gem.ParsedMatch) -> str:
+def build_combat_timeseries_chart(match: ParsedMatch) -> str:
     """Four per-minute line charts: hero damage, healing, deaths, and stuns over time."""
     players = [p for p in match.players if p.hero_name]
     if not any(p.total_hero_damage_t_min for p in players):
@@ -1145,7 +1157,7 @@ def build_combat_timeseries_chart(match: gem.ParsedMatch) -> str:
 </div>"""
 
 
-def build_damage(match: gem.ParsedMatch, hero_cell: Callable[[str, int], str]) -> str:
+def build_damage(match: ParsedMatch, hero_cell: Callable[[str, int], str]) -> str:
     """Build the damage breakdown section."""
     all_dmg = [(p, sum(p.damage.values())) for p in match.players if p.hero_name]
     max_dmg = max((d for _, d in all_dmg), default=1) or 1
@@ -1288,7 +1300,7 @@ def build_damage(match: gem.ParsedMatch, hero_cell: Callable[[str, int], str]) -
     return "\n".join(parts)
 
 
-def build_kill_feed(match: gem.ParsedMatch, hero_cell: Callable[[str, int], str]) -> str:
+def build_kill_feed(match: ParsedMatch, hero_cell: Callable[[str, int], str]) -> str:
     """Build the hero-vs-hero kill feed section."""
     hvh = [
         entry
@@ -1321,7 +1333,7 @@ def build_kill_feed(match: gem.ParsedMatch, hero_cell: Callable[[str, int], str]
             ]
         )
 
-        npc_to_player: dict[str, gem.ParsedPlayer] = {
+        npc_to_player: dict[str, ParsedPlayer] = {
             pp.hero_name: pp for pp in match.players if pp.hero_name
         }
 
@@ -1354,11 +1366,9 @@ def build_kill_feed(match: gem.ParsedMatch, hero_cell: Callable[[str, int], str]
             if attacker_team in (2, 3):
                 victim_player = npc_to_player.get(entry.target_name)
                 if victim_player:
-                    pos = gem.position_at_tick(victim_player, entry.tick)
+                    pos = position_at_tick(victim_player, entry.tick)
                     if pos:
-                        sources = gem.estimate_vision(
-                            match, attacker_team, entry.tick, pos[0], pos[1]
-                        )
+                        sources = estimate_vision(match, attacker_team, entry.tick, pos[0], pos[1])
                         if not sources:
                             vision_badge = (
                                 '<span style="background:#21262d;border:1px solid #30363d;'
@@ -1381,7 +1391,7 @@ def build_kill_feed(match: gem.ParsedMatch, hero_cell: Callable[[str, int], str]
     return "\n".join(parts)
 
 
-def build_purchases(match: gem.ParsedMatch) -> str:
+def build_purchases(match: ParsedMatch) -> str:
     """Build the purchase timeline section."""
     total_purchases = sum(len(p.purchase_log) for p in match.players)
 
@@ -1431,12 +1441,12 @@ def build_purchases(match: gem.ParsedMatch) -> str:
     return "\n".join(parts)
 
 
-def _net_worth_at(pp: gem.ParsedPlayer, tick: int) -> int:
+def _net_worth_at(pp: ParsedPlayer, tick: int) -> int:
     """Return the closest sampled net worth for a player at the given tick."""
-    return gem.net_worth_at(pp, tick)
+    return net_worth_at(pp, tick)
 
 
-def build_buybacks(match: gem.ParsedMatch) -> str:
+def build_buybacks(match: ParsedMatch) -> str:
     """Build the buybacks section."""
     total = sum(len(p.buyback_log) for p in match.players)
 
@@ -1479,7 +1489,7 @@ def build_buybacks(match: gem.ParsedMatch) -> str:
     return "\n".join(parts)
 
 
-def build_runes(match: gem.ParsedMatch, hero_cell: Callable[[str, int], str]) -> str:
+def build_runes(match: ParsedMatch, hero_cell: Callable[[str, int], str]) -> str:
     """Build the rune pickups section."""
     total = sum(len(p.runes_log) for p in match.players)
 
@@ -1524,7 +1534,7 @@ def build_runes(match: gem.ParsedMatch, hero_cell: Callable[[str, int], str]) ->
     return "\n".join(parts)
 
 
-def build_wards(match: gem.ParsedMatch, map_b64: str | None) -> str:
+def build_wards(match: ParsedMatch, map_b64: str | None) -> str:
     """Build the ward map section (playback + hover + vision radius)."""
     _e = e
     _fmt_tick = fmt_tick
@@ -1594,7 +1604,7 @@ def build_wards(match: gem.ParsedMatch, map_b64: str | None) -> str:
         fx = (s.x - _XMIN) / (_XMAX - _XMIN)
         fy = 1.0 - (s.y - _YMIN) / (_YMAX - _YMIN)
         enemy_team = 3 if s.team == 2 else 2
-        seen_by_enemy = bool(gem.estimate_vision(match, enemy_team, s.tick, s.x, s.y))
+        seen_by_enemy = bool(estimate_vision(match, enemy_team, s.tick, s.x, s.y))
         smoke_data.append(
             {
                 "fx": round(fx, 5),
@@ -1964,7 +1974,7 @@ def _hero_cell(npc_name: str, team: int = 0) -> str:
 
 def _is_active_teamfight_player(p: object) -> bool:
     """Return True for active teamfight participants only."""
-    return gem.is_active_teamfight_participant(p)
+    return is_active_teamfight_participant(p)
 
 
 def _top_abilities_teamfight(ability_uses: dict[str, int], n: int = 3) -> str:
@@ -2036,7 +2046,7 @@ def _fight_combat_log_html(
             and (h2s.get(en.attacker_name) in active_set or h2s.get(en.target_name) in active_set)
         )
     ]
-    casts = gem.group_ability_hits(groupable)
+    casts = group_ability_hits(groupable)
     # Build a set of entry ids that were absorbed into grouped casts (to skip in the loop)
     grouped_entry_ids: set[int] = {id(en) for cast in casts for en in cast.entries}
 
@@ -2188,7 +2198,7 @@ def _fight_combat_log_html(
 def _teamfight_minimap_svg(
     fight_idx: int,
     mid_tick: int,
-    slot_to_player: dict[int, gem.ParsedPlayer],
+    slot_to_player: dict[int, ParsedPlayer],
     active_slots: list[int],
     died_slots: set[int],
     map_b64: str | None,
@@ -2242,9 +2252,9 @@ def _teamfight_minimap_svg(
     )
 
 
-def _ward_enemies_seen(ward: object, match: gem.ParsedMatch) -> int:
+def _ward_enemies_seen(ward: object, match: ParsedMatch) -> int:
     """Count distinct enemy heroes that passed within observer ward vision radius."""
-    return gem.ward_vision_impact(ward, match)
+    return ward_vision_impact(ward, match)
 
 
 # Friendly labels for tracked vision modifier names
@@ -2260,7 +2270,7 @@ _MODIFIER_DISPLAY: dict[str, str] = {
 def _fight_reveals_html(
     start_tick: int,
     end_tick: int,
-    match: gem.ParsedMatch,
+    match: ParsedMatch,
 ) -> str:
     """Return HTML for active vision-modifier reveals during a fight window.
 
@@ -2273,7 +2283,7 @@ def _fight_reveals_html(
 
     # Collect modifiers that overlap the fight window
     # Only show hero targets (skip neutrals/creep-heroes)
-    active: list[gem.VisionModifierEvent] = []
+    active: list[VisionModifierEvent] = []
     seen: set[tuple[str, str]] = set()
     for ev in match.vision_modifiers:
         if ev.tick > end_tick:
@@ -2335,7 +2345,7 @@ def _fight_reveals_html(
     )
 
 
-def build_teamfights(match: gem.ParsedMatch, map_b64: str | None) -> str:
+def build_teamfights(match: ParsedMatch, map_b64: str | None) -> str:
     """Build the Teamfights tab content (filters + fight cards)."""
     fights = match.teamfights or []
     if not fights:
@@ -2345,7 +2355,7 @@ def build_teamfights(match: gem.ParsedMatch, map_b64: str | None) -> str:
             "</details></div>"
         )
 
-    slot_to_player: dict[int, gem.ParsedPlayer] = {pp.player_id: pp for pp in match.players}
+    slot_to_player: dict[int, ParsedPlayer] = {pp.player_id: pp for pp in match.players}
     h2s: dict[str, int] = {pp.hero_name: pp.player_id for pp in match.players if pp.hero_name}
     load_hero_icons([pp.hero_name for pp in match.players if pp.hero_name])
 
@@ -2411,7 +2421,7 @@ def build_teamfights(match: gem.ParsedMatch, map_b64: str | None) -> str:
         if ordered_slots:
             parts.append('<div class="tf-participants">')
             for slot in ordered_slots:
-                pp = slot_to_player.get(slot, gem.ParsedPlayer(player_id=slot))
+                pp = slot_to_player.get(slot, ParsedPlayer(player_id=slot))
                 team_cls = "radiant" if pp.team == 2 else "dire"
                 died_cls = " died" if slot in died_slots else ""
                 pname = e(pp.player_name or "")
@@ -2434,7 +2444,7 @@ def build_teamfights(match: gem.ParsedMatch, map_b64: str | None) -> str:
                 "</tr></thead><tbody>"
             )
             for slot in ordered_slots:
-                pp = slot_to_player.get(slot, gem.ParsedPlayer(player_id=slot))
+                pp = slot_to_player.get(slot, ParsedPlayer(player_id=slot))
                 tfp = tf_by_slot.get(slot)
                 if tfp is None:
                     continue
@@ -2478,14 +2488,14 @@ def build_teamfights(match: gem.ParsedMatch, map_b64: str | None) -> str:
     return "\n".join(parts)
 
 
-def build_draft(match: gem.ParsedMatch) -> str:
+def build_draft(match: ParsedMatch) -> str:
     """Build the draft section."""
     if not match.draft:
         return ""
 
     sorted_draft = sorted(match.draft, key=lambda d: d.tick)
 
-    hero_to_player: dict[str, gem.ParsedPlayer] = {
+    hero_to_player: dict[str, ParsedPlayer] = {
         pp.hero_name: pp for pp in match.players if pp.hero_name
     }
 
@@ -2575,7 +2585,7 @@ def build_draft(match: gem.ParsedMatch) -> str:
     return "\n".join(parts)
 
 
-def build_chat(match: gem.ParsedMatch) -> str:
+def build_chat(match: ParsedMatch) -> str:
     """Build the chat log section."""
     parts = [
         '<div class="card">',
@@ -2655,7 +2665,7 @@ _SLOT_COLORS_LANE: list[str] = [
 
 
 def _laning_minimap_svg(
-    match: gem.ParsedMatch,
+    match: ParsedMatch,
     map_b64: str | None,
     size: int = 320,
 ) -> str:
@@ -2719,7 +2729,7 @@ def _laning_minimap_svg(
     )
 
 
-def build_laning(match: gem.ParsedMatch, map_b64: str | None = None) -> str:
+def build_laning(match: ParsedMatch, map_b64: str | None = None) -> str:
     """Build the Laning tab: minimap + per-player 10-minute metrics table.
 
     Shows inferred lane role, last hits / denies / gold / XP at 10 minutes,
@@ -2863,9 +2873,8 @@ _FARM_TEAM_TRAIL: dict[int, str] = {2: "#7ee787", 3: "#ff7b72"}
 
 
 def _load_camp_zones() -> dict:
-    path = Path(__file__).resolve().parents[2] / "src" / "gem" / "data" / "camp_zones.json"
     try:
-        obj = json.loads(path.read_text(encoding="utf-8"))
+        obj = load_camp_zones()
         camps = obj.get("camps", [])
         if isinstance(camps, list):
             return obj
@@ -2994,8 +3003,8 @@ def _farm_smooth_path(points: list[dict]) -> str:
 
 
 def _build_player_farm_visits(
-    match: gem.ParsedMatch,
-    player: gem.ParsedPlayer,
+    match: ParsedMatch,
+    player: ParsedPlayer,
     camps: list[dict],
     team_context: list[MapContextBucket],
     min_tick: int = 0,
@@ -3142,7 +3151,7 @@ def _build_player_farm_visits(
 
 def _build_farming_map_svg(
     *,
-    player: gem.ParsedPlayer,
+    player: ParsedPlayer,
     camps: list[dict],
     visits: list[dict],
     map_b64: str | None,
@@ -3247,7 +3256,7 @@ def _build_farming_map_svg(
     return svg, timeline_points
 
 
-def build_farming(match: gem.ParsedMatch, map_b64: str | None) -> str:
+def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
     """Build the Farming tab: route map + camp visit timeline with context labels."""
     context_label_display = {
         "safe_home_farm": "Safe Home Farm",

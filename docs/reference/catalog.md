@@ -55,7 +55,7 @@ def hero_meta(npc_name: str) -> dict[str, Any]
 
 Return the full hero metadata dict, or an empty dict if not found.
 
-Source: [src/gem/catalog/heroes.py:71](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/heroes.py#L71)
+Source: [src/gem/catalog/heroes.py:76](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/heroes.py#L76)
 
 ## Module `gem.catalog.items`
 

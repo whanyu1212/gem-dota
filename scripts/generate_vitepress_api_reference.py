@@ -50,6 +50,12 @@ TARGETS_BY_PAGE: dict[str, list[str]] = {
     "combatlog.md": ["gem.combat.log.CombatLogProcessor", "gem.combat.log.CombatLogEntry"],
     "constants.md": ["gem.constants"],
     "dataframes.md": ["gem.results.dataframes"],
+    "reports.md": [
+        "gem.reports.assets.ReportAssets",
+        "gem.reports.builder.ReportOptions",
+        "gem.reports.builder.build_html_report",
+        "gem.reports.builder.write_html_report",
+    ],
     "entities.md": [
         "gem.state.entities.EntityOp",
         "gem.state.entities.Entity",
