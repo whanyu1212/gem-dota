@@ -58,12 +58,17 @@ def hero_npc_name(name: str) -> str | None:
         return name.lower() if name.lower() in HEROES else None
 
     def _norm(s: str) -> str:
-        return s.lower().replace("-", " ").replace("_", " ")
+        return s.lower().replace("-", " ").replace("_", " ").strip()
 
     normalised = _norm(name)
+    compact = normalised.replace(" ", "")
     for npc, data in HEROES.items():
         loc = _norm(str(data.get("localized_name") or ""))
-        if loc == normalised:
+        suffix = _norm(npc.removeprefix("npc_dota_hero_"))
+        if normalised in {loc, suffix} or compact in {
+            loc.replace(" ", ""),
+            suffix.replace(" ", ""),
+        }:
             return npc
     return None
 

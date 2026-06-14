@@ -438,6 +438,11 @@ class TestHeroNpcName:
     def test_underscore_variant(self) -> None:
         assert C.hero_npc_name("anti_mage") == "npc_dota_hero_antimage"
 
+    def test_separatorless_internal_suffixes(self) -> None:
+        assert C.hero_npc_name("antimage") == "npc_dota_hero_antimage"
+        assert C.hero_npc_name("queenofpain") == "npc_dota_hero_queenofpain"
+        assert C.hero_npc_name("nevermore") == "npc_dota_hero_nevermore"
+
     def test_passthrough_npc_name(self) -> None:
         # Already-qualified NPC names are returned unchanged
         assert C.hero_npc_name("npc_dota_hero_axe") == "npc_dota_hero_axe"

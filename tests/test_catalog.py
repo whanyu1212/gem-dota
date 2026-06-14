@@ -27,6 +27,12 @@ def test_catalog_lookups_match_constants_facade() -> None:
     assert catalog.xp_to_next_level(1, 0) == constants.xp_to_next_level(1, 0)
 
 
+def test_catalog_resolves_internal_hero_suffixes() -> None:
+    assert catalog.hero_npc_name("antimage") == "npc_dota_hero_antimage"
+    assert catalog.hero_npc_name("queenofpain") == "npc_dota_hero_queenofpain"
+    assert catalog.hero_npc_name("nevermore") == "npc_dota_hero_nevermore"
+
+
 def test_catalog_loads_core_json_resources() -> None:
     heroes = catalog.load_data_json("heroes.json")
     assert heroes["npc_dota_hero_axe"]["localized_name"] == "Axe"
