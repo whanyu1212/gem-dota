@@ -8,9 +8,9 @@ from pathlib import Path
 
 import plotly.graph_objects as go
 
-import gem
 from gem.constants import ability_display, hero_display, item_display, league_name
-from report.helpers import MAP_XMAX, MAP_XMIN, MAP_YMAX, MAP_YMIN
+from gem.reports._formatting import MAP_XMAX, MAP_XMIN, MAP_YMAX, MAP_YMIN
+from gem.results.models import ParsedMatch, ParsedPlayer
 
 # ---------------------------------------------------------------------------
 # Dota 2 map coordinate system
@@ -66,7 +66,7 @@ def _fmt_tick(tick: int) -> str:
     return f"{secs // 60:02d}:{secs % 60:02d}"
 
 
-def _match_title(match: gem.ParsedMatch, dem_stem: str) -> str:
+def _match_title(match: ParsedMatch, dem_stem: str) -> str:
     mid = str(match.match_id) if match.match_id else dem_stem
     mode = _GAME_MODE.get(match.game_mode, f"Mode {match.game_mode}")
     parts = [f"Match {mid}", mode]
@@ -80,9 +80,7 @@ _ACTIVITY_WINDOW = 150  # ticks (~5 seconds) to look back for recent activity
 _MAX_ACTIVITY = 5  # max recent events to show in hover
 
 
-def _build_hover_cache(
-    match: gem.ParsedMatch, player_snapshots: dict[int, list]
-) -> dict[int, dict]:
+def _build_hover_cache(match: ParsedMatch, player_snapshots: dict[int, list]) -> dict[int, dict]:
     """Pre-build per-player lookup structures for enriched hover text."""
     combat_by_hero: dict[str, list] = defaultdict(list)
     for e in match.combat_log:
@@ -136,7 +134,7 @@ def _build_hover_cache(
     return cache
 
 
-def _hover_text(pp: gem.ParsedPlayer, tick: int, cache: dict, label: str, team: str) -> str:
+def _hover_text(pp: ParsedPlayer, tick: int, cache: dict, label: str, team: str) -> str:
     """Build enriched hover HTML for a hero at a given tick."""
     d = cache.get(pp.player_id)
     if not d:
@@ -201,7 +199,7 @@ def _hover_text(pp: gem.ParsedPlayer, tick: int, cache: dict, label: str, team: 
 
 
 def build_figure(
-    match: gem.ParsedMatch,
+    match: ParsedMatch,
     map_path: Path,
     dem_stem: str,
     player_snapshots: dict[int, list] | None = None,
@@ -212,11 +210,11 @@ def build_figure(
     try:
         from PIL import Image as _Image
 
-        with _Image.open(map_path) as _img:
-            _img = _img.convert("RGB")
-            _img.thumbnail((1024, 1024), _Image.LANCZOS)
+        with _Image.open(map_path) as opened:
+            img = opened.convert("RGB")
+            img.thumbnail((1024, 1024), _Image.Resampling.LANCZOS)
             _buf = _io.BytesIO()
-            _img.save(_buf, format="JPEG", quality=70)
+            img.save(_buf, format="JPEG", quality=70)
             img_b64 = base64.b64encode(_buf.getvalue()).decode()
     except ImportError:
         with open(map_path, "rb") as f:

@@ -49,6 +49,9 @@ Public API
 
 ``resolve_pick_team(event, players)``
     Resolve the team (Radiant/Dire) for a draft pick/ban event.
+
+``gem.reports.build_html_report(match)``
+    Build a self-contained HTML match report.
 """
 
 from __future__ import annotations
@@ -61,6 +64,7 @@ from typing import TYPE_CHECKING, Any
 
 import gem.catalog as catalog  # re-export so `gem.catalog.hero_display()` works
 import gem.constants as constants  # re-export so `gem.constants.hero_display()` works
+import gem.reports as reports  # re-export so `gem.reports.build_html_report()` works
 from gem.analysis import (
     AbilityCast,
     CampVisitContext,
@@ -428,6 +432,7 @@ __all__ = [
     "resolve_pick_team",
     "catalog",
     "constants",
+    "reports",
     "fetch_replay",
     "fetch_replay_url",
     "download_and_decompress",

@@ -14,7 +14,7 @@ python examples/steam_match_info.py <match_id>            # Steam API integratio
 
 | Script | What it demonstrates |
 |---|---|
-| `match_report.py` | Comprehensive HTML replay analysis dashboard (overview, combat, vision, economy, movement, draft, teamfights, and more) |
+| `match_report.py` | Thin wrapper around `gem.reports.write_html_report()` for a comprehensive HTML replay dashboard |
 | `extraction_demo.py` | Developer-oriented baseline: full replay parse with combat log summary and periodic entity snapshots |
 | `steam_match_info.py` | Fetches and displays match metadata from the Steam Web API (`STEAM_API_KEY` required) |
 

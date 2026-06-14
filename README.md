@@ -204,7 +204,15 @@ python -m gem match.dem --progress --timings
 A sample report (TI14 Grand Finals G3 — XG vs Falcons) is available as a download from the docs site:
 [whanyu1212.github.io/gem-dota/reports/](https://whanyu1212.github.io/gem-dota/reports/)
 
-Run the match report generator in `examples/`:
+Use the packaged report builder from Python, or run the example wrapper:
+
+```python
+import gem
+from gem.reports import ReportAssets, write_html_report
+
+match = gem.parse("path/to/your_replay.dem")
+write_html_report(match, "report.html", assets=ReportAssets(map_image="assets/maps/Game_map_7.40.jpg"))
+```
 
 ```bash
 uv run python examples/match_report.py path/to/your_replay.dem
@@ -258,6 +266,7 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 | Vision modifier events (Slardar, BH Track, Dust, Gem) *(experimental)* | `ParsedMatch.vision_modifiers` |
 | Vision source estimation per point *(experimental)* | `gem.estimate_vision(match, team, tick, x, y)` |
 | Hero / item / ability display names | `gem.catalog` (`gem.constants` remains compatible) |
+| Self-contained HTML reports | `gem.reports.build_html_report()`, `gem.reports.write_html_report()` |
 | Look up a player by hero name | `gem.find_player(match, "Axe")` |
 
 ---
@@ -373,6 +382,7 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 | `results/dataframes.py` | DataFrame export from `ParsedMatch` |
 | `catalog/` | Bundled hero, item, ability, league, XP, and static map-data lookups |
 | `constants.py` | Compatibility facade for older catalog imports |
+| `reports/` | Self-contained HTML report generation from `ParsedMatch` |
 | `extractors/` | Per-tick polling of entity state — players, lane, objectives, wards, courier, draft, teamfights |
 
 ---

@@ -85,6 +85,7 @@ constants.py              ← backwards-compatible facade over catalog lookups
 results/models.py         ← ParsedMatch, ParsedPlayer, ChatEntry, NeutralItemFoundEvent dataclasses
 results/assembly.py       ← wires extractor outputs into ParsedMatch
 results/dataframes.py     ← converts ParsedMatch to pandas DataFrames
+reports/                  ← self-contained HTML report generation from ParsedMatch
 analysis/spatial.py       ← position, nearby-hero, and net-worth lookup helpers
 analysis/combat.py        ← ability-hit grouping and teamfight lookup helpers
 analysis/abilities.py     ← ability-level lookup helpers
@@ -285,7 +286,7 @@ cost breakdown was investigated but deferred. Key findings:
    at buyback tick is available from the nearest `PlayerStateSnapshot`.
 
 **Files to change:** `extractors/_snapshots.py`, `extractors/players.py`,
-`results/models.py`, `results/assembly.py`, `examples/report/html_sections.py`.
+`results/models.py`, `results/assembly.py`, `reports/_sections.py`.
 
 ## Code Style
 
@@ -400,10 +401,12 @@ scripts (`test_audit_camp_annotations.py`, `test_audit_opendota_fixture_constant
 | `examples/extraction_demo.py` | Developer guide for combat-log extraction and entity polling |
 | `examples/steam_match_info.py` | Fetch match info from the Steam API, display with Rich tables |
 | `examples/replay_api_server.py` | Minimal HTTP server exposing parsed-replay endpoints |
-| `examples/report/` | HTML-report building blocks used by `match_report.py` |
 
-Hero and item icons for `match_report.py` are downloaded separately — not committed
-or shipped in the package (the fetch scripts skip unchanged assets):
+Report generation lives in `src/gem/reports/`; `examples/match_report.py` is a
+thin wrapper around `gem.reports.write_html_report()`.
+
+Hero and item icons for reports are downloaded separately — not committed or
+shipped in the package (the fetch scripts skip unchanged assets):
 
 ```bash
 uv run python scripts/fetch_hero_icons.py   # -> src/gem/data/hero_icons/
