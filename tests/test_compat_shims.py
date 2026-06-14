@@ -1,42 +1,68 @@
-"""Compatibility coverage for deprecated top-level import shims."""
+"""Coverage for removed top-level compatibility modules."""
 
 from __future__ import annotations
 
 import importlib
-import re
 import sys
 
 import pytest
 
-_SHIMS = [
-    ("gem.batch", "gem.replays.batch", "parse_many"),
-    ("gem.reader", "gem.binary.reader", "BitReader"),
-    ("gem.stream", "gem.binary.stream", "DemoStream"),
-    ("gem.sendtable", "gem.schema.sendtable", "parse_send_tables"),
-    ("gem.field_decoder", "gem.schema.field_decoder", "find_decoder"),
-    ("gem.field_path", "gem.schema.field_path", "FieldPath"),
-    ("gem.field_reader", "gem.schema.field_reader", "read_fields"),
-    ("gem.field_state", "gem.schema.field_state", "FieldState"),
-    ("gem.entities", "gem.state.entities", "EntityManager"),
-    ("gem.game_events", "gem.state.game_events", "GameEventManager"),
-    ("gem.string_table", "gem.state.string_table", "StringTables"),
-    ("gem.combatlog", "gem.combat.log", "CombatLogProcessor"),
-    ("gem.combat_aggregator", "gem.combat.aggregator", "_CombatAggregator"),
-    ("gem.match_builder", "gem.results.assembly", "build_parsed_match"),
-    ("gem.dataframes", "gem.results.dataframes", "build_dataframes"),
-    ("gem.replay_fetch", "gem.replays.fetch", "fetch_replay"),
+_REMOVED_MODULES = [
+    "gem.batch",
+    "gem.reader",
+    "gem.stream",
+    "gem.sendtable",
+    "gem.field_decoder",
+    "gem.field_path",
+    "gem.field_reader",
+    "gem.field_state",
+    "gem.entities",
+    "gem.game_events",
+    "gem.string_table",
+    "gem.combatlog",
+    "gem.combat_aggregator",
+    "gem.match_builder",
+    "gem.dataframes",
+    "gem.replay_fetch",
+    "gem.models",
+    "gem.map_context",
+    "gem.rosh_conversion",
+]
+
+_CANONICAL_IMPORTS = [
+    ("gem.replays.batch", "parse_many"),
+    ("gem.binary.reader", "BitReader"),
+    ("gem.binary.stream", "DemoStream"),
+    ("gem.schema.sendtable", "parse_send_tables"),
+    ("gem.schema.field_decoder", "find_decoder"),
+    ("gem.schema.field_path", "FieldPath"),
+    ("gem.schema.field_reader", "read_fields"),
+    ("gem.schema.field_state", "FieldState"),
+    ("gem.state.entities", "EntityManager"),
+    ("gem.state.game_events", "GameEventManager"),
+    ("gem.state.string_table", "StringTables"),
+    ("gem.combat.log", "CombatLogProcessor"),
+    ("gem.combat.aggregator", "_CombatAggregator"),
+    ("gem.results.assembly", "build_parsed_match"),
+    ("gem.results.dataframes", "build_dataframes"),
+    ("gem.replays.fetch", "fetch_replay"),
+    ("gem.results.models", "ParsedMatch"),
+    ("gem.analysis.map_context", "MapContextBucket"),
+    ("gem.analysis.roshan", "RoshConversion"),
 ]
 
 
-@pytest.mark.parametrize(("shim_module", "canonical_module", "symbol"), _SHIMS)
-def test_deprecated_top_level_shims_warn_and_reexport(
-    shim_module: str, canonical_module: str, symbol: str
-) -> None:
-    """Legacy root modules should still import while warning users to migrate."""
-    sys.modules.pop(shim_module, None)
+@pytest.mark.parametrize("module_name", _REMOVED_MODULES)
+def test_removed_top_level_compatibility_modules_do_not_import(module_name: str) -> None:
+    """Breaking releases should not carry root compatibility modules."""
+    sys.modules.pop(module_name, None)
 
-    with pytest.warns(DeprecationWarning, match=rf"{re.escape(shim_module)} is deprecated"):
-        shim = importlib.import_module(shim_module)
+    with pytest.raises(ModuleNotFoundError):
+        importlib.import_module(module_name)
 
-    canonical = importlib.import_module(canonical_module)
-    assert getattr(shim, symbol) is getattr(canonical, symbol)
+
+@pytest.mark.parametrize(("module_name", "symbol"), _CANONICAL_IMPORTS)
+def test_canonical_replacements_remain_importable(module_name: str, symbol: str) -> None:
+    """Canonical grouped modules replace the removed root compatibility paths."""
+    module = importlib.import_module(module_name)
+    assert getattr(module, symbol) is not None

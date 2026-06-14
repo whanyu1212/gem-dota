@@ -20,8 +20,8 @@ Canonical implementation modules are split by responsibility:
 - `gem.analysis.map_context` — objective-aware farming context helpers
 - `gem.analysis.roshan` — Roshan conversion summaries
 
-`gem.analysis` re-exports the public helpers below. `gem.map_context` and
-`gem.rosh_conversion` remain compatibility shims for existing imports.
+`gem.analysis` re-exports the public helpers below. Use `gem.analysis.map_context`
+and `gem.analysis.roshan` for module-level imports.
 
 All functions are exported directly from `gem.*`:
 
