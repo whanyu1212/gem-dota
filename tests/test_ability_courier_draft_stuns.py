@@ -371,7 +371,7 @@ class TestStunDuration:
         assert collected[0].stun_duration == 0.0
 
     def test_parsed_player_has_stuns_dealt(self):
-        from gem.models import ParsedPlayer
+        from gem.results.models import ParsedPlayer
 
         pp = ParsedPlayer(player_id=0)
         assert pp.stuns_dealt == 0.0

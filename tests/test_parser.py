@@ -22,8 +22,8 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-import gem.models as model_module
 import gem.parser as parser_module
+import gem.results.models as model_module
 from gem.parser import (
     _DEM_FILE_INFO,
     _DOTA_UM_CHAT_EVENT,
@@ -607,8 +607,8 @@ class TestGameEndCallback:
 
 class TestEmitChatMessage:
     def test_chat_callback_receives_entry(self):
-        from gem.models import ChatEntry
         from gem.proto.dota_usermessages_pb2 import CDOTAUserMsg_ChatMessage
+        from gem.results.models import ChatEntry
 
         p = ReplayParser(b"")
         received = []

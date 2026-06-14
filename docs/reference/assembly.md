@@ -1,4 +1,4 @@
-# Match Builder
+# Results Assembly
 
 Assembles extractor output into a `ParsedMatch`.
 
@@ -6,11 +6,11 @@ Assembles extractor output into a `ParsedMatch`.
 
 ## Generated API
 
-## Module `gem.match_builder`
+## Module `gem.results.assembly`
 
 Match assembly — wires extractor outputs into a :class:`ParsedMatch`.
 
-Source: [src/gem/match_builder.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/match_builder.py#L1)
+Source: [src/gem/results/assembly.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/assembly.py#L1)
 
 ### Top-level functions
 
@@ -22,4 +22,4 @@ def build_parsed_match(parser: ReplayParser, player_ext: PlayerExtractor, obj_ex
 
 Assemble a :class:`ParsedMatch` from extractor state after a completed parse.
 
-Source: [src/gem/match_builder.py:55](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/match_builder.py#L55)
+Source: [src/gem/results/assembly.py:55](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/assembly.py#L55)

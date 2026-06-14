@@ -319,7 +319,7 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 - **Parquet export** — `gem.to_parquet()`, `gem.parse_to_parquet()` added (requires `pyarrow` or `fastparquet`).
 - **Rich CLI** — live progress bar, timing summary, pixel-art banner in a box, Radiant/Dire colour-coded summary table.
 - **Docs** — architecture page redesigned, diamond icon, laning pages added to nav, export formats documented throughout.
-- **Bug fixes** — two `mypy` type errors resolved in `__main__.py` and `dataframes.py`.
+- **Bug fixes** — two `mypy` type errors resolved in `__main__.py` and DataFrame export.
 
 ### [v0.2.0](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.0)
 
@@ -367,12 +367,12 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 | `state/game_events.py` | Game event schema and typed dispatch |
 | `combat/log.py` | S1 (game event) and S2 (user message) combat log ingestion |
 | `parser.py` | Top-level orchestrator wiring all subsystems together |
-| `match_builder.py` | Assembles final `ParsedMatch` output from extractors/aggregates |
 | `combat/aggregator.py` | Combat-log aggregation for per-player damage/healing/items/economy stats |
-| `models.py` | `ParsedMatch` / `ParsedPlayer` output dataclasses |
+| `results/assembly.py` | Assembles final `ParsedMatch` output from extractors/aggregates |
+| `results/models.py` | `ParsedMatch` / `ParsedPlayer` output dataclasses |
+| `results/dataframes.py` | DataFrame export from `ParsedMatch` |
 | `constants.py` | Bundled hero, item, ability display names |
 | `extractors/` | Per-tick polling of entity state — players, lane, objectives, wards, courier, draft, teamfights |
-| `dataframes.py` | DataFrame export from `ParsedMatch` |
 
 ---
 

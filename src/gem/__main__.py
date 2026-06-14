@@ -28,7 +28,7 @@ from rich.table import Table
 from rich.text import Text
 
 from gem import __version__, parse, parse_to_json, parse_to_parquet
-from gem.models import ParsedMatch
+from gem.results.models import ParsedMatch
 
 # ---------------------------------------------------------------------------
 # Argument parser

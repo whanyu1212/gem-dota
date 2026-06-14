@@ -9,8 +9,8 @@ This page explains how gem turns extractor state into final outputs:
 Modules covered:
 
 1. `src/gem/combat/aggregator.py`
-2. `src/gem/match_builder.py`
-3. `src/gem/dataframes.py`
+2. `src/gem/results/assembly.py`
+3. `src/gem/results/dataframes.py`
 
 Prerequisites:
 
@@ -61,9 +61,9 @@ After extractors collect raw timelines, this layer:
 | `DEATH` | append kills log for attacker |
 | `PURCHASE` | append purchase log (attacker/target fallback) |
 | `PICKUP_RUNE` | append rune event for player slot in `entry.value` |
-| `BUYBACK` | populated later in `match_builder` post-pass |
+| `BUYBACK` | populated later in the `results/assembly.py` post-pass |
 
-## `match_builder.py`: assemble final `ParsedMatch`
+## `results/assembly.py`: assemble final `ParsedMatch`
 
 `build_parsed_match(...)` is the main output assembly function.
 
@@ -98,7 +98,7 @@ After extractors collect raw timelines, this layer:
 2. Lane role is derived from first 10 minutes only.
 3. Purchase logs are deduplicated only in the starting snapshot window.
 
-## `dataframes.py`: tabular projection layer
+## `results/dataframes.py`: tabular projection layer
 
 `build_dataframes(match)` converts `ParsedMatch` into analytics-friendly DataFrames.
 

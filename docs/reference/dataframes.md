@@ -34,11 +34,11 @@ pip install pyarrow
 
 ## Generated API
 
-## Module `gem.dataframes`
+## Module `gem.results.dataframes`
 
 DataFrame conversion for :class:`ParsedMatch` output.
 
-Source: [src/gem/dataframes.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/dataframes.py#L1)
+Source: [src/gem/results/dataframes.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/dataframes.py#L1)
 
 ### Top-level functions
 
@@ -50,4 +50,4 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]
 
 Convert a :class:`ParsedMatch` into a dict of pandas DataFrames.
 
-Source: [src/gem/dataframes.py:17](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/dataframes.py#L17)
+Source: [src/gem/results/dataframes.py:17](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/dataframes.py#L17)

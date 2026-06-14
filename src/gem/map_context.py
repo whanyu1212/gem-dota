@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
 if TYPE_CHECKING:
-    from gem.models import ParsedMatch
+    from gem.results.models import ParsedMatch
 
 _TEAM_RADIANT = 2
 _TEAM_DIRE = 3

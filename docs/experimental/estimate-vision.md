@@ -251,7 +251,7 @@ The high-level flow is:
 
 1. combat log normalization sees relevant modifier add/remove events
 2. gem records them as `VisionModifierEvent`
-3. `match_builder` places them onto `ParsedMatch.vision_modifiers`
+3. `results/assembly.py` places them onto `ParsedMatch.vision_modifiers`
 4. `estimate_vision` reads them later during post-parse analysis
 
 This means the function is not inventing modifier state from scratch at query time. It consumes a replay-derived event stream that was already captured during parsing.
@@ -406,8 +406,8 @@ That makes the function useful without pretending it is perfect.
 Implementation and supporting structures:
 
 - `src/gem/analysis.py`
-- `src/gem/models.py`
-- `src/gem/match_builder.py`
+- `src/gem/results/models.py`
+- `src/gem/results/assembly.py`
 - `docs/reference/analysis.md`
 
 ## Related reading

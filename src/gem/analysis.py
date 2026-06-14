@@ -26,7 +26,7 @@ from typing import TYPE_CHECKING, Literal
 if TYPE_CHECKING:
     from gem.combat.log import CombatLogEntry
     from gem.extractors.teamfights import Teamfight
-    from gem.models import ParsedMatch, ParsedPlayer
+    from gem.results.models import ParsedMatch, ParsedPlayer
 
 # ---------------------------------------------------------------------------
 # Vision constants

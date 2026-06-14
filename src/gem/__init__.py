@@ -83,14 +83,14 @@ from gem.map_context import (
     build_map_context_timeline,
     score_camp_visit_context,
 )
-from gem.models import (
+from gem.replay_fetch import download_and_decompress, fetch_replay, fetch_replay_url
+from gem.results.models import (
     ChatEntry,
     NeutralItemFoundEvent,
     ParsedMatch,
     ParsedPlayer,
     VisionModifierEvent,
 )
-from gem.replay_fetch import download_and_decompress, fetch_replay, fetch_replay_url
 from gem.rosh_conversion import RoshConversion, RoshTimelineEvent, build_rosh_conversions
 
 __version__ = "0.2.7"
@@ -119,8 +119,8 @@ def parse(path: str | Path) -> ParsedMatch:
     from gem.extractors.objectives import ObjectivesExtractor
     from gem.extractors.players import PlayerExtractor
     from gem.extractors.wards import WardsExtractor
-    from gem.match_builder import build_parsed_match
     from gem.parser import ReplayParser
+    from gem.results.assembly import build_parsed_match
 
     p = ReplayParser(path)
     player_ext = PlayerExtractor()
@@ -151,8 +151,8 @@ def parse(path: str | Path) -> ParsedMatch:
     # Position is captured live at MODIFIER_ADD time (when each hero actually
     # receives the buff) and averaged to give the group centroid.
     # Logic for SmokeEvent collection (item consumption + modifier arrival)
-    from gem.models import SmokeEvent as _SmokeEvent
-    from gem.models import VisionModifierEvent as _VisionModifierEvent
+    from gem.results.models import SmokeEvent as _SmokeEvent
+    from gem.results.models import VisionModifierEvent as _VisionModifierEvent
 
     # Vision modifier tracking — modifiers that reveal/grant vision of enemy heroes.
     # MODIFIER_ADD opens an event (end_tick=None); MODIFIER_REMOVE closes it.
@@ -341,7 +341,7 @@ def parse_to_dataframe(path: str | Path) -> dict[str, pd.DataFrame]:
         - ``"draft"``, ``"teamfights"``, ``"smoke_events"``, ``"courier_snapshots"``
         - per-player event logs (kills/purchases/runes/buybacks)
     """
-    from gem.dataframes import build_dataframes
+    from gem.results.dataframes import build_dataframes
 
     return build_dataframes(parse(path))
 
@@ -359,7 +359,7 @@ def to_parquet(match: ParsedMatch, output_dir: str | Path, *, index: bool = Fals
     Returns:
         List of parquet file paths written.
     """
-    from gem.dataframes import build_dataframes
+    from gem.results.dataframes import build_dataframes
 
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)

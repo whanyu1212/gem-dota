@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 import gem
-from gem.models import ParsedMatch
+from gem.results.models import ParsedMatch
 
 
 def _has_parquet_engine() -> bool:

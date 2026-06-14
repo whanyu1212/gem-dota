@@ -41,7 +41,7 @@ flowchart TD
     end
 
     subgraph ASSEMBLE ["Assembly"]
-        K["combat/aggregator.py"] --> L["match_builder.py"]
+        K["combat/aggregator.py"] --> L["results/assembly.py"]
     end
 
     O(["ParsedMatch"])
@@ -116,15 +116,15 @@ flowchart TD
     <span class="arch-layer-label">Assembly</span>
     <div class="arch-layer-modules">
       <span class="arch-badge">combat/aggregator.py</span>
-      <span class="arch-badge">match_builder.py</span>
+      <span class="arch-badge">results/assembly.py</span>
     </div>
   </div>
 
   <div class="arch-layer arch-layer--output">
     <span class="arch-layer-label">Output</span>
     <div class="arch-layer-modules">
-      <span class="arch-badge">models.py · ParsedMatch</span>
-      <span class="arch-badge">dataframes.py</span>
+      <span class="arch-badge">results/models.py · ParsedMatch</span>
+      <span class="arch-badge">results/dataframes.py</span>
     </div>
   </div>
 

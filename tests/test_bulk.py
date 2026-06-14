@@ -10,7 +10,7 @@ import pytest
 
 import gem
 from gem.batch import ParseResult, _collect_paths, parse_many
-from gem.models import ParsedMatch
+from gem.results.models import ParsedMatch
 
 # ---------------------------------------------------------------------------
 # Synchronous executor — avoids multiprocessing entirely in unit tests.

@@ -32,7 +32,7 @@ TARGETS_BY_PAGE: dict[str, list[str]] = {
     "combat_aggregator.md": ["gem.combat.aggregator"],
     "combatlog.md": ["gem.combat.log.CombatLogProcessor", "gem.combat.log.CombatLogEntry"],
     "constants.md": ["gem.constants"],
-    "dataframes.md": ["gem.dataframes"],
+    "dataframes.md": ["gem.results.dataframes"],
     "entities.md": [
         "gem.state.entities.EntityOp",
         "gem.state.entities.Entity",
@@ -53,8 +53,8 @@ TARGETS_BY_PAGE: dict[str, list[str]] = {
         "gem.state.game_events.GameEvent",
         "gem.state.game_events.GameEventSchema",
     ],
-    "match_builder.md": ["gem.match_builder"],
-    "models.md": ["gem.models"],
+    "assembly.md": ["gem.results.assembly"],
+    "models.md": ["gem.results.models"],
     "parser.md": ["gem.parser.ReplayParser"],
     "reader.md": ["gem.binary.reader.BitReader"],
     "sendtable.md": [

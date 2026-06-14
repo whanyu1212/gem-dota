@@ -1,4 +1,4 @@
-"""Tests for gem.match_builder — ParsedMatch assembly.
+"""Tests for gem.results.assembly — ParsedMatch assembly.
 
 Tests cover:
 - _radiant_win_from_ancient (pure unit logic)
@@ -14,10 +14,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
-import gem.models as model_module
+import gem.results.models as model_module
 from gem.combat.log import CombatLogEntry
-from gem.match_builder import _radiant_win_from_ancient, build_parsed_match
-from gem.models import ChatEntry, ParsedMatch, SmokeEvent
+from gem.results.assembly import _radiant_win_from_ancient, build_parsed_match
+from gem.results.models import ChatEntry, ParsedMatch, SmokeEvent
 
 # ---------------------------------------------------------------------------
 # Helpers — minimal stubs

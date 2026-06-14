@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from gem.__main__ import main
-from gem.models import ParsedMatch
+from gem.results.models import ParsedMatch
 
 
 def _mock_match() -> ParsedMatch:

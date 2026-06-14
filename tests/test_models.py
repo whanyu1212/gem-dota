@@ -1,10 +1,41 @@
-"""Tests for gem.models — ParsedPlayer and ParsedMatch dataclasses."""
+"""Tests for gem.results.models — ParsedPlayer and ParsedMatch dataclasses."""
 
 from __future__ import annotations
 
 from collections import defaultdict
 
-from gem.models import ParsedMatch, ParsedPlayer
+import gem.models as legacy_models
+import gem.results.models as result_models
+from gem.results.models import ParsedMatch, ParsedPlayer
+
+
+def test_legacy_models_shim_reexports_previous_runtime_names():
+    names = [
+        "AegisEvent",
+        "BarracksKill",
+        "ChatEntry",
+        "CombatLogEntry",
+        "CourierSnapshot",
+        "DraftEvent",
+        "NeutralItemFoundEvent",
+        "ParsedMatch",
+        "ParsedPlayer",
+        "RoshanKill",
+        "ShrineKill",
+        "SmokeEvent",
+        "Teamfight",
+        "TormentorKill",
+        "TowerKill",
+        "VisionModifierEvent",
+        "WardEvent",
+        "dataclass",
+        "defaultdict",
+        "field",
+    ]
+
+    assert set(names) <= set(legacy_models.__all__)
+    for name in names:
+        assert getattr(legacy_models, name) is getattr(result_models, name)
 
 
 class TestParsedPlayerLanePos:
