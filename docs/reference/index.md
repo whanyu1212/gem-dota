@@ -3,13 +3,11 @@
 Auto-generated from source docstrings. All public classes and functions follow
 [Google-style docstrings](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings).
 
-## Compatibility modules
+## Removed compatibility modules
 
-Root-level compatibility modules such as `gem.reader`, `gem.models`,
-`gem.map_context`, and `gem.replay_fetch` remain importable for existing users,
-but they are deprecated. New code should import from the canonical grouped
-modules documented below; the deprecated root shims will be candidates for
-removal in a future breaking release.
+Root-level compatibility modules from earlier releases, such as `gem.reader`,
+`gem.models`, `gem.map_context`, and `gem.replay_fetch`, have been removed.
+Use the canonical grouped modules documented below.
 
 ## Core parsing modules
 

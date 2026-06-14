@@ -2,18 +2,12 @@
 
 from __future__ import annotations
 
-import importlib
-import sys
 from unittest.mock import MagicMock
-
-import pytest
 
 import gem.analysis as analysis
 import gem.analysis.combat as analysis_combat
 import gem.analysis.spatial as analysis_spatial
 from gem.analysis import group_ability_hits, position_at_tick
-from gem.analysis.map_context import MapContextBucket, build_map_context_timeline
-from gem.analysis.roshan import RoshConversion, build_rosh_conversions
 from gem.combat.log import CombatLogEntry
 
 
@@ -21,21 +15,6 @@ def test_analysis_package_reexports_public_helpers() -> None:
     assert analysis.position_at_tick is analysis_spatial.position_at_tick
     assert analysis.group_ability_hits is analysis_combat.group_ability_hits
     assert analysis.AbilityCast is analysis_combat.AbilityCast
-
-
-def test_legacy_analysis_module_shims_reexport_canonical_objects() -> None:
-    sys.modules.pop("gem.map_context", None)
-    sys.modules.pop("gem.rosh_conversion", None)
-
-    with pytest.warns(DeprecationWarning, match="gem.map_context is deprecated"):
-        legacy_map_context = importlib.import_module("gem.map_context")
-    with pytest.warns(DeprecationWarning, match="gem.rosh_conversion is deprecated"):
-        legacy_rosh_conversion = importlib.import_module("gem.rosh_conversion")
-
-    assert legacy_map_context.MapContextBucket is MapContextBucket
-    assert legacy_map_context.build_map_context_timeline is build_map_context_timeline
-    assert legacy_rosh_conversion.RoshConversion is RoshConversion
-    assert legacy_rosh_conversion.build_rosh_conversions is build_rosh_conversions
 
 
 # ---------------------------------------------------------------------------
