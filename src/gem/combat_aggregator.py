@@ -1,6 +1,14 @@
-"""Compatibility shim for :mod:`gem.combat.aggregator`."""
+"""Deprecated compatibility shim for :mod:`gem.combat.aggregator`."""
 
-from gem.combat.aggregator import (
+import warnings
+
+warnings.warn(
+    "gem.combat_aggregator is deprecated; import from gem.combat.aggregator instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
+from gem.combat.aggregator import (  # noqa: E402
     _CombatAggregator,
     _dedup_purchase_log,
     _int_counter,

@@ -1,6 +1,14 @@
-"""Compatibility shim for :mod:`gem.combat.log`."""
+"""Deprecated compatibility shim for :mod:`gem.combat.log`."""
 
-from gem.combat.log import (
+import warnings
+
+warnings.warn(
+    "gem.combatlog is deprecated; import from gem.combat.log instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
+from gem.combat.log import (  # noqa: E402
     COMBAT_LOG_TYPES,
     CombatLogEntry,
     CombatLogHandler,
