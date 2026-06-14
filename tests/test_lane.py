@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 
 from gem.extractors.lane import classify_lane
-from gem.models import ParsedPlayer
+from gem.results.models import ParsedPlayer
 
 FIXTURE = Path(__file__).parent / "fixtures" / "ti14_finals_g3_xg_vs_falcons.dem"
 

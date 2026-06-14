@@ -75,12 +75,12 @@ combat/aggregator.py      ← per-player combat log accumulation → damage/heal
 parser.py                 ← top-level orchestrator wiring everything together
 extractors/               ← per-tick polling of entity state for output (see below)
 constants.py              ← hero/item/ability/XP lookups over bundled src/gem/data/ JSON
-models.py                 ← ParsedMatch, ParsedPlayer, ChatEntry, NeutralItemFoundEvent dataclasses
-match_builder.py          ← wires extractor outputs into ParsedMatch
+results/models.py         ← ParsedMatch, ParsedPlayer, ChatEntry, NeutralItemFoundEvent dataclasses
+results/assembly.py       ← wires extractor outputs into ParsedMatch
+results/dataframes.py     ← converts ParsedMatch to pandas DataFrames
 analysis.py               ← post-parse analysis helpers (higher-level transforms on ParsedMatch)
 map_context.py            ← objective-aware map-context buckets (experimental farming analysis)
 rosh_conversion.py        ← post-parse Roshan conversion records (did a Rosh convert to a win?)
-dataframes.py             ← converts ParsedMatch to pandas DataFrames
 batch.py                  ← bulk replay parsing (parse_many, parallel workers)
 replay_fetch.py           ← download + decompress replays from OpenDota/Valve CDN
 __init__.py               ← public API surface (parse, ParsedMatch, analysis helpers, …)
@@ -222,7 +222,7 @@ Reference: `refs/parser/Parse.java` (`m_vecDataTeam.%i.m_iTotalEarnedGold/XP`).
 ### Neutral item found events
 
 `DOTA_UM_FoundNeutralItem` user messages are parsed into `NeutralItemFoundEvent`
-(see `models.py`): `player_id`, `item_ability_id` → `item_key`, `item_tier`,
+(see `results/models.py`): `player_id`, `item_ability_id` → `item_key`, `item_tier`,
 plus enhancement/trinket fields. Item ability IDs are resolved against the bundled
 constants; new tiers/IDs are covered by `test_audit_opendota_fixture_constants.py`.
 
@@ -273,8 +273,8 @@ cost breakdown was investigated but deferred. Key findings:
 2. Formula approximation: `cost ≈ 200 + net_worth / 12` (capped ~2100 in Dota 7.x). Net worth
    at buyback tick is available from the nearest `PlayerStateSnapshot`.
 
-**Files to change:** `extractors/_snapshots.py`, `extractors/players.py`, `models.py`,
-`match_builder.py`, `examples/report/html_sections.py`.
+**Files to change:** `extractors/_snapshots.py`, `extractors/players.py`,
+`results/models.py`, `results/assembly.py`, `examples/report/html_sections.py`.
 
 ## Code Style
 

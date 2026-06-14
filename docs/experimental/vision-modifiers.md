@@ -387,8 +387,8 @@ That is much better than one opaque monolithic vision heuristic.
 If you want to inspect or tune the implementation:
 
 - `src/gem/__init__.py`
-- `src/gem/models.py`
-- `src/gem/match_builder.py`
+- `src/gem/results/models.py`
+- `src/gem/results/assembly.py`
 - `src/gem/analysis.py`
 - `docs/reference/analysis.md`
 

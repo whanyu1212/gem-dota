@@ -6,7 +6,7 @@ import json
 from collections import defaultdict
 
 import gem
-from gem.models import ParsedMatch, ParsedPlayer
+from gem.results.models import ParsedMatch, ParsedPlayer
 
 
 class TestSerializationHelpers:

@@ -27,7 +27,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import pandas as pd
 
-    from gem.models import ParsedMatch
+    from gem.results.models import ParsedMatch
 
 
 # ---------------------------------------------------------------------------
@@ -41,7 +41,7 @@ class ParseResult:
 
     Args:
         path: Absolute path to the ``.dem`` file.
-        match: Populated :class:`~gem.models.ParsedMatch`, or ``None`` on failure.
+        match: Populated :class:`~gem.results.models.ParsedMatch`, or ``None`` on failure.
         error: Exception raised during parsing, or ``None`` on success.
     """
 
@@ -213,7 +213,7 @@ def parse_many_to_dataframe(
     """
     import pandas as pd
 
-    from gem.dataframes import build_dataframes
+    from gem.results.dataframes import build_dataframes
 
     results = parse_many(
         source, workers=workers, recursive=recursive, progress=progress, timeout=timeout

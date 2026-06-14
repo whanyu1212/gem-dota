@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import gem.models as model_module
+import gem.results.models as model_module
 
 
 def test_parse_collects_neutral_item_found_events(monkeypatch):
@@ -13,8 +13,8 @@ def test_parse_collects_neutral_item_found_events(monkeypatch):
     import gem.extractors.objectives
     import gem.extractors.players
     import gem.extractors.wards
-    import gem.match_builder
     import gem.parser
+    import gem.results.assembly
 
     neutral_event_cls = getattr(model_module, "NeutralItemFoundEvent", None)
     assert neutral_event_cls is not None
@@ -83,7 +83,7 @@ def test_parse_collects_neutral_item_found_events(monkeypatch):
     monkeypatch.setattr(gem.extractors.courier, "CourierExtractor", FakeExtractor)
     monkeypatch.setattr(gem.extractors.draft, "DraftExtractor", FakeExtractor)
     monkeypatch.setattr(gem.combat.aggregator, "_CombatAggregator", FakeCombatAggregator)
-    monkeypatch.setattr(gem.match_builder, "build_parsed_match", fake_build_parsed_match)
+    monkeypatch.setattr(gem.results.assembly, "build_parsed_match", fake_build_parsed_match)
 
     match = gem.parse("dummy.dem")
 

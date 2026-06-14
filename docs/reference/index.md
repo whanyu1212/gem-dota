@@ -25,7 +25,7 @@ Auto-generated from source docstrings. All public classes and functions follow
 | [Models](models.md) | `ParsedMatch`, `ParsedPlayer`, output dataclasses |
 | [Constants](constants.md) | `hero_display()`, `item_display()`, name lookups |
 | [Analysis Helpers](analysis.md) | `position_at_tick`, `group_ability_hits`, `teamfight_at_tick`, `heroes_near`, `ability_level_at_tick` |
-| [Match Builder](match_builder.md) | Assembles extractor output into `ParsedMatch` |
+| [Results Assembly](assembly.md) | Assembles extractor output into `ParsedMatch` |
 | [Combat Aggregator](combat_aggregator.md) | Per-player combat stat aggregation |
 | [DataFrames](dataframes.md) | `parse_to_dataframe()`, `to_parquet()`, `to_json()`, `to_dict()` — export to pandas, Parquet, or JSON |
 | [Batch](batch.md) | `parse_many()`, `parse_many_to_dataframe()`, `parse_many_to_parquet()` — parallel multi-replay processing |

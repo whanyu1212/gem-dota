@@ -135,7 +135,7 @@ class TestParseFuzz:
     def test_empty_file(self, tmp_path: Path) -> None:
         """Empty .dem file → parser catches ValueError and returns empty ParsedMatch."""
         import gem
-        from gem.models import ParsedMatch
+        from gem.results.models import ParsedMatch
 
         f = tmp_path / "empty.dem"
         f.write_bytes(b"")
@@ -145,7 +145,7 @@ class TestParseFuzz:
     def test_wrong_magic_file(self, tmp_path: Path) -> None:
         """Wrong magic → parser catches ValueError and returns empty ParsedMatch."""
         import gem
-        from gem.models import ParsedMatch
+        from gem.results.models import ParsedMatch
 
         f = tmp_path / "bad_magic.dem"
         f.write_bytes(b"NOTVALID" + b"\x00" * 8 + b"\xff" * 64)
@@ -155,7 +155,7 @@ class TestParseFuzz:
     def test_nonexistent_file(self, tmp_path: Path) -> None:
         """Nonexistent file → parser catches FileNotFoundError, returns empty ParsedMatch."""
         import gem
-        from gem.models import ParsedMatch
+        from gem.results.models import ParsedMatch
 
         result = gem.parse(str(tmp_path / "does_not_exist.dem"))
         assert isinstance(result, ParsedMatch)
@@ -163,7 +163,7 @@ class TestParseFuzz:
     def test_header_only_file(self, tmp_path: Path) -> None:
         """Valid header with no messages → empty ParsedMatch, no hang."""
         import gem
-        from gem.models import ParsedMatch
+        from gem.results.models import ParsedMatch
 
         f = tmp_path / "header_only.dem"
         f.write_bytes(_make_dem_header())
@@ -173,7 +173,7 @@ class TestParseFuzz:
     def test_garbage_content_file(self, tmp_path: Path) -> None:
         """Valid header + garbage payload → empty ParsedMatch, no hang."""
         import gem
-        from gem.models import ParsedMatch
+        from gem.results.models import ParsedMatch
 
         f = tmp_path / "garbage.dem"
         f.write_bytes(_make_dem_header() + b"\xff" * 1024)
@@ -183,7 +183,7 @@ class TestParseFuzz:
     def test_truncated_fixture(self) -> None:
         """Pre-built truncated fixture parses without hanging."""
         import gem
-        from gem.models import ParsedMatch
+        from gem.results.models import ParsedMatch
 
         if not FIXTURE_TRUNCATED.exists():
             pytest.skip("Truncated fixture not found")

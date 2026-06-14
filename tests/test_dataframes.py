@@ -1,11 +1,11 @@
-"""Tests for gem.dataframes conversion helpers."""
+"""Tests for gem.results.dataframes conversion helpers."""
 
 from __future__ import annotations
 
-import gem.models as model_module
-from gem.dataframes import build_dataframes
+import gem.results.models as model_module
 from gem.extractors.objectives import AegisEvent, ShrineKill, TormentorKill
-from gem.models import ParsedMatch, ParsedPlayer
+from gem.results.dataframes import build_dataframes
+from gem.results.models import ParsedMatch, ParsedPlayer
 
 
 class TestBuildDataframes:

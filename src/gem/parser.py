@@ -47,7 +47,6 @@ from gem.binary.reader import BitReader
 from gem.binary.stream import DemoStream
 from gem.combat.log import CombatLogHandler, CombatLogProcessor
 from gem.constants import item_key_by_id
-from gem.models import ChatEntry, NeutralItemFoundEvent
 from gem.proto import (
     dota_commonmessages_pb2,  # noqa: F401
     dota_shared_enums_pb2,  # noqa: F401
@@ -73,6 +72,7 @@ from gem.proto.netmessages_pb2 import (
     CSVCMsg_UpdateStringTable,
     CSVCMsg_UserMessage,
 )
+from gem.results.models import ChatEntry, NeutralItemFoundEvent
 from gem.schema.sendtable import parse_send_tables
 from gem.state.entities import Entity, EntityManager, EntityOp
 from gem.state.game_events import GameEventHandler, GameEventManager

@@ -7,7 +7,7 @@ from gem.combat.log import CombatLogEntry
 from gem.extractors.objectives import AegisEvent, BarracksKill, RoshanKill, TowerKill
 from gem.extractors.teamfights import Teamfight, TeamfightPlayer
 from gem.extractors.wards import WardEvent
-from gem.models import ParsedMatch, ParsedPlayer
+from gem.results.models import ParsedMatch, ParsedPlayer
 from gem.rosh_conversion import build_rosh_conversions
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "examples"))

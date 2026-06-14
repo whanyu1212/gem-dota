@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 
 from gem.analysis import _is_daytime, estimate_vision
 from gem.extractors.wards import WardEvent
-from gem.models import VisionModifierEvent
+from gem.results.models import VisionModifierEvent
 
 # ---------------------------------------------------------------------------
 # Helpers

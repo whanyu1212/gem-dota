@@ -10,7 +10,7 @@ Lane role classification from a 10-minute position heatmap.
 - Passive gold (1.5/sec): `900`
 - Starting gold: `600`
 
-Formula used by `match_builder` (truncating to integer):
+Formula used by `results/assembly.py` (truncating to integer):
 `int(lane_total_gold / 4948 * 100)`
 
 Note: `lane_total_gold` is cumulative total earned gold at 10 minutes (including
