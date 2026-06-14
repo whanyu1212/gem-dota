@@ -186,7 +186,7 @@ This isolates compression handling from main parser logic.
 ```python
 from gem.binary.stream import DemoStream
 
-with DemoStream("tests/fixtures/8520014563.dem") as stream:
+with DemoStream("tests/fixtures/opendota/8822520406.dem") as stream:
     for i, (tick, msg_type, data) in enumerate(stream):
         print(i, tick, msg_type, len(data))
         if i >= 11:

@@ -12,11 +12,7 @@ Covers:
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import pytest
-
-FIXTURE = Path(__file__).parent / "fixtures" / "ti14_finals_g3_xg_vs_falcons.dem"
 
 # ---------------------------------------------------------------------------
 # Shared fakes
@@ -677,22 +673,19 @@ class TestTimeSeriesInclusion:
 @pytest.mark.integration
 class TestMLTotalsIntegration:
     @pytest.fixture(scope="class")
-    def player_ext(self):
+    def player_ext(self, full_replay_path):
         """Parse the replay once per class and share the populated extractor.
 
-        Class-scoped so the 266 MB fixture is parsed a single time for the whole
+        Class-scoped so the full replay fixture is parsed a single time for the whole
         class instead of once per test method.
 
         Returns:
             A ``PlayerExtractor`` populated from a full parse of the fixture.
         """
-        if not FIXTURE.exists():
-            pytest.skip("Integration fixture not available")
-
         from gem.extractors.players import PlayerExtractor
         from gem.parser import ReplayParser
 
-        parser = ReplayParser(str(FIXTURE))
+        parser = ReplayParser(str(full_replay_path))
         ext = PlayerExtractor(sample_interval=300)
         ext.attach(parser)
         parser.parse()

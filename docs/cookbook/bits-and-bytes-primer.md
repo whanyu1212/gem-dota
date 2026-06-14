@@ -67,10 +67,10 @@ Why parser skips metadata:
 1. They are not required to decode message boundaries.
 2. They can be stale in truncated files.
 
-Example from local fixtures:
+Example from the committed truncated fixture:
 
-- `ti14_finals_g3_xg_vs_falcons.dem` metadata: `278882831`, `278882714`
-- `ti14_finals_g3_xg_vs_falcons_truncated.dem` has the same metadata values but much smaller actual file size.
+- `ti14_finals_g3_xg_vs_falcons_truncated.dem` metadata: `278882831`, `278882714`
+- Full replay fixtures are intentionally kept as ignored local files under `tests/fixtures/opendota/`.
 
 If magic mismatches, `DemoStream` raises immediately before parsing anything else.
 

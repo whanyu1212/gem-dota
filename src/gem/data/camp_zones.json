@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "source_image": "tests/fixtures/camp_annotated.png",
+  "source_image": "assets/maps/camp_annotated.png",
   "world_bounds": {
     "xmin": 7563,
     "xmax": 25900,

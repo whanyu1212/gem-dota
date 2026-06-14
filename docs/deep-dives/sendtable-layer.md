@@ -143,7 +143,7 @@ This decision is critical because `state/entities.py` decode path depends on mod
 
 ## Real output snapshot
 
-Using fixture `tests/fixtures/8520014563.dem`:
+Using fixture `tests/fixtures/opendota/8822520406.dem`:
 
 ```text
 serializer_count 3224

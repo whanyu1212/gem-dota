@@ -131,7 +131,7 @@ After extractors collect raw timelines, this layer:
 
 ## Real snapshot from fixture (truncated)
 
-From `parse_to_dataframe("tests/fixtures/8520014563.dem")`:
+From `parse_to_dataframe("tests/fixtures/opendota/8822520406.dem")`:
 
 ```text
 table_count 17

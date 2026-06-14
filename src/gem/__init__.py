@@ -59,6 +59,7 @@ from dataclasses import fields, is_dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+import gem.catalog as catalog  # re-export so `gem.catalog.hero_display()` works
 import gem.constants as constants  # re-export so `gem.constants.hero_display()` works
 from gem.analysis import (
     AbilityCast,
@@ -425,6 +426,7 @@ __all__ = [
     "RoshConversion",
     "build_rosh_conversions",
     "resolve_pick_team",
+    "catalog",
     "constants",
     "fetch_replay",
     "fetch_replay_url",

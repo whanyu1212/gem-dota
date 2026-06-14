@@ -12,8 +12,11 @@ fuller contributor workflow; the list below is the day-to-day short version.)
 # Install project + dev dependencies
 uv sync --group dev
 
-# Run all tests
+# Run default test suite (skips slow/integration markers via pyproject.toml)
 uv run pytest
+
+# Run all tests, including slow/integration markers
+uv run pytest -m ""
 
 # Run a single test file
 uv run pytest tests/test_reader.py
@@ -24,11 +27,14 @@ uv run pytest tests/test_reader.py::TestReadBits::test_read_8_bits
 # Run with coverage
 uv run pytest --cov=gem --cov-report=term-missing
 
-# Fast loop — skip tests needing real .dem files
+# Explicit fast loop — equivalent to the default marker filter
 uv run pytest -m "not slow and not integration"
 
 # Integration suite (requires replay fixtures)
 uv run pytest -m integration
+
+# Broader remote draft integration sample (downloads/parses 5 pro replays)
+GEM_DRAFT_INTEGRATION_FULL=1 uv run pytest tests/test_draft_integration.py -m integration
 
 # Lint, format, type-check (run before committing)
 uv run ruff check src/ tests/
@@ -74,7 +80,8 @@ combat/log.py              ← S1 (game event) + S2 (user message) combat log
 combat/aggregator.py      ← per-player combat log accumulation → damage/heal/kill/purchase tallies
 parser.py                 ← top-level orchestrator wiring everything together
 extractors/               ← per-tick polling of entity state for output (see below)
-constants.py              ← hero/item/ability/XP lookups over bundled src/gem/data/ JSON
+catalog/                  ← hero/item/ability/league/XP/map lookups over bundled src/gem/data/ JSON
+constants.py              ← backwards-compatible facade over catalog lookups
 results/models.py         ← ParsedMatch, ParsedPlayer, ChatEntry, NeutralItemFoundEvent dataclasses
 results/assembly.py       ← wires extractor outputs into ParsedMatch
 results/dataframes.py     ← converts ParsedMatch to pandas DataFrames
@@ -152,7 +159,8 @@ Headline exports (see `__all__` for the full list):
 - **Experimental:** `build_map_context_timeline`, `score_camp_visit_context`,
   `build_rosh_conversions`, `RoshConversion`
 - **Replay fetch:** `fetch_replay`, `fetch_replay_url`, `download_and_decompress`
-- **Constants:** `constants` (namespace of hero/item/ability lookups)
+- **Catalog/constants:** `catalog` (grouped lookup modules) and `constants`
+  (compatibility namespace of hero/item/ability lookups)
 
 The CLI is `python -m gem` (`__main__.py`).
 
@@ -368,9 +376,19 @@ scripts (`test_audit_camp_annotations.py`, `test_audit_opendota_fixture_constant
 `test_fetch_opendota_fixture.py`, `test_fetch_icons.py`, `test_render_camp_zones_overlay.py`).
 
 - Fixtures live in `tests/fixtures/`; shared config in `tests/conftest.py`.
+  Keep committed replay fixtures truncated. Full replay fixtures should be
+  local/ignored OpenDota downloads under `tests/fixtures/opendota/`.
+  Map/reference images for examples, reports, and camp-zone tooling live under
+  `assets/maps/`, not `tests/fixtures/`.
+- `uv run pytest` skips `slow` and `integration` markers by default so local
+  checks do not fetch or parse large replay files accidentally. Use `-m ""` to
+  include every marker category in a full local run.
 - Real `.dem` files are needed only for tests marked `@pytest.mark.integration`
   and/or `@pytest.mark.slow` — skip them in the fast loop with
   `-m "not slow and not integration"`.
+- `tests/test_draft_integration.py` is intentionally a one-replay remote smoke
+  test by default; set `GEM_DRAFT_INTEGRATION_FULL=1` when you need the broader
+  five-replay OpenDota sample.
 - Markers are declared in `pyproject.toml` under `[tool.pytest.ini_options]`.
 
 ## Examples

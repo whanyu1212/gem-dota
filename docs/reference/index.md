@@ -23,7 +23,8 @@ Auto-generated from source docstrings. All public classes and functions follow
 | Module | Contents |
 |---|---|
 | [Models](models.md) | `ParsedMatch`, `ParsedPlayer`, output dataclasses |
-| [Constants](constants.md) | `hero_display()`, `item_display()`, name lookups |
+| [Catalog](catalog.md) | Grouped hero, item, ability, league, XP, and map-data lookups |
+| [Constants](constants.md) | Compatibility facade for `hero_display()`, `item_display()`, name lookups |
 | [Analysis Helpers](analysis.md) | Spatial, combat, vision, map-context, and Roshan conversion helpers |
 | [Results Assembly](assembly.md) | Assembles extractor output into `ParsedMatch` |
 | [Combat Aggregator](combat_aggregator.md) | Per-player combat stat aggregation |

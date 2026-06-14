@@ -204,7 +204,7 @@ Leave/delete path (`01`/`11`):
 
 ## Real snapshot from fixture
 
-Using `tests/fixtures/8520014563.dem`, parse up to tick 600:
+Using `tests/fixtures/opendota/8822520406.dem`, parse up to tick 600:
 
 ```text
 tick_end 601

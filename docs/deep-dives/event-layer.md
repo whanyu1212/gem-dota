@@ -133,7 +133,7 @@ This is where game-end detection also hooks in (`GAME_STATE == 6` path).
 
 ## Real snapshot from fixture
 
-Using `tests/fixtures/8520014563.dem` and parsing up to tick `12000`:
+Using `tests/fixtures/opendota/8822520406.dem` and parsing up to tick `12000`:
 
 ```text
 tick_end 12002

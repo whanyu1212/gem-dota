@@ -63,6 +63,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 FIXTURES_DIR = REPO_ROOT / "tests" / "fixtures"
+OPENDOTA_FIXTURES_DIR = FIXTURES_DIR / "opendota"
 DEFAULT_FETCH_DIR = REPO_ROOT / "tmp" / "opendota-validation"
 OPENDOTA_BASE = "https://api.opendota.com/api"
 OPENDOTA_MATCHES = f"{OPENDOTA_BASE}/matches"
@@ -87,9 +88,9 @@ def _build_hero_id_map() -> dict[int, str]:
 # ---------------------------------------------------------------------------
 
 REPLAYS: list[tuple[int, Path]] = [
-    (8461735141, FIXTURES_DIR / "ti14_finals_g3_xg_vs_falcons.dem"),
-    (8520062186, FIXTURES_DIR / "8520062186.dem"),
-    (8520014563, FIXTURES_DIR / "8520014563.dem"),
+    (8822520406, OPENDOTA_FIXTURES_DIR / "8822520406.dem"),
+    (8822593932, OPENDOTA_FIXTURES_DIR / "8822593932.dem"),
+    (8821954344, OPENDOTA_FIXTURES_DIR / "8821954344.dem"),
 ]
 
 
@@ -881,7 +882,7 @@ def resolve_replay_specs(args: argparse.Namespace) -> list[ReplaySpec]:
 
     if args.match:
         known = dict(REPLAYS)
-        fixture = known.get(args.match, FIXTURES_DIR / f"{args.match}.dem")
+        fixture = known.get(args.match, OPENDOTA_FIXTURES_DIR / f"{args.match}.dem")
         return [ReplaySpec(match_id=args.match, fixture=fixture, source="match")]
 
     return [

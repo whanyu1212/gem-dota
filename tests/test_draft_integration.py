@@ -16,12 +16,17 @@ Run with::
 
     pytest tests/test_draft_integration.py -m integration -v
 
+Run the broader five-replay sample with::
+
+    GEM_DRAFT_INTEGRATION_FULL=1 pytest tests/test_draft_integration.py -m integration -v
+
 Requires network access and ~500 MB of free disk space per match (temporary).
 """
 
 from __future__ import annotations
 
 import json
+import os
 import ssl
 import tempfile
 import urllib.request
@@ -37,14 +42,20 @@ SSL_CONTEXT.verify_mode = ssl.CERT_NONE
 
 OPENDOTA_API = "https://api.opendota.com/api/matches"
 
-# Five recent captains-mode pro matches with known replay URLs.
-MATCH_IDS = [
+# Keep the default integration run cheap. The first match is a representative
+# captains-mode replay with a known replay URL; the remaining matches are useful
+# as an explicit extended sample when validating draft extraction more deeply.
+SMOKE_MATCH_IDS = [
     8735903160,
+]
+EXTENDED_MATCH_IDS = [
+    *SMOKE_MATCH_IDS,
     8735881600,
     8735854783,
     8735821683,
     8735819319,
 ]
+MATCH_IDS = EXTENDED_MATCH_IDS if os.environ.get("GEM_DRAFT_INTEGRATION_FULL") else SMOKE_MATCH_IDS
 
 
 # ---------------------------------------------------------------------------

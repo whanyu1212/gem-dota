@@ -276,7 +276,7 @@ After parse:
 
 ## Real snapshot from fixture (truncated)
 
-From `tests/fixtures/8520014563.dem`:
+From `tests/fixtures/opendota/8822520406.dem`:
 
 ```text
 match_id 8520014563

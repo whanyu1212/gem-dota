@@ -6,12 +6,7 @@ verify plausible output.
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import pytest
-
-FIXTURE = Path(__file__).parent / "fixtures" / "ti14_finals_g3_xg_vs_falcons.dem"
-
 
 # ---------------------------------------------------------------------------
 # Shared fake helpers
@@ -386,18 +381,18 @@ class TestStunDuration:
 @pytest.mark.integration
 class TestPhase8Integration:
     @pytest.fixture(scope="class")
-    def match(self):
+    def match(self, full_replay_path):
         import gem
 
-        return gem.parse(str(FIXTURE))
+        return gem.parse(str(full_replay_path))
 
-    def test_ability_levels_populated(self, match):
+    def test_ability_levels_populated(self, match, full_replay_path):
         from gem.extractors.players import PlayerExtractor
 
         # Re-parse to access snapshots directly
         from gem.parser import ReplayParser
 
-        p = ReplayParser(str(FIXTURE))
+        p = ReplayParser(str(full_replay_path))
         ext = PlayerExtractor()
         ext.attach(p)
         p.parse()

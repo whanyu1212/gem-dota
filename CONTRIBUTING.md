@@ -177,6 +177,8 @@ uv run pytest -m "not slow and not integration"
 
 - Tests live in `tests/` mirroring the module they cover
 - Use synthetic binary fixtures (construct minimal valid byte sequences) rather than real replay files for unit tests
+- Keep committed replay fixtures truncated. Full replay fixtures should stay ignored/local under `tests/fixtures/opendota/`.
+- Keep map/reference images for examples, reports, and camp-zone tooling under `assets/maps/`, not `tests/fixtures/`.
 - Real replay tests go in a `slow`/`integration` marked class
 - Test both the happy path and error conditions
 
