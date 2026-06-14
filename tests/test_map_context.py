@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+from gem.analysis.map_context import (
+    MapContextBucket,
+    build_map_context_timeline,
+    score_camp_visit_context,
+)
 from gem.extractors.objectives import AegisEvent, RoshanKill, TowerKill
 from gem.extractors.wards import WardEvent
-from gem.map_context import MapContextBucket, build_map_context_timeline, score_camp_visit_context
 from gem.results.models import ParsedMatch
 
 
