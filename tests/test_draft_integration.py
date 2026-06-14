@@ -34,7 +34,7 @@ from pathlib import Path
 
 import pytest
 
-from gem.replay_fetch import download_and_decompress, fetch_replay_url
+from gem.replays.fetch import download_and_decompress, fetch_replay_url
 
 SSL_CONTEXT = ssl.create_default_context()
 SSL_CONTEXT.check_hostname = False

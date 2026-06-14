@@ -86,10 +86,15 @@ from gem.analysis import (
     teamfight_at_tick,
     ward_vision_impact,
 )
-from gem.batch import ParseResult, parse_many, parse_many_to_dataframe, parse_many_to_parquet
 from gem.constants import hero_npc_name
 from gem.extractors.draft import resolve_pick_team
-from gem.replay_fetch import download_and_decompress, fetch_replay, fetch_replay_url
+from gem.replays.batch import (
+    ParseResult,
+    parse_many,
+    parse_many_to_dataframe,
+    parse_many_to_parquet,
+)
+from gem.replays.fetch import download_and_decompress, fetch_replay, fetch_replay_url
 from gem.results.models import (
     ChatEntry,
     NeutralItemFoundEvent,

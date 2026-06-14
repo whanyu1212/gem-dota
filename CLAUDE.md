@@ -92,8 +92,8 @@ analysis/abilities.py     ← ability-level lookup helpers
 analysis/vision.py        ← geometry-based vision approximation helpers
 analysis/map_context.py   ← objective-aware map-context buckets (experimental farming analysis)
 analysis/roshan.py        ← post-parse Roshan conversion records (did a Rosh convert to a win?)
-batch.py                  ← bulk replay parsing (parse_many, parallel workers)
-replay_fetch.py           ← download + decompress replays from OpenDota/Valve CDN
+replays/batch.py          ← bulk replay parsing (parse_many, parallel workers)
+replays/fetch.py          ← download + decompress replays from OpenDota/Valve CDN
 __init__.py               ← public API surface (parse, ParsedMatch, analysis helpers, …)
 __main__.py               ← CLI entry point (python -m gem)
 ```

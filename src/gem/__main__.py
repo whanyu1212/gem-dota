@@ -400,7 +400,7 @@ def _run_parse(args: argparse.Namespace, console: Console) -> None:
 
 
 def _run_batch(args: argparse.Namespace, console: Console) -> None:
-    from gem.batch import parse_many_to_dataframe, parse_many_to_parquet
+    from gem.replays.batch import parse_many_to_dataframe, parse_many_to_parquet
 
     # source is a list (nargs="+") — unwrap to single path if it's a directory
     source: list[Path] | Path = (
