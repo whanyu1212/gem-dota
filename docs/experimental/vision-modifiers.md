@@ -389,7 +389,7 @@ If you want to inspect or tune the implementation:
 - `src/gem/__init__.py`
 - `src/gem/results/models.py`
 - `src/gem/results/assembly.py`
-- `src/gem/analysis.py`
+- `src/gem/analysis/vision.py`
 - `docs/reference/analysis.md`
 
 ## Related reading

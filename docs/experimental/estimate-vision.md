@@ -58,7 +58,7 @@ That tradeoff is why the feature belongs in `Experimental Features` instead of b
 
 ## Inputs used by the model
 
-The current implementation in `src/gem/analysis.py` uses these inputs:
+The current implementation in `src/gem/analysis/vision.py` uses these inputs:
 
 - `match.players`
 - `player.position_log`
@@ -77,7 +77,7 @@ The function works in four steps.
 
 Dota vision changes with the day/night cycle, so the function first asks whether the queried tick is daytime.
 
-Current constants in `src/gem/analysis.py`:
+Current constants in `src/gem/analysis/vision.py`:
 
 ```text
 day hero vision   = 1800
@@ -405,7 +405,7 @@ That makes the function useful without pretending it is perfect.
 
 Implementation and supporting structures:
 
-- `src/gem/analysis.py`
+- `src/gem/analysis/vision.py`
 - `src/gem/results/models.py`
 - `src/gem/results/assembly.py`
 - `docs/reference/analysis.md`

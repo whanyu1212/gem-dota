@@ -62,8 +62,14 @@ from typing import TYPE_CHECKING, Any
 import gem.constants as constants  # re-export so `gem.constants.hero_display()` works
 from gem.analysis import (
     AbilityCast,
+    CampVisitContext,
+    MapContextBucket,
+    RoshConversion,
+    RoshTimelineEvent,
     VisionSource,
     ability_level_at_tick,
+    build_map_context_timeline,
+    build_rosh_conversions,
     estimate_vision,
     format_npc_name,
     group_ability_hits,
@@ -71,18 +77,13 @@ from gem.analysis import (
     is_active_teamfight_participant,
     net_worth_at,
     position_at_tick,
+    score_camp_visit_context,
     teamfight_at_tick,
     ward_vision_impact,
 )
 from gem.batch import ParseResult, parse_many, parse_many_to_dataframe, parse_many_to_parquet
 from gem.constants import hero_npc_name
 from gem.extractors.draft import resolve_pick_team
-from gem.map_context import (
-    CampVisitContext,
-    MapContextBucket,
-    build_map_context_timeline,
-    score_camp_visit_context,
-)
 from gem.replay_fetch import download_and_decompress, fetch_replay, fetch_replay_url
 from gem.results.models import (
     ChatEntry,
@@ -91,7 +92,6 @@ from gem.results.models import (
     ParsedPlayer,
     VisionModifierEvent,
 )
-from gem.rosh_conversion import RoshConversion, RoshTimelineEvent, build_rosh_conversions
 
 __version__ = "0.2.7"
 

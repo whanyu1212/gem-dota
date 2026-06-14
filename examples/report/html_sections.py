@@ -9,8 +9,8 @@ from collections.abc import Callable
 from pathlib import Path
 
 import gem
+from gem.analysis import MapContextBucket, build_map_context_timeline, score_camp_visit_context
 from gem.constants import ability_display, hero_display, item_display
-from gem.map_context import MapContextBucket, build_map_context_timeline, score_camp_visit_context
 from report.assets import (
     HERO_PLACEHOLDER_B64,
     ITEM_ICON_B64,

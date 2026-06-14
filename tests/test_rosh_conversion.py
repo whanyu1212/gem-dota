@@ -3,12 +3,12 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+from gem.analysis.roshan import build_rosh_conversions
 from gem.combat.log import CombatLogEntry
 from gem.extractors.objectives import AegisEvent, BarracksKill, RoshanKill, TowerKill
 from gem.extractors.teamfights import Teamfight, TeamfightPlayer
 from gem.extractors.wards import WardEvent
 from gem.results.models import ParsedMatch, ParsedPlayer
-from gem.rosh_conversion import build_rosh_conversions
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "examples"))
 from report.html_sections import build_rosh_conversion

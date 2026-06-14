@@ -78,9 +78,12 @@ constants.py              ← hero/item/ability/XP lookups over bundled src/gem/
 results/models.py         ← ParsedMatch, ParsedPlayer, ChatEntry, NeutralItemFoundEvent dataclasses
 results/assembly.py       ← wires extractor outputs into ParsedMatch
 results/dataframes.py     ← converts ParsedMatch to pandas DataFrames
-analysis.py               ← post-parse analysis helpers (higher-level transforms on ParsedMatch)
-map_context.py            ← objective-aware map-context buckets (experimental farming analysis)
-rosh_conversion.py        ← post-parse Roshan conversion records (did a Rosh convert to a win?)
+analysis/spatial.py       ← position, nearby-hero, and net-worth lookup helpers
+analysis/combat.py        ← ability-hit grouping and teamfight lookup helpers
+analysis/abilities.py     ← ability-level lookup helpers
+analysis/vision.py        ← geometry-based vision approximation helpers
+analysis/map_context.py   ← objective-aware map-context buckets (experimental farming analysis)
+analysis/roshan.py        ← post-parse Roshan conversion records (did a Rosh convert to a win?)
 batch.py                  ← bulk replay parsing (parse_many, parallel workers)
 replay_fetch.py           ← download + decompress replays from OpenDota/Valve CDN
 __init__.py               ← public API surface (parse, ParsedMatch, analysis helpers, …)
@@ -228,7 +231,7 @@ constants; new tiers/IDs are covered by `test_audit_opendota_fixture_constants.p
 
 ### Camp zones & nearby-gold attribution
 
-Neutral-camp analysis lives in `map_context.py` plus the bundled data assets
+Neutral-camp analysis lives in `analysis/map_context.py` plus the bundled data assets
 `src/gem/data/camp_zones.json`, `neutral_camps.json`, and `map_constants.json`.
 `camp_zones.json` carries world bounds and per-type ellipse geometry; neutral
 deaths are grouped into camp zones by world position.
@@ -240,7 +243,7 @@ Audit tooling: `scripts/audit_camp_annotations.py`.
 
 ### Roshan conversion analysis
 
-`rosh_conversion.py` (`build_rosh_conversions(match)`) is a **post-parse** helper
+`analysis/roshan.py` (`build_rosh_conversions(match)`) is a **post-parse** helper
 that turns existing facts (Roshan kills, aegis events, teamfights, wards,
 objectives, buybacks, movement) into per-Roshan `RoshConversion` records answering
 "did this Roshan convert into fights / objectives / map control / a closing
@@ -359,8 +362,8 @@ state rather than trusting a static table here.
 
 ~50 test files in `tests/`, conventionally one `test_<module>.py` per source
 module or subsystem (e.g. `test_reader.py` → `binary/reader.py`, `test_wards_extractor.py` →
-`extractors/wards.py`). Newer additions cover `map_context.py`,
-`rosh_conversion.py`, neutral-item parsing, camp zones, and the audit/fetch
+`extractors/wards.py`). Newer additions cover `analysis/map_context.py`,
+`analysis/roshan.py`, neutral-item parsing, camp zones, and the audit/fetch
 scripts (`test_audit_camp_annotations.py`, `test_audit_opendota_fixture_constants.py`,
 `test_fetch_opendota_fixture.py`, `test_fetch_icons.py`, `test_render_camp_zones_overlay.py`).
 
