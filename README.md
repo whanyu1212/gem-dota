@@ -1,6 +1,6 @@
-<h1 align="center">gem</h1>
-
-<p align="center"><strong>Source 2 Dota 2 Replay Parsing, Analytics and Visualization in Python</strong></p>
+<p align="center">
+  <img src="docs/public/gem-readme-banner-wordmark-subtitle-spaced.png" alt="Gem - A dota 2 replay parser in Python" width="100%">
+</p>
 
 <p align="center">
   <img alt="Python" src="https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white">
