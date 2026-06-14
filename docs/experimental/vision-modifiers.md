@@ -83,7 +83,7 @@ Interpretation:
 
 ## Current tracked modifier set
 
-The current curated set in `src/gem/__init__.py` is:
+The current curated set in `src/gem/api.py` is:
 
 | Modifier | Interpretation |
 |---|---|
@@ -105,7 +105,7 @@ During `gem.parse()`, gem registers a combat-log callback.
 
 That callback inspects each `CombatLogEntry` as it is emitted during parse.
 
-The relevant code lives in `src/gem/__init__.py`.
+The relevant code lives in `src/gem/api.py`.
 
 ## 2. Filter to relevant modifier names
 
@@ -386,7 +386,7 @@ That is much better than one opaque monolithic vision heuristic.
 
 If you want to inspect or tune the implementation:
 
-- `src/gem/__init__.py`
+- `src/gem/api.py`
 - `src/gem/results/models.py`
 - `src/gem/results/assembly.py`
 - `src/gem/analysis/vision.py`

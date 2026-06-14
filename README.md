@@ -376,6 +376,8 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 | `state/game_events.py` | Game event schema and typed dispatch |
 | `combat/log.py` | S1 (game event) and S2 (user message) combat log ingestion |
 | `parser.py` | Top-level orchestrator wiring all subsystems together |
+| `api.py` | High-level `gem.parse()`, JSON, DataFrame, and Parquet convenience helpers |
+| `cli.py` | Command-line implementation behind `python -m gem` |
 | `combat/aggregator.py` | Combat-log aggregation for per-player damage/healing/items/economy stats |
 | `results/assembly.py` | Assembles final `ParsedMatch` output from extractors/aggregates |
 | `results/models.py` | `ParsedMatch` / `ParsedPlayer` output dataclasses |

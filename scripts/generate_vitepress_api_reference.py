@@ -27,6 +27,7 @@ MODULE_TARGET_HEADING_RE = re.compile(r"^##\s+Module\s+`(gem\.[^`]+)`\s*$")
 
 # Canonical API targets by reference page (relative to docs/reference).
 TARGETS_BY_PAGE: dict[str, list[str]] = {
+    "api.md": ["gem.api"],
     "analysis.md": [
         "gem.analysis.spatial",
         "gem.analysis.combat",
