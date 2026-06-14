@@ -82,6 +82,7 @@ parser.py                 ← top-level orchestrator wiring everything together
 extractors/               ← per-tick polling of entity state for output (see below)
 catalog/                  ← hero/item/ability/league/XP/map lookups over bundled src/gem/data/ JSON
 constants.py              ← backwards-compatible facade over catalog lookups
+api.py                    ← high-level parse/export helpers exposed by the public package API
 results/models.py         ← ParsedMatch, ParsedPlayer, ChatEntry, NeutralItemFoundEvent dataclasses
 results/assembly.py       ← wires extractor outputs into ParsedMatch
 results/dataframes.py     ← converts ParsedMatch to pandas DataFrames
@@ -94,8 +95,9 @@ analysis/map_context.py   ← objective-aware map-context buckets (experimental 
 analysis/roshan.py        ← post-parse Roshan conversion records (did a Rosh convert to a win?)
 replays/batch.py          ← bulk replay parsing (parse_many, parallel workers)
 replays/fetch.py          ← download + decompress replays from OpenDota/Valve CDN
-__init__.py               ← public API surface (parse, ParsedMatch, analysis helpers, …)
-__main__.py               ← CLI entry point (python -m gem)
+cli.py                    ← CLI implementation
+__init__.py               ← public API re-export surface
+__main__.py               ← python -m gem adapter
 ```
 
 The **`extractors/`** package polls entity/combat-log state during parse:
@@ -137,7 +139,8 @@ Rushing to implement without checking refs leads to wrong enum mappings, wrong m
 
 ### Public API — how the library is used
 
-`src/gem/__init__.py` defines the supported surface (`__all__`). Most users never
+`src/gem/api.py` implements the high-level helpers and `src/gem/__init__.py`
+defines the supported surface (`__all__`) by re-exporting them. Most users never
 touch the parser directly; they call `gem.parse()` and work with `ParsedMatch`:
 
 ```python
@@ -163,7 +166,7 @@ Headline exports (see `__all__` for the full list):
 - **Catalog/constants:** `catalog` (grouped lookup modules) and `constants`
   (compatibility namespace of hero/item/ability lookups)
 
-The CLI is `python -m gem` (`__main__.py`).
+The CLI is `python -m gem`; `__main__.py` is a small adapter over `gem.cli`.
 
 ### ReplayParser — the internal orchestrator
 

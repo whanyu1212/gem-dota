@@ -28,6 +28,7 @@ Use the canonical grouped modules documented below.
 
 | Module | Contents |
 |---|---|
+| [Public API](api.md) | `parse()`, `find_player()`, JSON, DataFrame, and Parquet helpers |
 | [Models](models.md) | `ParsedMatch`, `ParsedPlayer`, output dataclasses |
 | [Catalog](catalog.md) | Grouped hero, item, ability, league, XP, and map-data lookups |
 | [Constants](constants.md) | Compatibility facade for `hero_display()`, `item_display()`, name lookups |

@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 import gem
+import gem.api
 from gem.results.models import ParsedMatch
 
 
@@ -39,7 +40,7 @@ class TestParquetExport:
     def test_parse_to_parquet_delegates_to_parse_and_to_parquet(self, monkeypatch, tmp_path):
         fake_match = ParsedMatch(match_id=123)
 
-        monkeypatch.setattr(gem, "parse", lambda path: fake_match)
+        monkeypatch.setattr(gem.api, "parse", lambda path: fake_match)
 
         def _fake_to_parquet(match, output_dir, *, index=False):
             assert match is fake_match
@@ -47,7 +48,7 @@ class TestParquetExport:
             assert index is True
             return [tmp_path / "players.parquet"]
 
-        monkeypatch.setattr(gem, "to_parquet", _fake_to_parquet)
+        monkeypatch.setattr(gem.api, "to_parquet", _fake_to_parquet)
 
         written = gem.parse_to_parquet("dummy.dem", tmp_path, index=True)
         assert written == [tmp_path / "players.parquet"]
