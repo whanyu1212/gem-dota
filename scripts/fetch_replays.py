@@ -1,6 +1,6 @@
 """Download and decompress a Dota 2 replay from OpenDota.
 
-Thin CLI wrapper around ``gem.replay_fetch``. Fetches the replay URL from
+Thin CLI wrapper around ``gem.replays.fetch``. Fetches the replay URL from
 the OpenDota API (``/api/matches/{match_id}``), downloads the ``.dem.bz2``
 file, and decompresses it to a ``.dem`` file.
 
@@ -19,7 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from gem.replay_fetch import download_and_decompress, fetch_replay_url
+from gem.replays.fetch import download_and_decompress, fetch_replay_url
 
 
 def main() -> None:

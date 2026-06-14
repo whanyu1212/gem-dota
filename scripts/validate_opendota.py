@@ -274,7 +274,7 @@ def ensure_replay(
     replay_url: str | None = None,
     force: bool = False,
 ) -> Path:
-    from gem.replay_fetch import download_and_decompress, fetch_replay_url
+    from gem.replays.fetch import download_and_decompress, fetch_replay_url
 
     out_dir.mkdir(parents=True, exist_ok=True)
     dem_path = out_dir / f"{match_id}.dem"

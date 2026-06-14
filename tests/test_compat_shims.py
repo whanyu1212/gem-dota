@@ -9,6 +9,7 @@ import sys
 import pytest
 
 _SHIMS = [
+    ("gem.batch", "gem.replays.batch", "parse_many"),
     ("gem.reader", "gem.binary.reader", "BitReader"),
     ("gem.stream", "gem.binary.stream", "DemoStream"),
     ("gem.sendtable", "gem.schema.sendtable", "parse_send_tables"),
@@ -23,6 +24,7 @@ _SHIMS = [
     ("gem.combat_aggregator", "gem.combat.aggregator", "_CombatAggregator"),
     ("gem.match_builder", "gem.results.assembly", "build_parsed_match"),
     ("gem.dataframes", "gem.results.dataframes", "build_dataframes"),
+    ("gem.replay_fetch", "gem.replays.fetch", "fetch_replay"),
 ]
 
 
