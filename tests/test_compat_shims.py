@@ -25,6 +25,9 @@ _SHIMS = [
     ("gem.match_builder", "gem.results.assembly", "build_parsed_match"),
     ("gem.dataframes", "gem.results.dataframes", "build_dataframes"),
     ("gem.replay_fetch", "gem.replays.fetch", "fetch_replay"),
+    ("gem.models", "gem.results.models", "ParsedMatch"),
+    ("gem.map_context", "gem.analysis.map_context", "MapContextBucket"),
+    ("gem.rosh_conversion", "gem.analysis.roshan", "RoshConversion"),
 ]
 
 

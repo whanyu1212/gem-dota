@@ -1,6 +1,14 @@
-"""Compatibility shim for :mod:`gem.results.models`."""
+"""Deprecated compatibility shim for :mod:`gem.results.models`."""
 
-from gem.results.models import (
+import warnings
+
+warnings.warn(
+    "gem.models is deprecated; import from gem.results.models instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
+from gem.results.models import (  # noqa: E402
     AegisEvent,
     BarracksKill,
     ChatEntry,

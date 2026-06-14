@@ -1,6 +1,14 @@
-"""Compatibility shim for :mod:`gem.analysis.map_context`."""
+"""Deprecated compatibility shim for :mod:`gem.analysis.map_context`."""
 
-from gem.analysis.map_context import (
+import warnings
+
+warnings.warn(
+    "gem.map_context is deprecated; import from gem.analysis.map_context instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
+from gem.analysis.map_context import (  # noqa: E402
     CampVisitContext,
     MapContextBucket,
     build_map_context_timeline,

@@ -2,14 +2,22 @@
 
 from __future__ import annotations
 
+import importlib
+import sys
 from collections import defaultdict
 
-import gem.models as legacy_models
+import pytest
+
 import gem.results.models as result_models
 from gem.results.models import ParsedMatch, ParsedPlayer
 
 
 def test_legacy_models_shim_reexports_previous_runtime_names():
+    sys.modules.pop("gem.models", None)
+
+    with pytest.warns(DeprecationWarning, match="gem.models is deprecated"):
+        legacy_models = importlib.import_module("gem.models")
+
     names = [
         "AegisEvent",
         "BarracksKill",
