@@ -6,11 +6,11 @@ time buckets that can be joined with camp visits to reduce context blindness.
 
 from __future__ import annotations
 
-import json
 import math
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import TYPE_CHECKING, Literal
+
+from gem.catalog.map import load_neutral_camp_centers
 
 if TYPE_CHECKING:
     from gem.results.models import ParsedMatch
@@ -309,9 +309,7 @@ def build_map_context_timeline(
 
 
 def _load_camp_centers() -> dict[int, tuple[float, float]]:
-    path = Path(__file__).resolve().parent.parent / "data" / "neutral_camps.json"
-    camps = json.loads(path.read_text(encoding="utf-8"))
-    return {int(c["id"]): (float(c["x"]), float(c["y"])) for c in camps}
+    return load_neutral_camp_centers()
 
 
 _CAMP_CENTERS = _load_camp_centers()

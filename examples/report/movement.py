@@ -14,7 +14,7 @@ from report.helpers import MAP_XMAX, MAP_XMIN, MAP_YMAX, MAP_YMIN
 
 # ---------------------------------------------------------------------------
 # Dota 2 map coordinate system
-# Calibrated against Game_map_7.40.jpg using fountain positions as anchors.
+# Calibrated against assets/maps/Game_map_7.40.jpg using fountain positions as anchors.
 # Radiant fountain: (9684, 9684)  Dire fountain: (23120, 22350)
 # ---------------------------------------------------------------------------
 

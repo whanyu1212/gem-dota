@@ -11,33 +11,26 @@ Integration tests here require a real .dem fixture and are marked ``slow`` +
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import pytest
-
-FIXTURE = Path(__file__).parent / "fixtures" / "ti14_finals_g3_xg_vs_falcons.dem"
 
 
 @pytest.mark.slow
 @pytest.mark.integration
 class TestExtractorsIntegration:
     @pytest.fixture(scope="class")
-    def extractors(self):
+    def extractors(self, full_replay_path):
         """Parse the replay once per class and share the attached extractors.
 
-        Class-scoped so the 266 MB fixture is parsed a single time for the whole
+        Class-scoped so the full replay fixture is parsed a single time for the whole
         class instead of once per test method.
 
         Returns:
             A ``(players, objectives, wards)`` tuple of populated extractors.
         """
-        if not FIXTURE.exists():
-            pytest.skip("Integration fixture not available")
-
         from gem.extractors import ObjectivesExtractor, PlayerExtractor, WardsExtractor
         from gem.parser import ReplayParser
 
-        parser = ReplayParser(str(FIXTURE))
+        parser = ReplayParser(str(full_replay_path))
         players = PlayerExtractor(sample_interval=300)
         objectives = ObjectivesExtractor()
         wards = WardsExtractor()

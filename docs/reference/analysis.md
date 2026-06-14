@@ -662,7 +662,7 @@ def score_camp_visit_context(*, team: int, camp_id: int, camp_type: str, neutral
 
 Score one camp visit against a context bucket.
 
-Source: [src/gem/analysis/map_context.py:327](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L327)
+Source: [src/gem/analysis/map_context.py:325](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L325)
 
 ### `world_in_bounds`
 
@@ -672,7 +672,7 @@ def world_in_bounds(x: float, y: float) -> bool
 
 Return True when world coordinates are within calibrated map bounds.
 
-Source: [src/gem/analysis/map_context.py:481](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L481)
+Source: [src/gem/analysis/map_context.py:479](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L479)
 
 ### Top-level classes
 

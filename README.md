@@ -257,7 +257,7 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 | Purchase log per player | `ParsedPlayer.purchase_log` |
 | Vision modifier events (Slardar, BH Track, Dust, Gem) *(experimental)* | `ParsedMatch.vision_modifiers` |
 | Vision source estimation per point *(experimental)* | `gem.estimate_vision(match, team, tick, x, y)` |
-| Hero / item / ability display names | `gem.constants` |
+| Hero / item / ability display names | `gem.catalog` (`gem.constants` remains compatible) |
 | Look up a player by hero name | `gem.find_player(match, "Axe")` |
 
 ---
@@ -286,7 +286,7 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 - **`gem.resolve_pick_team(event, players)`** — resolves the team for a draft pick/ban using the post-game player roster (more reliable than `m_pGameRules.m_iActiveTeam` in HLTV/coach replays).
 - **`gem.net_worth_at(player, tick)`**, **`gem.ward_vision_impact(ward, match)`**, **`gem.is_active_teamfight_participant(player_stats)`**, **`gem.format_npc_name(name)`** — new analysis helpers.
 - **Draft fix** — `DraftExtractor._resolve_name()` now correctly halves doubled hero IDs (`api_id * 2`) before falling back to a direct lookup, fixing wrong hero resolution for bans in modern replays.
-- **Integration test** — `tests/test_draft_integration.py` verifies picks/bans against the OpenDota API across 5 captains-mode pro replays.
+- **Integration test** — `uv run pytest` skips replay-backed integration tests by default. `tests/test_draft_integration.py` verifies picks/bans against the OpenDota API with one captains-mode pro replay when run via `uv run pytest -m integration`; set `GEM_DRAFT_INTEGRATION_FULL=1` to run the broader 5-replay sample.
 - **Sample report** — TI14 Grand Finals G3 (XG vs Falcons) report available as a download from the [reports gallery](https://whanyu1212.github.io/gem-dota/reports/).
 
 ### [v0.2.4](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.4)
@@ -371,7 +371,8 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 | `results/assembly.py` | Assembles final `ParsedMatch` output from extractors/aggregates |
 | `results/models.py` | `ParsedMatch` / `ParsedPlayer` output dataclasses |
 | `results/dataframes.py` | DataFrame export from `ParsedMatch` |
-| `constants.py` | Bundled hero, item, ability display names |
+| `catalog/` | Bundled hero, item, ability, league, XP, and static map-data lookups |
+| `constants.py` | Compatibility facade for older catalog imports |
 | `extractors/` | Per-tick polling of entity state — players, lane, objectives, wards, courier, draft, teamfights |
 
 ---

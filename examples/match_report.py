@@ -502,7 +502,7 @@ def main() -> None:
     parser.add_argument(
         "--map",
         default=None,
-        help="Path to map image for ward overlay (default: tests/fixtures/Game_map_7.40.jpg)",
+        help="Path to map image for ward overlay (default: assets/maps/Game_map_7.40.jpg)",
     )
     args = parser.parse_args()
 
@@ -510,7 +510,7 @@ def main() -> None:
         dem_path = args.dem
     else:
         dem_path = str(
-            Path(__file__).parent.parent / "tests" / "fixtures" / "ti14_finals_g3_xg_vs_falcons.dem"
+            Path(__file__).parent.parent / "tests" / "fixtures" / "opendota" / "8822520406.dem"
         )
 
     print(f"Parsing {dem_path} ...")
@@ -520,7 +520,7 @@ def main() -> None:
     map_path = (
         Path(args.map)
         if args.map
-        else Path(__file__).parent.parent / "tests" / "fixtures" / "Game_map_7.40.jpg"
+        else Path(__file__).parent.parent / "assets" / "maps" / "Game_map_7.40.jpg"
     )
     map_b64: str | None = None
     if map_path.exists():

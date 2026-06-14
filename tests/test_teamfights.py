@@ -6,8 +6,6 @@ Integration tests parse a real .dem fixture and verify plausible output.
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import pytest
 
 from gem.combat.log import CombatLogEntry
@@ -19,8 +17,6 @@ from gem.extractors.teamfights import (
     _update_centroid,
     detect_teamfights,
 )
-
-FIXTURE = Path(__file__).parent / "fixtures" / "ti14_finals_g3_xg_vs_falcons.dem"
 
 _COOLDOWN = 15 * 30  # 450 ticks
 
@@ -581,13 +577,13 @@ class TestSpatialSplit:
 @pytest.mark.integration
 class TestTeamfightsIntegration:
     @pytest.fixture(scope="class")
-    def match(self):
+    def match(self, full_replay_path):
         import gem
 
-        return gem.parse(str(FIXTURE))
+        return gem.parse(str(full_replay_path))
 
     def test_teamfights_detected(self, match):
-        assert len(match.teamfights) > 0, "Expected at least one teamfight in TI14 game"
+        assert len(match.teamfights) > 0, "Expected at least one teamfight in replay fixture"
 
     def test_fight_windows_valid(self, match):
         for tf in match.teamfights:

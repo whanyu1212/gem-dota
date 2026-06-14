@@ -45,7 +45,12 @@ build-backend = "uv_build"
 module-name = "gem"
 # Icons are downloaded locally by fetch_hero_icons.py / fetch_item_icons.py
 # and must not be shipped in the published wheel.
-exclude-packages = ["gem.data.hero_icons", "gem.data.item_icons"]
+source-exclude = [
+    ".DS_Store",
+    "._*",
+    "/src/gem/data/hero_icons",
+    "/src/gem/data/item_icons",
+]
 
 [dependency-groups]
 dev = [
@@ -60,7 +65,12 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-v --tb=short"
+addopts = [
+    "-v",
+    "--tb=short",
+    "-m",
+    "not slow and not integration",
+]
 markers = [
     "slow: marks tests that require real replay files",
     "integration: marks integration tests against full replays",

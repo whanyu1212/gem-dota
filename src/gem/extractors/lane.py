@@ -7,7 +7,7 @@ mapped to one of five zones; the hero is classified by whichever zone
 accumulates the most dwell ticks; if the dominant zone covers less than
 ``_ZONE_DOMINANCE_FRAC`` of total ticks the hero is classified as roaming.
 
-The coordinate system and map bounds are calibrated against Game_map_7.40.jpg:
+The coordinate system and map bounds are calibrated against assets/maps/Game_map_7.40.jpg:
   - Radiant fountain: (9684, 9684) — bottom-left
   - Dire fountain: (23120, 22350) — top-right
   - Map X range: 7563–25900, Y range: 7800–25600

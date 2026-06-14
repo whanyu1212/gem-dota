@@ -16,7 +16,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
-DEFAULT_IMAGE = REPO_ROOT / "tests" / "fixtures" / "camp_annotated.png"
+DEFAULT_IMAGE = REPO_ROOT / "assets" / "maps" / "camp_annotated.png"
 DEFAULT_ZONES = REPO_ROOT / "src" / "gem" / "data" / "camp_zones.json"
 DEFAULT_OUT = Path("/tmp/camp_zones_overlay_preview.png")
 

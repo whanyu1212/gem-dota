@@ -31,7 +31,7 @@ Usage
     uv run python scripts/benchmark.py --runs 3
 
     # Single file
-    uv run python scripts/benchmark.py --file tests/fixtures/8520062186.dem
+    uv run python scripts/benchmark.py --file tests/fixtures/opendota/8822520406.dem
 
     # Full cProfile dump (slowest but most detailed)
     uv run python scripts/benchmark.py --profile
@@ -56,11 +56,12 @@ if TYPE_CHECKING:
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 FIXTURES_DIR = REPO_ROOT / "tests" / "fixtures"
+OPENDOTA_FIXTURES_DIR = FIXTURES_DIR / "opendota"
 
 # Default replay files used when no --file is given.
 DEFAULT_FILES: list[Path] = [
-    FIXTURES_DIR / "ti14_finals_g3_xg_vs_falcons.dem",
-    FIXTURES_DIR / "8520062186.dem",
+    OPENDOTA_FIXTURES_DIR / "8822520406.dem",
+    OPENDOTA_FIXTURES_DIR / "8822593932.dem",
 ]
 
 
