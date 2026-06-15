@@ -1,9 +1,13 @@
-"""Bit-level reader for Dota 2 Source 2 replay binary data.
+"""Low-level bit reader for Source 2 replay payloads.
 
-Provides LSB-first bit reading, varint decoding, and all primitive
-read operations required by the replay parsing pipeline.
+Source 2 replay files and nested net-message payloads mix byte-aligned
+protobuf messages with custom LSB-first bitstreams. This module provides the
+primitive reads needed to move through those packed sections: bits, bytes,
+protobuf-style varints, Source 2 variable-width integers, strings, coordinates,
+angles, and compressed normal vectors.
 
-Reference: manta/reader.go
+Reference:
+    manta/reader.go
 """
 
 from __future__ import annotations
@@ -12,16 +16,17 @@ import math
 import struct
 
 
-class BufferError(Exception):
-    """Raised when a read operation exceeds the available buffer."""
+class BufferReadError(EOFError):
+    """Raised when a reader operation runs past the available buffer."""
 
 
 class BitReader:
-    """Reads bits and structured values from a byte buffer in LSB-first order.
+    """Stateful reader for Source 2's LSB-first binary encodings.
 
-    The internal bit buffer accumulates bytes on demand, consuming them
-    in least-significant-bit order. Byte-aligned reads use fast paths
-    via struct.unpack to avoid per-bit overhead.
+    The reader owns a small bit cache over the source buffer. Callers can mix
+    bit, byte, varint, string, and Source network value reads without managing
+    alignment themselves. Byte-aligned reads use fast paths via ``struct``;
+    unaligned reads continue from the cached bit position.
 
     Args:
         buf: The raw bytes to read from.
@@ -41,16 +46,16 @@ class BitReader:
     # ------------------------------------------------------------------
 
     def _next_byte(self) -> int:
-        """Read the next raw byte from the buffer.
+        """Read the next physical byte from the backing buffer.
 
         Returns:
-            int: The next byte as an integer (0–255).
+            int: The next byte as an integer in the range 0..255.
 
         Raises:
-            BufferError: If the buffer is exhausted.
+            BufferReadError: If the buffer is exhausted.
         """
         if self._pos >= self._size:
-            raise BufferError(
+            raise BufferReadError(
                 f"insufficient buffer: need 1 byte at pos {self._pos}, size {self._size}"
             )
         b = self._buf[self._pos]
@@ -62,19 +67,20 @@ class BitReader:
     # ------------------------------------------------------------------
 
     def read_bits(self, n: int) -> int:
-        """Read n bits from the buffer in LSB-first order.
+        """Read ``n`` bits in Source 2's LSB-first order.
 
         Refills the bit buffer in 4-byte chunks using struct.unpack_from
         when possible to reduce Python loop iterations.
 
         Args:
-            n: Number of bits to read (0 ≤ n ≤ 32).
+            n: Number of bits to read. Current callers use values in the
+                range 0..32.
 
         Returns:
-            int: The unsigned integer value of the n bits read.
+            int: The unsigned integer value represented by the consumed bits.
 
         Raises:
-            BufferError: If the buffer is exhausted before n bits are read.
+            BufferReadError: If the buffer is exhausted before n bits are read.
         """
         while n > self._bit_count:
             # Fast path: load 4 bytes at once if available
@@ -89,7 +95,7 @@ class BitReader:
                 self._bit_val |= self._next_byte() << self._bit_count
                 self._bit_count += 8
             else:
-                raise BufferError(
+                raise BufferReadError(
                     f"insufficient buffer: need {n} bits at pos {self._pos}, size {self._size}"
                 )
 
@@ -99,7 +105,7 @@ class BitReader:
         return x
 
     def read_boolean(self) -> bool:
-        """Read a single bit as a boolean.
+        """Read one bit and interpret it as a boolean.
 
         Returns:
             bool: True if the bit is 1, False if 0.
@@ -123,19 +129,32 @@ class BitReader:
     # ------------------------------------------------------------------
 
     def _read_byte(self) -> int:
-        """Read a single byte, using a fast path when bit-aligned.
+        """Read one logical byte from the current bit position.
 
         Returns:
-            int: The byte value (0–255).
+            int: The byte value in the range 0..255.
         """
         if self._bit_count == 0:
             return self._next_byte()
         return self.read_bits(8)
 
-    def read_bytes(self, n: int) -> bytes:
-        """Read exactly n bytes from the buffer.
+    def _read_bytes_slow(self, n: int) -> bytes:
+        """Read ``n`` bytes using the original byte-by-byte bit path.
 
-        Uses a zero-copy slice when bit-aligned, otherwise reads byte by byte.
+        This is intentionally kept as the correctness fallback for odd reader
+        states and for benchmark comparisons against the optimized path.
+        """
+        out = bytearray(n)
+        for i in range(n):
+            out[i] = self.read_bits(8)
+        return bytes(out)
+
+    def read_bytes(self, n: int) -> bytes:
+        """Read exactly ``n`` logical bytes from the current position.
+
+        Uses slices for byte-aligned reads and a bulk compose path for
+        unaligned reads. Falls back to ``_read_bytes_slow`` for very small
+        or unusual states where the original implementation is simpler.
 
         Args:
             n: Number of bytes to read.
@@ -144,25 +163,76 @@ class BitReader:
             bytes: The n bytes read.
 
         Raises:
-            BufferError: If fewer than n bytes remain.
+            BufferReadError: If fewer than n bytes remain.
         """
+        if n == 0:
+            return b""
+
         if self._bit_count == 0:
             end = self._pos + n
             if end > self._size:
-                raise BufferError(
+                raise BufferReadError(
                     f"insufficient buffer: need {n} bytes at pos {self._pos}, size {self._size}"
                 )
             chunk = self._buf[self._pos : end]
             self._pos = end
             return chunk
 
-        out = bytearray(n)
-        for i in range(n):
-            out[i] = self.read_bits(8)
-        return bytes(out)
+        remaining_bits = (self._size - self._pos) * 8 + self._bit_count
+        if n * 8 > remaining_bits:
+            raise BufferReadError(
+                f"insufficient buffer: need {n} bytes at pos {self.position()}, size {self._size}"
+            )
+
+        # Keep the old path for tiny reads; it avoids setup overhead and gives
+        # us a local reference implementation for tests and benchmark toggles.
+        if n <= 2:
+            return self._read_bytes_slow(n)
+
+        parts: list[bytes] = []
+        remaining = n
+
+        # The bit cache may hold one or more whole logical bytes because
+        # read_bits()/peek_bits() prefetch in chunks. Drain those before
+        # touching the backing buffer.
+        cached_bytes = min(remaining, self._bit_count // 8)
+        if cached_bytes:
+            cached_mask = (1 << (cached_bytes * 8)) - 1
+            parts.append((self._bit_val & cached_mask).to_bytes(cached_bytes, "little"))
+            self._bit_val >>= cached_bytes * 8
+            self._bit_count -= cached_bytes * 8
+            remaining -= cached_bytes
+
+        if remaining == 0:
+            return b"".join(parts)
+
+        if self._bit_count == 0:
+            end = self._pos + remaining
+            parts.append(self._buf[self._pos : end])
+            self._pos = end
+            return b"".join(parts)
+
+        # General unaligned case. If the cache has s bits (1..7), each output
+        # byte is those carry bits plus the low 8-s bits of the next physical
+        # byte. Reading exactly `remaining` physical bytes leaves s carry bits.
+        start = self._pos
+        end = start + remaining
+        carry_bits = self._bit_count
+        raw = memoryview(self._buf)[start:end]
+        combined = self._bit_val | (int.from_bytes(raw, "little") << carry_bits)
+        packed = combined.to_bytes(remaining + 1, "little")
+
+        parts.append(packed[:remaining])
+        self._bit_val = combined >> (remaining * 8)
+        self._bit_count = carry_bits
+        self._pos = end
+        return b"".join(parts)
 
     def read_bits_as_bytes(self, n: int) -> bytes:
-        """Read n bits, returning them packed into bytes.
+        """Read ``n`` bits and return them packed into bytes.
+
+        Full bytes are emitted in stream order. If ``n`` is not divisible by
+        8, the final output byte contains the remaining low-order bits.
 
         Args:
             n: Number of bits to read (need not be a multiple of 8).
@@ -203,17 +273,17 @@ class BitReader:
     # ------------------------------------------------------------------
 
     def read_varuint32(self) -> int:
-        """Read an unsigned 32-bit variable-length integer.
+        """Read an unsigned 32-bit protobuf-style varint.
 
         Uses a continuation-bit scheme: the low 7 bits of each byte
         contribute to the value; the high bit signals more bytes follow.
-        Stops after 5 bytes (35 bits) to prevent overflow.
+        Mirrors Manta by stopping after at most 5 bytes.
 
         Returns:
             int: The decoded unsigned 32-bit integer.
 
         Raises:
-            BufferError: If the buffer is exhausted mid-varint.
+            BufferReadError: If the buffer is exhausted mid-varint.
         """
         x = 0
         s = 0
@@ -226,9 +296,10 @@ class BitReader:
         return x
 
     def read_varint32(self) -> int:
-        """Read a signed 32-bit variable-length integer using zigzag encoding.
+        """Read a signed 32-bit protobuf-style varint using zigzag decoding.
 
-        Zigzag maps: 0→0, -1→1, 1→2, -2→3, 2→4, …
+        Zigzag maps signed values onto unsigned varints:
+        0 -> 0, -1 -> 1, 1 -> 2, -2 -> 3, 2 -> 4, ...
 
         Returns:
             int: The decoded signed 32-bit integer.
@@ -240,13 +311,13 @@ class BitReader:
         return x & 0xFFFFFFFF if x >= 0 else x | ~0xFFFFFFFF
 
     def read_varuint64(self) -> int:
-        """Read an unsigned 64-bit variable-length integer.
+        """Read an unsigned 64-bit protobuf-style varint.
 
         Returns:
             int: The decoded unsigned 64-bit integer.
 
         Raises:
-            BufferError: If the buffer is exhausted mid-varint.
+            BufferReadError: If the buffer is exhausted mid-varint.
             OverflowError: If the encoded value exceeds uint64 range.
         """
         x = 0
@@ -262,7 +333,7 @@ class BitReader:
         raise OverflowError("varuint64 overflows uint64")
 
     def read_varint64(self) -> int:
-        """Read a signed 64-bit variable-length integer using zigzag encoding.
+        """Read a signed 64-bit protobuf-style varint using zigzag decoding.
 
         Returns:
             int: The decoded signed 64-bit integer.
@@ -278,14 +349,15 @@ class BitReader:
     # ------------------------------------------------------------------
 
     def read_ubit_var(self) -> int:
-        """Read a variable-length uint32 using a 6-bit group with 2-bit size hint.
+        """Read Source 2's ``UBitVar`` unsigned integer encoding.
 
-        The top 2 bits of the initial 6-bit read encode how many more bits
-        follow for the value:
-          - 0b00 → no extension (value fits in low 4 bits)
-          - 0b01 → 4 more bits
-          - 0b10 → 8 more bits
-          - 0b11 → 28 more bits
+        The low 4 bits of the initial 6-bit group hold the base value. The
+        top 2 bits of that group select how many extension bits follow:
+
+        - ``0b00``: no extension
+        - ``0b01``: read 4 more bits
+        - ``0b10``: read 8 more bits
+        - ``0b11``: read 28 more bits
 
         Returns:
             int: The decoded unsigned integer.
@@ -301,10 +373,11 @@ class BitReader:
         return ret
 
     def read_ubit_var_fp(self) -> int:
-        """Read a variable-length uint32 using field-path encoding.
+        """Read Source 2's field-path variable-width integer encoding.
 
-        Reads progressively more bits until a terminating condition,
-        choosing among 2, 4, 10, 17, or 31-bit encodings.
+        A sequence of selector bits chooses a 2-, 4-, 10-, 17-, or 31-bit
+        payload. Field-path operations use this compact form heavily when
+        addressing changed entity fields.
 
         Returns:
             int: The decoded unsigned integer.
@@ -324,7 +397,7 @@ class BitReader:
     # ------------------------------------------------------------------
 
     def read_float(self) -> float:
-        """Read an IEEE 754 single-precision float (little-endian).
+        """Read a little-endian IEEE 754 single-precision float.
 
         Returns:
             float: The decoded float32 value.
@@ -332,10 +405,11 @@ class BitReader:
         return struct.unpack_from("<f", self.read_bytes(4))[0]
 
     def read_coord(self) -> float:
-        """Read a Source Engine network coordinate as a float.
+        """Read a Source network coordinate.
 
         Coordinates are encoded as integer + fractional parts with a sign bit.
-        An integer part of n is stored as (n - 1), giving a range of 1–16384.
+        An integer part of ``n`` is stored as ``n - 1``, giving a range of
+        1..16384.
         The fractional part provides 1/32 precision over 5 bits.
 
         Returns:
@@ -355,7 +429,7 @@ class BitReader:
         return -value if negative else value
 
     def read_angle(self, n: int) -> float:
-        """Read a bit-encoded angle of n bits, mapping to [0, 360) degrees.
+        """Read an angle encoded in ``n`` bits, mapped to [0, 360) degrees.
 
         Args:
             n: Bit width of the encoded angle.
@@ -366,9 +440,9 @@ class BitReader:
         return self.read_bits(n) * 360.0 / (1 << n)
 
     def read_normal(self) -> float:
-        """Read a normalised float in the range [-1, 1] using 12 bits.
+        """Read a normalized float in the range [-1, 1].
 
-        Encoded as a sign bit followed by an 11-bit magnitude.
+        The value is encoded as a sign bit followed by an 11-bit magnitude.
 
         Returns:
             float: The normalised float value.
@@ -379,10 +453,11 @@ class BitReader:
         return -value if negative else value
 
     def read_3bit_normal(self) -> list[float]:
-        """Read a 3-component normal vector using compressed encoding.
+        """Read a compressed three-component unit normal vector.
 
-        X and Y are each optionally present (1-bit flags), Z is derived
-        from the constraint |v|=1. A final sign bit negates Z if set.
+        X and Y are each guarded by a 1-bit presence flag. Z is derived from
+        the unit-vector constraint ``|v| = 1`` and may be negated by a final
+        sign bit.
 
         Returns:
             list[float]: A [x, y, z] unit vector.
@@ -420,13 +495,13 @@ class BitReader:
         return buf.decode("utf-8", errors="replace")
 
     def read_string_n(self, n: int) -> str:
-        """Read exactly n bytes and return them as a string.
+        """Read exactly ``n`` bytes and return them as a Latin-1 string.
 
         Args:
             n: Number of bytes to read.
 
         Returns:
-            str: The decoded string (may contain null bytes).
+            str: The decoded string, which may contain null bytes.
         """
         return self.read_bytes(n).decode("latin-1")
 
@@ -435,20 +510,21 @@ class BitReader:
     # ------------------------------------------------------------------
 
     def peek_bits(self, n: int) -> int:
-        """Read n bits without advancing the position.
+        """Return the next ``n`` bits without consuming logical bits.
 
-        Refills the internal bit buffer exactly as read_bits does, so the
-        reader is left in a state where a subsequent skip_bits(n) or
-        read_bits(n) will consume the same bits.
+        This may read ahead from the backing buffer to refill the internal
+        cache, but it does not remove bits from that cache. A subsequent
+        ``skip_bits(n)`` or ``read_bits(n)`` consumes the same value.
 
         Args:
-            n: Number of bits to peek (0 ≤ n ≤ 32).
+            n: Number of bits to peek. Current callers use values in the
+                range 0..32.
 
         Returns:
             int: The unsigned integer value of the next n bits.
 
         Raises:
-            BufferError: If fewer than n bits remain.
+            BufferReadError: If fewer than n bits remain.
         """
         while n > self._bit_count:
             remaining = self._size - self._pos
@@ -462,16 +538,17 @@ class BitReader:
                 self._bit_val |= self._next_byte() << self._bit_count
                 self._bit_count += 8
             else:
-                raise BufferError(
+                raise BufferReadError(
                     f"insufficient buffer: need {n} bits at pos {self._pos}, size {self._size}"
                 )
         return self._bit_val & ((1 << n) - 1)
 
     def skip_bits(self, n: int) -> None:
-        """Discard n bits that have already been loaded into the bit buffer.
+        """Discard ``n`` bits that are already loaded in the bit cache.
 
-        Must only be called after a peek_bits(n) that has already refilled
-        the buffer.  Does not refill — callers must ensure n ≤ _bit_count.
+        This helper does not refill or bounds-check. Callers should only use it
+        after ``peek_bits(n)`` or another operation has ensured that
+        ``n <= _bit_count``.
 
         Args:
             n: Number of bits to skip.
@@ -480,7 +557,7 @@ class BitReader:
         self._bit_count -= n
 
     def rem_bits(self) -> int:
-        """Return the number of unread bits remaining in the buffer.
+        """Return the number of logical unread bits remaining.
 
         Returns:
             int: Remaining bits count.
@@ -488,11 +565,13 @@ class BitReader:
         return (self._size - self._pos) * 8 + self._bit_count
 
     def position(self) -> str:
-        """Return a human-readable position string for debugging.
+        """Return a reader position string for debugging.
 
         Returns:
             str: Position as 'byte' or 'byte.bit_offset'.
         """
-        if self._bit_count > 0:
-            return f"{self._pos - 1}.{8 - self._bit_count}"
-        return str(self._pos)
+        consumed_bits = self._pos * 8 - self._bit_count
+        byte_pos, bit_offset = divmod(consumed_bits, 8)
+        if bit_offset:
+            return f"{byte_pos}.{bit_offset}"
+        return str(byte_pos)

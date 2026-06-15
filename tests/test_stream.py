@@ -4,6 +4,8 @@ Tests for gem.binary.stream — outer message reading and magic validation.
 Reference: manta/parser.go (NewStreamParser, readOuterMessage)
 """
 
+import builtins
+
 import pytest
 
 MAGIC_S2 = b"PBDEMS2\x00"
@@ -114,6 +116,18 @@ class TestOuterMessages:
         _, _, msg_data = messages[0]
         assert msg_data == b""
 
+    def test_path_source_context_manager_closes_resources(self, stream_cls, tmp_path):
+        path = tmp_path / "minimal.dem"
+        path.write_bytes(_build_dem([(5, 42, b"payload")]))
+
+        with stream_cls(path) as s:
+            assert list(s) == [(42, 5, b"payload")]
+            assert s._mmap is not None
+            assert s._fd is not None
+
+        assert s._mmap is None
+        assert s._fd is None
+
 
 class TestSnappyDecompression:
     def test_uncompressed_message(self, stream_cls):
@@ -147,3 +161,18 @@ class TestSnappyDecompression:
         s = stream_cls(bytes(buf))
         _, _, msg_data = list(s)[0]
         assert msg_data == payload
+
+    def test_snappy_missing_dependency_message(self, monkeypatch):
+        from gem.binary import stream as stream_mod
+
+        real_import = builtins.__import__
+
+        def fake_import(name, *args, **kwargs):
+            if name == "snappy":
+                raise ImportError("blocked for test")
+            return real_import(name, *args, **kwargs)
+
+        monkeypatch.setattr(builtins, "__import__", fake_import)
+
+        with pytest.raises(ImportError, match="python-snappy"):
+            stream_mod._snappy_decompress(b"not-snappy")

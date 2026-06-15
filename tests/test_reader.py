@@ -10,7 +10,7 @@ import struct
 
 import pytest
 
-from gem.binary.reader import BitReader, BufferError
+from gem.binary.reader import BitReader, BufferReadError
 
 # ---------------------------------------------------------------------------
 # Helpers to build raw byte sequences for testing
@@ -203,6 +203,17 @@ class TestReadLE:
 
 
 # ---------------------------------------------------------------------------
+# read_float
+# ---------------------------------------------------------------------------
+
+
+class TestReadFloat:
+    def test_float32_little_endian(self):
+        r = BitReader(struct.pack("<f", 12.5))
+        assert r.read_float() == pytest.approx(12.5)
+
+
+# ---------------------------------------------------------------------------
 # read_string / read_string_n
 # ---------------------------------------------------------------------------
 
@@ -263,10 +274,8 @@ class TestBoundary:
         assert r.rem_bits() == 8
 
     def test_empty_buffer_raises(self, reader_cls):
-        from gem.binary.reader import BufferError as GemBufferError
-
         r = reader_cls(b"")
-        with pytest.raises(GemBufferError):
+        with pytest.raises(BufferReadError):
             r.read_bits(1)
 
 
@@ -291,27 +300,68 @@ def _bytes_r(*byte_vals: int) -> BitReader:
     return BitReader(bytes(byte_vals))
 
 
+def _drain_bits_for_comparison(r: BitReader) -> list[tuple[int, int]]:
+    """Drain a reader in varied chunk sizes for logical-state comparison."""
+    chunks: list[tuple[int, int]] = []
+    chunk_sizes = (1, 2, 3, 5, 8, 13, 21, 32, 7)
+    i = 0
+    while r.rem_bits() > 0:
+        n = min(chunk_sizes[i % len(chunk_sizes)], r.rem_bits())
+        chunks.append((n, r.read_bits(n)))
+        i += 1
+    return chunks
+
+
+def _assert_read_bytes_matches_slow(data: bytes, skip_bits: int, n: int) -> None:
+    """Compare optimized read_bytes against the preserved slow implementation."""
+    fast = BitReader(data)
+    slow = BitReader(data)
+
+    if skip_bits:
+        assert fast.read_bits(skip_bits) == slow.read_bits(skip_bits)
+
+    assert fast.read_bytes(n) == slow._read_bytes_slow(n)
+    assert fast.position() == slow.position()
+    assert fast.rem_bits() == slow.rem_bits()
+    assert _drain_bits_for_comparison(fast) == _drain_bits_for_comparison(slow)
+
+
 # ---------------------------------------------------------------------------
-# BufferError
+# BufferReadError
 # ---------------------------------------------------------------------------
 
 
-class TestBufferError:
+class TestBufferReadError:
+    def test_subclasses_eof_error(self):
+        assert issubclass(BufferReadError, EOFError)
+
+    def test_old_buffer_error_name_is_not_exported(self):
+        import gem.binary as binary
+        import gem.binary.reader as reader
+
+        assert not hasattr(reader, "BufferError")
+        assert not hasattr(binary, "BufferError")
+
     def test_read_bits_exhausted(self):
         r = BitReader(b"\xff")
         r.read_bits(8)  # consume all
-        with pytest.raises(BufferError):
+        with pytest.raises(BufferReadError):
             r.read_bits(1)
+
+    def test_read_boolean_empty_buffer_exhausted(self):
+        r = BitReader(b"")
+        with pytest.raises(BufferReadError):
+            r.read_boolean()
 
     def test_read_bytes_too_many(self):
         r = BitReader(b"\x01\x02")
-        with pytest.raises(BufferError):
+        with pytest.raises(BufferReadError):
             r.read_bytes(3)
 
     def test_read_bytes_unaligned_exhausted(self):
         r = BitReader(b"\xff")
         r.read_bits(1)  # partial byte → unaligned
-        with pytest.raises(BufferError):
+        with pytest.raises(BufferReadError):
             r.read_bytes(2)
 
 
@@ -322,18 +372,53 @@ class TestBufferError:
 
 class TestReadBytesUnaligned:
     def test_unaligned_read_bytes(self):
-        # After reading 4 bits, read_bytes must use the unaligned (bit-by-bit) path
         r = BitReader(bytes([0b10110100, 0b00001010]))
         r.read_bits(4)  # consume low nibble, now unaligned
         result = r.read_bytes(1)
-        assert len(result) == 1
         # Low nibble of second byte's contribution follows the high nibble of first
-        assert isinstance(result, bytes)
+        assert result == b"\xab"
+
+    def test_read_bytes_matches_slow_fallback_across_offsets_sizes_and_data(self):
+        patterns = [
+            b"\x00" * 96,
+            b"\xff" * 96,
+            bytes(range(96)),
+            bytes(reversed(range(96))),
+            bytes((i * 37 + 11) & 0xFF for i in range(96)),
+            b"\xaa\x55" * 48,
+        ]
+        candidate_lengths = (0, 1, 2, 3, 4, 5, 7, 8, 15, 16, 17, 31, 32, 33, 63, 64, 65, 83)
+
+        for data in patterns:
+            for skip_bits in range(8):
+                max_n = (len(data) * 8 - skip_bits) // 8
+                for n in candidate_lengths:
+                    if n <= max_n:
+                        _assert_read_bytes_matches_slow(data, skip_bits, n)
+
+    def test_unaligned_bulk_path_returns_expected_bytes(self):
+        data = bytes(range(1, 80))
+        skip_bits = 6
+        n = 24
+        r = BitReader(data)
+        r.read_bits(skip_bits)
+
+        expected_int = (int.from_bytes(data, "little") >> skip_bits) & ((1 << (n * 8)) - 1)
+        assert r.read_bytes(n) == expected_int.to_bytes(n, "little")
 
     def test_aligned_fast_path(self):
         r = BitReader(b"\xab\xcd")
         result = r.read_bytes(2)
         assert result == b"\xab\xcd"
+
+    def test_cached_byte_aligned_fast_path_after_peek(self):
+        r = BitReader(b"\x01\x02\x03\x04\x05")
+        assert r.peek_bits(16) == 0x0201
+        assert r.position() == "0"
+
+        assert r.read_bytes(5) == b"\x01\x02\x03\x04\x05"
+        assert r.position() == "5"
+        assert r.rem_bits() == 0
 
 
 # ---------------------------------------------------------------------------
@@ -346,6 +431,11 @@ class TestReadBitsAsBytes:
         r = BitReader(b"\xab\xcd")
         result = r.read_bits_as_bytes(16)
         assert result == b"\xab\xcd"
+
+    def test_full_byte_from_unaligned_position(self):
+        r = BitReader(b"\xf0\x0f")
+        assert r.read_bits(4) == 0
+        assert r.read_bits_as_bytes(8) == b"\xff"
 
     def test_remainder_bits(self):
         # read_bits_as_bytes(10) = 1 full byte + 2 remainder bits
@@ -379,6 +469,12 @@ class TestReadVarint64:
     def test_overflow_9th_byte(self):
         # 10 bytes all with continuation bit set → last byte > 1 → overflow
         data = bytes([0x80] * 9 + [0x02])
+        r = BitReader(data)
+        with pytest.raises(OverflowError):
+            r.read_varuint64()
+
+    def test_overflow_after_ten_continuation_bytes(self):
+        data = bytes([0x80] * 10)
         r = BitReader(data)
         with pytest.raises(OverflowError):
             r.read_varuint64()
@@ -611,6 +707,33 @@ class TestRead3BitNormal:
 
 
 # ---------------------------------------------------------------------------
+# peek_bits / skip_bits
+# ---------------------------------------------------------------------------
+
+
+class TestPeekSkipBits:
+    def test_peek_bits_does_not_consume_logical_position(self):
+        r = BitReader(b"\xab\xcd\x00\x00")
+        assert r.position() == "0"
+        assert r.peek_bits(8) == 0xAB
+        assert r.position() == "0"
+        assert r.read_bits(8) == 0xAB
+        assert r.position() == "1"
+
+    def test_skip_bits_consumes_peeked_bits(self):
+        r = BitReader(b"\xab")
+        assert r.peek_bits(4) == 0xB
+        r.skip_bits(4)
+        assert r.read_bits(4) == 0xA
+        assert r.rem_bits() == 0
+
+    def test_peek_bits_exhausted(self):
+        r = BitReader(b"\xff")
+        with pytest.raises(BufferReadError):
+            r.peek_bits(9)
+
+
+# ---------------------------------------------------------------------------
 # position()
 # ---------------------------------------------------------------------------
 
@@ -624,8 +747,15 @@ class TestPosition:
     def test_unaligned_position(self):
         r = BitReader(b"\xff")
         r.read_bits(3)
-        pos = r.position()
-        assert "." in pos  # format: "byte.bit_offset"
+        assert r.position() == "0.3"
+
+    def test_position_after_4_byte_prefetch(self):
+        r = BitReader(b"\xff\x00\x00\x00")
+        assert r.read_bits(1) == 1
+        assert r.position() == "0.1"
+        assert r.rem_bits() == 31
+        assert r.read_bits(7) == 0x7F
+        assert r.position() == "1"
 
     def test_initial_position(self):
         r = BitReader(b"\x00")

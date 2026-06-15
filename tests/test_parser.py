@@ -24,6 +24,7 @@ from unittest.mock import MagicMock, patch
 
 import gem.parser as parser_module
 import gem.results.models as model_module
+from gem.binary.reader import BitReader
 from gem.parser import (
     _DEM_FILE_INFO,
     _DOTA_UM_CHAT_EVENT,
@@ -142,6 +143,21 @@ class TestReadInnerMessages:
         result = _read_inner_messages(blob)
         assert len(result) == 1
         assert result[0] == (4, b"")
+
+    def test_fast_read_bytes_matches_slow_fallback_for_inner_messages(self):
+        msgs = [
+            (4, b"tick"),
+            (44, bytes(range(64))),
+            (55, bytes((i * 13 + 7) & 0xFF for i in range(300))),
+            (554, b"combat-log-entry"),
+        ]
+        blob = _make_inner_blob(msgs)
+
+        fast_result = _read_inner_messages(blob)
+        with patch.object(BitReader, "read_bytes", BitReader._read_bytes_slow):
+            slow_result = _read_inner_messages(blob)
+
+        assert fast_result == slow_result == msgs
 
 
 # ---------------------------------------------------------------------------

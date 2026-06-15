@@ -1,11 +1,16 @@
-"""Outer message stream reader for Dota 2 Source 2 replay files.
+"""Outer message stream reader for Source 2 replay files.
 
-Validates the file magic, then iterates outer demo messages, each
-yielding a (tick, msg_type, payload) tuple. Handles Snappy
-decompression when the DEM_IsCompressed flag is present.
+``DemoStream`` validates the replay header, skips the unused file metadata, and
+iterates the top-level demo-message frames. Each frame yields the game tick, the
+``EDemoCommands`` message type, and the raw payload bytes after any outer Snappy
+compression has been handled.
 
-Reference: manta/parser.go (NewStreamParser, readOuterMessage)
-           manta/stream.go
+The payloads are usually protobuf messages, but this module does not parse
+them. Higher layers choose the generated protobuf class for each message type.
+
+References:
+    manta/parser.go (NewStreamParser, readOuterMessage)
+    manta/stream.go
 """
 
 from __future__ import annotations
@@ -24,12 +29,13 @@ _PREGAME_TICK = 0xFFFFFFFF
 
 @dataclass(frozen=True, slots=True)
 class OuterMessage:
-    """A single decoded outer demo message.
+    """A single top-level demo message frame.
 
     Attributes:
-        tick: Game tick this message belongs to (pre-game normalised to 0).
-        msg_type: EDemoCommands value identifying the message type.
-        data: Raw (decompressed) protobuf payload bytes.
+        tick: Game tick this message belongs to. The pre-game sentinel tick is
+            normalized to 0.
+        msg_type: ``EDemoCommands`` value with ``DEM_IsCompressed`` stripped.
+        data: Raw payload bytes after outer compression has been handled.
     """
 
     tick: int
@@ -38,20 +44,21 @@ class OuterMessage:
 
 
 class DemoStream:
-    """Iterates outer messages from a Source 2 .dem file.
+    """Iterate outer demo-message frames from a Source 2 ``.dem`` source.
 
-    Accepts either a raw byte buffer or a file path. When given a path,
-    the file is memory-mapped so large replays are not fully loaded into
-    RAM before iteration begins.
+    Accepts either a raw byte buffer or a filesystem path. Path sources are
+    memory-mapped so large replays are not copied fully into Python-managed
+    memory before iteration begins.
 
-    Validates the magic header on construction, then exposes the message
-    stream via iteration. Each step yields a (tick, msg_type, data) tuple.
+    Construction validates the Source 2 magic header and skips the two int32
+    metadata fields that follow it. Iteration then yields unpackable
+    ``(tick, msg_type, data)`` tuples for each outer frame.
 
     Args:
-        source: A bytes buffer or a str/Path pointing to a .dem file.
+        source: A bytes buffer or a ``str``/``Path`` pointing to a ``.dem`` file.
 
     Raises:
-        ValueError: If the magic bytes do not match PBDEMS2.
+        ValueError: If the magic bytes do not match ``PBDEMS2\\x00``.
     """
 
     def __init__(self, source: bytes | str | Path) -> None:
@@ -89,7 +96,7 @@ class DemoStream:
         """Read and validate the 8-byte Source 2 magic header.
 
         Raises:
-            ValueError: If the header does not match 'PBDEMS2\\x00'.
+            ValueError: If the header does not match ``PBDEMS2\\x00``.
         """
         magic = self._buf[self._pos : self._pos + 8]
         self._pos += 8
@@ -97,10 +104,11 @@ class DemoStream:
             raise ValueError(f"unexpected magic: expected {_MAGIC_S2!r}, got {magic!r}")
 
     def _read_varuint32(self) -> int:
-        """Read an unsigned 32-bit varint from the raw buffer.
+        """Read an unsigned 32-bit varint from the outer stream.
 
-        Operates directly on self._buf / self._pos for performance,
-        avoiding a BitReader allocation per outer message.
+        This duplicates the small varint loop from ``BitReader`` directly over
+        ``self._buf`` and ``self._pos`` so the stream does not allocate a reader
+        object for every top-level message frame.
 
         Returns:
             int: The decoded varuint32 value.
@@ -117,10 +125,13 @@ class DemoStream:
         return x
 
     def _read_message(self) -> OuterMessage | None:
-        """Read and decode the next outer message from the buffer.
+        """Read the next outer message frame from the stream.
+
+        The returned payload has already been Snappy-decompressed if the
+        ``DEM_IsCompressed`` flag was present on the command.
 
         Returns:
-            OuterMessage if a message was read, or None at end of stream.
+            OuterMessage if a frame was read, or None at end of stream.
         """
         if self._pos >= len(self._buf):
             return None
@@ -146,8 +157,8 @@ class DemoStream:
         """Iterate over all outer messages in the replay.
 
         Yields:
-            tuple[int, int, bytes]: A (tick, msg_type, data) tuple for
-            each message. Unpackable directly::
+            tuple[int, int, bytes]: A ``(tick, msg_type, data)`` tuple for
+            each message frame. Unpackable directly::
 
                 for tick, msg_type, data in stream:
                     ...
@@ -160,7 +171,7 @@ class DemoStream:
 
 
 def _snappy_decompress(data: bytes) -> bytes:
-    """Decompress a Snappy-compressed payload.
+    """Decompress one Snappy-compressed outer payload.
 
     Args:
         data: Compressed bytes.
@@ -170,7 +181,7 @@ def _snappy_decompress(data: bytes) -> bytes:
 
     Raises:
         ImportError: If python-snappy is not installed.
-        Exception: If decompression fails.
+        Exception: If the underlying Snappy library rejects the payload.
     """
     try:
         import snappy

@@ -128,7 +128,7 @@ def read_varuint32(self) -> int:
         Decoded unsigned integer value.
 
     Raises:
-        BufferError: If the buffer is exhausted before the varint terminates.
+        BufferReadError: If the buffer is exhausted before the varint terminates.
     """
 ```
 
