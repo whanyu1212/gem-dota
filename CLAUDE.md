@@ -19,10 +19,10 @@ uv run pytest
 uv run pytest -m ""
 
 # Run a single test file
-uv run pytest tests/test_reader.py
+uv run pytest tests/binary/test_reader.py
 
 # Run a single test by name
-uv run pytest tests/test_reader.py::TestReadBits::test_read_8_bits
+uv run pytest tests/binary/test_reader.py::TestReadBits::test_read_8_bits
 
 # Run with coverage
 uv run pytest --cov=gem --cov-report=term-missing
@@ -373,8 +373,10 @@ state rather than trusting a static table here.
 ## Tests
 
 ~50 test files in `tests/`, conventionally one `test_<module>.py` per source
-module or subsystem (e.g. `test_reader.py` → `binary/reader.py`, `test_wards_extractor.py` →
-`extractors/wards.py`). Newer additions cover `analysis/map_context.py`,
+module or subsystem. Low-level binary tests are grouped under `tests/binary/`
+(e.g. `tests/binary/test_reader.py` → `binary/reader.py`), while broader
+subsystems stay flat when that is the established pattern (e.g.
+`test_wards_extractor.py` → `extractors/wards.py`). Newer additions cover `analysis/map_context.py`,
 `analysis/roshan.py`, neutral-item parsing, camp zones, and the audit/fetch
 scripts (`test_audit_camp_annotations.py`, `test_audit_opendota_fixture_constants.py`,
 `test_fetch_opendota_fixture.py`, `test_fetch_icons.py`, `test_render_camp_zones_overlay.py`).

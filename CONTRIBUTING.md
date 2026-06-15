@@ -154,10 +154,10 @@ uv run mypy src/gem/
 uv run pytest
 
 # Single file
-uv run pytest tests/test_reader.py
+uv run pytest tests/binary/test_reader.py
 
 # Single test
-uv run pytest tests/test_reader.py::TestVarints::test_varuint32_multibyte
+uv run pytest tests/binary/test_reader.py::TestReadVarUint32::test_two_bytes
 
 # With coverage report
 uv run pytest --cov=gem --cov-report=html
@@ -175,7 +175,8 @@ uv run pytest -m "not slow and not integration"
 
 ### Writing tests
 
-- Tests live in `tests/` mirroring the module they cover
+- Tests live in `tests/` mirroring the module they cover; low-level binary tests
+  are grouped under `tests/binary/`
 - Use synthetic binary fixtures (construct minimal valid byte sequences) rather than real replay files for unit tests
 - Keep committed replay fixtures truncated. Full replay fixtures should stay ignored/local under `tests/fixtures/opendota/`.
 - Keep map/reference images for examples, reports, and camp-zone tooling under `assets/maps/`, not `tests/fixtures/`.
