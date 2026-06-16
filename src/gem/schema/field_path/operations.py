@@ -10,7 +10,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from gem.schema.field_path.model import FieldPath
+from gem.schema.field_path.models import FieldPath
 
 if TYPE_CHECKING:
     from gem.binary.reader import BitReader

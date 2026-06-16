@@ -5,7 +5,7 @@ from __future__ import annotations
 import heapq
 from dataclasses import dataclass, field
 
-from gem.schema.field_path.ops import FIELD_PATH_OPS
+from gem.schema.field_path.operations import FIELD_PATH_OPS
 
 
 @dataclass(order=True)

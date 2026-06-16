@@ -10,8 +10,8 @@ from gem.schema.field_path.huffman import (
     _HUFF_TABLE_BITS,
     HUFF_TREE,
 )
-from gem.schema.field_path.model import FieldPath
-from gem.schema.field_path.ops import FIELD_PATH_OPS
+from gem.schema.field_path.models import FieldPath
+from gem.schema.field_path.operations import FIELD_PATH_OPS
 
 if TYPE_CHECKING:
     from gem.binary.reader import BitReader
