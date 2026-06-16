@@ -447,6 +447,52 @@ class TestParseSendTables:
         assert parent_field.serializer is child
         assert parent_field.model == FIELD_MODEL_FIXED_TABLE
 
+    def test_duplicate_serializer_names_resolve_exact_requested_version(self):
+        from gem.proto.netmessages_pb2 import CSVCMsg_FlattenedSerializer
+        from gem.schema.sendtable import parse_send_tables
+
+        flattened = CSVCMsg_FlattenedSerializer(
+            symbols=[
+                "Parent",
+                "Child",
+                "Child*",
+                "m_child",
+                "uint32",
+                "m_v0",
+                "m_v1",
+            ],
+            serializers=[
+                {"serializer_name_sym": 1, "serializer_version": 0, "fields_index": [1]},
+                {"serializer_name_sym": 0, "serializer_version": 1, "fields_index": [0]},
+                {"serializer_name_sym": 1, "serializer_version": 1, "fields_index": [2]},
+            ],
+            fields=[
+                {
+                    "var_type_sym": 2,
+                    "var_name_sym": 3,
+                    "field_serializer_name_sym": 1,
+                    "field_serializer_version": 0,
+                },
+                {"var_type_sym": 4, "var_name_sym": 5},
+                {"var_type_sym": 4, "var_name_sym": 6},
+            ],
+        )
+
+        serializers = parse_send_tables(_wrap_flattened_serializer(flattened))
+
+        latest_child = serializers["Child"]
+        parent_field = serializers["Parent"].fields[0]
+        exact_child = parent_field.serializer
+
+        assert latest_child.version == 1
+        assert len(latest_child.fields) == 1
+        assert latest_child.fields[0].var_name == "m_v1"
+        assert exact_child is not None
+        assert exact_child.version == 0
+        assert len(exact_child.fields) == 1
+        assert exact_child.fields[0].var_name == "m_v0"
+        assert exact_child is not latest_child
+
     def test_root_send_node_normalized_to_empty_string(self):
         from gem.proto.netmessages_pb2 import CSVCMsg_FlattenedSerializer
         from gem.schema.sendtable import parse_send_tables
@@ -547,6 +593,22 @@ class TestParseSendTables:
                 ):
                     errors.append(f"{s.name}.{f.var_name}:{f.var_type}")
         assert not errors, f"Invalid variable-array fields: {errors[:5]}"
+
+    def test_real_fixture_resolves_cworld_body_component_version_zero(self, sendtable_data):
+        from gem.schema.sendtable import parse_send_tables
+
+        serializers = parse_send_tables(sendtable_data)
+        body_component = serializers["CWorld"].fields[3]
+        nested_field_names = [field.var_name for field in body_component.serializer.fields]
+
+        assert body_component.var_name == "CBodyComponent"
+        assert body_component.serializer_name == "CBodyComponentBaseModelEntity"
+        assert body_component.serializer_version == 0
+        assert body_component.serializer is not None
+        assert body_component.serializer.version == 0
+        assert len(body_component.serializer.fields) == 21
+        assert "m_angRotation" in nested_field_names
+        assert "m_nHitboxSet" in nested_field_names
 
     def test_serializer_repr(self, sendtable_data):
         from gem.schema.sendtable import parse_send_tables

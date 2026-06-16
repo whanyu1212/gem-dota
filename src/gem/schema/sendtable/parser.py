@@ -136,13 +136,38 @@ def _select_field_model(f: Field) -> int:
     return FIELD_MODEL_SIMPLE
 
 
+def _resolve_serializer_reference(
+    serializer_name: str,
+    serializer_version: int,
+    *,
+    owner_name: str,
+    field_name: str,
+    serializers_by_name: dict[str, Serializer],
+    serializers_by_key: dict[tuple[str, int], Serializer],
+) -> Serializer:
+    """Resolve a nested serializer reference, preferring an exact version match."""
+    exact_match = serializers_by_key.get((serializer_name, serializer_version))
+    if exact_match is not None:
+        return exact_match
+
+    fallback = serializers_by_name.get(serializer_name)
+    if fallback is not None:
+        return fallback
+
+    raise ValueError(
+        f"unresolved serializer reference {serializer_name!r} "
+        f"(version {serializer_version}) for {owner_name}.{field_name}"
+    )
+
+
 def _get_or_build_field(
     idx: int,
     *,
     owner_name: str,
     msg: CSVCMsg_FlattenedSerializer,
     symbols: list[str],
-    serializers: dict[str, Serializer],
+    serializers_by_name: dict[str, Serializer],
+    serializers_by_key: dict[tuple[str, int], Serializer],
     field_type_cache: dict[str, FieldType],
     field_cache: dict[int, Field],
     active_patches: list[_FieldPatch],
@@ -165,12 +190,14 @@ def _get_or_build_field(
     f.field_type = field_type_cache[f.var_type]
 
     if f.serializer_name:
-        f.serializer = serializers.get(f.serializer_name)
-        if f.serializer is None:
-            raise ValueError(
-                f"unresolved serializer reference {f.serializer_name!r} "
-                f"for {owner_name}.{f.var_name}"
-            )
+        f.serializer = _resolve_serializer_reference(
+            f.serializer_name,
+            f.serializer_version,
+            owner_name=owner_name,
+            field_name=f.var_name,
+            serializers_by_name=serializers_by_name,
+            serializers_by_key=serializers_by_key,
+        )
 
     for patch in active_patches:
         patch.patch(f)
@@ -199,15 +226,17 @@ def parse_send_tables(data: bytes, game_build: int = 0) -> dict[str, Serializer]
     active_patches = [p for p in _FIELD_PATCHES if p.should_apply(game_build)]
     field_type_cache: dict[str, FieldType] = {}
     field_cache: dict[int, Field] = {}
-    serializers: dict[str, Serializer] = {}
+    serializers_by_name: dict[str, Serializer] = {}
+    serializers_by_key: dict[tuple[str, int], Serializer] = {}
     serializer_entries: list[tuple[str, ProtoFlattenedSerializer_t, Serializer]] = []
 
-    # First allocate every serializer by name so fields can resolve references
-    # to serializers declared later in the flattened payload.
+    # First allocate every serializer instance so fields can resolve references
+    # to later declarations while still honoring duplicate name/version pairs.
     for s_proto in msg.serializers:
         s_name = _symbol(symbols, s_proto.serializer_name_sym, "serializer_name")
         serializer = Serializer(name=s_name, version=s_proto.serializer_version)
-        serializers[s_name] = serializer
+        serializers_by_name[s_name] = serializer
+        serializers_by_key[(s_name, serializer.version)] = serializer
         serializer_entries.append((s_name, s_proto, serializer))
 
     # Then populate fields once all serializer names are available.
@@ -218,7 +247,8 @@ def parse_send_tables(data: bytes, game_build: int = 0) -> dict[str, Serializer]
                 owner_name=s_name,
                 msg=msg,
                 symbols=symbols,
-                serializers=serializers,
+                serializers_by_name=serializers_by_name,
+                serializers_by_key=serializers_by_key,
                 field_type_cache=field_type_cache,
                 field_cache=field_cache,
                 active_patches=active_patches,
@@ -226,4 +256,4 @@ def parse_send_tables(data: bytes, game_build: int = 0) -> dict[str, Serializer]
             )
             serializer.fields.append(field_obj)
 
-    return serializers
+    return serializers_by_name
