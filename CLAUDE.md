@@ -70,7 +70,7 @@ binary/reader.py          ← BitReader, all bit/byte/varint primitives
 binary/stream.py          ← outer message loop, Snappy decompress, magic check
 schema/sendtable/         ← serializer + field tree package (requires reader)
 schema/field_decoder.py   ← type-dispatch decoders + QuantizedFloatDecoder
-schema/field_path.py      ← Huffman-coded field path ops (requires reader)
+schema/field_path/        ← Huffman-coded field path package (requires reader)
 schema/field_state.py     ← nested mutable field-value tree (mirrors manta/field_state.go)
 schema/field_reader.py    ← field decoder dispatch + entity field reading (mirrors manta/field_reader.go)
 state/string_table.py           ← incremental key-history string tables
@@ -183,7 +183,7 @@ The CLI is `python -m gem`; `__main__.py` is a small adapter over `gem.cli`.
 
 Entities are game objects (heroes, towers, items, game rules). Their schema is defined in `CDemoSendTables` → `CSVCMsg_FlattenedSerializer`, parsed into a tree of `Serializer` → `Field` objects. Each field has a decoder function resolved once at schema-parse time.
 
-Entity state arrives as `CSVCMsg_PacketEntities`. Each packet carries a list of (index, 2-bit command, field deltas). Field deltas use Huffman-coded field paths (40 ops, `schema/field_path.py`) to address into the serializer tree, then the field's decoder reads the value from the bit stream.
+Entity state arrives as `CSVCMsg_PacketEntities`. Each packet carries a list of (index, 2-bit command, field deltas). Field deltas use Huffman-coded field paths (40 ops, `schema/field_path/`) to address into the serializer tree, then the field's decoder reads the value from the bit stream.
 
 The `instancebaseline` string table holds default field values per class — applied first when an entity is created, before the packet's own deltas.
 

@@ -66,6 +66,18 @@ class TestFieldPath:
         fp.plus_one()
         assert fp.path[0] == 6
 
+    def test_reset_restores_initial_state(self):
+        from gem.schema.field_path import FieldPath
+
+        fp = FieldPath()
+        fp.path[:] = [9, 8, 7, 6, 5, 4, 3]
+        fp.last = 4
+        fp.done = True
+        fp.reset()
+        assert fp.path == [-1, 0, 0, 0, 0, 0, 0]
+        assert fp.last == 0
+        assert fp.done is False
+
     def test_pop_reduces_depth(self):
         from gem.schema.field_path import FieldPath
 
@@ -136,6 +148,18 @@ class TestReadFieldPaths:
         r = reader_cls(data)
         result = read_field_paths(r)
         assert result == []
+
+    def test_short_buffer_uses_table_refill(self, read_field_paths, reader_cls):
+        """A 3-byte stream exercises the optimized byte-at-a-time refill path.
+
+        The Huffman table currently peeks 17 bits. One-byte examples fall back
+        to the tree walk, while this payload has enough bits for table decoding
+        without enough bytes for the 32-bit refill branch.
+        """
+        data = _bits_to_bytes("010" + ("0" * 21))
+        r = reader_cls(data)
+        result = read_field_paths(r)
+        assert [fp.to_tuple() for fp in result] == [(0,)]
 
 
 def _read_field_paths_tree_walk(r):

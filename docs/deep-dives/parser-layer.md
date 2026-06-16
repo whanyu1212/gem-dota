@@ -269,7 +269,7 @@ Meaning for users:
 Detailed decoding lives in:
 
 1. `binary/reader.py` for bit primitives,
-2. `schema/sendtable/`, `schema/field_decoder.py`, `schema/field_path.py` for schema+field decode,
+2. `schema/sendtable/`, `schema/field_decoder.py`, `schema/field_path/` for schema+field decode,
 3. `state/entities.py` for delta application logic.
 
 When debugging:
