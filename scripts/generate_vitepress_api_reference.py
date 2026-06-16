@@ -159,6 +159,41 @@ def _resolve_object_path(path: str) -> tuple[ModuleContext, list[str]]:
     raise ValueError(f"Could not resolve module for directive target: {path}")
 
 
+def _current_import_package(context: ModuleContext) -> str:
+    if context.file_path.name == "__init__.py":
+        return context.module_name
+    return context.module_name.rsplit(".", 1)[0]
+
+
+def _resolve_import_module(context: ModuleContext, module: str | None, level: int) -> str | None:
+    if level == 0:
+        return module
+
+    base_parts = _current_import_package(context).split(".")
+    if level > 1:
+        base_parts = base_parts[: -(level - 1)]
+
+    if module:
+        base_parts.extend(module.split("."))
+    return ".".join(part for part in base_parts if part)
+
+
+def _resolve_reexport_target(context: ModuleContext, name: str) -> str | None:
+    for node in context.tree.body:
+        if not isinstance(node, ast.ImportFrom):
+            continue
+
+        module_name = _resolve_import_module(context, node.module, node.level)
+        if module_name is None:
+            continue
+
+        for alias in node.names:
+            exported_name = alias.asname or alias.name
+            if exported_name == name and alias.name != "*":
+                return f"{module_name}.{alias.name}"
+    return None
+
+
 def _first_paragraph(doc: str | None) -> str:
     if not doc:
         return "No docstring available."
@@ -468,7 +503,18 @@ def _render_module(context: ModuleContext) -> list[str]:
     return out
 
 
-def _render_target(target: str) -> list[str]:
+def _render_target(
+    target: str,
+    *,
+    display_target: str | None = None,
+    visited: set[str] | None = None,
+) -> list[str]:
+    display = display_target or target
+    visited = set() if visited is None else visited
+    if target in visited:
+        return [f"## `{display}`", "", "Unable to resolve this symbol from source.", ""]
+    visited.add(target)
+
     context, remainder = _resolve_object_path(target)
     if not remainder:
         return _render_module(context)
@@ -478,20 +524,28 @@ def _render_target(target: str) -> list[str]:
         name = remainder[0]
         cls = _find_class(context.tree, name)
         if cls is not None:
-            return [f"## `{target}`", ""] + _render_class(cls, context)
+            return [f"## `{display}`", ""] + _render_class(cls, context)
 
         func = _find_function(context.tree, name)
         if func is not None:
-            return [f"## `{target}`", ""] + _render_function(func, context)
+            return [f"## `{display}`", ""] + _render_function(func, context)
 
-        return [f"## `{target}`", "", "Unable to resolve this symbol from source.", ""]
+        reexport_target = _resolve_reexport_target(context, name)
+        if reexport_target is not None:
+            return _render_target(
+                reexport_target,
+                display_target=display,
+                visited=visited,
+            )
+
+        return [f"## `{display}`", "", "Unable to resolve this symbol from source.", ""]
 
     # Class method path.
     if len(remainder) == 2:
         cls_name, meth_name = remainder
         cls = _find_class(context.tree, cls_name)
         if cls is None:
-            return [f"## `{target}`", "", "Unable to resolve class for this symbol.", ""]
+            return [f"## `{display}`", "", "Unable to resolve class for this symbol.", ""]
 
         method = None
         for node in cls.body:
@@ -499,13 +553,13 @@ def _render_target(target: str) -> list[str]:
                 method = node
                 break
         if method is None:
-            return [f"## `{target}`", "", "Unable to resolve method for this symbol.", ""]
+            return [f"## `{display}`", "", "Unable to resolve method for this symbol.", ""]
 
         sig = _func_signature(method, cls_name)
         doc = _first_paragraph(ast.get_docstring(method, clean=True))
         source = _gh_link(context.file_path, method.lineno)
         return [
-            f"## `{target}`",
+            f"## `{display}`",
             "",
             "```python",
             sig,
@@ -517,7 +571,7 @@ def _render_target(target: str) -> list[str]:
             "",
         ]
 
-    return [f"## `{target}`", "", "Unsupported symbol depth for generator.", ""]
+    return [f"## `{display}`", "", "Unsupported symbol depth for generator.", ""]
 
 
 def _convert_admonitions(lines: list[str]) -> list[str]:

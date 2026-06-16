@@ -18,7 +18,7 @@ flowchart TD
 
     subgraph SCHEMA ["Schema & state"]
         direction LR
-        D["schema/sendtable.py\nserializer tree"] --> E["schema/field_decoder.py\ntype dispatch"]
+        D["schema/sendtable/\nserializer tree"] --> E["schema/field_decoder.py\ntype dispatch"]
         D --> F["schema/field_path.py\nHuffman paths"]
         G["state/string_table.py\nkey-value tables"]
         H["state/entities.py\ndelta updates"]
@@ -84,7 +84,7 @@ flowchart TD
   <div class="arch-layer arch-layer--parse">
     <span class="arch-layer-label">Schema decoding</span>
     <div class="arch-layer-modules">
-      <span class="arch-badge">schema/sendtable.py</span>
+      <span class="arch-badge">schema/sendtable/</span>
       <span class="arch-badge">schema/field_decoder.py</span>
       <span class="arch-badge">schema/field_path.py</span>
       <span class="arch-badge">state/string_table.py</span>

@@ -1,6 +1,6 @@
 # SendTable Layer
 
-This page explains `src/gem/schema/sendtable.py`, the schema-construction layer.
+This page explains `src/gem/schema/sendtable/`, the schema-construction layer.
 
 Prerequisites:
 
@@ -10,7 +10,10 @@ Prerequisites:
 
 ## Where this layer sits
 
-`schema/sendtable.py` runs when parser receives outer `DEM_SendTables`.
+`schema/sendtable/` runs when parser receives outer `DEM_SendTables`.
+
+The public entry point remains `gem.schema.sendtable.parse_send_tables`; the
+implementation is split across `parser.py`, `models.py`, and `patches.py`.
 
 Its job is to convert raw send-table payloads into a runtime schema:
 
@@ -88,7 +91,7 @@ Container for one class schema:
 
 ## Build-range patch subsystem
 
-`schema/sendtable.py` includes patch hooks to match known build-specific quirks.
+`schema/sendtable/` includes patch hooks to match known build-specific quirks.
 
 Patch components:
 

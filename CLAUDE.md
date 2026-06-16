@@ -68,7 +68,7 @@ Low-level binary parsing → entity reconstruction → extraction → output.
 ```
 binary/reader.py          ← BitReader, all bit/byte/varint primitives
 binary/stream.py          ← outer message loop, Snappy decompress, magic check
-schema/sendtable.py       ← serializer + field tree (requires reader)
+schema/sendtable/         ← serializer + field tree package (requires reader)
 schema/field_decoder.py   ← type-dispatch decoders + QuantizedFloatDecoder
 schema/field_path.py      ← Huffman-coded field path ops (requires reader)
 schema/field_state.py     ← nested mutable field-value tree (mirrors manta/field_state.go)

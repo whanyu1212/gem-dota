@@ -18,7 +18,7 @@ Prerequisites:
 1. [Bits & Bytes Primer](../cookbook/bits-and-bytes-primer.md)
 2. [Stream Layer (`binary/stream.py`)](stream-layer.md)
 3. [Parser Layer (`parser.py`)](parser-layer.md)
-4. [SendTable Layer (`schema/sendtable.py`)](sendtable-layer.md)
+4. [SendTable Layer (`schema/sendtable/`)](sendtable-layer.md)
 5. [State Reconstruction Layer (`state/string_table.py` + `state/entities.py`)](state-layer.md)
 6. [Event Normalization Layer (`state/game_events.py` + `combat/log.py`)](event-layer.md)
 
