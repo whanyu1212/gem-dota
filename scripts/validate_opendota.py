@@ -443,10 +443,18 @@ _GOLD_ADV_TOLERANCE = 0.07
 _GOLD_ADV_CURVE_TOLERANCE_PCT = 7.0
 _XP_ADV_TOLERANCE = 0.05
 _XP_ADV_CURVE_TOLERANCE_PCT = 5.0
+_PLAYER_GOLD_T_CURVE_TOLERANCE_PCT = 10.0
+_PLAYER_XP_T_CURVE_TOLERANCE_PCT = 12.0
+_PLAYER_LH_T_ABS_TOLERANCE = 10
+_PLAYER_DN_T_ABS_TOLERANCE = 3
 _GOLD_ADV_NOTE = (
     "OpenDota exposes interval gold_t from its parser pipeline. gem uses the "
     "closest replay-local source, m_iTotalEarnedGold, which has a small residual "
     "drift on current S2 fixtures."
+)
+_PLAYER_MINUTE_ARRAY_NOTE = (
+    "OpenDota player minute arrays come from its interval parser pipeline. "
+    "Compare by array index; residual drift is tracked before changing parser behavior."
 )
 _MINUTE_SAMPLE_NOTE = (
     "This is the last whole-minute snapshot before game end, compared against "
@@ -454,6 +462,119 @@ _MINUTE_SAMPLE_NOTE = (
     "pass/fail counts because up to 59 seconds of gameplay can elapse after "
     "the final minute boundary."
 )
+
+
+def _max_curve_error_pct(gem_values: list[int], ref_values: list[int]) -> float:
+    """Return max element-wise absolute error as percent of max reference magnitude."""
+    max_abs_ref = max(abs(value) for value in ref_values) or 1
+    max_abs_error = max(abs(gem - ref) for gem, ref in zip(gem_values, ref_values, strict=True))
+    return round(max_abs_error / max_abs_ref * 100, 2)
+
+
+def _max_abs_error(gem_values: list[int], ref_values: list[int]) -> int:
+    """Return max element-wise absolute error for same-length integer arrays."""
+    return max(abs(gem - ref) for gem, ref in zip(gem_values, ref_values, strict=True))
+
+
+def _compare_opendota_player_array(
+    label: str,
+    name: str,
+    gem_values: list[int],
+    ref_values: list[int],
+    *,
+    max_curve_error_pct: float | None = None,
+    max_abs_error: int | None = None,
+) -> list[FieldResult]:
+    """Compare one gem player minute array against one OpenDota player array."""
+    missing_ref = not ref_values
+    missing_note = f"OpenDota did not expose player {name} for this match."
+    note = missing_note if missing_ref else _PLAYER_MINUTE_ARRAY_NOTE
+    fields = [
+        FieldResult(
+            f"{label}/{name}/length",
+            len(gem_values),
+            len(ref_values),
+            skip=missing_ref,
+            note=note if missing_ref else "",
+        )
+    ]
+
+    gem_final = gem_values[-1] if gem_values else None
+    ref_final = ref_values[-1] if ref_values else None
+    if max_curve_error_pct is not None:
+        fields.append(
+            FieldResult(
+                f"{label}/{name}/final",
+                gem_final,
+                ref_final,
+                tolerance=max_curve_error_pct / 100,
+                skip=missing_ref,
+                note=note,
+            )
+        )
+        if gem_values and ref_values and len(gem_values) == len(ref_values):
+            err_pct = _max_curve_error_pct(gem_values, ref_values)
+            fields.append(
+                FieldResult(
+                    f"{label}/{name}/max_curve_err%",
+                    err_pct,
+                    max_curve_error_pct,
+                    ok_override=err_pct <= max_curve_error_pct,
+                    note=note,
+                )
+            )
+        elif missing_ref:
+            fields.append(
+                FieldResult(
+                    f"{label}/{name}/max_curve_err%",
+                    None,
+                    max_curve_error_pct,
+                    skip=True,
+                    note=note,
+                )
+            )
+        return fields
+
+    if max_abs_error is None:
+        raise ValueError("Either max_curve_error_pct or max_abs_error must be provided")
+
+    final_abs_error = (
+        abs(gem_final - ref_final)
+        if isinstance(gem_final, int) and isinstance(ref_final, int)
+        else None
+    )
+    fields.append(
+        FieldResult(
+            f"{label}/{name}/final_abs_err",
+            final_abs_error,
+            max_abs_error,
+            skip=missing_ref,
+            ok_override=final_abs_error is not None and final_abs_error <= max_abs_error,
+            note=note,
+        )
+    )
+    if gem_values and ref_values and len(gem_values) == len(ref_values):
+        err = _max_abs_error(gem_values, ref_values)
+        fields.append(
+            FieldResult(
+                f"{label}/{name}/max_abs_err",
+                err,
+                max_abs_error,
+                ok_override=err <= max_abs_error,
+                note=note,
+            )
+        )
+    elif missing_ref:
+        fields.append(
+            FieldResult(
+                f"{label}/{name}/max_abs_err",
+                None,
+                max_abs_error,
+                skip=True,
+                note=note,
+            )
+        )
+    return fields
 
 
 def validate_match(
@@ -743,6 +864,44 @@ def validate_match(
                 skip=True,
             )
         )
+
+        if mode in {"parsed", "full"}:
+            fields.extend(
+                _compare_opendota_player_array(
+                    label,
+                    "gold_t",
+                    list(gp.gold_t_min),
+                    list(od_player.get("gold_t") or []),
+                    max_curve_error_pct=_PLAYER_GOLD_T_CURVE_TOLERANCE_PCT,
+                )
+            )
+            fields.extend(
+                _compare_opendota_player_array(
+                    label,
+                    "xp_t",
+                    list(gp.xp_t_min),
+                    list(od_player.get("xp_t") or []),
+                    max_curve_error_pct=_PLAYER_XP_T_CURVE_TOLERANCE_PCT,
+                )
+            )
+            fields.extend(
+                _compare_opendota_player_array(
+                    label,
+                    "lh_t",
+                    list(gp.lh_t_min),
+                    list(od_player.get("lh_t") or []),
+                    max_abs_error=_PLAYER_LH_T_ABS_TOLERANCE,
+                )
+            )
+            fields.extend(
+                _compare_opendota_player_array(
+                    label,
+                    "dn_t",
+                    list(gp.dn_t_min),
+                    list(od_player.get("dn_t") or []),
+                    max_abs_error=_PLAYER_DN_T_ABS_TOLERANCE,
+                )
+            )
 
         # kills / deaths from server scoreboard (CDOTAPlayerResource)
         fields.append(FieldResult(f"{label}/kills", gp.kills, od_player["kills"]))
