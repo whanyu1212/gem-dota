@@ -28,6 +28,8 @@ if TYPE_CHECKING:
 _TEAM_RADIANT = 2
 _TEAM_DIRE = 3
 _PLAYER_RESOURCE_SCAN_LIMIT = 30
+_TICKS_PER_SECOND = 30
+_FINAL_INTERVAL_GRACE_TICKS = 15 * _TICKS_PER_SECOND
 
 
 @dataclass(frozen=True, slots=True)
@@ -101,7 +103,10 @@ class IntervalExtractor:
         self._player_team_slot: dict[int, int] = {}
         self._hero_names: dict[int, str] = {}
         self._next_interval_s: int | None = None
+        self._last_clock_tick: int | None = None
         self._last_emitted_time_s: int | None = None
+        self._last_emitted_tick: int | None = None
+        self._zero_clock_seen = False
         self._ended = False
         self.snapshots = []
 
@@ -140,7 +145,32 @@ class IntervalExtractor:
             ts.net_worth_t.append(snap.net_worth)
         return ts
 
-    def _on_game_end(self, _tick: int) -> None:
+    def _clock(self) -> int | None:
+        """Return the game clock the extractor samples boundaries on.
+
+        OpenDota times its interval boundaries and its postGame stop on a single
+        axis: the combat-log timestamp axis, anchored at the GAME_STATE==5 horn.
+        gem's entity-derived ``game_time_s`` differs from that axis by a
+        per-replay constant (the gap between the horn timestamp and
+        ``m_flGameStartTime``), large enough on some replays to drop the final
+        minute boundary before ``_on_game_end`` (also combat-log timed) fires.
+
+        Prefer the combat-log axis (``parser.combat_log_time_s``); fall back to
+        the entity clock (``game_time_s``) before the horn timestamp is known,
+        when no intervals should emit yet anyway.
+
+        Reference: refs/parser/src/main/java/opendota/Parse.java — single
+        ``time`` axis shifted by ``gameStartTime`` for intervals and postGame.
+        """
+        if self._parser is None:
+            return None
+        clock = getattr(self._parser, "combat_log_time_s", None)
+        if clock is not None:
+            return clock
+        return getattr(self._parser, "game_time_s", None)
+
+    def _on_game_end(self, tick: int) -> None:
+        self._emit_final_boundary(tick)
         self._ended = True
 
     def _on_entity(self, entity: Entity, op: EntityOp) -> None:
@@ -148,6 +178,9 @@ class IntervalExtractor:
 
         if cls == "CDOTAGamerulesProxy":
             if not op.has(EntityOp.DELETED):
+                self._last_clock_tick = self._parser.tick if self._parser is not None else None
+                if self._clock() == 0:
+                    self._zero_clock_seen = True
                 self._maybe_emit()
             return
 
@@ -227,8 +260,17 @@ class IntervalExtractor:
         if _TEAM_DIRE in teams and self._data_dire is None:
             return
 
-        game_time_s = getattr(self._parser, "game_time_s", None)
+        game_time_s = self._clock()
         if game_time_s is None or game_time_s < 0:
+            return
+        # ``game_time_s`` is only refreshed by CDOTAGamerulesProxy. Other
+        # entity updates may arrive on later ticks while that value is stale.
+        # The one exception is OpenDota's leading zero baseline: if the clock
+        # hit t=0 before team data arrived, emit it only while all exported
+        # interval counters are still zero.
+        if self._last_clock_tick != self._parser.tick and not self._can_emit_zero_baseline(
+            game_time_s
+        ):
             return
         if game_time_s % self._interval_s != 0:
             return
@@ -237,10 +279,106 @@ class IntervalExtractor:
         if self._next_interval_s is not None and game_time_s < self._next_interval_s:
             return
 
+        if (
+            game_time_s == 0
+            and self._last_emitted_time_s is None
+            and not self._current_interval_counters_are_zero()
+        ):
+            self._emit_zero_baseline()
+            return
+
+        if game_time_s > 0 and self._last_emitted_time_s is None and self._zero_clock_seen:
+            self._emit_zero_baseline()
+
         emitted = self._emit(game_time_s)
         if emitted:
             self._last_emitted_time_s = game_time_s
+            self._last_emitted_tick = self._parser.tick
             self._next_interval_s = game_time_s + self._interval_s
+
+    def _emit_final_boundary(self, tick: int) -> None:
+        if self._parser is None:
+            return
+        if self._next_interval_s is None or self._last_emitted_tick is None:
+            return
+
+        interval_ticks = self._interval_s * _TICKS_PER_SECOND
+        ticks_since_last_emit = tick - self._last_emitted_tick
+        if ticks_since_last_emit < 0:
+            return
+        if ticks_since_last_emit + _FINAL_INTERVAL_GRACE_TICKS < interval_ticks:
+            return
+
+        emitted = self._emit(self._next_interval_s)
+        if emitted:
+            self._last_emitted_time_s = self._next_interval_s
+            self._last_emitted_tick = tick
+            self._next_interval_s += self._interval_s
+
+    def _can_emit_zero_baseline(self, game_time_s: int) -> bool:
+        """Return whether a delayed t=0 OpenDota baseline is still safe."""
+        if game_time_s != 0 or self._last_emitted_time_s is not None:
+            return False
+        if self._next_interval_s is not None:
+            return False
+        return self._current_interval_counters_are_zero()
+
+    def _emit_zero_baseline(self) -> bool:
+        """Prepend OpenDota's synthetic t=0 player baseline."""
+        emitted = False
+        tick = self._parser.tick if self._parser is not None else 0
+
+        for player_id in sorted(self._player_index_by_id):
+            team = self._player_team.get(player_id, 0)
+            team_slot = self._player_team_slot.get(player_id)
+            if team_slot is None:
+                continue
+            player_slot = team_slot if team == _TEAM_RADIANT else 128 + team_slot
+            self.snapshots.append(
+                IntervalSnapshot(
+                    tick=tick,
+                    time_s=0,
+                    player_id=player_id,
+                    player_slot=player_slot,
+                    team=team,
+                    team_slot=team_slot,
+                    hero_name=self._hero_names.get(player_id, ""),
+                    gold=0,
+                    xp=0,
+                    lh=0,
+                    dn=0,
+                    net_worth=0,
+                )
+            )
+            emitted = True
+
+        if emitted:
+            self._last_emitted_time_s = 0
+            self._last_emitted_tick = tick
+            self._next_interval_s = self._interval_s
+        return emitted
+
+    def _current_interval_counters_are_zero(self) -> bool:
+        for player_id in sorted(self._player_index_by_id):
+            team = self._player_team.get(player_id, 0)
+            team_slot = self._player_team_slot.get(player_id)
+            if team_slot is None:
+                return False
+            data_entity = self._data_radiant if team == _TEAM_RADIANT else self._data_dire
+            if data_entity is None:
+                return False
+
+            prefix = f"m_vecDataTeam.{team_slot:04d}"
+            for field_name in (
+                "m_iTotalEarnedGold",
+                "m_iTotalEarnedXP",
+                "m_iLastHitCount",
+                "m_iDenyCount",
+            ):
+                if _int_or_zero(data_entity.get_int32(f"{prefix}.{field_name}")) != 0:
+                    return False
+
+        return bool(self._player_index_by_id)
 
     def _emit(self, game_time_s: int) -> bool:
         emitted = False

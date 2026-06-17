@@ -193,6 +193,14 @@ class ReplayParser:
         self.radiant_win: bool | None = None
         self.game_start_tick: int | None = None
         self.game_time_s: int | None = None
+        # OpenDota-axis game clock, anchored on the combat-log timestamp (the
+        # GAME_STATE==5 horn). ``game_time_s`` is the entity-derived clock; this
+        # one tracks the combat-log timestamp axis that OpenDota uses for its
+        # interval boundaries AND its postGame stop. The two differ by a
+        # per-replay constant (the gap between the horn timestamp and
+        # ``m_flGameStartTime``), so consumers that must agree with OpenDota's
+        # minute boundaries (the interval extractor) should read this clock.
+        self.combat_log_time_s: int | None = None
         self._game_start_callbacks: list[Callable[[int], None]] = []
         self._game_end_callbacks: list[Callable[[int], None]] = []
         self._game_ended: bool = False
@@ -611,6 +619,10 @@ class ReplayParser:
         subtracts that rounded timestamp from subsequent combat-log timestamps.
         Keep this separate from raw ticks so public replay timing remains tick-
         based while parity checks can use the OpenDota clock.
+
+        Side effect: refreshes :attr:`combat_log_time_s`, the running combat-log
+        axis clock, so entity-driven consumers (e.g. the interval extractor) can
+        sample minute boundaries on the same axis OpenDota uses.
         """
         timestamp = getattr(msg, "timestamp", None)
         if timestamp is None:
@@ -622,7 +634,9 @@ class ReplayParser:
 
         if self._combat_log_game_start_time_s is None:
             return None
-        return raw_time_s - self._combat_log_game_start_time_s
+        game_time_s = raw_time_s - self._combat_log_game_start_time_s
+        self.combat_log_time_s = game_time_s
+        return game_time_s
 
     def _on_match_metadata(self, payload: bytes) -> None:
         metadata = CDOTAMatchMetadataFile()

@@ -62,51 +62,6 @@ def _radiant_win_from_ancient(combat_log: list[CombatLogEntry]) -> bool | None:
     return None
 
 
-def _radiant_xp_adv_from_combat_log(
-    combat_log: list[CombatLogEntry],
-    match: ParsedMatch,
-    n_minutes: int,
-) -> list[int] | None:
-    """Build an OpenDota-compatible XP advantage curve from combat-log XP events.
-
-    The replay entity ``m_iTotalEarnedXP`` values can drift from OpenDota's
-    exposed ``xp_t`` arrays on recent S2 replays. Combat-log XP reason events
-    carry OpenDota-style game time and match those arrays more closely, so use
-    them for the match-level advantage curve when available.
-    """
-    if n_minutes <= 0:
-        return []
-
-    hero_to_player = {
-        pp.hero_name: pp for pp in match.players if pp.hero_name and pp.team in (2, 3)
-    }
-    deltas = [0] * n_minutes
-    saw_timed_xp = False
-
-    for entry in combat_log:
-        if entry.log_type != "XP" or entry.game_time_s is None or entry.game_time_s < 0:
-            continue
-        player = hero_to_player.get(entry.target_name)
-        if player is None:
-            continue
-        minute_idx = entry.game_time_s // 60 + 1
-        if minute_idx >= n_minutes:
-            continue
-        sign = 1 if player.team == 2 else -1
-        deltas[minute_idx] += sign * entry.value
-        saw_timed_xp = True
-
-    if not saw_timed_xp:
-        return None
-
-    out: list[int] = []
-    running = 0
-    for delta in deltas:
-        running += delta
-        out.append(running)
-    return out
-
-
 def _radiant_adv_from_intervals(
     interval_ext: IntervalExtractor | None,
 ) -> tuple[list[int], list[int]] | None:
@@ -479,39 +434,41 @@ def build_parsed_match(
                 pp.sen_log.append(ward)
 
     # Compute radiant_gold_adv / radiant_xp_adv per game-minute boundary.
-    # Use total_earned fields (monotonically increasing) rather than spendable gold.
-    # Compute the minimum series length so all 10 active players contribute to every bucket.
-    # Reference: refs/parser/src/main/java/opendota/CreateParsedDataBlob.java processAllPlayers()
+    # Both curves come from monotonically-increasing total-earned fields
+    # (m_iTotalEarnedGold / m_iTotalEarnedXP), never spendable gold or
+    # combat-log XP. OpenDota builds these the same way: its interval entries
+    # read the team-data entity, and xp_t/gold_t are the minute-boundary
+    # downsamples of those entries — combat-log XP only feeds the xp_reasons
+    # histogram, not the advantage curves.
+    # Reference: refs/parser/src/main/java/opendota/Parse.java interval block
+    #   (m_vecDataTeam.%i.m_iTotalEarnedGold/XP) and CreateParsedDataBlob.java
+    #   addIntervalData("xp_t"/"gold_t", ...).
     interval_adv = _radiant_adv_from_intervals(interval_ext)
     if interval_adv is not None:
+        # Authoritative path: OpenDota-style interval snapshots are complete.
         gold_adv, xp_adv = interval_adv
-        n_minutes = len(gold_adv)
         match.radiant_gold_adv = gold_adv
-        match.radiant_xp_adv = (
-            _radiant_xp_adv_from_combat_log(all_entries, match, n_minutes) or xp_adv
-        )
+        match.radiant_xp_adv = xp_adv
     else:
+        # Fallback path: no complete interval batches were observed, so derive
+        # the curves from the dense player minute series' total-earned arrays.
         active_players = [
             pp for pp in match.players if pp.total_earned_gold_t_min and pp.total_earned_xp_t_min
         ]
-    if interval_adv is None and active_players:
-        n_minutes = min(
-            min(len(pp.total_earned_gold_t_min), len(pp.total_earned_xp_t_min))
-            for pp in active_players
-        )
-        gold_adv = [0] * n_minutes
-        xp_adv = [0] * n_minutes
-        for pp in active_players:
-            sign = 1 if pp.team == 2 else -1  # 2=Radiant, 3=Dire
-            for i in range(n_minutes):
-                gold_adv[i] += sign * pp.total_earned_gold_t_min[i]
-                xp_adv[i] += sign * (
-                    pp.total_earned_xp_t_min[i] if i < len(pp.total_earned_xp_t_min) else 0
-                )
-        match.radiant_gold_adv = gold_adv
-        match.radiant_xp_adv = (
-            _radiant_xp_adv_from_combat_log(all_entries, match, n_minutes) or xp_adv
-        )
+        if active_players:
+            n_minutes = min(
+                min(len(pp.total_earned_gold_t_min), len(pp.total_earned_xp_t_min))
+                for pp in active_players
+            )
+            gold_adv = [0] * n_minutes
+            xp_adv = [0] * n_minutes
+            for pp in active_players:
+                sign = 1 if pp.team == 2 else -1  # 2=Radiant, 3=Dire
+                for i in range(n_minutes):
+                    gold_adv[i] += sign * pp.total_earned_gold_t_min[i]
+                    xp_adv[i] += sign * pp.total_earned_xp_t_min[i]
+            match.radiant_gold_adv = gold_adv
+            match.radiant_xp_adv = xp_adv
 
     # Detect teamfights (Phase 9)
     hero_to_slot = {pp.hero_name: pp.player_id for pp in match.players if pp.hero_name}

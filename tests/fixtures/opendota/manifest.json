@@ -35,6 +35,30 @@
       "patch": 60,
       "replay_url": "http://replay274.valve.net/570/8822593932_1755614783.dem.bz2",
       "note": "DreamLeague Season 29 patch 60 recent playoff fixture"
+    },
+    {
+      "match_id": 8855188139,
+      "dem": "8855188139.dem",
+      "opendota_json": "8855188139.opendota.json",
+      "fetched_at": "2026-06-17T13:13:24Z",
+      "duration": 2419,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 60,
+      "replay_url": "http://replay225.valve.net/570/8855188139_1436544844.dem.bz2",
+      "note": "Interval validation sample (--match only): end-game XP burst straddles the final minute boundary (closing push, ancient falls ~40:08); gem reads the true m_iTotalEarnedXP at 40:00 while OpenDota's last interval slot holds an earlier value. Per-player xp_t parity is tight; radiant_xp_adv/final drift is expected boundary jitter, not extraction error."
+    },
+    {
+      "match_id": 8855242704,
+      "dem": "8855242704.dem",
+      "opendota_json": "8855242704.opendota.json",
+      "fetched_at": "2026-06-17T13:03:31Z",
+      "duration": 4176,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 60,
+      "replay_url": "http://replay225.valve.net/570/8855242704_307043427.dem.bz2",
+      "note": "Interval validation sample (--match only): long replay that exposed the radiant_xp_adv source bug (combat-log XP override gave -94899 vs OpenDota -30499). After the fix, interval m_iTotalEarnedXP gives -30237. Kept as a regression sample; not in the default gate."
     }
   ]
 }

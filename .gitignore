@@ -27,6 +27,10 @@ tests/fixtures/**/*.dem
 !tests/fixtures/*_truncated.dem
 !tests/fixtures/**/*_truncated.dem
 
+# Scratch dir for OpenDota validation downloads (DEFAULT_FETCH_DIR in
+# scripts/validate_opendota.py) — replays + reference JSON, never committed.
+tmp/
+
 # Downloaded proto source files
 proto_definitions/
 

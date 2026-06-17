@@ -129,3 +129,19 @@ def test_player_count_curve_comparison_uses_absolute_error_threshold() -> None:
     assert not failing[1].ok
     assert not failing[2].ok
     assert failing[2].gem_value == 5
+
+
+def test_player_count_curve_comparison_can_scale_absolute_error_threshold() -> None:
+    fields = _compare_opendota_player_array(
+        "npc_dota_hero_axe",
+        "lh_t",
+        [0, 400, 985],
+        [0, 400, 1000],
+        max_abs_error=10,
+        max_abs_error_pct=0.015,
+    )
+
+    assert all(field.ok for field in fields)
+    assert fields[1].ref_value == 15
+    assert fields[2].gem_value == 15
+    assert fields[2].ref_value == 15

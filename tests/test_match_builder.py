@@ -814,7 +814,18 @@ class TestBuildParsedMatchGoldXpAdv:
         assert m.radiant_gold_adv[0] == 100 - 600  # negative
         assert m.radiant_gold_adv[1] == 200 - 1200
 
-    def test_timed_combat_log_xp_overrides_entity_xp_adv(self):
+    def test_combat_log_xp_does_not_override_total_earned_xp_adv(self):
+        """Combat-log XP events must never feed radiant_xp_adv.
+
+        OpenDota builds xp_t / radiant_xp_adv exclusively from the team-data
+        entity's ``m_iTotalEarnedXP`` (mirrored here by ``total_earned_xp_t_min``);
+        combat-log XP only feeds the per-reason ``xp_reasons`` histogram. Even
+        with timed combat-log XP entries present, the advantage curve must come
+        from the total-earned arrays.
+
+        Reference: refs/parser/src/main/java/opendota/Parse.java interval block
+        and CreateParsedDataBlob.java handleXp() (xp_reasons only).
+        """
         ts = {
             0: ([1000, 2000, 3000], [5000, 5000, 5000], 2),
             5: ([500, 1000, 1500], [1000, 1000, 1000], 3),
@@ -845,7 +856,8 @@ class TestBuildParsedMatchGoldXpAdv:
 
         m = self._build_with_ts(ts, all_entries=entries)
 
-        assert m.radiant_xp_adv == [0, 100, 90]
+        # adv[i] = radiant_total_earned_xp - dire_total_earned_xp = 5000 - 1000
+        assert m.radiant_xp_adv == [4000, 4000, 4000]
 
     def test_interval_snapshots_override_player_minute_adv(self):
         ts = {
@@ -879,6 +891,57 @@ class TestBuildParsedMatchGoldXpAdv:
 
         assert m.radiant_gold_adv == [400]
         assert m.radiant_xp_adv == [250]
+
+    def test_interval_xp_adv_wins_over_combat_log_xp(self):
+        """Complete interval data is authoritative; combat-log XP is ignored.
+
+        Regression for the precedence bug where _radiant_xp_adv_from_combat_log
+        overrode the interval m_iTotalEarnedXP curve, producing grossly wrong
+        advantage curves on long replays (e.g. -94899 vs OpenDota -30499).
+        """
+        ts = {
+            0: ([10], [10], 2),
+            5: ([5], [5], 3),
+        }
+        interval_snapshots = [
+            IntervalSnapshot(
+                tick=1800,
+                time_s=60,
+                player_id=0,
+                player_slot=0,
+                team=2,
+                team_slot=0,
+                gold=1000,
+                xp=700,
+            ),
+            IntervalSnapshot(
+                tick=1800,
+                time_s=60,
+                player_id=5,
+                player_slot=128,
+                team=3,
+                team_slot=0,
+                gold=600,
+                xp=450,
+            ),
+        ]
+        # Combat-log XP entries that, under the old buggy path, would have
+        # produced a completely different curve. They must be ignored entirely.
+        entries = [
+            CombatLogEntry(
+                tick=100,
+                game_time_s=30,
+                log_type="XP",
+                target_name="npc_dota_hero_hero0",
+                value=99999,
+            ),
+        ]
+
+        m = self._build_with_ts(ts, all_entries=entries, interval_snapshots=interval_snapshots)
+
+        # Authoritative interval XP advantage: 700 - 450 = 250.
+        assert m.radiant_xp_adv == [250]
+        assert m.radiant_gold_adv == [400]
 
     def test_interval_snapshots_populate_player_minute_arrays(self):
         ts = {
