@@ -126,6 +126,7 @@ def parse(path: str | Path) -> ParsedMatch:
     from gem.combat.log import CombatLogEntry
     from gem.extractors.courier import CourierExtractor
     from gem.extractors.draft import DraftExtractor
+    from gem.extractors.intervals import IntervalExtractor
     from gem.extractors.objectives import ObjectivesExtractor
     from gem.extractors.players import PlayerExtractor
     from gem.extractors.wards import WardsExtractor
@@ -138,8 +139,10 @@ def parse(path: str | Path) -> ParsedMatch:
     ward_ext = WardsExtractor()
     courier_ext = CourierExtractor()
     draft_ext = DraftExtractor()
+    interval_ext = IntervalExtractor()
 
     player_ext.attach(p)
+    interval_ext.attach(p)
     obj_ext.attach(p)
     ward_ext.attach(p)
     courier_ext.attach(p)
@@ -285,6 +288,7 @@ def parse(path: str | Path) -> ParsedMatch:
         smoke_events=smoke_events,
         vision_modifier_events=vision_modifier_events,
         neutral_item_finds=neutral_item_finds,
+        interval_ext=interval_ext,
     )
 
 

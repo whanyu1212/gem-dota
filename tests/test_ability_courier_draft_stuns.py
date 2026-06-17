@@ -6,6 +6,8 @@ verify plausible output.
 
 from __future__ import annotations
 
+import json
+
 import pytest
 
 # ---------------------------------------------------------------------------
@@ -403,6 +405,18 @@ class TestPhase8Integration:
         for snap in snaps_with_abilities:
             for level in snap.ability_levels.values():
                 assert 0 <= level <= 7, f"Unexpected ability level {level}"
+
+    def test_ability_upgrades_arr_matches_opendota(self, match, full_replay_path):
+        opendota_path = full_replay_path.with_suffix(".opendota.json")
+        if not opendota_path.exists():
+            pytest.skip("OpenDota JSON fixture not available")
+
+        with opendota_path.open() as f:
+            opendota = json.load(f)
+
+        for i, player in enumerate(match.players):
+            expected = opendota["players"][i].get("ability_upgrades_arr") or []
+            assert player.ability_upgrades_arr == expected
 
     def test_courier_snapshots_populated(self, match):
         assert len(match.courier_snapshots) > 0

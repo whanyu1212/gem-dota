@@ -30,6 +30,7 @@ from gem.parser import (
     _DOTA_UM_CHAT_EVENT,
     _DOTA_UM_CHAT_MESSAGE,
     _DOTA_UM_COMBAT_LOG_HLTV,
+    _DOTA_UM_MATCH_METADATA,
     _NET_TICK,
     _SVC_CREATE_STRING_TABLE,
     _SVC_PACKET_ENTITIES,
@@ -190,6 +191,10 @@ class TestReplayParserInit:
         p = ReplayParser(b"")
         assert p.leagueid == 0
 
+    def test_match_metadata_starts_none(self):
+        p = ReplayParser(b"")
+        assert p.match_metadata is None
+
     def test_radiant_win_starts_none(self):
         p = ReplayParser(b"")
         assert p.radiant_win is None
@@ -197,6 +202,10 @@ class TestReplayParserInit:
     def test_game_start_tick_starts_none(self):
         p = ReplayParser(b"")
         assert p.game_start_tick is None
+
+    def test_game_time_starts_none(self):
+        p = ReplayParser(b"")
+        assert p.game_time_s is None
 
     def test_entity_manager_starts_none(self):
         p = ReplayParser(b"")
@@ -219,6 +228,45 @@ class TestReplayParserInit:
     def test_game_ended_false(self):
         p = ReplayParser(b"")
         assert p._game_ended is False
+
+
+# ---------------------------------------------------------------------------
+# ReplayParser game clock helpers
+# ---------------------------------------------------------------------------
+
+
+class TestReplayParserGameClock:
+    def test_game_rules_proxy_updates_game_time_seconds(self):
+        p = ReplayParser(b"")
+        p.tick = 6000
+        entity = MagicMock()
+        entity.get_class_name.return_value = "CDOTAGamerulesProxy"
+        entity.get_float32.side_effect = lambda name: {
+            "m_pGameRules.m_flGameStartTime": 100.0,
+            "m_pGameRules.m_fGameTime": 165.2,
+        }.get(name)
+
+        p._on_entity_game_start(entity, MagicMock())
+
+        assert p.game_time_s == 65
+        assert p.game_start_tick == 6000
+
+    def test_combat_log_game_time_anchors_at_game_state_marker(self):
+        from gem.proto.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
+
+        p = ReplayParser(b"")
+
+        start = CMsgDOTACombatLogEntry()
+        start.type = 9
+        start.value = 5
+        start.timestamp = 100.2
+
+        death = CMsgDOTACombatLogEntry()
+        death.type = 4
+        death.timestamp = 130.4
+
+        assert p._combat_log_game_time_s(start) == 0
+        assert p._combat_log_game_time_s(death) == 30
 
 
 # ---------------------------------------------------------------------------
@@ -258,7 +306,8 @@ class TestCallbackRegistration:
 
         p.on_entity(cb1)
         p.on_entity(cb2)
-        assert len(p._entity_callbacks) == 2
+        user_callbacks = [cb for cb in p._entity_callbacks if cb in {cb1, cb2}]
+        assert user_callbacks == [cb1, cb2]
 
     def test_on_chat_message_appends_callback(self):
         p = ReplayParser(b"")
@@ -552,6 +601,45 @@ class TestDispatchInnerRouting:
                 trinket_level=1,
             )
         ]
+
+    def test_direct_match_metadata_is_stored(self):
+        p = ReplayParser(b"")
+        from gem.proto.dota_match_metadata_pb2 import CDOTAMatchMetadataFile
+
+        metadata = CDOTAMatchMetadataFile()
+        metadata.match_id = 12345
+        team = metadata.metadata.teams.add()
+        player = team.players.add()
+        player.player_slot = 128
+        player.ability_upgrades.extend([1, 2, 3])
+
+        p._dispatch_inner(_DOTA_UM_MATCH_METADATA, metadata.SerializeToString())
+
+        assert p.match_metadata is not None
+        assert p.match_metadata.match_id == 12345
+        assert list(p.match_metadata.metadata.teams[0].players[0].ability_upgrades) == [1, 2, 3]
+
+    def test_wrapped_match_metadata_is_stored(self):
+        p = ReplayParser(b"")
+        from gem.proto.dota_match_metadata_pb2 import CDOTAMatchMetadataFile
+        from gem.proto.netmessages_pb2 import CSVCMsg_UserMessage
+
+        metadata = CDOTAMatchMetadataFile()
+        metadata.match_id = 67890
+        team = metadata.metadata.teams.add()
+        player = team.players.add()
+        player.player_slot = 4
+        player.ability_upgrades.extend([9, 8])
+
+        user_msg = CSVCMsg_UserMessage()
+        user_msg.msg_type = _DOTA_UM_MATCH_METADATA
+        user_msg.msg_data = metadata.SerializeToString()
+
+        p._dispatch_inner(_SVC_USER_MESSAGE, user_msg.SerializeToString())
+
+        assert p.match_metadata is not None
+        assert p.match_metadata.match_id == 67890
+        assert list(p.match_metadata.metadata.teams[0].players[0].ability_upgrades) == [9, 8]
 
 
 # ---------------------------------------------------------------------------

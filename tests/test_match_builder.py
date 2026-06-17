@@ -16,6 +16,7 @@ import pytest
 
 import gem.results.models as model_module
 from gem.combat.log import CombatLogEntry
+from gem.extractors.intervals import IntervalSnapshot
 from gem.results.assembly import _radiant_win_from_ancient, build_parsed_match
 from gem.results.models import ChatEntry, ParsedMatch, SmokeEvent
 
@@ -76,6 +77,7 @@ def _make_parser(
     game_mode: int = 22,
     leagueid: int = 0,
     entity_manager=None,
+    match_metadata=None,
 ) -> MagicMock:
     p = MagicMock()
     p.match_id = match_id
@@ -85,6 +87,7 @@ def _make_parser(
     p.game_mode = game_mode
     p.leagueid = leagueid
     p.entity_manager = entity_manager
+    p.match_metadata = match_metadata
     return p
 
 
@@ -238,6 +241,62 @@ class TestBuildParsedMatchSmoke:
         m = self._build()
         for i, pp in enumerate(m.players):
             assert pp.player_id == i
+
+
+# ---------------------------------------------------------------------------
+# Match metadata ability upgrades
+# ---------------------------------------------------------------------------
+
+
+class TestBuildParsedMatchAbilityUpgrades:
+    def _metadata(self):
+        from gem.proto.dota_match_metadata_pb2 import CDOTAMatchMetadataFile
+
+        metadata = CDOTAMatchMetadataFile()
+        radiant = metadata.metadata.teams.add()
+        dire = metadata.metadata.teams.add()
+
+        p0 = radiant.players.add()
+        p0.player_slot = 0
+        p0.ability_upgrades.extend([1684, 7309])
+
+        p4 = radiant.players.add()
+        p4.player_slot = 4
+        p4.ability_upgrades.extend([5625])
+
+        p5 = dire.players.add()
+        p5.player_slot = 128
+        p5.ability_upgrades.extend([5134, 7325])
+
+        p9 = dire.players.add()
+        p9.player_slot = 132
+        p9.ability_upgrades.extend([5106])
+
+        invalid = dire.players.add()
+        invalid.player_slot = 200
+        invalid.ability_upgrades.extend([9999])
+
+        return metadata
+
+    def test_ability_upgrades_arr_from_match_metadata(self):
+        parser = _make_parser(match_metadata=self._metadata())
+        m = build_parsed_match(
+            parser,
+            _make_player_ext(),
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            _make_combat_agg(),
+            [],
+            [],
+        )
+
+        assert m.players[0].ability_upgrades_arr == [1684, 7309]
+        assert m.players[4].ability_upgrades_arr == [5625]
+        assert m.players[5].ability_upgrades_arr == [5134, 7325]
+        assert m.players[9].ability_upgrades_arr == [5106]
+        assert m.players[1].ability_upgrades_arr == []
 
 
 # ---------------------------------------------------------------------------
@@ -680,14 +739,25 @@ class TestBuildParsedMatchWards:
 
 
 class TestBuildParsedMatchGoldXpAdv:
-    def _build_with_ts(self, player_ts: dict[int, tuple[list[int], list[int], int]]) -> ParsedMatch:
+    def _build_with_ts(
+        self,
+        player_ts: dict[int, tuple[list[int], list[int], int]],
+        all_entries: list[CombatLogEntry] | None = None,
+        interval_snapshots: list[IntervalSnapshot] | None = None,
+    ) -> ParsedMatch:
         """player_ts: {player_id: (total_earned_gold, total_earned_xp, team)}"""
         ext = _make_player_ext()
 
         def make_ts(gold, xp):
             ts = _FakeTimeSeries()
+            ts.ticks = [1800 * (i + 1) for i in range(max(len(gold), len(xp)))]
+            ts.gold_t = [value // 10 for value in gold]
             ts.total_earned_gold_t = gold
             ts.total_earned_xp_t = xp
+            ts.net_worth_t = [value + 100 for value in gold]
+            ts.lh_t = list(range(len(gold)))
+            ts.dn_t = [value + 1 for value in range(len(gold))]
+            ts.xp_t = xp
             return ts
 
         def ts_for(pid):
@@ -706,6 +776,10 @@ class TestBuildParsedMatchGoldXpAdv:
         ext.snapshots = snaps
 
         parser = _make_parser()
+        interval_ext = None
+        if interval_snapshots is not None:
+            interval_ext = MagicMock()
+            interval_ext.all_snapshots = interval_snapshots
         return build_parsed_match(
             parser,
             ext,
@@ -714,8 +788,9 @@ class TestBuildParsedMatchGoldXpAdv:
             _make_courier_ext(),
             _make_draft_ext(),
             _make_combat_agg(),
+            all_entries or [],
             [],
-            [],
+            interval_ext=interval_ext,
         )
 
     def test_radiant_ahead(self):
@@ -728,6 +803,7 @@ class TestBuildParsedMatchGoldXpAdv:
         # adv[0] = 1000 - 500 = 500, adv[1] = 2000 - 1000 = 1000
         assert m.radiant_gold_adv[0] == 500
         assert m.radiant_gold_adv[1] == 1000
+        assert m.radiant_xp_adv == [300, 600]
 
     def test_dire_ahead(self):
         ts = {
@@ -737,6 +813,189 @@ class TestBuildParsedMatchGoldXpAdv:
         m = self._build_with_ts(ts)
         assert m.radiant_gold_adv[0] == 100 - 600  # negative
         assert m.radiant_gold_adv[1] == 200 - 1200
+
+    def test_timed_combat_log_xp_overrides_entity_xp_adv(self):
+        ts = {
+            0: ([1000, 2000, 3000], [5000, 5000, 5000], 2),
+            5: ([500, 1000, 1500], [1000, 1000, 1000], 3),
+        }
+        entries = [
+            CombatLogEntry(
+                tick=100,
+                game_time_s=10,
+                log_type="XP",
+                target_name="npc_dota_hero_hero0",
+                value=100,
+            ),
+            CombatLogEntry(
+                tick=200,
+                game_time_s=60,
+                log_type="XP",
+                target_name="npc_dota_hero_hero5",
+                value=40,
+            ),
+            CombatLogEntry(
+                tick=300,
+                game_time_s=61,
+                log_type="XP",
+                target_name="npc_dota_hero_hero0",
+                value=30,
+            ),
+        ]
+
+        m = self._build_with_ts(ts, all_entries=entries)
+
+        assert m.radiant_xp_adv == [0, 100, 90]
+
+    def test_interval_snapshots_override_player_minute_adv(self):
+        ts = {
+            0: ([10], [10], 2),
+            5: ([5], [5], 3),
+        }
+        interval_snapshots = [
+            IntervalSnapshot(
+                tick=1800,
+                time_s=60,
+                player_id=0,
+                player_slot=0,
+                team=2,
+                team_slot=0,
+                gold=1000,
+                xp=700,
+            ),
+            IntervalSnapshot(
+                tick=1800,
+                time_s=60,
+                player_id=5,
+                player_slot=128,
+                team=3,
+                team_slot=0,
+                gold=600,
+                xp=450,
+            ),
+        ]
+
+        m = self._build_with_ts(ts, interval_snapshots=interval_snapshots)
+
+        assert m.radiant_gold_adv == [400]
+        assert m.radiant_xp_adv == [250]
+
+    def test_interval_snapshots_populate_player_minute_arrays(self):
+        ts = {
+            0: ([10], [20], 2),
+            5: ([5], [10], 3),
+        }
+        interval_snapshots = [
+            IntervalSnapshot(
+                tick=1800,
+                time_s=60,
+                player_id=0,
+                player_slot=0,
+                team=2,
+                team_slot=0,
+                gold=1000,
+                xp=700,
+                lh=22,
+                dn=3,
+                net_worth=1600,
+            ),
+            IntervalSnapshot(
+                tick=1800,
+                time_s=60,
+                player_id=5,
+                player_slot=128,
+                team=3,
+                team_slot=0,
+                gold=600,
+                xp=450,
+                lh=16,
+                dn=1,
+                net_worth=1200,
+            ),
+        ]
+
+        m = self._build_with_ts(ts, interval_snapshots=interval_snapshots)
+
+        p0 = m.players[0]
+        assert p0.times_min == [1800]
+        assert p0.gold_t_min == [1000]
+        assert p0.total_earned_gold_t_min == [1000]
+        assert p0.xp_t_min == [700]
+        assert p0.total_earned_xp_t_min == [700]
+        assert p0.lh_t_min == [22]
+        assert p0.dn_t_min == [3]
+        assert p0.net_worth_t_min == [1600]
+
+    def test_incomplete_interval_batches_fall_back_to_player_minute_adv(self):
+        ts = {
+            0: ([1000], [500], 2),
+            5: ([500], [200], 3),
+        }
+        interval_snapshots = [
+            IntervalSnapshot(
+                tick=1800,
+                time_s=60,
+                player_id=0,
+                player_slot=0,
+                team=2,
+                team_slot=0,
+                gold=10_000,
+                xp=10_000,
+            ),
+            IntervalSnapshot(
+                tick=3600,
+                time_s=120,
+                player_id=5,
+                player_slot=128,
+                team=3,
+                team_slot=0,
+                gold=9_000,
+                xp=9_000,
+            ),
+        ]
+
+        m = self._build_with_ts(ts, interval_snapshots=interval_snapshots)
+
+        assert m.radiant_gold_adv == [500]
+        assert m.radiant_xp_adv == [300]
+
+    def test_incomplete_interval_batches_keep_player_minute_fallback(self):
+        ts = {
+            0: ([1000], [500], 2),
+            5: ([500], [200], 3),
+        }
+        interval_snapshots = [
+            IntervalSnapshot(
+                tick=1800,
+                time_s=60,
+                player_id=0,
+                player_slot=0,
+                team=2,
+                team_slot=0,
+                gold=10_000,
+                xp=10_000,
+            ),
+            IntervalSnapshot(
+                tick=3600,
+                time_s=120,
+                player_id=5,
+                player_slot=128,
+                team=3,
+                team_slot=0,
+                gold=9_000,
+                xp=9_000,
+            ),
+        ]
+
+        m = self._build_with_ts(ts, interval_snapshots=interval_snapshots)
+
+        p0 = m.players[0]
+        assert p0.times_min == [1800]
+        assert p0.gold_t_min == [100]
+        assert p0.total_earned_gold_t_min == [1000]
+        assert p0.xp_t_min == [500]
+        assert p0.total_earned_xp_t_min == [500]
+        assert p0.net_worth_t_min == [1100]
 
     def test_no_active_players_produces_empty_adv(self):
         """When no players have time series, adv arrays should be empty."""

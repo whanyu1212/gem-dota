@@ -148,7 +148,9 @@ class ParsedPlayer:
         dn_t: Deny count at each sample tick.
         xp_t: Cumulative XP at each sample tick.
         times_min: Tick values at each game-minute boundary (OpenDota-aligned).
-        gold_t_min: Current unspent gold at each game-minute boundary.
+        gold_t_min: OpenDota-compatible cumulative earned gold at each
+            game-minute boundary when interval data is available; legacy
+            current-unspent-gold fallback on replays without complete intervals.
         total_earned_gold_t_min: Cumulative total earned gold at each game-minute boundary
             (``m_iTotalEarnedGold``). Used for ``radiant_gold_adv`` computation.
         total_earned_xp_t_min: Cumulative total earned XP at each game-minute boundary
@@ -171,6 +173,8 @@ class ParsedPlayer:
             (``"physical"``, ``"magical"``, ``"pure"``).
         healing: Total healing dealt, keyed by target NPC name.
         ability_uses: Ability usage counts, keyed by ability name.
+        ability_upgrades_arr: Ability upgrade IDs in learned order, matching
+            OpenDota's ``ability_upgrades_arr``.
         item_uses: Item usage counts, keyed by item name.
         gold_reasons: Gold received per reason code.
         xp_reasons: XP received per reason code.
@@ -241,6 +245,7 @@ class ParsedPlayer:
     damage_taken_by_type: dict[str, int] = field(default_factory=dict)
     healing: dict[str, int] = field(default_factory=dict)
     ability_uses: dict[str, int] = field(default_factory=dict)
+    ability_upgrades_arr: list[int] = field(default_factory=list)
     item_uses: dict[str, int] = field(default_factory=dict)
     gold_reasons: dict[str, int] = field(default_factory=dict)
     xp_reasons: dict[str, int] = field(default_factory=dict)

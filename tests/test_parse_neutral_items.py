@@ -10,6 +10,7 @@ def test_parse_collects_neutral_item_found_events(monkeypatch):
     import gem.combat.aggregator
     import gem.extractors.courier
     import gem.extractors.draft
+    import gem.extractors.intervals
     import gem.extractors.objectives
     import gem.extractors.players
     import gem.extractors.wards
@@ -82,6 +83,7 @@ def test_parse_collects_neutral_item_found_events(monkeypatch):
     monkeypatch.setattr(gem.extractors.wards, "WardsExtractor", FakeExtractor)
     monkeypatch.setattr(gem.extractors.courier, "CourierExtractor", FakeExtractor)
     monkeypatch.setattr(gem.extractors.draft, "DraftExtractor", FakeExtractor)
+    monkeypatch.setattr(gem.extractors.intervals, "IntervalExtractor", FakeExtractor)
     monkeypatch.setattr(gem.combat.aggregator, "_CombatAggregator", FakeCombatAggregator)
     monkeypatch.setattr(gem.results.assembly, "build_parsed_match", fake_build_parsed_match)
 

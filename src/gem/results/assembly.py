@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from gem.combat.log import CombatLogEntry
     from gem.extractors.courier import CourierExtractor
     from gem.extractors.draft import DraftExtractor
+    from gem.extractors.intervals import IntervalExtractor, IntervalSnapshot, IntervalTimeSeries
     from gem.extractors.objectives import ObjectivesExtractor
     from gem.extractors.players import PlayerExtractor
     from gem.extractors.wards import WardsExtractor
@@ -27,6 +28,15 @@ if TYPE_CHECKING:
 _LANE_GRID = 64
 # First 10 game-minutes in ticks (600s × 30 ticks/s)
 _LANE_WINDOW = 600 * 30
+
+
+def _metadata_slot_to_player_id(player_slot: int) -> int | None:
+    """Convert match-metadata player slots to gem player ids."""
+    if 0 <= player_slot <= 4:
+        return player_slot
+    if 128 <= player_slot <= 132:
+        return 5 + (player_slot - 128)
+    return None
 
 
 def _radiant_win_from_ancient(combat_log: list[CombatLogEntry]) -> bool | None:
@@ -52,6 +62,144 @@ def _radiant_win_from_ancient(combat_log: list[CombatLogEntry]) -> bool | None:
     return None
 
 
+def _radiant_xp_adv_from_combat_log(
+    combat_log: list[CombatLogEntry],
+    match: ParsedMatch,
+    n_minutes: int,
+) -> list[int] | None:
+    """Build an OpenDota-compatible XP advantage curve from combat-log XP events.
+
+    The replay entity ``m_iTotalEarnedXP`` values can drift from OpenDota's
+    exposed ``xp_t`` arrays on recent S2 replays. Combat-log XP reason events
+    carry OpenDota-style game time and match those arrays more closely, so use
+    them for the match-level advantage curve when available.
+    """
+    if n_minutes <= 0:
+        return []
+
+    hero_to_player = {
+        pp.hero_name: pp for pp in match.players if pp.hero_name and pp.team in (2, 3)
+    }
+    deltas = [0] * n_minutes
+    saw_timed_xp = False
+
+    for entry in combat_log:
+        if entry.log_type != "XP" or entry.game_time_s is None or entry.game_time_s < 0:
+            continue
+        player = hero_to_player.get(entry.target_name)
+        if player is None:
+            continue
+        minute_idx = entry.game_time_s // 60 + 1
+        if minute_idx >= n_minutes:
+            continue
+        sign = 1 if player.team == 2 else -1
+        deltas[minute_idx] += sign * entry.value
+        saw_timed_xp = True
+
+    if not saw_timed_xp:
+        return None
+
+    out: list[int] = []
+    running = 0
+    for delta in deltas:
+        running += delta
+        out.append(running)
+    return out
+
+
+def _radiant_adv_from_intervals(
+    interval_ext: IntervalExtractor | None,
+) -> tuple[list[int], list[int]] | None:
+    """Build Radiant gold/XP advantage from OpenDota-style interval snapshots."""
+    batches = _complete_interval_batches(interval_ext)
+    if batches is None:
+        return None
+
+    gold_adv: list[int] = []
+    xp_adv: list[int] = []
+    for by_player in batches:
+        gold = 0
+        xp = 0
+        for snap in by_player.values():
+            sign = 1 if snap.team == 2 else -1
+            gold += sign * snap.gold
+            xp += sign * snap.xp
+        gold_adv.append(gold)
+        xp_adv.append(xp)
+
+    return gold_adv, xp_adv
+
+
+def _complete_interval_batches(
+    interval_ext: IntervalExtractor | None,
+) -> list[dict[int, IntervalSnapshot]] | None:
+    """Return complete interval batches keyed by player id.
+
+    Partial batches are ignored because missing one player's interval sample
+    would silently skew both player-minute tables and match advantage curves.
+    """
+    if interval_ext is None:
+        return None
+
+    raw_snapshots = getattr(interval_ext, "all_snapshots", None)
+    if raw_snapshots is None:
+        raw_snapshots = getattr(interval_ext, "snapshots", [])
+    snapshots: list[IntervalSnapshot] = list(raw_snapshots)
+    if not snapshots:
+        return None
+
+    expected_players = {
+        snap.player_id for snap in snapshots if snap.team in (2, 3) and 0 <= snap.player_id < 10
+    }
+    if not expected_players:
+        return None
+
+    by_time: defaultdict[int, dict[int, IntervalSnapshot]] = defaultdict(dict)
+    for snap in snapshots:
+        if snap.time_s < 0 or snap.team not in (2, 3):
+            continue
+        by_time[snap.time_s][snap.player_id] = snap
+
+    batches: list[dict[int, IntervalSnapshot]] = []
+    for time_s in sorted(by_time):
+        by_player = by_time[time_s]
+        if set(by_player) != expected_players:
+            continue
+        batches.append(by_player)
+
+    if not batches:
+        return None
+    return batches
+
+
+def _interval_series_by_player(
+    interval_ext: IntervalExtractor | None,
+) -> dict[int, IntervalTimeSeries]:
+    """Build complete OpenDota-style player minute arrays from interval snapshots."""
+    from gem.extractors.intervals import IntervalTimeSeries
+
+    batches = _complete_interval_batches(interval_ext)
+    if batches is None:
+        return {}
+
+    player_ids = sorted(batches[0])
+    series = {player_id: IntervalTimeSeries(player_id=player_id) for player_id in player_ids}
+
+    for by_player in batches:
+        for player_id in player_ids:
+            snap = by_player[player_id]
+            ts = series[player_id]
+            ts.ticks.append(snap.tick)
+            ts.times.append(snap.time_s)
+            ts.gold_t.append(snap.gold)
+            ts.xp_t.append(snap.xp)
+            ts.lh_t.append(snap.lh)
+            ts.dn_t.append(snap.dn)
+            ts.net_worth_t.append(snap.net_worth)
+
+    return series
+
+
 def build_parsed_match(
     parser: ReplayParser,
     player_ext: PlayerExtractor,
@@ -65,6 +213,7 @@ def build_parsed_match(
     smoke_events: list[SmokeEvent] | None = None,
     vision_modifier_events: list[VisionModifierEvent] | None = None,
     neutral_item_finds: list[NeutralItemFoundEvent] | None = None,
+    interval_ext: IntervalExtractor | None = None,
 ) -> ParsedMatch:
     """Assemble a :class:`ParsedMatch` from extractor state after a completed parse.
 
@@ -85,6 +234,8 @@ def build_parsed_match(
         smoke_events: All :class:`SmokeEvent` objects collected during parse.
         vision_modifier_events: All :class:`VisionModifierEvent` objects collected during parse.
         neutral_item_finds: Neutral item found events collected during parse.
+        interval_ext: Optional internal interval extractor used for OpenDota-style
+            match-level gold/XP advantage curves.
 
     Returns:
         Fully populated :class:`ParsedMatch`.
@@ -135,10 +286,12 @@ def build_parsed_match(
 
     # Capture game_start_tick once — used for lane_pos time filter below
     game_start_tick = parser.game_start_tick
+    interval_min_series = _interval_series_by_player(interval_ext)
 
     # Build per-player time series and overlay combat log aggregates
     for player_id in range(10):
         ts = player_ext.time_series(player_id)
+        mts = player_ext.minute_time_series(player_id)
         pp = match.players[player_id]
         pp.player_id = player_id
         pp.times = ts.ticks
@@ -148,15 +301,28 @@ def build_parsed_match(
         pp.lh_t = ts.lh_t
         pp.dn_t = ts.dn_t
         pp.xp_t = ts.xp_t
-        mts = player_ext.minute_time_series(player_id)
-        pp.times_min = mts.ticks
-        pp.gold_t_min = mts.gold_t
-        pp.total_earned_gold_t_min = mts.total_earned_gold_t
-        pp.total_earned_xp_t_min = mts.total_earned_xp_t
-        pp.net_worth_t_min = mts.net_worth_t
-        pp.lh_t_min = mts.lh_t
-        pp.dn_t_min = mts.dn_t
-        pp.xp_t_min = mts.xp_t
+        interval_ts = interval_min_series.get(player_id)
+        if interval_ts is not None:
+            # OpenDota interval records use cumulative earned gold/XP for
+            # gold_t/xp_t. Mirror that on the minute arrays when complete
+            # interval batches are available; keep dense series unchanged.
+            pp.times_min = interval_ts.ticks
+            pp.gold_t_min = interval_ts.gold_t
+            pp.total_earned_gold_t_min = interval_ts.gold_t
+            pp.total_earned_xp_t_min = interval_ts.xp_t
+            pp.net_worth_t_min = interval_ts.net_worth_t
+            pp.lh_t_min = interval_ts.lh_t
+            pp.dn_t_min = interval_ts.dn_t
+            pp.xp_t_min = interval_ts.xp_t
+        else:
+            pp.times_min = mts.ticks
+            pp.gold_t_min = mts.gold_t
+            pp.total_earned_gold_t_min = mts.total_earned_gold_t
+            pp.total_earned_xp_t_min = mts.total_earned_xp_t
+            pp.net_worth_t_min = mts.net_worth_t
+            pp.lh_t_min = mts.lh_t
+            pp.dn_t_min = mts.dn_t
+            pp.xp_t_min = mts.xp_t
         pp.total_hero_damage_t_min = mts.total_hero_damage_t
         pp.total_hero_healing_t_min = mts.total_hero_healing_t
         pp.total_deaths_t_min = mts.total_deaths_t
@@ -230,6 +396,16 @@ def build_parsed_match(
         _LANE_GOLD_BASELINE = 4948
         if pp.lane_total_gold > 0:
             pp.lane_efficiency_pct = int(pp.lane_total_gold / _LANE_GOLD_BASELINE * 100)
+
+    match_metadata = getattr(parser, "match_metadata", None)
+    metadata = getattr(match_metadata, "metadata", None)
+    for team in getattr(metadata, "teams", []) or []:
+        for metadata_player in getattr(team, "players", []) or []:
+            metadata_player_id = _metadata_slot_to_player_id(metadata_player.player_slot)
+            if metadata_player_id is not None:
+                match.players[metadata_player_id].ability_upgrades_arr = list(
+                    metadata_player.ability_upgrades
+                )
 
     # Tier-2: lane advantage vs opponents — paired by gold rank within the lane.
     # Players are sorted by lane_total_gold descending within each (team, lane_role)
@@ -306,10 +482,19 @@ def build_parsed_match(
     # Use total_earned fields (monotonically increasing) rather than spendable gold.
     # Compute the minimum series length so all 10 active players contribute to every bucket.
     # Reference: refs/parser/src/main/java/opendota/CreateParsedDataBlob.java processAllPlayers()
-    active_players = [
-        pp for pp in match.players if pp.total_earned_gold_t_min and pp.total_earned_xp_t_min
-    ]
-    if active_players:
+    interval_adv = _radiant_adv_from_intervals(interval_ext)
+    if interval_adv is not None:
+        gold_adv, xp_adv = interval_adv
+        n_minutes = len(gold_adv)
+        match.radiant_gold_adv = gold_adv
+        match.radiant_xp_adv = (
+            _radiant_xp_adv_from_combat_log(all_entries, match, n_minutes) or xp_adv
+        )
+    else:
+        active_players = [
+            pp for pp in match.players if pp.total_earned_gold_t_min and pp.total_earned_xp_t_min
+        ]
+    if interval_adv is None and active_players:
         n_minutes = min(
             min(len(pp.total_earned_gold_t_min), len(pp.total_earned_xp_t_min))
             for pp in active_players
@@ -324,7 +509,9 @@ def build_parsed_match(
                     pp.total_earned_xp_t_min[i] if i < len(pp.total_earned_xp_t_min) else 0
                 )
         match.radiant_gold_adv = gold_adv
-        match.radiant_xp_adv = xp_adv
+        match.radiant_xp_adv = (
+            _radiant_xp_adv_from_combat_log(all_entries, match, n_minutes) or xp_adv
+        )
 
     # Detect teamfights (Phase 9)
     hero_to_slot = {pp.hero_name: pp.player_id for pp in match.players if pp.hero_name}
