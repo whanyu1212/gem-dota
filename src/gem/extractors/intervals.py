@@ -31,6 +31,9 @@ _PLAYER_RESOURCE_SCAN_LIMIT = 30
 _TICKS_PER_SECOND = 30
 _FINAL_INTERVAL_GRACE_TICKS = 15 * _TICKS_PER_SECOND
 
+# One observed team-data frame for a slot: (observed_tick, (gold, xp, lh, dn, nw)).
+_TeamDataFrame = tuple[int, tuple[int, int, int, int, int]]
+
 
 @dataclass(frozen=True, slots=True)
 class IntervalSnapshot:
@@ -98,6 +101,23 @@ class IntervalExtractor:
         self._player_resource: Entity | None = None
         self._data_radiant: Entity | None = None
         self._data_dire: Entity | None = None
+        # Per-team-slot team-data history, kept to the two most recent observed
+        # frames as ``(observed_tick, (gold, xp, lh, dn, net_worth))``. OpenDota's
+        # interval read lands one entity frame earlier than gem's clock crossing,
+        # so emitting the live (boundary-tick) value double-counts the increment
+        # that arrived on the boundary tick. ``_emit`` instead reads the latest
+        # frame observed *strictly before* the boundary tick, removing the
+        # systematic +1. Two frames suffice for that rule: when a slot updates on
+        # the boundary tick the prior frame is used; when a slot is off-cadence
+        # and did not update on the boundary tick its current frame already
+        # precedes the crossing and is used directly. Entities mutate in place,
+        # so values are copied eagerly rather than held by reference. See
+        # ``_record_team_data`` / ``_team_data_values`` and
+        # ``test_nudge_reads_previous_data_frame``.
+        self._prev_data_radiant: dict[int, _TeamDataFrame] = {}
+        self._prev_data_dire: dict[int, _TeamDataFrame] = {}
+        self._cur_data_radiant: dict[int, _TeamDataFrame] = {}
+        self._cur_data_dire: dict[int, _TeamDataFrame] = {}
         self._player_index_by_id: dict[int, int] = {}
         self._player_team: dict[int, int] = {}
         self._player_team_slot: dict[int, int] = {}
@@ -197,14 +217,20 @@ class IntervalExtractor:
             return
 
         if cls in ("CDOTADataRadiant", "CDOTA_DataRadiant"):
-            self._data_radiant = None if op.has(EntityOp.DELETED) else entity
-            if not op.has(EntityOp.DELETED):
+            if op.has(EntityOp.DELETED):
+                self._data_radiant = None
+            else:
+                self._data_radiant = entity
+                self._record_team_data(entity, self._cur_data_radiant, self._prev_data_radiant)
                 self._maybe_emit()
             return
 
         if cls in ("CDOTADataDire", "CDOTA_DataDire"):
-            self._data_dire = None if op.has(EntityOp.DELETED) else entity
-            if not op.has(EntityOp.DELETED):
+            if op.has(EntityOp.DELETED):
+                self._data_dire = None
+            else:
+                self._data_dire = entity
+                self._record_team_data(entity, self._cur_data_dire, self._prev_data_dire)
                 self._maybe_emit()
             return
 
@@ -297,6 +323,24 @@ class IntervalExtractor:
             self._next_interval_s = game_time_s + self._interval_s
 
     def _emit_final_boundary(self, tick: int) -> None:
+        """Flush the last partial minute at game end if it is close enough.
+
+        OpenDota's postGame stop emits one final interval for the in-progress
+        minute when the game ends within ``_FINAL_INTERVAL_GRACE_TICKS`` of the
+        next boundary. This is a terminal read, not a boundary crossing: unlike a
+        regular boundary it deliberately keeps the live (last-observed) team-data
+        values rather than nudging back one frame. The boundary nudge excludes
+        the increment that lands *on* a future crossing tick; at game end there is
+        no future crossing, so the terminal value is correct as-is. The
+        ``observed_tick < emit_tick`` rule in :meth:`_team_data_values` produces
+        this automatically because ``tick`` here is the game-end tick, later than
+        every recorded data frame, so the current frame is selected. Measured:
+        final-minute gold_t/xp_t match OpenDota to within 1 unit across the
+        validation fixtures.
+
+        Args:
+            tick: The game-end tick reported by ``_on_game_end``.
+        """
         if self._parser is None:
             return
         if self._next_interval_s is None or self._last_emitted_tick is None:
@@ -380,6 +424,81 @@ class IntervalExtractor:
 
         return bool(self._player_index_by_id)
 
+    def _record_team_data(
+        self,
+        entity: Entity,
+        cur: dict[int, _TeamDataFrame],
+        prev: dict[int, _TeamDataFrame],
+    ) -> None:
+        """Record the latest two observed team-data frames per slot for one team.
+
+        Entities mutate in place, so ``entity`` already holds the new frame's
+        values. Stamp each slot's values with the current tick. Only demote the
+        existing current frame into ``prev`` when this update advances to a new
+        tick — repeated same-tick dispatches refresh the current frame without
+        consuming the genuinely-prior frame ``_emit`` needs.
+
+        Args:
+            entity: The just-updated ``CDOTA_DataRadiant``/``CDOTA_DataDire``.
+            cur: Per-team-slot cache of the most recent observed frame.
+            prev: Per-team-slot cache of the frame before ``cur``.
+        """
+        tick = self._parser.tick if self._parser is not None else 0
+        for team_slot in range(5):
+            existing = cur.get(team_slot)
+            if existing is not None and existing[0] != tick:
+                prev[team_slot] = existing
+            prefix = f"m_vecDataTeam.{team_slot:04d}"
+            cur[team_slot] = (
+                tick,
+                (
+                    _int_or_zero(entity.get_int32(f"{prefix}.m_iTotalEarnedGold")),
+                    _int_or_zero(entity.get_int32(f"{prefix}.m_iTotalEarnedXP")),
+                    _int_or_zero(entity.get_int32(f"{prefix}.m_iLastHitCount")),
+                    _int_or_zero(entity.get_int32(f"{prefix}.m_iDenyCount")),
+                    _int_or_zero(entity.get_int32(f"{prefix}.m_iNetWorth")),
+                ),
+            )
+
+    def _team_data_values(
+        self, team: int, team_slot: int, data_entity: Entity, emit_tick: int
+    ) -> tuple[int, int, int, int, int]:
+        """Return the team-data values observed strictly before the boundary tick.
+
+        OpenDota samples the interval one entity frame before gem's clock
+        crossing. Pick the latest recorded frame with ``observed_tick <
+        emit_tick``: when the slot updated on the boundary tick that is the prior
+        frame; when the slot is off-cadence and did not update on the boundary
+        tick its current frame already precedes the crossing. Fall back to the
+        live entity before any qualifying frame exists (first boundary), where
+        the values agree anyway.
+
+        Args:
+            team: ``_TEAM_RADIANT`` or ``_TEAM_DIRE``.
+            team_slot: The player's team slot, 0-4.
+            data_entity: The live data entity for the team (fallback source).
+            emit_tick: The tick of the boundary emit.
+
+        Returns:
+            ``(gold, xp, lh, dn, net_worth)`` for the boundary frame.
+        """
+        cur = self._cur_data_radiant if team == _TEAM_RADIANT else self._cur_data_dire
+        prev = self._prev_data_radiant if team == _TEAM_RADIANT else self._prev_data_dire
+        cur_frame = cur.get(team_slot)
+        if cur_frame is not None and cur_frame[0] < emit_tick:
+            return cur_frame[1]
+        prev_frame = prev.get(team_slot)
+        if prev_frame is not None and prev_frame[0] < emit_tick:
+            return prev_frame[1]
+        prefix = f"m_vecDataTeam.{team_slot:04d}"
+        return (
+            _int_or_zero(data_entity.get_int32(f"{prefix}.m_iTotalEarnedGold")),
+            _int_or_zero(data_entity.get_int32(f"{prefix}.m_iTotalEarnedXP")),
+            _int_or_zero(data_entity.get_int32(f"{prefix}.m_iLastHitCount")),
+            _int_or_zero(data_entity.get_int32(f"{prefix}.m_iDenyCount")),
+            _int_or_zero(data_entity.get_int32(f"{prefix}.m_iNetWorth")),
+        )
+
     def _emit(self, game_time_s: int) -> bool:
         emitted = False
         tick = self._parser.tick if self._parser is not None else 0
@@ -393,7 +512,7 @@ class IntervalExtractor:
             if data_entity is None:
                 continue
 
-            prefix = f"m_vecDataTeam.{team_slot:04d}"
+            gold, xp, lh, dn, net_worth = self._team_data_values(team, team_slot, data_entity, tick)
             player_slot = team_slot if team == _TEAM_RADIANT else 128 + team_slot
             self.snapshots.append(
                 IntervalSnapshot(
@@ -404,11 +523,11 @@ class IntervalExtractor:
                     team=team,
                     team_slot=team_slot,
                     hero_name=self._hero_names.get(player_id, ""),
-                    gold=_int_or_zero(data_entity.get_int32(f"{prefix}.m_iTotalEarnedGold")),
-                    xp=_int_or_zero(data_entity.get_int32(f"{prefix}.m_iTotalEarnedXP")),
-                    lh=_int_or_zero(data_entity.get_int32(f"{prefix}.m_iLastHitCount")),
-                    dn=_int_or_zero(data_entity.get_int32(f"{prefix}.m_iDenyCount")),
-                    net_worth=_int_or_zero(data_entity.get_int32(f"{prefix}.m_iNetWorth")),
+                    gold=gold,
+                    xp=xp,
+                    lh=lh,
+                    dn=dn,
+                    net_worth=net_worth,
                 )
             )
             emitted = True

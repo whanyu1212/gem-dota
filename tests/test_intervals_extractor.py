@@ -329,6 +329,117 @@ def test_prefers_combat_log_axis_over_entity_clock():
     assert {snap.time_s for snap in ext.snapshots} == {60}
 
 
+def _radiant_data_with(gold: int, xp: int, lh: int, dn: int, net_worth: int) -> Entity:
+    """Radiant data entity carrying explicit team-slot-1 totals."""
+    return _ent(
+        "CDOTADataRadiant",
+        **{
+            "m_vecDataTeam.0001.m_iTotalEarnedGold": gold,
+            "m_vecDataTeam.0001.m_iTotalEarnedXP": xp,
+            "m_vecDataTeam.0001.m_iLastHitCount": lh,
+            "m_vecDataTeam.0001.m_iDenyCount": dn,
+            "m_vecDataTeam.0001.m_iNetWorth": net_worth,
+        },
+    )
+
+
+def test_nudge_reads_previous_data_frame_not_boundary_frame():
+    """The boundary emit reads the team-data frame *before* the crossing tick.
+
+    OpenDota samples its interval one entity frame earlier than gem's clock
+    crossing, so the increment that lands on the boundary tick must not be
+    counted. Once a prior data frame exists, ``_emit`` reads it rather than the
+    live (boundary-tick) values. Here the data entity advances from 900 gold to
+    1000 gold on the boundary tick; the emit must record 900, not 1000.
+
+    Regression for the systematic +1 entity-frame residual measured against the
+    OpenDota fixtures (88% / 97% / 100% reductions on gold_t).
+    """
+    ext = IntervalExtractor()
+    parser = FakeParser(tick=1700, game_time_s=58)
+    ext.attach(parser)
+    ext._on_entity(_player_resource(), EntityOp.UPDATED)
+
+    # Pre-boundary data frame: establishes the "previous" values (900 gold).
+    parser.tick = 1798
+    ext._on_entity(_radiant_data_with(900, 640, 20, 2, 1450), EntityOp.UPDATED)
+    ext._on_entity(_dire_data(), EntityOp.UPDATED)
+    ext._on_entity(_ent("CDOTAGamerulesProxy"), EntityOp.UPDATED)
+    assert ext.snapshots == []  # entity clock not on a boundary yet
+
+    # Boundary tick: data jumps to 1000, then the gamerules proxy crosses t=60.
+    parser.tick = 1800
+    parser.game_time_s = 60
+    ext._on_entity(_radiant_data_with(1000, 700, 22, 3, 1600), EntityOp.UPDATED)
+    ext._on_entity(_dire_data(), EntityOp.UPDATED)
+    ext._on_entity(_ent("CDOTAGamerulesProxy"), EntityOp.UPDATED)
+
+    radiant = next(s for s in ext.snapshots if s.team == 2)
+    assert radiant.time_s == 60
+    # Previous frame (900/640/20/2), NOT the boundary frame (1000/700/22/3).
+    assert radiant.gold == 900
+    assert radiant.xp == 640
+    assert radiant.lh == 20
+    assert radiant.dn == 2
+    assert radiant.net_worth == 1450
+
+
+def test_nudge_first_boundary_falls_back_to_live_values():
+    """The first boundary has no prior frame, so it reads the live values.
+
+    Before any earlier data update exists, ``_prev_data_*`` is empty and
+    ``_team_data_values`` falls back to the live entity. This keeps the very
+    first interval (and the single-update unit fixtures) reading the current
+    totals — the previous and live frames agree there anyway.
+    """
+    ext, _parser = _attach_ready_extractor(game_time_s=60)
+
+    radiant = next(s for s in ext.snapshots if s.team == 2)
+    assert radiant.gold == 1000  # live values, no prior frame to fall back from
+    assert radiant.xp == 700
+
+
+def test_final_boundary_keeps_live_terminal_values_not_nudged():
+    """The game-end flush deliberately reads terminal values, not a nudged frame.
+
+    Unlike a regular boundary, ``_emit_final_boundary`` is a terminal read: there
+    is no future crossing whose on-tick increment must be excluded, so it keeps
+    the last-observed team-data values. Because its ``emit_tick`` is the game-end
+    tick (later than every recorded data frame), ``_team_data_values`` selects the
+    current frame. Here a later data frame (1500 gold) is recorded before game
+    end; the final boundary must emit 1500, not the earlier nudge frame.
+
+    Guards against a future change wrongly extending the nudge to the final
+    minute, which would regress the terminal value (measured to match OpenDota
+    within 1 unit).
+    """
+    ext = IntervalExtractor()
+    parser = FakeParser(tick=1800, game_time_s=60)
+    ext.attach(parser)
+    ext._on_entity(_player_resource(), EntityOp.UPDATED)
+
+    # First boundary at t=60 establishes _next_interval_s = 120.
+    ext._on_entity(_radiant_data_with(1000, 700, 22, 3, 1600), EntityOp.UPDATED)
+    ext._on_entity(_dire_data(), EntityOp.UPDATED)
+    ext._on_entity(_ent("CDOTAGamerulesProxy"), EntityOp.UPDATED)
+    assert len(ext.snapshots) == 2
+
+    # A later data frame arrives, then the game ends within the grace window of
+    # the t=120 boundary. The final flush must use the terminal (1500) values.
+    parser.tick = 3500
+    parser.game_time_s = 116
+    ext._on_entity(_radiant_data_with(1500, 1100, 30, 5, 2200), EntityOp.UPDATED)
+    ext._on_entity(_dire_data(), EntityOp.UPDATED)
+
+    parser.tick = 3560
+    ext._on_game_end(parser.tick)
+
+    final_radiant = next(s for s in ext.snapshots if s.team == 2 and s.time_s == 120)
+    assert final_radiant.gold == 1500
+    assert final_radiant.xp == 1100
+    assert final_radiant.lh == 30
+
+
 def test_final_minute_survives_when_boundary_precedes_postgame_on_one_axis():
     """The final minute is emitted when its boundary precedes postGame.
 

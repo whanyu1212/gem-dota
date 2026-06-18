@@ -441,22 +441,26 @@ _SAMPLE_NOTE = (
 )
 
 _NET_WORTH_TOLERANCE = 0.08
-# Advantage curves: gem samples interval boundaries on the same combat-log
-# timestamp axis OpenDota uses (parser.combat_log_time_s), so the minute marks
-# coincide tick-for-tick and the curves match OpenDota almost exactly. Observed
-# max element-wise error across the validation fixtures (tournament + ranked
-# pub): XP <=0.7%, gold <=0.9%, with final values matching to within 1 unit.
-# Tolerances are kept just above that so a real regression in the clock/source
-# alignment fails the gate, while sub-second end-game wiggle still passes.
-_GOLD_ADV_TOLERANCE = 0.05
-_GOLD_ADV_CURVE_TOLERANCE_PCT = 8.0
-_XP_ADV_TOLERANCE = 0.03
-_XP_ADV_CURVE_TOLERANCE_PCT = 5.0
-_PLAYER_GOLD_T_CURVE_TOLERANCE_PCT = 10.0
-_PLAYER_XP_T_CURVE_TOLERANCE_PCT = 12.0
-_PLAYER_LH_T_ABS_TOLERANCE = 10
+# Advantage and player minute curves: gem samples interval boundaries on the
+# combat-log timestamp axis OpenDota uses (parser.combat_log_time_s) AND reads
+# the team-data frame observed one entity tick before the boundary crossing
+# (the boundary-nudge fix), matching OpenDota's effective read instant. The
+# curves now coincide with OpenDota almost exactly. Observed max element-wise
+# error across the five validation fixtures (tournament + ranked pub), measured
+# 2026-06-18: gold_t <=0.65%, xp_t <=0.40%, gold_adv <=0.88%, xp_adv <=0.47%,
+# with every advantage final matching to within 1 unit. Tolerances sit a few
+# multiples above that worst case: tight enough that reverting the nudge or the
+# clock/source alignment (which pushes errors back to ~10%) fails the gate,
+# loose enough that an unseen fixture's sub-second end-game wiggle still passes.
+_GOLD_ADV_TOLERANCE = 0.02
+_GOLD_ADV_CURVE_TOLERANCE_PCT = 3.0
+_XP_ADV_TOLERANCE = 0.02
+_XP_ADV_CURVE_TOLERANCE_PCT = 2.5
+_PLAYER_GOLD_T_CURVE_TOLERANCE_PCT = 3.0
+_PLAYER_XP_T_CURVE_TOLERANCE_PCT = 3.0
+_PLAYER_LH_T_ABS_TOLERANCE = 5
 _PLAYER_LH_T_REL_TOLERANCE = 0.02
-_PLAYER_DN_T_ABS_TOLERANCE = 3
+_PLAYER_DN_T_ABS_TOLERANCE = 2
 _GOLD_ADV_NOTE = (
     "gem builds gold_adv from m_iTotalEarnedGold sampled on the combat-log "
     "timestamp axis (the same axis OpenDota uses for its interval boundaries), "
