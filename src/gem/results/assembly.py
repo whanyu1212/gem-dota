@@ -370,6 +370,14 @@ def build_parsed_match(
             pp.rune_pickups = counters["rune_pickups"]
             pp.tower_kills = counters["tower_kills"]
 
+        # OpenDota-style computed convenience fields (no duration dependency).
+        # kda uses a +1 denominator and 2-decimal rounding, matching OpenDota.
+        pp.kda = round((pp.kills + pp.assists) / (pp.deaths + 1), 2)
+        pp.buyback_count = len(pp.buyback_log)
+        pp.is_radiant = pp.team == 2  # 2 = Radiant
+        # win is 0 when the winner is unknown (radiant_win is None).
+        pp.win = 1 if (radiant_win is not None and pp.is_radiant == radiant_win) else 0
+
         # Tier-1: lane efficiency % (OpenDota formula, same denominator for all players)
         # Reference: odota/core svc/util/compute.ts
         # melee(40×60) + ranged(45×20) + siege(74×2) + passive(600×1.5) + starting(600) = 4948

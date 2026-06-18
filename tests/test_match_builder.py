@@ -1387,6 +1387,82 @@ class TestBuildParsedMatchTeamCounters:
 
 
 # ---------------------------------------------------------------------------
+# OpenDota-style computed fields (kda / buyback_count / is_radiant / win)
+# ---------------------------------------------------------------------------
+
+
+class TestBuildParsedMatchComputedFields:
+    def _build(self, *, radiant_win, scoreboard, snaps):
+        parser = _make_parser(radiant_win=radiant_win)
+        ext = _make_player_ext(scoreboard=scoreboard, snapshots=snaps)
+        return build_parsed_match(
+            parser,
+            ext,
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            _make_combat_agg(),
+            [],
+            [],
+        )
+
+    def test_kda_uses_plus_one_denominator_and_two_decimals(self):
+        # (1 + 10) / (7 + 1) = 1.375 -> 1.38 (round-half-to-even on 2 dp).
+        snaps = [_FakePlayerSnapshot(player_id=0, tick=1, npc_name="npc_dota_hero_zuus", team=2)]
+        m = self._build(radiant_win=True, scoreboard={0: (1, 7, 10)}, snaps=snaps)
+        assert m.players[0].kda == 1.38
+
+    def test_kda_zero_deaths_uses_plus_one(self):
+        snaps = [_FakePlayerSnapshot(player_id=0, tick=1, npc_name="npc_dota_hero_zuus", team=2)]
+        m = self._build(radiant_win=True, scoreboard={0: (5, 0, 3)}, snaps=snaps)
+        assert m.players[0].kda == 8.0  # (5 + 3) / (0 + 1)
+
+    def test_is_radiant_and_win_for_radiant_winner(self):
+        snaps = [
+            _FakePlayerSnapshot(player_id=0, tick=1, npc_name="npc_dota_hero_zuus", team=2),
+            _FakePlayerSnapshot(player_id=5, tick=1, npc_name="npc_dota_hero_axe", team=3),
+        ]
+        m = self._build(radiant_win=True, scoreboard={}, snaps=snaps)
+        assert m.players[0].is_radiant is True
+        assert m.players[0].win == 1
+        assert m.players[5].is_radiant is False
+        assert m.players[5].win == 0
+
+    def test_win_zero_for_both_when_winner_unknown(self):
+        snaps = [
+            _FakePlayerSnapshot(player_id=0, tick=1, npc_name="npc_dota_hero_zuus", team=2),
+            _FakePlayerSnapshot(player_id=5, tick=1, npc_name="npc_dota_hero_axe", team=3),
+        ]
+        m = self._build(radiant_win=None, scoreboard={}, snaps=snaps)
+        assert m.players[0].win == 0
+        assert m.players[5].win == 0
+
+    def test_buyback_count_matches_log_length(self):
+        from gem.combat.aggregator import _ParsedPlayerAgg
+
+        aggs = {i: _ParsedPlayerAgg() for i in range(10)}
+        combat_agg = MagicMock()
+        combat_agg.players = aggs
+        combat_agg._agg.side_effect = lambda pid: aggs[pid]
+
+        entries = [_buyback(pid=0, tick=1000), _buyback(pid=0, tick=2000)]
+        m = build_parsed_match(
+            _make_parser(radiant_win=True),
+            _make_player_ext(),
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            combat_agg,
+            entries,
+            [],
+        )
+        assert m.players[0].buyback_count == 2
+        assert m.players[1].buyback_count == 0
+
+
+# ---------------------------------------------------------------------------
 # Player name extraction from entity manager
 # ---------------------------------------------------------------------------
 

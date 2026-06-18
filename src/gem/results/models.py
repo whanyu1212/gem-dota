@@ -230,6 +230,15 @@ class ParsedPlayer:
             ``rune_pickups``.
         tower_kills: Towers this player last-hit (``m_iTowerKills``). Matches
             OpenDota's per-player ``tower_kills``.
+        kda: OpenDota KDA ratio, ``round((kills + assists) / (deaths + 1), 2)``.
+            Note the ``+1`` denominator (not ``max(deaths, 1)``) and 2-decimal
+            rounding; matches OpenDota's ``kda`` exactly.
+        buyback_count: Number of buybacks used (``len(buyback_log)``). Matches
+            OpenDota's ``buyback_count``.
+        is_radiant: True if the player is on Radiant (team 2). Matches OpenDota's
+            ``isRadiant``.
+        win: ``1`` if this player's team won, else ``0`` (also ``0`` when the
+            match winner is unknown). Matches OpenDota's ``win``.
     """
 
     player_id: int
@@ -296,6 +305,10 @@ class ParsedPlayer:
     sen_placed: int = 0
     rune_pickups: int = 0
     tower_kills: int = 0
+    kda: float = 0.0
+    buyback_count: int = 0
+    is_radiant: bool = False
+    win: int = 0
     _ability_snapshots: list[tuple[int, dict[str, int]]] = field(default_factory=list)
 
     def __repr__(self) -> str:
