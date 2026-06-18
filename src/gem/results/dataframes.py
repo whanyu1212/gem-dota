@@ -84,6 +84,7 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                     "buyback_count": pp.buyback_count,
                     "is_radiant": pp.is_radiant,
                     "win": pp.win,
+                    "kills_per_min": pp.kills_per_min,
                     "damage_physical": pp.damage_by_type.get("physical", 0),
                     "damage_magical": pp.damage_by_type.get("magical", 0),
                     "damage_pure": pp.damage_by_type.get("pure", 0),

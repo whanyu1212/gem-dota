@@ -201,6 +201,9 @@ class ReplayParser:
         # ``m_flGameStartTime``), so consumers that must agree with OpenDota's
         # minute boundaries (the interval extractor) should read this clock.
         self.combat_log_time_s: int | None = None
+        # OpenDota-style match duration in seconds: the horn-anchored combat-log
+        # time at GAME_STATE==6 (ancient destroyed). None until that state is seen.
+        self.duration_s: int | None = None
         self._game_start_callbacks: list[Callable[[int], None]] = []
         self._game_end_callbacks: list[Callable[[int], None]] = []
         self._game_ended: bool = False
@@ -636,6 +639,12 @@ class ReplayParser:
             return None
         game_time_s = raw_time_s - self._combat_log_game_start_time_s
         self.combat_log_time_s = game_time_s
+        # The GAME_STATE==6 (ancient destroyed / postGame) timestamp on the
+        # horn-anchored combat-log axis is OpenDota's match ``duration``. Capture
+        # it once, before the game-end callbacks fire. Reference:
+        # refs/parser/src/main/java/opendota/Parse.java postGame handling.
+        if msg.type == 9 and msg.value == 6 and self.duration_s is None:
+            self.duration_s = game_time_s
         return game_time_s
 
     def _on_match_metadata(self, payload: bytes) -> None:

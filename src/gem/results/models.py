@@ -239,6 +239,9 @@ class ParsedPlayer:
             ``isRadiant``.
         win: ``1`` if this player's team won, else ``0`` (also ``0`` when the
             match winner is unknown). Matches OpenDota's ``win``.
+        kills_per_min: Kills divided by match duration in minutes
+            (``kills / (ParsedMatch.duration / 60)``). Unrounded float matching
+            OpenDota's ``kills_per_min``. ``0.0`` when duration is unknown.
     """
 
     player_id: int
@@ -309,6 +312,7 @@ class ParsedPlayer:
     buyback_count: int = 0
     is_radiant: bool = False
     win: int = 0
+    kills_per_min: float = 0.0
     _ability_snapshots: list[tuple[int, dict[str, int]]] = field(default_factory=list)
 
     def __repr__(self) -> str:
@@ -365,6 +369,12 @@ class ParsedMatch:
         game_start_tick: Absolute tick when the game clock started (creeps spawn).
             ``None`` if the transition was not observed.
         game_end_tick: Absolute tick of the final parser tick.
+        duration: OpenDota-style match duration in seconds — the horn-anchored
+            combat-log time at GAME_STATE==6 (ancient destroyed). Matches
+            OpenDota's ``duration`` to within ~1s (sub-second rounding). ``0`` if
+            the postGame transition was not observed. Distinct from the
+            tick-derived ``duration_seconds`` property, which spans the raw parser
+            ticks and includes pre/post-game time.
     """
 
     match_id: int = 0
@@ -379,6 +389,7 @@ class ParsedMatch:
     dire_team_tag: str = ""
     game_start_tick: int | None = None
     game_end_tick: int = 0
+    duration: int = 0
     players: list[ParsedPlayer] = field(
         default_factory=lambda: [ParsedPlayer(player_id=i) for i in range(10)]
     )

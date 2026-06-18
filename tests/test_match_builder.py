@@ -78,6 +78,7 @@ def _make_parser(
     leagueid: int = 0,
     entity_manager=None,
     match_metadata=None,
+    duration_s: int | None = None,
 ) -> MagicMock:
     p = MagicMock()
     p.match_id = match_id
@@ -88,6 +89,7 @@ def _make_parser(
     p.leagueid = leagueid
     p.entity_manager = entity_manager
     p.match_metadata = match_metadata
+    p.duration_s = duration_s
     return p
 
 
@@ -1460,6 +1462,42 @@ class TestBuildParsedMatchComputedFields:
         )
         assert m.players[0].buyback_count == 2
         assert m.players[1].buyback_count == 0
+
+
+class TestBuildParsedMatchDuration:
+    def _build(self, *, duration_s, scoreboard=None, snaps=None):
+        parser = _make_parser(duration_s=duration_s)
+        ext = _make_player_ext(scoreboard=scoreboard or {}, snapshots=snaps or [])
+        return build_parsed_match(
+            parser,
+            ext,
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            _make_combat_agg(),
+            [],
+            [],
+        )
+
+    def test_duration_taken_from_parser_postgame_seconds(self):
+        m = self._build(duration_s=2419)
+        assert m.duration == 2419
+
+    def test_duration_zero_when_postgame_not_observed(self):
+        m = self._build(duration_s=None)
+        assert m.duration == 0
+
+    def test_kills_per_min_uses_match_duration(self):
+        # 8 kills over 4177s = 8 / (4177/60).
+        snaps = [_FakePlayerSnapshot(player_id=0, tick=1, npc_name="npc_dota_hero_zuus", team=2)]
+        m = self._build(duration_s=4177, scoreboard={0: (8, 7, 12)}, snaps=snaps)
+        assert m.players[0].kills_per_min == 8 / (4177 / 60)
+
+    def test_kills_per_min_zero_without_duration(self):
+        snaps = [_FakePlayerSnapshot(player_id=0, tick=1, npc_name="npc_dota_hero_zuus", team=2)]
+        m = self._build(duration_s=None, scoreboard={0: (8, 7, 12)}, snaps=snaps)
+        assert m.players[0].kills_per_min == 0.0
 
 
 # ---------------------------------------------------------------------------

@@ -227,6 +227,7 @@ def build_parsed_match(
         draft=draft_ext.draft_events,
         game_start_tick=parser.game_start_tick,
         game_end_tick=parser.tick,
+        duration=getattr(parser, "duration_s", None) or 0,
     )
 
     # Post-process buybacks (7b).
@@ -377,6 +378,11 @@ def build_parsed_match(
         pp.is_radiant = pp.team == 2  # 2 = Radiant
         # win is 0 when the winner is unknown (radiant_win is None).
         pp.win = 1 if (radiant_win is not None and pp.is_radiant == radiant_win) else 0
+        # kills_per_min uses OpenDota's gameplay duration (match.duration), which
+        # is the horn-to-ancient combat-log span — not the raw tick span. 0.0 when
+        # duration is unknown.
+        if match.duration > 0:
+            pp.kills_per_min = pp.kills / (match.duration / 60)
 
         # Tier-1: lane efficiency % (OpenDota formula, same denominator for all players)
         # Reference: odota/core svc/util/compute.ts
