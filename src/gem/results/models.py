@@ -210,6 +210,14 @@ class ParsedPlayer:
         lane_xp_adv: Tier-2 laning metric. XP advantage at 10 minutes versus
             lane opponents on the opposing team. Same pairing logic as
             ``lane_gold_adv``.
+        net_worth: End-of-game net worth (gold + item value), the last dense
+            sample (``net_worth_t[-1]``). Matches OpenDota's terminal
+            ``net_worth`` scalar. Convenience accessor so callers need not index
+            the series; ``0`` if no samples were collected.
+        last_hits: End-of-game last-hit count, the last dense sample
+            (``lh_t[-1]``). Matches OpenDota's terminal ``last_hits`` scalar.
+        denies: End-of-game deny count, the last dense sample (``dn_t[-1]``).
+            Matches OpenDota's terminal ``denies`` scalar.
     """
 
     player_id: int
@@ -267,6 +275,9 @@ class ParsedPlayer:
     lane_efficiency_pct: int = 0
     lane_gold_adv: int | None = None
     lane_xp_adv: int | None = None
+    net_worth: int = 0
+    last_hits: int = 0
+    denies: int = 0
     _ability_snapshots: list[tuple[int, dict[str, int]]] = field(default_factory=list)
 
     def __repr__(self) -> str:
@@ -274,7 +285,7 @@ class ParsedPlayer:
         team = "Radiant" if self.team == 2 else "Dire" if self.team == 3 else f"team={self.team}"
         return (
             f"ParsedPlayer(slot={self.player_id}, hero={hero}, team={team}, "
-            f"kda={self.kills}/{self.deaths}/{self.assists})"
+            f"kda={self.kills}/{self.deaths}/{self.assists}, net_worth={self.net_worth})"
         )
 
 

@@ -68,6 +68,12 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                     "lane_efficiency_pct": pp.lane_efficiency_pct,
                     "lane_gold_adv": pp.lane_gold_adv,
                     "lane_xp_adv": pp.lane_xp_adv,
+                    # Per-player end-of-game terminal scalars (constant across the
+                    # player's rows). Named ``final_*`` to avoid shadowing the
+                    # per-tick ``net_worth``/``lh``/``dn`` columns above.
+                    "final_net_worth": pp.net_worth,
+                    "final_last_hits": pp.last_hits,
+                    "final_denies": pp.denies,
                     "damage_physical": pp.damage_by_type.get("physical", 0),
                     "damage_magical": pp.damage_by_type.get("magical", 0),
                     "damage_pure": pp.damage_by_type.get("pure", 0),

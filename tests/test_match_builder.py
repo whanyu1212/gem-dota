@@ -1267,6 +1267,59 @@ class TestBuildParsedMatchLane10Min:
 
 
 # ---------------------------------------------------------------------------
+# End-of-game terminal scalars (net_worth / last_hits / denies)
+# ---------------------------------------------------------------------------
+
+
+class TestBuildParsedMatchTerminalScalars:
+    def _build_with_dense_series(
+        self,
+        pid: int,
+        net_worth: list[int],
+        last_hits: list[int],
+        denies: list[int],
+    ) -> ParsedMatch:
+        ext = _make_player_ext()
+
+        def ts_for(p):
+            ts = _FakeTimeSeries()
+            if p == pid:
+                ts.net_worth_t = net_worth
+                ts.lh_t = last_hits
+                ts.dn_t = denies
+            return ts
+
+        ext.time_series.side_effect = ts_for
+        ext.minute_time_series.side_effect = ts_for
+        parser = _make_parser()
+        return build_parsed_match(
+            parser,
+            ext,
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            _make_combat_agg(),
+            [],
+            [],
+        )
+
+    def test_terminal_scalars_read_last_dense_sample(self):
+        m = self._build_with_dense_series(
+            0, net_worth=[600, 5000, 18763], last_hits=[0, 90, 175], denies=[0, 3, 5]
+        )
+        assert m.players[0].net_worth == 18763
+        assert m.players[0].last_hits == 175
+        assert m.players[0].denies == 5
+
+    def test_terminal_scalars_default_zero_without_samples(self):
+        m = self._build_with_dense_series(0, net_worth=[], last_hits=[], denies=[])
+        assert m.players[0].net_worth == 0
+        assert m.players[0].last_hits == 0
+        assert m.players[0].denies == 0
+
+
+# ---------------------------------------------------------------------------
 # Player name extraction from entity manager
 # ---------------------------------------------------------------------------
 

@@ -345,6 +345,17 @@ def build_parsed_match(
         if len(pp.total_earned_xp_t_min) > _LM:
             pp.lane_total_xp = pp.total_earned_xp_t_min[_LM]
 
+        # End-of-game terminal scalars: read the LAST DENSE sample (not the last
+        # minute boundary, which can lag the game end by up to ~59s). These match
+        # OpenDota's terminal net_worth / last_hits / denies to the unit; see the
+        # active "[30t]" checks in scripts/validate_opendota.py.
+        if pp.net_worth_t:
+            pp.net_worth = pp.net_worth_t[-1]
+        if pp.lh_t:
+            pp.last_hits = pp.lh_t[-1]
+        if pp.dn_t:
+            pp.denies = pp.dn_t[-1]
+
         # Tier-1: lane efficiency % (OpenDota formula, same denominator for all players)
         # Reference: odota/core svc/util/compute.ts
         # melee(40×60) + ranged(45×20) + siege(74×2) + passive(600×1.5) + starting(600) = 4948
