@@ -34,6 +34,22 @@ _FINAL_INTERVAL_GRACE_TICKS = 15 * _TICKS_PER_SECOND
 # One observed team-data frame for a slot: (observed_tick, (gold, xp, lh, dn, nw)).
 _TeamDataFrame = tuple[int, tuple[int, int, int, int, int]]
 
+# Terminal counters read from the same ``m_vecDataTeam`` entry as gold/xp. These
+# are monotonic totals consumed only as end-of-game scalars (not curves), so the
+# extractor keeps the last observed value per team slot rather than a series.
+# ``m_iRoshanKills`` is intentionally excluded: its team-data value disagrees with
+# OpenDota's per-player ``roshan_kills`` (which uses combat-log last-hit
+# attribution). gem reports Roshan kills via the objectives/combat-log path.
+# Mapping is {ParsedPlayer attribute: m_vecDataTeam field}.
+_TEAM_COUNTER_FIELDS: dict[str, str] = {
+    "camps_stacked": "m_iCampsStacked",
+    "creeps_stacked": "m_iCreepsStacked",
+    "obs_placed": "m_iObserverWardsPlaced",
+    "sen_placed": "m_iSentryWardsPlaced",
+    "rune_pickups": "m_iRunePickups",
+    "tower_kills": "m_iTowerKills",
+}
+
 
 @dataclass(frozen=True, slots=True)
 class IntervalSnapshot:
@@ -118,6 +134,11 @@ class IntervalExtractor:
         self._prev_data_dire: dict[int, _TeamDataFrame] = {}
         self._cur_data_radiant: dict[int, _TeamDataFrame] = {}
         self._cur_data_dire: dict[int, _TeamDataFrame] = {}
+        # Last observed terminal counters per (team, team_slot). These are
+        # monotonic totals (camps/creeps stacked, wards placed, rune pickups,
+        # tower kills) read from the same ``m_vecDataTeam`` entry as gold/xp;
+        # consumed only as end-of-game scalars. ``{(team, slot): {attr: value}}``.
+        self._team_counters: dict[tuple[int, int], dict[str, int]] = {}
         self._player_index_by_id: dict[int, int] = {}
         self._player_team: dict[int, int] = {}
         self._player_team_slot: dict[int, int] = {}
@@ -222,6 +243,7 @@ class IntervalExtractor:
             else:
                 self._data_radiant = entity
                 self._record_team_data(entity, self._cur_data_radiant, self._prev_data_radiant)
+                self._record_team_counters(entity, _TEAM_RADIANT)
                 self._maybe_emit()
             return
 
@@ -231,6 +253,7 @@ class IntervalExtractor:
             else:
                 self._data_dire = entity
                 self._record_team_data(entity, self._cur_data_dire, self._prev_data_dire)
+                self._record_team_counters(entity, _TEAM_DIRE)
                 self._maybe_emit()
             return
 
@@ -459,6 +482,46 @@ class IntervalExtractor:
                     _int_or_zero(entity.get_int32(f"{prefix}.m_iNetWorth")),
                 ),
             )
+
+    def _record_team_counters(self, entity: Entity, team: int) -> None:
+        """Record the latest monotonic terminal counters for one team's slots.
+
+        These are end-of-game scalar totals (camps/creeps stacked, wards placed,
+        rune pickups, tower kills) read from the same ``m_vecDataTeam`` entry as
+        gold/xp. They are not curves, so only the most recent value per slot is
+        kept; the last observed value is the terminal total.
+
+        Args:
+            entity: The just-updated ``CDOTA_DataRadiant``/``CDOTA_DataDire``.
+            team: ``_TEAM_RADIANT`` or ``_TEAM_DIRE``.
+        """
+        for team_slot in range(5):
+            prefix = f"m_vecDataTeam.{team_slot:04d}"
+            counters = self._team_counters.setdefault((team, team_slot), {})
+            for attr, field_name in _TEAM_COUNTER_FIELDS.items():
+                value = entity.get_int32(f"{prefix}.{field_name}")
+                if value is not None:
+                    counters[attr] = value
+
+    def team_counters(self, player_id: int) -> dict[str, int]:
+        """Return the terminal counters observed for one logical player.
+
+        Resolves the player's ``(team, team_slot)`` via the same mapping used for
+        interval emission, so callers need only the 0-9 logical player id.
+
+        Args:
+            player_id: OpenDota logical player slot, 0-9.
+
+        Returns:
+            ``{attr: value}`` for each tracked counter, ``0`` where unseen. Keys
+            are the ``ParsedPlayer`` attribute names (e.g. ``camps_stacked``).
+        """
+        team = self._player_team.get(player_id)
+        team_slot = self._player_team_slot.get(player_id)
+        observed: dict[str, int] = {}
+        if team is not None and team_slot is not None:
+            observed = self._team_counters.get((team, team_slot), {})
+        return {attr: observed.get(attr, 0) for attr in _TEAM_COUNTER_FIELDS}
 
     def _team_data_values(
         self, team: int, team_slot: int, data_entity: Entity, emit_tick: int

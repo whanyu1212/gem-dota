@@ -218,6 +218,18 @@ class ParsedPlayer:
             (``lh_t[-1]``). Matches OpenDota's terminal ``last_hits`` scalar.
         denies: End-of-game deny count, the last dense sample (``dn_t[-1]``).
             Matches OpenDota's terminal ``denies`` scalar.
+        camps_stacked: Neutral camps stacked over the match (``m_iCampsStacked``).
+            Matches OpenDota's ``camps_stacked``.
+        creeps_stacked: Neutral creeps stacked over the match
+            (``m_iCreepsStacked``). Matches OpenDota's ``creeps_stacked``.
+        obs_placed: Observer wards placed (``m_iObserverWardsPlaced``). Matches
+            OpenDota's ``obs_placed``.
+        sen_placed: Sentry wards placed (``m_iSentryWardsPlaced``). Matches
+            OpenDota's ``sen_placed``.
+        rune_pickups: Runes picked up (``m_iRunePickups``). Matches OpenDota's
+            ``rune_pickups``.
+        tower_kills: Towers this player last-hit (``m_iTowerKills``). Matches
+            OpenDota's per-player ``tower_kills``.
     """
 
     player_id: int
@@ -278,6 +290,12 @@ class ParsedPlayer:
     net_worth: int = 0
     last_hits: int = 0
     denies: int = 0
+    camps_stacked: int = 0
+    creeps_stacked: int = 0
+    obs_placed: int = 0
+    sen_placed: int = 0
+    rune_pickups: int = 0
+    tower_kills: int = 0
     _ability_snapshots: list[tuple[int, dict[str, int]]] = field(default_factory=list)
 
     def __repr__(self) -> str:

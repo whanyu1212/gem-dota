@@ -1320,6 +1320,73 @@ class TestBuildParsedMatchTerminalScalars:
 
 
 # ---------------------------------------------------------------------------
+# Team-data terminal counters (camps/creeps stacked, wards, runes, towers)
+# ---------------------------------------------------------------------------
+
+
+class TestBuildParsedMatchTeamCounters:
+    def test_counters_wired_from_interval_extractor(self):
+        ext = _make_player_ext()
+        parser = _make_parser()
+
+        counters_by_player = {
+            0: {
+                "camps_stacked": 13,
+                "creeps_stacked": 30,
+                "obs_placed": 7,
+                "sen_placed": 4,
+                "rune_pickups": 2,
+                "tower_kills": 3,
+            }
+        }
+        interval_ext = MagicMock()
+        interval_ext.all_snapshots = []
+        interval_ext.team_counters.side_effect = lambda pid: counters_by_player.get(
+            pid, dict.fromkeys(counters_by_player[0], 0)
+        )
+
+        m = build_parsed_match(
+            parser,
+            ext,
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            _make_combat_agg(),
+            [],
+            [],
+            interval_ext=interval_ext,
+        )
+
+        p0 = m.players[0]
+        assert p0.camps_stacked == 13
+        assert p0.creeps_stacked == 30
+        assert p0.obs_placed == 7
+        assert p0.sen_placed == 4
+        assert p0.rune_pickups == 2
+        assert p0.tower_kills == 3
+        # A player with no observed counters defaults to zero.
+        assert m.players[1].camps_stacked == 0
+
+    def test_counters_default_zero_without_interval_extractor(self):
+        ext = _make_player_ext()
+        parser = _make_parser()
+        m = build_parsed_match(
+            parser,
+            ext,
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            _make_combat_agg(),
+            [],
+            [],
+        )
+        assert m.players[0].camps_stacked == 0
+        assert m.players[0].tower_kills == 0
+
+
+# ---------------------------------------------------------------------------
 # Player name extraction from entity manager
 # ---------------------------------------------------------------------------
 

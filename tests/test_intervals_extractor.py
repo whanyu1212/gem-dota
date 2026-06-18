@@ -468,3 +468,52 @@ def test_final_minute_survives_when_boundary_precedes_postgame_on_one_axis():
     ext._on_entity(_ent("CDOTAGamerulesProxy"), EntityOp.UPDATED)
     assert {snap.time_s for snap in ext.snapshots} == {60, 120}
     assert len(ext.snapshots) == 4
+
+
+def test_team_counters_track_last_observed_values():
+    """``team_counters`` returns the latest m_vecDataTeam counter totals.
+
+    The counters (camps/creeps stacked, wards placed, rune pickups, tower kills)
+    are read from the same data entity as gold/xp, keyed by logical player id via
+    the same team-slot mapping used for interval emission.
+    """
+    ext = IntervalExtractor()
+    parser = FakeParser(tick=1800, game_time_s=60)
+    ext.attach(parser)
+    ext._on_entity(_player_resource(), EntityOp.UPDATED)
+
+    # Radiant slot 1 = player_id 0 in the _player_resource() mapping.
+    radiant = _ent(
+        "CDOTADataRadiant",
+        **{
+            "m_vecDataTeam.0001.m_iCampsStacked": 9,
+            "m_vecDataTeam.0001.m_iCreepsStacked": 21,
+            "m_vecDataTeam.0001.m_iObserverWardsPlaced": 6,
+            "m_vecDataTeam.0001.m_iSentryWardsPlaced": 4,
+            "m_vecDataTeam.0001.m_iRunePickups": 3,
+            "m_vecDataTeam.0001.m_iTowerKills": 2,
+        },
+    )
+    ext._on_entity(radiant, EntityOp.UPDATED)
+
+    counters = ext.team_counters(0)
+    assert counters["camps_stacked"] == 9
+    assert counters["creeps_stacked"] == 21
+    assert counters["obs_placed"] == 6
+    assert counters["sen_placed"] == 4
+    assert counters["rune_pickups"] == 3
+    assert counters["tower_kills"] == 2
+
+    # Unseen player defaults all counters to zero (and roshan_kills is absent).
+    empty = ext.team_counters(5)
+    assert empty == dict.fromkeys(
+        (
+            "camps_stacked",
+            "creeps_stacked",
+            "obs_placed",
+            "sen_placed",
+            "rune_pickups",
+            "tower_kills",
+        ),
+        0,
+    )

@@ -356,6 +356,20 @@ def build_parsed_match(
         if pp.dn_t:
             pp.denies = pp.dn_t[-1]
 
+        # Terminal team-data counters (camps/creeps stacked, wards placed, rune
+        # pickups, tower kills) read from the same m_vecDataTeam entry as gold/xp.
+        # The last observed value is the end-of-game total; each matches OpenDota's
+        # per-player scalar to the unit. (m_iRoshanKills is intentionally NOT used
+        # here — it disagrees with OpenDota's combat-log-attributed roshan_kills.)
+        if interval_ext is not None:
+            counters = interval_ext.team_counters(player_id)
+            pp.camps_stacked = counters["camps_stacked"]
+            pp.creeps_stacked = counters["creeps_stacked"]
+            pp.obs_placed = counters["obs_placed"]
+            pp.sen_placed = counters["sen_placed"]
+            pp.rune_pickups = counters["rune_pickups"]
+            pp.tower_kills = counters["tower_kills"]
+
         # Tier-1: lane efficiency % (OpenDota formula, same denominator for all players)
         # Reference: odota/core svc/util/compute.ts
         # melee(40×60) + ranged(45×20) + siege(74×2) + passive(600×1.5) + starting(600) = 4948
