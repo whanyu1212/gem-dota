@@ -6,11 +6,21 @@ from gem.replays.batch import (
     parse_many_to_dataframe,
     parse_many_to_parquet,
 )
-from gem.replays.fetch import download_and_decompress, fetch_replay, fetch_replay_url
+from gem.replays.fetch import (
+    apply_api_rates,
+    download_and_decompress,
+    enrich_with_api_rates,
+    fetch_opendota_match,
+    fetch_replay,
+    fetch_replay_url,
+)
 
 __all__ = [
     "ParseResult",
+    "apply_api_rates",
     "download_and_decompress",
+    "enrich_with_api_rates",
+    "fetch_opendota_match",
     "fetch_replay",
     "fetch_replay_url",
     "parse_many",

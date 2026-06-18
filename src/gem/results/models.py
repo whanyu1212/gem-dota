@@ -242,6 +242,17 @@ class ParsedPlayer:
         kills_per_min: Kills divided by match duration in minutes
             (``kills / (ParsedMatch.duration / 60)``). Unrounded float matching
             OpenDota's ``kills_per_min``. ``0.0`` when duration is unknown.
+        gold_per_min: Gold per minute. NOT derivable from the replay — sourced
+            from the Steam GC / OpenDota match API. ``0`` until populated by
+            :func:`gem.replays.fetch.enrich_with_api_rates`. See
+            ``opendota-gpm-is-steam-api`` (the team-data earned-gold counter is a
+            different quantity and does not match OpenDota's value).
+        xp_per_min: XP per minute. Same API provenance as ``gold_per_min``;
+            ``0`` until enriched.
+        total_gold: Total gold, ``floor(gold_per_min * duration / 60)`` (OpenDota's
+            own formula). ``0`` until ``gold_per_min`` is enriched.
+        total_xp: Total XP, ``floor(xp_per_min * duration / 60)``. ``0`` until
+            ``xp_per_min`` is enriched.
     """
 
     player_id: int
@@ -313,6 +324,10 @@ class ParsedPlayer:
     is_radiant: bool = False
     win: int = 0
     kills_per_min: float = 0.0
+    gold_per_min: int = 0
+    xp_per_min: int = 0
+    total_gold: int = 0
+    total_xp: int = 0
     _ability_snapshots: list[tuple[int, dict[str, int]]] = field(default_factory=list)
 
     def __repr__(self) -> str:
