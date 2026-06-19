@@ -41,13 +41,19 @@ def fetch_replay_url(match_id: int) -> str:
         The ``replay_url`` string from the OpenDota API response.
 
     Raises:
-        ValueError: If OpenDota returns no replay URL for the match.
+        ValueError: If OpenDota returns no replay URL or a non-JSON response.
         urllib.error.URLError: If the API request fails.
     """
     url = f"{OPENDOTA_API}/{match_id}"
     req = urllib.request.Request(url, headers={"User-Agent": "gem/1.0"})
     with urllib.request.urlopen(req, context=_SSL_CONTEXT, timeout=20) as resp:
-        data = json.loads(resp.read())
+        raw = resp.read()
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise ValueError(
+            f"OpenDota returned a non-JSON response for match {match_id} ({url})"
+        ) from exc
 
     replay_url = data.get("replay_url")
     if not replay_url:
@@ -78,7 +84,8 @@ def download_and_decompress(match_id: int, replay_url: str, out_dir: Path | str 
     bz2_path = out_dir / f"{match_id}.dem.bz2"
 
     req = urllib.request.Request(replay_url, headers={"User-Agent": "Mozilla/5.0"})
-    with urllib.request.urlopen(req, context=_SSL_CONTEXT) as resp:
+    # Larger timeout than the JSON API calls: a full replay is 100-300 MB.
+    with urllib.request.urlopen(req, context=_SSL_CONTEXT, timeout=120) as resp:
         bz2_path.write_bytes(resp.read())
 
     dem_path.write_bytes(bz2.decompress(bz2_path.read_bytes()))
@@ -172,12 +179,19 @@ def fetch_opendota_match(match_id: int) -> dict:
         The decoded OpenDota match JSON object.
 
     Raises:
+        ValueError: If OpenDota returns a non-JSON response.
         urllib.error.URLError: If the API request fails.
     """
     url = f"{OPENDOTA_API}/{match_id}"
     req = urllib.request.Request(url, headers={"User-Agent": "gem/1.0"})
     with urllib.request.urlopen(req, context=_SSL_CONTEXT, timeout=20) as resp:
-        return json.loads(resp.read())
+        raw = resp.read()
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise ValueError(
+            f"OpenDota returned a non-JSON response for match {match_id} ({url})"
+        ) from exc
 
 
 def enrich_with_api_rates(match: ParsedMatch, match_id: int) -> ParsedMatch:

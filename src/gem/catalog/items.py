@@ -32,7 +32,11 @@ def item_display(internal: str) -> str:
     """
     key = internal.removeprefix("item_")
     item = ITEMS.get(key)
-    return str(item["dname"]) if item else internal
+    # Fall back to the raw name if the catalog row lacks a display name, rather
+    # than raising KeyError on malformed data (abilities.py does the same).
+    if item is None:
+        return internal
+    return str(item.get("dname", internal))
 
 
 def item_key_by_id(item_id: int) -> str | None:

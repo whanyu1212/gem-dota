@@ -7,6 +7,12 @@ plus this function.
 
 from __future__ import annotations
 
+import contextlib
+import io
+
+import pytest
+
+from gem.replays import fetch
 from gem.replays.fetch import _opendota_slot_to_player_id, apply_api_rates
 from gem.results.models import ParsedMatch
 
@@ -20,6 +26,18 @@ def test_slot_to_player_id_maps_radiant_and_dire():
     assert _opendota_slot_to_player_id(4) == 4
     assert _opendota_slot_to_player_id(128) == 5
     assert _opendota_slot_to_player_id(132) == 9
+
+
+def test_fetch_opendota_match_raises_value_error_on_non_json(monkeypatch):
+    # A non-JSON response (e.g. an HTML error/rate-limit page) should surface a
+    # ValueError naming the match, not a bare JSONDecodeError.
+    @contextlib.contextmanager
+    def fake_urlopen(*_args, **_kwargs):
+        yield io.BytesIO(b"<html>rate limited</html>")
+
+    monkeypatch.setattr(fetch.urllib.request, "urlopen", fake_urlopen)
+    with pytest.raises(ValueError, match="non-JSON response for match 123"):
+        fetch.fetch_opendota_match(123)
 
 
 def test_applies_rates_and_derives_totals():

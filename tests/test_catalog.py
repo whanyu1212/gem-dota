@@ -33,6 +33,20 @@ def test_catalog_resolves_internal_hero_suffixes() -> None:
     assert catalog.hero_npc_name("nevermore") == "npc_dota_hero_nevermore"
 
 
+def test_item_display_unknown_falls_back_to_raw_name() -> None:
+    # Unknown items return the raw string rather than raising.
+    assert catalog.item_display("item_not_a_real_item") == "item_not_a_real_item"
+    assert catalog.item_display("totally_unknown") == "totally_unknown"
+
+
+def test_item_display_missing_dname_falls_back(monkeypatch) -> None:
+    # A catalog row without a "dname" key must not raise KeyError.
+    from gem.catalog import items as items_mod
+
+    monkeypatch.setitem(items_mod.ITEMS, "_malformed", {"id": 99999})
+    assert catalog.item_display("item__malformed") == "item__malformed"
+
+
 def test_catalog_loads_core_json_resources() -> None:
     heroes = catalog.load_data_json("heroes.json")
     assert heroes["npc_dota_hero_axe"]["localized_name"] == "Axe"
