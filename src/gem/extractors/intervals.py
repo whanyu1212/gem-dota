@@ -24,7 +24,7 @@ import re
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from gem.extractors._snapshots import _HERO_CLASS_PREFIX
+from gem.extractors._snapshots import _HERO_CLASS_PREFIX, _player_id_from_entity
 from gem.state.entities import Entity, EntityOp
 
 if TYPE_CHECKING:
@@ -263,7 +263,7 @@ class IntervalExtractor:
             return
 
         if cls.startswith(_HERO_CLASS_PREFIX):
-            player_id = _player_id_from_hero(entity)
+            player_id = _player_id_from_entity(entity)
             if player_id is None:
                 return
             if op.has(EntityOp.DELETED):
@@ -619,15 +619,6 @@ class IntervalExtractor:
 
         ending = entity.get_class_name()[len(_HERO_CLASS_PREFIX) :].replace("_", "")
         return "npc_dota_hero" + re.sub(r"([A-Z])", r"_\1", ending).lower()
-
-
-def _player_id_from_hero(entity: Entity) -> int | None:
-    player_id = entity.get_int32("m_nPlayerID")
-    if player_id is None:
-        player_id = entity.get_int32("m_iPlayerID")
-    if player_id is None or player_id < 0:
-        return None
-    return player_id // 2
 
 
 def _int_or_zero(value: int | None) -> int:

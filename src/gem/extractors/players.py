@@ -16,6 +16,7 @@ from gem.extractors._snapshots import (
     _HERO_CLASS_PREFIX,
     PlayerStateSnapshot,
     PlayerTimeSeries,
+    _player_id_from_entity,
     _pos,
     _snapshot_hero,
 )
@@ -213,15 +214,7 @@ class PlayerExtractor:
         Returns:
             Player slot 0-9, or ``None`` if the hero is not tracked.
         """
-        entity = self._heroes_by_npc.get(npc_name.lower())
-        if entity is None:
-            return None
-        pid = entity.get_int32("m_nPlayerID")
-        if pid is None:
-            pid = entity.get_int32("m_iPlayerID")
-        if pid is None or pid < 0:
-            return None
-        return pid // 2
+        return _player_id_from_entity(self._heroes_by_npc.get(npc_name.lower()))
 
     def _source_to_pid(self, entry: CombatLogEntry) -> int | None:
         """Resolve the damage/heal *source* hero of a combat log entry to a slot.
@@ -253,11 +246,9 @@ class PlayerExtractor:
         entity = self._heroes_by_npc.get(npc_name.lower())
         if entity is None:
             return None
-        pid = entity.get_int32("m_nPlayerID")
-        if pid is None:
-            pid = entity.get_int32("m_iPlayerID")
-        if pid is not None and pid >= 0:
-            canonical = self._canonical_hero_entity(pid // 2)
+        pid = _player_id_from_entity(entity)
+        if pid is not None:
+            canonical = self._canonical_hero_entity(pid)
             if canonical is not None:
                 return _pos(canonical)
         return _pos(entity)
@@ -372,11 +363,8 @@ class PlayerExtractor:
                 self._maybe_sample()
 
         elif cls == "CDOTAPlayerController":
-            pid = entity.get_int32("m_nPlayerID")
-            if pid is None:
-                pid = entity.get_int32("m_iPlayerID")
-            if pid is not None and pid >= 0:
-                pid //= 2
+            pid = _player_id_from_entity(entity)
+            if pid is not None:
                 if op.has(EntityOp.DELETED):
                     self._controllers.pop(pid, None)
                 else:

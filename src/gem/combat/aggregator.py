@@ -11,6 +11,8 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
+from gem.extractors._snapshots import _player_id_from_entity
+
 if TYPE_CHECKING:
     from gem.combat.log import CombatLogEntry
     from gem.extractors.players import PlayerExtractor
@@ -157,21 +159,14 @@ class _CombatAggregator:
 
     def _hero_to_pid(self, npc_name: str) -> int | None:
         entity = self._player_ext._heroes_by_npc.get(npc_name.lower())
-        if entity is None:
-            return None
-        pid = entity.get_int32("m_nPlayerID")
-        if pid is None:
-            pid = entity.get_int32("m_iPlayerID")
-        if pid is None or pid < 0:
-            return None
-        return pid // 2
+        return _player_id_from_entity(entity)
 
     def _summon_to_pid(self, npc_name: str) -> int | None:
         """Resolve a summoned unit's NPC name to its owner's player slot.
 
         Looks up the unit entity by class name in the entity manager, reads
         ``m_hOwnerEntity``, resolves that handle to the owning hero entity,
-        and extracts the player slot via ``m_nPlayerID`` / ``m_iPlayerID``.
+        and extracts the player slot via :func:`_player_id_from_entity`.
 
         Returns ``None`` if the unit is not found, has no owner, or the owner
         is not a tracked hero.
@@ -204,15 +199,7 @@ class _CombatAggregator:
             return None
 
         owner = em.find_by_handle(owner_handle)
-        if owner is None:
-            return None
-
-        pid = owner.get_int32("m_nPlayerID")
-        if pid is None:
-            pid = owner.get_int32("m_iPlayerID")
-        if pid is None or pid < 0:
-            return None
-        return pid // 2
+        return _player_id_from_entity(owner)
 
     def _accumulate_hero_tower_damage(self, source_pid: int, entry: Any) -> None:
         """Add one DAMAGE entry to the source hero's hero_damage / tower_damage.
