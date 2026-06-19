@@ -268,8 +268,10 @@ class WardsExtractor:
             em = self._parser.entity_manager
             if em is not None:
                 owner = em.find_by_handle(owner_handle)
+                # The ward's owner can be an owned unit (not the hero directly),
+                # so allow the m_iPlayerOwnerID fallback here.
                 # -1 sentinel = unresolved placer (consumed downstream as `>= 0`).
-                resolved = _player_id_from_entity(owner)
+                resolved = _player_id_from_entity(owner, allow_owner=True)
                 player_id = resolved if resolved is not None else -1
                 if owner is not None:
                     owner_cls = owner.get_class_name()

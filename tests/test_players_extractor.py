@@ -59,9 +59,10 @@ def _hero(ending: str = "Axe", player_id: int = 0, **extra) -> Entity:
 class TestPlayerIdFromEntity:
     """The shared hero/owned-unit -> player-slot resolver.
 
-    Consolidates the four near-duplicate resolvers that previously lived in
+    Consolidates the resolvers that previously lived in
     players/wards/intervals/aggregator. Locks in the resolution chain
-    (m_nPlayerID -> m_iPlayerID -> m_iPlayerOwnerID) and the slot halving.
+    (m_nPlayerID -> m_iPlayerID, plus m_iPlayerOwnerID only when
+    ``allow_owner=True``) and the slot halving.
     """
 
     def test_none_entity(self):
@@ -75,14 +76,21 @@ class TestPlayerIdFromEntity:
         e = _ent(m_iPlayerID=8)  # no m_nPlayerID
         assert _player_id_from_entity(e) == 4
 
-    def test_falls_back_to_owner_id(self):
-        # Only the owner field is set (owned unit, e.g. a ward's owner).
+    def test_owner_id_ignored_by_default(self):
+        # Default (hero lookups): the owner field must NOT resolve, so a
+        # hero-class illusion carrying only m_iPlayerOwnerID stays unresolved
+        # instead of misattributing to the owner.
         e = _ent(m_iPlayerOwnerID=4)
-        assert _player_id_from_entity(e) == 2
+        assert _player_id_from_entity(e) is None
+
+    def test_owner_id_used_when_allowed(self):
+        # Owned-unit context (e.g. a ward's owner) opts into the fallback.
+        e = _ent(m_iPlayerOwnerID=4)
+        assert _player_id_from_entity(e, allow_owner=True) == 2
 
     def test_prefers_nplayerid_over_others(self):
         e = _ent(m_nPlayerID=2, m_iPlayerID=8, m_iPlayerOwnerID=18)
-        assert _player_id_from_entity(e) == 1
+        assert _player_id_from_entity(e, allow_owner=True) == 1
 
     def test_negative_slot_is_unresolved(self):
         assert _player_id_from_entity(_ent(m_nPlayerID=-1)) is None
