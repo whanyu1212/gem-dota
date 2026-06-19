@@ -8,6 +8,7 @@ All tests use fake entities and a fake parser — no real .dem files.
 
 from __future__ import annotations
 
+from gem.extractors._snapshots import _player_id_from_entity
 from gem.extractors.players import (
     PlayerExtractor,
     PlayerStateSnapshot,
@@ -53,6 +54,46 @@ def _hero(ending: str = "Axe", player_id: int = 0, **extra) -> Entity:
             **extra,
         },
     )
+
+
+class TestPlayerIdFromEntity:
+    """The shared hero/owned-unit -> player-slot resolver.
+
+    Consolidates the four near-duplicate resolvers that previously lived in
+    players/wards/intervals/aggregator. Locks in the resolution chain
+    (m_nPlayerID -> m_iPlayerID -> m_iPlayerOwnerID) and the slot halving.
+    """
+
+    def test_none_entity(self):
+        assert _player_id_from_entity(None) is None
+
+    def test_reads_m_nplayerid_halved(self):
+        # raw value is slot * 2
+        assert _player_id_from_entity(_ent(m_nPlayerID=6)) == 3
+
+    def test_falls_back_to_m_iplayerid(self):
+        e = _ent(m_iPlayerID=8)  # no m_nPlayerID
+        assert _player_id_from_entity(e) == 4
+
+    def test_falls_back_to_owner_id(self):
+        # Only the owner field is set (owned unit, e.g. a ward's owner).
+        e = _ent(m_iPlayerOwnerID=4)
+        assert _player_id_from_entity(e) == 2
+
+    def test_prefers_nplayerid_over_others(self):
+        e = _ent(m_nPlayerID=2, m_iPlayerID=8, m_iPlayerOwnerID=18)
+        assert _player_id_from_entity(e) == 1
+
+    def test_negative_slot_is_unresolved(self):
+        assert _player_id_from_entity(_ent(m_nPlayerID=-1)) is None
+
+    def test_no_fields_unresolved(self):
+        assert _player_id_from_entity(_ent()) is None
+
+    def test_skips_negative_and_uses_next_field(self):
+        # m_nPlayerID == -1 (unset sentinel) should fall through to m_iPlayerID.
+        e = _ent(m_nPlayerID=-1, m_iPlayerID=10)
+        assert _player_id_from_entity(e) == 5
 
 
 class FakeCombatLog:

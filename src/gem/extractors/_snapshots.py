@@ -45,6 +45,32 @@ def _pos(entity: Entity) -> tuple[float, float] | None:
     return (cell_x * _CELL_SIZE + vec_x, cell_y * _CELL_SIZE + vec_y)
 
 
+def _player_id_from_entity(entity: Entity | None) -> int | None:
+    """Resolve a hero/controller/owned-unit entity to a player slot (0-9).
+
+    Reads, in order, ``m_nPlayerID`` → ``m_iPlayerID`` → ``m_iPlayerOwnerID`` and
+    halves the raw value (the replay stores ``slot * 2``). For a hero or player
+    controller the first field is set; ``m_iPlayerOwnerID`` only matters for
+    owned units (e.g. a ward's owner unit) where the slot is on the owner.
+
+    Mirrors ``getPlayerSlotFromEntity`` in
+    ``refs/parser/src/main/java/opendota/Parse.java``.
+
+    Args:
+        entity: The entity to read from, or ``None``.
+
+    Returns:
+        Player slot 0-9, or ``None`` if unresolvable.
+    """
+    if entity is None:
+        return None
+    for field_name in ("m_nPlayerID", "m_iPlayerID", "m_iPlayerOwnerID"):
+        val = entity.get_int32(field_name)
+        if val is not None and val >= 0:
+            return val // 2
+    return None
+
+
 def _snapshot_hero(entity: Entity, tick: int) -> PlayerStateSnapshot | None:
     """Build a ``PlayerStateSnapshot`` from a hero entity.
 
