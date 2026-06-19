@@ -37,6 +37,7 @@ Reference: manta/parser.go, manta/demo_packet.go, manta/game_event.go
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Callable
 from pathlib import Path
 
@@ -79,6 +80,8 @@ from gem.schema.sendtable import parse_send_tables
 from gem.state.entities import Entity, EntityManager, EntityOp
 from gem.state.game_events import GameEventHandler, GameEventManager
 from gem.state.string_table import StringTables, handle_create, handle_update
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Outer EDemoCommands IDs (stripped of DEM_IsCompressed = 0x40)
@@ -390,9 +393,11 @@ class ReplayParser:
                     if self._stop_at_tick is not None and tick > self._stop_at_tick:
                         break
                     self._dispatch_outer(msg_type, data)
-        except Exception:
-            # Truncated files raise on final corrupt snappy block — that's OK
-            pass
+        except Exception as exc:
+            # Truncated files raise on the final corrupt snappy block — that is
+            # expected for partial replays, so parsing continues with whatever was
+            # read. Log at debug level so genuine corruption stays diagnosable.
+            logger.debug("Replay stream ended early at tick %d: %r", self.tick, exc)
 
         # Read match metadata from CDOTAGamerulesProxy entity if DEM_FileInfo
         # didn't populate them (e.g. truncated replays or early stop).

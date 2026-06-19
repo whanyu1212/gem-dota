@@ -22,6 +22,7 @@ from __future__ import annotations
 import base64
 import html
 import json
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -59,6 +60,8 @@ from gem.reports.assets import (
     load_map_base64,
 )
 from gem.results.models import ParsedMatch
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -152,7 +155,8 @@ def _build_movement_tab(match: ParsedMatch, map_b64: str | None) -> str:
         import plotly.graph_objects as go  # noqa: F401
 
         from gem.reports._movement import build_figure
-    except Exception:
+    except ImportError:
+        # Plotly (and its transitive deps) are optional; omit the Movement tab.
         return ""
 
     try:
@@ -208,6 +212,9 @@ def _build_movement_tab(match: ParsedMatch, map_b64: str | None) -> str:
             f"</div></div>"
         )
     except Exception:
+        # Rendering can fail many ways (temp I/O, base64, plotly internals);
+        # degrade gracefully by omitting the tab, but log for diagnosis.
+        logger.debug("Movement tab rendering failed; omitting it", exc_info=True)
         return ""
 
 

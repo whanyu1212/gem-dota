@@ -2862,7 +2862,10 @@ def _load_camp_zones() -> dict:
         camps = obj.get("camps", [])
         if isinstance(camps, list):
             return obj
-    except Exception:
+    except (OSError, ValueError):
+        # Bundled-asset load failure (missing file / malformed JSON): the camp
+        # overlay is optional, so fall back to an empty set rather than failing
+        # the whole report. (json.JSONDecodeError is a ValueError subclass.)
         pass
     return {"camps": []}
 
