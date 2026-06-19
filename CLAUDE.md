@@ -19,10 +19,10 @@ uv run pytest
 uv run pytest -m ""
 
 # Run a single test file
-uv run pytest tests/test_reader.py
+uv run pytest tests/binary/test_reader.py
 
 # Run a single test by name
-uv run pytest tests/test_reader.py::TestReadBits::test_read_8_bits
+uv run pytest tests/binary/test_reader.py::TestReadBits::test_read_8_bits
 
 # Run with coverage
 uv run pytest --cov=gem --cov-report=term-missing
@@ -68,9 +68,9 @@ Low-level binary parsing → entity reconstruction → extraction → output.
 ```
 binary/reader.py          ← BitReader, all bit/byte/varint primitives
 binary/stream.py          ← outer message loop, Snappy decompress, magic check
-schema/sendtable.py       ← serializer + field tree (requires reader)
-schema/field_decoder.py   ← type-dispatch decoders + QuantizedFloatDecoder
-schema/field_path.py      ← Huffman-coded field path ops (requires reader)
+schema/sendtable/         ← serializer + field tree package (requires reader)
+schema/field_decoder/     ← type-dispatch decoders + QuantizedFloatDecoder
+schema/field_path/        ← Huffman-coded field path package (requires reader)
 schema/field_state.py     ← nested mutable field-value tree (mirrors manta/field_state.go)
 schema/field_reader.py    ← field decoder dispatch + entity field reading (mirrors manta/field_reader.go)
 state/string_table.py           ← incremental key-history string tables
@@ -183,7 +183,7 @@ The CLI is `python -m gem`; `__main__.py` is a small adapter over `gem.cli`.
 
 Entities are game objects (heroes, towers, items, game rules). Their schema is defined in `CDemoSendTables` → `CSVCMsg_FlattenedSerializer`, parsed into a tree of `Serializer` → `Field` objects. Each field has a decoder function resolved once at schema-parse time.
 
-Entity state arrives as `CSVCMsg_PacketEntities`. Each packet carries a list of (index, 2-bit command, field deltas). Field deltas use Huffman-coded field paths (40 ops, `schema/field_path.py`) to address into the serializer tree, then the field's decoder reads the value from the bit stream.
+Entity state arrives as `CSVCMsg_PacketEntities`. Each packet carries a list of (index, 2-bit command, field deltas). Field deltas use Huffman-coded field paths (40 ops, `schema/field_path/`) to address into the serializer tree, then the field's decoder reads the value from the bit stream.
 
 The `instancebaseline` string table holds default field values per class — applied first when an entity is created, before the packet's own deltas.
 
@@ -373,8 +373,10 @@ state rather than trusting a static table here.
 ## Tests
 
 ~50 test files in `tests/`, conventionally one `test_<module>.py` per source
-module or subsystem (e.g. `test_reader.py` → `binary/reader.py`, `test_wards_extractor.py` →
-`extractors/wards.py`). Newer additions cover `analysis/map_context.py`,
+module or subsystem. Low-level binary tests are grouped under `tests/binary/`
+(e.g. `tests/binary/test_reader.py` → `binary/reader.py`), while broader
+subsystems stay flat when that is the established pattern (e.g.
+`test_wards_extractor.py` → `extractors/wards.py`). Newer additions cover `analysis/map_context.py`,
 `analysis/roshan.py`, neutral-item parsing, camp zones, and the audit/fetch
 scripts (`test_audit_camp_annotations.py`, `test_audit_opendota_fixture_constants.py`,
 `test_fetch_opendota_fixture.py`, `test_fetch_icons.py`, `test_render_camp_zones_overlay.py`).

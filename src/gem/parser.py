@@ -54,12 +54,14 @@ from gem.proto import (
     networkbasetypes_pb2,  # noqa: F401
 )
 from gem.proto.demo_pb2 import CDemoClassInfo, CDemoFileInfo, CDemoFullPacket, CDemoPacket
+from gem.proto.dota_match_metadata_pb2 import CDOTAMatchMetadataFile
 from gem.proto.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
 from gem.proto.dota_usermessages_pb2 import (
     CDOTAUserMsg_ChatEvent,
     CDOTAUserMsg_ChatMessage,
     CDOTAUserMsg_CombatLogBulkData,
     CDOTAUserMsg_FoundNeutralItem,
+    DOTA_UM_MatchMetadata,
 )
 from gem.proto.gameevents_pb2 import (
     CMsgSource1LegacyGameEvent,
@@ -105,6 +107,7 @@ _DOTA_UM_COMBAT_LOG_BULK_DATA = 470  # CDOTAUserMsg_CombatLogBulkData (alternate
 # Direct inner message types (not wrapped in svc_UserMessage)
 _DOTA_UM_COMBAT_LOG_HLTV = 554  # CMsgDOTACombatLogEntry (direct, one entry per message)
 _DOTA_UM_CHAT_EVENT = 466  # CDOTAUserMsg_ChatEvent (direct)
+_DOTA_UM_MATCH_METADATA = DOTA_UM_MatchMetadata  # CDOTAMatchMetadataFile (direct)
 _DOTA_UM_FOUND_NEUTRAL_ITEM = 593  # CDOTAUserMsg_FoundNeutralItem (direct)
 _DOTA_UM_CHAT_MESSAGE = 612  # CDOTAUserMsg_ChatMessage (direct)
 
@@ -112,6 +115,12 @@ _CHAT_MSG_RUNE_PICKUP = 22  # DOTA_CHAT_MESSAGE.CHAT_MESSAGE_RUNE_PICKUP
 
 # CombatLogNames string table name
 _COMBAT_LOG_NAMES_TABLE = "CombatLogNames"
+
+
+def _round_positive_seconds(value: float) -> int:
+    """Round positive replay seconds the same way Java ``Math.round`` does."""
+    return int(value + 0.5)
+
 
 EntityCallback = Callable[[Entity, EntityOp], None]
 ChatCallback = Callable[["ChatEntry"], None]
@@ -170,7 +179,7 @@ class ReplayParser:
         self.entity_manager: EntityManager | None = None
         self.game_event_manager = GameEventManager()
         self.combat_log = CombatLogProcessor()
-        self._entity_callbacks: list[EntityCallback] = []
+        self._entity_callbacks: list[EntityCallback] = [self._on_entity_game_start]
         self._chat_callbacks: list[ChatCallback] = []
         self._chat_event_callbacks: list[ChatEventCallback] = []
         self._neutral_item_found_callbacks: list[NeutralItemFoundCallback] = []
@@ -180,11 +189,32 @@ class ReplayParser:
         self.match_id: int = 0
         self.game_mode: int = 0
         self.leagueid: int = 0
+        self.match_metadata: CDOTAMatchMetadataFile | None = None
         self.radiant_win: bool | None = None
         self.game_start_tick: int | None = None
+        self.game_time_s: int | None = None
+        # OpenDota-axis game clock, anchored on the combat-log timestamp (the
+        # GAME_STATE==5 horn). ``game_time_s`` is the entity-derived clock; this
+        # one tracks the combat-log timestamp axis that OpenDota uses for its
+        # interval boundaries AND its postGame stop. The two differ by a
+        # per-replay constant (the gap between the horn timestamp and
+        # ``m_flGameStartTime``), so consumers that must agree with OpenDota's
+        # minute boundaries (the interval extractor) should read this clock.
+        self.combat_log_time_s: int | None = None
+        # OpenDota-style match duration in seconds: the horn-anchored combat-log
+        # time at GAME_STATE==6 (ancient destroyed). None until that state is seen.
+        self.duration_s: int | None = None
         self._game_start_callbacks: list[Callable[[int], None]] = []
         self._game_end_callbacks: list[Callable[[int], None]] = []
         self._game_ended: bool = False
+        # Tick at which a GAME_STATE==6 (postGame) marker was seen this packet,
+        # pending callback dispatch. Game-end callbacks are deferred to the end
+        # of the inner-packet loop so that same-packet entity deltas (sorted at a
+        # higher priority than the wrapped svc_UserMessage combat-log path) are
+        # applied before terminal consumers (e.g. IntervalExtractor) flush.
+        self._pending_game_end_tick: int | None = None
+        self._game_start_time_s: int | None = None
+        self._combat_log_game_start_time_s: int | None = None
 
     # ------------------------------------------------------------------
     # Public callback registration
@@ -201,9 +231,10 @@ class ReplayParser:
             self.entity_manager.on_entity(callback)
 
     def _on_entity_game_start(self, entity: Entity, op: EntityOp) -> None:
-        if self._grp_game_start_seen:
-            return
         if entity.get_class_name() != "CDOTAGamerulesProxy":
+            return
+        self._update_game_clock(entity)
+        if self._grp_game_start_seen:
             return
         v = entity.get_float32("m_pGameRules.m_flGameStartTime")
         if v is None or v == 0.0:
@@ -212,6 +243,33 @@ class ReplayParser:
         self.game_start_tick = self.tick
         for cb in self._game_start_callbacks:
             cb(self.tick)
+
+    def _update_game_clock(self, entity: Entity) -> None:
+        """Track OpenDota-style game time from ``CDOTAGamerulesProxy``.
+
+        OpenDota timestamps interval records by reading ``m_fGameTime`` when
+        available, or falling back to ``(tick - paused_ticks) / 30``. The stored
+        output time is then shifted by ``m_flGameStartTime``. Keep this as
+        separate metadata so public raw-tick fields remain unchanged.
+        """
+        start = entity.get_float32("m_pGameRules.m_flGameStartTime")
+        if start is not None and start != 0.0:
+            self._game_start_time_s = _round_positive_seconds(start)
+
+        if self._game_start_time_s is None:
+            return
+
+        game_time = entity.get_float32("m_pGameRules.m_fGameTime")
+        if game_time is not None:
+            raw_time_s = _round_positive_seconds(game_time)
+        else:
+            paused = entity.get_bool("m_pGameRules.m_bGamePaused") or False
+            pause_start_tick = entity.get_int32("m_pGameRules.m_nPauseStartTick")
+            total_paused_ticks = entity.get_int32("m_pGameRules.m_nTotalPausedTicks") or 0
+            time_tick = pause_start_tick if paused and pause_start_tick is not None else self.tick
+            raw_time_s = _round_positive_seconds((time_tick - total_paused_ticks) / 30.0)
+
+        self.game_time_s = raw_time_s - self._game_start_time_s
 
     def on_game_event(self, name: str, handler: GameEventHandler) -> None:
         """Register a handler for the named game event.
@@ -278,6 +336,34 @@ class ReplayParser:
         """
         self._game_end_callbacks.append(callback)
 
+    def _mark_game_end(self, tick: int) -> None:
+        """Record a GAME_STATE==6 (postGame) marker for deferred dispatch.
+
+        The actual game-end callbacks are not invoked here. They are flushed at
+        the end of the inner-packet loop (see :meth:`_flush_game_end`) so that
+        same-packet entity deltas — sorted at a higher priority than the wrapped
+        ``svc_UserMessage`` combat-log path — are applied first. This keeps the
+        three combat-log ingestion paths (direct HLTV, S1 game event, wrapped
+        user message) consistent: terminal consumers always observe the final
+        entity state, not a stale pre-delta snapshot.
+
+        Args:
+            tick: The game tick at which the postGame marker was seen.
+        """
+        if self._game_ended:
+            return
+        self._game_ended = True
+        self._pending_game_end_tick = tick
+
+    def _flush_game_end(self) -> None:
+        """Dispatch any deferred game-end callbacks for the current packet."""
+        if self._pending_game_end_tick is None:
+            return
+        tick = self._pending_game_end_tick
+        self._pending_game_end_tick = None
+        for cb in self._game_end_callbacks:
+            cb(tick)
+
     def stop_after_tick(self, tick: int) -> None:
         """Stop parsing after this tick (inclusive).
 
@@ -297,7 +383,6 @@ class ReplayParser:
         from DEM_Packet / DEM_SignonPacket / DEM_FullPacket, and routing
         each to the appropriate subsystem handler.
         """
-        self.on_entity(self._on_entity_game_start)
         try:
             with DemoStream(self._source) as stream:
                 for tick, msg_type, data in stream:
@@ -407,6 +492,11 @@ class ReplayParser:
         for type_id, payload in messages:
             self._dispatch_inner(type_id, payload)
 
+        # Fire deferred game-end callbacks only after every message in this
+        # packet — crucially the priority-5 svc_PacketEntities deltas — has been
+        # applied, so terminal flushes read final entity state.
+        self._flush_game_end()
+
     def _dispatch_inner(self, type_id: int, payload: bytes) -> None:
         if type_id == _NET_TICK:
             # net_Tick is tiny — just skip (tick already set from outer)
@@ -458,15 +548,16 @@ class ReplayParser:
         elif type_id == _DOTA_UM_COMBAT_LOG_HLTV:
             entry_msg = CMsgDOTACombatLogEntry()
             entry_msg.ParseFromString(payload)
+            game_time_s = self._combat_log_game_time_s(entry_msg)
             name_table = self.string_tables.get_by_name(_COMBAT_LOG_NAMES_TABLE)
             if name_table is not None:
-                self.combat_log.process_s2_entry(entry_msg, name_table, tick=self.tick)
+                self.combat_log.process_s2_entry(
+                    entry_msg, name_table, tick=self.tick, game_time_s=game_time_s
+                )
             # DOTA_COMBATLOG_GAME_STATE == 6 → ancient destroyed (postGame)
             # Reference: refs/parser/src/main/java/opendota/Parse.java line 373
-            if not self._game_ended and entry_msg.type == 9 and entry_msg.value == 6:
-                self._game_ended = True
-                for cb in self._game_end_callbacks:
-                    cb(self.tick)
+            if entry_msg.type == 9 and entry_msg.value == 6:
+                self._mark_game_end(self.tick)
 
         elif type_id == _DOTA_UM_CHAT_EVENT:
             chat_event = CDOTAUserMsg_ChatEvent()
@@ -477,6 +568,9 @@ class ReplayParser:
                 )
             for chat_cb in self._chat_event_callbacks:
                 chat_cb(chat_event, self.tick)
+
+        elif type_id == _DOTA_UM_MATCH_METADATA:
+            self._on_match_metadata(payload)
 
         elif type_id == _DOTA_UM_FOUND_NEUTRAL_ITEM:
             self._emit_neutral_item_found(payload)
@@ -535,10 +629,8 @@ class ReplayParser:
                 # DOTA_COMBATLOG_GAME_STATE == 6 → ancient destroyed (postGame)
                 type_val, _ = event.get_int32("type")
                 value_val, _ = event.get_int32("value")
-                if not self._game_ended and type_val == 9 and value_val == 6:
-                    self._game_ended = True
-                    for cb in self._game_end_callbacks:
-                        cb(self.tick)
+                if type_val == 9 and value_val == 6:
+                    self._mark_game_end(self.tick)
 
     def _on_user_message(self, msg: CSVCMsg_UserMessage) -> None:
         if msg.msg_type in (_DOTA_UM_COMBAT_LOG_DATA, _DOTA_UM_COMBAT_LOG_BULK_DATA):
@@ -546,7 +638,52 @@ class ReplayParser:
             bulk_msg.ParseFromString(msg.msg_data)
             name_table = self.string_tables.get_by_name(_COMBAT_LOG_NAMES_TABLE)
             if name_table is not None:
-                self.combat_log.process_s2_bulk(bulk_msg, name_table, tick=self.tick)
+                for entry_msg in bulk_msg.combat_entries:
+                    game_time_s = self._combat_log_game_time_s(entry_msg)
+                    self.combat_log.process_s2_entry(
+                        entry_msg, name_table, tick=self.tick, game_time_s=game_time_s
+                    )
+                    if entry_msg.type == 9 and entry_msg.value == 6:
+                        self._mark_game_end(self.tick)
+        elif msg.msg_type == _DOTA_UM_MATCH_METADATA:
+            self._on_match_metadata(msg.msg_data)
+
+    def _combat_log_game_time_s(self, msg: CMsgDOTACombatLogEntry) -> int | None:
+        """Return OpenDota-style game-relative combat-log time for an S2 entry.
+
+        OpenDota anchors combat-log time at the GAME_STATE==5 timestamp, then
+        subtracts that rounded timestamp from subsequent combat-log timestamps.
+        Keep this separate from raw ticks so public replay timing remains tick-
+        based while parity checks can use the OpenDota clock.
+
+        Side effect: refreshes :attr:`combat_log_time_s`, the running combat-log
+        axis clock, so entity-driven consumers (e.g. the interval extractor) can
+        sample minute boundaries on the same axis OpenDota uses.
+        """
+        timestamp = getattr(msg, "timestamp", None)
+        if timestamp is None:
+            return None
+
+        raw_time_s = _round_positive_seconds(timestamp)
+        if msg.type == 9 and msg.value == 5 and self._combat_log_game_start_time_s is None:
+            self._combat_log_game_start_time_s = raw_time_s
+
+        if self._combat_log_game_start_time_s is None:
+            return None
+        game_time_s = raw_time_s - self._combat_log_game_start_time_s
+        self.combat_log_time_s = game_time_s
+        # The GAME_STATE==6 (ancient destroyed / postGame) timestamp on the
+        # horn-anchored combat-log axis is OpenDota's match ``duration``. Capture
+        # it once, before the game-end callbacks fire. Reference:
+        # refs/parser/src/main/java/opendota/Parse.java postGame handling.
+        if msg.type == 9 and msg.value == 6 and self.duration_s is None:
+            self.duration_s = game_time_s
+        return game_time_s
+
+    def _on_match_metadata(self, payload: bytes) -> None:
+        metadata = CDOTAMatchMetadataFile()
+        metadata.ParseFromString(payload)
+        self.match_metadata = metadata
 
     def _emit_chat_message(self, payload: bytes) -> None:
         if not self._chat_callbacks:

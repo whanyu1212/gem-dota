@@ -94,7 +94,14 @@ from gem.replays.batch import (
     parse_many_to_dataframe,
     parse_many_to_parquet,
 )
-from gem.replays.fetch import download_and_decompress, fetch_replay, fetch_replay_url
+from gem.replays.fetch import (
+    apply_api_rates,
+    download_and_decompress,
+    enrich_with_api_rates,
+    fetch_opendota_match,
+    fetch_replay,
+    fetch_replay_url,
+)
 from gem.results.models import (
     ChatEntry,
     NeutralItemFoundEvent,
@@ -126,6 +133,7 @@ def parse(path: str | Path) -> ParsedMatch:
     from gem.combat.log import CombatLogEntry
     from gem.extractors.courier import CourierExtractor
     from gem.extractors.draft import DraftExtractor
+    from gem.extractors.intervals import IntervalExtractor
     from gem.extractors.objectives import ObjectivesExtractor
     from gem.extractors.players import PlayerExtractor
     from gem.extractors.wards import WardsExtractor
@@ -138,8 +146,10 @@ def parse(path: str | Path) -> ParsedMatch:
     ward_ext = WardsExtractor()
     courier_ext = CourierExtractor()
     draft_ext = DraftExtractor()
+    interval_ext = IntervalExtractor()
 
     player_ext.attach(p)
+    interval_ext.attach(p)
     obj_ext.attach(p)
     ward_ext.attach(p)
     courier_ext.attach(p)
@@ -285,6 +295,7 @@ def parse(path: str | Path) -> ParsedMatch:
         smoke_events=smoke_events,
         vision_modifier_events=vision_modifier_events,
         neutral_item_finds=neutral_item_finds,
+        interval_ext=interval_ext,
     )
 
 
@@ -441,4 +452,7 @@ __all__ = [
     "fetch_replay",
     "fetch_replay_url",
     "download_and_decompress",
+    "fetch_opendota_match",
+    "apply_api_rates",
+    "enrich_with_api_rates",
 ]

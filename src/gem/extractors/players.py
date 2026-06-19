@@ -43,6 +43,7 @@ _TEAM_DIRE = 3
 
 __all__ = ["PlayerExtractor", "PlayerStateSnapshot", "PlayerTimeSeries"]
 
+
 # ---------------------------------------------------------------------------
 # Extractor
 # ---------------------------------------------------------------------------
@@ -77,10 +78,12 @@ class PlayerExtractor:
                 sampling. The separate ``_min`` arrays always sample at exact
                 60-second game-time boundaries regardless of this setting.
             minute_snapshots: If True, also record a snapshot at each
-                game-minute boundary (every 1800 ticks from game start),
-                matching OpenDota's minute cadence. ``total_earned_gold_t`` /
-                ``total_earned_xp_t`` align with OpenDota's cumulative gold/XP
-                series; ``gold_t`` remains current unspent gold.
+                game-minute boundary. When the parser exposes replay game
+                time, boundaries use that OpenDota-compatible clock; otherwise
+                they fall back to every 1800 ticks from game start.
+                ``total_earned_gold_t`` / ``total_earned_xp_t`` align with
+                OpenDota's cumulative gold/XP series; ``gold_t`` remains
+                current unspent gold.
                 Requires the parser to fire ``on_game_start``. Default True.
         """
         self._sample_interval = sample_interval
@@ -281,15 +284,14 @@ class PlayerExtractor:
         # at the same tick. Using a dict keyed by minute ensures one entry per
         # minute, with the latest (most accurate) value winning.
         seen: dict[int, PlayerStateSnapshot] = {}  # minute_index → snap
-        if self._game_start_tick is not None:
-            for snap in self._minute_snaps:
-                if snap.player_id != player_id:
-                    continue
+        for i, snap in enumerate(s for s in self._minute_snaps if s.player_id == player_id):
+            if snap.game_time_s is not None and snap.game_time_s >= 0:
+                minute = snap.game_time_s // 60
+            elif self._game_start_tick is not None:
                 minute = (snap.tick - self._game_start_tick) // 1800
-                seen[minute] = snap
-        else:
-            for i, snap in enumerate(s for s in self._minute_snaps if s.player_id == player_id):
-                seen[i] = snap
+            else:
+                minute = i
+            seen[minute] = snap
 
         ts = PlayerTimeSeries(player_id=player_id)
         for snap in (seen[k] for k in sorted(seen)):
@@ -314,7 +316,11 @@ class PlayerExtractor:
     def _on_entity(self, entity: Entity, op: EntityOp) -> None:
         cls = entity.get_class_name()
 
-        if cls.startswith(_HERO_CLASS_PREFIX):
+        if cls == "CDOTAGamerulesProxy":
+            if not op.has(EntityOp.DELETED):
+                self._maybe_sample()
+
+        elif cls.startswith(_HERO_CLASS_PREFIX):
             idx = entity.get_index()
             ending = cls[len(_HERO_CLASS_PREFIX) :]
             # Register two name forms to cover inconsistent combat log names.
@@ -343,12 +349,17 @@ class PlayerExtractor:
                     self._controllers.pop(pid, None)
                 else:
                     self._controllers[pid] = entity
+                    self._maybe_sample()
 
         elif cls in ("CDOTADataRadiant", "CDOTA_DataRadiant"):
             self._data_radiant = None if op.has(EntityOp.DELETED) else entity
+            if not op.has(EntityOp.DELETED):
+                self._maybe_sample()
 
         elif cls in ("CDOTADataDire", "CDOTA_DataDire"):
             self._data_dire = None if op.has(EntityOp.DELETED) else entity
+            if not op.has(EntityOp.DELETED):
+                self._maybe_sample()
 
         elif cls == "CDOTA_PlayerResource":
             if op.has(EntityOp.DELETED):
@@ -356,6 +367,7 @@ class PlayerExtractor:
             else:
                 self._player_resource = entity
                 self._refresh_team_slots()
+                self._maybe_sample()
 
     def _refresh_team_slots(self) -> None:
         """Read m_iTeamSlot for each player from CDOTA_PlayerResource."""
@@ -377,13 +389,19 @@ class PlayerExtractor:
         # Minute-boundary sampling (OpenDota-aligned)
         minute_fired = False
         if self._minute_snapshots and self._game_start_tick is not None:
-            elapsed = tick - self._game_start_tick
-            if elapsed >= 0:
-                current_minute = elapsed // 1800
-                if current_minute > self._last_minute:
-                    self._last_minute = current_minute
-                    self._sample(tick, minute=True)
-                    minute_fired = True
+            game_time_s = getattr(self._parser, "game_time_s", None)
+            if game_time_s is not None and game_time_s >= 0 and game_time_s % 60 == 0:
+                current_minute = game_time_s // 60
+            elif game_time_s is not None:
+                current_minute = None
+            else:
+                elapsed = tick - self._game_start_tick
+                current_minute = elapsed // 1800 if elapsed >= 0 else None
+
+            if current_minute is not None and current_minute > self._last_minute:
+                self._last_minute = current_minute
+                self._sample(tick, minute=True)
+                minute_fired = True
 
         # Regular interval sampling — skip if minute boundary just fired at same tick
         if tick - self._last_sample >= self._sample_interval:
@@ -429,11 +447,13 @@ class PlayerExtractor:
                 continue
             snap = _snapshot_hero(entity, tick)
             if snap is not None:
+                snap.game_time_s = getattr(self._parser, "game_time_s", None)
                 snaps_by_player[snap.player_id] = (entity, snap)
         for _, entity in sorted(self._heroes.items()):
             snap = _snapshot_hero(entity, tick)
             if snap is None or snap.player_id in snaps_by_player:
                 continue
+            snap.game_time_s = getattr(self._parser, "game_time_s", None)
             snaps_by_player[snap.player_id] = (entity, snap)
         for player_id in sorted(snaps_by_player):
             entity, snap = snaps_by_player[player_id]
@@ -510,7 +530,7 @@ class PlayerExtractor:
 
         Iterates ``m_hAbilities.0000``–``m_hAbilities.0031``, falling back to
         ``m_vecAbilities.*`` for older replays. Resolves each handle to an
-        ability entity and reads ``m_iLevel`` and the name from the
+        ability entity and reads ``m_iLevel``. Ability names come from the
         ``EntityNames`` string table.
 
         Args:
@@ -524,7 +544,11 @@ class PlayerExtractor:
         em = self._parser.entity_manager
         if em is None:
             return {}
-        entity_names = self._parser.string_tables.get_by_name("EntityNames")
+        entity_names = (
+            self._parser.string_tables.get_by_name("EntityNames")
+            if self._parser.string_tables is not None
+            else None
+        )
         if entity_names is None:
             return {}
 
@@ -538,7 +562,9 @@ class PlayerExtractor:
             ability_entity = em.find_by_handle(handle)
             if ability_entity is None:
                 continue
-            name_idx = ability_entity.get_int32("m_pEntity.m_nameStringableIndex")
+            name_idx = ability_entity.get_int32("m_pEntity.m_nameStringTableIndex")
+            if name_idx is None:
+                name_idx = ability_entity.get_int32("m_pEntity.m_nameStringableIndex")
             if name_idx is None or name_idx < 0:
                 continue
             item = entity_names.items.get(name_idx)

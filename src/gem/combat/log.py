@@ -118,6 +118,9 @@ class CombatLogEntry:
         neutral_camp_team: Raw neutral camp team from the replay combat log, or 0 if absent.
         location_x: Raw combat-log event x coordinate, or ``None`` if absent.
         location_y: Raw combat-log event y coordinate, or ``None`` if absent.
+        timestamp_s: Raw S2 combat-log timestamp in seconds, or ``None`` for S1/derived events.
+        game_time_s: OpenDota-style game-relative combat-log time in seconds, or ``None`` when
+            the game-start combat-log marker has not been observed.
     """
 
     tick: int
@@ -140,6 +143,8 @@ class CombatLogEntry:
     neutral_camp_team: int = 0
     location_x: float | None = None
     location_y: float | None = None
+    timestamp_s: float | None = None
+    game_time_s: int | None = None
 
 
 CombatLogHandler = Callable[[CombatLogEntry], None]
@@ -278,7 +283,13 @@ class CombatLogProcessor:
         for entry_msg in msg.combat_entries:
             self.process_s2_entry(entry_msg, name_table, tick=tick)
 
-    def process_s2_entry(self, msg: Any, name_table: Any, tick: int = 0) -> None:
+    def process_s2_entry(
+        self,
+        msg: Any,
+        name_table: Any,
+        tick: int = 0,
+        game_time_s: int | None = None,
+    ) -> None:
         """Parse a CMsgDOTACombatLogEntry and emit a CombatLogEntry.
 
         Args:
@@ -288,6 +299,8 @@ class CombatLogProcessor:
                 ``(key_str, value_bytes)`` for name resolution, OR a legacy
                 object with a ``get(index, default='')`` method.
             tick: Current game tick.
+            game_time_s: Optional game-relative timestamp computed by
+                ``ReplayParser`` from the combat-log ``GAME_STATE`` marker.
         """
         log_type = _LOG_TYPE_NAMES.get(msg.type, "DAMAGE")
 
@@ -321,6 +334,7 @@ class CombatLogProcessor:
         neutral_camp_team = msg.neutral_camp_team if msg.HasField("neutral_camp_team") else 0
         location_x = msg.location_x if msg.HasField("location_x") else None
         location_y = msg.location_y if msg.HasField("location_y") else None
+        timestamp_s = msg.timestamp if hasattr(msg, "timestamp") else None
         damage_type = ""
         if log_type == "DAMAGE" and hasattr(msg, "damage_type"):
             damage_type = _DAMAGE_TYPE_NAMES.get(msg.damage_type, "")
@@ -345,5 +359,7 @@ class CombatLogProcessor:
             neutral_camp_team=neutral_camp_team,
             location_x=location_x,
             location_y=location_y,
+            timestamp_s=timestamp_s,
+            game_time_s=game_time_s,
         )
         self._emit(entry)

@@ -461,6 +461,17 @@ class TestS2CombatLog:
         assert e.location_x == 12345.5
         assert e.location_y == 23456.25
 
+    def test_s2_preserves_timestamp_and_game_time(self):
+        p, received = self._make_processor_with_handler()
+        table = FakeNameTable({1: "npc_dota_hero_axe"})
+        msg = FakeS2Entry(type=4, target_name=1, timestamp=123.4)
+
+        p.process_s2_entry(msg, table, tick=4321, game_time_s=17)
+
+        e = received[0]
+        assert e.timestamp_s == 123.4
+        assert e.game_time_s == 17
+
     def test_all_twelve_types(self):
         p, received = self._make_processor_with_handler()
         table = FakeNameTable({})

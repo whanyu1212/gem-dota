@@ -64,8 +64,9 @@ class FakeCombatLog:
 
 
 class FakeParser:
-    def __init__(self, tick: int = 300):
+    def __init__(self, tick: int = 300, game_time_s: int | None = None):
         self.tick = tick
+        self.game_time_s = game_time_s
         self.entity_manager = None
         self.string_tables = None
         self.combat_log = FakeCombatLog()
@@ -684,6 +685,109 @@ class TestTimeSeries:
         assert ts.x_t == [1.0]
         assert ts.y_t == [2.0]
 
+    def test_minute_time_series_deduplicates_by_game_time_when_present(self):
+        ext = PlayerExtractor()
+        ext._game_start_tick = 0
+        ext._minute_snaps = [
+            PlayerStateSnapshot(
+                tick=1800,
+                game_time_s=60,
+                player_id=0,
+                npc_name="",
+                team=2,
+                level=1,
+                xp=0,
+                gold=100,
+                net_worth=200,
+                lh=5,
+                dn=1,
+                hp=600,
+                max_hp=700,
+                mana=100.0,
+                max_mana=200.0,
+                x=None,
+                y=None,
+            ),
+            PlayerStateSnapshot(
+                tick=99999,
+                game_time_s=60,
+                player_id=0,
+                npc_name="",
+                team=2,
+                level=1,
+                xp=0,
+                gold=250,
+                net_worth=350,
+                lh=6,
+                dn=1,
+                hp=600,
+                max_hp=700,
+                mana=100.0,
+                max_mana=200.0,
+                x=None,
+                y=None,
+            ),
+            PlayerStateSnapshot(
+                tick=3600,
+                game_time_s=120,
+                player_id=0,
+                npc_name="",
+                team=2,
+                level=1,
+                xp=0,
+                gold=300,
+                net_worth=400,
+                lh=7,
+                dn=1,
+                hp=600,
+                max_hp=700,
+                mana=100.0,
+                max_mana=200.0,
+                x=None,
+                y=None,
+            ),
+        ]
+
+        ts = ext.minute_time_series(0)
+
+        assert ts.ticks == [99999, 3600]
+        assert ts.gold_t == [250, 300]
+
+    def test_maybe_sample_uses_parser_game_time_for_minute_boundaries(self):
+        ext = PlayerExtractor(sample_interval=9999)
+        parser = FakeParser(tick=1200, game_time_s=60)
+        ext.attach(parser)
+        ext._game_start_tick = 1000
+        ext._heroes[0] = _hero("Axe")
+
+        ext._maybe_sample()
+
+        assert len(ext._minute_snaps) == 1
+        assert ext._minute_snaps[0].game_time_s == 60
+
+    def test_maybe_sample_skips_non_boundary_parser_game_time(self):
+        ext = PlayerExtractor(sample_interval=9999)
+        parser = FakeParser(tick=1200, game_time_s=61)
+        ext.attach(parser)
+        ext._game_start_tick = 1000
+        ext._heroes[0] = _hero("Axe")
+
+        ext._maybe_sample()
+
+        assert ext._minute_snaps == []
+
+    def test_gamerules_update_can_trigger_minute_sample(self):
+        ext = PlayerExtractor(sample_interval=9999)
+        parser = FakeParser(tick=1200, game_time_s=60)
+        ext.attach(parser)
+        ext._game_start_tick = 1000
+        ext._heroes[0] = _hero("Axe")
+
+        ext._on_entity(_ent("CDOTAGamerulesProxy"), EntityOp.UPDATED)
+
+        assert len(ext._minute_snaps) == 1
+        assert ext._minute_snaps[0].game_time_s == 60
+
 
 # ---------------------------------------------------------------------------
 # PlayerExtractor._read_abilities — no parser / no entity_manager / no table
@@ -712,6 +816,149 @@ class TestReadAbilities:
         parser.string_tables = StringTables()  # no EntityNames table
         ext.attach(parser)
         assert ext._read_abilities(_hero("Axe")) == {}
+
+    def test_no_string_tables_returns_empty(self):
+        ext = PlayerExtractor()
+        parser = FakeParser()
+        parser.entity_manager = FakeEntityManager(
+            {123: _ent("CDOTA_Ability_LoneDruid_SpiritLink", **{"m_iLevel": 4})}
+        )
+        ext.attach(parser)
+
+        hero = _hero("LoneDruid", **{"m_vecAbilities.0000": 123})
+        assert ext._read_abilities(hero) == {}
+
+    def test_uses_name_string_table_index(self):
+        from gem.state.string_table import StringTable, StringTables
+
+        entity_names = StringTable(index=0, name="EntityNames")
+        entity_names.items[7] = ("lone_druid_spirit_link", b"")
+        tables = StringTables()
+        tables.add(entity_names)
+
+        ext = PlayerExtractor()
+        parser = FakeParser()
+        parser.entity_manager = FakeEntityManager(
+            {
+                123: _ent(
+                    "CDOTA_Ability_LoneDruid_SpiritLink",
+                    **{
+                        "m_iLevel": 4,
+                        "m_pEntity.m_nameStringTableIndex": 7,
+                    },
+                )
+            }
+        )
+        parser.string_tables = tables
+        ext.attach(parser)
+
+        hero = _hero("LoneDruid", **{"m_vecAbilities.0000": 123})
+        assert ext._read_abilities(hero) == {"lone_druid_spirit_link": 4}
+
+    def test_falls_back_to_name_stringable_index(self):
+        from gem.state.string_table import StringTable, StringTables
+
+        entity_names = StringTable(index=0, name="EntityNames")
+        entity_names.items[7] = ("lone_druid_spirit_link", b"")
+        tables = StringTables()
+        tables.add(entity_names)
+
+        ext = PlayerExtractor()
+        parser = FakeParser()
+        parser.entity_manager = FakeEntityManager(
+            {
+                123: _ent(
+                    "CDOTA_Ability_LoneDruid_SpiritLink",
+                    **{
+                        "m_iLevel": 4,
+                        "m_pEntity.m_nameStringableIndex": 7,
+                    },
+                )
+            }
+        )
+        parser.string_tables = tables
+        ext.attach(parser)
+
+        hero = _hero("LoneDruid", **{"m_hAbilities.0000": 123})
+        assert ext._read_abilities(hero) == {"lone_druid_spirit_link": 4}
+
+    def test_name_string_table_index_takes_precedence(self):
+        from gem.state.string_table import StringTable, StringTables
+
+        entity_names = StringTable(index=0, name="EntityNames")
+        entity_names.items[7] = ("table_index_name", b"")
+        entity_names.items[8] = ("stringable_index_name", b"")
+        tables = StringTables()
+        tables.add(entity_names)
+
+        ext = PlayerExtractor()
+        parser = FakeParser()
+        parser.entity_manager = FakeEntityManager(
+            {
+                123: _ent(
+                    "CDOTA_Ability_LoneDruid_SpiritLink",
+                    **{
+                        "m_iLevel": 4,
+                        "m_pEntity.m_nameStringTableIndex": 7,
+                        "m_pEntity.m_nameStringableIndex": 8,
+                    },
+                )
+            }
+        )
+        parser.string_tables = tables
+        ext.attach(parser)
+
+        hero = _hero("LoneDruid", **{"m_hAbilities.0000": 123})
+        assert ext._read_abilities(hero) == {"table_index_name": 4}
+
+    def test_missing_entity_name_does_not_use_class_name_fallback(self):
+        from gem.state.string_table import StringTables
+
+        ext = PlayerExtractor()
+        parser = FakeParser()
+        parser.entity_manager = FakeEntityManager(
+            {
+                123: _ent(
+                    "CDOTA_Ability_LoneDruid_SpiritLink",
+                    **{
+                        "m_iLevel": 4,
+                        "m_pEntity.m_nameStringTableIndex": 7,
+                    },
+                )
+            }
+        )
+        parser.string_tables = StringTables()
+        ext.attach(parser)
+
+        hero = _hero("LoneDruid", **{"m_vecAbilities.0000": 123})
+        assert ext._read_abilities(hero) == {}
+
+    def test_ignores_unleveled_abilities(self):
+        from gem.state.string_table import StringTable, StringTables
+
+        entity_names = StringTable(index=0, name="EntityNames")
+        entity_names.items[7] = ("generic_hidden", b"")
+        tables = StringTables()
+        tables.add(entity_names)
+
+        ext = PlayerExtractor()
+        parser = FakeParser()
+        parser.entity_manager = FakeEntityManager(
+            {
+                123: _ent(
+                    "CDOTA_Ability_Generic_Hidden",
+                    **{
+                        "m_iLevel": 0,
+                        "m_pEntity.m_nameStringTableIndex": 7,
+                    },
+                )
+            }
+        )
+        parser.string_tables = tables
+        ext.attach(parser)
+
+        hero = _hero("LoneDruid", **{"m_vecAbilities.0000": 123})
+        assert ext._read_abilities(hero) == {}
 
 
 # ---------------------------------------------------------------------------

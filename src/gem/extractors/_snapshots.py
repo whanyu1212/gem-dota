@@ -115,6 +115,8 @@ class PlayerStateSnapshot:
 
     Attributes:
         tick: Game tick of this sample.
+        game_time_s: OpenDota-style game-relative sample time in seconds, or
+            ``None`` when the parser has not observed the game clock yet.
         player_id: Player slot (0-9).
         npc_name: Hero NPC name, e.g. ``"npc_dota_hero_axe"``.
         team: Team number (2=Radiant, 3=Dire).
@@ -157,6 +159,7 @@ class PlayerStateSnapshot:
     y: float | None
     total_earned_gold: int = 0
     total_earned_xp: int = 0
+    game_time_s: int | None = None
     ability_levels: dict[str, int] = field(default_factory=dict)
     total_hero_damage: int = 0
     total_hero_healing: int = 0

@@ -54,6 +54,7 @@ source-exclude = [
 
 [dependency-groups]
 dev = [
+    "jinja2>=3.1.6",
     "mypy>=1.19.1",
     "pre-commit>=4.5.1",
     "pymdown-extensions>=10.21",

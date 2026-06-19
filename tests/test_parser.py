@@ -24,11 +24,14 @@ from unittest.mock import MagicMock, patch
 
 import gem.parser as parser_module
 import gem.results.models as model_module
+from gem.binary.reader import BitReader
 from gem.parser import (
     _DEM_FILE_INFO,
     _DOTA_UM_CHAT_EVENT,
     _DOTA_UM_CHAT_MESSAGE,
+    _DOTA_UM_COMBAT_LOG_DATA,
     _DOTA_UM_COMBAT_LOG_HLTV,
+    _DOTA_UM_MATCH_METADATA,
     _NET_TICK,
     _SVC_CREATE_STRING_TABLE,
     _SVC_PACKET_ENTITIES,
@@ -143,6 +146,21 @@ class TestReadInnerMessages:
         assert len(result) == 1
         assert result[0] == (4, b"")
 
+    def test_fast_read_bytes_matches_slow_fallback_for_inner_messages(self):
+        msgs = [
+            (4, b"tick"),
+            (44, bytes(range(64))),
+            (55, bytes((i * 13 + 7) & 0xFF for i in range(300))),
+            (554, b"combat-log-entry"),
+        ]
+        blob = _make_inner_blob(msgs)
+
+        fast_result = _read_inner_messages(blob)
+        with patch.object(BitReader, "read_bytes", BitReader._read_bytes_slow):
+            slow_result = _read_inner_messages(blob)
+
+        assert fast_result == slow_result == msgs
+
 
 # ---------------------------------------------------------------------------
 # ReplayParser init state
@@ -174,6 +192,10 @@ class TestReplayParserInit:
         p = ReplayParser(b"")
         assert p.leagueid == 0
 
+    def test_match_metadata_starts_none(self):
+        p = ReplayParser(b"")
+        assert p.match_metadata is None
+
     def test_radiant_win_starts_none(self):
         p = ReplayParser(b"")
         assert p.radiant_win is None
@@ -181,6 +203,10 @@ class TestReplayParserInit:
     def test_game_start_tick_starts_none(self):
         p = ReplayParser(b"")
         assert p.game_start_tick is None
+
+    def test_game_time_starts_none(self):
+        p = ReplayParser(b"")
+        assert p.game_time_s is None
 
     def test_entity_manager_starts_none(self):
         p = ReplayParser(b"")
@@ -203,6 +229,45 @@ class TestReplayParserInit:
     def test_game_ended_false(self):
         p = ReplayParser(b"")
         assert p._game_ended is False
+
+
+# ---------------------------------------------------------------------------
+# ReplayParser game clock helpers
+# ---------------------------------------------------------------------------
+
+
+class TestReplayParserGameClock:
+    def test_game_rules_proxy_updates_game_time_seconds(self):
+        p = ReplayParser(b"")
+        p.tick = 6000
+        entity = MagicMock()
+        entity.get_class_name.return_value = "CDOTAGamerulesProxy"
+        entity.get_float32.side_effect = lambda name: {
+            "m_pGameRules.m_flGameStartTime": 100.0,
+            "m_pGameRules.m_fGameTime": 165.2,
+        }.get(name)
+
+        p._on_entity_game_start(entity, MagicMock())
+
+        assert p.game_time_s == 65
+        assert p.game_start_tick == 6000
+
+    def test_combat_log_game_time_anchors_at_game_state_marker(self):
+        from gem.proto.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
+
+        p = ReplayParser(b"")
+
+        start = CMsgDOTACombatLogEntry()
+        start.type = 9
+        start.value = 5
+        start.timestamp = 100.2
+
+        death = CMsgDOTACombatLogEntry()
+        death.type = 4
+        death.timestamp = 130.4
+
+        assert p._combat_log_game_time_s(start) == 0
+        assert p._combat_log_game_time_s(death) == 30
 
 
 # ---------------------------------------------------------------------------
@@ -242,7 +307,8 @@ class TestCallbackRegistration:
 
         p.on_entity(cb1)
         p.on_entity(cb2)
-        assert len(p._entity_callbacks) == 2
+        user_callbacks = [cb for cb in p._entity_callbacks if cb in {cb1, cb2}]
+        assert user_callbacks == [cb1, cb2]
 
     def test_on_chat_message_appends_callback(self):
         p = ReplayParser(b"")
@@ -537,6 +603,45 @@ class TestDispatchInnerRouting:
             )
         ]
 
+    def test_direct_match_metadata_is_stored(self):
+        p = ReplayParser(b"")
+        from gem.proto.dota_match_metadata_pb2 import CDOTAMatchMetadataFile
+
+        metadata = CDOTAMatchMetadataFile()
+        metadata.match_id = 12345
+        team = metadata.metadata.teams.add()
+        player = team.players.add()
+        player.player_slot = 128
+        player.ability_upgrades.extend([1, 2, 3])
+
+        p._dispatch_inner(_DOTA_UM_MATCH_METADATA, metadata.SerializeToString())
+
+        assert p.match_metadata is not None
+        assert p.match_metadata.match_id == 12345
+        assert list(p.match_metadata.metadata.teams[0].players[0].ability_upgrades) == [1, 2, 3]
+
+    def test_wrapped_match_metadata_is_stored(self):
+        p = ReplayParser(b"")
+        from gem.proto.dota_match_metadata_pb2 import CDOTAMatchMetadataFile
+        from gem.proto.netmessages_pb2 import CSVCMsg_UserMessage
+
+        metadata = CDOTAMatchMetadataFile()
+        metadata.match_id = 67890
+        team = metadata.metadata.teams.add()
+        player = team.players.add()
+        player.player_slot = 4
+        player.ability_upgrades.extend([9, 8])
+
+        user_msg = CSVCMsg_UserMessage()
+        user_msg.msg_type = _DOTA_UM_MATCH_METADATA
+        user_msg.msg_data = metadata.SerializeToString()
+
+        p._dispatch_inner(_SVC_USER_MESSAGE, user_msg.SerializeToString())
+
+        assert p.match_metadata is not None
+        assert p.match_metadata.match_id == 67890
+        assert list(p.match_metadata.metadata.teams[0].players[0].ability_upgrades) == [9, 8]
+
 
 # ---------------------------------------------------------------------------
 # _dispatch_inner — game-end callback
@@ -566,6 +671,10 @@ class TestGameEndCallback:
 
         payload = self._make_combat_log_hltv_payload(type_id=9, value=6)
         p._dispatch_inner(_DOTA_UM_COMBAT_LOG_HLTV, payload)
+        # Marking is deferred: the callback does not fire mid-dispatch, only
+        # when the inner-packet loop flushes (after same-packet entity deltas).
+        assert called == []
+        p._flush_game_end()
         assert called == [50000]
 
     def test_game_end_callback_fires_only_once(self):
@@ -582,6 +691,9 @@ class TestGameEndCallback:
         payload = self._make_combat_log_hltv_payload(type_id=9, value=6)
         p._dispatch_inner(_DOTA_UM_COMBAT_LOG_HLTV, payload)
         p._dispatch_inner(_DOTA_UM_COMBAT_LOG_HLTV, payload)
+        p._flush_game_end()
+        # A second flush must not re-fire (the pending marker is cleared).
+        p._flush_game_end()
         assert len(called) == 1
 
     def test_game_end_callback_does_not_fire_for_other_types(self):
@@ -781,6 +893,61 @@ class TestInnerPacketPriority:
     def test_empty_data_does_not_raise(self):
         p = ReplayParser(b"")
         p._dispatch_inner_packet(b"")  # should not raise
+
+    def test_wrapped_combat_log_game_end_deferred_until_after_entities(self):
+        """Regression: a wrapped svc_UserMessage postGame marker must not fire
+        the game-end callback before same-packet entity deltas are applied.
+
+        The wrapped combat-log path (svc_UserMessage, priority 0) sorts *before*
+        svc_PacketEntities (priority 5). If the game-end callback fired inline
+        from that path, terminal consumers (e.g. IntervalExtractor) would flush
+        stale pre-delta entity state. The fix defers the callback to the end of
+        the inner-packet loop, after every priority-5 entity delta is applied.
+        """
+        from gem.proto.dota_usermessages_pb2 import CDOTAUserMsg_CombatLogBulkData
+        from gem.proto.netmessages_pb2 import CSVCMsg_UserMessage
+        from gem.state.string_table import StringTable
+
+        p = ReplayParser(b"")
+        p.string_tables.add(StringTable(index=0, name="CombatLogNames"))
+        p.tick = 77777
+
+        # Wrapped combat-log bulk data carrying a GAME_STATE==6 postGame marker.
+        bulk = CDOTAUserMsg_CombatLogBulkData()
+        entry = bulk.combat_entries.add()
+        entry.type = 9
+        entry.value = 6
+        um = CSVCMsg_UserMessage()
+        um.msg_type = _DOTA_UM_COMBAT_LOG_DATA
+        um.msg_data = bulk.SerializeToString()
+
+        # The user message comes FIRST in the blob (lower priority); entities last.
+        blob = _make_inner_blob(
+            [
+                (_SVC_USER_MESSAGE, um.SerializeToString()),
+                (_SVC_PACKET_ENTITIES, b"\x00" * 4),
+            ]
+        )
+
+        events = []
+
+        # Real _on_user_message runs (to detect the postGame marker), but the
+        # entity dispatch is stubbed to a marker so we only track ordering.
+        orig_dispatch_inner = p._dispatch_inner
+
+        def dispatch_inner(t, pl):
+            if t == _SVC_PACKET_ENTITIES:
+                events.append("entities")
+                return
+            return orig_dispatch_inner(t, pl)
+
+        p.on_game_end(lambda tick: events.append(("game_end", tick)))
+
+        with patch.object(p, "_dispatch_inner", side_effect=dispatch_inner):
+            p._dispatch_inner_packet(blob)
+
+        # Game-end fired exactly once, AFTER entities were applied.
+        assert events == ["entities", ("game_end", 77777)]
 
 
 # ---------------------------------------------------------------------------

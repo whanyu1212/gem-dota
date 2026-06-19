@@ -148,7 +148,9 @@ class ParsedPlayer:
         dn_t: Deny count at each sample tick.
         xp_t: Cumulative XP at each sample tick.
         times_min: Tick values at each game-minute boundary (OpenDota-aligned).
-        gold_t_min: Current unspent gold at each game-minute boundary.
+        gold_t_min: OpenDota-compatible cumulative earned gold at each
+            game-minute boundary when interval data is available; legacy
+            current-unspent-gold fallback on replays without complete intervals.
         total_earned_gold_t_min: Cumulative total earned gold at each game-minute boundary
             (``m_iTotalEarnedGold``). Used for ``radiant_gold_adv`` computation.
         total_earned_xp_t_min: Cumulative total earned XP at each game-minute boundary
@@ -171,6 +173,8 @@ class ParsedPlayer:
             (``"physical"``, ``"magical"``, ``"pure"``).
         healing: Total healing dealt, keyed by target NPC name.
         ability_uses: Ability usage counts, keyed by ability name.
+        ability_upgrades_arr: Ability upgrade IDs in learned order, matching
+            OpenDota's ``ability_upgrades_arr``.
         item_uses: Item usage counts, keyed by item name.
         gold_reasons: Gold received per reason code.
         xp_reasons: XP received per reason code.
@@ -206,6 +210,58 @@ class ParsedPlayer:
         lane_xp_adv: Tier-2 laning metric. XP advantage at 10 minutes versus
             lane opponents on the opposing team. Same pairing logic as
             ``lane_gold_adv``.
+        net_worth: End-of-game net worth (gold + item value), the last dense
+            sample (``net_worth_t[-1]``). Matches OpenDota's terminal
+            ``net_worth`` scalar. Convenience accessor so callers need not index
+            the series; ``0`` if no samples were collected.
+        last_hits: End-of-game last-hit count, the last dense sample
+            (``lh_t[-1]``). Matches OpenDota's terminal ``last_hits`` scalar.
+        denies: End-of-game deny count, the last dense sample (``dn_t[-1]``).
+            Matches OpenDota's terminal ``denies`` scalar.
+        camps_stacked: Neutral camps stacked over the match (``m_iCampsStacked``).
+            Matches OpenDota's ``camps_stacked``.
+        creeps_stacked: Neutral creeps stacked over the match
+            (``m_iCreepsStacked``). Matches OpenDota's ``creeps_stacked``.
+        obs_placed: Observer wards placed (``m_iObserverWardsPlaced``). Matches
+            OpenDota's ``obs_placed``.
+        sen_placed: Sentry wards placed (``m_iSentryWardsPlaced``). Matches
+            OpenDota's ``sen_placed``.
+        rune_pickups: Runes picked up (``m_iRunePickups``). Matches OpenDota's
+            ``rune_pickups``.
+        tower_kills: Towers this player last-hit (``m_iTowerKills``). Matches
+            OpenDota's per-player ``tower_kills``.
+        kda: OpenDota KDA ratio, ``round((kills + assists) / (deaths + 1), 2)``.
+            Note the ``+1`` denominator (not ``max(deaths, 1)``) and 2-decimal
+            rounding; matches OpenDota's ``kda`` exactly.
+        buyback_count: Number of buybacks used (``len(buyback_log)``). Matches
+            OpenDota's ``buyback_count``.
+        is_radiant: True if the player is on Radiant (team 2). Matches OpenDota's
+            ``isRadiant``.
+        win: ``1`` if this player's team won, else ``0`` (also ``0`` when the
+            match winner is unknown). Matches OpenDota's ``win``.
+        kills_per_min: Kills divided by match duration in minutes
+            (``kills / (ParsedMatch.duration / 60)``). Unrounded float matching
+            OpenDota's ``kills_per_min``. ``0.0`` when duration is unknown.
+        hero_damage: Damage dealt to enemy heroes, reconstructed from the combat
+            log with OpenDota's filters (non-illusion hero targets, excluding
+            ``others`` damage). Best-effort offline estimate (~85-90% accurate; a
+            residual remains on AoE/DoT/self-damage heroes). Overwritten with the
+            exact API value by :func:`gem.replays.fetch.apply_api_rates`.
+        tower_damage: Damage dealt to tower structures, from the combat log.
+            Best-effort estimate; exact via ``apply_api_rates``.
+        hero_healing: Healing given to allied heroes (excluding self-heal), from
+            the combat log. Best-effort estimate; exact via ``apply_api_rates``.
+        gold_per_min: Gold per minute. NOT derivable from the replay — sourced
+            from the Steam GC / OpenDota match API. ``0`` until populated by
+            :func:`gem.replays.fetch.enrich_with_api_rates`. See
+            ``opendota-gpm-is-steam-api`` (the team-data earned-gold counter is a
+            different quantity and does not match OpenDota's value).
+        xp_per_min: XP per minute. Same API provenance as ``gold_per_min``;
+            ``0`` until enriched.
+        total_gold: Total gold, ``floor(gold_per_min * duration / 60)`` (OpenDota's
+            own formula). ``0`` until ``gold_per_min`` is enriched.
+        total_xp: Total XP, ``floor(xp_per_min * duration / 60)``. ``0`` until
+            ``xp_per_min`` is enriched.
     """
 
     player_id: int
@@ -241,6 +297,7 @@ class ParsedPlayer:
     damage_taken_by_type: dict[str, int] = field(default_factory=dict)
     healing: dict[str, int] = field(default_factory=dict)
     ability_uses: dict[str, int] = field(default_factory=dict)
+    ability_upgrades_arr: list[int] = field(default_factory=list)
     item_uses: dict[str, int] = field(default_factory=dict)
     gold_reasons: dict[str, int] = field(default_factory=dict)
     xp_reasons: dict[str, int] = field(default_factory=dict)
@@ -262,6 +319,27 @@ class ParsedPlayer:
     lane_efficiency_pct: int = 0
     lane_gold_adv: int | None = None
     lane_xp_adv: int | None = None
+    net_worth: int = 0
+    last_hits: int = 0
+    denies: int = 0
+    camps_stacked: int = 0
+    creeps_stacked: int = 0
+    obs_placed: int = 0
+    sen_placed: int = 0
+    rune_pickups: int = 0
+    tower_kills: int = 0
+    kda: float = 0.0
+    buyback_count: int = 0
+    is_radiant: bool = False
+    win: int = 0
+    kills_per_min: float = 0.0
+    hero_damage: int = 0
+    tower_damage: int = 0
+    hero_healing: int = 0
+    gold_per_min: int = 0
+    xp_per_min: int = 0
+    total_gold: int = 0
+    total_xp: int = 0
     _ability_snapshots: list[tuple[int, dict[str, int]]] = field(default_factory=list)
 
     def __repr__(self) -> str:
@@ -269,7 +347,7 @@ class ParsedPlayer:
         team = "Radiant" if self.team == 2 else "Dire" if self.team == 3 else f"team={self.team}"
         return (
             f"ParsedPlayer(slot={self.player_id}, hero={hero}, team={team}, "
-            f"kda={self.kills}/{self.deaths}/{self.assists})"
+            f"kda={self.kills}/{self.deaths}/{self.assists}, net_worth={self.net_worth})"
         )
 
 
@@ -318,6 +396,12 @@ class ParsedMatch:
         game_start_tick: Absolute tick when the game clock started (creeps spawn).
             ``None`` if the transition was not observed.
         game_end_tick: Absolute tick of the final parser tick.
+        duration: OpenDota-style match duration in seconds — the horn-anchored
+            combat-log time at GAME_STATE==6 (ancient destroyed). Matches
+            OpenDota's ``duration`` to within ~1s (sub-second rounding). ``0`` if
+            the postGame transition was not observed. Distinct from the
+            tick-derived ``duration_seconds`` property, which spans the raw parser
+            ticks and includes pre/post-game time.
     """
 
     match_id: int = 0
@@ -332,6 +416,7 @@ class ParsedMatch:
     dire_team_tag: str = ""
     game_start_tick: int | None = None
     game_end_tick: int = 0
+    duration: int = 0
     players: list[ParsedPlayer] = field(
         default_factory=lambda: [ParsedPlayer(player_id=i) for i in range(10)]
     )

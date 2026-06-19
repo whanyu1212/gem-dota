@@ -1,6 +1,6 @@
-<h1 align="center">gem</h1>
-
-<p align="center"><strong>Source 2 Dota 2 Replay Parsing, Analytics and Visualization in Python</strong></p>
+<p align="center">
+  <img src="docs/public/gem-readme-banner-wordmark-subtitle-spaced.png" alt="Gem - A dota 2 replay parser in Python" width="100%">
+</p>
 
 <p align="center">
   <img alt="Python" src="https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white">
@@ -366,9 +366,9 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 |---|---|
 | `binary/reader.py` | `BitReader` — LSB-first bit reading, varint decoding, all binary primitives |
 | `binary/stream.py` | `DemoStream` — outer message loop, Snappy decompression, magic check |
-| `schema/sendtable.py` | Schema layer — serializer + field tree parsed from `CDemoSendTables` |
-| `schema/field_decoder.py` | Type-dispatch decoders including quantized floats |
-| `schema/field_path.py` | Huffman-coded field path ops for addressing into the serializer tree |
+| `schema/sendtable/` | Schema layer — serializer + field tree parsed from `CDemoSendTables` |
+| `schema/field_decoder/` | Type-dispatch decoders including quantized floats |
+| `schema/field_path/` | Huffman-coded field path ops for addressing into the serializer tree |
 | `schema/field_state.py` | Nested mutable field-value tree for entity state storage |
 | `schema/field_reader.py` | Field decoder dispatch and entity field reading |
 | `state/string_table.py` | Incremental key-history string tables |
