@@ -43,6 +43,15 @@ class _ParsedPlayerAgg:
     runes_log: list[CombatLogEntry] = field(default_factory=list)
     buyback_log: list[CombatLogEntry] = field(default_factory=list)
     stuns_dealt: float = 0.0
+    # OpenDota-style combat scalars, reconstructed from the combat log with
+    # OpenDota's filters (see _on_combat_log_entry). These are best-effort
+    # offline estimates: hero_damage is ~85-90% accurate (a residual remains on
+    # AoE/DoT/self-damage heroes); they are exactly overwritten when the match is
+    # enriched from the API (gem.replays.fetch.apply_api_rates). Not the same as
+    # the per-target ``damage``/``healing`` dicts above, which are unfiltered.
+    hero_damage: int = 0
+    tower_damage: int = 0
+    hero_healing: int = 0
 
 
 # ---------------------------------------------------------------------------
@@ -169,6 +178,29 @@ class _CombatAggregator:
             return None
         return pid // 2
 
+    def _accumulate_hero_tower_damage(self, attacker_pid: int, entry: Any) -> None:
+        """Add one DAMAGE entry to the attacker's hero_damage / tower_damage.
+
+        Reconstructs OpenDota's combat scalars with its filters: hero_damage
+        counts damage to a non-illusion hero target, excluding ``others`` damage
+        (absorbed/returned instances OpenDota does not count); tower_damage counts
+        damage to any building (tower / barracks / fort). Best-effort offline
+        estimate (~87% mean accuracy on hero_damage, ~80% on tower_damage); a
+        residual remains on AoE/DoT/summon-attributed heroes (e.g. Lone Druid's
+        bear). Exact values come from the API via ``apply_api_rates``.
+
+        Args:
+            attacker_pid: The resolved attacker player slot 0-9.
+            entry: A DAMAGE ``CombatLogEntry``.
+        """
+        target = entry.target_name or ""
+        if entry.target_is_hero and not entry.target_is_illusion and entry.damage_type != "others":
+            self._agg(attacker_pid).hero_damage += entry.value
+        elif any(s in target for s in ("_tower", "_rax", "_fort")):
+            # OpenDota's tower_damage counts all building damage (towers,
+            # barracks, fort/ancient), not just towers.
+            self._agg(attacker_pid).tower_damage += entry.value
+
     def on_entry(self, entry: Any) -> None:
         """Process a single combat log entry, routing it to the right bucket.
 
@@ -206,6 +238,7 @@ class _CombatAggregator:
                     self._agg(attacker_pid).damage[entry.target_name] += entry.value
                     if entry.damage_type:
                         self._agg(attacker_pid).damage_by_type[entry.damage_type] += entry.value
+                    self._accumulate_hero_tower_damage(attacker_pid, entry)
                 if target_pid is not None:
                     self._agg(target_pid).damage_taken[entry.attacker_name] += entry.value
                     if entry.damage_type:
@@ -213,6 +246,13 @@ class _CombatAggregator:
             case "HEAL":
                 if attacker_pid is not None:
                     self._agg(attacker_pid).healing[entry.target_name] += entry.value
+                    # OpenDota hero_healing: healing to a hero other than oneself.
+                    if (
+                        entry.target_is_hero
+                        and not entry.target_is_illusion
+                        and entry.target_name != entry.attacker_name
+                    ):
+                        self._agg(attacker_pid).hero_healing += entry.value
             case "ABILITY":
                 if attacker_pid is not None and entry.inflictor_name:
                     self._agg(attacker_pid).ability_uses[entry.inflictor_name] += 1

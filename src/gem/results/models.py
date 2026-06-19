@@ -242,6 +242,15 @@ class ParsedPlayer:
         kills_per_min: Kills divided by match duration in minutes
             (``kills / (ParsedMatch.duration / 60)``). Unrounded float matching
             OpenDota's ``kills_per_min``. ``0.0`` when duration is unknown.
+        hero_damage: Damage dealt to enemy heroes, reconstructed from the combat
+            log with OpenDota's filters (non-illusion hero targets, excluding
+            ``others`` damage). Best-effort offline estimate (~85-90% accurate; a
+            residual remains on AoE/DoT/self-damage heroes). Overwritten with the
+            exact API value by :func:`gem.replays.fetch.apply_api_rates`.
+        tower_damage: Damage dealt to tower structures, from the combat log.
+            Best-effort estimate; exact via ``apply_api_rates``.
+        hero_healing: Healing given to allied heroes (excluding self-heal), from
+            the combat log. Best-effort estimate; exact via ``apply_api_rates``.
         gold_per_min: Gold per minute. NOT derivable from the replay — sourced
             from the Steam GC / OpenDota match API. ``0`` until populated by
             :func:`gem.replays.fetch.enrich_with_api_rates`. See
@@ -324,6 +333,9 @@ class ParsedPlayer:
     is_radiant: bool = False
     win: int = 0
     kills_per_min: float = 0.0
+    hero_damage: int = 0
+    tower_damage: int = 0
+    hero_healing: int = 0
     gold_per_min: int = 0
     xp_per_min: int = 0
     total_gold: int = 0

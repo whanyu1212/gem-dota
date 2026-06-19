@@ -154,6 +154,11 @@ def apply_api_rates(match: ParsedMatch, opendota_match: dict) -> ParsedMatch:
         if xpm is not None:
             pp.xp_per_min = int(xpm)
             pp.total_xp = (pp.xp_per_min * duration) // 60
+        # Exact combat scalars overwrite gem's combat-log reconstruction.
+        for attr in ("hero_damage", "tower_damage", "hero_healing"):
+            value = od_player.get(attr)
+            if value is not None:
+                setattr(pp, attr, int(value))
     return match
 
 

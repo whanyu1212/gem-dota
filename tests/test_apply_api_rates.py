@@ -79,3 +79,27 @@ def test_ignores_players_without_slot():
     od = {"duration": 600, "players": [{"gold_per_min": 500}]}  # no player_slot
     apply_api_rates(m, od)
     assert all(p.gold_per_min == 0 for p in m.players)
+
+
+def test_overwrites_combat_scalars_with_exact_api_values():
+    m = _match(duration=600)
+    # Simulate a reconstructed estimate that the API should override exactly.
+    m.players[0].hero_damage = 9999
+    od = {
+        "duration": 600,
+        "players": [
+            {"player_slot": 0, "hero_damage": 38922, "tower_damage": 6522, "hero_healing": 0},
+        ],
+    }
+    apply_api_rates(m, od)
+    assert m.players[0].hero_damage == 38922
+    assert m.players[0].tower_damage == 6522
+    assert m.players[0].hero_healing == 0
+
+
+def test_missing_combat_scalar_preserves_reconstruction():
+    m = _match(duration=600)
+    m.players[0].hero_damage = 1234  # offline estimate
+    od = {"duration": 600, "players": [{"player_slot": 0, "gold_per_min": 500}]}  # no combat stats
+    apply_api_rates(m, od)
+    assert m.players[0].hero_damage == 1234  # left untouched

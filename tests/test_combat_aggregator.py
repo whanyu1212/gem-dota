@@ -83,6 +83,8 @@ def _entry(**kwargs) -> MagicMock:
         "target_name": "npc_dota_hero_mirana",
         "attacker_is_hero": True,
         "target_is_hero": False,
+        "attacker_is_illusion": False,
+        "target_is_illusion": False,
         "inflictor_name": "",
         "value": 100,
         "gold_reason": 0,
@@ -150,6 +152,71 @@ class TestCombatAggregatorDamage:
             )
         )
         assert agg.players[1].damage_taken_by_type["pure"] == 90
+
+
+class TestCombatAggregatorCombatScalars:
+    """OpenDota-style hero_damage / tower_damage / hero_healing reconstruction."""
+
+    def test_hero_damage_counts_hero_target(self):
+        agg, _ = _make_agg(0)
+        agg.on_entry(_entry(target_is_hero=True, value=200))
+        assert agg.players[0].hero_damage == 200
+
+    def test_hero_damage_excludes_illusion_target(self):
+        agg, _ = _make_agg(0)
+        agg.on_entry(_entry(target_is_hero=True, target_is_illusion=True, value=200))
+        assert agg.players[0].hero_damage == 0
+
+    def test_hero_damage_excludes_others_damage_type(self):
+        agg, _ = _make_agg(0)
+        agg.on_entry(_entry(target_is_hero=True, damage_type="others", value=1368))
+        assert agg.players[0].hero_damage == 0
+
+    def test_hero_damage_excludes_non_hero_target(self):
+        agg, _ = _make_agg(0)
+        agg.on_entry(
+            _entry(target_is_hero=False, target_name="npc_dota_creep_badguys_melee", value=50)
+        )
+        assert agg.players[0].hero_damage == 0
+
+    def test_tower_damage_counts_structures(self):
+        agg, _ = _make_agg(0)
+        agg.on_entry(
+            _entry(target_is_hero=False, target_name="npc_dota_badguys_tower1_mid", value=100)
+        )
+        agg.on_entry(
+            _entry(target_is_hero=False, target_name="npc_dota_badguys_melee_rax_mid", value=80)
+        )
+        agg.on_entry(_entry(target_is_hero=False, target_name="npc_dota_badguys_fort", value=60))
+        assert agg.players[0].tower_damage == 240
+
+    def test_tower_damage_ignores_creeps(self):
+        agg, _ = _make_agg(0)
+        agg.on_entry(
+            _entry(target_is_hero=False, target_name="npc_dota_creep_goodguys_ranged", value=40)
+        )
+        assert agg.players[0].tower_damage == 0
+
+    def test_hero_healing_excludes_self(self):
+        agg, _ = _make_agg(0)
+        # heal an ally hero -> counts; heal self -> excluded.
+        agg.on_entry(
+            _entry(
+                log_type="HEAL",
+                target_is_hero=True,
+                target_name="npc_dota_hero_mirana",
+                value=300,
+            )
+        )
+        agg.on_entry(
+            _entry(
+                log_type="HEAL",
+                target_is_hero=True,
+                target_name="npc_dota_hero_axe",  # self (attacker is axe)
+                value=500,
+            )
+        )
+        assert agg.players[0].hero_healing == 300
 
 
 class TestCombatAggregatorAbilityItem:

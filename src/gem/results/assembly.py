@@ -316,6 +316,11 @@ def build_parsed_match(
             pp.runes_log = agg.runes_log
             pp.buyback_log = agg.buyback_log
             pp.stuns_dealt = agg.stuns_dealt
+            # OpenDota-style combat scalars (combat-log reconstruction; exact via
+            # apply_api_rates). Best-effort offline estimates.
+            pp.hero_damage = agg.hero_damage
+            pp.tower_damage = agg.tower_damage
+            pp.hero_healing = agg.hero_healing
 
         kda = player_ext.scoreboard.get(player_id)
         if kda is not None:
