@@ -17,7 +17,13 @@ from gem.analysis.map_context import (
 )
 from gem.analysis.roshan import RoshConversion, RoshTimelineEvent, build_rosh_conversions
 from gem.analysis.spatial import heroes_near, net_worth_at, position_at_tick
-from gem.analysis.vision import VisionSource, estimate_vision, is_daytime, ward_vision_impact
+from gem.analysis.vision import (
+    VisionSource,
+    _is_daytime,
+    estimate_vision,
+    is_daytime,
+    ward_vision_impact,
+)
 
 __all__ = [
     "AbilityCast",
@@ -26,6 +32,7 @@ __all__ = [
     "RoshConversion",
     "RoshTimelineEvent",
     "VisionSource",
+    "_is_daytime",
     "ability_level_at_tick",
     "build_map_context_timeline",
     "build_rosh_conversions",

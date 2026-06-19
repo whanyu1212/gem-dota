@@ -92,10 +92,10 @@ def _match(
 
 
 class TestIsDaytime:
-    def test_game_startis_daytime(self) -> None:
+    def test_game_start_is_daytime(self) -> None:
         assert is_daytime(0, 0) is True
 
-    def test_early_gameis_daytime(self) -> None:
+    def test_early_game_is_daytime(self) -> None:
         assert is_daytime(0, 5000) is True
 
     def test_after_7m30s_is_night(self) -> None:
@@ -118,6 +118,13 @@ class TestIsDaytime:
     def test_none_game_start_treated_as_zero(self) -> None:
         assert is_daytime(None, 5000) is True
         assert is_daytime(None, 14000) is False
+
+    def test_underscore_alias_preserved(self) -> None:
+        # `_is_daytime` is a backwards-compat alias for the renamed public
+        # `is_daytime`; both must import from gem.analysis and be the same object.
+        from gem.analysis import _is_daytime, is_daytime
+
+        assert _is_daytime is is_daytime
 
 
 # ---------------------------------------------------------------------------

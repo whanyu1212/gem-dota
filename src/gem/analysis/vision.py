@@ -71,6 +71,12 @@ def is_daytime(game_start_tick: int | None, tick: int) -> bool:
     return phase < _NIGHT_START_TICKS
 
 
+# Backwards-compatible alias for the pre-rename name. ``is_daytime`` is the
+# preferred public name; ``_is_daytime`` was exported from ``gem.analysis`` on
+# the development branch, so keep the alias to avoid breaking that import.
+_is_daytime = is_daytime
+
+
 def estimate_vision(
     match: ParsedMatch,
     team: int,
