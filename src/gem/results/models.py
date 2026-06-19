@@ -165,13 +165,23 @@ class ParsedPlayer:
         total_stuns_t_min: Cumulative stun duration dealt (seconds) at each game-minute boundary.
         obs_log: Observer ward placement events for this player.
         sen_log: Sentry ward placement events for this player.
-        damage: Total damage dealt, keyed by target NPC name.
-        damage_taken: Total damage received, keyed by attacker NPC name.
+        damage: Total damage dealt, keyed by target NPC name, credited to the
+            damage *source* (``damage_source_name``) so summon / spell /
+            projectile damage lands on the owning hero. Illusion targets are keyed
+            ``illusion_<npc>`` (OpenDota's ``computeIllusionString``); damage logged
+            against an ability/modifier name rather than a real unit is excluded.
+            Mirrors OpenDota's per-target ``damage`` reconstruction; the small
+            residual is its engine-internal illusion split, not reproducible
+            offline (see issue #68).
+        damage_taken: Total damage received (non-illusion hero targets only),
+            keyed by the damage source NPC name (``damage_source_name``),
+            mirroring OpenDota's ``damage_taken`` dict.
         damage_by_type: Total damage dealt, keyed by damage type label
             (``"physical"``, ``"magical"``, ``"pure"``).
         damage_taken_by_type: Total damage received, keyed by damage type label
             (``"physical"``, ``"magical"``, ``"pure"``).
-        healing: Total healing dealt, keyed by target NPC name.
+        healing: Total healing dealt, credited to the heal *source*, keyed by
+            target NPC name (illusion targets keyed ``illusion_<npc>``).
         ability_uses: Ability usage counts, keyed by ability name.
         ability_upgrades_arr: Ability upgrade IDs in learned order, matching
             OpenDota's ``ability_upgrades_arr``.
@@ -243,14 +253,22 @@ class ParsedPlayer:
             (``kills / (ParsedMatch.duration / 60)``). Unrounded float matching
             OpenDota's ``kills_per_min``. ``0.0`` when duration is unknown.
         hero_damage: Damage dealt to enemy heroes, reconstructed from the combat
-            log with OpenDota's filters (non-illusion hero targets, excluding
-            ``others`` damage). Best-effort offline estimate (~85-90% accurate; a
-            residual remains on AoE/DoT/self-damage heroes). Overwritten with the
-            exact API value by :func:`gem.replays.fetch.apply_api_rates`.
-        tower_damage: Damage dealt to tower structures, from the combat log.
-            Best-effort estimate; exact via ``apply_api_rates``.
-        hero_healing: Healing given to allied heroes (excluding self-heal), from
-            the combat log. Best-effort estimate; exact via ``apply_api_rates``.
+            log by crediting the damage source (``damage_source_name``) to
+            non-illusion hero targets. Best-effort offline estimate (~90% vs
+            OpenDota across fixtures). The residual is **not** a filter gap:
+            OpenDota's headline ``hero_damage`` is a Game-Coordinator
+            (``CMsgGameMatchSignOut``) value that accounts for in-engine
+            mitigation the combat log cannot see, so it is unclosable offline.
+            Overwritten with the exact API value by
+            :func:`gem.replays.fetch.apply_api_rates`.
+        tower_damage: Damage dealt to building structures (towers, barracks,
+            fort/ancient), reconstructed from the combat log by damage source.
+            Essentially exact offline (~99.97% vs OpenDota — the building sum
+            equals the GC value); refreshed exactly via ``apply_api_rates``.
+        hero_healing: Healing given to allied heroes (excluding self-heal),
+            credited to the heal source, from the combat log. Best-effort offline
+            estimate; OpenDota's headline value is GC-sourced (self-heal-excluded,
+            mitigation-aware) and exact via ``apply_api_rates``.
         gold_per_min: Gold per minute. NOT derivable from the replay — sourced
             from the Steam GC / OpenDota match API. ``0`` until populated by
             :func:`gem.replays.fetch.enrich_with_api_rates`. See

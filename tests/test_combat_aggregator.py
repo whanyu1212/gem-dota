@@ -70,6 +70,10 @@ class TestParsedPlayerAgg:
 def _make_agg(player_id_raw: int = 0) -> tuple[_CombatAggregator, MagicMock]:
     """Return a _CombatAggregator wired to a single fake hero entity."""
     player_ext = MagicMock()
+    # No entity manager in unit tests -> the summon->owner resolution path no-ops
+    # cleanly (it returns None when ``_parser`` is None) instead of dereferencing
+    # auto-generated MagicMock attributes.
+    player_ext._parser = None
     hero_entity = MagicMock()
     hero_entity.get_int32.return_value = player_id_raw
     player_ext._heroes_by_npc = {"npc_dota_hero_axe": hero_entity}
@@ -80,6 +84,9 @@ def _entry(**kwargs) -> MagicMock:
     defaults = {
         "log_type": "DAMAGE",
         "attacker_name": "npc_dota_hero_axe",
+        # Default the damage source to the attacker (the common auto-attack case);
+        # tests that exercise summon/spell attribution override it explicitly.
+        "damage_source_name": "npc_dota_hero_axe",
         "target_name": "npc_dota_hero_mirana",
         "attacker_is_hero": True,
         "target_is_hero": False,
@@ -167,10 +174,14 @@ class TestCombatAggregatorCombatScalars:
         agg.on_entry(_entry(target_is_hero=True, target_is_illusion=True, value=200))
         assert agg.players[0].hero_damage == 0
 
-    def test_hero_damage_excludes_others_damage_type(self):
+    def test_hero_damage_counts_all_damage_types(self):
+        # OpenDota's per-target damage dict (and thus the parse-only scalar) applies
+        # no damage_type filter; crediting the source already keeps absorbed/return
+        # ("others") instances from inflating a hero's total, so they are counted
+        # like any other source-attributed hero damage. Verified against fixtures.
         agg, _ = _make_agg(0)
-        agg.on_entry(_entry(target_is_hero=True, damage_type="others", value=1368))
-        assert agg.players[0].hero_damage == 0
+        agg.on_entry(_entry(target_is_hero=True, damage_type="others", value=120))
+        assert agg.players[0].hero_damage == 120
 
     def test_hero_damage_excludes_non_hero_target(self):
         agg, _ = _make_agg(0)
@@ -212,11 +223,122 @@ class TestCombatAggregatorCombatScalars:
             _entry(
                 log_type="HEAL",
                 target_is_hero=True,
-                target_name="npc_dota_hero_axe",  # self (attacker is axe)
+                target_name="npc_dota_hero_axe",  # self (source is axe)
                 value=500,
             )
         )
         assert agg.players[0].hero_healing == 300
+
+
+class TestCombatAggregatorSourceAttribution:
+    """Damage/heal is credited to ``damage_source_name``, not ``attacker_name``.
+
+    Mirrors OpenDota's ``handleDamageCombat`` (``unit = e.sourcename``): summon /
+    spell / projectile damage lands on the owning hero even when the combat-log
+    attacker is the summon. This is what closes the tower_damage residual
+    (87% -> ~exact) and aligns gem's per-target dicts with OpenDota's.
+    """
+
+    def test_damage_credited_to_source_not_attacker(self):
+        # attacker is a non-hero summon; source is the owning hero (axe).
+        agg, _ = _make_agg(0)
+        agg.on_entry(
+            _entry(
+                attacker_name="npc_dota_lone_druid_bear",
+                attacker_is_hero=False,
+                damage_source_name="npc_dota_hero_axe",
+                target_is_hero=True,
+                target_name="npc_dota_hero_mirana",
+                value=200,
+            )
+        )
+        assert agg.players[0].damage["npc_dota_hero_mirana"] == 200
+        assert agg.players[0].hero_damage == 200
+
+    def test_tower_damage_credited_to_source(self):
+        agg, _ = _make_agg(0)
+        agg.on_entry(
+            _entry(
+                attacker_name="npc_dota_lone_druid_bear",
+                attacker_is_hero=False,
+                damage_source_name="npc_dota_hero_axe",
+                target_is_hero=False,
+                target_name="npc_dota_badguys_tower1_mid",
+                value=150,
+            )
+        )
+        assert agg.players[0].tower_damage == 150
+
+    def test_damage_taken_keyed_by_source(self):
+        player_ext = MagicMock()
+        player_ext._parser = None
+        axe_entity = MagicMock()
+        axe_entity.get_int32.return_value = 0
+        mirana_entity = MagicMock()
+        mirana_entity.get_int32.return_value = 2  # slot 1
+        player_ext._heroes_by_npc = {
+            "npc_dota_hero_axe": axe_entity,
+            "npc_dota_hero_mirana": mirana_entity,
+        }
+        agg = _CombatAggregator(player_ext)
+        agg.on_entry(
+            _entry(
+                attacker_name="npc_dota_lone_druid_bear",
+                attacker_is_hero=False,
+                damage_source_name="npc_dota_hero_axe",
+                target_is_hero=True,
+                target_name="npc_dota_hero_mirana",
+                value=90,
+            )
+        )
+        # damage_taken is keyed by the source unit (axe), not the projectile/summon.
+        assert agg.players[1].damage_taken["npc_dota_hero_axe"] == 90
+
+    def test_falls_back_to_attacker_when_source_empty(self):
+        agg, _ = _make_agg(0)
+        agg.on_entry(
+            _entry(
+                attacker_name="npc_dota_hero_axe",
+                damage_source_name="",  # unset source -> fall back to attacker
+                target_is_hero=True,
+                target_name="npc_dota_hero_mirana",
+                value=75,
+            )
+        )
+        assert agg.players[0].hero_damage == 75
+
+    def test_illusion_target_keyed_separately(self):
+        # An illusion target is keyed "illusion_<hero>" (OpenDota computeIllusionString),
+        # so the real hero's damage key is not inflated by illusion damage.
+        agg, _ = _make_agg(0)
+        agg.on_entry(
+            _entry(
+                target_is_hero=True,
+                target_is_illusion=True,
+                target_name="npc_dota_hero_mirana",
+                value=120,
+            )
+        )
+        assert agg.players[0].damage["illusion_npc_dota_hero_mirana"] == 120
+        assert agg.players[0].damage["npc_dota_hero_mirana"] == 0
+        # illusion targets are excluded from the hero_damage scalar.
+        assert agg.players[0].hero_damage == 0
+
+    def test_non_unit_target_excluded_from_damage_dict(self):
+        # Valve logs some absorb/redirect interactions against an ability/modifier
+        # name rather than a unit; OpenDota's damage dict excludes these.
+        agg, _ = _make_agg(0)
+        agg.on_entry(
+            _entry(
+                target_is_hero=False,
+                target_name="nevermore_necromastery",
+                value=10,
+            )
+        )
+        # The entry is skipped entirely — no damage recorded under the junk key
+        # (and no aggregate need have been created for the player at all).
+        player = agg.players.get(0)
+        assert player is None or "nevermore_necromastery" not in player.damage
 
 
 class TestCombatAggregatorAbilityItem:

@@ -305,6 +305,7 @@ class TestStunDuration:
         class FakeMsg:
             type = 0  # DAMAGE
             attacker_name = 0
+            damage_source_name = 0
             target_name = 0
             inflictor_name = 0
             value = 10
@@ -341,6 +342,7 @@ class TestStunDuration:
         class FakeMsg:
             type = 0
             attacker_name = 0
+            damage_source_name = 0
             target_name = 0
             inflictor_name = 0
             value = 5

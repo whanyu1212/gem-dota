@@ -47,6 +47,7 @@ class FakeS2Entry:
         self,
         type=0,
         attacker_name=0,
+        damage_source_name=0,
         target_name=0,
         inflictor_name=0,
         value=0,
@@ -70,6 +71,7 @@ class FakeS2Entry:
     ):
         self.type = type
         self.attacker_name = attacker_name
+        self.damage_source_name = damage_source_name
         self.target_name = target_name
         self.inflictor_name = inflictor_name
         self.value = value

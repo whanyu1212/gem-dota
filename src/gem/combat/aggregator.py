@@ -25,6 +25,40 @@ def _int_counter() -> defaultdict[str, int]:
     return defaultdict(int)
 
 
+def _illusion_key(name: str, is_illusion: bool) -> str:
+    """Prefix a unit name with ``illusion_`` when it is an illusion.
+
+    Mirrors OpenDota's ``computeIllusionString`` so the per-target ``damage`` /
+    ``healing`` dict keys match its reconstruction (an illusion's damage is keyed
+    separately from the real hero's).
+
+    Args:
+        name: The unit NPC name.
+        is_illusion: Whether the unit is an illusion.
+
+    Returns:
+        ``"illusion_" + name`` when ``is_illusion`` is true, else ``name``.
+    """
+    return f"illusion_{name}" if is_illusion else name
+
+
+def _is_unit_target(name: str) -> bool:
+    """Return whether a combat-log target name denotes a real unit/building.
+
+    Valve occasionally logs damage against an ability/modifier name
+    (e.g. ``"nevermore_necromastery"``) rather than a unit; OpenDota's per-target
+    ``damage`` dict excludes these. A real target starts with ``npc_`` (units,
+    creeps, buildings) or ``dota_`` (e.g. ``dota_fountain``).
+
+    Args:
+        name: The combat-log ``target_name``.
+
+    Returns:
+        True if ``name`` is a unit/building target.
+    """
+    return name.startswith("npc_") or name.startswith("dota_")
+
+
 @dataclass(slots=True)
 class _ParsedPlayerAgg:
     """Mutable accumulator for per-player combat log aggregates."""
@@ -43,12 +77,14 @@ class _ParsedPlayerAgg:
     runes_log: list[CombatLogEntry] = field(default_factory=list)
     buyback_log: list[CombatLogEntry] = field(default_factory=list)
     stuns_dealt: float = 0.0
-    # OpenDota-style combat scalars, reconstructed from the combat log with
-    # OpenDota's filters (see _on_combat_log_entry). These are best-effort
-    # offline estimates: hero_damage is ~85-90% accurate (a residual remains on
-    # AoE/DoT/self-damage heroes); they are exactly overwritten when the match is
-    # enriched from the API (gem.replays.fetch.apply_api_rates). Not the same as
-    # the per-target ``damage``/``healing`` dicts above, which are unfiltered.
+    # OpenDota-style combat scalars, reconstructed from the combat log by
+    # crediting the damage *source* (see _accumulate_hero_tower_damage). Offline
+    # accuracy vs OpenDota across five fixtures: tower_damage ~exact (~99.97%),
+    # hero_damage ~90%. hero_damage/hero_healing residuals are not a filter gap —
+    # OpenDota's headline scalars are Game-Coordinator (CMsgGameMatchSignOut)
+    # values that account for in-engine mitigation the combat log cannot see, so
+    # they are unclosable offline; they are exactly overwritten when the match is
+    # enriched from the API (gem.replays.fetch.apply_api_rates).
     hero_damage: int = 0
     tower_damage: int = 0
     hero_healing: int = 0
@@ -178,28 +214,41 @@ class _CombatAggregator:
             return None
         return pid // 2
 
-    def _accumulate_hero_tower_damage(self, attacker_pid: int, entry: Any) -> None:
-        """Add one DAMAGE entry to the attacker's hero_damage / tower_damage.
+    def _accumulate_hero_tower_damage(self, source_pid: int, entry: Any) -> None:
+        """Add one DAMAGE entry to the source hero's hero_damage / tower_damage.
 
-        Reconstructs OpenDota's combat scalars with its filters: hero_damage
-        counts damage to a non-illusion hero target, excluding ``others`` damage
-        (absorbed/returned instances OpenDota does not count); tower_damage counts
-        damage to any building (tower / barracks / fort). Best-effort offline
-        estimate (~87% mean accuracy on hero_damage, ~80% on tower_damage); a
-        residual remains on AoE/DoT/summon-attributed heroes (e.g. Lone Druid's
-        bear). Exact values come from the API via ``apply_api_rates``.
+        Mirrors OpenDota's reconstruction (``CreateParsedDataBlob.handleDamageCombat``
+        + ``expand``): damage is credited to the *source* unit
+        (``damage_source_name``), not the attacker — so a hero's spell / projectile
+        damage (where the attacker is the projectile) lands on the hero.
+        ``hero_damage`` counts source-attributed damage to a non-illusion hero
+        target; ``tower_damage`` counts damage to any building (tower / barracks /
+        fort). Illusion-dealt damage is folded into the source hero exactly as
+        OpenDota does (``unit = e.sourcename`` resolved via ``hero_to_slot``; the
+        combat log carries no illusion marker on the source name), keeping the
+        scalar consistent with the per-target ``damage`` dict.
+
+        Accuracy vs OpenDota's per-player scalars, measured across five OpenDota
+        fixtures: ``tower_damage`` is essentially exact (~99.97%, the combat-log
+        building sum equals the Game Coordinator value); ``hero_damage`` is a gross
+        combat-log over-estimate (~63–90%). The ``hero_damage``/``hero_healing``
+        residual is **not** a filter gap: OpenDota's headline scalars are
+        Game-Coordinator (``CMsgGameMatchSignOut``) values that account for
+        in-engine mitigation and an engine-internal illusion split the combat log
+        does not expose, so they are unclosable offline. Exact values come from the
+        API via ``apply_api_rates`` / ``enrich_with_api_rates``.
 
         Args:
-            attacker_pid: The resolved attacker player slot 0-9.
+            source_pid: The resolved damage-source player slot 0-9.
             entry: A DAMAGE ``CombatLogEntry``.
         """
         target = entry.target_name or ""
-        if entry.target_is_hero and not entry.target_is_illusion and entry.damage_type != "others":
-            self._agg(attacker_pid).hero_damage += entry.value
+        if entry.target_is_hero and not entry.target_is_illusion:
+            self._agg(source_pid).hero_damage += entry.value
         elif any(s in target for s in ("_tower", "_rax", "_fort")):
             # OpenDota's tower_damage counts all building damage (towers,
             # barracks, fort/ancient), not just towers.
-            self._agg(attacker_pid).tower_damage += entry.value
+            self._agg(source_pid).tower_damage += entry.value
 
     def on_entry(self, entry: Any) -> None:
         """Process a single combat log entry, routing it to the right bucket.
@@ -218,6 +267,28 @@ class _CombatAggregator:
             and entry.log_type in ("DAMAGE", "ABILITY", "ITEM")
         ):
             attacker_pid = self._summon_to_pid(entry.attacker_name)
+
+        # OpenDota attributes the per-target damage/healing dicts and the
+        # hero_damage/tower_damage scalars to the *source* unit
+        # (``damage_source_name``), not the attacker — so a hero's spell /
+        # projectile damage (where the attacker is the projectile) lands on the
+        # hero. Attribution is strictly to the source *hero*: a summon's own
+        # damage stays under the summon's name and is NOT rolled up to the owner,
+        # matching OpenDota's reconstruction (``unit = e.sourcename``, see
+        # CreateParsedDataBlob.handleDamageCombat). This differs from gem's
+        # summon→owner convention for kills/stuns (which still applies via
+        # ``attacker_pid``) and is both more OpenDota-faithful and more accurate
+        # (tower_damage ~exact; hero_damage closer, though still a gross-vs-GC
+        # over-estimate — see _accumulate_hero_tower_damage). When the source name
+        # is empty (auto-attack: source == attacker), fall back to the attacker slot.
+        source_name = getattr(entry, "damage_source_name", "") or ""
+        if source_name:
+            source_pid = self._hero_to_pid(source_name)
+            source_unit = source_name
+        else:
+            source_pid = attacker_pid
+            source_unit = entry.attacker_name
+
         target_pid = self._hero_to_pid(entry.target_name) if entry.target_is_hero else None
 
         # For GOLD/XP/PURCHASE in S2 replays, target_is_hero is False even for
@@ -234,25 +305,34 @@ class _CombatAggregator:
 
         match entry.log_type:
             case "DAMAGE":
-                if attacker_pid is not None:
-                    self._agg(attacker_pid).damage[entry.target_name] += entry.value
+                # Skip entries whose target is an ability/modifier name rather than
+                # a real unit (Valve logs some absorb/redirect interactions this
+                # way); OpenDota's per-target damage dict excludes them.
+                if source_pid is not None and _is_unit_target(entry.target_name):
+                    # Key by the illusion-prefixed target so an illusion's damage
+                    # is tallied separately from the real hero (OpenDota parity).
+                    dmg_key = _illusion_key(entry.target_name, entry.target_is_illusion)
+                    self._agg(source_pid).damage[dmg_key] += entry.value
                     if entry.damage_type:
-                        self._agg(attacker_pid).damage_by_type[entry.damage_type] += entry.value
-                    self._accumulate_hero_tower_damage(attacker_pid, entry)
-                if target_pid is not None:
-                    self._agg(target_pid).damage_taken[entry.attacker_name] += entry.value
+                        self._agg(source_pid).damage_by_type[entry.damage_type] += entry.value
+                    self._accumulate_hero_tower_damage(source_pid, entry)
+                # damage_taken: only for non-illusion hero targets, keyed by the
+                # raw source unit (OpenDota does not illusion-prefix the source).
+                if target_pid is not None and not entry.target_is_illusion:
+                    self._agg(target_pid).damage_taken[source_unit] += entry.value
                     if entry.damage_type:
                         self._agg(target_pid).damage_taken_by_type[entry.damage_type] += entry.value
             case "HEAL":
-                if attacker_pid is not None:
-                    self._agg(attacker_pid).healing[entry.target_name] += entry.value
+                if source_pid is not None and _is_unit_target(entry.target_name):
+                    heal_key = _illusion_key(entry.target_name, entry.target_is_illusion)
+                    self._agg(source_pid).healing[heal_key] += entry.value
                     # OpenDota hero_healing: healing to a hero other than oneself.
                     if (
                         entry.target_is_hero
                         and not entry.target_is_illusion
-                        and entry.target_name != entry.attacker_name
+                        and entry.target_name != source_unit
                     ):
-                        self._agg(attacker_pid).hero_healing += entry.value
+                        self._agg(source_pid).hero_healing += entry.value
             case "ABILITY":
                 if attacker_pid is not None and entry.inflictor_name:
                     self._agg(attacker_pid).ability_uses[entry.inflictor_name] += 1
