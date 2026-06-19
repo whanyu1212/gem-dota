@@ -29,6 +29,7 @@ from gem.parser import (
     _DEM_FILE_INFO,
     _DOTA_UM_CHAT_EVENT,
     _DOTA_UM_CHAT_MESSAGE,
+    _DOTA_UM_COMBAT_LOG_DATA,
     _DOTA_UM_COMBAT_LOG_HLTV,
     _DOTA_UM_MATCH_METADATA,
     _NET_TICK,
@@ -670,6 +671,10 @@ class TestGameEndCallback:
 
         payload = self._make_combat_log_hltv_payload(type_id=9, value=6)
         p._dispatch_inner(_DOTA_UM_COMBAT_LOG_HLTV, payload)
+        # Marking is deferred: the callback does not fire mid-dispatch, only
+        # when the inner-packet loop flushes (after same-packet entity deltas).
+        assert called == []
+        p._flush_game_end()
         assert called == [50000]
 
     def test_game_end_callback_fires_only_once(self):
@@ -686,6 +691,9 @@ class TestGameEndCallback:
         payload = self._make_combat_log_hltv_payload(type_id=9, value=6)
         p._dispatch_inner(_DOTA_UM_COMBAT_LOG_HLTV, payload)
         p._dispatch_inner(_DOTA_UM_COMBAT_LOG_HLTV, payload)
+        p._flush_game_end()
+        # A second flush must not re-fire (the pending marker is cleared).
+        p._flush_game_end()
         assert len(called) == 1
 
     def test_game_end_callback_does_not_fire_for_other_types(self):
@@ -885,6 +893,61 @@ class TestInnerPacketPriority:
     def test_empty_data_does_not_raise(self):
         p = ReplayParser(b"")
         p._dispatch_inner_packet(b"")  # should not raise
+
+    def test_wrapped_combat_log_game_end_deferred_until_after_entities(self):
+        """Regression: a wrapped svc_UserMessage postGame marker must not fire
+        the game-end callback before same-packet entity deltas are applied.
+
+        The wrapped combat-log path (svc_UserMessage, priority 0) sorts *before*
+        svc_PacketEntities (priority 5). If the game-end callback fired inline
+        from that path, terminal consumers (e.g. IntervalExtractor) would flush
+        stale pre-delta entity state. The fix defers the callback to the end of
+        the inner-packet loop, after every priority-5 entity delta is applied.
+        """
+        from gem.proto.dota_usermessages_pb2 import CDOTAUserMsg_CombatLogBulkData
+        from gem.proto.netmessages_pb2 import CSVCMsg_UserMessage
+        from gem.state.string_table import StringTable
+
+        p = ReplayParser(b"")
+        p.string_tables.add(StringTable(index=0, name="CombatLogNames"))
+        p.tick = 77777
+
+        # Wrapped combat-log bulk data carrying a GAME_STATE==6 postGame marker.
+        bulk = CDOTAUserMsg_CombatLogBulkData()
+        entry = bulk.combat_entries.add()
+        entry.type = 9
+        entry.value = 6
+        um = CSVCMsg_UserMessage()
+        um.msg_type = _DOTA_UM_COMBAT_LOG_DATA
+        um.msg_data = bulk.SerializeToString()
+
+        # The user message comes FIRST in the blob (lower priority); entities last.
+        blob = _make_inner_blob(
+            [
+                (_SVC_USER_MESSAGE, um.SerializeToString()),
+                (_SVC_PACKET_ENTITIES, b"\x00" * 4),
+            ]
+        )
+
+        events = []
+
+        # Real _on_user_message runs (to detect the postGame marker), but the
+        # entity dispatch is stubbed to a marker so we only track ordering.
+        orig_dispatch_inner = p._dispatch_inner
+
+        def dispatch_inner(t, pl):
+            if t == _SVC_PACKET_ENTITIES:
+                events.append("entities")
+                return
+            return orig_dispatch_inner(t, pl)
+
+        p.on_game_end(lambda tick: events.append(("game_end", tick)))
+
+        with patch.object(p, "_dispatch_inner", side_effect=dispatch_inner):
+            p._dispatch_inner_packet(blob)
+
+        # Game-end fired exactly once, AFTER entities were applied.
+        assert events == ["entities", ("game_end", 77777)]
 
 
 # ---------------------------------------------------------------------------

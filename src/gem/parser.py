@@ -207,6 +207,12 @@ class ReplayParser:
         self._game_start_callbacks: list[Callable[[int], None]] = []
         self._game_end_callbacks: list[Callable[[int], None]] = []
         self._game_ended: bool = False
+        # Tick at which a GAME_STATE==6 (postGame) marker was seen this packet,
+        # pending callback dispatch. Game-end callbacks are deferred to the end
+        # of the inner-packet loop so that same-packet entity deltas (sorted at a
+        # higher priority than the wrapped svc_UserMessage combat-log path) are
+        # applied before terminal consumers (e.g. IntervalExtractor) flush.
+        self._pending_game_end_tick: int | None = None
         self._game_start_time_s: int | None = None
         self._combat_log_game_start_time_s: int | None = None
 
@@ -329,6 +335,34 @@ class ReplayParser:
             callback: ``(tick: int) -> None``.
         """
         self._game_end_callbacks.append(callback)
+
+    def _mark_game_end(self, tick: int) -> None:
+        """Record a GAME_STATE==6 (postGame) marker for deferred dispatch.
+
+        The actual game-end callbacks are not invoked here. They are flushed at
+        the end of the inner-packet loop (see :meth:`_flush_game_end`) so that
+        same-packet entity deltas — sorted at a higher priority than the wrapped
+        ``svc_UserMessage`` combat-log path — are applied first. This keeps the
+        three combat-log ingestion paths (direct HLTV, S1 game event, wrapped
+        user message) consistent: terminal consumers always observe the final
+        entity state, not a stale pre-delta snapshot.
+
+        Args:
+            tick: The game tick at which the postGame marker was seen.
+        """
+        if self._game_ended:
+            return
+        self._game_ended = True
+        self._pending_game_end_tick = tick
+
+    def _flush_game_end(self) -> None:
+        """Dispatch any deferred game-end callbacks for the current packet."""
+        if self._pending_game_end_tick is None:
+            return
+        tick = self._pending_game_end_tick
+        self._pending_game_end_tick = None
+        for cb in self._game_end_callbacks:
+            cb(tick)
 
     def stop_after_tick(self, tick: int) -> None:
         """Stop parsing after this tick (inclusive).
@@ -458,6 +492,11 @@ class ReplayParser:
         for type_id, payload in messages:
             self._dispatch_inner(type_id, payload)
 
+        # Fire deferred game-end callbacks only after every message in this
+        # packet — crucially the priority-5 svc_PacketEntities deltas — has been
+        # applied, so terminal flushes read final entity state.
+        self._flush_game_end()
+
     def _dispatch_inner(self, type_id: int, payload: bytes) -> None:
         if type_id == _NET_TICK:
             # net_Tick is tiny — just skip (tick already set from outer)
@@ -517,10 +556,8 @@ class ReplayParser:
                 )
             # DOTA_COMBATLOG_GAME_STATE == 6 → ancient destroyed (postGame)
             # Reference: refs/parser/src/main/java/opendota/Parse.java line 373
-            if not self._game_ended and entry_msg.type == 9 and entry_msg.value == 6:
-                self._game_ended = True
-                for cb in self._game_end_callbacks:
-                    cb(self.tick)
+            if entry_msg.type == 9 and entry_msg.value == 6:
+                self._mark_game_end(self.tick)
 
         elif type_id == _DOTA_UM_CHAT_EVENT:
             chat_event = CDOTAUserMsg_ChatEvent()
@@ -592,10 +629,8 @@ class ReplayParser:
                 # DOTA_COMBATLOG_GAME_STATE == 6 → ancient destroyed (postGame)
                 type_val, _ = event.get_int32("type")
                 value_val, _ = event.get_int32("value")
-                if not self._game_ended and type_val == 9 and value_val == 6:
-                    self._game_ended = True
-                    for cb in self._game_end_callbacks:
-                        cb(self.tick)
+                if type_val == 9 and value_val == 6:
+                    self._mark_game_end(self.tick)
 
     def _on_user_message(self, msg: CSVCMsg_UserMessage) -> None:
         if msg.msg_type in (_DOTA_UM_COMBAT_LOG_DATA, _DOTA_UM_COMBAT_LOG_BULK_DATA):
@@ -608,10 +643,8 @@ class ReplayParser:
                     self.combat_log.process_s2_entry(
                         entry_msg, name_table, tick=self.tick, game_time_s=game_time_s
                     )
-                    if not self._game_ended and entry_msg.type == 9 and entry_msg.value == 6:
-                        self._game_ended = True
-                        for cb in self._game_end_callbacks:
-                            cb(self.tick)
+                    if entry_msg.type == 9 and entry_msg.value == 6:
+                        self._mark_game_end(self.tick)
         elif msg.msg_type == _DOTA_UM_MATCH_METADATA:
             self._on_match_metadata(msg.msg_data)
 
