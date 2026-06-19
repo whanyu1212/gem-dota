@@ -10,21 +10,21 @@ import math
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal
 
+from gem.analysis._shared import (
+    _MAP_XMAX,
+    _MAP_XMIN,
+    _MAP_YMAX,
+    _MAP_YMIN,
+    _TEAM_DIRE,
+    _TEAM_RADIANT,
+    infer_match_end_tick,
+    nearest_series_value,
+    region_of,
+)
 from gem.catalog.map import load_neutral_camp_centers
 
 if TYPE_CHECKING:
     from gem.results.models import ParsedMatch
-
-_TEAM_RADIANT = 2
-_TEAM_DIRE = 3
-
-_MAP_XMIN = 7563.0
-_MAP_XMAX = 25900.0
-_MAP_YMIN = 7800.0
-_MAP_YMAX = 25600.0
-
-_RADIANT_FOUNTAIN = (9684.0, 9684.0)
-_DIRE_FOUNTAIN = (23120.0, 22350.0)
 
 # Dota has 11 towers per side (T1/2/3 across lanes + T4 pair + filler naming variants).
 # We keep this coarse on purpose; exact per-lane tower state is not required for v1 context.
@@ -93,16 +93,6 @@ def _active_ward_count(match: ParsedMatch, team: int, tick: int) -> int:
     return count
 
 
-def _region_of(wx: float, wy: float) -> str:
-    # Diagonal strip around the river.
-    if abs(wx - wy) <= 1200:
-        return "river"
-
-    dr = math.dist((wx, wy), _RADIANT_FOUNTAIN)
-    dd = math.dist((wx, wy), _DIRE_FOUNTAIN)
-    return "radiant_half" if dr <= dd else "dire_half"
-
-
 def _enemy_presence_by_region(
     match: ParsedMatch,
     team: int,
@@ -121,7 +111,7 @@ def _enemy_presence_by_region(
             # Recent samples contribute more than old samples in the window.
             age = float(end_tick - tick)
             weight = math.exp(-age / _PRESENCE_TAU_TICKS)
-            enemy_regions[_region_of(wx, wy)] += weight
+            enemy_regions[region_of(wx, wy)] += weight
 
     # Soft normalization for easier thresholding; still interpretable as "more is higher pressure".
     # 10 is an empirical convenience scale for ~90s windows and 5 enemy heroes.
@@ -131,50 +121,14 @@ def _enemy_presence_by_region(
     return enemy_regions
 
 
-def _infer_match_end_tick(match: ParsedMatch) -> int:
-    if match.game_end_tick > 0:
-        return match.game_end_tick
-
-    max_tick = 0
-    for player in match.players:
-        if player.times:
-            max_tick = max(max_tick, player.times[-1])
-        if player.position_log:
-            max_tick = max(max_tick, player.position_log[-1][0])
-    return max_tick
-
-
-def _nearest_series_value(times: list[int], values: list[int], tick: int) -> int:
-    if not times or not values:
-        return 0
-    lo = 0
-    hi = len(times)
-    while lo < hi:
-        mid = (lo + hi) // 2
-        if times[mid] < tick:
-            lo = mid + 1
-        else:
-            hi = mid
-    idx = lo
-    if idx <= 0:
-        return values[0]
-    if idx >= len(times):
-        return values[-1]
-    before = idx - 1
-    after = idx
-    if tick - times[before] <= times[after] - tick:
-        return values[before]
-    return values[after]
-
-
 def _team_resource_advantage(match: ParsedMatch, team: int, tick: int) -> tuple[int, int]:
     own_net_worth = 0
     own_xp = 0
     enemy_net_worth = 0
     enemy_xp = 0
     for player in match.players:
-        net_worth = _nearest_series_value(player.times, player.net_worth_t, tick)
-        xp = _nearest_series_value(player.times, player.xp_t, tick)
+        net_worth = nearest_series_value(player.times, player.net_worth_t, tick)
+        xp = nearest_series_value(player.times, player.xp_t, tick)
         if player.team == team:
             own_net_worth += net_worth
             own_xp += xp
@@ -211,7 +165,7 @@ def build_map_context_timeline(
         raise ValueError(f"presence_window_ticks must be > 0, got {presence_window_ticks}")
 
     start_tick = match.game_start_tick or 0
-    end_tick = _infer_match_end_tick(match)
+    end_tick = infer_match_end_tick(match)
     if end_tick < start_tick:
         end_tick = start_tick
 
@@ -319,7 +273,7 @@ def _camp_half(camp_id: int) -> str:
     pos = _CAMP_CENTERS.get(camp_id)
     if pos is None:
         return "river"
-    return _region_of(pos[0], pos[1])
+    return region_of(pos[0], pos[1])
 
 
 def score_camp_visit_context(

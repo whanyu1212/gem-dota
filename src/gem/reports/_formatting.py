@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import html
 
-from gem.constants import hero_short
+from gem.catalog import hero_short
+from gem.reports.assets import hero_icon_src
 
 TICKS_PER_SEC = 30
 TICKS_PER_MIN = TICKS_PER_SEC * 60
@@ -102,3 +103,23 @@ def team_badge(team: int) -> str:
     """Build a colored team badge span."""
     color = TEAM_COLOR_CSS.get(team, "#888")
     return f'<span style="color:{color};font-weight:bold">{e(team_name(team))}</span>'
+
+
+def hero_cell(npc_name: str, team: int = 0) -> str:
+    """Return an icon + name cell fragment for a hero NPC name.
+
+    Args:
+        npc_name: Hero NPC name e.g. ``"npc_dota_hero_axe"``.
+        team: Team number for name colouring (2=Radiant, 3=Dire, 0=neutral).
+
+    Returns:
+        HTML fragment with a 20px portrait thumbnail followed by the display name.
+    """
+    src = hero_icon_src(npc_name)
+    name = e(hero(npc_name))
+    color = TEAM_COLOR_CSS.get(team, "#e6edf3")
+    return (
+        f'<img src="{src}" width="20" height="12" '
+        f'style="object-fit:cover;border-radius:2px;vertical-align:middle;margin-right:5px">'
+        f'<span style="color:{color}">{name}</span>'
+    )

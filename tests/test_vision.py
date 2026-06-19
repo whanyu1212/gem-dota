@@ -1,10 +1,10 @@
-"""Tests for estimate_vision, _is_daytime, and vision modifier reveals."""
+"""Tests for estimate_vision, is_daytime, and vision modifier reveals."""
 
 from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from gem.analysis import _is_daytime, estimate_vision
+from gem.analysis import estimate_vision, is_daytime
 from gem.extractors.wards import WardEvent
 from gem.results.models import VisionModifierEvent
 
@@ -87,37 +87,44 @@ def _match(
 
 
 # ---------------------------------------------------------------------------
-# _is_daytime
+# is_daytime
 # ---------------------------------------------------------------------------
 
 
 class TestIsDaytime:
     def test_game_start_is_daytime(self) -> None:
-        assert _is_daytime(0, 0) is True
+        assert is_daytime(0, 0) is True
 
     def test_early_game_is_daytime(self) -> None:
-        assert _is_daytime(0, 5000) is True
+        assert is_daytime(0, 5000) is True
 
     def test_after_7m30s_is_night(self) -> None:
         # Night starts at 13500 ticks after game start
-        assert _is_daytime(0, 14000) is False
+        assert is_daytime(0, 14000) is False
 
     def test_second_cycle_day(self) -> None:
         # Second day: 27000 ticks into game (one full cycle)
-        assert _is_daytime(0, 27000) is True
+        assert is_daytime(0, 27000) is True
 
     def test_second_cycle_night(self) -> None:
         # Second night: 27000 + 14000 = 41000
-        assert _is_daytime(0, 41000) is False
+        assert is_daytime(0, 41000) is False
 
     def test_game_start_tick_offset(self) -> None:
         # If game started at tick 1000, game time 0 = tick 1000
-        assert _is_daytime(1000, 1000) is True
-        assert _is_daytime(1000, 1000 + 14000) is False
+        assert is_daytime(1000, 1000) is True
+        assert is_daytime(1000, 1000 + 14000) is False
 
     def test_none_game_start_treated_as_zero(self) -> None:
-        assert _is_daytime(None, 5000) is True
-        assert _is_daytime(None, 14000) is False
+        assert is_daytime(None, 5000) is True
+        assert is_daytime(None, 14000) is False
+
+    def test_underscore_alias_preserved(self) -> None:
+        # `_is_daytime` is a backwards-compat alias for the renamed public
+        # `is_daytime`; both must import from gem.analysis and be the same object.
+        from gem.analysis import _is_daytime, is_daytime
+
+        assert _is_daytime is is_daytime
 
 
 # ---------------------------------------------------------------------------

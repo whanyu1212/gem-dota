@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import bisect
 import json
 import math
 from collections.abc import Callable
@@ -20,8 +19,9 @@ from gem.analysis import (
     score_camp_visit_context,
     ward_vision_impact,
 )
+from gem.analysis._shared import nearest_series_value
+from gem.catalog import ability_display, hero_display, item_display
 from gem.catalog.map import load_camp_zones
-from gem.constants import ability_display, hero_display, item_display
 from gem.reports._formatting import (
     MAP_XMAX,
     MAP_XMIN,
@@ -34,6 +34,7 @@ from gem.reports._formatting import (
     e,
     fmt_tick,
     hero,
+    hero_cell,
     team_name,
 )
 from gem.reports.assets import (
@@ -108,7 +109,7 @@ def build_header(
                 f'style="color:inherit;text-decoration:underline dotted">'
                 f"{player_label}</a>"
             )
-        hero_cell_html = _hero_cell(pp.hero_name, pp.team) if pp.hero_name else "—"
+        hero_cell_html = hero_cell(pp.hero_name, pp.team) if pp.hero_name else "—"
         team_rows[pp.team].append(
             f"<tr>"
             f'<td style="padding:3px 12px 3px 0">{player_label}</td>'
@@ -161,7 +162,7 @@ def build_header(
     return "\n".join(parts)
 
 
-def build_scoreboard(match: ParsedMatch, hero_cell: Callable[[str, int], str]) -> str:
+def build_scoreboard(match: ParsedMatch) -> str:
     """Build the scoreboard section."""
     load_hero_icons([p.hero_name for p in match.players if p.hero_name])
 
@@ -1157,7 +1158,7 @@ def build_combat_timeseries_chart(match: ParsedMatch) -> str:
 </div>"""
 
 
-def build_damage(match: ParsedMatch, hero_cell: Callable[[str, int], str]) -> str:
+def build_damage(match: ParsedMatch) -> str:
     """Build the damage breakdown section."""
     all_dmg = [(p, sum(p.damage.values())) for p in match.players if p.hero_name]
     max_dmg = max((d for _, d in all_dmg), default=1) or 1
@@ -1300,7 +1301,7 @@ def build_damage(match: ParsedMatch, hero_cell: Callable[[str, int], str]) -> st
     return "\n".join(parts)
 
 
-def build_kill_feed(match: ParsedMatch, hero_cell: Callable[[str, int], str]) -> str:
+def build_kill_feed(match: ParsedMatch) -> str:
     """Build the hero-vs-hero kill feed section."""
     hvh = [
         entry
@@ -1489,7 +1490,7 @@ def build_buybacks(match: ParsedMatch) -> str:
     return "\n".join(parts)
 
 
-def build_runes(match: ParsedMatch, hero_cell: Callable[[str, int], str]) -> str:
+def build_runes(match: ParsedMatch) -> str:
     """Build the rune pickups section."""
     total = sum(len(p.runes_log) for p in match.players)
 
@@ -1960,23 +1961,6 @@ var speedSel = document.getElementById('wardSpeed');
     return "\n".join(parts)
 
 
-def _hero_cell(npc_name: str, team: int = 0) -> str:
-    """Return an icon + name cell fragment for a hero NPC name."""
-    src = hero_icon_src(npc_name)
-    name = e(hero(npc_name))
-    color = TEAM_COLOR_CSS.get(team, "#e6edf3")
-    return (
-        f'<img src="{src}" width="20" height="12" '
-        f'style="object-fit:cover;border-radius:2px;vertical-align:middle;margin-right:5px">'
-        f'<span style="color:{color}">{name}</span>'
-    )
-
-
-def _is_active_teamfight_player(p: object) -> bool:
-    """Return True for active teamfight participants only."""
-    return is_active_teamfight_participant(p)
-
-
 def _top_abilities_teamfight(ability_uses: dict[str, int], n: int = 3) -> str:
     """Format top abilities used in one teamfight row."""
     if not ability_uses:
@@ -2361,7 +2345,7 @@ def build_teamfights(match: ParsedMatch, map_b64: str | None) -> str:
 
     max_deaths = max((tf.deaths for tf in fights), default=1)
     max_participants = max(
-        (sum(1 for p in tf.players if _is_active_teamfight_player(p)) for tf in fights),
+        (sum(1 for p in tf.players if is_active_teamfight_participant(p)) for tf in fights),
         default=1,
     )
 
@@ -2385,7 +2369,7 @@ def build_teamfights(match: ParsedMatch, map_b64: str | None) -> str:
 
     for i, tf in enumerate(fights, start=1):
         tf_by_slot = {p.player_id: p for p in tf.players}
-        active_slots = [p.player_id for p in tf.players if _is_active_teamfight_player(p)]
+        active_slots = [p.player_id for p in tf.players if is_active_teamfight_participant(p)]
         died_slots = {p.player_id for p in tf.players if p.deaths > 0}
 
         radiant_slots = sorted(
@@ -2451,7 +2435,7 @@ def build_teamfights(match: ParsedMatch, map_b64: str | None) -> str:
                 row_cls = "row-radiant" if pp.team == 2 else "row-dire"
                 parts.append(
                     f'<tr class="{row_cls}">'
-                    f"<td>{_hero_cell(pp.hero_name, pp.team)}"
+                    f"<td>{hero_cell(pp.hero_name, pp.team)}"
                     f'<div style="color:#8b949e;font-size:11px">{e(pp.player_name or "")}</div></td>'
                     f'<td class="r">{getattr(tfp, "damage_dealt", 0):,}</td>'
                     f'<td class="r">{getattr(tfp, "damage_taken", 0):,}</td>'
@@ -2943,21 +2927,6 @@ def _camp_for_point(wx: float, wy: float, camps: list[dict]) -> dict | None:
     return None
 
 
-def _nearest_series_value(times: list[int], values: list[int], tick: int) -> int:
-    if not times or not values:
-        return 0
-    idx = bisect.bisect_left(times, tick)
-    if idx <= 0:
-        return values[0]
-    if idx >= len(times):
-        return values[-1]
-    before = idx - 1
-    after = idx
-    if tick - times[before] <= times[after] - tick:
-        return values[before]
-    return values[after]
-
-
 def _context_bucket_at(timeline: list[MapContextBucket], tick: int) -> MapContextBucket | None:
     if not timeline:
         return None
@@ -3100,8 +3069,8 @@ def _build_player_farm_visits(
             elif entry.log_type == "DAMAGE" and entry.value > 0:
                 neutral_damage += entry.value
 
-        xp_start = _nearest_series_value(player.times, player.xp_t, seg_start)
-        xp_end = _nearest_series_value(player.times, player.xp_t, seg_end)
+        xp_start = nearest_series_value(player.times, player.xp_t, seg_start)
+        xp_end = nearest_series_value(player.times, player.xp_t, seg_end)
         xp_gain = max(0, xp_end - xp_start)
         has_support = neutral_kills > 0 or neutral_damage > 0 or xp_gain > 0
         if sample_count < 2 and not has_support:

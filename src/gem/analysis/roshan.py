@@ -11,25 +11,23 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal
 
+from gem.analysis._shared import (
+    _TEAM_DIRE,
+    _TEAM_RADIANT,
+    infer_match_end_tick,
+    region_of,
+)
+
 if TYPE_CHECKING:
     from gem.extractors.objectives import AegisEvent
     from gem.extractors.teamfights import Teamfight
     from gem.results.models import ParsedMatch
 
-_TEAM_RADIANT = 2
-_TEAM_DIRE = 3
 _TICKS_PER_SEC = 30
 _AEGIS_DURATION_TICKS = 5 * 60 * _TICKS_PER_SEC
 _IMMEDIATE_WINDOW_TICKS = 180 * _TICKS_PER_SEC
 _ASSOCIATION_WINDOW_TICKS = 30 * _TICKS_PER_SEC
 _POST_CONSUME_GRACE_TICKS = 30 * _TICKS_PER_SEC
-
-_MAP_XMIN = 7563.0
-_MAP_XMAX = 25900.0
-_MAP_YMIN = 7800.0
-_MAP_YMAX = 25600.0
-_RADIANT_FOUNTAIN = (9684.0, 9684.0)
-_DIRE_FOUNTAIN = (23120.0, 22350.0)
 
 
 @dataclass
@@ -121,18 +119,6 @@ def _hero_for_player(match: ParsedMatch, player_id: int | None) -> str:
     return ""
 
 
-def _infer_match_end_tick(match: ParsedMatch) -> int:
-    if match.game_end_tick > 0:
-        return match.game_end_tick
-    max_tick = 0
-    for player in match.players:
-        if player.times:
-            max_tick = max(max_tick, player.times[-1])
-        if player.position_log:
-            max_tick = max(max_tick, player.position_log[-1][0])
-    return max_tick
-
-
 def _window_overlaps(start_tick: int, end_tick: int, other_start: int, other_end: int) -> bool:
     return start_tick <= other_end and other_start <= end_tick
 
@@ -184,14 +170,6 @@ def _holder_death_tick(
     return None
 
 
-def _region_of(x: float, y: float) -> str:
-    if abs(x - y) <= 1200:
-        return "river"
-    dr = ((x - _RADIANT_FOUNTAIN[0]) ** 2 + (y - _RADIANT_FOUNTAIN[1]) ** 2) ** 0.5
-    dd = ((x - _DIRE_FOUNTAIN[0]) ** 2 + (y - _DIRE_FOUNTAIN[1]) ** 2) ** 0.5
-    return "radiant_half" if dr <= dd else "dire_half"
-
-
 def _enemy_half_name(team: int) -> str:
     return "dire_half" if team == _TEAM_RADIANT else "radiant_half"
 
@@ -208,7 +186,7 @@ def _enemy_half_observer_placements(
             continue
         if ward.tick < start_tick or ward.tick > end_tick:
             continue
-        if _region_of(ward.x, ward.y) == region_name:
+        if region_of(ward.x, ward.y) == region_name:
             count += 1
     return count
 
@@ -224,7 +202,7 @@ def _enemy_half_farm_share(match: ParsedMatch, team: int, start_tick: int, end_t
             if tick < start_tick or tick > end_tick:
                 continue
             total_samples += 1
-            if _region_of(x, y) == region_name:
+            if region_of(x, y) == region_name:
                 enemy_half_samples += 1
     if total_samples == 0:
         return 0.0
@@ -390,7 +368,7 @@ def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]:
     if not match.roshans:
         return []
 
-    game_end_tick = _infer_match_end_tick(match)
+    game_end_tick = infer_match_end_tick(match)
     conversions: list[RoshConversion] = []
 
     for index, roshan in enumerate(match.roshans, start=1):

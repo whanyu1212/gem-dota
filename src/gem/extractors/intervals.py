@@ -1,5 +1,10 @@
 """OpenDota-style interval snapshots for per-minute match curves.
 
+Internal extractor: ``IntervalExtractor`` and its snapshot/series dataclasses
+are wired up by :func:`gem.api.parse` and consumed by
+:mod:`gem.results.assembly`; they are intentionally not re-exported from
+``gem.extractors`` and are not part of the public API.
+
 The dense player extractor samples hero/controller state for general time
 series use. OpenDota's ``gold_t``/``xp_t`` arrays, however, come from periodic
 ``interval`` entries built from ``CDOTA_PlayerResource`` plus

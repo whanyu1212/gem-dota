@@ -52,7 +52,7 @@ class VisionSource:
     vision_radius: int
 
 
-def _is_daytime(game_start_tick: int | None, tick: int) -> bool:
+def is_daytime(game_start_tick: int | None, tick: int) -> bool:
     """Return True if it is daytime at the given absolute tick.
 
     Dota 2 day/night cycle: day starts at game time 0:00.  Each half-cycle
@@ -69,6 +69,12 @@ def _is_daytime(game_start_tick: int | None, tick: int) -> bool:
     game_ticks = max(tick - start, 0)
     phase = game_ticks % _DAY_NIGHT_CYCLE_TICKS
     return phase < _NIGHT_START_TICKS
+
+
+# Backwards-compatible alias for the pre-rename name. ``is_daytime`` is the
+# preferred public name; ``_is_daytime`` was exported from ``gem.analysis`` on
+# the development branch, so keep the alias to avoid breaking that import.
+_is_daytime = is_daytime
 
 
 def estimate_vision(
@@ -116,7 +122,7 @@ def estimate_vision(
         ... else:
         ...     print("Blind initiation — target was in fog")
     """
-    daytime = _is_daytime(match.game_start_tick, tick)
+    daytime = is_daytime(match.game_start_tick, tick)
     hero_radius = _DAY_VISION if daytime else _NIGHT_VISION
 
     sources: list[VisionSource] = []

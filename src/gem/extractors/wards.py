@@ -19,6 +19,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal
 
 from gem.combat.log import CombatLogEntry
+from gem.extractors._snapshots import _pos
 from gem.state.entities import Entity, EntityOp
 
 if TYPE_CHECKING:
@@ -27,8 +28,6 @@ if TYPE_CHECKING:
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-
-_CELL_SIZE = 128
 
 _WARD_CLASSES: frozenset[str] = frozenset(
     {
@@ -50,29 +49,6 @@ _CLASS_TO_TARGET: dict[str, str] = {
 _OBSERVER_LIFESPAN_TICKS = 720  # ~6 minutes
 _SENTRY_LIFESPAN_TICKS = 360  # ~3 minutes
 _EXPIRY_TOLERANCE_TICKS = 30  # grace window to classify natural expiry vs. kill
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-
-def _pos(entity: Entity) -> tuple[float, float] | None:
-    """Return world (x, y) from cell+vec encoding on the entity.
-
-    Args:
-        entity: The entity to read coordinates from.
-
-    Returns:
-        ``(x, y)`` world coordinates, or ``None`` if any field is missing.
-    """
-    cell_x = entity.get_uint32("CBodyComponent.m_cellX")
-    cell_y = entity.get_uint32("CBodyComponent.m_cellY")
-    vec_x = entity.get_float32("CBodyComponent.m_vecX")
-    vec_y = entity.get_float32("CBodyComponent.m_vecY")
-    if cell_x is None or cell_y is None or vec_x is None or vec_y is None:
-        return None
-    return (cell_x * _CELL_SIZE + vec_x, cell_y * _CELL_SIZE + vec_y)
 
 
 def _player_slot_from_entity(entity: Entity | None) -> int:

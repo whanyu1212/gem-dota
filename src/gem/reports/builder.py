@@ -27,86 +27,36 @@ from pathlib import Path
 
 from gem.reports._formatting import (
     GAME_MODES,
-    TEAM_COLOR_CSS,
-    set_game_start_tick,
-)
-from gem.reports._formatting import (
-    e as _e,
-)
-from gem.reports._formatting import (
     fmt_tick as _fmt_tick,
-)
-from gem.reports._formatting import (
-    hero as _hero,
+    set_game_start_tick,
 )
 from gem.reports._sections import (
     build_buybacks as _ext_build_buybacks,
-)
-from gem.reports._sections import (
     build_chat as _ext_build_chat,
-)
-from gem.reports._sections import (
     build_combat_timeseries_chart as _ext_build_combat_timeseries_chart,
-)
-from gem.reports._sections import (
     build_damage as _ext_build_damage,
-)
-from gem.reports._sections import (
     build_draft as _ext_build_draft,
-)
-from gem.reports._sections import (
     build_farming as _ext_build_farming,
-)
-from gem.reports._sections import (
     build_gold_xp_chart as _ext_build_gold_xp_chart,
-)
-from gem.reports._sections import (
     build_header as _ext_build_header,
-)
-from gem.reports._sections import (
     build_hero_timeseries_chart as _ext_build_hero_timeseries_chart,
-)
-from gem.reports._sections import (
     build_kill_feed as _ext_build_kill_feed,
-)
-from gem.reports._sections import (
     build_laning as _ext_build_laning,
-)
-from gem.reports._sections import (
     build_objectives as _ext_build_objectives,
-)
-from gem.reports._sections import (
     build_purchases as _ext_build_purchases,
-)
-from gem.reports._sections import (
     build_rosh_conversion as _ext_build_rosh_conversion,
-)
-from gem.reports._sections import (
     build_runes as _ext_build_runes,
-)
-from gem.reports._sections import (
     build_scoreboard as _ext_build_scoreboard,
-)
-from gem.reports._sections import (
     build_teamfights as _ext_build_teamfights,
-)
-from gem.reports._sections import (
     build_wards as _ext_build_wards,
 )
 from gem.reports._style import REPORT_CSS as _CSS
 from gem.reports.assets import (
     ReportAssets,
     configure_assets,
-    load_map_base64,
-)
-from gem.reports.assets import (
-    hero_icon_src as _hero_icon_src,
-)
-from gem.reports.assets import (
     load_hero_icons as _load_hero_icons,
-)
-from gem.reports.assets import (
     load_item_icons as _load_item_icons,
+    load_map_base64,
 )
 from gem.results.models import ParsedMatch
 
@@ -126,26 +76,6 @@ class ReportOptions:
 
 # Section builders — return HTML strings
 # ---------------------------------------------------------------------------
-
-
-def _hero_cell(npc_name: str, team: int = 0) -> str:
-    """Return an icon + name cell fragment for a hero NPC name.
-
-    Args:
-        npc_name: Hero NPC name e.g. ``"npc_dota_hero_axe"``.
-        team: Team number for name colouring (2=Radiant, 3=Dire, 0=neutral).
-
-    Returns:
-        HTML fragment with a 20px portrait thumbnail followed by the display name.
-    """
-    src = _hero_icon_src(npc_name)
-    name = _e(_hero(npc_name))
-    color = TEAM_COLOR_CSS.get(team, "#e6edf3")
-    return (
-        f'<img src="{src}" width="20" height="12" '
-        f'style="object-fit:cover;border-radius:2px;vertical-align:middle;margin-right:5px">'
-        f'<span style="color:{color}">{name}</span>'
-    )
 
 
 # ---------------------------------------------------------------------------
@@ -330,7 +260,7 @@ def build_html_report(
                 filter(
                     None,
                     [
-                        _ext_build_scoreboard(match, _hero_cell),
+                        _ext_build_scoreboard(match),
                         _ext_build_hero_timeseries_chart(match),
                         _ext_build_gold_xp_chart(match),
                     ],
@@ -344,8 +274,8 @@ def build_html_report(
                     None,
                     [
                         _ext_build_combat_timeseries_chart(match),
-                        _ext_build_damage(match, _hero_cell),
-                        _ext_build_kill_feed(match, _hero_cell),
+                        _ext_build_damage(match),
+                        _ext_build_kill_feed(match),
                     ],
                 )
             ),
@@ -375,7 +305,7 @@ def build_html_report(
                     None,
                     [
                         _ext_build_objectives(match, _fmt_tick),
-                        _ext_build_runes(match, _hero_cell),
+                        _ext_build_runes(match),
                         _ext_build_chat(match),
                     ],
                 )
