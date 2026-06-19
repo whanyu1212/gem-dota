@@ -59,6 +59,7 @@ from __future__ import annotations
 import json
 from collections.abc import Mapping
 from dataclasses import fields, is_dataclass
+from importlib.metadata import PackageNotFoundError, version as _pkg_version
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -86,7 +87,7 @@ from gem.analysis import (
     teamfight_at_tick,
     ward_vision_impact,
 )
-from gem.constants import hero_npc_name
+from gem.catalog import hero_npc_name
 from gem.extractors.draft import resolve_pick_team
 from gem.replays.batch import (
     ParseResult,
@@ -110,7 +111,10 @@ from gem.results.models import (
     VisionModifierEvent,
 )
 
-__version__ = "0.2.7"
+try:
+    __version__ = _pkg_version("gem-dota")
+except PackageNotFoundError:  # editable/uninstalled checkout
+    __version__ = "0.0.0+local"
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -171,8 +175,10 @@ def parse(path: str | Path) -> ParsedMatch:
     # Position is captured live at MODIFIER_ADD time (when each hero actually
     # receives the buff) and averaged to give the group centroid.
     # Logic for SmokeEvent collection (item consumption + modifier arrival)
-    from gem.results.models import SmokeEvent as _SmokeEvent
-    from gem.results.models import VisionModifierEvent as _VisionModifierEvent
+    from gem.results.models import (
+        SmokeEvent as _SmokeEvent,
+        VisionModifierEvent as _VisionModifierEvent,
+    )
 
     # Vision modifier tracking — modifiers that reveal/grant vision of enemy heroes.
     # MODIFIER_ADD opens an event (end_tick=None); MODIFIER_REMOVE closes it.

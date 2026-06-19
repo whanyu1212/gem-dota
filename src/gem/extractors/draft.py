@@ -19,7 +19,7 @@ import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from gem.constants import HEROES
+from gem.catalog import HEROES
 from gem.state.entities import Entity, EntityOp
 
 if TYPE_CHECKING:

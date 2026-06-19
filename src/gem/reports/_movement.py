@@ -8,7 +8,7 @@ from pathlib import Path
 
 import plotly.graph_objects as go
 
-from gem.constants import ability_display, hero_display, item_display, league_name
+from gem.catalog import ability_display, hero_display, item_display, league_name
 from gem.reports._formatting import MAP_XMAX, MAP_XMIN, MAP_YMAX, MAP_YMIN
 from gem.results.models import ParsedMatch, ParsedPlayer
 

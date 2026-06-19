@@ -183,6 +183,17 @@ class GameEventManager:
         """
         return name in self._schemas_by_name
 
+    def get_schema(self, event_id: int) -> GameEventSchema | None:
+        """Return the registered schema for an event id, or ``None``.
+
+        Args:
+            event_id: The numeric event id from a game-event message.
+
+        Returns:
+            The matching :class:`GameEventSchema`, or ``None`` if unregistered.
+        """
+        return self._schemas_by_id.get(event_id)
+
     def on_game_event(self, name: str, handler: GameEventHandler) -> None:
         """Register a handler for the named event.
 

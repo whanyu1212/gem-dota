@@ -107,6 +107,9 @@ ignore = [
 
 [tool.ruff.lint.isort]
 known-first-party = ["gem"]
+# Combine multiple `from X import a as _a` lines from the same module into one
+# grouped import instead of emitting a separate statement per alias.
+combine-as-imports = true
 
 [tool.mypy]
 python_version = "3.10"

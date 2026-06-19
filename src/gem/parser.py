@@ -45,8 +45,8 @@ from google.protobuf import descriptor_pb2  # noqa: F401
 
 from gem.binary.reader import BitReader
 from gem.binary.stream import DemoStream
+from gem.catalog import item_key_by_id
 from gem.combat.log import CombatLogHandler, CombatLogProcessor
-from gem.constants import item_key_by_id
 from gem.proto import (
     dota_commonmessages_pb2,  # noqa: F401
     dota_shared_enums_pb2,  # noqa: F401
@@ -618,7 +618,7 @@ class ReplayParser:
         self.game_event_manager.dispatch(msg)
 
         # S1 combat log path: dota_combatlog game event
-        schema = self.game_event_manager._schemas_by_id.get(msg.eventid)
+        schema = self.game_event_manager.get_schema(msg.eventid)
         if schema is not None and schema.name == "dota_combatlog":
             name_table = self.string_tables.get_by_name(_COMBAT_LOG_NAMES_TABLE)
             if name_table is not None:
