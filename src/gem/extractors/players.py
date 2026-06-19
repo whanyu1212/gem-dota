@@ -166,16 +166,30 @@ class PlayerExtractor:
         healing dealt, deaths, and stun duration.  Called for every combat log
         entry; irrelevant entry types are ignored cheaply.
 
+        Hero damage/healing is credited to the damage *source*
+        (``damage_source_name``), falling back to ``attacker_name`` when the
+        source is empty — matching ``_CombatAggregator``'s attribution so the
+        per-minute ``total_hero_damage_t``/``total_hero_healing_t`` curves stay
+        consistent with the ``hero_damage``/``hero_healing`` scalars (a hero's
+        spell/projectile damage lands on the hero, not the projectile).
+
         Args:
             entry: The incoming combat log entry.
         """
-        if entry.log_type == "DAMAGE" and entry.attacker_is_hero and entry.target_is_hero:
-            pid = self._hero_to_pid(entry.attacker_name)
+        if entry.log_type == "DAMAGE" and entry.target_is_hero and not entry.target_is_illusion:
+            pid = self._source_to_pid(entry)
             if pid is not None:
                 self._total_hero_damage[pid] = self._total_hero_damage.get(pid, 0) + entry.value
 
-        elif entry.log_type == "HEAL" and entry.attacker_is_hero and entry.target_is_hero:
-            pid = self._hero_to_pid(entry.attacker_name)
+        elif (
+            entry.log_type == "HEAL"
+            and entry.target_is_hero
+            and not entry.target_is_illusion
+            # Exclude self-heal — total_hero_healing tracks healing to *allied*
+            # heroes, matching the aggregator's hero_healing scalar.
+            and entry.target_name != (entry.damage_source_name or entry.attacker_name)
+        ):
+            pid = self._source_to_pid(entry)
             if pid is not None:
                 self._total_hero_healing[pid] = self._total_hero_healing.get(pid, 0) + entry.value
 
@@ -208,6 +222,24 @@ class PlayerExtractor:
         if pid is None or pid < 0:
             return None
         return pid // 2
+
+    def _source_to_pid(self, entry: CombatLogEntry) -> int | None:
+        """Resolve the damage/heal *source* hero of a combat log entry to a slot.
+
+        Prefers ``damage_source_name`` (so a hero's spell/projectile damage lands
+        on the hero), falling back to ``attacker_name`` when the source name is
+        empty. Mirrors ``_CombatAggregator``'s attribution.
+
+        Args:
+            entry: The combat log entry.
+
+        Returns:
+            Player slot 0-9, or ``None`` if the source is not a tracked hero.
+        """
+        source_name = entry.damage_source_name or entry.attacker_name
+        if not source_name:
+            return None
+        return self._hero_to_pid(source_name)
 
     def hero_pos(self, npc_name: str) -> tuple[float, float] | None:
         """Return the current world position of a hero by NPC name.

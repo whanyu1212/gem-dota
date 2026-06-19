@@ -284,6 +284,41 @@ class TestPlayerExtractorAccumulation:
         )
         assert ext._total_hero_damage.get(0, 0) == 0
 
+    def test_hero_damage_credited_to_source_not_attacker(self):
+        """Projectile/spell damage credits the damage source hero, matching the
+        aggregator so the minute curves stay consistent with the hero_damage scalar.
+        """
+        parser, ext = self._setup("npc_dota_hero_axe", player_id_raw=0)
+        parser.fire_combat_log(
+            _make_combat_entry(
+                log_type="DAMAGE",
+                attacker_name="npc_dota_lone_druid_bear",  # projectile/summon attacker
+                attacker_is_hero=False,
+                damage_source_name="npc_dota_hero_axe",  # owning hero is the source
+                target_name="npc_dota_hero_juggernaut",
+                target_is_hero=True,
+                value=250,
+            )
+        )
+        assert ext._total_hero_damage.get(0, 0) == 250
+
+    def test_hero_damage_excludes_illusion_target(self):
+        """Damage to an illusion target is excluded, matching the scalar."""
+        parser, ext = self._setup("npc_dota_hero_axe", player_id_raw=0)
+        parser.fire_combat_log(
+            _make_combat_entry(
+                log_type="DAMAGE",
+                attacker_name="npc_dota_hero_axe",
+                attacker_is_hero=True,
+                damage_source_name="npc_dota_hero_axe",
+                target_name="npc_dota_hero_juggernaut",
+                target_is_hero=True,
+                target_is_illusion=True,
+                value=200,
+            )
+        )
+        assert ext._total_hero_damage.get(0, 0) == 0
+
     # --- HEALING ---
 
     def test_healing_increments(self):
@@ -311,6 +346,24 @@ class TestPlayerExtractorAccumulation:
                 target_name="npc_dota_creep_radiant",
                 target_is_hero=False,
                 value=100,
+            )
+        )
+        assert ext._total_hero_healing.get(0, 0) == 0
+
+    def test_self_healing_excluded(self):
+        """Self-heal must not count — total_hero_healing tracks healing to allied
+        heroes, matching the aggregator's hero_healing scalar.
+        """
+        parser, ext = self._setup("npc_dota_hero_axe", player_id_raw=0)
+        parser.fire_combat_log(
+            _make_combat_entry(
+                log_type="HEAL",
+                attacker_name="npc_dota_hero_axe",
+                attacker_is_hero=True,
+                damage_source_name="npc_dota_hero_axe",
+                target_name="npc_dota_hero_axe",  # self
+                target_is_hero=True,
+                value=500,
             )
         )
         assert ext._total_hero_healing.get(0, 0) == 0

@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `CombatLogEntry.damage_source_name` — the unit credited as the *source* of a
+  damage/heal (proto `damage_source_name`; S1 `sourcename`). For spell/projectile
+  damage this is the casting hero even when `attacker_name` is the projectile.
+
+### Changed
+- Per-player combat scalars and per-target dicts now attribute damage/healing to
+  the damage **source** (`damage_source_name`), matching OpenDota's reconstruction
+  (`CreateParsedDataBlob.handleDamageCombat`, `unit = e.sourcename`):
+  - `ParsedPlayer.damage` / `damage_taken` / `healing` now mirror OpenDota's
+    source-attributed per-target dicts (a hero's spell/projectile damage lands on
+    the hero; `damage_taken` is keyed by the source unit). Target keys are
+    illusion-prefixed (`illusion_npc_dota_hero_*`) exactly like OpenDota's
+    `computeIllusionString`, and damage logged against an ability/modifier name
+    rather than a real unit (some absorb/redirect interactions) is now excluded —
+    these were spurious keys before.
+  - `tower_damage` is now essentially exact offline (~97.9–100% vs OpenDota across
+    fixtures, up from ~87%) — the building-damage sum has no mitigation gap.
+  - `hero_damage` attribution improved (summon/projectile damage credited to the
+    owning hero; the redundant `others`-type heuristic dropped). Illusion-dealt
+    damage is folded into the source hero exactly as OpenDota does — the combat
+    log carries no illusion marker on the source name, so the engine-internal
+    illusion split in OpenDota's published `hero_damage` is not reproducible
+    offline (see issue #68).
+
+### Fixed / Documented
+- Clarified that OpenDota's headline `hero_damage` / `tower_damage` / `hero_healing`
+  **scalars** are Game-Coordinator (`CMsgGameMatchSignOut`) values that account for
+  in-engine mitigation the combat log cannot see, so `hero_damage`/`hero_healing`
+  are best-effort offline estimates exact only after `enrich_with_api_rates` /
+  `apply_api_rates` (see issue #68). `tower_damage` is now ~exact offline.
+
 ## [0.2.7] - 2026-03-24
 
 ### Added

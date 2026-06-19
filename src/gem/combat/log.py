@@ -101,6 +101,14 @@ class CombatLogEntry:
         tick: Game tick at which the event occurred.
         log_type: String label from COMBAT_LOG_TYPES.
         attacker_name: Name of the attacker unit/hero.
+        damage_source_name: Name of the unit credited as the *source* of the
+            damage/heal (``damage_source_name`` in the proto). For summon/spell
+            damage this is the owning hero even when ``attacker_name`` is the
+            summon or projectile. OpenDota attributes the per-target
+            ``damage``/``healing`` dicts and the ``hero_damage``/``tower_damage``
+            scalars to this field (``unit = e.sourcename``), not ``attacker_name``.
+            Empty when the source index is unset. Reference:
+            ``parser/Parse.java`` (``sourcename = cle.getDamageSourceName()``).
         target_name: Name of the target unit/hero.
         inflictor_name: Ability or item that caused the event.
         value: Numeric value (damage, heal amount, gold, xp, etc.).
@@ -126,6 +134,7 @@ class CombatLogEntry:
     tick: int
     log_type: str
     attacker_name: str = ""
+    damage_source_name: str = ""
     target_name: str = ""
     inflictor_name: str = ""
     value: int = 0
@@ -242,6 +251,7 @@ class CombatLogProcessor:
         log_type = _LOG_TYPE_NAMES.get(type_val, "DAMAGE")
 
         attacker_idx, _ = game_event.get_int32(_S1_FIELD_ATTACKER)
+        source_idx, _ = game_event.get_int32(_S1_FIELD_SOURCE)
         target_idx, _ = game_event.get_int32(_S1_FIELD_TARGET)
         inflictor_idx, _ = game_event.get_int32(_S1_FIELD_INFLICTOR)
 
@@ -258,6 +268,7 @@ class CombatLogProcessor:
             tick=tick,
             log_type=log_type,
             attacker_name=_resolve_name(name_table, attacker_idx),
+            damage_source_name=_resolve_name(name_table, source_idx),
             target_name=_resolve_name(name_table, target_idx),
             inflictor_name=_resolve_name(name_table, inflictor_idx),
             value=value,
@@ -307,10 +318,12 @@ class CombatLogProcessor:
         # Support both StringTable.items dict and legacy dict-like name_table
         if hasattr(name_table, "items") and isinstance(name_table.items, dict):
             attacker_name = _resolve_name(name_table, msg.attacker_name)
+            damage_source_name = _resolve_name(name_table, msg.damage_source_name)
             target_name = _resolve_name(name_table, msg.target_name)
             inflictor_name = _resolve_name(name_table, msg.inflictor_name)
         else:
             attacker_name = name_table.get(msg.attacker_name, "")
+            damage_source_name = name_table.get(msg.damage_source_name, "")
             target_name = name_table.get(msg.target_name, "")
             inflictor_name = name_table.get(msg.inflictor_name, "")
 
@@ -342,6 +355,7 @@ class CombatLogProcessor:
             tick=tick,
             log_type=log_type,
             attacker_name=attacker_name,
+            damage_source_name=damage_source_name,
             target_name=target_name,
             inflictor_name=inflictor_name,
             value=value,
