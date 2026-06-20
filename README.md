@@ -285,6 +285,19 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 
 > Full per-release detail lives in [`CHANGELOG.md`](CHANGELOG.md) and the [GitHub Releases](https://github.com/whanyu1212/gem-dota/releases) page; the highlights below summarize recent versions.
 
+### [v0.3.0](https://github.com/whanyu1212/gem-dota/releases/tag/v0.3.0)
+
+A structural + correctness release. The supported top-level API (`gem.parse`, `gem.ParsedMatch`, `gem.find_player`, …) is unchanged.
+
+- **Package reorganization** — internals grouped into focused subpackages (`binary/`, `schema/`, `state/`, `combat/`, `extractors/`, `analysis/`, `catalog/`, `results/`, `reports/`, `replays/`), each with its own `README.md`.
+- **Source-based combat attribution** — damage/healing now attributed to the damage *source* (matching OpenDota); `tower_damage` is ~exact offline (up from ~87%), and unmapped combat-log types no longer inflate damage aggregates.
+- **Correctness fixes** (multi-pass adversarial bug hunt) — day/night cycle (10-min, night at 5:00), ward lifespans (observer 6 min / sentry 7 min), teamfight gold/XP attribution, Roshan-conversion window double-count, reincarnation death counting, and coach-index K/D/A remap for HLTV replays.
+- **New fields** — `CombatLogEntry.damage_source_name`, `CombatLogEntry.will_reincarnate`, and a backward-compatible `CombatLogType` enum.
+- **Removed** — root-level compatibility shims (`gem.reader`, `gem.models`, …); use the top-level `gem.*` API or grouped subpackages.
+
+<details>
+<summary>Older releases</summary>
+
 ### [v0.2.8](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.8)
 
 - **Neutral item tracking** — `DOTA_UM_FoundNeutralItem` events are parsed into `NeutralItemFoundEvent` (player, item key, tier, enhancement/trinket fields), with model/DataFrame outputs and constants-audit coverage for newly observed item IDs.
@@ -292,9 +305,6 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 - **7.41 data refresh** — bundled constants updated for 7.41-era items/abilities, camp-zone annotations refreshed for confirmed camp type swaps, and a regenerated 7.40 map fixture with 7.41 camp overlays.
 - **OpenDota fixture tooling** — `scripts/fetch_opendota_fixture.py` plus DreamLeague Season 29 fixture metadata for patch-7.41 validation.
 - **Icon-fetch caching** — hero/item icon scripts now skip unchanged assets.
-
-<details>
-<summary>Older releases</summary>
 
 ### [v0.2.7](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.7)
 
