@@ -386,12 +386,16 @@ class TestFinalize:
 
 class TestWardLifespanConstants:
     def test_values(self):
-        assert _OBSERVER_LIFESPAN_TICKS == 720
-        assert _SENTRY_LIFESPAN_TICKS == 360
+        # Current-patch durations at 30 ticks/s: observer 360 s, sentry 420 s.
+        # Reference: https://liquipedia.net/dota2/Observer_Ward,
+        #            https://liquipedia.net/dota2/Sentry_Ward
+        assert _OBSERVER_LIFESPAN_TICKS == 360 * 30  # 10800 (6 min)
+        assert _SENTRY_LIFESPAN_TICKS == 420 * 30  # 12600 (7 min)
         assert _EXPIRY_TOLERANCE_TICKS == 30
 
-    def test_observer_longer_than_sentry(self):
-        assert _OBSERVER_LIFESPAN_TICKS > _SENTRY_LIFESPAN_TICKS
+    def test_sentry_longer_than_observer(self):
+        # Sentries (7 min) outlast observers (6 min) in the current patch.
+        assert _SENTRY_LIFESPAN_TICKS > _OBSERVER_LIFESPAN_TICKS
 
 
 # ---------------------------------------------------------------------------

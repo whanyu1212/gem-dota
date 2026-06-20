@@ -51,16 +51,18 @@ def group_ability_hits(
 
     Only entries with a non-empty ``inflictor_name`` are considered (raw
     right-click auto-attacks have an empty inflictor). Entries from the same
-    ``(caster, ability)`` pair that fall within ``window_ticks`` of the
-    previous hit are merged into the same cast.
+    ``(caster, ability)`` pair that fall within ``window_ticks`` of the cast's
+    *start tick* (the first hit) are merged into the same cast. The window is
+    anchored at the cast's start, not the most recent hit, so a long sustained
+    stream of same-ability hits will not keep extending one cast indefinitely.
 
     Args:
         combat_log: All ``CombatLogEntry`` objects from ``ParsedMatch.combat_log``,
             or any filtered subset.
-        window_ticks: Maximum tick gap between successive hits of the same
-            ability to be considered part of the same cast. Default 5
-            (~1/6 second at 30 ticks/sec) works for AoE spells. Increase to
-            10–15 for channelled abilities (e.g. Naga Song of the Siren).
+        window_ticks: Maximum tick gap from a cast's start tick for a later hit
+            of the same ability to be folded into it. Default 5 (~1/6 second at
+            30 ticks/sec) works for AoE spells. Increase to 10–15 for channelled
+            abilities (e.g. Naga Song of the Siren).
 
     Returns:
         List of ``AbilityCast`` objects in chronological order.
