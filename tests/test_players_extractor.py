@@ -1077,6 +1077,27 @@ class TestDiffInventory:
 # ---------------------------------------------------------------------------
 
 
+def _player_resource_fields(team_by_row: dict[int, int], extra: dict | None = None) -> dict:
+    """Build CDOTA_PlayerResource state for the given resource rows.
+
+    Args:
+        team_by_row: resource-array index → team number (2/3 for players, 1/14
+            for coaches). Each row also gets a team slot and an identity hero
+            handle so a complete-scan remap can resolve.
+        extra: additional ``field → value`` state to merge in.
+
+    Returns:
+        A ``**state`` dict for ``_ent``.
+    """
+    state: dict = {}
+    for row, team in team_by_row.items():
+        state[f"m_vecPlayerData.{row:04d}.m_iPlayerTeam"] = team
+        state[f"m_vecPlayerTeamData.{row:04d}.m_iTeamSlot"] = row % 5
+    if extra:
+        state.update(extra)
+    return state
+
+
 class TestRefreshTeamSlots:
     def test_no_player_resource_does_nothing(self):
         ext = PlayerExtractor()
@@ -1086,17 +1107,57 @@ class TestRefreshTeamSlots:
 
     def test_reads_team_slots(self):
         ext = PlayerExtractor()
-        pr = _ent(
-            "CDOTA_PlayerResource",
-            **{
-                "m_vecPlayerTeamData.0000.m_iTeamSlot": 2,
-                "m_vecPlayerTeamData.0001.m_iTeamSlot": 0,
-            },
-        )
+        # 10 players in rows 0-9 (5 Radiant, 5 Dire), no coach.
+        teams = {row: (2 if row < 5 else 3) for row in range(10)}
+        pr = _ent("CDOTA_PlayerResource", **_player_resource_fields(teams))
         ext._player_resource = pr
         ext._refresh_team_slots()
-        assert ext._player_team_slot[0] == 2
-        assert ext._player_team_slot[1] == 0
+        assert ext._player_team_slot[0] == 0
+        assert ext._player_team_slot[1] == 1
+        # No coach → logical slot == resource index (identity remap).
+        assert ext._resource_index(0) == 0
+        assert ext._resource_index(9) == 9
+
+    def test_coach_shifts_resource_indices(self):
+        # A Radiant coach occupies resource row 5 (team 1). The 10 players live in
+        # rows 0-4 and 6-10, so logical slots 5-9 map to resource rows 6-10.
+        # Regression for K/D/A and team-slot misattribution in coached replays.
+        ext = PlayerExtractor()
+        teams = dict.fromkeys(range(5), 2)  # Radiant players rows 0-4
+        teams[5] = 1  # coach (team 1) — must be skipped
+        for row in range(6, 11):  # Dire players rows 6-10
+            teams[row] = 3
+        pr = _ent("CDOTA_PlayerResource", **_player_resource_fields(teams))
+        ext._player_resource = pr
+        ext._refresh_team_slots()
+        # Logical Radiant slots map to rows 0-4.
+        assert [ext._resource_index(i) for i in range(5)] == [0, 1, 2, 3, 4]
+        # Logical Dire slots 5-9 skip the coach → rows 6-10 (not 5-9).
+        assert [ext._resource_index(i) for i in range(5, 10)] == [6, 7, 8, 9, 10]
+
+    def test_coach_shift_attributes_kda_to_correct_slot(self):
+        # End-to-end: with a coach shift, _on_game_end must read K/D/A at the
+        # remapped resource index, so logical Dire slot 5 gets the fifth Dire
+        # player's stats (row 6), not the coach's row 5.
+        ext = PlayerExtractor()
+        teams = dict.fromkeys(range(5), 2)
+        teams[5] = 1  # coach
+        for row in range(6, 11):
+            teams[row] = 3
+        kda = {
+            "m_vecPlayerTeamData.0005.m_iKills": 99,  # coach row — must NOT leak
+            "m_vecPlayerTeamData.0006.m_iKills": 7,  # first Dire player (logical 5)
+            "m_vecPlayerTeamData.0006.m_iDeaths": 2,
+            "m_vecPlayerTeamData.0006.m_iAssists": 3,
+        }
+        pr = _ent("CDOTA_PlayerResource", **_player_resource_fields(teams, kda))
+        ext.attach(FakeParser(tick=5000))
+        ext._player_resource = pr
+        ext._refresh_team_slots()
+        ext._on_game_end(5000)
+        assert ext.scoreboard[5] == (7, 2, 3)
+        # The coach's 99 kills must never be attributed to any logical slot.
+        assert all(k != 99 for (k, _d, _a) in ext.scoreboard.values())
 
 
 # ---------------------------------------------------------------------------
@@ -1161,3 +1222,61 @@ class TestPlayerExtractorAttach:
         assert snap.lh == 50
         assert snap.dn == 7
         assert snap.tick == 300
+
+
+# ---------------------------------------------------------------------------
+# PlayerExtractor._on_combat_log_entry — death counting (B3 reincarnation)
+# ---------------------------------------------------------------------------
+
+
+class TestDeathCountReincarnation:
+    """total_deaths must not count reincarnation/aegis trigger deaths."""
+
+    @staticmethod
+    def _ext_with_hero():
+        from gem.extractors.players import PlayerExtractor
+
+        ext = PlayerExtractor()
+        hero = _hero("SkeletonKing", player_id=0)  # npc_dota_hero_skeleton_king
+        ext._heroes_by_npc["npc_dota_hero_skeleton_king"] = hero
+        return ext
+
+    def test_normal_death_counted(self):
+        from gem.combat.log import CombatLogEntry
+
+        ext = self._ext_with_hero()
+        ext._on_combat_log_entry(
+            CombatLogEntry(
+                tick=100,
+                log_type="DEATH",
+                target_name="npc_dota_hero_skeleton_king",
+                target_is_hero=True,
+            )
+        )
+        assert ext._total_deaths.get(0) == 1
+
+    def test_reincarnation_trigger_not_counted(self):
+        from gem.combat.log import CombatLogEntry
+
+        ext = self._ext_with_hero()
+        # Trigger death (will_reincarnate=True) then the true death — only the
+        # true death should count, so the total is 1, not 2.
+        ext._on_combat_log_entry(
+            CombatLogEntry(
+                tick=100,
+                log_type="DEATH",
+                target_name="npc_dota_hero_skeleton_king",
+                target_is_hero=True,
+                will_reincarnate=True,
+            )
+        )
+        ext._on_combat_log_entry(
+            CombatLogEntry(
+                tick=160,
+                log_type="DEATH",
+                target_name="npc_dota_hero_skeleton_king",
+                target_is_hero=True,
+                will_reincarnate=False,
+            )
+        )
+        assert ext._total_deaths.get(0) == 1

@@ -1021,3 +1021,63 @@ class TestEntityManagerPacketEntities:
         em.on_packet_entities(Msg())
         assert len(dispatched) == 1
         assert dispatched[0][0] is e
+
+    @staticmethod
+    def _pack_bits(raw_bits: list[int]) -> bytes:
+        while len(raw_bits) % 8:
+            raw_bits.append(0)
+        return bytes(
+            sum(raw_bits[i + j] << j for j in range(8)) for i in range(0, len(raw_bits), 8)
+        )
+
+    def test_leave_on_inactive_entity_raises(self):
+        """A LEAVE for an already-inactive entity is rejected (B9 — manta panics)."""
+        em = self._make_em()
+        e = _entity("Hero", index=0, serial=0)
+        e.active = False  # already inactive
+        em.entities[0] = e
+
+        # ubit_var(0) + cmd=0b01 (leave, no delete)
+        data = self._pack_bits([0, 0, 0, 0, 0, 0, 1, 0])
+
+        class Msg:
+            legacy_is_delta = True
+            updated_entries = 1
+            entity_data = data
+
+        with pytest.raises(RuntimeError, match="already inactive"):
+            em.on_packet_entities(Msg())
+
+    def test_create_without_baseline_raises(self):
+        """A CREATE for a class with no registered baseline is rejected (B8)."""
+        em = self._make_em()
+
+        # Register class id 3 so classes_by_id resolves, but DO NOT add a baseline.
+        class FakeClassEntry:
+            class_id = 3
+            network_name = "CDOTA_Unit_Hero_Axe"
+
+        class ClassMsg:
+            classes = [FakeClassEntry()]
+
+        em.on_class_info(ClassMsg())
+        assert 3 not in em.class_baselines
+
+        # Build a CREATE: ubit_var(0) + cmd=0b10 + class_id=3 (9 bits) +
+        # serial=0 (17 bits) + varuint32(0) (8 bits).
+        bits: list[int] = []
+        bits += [0, 0, 0, 0, 0, 0]  # ubit_var(0)
+        bits += [0, 1]  # cmd=0b10 (create): bit0=0, bit1=1
+        for i in range(em.class_id_size):  # class_id=3, LSB-first
+            bits.append((3 >> i) & 1)
+        bits += [0] * 17  # serial=0
+        bits += [0] * 8  # varuint32(0)
+        data = self._pack_bits(bits)
+
+        class Msg:
+            legacy_is_delta = True
+            updated_entries = 1
+            entity_data = data
+
+        with pytest.raises(RuntimeError, match="baseline"):
+            em.on_packet_entities(Msg())

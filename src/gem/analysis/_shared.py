@@ -18,18 +18,62 @@ if TYPE_CHECKING:
 _TEAM_RADIANT = 2
 _TEAM_DIRE = 3
 
-# World-coordinate bounds calibrated against assets/maps/Game_map_7.40.jpg.
-_MAP_XMIN = 7563.0
-_MAP_XMAX = 25900.0
-_MAP_YMIN = 7800.0
-_MAP_YMAX = 25600.0
+# Map geometry is sourced from the bundled ``map_constants.json`` so there is a
+# single source of truth — the same file the public ``catalog.load_map_constants``
+# exposes. The literals below are a calibrated fallback used only if the JSON is
+# missing or malformed (they must mirror the JSON). Calibrated against
+# assets/maps/Game_map_7.40.jpg.
+_FALLBACK_MAP_BOUNDS = (7563.0, 25900.0, 7800.0, 25600.0)  # xmin, xmax, ymin, ymax
+_FALLBACK_RADIANT_FOUNTAIN = (9684.0, 9684.0)
+_FALLBACK_DIRE_FOUNTAIN = (23120.0, 22350.0)
+_FALLBACK_RIVER_STRIP = 1200.0
 
-# Fountain world positions, used to classify a point's map half.
-_RADIANT_FOUNTAIN = (9684.0, 9684.0)
-_DIRE_FOUNTAIN = (23120.0, 22350.0)
 
-# Half-width of the diagonal river strip, in world units.
-_RIVER_STRIP = 1200.0
+def _load_map_geometry() -> tuple[
+    float, float, float, float, tuple[float, float], tuple[float, float], float
+]:
+    """Load map bounds/fountains/river-strip from ``map_constants.json``.
+
+    Falls back to the calibrated literals if the JSON is unavailable or missing
+    keys, so importing the analysis package never fails on a data problem.
+
+    Returns:
+        ``(xmin, xmax, ymin, ymax, radiant_fountain, dire_fountain, river_strip)``.
+    """
+    try:
+        from gem.catalog.map import load_map_constants
+
+        data = load_map_constants()
+        wb = data["world_bounds"]
+        fr = data["fountains"]["radiant"]
+        fd = data["fountains"]["dire"]
+        return (
+            float(wb["xmin"]),
+            float(wb["xmax"]),
+            float(wb["ymin"]),
+            float(wb["ymax"]),
+            (float(fr["x"]), float(fr["y"])),
+            (float(fd["x"]), float(fd["y"])),
+            float(data.get("river_strip", _FALLBACK_RIVER_STRIP)),
+        )
+    except (OSError, ValueError, KeyError, TypeError):
+        return (
+            *_FALLBACK_MAP_BOUNDS,
+            _FALLBACK_RADIANT_FOUNTAIN,
+            _FALLBACK_DIRE_FOUNTAIN,
+            _FALLBACK_RIVER_STRIP,
+        )
+
+
+(
+    _MAP_XMIN,
+    _MAP_XMAX,
+    _MAP_YMIN,
+    _MAP_YMAX,
+    _RADIANT_FOUNTAIN,
+    _DIRE_FOUNTAIN,
+    _RIVER_STRIP,
+) = _load_map_geometry()
 
 
 def infer_match_end_tick(match: ParsedMatch) -> int:
@@ -61,6 +105,9 @@ def region_of(x: float, y: float) -> str:
 
     Points within the diagonal river strip (``|x - y| <= _RIVER_STRIP``) are the
     river; otherwise the position is assigned to whichever fountain is nearer.
+    The threshold is on the ``|x - y|`` difference (the river follows the
+    ``x = y`` diagonal), which corresponds to a perpendicular half-width of
+    ``_RIVER_STRIP / sqrt(2)`` world units — see the constant's note.
 
     Args:
         x: World x coordinate.

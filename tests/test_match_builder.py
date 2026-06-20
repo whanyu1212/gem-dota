@@ -1619,3 +1619,55 @@ class TestNewObjectivesInParsedMatch:
         m = self._build()
         assert m.tormentors == []
         assert m.shrines == []
+
+
+# ---------------------------------------------------------------------------
+# _radiant_adv_from_minute_series — fallback advantage curve (B7)
+# ---------------------------------------------------------------------------
+
+
+class TestRadiantAdvFromMinuteSeries:
+    """Fallback advantage curve must span the full game, not truncate to a leaver."""
+
+    @staticmethod
+    def _player(pid: int, team: int, gold: list[int], xp: list[int]):
+        from gem.results.models import ParsedPlayer
+
+        pp = ParsedPlayer(player_id=pid, hero_name=f"npc_dota_hero_h{pid}", team=team)
+        pp.total_earned_gold_t_min = gold
+        pp.total_earned_xp_t_min = xp
+        return pp
+
+    def test_full_length_equal_teams(self):
+        from gem.results.assembly import _radiant_adv_from_minute_series
+
+        players = [
+            self._player(0, 2, [100, 200, 300], [10, 20, 30]),
+            self._player(5, 3, [100, 200, 300], [10, 20, 30]),
+        ]
+        gold_adv, xp_adv = _radiant_adv_from_minute_series(players)
+        assert gold_adv == [0, 0, 0]
+        assert xp_adv == [0, 0, 0]
+
+    def test_leaver_does_not_truncate_curve(self):
+        # One Dire player's minute array stops early (disconnect). The curve must
+        # still span the longest array; the leaver's last earned value carries
+        # forward (total-earned is monotonic and never resets). Regression for the
+        # min()-length truncation bug.
+        from gem.results.assembly import _radiant_adv_from_minute_series
+
+        players = [
+            self._player(0, 2, [100, 200, 300, 400], [0, 0, 0, 0]),  # Radiant, full
+            self._player(5, 3, [100, 200], [0, 0]),  # Dire, leaves after minute 1
+        ]
+        gold_adv, _ = _radiant_adv_from_minute_series(players)
+        # Curve spans 4 minutes (longest), not 2 (shortest).
+        assert len(gold_adv) == 4
+        # Radiant pulls ahead as Dire's carried-forward value (200) stays flat.
+        assert gold_adv == [0, 0, 100, 200]
+
+    def test_returns_none_when_no_minute_data(self):
+        from gem.results.assembly import _radiant_adv_from_minute_series
+
+        players = [self._player(0, 2, [], [])]
+        assert _radiant_adv_from_minute_series(players) is None

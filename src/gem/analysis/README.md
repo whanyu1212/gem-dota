@@ -277,7 +277,9 @@ It binary-searches on `start_tick` and checks a single candidate window. If the
 ### `region_of` is geometric, not lane-aware
 The river is just the diagonal strip `|x - y| <= 1200`; halves are
 nearest-fountain. It does not know lanes, ramps, or the actual river polygon.
-Camp/ward "enemy half" attribution inherits this coarseness.
+Camp/ward "enemy half" attribution inherits this coarseness. Note the threshold
+is on `|x - y|`, not perpendicular world units — the river follows the `x = y`
+diagonal, so the effective perpendicular half-width is `1200 / sqrt(2) ≈ 849`.
 
 ### The heavy builders are experimental and weight-tuned
 `score_camp_visit_context`, `build_map_context_timeline`, and

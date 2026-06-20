@@ -502,11 +502,20 @@ class EntityManager:
                     entity = Entity(index=index, serial=serial, cls=ci)
                     self.entities[index] = entity
 
-                    # Apply baseline first, then delta
+                    # Apply baseline first, then delta. A missing baseline is an
+                    # invariant violation: the instancebaseline string table must
+                    # carry defaults for every class before any entity of that
+                    # class is created. Manta panics here (entity.go: "unable to
+                    # find new baseline"); surfacing it loudly prevents silently
+                    # constructing an entity with default (None) field values.
                     baseline = self.class_baselines.get(class_id)
-                    if baseline and ci.serializer is not None:
-                        read_fields(BitReader(baseline), ci.serializer, entity._field_state)
+                    if baseline is None:
+                        raise RuntimeError(
+                            f"unable to find baseline for class id {class_id} "
+                            f"({ci.name}) creating entity {index}"
+                        )
                     if ci.serializer is not None:
+                        read_fields(BitReader(baseline), ci.serializer, entity._field_state)
                         read_fields(r, ci.serializer, entity._field_state)
 
                     op = EntityOp.CREATED | EntityOp.ENTERED
@@ -528,6 +537,13 @@ class EntityManager:
                 if _e is None:
                     raise RuntimeError(f"leave on missing entity {index}")
                 entity = _e
+                # A LEAVE for an already-inactive entity is a stream-corruption
+                # invariant violation (manta panics: "ordered to leave, already
+                # inactive"). Surface it rather than silently re-dispatching LEFT.
+                if not entity.active:
+                    raise RuntimeError(
+                        f"entity {index} ({entity.cls.name}) ordered to leave, already inactive"
+                    )
                 op = EntityOp.LEFT
                 if cmd & 0x02:
                     op |= EntityOp.DELETED

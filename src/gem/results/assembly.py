@@ -22,7 +22,13 @@ if TYPE_CHECKING:
     from gem.extractors.players import PlayerExtractor
     from gem.extractors.wards import WardsExtractor
     from gem.parser import ReplayParser
-    from gem.results.models import ChatEntry, NeutralItemFoundEvent, SmokeEvent, VisionModifierEvent
+    from gem.results.models import (
+        ChatEntry,
+        NeutralItemFoundEvent,
+        ParsedPlayer,
+        SmokeEvent,
+        VisionModifierEvent,
+    )
 
 # Lane position grid resolution in world units (7d)
 _LANE_GRID = 64
@@ -82,6 +88,47 @@ def _radiant_adv_from_intervals(
         gold_adv.append(gold)
         xp_adv.append(xp)
 
+    return gold_adv, xp_adv
+
+
+def _radiant_adv_from_minute_series(
+    players: list[ParsedPlayer],
+) -> tuple[list[int], list[int]] | None:
+    """Build Radiant gold/XP advantage from dense per-player minute series.
+
+    Fallback for when no complete interval batches exist. Sums every minute the
+    curve spans (the longest player's series), not just up to the shortest
+    player's array — clamping to the global minimum truncated the whole advantage
+    curve to a single leaver/late-spawn's series. Total-earned gold/XP are
+    monotonic, so a player who stops sampling keeps their last earned value
+    (carried forward), mirroring OpenDota's bucket-by-time sum in
+    ``CreateParsedDataBlob.processAllPlayers``.
+
+    Args:
+        players: The parsed players, each with ``total_earned_gold_t_min`` and
+            ``total_earned_xp_t_min`` minute arrays.
+
+    Returns:
+        ``(gold_adv, xp_adv)`` lists, or ``None`` if no player has minute data.
+    """
+    active = [pp for pp in players if pp.total_earned_gold_t_min and pp.total_earned_xp_t_min]
+    if not active:
+        return None
+
+    n_minutes = max(
+        max(len(pp.total_earned_gold_t_min), len(pp.total_earned_xp_t_min)) for pp in active
+    )
+    gold_adv = [0] * n_minutes
+    xp_adv = [0] * n_minutes
+    for pp in active:
+        sign = 1 if pp.team == 2 else -1  # 2=Radiant, 3=Dire
+        gold_series = pp.total_earned_gold_t_min
+        xp_series = pp.total_earned_xp_t_min
+        last_gold = gold_series[-1] if gold_series else 0
+        last_xp = xp_series[-1] if xp_series else 0
+        for i in range(n_minutes):
+            gold_adv[i] += sign * (gold_series[i] if i < len(gold_series) else last_gold)
+            xp_adv[i] += sign * (xp_series[i] if i < len(xp_series) else last_xp)
     return gold_adv, xp_adv
 
 
@@ -496,23 +543,9 @@ def build_parsed_match(
     else:
         # Fallback path: no complete interval batches were observed, so derive
         # the curves from the dense player minute series' total-earned arrays.
-        active_players = [
-            pp for pp in match.players if pp.total_earned_gold_t_min and pp.total_earned_xp_t_min
-        ]
-        if active_players:
-            n_minutes = min(
-                min(len(pp.total_earned_gold_t_min), len(pp.total_earned_xp_t_min))
-                for pp in active_players
-            )
-            gold_adv = [0] * n_minutes
-            xp_adv = [0] * n_minutes
-            for pp in active_players:
-                sign = 1 if pp.team == 2 else -1  # 2=Radiant, 3=Dire
-                for i in range(n_minutes):
-                    gold_adv[i] += sign * pp.total_earned_gold_t_min[i]
-                    xp_adv[i] += sign * pp.total_earned_xp_t_min[i]
-            match.radiant_gold_adv = gold_adv
-            match.radiant_xp_adv = xp_adv
+        minute_adv = _radiant_adv_from_minute_series(match.players)
+        if minute_adv is not None:
+            match.radiant_gold_adv, match.radiant_xp_adv = minute_adv
 
     # Detect teamfights (Phase 9)
     hero_to_slot = {pp.hero_name: pp.player_id for pp in match.players if pp.hero_name}
