@@ -91,22 +91,26 @@ def _radiant_adv_from_intervals(
     return gold_adv, xp_adv
 
 
+_MINUTE_TICKS = 1800  # 60 s * 30 ticks/s
+
+
 def _radiant_adv_from_minute_series(
     players: list[ParsedPlayer],
 ) -> tuple[list[int], list[int]] | None:
     """Build Radiant gold/XP advantage from dense per-player minute series.
 
-    Fallback for when no complete interval batches exist. Sums every minute the
-    curve spans (the longest player's series), not just up to the shortest
-    player's array — clamping to the global minimum truncated the whole advantage
-    curve to a single leaver/late-spawn's series. Total-earned gold/XP are
-    monotonic, so a player who stops sampling keeps their last earned value
-    (carried forward), mirroring OpenDota's bucket-by-time sum in
-    ``CreateParsedDataBlob.processAllPlayers``.
+    Fallback for when no complete interval batches exist. Buckets each player's
+    samples by their *actual* game minute (derived from ``times_min``), not by
+    list position — ``minute_time_series`` drops missing minutes, so a player who
+    lacks an early sample would otherwise have their whole curve shifted earlier.
+    Mirrors OpenDota's bucket-by-time sum in
+    ``CreateParsedDataBlob.processAllPlayers``: at each minute a player
+    contributes their last-known total-earned value (monotonic; carried forward
+    past a stopped/leaver sample) and 0 before their first sample.
 
     Args:
-        players: The parsed players, each with ``total_earned_gold_t_min`` and
-            ``total_earned_xp_t_min`` minute arrays.
+        players: The parsed players, each with ``times_min`` and the
+            ``total_earned_gold_t_min`` / ``total_earned_xp_t_min`` minute arrays.
 
     Returns:
         ``(gold_adv, xp_adv)`` lists, or ``None`` if no player has minute data.
@@ -115,20 +119,51 @@ def _radiant_adv_from_minute_series(
     if not active:
         return None
 
-    n_minutes = max(
-        max(len(pp.total_earned_gold_t_min), len(pp.total_earned_xp_t_min)) for pp in active
-    )
-    gold_adv = [0] * n_minutes
-    xp_adv = [0] * n_minutes
+    # Map each player's samples to absolute minute indices using times_min. The
+    # global origin is the earliest sample tick across players, so a player who
+    # first appears at minute 1 lands at index 1, not 0. Fall back to 0 when no
+    # player has tick data (positional indexing kicks in per-player below).
+    first_ticks = [pp.times_min[0] for pp in active if pp.times_min]
+    origin = min(first_ticks) if first_ticks else 0
+
+    def _minute_index(tick: int) -> int:
+        return max(0, round((tick - origin) / _MINUTE_TICKS))
+
+    # Per-player minute → (gold, xp), keyed by absolute minute.
+    per_player: list[tuple[int, dict[int, tuple[int, int]]]] = []
+    last_minute = 0
     for pp in active:
         sign = 1 if pp.team == 2 else -1  # 2=Radiant, 3=Dire
+        by_minute: dict[int, tuple[int, int]] = {}
+        ticks = pp.times_min
         gold_series = pp.total_earned_gold_t_min
         xp_series = pp.total_earned_xp_t_min
-        last_gold = gold_series[-1] if gold_series else 0
-        last_xp = xp_series[-1] if xp_series else 0
-        for i in range(n_minutes):
-            gold_adv[i] += sign * (gold_series[i] if i < len(gold_series) else last_gold)
-            xp_adv[i] += sign * (xp_series[i] if i < len(xp_series) else last_xp)
+        n = min(len(ticks), len(gold_series), len(xp_series))
+        for i in range(n):
+            minute = _minute_index(ticks[i])
+            by_minute[minute] = (gold_series[i], xp_series[i])
+            last_minute = max(last_minute, minute)
+        # A player with no times_min falls back to positional indexing so we never
+        # silently drop their contribution.
+        if not ticks:
+            for i in range(min(len(gold_series), len(xp_series))):
+                by_minute[i] = (gold_series[i], xp_series[i])
+                last_minute = max(last_minute, i)
+        per_player.append((sign, by_minute))
+
+    n_minutes = last_minute + 1
+    gold_adv = [0] * n_minutes
+    xp_adv = [0] * n_minutes
+    for sign, by_minute in per_player:
+        carry_gold = 0
+        carry_xp = 0
+        for minute in range(n_minutes):
+            if minute in by_minute:
+                carry_gold, carry_xp = by_minute[minute]
+            # Before a player's first sample carry_* stays 0 (no contribution);
+            # after their last sample it holds the final monotonic value.
+            gold_adv[minute] += sign * carry_gold
+            xp_adv[minute] += sign * carry_xp
     return gold_adv, xp_adv
 
 

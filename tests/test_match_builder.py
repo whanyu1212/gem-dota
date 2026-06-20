@@ -1627,15 +1627,17 @@ class TestNewObjectivesInParsedMatch:
 
 
 class TestRadiantAdvFromMinuteSeries:
-    """Fallback advantage curve must span the full game, not truncate to a leaver."""
+    """Fallback advantage curve must span the full game and align by real minute."""
 
     @staticmethod
-    def _player(pid: int, team: int, gold: list[int], xp: list[int]):
+    def _player(pid, team, gold, xp, times=None):
         from gem.results.models import ParsedPlayer
 
         pp = ParsedPlayer(player_id=pid, hero_name=f"npc_dota_hero_h{pid}", team=team)
         pp.total_earned_gold_t_min = gold
         pp.total_earned_xp_t_min = xp
+        # Default to one sample per game minute starting at tick 0 (minute 0).
+        pp.times_min = times if times is not None else [i * 1800 for i in range(len(gold))]
         return pp
 
     def test_full_length_equal_teams(self):
@@ -1665,6 +1667,23 @@ class TestRadiantAdvFromMinuteSeries:
         assert len(gold_adv) == 4
         # Radiant pulls ahead as Dire's carried-forward value (200) stays flat.
         assert gold_adv == [0, 0, 100, 200]
+
+    def test_leading_gap_aligned_by_real_minute(self):
+        # A player whose first sample is at minute 1 (no minute-0 sample) must be
+        # placed at index 1 — NOT have minute-1's value shifted into index 0.
+        # Regression for Codex P2: index-as-minute corrupts the curve on leading
+        # gaps. Radiant has a full series; Dire's first sample is minute 1.
+        from gem.results.assembly import _radiant_adv_from_minute_series
+
+        radiant = self._player(0, 2, [100, 200, 300], [0, 0, 0], times=[0, 1800, 3600])
+        # Dire missing minute 0: samples land at ticks 1800 (min 1) and 3600 (min 2).
+        dire = self._player(5, 3, [500, 700], [0, 0], times=[1800, 3600])
+        gold_adv, _ = _radiant_adv_from_minute_series([radiant, dire])
+        # Minute 0: only Radiant present (Dire contributes 0, not its minute-1 value).
+        assert gold_adv[0] == 100
+        # Minute 1: 200 - 500. Minute 2: 300 - 700.
+        assert gold_adv[1] == 200 - 500
+        assert gold_adv[2] == 300 - 700
 
     def test_returns_none_when_no_minute_data(self):
         from gem.results.assembly import _radiant_adv_from_minute_series
