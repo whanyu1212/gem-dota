@@ -422,9 +422,8 @@ A sample HTML report lives in `docs/reports/` (`ti14_finals_g3_xg_vs_falcons_rep
 
 ## Docs
 
-Documentation is a **VitePress** site under `docs/` (the old `mkdocs.yml` is
-legacy — CI builds VitePress via `.github/workflows/docs.yml`). The API reference
-is generated from docstrings.
+Documentation is a **VitePress** site under `docs/` (CI builds it via
+`.github/workflows/docs.yml`). The API reference is generated from docstrings.
 
 ```bash
 cd docs

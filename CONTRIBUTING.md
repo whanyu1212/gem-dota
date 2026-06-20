@@ -64,18 +64,22 @@ Thank you for your interest in contributing! This document covers everything you
    git checkout -b fix/issue-description
    ```
 
-### Docs toolchain stability (maintainers)
+### Docs toolchain (maintainers)
 
-We currently pin the docs stack to avoid accidental major-version breakage:
-- `mkdocs>=1.6.1,<2.0.0`
-- `mkdocs-material>=9.7.4,<10.0.0`
-- `mkdocstrings[python]>=1.0.3,<2.0.0`
+Documentation is a [VitePress](https://vitepress.dev/) site under `docs/` (Node-based).
+The API reference is generated from source docstrings by
+`scripts/generate_vitepress_api_reference.py` (run automatically before the dev/build steps).
 
-Please do not perform broad docs dependency upgrades without review (especially major versions).  
-If you intentionally upgrade docs tooling, open a dedicated PR that includes:
-- updated pins + lockfile,
-- `uv run mkdocs build --strict` output,
-- any required migration notes in this file.
+```bash
+cd docs
+npm install
+npm run docs:dev      # local dev server (regenerates the API reference first)
+npm run docs:build    # production build -> docs/.vitepress/dist
+```
+
+CI builds the site via `.github/workflows/docs.yml`. If you upgrade docs tooling,
+open a dedicated PR with the updated `docs/package.json` / lockfile and a successful
+`npm run docs:build`.
 
 ## How to Contribute
 
@@ -112,7 +116,7 @@ Open a GitHub issue with:
 
 - Formatted and linted by `ruff` (runs automatically via pre-commit)
 - Type-annotated: all public functions and methods must have full annotations
-- Google-style docstrings on all public classes and functions (used by mkdocstrings for API docs)
+- Google-style docstrings on all public classes and functions (the VitePress API reference is generated from them)
 - No direct translation from Go/Java reference parsers — write idiomatic Python
 
 ### Docstring format
@@ -219,7 +223,7 @@ uv run pytest -m "not slow and not integration"
 
 - [Issue tracker](https://github.com/whanyu1212/gem-dota/issues) — bugs and feature requests
 - [Discussions](https://github.com/whanyu1212/gem-dota/discussions) — questions and ideas
-- Docs: `uv run mkdocs serve`
+- Docs: `cd docs && npm install && npm run docs:dev`
 
 ## License
 
