@@ -374,6 +374,82 @@ class TestCentroidPositionedDivisor:
         assert abs(fights[0].centroid_y - 50.0) < 1e-6
 
 
+class TestRoamingFightAttribution:
+    """Deaths/buybacks must be attributed by fight membership, not by re-checking
+    the player's position against the fight's (later-drifted) final centroid."""
+
+    @staticmethod
+    def _snap(pid, tick, x, y, team=2):
+        from gem.extractors._snapshots import PlayerStateSnapshot
+
+        return PlayerStateSnapshot(
+            tick=tick,
+            player_id=pid,
+            npc_name=f"npc_dota_hero_h{pid}",
+            team=team,
+            level=1,
+            xp=0,
+            gold=0,
+            net_worth=0,
+            total_earned_gold=0,
+            total_earned_xp=0,
+            lh=0,
+            dn=0,
+            hp=500,
+            max_hp=500,
+            mana=0.0,
+            max_mana=0.0,
+            x=x,
+            y=y,
+        )
+
+    def test_drifting_centroid_does_not_drop_deaths(self):
+        # Deaths march across the map. Whether they land in one fight or split
+        # into several (the centroid can drift past _FIGHT_RADIUS from earlier
+        # deaths), the invariant must hold across ALL fights: every death is
+        # attributed to exactly one fight, so per-player deaths sum to the total
+        # death count and kills account for every death. The old pass-2 re-filter
+        # against the final centroid violated this by silently dropping deaths.
+        n = 8
+        step = 1200.0  # < _FIGHT_RADIUS so consecutive deaths chain
+        h2s = {f"npc_dota_hero_h{i}": i for i in range(n)}
+        slot_to_team = {i: (2 if i % 2 == 0 else 3) for i in range(n)}
+        snaps = {
+            i: [self._snap(i, 1000 + i * 30, i * step, 0.0, team=slot_to_team[i])] for i in range(n)
+        }
+        entries = [_death(1000 + i * 30, f"npc_dota_hero_h{i}") for i in range(n)]
+        fights = detect_teamfights(
+            entries, hero_to_slot=h2s, slot_to_team=slot_to_team, player_snapshots=snaps
+        )
+        # The fight may or may not split; the invariant holds regardless.
+        total_player_deaths = sum(p.deaths for f in fights for p in f.players)
+        total_headline_deaths = sum(f.deaths for f in fights)
+        total_kills = sum(f.radiant_kills + f.dire_kills for f in fights)
+        assert total_player_deaths == n  # no death dropped
+        assert total_headline_deaths == n
+        assert total_kills == n
+
+    def test_buyback_far_from_centroid_still_counted(self):
+        # A hero dies in a fight located away from base, then buys back — at the
+        # fountain, far from the fight centroid. The buyback must still be
+        # credited to the fight (its window contains the buyback tick).
+        from gem.combat.log import CombatLogEntry
+
+        h2s = {"npc_dota_hero_h0": 0, "npc_dota_hero_h1": 1}
+        snaps = {
+            0: [self._snap(0, 1000, 20000.0, 20000.0)],  # fight far from base
+            1: [self._snap(1, 1000, 20100.0, 20000.0)],
+        }
+        entries = [
+            _death(1000, "npc_dota_hero_h0"),
+            _death(1000, "npc_dota_hero_h1"),
+            CombatLogEntry(tick=1100, log_type="BUYBACK", value=0),  # slot 0 buys back
+        ]
+        fights = detect_teamfights(entries, hero_to_slot=h2s, player_snapshots=snaps)
+        assert len(fights) == 1
+        assert fights[0].players[0].buybacks == 1
+
+
 class TestNearestPos:
     def test_empty_returns_none(self):
         assert _nearest_pos([], tick=100) is None
