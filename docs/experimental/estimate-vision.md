@@ -83,31 +83,31 @@ Current constants in `src/gem/analysis/vision.py`:
 day hero vision   = 1800
 night hero vision = 800
 ward vision       = 1600
-full cycle        = 15 minutes
-night starts      = 7:30 into the cycle
+full cycle        = 10 minutes
+night starts      = 5:00 into the cycle
 tick rate         = 30 ticks/sec
 ```
 
 Derived tick constants:
 
 ```text
-DAY_NIGHT_CYCLE_TICKS = 15 * 60 * 30 = 27000
-NIGHT_START_TICKS     = 7 * 60 * 30 + 15 * 30 = 13950
+DAY_NIGHT_CYCLE_TICKS = 10 * 60 * 30 = 18000
+NIGHT_START_TICKS     = 5 * 60 * 30  = 9000
 ```
 
 The function converts absolute replay tick into game-relative tick:
 
 ```text
 game_ticks = max(tick - game_start_tick, 0)
-phase      = game_ticks % 27000
-daytime    = phase < 13950
+phase      = game_ticks % 18000
+daytime    = phase < 9000
 ```
 
 Interpretation:
 
-- before `7:30`, it is day
-- after `7:30`, it is night
-- after `15:00`, the cycle repeats
+- before `5:00`, it is day
+- at/after `5:00`, it is night
+- at `10:00`, the cycle repeats
 
 This yields the hero vision radius for the rest of the check.
 

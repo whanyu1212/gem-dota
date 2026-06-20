@@ -115,13 +115,13 @@ These are O(log N) or single-pass helpers over a sorted/parallel fact list.
 `vision.py` is the package's honest fuzzy area. Its docstrings repeatedly state
 that the results are heuristics with no terrain/high-ground modelling.
 
-- `is_daytime(game_start_tick, tick)` computes the Dota day/night phase: a full
-  cycle is 15 minutes (`_DAY_NIGHT_CYCLE_TICKS = 27000`), with night starting at
-  `_NIGHT_START_TICKS = 13050` (the expression `7 * 60 * 30 + 15 * 30`; the
-  inline code comment labels this "7:30 into the cycle = 13950", but the literal
-  it sums to is 13050, i.e. 7:15 — the comment is stale). `_is_daytime` is a
-  backwards-compatible alias for the same function (kept because the dev branch
-  exported the underscored name).
+- `is_daytime(game_start_tick, tick)` computes the Dota day/night phase. The
+  cycle is 10 minutes (`_DAY_NIGHT_CYCLE_TICKS = 18000`): day from 0:00, night
+  from 5:00 (`_NIGHT_START_TICKS = 9000`), repeating. Tick 0 is daytime; the
+  first night begins at tick 9000.
+  (Reference: [Liquipedia — Time of Day](https://liquipedia.net/dota2/Time_of_Day).)
+  `_is_daytime` is a backwards-compatible alias for the same function (kept
+  because the dev branch exported the underscored name).
 - `estimate_vision(match, team, tick, x, y)` returns a distance-sorted list of
   `VisionSource` dataclasses (`kind` ∈ `"hero" | "ward" | "modifier"`) for every
   allied unit that *could* see `(x, y)`. Hero radius is day/night-adjusted
