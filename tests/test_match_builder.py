@@ -1,4 +1,4 @@
-"""Tests for gem.match_builder — ParsedMatch assembly.
+"""Tests for gem.results.assembly — ParsedMatch assembly.
 
 Tests cover:
 - _radiant_win_from_ancient (pure unit logic)
@@ -14,10 +14,11 @@ from unittest.mock import MagicMock
 
 import pytest
 
-import gem.models as model_module
-from gem.combatlog import CombatLogEntry
-from gem.match_builder import _radiant_win_from_ancient, build_parsed_match
-from gem.models import ChatEntry, ParsedMatch, SmokeEvent
+import gem.results.models as model_module
+from gem.combat.log import CombatLogEntry
+from gem.extractors.intervals import IntervalSnapshot
+from gem.results.assembly import _radiant_win_from_ancient, build_parsed_match
+from gem.results.models import ChatEntry, ParsedMatch, SmokeEvent
 
 # ---------------------------------------------------------------------------
 # Helpers — minimal stubs
@@ -76,6 +77,8 @@ def _make_parser(
     game_mode: int = 22,
     leagueid: int = 0,
     entity_manager=None,
+    match_metadata=None,
+    duration_s: int | None = None,
 ) -> MagicMock:
     p = MagicMock()
     p.match_id = match_id
@@ -85,6 +88,8 @@ def _make_parser(
     p.game_mode = game_mode
     p.leagueid = leagueid
     p.entity_manager = entity_manager
+    p.match_metadata = match_metadata
+    p.duration_s = duration_s
     return p
 
 
@@ -241,6 +246,62 @@ class TestBuildParsedMatchSmoke:
 
 
 # ---------------------------------------------------------------------------
+# Match metadata ability upgrades
+# ---------------------------------------------------------------------------
+
+
+class TestBuildParsedMatchAbilityUpgrades:
+    def _metadata(self):
+        from gem.proto.dota_match_metadata_pb2 import CDOTAMatchMetadataFile
+
+        metadata = CDOTAMatchMetadataFile()
+        radiant = metadata.metadata.teams.add()
+        dire = metadata.metadata.teams.add()
+
+        p0 = radiant.players.add()
+        p0.player_slot = 0
+        p0.ability_upgrades.extend([1684, 7309])
+
+        p4 = radiant.players.add()
+        p4.player_slot = 4
+        p4.ability_upgrades.extend([5625])
+
+        p5 = dire.players.add()
+        p5.player_slot = 128
+        p5.ability_upgrades.extend([5134, 7325])
+
+        p9 = dire.players.add()
+        p9.player_slot = 132
+        p9.ability_upgrades.extend([5106])
+
+        invalid = dire.players.add()
+        invalid.player_slot = 200
+        invalid.ability_upgrades.extend([9999])
+
+        return metadata
+
+    def test_ability_upgrades_arr_from_match_metadata(self):
+        parser = _make_parser(match_metadata=self._metadata())
+        m = build_parsed_match(
+            parser,
+            _make_player_ext(),
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            _make_combat_agg(),
+            [],
+            [],
+        )
+
+        assert m.players[0].ability_upgrades_arr == [1684, 7309]
+        assert m.players[4].ability_upgrades_arr == [5625]
+        assert m.players[5].ability_upgrades_arr == [5134, 7325]
+        assert m.players[9].ability_upgrades_arr == [5106]
+        assert m.players[1].ability_upgrades_arr == []
+
+
+# ---------------------------------------------------------------------------
 # radiant_win — three-tier resolution
 # ---------------------------------------------------------------------------
 
@@ -372,7 +433,7 @@ class TestBuildParsedMatchExtractorOutputs:
 
 class TestBuildParsedMatchBuyback:
     def test_buyback_entries_routed_to_correct_player(self):
-        from gem.combat_aggregator import _ParsedPlayerAgg
+        from gem.combat.aggregator import _ParsedPlayerAgg
 
         # Make real per-player aggregators
         aggs = {i: _ParsedPlayerAgg() for i in range(10)}
@@ -402,7 +463,7 @@ class TestBuildParsedMatchBuyback:
         assert entries[1] in aggs[7].buyback_log
 
     def test_buyback_with_invalid_pid_not_routed(self):
-        from gem.combat_aggregator import _ParsedPlayerAgg
+        from gem.combat.aggregator import _ParsedPlayerAgg
 
         aggs = {i: _ParsedPlayerAgg() for i in range(10)}
         combat_agg = MagicMock()
@@ -436,7 +497,7 @@ class TestBuildParsedMatchBuyback:
 
 class TestBuildParsedMatchPlayerCombatFields:
     def test_combat_agg_fields_applied_to_correct_player(self):
-        from gem.combat_aggregator import _ParsedPlayerAgg
+        from gem.combat.aggregator import _ParsedPlayerAgg
 
         agg3 = _ParsedPlayerAgg()
         agg3.damage = {"npc_dota_hero_axe": 1000}
@@ -680,14 +741,25 @@ class TestBuildParsedMatchWards:
 
 
 class TestBuildParsedMatchGoldXpAdv:
-    def _build_with_ts(self, player_ts: dict[int, tuple[list[int], list[int], int]]) -> ParsedMatch:
+    def _build_with_ts(
+        self,
+        player_ts: dict[int, tuple[list[int], list[int], int]],
+        all_entries: list[CombatLogEntry] | None = None,
+        interval_snapshots: list[IntervalSnapshot] | None = None,
+    ) -> ParsedMatch:
         """player_ts: {player_id: (total_earned_gold, total_earned_xp, team)}"""
         ext = _make_player_ext()
 
         def make_ts(gold, xp):
             ts = _FakeTimeSeries()
+            ts.ticks = [1800 * (i + 1) for i in range(max(len(gold), len(xp)))]
+            ts.gold_t = [value // 10 for value in gold]
             ts.total_earned_gold_t = gold
             ts.total_earned_xp_t = xp
+            ts.net_worth_t = [value + 100 for value in gold]
+            ts.lh_t = list(range(len(gold)))
+            ts.dn_t = [value + 1 for value in range(len(gold))]
+            ts.xp_t = xp
             return ts
 
         def ts_for(pid):
@@ -706,6 +778,10 @@ class TestBuildParsedMatchGoldXpAdv:
         ext.snapshots = snaps
 
         parser = _make_parser()
+        interval_ext = None
+        if interval_snapshots is not None:
+            interval_ext = MagicMock()
+            interval_ext.all_snapshots = interval_snapshots
         return build_parsed_match(
             parser,
             ext,
@@ -714,8 +790,9 @@ class TestBuildParsedMatchGoldXpAdv:
             _make_courier_ext(),
             _make_draft_ext(),
             _make_combat_agg(),
+            all_entries or [],
             [],
-            [],
+            interval_ext=interval_ext,
         )
 
     def test_radiant_ahead(self):
@@ -728,6 +805,7 @@ class TestBuildParsedMatchGoldXpAdv:
         # adv[0] = 1000 - 500 = 500, adv[1] = 2000 - 1000 = 1000
         assert m.radiant_gold_adv[0] == 500
         assert m.radiant_gold_adv[1] == 1000
+        assert m.radiant_xp_adv == [300, 600]
 
     def test_dire_ahead(self):
         ts = {
@@ -737,6 +815,252 @@ class TestBuildParsedMatchGoldXpAdv:
         m = self._build_with_ts(ts)
         assert m.radiant_gold_adv[0] == 100 - 600  # negative
         assert m.radiant_gold_adv[1] == 200 - 1200
+
+    def test_combat_log_xp_does_not_override_total_earned_xp_adv(self):
+        """Combat-log XP events must never feed radiant_xp_adv.
+
+        OpenDota builds xp_t / radiant_xp_adv exclusively from the team-data
+        entity's ``m_iTotalEarnedXP`` (mirrored here by ``total_earned_xp_t_min``);
+        combat-log XP only feeds the per-reason ``xp_reasons`` histogram. Even
+        with timed combat-log XP entries present, the advantage curve must come
+        from the total-earned arrays.
+
+        Reference: refs/parser/src/main/java/opendota/Parse.java interval block
+        and CreateParsedDataBlob.java handleXp() (xp_reasons only).
+        """
+        ts = {
+            0: ([1000, 2000, 3000], [5000, 5000, 5000], 2),
+            5: ([500, 1000, 1500], [1000, 1000, 1000], 3),
+        }
+        entries = [
+            CombatLogEntry(
+                tick=100,
+                game_time_s=10,
+                log_type="XP",
+                target_name="npc_dota_hero_hero0",
+                value=100,
+            ),
+            CombatLogEntry(
+                tick=200,
+                game_time_s=60,
+                log_type="XP",
+                target_name="npc_dota_hero_hero5",
+                value=40,
+            ),
+            CombatLogEntry(
+                tick=300,
+                game_time_s=61,
+                log_type="XP",
+                target_name="npc_dota_hero_hero0",
+                value=30,
+            ),
+        ]
+
+        m = self._build_with_ts(ts, all_entries=entries)
+
+        # adv[i] = radiant_total_earned_xp - dire_total_earned_xp = 5000 - 1000
+        assert m.radiant_xp_adv == [4000, 4000, 4000]
+
+    def test_interval_snapshots_override_player_minute_adv(self):
+        ts = {
+            0: ([10], [10], 2),
+            5: ([5], [5], 3),
+        }
+        interval_snapshots = [
+            IntervalSnapshot(
+                tick=1800,
+                time_s=60,
+                player_id=0,
+                player_slot=0,
+                team=2,
+                team_slot=0,
+                gold=1000,
+                xp=700,
+            ),
+            IntervalSnapshot(
+                tick=1800,
+                time_s=60,
+                player_id=5,
+                player_slot=128,
+                team=3,
+                team_slot=0,
+                gold=600,
+                xp=450,
+            ),
+        ]
+
+        m = self._build_with_ts(ts, interval_snapshots=interval_snapshots)
+
+        assert m.radiant_gold_adv == [400]
+        assert m.radiant_xp_adv == [250]
+
+    def test_interval_xp_adv_wins_over_combat_log_xp(self):
+        """Complete interval data is authoritative; combat-log XP is ignored.
+
+        Regression for the precedence bug where _radiant_xp_adv_from_combat_log
+        overrode the interval m_iTotalEarnedXP curve, producing grossly wrong
+        advantage curves on long replays (e.g. -94899 vs OpenDota -30499).
+        """
+        ts = {
+            0: ([10], [10], 2),
+            5: ([5], [5], 3),
+        }
+        interval_snapshots = [
+            IntervalSnapshot(
+                tick=1800,
+                time_s=60,
+                player_id=0,
+                player_slot=0,
+                team=2,
+                team_slot=0,
+                gold=1000,
+                xp=700,
+            ),
+            IntervalSnapshot(
+                tick=1800,
+                time_s=60,
+                player_id=5,
+                player_slot=128,
+                team=3,
+                team_slot=0,
+                gold=600,
+                xp=450,
+            ),
+        ]
+        # Combat-log XP entries that, under the old buggy path, would have
+        # produced a completely different curve. They must be ignored entirely.
+        entries = [
+            CombatLogEntry(
+                tick=100,
+                game_time_s=30,
+                log_type="XP",
+                target_name="npc_dota_hero_hero0",
+                value=99999,
+            ),
+        ]
+
+        m = self._build_with_ts(ts, all_entries=entries, interval_snapshots=interval_snapshots)
+
+        # Authoritative interval XP advantage: 700 - 450 = 250.
+        assert m.radiant_xp_adv == [250]
+        assert m.radiant_gold_adv == [400]
+
+    def test_interval_snapshots_populate_player_minute_arrays(self):
+        ts = {
+            0: ([10], [20], 2),
+            5: ([5], [10], 3),
+        }
+        interval_snapshots = [
+            IntervalSnapshot(
+                tick=1800,
+                time_s=60,
+                player_id=0,
+                player_slot=0,
+                team=2,
+                team_slot=0,
+                gold=1000,
+                xp=700,
+                lh=22,
+                dn=3,
+                net_worth=1600,
+            ),
+            IntervalSnapshot(
+                tick=1800,
+                time_s=60,
+                player_id=5,
+                player_slot=128,
+                team=3,
+                team_slot=0,
+                gold=600,
+                xp=450,
+                lh=16,
+                dn=1,
+                net_worth=1200,
+            ),
+        ]
+
+        m = self._build_with_ts(ts, interval_snapshots=interval_snapshots)
+
+        p0 = m.players[0]
+        assert p0.times_min == [1800]
+        assert p0.gold_t_min == [1000]
+        assert p0.total_earned_gold_t_min == [1000]
+        assert p0.xp_t_min == [700]
+        assert p0.total_earned_xp_t_min == [700]
+        assert p0.lh_t_min == [22]
+        assert p0.dn_t_min == [3]
+        assert p0.net_worth_t_min == [1600]
+
+    def test_incomplete_interval_batches_fall_back_to_player_minute_adv(self):
+        ts = {
+            0: ([1000], [500], 2),
+            5: ([500], [200], 3),
+        }
+        interval_snapshots = [
+            IntervalSnapshot(
+                tick=1800,
+                time_s=60,
+                player_id=0,
+                player_slot=0,
+                team=2,
+                team_slot=0,
+                gold=10_000,
+                xp=10_000,
+            ),
+            IntervalSnapshot(
+                tick=3600,
+                time_s=120,
+                player_id=5,
+                player_slot=128,
+                team=3,
+                team_slot=0,
+                gold=9_000,
+                xp=9_000,
+            ),
+        ]
+
+        m = self._build_with_ts(ts, interval_snapshots=interval_snapshots)
+
+        assert m.radiant_gold_adv == [500]
+        assert m.radiant_xp_adv == [300]
+
+    def test_incomplete_interval_batches_keep_player_minute_fallback(self):
+        ts = {
+            0: ([1000], [500], 2),
+            5: ([500], [200], 3),
+        }
+        interval_snapshots = [
+            IntervalSnapshot(
+                tick=1800,
+                time_s=60,
+                player_id=0,
+                player_slot=0,
+                team=2,
+                team_slot=0,
+                gold=10_000,
+                xp=10_000,
+            ),
+            IntervalSnapshot(
+                tick=3600,
+                time_s=120,
+                player_id=5,
+                player_slot=128,
+                team=3,
+                team_slot=0,
+                gold=9_000,
+                xp=9_000,
+            ),
+        ]
+
+        m = self._build_with_ts(ts, interval_snapshots=interval_snapshots)
+
+        p0 = m.players[0]
+        assert p0.times_min == [1800]
+        assert p0.gold_t_min == [100]
+        assert p0.total_earned_gold_t_min == [1000]
+        assert p0.xp_t_min == [500]
+        assert p0.total_earned_xp_t_min == [500]
+        assert p0.net_worth_t_min == [1100]
 
     def test_no_active_players_produces_empty_adv(self):
         """When no players have time series, adv arrays should be empty."""
@@ -945,6 +1269,238 @@ class TestBuildParsedMatchLane10Min:
 
 
 # ---------------------------------------------------------------------------
+# End-of-game terminal scalars (net_worth / last_hits / denies)
+# ---------------------------------------------------------------------------
+
+
+class TestBuildParsedMatchTerminalScalars:
+    def _build_with_dense_series(
+        self,
+        pid: int,
+        net_worth: list[int],
+        last_hits: list[int],
+        denies: list[int],
+    ) -> ParsedMatch:
+        ext = _make_player_ext()
+
+        def ts_for(p):
+            ts = _FakeTimeSeries()
+            if p == pid:
+                ts.net_worth_t = net_worth
+                ts.lh_t = last_hits
+                ts.dn_t = denies
+            return ts
+
+        ext.time_series.side_effect = ts_for
+        ext.minute_time_series.side_effect = ts_for
+        parser = _make_parser()
+        return build_parsed_match(
+            parser,
+            ext,
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            _make_combat_agg(),
+            [],
+            [],
+        )
+
+    def test_terminal_scalars_read_last_dense_sample(self):
+        m = self._build_with_dense_series(
+            0, net_worth=[600, 5000, 18763], last_hits=[0, 90, 175], denies=[0, 3, 5]
+        )
+        assert m.players[0].net_worth == 18763
+        assert m.players[0].last_hits == 175
+        assert m.players[0].denies == 5
+
+    def test_terminal_scalars_default_zero_without_samples(self):
+        m = self._build_with_dense_series(0, net_worth=[], last_hits=[], denies=[])
+        assert m.players[0].net_worth == 0
+        assert m.players[0].last_hits == 0
+        assert m.players[0].denies == 0
+
+
+# ---------------------------------------------------------------------------
+# Team-data terminal counters (camps/creeps stacked, wards, runes, towers)
+# ---------------------------------------------------------------------------
+
+
+class TestBuildParsedMatchTeamCounters:
+    def test_counters_wired_from_interval_extractor(self):
+        ext = _make_player_ext()
+        parser = _make_parser()
+
+        counters_by_player = {
+            0: {
+                "camps_stacked": 13,
+                "creeps_stacked": 30,
+                "obs_placed": 7,
+                "sen_placed": 4,
+                "rune_pickups": 2,
+                "tower_kills": 3,
+            }
+        }
+        interval_ext = MagicMock()
+        interval_ext.all_snapshots = []
+        interval_ext.team_counters.side_effect = lambda pid: counters_by_player.get(
+            pid, dict.fromkeys(counters_by_player[0], 0)
+        )
+
+        m = build_parsed_match(
+            parser,
+            ext,
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            _make_combat_agg(),
+            [],
+            [],
+            interval_ext=interval_ext,
+        )
+
+        p0 = m.players[0]
+        assert p0.camps_stacked == 13
+        assert p0.creeps_stacked == 30
+        assert p0.obs_placed == 7
+        assert p0.sen_placed == 4
+        assert p0.rune_pickups == 2
+        assert p0.tower_kills == 3
+        # A player with no observed counters defaults to zero.
+        assert m.players[1].camps_stacked == 0
+
+    def test_counters_default_zero_without_interval_extractor(self):
+        ext = _make_player_ext()
+        parser = _make_parser()
+        m = build_parsed_match(
+            parser,
+            ext,
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            _make_combat_agg(),
+            [],
+            [],
+        )
+        assert m.players[0].camps_stacked == 0
+        assert m.players[0].tower_kills == 0
+
+
+# ---------------------------------------------------------------------------
+# OpenDota-style computed fields (kda / buyback_count / is_radiant / win)
+# ---------------------------------------------------------------------------
+
+
+class TestBuildParsedMatchComputedFields:
+    def _build(self, *, radiant_win, scoreboard, snaps):
+        parser = _make_parser(radiant_win=radiant_win)
+        ext = _make_player_ext(scoreboard=scoreboard, snapshots=snaps)
+        return build_parsed_match(
+            parser,
+            ext,
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            _make_combat_agg(),
+            [],
+            [],
+        )
+
+    def test_kda_uses_plus_one_denominator_and_two_decimals(self):
+        # (1 + 10) / (7 + 1) = 1.375 -> 1.38 (round-half-to-even on 2 dp).
+        snaps = [_FakePlayerSnapshot(player_id=0, tick=1, npc_name="npc_dota_hero_zuus", team=2)]
+        m = self._build(radiant_win=True, scoreboard={0: (1, 7, 10)}, snaps=snaps)
+        assert m.players[0].kda == 1.38
+
+    def test_kda_zero_deaths_uses_plus_one(self):
+        snaps = [_FakePlayerSnapshot(player_id=0, tick=1, npc_name="npc_dota_hero_zuus", team=2)]
+        m = self._build(radiant_win=True, scoreboard={0: (5, 0, 3)}, snaps=snaps)
+        assert m.players[0].kda == 8.0  # (5 + 3) / (0 + 1)
+
+    def test_is_radiant_and_win_for_radiant_winner(self):
+        snaps = [
+            _FakePlayerSnapshot(player_id=0, tick=1, npc_name="npc_dota_hero_zuus", team=2),
+            _FakePlayerSnapshot(player_id=5, tick=1, npc_name="npc_dota_hero_axe", team=3),
+        ]
+        m = self._build(radiant_win=True, scoreboard={}, snaps=snaps)
+        assert m.players[0].is_radiant is True
+        assert m.players[0].win == 1
+        assert m.players[5].is_radiant is False
+        assert m.players[5].win == 0
+
+    def test_win_zero_for_both_when_winner_unknown(self):
+        snaps = [
+            _FakePlayerSnapshot(player_id=0, tick=1, npc_name="npc_dota_hero_zuus", team=2),
+            _FakePlayerSnapshot(player_id=5, tick=1, npc_name="npc_dota_hero_axe", team=3),
+        ]
+        m = self._build(radiant_win=None, scoreboard={}, snaps=snaps)
+        assert m.players[0].win == 0
+        assert m.players[5].win == 0
+
+    def test_buyback_count_matches_log_length(self):
+        from gem.combat.aggregator import _ParsedPlayerAgg
+
+        aggs = {i: _ParsedPlayerAgg() for i in range(10)}
+        combat_agg = MagicMock()
+        combat_agg.players = aggs
+        combat_agg._agg.side_effect = lambda pid: aggs[pid]
+
+        entries = [_buyback(pid=0, tick=1000), _buyback(pid=0, tick=2000)]
+        m = build_parsed_match(
+            _make_parser(radiant_win=True),
+            _make_player_ext(),
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            combat_agg,
+            entries,
+            [],
+        )
+        assert m.players[0].buyback_count == 2
+        assert m.players[1].buyback_count == 0
+
+
+class TestBuildParsedMatchDuration:
+    def _build(self, *, duration_s, scoreboard=None, snaps=None):
+        parser = _make_parser(duration_s=duration_s)
+        ext = _make_player_ext(scoreboard=scoreboard or {}, snapshots=snaps or [])
+        return build_parsed_match(
+            parser,
+            ext,
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            _make_combat_agg(),
+            [],
+            [],
+        )
+
+    def test_duration_taken_from_parser_postgame_seconds(self):
+        m = self._build(duration_s=2419)
+        assert m.duration == 2419
+
+    def test_duration_zero_when_postgame_not_observed(self):
+        m = self._build(duration_s=None)
+        assert m.duration == 0
+
+    def test_kills_per_min_uses_match_duration(self):
+        # 8 kills over 4177s = 8 / (4177/60).
+        snaps = [_FakePlayerSnapshot(player_id=0, tick=1, npc_name="npc_dota_hero_zuus", team=2)]
+        m = self._build(duration_s=4177, scoreboard={0: (8, 7, 12)}, snaps=snaps)
+        assert m.players[0].kills_per_min == 8 / (4177 / 60)
+
+    def test_kills_per_min_zero_without_duration(self):
+        snaps = [_FakePlayerSnapshot(player_id=0, tick=1, npc_name="npc_dota_hero_zuus", team=2)]
+        m = self._build(duration_s=None, scoreboard={0: (8, 7, 12)}, snaps=snaps)
+        assert m.players[0].kills_per_min == 0.0
+
+
+# ---------------------------------------------------------------------------
 # Player name extraction from entity manager
 # ---------------------------------------------------------------------------
 
@@ -1063,3 +1619,74 @@ class TestNewObjectivesInParsedMatch:
         m = self._build()
         assert m.tormentors == []
         assert m.shrines == []
+
+
+# ---------------------------------------------------------------------------
+# _radiant_adv_from_minute_series — fallback advantage curve (B7)
+# ---------------------------------------------------------------------------
+
+
+class TestRadiantAdvFromMinuteSeries:
+    """Fallback advantage curve must span the full game and align by real minute."""
+
+    @staticmethod
+    def _player(pid, team, gold, xp, times=None):
+        from gem.results.models import ParsedPlayer
+
+        pp = ParsedPlayer(player_id=pid, hero_name=f"npc_dota_hero_h{pid}", team=team)
+        pp.total_earned_gold_t_min = gold
+        pp.total_earned_xp_t_min = xp
+        # Default to one sample per game minute starting at tick 0 (minute 0).
+        pp.times_min = times if times is not None else [i * 1800 for i in range(len(gold))]
+        return pp
+
+    def test_full_length_equal_teams(self):
+        from gem.results.assembly import _radiant_adv_from_minute_series
+
+        players = [
+            self._player(0, 2, [100, 200, 300], [10, 20, 30]),
+            self._player(5, 3, [100, 200, 300], [10, 20, 30]),
+        ]
+        gold_adv, xp_adv = _radiant_adv_from_minute_series(players)
+        assert gold_adv == [0, 0, 0]
+        assert xp_adv == [0, 0, 0]
+
+    def test_leaver_does_not_truncate_curve(self):
+        # One Dire player's minute array stops early (disconnect). The curve must
+        # still span the longest array; the leaver's last earned value carries
+        # forward (total-earned is monotonic and never resets). Regression for the
+        # min()-length truncation bug.
+        from gem.results.assembly import _radiant_adv_from_minute_series
+
+        players = [
+            self._player(0, 2, [100, 200, 300, 400], [0, 0, 0, 0]),  # Radiant, full
+            self._player(5, 3, [100, 200], [0, 0]),  # Dire, leaves after minute 1
+        ]
+        gold_adv, _ = _radiant_adv_from_minute_series(players)
+        # Curve spans 4 minutes (longest), not 2 (shortest).
+        assert len(gold_adv) == 4
+        # Radiant pulls ahead as Dire's carried-forward value (200) stays flat.
+        assert gold_adv == [0, 0, 100, 200]
+
+    def test_leading_gap_aligned_by_real_minute(self):
+        # A player whose first sample is at minute 1 (no minute-0 sample) must be
+        # placed at index 1 — NOT have minute-1's value shifted into index 0.
+        # Regression for Codex P2: index-as-minute corrupts the curve on leading
+        # gaps. Radiant has a full series; Dire's first sample is minute 1.
+        from gem.results.assembly import _radiant_adv_from_minute_series
+
+        radiant = self._player(0, 2, [100, 200, 300], [0, 0, 0], times=[0, 1800, 3600])
+        # Dire missing minute 0: samples land at ticks 1800 (min 1) and 3600 (min 2).
+        dire = self._player(5, 3, [500, 700], [0, 0], times=[1800, 3600])
+        gold_adv, _ = _radiant_adv_from_minute_series([radiant, dire])
+        # Minute 0: only Radiant present (Dire contributes 0, not its minute-1 value).
+        assert gold_adv[0] == 100
+        # Minute 1: 200 - 500. Minute 2: 300 - 700.
+        assert gold_adv[1] == 200 - 500
+        assert gold_adv[2] == 300 - 700
+
+    def test_returns_none_when_no_minute_data(self):
+        from gem.results.assembly import _radiant_adv_from_minute_series
+
+        players = [self._player(0, 2, [], [])]
+        assert _radiant_adv_from_minute_series(players) is None

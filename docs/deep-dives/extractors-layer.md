@@ -16,11 +16,11 @@ Modules covered:
 Prerequisites:
 
 1. [Bits & Bytes Primer](../cookbook/bits-and-bytes-primer.md)
-2. [Stream Layer (`stream.py`)](stream-layer.md)
+2. [Stream Layer (`binary/stream.py`)](stream-layer.md)
 3. [Parser Layer (`parser.py`)](parser-layer.md)
-4. [SendTable Layer (`sendtable.py`)](sendtable-layer.md)
-5. [State Reconstruction Layer (`string_table.py` + `entities.py`)](state-layer.md)
-6. [Event Normalization Layer (`game_events.py` + `combatlog.py`)](event-layer.md)
+4. [SendTable Layer (`schema/sendtable/`)](sendtable-layer.md)
+5. [State Reconstruction Layer (`state/string_table.py` + `state/entities.py`)](state-layer.md)
+6. [Event Normalization Layer (`state/game_events.py` + `combat/log.py`)](event-layer.md)
 
 ## Why this is the next layer
 
@@ -276,7 +276,7 @@ After parse:
 
 ## Real snapshot from fixture (truncated)
 
-From `tests/fixtures/8520014563.dem`:
+From `tests/fixtures/opendota/8822520406.dem`:
 
 ```text
 match_id 8520014563

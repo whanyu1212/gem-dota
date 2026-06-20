@@ -6,11 +6,9 @@ Integration tests parse a real .dem fixture and verify plausible output.
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import pytest
 
-from gem.combatlog import CombatLogEntry
+from gem.combat.log import CombatLogEntry
 from gem.extractors.teamfights import (
     Teamfight,
     _near_fight,
@@ -20,18 +18,22 @@ from gem.extractors.teamfights import (
     detect_teamfights,
 )
 
-FIXTURE = Path(__file__).parent / "fixtures" / "ti14_finals_g3_xg_vs_falcons.dem"
-
 _COOLDOWN = 15 * 30  # 450 ticks
 
 
-def _death(tick: int, target: str = "npc_dota_hero_axe", illusion: bool = False) -> CombatLogEntry:
+def _death(
+    tick: int,
+    target: str = "npc_dota_hero_axe",
+    illusion: bool = False,
+    will_reincarnate: bool = False,
+) -> CombatLogEntry:
     return CombatLogEntry(
         tick=tick,
         log_type="DEATH",
         target_name=target,
         target_is_hero=True,
         target_is_illusion=illusion,
+        will_reincarnate=will_reincarnate,
     )
 
 
@@ -102,6 +104,26 @@ class TestDetectTeamfights:
         entries = [_death(1000, "npc_dota_hero_axe"), _death(1100, "npc_dota_hero_pudge")]
         fights = detect_teamfights(entries)
         assert fights[0].deaths == 2
+
+    def test_reincarnation_trigger_not_counted_as_death(self):
+        # A reincarnation/aegis trigger (will_reincarnate=True) must not count
+        # toward Teamfight.deaths or attribute a per-player death — the hero
+        # returns. Only the subsequent true death counts. Regression for Codex P2:
+        # keeps teamfight/Roshan summaries consistent with the death curve.
+        h2s = {"npc_dota_hero_axe": 0}
+        entries = [
+            _death(1000, "npc_dota_hero_axe", will_reincarnate=True),  # trigger
+            _death(1060, "npc_dota_hero_axe"),  # true death
+        ]
+        fights = detect_teamfights(entries, hero_to_slot=h2s)
+        assert len(fights) == 1
+        assert fights[0].deaths == 1
+        assert fights[0].players[0].deaths == 1
+
+    def test_lone_reincarnation_trigger_opens_no_fight(self):
+        # A solitary trigger death with no real death must not open a fight at all.
+        fights = detect_teamfights([_death(1000, will_reincarnate=True)])
+        assert fights == []
 
     def test_players_list_always_10(self):
         fights = detect_teamfights([_death(1000)])
@@ -194,19 +216,36 @@ class TestDetectTeamfights:
         fights = detect_teamfights(entries, hero_to_slot=h2s)
         assert fights[0].players[0].healing == 0
 
-    def test_gold_delta_attributed_to_attacker(self):
+    def test_gold_delta_attributed_to_recipient(self):
+        # GOLD is credited to the recipient, stored in target_name (not the
+        # attacker / killed unit). Matches OpenDota and combat/aggregator.py.
         h2s = {"npc_dota_hero_axe": 0}
         gold_entry = CombatLogEntry(
             tick=1050,
             log_type="GOLD",
-            attacker_name="npc_dota_hero_axe",
-            attacker_is_hero=True,
+            target_name="npc_dota_hero_axe",
             value=200,
             gold_reason=1,
         )
         entries = [_death(1000), gold_entry]
         fights = detect_teamfights(entries, hero_to_slot=h2s)
         assert fights[0].players[0].gold_delta == 200
+
+    def test_gold_not_attributed_to_attacker(self):
+        # The killed unit (attacker_name) must NOT receive the bounty.
+        h2s = {"npc_dota_hero_axe": 0, "npc_dota_hero_lina": 1}
+        gold_entry = CombatLogEntry(
+            tick=1050,
+            log_type="GOLD",
+            attacker_name="npc_dota_hero_lina",  # killed unit
+            target_name="npc_dota_hero_axe",  # bounty recipient
+            value=200,
+            gold_reason=1,
+        )
+        entries = [_death(1000), gold_entry]
+        fights = detect_teamfights(entries, hero_to_slot=h2s)
+        assert fights[0].players[0].gold_delta == 200  # axe (recipient)
+        assert fights[0].players[1].gold_delta == 0  # lina (killed unit)
 
     def test_item_use_recorded(self):
         h2s = {"npc_dota_hero_axe": 0}
@@ -229,68 +268,60 @@ class TestDetectTeamfights:
 
 
 class TestXpDelta:
-    def test_xp_delta_computed_from_snapshots(self):
+    @staticmethod
+    def _snap(tick, *, current_xp=0, total_earned_xp=0):
+        # xp = m_iCurrentXP (resets on level-up); total_earned_xp =
+        # m_iTotalEarnedXP (monotonic). xp_delta is diffed from the latter.
         from gem.extractors._snapshots import PlayerStateSnapshot
 
-        def _snap(tick, xp):
-            return PlayerStateSnapshot(
-                tick=tick,
-                player_id=0,
-                npc_name="npc_dota_hero_axe",
-                team=2,
-                level=1,
-                xp=xp,
-                gold=0,
-                net_worth=0,
-                total_earned_gold=0,
-                total_earned_xp=0,
-                lh=0,
-                dn=0,
-                hp=500,
-                max_hp=500,
-                mana=0.0,
-                max_mana=0.0,
-                x=None,
-                y=None,
-            )
+        return PlayerStateSnapshot(
+            tick=tick,
+            player_id=0,
+            npc_name="npc_dota_hero_axe",
+            team=2,
+            level=1,
+            xp=current_xp,
+            gold=0,
+            net_worth=0,
+            total_earned_gold=0,
+            total_earned_xp=total_earned_xp,
+            lh=0,
+            dn=0,
+            hp=500,
+            max_hp=500,
+            mana=0.0,
+            max_mana=0.0,
+            x=None,
+            y=None,
+        )
 
+    def test_xp_delta_computed_from_total_earned_xp(self):
         h2s = {"npc_dota_hero_axe": 0}
         # Fight: start_tick = 1000-450=550, end_tick = 1000+450=1450
-        snaps = {0: [_snap(tick=500, xp=1000), _snap(tick=1500, xp=1500)]}
+        snaps = {
+            0: [
+                self._snap(tick=500, total_earned_xp=1000),
+                self._snap(tick=1500, total_earned_xp=1500),
+            ]
+        }
         entries = [_death(1000, "npc_dota_hero_axe")]
         fights = detect_teamfights(entries, hero_to_slot=h2s, player_snapshots=snaps)
         assert fights[0].players[0].xp_delta == 500
 
-    def test_xp_delta_clamped_to_zero(self):
-        from gem.extractors._snapshots import PlayerStateSnapshot
-
-        def _snap(tick, xp):
-            return PlayerStateSnapshot(
-                tick=tick,
-                player_id=0,
-                npc_name="npc_dota_hero_axe",
-                team=2,
-                level=1,
-                xp=xp,
-                gold=0,
-                net_worth=0,
-                total_earned_gold=0,
-                total_earned_xp=0,
-                lh=0,
-                dn=0,
-                hp=500,
-                max_hp=500,
-                mana=0.0,
-                max_mana=0.0,
-                x=None,
-                y=None,
-            )
-
+    def test_xp_delta_survives_levelup(self):
+        # Regression for the m_iCurrentXP bug: a hero who levels up mid-fight has
+        # m_iCurrentXP go *backwards* (400 -> 100), which the old max(0, ...)
+        # clamp erased to 0. m_iTotalEarnedXP keeps rising, so the real gain shows.
         h2s = {"npc_dota_hero_axe": 0}
-        snaps = {0: [_snap(500, xp=2000), _snap(1500, xp=1800)]}
+        snaps = {
+            0: [
+                self._snap(tick=500, current_xp=400, total_earned_xp=1000),
+                self._snap(tick=1500, current_xp=100, total_earned_xp=1700),
+            ]
+        }
         entries = [_death(1000, "npc_dota_hero_axe")]
         fights = detect_teamfights(entries, hero_to_slot=h2s, player_snapshots=snaps)
-        assert fights[0].players[0].xp_delta == 0
+        assert fights[0].players[0].xp_delta == 700  # not 0
 
 
 # ---------------------------------------------------------------------------
@@ -315,6 +346,134 @@ class TestUpdateCentroid:
         cx, cy = _update_centroid(cx, cy, 3, (600.0, 600.0))
         assert abs(cx - 300.0) < 1e-6
         assert abs(cy - 300.0) < 1e-6
+
+
+class TestCentroidPositionedDivisor:
+    """A position-less death must not bias the centroid (uses centroid_n)."""
+
+    @staticmethod
+    def _snap(pid, tick, x, y):
+        from gem.extractors._snapshots import PlayerStateSnapshot
+
+        return PlayerStateSnapshot(
+            tick=tick,
+            player_id=pid,
+            npc_name=f"npc_dota_hero_h{pid}",
+            team=2,
+            level=1,
+            xp=0,
+            gold=0,
+            net_worth=0,
+            total_earned_gold=0,
+            total_earned_xp=0,
+            lh=0,
+            dn=0,
+            hp=500,
+            max_hp=500,
+            mana=0.0,
+            max_mana=0.0,
+            x=x,
+            y=y,
+        )
+
+    def test_positionless_death_excluded_from_centroid(self):
+        # Three deaths in one fight: two positioned at (0,0) and (100,100), one
+        # with no position. Centroid must be the mean of the two positioned
+        # deaths = (50, 50), not biased toward (0,0) by counting the third in
+        # the divisor.
+        h2s = {"npc_dota_hero_h0": 0, "npc_dota_hero_h1": 1, "npc_dota_hero_h2": 2}
+        snaps = {
+            0: [self._snap(0, 1000, 0.0, 0.0)],
+            1: [self._snap(1, 1010, None, None)],  # position-less
+            2: [self._snap(2, 1020, 100.0, 100.0)],
+        }
+        entries = [
+            _death(1000, "npc_dota_hero_h0"),
+            _death(1010, "npc_dota_hero_h1"),
+            _death(1020, "npc_dota_hero_h2"),
+        ]
+        fights = detect_teamfights(entries, hero_to_slot=h2s, player_snapshots=snaps)
+        assert len(fights) == 1
+        assert fights[0].deaths == 3
+        assert fights[0].centroid_n == 2  # only the two positioned deaths
+        assert abs(fights[0].centroid_x - 50.0) < 1e-6
+        assert abs(fights[0].centroid_y - 50.0) < 1e-6
+
+
+class TestRoamingFightAttribution:
+    """Deaths/buybacks must be attributed by fight membership, not by re-checking
+    the player's position against the fight's (later-drifted) final centroid."""
+
+    @staticmethod
+    def _snap(pid, tick, x, y, team=2):
+        from gem.extractors._snapshots import PlayerStateSnapshot
+
+        return PlayerStateSnapshot(
+            tick=tick,
+            player_id=pid,
+            npc_name=f"npc_dota_hero_h{pid}",
+            team=team,
+            level=1,
+            xp=0,
+            gold=0,
+            net_worth=0,
+            total_earned_gold=0,
+            total_earned_xp=0,
+            lh=0,
+            dn=0,
+            hp=500,
+            max_hp=500,
+            mana=0.0,
+            max_mana=0.0,
+            x=x,
+            y=y,
+        )
+
+    def test_drifting_centroid_does_not_drop_deaths(self):
+        # Deaths march across the map. Whether they land in one fight or split
+        # into several (the centroid can drift past _FIGHT_RADIUS from earlier
+        # deaths), the invariant must hold across ALL fights: every death is
+        # attributed to exactly one fight, so per-player deaths sum to the total
+        # death count and kills account for every death. The old pass-2 re-filter
+        # against the final centroid violated this by silently dropping deaths.
+        n = 8
+        step = 1200.0  # < _FIGHT_RADIUS so consecutive deaths chain
+        h2s = {f"npc_dota_hero_h{i}": i for i in range(n)}
+        slot_to_team = {i: (2 if i % 2 == 0 else 3) for i in range(n)}
+        snaps = {
+            i: [self._snap(i, 1000 + i * 30, i * step, 0.0, team=slot_to_team[i])] for i in range(n)
+        }
+        entries = [_death(1000 + i * 30, f"npc_dota_hero_h{i}") for i in range(n)]
+        fights = detect_teamfights(
+            entries, hero_to_slot=h2s, slot_to_team=slot_to_team, player_snapshots=snaps
+        )
+        # The fight may or may not split; the invariant holds regardless.
+        total_player_deaths = sum(p.deaths for f in fights for p in f.players)
+        total_headline_deaths = sum(f.deaths for f in fights)
+        total_kills = sum(f.radiant_kills + f.dire_kills for f in fights)
+        assert total_player_deaths == n  # no death dropped
+        assert total_headline_deaths == n
+        assert total_kills == n
+
+    def test_buyback_far_from_centroid_still_counted(self):
+        # A hero dies in a fight located away from base, then buys back — at the
+        # fountain, far from the fight centroid. The buyback must still be
+        # credited to the fight (its window contains the buyback tick).
+        from gem.combat.log import CombatLogEntry
+
+        h2s = {"npc_dota_hero_h0": 0, "npc_dota_hero_h1": 1}
+        snaps = {
+            0: [self._snap(0, 1000, 20000.0, 20000.0)],  # fight far from base
+            1: [self._snap(1, 1000, 20100.0, 20000.0)],
+        }
+        entries = [
+            _death(1000, "npc_dota_hero_h0"),
+            _death(1000, "npc_dota_hero_h1"),
+            CombatLogEntry(tick=1100, log_type="BUYBACK", value=0),  # slot 0 buys back
+        ]
+        fights = detect_teamfights(entries, hero_to_slot=h2s, player_snapshots=snaps)
+        assert len(fights) == 1
+        assert fights[0].players[0].buybacks == 1
 
 
 class TestNearestPos:
@@ -383,18 +542,19 @@ class TestNearestXp:
     def test_picks_nearest_tick(self):
         from gem.extractors._snapshots import PlayerStateSnapshot
 
-        def _snap(tick, xp):
+        def _snap(tick, total_earned_xp):
+            # _nearest_xp returns total_earned_xp (monotonic), not xp.
             return PlayerStateSnapshot(
                 tick=tick,
                 player_id=0,
                 npc_name="",
                 team=2,
                 level=1,
-                xp=xp,
+                xp=0,
                 gold=0,
                 net_worth=0,
                 total_earned_gold=0,
-                total_earned_xp=0,
+                total_earned_xp=total_earned_xp,
                 lh=0,
                 dn=0,
                 hp=100,
@@ -581,13 +741,13 @@ class TestSpatialSplit:
 @pytest.mark.integration
 class TestTeamfightsIntegration:
     @pytest.fixture(scope="class")
-    def match(self):
+    def match(self, full_replay_path):
         import gem
 
-        return gem.parse(str(FIXTURE))
+        return gem.parse(str(full_replay_path))
 
     def test_teamfights_detected(self, match):
-        assert len(match.teamfights) > 0, "Expected at least one teamfight in TI14 game"
+        assert len(match.teamfights) > 0, "Expected at least one teamfight in replay fixture"
 
     def test_fight_windows_valid(self, match):
         for tf in match.teamfights:

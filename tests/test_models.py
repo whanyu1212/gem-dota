@@ -1,10 +1,10 @@
-"""Tests for gem.models — ParsedPlayer and ParsedMatch dataclasses."""
+"""Tests for gem.results.models — ParsedPlayer and ParsedMatch dataclasses."""
 
 from __future__ import annotations
 
 from collections import defaultdict
 
-from gem.models import ParsedMatch, ParsedPlayer
+from gem.results.models import ParsedMatch, ParsedPlayer
 
 
 class TestParsedPlayerLanePos:

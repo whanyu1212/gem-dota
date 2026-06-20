@@ -6,12 +6,9 @@ verify plausible output.
 
 from __future__ import annotations
 
-from pathlib import Path
+import json
 
 import pytest
-
-FIXTURE = Path(__file__).parent / "fixtures" / "ti14_finals_g3_xg_vs_falcons.dem"
-
 
 # ---------------------------------------------------------------------------
 # Shared fake helpers
@@ -26,7 +23,7 @@ class FakeClass:
 
 
 def _make_entity(class_name: str, state: dict | None = None):
-    from gem.entities import Entity
+    from gem.state.entities import Entity
 
     e = Entity(index=0, serial=0, cls=FakeClass(class_name))
     if state:
@@ -123,7 +120,7 @@ class TestCourierExtractor:
 
     def test_non_courier_entity_ignored(self):
         ext, parser = self._make()
-        from gem.entities import EntityOp
+        from gem.state.entities import EntityOp
 
         entity = _make_entity("CDOTA_Unit_Hero_Axe", {"m_iTeamNum": 2})
         parser.fire_entity(entity, EntityOp.CREATED)
@@ -131,7 +128,7 @@ class TestCourierExtractor:
 
     def test_courier_entity_creates_snapshot(self):
         ext, parser = self._make()
-        from gem.entities import EntityOp
+        from gem.state.entities import EntityOp
 
         entity = _make_entity(
             "CDOTA_Unit_Courier",
@@ -149,7 +146,7 @@ class TestCourierExtractor:
 
     def test_courier_deleted_removes_from_tracking(self):
         ext, parser = self._make()
-        from gem.entities import EntityOp
+        from gem.state.entities import EntityOp
 
         entity = _make_entity("CDOTA_Unit_Courier", {"m_iTeamNum": 2})
         entity_idx = entity.get_index()
@@ -166,7 +163,7 @@ class TestCourierExtractor:
         parser = FakeParser(tick=0)
         ext.attach(parser)
 
-        from gem.entities import EntityOp
+        from gem.state.entities import EntityOp
 
         entity = _make_entity("CDOTA_Unit_Courier", {"m_iTeamNum": 2})
         parser.fire_entity(entity, EntityOp.CREATED)
@@ -203,7 +200,7 @@ class TestDraftExtractor:
 
     def test_non_grp_entity_ignored(self):
         ext, parser = self._make()
-        from gem.entities import EntityOp
+        from gem.state.entities import EntityOp
 
         entity = _make_entity("CDOTA_Unit_Hero_Axe")
         parser.fire_entity(entity, EntityOp.CREATED)
@@ -211,7 +208,7 @@ class TestDraftExtractor:
 
     def test_ban_detected(self):
         ext, parser = self._make()
-        from gem.entities import EntityOp
+        from gem.state.entities import EntityOp
 
         entity = _make_entity(
             "CDOTAGamerulesProxy",
@@ -227,7 +224,7 @@ class TestDraftExtractor:
 
     def test_pick_detected(self):
         ext, parser = self._make()
-        from gem.entities import EntityOp
+        from gem.state.entities import EntityOp
 
         entity = _make_entity(
             "CDOTAGamerulesProxy",
@@ -241,7 +238,7 @@ class TestDraftExtractor:
 
     def test_idempotent_no_duplicate_events(self):
         ext, parser = self._make()
-        from gem.entities import EntityOp
+        from gem.state.entities import EntityOp
 
         entity = _make_entity(
             "CDOTAGamerulesProxy",
@@ -255,7 +252,7 @@ class TestDraftExtractor:
 
     def test_zero_hero_id_ignored(self):
         ext, parser = self._make()
-        from gem.entities import EntityOp
+        from gem.state.entities import EntityOp
 
         entity = _make_entity(
             "CDOTAGamerulesProxy",
@@ -266,7 +263,7 @@ class TestDraftExtractor:
 
     def test_deleted_clears_grp(self):
         ext, parser = self._make()
-        from gem.entities import EntityOp
+        from gem.state.entities import EntityOp
 
         entity = _make_entity("CDOTAGamerulesProxy")
         parser.fire_entity(entity, EntityOp.CREATED)
@@ -290,24 +287,25 @@ class TestDraftExtractor:
 
 class TestStunDuration:
     def test_combat_log_entry_has_stun_duration_default(self):
-        from gem.combatlog import CombatLogEntry
+        from gem.combat.log import CombatLogEntry
 
         e = CombatLogEntry(tick=0, log_type="DAMAGE")
         assert e.stun_duration == 0.0
 
     def test_stun_duration_stored_on_entry(self):
-        from gem.combatlog import CombatLogEntry
+        from gem.combat.log import CombatLogEntry
 
         e = CombatLogEntry(tick=100, log_type="DAMAGE", stun_duration=1.5)
         assert e.stun_duration == 1.5
 
     def test_s2_entry_with_stun_duration(self):
         """process_s2_entry populates stun_duration via HasField."""
-        from gem.combatlog import CombatLogProcessor
+        from gem.combat.log import CombatLogProcessor
 
         class FakeMsg:
             type = 0  # DAMAGE
             attacker_name = 0
+            damage_source_name = 0
             target_name = 0
             inflictor_name = 0
             value = 10
@@ -339,11 +337,12 @@ class TestStunDuration:
         assert collected[0].stun_duration == 2.5
 
     def test_s2_entry_without_stun_duration_defaults_zero(self):
-        from gem.combatlog import CombatLogProcessor
+        from gem.combat.log import CombatLogProcessor
 
         class FakeMsg:
             type = 0
             attacker_name = 0
+            damage_source_name = 0
             target_name = 0
             inflictor_name = 0
             value = 5
@@ -371,7 +370,7 @@ class TestStunDuration:
         assert collected[0].stun_duration == 0.0
 
     def test_parsed_player_has_stuns_dealt(self):
-        from gem.models import ParsedPlayer
+        from gem.results.models import ParsedPlayer
 
         pp = ParsedPlayer(player_id=0)
         assert pp.stuns_dealt == 0.0
@@ -386,18 +385,18 @@ class TestStunDuration:
 @pytest.mark.integration
 class TestPhase8Integration:
     @pytest.fixture(scope="class")
-    def match(self):
+    def match(self, full_replay_path):
         import gem
 
-        return gem.parse(str(FIXTURE))
+        return gem.parse(str(full_replay_path))
 
-    def test_ability_levels_populated(self, match):
+    def test_ability_levels_populated(self, match, full_replay_path):
         from gem.extractors.players import PlayerExtractor
 
         # Re-parse to access snapshots directly
         from gem.parser import ReplayParser
 
-        p = ReplayParser(str(FIXTURE))
+        p = ReplayParser(str(full_replay_path))
         ext = PlayerExtractor()
         ext.attach(p)
         p.parse()
@@ -408,6 +407,18 @@ class TestPhase8Integration:
         for snap in snaps_with_abilities:
             for level in snap.ability_levels.values():
                 assert 0 <= level <= 7, f"Unexpected ability level {level}"
+
+    def test_ability_upgrades_arr_matches_opendota(self, match, full_replay_path):
+        opendota_path = full_replay_path.with_suffix(".opendota.json")
+        if not opendota_path.exists():
+            pytest.skip("OpenDota JSON fixture not available")
+
+        with opendota_path.open() as f:
+            opendota = json.load(f)
+
+        for i, player in enumerate(match.players):
+            expected = opendota["players"][i].get("ability_upgrades_arr") or []
+            assert player.ability_upgrades_arr == expected
 
     def test_courier_snapshots_populated(self, match):
         assert len(match.courier_snapshots) > 0

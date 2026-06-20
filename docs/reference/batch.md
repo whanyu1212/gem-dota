@@ -30,11 +30,11 @@ pip install pyarrow
 
 ## Generated API
 
-## Module `gem.batch`
+## Module `gem.replays.batch`
 
 Bulk replay parsing — process many ``.dem`` files in parallel.
 
-Source: [src/gem/batch.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/batch.py#L1)
+Source: [src/gem/replays/batch.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L1)
 
 ### Top-level functions
 
@@ -46,7 +46,7 @@ def parse_many(source: str | Path | Sequence[str | Path], *, workers: int | None
 
 Parse multiple replays in parallel and return a result per replay.
 
-Source: [src/gem/batch.py:116](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/batch.py#L116)
+Source: [src/gem/replays/batch.py:116](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L116)
 
 ### `parse_many_to_dataframe`
 
@@ -56,7 +56,7 @@ def parse_many_to_dataframe(source: str | Path | Sequence[str | Path], *, worker
 
 Parse multiple replays and concatenate results into per-table DataFrames.
 
-Source: [src/gem/batch.py:189](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/batch.py#L189)
+Source: [src/gem/replays/batch.py:189](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L189)
 
 ### `parse_many_to_parquet`
 
@@ -66,7 +66,7 @@ def parse_many_to_parquet(source: str | Path | Sequence[str | Path], output_dir:
 
 Parse multiple replays and write each to its own parquet subdirectory.
 
-Source: [src/gem/batch.py:235](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/batch.py#L235)
+Source: [src/gem/replays/batch.py:235](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L235)
 
 ### Top-level classes
 
@@ -78,7 +78,7 @@ class ParseResult
 
 Outcome of parsing a single replay.
 
-Source: [src/gem/batch.py:39](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/batch.py#L39)
+Source: [src/gem/replays/batch.py:39](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L39)
 
 #### Dataclass fields
 
@@ -96,4 +96,4 @@ Signature: `def ParseResult.ok(self) -> bool`
 
 Return ``True`` when parsing succeeded.
 
-Source: [src/gem/batch.py:53](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/batch.py#L53)
+Source: [src/gem/replays/batch.py:53](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L53)

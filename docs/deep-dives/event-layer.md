@@ -4,16 +4,16 @@ This page explains how gem converts raw event payloads into typed game events an
 
 Modules covered:
 
-1. `src/gem/game_events.py`
-2. `src/gem/combatlog.py`
+1. `src/gem/state/game_events.py`
+2. `src/gem/combat/log.py`
 
 Prerequisites:
 
 1. [Bits & Bytes Primer](../cookbook/bits-and-bytes-primer.md)
-2. [Stream Layer (`stream.py`)](stream-layer.md)
+2. [Stream Layer (`binary/stream.py`)](stream-layer.md)
 3. [Parser Layer (`parser.py`)](parser-layer.md)
-4. [SendTable Layer (`sendtable.py`)](sendtable-layer.md)
-5. [State Reconstruction Layer (`string_table.py` + `entities.py`)](state-layer.md)
+4. [SendTable Layer (`schema/sendtable/`)](sendtable-layer.md)
+5. [State Reconstruction Layer (`state/string_table.py` + `state/entities.py`)](state-layer.md)
 
 ## Why this is the next layer
 
@@ -25,7 +25,7 @@ After entities/state are reconstructed, parser still needs to handle semantic ev
 
 This layer turns those channels into stable Python objects/callbacks.
 
-## `game_events.py`: schema-driven typed access
+## `state/game_events.py`: schema-driven typed access
 
 ### Core constants
 
@@ -62,9 +62,9 @@ Why schema registration matters:
 - Raw events store keys as indexed values.
 - Schema converts those positional keys into named, typed fields.
 
-## `combatlog.py`: unify S1 + S2 combat channels
+## `combat/log.py`: unify S1 + S2 combat channels
 
-`combatlog.py` normalizes multiple input paths to one output model: `CombatLogEntry`.
+`combat/log.py` normalizes multiple input paths to one output model: `CombatLogEntry`.
 
 ### Key constants
 
@@ -133,7 +133,7 @@ This is where game-end detection also hooks in (`GAME_STATE == 6` path).
 
 ## Real snapshot from fixture
 
-Using `tests/fixtures/8520014563.dem` and parsing up to tick `12000`:
+Using `tests/fixtures/opendota/8822520406.dem` and parsing up to tick `12000`:
 
 ```text
 tick_end 12002

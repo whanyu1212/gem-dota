@@ -3,6 +3,12 @@
 Auto-generated from source docstrings. All public classes and functions follow
 [Google-style docstrings](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings).
 
+## Removed compatibility modules
+
+Root-level compatibility modules from earlier releases, such as `gem.reader`,
+`gem.models`, `gem.map_context`, and `gem.replay_fetch`, have been removed.
+Use the canonical grouped modules documented below.
+
 ## Core parsing modules
 
 | Module | Contents |
@@ -22,10 +28,13 @@ Auto-generated from source docstrings. All public classes and functions follow
 
 | Module | Contents |
 |---|---|
+| [Public API](api.md) | `parse()`, `find_player()`, JSON, DataFrame, and Parquet helpers |
 | [Models](models.md) | `ParsedMatch`, `ParsedPlayer`, output dataclasses |
-| [Constants](constants.md) | `hero_display()`, `item_display()`, name lookups |
-| [Analysis Helpers](analysis.md) | `position_at_tick`, `group_ability_hits`, `teamfight_at_tick`, `heroes_near`, `ability_level_at_tick` |
-| [Match Builder](match_builder.md) | Assembles extractor output into `ParsedMatch` |
+| [Catalog](catalog.md) | Grouped hero, item, ability, league, XP, and map-data lookups |
+| [Constants](constants.md) | Compatibility facade for `hero_display()`, `item_display()`, name lookups |
+| [Analysis Helpers](analysis.md) | Spatial, combat, vision, map-context, and Roshan conversion helpers |
+| [Reports](reports.md) | Self-contained HTML report generation from `ParsedMatch` |
+| [Results Assembly](assembly.md) | Assembles extractor output into `ParsedMatch` |
 | [Combat Aggregator](combat_aggregator.md) | Per-player combat stat aggregation |
 | [DataFrames](dataframes.md) | `parse_to_dataframe()`, `to_parquet()`, `to_json()`, `to_dict()` — export to pandas, Parquet, or JSON |
 | [Batch](batch.md) | `parse_many()`, `parse_many_to_dataframe()`, `parse_many_to_parquet()` — parallel multi-replay processing |

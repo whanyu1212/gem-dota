@@ -12,11 +12,7 @@ Covers:
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import pytest
-
-FIXTURE = Path(__file__).parent / "fixtures" / "ti14_finals_g3_xg_vs_falcons.dem"
 
 # ---------------------------------------------------------------------------
 # Shared fakes
@@ -31,7 +27,7 @@ class FakeClass:
 
 
 def _make_entity(class_name: str, state: dict | None = None):
-    from gem.entities import Entity
+    from gem.state.entities import Entity
 
     e = Entity(index=0, serial=0, cls=FakeClass(class_name))
     if state:
@@ -86,7 +82,7 @@ class FakeParser:
 
 def _make_combat_entry(**kwargs):
     """Build a CombatLogEntry with sensible defaults for unspecified fields."""
-    from gem.combatlog import CombatLogEntry
+    from gem.combat.log import CombatLogEntry
 
     defaults = {
         "tick": 0,
@@ -110,7 +106,7 @@ def _make_combat_entry(**kwargs):
 
 def _attach_hero(parser: FakeParser, npc_name: str, player_id_raw: int = 0):
     """Register a hero entity so _hero_to_pid() can resolve it."""
-    from gem.entities import EntityOp
+    from gem.state.entities import EntityOp
 
     # class name: strip "npc_dota_hero_" prefix, CamelCase it minimally
     suffix = npc_name.replace("npc_dota_hero_", "").replace("_", " ").title().replace(" ", "")
@@ -288,6 +284,41 @@ class TestPlayerExtractorAccumulation:
         )
         assert ext._total_hero_damage.get(0, 0) == 0
 
+    def test_hero_damage_credited_to_source_not_attacker(self):
+        """Projectile/spell damage credits the damage source hero, matching the
+        aggregator so the minute curves stay consistent with the hero_damage scalar.
+        """
+        parser, ext = self._setup("npc_dota_hero_axe", player_id_raw=0)
+        parser.fire_combat_log(
+            _make_combat_entry(
+                log_type="DAMAGE",
+                attacker_name="npc_dota_lone_druid_bear",  # projectile/summon attacker
+                attacker_is_hero=False,
+                damage_source_name="npc_dota_hero_axe",  # owning hero is the source
+                target_name="npc_dota_hero_juggernaut",
+                target_is_hero=True,
+                value=250,
+            )
+        )
+        assert ext._total_hero_damage.get(0, 0) == 250
+
+    def test_hero_damage_excludes_illusion_target(self):
+        """Damage to an illusion target is excluded, matching the scalar."""
+        parser, ext = self._setup("npc_dota_hero_axe", player_id_raw=0)
+        parser.fire_combat_log(
+            _make_combat_entry(
+                log_type="DAMAGE",
+                attacker_name="npc_dota_hero_axe",
+                attacker_is_hero=True,
+                damage_source_name="npc_dota_hero_axe",
+                target_name="npc_dota_hero_juggernaut",
+                target_is_hero=True,
+                target_is_illusion=True,
+                value=200,
+            )
+        )
+        assert ext._total_hero_damage.get(0, 0) == 0
+
     # --- HEALING ---
 
     def test_healing_increments(self):
@@ -315,6 +346,24 @@ class TestPlayerExtractorAccumulation:
                 target_name="npc_dota_creep_radiant",
                 target_is_hero=False,
                 value=100,
+            )
+        )
+        assert ext._total_hero_healing.get(0, 0) == 0
+
+    def test_self_healing_excluded(self):
+        """Self-heal must not count — total_hero_healing tracks healing to allied
+        heroes, matching the aggregator's hero_healing scalar.
+        """
+        parser, ext = self._setup("npc_dota_hero_axe", player_id_raw=0)
+        parser.fire_combat_log(
+            _make_combat_entry(
+                log_type="HEAL",
+                attacker_name="npc_dota_hero_axe",
+                attacker_is_hero=True,
+                damage_source_name="npc_dota_hero_axe",
+                target_name="npc_dota_hero_axe",  # self
+                target_is_hero=True,
+                value=500,
             )
         )
         assert ext._total_hero_healing.get(0, 0) == 0
@@ -474,8 +523,8 @@ class TestPlayerExtractorAccumulation:
 
 class TestSnapshotStamping:
     def _build_snapshot_with_damage(self, damage: int):
-        from gem.entities import EntityOp
         from gem.extractors.players import PlayerExtractor
+        from gem.state.entities import EntityOp
 
         parser = FakeParser(tick=0)
         ext = PlayerExtractor(sample_interval=1, minute_snapshots=False)
@@ -506,8 +555,8 @@ class TestSnapshotStamping:
         assert snap.total_hero_damage == 400
 
     def test_snapshot_carries_zero_when_no_damage(self):
-        from gem.entities import EntityOp
         from gem.extractors.players import PlayerExtractor
+        from gem.state.entities import EntityOp
 
         parser = FakeParser(tick=0)
         ext = PlayerExtractor(sample_interval=1, minute_snapshots=False)
@@ -523,8 +572,8 @@ class TestSnapshotStamping:
 
     def test_snapshots_are_monotonic(self):
         """Running totals must never decrease across successive snapshots."""
-        from gem.entities import EntityOp
         from gem.extractors.players import PlayerExtractor
+        from gem.state.entities import EntityOp
 
         parser = FakeParser(tick=0)
         ext = PlayerExtractor(sample_interval=1, minute_snapshots=False)
@@ -557,8 +606,8 @@ class TestSnapshotStamping:
 
 class TestTimeSeriesInclusion:
     def _build_ext_with_events(self):
-        from gem.entities import EntityOp
         from gem.extractors.players import PlayerExtractor
+        from gem.state.entities import EntityOp
 
         parser = FakeParser(tick=0)
         ext = PlayerExtractor(sample_interval=1, minute_snapshots=True)
@@ -621,8 +670,8 @@ class TestTimeSeriesInclusion:
 
     def test_per_minute_diff_gives_interval_damage(self):
         """Diff of total_hero_damage_t between consecutive minutes = damage in that window."""
-        from gem.entities import EntityOp
         from gem.extractors.players import PlayerExtractor
+        from gem.state.entities import EntityOp
 
         parser = FakeParser(tick=0)
         ext = PlayerExtractor(sample_interval=1, minute_snapshots=True)
@@ -676,39 +725,37 @@ class TestTimeSeriesInclusion:
 @pytest.mark.slow
 @pytest.mark.integration
 class TestMLTotalsIntegration:
-    @pytest.fixture(autouse=True)
-    def _require_fixture(self):
-        if not FIXTURE.exists():
-            pytest.skip("Integration fixture not available")
+    @pytest.fixture(scope="class")
+    def player_ext(self, full_replay_path):
+        """Parse the replay once per class and share the populated extractor.
 
-    def test_running_totals_populated(self):
+        Class-scoped so the full replay fixture is parsed a single time for the whole
+        class instead of once per test method.
+
+        Returns:
+            A ``PlayerExtractor`` populated from a full parse of the fixture.
+        """
         from gem.extractors.players import PlayerExtractor
         from gem.parser import ReplayParser
 
-        parser = ReplayParser(str(FIXTURE))
+        parser = ReplayParser(str(full_replay_path))
         ext = PlayerExtractor(sample_interval=300)
         ext.attach(parser)
         parser.parse()
+        return ext
 
+    def test_running_totals_populated(self, player_ext):
         # At least one player should have non-zero hero damage by end of game
         total_damage_sum = sum(
-            ext.time_series(pid).total_hero_damage_t[-1]
+            player_ext.time_series(pid).total_hero_damage_t[-1]
             for pid in range(10)
-            if ext.time_series(pid).total_hero_damage_t
+            if player_ext.time_series(pid).total_hero_damage_t
         )
         assert total_damage_sum > 0, "expected non-zero total hero damage across all players"
 
-    def test_running_totals_monotonic_in_time_series(self):
-        from gem.extractors.players import PlayerExtractor
-        from gem.parser import ReplayParser
-
-        parser = ReplayParser(str(FIXTURE))
-        ext = PlayerExtractor(sample_interval=300)
-        ext.attach(parser)
-        parser.parse()
-
+    def test_running_totals_monotonic_in_time_series(self, player_ext):
         for pid in range(10):
-            ts = ext.time_series(pid)
+            ts = player_ext.time_series(pid)
             if not ts.total_hero_damage_t:
                 continue
             assert ts.total_hero_damage_t == sorted(ts.total_hero_damage_t), (
@@ -718,17 +765,9 @@ class TestMLTotalsIntegration:
                 f"player {pid}: total_deaths_t not monotonic"
             )
 
-    def test_time_series_list_lengths_equal(self):
-        from gem.extractors.players import PlayerExtractor
-        from gem.parser import ReplayParser
-
-        parser = ReplayParser(str(FIXTURE))
-        ext = PlayerExtractor(sample_interval=300)
-        ext.attach(parser)
-        parser.parse()
-
+    def test_time_series_list_lengths_equal(self, player_ext):
         for pid in range(10):
-            ts = ext.time_series(pid)
+            ts = player_ext.time_series(pid)
             n = len(ts.ticks)
             assert len(ts.total_hero_damage_t) == n, f"player {pid}: damage list length mismatch"
             assert len(ts.total_hero_healing_t) == n, f"player {pid}: healing list length mismatch"

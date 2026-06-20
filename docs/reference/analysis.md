@@ -11,6 +11,18 @@ data into higher-level structures for agentic and analytical use.
 > For the full derivation, data flow, and limitations, see
 > [Experimental Features → Estimate Vision](../experimental/estimate-vision.md).
 
+Canonical implementation modules are split by responsibility:
+
+- `gem.analysis.spatial` — position, nearby-hero, and net-worth lookup helpers
+- `gem.analysis.combat` — ability-hit grouping and teamfight helpers
+- `gem.analysis.abilities` — ability-level lookup helpers
+- `gem.analysis.vision` — geometry-based vision approximation helpers
+- `gem.analysis.map_context` — objective-aware farming context helpers
+- `gem.analysis.roshan` — Roshan conversion summaries
+
+`gem.analysis` re-exports the public helpers below. Use `gem.analysis.map_context`
+and `gem.analysis.roshan` for module-level imports.
+
 All functions are exported directly from `gem.*`:
 
 ```python
@@ -438,11 +450,11 @@ Lower-level helper: download from a known URL and decompress `.bz2` → `.dem`.
 
 ## Generated API
 
-## Module `gem.analysis`
+## Module `gem.analysis.spatial`
 
-Post-parse analysis helpers for gem replay data.
+Spatial and time-series helpers for parsed match analysis.
 
-Source: [src/gem/analysis.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis.py#L1)
+Source: [src/gem/analysis/spatial.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/spatial.py#L1)
 
 ### Top-level functions
 
@@ -454,27 +466,7 @@ def position_at_tick(player: ParsedPlayer, tick: int) -> tuple[float, float] | N
 
 Return the closest recorded (x, y) position for a player at a given tick.
 
-Source: [src/gem/analysis.py:55](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis.py#L55)
-
-### `group_ability_hits`
-
-```python
-def group_ability_hits(combat_log: list[CombatLogEntry], window_ticks: int = 5) -> list[AbilityCast]
-```
-
-Group DAMAGE combat log entries into per-cast ``AbilityCast`` records.
-
-Source: [src/gem/analysis.py:129](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis.py#L129)
-
-### `teamfight_at_tick`
-
-```python
-def teamfight_at_tick(match: ParsedMatch, tick: int) -> Teamfight | None
-```
-
-Return the teamfight window that contains the given tick, or ``None``.
-
-Source: [src/gem/analysis.py:206](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis.py#L206)
+Source: [src/gem/analysis/spatial.py:13](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/spatial.py#L13)
 
 ### `heroes_near`
 
@@ -484,27 +476,7 @@ def heroes_near(match: ParsedMatch, tick: int, x: float, y: float, radius: float
 
 Return all heroes within ``radius`` world units of ``(x, y)`` at ``tick``.
 
-Source: [src/gem/analysis.py:244](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis.py#L244)
-
-### `ability_level_at_tick`
-
-```python
-def ability_level_at_tick(player: ParsedPlayer, ability: str, tick: int) -> int
-```
-
-Return the level of an ability for a player at a given tick.
-
-Source: [src/gem/analysis.py:290](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis.py#L290)
-
-### `estimate_vision`
-
-```python
-def estimate_vision(match: ParsedMatch, team: int, tick: int, x: float, y: float) -> list[VisionSource]
-```
-
-Estimate which allied units were providing vision of ``(x, y)`` at ``tick``.
-
-Source: [src/gem/analysis.py:388](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis.py#L388)
+Source: [src/gem/analysis/spatial.py:56](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/spatial.py#L56)
 
 ### `net_worth_at`
 
@@ -514,17 +486,35 @@ def net_worth_at(player: ParsedPlayer, tick: int) -> int
 
 Return the closest sampled net worth for a player at the given tick.
 
-Source: [src/gem/analysis.py:536](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis.py#L536)
+Source: [src/gem/analysis/spatial.py:97](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/spatial.py#L97)
 
-### `ward_vision_impact`
+## Module `gem.analysis.combat`
+
+Combat-log and teamfight analysis helpers.
+
+Source: [src/gem/analysis/combat.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L1)
+
+### Top-level functions
+
+### `group_ability_hits`
 
 ```python
-def ward_vision_impact(ward: object, match: ParsedMatch) -> int
+def group_ability_hits(combat_log: list[CombatLogEntry], window_ticks: int = 5) -> list[AbilityCast]
 ```
 
-Count distinct enemy heroes spotted by an observer ward during its lifetime.
+Group DAMAGE combat log entries into per-cast ``AbilityCast`` records.
 
-Source: [src/gem/analysis.py:568](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis.py#L568)
+Source: [src/gem/analysis/combat.py:41](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L41)
+
+### `teamfight_at_tick`
+
+```python
+def teamfight_at_tick(match: ParsedMatch, tick: int) -> Teamfight | None
+```
+
+Return the teamfight window that contains the given tick, or ``None``.
+
+Source: [src/gem/analysis/combat.py:113](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L113)
 
 ### `is_active_teamfight_participant`
 
@@ -534,17 +524,7 @@ def is_active_teamfight_participant(player_stats: object) -> bool
 
 Return True if a player was an active participant in a teamfight.
 
-Source: [src/gem/analysis.py:640](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis.py#L640)
-
-### `format_npc_name`
-
-```python
-def format_npc_name(name: str) -> str
-```
-
-Convert an NPC name to a human-readable label.
-
-Source: [src/gem/analysis.py:678](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis.py#L678)
+Source: [src/gem/analysis/combat.py:146](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L146)
 
 ### Top-level classes
 
@@ -556,7 +536,7 @@ class AbilityCast
 
 A single ability (or item) cast with all targets it hit.
 
-Source: [src/gem/analysis.py:104](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis.py#L104)
+Source: [src/gem/analysis/combat.py:16](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L16)
 
 #### Dataclass fields
 
@@ -571,6 +551,54 @@ Source: [src/gem/analysis.py:104](https://github.com/whanyu1212/gem-dota/blob/ma
 | `stun_duration` | `float` | `0.0` |
 | `entries` | `list[CombatLogEntry]` | `field(...)` |
 
+## Module `gem.analysis.abilities`
+
+Ability-level lookup helpers.
+
+Source: [src/gem/analysis/abilities.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/abilities.py#L1)
+
+### Top-level functions
+
+### `ability_level_at_tick`
+
+```python
+def ability_level_at_tick(player: ParsedPlayer, ability: str, tick: int) -> int
+```
+
+Return the level of an ability for a player at a given tick.
+
+Source: [src/gem/analysis/abilities.py:12](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/abilities.py#L12)
+
+## Module `gem.analysis.vision`
+
+Vision approximation helpers for parsed matches.
+
+Source: [src/gem/analysis/vision.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L1)
+
+### Top-level functions
+
+### `estimate_vision`
+
+```python
+def estimate_vision(match: ParsedMatch, team: int, tick: int, x: float, y: float) -> list[VisionSource]
+```
+
+Estimate which allied units were providing vision of ``(x, y)`` at ``tick``.
+
+Source: [src/gem/analysis/vision.py:74](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L74)
+
+### `ward_vision_impact`
+
+```python
+def ward_vision_impact(ward: object, match: ParsedMatch) -> int
+```
+
+Count distinct enemy heroes spotted by an observer ward during its lifetime.
+
+Source: [src/gem/analysis/vision.py:220](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L220)
+
+### Top-level classes
+
 ### `VisionSource`
 
 ```python
@@ -579,7 +607,7 @@ class VisionSource
 
 One unit that was providing vision of a map point at a given tick.
 
-Source: [src/gem/analysis.py:344](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis.py#L344)
+Source: [src/gem/analysis/vision.py:30](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L30)
 
 #### Dataclass fields
 
@@ -589,3 +617,194 @@ Source: [src/gem/analysis.py:344](https://github.com/whanyu1212/gem-dota/blob/ma
 | `name` | `str` | `-` |
 | `distance` | `float` | `-` |
 | `vision_radius` | `int` | `-` |
+
+## Module `gem.analysis.formatting`
+
+Formatting helpers for parsed Dota names.
+
+Source: [src/gem/analysis/formatting.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/formatting.py#L1)
+
+### Top-level functions
+
+### `format_npc_name`
+
+```python
+def format_npc_name(name: str) -> str
+```
+
+Convert an NPC name to a human-readable label.
+
+Source: [src/gem/analysis/formatting.py:6](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/formatting.py#L6)
+
+## Module `gem.analysis.map_context`
+
+Objective-aware map-context helpers for farming-pattern analysis.
+
+Source: [src/gem/analysis/map_context.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L1)
+
+### Top-level functions
+
+### `build_map_context_timeline`
+
+```python
+def build_map_context_timeline(match: ParsedMatch, team: int, bucket_ticks: int = _DEFAULT_BUCKET_TICKS, presence_window_ticks: int = _DEFAULT_PRESENCE_WINDOW_TICKS) -> list[MapContextBucket]
+```
+
+Build objective-aware context buckets for one team's perspective.
+
+Source: [src/gem/analysis/map_context.py:187](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L187)
+
+### `score_camp_visit_context`
+
+```python
+def score_camp_visit_context(*, team: int, camp_id: int, camp_type: str, neutral_kills: int, neutral_damage: int, xp_gain: int, bucket: MapContextBucket) -> CampVisitContext
+```
+
+Score one camp visit against a context bucket.
+
+Source: [src/gem/analysis/map_context.py:325](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L325)
+
+### `world_in_bounds`
+
+```python
+def world_in_bounds(x: float, y: float) -> bool
+```
+
+Return True when world coordinates are within calibrated map bounds.
+
+Source: [src/gem/analysis/map_context.py:479](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L479)
+
+### Top-level classes
+
+### `MapContextBucket`
+
+```python
+class MapContextBucket
+```
+
+Objective- and vision-aware map-state summary for one time bucket.
+
+Source: [src/gem/analysis/map_context.py:40](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L40)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `start_tick` | `int` | `-` |
+| `end_tick` | `int` | `-` |
+| `tower_alive_radiant` | `int` | `-` |
+| `tower_alive_dire` | `int` | `-` |
+| `t1_mid_alive_radiant` | `bool` | `-` |
+| `t1_mid_alive_dire` | `bool` | `-` |
+| `roshan_last_kill_tick` | `int | None` | `-` |
+| `aegis_holder_team` | `int | None` | `-` |
+| `aegis_active` | `bool` | `-` |
+| `tormentor_last_kill_tick` | `int | None` | `-` |
+| `ward_count_radiant` | `int` | `-` |
+| `ward_count_dire` | `int` | `-` |
+| `net_worth_advantage` | `int` | `-` |
+| `xp_advantage` | `int` | `-` |
+| `enemy_presence_by_region` | `dict[str, float]` | `field(...)` |
+
+### `CampVisitContext`
+
+```python
+class CampVisitContext
+```
+
+Context scores and explainability labels for one camp visit.
+
+Source: [src/gem/analysis/map_context.py:61](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L61)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `farm_safety_score` | `float` | `-` |
+| `pressure_score` | `float` | `-` |
+| `expected_value_score` | `float` | `-` |
+| `context_label` | `Literal['safe_home_farm', 'pressured_home_farm', 'defensive_home_farm', 'safe_invade', 'pressure_invade', 'high_risk_invade']` | `-` |
+| `context_drivers` | `list[str]` | `field(...)` |
+
+## Module `gem.analysis.roshan`
+
+Post-parse Roshan conversion analysis.
+
+Source: [src/gem/analysis/roshan.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L1)
+
+### Top-level functions
+
+### `build_rosh_conversions`
+
+```python
+def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]
+```
+
+Summarise how well each Roshan was converted into advantage.
+
+Source: [src/gem/analysis/roshan.py:387](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L387)
+
+### Top-level classes
+
+### `RoshTimelineEvent`
+
+```python
+class RoshTimelineEvent
+```
+
+One notable event inside a Roshan conversion sequence.
+
+Source: [src/gem/analysis/roshan.py:36](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L36)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `tick` | `int` | `-` |
+| `kind` | `Literal['roshan', 'aegis_pickup', 'aegis_denied', 'fight_win', 'fight_loss', 'fight_draw', 'tower', 'barracks', 'buyback', 'aegis_end', 'game_end']` | `-` |
+| `label` | `str` | `-` |
+
+### `RoshConversion`
+
+```python
+class RoshConversion
+```
+
+Derived summary for one Roshan kill and the advantage window that followed.
+
+Source: [src/gem/analysis/roshan.py:57](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L57)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `rosh_number` | `int` | `-` |
+| `rosh_tick` | `int` | `-` |
+| `killer_name` | `str` | `-` |
+| `holder_team` | `int | None` | `-` |
+| `holder_player_id` | `int | None` | `-` |
+| `holder_name` | `str` | `-` |
+| `aegis_pickup_tick` | `int | None` | `-` |
+| `immediate_end_tick` | `int` | `-` |
+| `aegis_end_tick` | `int` | `-` |
+| `aegis_eval_end_tick` | `int` | `-` |
+| `extended_end_tick` | `int` | `-` |
+| `aegis_fate` | `Literal['consumed', 'expired', 'denied', 'game_end', 'unknown']` | `-` |
+| `first_fight_tick` | `int | None` | `-` |
+| `first_objective_tick` | `int | None` | `-` |
+| `fight_count` | `int` | `-` |
+| `fights_won` | `int` | `-` |
+| `fights_lost` | `int` | `-` |
+| `fights_drawn` | `int` | `-` |
+| `towers_taken` | `int` | `-` |
+| `barracks_taken` | `int` | `-` |
+| `enemy_buybacks_forced` | `int` | `-` |
+| `enemy_half_observer_delta` | `int` | `-` |
+| `enemy_half_farm_share_before` | `float` | `-` |
+| `enemy_half_farm_share_during` | `float` | `-` |
+| `enemy_half_farm_share_delta` | `float` | `-` |
+| `conversion_score` | `int` | `-` |
+| `conversion_label` | `Literal['low_conversion', 'fight_conversion', 'objective_conversion', 'map_squeeze', 'game_closing_rosh']` | `-` |
+| `aegis_outcome` | `Literal['consumed_in_fight', 'expired_after_use', 'expired_unused', 'denied', 'window_lost', 'game_ended', 'unknown']` | `-` |
+| `drivers` | `list[str]` | `field(...)` |
+| `timeline_events` | `list[RoshTimelineEvent]` | `field(...)` |

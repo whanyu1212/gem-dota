@@ -13,21 +13,21 @@ flowchart TD
 
     subgraph BINARY ["Binary decoding"]
         direction LR
-        B["stream.py\nouter frames"] --> C["reader.py\nbits & varints"]
+        B["binary/stream.py\nouter frames"] --> C["binary/reader.py\nbits & varints"]
     end
 
     subgraph SCHEMA ["Schema & state"]
         direction LR
-        D["sendtable.py\nserializer tree"] --> E["field_decoder.py\ntype dispatch"]
-        D --> F["field_path.py\nHuffman paths"]
-        G["string_table.py\nkey-value tables"]
-        H["entities.py\ndelta updates"]
+        D["schema/sendtable/\nserializer tree"] --> E["schema/field_decoder/\ntype dispatch"]
+        D --> F["schema/field_path/\nHuffman paths"]
+        G["state/string_table.py\nkey-value tables"]
+        H["state/entities.py\ndelta updates"]
     end
 
     subgraph EVENTS ["Events"]
         direction LR
-        I["game_events.py"]
-        J["combatlog.py"]
+        I["state/game_events.py"]
+        J["combat/log.py"]
     end
 
     subgraph EXTRACT ["Extractors"]
@@ -41,7 +41,7 @@ flowchart TD
     end
 
     subgraph ASSEMBLE ["Assembly"]
-        K["combat_aggregator.py"] --> L["match_builder.py"]
+        K["combat/aggregator.py"] --> L["results/assembly.py"]
     end
 
     O(["ParsedMatch"])
@@ -76,21 +76,27 @@ flowchart TD
   <div class="arch-layer arch-layer--parse">
     <span class="arch-layer-label">Binary decoding</span>
     <div class="arch-layer-modules">
-      <span class="arch-badge">stream.py</span>
-      <span class="arch-badge">reader.py</span>
-      <span class="arch-badge">sendtable.py</span>
-      <span class="arch-badge">field_decoder.py</span>
-      <span class="arch-badge">field_path.py</span>
-      <span class="arch-badge">string_table.py</span>
-      <span class="arch-badge">entities.py</span>
+      <span class="arch-badge">binary/stream.py</span>
+      <span class="arch-badge">binary/reader.py</span>
+    </div>
+  </div>
+
+  <div class="arch-layer arch-layer--parse">
+    <span class="arch-layer-label">Schema decoding</span>
+    <div class="arch-layer-modules">
+      <span class="arch-badge">schema/sendtable/</span>
+      <span class="arch-badge">schema/field_decoder/</span>
+      <span class="arch-badge">schema/field_path/</span>
+      <span class="arch-badge">state/string_table.py</span>
+      <span class="arch-badge">state/entities.py</span>
     </div>
   </div>
 
   <div class="arch-layer arch-layer--parse">
     <span class="arch-layer-label">Events</span>
     <div class="arch-layer-modules">
-      <span class="arch-badge">game_events.py</span>
-      <span class="arch-badge">combatlog.py</span>
+      <span class="arch-badge">state/game_events.py</span>
+      <span class="arch-badge">combat/log.py</span>
     </div>
   </div>
 
@@ -109,16 +115,16 @@ flowchart TD
   <div class="arch-layer arch-layer--assemble">
     <span class="arch-layer-label">Assembly</span>
     <div class="arch-layer-modules">
-      <span class="arch-badge">combat_aggregator.py</span>
-      <span class="arch-badge">match_builder.py</span>
+      <span class="arch-badge">combat/aggregator.py</span>
+      <span class="arch-badge">results/assembly.py</span>
     </div>
   </div>
 
   <div class="arch-layer arch-layer--output">
     <span class="arch-layer-label">Output</span>
     <div class="arch-layer-modules">
-      <span class="arch-badge">models.py · ParsedMatch</span>
-      <span class="arch-badge">dataframes.py</span>
+      <span class="arch-badge">results/models.py · ParsedMatch</span>
+      <span class="arch-badge">results/dataframes.py</span>
     </div>
   </div>
 

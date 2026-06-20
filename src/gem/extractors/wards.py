@@ -18,8 +18,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal
 
-from gem.combatlog import CombatLogEntry
-from gem.entities import Entity, EntityOp
+from gem.combat.log import CombatLogEntry
+from gem.extractors._snapshots import _player_id_from_entity, _pos
+from gem.state.entities import Entity, EntityOp
 
 if TYPE_CHECKING:
     from gem.parser import ReplayParser
@@ -27,8 +28,6 @@ if TYPE_CHECKING:
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-
-_CELL_SIZE = 128
 
 _WARD_CLASSES: frozenset[str] = frozenset(
     {
@@ -46,54 +45,13 @@ _CLASS_TO_TARGET: dict[str, str] = {
     "CDOTA_NPC_Observer_Ward_TrueSight": "npc_dota_sentry_wards",
 }
 
-# Ward lifespan in ticks (~30 ticks/s at normal speed)
-_OBSERVER_LIFESPAN_TICKS = 720  # ~6 minutes
-_SENTRY_LIFESPAN_TICKS = 360  # ~3 minutes
+# Ward lifespan in ticks (30 ticks/s). Durations per current patch:
+# observer 360 s (6 min), sentry 420 s (7 min).
+# Reference: https://liquipedia.net/dota2/Observer_Ward,
+#            https://liquipedia.net/dota2/Sentry_Ward
+_OBSERVER_LIFESPAN_TICKS = 360 * 30  # 10800 ticks (6 min)
+_SENTRY_LIFESPAN_TICKS = 420 * 30  # 12600 ticks (7 min)
 _EXPIRY_TOLERANCE_TICKS = 30  # grace window to classify natural expiry vs. kill
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-
-def _pos(entity: Entity) -> tuple[float, float] | None:
-    """Return world (x, y) from cell+vec encoding on the entity.
-
-    Args:
-        entity: The entity to read coordinates from.
-
-    Returns:
-        ``(x, y)`` world coordinates, or ``None`` if any field is missing.
-    """
-    cell_x = entity.get_uint32("CBodyComponent.m_cellX")
-    cell_y = entity.get_uint32("CBodyComponent.m_cellY")
-    vec_x = entity.get_float32("CBodyComponent.m_vecX")
-    vec_y = entity.get_float32("CBodyComponent.m_vecY")
-    if cell_x is None or cell_y is None or vec_x is None or vec_y is None:
-        return None
-    return (cell_x * _CELL_SIZE + vec_x, cell_y * _CELL_SIZE + vec_y)
-
-
-def _player_slot_from_entity(entity: Entity | None) -> int:
-    """Read the player slot from a hero/controller entity.
-
-    Mirrors ``getPlayerSlotFromEntity`` in Parse.java — tries ``m_nPlayerID``,
-    then ``m_iPlayerID``, then ``m_iPlayerOwnerID``, divides by 2.
-
-    Args:
-        entity: Entity to read from, or ``None``.
-
-    Returns:
-        Player slot (0-9), or -1 if unresolvable.
-    """
-    if entity is None:
-        return -1
-    for field_name in ("m_nPlayerID", "m_iPlayerID", "m_iPlayerOwnerID"):
-        val = entity.get_int32(field_name)
-        if val is not None and val >= 0:
-            return val // 2
-    return -1
 
 
 # ---------------------------------------------------------------------------
@@ -262,12 +220,10 @@ class WardsExtractor:
 
         # Track heroes by player_id for late placer attribution
         if cls.startswith("CDOTA_Unit_Hero_"):
-            pid = entity.get_int32("m_nPlayerID")
-            if pid is None:
-                pid = entity.get_int32("m_iPlayerID")
-            if pid is not None and pid >= 0:
+            pid = _player_id_from_entity(entity)
+            if pid is not None:
                 npc = "npc_dota_hero_" + cls[len("CDOTA_Unit_Hero_") :].lower()
-                self._hero_by_player_id[pid // 2] = npc
+                self._hero_by_player_id[pid] = npc
             return
 
         if cls not in _WARD_CLASSES:
@@ -315,7 +271,11 @@ class WardsExtractor:
             em = self._parser.entity_manager
             if em is not None:
                 owner = em.find_by_handle(owner_handle)
-                player_id = _player_slot_from_entity(owner)
+                # The ward's owner can be an owned unit (not the hero directly),
+                # so allow the m_iPlayerOwnerID fallback here.
+                # -1 sentinel = unresolved placer (consumed downstream as `>= 0`).
+                resolved = _player_id_from_entity(owner, allow_owner=True)
+                player_id = resolved if resolved is not None else -1
                 if owner is not None:
                     owner_cls = owner.get_class_name()
                     if owner_cls.startswith("CDOTA_Unit_Hero_"):

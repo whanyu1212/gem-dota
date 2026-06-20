@@ -12,6 +12,11 @@ wheels/
 # Virtual environments
 .venv
 
+# Local secrets / environment config (e.g. STEAM_API_KEY) — never commit
+.env
+.env.*
+!.env.example
+
 # Downloaded icons — fetched by scripts/fetch_hero_icons.py / fetch_item_icons.py, not committed
 src/gem/data/hero_icons/
 src/gem/data/item_icons/
@@ -26,6 +31,10 @@ tests/fixtures/**/*.dem
 # Truncated fixtures ARE committed (small, used for unit tests)
 !tests/fixtures/*_truncated.dem
 !tests/fixtures/**/*_truncated.dem
+
+# Scratch dir for OpenDota validation downloads (DEFAULT_FETCH_DIR in
+# scripts/validate_opendota.py) — replays + reference JSON, never committed.
+tmp/
 
 # Downloaded proto source files
 proto_definitions/

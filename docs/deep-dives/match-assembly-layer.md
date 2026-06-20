@@ -8,18 +8,18 @@ This page explains how gem turns extractor state into final outputs:
 
 Modules covered:
 
-1. `src/gem/combat_aggregator.py`
-2. `src/gem/match_builder.py`
-3. `src/gem/dataframes.py`
+1. `src/gem/combat/aggregator.py`
+2. `src/gem/results/assembly.py`
+3. `src/gem/results/dataframes.py`
 
 Prerequisites:
 
 1. [Bits & Bytes Primer](../cookbook/bits-and-bytes-primer.md)
-2. [Stream Layer (`stream.py`)](stream-layer.md)
+2. [Stream Layer (`binary/stream.py`)](stream-layer.md)
 3. [Parser Layer (`parser.py`)](parser-layer.md)
-4. [SendTable Layer (`sendtable.py`)](sendtable-layer.md)
-5. [State Reconstruction Layer (`string_table.py` + `entities.py`)](state-layer.md)
-6. [Event Normalization Layer (`game_events.py` + `combatlog.py`)](event-layer.md)
+4. [SendTable Layer (`schema/sendtable/`)](sendtable-layer.md)
+5. [State Reconstruction Layer (`state/string_table.py` + `state/entities.py`)](state-layer.md)
+6. [Event Normalization Layer (`state/game_events.py` + `combat/log.py`)](event-layer.md)
 7. [Extractors Layer](extractors-layer.md)
 
 ## Why this is the next layer
@@ -30,7 +30,7 @@ After extractors collect raw timelines, this layer:
 2. computes derived metrics (lane stats, advantages, teamfights)
 3. exposes table outputs for analytics pipelines
 
-## `combat_aggregator.py`: per-player combat counters
+## `combat/aggregator.py`: per-player combat counters
 
 `_CombatAggregator` consumes normalized `CombatLogEntry` events during parse and accumulates per-player buckets.
 
@@ -61,9 +61,9 @@ After extractors collect raw timelines, this layer:
 | `DEATH` | append kills log for attacker |
 | `PURCHASE` | append purchase log (attacker/target fallback) |
 | `PICKUP_RUNE` | append rune event for player slot in `entry.value` |
-| `BUYBACK` | populated later in `match_builder` post-pass |
+| `BUYBACK` | populated later in the `results/assembly.py` post-pass |
 
-## `match_builder.py`: assemble final `ParsedMatch`
+## `results/assembly.py`: assemble final `ParsedMatch`
 
 `build_parsed_match(...)` is the main output assembly function.
 
@@ -98,7 +98,7 @@ After extractors collect raw timelines, this layer:
 2. Lane role is derived from first 10 minutes only.
 3. Purchase logs are deduplicated only in the starting snapshot window.
 
-## `dataframes.py`: tabular projection layer
+## `results/dataframes.py`: tabular projection layer
 
 `build_dataframes(match)` converts `ParsedMatch` into analytics-friendly DataFrames.
 
@@ -131,7 +131,7 @@ After extractors collect raw timelines, this layer:
 
 ## Real snapshot from fixture (truncated)
 
-From `parse_to_dataframe("tests/fixtures/8520014563.dem")`:
+From `parse_to_dataframe("tests/fixtures/opendota/8822520406.dem")`:
 
 ```text
 table_count 17

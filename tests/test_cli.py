@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from gem.__main__ import main
-from gem.models import ParsedMatch
+from gem.cli import main
+from gem.results.models import ParsedMatch
 
 
 def _mock_match() -> ParsedMatch:
@@ -22,8 +22,14 @@ def _mock_match() -> ParsedMatch:
 
 
 class TestCli:
+    def test_python_m_adapter_uses_cli_main(self):
+        import gem.__main__ as module_main
+        import gem.cli as cli
+
+        assert module_main.main is cli.main
+
     def test_summary_format_default_is_backward_compatible(self, monkeypatch, capsys):
-        from gem import __main__ as cli
+        import gem.cli as cli
 
         monkeypatch.setattr("sys.argv", ["gem", "fake.dem"])
         monkeypatch.setattr(cli, "parse", lambda path: _mock_match())
@@ -37,7 +43,7 @@ class TestCli:
         assert "npc_dota_hero_axe" in out
 
     def test_json_format_prints_to_stdout_without_output(self, monkeypatch, capsys):
-        from gem import __main__ as cli
+        import gem.cli as cli
 
         monkeypatch.setattr("sys.argv", ["gem", "fake.dem", "--format", "json"])
         monkeypatch.setattr(cli, "parse_to_json", lambda path, indent=2: '{"match_id": 321}')
@@ -48,7 +54,7 @@ class TestCli:
         assert '{"match_id": 321}' in out
 
     def test_json_format_writes_to_file_when_output_given(self, monkeypatch, tmp_path):
-        from gem import __main__ as cli
+        import gem.cli as cli
 
         out_file = tmp_path / "out.json"
         monkeypatch.setattr(
@@ -73,7 +79,7 @@ class TestCli:
         assert "--output is required" in err
 
     def test_parquet_calls_parse_to_parquet(self, monkeypatch, tmp_path, capsys):
-        from gem import __main__ as cli
+        import gem.cli as cli
 
         out_dir = tmp_path / "pq"
         called: dict[str, Path | str] = {}
@@ -97,7 +103,7 @@ class TestCli:
         assert "Wrote 1 parquet file(s)" in out
 
     def test_quiet_suppresses_banner_and_parsing_line(self, monkeypatch, capsys):
-        from gem import __main__ as cli
+        import gem.cli as cli
 
         monkeypatch.setattr("sys.argv", ["gem", "fake.dem", "--quiet"])
         monkeypatch.setattr(cli, "parse", lambda path: _mock_match())
@@ -110,7 +116,7 @@ class TestCli:
         assert "npc_dota_hero_axe" in out
 
     def test_no_banner_hides_only_banner(self, monkeypatch, capsys):
-        from gem import __main__ as cli
+        import gem.cli as cli
 
         monkeypatch.setattr("sys.argv", ["gem", "fake.dem", "--no-banner"])
         monkeypatch.setattr(cli, "parse", lambda path: _mock_match())
@@ -123,7 +129,7 @@ class TestCli:
         assert "hero kills" in out
 
     def test_progress_prints_phase_messages(self, monkeypatch, capsys):
-        from gem import __main__ as cli
+        import gem.cli as cli
 
         monkeypatch.setattr("sys.argv", ["gem", "fake.dem", "--progress"])
         monkeypatch.setattr(cli, "parse", lambda path: _mock_match())
@@ -136,7 +142,7 @@ class TestCli:
         assert "Rendering summary" in out
 
     def test_timings_prints_summary(self, monkeypatch, capsys):
-        from gem import __main__ as cli
+        import gem.cli as cli
 
         monkeypatch.setattr("sys.argv", ["gem", "fake.dem", "--timings"])
         monkeypatch.setattr(cli, "parse", lambda path: _mock_match())
@@ -150,7 +156,7 @@ class TestCli:
         assert "Total" in out
 
     def test_json_timings_go_to_stderr_when_stdout_contains_payload(self, monkeypatch, capsys):
-        from gem import __main__ as cli
+        import gem.cli as cli
 
         monkeypatch.setattr("sys.argv", ["gem", "fake.dem", "--format", "json", "--timings"])
         monkeypatch.setattr(cli, "parse_to_json", lambda path, indent=2: '{"match_id": 321}')

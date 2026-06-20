@@ -7,14 +7,11 @@ Integration tests parse a real .dem fixture and verify plausible output.
 from __future__ import annotations
 
 from collections import defaultdict
-from pathlib import Path
 
 import pytest
 
 from gem.extractors.lane import classify_lane
-from gem.models import ParsedPlayer
-
-FIXTURE = Path(__file__).parent / "fixtures" / "ti14_finals_g3_xg_vs_falcons.dem"
+from gem.results.models import ParsedPlayer
 
 _GRID = 64  # must match extractors/lane._GRID and match_builder._LANE_GRID
 _LANE_WINDOW = 600 * 30  # 18000 ticks
@@ -437,10 +434,10 @@ class TestLaneAdvantage:
 @pytest.mark.integration
 class TestLaneIntegration:
     @pytest.fixture(scope="class")
-    def match(self):
+    def match(self, full_replay_path):
         import gem
 
-        return gem.parse(str(FIXTURE))
+        return gem.parse(str(full_replay_path))
 
     def test_all_players_have_valid_lane_role(self, match):
         for pp in match.players:

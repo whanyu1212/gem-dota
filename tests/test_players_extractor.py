@@ -8,7 +8,7 @@ All tests use fake entities and a fake parser — no real .dem files.
 
 from __future__ import annotations
 
-from gem.entities import Entity, EntityOp
+from gem.extractors._snapshots import _player_id_from_entity
 from gem.extractors.players import (
     PlayerExtractor,
     PlayerStateSnapshot,
@@ -16,6 +16,7 @@ from gem.extractors.players import (
     _pos,
     _snapshot_hero,
 )
+from gem.state.entities import Entity, EntityOp
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -55,6 +56,54 @@ def _hero(ending: str = "Axe", player_id: int = 0, **extra) -> Entity:
     )
 
 
+class TestPlayerIdFromEntity:
+    """The shared hero/owned-unit -> player-slot resolver.
+
+    Consolidates the resolvers that previously lived in
+    players/wards/intervals/aggregator. Locks in the resolution chain
+    (m_nPlayerID -> m_iPlayerID, plus m_iPlayerOwnerID only when
+    ``allow_owner=True``) and the slot halving.
+    """
+
+    def test_none_entity(self):
+        assert _player_id_from_entity(None) is None
+
+    def test_reads_m_nplayerid_halved(self):
+        # raw value is slot * 2
+        assert _player_id_from_entity(_ent(m_nPlayerID=6)) == 3
+
+    def test_falls_back_to_m_iplayerid(self):
+        e = _ent(m_iPlayerID=8)  # no m_nPlayerID
+        assert _player_id_from_entity(e) == 4
+
+    def test_owner_id_ignored_by_default(self):
+        # Default (hero lookups): the owner field must NOT resolve, so a
+        # hero-class illusion carrying only m_iPlayerOwnerID stays unresolved
+        # instead of misattributing to the owner.
+        e = _ent(m_iPlayerOwnerID=4)
+        assert _player_id_from_entity(e) is None
+
+    def test_owner_id_used_when_allowed(self):
+        # Owned-unit context (e.g. a ward's owner) opts into the fallback.
+        e = _ent(m_iPlayerOwnerID=4)
+        assert _player_id_from_entity(e, allow_owner=True) == 2
+
+    def test_prefers_nplayerid_over_others(self):
+        e = _ent(m_nPlayerID=2, m_iPlayerID=8, m_iPlayerOwnerID=18)
+        assert _player_id_from_entity(e, allow_owner=True) == 1
+
+    def test_negative_slot_is_unresolved(self):
+        assert _player_id_from_entity(_ent(m_nPlayerID=-1)) is None
+
+    def test_no_fields_unresolved(self):
+        assert _player_id_from_entity(_ent()) is None
+
+    def test_skips_negative_and_uses_next_field(self):
+        # m_nPlayerID == -1 (unset sentinel) should fall through to m_iPlayerID.
+        e = _ent(m_nPlayerID=-1, m_iPlayerID=10)
+        assert _player_id_from_entity(e) == 5
+
+
 class FakeCombatLog:
     def __init__(self):
         self.emitted = []
@@ -64,8 +113,9 @@ class FakeCombatLog:
 
 
 class FakeParser:
-    def __init__(self, tick: int = 300):
+    def __init__(self, tick: int = 300, game_time_s: int | None = None):
         self.tick = tick
+        self.game_time_s = game_time_s
         self.entity_manager = None
         self.string_tables = None
         self.combat_log = FakeCombatLog()
@@ -554,7 +604,7 @@ class TestMaybeSample:
         assert snap.lh == 30
 
     def test_sample_prefers_selected_hero_handle_and_dedupes_player(self):
-        from gem.string_table import StringTables
+        from gem.state.string_table import StringTables
 
         ext = PlayerExtractor(sample_interval=0)
         parser = FakeParser(tick=100)
@@ -684,6 +734,109 @@ class TestTimeSeries:
         assert ts.x_t == [1.0]
         assert ts.y_t == [2.0]
 
+    def test_minute_time_series_deduplicates_by_game_time_when_present(self):
+        ext = PlayerExtractor()
+        ext._game_start_tick = 0
+        ext._minute_snaps = [
+            PlayerStateSnapshot(
+                tick=1800,
+                game_time_s=60,
+                player_id=0,
+                npc_name="",
+                team=2,
+                level=1,
+                xp=0,
+                gold=100,
+                net_worth=200,
+                lh=5,
+                dn=1,
+                hp=600,
+                max_hp=700,
+                mana=100.0,
+                max_mana=200.0,
+                x=None,
+                y=None,
+            ),
+            PlayerStateSnapshot(
+                tick=99999,
+                game_time_s=60,
+                player_id=0,
+                npc_name="",
+                team=2,
+                level=1,
+                xp=0,
+                gold=250,
+                net_worth=350,
+                lh=6,
+                dn=1,
+                hp=600,
+                max_hp=700,
+                mana=100.0,
+                max_mana=200.0,
+                x=None,
+                y=None,
+            ),
+            PlayerStateSnapshot(
+                tick=3600,
+                game_time_s=120,
+                player_id=0,
+                npc_name="",
+                team=2,
+                level=1,
+                xp=0,
+                gold=300,
+                net_worth=400,
+                lh=7,
+                dn=1,
+                hp=600,
+                max_hp=700,
+                mana=100.0,
+                max_mana=200.0,
+                x=None,
+                y=None,
+            ),
+        ]
+
+        ts = ext.minute_time_series(0)
+
+        assert ts.ticks == [99999, 3600]
+        assert ts.gold_t == [250, 300]
+
+    def test_maybe_sample_uses_parser_game_time_for_minute_boundaries(self):
+        ext = PlayerExtractor(sample_interval=9999)
+        parser = FakeParser(tick=1200, game_time_s=60)
+        ext.attach(parser)
+        ext._game_start_tick = 1000
+        ext._heroes[0] = _hero("Axe")
+
+        ext._maybe_sample()
+
+        assert len(ext._minute_snaps) == 1
+        assert ext._minute_snaps[0].game_time_s == 60
+
+    def test_maybe_sample_skips_non_boundary_parser_game_time(self):
+        ext = PlayerExtractor(sample_interval=9999)
+        parser = FakeParser(tick=1200, game_time_s=61)
+        ext.attach(parser)
+        ext._game_start_tick = 1000
+        ext._heroes[0] = _hero("Axe")
+
+        ext._maybe_sample()
+
+        assert ext._minute_snaps == []
+
+    def test_gamerules_update_can_trigger_minute_sample(self):
+        ext = PlayerExtractor(sample_interval=9999)
+        parser = FakeParser(tick=1200, game_time_s=60)
+        ext.attach(parser)
+        ext._game_start_tick = 1000
+        ext._heroes[0] = _hero("Axe")
+
+        ext._on_entity(_ent("CDOTAGamerulesProxy"), EntityOp.UPDATED)
+
+        assert len(ext._minute_snaps) == 1
+        assert ext._minute_snaps[0].game_time_s == 60
+
 
 # ---------------------------------------------------------------------------
 # PlayerExtractor._read_abilities — no parser / no entity_manager / no table
@@ -704,7 +857,7 @@ class TestReadAbilities:
         assert ext._read_abilities(_hero("Axe")) == {}
 
     def test_no_entity_names_table_returns_empty(self):
-        from gem.string_table import StringTables
+        from gem.state.string_table import StringTables
 
         ext = PlayerExtractor()
         parser = FakeParser()
@@ -712,6 +865,149 @@ class TestReadAbilities:
         parser.string_tables = StringTables()  # no EntityNames table
         ext.attach(parser)
         assert ext._read_abilities(_hero("Axe")) == {}
+
+    def test_no_string_tables_returns_empty(self):
+        ext = PlayerExtractor()
+        parser = FakeParser()
+        parser.entity_manager = FakeEntityManager(
+            {123: _ent("CDOTA_Ability_LoneDruid_SpiritLink", **{"m_iLevel": 4})}
+        )
+        ext.attach(parser)
+
+        hero = _hero("LoneDruid", **{"m_vecAbilities.0000": 123})
+        assert ext._read_abilities(hero) == {}
+
+    def test_uses_name_string_table_index(self):
+        from gem.state.string_table import StringTable, StringTables
+
+        entity_names = StringTable(index=0, name="EntityNames")
+        entity_names.items[7] = ("lone_druid_spirit_link", b"")
+        tables = StringTables()
+        tables.add(entity_names)
+
+        ext = PlayerExtractor()
+        parser = FakeParser()
+        parser.entity_manager = FakeEntityManager(
+            {
+                123: _ent(
+                    "CDOTA_Ability_LoneDruid_SpiritLink",
+                    **{
+                        "m_iLevel": 4,
+                        "m_pEntity.m_nameStringTableIndex": 7,
+                    },
+                )
+            }
+        )
+        parser.string_tables = tables
+        ext.attach(parser)
+
+        hero = _hero("LoneDruid", **{"m_vecAbilities.0000": 123})
+        assert ext._read_abilities(hero) == {"lone_druid_spirit_link": 4}
+
+    def test_falls_back_to_name_stringable_index(self):
+        from gem.state.string_table import StringTable, StringTables
+
+        entity_names = StringTable(index=0, name="EntityNames")
+        entity_names.items[7] = ("lone_druid_spirit_link", b"")
+        tables = StringTables()
+        tables.add(entity_names)
+
+        ext = PlayerExtractor()
+        parser = FakeParser()
+        parser.entity_manager = FakeEntityManager(
+            {
+                123: _ent(
+                    "CDOTA_Ability_LoneDruid_SpiritLink",
+                    **{
+                        "m_iLevel": 4,
+                        "m_pEntity.m_nameStringableIndex": 7,
+                    },
+                )
+            }
+        )
+        parser.string_tables = tables
+        ext.attach(parser)
+
+        hero = _hero("LoneDruid", **{"m_hAbilities.0000": 123})
+        assert ext._read_abilities(hero) == {"lone_druid_spirit_link": 4}
+
+    def test_name_string_table_index_takes_precedence(self):
+        from gem.state.string_table import StringTable, StringTables
+
+        entity_names = StringTable(index=0, name="EntityNames")
+        entity_names.items[7] = ("table_index_name", b"")
+        entity_names.items[8] = ("stringable_index_name", b"")
+        tables = StringTables()
+        tables.add(entity_names)
+
+        ext = PlayerExtractor()
+        parser = FakeParser()
+        parser.entity_manager = FakeEntityManager(
+            {
+                123: _ent(
+                    "CDOTA_Ability_LoneDruid_SpiritLink",
+                    **{
+                        "m_iLevel": 4,
+                        "m_pEntity.m_nameStringTableIndex": 7,
+                        "m_pEntity.m_nameStringableIndex": 8,
+                    },
+                )
+            }
+        )
+        parser.string_tables = tables
+        ext.attach(parser)
+
+        hero = _hero("LoneDruid", **{"m_hAbilities.0000": 123})
+        assert ext._read_abilities(hero) == {"table_index_name": 4}
+
+    def test_missing_entity_name_does_not_use_class_name_fallback(self):
+        from gem.state.string_table import StringTables
+
+        ext = PlayerExtractor()
+        parser = FakeParser()
+        parser.entity_manager = FakeEntityManager(
+            {
+                123: _ent(
+                    "CDOTA_Ability_LoneDruid_SpiritLink",
+                    **{
+                        "m_iLevel": 4,
+                        "m_pEntity.m_nameStringTableIndex": 7,
+                    },
+                )
+            }
+        )
+        parser.string_tables = StringTables()
+        ext.attach(parser)
+
+        hero = _hero("LoneDruid", **{"m_vecAbilities.0000": 123})
+        assert ext._read_abilities(hero) == {}
+
+    def test_ignores_unleveled_abilities(self):
+        from gem.state.string_table import StringTable, StringTables
+
+        entity_names = StringTable(index=0, name="EntityNames")
+        entity_names.items[7] = ("generic_hidden", b"")
+        tables = StringTables()
+        tables.add(entity_names)
+
+        ext = PlayerExtractor()
+        parser = FakeParser()
+        parser.entity_manager = FakeEntityManager(
+            {
+                123: _ent(
+                    "CDOTA_Ability_Generic_Hidden",
+                    **{
+                        "m_iLevel": 0,
+                        "m_pEntity.m_nameStringTableIndex": 7,
+                    },
+                )
+            }
+        )
+        parser.string_tables = tables
+        ext.attach(parser)
+
+        hero = _hero("LoneDruid", **{"m_vecAbilities.0000": 123})
+        assert ext._read_abilities(hero) == {}
 
 
 # ---------------------------------------------------------------------------
@@ -733,7 +1029,7 @@ class TestReadInventory:
         assert ext._read_inventory(_hero("Axe")) == {}
 
     def test_no_entity_names_table_returns_empty(self):
-        from gem.string_table import StringTables
+        from gem.state.string_table import StringTables
 
         ext = PlayerExtractor()
         parser = FakeParser()
@@ -764,7 +1060,7 @@ class TestDiffInventory:
         assert len(parser.combat_log.emitted) == 0
 
     def test_first_snapshot_sets_initialized(self):
-        from gem.string_table import StringTables
+        from gem.state.string_table import StringTables
 
         ext = PlayerExtractor()
         parser = FakeParser()
@@ -781,6 +1077,27 @@ class TestDiffInventory:
 # ---------------------------------------------------------------------------
 
 
+def _player_resource_fields(team_by_row: dict[int, int], extra: dict | None = None) -> dict:
+    """Build CDOTA_PlayerResource state for the given resource rows.
+
+    Args:
+        team_by_row: resource-array index → team number (2/3 for players, 1/14
+            for coaches). Each row also gets a team slot and an identity hero
+            handle so a complete-scan remap can resolve.
+        extra: additional ``field → value`` state to merge in.
+
+    Returns:
+        A ``**state`` dict for ``_ent``.
+    """
+    state: dict = {}
+    for row, team in team_by_row.items():
+        state[f"m_vecPlayerData.{row:04d}.m_iPlayerTeam"] = team
+        state[f"m_vecPlayerTeamData.{row:04d}.m_iTeamSlot"] = row % 5
+    if extra:
+        state.update(extra)
+    return state
+
+
 class TestRefreshTeamSlots:
     def test_no_player_resource_does_nothing(self):
         ext = PlayerExtractor()
@@ -790,17 +1107,57 @@ class TestRefreshTeamSlots:
 
     def test_reads_team_slots(self):
         ext = PlayerExtractor()
-        pr = _ent(
-            "CDOTA_PlayerResource",
-            **{
-                "m_vecPlayerTeamData.0000.m_iTeamSlot": 2,
-                "m_vecPlayerTeamData.0001.m_iTeamSlot": 0,
-            },
-        )
+        # 10 players in rows 0-9 (5 Radiant, 5 Dire), no coach.
+        teams = {row: (2 if row < 5 else 3) for row in range(10)}
+        pr = _ent("CDOTA_PlayerResource", **_player_resource_fields(teams))
         ext._player_resource = pr
         ext._refresh_team_slots()
-        assert ext._player_team_slot[0] == 2
-        assert ext._player_team_slot[1] == 0
+        assert ext._player_team_slot[0] == 0
+        assert ext._player_team_slot[1] == 1
+        # No coach → logical slot == resource index (identity remap).
+        assert ext._resource_index(0) == 0
+        assert ext._resource_index(9) == 9
+
+    def test_coach_shifts_resource_indices(self):
+        # A Radiant coach occupies resource row 5 (team 1). The 10 players live in
+        # rows 0-4 and 6-10, so logical slots 5-9 map to resource rows 6-10.
+        # Regression for K/D/A and team-slot misattribution in coached replays.
+        ext = PlayerExtractor()
+        teams = dict.fromkeys(range(5), 2)  # Radiant players rows 0-4
+        teams[5] = 1  # coach (team 1) — must be skipped
+        for row in range(6, 11):  # Dire players rows 6-10
+            teams[row] = 3
+        pr = _ent("CDOTA_PlayerResource", **_player_resource_fields(teams))
+        ext._player_resource = pr
+        ext._refresh_team_slots()
+        # Logical Radiant slots map to rows 0-4.
+        assert [ext._resource_index(i) for i in range(5)] == [0, 1, 2, 3, 4]
+        # Logical Dire slots 5-9 skip the coach → rows 6-10 (not 5-9).
+        assert [ext._resource_index(i) for i in range(5, 10)] == [6, 7, 8, 9, 10]
+
+    def test_coach_shift_attributes_kda_to_correct_slot(self):
+        # End-to-end: with a coach shift, _on_game_end must read K/D/A at the
+        # remapped resource index, so logical Dire slot 5 gets the fifth Dire
+        # player's stats (row 6), not the coach's row 5.
+        ext = PlayerExtractor()
+        teams = dict.fromkeys(range(5), 2)
+        teams[5] = 1  # coach
+        for row in range(6, 11):
+            teams[row] = 3
+        kda = {
+            "m_vecPlayerTeamData.0005.m_iKills": 99,  # coach row — must NOT leak
+            "m_vecPlayerTeamData.0006.m_iKills": 7,  # first Dire player (logical 5)
+            "m_vecPlayerTeamData.0006.m_iDeaths": 2,
+            "m_vecPlayerTeamData.0006.m_iAssists": 3,
+        }
+        pr = _ent("CDOTA_PlayerResource", **_player_resource_fields(teams, kda))
+        ext.attach(FakeParser(tick=5000))
+        ext._player_resource = pr
+        ext._refresh_team_slots()
+        ext._on_game_end(5000)
+        assert ext.scoreboard[5] == (7, 2, 3)
+        # The coach's 99 kills must never be attributed to any logical slot.
+        assert all(k != 99 for (k, _d, _a) in ext.scoreboard.values())
 
 
 # ---------------------------------------------------------------------------
@@ -865,3 +1222,61 @@ class TestPlayerExtractorAttach:
         assert snap.lh == 50
         assert snap.dn == 7
         assert snap.tick == 300
+
+
+# ---------------------------------------------------------------------------
+# PlayerExtractor._on_combat_log_entry — death counting (B3 reincarnation)
+# ---------------------------------------------------------------------------
+
+
+class TestDeathCountReincarnation:
+    """total_deaths must not count reincarnation/aegis trigger deaths."""
+
+    @staticmethod
+    def _ext_with_hero():
+        from gem.extractors.players import PlayerExtractor
+
+        ext = PlayerExtractor()
+        hero = _hero("SkeletonKing", player_id=0)  # npc_dota_hero_skeleton_king
+        ext._heroes_by_npc["npc_dota_hero_skeleton_king"] = hero
+        return ext
+
+    def test_normal_death_counted(self):
+        from gem.combat.log import CombatLogEntry
+
+        ext = self._ext_with_hero()
+        ext._on_combat_log_entry(
+            CombatLogEntry(
+                tick=100,
+                log_type="DEATH",
+                target_name="npc_dota_hero_skeleton_king",
+                target_is_hero=True,
+            )
+        )
+        assert ext._total_deaths.get(0) == 1
+
+    def test_reincarnation_trigger_not_counted(self):
+        from gem.combat.log import CombatLogEntry
+
+        ext = self._ext_with_hero()
+        # Trigger death (will_reincarnate=True) then the true death — only the
+        # true death should count, so the total is 1, not 2.
+        ext._on_combat_log_entry(
+            CombatLogEntry(
+                tick=100,
+                log_type="DEATH",
+                target_name="npc_dota_hero_skeleton_king",
+                target_is_hero=True,
+                will_reincarnate=True,
+            )
+        )
+        ext._on_combat_log_entry(
+            CombatLogEntry(
+                tick=160,
+                log_type="DEATH",
+                target_name="npc_dota_hero_skeleton_king",
+                target_is_hero=True,
+                will_reincarnate=False,
+            )
+        )
+        assert ext._total_deaths.get(0) == 1

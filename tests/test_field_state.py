@@ -1,12 +1,12 @@
-"""Tests for gem.field_state — FieldState nested tree.
+"""Tests for gem.schema.field_state — FieldState nested tree.
 
 Reference: manta/field_state.go
 """
 
 import pytest
 
-from gem.field_path import FieldPath
-from gem.field_state import FieldState
+from gem.schema.field_path import FieldPath
+from gem.schema.field_state import FieldState
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -337,6 +337,13 @@ class TestFieldStateMultiplePaths:
 
 
 class TestFieldStateBoundary:
+    def test_empty_active_path_returns_none(self):
+        """An empty active FieldPath is defensive-only and stores no value."""
+        fs = FieldState()
+        fp = _make_fp()
+        assert fp.last == -1
+        assert fs.get(fp) is None
+
     def test_path_index_exactly_at_list_boundary(self):
         """Index == len(state) - 2 is still readable without growing."""
         fs = FieldState()

@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from gem.entities import Entity
+    from gem.state.entities import Entity
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -43,6 +43,49 @@ def _pos(entity: Entity) -> tuple[float, float] | None:
     if cell_x is None or cell_y is None or vec_x is None or vec_y is None:
         return None
     return (cell_x * _CELL_SIZE + vec_x, cell_y * _CELL_SIZE + vec_y)
+
+
+def _player_id_from_entity(entity: Entity | None, *, allow_owner: bool = False) -> int | None:
+    """Resolve a hero/controller/owned-unit entity to a player slot (0-9).
+
+    Reads ``m_nPlayerID`` then ``m_iPlayerID`` and halves the raw value (the
+    replay stores ``slot * 2``). When ``allow_owner`` is set, also falls back to
+    ``m_iPlayerOwnerID`` — needed when the entity is an *owned unit* (e.g. a
+    ward's owner unit) whose slot lives on the owning-player field.
+
+    ``allow_owner`` must stay ``False`` for hero-name lookups: a hero-class
+    illusion (Manta / Dark Seer wall / Shadow Demon disruption) shares the real
+    hero's class and may carry only ``m_iPlayerOwnerID``; resolving it via the
+    owner field would misattribute the real hero's stats/position to the
+    illusion owner. Hero entities always carry ``m_nPlayerID``/``m_iPlayerID``,
+    so they never need the owner fallback.
+
+    Mirrors ``getPlayerSlotFromEntity`` in
+    ``refs/parser/src/main/java/opendota/Parse.java``.
+
+    Args:
+        entity: The entity to read from, or ``None``.
+        allow_owner: Include the ``m_iPlayerOwnerID`` fallback (owned-unit
+            contexts only).
+
+    Returns:
+        Player slot 0-9, or ``None`` if unresolvable.
+    """
+    if entity is None:
+        return None
+    fields = (
+        ("m_nPlayerID", "m_iPlayerID", "m_iPlayerOwnerID")
+        if allow_owner
+        else (
+            "m_nPlayerID",
+            "m_iPlayerID",
+        )
+    )
+    for field_name in fields:
+        val = entity.get_int32(field_name)
+        if val is not None and val >= 0:
+            return val // 2
+    return None
 
 
 def _snapshot_hero(entity: Entity, tick: int) -> PlayerStateSnapshot | None:
@@ -115,11 +158,14 @@ class PlayerStateSnapshot:
 
     Attributes:
         tick: Game tick of this sample.
+        game_time_s: OpenDota-style game-relative sample time in seconds, or
+            ``None`` when the parser has not observed the game clock yet.
         player_id: Player slot (0-9).
         npc_name: Hero NPC name, e.g. ``"npc_dota_hero_axe"``.
         team: Team number (2=Radiant, 3=Dire).
         level: Hero level (1-30).
-        xp: Cumulative XP total.
+        xp: Current XP toward the next level (``m_iCurrentXP``); resets to 0 on
+            each level-up. For cumulative XP use ``total_earned_xp``.
         gold: Current unspent gold from ``CDOTAPlayerController``, or 0 if not read.
         net_worth: Net worth from ``CDOTAPlayerController``, or 0 if not read.
         total_earned_gold: Cumulative gold earned (``m_iTotalEarnedGold``), or 0 if not read.
@@ -157,6 +203,7 @@ class PlayerStateSnapshot:
     y: float | None
     total_earned_gold: int = 0
     total_earned_xp: int = 0
+    game_time_s: int | None = None
     ability_levels: dict[str, int] = field(default_factory=dict)
     total_hero_damage: int = 0
     total_hero_healing: int = 0

@@ -27,46 +27,74 @@ MODULE_TARGET_HEADING_RE = re.compile(r"^##\s+Module\s+`(gem\.[^`]+)`\s*$")
 
 # Canonical API targets by reference page (relative to docs/reference).
 TARGETS_BY_PAGE: dict[str, list[str]] = {
-    "analysis.md": ["gem.analysis"],
-    "batch.md": ["gem.batch"],
-    "combat_aggregator.md": ["gem.combat_aggregator"],
-    "combatlog.md": ["gem.combatlog.CombatLogProcessor", "gem.combatlog.CombatLogEntry"],
+    "api.md": ["gem.api"],
+    "analysis.md": [
+        "gem.analysis.spatial",
+        "gem.analysis.combat",
+        "gem.analysis.abilities",
+        "gem.analysis.vision",
+        "gem.analysis.formatting",
+        "gem.analysis.map_context",
+        "gem.analysis.roshan",
+    ],
+    "batch.md": ["gem.replays.batch"],
+    "catalog.md": [
+        "gem.catalog.heroes",
+        "gem.catalog.items",
+        "gem.catalog.abilities",
+        "gem.catalog.xp",
+        "gem.catalog.leagues",
+        "gem.catalog.map",
+        "gem.catalog.resources",
+    ],
+    "combat_aggregator.md": ["gem.combat.aggregator"],
+    "combatlog.md": ["gem.combat.log.CombatLogProcessor", "gem.combat.log.CombatLogEntry"],
     "constants.md": ["gem.constants"],
-    "dataframes.md": ["gem.dataframes"],
-    "entities.md": ["gem.entities.EntityOp", "gem.entities.Entity", "gem.entities.EntityManager"],
+    "dataframes.md": ["gem.results.dataframes"],
+    "reports.md": [
+        "gem.reports.assets.ReportAssets",
+        "gem.reports.builder.ReportOptions",
+        "gem.reports.builder.build_html_report",
+        "gem.reports.builder.write_html_report",
+    ],
+    "entities.md": [
+        "gem.state.entities.EntityOp",
+        "gem.state.entities.Entity",
+        "gem.state.entities.EntityManager",
+    ],
     "field_decoder.md": [
-        "gem.field_decoder.find_decoder",
-        "gem.field_decoder.find_decoder_by_base_type",
-        "gem.field_decoder.QuantizedFloatDecoder",
+        "gem.schema.field_decoder.find_decoder",
+        "gem.schema.field_decoder.find_decoder_by_base_type",
+        "gem.schema.field_decoder.QuantizedFloatDecoder",
     ],
     "field_path.md": [
-        "gem.field_path.read_field_paths",
-        "gem.field_path.FieldPath",
-        "gem.field_path.FieldPathOp",
+        "gem.schema.field_path.read_field_paths",
+        "gem.schema.field_path.FieldPath",
+        "gem.schema.field_path.FieldPathOp",
     ],
     "game_events.md": [
-        "gem.game_events.GameEventManager",
-        "gem.game_events.GameEvent",
-        "gem.game_events.GameEventSchema",
+        "gem.state.game_events.GameEventManager",
+        "gem.state.game_events.GameEvent",
+        "gem.state.game_events.GameEventSchema",
     ],
-    "match_builder.md": ["gem.match_builder"],
-    "models.md": ["gem.models"],
+    "assembly.md": ["gem.results.assembly"],
+    "models.md": ["gem.results.models"],
     "parser.md": ["gem.parser.ReplayParser"],
-    "reader.md": ["gem.reader.BitReader"],
+    "reader.md": ["gem.binary.reader.BitReader"],
     "sendtable.md": [
-        "gem.sendtable.parse_send_tables",
-        "gem.sendtable.Serializer",
-        "gem.sendtable.Field",
-        "gem.sendtable.FieldType",
+        "gem.schema.sendtable.parse_send_tables",
+        "gem.schema.sendtable.Serializer",
+        "gem.schema.sendtable.Field",
+        "gem.schema.sendtable.FieldType",
     ],
-    "stream.md": ["gem.stream.DemoStream", "gem.stream.OuterMessage"],
+    "stream.md": ["gem.binary.stream.DemoStream", "gem.binary.stream.OuterMessage"],
     "string_table.md": [
-        "gem.string_table.StringTables",
-        "gem.string_table.StringTable",
-        "gem.string_table.StringTableItem",
-        "gem.string_table.parse_string_table",
-        "gem.string_table.handle_create",
-        "gem.string_table.handle_update",
+        "gem.state.string_table.StringTables",
+        "gem.state.string_table.StringTable",
+        "gem.state.string_table.StringTableItem",
+        "gem.state.string_table.parse_string_table",
+        "gem.state.string_table.handle_create",
+        "gem.state.string_table.handle_update",
     ],
     "extractors/courier.md": ["gem.extractors.courier"],
     "extractors/draft.md": ["gem.extractors.draft"],
@@ -129,6 +157,41 @@ def _resolve_object_path(path: str) -> tuple[ModuleContext, list[str]]:
         return context, remainder
 
     raise ValueError(f"Could not resolve module for directive target: {path}")
+
+
+def _current_import_package(context: ModuleContext) -> str:
+    if context.file_path.name == "__init__.py":
+        return context.module_name
+    return context.module_name.rsplit(".", 1)[0]
+
+
+def _resolve_import_module(context: ModuleContext, module: str | None, level: int) -> str | None:
+    if level == 0:
+        return module
+
+    base_parts = _current_import_package(context).split(".")
+    if level > 1:
+        base_parts = base_parts[: -(level - 1)]
+
+    if module:
+        base_parts.extend(module.split("."))
+    return ".".join(part for part in base_parts if part)
+
+
+def _resolve_reexport_target(context: ModuleContext, name: str) -> str | None:
+    for node in context.tree.body:
+        if not isinstance(node, ast.ImportFrom):
+            continue
+
+        module_name = _resolve_import_module(context, node.module, node.level)
+        if module_name is None:
+            continue
+
+        for alias in node.names:
+            exported_name = alias.asname or alias.name
+            if exported_name == name and alias.name != "*":
+                return f"{module_name}.{alias.name}"
+    return None
 
 
 def _first_paragraph(doc: str | None) -> str:
@@ -440,7 +503,18 @@ def _render_module(context: ModuleContext) -> list[str]:
     return out
 
 
-def _render_target(target: str) -> list[str]:
+def _render_target(
+    target: str,
+    *,
+    display_target: str | None = None,
+    visited: set[str] | None = None,
+) -> list[str]:
+    display = display_target or target
+    visited = set() if visited is None else visited
+    if target in visited:
+        return [f"## `{display}`", "", "Unable to resolve this symbol from source.", ""]
+    visited.add(target)
+
     context, remainder = _resolve_object_path(target)
     if not remainder:
         return _render_module(context)
@@ -450,20 +524,28 @@ def _render_target(target: str) -> list[str]:
         name = remainder[0]
         cls = _find_class(context.tree, name)
         if cls is not None:
-            return [f"## `{target}`", ""] + _render_class(cls, context)
+            return [f"## `{display}`", ""] + _render_class(cls, context)
 
         func = _find_function(context.tree, name)
         if func is not None:
-            return [f"## `{target}`", ""] + _render_function(func, context)
+            return [f"## `{display}`", ""] + _render_function(func, context)
 
-        return [f"## `{target}`", "", "Unable to resolve this symbol from source.", ""]
+        reexport_target = _resolve_reexport_target(context, name)
+        if reexport_target is not None:
+            return _render_target(
+                reexport_target,
+                display_target=display,
+                visited=visited,
+            )
+
+        return [f"## `{display}`", "", "Unable to resolve this symbol from source.", ""]
 
     # Class method path.
     if len(remainder) == 2:
         cls_name, meth_name = remainder
         cls = _find_class(context.tree, cls_name)
         if cls is None:
-            return [f"## `{target}`", "", "Unable to resolve class for this symbol.", ""]
+            return [f"## `{display}`", "", "Unable to resolve class for this symbol.", ""]
 
         method = None
         for node in cls.body:
@@ -471,13 +553,13 @@ def _render_target(target: str) -> list[str]:
                 method = node
                 break
         if method is None:
-            return [f"## `{target}`", "", "Unable to resolve method for this symbol.", ""]
+            return [f"## `{display}`", "", "Unable to resolve method for this symbol.", ""]
 
         sig = _func_signature(method, cls_name)
         doc = _first_paragraph(ast.get_docstring(method, clean=True))
         source = _gh_link(context.file_path, method.lineno)
         return [
-            f"## `{target}`",
+            f"## `{display}`",
             "",
             "```python",
             sig,
@@ -489,7 +571,7 @@ def _render_target(target: str) -> list[str]:
             "",
         ]
 
-    return [f"## `{target}`", "", "Unsupported symbol depth for generator.", ""]
+    return [f"## `{display}`", "", "Unsupported symbol depth for generator.", ""]
 
 
 def _convert_admonitions(lines: list[str]) -> list[str]:

@@ -215,8 +215,8 @@ Sample output (truncated):
 
 ```text
  player_id            hero_name  team  tick                                                                  match_path
-         0 npc_dota_hero_muerta     2  3618 /tmp/.../8520014563.dem
-         0 npc_dota_hero_muerta     2  3648 /tmp/.../8520014563.dem
+         0 npc_dota_hero_muerta     2  3618 /tmp/.../my_replay.dem
+         0 npc_dota_hero_muerta     2  3648 /tmp/.../my_replay.dem
 ...
 ```
 
@@ -247,7 +247,7 @@ python -m gem batch replays/ --format parquet --output ./out --workers 4
 Sample output (truncated):
 
 ```text
-Parsing tests/fixtures/8520014563.dem ...
+Parsing my_replay.dem ...
 94 hero kills | 16 towers | 6 barracks | 2 Roshan kill(s) | 119 wards
 ...
 ImportError: Parquet export requires 'pyarrow' or 'fastparquet'.

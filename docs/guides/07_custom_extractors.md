@@ -31,7 +31,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from gem.entities import EntityOp
+from gem.state.entities import EntityOp
 from gem.parser import ReplayParser
 
 

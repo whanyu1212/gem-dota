@@ -1,55 +1,52 @@
-"""Dota 2 game constants — heroes, items, abilities, XP thresholds.
+"""Backward-compatible facade for Dota catalog lookups.
 
-Data is bundled from odota/dotaconstants and pre-processed by
-``scripts/build_constants.py`` into ``src/gem/data/``.
-
-All public functions accept internal game names and return human-readable
-display strings, falling back gracefully when a name is not found.
+New code should prefer :mod:`gem.catalog`, which groups bundled hero, item,
+ability, league, XP, and static map metadata by concern. This module preserves
+the older ``gem.constants`` API.
 
 Reference: https://github.com/odota/dotaconstants
 """
 
 from __future__ import annotations
 
-import json
-from importlib.resources import files
 from typing import Any
 
-# ---------------------------------------------------------------------------
-# Data loading — once at import time
-# ---------------------------------------------------------------------------
+from gem.catalog.abilities import ABILITIES, ability_display as _ability_display
+from gem.catalog.heroes import (
+    HEROES,
+    hero_display as _hero_display,
+    hero_meta as _hero_meta,
+    hero_npc_name as _hero_npc_name,
+    hero_short as _hero_short,
+)
+from gem.catalog.items import (
+    ITEMS,
+    PERMANENT_BUFFS,
+    item_display as _item_display,
+    item_key_by_id as _item_key_by_id,
+    permanent_buff_name as _permanent_buff_name,
+)
+from gem.catalog.leagues import LEAGUES, league_name as _league_name
+from gem.catalog.xp import XP_LEVEL, xp_to_next_level as _xp_to_next_level
 
-
-def _load(name: str) -> Any:
-    data = files("gem.data").joinpath(name).read_text(encoding="utf-8")
-    return json.loads(data)
-
-
-# npc_dota_hero_* (lowercase) -> {id, localized_name, primary_attr, roles}
-HEROES: dict[str, dict] = _load("heroes.json")
-
-# internal_key (without item_ prefix) -> {id, dname}
-ITEMS: dict[str, dict] = _load("items.json")
-_ITEM_KEYS_BY_ID: dict[int, str] = {
-    item["id"]: key for key, item in ITEMS.items() if isinstance(item.get("id"), int)
-}
-
-# internal_ability_name -> display_name str
-ABILITIES: dict[str, str] = _load("abilities.json")
-
-# list[int]: index = level, value = cumulative XP required to reach that level
-XP_LEVEL: list[int] = _load("xp_level.json")
-
-# int_str -> internal_item_name, e.g. "1" -> "moon_shard"
-PERMANENT_BUFFS: dict[str, str] = _load("permanent_buffs.json")
-
-# leagueid (str) -> league name — premium/professional/amateur only
-LEAGUES: dict[str, str] = _load("leagues.json")
-
-
-# ---------------------------------------------------------------------------
-# Hero lookups
-# ---------------------------------------------------------------------------
+__all__ = [
+    "ABILITIES",
+    "HEROES",
+    "ITEMS",
+    "LEAGUES",
+    "PERMANENT_BUFFS",
+    "XP_LEVEL",
+    "ability_display",
+    "hero_display",
+    "hero_meta",
+    "hero_npc_name",
+    "hero_short",
+    "item_display",
+    "item_key_by_id",
+    "league_name",
+    "permanent_buff_name",
+    "xp_to_next_level",
+]
 
 
 def hero_display(npc_name: str) -> str:
@@ -61,10 +58,7 @@ def hero_display(npc_name: str) -> str:
     Returns:
         Localized name (e.g. ``"Axe"``), or a cleaned-up fallback.
     """
-    hero = HEROES.get(npc_name.lower())
-    if hero:
-        return hero.get("localized_name") or npc_name
-    return npc_name.removeprefix("npc_dota_hero_").replace("_", " ").title()
+    return _hero_display(npc_name)
 
 
 def hero_short(npc_name: str) -> str:
@@ -76,39 +70,22 @@ def hero_short(npc_name: str) -> str:
     Returns:
         Localized display name.
     """
-    if npc_name.startswith("npc_dota_hero_"):
-        return hero_display(npc_name)
-    return hero_display("npc_dota_hero_" + npc_name)
+    return _hero_short(npc_name)
 
 
 def hero_npc_name(name: str) -> str | None:
     """Resolve a display name to its ``npc_dota_hero_*`` NPC name.
 
-    Accepts common spelling variants: ``"Anti-Mage"``, ``"anti mage"``,
-    ``"anti_mage"``, ``"antimage"`` all resolve to ``"npc_dota_hero_antimage"``.
-
     Args:
-        name: Hero display name or NPC suffix (e.g. ``"Axe"``, ``"axe"``,
-            ``"npc_dota_hero_axe"``).
+        name: Hero display name or NPC suffix.
 
     Returns:
         The ``npc_dota_hero_*`` key (lowercase), or ``None`` if not found.
     """
-    if name.startswith("npc_dota_hero_"):
-        return name.lower() if name.lower() in HEROES else None
-
-    def _norm(s: str) -> str:
-        return s.lower().replace("-", " ").replace("_", " ")
-
-    normalised = _norm(name)
-    for npc, data in HEROES.items():
-        loc = _norm(data.get("localized_name") or "")
-        if loc == normalised:
-            return npc
-    return None
+    return _hero_npc_name(name)
 
 
-def hero_meta(npc_name: str) -> dict:
+def hero_meta(npc_name: str) -> dict[str, Any]:
     """Return the full hero metadata dict, or an empty dict if not found.
 
     Args:
@@ -117,12 +94,7 @@ def hero_meta(npc_name: str) -> dict:
     Returns:
         Dict with keys ``id``, ``localized_name``, ``primary_attr``, ``roles``.
     """
-    return HEROES.get(npc_name.lower(), {})
-
-
-# ---------------------------------------------------------------------------
-# Item lookups
-# ---------------------------------------------------------------------------
+    return _hero_meta(npc_name)
 
 
 def item_display(internal: str) -> str:
@@ -134,9 +106,7 @@ def item_display(internal: str) -> str:
     Returns:
         Display name (e.g. ``"Blink Dagger"``), or the raw string as fallback.
     """
-    key = internal.removeprefix("item_")
-    item = ITEMS.get(key)
-    return item["dname"] if item else internal
+    return _item_display(internal)
 
 
 def item_key_by_id(item_id: int) -> str | None:
@@ -148,52 +118,11 @@ def item_key_by_id(item_id: int) -> str | None:
     Returns:
         Internal item key without the ``item_`` prefix, or ``None`` when unknown.
     """
-    return _ITEM_KEYS_BY_ID.get(item_id)
-
-
-# ---------------------------------------------------------------------------
-# Ability lookups
-# ---------------------------------------------------------------------------
-
-
-# Known hero NPC name prefixes to strip when prettifying unknown ability names.
-_HERO_PREFIXES: frozenset[str] = frozenset(HEROES.keys()) if HEROES else frozenset()
-
-
-def _prettify_ability(internal: str) -> str:
-    """Best-effort prettify for ability names not found in ABILITIES.
-
-    Strips the hero name prefix (e.g. ``arc_warden_``) and title-cases the
-    remainder so ``arc_warden_scepter`` → ``"Scepter"`` and
-    ``ability_lamp_use`` → ``"Lamp Use"``.
-
-    Args:
-        internal: Raw internal ability name.
-
-    Returns:
-        Prettified display string.
-    """
-    name = internal
-    # Strip leading "ability_" prefix (generic hidden abilities)
-    if name.startswith("ability_"):
-        name = name[len("ability_") :]
-    else:
-        # Try to strip a hero NPC prefix (npc_dota_hero_<hero>) then plain <hero>_ prefix
-        for hero_npc in _HERO_PREFIXES:
-            # hero_npc looks like "npc_dota_hero_arc_warden"; derive short prefix "arc_warden_"
-            short = hero_npc.replace("npc_dota_hero_", "") + "_"
-            if name.startswith(short):
-                name = name[len(short) :]
-                break
-    return name.replace("_", " ").title()
+    return _item_key_by_id(item_id)
 
 
 def ability_display(internal: str) -> str:
     """Return display name for an ability or item internal name.
-
-    Falls back to ``item_display`` for ``item_*`` names, and to a
-    prettified version of the internal name for any unrecognised ability
-    (strips hero prefix, title-cases remainder).
 
     Args:
         internal: Internal ability or item name.
@@ -201,17 +130,7 @@ def ability_display(internal: str) -> str:
     Returns:
         Display name string.
     """
-    dname = ABILITIES.get(internal)
-    if dname:
-        return dname
-    if internal.startswith("item_"):
-        return item_display(internal)
-    return _prettify_ability(internal)
-
-
-# ---------------------------------------------------------------------------
-# XP helpers
-# ---------------------------------------------------------------------------
+    return _ability_display(internal)
 
 
 def xp_to_next_level(level: int, current_xp: int) -> int | None:
@@ -224,14 +143,7 @@ def xp_to_next_level(level: int, current_xp: int) -> int | None:
     Returns:
         XP remaining to next level, or ``None`` if already at max.
     """
-    if level < len(XP_LEVEL):
-        return max(0, XP_LEVEL[level] - current_xp)
-    return None
-
-
-# ---------------------------------------------------------------------------
-# Permanent buff helpers
-# ---------------------------------------------------------------------------
+    return _xp_to_next_level(level, current_xp)
 
 
 def permanent_buff_name(buff_id: int) -> str:
@@ -243,12 +155,7 @@ def permanent_buff_name(buff_id: int) -> str:
     Returns:
         Internal item name (e.g. ``"moon_shard"``), or ``str(buff_id)`` as fallback.
     """
-    return PERMANENT_BUFFS.get(str(buff_id), str(buff_id))
-
-
-# ---------------------------------------------------------------------------
-# League helpers
-# ---------------------------------------------------------------------------
+    return _permanent_buff_name(buff_id)
 
 
 def league_name(leagueid: int) -> str | None:
@@ -258,9 +165,6 @@ def league_name(leagueid: int) -> str | None:
         leagueid: Numeric Dota 2 league ID.
 
     Returns:
-        League name string (e.g. ``"The International 2024"``), or ``None``
-        if the league is not in the bundled data (e.g. pub games, unknown leagues).
+        League name string, or ``None`` if the league is not in the bundled data.
     """
-    if not leagueid:
-        return None
-    return LEAGUES.get(str(leagueid))
+    return _league_name(leagueid)

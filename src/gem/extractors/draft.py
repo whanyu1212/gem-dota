@@ -19,12 +19,12 @@ import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from gem.constants import HEROES
-from gem.entities import Entity, EntityOp
+from gem.catalog import HEROES
+from gem.state.entities import Entity, EntityOp
 
 if TYPE_CHECKING:
-    from gem.models import ParsedPlayer
     from gem.parser import ReplayParser
+    from gem.results.models import ParsedPlayer
 
 # Build reverse mapping: hero_id (int) → npc_name (str) from bundled data.
 # This only covers heroes present in heroes.json (IDs ≤ 155 as of the bundled

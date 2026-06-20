@@ -21,7 +21,7 @@ from pathlib import Path
 # Allow running from repo root without installing
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from gem.combatlog import CombatLogEntry
+from gem.combat.log import CombatLogEntry
 from gem.constants import (
     ABILITIES,
     HEROES,
@@ -32,8 +32,8 @@ from gem.constants import (
     item_display,
     xp_to_next_level,
 )
-from gem.entities import Entity, EntityOp
 from gem.parser import ReplayParser
+from gem.state.entities import Entity, EntityOp
 
 # ---------------------------------------------------------------------------
 # Entity helpers
@@ -571,7 +571,7 @@ def main() -> None:
         dem_path = sys.argv[1]
     else:
         dem_path = str(
-            Path(__file__).parent.parent / "tests" / "fixtures" / "ti14_finals_g3_xg_vs_falcons.dem"
+            Path(__file__).parent.parent / "tests" / "fixtures" / "opendota" / "8822520406.dem"
         )
 
     print(f"Replay: {dem_path}")

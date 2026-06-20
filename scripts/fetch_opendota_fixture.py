@@ -94,7 +94,7 @@ def write_opendota_snapshot(path: Path, payload: dict[str, Any]) -> None:
 
 
 def fetch_fixture(match_id: int, *, out_dir: Path, force: bool, note: str | None) -> Path:
-    from gem.replay_fetch import download_and_decompress
+    from gem.replays.fetch import download_and_decompress
 
     out_dir.mkdir(parents=True, exist_ok=True)
     dem_path = out_dir / f"{match_id}.dem"

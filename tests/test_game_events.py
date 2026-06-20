@@ -1,9 +1,9 @@
-"""Tests for gem.game_events — event schema registration and typed dispatch.
+"""Tests for gem.state.game_events — event schema registration and typed dispatch.
 
 Reference: manta/game_event.go
 """
 
-from gem.game_events import GameEvent, GameEventManager, GameEventSchema
+from gem.state.game_events import GameEvent, GameEventManager, GameEventSchema
 
 # ---------------------------------------------------------------------------
 # Shared fake key / message helpers

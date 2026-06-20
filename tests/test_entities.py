@@ -1,5 +1,5 @@
 """
-Tests for gem.entities — entity lifecycle, state, and typed accessors.
+Tests for gem.state.entities — entity lifecycle, state, and typed accessors.
 
 Reference: manta/entity.go
 """
@@ -8,7 +8,8 @@ from __future__ import annotations
 
 import pytest
 
-from gem.entities import (
+from gem.schema.field_path import FieldPath
+from gem.state.entities import (
     ClassInfo,
     Entity,
     EntityManager,
@@ -17,20 +18,19 @@ from gem.entities import (
     FieldState,
     _find_field_path,
 )
-from gem.field_path import FieldPath
-from gem.string_table import StringTable, StringTables
+from gem.state.string_table import StringTable, StringTables
 
 
 @pytest.fixture
 def entity_cls():
-    from gem.entities import Entity
+    from gem.state.entities import Entity
 
     return Entity
 
 
 @pytest.fixture
 def entity_op():
-    from gem.entities import EntityOp
+    from gem.state.entities import EntityOp
 
     return EntityOp
 
@@ -141,7 +141,7 @@ class TestEntityState:
 
 class TestEntityHandlers:
     def test_on_entity_called(self):
-        from gem.entities import EntityOp, EntityTracker
+        from gem.state.entities import EntityOp, EntityTracker
 
         tracker = EntityTracker()
         received = []
@@ -156,7 +156,7 @@ class TestEntityHandlers:
             class_id = 1
             serializer = None
 
-        from gem.entities import Entity
+        from gem.state.entities import Entity
 
         e = Entity(index=0, serial=0, cls=FakeClass())
         tracker._dispatch(e, EntityOp.CREATED_ENTERED)
@@ -362,7 +362,7 @@ class TestEntityGetViaFieldState:
 
     def _make_simple_serializer(self):
         """Build a minimal serializer with one simple field."""
-        from gem.sendtable import FIELD_MODEL_SIMPLE, Field, Serializer
+        from gem.schema.sendtable import FIELD_MODEL_SIMPLE, Field, Serializer
 
         decoder = lambda r: 777  # noqa: E731
 
@@ -382,7 +382,7 @@ class TestEntityGetViaFieldState:
 
     def _make_array_serializer(self):
         """Build a minimal serializer with one fixed-array field."""
-        from gem.sendtable import FIELD_MODEL_FIXED_ARRAY, Field, Serializer
+        from gem.schema.sendtable import FIELD_MODEL_FIXED_ARRAY, Field, Serializer
 
         f = Field.__new__(Field)
         f.var_name = "m_Arr"
@@ -444,7 +444,7 @@ class TestEntityGetViaFieldState:
 
 class TestFindFieldPath:
     def _ser_with_fields(self, *var_names):
-        from gem.sendtable import FIELD_MODEL_SIMPLE, Field, Serializer
+        from gem.schema.sendtable import FIELD_MODEL_SIMPLE, Field, Serializer
 
         fields = []
         for name in var_names:
@@ -481,7 +481,7 @@ class TestFindFieldPath:
         assert _find_field_path(ser, "m_flSpeed") is None
 
     def test_nested_fixed_table(self):
-        from gem.sendtable import FIELD_MODEL_FIXED_TABLE, Field, Serializer
+        from gem.schema.sendtable import FIELD_MODEL_FIXED_TABLE, Field, Serializer
 
         inner = self._ser_with_fields("m_x")
 
@@ -505,7 +505,7 @@ class TestFindFieldPath:
         assert fp.last == 1
 
     def test_fixed_array_index(self):
-        from gem.sendtable import FIELD_MODEL_FIXED_ARRAY, Field, Serializer
+        from gem.schema.sendtable import FIELD_MODEL_FIXED_ARRAY, Field, Serializer
 
         f = Field.__new__(Field)
         f.var_name = "m_Items"
@@ -527,7 +527,7 @@ class TestFindFieldPath:
         assert fp.last == 1
 
     def test_variable_array_index(self):
-        from gem.sendtable import FIELD_MODEL_VARIABLE_ARRAY, Field, Serializer
+        from gem.schema.sendtable import FIELD_MODEL_VARIABLE_ARRAY, Field, Serializer
 
         f = Field.__new__(Field)
         f.var_name = "m_Vec"
@@ -547,7 +547,7 @@ class TestFindFieldPath:
         assert fp.path[1] == 7
 
     def test_variable_table_nested(self):
-        from gem.sendtable import FIELD_MODEL_VARIABLE_TABLE, Field, Serializer
+        from gem.schema.sendtable import FIELD_MODEL_VARIABLE_TABLE, Field, Serializer
 
         inner = self._ser_with_fields("m_val")
 
@@ -670,7 +670,7 @@ class TestEntityManagerClassInfo:
         assert "CDOTA_Unit_Hero_Axe" in em.classes_by_name
 
     def test_serializer_linked_when_present(self):
-        from gem.sendtable import Serializer
+        from gem.schema.sendtable import Serializer
 
         ser = Serializer.__new__(Serializer)
         ser.name = "CDOTA_Unit_Hero_Axe"
@@ -1021,3 +1021,63 @@ class TestEntityManagerPacketEntities:
         em.on_packet_entities(Msg())
         assert len(dispatched) == 1
         assert dispatched[0][0] is e
+
+    @staticmethod
+    def _pack_bits(raw_bits: list[int]) -> bytes:
+        while len(raw_bits) % 8:
+            raw_bits.append(0)
+        return bytes(
+            sum(raw_bits[i + j] << j for j in range(8)) for i in range(0, len(raw_bits), 8)
+        )
+
+    def test_leave_on_inactive_entity_raises(self):
+        """A LEAVE for an already-inactive entity is rejected (B9 — manta panics)."""
+        em = self._make_em()
+        e = _entity("Hero", index=0, serial=0)
+        e.active = False  # already inactive
+        em.entities[0] = e
+
+        # ubit_var(0) + cmd=0b01 (leave, no delete)
+        data = self._pack_bits([0, 0, 0, 0, 0, 0, 1, 0])
+
+        class Msg:
+            legacy_is_delta = True
+            updated_entries = 1
+            entity_data = data
+
+        with pytest.raises(RuntimeError, match="already inactive"):
+            em.on_packet_entities(Msg())
+
+    def test_create_without_baseline_raises(self):
+        """A CREATE for a class with no registered baseline is rejected (B8)."""
+        em = self._make_em()
+
+        # Register class id 3 so classes_by_id resolves, but DO NOT add a baseline.
+        class FakeClassEntry:
+            class_id = 3
+            network_name = "CDOTA_Unit_Hero_Axe"
+
+        class ClassMsg:
+            classes = [FakeClassEntry()]
+
+        em.on_class_info(ClassMsg())
+        assert 3 not in em.class_baselines
+
+        # Build a CREATE: ubit_var(0) + cmd=0b10 + class_id=3 (9 bits) +
+        # serial=0 (17 bits) + varuint32(0) (8 bits).
+        bits: list[int] = []
+        bits += [0, 0, 0, 0, 0, 0]  # ubit_var(0)
+        bits += [0, 1]  # cmd=0b10 (create): bit0=0, bit1=1
+        for i in range(em.class_id_size):  # class_id=3, LSB-first
+            bits.append((3 >> i) & 1)
+        bits += [0] * 17  # serial=0
+        bits += [0] * 8  # varuint32(0)
+        data = self._pack_bits(bits)
+
+        class Msg:
+            legacy_is_delta = True
+            updated_entries = 1
+            entity_data = data
+
+        with pytest.raises(RuntimeError, match="baseline"):
+            em.on_packet_entities(Msg())

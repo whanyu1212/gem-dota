@@ -18,5 +18,5 @@ extractor's output properties are ready to read.
 | `classify_lane()` | `gem.extractors.lane` | Lane role from 10-min position heatmap |
 
 When using `gem.parse()`, all extractors are attached and run automatically.
-`classify_lane()` is a pure function called internally by `match_builder` — it can also
+`classify_lane()` is a pure function called internally by `results/assembly.py` — it can also
 be called directly on any `lane_pos` dict.

@@ -58,7 +58,7 @@ That tradeoff is why the feature belongs in `Experimental Features` instead of b
 
 ## Inputs used by the model
 
-The current implementation in `src/gem/analysis.py` uses these inputs:
+The current implementation in `src/gem/analysis/vision.py` uses these inputs:
 
 - `match.players`
 - `player.position_log`
@@ -77,37 +77,37 @@ The function works in four steps.
 
 Dota vision changes with the day/night cycle, so the function first asks whether the queried tick is daytime.
 
-Current constants in `src/gem/analysis.py`:
+Current constants in `src/gem/analysis/vision.py`:
 
 ```text
 day hero vision   = 1800
 night hero vision = 800
 ward vision       = 1600
-full cycle        = 15 minutes
-night starts      = 7:30 into the cycle
+full cycle        = 10 minutes
+night starts      = 5:00 into the cycle
 tick rate         = 30 ticks/sec
 ```
 
 Derived tick constants:
 
 ```text
-DAY_NIGHT_CYCLE_TICKS = 15 * 60 * 30 = 27000
-NIGHT_START_TICKS     = 7 * 60 * 30 + 15 * 30 = 13950
+DAY_NIGHT_CYCLE_TICKS = 10 * 60 * 30 = 18000
+NIGHT_START_TICKS     = 5 * 60 * 30  = 9000
 ```
 
 The function converts absolute replay tick into game-relative tick:
 
 ```text
 game_ticks = max(tick - game_start_tick, 0)
-phase      = game_ticks % 27000
-daytime    = phase < 13950
+phase      = game_ticks % 18000
+daytime    = phase < 9000
 ```
 
 Interpretation:
 
-- before `7:30`, it is day
-- after `7:30`, it is night
-- after `15:00`, the cycle repeats
+- before `5:00`, it is day
+- at/after `5:00`, it is night
+- at `10:00`, the cycle repeats
 
 This yields the hero vision radius for the rest of the check.
 
@@ -251,7 +251,7 @@ The high-level flow is:
 
 1. combat log normalization sees relevant modifier add/remove events
 2. gem records them as `VisionModifierEvent`
-3. `match_builder` places them onto `ParsedMatch.vision_modifiers`
+3. `results/assembly.py` places them onto `ParsedMatch.vision_modifiers`
 4. `estimate_vision` reads them later during post-parse analysis
 
 This means the function is not inventing modifier state from scratch at query time. It consumes a replay-derived event stream that was already captured during parsing.
@@ -405,9 +405,9 @@ That makes the function useful without pretending it is perfect.
 
 Implementation and supporting structures:
 
-- `src/gem/analysis.py`
-- `src/gem/models.py`
-- `src/gem/match_builder.py`
+- `src/gem/analysis/vision.py`
+- `src/gem/results/models.py`
+- `src/gem/results/assembly.py`
 - `docs/reference/analysis.md`
 
 ## Related reading

@@ -11,15 +11,16 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
-from gem.combatlog import CombatLogEntry
-from gem.entities import Entity, EntityOp
+from gem.combat.log import CombatLogEntry, CombatLogType
 from gem.extractors._snapshots import (
     _HERO_CLASS_PREFIX,
     PlayerStateSnapshot,
     PlayerTimeSeries,
+    _player_id_from_entity,
     _pos,
     _snapshot_hero,
 )
+from gem.state.entities import Entity, EntityOp
 
 if TYPE_CHECKING:
     from gem.parser import ReplayParser
@@ -40,8 +41,12 @@ _NULL_HANDLE = 0xFFFFFF  # empty slot sentinel
 
 _TEAM_RADIANT = 2
 _TEAM_DIRE = 3
+# CDOTA_PlayerResource rows to scan when building the logical→resource remap.
+# A coach occupies a row, so the 10 players can span more than 10 indices.
+_PLAYER_RESOURCE_SCAN_LIMIT = 30
 
 __all__ = ["PlayerExtractor", "PlayerStateSnapshot", "PlayerTimeSeries"]
+
 
 # ---------------------------------------------------------------------------
 # Extractor
@@ -77,10 +82,12 @@ class PlayerExtractor:
                 sampling. The separate ``_min`` arrays always sample at exact
                 60-second game-time boundaries regardless of this setting.
             minute_snapshots: If True, also record a snapshot at each
-                game-minute boundary (every 1800 ticks from game start),
-                matching OpenDota's minute cadence. ``total_earned_gold_t`` /
-                ``total_earned_xp_t`` align with OpenDota's cumulative gold/XP
-                series; ``gold_t`` remains current unspent gold.
+                game-minute boundary. When the parser exposes replay game
+                time, boundaries use that OpenDota-compatible clock; otherwise
+                they fall back to every 1800 ticks from game start.
+                ``total_earned_gold_t`` / ``total_earned_xp_t`` align with
+                OpenDota's cumulative gold/XP series; ``gold_t`` remains
+                current unspent gold.
                 Requires the parser to fire ``on_game_start``. Default True.
         """
         self._sample_interval = sample_interval
@@ -102,6 +109,11 @@ class PlayerExtractor:
         # player_id (0-9) → team slot (0-4) within CDOTADataRadiant/Dire
         # Read from CDOTA_PlayerResource.m_vecPlayerTeamData.%04d.m_iTeamSlot
         self._player_team_slot: dict[int, int] = {}
+        # logical player_id (0-9) → CDOTA_PlayerResource array index. Usually the
+        # identity map, but a coach occupies a resource row and shifts later
+        # players, so PlayerResource reads must go through this remap. Rebuilt
+        # whenever _player_resource refreshes. Mirrors OpenDota's validIndices.
+        self._resource_index_by_id: dict[int, int] = {}
         # CDOTA_PlayerResource entity for slot lookups
         self._player_resource: Entity | None = None
         self.snapshots: list[PlayerStateSnapshot] = []
@@ -148,13 +160,16 @@ class PlayerExtractor:
         # m_vecPlayerTeamData.%04d.m_iKills/Deaths/Assists on CDOTA_PlayerResource.
         pr = self._player_resource
         if pr is not None:
-            for i in range(10):
-                prefix = f"m_vecPlayerTeamData.{i:04d}"
+            for player_id in range(10):
+                # Read at the resource-array index for this logical slot — a coach
+                # shifts the array so index != slot. Reference: Parse.java
+                # validIndices.
+                prefix = f"m_vecPlayerTeamData.{self._resource_index(player_id):04d}"
                 k = pr.get_int32(f"{prefix}.m_iKills")
                 d = pr.get_int32(f"{prefix}.m_iDeaths")
                 a = pr.get_int32(f"{prefix}.m_iAssists")
                 if k is not None or d is not None or a is not None:
-                    self.scoreboard[i] = (k or 0, d or 0, a or 0)
+                    self.scoreboard[player_id] = (k or 0, d or 0, a or 0)
 
     def _on_combat_log_entry(self, entry: CombatLogEntry) -> None:
         """Accumulate per-player running totals from combat log entries.
@@ -163,20 +178,43 @@ class PlayerExtractor:
         healing dealt, deaths, and stun duration.  Called for every combat log
         entry; irrelevant entry types are ignored cheaply.
 
+        Hero damage/healing is credited to the damage *source*
+        (``damage_source_name``), falling back to ``attacker_name`` when the
+        source is empty — matching ``_CombatAggregator``'s attribution so the
+        per-minute ``total_hero_damage_t``/``total_hero_healing_t`` curves stay
+        consistent with the ``hero_damage``/``hero_healing`` scalars (a hero's
+        spell/projectile damage lands on the hero, not the projectile).
+
         Args:
             entry: The incoming combat log entry.
         """
-        if entry.log_type == "DAMAGE" and entry.attacker_is_hero and entry.target_is_hero:
-            pid = self._hero_to_pid(entry.attacker_name)
+        if entry.log_type == "DAMAGE" and entry.target_is_hero and not entry.target_is_illusion:
+            pid = self._source_to_pid(entry)
             if pid is not None:
                 self._total_hero_damage[pid] = self._total_hero_damage.get(pid, 0) + entry.value
 
-        elif entry.log_type == "HEAL" and entry.attacker_is_hero and entry.target_is_hero:
-            pid = self._hero_to_pid(entry.attacker_name)
+        elif (
+            entry.log_type == "HEAL"
+            and entry.target_is_hero
+            and not entry.target_is_illusion
+            # Exclude self-heal — total_hero_healing tracks healing to *allied*
+            # heroes, matching the aggregator's hero_healing scalar.
+            and entry.target_name != (entry.damage_source_name or entry.attacker_name)
+        ):
+            pid = self._source_to_pid(entry)
             if pid is not None:
                 self._total_hero_healing[pid] = self._total_hero_healing.get(pid, 0) + entry.value
 
-        elif entry.log_type == "DEATH" and entry.target_is_hero:
+        elif (
+            entry.log_type == "DEATH"
+            and entry.target_is_hero
+            # Skip reincarnation/aegis trigger deaths — the hero comes back, so the
+            # trigger is not a real death. The subsequent true death (will_
+            # reincarnate=False) is counted. Without this the cumulative death
+            # curve double-counts WK/Aegis deaths. Reference: OpenDota
+            # handleDeathCombat returns early for the aegis/reincarnation death.
+            and not entry.will_reincarnate
+        ):
             pid = self._hero_to_pid(entry.target_name)
             if pid is not None:
                 self._total_deaths[pid] = self._total_deaths.get(pid, 0) + 1
@@ -196,15 +234,25 @@ class PlayerExtractor:
         Returns:
             Player slot 0-9, or ``None`` if the hero is not tracked.
         """
-        entity = self._heroes_by_npc.get(npc_name.lower())
-        if entity is None:
+        return _player_id_from_entity(self._heroes_by_npc.get(npc_name.lower()))
+
+    def _source_to_pid(self, entry: CombatLogEntry) -> int | None:
+        """Resolve the damage/heal *source* hero of a combat log entry to a slot.
+
+        Prefers ``damage_source_name`` (so a hero's spell/projectile damage lands
+        on the hero), falling back to ``attacker_name`` when the source name is
+        empty. Mirrors ``_CombatAggregator``'s attribution.
+
+        Args:
+            entry: The combat log entry.
+
+        Returns:
+            Player slot 0-9, or ``None`` if the source is not a tracked hero.
+        """
+        source_name = entry.damage_source_name or entry.attacker_name
+        if not source_name:
             return None
-        pid = entity.get_int32("m_nPlayerID")
-        if pid is None:
-            pid = entity.get_int32("m_iPlayerID")
-        if pid is None or pid < 0:
-            return None
-        return pid // 2
+        return self._hero_to_pid(source_name)
 
     def hero_pos(self, npc_name: str) -> tuple[float, float] | None:
         """Return the current world position of a hero by NPC name.
@@ -218,11 +266,9 @@ class PlayerExtractor:
         entity = self._heroes_by_npc.get(npc_name.lower())
         if entity is None:
             return None
-        pid = entity.get_int32("m_nPlayerID")
-        if pid is None:
-            pid = entity.get_int32("m_iPlayerID")
-        if pid is not None and pid >= 0:
-            canonical = self._canonical_hero_entity(pid // 2)
+        pid = _player_id_from_entity(entity)
+        if pid is not None:
+            canonical = self._canonical_hero_entity(pid)
             if canonical is not None:
                 return _pos(canonical)
         return _pos(entity)
@@ -281,15 +327,14 @@ class PlayerExtractor:
         # at the same tick. Using a dict keyed by minute ensures one entry per
         # minute, with the latest (most accurate) value winning.
         seen: dict[int, PlayerStateSnapshot] = {}  # minute_index → snap
-        if self._game_start_tick is not None:
-            for snap in self._minute_snaps:
-                if snap.player_id != player_id:
-                    continue
+        for i, snap in enumerate(s for s in self._minute_snaps if s.player_id == player_id):
+            if snap.game_time_s is not None and snap.game_time_s >= 0:
+                minute = snap.game_time_s // 60
+            elif self._game_start_tick is not None:
                 minute = (snap.tick - self._game_start_tick) // 1800
-                seen[minute] = snap
-        else:
-            for i, snap in enumerate(s for s in self._minute_snaps if s.player_id == player_id):
-                seen[i] = snap
+            else:
+                minute = i
+            seen[minute] = snap
 
         ts = PlayerTimeSeries(player_id=player_id)
         for snap in (seen[k] for k in sorted(seen)):
@@ -314,7 +359,11 @@ class PlayerExtractor:
     def _on_entity(self, entity: Entity, op: EntityOp) -> None:
         cls = entity.get_class_name()
 
-        if cls.startswith(_HERO_CLASS_PREFIX):
+        if cls == "CDOTAGamerulesProxy":
+            if not op.has(EntityOp.DELETED):
+                self._maybe_sample()
+
+        elif cls.startswith(_HERO_CLASS_PREFIX):
             idx = entity.get_index()
             ending = cls[len(_HERO_CLASS_PREFIX) :]
             # Register two name forms to cover inconsistent combat log names.
@@ -334,21 +383,23 @@ class PlayerExtractor:
                 self._maybe_sample()
 
         elif cls == "CDOTAPlayerController":
-            pid = entity.get_int32("m_nPlayerID")
-            if pid is None:
-                pid = entity.get_int32("m_iPlayerID")
-            if pid is not None and pid >= 0:
-                pid //= 2
+            pid = _player_id_from_entity(entity)
+            if pid is not None:
                 if op.has(EntityOp.DELETED):
                     self._controllers.pop(pid, None)
                 else:
                     self._controllers[pid] = entity
+                    self._maybe_sample()
 
         elif cls in ("CDOTADataRadiant", "CDOTA_DataRadiant"):
             self._data_radiant = None if op.has(EntityOp.DELETED) else entity
+            if not op.has(EntityOp.DELETED):
+                self._maybe_sample()
 
         elif cls in ("CDOTADataDire", "CDOTA_DataDire"):
             self._data_dire = None if op.has(EntityOp.DELETED) else entity
+            if not op.has(EntityOp.DELETED):
+                self._maybe_sample()
 
         elif cls == "CDOTA_PlayerResource":
             if op.has(EntityOp.DELETED):
@@ -356,16 +407,52 @@ class PlayerExtractor:
             else:
                 self._player_resource = entity
                 self._refresh_team_slots()
+                self._maybe_sample()
 
     def _refresh_team_slots(self) -> None:
-        """Read m_iTeamSlot for each player from CDOTA_PlayerResource."""
+        """Build the logical→resource remap and read m_iTeamSlot per player.
+
+        OpenDota scans ``CDOTA_PlayerResource`` for rows whose team is Radiant or
+        Dire (a coach has team 1/14 and is skipped), then uses the scan order as
+        logical slot ``0..9``. The resource array index is not always the logical
+        slot, so all PlayerResource reads go through ``_resource_index_by_id``.
+        Reference: refs/parser/.../opendota/Parse.java (validIndices).
+        """
         pr = self._player_resource
         if pr is None:
             return
-        for i in range(10):
-            slot = pr.get_int32(f"m_vecPlayerTeamData.{i:04d}.m_iTeamSlot")
-            if slot is not None and slot >= 0:
-                self._player_team_slot[i] = slot
+
+        resource_index_by_id: dict[int, int] = {}
+        for resource_idx in range(_PLAYER_RESOURCE_SCAN_LIMIT):
+            team = pr.get_int32(f"m_vecPlayerData.{resource_idx:04d}.m_iPlayerTeam")
+            slot = pr.get_int32(f"m_vecPlayerTeamData.{resource_idx:04d}.m_iTeamSlot")
+            if team not in (_TEAM_RADIANT, _TEAM_DIRE) or slot is None or slot < 0:
+                continue
+            player_id = len(resource_index_by_id)
+            if player_id >= 10:
+                break
+            resource_index_by_id[player_id] = resource_idx
+            self._player_team_slot[player_id] = slot
+
+        # Only adopt the remap once it resolves all 10 players; partial scans
+        # (early in the replay, before PlayerResource is fully populated) keep the
+        # previous mapping rather than introducing a half-built shift.
+        if len(resource_index_by_id) == 10:
+            self._resource_index_by_id = resource_index_by_id
+
+    def _resource_index(self, player_id: int) -> int:
+        """Map a logical player slot to its CDOTA_PlayerResource array index.
+
+        Falls back to the identity (``player_id``) until the remap is built —
+        correct for the common no-coach case where they coincide.
+
+        Args:
+            player_id: Logical player slot 0-9.
+
+        Returns:
+            The resource-array index to read PlayerResource fields at.
+        """
+        return self._resource_index_by_id.get(player_id, player_id)
 
     def _maybe_sample(self) -> None:
         if self._parser is None:
@@ -377,13 +464,19 @@ class PlayerExtractor:
         # Minute-boundary sampling (OpenDota-aligned)
         minute_fired = False
         if self._minute_snapshots and self._game_start_tick is not None:
-            elapsed = tick - self._game_start_tick
-            if elapsed >= 0:
-                current_minute = elapsed // 1800
-                if current_minute > self._last_minute:
-                    self._last_minute = current_minute
-                    self._sample(tick, minute=True)
-                    minute_fired = True
+            game_time_s = getattr(self._parser, "game_time_s", None)
+            if game_time_s is not None and game_time_s >= 0 and game_time_s % 60 == 0:
+                current_minute = game_time_s // 60
+            elif game_time_s is not None:
+                current_minute = None
+            else:
+                elapsed = tick - self._game_start_tick
+                current_minute = elapsed // 1800 if elapsed >= 0 else None
+
+            if current_minute is not None and current_minute > self._last_minute:
+                self._last_minute = current_minute
+                self._sample(tick, minute=True)
+                minute_fired = True
 
         # Regular interval sampling — skip if minute boundary just fired at same tick
         if tick - self._last_sample >= self._sample_interval:
@@ -400,7 +493,9 @@ class PlayerExtractor:
         pr = self._player_resource
         if pr is None:
             return None
-        handle = pr.get_uint32(f"m_vecPlayerTeamData.{player_id:04d}.m_hSelectedHero")
+        handle = pr.get_uint32(
+            f"m_vecPlayerTeamData.{self._resource_index(player_id):04d}.m_hSelectedHero"
+        )
         if handle is None or handle == _NULL_HANDLE:
             return None
         return handle
@@ -429,11 +524,13 @@ class PlayerExtractor:
                 continue
             snap = _snapshot_hero(entity, tick)
             if snap is not None:
+                snap.game_time_s = getattr(self._parser, "game_time_s", None)
                 snaps_by_player[snap.player_id] = (entity, snap)
         for _, entity in sorted(self._heroes.items()):
             snap = _snapshot_hero(entity, tick)
             if snap is None or snap.player_id in snaps_by_player:
                 continue
+            snap.game_time_s = getattr(self._parser, "game_time_s", None)
             snaps_by_player[snap.player_id] = (entity, snap)
         for player_id in sorted(snaps_by_player):
             entity, snap = snaps_by_player[player_id]
@@ -510,7 +607,7 @@ class PlayerExtractor:
 
         Iterates ``m_hAbilities.0000``–``m_hAbilities.0031``, falling back to
         ``m_vecAbilities.*`` for older replays. Resolves each handle to an
-        ability entity and reads ``m_iLevel`` and the name from the
+        ability entity and reads ``m_iLevel``. Ability names come from the
         ``EntityNames`` string table.
 
         Args:
@@ -524,7 +621,11 @@ class PlayerExtractor:
         em = self._parser.entity_manager
         if em is None:
             return {}
-        entity_names = self._parser.string_tables.get_by_name("EntityNames")
+        entity_names = (
+            self._parser.string_tables.get_by_name("EntityNames")
+            if self._parser.string_tables is not None
+            else None
+        )
         if entity_names is None:
             return {}
 
@@ -538,7 +639,9 @@ class PlayerExtractor:
             ability_entity = em.find_by_handle(handle)
             if ability_entity is None:
                 continue
-            name_idx = ability_entity.get_int32("m_pEntity.m_nameStringableIndex")
+            name_idx = ability_entity.get_int32("m_pEntity.m_nameStringTableIndex")
+            if name_idx is None:
+                name_idx = ability_entity.get_int32("m_pEntity.m_nameStringableIndex")
             if name_idx is None or name_idx < 0:
                 continue
             item = entity_names.items.get(name_idx)
@@ -621,7 +724,7 @@ class PlayerExtractor:
                 if item_name and not item_name.startswith("item_recipe"):
                     entry = CombatLogEntry(
                         tick=tick,
-                        log_type="PURCHASE",
+                        log_type=CombatLogType.PURCHASE,
                         target_name=npc_name,
                         value_name=item_name,
                     )

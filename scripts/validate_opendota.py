@@ -48,6 +48,7 @@ Usage:
 
 import argparse
 import json
+import math
 import random
 import sys
 import time
@@ -63,6 +64,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 FIXTURES_DIR = REPO_ROOT / "tests" / "fixtures"
+OPENDOTA_FIXTURES_DIR = FIXTURES_DIR / "opendota"
 DEFAULT_FETCH_DIR = REPO_ROOT / "tmp" / "opendota-validation"
 OPENDOTA_BASE = "https://api.opendota.com/api"
 OPENDOTA_MATCHES = f"{OPENDOTA_BASE}/matches"
@@ -86,10 +88,11 @@ def _build_hero_id_map() -> dict[int, str]:
 # It is NOT derived from the replay — gem's match_id field truncates to 32 bits.
 # ---------------------------------------------------------------------------
 
+# Keep the default gate small and stable. Larger/edge replay fixtures are kept
+# in tests/fixtures/opendota/manifest.json and can be run explicitly with --match.
 REPLAYS: list[tuple[int, Path]] = [
-    (8461735141, FIXTURES_DIR / "ti14_finals_g3_xg_vs_falcons.dem"),
-    (8520062186, FIXTURES_DIR / "8520062186.dem"),
-    (8520014563, FIXTURES_DIR / "8520014563.dem"),
+    (8822520406, OPENDOTA_FIXTURES_DIR / "8822520406.dem"),
+    (8822593932, OPENDOTA_FIXTURES_DIR / "8822593932.dem"),
 ]
 
 
@@ -273,7 +276,7 @@ def ensure_replay(
     replay_url: str | None = None,
     force: bool = False,
 ) -> Path:
-    from gem.replay_fetch import download_and_decompress, fetch_replay_url
+    from gem.replays.fetch import download_and_decompress, fetch_replay_url
 
     out_dir.mkdir(parents=True, exist_ok=True)
     dem_path = out_dir / f"{match_id}.dem"
@@ -376,6 +379,55 @@ def _od_slot_to_gem_id(slot: int) -> int:
     return slot if slot < 128 else slot - 128 + 5
 
 
+_TEAMFIGHT_COOLDOWN_S = 15
+
+
+def _opendota_teamfights_from_combat_log(combat_log: list[Any]) -> list[dict[str, int]]:
+    """Project gem combat log deaths into OpenDota-compatible teamfight windows.
+
+    OpenDota's parser builds teamfights from combat-log game seconds, opens a
+    window at ``first_death_time - 15``, closes once 15 seconds pass without a
+    new hero death, then filters to windows with at least three deaths. This is
+    intentionally separate from gem's richer spatial teamfight detector.
+    """
+    fights: list[dict[str, int]] = []
+    current: dict[str, int] | None = None
+
+    deaths = sorted(
+        (
+            entry
+            for entry in combat_log
+            if entry.log_type == "DEATH"
+            and entry.target_is_hero
+            and not entry.target_is_illusion
+            and entry.game_time_s is not None
+        ),
+        key=lambda entry: entry.game_time_s or 0,
+    )
+
+    for entry in deaths:
+        death_time_s = int(entry.game_time_s or 0)
+        if current is None or death_time_s - current["last_death"] >= _TEAMFIGHT_COOLDOWN_S:
+            if current is not None and current["deaths"] >= 3:
+                current["end"] = current["last_death"] + _TEAMFIGHT_COOLDOWN_S
+                fights.append(current)
+            current = {
+                "start": death_time_s - _TEAMFIGHT_COOLDOWN_S,
+                "end": 0,
+                "last_death": death_time_s,
+                "deaths": 0,
+            }
+
+        current["last_death"] = death_time_s
+        current["deaths"] += 1
+
+    if current is not None and current["deaths"] >= 3:
+        current["end"] = current["last_death"] + _TEAMFIGHT_COOLDOWN_S
+        fights.append(current)
+
+    return fights
+
+
 # ---------------------------------------------------------------------------
 # Core validation
 # ---------------------------------------------------------------------------
@@ -389,12 +441,169 @@ _SAMPLE_NOTE = (
 )
 
 _NET_WORTH_TOLERANCE = 0.08
+# Advantage and player minute curves: gem samples interval boundaries on the
+# combat-log timestamp axis OpenDota uses (parser.combat_log_time_s) AND reads
+# the team-data frame observed one entity tick before the boundary crossing
+# (the boundary-nudge fix), matching OpenDota's effective read instant. The
+# curves now coincide with OpenDota almost exactly. Observed max element-wise
+# error across the five validation fixtures (tournament + ranked pub), measured
+# 2026-06-18: gold_t <=0.65%, xp_t <=0.40%, gold_adv <=0.88%, xp_adv <=0.47%,
+# with every advantage final matching to within 1 unit. Tolerances sit a few
+# multiples above that worst case: tight enough that reverting the nudge or the
+# clock/source alignment (which pushes errors back to ~10%) fails the gate,
+# loose enough that an unseen fixture's sub-second end-game wiggle still passes.
+_GOLD_ADV_TOLERANCE = 0.02
+_GOLD_ADV_CURVE_TOLERANCE_PCT = 3.0
+_XP_ADV_TOLERANCE = 0.02
+_XP_ADV_CURVE_TOLERANCE_PCT = 2.5
+_PLAYER_GOLD_T_CURVE_TOLERANCE_PCT = 3.0
+_PLAYER_XP_T_CURVE_TOLERANCE_PCT = 3.0
+_PLAYER_LH_T_ABS_TOLERANCE = 5
+_PLAYER_LH_T_REL_TOLERANCE = 0.02
+_PLAYER_DN_T_ABS_TOLERANCE = 2
+_GOLD_ADV_NOTE = (
+    "gem builds gold_adv from m_iTotalEarnedGold sampled on the combat-log "
+    "timestamp axis (the same axis OpenDota uses for its interval boundaries), "
+    "so the curves match OpenDota almost exactly. Any residual is sub-second "
+    "end-game wiggle at the final minute boundary."
+)
+_PLAYER_MINUTE_ARRAY_NOTE = (
+    "OpenDota player minute arrays come from its interval parser pipeline. "
+    "Compare by array index; residual drift is tracked before changing parser behavior."
+)
 _MINUTE_SAMPLE_NOTE = (
     "This is the last whole-minute snapshot before game end, compared against "
     "a final server scalar. It is informational only and is excluded from "
     "pass/fail counts because up to 59 seconds of gameplay can elapse after "
     "the final minute boundary."
 )
+
+
+def _max_curve_error_pct(gem_values: list[int], ref_values: list[int]) -> float:
+    """Return max element-wise absolute error as percent of max reference magnitude."""
+    max_abs_ref = max(abs(value) for value in ref_values) or 1
+    max_abs_error = max(abs(gem - ref) for gem, ref in zip(gem_values, ref_values, strict=True))
+    return round(max_abs_error / max_abs_ref * 100, 2)
+
+
+def _max_abs_error(gem_values: list[int], ref_values: list[int]) -> int:
+    """Return max element-wise absolute error for same-length integer arrays."""
+    return max(abs(gem - ref) for gem, ref in zip(gem_values, ref_values, strict=True))
+
+
+def _allowed_abs_error(
+    ref_values: list[int],
+    absolute_floor: int,
+    relative_tolerance: float | None,
+) -> int:
+    """Return absolute counter tolerance, optionally scaled by reference size."""
+    if relative_tolerance is None or not ref_values:
+        return absolute_floor
+    max_abs_ref = max(abs(value) for value in ref_values)
+    return max(absolute_floor, math.ceil(max_abs_ref * relative_tolerance))
+
+
+def _compare_opendota_player_array(
+    label: str,
+    name: str,
+    gem_values: list[int],
+    ref_values: list[int],
+    *,
+    max_curve_error_pct: float | None = None,
+    max_abs_error: int | None = None,
+    max_abs_error_pct: float | None = None,
+) -> list[FieldResult]:
+    """Compare one gem player minute array against one OpenDota player array."""
+    missing_ref = not ref_values
+    missing_note = f"OpenDota did not expose player {name} for this match."
+    note = missing_note if missing_ref else _PLAYER_MINUTE_ARRAY_NOTE
+    fields = [
+        FieldResult(
+            f"{label}/{name}/length",
+            len(gem_values),
+            len(ref_values),
+            skip=missing_ref,
+            note=note if missing_ref else "",
+        )
+    ]
+
+    gem_final = gem_values[-1] if gem_values else None
+    ref_final = ref_values[-1] if ref_values else None
+    if max_curve_error_pct is not None:
+        fields.append(
+            FieldResult(
+                f"{label}/{name}/final",
+                gem_final,
+                ref_final,
+                tolerance=max_curve_error_pct / 100,
+                skip=missing_ref,
+                note=note,
+            )
+        )
+        if gem_values and ref_values and len(gem_values) == len(ref_values):
+            err_pct = _max_curve_error_pct(gem_values, ref_values)
+            fields.append(
+                FieldResult(
+                    f"{label}/{name}/max_curve_err%",
+                    err_pct,
+                    max_curve_error_pct,
+                    ok_override=err_pct <= max_curve_error_pct,
+                    note=note,
+                )
+            )
+        elif missing_ref:
+            fields.append(
+                FieldResult(
+                    f"{label}/{name}/max_curve_err%",
+                    None,
+                    max_curve_error_pct,
+                    skip=True,
+                    note=note,
+                )
+            )
+        return fields
+
+    if max_abs_error is None:
+        raise ValueError("Either max_curve_error_pct or max_abs_error must be provided")
+
+    allowed_abs_error = _allowed_abs_error(ref_values, max_abs_error, max_abs_error_pct)
+    final_abs_error = (
+        abs(gem_final - ref_final)
+        if isinstance(gem_final, int) and isinstance(ref_final, int)
+        else None
+    )
+    fields.append(
+        FieldResult(
+            f"{label}/{name}/final_abs_err",
+            final_abs_error,
+            allowed_abs_error,
+            skip=missing_ref,
+            ok_override=final_abs_error is not None and final_abs_error <= allowed_abs_error,
+            note=note,
+        )
+    )
+    if gem_values and ref_values and len(gem_values) == len(ref_values):
+        err = _max_abs_error(gem_values, ref_values)
+        fields.append(
+            FieldResult(
+                f"{label}/{name}/max_abs_err",
+                err,
+                allowed_abs_error,
+                ok_override=err <= allowed_abs_error,
+                note=note,
+            )
+        )
+    elif missing_ref:
+        fields.append(
+            FieldResult(
+                f"{label}/{name}/max_abs_err",
+                None,
+                allowed_abs_error,
+                skip=True,
+                note=note,
+            )
+        )
+    return fields
 
 
 def validate_match(
@@ -461,24 +670,23 @@ def validate_match(
     result.match_fields.append(FieldResult("tower_kills", gem_tower_kills, od_tower_kills))
 
     if mode in {"parsed", "full"}:
-        # Teamfight detection — gem returns all windows; OpenDota applies deaths >= 3
-        # filter and uses a custom "expanded" entry pipeline that may attribute extra
-        # deaths (e.g. deaths_pos annotations) not present in our combat log.
-        # Validation: for each OpenDota fight, check that gem detects at least one
-        # window whose start_s is within ±30 s of the OpenDota start.
+        # Teamfight detection — compare against an OpenDota-compatible projection
+        # built from combat-log game time. gem's public teamfight objects keep
+        # raw ticks and include extra spatial clustering, so they are not the
+        # right comparison surface for OpenDota's filtered parser output.
         od_teamfights = od.get("teamfights") or []
-        TICK_RATE = 30
+        gem_teamfights = _opendota_teamfights_from_combat_log(m.combat_log or [])
         MATCH_WINDOW_S = 30  # ±30 s is sufficient for timing alignment
 
         result.match_fields.append(
             FieldResult(
                 "teamfights/total_count",
-                len(m.teamfights or []),
+                len(gem_teamfights),
                 len(od_teamfights),
-                skip=True,  # counts differ due to deaths>=3 filter and data pipeline differences
+                skip=True,  # death annotation details can still differ by parser pipeline
                 note=(
-                    "OpenDota applies deaths>=3 filter and extra death annotations; "
-                    "gem returns all fight windows. Count comparison is informational only."
+                    "OpenDota applies deaths>=3 filtering over its expanded event pipeline. "
+                    "Count comparison is informational only."
                 ),
             )
         )
@@ -488,13 +696,13 @@ def validate_match(
             # Find nearest gem fight by start time
             best_gem = None
             best_delta = float("inf")
-            for tf in m.teamfights or []:
-                delta = abs(tf.start_tick // TICK_RATE - od_start_s)
+            for tf in gem_teamfights:
+                delta = abs(tf["start"] - od_start_s)
                 if delta < best_delta:
                     best_delta = delta
                     best_gem = tf
 
-            gem_start_s = best_gem.start_tick // TICK_RATE if best_gem else None
+            gem_start_s = best_gem["start"] if best_gem else None
 
             result.match_fields.append(
                 FieldResult(
@@ -549,11 +757,11 @@ def validate_match(
                 "radiant_gold_adv/final",
                 gem_gold_final,
                 od_gold_final,
-                tolerance=0.05,
+                tolerance=_GOLD_ADV_TOLERANCE,
                 skip=od_adv_missing,
                 note="OpenDota did not compute gold/XP advantage curves for this match."
                 if od_adv_missing
-                else "",
+                else _GOLD_ADV_NOTE,
             )
         )
         gem_xp_final = gem_xp_adv[-1] if gem_xp_adv else None
@@ -563,7 +771,7 @@ def validate_match(
                 "radiant_xp_adv/final",
                 gem_xp_final,
                 od_xp_final,
-                tolerance=0.05,
+                tolerance=_XP_ADV_TOLERANCE,
                 skip=od_adv_missing,
                 note="OpenDota did not compute gold/XP advantage curves for this match."
                 if od_adv_missing
@@ -584,8 +792,9 @@ def validate_match(
                 FieldResult(
                     "radiant_gold_adv/max_curve_err%",
                     err_pct,
-                    5.0,
-                    ok_override=err_pct <= 5.0,
+                    _GOLD_ADV_CURVE_TOLERANCE_PCT,
+                    ok_override=err_pct <= _GOLD_ADV_CURVE_TOLERANCE_PCT,
+                    note=_GOLD_ADV_NOTE,
                 )
             )
         if gem_xp_adv and od_xp_adv and len(gem_xp_adv) == len(od_xp_adv):
@@ -598,8 +807,8 @@ def validate_match(
                 FieldResult(
                     "radiant_xp_adv/max_curve_err%",
                     err_pct,
-                    5.0,
-                    ok_override=err_pct <= 5.0,
+                    _XP_ADV_CURVE_TOLERANCE_PCT,
+                    ok_override=err_pct <= _XP_ADV_CURVE_TOLERANCE_PCT,
                 )
             )
 
@@ -684,6 +893,45 @@ def validate_match(
                 skip=True,
             )
         )
+
+        if mode in {"parsed", "full"}:
+            fields.extend(
+                _compare_opendota_player_array(
+                    label,
+                    "gold_t",
+                    list(gp.gold_t_min),
+                    list(od_player.get("gold_t") or []),
+                    max_curve_error_pct=_PLAYER_GOLD_T_CURVE_TOLERANCE_PCT,
+                )
+            )
+            fields.extend(
+                _compare_opendota_player_array(
+                    label,
+                    "xp_t",
+                    list(gp.xp_t_min),
+                    list(od_player.get("xp_t") or []),
+                    max_curve_error_pct=_PLAYER_XP_T_CURVE_TOLERANCE_PCT,
+                )
+            )
+            fields.extend(
+                _compare_opendota_player_array(
+                    label,
+                    "lh_t",
+                    list(gp.lh_t_min),
+                    list(od_player.get("lh_t") or []),
+                    max_abs_error=_PLAYER_LH_T_ABS_TOLERANCE,
+                    max_abs_error_pct=_PLAYER_LH_T_REL_TOLERANCE,
+                )
+            )
+            fields.extend(
+                _compare_opendota_player_array(
+                    label,
+                    "dn_t",
+                    list(gp.dn_t_min),
+                    list(od_player.get("dn_t") or []),
+                    max_abs_error=_PLAYER_DN_T_ABS_TOLERANCE,
+                )
+            )
 
         # kills / deaths from server scoreboard (CDOTAPlayerResource)
         fields.append(FieldResult(f"{label}/kills", gp.kills, od_player["kills"]))
@@ -881,7 +1129,7 @@ def resolve_replay_specs(args: argparse.Namespace) -> list[ReplaySpec]:
 
     if args.match:
         known = dict(REPLAYS)
-        fixture = known.get(args.match, FIXTURES_DIR / f"{args.match}.dem")
+        fixture = known.get(args.match, OPENDOTA_FIXTURES_DIR / f"{args.match}.dem")
         return [ReplaySpec(match_id=args.match, fixture=fixture, source="match")]
 
     return [

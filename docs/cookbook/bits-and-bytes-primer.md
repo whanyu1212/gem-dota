@@ -3,7 +3,7 @@
 This page is a practical prerequisite for parser deep dives.
 
 If you are comfortable with Python but less familiar with binary formats, read this first.
-It explains exactly how replay bytes are laid out before `stream.py` and `parser.py` decode them.
+It explains exactly how replay bytes are laid out before `binary/stream.py` and `parser.py` decode them.
 
 ## Why this matters
 
@@ -16,7 +16,7 @@ It is a binary container:
 3. protobuf payloads inside those records,
 4. and sometimes bit-packed payloads inside protobuf fields.
 
-Understanding these layers makes `stream.py` and `parser.py` much easier to follow.
+Understanding these layers makes `binary/stream.py` and `parser.py` much easier to follow.
 
 ## Bits vs bytes (quick refresh)
 
@@ -35,7 +35,7 @@ print(b.hex(" "))     # 50 42 44 45
 
 ## The first bytes in a Source 2 Dota replay
 
-`stream.py` expects this at the start:
+`binary/stream.py` expects this at the start:
 
 1. 8-byte magic: `PBDEMS2\x00`
 2. 8 metadata bytes (skipped by parser)
@@ -67,14 +67,14 @@ Why parser skips metadata:
 1. They are not required to decode message boundaries.
 2. They can be stale in truncated files.
 
-Example from local fixtures:
+Example from the committed truncated fixture:
 
-- `ti14_finals_g3_xg_vs_falcons.dem` metadata: `278882831`, `278882714`
-- `ti14_finals_g3_xg_vs_falcons_truncated.dem` has the same metadata values but much smaller actual file size.
+- `ti14_finals_g3_xg_vs_falcons_truncated.dem` metadata: `278882831`, `278882714`
+- Full replay fixtures are intentionally kept as ignored local files under `tests/fixtures/opendota/`.
 
 If magic mismatches, `DemoStream` raises immediately before parsing anything else.
 
-## Outer message framing (what `stream.py` reads)
+## Outer message framing (what `binary/stream.py` reads)
 
 After header+metadata, replay data is a repeated sequence:
 
@@ -142,7 +142,7 @@ Example:
 - base command `7` (`DEM_Packet`) -> `0x07`
 - compressed command -> `0x47` (`0x40 | 0x07`)
 
-`stream.py` does:
+`binary/stream.py` does:
 
 1. `compressed = bool(command & 0x40)`
 2. `msg_type = command & ~0x40`
@@ -153,7 +153,7 @@ So downstream sees `msg_type == 7` whether compressed or not.
 
 At outer layer:
 
-1. `stream.py` yields `(tick, msg_type, payload)` from framed bytes.
+1. `binary/stream.py` yields `(tick, msg_type, payload)` from framed bytes.
 2. `parser.py` maps `msg_type` to outer protobuf envelope (`CDemoPacket`, `CDemoFullPacket`, etc.).
 3. If envelope is packet-like, `parser.py` unpacks inner messages from `CDemoPacket.data`.
 
@@ -176,5 +176,5 @@ That is why replay parsing is “layers of framing”, not a single protobuf dec
 ## Next pages
 
 1. [How Proto Parsing Works](proto-parsing-pipeline.md)
-2. [Stream Layer (`stream.py`)](../deep-dives/stream-layer.md)
+2. [Stream Layer (`binary/stream.py`)](../deep-dives/stream-layer.md)
 3. [Parser Layer (`parser.py`)](../deep-dives/parser-layer.md)

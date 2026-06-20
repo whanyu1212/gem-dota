@@ -57,21 +57,21 @@ class TestDemoStreamFuzz:
     """DemoStream raises ValueError on bad magic; handles truncation cleanly."""
 
     def test_empty_bytes(self) -> None:
-        from gem.stream import DemoStream
+        from gem.binary.stream import DemoStream
 
         # Empty bytes → wrong magic (0 bytes) → ValueError
         with pytest.raises(ValueError):
             DemoStream(b"")
 
     def test_wrong_magic(self) -> None:
-        from gem.stream import DemoStream
+        from gem.binary.stream import DemoStream
 
         bad = b"NOTDOTA2" + b"\x00" * 8
         with pytest.raises(ValueError):
             DemoStream(bad)
 
     def test_header_only_no_messages(self) -> None:
-        from gem.stream import DemoStream
+        from gem.binary.stream import DemoStream
 
         # Valid header, no messages — should yield nothing and not hang.
         with DemoStream(_make_dem_header()) as stream:
@@ -79,7 +79,7 @@ class TestDemoStreamFuzz:
         assert messages == []
 
     def test_truncated_after_header(self) -> None:
-        from gem.stream import DemoStream
+        from gem.binary.stream import DemoStream
 
         # Header + incomplete varuint — should raise or yield nothing (no hang).
         data = _make_dem_header() + b"\x80"  # incomplete varuint
@@ -91,7 +91,7 @@ class TestDemoStreamFuzz:
                 pass  # any exception is fine — no hang
 
     def test_truncated_mid_payload(self) -> None:
-        from gem.stream import DemoStream
+        from gem.binary.stream import DemoStream
 
         # Header + valid outer message claiming 100 bytes, only 10 provided.
         cmd = _pack_varuint32(7)  # DEM_Packet
@@ -108,7 +108,7 @@ class TestDemoStreamFuzz:
                 pass  # truncated payload raises — acceptable
 
     def test_garbage_after_magic(self) -> None:
-        from gem.stream import DemoStream
+        from gem.binary.stream import DemoStream
 
         # Valid magic, then garbage content — iteration may raise or return partial.
         data = _make_dem_header() + b"\xff" * 256
@@ -135,7 +135,7 @@ class TestParseFuzz:
     def test_empty_file(self, tmp_path: Path) -> None:
         """Empty .dem file → parser catches ValueError and returns empty ParsedMatch."""
         import gem
-        from gem.models import ParsedMatch
+        from gem.results.models import ParsedMatch
 
         f = tmp_path / "empty.dem"
         f.write_bytes(b"")
@@ -145,7 +145,7 @@ class TestParseFuzz:
     def test_wrong_magic_file(self, tmp_path: Path) -> None:
         """Wrong magic → parser catches ValueError and returns empty ParsedMatch."""
         import gem
-        from gem.models import ParsedMatch
+        from gem.results.models import ParsedMatch
 
         f = tmp_path / "bad_magic.dem"
         f.write_bytes(b"NOTVALID" + b"\x00" * 8 + b"\xff" * 64)
@@ -155,7 +155,7 @@ class TestParseFuzz:
     def test_nonexistent_file(self, tmp_path: Path) -> None:
         """Nonexistent file → parser catches FileNotFoundError, returns empty ParsedMatch."""
         import gem
-        from gem.models import ParsedMatch
+        from gem.results.models import ParsedMatch
 
         result = gem.parse(str(tmp_path / "does_not_exist.dem"))
         assert isinstance(result, ParsedMatch)
@@ -163,7 +163,7 @@ class TestParseFuzz:
     def test_header_only_file(self, tmp_path: Path) -> None:
         """Valid header with no messages → empty ParsedMatch, no hang."""
         import gem
-        from gem.models import ParsedMatch
+        from gem.results.models import ParsedMatch
 
         f = tmp_path / "header_only.dem"
         f.write_bytes(_make_dem_header())
@@ -173,7 +173,7 @@ class TestParseFuzz:
     def test_garbage_content_file(self, tmp_path: Path) -> None:
         """Valid header + garbage payload → empty ParsedMatch, no hang."""
         import gem
-        from gem.models import ParsedMatch
+        from gem.results.models import ParsedMatch
 
         f = tmp_path / "garbage.dem"
         f.write_bytes(_make_dem_header() + b"\xff" * 1024)
@@ -183,7 +183,7 @@ class TestParseFuzz:
     def test_truncated_fixture(self) -> None:
         """Pre-built truncated fixture parses without hanging."""
         import gem
-        from gem.models import ParsedMatch
+        from gem.results.models import ParsedMatch
 
         if not FIXTURE_TRUNCATED.exists():
             pytest.skip("Truncated fixture not found")
@@ -215,7 +215,7 @@ class TestBitReaderFuzz:
     """BitReader raises on reads past end-of-buffer."""
 
     def test_read_bits_past_end(self) -> None:
-        from gem.reader import BitReader
+        from gem.binary.reader import BitReader
 
         r = BitReader(b"\x00")
         r.read_bits(8)  # consume the single byte
@@ -223,14 +223,14 @@ class TestBitReaderFuzz:
             r.read_bits(1)  # past end
 
     def test_empty_buffer_raises(self) -> None:
-        from gem.reader import BitReader
+        from gem.binary.reader import BitReader
 
         r = BitReader(b"")
         with pytest.raises((EOFError, IndexError, ValueError, Exception)):
             r.read_bits(1)
 
     def test_read_byte_past_end(self) -> None:
-        from gem.reader import BitReader
+        from gem.binary.reader import BitReader
 
         r = BitReader(b"\xab")
         r.read_bits(8)  # consume all

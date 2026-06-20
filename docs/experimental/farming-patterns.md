@@ -147,7 +147,7 @@ That combination is what makes the feature inspectable instead of opaque.
 
 ## Exact formulas
 
-The current formulas come directly from `src/gem/map_context.py`.
+The current formulas come directly from `src/gem/analysis/map_context.py`.
 
 ### `clamp`
 
@@ -658,9 +658,9 @@ Likely next improvements include:
 
 If you want to inspect or tune the implementation directly:
 
-- `src/gem/map_context.py`
-- `examples/report/html_sections.py`
-- `examples/report/style.py`
+- `src/gem/analysis/map_context.py`
+- `src/gem/reports/_sections.py`
+- `src/gem/reports/styles.py`
 - `src/gem/data/neutral_camps.json`
 - `src/gem/data/camp_zones.json`
 

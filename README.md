@@ -1,6 +1,6 @@
-<h1 align="center">gem</h1>
-
-<p align="center"><strong>Source 2 Dota 2 Replay Parsing, Analytics and Visualization in Python</strong></p>
+<p align="center">
+  <img src="docs/public/gem-readme-banner-wordmark-subtitle-spaced.png" alt="Gem - A dota 2 replay parser in Python" width="100%">
+</p>
 
 <p align="center">
   <img alt="Python" src="https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white">
@@ -21,17 +21,27 @@
 🎞️ Generate HTML analysis reports with combat, vision, economy, draft, and movement views  
 🧰 Export analysis-ready outputs as structured models, DataFrames, JSON, and Parquet
 
+> [!NOTE]
+> **Project status.** The core parsing pipeline — binary reader, entity delta system, combat log (S1 + S2), string tables, extractors, and the `ParsedMatch` output model — is **stable** and validated against OpenDota outputs (see [Known limitations](#known-limitations) for the remaining parity residuals). Features marked *(experimental)* — vision estimation, farming-pattern analysis, and Roshan conversion — are best-effort reconstructions, not ground-truth telemetry, and their heuristics may change. Published to PyPI as **`gem-dota`** (import name `gem`).
+
 ---
 
 ## Why Gem?
 
-“Gem” is inspired by **Gem of True Sight** in Dota — something that reveals what is normally hidden. Replays are dense binary data; this library aims to surface that hidden information in a form people can actually work with.
+Named after the **Gem of True Sight** — it reveals what is normally hidden. Replays are dense binary blobs; `gem` surfaces that information as structured Python objects you can analyze directly.
 
-We built `gem` in **Python** because most people in data, ML, and AI workflows already live in Python ecosystems. Go/Java parsers are excellent, but they are often not the first language for this audience. The goal is to democratize replay parsing: make it approachable from scratch, easy to inspect, and simple to plug into notebooks, pandas, and ML pipelines.
+Three reasons it exists:
 
-There is also a practical high-MMR reason: once your MMR is around **8500+**, ranked games are typically **Immortal Draft**, and many matches become effectively private to public stats ecosystems. In those cases, services like OpenDota, Dotabuff, and STRATZ often cannot parse or expose the game through normal API flows, so the most reliable path for serious self-review is parsing your own replays (or replays shared by trusted friends/pro teammates).
+- **Python-native.** Data/ML/AI work lives in Python. The excellent Go/Java parsers aren't the first language for that audience — `gem` makes replay parsing approachable from a notebook and easy to plug into pandas and ML pipelines.
+- **Reach private/high-MMR games.** Around **8500+ MMR** (Immortal Draft), many matches are effectively invisible to OpenDota/Dotabuff/STRATZ public API flows. Parsing your own replays is the most reliable path for serious self-review.
+- **Data ownership & transparency.** API/GraphQL outputs are already-processed interpretations with information loss and hidden assumptions. `gem` is open source and inspectable end-to-end, so you can understand the data from first principles.
 
-Another core reason is data ownership and transparency. API/GraphQL outputs from sites like OpenDota and STRATZ are already processed interpretations, which can involve information loss and hidden assumptions. With `gem`, we want to help people understand replay parsing from first principles in a user-friendly, widely adopted language, with an implementation that is open source and inspectable end-to-end. Skadistats once open-sourced SMOKE years ago (Cython-based rather than pure Python), but it is no longer maintained; `gem` aims to help fill that gap for today’s Python/data community.
+<details>
+<summary>More context</summary>
+
+Skadistats once open-sourced SMOKE (Cython-based rather than pure Python), but it is no longer maintained; `gem` aims to fill that gap for today's Python/data community. The implementation is an independent Python reimplementation cross-checked against Manta (Go), Clarity (Java), and the OpenDota parser (Java) — see [Acknowledgements](#acknowledgements).
+
+</details>
 
 ---
 
@@ -204,7 +214,15 @@ python -m gem match.dem --progress --timings
 A sample report (TI14 Grand Finals G3 — XG vs Falcons) is available as a download from the docs site:
 [whanyu1212.github.io/gem-dota/reports/](https://whanyu1212.github.io/gem-dota/reports/)
 
-Run the match report generator in `examples/`:
+Use the packaged report builder from Python, or run the example wrapper:
+
+```python
+import gem
+from gem.reports import ReportAssets, write_html_report
+
+match = gem.parse("path/to/your_replay.dem")
+write_html_report(match, "report.html", assets=ReportAssets(map_image="assets/maps/Game_map_7.40.jpg"))
+```
 
 ```bash
 uv run python examples/match_report.py path/to/your_replay.dem
@@ -257,19 +275,36 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 | Purchase log per player | `ParsedPlayer.purchase_log` |
 | Vision modifier events (Slardar, BH Track, Dust, Gem) *(experimental)* | `ParsedMatch.vision_modifiers` |
 | Vision source estimation per point *(experimental)* | `gem.estimate_vision(match, team, tick, x, y)` |
-| Hero / item / ability display names | `gem.constants` |
+| Hero / item / ability display names | `gem.catalog` (`gem.constants` remains compatible) |
+| Self-contained HTML reports | `gem.reports.build_html_report()`, `gem.reports.write_html_report()` |
 | Look up a player by hero name | `gem.find_player(match, "Axe")` |
 
 ---
 
 ## Releases
 
+> Full per-release detail lives in [`CHANGELOG.md`](CHANGELOG.md) and the [GitHub Releases](https://github.com/whanyu1212/gem-dota/releases) page; the highlights below summarize recent versions.
+
+### [v0.3.0](https://github.com/whanyu1212/gem-dota/releases/tag/v0.3.0)
+
+A structural + correctness release. The supported top-level API (`gem.parse`, `gem.ParsedMatch`, `gem.find_player`, …) is unchanged.
+
+- **Package reorganization** — internals grouped into focused subpackages (`binary/`, `schema/`, `state/`, `combat/`, `extractors/`, `analysis/`, `catalog/`, `results/`, `reports/`, `replays/`), each with its own `README.md`.
+- **Source-based combat attribution** — damage/healing now attributed to the damage *source* (matching OpenDota); `tower_damage` is ~exact offline (up from ~87%), and unmapped combat-log types no longer inflate damage aggregates.
+- **Correctness fixes** (multi-pass adversarial bug hunt) — day/night cycle (10-min, night at 5:00), ward lifespans (observer 6 min / sentry 7 min), teamfight gold/XP attribution, Roshan-conversion window double-count, reincarnation death counting, and coach-index K/D/A remap for HLTV replays.
+- **New fields** — `CombatLogEntry.damage_source_name`, `CombatLogEntry.will_reincarnate`, and a backward-compatible `CombatLogType` enum.
+- **Removed** — root-level compatibility shims (`gem.reader`, `gem.models`, …); use the top-level `gem.*` API or grouped subpackages.
+
+<details>
+<summary>Older releases</summary>
+
 ### [v0.2.8](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.8)
 
-- **7.41 replay fixtures and constants** — OpenDota fixture tooling, DreamLeague Season 29 fixture metadata, and updated constants coverage for newer neutral item and ability data.
-- **Neutral item found events** — parser, model, dataframe, and validation coverage for neutral item discovery events exposed in modern replays.
-- **Camp annotation refresh** — replay-audit tooling, confirmed 7.41 camp type updates, and a regenerated annotated map fixture with type-colored rings and a legend.
-- **Icon cache checks** — hero and item icon fetch scripts avoid rewriting unchanged cached assets.
+- **Neutral item tracking** — `DOTA_UM_FoundNeutralItem` events are parsed into `NeutralItemFoundEvent` (player, item key, tier, enhancement/trinket fields), with model/DataFrame outputs and constants-audit coverage for newly observed item IDs.
+- **Neutral camp annotation tooling** — `scripts/audit_camp_annotations.py` groups neutral deaths into camp zones with replay-derived evidence; combat-log parsing now preserves neutral-camp stack metadata and event locations when available.
+- **7.41 data refresh** — bundled constants updated for 7.41-era items/abilities, camp-zone annotations refreshed for confirmed camp type swaps, and a regenerated 7.40 map fixture with 7.41 camp overlays.
+- **OpenDota fixture tooling** — `scripts/fetch_opendota_fixture.py` plus DreamLeague Season 29 fixture metadata for patch-7.41 validation.
+- **Icon-fetch caching** — hero/item icon scripts now skip unchanged assets.
 
 ### [v0.2.7](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.7)
 
@@ -277,9 +312,6 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 - **Roshan conversion analysis** — `gem.build_rosh_conversions(match)` plus a dedicated `Roshan Conversion` report tab to show how each Roshan translated into fights, objectives, and map pressure.
 - **Sampling and validation fixes** — player time-series sampling now stops at game end, hero movement sampling uses each player's canonical selected hero entity, and the OpenDota validator now supports broader replay-sampling workflows.
 - **Economy series split** — `ParsedPlayer.gold_t` is now current unspent gold only, with cumulative earned gold exposed separately via `ParsedPlayer.total_earned_gold_t`.
-
-<details>
-<summary>Older releases</summary>
 
 ### [v0.2.6](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.6)
 
@@ -293,7 +325,7 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 - **`gem.resolve_pick_team(event, players)`** — resolves the team for a draft pick/ban using the post-game player roster (more reliable than `m_pGameRules.m_iActiveTeam` in HLTV/coach replays).
 - **`gem.net_worth_at(player, tick)`**, **`gem.ward_vision_impact(ward, match)`**, **`gem.is_active_teamfight_participant(player_stats)`**, **`gem.format_npc_name(name)`** — new analysis helpers.
 - **Draft fix** — `DraftExtractor._resolve_name()` now correctly halves doubled hero IDs (`api_id * 2`) before falling back to a direct lookup, fixing wrong hero resolution for bans in modern replays.
-- **Integration test** — `tests/test_draft_integration.py` verifies picks/bans against the OpenDota API across 5 captains-mode pro replays.
+- **Integration test** — `uv run pytest` skips replay-backed integration tests by default. `tests/test_draft_integration.py` verifies picks/bans against the OpenDota API with one captains-mode pro replay when run via `uv run pytest -m integration`; set `GEM_DRAFT_INTEGRATION_FULL=1` to run the broader 5-replay sample.
 - **Sample report** — TI14 Grand Finals G3 (XG vs Falcons) report available as a download from the [reports gallery](https://whanyu1212.github.io/gem-dota/reports/).
 
 ### [v0.2.4](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.4)
@@ -326,7 +358,7 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 - **Parquet export** — `gem.to_parquet()`, `gem.parse_to_parquet()` added (requires `pyarrow` or `fastparquet`).
 - **Rich CLI** — live progress bar, timing summary, pixel-art banner in a box, Radiant/Dire colour-coded summary table.
 - **Docs** — architecture page redesigned, diamond icon, laning pages added to nav, export formats documented throughout.
-- **Bug fixes** — two `mypy` type errors resolved in `__main__.py` and `dataframes.py`.
+- **Bug fixes** — two `mypy` type errors resolved in `__main__.py` and DataFrame export.
 
 ### [v0.2.0](https://github.com/whanyu1212/gem-dota/releases/tag/v0.2.0)
 
@@ -362,24 +394,32 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 
 | Component | Description |
 |---|---|
-| `reader.py` | `BitReader` — LSB-first bit reading, varint decoding, all binary primitives |
-| `stream.py` | `DemoStream` — outer message loop, Snappy decompression, magic check |
-| `sendtable.py` | Schema layer — serializer + field tree parsed from `CDemoSendTables` |
-| `field_decoder.py` | Type-dispatch decoders including quantized floats |
-| `field_path.py` | Huffman-coded field path ops for addressing into the serializer tree |
-| `field_state.py` | Nested mutable field-value tree for entity state storage |
-| `field_reader.py` | Field decoder dispatch and entity field reading |
-| `string_table.py` | Incremental key-history string tables |
-| `entities.py` | Entity create/update/delete lifecycle and state |
-| `game_events.py` | Game event schema and typed dispatch |
-| `combatlog.py` | S1 (game event) and S2 (user message) combat log ingestion |
+| `binary/reader.py` | `BitReader` — LSB-first bit reading, varint decoding, all binary primitives |
+| `binary/stream.py` | `DemoStream` — outer message loop, Snappy decompression, magic check |
+| `schema/sendtable/` | Schema layer — serializer + field tree parsed from `CDemoSendTables` |
+| `schema/field_decoder/` | Type-dispatch decoders including quantized floats |
+| `schema/field_path/` | Huffman-coded field path ops for addressing into the serializer tree |
+| `schema/field_state.py` | Nested mutable field-value tree for entity state storage |
+| `schema/field_reader.py` | Field decoder dispatch and entity field reading |
+| `state/string_table.py` | Incremental key-history string tables |
+| `state/entities.py` | Entity create/update/delete lifecycle and state |
+| `state/game_events.py` | Game event schema and typed dispatch |
+| `combat/log.py` | S1 (game event) and S2 (user message) combat log ingestion |
 | `parser.py` | Top-level orchestrator wiring all subsystems together |
-| `match_builder.py` | Assembles final `ParsedMatch` output from extractors/aggregates |
-| `combat_aggregator.py` | Combat-log aggregation for per-player damage/healing/items/economy stats |
-| `models.py` | `ParsedMatch` / `ParsedPlayer` output dataclasses |
-| `constants.py` | Bundled hero, item, ability display names |
+| `api.py` | High-level `gem.parse()`, JSON, DataFrame, and Parquet convenience helpers |
+| `cli.py` | Command-line implementation behind `python -m gem` |
+| `combat/aggregator.py` | Combat-log aggregation for per-player damage/healing/items/economy stats |
+| `results/assembly.py` | Assembles final `ParsedMatch` output from extractors/aggregates |
+| `results/models.py` | `ParsedMatch` / `ParsedPlayer` output dataclasses |
+| `results/dataframes.py` | DataFrame export from `ParsedMatch` |
+| `catalog/` | Bundled hero, item, ability, league, XP, and static map-data lookups |
+| `constants.py` | Compatibility facade for older catalog imports |
+| `reports/` | Self-contained HTML report generation from `ParsedMatch` |
 | `extractors/` | Per-tick polling of entity state — players, lane, objectives, wards, courier, draft, teamfights |
-| `dataframes.py` | DataFrame export from `ParsedMatch` |
+| `analysis/` | Post-parse helpers — spatial/combat/vision lookups plus experimental map-context and Roshan-conversion builders |
+| `replays/` | Bulk parsing (`parse_many`, parallel workers) and replay download/decompress from OpenDota/Valve CDN |
+
+> Each package carries its own `README.md` with a deeper mental model, mechanics, and pitfalls. Module-level architecture is documented in [`docs/architecture.md`](docs/architecture.md).
 
 ---
 
@@ -419,6 +459,26 @@ Topics covered: DEM binary format, Protocol Buffers, varint encoding, the entity
 
 ---
 
+## Contributing
+
+Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow and PR checklist. The repo is managed with [`uv`](https://docs.astral.sh/uv/) and enforces lint, format, and type checks via pre-commit.
+
+```bash
+uv sync --group dev          # install project + dev dependencies
+
+uv run pytest                # fast suite (skips slow/integration markers)
+uv run pytest -m integration # replay-backed integration tests (needs fixtures)
+
+uv run ruff check src/ tests/    # lint
+uv run ruff format src/ tests/   # format
+uv run mypy src/gem/             # type-check
+```
+
+> [!TIP]
+> Parser-logic changes should be verified against the reference parsers in `refs/` (Manta → Clarity → OpenDota) and ship with a focused regression test. See `CONTRIBUTING.md` and [CLAUDE.md](CLAUDE.md) for the parser-safety conventions.
+
+---
+
 ## AI-Assisted Development
 
 If you use AI coding tools, see [CLAUDE.md](CLAUDE.md) and [AGENTS.md](AGENTS.md) for project context, architecture, and coding conventions.
@@ -427,29 +487,13 @@ Use AI as acceleration, not substitution: take ownership of what you submit. Und
 
 ---
 
-## Performance & benchmarking (cross-language)
+## Performance
 
-Replay parsers in **Go** and **Java** are often faster in raw throughput, while `gem` prioritizes **Python-native ergonomics** for data/ML/AI workflows. Our goal is to be fast enough for research/production analysis while remaining easy to inspect, extend, and integrate with pandas/notebooks.
+`gem` is a pure-Python parser. The reference parsers in **Go** ([Manta](https://github.com/dotabuff/manta)) and **Java** ([Clarity](https://github.com/skadistats/clarity)) are faster in raw throughput — that is the expected trade-off. `gem` instead optimizes for **Python-native ergonomics**: parse a replay and work with the result directly in pandas/notebooks/ML pipelines, with an implementation you can read end-to-end. It is built to be fast enough for research and batch analysis (bulk parsing runs across multiple processes via `gem.parse_many`), not to win raw throughput benchmarks.
 
-To keep comparisons fair, benchmark parsers with the same:
-- replay set (size + patch range),
-- extracted outputs (same scope),
-- hardware/CPU and OS,
-- warmup policy and run count.
+Parse cost scales with extraction scope: full per-tick state extraction is much heavier than event-only parsing, and HTML report generation (chart/asset rendering) is heavier still than plain parse/JSON export. For large jobs, prefer `parse_many*` with multiple workers and export to Parquet.
 
-> Benchmark results vary heavily by extraction scope (event-only vs full per-tick state), so we recommend reporting both **replays/sec** and **time per replay** with replay sizes.
-
-| Parser | Language | Scope | Throughput (replays/sec) | Notes |
-|---|---|---|---:|---|
-| gem | Python | Full extraction | TBD | Focused on analytics-first workflows |
-| Manta (reference) | Go | TBD | TBD | High-throughput backend-oriented parser |
-| Clarity (reference) | Java | TBD | TBD | Mature JVM parser ecosystem |
-
-If you run a benchmark, please open an issue/PR with:
-- hardware specs,
-- command/config used,
-- replay sample list,
-- median/p95 numbers.
+> Published cross-language benchmark numbers are intentionally omitted until they can be produced fairly — same replay set, same extraction scope, same hardware, with warmup and run counts reported. If you run a comparison, please open an issue/PR with hardware specs, the command/config used, the replay sample list, and median/p95 numbers (both **replays/sec** and **time per replay** with replay sizes).
 
 ---
 

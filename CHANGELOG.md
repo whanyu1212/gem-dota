@@ -7,6 +7,86 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-06-20
+
+A structural + correctness release. The package was reorganized into focused
+subpackages (each with its own README), the combat-stat reconstruction was
+realigned to OpenDota's source-based attribution, and a multi-pass adversarial
+bug hunt fixed a series of correctness issues across the analysis, extractor, and
+combat-log layers. The supported top-level API (`gem.parse`, `gem.ParsedMatch`,
+`gem.find_player`, …) is unchanged.
+
+### Added
+- `CombatLogEntry.damage_source_name` — the unit credited as the *source* of a
+  damage/heal (proto `damage_source_name`; S1 `sourcename`). For spell/projectile
+  damage this is the casting hero even when `attacker_name` is the projectile.
+- `CombatLogEntry.will_reincarnate` — marks a DEATH that is a reincarnation/aegis
+  *trigger* (the hero returns), not a final death (S2 proto field 78).
+- `CombatLogType` — a `(str, Enum)` for combat-log entry types, backward
+  compatible with the historical string labels (`log_type == "DAMAGE"`).
+- Per-package `README.md` files for `binary/`, `schema/`, `state/`, `combat/`,
+  `extractors/`, `analysis/`, `reports/`, and `replays/` documenting each
+  subsystem's mental model, mechanics, and pitfalls.
+
+### Changed
+- **Package reorganization.** Internal modules are grouped into subpackages —
+  `binary/`, `schema/`, `state/`, `combat/`, `extractors/`, `analysis/`,
+  `catalog/`, `results/`, `reports/`, `replays/`. The supported public API
+  (everything in `gem.__all__`) is unchanged; `gem.api`, `gem.parser`,
+  `gem.constants`, `gem.reports`, `gem.catalog`, and `gem.extractors` still
+  import as before.
+- **Source-based combat attribution.** Per-player combat scalars and per-target
+  dicts now attribute damage/healing to the damage **source**
+  (`damage_source_name`), matching OpenDota (`CreateParsedDataBlob`,
+  `unit = e.sourcename`):
+  - `ParsedPlayer.damage` / `damage_taken` / `healing` mirror OpenDota's
+    source-attributed per-target dicts; target keys are illusion-prefixed
+    (`illusion_npc_dota_hero_*`); spurious ability/modifier-name keys are excluded.
+  - `tower_damage` is now essentially exact offline (~97.9–100% vs OpenDota,
+    up from ~87%).
+  - `hero_damage` attribution improved (summon/projectile damage credited to the
+    owning hero; redundant `others`-type heuristic dropped).
+- Unmapped combat-log proto types now resolve to `CombatLogType.UNKNOWN` instead
+  of silently falling back to `DAMAGE` (which previously let `CRITICAL_DAMAGE`
+  and `MODIFIER_STACK_EVENT` inflate damage aggregates).
+- Map-geometry constants are now sourced from `map_constants.json` (single source
+  of truth) rather than duplicated in `analysis/_shared.py`.
+
+### Fixed
+- **Day/night cycle** — corrected to a 10-minute cycle with night beginning at
+  5:00 (was a wrong 15-minute / late-night assumption), fixing vision-window math.
+- **Ward lifespans** — observer 360 s (10800 ticks) and sentry 420 s (12600
+  ticks); previous values were off by ~15–35×.
+- **Teamfight attribution** — gold credited to the recipient (not the killed
+  unit), XP deltas read from monotonic `m_iTotalEarnedXP` (not `m_iCurrentXP`,
+  which resets on level-up), spatial guards added to DEATH/BUYBACK/GOLD, and the
+  centroid divisor counts only positioned deaths.
+- **Roshan conversion windows** — clamped to the next Roshan boundary so
+  towers/fights/buybacks are no longer double-counted across back-to-back Roshans.
+- **Reincarnation deaths** — WK/Aegis trigger deaths are excluded from the death
+  curve and teamfight death counts (the headline K/D/A was already correct).
+- **Coach-index remap** — scoreboard K/D/A and team-slot reads now use OpenDota's
+  `validIndices` mapping, fixing attribution in coached/HLTV replays.
+- **S1 combat log** — PURCHASE events resolve item `value_name`, and
+  attacker/target hero flags default to `True` when a legacy descriptor omits
+  them (matching Clarity).
+- **Fallback advantage curve** — buckets each player's samples by their actual
+  game minute (no longer truncated to the shortest player's array or shifted by a
+  leading gap).
+- **Entity invariants** — a missing baseline at CREATE and a LEAVE for an
+  already-inactive entity now raise instead of being silently swallowed
+  (robustness; never fires on well-formed replays).
+- Narrowed broad `except Exception` blocks across fetch/parser/report paths to
+  specific exception types.
+
+### Removed
+- Root-level compatibility shims from earlier releases (`gem.reader`,
+  `gem.models`, `gem.combatlog`, `gem.entities`, `gem.map_context`,
+  `gem.replay_fetch`, …) have been removed. Use the supported top-level `gem.*`
+  API or the grouped subpackages (`gem.binary.reader`, `gem.results.models`,
+  `gem.combat.log`, `gem.state.entities`, …). The public `gem.__all__` surface is
+  unaffected.
+
 ## [0.2.8] - 2026-05-24
 
 ### Added

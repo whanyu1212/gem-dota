@@ -22,13 +22,16 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-import gem.models as model_module
 import gem.parser as parser_module
+import gem.results.models as model_module
+from gem.binary.reader import BitReader
 from gem.parser import (
     _DEM_FILE_INFO,
     _DOTA_UM_CHAT_EVENT,
     _DOTA_UM_CHAT_MESSAGE,
+    _DOTA_UM_COMBAT_LOG_DATA,
     _DOTA_UM_COMBAT_LOG_HLTV,
+    _DOTA_UM_MATCH_METADATA,
     _NET_TICK,
     _SVC_CREATE_STRING_TABLE,
     _SVC_PACKET_ENTITIES,
@@ -143,6 +146,21 @@ class TestReadInnerMessages:
         assert len(result) == 1
         assert result[0] == (4, b"")
 
+    def test_fast_read_bytes_matches_slow_fallback_for_inner_messages(self):
+        msgs = [
+            (4, b"tick"),
+            (44, bytes(range(64))),
+            (55, bytes((i * 13 + 7) & 0xFF for i in range(300))),
+            (554, b"combat-log-entry"),
+        ]
+        blob = _make_inner_blob(msgs)
+
+        fast_result = _read_inner_messages(blob)
+        with patch.object(BitReader, "read_bytes", BitReader._read_bytes_slow):
+            slow_result = _read_inner_messages(blob)
+
+        assert fast_result == slow_result == msgs
+
 
 # ---------------------------------------------------------------------------
 # ReplayParser init state
@@ -174,6 +192,10 @@ class TestReplayParserInit:
         p = ReplayParser(b"")
         assert p.leagueid == 0
 
+    def test_match_metadata_starts_none(self):
+        p = ReplayParser(b"")
+        assert p.match_metadata is None
+
     def test_radiant_win_starts_none(self):
         p = ReplayParser(b"")
         assert p.radiant_win is None
@@ -182,12 +204,16 @@ class TestReplayParserInit:
         p = ReplayParser(b"")
         assert p.game_start_tick is None
 
+    def test_game_time_starts_none(self):
+        p = ReplayParser(b"")
+        assert p.game_time_s is None
+
     def test_entity_manager_starts_none(self):
         p = ReplayParser(b"")
         assert p.entity_manager is None
 
     def test_string_tables_empty(self):
-        from gem.string_table import StringTables
+        from gem.state.string_table import StringTables
 
         p = ReplayParser(b"")
         assert isinstance(p.string_tables, StringTables)
@@ -203,6 +229,45 @@ class TestReplayParserInit:
     def test_game_ended_false(self):
         p = ReplayParser(b"")
         assert p._game_ended is False
+
+
+# ---------------------------------------------------------------------------
+# ReplayParser game clock helpers
+# ---------------------------------------------------------------------------
+
+
+class TestReplayParserGameClock:
+    def test_game_rules_proxy_updates_game_time_seconds(self):
+        p = ReplayParser(b"")
+        p.tick = 6000
+        entity = MagicMock()
+        entity.get_class_name.return_value = "CDOTAGamerulesProxy"
+        entity.get_float32.side_effect = lambda name: {
+            "m_pGameRules.m_flGameStartTime": 100.0,
+            "m_pGameRules.m_fGameTime": 165.2,
+        }.get(name)
+
+        p._on_entity_game_start(entity, MagicMock())
+
+        assert p.game_time_s == 65
+        assert p.game_start_tick == 6000
+
+    def test_combat_log_game_time_anchors_at_game_state_marker(self):
+        from gem.proto.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
+
+        p = ReplayParser(b"")
+
+        start = CMsgDOTACombatLogEntry()
+        start.type = 9
+        start.value = 5
+        start.timestamp = 100.2
+
+        death = CMsgDOTACombatLogEntry()
+        death.type = 4
+        death.timestamp = 130.4
+
+        assert p._combat_log_game_time_s(start) == 0
+        assert p._combat_log_game_time_s(death) == 30
 
 
 # ---------------------------------------------------------------------------
@@ -242,7 +307,8 @@ class TestCallbackRegistration:
 
         p.on_entity(cb1)
         p.on_entity(cb2)
-        assert len(p._entity_callbacks) == 2
+        user_callbacks = [cb for cb in p._entity_callbacks if cb in {cb1, cb2}]
+        assert user_callbacks == [cb1, cb2]
 
     def test_on_chat_message_appends_callback(self):
         p = ReplayParser(b"")
@@ -450,7 +516,7 @@ class TestDispatchInnerRouting:
 
     def test_svc_user_message_dispatches_to_on_user_message(self):
         p = ReplayParser(b"")
-        from gem.proto.dota2.netmessages_pb2 import CSVCMsg_UserMessage
+        from gem.proto.netmessages_pb2 import CSVCMsg_UserMessage
 
         um = CSVCMsg_UserMessage()
         um.msg_type = 9999  # unknown type, but should not raise
@@ -461,7 +527,7 @@ class TestDispatchInnerRouting:
     def test_dota_um_combat_log_hltv_with_no_name_table_silently_skips(self):
         """If CombatLogNames table doesn't exist, S2 entry must be silently ignored."""
         p = ReplayParser(b"")
-        from gem.proto.dota2.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
+        from gem.proto.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
 
         entry = CMsgDOTACombatLogEntry()
         entry.type = 0
@@ -472,7 +538,7 @@ class TestDispatchInnerRouting:
     def test_dota_um_chat_message_skipped_when_no_callbacks(self):
         """When no chat callbacks are registered, parsing should be skipped."""
         p = ReplayParser(b"")
-        from gem.proto.dota2.dota_usermessages_pb2 import CDOTAUserMsg_ChatMessage
+        from gem.proto.dota_usermessages_pb2 import CDOTAUserMsg_ChatMessage
 
         msg = CDOTAUserMsg_ChatMessage()
         msg.channel_type = 11
@@ -485,7 +551,7 @@ class TestDispatchInnerRouting:
     def test_dota_um_found_neutral_item_skipped_when_no_callbacks(self):
         """When no callbacks are registered, found-neutral-item parsing should be skipped."""
         p = ReplayParser(b"")
-        from gem.proto.dota2.dota_usermessages_pb2 import CDOTAUserMsg_FoundNeutralItem
+        from gem.proto.dota_usermessages_pb2 import CDOTAUserMsg_FoundNeutralItem
 
         type_id = getattr(parser_module, "_DOTA_UM_FOUND_NEUTRAL_ITEM", None)
         assert type_id == 593
@@ -500,7 +566,7 @@ class TestDispatchInnerRouting:
 
     def test_dota_um_found_neutral_item_emits_resolved_event(self):
         p = ReplayParser(b"")
-        from gem.proto.dota2.dota_usermessages_pb2 import CDOTAUserMsg_FoundNeutralItem
+        from gem.proto.dota_usermessages_pb2 import CDOTAUserMsg_FoundNeutralItem
 
         neutral_event_cls = getattr(model_module, "NeutralItemFoundEvent", None)
         assert neutral_event_cls is not None
@@ -537,6 +603,45 @@ class TestDispatchInnerRouting:
             )
         ]
 
+    def test_direct_match_metadata_is_stored(self):
+        p = ReplayParser(b"")
+        from gem.proto.dota_match_metadata_pb2 import CDOTAMatchMetadataFile
+
+        metadata = CDOTAMatchMetadataFile()
+        metadata.match_id = 12345
+        team = metadata.metadata.teams.add()
+        player = team.players.add()
+        player.player_slot = 128
+        player.ability_upgrades.extend([1, 2, 3])
+
+        p._dispatch_inner(_DOTA_UM_MATCH_METADATA, metadata.SerializeToString())
+
+        assert p.match_metadata is not None
+        assert p.match_metadata.match_id == 12345
+        assert list(p.match_metadata.metadata.teams[0].players[0].ability_upgrades) == [1, 2, 3]
+
+    def test_wrapped_match_metadata_is_stored(self):
+        p = ReplayParser(b"")
+        from gem.proto.dota_match_metadata_pb2 import CDOTAMatchMetadataFile
+        from gem.proto.netmessages_pb2 import CSVCMsg_UserMessage
+
+        metadata = CDOTAMatchMetadataFile()
+        metadata.match_id = 67890
+        team = metadata.metadata.teams.add()
+        player = team.players.add()
+        player.player_slot = 4
+        player.ability_upgrades.extend([9, 8])
+
+        user_msg = CSVCMsg_UserMessage()
+        user_msg.msg_type = _DOTA_UM_MATCH_METADATA
+        user_msg.msg_data = metadata.SerializeToString()
+
+        p._dispatch_inner(_SVC_USER_MESSAGE, user_msg.SerializeToString())
+
+        assert p.match_metadata is not None
+        assert p.match_metadata.match_id == 67890
+        assert list(p.match_metadata.metadata.teams[0].players[0].ability_upgrades) == [9, 8]
+
 
 # ---------------------------------------------------------------------------
 # _dispatch_inner — game-end callback
@@ -545,7 +650,7 @@ class TestDispatchInnerRouting:
 
 class TestGameEndCallback:
     def _make_combat_log_hltv_payload(self, type_id: int, value: int) -> bytes:
-        from gem.proto.dota2.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
+        from gem.proto.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
 
         entry = CMsgDOTACombatLogEntry()
         entry.type = type_id
@@ -559,13 +664,17 @@ class TestGameEndCallback:
         p.tick = 50000
 
         # Add a CombatLogNames table so the entry is processed
-        from gem.string_table import StringTable
+        from gem.state.string_table import StringTable
 
         st = StringTable(index=0, name="CombatLogNames")
         p.string_tables.add(st)
 
         payload = self._make_combat_log_hltv_payload(type_id=9, value=6)
         p._dispatch_inner(_DOTA_UM_COMBAT_LOG_HLTV, payload)
+        # Marking is deferred: the callback does not fire mid-dispatch, only
+        # when the inner-packet loop flushes (after same-packet entity deltas).
+        assert called == []
+        p._flush_game_end()
         assert called == [50000]
 
     def test_game_end_callback_fires_only_once(self):
@@ -574,7 +683,7 @@ class TestGameEndCallback:
         called = []
         p.on_game_end(lambda tick: called.append(tick))
 
-        from gem.string_table import StringTable
+        from gem.state.string_table import StringTable
 
         st = StringTable(index=0, name="CombatLogNames")
         p.string_tables.add(st)
@@ -582,6 +691,9 @@ class TestGameEndCallback:
         payload = self._make_combat_log_hltv_payload(type_id=9, value=6)
         p._dispatch_inner(_DOTA_UM_COMBAT_LOG_HLTV, payload)
         p._dispatch_inner(_DOTA_UM_COMBAT_LOG_HLTV, payload)
+        p._flush_game_end()
+        # A second flush must not re-fire (the pending marker is cleared).
+        p._flush_game_end()
         assert len(called) == 1
 
     def test_game_end_callback_does_not_fire_for_other_types(self):
@@ -589,7 +701,7 @@ class TestGameEndCallback:
         called = []
         p.on_game_end(lambda tick: called.append(tick))
 
-        from gem.string_table import StringTable
+        from gem.state.string_table import StringTable
 
         st = StringTable(index=0, name="CombatLogNames")
         p.string_tables.add(st)
@@ -607,8 +719,8 @@ class TestGameEndCallback:
 
 class TestEmitChatMessage:
     def test_chat_callback_receives_entry(self):
-        from gem.models import ChatEntry
-        from gem.proto.dota2.dota_usermessages_pb2 import CDOTAUserMsg_ChatMessage
+        from gem.proto.dota_usermessages_pb2 import CDOTAUserMsg_ChatMessage
+        from gem.results.models import ChatEntry
 
         p = ReplayParser(b"")
         received = []
@@ -630,7 +742,7 @@ class TestEmitChatMessage:
         assert entry.text == "wp"
 
     def test_team_chat_channel_label(self):
-        from gem.proto.dota2.dota_usermessages_pb2 import CDOTAUserMsg_ChatMessage
+        from gem.proto.dota_usermessages_pb2 import CDOTAUserMsg_ChatMessage
 
         p = ReplayParser(b"")
         received = []
@@ -645,7 +757,7 @@ class TestEmitChatMessage:
         assert received[0].channel == "team"
 
     def test_multiple_chat_callbacks_all_receive_entry(self):
-        from gem.proto.dota2.dota_usermessages_pb2 import CDOTAUserMsg_ChatMessage
+        from gem.proto.dota_usermessages_pb2 import CDOTAUserMsg_ChatMessage
 
         p = ReplayParser(b"")
         recv1, recv2 = [], []
@@ -669,7 +781,7 @@ class TestEmitChatMessage:
 
 class TestChatEventRune:
     def test_rune_pickup_routes_to_combat_log_processor(self):
-        from gem.proto.dota2.dota_usermessages_pb2 import CDOTAUserMsg_ChatEvent
+        from gem.proto.dota_usermessages_pb2 import CDOTAUserMsg_ChatEvent
 
         p = ReplayParser(b"")
         p.tick = 2000
@@ -684,7 +796,7 @@ class TestChatEventRune:
             mock_rune.assert_called_once_with(5, 3, tick=2000)
 
     def test_non_rune_chat_event_does_not_call_process_rune_pickup(self):
-        from gem.proto.dota2.dota_usermessages_pb2 import CDOTAUserMsg_ChatEvent
+        from gem.proto.dota_usermessages_pb2 import CDOTAUserMsg_ChatEvent
 
         p = ReplayParser(b"")
         msg = CDOTAUserMsg_ChatEvent()
@@ -695,7 +807,7 @@ class TestChatEventRune:
             mock_rune.assert_not_called()
 
     def test_chat_event_callbacks_receive_event_and_tick(self):
-        from gem.proto.dota2.dota_usermessages_pb2 import CDOTAUserMsg_ChatEvent
+        from gem.proto.dota_usermessages_pb2 import CDOTAUserMsg_ChatEvent
 
         p = ReplayParser(b"")
         p.tick = 3000
@@ -782,6 +894,61 @@ class TestInnerPacketPriority:
         p = ReplayParser(b"")
         p._dispatch_inner_packet(b"")  # should not raise
 
+    def test_wrapped_combat_log_game_end_deferred_until_after_entities(self):
+        """Regression: a wrapped svc_UserMessage postGame marker must not fire
+        the game-end callback before same-packet entity deltas are applied.
+
+        The wrapped combat-log path (svc_UserMessage, priority 0) sorts *before*
+        svc_PacketEntities (priority 5). If the game-end callback fired inline
+        from that path, terminal consumers (e.g. IntervalExtractor) would flush
+        stale pre-delta entity state. The fix defers the callback to the end of
+        the inner-packet loop, after every priority-5 entity delta is applied.
+        """
+        from gem.proto.dota_usermessages_pb2 import CDOTAUserMsg_CombatLogBulkData
+        from gem.proto.netmessages_pb2 import CSVCMsg_UserMessage
+        from gem.state.string_table import StringTable
+
+        p = ReplayParser(b"")
+        p.string_tables.add(StringTable(index=0, name="CombatLogNames"))
+        p.tick = 77777
+
+        # Wrapped combat-log bulk data carrying a GAME_STATE==6 postGame marker.
+        bulk = CDOTAUserMsg_CombatLogBulkData()
+        entry = bulk.combat_entries.add()
+        entry.type = 9
+        entry.value = 6
+        um = CSVCMsg_UserMessage()
+        um.msg_type = _DOTA_UM_COMBAT_LOG_DATA
+        um.msg_data = bulk.SerializeToString()
+
+        # The user message comes FIRST in the blob (lower priority); entities last.
+        blob = _make_inner_blob(
+            [
+                (_SVC_USER_MESSAGE, um.SerializeToString()),
+                (_SVC_PACKET_ENTITIES, b"\x00" * 4),
+            ]
+        )
+
+        events = []
+
+        # Real _on_user_message runs (to detect the postGame marker), but the
+        # entity dispatch is stubbed to a marker so we only track ordering.
+        orig_dispatch_inner = p._dispatch_inner
+
+        def dispatch_inner(t, pl):
+            if t == _SVC_PACKET_ENTITIES:
+                events.append("entities")
+                return
+            return orig_dispatch_inner(t, pl)
+
+        p.on_game_end(lambda tick: events.append(("game_end", tick)))
+
+        with patch.object(p, "_dispatch_inner", side_effect=dispatch_inner):
+            p._dispatch_inner_packet(blob)
+
+        # Game-end fired exactly once, AFTER entities were applied.
+        assert events == ["entities", ("game_end", 77777)]
+
 
 # ---------------------------------------------------------------------------
 # _on_game_event_list + _on_game_event schema registration
@@ -790,7 +957,7 @@ class TestInnerPacketPriority:
 
 class TestGameEventListAndEvent:
     def test_game_event_list_registers_schemas(self):
-        from gem.proto.dota2.gameevents_pb2 import (
+        from gem.proto.gameevents_pb2 import (
             CMsgSource1LegacyGameEventList,
         )
 
@@ -807,7 +974,7 @@ class TestGameEventListAndEvent:
         assert p.game_event_manager.has_event("test_event")
 
     def test_game_event_dispatches_to_game_event_manager(self):
-        from gem.proto.dota2.gameevents_pb2 import (
+        from gem.proto.gameevents_pb2 import (
             CMsgSource1LegacyGameEvent,
             CMsgSource1LegacyGameEventList,
         )
@@ -841,7 +1008,7 @@ class TestOnClassInfo:
         em = MagicMock()
         p.entity_manager = em
 
-        from gem.proto.dota2.demo_pb2 import CDemoClassInfo
+        from gem.proto.demo_pb2 import CDemoClassInfo
 
         ci = CDemoClassInfo()
 
@@ -852,7 +1019,7 @@ class TestOnClassInfo:
     def test_on_class_info_noop_when_no_entity_manager(self):
         p = ReplayParser(b"")
         assert p.entity_manager is None
-        from gem.proto.dota2.demo_pb2 import CDemoClassInfo
+        from gem.proto.demo_pb2 import CDemoClassInfo
 
         ci = CDemoClassInfo()
         # Should not raise

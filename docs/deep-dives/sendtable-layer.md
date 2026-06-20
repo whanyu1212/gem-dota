@@ -1,16 +1,19 @@
 # SendTable Layer
 
-This page explains `src/gem/sendtable.py`, the schema-construction layer.
+This page explains `src/gem/schema/sendtable/`, the schema-construction layer.
 
 Prerequisites:
 
 1. [Bits & Bytes Primer](../cookbook/bits-and-bytes-primer.md)
-2. [Stream Layer (`stream.py`)](stream-layer.md)
+2. [Stream Layer (`binary/stream.py`)](stream-layer.md)
 3. [Parser Layer (`parser.py`)](parser-layer.md)
 
 ## Where this layer sits
 
-`sendtable.py` runs when parser receives outer `DEM_SendTables`.
+`schema/sendtable/` runs when parser receives outer `DEM_SendTables`.
+
+The public entry point remains `gem.schema.sendtable.parse_send_tables`; the
+implementation is split across `parser.py`, `models.py`, and `patches.py`.
 
 Its job is to convert raw send-table payloads into a runtime schema:
 
@@ -18,7 +21,7 @@ Its job is to convert raw send-table payloads into a runtime schema:
 dict[str, Serializer]
 ```
 
-That schema is then used by `entities.py` to decode field deltas.
+That schema is then used by `state/entities.py` to decode field deltas.
 
 ## Input and output
 
@@ -84,11 +87,11 @@ Container for one class schema:
 2. `version`
 3. ordered `fields`
 
-`entities.py` depends on this order for field path resolution and field-state decode.
+`state/entities.py` depends on this order for field path resolution and field-state decode.
 
 ## Build-range patch subsystem
 
-`sendtable.py` includes patch hooks to match known build-specific quirks.
+`schema/sendtable/` includes patch hooks to match known build-specific quirks.
 
 Patch components:
 
@@ -139,11 +142,11 @@ Decision order in code:
 3. Else if base type is vector container (`CUtlVector`, `CNetworkUtlVectorBase`) -> `FIELD_MODEL_VARIABLE_ARRAY`
 4. Else -> `FIELD_MODEL_SIMPLE`
 
-This decision is critical because `entities.py` decode path depends on model shape.
+This decision is critical because `state/entities.py` decode path depends on model shape.
 
 ## Real output snapshot
 
-Using fixture `tests/fixtures/8520014563.dem`:
+Using fixture `tests/fixtures/opendota/8822520406.dem`:
 
 ```text
 serializer_count 3224
@@ -171,4 +174,4 @@ Symptoms usually appear later as entity fields being wrong or missing.
 
 ## Next page
 
-- [State Reconstruction Layer (`string_table.py` + `entities.py`)](state-layer.md)
+- [State Reconstruction Layer (`state/string_table.py` + `state/entities.py`)](state-layer.md)

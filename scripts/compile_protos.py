@@ -6,9 +6,8 @@ is no dependency on a system-level protoc installation.
 
 Output layout:
     src/gem/proto/
-        dota2/
-            <name>_pb2.py      # generated message classes
-            <name>_pb2.pyi     # type stubs (for IDE support)
+        <name>_pb2.py          # generated message classes
+        <name>_pb2.pyi         # type stubs (for IDE support)
         __init__.py
 
 Usage:
@@ -18,9 +17,27 @@ Usage:
 """
 
 import argparse
+import re
 import subprocess
 import sys
 from pathlib import Path
+
+# protoc emits sibling imports in two shapes that both only resolve if the output
+# dir is on sys.path. Since the generated modules live inside the `gem.proto`
+# package, rewrite both to package-relative imports:
+#
+#   1. flat:   `import netmessages_pb2 as netmessages__pb2`
+#              -> `from . import netmessages_pb2 as netmessages__pb2`
+#   2. dotted: `from steammessages_steamlearn import steamworkssdk_pb2 as ...`
+#              (a dependency that lives in the subpackage steammessages_steamlearn/)
+#              -> `from <dots>steammessages_steamlearn import steamworkssdk_pb2 as ...`
+#
+# google.protobuf imports are left untouched (real installed package). The dotted
+# rewrite's leading dots depend on the importing file's depth, so it is applied
+# per file rather than via a single global substitution. Both rewrites anchor on
+# the original (dot-less) form, so re-running on fixed files is a no-op.
+_FLAT_IMPORT_RE = re.compile(r"^import (\w+_pb2) as (\w+)$", re.MULTILINE)
+_DOTTED_IMPORT_RE = re.compile(r"^from (\w+) import (\w+_pb2) as (\w+)$", re.MULTILINE)
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -28,7 +45,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PROTO_SRC_DIR = REPO_ROOT / "proto_definitions" / "dota2"
-PROTO_OUT_DIR = REPO_ROOT / "src" / "gem" / "proto" / "dota2"
+PROTO_OUT_DIR = REPO_ROOT / "src" / "gem" / "proto"
 
 
 def find_protoc() -> Path:
@@ -118,6 +135,73 @@ def compile_proto(
     return True
 
 
+def fix_relative_imports(out_dir: Path) -> int:
+    """Rewrite sibling/subpackage ``_pb2`` imports to package-relative imports.
+
+    protoc generates two cross-file import shapes that only resolve when
+    ``out_dir`` is on ``sys.path``. Both are rewritten to package-relative form
+    so the generated modules import correctly as part of ``gem.proto``:
+
+    - flat: ``import foo_pb2 as foo__pb2`` -> ``from . import foo_pb2 as ...``
+    - dotted: ``from subpkg import bar_pb2 as ...`` (a dependency under the
+      ``subpkg/`` subpackage) -> ``from <dots>subpkg import bar_pb2 as ...``
+
+    The leading-dot count for the dotted form depends on how deep the importing
+    file sits below ``out_dir``: a top-level module needs one dot, a module one
+    subpackage deep needs two. ``google.protobuf`` imports are not matched.
+    Idempotent — files already in relative form are left unchanged.
+
+    Args:
+        out_dir: Root directory of the generated ``gem.proto`` package.
+
+    Returns:
+        The number of files that were modified.
+    """
+    fixed = 0
+    generated_modules = list(out_dir.rglob("*_pb2.py")) + list(out_dir.rglob("*_pb2.pyi"))
+    for generated_module in generated_modules:
+        text = generated_module.read_text()
+        new_text = _FLAT_IMPORT_RE.sub(r"from . import \1 as \2", text)
+
+        # Depth below out_dir: top-level file -> 1 leading dot; one subpackage
+        # deep -> 2 leading dots (up to out_dir, then into the sibling subpkg).
+        depth = len(generated_module.relative_to(out_dir).parts) - 1
+        dots = "." * (depth + 1)
+        new_text = _DOTTED_IMPORT_RE.sub(rf"from {dots}\1 import \2 as \3", new_text)
+
+        if new_text != text:
+            generated_module.write_text(new_text)
+            fixed += 1
+    return fixed
+
+
+def ensure_subpackage_init_files(out_dir: Path) -> int:
+    """Create ``__init__.py`` in every subdirectory that holds generated modules.
+
+    protoc writes dependencies whose ``.proto`` name contains a directory part
+    (e.g. ``steammessages_steamlearn.steamworkssdk.proto``) into a subdirectory.
+    Those subdirectories need an ``__init__.py`` to be importable as packages so
+    that package-relative imports like ``from .steammessages_steamlearn import``
+    resolve.
+
+    Args:
+        out_dir: Root directory of the generated ``gem.proto`` package.
+
+    Returns:
+        The number of ``__init__.py`` files created.
+    """
+    created = 0
+    for pb2 in out_dir.rglob("*_pb2.py"):
+        pkg_dir = pb2.parent
+        if pkg_dir == out_dir:
+            continue
+        init = pkg_dir / "__init__.py"
+        if not init.exists():
+            init.touch()
+            created += 1
+    return created
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Compile Dota 2 .proto files to Python.")
     parser.add_argument("--force", action="store_true", help="Recompile even if up to date.")
@@ -173,9 +257,21 @@ def main() -> None:
     if failed:
         sys.exit(1)
 
+    # protoc writes subpackage dependencies into subdirectories; give them an
+    # __init__.py so they import as packages.
+    inits = ensure_subpackage_init_files(PROTO_OUT_DIR)
+    if inits:
+        print(f"Created {inits} subpackage __init__.py file(s).")
+
+    # protoc emits sibling/subpackage imports that break inside a package; rewrite
+    # them to package-relative form so `from gem.proto import ...` works.
+    fixed = fix_relative_imports(PROTO_OUT_DIR)
+    if fixed:
+        print(f"Patched relative imports in {fixed} file(s).")
+
     print()
     print("Next step:")
-    print("  uv run python -c \"from gem.proto.dota2 import demo_pb2; print('OK')\"")
+    print("  uv run python -c \"from gem.proto import demo_pb2; print('OK')\"")
 
 
 if __name__ == "__main__":

@@ -4,8 +4,18 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
+import gem.analysis as analysis
+import gem.analysis.combat as analysis_combat
+import gem.analysis.spatial as analysis_spatial
 from gem.analysis import group_ability_hits, position_at_tick
-from gem.combatlog import CombatLogEntry
+from gem.combat.log import CombatLogEntry
+
+
+def test_analysis_package_reexports_public_helpers() -> None:
+    assert analysis.position_at_tick is analysis_spatial.position_at_tick
+    assert analysis.group_ability_hits is analysis_combat.group_ability_hits
+    assert analysis.AbilityCast is analysis_combat.AbilityCast
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -172,3 +182,44 @@ class TestGroupAbilityHits:
         assert len(casts[0].entries) == 2
         assert casts[0].entries[0] is e1
         assert casts[0].entries[1] is e2
+
+
+# ---------------------------------------------------------------------------
+# Map-geometry single source of truth (_shared.py loads from map_constants.json)
+# ---------------------------------------------------------------------------
+
+
+class TestMapGeometrySingleSource:
+    """_shared.py must derive map geometry from map_constants.json, not duplicate it."""
+
+    def test_shared_constants_match_json(self) -> None:
+        from gem.analysis import _shared
+        from gem.catalog.map import load_map_constants
+
+        data = load_map_constants()
+        wb = data["world_bounds"]
+        assert float(wb["xmin"]) == _shared._MAP_XMIN
+        assert float(wb["xmax"]) == _shared._MAP_XMAX
+        assert float(wb["ymin"]) == _shared._MAP_YMIN
+        assert float(wb["ymax"]) == _shared._MAP_YMAX
+        fr = data["fountains"]["radiant"]
+        fd = data["fountains"]["dire"]
+        assert (float(fr["x"]), float(fr["y"])) == _shared._RADIANT_FOUNTAIN
+        assert (float(fd["x"]), float(fd["y"])) == _shared._DIRE_FOUNTAIN
+        assert float(data["river_strip"]) == _shared._RIVER_STRIP
+
+    def test_fallback_literals_mirror_json(self) -> None:
+        # The graceful-fallback literals must stay in sync with the JSON so a
+        # JSON-load failure degrades to the same values, not stale ones.
+        from gem.analysis import _shared
+        from gem.catalog.map import load_map_constants
+
+        data = load_map_constants()
+        wb = data["world_bounds"]
+        assert (
+            float(wb["xmin"]),
+            float(wb["xmax"]),
+            float(wb["ymin"]),
+            float(wb["ymax"]),
+        ) == _shared._FALLBACK_MAP_BOUNDS
+        assert float(data["river_strip"]) == _shared._FALLBACK_RIVER_STRIP

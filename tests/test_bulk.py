@@ -1,4 +1,4 @@
-"""Tests for gem.batch — parallel replay parsing."""
+"""Tests for gem.replays.batch — parallel replay parsing."""
 
 from __future__ import annotations
 
@@ -9,8 +9,8 @@ from unittest.mock import patch
 import pytest
 
 import gem
-from gem.batch import ParseResult, _collect_paths, parse_many
-from gem.models import ParsedMatch
+from gem.replays.batch import ParseResult, _collect_paths, parse_many
+from gem.results.models import ParsedMatch
 
 # ---------------------------------------------------------------------------
 # Synchronous executor — avoids multiprocessing entirely in unit tests.
@@ -108,8 +108,8 @@ class TestParseMany:
             p.touch()
 
         with (
-            patch("gem.batch.ProcessPoolExecutor", _SyncExecutor),
-            patch("gem.batch._parse_one", side_effect=_ok),
+            patch("gem.replays.batch.ProcessPoolExecutor", _SyncExecutor),
+            patch("gem.replays.batch._parse_one", side_effect=_ok),
         ):
             results = parse_many(paths, progress=False)
 
@@ -122,8 +122,8 @@ class TestParseMany:
         p.touch()
 
         with (
-            patch("gem.batch.ProcessPoolExecutor", _SyncExecutor),
-            patch("gem.batch._parse_one", side_effect=_fail),
+            patch("gem.replays.batch.ProcessPoolExecutor", _SyncExecutor),
+            patch("gem.replays.batch._parse_one", side_effect=_fail),
         ):
             results = parse_many([p], progress=False)
 
@@ -138,8 +138,8 @@ class TestParseMany:
         bad.touch()
 
         with (
-            patch("gem.batch.ProcessPoolExecutor", _SyncExecutor),
-            patch("gem.batch._parse_one", side_effect=_mixed),
+            patch("gem.replays.batch.ProcessPoolExecutor", _SyncExecutor),
+            patch("gem.replays.batch._parse_one", side_effect=_mixed),
         ):
             results = parse_many([good, bad], progress=False)
 
@@ -158,8 +158,8 @@ class TestParseMany:
                 super().__init__(**kwargs)
 
         with (
-            patch("gem.batch.ProcessPoolExecutor", _CapturingSyncExecutor),
-            patch("gem.batch._parse_one", side_effect=_ok),
+            patch("gem.replays.batch.ProcessPoolExecutor", _CapturingSyncExecutor),
+            patch("gem.replays.batch._parse_one", side_effect=_ok),
         ):
             parse_many([p], workers=16, progress=False)
 
@@ -170,8 +170,8 @@ class TestParseMany:
             (tmp_path / f"{i}.dem").touch()
 
         with (
-            patch("gem.batch.ProcessPoolExecutor", _SyncExecutor),
-            patch("gem.batch._parse_one", side_effect=_ok),
+            patch("gem.replays.batch.ProcessPoolExecutor", _SyncExecutor),
+            patch("gem.replays.batch._parse_one", side_effect=_ok),
         ):
             results = parse_many(tmp_path, progress=False)
 
@@ -193,8 +193,8 @@ class TestParseManyToDataframe:
             (tmp_path / f"{i}.dem").touch()
 
         with (
-            patch("gem.batch.ProcessPoolExecutor", _SyncExecutor),
-            patch("gem.batch._parse_one", side_effect=_ok),
+            patch("gem.replays.batch.ProcessPoolExecutor", _SyncExecutor),
+            patch("gem.replays.batch._parse_one", side_effect=_ok),
         ):
             dfs = gem.parse_many_to_dataframe(tmp_path, progress=False)
 
@@ -208,8 +208,8 @@ class TestParseManyToDataframe:
         bad.touch()
 
         with (
-            patch("gem.batch.ProcessPoolExecutor", _SyncExecutor),
-            patch("gem.batch._parse_one", side_effect=_mixed),
+            patch("gem.replays.batch.ProcessPoolExecutor", _SyncExecutor),
+            patch("gem.replays.batch._parse_one", side_effect=_mixed),
         ):
             dfs = gem.parse_many_to_dataframe([good, bad], progress=False)
 
@@ -220,8 +220,8 @@ class TestParseManyToDataframe:
         p.touch()
 
         with (
-            patch("gem.batch.ProcessPoolExecutor", _SyncExecutor),
-            patch("gem.batch._parse_one", side_effect=_ok),
+            patch("gem.replays.batch.ProcessPoolExecutor", _SyncExecutor),
+            patch("gem.replays.batch._parse_one", side_effect=_ok),
         ):
             dfs = gem.parse_many_to_dataframe([p], progress=False)
 
@@ -232,8 +232,8 @@ class TestParseManyToDataframe:
             (tmp_path / f"{i}.dem").touch()
 
         with (
-            patch("gem.batch.ProcessPoolExecutor", _SyncExecutor),
-            patch("gem.batch._parse_one", side_effect=_ok),
+            patch("gem.replays.batch.ProcessPoolExecutor", _SyncExecutor),
+            patch("gem.replays.batch._parse_one", side_effect=_ok),
         ):
             dfs = gem.parse_many_to_dataframe(tmp_path, progress=False)
 
@@ -259,8 +259,8 @@ class TestParseManyToParquet:
             (replay_dir / f"{name}.dem").touch()
 
         with (
-            patch("gem.batch.ProcessPoolExecutor", _SyncExecutor),
-            patch("gem.batch._parse_one", side_effect=_ok),
+            patch("gem.replays.batch.ProcessPoolExecutor", _SyncExecutor),
+            patch("gem.replays.batch._parse_one", side_effect=_ok),
         ):
             written = gem.parse_many_to_parquet(replay_dir, out_dir, progress=False)
 
@@ -274,8 +274,8 @@ class TestParseManyToParquet:
         p.touch()
 
         with (
-            patch("gem.batch.ProcessPoolExecutor", _SyncExecutor),
-            patch("gem.batch._parse_one", side_effect=_fail),
+            patch("gem.replays.batch.ProcessPoolExecutor", _SyncExecutor),
+            patch("gem.replays.batch._parse_one", side_effect=_fail),
         ):
             written = gem.parse_many_to_parquet([p], tmp_path / "out", progress=False)
 

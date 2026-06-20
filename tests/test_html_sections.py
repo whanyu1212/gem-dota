@@ -1,4 +1,4 @@
-"""Unit tests for examples/report/html_sections.py helpers.
+"""Unit tests for HTML report section helpers.
 
 Covers:
 - _net_worth_at: nearest net_worth sample lookup
@@ -8,34 +8,10 @@ Covers:
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
 from unittest.mock import MagicMock
 
-# ---------------------------------------------------------------------------
-# Import html_sections from examples/report/ (not on sys.path by default)
-# ---------------------------------------------------------------------------
-
-_REPORT_DIR = Path(__file__).parent.parent / "examples" / "report"
-
-
-def _load_html_sections():
-    import importlib.util
-
-    # html_sections imports from `report.assets`, so `examples/` must be on sys.path
-    examples_dir = str(_REPORT_DIR.parent)
-    if examples_dir not in sys.path:
-        sys.path.insert(0, examples_dir)
-
-    spec = importlib.util.spec_from_file_location("html_sections", _REPORT_DIR / "html_sections.py")
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
-
-
-html_sections = _load_html_sections()
-_net_worth_at = html_sections._net_worth_at
-
+from gem.reports import _sections
+from gem.reports.sections.economy import _net_worth_at
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -102,7 +78,7 @@ class TestBuybackGoldCost:
     """Verify the buyback cost formula via build_buybacks output."""
 
     def _make_match(self, net_worth: int, buyback_tick: int = 500):
-        from gem.combatlog import CombatLogEntry
+        from gem.combat.log import CombatLogEntry
 
         buyback_entry = CombatLogEntry(tick=buyback_tick, log_type="BUYBACK", value=0)
 
@@ -118,7 +94,7 @@ class TestBuybackGoldCost:
 
     def _cost_in_html(self, net_worth: int) -> str:
         match = self._make_match(net_worth)
-        html = html_sections.build_buybacks(match)
+        html = _sections.build_buybacks(match)
         return html
 
     def test_zero_net_worth(self):
@@ -148,6 +124,6 @@ class TestBuybackGoldCost:
         pp.buyback_log = []
         match = MagicMock()
         match.players = [pp]
-        html = html_sections.build_buybacks(match)
+        html = _sections.build_buybacks(match)
         assert "Gold Spent" not in html
         assert "no buybacks" in html
