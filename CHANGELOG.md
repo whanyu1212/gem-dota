@@ -39,6 +39,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   are best-effort offline estimates exact only after `enrich_with_api_rates` /
   `apply_api_rates` (see issue #68). `tower_damage` is now ~exact offline.
 
+## [0.2.8] - 2026-05-24
+
+### Added
+- OpenDota fixture refresh tooling via `scripts/fetch_opendota_fixture.py`, plus DreamLeague Season 29 fixture metadata for patch 7.41 validation.
+- Neutral item found event parsing, including model/dataframe outputs and constants-audit coverage for newly observed item IDs.
+- Neutral camp annotation audit tooling via `scripts/audit_camp_annotations.py`, which groups neutral deaths by camp zones and reports replay-derived evidence.
+- A regenerated 7.40 map fixture with 7.41 camp annotations, larger camp icons, type-colored rings, and a legend for camp tiers.
+- Pull request template checks for release hygiene and parser safety.
+
+### Changed
+- Updated bundled constants from current OpenDota/dotaconstants references for 7.41-era items and abilities.
+- Refreshed camp-zone annotations for confirmed 7.41 camp type swaps.
+- Hero and item icon fetch scripts now support cache checks so unchanged icon assets are not rewritten unnecessarily.
+- Source 2 combat log parsing now preserves neutral camp stack metadata and event locations when available.
+
+### Fixed
+- Nearby-gold attribution in the camp audit now ignores unscoped `GOLD` events whose attacker and target names are both absent, preventing inflated camp summaries.
+
 ## [0.2.7] - 2026-03-24
 
 ### Added
