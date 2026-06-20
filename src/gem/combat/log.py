@@ -15,48 +15,76 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from enum import Enum
 from typing import Any
 
 # ---------------------------------------------------------------------------
 # Combat log type constants
 # ---------------------------------------------------------------------------
 
-COMBAT_LOG_TYPES: frozenset[str] = frozenset(
-    [
-        "DAMAGE",
-        "HEAL",
-        "MODIFIER_ADD",
-        "MODIFIER_REMOVE",
-        "DEATH",
-        "ABILITY",
-        "ITEM",
-        "GOLD",
-        "XP",
-        "PURCHASE",
-        "BUYBACK",
-        "KILLSTREAK",
-        "NEUTRAL_CAMP_STACK",
-        "PICKUP_RUNE",
-    ]
-)
+# Sentinel proto_id for surfaced labels with no decoded wire type.
+_NO_PROTO_ID = -1
 
-# Mapping from DOTA_COMBATLOG_TYPES int → string label.
-# Reference: refs/manta/dota/dota_shared_enums.proto DOTA_COMBATLOG_TYPES
-# Note: type=7 (LOCATION) and type=9 (GAME_STATE) are not surfaced.
-_LOG_TYPE_NAMES: dict[int, str] = {
-    0: "DAMAGE",
-    1: "HEAL",
-    2: "MODIFIER_ADD",
-    3: "MODIFIER_REMOVE",
-    4: "DEATH",
-    5: "ABILITY",
-    6: "ITEM",
-    8: "GOLD",
-    10: "XP",
-    11: "PURCHASE",
-    12: "BUYBACK",
-    20: "NEUTRAL_CAMP_STACK",
-    21: "PICKUP_RUNE",
+
+class CombatLogType(str, Enum):
+    """The combat-log entry types this parser surfaces.
+
+    Subclasses ``(str, Enum)`` so members compare equal to their string label
+    (``CombatLogType.DAMAGE == "DAMAGE"``), work in ``in (...)`` membership
+    checks, and match ``case "DAMAGE":`` patterns — keeping the historical
+    string-based API backward compatible while adding type safety. (``StrEnum``
+    would be cleaner but is Python 3.11+; the project floor is 3.10.)
+
+    Each member also carries ``proto_id`` — the ``DOTA_COMBATLOG_TYPES`` integer
+    from the replay wire format — so the int→label mapping and the legacy
+    ``COMBAT_LOG_TYPES`` frozenset both derive from this single source of truth.
+    Members emitted only from derived paths (not decoded from a wire type) use
+    ``proto_id = _NO_PROTO_ID`` and are excluded from the int→label mapping.
+
+    Reference: refs/manta/dota/dota_shared_enums.proto ``DOTA_COMBATLOG_TYPES``.
+    Note: proto types 7 (LOCATION) and 9 (GAME_STATE) are intentionally not
+    surfaced.
+    """
+
+    # __str__ from Enum would render "CombatLogType.DAMAGE"; restore str's so
+    # str(member) == "DAMAGE" (f-strings already use str.__format__).
+    __str__ = str.__str__
+
+    proto_id: int
+
+    def __new__(cls, label: str, proto_id: int) -> CombatLogType:
+        member = str.__new__(cls, label)
+        member._value_ = label
+        member.proto_id = proto_id
+        return member
+
+    DAMAGE = ("DAMAGE", 0)
+    HEAL = ("HEAL", 1)
+    MODIFIER_ADD = ("MODIFIER_ADD", 2)
+    MODIFIER_REMOVE = ("MODIFIER_REMOVE", 3)
+    DEATH = ("DEATH", 4)
+    ABILITY = ("ABILITY", 5)
+    ITEM = ("ITEM", 6)
+    GOLD = ("GOLD", 8)
+    XP = ("XP", 10)
+    PURCHASE = ("PURCHASE", 11)
+    BUYBACK = ("BUYBACK", 12)
+    NEUTRAL_CAMP_STACK = ("NEUTRAL_CAMP_STACK", 20)
+    PICKUP_RUNE = ("PICKUP_RUNE", 21)
+    # Surfaced label without a wire type we decode: KILLSTREAK is reported by
+    # OpenDota but our pipeline never maps proto type 16, so it stays out of the
+    # int→label table (preserving the historical decode behaviour).
+    KILLSTREAK = ("KILLSTREAK", _NO_PROTO_ID)
+
+
+# Backward-compatible frozenset of label strings, derived from the enum.
+COMBAT_LOG_TYPES: frozenset[str] = frozenset(t.value for t in CombatLogType)
+
+# Mapping from DOTA_COMBATLOG_TYPES int → enum member, derived from the enum.
+# Excludes members with no decoded wire type; unmapped proto types fall back to
+# DAMAGE at the call site (preserving the original behaviour).
+_LOG_TYPE_NAMES: dict[int, CombatLogType] = {
+    t.proto_id: t for t in CombatLogType if t.proto_id != _NO_PROTO_ID
 }
 
 # Mapping from CMsgDOTACombatLogEntry.damage_type uint32 → normalized label.
@@ -99,7 +127,9 @@ class CombatLogEntry:
 
     Attributes:
         tick: Game tick at which the event occurred.
-        log_type: String label from COMBAT_LOG_TYPES.
+        log_type: The :class:`CombatLogType` for this entry. Compares equal to
+            its string label (e.g. ``log_type == "DAMAGE"``) for backward
+            compatibility.
         attacker_name: Name of the attacker unit/hero.
         damage_source_name: Name of the unit credited as the *source* of the
             damage/heal (``damage_source_name`` in the proto). For summon/spell
@@ -132,7 +162,7 @@ class CombatLogEntry:
     """
 
     tick: int
-    log_type: str
+    log_type: CombatLogType
     attacker_name: str = ""
     damage_source_name: str = ""
     target_name: str = ""
@@ -220,7 +250,7 @@ class CombatLogProcessor:
         """
         entry = CombatLogEntry(
             tick=tick,
-            log_type="PICKUP_RUNE",
+            log_type=CombatLogType.PICKUP_RUNE,
             value=player_slot,
             gold_reason=rune_type,
         )
@@ -248,7 +278,7 @@ class CombatLogProcessor:
             tick: Current game tick.
         """
         type_val, _ = game_event.get_int32(_S1_FIELD_TYPE)
-        log_type = _LOG_TYPE_NAMES.get(type_val, "DAMAGE")
+        log_type = _LOG_TYPE_NAMES.get(type_val, CombatLogType.DAMAGE)
 
         attacker_idx, _ = game_event.get_int32(_S1_FIELD_ATTACKER)
         source_idx, _ = game_event.get_int32(_S1_FIELD_SOURCE)
@@ -313,7 +343,7 @@ class CombatLogProcessor:
             game_time_s: Optional game-relative timestamp computed by
                 ``ReplayParser`` from the combat-log ``GAME_STATE`` marker.
         """
-        log_type = _LOG_TYPE_NAMES.get(msg.type, "DAMAGE")
+        log_type = _LOG_TYPE_NAMES.get(msg.type, CombatLogType.DAMAGE)
 
         # Support both StringTable.items dict and legacy dict-like name_table
         if hasattr(name_table, "items") and isinstance(name_table.items, dict):

@@ -4,9 +4,11 @@ Reference: clarity/CombatLog.java, odota/Parse.java
 """
 
 from gem.combat.log import (
+    _LOG_TYPE_NAMES,
     COMBAT_LOG_TYPES,
     CombatLogEntry,
     CombatLogProcessor,
+    CombatLogType,
     _resolve_name,
 )
 
@@ -139,6 +141,61 @@ class TestCombatLogTypes:
 
     def test_is_frozenset(self):
         assert isinstance(COMBAT_LOG_TYPES, frozenset)
+
+    def test_frozenset_derived_from_enum(self):
+        # The legacy frozenset is now derived from the enum — they must agree.
+        assert frozenset(t.value for t in CombatLogType) == COMBAT_LOG_TYPES
+
+
+# ---------------------------------------------------------------------------
+# CombatLogType — str-backed enum contract (3.10-compatible StrEnum)
+# ---------------------------------------------------------------------------
+
+
+class TestCombatLogTypeEnum:
+    """The enum must stay drop-in compatible with the historical string API."""
+
+    def test_member_equals_its_string_label(self):
+        assert CombatLogType.DAMAGE == "DAMAGE"
+        assert CombatLogType.PICKUP_RUNE == "PICKUP_RUNE"
+
+    def test_member_is_a_str_instance(self):
+        assert isinstance(CombatLogType.DAMAGE, str)
+
+    def test_str_renders_plain_label_not_qualified_name(self):
+        # (str, Enum) would render "CombatLogType.DAMAGE" without the __str__ fix.
+        assert str(CombatLogType.DAMAGE) == "DAMAGE"
+        assert f"{CombatLogType.DAMAGE}" == "DAMAGE"
+
+    def test_membership_in_string_tuple(self):
+        assert CombatLogType.DAMAGE in ("DAMAGE", "ABILITY", "ITEM")
+
+    def test_membership_in_frozenset(self):
+        assert CombatLogType.HEAL in COMBAT_LOG_TYPES
+
+    def test_match_case_matches_string_and_member(self):
+        def classify(lt: object) -> str:
+            match lt:
+                case "DAMAGE":
+                    return "damage"
+                case CombatLogType.HEAL:
+                    return "heal"
+                case _:
+                    return "other"
+
+        assert classify(CombatLogType.DAMAGE) == "damage"
+        assert classify(CombatLogType.HEAL) == "heal"
+
+    def test_proto_id_maps_only_decoded_wire_types(self):
+        # _LOG_TYPE_NAMES must mirror the historical hand-written int→label dict.
+        assert set(_LOG_TYPE_NAMES) == {0, 1, 2, 3, 4, 5, 6, 8, 10, 11, 12, 20, 21}
+        assert _LOG_TYPE_NAMES[0] is CombatLogType.DAMAGE
+
+    def test_killstreak_excluded_from_int_mapping(self):
+        # KILLSTREAK is a surfaced label with no decoded wire type (proto 16 is
+        # never mapped) — it stays out of the int→label table.
+        assert "KILLSTREAK" in COMBAT_LOG_TYPES
+        assert CombatLogType.KILLSTREAK.proto_id not in _LOG_TYPE_NAMES
 
 
 # ---------------------------------------------------------------------------

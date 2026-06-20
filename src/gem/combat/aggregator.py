@@ -11,6 +11,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
+from gem.combat.log import CombatLogType
 from gem.extractors._snapshots import _player_id_from_entity
 
 if TYPE_CHECKING:
@@ -291,7 +292,7 @@ class _CombatAggregator:
             self._agg(attacker_pid).stuns_dealt += entry.stun_duration
 
         match entry.log_type:
-            case "DAMAGE":
+            case CombatLogType.DAMAGE:
                 # Skip entries whose target is an ability/modifier name rather than
                 # a real unit (Valve logs some absorb/redirect interactions this
                 # way); OpenDota's per-target damage dict excludes them.
@@ -309,7 +310,7 @@ class _CombatAggregator:
                     self._agg(target_pid).damage_taken[source_unit] += entry.value
                     if entry.damage_type:
                         self._agg(target_pid).damage_taken_by_type[entry.damage_type] += entry.value
-            case "HEAL":
+            case CombatLogType.HEAL:
                 if source_pid is not None and _is_unit_target(entry.target_name):
                     heal_key = _illusion_key(entry.target_name, entry.target_is_illusion)
                     self._agg(source_pid).healing[heal_key] += entry.value
@@ -320,30 +321,30 @@ class _CombatAggregator:
                         and entry.target_name != source_unit
                     ):
                         self._agg(source_pid).hero_healing += entry.value
-            case "ABILITY":
+            case CombatLogType.ABILITY:
                 if attacker_pid is not None and entry.inflictor_name:
                     self._agg(attacker_pid).ability_uses[entry.inflictor_name] += 1
-            case "ITEM":
+            case CombatLogType.ITEM:
                 if attacker_pid is not None and entry.inflictor_name:
                     self._agg(attacker_pid).item_uses[entry.inflictor_name] += 1
-            case "GOLD":
+            case CombatLogType.GOLD:
                 if target_pid is not None:
                     self._agg(target_pid).gold_reasons[str(entry.gold_reason)] += entry.value
-            case "XP":
+            case CombatLogType.XP:
                 if target_pid is not None:
                     self._agg(target_pid).xp_reasons[str(entry.xp_reason)] += entry.value
-            case "DEATH":
+            case CombatLogType.DEATH:
                 if attacker_pid is not None:
                     self._agg(attacker_pid).kills_log.append(entry)
-            case "PURCHASE":
+            case CombatLogType.PURCHASE:
                 pid = attacker_pid if attacker_pid is not None else target_pid
                 if pid is not None:
                     self._agg(pid).purchase_log.append(entry)
-            case "PICKUP_RUNE":
+            case CombatLogType.PICKUP_RUNE:
                 # entry.value = player slot (from CDOTAUserMsg_ChatEvent.playerid_1)
                 pid = entry.value
                 if 0 <= pid < 10:
                     self._agg(pid).runes_log.append(entry)
-            case "BUYBACK":
+            case CombatLogType.BUYBACK:
                 # Populated via post-processing in match_builder after full name map is built.
                 pass
