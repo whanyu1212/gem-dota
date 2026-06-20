@@ -4,6 +4,34 @@ This page summarizes the latest parser, validation, and report changes that mate
 
 It is intentionally short-range for now. It is **not** backfilled with older release history.
 
+## May 2026
+
+::: tip Dota 7.41 Fixture Refresh
+
+`gem` now has a stronger replay-backed fixture path for modern Dota patches.
+
+**Recent additions**
+
+- OpenDota fixture download tooling for saving parsed replay data under `tests/fixtures/opendota`
+- DreamLeague Season 29 fixture metadata for 7.41 validation work
+- neutral item found event parsing across the parser, output models, and dataframes
+- constants-audit coverage for newly observed item IDs
+
+:::
+
+::: info Camp Annotation Refresh
+
+The neutral camp annotations were refreshed using replay evidence rather than manual map guesses alone.
+
+**What changed**
+
+- a new camp-audit script groups neutral deaths by `camp_zones.json`
+- Source 2 combat logs now preserve neutral camp stack metadata and event locations where present
+- confirmed 7.41 camp type swaps were applied to `camp_zones.json`
+- the annotated map fixture now uses larger camp icons, type-colored rings, and a top-right legend
+
+:::
+
 ## March 2026
 
 ::: tip Roshan Conversion Report

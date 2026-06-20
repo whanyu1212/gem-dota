@@ -240,7 +240,8 @@ combat-log layers. The supported top-level API (`gem.parse`, `gem.ParsedMatch`,
 - CLI and example scripts, including HTML match report.
 - Validation, fuzzing, and parser robustness foundations.
 
-[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.2.7...HEAD
+[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.2.8...HEAD
+[0.2.8]: https://github.com/whanyu1212/gem-dota/compare/v0.2.7...v0.2.8
 [0.2.7]: https://github.com/whanyu1212/gem-dota/compare/v0.2.6...v0.2.7
 [0.2.6]: https://github.com/whanyu1212/gem-dota/compare/v0.2.5...v0.2.6
 [0.2.5]: https://github.com/whanyu1212/gem-dota/compare/v0.2.4...v0.2.5
