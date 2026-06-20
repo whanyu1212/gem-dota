@@ -1,11 +1,17 @@
 # gem.reports
 
-`gem.reports` turns a fully parsed `ParsedMatch` into one self-contained,
-multi-tab HTML file you can open in a browser with no server, build step, or
-network access (icons and the map image are inlined as base64). It is the
-*presentation* layer: it asks "what does this match look like to a human?",
-whereas its neighbors (`extractors`, `analysis`, `results`) answer "what
-happened in this match?" and produce the structured data this package renders.
+`gem.reports` turns a fully parsed `ParsedMatch` into one multi-tab HTML file
+you can open in a browser with no server or build step. All match *data* and
+images are self-contained — hero/item icons and the map are inlined as base64 —
+but the report is **not fully offline**: charts load Chart.js from a CDN
+(`builder.py:433`), and the optional Movement tab embeds Plotly via
+`include_plotlyjs="cdn"` (`builder.py:179`). In an air-gapped environment the
+HTML, tables, and SVG minimaps still render, but the Chart.js charts and the
+Plotly Movement tab will not (you'd need to vendor those libraries locally). It
+is the *presentation* layer: it asks "what does this match look like to a
+human?", whereas its neighbors (`extractors`, `analysis`, `results`) answer
+"what happened in this match?" and produce the structured data this package
+renders.
 
 This package is read-only with respect to the replay. It never touches `.dem`
 bytes, entities, or the combat log directly — it reads the
@@ -264,6 +270,16 @@ occurrence.
 exception, logs at `debug`, and returns `""`. A report without a Movement tab is
 the expected outcome when Plotly/Pillow aren't installed or no map was provided
 — not a regression.
+
+### Charts need a network connection (the report is not fully offline)
+
+Match data and images are inlined, but Chart.js (`builder.py:433`) and the
+Plotly Movement tab (`builder.py:179`, `include_plotlyjs="cdn"`) load from a CDN.
+Opening a report offline shows the tables, SVG minimaps, and layout fine but
+leaves the chart canvases and the Movement tab blank. To make a report truly
+self-contained, vendor those libraries (inline Chart.js into `<head>` and switch
+Plotly to `include_plotlyjs=True`) — this is not done by default to keep file
+size down.
 
 ### `build_html` is a legacy alias
 
