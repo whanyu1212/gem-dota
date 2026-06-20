@@ -1,9 +1,14 @@
-"""High-level replay parser for Dota 2 Source 2 .dem files.
+"""Internal replay-parsing orchestrator for Dota 2 Source 2 .dem files.
 
 Ties together the stream reader, sendtable schema, string tables, entity
 manager, game events, and combat log into a single ``ReplayParser`` class.
 Callers register callbacks for the events they care about and then call
 ``parse()`` to drive the loop.
+
+This is the low-level engine. Most users should call :func:`gem.api.parse`
+(re-exported as ``gem.parse``), which wires ``ReplayParser`` up with all
+extractors and returns a structured :class:`~gem.results.models.ParsedMatch`.
+Use ``ReplayParser`` directly only when you need raw callback-level access.
 
 Outer message layout
 --------------------

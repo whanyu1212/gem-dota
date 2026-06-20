@@ -51,7 +51,6 @@ from gem.reports._sections import (
     build_teamfights as _ext_build_teamfights,
     build_wards as _ext_build_wards,
 )
-from gem.reports._style import REPORT_CSS as _CSS
 from gem.reports.assets import (
     ReportAssets,
     configure_assets,
@@ -59,6 +58,7 @@ from gem.reports.assets import (
     load_item_icons as _load_item_icons,
     load_map_base64,
 )
+from gem.reports.styles import REPORT_CSS as _CSS
 from gem.results.models import ParsedMatch
 
 logger = logging.getLogger(__name__)
