@@ -660,7 +660,7 @@ If you want to inspect or tune the implementation directly:
 
 - `src/gem/analysis/map_context.py`
 - `src/gem/reports/_sections.py`
-- `src/gem/reports/_style.py`
+- `src/gem/reports/styles.py`
 - `src/gem/data/neutral_camps.json`
 - `src/gem/data/camp_zones.json`
 

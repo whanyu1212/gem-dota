@@ -11,7 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from gem.extractors.players import _pos
+from gem.extractors._snapshots import _pos
 from gem.state.entities import Entity, EntityOp
 
 if TYPE_CHECKING:
