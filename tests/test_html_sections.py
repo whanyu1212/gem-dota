@@ -11,9 +11,7 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 from gem.reports import _sections
-
-_net_worth_at = _sections._net_worth_at
-
+from gem.reports.sections.economy import _net_worth_at
 
 # ---------------------------------------------------------------------------
 # Helpers
