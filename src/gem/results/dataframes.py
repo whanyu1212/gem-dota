@@ -6,7 +6,7 @@ suitable for tabular analysis.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -31,19 +31,22 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
 
     import pandas as pd
 
-    def _plain_rows(items: list) -> list[dict]:
-        """``asdict`` each item, demoting Enum field values to their raw value.
+    def _plain_row(item: Any) -> dict:
+        """``asdict`` an item, demoting Enum field values to their raw value.
 
         Keeps DataFrame cells as primitives (e.g. ``"DAMAGE"`` rather than a
         ``CombatLogType`` member) so the exported schema stays backward
         compatible regardless of how internal fields are typed.
         """
-        rows = [asdict(it) for it in items]
-        for row in rows:
-            for key, value in row.items():
-                if isinstance(value, Enum):
-                    row[key] = value.value
-        return rows
+        row = asdict(item)
+        for key, value in row.items():
+            if isinstance(value, Enum):
+                row[key] = value.value
+        return row
+
+    def _plain_rows(items: list) -> list[dict]:
+        """``asdict`` each item with Enum field values demoted to primitives."""
+        return [_plain_row(it) for it in items]
 
     # --- players (per sample tick) ---
     player_rows: list[dict] = []
@@ -148,22 +151,22 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
             )
 
         for entry in pp.kills_log:
-            row = asdict(entry)
+            row = _plain_row(entry)
             row["player_id"] = pp.player_id
             player_kills_rows.append(row)
 
         for entry in pp.purchase_log:
-            row = asdict(entry)
+            row = _plain_row(entry)
             row["player_id"] = pp.player_id
             player_purchase_rows.append(row)
 
         for entry in pp.runes_log:
-            row = asdict(entry)
+            row = _plain_row(entry)
             row["player_id"] = pp.player_id
             player_runes_rows.append(row)
 
         for entry in pp.buyback_log:
-            row = asdict(entry)
+            row = _plain_row(entry)
             row["player_id"] = pp.player_id
             player_buyback_rows.append(row)
 

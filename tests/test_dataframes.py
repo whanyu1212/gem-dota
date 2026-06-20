@@ -47,19 +47,42 @@ class TestBuildDataframes:
         assert row["damage_taken_magical"] == 450
         assert row["damage_taken_pure"] == 20
 
-    def test_combat_log_dataframe_log_type_is_plain_str(self):
-        # log_type is a CombatLogType enum internally, but the exported
-        # DataFrame must hold plain str cells so the public schema is unchanged.
-        match = ParsedMatch(players=[ParsedPlayer(player_id=i) for i in range(10)])
+    def test_log_type_is_plain_str_in_every_log_bearing_table(self):
+        # log_type is a CombatLogType enum internally, but every exported table
+        # built from CombatLogEntry objects must hold plain str cells so the
+        # public DataFrame/Parquet schema is unchanged. This covers the
+        # top-level combat_log table AND the per-player log projections.
+        pp = ParsedPlayer(player_id=0)
+        pp.kills_log = [CombatLogEntry(tick=10, log_type=CombatLogType.DEATH)]
+        pp.purchase_log = [CombatLogEntry(tick=11, log_type=CombatLogType.PURCHASE)]
+        pp.runes_log = [CombatLogEntry(tick=12, log_type=CombatLogType.PICKUP_RUNE)]
+        pp.buyback_log = [CombatLogEntry(tick=13, log_type=CombatLogType.BUYBACK)]
+
+        match = ParsedMatch(players=[pp] + [ParsedPlayer(player_id=i) for i in range(1, 10)])
         match.combat_log = [
             CombatLogEntry(tick=10, log_type=CombatLogType.DAMAGE, value=100),
             CombatLogEntry(tick=20, log_type=CombatLogType.DEATH),
         ]
 
-        combat_df = build_dataframes(match)["combat_log"]
+        dfs = build_dataframes(match)
 
-        assert list(combat_df["log_type"]) == ["DAMAGE", "DEATH"]
-        assert all(type(v) is str for v in combat_df["log_type"])
+        log_tables = [
+            "combat_log",
+            "player_kills_log",
+            "player_purchase_log",
+            "player_runes_log",
+            "player_buyback_log",
+        ]
+        for name in log_tables:
+            df = dfs[name]
+            assert "log_type" in df.columns, name
+            assert all(type(v) is str for v in df["log_type"]), name
+
+        assert list(dfs["combat_log"]["log_type"]) == ["DAMAGE", "DEATH"]
+        assert list(dfs["player_kills_log"]["log_type"]) == ["DEATH"]
+        assert list(dfs["player_purchase_log"]["log_type"]) == ["PURCHASE"]
+        assert list(dfs["player_runes_log"]["log_type"]) == ["PICKUP_RUNE"]
+        assert list(dfs["player_buyback_log"]["log_type"]) == ["BUYBACK"]
 
     def test_build_dataframes_returns_extended_parity_keys(self):
         match = ParsedMatch()
