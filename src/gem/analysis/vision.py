@@ -20,10 +20,11 @@ _NIGHT_VISION: int = 800
 # Observer ward vision radius (constant, no items change it)
 _WARD_VISION: int = 1600
 
-# Day/night cycle constants (ticks at 30 ticks/sec)
-# Day starts at game time 0:00, each full cycle is 15 minutes (7:30 day + 7:30 night)
-_DAY_NIGHT_CYCLE_TICKS: int = 15 * 60 * 30  # 27000 ticks
-_NIGHT_START_TICKS: int = 7 * 60 * 30 + 15 * 30  # 7:30 into cycle = 13950 ticks
+# Day/night cycle constants (ticks at 30 ticks/sec).
+# Dota's cycle is 10 minutes: day from 0:00, night from 5:00, repeating.
+# Reference: https://liquipedia.net/dota2/Time_of_Day
+_DAY_NIGHT_CYCLE_TICKS: int = 10 * 60 * 30  # 18000 ticks (10:00)
+_NIGHT_START_TICKS: int = 5 * 60 * 30  # 9000 ticks (night starts at 5:00)
 
 
 @dataclass
@@ -55,8 +56,10 @@ class VisionSource:
 def is_daytime(game_start_tick: int | None, tick: int) -> bool:
     """Return True if it is daytime at the given absolute tick.
 
-    Dota 2 day/night cycle: day starts at game time 0:00.  Each half-cycle
-    is 7 minutes 30 seconds (13500 ticks).  The cycle repeats every 15 minutes.
+    Dota 2 day/night cycle: day starts at game time 0:00, night begins at 5:00,
+    and the cycle repeats every 10 minutes (5 min day + 5 min night). Tick 0 is
+    daytime; the first night begins at tick 9000 (5:00).
+    Reference: https://liquipedia.net/dota2/Time_of_Day
 
     Args:
         game_start_tick: Absolute tick when the game clock started, or ``None``.

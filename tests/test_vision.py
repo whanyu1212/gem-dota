@@ -16,10 +16,11 @@ _DAY_VISION = 1800
 _NIGHT_VISION = 800
 _WARD_VISION = 1600
 
-# game_start_tick=0 → tick 0 = game time 0:00 (daytime)
-# Night starts at 7:30 = 13500 ticks into a cycle
-_NIGHT_TICK = 14000  # well into night (13500+ ticks from game start)
-_DAY_TICK = 5000  # well into day (< 13500 ticks from game start)
+# game_start_tick=0 → tick 0 = game time 0:00 (daytime).
+# Dota's cycle is 10 min: day 0:00–5:00, night 5:00–10:00, repeating.
+# Night starts at 5:00 = 9000 ticks into a cycle.
+_NIGHT_TICK = 11000  # well into night (5:00–10:00 → 9000–18000 ticks)
+_DAY_TICK = 5000  # well into day (< 9000 ticks from game start)
 
 
 def _player(team: int, position_log: list[tuple[int, float, float]]) -> MagicMock:
@@ -92,32 +93,47 @@ def _match(
 
 
 class TestIsDaytime:
+    # Dota's cycle is 10 min (18000 ticks): day 0:00–5:00, night 5:00–10:00.
+    # Night starts at 5:00 = 9000 ticks. Reference:
+    # https://liquipedia.net/dota2/Time_of_Day
+
     def test_game_start_is_daytime(self) -> None:
         assert is_daytime(0, 0) is True
 
     def test_early_game_is_daytime(self) -> None:
-        assert is_daytime(0, 5000) is True
+        assert is_daytime(0, 5000) is True  # 2:46, day
 
-    def test_after_7m30s_is_night(self) -> None:
-        # Night starts at 13500 ticks after game start
-        assert is_daytime(0, 14000) is False
+    def test_tick_just_before_night_is_day(self) -> None:
+        # 8999 ticks = 4:59.96 — last tick of the first day.
+        assert is_daytime(0, 8999) is True
 
-    def test_second_cycle_day(self) -> None:
-        # Second day: 27000 ticks into game (one full cycle)
-        assert is_daytime(0, 27000) is True
+    def test_night_starts_exactly_at_5min(self) -> None:
+        # 9000 ticks = 5:00 — the first night tick (boundary is night).
+        assert is_daytime(0, 9000) is False
 
-    def test_second_cycle_night(self) -> None:
-        # Second night: 27000 + 14000 = 41000
-        assert is_daytime(0, 41000) is False
+    def test_well_into_first_night(self) -> None:
+        assert is_daytime(0, 11000) is False  # 6:06, night
+
+    def test_day_returns_exactly_at_10min(self) -> None:
+        # 18000 ticks = 10:00 — one full cycle, back to day.
+        assert is_daytime(0, 18000) is True
+
+    def test_second_night_starts_at_15min(self) -> None:
+        # 27000 ticks = 15:00 — start of the second night (was day under the
+        # old, buggy 15-minute cycle).
+        assert is_daytime(0, 27000) is False
+
+    def test_third_day_at_20min(self) -> None:
+        assert is_daytime(0, 36000) is True  # 20:00, day again
 
     def test_game_start_tick_offset(self) -> None:
-        # If game started at tick 1000, game time 0 = tick 1000
+        # If game started at tick 1000, game time 0 = tick 1000.
         assert is_daytime(1000, 1000) is True
-        assert is_daytime(1000, 1000 + 14000) is False
+        assert is_daytime(1000, 1000 + 9000) is False  # 5:00 → night
 
     def test_none_game_start_treated_as_zero(self) -> None:
         assert is_daytime(None, 5000) is True
-        assert is_daytime(None, 14000) is False
+        assert is_daytime(None, 11000) is False
 
     def test_underscore_alias_preserved(self) -> None:
         # `_is_daytime` is a backwards-compat alias for the renamed public
