@@ -27,8 +27,23 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         ``objectives``, and ``chat``.
     """
     from dataclasses import asdict
+    from enum import Enum
 
     import pandas as pd
+
+    def _plain_rows(items: list) -> list[dict]:
+        """``asdict`` each item, demoting Enum field values to their raw value.
+
+        Keeps DataFrame cells as primitives (e.g. ``"DAMAGE"`` rather than a
+        ``CombatLogType`` member) so the exported schema stays backward
+        compatible regardless of how internal fields are typed.
+        """
+        rows = [asdict(it) for it in items]
+        for row in rows:
+            for key, value in row.items():
+                if isinstance(value, Enum):
+                    row[key] = value.value
+        return rows
 
     # --- players (per sample tick) ---
     player_rows: list[dict] = []
@@ -156,7 +171,7 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
     players_min_df = pd.DataFrame(player_min_rows)
 
     # --- combat_log ---
-    combat_df = pd.DataFrame([asdict(e) for e in match.combat_log])
+    combat_df = pd.DataFrame(_plain_rows(match.combat_log))
 
     # --- wards ---
     wards_df = pd.DataFrame([asdict(w) for w in match.wards]) if match.wards else pd.DataFrame()

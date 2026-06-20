@@ -11,7 +11,7 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
-from gem.combat.log import CombatLogEntry
+from gem.combat.log import CombatLogEntry, CombatLogType
 from gem.extractors._snapshots import (
     _HERO_CLASS_PREFIX,
     PlayerStateSnapshot,
@@ -667,7 +667,7 @@ class PlayerExtractor:
                 if item_name and not item_name.startswith("item_recipe"):
                     entry = CombatLogEntry(
                         tick=tick,
-                        log_type="PURCHASE",
+                        log_type=CombatLogType.PURCHASE,
                         target_name=npc_name,
                         value_name=item_name,
                     )

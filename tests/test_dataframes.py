@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import gem.results.models as model_module
+from gem.combat.log import CombatLogEntry, CombatLogType
 from gem.extractors.objectives import AegisEvent, ShrineKill, TormentorKill
 from gem.results.dataframes import build_dataframes
 from gem.results.models import ParsedMatch, ParsedPlayer
@@ -45,6 +46,20 @@ class TestBuildDataframes:
         assert row["damage_taken_physical"] == 800
         assert row["damage_taken_magical"] == 450
         assert row["damage_taken_pure"] == 20
+
+    def test_combat_log_dataframe_log_type_is_plain_str(self):
+        # log_type is a CombatLogType enum internally, but the exported
+        # DataFrame must hold plain str cells so the public schema is unchanged.
+        match = ParsedMatch(players=[ParsedPlayer(player_id=i) for i in range(10)])
+        match.combat_log = [
+            CombatLogEntry(tick=10, log_type=CombatLogType.DAMAGE, value=100),
+            CombatLogEntry(tick=20, log_type=CombatLogType.DEATH),
+        ]
+
+        combat_df = build_dataframes(match)["combat_log"]
+
+        assert list(combat_df["log_type"]) == ["DAMAGE", "DEATH"]
+        assert all(type(v) is str for v in combat_df["log_type"])
 
     def test_build_dataframes_returns_extended_parity_keys(self):
         match = ParsedMatch()
