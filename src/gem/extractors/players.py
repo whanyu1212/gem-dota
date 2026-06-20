@@ -41,6 +41,9 @@ _NULL_HANDLE = 0xFFFFFF  # empty slot sentinel
 
 _TEAM_RADIANT = 2
 _TEAM_DIRE = 3
+# CDOTA_PlayerResource rows to scan when building the logical→resource remap.
+# A coach occupies a row, so the 10 players can span more than 10 indices.
+_PLAYER_RESOURCE_SCAN_LIMIT = 30
 
 __all__ = ["PlayerExtractor", "PlayerStateSnapshot", "PlayerTimeSeries"]
 
@@ -106,6 +109,11 @@ class PlayerExtractor:
         # player_id (0-9) → team slot (0-4) within CDOTADataRadiant/Dire
         # Read from CDOTA_PlayerResource.m_vecPlayerTeamData.%04d.m_iTeamSlot
         self._player_team_slot: dict[int, int] = {}
+        # logical player_id (0-9) → CDOTA_PlayerResource array index. Usually the
+        # identity map, but a coach occupies a resource row and shifts later
+        # players, so PlayerResource reads must go through this remap. Rebuilt
+        # whenever _player_resource refreshes. Mirrors OpenDota's validIndices.
+        self._resource_index_by_id: dict[int, int] = {}
         # CDOTA_PlayerResource entity for slot lookups
         self._player_resource: Entity | None = None
         self.snapshots: list[PlayerStateSnapshot] = []
@@ -152,13 +160,16 @@ class PlayerExtractor:
         # m_vecPlayerTeamData.%04d.m_iKills/Deaths/Assists on CDOTA_PlayerResource.
         pr = self._player_resource
         if pr is not None:
-            for i in range(10):
-                prefix = f"m_vecPlayerTeamData.{i:04d}"
+            for player_id in range(10):
+                # Read at the resource-array index for this logical slot — a coach
+                # shifts the array so index != slot. Reference: Parse.java
+                # validIndices.
+                prefix = f"m_vecPlayerTeamData.{self._resource_index(player_id):04d}"
                 k = pr.get_int32(f"{prefix}.m_iKills")
                 d = pr.get_int32(f"{prefix}.m_iDeaths")
                 a = pr.get_int32(f"{prefix}.m_iAssists")
                 if k is not None or d is not None or a is not None:
-                    self.scoreboard[i] = (k or 0, d or 0, a or 0)
+                    self.scoreboard[player_id] = (k or 0, d or 0, a or 0)
 
     def _on_combat_log_entry(self, entry: CombatLogEntry) -> None:
         """Accumulate per-player running totals from combat log entries.
@@ -194,7 +205,16 @@ class PlayerExtractor:
             if pid is not None:
                 self._total_hero_healing[pid] = self._total_hero_healing.get(pid, 0) + entry.value
 
-        elif entry.log_type == "DEATH" and entry.target_is_hero:
+        elif (
+            entry.log_type == "DEATH"
+            and entry.target_is_hero
+            # Skip reincarnation/aegis trigger deaths — the hero comes back, so the
+            # trigger is not a real death. The subsequent true death (will_
+            # reincarnate=False) is counted. Without this the cumulative death
+            # curve double-counts WK/Aegis deaths. Reference: OpenDota
+            # handleDeathCombat returns early for the aegis/reincarnation death.
+            and not entry.will_reincarnate
+        ):
             pid = self._hero_to_pid(entry.target_name)
             if pid is not None:
                 self._total_deaths[pid] = self._total_deaths.get(pid, 0) + 1
@@ -390,14 +410,49 @@ class PlayerExtractor:
                 self._maybe_sample()
 
     def _refresh_team_slots(self) -> None:
-        """Read m_iTeamSlot for each player from CDOTA_PlayerResource."""
+        """Build the logical→resource remap and read m_iTeamSlot per player.
+
+        OpenDota scans ``CDOTA_PlayerResource`` for rows whose team is Radiant or
+        Dire (a coach has team 1/14 and is skipped), then uses the scan order as
+        logical slot ``0..9``. The resource array index is not always the logical
+        slot, so all PlayerResource reads go through ``_resource_index_by_id``.
+        Reference: refs/parser/.../opendota/Parse.java (validIndices).
+        """
         pr = self._player_resource
         if pr is None:
             return
-        for i in range(10):
-            slot = pr.get_int32(f"m_vecPlayerTeamData.{i:04d}.m_iTeamSlot")
-            if slot is not None and slot >= 0:
-                self._player_team_slot[i] = slot
+
+        resource_index_by_id: dict[int, int] = {}
+        for resource_idx in range(_PLAYER_RESOURCE_SCAN_LIMIT):
+            team = pr.get_int32(f"m_vecPlayerData.{resource_idx:04d}.m_iPlayerTeam")
+            slot = pr.get_int32(f"m_vecPlayerTeamData.{resource_idx:04d}.m_iTeamSlot")
+            if team not in (_TEAM_RADIANT, _TEAM_DIRE) or slot is None or slot < 0:
+                continue
+            player_id = len(resource_index_by_id)
+            if player_id >= 10:
+                break
+            resource_index_by_id[player_id] = resource_idx
+            self._player_team_slot[player_id] = slot
+
+        # Only adopt the remap once it resolves all 10 players; partial scans
+        # (early in the replay, before PlayerResource is fully populated) keep the
+        # previous mapping rather than introducing a half-built shift.
+        if len(resource_index_by_id) == 10:
+            self._resource_index_by_id = resource_index_by_id
+
+    def _resource_index(self, player_id: int) -> int:
+        """Map a logical player slot to its CDOTA_PlayerResource array index.
+
+        Falls back to the identity (``player_id``) until the remap is built —
+        correct for the common no-coach case where they coincide.
+
+        Args:
+            player_id: Logical player slot 0-9.
+
+        Returns:
+            The resource-array index to read PlayerResource fields at.
+        """
+        return self._resource_index_by_id.get(player_id, player_id)
 
     def _maybe_sample(self) -> None:
         if self._parser is None:
@@ -438,7 +493,9 @@ class PlayerExtractor:
         pr = self._player_resource
         if pr is None:
             return None
-        handle = pr.get_uint32(f"m_vecPlayerTeamData.{player_id:04d}.m_hSelectedHero")
+        handle = pr.get_uint32(
+            f"m_vecPlayerTeamData.{self._resource_index(player_id):04d}.m_hSelectedHero"
+        )
         if handle is None or handle == _NULL_HANDLE:
             return None
         return handle

@@ -75,6 +75,15 @@ class CombatLogType(str, Enum):
     # OpenDota but our pipeline never maps proto type 16, so it stays out of the
     # int→label table (preserving the historical decode behaviour).
     KILLSTREAK = ("KILLSTREAK", _NO_PROTO_ID)
+    # Sentinel for proto types we do not model. Unmapped wire types are labelled
+    # UNKNOWN (never DAMAGE) so the aggregator's match statement falls through to
+    # a no-op instead of counting them as hero damage. Mirrors OpenDota's
+    # ``default: break`` in CreateParsedDataBlob.processExpand and Clarity
+    # resolving the true enum rather than substituting DAMAGE. Notably this stops
+    # CRITICAL_DAMAGE (39) — already logged as a separate type-0 DAMAGE entry —
+    # from double-counting the crit, and MODIFIER_STACK_EVENT (19) from inflating
+    # damage aggregates.
+    UNKNOWN = ("UNKNOWN", _NO_PROTO_ID)
 
 
 # Backward-compatible frozenset of label strings, derived from the enum.
@@ -159,6 +168,9 @@ class CombatLogEntry:
         timestamp_s: Raw S2 combat-log timestamp in seconds, or ``None`` for S1/derived events.
         game_time_s: OpenDota-style game-relative combat-log time in seconds, or ``None`` when
             the game-start combat-log marker has not been observed.
+        will_reincarnate: True if this DEATH is a reincarnation/aegis *trigger*
+            (the hero will return), not a final death (S2 only; always False for
+            S1). Consumers counting deaths should skip entries where this is True.
     """
 
     tick: int
@@ -184,6 +196,7 @@ class CombatLogEntry:
     location_y: float | None = None
     timestamp_s: float | None = None
     game_time_s: int | None = None
+    will_reincarnate: bool = False
 
 
 CombatLogHandler = Callable[[CombatLogEntry], None]
@@ -278,7 +291,7 @@ class CombatLogProcessor:
             tick: Current game tick.
         """
         type_val, _ = game_event.get_int32(_S1_FIELD_TYPE)
-        log_type = _LOG_TYPE_NAMES.get(type_val, CombatLogType.DAMAGE)
+        log_type = _LOG_TYPE_NAMES.get(type_val, CombatLogType.UNKNOWN)
 
         attacker_idx, _ = game_event.get_int32(_S1_FIELD_ATTACKER)
         source_idx, _ = game_event.get_int32(_S1_FIELD_SOURCE)
@@ -288,11 +301,29 @@ class CombatLogProcessor:
         value, _ = game_event.get_int32(_S1_FIELD_VALUE)
         attacker_illusion, _ = game_event.get_bool(_S1_FIELD_ATTACKER_ILLUSION)
         target_illusion, _ = game_event.get_bool(_S1_FIELD_TARGET_ILLUSION)
-        attacker_hero, _ = game_event.get_bool(_S1_FIELD_ATTACKER_HERO)
-        target_hero, _ = game_event.get_bool(_S1_FIELD_TARGET_HERO)
+        # Legacy S1 descriptors may omit attackerhero/targethero. Clarity defaults
+        # these to True when the index is absent (S1CombatLogEntry: the nullable
+        # attackerHeroIdx/targetHeroIdx fall back to `: true`), so a missing field
+        # means "is a hero" — not "is not a hero". get_bool returns a non-None
+        # error when the field is absent from the schema; default to True then.
+        attacker_hero, attacker_hero_err = game_event.get_bool(_S1_FIELD_ATTACKER_HERO)
+        if attacker_hero_err is not None:
+            attacker_hero = True
+        target_hero, target_hero_err = game_event.get_bool(_S1_FIELD_TARGET_HERO)
+        if target_hero_err is not None:
+            target_hero = True
         ability_level, _ = game_event.get_int32(_S1_FIELD_ABILITY_LEVEL)
         gold_reason, _ = game_event.get_int32(_S1_FIELD_GOLD_REASON)
         xp_reason, _ = game_event.get_int32(_S1_FIELD_XP_REASON)
+
+        # PURCHASE events carry the item name as a CombatLogNames index in `value`
+        # (same as the S2 path). Resolve it so S1 purchase logs keep item names;
+        # _dedup_purchase_log keys on (tick, value_name), so a blank name collapses
+        # distinct same-tick starting-inventory buys. Reference: Clarity
+        # S1CombatLogEntry.getValueName() = readCombatLogName(valueIdx).
+        value_name = ""
+        if log_type == "PURCHASE":
+            value_name = _resolve_name(name_table, value)
 
         entry = CombatLogEntry(
             tick=tick,
@@ -302,6 +333,7 @@ class CombatLogProcessor:
             target_name=_resolve_name(name_table, target_idx),
             inflictor_name=_resolve_name(name_table, inflictor_idx),
             value=value,
+            value_name=value_name,
             attacker_is_hero=attacker_hero,
             target_is_hero=target_hero,
             attacker_is_illusion=attacker_illusion,
@@ -343,7 +375,7 @@ class CombatLogProcessor:
             game_time_s: Optional game-relative timestamp computed by
                 ``ReplayParser`` from the combat-log ``GAME_STATE`` marker.
         """
-        log_type = _LOG_TYPE_NAMES.get(msg.type, CombatLogType.DAMAGE)
+        log_type = _LOG_TYPE_NAMES.get(msg.type, CombatLogType.UNKNOWN)
 
         # Support both StringTable.items dict and legacy dict-like name_table
         if hasattr(name_table, "items") and isinstance(name_table.items, dict):
@@ -378,6 +410,11 @@ class CombatLogProcessor:
         location_x = msg.location_x if msg.HasField("location_x") else None
         location_y = msg.location_y if msg.HasField("location_y") else None
         timestamp_s = msg.timestamp if hasattr(msg, "timestamp") else None
+        # will_reincarnate marks a DEATH that is a reincarnation/aegis *trigger*,
+        # not a final death — the hero comes back, so it must not be counted as a
+        # death. Reference: refs/clarity S2CombatLogEntry.isWillReincarnate (proto
+        # field 78). S1 has no equivalent field.
+        will_reincarnate = bool(msg.will_reincarnate) if msg.HasField("will_reincarnate") else False
         damage_type = ""
         if log_type == "DAMAGE" and hasattr(msg, "damage_type"):
             damage_type = _DAMAGE_TYPE_NAMES.get(msg.damage_type, "")
@@ -405,5 +442,6 @@ class CombatLogProcessor:
             location_y=location_y,
             timestamp_s=timestamp_s,
             game_time_s=game_time_s,
+            will_reincarnate=will_reincarnate,
         )
         self._emit(entry)

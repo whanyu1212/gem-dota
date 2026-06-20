@@ -449,6 +449,14 @@ def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]:
             else:
                 aegis_eval_end_tick = min(game_end_tick, aegis_end_tick + _POST_CONSUME_GRACE_TICKS)
 
+        # Clamp the holder window to this Roshan's upper boundary (next_rosh_tick
+        # - 1). Without this, the post-consume grace can push aegis_eval_end_tick
+        # past the next Roshan kill, so the same tower/barracks/teamfight/buyback
+        # is counted in BOTH consecutive RoshConversion records. extended_end_tick
+        # is purpose-built as the per-Roshan boundary; the counting windows must
+        # respect it so each event belongs to exactly one Roshan.
+        aegis_eval_end_tick = min(aegis_eval_end_tick, extended_end_tick)
+
         if holder_team is None:
             holder_window_start = roshan.tick
             holder_window_end = aegis_eval_end_tick

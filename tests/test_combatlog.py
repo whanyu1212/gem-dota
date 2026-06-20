@@ -70,6 +70,7 @@ class FakeS2Entry:
         neutral_camp_team=0,
         location_x=0.0,
         location_y=0.0,
+        will_reincarnate=False,
     ):
         self.type = type
         self.attacker_name = attacker_name
@@ -94,8 +95,11 @@ class FakeS2Entry:
         self.neutral_camp_team = neutral_camp_team
         self.location_x = location_x
         self.location_y = location_y
+        self.will_reincarnate = will_reincarnate
 
     def HasField(self, name: str) -> bool:
+        if name == "will_reincarnate":
+            return self.will_reincarnate
         if name == "stun_duration":
             return self.stun_duration != 0.0
         if name == "neutral_camp_type":
@@ -356,11 +360,19 @@ class TestS1CombatLog:
             p.process_s1_event(self._make_event(type_val=type_val), table)
             assert received[0].log_type in COMBAT_LOG_TYPES
 
-    def test_unknown_type_defaults_to_damage(self):
+    def test_unknown_type_maps_to_unknown_not_damage(self):
+        # Proto types we do not model must NOT be coerced to DAMAGE (which would
+        # make the aggregator count them as hero damage — e.g. CRITICAL_DAMAGE=39
+        # double-counting the crit, MODIFIER_STACK_EVENT=19 inflating totals).
+        # They are labelled UNKNOWN so the aggregator match falls through to a
+        # no-op, mirroring OpenDota's `default: break`.
         p, received = self._make_processor_with_handler()
         table = FakeNameTable({})
-        p.process_s1_event(self._make_event(type_val=99), table)
-        assert received[0].log_type == "DAMAGE"
+        for type_val in (19, 39, 99):  # MODIFIER_STACK_EVENT, CRITICAL_DAMAGE, unmapped
+            received.clear()
+            p.process_s1_event(self._make_event(type_val=type_val), table)
+            assert received[0].log_type == "UNKNOWN"
+            assert received[0].log_type != "DAMAGE"
 
     def test_hero_flags(self):
         p, received = self._make_processor_with_handler()
@@ -377,6 +389,42 @@ class TestS1CombatLog:
         e = received[0]
         assert e.attacker_is_illusion is True
         assert e.target_is_illusion is True
+
+    def test_purchase_resolves_value_name(self):
+        # S1 PURCHASE (type 11) must resolve value_name from the value index,
+        # matching the S2 path. Otherwise S1 purchase logs lose item names and
+        # _dedup_purchase_log collapses distinct same-tick buys.
+        p, received = self._make_processor_with_handler()
+        table = FakeNameTable({2: "npc_dota_hero_axe", 5: "item_blink"})
+        p.process_s1_event(self._make_event(type_val=11, target=2, value=5), table, tick=500)
+        e = received[0]
+        assert e.log_type == "PURCHASE"
+        assert e.value_name == "item_blink"
+
+    def test_hero_flags_default_true_when_field_absent(self):
+        # Legacy S1 descriptors may omit attackerhero/targethero. Clarity defaults
+        # these to True (the unit IS a hero) when the index is absent; gem must do
+        # the same or it would flip hero-vs-hero attribution off for those events.
+        event = FakeGameEvent(
+            int_fields={"type": 0, "attackername": 1, "targetname": 2, "value": 100},
+            bool_fields={},  # no attackerhero / targethero keys
+        )
+        p, received = self._make_processor_with_handler()
+        table = FakeNameTable({1: "npc_dota_hero_axe", 2: "npc_dota_hero_lina"})
+        p.process_s1_event(event, table)
+        e = received[0]
+        assert e.attacker_is_hero is True
+        assert e.target_is_hero is True
+
+    def test_hero_flags_respected_when_field_present(self):
+        # When the descriptor carries the flags, their actual values win (the
+        # absent-field default must not override a present False).
+        p, received = self._make_processor_with_handler()
+        table = FakeNameTable({})
+        p.process_s1_event(self._make_event(attacker_hero=False, target_hero=False), table)
+        e = received[0]
+        assert e.attacker_is_hero is False
+        assert e.target_is_hero is False
 
     def test_gold_reason(self):
         p, received = self._make_processor_with_handler()
@@ -561,6 +609,20 @@ class TestS2CombatLog:
         msg = FakeS2Entry(attacker_name=5)
         p.process_s2_entry(msg, table)
         assert received[0].attacker_name == ""
+
+    def test_will_reincarnate_parsed(self):
+        p, received = self._make_processor_with_handler()
+        table = FakeNameTable({1: "npc_dota_hero_skeleton_king"})
+        # Trigger death (will return).
+        msg_trigger = FakeS2Entry(type=4, target_name=1, is_target_hero=True, will_reincarnate=True)
+        p.process_s2_entry(msg_trigger, table)
+        assert received[0].log_type == "DEATH"
+        assert received[0].will_reincarnate is True
+        # Normal death (default False).
+        received.clear()
+        msg_real = FakeS2Entry(type=4, target_name=1, is_target_hero=True)
+        p.process_s2_entry(msg_real, table)
+        assert received[0].will_reincarnate is False
 
 
 # ---------------------------------------------------------------------------

@@ -165,7 +165,13 @@ def detect_teamfights(
     for entry in entries:
         if entry.log_type != "DEATH":
             continue
-        if not entry.target_is_hero or entry.target_is_illusion:
+        # Skip reincarnation/aegis trigger deaths (will_reincarnate=True) — the
+        # hero comes back, so the trigger must not open/extend a fight or count
+        # toward Teamfight.deaths. Filtering only in pass 1 covers pass 2 too,
+        # since pass-2 death attribution looks up death_fight by entry id and
+        # skips any entry not recorded here. Matches the death-curve fix in
+        # players.py so teamfight/Roshan-conversion summaries stay consistent.
+        if not entry.target_is_hero or entry.target_is_illusion or entry.will_reincarnate:
             continue
 
         # Expire any active fights whose cooldown has elapsed before this death.

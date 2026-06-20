@@ -115,6 +115,24 @@ class TestCombatAggregatorDamage:
         agg.on_entry(_entry(value=999))  # must not raise
         assert agg.players[0].damage["npc_dota_hero_mirana"] == 999
 
+    def test_unknown_log_type_does_not_accumulate_damage(self):
+        # Proto types the parser does not model arrive as UNKNOWN (not DAMAGE),
+        # so the match statement falls through and they never inflate the damage
+        # aggregates. Guards against the CRITICAL_DAMAGE/MODIFIER_STACK_EVENT
+        # double-counting regression. (A DAMAGE entry with the same fields would
+        # have populated agg.players[0].damage; UNKNOWN must not.)
+        agg, _ = _make_agg(0)
+        agg.on_entry(_entry(log_type="UNKNOWN", target_is_hero=True, value=500))
+        if 0 in agg.players:
+            assert agg.players[0].damage["npc_dota_hero_mirana"] == 0
+            assert agg.players[0].hero_damage == 0
+
+        # Control: the identical entry as DAMAGE *does* accumulate, proving the
+        # UNKNOWN no-op above is the label's doing, not an unrelated filter.
+        agg2, _ = _make_agg(0)
+        agg2.on_entry(_entry(log_type="DAMAGE", target_is_hero=True, value=500))
+        assert agg2.players[0].damage["npc_dota_hero_mirana"] == 500
+
     def test_damage_taken_on_target(self):
         player_ext = MagicMock()
         # attacker = axe (pid 0), target = mirana (pid 1)

@@ -21,13 +21,19 @@ from gem.extractors.teamfights import (
 _COOLDOWN = 15 * 30  # 450 ticks
 
 
-def _death(tick: int, target: str = "npc_dota_hero_axe", illusion: bool = False) -> CombatLogEntry:
+def _death(
+    tick: int,
+    target: str = "npc_dota_hero_axe",
+    illusion: bool = False,
+    will_reincarnate: bool = False,
+) -> CombatLogEntry:
     return CombatLogEntry(
         tick=tick,
         log_type="DEATH",
         target_name=target,
         target_is_hero=True,
         target_is_illusion=illusion,
+        will_reincarnate=will_reincarnate,
     )
 
 
@@ -98,6 +104,26 @@ class TestDetectTeamfights:
         entries = [_death(1000, "npc_dota_hero_axe"), _death(1100, "npc_dota_hero_pudge")]
         fights = detect_teamfights(entries)
         assert fights[0].deaths == 2
+
+    def test_reincarnation_trigger_not_counted_as_death(self):
+        # A reincarnation/aegis trigger (will_reincarnate=True) must not count
+        # toward Teamfight.deaths or attribute a per-player death — the hero
+        # returns. Only the subsequent true death counts. Regression for Codex P2:
+        # keeps teamfight/Roshan summaries consistent with the death curve.
+        h2s = {"npc_dota_hero_axe": 0}
+        entries = [
+            _death(1000, "npc_dota_hero_axe", will_reincarnate=True),  # trigger
+            _death(1060, "npc_dota_hero_axe"),  # true death
+        ]
+        fights = detect_teamfights(entries, hero_to_slot=h2s)
+        assert len(fights) == 1
+        assert fights[0].deaths == 1
+        assert fights[0].players[0].deaths == 1
+
+    def test_lone_reincarnation_trigger_opens_no_fight(self):
+        # A solitary trigger death with no real death must not open a fight at all.
+        fights = detect_teamfights([_death(1000, will_reincarnate=True)])
+        assert fights == []
 
     def test_players_list_always_10(self):
         fights = detect_teamfights([_death(1000)])
