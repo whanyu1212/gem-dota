@@ -91,10 +91,13 @@ class Teamfight:
         winner: ``"radiant"`` if Radiant scored more kills, ``"dire"`` if Dire
             scored more kills, ``"draw"`` if equal, or ``"unknown"`` if team
             information is unavailable.
-        centroid_x: Death-count-weighted mean X of all deaths in the window,
-            or ``None`` when position data is unavailable.
-        centroid_y: Death-count-weighted mean Y of all deaths in the window,
-            or ``None`` when position data is unavailable.
+        centroid_x: Mean X of the *positioned* deaths in the window, or ``None``
+            when no death had position data.
+        centroid_y: Mean Y of the *positioned* deaths in the window, or ``None``
+            when no death had position data.
+        centroid_n: Number of deaths actually folded into the centroid (deaths
+            with position data). Used as the incremental-mean divisor; may be
+            less than ``deaths`` when some deaths lacked a position.
         players: One ``TeamfightPlayer`` per slot (indices 0–9).
     """
 
@@ -108,6 +111,7 @@ class Teamfight:
     winner: str = "unknown"
     centroid_x: float | None = None
     centroid_y: float | None = None
+    centroid_n: int = 0
     players: list[TeamfightPlayer] = field(default_factory=list)
 
 
@@ -151,8 +155,12 @@ def detect_teamfights(
     # --- Pass 1: detect fight windows from hero deaths ----------------------
     # ``active`` holds fights still within their cooldown window.
     # ``closed`` holds fights whose cooldown has expired.
+    # ``death_fight`` records which fight each death was absorbed into, so pass 2
+    # attributes the death to exactly that fight rather than re-deciding
+    # membership against the (later-drifted) final centroid.
     active: list[Teamfight] = []
     closed: list[Teamfight] = []
+    death_fight: dict[int, Teamfight] = {}
 
     for entry in entries:
         if entry.log_type != "DEATH":
@@ -212,13 +220,17 @@ def detect_teamfights(
 
         target_fight.last_death_tick = entry.tick
         target_fight.deaths += 1
+        death_fight[id(entry)] = target_fight
 
-        # Update the fight's running centroid with this death's position.
+        # Update the fight's running centroid with this death's position. The
+        # divisor is the count of *positioned* deaths (centroid_n), not the total
+        # death count, so position-less deaths don't bias the incremental mean.
         if death_pos is not None:
+            target_fight.centroid_n += 1
             target_fight.centroid_x, target_fight.centroid_y = _update_centroid(
                 target_fight.centroid_x,
                 target_fight.centroid_y,
-                target_fight.deaths,
+                target_fight.centroid_n,
                 death_pos,
             )
 
@@ -233,14 +245,50 @@ def detect_teamfights(
         return []
 
     # --- Pass 2: populate per-player stats ----------------------------------
-    # For events that carry an attacker (DAMAGE, HEAL, ABILITY, ITEM), apply a
-    # spatial proximity check when position data is available: only credit the
-    # event to a fight if the attacker was within _FIGHT_RADIUS of that fight's
-    # centroid.  This prevents heroes active in a different part of the map
-    # from being counted as participants in a fight they weren't present at.
-    # DEATH, BUYBACK, and GOLD are not spatially filtered (no reliable position
-    # can be derived for them at attribution time).
+    # DEATH and BUYBACK are attributed by single fight membership, NOT by
+    # re-checking position in this pass:
+    #   - a death is credited to the exact fight pass 1 absorbed it into
+    #     (``death_fight``), so a roaming fight whose centroid drifts past
+    #     _FIGHT_RADIUS from an earlier death can't drop that death;
+    #   - a buyback is credited to the single fight whose window contains its
+    #     tick (a hero who buys back is usually at fountain, far from the fight
+    #     centroid, so a position guard would wrongly drop legitimate buybacks).
+    # For the events that genuinely happen *at* the fight (DAMAGE/HEAL/ABILITY/
+    # ITEM/GOLD), apply a spatial proximity check when position data is available
+    # so heroes elsewhere on the map and overlapping parallel windows don't get
+    # mis-credited; ``_near_fight`` falls back to True with no position data.
     for entry in entries:
+        # DEATH is attributed once, to its pass-1 fight, outside the per-fight
+        # loop below (no window/position re-check).
+        if entry.log_type == "DEATH":
+            fight = death_fight.get(id(entry))
+            if fight is None:
+                continue
+            tgt_slot = h2s.get(entry.target_name)
+            if tgt_slot is None:
+                continue
+            fight.players[tgt_slot].deaths += 1
+            # A Radiant hero dying = a kill for Dire, and vice versa.
+            if slot_to_team:
+                dying_team = slot_to_team.get(tgt_slot, 0)
+                if dying_team == 2:
+                    fight.dire_kills += 1
+                elif dying_team == 3:
+                    fight.radiant_kills += 1
+            continue
+
+        # BUYBACK is attributed to the single fight whose window contains it (the
+        # player is typically at fountain, so no position guard).
+        if entry.log_type == "BUYBACK":
+            bslot = entry.value  # buyback value = player slot
+            if not (isinstance(bslot, int) and 0 <= bslot < 10):
+                continue
+            for fight in fights:
+                if fight.start_tick <= entry.tick <= fight.end_tick:
+                    fight.players[bslot].buybacks += 1
+                    break
+            continue
+
         for fight in fights:
             if entry.tick < fight.start_tick or entry.tick > fight.end_tick:
                 continue
@@ -271,25 +319,14 @@ def detect_teamfights(
                 ):
                     fight.players[atk_slot].healing += entry.value
 
-            elif entry.log_type == "DEATH":
-                if entry.target_is_hero and not entry.target_is_illusion and tgt_slot is not None:
-                    fight.players[tgt_slot].deaths += 1
-                    # A Radiant hero dying = a kill for Dire, and vice versa.
-                    if slot_to_team:
-                        dying_team = slot_to_team.get(tgt_slot, 0)
-                        if dying_team == 2:
-                            fight.dire_kills += 1
-                        elif dying_team == 3:
-                            fight.radiant_kills += 1
-
-            elif entry.log_type == "BUYBACK":
-                bslot = entry.value  # buyback value = player slot
-                if isinstance(bslot, int) and 0 <= bslot < 10:
-                    fight.players[bslot].buybacks += 1
-
             elif entry.log_type == "GOLD":
-                if atk_slot is not None:
-                    fight.players[atk_slot].gold_delta += entry.value
+                # Gold is credited to the *recipient*, which the combat log
+                # stores in target_name (not the attacker). Matches OpenDota and
+                # gem's own combat aggregator (see combat/aggregator.py GOLD).
+                if tgt_slot is not None and _near_fight(
+                    tgt_slot, entry.tick, fight, player_snapshots
+                ):
+                    fight.players[tgt_slot].gold_delta += entry.value
 
             elif entry.log_type in ("ABILITY", "ITEM") and (
                 entry.attacker_is_hero
@@ -365,10 +402,16 @@ def _near_fight(
 
 
 def _nearest_xp(snaps: list, tick: int) -> int | None:
-    """Return XP from the snapshot nearest to the given tick."""
+    """Return cumulative earned XP from the snapshot nearest to the given tick.
+
+    Uses ``total_earned_xp`` (``m_iTotalEarnedXP``, monotonically increasing),
+    NOT ``xp`` (``m_iCurrentXP``, which resets to 0 on each level-up). Diffing
+    ``m_iCurrentXP`` across a fight window would erase the XP gain of any hero
+    who levels up mid-fight once the ``max(0, ...)`` clamp is applied.
+    """
     if not snaps:
         return None
-    return min(snaps, key=lambda s: abs(s.tick - tick)).xp
+    return min(snaps, key=lambda s: abs(s.tick - tick)).total_earned_xp
 
 
 def _nearest_pos(snaps: list, tick: int) -> tuple[float, float] | None:

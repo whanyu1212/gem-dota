@@ -45,9 +45,12 @@ _CLASS_TO_TARGET: dict[str, str] = {
     "CDOTA_NPC_Observer_Ward_TrueSight": "npc_dota_sentry_wards",
 }
 
-# Ward lifespan in ticks (~30 ticks/s at normal speed)
-_OBSERVER_LIFESPAN_TICKS = 720  # ~6 minutes
-_SENTRY_LIFESPAN_TICKS = 360  # ~3 minutes
+# Ward lifespan in ticks (30 ticks/s). Durations per current patch:
+# observer 360 s (6 min), sentry 420 s (7 min).
+# Reference: https://liquipedia.net/dota2/Observer_Ward,
+#            https://liquipedia.net/dota2/Sentry_Ward
+_OBSERVER_LIFESPAN_TICKS = 360 * 30  # 10800 ticks (6 min)
+_SENTRY_LIFESPAN_TICKS = 420 * 30  # 12600 ticks (7 min)
 _EXPIRY_TOLERANCE_TICKS = 30  # grace window to classify natural expiry vs. kill
 
 

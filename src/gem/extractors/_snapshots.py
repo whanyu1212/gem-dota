@@ -164,7 +164,8 @@ class PlayerStateSnapshot:
         npc_name: Hero NPC name, e.g. ``"npc_dota_hero_axe"``.
         team: Team number (2=Radiant, 3=Dire).
         level: Hero level (1-30).
-        xp: Cumulative XP total.
+        xp: Current XP toward the next level (``m_iCurrentXP``); resets to 0 on
+            each level-up. For cumulative XP use ``total_earned_xp``.
         gold: Current unspent gold from ``CDOTAPlayerController``, or 0 if not read.
         net_worth: Net worth from ``CDOTAPlayerController``, or 0 if not read.
         total_earned_gold: Cumulative gold earned (``m_iTotalEarnedGold``), or 0 if not read.
