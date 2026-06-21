@@ -1,77 +1,137 @@
 # Troubleshooting
 
-Common setup and parsing issues, with quick fixes.
+Common issues when installing `gem` and parsing replays, with quick fixes.
 
-## Installation issues
+## Installation
 
-### `python-snappy` build or import errors
-
-`gem` depends on Snappy support for compressed packet payloads. If install/import fails:
-
-- ensure you are on supported Python (3.10+),
-- run `uv sync` from a clean environment,
-- install system Snappy development libraries if your platform requires them.
-
-Then retry:
+### Verify the install
 
 ```bash
-uv sync
-uv run python -c "import snappy; print('snappy OK')"
+python -c "import gem; print(gem.__version__)"
 ```
 
-## Docs build issues
+If that prints a version, you're ready. The PyPI package is `gem-dota`; the import
+name is `gem`:
 
-If docs fail locally:
+::: code-group
+```bash [pip]
+pip install gem-dota
+```
+```bash [uv]
+uv add gem-dota
+```
+:::
+
+Requires Python 3.10+.
+
+### `ImportError` for `snappy` / `python-snappy`
+
+`gem` uses Snappy to decompress packet payloads, and it is installed automatically
+as a dependency. If importing `gem` fails with a Snappy error, the C extension
+likely couldn't build on your platform. Install your OS's Snappy development
+library, then reinstall:
 
 ```bash
-cd docs
-npm run docs:build
+# macOS
+brew install snappy
+# Debian / Ubuntu
+sudo apt-get install libsnappy-dev
+
+pip install --force-reinstall gem-dota
 ```
 
-If build reports link issues, fix broken links in `docs/` rather than disabling checks.
+### Parquet export raises `ImportError`
 
-Maintainers: docs dependencies are intentionally pinned to avoid accidental major-version breakage.
+`gem.parse_to_parquet()` / `to_parquet()` need a Parquet engine, which is **not**
+installed by default. Install one:
 
-## Replay parsing issues
+```bash
+pip install pyarrow      # recommended
+# or
+pip install fastparquet
+```
 
-### Truncated or partially downloaded replay files
+`pyarrow` and `fastparquet` are optional — you only need them for Parquet output.
+DataFrame and JSON export work without them.
 
-Some replays may end abruptly (live/unfinished/corrupted downloads). In those cases,
-parsing may return partial data or terminate early depending on where truncation occurs.
+## Parsing
 
-Recommended checks:
-- redownload replay from source,
-- compare file size with expected source listing,
-- test with a known-good replay to isolate environment vs file quality.
+### `ValueError: unexpected magic: expected b'PBDEMS2\x00'`
 
-### “Missing” fields on entities
+`gem.parse()` expects a **decompressed Source 2** `.dem` file. This error almost
+always means one of:
 
-Valve schema/field names can shift across patches. A field that exists in one replay
-may be absent or renamed in another.
+- **The file is still compressed.** Replays download from Valve's CDN as
+  `.dem.bz2`. Decompress first — or let `gem` do it for you:
 
-Debug workflow:
-1. confirm entity class name,
-2. inspect available fields on that entity at runtime,
-3. update field access logic to tolerate missing/renamed fields.
+  ```python
+  import gem
+  path = gem.download_and_decompress(match_id, replay_url, out_dir=".")
+  match = gem.parse(path)   # path is the decompressed .dem
+  ```
 
-## Performance issues
+- **The file isn't a replay** (an HTML error page saved with a `.dem` name, a
+  truncated download, or a Source 1 replay). Re-download from a known-good source.
 
-### Parsing feels slow on large replay sets
+### Parsing returns partial data or stops early
 
-Use these checks first:
+Live, unfinished, or corrupted downloads can end abruptly. `gem` parses as far as
+the stream allows and returns what it decoded. To isolate the cause:
 
-- avoid heavy work directly inside hot callbacks,
-- batch expensive post-processing after parse,
-- prefer targeted extraction over collecting every possible field.
+- compare the file size against the source listing (a too-small file is truncated),
+- re-download the replay,
+- confirm a known-good replay parses cleanly in the same environment.
 
-If needed, profile callback hotspots before optimizing parser internals.
+### Results look empty or zero
+
+If `match.players` is populated but a specific field is empty (e.g. no wards, no
+teamfights), the most common reasons are:
+
+- **The event genuinely didn't occur** in that match (no smokes used, no Roshan
+  killed).
+- **Patch differences** — Valve occasionally renames internal fields between
+  patches, so a value present in one replay can be absent in another. `gem`
+  tolerates this and leaves the field empty rather than failing.
+
+Cross-check against the [Full Match Data guide](04_match_data.md) to confirm you're
+reading the right attribute (e.g. `match.towers`, not `match.tower_kills`).
+
+### Handling failures across many replays
+
+`gem.parse_many()` never raises on a bad replay — it captures the error per file so
+one corrupt replay can't abort a batch. Each result carries `ok`, `match`, and
+`error`:
+
+```python
+import gem
+
+results = gem.parse_many(["a.dem", "b.dem", "broken.dem"])
+ok      = [r.match for r in results if r.ok]
+failed  = [(r.path, r.error) for r in results if not r.ok]
+
+print(f"parsed {len(ok)}, failed {len(failed)}")
+for path, err in failed:
+    print(f"  {path}: {err}")
+```
 
 ## Still stuck?
 
-Please open an issue with:
+Open an issue on [GitHub](https://github.com/whanyu1212/gem-dota/issues) with:
 
 - Python version + OS,
-- exact command run,
-- traceback/log output,
-- replay source (match id/salt if shareable),
-- whether issue reproduces on multiple replays.
+- the exact command or code you ran,
+- the full traceback,
+- the replay source (match id / salt if shareable),
+- whether it reproduces on more than one replay.
+
+---
+
+## For contributors
+
+Working on `gem` itself (cloned the repo) rather than consuming it from PyPI?
+
+- **Dev environment:** `uv sync --group dev`, then run tools with `uv run …`
+  (e.g. `uv run pytest`). See [CONTRIBUTING.md](https://github.com/whanyu1212/gem-dota/blob/main/CONTRIBUTING.md).
+- **Docs build fails locally:** run `cd docs && npm install && npm run docs:build`.
+  If it reports link issues, fix the broken links rather than disabling checks.
+  Docs dependencies are pinned intentionally to avoid accidental major-version breakage.
