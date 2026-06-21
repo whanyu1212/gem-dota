@@ -4,8 +4,8 @@
 - Syntax: `unknown`
 - Package: `(none)`
 - Imports: **1**
-- Messages: **21** (top-level: 20)
-- Enums: **4** (top-level: 3)
+- Messages: **18** (top-level: 18)
+- Enums: **3** (top-level: 3)
 
 ## Imports
 
@@ -42,20 +42,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgGCRoutingProtoBufHeader</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: *(top-level)*
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `dst_gcid_queue` | `uint64` | `optional` | `` |  |
-| 2 | `dst_gc_dir_index` | `uint32` | `optional` | `` |  |
-
-</details>
-
-<details>
-<summary><code>CMsgProtoBufHeader</code> — fields: 33; oneofs: 1; nested messages: 0; nested enums: 1</summary>
+<summary><code>CMsgProtoBufHeader</code> — fields: 27; oneofs: 1; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: `ip_addr`
@@ -89,12 +76,6 @@ Expand any message to inspect all fields.
 | 32 | `realm` | `uint32` | `optional` | `` | default = 0 |
 | 33 | `timeout_ms` | `int32` | `optional` | `` | default = -1 |
 | 34 | `debug_source` | `string` | `optional` | `` |  |
-| 35 | `debug_source_string_index` | `uint32` | `optional` | `` |  |
-| 36 | `token_id` | `uint64` | `optional` | `` |  |
-| 37 | `routing_gc` | `.CMsgGCRoutingProtoBufHeader` | `optional` | `` |  |
-| 38 | `session_disposition` | `.CMsgProtoBufHeader.ESessionDisposition` | `optional` | `` | default = k_ESessionDispositionNormal |
-| 39 | `wg_token` | `string` | `optional` | `` |  |
-| 40 | `webui_auth_key` | `string` | `optional` | `` |  |
 
 </details>
 
@@ -124,7 +105,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgAuthTicket</code> — fields: 9; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgAuthTicket</code> — fields: 7; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -138,13 +119,11 @@ Expand any message to inspect all fields.
 | 5 | `h_steam_pipe` | `uint32` | `optional` | `` |  |
 | 6 | `ticket_crc` | `uint32` | `optional` | `` |  |
 | 7 | `ticket` | `bytes` | `optional` | `` |  |
-| 8 | `server_secret` | `bytes` | `optional` | `` |  |
-| 9 | `ticket_type` | `uint32` | `optional` | `` |  |
 
 </details>
 
 <details>
-<summary><code>CCDDBAppDetailCommon</code> — fields: 15; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CCDDBAppDetailCommon</code> — fields: 12; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -163,9 +142,6 @@ Expand any message to inspect all fields.
 | 12 | `has_adult_content` | `bool` | `optional` | `` |  |
 | 13 | `is_visible_in_steam_china` | `bool` | `optional` | `` |  |
 | 14 | `app_type` | `uint32` | `optional` | `` |  |
-| 15 | `has_adult_content_sex` | `bool` | `optional` | `` |  |
-| 16 | `has_adult_content_violence` | `bool` | `optional` | `` |  |
-| 17 | `content_descriptorids` | `uint32` | `repeated` | `` |  |
 
 </details>
 
@@ -272,7 +248,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CCommunity_ClanAnnouncementInfo</code> — fields: 17; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CCommunity_ClanAnnouncementInfo</code> — fields: 16; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -295,7 +271,6 @@ Expand any message to inspect all fields.
 | 14 | `voteupcount` | `int32` | `optional` | `` |  |
 | 15 | `votedowncount` | `int32` | `optional` | `` |  |
 | 16 | `ban_check_result` | `.EBanContentCheckResult` | `optional` | `` | default = k_EBanContentCheckResult_NotScanned |
-| 17 | `banned` | `bool` | `optional` | `` |  |
 
 </details>
 
@@ -405,31 +380,6 @@ Expand any message to inspect all fields.
 
 </details>
 
-<details>
-<summary><code>UserContentDescriptorPreferences</code> — fields: 1; oneofs: 0; nested messages: 1; nested enums: 0</summary>
-
-- Parent: *(top-level)*
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `content_descriptors_to_exclude` | `.UserContentDescriptorPreferences.ContentDescriptor` | `repeated` | `` |  |
-
-</details>
-
-<details>
-<summary><code>UserContentDescriptorPreferences.ContentDescriptor</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: `UserContentDescriptorPreferences`
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `content_descriptorid` | `uint32` | `optional` | `` |  |
-| 2 | `timestamp_added` | `uint32` | `optional` | `` |  |
-
-</details>
-
 ## Enums
 
 Expand any enum to inspect all values.
@@ -508,17 +458,5 @@ Expand any enum to inspect all values.
 | `k_EEventBroadcastStart` | 1 |
 | `k_EEventMatchStart` | 2 |
 | `k_EEventPartnerMaxType` | 3 |
-
-</details>
-
-<details>
-<summary><code>CMsgProtoBufHeader.ESessionDisposition</code> — values: 2</summary>
-
-- Parent: `CMsgProtoBufHeader`
-
-| Name | Number |
-|---|---:|
-| `k_ESessionDispositionNormal` | 0 |
-| `k_ESessionDispositionDisconnect` | 1 |
 
 </details>

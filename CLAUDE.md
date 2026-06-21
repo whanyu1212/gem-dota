@@ -405,7 +405,6 @@ scripts (`test_audit_camp_annotations.py`, `test_audit_opendota_fixture_constant
 | `examples/match_report.py` | Full HTML match dashboard (Draft, Combat, Vision, Teamfights, Economy, Roshan Conversion) |
 | `examples/extraction_demo.py` | Developer guide for combat-log extraction and entity polling |
 | `examples/steam_match_info.py` | Fetch match info from the Steam API, display with Rich tables |
-| `examples/replay_api_server.py` | Minimal HTTP server exposing parsed-replay endpoints |
 
 Report generation lives in `src/gem/reports/`; `examples/match_report.py` is a
 thin wrapper around `gem.reports.write_html_report()`.
@@ -422,9 +421,8 @@ A sample HTML report lives in `docs/reports/` (`ti14_finals_g3_xg_vs_falcons_rep
 
 ## Docs
 
-Documentation is a **VitePress** site under `docs/` (the old `mkdocs.yml` is
-legacy — CI builds VitePress via `.github/workflows/docs.yml`). The API reference
-is generated from docstrings.
+Documentation is a **VitePress** site under `docs/` (CI builds it via
+`.github/workflows/docs.yml`). The API reference is generated from docstrings.
 
 ```bash
 cd docs

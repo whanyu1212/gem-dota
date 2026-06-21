@@ -4,7 +4,7 @@
 - Syntax: `unknown`
 - Package: `(none)`
 - Imports: **3**
-- Messages: **116** (top-level: 114)
+- Messages: **120** (top-level: 118)
 - Enums: **4** (top-level: 1)
 
 ## Imports
@@ -1191,7 +1191,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CDOTAClientMsg_PerfReport</code> — fields: 20; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CDOTAClientMsg_PerfReport</code> — fields: 22; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -1218,6 +1218,8 @@ Expand any message to inspect all fields.
 | 18 | `max_idle_time` | `float` | `optional` | `` |  |
 | 19 | `average_input_processing_time` | `float` | `optional` | `` |  |
 | 20 | `max_input_processing_time` | `float` | `optional` | `` |  |
+| 21 | `average_missed_snapshot_rate` | `float` | `optional` | `` |  |
+| 22 | `max_missed_snapshot_rate` | `float` | `optional` | `` |  |
 
 </details>
 
@@ -1543,12 +1545,63 @@ Expand any message to inspect all fields.
 
 </details>
 
+<details>
+<summary><code>CDOTAClientMsg_ChooseDeityBlessing</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `blessing` | `int32` | `optional` | `` | default = -1 |
+
+</details>
+
+<details>
+<summary><code>CDOTAClientMsg_ChooseAghanimUpgrade</code> — fields: 3; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `aghanim_id` | `uint32` | `optional` | `` |  |
+| 2 | `scepter` | `bool` | `optional` | `` |  |
+| 3 | `target_entindex` | `int32` | `optional` | `` | default = -1 |
+
+</details>
+
+<details>
+<summary><code>CDOTAClientMsg_ChooseAbilityImbue</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `ability_to_imbue` | `int32` | `optional` | `` | default = -1 |
+
+</details>
+
+<details>
+<summary><code>CDOTAClientMsg_NetworkStats</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `tick` | `uint32` | `optional` | `` |  |
+| 2 | `missed_snapshot_rate` | `float` | `optional` | `` |  |
+
+</details>
+
 ## Enums
 
 Expand any enum to inspect all values.
 
 <details>
-<summary><code>EDotaClientMessages</code> — values: 124</summary>
+<summary><code>EDotaClientMessages</code> — values: 128</summary>
 
 - Parent: *(top-level)*
 
@@ -1678,6 +1731,10 @@ Expand any enum to inspect all values.
 | `DOTA_CM_MonsterHunter_HuntAlert` | 828 |
 | `DOTA_CM_AbilitySpecificChannelRequiresHalt` | 829 |
 | `DOTA_CM_TormentorTimer` | 830 |
+| `DOTA_CM_ChooseDeityBlessing` | 831 |
+| `DOTA_CM_ChooseAghanimUpgrade` | 832 |
+| `DOTA_CM_ChooseAbilityImbue` | 833 |
+| `DOTA_CM_NetworkStats` | 834 |
 
 </details>
 

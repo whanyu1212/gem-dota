@@ -17,9 +17,9 @@ See also: [How Proto Parsing Works](../cookbook/proto-parsing-pipeline.md)
 class DemoStream
 ```
 
-Iterates outer messages from a Source 2 .dem file.
+Iterate outer demo-message frames from a Source 2 ``.dem`` source.
 
-Source: [src/gem/binary/stream.py:40](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/stream.py#L40)
+Source: [src/gem/binary/stream.py:46](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/stream.py#L46)
 
 #### Methods
 
@@ -29,7 +29,7 @@ Signature: `def DemoStream.close(self) -> None`
 
 Release memory-map and file descriptor resources, if any.
 
-Source: [src/gem/binary/stream.py:73](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/stream.py#L73)
+Source: [src/gem/binary/stream.py:80](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/stream.py#L80)
 
 ## `gem.binary.stream.OuterMessage`
 
@@ -39,9 +39,9 @@ Source: [src/gem/binary/stream.py:73](https://github.com/whanyu1212/gem-dota/blo
 class OuterMessage
 ```
 
-A single decoded outer demo message.
+A single top-level demo message frame.
 
-Source: [src/gem/binary/stream.py:26](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/stream.py#L26)
+Source: [src/gem/binary/stream.py:31](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/stream.py#L31)
 
 #### Dataclass fields
 

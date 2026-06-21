@@ -4,7 +4,7 @@
 - Syntax: `unknown`
 - Package: `(none)`
 - Imports: **10**
-- Messages: **38** (top-level: 3)
+- Messages: **45** (top-level: 3)
 - Enums: **2** (top-level: 1)
 
 ## Imports
@@ -32,8 +32,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `version` | `int32` | `required` | `` |  |
-| 2 | `match_id` | `uint64` | `required` | `` |  |
+| 1 | `version` | `int32` | `optional` | `` |  |
+| 2 | `match_id` | `uint64` | `optional` | `` |  |
 | 3 | `metadata` | `.CDOTAMatchMetadata` | `optional` | `` |  |
 | 5 | `private_metadata` | `bytes` | `optional` | `` |  |
 
@@ -478,7 +478,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CDOTAMatchPrivateMetadata</code> — fields: 3; oneofs: 0; nested messages: 2; nested enums: 0</summary>
+<summary><code>CDOTAMatchPrivateMetadata</code> — fields: 4; oneofs: 0; nested messages: 3; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -488,6 +488,7 @@ Expand any message to inspect all fields.
 | 1 | `teams` | `.CDOTAMatchPrivateMetadata.Team` | `repeated` | `` |  |
 | 2 | `graph_win_probability` | `float` | `repeated` | `` |  |
 | 3 | `string_names` | `.CDOTAMatchPrivateMetadata.StringName` | `repeated` | `` |  |
+| 4 | `contributions` | `.CDOTAMatchPrivateMetadata.ContributionsCombatSegment` | `repeated` | `` |  |
 
 </details>
 
@@ -689,6 +690,126 @@ Expand any message to inspect all fields.
 | 2 | `position_quant_x` | `uint32` | `optional` | `` |  |
 | 3 | `position_quant_y` | `uint32` | `optional` | `` |  |
 | 4 | `death_time` | `float` | `optional` | `` |  |
+
+</details>
+
+<details>
+<summary><code>CDOTAMatchPrivateMetadata.ContributionsCombatSegment</code> — fields: 7; oneofs: 0; nested messages: 6; nested enums: 0</summary>
+
+- Parent: `CDOTAMatchPrivateMetadata`
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `game_time` | `int32` | `optional` | `` |  |
+| 2 | `damage_contributions` | `.CDOTAMatchPrivateMetadata.ContributionsCombatSegment.DamageContributionRecord` | `repeated` | `` |  |
+| 3 | `damage_mitigations` | `.CDOTAMatchPrivateMetadata.ContributionsCombatSegment.DamageMitigationRecord` | `repeated` | `` |  |
+| 4 | `healing_contributions` | `.CDOTAMatchPrivateMetadata.ContributionsCombatSegment.HealingContributionRecord` | `repeated` | `` |  |
+| 5 | `healing_reductions` | `.CDOTAMatchPrivateMetadata.ContributionsCombatSegment.HealingReductionRecord` | `repeated` | `` |  |
+| 6 | `killing_blows` | `.CDOTAMatchPrivateMetadata.ContributionsCombatSegment.KillingBlow` | `repeated` | `` |  |
+| 7 | `dispels` | `.CDOTAMatchPrivateMetadata.ContributionsCombatSegment.Dispel` | `repeated` | `` |  |
+
+</details>
+
+<details>
+<summary><code>CDOTAMatchPrivateMetadata.ContributionsCombatSegment.DamageContributionRecord</code> — fields: 7; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: `CDOTAMatchPrivateMetadata.ContributionsCombatSegment`
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `attacker_ability_id` | `int32` | `optional` | `` | default = -1 |
+| 2 | `attacker_hero_id` | `int32` | `optional` | `` |  |
+| 3 | `target_hero_id` | `int32` | `optional` | `` |  |
+| 4 | `contributor_ability_id` | `int32` | `optional` | `` | default = -1 |
+| 5 | `contributor_hero_id` | `int32` | `optional` | `` |  |
+| 6 | `value` | `uint32` | `optional` | `` |  |
+| 7 | `type` | `uint32` | `optional` | `` |  |
+
+</details>
+
+<details>
+<summary><code>CDOTAMatchPrivateMetadata.ContributionsCombatSegment.DamageMitigationRecord</code> — fields: 7; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: `CDOTAMatchPrivateMetadata.ContributionsCombatSegment`
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `attacker_ability_id` | `int32` | `optional` | `` | default = -1 |
+| 2 | `attacker_hero_id` | `int32` | `optional` | `` |  |
+| 3 | `target_hero_id` | `int32` | `optional` | `` |  |
+| 4 | `contributor_ability_id` | `int32` | `optional` | `` | default = -1 |
+| 5 | `contributor_hero_id` | `int32` | `optional` | `` |  |
+| 6 | `value` | `uint32` | `optional` | `` |  |
+| 7 | `type` | `uint32` | `optional` | `` |  |
+
+</details>
+
+<details>
+<summary><code>CDOTAMatchPrivateMetadata.ContributionsCombatSegment.HealingContributionRecord</code> — fields: 7; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: `CDOTAMatchPrivateMetadata.ContributionsCombatSegment`
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `attacker_ability_id` | `int32` | `optional` | `` | default = -1 |
+| 2 | `attacker_hero_id` | `int32` | `optional` | `` |  |
+| 3 | `target_hero_id` | `int32` | `optional` | `` |  |
+| 4 | `contributor_ability_id` | `int32` | `optional` | `` | default = -1 |
+| 5 | `contributor_hero_id` | `int32` | `optional` | `` |  |
+| 6 | `value` | `uint32` | `optional` | `` |  |
+| 7 | `type` | `uint32` | `optional` | `` |  |
+
+</details>
+
+<details>
+<summary><code>CDOTAMatchPrivateMetadata.ContributionsCombatSegment.HealingReductionRecord</code> — fields: 7; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: `CDOTAMatchPrivateMetadata.ContributionsCombatSegment`
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `attacker_ability_id` | `int32` | `optional` | `` | default = -1 |
+| 2 | `attacker_hero_id` | `int32` | `optional` | `` |  |
+| 3 | `target_hero_id` | `int32` | `optional` | `` |  |
+| 4 | `contributor_ability_id` | `int32` | `optional` | `` | default = -1 |
+| 5 | `contributor_hero_id` | `int32` | `optional` | `` |  |
+| 6 | `value` | `uint32` | `optional` | `` |  |
+| 7 | `type` | `uint32` | `optional` | `` |  |
+
+</details>
+
+<details>
+<summary><code>CDOTAMatchPrivateMetadata.ContributionsCombatSegment.KillingBlow</code> — fields: 3; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: `CDOTAMatchPrivateMetadata.ContributionsCombatSegment`
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `attacker_hero_id` | `int32` | `optional` | `` |  |
+| 2 | `target_hero_id` | `int32` | `optional` | `` |  |
+| 3 | `inflictor_ability_id` | `int32` | `optional` | `` | default = -1 |
+
+</details>
+
+<details>
+<summary><code>CDOTAMatchPrivateMetadata.ContributionsCombatSegment.Dispel</code> — fields: 5; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: `CDOTAMatchPrivateMetadata.ContributionsCombatSegment`
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `attacker_hero_id` | `int32` | `optional` | `` |  |
+| 2 | `target_hero_id` | `int32` | `optional` | `` |  |
+| 3 | `inflictor_ability_id` | `int32` | `optional` | `` | default = -1 |
+| 4 | `modifier_ability_id` | `int32` | `optional` | `` | default = -1 |
+| 5 | `duration_reduced` | `float` | `optional` | `` |  |
 
 </details>
 

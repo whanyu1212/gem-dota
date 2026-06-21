@@ -4,8 +4,8 @@
 - Syntax: `unknown`
 - Package: `(none)`
 - Imports: **5**
-- Messages: **38** (top-level: 19)
-- Enums: **14** (top-level: 6)
+- Messages: **39** (top-level: 19)
+- Enums: **15** (top-level: 6)
 
 ## Imports
 
@@ -281,7 +281,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgTalentContentAssetStatus</code> — fields: 3; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgTalentContentAssetStatus</code> — fields: 4; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -291,11 +291,12 @@ Expand any message to inspect all fields.
 | 1 | `asset_type` | `.ETalentContentAssetType` | `optional` | `` | default = k_eTalentContentAssetType_Photo |
 | 2 | `asset_index` | `uint32` | `optional` | `` |  |
 | 3 | `asset_status` | `.ETalentContentAssetStatus` | `optional` | `` | default = k_eTalentContentAssetStatus_None |
+| 4 | `revision` | `uint32` | `optional` | `` |  |
 
 </details>
 
 <details>
-<summary><code>CMsgTalentContentStatus</code> — fields: 1; oneofs: 0; nested messages: 1; nested enums: 0</summary>
+<summary><code>CMsgTalentContentStatus</code> — fields: 1; oneofs: 0; nested messages: 2; nested enums: 1</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -307,7 +308,21 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgTalentContentStatus.TalentDetails</code> — fields: 9; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgTalentContentStatus.SubmitRevision</code> — fields: 3; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: `CMsgTalentContentStatus`
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `zip_file` | `string` | `optional` | `` |  |
+| 2 | `timestamp` | `uint32` | `optional` | `` |  |
+| 3 | `revision_number` | `uint32` | `optional` | `` |  |
+
+</details>
+
+<details>
+<summary><code>CMsgTalentContentStatus.TalentDetails</code> — fields: 11; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: `CMsgTalentContentStatus`
 - Oneofs: *(none)*
@@ -318,11 +333,13 @@ Expand any message to inspect all fields.
 | 2 | `full_name` | `string` | `optional` | `` |  |
 | 3 | `nickname` | `string` | `optional` | `` |  |
 | 4 | `workshop_item_id` | `uint32` | `optional` | `` |  |
-| 5 | `zip_file` | `string` | `optional` | `` |  |
-| 6 | `status` | `.ETalentContentStatus` | `optional` | `` | default = TALENT_CONTENT_STATUS_INVALID |
-| 7 | `asset_status` | `.CMsgTalentContentAssetStatus` | `repeated` | `` |  |
-| 8 | `broadcast_language` | `uint32` | `optional` | `` |  |
-| 9 | `submission_timestamp` | `uint32` | `optional` | `` |  |
+| 5 | `status` | `.ETalentContentStatus` | `optional` | `` | default = TALENT_CONTENT_STATUS_INVALID |
+| 8 | `asset_status` | `.CMsgTalentContentAssetStatus` | `repeated` | `` |  |
+| 9 | `broadcast_language` | `uint32` | `optional` | `` |  |
+| 10 | `revision` | `.CMsgTalentContentStatus.SubmitRevision` | `repeated` | `` |  |
+| 11 | `revision_count` | `uint32` | `optional` | `` |  |
+| 12 | `workshop_item_status` | `.CMsgTalentContentStatus.EWorkshopItemStatus` | `optional` | `` | default = k_eSuccess |
+| 13 | `workshop_item_details` | `string` | `optional` | `` |  |
 
 </details>
 
@@ -750,6 +767,22 @@ Expand any enum to inspect all values.
 |---|---:|
 | `k_eSuccess` | 0 |
 | `k_eInternalError` | 1 |
+
+</details>
+
+<details>
+<summary><code>CMsgTalentContentStatus.EWorkshopItemStatus</code> — values: 6</summary>
+
+- Parent: `CMsgTalentContentStatus`
+
+| Name | Number |
+|---|---:|
+| `k_eSuccess` | 0 |
+| `k_eInvalidWorkshopId` | 1 |
+| `k_eWrongAppId` | 2 |
+| `k_eRevenueSharingNotFinalized` | 3 |
+| `k_eWorkshopItemNotFound` | 4 |
+| `k_eUnknown` | 5 |
 
 </details>
 

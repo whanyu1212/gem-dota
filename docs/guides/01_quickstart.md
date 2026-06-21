@@ -175,11 +175,8 @@ Sample output (truncated):
 ### Parquet
 
 ::: info Parquet dependency
-Parquet output requires an optional engine. Install `pyarrow` (recommended) or
-`fastparquet`:
-```bash
-pip install pyarrow
-```
+Parquet output requires an optional engine: install `pyarrow` (recommended) or
+`fastparquet` — `pip install pyarrow` or `uv add pyarrow`.
 :::
 
 ```python

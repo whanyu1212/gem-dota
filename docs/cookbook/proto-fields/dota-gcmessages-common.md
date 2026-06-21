@@ -4,8 +4,8 @@
 - Syntax: `unknown`
 - Package: `(none)`
 - Imports: **4**
-- Messages: **187** (top-level: 101)
-- Enums: **29** (top-level: 12)
+- Messages: **185** (top-level: 101)
+- Enums: **30** (top-level: 12)
 
 ## Imports
 
@@ -2500,7 +2500,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgGameDataItemAbilityList.ItemAbilityInfo</code> — fields: 9; oneofs: 0; nested messages: 1; nested enums: 0</summary>
+<summary><code>CMsgGameDataItemAbilityList.ItemAbilityInfo</code> — fields: 10; oneofs: 0; nested messages: 1; nested enums: 0</summary>
 
 - Parent: `CMsgGameDataItemAbilityList`
 - Oneofs: *(none)*
@@ -2516,6 +2516,7 @@ Expand any message to inspect all fields.
 | 7 | `is_earlygame_suggested` | `bool` | `optional` | `` |  |
 | 8 | `is_lategame_suggested` | `bool` | `optional` | `` |  |
 | 9 | `recipes` | `.CMsgGameDataItemAbilityList.ItemAbilityInfo.Recipe` | `repeated` | `` |  |
+| 10 | `is_innate` | `bool` | `optional` | `` |  |
 
 </details>
 
@@ -2949,7 +2950,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CDotaMsgStructuredTooltipProperties</code> — fields: 11; oneofs: 0; nested messages: 15; nested enums: 1</summary>
+<summary><code>CDotaMsgStructuredTooltipProperties</code> — fields: 14; oneofs: 0; nested messages: 13; nested enums: 2</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -2957,15 +2958,18 @@ Expand any message to inspect all fields.
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
 | 1 | `ability_name_loc_token` | `string` | `optional` | `` |  |
-| 2 | `ability_category_loc_token` | `string` | `optional` | `` |  |
+| 2 | `ability_category` | `.CDotaMsgStructuredTooltipProperties.EAbilityTooltipCategory` | `optional` | `` | default = kPassive |
 | 3 | `ability_level` | `int32` | `optional` | `` |  |
 | 4 | `current_mana_cost` | `int32` | `optional` | `` |  |
 | 5 | `current_health_cost` | `int32` | `optional` | `` |  |
 | 6 | `current_cooldown` | `float` | `optional` | `` |  |
 | 7 | `summary_description_loc_token` | `string` | `optional` | `` |  |
-| 8 | `summary_description_level_up_loc_token` | `string` | `optional` | `` |  |
-| 9 | `summary_description_embed_values` | `.CDotaMsgStructuredTooltipProperties.SummaryDescriptionEmbedValue` | `repeated` | `` |  |
-| 10 | `summary_description_facet` | `.CDotaMsgStructuredTooltipProperties.FacetDisplayProperties` | `optional` | `` |  |
+| 8 | `summary_description_embed_values` | `.CDotaMsgStructuredTooltipProperties.Attribute` | `repeated` | `` |  |
+| 9 | `summary_description_surfaced_lines` | `string` | `repeated` | `` |  |
+| 10 | `summary_description_embedded_sub_abilities` | `.CDotaMsgStructuredTooltipProperties.SummaryDescriptionEmbeddedSubAbility` | `repeated` | `` |  |
+| 11 | `summary_description_aghs_scepter` | `string` | `optional` | `` |  |
+| 12 | `summary_description_aghs_shard` | `string` | `optional` | `` |  |
+| 13 | `preview_video_url` | `string` | `optional` | `` |  |
 | 20 | `chunks` | `.CDotaMsgStructuredTooltipProperties.TooltipContentChunk` | `repeated` | `` |  |
 
 </details>
@@ -3035,22 +3039,6 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CDotaMsgStructuredTooltipProperties.FacetDisplayProperties</code> — fields: 5; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: `CDotaMsgStructuredTooltipProperties`
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `facet_name_loc_token` | `string` | `optional` | `` |  |
-| 2 | `facet_desc_loc_token` | `string` | `optional` | `` |  |
-| 3 | `facet_icon_style_name` | `string` | `optional` | `` |  |
-| 4 | `facet_color_style_name` | `string` | `optional` | `` |  |
-| 5 | `facet_gradient_style_name` | `string` | `optional` | `` |  |
-
-</details>
-
-<details>
 <summary><code>CDotaMsgStructuredTooltipProperties.Attribute</code> — fields: 4; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: `CDotaMsgStructuredTooltipProperties`
@@ -3058,10 +3046,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `name_loc_token` | `string` | `optional` | `` |  |
-| 2 | `type` | `.CDotaMsgStructuredTooltipProperties.EAttributeType` | `optional` | `` | default = kUnknown |
-| 3 | `value` | `.CDotaMsgStructuredTooltipProperties.AttributeValue` | `optional` | `` |  |
-| 4 | `facet` | `.CDotaMsgStructuredTooltipProperties.FacetDisplayProperties` | `optional` | `` |  |
+| 1 | `internal_name` | `string` | `optional` | `` |  |
+| 2 | `localized_name_text` | `string` | `optional` | `` |  |
+| 3 | `type` | `.CDotaMsgStructuredTooltipProperties.EAttributeType` | `optional` | `` | default = kUnknown |
+| 4 | `value` | `.CDotaMsgStructuredTooltipProperties.AttributeValue` | `optional` | `` |  |
 
 </details>
 
@@ -3091,18 +3079,6 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CDotaMsgStructuredTooltipProperties.AttributeGroupDesc_Facet</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: `CDotaMsgStructuredTooltipProperties`
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `facet` | `.CDotaMsgStructuredTooltipProperties.FacetDisplayProperties` | `optional` | `` |  |
-
-</details>
-
-<details>
 <summary><code>CDotaMsgStructuredTooltipProperties.AttributeGroupDescription</code> — fields: 3; oneofs: 1; nested messages: 0; nested enums: 0</summary>
 
 - Parent: `CDotaMsgStructuredTooltipProperties`
@@ -3111,8 +3087,8 @@ Expand any message to inspect all fields.
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
 | 1 | `basic` | `.CDotaMsgStructuredTooltipProperties.AttributeGroupDesc_Basic` | `oneof` | `attr_group_desc` |  |
-| 2 | `specific` | `.CDotaMsgStructuredTooltipProperties.AttributeGroupDesc_Specific` | `oneof` | `attr_group_desc` |  |
-| 3 | `facet` | `.CDotaMsgStructuredTooltipProperties.AttributeGroupDesc_Facet` | `oneof` | `attr_group_desc` |  |
+| 2 | `characteristics` | `.CDotaMsgStructuredTooltipProperties.AttributeGroupDesc_Basic` | `oneof` | `attr_group_desc` |  |
+| 3 | `specific` | `.CDotaMsgStructuredTooltipProperties.AttributeGroupDesc_Specific` | `oneof` | `attr_group_desc` |  |
 
 </details>
 
@@ -3154,16 +3130,16 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CDotaMsgStructuredTooltipProperties.SummaryDescriptionEmbedValue</code> — fields: 3; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CDotaMsgStructuredTooltipProperties.SummaryDescriptionEmbeddedSubAbility</code> — fields: 3; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: `CDotaMsgStructuredTooltipProperties`
 - Oneofs: *(none)*
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `name` | `string` | `optional` | `` |  |
-| 2 | `type` | `.CDotaMsgStructuredTooltipProperties.EAttributeType` | `optional` | `` | default = kUnknown |
-| 3 | `value` | `.CDotaMsgStructuredTooltipProperties.AttributeValue` | `optional` | `` |  |
+| 1 | `ability_name_loc_token` | `string` | `optional` | `` |  |
+| 2 | `ability_desc_loc_token` | `string` | `optional` | `` |  |
+| 3 | `ability_icon_url` | `string` | `optional` | `` |  |
 
 </details>
 
@@ -3566,7 +3542,7 @@ Expand any enum to inspect all values.
 </details>
 
 <details>
-<summary><code>CMsgServerToGCRequestPlayerRecentAccomplishmentsResponse.EResponse</code> — values: 4</summary>
+<summary><code>CMsgServerToGCRequestPlayerRecentAccomplishmentsResponse.EResponse</code> — values: 5</summary>
 
 - Parent: `CMsgServerToGCRequestPlayerRecentAccomplishmentsResponse`
 
@@ -3576,6 +3552,7 @@ Expand any enum to inspect all values.
 | `k_eSuccess` | 1 |
 | `k_eTooBusy` | 2 |
 | `k_eDisabled` | 3 |
+| `k_eForbidden` | 4 |
 
 </details>
 
@@ -3634,7 +3611,21 @@ Expand any enum to inspect all values.
 </details>
 
 <details>
-<summary><code>CDotaMsgStructuredTooltipProperties.EAttributeType</code> — values: 14</summary>
+<summary><code>CDotaMsgStructuredTooltipProperties.EAbilityTooltipCategory</code> — values: 4</summary>
+
+- Parent: `CDotaMsgStructuredTooltipProperties`
+
+| Name | Number |
+|---|---:|
+| `kPassive` | 1 |
+| `kAutocast` | 2 |
+| `kToggle` | 3 |
+| `kChanneled` | 4 |
+
+</details>
+
+<details>
+<summary><code>CDotaMsgStructuredTooltipProperties.EAttributeType</code> — values: 23</summary>
 
 - Parent: `CDotaMsgStructuredTooltipProperties`
 
@@ -3654,5 +3645,14 @@ Expand any enum to inspect all values.
 | `kDebuffValue` | 11 |
 | `kBuffPercentage` | 12 |
 | `kBuffValue` | 13 |
+| `kMagicalDamagePercentage` | 14 |
+| `kHealthPercentage` | 15 |
+| `kManaPercentage` | 16 |
+| `kNumCharges` | 17 |
+| `kDebuffDuration` | 18 |
+| `kBuffDuration` | 19 |
+| `kAbilityDefinedDamage` | 20 |
+| `kDispellability` | 21 |
+| `kSpellImmunityPiercing` | 22 |
 
 </details>

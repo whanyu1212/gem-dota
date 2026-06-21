@@ -514,7 +514,7 @@ def teamfight_at_tick(match: ParsedMatch, tick: int) -> Teamfight | None
 
 Return the teamfight window that contains the given tick, or ``None``.
 
-Source: [src/gem/analysis/combat.py:113](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L113)
+Source: [src/gem/analysis/combat.py:115](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L115)
 
 ### `is_active_teamfight_participant`
 
@@ -524,7 +524,7 @@ def is_active_teamfight_participant(player_stats: object) -> bool
 
 Return True if a player was an active participant in a teamfight.
 
-Source: [src/gem/analysis/combat.py:146](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L146)
+Source: [src/gem/analysis/combat.py:148](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L148)
 
 ### Top-level classes
 
@@ -577,6 +577,16 @@ Source: [src/gem/analysis/vision.py](https://github.com/whanyu1212/gem-dota/blob
 
 ### Top-level functions
 
+### `is_daytime`
+
+```python
+def is_daytime(game_start_tick: int | None, tick: int) -> bool
+```
+
+Return True if it is daytime at the given absolute tick.
+
+Source: [src/gem/analysis/vision.py:56](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L56)
+
 ### `estimate_vision`
 
 ```python
@@ -585,7 +595,7 @@ def estimate_vision(match: ParsedMatch, team: int, tick: int, x: float, y: float
 
 Estimate which allied units were providing vision of ``(x, y)`` at ``tick``.
 
-Source: [src/gem/analysis/vision.py:74](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L74)
+Source: [src/gem/analysis/vision.py:83](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L83)
 
 ### `ward_vision_impact`
 
@@ -595,7 +605,7 @@ def ward_vision_impact(ward: object, match: ParsedMatch) -> int
 
 Count distinct enemy heroes spotted by an observer ward during its lifetime.
 
-Source: [src/gem/analysis/vision.py:220](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L220)
+Source: [src/gem/analysis/vision.py:229](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L229)
 
 ### Top-level classes
 
@@ -607,7 +617,7 @@ class VisionSource
 
 One unit that was providing vision of a map point at a given tick.
 
-Source: [src/gem/analysis/vision.py:30](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L30)
+Source: [src/gem/analysis/vision.py:31](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L31)
 
 #### Dataclass fields
 
@@ -652,7 +662,7 @@ def build_map_context_timeline(match: ParsedMatch, team: int, bucket_ticks: int 
 
 Build objective-aware context buckets for one team's perspective.
 
-Source: [src/gem/analysis/map_context.py:187](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L187)
+Source: [src/gem/analysis/map_context.py:141](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L141)
 
 ### `score_camp_visit_context`
 
@@ -662,7 +672,7 @@ def score_camp_visit_context(*, team: int, camp_id: int, camp_type: str, neutral
 
 Score one camp visit against a context bucket.
 
-Source: [src/gem/analysis/map_context.py:325](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L325)
+Source: [src/gem/analysis/map_context.py:279](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L279)
 
 ### `world_in_bounds`
 
@@ -672,7 +682,7 @@ def world_in_bounds(x: float, y: float) -> bool
 
 Return True when world coordinates are within calibrated map bounds.
 
-Source: [src/gem/analysis/map_context.py:479](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L479)
+Source: [src/gem/analysis/map_context.py:433](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L433)
 
 ### Top-level classes
 
@@ -742,7 +752,7 @@ def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]
 
 Summarise how well each Roshan was converted into advantage.
 
-Source: [src/gem/analysis/roshan.py:387](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L387)
+Source: [src/gem/analysis/roshan.py:365](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L365)
 
 ### Top-level classes
 
@@ -754,7 +764,7 @@ class RoshTimelineEvent
 
 One notable event inside a Roshan conversion sequence.
 
-Source: [src/gem/analysis/roshan.py:36](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L36)
+Source: [src/gem/analysis/roshan.py:34](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L34)
 
 #### Dataclass fields
 
@@ -772,7 +782,7 @@ class RoshConversion
 
 Derived summary for one Roshan kill and the advantage window that followed.
 
-Source: [src/gem/analysis/roshan.py:57](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L57)
+Source: [src/gem/analysis/roshan.py:55](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L55)
 
 #### Dataclass fields
 

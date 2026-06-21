@@ -64,10 +64,16 @@ parser = ReplayParser("my_replay.dem")
 hero_spawns = HeroSpawnExtractor()
 hero_spawns.attach(parser)
 
-match = parser.parse()
+parser.parse()   # ReplayParser.parse() returns None — read results off the extractor
 
 print(f"Recorded {len(hero_spawns.spawns)} hero creations")
 ```
+
+::: tip
+`ReplayParser` is the low-level driver: you attach extractors and read their
+collected state after `parse()`. If you want a fully-assembled `ParsedMatch` back,
+use the high-level `gem.parse("my_replay.dem")` instead.
+:::
 
 ---
 

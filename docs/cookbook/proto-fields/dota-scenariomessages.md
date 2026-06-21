@@ -227,7 +227,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgDotaScenario.HeroAbility</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgDotaScenario.HeroAbility</code> — fields: 3; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: `CMsgDotaScenario`
 - Oneofs: *(none)*
@@ -236,6 +236,7 @@ Expand any message to inspect all fields.
 |---:|---|---|---|---|---|
 | 1 | `name` | `string` | `optional` | `` |  |
 | 2 | `level` | `int32` | `optional` | `` |  |
+| 3 | `tome_upgraded` | `bool` | `optional` | `` |  |
 
 </details>
 

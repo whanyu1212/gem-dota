@@ -62,8 +62,9 @@ print(ts.hp_t[:5])     # HP at each sample tick
 print(ts.x_t[:5])      # world X position at each sample tick
 ```
 
-`PlayerTimeSeries` fields: `ticks`, `gold_t`, `xp_t`, `hp_t`, `mana_t`, `lh_t`,
-`dn_t`, `x_t`, `y_t`, `level_t`.
+`PlayerTimeSeries` fields: `player_id`, `ticks`, `gold_t`, `total_earned_gold_t`,
+`total_earned_xp_t`, `net_worth_t`, `lh_t`, `dn_t`, `xp_t`, `hp_t`, `mana_t`, `x_t`,
+`y_t`, `total_hero_damage_t`, `total_hero_healing_t`, `total_deaths_t`, `total_stuns_t`.
 
 ---
 
@@ -81,11 +82,19 @@ Available DataFrames:
 
 | Key | Contents |
 |---|---|
-| `"players"` | Per-player snapshot time series (one row per player per tick) |
+| `"players"` | Per-player snapshot time series (one row per player per sampled tick) |
+| `"players_minute"` | Per-player series resampled to one row per game minute |
+| `"positions"` | Per-player world `(x, y)` positions over time |
 | `"wards"` | Ward placement events with coordinates |
 | `"objectives"` | Tower kills, barracks, Roshan kills |
 | `"teamfights"` | Teamfight windows with participant stats |
 | `"combat_log"` | Raw combat log entries |
+| `"chat"` | All chat messages |
+| `"draft"` | Pick / ban events |
+| `"smoke_events"` | Smoke of Deceit usages and their groups |
+| `"courier_snapshots"` | Courier state over time |
+| `"radiant_advantage"` | Radiant gold/XP advantage per minute |
+| `"match"` | Single-row match-level summary |
 | `"neutral_item_finds"` | Neutral item find events with item/enhancement IDs and keys |
 
 ### Players DataFrame
@@ -94,21 +103,31 @@ Available DataFrames:
 df = frames["players"]
 
 print(df.dtypes)
-# tick          int64
-# hero          object
-# gold          int64
-# xp            int64
-# hp            int64
-# mana          float64
-# lh            int64
-# dn            int64
-# x             float64
-# y             float64
-# level         int64
+# player_id            int64
+# player_name         object
+# hero_name           object
+# team                 int64
+# tick                 int64
+# gold                 int64
+# total_earned_gold    int64
+# net_worth            int64
+# lh                   int64
+# dn                   int64
+# xp                   int64
+# kills                int64
+# ...                        # plus per-player scalar columns (kda, hero_damage, ...)
 
-# Filter to one hero
-axe_df = df[df["hero"] == "CDOTA_Unit_Hero_Axe"]
-print(axe_df[["tick", "gold", "xp", "hp"]].head(10))
+# Filter to one hero (hero_name is the NPC name)
+axe_df = df[df["hero_name"] == "npc_dota_hero_axe"]
+print(axe_df[["tick", "gold", "xp", "net_worth"]].head(10))
+```
+
+World positions live in the separate `positions` DataFrame (`tick`, `x`, `y` per player):
+
+```python
+pos = frames["positions"]
+axe_pos = pos[pos["hero_name"] == "npc_dota_hero_axe"]
+print(axe_pos[["tick", "x", "y"]].head(10))
 ```
 
 ---

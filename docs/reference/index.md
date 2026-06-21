@@ -49,4 +49,11 @@ Use the canonical grouped modules documented below.
 | [Wards](extractors/wards.md) | Ward placements with coordinates |
 | [Courier](extractors/courier.md) | Courier state per tick |
 | [Draft](extractors/draft.md) | Pick and ban events |
+| [Lane](extractors/lane.md) | Lane role from the 10-minute position heatmap |
 | [Teamfights](extractors/teamfights.md) | Teamfight window detection |
+
+## Reference data
+
+| Page | Contents |
+|---|---|
+| [Reference Values (Enums)](enums.md) | Team, game-mode, lobby-type, and other integer-code tables |

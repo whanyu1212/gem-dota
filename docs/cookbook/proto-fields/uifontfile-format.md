@@ -32,7 +32,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `package_version` | `uint32` | `required` | `` |  |
+| 1 | `package_version` | `uint32` | `optional` | `` |  |
 | 2 | `encrypted_font_files` | `.CUIFontFilePackagePB.CUIEncryptedFontFilePB` | `repeated` | `` |  |
 
 </details>

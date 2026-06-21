@@ -54,15 +54,22 @@ Every entity exposes typed getter methods. Field names come from the entity clas
 (e.g. `m_iHealth`, `m_flMana`, `m_iGold`).
 
 ```python
-hp,    ok = entity.get_int32("m_iHealth")
-mana,  ok = entity.get_float32("m_flMana")
-gold,  ok = entity.get_uint32("m_iGold")
-alive, ok = entity.get_bool("m_bIsAlive")
-name,  ok = entity.get_string("m_iszUnitName")
+hp    = entity.get_int32("m_iHealth")
+mana  = entity.get_float32("m_flMana")
+gold  = entity.get_uint32("m_iGold")
+alive = entity.get_bool("m_bIsAlive")
+name  = entity.get_string("m_iszUnitName")
 ```
 
-All typed getters return `(value, ok)`. `ok` is `True` on success, `False` if the field
-does not exist or the value is the wrong type.
+All typed getters return the value, or `None` if the field does not exist or the value
+is the wrong type. Guard with `is not None` rather than a truthiness check, since `0`,
+`0.0`, and `False` are all valid values:
+
+```python
+hp = entity.get_int32("m_iHealth")
+if hp is not None:
+    ...  # hp is a valid int (possibly 0)
+```
 
 For quick untyped access:
 
@@ -115,12 +122,12 @@ def on_entity(entity, op):
     if not entity.get_class_name().startswith("CDOTA_Unit_Hero_"):
         return
 
-    cell_x, ok1 = entity.get_uint32("CBodyComponent.m_cellX")
-    cell_y, ok2 = entity.get_uint32("CBodyComponent.m_cellY")
-    vec_x,  ok3 = entity.get_float32("CBodyComponent.m_vecX")
-    vec_y,  ok4 = entity.get_float32("CBodyComponent.m_vecY")
+    cell_x = entity.get_uint32("CBodyComponent.m_cellX")
+    cell_y = entity.get_uint32("CBodyComponent.m_cellY")
+    vec_x  = entity.get_float32("CBodyComponent.m_vecX")
+    vec_y  = entity.get_float32("CBodyComponent.m_vecY")
 
-    if ok1 and ok2 and ok3 and ok4:
+    if None not in (cell_x, cell_y, vec_x, vec_y):
         x = world_coord(cell_x, vec_x)
         y = world_coord(cell_y, vec_y)
         print(f"{entity.get_class_name()} at ({x:.0f}, {y:.0f})")
@@ -142,7 +149,7 @@ parser.parse()
 
 for entity in parser.entity_manager.all_active():
     if entity.get_class_name().startswith("CDOTA_Unit_Hero_"):
-        hp, _ = entity.get_int32("m_iHealth")
+        hp = entity.get_int32("m_iHealth")
         print(f"{entity.get_class_name()}: {hp} HP")
 ```
 

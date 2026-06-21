@@ -89,7 +89,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgDOTACombatLogEntry</code> — fields: 80; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgDOTACombatLogEntry</code> — fields: 82; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -176,6 +176,8 @@ Expand any message to inspect all fields.
 | 78 | `will_reincarnate` | `bool` | `optional` | `` |  |
 | 79 | `uses_charges` | `bool` | `optional` | `` |  |
 | 80 | `tracked_stat_id` | `uint32` | `optional` | `` |  |
+| 81 | `modifier_purged_duration` | `float` | `optional` | `` |  |
+| 82 | `heal_from_regen` | `bool` | `optional` | `` |  |
 
 </details>
 
@@ -384,7 +386,7 @@ Expand any enum to inspect all values.
 </details>
 
 <details>
-<summary><code>EEvent</code> — values: 58</summary>
+<summary><code>EEvent</code> — values: 59</summary>
 
 - Parent: *(top-level)*
 
@@ -448,6 +450,7 @@ Expand any enum to inspect all values.
 | `EVENT_ID_SUMMER_2026` | 57 |
 | `EVENT_ID_FALL_2026` | 58 |
 | `EVENT_ID_WINTER_2026` | 59 |
+| `EVENT_ID_INTERNATIONAL_2026` | 60 |
 
 </details>
 
@@ -922,7 +925,7 @@ Expand any enum to inspect all values.
 </details>
 
 <details>
-<summary><code>DOTA_BOT_MODE</code> — values: 28</summary>
+<summary><code>DOTA_BOT_MODE</code> — values: 32</summary>
 
 - Parent: *(top-level)*
 
@@ -956,6 +959,10 @@ Expand any enum to inspect all values.
 | `DOTA_BOT_MODE_MINION` | 25 |
 | `DOTA_BOT_MODE_OUTPOST` | 26 |
 | `DOTA_BOT_MODE_BOT_CHALLENGE_ENDGAME` | 27 |
+| `DOTA_BOT_MODE_WATCHER` | 28 |
+| `DOTA_BOT_MODE_WISDOM_SHRINE` | 29 |
+| `DOTA_BOT_MODE_LOTUS_POOL` | 30 |
+| `DOTA_BOT_MODE_DEWARD` | 31 |
 
 </details>
 
