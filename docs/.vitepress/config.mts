@@ -1,6 +1,8 @@
 import { defineConfig } from "vitepress";
+import { withMermaid } from "vitepress-plugin-mermaid";
 
-export default defineConfig({
+export default withMermaid(
+  defineConfig({
   title: "gem-dota",
   description: "A Python Dota 2 replay parser.",
   base: "/gem-dota/",
@@ -107,4 +109,9 @@ export default defineConfig({
       provider: "local",
     },
   },
-});
+  // Mermaid runtime options — themed to follow VitePress light/dark.
+  mermaid: {
+    theme: "default",
+  },
+  }),
+);

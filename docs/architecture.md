@@ -13,15 +13,15 @@ flowchart TD
 
     subgraph BINARY ["Binary decoding"]
         direction LR
-        B["binary/stream.py\nouter frames"] --> C["binary/reader.py\nbits & varints"]
+        B["binary/stream.py<br/>outer frames"] --> C["binary/reader.py<br/>bits & varints"]
     end
 
     subgraph SCHEMA ["Schema & state"]
         direction LR
-        D["schema/sendtable/\nserializer tree"] --> E["schema/field_decoder/\ntype dispatch"]
-        D --> F["schema/field_path/\nHuffman paths"]
-        G["state/string_table.py\nkey-value tables"]
-        H["state/entities.py\ndelta updates"]
+        D["schema/sendtable/<br/>serializer tree"] --> E["schema/field_decoder/<br/>type dispatch"]
+        D --> F["schema/field_path/<br/>Huffman paths"]
+        G["state/string_table.py<br/>key-value tables"]
+        H["state/entities.py<br/>delta updates"]
     end
 
     subgraph EVENTS ["Events"]
