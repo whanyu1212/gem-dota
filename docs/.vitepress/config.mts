@@ -10,13 +10,13 @@ export default defineConfig({
     logo: "/logo.svg",
     nav: [
       { text: "Getting Started", link: "/" },
+      { text: "Architecture", link: "/architecture" },
       { text: "Proto Cookbook", link: "/cookbook/" },
       { text: "Deep Dives", link: "/deep-dives/" },
       { text: "Guides", link: "/guides/" },
       { text: "Reports", link: "/reports/" },
       { text: "Experimental Features", link: "/experimental/" },
       { text: "Changelog", link: "/changelog" },
-      // { text: "Replay Parser", link: "/replay-parser" },
       { text: "API Reference", link: "/reference/" },
     ],
     sidebar: [
@@ -24,6 +24,7 @@ export default defineConfig({
         text: "Getting Started",
         items: [
           { text: "Home", link: "/" },
+          { text: "Architecture", link: "/architecture" },
           { text: "Changelog", link: "/changelog" },
           { text: "Quickstart", link: "/guides/01_quickstart" },
           { text: "Troubleshooting", link: "/guides/troubleshooting" },
@@ -83,13 +84,8 @@ export default defineConfig({
         ],
       },
       {
-        text: "Interactive",
-        items: [
-          // { text: "Replay Parser", link: "/replay-parser" },
-          // { text: "Replay API Contract", link: "/guides/replay-api" },
-          // { text: "Architecture", link: "/architecture" },
-          { text: "Reports", link: "/reports/" },
-        ],
+        text: "Reports",
+        items: [{ text: "Match Reports", link: "/reports/" }],
       },
       {
         text: "Experimental Features",

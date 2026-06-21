@@ -42,13 +42,21 @@ Return True if an event schema with the given name is registered.
 
 Source: [src/gem/state/game_events.py:178](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L178)
 
+##### `get_schema`
+
+Signature: `def GameEventManager.get_schema(self, event_id: int) -> GameEventSchema | None`
+
+Return the registered schema for an event id, or ``None``.
+
+Source: [src/gem/state/game_events.py:186](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L186)
+
 ##### `on_game_event`
 
 Signature: `def GameEventManager.on_game_event(self, name: str, handler: GameEventHandler) -> None`
 
 Register a handler for the named event.
 
-Source: [src/gem/state/game_events.py:186](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L186)
+Source: [src/gem/state/game_events.py:197](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L197)
 
 ##### `dispatch`
 
@@ -56,7 +64,7 @@ Signature: `def GameEventManager.dispatch(self, raw_event: Any) -> None`
 
 Dispatch a raw CMsgSource1LegacyGameEvent message to registered handlers.
 
-Source: [src/gem/state/game_events.py:195](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L195)
+Source: [src/gem/state/game_events.py:206](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L206)
 
 ## `gem.state.game_events.GameEvent`
 

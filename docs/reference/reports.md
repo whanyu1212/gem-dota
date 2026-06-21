@@ -41,7 +41,7 @@ class ReportOptions
 
 Rendering options for HTML match reports.
 
-Source: [src/gem/reports/builder.py:115](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/reports/builder.py#L115)
+Source: [src/gem/reports/builder.py:68](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/reports/builder.py#L68)
 
 #### Dataclass fields
 
@@ -60,7 +60,7 @@ def build_html_report(match: ParsedMatch, *, assets: ReportAssets | None = None,
 
 Assemble the complete self-contained multi-tab HTML report.
 
-Source: [src/gem/reports/builder.py:284](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/reports/builder.py#L284)
+Source: [src/gem/reports/builder.py:221](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/reports/builder.py#L221)
 
 ## `gem.reports.builder.write_html_report`
 
@@ -72,4 +72,4 @@ def write_html_report(match: ParsedMatch, output_path: str | Path, *, assets: Re
 
 Write a self-contained HTML report and return the written path.
 
-Source: [src/gem/reports/builder.py:516](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/reports/builder.py#L516)
+Source: [src/gem/reports/builder.py:453](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/reports/builder.py#L453)

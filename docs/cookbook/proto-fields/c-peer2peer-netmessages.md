@@ -61,8 +61,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `send_time` | `uint64` | `required` | `` |  |
-| 2 | `is_reply` | `bool` | `required` | `` |  |
+| 1 | `send_time` | `uint64` | `optional` | `` |  |
+| 2 | `is_reply` | `bool` | `optional` | `` |  |
 
 </details>
 

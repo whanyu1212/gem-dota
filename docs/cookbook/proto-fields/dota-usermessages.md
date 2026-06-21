@@ -4,8 +4,8 @@
 - Syntax: `unknown`
 - Package: `(none)`
 - Imports: **3**
-- Messages: **190** (top-level: 172)
-- Enums: **19** (top-level: 14)
+- Messages: **191** (top-level: 173)
+- Enums: **20** (top-level: 14)
 
 ## Imports
 
@@ -62,7 +62,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `type` | `.DOTA_CHAT_MESSAGE` | `required` | `` | default = CHAT_MESSAGE_INVALID |
+| 1 | `type` | `.DOTA_CHAT_MESSAGE` | `optional` | `` | default = CHAT_MESSAGE_INVALID |
 | 2 | `value` | `uint32` | `optional` | `` |  |
 | 3 | `playerid_1` | `sint32` | `optional` | `` | default = -1 |
 | 4 | `playerid_2` | `sint32` | `optional` | `` | default = -1 |
@@ -567,7 +567,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `entindex` | `int32` | `required` | `` | default = -1 |
+| 1 | `entindex` | `int32` | `optional` | `` | default = -1 |
 | 2 | `attacks_only` | `bool` | `optional` | `` |  |
 
 </details>
@@ -580,7 +580,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `entindex` | `int32` | `required` | `` | default = -1 |
+| 1 | `entindex` | `int32` | `optional` | `` | default = -1 |
 | 2 | `order_type` | `int32` | `optional` | `` |  |
 | 3 | `target_index` | `int32` | `optional` | `` | default = 0 |
 
@@ -722,8 +722,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `key` | `int32` | `required` | `` |  |
-| 2 | `valtype` | `.CDOTAResponseQuerySerialized.Fact.ValueType` | `required` | `` | default = NUMERIC |
+| 1 | `key` | `int32` | `optional` | `` |  |
+| 2 | `valtype` | `.CDOTAResponseQuerySerialized.Fact.ValueType` | `optional` | `` | default = NUMERIC |
 | 3 | `val_numeric` | `float` | `optional` | `` |  |
 | 4 | `val_string` | `string` | `optional` | `` |  |
 | 5 | `val_stringtable_index` | `int32` | `optional` | `` |  |
@@ -754,8 +754,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `msg_type` | `.EDotaEntityMessages` | `required` | `` | default = DOTA_UNIT_SPEECH |
-| 2 | `entity_index` | `int32` | `required` | `` |  |
+| 1 | `msg_type` | `.EDotaEntityMessages` | `optional` | `` | default = DOTA_UNIT_SPEECH |
+| 2 | `entity_index` | `int32` | `optional` | `` |  |
 | 3 | `speech` | `.CDOTAUserMsg_UnitEvent.Speech` | `optional` | `` |  |
 | 4 | `speech_mute` | `.CDOTAUserMsg_UnitEvent.SpeechMute` | `optional` | `` |  |
 | 5 | `add_gesture` | `.CDOTAUserMsg_UnitEvent.AddGesture` | `optional` | `` |  |
@@ -913,7 +913,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `message_type` | `.DOTA_OVERHEAD_ALERT` | `required` | `` | default = OVERHEAD_ALERT_GOLD |
+| 1 | `message_type` | `.DOTA_OVERHEAD_ALERT` | `optional` | `` | default = OVERHEAD_ALERT_GOLD |
 | 2 | `value` | `int32` | `optional` | `` |  |
 | 3 | `target_player_entindex` | `int32` | `optional` | `` | default = -1 |
 | 4 | `target_entindex` | `int32` | `optional` | `` | default = -1 |
@@ -1363,8 +1363,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `header` | `string` | `required` | `` |  |
-| 2 | `body` | `string` | `required` | `` |  |
+| 1 | `header` | `string` | `optional` | `` |  |
+| 2 | `body` | `string` | `optional` | `` |  |
 | 3 | `param1` | `string` | `optional` | `` |  |
 | 4 | `param2` | `string` | `optional` | `` |  |
 | 5 | `tint_screen` | `bool` | `optional` | `` |  |
@@ -1876,7 +1876,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `player_id` | `int32` | `required` | `` | default = -1 |
+| 1 | `player_id` | `int32` | `optional` | `` | default = -1 |
 | 2 | `quest_id` | `uint32` | `optional` | `` |  |
 | 3 | `challenge_id` | `uint32` | `optional` | `` |  |
 | 4 | `progress` | `uint32` | `optional` | `` |  |
@@ -1895,7 +1895,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `player_id` | `int32` | `required` | `` | default = -1 |
+| 1 | `player_id` | `int32` | `optional` | `` | default = -1 |
 | 2 | `hero_id` | `int32` | `optional` | `` |  |
 | 3 | `ban` | `bool` | `optional` | `` |  |
 | 4 | `facet_id` | `uint32` | `optional` | `` |  |
@@ -1910,7 +1910,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `player_id` | `int32` | `required` | `` | default = -1 |
+| 1 | `player_id` | `int32` | `optional` | `` | default = -1 |
 | 2 | `hero_role` | `string` | `optional` | `` |  |
 
 </details>
@@ -1923,7 +1923,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `player_id` | `int32` | `required` | `` | default = -1 |
+| 1 | `player_id` | `int32` | `optional` | `` | default = -1 |
 | 2 | `damage_taken` | `uint32` | `optional` | `` |  |
 | 3 | `item_type` | `uint32` | `optional` | `` |  |
 | 4 | `item_ability_id` | `int32` | `optional` | `` | default = -1 |
@@ -1940,7 +1940,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `player_id` | `int32` | `required` | `` | default = -1 |
+| 1 | `player_id` | `int32` | `optional` | `` | default = -1 |
 | 2 | `cost` | `sint32` | `optional` | `` |  |
 
 </details>
@@ -2113,7 +2113,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `player_id` | `int32` | `required` | `` | default = -1 |
+| 1 | `player_id` | `int32` | `optional` | `` | default = -1 |
 | 2 | `source_entindex` | `int32` | `optional` | `` | default = -1 |
 | 3 | `target_entindex` | `int32` | `optional` | `` | default = -1 |
 
@@ -2253,9 +2253,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `challenge_type` | `uint32` | `required` | `` |  |
-| 2 | `challenge_query_id` | `uint32` | `required` | `` |  |
-| 3 | `event_id` | `uint32` | `required` | `` |  |
+| 1 | `challenge_type` | `uint32` | `optional` | `` |  |
+| 2 | `challenge_query_id` | `uint32` | `optional` | `` |  |
+| 3 | `event_id` | `uint32` | `optional` | `` |  |
 | 4 | `instance_id` | `uint32` | `optional` | `` |  |
 | 5 | `challenge_var_0` | `uint32` | `optional` | `` |  |
 | 6 | `challenge_var_1` | `uint32` | `optional` | `` |  |
@@ -2642,11 +2642,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `player_id_killer` | `int32` | `required` | `` | default = -1 |
-| 2 | `player_id_target` | `int32` | `required` | `` | default = -1 |
-| 3 | `points` | `int32` | `required` | `` |  |
-| 4 | `points_total` | `int32` | `required` | `` |  |
-| 5 | `last_hit` | `bool` | `required` | `` |  |
+| 1 | `player_id_killer` | `int32` | `optional` | `` | default = -1 |
+| 2 | `player_id_target` | `int32` | `optional` | `` | default = -1 |
+| 3 | `points` | `int32` | `optional` | `` |  |
+| 4 | `points_total` | `int32` | `optional` | `` |  |
+| 5 | `last_hit` | `bool` | `optional` | `` |  |
 
 </details>
 
@@ -2801,12 +2801,27 @@ Expand any message to inspect all fields.
 
 </details>
 
+<details>
+<summary><code>CDOTAUserMsg_GiveItem</code> — fields: 4; oneofs: 0; nested messages: 0; nested enums: 1</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `giver_ent_index` | `uint32` | `optional` | `` | default = 16777215 |
+| 2 | `receiver_ent_index` | `uint32` | `optional` | `` | default = 16777215 |
+| 3 | `item_ent_index` | `uint32` | `optional` | `` | default = 16777215 |
+| 4 | `give_status` | `.CDOTAUserMsg_GiveItem.EGiveStatus` | `optional` | `` | default = Start |
+
+</details>
+
 ## Enums
 
 Expand any enum to inspect all values.
 
 <details>
-<summary><code>EDotaUserMessages</code> — values: 168</summary>
+<summary><code>EDotaUserMessages</code> — values: 169</summary>
 
 - Parent: *(top-level)*
 
@@ -2980,11 +2995,12 @@ Expand any enum to inspect all values.
 | `DOTA_UM_MonsterHunter_HuntAlert` | 633 |
 | `DOTA_UM_TormentorTimer` | 634 |
 | `DOTA_UM_KillEffect` | 635 |
+| `DOTA_UM_GiveItem` | 636 |
 
 </details>
 
 <details>
-<summary><code>DOTA_CHAT_MESSAGE</code> — values: 115</summary>
+<summary><code>DOTA_CHAT_MESSAGE</code> — values: 118</summary>
 
 - Parent: *(top-level)*
 
@@ -3105,6 +3121,9 @@ Expand any enum to inspect all values.
 | `CHAT_MESSAGE_PROTECTOR_SPAWNED` | 121 |
 | `CHAT_MESSAGE_CRAFTING_XP` | 122 |
 | `CHAT_MESSAGE_ROSHAN_ROAR` | 123 |
+| `CHAT_MESSAGE_STONE_OF_RECALL_USED` | 124 |
+| `CHAT_MESSAGE_DEITY_BLESSING` | 125 |
+| `CHAT_MESSAGE_SMOKE_ACTIVATED` | 126 |
 
 </details>
 
@@ -3197,7 +3216,7 @@ Expand any enum to inspect all values.
 </details>
 
 <details>
-<summary><code>DOTA_OVERHEAD_ALERT</code> — values: 25</summary>
+<summary><code>DOTA_OVERHEAD_ALERT</code> — values: 26</summary>
 
 - Parent: *(top-level)*
 
@@ -3228,6 +3247,7 @@ Expand any enum to inspect all values.
 | `OVERHEAD_ALERT_FORCE_MISS` | 25 |
 | `OVERHEAD_ALERT_AEGIS` | 26 |
 | `OVERHEAD_ALERT_DISPEL` | 27 |
+| `OVERHEAD_ALERT_BONUS_PURE_DAMAGE` | 28 |
 
 </details>
 
@@ -3427,5 +3447,17 @@ Expand any enum to inspect all values.
 | `Pending` | 0 |
 | `Success` | 1 |
 | `Failed` | 2 |
+
+</details>
+
+<details>
+<summary><code>CDOTAUserMsg_GiveItem.EGiveStatus</code> — values: 2</summary>
+
+- Parent: `CDOTAUserMsg_GiveItem`
+
+| Name | Number |
+|---|---:|
+| `Start` | 0 |
+| `End` | 1 |
 
 </details>

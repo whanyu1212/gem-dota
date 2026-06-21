@@ -2504,7 +2504,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgDOTARedeemItem</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgDOTARedeemItem</code> — fields: 3; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -2513,6 +2513,7 @@ Expand any message to inspect all fields.
 |---:|---|---|---|---|---|
 | 1 | `currency_id` | `uint64` | `optional` | `` |  |
 | 2 | `purchase_def` | `uint32` | `optional` | `` |  |
+| 3 | `claim_as_points` | `bool` | `optional` | `` |  |
 
 </details>
 
@@ -6445,7 +6446,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgClientToGCGetEventCoupon</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgClientToGCGetEventCoupon</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -6453,7 +6454,6 @@ Expand any message to inspect all fields.
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
 | 1 | `event_id` | `.EEvent` | `optional` | `` | default = EVENT_ID_NONE |
-| 2 | `coupon_ids` | `uint32` | `repeated` | `` |  |
 
 </details>
 

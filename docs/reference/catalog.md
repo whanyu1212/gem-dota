@@ -83,7 +83,7 @@ def item_key_by_id(item_id: int) -> str | None
 
 Return the internal item key for an item ability ID.
 
-Source: [src/gem/catalog/items.py:38](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/items.py#L38)
+Source: [src/gem/catalog/items.py:42](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/items.py#L42)
 
 ### `permanent_buff_name`
 
@@ -93,7 +93,7 @@ def permanent_buff_name(buff_id: int) -> str
 
 Return the item name for a permanent buff integer ID.
 
-Source: [src/gem/catalog/items.py:50](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/items.py#L50)
+Source: [src/gem/catalog/items.py:54](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/items.py#L54)
 
 ## Module `gem.catalog.abilities`
 

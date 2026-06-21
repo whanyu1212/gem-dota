@@ -172,6 +172,7 @@ Source: [src/gem/results/models.py:130](https://github.com/whanyu1212/gem-dota/b
 | `damage_taken_by_type` | `dict[str, int]` | `field(...)` |
 | `healing` | `dict[str, int]` | `field(...)` |
 | `ability_uses` | `dict[str, int]` | `field(...)` |
+| `ability_upgrades_arr` | `list[int]` | `field(...)` |
 | `item_uses` | `dict[str, int]` | `field(...)` |
 | `gold_reasons` | `dict[str, int]` | `field(...)` |
 | `xp_reasons` | `dict[str, int]` | `field(...)` |
@@ -193,6 +194,27 @@ Source: [src/gem/results/models.py:130](https://github.com/whanyu1212/gem-dota/b
 | `lane_efficiency_pct` | `int` | `0` |
 | `lane_gold_adv` | `int | None` | `None` |
 | `lane_xp_adv` | `int | None` | `None` |
+| `net_worth` | `int` | `0` |
+| `last_hits` | `int` | `0` |
+| `denies` | `int` | `0` |
+| `camps_stacked` | `int` | `0` |
+| `creeps_stacked` | `int` | `0` |
+| `obs_placed` | `int` | `0` |
+| `sen_placed` | `int` | `0` |
+| `rune_pickups` | `int` | `0` |
+| `tower_kills` | `int` | `0` |
+| `kda` | `float` | `0.0` |
+| `buyback_count` | `int` | `0` |
+| `is_radiant` | `bool` | `False` |
+| `win` | `int` | `0` |
+| `kills_per_min` | `float` | `0.0` |
+| `hero_damage` | `int` | `0` |
+| `tower_damage` | `int` | `0` |
+| `hero_healing` | `int` | `0` |
+| `gold_per_min` | `int` | `0` |
+| `xp_per_min` | `int` | `0` |
+| `total_gold` | `int` | `0` |
+| `total_xp` | `int` | `0` |
 
 ### `ParsedMatch`
 
@@ -202,7 +224,7 @@ class ParsedMatch
 
 Top-level parsed output for a single Dota 2 replay.
 
-Source: [src/gem/results/models.py:282](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L282)
+Source: [src/gem/results/models.py:378](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L378)
 
 #### Dataclass fields
 
@@ -220,6 +242,7 @@ Source: [src/gem/results/models.py:282](https://github.com/whanyu1212/gem-dota/b
 | `dire_team_tag` | `str` | `''` |
 | `game_start_tick` | `int | None` | `None` |
 | `game_end_tick` | `int` | `0` |
+| `duration` | `int` | `0` |
 | `players` | `list[ParsedPlayer]` | `field(...)` |
 | `towers` | `list[TowerKill]` | `field(...)` |
 | `barracks` | `list[BarracksKill]` | `field(...)` |
@@ -247,7 +270,7 @@ Signature: `def ParsedMatch.duration_seconds(self) -> float`
 
 Game duration in seconds, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:357](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L357)
+Source: [src/gem/results/models.py:460](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L460)
 
 ##### `duration_minutes`
 
@@ -255,4 +278,4 @@ Signature: `def ParsedMatch.duration_minutes(self) -> float`
 
 Game duration in minutes, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:363](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L363)
+Source: [src/gem/results/models.py:466](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L466)

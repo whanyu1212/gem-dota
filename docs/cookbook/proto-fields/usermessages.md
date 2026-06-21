@@ -4,7 +4,7 @@
 - Syntax: `unknown`
 - Package: `(none)`
 - Imports: **1**
-- Messages: **107** (top-level: 56)
+- Messages: **109** (top-level: 56)
 - Enums: **5** (top-level: 5)
 
 ## Imports
@@ -536,15 +536,15 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CUserMsg_ParticleManager</code> — fields: 41; oneofs: 0; nested messages: 39; nested enums: 0</summary>
+<summary><code>CUserMsg_ParticleManager</code> — fields: 43; oneofs: 0; nested messages: 41; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `type` | `.PARTICLE_MESSAGE` | `required` | `` | default = GAME_PARTICLE_MANAGER_EVENT_CREATE |
-| 2 | `index` | `uint32` | `required` | `` |  |
+| 1 | `type` | `.PARTICLE_MESSAGE` | `optional` | `` | default = GAME_PARTICLE_MANAGER_EVENT_CREATE |
+| 2 | `index` | `uint32` | `optional` | `` |  |
 | 3 | `release_particle_index` | `.CUserMsg_ParticleManager.ReleaseParticleIndex` | `optional` | `` |  |
 | 4 | `create_particle` | `.CUserMsg_ParticleManager.CreateParticle` | `optional` | `` |  |
 | 5 | `destroy_particle` | `.CUserMsg_ParticleManager.DestroyParticle` | `optional` | `` |  |
@@ -584,6 +584,8 @@ Expand any message to inspect all fields.
 | 40 | `update_fan` | `.CUserMsg_ParticleManager.UpdateFan` | `optional` | `` |  |
 | 41 | `set_particle_cluster_growth` | `.CUserMsg_ParticleManager.SetParticleClusterGrowth` | `optional` | `` |  |
 | 42 | `remove_fan` | `.CUserMsg_ParticleManager.RemoveFan` | `optional` | `` |  |
+| 43 | `create_smoke_grid` | `.CUserMsg_ParticleManager.CreateSmokeGrid` | `optional` | `` |  |
+| 44 | `set_override_texture` | `.CUserMsg_ParticleManager.SetOverrideTexture` | `optional` | `` |  |
 
 </details>
 
@@ -868,7 +870,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CUserMsg_ParticleManager.SetParticleText</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CUserMsg_ParticleManager.SetParticleText</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: `CUserMsg_ParticleManager`
 - Oneofs: *(none)*
@@ -876,6 +878,7 @@ Expand any message to inspect all fields.
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
 | 1 | `text` | `string` | `optional` | `` |  |
+| 2 | `localize` | `bool` | `optional` | `` |  |
 
 </details>
 
@@ -889,6 +892,18 @@ Expand any message to inspect all fields.
 |---:|---|---|---|---|---|
 | 1 | `attribute_name` | `string` | `optional` | `` |  |
 | 2 | `texture_name` | `string` | `optional` | `` |  |
+
+</details>
+
+<details>
+<summary><code>CUserMsg_ParticleManager.SetOverrideTexture</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: `CUserMsg_ParticleManager`
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `texture_name` | `string` | `optional` | `` |  |
 
 </details>
 
@@ -1084,6 +1099,18 @@ Expand any message to inspect all fields.
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
 | - | *(none)* |  |  |  |  |
+
+</details>
+
+<details>
+<summary><code>CUserMsg_ParticleManager.CreateSmokeGrid</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: `CUserMsg_ParticleManager`
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `vdata_name` | `string` | `optional` | `` |  |
 
 </details>
 
@@ -1709,7 +1736,7 @@ Expand any enum to inspect all values.
 </details>
 
 <details>
-<summary><code>PARTICLE_MESSAGE</code> — values: 40</summary>
+<summary><code>PARTICLE_MESSAGE</code> — values: 42</summary>
 
 - Parent: *(top-level)*
 
@@ -1755,6 +1782,8 @@ Expand any enum to inspect all values.
 | `GAME_PARTICLE_MANAGER_EVENT_UPDATE_FAN` | 37 |
 | `GAME_PARTICLE_MANAGER_EVENT_SET_CLUSTER_GROWTH` | 38 |
 | `GAME_PARTICLE_MANAGER_EVENT_REMOVE_FAN` | 39 |
+| `GAME_PARTICLE_MANAGER_EVENT_CREATE_SMOKE_GRID` | 40 |
+| `GAME_PARTICLE_MANAGER_EVENT_SET_OVERRIDE_TEXTURE` | 41 |
 
 </details>
 

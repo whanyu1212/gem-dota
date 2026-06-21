@@ -87,7 +87,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgDOTAPlayerInfoList</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgDOTAPlayerInfoList</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -95,6 +95,7 @@ Expand any message to inspect all fields.
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
 | 1 | `player_infos` | `.CMsgDOTAPlayerInfo` | `repeated` | `` |  |
+| 2 | `retry_time` | `uint32` | `optional` | `` |  |
 
 </details>
 

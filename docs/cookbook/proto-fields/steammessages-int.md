@@ -4,7 +4,7 @@
 - Syntax: `unknown`
 - Package: `(none)`
 - Imports: **1**
-- Messages: **82** (top-level: 64)
+- Messages: **87** (top-level: 66)
 - Enums: **3** (top-level: 0)
 
 ## Imports
@@ -1146,6 +1146,76 @@ Expand any message to inspect all fields.
 | 3 | `date` | `string` | `optional` | `` |  |
 | 4 | `net_payment_us_usd` | `uint64` | `optional` | `` |  |
 | 5 | `net_payment_row_usd` | `uint64` | `optional` | `` |  |
+
+</details>
+
+<details>
+<summary><code>CMsgGCReportMetrics</code> — fields: 1; oneofs: 0; nested messages: 1; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `metric_data` | `.CMsgGCReportMetrics.MetricEntry` | `repeated` | `` |  |
+
+</details>
+
+<details>
+<summary><code>CMsgGCReportMetrics.MetricEntry</code> — fields: 5; oneofs: 0; nested messages: 2; nested enums: 0</summary>
+
+- Parent: `CMsgGCReportMetrics`
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `catalog` | `string` | `optional` | `` |  |
+| 2 | `operation` | `string` | `optional` | `` |  |
+| 3 | `timestamp` | `double` | `optional` | `` |  |
+| 10 | `dimensions` | `.CMsgGCReportMetrics.MetricEntry.Dimension` | `repeated` | `` |  |
+| 11 | `measurements` | `.CMsgGCReportMetrics.MetricEntry.Measurement` | `repeated` | `` |  |
+
+</details>
+
+<details>
+<summary><code>CMsgGCReportMetrics.MetricEntry.Dimension</code> — fields: 4; oneofs: 1; nested messages: 0; nested enums: 0</summary>
+
+- Parent: `CMsgGCReportMetrics.MetricEntry`
+- Oneofs: `value`
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `name` | `string` | `optional` | `` |  |
+| 2 | `value_string` | `string` | `oneof` | `value` |  |
+| 3 | `value_integer` | `int64` | `oneof` | `value` |  |
+| 4 | `value_boolean` | `bool` | `oneof` | `value` |  |
+
+</details>
+
+<details>
+<summary><code>CMsgGCReportMetrics.MetricEntry.Measurement</code> — fields: 3; oneofs: 1; nested messages: 0; nested enums: 0</summary>
+
+- Parent: `CMsgGCReportMetrics.MetricEntry`
+- Oneofs: `value`
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `name` | `string` | `optional` | `` |  |
+| 2 | `value_integer` | `int64` | `oneof` | `value` |  |
+| 3 | `value_float` | `double` | `oneof` | `value` |  |
+
+</details>
+
+<details>
+<summary><code>CMsgGCReportMetrics_Response</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `eresult` | `int32` | `optional` | `` | default = 2 |
+| 2 | `failed_entry_count` | `uint32` | `optional` | `` |  |
 
 </details>
 

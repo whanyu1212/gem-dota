@@ -4,7 +4,7 @@
 - Syntax: `unknown`
 - Package: `(none)`
 - Imports: **1**
-- Messages: **16** (top-level: 13)
+- Messages: **18** (top-level: 15)
 - Enums: **1** (top-level: 1)
 
 ## Imports
@@ -29,7 +29,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgPlaceDecalEvent</code> — fields: 13; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgPlaceDecalEvent</code> — fields: 14; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -49,6 +49,7 @@ Expand any message to inspect all fields.
 | 11 | `material_id` | `uint64` | `optional` | `` |  |
 | 12 | `sequence_name` | `uint32` | `optional` | `` |  |
 | 13 | `triangleindex` | `int32` | `optional` | `` |  |
+| 14 | `position_objectspace` | `.CMsgVector` | `optional` | `` |  |
 
 </details>
 
@@ -244,12 +245,46 @@ Expand any message to inspect all fields.
 
 </details>
 
+<details>
+<summary><code>CMsgClothStiffenAnimEvent</code> — fields: 6; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `source_entity_index` | `int32` | `optional` | `` | default = -1 |
+| 2 | `vertex_set_hash` | `int32` | `optional` | `` |  |
+| 3 | `intensity` | `float` | `optional` | `` |  |
+| 4 | `length` | `float` | `optional` | `` |  |
+| 5 | `speed_in` | `float` | `optional` | `` |  |
+| 6 | `speed_out` | `float` | `optional` | `` |  |
+
+</details>
+
+<details>
+<summary><code>CMsgClothEffectAnimEvent</code> — fields: 6; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `source_entity_index` | `int32` | `optional` | `` | default = -1 |
+| 2 | `effect_name_hash` | `int32` | `optional` | `` |  |
+| 3 | `operation` | `int32` | `optional` | `` |  |
+| 4 | `flags` | `int32` | `optional` | `` |  |
+| 5 | `tags` | `string` | `optional` | `` |  |
+| 6 | `pte` | `.CMsgVector` | `optional` | `` |  |
+
+</details>
+
 ## Enums
 
 Expand any enum to inspect all values.
 
 <details>
-<summary><code>EBaseGameEvents</code> — values: 13</summary>
+<summary><code>EBaseGameEvents</code> — values: 15</summary>
 
 - Parent: *(top-level)*
 
@@ -268,5 +303,7 @@ Expand any enum to inspect all values.
 | `GE_SosSetSoundEventParams` | 210 |
 | `GE_SosSetLibraryStackFields` | 211 |
 | `GE_SosStopSoundEventHash` | 212 |
+| `GE_ClothStiffenAnimEvent` | 213 |
+| `GE_ClothEffectAnimEvent` | 214 |
 
 </details>

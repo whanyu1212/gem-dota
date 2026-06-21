@@ -4,8 +4,8 @@
 - Syntax: `unknown`
 - Package: `(none)`
 - Imports: **5**
-- Messages: **51** (top-level: 46)
-- Enums: **19** (top-level: 4)
+- Messages: **58** (top-level: 53)
+- Enums: **22** (top-level: 4)
 
 ## Imports
 
@@ -203,7 +203,22 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgOverworldUserData</code> — fields: 5; oneofs: 0; nested messages: 1; nested enums: 0</summary>
+<summary><code>CMsgOverworldFortune</code> — fields: 4; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `fortune1` | `uint32` | `optional` | `` |  |
+| 2 | `fortune2` | `uint32` | `optional` | `` |  |
+| 3 | `fortune3` | `uint32` | `optional` | `` |  |
+| 4 | `timestamp` | `uint32` | `optional` | `` |  |
+
+</details>
+
+<details>
+<summary><code>CMsgOverworldUserData</code> — fields: 6; oneofs: 0; nested messages: 1; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -215,6 +230,7 @@ Expand any message to inspect all fields.
 | 3 | `overworld_paths` | `.CMsgOverworldPath` | `repeated` | `` |  |
 | 4 | `current_node_id` | `uint32` | `optional` | `` |  |
 | 5 | `minigame_data` | `.CMsgOverworldUserData.MinigameDataEntry` | `repeated` | `` |  |
+| 6 | `current_fortune` | `.CMsgOverworldFortune` | `optional` | `` |  |
 
 </details>
 
@@ -598,6 +614,80 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
+<summary><code>CMsgClientToGCOverworldDevSetFortune</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `overworld_id` | `uint32` | `optional` | `` |  |
+| 2 | `fortune_id` | `uint32` | `optional` | `` |  |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCOverworldDevSetFortuneResponse</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 1</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `response` | `.CMsgClientToGCOverworldDevSetFortuneResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCOverworldDevClearFortune</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `overworld_id` | `uint32` | `optional` | `` |  |
+| 2 | `fortune_id` | `uint32` | `optional` | `` |  |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCOverworldDevClearFortuneResponse</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 1</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `response` | `.CMsgClientToGCOverworldDevClearFortuneResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCOverworldRequestFortune</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `overworld_id` | `uint32` | `optional` | `` |  |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCOverworldRequestFortuneResponse</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 1</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `response` | `.CMsgClientToGCOverworldRequestFortuneResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+
+</details>
+
+<details>
 <summary><code>CMsgClientToGCOverworldFeedback</code> — fields: 3; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
@@ -725,7 +815,7 @@ Expand any enum to inspect all values.
 </details>
 
 <details>
-<summary><code>EOverworldAuditAction</code> — values: 17</summary>
+<summary><code>EOverworldAuditAction</code> — values: 20</summary>
 
 - Parent: *(top-level)*
 
@@ -748,6 +838,9 @@ Expand any enum to inspect all values.
 | `k_eOverworldAuditAction_EncounterRewardTokenReward` | 14 |
 | `k_eOverworldAuditAction_SupportGrantTokens` | 16 |
 | `k_eOverworldAuditAction_TokenGiftSent` | 17 |
+| `k_eOverworldAuditAction_DevSetFortune` | 18 |
+| `k_eOverworldAuditAction_DevClearFortune` | 19 |
+| `k_eOverworldAuditAction_RequestFortune` | 20 |
 
 </details>
 
@@ -991,6 +1084,57 @@ Expand any enum to inspect all values.
 <summary><code>CMsgClientToGCOverworldDevClearInventoryResponse.EResponse</code> — values: 7</summary>
 
 - Parent: `CMsgClientToGCOverworldDevClearInventoryResponse`
+
+| Name | Number |
+|---|---:|
+| `k_eInternalError` | 0 |
+| `k_eSuccess` | 1 |
+| `k_eTooBusy` | 2 |
+| `k_eDisabled` | 3 |
+| `k_eTimeout` | 4 |
+| `k_eNotAllowed` | 5 |
+| `k_eInvalidOverworld` | 6 |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCOverworldDevSetFortuneResponse.EResponse</code> — values: 7</summary>
+
+- Parent: `CMsgClientToGCOverworldDevSetFortuneResponse`
+
+| Name | Number |
+|---|---:|
+| `k_eInternalError` | 0 |
+| `k_eSuccess` | 1 |
+| `k_eTooBusy` | 2 |
+| `k_eDisabled` | 3 |
+| `k_eTimeout` | 4 |
+| `k_eNotAllowed` | 5 |
+| `k_eInvalidOverworld` | 6 |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCOverworldDevClearFortuneResponse.EResponse</code> — values: 7</summary>
+
+- Parent: `CMsgClientToGCOverworldDevClearFortuneResponse`
+
+| Name | Number |
+|---|---:|
+| `k_eInternalError` | 0 |
+| `k_eSuccess` | 1 |
+| `k_eTooBusy` | 2 |
+| `k_eDisabled` | 3 |
+| `k_eTimeout` | 4 |
+| `k_eNotAllowed` | 5 |
+| `k_eInvalidOverworld` | 6 |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCOverworldRequestFortuneResponse.EResponse</code> — values: 7</summary>
+
+- Parent: `CMsgClientToGCOverworldRequestFortuneResponse`
 
 | Name | Number |
 |---|---:|
