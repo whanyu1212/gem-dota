@@ -3,13 +3,14 @@
 - Module: `netmessages_pb2`
 - Syntax: `unknown`
 - Package: `(none)`
-- Imports: **1**
-- Messages: **82** (top-level: 69)
-- Enums: **13** (top-level: 12)
+- Imports: **2**
+- Messages: **74** (top-level: 63)
+- Enums: **12** (top-level: 11)
 
 ## Imports
 
 - `networkbasetypes.proto`
+- `source2_steam_stats.proto`
 
 ## Messages
 
@@ -204,159 +205,6 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgSource2SystemSpecs</code> — fields: 14; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: *(top-level)*
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `cpu_id` | `string` | `optional` | `` |  |
-| 2 | `cpu_brand` | `string` | `optional` | `` |  |
-| 3 | `cpu_model` | `uint32` | `optional` | `` |  |
-| 4 | `cpu_num_physical` | `uint32` | `optional` | `` |  |
-| 21 | `ram_physical_total_mb` | `uint32` | `optional` | `` |  |
-| 41 | `gpu_rendersystem_dll_name` | `string` | `optional` | `` |  |
-| 42 | `gpu_vendor_id` | `uint32` | `optional` | `` |  |
-| 43 | `gpu_driver_name` | `string` | `optional` | `` |  |
-| 44 | `gpu_driver_version_high` | `uint32` | `optional` | `` |  |
-| 45 | `gpu_driver_version_low` | `uint32` | `optional` | `` |  |
-| 46 | `gpu_dx_support_level` | `uint32` | `optional` | `` |  |
-| 47 | `gpu_texture_memory_size_mb` | `uint32` | `optional` | `` |  |
-| 51 | `backbuffer_width` | `uint32` | `optional` | `` |  |
-| 52 | `backbuffer_height` | `uint32` | `optional` | `` |  |
-
-</details>
-
-<details>
-<summary><code>CMsgSource2VProfLiteReportItem</code> — fields: 18; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: *(top-level)*
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `name` | `string` | `optional` | `` |  |
-| 2 | `active_samples` | `uint32` | `optional` | `` |  |
-| 3 | `usec_max` | `uint32` | `optional` | `` |  |
-| 4 | `active_samples_1secmax` | `uint32` | `optional` | `` |  |
-| 11 | `usec_avg_active` | `uint32` | `optional` | `` |  |
-| 12 | `usec_p50_active` | `uint32` | `optional` | `` |  |
-| 13 | `usec_p99_active` | `uint32` | `optional` | `` |  |
-| 21 | `usec_avg_all` | `uint32` | `optional` | `` |  |
-| 22 | `usec_p50_all` | `uint32` | `optional` | `` |  |
-| 23 | `usec_p99_all` | `uint32` | `optional` | `` |  |
-| 31 | `usec_1secmax_avg_active` | `uint32` | `optional` | `` |  |
-| 32 | `usec_1secmax_p50_active` | `uint32` | `optional` | `` |  |
-| 33 | `usec_1secmax_p95_active` | `uint32` | `optional` | `` |  |
-| 34 | `usec_1secmax_p99_active` | `uint32` | `optional` | `` |  |
-| 41 | `usec_1secmax_avg_all` | `uint32` | `optional` | `` |  |
-| 42 | `usec_1secmax_p50_all` | `uint32` | `optional` | `` |  |
-| 43 | `usec_1secmax_p95_all` | `uint32` | `optional` | `` |  |
-| 44 | `usec_1secmax_p99_all` | `uint32` | `optional` | `` |  |
-
-</details>
-
-<details>
-<summary><code>CMsgSource2VProfLiteReport</code> — fields: 3; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: *(top-level)*
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `total` | `.CMsgSource2VProfLiteReportItem` | `optional` | `` |  |
-| 2 | `items` | `.CMsgSource2VProfLiteReportItem` | `repeated` | `` |  |
-| 3 | `discarded_frames` | `uint32` | `optional` | `` |  |
-
-</details>
-
-<details>
-<summary><code>CMsgSource2NetworkFlowQuality</code> — fields: 44; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: *(top-level)*
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `duration` | `uint32` | `optional` | `` |  |
-| 5 | `bytes_total` | `uint64` | `optional` | `` |  |
-| 6 | `bytes_total_reliable` | `uint64` | `optional` | `` |  |
-| 7 | `bytes_total_voice` | `uint64` | `optional` | `` |  |
-| 10 | `bytes_sec_p95` | `uint32` | `optional` | `` |  |
-| 11 | `bytes_sec_p99` | `uint32` | `optional` | `` |  |
-| 20 | `enginemsgs_total` | `uint32` | `optional` | `` |  |
-| 21 | `enginemsgs_sec_p95` | `uint32` | `optional` | `` |  |
-| 22 | `enginemsgs_sec_p99` | `uint32` | `optional` | `` |  |
-| 30 | `netframes_total` | `uint32` | `optional` | `` |  |
-| 31 | `netframes_dropped` | `uint32` | `optional` | `` |  |
-| 32 | `netframes_outoforder` | `uint32` | `optional` | `` |  |
-| 34 | `netframes_size_exceeds_mtu` | `uint32` | `optional` | `` |  |
-| 35 | `netframes_size_p95` | `uint32` | `optional` | `` |  |
-| 36 | `netframes_size_p99` | `uint32` | `optional` | `` |  |
-| 40 | `ticks_total` | `uint32` | `optional` | `` |  |
-| 41 | `ticks_good` | `uint32` | `optional` | `` |  |
-| 42 | `ticks_good_almost_late` | `uint32` | `optional` | `` |  |
-| 43 | `ticks_fixed_dropped` | `uint32` | `optional` | `` |  |
-| 44 | `ticks_fixed_late` | `uint32` | `optional` | `` |  |
-| 45 | `ticks_bad_dropped` | `uint32` | `optional` | `` |  |
-| 46 | `ticks_bad_late` | `uint32` | `optional` | `` |  |
-| 47 | `ticks_bad_other` | `uint32` | `optional` | `` |  |
-| 50 | `tick_missrate_samples_total` | `uint32` | `optional` | `` |  |
-| 51 | `tick_missrate_samples_perfect` | `uint32` | `optional` | `` |  |
-| 52 | `tick_missrate_samples_perfectnet` | `uint32` | `optional` | `` |  |
-| 53 | `tick_missratenet_p75_x10` | `uint32` | `optional` | `` |  |
-| 54 | `tick_missratenet_p95_x10` | `uint32` | `optional` | `` |  |
-| 55 | `tick_missratenet_p99_x10` | `uint32` | `optional` | `` |  |
-| 61 | `recvmargin_p1` | `sint32` | `optional` | `` |  |
-| 62 | `recvmargin_p5` | `sint32` | `optional` | `` |  |
-| 63 | `recvmargin_p25` | `sint32` | `optional` | `` |  |
-| 64 | `recvmargin_p50` | `sint32` | `optional` | `` |  |
-| 65 | `recvmargin_p75` | `sint32` | `optional` | `` |  |
-| 66 | `recvmargin_p95` | `sint32` | `optional` | `` |  |
-| 70 | `netframe_jitter_p50` | `uint32` | `optional` | `` |  |
-| 71 | `netframe_jitter_p99` | `uint32` | `optional` | `` |  |
-| 72 | `interval_peakjitter_p50` | `uint32` | `optional` | `` |  |
-| 73 | `interval_peakjitter_p95` | `uint32` | `optional` | `` |  |
-| 74 | `packet_misdelivery_rate_p50_x4` | `uint32` | `optional` | `` |  |
-| 75 | `packet_misdelivery_rate_p95_x4` | `uint32` | `optional` | `` |  |
-| 80 | `net_ping_p5` | `uint32` | `optional` | `` |  |
-| 81 | `net_ping_p50` | `uint32` | `optional` | `` |  |
-| 82 | `net_ping_p95` | `uint32` | `optional` | `` |  |
-
-</details>
-
-<details>
-<summary><code>CMsgSource2PerfIntervalSample</code> — fields: 6; oneofs: 0; nested messages: 1; nested enums: 0</summary>
-
-- Parent: *(top-level)*
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `frame_time_max_ms` | `float` | `optional` | `` |  |
-| 2 | `frame_time_avg_ms` | `float` | `optional` | `` |  |
-| 3 | `frame_time_min_ms` | `float` | `optional` | `` |  |
-| 4 | `frame_count` | `int32` | `optional` | `` |  |
-| 5 | `frame_time_total_ms` | `float` | `optional` | `` |  |
-| 6 | `tags` | `.CMsgSource2PerfIntervalSample.Tag` | `repeated` | `` |  |
-
-</details>
-
-<details>
-<summary><code>CMsgSource2PerfIntervalSample.Tag</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: `CMsgSource2PerfIntervalSample`
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `tag` | `string` | `optional` | `` |  |
-| 2 | `max_value` | `uint32` | `optional` | `` |  |
-
-</details>
-
-<details>
 <summary><code>CCLCMsg_Diagnostic</code> — fields: 5; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
@@ -369,42 +217,6 @@ Expand any message to inspect all fields.
 | 3 | `downstream_flow` | `.CMsgSource2NetworkFlowQuality` | `optional` | `` |  |
 | 4 | `upstream_flow` | `.CMsgSource2NetworkFlowQuality` | `optional` | `` |  |
 | 5 | `perf_samples` | `.CMsgSource2PerfIntervalSample` | `repeated` | `` |  |
-
-</details>
-
-<details>
-<summary><code>CSource2Metrics_MatchPerfSummary_Notification</code> — fields: 7; oneofs: 0; nested messages: 1; nested enums: 0</summary>
-
-- Parent: *(top-level)*
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `appid` | `uint32` | `optional` | `` |  |
-| 2 | `game_mode` | `string` | `optional` | `` |  |
-| 3 | `server_build_id` | `uint32` | `optional` | `` |  |
-| 4 | `server_popid` | `fixed32` | `optional` | `` |  |
-| 10 | `server_profile` | `.CMsgSource2VProfLiteReport` | `optional` | `` |  |
-| 11 | `clients` | `.CSource2Metrics_MatchPerfSummary_Notification.Client` | `repeated` | `` |  |
-| 20 | `map` | `string` | `optional` | `` |  |
-
-</details>
-
-<details>
-<summary><code>CSource2Metrics_MatchPerfSummary_Notification.Client</code> — fields: 7; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: `CSource2Metrics_MatchPerfSummary_Notification`
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `system_specs` | `.CMsgSource2SystemSpecs` | `optional` | `` |  |
-| 2 | `profile` | `.CMsgSource2VProfLiteReport` | `optional` | `` |  |
-| 3 | `build_id` | `uint32` | `optional` | `` |  |
-| 4 | `downstream_flow` | `.CMsgSource2NetworkFlowQuality` | `optional` | `` |  |
-| 5 | `upstream_flow` | `.CMsgSource2NetworkFlowQuality` | `optional` | `` |  |
-| 10 | `steamid` | `fixed64` | `optional` | `` |  |
-| 11 | `perf_samples` | `.CMsgSource2PerfIntervalSample` | `repeated` | `` |  |
 
 </details>
 
@@ -1123,8 +935,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `event_id` | `uint32` | `required` | `` |  |
-| 2 | `event_data` | `bytes` | `required` | `` |  |
+| 1 | `event_id` | `uint32` | `optional` | `` |  |
+| 2 | `event_data` | `bytes` | `optional` | `` |  |
 | 3 | `sync_type` | `uint32` | `optional` | `` |  |
 | 4 | `sync_val_uint32` | `uint32` | `optional` | `` |  |
 
@@ -1485,20 +1297,8 @@ Expand any enum to inspect all values.
 |---|---:|
 | `bi_RebroadcastGameEvent` | 16 |
 | `bi_RebroadcastSource` | 17 |
-| `bi_GameEvent` | 18 |
+| `bi_GameEvent_DEPRECATED` | 18 |
 | `bi_PredictionEvent` | 19 |
-
-</details>
-
-<details>
-<summary><code>Bidirectional_Messages_LowFrequency</code> — values: 2</summary>
-
-- Parent: *(top-level)*
-
-| Name | Number |
-|---|---:|
-| `bi_RelayInfo` | 700 |
-| `bi_RelayPacket` | 701 |
 
 </details>
 

@@ -11,6 +11,7 @@ Modules covered:
 1. `src/gem/combat/aggregator.py`
 2. `src/gem/results/assembly.py`
 3. `src/gem/results/dataframes.py`
+4. `src/gem/extractors/intervals.py` (consumed here for advantage curves)
 
 Prerequisites:
 
@@ -65,7 +66,9 @@ After extractors collect raw timelines, this layer:
 
 ## `results/assembly.py`: assemble final `ParsedMatch`
 
-`build_parsed_match(...)` is the main output assembly function.
+`build_parsed_match(...)` is the main output assembly function. It also accepts an optional
+`interval_ext` (`IntervalExtractor`) argument, used as the primary source for the
+OpenDota-style advantage / per-minute curves (the dense minute series is the fallback).
 
 ### Key constants
 
@@ -73,7 +76,9 @@ After extractors collect raw timelines, this layer:
 |---|---|---|
 | `_LANE_GRID` | `64` | Lane heatmap cell size (world units) |
 | `_LANE_WINDOW` | `600 * 30 = 18000` | First 10 game-minutes for lane analysis |
-| `_STEAM_ID_BASE` | `76561197960265728` | SteamID64 -> account_id offset |
+
+`_STEAM_ID_BASE` (`76561197960265728`, the SteamID64 → account_id offset) is a **local**
+inside `build_parsed_match`, not a module-level constant.
 
 ### Build flow (high level)
 
@@ -88,7 +93,9 @@ After extractors collect raw timelines, this layer:
 5. Populate player names/steam ids from `CDOTA_PlayerResource`.
 6. Populate team metadata from `CDOTATeam` entities.
 7. Attach observer/sentry ward logs per player.
-8. Build `radiant_gold_adv` and `radiant_xp_adv` arrays from minute series.
+8. Build `radiant_gold_adv` and `radiant_xp_adv` from complete OpenDota-style interval
+   batches (`IntervalExtractor`); fall back to the dense per-player minute series only when
+   no complete interval batches exist for the replay.
 9. Run `detect_teamfights(...)` with hero-slot/team/snapshot context.
 10. Build `_ability_snapshots` for `ability_level_at_tick()` lookup.
 

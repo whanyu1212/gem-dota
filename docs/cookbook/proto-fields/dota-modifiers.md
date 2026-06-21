@@ -16,17 +16,17 @@
 Expand any message to inspect all fields.
 
 <details>
-<summary><code>CDOTAModifierBuffTableEntry</code> — fields: 40; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CDOTAModifierBuffTableEntry</code> — fields: 42; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `entry_type` | `.DOTA_MODIFIER_ENTRY_TYPE` | `required` | `` | default = DOTA_MODIFIER_ENTRY_TYPE_ACTIVE |
-| 2 | `parent` | `uint32` | `required` | `` | default = 16777215 |
-| 3 | `index` | `int32` | `required` | `` |  |
-| 4 | `serial_num` | `int32` | `required` | `` |  |
+| 1 | `entry_type` | `.DOTA_MODIFIER_ENTRY_TYPE` | `optional` | `` | default = DOTA_MODIFIER_ENTRY_TYPE_ACTIVE |
+| 2 | `parent` | `uint32` | `optional` | `` | default = 16777215 |
+| 3 | `index` | `int32` | `optional` | `` |  |
+| 4 | `serial_num` | `int32` | `optional` | `` |  |
 | 5 | `modifier_class` | `int32` | `optional` | `` |  |
 | 6 | `ability_level` | `int32` | `optional` | `` |  |
 | 7 | `stack_count` | `int32` | `optional` | `` |  |
@@ -63,6 +63,8 @@ Expand any message to inspect all fields.
 | 38 | `custom_entity` | `uint32` | `optional` | `` | default = 16777215 |
 | 39 | `aura_within_range` | `bool` | `optional` | `` |  |
 | 40 | `move_slow` | `float` | `optional` | `` |  |
+| 41 | `has_scepter` | `bool` | `optional` | `` |  |
+| 42 | `has_shard` | `bool` | `optional` | `` |  |
 
 </details>
 
@@ -74,8 +76,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `modifier_type` | `int32` | `required` | `` |  |
-| 2 | `modifier_filename` | `string` | `required` | `` |  |
+| 1 | `modifier_type` | `int32` | `optional` | `` |  |
+| 2 | `modifier_filename` | `string` | `optional` | `` |  |
 
 </details>
 

@@ -93,10 +93,7 @@ python -m gem parse my_replay.dem --format parquet --output ./out/
 ```
 
 ::: info Parquet dependency
-Requires `pyarrow` (recommended) or `fastparquet`:
-```bash
-pip install pyarrow
-```
+Requires `pyarrow` (recommended) or `fastparquet` — `pip install pyarrow` or `uv add pyarrow`.
 :::
 
 ---

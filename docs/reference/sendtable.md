@@ -25,7 +25,7 @@ def parse_send_tables(data: bytes, game_build: int = 0) -> dict[str, Serializer]
 
 Parse a CDemoSendTables payload into a serializer dictionary.
 
-Source: [src/gem/schema/sendtable/parser.py:168](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/sendtable/parser.py#L168)
+Source: [src/gem/schema/sendtable/parser.py:210](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/sendtable/parser.py#L210)
 
 ## `gem.schema.sendtable.Serializer`
 
@@ -35,9 +35,9 @@ Source: [src/gem/schema/sendtable/parser.py:168](https://github.com/whanyu1212/g
 class Serializer
 ```
 
-A named, versioned entity class schema with an ordered list of fields.
+A named, versioned entity class schema with ordered fields.
 
-Source: [src/gem/schema/sendtable/models.py:154](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/sendtable/models.py#L154)
+Source: [src/gem/schema/sendtable/models.py:176](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/sendtable/models.py#L176)
 
 #### Dataclass fields
 
@@ -55,9 +55,9 @@ Source: [src/gem/schema/sendtable/models.py:154](https://github.com/whanyu1212/g
 class Field
 ```
 
-One property of a serializer, with its type and decoder.
+One property of a serializer, including its type model and decoders.
 
-Source: [src/gem/schema/sendtable/models.py:90](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/sendtable/models.py#L90)
+Source: [src/gem/schema/sendtable/models.py:105](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/sendtable/models.py#L105)
 
 #### Dataclass fields
 
@@ -89,7 +89,7 @@ Signature: `def Field.set_model(self, model: int) -> None`
 
 Assign the field model and wire up the appropriate decoders.
 
-Source: [src/gem/schema/sendtable/models.py:111](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/sendtable/models.py#L111)
+Source: [src/gem/schema/sendtable/models.py:131](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/sendtable/models.py#L131)
 
 ##### `model_name`
 
@@ -97,7 +97,7 @@ Signature: `def Field.model_name(self) -> str`
 
 Return a human-readable model name for debugging.
 
-Source: [src/gem/schema/sendtable/models.py:142](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/sendtable/models.py#L142)
+Source: [src/gem/schema/sendtable/models.py:164](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/sendtable/models.py#L164)
 
 ## `gem.schema.sendtable.FieldType`
 
@@ -109,7 +109,7 @@ class FieldType
 
 Parsed representation of a C++ field type string.
 
-Source: [src/gem/schema/sendtable/models.py:47](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/sendtable/models.py#L47)
+Source: [src/gem/schema/sendtable/models.py:53](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/sendtable/models.py#L53)
 
 #### Dataclass fields
 

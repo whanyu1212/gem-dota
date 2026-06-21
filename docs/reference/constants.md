@@ -22,7 +22,7 @@ def hero_display(npc_name: str) -> str
 
 Return the localized display name for an ``npc_dota_hero_*`` string.
 
-Source: [src/gem/constants.py:69](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/constants.py#L69)
+Source: [src/gem/constants.py:52](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/constants.py#L52)
 
 ### `hero_short`
 
@@ -32,7 +32,7 @@ def hero_short(npc_name: str) -> str
 
 Return display name from either a full ``npc_dota_hero_*`` or a bare suffix.
 
-Source: [src/gem/constants.py:81](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/constants.py#L81)
+Source: [src/gem/constants.py:64](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/constants.py#L64)
 
 ### `hero_npc_name`
 
@@ -42,7 +42,7 @@ def hero_npc_name(name: str) -> str | None
 
 Resolve a display name to its ``npc_dota_hero_*`` NPC name.
 
-Source: [src/gem/constants.py:93](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/constants.py#L93)
+Source: [src/gem/constants.py:76](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/constants.py#L76)
 
 ### `hero_meta`
 
@@ -52,7 +52,7 @@ def hero_meta(npc_name: str) -> dict[str, Any]
 
 Return the full hero metadata dict, or an empty dict if not found.
 
-Source: [src/gem/constants.py:105](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/constants.py#L105)
+Source: [src/gem/constants.py:88](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/constants.py#L88)
 
 ### `item_display`
 
@@ -62,7 +62,7 @@ def item_display(internal: str) -> str
 
 Return display name for an ``item_*`` prefixed internal name.
 
-Source: [src/gem/constants.py:117](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/constants.py#L117)
+Source: [src/gem/constants.py:100](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/constants.py#L100)
 
 ### `item_key_by_id`
 
@@ -72,7 +72,7 @@ def item_key_by_id(item_id: int) -> str | None
 
 Return the internal item key for an item ability ID.
 
-Source: [src/gem/constants.py:129](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/constants.py#L129)
+Source: [src/gem/constants.py:112](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/constants.py#L112)
 
 ### `ability_display`
 
@@ -82,7 +82,7 @@ def ability_display(internal: str) -> str
 
 Return display name for an ability or item internal name.
 
-Source: [src/gem/constants.py:141](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/constants.py#L141)
+Source: [src/gem/constants.py:124](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/constants.py#L124)
 
 ### `xp_to_next_level`
 
@@ -92,7 +92,7 @@ def xp_to_next_level(level: int, current_xp: int) -> int | None
 
 Return XP needed to reach the next level, or None at max level.
 
-Source: [src/gem/constants.py:153](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/constants.py#L153)
+Source: [src/gem/constants.py:136](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/constants.py#L136)
 
 ### `permanent_buff_name`
 
@@ -102,7 +102,7 @@ def permanent_buff_name(buff_id: int) -> str
 
 Return the item name for a permanent buff integer ID.
 
-Source: [src/gem/constants.py:166](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/constants.py#L166)
+Source: [src/gem/constants.py:149](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/constants.py#L149)
 
 ### `league_name`
 
@@ -112,4 +112,4 @@ def league_name(leagueid: int) -> str | None
 
 Return the league name for a given league ID, or None if unknown/not found.
 
-Source: [src/gem/constants.py:178](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/constants.py#L178)
+Source: [src/gem/constants.py:161](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/constants.py#L161)

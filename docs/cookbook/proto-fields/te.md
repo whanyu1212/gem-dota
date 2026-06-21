@@ -183,7 +183,7 @@ Expand any message to inspect all fields.
 | 16 | `flags` | `uint32` | `optional` | `` |  |
 | 17 | `attachmentindex` | `int32` | `optional` | `` |  |
 | 18 | `effectname` | `uint32` | `optional` | `` |  |
-| 19 | `attachmentname` | `uint32` | `optional` | `` |  |
+| 19 | `attachmentname` | `uint32` | `optional` | `` | default = 0 |
 
 </details>
 
@@ -308,7 +308,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgTEExplosion</code> — fields: 11; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgTEExplosion</code> — fields: 12; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -326,6 +326,7 @@ Expand any message to inspect all fields.
 | 12 | `create_debris` | `bool` | `optional` | `` |  |
 | 13 | `debris_origin` | `.CMsgVector` | `optional` | `` |  |
 | 14 | `debris_surfaceprop` | `fixed32` | `optional` | `` |  |
+| 15 | `explosion_type_name` | `uint32` | `optional` | `` | default = 0 |
 
 </details>
 
@@ -383,7 +384,7 @@ Expand any message to inspect all fields.
 | 1 | `origin` | `.CMsgVector` | `optional` | `` |  |
 | 2 | `velocity` | `.CMsgVector` | `optional` | `` |  |
 | 3 | `angles` | `.CMsgQAngle` | `optional` | `` |  |
-| 4 | `skin` | `fixed32` | `optional` | `` |  |
+| 4 | `skin` | `fixed32` | `optional` | `` | default = 0 |
 | 5 | `flags` | `uint32` | `optional` | `` |  |
 | 6 | `effects` | `uint32` | `optional` | `` |  |
 | 7 | `color` | `fixed32` | `optional` | `` |  |

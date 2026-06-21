@@ -6,12 +6,13 @@ Modules covered:
 
 1. `src/gem/extractors/_snapshots.py`
 2. `src/gem/extractors/players.py`
-3. `src/gem/extractors/objectives.py`
-4. `src/gem/extractors/wards.py`
-5. `src/gem/extractors/courier.py`
-6. `src/gem/extractors/draft.py`
-7. `src/gem/extractors/teamfights.py`
-8. `src/gem/extractors/lane.py`
+3. `src/gem/extractors/intervals.py`
+4. `src/gem/extractors/objectives.py`
+5. `src/gem/extractors/wards.py`
+6. `src/gem/extractors/courier.py`
+7. `src/gem/extractors/draft.py`
+8. `src/gem/extractors/teamfights.py`
+9. `src/gem/extractors/lane.py`
 
 Prerequisites:
 
@@ -114,6 +115,18 @@ Do not assume "all `CDOTA_Unit_Hero_*` entities for this player" means "the play
 2. Initial inventory is emitted as synthetic `PURCHASE` combat-log entries once per player.
 3. Ability levels are resolved via ability handles + `EntityNames` string table.
 
+## `intervals.py`: OpenDota-parity interval sampler
+
+`IntervalExtractor` is internal plumbing for OpenDota-aligned output. It samples 60-second
+player intervals from the authoritative team data entities — but **only** when the parser's
+game clock lands on an exact interval boundary, and stays silent otherwise. It supplies the
+cumulative-earned gold/XP used to build the gold/XP **advantage curves** with the same
+boundary alignment OpenDota uses.
+
+It is not part of the public API. When a replay yields no complete interval batches, the
+match-assembly layer falls back to the dense per-player minute series from `players.py`
+(see [Match Assembly Layer](match-assembly-layer.md)).
+
 ## `objectives.py`: objective timeline extractor
 
 `ObjectivesExtractor` emits timeline events for towers, barracks, Roshan, Tormentor, shrine kills, and Aegis interactions.
@@ -149,8 +162,8 @@ Roshan drops are reconstructed from currently alive Roshan item entities at kill
 |---|---|---|
 | `_WARD_CLASSES` | observer + sentry classes | Tracked entity classes |
 | `_WARD_TARGET_NAMES` | observer/sentry combat-log names | Targets for killer queue |
-| `_OBSERVER_LIFESPAN_TICKS` | `720` | ~6 minutes |
-| `_SENTRY_LIFESPAN_TICKS` | `360` | ~3 minutes |
+| `_OBSERVER_LIFESPAN_TICKS` | `10800` | 360 s (~6 minutes) at 30 ticks/s |
+| `_SENTRY_LIFESPAN_TICKS` | `12600` | 420 s (~7 minutes) at 30 ticks/s |
 | `_EXPIRY_TOLERANCE_TICKS` | `30` | Grace window for expiry classification |
 
 ### Lifecycle logic
@@ -256,12 +269,14 @@ These modules are in `extractors/`, but run as derived computations during match
 ```python
 p = ReplayParser(path)
 player_ext = PlayerExtractor()
+interval_ext = IntervalExtractor()
 obj_ext = ObjectivesExtractor()
 ward_ext = WardsExtractor()
 courier_ext = CourierExtractor()
 draft_ext = DraftExtractor()
 
 player_ext.attach(p)
+interval_ext.attach(p)
 obj_ext.attach(p)
 ward_ext.attach(p)
 courier_ext.attach(p)

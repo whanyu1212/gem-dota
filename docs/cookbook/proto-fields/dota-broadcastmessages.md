@@ -19,7 +19,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `type` | `.EDotaBroadcastMessages` | `required` | `` | default = DOTA_BM_LANLobbyRequest |
+| 1 | `type` | `.EDotaBroadcastMessages` | `optional` | `` | default = DOTA_BM_LANLobbyRequest |
 | 2 | `msg` | `bytes` | `optional` | `` |  |
 
 </details>

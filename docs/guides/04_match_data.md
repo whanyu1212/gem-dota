@@ -129,11 +129,18 @@ player.assists         # int
 
 player.stuns_dealt     # float: total stun seconds dealt to enemy heroes
 
-# Net worth / gold / XP are time-series (sampled every tick or per minute)
-player.net_worth_t_min[-1]          # int: net worth at game end (last minute sample)
-player.total_earned_gold_t_min[-1]  # int: cumulative gold at game end
-player.lh_t_min[-1]                 # int: last-hit count at game end
-player.dn_t_min[-1]                 # int: deny count at game end
+# End-of-game scalars (simplest values; read these unless you need the curve)
+player.net_worth       # int: net worth at game end
+player.last_hits       # int: last-hit count at game end
+player.denies          # int: deny count at game end
+
+# Net worth / gold / XP are also available as per-minute time-series. The minute
+# arrays can lag the exact game-end tick by up to ~59s, so prefer the scalars above
+# for terminal values and the arrays for curves.
+player.net_worth_t_min[-1]          # int: net worth at the last minute sample
+player.total_earned_gold_t_min[-1]  # int: cumulative gold at the last minute sample
+player.lh_t_min[-1]                 # int: last-hit count at the last minute sample
+player.dn_t_min[-1]                 # int: deny count at the last minute sample
 
 # Total damage dealt / received — dicts keyed by target/attacker NPC name
 player.damage            # dict[str, int]: damage dealt per target
@@ -240,7 +247,7 @@ for event in match.draft:
     print(f"  {team} {action} {event.hero_name}")
 ```
 
-`DraftEvent` fields: `tick`, `team`, `hero_name`, `is_pick`, `order`.
+`DraftEvent` fields: `tick`, `slot_index`, `hero_id`, `hero_name`, `is_pick`, `team`.
 
 ---
 
@@ -257,8 +264,9 @@ for ward in match.wards:
     )
 ```
 
-`WardEvent` fields: `tick`, `placer`, `ward_type` (`"observer"` or `"sentry"`),
-`x`, `y`, `killed_tick` (or `None`), `expires_tick` (or `None`).
+`WardEvent` fields: `tick`, `player_id`, `placer`, `ward_type` (`"observer"` or
+`"sentry"`), `team`, `x`, `y`, `expires_tick` (or `None`), `killed_tick` (or `None`),
+`killer` (or `None`).
 
 ---
 
@@ -267,21 +275,22 @@ for ward in match.wards:
 ### Tower kills
 
 ```python
-match.tower_kills   # list[dict]: tower kill events
-# Each: {"tick": int, "team": int, "building": str, "attacker": str}
+match.towers   # list[TowerKill]: tower kill events in chronological order
+# TowerKill fields: tick, team (losing team), killer (NPC name), tower_name
 ```
 
 ### Roshan kills
 
 ```python
-match.roshans   # list[dict]: each Roshan kill event
-# Each: {"tick": int, "killer_team": int, "killer_slot": int}
+match.roshans   # list[RoshanKill]: each Roshan kill event
+# RoshanKill fields: tick, killer (NPC name), kill_number, drops
 ```
 
 ### Barracks
 
 ```python
-match.barracks_kills  # list[dict]: barracks destruction events
+match.barracks   # list[BarracksKill]: barracks destruction events
+# BarracksKill fields: tick, team (losing team), killer (NPC name), barracks_name
 ```
 
 ---
@@ -290,7 +299,7 @@ match.barracks_kills  # list[dict]: barracks destruction events
 
 ```python
 match.aegis_events   # list[AegisEvent]
-# AegisEvent fields: tick, event_type ("pickup"/"deny"/"steal"), player_slot
+# AegisEvent fields: tick, player_id, event_type ("pickup"/"stolen"/"denied")
 ```
 
 ---
@@ -298,8 +307,8 @@ match.aegis_events   # list[AegisEvent]
 ## Chat
 
 ```python
-match.chat   # list[ChatMessage]
-# ChatMessage fields: tick, player_slot, text, channel
+match.chat   # list[ChatEntry]
+# ChatEntry fields: tick, player_slot, channel, text
 ```
 
 ---

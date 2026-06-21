@@ -4,7 +4,7 @@
 - Syntax: `unknown`
 - Package: `(none)`
 - Imports: **14**
-- Messages: **186** (top-level: 119)
+- Messages: **187** (top-level: 120)
 - Enums: **6** (top-level: 1)
 
 ## Imports
@@ -785,7 +785,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgGameMatchSignOutPerfData</code> — fields: 28; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgGameMatchSignOutPerfData</code> — fields: 30; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -820,6 +820,8 @@ Expand any message to inspect all fields.
 | 26 | `server_average_sleep_frame_time` | `float` | `optional` | `` |  |
 | 27 | `server_max_sleep_frame_time` | `float` | `optional` | `` |  |
 | 28 | `num_multitick_frames` | `uint32` | `optional` | `` |  |
+| 29 | `average_missed_snapshot_rate` | `float` | `repeated` | `` |  |
+| 30 | `max_missed_snapshot_rate` | `float` | `repeated` | `` |  |
 
 </details>
 
@@ -912,7 +914,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgDOTALiveScoreboardUpdate.Team.Player.HeroAbility</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgDOTALiveScoreboardUpdate.Team.Player.HeroAbility</code> — fields: 3; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: `CMsgDOTALiveScoreboardUpdate.Team.Player`
 - Oneofs: *(none)*
@@ -921,6 +923,7 @@ Expand any message to inspect all fields.
 |---:|---|---|---|---|---|
 | 1 | `ability_id` | `int32` | `optional` | `` | default = -1 |
 | 2 | `ability_level` | `uint32` | `optional` | `` |  |
+| 3 | `tome_upgraded` | `bool` | `optional` | `` |  |
 
 </details>
 
@@ -1245,8 +1248,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `id` | `uint32` | `required` | `` |  |
-| 2 | `value` | `string` | `required` | `` |  |
+| 1 | `id` | `uint32` | `optional` | `` |  |
+| 2 | `value` | `string` | `optional` | `` |  |
 
 </details>
 
@@ -2199,8 +2202,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `event_type` | `uint32` | `required` | `` |  |
-| 2 | `amount` | `uint32` | `required` | `` |  |
+| 1 | `event_type` | `uint32` | `optional` | `` |  |
+| 2 | `amount` | `uint32` | `optional` | `` |  |
 
 </details>
 
@@ -2768,6 +2771,22 @@ Expand any message to inspect all fields.
 | 1 | `tier` | `uint32` | `optional` | `` |  |
 | 2 | `trinket_options` | `int32` | `repeated` | `` | (steamlearn_count) = 4 |
 | 3 | `enhancement_options` | `int32` | `repeated` | `` | (steamlearn_count) = 4 |
+| 4 | `trinket_id` | `int32` | `optional` | `` | default = -1 |
+| 5 | `enhancement_id` | `int32` | `optional` | `` | default = -1 |
+
+</details>
+
+<details>
+<summary><code>CMsgSteamLearnNeutralItemPurchaseV6</code> — fields: 5; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `tier` | `uint32` | `optional` | `` |  |
+| 2 | `trinket_options` | `int32` | `repeated` | `` | (steamlearn_count) = 5 |
+| 3 | `enhancement_options` | `int32` | `repeated` | `` | (steamlearn_count) = 5 |
 | 4 | `trinket_id` | `int32` | `optional` | `` | default = -1 |
 | 5 | `enhancement_id` | `int32` | `optional` | `` | default = -1 |
 

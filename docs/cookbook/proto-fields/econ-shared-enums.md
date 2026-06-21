@@ -59,7 +59,7 @@ Expand any enum to inspect all values.
 </details>
 
 <details>
-<summary><code>EGCMsgUseItemResponse</code> — values: 14</summary>
+<summary><code>EGCMsgUseItemResponse</code> — values: 17</summary>
 
 - Parent: *(top-level)*
 
@@ -79,5 +79,8 @@ Expand any enum to inspect all values.
 | `k_EGCMsgUseItemResponse_EmoticonUnlock_NoNew` | 11 |
 | `k_EGCMsgUseItemResponse_EmoticonUnlock_Complete` | 12 |
 | `k_EGCMsgUseItemResponse_ItemUsed_Compendium` | 13 |
+| `k_EGCMsgUseItemResponse_CannotUseWhileUntradable` | 14 |
+| `k_EGCMsgUseItemResponse_CannotBeUsedByAccount` | 15 |
+| `k_EGCMsgUseItemResponse_RecipientCannotRecieve` | 16 |
 
 </details>

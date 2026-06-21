@@ -113,13 +113,14 @@ One object per player (10 total). `team: 2` = Radiant, `team: 3` = Dire.
 3. Steam display name from the replay header.
 4. `2` = Radiant, `3` = Dire.
 5. Total seconds of stun dealt to enemy heroes across the whole game.
-6. `1` = Safe lane, `2` = Mid, `3` = Off lane, `4` = Jungle/Roaming. Classified from
-   the first 10 minutes of position data.
+6. `1` = Safe lane, `2` = Mid, `3` = Off lane, `4` = Jungle, `5` = Roaming, `0` = Unknown.
+   Classified from the first 10 minutes of position data.
 7. Lane efficiency percentage — gold earned vs. the theoretical maximum available in
    that lane during the laning phase.
 8. Gold advantage over the opposing laner at the end of the laning phase (10 min).
 9. Per-minute time series — one value per game minute. Index 0 = minute 0 (game start).
-10. Each kill this hero registered, as a `CombatLogEntry` with `log_type: "KILL"`.
+10. Each kill this hero registered, as a `CombatLogEntry` with `log_type: "DEATH"`
+    (the entry records the victim's death; this hero is the attacker/source).
 11. Item purchases in order — `value_name` is the item NPC name
     (e.g. `"item_black_king_bar"`).
 12. Rune pickups — `gold_reason: 5` = bounty rune.
@@ -226,7 +227,7 @@ All entries share the same schema; `log_type` tells you what happened.
 | Value | What it records |
 |---|---|
 | `DAMAGE` | Damage dealt (ability or auto-attack) |
-| `KILL` | A unit died |
+| `DEATH` | A unit died |
 | `HEAL` | HP restoration |
 | `ITEM` | Item activated (smoke, ward placed, etc.) |
 | `PURCHASE` | Item purchased from shop |

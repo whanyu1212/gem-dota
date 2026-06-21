@@ -1,8 +1,53 @@
 # Changelog
 
-This page summarizes the latest parser, validation, and report changes that materially affect how `gem` behaves today.
+This page is a curated narrative summary of the parser, validation, and report changes that materially affect how `gem` behaves today.
 
-It is intentionally short-range for now. It is **not** backfilled with older release history.
+It is intentionally short-range. The full per-release SemVer history lives in the canonical [CHANGELOG.md](https://github.com/whanyu1212/gem-dota/blob/main/CHANGELOG.md).
+
+## June 2026 — v0.3.0
+
+A structural + correctness release. The supported top-level API (`gem.parse`, `gem.ParsedMatch`, `gem.find_player`, …) is unchanged.
+
+::: warning Breaking: root-level compatibility shims removed
+
+The root-level import shims from earlier releases have been removed:
+`gem.reader`, `gem.models`, `gem.combatlog`, `gem.entities`, `gem.map_context`, `gem.replay_fetch`, and similar.
+
+Use the supported top-level `gem.*` API or the grouped subpackages instead — `gem.binary.reader`, `gem.results.models`, `gem.combat.log`, `gem.state.entities`, … The public `gem.__all__` surface is unaffected, so `gem.parse`, `gem.ParsedMatch`, `gem.find_player`, etc. still work exactly as before.
+
+:::
+
+::: info Package reorganization
+
+Internal modules are grouped into focused subpackages — `binary/`, `schema/`, `state/`, `combat/`, `extractors/`, `analysis/`, `catalog/`, `results/`, `reports/`, `replays/` — each with its own README. The supported public API is unchanged; `gem.api`, `gem.parser`, `gem.constants`, `gem.reports`, `gem.catalog`, and `gem.extractors` still import as before.
+
+:::
+
+::: tip Source-based combat attribution
+
+Per-player combat scalars and per-target dicts now attribute damage/healing to the damage **source** (`damage_source_name`), matching OpenDota:
+
+- `ParsedPlayer.damage` / `damage_taken` / `healing` mirror OpenDota's source-attributed per-target dicts (illusion-prefixed keys; spurious ability/modifier-name keys excluded)
+- `tower_damage` is now essentially exact offline (~97.9–100% vs OpenDota, up from ~87%)
+- `hero_damage` improved — summon/projectile damage is credited to the owning hero
+- new `CombatLogEntry.damage_source_name` and `CombatLogEntry.will_reincarnate` fields
+- new `CombatLogType` `(str, Enum)`, backward compatible with string labels (`log_type == "DAMAGE"`)
+- unmapped combat-log proto types now resolve to `CombatLogType.UNKNOWN` instead of inflating damage via a `DAMAGE` fallback
+
+:::
+
+::: warning Correctness fixes
+
+- **Day/night cycle** corrected to a 10-minute cycle with night beginning at 5:00 (was a wrong 15-minute assumption), fixing vision-window math
+- **Ward lifespans** corrected — observer 360 s (10800 ticks), sentry 420 s (12600 ticks); previous values were off by ~15–35×
+- **Teamfight attribution** — gold credited to the recipient, XP deltas read from monotonic `m_iTotalEarnedXP`, spatial guards added, centroid divisor counts only positioned deaths
+- **Roshan conversion windows** clamped to the next Roshan boundary (no more double-counting across back-to-back Roshans)
+- **Reincarnation deaths** (WK / Aegis trigger deaths) excluded from death curves and teamfight death counts
+- **Coach-index remap** fixes scoreboard K/D/A attribution in coached/HLTV replays
+- **S1 combat log** PURCHASE item resolution and default attacker/target hero flags
+- **Fallback advantage curve** buckets each player by their actual game minute
+
+:::
 
 ## May 2026
 

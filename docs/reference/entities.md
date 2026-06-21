@@ -212,7 +212,7 @@ Signature: `def EntityManager.find(self, index: int) -> Entity | None`
 
 Return the entity at the given slot index, or None.
 
-Source: [src/gem/state/entities.py:564](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/entities.py#L564)
+Source: [src/gem/state/entities.py:580](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/entities.py#L580)
 
 ##### `find_by_handle`
 
@@ -220,7 +220,7 @@ Signature: `def EntityManager.find_by_handle(self, handle: int) -> Entity | None
 
 Return the entity for a Source 2 entity handle, or None.
 
-Source: [src/gem/state/entities.py:574](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/entities.py#L574)
+Source: [src/gem/state/entities.py:590](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/entities.py#L590)
 
 ##### `filter`
 
@@ -228,7 +228,7 @@ Signature: `def EntityManager.filter(self, predicate: Any) -> list[Entity]`
 
 Return all entities matching a predicate.
 
-Source: [src/gem/state/entities.py:587](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/entities.py#L587)
+Source: [src/gem/state/entities.py:603](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/entities.py#L603)
 
 ##### `find_by_class_name`
 
@@ -236,7 +236,7 @@ Signature: `def EntityManager.find_by_class_name(self, class_name: str) -> Entit
 
 Return the first active entity whose class name matches, or None.
 
-Source: [src/gem/state/entities.py:598](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/entities.py#L598)
+Source: [src/gem/state/entities.py:614](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/entities.py#L614)
 
 ##### `find_by_npc_name`
 
@@ -244,7 +244,7 @@ Signature: `def EntityManager.find_by_npc_name(self, npc_name: str) -> Entity | 
 
 Return the first active entity whose NPC name matches, or None.
 
-Source: [src/gem/state/entities.py:609](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/entities.py#L609)
+Source: [src/gem/state/entities.py:625](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/entities.py#L625)
 
 ##### `all_active`
 
@@ -252,4 +252,4 @@ Signature: `def EntityManager.all_active(self) -> list[Entity]`
 
 Return all currently active entities.
 
-Source: [src/gem/state/entities.py:644](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/entities.py#L644)
+Source: [src/gem/state/entities.py:660](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/entities.py#L660)

@@ -144,8 +144,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `highlight_id` | `uint32` | `required` | `` |  |
-| 2 | `category` | `.CMsgBattleReport_HighlightCategory` | `required` | `` | default = k_eHighlightGeneral |
+| 1 | `highlight_id` | `uint32` | `optional` | `` |  |
+| 2 | `category` | `.CMsgBattleReport_HighlightCategory` | `optional` | `` | default = k_eHighlightGeneral |
 | 3 | `tier` | `.CMsgBattleReport_HighlightTier` | `optional` | `` | default = k_eHighlightTierLow |
 | 4 | `rarity` | `.CMsgBattleReport_HighlightRarity` | `optional` | `` | default = k_eHighlightCommon |
 | 5 | `score` | `float` | `optional` | `` |  |

@@ -4,7 +4,7 @@
 - Syntax: `unknown`
 - Package: `(none)`
 - Imports: **0**
-- Messages: **27** (top-level: 19)
+- Messages: **28** (top-level: 20)
 - Enums: **1** (top-level: 1)
 
 ## Messages
@@ -360,6 +360,18 @@ Expand any message to inspect all fields.
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
 | 3 | `msgs` | `bytes` | `repeated` | `` |  |
+
+</details>
+
+<details>
+<summary><code>CDemoSpawnGroupsHLTVBroadcast</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `data` | `bytes` | `optional` | `` |  |
 
 </details>
 

@@ -2,8 +2,8 @@
 
 This page catalogs the full Dota 2 proto surface used by gem.
 
-- Source proto files: **78**
-- Generated Python protobuf modules (`*_pb2.py`, including subdirectories): **78**
+- Source proto files: **80**
+- Generated Python protobuf modules (`*_pb2.py`, including subdirectories): **80**
 
 ## Index
 
@@ -38,6 +38,7 @@ Use this list to jump directly to a file section:
 - [dota_gcmessages_common_bot_script.proto](#dota-gcmessages-common-bot-script-proto) — imports: 1, enums: 2, messages: 18
 - [dota_gcmessages_common_craftworks.proto](#dota-gcmessages-common-craftworks-proto) — imports: 3, enums: 1, messages: 3
 - [dota_gcmessages_common_fighting_game.proto](#dota-gcmessages-common-fighting-game-proto) — imports: 4, enums: 2, messages: 8
+- [dota_gcmessages_common_item_battler.proto](#dota-gcmessages-common-item-battler-proto) — imports: 4, enums: 2, messages: 19
 - [dota_gcmessages_common_league.proto](#dota-gcmessages-common-league-proto) — imports: 1, enums: 2, messages: 37
 - [dota_gcmessages_common_lobby.proto](#dota-gcmessages-common-lobby-proto) — imports: 3, enums: 5, messages: 32
 - [dota_gcmessages_common_match_management.proto](#dota-gcmessages-common-match-management-proto) — imports: 3, enums: 9, messages: 15
@@ -66,6 +67,7 @@ Use this list to jump directly to a file section:
 - [networkbasetypes.proto](#networkbasetypes-proto) — imports: 2, enums: 3, messages: 27
 - [networksystem_protomessages.proto](#networksystem-protomessages-proto) — imports: 0, enums: 0, messages: 5
 - [prediction_events.proto](#prediction-events-proto) — imports: 1, enums: 1, messages: 3
+- [source2_steam_stats.proto](#source2-steam-stats-proto) — imports: 0, enums: 1, messages: 10
 - [steamdatagram_messages_auth.proto](#steamdatagram-messages-auth-proto) — imports: 1, enums: 0, messages: 7
 - [steamdatagram_messages_sdr.proto](#steamdatagram-messages-sdr-proto) — imports: 2, enums: 10, messages: 42
 - [steammessages.proto](#steammessages-proto) — imports: 1, enums: 2, messages: 5
@@ -2171,6 +2173,47 @@ Each file is collapsed by default. Expand to view its declarations.
 
 </details>
 
+<a id="dota-gcmessages-common-item-battler-proto"></a>
+### dota_gcmessages_common_item_battler.proto
+
+<details>
+<summary><code>dota_gcmessages_common_item_battler.proto</code> — module: <code>dota_gcmessages_common_item_battler_pb2</code>; imports: 4; enums: 2; messages: 19</summary>
+
+- Imports: steammessages.proto, dota_shared_enums.proto, dota_gcmessages_common.proto, gcsdk_gcmessages.proto
+
+```text
+6: enum EItemBattlerAuditAction
+10: enum EItemBattlerGameState
+24: message CMsgItemBattlerPlayerInfo
+32: message CMsgItemBattlerItemModifier
+38: message CMsgItemBattlerItem
+47: message CMsgItemBattlerItemContainer
+55: message CMsgItemBattlerFightEvent
+65: message CMsgItemBattlerFightResult
+71: message CMsgItemBattlerPlayerData
+89: message CMsgItemBattlerEncounterData
+95: message CMsgItemBattlerGhostData
+96: message ItemsEntry
+101: message AbilitiesEntry
+112: message CMsgItemBattlerWorldData
+113: message ItemsEntry
+134: message CMsgItemBattlerGameData
+139: message CMsgClientToGCItemBattlerGetUserData
+142: message CMsgClientToGCItemBattlerGetUserDataResponse
+143: enum EResponse
+155: message CMsgItemBattlerItemAction
+158: message CMsgClientToGCItemBattlerGameAction
+159: enum EAction
+178: message CMsgClientToGCItemBattlerGameActionResponse
+179: enum EResponse
+192: message CMsgClientToGCItemBattlerDevGrantItem
+196: message CMsgClientToGCItemBattlerDevGrantItemResponse
+197: enum EResponse
+208: message CMsgGCToClientItemBattlerUserDataUpdated
+```
+
+</details>
+
 <a id="dota-gcmessages-common-league-proto"></a>
 ### dota_gcmessages_common_league.proto
 
@@ -3749,6 +3792,35 @@ Each file is collapsed by default. Expand to view its declarations.
 9: message CPredictionEvent_Teleport
 15: message CPredictionEvent_StringCommand
 19: message CPredictionEvent_Diagnostic
+```
+
+</details>
+
+<a id="source2-steam-stats-proto"></a>
+### source2_steam_stats.proto
+
+<details>
+<summary><code>source2_steam_stats.proto</code> — module: <code>source2_steam_stats_pb2</code>; imports: 0; enums: 1; messages: 10</summary>
+
+- Imports: *(none)*
+
+```text
+1: enum ESource2PlayStatsFieldType
+21: message CMsgSource2SystemSpecs
+38: message CMsgSource2VProfLiteReportItem
+59: message CMsgSource2VProfLiteReport
+65: message CMsgSource2NetworkFlowQuality
+112: message CMsgSource2PerfIntervalSample
+113: message Tag
+126: message CSource2Metrics_MatchPerfSummary_Notification
+127: message Client
+146: message CMsgSource2PlayStatsPackedRecordList
+147: message FieldDef
+152: message SteamIDList
+177: message CSource2Metrics_RecordPlayStats_Notification
+182: message CSource2Metrics_FetchMapData_Request
+191: message CSource2Metrics_FetchMapData_Response
+192: message MapData
 ```
 
 </details>

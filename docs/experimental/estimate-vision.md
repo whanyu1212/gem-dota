@@ -271,7 +271,7 @@ if allied hero is within day/night hero radius:
 if allied observer ward is alive and within 1600:
     add ward source
 
-if allied reveal modifier is active on an enemy hero:
+if a reveal modifier is active on a hero (the revealed target):
     add modifier source based on the revealed hero position
 
 sort all accepted sources by ascending distance
