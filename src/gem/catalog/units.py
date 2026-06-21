@@ -20,7 +20,9 @@ _LANE_CREEP_PREFIX = "npc_dota_creep_"
 _COURIER_NAMES = frozenset({"npc_dota_courier"})
 _OBSERVER_NAMES = frozenset({"npc_dota_observer_wards", "npc_dota_ward_base_truesight"})
 _SENTRY_NAMES = frozenset({"npc_dota_sentry_wards", "npc_dota_ward_base"})
-_ROSHAN_NAME = "npc_dota_roshan"
+# Roshan's kill can be credited under the Roshan unit or, in some replays, the
+# Roshan banner unit — OpenDota counts both toward roshan_kills.
+_ROSHAN_NAMES = frozenset({"npc_dota_roshan", "npc_dota_unit_roshans_banner"})
 
 
 def is_ancient(npc_name: str) -> bool:
@@ -96,12 +98,16 @@ def is_sentry_ward(npc_name: str) -> bool:
 
 
 def is_roshan(npc_name: str) -> bool:
-    """Return True if the NPC is Roshan.
+    """Return True if the NPC is Roshan (or the Roshan banner unit).
+
+    Some replays record the Roshan kill credit under
+    ``npc_dota_unit_roshans_banner`` rather than ``npc_dota_roshan``; OpenDota
+    counts both toward ``roshan_kills``, so both are treated as Roshan here.
 
     Args:
         npc_name: Combat-log ``target_name``.
 
     Returns:
-        True if the name is Roshan.
+        True if the name is Roshan or the Roshan banner.
     """
-    return npc_name == _ROSHAN_NAME
+    return npc_name in _ROSHAN_NAMES

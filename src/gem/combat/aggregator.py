@@ -14,6 +14,11 @@ from typing import TYPE_CHECKING, Any
 from gem.combat.log import CombatLogType
 from gem.extractors._snapshots import _player_id_from_entity
 
+# Ward unit names. A DEATH whose attacker is a ward is the ward expiring and
+# killing itself (wards deal no damage), not a kill — it must not be resolved to
+# the placer. Mirrors WardsExtractor._WARD_TARGET_NAMES.
+_WARD_TARGET_NAMES = frozenset({"npc_dota_observer_wards", "npc_dota_sentry_wards"})
+
 if TYPE_CHECKING:
     from gem.combat.log import CombatLogEntry
     from gem.extractors.players import PlayerExtractor
@@ -250,11 +255,18 @@ class _CombatAggregator:
         # Pugna ward, Beastmaster boars, etc.). DEATH is included so kills by
         # summons count toward the owner's kills_log, matching OpenDota's
         # per-player kill attribution. Excludes GOLD/XP/RUNE/etc.
+        #
+        # Skip ward self-expiry DEATHs: a ward expiring kills itself (attacker is
+        # the ward unit), and resolving that to the placer would inflate the
+        # placer's killed map / observer_kills / sentry_kills. Wards deal no
+        # damage, so a ward attacker on a DEATH is always a self-kill, never a
+        # real kill. See WardsExtractor's `killer in _WARD_TARGET_NAMES` expiry.
         if (
             attacker_pid is None
             and not entry.attacker_is_hero
             and entry.attacker_name
             and entry.log_type in ("DAMAGE", "ABILITY", "ITEM", "DEATH")
+            and not (entry.log_type == "DEATH" and entry.attacker_name in _WARD_TARGET_NAMES)
         ):
             attacker_pid = self._summon_to_pid(entry.attacker_name)
 

@@ -42,9 +42,11 @@ class TestUnitClassifiers:
         assert units.is_sentry_ward("npc_dota_sentry_wards")
         assert units.is_roshan("npc_dota_roshan")
 
-    def test_roshan_banner_is_not_roshan(self):
-        # The banner unit is distinct from Roshan and must not count.
-        assert not units.is_roshan("npc_dota_unit_roshans_banner")
+    def test_roshan_banner_counts_as_roshan(self):
+        # Some replays credit the Roshan kill under the banner unit; OpenDota
+        # counts both toward roshan_kills, so both must classify as Roshan.
+        assert units.is_roshan("npc_dota_roshan")
+        assert units.is_roshan("npc_dota_unit_roshans_banner")
 
 
 # ---------------------------------------------------------------------------
@@ -108,6 +110,11 @@ class TestCategorizeKills:
         assert cats.sentry_kills == 3
         assert cats.roshan_kills == 1
         assert cats.neutral_kills == 0
+
+    def test_roshan_banner_counts_toward_roshan_kills(self):
+        # Replays that record the kill under the banner unit must still count.
+        cats = categorize_kills({"npc_dota_unit_roshans_banner": 1})
+        assert cats.roshan_kills == 1
 
     def test_hero_kills_not_categorized(self):
         # Heroes/buildings are not any of the specialty categories.

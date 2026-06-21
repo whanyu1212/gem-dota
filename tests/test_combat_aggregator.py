@@ -529,3 +529,54 @@ class TestDedupPurchaseLog:
         ]
         result = _dedup_purchase_log(entries, first_snap_tick=100, sample_interval=150)
         assert len(result) == 2
+
+
+class TestSummonKillAttribution:
+    """DEATH kills by summons credit the owner; ward self-expiry does not."""
+
+    def _agg_with_summon_owner(self, summon_name: str, owner_slot_raw: int = 0):
+        """Wire an aggregator whose entity manager resolves ``summon_name`` to an
+        owner hero at player slot ``owner_slot_raw // 2``.
+        """
+        player_ext = MagicMock()
+        parser = MagicMock()
+        em = MagicMock()
+        summon_entity = MagicMock()
+        summon_entity.get_uint32.return_value = 12345  # owner handle
+        owner_entity = MagicMock()
+        owner_entity.get_int32.return_value = owner_slot_raw
+
+        def _find_by_npc_name(name):
+            return summon_entity if name == summon_name else None
+
+        em.find_by_npc_name.side_effect = _find_by_npc_name
+        em.find_by_handle.return_value = owner_entity
+        parser.entity_manager = em
+        player_ext._parser = parser
+        player_ext._heroes_by_npc = {}
+        return _CombatAggregator(player_ext)
+
+    def _death(self, attacker, target):
+        return _entry(
+            log_type="DEATH",
+            attacker_name=attacker,
+            attacker_is_hero=False,
+            damage_source_name="",
+            target_name=target,
+            target_is_hero=False,
+            value=0,
+        )
+
+    def test_summon_kill_credited_to_owner(self):
+        agg = self._agg_with_summon_owner("npc_dota_lone_druid_bear", owner_slot_raw=0)
+        agg.on_entry(self._death("npc_dota_lone_druid_bear", "npc_dota_creep_badguys_melee"))
+        assert len(agg.players[0].kills_log) == 1
+        assert agg.players[0].kills_log[0].target_name == "npc_dota_creep_badguys_melee"
+
+    def test_ward_self_expiry_not_credited_to_placer(self):
+        # A ward expiring is a DEATH whose attacker is the ward itself. Even if the
+        # ward would resolve to a placer, it must NOT be appended to kills_log.
+        agg = self._agg_with_summon_owner("npc_dota_observer_wards", owner_slot_raw=0)
+        agg.on_entry(self._death("npc_dota_observer_wards", "npc_dota_observer_wards"))
+        # The expiry was not attributed to any player, so no agg/kills_log exists.
+        assert agg.players.get(0) is None or agg.players[0].kills_log == []
