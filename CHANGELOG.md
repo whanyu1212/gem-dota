@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `ParsedPlayer.final_items` — end-of-game inventory by slot index (0-5 main,
+  6-8 backpack, 9-16 stash), keyed item name with the `item_` prefix. Read from
+  the hero entity at the game-end tick; verified to match OpenDota's
+  `item_0`–`item_5` for every player on the validation fixtures. (Tier-1 coverage
+  gap vs the OpenDota match API.)
+
+### Fixed
+- `PlayerExtractor._read_inventory` read only the legacy
+  `m_pEntity.m_nameStringableIndex`; modern replays expose item names via
+  `m_pEntity.m_nameStringTableIndex`, so inventory reads silently returned empty
+  on those replays. Now tries both (mirroring `_read_abilities`), which also
+  restores the starting-item synthetic `PURCHASE` entries emitted by
+  `_diff_inventory`.
+
+### Note
+- Permanent buffs and the derived `aghanims_scepter` / `aghanims_shard` /
+  `moonshard` flags remain **out of scope** for the parser: the relevant entity
+  fields (`m_vecPermanentBuffs`, `m_nScepterUpgradeID`, `m_nShardUpgradeID`,
+  `m_iAghanimsAbilityPoints`) stay zero across all validation replays — OpenDota
+  sources these from Game Coordinator match data, not the `.dem` stream.
+
 ## [0.3.0] - 2026-06-20
 
 A structural + correctness release. The package was reorganized into focused

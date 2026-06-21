@@ -183,6 +183,9 @@ class PlayerStateSnapshot:
         total_hero_healing: Cumulative healing dealt to allied heroes (from combat log).
         total_deaths: Cumulative death count (all causes, from combat log).
         total_stuns: Cumulative stun duration dealt in seconds (from combat log).
+        items: Item names by slot index for occupied slots (0-5 main inventory,
+            6-8 backpack, 9-16 stash). Populated only on the dense series, not
+            minute snapshots; the last dense sample gives end-of-game inventory.
     """
 
     tick: int
@@ -209,6 +212,7 @@ class PlayerStateSnapshot:
     total_hero_healing: int = 0
     total_deaths: int = 0
     total_stuns: float = 0.0
+    items: dict[int, str] = field(default_factory=dict)
 
 
 @dataclass

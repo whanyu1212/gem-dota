@@ -67,6 +67,7 @@ class _FakePlayerSnapshot:
     x: float | None = None
     y: float | None = None
     ability_levels: dict = field(default_factory=dict)
+    items: dict = field(default_factory=dict)
 
 
 def _make_parser(

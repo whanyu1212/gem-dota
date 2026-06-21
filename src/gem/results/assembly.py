@@ -444,6 +444,20 @@ def build_parsed_match(
         if pp.dn_t:
             pp.denies = pp.dn_t[-1]
 
+        # End-of-game inventory: the items recorded on this player's last dense
+        # snapshot (taken at the game-end tick). Mirrors OpenDota's per-slot
+        # item_0..5 / backpack / item_neutral, but keyed by slot with names.
+        last_inv_snap = next(
+            (
+                snap
+                for snap in reversed(player_ext.snapshots)
+                if snap.player_id == player_id and snap.items
+            ),
+            None,
+        )
+        if last_inv_snap is not None:
+            pp.final_items = dict(last_inv_snap.items)
+
         # Terminal team-data counters (camps/creeps stacked, wards placed, rune
         # pickups, tower kills) read from the same m_vecDataTeam entry as gold/xp.
         # The last observed value is the end-of-game total; each matches OpenDota's

@@ -186,6 +186,13 @@ class ParsedPlayer:
         ability_upgrades_arr: Ability upgrade IDs in learned order, matching
             OpenDota's ``ability_upgrades_arr``.
         item_uses: Item usage counts, keyed by item name.
+        final_items: End-of-game inventory by slot index, keyed item name with
+            the ``item_`` prefix (e.g. ``{0: "item_power_treads"}``). Slots 0-5
+            are the main inventory, 6-8 the backpack, 9-16 the stash. Occupied
+            slots only; empty slots are absent. Read from the hero entity at the
+            game-end tick. Mirrors OpenDota's ``item_0``–``item_5`` /
+            ``backpack_0``–``backpack_2`` / ``item_neutral`` (which use numeric
+            item IDs rather than names).
         gold_reasons: Gold received per reason code.
         xp_reasons: XP received per reason code.
         kills_log: Combat log DEATH entries where this player was the attacker.
@@ -317,6 +324,7 @@ class ParsedPlayer:
     ability_uses: dict[str, int] = field(default_factory=dict)
     ability_upgrades_arr: list[int] = field(default_factory=list)
     item_uses: dict[str, int] = field(default_factory=dict)
+    final_items: dict[int, str] = field(default_factory=dict)
     gold_reasons: dict[str, int] = field(default_factory=dict)
     xp_reasons: dict[str, int] = field(default_factory=dict)
     kills_log: list[CombatLogEntry] = field(default_factory=list)
