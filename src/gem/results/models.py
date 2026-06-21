@@ -247,6 +247,17 @@ class ParsedPlayer:
             ``rune_pickups``.
         tower_kills: Towers this player last-hit (``m_iTowerKills``). Matches
             OpenDota's per-player ``tower_kills``.
+        killed: Kills per target unit name, derived from ``kills_log`` (summon
+            kills credited to the owner). Mirrors OpenDota's ``killed`` map.
+        ancient_kills: Ancient-neutral creeps killed (from ``killed``).
+        neutral_kills: All neutral creeps killed, including ancients.
+        lane_kills: Lane creeps killed (whole game, not just the laning phase).
+        courier_kills: Couriers killed.
+        observer_kills: Observer wards killed.
+        sentry_kills: Sentry wards killed.
+        roshan_kills: Roshans last-hit by this player. Derived from ``kills_log``
+            (combat-log attributed), matching OpenDota's ``roshan_kills`` rather
+            than the unreliable ``m_iRoshanKills`` entity counter.
         kda: OpenDota KDA ratio, ``round((kills + assists) / (deaths + 1), 2)``.
             Note the ``+1`` denominator (not ``max(deaths, 1)``) and 2-decimal
             rounding; matches OpenDota's ``kda`` exactly.
@@ -366,6 +377,15 @@ class ParsedPlayer:
     xp_per_min: int = 0
     total_gold: int = 0
     total_xp: int = 0
+    # Derived kill aggregates (reshaped from kills_log; summon kills credited).
+    killed: dict[str, int] = field(default_factory=dict)
+    ancient_kills: int = 0
+    neutral_kills: int = 0
+    lane_kills: int = 0
+    courier_kills: int = 0
+    observer_kills: int = 0
+    sentry_kills: int = 0
+    roshan_kills: int = 0
     _ability_snapshots: list[tuple[int, dict[str, int]]] = field(default_factory=list)
 
     def __repr__(self) -> str:
