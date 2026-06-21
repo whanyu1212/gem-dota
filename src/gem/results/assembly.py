@@ -10,6 +10,7 @@ from collections import defaultdict
 from typing import TYPE_CHECKING, Any
 
 from gem.extractors.lane import classify_lane
+from gem.results.derived import categorize_kills, killed_counts
 from gem.results.models import ParsedMatch
 
 if TYPE_CHECKING:
@@ -403,6 +404,17 @@ def build_parsed_match(
             pp.hero_damage = agg.hero_damage
             pp.tower_damage = agg.tower_damage
             pp.hero_healing = agg.hero_healing
+
+        # OpenDota-shaped kill aggregates, derived from kills_log above.
+        pp.killed = killed_counts(pp.kills_log)
+        kill_cats = categorize_kills(pp.killed)
+        pp.ancient_kills = kill_cats.ancient_kills
+        pp.neutral_kills = kill_cats.neutral_kills
+        pp.lane_kills = kill_cats.lane_kills
+        pp.courier_kills = kill_cats.courier_kills
+        pp.observer_kills = kill_cats.observer_kills
+        pp.sentry_kills = kill_cats.sentry_kills
+        pp.roshan_kills = kill_cats.roshan_kills
 
         kda = player_ext.scoreboard.get(player_id)
         if kda is not None:

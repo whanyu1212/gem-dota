@@ -245,14 +245,16 @@ class _CombatAggregator:
             entry: A ``CombatLogEntry`` instance.
         """
         attacker_pid = self._hero_to_pid(entry.attacker_name) if entry.attacker_is_hero else None
-        # Credit summoned unit damage/stuns to the owning hero when the attacker
-        # is not a hero itself (Warlock Golem, LD bear, Chen creeps, Pugna ward, etc.)
-        # Only applies to DAMAGE/ABILITY/ITEM — not GOLD/XP/RUNE/etc.
+        # Credit summoned unit damage/stuns/kills to the owning hero when the
+        # attacker is not a hero itself (Warlock Golem, LD bear, Chen creeps,
+        # Pugna ward, Beastmaster boars, etc.). DEATH is included so kills by
+        # summons count toward the owner's kills_log, matching OpenDota's
+        # per-player kill attribution. Excludes GOLD/XP/RUNE/etc.
         if (
             attacker_pid is None
             and not entry.attacker_is_hero
             and entry.attacker_name
-            and entry.log_type in ("DAMAGE", "ABILITY", "ITEM")
+            and entry.log_type in ("DAMAGE", "ABILITY", "ITEM", "DEATH")
         ):
             attacker_pid = self._summon_to_pid(entry.attacker_name)
 

@@ -13,6 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the hero entity at the game-end tick; verified to match OpenDota's
   `item_0`–`item_5` for every player on the validation fixtures. (Tier-1 coverage
   gap vs the OpenDota match API.)
+- `ParsedPlayer.killed` and the derived kill scalars `ancient_kills`,
+  `neutral_kills`, `lane_kills`, `courier_kills`, `observer_kills`,
+  `sentry_kills`, `roshan_kills` — per-unit kill counts and OpenDota-style
+  category totals, reshaped from `kills_log`. Verified to match OpenDota for
+  every player without a transient summon army (8/10 on the validation fixture;
+  see the multi-summon note below). Backed by a new bundled `ancients.json`
+  data file and `gem.catalog.units` NPC classifiers.
 
 ### Fixed
 - `PlayerExtractor._read_inventory` read only the legacy
@@ -21,6 +28,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   on those replays. Now tries both (mirroring `_read_abilities`), which also
   restores the starting-item synthetic `PURCHASE` entries emitted by
   `_diff_inventory`.
+- Summon kills are now credited to the owning hero in `kills_log` (the combat
+  aggregator's summon→owner fallback previously covered DAMAGE/ABILITY/ITEM but
+  not DEATH), matching CLAUDE.md's stated rule and OpenDota's kill attribution
+  for single-summon heroes (Warlock Golem, Lone Druid bear, etc.).
+- `killed`-derived counts skip reincarnation/aegis *trigger* deaths
+  (`will_reincarnate`), consistent with teamfight attribution — fixes a
+  double-counted hero kill on heroes that reincarnate.
 
 ### Note
 - Permanent buffs and the derived `aghanims_scepter` / `aghanims_shard` /
@@ -28,6 +42,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fields (`m_vecPermanentBuffs`, `m_nScepterUpgradeID`, `m_nShardUpgradeID`,
   `m_iAghanimsAbilityPoints`) stay zero across all validation replays — OpenDota
   sources these from Game Coordinator match data, not the `.dem` stream.
+- Kill counts for heroes that field many transient, identically-named summons
+  (Beastmaster boars/hawk, Brewmaster split units) under-count: gem resolves a
+  summon to its owner by a single live name→entity lookup, which can't attribute
+  each kill from an army of same-named units. Tracked as a follow-up.
+- OpenDota's per-player `purchase` / `purchase_time` / `first_purchase_time`
+  maps are **not** reproduced: gem's `purchase_log` reconstructs starting items
+  as assembled-item events at a synthetic tick, so item-for-item parity with
+  OpenDota's component/recipe purchase stream isn't achievable without reworking
+  the starting-inventory model. Tracked as a follow-up.
 
 ## [0.3.0] - 2026-06-20
 
