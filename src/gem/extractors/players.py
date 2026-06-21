@@ -599,6 +599,9 @@ class PlayerExtractor:
             if minute:
                 self._minute_snaps.append(snap)
             else:
+                # Dense series only: capture current inventory. The last dense
+                # sample yields end-of-game inventory (read in assembly.py).
+                snap.items = self._read_inventory(entity)
                 self.snapshots.append(snap)
                 self._diff_inventory(entity, snap.player_id, snap.npc_name, tick)
 
@@ -685,7 +688,11 @@ class PlayerExtractor:
             item_entity = em.find_by_handle(handle)
             if item_entity is None:
                 continue
-            name_idx = item_entity.get_int32("m_pEntity.m_nameStringableIndex")
+            # Newer replays use m_nameStringTableIndex; older ones use
+            # m_nameStringableIndex. Try both, mirroring _read_abilities.
+            name_idx = item_entity.get_int32("m_pEntity.m_nameStringTableIndex")
+            if name_idx is None:
+                name_idx = item_entity.get_int32("m_pEntity.m_nameStringableIndex")
             if name_idx is None or name_idx < 0:
                 continue
             # EntityNames items are stored as (key_str, value_bytes); key_str is the name

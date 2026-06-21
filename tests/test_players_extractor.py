@@ -1038,6 +1038,71 @@ class TestReadInventory:
         ext.attach(parser)
         assert ext._read_inventory(_hero("Axe")) == {}
 
+    def test_resolves_items_via_name_string_table_index(self):
+        # Regression: real item entities expose m_nameStringTableIndex (not the
+        # older m_nameStringableIndex). Reading only the latter silently
+        # returned an empty inventory for modern replays.
+        from gem.state.string_table import StringTable, StringTables
+
+        entity_names = StringTable(index=0, name="EntityNames")
+        entity_names.items[7] = ("item_power_treads", b"")
+        entity_names.items[8] = ("item_blink", b"")
+        tables = StringTables()
+        tables.add(entity_names)
+
+        ext = PlayerExtractor()
+        parser = FakeParser()
+        parser.entity_manager = FakeEntityManager(
+            {
+                123: _ent("CDOTA_Item_PowerTreads", **{"m_pEntity.m_nameStringTableIndex": 7}),
+                456: _ent("CDOTA_Item_Blink", **{"m_pEntity.m_nameStringTableIndex": 8}),
+            }
+        )
+        parser.string_tables = tables
+        ext.attach(parser)
+
+        hero = _hero("Axe", **{"m_hItems.0000": 123, "m_hItems.0002": 456})
+        assert ext._read_inventory(hero) == {0: "item_power_treads", 2: "item_blink"}
+
+    def test_falls_back_to_name_stringable_index(self):
+        from gem.state.string_table import StringTable, StringTables
+
+        entity_names = StringTable(index=0, name="EntityNames")
+        entity_names.items[7] = ("item_tango", b"")
+        tables = StringTables()
+        tables.add(entity_names)
+
+        ext = PlayerExtractor()
+        parser = FakeParser()
+        parser.entity_manager = FakeEntityManager(
+            {123: _ent("CDOTA_Item_Tango", **{"m_pEntity.m_nameStringableIndex": 7})}
+        )
+        parser.string_tables = tables
+        ext.attach(parser)
+
+        hero = _hero("Axe", **{"m_hItems.0000": 123})
+        assert ext._read_inventory(hero) == {0: "item_tango"}
+
+    def test_skips_empty_slots(self):
+        from gem.state.string_table import StringTable, StringTables
+
+        entity_names = StringTable(index=0, name="EntityNames")
+        entity_names.items[7] = ("item_blink", b"")
+        tables = StringTables()
+        tables.add(entity_names)
+
+        ext = PlayerExtractor()
+        parser = FakeParser()
+        parser.entity_manager = FakeEntityManager(
+            {123: _ent("CDOTA_Item_Blink", **{"m_pEntity.m_nameStringTableIndex": 7})}
+        )
+        parser.string_tables = tables
+        ext.attach(parser)
+
+        # Slot 0 occupied; slot 1 is the empty-slot sentinel (0xFFFFFF).
+        hero = _hero("Axe", **{"m_hItems.0000": 123, "m_hItems.0001": 0xFFFFFF})
+        assert ext._read_inventory(hero) == {0: "item_blink"}
+
 
 # ---------------------------------------------------------------------------
 # PlayerExtractor._diff_inventory

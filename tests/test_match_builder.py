@@ -67,6 +67,7 @@ class _FakePlayerSnapshot:
     x: float | None = None
     y: float | None = None
     ability_levels: dict = field(default_factory=dict)
+    items: dict = field(default_factory=dict)
 
 
 def _make_parser(
@@ -1124,6 +1125,56 @@ class TestBuildParsedMatchPositionLog:
         # Only the snapshot with real coords should appear
         assert len(pos0) == 1
         assert pos0[0] == (130, 5.0, 6.0)
+
+
+# ---------------------------------------------------------------------------
+# build_parsed_match — final_items (end-of-game inventory)
+# ---------------------------------------------------------------------------
+
+
+class TestBuildParsedMatchFinalItems:
+    def _build(self, snaps):
+        return build_parsed_match(
+            _make_parser(),
+            _make_player_ext(snapshots=snaps),
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            _make_combat_agg(),
+            [],
+            [],
+        )
+
+    def test_final_items_from_last_snapshot(self):
+        snaps = [
+            _FakePlayerSnapshot(
+                player_id=0, tick=100, npc_name="n", team=2, items={0: "item_tango"}
+            ),
+            _FakePlayerSnapshot(
+                player_id=0, tick=130, npc_name="n", team=2, items={0: "item_blink", 1: "item_bkb"}
+            ),
+        ]
+        m = self._build(snaps)
+        assert m.players[0].final_items == {0: "item_blink", 1: "item_bkb"}
+
+    def test_empty_final_inventory_not_overwritten_by_stale_snapshot(self):
+        # Regression: a player can legitimately end with no items (sold/dropped/
+        # destroyed before Ancient death). The last snapshot wins even when empty;
+        # an earlier non-empty snapshot must NOT be copied as the final state.
+        snaps = [
+            _FakePlayerSnapshot(
+                player_id=0, tick=100, npc_name="n", team=2, items={0: "item_blink"}
+            ),
+            _FakePlayerSnapshot(player_id=0, tick=130, npc_name="n", team=2, items={}),
+        ]
+        m = self._build(snaps)
+        assert m.players[0].final_items == {}
+
+    def test_no_snapshots_leaves_default_empty(self):
+        m = self._build([_FakePlayerSnapshot(player_id=5, tick=1, npc_name="n", team=3)])
+        # player 0 has no snapshots at all → default {}
+        assert m.players[0].final_items == {}
 
 
 # ---------------------------------------------------------------------------
