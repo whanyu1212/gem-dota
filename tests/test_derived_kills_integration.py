@@ -4,12 +4,6 @@ Parses one full OpenDota fixture and checks that each player's derived kill
 scalars (ancient/neutral/lane/courier/observer/sentry/roshan kills) match
 OpenDota for the same hero.
 
-Known limitation: heroes that field many transient, identically-named summons
-(Beastmaster boars/hawk, Brewmaster split units) under-count because gem's
-summon→owner resolution maps a summon name to a single live entity rather than
-per-instance ownership. Those two hero classes are excluded from the strict
-parity assertion and checked separately as a documented gap.
-
 Marked ``slow`` + ``integration`` — needs a real ``.dem`` plus its
 ``.opendota.json``.
 """
@@ -38,9 +32,6 @@ _SCALARS = [
     "sentry_kills",
     "roshan_kills",
 ]
-
-# Heroes with many transient same-named summons; see module docstring.
-_MULTI_SUMMON_HEROES = {"npc_dota_hero_beastmaster", "npc_dota_hero_brewmaster"}
 
 
 @pytest.mark.slow
@@ -74,11 +65,11 @@ class TestDerivedKillsMatchOpenDota:
     def test_all_players_paired(self, rows):
         assert len(rows) == 10
 
-    def test_scalars_match_opendota_for_non_summon_heroes(self, rows):
+    def test_scalars_match_opendota_for_all_players(self, rows):
         mismatches = {
             hero: {s: v for s, v in scalars.items() if v[0] != v[1]}
             for hero, scalars in rows
-            if hero not in _MULTI_SUMMON_HEROES and any(v[0] != v[1] for v in scalars.values())
+            if any(v[0] != v[1] for v in scalars.values())
         }
         assert not mismatches, f"kill scalars diverged from OpenDota: {mismatches}"
 

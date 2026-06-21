@@ -573,6 +573,42 @@ class TestSummonKillAttribution:
         assert len(agg.players[0].kills_log) == 1
         assert agg.players[0].kills_log[0].target_name == "npc_dota_creep_badguys_melee"
 
+    def test_summon_death_prefers_damage_source_hero(self):
+        agg, _ = _make_agg(player_id_raw=0)
+        agg.on_entry(self._death("npc_dota_beastmaster_boar", "npc_dota_creep_badguys_melee"))
+        assert agg.players.get(0) is None
+
+        agg.on_entry(
+            _entry(
+                log_type="DEATH",
+                attacker_name="npc_dota_beastmaster_boar",
+                attacker_is_hero=False,
+                damage_source_name="npc_dota_hero_axe",
+                target_name="npc_dota_creep_badguys_melee",
+                target_is_hero=False,
+                value=0,
+            )
+        )
+
+        assert len(agg.players[0].kills_log) == 1
+        assert agg.players[0].kills_log[0].target_name == "npc_dota_creep_badguys_melee"
+
+    def test_self_death_with_source_hero_not_credited(self):
+        agg, _ = _make_agg(player_id_raw=0)
+        agg.on_entry(
+            _entry(
+                log_type="DEATH",
+                attacker_name="npc_dota_sentry_wards",
+                attacker_is_hero=False,
+                damage_source_name="npc_dota_hero_axe",
+                target_name="npc_dota_sentry_wards",
+                target_is_hero=False,
+                value=0,
+            )
+        )
+
+        assert agg.players.get(0) is None
+
     def test_ward_self_expiry_not_credited_to_placer(self):
         # A ward expiring is a DEATH whose attacker is the ward itself. Even if the
         # ward would resolve to a placer, it must NOT be appended to kills_log.

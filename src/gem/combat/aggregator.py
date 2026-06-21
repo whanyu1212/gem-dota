@@ -14,11 +14,6 @@ from typing import TYPE_CHECKING, Any
 from gem.combat.log import CombatLogType
 from gem.extractors._snapshots import _player_id_from_entity
 
-# Ward unit names. A DEATH whose attacker is a ward is the ward expiring and
-# killing itself (wards deal no damage), not a kill — it must not be resolved to
-# the placer. Mirrors WardsExtractor._WARD_TARGET_NAMES.
-_WARD_TARGET_NAMES = frozenset({"npc_dota_observer_wards", "npc_dota_sentry_wards"})
-
 if TYPE_CHECKING:
     from gem.combat.log import CombatLogEntry
     from gem.extractors.players import PlayerExtractor
@@ -243,6 +238,12 @@ class _CombatAggregator:
             # barracks, fort/ancient), not just towers.
             self._agg(source_pid).tower_damage += entry.value
 
+    def _is_self_death(self, entry: Any) -> bool:
+        """Return whether a DEATH entry is a self-kill OpenDota would ignore."""
+        if not entry.target_name:
+            return False
+        return entry.attacker_name == _illusion_key(entry.target_name, entry.target_is_illusion)
+
     def on_entry(self, entry: Any) -> None:
         """Process a single combat log entry, routing it to the right bucket.
 
@@ -250,39 +251,32 @@ class _CombatAggregator:
             entry: A ``CombatLogEntry`` instance.
         """
         attacker_pid = self._hero_to_pid(entry.attacker_name) if entry.attacker_is_hero else None
-        # Credit summoned unit damage/stuns/kills to the owning hero when the
+        # Credit summoned unit damage/stuns/uses to the owning hero when the
         # attacker is not a hero itself (Warlock Golem, LD bear, Chen creeps,
-        # Pugna ward, Beastmaster boars, etc.). DEATH is included so kills by
-        # summons count toward the owner's kills_log, matching OpenDota's
-        # per-player kill attribution. Excludes GOLD/XP/RUNE/etc.
-        #
-        # Skip ward self-expiry DEATHs: a ward expiring kills itself (attacker is
-        # the ward unit), and resolving that to the placer would inflate the
-        # placer's killed map / observer_kills / sentry_kills. Wards deal no
-        # damage, so a ward attacker on a DEATH is always a self-kill, never a
-        # real kill. See WardsExtractor's `killer in _WARD_TARGET_NAMES` expiry.
+        # Pugna ward, Beastmaster boars, etc.). DEATH is handled separately
+        # below because OpenDota credits kills to the combat-log sourcename, not
+        # the attacker name.
         if (
             attacker_pid is None
             and not entry.attacker_is_hero
             and entry.attacker_name
-            and entry.log_type in ("DAMAGE", "ABILITY", "ITEM", "DEATH")
-            and not (entry.log_type == "DEATH" and entry.attacker_name in _WARD_TARGET_NAMES)
+            and entry.log_type in ("DAMAGE", "ABILITY", "ITEM")
         ):
             attacker_pid = self._summon_to_pid(entry.attacker_name)
 
         # OpenDota attributes the per-target damage/healing dicts and the
-        # hero_damage/tower_damage scalars to the *source* unit
+        # hero_damage/tower_damage scalars, plus the killed/kills_log streams, to
+        # the *source* unit
         # (``damage_source_name``), not the attacker — so a hero's spell /
         # projectile damage (where the attacker is the projectile) lands on the
-        # hero. Attribution is strictly to the source *hero*: a summon's own
-        # damage stays under the summon's name and is NOT rolled up to the owner,
-        # matching OpenDota's reconstruction (``unit = e.sourcename``, see
-        # CreateParsedDataBlob.handleDamageCombat). This differs from gem's
-        # summon→owner convention for kills/stuns (which still applies via
-        # ``attacker_pid``) and is both more OpenDota-faithful and more accurate
-        # (tower_damage ~exact; hero_damage closer, though still a gross-vs-GC
-        # over-estimate — see _accumulate_hero_tower_damage). When the source name
-        # is empty (auto-attack: source == attacker), fall back to the attacker slot.
+        # hero. For DAMAGE/HEAL, attribution is strictly to the source *hero*: a
+        # summon's own damage stays under the summon's name and is NOT rolled up
+        # to the owner, matching OpenDota's reconstruction (``unit =
+        # e.sourcename``, see CreateParsedDataBlob.handleDamageCombat). For
+        # DEATH, the same source-first rule closes summon kill attribution for
+        # transient units such as Beastmaster boars and Brewmaster split units.
+        # When the source name is empty (auto-attack: source == attacker), fall
+        # back to the attacker slot.
         source_name = getattr(entry, "damage_source_name", "") or ""
         if source_name:
             source_pid = self._hero_to_pid(source_name)
@@ -348,8 +342,17 @@ class _CombatAggregator:
                 if target_pid is not None:
                     self._agg(target_pid).xp_reasons[str(entry.xp_reason)] += entry.value
             case CombatLogType.DEATH:
-                if attacker_pid is not None:
-                    self._agg(attacker_pid).kills_log.append(entry)
+                # OpenDota's DOTA_COMBATLOG_DEATH expansion uses sourcename as
+                # the killing unit and ignores self-kills. This is crucial for
+                # multi-summon heroes: their transient units often appear as the
+                # attacker, while damage_source_name is the owning hero.
+                if self._is_self_death(entry):
+                    return
+                death_pid = source_pid if source_pid is not None else attacker_pid
+                if death_pid is None and not entry.attacker_is_hero and entry.attacker_name:
+                    death_pid = self._summon_to_pid(entry.attacker_name)
+                if death_pid is not None:
+                    self._agg(death_pid).kills_log.append(entry)
             case CombatLogType.PURCHASE:
                 pid = attacker_pid if attacker_pid is not None else target_pid
                 if pid is not None:
