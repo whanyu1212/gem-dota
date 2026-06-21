@@ -3,8 +3,6 @@
 `gem` turns a raw `.dem` binary into structured Python objects in a single pass.
 This page shows how the modules fit together and what each layer produces.
 
----
-
 ## Pipeline
 
 ```mermaid
@@ -56,8 +54,6 @@ flowchart TD
     ASSEMBLE --> O
     O --> P
 ```
-
----
 
 ## Layers at a glance
 
@@ -129,8 +125,6 @@ flowchart TD
   </div>
 
 </div>
-
----
 
 ## Output model
 
