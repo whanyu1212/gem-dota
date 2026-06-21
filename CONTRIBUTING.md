@@ -81,6 +81,30 @@ CI builds the site via `.github/workflows/docs.yml`. If you upgrade docs tooling
 open a dedicated PR with the updated `docs/package.json` / lockfile and a successful
 `npm run docs:build`.
 
+### Cutting a release (maintainers)
+
+`scripts/release.sh <version> [--push]` automates a release. It refuses to run
+unless the working tree is clean and `CHANGELOG.md` already has a `## [<version>]`
+section, so add the changelog entry first. It then:
+
+1. Rewrites the `version` field in `pyproject.toml`.
+2. Runs the pre-flight checks (`ruff check`, `mypy src/gem/`, the non-integration test suite).
+3. Builds the distribution artifacts (`uv build`).
+4. Commits `chore(release): v<version>` and creates the `v<version>` git tag.
+
+```bash
+# Stage the release locally (commit + tag, no push)
+bash scripts/release.sh 0.3.1
+
+# Or cut and push in one step (pushes the branch and the tag)
+bash scripts/release.sh 0.3.1 --push
+```
+
+Publishing to PyPI is driven by `.github/workflows/cd.yml`, which triggers on a
+pushed `v*` tag. So without `--push` the script leaves the commit and tag local;
+push them (`git push origin HEAD && git push origin v<version>`) when you are ready
+to publish.
+
 ## How to Contribute
 
 ### Reporting Bugs

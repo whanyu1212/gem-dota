@@ -59,7 +59,8 @@ MATCH_IDS = EXTENDED_MATCH_IDS if os.environ.get("GEM_DRAFT_INTEGRATION_FULL") e
 
 
 # ---------------------------------------------------------------------------
-# Helpers (mirrors scripts/fetch_replays.py + scripts/fetch_hero_npc_names.py)
+# Helpers: self-contained OpenDota replay fetch + npc_dota_hero_* name scan
+# (reimplemented here so the integration test has no external script deps).
 # ---------------------------------------------------------------------------
 
 
