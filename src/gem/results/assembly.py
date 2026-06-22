@@ -9,7 +9,6 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any
 
-from gem.analysis.combat import is_active_teamfight_participant
 from gem.catalog import hero_id
 from gem.extractors.lane import classify_lane
 from gem.results.derived import categorize_kills, killed_counts
@@ -329,23 +328,27 @@ def build_parsed_match(
     game_start_tick = parser.game_start_tick
     interval_min_series = _interval_series_by_player(interval_ext)
 
-    # First blood: the earliest real hero DEATH (reincarnation triggers excluded).
-    # OpenDota measures first_blood_time on the game clock and flags the killer.
+    # first_blood_time: game-clock time of the earliest real hero DEATH. Illusion
+    # deaths and reincarnation triggers are excluded (target_is_hero stays true for
+    # an illusion, so the explicit not-illusion filter is required). The per-player
+    # firstblood_claimed flag is read separately from the authoritative
+    # CDOTA_PlayerResource field below, not reconstructed from this entry.
     first_blood_entry = next(
         (
             e
             for e in all_entries
-            if e.log_type == "DEATH" and e.target_is_hero and not e.will_reincarnate
+            if e.log_type == "DEATH"
+            and e.target_is_hero
+            and not e.target_is_illusion
+            and not e.will_reincarnate
         ),
         None,
     )
-    first_blood_killer_pid: int | None = None
     if first_blood_entry is not None:
         if first_blood_entry.game_time_s is not None:
             match.first_blood_time = int(first_blood_entry.game_time_s)
         elif game_start_tick is not None:
             match.first_blood_time = max(0, (first_blood_entry.tick - game_start_tick) // 30)
-        first_blood_killer_pid = combat_agg._hero_to_pid(first_blood_entry.attacker_name)
 
     # NOTE: pre_game_duration (horn → creep-spawn span, ~90s) is intentionally
     # left at its default 0 here. It requires the GAME_IN_PROGRESS state-transition
@@ -541,11 +544,17 @@ def build_parsed_match(
             pp.rune_pickups = counters["rune_pickups"]
             pp.tower_kills = counters["tower_kills"]
 
+        # firstblood_claimed: authoritative CDOTA_PlayerResource flag (the field
+        # OpenDota reads), not a combat-log reconstruction.
+        if interval_ext is not None:
+            pp.firstblood_claimed = int(
+                interval_ext.player_resource_scalars(player_id)["firstblood_claimed"]
+            )
+
         # OpenDota-style computed convenience fields (no duration dependency).
         # kda uses a +1 denominator and 2-decimal rounding, matching OpenDota.
         pp.kda = round((pp.kills + pp.assists) / (pp.deaths + 1), 2)
         pp.buyback_count = len(pp.buyback_log)
-        pp.firstblood_claimed = 1 if first_blood_killer_pid == player_id else 0
         pp.is_radiant = pp.team == 2  # 2 = Radiant
         # win is 0 when the winner is unknown (radiant_win is None).
         pp.win = 1 if (radiant_win is not None and pp.is_radiant == radiant_win) else 0
@@ -686,19 +695,16 @@ def build_parsed_match(
         duration_s=match.duration or None,
     )
 
-    # teamfight_participation: fraction of detected teamfights in which the player
-    # had direct hero-vs-hero combat (OpenDota parity). Uses the rich Teamfight
-    # list, whose per-player rows carry the damage/death fields the helper reads.
-    num_fights = len(match.teamfights)
-    if num_fights:
+    # teamfight_participation: read the authoritative game-computed value from
+    # CDOTA_PlayerResource.m_flTeamFightParticipation — the exact field OpenDota
+    # reads (Parse.java), not a teamfight-window reconstruction (which OpenDota
+    # itself does not do, and which can't match the engine's metric).
+    if interval_ext is not None:
         for player_id in range(10):
-            active = sum(
-                1
-                for fight in match.teamfights
-                for fp in fight.players
-                if fp.player_id == player_id and is_active_teamfight_participant(fp)
+            scalars = interval_ext.player_resource_scalars(player_id)
+            match.players[player_id].teamfight_participation = round(
+                scalars["teamfight_participation"], 7
             )
-            match.players[player_id].teamfight_participation = round(active / num_fights, 7)
 
     # Team kill scores = sum of each side's player kills (OpenDota parity).
     match.radiant_score = sum(pp.kills for pp in match.players if pp.team == 2)

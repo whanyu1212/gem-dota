@@ -286,9 +286,10 @@ class ParsedPlayer:
             Mirrors OpenDota's ``life_state_dead``.
         firstblood_claimed: ``1`` if this player dealt the game's first-blood kill,
             else ``0``. Mirrors OpenDota's ``firstblood_claimed``.
-        teamfight_participation: Fraction of teamfights this player actively
-            participated in (0.0–1.0). Mirrors OpenDota's
-            ``teamfight_participation``.
+        teamfight_participation: Fraction of OpenDota-compatible teamfights
+            (``opendota_teamfights``) the player was involved in (0.0–1.0) — any
+            death, buyback, damage, healing, or ability/item use in the window.
+            Mirrors OpenDota's ``teamfight_participation``.
         kda: OpenDota KDA ratio, ``round((kills + assists) / (deaths + 1), 2)``.
             Note the ``+1`` denominator (not ``max(deaths, 1)``) and 2-decimal
             rounding; matches OpenDota's ``kda`` exactly.
