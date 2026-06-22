@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass, field
+from typing import Any
 
 from gem.combat.log import CombatLogEntry
 from gem.extractors.courier import CourierSnapshot
@@ -180,6 +181,23 @@ class ParsedPlayer:
             (``"physical"``, ``"magical"``, ``"pure"``).
         damage_taken_by_type: Total damage received, keyed by damage type label
             (``"physical"``, ``"magical"``, ``"pure"``).
+        damage_inflictor: Damage dealt to enemy heroes keyed by the inflictor
+            (ability / item, ``item_`` prefix stripped; auto-attacks excluded),
+            mirroring OpenDota's ``damage_inflictor``. Self-inflicted damage is
+            excluded.
+        damage_inflictor_received: Damage received from enemy heroes keyed by the
+            enemy's inflictor name, mirroring OpenDota's
+            ``damage_inflictor_received``.
+        damage_targets: Nested ``inflictor -> {target_hero: damage}`` breakdown of
+            damage dealt to enemy heroes, mirroring OpenDota's ``damage_targets``.
+        ability_targets: Nested ``ability -> {target_hero: count}`` breakdown of
+            ability casts that hit enemy heroes, mirroring OpenDota's
+            ``ability_targets``.
+        hero_hits: Count of damage instances landed on enemy heroes keyed by
+            inflictor, mirroring OpenDota's ``hero_hits``.
+        max_hero_hit: The single largest hit landed on an enemy hero as
+            ``{time, type, unit, key, inflictor, value, max}``, or ``None`` if the
+            player dealt no hero damage; mirrors OpenDota's ``max_hero_hit``.
         healing: Total healing dealt, credited to the heal *source*, keyed by
             target NPC name (illusion targets keyed ``illusion_<npc>``).
         ability_uses: Ability usage counts, keyed by ability name.
@@ -258,6 +276,20 @@ class ParsedPlayer:
         roshan_kills: Roshans last-hit by this player. Derived from ``kills_log``
             (combat-log attributed), matching OpenDota's ``roshan_kills`` rather
             than the unreliable ``m_iRoshanKills`` entity counter.
+        hero_id: Numeric Dota 2 hero ID (e.g. 61 = Broodmother), mirroring
+            OpenDota's ``hero_id``. ``0`` if unresolved.
+        level: Terminal hero level, the last dense snapshot's level. Mirrors
+            OpenDota's ``level``.
+        gold_spent: Total gold spent over the game (``total earned gold − current
+            gold``), mirroring OpenDota's ``gold_spent``.
+        life_state_dead: Seconds spent dead, sampled from the hero's life state.
+            Mirrors OpenDota's ``life_state_dead``.
+        firstblood_claimed: ``1`` if this player dealt the game's first-blood kill,
+            else ``0``. Mirrors OpenDota's ``firstblood_claimed``.
+        teamfight_participation: Fraction of OpenDota-compatible teamfights
+            (``opendota_teamfights``) the player was involved in (0.0–1.0) — any
+            death, buyback, damage, healing, or ability/item use in the window.
+            Mirrors OpenDota's ``teamfight_participation``.
         kda: OpenDota KDA ratio, ``round((kills + assists) / (deaths + 1), 2)``.
             Note the ``+1`` denominator (not ``max(deaths, 1)``) and 2-decimal
             rounding; matches OpenDota's ``kda`` exactly.
@@ -331,6 +363,12 @@ class ParsedPlayer:
     damage_taken: dict[str, int] = field(default_factory=dict)
     damage_by_type: dict[str, int] = field(default_factory=dict)
     damage_taken_by_type: dict[str, int] = field(default_factory=dict)
+    damage_inflictor: dict[str, int] = field(default_factory=dict)
+    damage_inflictor_received: dict[str, int] = field(default_factory=dict)
+    damage_targets: dict[str, dict[str, int]] = field(default_factory=dict)
+    ability_targets: dict[str, dict[str, int]] = field(default_factory=dict)
+    hero_hits: dict[str, int] = field(default_factory=dict)
+    max_hero_hit: dict[str, Any] | None = None
     healing: dict[str, int] = field(default_factory=dict)
     ability_uses: dict[str, int] = field(default_factory=dict)
     ability_upgrades_arr: list[int] = field(default_factory=list)
@@ -386,6 +424,13 @@ class ParsedPlayer:
     observer_kills: int = 0
     sentry_kills: int = 0
     roshan_kills: int = 0
+    # OpenDota-parity terminal / derived scalars.
+    hero_id: int = 0
+    level: int = 0
+    gold_spent: int = 0
+    life_state_dead: int = 0
+    firstblood_claimed: int = 0
+    teamfight_participation: float = 0.0
     _ability_snapshots: list[tuple[int, dict[str, int]]] = field(default_factory=list)
 
     def __repr__(self) -> str:
@@ -451,6 +496,17 @@ class ParsedMatch:
             the postGame transition was not observed. Distinct from the
             tick-derived ``duration_seconds`` property, which spans the raw parser
             ticks and includes pre/post-game time.
+        radiant_score: Radiant's final kill score (sum of Radiant players'
+            kills), mirroring OpenDota's ``radiant_score``.
+        dire_score: Dire's final kill score (sum of Dire players' kills),
+            mirroring OpenDota's ``dire_score``.
+        first_blood_time: Game-relative time in seconds of the first hero death,
+            mirroring OpenDota's ``first_blood_time``. ``0`` if no hero death was
+            observed.
+        pre_game_duration: Seconds between the horn and creep spawn, mirroring
+            OpenDota's ``pre_game_duration``. Currently always ``0`` — deriving it
+            needs the GAME_IN_PROGRESS state-transition timestamp the parser does
+            not yet expose; reserved for a follow-up.
     """
 
     match_id: int = 0
@@ -466,6 +522,10 @@ class ParsedMatch:
     game_start_tick: int | None = None
     game_end_tick: int = 0
     duration: int = 0
+    radiant_score: int = 0
+    dire_score: int = 0
+    first_blood_time: int = 0
+    pre_game_duration: int = 0
     players: list[ParsedPlayer] = field(
         default_factory=lambda: [ParsedPlayer(player_id=i) for i in range(10)]
     )

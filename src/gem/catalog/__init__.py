@@ -10,7 +10,14 @@ Reference: https://github.com/odota/dotaconstants
 from __future__ import annotations
 
 from gem.catalog.abilities import ABILITIES, ability_display
-from gem.catalog.heroes import HEROES, hero_display, hero_meta, hero_npc_name, hero_short
+from gem.catalog.heroes import (
+    HEROES,
+    hero_display,
+    hero_id,
+    hero_meta,
+    hero_npc_name,
+    hero_short,
+)
 from gem.catalog.items import (
     ITEMS,
     PERMANENT_BUFFS,
@@ -37,6 +44,7 @@ __all__ = [
     "XP_LEVEL",
     "ability_display",
     "hero_display",
+    "hero_id",
     "hero_meta",
     "hero_npc_name",
     "hero_short",

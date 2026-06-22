@@ -9,6 +9,7 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any
 
+from gem.catalog import hero_id
 from gem.extractors.lane import classify_lane
 from gem.results.derived import categorize_kills, killed_counts
 from gem.results.models import ParsedMatch
@@ -327,6 +328,34 @@ def build_parsed_match(
     game_start_tick = parser.game_start_tick
     interval_min_series = _interval_series_by_player(interval_ext)
 
+    # first_blood_time: game-clock time of the earliest real hero DEATH. Illusion
+    # deaths and reincarnation triggers are excluded (target_is_hero stays true for
+    # an illusion, so the explicit not-illusion filter is required). The per-player
+    # firstblood_claimed flag is read separately from the authoritative
+    # CDOTA_PlayerResource field below, not reconstructed from this entry.
+    first_blood_entry = next(
+        (
+            e
+            for e in all_entries
+            if e.log_type == "DEATH"
+            and e.target_is_hero
+            and not e.target_is_illusion
+            and not e.will_reincarnate
+        ),
+        None,
+    )
+    if first_blood_entry is not None:
+        if first_blood_entry.game_time_s is not None:
+            match.first_blood_time = int(first_blood_entry.game_time_s)
+        elif game_start_tick is not None:
+            match.first_blood_time = max(0, (first_blood_entry.tick - game_start_tick) // 30)
+
+    # NOTE: pre_game_duration (horn → creep-spawn span, ~90s) is intentionally
+    # left at its default 0 here. It requires the GAME_IN_PROGRESS state-transition
+    # timestamp, which the parser does not yet expose separately from the clock
+    # anchor (m_flGameStartTime is the engine clock zero, not the pre-game span).
+    # Tracked as a follow-up rather than shipping a wrong value.
+
     # Build per-player time series and overlay combat log aggregates
     for player_id in range(10):
         ts = player_ext.time_series(player_id)
@@ -385,6 +414,14 @@ def build_parsed_match(
             pp.damage_taken = agg.damage_taken
             pp.damage_by_type = agg.damage_by_type
             pp.damage_taken_by_type = agg.damage_taken_by_type
+            # OpenDota per-inflictor / per-target attribution breakdowns. Nested
+            # defaultdicts are flattened to plain dicts for clean serialization.
+            pp.damage_inflictor = dict(agg.damage_inflictor)
+            pp.damage_inflictor_received = dict(agg.damage_inflictor_received)
+            pp.damage_targets = {k: dict(v) for k, v in agg.damage_targets.items()}
+            pp.ability_targets = {k: dict(v) for k, v in agg.ability_targets.items()}
+            pp.hero_hits = dict(agg.hero_hits)
+            pp.max_hero_hit = agg.max_hero_hit
             pp.healing = agg.healing
             pp.ability_uses = agg.ability_uses
             pp.item_uses = agg.item_uses
@@ -468,6 +505,30 @@ def build_parsed_match(
         )
         if last_snap is not None:
             pp.final_items = dict(last_snap.items)
+            # Terminal hero level from the last dense snapshot.
+            pp.level = last_snap.level
+
+        # Numeric hero_id from the resolved hero NPC name (robust per-player link;
+        # avoids the draft pick-order trap). 0 if the hero is absent from the
+        # bundled heroes.json snapshot.
+        pp.hero_id = hero_id(pp.hero_name) if pp.hero_name else 0
+
+        # gold_spent = total earned gold − current spendable gold (OpenDota parity).
+        if pp.total_earned_gold_t and pp.gold_t:
+            pp.gold_spent = max(0, pp.total_earned_gold_t[-1] - pp.gold_t[-1])
+
+        # life_state_dead: seconds spent dead. OpenDota samples life_state once per
+        # game-second and sums the non-alive samples (states 1 + 2). We mirror that
+        # by counting DISTINCT dead game-seconds, which is robust to gem's snapshot
+        # cadence (multiple dense samples can fall in one second). Falls back to the
+        # tick second when game_time_s is unavailable (S1/early frames).
+        dead_seconds: set[int] = set()
+        for snap in player_ext.snapshots:
+            if snap.player_id != player_id or snap.life_state == 0:
+                continue
+            sec = snap.game_time_s if snap.game_time_s is not None else snap.tick // 30
+            dead_seconds.add(sec)
+        pp.life_state_dead = len(dead_seconds)
 
         # Terminal team-data counters (camps/creeps stacked, wards placed, rune
         # pickups, tower kills) read from the same m_vecDataTeam entry as gold/xp.
@@ -482,6 +543,13 @@ def build_parsed_match(
             pp.sen_placed = counters["sen_placed"]
             pp.rune_pickups = counters["rune_pickups"]
             pp.tower_kills = counters["tower_kills"]
+
+        # firstblood_claimed: authoritative CDOTA_PlayerResource flag (the field
+        # OpenDota reads), not a combat-log reconstruction.
+        if interval_ext is not None:
+            pp.firstblood_claimed = int(
+                interval_ext.player_resource_scalars(player_id)["firstblood_claimed"]
+            )
 
         # OpenDota-style computed convenience fields (no duration dependency).
         # kda uses a +1 denominator and 2-decimal rounding, matching OpenDota.
@@ -626,6 +694,21 @@ def build_parsed_match(
         game_start_tick=match.game_start_tick,
         duration_s=match.duration or None,
     )
+
+    # teamfight_participation: read the authoritative game-computed value from
+    # CDOTA_PlayerResource.m_flTeamFightParticipation — the exact field OpenDota
+    # reads (Parse.java), not a teamfight-window reconstruction (which OpenDota
+    # itself does not do, and which can't match the engine's metric).
+    if interval_ext is not None:
+        for player_id in range(10):
+            scalars = interval_ext.player_resource_scalars(player_id)
+            match.players[player_id].teamfight_participation = round(
+                scalars["teamfight_participation"], 7
+            )
+
+    # Team kill scores = sum of each side's player kills (OpenDota parity).
+    match.radiant_score = sum(pp.kills for pp in match.players if pp.team == 2)
+    match.dire_score = sum(pp.kills for pp in match.players if pp.team == 3)
 
     # Build per-player ability level snapshots for ability_level_at_tick().
     # Collect (tick, ability_levels) pairs from minute-boundary snapshots,

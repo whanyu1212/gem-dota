@@ -11,7 +11,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-from gem.combat.log import CombatLogType
+from gem.combat.log import CombatLogType, opendota_translate
 from gem.extractors._snapshots import _player_id_from_entity
 
 if TYPE_CHECKING:
@@ -26,6 +26,31 @@ if TYPE_CHECKING:
 
 def _int_counter() -> defaultdict[str, int]:
     return defaultdict(int)
+
+
+def _nested_int_counter() -> defaultdict[str, defaultdict[str, int]]:
+    """Two-level ``str -> str -> int`` counter for inflictor×target breakdowns."""
+    return defaultdict(_int_counter)
+
+
+def _inflictor_key(inflictor_name: str) -> str | None:
+    """Translate an inflictor name to its OpenDota dict-key form.
+
+    Like :func:`opendota_translate` but maps the empty/no-inflictor case
+    (auto-attacks) to the literal key ``"null"`` — OpenDota emits a JSON ``null``
+    inflictor that becomes the object key ``"null"`` once stringified. Returns
+    ``None`` only for ``dota_unknown`` (which OpenDota drops entirely).
+
+    Args:
+        inflictor_name: The raw combat-log ``inflictor_name``.
+
+    Returns:
+        The OpenDota key (``"null"`` for auto-attacks), or ``None`` to skip.
+    """
+    translated = opendota_translate(inflictor_name)
+    if translated is None:
+        return None
+    return translated or "null"
 
 
 def _illusion_key(name: str, is_illusion: bool) -> str:
@@ -70,6 +95,23 @@ class _ParsedPlayerAgg:
     damage_taken: defaultdict[str, int] = field(default_factory=_int_counter)
     damage_by_type: defaultdict[str, int] = field(default_factory=_int_counter)
     damage_taken_by_type: defaultdict[str, int] = field(default_factory=_int_counter)
+    # OpenDota per-inflictor / per-target attribution breakdowns, all keyed on the
+    # translated inflictor name (item_ prefix stripped). Populated only for damage
+    # against an enemy hero (non-illusion), matching CreateParsedDataBlob.
+    # handleDamageCombat / handleAbility gating. damage_targets/ability_targets are
+    # nested inflictor -> {target_hero: value/count}; damage_inflictor and
+    # damage_inflictor_received are flat inflictor -> value; hero_hits counts
+    # instances (not summed damage); max_hero_hit holds the single largest hit.
+    damage_inflictor: defaultdict[str, int] = field(default_factory=_int_counter)
+    damage_inflictor_received: defaultdict[str, int] = field(default_factory=_int_counter)
+    damage_targets: defaultdict[str, defaultdict[str, int]] = field(
+        default_factory=_nested_int_counter
+    )
+    ability_targets: defaultdict[str, defaultdict[str, int]] = field(
+        default_factory=_nested_int_counter
+    )
+    hero_hits: defaultdict[str, int] = field(default_factory=_int_counter)
+    max_hero_hit: dict[str, Any] | None = None
     healing: defaultdict[str, int] = field(default_factory=_int_counter)
     ability_uses: defaultdict[str, int] = field(default_factory=_int_counter)
     item_uses: defaultdict[str, int] = field(default_factory=_int_counter)
@@ -238,6 +280,62 @@ class _CombatAggregator:
             # barracks, fort/ancient), not just towers.
             self._agg(source_pid).tower_damage += entry.value
 
+    def _accumulate_inflictor_damage(
+        self,
+        source_pid: int,
+        target_pid: int | None,
+        source_unit: str,
+        entry: Any,
+    ) -> None:
+        """Add one hero-target DAMAGE entry to the OpenDota inflictor breakdowns.
+
+        Implements ``CreateParsedDataBlob.handleDamageCombat``'s inflictor block,
+        which the caller has already gated on the target being a non-illusion hero
+        and the source being resolved. All keys use the translated inflictor name
+        (``item_`` stripped); ``dota_unknown`` (auto-attacks) is dropped.
+
+        ``damage_targets`` (inflictor→{target:dmg}) and ``hero_hits``
+        (inflictor→hit count) are always recorded. ``damage_inflictor``,
+        ``max_hero_hit`` and ``damage_inflictor_received`` are additionally gated on
+        the damage not being self-inflicted (OpenDota's ``!key.equals(unit)``):
+        ``damage_inflictor_received`` is the victim-side mirror, recorded only when
+        the *source* is an enemy hero.
+
+        Args:
+            source_pid: The resolved damage-source player slot 0-9.
+            target_pid: The resolved target hero's player slot, or ``None``.
+            source_unit: The crediting source unit name (OpenDota ``unit``).
+            entry: A DAMAGE ``CombatLogEntry`` against a non-illusion hero.
+        """
+        inflictor = _inflictor_key(entry.inflictor_name)
+        if inflictor is None:
+            return
+        target_key = _illusion_key(entry.target_name, entry.target_is_illusion)
+        src = self._agg(source_pid)
+        translated_target = opendota_translate(entry.target_name) or entry.target_name
+        src.damage_targets[inflictor][translated_target] += entry.value
+        src.hero_hits[inflictor] += 1
+
+        # Self-damage gate: OpenDota skips damage_inflictor / max_hero_hit /
+        # damage_inflictor_received when the (illusion-keyed) target is the source.
+        if target_key == source_unit:
+            return
+        src.damage_inflictor[inflictor] += entry.value
+        if src.max_hero_hit is None or entry.value > src.max_hero_hit["value"]:
+            src.max_hero_hit = {
+                "type": "max_hero_hit",
+                "time": entry.game_time_s if entry.game_time_s is not None else entry.timestamp_s,
+                "max": True,
+                "inflictor": inflictor,
+                "unit": source_unit,
+                "key": target_key,
+                "value": entry.value,
+            }
+        # damage_inflictor_received is keyed on the victim and recorded only when an
+        # enemy hero dealt the damage (OpenDota: source contains "npc_dota_hero_").
+        if target_pid is not None and "npc_dota_hero_" in source_unit:
+            self._agg(target_pid).damage_inflictor_received[inflictor] += entry.value
+
     def _is_self_death(self, entry: Any) -> bool:
         """Return whether a DEATH entry is a self-kill OpenDota would ignore."""
         if not entry.target_name:
@@ -318,6 +416,10 @@ class _CombatAggregator:
                     self._agg(target_pid).damage_taken[source_unit] += entry.value
                     if entry.damage_type:
                         self._agg(target_pid).damage_taken_by_type[entry.damage_type] += entry.value
+                # Per-inflictor / per-target breakdowns fire only for damage dealt
+                # to an enemy hero (non-illusion), matching OpenDota's gating.
+                if source_pid is not None and entry.target_is_hero and not entry.target_is_illusion:
+                    self._accumulate_inflictor_damage(source_pid, target_pid, source_unit, entry)
             case CombatLogType.HEAL:
                 if source_pid is not None and _is_unit_target(entry.target_name):
                     heal_key = _illusion_key(entry.target_name, entry.target_is_illusion)
@@ -332,6 +434,13 @@ class _CombatAggregator:
             case CombatLogType.ABILITY:
                 if attacker_pid is not None and entry.inflictor_name:
                     self._agg(attacker_pid).ability_uses[entry.inflictor_name] += 1
+                    # ability_targets: ability -> {target_hero: count}, credited to
+                    # the caster, only when the target is an enemy hero (non-illusion).
+                    if entry.target_is_hero and not entry.target_is_illusion and entry.target_name:
+                        ability = opendota_translate(entry.inflictor_name)
+                        target = opendota_translate(entry.target_name)
+                        if ability is not None and target is not None:
+                            self._agg(attacker_pid).ability_targets[ability][target] += 1
             case CombatLogType.ITEM:
                 if attacker_pid is not None and entry.inflictor_name:
                     self._agg(attacker_pid).item_uses[entry.inflictor_name] += 1

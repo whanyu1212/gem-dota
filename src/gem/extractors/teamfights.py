@@ -32,7 +32,7 @@ import math
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from gem.combat.log import CombatLogEntry
+from gem.combat.log import CombatLogEntry, opendota_translate
 
 if TYPE_CHECKING:
     from gem.extractors.players import PlayerStateSnapshot
@@ -127,6 +127,12 @@ class OpenDotaTeamfightPlayer:
 
     deaths_pos: dict[str, dict[str, int]] = field(default_factory=dict)
     ability_uses: dict[str, int] = field(default_factory=dict)
+    # Always empty, intentionally: OpenDota declares teamfights[].players[].
+    # ability_targets but its processTeamfights only ever populates ability_uses /
+    # item_uses (CreateParsedDataBlob.java:1334-1348), so this field is {} in every
+    # OpenDota teamfight too. Per-target ability data lives at the player level
+    # (ParsedPlayer.ability_targets), where OpenDota does fill it. Kept for shape
+    # parity; do not populate it here or it will diverge from OpenDota.
     ability_targets: dict[str, int] = field(default_factory=dict)
     item_uses: dict[str, int] = field(default_factory=dict)
     killed: dict[str, int] = field(default_factory=dict)
@@ -579,12 +585,12 @@ def _populate_opendota_teamfight_event(
             fight.players[target_slot].xp_delta += entry.value
     elif entry.log_type == "ABILITY":
         if source_slot is not None and entry.inflictor_name:
-            key = _opendota_translate(entry.inflictor_name)
+            key = opendota_translate(entry.inflictor_name)
             if key is not None:
                 uses = fight.players[source_slot].ability_uses
                 uses[key] = uses.get(key, 0) + 1
     elif entry.log_type == "ITEM" and source_slot is not None and entry.inflictor_name:
-        key = _opendota_translate(entry.inflictor_name)
+        key = opendota_translate(entry.inflictor_name)
         if key is not None:
             uses = fight.players[source_slot].item_uses
             uses[key] = uses.get(key, 0) + 1
@@ -630,14 +636,6 @@ def _source_slot(entry: CombatLogEntry, hero_to_slot: dict[str, int]) -> int | N
     if not source_name:
         return None
     return hero_to_slot.get(source_name)
-
-
-def _opendota_translate(name: str) -> str | None:
-    if name == "dota_unknown":
-        return None
-    if name.startswith("item_"):
-        return name[5:]
-    return name
 
 
 def _near_fight(
