@@ -241,33 +241,35 @@ def _build_objectives(
             return {}
         return {"slot": player_id, "player_slot": _player_id_to_player_slot(player_id)}
 
-    # building_kill — towers and barracks, attributed to the killing hero.
+    # building_kill — towers and barracks, attributed source-first (a summon /
+    # projectile killer carries the owning hero in killer_source). unit is the
+    # crediting source unit when present, mirroring OpenDota.
     for tk in obj_ext.tower_kills:
-        pid = combat_agg._hero_to_pid(tk.killer)
+        pid = combat_agg.resolve_kill_pid(tk.killer_source, tk.killer)
         objectives.append(
             {
                 "time": secs(tk.tick),
                 "type": "building_kill",
                 "key": tk.tower_name,
-                "unit": tk.killer,
+                "unit": tk.killer_source or tk.killer,
                 **slot_fields(pid),
             }
         )
     for bk in obj_ext.barracks_kills:
-        pid = combat_agg._hero_to_pid(bk.killer)
+        pid = combat_agg.resolve_kill_pid(bk.killer_source, bk.killer)
         objectives.append(
             {
                 "time": secs(bk.tick),
                 "type": "building_kill",
                 "key": bk.barracks_name,
-                "unit": bk.killer,
+                "unit": bk.killer_source or bk.killer,
                 **slot_fields(pid),
             }
         )
 
     # CHAT_MESSAGE_ROSHAN_KILL — team that killed Roshan (killer's team).
     for rk in obj_ext.roshan_kills:
-        pid = combat_agg._hero_to_pid(rk.killer)
+        pid = combat_agg.resolve_kill_pid(rk.killer_source, rk.killer)
         team = pid_to_team.get(pid) if pid is not None else None
         entry: dict[str, Any] = {"time": secs(rk.tick), "type": "CHAT_MESSAGE_ROSHAN_KILL"}
         if team is not None:
@@ -314,7 +316,7 @@ def _build_objectives(
 
     # CHAT_MESSAGE_COURIER_LOST — team is the courier's owner (killer's opposite).
     for cd in obj_ext.courier_deaths:
-        killer_pid = combat_agg._hero_to_pid(cd.killer)
+        killer_pid = combat_agg.resolve_kill_pid(cd.killer_source, cd.killer)
         killer_team = pid_to_team.get(killer_pid) if killer_pid is not None else None
         entry = {"time": secs(cd.tick), "type": "CHAT_MESSAGE_COURIER_LOST"}
         if killer_team in (2, 3):

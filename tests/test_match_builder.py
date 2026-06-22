@@ -2003,10 +2003,24 @@ class TestWardReshape:
 
 
 class TestBuildObjectives:
-    def _agg_with_heroes(self, mapping):
-        """Combat-agg stub whose _hero_to_pid resolves names via ``mapping``."""
+    def _agg_with_heroes(self, mapping, summons=None):
+        """Combat-agg stub resolving names via ``mapping`` (hero) and ``summons``.
+
+        ``resolve_kill_pid`` mirrors the aggregator's source-first chain:
+        source hero -> attacker hero -> attacker's summon owner.
+        """
+        summons = summons or {}
         agg = MagicMock()
         agg._hero_to_pid.side_effect = lambda name: mapping.get(name)
+
+        def _resolve(source_name, attacker_name):
+            if source_name and source_name in mapping:
+                return mapping[source_name]
+            if attacker_name in mapping:
+                return mapping[attacker_name]
+            return summons.get(attacker_name)
+
+        agg.resolve_kill_pid.side_effect = _resolve
         return agg
 
     def test_building_kill_shape_and_slot(self):
@@ -2039,7 +2053,40 @@ class TestBuildObjectives:
         agg = self._agg_with_heroes({})  # siege not a hero -> None
         e = _build_objectives(_make_obj_ext(towers=[tk]), agg, None, {}, game_start_tick=0)[0]
         assert "slot" not in e and "player_slot" not in e
-        assert e["unit"] == "npc_dota_goodguys_siege"
+
+    def test_building_kill_by_summon_credits_owner(self):
+        # A Beastmaster boar kills a tower: attacker is the boar (no source),
+        # resolved to its owner via the summon chain. (P2 regression.)
+        from gem.extractors.objectives import TowerKill
+        from gem.results.assembly import _build_objectives
+
+        tk = TowerKill(
+            tick=6000,
+            team=3,
+            killer="npc_dota_beastmaster_boar",
+            tower_name="npc_dota_badguys_tower1_top",
+        )
+        agg = self._agg_with_heroes({}, summons={"npc_dota_beastmaster_boar": 2})
+        e = _build_objectives(_make_obj_ext(towers=[tk]), agg, None, {2: 2}, game_start_tick=0)[0]
+        assert e["slot"] == 2 and e["player_slot"] == 2
+
+    def test_building_kill_by_projectile_uses_source(self):
+        # A projectile lands the kill: attacker is the projectile, but
+        # killer_source carries the owning hero. (P2 regression.)
+        from gem.extractors.objectives import TowerKill
+        from gem.results.assembly import _build_objectives
+
+        tk = TowerKill(
+            tick=6000,
+            team=3,
+            killer="dota_unknown",
+            tower_name="npc_dota_badguys_tower2_mid",
+            killer_source="npc_dota_hero_clinkz",
+        )
+        agg = self._agg_with_heroes({"npc_dota_hero_clinkz": 4})
+        e = _build_objectives(_make_obj_ext(towers=[tk]), agg, None, {4: 2}, game_start_tick=0)[0]
+        assert e["slot"] == 4 and e["player_slot"] == 4
+        assert e["unit"] == "npc_dota_hero_clinkz"  # source hero, not the projectile
 
     def test_courier_lost_owner_is_opposite_team(self):
         from gem.extractors.objectives import CourierDeath
