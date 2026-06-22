@@ -48,6 +48,22 @@ def _metadata_slot_to_player_id(player_slot: int) -> int | None:
     return None
 
 
+def _player_id_to_player_slot(player_id: int) -> int:
+    """Convert a gem player id (0-9) to OpenDota's ``player_slot`` encoding.
+
+    OpenDota encodes Radiant players as ``0-4`` and Dire players as ``128-132``
+    in ``player_slot`` fields, while the ``slot`` field stays ``0-9``. This is the
+    inverse of :func:`_metadata_slot_to_player_id`.
+
+    Args:
+        player_id: gem logical player id, 0-9 (0-4 Radiant, 5-9 Dire).
+
+    Returns:
+        The OpenDota ``player_slot`` (0-4 for Radiant, 128-132 for Dire).
+    """
+    return player_id if player_id < 5 else 128 + (player_id - 5)
+
+
 def _entry_game_seconds(entry: CombatLogEntry, game_start_tick: int | None) -> int:
     """Return a combat-log entry's game-relative time in seconds.
 
@@ -170,7 +186,7 @@ def _ward_left_entry(ward: WardEvent, game_start_tick: int | None) -> dict[str, 
         "type": "obs_left_log" if ward.ward_type == "observer" else "sen_left_log",
         "key": _ward_coord_key(ward.x, ward.y),
         "slot": ward.player_id,
-        "player_slot": ward.player_id,
+        "player_slot": _player_id_to_player_slot(ward.player_id),
         "x": _to_od_cell(ward.x),
         "y": _to_od_cell(ward.y),
         "entityleft": True,

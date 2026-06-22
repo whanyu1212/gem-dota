@@ -1894,6 +1894,12 @@ def _ward(
 
 
 class TestWardReshape:
+    def test_player_id_to_player_slot_encoding(self):
+        from gem.results.assembly import _player_id_to_player_slot
+
+        assert [_player_id_to_player_slot(i) for i in range(5)] == [0, 1, 2, 3, 4]
+        assert [_player_id_to_player_slot(i) for i in range(5, 10)] == [128, 129, 130, 131, 132]
+
     def test_coord_key_converts_world_to_cell(self):
         from gem.results.assembly import _ward_coord_key
 
@@ -1905,7 +1911,7 @@ class TestWardReshape:
     def test_left_entry_for_killed_ward(self):
         from gem.results.assembly import _ward_left_entry
 
-        w = _ward(killed_tick=600, killer="npc_dota_hero_queenofpain")
+        w = _ward(player_id=1, killed_tick=600, killer="npc_dota_hero_queenofpain")
         e = _ward_left_entry(w, game_start_tick=0)
         assert e is not None
         assert e["entityleft"] is True
@@ -1914,6 +1920,21 @@ class TestWardReshape:
         assert e["time"] == 20  # 600 // 30
         assert e["key"] == "[126,119]"  # world coords converted to cell units
         assert e["x"] == 16128.0 / 128
+        # Radiant: slot and player_slot both 0-4.
+        assert e["slot"] == 1 and e["player_slot"] == 1
+
+    def test_left_entry_dire_player_slot_encoding(self):
+        from gem.results.assembly import _ward_left_entry
+
+        # Dire player id 5 -> slot stays 5, player_slot becomes 128 (OpenDota).
+        w = _ward(player_id=5, team=3, killed_tick=600, killer="npc_dota_hero_axe")
+        e = _ward_left_entry(w, game_start_tick=0)
+        assert e is not None
+        assert e["slot"] == 5
+        assert e["player_slot"] == 128
+        # Dire player id 9 -> player_slot 132.
+        w9 = _ward(player_id=9, team=3, expires_tick=900)
+        assert _ward_left_entry(w9, game_start_tick=0)["player_slot"] == 132
 
     def test_left_entry_natural_expiry_no_killer(self):
         from gem.results.assembly import _ward_left_entry
