@@ -398,6 +398,33 @@ class TestDetectOpenDotaTeamfights:
         assert fight.players[1].deaths_pos == {"123": {"568": 1}}
         assert fight.players[1].buybacks == 1
 
+    def test_self_kill_records_opendota_death_without_kill_credit(self):
+        h2s = {
+            "npc_dota_hero_axe": 0,
+            "npc_dota_hero_pudge": 1,
+            "npc_dota_hero_lina": 2,
+        }
+        snaps = _make_snaps("npc_dota_hero_axe", 0, 3000, 321.2, 654.8)
+        entries = [
+            CombatLogEntry(
+                tick=3000,
+                game_time_s=100,
+                log_type="DEATH",
+                attacker_name="npc_dota_hero_axe",
+                target_name="npc_dota_hero_axe",
+                target_is_hero=True,
+            ),
+            _death(3030, "npc_dota_hero_pudge", game_time_s=101),
+            _death(3060, "npc_dota_hero_lina", game_time_s=102),
+        ]
+
+        fight = detect_opendota_teamfights(entries, hero_to_slot=h2s, player_snapshots=snaps)[0]
+
+        assert fight.deaths == 3
+        assert fight.players[0].deaths == 1
+        assert fight.players[0].deaths_pos == {"321": {"655": 1}}
+        assert fight.players[0].killed == {}
+
 
 # ---------------------------------------------------------------------------
 # XP delta unit tests

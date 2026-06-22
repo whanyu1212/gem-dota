@@ -601,13 +601,12 @@ def _populate_opendota_death(
 
     target_slot = hero_to_slot.get(entry.target_name)
     source_name = entry.damage_source_name or entry.attacker_name
-    if source_name == entry.target_name:
-        return
 
-    source_slot = hero_to_slot.get(source_name)
-    if source_slot is not None and 0 <= source_slot < len(fight.players):
-        killed = fight.players[source_slot].killed
-        killed[entry.target_name] = killed.get(entry.target_name, 0) + 1
+    if source_name and source_name != entry.target_name:
+        source_slot = hero_to_slot.get(source_name)
+        if source_slot is not None and 0 <= source_slot < len(fight.players):
+            killed = fight.players[source_slot].killed
+            killed[entry.target_name] = killed.get(entry.target_name, 0) + 1
 
     if target_slot is None or not 0 <= target_slot < len(fight.players):
         return
