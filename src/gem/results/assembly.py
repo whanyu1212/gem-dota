@@ -10,6 +10,7 @@ from collections import defaultdict
 from typing import TYPE_CHECKING, Any
 
 from gem.catalog import hero_id
+from gem.combat.log import opendota_translate
 from gem.extractors.lane import classify_lane
 from gem.results.derived import categorize_kills, killed_counts
 from gem.results.models import ParsedMatch
@@ -22,7 +23,7 @@ if TYPE_CHECKING:
     from gem.extractors.intervals import IntervalExtractor, IntervalSnapshot, IntervalTimeSeries
     from gem.extractors.objectives import ObjectivesExtractor
     from gem.extractors.players import PlayerExtractor
-    from gem.extractors.wards import WardsExtractor
+    from gem.extractors.wards import WardEvent, WardsExtractor
     from gem.parser import ReplayParser
     from gem.results.models import (
         ChatEntry,
@@ -45,6 +46,136 @@ def _metadata_slot_to_player_id(player_slot: int) -> int | None:
     if 128 <= player_slot <= 132:
         return 5 + (player_slot - 128)
     return None
+
+
+def _entry_game_seconds(entry: CombatLogEntry, game_start_tick: int | None) -> int:
+    """Return a combat-log entry's game-relative time in seconds.
+
+    Prefers the OpenDota-aligned ``game_time_s`` when present, falling back to the
+    tick offset from ``game_start_tick`` (30 ticks/second). Pre-horn events keep
+    their negative offset, matching OpenDota.
+
+    Args:
+        entry: The combat log entry.
+        game_start_tick: Absolute tick of the game clock start, or ``None``.
+
+    Returns:
+        Game-relative seconds (may be negative for pre-horn events), or ``0``
+        when no clock reference is available.
+    """
+    if entry.game_time_s is not None:
+        return int(entry.game_time_s)
+    if game_start_tick is not None:
+        return (entry.tick - game_start_tick) // 30
+    return 0
+
+
+def _build_purchase_aggregates(
+    purchase_log: list[CombatLogEntry], game_start_tick: int | None
+) -> dict[str, Any]:
+    """Derive OpenDota purchase-timeline aggregates from a player's purchase log.
+
+    Mirrors OpenDota's ``handlePurchase`` semantics: the ``purchase`` count map
+    includes recipes; ``purchase_time`` / ``first_purchase_time`` (and the
+    per-item scalars) exclude ``recipe_`` items. Item names are translated
+    (``item_`` stripped); times are game-seconds.
+
+    Args:
+        purchase_log: The player's deduped PURCHASE ``CombatLogEntry`` list.
+        game_start_tick: Absolute tick of the game clock start, or ``None``.
+
+    Returns:
+        Dict with ``purchase``, ``purchase_time``, ``first_purchase_time`` (maps)
+        and ``purchase_tpscroll`` / ``purchase_ward_observer`` /
+        ``purchase_ward_sentry`` (ints).
+    """
+    purchase: dict[str, int] = {}
+    purchase_time: dict[str, int] = {}
+    first_purchase_time: dict[str, int] = {}
+    for entry in sorted(purchase_log, key=lambda e: e.tick):
+        key = opendota_translate(entry.value_name)
+        if not key:
+            continue
+        purchase[key] = purchase.get(key, 0) + 1  # recipes included (OD parity)
+        if key.startswith("recipe_"):
+            continue
+        seconds = _entry_game_seconds(entry, game_start_tick)
+        if key not in first_purchase_time:
+            first_purchase_time[key] = seconds
+        purchase_time[key] = seconds  # last purchase wins
+    return {
+        "purchase": purchase,
+        "purchase_time": purchase_time,
+        "first_purchase_time": first_purchase_time,
+        "purchase_tpscroll": purchase.get("tpscroll", 0),
+        "purchase_ward_observer": purchase.get("ward_observer", 0),
+        "purchase_ward_sentry": purchase.get("ward_sentry", 0),
+    }
+
+
+# Source 2 world coordinates are ``cell * 128 + vec``; OpenDota reports ward
+# positions in cell units (``(cell*128 + vec) / 128``). gem's WardEvent keeps the
+# raw world coordinate for its own spatial helpers, so OD-shaped ward outputs
+# divide by this to match. Reference: refs/parser/Parse.java getPreciseLocation.
+_WORLD_UNITS_PER_CELL = 128.0
+
+
+def _to_od_cell(world: float | None) -> float | None:
+    """Convert a raw world coordinate to OpenDota's cell-unit coordinate."""
+    if world is None:
+        return None
+    return world / _WORLD_UNITS_PER_CELL
+
+
+def _ward_coord_key(x: float | None, y: float | None) -> str | None:
+    """Return OpenDota's ``"[x,y]"`` cell-rounded coordinate key for a ward.
+
+    World coordinates are converted to OpenDota cell units and rounded to the
+    nearest integer, matching OpenDota's ``key`` and the nested ``obs``/``sen``
+    map keys (which keep the float coordinate separately).
+
+    Args:
+        x: Raw world x coordinate, or ``None``.
+        y: Raw world y coordinate, or ``None``.
+
+    Returns:
+        ``"[<round(cell_x)>,<round(cell_y)>]"``, or ``None`` if a coord is missing.
+    """
+    cx, cy = _to_od_cell(x), _to_od_cell(y)
+    if cx is None or cy is None:
+        return None
+    return f"[{round(cx)},{round(cy)}]"
+
+
+def _ward_left_entry(ward: WardEvent, game_start_tick: int | None) -> dict[str, Any] | None:
+    """Build an OpenDota ``*_left_log`` expiry entry from a WardEvent, or None.
+
+    A ward that left the map (killed or expired naturally) yields one expiry
+    record; wards still alive at game end yield ``None``. ``attackername`` is the
+    killer for a destroyed ward and empty for a natural expiry.
+
+    Args:
+        ward: The ward placement record.
+        game_start_tick: Absolute tick of the game clock start, or ``None``.
+
+    Returns:
+        The OpenDota-shaped expiry dict, or ``None`` if the ward never left.
+    """
+    left_tick = ward.killed_tick if ward.killed_tick is not None else ward.expires_tick
+    if left_tick is None:
+        return None
+    seconds = (left_tick - game_start_tick) // 30 if game_start_tick is not None else 0
+    return {
+        "time": seconds,
+        "type": "obs_left_log" if ward.ward_type == "observer" else "sen_left_log",
+        "key": _ward_coord_key(ward.x, ward.y),
+        "slot": ward.player_id,
+        "player_slot": ward.player_id,
+        "x": _to_od_cell(ward.x),
+        "y": _to_od_cell(ward.y),
+        "entityleft": True,
+        "attackername": ward.killer or "",
+    }
 
 
 def _radiant_win_from_ancient(combat_log: list[CombatLogEntry]) -> bool | None:
@@ -433,6 +564,17 @@ def build_parsed_match(
                 player_ext.first_snapshot_tick.get(player_id),
                 player_ext._sample_interval,
             )
+            # OpenDota purchase-timeline aggregates derived from the deduped log.
+            purchase_aggs = _build_purchase_aggregates(pp.purchase_log, game_start_tick)
+            pp.purchase = purchase_aggs["purchase"]
+            pp.purchase_time = purchase_aggs["purchase_time"]
+            pp.first_purchase_time = purchase_aggs["first_purchase_time"]
+            pp.purchase_tpscroll = purchase_aggs["purchase_tpscroll"]
+            pp.purchase_ward_observer = purchase_aggs["purchase_ward_observer"]
+            pp.purchase_ward_sentry = purchase_aggs["purchase_ward_sentry"]
+            # Ward-use scalars: item_uses keys keep the item_ prefix.
+            pp.observer_uses = agg.item_uses.get("item_ward_observer", 0)
+            pp.sentry_uses = agg.item_uses.get("item_ward_sentry", 0)
             pp.runes_log = agg.runes_log
             pp.buyback_log = agg.buyback_log
             pp.stuns_dealt = agg.stuns_dealt
@@ -643,14 +785,33 @@ def build_parsed_match(
                 match.dire_team_name = ent.get_string("m_szTeamname") or ""
                 match.dire_team_tag = ent.get_string("m_szTag") or ""
 
-    # Attach ward logs per player
+    # Attach ward logs per player. obs_log/sen_log keep gem's native WardEvent
+    # records; the OpenDota-shaped expiry logs (obs_left_log/sen_left_log) and the
+    # nested placement coordinate maps (obs/sen) are derived alongside.
     for ward in match.wards:
-        if 0 <= ward.player_id < 10:
-            pp = match.players[ward.player_id]
-            if ward.ward_type == "observer":
-                pp.obs_log.append(ward)
-            else:
-                pp.sen_log.append(ward)
+        if not (0 <= ward.player_id < 10):
+            continue
+        pp = match.players[ward.player_id]
+        left_entry = _ward_left_entry(ward, game_start_tick)
+        if ward.ward_type == "observer":
+            pp.obs_log.append(ward)
+            if left_entry is not None:
+                pp.obs_left_log.append(left_entry)
+            coord_map = pp.obs
+        else:
+            pp.sen_log.append(ward)
+            if left_entry is not None:
+                pp.sen_left_log.append(left_entry)
+            coord_map = pp.sen
+        cx, cy = _to_od_cell(ward.x), _to_od_cell(ward.y)
+        if cx is not None and cy is not None:
+            xk, yk = str(round(cx)), str(round(cy))
+            coord_map.setdefault(xk, {})[yk] = coord_map.setdefault(xk, {}).get(yk, 0) + 1
+
+    # observers_placed: OpenDota's purchase/log-derived observer count, distinct
+    # from the entity-counter obs_placed. Use the per-player obs_log length.
+    for pp in match.players:
+        pp.observers_placed = len(pp.obs_log)
 
     # Compute radiant_gold_adv / radiant_xp_adv per game-minute boundary.
     # Both curves come from monotonically-increasing total-earned fields

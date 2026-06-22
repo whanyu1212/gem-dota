@@ -1796,6 +1796,177 @@ class TestBuildParsedMatchDuration:
 
 
 # ---------------------------------------------------------------------------
+# Purchase timeline aggregates (OpenDota parity)
+# ---------------------------------------------------------------------------
+
+
+def _purchase(item: str, tick: int, game_time_s: int | None = None) -> CombatLogEntry:
+    return CombatLogEntry(tick=tick, log_type="PURCHASE", value_name=item, game_time_s=game_time_s)
+
+
+class TestBuildPurchaseAggregates:
+    def _build(self, entries):
+        from gem.results.assembly import _build_purchase_aggregates
+
+        return _build_purchase_aggregates(entries, game_start_tick=0)
+
+    def test_purchase_counts_and_translates_keys(self):
+        aggs = self._build(
+            [
+                _purchase("item_blink", 600),
+                _purchase("item_branches", 60),
+                _purchase("item_branches", 90),
+            ]
+        )
+        # item_ prefix stripped; counts per item.
+        assert aggs["purchase"] == {"blink": 1, "branches": 2}
+
+    def test_first_vs_last_purchase_time(self):
+        # belt bought at 100s and 300s -> first=100, last=300.
+        aggs = self._build(
+            [
+                _purchase("item_belt", tick=3000, game_time_s=100),
+                _purchase("item_belt", tick=9000, game_time_s=300),
+            ]
+        )
+        assert aggs["first_purchase_time"]["belt"] == 100
+        assert aggs["purchase_time"]["belt"] == 300
+
+    def test_recipes_counted_but_excluded_from_timing(self):
+        # OpenDota: purchase count includes recipes; purchase_time/first exclude them.
+        aggs = self._build([_purchase("item_recipe_basher", tick=1500, game_time_s=50)])
+        assert aggs["purchase"]["recipe_basher"] == 1
+        assert "recipe_basher" not in aggs["purchase_time"]
+        assert "recipe_basher" not in aggs["first_purchase_time"]
+
+    def test_ward_and_tpscroll_scalars(self):
+        aggs = self._build(
+            [
+                _purchase("item_tpscroll", 100),
+                _purchase("item_tpscroll", 200),
+                _purchase("item_ward_observer", 300),
+                _purchase("item_ward_sentry", 400),
+            ]
+        )
+        assert aggs["purchase_tpscroll"] == 2
+        assert aggs["purchase_ward_observer"] == 1
+        assert aggs["purchase_ward_sentry"] == 1
+
+    def test_uses_game_time_seconds(self):
+        # game_time_s preferred over tick math.
+        aggs = self._build([_purchase("item_blink", tick=99999, game_time_s=120)])
+        assert aggs["first_purchase_time"]["blink"] == 120
+
+
+# ---------------------------------------------------------------------------
+# Ward expiry log + nested coordinate map reshape
+# ---------------------------------------------------------------------------
+
+
+# Raw world coords = cell*128 + vec; OpenDota cell = world / 128.
+# 16128 / 128 = 126.0, 15232 / 128 = 119.0  -> key "[126,119]".
+def _ward(
+    *,
+    player_id=1,
+    ward_type="observer",
+    x=16128.0,
+    y=15232.0,
+    tick=300,
+    killed_tick=None,
+    expires_tick=None,
+    killer="",
+    team=2,
+):
+    from gem.extractors.wards import WardEvent
+
+    return WardEvent(
+        tick=tick,
+        player_id=player_id,
+        placer="npc_dota_hero_lina",
+        ward_type=ward_type,
+        team=team,
+        x=x,
+        y=y,
+        expires_tick=expires_tick,
+        killed_tick=killed_tick,
+        killer=killer,
+    )
+
+
+class TestWardReshape:
+    def test_coord_key_converts_world_to_cell(self):
+        from gem.results.assembly import _ward_coord_key
+
+        # World coords divided by 128 and rounded to OpenDota cell units.
+        assert _ward_coord_key(16128.0, 15232.0) == "[126,119]"
+        assert _ward_coord_key(16184.0, 15205.0) == "[126,119]"  # rounds to nearest cell
+        assert _ward_coord_key(None, 5.0) is None
+
+    def test_left_entry_for_killed_ward(self):
+        from gem.results.assembly import _ward_left_entry
+
+        w = _ward(killed_tick=600, killer="npc_dota_hero_queenofpain")
+        e = _ward_left_entry(w, game_start_tick=0)
+        assert e is not None
+        assert e["entityleft"] is True
+        assert e["type"] == "obs_left_log"
+        assert e["attackername"] == "npc_dota_hero_queenofpain"
+        assert e["time"] == 20  # 600 // 30
+        assert e["key"] == "[126,119]"  # world coords converted to cell units
+        assert e["x"] == 16128.0 / 128
+
+    def test_left_entry_natural_expiry_no_killer(self):
+        from gem.results.assembly import _ward_left_entry
+
+        w = _ward(ward_type="sentry", expires_tick=900)
+        e = _ward_left_entry(w, game_start_tick=0)
+        assert e is not None and e["type"] == "sen_left_log"
+        assert e["attackername"] == ""
+        assert e["time"] == 30
+
+    def test_no_left_entry_when_ward_survives(self):
+        from gem.results.assembly import _ward_left_entry
+
+        w = _ward(killed_tick=None, expires_tick=None)
+        assert _ward_left_entry(w, game_start_tick=0) is None
+
+    def test_assembly_populates_left_logs_and_nested_maps(self):
+        snaps = [_FakePlayerSnapshot(player_id=1, tick=1, npc_name="npc_dota_hero_lina", team=2)]
+        wards = [
+            # 16128/128=126, 15232/128=119 ; 16896/128=132, 16512/128=129
+            _ward(
+                player_id=1,
+                ward_type="observer",
+                x=16128.0,
+                y=15232.0,
+                killed_tick=600,
+                killer="npc_dota_hero_axe",
+            ),
+            _ward(player_id=1, ward_type="sentry", x=16896.0, y=16512.0, expires_tick=900),
+        ]
+        parser = _make_parser(radiant_win=True)
+        ext = _make_player_ext(snapshots=snaps)
+        m = build_parsed_match(
+            parser,
+            ext,
+            _make_obj_ext(),
+            _make_ward_ext(ward_events=wards),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            _make_combat_agg(),
+            [],
+            [],
+        )
+        p = m.players[1]
+        assert len(p.obs_log) == 1 and len(p.sen_log) == 1
+        assert len(p.obs_left_log) == 1 and p.obs_left_log[0]["attackername"] == "npc_dota_hero_axe"
+        assert len(p.sen_left_log) == 1
+        assert p.obs == {"126": {"119": 1}}
+        assert p.sen == {"132": {"129": 1}}
+        assert p.observers_placed == 1
+
+
+# ---------------------------------------------------------------------------
 # Player name extraction from entity manager
 # ---------------------------------------------------------------------------
 
