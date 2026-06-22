@@ -33,6 +33,14 @@ def test_catalog_resolves_internal_hero_suffixes() -> None:
     assert catalog.hero_npc_name("nevermore") == "npc_dota_hero_nevermore"
 
 
+def test_hero_id_resolves_numeric_id() -> None:
+    assert catalog.hero_id("npc_dota_hero_antimage") == 1
+    assert catalog.hero_id("npc_dota_hero_broodmother") == 61
+    assert catalog.hero_id("NPC_DOTA_HERO_AXE") == 2  # case-insensitive
+    assert catalog.hero_id("npc_dota_hero_not_a_hero") == 0  # unknown -> 0
+    assert "hero_id" in gem.catalog.__all__
+
+
 def test_item_display_unknown_falls_back_to_raw_name() -> None:
     # Unknown items return the raw string rather than raising.
     assert catalog.item_display("item_not_a_real_item") == "item_not_a_real_item"

@@ -590,6 +590,17 @@ class PlayerExtractor:
                 dn = data_entity.get_int32(f"{prefix}.m_iDenyCount")
                 if dn is not None and dn > 0:
                     snap.dn = dn
+            # Overlay authoritative hero level from CDOTA_PlayerResource
+            # (m_vecPlayerTeamData.%i.m_iLevel) — the hero entity's
+            # m_nCurrentLevel reads 0 in some replays. Mirrors OpenDota's
+            # Parse.java level read. Use the coach-aware resource index.
+            pr = self._player_resource
+            if pr is not None:
+                lvl = pr.get_int32(
+                    f"m_vecPlayerTeamData.{self._resource_index(snap.player_id):04d}.m_iLevel"
+                )
+                if lvl is not None and lvl > 0:
+                    snap.level = lvl
             snap.ability_levels = self._read_abilities(entity)
             pid = snap.player_id
             snap.total_hero_damage = self._total_hero_damage.get(pid, 0)

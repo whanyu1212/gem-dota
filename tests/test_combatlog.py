@@ -10,7 +10,25 @@ from gem.combat.log import (
     CombatLogProcessor,
     CombatLogType,
     _resolve_name,
+    opendota_translate,
 )
+
+
+class TestOpenDotaTranslate:
+    def test_strips_item_prefix(self):
+        assert opendota_translate("item_blink") == "blink"
+        assert opendota_translate("item_black_king_bar") == "black_king_bar"
+
+    def test_drops_dota_unknown(self):
+        assert opendota_translate("dota_unknown") is None
+
+    def test_passthrough_for_abilities(self):
+        assert opendota_translate("axe_culling_blade") == "axe_culling_blade"
+
+    def test_empty_passthrough(self):
+        # opendota_translate leaves "" as-is; the aggregator maps it to "null".
+        assert opendota_translate("") == ""
+
 
 # ---------------------------------------------------------------------------
 # Helpers — fake objects

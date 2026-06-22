@@ -207,6 +207,30 @@ CombatLogHandler = Callable[[CombatLogEntry], None]
 # ---------------------------------------------------------------------------
 
 
+def opendota_translate(name: str) -> str | None:
+    """Normalize an inflictor/item name to OpenDota's dict-key convention.
+
+    OpenDota keys its ability/item/damage dicts on a translated name: the
+    ``item_`` prefix is stripped (so ``item_blink`` becomes ``blink``) and the
+    ``dota_unknown`` placeholder (auto-attacks / no inflictor) is dropped
+    entirely so it never appears as a dict key.
+
+    Args:
+        name: The raw inflictor/item name from a combat log entry.
+
+    Returns:
+        The translated name, or ``None`` when the name should be omitted
+        (``dota_unknown``).
+
+    Reference: refs/parser CreateParsedDataBlob.translate.
+    """
+    if name == "dota_unknown":
+        return None
+    if name.startswith("item_"):
+        return name[5:]
+    return name
+
+
 def _resolve_name(name_table: Any, index: int) -> str:
     """Resolve a name index via the CombatLogNames string table.
 

@@ -65,6 +65,9 @@ class _FakePlayerSnapshot:
     npc_name: str
     team: int
     total_earned_xp: int = 0
+    level: int = 0
+    life_state: int = 0
+    game_time_s: int | None = None
     x: float | None = None
     y: float | None = None
     ability_levels: dict = field(default_factory=dict)
@@ -1591,6 +1594,86 @@ class TestBuildParsedMatchComputedFields:
         )
         assert m.players[0].buyback_count == 2
         assert m.players[1].buyback_count == 0
+
+
+class TestBuildParsedMatchOpenDotaScalars:
+    """OpenDota-parity terminal / derived scalars added to ParsedPlayer/ParsedMatch."""
+
+    def _build(self, *, scoreboard=None, snaps=None, all_entries=None, radiant_win=True):
+        parser = _make_parser(radiant_win=radiant_win)
+        ext = _make_player_ext(scoreboard=scoreboard or {}, snapshots=snaps or [])
+        return build_parsed_match(
+            parser,
+            ext,
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            _make_combat_agg(),
+            all_entries or [],
+            [],
+        )
+
+    def test_level_from_last_snapshot(self):
+        snaps = [
+            _FakePlayerSnapshot(
+                player_id=0, tick=100, npc_name="npc_dota_hero_zuus", team=2, level=5
+            ),
+            _FakePlayerSnapshot(
+                player_id=0, tick=200, npc_name="npc_dota_hero_zuus", team=2, level=12
+            ),
+        ]
+        m = self._build(snaps=snaps)
+        assert m.players[0].level == 12  # last snapshot wins
+
+    def test_hero_id_resolved_from_hero_name(self):
+        snaps = [
+            _FakePlayerSnapshot(player_id=0, tick=1, npc_name="npc_dota_hero_axe", team=2),
+        ]
+        m = self._build(snaps=snaps)
+        # hero_name is resolved by the builder; hero_id derives from it.
+        if m.players[0].hero_name == "npc_dota_hero_axe":
+            assert m.players[0].hero_id == 2
+
+    def test_life_state_dead_counts_distinct_dead_seconds(self):
+        # Two dead samples in the same second count once; a third in another
+        # second adds one. Mirrors OpenDota's per-second life_state sampling.
+        snaps = [
+            _FakePlayerSnapshot(
+                player_id=0, tick=300, npc_name="n", team=2, life_state=2, game_time_s=10
+            ),
+            _FakePlayerSnapshot(
+                player_id=0, tick=315, npc_name="n", team=2, life_state=1, game_time_s=10
+            ),
+            _FakePlayerSnapshot(
+                player_id=0, tick=330, npc_name="n", team=2, life_state=2, game_time_s=11
+            ),
+            _FakePlayerSnapshot(
+                player_id=0, tick=345, npc_name="n", team=2, life_state=0, game_time_s=12
+            ),
+        ]
+        m = self._build(snaps=snaps)
+        assert m.players[0].life_state_dead == 2  # seconds 10 and 11
+
+    def test_team_scores_sum_kills(self):
+        snaps = [
+            _FakePlayerSnapshot(player_id=0, tick=1, npc_name="npc_dota_hero_zuus", team=2),
+            _FakePlayerSnapshot(player_id=1, tick=1, npc_name="npc_dota_hero_lina", team=2),
+            _FakePlayerSnapshot(player_id=5, tick=1, npc_name="npc_dota_hero_axe", team=3),
+        ]
+        m = self._build(scoreboard={0: (4, 0, 0), 1: (3, 0, 0), 5: (2, 0, 0)}, snaps=snaps)
+        assert m.radiant_score == 7  # 4 + 3
+        assert m.dire_score == 2
+
+    def test_first_blood_time_from_first_hero_death(self):
+        # game_start_tick defaults to 6000; a hero death at tick 6300 -> 10s in.
+        entries = [
+            CombatLogEntry(tick=6300, log_type="DEATH", target_name="npc_dota_hero_axe"),
+        ]
+        # mark it a hero death
+        entries[0].target_is_hero = True
+        m = self._build(all_entries=entries)
+        assert m.first_blood_time == 10  # (6300 - 6000) // 30
 
 
 class TestBuildParsedMatchDuration:

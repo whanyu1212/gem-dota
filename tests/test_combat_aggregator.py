@@ -616,3 +616,139 @@ class TestSummonKillAttribution:
         agg.on_entry(self._death("npc_dota_observer_wards", "npc_dota_observer_wards"))
         # The expiry was not attributed to any player, so no agg/kills_log exists.
         assert agg.players.get(0) is None or agg.players[0].kills_log == []
+
+
+# ---------------------------------------------------------------------------
+# Per-inflictor / per-target attribution (OpenDota parity)
+# ---------------------------------------------------------------------------
+
+
+def _two_hero_agg() -> _CombatAggregator:
+    """Aggregator with axe (pid 0) and mirana (pid 1) as resolvable heroes."""
+    player_ext = MagicMock()
+    player_ext._parser = None
+    axe = MagicMock()
+    axe.get_int32.return_value = 0  # raw // 2 -> slot 0
+    mirana = MagicMock()
+    mirana.get_int32.return_value = 2  # raw // 2 -> slot 1
+    player_ext._heroes_by_npc = {
+        "npc_dota_hero_axe": axe,
+        "npc_dota_hero_mirana": mirana,
+    }
+    return _CombatAggregator(player_ext)
+
+
+def _hero_dmg(**kwargs) -> MagicMock:
+    """A DAMAGE entry from axe (source hero) onto mirana (enemy hero)."""
+    defaults = {
+        "log_type": "DAMAGE",
+        "attacker_name": "npc_dota_hero_axe",
+        "damage_source_name": "npc_dota_hero_axe",
+        "target_name": "npc_dota_hero_mirana",
+        "attacker_is_hero": True,
+        "target_is_hero": True,
+        "attacker_is_illusion": False,
+        "target_is_illusion": False,
+        "inflictor_name": "axe_culling_blade",
+        "value": 100,
+        "gold_reason": 0,
+        "xp_reason": 0,
+        "damage_type": "",
+        "stun_duration": 0.0,
+        "game_time_s": 60,
+        "timestamp_s": 60.0,
+    }
+    defaults.update(kwargs)
+    return MagicMock(**defaults)
+
+
+class TestInflictorDicts:
+    def test_damage_inflictor_and_targets_and_hits(self):
+        agg = _two_hero_agg()
+        agg.on_entry(_hero_dmg(value=100))
+        agg.on_entry(_hero_dmg(value=50))
+        p = agg.players[0]
+        assert p.damage_inflictor["axe_culling_blade"] == 150
+        assert p.damage_targets["axe_culling_blade"]["npc_dota_hero_mirana"] == 150
+        assert p.hero_hits["axe_culling_blade"] == 2  # counts instances, not damage
+
+    def test_item_prefix_stripped_in_inflictor_key(self):
+        agg = _two_hero_agg()
+        agg.on_entry(_hero_dmg(inflictor_name="item_dagon", value=400))
+        assert agg.players[0].damage_inflictor["dagon"] == 400  # item_ stripped
+
+    def test_auto_attack_keyed_null(self):
+        # Empty inflictor (auto-attack) is keyed "null" to match OpenDota's JSON.
+        agg = _two_hero_agg()
+        agg.on_entry(_hero_dmg(inflictor_name="", value=70))
+        assert agg.players[0].damage_inflictor["null"] == 70
+        assert agg.players[0].hero_hits["null"] == 1
+
+    def test_dota_unknown_inflictor_dropped(self):
+        agg = _two_hero_agg()
+        agg.on_entry(_hero_dmg(inflictor_name="dota_unknown", value=70))
+        # dota_unknown is dropped entirely (no key), matching OpenDota's translate.
+        assert "dota_unknown" not in agg.players[0].damage_inflictor
+        assert agg.players[0].damage_inflictor.get(None) is None
+
+    def test_max_hero_hit_tracks_largest(self):
+        agg = _two_hero_agg()
+        agg.on_entry(_hero_dmg(value=100, game_time_s=10))
+        agg.on_entry(_hero_dmg(value=350, game_time_s=20, inflictor_name="axe_battle_hunger"))
+        agg.on_entry(_hero_dmg(value=80, game_time_s=30))
+        mhh = agg.players[0].max_hero_hit
+        assert mhh is not None
+        assert mhh["value"] == 350
+        assert mhh["inflictor"] == "axe_battle_hunger"
+        assert mhh["unit"] == "npc_dota_hero_axe"
+        assert mhh["key"] == "npc_dota_hero_mirana"
+        assert mhh["time"] == 20
+
+    def test_non_hero_target_excluded(self):
+        # Damage to a creep must NOT populate the inflictor breakdowns.
+        agg = _two_hero_agg()
+        agg.on_entry(
+            _hero_dmg(target_name="npc_dota_creep_badguys_melee", target_is_hero=False, value=50)
+        )
+        assert agg.players.get(0) is None or agg.players[0].damage_inflictor == {}
+
+    def test_illusion_target_excluded_from_inflictor(self):
+        # Damage to an illusion is excluded from the inflictor breakdowns
+        # (OpenDota gates on !targetillusion).
+        agg = _two_hero_agg()
+        agg.on_entry(_hero_dmg(target_is_illusion=True, value=50))
+        assert agg.players.get(0) is None or agg.players[0].damage_inflictor == {}
+
+    def test_self_damage_excluded_from_inflictor(self):
+        # Self-inflicted damage (target == source) is excluded from
+        # damage_inflictor / max_hero_hit (OpenDota's !key.equals(unit)) but still
+        # counts toward damage_targets / hero_hits.
+        agg = _two_hero_agg()
+        agg.on_entry(
+            _hero_dmg(target_name="npc_dota_hero_axe", inflictor_name="axe_berserkers_call")
+        )
+        p = agg.players[0]
+        assert p.damage_inflictor == {}  # self-damage excluded
+        assert p.max_hero_hit is None
+        assert p.hero_hits["axe_berserkers_call"] == 1  # but hits still counted
+
+    def test_damage_inflictor_received_only_from_enemy_hero(self):
+        # The victim records damage_inflictor_received keyed by the enemy's
+        # inflictor, only when the source is a hero.
+        agg = _two_hero_agg()
+        agg.on_entry(_hero_dmg(value=120, inflictor_name="axe_culling_blade"))
+        assert agg.players[1].damage_inflictor_received["axe_culling_blade"] == 120
+
+    def test_ability_targets_nested(self):
+        agg = _two_hero_agg()
+        agg.on_entry(
+            _hero_dmg(
+                log_type="ABILITY",
+                inflictor_name="axe_battle_hunger",
+                target_name="npc_dota_hero_mirana",
+                target_is_hero=True,
+            )
+        )
+        p = agg.players[0]
+        assert p.ability_uses["axe_battle_hunger"] == 1
+        assert p.ability_targets["axe_battle_hunger"]["npc_dota_hero_mirana"] == 1
