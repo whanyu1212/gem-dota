@@ -20,6 +20,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   every player without a transient summon army (8/10 on the validation fixture;
   see the multi-summon note below). Backed by a new bundled `ancients.json`
   data file and `gem.catalog.units` NPC classifiers.
+- **OpenDota-shaped teamfights.** `ParsedMatch.opendota_teamfights` — a
+  compatibility projection of teamfights matching OpenDota's
+  `teamfights[].players[]` schema (temporal death-windows, 3-death minimum),
+  alongside gem's native spatial `teamfights`.
+- **Per-inflictor / per-target combat attribution** on `ParsedPlayer`:
+  `damage_inflictor`, `damage_inflictor_received`, `damage_targets`,
+  `ability_targets`, `hero_hits`, and `max_hero_hit` — spell/item-level damage
+  breakdowns matching OpenDota's gating (enemy-hero, non-illusion targets;
+  self-damage excluded; auto-attacks keyed `null`). `hero_hits`/`max_hero_hit`
+  verified exact vs OpenDota.
+- **Derived per-player scalars** on `ParsedPlayer`: `hero_id` (numeric),
+  `level` (terminal), `gold_spent`, `life_state_dead`, `firstblood_claimed`,
+  and `teamfight_participation` — the last two read from the authoritative
+  `CDOTA_PlayerResource` fields OpenDota itself uses (10/10 exact). New
+  `gem.catalog.hero_id()` helper.
+- **Match-level scalars** on `ParsedMatch`: `radiant_score`, `dire_score`, and
+  `first_blood_time` (game-clock, illusion deaths excluded).
+- **Purchase timeline** on `ParsedPlayer`: `purchase` (item→count),
+  `purchase_time`/`first_purchase_time` (game-seconds), `purchase_tpscroll`,
+  `purchase_ward_observer`/`purchase_ward_sentry`, `observer_uses`/`sentry_uses`,
+  and `observers_placed` — derived from `purchase_log`/`item_uses`, recipe
+  handling matching OpenDota's `handlePurchase`.
+- **Ward expiry logs + coordinate maps** on `ParsedPlayer`: `obs_left_log`/
+  `sen_left_log` (OpenDota-shaped departure events with killer attribution) and
+  the nested `obs`/`sen` `{x:{y:count}}` placement histograms. Ward coordinates
+  in the OpenDota-shaped outputs are converted from world units to cell units
+  (`world / 128`, per `Parse.java`) to match OpenDota; native `WardEvent` keeps
+  world coords. `player_slot` uses OpenDota's 0-4/128-132 encoding.
+- **Unified objectives timeline** `ParsedMatch.objectives` — one chronological
+  OpenDota-shaped list merging `building_kill` and the `CHAT_MESSAGE_*` events
+  (Roshan, Aegis, Tormentor, first blood, courier lost), alongside gem's native
+  typed objective fields. Killers resolve source-first (summon/projectile kills
+  credit the owning hero).
+- **Building-status bitmasks** on `ParsedMatch`: `tower_status_radiant`/`_dire`
+  and `barracks_status_radiant`/`_dire` — reconstructed offline from building
+  kills using the Steam GC bit layout (the replay carries no such entity field).
+  Verified **exact** vs OpenDota across validation matches.
+- `ParsedMatch.courier_deaths` (and `gem.extractors.objectives.CourierDeath`) —
+  courier deaths captured from the combat log, feeding the objectives timeline's
+  `CHAT_MESSAGE_COURIER_LOST`.
 
 ### Fixed
 - `PlayerExtractor._read_inventory` read only the legacy
@@ -47,10 +87,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   summon to its owner by a single live name→entity lookup, which can't attribute
   each kill from an army of same-named units. Tracked as a follow-up.
 - OpenDota's per-player `purchase` / `purchase_time` / `first_purchase_time`
-  maps are **not** reproduced: gem's `purchase_log` reconstructs starting items
-  as assembled-item events at a synthetic tick, so item-for-item parity with
-  OpenDota's component/recipe purchase stream isn't achievable without reworking
-  the starting-inventory model. Tracked as a follow-up.
+  maps are now reproduced (see Added), derived from `purchase_log` with
+  OpenDota's recipe handling. The underlying `purchase_log` still reconstructs
+  *starting* items as assembled-item events at a synthetic tick, so the earliest
+  buy times for starting items reflect that synthetic tick rather than each
+  component's true purchase time.
+- `ParsedMatch.pre_game_duration` is declared but currently always `0`: deriving
+  it needs the `GAME_IN_PROGRESS` state-transition timestamp the parser does not
+  yet expose (`m_flGameStartTime` is the clock anchor, not the pre-game span).
+  Tracked as a follow-up.
+- `ParsedMatch.objectives` `building_kill` count can trail OpenDota by one when a
+  building is finished by a siege creep / neutral (no player attribution) — the
+  building-status bitmasks, which depend only on *which* buildings fell, remain
+  exact.
 
 ## [0.3.0] - 2026-06-20
 
