@@ -244,6 +244,33 @@ class _CombatAggregator:
         owner = em.find_by_handle(owner_handle)
         return _player_id_from_entity(owner)
 
+    def resolve_kill_pid(self, source_name: str, attacker_name: str) -> int | None:
+        """Resolve the crediting player for a DEATH, source-first.
+
+        Mirrors the DEATH-branch attribution used for the native ``kills_log`` so
+        objective kills (towers, Roshan, courier) attribute the same way: the
+        ``damage_source_name`` hero is preferred (a summon or projectile carries
+        the owning hero there even when ``attacker_name`` is the non-hero unit),
+        then the attacker hero, then the attacker's summon owner.
+
+        Args:
+            source_name: The combat-log ``damage_source_name`` (may be empty).
+            attacker_name: The combat-log ``attacker_name``.
+
+        Returns:
+            The crediting player's slot 0-9, or ``None`` if unresolvable.
+        """
+        if source_name:
+            pid = self._hero_to_pid(source_name)
+            if pid is not None:
+                return pid
+        if attacker_name:
+            pid = self._hero_to_pid(attacker_name)
+            if pid is not None:
+                return pid
+            return self._summon_to_pid(attacker_name)
+        return None
+
     def _accumulate_hero_tower_damage(self, source_pid: int, entry: Any) -> None:
         """Add one DAMAGE entry to the source hero's hero_damage / tower_damage.
 

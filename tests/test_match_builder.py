@@ -117,7 +117,13 @@ def _make_player_ext(
 
 
 def _make_obj_ext(
-    towers=None, barracks=None, roshan=None, aegis=None, tormentors=None, shrines=None
+    towers=None,
+    barracks=None,
+    roshan=None,
+    aegis=None,
+    tormentors=None,
+    shrines=None,
+    courier_deaths=None,
 ) -> MagicMock:
     ext = MagicMock()
     ext.tower_kills = towers or []
@@ -126,6 +132,7 @@ def _make_obj_ext(
     ext.aegis_events = aegis or []
     ext.tormentor_kills = tormentors or []
     ext.shrine_kills = shrines or []
+    ext.courier_deaths = courier_deaths or []
     return ext
 
 
@@ -150,6 +157,9 @@ def _make_draft_ext(draft_events=None) -> MagicMock:
 def _make_combat_agg() -> MagicMock:
     agg = MagicMock()
     agg.players = {}
+    # Default: no hero resolves to a player id (tests needing resolution set
+    # their own side_effect). Returning None keeps objective slot fields clean.
+    agg._hero_to_pid.return_value = None
     return agg
 
 
@@ -1985,6 +1995,127 @@ class TestWardReshape:
         assert p.obs == {"126": {"119": 1}}
         assert p.sen == {"132": {"129": 1}}
         assert p.observers_placed == 1
+
+
+# ---------------------------------------------------------------------------
+# Unified objectives timeline
+# ---------------------------------------------------------------------------
+
+
+class TestBuildObjectives:
+    def _agg_with_heroes(self, mapping, summons=None):
+        """Combat-agg stub resolving names via ``mapping`` (hero) and ``summons``.
+
+        ``resolve_kill_pid`` mirrors the aggregator's source-first chain:
+        source hero -> attacker hero -> attacker's summon owner.
+        """
+        summons = summons or {}
+        agg = MagicMock()
+        agg._hero_to_pid.side_effect = lambda name: mapping.get(name)
+
+        def _resolve(source_name, attacker_name):
+            if source_name and source_name in mapping:
+                return mapping[source_name]
+            if attacker_name in mapping:
+                return mapping[attacker_name]
+            return summons.get(attacker_name)
+
+        agg.resolve_kill_pid.side_effect = _resolve
+        return agg
+
+    def test_building_kill_shape_and_slot(self):
+        from gem.extractors.objectives import TowerKill
+        from gem.results.assembly import _build_objectives
+
+        tk = TowerKill(
+            tick=6300, team=3, killer="npc_dota_hero_axe", tower_name="npc_dota_badguys_tower1_mid"
+        )
+        agg = self._agg_with_heroes({"npc_dota_hero_axe": 0})
+        objs = _build_objectives(_make_obj_ext(towers=[tk]), agg, None, {0: 2}, game_start_tick=0)
+        assert len(objs) == 1
+        e = objs[0]
+        assert e["type"] == "building_kill"
+        assert e["key"] == "npc_dota_badguys_tower1_mid"
+        assert e["unit"] == "npc_dota_hero_axe"
+        assert e["slot"] == 0 and e["player_slot"] == 0
+        assert e["time"] == 210  # 6300 // 30
+
+    def test_building_kill_by_creep_has_no_slot(self):
+        from gem.extractors.objectives import TowerKill
+        from gem.results.assembly import _build_objectives
+
+        tk = TowerKill(
+            tick=300,
+            team=3,
+            killer="npc_dota_goodguys_siege",
+            tower_name="npc_dota_badguys_tower1_top",
+        )
+        agg = self._agg_with_heroes({})  # siege not a hero -> None
+        e = _build_objectives(_make_obj_ext(towers=[tk]), agg, None, {}, game_start_tick=0)[0]
+        assert "slot" not in e and "player_slot" not in e
+
+    def test_building_kill_by_summon_credits_owner(self):
+        # A Beastmaster boar kills a tower: attacker is the boar (no source),
+        # resolved to its owner via the summon chain. (P2 regression.)
+        from gem.extractors.objectives import TowerKill
+        from gem.results.assembly import _build_objectives
+
+        tk = TowerKill(
+            tick=6000,
+            team=3,
+            killer="npc_dota_beastmaster_boar",
+            tower_name="npc_dota_badguys_tower1_top",
+        )
+        agg = self._agg_with_heroes({}, summons={"npc_dota_beastmaster_boar": 2})
+        e = _build_objectives(_make_obj_ext(towers=[tk]), agg, None, {2: 2}, game_start_tick=0)[0]
+        assert e["slot"] == 2 and e["player_slot"] == 2
+
+    def test_building_kill_by_projectile_uses_source(self):
+        # A projectile lands the kill: attacker is the projectile, but
+        # killer_source carries the owning hero. (P2 regression.)
+        from gem.extractors.objectives import TowerKill
+        from gem.results.assembly import _build_objectives
+
+        tk = TowerKill(
+            tick=6000,
+            team=3,
+            killer="dota_unknown",
+            tower_name="npc_dota_badguys_tower2_mid",
+            killer_source="npc_dota_hero_clinkz",
+        )
+        agg = self._agg_with_heroes({"npc_dota_hero_clinkz": 4})
+        e = _build_objectives(_make_obj_ext(towers=[tk]), agg, None, {4: 2}, game_start_tick=0)[0]
+        assert e["slot"] == 4 and e["player_slot"] == 4
+        assert e["unit"] == "npc_dota_hero_clinkz"  # source hero, not the projectile
+
+    def test_courier_lost_owner_is_opposite_team(self):
+        from gem.extractors.objectives import CourierDeath
+        from gem.results.assembly import _build_objectives
+
+        # Killer is a Dire player (pid 5, team 3) -> courier owner is Radiant (2).
+        cd = CourierDeath(tick=1500, killer="npc_dota_hero_lina")
+        agg = self._agg_with_heroes({"npc_dota_hero_lina": 5})
+        objs = _build_objectives(
+            _make_obj_ext(courier_deaths=[cd]), agg, None, {5: 3}, game_start_tick=0
+        )
+        e = objs[0]
+        assert e["type"] == "CHAT_MESSAGE_COURIER_LOST"
+        assert e["team"] == 2  # owner = opposite of killer's team
+        assert e["killer"] == 128  # Dire pid 5 -> player_slot 128
+
+    def test_sorted_chronologically(self):
+        from gem.extractors.objectives import RoshanKill, TowerKill
+        from gem.results.assembly import _build_objectives
+
+        tk = TowerKill(
+            tick=9000, team=3, killer="npc_dota_hero_axe", tower_name="npc_dota_badguys_tower1_mid"
+        )
+        rk = RoshanKill(tick=3000, killer="npc_dota_hero_axe", kill_number=1, drops=[])
+        agg = self._agg_with_heroes({"npc_dota_hero_axe": 0})
+        objs = _build_objectives(
+            _make_obj_ext(towers=[tk], roshan=[rk]), agg, None, {0: 2}, game_start_tick=0
+        )
+        assert [o["time"] for o in objs] == [100, 300]  # roshan (3000//30) before tower
 
 
 # ---------------------------------------------------------------------------

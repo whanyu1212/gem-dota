@@ -81,14 +81,19 @@ class TowerKill:
     Attributes:
         tick: Game tick when the tower was destroyed.
         team: Team that *owned* the tower (2=Radiant, 3=Dire).
-        killer: NPC name of the unit that landed the killing blow.
+        killer: NPC name of the unit that landed the killing blow
+            (``attacker_name``).
         tower_name: Internal NPC name of the destroyed tower.
+        killer_source: The ``damage_source_name`` (the owning hero for a summon /
+            projectile kill), used for source-first killer attribution. Empty for
+            an auto-attack where source == attacker.
     """
 
     tick: int
     team: int
     killer: str
     tower_name: str
+    killer_source: str = ""
 
 
 @dataclass
@@ -102,12 +107,15 @@ class RoshanKill:
         drops: Short names of items dropped (e.g. ``["aegis", "cheese",
             "refresher_shard", "banner"]``). Populated from entity state;
             always includes ``"aegis"`` when Roshan is killed.
+        killer_source: The ``damage_source_name`` (owning hero for a summon /
+            projectile kill), for source-first killer attribution.
     """
 
     tick: int
     killer: str
     kill_number: int
     drops: list[str] = field(default_factory=list)
+    killer_source: str = ""
 
 
 @dataclass
@@ -119,12 +127,15 @@ class BarracksKill:
         team: Team that *owned* the barracks (2=Radiant, 3=Dire).
         killer: NPC name of the unit that landed the killing blow.
         barracks_name: Internal NPC name of the destroyed barracks.
+        killer_source: The ``damage_source_name`` (owning hero for a summon /
+            projectile kill), for source-first killer attribution.
     """
 
     tick: int
     team: int
     killer: str
     barracks_name: str
+    killer_source: str = ""
 
 
 @dataclass
@@ -175,6 +186,27 @@ class AegisEvent:
     event_type: str
 
 
+@dataclass
+class CourierDeath:
+    """One courier death, detected from the combat log.
+
+    Captured from a ``DEATH`` entry whose target is ``npc_dota_courier``. The
+    courier's owning team is not in the event name, so it is left ``0`` here and
+    inferred (as the killer's opposite team) when the OpenDota ``objectives``
+    timeline is assembled. The combat log carries no bounty value.
+
+    Attributes:
+        tick: Game tick of the courier's death.
+        killer: NPC name of the unit that killed the courier, or empty string.
+        killer_source: The ``damage_source_name`` (owning hero for a summon /
+            projectile kill), for source-first killer attribution.
+    """
+
+    tick: int
+    killer: str
+    killer_source: str = ""
+
+
 # ---------------------------------------------------------------------------
 # Extractor
 # ---------------------------------------------------------------------------
@@ -206,6 +238,7 @@ class ObjectivesExtractor:
     aegis_events: list[AegisEvent]
     tormentor_kills: list[TormentorKill]
     shrine_kills: list[ShrineKill]
+    courier_deaths: list[CourierDeath]
 
     def __init__(self) -> None:
         self.tower_kills = []
@@ -214,6 +247,7 @@ class ObjectivesExtractor:
         self.aegis_events = []
         self.tormentor_kills = []
         self.shrine_kills = []
+        self.courier_deaths = []
         # index → short drop name for currently-alive Roshan item entities
         self._roshan_items: dict[int, str] = {}
 
@@ -267,6 +301,7 @@ class ObjectivesExtractor:
                     killer=entry.attacker_name,
                     kill_number=len(self.roshan_kills) + 1,
                     drops=sorted(self._roshan_items.values()),
+                    killer_source=entry.damage_source_name,
                 )
             )
         elif target == "npc_dota_miniboss":
@@ -287,6 +322,7 @@ class ObjectivesExtractor:
                     team=_find_team(target, _TOWER_TEAM),
                     killer=entry.attacker_name,
                     tower_name=target,
+                    killer_source=entry.damage_source_name,
                 )
             )
         elif (
@@ -301,5 +337,14 @@ class ObjectivesExtractor:
                     team=_find_team(target, _BARRACKS_TEAM),
                     killer=entry.attacker_name,
                     barracks_name=target,
+                    killer_source=entry.damage_source_name,
+                )
+            )
+        elif target.startswith("npc_dota_courier"):
+            self.courier_deaths.append(
+                CourierDeath(
+                    tick=entry.tick,
+                    killer=entry.attacker_name,
+                    killer_source=entry.damage_source_name,
                 )
             )

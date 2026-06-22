@@ -18,6 +18,7 @@ from gem.extractors.draft import DraftEvent
 from gem.extractors.objectives import (
     AegisEvent,
     BarracksKill,
+    CourierDeath,
     RoshanKill,
     ShrineKill,
     TormentorKill,
@@ -520,6 +521,23 @@ class ParsedMatch:
         aegis_events: All Aegis pickup / steal / denial events.
         tormentors: All Tormentor (miniboss) kill events in chronological order.
         shrines: All Shrine of Wisdom destruction events in chronological order.
+        courier_deaths: All courier deaths (combat-log DEATH on a courier).
+        objectives: OpenDota-shaped unified objective timeline, merging building
+            kills and the ``CHAT_MESSAGE_*`` events (Roshan, Aegis, Tormentor,
+            first blood, courier lost) into one chronological list of
+            ``{time, type, ...}`` dicts. Mirrors OpenDota's ``objectives``; gem's
+            typed per-type fields (``towers``, ``roshans``, etc.) are retained
+            alongside it.
+        tower_status_radiant: End-of-game Radiant tower-status bitmask (Steam GC
+            11-bit convention; bit set = tower standing). Reconstructed from tower
+            kills. Mirrors OpenDota's ``tower_status_radiant``.
+        tower_status_dire: End-of-game Dire tower-status bitmask. Mirrors
+            OpenDota's ``tower_status_dire``.
+        barracks_status_radiant: End-of-game Radiant barracks-status bitmask
+            (6-bit; bit set = barracks standing). Mirrors OpenDota's
+            ``barracks_status_radiant``.
+        barracks_status_dire: End-of-game Dire barracks-status bitmask. Mirrors
+            OpenDota's ``barracks_status_dire``.
         wards: All ward placement events with coordinates.
         radiant_gold_adv: Radiant gold advantage at each minute boundary.
         radiant_xp_adv: Radiant XP advantage at each minute boundary.
@@ -585,6 +603,12 @@ class ParsedMatch:
     aegis_events: list[AegisEvent] = field(default_factory=list)
     tormentors: list[TormentorKill] = field(default_factory=list)
     shrines: list[ShrineKill] = field(default_factory=list)
+    courier_deaths: list[CourierDeath] = field(default_factory=list)
+    objectives: list[dict[str, Any]] = field(default_factory=list)
+    tower_status_radiant: int = 0
+    tower_status_dire: int = 0
+    barracks_status_radiant: int = 0
+    barracks_status_dire: int = 0
     wards: list[WardEvent] = field(default_factory=list)
     radiant_gold_adv: list[int] = field(default_factory=list)
     radiant_xp_adv: list[int] = field(default_factory=list)

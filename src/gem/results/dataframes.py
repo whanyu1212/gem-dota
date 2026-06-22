@@ -261,7 +261,21 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                 "event_type": a.event_type,
             }
         )
+    for cd in match.courier_deaths:
+        obj_rows.append(
+            {
+                "type": "courier_death",
+                "tick": cd.tick,
+                "team": 0,
+                "name": "npc_dota_courier",
+                "killer": cd.killer,
+            }
+        )
     objectives_df = pd.DataFrame(obj_rows)
+
+    # OpenDota-shaped unified objectives timeline (separate from the native
+    # per-type objectives_df above).
+    opendota_objectives_df = pd.DataFrame(match.objectives) if match.objectives else pd.DataFrame()
 
     # --- positions ---
     pos_rows: list[dict] = []
@@ -292,6 +306,10 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                 "radiant_win": match.radiant_win,
                 "game_start_tick": match.game_start_tick,
                 "game_end_tick": match.game_end_tick,
+                "tower_status_radiant": match.tower_status_radiant,
+                "tower_status_dire": match.tower_status_dire,
+                "barracks_status_radiant": match.barracks_status_radiant,
+                "barracks_status_dire": match.barracks_status_dire,
             }
         ]
     )
@@ -343,6 +361,7 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         "combat_log": combat_df,
         "wards": wards_df,
         "objectives": objectives_df,
+        "opendota_objectives": opendota_objectives_df,
         "chat": chat_df,
         "match": match_df,
         "radiant_advantage": advantage_df,

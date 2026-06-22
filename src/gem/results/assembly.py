@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any
 from gem.catalog import hero_id
 from gem.combat.log import opendota_translate
 from gem.extractors.lane import classify_lane
-from gem.results.derived import categorize_kills, killed_counts
+from gem.results.derived import building_status, categorize_kills, killed_counts
 from gem.results.models import ParsedMatch
 
 if TYPE_CHECKING:
@@ -64,6 +64,21 @@ def _player_id_to_player_slot(player_id: int) -> int:
     return player_id if player_id < 5 else 128 + (player_id - 5)
 
 
+def _tick_game_seconds(tick: int, game_start_tick: int | None) -> int:
+    """Return an absolute tick's game-relative time in seconds.
+
+    Args:
+        tick: Absolute parser tick.
+        game_start_tick: Absolute tick of the game clock start, or ``None``.
+
+    Returns:
+        Game-relative seconds (negative pre-horn), or ``0`` with no clock ref.
+    """
+    if game_start_tick is None:
+        return 0
+    return (tick - game_start_tick) // 30
+
+
 def _entry_game_seconds(entry: CombatLogEntry, game_start_tick: int | None) -> int:
     """Return a combat-log entry's game-relative time in seconds.
 
@@ -81,9 +96,7 @@ def _entry_game_seconds(entry: CombatLogEntry, game_start_tick: int | None) -> i
     """
     if entry.game_time_s is not None:
         return int(entry.game_time_s)
-    if game_start_tick is not None:
-        return (entry.tick - game_start_tick) // 30
-    return 0
+    return _tick_game_seconds(entry.tick, game_start_tick)
 
 
 def _build_purchase_aggregates(
@@ -192,6 +205,128 @@ def _ward_left_entry(ward: WardEvent, game_start_tick: int | None) -> dict[str, 
         "entityleft": True,
         "attackername": ward.killer or "",
     }
+
+
+def _build_objectives(
+    obj_ext: ObjectivesExtractor,
+    combat_agg: _CombatAggregator,
+    first_blood_entry: CombatLogEntry | None,
+    pid_to_team: dict[int, int],
+    game_start_tick: int | None,
+) -> list[dict[str, Any]]:
+    """Merge gem's per-type objective events into OpenDota's unified timeline.
+
+    Produces the ``objectives`` list OpenDota exposes: ``building_kill`` plus the
+    ``CHAT_MESSAGE_*`` events, each ``{time, type, ...}`` with type-specific
+    fields, sorted chronologically. Killer heroes are resolved to OpenDota
+    ``slot``/``player_slot`` via the combat aggregator's name→id map.
+
+    Args:
+        obj_ext: The objectives extractor (towers, roshans, aegis, etc.).
+        combat_agg: Combat aggregator, for killer-hero → player id resolution.
+        first_blood_entry: The first real hero-death entry, or ``None``.
+        pid_to_team: Map of player id (0-9) → team (2/3), for courier ownership.
+        game_start_tick: Absolute tick of the game clock start, or ``None``.
+
+    Returns:
+        Chronologically-sorted list of OpenDota-shaped objective dicts.
+    """
+    objectives: list[dict[str, Any]] = []
+
+    def secs(tick: int) -> int:
+        return _tick_game_seconds(tick, game_start_tick)
+
+    def slot_fields(player_id: int | None) -> dict[str, Any]:
+        if not isinstance(player_id, int) or not (0 <= player_id < 10):
+            return {}
+        return {"slot": player_id, "player_slot": _player_id_to_player_slot(player_id)}
+
+    # building_kill — towers and barracks, attributed source-first (a summon /
+    # projectile killer carries the owning hero in killer_source). unit is the
+    # crediting source unit when present, mirroring OpenDota.
+    for tk in obj_ext.tower_kills:
+        pid = combat_agg.resolve_kill_pid(tk.killer_source, tk.killer)
+        objectives.append(
+            {
+                "time": secs(tk.tick),
+                "type": "building_kill",
+                "key": tk.tower_name,
+                "unit": tk.killer_source or tk.killer,
+                **slot_fields(pid),
+            }
+        )
+    for bk in obj_ext.barracks_kills:
+        pid = combat_agg.resolve_kill_pid(bk.killer_source, bk.killer)
+        objectives.append(
+            {
+                "time": secs(bk.tick),
+                "type": "building_kill",
+                "key": bk.barracks_name,
+                "unit": bk.killer_source or bk.killer,
+                **slot_fields(pid),
+            }
+        )
+
+    # CHAT_MESSAGE_ROSHAN_KILL — team that killed Roshan (killer's team).
+    for rk in obj_ext.roshan_kills:
+        pid = combat_agg.resolve_kill_pid(rk.killer_source, rk.killer)
+        team = pid_to_team.get(pid) if pid is not None else None
+        entry: dict[str, Any] = {"time": secs(rk.tick), "type": "CHAT_MESSAGE_ROSHAN_KILL"}
+        if team is not None:
+            entry["team"] = team
+        objectives.append(entry)
+
+    # CHAT_MESSAGE_AEGIS / _AEGIS_STOLEN / _DENIED_AEGIS.
+    _aegis_type = {
+        "pickup": "CHAT_MESSAGE_AEGIS",
+        "stolen": "CHAT_MESSAGE_AEGIS_STOLEN",
+        "denied": "CHAT_MESSAGE_DENIED_AEGIS",
+    }
+    for ae in obj_ext.aegis_events:
+        pid = ae.player_id if 0 <= ae.player_id < 10 else None
+        objectives.append(
+            {
+                "time": secs(ae.tick),
+                "type": _aegis_type.get(ae.event_type, "CHAT_MESSAGE_AEGIS"),
+                **slot_fields(pid),
+            }
+        )
+
+    # CHAT_MESSAGE_MINIBOSS_KILL — Tormentor, by killing player + their team.
+    for tm in obj_ext.tormentor_kills:
+        pid = tm.killer_player_id if 0 <= tm.killer_player_id < 10 else None
+        entry = {"time": secs(tm.tick), "type": "CHAT_MESSAGE_MINIBOSS_KILL", **slot_fields(pid)}
+        team = pid_to_team.get(pid) if pid is not None else None
+        if team is not None:
+            entry["team"] = team
+        objectives.append(entry)
+
+    # CHAT_MESSAGE_FIRSTBLOOD — the first real hero death; key is the victim slot.
+    if first_blood_entry is not None:
+        killer_pid = combat_agg._hero_to_pid(first_blood_entry.attacker_name)
+        victim_pid = combat_agg._hero_to_pid(first_blood_entry.target_name)
+        entry = {
+            "time": _entry_game_seconds(first_blood_entry, game_start_tick),
+            "type": "CHAT_MESSAGE_FIRSTBLOOD",
+            **slot_fields(killer_pid),
+        }
+        if victim_pid is not None:
+            entry["key"] = str(victim_pid)
+        objectives.append(entry)
+
+    # CHAT_MESSAGE_COURIER_LOST — team is the courier's owner (killer's opposite).
+    for cd in obj_ext.courier_deaths:
+        killer_pid = combat_agg.resolve_kill_pid(cd.killer_source, cd.killer)
+        killer_team = pid_to_team.get(killer_pid) if killer_pid is not None else None
+        entry = {"time": secs(cd.tick), "type": "CHAT_MESSAGE_COURIER_LOST"}
+        if killer_team in (2, 3):
+            entry["team"] = 3 if killer_team == 2 else 2  # owner = opposite of killer
+        if killer_pid is not None:
+            entry["killer"] = _player_id_to_player_slot(killer_pid)
+        objectives.append(entry)
+
+    objectives.sort(key=lambda o: o["time"])
+    return objectives
 
 
 def _radiant_win_from_ancient(combat_log: list[CombatLogEntry]) -> bool | None:
@@ -828,6 +963,18 @@ def build_parsed_match(
     # from the entity-counter obs_placed. Use the per-player obs_log length.
     for pp in match.players:
         pp.observers_placed = len(pp.obs_log)
+
+    # OpenDota-shaped unified objectives timeline + building-status bitmasks.
+    pid_to_team = {pp.player_id: pp.team for pp in match.players if pp.team}
+    match.objectives = _build_objectives(
+        obj_ext, combat_agg, first_blood_entry, pid_to_team, game_start_tick
+    )
+    match.courier_deaths = obj_ext.courier_deaths
+    bitmasks = building_status(obj_ext.tower_kills, obj_ext.barracks_kills)
+    match.tower_status_radiant = bitmasks["tower_status_radiant"]
+    match.tower_status_dire = bitmasks["tower_status_dire"]
+    match.barracks_status_radiant = bitmasks["barracks_status_radiant"]
+    match.barracks_status_dire = bitmasks["barracks_status_dire"]
 
     # Compute radiant_gold_adv / radiant_xp_adv per game-minute boundary.
     # Both curves come from monotonically-increasing total-earned fields
