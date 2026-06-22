@@ -164,8 +164,23 @@ class ParsedPlayer:
         total_hero_healing_t_min: Cumulative healing dealt to allied heroes at each game-minute boundary.
         total_deaths_t_min: Cumulative death count at each game-minute boundary.
         total_stuns_t_min: Cumulative stun duration dealt (seconds) at each game-minute boundary.
-        obs_log: Observer ward placement events for this player.
-        sen_log: Sentry ward placement events for this player.
+        obs_log: Observer ward placement events for this player (gem's native
+            ``WardEvent`` records, carrying coordinates, expiry, and killer).
+        sen_log: Sentry ward placement events for this player (``WardEvent``).
+        obs_left_log: OpenDota-shaped observer-ward *departure* events
+            (``{time, type, key, slot, player_slot, x, y, entityleft,
+            attackername}``), one per observer ward that left the map.
+            ``attackername`` names the killer for a destroyed ward and is empty
+            for a natural expiry. Coordinates are in OpenDota cell units. Mirrors
+            OpenDota's ``obs_left_log`` shape; gem's detection is more complete
+            (it also logs natural expiries OpenDota sometimes omits).
+        sen_left_log: OpenDota-shaped sentry-ward departure events, as
+            ``obs_left_log`` but for sentries; mirrors OpenDota's ``sen_left_log``.
+        obs: Observer-ward placement coordinate histogram, nested
+            ``{x: {y: count}}`` over rounded world coordinates. Mirrors
+            OpenDota's ``obs``.
+        sen: Sentry-ward placement coordinate histogram, mirroring OpenDota's
+            ``sen``.
         damage: Total damage dealt, keyed by target NPC name, credited to the
             damage *source* (``damage_source_name``) so summon / spell /
             projectile damage lands on the owning hero. Illusion targets are keyed
@@ -290,6 +305,27 @@ class ParsedPlayer:
             (``opendota_teamfights``) the player was involved in (0.0–1.0) — any
             death, buyback, damage, healing, or ability/item use in the window.
             Mirrors OpenDota's ``teamfight_participation``.
+        purchase: Count of each item purchased, keyed by translated item name
+            (``item_`` stripped); recipes included. Mirrors OpenDota's
+            ``purchase``.
+        purchase_time: Game-seconds of the player's *last* purchase of each item
+            (recipes excluded), keyed by translated name. Mirrors OpenDota's
+            ``purchase_time``.
+        first_purchase_time: Game-seconds of the player's *first* purchase of each
+            item (recipes excluded). Mirrors OpenDota's ``first_purchase_time``.
+        purchase_tpscroll: Number of TP scrolls purchased. Mirrors OpenDota's
+            ``purchase_tpscroll``.
+        purchase_ward_observer: Number of observer wards purchased. Mirrors
+            OpenDota's ``purchase_ward_observer``.
+        purchase_ward_sentry: Number of sentry wards purchased. Mirrors OpenDota's
+            ``purchase_ward_sentry``.
+        observer_uses: Observer wards used (``item_uses['item_ward_observer']``).
+            Mirrors OpenDota's ``observer_uses``.
+        sentry_uses: Sentry wards used (``item_uses['item_ward_sentry']``).
+            Mirrors OpenDota's ``sentry_uses``.
+        observers_placed: Observer wards placed, derived from ``obs_log`` length.
+            Mirrors OpenDota's ``observers_placed`` (a purchase/use-log-derived
+            alias distinct from the entity-counter ``obs_placed``).
         kda: OpenDota KDA ratio, ``round((kills + assists) / (deaths + 1), 2)``.
             Note the ``+1`` denominator (not ``max(deaths, 1)``) and 2-decimal
             rounding; matches OpenDota's ``kda`` exactly.
@@ -359,6 +395,10 @@ class ParsedPlayer:
     total_stuns_t_min: list[float] = field(default_factory=list)
     obs_log: list[WardEvent] = field(default_factory=list)
     sen_log: list[WardEvent] = field(default_factory=list)
+    obs_left_log: list[dict[str, Any]] = field(default_factory=list)
+    sen_left_log: list[dict[str, Any]] = field(default_factory=list)
+    obs: dict[str, dict[str, int]] = field(default_factory=dict)
+    sen: dict[str, dict[str, int]] = field(default_factory=dict)
     damage: dict[str, int] = field(default_factory=dict)
     damage_taken: dict[str, int] = field(default_factory=dict)
     damage_by_type: dict[str, int] = field(default_factory=dict)
@@ -431,6 +471,16 @@ class ParsedPlayer:
     life_state_dead: int = 0
     firstblood_claimed: int = 0
     teamfight_participation: float = 0.0
+    # OpenDota purchase-timeline aggregates, derived from purchase_log.
+    purchase: dict[str, int] = field(default_factory=dict)
+    purchase_time: dict[str, int] = field(default_factory=dict)
+    first_purchase_time: dict[str, int] = field(default_factory=dict)
+    purchase_tpscroll: int = 0
+    purchase_ward_observer: int = 0
+    purchase_ward_sentry: int = 0
+    observer_uses: int = 0
+    sentry_uses: int = 0
+    observers_placed: int = 0
     _ability_snapshots: list[tuple[int, dict[str, int]]] = field(default_factory=list)
 
     def __repr__(self) -> str:
