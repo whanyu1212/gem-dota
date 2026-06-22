@@ -122,3 +122,75 @@ class TestCategorizeKills:
         assert cats.neutral_kills == 0
         assert cats.lane_kills == 0
         assert cats.roshan_kills == 0
+
+
+# ---------------------------------------------------------------------------
+# Building-status bitmasks
+# ---------------------------------------------------------------------------
+
+from dataclasses import dataclass  # noqa: E402
+
+from gem.results.derived import building_status  # noqa: E402
+
+
+@dataclass
+class _TK:
+    team: int
+    tower_name: str
+
+
+@dataclass
+class _BK:
+    team: int
+    barracks_name: str
+
+
+class TestBuildingStatus:
+    _ALL_TOWERS = (1 << 11) - 1  # 2047
+    _ALL_RAX = (1 << 6) - 1  # 63
+
+    def test_no_kills_all_standing(self):
+        r = building_status([], [])
+        assert r["tower_status_radiant"] == self._ALL_TOWERS
+        assert r["tower_status_dire"] == self._ALL_TOWERS
+        assert r["barracks_status_radiant"] == self._ALL_RAX
+        assert r["barracks_status_dire"] == self._ALL_RAX
+
+    def test_tier1_top_clears_bit0(self):
+        r = building_status([_TK(2, "npc_dota_goodguys_tower1_top")], [])
+        # bit 0 cleared -> 2047 - 1 = 2046
+        assert r["tower_status_radiant"] == self._ALL_TOWERS - 1
+
+    def test_tier_lane_bit_layout(self):
+        # mid tier2 = lane offset 3 + (2-1) = bit 4 -> clears 16.
+        r = building_status([_TK(3, "npc_dota_badguys_tower2_mid")], [])
+        assert r["tower_status_dire"] == self._ALL_TOWERS - (1 << 4)
+
+    def test_two_tier4_clear_both_ancient_bits(self):
+        # Both tier-4 towers share the name ..._tower4; two deaths clear bits 9 & 10.
+        r = building_status(
+            [_TK(2, "npc_dota_goodguys_tower4"), _TK(2, "npc_dota_goodguys_tower4")], []
+        )
+        assert r["tower_status_radiant"] == self._ALL_TOWERS - (1 << 9) - (1 << 10)
+
+    def test_one_tier4_clears_one_bit(self):
+        r = building_status([_TK(3, "npc_dota_badguys_tower4")], [])
+        assert r["tower_status_dire"] == self._ALL_TOWERS - (1 << 9)
+
+    def test_barracks_bit_layout(self):
+        # mid melee = lane offset 2 + 0 = bit 2; mid ranged = bit 3.
+        r = building_status(
+            [],
+            [
+                _BK(3, "npc_dota_badguys_melee_rax_mid"),
+                _BK(3, "npc_dota_badguys_range_rax_mid"),
+            ],
+        )
+        # bits 2 and 3 cleared -> 63 - 4 - 8 = 51 (matches OpenDota fixture).
+        assert r["barracks_status_dire"] == 51
+
+    def test_team_separation(self):
+        # A Radiant tower death must not affect the Dire mask.
+        r = building_status([_TK(2, "npc_dota_goodguys_tower1_bot")], [])
+        assert r["tower_status_dire"] == self._ALL_TOWERS
+        assert r["tower_status_radiant"] != self._ALL_TOWERS

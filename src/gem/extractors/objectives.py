@@ -175,6 +175,24 @@ class AegisEvent:
     event_type: str
 
 
+@dataclass
+class CourierDeath:
+    """One courier death, detected from the combat log.
+
+    Captured from a ``DEATH`` entry whose target is ``npc_dota_courier``. The
+    courier's owning team is not in the event name, so it is left ``0`` here and
+    inferred (as the killer's opposite team) when the OpenDota ``objectives``
+    timeline is assembled. The combat log carries no bounty value.
+
+    Attributes:
+        tick: Game tick of the courier's death.
+        killer: NPC name of the unit that killed the courier, or empty string.
+    """
+
+    tick: int
+    killer: str
+
+
 # ---------------------------------------------------------------------------
 # Extractor
 # ---------------------------------------------------------------------------
@@ -206,6 +224,7 @@ class ObjectivesExtractor:
     aegis_events: list[AegisEvent]
     tormentor_kills: list[TormentorKill]
     shrine_kills: list[ShrineKill]
+    courier_deaths: list[CourierDeath]
 
     def __init__(self) -> None:
         self.tower_kills = []
@@ -214,6 +233,7 @@ class ObjectivesExtractor:
         self.aegis_events = []
         self.tormentor_kills = []
         self.shrine_kills = []
+        self.courier_deaths = []
         # index → short drop name for currently-alive Roshan item entities
         self._roshan_items: dict[int, str] = {}
 
@@ -303,3 +323,5 @@ class ObjectivesExtractor:
                     barracks_name=target,
                 )
             )
+        elif target.startswith("npc_dota_courier"):
+            self.courier_deaths.append(CourierDeath(tick=entry.tick, killer=entry.attacker_name))
