@@ -89,6 +89,11 @@ from gem.analysis import (
 )
 from gem.catalog import hero_npc_name
 from gem.extractors.draft import resolve_pick_team
+from gem.extractors.teamfights import (
+    OpenDotaTeamfight,
+    OpenDotaTeamfightPlayer,
+    detect_opendota_teamfights,
+)
 from gem.replays.batch import (
     ParseResult,
     parse_many,
@@ -427,6 +432,8 @@ __all__ = [
     "parse_many_to_parquet",
     "ParsedMatch",
     "ParsedPlayer",
+    "OpenDotaTeamfight",
+    "OpenDotaTeamfightPlayer",
     "ChatEntry",
     "NeutralItemFoundEvent",
     "find_player",
@@ -443,6 +450,7 @@ __all__ = [
     "net_worth_at",
     "ward_vision_impact",
     "is_active_teamfight_participant",
+    "detect_opendota_teamfights",
     "format_npc_name",
     "MapContextBucket",
     "CampVisitContext",

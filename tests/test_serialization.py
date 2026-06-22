@@ -7,6 +7,7 @@ from collections import defaultdict
 
 import gem
 import gem.api
+from gem.extractors.teamfights import OpenDotaTeamfight
 from gem.results.models import ParsedMatch, ParsedPlayer
 
 
@@ -42,6 +43,17 @@ class TestSerializationHelpers:
         decoded = json.loads(payload)
         assert decoded["match_id"] == 7
         assert "players" in decoded
+
+    def test_to_dict_includes_opendota_teamfights(self):
+        match = ParsedMatch(
+            match_id=7,
+            opendota_teamfights=[OpenDotaTeamfight(start=10, end=30, last_death=15, deaths=3)],
+        )
+
+        data = gem.to_dict(match)
+
+        assert data["opendota_teamfights"][0]["start"] == 10
+        assert data["opendota_teamfights"][0]["players"][0]["damage"] == 0
 
     def test_parse_to_json_uses_parse_result(self, monkeypatch):
         fake_match = ParsedMatch(match_id=999)

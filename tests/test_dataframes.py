@@ -100,6 +100,7 @@ class TestBuildDataframes:
         assert "radiant_advantage" in dfs
         assert "draft" in dfs
         assert "teamfights" in dfs
+        assert "opendota_teamfights" in dfs
         assert "smoke_events" in dfs
         assert "courier_snapshots" in dfs
         assert "neutral_item_finds" in dfs
@@ -109,6 +110,7 @@ class TestBuildDataframes:
         assert "player_buyback_log" in dfs
 
         assert dfs["neutral_item_finds"].empty
+        assert dfs["opendota_teamfights"].empty
 
     def test_neutral_item_finds_dataframe_includes_event_fields(self):
         neutral_event_cls = getattr(model_module, "NeutralItemFoundEvent", None)
