@@ -38,6 +38,7 @@ if TYPE_CHECKING:
     from gem.extractors.players import PlayerStateSnapshot
 
 # 15 seconds × 30 ticks/second  (reference uses 15s cooldown)
+_TEAMFIGHT_COOLDOWN_S: int = 15
 _COOLDOWN_TICKS: int = 15 * 30
 
 # Maximum world-unit distance between a death and an active fight's centroid
@@ -113,6 +114,48 @@ class Teamfight:
     centroid_y: float | None = None
     centroid_n: int = 0
     players: list[TeamfightPlayer] = field(default_factory=list)
+
+
+@dataclass
+class OpenDotaTeamfightPlayer:
+    """OpenDota-compatible per-player teamfight row.
+
+    This intentionally mirrors the OpenDota ``teamfights[].players[]`` schema.
+    It is a compatibility projection, separate from Gem's richer
+    ``TeamfightPlayer`` model.
+    """
+
+    deaths_pos: dict[str, dict[str, int]] = field(default_factory=dict)
+    ability_uses: dict[str, int] = field(default_factory=dict)
+    ability_targets: dict[str, int] = field(default_factory=dict)
+    item_uses: dict[str, int] = field(default_factory=dict)
+    killed: dict[str, int] = field(default_factory=dict)
+    deaths: int = 0
+    buybacks: int = 0
+    damage: int = 0
+    healing: int = 0
+    gold_delta: int = 0
+    xp_delta: int = 0
+    xp_start: int | None = None
+    xp_end: int | None = None
+
+
+@dataclass
+class OpenDotaTeamfight:
+    """OpenDota-compatible temporal teamfight window.
+
+    OpenDota opens a fight at ``first_death_time - 15``, extends it with hero
+    deaths that occur before the 15-second cooldown expires, then keeps only
+    windows with at least three hero deaths.
+    """
+
+    start: int
+    end: int
+    last_death: int
+    deaths: int
+    players: list[OpenDotaTeamfightPlayer] = field(
+        default_factory=lambda: [OpenDotaTeamfightPlayer() for _ in range(10)]
+    )
 
 
 def detect_teamfights(
@@ -371,6 +414,230 @@ def detect_teamfights(
                 fight.winner = "draw"
 
     return fights
+
+
+def detect_opendota_teamfights(
+    combat_log: list[CombatLogEntry],
+    hero_to_slot: dict[str, int] | None = None,
+    player_snapshots: dict[int, list[PlayerStateSnapshot]] | None = None,
+    *,
+    game_start_tick: int | None = None,
+    duration_s: int | None = None,
+) -> list[OpenDotaTeamfight]:
+    """Project combat log entries into OpenDota-compatible teamfight output.
+
+    This is intentionally separate from :func:`detect_teamfights`, which uses
+    Gem's spatial clustering and returns all skirmishes. The compatibility
+    output follows OpenDota's temporal-only death-window semantics and filters
+    to fights with at least three hero deaths.
+    """
+    h2s = hero_to_slot or {}
+    entries = sorted(
+        combat_log,
+        key=lambda e: (
+            _combat_time_s(e, game_start_tick=game_start_tick)
+            if _combat_time_s(e, game_start_tick=game_start_tick) is not None
+            else float("inf"),
+            e.tick,
+        ),
+    )
+
+    fights: list[OpenDotaTeamfight] = []
+    current: OpenDotaTeamfight | None = None
+
+    for entry in entries:
+        if not _is_counted_opendota_death(entry):
+            continue
+        death_time_s = _combat_time_s(entry, game_start_tick=game_start_tick)
+        if death_time_s is None:
+            continue
+
+        if current is None or death_time_s - current.last_death >= _TEAMFIGHT_COOLDOWN_S:
+            _append_closed_opendota_fight(fights, current, duration_s=duration_s)
+            current = OpenDotaTeamfight(
+                start=death_time_s - _TEAMFIGHT_COOLDOWN_S,
+                end=0,
+                last_death=death_time_s,
+                deaths=0,
+            )
+
+        current.last_death = death_time_s
+        current.deaths += 1
+
+    _append_closed_opendota_fight(fights, current, duration_s=duration_s)
+
+    if not fights:
+        return []
+
+    for fight in fights:
+        _populate_opendota_xp_bounds(
+            fight,
+            player_snapshots,
+            game_start_tick=game_start_tick,
+        )
+
+    for entry in entries:
+        event_time_s = _combat_time_s(entry, game_start_tick=game_start_tick)
+        if event_time_s is None:
+            continue
+        for fight in fights:
+            if event_time_s < fight.start or event_time_s > fight.end:
+                continue
+            _populate_opendota_teamfight_event(
+                fight,
+                entry,
+                h2s,
+                player_snapshots,
+            )
+
+    return fights
+
+
+def _append_closed_opendota_fight(
+    fights: list[OpenDotaTeamfight],
+    fight: OpenDotaTeamfight | None,
+    *,
+    duration_s: int | None,
+) -> None:
+    if fight is None or fight.deaths < 3:
+        return
+    end = fight.last_death + _TEAMFIGHT_COOLDOWN_S
+    if duration_s is not None and end > duration_s:
+        return
+    fight.end = end
+    fights.append(fight)
+
+
+def _combat_time_s(entry: CombatLogEntry, *, game_start_tick: int | None) -> int | None:
+    if entry.game_time_s is not None:
+        return int(entry.game_time_s)
+    if game_start_tick is None:
+        return None
+    return int(round((entry.tick - game_start_tick) / 30))
+
+
+def _is_counted_opendota_death(entry: CombatLogEntry) -> bool:
+    return (
+        entry.log_type == "DEATH"
+        and entry.target_is_hero
+        and not entry.target_is_illusion
+        and not entry.will_reincarnate
+    )
+
+
+def _populate_opendota_xp_bounds(
+    fight: OpenDotaTeamfight,
+    player_snapshots: dict[int, list[PlayerStateSnapshot]] | None,
+    *,
+    game_start_tick: int | None,
+) -> None:
+    if player_snapshots is None or game_start_tick is None:
+        return
+    start_tick = game_start_tick + fight.start * 30
+    end_tick = game_start_tick + fight.end * 30
+    for player_id, snaps in player_snapshots.items():
+        if player_id >= len(fight.players):
+            continue
+        xp_start = _nearest_xp(snaps, start_tick)
+        xp_end = _nearest_xp(snaps, end_tick)
+        if xp_start is not None:
+            fight.players[player_id].xp_start = xp_start
+        if xp_end is not None:
+            fight.players[player_id].xp_end = xp_end
+
+
+def _populate_opendota_teamfight_event(
+    fight: OpenDotaTeamfight,
+    entry: CombatLogEntry,
+    hero_to_slot: dict[str, int],
+    player_snapshots: dict[int, list[PlayerStateSnapshot]] | None,
+) -> None:
+    if entry.log_type == "DEATH":
+        _populate_opendota_death(fight, entry, hero_to_slot, player_snapshots)
+        return
+
+    if entry.log_type == "BUYBACK":
+        bslot = entry.value
+        if isinstance(bslot, int) and 0 <= bslot < len(fight.players):
+            fight.players[bslot].buybacks += 1
+        return
+
+    source_slot = _source_slot(entry, hero_to_slot)
+    target_slot = hero_to_slot.get(entry.target_name)
+
+    if entry.log_type == "DAMAGE":
+        if entry.target_is_hero and not entry.target_is_illusion and source_slot is not None:
+            fight.players[source_slot].damage += entry.value
+    elif entry.log_type == "HEAL":
+        if entry.target_is_hero and not entry.target_is_illusion and source_slot is not None:
+            fight.players[source_slot].healing += entry.value
+    elif entry.log_type == "GOLD":
+        if target_slot is not None:
+            fight.players[target_slot].gold_delta += entry.value
+    elif entry.log_type == "XP":
+        if target_slot is not None:
+            fight.players[target_slot].xp_delta += entry.value
+    elif entry.log_type == "ABILITY":
+        if source_slot is not None and entry.inflictor_name:
+            key = _opendota_translate(entry.inflictor_name)
+            if key is not None:
+                uses = fight.players[source_slot].ability_uses
+                uses[key] = uses.get(key, 0) + 1
+    elif entry.log_type == "ITEM" and source_slot is not None and entry.inflictor_name:
+        key = _opendota_translate(entry.inflictor_name)
+        if key is not None:
+            uses = fight.players[source_slot].item_uses
+            uses[key] = uses.get(key, 0) + 1
+
+
+def _populate_opendota_death(
+    fight: OpenDotaTeamfight,
+    entry: CombatLogEntry,
+    hero_to_slot: dict[str, int],
+    player_snapshots: dict[int, list[PlayerStateSnapshot]] | None,
+) -> None:
+    if not _is_counted_opendota_death(entry):
+        return
+
+    target_slot = hero_to_slot.get(entry.target_name)
+    source_name = entry.damage_source_name or entry.attacker_name
+
+    if source_name and source_name != entry.target_name:
+        source_slot = hero_to_slot.get(source_name)
+        if source_slot is not None and 0 <= source_slot < len(fight.players):
+            killed = fight.players[source_slot].killed
+            killed[entry.target_name] = killed.get(entry.target_name, 0) + 1
+
+    if target_slot is None or not 0 <= target_slot < len(fight.players):
+        return
+
+    target_player = fight.players[target_slot]
+    target_player.deaths += 1
+
+    if player_snapshots is None:
+        return
+    pos = _nearest_pos(player_snapshots.get(target_slot, []), entry.tick)
+    if pos is None:
+        return
+    x = str(round(pos[0]))
+    y = str(round(pos[1]))
+    y_counts = target_player.deaths_pos.setdefault(x, {})
+    y_counts[y] = y_counts.get(y, 0) + 1
+
+
+def _source_slot(entry: CombatLogEntry, hero_to_slot: dict[str, int]) -> int | None:
+    source_name = entry.damage_source_name or entry.attacker_name
+    if not source_name:
+        return None
+    return hero_to_slot.get(source_name)
+
+
+def _opendota_translate(name: str) -> str | None:
+    if name == "dota_unknown":
+        return None
+    if name.startswith("item_"):
+        return name[5:]
+    return name
 
 
 def _near_fight(

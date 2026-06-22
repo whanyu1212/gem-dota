@@ -279,7 +279,7 @@ def build_parsed_match(
         Fully populated :class:`ParsedMatch`.
     """
     from gem.combat.aggregator import _dedup_purchase_log
-    from gem.extractors.teamfights import detect_teamfights
+    from gem.extractors.teamfights import detect_opendota_teamfights, detect_teamfights
 
     # radiant_win resolution — three tiers in priority order:
     #   1. CDemoFileInfo.game_winner (set during parse, empty for HLTV replays)
@@ -618,6 +618,13 @@ def build_parsed_match(
         hero_to_slot=hero_to_slot,
         player_snapshots=player_snaps,
         slot_to_team=slot_to_team,
+    )
+    match.opendota_teamfights = detect_opendota_teamfights(
+        all_entries,
+        hero_to_slot=hero_to_slot,
+        player_snapshots=player_snaps,
+        game_start_tick=match.game_start_tick,
+        duration_s=match.duration or None,
     )
 
     # Build per-player ability level snapshots for ability_level_at_tick().

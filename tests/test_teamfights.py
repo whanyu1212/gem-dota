@@ -15,6 +15,7 @@ from gem.extractors.teamfights import (
     _nearest_pos,
     _nearest_xp,
     _update_centroid,
+    detect_opendota_teamfights,
     detect_teamfights,
 )
 
@@ -26,9 +27,11 @@ def _death(
     target: str = "npc_dota_hero_axe",
     illusion: bool = False,
     will_reincarnate: bool = False,
+    game_time_s: int | None = None,
 ) -> CombatLogEntry:
     return CombatLogEntry(
         tick=tick,
+        game_time_s=game_time_s,
         log_type="DEATH",
         target_name=target,
         target_is_hero=True,
@@ -260,6 +263,167 @@ class TestDetectTeamfights:
         entries = [_death(1000), item_entry]
         fights = detect_teamfights(entries, hero_to_slot=h2s)
         assert fights[0].players[0].item_uses.get("item_blink") == 1
+
+
+class TestDetectOpenDotaTeamfights:
+    def test_uses_combat_log_game_time_and_filters_short_windows(self):
+        fights = detect_opendota_teamfights(
+            [
+                _death(10_000, game_time_s=1033),
+                _death(10_030, target="npc_dota_hero_pudge", game_time_s=1038),
+                _death(10_060, target="npc_dota_hero_lina", game_time_s=1040),
+                _death(20_000, target="npc_dota_hero_crystal_maiden", game_time_s=1200),
+            ]
+        )
+
+        assert [(f.start, f.end, f.last_death, f.deaths) for f in fights] == [(1018, 1055, 1040, 3)]
+
+    def test_filters_illusions_and_reincarnation_triggers(self):
+        fights = detect_opendota_teamfights(
+            [
+                _death(100, game_time_s=100),
+                _death(110, target="npc_dota_hero_pudge", illusion=True, game_time_s=105),
+                _death(
+                    120,
+                    target="npc_dota_hero_lina",
+                    will_reincarnate=True,
+                    game_time_s=106,
+                ),
+                _death(200, target="npc_dota_hero_drow_ranger", game_time_s=200),
+                _death(210, target="npc_dota_hero_juggernaut", game_time_s=204),
+                _death(220, target="npc_dota_hero_sven", game_time_s=208),
+            ]
+        )
+
+        assert [(f.start, f.end, f.last_death, f.deaths) for f in fights] == [(185, 223, 208, 3)]
+
+    def test_temporal_output_does_not_spatially_split(self):
+        h2s = {"npc_dota_hero_axe": 0, "npc_dota_hero_pudge": 1, "npc_dota_hero_lina": 2}
+        snaps = {
+            **_make_snaps("npc_dota_hero_axe", 0, 3000, 0.0, 0.0),
+            **_make_snaps("npc_dota_hero_pudge", 1, 3030, 10_000.0, 10_000.0),
+            **_make_snaps("npc_dota_hero_lina", 2, 3060, -10_000.0, -10_000.0),
+        }
+
+        fights = detect_opendota_teamfights(
+            [
+                _death(3000, "npc_dota_hero_axe", game_time_s=100),
+                _death(3030, "npc_dota_hero_pudge", game_time_s=101),
+                _death(3060, "npc_dota_hero_lina", game_time_s=102),
+            ],
+            hero_to_slot=h2s,
+            player_snapshots=snaps,
+        )
+
+        assert len(fights) == 1
+        assert fights[0].deaths == 3
+
+    def test_populates_opendota_player_fields(self):
+        h2s = {"npc_dota_hero_axe": 0, "npc_dota_hero_pudge": 1}
+        snaps = _make_snaps("npc_dota_hero_pudge", 1, 3000, 123.4, 567.6)
+        entries = [
+            CombatLogEntry(
+                tick=3000,
+                game_time_s=100,
+                log_type="DEATH",
+                attacker_name="npc_dota_hero_axe",
+                target_name="npc_dota_hero_pudge",
+                target_is_hero=True,
+            ),
+            _death(3030, "npc_dota_hero_axe", game_time_s=101),
+            _death(3060, "npc_dota_hero_axe", game_time_s=102),
+            CombatLogEntry(
+                tick=3010,
+                game_time_s=101,
+                log_type="DAMAGE",
+                attacker_name="npc_dota_hero_axe",
+                target_name="npc_dota_hero_pudge",
+                attacker_is_hero=True,
+                target_is_hero=True,
+                value=250,
+            ),
+            CombatLogEntry(
+                tick=3011,
+                game_time_s=101,
+                log_type="HEAL",
+                attacker_name="npc_dota_hero_axe",
+                target_name="npc_dota_hero_pudge",
+                attacker_is_hero=True,
+                target_is_hero=True,
+                value=75,
+            ),
+            CombatLogEntry(
+                tick=3012,
+                game_time_s=101,
+                log_type="GOLD",
+                target_name="npc_dota_hero_axe",
+                value=200,
+            ),
+            CombatLogEntry(
+                tick=3013,
+                game_time_s=101,
+                log_type="XP",
+                target_name="npc_dota_hero_axe",
+                value=300,
+            ),
+            CombatLogEntry(
+                tick=3014,
+                game_time_s=101,
+                log_type="ABILITY",
+                attacker_name="npc_dota_hero_axe",
+                attacker_is_hero=True,
+                inflictor_name="axe_berserkers_call",
+            ),
+            CombatLogEntry(
+                tick=3015,
+                game_time_s=101,
+                log_type="ITEM",
+                attacker_name="npc_dota_hero_axe",
+                attacker_is_hero=True,
+                inflictor_name="item_blink",
+            ),
+            CombatLogEntry(tick=3016, game_time_s=101, log_type="BUYBACK", value=1),
+        ]
+
+        fight = detect_opendota_teamfights(entries, hero_to_slot=h2s, player_snapshots=snaps)[0]
+
+        assert fight.players[0].killed == {"npc_dota_hero_pudge": 1}
+        assert fight.players[0].damage == 250
+        assert fight.players[0].healing == 75
+        assert fight.players[0].gold_delta == 200
+        assert fight.players[0].xp_delta == 300
+        assert fight.players[0].ability_uses == {"axe_berserkers_call": 1}
+        assert fight.players[0].item_uses == {"blink": 1}
+        assert fight.players[1].deaths == 1
+        assert fight.players[1].deaths_pos == {"123": {"568": 1}}
+        assert fight.players[1].buybacks == 1
+
+    def test_self_kill_records_opendota_death_without_kill_credit(self):
+        h2s = {
+            "npc_dota_hero_axe": 0,
+            "npc_dota_hero_pudge": 1,
+            "npc_dota_hero_lina": 2,
+        }
+        snaps = _make_snaps("npc_dota_hero_axe", 0, 3000, 321.2, 654.8)
+        entries = [
+            CombatLogEntry(
+                tick=3000,
+                game_time_s=100,
+                log_type="DEATH",
+                attacker_name="npc_dota_hero_axe",
+                target_name="npc_dota_hero_axe",
+                target_is_hero=True,
+            ),
+            _death(3030, "npc_dota_hero_pudge", game_time_s=101),
+            _death(3060, "npc_dota_hero_lina", game_time_s=102),
+        ]
+
+        fight = detect_opendota_teamfights(entries, hero_to_slot=h2s, player_snapshots=snaps)[0]
+
+        assert fight.deaths == 3
+        assert fight.players[0].deaths == 1
+        assert fight.players[0].deaths_pos == {"321": {"655": 1}}
+        assert fight.players[0].killed == {}
 
 
 # ---------------------------------------------------------------------------

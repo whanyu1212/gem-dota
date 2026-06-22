@@ -300,6 +300,11 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         if match.teamfights
         else pd.DataFrame()
     )
+    opendota_teamfights_df = (
+        pd.DataFrame([asdict(tf) for tf in match.opendota_teamfights])
+        if match.opendota_teamfights
+        else pd.DataFrame()
+    )
     smoke_df = (
         pd.DataFrame([asdict(se) for se in match.smoke_events])
         if match.smoke_events
@@ -328,6 +333,7 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         "radiant_advantage": advantage_df,
         "draft": draft_df,
         "teamfights": teamfights_df,
+        "opendota_teamfights": opendota_teamfights_df,
         "smoke_events": smoke_df,
         "courier_snapshots": courier_df,
         "neutral_item_finds": neutral_item_finds_df,

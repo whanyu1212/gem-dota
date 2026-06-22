@@ -64,6 +64,7 @@ class _FakePlayerSnapshot:
     tick: int
     npc_name: str
     team: int
+    total_earned_xp: int = 0
     x: float | None = None
     y: float | None = None
     ability_levels: dict = field(default_factory=dict)
@@ -235,6 +236,83 @@ class TestBuildParsedMatchSmoke:
     def test_game_start_tick_propagated(self):
         m = self._build(game_start_tick=6000)
         assert m.game_start_tick == 6000
+
+    def test_opendota_teamfights_populated(self):
+        parser = _make_parser(game_start_tick=6000)
+        player_ext = _make_player_ext(
+            snapshots=[
+                _FakePlayerSnapshot(
+                    player_id=0,
+                    tick=9000,
+                    npc_name="npc_dota_hero_axe",
+                    team=2,
+                    x=10.0,
+                    y=20.0,
+                ),
+                _FakePlayerSnapshot(
+                    player_id=1,
+                    tick=9030,
+                    npc_name="npc_dota_hero_pudge",
+                    team=3,
+                    x=30.0,
+                    y=40.0,
+                ),
+                _FakePlayerSnapshot(
+                    player_id=2,
+                    tick=9060,
+                    npc_name="npc_dota_hero_lina",
+                    team=3,
+                    x=50.0,
+                    y=60.0,
+                ),
+            ]
+        )
+        entries = [
+            CombatLogEntry(
+                tick=9000,
+                game_time_s=100,
+                log_type="DEATH",
+                attacker_name="npc_dota_hero_axe",
+                target_name="npc_dota_hero_pudge",
+                target_is_hero=True,
+            ),
+            CombatLogEntry(
+                tick=9030,
+                game_time_s=101,
+                log_type="DEATH",
+                attacker_name="npc_dota_hero_axe",
+                target_name="npc_dota_hero_lina",
+                target_is_hero=True,
+            ),
+            CombatLogEntry(
+                tick=9060,
+                game_time_s=102,
+                log_type="DEATH",
+                attacker_name="npc_dota_hero_pudge",
+                target_name="npc_dota_hero_axe",
+                target_is_hero=True,
+            ),
+        ]
+
+        m = build_parsed_match(
+            parser,
+            player_ext,
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            _make_combat_agg(),
+            entries,
+            [],
+        )
+
+        assert len(m.opendota_teamfights) == 1
+        assert m.opendota_teamfights[0].start == 85
+        assert m.opendota_teamfights[0].end == 117
+        assert m.opendota_teamfights[0].players[0].killed == {
+            "npc_dota_hero_pudge": 1,
+            "npc_dota_hero_lina": 1,
+        }
 
     def test_has_ten_players(self):
         m = self._build()

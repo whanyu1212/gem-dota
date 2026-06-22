@@ -22,7 +22,7 @@ from gem.extractors.objectives import (
     TormentorKill,
     TowerKill,
 )
-from gem.extractors.teamfights import Teamfight
+from gem.extractors.teamfights import OpenDotaTeamfight, Teamfight
 from gem.extractors.wards import WardEvent
 
 
@@ -436,6 +436,9 @@ class ParsedMatch:
             approximate activating-hero position.
         draft: Hero pick and ban events from the draft phase.
         teamfights: All detected teamfight windows with per-player breakdowns.
+        opendota_teamfights: OpenDota-compatible temporal teamfight windows.
+            These use OpenDota's 15-second death-window grouping and 3+ death
+            filter, while ``teamfights`` keeps Gem's richer spatial detector.
         vision_modifiers: Vision-granting modifier events (Slardar Corrosive Haze,
             Bounty Hunter Track, Dust of Appearance, Gem of True Sight, etc.).
             Used by ``estimate_vision`` to detect reveals beyond geometry.
@@ -482,6 +485,7 @@ class ParsedMatch:
     smoke_events: list[SmokeEvent] = field(default_factory=list)
     draft: list[DraftEvent] = field(default_factory=list)
     teamfights: list[Teamfight] = field(default_factory=list)
+    opendota_teamfights: list[OpenDotaTeamfight] = field(default_factory=list)
     vision_modifiers: list[VisionModifierEvent] = field(default_factory=list)
 
     @property
