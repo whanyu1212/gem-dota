@@ -60,6 +60,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ParsedMatch.courier_deaths` (and `gem.extractors.objectives.CourierDeath`) —
   courier deaths captured from the combat log, feeding the objectives timeline's
   `CHAT_MESSAGE_COURIER_LOST`.
+- **Examples:** `examples/opendota_parity.py` — a runnable showcase of the
+  OpenDota-parity outputs above (final inventory, kill breakdown, building-status
+  bitmasks, objectives timeline, per-inflictor/per-target combat dicts, purchase
+  timeline, ward departure logs, and the `gem.catalog.hero_id` / `gem.catalog.units`
+  helpers). When a sibling `<match_id>.opendota.json` is present it cross-checks
+  gem's output against the real OpenDota match API field by field. `examples/quickstart.py`
+  gains a short teaser of these fields and a pointer to the full showcase.
 
 ### Fixed
 - `PlayerExtractor._read_inventory` read only the legacy

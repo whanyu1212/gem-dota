@@ -45,3 +45,27 @@ print("Wards placed:")
 for player in match.players:
     wards = [w for w in match.wards if w.placer == player.hero_name]
     print(f"  {hero_display(player.hero_name)}: {len(wards)} wards placed")
+
+print()
+
+# ── OpenDota-parity outputs (0.4.0) ─────────────────────────────────────────
+# gem.parse() now reproduces much of OpenDota's match schema straight from the
+# .dem: final inventories, OpenDota-style kill categories, building-status
+# bitmasks, the objectives timeline, per-target combat dicts, the purchase
+# timeline, and ward logs. A small taste:
+print(f"Score: Radiant {match.radiant_score} – {match.dire_score} Dire")
+print("Final items + kill breakdown (first 3 players):")
+for player in match.players[:3]:
+    items = ", ".join(
+        name.replace("item_", "") for slot, name in sorted(player.final_items.items()) if slot < 6
+    )
+    print(
+        f"  {hero_display(player.hero_name):<18} lvl {player.level:>2}"
+        f"  lane/neutral/ancient kills: {player.lane_kills}/{player.neutral_kills}/{player.ancient_kills}"
+        f"  items: {items}"
+    )
+
+print("\nFor the full OpenDota-parity showcase (objectives timeline, building")
+print("status, combat dicts, purchase/ward logs, with an optional cross-check")
+print("against the real OpenDota match API), run:")
+print("    python examples/opendota_parity.py")

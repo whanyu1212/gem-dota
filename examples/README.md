@@ -4,6 +4,9 @@ Runnable scripts demonstrating gem's replay parsing capabilities.
 Run any example from the project root (with the venv activated):
 
 ```bash
+python examples/quickstart.py path/to/your.dem            # minimal: KDA, draft, wards, 0.4.0 taste
+python examples/opendota_parity.py                        # 0.4.0 OpenDota-parity showcase (bundled fixture)
+python examples/opendota_parity.py path/to/your.dem       # or supply your own
 python examples/match_report.py path/to/your.dem          # comprehensive HTML report
 python examples/extraction_demo.py                        # uses bundled fixture
 python examples/extraction_demo.py path/to/your.dem       # or supply your own
@@ -14,8 +17,10 @@ python examples/steam_match_info.py <match_id>            # Steam API integratio
 
 | Script | What it demonstrates |
 |---|---|
+| `quickstart.py` | Minimal high-level `gem.parse()` intro: per-player KDA/net worth, draft, ward counts, plus a taste of the 0.4.0 OpenDota-parity fields |
+| `opendota_parity.py` | Full 0.4.0 OpenDota match-API parity surface — final inventory, OpenDota-style kill breakdown, building-status bitmasks, objectives timeline, per-inflictor/per-target combat dicts, purchase timeline, ward departure logs, and the new `catalog` helpers. Cross-checks against the sibling `<match_id>.opendota.json` when present |
 | `match_report.py` | Thin wrapper around `gem.reports.write_html_report()` for a comprehensive HTML replay dashboard |
-| `extraction_demo.py` | Developer-oriented baseline: full replay parse with combat log summary and periodic entity snapshots |
+| `extraction_demo.py` | Developer-oriented baseline: low-level `ReplayParser` + entity polling, with combat log summary and periodic entity snapshots |
 | `steam_match_info.py` | Fetches and displays match metadata from the Steam Web API (`STEAM_API_KEY` required) |
 
 ## Ward coordinates
