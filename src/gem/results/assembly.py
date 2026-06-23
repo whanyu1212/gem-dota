@@ -9,7 +9,10 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any
 
+from gem.catalog import hero_id
+from gem.combat.log import opendota_translate
 from gem.extractors.lane import classify_lane
+from gem.results.derived import building_status, categorize_kills, killed_counts
 from gem.results.models import ParsedMatch
 
 if TYPE_CHECKING:
@@ -20,7 +23,7 @@ if TYPE_CHECKING:
     from gem.extractors.intervals import IntervalExtractor, IntervalSnapshot, IntervalTimeSeries
     from gem.extractors.objectives import ObjectivesExtractor
     from gem.extractors.players import PlayerExtractor
-    from gem.extractors.wards import WardsExtractor
+    from gem.extractors.wards import WardEvent, WardsExtractor
     from gem.parser import ReplayParser
     from gem.results.models import (
         ChatEntry,
@@ -43,6 +46,292 @@ def _metadata_slot_to_player_id(player_slot: int) -> int | None:
     if 128 <= player_slot <= 132:
         return 5 + (player_slot - 128)
     return None
+
+
+def _player_id_to_player_slot(player_id: int) -> int:
+    """Convert a gem player id (0-9) to OpenDota's ``player_slot`` encoding.
+
+    OpenDota encodes Radiant players as ``0-4`` and Dire players as ``128-132``
+    in ``player_slot`` fields, while the ``slot`` field stays ``0-9``. This is the
+    inverse of :func:`_metadata_slot_to_player_id`.
+
+    Args:
+        player_id: gem logical player id, 0-9 (0-4 Radiant, 5-9 Dire).
+
+    Returns:
+        The OpenDota ``player_slot`` (0-4 for Radiant, 128-132 for Dire).
+    """
+    return player_id if player_id < 5 else 128 + (player_id - 5)
+
+
+def _tick_game_seconds(tick: int, game_start_tick: int | None) -> int:
+    """Return an absolute tick's game-relative time in seconds.
+
+    Args:
+        tick: Absolute parser tick.
+        game_start_tick: Absolute tick of the game clock start, or ``None``.
+
+    Returns:
+        Game-relative seconds (negative pre-horn), or ``0`` with no clock ref.
+    """
+    if game_start_tick is None:
+        return 0
+    return (tick - game_start_tick) // 30
+
+
+def _entry_game_seconds(entry: CombatLogEntry, game_start_tick: int | None) -> int:
+    """Return a combat-log entry's game-relative time in seconds.
+
+    Prefers the OpenDota-aligned ``game_time_s`` when present, falling back to the
+    tick offset from ``game_start_tick`` (30 ticks/second). Pre-horn events keep
+    their negative offset, matching OpenDota.
+
+    Args:
+        entry: The combat log entry.
+        game_start_tick: Absolute tick of the game clock start, or ``None``.
+
+    Returns:
+        Game-relative seconds (may be negative for pre-horn events), or ``0``
+        when no clock reference is available.
+    """
+    if entry.game_time_s is not None:
+        return int(entry.game_time_s)
+    return _tick_game_seconds(entry.tick, game_start_tick)
+
+
+def _build_purchase_aggregates(
+    purchase_log: list[CombatLogEntry], game_start_tick: int | None
+) -> dict[str, Any]:
+    """Derive OpenDota purchase-timeline aggregates from a player's purchase log.
+
+    Mirrors OpenDota's ``handlePurchase`` semantics: the ``purchase`` count map
+    includes recipes; ``purchase_time`` / ``first_purchase_time`` (and the
+    per-item scalars) exclude ``recipe_`` items. Item names are translated
+    (``item_`` stripped); times are game-seconds.
+
+    Args:
+        purchase_log: The player's deduped PURCHASE ``CombatLogEntry`` list.
+        game_start_tick: Absolute tick of the game clock start, or ``None``.
+
+    Returns:
+        Dict with ``purchase``, ``purchase_time``, ``first_purchase_time`` (maps)
+        and ``purchase_tpscroll`` / ``purchase_ward_observer`` /
+        ``purchase_ward_sentry`` (ints).
+    """
+    purchase: dict[str, int] = {}
+    purchase_time: dict[str, int] = {}
+    first_purchase_time: dict[str, int] = {}
+    for entry in sorted(purchase_log, key=lambda e: e.tick):
+        key = opendota_translate(entry.value_name)
+        if not key:
+            continue
+        purchase[key] = purchase.get(key, 0) + 1  # recipes included (OD parity)
+        if key.startswith("recipe_"):
+            continue
+        seconds = _entry_game_seconds(entry, game_start_tick)
+        if key not in first_purchase_time:
+            first_purchase_time[key] = seconds
+        purchase_time[key] = seconds  # last purchase wins
+    return {
+        "purchase": purchase,
+        "purchase_time": purchase_time,
+        "first_purchase_time": first_purchase_time,
+        "purchase_tpscroll": purchase.get("tpscroll", 0),
+        "purchase_ward_observer": purchase.get("ward_observer", 0),
+        "purchase_ward_sentry": purchase.get("ward_sentry", 0),
+    }
+
+
+# Source 2 world coordinates are ``cell * 128 + vec``; OpenDota reports ward
+# positions in cell units (``(cell*128 + vec) / 128``). gem's WardEvent keeps the
+# raw world coordinate for its own spatial helpers, so OD-shaped ward outputs
+# divide by this to match. Reference: refs/parser/Parse.java getPreciseLocation.
+_WORLD_UNITS_PER_CELL = 128.0
+
+
+def _to_od_cell(world: float | None) -> float | None:
+    """Convert a raw world coordinate to OpenDota's cell-unit coordinate."""
+    if world is None:
+        return None
+    return world / _WORLD_UNITS_PER_CELL
+
+
+def _ward_coord_key(x: float | None, y: float | None) -> str | None:
+    """Return OpenDota's ``"[x,y]"`` cell-rounded coordinate key for a ward.
+
+    World coordinates are converted to OpenDota cell units and rounded to the
+    nearest integer, matching OpenDota's ``key`` and the nested ``obs``/``sen``
+    map keys (which keep the float coordinate separately).
+
+    Args:
+        x: Raw world x coordinate, or ``None``.
+        y: Raw world y coordinate, or ``None``.
+
+    Returns:
+        ``"[<round(cell_x)>,<round(cell_y)>]"``, or ``None`` if a coord is missing.
+    """
+    cx, cy = _to_od_cell(x), _to_od_cell(y)
+    if cx is None or cy is None:
+        return None
+    return f"[{round(cx)},{round(cy)}]"
+
+
+def _ward_left_entry(ward: WardEvent, game_start_tick: int | None) -> dict[str, Any] | None:
+    """Build an OpenDota ``*_left_log`` expiry entry from a WardEvent, or None.
+
+    A ward that left the map (killed or expired naturally) yields one expiry
+    record; wards still alive at game end yield ``None``. ``attackername`` is the
+    killer for a destroyed ward and empty for a natural expiry.
+
+    Args:
+        ward: The ward placement record.
+        game_start_tick: Absolute tick of the game clock start, or ``None``.
+
+    Returns:
+        The OpenDota-shaped expiry dict, or ``None`` if the ward never left.
+    """
+    left_tick = ward.killed_tick if ward.killed_tick is not None else ward.expires_tick
+    if left_tick is None:
+        return None
+    seconds = (left_tick - game_start_tick) // 30 if game_start_tick is not None else 0
+    return {
+        "time": seconds,
+        "type": "obs_left_log" if ward.ward_type == "observer" else "sen_left_log",
+        "key": _ward_coord_key(ward.x, ward.y),
+        "slot": ward.player_id,
+        "player_slot": _player_id_to_player_slot(ward.player_id),
+        "x": _to_od_cell(ward.x),
+        "y": _to_od_cell(ward.y),
+        "entityleft": True,
+        "attackername": ward.killer or "",
+    }
+
+
+def _build_objectives(
+    obj_ext: ObjectivesExtractor,
+    combat_agg: _CombatAggregator,
+    first_blood_entry: CombatLogEntry | None,
+    pid_to_team: dict[int, int],
+    game_start_tick: int | None,
+) -> list[dict[str, Any]]:
+    """Merge gem's per-type objective events into OpenDota's unified timeline.
+
+    Produces the ``objectives`` list OpenDota exposes: ``building_kill`` plus the
+    ``CHAT_MESSAGE_*`` events, each ``{time, type, ...}`` with type-specific
+    fields, sorted chronologically. Killer heroes are resolved to OpenDota
+    ``slot``/``player_slot`` via the combat aggregator's name→id map.
+
+    Args:
+        obj_ext: The objectives extractor (towers, roshans, aegis, etc.).
+        combat_agg: Combat aggregator, for killer-hero → player id resolution.
+        first_blood_entry: The first real hero-death entry, or ``None``.
+        pid_to_team: Map of player id (0-9) → team (2/3), for courier ownership.
+        game_start_tick: Absolute tick of the game clock start, or ``None``.
+
+    Returns:
+        Chronologically-sorted list of OpenDota-shaped objective dicts.
+    """
+    objectives: list[dict[str, Any]] = []
+
+    def secs(tick: int) -> int:
+        return _tick_game_seconds(tick, game_start_tick)
+
+    def slot_fields(player_id: int | None) -> dict[str, Any]:
+        if not isinstance(player_id, int) or not (0 <= player_id < 10):
+            return {}
+        return {"slot": player_id, "player_slot": _player_id_to_player_slot(player_id)}
+
+    # building_kill — towers and barracks, attributed source-first (a summon /
+    # projectile killer carries the owning hero in killer_source). unit is the
+    # crediting source unit when present, mirroring OpenDota.
+    for tk in obj_ext.tower_kills:
+        pid = combat_agg.resolve_kill_pid(tk.killer_source, tk.killer)
+        objectives.append(
+            {
+                "time": secs(tk.tick),
+                "type": "building_kill",
+                "key": tk.tower_name,
+                "unit": tk.killer_source or tk.killer,
+                **slot_fields(pid),
+            }
+        )
+    for bk in obj_ext.barracks_kills:
+        pid = combat_agg.resolve_kill_pid(bk.killer_source, bk.killer)
+        objectives.append(
+            {
+                "time": secs(bk.tick),
+                "type": "building_kill",
+                "key": bk.barracks_name,
+                "unit": bk.killer_source or bk.killer,
+                **slot_fields(pid),
+            }
+        )
+
+    # CHAT_MESSAGE_ROSHAN_KILL — team that killed Roshan (killer's team).
+    for rk in obj_ext.roshan_kills:
+        pid = combat_agg.resolve_kill_pid(rk.killer_source, rk.killer)
+        team = pid_to_team.get(pid) if pid is not None else None
+        entry: dict[str, Any] = {"time": secs(rk.tick), "type": "CHAT_MESSAGE_ROSHAN_KILL"}
+        if team is not None:
+            entry["team"] = team
+        objectives.append(entry)
+
+    # CHAT_MESSAGE_AEGIS / _AEGIS_STOLEN / _DENIED_AEGIS.
+    _aegis_type = {
+        "pickup": "CHAT_MESSAGE_AEGIS",
+        "stolen": "CHAT_MESSAGE_AEGIS_STOLEN",
+        "denied": "CHAT_MESSAGE_DENIED_AEGIS",
+    }
+    for ae in obj_ext.aegis_events:
+        pid = ae.player_id if 0 <= ae.player_id < 10 else None
+        objectives.append(
+            {
+                "time": secs(ae.tick),
+                "type": _aegis_type.get(ae.event_type, "CHAT_MESSAGE_AEGIS"),
+                **slot_fields(pid),
+            }
+        )
+
+    # CHAT_MESSAGE_MINIBOSS_KILL — Tormentor, by killing player + their team.
+    for tm in obj_ext.tormentor_kills:
+        pid = tm.killer_player_id if 0 <= tm.killer_player_id < 10 else None
+        entry = {"time": secs(tm.tick), "type": "CHAT_MESSAGE_MINIBOSS_KILL", **slot_fields(pid)}
+        team = pid_to_team.get(pid) if pid is not None else None
+        if team is not None:
+            entry["team"] = team
+        objectives.append(entry)
+
+    # CHAT_MESSAGE_FIRSTBLOOD — the first real hero death; key is the victim slot.
+    if first_blood_entry is not None:
+        # Resolve the killer source-first (like every other objective): a summon
+        # or projectile first blood carries the owning hero in damage_source_name
+        # while attacker_name is the non-hero unit.
+        killer_pid = combat_agg.resolve_kill_pid(
+            first_blood_entry.damage_source_name, first_blood_entry.attacker_name
+        )
+        victim_pid = combat_agg._hero_to_pid(first_blood_entry.target_name)
+        entry = {
+            "time": _entry_game_seconds(first_blood_entry, game_start_tick),
+            "type": "CHAT_MESSAGE_FIRSTBLOOD",
+            **slot_fields(killer_pid),
+        }
+        if victim_pid is not None:
+            entry["key"] = str(victim_pid)
+        objectives.append(entry)
+
+    # CHAT_MESSAGE_COURIER_LOST — team is the courier's owner (killer's opposite).
+    for cd in obj_ext.courier_deaths:
+        killer_pid = combat_agg.resolve_kill_pid(cd.killer_source, cd.killer)
+        killer_team = pid_to_team.get(killer_pid) if killer_pid is not None else None
+        entry = {"time": secs(cd.tick), "type": "CHAT_MESSAGE_COURIER_LOST"}
+        if killer_team in (2, 3):
+            entry["team"] = 3 if killer_team == 2 else 2  # owner = opposite of killer
+        if killer_pid is not None:
+            entry["killer"] = _player_id_to_player_slot(killer_pid)
+        objectives.append(entry)
+
+    objectives.sort(key=lambda o: o["time"])
+    return objectives
 
 
 def _radiant_win_from_ancient(combat_log: list[CombatLogEntry]) -> bool | None:
@@ -278,7 +567,7 @@ def build_parsed_match(
         Fully populated :class:`ParsedMatch`.
     """
     from gem.combat.aggregator import _dedup_purchase_log
-    from gem.extractors.teamfights import detect_teamfights
+    from gem.extractors.teamfights import detect_opendota_teamfights, detect_teamfights
 
     # radiant_win resolution — three tiers in priority order:
     #   1. CDemoFileInfo.game_winner (set during parse, empty for HLTV replays)
@@ -325,6 +614,34 @@ def build_parsed_match(
     # Capture game_start_tick once — used for lane_pos time filter below
     game_start_tick = parser.game_start_tick
     interval_min_series = _interval_series_by_player(interval_ext)
+
+    # first_blood_time: game-clock time of the earliest real hero DEATH. Illusion
+    # deaths and reincarnation triggers are excluded (target_is_hero stays true for
+    # an illusion, so the explicit not-illusion filter is required). The per-player
+    # firstblood_claimed flag is read separately from the authoritative
+    # CDOTA_PlayerResource field below, not reconstructed from this entry.
+    first_blood_entry = next(
+        (
+            e
+            for e in all_entries
+            if e.log_type == "DEATH"
+            and e.target_is_hero
+            and not e.target_is_illusion
+            and not e.will_reincarnate
+        ),
+        None,
+    )
+    if first_blood_entry is not None:
+        if first_blood_entry.game_time_s is not None:
+            match.first_blood_time = int(first_blood_entry.game_time_s)
+        elif game_start_tick is not None:
+            match.first_blood_time = max(0, (first_blood_entry.tick - game_start_tick) // 30)
+
+    # NOTE: pre_game_duration (horn → creep-spawn span, ~90s) is intentionally
+    # left at its default 0 here. It requires the GAME_IN_PROGRESS state-transition
+    # timestamp, which the parser does not yet expose separately from the clock
+    # anchor (m_flGameStartTime is the engine clock zero, not the pre-game span).
+    # Tracked as a follow-up rather than shipping a wrong value.
 
     # Build per-player time series and overlay combat log aggregates
     for player_id in range(10):
@@ -384,6 +701,14 @@ def build_parsed_match(
             pp.damage_taken = agg.damage_taken
             pp.damage_by_type = agg.damage_by_type
             pp.damage_taken_by_type = agg.damage_taken_by_type
+            # OpenDota per-inflictor / per-target attribution breakdowns. Nested
+            # defaultdicts are flattened to plain dicts for clean serialization.
+            pp.damage_inflictor = dict(agg.damage_inflictor)
+            pp.damage_inflictor_received = dict(agg.damage_inflictor_received)
+            pp.damage_targets = {k: dict(v) for k, v in agg.damage_targets.items()}
+            pp.ability_targets = {k: dict(v) for k, v in agg.ability_targets.items()}
+            pp.hero_hits = dict(agg.hero_hits)
+            pp.max_hero_hit = agg.max_hero_hit
             pp.healing = agg.healing
             pp.ability_uses = agg.ability_uses
             pp.item_uses = agg.item_uses
@@ -395,6 +720,17 @@ def build_parsed_match(
                 player_ext.first_snapshot_tick.get(player_id),
                 player_ext._sample_interval,
             )
+            # OpenDota purchase-timeline aggregates derived from the deduped log.
+            purchase_aggs = _build_purchase_aggregates(pp.purchase_log, game_start_tick)
+            pp.purchase = purchase_aggs["purchase"]
+            pp.purchase_time = purchase_aggs["purchase_time"]
+            pp.first_purchase_time = purchase_aggs["first_purchase_time"]
+            pp.purchase_tpscroll = purchase_aggs["purchase_tpscroll"]
+            pp.purchase_ward_observer = purchase_aggs["purchase_ward_observer"]
+            pp.purchase_ward_sentry = purchase_aggs["purchase_ward_sentry"]
+            # Ward-use scalars: item_uses keys keep the item_ prefix.
+            pp.observer_uses = agg.item_uses.get("item_ward_observer", 0)
+            pp.sentry_uses = agg.item_uses.get("item_ward_sentry", 0)
             pp.runes_log = agg.runes_log
             pp.buyback_log = agg.buyback_log
             pp.stuns_dealt = agg.stuns_dealt
@@ -403,6 +739,17 @@ def build_parsed_match(
             pp.hero_damage = agg.hero_damage
             pp.tower_damage = agg.tower_damage
             pp.hero_healing = agg.hero_healing
+
+        # OpenDota-shaped kill aggregates, derived from kills_log above.
+        pp.killed = killed_counts(pp.kills_log)
+        kill_cats = categorize_kills(pp.killed)
+        pp.ancient_kills = kill_cats.ancient_kills
+        pp.neutral_kills = kill_cats.neutral_kills
+        pp.lane_kills = kill_cats.lane_kills
+        pp.courier_kills = kill_cats.courier_kills
+        pp.observer_kills = kill_cats.observer_kills
+        pp.sentry_kills = kill_cats.sentry_kills
+        pp.roshan_kills = kill_cats.roshan_kills
 
         kda = player_ext.scoreboard.get(player_id)
         if kda is not None:
@@ -444,6 +791,43 @@ def build_parsed_match(
         if pp.dn_t:
             pp.denies = pp.dn_t[-1]
 
+        # End-of-game inventory: the items on this player's last dense snapshot
+        # (taken at the game-end tick). Mirrors OpenDota's per-slot item_0..5 /
+        # backpack / item_neutral, but keyed by slot with names. Use the last
+        # snapshot even when its inventory is empty — a player can legitimately
+        # end with no items (sold/dropped/destroyed before Ancient death), and
+        # filtering on non-empty would copy a stale earlier inventory.
+        last_snap = next(
+            (snap for snap in reversed(player_ext.snapshots) if snap.player_id == player_id),
+            None,
+        )
+        if last_snap is not None:
+            pp.final_items = dict(last_snap.items)
+            # Terminal hero level from the last dense snapshot.
+            pp.level = last_snap.level
+
+        # Numeric hero_id from the resolved hero NPC name (robust per-player link;
+        # avoids the draft pick-order trap). 0 if the hero is absent from the
+        # bundled heroes.json snapshot.
+        pp.hero_id = hero_id(pp.hero_name) if pp.hero_name else 0
+
+        # gold_spent = total earned gold − current spendable gold (OpenDota parity).
+        if pp.total_earned_gold_t and pp.gold_t:
+            pp.gold_spent = max(0, pp.total_earned_gold_t[-1] - pp.gold_t[-1])
+
+        # life_state_dead: seconds spent dead. OpenDota samples life_state once per
+        # game-second and sums the non-alive samples (states 1 + 2). We mirror that
+        # by counting DISTINCT dead game-seconds, which is robust to gem's snapshot
+        # cadence (multiple dense samples can fall in one second). Falls back to the
+        # tick second when game_time_s is unavailable (S1/early frames).
+        dead_seconds: set[int] = set()
+        for snap in player_ext.snapshots:
+            if snap.player_id != player_id or snap.life_state == 0:
+                continue
+            sec = snap.game_time_s if snap.game_time_s is not None else snap.tick // 30
+            dead_seconds.add(sec)
+        pp.life_state_dead = len(dead_seconds)
+
         # Terminal team-data counters (camps/creeps stacked, wards placed, rune
         # pickups, tower kills) read from the same m_vecDataTeam entry as gold/xp.
         # The last observed value is the end-of-game total; each matches OpenDota's
@@ -457,6 +841,13 @@ def build_parsed_match(
             pp.sen_placed = counters["sen_placed"]
             pp.rune_pickups = counters["rune_pickups"]
             pp.tower_kills = counters["tower_kills"]
+
+        # firstblood_claimed: authoritative CDOTA_PlayerResource flag (the field
+        # OpenDota reads), not a combat-log reconstruction.
+        if interval_ext is not None:
+            pp.firstblood_claimed = int(
+                interval_ext.player_resource_scalars(player_id)["firstblood_claimed"]
+            )
 
         # OpenDota-style computed convenience fields (no duration dependency).
         # kda uses a +1 denominator and 2-decimal rounding, matching OpenDota.
@@ -550,14 +941,45 @@ def build_parsed_match(
                 match.dire_team_name = ent.get_string("m_szTeamname") or ""
                 match.dire_team_tag = ent.get_string("m_szTag") or ""
 
-    # Attach ward logs per player
+    # Attach ward logs per player. obs_log/sen_log keep gem's native WardEvent
+    # records; the OpenDota-shaped expiry logs (obs_left_log/sen_left_log) and the
+    # nested placement coordinate maps (obs/sen) are derived alongside.
     for ward in match.wards:
-        if 0 <= ward.player_id < 10:
-            pp = match.players[ward.player_id]
-            if ward.ward_type == "observer":
-                pp.obs_log.append(ward)
-            else:
-                pp.sen_log.append(ward)
+        if not (0 <= ward.player_id < 10):
+            continue
+        pp = match.players[ward.player_id]
+        left_entry = _ward_left_entry(ward, game_start_tick)
+        if ward.ward_type == "observer":
+            pp.obs_log.append(ward)
+            if left_entry is not None:
+                pp.obs_left_log.append(left_entry)
+            coord_map = pp.obs
+        else:
+            pp.sen_log.append(ward)
+            if left_entry is not None:
+                pp.sen_left_log.append(left_entry)
+            coord_map = pp.sen
+        cx, cy = _to_od_cell(ward.x), _to_od_cell(ward.y)
+        if cx is not None and cy is not None:
+            xk, yk = str(round(cx)), str(round(cy))
+            coord_map.setdefault(xk, {})[yk] = coord_map.setdefault(xk, {}).get(yk, 0) + 1
+
+    # observers_placed: OpenDota's purchase/log-derived observer count, distinct
+    # from the entity-counter obs_placed. Use the per-player obs_log length.
+    for pp in match.players:
+        pp.observers_placed = len(pp.obs_log)
+
+    # OpenDota-shaped unified objectives timeline + building-status bitmasks.
+    pid_to_team = {pp.player_id: pp.team for pp in match.players if pp.team}
+    match.objectives = _build_objectives(
+        obj_ext, combat_agg, first_blood_entry, pid_to_team, game_start_tick
+    )
+    match.courier_deaths = obj_ext.courier_deaths
+    bitmasks = building_status(obj_ext.tower_kills, obj_ext.barracks_kills)
+    match.tower_status_radiant = bitmasks["tower_status_radiant"]
+    match.tower_status_dire = bitmasks["tower_status_dire"]
+    match.barracks_status_radiant = bitmasks["barracks_status_radiant"]
+    match.barracks_status_dire = bitmasks["barracks_status_dire"]
 
     # Compute radiant_gold_adv / radiant_xp_adv per game-minute boundary.
     # Both curves come from monotonically-increasing total-earned fields
@@ -594,6 +1016,28 @@ def build_parsed_match(
         player_snapshots=player_snaps,
         slot_to_team=slot_to_team,
     )
+    match.opendota_teamfights = detect_opendota_teamfights(
+        all_entries,
+        hero_to_slot=hero_to_slot,
+        player_snapshots=player_snaps,
+        game_start_tick=match.game_start_tick,
+        duration_s=match.duration or None,
+    )
+
+    # teamfight_participation: read the authoritative game-computed value from
+    # CDOTA_PlayerResource.m_flTeamFightParticipation — the exact field OpenDota
+    # reads (Parse.java), not a teamfight-window reconstruction (which OpenDota
+    # itself does not do, and which can't match the engine's metric).
+    if interval_ext is not None:
+        for player_id in range(10):
+            scalars = interval_ext.player_resource_scalars(player_id)
+            match.players[player_id].teamfight_participation = round(
+                scalars["teamfight_participation"], 7
+            )
+
+    # Team kill scores = sum of each side's player kills (OpenDota parity).
+    match.radiant_score = sum(pp.kills for pp in match.players if pp.team == 2)
+    match.dire_score = sum(pp.kills for pp in match.players if pp.team == 3)
 
     # Build per-player ability level snapshots for ability_level_at_tick().
     # Collect (tick, ability_levels) pairs from minute-boundary snapshots,

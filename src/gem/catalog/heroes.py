@@ -83,3 +83,18 @@ def hero_meta(npc_name: str) -> dict[str, Any]:
         Dict with keys ``id``, ``localized_name``, ``primary_attr``, ``roles``.
     """
     return HEROES.get(npc_name.lower(), {})
+
+
+def hero_id(npc_name: str) -> int:
+    """Return the numeric Dota 2 hero ID for an ``npc_dota_hero_*`` name.
+
+    Args:
+        npc_name: Internal hero name (case-insensitive), e.g.
+            ``"npc_dota_hero_broodmother"``.
+
+    Returns:
+        The numeric hero ID (e.g. ``61``), or ``0`` if the name is unknown or
+        absent from the bundled ``heroes.json`` snapshot (newer heroes may not
+        be covered).
+    """
+    return int(HEROES.get(npc_name.lower(), {}).get("id", 0))

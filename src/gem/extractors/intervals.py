@@ -528,6 +528,40 @@ class IntervalExtractor:
             observed = self._team_counters.get((team, team_slot), {})
         return {attr: observed.get(attr, 0) for attr in _TEAM_COUNTER_FIELDS}
 
+    def player_resource_scalars(self, player_id: int) -> dict[str, float]:
+        """Return end-of-game PlayerResource scalars for one logical player.
+
+        Reads the authoritative game-computed fields OpenDota itself uses
+        (``m_flTeamFightParticipation``, ``m_iFirstBloodClaimed``) from the final
+        ``CDOTA_PlayerResource`` state, resolved through the coach-aware resource
+        index. The parser mutates the entity in place, so the retained reference
+        holds the terminal values once parsing completes.
+
+        Reference: refs/parser/src/main/java/opendota/Parse.java (reads
+        ``m_vecPlayerTeamData.%i.m_flTeamFightParticipation`` /
+        ``m_iFirstBloodClaimed``).
+
+        Args:
+            player_id: OpenDota logical player slot, 0-9.
+
+        Returns:
+            ``{"teamfight_participation": float, "firstblood_claimed": int}``.
+            Values default to ``0`` when the resource entity or index is missing.
+        """
+        result: dict[str, float] = {"teamfight_participation": 0.0, "firstblood_claimed": 0}
+        pr = self._player_resource
+        resource_idx = self._player_index_by_id.get(player_id)
+        if pr is None or resource_idx is None:
+            return result
+        prefix = f"m_vecPlayerTeamData.{resource_idx:04d}"
+        tf = pr.get_float32(f"{prefix}.m_flTeamFightParticipation")
+        if tf is not None and tf != float("inf"):
+            result["teamfight_participation"] = tf
+        fb = pr.get_int32(f"{prefix}.m_iFirstBloodClaimed")
+        if fb is not None:
+            result["firstblood_claimed"] = fb
+        return result
+
     def _team_data_values(
         self, team: int, team_slot: int, data_entity: Entity, emit_tick: int
     ) -> tuple[int, int, int, int, int]:

@@ -64,9 +64,14 @@ class _FakePlayerSnapshot:
     tick: int
     npc_name: str
     team: int
+    total_earned_xp: int = 0
+    level: int = 0
+    life_state: int = 0
+    game_time_s: int | None = None
     x: float | None = None
     y: float | None = None
     ability_levels: dict = field(default_factory=dict)
+    items: dict = field(default_factory=dict)
 
 
 def _make_parser(
@@ -112,7 +117,13 @@ def _make_player_ext(
 
 
 def _make_obj_ext(
-    towers=None, barracks=None, roshan=None, aegis=None, tormentors=None, shrines=None
+    towers=None,
+    barracks=None,
+    roshan=None,
+    aegis=None,
+    tormentors=None,
+    shrines=None,
+    courier_deaths=None,
 ) -> MagicMock:
     ext = MagicMock()
     ext.tower_kills = towers or []
@@ -121,6 +132,7 @@ def _make_obj_ext(
     ext.aegis_events = aegis or []
     ext.tormentor_kills = tormentors or []
     ext.shrine_kills = shrines or []
+    ext.courier_deaths = courier_deaths or []
     return ext
 
 
@@ -145,7 +157,42 @@ def _make_draft_ext(draft_events=None) -> MagicMock:
 def _make_combat_agg() -> MagicMock:
     agg = MagicMock()
     agg.players = {}
+    # Default: no hero resolves to a player id (tests needing resolution set
+    # their own side_effect). Returning None keeps objective slot fields clean.
+    agg._hero_to_pid.return_value = None
     return agg
+
+
+def _make_interval_ext(participation=None, firstblood=None) -> MagicMock:
+    """IntervalExtractor stub exposing player_resource_scalars per slot.
+
+    Args:
+        participation: ``{player_id: float}`` teamfight participation values.
+        firstblood: ``{player_id: int}`` firstblood_claimed flags.
+    """
+    part = participation or {}
+    fb = firstblood or {}
+    ext = MagicMock()
+    ext.team_counters.return_value = {
+        "camps_stacked": 0,
+        "creeps_stacked": 0,
+        "obs_placed": 0,
+        "sen_placed": 0,
+        "rune_pickups": 0,
+        "tower_kills": 0,
+    }
+
+    def _scalars(pid):
+        return {
+            "teamfight_participation": part.get(pid, 0.0),
+            "firstblood_claimed": fb.get(pid, 0),
+        }
+
+    ext.player_resource_scalars.side_effect = _scalars
+    # No complete interval batches -> advantage curves fall back; keep empty.
+    ext.all_snapshots = []
+    ext.snapshots = []
+    return ext
 
 
 # ---------------------------------------------------------------------------
@@ -234,6 +281,83 @@ class TestBuildParsedMatchSmoke:
     def test_game_start_tick_propagated(self):
         m = self._build(game_start_tick=6000)
         assert m.game_start_tick == 6000
+
+    def test_opendota_teamfights_populated(self):
+        parser = _make_parser(game_start_tick=6000)
+        player_ext = _make_player_ext(
+            snapshots=[
+                _FakePlayerSnapshot(
+                    player_id=0,
+                    tick=9000,
+                    npc_name="npc_dota_hero_axe",
+                    team=2,
+                    x=10.0,
+                    y=20.0,
+                ),
+                _FakePlayerSnapshot(
+                    player_id=1,
+                    tick=9030,
+                    npc_name="npc_dota_hero_pudge",
+                    team=3,
+                    x=30.0,
+                    y=40.0,
+                ),
+                _FakePlayerSnapshot(
+                    player_id=2,
+                    tick=9060,
+                    npc_name="npc_dota_hero_lina",
+                    team=3,
+                    x=50.0,
+                    y=60.0,
+                ),
+            ]
+        )
+        entries = [
+            CombatLogEntry(
+                tick=9000,
+                game_time_s=100,
+                log_type="DEATH",
+                attacker_name="npc_dota_hero_axe",
+                target_name="npc_dota_hero_pudge",
+                target_is_hero=True,
+            ),
+            CombatLogEntry(
+                tick=9030,
+                game_time_s=101,
+                log_type="DEATH",
+                attacker_name="npc_dota_hero_axe",
+                target_name="npc_dota_hero_lina",
+                target_is_hero=True,
+            ),
+            CombatLogEntry(
+                tick=9060,
+                game_time_s=102,
+                log_type="DEATH",
+                attacker_name="npc_dota_hero_pudge",
+                target_name="npc_dota_hero_axe",
+                target_is_hero=True,
+            ),
+        ]
+
+        m = build_parsed_match(
+            parser,
+            player_ext,
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            _make_combat_agg(),
+            entries,
+            [],
+        )
+
+        assert len(m.opendota_teamfights) == 1
+        assert m.opendota_teamfights[0].start == 85
+        assert m.opendota_teamfights[0].end == 117
+        assert m.opendota_teamfights[0].players[0].killed == {
+            "npc_dota_hero_pudge": 1,
+            "npc_dota_hero_lina": 1,
+        }
 
     def test_has_ten_players(self):
         m = self._build()
@@ -1127,6 +1251,56 @@ class TestBuildParsedMatchPositionLog:
 
 
 # ---------------------------------------------------------------------------
+# build_parsed_match — final_items (end-of-game inventory)
+# ---------------------------------------------------------------------------
+
+
+class TestBuildParsedMatchFinalItems:
+    def _build(self, snaps):
+        return build_parsed_match(
+            _make_parser(),
+            _make_player_ext(snapshots=snaps),
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            _make_combat_agg(),
+            [],
+            [],
+        )
+
+    def test_final_items_from_last_snapshot(self):
+        snaps = [
+            _FakePlayerSnapshot(
+                player_id=0, tick=100, npc_name="n", team=2, items={0: "item_tango"}
+            ),
+            _FakePlayerSnapshot(
+                player_id=0, tick=130, npc_name="n", team=2, items={0: "item_blink", 1: "item_bkb"}
+            ),
+        ]
+        m = self._build(snaps)
+        assert m.players[0].final_items == {0: "item_blink", 1: "item_bkb"}
+
+    def test_empty_final_inventory_not_overwritten_by_stale_snapshot(self):
+        # Regression: a player can legitimately end with no items (sold/dropped/
+        # destroyed before Ancient death). The last snapshot wins even when empty;
+        # an earlier non-empty snapshot must NOT be copied as the final state.
+        snaps = [
+            _FakePlayerSnapshot(
+                player_id=0, tick=100, npc_name="n", team=2, items={0: "item_blink"}
+            ),
+            _FakePlayerSnapshot(player_id=0, tick=130, npc_name="n", team=2, items={}),
+        ]
+        m = self._build(snaps)
+        assert m.players[0].final_items == {}
+
+    def test_no_snapshots_leaves_default_empty(self):
+        m = self._build([_FakePlayerSnapshot(player_id=5, tick=1, npc_name="n", team=3)])
+        # player 0 has no snapshots at all → default {}
+        assert m.players[0].final_items == {}
+
+
+# ---------------------------------------------------------------------------
 # Lane position heatmap
 # ---------------------------------------------------------------------------
 
@@ -1464,6 +1638,137 @@ class TestBuildParsedMatchComputedFields:
         assert m.players[1].buyback_count == 0
 
 
+class TestBuildParsedMatchOpenDotaScalars:
+    """OpenDota-parity terminal / derived scalars added to ParsedPlayer/ParsedMatch."""
+
+    def _build(self, *, scoreboard=None, snaps=None, all_entries=None, radiant_win=True):
+        parser = _make_parser(radiant_win=radiant_win)
+        ext = _make_player_ext(scoreboard=scoreboard or {}, snapshots=snaps or [])
+        return build_parsed_match(
+            parser,
+            ext,
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            _make_combat_agg(),
+            all_entries or [],
+            [],
+        )
+
+    def test_level_from_last_snapshot(self):
+        snaps = [
+            _FakePlayerSnapshot(
+                player_id=0, tick=100, npc_name="npc_dota_hero_zuus", team=2, level=5
+            ),
+            _FakePlayerSnapshot(
+                player_id=0, tick=200, npc_name="npc_dota_hero_zuus", team=2, level=12
+            ),
+        ]
+        m = self._build(snaps=snaps)
+        assert m.players[0].level == 12  # last snapshot wins
+
+    def test_hero_id_resolved_from_hero_name(self):
+        snaps = [
+            _FakePlayerSnapshot(player_id=0, tick=1, npc_name="npc_dota_hero_axe", team=2),
+        ]
+        m = self._build(snaps=snaps)
+        # hero_name is resolved by the builder; hero_id derives from it.
+        if m.players[0].hero_name == "npc_dota_hero_axe":
+            assert m.players[0].hero_id == 2
+
+    def test_life_state_dead_counts_distinct_dead_seconds(self):
+        # Two dead samples in the same second count once; a third in another
+        # second adds one. Mirrors OpenDota's per-second life_state sampling.
+        snaps = [
+            _FakePlayerSnapshot(
+                player_id=0, tick=300, npc_name="n", team=2, life_state=2, game_time_s=10
+            ),
+            _FakePlayerSnapshot(
+                player_id=0, tick=315, npc_name="n", team=2, life_state=1, game_time_s=10
+            ),
+            _FakePlayerSnapshot(
+                player_id=0, tick=330, npc_name="n", team=2, life_state=2, game_time_s=11
+            ),
+            _FakePlayerSnapshot(
+                player_id=0, tick=345, npc_name="n", team=2, life_state=0, game_time_s=12
+            ),
+        ]
+        m = self._build(snaps=snaps)
+        assert m.players[0].life_state_dead == 2  # seconds 10 and 11
+
+    def test_team_scores_sum_kills(self):
+        snaps = [
+            _FakePlayerSnapshot(player_id=0, tick=1, npc_name="npc_dota_hero_zuus", team=2),
+            _FakePlayerSnapshot(player_id=1, tick=1, npc_name="npc_dota_hero_lina", team=2),
+            _FakePlayerSnapshot(player_id=5, tick=1, npc_name="npc_dota_hero_axe", team=3),
+        ]
+        m = self._build(scoreboard={0: (4, 0, 0), 1: (3, 0, 0), 5: (2, 0, 0)}, snaps=snaps)
+        assert m.radiant_score == 7  # 4 + 3
+        assert m.dire_score == 2
+
+    def test_first_blood_time_from_first_hero_death(self):
+        # game_start_tick defaults to 6000; a hero death at tick 6300 -> 10s in.
+        entries = [
+            CombatLogEntry(tick=6300, log_type="DEATH", target_name="npc_dota_hero_axe"),
+        ]
+        # mark it a hero death
+        entries[0].target_is_hero = True
+        m = self._build(all_entries=entries)
+        assert m.first_blood_time == 10  # (6300 - 6000) // 30
+
+    def test_first_blood_excludes_illusion_death(self):
+        # An illusion death before the first real hero death must NOT set first
+        # blood (target_is_hero stays true for an illusion).
+        illusion = CombatLogEntry(tick=6100, log_type="DEATH", target_name="npc_dota_hero_axe")
+        illusion.target_is_hero = True
+        illusion.target_is_illusion = True
+        real = CombatLogEntry(tick=6300, log_type="DEATH", target_name="npc_dota_hero_lina")
+        real.target_is_hero = True
+        m = self._build(all_entries=[illusion, real])
+        assert m.first_blood_time == 10  # the real death at 6300, not the illusion
+
+    def _build_with_interval(self, *, snaps, interval_ext):
+        parser = _make_parser(radiant_win=True)
+        ext = _make_player_ext(snapshots=snaps)
+        return build_parsed_match(
+            parser,
+            ext,
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            _make_combat_agg(),
+            [],
+            [],
+            interval_ext=interval_ext,
+        )
+
+    def test_firstblood_claimed_from_player_resource(self):
+        # firstblood_claimed reads the authoritative CDOTA_PlayerResource field
+        # (via interval_ext.player_resource_scalars), not a combat-log credit.
+        snaps = [
+            _FakePlayerSnapshot(player_id=0, tick=1, npc_name="npc_dota_hero_axe", team=2),
+            _FakePlayerSnapshot(player_id=1, tick=1, npc_name="npc_dota_hero_lina", team=2),
+        ]
+        interval_ext = _make_interval_ext(firstblood={0: 1})
+        m = self._build_with_interval(snaps=snaps, interval_ext=interval_ext)
+        assert m.players[0].firstblood_claimed == 1
+        assert m.players[1].firstblood_claimed == 0
+
+    def test_teamfight_participation_from_player_resource(self):
+        # teamfight_participation reads m_flTeamFightParticipation, not a window
+        # reconstruction.
+        snaps = [
+            _FakePlayerSnapshot(player_id=0, tick=1, npc_name="npc_dota_hero_axe", team=2),
+            _FakePlayerSnapshot(player_id=1, tick=1, npc_name="npc_dota_hero_lina", team=2),
+        ]
+        interval_ext = _make_interval_ext(participation={0: 0.435, 1: 0.783})
+        m = self._build_with_interval(snaps=snaps, interval_ext=interval_ext)
+        assert m.players[0].teamfight_participation == 0.435
+        assert m.players[1].teamfight_participation == 0.783
+
+
 class TestBuildParsedMatchDuration:
     def _build(self, *, duration_s, scoreboard=None, snaps=None):
         parser = _make_parser(duration_s=duration_s)
@@ -1498,6 +1803,356 @@ class TestBuildParsedMatchDuration:
         snaps = [_FakePlayerSnapshot(player_id=0, tick=1, npc_name="npc_dota_hero_zuus", team=2)]
         m = self._build(duration_s=None, scoreboard={0: (8, 7, 12)}, snaps=snaps)
         assert m.players[0].kills_per_min == 0.0
+
+
+# ---------------------------------------------------------------------------
+# Purchase timeline aggregates (OpenDota parity)
+# ---------------------------------------------------------------------------
+
+
+def _purchase(item: str, tick: int, game_time_s: int | None = None) -> CombatLogEntry:
+    return CombatLogEntry(tick=tick, log_type="PURCHASE", value_name=item, game_time_s=game_time_s)
+
+
+class TestBuildPurchaseAggregates:
+    def _build(self, entries):
+        from gem.results.assembly import _build_purchase_aggregates
+
+        return _build_purchase_aggregates(entries, game_start_tick=0)
+
+    def test_purchase_counts_and_translates_keys(self):
+        aggs = self._build(
+            [
+                _purchase("item_blink", 600),
+                _purchase("item_branches", 60),
+                _purchase("item_branches", 90),
+            ]
+        )
+        # item_ prefix stripped; counts per item.
+        assert aggs["purchase"] == {"blink": 1, "branches": 2}
+
+    def test_first_vs_last_purchase_time(self):
+        # belt bought at 100s and 300s -> first=100, last=300.
+        aggs = self._build(
+            [
+                _purchase("item_belt", tick=3000, game_time_s=100),
+                _purchase("item_belt", tick=9000, game_time_s=300),
+            ]
+        )
+        assert aggs["first_purchase_time"]["belt"] == 100
+        assert aggs["purchase_time"]["belt"] == 300
+
+    def test_recipes_counted_but_excluded_from_timing(self):
+        # OpenDota: purchase count includes recipes; purchase_time/first exclude them.
+        aggs = self._build([_purchase("item_recipe_basher", tick=1500, game_time_s=50)])
+        assert aggs["purchase"]["recipe_basher"] == 1
+        assert "recipe_basher" not in aggs["purchase_time"]
+        assert "recipe_basher" not in aggs["first_purchase_time"]
+
+    def test_ward_and_tpscroll_scalars(self):
+        aggs = self._build(
+            [
+                _purchase("item_tpscroll", 100),
+                _purchase("item_tpscroll", 200),
+                _purchase("item_ward_observer", 300),
+                _purchase("item_ward_sentry", 400),
+            ]
+        )
+        assert aggs["purchase_tpscroll"] == 2
+        assert aggs["purchase_ward_observer"] == 1
+        assert aggs["purchase_ward_sentry"] == 1
+
+    def test_uses_game_time_seconds(self):
+        # game_time_s preferred over tick math.
+        aggs = self._build([_purchase("item_blink", tick=99999, game_time_s=120)])
+        assert aggs["first_purchase_time"]["blink"] == 120
+
+
+# ---------------------------------------------------------------------------
+# Ward expiry log + nested coordinate map reshape
+# ---------------------------------------------------------------------------
+
+
+# Raw world coords = cell*128 + vec; OpenDota cell = world / 128.
+# 16128 / 128 = 126.0, 15232 / 128 = 119.0  -> key "[126,119]".
+def _ward(
+    *,
+    player_id=1,
+    ward_type="observer",
+    x=16128.0,
+    y=15232.0,
+    tick=300,
+    killed_tick=None,
+    expires_tick=None,
+    killer="",
+    team=2,
+):
+    from gem.extractors.wards import WardEvent
+
+    return WardEvent(
+        tick=tick,
+        player_id=player_id,
+        placer="npc_dota_hero_lina",
+        ward_type=ward_type,
+        team=team,
+        x=x,
+        y=y,
+        expires_tick=expires_tick,
+        killed_tick=killed_tick,
+        killer=killer,
+    )
+
+
+class TestWardReshape:
+    def test_player_id_to_player_slot_encoding(self):
+        from gem.results.assembly import _player_id_to_player_slot
+
+        assert [_player_id_to_player_slot(i) for i in range(5)] == [0, 1, 2, 3, 4]
+        assert [_player_id_to_player_slot(i) for i in range(5, 10)] == [128, 129, 130, 131, 132]
+
+    def test_coord_key_converts_world_to_cell(self):
+        from gem.results.assembly import _ward_coord_key
+
+        # World coords divided by 128 and rounded to OpenDota cell units.
+        assert _ward_coord_key(16128.0, 15232.0) == "[126,119]"
+        assert _ward_coord_key(16184.0, 15205.0) == "[126,119]"  # rounds to nearest cell
+        assert _ward_coord_key(None, 5.0) is None
+
+    def test_left_entry_for_killed_ward(self):
+        from gem.results.assembly import _ward_left_entry
+
+        w = _ward(player_id=1, killed_tick=600, killer="npc_dota_hero_queenofpain")
+        e = _ward_left_entry(w, game_start_tick=0)
+        assert e is not None
+        assert e["entityleft"] is True
+        assert e["type"] == "obs_left_log"
+        assert e["attackername"] == "npc_dota_hero_queenofpain"
+        assert e["time"] == 20  # 600 // 30
+        assert e["key"] == "[126,119]"  # world coords converted to cell units
+        assert e["x"] == 16128.0 / 128
+        # Radiant: slot and player_slot both 0-4.
+        assert e["slot"] == 1 and e["player_slot"] == 1
+
+    def test_left_entry_dire_player_slot_encoding(self):
+        from gem.results.assembly import _ward_left_entry
+
+        # Dire player id 5 -> slot stays 5, player_slot becomes 128 (OpenDota).
+        w = _ward(player_id=5, team=3, killed_tick=600, killer="npc_dota_hero_axe")
+        e = _ward_left_entry(w, game_start_tick=0)
+        assert e is not None
+        assert e["slot"] == 5
+        assert e["player_slot"] == 128
+        # Dire player id 9 -> player_slot 132.
+        w9 = _ward(player_id=9, team=3, expires_tick=900)
+        assert _ward_left_entry(w9, game_start_tick=0)["player_slot"] == 132
+
+    def test_left_entry_natural_expiry_no_killer(self):
+        from gem.results.assembly import _ward_left_entry
+
+        w = _ward(ward_type="sentry", expires_tick=900)
+        e = _ward_left_entry(w, game_start_tick=0)
+        assert e is not None and e["type"] == "sen_left_log"
+        assert e["attackername"] == ""
+        assert e["time"] == 30
+
+    def test_no_left_entry_when_ward_survives(self):
+        from gem.results.assembly import _ward_left_entry
+
+        w = _ward(killed_tick=None, expires_tick=None)
+        assert _ward_left_entry(w, game_start_tick=0) is None
+
+    def test_assembly_populates_left_logs_and_nested_maps(self):
+        snaps = [_FakePlayerSnapshot(player_id=1, tick=1, npc_name="npc_dota_hero_lina", team=2)]
+        wards = [
+            # 16128/128=126, 15232/128=119 ; 16896/128=132, 16512/128=129
+            _ward(
+                player_id=1,
+                ward_type="observer",
+                x=16128.0,
+                y=15232.0,
+                killed_tick=600,
+                killer="npc_dota_hero_axe",
+            ),
+            _ward(player_id=1, ward_type="sentry", x=16896.0, y=16512.0, expires_tick=900),
+        ]
+        parser = _make_parser(radiant_win=True)
+        ext = _make_player_ext(snapshots=snaps)
+        m = build_parsed_match(
+            parser,
+            ext,
+            _make_obj_ext(),
+            _make_ward_ext(ward_events=wards),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            _make_combat_agg(),
+            [],
+            [],
+        )
+        p = m.players[1]
+        assert len(p.obs_log) == 1 and len(p.sen_log) == 1
+        assert len(p.obs_left_log) == 1 and p.obs_left_log[0]["attackername"] == "npc_dota_hero_axe"
+        assert len(p.sen_left_log) == 1
+        assert p.obs == {"126": {"119": 1}}
+        assert p.sen == {"132": {"129": 1}}
+        assert p.observers_placed == 1
+
+
+# ---------------------------------------------------------------------------
+# Unified objectives timeline
+# ---------------------------------------------------------------------------
+
+
+class TestBuildObjectives:
+    def _agg_with_heroes(self, mapping, summons=None):
+        """Combat-agg stub resolving names via ``mapping`` (hero) and ``summons``.
+
+        ``resolve_kill_pid`` mirrors the aggregator's source-first chain:
+        source hero -> attacker hero -> attacker's summon owner.
+        """
+        summons = summons or {}
+        agg = MagicMock()
+        agg._hero_to_pid.side_effect = lambda name: mapping.get(name)
+
+        def _resolve(source_name, attacker_name):
+            if source_name and source_name in mapping:
+                return mapping[source_name]
+            if attacker_name in mapping:
+                return mapping[attacker_name]
+            return summons.get(attacker_name)
+
+        agg.resolve_kill_pid.side_effect = _resolve
+        return agg
+
+    def test_building_kill_shape_and_slot(self):
+        from gem.extractors.objectives import TowerKill
+        from gem.results.assembly import _build_objectives
+
+        tk = TowerKill(
+            tick=6300, team=3, killer="npc_dota_hero_axe", tower_name="npc_dota_badguys_tower1_mid"
+        )
+        agg = self._agg_with_heroes({"npc_dota_hero_axe": 0})
+        objs = _build_objectives(_make_obj_ext(towers=[tk]), agg, None, {0: 2}, game_start_tick=0)
+        assert len(objs) == 1
+        e = objs[0]
+        assert e["type"] == "building_kill"
+        assert e["key"] == "npc_dota_badguys_tower1_mid"
+        assert e["unit"] == "npc_dota_hero_axe"
+        assert e["slot"] == 0 and e["player_slot"] == 0
+        assert e["time"] == 210  # 6300 // 30
+
+    def test_building_kill_by_creep_has_no_slot(self):
+        from gem.extractors.objectives import TowerKill
+        from gem.results.assembly import _build_objectives
+
+        tk = TowerKill(
+            tick=300,
+            team=3,
+            killer="npc_dota_goodguys_siege",
+            tower_name="npc_dota_badguys_tower1_top",
+        )
+        agg = self._agg_with_heroes({})  # siege not a hero -> None
+        e = _build_objectives(_make_obj_ext(towers=[tk]), agg, None, {}, game_start_tick=0)[0]
+        assert "slot" not in e and "player_slot" not in e
+
+    def test_building_kill_by_summon_credits_owner(self):
+        # A Beastmaster boar kills a tower: attacker is the boar (no source),
+        # resolved to its owner via the summon chain. (P2 regression.)
+        from gem.extractors.objectives import TowerKill
+        from gem.results.assembly import _build_objectives
+
+        tk = TowerKill(
+            tick=6000,
+            team=3,
+            killer="npc_dota_beastmaster_boar",
+            tower_name="npc_dota_badguys_tower1_top",
+        )
+        agg = self._agg_with_heroes({}, summons={"npc_dota_beastmaster_boar": 2})
+        e = _build_objectives(_make_obj_ext(towers=[tk]), agg, None, {2: 2}, game_start_tick=0)[0]
+        assert e["slot"] == 2 and e["player_slot"] == 2
+
+    def test_building_kill_by_projectile_uses_source(self):
+        # A projectile lands the kill: attacker is the projectile, but
+        # killer_source carries the owning hero. (P2 regression.)
+        from gem.extractors.objectives import TowerKill
+        from gem.results.assembly import _build_objectives
+
+        tk = TowerKill(
+            tick=6000,
+            team=3,
+            killer="dota_unknown",
+            tower_name="npc_dota_badguys_tower2_mid",
+            killer_source="npc_dota_hero_clinkz",
+        )
+        agg = self._agg_with_heroes({"npc_dota_hero_clinkz": 4})
+        e = _build_objectives(_make_obj_ext(towers=[tk]), agg, None, {4: 2}, game_start_tick=0)[0]
+        assert e["slot"] == 4 and e["player_slot"] == 4
+        assert e["unit"] == "npc_dota_hero_clinkz"  # source hero, not the projectile
+
+    def test_firstblood_resolves_killer_source_first(self):
+        # First blood dealt by a summon/projectile: attacker_name is the non-hero
+        # unit, damage_source_name carries the owning hero. The objective must
+        # credit the owner via the source-first resolver. (P2 regression.)
+        from gem.results.assembly import _build_objectives
+
+        fb = CombatLogEntry(
+            tick=6000,
+            log_type="DEATH",
+            attacker_name="npc_dota_lone_druid_bear",
+            damage_source_name="npc_dota_hero_lone_druid",
+            target_name="npc_dota_hero_axe",
+            target_is_hero=True,
+        )
+        agg = self._agg_with_heroes({"npc_dota_hero_lone_druid": 0, "npc_dota_hero_axe": 5})
+        objs = _build_objectives(_make_obj_ext(), agg, fb, {0: 2, 5: 3}, game_start_tick=0)
+        e = next(o for o in objs if o["type"] == "CHAT_MESSAGE_FIRSTBLOOD")
+        assert e["slot"] == 0 and e["player_slot"] == 0  # owner, not the bear
+        assert e["key"] == "5"  # victim slot
+
+    def test_firstblood_direct_hero_kill_still_resolves(self):
+        # A plain hero-vs-hero first blood (empty source) still credits the killer.
+        from gem.results.assembly import _build_objectives
+
+        fb = CombatLogEntry(
+            tick=3000,
+            log_type="DEATH",
+            attacker_name="npc_dota_hero_pudge",
+            target_name="npc_dota_hero_lina",
+            target_is_hero=True,
+        )
+        agg = self._agg_with_heroes({"npc_dota_hero_pudge": 1, "npc_dota_hero_lina": 6})
+        objs = _build_objectives(_make_obj_ext(), agg, fb, {1: 2, 6: 3}, game_start_tick=0)
+        e = next(o for o in objs if o["type"] == "CHAT_MESSAGE_FIRSTBLOOD")
+        assert e["slot"] == 1 and e["player_slot"] == 1
+        assert e["key"] == "6"
+
+    def test_courier_lost_owner_is_opposite_team(self):
+        from gem.extractors.objectives import CourierDeath
+        from gem.results.assembly import _build_objectives
+
+        # Killer is a Dire player (pid 5, team 3) -> courier owner is Radiant (2).
+        cd = CourierDeath(tick=1500, killer="npc_dota_hero_lina")
+        agg = self._agg_with_heroes({"npc_dota_hero_lina": 5})
+        objs = _build_objectives(
+            _make_obj_ext(courier_deaths=[cd]), agg, None, {5: 3}, game_start_tick=0
+        )
+        e = objs[0]
+        assert e["type"] == "CHAT_MESSAGE_COURIER_LOST"
+        assert e["team"] == 2  # owner = opposite of killer's team
+        assert e["killer"] == 128  # Dire pid 5 -> player_slot 128
+
+    def test_sorted_chronologically(self):
+        from gem.extractors.objectives import RoshanKill, TowerKill
+        from gem.results.assembly import _build_objectives
+
+        tk = TowerKill(
+            tick=9000, team=3, killer="npc_dota_hero_axe", tower_name="npc_dota_badguys_tower1_mid"
+        )
+        rk = RoshanKill(tick=3000, killer="npc_dota_hero_axe", kill_number=1, drops=[])
+        agg = self._agg_with_heroes({"npc_dota_hero_axe": 0})
+        objs = _build_objectives(
+            _make_obj_ext(towers=[tk], roshan=[rk]), agg, None, {0: 2}, game_start_tick=0
+        )
+        assert [o["time"] for o in objs] == [100, 300]  # roshan (3000//30) before tower
 
 
 # ---------------------------------------------------------------------------

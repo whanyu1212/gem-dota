@@ -326,6 +326,14 @@ cost breakdown was investigated but deferred. Key findings:
 - Add focused regression tests with parser changes — especially for string-table /
   entity ordering, combat-log normalization, and extractor output shape. Run the
   touched modules' tests before opening a PR.
+- **Update `CHANGELOG.md` (`[Unreleased]`) in the same PR as the change.** Any
+  user-visible addition, fix, or behavior change (new `ParsedMatch`/`ParsedPlayer`
+  field, new output, corrected attribution, etc.) gets an entry under
+  `[Unreleased] > Added`/`Fixed`/`Changed` as part of the feature PR — not as a
+  later sweep. `CHANGELOG.md` is the authoritative per-release record, so a stale
+  or missing entry is a real defect (e.g. a "not reproduced" note left in after
+  the feature shipped is worse than no note). When a change supersedes an existing
+  `[Unreleased]` note, correct that note rather than appending a contradicting one.
 - PRs should include: summary, rationale, test commands run, and results. Link
   issues when relevant; include screenshots for docs/UI changes. The repo ships a
   PR template with release-hygiene and parser-safety checks.

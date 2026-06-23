@@ -118,9 +118,24 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                     "damage_taken_pure": pp.damage_taken_by_type.get("pure", 0),
                     "damage": dict(pp.damage),
                     "damage_taken": dict(pp.damage_taken),
+                    "damage_inflictor": dict(pp.damage_inflictor),
+                    "damage_inflictor_received": dict(pp.damage_inflictor_received),
+                    "damage_targets": {k: dict(v) for k, v in pp.damage_targets.items()},
+                    "ability_targets": {k: dict(v) for k, v in pp.ability_targets.items()},
+                    "hero_hits": dict(pp.hero_hits),
+                    "max_hero_hit": pp.max_hero_hit,
                     "healing": dict(pp.healing),
                     "ability_uses": dict(pp.ability_uses),
                     "item_uses": dict(pp.item_uses),
+                    "purchase": dict(pp.purchase),
+                    "purchase_time": dict(pp.purchase_time),
+                    "first_purchase_time": dict(pp.first_purchase_time),
+                    "purchase_tpscroll": pp.purchase_tpscroll,
+                    "purchase_ward_observer": pp.purchase_ward_observer,
+                    "purchase_ward_sentry": pp.purchase_ward_sentry,
+                    "observer_uses": pp.observer_uses,
+                    "sentry_uses": pp.sentry_uses,
+                    "observers_placed": pp.observers_placed,
                     "gold_reasons": dict(pp.gold_reasons),
                     "xp_reasons": dict(pp.xp_reasons),
                     "lane_pos": dict(pp.lane_pos),
@@ -246,7 +261,21 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                 "event_type": a.event_type,
             }
         )
+    for cd in match.courier_deaths:
+        obj_rows.append(
+            {
+                "type": "courier_death",
+                "tick": cd.tick,
+                "team": 0,
+                "name": "npc_dota_courier",
+                "killer": cd.killer,
+            }
+        )
     objectives_df = pd.DataFrame(obj_rows)
+
+    # OpenDota-shaped unified objectives timeline (separate from the native
+    # per-type objectives_df above).
+    opendota_objectives_df = pd.DataFrame(match.objectives) if match.objectives else pd.DataFrame()
 
     # --- positions ---
     pos_rows: list[dict] = []
@@ -277,6 +306,10 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                 "radiant_win": match.radiant_win,
                 "game_start_tick": match.game_start_tick,
                 "game_end_tick": match.game_end_tick,
+                "tower_status_radiant": match.tower_status_radiant,
+                "tower_status_dire": match.tower_status_dire,
+                "barracks_status_radiant": match.barracks_status_radiant,
+                "barracks_status_dire": match.barracks_status_dire,
             }
         ]
     )
@@ -298,6 +331,11 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
     teamfights_df = (
         pd.DataFrame([asdict(tf) for tf in match.teamfights])
         if match.teamfights
+        else pd.DataFrame()
+    )
+    opendota_teamfights_df = (
+        pd.DataFrame([asdict(tf) for tf in match.opendota_teamfights])
+        if match.opendota_teamfights
         else pd.DataFrame()
     )
     smoke_df = (
@@ -323,11 +361,13 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         "combat_log": combat_df,
         "wards": wards_df,
         "objectives": objectives_df,
+        "opendota_objectives": opendota_objectives_df,
         "chat": chat_df,
         "match": match_df,
         "radiant_advantage": advantage_df,
         "draft": draft_df,
         "teamfights": teamfights_df,
+        "opendota_teamfights": opendota_teamfights_df,
         "smoke_events": smoke_df,
         "courier_snapshots": courier_df,
         "neutral_item_finds": neutral_item_finds_df,

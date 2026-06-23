@@ -104,6 +104,17 @@ def build_permanent_buffs() -> None:
     print(f"  permanent_buffs.json: {len(raw)} entries")
 
 
+def build_ancients() -> None:
+    """ancients.json: ancient-neutral npc_dota_* name -> 1.
+
+    Used to categorize ``killed`` entries into ancient vs regular neutral kills,
+    matching OpenDota's ancient_kills / neutral_kills split.
+    """
+    raw: dict = _load("ancients.json")  # type: ignore[assignment]
+    _write("ancients.json", raw)
+    print(f"  ancients.json: {len(raw)} entries")
+
+
 def _write(name: str, data: dict | list) -> None:
     _DST.mkdir(parents=True, exist_ok=True)
     out_path = _DST / name
@@ -125,6 +136,7 @@ def main() -> None:
     build_abilities()
     build_xp_level()
     build_permanent_buffs()
+    build_ancients()
 
     print("\nDone.")
 

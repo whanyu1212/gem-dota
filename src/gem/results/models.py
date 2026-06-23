@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass, field
+from typing import Any
 
 from gem.combat.log import CombatLogEntry
 from gem.extractors.courier import CourierSnapshot
@@ -17,12 +18,13 @@ from gem.extractors.draft import DraftEvent
 from gem.extractors.objectives import (
     AegisEvent,
     BarracksKill,
+    CourierDeath,
     RoshanKill,
     ShrineKill,
     TormentorKill,
     TowerKill,
 )
-from gem.extractors.teamfights import Teamfight
+from gem.extractors.teamfights import OpenDotaTeamfight, Teamfight
 from gem.extractors.wards import WardEvent
 
 
@@ -163,8 +165,23 @@ class ParsedPlayer:
         total_hero_healing_t_min: Cumulative healing dealt to allied heroes at each game-minute boundary.
         total_deaths_t_min: Cumulative death count at each game-minute boundary.
         total_stuns_t_min: Cumulative stun duration dealt (seconds) at each game-minute boundary.
-        obs_log: Observer ward placement events for this player.
-        sen_log: Sentry ward placement events for this player.
+        obs_log: Observer ward placement events for this player (gem's native
+            ``WardEvent`` records, carrying coordinates, expiry, and killer).
+        sen_log: Sentry ward placement events for this player (``WardEvent``).
+        obs_left_log: OpenDota-shaped observer-ward *departure* events
+            (``{time, type, key, slot, player_slot, x, y, entityleft,
+            attackername}``), one per observer ward that left the map.
+            ``attackername`` names the killer for a destroyed ward and is empty
+            for a natural expiry. Coordinates are in OpenDota cell units. Mirrors
+            OpenDota's ``obs_left_log`` shape; gem's detection is more complete
+            (it also logs natural expiries OpenDota sometimes omits).
+        sen_left_log: OpenDota-shaped sentry-ward departure events, as
+            ``obs_left_log`` but for sentries; mirrors OpenDota's ``sen_left_log``.
+        obs: Observer-ward placement coordinate histogram, nested
+            ``{x: {y: count}}`` over rounded world coordinates. Mirrors
+            OpenDota's ``obs``.
+        sen: Sentry-ward placement coordinate histogram, mirroring OpenDota's
+            ``sen``.
         damage: Total damage dealt, keyed by target NPC name, credited to the
             damage *source* (``damage_source_name``) so summon / spell /
             projectile damage lands on the owning hero. Illusion targets are keyed
@@ -180,12 +197,36 @@ class ParsedPlayer:
             (``"physical"``, ``"magical"``, ``"pure"``).
         damage_taken_by_type: Total damage received, keyed by damage type label
             (``"physical"``, ``"magical"``, ``"pure"``).
+        damage_inflictor: Damage dealt to enemy heroes keyed by the inflictor
+            (ability / item, ``item_`` prefix stripped; auto-attacks excluded),
+            mirroring OpenDota's ``damage_inflictor``. Self-inflicted damage is
+            excluded.
+        damage_inflictor_received: Damage received from enemy heroes keyed by the
+            enemy's inflictor name, mirroring OpenDota's
+            ``damage_inflictor_received``.
+        damage_targets: Nested ``inflictor -> {target_hero: damage}`` breakdown of
+            damage dealt to enemy heroes, mirroring OpenDota's ``damage_targets``.
+        ability_targets: Nested ``ability -> {target_hero: count}`` breakdown of
+            ability casts that hit enemy heroes, mirroring OpenDota's
+            ``ability_targets``.
+        hero_hits: Count of damage instances landed on enemy heroes keyed by
+            inflictor, mirroring OpenDota's ``hero_hits``.
+        max_hero_hit: The single largest hit landed on an enemy hero as
+            ``{time, type, unit, key, inflictor, value, max}``, or ``None`` if the
+            player dealt no hero damage; mirrors OpenDota's ``max_hero_hit``.
         healing: Total healing dealt, credited to the heal *source*, keyed by
             target NPC name (illusion targets keyed ``illusion_<npc>``).
         ability_uses: Ability usage counts, keyed by ability name.
         ability_upgrades_arr: Ability upgrade IDs in learned order, matching
             OpenDota's ``ability_upgrades_arr``.
         item_uses: Item usage counts, keyed by item name.
+        final_items: End-of-game inventory by slot index, keyed item name with
+            the ``item_`` prefix (e.g. ``{0: "item_power_treads"}``). Slots 0-5
+            are the main inventory, 6-8 the backpack, 9-16 the stash. Occupied
+            slots only; empty slots are absent. Read from the hero entity at the
+            game-end tick. Mirrors OpenDota's ``item_0``–``item_5`` /
+            ``backpack_0``–``backpack_2`` / ``item_neutral`` (which use numeric
+            item IDs rather than names).
         gold_reasons: Gold received per reason code.
         xp_reasons: XP received per reason code.
         kills_log: Combat log DEATH entries where this player was the attacker.
@@ -240,6 +281,52 @@ class ParsedPlayer:
             ``rune_pickups``.
         tower_kills: Towers this player last-hit (``m_iTowerKills``). Matches
             OpenDota's per-player ``tower_kills``.
+        killed: Kills per target unit name, derived from ``kills_log`` (summon
+            kills credited to the owner). Mirrors OpenDota's ``killed`` map.
+        ancient_kills: Ancient-neutral creeps killed (from ``killed``).
+        neutral_kills: All neutral creeps killed, including ancients.
+        lane_kills: Lane creeps killed (whole game, not just the laning phase).
+        courier_kills: Couriers killed.
+        observer_kills: Observer wards killed.
+        sentry_kills: Sentry wards killed.
+        roshan_kills: Roshans last-hit by this player. Derived from ``kills_log``
+            (combat-log attributed), matching OpenDota's ``roshan_kills`` rather
+            than the unreliable ``m_iRoshanKills`` entity counter.
+        hero_id: Numeric Dota 2 hero ID (e.g. 61 = Broodmother), mirroring
+            OpenDota's ``hero_id``. ``0`` if unresolved.
+        level: Terminal hero level, the last dense snapshot's level. Mirrors
+            OpenDota's ``level``.
+        gold_spent: Total gold spent over the game (``total earned gold − current
+            gold``), mirroring OpenDota's ``gold_spent``.
+        life_state_dead: Seconds spent dead, sampled from the hero's life state.
+            Mirrors OpenDota's ``life_state_dead``.
+        firstblood_claimed: ``1`` if this player dealt the game's first-blood kill,
+            else ``0``. Mirrors OpenDota's ``firstblood_claimed``.
+        teamfight_participation: Fraction of OpenDota-compatible teamfights
+            (``opendota_teamfights``) the player was involved in (0.0–1.0) — any
+            death, buyback, damage, healing, or ability/item use in the window.
+            Mirrors OpenDota's ``teamfight_participation``.
+        purchase: Count of each item purchased, keyed by translated item name
+            (``item_`` stripped); recipes included. Mirrors OpenDota's
+            ``purchase``.
+        purchase_time: Game-seconds of the player's *last* purchase of each item
+            (recipes excluded), keyed by translated name. Mirrors OpenDota's
+            ``purchase_time``.
+        first_purchase_time: Game-seconds of the player's *first* purchase of each
+            item (recipes excluded). Mirrors OpenDota's ``first_purchase_time``.
+        purchase_tpscroll: Number of TP scrolls purchased. Mirrors OpenDota's
+            ``purchase_tpscroll``.
+        purchase_ward_observer: Number of observer wards purchased. Mirrors
+            OpenDota's ``purchase_ward_observer``.
+        purchase_ward_sentry: Number of sentry wards purchased. Mirrors OpenDota's
+            ``purchase_ward_sentry``.
+        observer_uses: Observer wards used (``item_uses['item_ward_observer']``).
+            Mirrors OpenDota's ``observer_uses``.
+        sentry_uses: Sentry wards used (``item_uses['item_ward_sentry']``).
+            Mirrors OpenDota's ``sentry_uses``.
+        observers_placed: Observer wards placed, derived from ``obs_log`` length.
+            Mirrors OpenDota's ``observers_placed`` (a purchase/use-log-derived
+            alias distinct from the entity-counter ``obs_placed``).
         kda: OpenDota KDA ratio, ``round((kills + assists) / (deaths + 1), 2)``.
             Note the ``+1`` denominator (not ``max(deaths, 1)``) and 2-decimal
             rounding; matches OpenDota's ``kda`` exactly.
@@ -309,14 +396,25 @@ class ParsedPlayer:
     total_stuns_t_min: list[float] = field(default_factory=list)
     obs_log: list[WardEvent] = field(default_factory=list)
     sen_log: list[WardEvent] = field(default_factory=list)
+    obs_left_log: list[dict[str, Any]] = field(default_factory=list)
+    sen_left_log: list[dict[str, Any]] = field(default_factory=list)
+    obs: dict[str, dict[str, int]] = field(default_factory=dict)
+    sen: dict[str, dict[str, int]] = field(default_factory=dict)
     damage: dict[str, int] = field(default_factory=dict)
     damage_taken: dict[str, int] = field(default_factory=dict)
     damage_by_type: dict[str, int] = field(default_factory=dict)
     damage_taken_by_type: dict[str, int] = field(default_factory=dict)
+    damage_inflictor: dict[str, int] = field(default_factory=dict)
+    damage_inflictor_received: dict[str, int] = field(default_factory=dict)
+    damage_targets: dict[str, dict[str, int]] = field(default_factory=dict)
+    ability_targets: dict[str, dict[str, int]] = field(default_factory=dict)
+    hero_hits: dict[str, int] = field(default_factory=dict)
+    max_hero_hit: dict[str, Any] | None = None
     healing: dict[str, int] = field(default_factory=dict)
     ability_uses: dict[str, int] = field(default_factory=dict)
     ability_upgrades_arr: list[int] = field(default_factory=list)
     item_uses: dict[str, int] = field(default_factory=dict)
+    final_items: dict[int, str] = field(default_factory=dict)
     gold_reasons: dict[str, int] = field(default_factory=dict)
     xp_reasons: dict[str, int] = field(default_factory=dict)
     kills_log: list[CombatLogEntry] = field(default_factory=list)
@@ -358,6 +456,32 @@ class ParsedPlayer:
     xp_per_min: int = 0
     total_gold: int = 0
     total_xp: int = 0
+    # Derived kill aggregates (reshaped from kills_log; summon kills credited).
+    killed: dict[str, int] = field(default_factory=dict)
+    ancient_kills: int = 0
+    neutral_kills: int = 0
+    lane_kills: int = 0
+    courier_kills: int = 0
+    observer_kills: int = 0
+    sentry_kills: int = 0
+    roshan_kills: int = 0
+    # OpenDota-parity terminal / derived scalars.
+    hero_id: int = 0
+    level: int = 0
+    gold_spent: int = 0
+    life_state_dead: int = 0
+    firstblood_claimed: int = 0
+    teamfight_participation: float = 0.0
+    # OpenDota purchase-timeline aggregates, derived from purchase_log.
+    purchase: dict[str, int] = field(default_factory=dict)
+    purchase_time: dict[str, int] = field(default_factory=dict)
+    first_purchase_time: dict[str, int] = field(default_factory=dict)
+    purchase_tpscroll: int = 0
+    purchase_ward_observer: int = 0
+    purchase_ward_sentry: int = 0
+    observer_uses: int = 0
+    sentry_uses: int = 0
+    observers_placed: int = 0
     _ability_snapshots: list[tuple[int, dict[str, int]]] = field(default_factory=list)
 
     def __repr__(self) -> str:
@@ -397,6 +521,23 @@ class ParsedMatch:
         aegis_events: All Aegis pickup / steal / denial events.
         tormentors: All Tormentor (miniboss) kill events in chronological order.
         shrines: All Shrine of Wisdom destruction events in chronological order.
+        courier_deaths: All courier deaths (combat-log DEATH on a courier).
+        objectives: OpenDota-shaped unified objective timeline, merging building
+            kills and the ``CHAT_MESSAGE_*`` events (Roshan, Aegis, Tormentor,
+            first blood, courier lost) into one chronological list of
+            ``{time, type, ...}`` dicts. Mirrors OpenDota's ``objectives``; gem's
+            typed per-type fields (``towers``, ``roshans``, etc.) are retained
+            alongside it.
+        tower_status_radiant: End-of-game Radiant tower-status bitmask (Steam GC
+            11-bit convention; bit set = tower standing). Reconstructed from tower
+            kills. Mirrors OpenDota's ``tower_status_radiant``.
+        tower_status_dire: End-of-game Dire tower-status bitmask. Mirrors
+            OpenDota's ``tower_status_dire``.
+        barracks_status_radiant: End-of-game Radiant barracks-status bitmask
+            (6-bit; bit set = barracks standing). Mirrors OpenDota's
+            ``barracks_status_radiant``.
+        barracks_status_dire: End-of-game Dire barracks-status bitmask. Mirrors
+            OpenDota's ``barracks_status_dire``.
         wards: All ward placement events with coordinates.
         radiant_gold_adv: Radiant gold advantage at each minute boundary.
         radiant_xp_adv: Radiant XP advantage at each minute boundary.
@@ -408,6 +549,9 @@ class ParsedMatch:
             approximate activating-hero position.
         draft: Hero pick and ban events from the draft phase.
         teamfights: All detected teamfight windows with per-player breakdowns.
+        opendota_teamfights: OpenDota-compatible temporal teamfight windows.
+            These use OpenDota's 15-second death-window grouping and 3+ death
+            filter, while ``teamfights`` keeps Gem's richer spatial detector.
         vision_modifiers: Vision-granting modifier events (Slardar Corrosive Haze,
             Bounty Hunter Track, Dust of Appearance, Gem of True Sight, etc.).
             Used by ``estimate_vision`` to detect reveals beyond geometry.
@@ -420,6 +564,17 @@ class ParsedMatch:
             the postGame transition was not observed. Distinct from the
             tick-derived ``duration_seconds`` property, which spans the raw parser
             ticks and includes pre/post-game time.
+        radiant_score: Radiant's final kill score (sum of Radiant players'
+            kills), mirroring OpenDota's ``radiant_score``.
+        dire_score: Dire's final kill score (sum of Dire players' kills),
+            mirroring OpenDota's ``dire_score``.
+        first_blood_time: Game-relative time in seconds of the first hero death,
+            mirroring OpenDota's ``first_blood_time``. ``0`` if no hero death was
+            observed.
+        pre_game_duration: Seconds between the horn and creep spawn, mirroring
+            OpenDota's ``pre_game_duration``. Currently always ``0`` — deriving it
+            needs the GAME_IN_PROGRESS state-transition timestamp the parser does
+            not yet expose; reserved for a follow-up.
     """
 
     match_id: int = 0
@@ -435,6 +590,10 @@ class ParsedMatch:
     game_start_tick: int | None = None
     game_end_tick: int = 0
     duration: int = 0
+    radiant_score: int = 0
+    dire_score: int = 0
+    first_blood_time: int = 0
+    pre_game_duration: int = 0
     players: list[ParsedPlayer] = field(
         default_factory=lambda: [ParsedPlayer(player_id=i) for i in range(10)]
     )
@@ -444,6 +603,12 @@ class ParsedMatch:
     aegis_events: list[AegisEvent] = field(default_factory=list)
     tormentors: list[TormentorKill] = field(default_factory=list)
     shrines: list[ShrineKill] = field(default_factory=list)
+    courier_deaths: list[CourierDeath] = field(default_factory=list)
+    objectives: list[dict[str, Any]] = field(default_factory=list)
+    tower_status_radiant: int = 0
+    tower_status_dire: int = 0
+    barracks_status_radiant: int = 0
+    barracks_status_dire: int = 0
     wards: list[WardEvent] = field(default_factory=list)
     radiant_gold_adv: list[int] = field(default_factory=list)
     radiant_xp_adv: list[int] = field(default_factory=list)
@@ -454,6 +619,7 @@ class ParsedMatch:
     smoke_events: list[SmokeEvent] = field(default_factory=list)
     draft: list[DraftEvent] = field(default_factory=list)
     teamfights: list[Teamfight] = field(default_factory=list)
+    opendota_teamfights: list[OpenDotaTeamfight] = field(default_factory=list)
     vision_modifiers: list[VisionModifierEvent] = field(default_factory=list)
 
     @property

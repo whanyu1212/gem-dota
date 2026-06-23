@@ -590,6 +590,17 @@ class PlayerExtractor:
                 dn = data_entity.get_int32(f"{prefix}.m_iDenyCount")
                 if dn is not None and dn > 0:
                     snap.dn = dn
+            # Overlay authoritative hero level from CDOTA_PlayerResource
+            # (m_vecPlayerTeamData.%i.m_iLevel) — the hero entity's
+            # m_nCurrentLevel reads 0 in some replays. Mirrors OpenDota's
+            # Parse.java level read. Use the coach-aware resource index.
+            pr = self._player_resource
+            if pr is not None:
+                lvl = pr.get_int32(
+                    f"m_vecPlayerTeamData.{self._resource_index(snap.player_id):04d}.m_iLevel"
+                )
+                if lvl is not None and lvl > 0:
+                    snap.level = lvl
             snap.ability_levels = self._read_abilities(entity)
             pid = snap.player_id
             snap.total_hero_damage = self._total_hero_damage.get(pid, 0)
@@ -599,6 +610,9 @@ class PlayerExtractor:
             if minute:
                 self._minute_snaps.append(snap)
             else:
+                # Dense series only: capture current inventory. The last dense
+                # sample yields end-of-game inventory (read in assembly.py).
+                snap.items = self._read_inventory(entity)
                 self.snapshots.append(snap)
                 self._diff_inventory(entity, snap.player_id, snap.npc_name, tick)
 
@@ -685,7 +699,11 @@ class PlayerExtractor:
             item_entity = em.find_by_handle(handle)
             if item_entity is None:
                 continue
-            name_idx = item_entity.get_int32("m_pEntity.m_nameStringableIndex")
+            # Newer replays use m_nameStringTableIndex; older ones use
+            # m_nameStringableIndex. Try both, mirroring _read_abilities.
+            name_idx = item_entity.get_int32("m_pEntity.m_nameStringTableIndex")
+            if name_idx is None:
+                name_idx = item_entity.get_int32("m_pEntity.m_nameStringableIndex")
             if name_idx is None or name_idx < 0:
                 continue
             # EntityNames items are stored as (key_str, value_bytes); key_str is the name

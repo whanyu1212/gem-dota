@@ -116,6 +116,10 @@ def _snapshot_hero(entity: Entity, tick: int) -> PlayerStateSnapshot | None:
     max_mana = entity.get_float32("m_flMaxMana") or 0.0
     lh = entity.get_int32("m_iLastHitCount") or 0
     dn = entity.get_int32("m_iDenies") or 0
+    # m_lifeState: 0 = alive, 1 = dying, 2 = dead. OpenDota's life_state_dead
+    # counts time spent in the non-alive states; we treat any non-zero value as
+    # dead for the per-snapshot sample. Defaults to 0 (alive) when absent.
+    life_state = entity.get_int32("m_lifeState") or 0
 
     pos = _pos(entity)
 
@@ -142,6 +146,7 @@ def _snapshot_hero(entity: Entity, tick: int) -> PlayerStateSnapshot | None:
         max_hp=max_hp,
         mana=mana,
         max_mana=max_mana,
+        life_state=life_state,
         x=pos[0] if pos else None,
         y=pos[1] if pos else None,
     )
@@ -176,6 +181,8 @@ class PlayerStateSnapshot:
         max_hp: Maximum hit points.
         mana: Current mana.
         max_mana: Maximum mana.
+        life_state: Hero life state (``m_lifeState``): 0 = alive, 1 = dying,
+            2 = dead. Used to derive OpenDota's ``life_state_dead``.
         x: World x coordinate, or ``None`` if unavailable.
         y: World y coordinate, or ``None`` if unavailable.
         ability_levels: Ability name → level mapping for learned abilities.
@@ -183,6 +190,9 @@ class PlayerStateSnapshot:
         total_hero_healing: Cumulative healing dealt to allied heroes (from combat log).
         total_deaths: Cumulative death count (all causes, from combat log).
         total_stuns: Cumulative stun duration dealt in seconds (from combat log).
+        items: Item names by slot index for occupied slots (0-5 main inventory,
+            6-8 backpack, 9-16 stash). Populated only on the dense series, not
+            minute snapshots; the last dense sample gives end-of-game inventory.
     """
 
     tick: int
@@ -204,11 +214,13 @@ class PlayerStateSnapshot:
     total_earned_gold: int = 0
     total_earned_xp: int = 0
     game_time_s: int | None = None
+    life_state: int = 0
     ability_levels: dict[str, int] = field(default_factory=dict)
     total_hero_damage: int = 0
     total_hero_healing: int = 0
     total_deaths: int = 0
     total_stuns: float = 0.0
+    items: dict[int, str] = field(default_factory=dict)
 
 
 @dataclass

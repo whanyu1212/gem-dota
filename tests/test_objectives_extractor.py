@@ -154,6 +154,29 @@ class TestObjectivesExtractor:
         assert ext.roshan_kills == []
         assert ext.tower_kills == []
         assert ext.barracks_kills == []
+        assert ext.courier_deaths == []
+
+    def test_courier_death_detected(self):
+        ext, parser = self._make()
+        parser.fire_combat_log(
+            _make_combat_log_entry(
+                tick=500,
+                target_name="npc_dota_courier",
+                attacker_name="npc_dota_hero_axe",
+            )
+        )
+        assert len(ext.courier_deaths) == 1
+        cd = ext.courier_deaths[0]
+        assert cd.tick == 500
+        assert cd.killer == "npc_dota_hero_axe"
+
+    def test_courier_death_suffixed_name(self):
+        # Couriers may carry a suffixed name; prefix match still captures them.
+        ext, parser = self._make()
+        parser.fire_combat_log(
+            _make_combat_log_entry(tick=600, target_name="npc_dota_courier_radiant")
+        )
+        assert len(ext.courier_deaths) == 1
 
 
 # ---------------------------------------------------------------------------

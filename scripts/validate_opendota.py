@@ -379,9 +379,6 @@ def _od_slot_to_gem_id(slot: int) -> int:
     return slot if slot < 128 else slot - 128 + 5
 
 
-_TEAMFIGHT_COOLDOWN_S = 15
-
-
 def _opendota_teamfights_from_combat_log(combat_log: list[Any]) -> list[dict[str, int]]:
     """Project gem combat log deaths into OpenDota-compatible teamfight windows.
 
@@ -390,42 +387,17 @@ def _opendota_teamfights_from_combat_log(combat_log: list[Any]) -> list[dict[str
     new hero death, then filters to windows with at least three deaths. This is
     intentionally separate from gem's richer spatial teamfight detector.
     """
-    fights: list[dict[str, int]] = []
-    current: dict[str, int] | None = None
+    from gem.extractors.teamfights import detect_opendota_teamfights
 
-    deaths = sorted(
-        (
-            entry
-            for entry in combat_log
-            if entry.log_type == "DEATH"
-            and entry.target_is_hero
-            and not entry.target_is_illusion
-            and entry.game_time_s is not None
-        ),
-        key=lambda entry: entry.game_time_s or 0,
-    )
-
-    for entry in deaths:
-        death_time_s = int(entry.game_time_s or 0)
-        if current is None or death_time_s - current["last_death"] >= _TEAMFIGHT_COOLDOWN_S:
-            if current is not None and current["deaths"] >= 3:
-                current["end"] = current["last_death"] + _TEAMFIGHT_COOLDOWN_S
-                fights.append(current)
-            current = {
-                "start": death_time_s - _TEAMFIGHT_COOLDOWN_S,
-                "end": 0,
-                "last_death": death_time_s,
-                "deaths": 0,
-            }
-
-        current["last_death"] = death_time_s
-        current["deaths"] += 1
-
-    if current is not None and current["deaths"] >= 3:
-        current["end"] = current["last_death"] + _TEAMFIGHT_COOLDOWN_S
-        fights.append(current)
-
-    return fights
+    return [
+        {
+            "start": fight.start,
+            "end": fight.end,
+            "last_death": fight.last_death,
+            "deaths": fight.deaths,
+        }
+        for fight in detect_opendota_teamfights(combat_log)
+    ]
 
 
 # ---------------------------------------------------------------------------
