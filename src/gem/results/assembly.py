@@ -303,7 +303,12 @@ def _build_objectives(
 
     # CHAT_MESSAGE_FIRSTBLOOD — the first real hero death; key is the victim slot.
     if first_blood_entry is not None:
-        killer_pid = combat_agg._hero_to_pid(first_blood_entry.attacker_name)
+        # Resolve the killer source-first (like every other objective): a summon
+        # or projectile first blood carries the owning hero in damage_source_name
+        # while attacker_name is the non-hero unit.
+        killer_pid = combat_agg.resolve_kill_pid(
+            first_blood_entry.damage_source_name, first_blood_entry.attacker_name
+        )
         victim_pid = combat_agg._hero_to_pid(first_blood_entry.target_name)
         entry = {
             "time": _entry_game_seconds(first_blood_entry, game_start_tick),

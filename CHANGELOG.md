@@ -34,7 +34,9 @@ is additive.
 - **OpenDota-shaped teamfights.** `ParsedMatch.opendota_teamfights` — a
   compatibility projection of teamfights matching OpenDota's
   `teamfights[].players[]` schema (temporal death-windows, 3-death minimum),
-  alongside gem's native spatial `teamfights`.
+  alongside gem's native spatial `teamfights`. A game-ending throne fight whose
+  window extends past the match duration is kept with its `end` clamped to the
+  duration, rather than dropped.
 - **Per-inflictor / per-target combat attribution** on `ParsedPlayer`:
   `damage_inflictor`, `damage_inflictor_received`, `damage_targets`,
   `ability_targets`, `hero_hits`, and `max_hero_hit` — spell/item-level damage
