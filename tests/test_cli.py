@@ -177,3 +177,30 @@ class TestCli:
         out = capsys.readouterr().out
         assert "Examples:" in out
         assert "python -m gem match.dem --format json" in out
+
+    def test_reports_assets_path_command(self, monkeypatch, tmp_path, capsys):
+        monkeypatch.setattr(
+            "sys.argv",
+            ["gem", "reports", "assets", "path", "--asset-dir", str(tmp_path)],
+        )
+
+        main()
+
+        out = capsys.readouterr().out
+        assert "Report asset cache paths" in out
+        assert "Hero icons" in out
+        assert "Item icons" in out
+
+    def test_reports_assets_status_command(self, monkeypatch, tmp_path, capsys):
+        monkeypatch.setattr(
+            "sys.argv",
+            ["gem", "reports", "assets", "status", "--asset-dir", str(tmp_path)],
+        )
+
+        main()
+
+        out = capsys.readouterr().out
+        assert "Report asset status" in out
+        assert "Hero icons" in out
+        assert "Item icons" in out
+        assert "Map images" in out

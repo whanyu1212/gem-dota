@@ -43,8 +43,8 @@ build-backend = "uv_build"
 
 [tool.uv.build-backend]
 module-name = "gem"
-# Icons are downloaded locally by fetch_hero_icons.py / fetch_item_icons.py
-# and must not be shipped in the published wheel.
+# Icons are downloaded locally by the report asset setup tooling and must not be
+# shipped in the published wheel.
 source-exclude = [
     ".DS_Store",
     "._*",

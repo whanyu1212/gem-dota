@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Report asset setup tooling: `python -m gem reports assets path/status/download/add-map`,
+  `ReportAssets.auto()`, and importable cache helpers so HTML report users can
+  populate local hero/item icon and map assets without shipping those assets in
+  the wheel. The downloader validates cached PNGs and falls back across current
+  and legacy Dota CDN icon paths.
 - `ParsedPlayer.final_items` — end-of-game inventory by slot index (0-5 main,
   6-8 backpack, 9-16 stash), keyed item name with the `item_` prefix. Read from
   the hero entity at the game-end tick; verified to match OpenDota's

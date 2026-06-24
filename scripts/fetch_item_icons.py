@@ -19,17 +19,19 @@ Usage::
 from __future__ import annotations
 
 import argparse
-import json
-import ssl
 import sys
-import time
-import urllib.request
 from collections.abc import Sequence
 from pathlib import Path
 
-_ITEMS_JSON = Path(__file__).parent.parent / "src" / "gem" / "data" / "items.json"
-_OUT_DIR = Path(__file__).parent.parent / "src" / "gem" / "data" / "item_icons"
-_CDN = "https://cdn.dota2.com/apps/dota2/images/dota_react/items/{short}.png"
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
+from gem.reports.asset_cache import (  # noqa: E402
+    ITEMS_JSON as _ITEMS_JSON,
+    SOURCE_ITEM_ICON_DIR as _OUT_DIR,
+    download_item_icons,
+    item_icon_shorts,
+    missing_item_icons,
+)
 
 
 def _short(item_key: str) -> str:
@@ -37,14 +39,7 @@ def _short(item_key: str) -> str:
 
 
 def _item_shorts(items_path: Path, *, include_recipes: bool = False) -> tuple[str, ...]:
-    items: dict = json.loads(items_path.read_text(encoding="utf-8"))
-    shorts = []
-    for item_key in sorted(items):
-        short = _short(item_key)
-        if short.startswith("recipe_") and not include_recipes:
-            continue
-        shorts.append(short)
-    return tuple(shorts)
+    return item_icon_shorts(items_path, include_recipes=include_recipes)
 
 
 def missing_icon_shorts(
@@ -53,11 +48,7 @@ def missing_icon_shorts(
     *,
     include_recipes: bool = False,
 ) -> tuple[str, ...]:
-    return tuple(
-        short
-        for short in _item_shorts(items_path, include_recipes=include_recipes)
-        if not (out_dir / f"{short}.png").exists()
-    )
+    return missing_item_icons(items_path, out_dir, include_recipes=include_recipes)
 
 
 def check(
@@ -84,33 +75,18 @@ def fetch(
     *,
     include_recipes: bool = False,
 ) -> None:
-    out_dir.mkdir(parents=True, exist_ok=True)
-
-    ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
-
-    ok = failed = skipped = 0
-    for short in _item_shorts(items_path, include_recipes=include_recipes):
-        out_path = out_dir / f"{short}.png"
-        if out_path.exists() and not force:
-            skipped += 1
-            continue
-
-        url = _CDN.format(short=short)
-        try:
-            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req, timeout=10, context=ctx) as resp:
-                data = resp.read()
-            out_path.write_bytes(data)
-            print(f"  OK  {short}")
-            ok += 1
-            time.sleep(0.05)
-        except Exception as exc:
-            print(f"  FAIL {short}  ({exc})", file=sys.stderr)
-            failed += 1
-
-    print(f"\nDone — {ok} downloaded, {skipped} skipped, {failed} failed -> {out_dir}")
+    result = download_item_icons(
+        force=force,
+        items_path=items_path,
+        out_dir=out_dir,
+        include_recipes=include_recipes,
+        reporter=print,
+        error_reporter=lambda message: print(message, file=sys.stderr),
+    )
+    print(
+        f"\nDone — {result.downloaded} downloaded, {result.skipped} skipped, "
+        f"{result.failed} failed -> {result.out_dir}"
+    )
 
 
 def main(argv: Sequence[str] | None = None) -> int:

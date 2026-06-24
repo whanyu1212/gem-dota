@@ -236,7 +236,7 @@ def build_html_report(
     Returns:
         Complete HTML string.
     """
-    assets = assets or ReportAssets()
+    assets = assets if assets is not None else ReportAssets.auto()
     options = options or ReportOptions()
     configure_assets(assets)
     if map_b64 is None:

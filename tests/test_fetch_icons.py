@@ -5,6 +5,8 @@ from pathlib import Path
 
 from scripts import fetch_hero_icons, fetch_item_icons
 
+_PNG_BYTES = b"\x89PNG\r\n\x1a\nfake-png"
+
 
 def test_item_icon_check_ignores_recipe_items_by_default(tmp_path: Path) -> None:
     items_path = tmp_path / "items.json"
@@ -20,7 +22,7 @@ def test_item_icon_check_ignores_recipe_items_by_default(tmp_path: Path) -> None
     )
     icon_dir = tmp_path / "item_icons"
     icon_dir.mkdir()
-    (icon_dir / "blink.png").write_bytes(b"png")
+    (icon_dir / "blink.png").write_bytes(_PNG_BYTES)
 
     assert fetch_item_icons.missing_icon_shorts(items_path, icon_dir) == ("conjurers_catalyst",)
     assert fetch_item_icons.missing_icon_shorts(
@@ -50,7 +52,7 @@ def test_item_icon_check_returns_nonzero_for_missing_non_recipe_icons(
     )
     icon_dir = tmp_path / "item_icons"
     icon_dir.mkdir()
-    (icon_dir / "blink.png").write_bytes(b"png")
+    (icon_dir / "blink.png").write_bytes(_PNG_BYTES)
 
     status = fetch_item_icons.main(
         ["--check", "--items", str(items_path), "--out-dir", str(icon_dir)]
@@ -71,7 +73,7 @@ def test_hero_icon_check_returns_zero_when_icons_are_complete(tmp_path: Path, ca
     )
     icon_dir = tmp_path / "hero_icons"
     icon_dir.mkdir()
-    (icon_dir / "axe.png").write_bytes(b"png")
+    (icon_dir / "axe.png").write_bytes(_PNG_BYTES)
 
     status = fetch_hero_icons.main(
         ["--check", "--heroes", str(heroes_path), "--out-dir", str(icon_dir)]
@@ -95,7 +97,7 @@ def test_hero_icon_check_reports_missing_icons(tmp_path: Path, capsys) -> None:
     )
     icon_dir = tmp_path / "hero_icons"
     icon_dir.mkdir()
-    (icon_dir / "axe.png").write_bytes(b"png")
+    (icon_dir / "axe.png").write_bytes(_PNG_BYTES)
 
     status = fetch_hero_icons.main(
         ["--check", "--heroes", str(heroes_path), "--out-dir", str(icon_dir)]
