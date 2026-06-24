@@ -36,6 +36,7 @@ from gem.reports.assets import (
     load_hero_icons,
     load_item_icons,
 )
+from gem.reports.player_names import display_player_name
 from gem.reports.sections._shared import (
     _DIRE_COLORS,
     _RADIANT_COLORS,
@@ -721,7 +722,7 @@ def build_teamfights(match: ParsedMatch, map_b64: str | None) -> str:
                 pp = slot_to_player.get(slot, ParsedPlayer(player_id=slot))
                 team_cls = "radiant" if pp.team == 2 else "dire"
                 died_cls = " died" if slot in died_slots else ""
-                pname = e(pp.player_name or "")
+                pname = e(display_player_name(pp))
                 hname = e(hero(pp.hero_name))
                 src = hero_icon_src(pp.hero_name)
                 parts.append(
@@ -749,7 +750,7 @@ def build_teamfights(match: ParsedMatch, map_b64: str | None) -> str:
                 parts.append(
                     f'<tr class="{row_cls}">'
                     f"<td>{hero_cell(pp.hero_name, pp.team)}"
-                    f'<div style="color:#8b949e;font-size:11px">{e(pp.player_name or "")}</div></td>'
+                    f'<div style="color:#8b949e;font-size:11px">{e(display_player_name(pp))}</div></td>'
                     f'<td class="r">{getattr(tfp, "damage_dealt", 0):,}</td>'
                     f'<td class="r">{getattr(tfp, "damage_taken", 0):,}</td>'
                     f'<td class="r">{getattr(tfp, "deaths", 0):,}</td>'

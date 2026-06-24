@@ -25,6 +25,20 @@ class ReportAssets:
     hero_icon_dir: str | Path | None = None
     item_icon_dir: str | Path | None = None
 
+    @classmethod
+    def auto(
+        cls,
+        *,
+        root: str | Path | None = None,
+        fallback_map: str | Path | None = None,
+        map_name: str = "Game_map_7.40.jpg",
+    ) -> ReportAssets:
+        """Discover local report assets from the configured asset cache."""
+
+        from gem.reports.asset_cache import auto_report_assets
+
+        return auto_report_assets(root=root, fallback_map=fallback_map, map_name=map_name)
+
 
 # Global caches: short_name → "data:image/png;base64,..." (populated at build time)
 ITEM_ICON_B64: dict[str, str] = {}
@@ -36,6 +50,7 @@ HERO_PLACEHOLDER_B64 = (
     "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJ"
     "AAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
 )
+_PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 
 
 def configure_assets(assets: ReportAssets | None = None) -> None:
@@ -78,7 +93,7 @@ def load_item_icons(short_names: list[str], assets: ReportAssets | None = None) 
         if short in ITEM_ICON_B64:
             continue
         path = icon_dir / f"{short}.png"
-        if path.exists():
+        if _is_png_file(path):
             ITEM_ICON_B64[short] = (
                 "data:image/png;base64," + base64.b64encode(path.read_bytes()).decode()
             )
@@ -107,7 +122,7 @@ def load_hero_icons(npc_names: list[str], assets: ReportAssets | None = None) ->
         if short in HERO_ICON_B64:
             continue
         path = icon_dir / f"{short}.png"
-        if path.exists():
+        if _is_png_file(path):
             HERO_ICON_B64[short] = (
                 "data:image/png;base64," + base64.b64encode(path.read_bytes()).decode()
             )
@@ -117,3 +132,13 @@ def hero_icon_src(npc_name: str) -> str:
     """Return a base64 data URI for a hero portrait, or the placeholder."""
     short = npc_name.removeprefix("npc_dota_hero_")
     return HERO_ICON_B64.get(short, HERO_PLACEHOLDER_B64)
+
+
+def _is_png_file(path: Path) -> bool:
+    if not path.exists():
+        return False
+    try:
+        with path.open("rb") as fh:
+            return fh.read(len(_PNG_MAGIC)).startswith(_PNG_MAGIC)
+    except OSError:
+        return False

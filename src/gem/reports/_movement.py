@@ -10,6 +10,7 @@ import plotly.graph_objects as go
 
 from gem.catalog import ability_display, hero_display, item_display, league_name
 from gem.reports._formatting import MAP_XMAX, MAP_XMIN, MAP_YMAX, MAP_YMIN
+from gem.reports.player_names import display_player_name
 from gem.results.models import ParsedMatch, ParsedPlayer
 
 # ---------------------------------------------------------------------------
@@ -256,9 +257,10 @@ def build_figure(
         color = _SLOT_COLORS[pp.player_id]
         team = "Radiant" if pp.team == 2 else "Dire"
         name = hero_display(pp.hero_name)
+        player_name = display_player_name(pp)
         label = (
-            f"{pp.player_name} · {name}"
-            if pp.player_name
+            f"{player_name} · {name}"
+            if player_name
             else f"[{team[0]}{pp.player_id % 5 + 1}] {name}"
         )
         xs = [_world_to_frac(wx, wy)[0] for _, wx, wy in pp.position_log]
@@ -282,9 +284,10 @@ def build_figure(
         color = _SLOT_COLORS[pp.player_id]
         team = "Radiant" if pp.team == 2 else "Dire"
         name = hero_display(pp.hero_name)
+        player_name = display_player_name(pp)
         label = (
-            f"{pp.player_name} · {name}"
-            if pp.player_name
+            f"{player_name} · {name}"
+            if player_name
             else f"[{team[0]}{pp.player_id % 5 + 1}] {name}"
         )
         first_tick, first_wx, first_wy = pp.position_log[0]
@@ -316,10 +319,11 @@ def build_figure(
             color = _SLOT_COLORS[pp.player_id]
             name = hero_display(pp.hero_name)
             team = "Radiant" if pp.team == 2 else "Dire"
-            ann_text = f"{pp.player_name} · {name}" if pp.player_name else name
+            player_name = display_player_name(pp)
+            ann_text = f"{player_name} · {name}" if player_name else name
             label = (
-                f"{pp.player_name} · {name}"
-                if pp.player_name
+                f"{player_name} · {name}"
+                if player_name
                 else f"[{team[0]}{pp.player_id % 5 + 1}] {name}"
             )
             window = [(t, wx, wy) for t, wx, wy in pp.position_log if t <= tick][-_TRAIL:]

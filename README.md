@@ -74,7 +74,7 @@ uv sync --group dev
 ```
 
 > [!TIP]
-> Most users do not need to download hero/item icon assets. Icon fetching is only required for local report/example rendering that displays portraits or item/rune icons.
+> Most users do not need to download hero/item icon assets. Icon fetching is only required for local report/example rendering that displays portraits or item/rune icons; when you need it, run `python -m gem reports assets download --icons`.
 
 ---
 
@@ -163,6 +163,11 @@ python -m gem batch replays/ --format dataframe --output ./out
 
 # Show live progress and a timing breakdown
 python -m gem match.dem --progress --timings
+
+# Inspect or populate the HTML report asset cache
+python -m gem reports assets status
+python -m gem reports assets download --icons
+python -m gem reports assets add-map assets/maps/Game_map_7.40.jpg
 ```
 
 > [!TIP]
@@ -221,7 +226,8 @@ import gem
 from gem.reports import ReportAssets, write_html_report
 
 match = gem.parse("path/to/your_replay.dem")
-write_html_report(match, "report.html", assets=ReportAssets(map_image="assets/maps/Game_map_7.40.jpg"))
+assets = ReportAssets.auto(fallback_map="assets/maps/Game_map_7.40.jpg")
+write_html_report(match, "report.html", assets=assets)
 ```
 
 ```bash
@@ -511,8 +517,7 @@ Parse cost scales with extraction scope: full per-tick state extraction is much 
 - **Draft ID quirks** — replay pick/ban IDs can differ from static hero API IDs in some patches/formats (commonly transformed IDs). `gem` normalizes these, but edge cases may still appear.
 - **Purchase attribution in spectator/HLTV paths** — purchase events are not always directly hero-attributed in combat log data; reconstruction relies on entity state and may be incomplete in edge cases.
 - **Summon ownership edge cases** — most summoned-unit attribution is handled, but complex ownership cases can still produce occasional mismatches.
-- **Hero icons** — not bundled in the package. Run `python scripts/fetch_hero_icons.py --check` to audit the local cache, or `python scripts/fetch_hero_icons.py` to download missing icons before using the draft or teamfight report examples.
-- **Item icons** — not bundled in the package. Run `python scripts/fetch_item_icons.py --check` to audit the local cache, or `python scripts/fetch_item_icons.py` to download missing non-recipe icons before using reports that render item/rune icons. Recipe icons are skipped by default; pass `--include-recipes` if you need them.
+- **Report assets** — hero/item icons and map images are not bundled in the package. Run `python -m gem reports assets status` to audit the local cache, `python -m gem reports assets download --icons` to download missing non-recipe icons, and `python -m gem reports assets add-map assets/maps/Game_map_7.40.jpg` to copy a map image into the cache. Recipe icons are skipped by default; pass `--include-recipes` if you need them.
 
 ---
 

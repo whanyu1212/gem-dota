@@ -19,29 +19,19 @@ Usage::
 from __future__ import annotations
 
 import argparse
-import json
-import ssl
 import sys
-import time
-import urllib.request
 from collections.abc import Sequence
 from pathlib import Path
 
-_HEROES_JSON = Path(__file__).parent.parent / "src" / "gem" / "data" / "heroes.json"
-_OUT_DIR = Path(__file__).parent.parent / "src" / "gem" / "data" / "hero_icons"
-_CDN_PRIMARY = "https://steamcdn-a.akamaihd.net/apps/dota2/images/heroes/{short}_icon.png"
-_CDN_FALLBACK = "https://cdn.dota2.com/apps/dota2/images/heroes/{short}_icon.png"
-_CDN_STRATZ = "https://cdn.stratz.com/images/dota2/heroes/{short}_icon.png"
-# Some heroes use a different short name on the CDN
-_CDN_OVERRIDES: dict[str, str] = {
-    "dawnbreaker": "dawnbreaker",
-    "kez": "kez",
-    "marci": "marci",
-    "muerta": "muerta",
-    "primal_beast": "primal_beast",
-    "ringmaster": "ringmaster",
-    "void_spirit": "void_spirit",
-}
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
+from gem.reports.asset_cache import (  # noqa: E402
+    HEROES_JSON as _HEROES_JSON,
+    SOURCE_HERO_ICON_DIR as _OUT_DIR,
+    download_hero_icons,
+    hero_icon_shorts,
+    missing_hero_icons,
+)
 
 
 def _short(npc_name: str) -> str:
@@ -49,17 +39,14 @@ def _short(npc_name: str) -> str:
 
 
 def _hero_shorts(heroes_path: Path) -> tuple[str, ...]:
-    heroes: dict = json.loads(heroes_path.read_text(encoding="utf-8"))
-    return tuple(_short(npc_name) for npc_name in sorted(heroes))
+    return hero_icon_shorts(heroes_path)
 
 
 def missing_icon_shorts(
     heroes_path: Path = _HEROES_JSON,
     out_dir: Path = _OUT_DIR,
 ) -> tuple[str, ...]:
-    return tuple(
-        short for short in _hero_shorts(heroes_path) if not (out_dir / f"{short}.png").exists()
-    )
+    return missing_hero_icons(heroes_path, out_dir)
 
 
 def check(heroes_path: Path = _HEROES_JSON, out_dir: Path = _OUT_DIR) -> int:
@@ -79,44 +66,17 @@ def fetch(
     heroes_path: Path = _HEROES_JSON,
     out_dir: Path = _OUT_DIR,
 ) -> None:
-    out_dir.mkdir(parents=True, exist_ok=True)
-
-    # macOS doesn't use system certs by default; disable verification for CDN
-    ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
-
-    ok = failed = skipped = 0
-    for short in _hero_shorts(heroes_path):
-        out_path = out_dir / f"{short}.png"
-        if out_path.exists() and not force:
-            skipped += 1
-            continue
-
-        cdn_short = _CDN_OVERRIDES.get(short, short)
-        urls = [
-            _CDN_PRIMARY.format(short=cdn_short),
-            _CDN_FALLBACK.format(short=cdn_short),
-            _CDN_STRATZ.format(short=cdn_short),
-        ]
-        fetched = False
-        for url in urls:
-            try:
-                req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-                with urllib.request.urlopen(req, timeout=10, context=ctx) as resp:
-                    out_path.write_bytes(resp.read())
-                print(f"  OK  {short}")
-                ok += 1
-                fetched = True
-                time.sleep(0.05)
-                break
-            except Exception:
-                continue
-        if not fetched:
-            print(f"  FAIL {short}", file=sys.stderr)
-            failed += 1
-
-    print(f"\nDone — {ok} downloaded, {skipped} skipped, {failed} failed -> {out_dir}")
+    result = download_hero_icons(
+        force=force,
+        heroes_path=heroes_path,
+        out_dir=out_dir,
+        reporter=print,
+        error_reporter=lambda message: print(message, file=sys.stderr),
+    )
+    print(
+        f"\nDone — {result.downloaded} downloaded, {result.skipped} skipped, "
+        f"{result.failed} failed -> {result.out_dir}"
+    )
 
 
 def main(argv: Sequence[str] | None = None) -> int:

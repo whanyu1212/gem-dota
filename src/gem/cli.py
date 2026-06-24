@@ -10,6 +10,9 @@ Subcommands
 
 ``batch``
     Parse many replays in parallel — parquet or dataframe output.
+
+``reports assets``
+    Inspect and populate the local asset cache used by HTML reports.
 """
 
 from __future__ import annotations
@@ -18,6 +21,7 @@ import argparse
 import sys
 import time
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from rich.align import Align
 from rich.box import HEAVY
@@ -29,6 +33,9 @@ from rich.text import Text
 
 from gem import __version__, parse, parse_to_json, parse_to_parquet
 from gem.results.models import ParsedMatch
+
+if TYPE_CHECKING:
+    from gem.reports.asset_cache import IconDownloadResult
 
 # ---------------------------------------------------------------------------
 # Argument parser
@@ -47,7 +54,9 @@ def _build_parser() -> argparse.ArgumentParser:
             "  python -m gem batch replays/ --format parquet --output ./out\n"
             "  python -m gem batch replays/ --format dataframe --output ./out\n"
             "  python -m gem batch replays/ --workers 4 --recursive\n"
-            "  python -m gem parse match.dem --progress --timings"
+            "  python -m gem parse match.dem --progress --timings\n"
+            "  python -m gem reports assets status\n"
+            "  python -m gem reports assets download --icons"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -112,6 +121,83 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     _add_common_flags(batch_cmd)
 
+    # ── reports subcommand ──────────────────────────────────────────────────
+    reports_cmd = subparsers.add_parser(
+        "reports",
+        help="Utilities for HTML report generation.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    _add_common_flags(reports_cmd)
+    reports_subparsers = reports_cmd.add_subparsers(dest="reports_command", required=True)
+
+    assets_cmd = reports_subparsers.add_parser(
+        "assets",
+        help="Inspect and populate the local report asset cache.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    assets_subparsers = assets_cmd.add_subparsers(dest="assets_command", required=True)
+
+    asset_path_cmd = assets_subparsers.add_parser(
+        "path",
+        help="Show report asset cache paths.",
+    )
+    _add_asset_dir_flag(asset_path_cmd)
+
+    asset_status_cmd = assets_subparsers.add_parser(
+        "status",
+        help="Show which report assets are present or missing.",
+    )
+    _add_asset_dir_flag(asset_status_cmd)
+    asset_status_cmd.add_argument(
+        "--include-recipes",
+        action="store_true",
+        help="Include recipe_* item icons in the item-icon completeness check.",
+    )
+    asset_status_cmd.add_argument(
+        "--strict",
+        action="store_true",
+        help="Exit with status 1 when any report asset kind is incomplete.",
+    )
+
+    asset_download_cmd = assets_subparsers.add_parser(
+        "download",
+        help="Download report icon assets into the cache.",
+    )
+    _add_asset_dir_flag(asset_download_cmd)
+    asset_download_cmd.add_argument(
+        "--icons",
+        action="store_true",
+        help="Download both hero and item icons.",
+    )
+    asset_download_cmd.add_argument(
+        "--hero-icons",
+        action="store_true",
+        help="Download hero portrait icons.",
+    )
+    asset_download_cmd.add_argument(
+        "--item-icons",
+        action="store_true",
+        help="Download item and rune icons.",
+    )
+    asset_download_cmd.add_argument("--force", action="store_true", help="Re-download files.")
+    asset_download_cmd.add_argument(
+        "--include-recipes",
+        action="store_true",
+        help="Include recipe_* item icons.",
+    )
+
+    asset_map_cmd = assets_subparsers.add_parser(
+        "add-map",
+        help="Copy a local map image into the report asset cache.",
+    )
+    _add_asset_dir_flag(asset_map_cmd)
+    asset_map_cmd.add_argument("path", type=Path, help="Path to a local map image.")
+    asset_map_cmd.add_argument(
+        "--name",
+        default=None,
+        help="Destination filename inside the cache (default: source filename).",
+    )
+
     return parser
 
 
@@ -122,6 +208,15 @@ def _add_common_flags(p: argparse.ArgumentParser) -> None:
     p.add_argument("--no-banner", action="store_true", help="Hide ASCII art banner.")
     p.add_argument("--progress", action="store_true", help="Show live progress.")
     p.add_argument("--timings", action="store_true", help="Show timing breakdown at the end.")
+
+
+def _add_asset_dir_flag(p: argparse.ArgumentParser) -> None:
+    p.add_argument(
+        "--asset-dir",
+        type=Path,
+        default=None,
+        help="Report asset cache root (default: GEM_REPORT_ASSET_DIR or the user cache).",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -470,6 +565,149 @@ def _run_batch(args: argparse.Namespace, console: Console) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Report asset handlers
+# ---------------------------------------------------------------------------
+
+
+def _run_reports(args: argparse.Namespace, console: Console) -> None:
+    if args.reports_command == "assets":
+        _run_report_assets(args, console)
+
+
+def _run_report_assets(args: argparse.Namespace, console: Console) -> None:
+    if args.assets_command == "path":
+        _run_assets_path(args, console)
+    elif args.assets_command == "status":
+        _run_assets_status(args, console)
+    elif args.assets_command == "download":
+        _run_assets_download(args, console)
+    elif args.assets_command == "add-map":
+        _run_assets_add_map(args, console)
+
+
+def _run_assets_path(args: argparse.Namespace, console: Console) -> None:
+    from gem.reports.asset_cache import REPORT_ASSET_ENV, report_asset_paths
+
+    paths = report_asset_paths(args.asset_dir)
+    table = Table(title="Report asset cache paths", show_header=True, header_style="bold")
+    table.add_column("Kind", style="cyan", no_wrap=True)
+    table.add_column("Path", overflow="fold")
+    table.add_row("Root", str(paths.root))
+    table.add_row("Hero icons", str(paths.hero_icon_dir))
+    table.add_row("Item icons", str(paths.item_icon_dir))
+    table.add_row("Map images", str(paths.map_dir))
+    console.print(table)
+    console.print(f"[dim]Override with --asset-dir or {REPORT_ASSET_ENV}.[/dim]")
+
+
+def _run_assets_status(args: argparse.Namespace, console: Console) -> None:
+    from gem.reports.asset_cache import AssetKindStatus, report_asset_status
+
+    status = report_asset_status(
+        root=args.asset_dir,
+        include_recipes=args.include_recipes,
+    )
+
+    table = Table(title=f"Report asset status: {status.root}", show_header=True)
+    table.add_column("Kind", style="cyan", no_wrap=True)
+    table.add_column("Present", justify="right")
+    table.add_column("Path", overflow="fold")
+    table.add_column("Missing")
+
+    def add_row(kind: AssetKindStatus) -> None:
+        missing = _format_missing(kind.missing)
+        style = "green" if kind.complete else "yellow"
+        table.add_row(
+            kind.label,
+            f"[{style}]{kind.present}/{kind.expected}[/{style}]",
+            str(kind.path),
+            missing,
+        )
+
+    add_row(status.hero_icons)
+    add_row(status.item_icons)
+    add_row(status.maps)
+    console.print(table)
+
+    if args.strict and not status.complete:
+        sys.exit(1)
+
+
+def _format_missing(missing: tuple[str, ...]) -> str:
+    if not missing:
+        return "[green]complete[/green]"
+    preview = ", ".join(missing[:8])
+    if len(missing) > 8:
+        preview += f", ... (+{len(missing) - 8})"
+    return preview
+
+
+def _run_assets_download(args: argparse.Namespace, console: Console) -> None:
+    from gem.reports.asset_cache import (
+        download_hero_icons,
+        download_item_icons,
+        ensure_report_asset_dirs,
+    )
+
+    paths = ensure_report_asset_dirs(args.asset_dir)
+    selection_given = args.icons or args.hero_icons or args.item_icons
+    download_heroes = args.icons or args.hero_icons or not selection_given
+    download_items = args.icons or args.item_icons or not selection_given
+
+    stderr = Console(stderr=True)
+
+    def out(message: str) -> None:
+        console.print(message, highlight=False)
+
+    def err(message: str) -> None:
+        stderr.print(message, highlight=False)
+
+    failures = 0
+    if download_heroes:
+        result = download_hero_icons(
+            force=args.force,
+            out_dir=paths.hero_icon_dir,
+            reporter=out,
+            error_reporter=err,
+        )
+        _print_download_result(result, console)
+        failures += result.failed
+
+    if download_items:
+        result = download_item_icons(
+            force=args.force,
+            out_dir=paths.item_icon_dir,
+            include_recipes=args.include_recipes,
+            reporter=out,
+            error_reporter=err,
+        )
+        _print_download_result(result, console)
+        failures += result.failed
+
+    if failures:
+        sys.exit(1)
+
+
+def _print_download_result(result: IconDownloadResult, console: Console) -> None:
+    console.print(
+        f"[green]Done[/green] {result.label}: {result.downloaded} downloaded, "
+        f"{result.skipped} skipped, {result.failed} failed -> {result.out_dir}"
+    )
+
+
+def _run_assets_add_map(args: argparse.Namespace, console: Console) -> None:
+    from gem.reports.asset_cache import add_map_image
+
+    try:
+        dest = add_map_image(args.path, root=args.asset_dir, name=args.name)
+    except FileNotFoundError:
+        Console(stderr=True).print(f"[red]Error:[/red] map image not found: {args.path}")
+        sys.exit(2)
+
+    console.print(f"[green]✓[/green] Added map image: [bold]{dest}[/bold]")
+
+
+# ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
 
@@ -482,7 +720,7 @@ def main() -> None:
     argv = sys.argv[1:]
     if argv:
         first_positional = next((a for a in argv if not a.startswith("-")), None)
-        if first_positional is not None and first_positional not in ("parse", "batch"):
+        if first_positional is not None and first_positional not in ("parse", "batch", "reports"):
             idx = argv.index(first_positional)
             argv = argv[:idx] + ["parse"] + argv[idx:]
             sys.argv = [sys.argv[0]] + argv
@@ -496,14 +734,21 @@ def main() -> None:
     json_to_stdout = args.subcommand == "parse" and args.format == "json" and args.output is None
     console = Console(stderr=json_to_stdout)
 
-    emit_banner = not args.quiet and not args.no_banner and not json_to_stdout
+    emit_banner = (
+        args.subcommand != "reports"
+        and not args.quiet
+        and not args.no_banner
+        and not json_to_stdout
+    )
     if emit_banner:
         _print_banner(console)
 
     if args.subcommand == "parse":
         _run_parse(args, console)
-    else:
+    elif args.subcommand == "batch":
         _run_batch(args, console)
+    else:
+        _run_reports(args, console)
 
 
 if __name__ == "__main__":

@@ -94,7 +94,7 @@ lists are identical.
 `build_html_report(match, *, assets, options, map_b64)` in `builder.py` is the
 entry point. In order, it:
 
-1. Resolves `assets` (default `ReportAssets()`) and `options` (default
+1. Resolves `assets` (default `ReportAssets.auto()`) and `options` (default
    `ReportOptions()`), calls `configure_assets(assets)` to point the icon
    loaders at the right directories and clear stale icon caches, and loads the
    map image to base64 via `load_map_base64` unless a `map_b64` was passed.
@@ -124,10 +124,11 @@ map_b64)` is a backward-compatible alias for the old example-helper name and
 just forwards to `build_html_report`.
 
 `__init__.py` exports the supported surface: `ReportAssets`, `ReportOptions`,
-`build_html`, `build_html_report`, `write_html_report`. The public package
-re-exports `gem.reports` so `gem.reports.build_html_report(match)` works
-(`api.py:68`); `examples/match_report.py` is a thin CLI wrapper over
-`write_html_report`.
+the asset-cache helpers (`report_asset_paths`, `report_asset_status`,
+`add_map_image`, etc.), `build_html`, `build_html_report`, and
+`write_html_report`. The public package re-exports `gem.reports` so
+`gem.reports.build_html_report(match)` works (`api.py:68`);
+`examples/match_report.py` is a thin CLI wrapper over `write_html_report`.
 
 ## Tabs Are JS-Driven, Not Pure CSS
 
@@ -144,12 +145,25 @@ in `sections/combat.py`; only the filter *handler* lives in `builder.py`.
 
 ## Assets: Base64 Icons And Map Images
 
-`assets.py` owns asset loading and the inline-icon caches:
+`assets.py` owns asset loading and the inline-icon caches, while
+`asset_cache.py` owns the user-cache layout and setup helpers:
 
 - `ReportAssets` is a frozen dataclass of three optional paths: `map_image`,
   `hero_icon_dir`, `item_icon_dir`. `gem` does **not** ship map images or icon
-  caches in the wheel — callers point these at locally-fetched assets (see the
-  `scripts/fetch_*_icons.py` tooling).
+  caches in the wheel. `ReportAssets.auto()` checks the configured user cache
+  first, then uses the source-checkout icon directories as a development
+  fallback when no explicit cache root is passed.
+- The report asset cache root is `GEM_REPORT_ASSET_DIR` when set, otherwise the
+  platform user cache (`~/Library/Caches/gem-dota/reports` on macOS,
+  `%LOCALAPPDATA%/gem-dota/reports` on Windows, or
+  `$XDG_CACHE_HOME/gem-dota/reports` / `~/.cache/gem-dota/reports` on Linux).
+  It contains `hero_icons/`, `item_icons/`, and `maps/`.
+- Users can inspect or populate the cache with
+  `python -m gem reports assets status`,
+  `python -m gem reports assets download --icons`, and
+  `python -m gem reports assets add-map assets/maps/Game_map_7.40.jpg`.
+  The older `scripts/fetch_*_icons.py` entry points are compatibility wrappers
+  around the same package functions.
 - Module-global dicts `ITEM_ICON_B64` and `HERO_ICON_B64` map short names to
   `"data:image/png;base64,..."` URIs. `configure_assets` resets them on every
   build so a second report with different asset dirs can't inherit stale icons.

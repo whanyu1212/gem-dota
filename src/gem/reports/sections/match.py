@@ -26,6 +26,7 @@ from gem.reports.assets import (
     hero_icon_src,
     load_hero_icons,
 )
+from gem.reports.player_names import display_player_name
 from gem.results.models import (
     ParsedMatch,
     ParsedPlayer,
@@ -85,7 +86,8 @@ def build_header(
     for pp in match.players:
         if pp.team not in (2, 3):
             continue
-        player_label = e(pp.player_name) if pp.player_name else "—"
+        player_name = display_player_name(pp)
+        player_label = e(player_name) if player_name else "—"
         if pp.account_id:
             player_label = (
                 f'<a href="https://www.opendota.com/players/{pp.account_id}" '
@@ -680,7 +682,7 @@ def build_draft(match: ParsedMatch) -> str:
             name = hero_display(ev.hero_name) if ev.hero_name else f"ID {ev.hero_id}"
             src = hero_icon_src(ev.hero_name) if ev.hero_name else HERO_PLACEHOLDER_B64
             pp = hero_to_player.get(ev.hero_name)
-            player_name = pp.player_name if pp and pp.player_name else ""
+            player_name = display_player_name(pp)
             time_str = fmt_tick(ev.tick) if ev.tick else ""
             player_html = f'<div class="dp-player">{e(player_name)}</div>' if player_name else ""
             cards.append(
