@@ -34,7 +34,11 @@ if TYPE_CHECKING:
 
 # Slots 0-5 = main inventory, 6-8 = backpack, 9-16 = stash
 # Reference: refs/parser/src/main/java/opendota/Parse.java getHeroItem() comment
-_ITEM_SLOTS = 17  # total slots to scan (0-16)
+_ITEM_SLOTS = 17  # total slots to scan (0-16) for ongoing inventory snapshots
+# Starting-inventory synthesis scans only slots 0-7 (6 inventory + backpack 6-7),
+# matching OpenDota's getHeroInventory (`for i < 8`, Parse.java:818). Stash 9-16
+# and backpack slot 8 are NOT counted as starting purchases.
+_STARTING_ITEM_SLOTS = 8
 _ABILITY_SLOTS = 32  # m_hAbilities.0000-0031 per hero entity
 _NULL_HANDLE = 0xFFFFFF  # empty slot sentinel
 
@@ -722,7 +726,13 @@ class PlayerExtractor:
             # Reference: refs/parser/Parse.java isPlayerStartingItemsWritten pattern
             self._inventory_initialized.add(player_id)
             self.first_snapshot_tick[player_id] = tick
-            for item_name in current.values():
+            # Only slots 0-7 count as starting inventory (OpenDota getHeroInventory
+            # scans `i < 8`); stash 9-16 and backpack slot 8 are excluded so they
+            # are not miscounted as starting purchases. One entry per occupied slot
+            # preserves per-unit copies (e.g. 2x branches), which OpenDota keeps.
+            for slot, item_name in current.items():
+                if slot >= _STARTING_ITEM_SLOTS:
+                    continue
                 if item_name and not item_name.startswith("item_recipe"):
                     entry = CombatLogEntry(
                         tick=tick,

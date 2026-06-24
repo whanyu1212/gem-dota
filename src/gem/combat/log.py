@@ -342,8 +342,8 @@ class CombatLogProcessor:
 
         # PURCHASE events carry the item name as a CombatLogNames index in `value`
         # (same as the S2 path). Resolve it so S1 purchase logs keep item names;
-        # _dedup_purchase_log keys on (tick, value_name), so a blank name collapses
-        # distinct same-tick starting-inventory buys. Reference: Clarity
+        # value_name is the purchase-count key, so a blank name would mis-key the
+        # per-item purchase aggregates. Reference: Clarity
         # S1CombatLogEntry.getValueName() = readCombatLogName(valueIdx).
         value_name = ""
         if log_type == "PURCHASE":

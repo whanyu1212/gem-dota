@@ -411,7 +411,7 @@ class TestS1CombatLog:
     def test_purchase_resolves_value_name(self):
         # S1 PURCHASE (type 11) must resolve value_name from the value index,
         # matching the S2 path. Otherwise S1 purchase logs lose item names and
-        # _dedup_purchase_log collapses distinct same-tick buys.
+        # the per-item purchase aggregates are mis-keyed.
         p, received = self._make_processor_with_handler()
         table = FakeNameTable({2: "npc_dota_hero_axe", 5: "item_blink"})
         p.process_s1_event(self._make_event(type_val=11, target=2, value=5), table, tick=500)

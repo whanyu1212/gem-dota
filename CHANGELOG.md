@@ -90,6 +90,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   logic (the interval extractor's two-frame history) is left separate.
 
 ### Fixed
+- OpenDota purchase parity (issue #95): per-player `purchase`, `purchase_time`,
+  and `first_purchase_time` now match the OpenDota match API exactly (verified
+  10/10 players on fixture 8855188139). Four corrections: (1) `purchase_time` now
+  **sums** every buy time for an item — OpenDota's behaviour — instead of keeping
+  only the last buy; (2) starting-inventory synthesis scans only slots 0-7 (main
+  inventory + backpack 6-7, mirroring OpenDota's `getHeroInventory`) instead of
+  0-16, so stash items are no longer miscounted as starting purchases; (3) removed
+  the gem-original starting-window purchase dedup that under-counted multi-copy
+  starting consumables (e.g. 2× `faerie_fire` counted as 1); (4) `purchase_log`
+  now excludes recipes (matching OpenDota — recipes remain in the `purchase`
+  count map). The earlier "needs a synthetic-inventory subsystem rewrite" note on
+  this issue was based on a misreading of the OpenDota reference (it emits
+  assembled items, not component+recipe — same as gem). Backed by a new
+  fixture-backed integration test (`tests/test_purchase_parity_integration.py`).
 - `PlayerExtractor._read_inventory` read only the legacy
   `m_pEntity.m_nameStringableIndex`; modern replays expose item names via
   `m_pEntity.m_nameStringTableIndex`, so inventory reads silently returned empty
