@@ -24,15 +24,19 @@ import re
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from gem.extractors._snapshots import _HERO_CLASS_PREFIX, _player_id_from_entity
+from gem.extractors._snapshots import (
+    _HERO_CLASS_PREFIX,
+    TEAM_DIRE,
+    TEAM_RADIANT,
+    _player_id_from_entity,
+    scan_player_resource,
+    team_data_prefix,
+)
 from gem.state.entities import Entity, EntityOp
 
 if TYPE_CHECKING:
     from gem.parser import ReplayParser
 
-_TEAM_RADIANT = 2
-_TEAM_DIRE = 3
-_PLAYER_RESOURCE_SCAN_LIMIT = 30
 _TICKS_PER_SECOND = 30
 _FINAL_INTERVAL_GRACE_TICKS = 15 * _TICKS_PER_SECOND
 
@@ -248,7 +252,7 @@ class IntervalExtractor:
             else:
                 self._data_radiant = entity
                 self._record_team_data(entity, self._cur_data_radiant, self._prev_data_radiant)
-                self._record_team_counters(entity, _TEAM_RADIANT)
+                self._record_team_counters(entity, TEAM_RADIANT)
                 self._maybe_emit()
             return
 
@@ -258,7 +262,7 @@ class IntervalExtractor:
             else:
                 self._data_dire = entity
                 self._record_team_data(entity, self._cur_data_dire, self._prev_data_dire)
-                self._record_team_counters(entity, _TEAM_DIRE)
+                self._record_team_counters(entity, TEAM_DIRE)
                 self._maybe_emit()
             return
 
@@ -283,25 +287,13 @@ class IntervalExtractor:
         if pr is None:
             return
 
-        player_index_by_id: dict[int, int] = {}
-        player_team: dict[int, int] = {}
-        player_team_slot: dict[int, int] = {}
-
-        for resource_idx in range(_PLAYER_RESOURCE_SCAN_LIMIT):
-            team = pr.get_int32(f"m_vecPlayerData.{resource_idx:04d}.m_iPlayerTeam")
-            team_slot = pr.get_int32(f"m_vecPlayerTeamData.{resource_idx:04d}.m_iTeamSlot")
-            if team not in (_TEAM_RADIANT, _TEAM_DIRE) or team_slot is None or team_slot < 0:
-                continue
-            player_id = len(player_index_by_id)
-            if player_id >= 10:
-                break
-            player_index_by_id[player_id] = resource_idx
-            player_team[player_id] = team
-            player_team_slot[player_id] = team_slot
-
-        self._player_index_by_id = player_index_by_id
-        self._player_team = player_team
-        self._player_team_slot = player_team_slot
+        # Unlike PlayerExtractor, the interval extractor adopts the scan
+        # unconditionally (including partial early-game scans) — its consumers
+        # already guard on a fully-populated mapping before emitting.
+        scan = scan_player_resource(pr)
+        self._player_index_by_id = scan.index_by_id
+        self._player_team = scan.team_by_id
+        self._player_team_slot = scan.team_slot_by_id
 
     def _maybe_emit(self) -> None:
         if self._parser is None or self._ended:
@@ -309,9 +301,9 @@ class IntervalExtractor:
         if self._player_resource is None or not self._player_index_by_id:
             return
         teams = set(self._player_team.values())
-        if _TEAM_RADIANT in teams and self._data_radiant is None:
+        if TEAM_RADIANT in teams and self._data_radiant is None:
             return
-        if _TEAM_DIRE in teams and self._data_dire is None:
+        if TEAM_DIRE in teams and self._data_dire is None:
             return
 
         game_time_s = self._clock()
@@ -405,7 +397,7 @@ class IntervalExtractor:
             team_slot = self._player_team_slot.get(player_id)
             if team_slot is None:
                 continue
-            player_slot = team_slot if team == _TEAM_RADIANT else 128 + team_slot
+            player_slot = team_slot if team == TEAM_RADIANT else 128 + team_slot
             self.snapshots.append(
                 IntervalSnapshot(
                     tick=tick,
@@ -436,11 +428,11 @@ class IntervalExtractor:
             team_slot = self._player_team_slot.get(player_id)
             if team_slot is None:
                 return False
-            data_entity = self._data_radiant if team == _TEAM_RADIANT else self._data_dire
+            data_entity = self._data_radiant if team == TEAM_RADIANT else self._data_dire
             if data_entity is None:
                 return False
 
-            prefix = f"m_vecDataTeam.{team_slot:04d}"
+            prefix = team_data_prefix(team_slot)
             for field_name in (
                 "m_iTotalEarnedGold",
                 "m_iTotalEarnedXP",
@@ -476,7 +468,7 @@ class IntervalExtractor:
             existing = cur.get(team_slot)
             if existing is not None and existing[0] != tick:
                 prev[team_slot] = existing
-            prefix = f"m_vecDataTeam.{team_slot:04d}"
+            prefix = team_data_prefix(team_slot)
             cur[team_slot] = (
                 tick,
                 (
@@ -498,10 +490,10 @@ class IntervalExtractor:
 
         Args:
             entity: The just-updated ``CDOTA_DataRadiant``/``CDOTA_DataDire``.
-            team: ``_TEAM_RADIANT`` or ``_TEAM_DIRE``.
+            team: ``TEAM_RADIANT`` or ``TEAM_DIRE``.
         """
         for team_slot in range(5):
-            prefix = f"m_vecDataTeam.{team_slot:04d}"
+            prefix = team_data_prefix(team_slot)
             counters = self._team_counters.setdefault((team, team_slot), {})
             for attr, field_name in _TEAM_COUNTER_FIELDS.items():
                 value = entity.get_int32(f"{prefix}.{field_name}")
@@ -576,7 +568,7 @@ class IntervalExtractor:
         the values agree anyway.
 
         Args:
-            team: ``_TEAM_RADIANT`` or ``_TEAM_DIRE``.
+            team: ``TEAM_RADIANT`` or ``TEAM_DIRE``.
             team_slot: The player's team slot, 0-4.
             data_entity: The live data entity for the team (fallback source).
             emit_tick: The tick of the boundary emit.
@@ -584,15 +576,15 @@ class IntervalExtractor:
         Returns:
             ``(gold, xp, lh, dn, net_worth)`` for the boundary frame.
         """
-        cur = self._cur_data_radiant if team == _TEAM_RADIANT else self._cur_data_dire
-        prev = self._prev_data_radiant if team == _TEAM_RADIANT else self._prev_data_dire
+        cur = self._cur_data_radiant if team == TEAM_RADIANT else self._cur_data_dire
+        prev = self._prev_data_radiant if team == TEAM_RADIANT else self._prev_data_dire
         cur_frame = cur.get(team_slot)
         if cur_frame is not None and cur_frame[0] < emit_tick:
             return cur_frame[1]
         prev_frame = prev.get(team_slot)
         if prev_frame is not None and prev_frame[0] < emit_tick:
             return prev_frame[1]
-        prefix = f"m_vecDataTeam.{team_slot:04d}"
+        prefix = team_data_prefix(team_slot)
         return (
             _int_or_zero(data_entity.get_int32(f"{prefix}.m_iTotalEarnedGold")),
             _int_or_zero(data_entity.get_int32(f"{prefix}.m_iTotalEarnedXP")),
@@ -610,12 +602,12 @@ class IntervalExtractor:
             team_slot = self._player_team_slot.get(player_id)
             if team_slot is None:
                 continue
-            data_entity = self._data_radiant if team == _TEAM_RADIANT else self._data_dire
+            data_entity = self._data_radiant if team == TEAM_RADIANT else self._data_dire
             if data_entity is None:
                 continue
 
             gold, xp, lh, dn, net_worth = self._team_data_values(team, team_slot, data_entity, tick)
-            player_slot = team_slot if team == _TEAM_RADIANT else 128 + team_slot
+            player_slot = team_slot if team == TEAM_RADIANT else 128 + team_slot
             self.snapshots.append(
                 IntervalSnapshot(
                     tick=tick,

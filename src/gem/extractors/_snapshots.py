@@ -22,6 +22,14 @@ if TYPE_CHECKING:
 _CELL_SIZE = 128  # Source 2 world units per grid cell
 _HERO_CLASS_PREFIX = "CDOTA_Unit_Hero_"
 
+# Dota team ids on ``CDOTA_PlayerResource.m_vecPlayerData.*.m_iPlayerTeam``.
+# Spectators/coaches use other ids (1/14) and are skipped by the scan.
+TEAM_RADIANT = 2
+TEAM_DIRE = 3
+# CDOTA_PlayerResource rows to scan when building the logical→resource remap.
+# A coach occupies a row, so the 10 players can span more than 10 indices.
+PLAYER_RESOURCE_SCAN_LIMIT = 30
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -86,6 +94,103 @@ def _player_id_from_entity(entity: Entity | None, *, allow_owner: bool = False) 
         if val is not None and val >= 0:
             return val // 2
     return None
+
+
+@dataclass(frozen=True)
+class PlayerResourceScan:
+    """Logical-slot mappings derived from one ``CDOTA_PlayerResource`` scan.
+
+    OpenDota scans PlayerResource for rows whose team is Radiant or Dire (a coach
+    has team 1/14 and is skipped), then uses the scan order as the logical player
+    slot ``0..9``. The resource-array index is not always the logical slot, so the
+    indirection is kept explicit. ``resolved`` is ``True`` only when all 10 players
+    were found, letting callers decide whether to adopt a partial early-game scan.
+
+    Attributes:
+        index_by_id: Logical slot ``0..9`` → ``m_vecPlayerData`` array index.
+        team_by_id: Logical slot → team id (``TEAM_RADIANT``/``TEAM_DIRE``).
+        team_slot_by_id: Logical slot → ``m_iTeamSlot`` (the ``m_vecDataTeam`` index).
+        resolved: ``True`` iff all 10 player slots were resolved.
+    """
+
+    index_by_id: dict[int, int]
+    team_by_id: dict[int, int]
+    team_slot_by_id: dict[int, int]
+    resolved: bool
+
+
+def scan_player_resource(player_resource: Entity) -> PlayerResourceScan:
+    """Scan ``CDOTA_PlayerResource`` for the logical player→resource mappings.
+
+    Walks the first ``PLAYER_RESOURCE_SCAN_LIMIT`` rows, skipping any whose team is
+    not Radiant/Dire or whose team slot is missing/negative (coaches, empty rows),
+    and assigns the surviving rows logical slots ``0..9`` in scan order.
+
+    Reference: refs/parser/src/main/java/opendota/Parse.java (validIndices).
+
+    Args:
+        player_resource: The live ``CDOTA_PlayerResource`` entity.
+
+    Returns:
+        A :class:`PlayerResourceScan` with the three slot maps and a ``resolved``
+        flag (``True`` once all 10 players are mapped).
+    """
+    index_by_id: dict[int, int] = {}
+    team_by_id: dict[int, int] = {}
+    team_slot_by_id: dict[int, int] = {}
+
+    for resource_idx in range(PLAYER_RESOURCE_SCAN_LIMIT):
+        team = player_resource.get_int32(f"m_vecPlayerData.{resource_idx:04d}.m_iPlayerTeam")
+        team_slot = player_resource.get_int32(f"m_vecPlayerTeamData.{resource_idx:04d}.m_iTeamSlot")
+        if team not in (TEAM_RADIANT, TEAM_DIRE) or team_slot is None or team_slot < 0:
+            continue
+        player_id = len(index_by_id)
+        if player_id >= 10:
+            break
+        index_by_id[player_id] = resource_idx
+        team_by_id[player_id] = team
+        team_slot_by_id[player_id] = team_slot
+
+    return PlayerResourceScan(
+        index_by_id=index_by_id,
+        team_by_id=team_by_id,
+        team_slot_by_id=team_slot_by_id,
+        resolved=len(index_by_id) == 10,
+    )
+
+
+def team_data_prefix(team_slot: int) -> str:
+    """Build the ``m_vecDataTeam`` entry prefix for a team slot.
+
+    The ``CDOTA_DataRadiant``/``CDOTA_DataDire`` entities expose per-player data
+    under ``m_vecDataTeam.{slot:04d}.*``. Callers that read several fields off the
+    same slot keep this prefix and append field names; callers reading a single
+    field can use :func:`team_data_field` instead.
+
+    Args:
+        team_slot: The ``m_iTeamSlot`` index into ``m_vecDataTeam``.
+
+    Returns:
+        The entry prefix, e.g. ``"m_vecDataTeam.0003"``.
+    """
+    return f"m_vecDataTeam.{team_slot:04d}"
+
+
+def team_data_field(team_slot: int, field_name: str) -> str:
+    """Build a ``m_vecDataTeam`` field path for a team slot.
+
+    The ``CDOTA_DataRadiant``/``CDOTA_DataDire`` entities expose per-player
+    counters (``m_iTotalEarnedGold``, ``m_iTotalEarnedXP``, ``m_iLastHitCount``,
+    ``m_iDenyCount``, ``m_iNetWorth``) under ``m_vecDataTeam.{slot}``.
+
+    Args:
+        team_slot: The ``m_iTeamSlot`` index into ``m_vecDataTeam``.
+        field_name: The counter field, e.g. ``"m_iTotalEarnedGold"``.
+
+    Returns:
+        The dotted field path, e.g. ``"m_vecDataTeam.0003.m_iTotalEarnedGold"``.
+    """
+    return f"{team_data_prefix(team_slot)}.{field_name}"
 
 
 def _snapshot_hero(entity: Entity, tick: int) -> PlayerStateSnapshot | None:

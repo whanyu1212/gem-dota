@@ -230,7 +230,9 @@ class ParsedPlayer:
         gold_reasons: Gold received per reason code.
         xp_reasons: XP received per reason code.
         kills_log: Combat log DEATH entries where this player was the attacker.
-        purchase_log: PURCHASE combat log entries for this player.
+        purchase_log: Chronological PURCHASE combat log entries for this player,
+            excluding recipes (matching OpenDota's ``purchase_log``; recipes are
+            still counted in the ``purchase`` map).
         runes_log: ITEM combat log entries for rune pickups.
         buyback_log: BUYBACK combat log entries for this player.
         lane_pos: Dwell-tick counts keyed by ``"x_y"`` grid cell (64-unit resolution).
