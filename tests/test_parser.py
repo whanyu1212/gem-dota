@@ -20,6 +20,7 @@ Reference: manta/parser.go, manta/demo_packet.go
 
 from __future__ import annotations
 
+import logging
 from unittest.mock import MagicMock, patch
 
 import gem.parser as parser_module
@@ -208,6 +209,14 @@ class TestReplayParserInit:
         p = ReplayParser(b"")
         assert p.game_time_s is None
 
+    def test_parse_error_starts_none(self):
+        p = ReplayParser(b"")
+        assert p.parse_error is None
+
+    def test_truncated_at_tick_starts_none(self):
+        p = ReplayParser(b"")
+        assert p.truncated_at_tick is None
+
     def test_entity_manager_starts_none(self):
         p = ReplayParser(b"")
         assert p.entity_manager is None
@@ -229,6 +238,44 @@ class TestReplayParserInit:
     def test_game_ended_false(self):
         p = ReplayParser(b"")
         assert p._game_ended is False
+
+
+# ---------------------------------------------------------------------------
+# ReplayParser partial-parse / truncation reporting
+# ---------------------------------------------------------------------------
+
+
+class TestReplayParserPartialParse:
+    def test_missing_magic_is_recorded_not_raised(self, caplog):
+        # The magic-header check runs inside parse()'s swallowed try-block, so an
+        # unparseable file (here: empty input, which fails magic validation) is
+        # reported via the attributes rather than propagating a ValueError.
+        p = ReplayParser(b"")
+
+        with caplog.at_level(logging.WARNING, logger="gem.parser"):
+            p.parse()  # must not raise
+
+        assert isinstance(p.parse_error, ValueError)
+        assert p.truncated_at_tick == 0
+
+    def test_stream_exception_is_recorded_not_raised(self, caplog):
+        # Valid Source 2 magic + the 8-byte metadata skip, then a single outer
+        # message whose payload decodes to a bogus CDemoPacket. The stream
+        # constructs (magic passes) and then raises mid-iteration, which parse()
+        # must swallow — recording the failure on the parser instead of
+        # propagating, and logging at WARNING so it is visible by default.
+        buf = b"PBDEMS2\x00" + (b"\x00" * 8) + b"\x07\x00\xff\xff\xff\xff\x0f\x41"
+        p = ReplayParser(buf)
+
+        with caplog.at_level(logging.WARNING, logger="gem.parser"):
+            p.parse()  # must not raise
+
+        assert p.parse_error is not None
+        assert p.truncated_at_tick == 0
+        assert any(
+            "stream ended early" in r.message and r.levelno == logging.WARNING
+            for r in caplog.records
+        )
 
 
 # ---------------------------------------------------------------------------

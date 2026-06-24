@@ -212,6 +212,15 @@ class ReplayParser:
         # OpenDota-style match duration in seconds: the horn-anchored combat-log
         # time at GAME_STATE==6 (ancient destroyed). None until that state is seen.
         self.duration_s: int | None = None
+        # Set when the stream loop terminates on an exception rather than running
+        # to completion. ``parse_error`` is the exception, ``truncated_at_tick``
+        # the last tick reached. Both stay None on a clean parse. This is the
+        # programmatic counterpart to the WARNING logged in ``parse()``: an
+        # expected truncated-tail and a genuine mid-stream bug are
+        # indistinguishable here, so consumers can inspect these to tell whether a
+        # ``ParsedMatch`` is complete instead of trusting silent partial output.
+        self.parse_error: Exception | None = None
+        self.truncated_at_tick: int | None = None
         self._game_start_callbacks: list[Callable[[int], None]] = []
         self._game_end_callbacks: list[Callable[[int], None]] = []
         self._game_ended: bool = False
@@ -401,8 +410,14 @@ class ReplayParser:
         except Exception as exc:
             # Truncated files raise on the final corrupt snappy block — that is
             # expected for partial replays, so parsing continues with whatever was
-            # read. Log at debug level so genuine corruption stays diagnosable.
-            logger.debug("Replay stream ended early at tick %d: %r", self.tick, exc)
+            # read. Log at warning level: a genuine mid-stream decoder/extractor
+            # bug is indistinguishable here from an expected truncated tail, so
+            # surface it rather than letting silent partial output look complete.
+            # Record it on the parser too, so consumers can detect a partial
+            # parse programmatically instead of scraping logs.
+            self.parse_error = exc
+            self.truncated_at_tick = self.tick
+            logger.warning("Replay stream ended early at tick %d: %r", self.tick, exc)
 
         # Read match metadata from CDOTAGamerulesProxy entity if DEM_FileInfo
         # didn't populate them (e.g. truncated replays or early stop).
