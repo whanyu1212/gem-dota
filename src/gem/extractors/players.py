@@ -14,11 +14,14 @@ from typing import TYPE_CHECKING
 from gem.combat.log import CombatLogEntry, CombatLogType
 from gem.extractors._snapshots import (
     _HERO_CLASS_PREFIX,
+    TEAM_RADIANT,
     PlayerStateSnapshot,
     PlayerTimeSeries,
     _player_id_from_entity,
     _pos,
     _snapshot_hero,
+    scan_player_resource,
+    team_data_field,
 )
 from gem.state.entities import Entity, EntityOp
 
@@ -34,16 +37,6 @@ if TYPE_CHECKING:
 _ITEM_SLOTS = 17  # total slots to scan (0-16)
 _ABILITY_SLOTS = 32  # m_hAbilities.0000-0031 per hero entity
 _NULL_HANDLE = 0xFFFFFF  # empty slot sentinel
-
-# ---------------------------------------------------------------------------
-# Constants
-# ---------------------------------------------------------------------------
-
-_TEAM_RADIANT = 2
-_TEAM_DIRE = 3
-# CDOTA_PlayerResource rows to scan when building the logical→resource remap.
-# A coach occupies a row, so the 10 players can span more than 10 indices.
-_PLAYER_RESOURCE_SCAN_LIMIT = 30
 
 __all__ = ["PlayerExtractor", "PlayerStateSnapshot", "PlayerTimeSeries"]
 
@@ -422,23 +415,15 @@ class PlayerExtractor:
         if pr is None:
             return
 
-        resource_index_by_id: dict[int, int] = {}
-        for resource_idx in range(_PLAYER_RESOURCE_SCAN_LIMIT):
-            team = pr.get_int32(f"m_vecPlayerData.{resource_idx:04d}.m_iPlayerTeam")
-            slot = pr.get_int32(f"m_vecPlayerTeamData.{resource_idx:04d}.m_iTeamSlot")
-            if team not in (_TEAM_RADIANT, _TEAM_DIRE) or slot is None or slot < 0:
-                continue
-            player_id = len(resource_index_by_id)
-            if player_id >= 10:
-                break
-            resource_index_by_id[player_id] = resource_idx
-            self._player_team_slot[player_id] = slot
+        scan = scan_player_resource(pr)
+        # Keep team slots current even on a partial scan (matches prior behaviour).
+        self._player_team_slot.update(scan.team_slot_by_id)
 
         # Only adopt the remap once it resolves all 10 players; partial scans
         # (early in the replay, before PlayerResource is fully populated) keep the
         # previous mapping rather than introducing a half-built shift.
-        if len(resource_index_by_id) == 10:
-            self._resource_index_by_id = resource_index_by_id
+        if scan.resolved:
+            self._resource_index_by_id = scan.index_by_id
 
     def _resource_index(self, player_id: int) -> int:
         """Map a logical player slot to its CDOTA_PlayerResource array index.
@@ -570,24 +555,23 @@ class PlayerExtractor:
             #
             # Reference: refs/parser/Parse.java — getEntityProperty(dataTeam,
             #   "m_vecDataTeam.%i.m_iTotalEarnedGold/XP", teamSlot)
-            data_entity = self._data_radiant if snap.team == _TEAM_RADIANT else self._data_dire
+            data_entity = self._data_radiant if snap.team == TEAM_RADIANT else self._data_dire
             if data_entity is not None:
                 # Prefer authoritative team slot; fall back to pid % 5
                 team_slot = self._player_team_slot.get(snap.player_id, snap.player_id % 5)
-                prefix = f"m_vecDataTeam.{team_slot:04d}"
-                nw = data_entity.get_int32(f"{prefix}.m_iNetWorth")
+                nw = data_entity.get_int32(team_data_field(team_slot, "m_iNetWorth"))
                 if nw is not None and nw > 0:
                     snap.net_worth = nw
-                teg = data_entity.get_int32(f"{prefix}.m_iTotalEarnedGold")
+                teg = data_entity.get_int32(team_data_field(team_slot, "m_iTotalEarnedGold"))
                 if teg is not None and teg > 0:
                     snap.total_earned_gold = teg
-                tex = data_entity.get_int32(f"{prefix}.m_iTotalEarnedXP")
+                tex = data_entity.get_int32(team_data_field(team_slot, "m_iTotalEarnedXP"))
                 if tex is not None and tex > 0:
                     snap.total_earned_xp = tex
-                lh = data_entity.get_int32(f"{prefix}.m_iLastHitCount")
+                lh = data_entity.get_int32(team_data_field(team_slot, "m_iLastHitCount"))
                 if lh is not None and lh > 0:
                     snap.lh = lh
-                dn = data_entity.get_int32(f"{prefix}.m_iDenyCount")
+                dn = data_entity.get_int32(team_data_field(team_slot, "m_iDenyCount"))
                 if dn is not None and dn > 0:
                     snap.dn = dn
             # Overlay authoritative hero level from CDOTA_PlayerResource
