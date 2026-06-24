@@ -1831,8 +1831,9 @@ class TestBuildPurchaseAggregates:
         # item_ prefix stripped; counts per item.
         assert aggs["purchase"] == {"blink": 1, "branches": 2}
 
-    def test_first_vs_last_purchase_time(self):
-        # belt bought at 100s and 300s -> first=100, last=300.
+    def test_first_purchase_time_and_purchase_time_sum(self):
+        # belt bought at 100s and 300s -> first_purchase_time=100 (earliest),
+        # purchase_time=400 (SUM of all buy times, matching OpenDota's quirk).
         aggs = self._build(
             [
                 _purchase("item_belt", tick=3000, game_time_s=100),
@@ -1840,7 +1841,19 @@ class TestBuildPurchaseAggregates:
             ]
         )
         assert aggs["first_purchase_time"]["belt"] == 100
-        assert aggs["purchase_time"]["belt"] == 300
+        assert aggs["purchase_time"]["belt"] == 400
+
+    def test_purchase_time_sums_multiple_buys(self):
+        # Three buys at 100/200/300 -> purchase_time=600, first_purchase_time=100.
+        aggs = self._build(
+            [
+                _purchase("item_clarity", tick=3000, game_time_s=100),
+                _purchase("item_clarity", tick=6000, game_time_s=200),
+                _purchase("item_clarity", tick=9000, game_time_s=300),
+            ]
+        )
+        assert aggs["first_purchase_time"]["clarity"] == 100
+        assert aggs["purchase_time"]["clarity"] == 600
 
     def test_recipes_counted_but_excluded_from_timing(self):
         # OpenDota: purchase count includes recipes; purchase_time/first exclude them.

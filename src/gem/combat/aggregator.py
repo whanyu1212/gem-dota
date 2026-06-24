@@ -136,48 +136,6 @@ class _ParsedPlayerAgg:
 
 
 # ---------------------------------------------------------------------------
-# Purchase log deduplication
-# ---------------------------------------------------------------------------
-
-
-def _dedup_purchase_log(
-    entries: list[CombatLogEntry],
-    first_snap_tick: int | None,
-    sample_interval: int,
-) -> list[CombatLogEntry]:
-    """Deduplicate purchase log entries within the starting inventory window.
-
-    The inventory snapshot and the combat log stream may both emit PURCHASE
-    entries for the same item within the first sample window.  Outside that
-    window, duplicate item purchases are legitimate (e.g. buying two separate
-    Branches) and are kept as-is.
-
-    Args:
-        entries: Raw purchase log entries (unsorted).
-        first_snap_tick: Tick of the player's first inventory snapshot, or
-            ``None`` if no snapshot was taken.
-        sample_interval: Width of the starting-item window in ticks.
-
-    Returns:
-        Deduplicated list sorted by tick.
-    """
-    if first_snap_tick is None:
-        return sorted(entries, key=lambda e: e.tick)
-
-    cutoff = first_snap_tick + sample_interval
-    seen: set[tuple] = set()
-    result = []
-    for entry in sorted(entries, key=lambda e: e.tick):
-        if entry.tick <= cutoff:
-            key = (entry.tick, entry.value_name)
-            if key in seen:
-                continue
-            seen.add(key)
-        result.append(entry)
-    return result
-
-
-# ---------------------------------------------------------------------------
 # Aggregator
 # ---------------------------------------------------------------------------
 

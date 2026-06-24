@@ -131,7 +131,11 @@ def _build_purchase_aggregates(
         seconds = _entry_game_seconds(entry, game_start_tick)
         if key not in first_purchase_time:
             first_purchase_time[key] = seconds
-        purchase_time[key] = seconds  # last purchase wins
+        # OpenDota's purchase_time is the SUM of every purchase time for the item
+        # (a quirk of its additive map handler), not the latest buy. Match it for
+        # parity. first_purchase_time stays the earliest buy. Verified against
+        # fixture 8855188139: clarity=3696=sum([470,660,706,795,1065]).
+        purchase_time[key] = purchase_time.get(key, 0) + seconds
     return {
         "purchase": purchase,
         "purchase_time": purchase_time,
@@ -561,7 +565,6 @@ def build_parsed_match(
     Returns:
         Fully populated :class:`ParsedMatch`.
     """
-    from gem.combat.aggregator import _dedup_purchase_log
     from gem.extractors.teamfights import detect_opendota_teamfights, detect_teamfights
 
     # radiant_win resolution — three tiers in priority order:
@@ -710,13 +713,22 @@ def build_parsed_match(
             pp.gold_reasons = agg.gold_reasons
             pp.xp_reasons = agg.xp_reasons
             pp.kills_log = agg.kills_log
-            pp.purchase_log = _dedup_purchase_log(
-                agg.purchase_log,
-                player_ext.first_snapshot_tick.get(player_id),
-                player_ext._sample_interval,
-            )
-            # OpenDota purchase-timeline aggregates derived from the deduped log.
-            purchase_aggs = _build_purchase_aggregates(pp.purchase_log, game_start_tick)
+            # Chronological order, keeping every per-unit entry but EXCLUDING
+            # recipes — matching OpenDota's purchase_log (CreateParsedDataBlob
+            # filters key.startsWith("recipe_") out of the log while still counting
+            # recipes in the `purchase` map). OpenDota does NOT dedup starting items
+            # (its log genuinely lists e.g. 2x faerie_fire), so collapsing
+            # same-(tick, item) entries here under-counted starting consumables.
+            sorted_purchases = sorted(agg.purchase_log, key=lambda e: e.tick)
+            pp.purchase_log = [
+                entry
+                for entry in sorted_purchases
+                if not (opendota_translate(entry.value_name) or "").startswith("recipe_")
+            ]
+            # Aggregates are derived from the FULL log (with recipes): the `purchase`
+            # count map includes recipes, while purchase_time/first_purchase_time
+            # exclude them. _build_purchase_aggregates handles that split internally.
+            purchase_aggs = _build_purchase_aggregates(sorted_purchases, game_start_tick)
             pp.purchase = purchase_aggs["purchase"]
             pp.purchase_time = purchase_aggs["purchase_time"]
             pp.first_purchase_time = purchase_aggs["first_purchase_time"]
