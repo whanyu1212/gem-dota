@@ -129,11 +129,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   summon to its owner by a single live name→entity lookup, which can't attribute
   each kill from an army of same-named units. Tracked as a follow-up.
 - OpenDota's per-player `purchase` / `purchase_time` / `first_purchase_time`
-  maps are now reproduced (see Added), derived from `purchase_log` with
-  OpenDota's recipe handling. The underlying `purchase_log` still reconstructs
-  *starting* items as assembled-item events at a synthetic tick, so the earliest
-  buy times for starting items reflect that synthetic tick rather than each
-  component's true purchase time.
+  maps now match the OpenDota match API exactly (see Fixed; verified 10/10
+  players on a validation fixture). The only residual is that pre-horn (negative)
+  buy timestamps for starting items can differ from OpenDota by ±1s — boundary
+  quantization on negative times only; counts and positive-time buys are exact.
 - `ParsedMatch.pre_game_duration` is declared but currently always `0`: deriving
   it needs the `GAME_IN_PROGRESS` state-transition timestamp the parser does not
   yet expose (`m_flGameStartTime` is the clock anchor, not the pre-game span).
