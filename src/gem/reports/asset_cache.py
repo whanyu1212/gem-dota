@@ -354,7 +354,7 @@ def download_item_icons(
 
     for short in item_icon_shorts(items_path, include_recipes=include_recipes):
         out_path = icon_dir / f"{short}.png"
-        if out_path.exists() and not force:
+        if _is_png_file(out_path) and not force:
             skipped += 1
             continue
 

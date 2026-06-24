@@ -147,6 +147,46 @@ def test_download_skips_non_png_responses_before_fallback(
     assert (out_dir / "wind_lace.png").read_bytes() == _PNG_BYTES
 
 
+def test_invalid_existing_item_icon_is_redownloaded_without_force(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    items_path = tmp_path / "items.json"
+    items_path.write_text('{"eternal_shroud": {"id": 1}}', encoding="utf-8")
+    out_dir = tmp_path / "item_icons"
+    out_dir.mkdir()
+    out_path = out_dir / "eternal_shroud.png"
+    out_path.write_bytes(b"<html>cdn error</html>")
+
+    class Response:
+        def __enter__(self) -> Response:
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            return None
+
+        def read(self) -> bytes:
+            return _PNG_BYTES
+
+    def fake_urlopen(request: Any, *, timeout: int, context: object) -> Response:
+        url = request.full_url
+        if "dota_react/items" in url:
+            raise OSError("missing react icon")
+        assert timeout == 10
+        assert context is not None
+        return Response()
+
+    monkeypatch.setattr(asset_cache.urllib.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr(asset_cache.time, "sleep", lambda _seconds: None)
+
+    result = asset_cache.download_item_icons(items_path=items_path, out_dir=out_dir)
+
+    assert result.downloaded == 1
+    assert result.skipped == 0
+    assert result.failed == 0
+    assert out_path.read_bytes() == _PNG_BYTES
+
+
 def test_invalid_existing_icon_is_redownloaded_without_force(
     tmp_path: Path,
     monkeypatch,
