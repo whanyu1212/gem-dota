@@ -8,7 +8,14 @@ All tests use fake entities and a fake parser — no real .dem files.
 
 from __future__ import annotations
 
-from gem.extractors._snapshots import _player_id_from_entity
+from gem.extractors._snapshots import (
+    TEAM_DIRE,
+    TEAM_RADIANT,
+    _player_id_from_entity,
+    scan_player_resource,
+    team_data_field,
+    team_data_prefix,
+)
 from gem.extractors.players import (
     PlayerExtractor,
     PlayerStateSnapshot,
@@ -102,6 +109,77 @@ class TestPlayerIdFromEntity:
         # m_nPlayerID == -1 (unset sentinel) should fall through to m_iPlayerID.
         e = _ent(m_nPlayerID=-1, m_iPlayerID=10)
         assert _player_id_from_entity(e) == 5
+
+
+def _player_resource(rows: list[tuple[int, int | None]]) -> Entity:
+    """Build a CDOTA_PlayerResource entity from (team, team_slot) rows.
+
+    Each tuple occupies a sequential resource-array index; a team_slot of None
+    omits the m_iTeamSlot field for that row (simulating an unpopulated entry).
+    """
+    state: dict[str, int] = {}
+    for idx, (team, slot) in enumerate(rows):
+        state[f"m_vecPlayerData.{idx:04d}.m_iPlayerTeam"] = team
+        if slot is not None:
+            state[f"m_vecPlayerTeamData.{idx:04d}.m_iTeamSlot"] = slot
+    return _ent("CDOTA_PlayerResource", **state)
+
+
+class TestScanPlayerResource:
+    """The shared CDOTA_PlayerResource scan (formerly duplicated in
+    PlayerExtractor._refresh_team_slots and IntervalExtractor._refresh_player_mappings).
+    """
+
+    def test_no_coach_is_identity_map(self):
+        rows = [(TEAM_RADIANT, i) for i in range(5)] + [(TEAM_DIRE, i) for i in range(5)]
+        scan = scan_player_resource(_player_resource(rows))
+        assert scan.resolved is True
+        assert scan.index_by_id == {i: i for i in range(10)}
+        assert scan.team_by_id[0] == TEAM_RADIANT
+        assert scan.team_by_id[9] == TEAM_DIRE
+
+    def test_coach_row_is_skipped_and_shifts_indices(self):
+        # A coach (team 1) at resource index 0 shifts the 10 players to indices 1..10.
+        rows = [(1, 0)] + [(TEAM_RADIANT, i) for i in range(5)] + [(TEAM_DIRE, i) for i in range(5)]
+        scan = scan_player_resource(_player_resource(rows))
+        assert scan.resolved is True
+        # Logical slot 0 maps to resource index 1 (past the coach).
+        assert scan.index_by_id[0] == 1
+        assert scan.team_by_id[0] == TEAM_RADIANT
+        assert scan.team_slot_by_id[0] == 0
+
+    def test_partial_scan_is_unresolved(self):
+        scan = scan_player_resource(_player_resource([(TEAM_RADIANT, i) for i in range(4)]))
+        assert scan.resolved is False
+        assert len(scan.index_by_id) == 4
+
+    def test_missing_team_slot_row_is_skipped(self):
+        # A row with no m_iTeamSlot is not a valid player and must be skipped.
+        rows = [(TEAM_RADIANT, None)] + [(TEAM_RADIANT, i) for i in range(5)]
+        scan = scan_player_resource(_player_resource(rows))
+        # 5 valid players (the None-slot row dropped), so it never resolves to 10.
+        assert len(scan.index_by_id) == 5
+        assert scan.index_by_id[0] == 1
+
+    def test_caps_at_ten_players(self):
+        # More than 10 valid rows: only the first 10 are mapped.
+        rows = [(TEAM_RADIANT, i) for i in range(12)]
+        scan = scan_player_resource(_player_resource(rows))
+        assert len(scan.index_by_id) == 10
+        assert scan.resolved is True
+
+
+class TestTeamDataPathHelpers:
+    """The m_vecDataTeam path builders that single-source the field strings."""
+
+    def test_team_data_prefix_pads_slot(self):
+        assert team_data_prefix(3) == "m_vecDataTeam.0003"
+
+    def test_team_data_field_appends_field(self):
+        assert team_data_field(3, "m_iTotalEarnedGold") == "m_vecDataTeam.0003.m_iTotalEarnedGold"
+
+    def test_field_builds_on_prefix(self):
+        assert team_data_field(7, "m_iNetWorth") == f"{team_data_prefix(7)}.m_iNetWorth"
 
 
 class FakeCombatLog:

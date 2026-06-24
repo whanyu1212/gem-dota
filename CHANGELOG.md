@@ -80,6 +80,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   could look complete. Consumers can now inspect these attributes to detect a
   partial parse programmatically. No behavior change beyond log visibility and
   the new attributes.
+- **Internal:** the duplicated `CDOTA_PlayerResource` scan and team-data field
+  paths shared by `PlayerExtractor` and `IntervalExtractor` are consolidated into
+  `gem.extractors._snapshots` (`scan_player_resource`, `team_data_prefix`,
+  `team_data_field`, and the `TEAM_RADIANT`/`TEAM_DIRE`/`PLAYER_RESOURCE_SCAN_LIMIT`
+  constants). No output change — the OpenDota parity validator and full suite are
+  unchanged — but the two extractors no longer keep divergent copies of the scan
+  loop and field strings. The intentionally-different `m_vecDataTeam` *reading*
+  logic (the interval extractor's two-frame history) is left separate.
 
 ### Fixed
 - `PlayerExtractor._read_inventory` read only the legacy
