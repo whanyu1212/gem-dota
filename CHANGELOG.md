@@ -68,6 +68,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   gem's output against the real OpenDota match API field by field. `examples/quickstart.py`
   gains a short teaser of these fields and a pointer to the full showcase.
 
+### Changed
+- `ReplayParser.parse()` now logs a swallowed stream-end exception at `WARNING`
+  instead of `DEBUG`, and records it on the parser as `ReplayParser.parse_error`
+  (the exception) and `ReplayParser.truncated_at_tick` (the last tick reached);
+  both stay `None` on a clean parse. The broad catch is intentional
+  (truncated/partial replays legitimately raise on the final corrupt block, and
+  parsing continues with whatever was read), but a genuine mid-stream
+  decoder/extractor bug is indistinguishable from an expected truncated tail — at
+  `DEBUG` it was invisible at the default log level, so silent partial output
+  could look complete. Consumers can now inspect these attributes to detect a
+  partial parse programmatically. No behavior change beyond log visibility and
+  the new attributes.
+
 ### Fixed
 - `PlayerExtractor._read_inventory` read only the legacy
   `m_pEntity.m_nameStringableIndex`; modern replays expose item names via
