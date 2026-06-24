@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-06-23
+
+OpenDota match-API parity release. `gem.parse()` now reproduces most of
+OpenDota's per-match and per-player schema directly from the `.dem` stream —
+final inventories, OpenDota-style kill breakdowns, building-status bitmasks, the
+unified objectives timeline, per-inflictor/per-target combat dicts, the purchase
+timeline, and ward departure logs — plus a runnable `examples/opendota_parity.py`
+that cross-checks the output against the real OpenDota match API. The supported
+top-level API (`gem.parse`, `gem.ParsedMatch`, …) is unchanged; everything here
+is additive.
+
 ### Added
 - `ParsedPlayer.final_items` — end-of-game inventory by slot index (0-5 main,
   6-8 backpack, 9-16 stash), keyed item name with the `item_` prefix. Read from
@@ -23,7 +34,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **OpenDota-shaped teamfights.** `ParsedMatch.opendota_teamfights` — a
   compatibility projection of teamfights matching OpenDota's
   `teamfights[].players[]` schema (temporal death-windows, 3-death minimum),
-  alongside gem's native spatial `teamfights`.
+  alongside gem's native spatial `teamfights`. A game-ending throne fight whose
+  window extends past the match duration is kept with its `end` clamped to the
+  duration, rather than dropped.
 - **Per-inflictor / per-target combat attribution** on `ParsedPlayer`:
   `damage_inflictor`, `damage_inflictor_received`, `damage_targets`,
   `ability_targets`, `hero_hits`, and `max_hero_hit` — spell/item-level damage
@@ -375,7 +388,9 @@ combat-log layers. The supported top-level API (`gem.parse`, `gem.ParsedMatch`,
 - CLI and example scripts, including HTML match report.
 - Validation, fuzzing, and parser robustness foundations.
 
-[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.2.8...HEAD
+[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/whanyu1212/gem-dota/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/whanyu1212/gem-dota/compare/v0.2.8...v0.3.0
 [0.2.8]: https://github.com/whanyu1212/gem-dota/compare/v0.2.7...v0.2.8
 [0.2.7]: https://github.com/whanyu1212/gem-dota/compare/v0.2.6...v0.2.7
 [0.2.6]: https://github.com/whanyu1212/gem-dota/compare/v0.2.5...v0.2.6
