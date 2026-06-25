@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-06-25
+
+Report asset-cache tooling and a documentation overhaul. No change to the
+parsing pipeline or the supported parse/export API; the additions are the
+report asset CLI and the `ReportAssets` cache surface.
+
+### Added
+- Report asset cache (`gem.reports.asset_cache`, exposed as `ReportAssets`):
+  HTML reports can inline hero icons, item icons, and map images from a local
+  user cache instead of bundling them in the wheel. New CLI subcommands under
+  `python -m gem reports assets`:
+  - `path` — show the cache directories
+  - `status [--strict] [--include-recipes]` — report which assets are present
+    or missing (`--strict` exits non-zero when any kind is incomplete)
+  - `download [--icons|--hero-icons|--item-icons] [--force] [--include-recipes]`
+    — fetch icon assets into the cache (skips unchanged files)
+  - `add-map <path> [--name NAME]` — copy a local map image into the cache
+  All subcommands accept `--asset-dir`, and the cache root can also be set via
+  the `GEM_REPORT_ASSET_DIR` environment variable.
+
+### Changed
+- Documentation site polished for production: code-first landing page with a
+  replay-decoding hero, consolidated parser-internals deep dive, corrected API
+  references in guides (`EntityManager.find_by_handle`, combat-log snippet
+  imports), and fixed heading hierarchy across the experimental pages.
+
 ## [0.4.1] - 2026-06-24
 
 Follow-up to the 0.4.0 OpenDota-parity release: brings the purchase aggregates
