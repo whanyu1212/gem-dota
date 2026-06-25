@@ -31,6 +31,7 @@ from gem.reports._formatting import (
     hero_cell,
 )
 from gem.reports.assets import (
+    has_hero_icon,
     hero_icon_src,
     item_icon_tag,
     load_hero_icons,
@@ -613,15 +614,19 @@ def _fight_reveals_html(
             mod_label = _MODIFIER_DISPLAY.get(ev.modifier_name, ev.modifier_name)
             target_display = e(hero(ev.target_name))
             target_color = "#f44336" if team_num == 2 else "#4caf50"  # target is enemy
-            src = hero_icon_src(ev.target_name)
+            target_img = (
+                f'<img src="{hero_icon_src(ev.target_name)}" width="16" height="10" '
+                f'style="object-fit:cover;border-radius:2px;vertical-align:middle">'
+                if has_hero_icon(ev.target_name)
+                else ""
+            )
             badge = (
                 f'<span style="display:inline-flex;align-items:center;gap:4px;'
                 f"background:#21262d;border:1px solid #30363d;border-radius:4px;"
                 f'padding:2px 6px;font-size:11px;white-space:nowrap">'
                 f'<span style="color:#8b949e">{e(mod_label)}</span>'
                 f'<span style="color:#8b949e">→</span>'
-                f'<img src="{src}" width="16" height="10" '
-                f'style="object-fit:cover;border-radius:2px;vertical-align:middle">'
+                f"{target_img}"
                 f'<span style="color:{target_color}">{target_display}</span>'
                 f"</span>"
             )
@@ -724,10 +729,15 @@ def build_teamfights(match: ParsedMatch, map_b64: str | None) -> str:
                 died_cls = " died" if slot in died_slots else ""
                 pname = e(display_player_name(pp))
                 hname = e(hero(pp.hero_name))
-                src = hero_icon_src(pp.hero_name)
+                if has_hero_icon(pp.hero_name):
+                    portrait = f'<img src="{hero_icon_src(pp.hero_name)}" alt="{hname}">'
+                else:
+                    # No icon cache: keep the card's footprint and team-color cue
+                    # with a blank portrait; the hero name below carries identity.
+                    portrait = '<div class="tf-participant-noicon"></div>'
                 parts.append(
                     f'<div class="tf-participant {team_cls}{died_cls}">'
-                    f'<img src="{src}" alt="{hname}">'
+                    f"{portrait}"
                     f'<div class="tf-participant-hero">{hname}</div>'
                     f'<div class="tf-participant-player">{pname}</div>'
                     f"</div>"

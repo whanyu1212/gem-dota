@@ -75,7 +75,10 @@ def main() -> None:
     else:
         print(f"Map image not found at {map_path}; map-backed sections will render without it.")
     if not assets.hero_icon_dir or not assets.item_icon_dir:
-        print("Icon cache is incomplete; run `python -m gem reports assets download --icons`.")
+        print(
+            "Icon cache is incomplete; the report will use hero/item names instead. "
+            "For icon visuals, run `python -m gem reports assets download --icons`."
+        )
 
     written = write_html_report(match, output_path, assets=assets)
     print(f"Report written to: {written}")
