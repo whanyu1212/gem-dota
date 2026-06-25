@@ -111,17 +111,44 @@ def test_report_without_icons_falls_back_to_hero_names() -> None:
     assert HERO_PLACEHOLDER_B64 not in html
 
 
-def test_item_icon_tag_falls_back_to_name_chip_when_uncached() -> None:
+def test_item_icon_tag_is_icon_only_when_uncached() -> None:
+    """``item_icon_tag`` is an icon prefix only.
+
+    Every call site appends its own item label, so an uncached item must
+    return an empty string (degrading to the adjacent text) rather than a
+    name chip — otherwise the name would render twice (e.g. "BlinkBlink").
+    """
     from gem.reports.assets import ITEM_ICON_B64, item_icon_tag
 
     ITEM_ICON_B64.clear()
-    tag = item_icon_tag("item_blink")
-
-    assert "<img" not in tag
-    assert "gem-name-chip" in tag
-    assert "Blink Dagger" in tag
-    # An empty key still yields nothing (no stray chip).
+    assert item_icon_tag("item_blink") == ""
     assert item_icon_tag("") == ""
+
+    ITEM_ICON_B64["blink"] = "data:image/png;base64,AAAA"
+    assert "<img" in item_icon_tag("item_blink")
+    ITEM_ICON_B64.clear()
+
+
+def test_purchase_rows_show_item_name_once_without_icons() -> None:
+    """A purchase entry with no icon cache must not duplicate the item name."""
+    from gem.combat.log import CombatLogEntry
+    from gem.reports.assets import ReportAssets, configure_assets
+
+    match = _minimal_match()
+    match.players[0].purchase_log = [
+        CombatLogEntry(tick=600, log_type="PURCHASE", value_name="item_blink"),
+    ]
+
+    configure_assets(ReportAssets())
+    html = build_html_report(
+        match,
+        options=ReportOptions(include_movement=False),
+        assets=ReportAssets(),
+    )
+
+    # The item label appears, but never doubled up (no "Blink DaggerBlink Dagger").
+    assert "Blink DaggerBlink Dagger" not in html
+    assert "Blink Dagger" in html
 
 
 def test_has_hero_icon_tracks_loaded_cache() -> None:

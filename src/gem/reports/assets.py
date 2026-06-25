@@ -99,55 +99,18 @@ def load_item_icons(short_names: list[str], assets: ReportAssets | None = None) 
             )
 
 
-def _text_chip(label: str, *, size: int = 24, title: str | None = None) -> str:
-    """Return a compact rounded name pill used when an icon is unavailable.
-
-    The font size and padding scale loosely with ``size`` so a chip used in
-    place of a ``size``-px icon stays visually proportionate in dense tables.
-
-    Args:
-        label: Human-readable text shown inside the chip.
-        size: Pixel size of the icon this chip replaces; scales the chip.
-        title: Optional tooltip text (defaults to ``label``).
-
-    Returns:
-        An HTML ``<span>`` fragment.
-    """
-    font_px = max(9, min(13, round(size * 0.5)))
-    pad_y = max(1, round(size * 0.08))
-    pad_x = max(3, round(size * 0.22))
-    return (
-        f'<span class="gem-name-chip" title="{html.escape(title or label)}" '
-        f'style="display:inline-block;padding:{pad_y}px {pad_x}px;margin-right:4px;'
-        f"border-radius:4px;background:#21262d;color:#c9d1d9;"
-        f"font-size:{font_px}px;line-height:1.2;vertical-align:middle;"
-        f'white-space:nowrap">{html.escape(label)}</span>'
-    )
-
-
-def _item_label(item_key: str) -> str:
-    """Best-effort readable label for an item, for icon-less fallback chips."""
-    from gem.constants import item_display
-
-    short = item_key.removeprefix("item_")
-    display = item_display(item_key) or item_display(short)
-    return display or short.replace("_", " ")
-
-
 def item_icon_tag(item_key: str, size: int = 24) -> str:
-    """Return an item icon ``<img>``, or a readable name chip if unavailable.
+    """Return an ``<img>`` tag for an item icon, or empty string if unavailable.
 
-    When the item's icon is not in the loaded cache (no icon cache, or the
-    individual file is missing), a compact text chip with the item's display
-    name is returned instead of an empty string, so reports stay readable
-    without downloaded assets.
+    This is icon-only: every call site uses it as a prefix and renders the
+    item's name alongside, so returning ``""`` when no icon is cached degrades
+    cleanly to the adjacent text label (no duplicated name). Hero icon-less
+    fallback is handled per call site via :func:`has_hero_icon`.
     """
     short = item_key.removeprefix("item_")
     src = ITEM_ICON_B64.get(short, "")
     if not src:
-        if not short:
-            return ""
-        return _text_chip(_item_label(item_key), size=size)
+        return ""
     return (
         f'<img src="{src}" width="{size}" height="{size}" '
         f'style="vertical-align:middle;border-radius:3px;margin-right:4px" '

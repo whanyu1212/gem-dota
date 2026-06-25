@@ -28,13 +28,13 @@ report asset CLI and the `ReportAssets` cache surface.
   the `GEM_REPORT_ASSET_DIR` environment variable.
 
 ### Changed
-- HTML reports now degrade gracefully when no icon cache is present. Missing
-  item icons render a readable name chip (e.g. "Blink Dagger") instead of
-  vanishing, and missing hero portraits fall back to the hero's name (in
-  icon+name cells) or a sized placeholder that preserves the card footprint and
-  team-color cue (draft cards, teamfight participant cards) instead of a grey
-  1×1 placeholder image. Reports generated without running
-  `gem reports assets download` are now fully readable.
+- HTML reports now degrade gracefully when no icon cache is present. Item rows
+  (purchases, kill-feed inflictors, ward/rune legends) drop the icon and keep
+  their existing text label rather than rendering an empty cell, and missing
+  hero portraits fall back to the hero's name (in icon+name cells) or a sized
+  placeholder that preserves the card footprint and team-color cue (draft cards,
+  teamfight participant cards) instead of a grey 1×1 placeholder image. Reports
+  generated without running `gem reports assets download` are now fully readable.
 - Documentation site polished for production: code-first landing page with a
   replay-decoding hero, consolidated parser-internals deep dive, corrected API
   references in guides (`EntityManager.find_by_handle`, combat-log snippet
