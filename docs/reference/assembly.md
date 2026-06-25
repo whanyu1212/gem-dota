@@ -22,4 +22,4 @@ def build_parsed_match(parser: ReplayParser, player_ext: PlayerExtractor, obj_ex
 
 Assemble a :class:`ParsedMatch` from extractor state after a completed parse.
 
-Source: [src/gem/results/assembly.py:528](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/assembly.py#L528)
+Source: [src/gem/results/assembly.py:533](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/assembly.py#L533)
