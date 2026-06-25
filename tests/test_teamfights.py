@@ -278,6 +278,26 @@ class TestDetectOpenDotaTeamfights:
 
         assert [(f.start, f.end, f.last_death, f.deaths) for f in fights] == [(1018, 1055, 1040, 3)]
 
+    def test_keeps_game_ending_fight_with_end_clamped_to_duration(self):
+        # A throne fight's last death lands moments before the ancient falls, so
+        # last_death + 15s overshoots the match duration. The fight must be kept
+        # (it's the climactic one) with end clamped to duration_s, not discarded.
+        fights = detect_opendota_teamfights(
+            [
+                _death(60_000, game_time_s=2000),
+                _death(60_030, target="npc_dota_hero_pudge", game_time_s=2003),
+                _death(60_060, target="npc_dota_hero_lina", game_time_s=2005),
+            ],
+            duration_s=2010,
+        )
+
+        assert len(fights) == 1
+        fight = fights[0]
+        assert fight.deaths == 3
+        assert fight.last_death == 2005
+        # Unclamped end would be 2005 + 15 = 2020 > duration 2010.
+        assert fight.end == 2010
+
     def test_filters_illusions_and_reincarnation_triggers(self):
         fights = detect_opendota_teamfights(
             [

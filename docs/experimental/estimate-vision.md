@@ -111,7 +111,7 @@ Interpretation:
 
 This yields the hero vision radius for the rest of the check.
 
-## 2. Check allied hero vision
+### 2. Check allied hero vision
 
 For every player on the queried team:
 
@@ -146,7 +146,7 @@ This hero check does **not** model:
 
 So it is best understood as a straight-line radius test around the hero's estimated position.
 
-## 3. Check observer ward vision
+### 3. Check observer ward vision
 
 For every observer ward on the queried team:
 
@@ -180,7 +180,7 @@ Observer wards do not have a day/night penalty in this model. They use a single 
 
 That keeps the ward part of the approximation fairly straightforward.
 
-## 4. Check vision-granting modifiers
+### 4. Check vision-granting modifiers
 
 This is the least obvious part of the function, and it is where the derivation matters most.
 

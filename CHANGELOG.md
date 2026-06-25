@@ -7,6 +7,94 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-06-25
+
+Report asset-cache tooling and a documentation overhaul. No change to the
+parsing pipeline or the supported parse/export API; the additions are the
+report asset CLI and the `ReportAssets` cache surface.
+
+### Added
+- Report asset cache (`gem.reports.asset_cache`, exposed as `ReportAssets`):
+  HTML reports can inline hero icons, item icons, and map images from a local
+  user cache instead of bundling them in the wheel. New CLI subcommands under
+  `python -m gem reports assets`:
+  - `path` — show the cache directories
+  - `status [--strict] [--include-recipes]` — report which assets are present
+    or missing (`--strict` exits non-zero when any kind is incomplete)
+  - `download [--icons|--hero-icons|--item-icons] [--force] [--include-recipes]`
+    — fetch icon assets into the cache (skips unchanged files)
+  - `add-map <path> [--name NAME]` — copy a local map image into the cache
+  All subcommands accept `--asset-dir`, and the cache root can also be set via
+  the `GEM_REPORT_ASSET_DIR` environment variable.
+
+### Changed
+- Documentation site polished for production: code-first landing page with a
+  replay-decoding hero, consolidated parser-internals deep dive, corrected API
+  references in guides (`EntityManager.find_by_handle`, combat-log snippet
+  imports), and fixed heading hierarchy across the experimental pages.
+
+## [0.4.1] - 2026-06-24
+
+Follow-up to the 0.4.0 OpenDota-parity release: brings the purchase aggregates
+to exact parity, surfaces partial-parse state, and an internal extractor
+consolidation. The supported top-level API is unchanged; the one behaviour
+change is corrected purchase output (now exact vs OpenDota).
+
+### Changed
+- `ReplayParser.parse()` now logs a swallowed stream-end exception at `WARNING`
+  instead of `DEBUG`, and records it on the parser as `ReplayParser.parse_error`
+  (the exception) and `ReplayParser.truncated_at_tick` (the last tick reached);
+  both stay `None` on a clean parse. The broad catch is intentional
+  (truncated/partial replays legitimately raise on the final corrupt block, and
+  parsing continues with whatever was read), but a genuine mid-stream
+  decoder/extractor bug is indistinguishable from an expected truncated tail — at
+  `DEBUG` it was invisible at the default log level, so silent partial output
+  could look complete. Consumers can now inspect these attributes to detect a
+  partial parse programmatically. No behavior change beyond log visibility and
+  the new attributes.
+- **Internal:** the duplicated `CDOTA_PlayerResource` scan and team-data field
+  paths shared by `PlayerExtractor` and `IntervalExtractor` are consolidated into
+  `gem.extractors._snapshots` (`scan_player_resource`, `team_data_prefix`,
+  `team_data_field`, and the `TEAM_RADIANT`/`TEAM_DIRE`/`PLAYER_RESOURCE_SCAN_LIMIT`
+  constants). No output change — the OpenDota parity validator and full suite are
+  unchanged — but the two extractors no longer keep divergent copies of the scan
+  loop and field strings. The intentionally-different `m_vecDataTeam` *reading*
+  logic (the interval extractor's two-frame history) is left separate.
+
+### Fixed
+- OpenDota purchase parity (issue #95): per-player `purchase`, `purchase_time`,
+  and `first_purchase_time` now match the OpenDota match API exactly (verified
+  10/10 players on fixture 8855188139). Four corrections: (1) `purchase_time` now
+  **sums** every buy time for an item — OpenDota's behaviour — instead of keeping
+  only the last buy; (2) starting-inventory synthesis scans only slots 0-7 (main
+  inventory + backpack 6-7, mirroring OpenDota's `getHeroInventory`) instead of
+  0-16, so stash items are no longer miscounted as starting purchases; (3) removed
+  the gem-original starting-window purchase dedup that under-counted multi-copy
+  starting consumables (e.g. 2× `faerie_fire` counted as 1); (4) `purchase_log`
+  now excludes recipes (matching OpenDota — recipes remain in the `purchase`
+  count map). The earlier "needs a synthetic-inventory subsystem rewrite" note on
+  this issue was based on a misreading of the OpenDota reference (it emits
+  assembled items, not component+recipe — same as gem). Backed by a new
+  fixture-backed integration test (`tests/test_purchase_parity_integration.py`).
+
+### Note
+- OpenDota's per-player `purchase` / `purchase_time` / `first_purchase_time`
+  maps now match the OpenDota match API exactly (see Fixed; verified 10/10
+  players on a validation fixture). The only residual is that pre-horn (negative)
+  buy timestamps for starting items can differ from OpenDota by ±1s — boundary
+  quantization on negative times only; counts and positive-time buys are exact.
+
+## [0.4.0] - 2026-06-23
+
+OpenDota match-API parity release. `gem.parse()` now reproduces most of
+OpenDota's per-match and per-player schema directly from the `.dem` stream —
+final inventories, OpenDota-style kill breakdowns, building-status bitmasks, the
+unified objectives timeline, per-inflictor/per-target combat dicts, the purchase
+timeline, and ward departure logs — plus a runnable `examples/opendota_parity.py`
+that cross-checks the output against the real OpenDota match API. The supported
+top-level API (`gem.parse`, `gem.ParsedMatch`, …) is unchanged; everything here
+is additive.
+
 ### Added
 - Report asset setup tooling: `python -m gem reports assets path/status/download/add-map`,
   `ReportAssets.auto()`, and importable cache helpers so HTML report users can
@@ -28,7 +116,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **OpenDota-shaped teamfights.** `ParsedMatch.opendota_teamfights` — a
   compatibility projection of teamfights matching OpenDota's
   `teamfights[].players[]` schema (temporal death-windows, 3-death minimum),
-  alongside gem's native spatial `teamfights`.
+  alongside gem's native spatial `teamfights`. A game-ending throne fight whose
+  window extends past the match duration is kept with its `end` clamped to the
+  duration, rather than dropped.
 - **Per-inflictor / per-target combat attribution** on `ParsedPlayer`:
   `damage_inflictor`, `damage_inflictor_received`, `damage_targets`,
   `ability_targets`, `hero_hits`, and `max_hero_hit` — spell/item-level damage
@@ -73,42 +163,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   gem's output against the real OpenDota match API field by field. `examples/quickstart.py`
   gains a short teaser of these fields and a pointer to the full showcase.
 
-### Changed
-- `ReplayParser.parse()` now logs a swallowed stream-end exception at `WARNING`
-  instead of `DEBUG`, and records it on the parser as `ReplayParser.parse_error`
-  (the exception) and `ReplayParser.truncated_at_tick` (the last tick reached);
-  both stay `None` on a clean parse. The broad catch is intentional
-  (truncated/partial replays legitimately raise on the final corrupt block, and
-  parsing continues with whatever was read), but a genuine mid-stream
-  decoder/extractor bug is indistinguishable from an expected truncated tail — at
-  `DEBUG` it was invisible at the default log level, so silent partial output
-  could look complete. Consumers can now inspect these attributes to detect a
-  partial parse programmatically. No behavior change beyond log visibility and
-  the new attributes.
-- **Internal:** the duplicated `CDOTA_PlayerResource` scan and team-data field
-  paths shared by `PlayerExtractor` and `IntervalExtractor` are consolidated into
-  `gem.extractors._snapshots` (`scan_player_resource`, `team_data_prefix`,
-  `team_data_field`, and the `TEAM_RADIANT`/`TEAM_DIRE`/`PLAYER_RESOURCE_SCAN_LIMIT`
-  constants). No output change — the OpenDota parity validator and full suite are
-  unchanged — but the two extractors no longer keep divergent copies of the scan
-  loop and field strings. The intentionally-different `m_vecDataTeam` *reading*
-  logic (the interval extractor's two-frame history) is left separate.
-
 ### Fixed
-- OpenDota purchase parity (issue #95): per-player `purchase`, `purchase_time`,
-  and `first_purchase_time` now match the OpenDota match API exactly (verified
-  10/10 players on fixture 8855188139). Four corrections: (1) `purchase_time` now
-  **sums** every buy time for an item — OpenDota's behaviour — instead of keeping
-  only the last buy; (2) starting-inventory synthesis scans only slots 0-7 (main
-  inventory + backpack 6-7, mirroring OpenDota's `getHeroInventory`) instead of
-  0-16, so stash items are no longer miscounted as starting purchases; (3) removed
-  the gem-original starting-window purchase dedup that under-counted multi-copy
-  starting consumables (e.g. 2× `faerie_fire` counted as 1); (4) `purchase_log`
-  now excludes recipes (matching OpenDota — recipes remain in the `purchase`
-  count map). The earlier "needs a synthetic-inventory subsystem rewrite" note on
-  this issue was based on a misreading of the OpenDota reference (it emits
-  assembled items, not component+recipe — same as gem). Backed by a new
-  fixture-backed integration test (`tests/test_purchase_parity_integration.py`).
 - `PlayerExtractor._read_inventory` read only the legacy
   `m_pEntity.m_nameStringableIndex`; modern replays expose item names via
   `m_pEntity.m_nameStringTableIndex`, so inventory reads silently returned empty
@@ -133,11 +188,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (Beastmaster boars/hawk, Brewmaster split units) under-count: gem resolves a
   summon to its owner by a single live name→entity lookup, which can't attribute
   each kill from an army of same-named units. Tracked as a follow-up.
-- OpenDota's per-player `purchase` / `purchase_time` / `first_purchase_time`
-  maps now match the OpenDota match API exactly (see Fixed; verified 10/10
-  players on a validation fixture). The only residual is that pre-horn (negative)
-  buy timestamps for starting items can differ from OpenDota by ±1s — boundary
-  quantization on negative times only; counts and positive-time buys are exact.
 - `ParsedMatch.pre_game_duration` is declared but currently always `0`: deriving
   it needs the `GAME_IN_PROGRESS` state-transition timestamp the parser does not
   yet expose (`m_flGameStartTime` is the clock anchor, not the pre-game span).
@@ -380,7 +430,9 @@ combat-log layers. The supported top-level API (`gem.parse`, `gem.ParsedMatch`,
 - CLI and example scripts, including HTML match report.
 - Validation, fuzzing, and parser robustness foundations.
 
-[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.2.8...HEAD
+[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/whanyu1212/gem-dota/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/whanyu1212/gem-dota/compare/v0.2.8...v0.3.0
 [0.2.8]: https://github.com/whanyu1212/gem-dota/compare/v0.2.7...v0.2.8
 [0.2.7]: https://github.com/whanyu1212/gem-dota/compare/v0.2.6...v0.2.7
 [0.2.6]: https://github.com/whanyu1212/gem-dota/compare/v0.2.5...v0.2.6

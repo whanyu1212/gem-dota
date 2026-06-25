@@ -4,6 +4,53 @@ This page is a curated narrative summary of the parser, validation, and report c
 
 It is intentionally short-range. The full per-release SemVer history lives in the canonical [CHANGELOG.md](https://github.com/whanyu1212/gem-dota/blob/main/CHANGELOG.md).
 
+## June 2026 — v0.4.x
+
+The 0.4 line is an **OpenDota match-API parity** effort plus report asset-cache
+tooling. The supported top-level API (`gem.parse`, `gem.ParsedMatch`, `gem.find_player`, …)
+is unchanged — everything here is additive.
+
+::: tip OpenDota match-API parity
+
+`gem.parse()` now reproduces most of OpenDota's per-match and per-player schema directly from the `.dem` stream, so a parsed match lines up field-for-field with the OpenDota match API:
+
+- `ParsedPlayer.final_items` — end-of-game inventory by slot (exact vs OpenDota `item_0`–`item_5` on the validation fixtures)
+- `ParsedPlayer.killed` + derived kill scalars (`ancient_kills`, `neutral_kills`, `lane_kills`, `courier_kills`, `observer_kills`, `sentry_kills`, `roshan_kills`)
+- per-inflictor / per-target combat dicts (`damage_inflictor`, `damage_targets`, `ability_targets`, `hero_hits`, `max_hero_hit`) with OpenDota's enemy-hero, non-illusion gating
+- derived scalars `hero_id`, `level`, `gold_spent`, `firstblood_claimed`, `teamfight_participation`, and match-level `radiant_score` / `dire_score` / `first_blood_time`
+- `ParsedMatch.objectives` — one chronological OpenDota-shaped timeline merging building kills and `CHAT_MESSAGE_*` events; killers resolve source-first
+- `tower_status_*` / `barracks_status_*` building-status bitmasks, reconstructed offline and verified **exact** vs OpenDota
+- `ParsedMatch.opendota_teamfights` — a death-window, 3-death-minimum projection alongside gem's native spatial `teamfights`
+
+A runnable `examples/opendota_parity.py` cross-checks the output against the real OpenDota match API when a sibling `<match_id>.opendota.json` is present.
+
+:::
+
+::: info Purchase parity (0.4.1)
+
+Per-player `purchase`, `purchase_time`, and `first_purchase_time` now match the OpenDota match API exactly (verified 10/10 players on a validation fixture). `purchase_time` sums every buy of an item, starting-inventory synthesis reads only the main inventory + backpack (not the stash), and `purchase_log` excludes recipes — matching OpenDota's `handlePurchase`. The only residual is a ±1s difference on pre-horn (negative) starting-buy timestamps; counts and positive-time buys are exact.
+
+:::
+
+::: info Partial-parse visibility (0.4.1)
+
+`ReplayParser.parse()` now records a swallowed stream-end exception on the parser as `parse_error` and `truncated_at_tick` (both `None` on a clean parse), and logs it at `WARNING`. Truncated or partial replays legitimately raise on the final corrupt block, but at `DEBUG` that was invisible — consumers can now detect a partial parse programmatically instead of trusting silently-incomplete output.
+
+:::
+
+::: tip Report asset cache
+
+HTML reports can inline hero icons, item icons, and map images from a local user cache instead of bundling them in the wheel. Manage the cache from the CLI:
+
+- `python -m gem reports assets path` — show the cache directories
+- `python -m gem reports assets status [--strict]` — report which assets are present or missing
+- `python -m gem reports assets download [--icons|--hero-icons|--item-icons] [--force]` — fetch icons (skips unchanged files, falls back across current and legacy Dota CDN paths)
+- `python -m gem reports assets add-map <path>` — copy a local map image into the cache
+
+All subcommands accept `--asset-dir`, and the cache root can be set via `GEM_REPORT_ASSET_DIR`. The same surface is importable as `gem.reports.ReportAssets`.
+
+:::
+
 ## June 2026 — v0.3.0
 
 A structural + correctness release. The supported top-level API (`gem.parse`, `gem.ParsedMatch`, `gem.find_player`, …) is unchanged.
@@ -184,7 +231,7 @@ This feature is still experimental by design.
 
 ::: info Replay Edge Cases
 
-There is now a dedicated deep-dive page for replay-specific pitfalls, including:
+There is now a dedicated internals page for replay-specific pitfalls, including:
 
 - duplicate hero entities vs the canonical hero handle
 - within-tick sampling caveats
@@ -192,7 +239,7 @@ There is now a dedicated deep-dive page for replay-specific pitfalls, including:
 - schema drift across builds
 - inference limits for higher-level analytics
 
-If you are debugging parser behavior, read this together with the Deep Dives and Experimental Features sections.
+If you are debugging parser behavior, read this together with Parser Internals and Experimental Features.
 
 :::
 

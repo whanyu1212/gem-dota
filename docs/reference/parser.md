@@ -28,7 +28,7 @@ Signature: `def ReplayParser.on_entity(self, callback: EntityCallback) -> None`
 
 Register a handler called for every entity create/update/delete.
 
-Source: [src/gem/parser.py:231](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/parser.py#L231)
+Source: [src/gem/parser.py:240](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/parser.py#L240)
 
 ##### `on_game_event`
 
@@ -36,7 +36,7 @@ Signature: `def ReplayParser.on_game_event(self, name: str, handler: GameEventHa
 
 Register a handler for the named game event.
 
-Source: [src/gem/parser.py:282](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/parser.py#L282)
+Source: [src/gem/parser.py:291](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/parser.py#L291)
 
 ##### `on_combat_log_entry`
 
@@ -44,7 +44,7 @@ Signature: `def ReplayParser.on_combat_log_entry(self, handler: CombatLogHandler
 
 Register a handler for all combat log entries (S1 + S2).
 
-Source: [src/gem/parser.py:291](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/parser.py#L291)
+Source: [src/gem/parser.py:300](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/parser.py#L300)
 
 ##### `on_chat_message`
 
@@ -52,7 +52,7 @@ Signature: `def ReplayParser.on_chat_message(self, handler: ChatCallback) -> Non
 
 Register a handler for all-chat and team-chat messages.
 
-Source: [src/gem/parser.py:299](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/parser.py#L299)
+Source: [src/gem/parser.py:308](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/parser.py#L308)
 
 ##### `on_chat_event`
 
@@ -60,7 +60,7 @@ Signature: `def ReplayParser.on_chat_event(self, handler: ChatEventCallback) -> 
 
 Register a handler for all CDOTAUserMsg_ChatEvent messages.
 
-Source: [src/gem/parser.py:307](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/parser.py#L307)
+Source: [src/gem/parser.py:316](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/parser.py#L316)
 
 ##### `on_neutral_item_found`
 
@@ -68,7 +68,7 @@ Signature: `def ReplayParser.on_neutral_item_found(self, handler: NeutralItemFou
 
 Register a handler for neutral item found messages.
 
-Source: [src/gem/parser.py:315](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/parser.py#L315)
+Source: [src/gem/parser.py:324](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/parser.py#L324)
 
 ##### `on_game_start`
 
@@ -76,7 +76,7 @@ Signature: `def ReplayParser.on_game_start(self, callback: Callable[[int], None]
 
 Register a handler called once when game time reaches zero.
 
-Source: [src/gem/parser.py:323](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/parser.py#L323)
+Source: [src/gem/parser.py:332](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/parser.py#L332)
 
 ##### `on_game_end`
 
@@ -84,7 +84,7 @@ Signature: `def ReplayParser.on_game_end(self, callback: Callable[[int], None]) 
 
 Register a handler called once when the ancient is destroyed.
 
-Source: [src/gem/parser.py:335](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/parser.py#L335)
+Source: [src/gem/parser.py:344](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/parser.py#L344)
 
 ##### `stop_after_tick`
 
@@ -92,7 +92,7 @@ Signature: `def ReplayParser.stop_after_tick(self, tick: int) -> None`
 
 Stop parsing after this tick (inclusive).
 
-Source: [src/gem/parser.py:375](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/parser.py#L375)
+Source: [src/gem/parser.py:384](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/parser.py#L384)
 
 ##### `parse`
 
@@ -100,4 +100,4 @@ Signature: `def ReplayParser.parse(self) -> None`
 
 Parse the replay from start to finish (or until stop_after_tick).
 
-Source: [src/gem/parser.py:387](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/parser.py#L387)
+Source: [src/gem/parser.py:396](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/parser.py#L396)

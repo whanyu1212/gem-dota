@@ -508,8 +508,12 @@ def _append_closed_opendota_fight(
     if fight is None or fight.deaths < 3:
         return
     end = fight.last_death + _TEAMFIGHT_COOLDOWN_S
-    if duration_s is not None and end > duration_s:
-        return
+    # A game-ending throne fight has its last death moments before the ancient
+    # falls, so end (last_death + 15s) overshoots the match duration. Clamp to
+    # the duration rather than discarding — otherwise the climactic fight is lost
+    # from opendota_teamfights entirely.
+    if duration_s is not None:
+        end = min(end, duration_s)
     fight.end = end
     fights.append(fight)
 

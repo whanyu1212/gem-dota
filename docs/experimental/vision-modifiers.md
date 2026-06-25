@@ -107,7 +107,7 @@ That callback inspects each `CombatLogEntry` as it is emitted during parse.
 
 The relevant code lives in `src/gem/api.py`.
 
-## 2. Filter to relevant modifier names
+### 2. Filter to relevant modifier names
 
 Only modifiers in the curated `_VISION_MODIFIER_NAMES` set are considered.
 
@@ -121,7 +121,7 @@ entry.inflictor_name in _VISION_MODIFIER_NAMES
 
 If not, the entry is ignored for this feature.
 
-## 3. Open a reveal window on `MODIFIER_ADD`
+### 3. Open a reveal window on `MODIFIER_ADD`
 
 When gem sees:
 
@@ -149,7 +149,7 @@ This new event is:
 
 That key choice is deliberate.
 
-## Why the key is `(modifier_name, target_name)`
+### Why the key is `(modifier_name, target_name)`
 
 The same hero can receive the same modifier more than once.
 
@@ -176,7 +176,7 @@ This gives two practical benefits:
 
 This is a pragmatic replay-parsing choice, not a claim about Valve internals.
 
-## 4. Close a reveal window on `MODIFIER_REMOVE`
+### 4. Close a reveal window on `MODIFIER_REMOVE`
 
 When gem sees:
 
@@ -204,7 +204,7 @@ That means:
 
 This is the most defensible matching strategy once you admit that refreshes and overlaps can happen in the combat-log stream.
 
-## 5. Back-fill `caster_team` after parse
+### 5. Back-fill `caster_team` after parse
 
 When the modifier event is first created, gem does **not** yet assign a final team.
 

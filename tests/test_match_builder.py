@@ -2101,6 +2101,43 @@ class TestBuildObjectives:
         assert e["slot"] == 4 and e["player_slot"] == 4
         assert e["unit"] == "npc_dota_hero_clinkz"  # source hero, not the projectile
 
+    def test_firstblood_resolves_killer_source_first(self):
+        # First blood dealt by a summon/projectile: attacker_name is the non-hero
+        # unit, damage_source_name carries the owning hero. The objective must
+        # credit the owner via the source-first resolver. (P2 regression.)
+        from gem.results.assembly import _build_objectives
+
+        fb = CombatLogEntry(
+            tick=6000,
+            log_type="DEATH",
+            attacker_name="npc_dota_lone_druid_bear",
+            damage_source_name="npc_dota_hero_lone_druid",
+            target_name="npc_dota_hero_axe",
+            target_is_hero=True,
+        )
+        agg = self._agg_with_heroes({"npc_dota_hero_lone_druid": 0, "npc_dota_hero_axe": 5})
+        objs = _build_objectives(_make_obj_ext(), agg, fb, {0: 2, 5: 3}, game_start_tick=0)
+        e = next(o for o in objs if o["type"] == "CHAT_MESSAGE_FIRSTBLOOD")
+        assert e["slot"] == 0 and e["player_slot"] == 0  # owner, not the bear
+        assert e["key"] == "5"  # victim slot
+
+    def test_firstblood_direct_hero_kill_still_resolves(self):
+        # A plain hero-vs-hero first blood (empty source) still credits the killer.
+        from gem.results.assembly import _build_objectives
+
+        fb = CombatLogEntry(
+            tick=3000,
+            log_type="DEATH",
+            attacker_name="npc_dota_hero_pudge",
+            target_name="npc_dota_hero_lina",
+            target_is_hero=True,
+        )
+        agg = self._agg_with_heroes({"npc_dota_hero_pudge": 1, "npc_dota_hero_lina": 6})
+        objs = _build_objectives(_make_obj_ext(), agg, fb, {1: 2, 6: 3}, game_start_tick=0)
+        e = next(o for o in objs if o["type"] == "CHAT_MESSAGE_FIRSTBLOOD")
+        assert e["slot"] == 1 and e["player_slot"] == 1
+        assert e["key"] == "6"
+
     def test_courier_lost_owner_is_opposite_team(self):
         from gem.extractors.objectives import CourierDeath
         from gem.results.assembly import _build_objectives
