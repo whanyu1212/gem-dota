@@ -120,7 +120,7 @@ without a stronger fight/objective label taking priority.
 
 This Roshan fed directly into the final closing sequence before the game ended.
 
-## Aegis outcomes
+### Aegis outcomes
 
 #### `Consumed In Fight`
 

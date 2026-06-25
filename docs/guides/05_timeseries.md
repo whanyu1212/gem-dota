@@ -1,14 +1,13 @@
 # Time-Series & DataFrames
 
-gem samples entity state at regular intervals and assembles per-minute advantage curves.
-This guide shows how to work with the time-series data and export it to pandas.
-
----
+gem samples entity state during parsing and assembles per-minute advantage curves,
+position logs, player snapshots, and event tables. This guide shows how to use those
+outputs from the high-level API and, when needed, from the lower-level extractor API.
 
 ## Per-minute advantage curves
 
-`match.radiant_gold_adv` and `match.radiant_xp_adv` are lists of integers, one entry
-per game minute. Positive values favour Radiant, negative values favour Dire.
+`match.radiant_gold_adv` and `match.radiant_xp_adv` are lists of integers, one entry per
+game minute. Positive values favor Radiant; negative values favor Dire.
 
 ```python
 import gem
@@ -16,57 +15,21 @@ import gem
 match = gem.parse("my_replay.dem")
 
 print("Minute  Gold adv  XP adv")
-for minute, (gold, xp) in enumerate(
-    zip(match.radiant_gold_adv, match.radiant_xp_adv)
-):
-    sign = "+" if gold >= 0 else ""
-    print(f"  {minute:2d}    {sign}{gold:>7,}   {sign}{xp:>7,}")
+for minute, (gold, xp) in enumerate(zip(match.radiant_gold_adv, match.radiant_xp_adv)):
+    gold_sign = "+" if gold >= 0 else ""
+    xp_sign = "+" if xp >= 0 else ""
+    print(f"{minute:>6}  {gold_sign}{gold:>8,}  {xp_sign}{xp:>7,}")
 ```
 
-### Important: field sources
+The advantage curves use total earned gold and XP, not current spendable gold or current
+level XP:
 
-The advantage curves use **total earned** gold and XP (monotonically increasing counters),
-not current gold/XP (which reset when items are purchased or levels are gained):
-
-| Field | Entity | Behaviour |
+| Field | Entity | Behavior |
 |---|---|---|
-| `m_iTotalEarnedGold` | `CDOTA_DataRadiant/Dire` | Monotonically increasing — use for advantages |
-| `m_iTotalEarnedXP` | `CDOTA_DataRadiant/Dire` | Monotonically increasing — use for advantages |
-| `m_iGold` | `CDOTAPlayerController` | Spendable cash — drops when items bought |
-| `m_iCurrentXP` | Hero entity | Resets to 0 on each level-up |
-
----
-
-## Player time series (low-level API)
-
-When you need finer-grained time series data than the per-minute arrays, attach a
-`PlayerExtractor` directly:
-
-```python
-from gem.parser import ReplayParser
-from gem.extractors.players import PlayerExtractor
-
-ext = PlayerExtractor(sample_interval=150)  # sample every 150 ticks = 5 seconds
-
-parser = ReplayParser("my_replay.dem")
-parser.attach(ext)
-parser.parse()
-
-# Get time series for player 0
-ts = ext.time_series(player_id=0)
-
-print(ts.ticks[:5])    # [0, 150, 300, 450, 600]
-print(ts.gold_t[:5])   # spendable gold at each sample tick
-print(ts.xp_t[:5])     # current XP at each sample tick
-print(ts.hp_t[:5])     # HP at each sample tick
-print(ts.x_t[:5])      # world X position at each sample tick
-```
-
-`PlayerTimeSeries` fields: `player_id`, `ticks`, `gold_t`, `total_earned_gold_t`,
-`total_earned_xp_t`, `net_worth_t`, `lh_t`, `dn_t`, `xp_t`, `hp_t`, `mana_t`, `x_t`,
-`y_t`, `total_hero_damage_t`, `total_hero_healing_t`, `total_deaths_t`, `total_stuns_t`.
-
----
+| `m_iTotalEarnedGold` | `CDOTA_DataRadiant/Dire` | Monotonic; use for gold advantage |
+| `m_iTotalEarnedXP` | `CDOTA_DataRadiant/Dire` | Monotonic; use for XP advantage |
+| `m_iGold` | `CDOTAPlayerController` | Spendable cash; drops when items are bought |
+| `m_iCurrentXP` | Hero entity | Resets to 0 on level-up |
 
 ## DataFrame export
 
@@ -76,98 +39,109 @@ print(ts.x_t[:5])      # world X position at each sample tick
 import gem
 
 frames = gem.parse_to_dataframe("my_replay.dem")
+
+print(sorted(frames))
+players = frames["players"]
+combat = frames["combat_log"]
 ```
 
 Available DataFrames:
 
 | Key | Contents |
 |---|---|
-| `"players"` | Per-player snapshot time series (one row per player per sampled tick) |
-| `"players_minute"` | Per-player series resampled to one row per game minute |
-| `"positions"` | Per-player world `(x, y)` positions over time |
-| `"wards"` | Ward placement events with coordinates |
-| `"objectives"` | Tower kills, barracks, Roshan kills |
-| `"teamfights"` | Teamfight windows with participant stats |
-| `"combat_log"` | Raw combat log entries |
-| `"chat"` | All chat messages |
-| `"draft"` | Pick / ban events |
-| `"smoke_events"` | Smoke of Deceit usages and their groups |
-| `"courier_snapshots"` | Courier state over time |
-| `"radiant_advantage"` | Radiant gold/XP advantage per minute |
-| `"match"` | Single-row match-level summary |
-| `"neutral_item_finds"` | Neutral item find events with item/enhancement IDs and keys |
+| `players` | Per-player sampled state with terminal scalar stats repeated on each row |
+| `players_minute` | Per-player series resampled to one row per game minute |
+| `positions` | Per-player world `(x, y)` positions over time |
+| `combat_log` | Raw normalized combat log entries |
+| `wards` | Ward placement events with coordinates |
+| `objectives` | Typed Gem objective rows such as towers, barracks, Roshan, tormentors, couriers |
+| `opendota_objectives` | OpenDota-shaped unified objective timeline |
+| `chat` | Chat messages |
+| `match` | Single-row match metadata and final status bitmasks |
+| `radiant_advantage` | Radiant gold/XP advantage per minute |
+| `draft` | Pick and ban events |
+| `teamfights` | Gem teamfight windows with participant stats |
+| `opendota_teamfights` | OpenDota-compatible 3+ death temporal teamfight windows |
+| `smoke_events` | Smoke of Deceit usages and grouped heroes |
+| `courier_snapshots` | Courier state over time |
+| `neutral_item_finds` | Neutral item find events from `DOTA_UM_FoundNeutralItem` |
+| `player_kills_log` | Per-player kill log rows |
+| `player_purchase_log` | Per-player purchase log rows |
+| `player_runes_log` | Per-player rune pickup log rows |
+| `player_buyback_log` | Per-player buyback log rows |
 
-### Players DataFrame
+### Players table
 
 ```python
 df = frames["players"]
 
-print(df.dtypes)
-# player_id            int64
-# player_name         object
-# hero_name           object
-# team                 int64
-# tick                 int64
-# gold                 int64
-# total_earned_gold    int64
-# net_worth            int64
-# lh                   int64
-# dn                   int64
-# xp                   int64
-# kills                int64
-# ...                        # plus per-player scalar columns (kda, hero_damage, ...)
-
-# Filter to one hero (hero_name is the NPC name)
-axe_df = df[df["hero_name"] == "npc_dota_hero_axe"]
-print(axe_df[["tick", "gold", "xp", "net_worth"]].head(10))
+print(df[["player_id", "hero_name", "tick", "gold", "net_worth", "lh", "dn"]].head())
 ```
 
-World positions live in the separate `positions` DataFrame (`tick`, `x`, `y` per player):
+The `players` table contains sampled state rows. End-of-game scalars such as
+`final_net_worth`, `final_last_hits`, `kills`, `deaths`, `assists`, `hero_damage`, and
+`lane_role` are repeated on each sampled row for convenient grouping.
+
+### Positions table
 
 ```python
-pos = frames["positions"]
-axe_pos = pos[pos["hero_name"] == "npc_dota_hero_axe"]
-print(axe_pos[["tick", "x", "y"]].head(10))
+positions = frames["positions"]
+axe_positions = positions[positions["hero_name"] == "npc_dota_hero_axe"]
+
+print(axe_positions[["tick", "x", "y"]].head())
 ```
 
----
+Positions are split into a dedicated table so movement-heavy analysis does not bloat the
+main player-state table.
 
-## Plotting gold advantage with pandas + matplotlib
+## Plot gold advantage
 
 ```python
-import gem
-import pandas as pd
 import matplotlib.pyplot as plt
+import gem
 
 match = gem.parse("my_replay.dem")
 
 minutes = list(range(len(match.radiant_gold_adv)))
-adv = match.radiant_gold_adv
+gold_adv = match.radiant_gold_adv
 
 fig, ax = plt.subplots(figsize=(12, 4))
-ax.plot(minutes, adv, color="green" if adv[-1] > 0 else "red")
+ax.plot(minutes, gold_adv)
 ax.axhline(0, color="gray", linewidth=0.8)
-ax.fill_between(minutes, adv, 0,
-                where=[v > 0 for v in adv], alpha=0.2, color="green", label="Radiant ahead")
-ax.fill_between(minutes, adv, 0,
-                where=[v < 0 for v in adv], alpha=0.2, color="red",   label="Dire ahead")
 ax.set_xlabel("Game minute")
-ax.set_ylabel("Gold advantage")
-ax.set_title("Radiant gold advantage over time")
-ax.legend()
-plt.tight_layout()
-plt.savefig("gold_adv.png", dpi=150)
+ax.set_ylabel("Radiant gold advantage")
+fig.tight_layout()
+fig.savefig("gold_adv.png", dpi=150)
 ```
 
----
+## Low-level player sampling
 
-## Full interactive example
+When you need a custom sampling interval, attach `PlayerExtractor` directly to a
+`ReplayParser`:
 
-The Movement tab in `examples/match_report.py` builds an interactive Plotly heatmap showing hero
-positions, ability levels, and stun dealt over time. It demonstrates the full
-time-series pipeline:
+```python
+from gem.extractors.players import PlayerExtractor
+from gem.parser import ReplayParser
 
-```bash
-python examples/match_report.py my_replay.dem
-# Opens a browser window with the report (includes movement heatmap tab)
+parser = ReplayParser("my_replay.dem")
+players = PlayerExtractor(sample_interval=150)  # every 150 ticks, roughly 5 seconds
+players.attach(parser)
+
+parser.parse()
+
+series = players.time_series(player_id=0)
+
+print(series.ticks[:5])
+print(series.gold_t[:5])
+print(series.x_t[:5])
+print(series.y_t[:5])
 ```
+
+`PlayerTimeSeries` fields include `player_id`, `ticks`, `gold_t`,
+`total_earned_gold_t`, `total_earned_xp_t`, `net_worth_t`, `lh_t`, `dn_t`, `xp_t`,
+`hp_t`, `mana_t`, `x_t`, `y_t`, `total_hero_damage_t`, `total_hero_healing_t`,
+`total_deaths_t`, and `total_stuns_t`.
+
+For most analysis code, prefer `gem.parse()` or `gem.parse_to_dataframe()` and use the
+lower-level extractor only when you need a different sampling interval or custom parser
+callbacks.

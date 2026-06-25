@@ -5,7 +5,7 @@ from __future__ import annotations
 import html
 
 from gem.catalog import hero_short
-from gem.reports.assets import hero_icon_src
+from gem.reports.assets import has_hero_icon, hero_icon_src
 
 TICKS_PER_SEC = 30
 TICKS_PER_MIN = TICKS_PER_SEC * 60
@@ -115,11 +115,14 @@ def hero_cell(npc_name: str, team: int = 0) -> str:
     Returns:
         HTML fragment with a 20px portrait thumbnail followed by the display name.
     """
-    src = hero_icon_src(npc_name)
     name = e(hero(npc_name))
     color = TEAM_COLOR_CSS.get(team, "#e6edf3")
-    return (
-        f'<img src="{src}" width="20" height="12" '
-        f'style="object-fit:cover;border-radius:2px;vertical-align:middle;margin-right:5px">'
-        f'<span style="color:{color}">{name}</span>'
-    )
+    # The cell already shows the name, so when no real icon is loaded we omit
+    # the portrait (and its grey placeholder) rather than render a chip too.
+    img = ""
+    if has_hero_icon(npc_name):
+        img = (
+            f'<img src="{hero_icon_src(npc_name)}" width="20" height="12" '
+            f'style="object-fit:cover;border-radius:2px;vertical-align:middle;margin-right:5px">'
+        )
+    return f'{img}<span style="color:{color}">{name}</span>'

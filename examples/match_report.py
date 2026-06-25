@@ -14,13 +14,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 import gem
-from gem.reports import ReportAssets, write_html_report
+from gem.reports import ReportAssets, apply_opendota_player_names_from_path, write_html_report
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DEM = REPO_ROOT / "tests" / "fixtures" / "opendota" / "8822520406.dem"
 DEFAULT_MAP = REPO_ROOT / "assets" / "maps" / "Game_map_7.40.jpg"
-DEFAULT_HERO_ICONS = REPO_ROOT / "src" / "gem" / "data" / "hero_icons"
-DEFAULT_ITEM_ICONS = REPO_ROOT / "src" / "gem" / "data" / "item_icons"
 
 
 def _existing(path: Path) -> Path | None:
@@ -44,6 +42,11 @@ def main() -> None:
         default=None,
         help="Path to map image for report overlays (default: assets/maps/Game_map_7.40.jpg)",
     )
+    parser.add_argument(
+        "--asset-dir",
+        default=None,
+        help="Report asset cache root (default: GEM_REPORT_ASSET_DIR or the user cache)",
+    )
     args = parser.parse_args()
 
     dem_path = Path(args.dem) if args.dem else DEFAULT_DEM
@@ -52,16 +55,30 @@ def main() -> None:
 
     print(f"Parsing {dem_path} ...")
     match = gem.parse(dem_path)
+    opendota_path = dem_path.with_suffix(".opendota.json")
+    if opendota_path.exists():
+        apply_opendota_player_names_from_path(match, opendota_path)
+        print(f"Player names loaded: {opendota_path}")
 
-    assets = ReportAssets(
-        map_image=_existing(map_path),
-        hero_icon_dir=_existing(DEFAULT_HERO_ICONS),
-        item_icon_dir=_existing(DEFAULT_ITEM_ICONS),
+    assets = ReportAssets.auto(
+        root=Path(args.asset_dir) if args.asset_dir else None,
+        fallback_map=map_path,
     )
+    if args.map:
+        assets = ReportAssets(
+            map_image=_existing(map_path),
+            hero_icon_dir=assets.hero_icon_dir,
+            item_icon_dir=assets.item_icon_dir,
+        )
     if assets.map_image:
         print(f"Map image loaded: {assets.map_image}")
     else:
         print(f"Map image not found at {map_path}; map-backed sections will render without it.")
+    if not assets.hero_icon_dir or not assets.item_icon_dir:
+        print(
+            "Icon cache is incomplete; the report will use hero/item names instead. "
+            "For icon visuals, run `python -m gem reports assets download --icons`."
+        )
 
     written = write_html_report(match, output_path, assets=assets)
     print(f"Report written to: {written}")

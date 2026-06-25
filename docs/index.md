@@ -1,26 +1,49 @@
-# Gem
+---
+title: Gem
+---
 
-<div class="hero-card">
-  <h2>Python Dota 2 Replay Parser</h2>
-  <p>
-    <strong>gem</strong> reads Source 2 <code>.dem</code> replay files and turns them into
-    structured Python objects — named after the <em>Gem of True Sight</em>, which reveals
-    what is hidden. Parse a replay and work with the result directly in pandas, notebooks,
-    and ML pipelines.
+<section class="gem-hero">
+  <p class="gem-hero-label">Python replay parsing for Dota 2</p>
+  <h1>Turn Source 2 <code>.dem</code> files into analysis-ready Python data.</h1>
+  <p class="gem-hero-lede">
+    <strong>gem</strong> reads Dota 2 replay files and returns typed match objects,
+    pandas DataFrames, JSON, Parquet, and self-contained HTML reports.
   </p>
-  <div class="hero-actions">
-    <a class="VPButton medium brand" href="guides/01_quickstart">Quickstart</a>
-    <a class="VPButton medium alt" href="reference/">API Reference</a>
-    <a class="VPButton medium alt" href="changelog">Changelog</a>
-    <a class="VPButton medium alt" href="guides/troubleshooting">Troubleshooting</a>
-    <a class="VPButton medium alt" href="cookbook/bits-and-bytes-primer">Bits &amp; Bytes Primer</a>
-    <a class="VPButton medium alt" href="cookbook/">Proto Cookbook</a>
-    <a class="VPButton medium alt" href="experimental/">Experimental Features</a>
-    <a class="VPButton medium alt" href="reports/">Reports</a>
+  <div class="gem-hero-actions">
+    <a class="gem-button gem-button--primary" href="guides/01_quickstart">Quickstart</a>
+    <a class="gem-button gem-button--secondary" href="reference/">API Reference</a>
+    <a class="gem-button gem-button--secondary" href="cookbook/">Proto Cookbook</a>
+  </div>
+</section>
+
+<div class="gem-readout" role="img" aria-label="A replay decoding from raw bytes into a typed ParsedMatch object.">
+  <div class="gem-readout-head">
+    <span class="gem-readout-name">replay.dem</span>
+    <span class="gem-readout-meta">PBDEMS2 · 142 MB</span>
+  </div>
+  <div class="gem-readout-stream">
+    <span class="gem-readout-row"><i>tick</i><b>0x0001f4</b><em>net_Tick</em></span>
+    <span class="gem-readout-row"><i>strtab</i><b>instancebaseline</b><em>baselines ready</em></span>
+    <span class="gem-readout-row"><i>entity</i><b>#612 CREATE</b><em>CDOTA_Unit_Hero</em></span>
+    <span class="gem-readout-row"><i>combat</i><b>DEATH</b><em>hero ← hero</em></span>
+    <span class="gem-readout-row gem-readout-row--out"><i>parsed</i><b>ParsedMatch</b><em>10 players · 42.3 min</em></span>
   </div>
 </div>
 
-## Install
+<div class="gem-trust">
+  <a class="gem-trust-item" href="https://pypi.org/project/gem-dota/" target="_blank" rel="noreferrer">
+    <span class="gem-trust-k">Install</span>
+    <span class="gem-trust-v">On PyPI as <code>gem-dota</code></span>
+  </a>
+  <span class="gem-trust-item">
+    <span class="gem-trust-k">Runtime</span>
+    <span class="gem-trust-v">Pure Python · 3.10+</span>
+  </span>
+  <span class="gem-trust-item">
+    <span class="gem-trust-k">Readable</span>
+    <span class="gem-trust-v">Implementation you can read end-to-end</span>
+  </span>
+</div>
 
 ::: code-group
 
@@ -39,57 +62,76 @@ Requires Python 3.10+. The import name is `gem`; the PyPI package is `gem-dota`.
 ```python
 import gem
 
-match = gem.parse("my_replay.dem")        # -> ParsedMatch
+match = gem.parse("my_replay.dem")
 print(match.duration_minutes, "min,", len(match.players), "players")
 ```
 
 ## What you can do
 
-- **Parse one call** — `gem.parse(path)` returns a typed `ParsedMatch`: players, draft,
-  combat log, wards, objectives, teamfights, couriers, smoke events, aegis, and chat.
-- **Export anywhere** — convert to pandas DataFrames, JSON, or Parquet with a single
-  function (`gem.parse_to_dataframe`, `gem.parse_to_json`, `gem.parse_to_parquet`).
-- **Batch in parallel** — `gem.parse_many*` parses many replays across processes; failed
-  replays are captured, not raised.
-- **Exact ward coordinates** — ward placements carry precise map coordinates pulled from
-  the entity stream, not approximations.
-- **Experimental interpretation layers** — Farming Patterns, Roshan Conversion, and vision
-  estimation, each documented with formulas, thresholds, drivers, and known limits.
-- **CLI included** — parse, export, and batch-process from the terminal with no Python code.
+<div class="gem-feature-grid">
+  <a class="gem-feature-card" href="guides/04_match_data">
+    <span class="gem-feature-icon" aria-hidden="true">◵</span>
+    <span class="gem-feature-kicker">Parse</span>
+    <strong>Typed match data</strong>
+    <span>Players, draft, combat log, wards, objectives, teamfights, couriers, smoke, Aegis, and chat.</span>
+  </a>
+  <a class="gem-feature-card" href="guides/05_timeseries">
+    <span class="gem-feature-icon" aria-hidden="true">◷</span>
+    <span class="gem-feature-kicker">Analyze</span>
+    <strong>DataFrames and time series</strong>
+    <span>Export player snapshots, positions, combat rows, advantages, and OpenDota-shaped tables.</span>
+  </a>
+  <a class="gem-feature-card" href="guides/09_cli">
+    <span class="gem-feature-icon" aria-hidden="true">⎇</span>
+    <span class="gem-feature-kicker">Operate</span>
+    <strong>CLI and batch workflows</strong>
+    <span>Parse one replay, process folders in parallel, export Parquet, and manage report assets.</span>
+  </a>
+  <a class="gem-feature-card" href="reports/">
+    <span class="gem-feature-icon" aria-hidden="true">◳</span>
+    <span class="gem-feature-kicker">Report</span>
+    <strong>HTML match reports</strong>
+    <span>Generate portable replay reports with movement, combat, teamfight, vision, and farming views.</span>
+  </a>
+</div>
+
+## Common workflows
 
 ```python
-# Export
-frames = gem.parse_to_dataframe("replay.dem")    # -> dict[str, pandas.DataFrame]
-json_str = gem.parse_to_json("replay.dem", indent=2)   # -> JSON string
-gem.parse_to_parquet("replay.dem", "./out")      # one Parquet file per frame in ./out
+# Export to analysis formats
+frames = gem.parse_to_dataframe("replay.dem")
+json_str = gem.parse_to_json("replay.dem", indent=2)
+gem.parse_to_parquet("replay.dem", "./out")
 
-# Batch (across processes)
+# Batch across processes
 gem.parse_many_to_parquet(["a.dem", "b.dem"], "./out", workers=8)
 ```
 
 ```bash
-# Same things from the terminal
+# Same workflow from the terminal
 python -m gem parse replay.dem --format json --output out.json
+python -m gem batch replays/ --format parquet --output ./out --workers 4
 ```
 
 ## Where to start
 
-::: tip I want to use it
-Start with the [Quickstart](./guides/01_quickstart.md) for install-to-KDA in a few lines,
-then [Full Match Data](./guides/04_match_data.md) for a walkthrough of everything in
-`ParsedMatch`.
-:::
-
-::: info I want to understand the format
-Read [How Proto Parsing Works](./cookbook/proto-parsing-pipeline.md), then use the
-[Proto Field Atlas](./cookbook/proto-fields/) for per-message field details. The
-[Deep Dives](./deep-dives/) trace each layer of the parser.
-:::
-
-::: info I need the API
-Go to the [API Reference](./reference/). Every public class and function has a
-Google-style docstring, and the reference pages link straight to source.
-:::
+<div class="gem-start-grid">
+  <a class="gem-start-card" href="guides/01_quickstart">
+    <span>Use it</span>
+    <strong>Quickstart</strong>
+    <small>Install gem, parse one replay, inspect players, and export data.</small>
+  </a>
+  <a class="gem-start-card" href="cookbook/proto-parsing-pipeline">
+    <span>Understand it</span>
+    <strong>Proto Parsing Pipeline</strong>
+    <small>Learn how outer demo frames, inner net messages, and protobuf payloads fit together.</small>
+  </a>
+  <a class="gem-start-card" href="reference/">
+    <span>Integrate it</span>
+    <strong>API Reference</strong>
+    <small>Every public class and function, generated from the Python docstrings.</small>
+  </a>
+</div>
 
 ## Project status
 
@@ -97,6 +139,7 @@ Google-style docstring, and the reference pages link straight to source.
 parsing pipeline and every extractor are complete and stable. It is a pure-Python parser:
 the Go ([Manta](https://github.com/dotabuff/manta)) and Java
 ([Clarity](https://github.com/skadistats/clarity)) reference parsers are faster in raw
-throughput — `gem` optimizes instead for Python-native ergonomics and an implementation
-you can read end-to-end. See the [Changelog](./changelog.md) for the latest parser,
-validation, and report changes.
+throughput; `gem` optimizes instead for Python-native ergonomics and an implementation
+you can read end-to-end.
+
+See the [Changelog](./changelog.md) for the latest parser, validation, and report changes.

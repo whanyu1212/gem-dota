@@ -31,11 +31,13 @@ from gem.reports._formatting import (
     hero_cell,
 )
 from gem.reports.assets import (
+    has_hero_icon,
     hero_icon_src,
     item_icon_tag,
     load_hero_icons,
     load_item_icons,
 )
+from gem.reports.player_names import display_player_name
 from gem.reports.sections._shared import (
     _DIRE_COLORS,
     _RADIANT_COLORS,
@@ -612,15 +614,19 @@ def _fight_reveals_html(
             mod_label = _MODIFIER_DISPLAY.get(ev.modifier_name, ev.modifier_name)
             target_display = e(hero(ev.target_name))
             target_color = "#f44336" if team_num == 2 else "#4caf50"  # target is enemy
-            src = hero_icon_src(ev.target_name)
+            target_img = (
+                f'<img src="{hero_icon_src(ev.target_name)}" width="16" height="10" '
+                f'style="object-fit:cover;border-radius:2px;vertical-align:middle">'
+                if has_hero_icon(ev.target_name)
+                else ""
+            )
             badge = (
                 f'<span style="display:inline-flex;align-items:center;gap:4px;'
                 f"background:#21262d;border:1px solid #30363d;border-radius:4px;"
                 f'padding:2px 6px;font-size:11px;white-space:nowrap">'
                 f'<span style="color:#8b949e">{e(mod_label)}</span>'
                 f'<span style="color:#8b949e">→</span>'
-                f'<img src="{src}" width="16" height="10" '
-                f'style="object-fit:cover;border-radius:2px;vertical-align:middle">'
+                f"{target_img}"
                 f'<span style="color:{target_color}">{target_display}</span>'
                 f"</span>"
             )
@@ -721,12 +727,17 @@ def build_teamfights(match: ParsedMatch, map_b64: str | None) -> str:
                 pp = slot_to_player.get(slot, ParsedPlayer(player_id=slot))
                 team_cls = "radiant" if pp.team == 2 else "dire"
                 died_cls = " died" if slot in died_slots else ""
-                pname = e(pp.player_name or "")
+                pname = e(display_player_name(pp))
                 hname = e(hero(pp.hero_name))
-                src = hero_icon_src(pp.hero_name)
+                if has_hero_icon(pp.hero_name):
+                    portrait = f'<img src="{hero_icon_src(pp.hero_name)}" alt="{hname}">'
+                else:
+                    # No icon cache: keep the card's footprint and team-color cue
+                    # with a blank portrait; the hero name below carries identity.
+                    portrait = '<div class="tf-participant-noicon"></div>'
                 parts.append(
                     f'<div class="tf-participant {team_cls}{died_cls}">'
-                    f'<img src="{src}" alt="{hname}">'
+                    f"{portrait}"
                     f'<div class="tf-participant-hero">{hname}</div>'
                     f'<div class="tf-participant-player">{pname}</div>'
                     f"</div>"
@@ -749,7 +760,7 @@ def build_teamfights(match: ParsedMatch, map_b64: str | None) -> str:
                 parts.append(
                     f'<tr class="{row_cls}">'
                     f"<td>{hero_cell(pp.hero_name, pp.team)}"
-                    f'<div style="color:#8b949e;font-size:11px">{e(pp.player_name or "")}</div></td>'
+                    f'<div style="color:#8b949e;font-size:11px">{e(display_player_name(pp))}</div></td>'
                     f'<td class="r">{getattr(tfp, "damage_dealt", 0):,}</td>'
                     f'<td class="r">{getattr(tfp, "damage_taken", 0):,}</td>'
                     f'<td class="r">{getattr(tfp, "deaths", 0):,}</td>'

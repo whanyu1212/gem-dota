@@ -22,14 +22,35 @@ from gem.reports._formatting import (
     team_name,
 )
 from gem.reports.assets import (
-    HERO_PLACEHOLDER_B64,
+    has_hero_icon,
     hero_icon_src,
     load_hero_icons,
 )
+from gem.reports.player_names import display_player_name
 from gem.results.models import (
     ParsedMatch,
     ParsedPlayer,
 )
+
+
+def _draft_portrait(npc_name: str, alt: str, noicon_cls: str) -> str:
+    """Draft-card portrait: hero icon when loaded, else a blank placeholder.
+
+    Draft cards already render the hero name beneath the portrait, so when no
+    icon cache is present we emit a sized placeholder (keeping the card's
+    footprint and team-color cue) rather than a redundant name chip.
+
+    Args:
+        npc_name: Hero NPC name, possibly empty for an unresolved pick/ban.
+        alt: Pre-escaped alt/title text for the image.
+        noicon_cls: CSS class sizing the placeholder to the card's image box.
+
+    Returns:
+        An ``<img>`` fragment, or a placeholder ``<div>`` fragment.
+    """
+    if npc_name and has_hero_icon(npc_name):
+        return f'<img src="{hero_icon_src(npc_name)}" alt="{alt}">'
+    return f'<div class="{noicon_cls}" title="{alt}"></div>'
 
 
 def build_header(
@@ -85,7 +106,8 @@ def build_header(
     for pp in match.players:
         if pp.team not in (2, 3):
             continue
-        player_label = e(pp.player_name) if pp.player_name else "—"
+        player_name = display_player_name(pp)
+        player_label = e(player_name) if player_name else "—"
         if pp.account_id:
             player_label = (
                 f'<a href="https://www.opendota.com/players/{pp.account_id}" '
@@ -647,7 +669,7 @@ def build_draft(match: ParsedMatch) -> str:
     parts.append('<div class="draft-sequence">')
     for i, ev in enumerate(sorted_draft, 1):
         name = hero_display(ev.hero_name) if ev.hero_name else f"ID {ev.hero_id}"
-        src = hero_icon_src(ev.hero_name) if ev.hero_name else HERO_PLACEHOLDER_B64
+        portrait = _draft_portrait(ev.hero_name, e(name), "draft-noicon")
         time_str = fmt_tick(ev.tick) if ev.tick else ""
         team = _pick_team(ev)
         if not ev.is_pick:
@@ -659,7 +681,7 @@ def build_draft(match: ParsedMatch) -> str:
             f'<div class="draft-cell {css_cls}" title="#{i} {type_label}: {e(name)}">'
             f'<span class="dc-seq">#{i}</span>'
             f'<span class="dc-type-badge">{type_label}</span>'
-            f'<img src="{src}" alt="{e(name)}">'
+            f"{portrait}"
             f'<div class="dc-name">{e(name)}</div>'
             f'<div class="dc-time">{e(time_str)}</div>'
             f"</div>"
@@ -678,14 +700,14 @@ def build_draft(match: ParsedMatch) -> str:
         cards = []
         for ev in events:
             name = hero_display(ev.hero_name) if ev.hero_name else f"ID {ev.hero_id}"
-            src = hero_icon_src(ev.hero_name) if ev.hero_name else HERO_PLACEHOLDER_B64
+            portrait = _draft_portrait(ev.hero_name, e(name), "draft-noicon-pick")
             pp = hero_to_player.get(ev.hero_name)
-            player_name = pp.player_name if pp and pp.player_name else ""
+            player_name = display_player_name(pp)
             time_str = fmt_tick(ev.tick) if ev.tick else ""
             player_html = f'<div class="dp-player">{e(player_name)}</div>' if player_name else ""
             cards.append(
                 f'<div class="draft-pick-card {label_cls}">'
-                f'<img src="{src}" alt="{e(name)}">'
+                f"{portrait}"
                 f'<div class="dp-name">{e(name)}</div>'
                 f"{player_html}"
                 f'<div class="dp-time">{e(time_str)}</div>'

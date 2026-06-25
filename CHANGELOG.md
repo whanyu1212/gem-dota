@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-06-25
+
+Report asset-cache tooling and a documentation overhaul. No change to the
+parsing pipeline or the supported parse/export API; the additions are the
+report asset CLI and the `ReportAssets` cache surface.
+
+### Added
+- Report asset cache (`gem.reports.asset_cache`, exposed as `ReportAssets`):
+  HTML reports can inline hero icons, item icons, and map images from a local
+  user cache instead of bundling them in the wheel. New CLI subcommands under
+  `python -m gem reports assets`:
+  - `path` — show the cache directories
+  - `status [--strict] [--include-recipes]` — report which assets are present
+    or missing (`--strict` exits non-zero when any kind is incomplete)
+  - `download [--icons|--hero-icons|--item-icons] [--force] [--include-recipes]`
+    — fetch icon assets into the cache (skips unchanged files)
+  - `add-map <path> [--name NAME]` — copy a local map image into the cache
+  All subcommands accept `--asset-dir`, and the cache root can also be set via
+  the `GEM_REPORT_ASSET_DIR` environment variable.
+
+### Changed
+- HTML reports now degrade gracefully when no icon cache is present. Item rows
+  (purchases, kill-feed inflictors, ward/rune legends) drop the icon and keep
+  their existing text label rather than rendering an empty cell, and missing
+  hero portraits fall back to the hero's name (in icon+name cells) or a sized
+  placeholder that preserves the card footprint and team-color cue (draft cards,
+  teamfight participant cards) instead of a grey 1×1 placeholder image. Reports
+  generated without running `gem reports assets download` are now fully readable.
+- Documentation site polished for production: code-first landing page with a
+  replay-decoding hero, consolidated parser-internals deep dive, corrected API
+  references in guides (`EntityManager.find_by_handle`, combat-log snippet
+  imports), and fixed heading hierarchy across the experimental pages.
+
 ## [0.4.1] - 2026-06-24
 
 Follow-up to the 0.4.0 OpenDota-parity release: brings the purchase aggregates
@@ -70,6 +103,11 @@ top-level API (`gem.parse`, `gem.ParsedMatch`, …) is unchanged; everything her
 is additive.
 
 ### Added
+- Report asset setup tooling: `python -m gem reports assets path/status/download/add-map`,
+  `ReportAssets.auto()`, and importable cache helpers so HTML report users can
+  populate local hero/item icon and map assets without shipping those assets in
+  the wheel. The downloader validates cached PNGs and falls back across current
+  and legacy Dota CDN icon paths.
 - `ParsedPlayer.final_items` — end-of-game inventory by slot index (0-5 main,
   6-8 backpack, 9-16 stash), keyed item name with the `item_` prefix. Read from
   the hero entity at the game-end tick; verified to match OpenDota's

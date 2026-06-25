@@ -4,8 +4,11 @@
   "type": "module",
   "scripts": {
     "docs:gen-api": "python ../scripts/generate_vitepress_api_reference.py",
-    "docs:dev": "npm run docs:gen-api && vitepress dev",
-    "docs:build": "npm run docs:gen-api && vitepress build",
+    "docs:gen-proto": "python ../scripts/generate_proto_catalog_docs.py && python ../scripts/generate_proto_field_docs.py",
+    "docs:gen": "npm run docs:gen-api",
+    "docs:gen-all": "npm run docs:gen-api && npm run docs:gen-proto",
+    "docs:dev": "npm run docs:gen && vitepress dev",
+    "docs:build": "npm run docs:gen && vitepress build",
     "docs:preview": "vitepress preview"
   },
   "devDependencies": {

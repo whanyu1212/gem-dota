@@ -31,6 +31,7 @@ from gem.reports._formatting import (
 )
 from gem.reports.assets import (
     ITEM_ICON_B64,
+    has_hero_icon,
     hero_icon_src,
     item_icon_tag,
     load_hero_icons,
@@ -660,10 +661,14 @@ def build_laning(match: ParsedMatch, map_b64: str | None = None) -> str:
             f"</div>"
         )
 
-        hero_cell_html = (
+        hero_img = (
             f'<img src="{hero_icon_src(pp.hero_name)}" width="20" height="12" '
             f'style="object-fit:cover;border-radius:2px;vertical-align:middle;margin-right:5px">'
-            f'<span style="color:{team_color}">{e(hero(pp.hero_name))}</span>'
+            if has_hero_icon(pp.hero_name)
+            else ""
+        )
+        hero_cell_html = (
+            f'{hero_img}<span style="color:{team_color}">{e(hero(pp.hero_name))}</span>'
         )
 
         parts.append(
