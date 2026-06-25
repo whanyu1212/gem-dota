@@ -197,4 +197,4 @@ for entity in parser.entity_manager.all_active():
 Source: `src/gem/state/entities.py`, `src/gem/schema/field_state.py`
 
 `EntityManager.all_active()` returns all currently active entities.
-`EntityManager.get_by_handle(handle)` resolves an entity handle.
+`EntityManager.find_by_handle(handle)` resolves an entity handle.

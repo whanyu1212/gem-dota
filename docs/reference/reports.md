@@ -4,8 +4,8 @@ HTML report generation for parsed Dota 2 matches.
 
 Use `gem.reports.build_html_report()` when you want the HTML string, or
 `gem.reports.write_html_report()` when writing a standalone report file. Map
-images and downloaded icon caches are optional local assets; pass them through
-`ReportAssets` when available.
+images and downloaded icon caches are optional local assets; provide them via the
+`ReportAssets` class when available.
 
 ---
 
@@ -30,6 +30,16 @@ Source: [src/gem/reports/assets.py:12](https://github.com/whanyu1212/gem-dota/bl
 | `map_image` | `str | Path | None` | `None` |
 | `hero_icon_dir` | `str | Path | None` | `None` |
 | `item_icon_dir` | `str | Path | None` | `None` |
+
+#### Methods
+
+##### `auto`
+
+Signature: `def ReportAssets.auto(cls, *, root: str | Path | None = None, fallback_map: str | Path | None = None, map_name: str = 'Game_map_7.40.jpg') -> ReportAssets`
+
+Discover local report assets from the configured asset cache.
+
+Source: [src/gem/reports/assets.py:29](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/reports/assets.py#L29)
 
 ## `gem.reports.builder.ReportOptions`
 

@@ -176,5 +176,5 @@ That is why replay parsing is “layers of framing”, not a single protobuf dec
 ## Next pages
 
 1. [How Proto Parsing Works](proto-parsing-pipeline.md)
-2. [Stream Layer (`binary/stream.py`)](../deep-dives/stream-layer.md)
-3. [Parser Layer (`parser.py`)](../deep-dives/parser-layer.md)
+2. [Parser Internals](../deep-dives/index.md)
+3. [Architecture](../architecture.md)

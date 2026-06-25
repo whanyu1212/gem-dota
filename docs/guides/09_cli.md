@@ -1,40 +1,39 @@
 # CLI Reference
 
 gem ships a command-line interface you can invoke with `python -m gem`.
-It covers two workflows:
 
-- **`parse`** — parse a single replay and get a summary, JSON, or Parquet output.
-- **`batch`** — parse a folder (or list) of replays in parallel and write the results.
+It covers three workflows:
 
----
+- `parse` - parse one replay and print a summary, JSON, or Parquet output.
+- `batch` - parse many replays in parallel.
+- `reports assets` - inspect and populate the local asset cache used by HTML reports.
 
 ## Quick examples
 
 ```bash
-# Print a match summary (default)
+# Print a match summary
 python -m gem my_replay.dem
 
-# Export to JSON
+# Export one replay to JSON
 python -m gem my_replay.dem --format json > match.json
 
-# Export to Parquet files
+# Export one replay to Parquet files
 python -m gem parse my_replay.dem --format parquet --output ./out
 
-# Parse a whole folder in parallel
-python -m gem batch replays/ --format parquet --output ./out
+# Parse a folder in parallel
+python -m gem batch replays/ --format parquet --output ./out --workers 4
 
 # Concatenate all replays into one set of DataFrames
 python -m gem batch replays/ --format dataframe --output ./out
 
-# Show a live progress bar and timing breakdown
-python -m gem my_replay.dem --progress --timings
+# Inspect report asset-cache paths and completeness
+python -m gem reports assets path
+python -m gem reports assets status
 ```
 
----
+## `parse` - single replay
 
-## `parse` — single replay
-
-```
+```bash
 python -m gem [parse] <path> [options]
 ```
 
@@ -45,9 +44,9 @@ The `parse` keyword is optional. `python -m gem match.dem` is identical to
 
 | Option | Values | Default | Description |
 |---|---|---|---|
-| `<path>` | path to `.dem` | — | Replay file to parse |
+| `<path>` | path to `.dem` | - | Replay file to parse |
 | `--format` | `summary`, `json`, `parquet` | `summary` | Output format |
-| `--output` | file or directory | stdout / cwd | Output destination. Required for `parquet`; optional for `json` (omit to print to stdout) |
+| `--output` | file or directory | stdout / cwd | Output destination. Required for `parquet`; optional for `json` |
 | `--progress` | flag | off | Show a live phase-by-phase progress bar |
 | `--timings` | flag | off | Print a timing breakdown after parsing |
 | `--quiet`, `-q` | flag | off | Suppress banner and non-essential output |
@@ -55,29 +54,26 @@ The `parse` keyword is optional. `python -m gem match.dem` is identical to
 
 ### Summary output
 
-The default format prints a Rich table with per-player KDA, gold, net worth,
-last hits, denies, and hero kills, grouped by team.
+The default format prints a Rich table with per-player KDA, gold, net worth, last hits,
+denies, and hero kills.
 
 ```bash
 python -m gem my_replay.dem
-python -m gem my_replay.dem --no-banner        # skip ASCII art
-python -m gem my_replay.dem --quiet            # minimal output
+python -m gem my_replay.dem --no-banner
+python -m gem my_replay.dem --quiet
 ```
 
 ### JSON output
 
-With `--format json`, the full `ParsedMatch` structure is serialised to JSON.
-Omit `--output` to print to stdout (useful for piping):
+With `--format json`, the full `ParsedMatch` structure is serialized to JSON. Omit
+`--output` to print JSON to stdout:
 
 ```bash
-# Print to stdout
 python -m gem my_replay.dem --format json
-
-# Write to a file
 python -m gem parse my_replay.dem --format json --output match.json
 ```
 
-Timings go to stderr when JSON is on stdout, so piping works cleanly:
+Timings go to stderr when JSON is written to stdout, so piping works cleanly:
 
 ```bash
 python -m gem my_replay.dem --format json --timings > match.json
@@ -88,19 +84,22 @@ python -m gem my_replay.dem --format json --timings > match.json
 `--format parquet` writes one `.parquet` file per DataFrame table into `--output`:
 
 ```bash
-python -m gem parse my_replay.dem --format parquet --output ./out/
-# Writes: out/players.parquet, out/combat_log.parquet, out/wards.parquet, ...
+python -m gem parse my_replay.dem --format parquet --output ./out
+
+# Example files:
+# out/players.parquet
+# out/combat_log.parquet
+# out/teamfights.parquet
+# out/opendota_teamfights.parquet
 ```
 
 ::: info Parquet dependency
-Requires `pyarrow` (recommended) or `fastparquet` — `pip install pyarrow` or `uv add pyarrow`.
+Requires `pyarrow` or `fastparquet`.
 :::
 
----
+## `batch` - parallel multi-replay processing
 
-## `batch` — parallel multi-replay processing
-
-```
+```bash
 python -m gem batch <source> [options]
 ```
 
@@ -108,18 +107,16 @@ python -m gem batch <source> [options]
 
 | Option | Values | Default | Description |
 |---|---|---|---|
-| `<source>` | directory or file list | — | Replay(s) to parse |
+| `<source>` | directory or file list | - | Replay(s) to parse |
 | `--format` | `parquet`, `dataframe` | `parquet` | Output format |
-| `--output` | directory | — | **Required.** Root output directory |
+| `--output` | directory | - | Required root output directory |
 | `--workers` | integer | `os.cpu_count()` | Number of parallel worker processes |
-| `--recursive` | flag | off | Scan `<source>` directory recursively |
+| `--recursive` | flag | off | Scan source directories recursively |
 | `--progress` | flag | off | Show a Rich progress bar |
 | `--timings` | flag | off | Print timing breakdown after all replays |
 | `--quiet`, `-q` | flag | off | Suppress all non-essential output |
 
-### `--format parquet`
-
-Each replay gets its own subdirectory under `--output`:
+### One Parquet directory per replay
 
 ```bash
 python -m gem batch replays/ --format parquet --output ./out
@@ -129,16 +126,15 @@ python -m gem batch replays/ --format parquet --output ./out
 #   match_6789/
 #     players.parquet
 #     combat_log.parquet
-#     wards.parquet
 #     ...
 #   match_6790/
 #     ...
 ```
 
-### `--format dataframe`
+### Concatenated DataFrames
 
-All replays are concatenated into one set of DataFrames, then written as a flat
-set of `.parquet` files under `--output`. Each row includes a `match_path` column
+`--format dataframe` concatenates each table across all parsed replays and writes one
+flat set of `.parquet` files under `--output`. Each row includes a `match_path` column
 for provenance.
 
 ```bash
@@ -146,59 +142,71 @@ python -m gem batch replays/ --format dataframe --output ./out
 
 # Output layout:
 # out/
-#   players.parquet       ← rows from all replays
+#   players.parquet
 #   combat_log.parquet
 #   match.parquet
 #   ...
 ```
 
-This is equivalent to calling `gem.parse_many_to_dataframe()` and writing the
-result to disk.
+::: warning Exit codes
+The `batch` command exits with code `0` even when some replays fail. It prints a summary
+table of failed replays to stderr, so check the output before treating the batch as
+complete.
+:::
 
-### Parallelism
+## `reports assets` - report asset cache
 
-By default gem uses all CPU cores. Cap workers for lighter load:
+HTML reports can inline hero icons, item icons, and map images when those assets are
+available locally. gem does not bundle these assets in the wheel; the CLI manages a user
+cache for them.
 
 ```bash
-python -m gem batch replays/ --format parquet --output ./out --workers 4
+# Show cache directories
+python -m gem reports assets path
+
+# Check which assets are present or missing
+python -m gem reports assets status
+
+# Exit 1 if any checked asset kind is incomplete
+python -m gem reports assets status --strict
+
+# Download hero and item icons
+python -m gem reports assets download --icons
+
+# Download only one icon category
+python -m gem reports assets download --hero-icons
+python -m gem reports assets download --item-icons
+
+# Re-download existing icons
+python -m gem reports assets download --icons --force
+
+# Include recipe_* item icons in item checks/downloads
+python -m gem reports assets status --include-recipes
+python -m gem reports assets download --item-icons --include-recipes
+
+# Add a locally downloaded map image to the cache
+python -m gem reports assets add-map ./Game_map_7.40.jpg
+python -m gem reports assets add-map ./map.jpg --name Game_map_7.40.jpg
 ```
 
-::: warning Exit codes
-The `batch` command exits with code `0` even when some replays fail.
-A summary table of failed replays is printed to stderr — always check it.
-:::
-
-::: tip
-Start with `--workers 4` on shared machines to leave cores free for other
-processes. On a dedicated parsing box, omit `--workers` to use all cores.
-:::
-
----
+All `reports assets` subcommands accept `--asset-dir` to use a custom cache root. You can
+also set `GEM_REPORT_ASSET_DIR`.
 
 ## Python API equivalents
-
-All CLI operations have direct Python equivalents:
 
 ```python
 import gem
 
-# parse → summary  (inspect ParsedMatch directly)
 match = gem.parse("my_replay.dem")
 
-# parse → json
 json_str = gem.parse_to_json("my_replay.dem", indent=2)
 
-# parse → parquet
 gem.parse_to_parquet("my_replay.dem", output_dir="./out")
 
-# batch → list of ParseResult
 results = gem.parse_many("replays/", workers=4)
 
-# batch → concatenated DataFrames
 dfs = gem.parse_many_to_dataframe("replays/", workers=4)
-dfs["players"]  # has a match_path column
 
-# batch → parquet (one subdir per replay)
 gem.parse_many_to_parquet("replays/", output_dir="./out", workers=4)
 ```
 

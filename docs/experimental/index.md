@@ -30,7 +30,7 @@ An experimental feature usually has at least one of these properties:
 ## Recommended reading order
 
 1. [Bits & Bytes Primer](../cookbook/bits-and-bytes-primer.md)
-2. [Deep Dives](../deep-dives/index.md)
+2. [Parser Internals](../deep-dives/index.md)
 3. [Reports](../reports/index.md)
 4. [Farming Patterns](./farming-patterns.md)
 5. [Roshan Conversion](./rosh-conversion.md)

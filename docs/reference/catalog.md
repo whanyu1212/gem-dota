@@ -57,6 +57,16 @@ Return the full hero metadata dict, or an empty dict if not found.
 
 Source: [src/gem/catalog/heroes.py:76](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/heroes.py#L76)
 
+### `hero_id`
+
+```python
+def hero_id(npc_name: str) -> int
+```
+
+Return the numeric Dota 2 hero ID for an ``npc_dota_hero_*`` name.
+
+Source: [src/gem/catalog/heroes.py:88](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/heroes.py#L88)
+
 ## Module `gem.catalog.items`
 
 Item and permanent-buff catalog lookups.

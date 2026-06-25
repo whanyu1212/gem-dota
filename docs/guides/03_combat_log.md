@@ -106,6 +106,10 @@ Summoned units (Warlock Golem, Undying Zombie, Pugna Nether Ward) show up as the
 handles this automatically when you use `gem.parse()`. For manual tracking:
 
 ```python
+from collections import defaultdict
+
+from gem.state.entities import EntityOp
+
 # Map summoned unit name → owning hero name (built from entity stream)
 summon_owner: dict[str, str] = {}
 

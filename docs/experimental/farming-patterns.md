@@ -668,5 +668,5 @@ If you want to inspect or tune the implementation directly:
 
 1. [Reports](../reports/index.md)
 2. [Replay Edge Cases](../deep-dives/replay-edge-cases.md)
-3. [Extractors Layer](../deep-dives/extractors-layer.md)
+3. [Parser Internals](../deep-dives/index.md)
 4. [Analysis Helpers](../reference/analysis.md)

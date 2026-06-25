@@ -47,7 +47,7 @@ class VisionModifierEvent
 
 A vision-granting modifier applied to a hero (Slardar ulti, BH Track, Dust, Gem, etc.).
 
-Source: [src/gem/results/models.py:30](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L30)
+Source: [src/gem/results/models.py:32](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L32)
 
 #### Dataclass fields
 
@@ -68,7 +68,7 @@ class SmokeEvent
 
 One Smoke of Deceit activation.
 
-Source: [src/gem/results/models.py:56](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L56)
+Source: [src/gem/results/models.py:58](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L58)
 
 #### Dataclass fields
 
@@ -89,7 +89,7 @@ class ChatEntry
 
 A single chat message from the match.
 
-Source: [src/gem/results/models.py:79](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L79)
+Source: [src/gem/results/models.py:81](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L81)
 
 #### Dataclass fields
 
@@ -108,7 +108,7 @@ class NeutralItemFoundEvent
 
 A neutral item found event emitted by DOTA_UM_FoundNeutralItem.
 
-Source: [src/gem/results/models.py:96](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L96)
+Source: [src/gem/results/models.py:98](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L98)
 
 #### Dataclass fields
 
@@ -133,7 +133,7 @@ class ParsedPlayer
 
 Aggregated statistics for one player over a full match.
 
-Source: [src/gem/results/models.py:130](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L130)
+Source: [src/gem/results/models.py:132](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L132)
 
 #### Dataclass fields
 
@@ -166,14 +166,25 @@ Source: [src/gem/results/models.py:130](https://github.com/whanyu1212/gem-dota/b
 | `total_stuns_t_min` | `list[float]` | `field(...)` |
 | `obs_log` | `list[WardEvent]` | `field(...)` |
 | `sen_log` | `list[WardEvent]` | `field(...)` |
+| `obs_left_log` | `list[dict[str, Any]]` | `field(...)` |
+| `sen_left_log` | `list[dict[str, Any]]` | `field(...)` |
+| `obs` | `dict[str, dict[str, int]]` | `field(...)` |
+| `sen` | `dict[str, dict[str, int]]` | `field(...)` |
 | `damage` | `dict[str, int]` | `field(...)` |
 | `damage_taken` | `dict[str, int]` | `field(...)` |
 | `damage_by_type` | `dict[str, int]` | `field(...)` |
 | `damage_taken_by_type` | `dict[str, int]` | `field(...)` |
+| `damage_inflictor` | `dict[str, int]` | `field(...)` |
+| `damage_inflictor_received` | `dict[str, int]` | `field(...)` |
+| `damage_targets` | `dict[str, dict[str, int]]` | `field(...)` |
+| `ability_targets` | `dict[str, dict[str, int]]` | `field(...)` |
+| `hero_hits` | `dict[str, int]` | `field(...)` |
+| `max_hero_hit` | `dict[str, Any] | None` | `None` |
 | `healing` | `dict[str, int]` | `field(...)` |
 | `ability_uses` | `dict[str, int]` | `field(...)` |
 | `ability_upgrades_arr` | `list[int]` | `field(...)` |
 | `item_uses` | `dict[str, int]` | `field(...)` |
+| `final_items` | `dict[int, str]` | `field(...)` |
 | `gold_reasons` | `dict[str, int]` | `field(...)` |
 | `xp_reasons` | `dict[str, int]` | `field(...)` |
 | `kills_log` | `list[CombatLogEntry]` | `field(...)` |
@@ -215,6 +226,29 @@ Source: [src/gem/results/models.py:130](https://github.com/whanyu1212/gem-dota/b
 | `xp_per_min` | `int` | `0` |
 | `total_gold` | `int` | `0` |
 | `total_xp` | `int` | `0` |
+| `killed` | `dict[str, int]` | `field(...)` |
+| `ancient_kills` | `int` | `0` |
+| `neutral_kills` | `int` | `0` |
+| `lane_kills` | `int` | `0` |
+| `courier_kills` | `int` | `0` |
+| `observer_kills` | `int` | `0` |
+| `sentry_kills` | `int` | `0` |
+| `roshan_kills` | `int` | `0` |
+| `hero_id` | `int` | `0` |
+| `level` | `int` | `0` |
+| `gold_spent` | `int` | `0` |
+| `life_state_dead` | `int` | `0` |
+| `firstblood_claimed` | `int` | `0` |
+| `teamfight_participation` | `float` | `0.0` |
+| `purchase` | `dict[str, int]` | `field(...)` |
+| `purchase_time` | `dict[str, int]` | `field(...)` |
+| `first_purchase_time` | `dict[str, int]` | `field(...)` |
+| `purchase_tpscroll` | `int` | `0` |
+| `purchase_ward_observer` | `int` | `0` |
+| `purchase_ward_sentry` | `int` | `0` |
+| `observer_uses` | `int` | `0` |
+| `sentry_uses` | `int` | `0` |
+| `observers_placed` | `int` | `0` |
 
 ### `ParsedMatch`
 
@@ -224,7 +258,7 @@ class ParsedMatch
 
 Top-level parsed output for a single Dota 2 replay.
 
-Source: [src/gem/results/models.py:378](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L378)
+Source: [src/gem/results/models.py:504](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L504)
 
 #### Dataclass fields
 
@@ -243,6 +277,10 @@ Source: [src/gem/results/models.py:378](https://github.com/whanyu1212/gem-dota/b
 | `game_start_tick` | `int | None` | `None` |
 | `game_end_tick` | `int` | `0` |
 | `duration` | `int` | `0` |
+| `radiant_score` | `int` | `0` |
+| `dire_score` | `int` | `0` |
+| `first_blood_time` | `int` | `0` |
+| `pre_game_duration` | `int` | `0` |
 | `players` | `list[ParsedPlayer]` | `field(...)` |
 | `towers` | `list[TowerKill]` | `field(...)` |
 | `barracks` | `list[BarracksKill]` | `field(...)` |
@@ -250,6 +288,12 @@ Source: [src/gem/results/models.py:378](https://github.com/whanyu1212/gem-dota/b
 | `aegis_events` | `list[AegisEvent]` | `field(...)` |
 | `tormentors` | `list[TormentorKill]` | `field(...)` |
 | `shrines` | `list[ShrineKill]` | `field(...)` |
+| `courier_deaths` | `list[CourierDeath]` | `field(...)` |
+| `objectives` | `list[dict[str, Any]]` | `field(...)` |
+| `tower_status_radiant` | `int` | `0` |
+| `tower_status_dire` | `int` | `0` |
+| `barracks_status_radiant` | `int` | `0` |
+| `barracks_status_dire` | `int` | `0` |
 | `wards` | `list[WardEvent]` | `field(...)` |
 | `radiant_gold_adv` | `list[int]` | `field(...)` |
 | `radiant_xp_adv` | `list[int]` | `field(...)` |
@@ -260,6 +304,7 @@ Source: [src/gem/results/models.py:378](https://github.com/whanyu1212/gem-dota/b
 | `smoke_events` | `list[SmokeEvent]` | `field(...)` |
 | `draft` | `list[DraftEvent]` | `field(...)` |
 | `teamfights` | `list[Teamfight]` | `field(...)` |
+| `opendota_teamfights` | `list[OpenDotaTeamfight]` | `field(...)` |
 | `vision_modifiers` | `list[VisionModifierEvent]` | `field(...)` |
 
 #### Properties
@@ -270,7 +315,7 @@ Signature: `def ParsedMatch.duration_seconds(self) -> float`
 
 Game duration in seconds, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:460](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L460)
+Source: [src/gem/results/models.py:628](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L628)
 
 ##### `duration_minutes`
 
@@ -278,4 +323,4 @@ Signature: `def ParsedMatch.duration_minutes(self) -> float`
 
 Game duration in minutes, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:466](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L466)
+Source: [src/gem/results/models.py:634](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L634)

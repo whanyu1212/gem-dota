@@ -52,12 +52,15 @@ For movement and live hero state, the canonical choice is the player's selected 
 
 That handle resolves to one live entity. Sampling that entity avoids most illusion/clone contamination.
 
-Simplified logic:
+The internal sampling logic looks like the following. This is maintainer-oriented
+pseudocode using gem's internal `EntityManager`, not runnable public-API code:
 
 ```python
+# Internal logic — controller, player_resource, and entity_manager are
+# live objects held by the parser during a parse, not public API.
 handle = controller.m_hAssignedHero or player_resource.m_hSelectedHero
 hero_entity = entity_manager.find_by_handle(handle)
-snapshot(hero_entity)
+snapshot(hero_entity)  # sample/store this entity's position and fields
 ```
 
 ### Why matching by `player_id` is not enough
@@ -107,7 +110,9 @@ gem intentionally falls back to live game-rule entities when possible, for examp
 2. winner from `m_nGameWinner`
 3. late-game scoreboard values from authoritative player-resource fields
 
-This is why "missing metadata" does not always mean "parse failed".
+This is why "missing metadata" does not always mean "parse failed". When parsing ends
+early, `ReplayParser` also records `parse_error` and `truncated_at_tick` so callers can
+distinguish complete output from useful partial output.
 
 ## Build-specific field and schema differences
 
@@ -134,6 +139,7 @@ Examples:
 2. farming context labels like `safe_home_farm` or `high_risk_invade`
 3. map control proxies
 4. teamfight clustering windows
+5. vision modifier windows and other reveal approximations
 
 These are analytics heuristics, not raw replay facts.
 
@@ -158,6 +164,6 @@ When something looks wrong, check in this order:
 ## Related pages
 
 1. [Bits & Bytes Primer](../cookbook/bits-and-bytes-primer.md)
-2. [State Reconstruction Layer](state-layer.md)
-3. [Extractors Layer](extractors-layer.md)
-4. [Match Assembly Layer](match-assembly-layer.md)
+2. [Parser Internals](index.md)
+3. [Entity State](../guides/02_entity_state.md)
+4. [Full Match Data](../guides/04_match_data.md)

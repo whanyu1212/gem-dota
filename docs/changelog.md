@@ -184,7 +184,7 @@ This feature is still experimental by design.
 
 ::: info Replay Edge Cases
 
-There is now a dedicated deep-dive page for replay-specific pitfalls, including:
+There is now a dedicated internals page for replay-specific pitfalls, including:
 
 - duplicate hero entities vs the canonical hero handle
 - within-tick sampling caveats
@@ -192,7 +192,7 @@ There is now a dedicated deep-dive page for replay-specific pitfalls, including:
 - schema drift across builds
 - inference limits for higher-level analytics
 
-If you are debugging parser behavior, read this together with the Deep Dives and Experimental Features sections.
+If you are debugging parser behavior, read this together with Parser Internals and Experimental Features.
 
 :::
 
