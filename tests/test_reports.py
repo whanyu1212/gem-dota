@@ -88,3 +88,76 @@ def test_write_html_report_returns_written_path(tmp_path) -> None:
     assert written == output
     assert output.exists()
     assert "Dota 2 Match Report" in output.read_text(encoding="utf-8")
+
+
+def test_report_without_icons_falls_back_to_hero_names() -> None:
+    """Without an icon cache the report must stay readable via hero names.
+
+    The scoreboard renders each hero's display name as text, and no grey 1×1
+    placeholder data URI leaks into the output in place of a missing portrait.
+    """
+    from gem.reports.assets import HERO_PLACEHOLDER_B64, ReportAssets, configure_assets
+
+    configure_assets(ReportAssets())  # explicitly no icon cache
+    html = build_html_report(
+        _minimal_match(),
+        options=ReportOptions(include_movement=False),
+        assets=ReportAssets(),
+    )
+
+    assert "Axe" in html
+    assert "Bane" in html
+    # The grey placeholder square must not stand in for a missing portrait.
+    assert HERO_PLACEHOLDER_B64 not in html
+
+
+def test_item_icon_tag_is_icon_only_when_uncached() -> None:
+    """``item_icon_tag`` is an icon prefix only.
+
+    Every call site appends its own item label, so an uncached item must
+    return an empty string (degrading to the adjacent text) rather than a
+    name chip — otherwise the name would render twice (e.g. "BlinkBlink").
+    """
+    from gem.reports.assets import ITEM_ICON_B64, item_icon_tag
+
+    ITEM_ICON_B64.clear()
+    assert item_icon_tag("item_blink") == ""
+    assert item_icon_tag("") == ""
+
+    ITEM_ICON_B64["blink"] = "data:image/png;base64,AAAA"
+    assert "<img" in item_icon_tag("item_blink")
+    ITEM_ICON_B64.clear()
+
+
+def test_purchase_rows_show_item_name_once_without_icons() -> None:
+    """A purchase entry with no icon cache must not duplicate the item name."""
+    from gem.combat.log import CombatLogEntry
+    from gem.reports.assets import ReportAssets, configure_assets
+
+    match = _minimal_match()
+    match.players[0].purchase_log = [
+        CombatLogEntry(tick=600, log_type="PURCHASE", value_name="item_blink"),
+    ]
+
+    configure_assets(ReportAssets())
+    html = build_html_report(
+        match,
+        options=ReportOptions(include_movement=False),
+        assets=ReportAssets(),
+    )
+
+    # The item label appears, but never doubled up (no "Blink DaggerBlink Dagger").
+    assert "Blink DaggerBlink Dagger" not in html
+    assert "Blink Dagger" in html
+
+
+def test_has_hero_icon_tracks_loaded_cache() -> None:
+    from gem.reports.assets import HERO_ICON_B64, has_hero_icon
+
+    HERO_ICON_B64.clear()
+    assert not has_hero_icon("npc_dota_hero_axe")
+
+    HERO_ICON_B64["axe"] = "data:image/png;base64,AAAA"
+    assert has_hero_icon("npc_dota_hero_axe")
+    assert has_hero_icon("axe")
+    HERO_ICON_B64.clear()

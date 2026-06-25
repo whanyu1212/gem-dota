@@ -131,6 +131,7 @@ tbody td.r { text-align: right; font-variant-numeric: tabular-nums; }
     border: 2px solid transparent; position: relative;
 }
 .draft-cell img { width: 72px; height: 42px; object-fit: cover; display: block; }
+.draft-noicon { width: 72px; height: 42px; background: #21262d; display: block; }
 .draft-cell .dc-name {
     font-size: 0.6rem; font-weight: 600; text-align: center;
     padding: 2px 3px; width: 100%; white-space: nowrap;
@@ -195,6 +196,7 @@ tbody td.r { text-align: right; font-variant-numeric: tabular-nums; }
     border: 2px solid transparent;
 }
 .draft-pick-card img { width: 88px; height: 52px; object-fit: cover; display: block; }
+.draft-noicon-pick { width: 88px; height: 52px; background: #21262d; display: block; }
 .draft-pick-card .dp-name {
     font-size: 0.65rem; font-weight: 600; text-align: center;
     padding: 3px 4px 1px; width: 100%; white-space: nowrap;
@@ -574,9 +576,19 @@ details[open].sub-accordion > summary::before {
     border-radius: 4px;
     border: 2px solid transparent;
 }
-.tf-participant.radiant img { border-color: #4caf50; }
-.tf-participant.dire img { border-color: #f44336; }
-.tf-participant.died img { box-shadow: 0 0 0 2px #ffffff; }
+.tf-participant-noicon {
+    width: 62px;
+    height: 36px;
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background: #21262d;
+}
+.tf-participant.radiant img,
+.tf-participant.radiant .tf-participant-noicon { border-color: #4caf50; }
+.tf-participant.dire img,
+.tf-participant.dire .tf-participant-noicon { border-color: #f44336; }
+.tf-participant.died img,
+.tf-participant.died .tf-participant-noicon { box-shadow: 0 0 0 2px #ffffff; }
 .tf-participant-hero {
     font-size: 10px;
     font-weight: 600;

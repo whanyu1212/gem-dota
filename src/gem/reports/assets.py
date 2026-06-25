@@ -100,7 +100,13 @@ def load_item_icons(short_names: list[str], assets: ReportAssets | None = None) 
 
 
 def item_icon_tag(item_key: str, size: int = 24) -> str:
-    """Return an ``<img>`` tag for an item icon, or empty string if unavailable."""
+    """Return an ``<img>`` tag for an item icon, or empty string if unavailable.
+
+    This is icon-only: every call site uses it as a prefix and renders the
+    item's name alongside, so returning ``""`` when no icon is cached degrades
+    cleanly to the adjacent text label (no duplicated name). Hero icon-less
+    fallback is handled per call site via :func:`has_hero_icon`.
+    """
     short = item_key.removeprefix("item_")
     src = ITEM_ICON_B64.get(short, "")
     if not src:
@@ -132,6 +138,15 @@ def hero_icon_src(npc_name: str) -> str:
     """Return a base64 data URI for a hero portrait, or the placeholder."""
     short = npc_name.removeprefix("npc_dota_hero_")
     return HERO_ICON_B64.get(short, HERO_PLACEHOLDER_B64)
+
+
+def has_hero_icon(npc_name: str) -> bool:
+    """Return whether a real hero portrait is loaded for ``npc_name``.
+
+    Used by section renderers to decide between a portrait ``<img>`` and a
+    name-only fallback when no icon cache is configured.
+    """
+    return npc_name.removeprefix("npc_dota_hero_") in HERO_ICON_B64
 
 
 def _is_png_file(path: Path) -> bool:
