@@ -103,8 +103,6 @@ def build_wards(match: ParsedMatch, map_b64: str | None) -> str:
             }
         )
 
-    wards_js = json.dumps(ward_data)
-
     _SMOKE_SHOW_TICKS = 300
     smoke_data = []
     for s in match.smoke_events:
@@ -127,9 +125,26 @@ def build_wards(match: ParsedMatch, map_b64: str | None) -> str:
                 "seen": seen_by_enemy,
             }
         )
-    smokes_js = json.dumps(smoke_data)
-
-    img_src_js = "window._GEM_MAP_SRC||''" if map_b64 else "''"
+    # Bundle every value that crosses the Python -> JS boundary into a single
+    # inert ``<script type="application/json">`` config tag (mirrors the cleaner
+    # ``build_farming`` pattern in this file). The executable ``<script>`` below
+    # reads this tag via ``JSON.parse`` instead of having data interpolated into
+    # it, so its body stays a plain string with natural single braces.
+    ward_config = {
+        "wards": ward_data,
+        "smokes": smoke_data,
+        "gameStartTick": match.game_start_tick or 0,
+        "sliderMin": slider_min,
+        "sliderMax": slider_max,
+        "worldWidth": _XMAX - _XMIN,
+        "hasMap": bool(map_b64),
+        "iconObs": ITEM_ICON_B64.get("ward_observer", ""),
+        "iconSen": ITEM_ICON_B64.get("ward_sentry", ""),
+        "iconSmoke": ITEM_ICON_B64.get("smoke_of_deceit", ""),
+    }
+    # ``</`` is escaped so a stray ``</script>`` substring in the data cannot
+    # close the data tag early (defensive; base64/JSON values won't contain it).
+    ward_config_js = json.dumps(ward_config).replace("</", "<\\/")
 
     canvas_html = f"""
 <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-bottom:16px">
@@ -175,18 +190,23 @@ def build_wards(match: ParsedMatch, map_b64: str | None) -> str:
     </p>
   </div>
 </div>
+<script type="application/json" id="ward-data">{ward_config_js}</script>
+"""
+
+    ward_script = """
 <script>
-(function() {{
-  var wards = {wards_js};
-  var smokes = {smokes_js};
-var imgSrc = {img_src_js};
-  var iconObsSrc = {json.dumps(ITEM_ICON_B64.get("ward_observer", ""))};
-  var iconSenSrc = {json.dumps(ITEM_ICON_B64.get("ward_sentry", ""))};
-  var iconSmokeSrc = {json.dumps(ITEM_ICON_B64.get("smoke_of_deceit", ""))};
-  var gameStartTick = {match.game_start_tick or 0};
-  var sliderMin = {slider_min};
-  var sliderMax = {slider_max};
-  var WORLD_WIDTH = {_XMAX - _XMIN};
+(function() {
+  var cfg = JSON.parse(document.getElementById('ward-data').textContent || '{}');
+  var wards = cfg.wards || [];
+  var smokes = cfg.smokes || [];
+  var imgSrc = cfg.hasMap ? (window._GEM_MAP_SRC || '') : '';
+  var iconObsSrc = cfg.iconObs || '';
+  var iconSenSrc = cfg.iconSen || '';
+  var iconSmokeSrc = cfg.iconSmoke || '';
+  var gameStartTick = cfg.gameStartTick || 0;
+  var sliderMin = cfg.sliderMin || 0;
+  var sliderMax = cfg.sliderMax || 0;
+  var WORLD_WIDTH = cfg.worldWidth;
   var OBS_VISION_RADIUS = 1600;
   var SEN_TRUESIGHT_RADIUS = 1050;
   var canvas = document.getElementById('wardCanvas');
@@ -202,43 +222,43 @@ var speedSel = document.getElementById('wardSpeed');
   var lastTs = null;
 
   var mapImg = new Image();
-  mapImg.onload = function() {{ draw(currentTick); }};
-  if (imgSrc) {{ mapImg.src = imgSrc; }}
+  mapImg.onload = function() { draw(currentTick); };
+  if (imgSrc) { mapImg.src = imgSrc; }
 
-  function _makeIcon(src) {{
+  function _makeIcon(src) {
     var img = new Image();
     if (src) img.src = src;
     return img;
-  }}
+  }
   var iconObs = _makeIcon(iconObsSrc);
   var iconSen = _makeIcon(iconSenSrc);
   var iconSmoke = _makeIcon(iconSmokeSrc);
 
-  function fmtTick(tick) {{
+  function fmtTick(tick) {
     var rel = tick - gameStartTick;
     var neg = rel < 0;
     var secs = Math.floor(Math.abs(rel) / 30);
     var m = Math.floor(secs / 60), s = secs % 60;
     var t = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
     return neg ? '-' + t : t;
-  }}
+  }
 
-  function draw(tick) {{
+  function draw(tick) {
     ctx.clearRect(0, 0, W, H);
 
-    if (mapImg.complete && mapImg.naturalWidth > 0) {{
+    if (mapImg.complete && mapImg.naturalWidth > 0) {
       ctx.drawImage(mapImg, 0, 0, W, H);
-    }} else {{
+    } else {
       ctx.fillStyle = '#1a2a1a';
       ctx.fillRect(0, 0, W, H);
-    }}
+    }
 
 
-    function drawIcon(img, cx, cy, size, borderColor, alpha) {{
+    function drawIcon(img, cx, cy, size, borderColor, alpha) {
       var half = size / 2;
       ctx.save();
       ctx.globalAlpha = alpha !== undefined ? alpha : 1.0;
-      if (img && img.complete && img.naturalWidth > 0) {{
+      if (img && img.complete && img.naturalWidth > 0) {
         ctx.beginPath();
         ctx.roundRect(cx - half, cy - half, size, size, 3);
         ctx.clip();
@@ -251,16 +271,16 @@ var speedSel = document.getElementById('wardSpeed');
         ctx.lineWidth = 2;
         ctx.strokeStyle = borderColor;
         ctx.stroke();
-      }} else {{
+      } else {
         ctx.beginPath();
         ctx.arc(cx, cy, half, 0, 2 * Math.PI);
         ctx.fillStyle = borderColor;
         ctx.fill();
-      }}
+      }
       ctx.restore();
-    }}
+    }
 
-    for (var i = 0; i < wards.length; i++) {{
+    for (var i = 0; i < wards.length; i++) {
       var w = wards[i];
       if (tick < w.placed) continue;
       if (w.removed !== null && tick > w.removed) continue;
@@ -284,9 +304,9 @@ var speedSel = document.getElementById('wardSpeed');
       ctx.restore();
 
       drawIcon(icon, cx, cy, isObs ? 18 : 16, borderColor);
-    }}
+    }
 
-    for (var i = 0; i < smokes.length; i++) {{
+    for (var i = 0; i < smokes.length; i++) {
       var s = smokes[i];
       if (tick < s.tick || tick > s.end_tick) continue;
 
@@ -309,51 +329,51 @@ var speedSel = document.getElementById('wardSpeed');
       ctx.textBaseline = 'middle';
       ctx.fillText(s.count, cx + 8, cy - 8);
       ctx.restore();
-    }}
-  }}
+    }
+  }
 
-  function setTick(tick) {{
+  function setTick(tick) {
     currentTick = Math.max(sliderMin, Math.min(sliderMax, tick));
     slider.value = currentTick;
     timeLabel.textContent = fmtTick(currentTick);
     draw(currentTick);
-  }}
+  }
 
-  function animFrame(ts) {{
+  function animFrame(ts) {
     if (!playing) return;
-    if (lastTs !== null) {{
+    if (lastTs !== null) {
       var speed = parseInt(speedSel.value) || 5;
       var delta = (ts - lastTs) * speed * 30 / 1000;
       currentTick = Math.min(sliderMax, currentTick + delta);
       slider.value = currentTick;
       timeLabel.textContent = fmtTick(Math.floor(currentTick));
       draw(Math.floor(currentTick));
-      if (currentTick >= sliderMax) {{
+      if (currentTick >= sliderMax) {
         playing = false;
         playBtn.textContent = '\u25b6';
         lastTs = null;
         return;
-      }}
-    }}
+      }
+    }
     lastTs = ts;
     requestAnimationFrame(animFrame);
-  }}
+  }
 
-  playBtn.addEventListener('click', function() {{
-    if (playing) {{
+  playBtn.addEventListener('click', function() {
+    if (playing) {
       playing = false;
       lastTs = null;
       playBtn.textContent = '\u25b6';
-    }} else {{
+    } else {
       if (currentTick >= sliderMax) setTick(sliderMin);
       playing = true;
       playBtn.textContent = '\u23f8';
       lastTs = null;
       requestAnimationFrame(animFrame);
-    }}
-  }});
+    }
+  });
 
-  slider.addEventListener('input', function() {{
+  slider.addEventListener('input', function() {
     playing = false;
     lastTs = null;
     playBtn.textContent = '\u25b6';
@@ -361,31 +381,31 @@ var speedSel = document.getElementById('wardSpeed');
     timeLabel.textContent = fmtTick(currentTick);
     draw(currentTick);
     tooltip.innerHTML = '';
-  }});
+  });
 
-  canvas.addEventListener('mousemove', function(e) {{
+  canvas.addEventListener('mousemove', function(e) {
     var rect = canvas.getBoundingClientRect();
     var mx = (e.clientX - rect.left) * (W / rect.width);
     var my = (e.clientY - rect.top) * (H / rect.height);
     var hit = null, hitType = null, bestDist = 12;
 
-    for (var i = 0; i < wards.length; i++) {{
+    for (var i = 0; i < wards.length; i++) {
       var w = wards[i];
       if (currentTick < w.placed) continue;
       if (w.removed !== null && currentTick > w.removed) continue;
       var dx = w.fx * W - mx, dy = w.fy * H - my;
       var dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < bestDist) {{ bestDist = dist; hit = w; hitType = 'ward'; }}
-    }}
-    for (var i = 0; i < smokes.length; i++) {{
+      if (dist < bestDist) { bestDist = dist; hit = w; hitType = 'ward'; }
+    }
+    for (var i = 0; i < smokes.length; i++) {
       var s = smokes[i];
       if (currentTick < s.tick || currentTick > s.end_tick) continue;
       var dx = s.fx * W - mx, dy = s.fy * H - my;
       var dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < bestDist) {{ bestDist = dist; hit = s; hitType = 'smoke'; }}
-    }}
+      if (dist < bestDist) { bestDist = dist; hit = s; hitType = 'smoke'; }
+    }
 
-    if (hit && hitType === 'ward') {{
+    if (hit && hitType === 'ward') {
       var teamName = hit.team === 2 ? 'Radiant' : 'Dire';
       var teamColor = hit.team === 2 ? '#4caf50' : '#f44336';
       var fateStr = hit.fate === 'killed' ? '&#128308; Killed ' + hit.fate_time
@@ -397,7 +417,7 @@ var speedSel = document.getElementById('wardSpeed');
         'Placed: ' + hit.placed_fmt + ' by ' + hit.placer + '<br>' +
         fateStr;
       canvas.style.cursor = 'pointer';
-    }} else if (hit && hitType === 'smoke') {{
+    } else if (hit && hitType === 'smoke') {
       var teamName = hit.team === 2 ? 'Radiant' : 'Dire';
       var teamColor = hit.team === 2 ? '#4caf50' : '#f44336';
       var seenStr = hit.seen
@@ -410,15 +430,16 @@ var speedSel = document.getElementById('wardSpeed');
         hit.count + ' hero' + (hit.count !== 1 ? 'es' : '') + ' smoked<br>' +
         seenStr;
       canvas.style.cursor = 'pointer';
-    }} else {{
+    } else {
       tooltip.innerHTML = '';
       canvas.style.cursor = 'crosshair';
-    }}
-  }});
-}})();
+    }
+  });
+})();
 </script>"""
 
     parts.append(canvas_html)
+    parts.append(ward_script)
 
     parts.append(
         '<details style="margin-top:8px"><summary style="color:#8b949e;font-size:12px;cursor:pointer">Show full ward table</summary>'

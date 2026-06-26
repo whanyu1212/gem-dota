@@ -530,123 +530,36 @@ def _interval_series_by_player(
     return series
 
 
-def build_parsed_match(
-    parser: ReplayParser,
+def _populate_player_series(
+    match: ParsedMatch,
+    *,
     player_ext: PlayerExtractor,
-    obj_ext: ObjectivesExtractor,
-    ward_ext: WardsExtractor,
-    courier_ext: CourierExtractor,
-    draft_ext: DraftExtractor,
     combat_agg: _CombatAggregator,
-    all_entries: list[CombatLogEntry],
-    chat_entries: list[ChatEntry],
-    smoke_events: list[SmokeEvent] | None = None,
-    vision_modifier_events: list[VisionModifierEvent] | None = None,
-    neutral_item_finds: list[NeutralItemFoundEvent] | None = None,
-    interval_ext: IntervalExtractor | None = None,
-) -> ParsedMatch:
-    """Assemble a :class:`ParsedMatch` from extractor state after a completed parse.
+    interval_ext: IntervalExtractor | None,
+    interval_min_series: dict[int, IntervalTimeSeries],
+    game_start_tick: int | None,
+    radiant_win: bool | None,
+) -> None:
+    """Populate per-player time series and combat-log aggregates in place.
 
-    Handles radiant_win resolution (three-tier), per-player time series wiring,
-    player name extraction, ward-to-player assignment, gold/XP advantage curves,
-    and teamfight detection.
+    Iterates the ten player slots and overlays each ``match.players[player_id]``
+    with its dense/minute time series, combat-log attribution, kill aggregates,
+    lane stats, terminal scalars, final inventory, and OpenDota-style computed
+    fields. Each iteration is independent (no cross-player state), so the loop is
+    a straight single-pass population of one ``ParsedPlayer`` per slot.
+
+    Extracted verbatim from ``build_parsed_match`` (issue #106 item #3) to keep
+    the orchestrator readable; behaviour is unchanged.
 
     Args:
-        parser: Completed :class:`ReplayParser` instance.
-        player_ext: Attached :class:`PlayerExtractor`.
-        obj_ext: Attached :class:`ObjectivesExtractor`.
-        ward_ext: Attached :class:`WardsExtractor`.
-        courier_ext: Attached :class:`CourierExtractor`.
-        draft_ext: Attached :class:`DraftExtractor` (already finalized).
-        combat_agg: Populated :class:`_CombatAggregator`.
-        all_entries: All :class:`CombatLogEntry` objects from the replay.
-        chat_entries: All :class:`ChatEntry` objects from the replay.
-        smoke_events: All :class:`SmokeEvent` objects collected during parse.
-        vision_modifier_events: All :class:`VisionModifierEvent` objects collected during parse.
-        neutral_item_finds: Neutral item found events collected during parse.
-        interval_ext: Optional internal interval extractor used for OpenDota-style
-            match-level gold/XP advantage curves.
-
-    Returns:
-        Fully populated :class:`ParsedMatch`.
+        match: The match being assembled; ``match.players`` is mutated in place.
+        player_ext: Source of per-player snapshots / time series / scoreboard.
+        combat_agg: Per-player combat-log aggregates.
+        interval_ext: OpenDota-style interval extractor (team counters, scalars).
+        interval_min_series: Complete interval minute arrays by player id.
+        game_start_tick: Horn tick used for the lane-window time filter.
+        radiant_win: Resolved match winner, or ``None`` if unknown.
     """
-    from gem.extractors.teamfights import detect_opendota_teamfights, detect_teamfights
-
-    # radiant_win resolution — three tiers in priority order:
-    #   1. CDemoFileInfo.game_winner (set during parse, empty for HLTV replays)
-    #   2. m_pGameRules.m_nGameWinner entity field (set post-parse in parser.py)
-    #   3. Ancient DEATH in combat log — no API needed
-    radiant_win = parser.radiant_win
-    if radiant_win is None:
-        radiant_win = _radiant_win_from_ancient(all_entries)
-
-    match = ParsedMatch(
-        match_id=parser.match_id,
-        game_mode=parser.game_mode,
-        leagueid=parser.leagueid,
-        radiant_win=radiant_win,
-        towers=obj_ext.tower_kills,
-        barracks=obj_ext.barracks_kills,
-        roshans=obj_ext.roshan_kills,
-        aegis_events=obj_ext.aegis_events,
-        tormentors=obj_ext.tormentor_kills,
-        shrines=obj_ext.shrine_kills,
-        wards=ward_ext.ward_events,
-        combat_log=all_entries,
-        chat=chat_entries,
-        courier_snapshots=courier_ext.snapshots,
-        neutral_item_finds=neutral_item_finds or [],
-        smoke_events=smoke_events or [],
-        vision_modifiers=vision_modifier_events or [],
-        draft=draft_ext.draft_events,
-        game_start_tick=parser.game_start_tick,
-        game_end_tick=parser.tick,
-        duration=getattr(parser, "duration_s", None) or 0,
-    )
-
-    # Post-process buybacks (7b).
-    # For BUYBACK entries, entry.value = player slot (0-9).
-    # Reference: refs/parser/src/main/java/opendota/CreateParsedDataBlob.java handleBuyback()
-    for entry in all_entries:
-        if entry.log_type != "BUYBACK":
-            continue
-        pid = entry.value
-        if 0 <= pid < 10:
-            combat_agg._agg(pid).buyback_log.append(entry)
-
-    # Capture game_start_tick once — used for lane_pos time filter below
-    game_start_tick = parser.game_start_tick
-    interval_min_series = _interval_series_by_player(interval_ext)
-
-    # first_blood_time: game-clock time of the earliest real hero DEATH. Illusion
-    # deaths and reincarnation triggers are excluded (target_is_hero stays true for
-    # an illusion, so the explicit not-illusion filter is required). The per-player
-    # firstblood_claimed flag is read separately from the authoritative
-    # CDOTA_PlayerResource field below, not reconstructed from this entry.
-    first_blood_entry = next(
-        (
-            e
-            for e in all_entries
-            if e.log_type == "DEATH"
-            and e.target_is_hero
-            and not e.target_is_illusion
-            and not e.will_reincarnate
-        ),
-        None,
-    )
-    if first_blood_entry is not None:
-        if first_blood_entry.game_time_s is not None:
-            match.first_blood_time = int(first_blood_entry.game_time_s)
-        elif game_start_tick is not None:
-            match.first_blood_time = max(0, (first_blood_entry.tick - game_start_tick) // 30)
-
-    # NOTE: pre_game_duration (horn → creep-spawn span, ~90s) is intentionally
-    # left at its default 0 here. It requires the GAME_IN_PROGRESS state-transition
-    # timestamp, which the parser does not yet expose separately from the clock
-    # anchor (m_flGameStartTime is the engine clock zero, not the pre-game span).
-    # Tracked as a follow-up rather than shipping a wrong value.
-
-    # Build per-player time series and overlay combat log aggregates
     for player_id in range(10):
         ts = player_ext.time_series(player_id)
         mts = player_ext.minute_time_series(player_id)
@@ -880,6 +793,134 @@ def build_parsed_match(
         _LANE_GOLD_BASELINE = 4948
         if pp.lane_total_gold > 0:
             pp.lane_efficiency_pct = int(pp.lane_total_gold / _LANE_GOLD_BASELINE * 100)
+
+
+def build_parsed_match(
+    parser: ReplayParser,
+    player_ext: PlayerExtractor,
+    obj_ext: ObjectivesExtractor,
+    ward_ext: WardsExtractor,
+    courier_ext: CourierExtractor,
+    draft_ext: DraftExtractor,
+    combat_agg: _CombatAggregator,
+    all_entries: list[CombatLogEntry],
+    chat_entries: list[ChatEntry],
+    smoke_events: list[SmokeEvent] | None = None,
+    vision_modifier_events: list[VisionModifierEvent] | None = None,
+    neutral_item_finds: list[NeutralItemFoundEvent] | None = None,
+    interval_ext: IntervalExtractor | None = None,
+) -> ParsedMatch:
+    """Assemble a :class:`ParsedMatch` from extractor state after a completed parse.
+
+    Handles radiant_win resolution (three-tier), per-player time series wiring,
+    player name extraction, ward-to-player assignment, gold/XP advantage curves,
+    and teamfight detection.
+
+    Args:
+        parser: Completed :class:`ReplayParser` instance.
+        player_ext: Attached :class:`PlayerExtractor`.
+        obj_ext: Attached :class:`ObjectivesExtractor`.
+        ward_ext: Attached :class:`WardsExtractor`.
+        courier_ext: Attached :class:`CourierExtractor`.
+        draft_ext: Attached :class:`DraftExtractor` (already finalized).
+        combat_agg: Populated :class:`_CombatAggregator`.
+        all_entries: All :class:`CombatLogEntry` objects from the replay.
+        chat_entries: All :class:`ChatEntry` objects from the replay.
+        smoke_events: All :class:`SmokeEvent` objects collected during parse.
+        vision_modifier_events: All :class:`VisionModifierEvent` objects collected during parse.
+        neutral_item_finds: Neutral item found events collected during parse.
+        interval_ext: Optional internal interval extractor used for OpenDota-style
+            match-level gold/XP advantage curves.
+
+    Returns:
+        Fully populated :class:`ParsedMatch`.
+    """
+    from gem.extractors.teamfights import detect_opendota_teamfights, detect_teamfights
+
+    # radiant_win resolution — three tiers in priority order:
+    #   1. CDemoFileInfo.game_winner (set during parse, empty for HLTV replays)
+    #   2. m_pGameRules.m_nGameWinner entity field (set post-parse in parser.py)
+    #   3. Ancient DEATH in combat log — no API needed
+    radiant_win = parser.radiant_win
+    if radiant_win is None:
+        radiant_win = _radiant_win_from_ancient(all_entries)
+
+    match = ParsedMatch(
+        match_id=parser.match_id,
+        game_mode=parser.game_mode,
+        leagueid=parser.leagueid,
+        radiant_win=radiant_win,
+        towers=obj_ext.tower_kills,
+        barracks=obj_ext.barracks_kills,
+        roshans=obj_ext.roshan_kills,
+        aegis_events=obj_ext.aegis_events,
+        tormentors=obj_ext.tormentor_kills,
+        shrines=obj_ext.shrine_kills,
+        wards=ward_ext.ward_events,
+        combat_log=all_entries,
+        chat=chat_entries,
+        courier_snapshots=courier_ext.snapshots,
+        neutral_item_finds=neutral_item_finds or [],
+        smoke_events=smoke_events or [],
+        vision_modifiers=vision_modifier_events or [],
+        draft=draft_ext.draft_events,
+        game_start_tick=parser.game_start_tick,
+        game_end_tick=parser.tick,
+        duration=getattr(parser, "duration_s", None) or 0,
+    )
+
+    # Post-process buybacks (7b).
+    # For BUYBACK entries, entry.value = player slot (0-9).
+    # Reference: refs/parser/src/main/java/opendota/CreateParsedDataBlob.java handleBuyback()
+    for entry in all_entries:
+        if entry.log_type != "BUYBACK":
+            continue
+        pid = entry.value
+        if 0 <= pid < 10:
+            combat_agg._agg(pid).buyback_log.append(entry)
+
+    # Capture game_start_tick once — used for lane_pos time filter below
+    game_start_tick = parser.game_start_tick
+    interval_min_series = _interval_series_by_player(interval_ext)
+
+    # first_blood_time: game-clock time of the earliest real hero DEATH. Illusion
+    # deaths and reincarnation triggers are excluded (target_is_hero stays true for
+    # an illusion, so the explicit not-illusion filter is required). The per-player
+    # firstblood_claimed flag is read separately from the authoritative
+    # CDOTA_PlayerResource field below, not reconstructed from this entry.
+    first_blood_entry = next(
+        (
+            e
+            for e in all_entries
+            if e.log_type == "DEATH"
+            and e.target_is_hero
+            and not e.target_is_illusion
+            and not e.will_reincarnate
+        ),
+        None,
+    )
+    if first_blood_entry is not None:
+        if first_blood_entry.game_time_s is not None:
+            match.first_blood_time = int(first_blood_entry.game_time_s)
+        elif game_start_tick is not None:
+            match.first_blood_time = max(0, (first_blood_entry.tick - game_start_tick) // 30)
+
+    # NOTE: pre_game_duration (horn → creep-spawn span, ~90s) is intentionally
+    # left at its default 0 here. It requires the GAME_IN_PROGRESS state-transition
+    # timestamp, which the parser does not yet expose separately from the clock
+    # anchor (m_flGameStartTime is the engine clock zero, not the pre-game span).
+    # Tracked as a follow-up rather than shipping a wrong value.
+
+    # Build per-player time series and overlay combat log aggregates.
+    _populate_player_series(
+        match,
+        player_ext=player_ext,
+        combat_agg=combat_agg,
+        interval_ext=interval_ext,
+        interval_min_series=interval_min_series,
+        game_start_tick=game_start_tick,
+        radiant_win=radiant_win,
+    )
 
     match_metadata = getattr(parser, "match_metadata", None)
     metadata = getattr(match_metadata, "metadata", None)

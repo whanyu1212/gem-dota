@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Refactored the HTML report's ward-map section (`reports/sections/vision.py`,
+  `build_wards`) to inject its data through an inert
+  `<script type="application/json">` tag — matching the cleaner pattern already
+  used by the farming section in the same file — instead of interpolating it into
+  the executable `<script>`. This removes ~240 lines of fragile doubled-brace
+  (`{{ }}`) f-string escaping. No change to the rendered report. (#106 item #6)
+- **Internal:** the inline Smoke-of-Deceit and vision-modifier collection logic
+  (~100 lines of closures in `gem.api.parse`) is extracted into
+  `gem.extractors.smoke_vision` (`SmokeExtractor`, `VisionModifierExtractor`),
+  following the existing `attach()`/`finalize()` extractor contract. Both take the
+  `PlayerExtractor` (same dependency pattern as `_CombatAggregator`) for live hero
+  positions and the post-parse team back-fill. No output change — smoke groups,
+  centroids, and vision-modifier windows are identical (verified end-to-end on a
+  replay fixture); the extractors are internal and not part of the public API.
+  (#106 item #2)
+- **Internal:** the ~234-line per-player population loop in
+  `results/assembly.build_parsed_match` is extracted into a dedicated
+  `_populate_player_series(match, ...)` helper, shrinking the orchestrator from
+  527 to ~310 lines. Each player slot is populated independently (no cross-player
+  state), so the loop moved verbatim behind an explicit keyword-only signature.
+  No output change — the OpenDota parity validator and the full suite are
+  unchanged. (#106 item #3)
+
 ## [0.4.2] - 2026-06-25
 
 Report asset-cache tooling and a documentation overhaul. No change to the

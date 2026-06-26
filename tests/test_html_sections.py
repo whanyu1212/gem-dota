@@ -127,3 +127,112 @@ class TestBuybackGoldCost:
         html = _sections.build_buybacks(match)
         assert "Gold Spent" not in html
         assert "no buybacks" in html
+
+
+# ---------------------------------------------------------------------------
+# build_wards: data crosses the Python -> JS boundary via an inert
+# <script type="application/json"> tag (the build_farming pattern), so the
+# executable <script> stays a plain string with no doubled-brace escaping.
+# ---------------------------------------------------------------------------
+
+
+class TestBuildWardsDataTag:
+    """Lock in the JSON-data-tag contract introduced for issue #106 item #6."""
+
+    def _make_ward(
+        self,
+        *,
+        ward_type: str = "observer",
+        team: int = 2,
+        tick: int = 900,
+        x: float = 1000.0,
+        y: float = -2000.0,
+        killed_tick: int | None = 1800,
+        expires_tick: int | None = None,
+    ) -> MagicMock:
+        w = MagicMock()
+        w.ward_type = ward_type
+        w.team = team
+        w.tick = tick
+        w.x = x
+        w.y = y
+        w.killed_tick = killed_tick
+        w.expires_tick = expires_tick
+        w.placer = "npc_dota_hero_axe"
+        w.killer = "npc_dota_hero_lina"
+        return w
+
+    def _make_smoke(self) -> MagicMock:
+        s = MagicMock()
+        s.x = 0.0
+        s.y = 0.0
+        s.tick = 1200
+        s.team = 2
+        s.activator = "npc_dota_hero_axe"
+        s.smoked = ["a", "b"]
+        return s
+
+    def _make_match(self) -> MagicMock:
+        match = MagicMock()
+        match.wards = [
+            self._make_ward(ward_type="observer", team=2),
+            self._make_ward(ward_type="sentry", team=3, killed_tick=None, expires_tick=2000),
+        ]
+        match.smoke_events = [self._make_smoke()]
+        match.game_start_tick = 900
+        match.game_end_tick = 3000
+        # estimate_vision() iterates match.players; empty == no enemy vision.
+        match.players = []
+        return match
+
+    def _data_tag_payload(self, html: str) -> dict:
+        import json
+        import re
+
+        m = re.search(
+            r'<script type="application/json" id="ward-data">(.*?)</script>',
+            html,
+            re.S,
+        )
+        assert m is not None, "ward-data JSON tag missing"
+        return json.loads(m.group(1))
+
+    def test_data_tag_present_and_parses(self):
+        html = _sections.build_wards(self._make_match(), None)
+        cfg = self._data_tag_payload(html)
+        assert len(cfg["wards"]) == 2
+        assert len(cfg["smokes"]) == 1
+        assert cfg["gameStartTick"] == 900
+        assert cfg["sliderMin"] is not None
+        assert cfg["sliderMax"] is not None
+
+    def test_exactly_one_json_data_tag(self):
+        html = _sections.build_wards(self._make_match(), None)
+        assert html.count('type="application/json"') == 1
+
+    def test_no_doubled_braces_in_output(self):
+        # The whole point of the refactor: no f-string brace escaping survives.
+        html = _sections.build_wards(self._make_match(), None)
+        assert "{{" not in html
+        assert "}}" not in html
+
+    def test_script_reads_the_data_tag(self):
+        html = _sections.build_wards(self._make_match(), None)
+        assert "JSON.parse(document.getElementById('ward-data')" in html
+
+    def test_has_map_flag_reflects_map_b64(self):
+        without = self._data_tag_payload(_sections.build_wards(self._make_match(), None))
+        with_map = self._data_tag_payload(_sections.build_wards(self._make_match(), "ZmFrZWI2NA=="))
+        assert without["hasMap"] is False
+        assert with_map["hasMap"] is True
+
+    def test_empty_wards_returns_placeholder_card(self):
+        match = MagicMock()
+        match.wards = []
+        match.smoke_events = []
+        match.game_start_tick = 0
+        match.game_end_tick = 0
+        match.players = []
+        html = _sections.build_wards(match, None)
+        assert "(no ward placement data)" in html
+        assert 'type="application/json"' not in html

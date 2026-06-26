@@ -145,6 +145,7 @@ def parse(path: str | Path) -> ParsedMatch:
     from gem.extractors.intervals import IntervalExtractor
     from gem.extractors.objectives import ObjectivesExtractor
     from gem.extractors.players import PlayerExtractor
+    from gem.extractors.smoke_vision import SmokeExtractor, VisionModifierExtractor
     from gem.extractors.wards import WardsExtractor
     from gem.parser import ReplayParser
     from gem.results.assembly import build_parsed_match
@@ -176,122 +177,20 @@ def parse(path: str | Path) -> ParsedMatch:
     neutral_item_finds: list[NeutralItemFoundEvent] = []
     p.on_neutral_item_found(neutral_item_finds.append)
 
-    # Smoke of Deceit collection — three combat log event types.
-    # Position is captured live at MODIFIER_ADD time (when each hero actually
-    # receives the buff) and averaged to give the group centroid.
-    # Logic for SmokeEvent collection (item consumption + modifier arrival)
-    from gem.results.models import (
-        SmokeEvent as _SmokeEvent,
-        VisionModifierEvent as _VisionModifierEvent,
-    )
-
-    # Vision modifier tracking — modifiers that reveal/grant vision of enemy heroes.
-    # MODIFIER_ADD opens an event (end_tick=None); MODIFIER_REMOVE closes it.
-    # The same hero can have the same modifier applied multiple times (e.g. refreshed
-    # Dust), so we key by (modifier_name, target_name) and handle stacking by
-    # maintaining a list (LIFO: remove closes the most recently opened open event).
-    _VISION_MODIFIER_NAMES: frozenset[str] = frozenset(
-        {
-            # Slardar — Corrosive Haze (ultimate): true sight of target
-            "modifier_slardar_amplify_damage",
-            # Bounty Hunter — Track: true sight + gold bounty
-            "modifier_bounty_hunter_track",
-            # Dust of Appearance — item AoE reveal
-            "modifier_item_dustofappearance",
-            # Gem of True Sight — carrier aura (hero-level modifier on target)
-            "modifier_item_gem_of_true_sight",
-            "modifier_gem_active_truesight",
-            # Oracle — False Promise: not a reveal but often comboed; skip
-            # Zeus — Thundergods Wrath: global, not a per-hero modifier; skip
-        }
-    )
-    vision_modifier_events: list[_VisionModifierEvent] = []
-    # Track open (not-yet-closed) events: (modifier_name, target_name) → stack of events
-    _open_vision_mods: dict[tuple[str, str], list[_VisionModifierEvent]] = {}
-
-    def _on_vision_modifier_entry(entry: CombatLogEntry) -> None:
-        if entry.log_type == "MODIFIER_ADD":
-            mod = entry.inflictor_name
-            if mod not in _VISION_MODIFIER_NAMES:
-                return
-            ev = _VisionModifierEvent(
-                tick=entry.tick,
-                end_tick=None,
-                modifier_name=mod,
-                target_name=entry.target_name,
-                caster_name=entry.attacker_name,
-                caster_team=0,  # back-filled after parse
-            )
-            vision_modifier_events.append(ev)
-            key = (mod, entry.target_name)
-            if key not in _open_vision_mods:
-                _open_vision_mods[key] = []
-            _open_vision_mods[key].append(ev)
-        elif entry.log_type == "MODIFIER_REMOVE":
-            mod = entry.inflictor_name
-            if mod not in _VISION_MODIFIER_NAMES:
-                return
-            key = (mod, entry.target_name)
-            stack = _open_vision_mods.get(key)
-            if stack:
-                stack.pop().end_tick = entry.tick
-                if not stack:
-                    del _open_vision_mods[key]
-
-    p.on_combat_log_entry(_on_vision_modifier_entry)
-
-    _pending_smokes: dict[str, _SmokeEvent] = {}  # activator npc → active event
-    # Per-event accumulated positions: activator npc → list of (x, y) live coords
-    _smoke_positions: dict[str, list[tuple[float, float]]] = {}
-    smoke_events: list[_SmokeEvent] = []
-
-    def _on_smoke_entry(entry: CombatLogEntry) -> None:
-        if entry.log_type == "ITEM" and entry.inflictor_name == "item_smoke_of_deceit":
-            new_ev = _SmokeEvent(tick=entry.tick, activator=entry.attacker_name, team=0)
-            _pending_smokes[entry.attacker_name] = new_ev
-            _smoke_positions[entry.attacker_name] = []
-            smoke_events.append(new_ev)
-        elif (
-            entry.log_type == "MODIFIER_ADD"
-            and entry.inflictor_name == "modifier_smoke_of_deceit"
-            and entry.target_is_hero
-        ):
-            pending_ev = _pending_smokes.get(entry.attacker_name)
-            if pending_ev is not None:
-                pending_ev.smoked.append(entry.target_name)
-                # Capture this hero's live position right now
-                pos = player_ext.hero_pos(entry.target_name)
-                if pos is not None:
-                    _smoke_positions[entry.attacker_name].append(pos)
-        elif (
-            entry.log_type == "MODIFIER_REMOVE"
-            and entry.inflictor_name == "modifier_smoke_of_deceit"
-            and entry.target_is_hero
-        ):
-            pending_ev = _pending_smokes.get(entry.attacker_name)
-            if pending_ev is not None and len(pending_ev.smoked) >= 1:
-                _pending_smokes.pop(entry.attacker_name, None)
-
-    p.on_combat_log_entry(_on_smoke_entry)
+    # Smoke of Deceit and vision-granting modifiers are collected by dedicated
+    # extractors (positions captured live at MODIFIER_ADD time; teams/centroids
+    # back-filled from player snapshots in finalize() after parse). Both depend
+    # on player_ext for hero positions and the NPC → team map.
+    smoke_ext = SmokeExtractor(player_ext)
+    vision_mod_ext = VisionModifierExtractor(player_ext)
+    smoke_ext.attach(p)
+    vision_mod_ext.attach(p)
 
     p.parse()
     draft_ext.finalize()
     ward_ext.finalize()
-
-    # Back-fill team; centroid x/y already collected live during MODIFIER_ADD
-    _team_by_npc: dict[str, int] = {
-        snap.npc_name: snap.team for snap in player_ext.snapshots if snap.team
-    }
-
-    for ev in smoke_events:
-        ev.team = _team_by_npc.get(ev.activator, 0)
-        positions = _smoke_positions.get(ev.activator, [])
-        if positions:
-            ev.x = sum(p[0] for p in positions) / len(positions)
-            ev.y = sum(p[1] for p in positions) / len(positions)
-
-    for vev in vision_modifier_events:
-        vev.caster_team = _team_by_npc.get(vev.caster_name, 0)
+    smoke_events = smoke_ext.finalize()
+    vision_modifier_events = vision_mod_ext.finalize()
 
     return build_parsed_match(
         parser=p,
