@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.3] - 2026-06-26
+
+Adds per-buyback gold cost to the model and bundles a set of code-quality
+refactors (#106). The one user-visible addition is `ParsedPlayer.buybacks` /
+`gem.BuybackEvent`; the rest are behaviour-preserving internal cleanups with no
+change to parse/export output (OpenDota parity validator unchanged).
+
 ### Added
 
 - `ParsedPlayer.buybacks` — a list of `BuybackEvent` (`tick`, `player_slot`,
