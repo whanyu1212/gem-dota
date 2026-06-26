@@ -289,16 +289,31 @@ net worth at the buyback tick; `reports/sections/economy.py::build_buybacks` rea
 `BuybackEvent.cost` instead of recomputing, and `results/dataframes.py` adds
 `cost`/`net_worth` columns to the `player_buyback_log` table.
 
-**The reliable/unreliable split is NOT provided — it is not recoverable offline.**
-Empirically verified (fixture `8855188139`): `m_iReliableGold` / `m_iUnreliableGold`
-on `CDOTA_Data*` (read via `team_data_field(slot, ...)`) are readable but reflect
-gold **after** the deduction, so the before/after delta at the BUYBACK tick is
-**zero** — no usable cost signal. `CDOTAUserMsg_SendFinalGold` is end-of-game only;
-`CMsgDotaScenario_Hero.GoldSpentOnBuybacks` is a cumulative per-hero scenario field
-(not per event, not parsed). OpenDota itself records no per-buyback cost
-(`handleBuyback` stores only time/slot), so there is no parity reference — the cost
-is a deliberate gem-original estimate. An exact split would require an external
-data source that does not exist per-event.
+**The exact per-buyback cost is not recoverable from the replay — confirmed
+against all three major parsers.** The `cost` is a deliberate gem-original
+*estimate* from the published formula, not a measured deduction:
+
+- **gem's entity stream:** `m_iReliableGold` / `m_iUnreliableGold` on `CDOTA_Data*`
+  (read via `team_data_field(slot, ...)`) are readable but reflect gold **after**
+  the deduction — the before/after delta at the BUYBACK tick is **zero** (verified
+  on fixture `8855188139`). The BUYBACK combat-log entry carries only the player
+  slot (`entry.value`), `gold_reason=0`, no gold amount.
+- **OpenDota:** records no per-buyback cost (`handleBuyback` stores only time/slot).
+- **STRATZ:** its GraphQL `BuyBackDetailType` *has* a `cost` field, but it is
+  **0 for every buyback** sampled (24 events across 3 matches: `8855188139`,
+  `8855242704`, `8822593932`) — i.e. even STRATZ (Clarity parser) does not surface
+  a real cost. `CDOTAUserMsg_SendFinalGold` is end-of-game only;
+  `CMsgDotaScenario_Hero.GoldSpentOnBuybacks` is a cumulative per-hero scenario
+  field (not per event, not parsed).
+
+Consequently the **reliable/unreliable split is also not provided** — it would
+require a per-event source that does not exist.
+
+**What IS validated:** buyback *detection* (event timing + hero attribution) is
+cross-validated against STRATZ — the buyback **times** and **hero IDs** match gem
+exactly on every event across those 3 matches (e.g. fixture `8855188139`: Ember
+@2385s, Keeper of the Light @2391s). Only the cost *value* is an unverifiable
+formula estimate; the events themselves are independently confirmed correct.
 
 ## Code Style
 

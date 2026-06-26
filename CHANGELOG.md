@@ -10,13 +10,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `ParsedPlayer.buybacks` — a list of `BuybackEvent` (`tick`, `player_slot`,
-  `net_worth`, estimated `cost`) alongside the raw `buyback_log`. The per-buyback
-  cost is an estimate from Dota 2's formula `200 + net_worth // 13`, computed from
-  net worth at the buyback tick; the canonical formula lives in
-  `gem.results.derived.buyback_cost`. The HTML report's buyback table now reads
-  this cost instead of recomputing it. The reliable/unreliable gold split is **not**
-  provided — it is empirically unrecoverable offline (the entity gold-pool fields
-  reflect gold after the deduction; OpenDota records no per-buyback cost). (#119)
+  `net_worth`, estimated `cost`) alongside the raw `buyback_log`; also added to the
+  `player_buyback_log` DataFrame (`cost`/`net_worth` columns) and exported as
+  `gem.BuybackEvent`. The HTML report's buyback table reads this `cost` instead of
+  recomputing it; the canonical formula lives in `gem.results.derived.buyback_cost`.
+
+  **The `cost` is an estimate, not a measured value.** It uses Dota 2's published
+  formula `200 + net_worth // 13` over net worth at the buyback tick, because the
+  exact per-buyback cost is **not recoverable from the replay** — confirmed against
+  all three major parsers: gem's entity gold-pool fields reflect gold *after* the
+  deduction (before/after delta is zero) and the BUYBACK combat-log entry carries
+  no gold amount; OpenDota records no per-buyback cost; and STRATZ's API `cost`
+  field is `0` for every buyback (24 events across 3 matches). The
+  reliable/unreliable split is likewise not provided.
+
+  Buyback *detection* (event timing + hero) is **cross-validated against STRATZ** —
+  times and hero IDs match exactly on every event in those matches. Only the cost
+  *value* is an unverifiable formula estimate. (#119)
 
 ### Changed
 
