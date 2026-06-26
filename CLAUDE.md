@@ -386,15 +386,16 @@ Key message classes used throughout the parser:
 
 ## Status
 
-Current version: **0.4.2** (see `pyproject.toml` and `CHANGELOG.md`).
+Current version: **0.4.3** (see `pyproject.toml` and `CHANGELOG.md`).
 
 The full parsing pipeline and all extractors are complete and stable: binary
 reader, entity system, combat log (S1+S2), string tables, every extractor, the
 `ParsedMatch` output model, DataFrame/JSON/Parquet export, bulk parsing, and
 replay fetch. Recent work (0.4.x) has been **OpenDota match-API parity** — final
 inventories, kill breakdowns, per-inflictor/per-target combat dicts, purchase
-timeline, building bitmasks, interval/advantage curves — plus code-quality
-refactors, rather than new core subsystems. `gem-dota` is published to PyPI.
+timeline, building bitmasks, interval/advantage curves — plus small additive
+refinements (e.g. `ParsedPlayer.buybacks` in 0.4.3) and code-quality refactors,
+rather than new core subsystems. `gem-dota` is published to PyPI.
 
 In flight / deferred:
 - **Rust extension** (PyO3 + maturin) for a 3–5× speedup. Deferred.
