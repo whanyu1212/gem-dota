@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Refactored the HTML report's ward-map section (`reports/sections/vision.py`,
+  `build_wards`) to inject its data through an inert
+  `<script type="application/json">` tag — matching the cleaner pattern already
+  used by the farming section in the same file — instead of interpolating it into
+  the executable `<script>`. This removes ~240 lines of fragile doubled-brace
+  (`{{ }}`) f-string escaping. No change to the rendered report. (#106 item #6)
+
 ## [0.4.2] - 2026-06-25
 
 Report asset-cache tooling and a documentation overhaul. No change to the
