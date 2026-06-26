@@ -15,6 +15,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   used by the farming section in the same file — instead of interpolating it into
   the executable `<script>`. This removes ~240 lines of fragile doubled-brace
   (`{{ }}`) f-string escaping. No change to the rendered report. (#106 item #6)
+- **Internal:** the inline Smoke-of-Deceit and vision-modifier collection logic
+  (~100 lines of closures in `gem.api.parse`) is extracted into
+  `gem.extractors.smoke_vision` (`SmokeExtractor`, `VisionModifierExtractor`),
+  following the existing `attach()`/`finalize()` extractor contract. Both take the
+  `PlayerExtractor` (same dependency pattern as `_CombatAggregator`) for live hero
+  positions and the post-parse team back-fill. No output change — smoke groups,
+  centroids, and vision-modifier windows are identical (verified end-to-end on a
+  replay fixture); the extractors are internal and not part of the public API.
+  (#106 item #2)
 
 ## [0.4.2] - 2026-06-25
 
