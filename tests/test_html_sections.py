@@ -2,7 +2,8 @@
 
 Covers:
 - _net_worth_at: nearest net_worth sample lookup
-- build_buybacks: gold spent column (floor(200 + net_worth / 13))
+- build_buybacks: renders ParsedPlayer.buybacks cost (formula tested in
+  tests/test_derived_kills.py::TestBuybackCost)
 - build_objectives: healing lotus entries appear with correct hero label
 """
 
@@ -70,58 +71,39 @@ class TestNetWorthAt:
 
 
 # ---------------------------------------------------------------------------
-# Buyback gold cost formula: floor(200 + net_worth / 13)
+# build_buybacks renders the model's BuybackEvent cost (the formula itself is
+# tested in tests/test_derived_kills.py::TestBuybackCost).
 # ---------------------------------------------------------------------------
 
 
-class TestBuybackGoldCost:
-    """Verify the buyback cost formula via build_buybacks output."""
+class TestBuybackReport:
+    """Verify build_buybacks renders ParsedPlayer.buybacks cost, not a recompute."""
 
-    def _make_match(self, net_worth: int, buyback_tick: int = 500):
-        from gem.combat.log import CombatLogEntry
+    def _make_match(self, cost: int, buyback_tick: int = 500):
+        from gem.results.models import BuybackEvent
 
-        buyback_entry = CombatLogEntry(tick=buyback_tick, log_type="BUYBACK", value=0)
-
-        pp = _make_player(
-            times=[buyback_tick],
-            net_worth_t=[net_worth],
-        )
-        pp.buyback_log = [buyback_entry]
+        pp = _make_player()
+        pp.buybacks = [BuybackEvent(tick=buyback_tick, player_slot=0, cost=cost, net_worth=0)]
 
         match = MagicMock()
         match.players = [pp]
         return match
 
-    def _cost_in_html(self, net_worth: int) -> str:
-        match = self._make_match(net_worth)
-        html = _sections.build_buybacks(match)
-        return html
+    def _cost_in_html(self, cost: int) -> str:
+        return _sections.build_buybacks(self._make_match(cost))
 
-    def test_zero_net_worth(self):
-        # floor(200 + 0/13) = 200
-        html = self._cost_in_html(0)
-        assert "200g" in html
+    def test_renders_cost_value(self):
+        assert "200g" in self._cost_in_html(200)
 
-    def test_typical_net_worth(self):
-        # net_worth=13000 → floor(200 + 13000/13) = floor(200 + 1000) = 1200
-        html = self._cost_in_html(13000)
-        assert "1,200g" in html
-
-    def test_fractional_rounds_down(self):
-        # net_worth=1300 → floor(200 + 1300/13) = floor(200 + 100) = 300
-        # net_worth=1301 → floor(200 + 1301/13) = floor(200 + 100.07...) = 300
-        html1 = self._cost_in_html(1300)
-        html2 = self._cost_in_html(1301)
-        assert "300g" in html1
-        assert "300g" in html2
+    def test_renders_thousands_separator(self):
+        assert "1,200g" in self._cost_in_html(1200)
 
     def test_gold_spent_column_header_present(self):
-        html = self._cost_in_html(5000)
-        assert "Gold Spent" in html
+        assert "Gold Spent" in self._cost_in_html(5000)
 
     def test_no_buybacks_shows_no_table(self):
         pp = _make_player()
-        pp.buyback_log = []
+        pp.buybacks = []
         match = MagicMock()
         match.players = [pp]
         html = _sections.build_buybacks(match)

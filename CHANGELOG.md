@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `ParsedPlayer.buybacks` — a list of `BuybackEvent` (`tick`, `player_slot`,
+  `net_worth`, estimated `cost`) alongside the raw `buyback_log`. The per-buyback
+  cost is an estimate from Dota 2's formula `200 + net_worth // 13`, computed from
+  net worth at the buyback tick; the canonical formula lives in
+  `gem.results.derived.buyback_cost`. The HTML report's buyback table now reads
+  this cost instead of recomputing it. The reliable/unreliable gold split is **not**
+  provided — it is empirically unrecoverable offline (the entity gold-pool fields
+  reflect gold after the deduction; OpenDota records no per-buyback cost). (#119)
+
 ### Changed
 
 - Refactored the HTML report's ward-map section (`reports/sections/vision.py`,

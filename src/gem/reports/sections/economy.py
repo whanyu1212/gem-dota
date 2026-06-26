@@ -625,7 +625,7 @@ def _net_worth_at(pp: ParsedPlayer, tick: int) -> int:
 
 def build_buybacks(match: ParsedMatch) -> str:
     """Build the buybacks section."""
-    total = sum(len(p.buyback_log) for p in match.players)
+    total = sum(len(p.buybacks) for p in match.players)
 
     parts = [
         '<div class="card">',
@@ -642,12 +642,12 @@ def build_buybacks(match: ParsedMatch) -> str:
             "<thead><tr><th>Time</th><th>Hero</th><th>Team</th><th>Gold Spent</th></tr></thead>"
         )
         parts.append("<tbody>")
+        # Cost comes from the model's BuybackEvent (gem.results.derived.buyback_cost),
+        # not recomputed here, so the table matches ParsedPlayer.buybacks exactly.
         entries: list[tuple[int, str, int, int]] = []
         for pp in match.players:
-            for entry in pp.buyback_log:
-                nw = _net_worth_at(pp, entry.tick)
-                cost = 200 + nw // 13
-                entries.append((entry.tick, pp.hero_name, pp.team, cost))
+            for bb in pp.buybacks:
+                entries.append((bb.tick, pp.hero_name, pp.team, bb.cost))
         entries.sort(key=lambda x: x[0])
         for tick, hero_name, team, cost in entries:
             team_color = TEAM_COLOR_CSS.get(team, "#888")

@@ -9,11 +9,12 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any
 
+from gem.analysis import net_worth_at
 from gem.catalog import hero_id
 from gem.combat.log import opendota_translate
 from gem.extractors.lane import classify_lane
-from gem.results.derived import building_status, categorize_kills, killed_counts
-from gem.results.models import ParsedMatch
+from gem.results.derived import building_status, buyback_cost, categorize_kills, killed_counts
+from gem.results.models import BuybackEvent, ParsedMatch
 
 if TYPE_CHECKING:
     from gem.combat.aggregator import _CombatAggregator
@@ -658,6 +659,22 @@ def _populate_player_series(
             pp.sentry_uses = agg.item_uses.get("item_ward_sentry", 0)
             pp.runes_log = agg.runes_log
             pp.buyback_log = agg.buyback_log
+            # Structured buybacks with an estimated cost. The per-buyback cost is
+            # not in the replay stream, so it is derived from net worth at the
+            # buyback tick (200 + net_worth // 13); net_worth_t is already
+            # populated above, so net_worth_at() resolves the nearest sample.
+            buybacks: list[BuybackEvent] = []
+            for entry in agg.buyback_log:
+                nw = net_worth_at(pp, entry.tick)
+                buybacks.append(
+                    BuybackEvent(
+                        tick=entry.tick,
+                        player_slot=player_id,
+                        net_worth=nw,
+                        cost=buyback_cost(nw),
+                    )
+                )
+            pp.buybacks = buybacks
             pp.stuns_dealt = agg.stuns_dealt
             # OpenDota-style combat scalars (combat-log reconstruction; exact via
             # apply_api_rates). Best-effort offline estimates.

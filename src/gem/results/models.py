@@ -78,6 +78,34 @@ class SmokeEvent:
 
 
 @dataclass
+class BuybackEvent:
+    """One buyback, with its estimated gold cost.
+
+    The per-buyback cost is not stored in the replay stream, so ``cost`` is an
+    estimate from the Dota 2 formula ``200 + net_worth // 13`` evaluated at the
+    buyback tick (see :func:`gem.results.derived.buyback_cost`). The exact
+    reliable/unreliable gold split is *not* recoverable offline — the entity
+    gold-pool fields (``m_iReliableGold`` / ``m_iUnreliableGold``) reflect gold
+    after the deduction, so they show no usable before/after delta at the buyback
+    tick — and is therefore not provided.
+
+    The raw combat-log entries remain on ``ParsedPlayer.buyback_log``; this is the
+    structured, cost-bearing view alongside it.
+
+    Attributes:
+        tick: Game tick when the buyback fired.
+        player_slot: The player's slot (0-9).
+        cost: Estimated buyback cost in gold (``200 + net_worth // 13``).
+        net_worth: Net worth at the buyback tick used to compute ``cost``.
+    """
+
+    tick: int
+    player_slot: int
+    cost: int
+    net_worth: int
+
+
+@dataclass
 class ChatEntry:
     """A single chat message from the match.
 
@@ -235,6 +263,8 @@ class ParsedPlayer:
             still counted in the ``purchase`` map).
         runes_log: ITEM combat log entries for rune pickups.
         buyback_log: BUYBACK combat log entries for this player.
+        buybacks: Structured :class:`BuybackEvent` records with an estimated gold
+            cost per buyback (``200 + net_worth // 13``), alongside ``buyback_log``.
         lane_pos: Dwell-tick counts keyed by ``"x_y"`` grid cell (64-unit resolution).
         position_log: Time-ordered ``(tick, x, y)`` tuples sampled at the
             extractor's interval. Useful for movement time-series and
@@ -423,6 +453,7 @@ class ParsedPlayer:
     purchase_log: list[CombatLogEntry] = field(default_factory=list)
     runes_log: list[CombatLogEntry] = field(default_factory=list)
     buyback_log: list[CombatLogEntry] = field(default_factory=list)
+    buybacks: list[BuybackEvent] = field(default_factory=list)
     lane_pos: defaultdict[str, int] = field(default_factory=lambda: defaultdict(int))
     position_log: list[tuple[int, float, float]] = field(default_factory=list)
     stuns_dealt: float = 0.0

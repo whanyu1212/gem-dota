@@ -270,26 +270,27 @@ immediate-outcome window 180 s, event-association window 30 s. It reads only
 - Kills by summoned units (Warlock Golem, Undying zombie, Pugna Nether Ward, etc.) should be credited to the owning hero's kill count.
 - Deaths count all causes (hero, tower, creep, neutral, summon) — not just hero-dealt deaths.
 
-## Deferred: buyback cost breakdown (reliable vs unreliable gold)
+## Buyback cost (issue #119, implemented)
 
-The HTML report buybacks section shows only time/hero/team. Adding a reliable/unreliable gold
-cost breakdown was investigated but deferred. Key findings:
+Each player exposes `ParsedPlayer.buybacks: list[BuybackEvent]` (alongside the raw
+`buyback_log`). `BuybackEvent` carries `tick`, `player_slot`, `net_worth` (at the
+buyback tick), and an estimated `cost`. The cost formula lives in one place,
+`results/derived.py::buyback_cost(net_worth)` = **`200 + net_worth // 13`**
+(Dota 2's formula; reduced from `/12` in an earlier patch — ref
+https://liquipedia.net/dota2/Gold). `results/assembly.py` builds the events from
+net worth at the buyback tick; `reports/sections/economy.py::build_buybacks` reads
+`BuybackEvent.cost` instead of recomputing.
 
-- `m_vecDataTeam.{slot}.m_iReliableGold` / `m_iUnreliableGold` on `CDOTADataRadiant/Dire`
-  exist and are readable, but reflect **remaining gold after** the buyback deduction — not the
-  cost paid.
-- `CDOTAUserMsg_SendFinalGold` (type 514) provides per-player reliable/unreliable gold at game
-  end only — not per buyback event.
-- The buyback cost is not stored directly in the entity stream.
-
-**Approaches to explore when revisiting:**
-1. Event-driven sampling: hook the BUYBACK combat log entry and snapshot gold immediately before
-   it fires (requires sampling outside the periodic `_maybe_sample()` loop).
-2. Formula approximation: `cost ≈ 200 + net_worth / 12` (capped ~2100 in Dota 7.x). Net worth
-   at buyback tick is available from the nearest `PlayerStateSnapshot`.
-
-**Files to change:** `extractors/_snapshots.py`, `extractors/players.py`,
-`results/models.py`, `results/assembly.py`, `reports/_sections.py`.
+**The reliable/unreliable split is NOT provided — it is not recoverable offline.**
+Empirically verified (fixture `8855188139`): `m_iReliableGold` / `m_iUnreliableGold`
+on `CDOTA_Data*` (read via `team_data_field(slot, ...)`) are readable but reflect
+gold **after** the deduction, so the before/after delta at the BUYBACK tick is
+**zero** — no usable cost signal. `CDOTAUserMsg_SendFinalGold` is end-of-game only;
+`CMsgDotaScenario_Hero.GoldSpentOnBuybacks` is a cumulative per-hero scenario field
+(not per event, not parsed). OpenDota itself records no per-buyback cost
+(`handleBuyback` stores only time/slot), so there is no parity reference — the cost
+is a deliberate gem-original estimate. An exact split would require an external
+data source that does not exist per-event.
 
 ## Code Style
 
