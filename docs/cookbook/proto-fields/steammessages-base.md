@@ -36,8 +36,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `original_ip_address` | `.CMsgIPAddress` | `optional` | `` |  |
-| 2 | `bucket` | `fixed64` | `optional` | `` |  |
+| 1 | `original_ip_address` | `.CMsgIPAddress` | `optional` |  |  |
+| 2 | `bucket` | `fixed64` | `optional` |  |  |
 
 </details>
 
@@ -49,33 +49,33 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steamid` | `fixed64` | `optional` | `` |  |
-| 2 | `client_sessionid` | `int32` | `optional` | `` |  |
-| 3 | `routing_appid` | `uint32` | `optional` | `` |  |
-| 10 | `jobid_source` | `fixed64` | `optional` | `` | default = 18446744073709551615 |
-| 11 | `jobid_target` | `fixed64` | `optional` | `` | default = 18446744073709551615 |
-| 12 | `target_job_name` | `string` | `optional` | `` |  |
-| 13 | `eresult` | `int32` | `optional` | `` | default = 2 |
-| 14 | `error_message` | `string` | `optional` | `` |  |
+| 1 | `steamid` | `fixed64` | `optional` |  |  |
+| 2 | `client_sessionid` | `int32` | `optional` |  |  |
+| 3 | `routing_appid` | `uint32` | `optional` |  |  |
+| 10 | `jobid_source` | `fixed64` | `optional` |  | default = 18446744073709551615 |
+| 11 | `jobid_target` | `fixed64` | `optional` |  | default = 18446744073709551615 |
+| 12 | `target_job_name` | `string` | `optional` |  |  |
+| 13 | `eresult` | `int32` | `optional` |  | default = 2 |
+| 14 | `error_message` | `string` | `optional` |  |  |
 | 15 | `ip` | `uint32` | `oneof` | `ip_addr` |  |
-| 16 | `auth_account_flags` | `uint32` | `optional` | `` |  |
-| 17 | `transport_error` | `int32` | `optional` | `` | default = 1 |
-| 18 | `messageid` | `uint64` | `optional` | `` | default = 18446744073709551615 |
-| 19 | `publisher_group_id` | `uint32` | `optional` | `` |  |
-| 20 | `sysid` | `uint32` | `optional` | `` |  |
-| 21 | `trace_tag` | `uint64` | `optional` | `` |  |
-| 22 | `token_source` | `uint32` | `optional` | `` |  |
-| 23 | `admin_spoofing_user` | `bool` | `optional` | `` |  |
-| 24 | `seq_num` | `int32` | `optional` | `` |  |
-| 25 | `webapi_key_id` | `uint32` | `optional` | `` |  |
-| 26 | `is_from_external_source` | `bool` | `optional` | `` |  |
-| 27 | `forward_to_sysid` | `uint32` | `repeated` | `` |  |
-| 28 | `cm_sysid` | `uint32` | `optional` | `` |  |
+| 16 | `auth_account_flags` | `uint32` | `optional` |  |  |
+| 17 | `transport_error` | `int32` | `optional` |  | default = 1 |
+| 18 | `messageid` | `uint64` | `optional` |  | default = 18446744073709551615 |
+| 19 | `publisher_group_id` | `uint32` | `optional` |  |  |
+| 20 | `sysid` | `uint32` | `optional` |  |  |
+| 21 | `trace_tag` | `uint64` | `optional` |  |  |
+| 22 | `token_source` | `uint32` | `optional` |  |  |
+| 23 | `admin_spoofing_user` | `bool` | `optional` |  |  |
+| 24 | `seq_num` | `int32` | `optional` |  |  |
+| 25 | `webapi_key_id` | `uint32` | `optional` |  |  |
+| 26 | `is_from_external_source` | `bool` | `optional` |  |  |
+| 27 | `forward_to_sysid` | `uint32` | `repeated` |  |  |
+| 28 | `cm_sysid` | `uint32` | `optional` |  |  |
 | 29 | `ip_v6` | `bytes` | `oneof` | `ip_addr` |  |
-| 31 | `launcher_type` | `uint32` | `optional` | `` | default = 0 |
-| 32 | `realm` | `uint32` | `optional` | `` | default = 0 |
-| 33 | `timeout_ms` | `int32` | `optional` | `` | default = -1 |
-| 34 | `debug_source` | `string` | `optional` | `` |  |
+| 31 | `launcher_type` | `uint32` | `optional` |  | default = 0 |
+| 32 | `realm` | `uint32` | `optional` |  | default = 0 |
+| 33 | `timeout_ms` | `int32` | `optional` |  | default = -1 |
+| 34 | `debug_source` | `string` | `optional` |  |  |
 
 </details>
 
@@ -87,8 +87,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `size_unzipped` | `uint32` | `optional` | `` |  |
-| 2 | `message_body` | `bytes` | `optional` | `` |  |
+| 1 | `size_unzipped` | `uint32` | `optional` |  |  |
+| 2 | `message_body` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -100,7 +100,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `message_body` | `bytes` | `optional` | `` |  |
+| 1 | `message_body` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -112,13 +112,13 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `estate` | `uint32` | `optional` | `` |  |
-| 2 | `eresult` | `uint32` | `optional` | `` | default = 2 |
-| 3 | `steamid` | `fixed64` | `optional` | `` |  |
-| 4 | `gameid` | `fixed64` | `optional` | `` |  |
-| 5 | `h_steam_pipe` | `uint32` | `optional` | `` |  |
-| 6 | `ticket_crc` | `uint32` | `optional` | `` |  |
-| 7 | `ticket` | `bytes` | `optional` | `` |  |
+| 1 | `estate` | `uint32` | `optional` |  |  |
+| 2 | `eresult` | `uint32` | `optional` |  | default = 2 |
+| 3 | `steamid` | `fixed64` | `optional` |  |  |
+| 4 | `gameid` | `fixed64` | `optional` |  |  |
+| 5 | `h_steam_pipe` | `uint32` | `optional` |  |  |
+| 6 | `ticket_crc` | `uint32` | `optional` |  |  |
+| 7 | `ticket` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -130,18 +130,18 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `appid` | `uint32` | `optional` | `` |  |
-| 2 | `name` | `string` | `optional` | `` |  |
-| 3 | `icon` | `string` | `optional` | `` |  |
-| 6 | `tool` | `bool` | `optional` | `` |  |
-| 7 | `demo` | `bool` | `optional` | `` |  |
-| 8 | `media` | `bool` | `optional` | `` |  |
-| 9 | `community_visible_stats` | `bool` | `optional` | `` |  |
-| 10 | `friendly_name` | `string` | `optional` | `` |  |
-| 11 | `propagation` | `string` | `optional` | `` |  |
-| 12 | `has_adult_content` | `bool` | `optional` | `` |  |
-| 13 | `is_visible_in_steam_china` | `bool` | `optional` | `` |  |
-| 14 | `app_type` | `uint32` | `optional` | `` |  |
+| 1 | `appid` | `uint32` | `optional` |  |  |
+| 2 | `name` | `string` | `optional` |  |  |
+| 3 | `icon` | `string` | `optional` |  |  |
+| 6 | `tool` | `bool` | `optional` |  |  |
+| 7 | `demo` | `bool` | `optional` |  |  |
+| 8 | `media` | `bool` | `optional` |  |  |
+| 9 | `community_visible_stats` | `bool` | `optional` |  |  |
+| 10 | `friendly_name` | `string` | `optional` |  |  |
+| 11 | `propagation` | `string` | `optional` |  |  |
+| 12 | `has_adult_content` | `bool` | `optional` |  |  |
+| 13 | `is_visible_in_steam_china` | `bool` | `optional` |  |  |
+| 14 | `app_type` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -153,23 +153,23 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `edit_info` | `bool` | `optional` | `` |  |
-| 2 | `publish` | `bool` | `optional` | `` |  |
-| 3 | `view_error_data` | `bool` | `optional` | `` |  |
-| 4 | `download` | `bool` | `optional` | `` |  |
-| 5 | `upload_cdkeys` | `bool` | `optional` | `` |  |
-| 6 | `generate_cdkeys` | `bool` | `optional` | `` |  |
-| 7 | `view_financials` | `bool` | `optional` | `` |  |
-| 8 | `manage_ceg` | `bool` | `optional` | `` |  |
-| 9 | `manage_signing` | `bool` | `optional` | `` |  |
-| 10 | `manage_cdkeys` | `bool` | `optional` | `` |  |
-| 11 | `edit_marketing` | `bool` | `optional` | `` |  |
-| 12 | `economy_support` | `bool` | `optional` | `` |  |
-| 13 | `economy_support_supervisor` | `bool` | `optional` | `` |  |
-| 14 | `manage_pricing` | `bool` | `optional` | `` |  |
-| 15 | `broadcast_live` | `bool` | `optional` | `` |  |
-| 16 | `view_marketing_traffic` | `bool` | `optional` | `` |  |
-| 17 | `edit_store_display_content` | `bool` | `optional` | `` |  |
+| 1 | `edit_info` | `bool` | `optional` |  |  |
+| 2 | `publish` | `bool` | `optional` |  |  |
+| 3 | `view_error_data` | `bool` | `optional` |  |  |
+| 4 | `download` | `bool` | `optional` |  |  |
+| 5 | `upload_cdkeys` | `bool` | `optional` |  |  |
+| 6 | `generate_cdkeys` | `bool` | `optional` |  |  |
+| 7 | `view_financials` | `bool` | `optional` |  |  |
+| 8 | `manage_ceg` | `bool` | `optional` |  |  |
+| 9 | `manage_signing` | `bool` | `optional` |  |  |
+| 10 | `manage_cdkeys` | `bool` | `optional` |  |  |
+| 11 | `edit_marketing` | `bool` | `optional` |  |  |
+| 12 | `economy_support` | `bool` | `optional` |  |  |
+| 13 | `economy_support_supervisor` | `bool` | `optional` |  |  |
+| 14 | `manage_pricing` | `bool` | `optional` |  |  |
+| 15 | `broadcast_live` | `bool` | `optional` |  |  |
+| 16 | `view_marketing_traffic` | `bool` | `optional` |  |  |
+| 17 | `edit_store_display_content` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -181,20 +181,20 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `supported_languages` | `uint32` | `optional` | `` |  |
-| 2 | `platform_windows` | `bool` | `optional` | `` |  |
-| 3 | `platform_mac` | `bool` | `optional` | `` |  |
-| 4 | `platform_linux` | `bool` | `optional` | `` |  |
-| 5 | `vr_content` | `bool` | `optional` | `` |  |
-| 6 | `adult_content_violence` | `bool` | `optional` | `` |  |
-| 7 | `adult_content_sex` | `bool` | `optional` | `` |  |
-| 8 | `timestamp_updated` | `uint32` | `optional` | `` |  |
-| 9 | `tagids_curated` | `uint32` | `repeated` | `` |  |
-| 10 | `tagids_filtered` | `uint32` | `repeated` | `` |  |
-| 11 | `website_title` | `string` | `optional` | `` |  |
-| 12 | `website_url` | `string` | `optional` | `` |  |
-| 13 | `discussion_url` | `string` | `optional` | `` |  |
-| 14 | `show_broadcast` | `bool` | `optional` | `` |  |
+| 1 | `supported_languages` | `uint32` | `optional` |  |  |
+| 2 | `platform_windows` | `bool` | `optional` |  |  |
+| 3 | `platform_mac` | `bool` | `optional` |  |  |
+| 4 | `platform_linux` | `bool` | `optional` |  |  |
+| 5 | `vr_content` | `bool` | `optional` |  |  |
+| 6 | `adult_content_violence` | `bool` | `optional` |  |  |
+| 7 | `adult_content_sex` | `bool` | `optional` |  |  |
+| 8 | `timestamp_updated` | `uint32` | `optional` |  |  |
+| 9 | `tagids_curated` | `uint32` | `repeated` |  |  |
+| 10 | `tagids_filtered` | `uint32` | `repeated` |  |  |
+| 11 | `website_title` | `string` | `optional` |  |  |
+| 12 | `website_url` | `string` | `optional` |  |  |
+| 13 | `discussion_url` | `string` | `optional` |  |  |
+| 14 | `show_broadcast` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -206,8 +206,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `language` | `uint32` | `optional` | `` |  |
-| 2 | `localized_string` | `string` | `optional` | `` |  |
+| 1 | `language` | `uint32` | `optional` |  |  |
+| 2 | `localized_string` | `string` | `optional` |  |  |
 
 </details>
 
@@ -219,16 +219,16 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `clanid` | `uint32` | `optional` | `` |  |
-| 2 | `event_gid` | `fixed64` | `optional` | `` |  |
-| 3 | `announcement_gid` | `fixed64` | `optional` | `` |  |
-| 4 | `rtime_start` | `uint32` | `optional` | `` |  |
-| 5 | `rtime_end` | `uint32` | `optional` | `` |  |
-| 6 | `priority_score` | `uint32` | `optional` | `` |  |
-| 7 | `type` | `uint32` | `optional` | `` |  |
-| 8 | `clamp_range_slot` | `uint32` | `optional` | `` |  |
-| 9 | `appid` | `uint32` | `optional` | `` |  |
-| 10 | `rtime32_last_modified` | `uint32` | `optional` | `` |  |
+| 1 | `clanid` | `uint32` | `optional` |  |  |
+| 2 | `event_gid` | `fixed64` | `optional` |  |  |
+| 3 | `announcement_gid` | `fixed64` | `optional` |  |  |
+| 4 | `rtime_start` | `uint32` | `optional` |  |  |
+| 5 | `rtime_end` | `uint32` | `optional` |  |  |
+| 6 | `priority_score` | `uint32` | `optional` |  |  |
+| 7 | `type` | `uint32` | `optional` |  |  |
+| 8 | `clamp_range_slot` | `uint32` | `optional` |  |  |
+| 9 | `appid` | `uint32` | `optional` |  |  |
+| 10 | `rtime32_last_modified` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -240,10 +240,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `rtime_before` | `uint32` | `optional` | `` |  |
-| 2 | `rtime_after` | `uint32` | `optional` | `` |  |
-| 3 | `qualified` | `uint32` | `optional` | `` |  |
-| 4 | `events` | `.CClanEventUserNewsTuple` | `repeated` | `` |  |
+| 1 | `rtime_before` | `uint32` | `optional` |  |  |
+| 2 | `rtime_after` | `uint32` | `optional` |  |  |
+| 3 | `qualified` | `uint32` | `optional` |  |  |
+| 4 | `events` | `.CClanEventUserNewsTuple` | `repeated` |  |  |
 
 </details>
 
@@ -255,22 +255,22 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `gid` | `uint64` | `optional` | `` |  |
-| 2 | `clanid` | `uint64` | `optional` | `` |  |
-| 3 | `posterid` | `uint64` | `optional` | `` |  |
-| 4 | `headline` | `string` | `optional` | `` |  |
-| 5 | `posttime` | `uint32` | `optional` | `` |  |
-| 6 | `updatetime` | `uint32` | `optional` | `` |  |
-| 7 | `body` | `string` | `optional` | `` |  |
-| 8 | `commentcount` | `int32` | `optional` | `` |  |
-| 9 | `tags` | `string` | `repeated` | `` |  |
-| 10 | `language` | `int32` | `optional` | `` |  |
-| 11 | `hidden` | `bool` | `optional` | `` |  |
-| 12 | `forum_topic_id` | `fixed64` | `optional` | `` |  |
-| 13 | `event_gid` | `fixed64` | `optional` | `` |  |
-| 14 | `voteupcount` | `int32` | `optional` | `` |  |
-| 15 | `votedowncount` | `int32` | `optional` | `` |  |
-| 16 | `ban_check_result` | `.EBanContentCheckResult` | `optional` | `` | default = k_EBanContentCheckResult_NotScanned |
+| 1 | `gid` | `uint64` | `optional` |  |  |
+| 2 | `clanid` | `uint64` | `optional` |  |  |
+| 3 | `posterid` | `uint64` | `optional` |  |  |
+| 4 | `headline` | `string` | `optional` |  |  |
+| 5 | `posttime` | `uint32` | `optional` |  |  |
+| 6 | `updatetime` | `uint32` | `optional` |  |  |
+| 7 | `body` | `string` | `optional` |  |  |
+| 8 | `commentcount` | `int32` | `optional` |  |  |
+| 9 | `tags` | `string` | `repeated` |  |  |
+| 10 | `language` | `int32` | `optional` |  |  |
+| 11 | `hidden` | `bool` | `optional` |  |  |
+| 12 | `forum_topic_id` | `fixed64` | `optional` |  |  |
+| 13 | `event_gid` | `fixed64` | `optional` |  |  |
+| 14 | `voteupcount` | `int32` | `optional` |  |  |
+| 15 | `votedowncount` | `int32` | `optional` |  |  |
+| 16 | `ban_check_result` | `.EBanContentCheckResult` | `optional` |  | default = k_EBanContentCheckResult_NotScanned |
 
 </details>
 
@@ -282,36 +282,36 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `gid` | `fixed64` | `optional` | `` |  |
-| 2 | `clan_steamid` | `fixed64` | `optional` | `` |  |
-| 3 | `event_name` | `string` | `optional` | `` |  |
-| 4 | `event_type` | `.EProtoClanEventType` | `optional` | `` | default = k_EClanOtherEvent |
-| 5 | `appid` | `uint32` | `optional` | `` |  |
-| 6 | `server_address` | `string` | `optional` | `` |  |
-| 7 | `server_password` | `string` | `optional` | `` |  |
-| 8 | `rtime32_start_time` | `uint32` | `optional` | `` |  |
-| 9 | `rtime32_end_time` | `uint32` | `optional` | `` |  |
-| 10 | `comment_count` | `int32` | `optional` | `` |  |
-| 11 | `creator_steamid` | `fixed64` | `optional` | `` |  |
-| 12 | `last_update_steamid` | `fixed64` | `optional` | `` |  |
-| 13 | `event_notes` | `string` | `optional` | `` |  |
-| 14 | `jsondata` | `string` | `optional` | `` |  |
-| 15 | `announcement_body` | `.CCommunity_ClanAnnouncementInfo` | `optional` | `` |  |
-| 16 | `published` | `bool` | `optional` | `` |  |
-| 17 | `hidden` | `bool` | `optional` | `` |  |
-| 18 | `rtime32_visibility_start` | `uint32` | `optional` | `` |  |
-| 19 | `rtime32_visibility_end` | `uint32` | `optional` | `` |  |
-| 20 | `broadcaster_accountid` | `uint32` | `optional` | `` |  |
-| 21 | `follower_count` | `uint32` | `optional` | `` |  |
-| 22 | `ignore_count` | `uint32` | `optional` | `` |  |
-| 23 | `forum_topic_id` | `fixed64` | `optional` | `` |  |
-| 24 | `rtime32_last_modified` | `uint32` | `optional` | `` |  |
-| 25 | `news_post_gid` | `fixed64` | `optional` | `` |  |
-| 26 | `rtime_mod_reviewed` | `uint32` | `optional` | `` |  |
-| 27 | `featured_app_tagid` | `uint32` | `optional` | `` |  |
-| 28 | `referenced_appids` | `uint32` | `repeated` | `` |  |
-| 29 | `build_id` | `uint32` | `optional` | `` |  |
-| 30 | `build_branch` | `string` | `optional` | `` |  |
+| 1 | `gid` | `fixed64` | `optional` |  |  |
+| 2 | `clan_steamid` | `fixed64` | `optional` |  |  |
+| 3 | `event_name` | `string` | `optional` |  |  |
+| 4 | `event_type` | `.EProtoClanEventType` | `optional` |  | default = k_EClanOtherEvent |
+| 5 | `appid` | `uint32` | `optional` |  |  |
+| 6 | `server_address` | `string` | `optional` |  |  |
+| 7 | `server_password` | `string` | `optional` |  |  |
+| 8 | `rtime32_start_time` | `uint32` | `optional` |  |  |
+| 9 | `rtime32_end_time` | `uint32` | `optional` |  |  |
+| 10 | `comment_count` | `int32` | `optional` |  |  |
+| 11 | `creator_steamid` | `fixed64` | `optional` |  |  |
+| 12 | `last_update_steamid` | `fixed64` | `optional` |  |  |
+| 13 | `event_notes` | `string` | `optional` |  |  |
+| 14 | `jsondata` | `string` | `optional` |  |  |
+| 15 | `announcement_body` | `.CCommunity_ClanAnnouncementInfo` | `optional` |  |  |
+| 16 | `published` | `bool` | `optional` |  |  |
+| 17 | `hidden` | `bool` | `optional` |  |  |
+| 18 | `rtime32_visibility_start` | `uint32` | `optional` |  |  |
+| 19 | `rtime32_visibility_end` | `uint32` | `optional` |  |  |
+| 20 | `broadcaster_accountid` | `uint32` | `optional` |  |  |
+| 21 | `follower_count` | `uint32` | `optional` |  |  |
+| 22 | `ignore_count` | `uint32` | `optional` |  |  |
+| 23 | `forum_topic_id` | `fixed64` | `optional` |  |  |
+| 24 | `rtime32_last_modified` | `uint32` | `optional` |  |  |
+| 25 | `news_post_gid` | `fixed64` | `optional` |  |  |
+| 26 | `rtime_mod_reviewed` | `uint32` | `optional` |  |  |
+| 27 | `featured_app_tagid` | `uint32` | `optional` |  |  |
+| 28 | `referenced_appids` | `uint32` | `repeated` |  |  |
+| 29 | `build_id` | `uint32` | `optional` |  |  |
+| 30 | `build_branch` | `string` | `optional` |  |  |
 
 </details>
 
@@ -323,16 +323,16 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `first_name` | `string` | `optional` | `` |  |
-| 2 | `last_name` | `string` | `optional` | `` |  |
-| 3 | `address1` | `string` | `optional` | `` |  |
-| 4 | `address2` | `string` | `optional` | `` |  |
-| 5 | `city` | `string` | `optional` | `` |  |
-| 6 | `us_state` | `string` | `optional` | `` |  |
-| 7 | `country_code` | `string` | `optional` | `` |  |
-| 8 | `postcode` | `string` | `optional` | `` |  |
-| 9 | `zip_plus4` | `int32` | `optional` | `` |  |
-| 10 | `phone` | `string` | `optional` | `` |  |
+| 1 | `first_name` | `string` | `optional` |  |  |
+| 2 | `last_name` | `string` | `optional` |  |  |
+| 3 | `address1` | `string` | `optional` |  |  |
+| 4 | `address2` | `string` | `optional` |  |  |
+| 5 | `city` | `string` | `optional` |  |  |
+| 6 | `us_state` | `string` | `optional` |  |  |
+| 7 | `country_code` | `string` | `optional` |  |  |
+| 8 | `postcode` | `string` | `optional` |  |  |
+| 9 | `zip_plus4` | `int32` | `optional` |  |  |
+| 10 | `phone` | `string` | `optional` |  |  |
 
 </details>
 
@@ -344,14 +344,14 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `packageid` | `uint32` | `optional` | `` |  |
-| 2 | `reservation_state` | `int32` | `optional` | `` |  |
-| 3 | `queue_position` | `int32` | `optional` | `` |  |
-| 4 | `total_queue_size` | `int32` | `optional` | `` |  |
-| 5 | `reservation_country_code` | `string` | `optional` | `` |  |
-| 6 | `expired` | `bool` | `optional` | `` |  |
-| 7 | `time_expires` | `uint32` | `optional` | `` |  |
-| 8 | `time_reserved` | `uint32` | `optional` | `` |  |
+| 1 | `packageid` | `uint32` | `optional` |  |  |
+| 2 | `reservation_state` | `int32` | `optional` |  |  |
+| 3 | `queue_position` | `int32` | `optional` |  |  |
+| 4 | `total_queue_size` | `int32` | `optional` |  |  |
+| 5 | `reservation_country_code` | `string` | `optional` |  |  |
+| 6 | `expired` | `bool` | `optional` |  |  |
+| 7 | `time_expires` | `uint32` | `optional` |  |  |
+| 8 | `time_reserved` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -363,8 +363,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `name` | `string` | `optional` | `` |  |
-| 2 | `value` | `string` | `optional` | `` |  |
+| 1 | `name` | `string` | `optional` |  |  |
+| 2 | `value` | `string` | `optional` |  |  |
 
 </details>
 
@@ -376,7 +376,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `pairs` | `.CMsgKeyValuePair` | `repeated` | `` |  |
+| 1 | `pairs` | `.CMsgKeyValuePair` | `repeated` |  |  |
 
 </details>
 

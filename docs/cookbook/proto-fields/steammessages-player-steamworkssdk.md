@@ -35,8 +35,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steamid` | `fixed64` | `optional` | `` |  |
-| 2 | `mutual_friend_account_ids` | `uint32` | `repeated` | `` |  |
+| 1 | `steamid` | `fixed64` | `optional` |  |  |
+| 2 | `mutual_friend_account_ids` | `uint32` | `repeated` |  |  |
 
 </details>
 
@@ -48,7 +48,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `incoming_invite_mutual_friends_lists` | `.CPlayer_IncomingInviteMutualFriendList` | `repeated` | `` |  |
+| 1 | `incoming_invite_mutual_friends_lists` | `.CPlayer_IncomingInviteMutualFriendList` | `repeated` |  |  |
 
 </details>
 
@@ -60,7 +60,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `appid` | `uint32` | `optional` | `` |  |
+| 1 | `appid` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -72,12 +72,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `your_info` | `.CPlayer_GetFriendsGameplayInfo_Response.OwnGameplayInfo` | `optional` | `` |  |
-| 2 | `in_game` | `.CPlayer_GetFriendsGameplayInfo_Response.FriendsGameplayInfo` | `repeated` | `` |  |
-| 3 | `played_recently` | `.CPlayer_GetFriendsGameplayInfo_Response.FriendsGameplayInfo` | `repeated` | `` |  |
-| 4 | `played_ever` | `.CPlayer_GetFriendsGameplayInfo_Response.FriendsGameplayInfo` | `repeated` | `` |  |
-| 5 | `owns` | `.CPlayer_GetFriendsGameplayInfo_Response.FriendsGameplayInfo` | `repeated` | `` |  |
-| 6 | `in_wishlist` | `.CPlayer_GetFriendsGameplayInfo_Response.FriendsGameplayInfo` | `repeated` | `` |  |
+| 1 | `your_info` | `.CPlayer_GetFriendsGameplayInfo_Response.OwnGameplayInfo` | `optional` |  |  |
+| 2 | `in_game` | `.CPlayer_GetFriendsGameplayInfo_Response.FriendsGameplayInfo` | `repeated` |  |  |
+| 3 | `played_recently` | `.CPlayer_GetFriendsGameplayInfo_Response.FriendsGameplayInfo` | `repeated` |  |  |
+| 4 | `played_ever` | `.CPlayer_GetFriendsGameplayInfo_Response.FriendsGameplayInfo` | `repeated` |  |  |
+| 5 | `owns` | `.CPlayer_GetFriendsGameplayInfo_Response.FriendsGameplayInfo` | `repeated` |  |  |
+| 6 | `in_wishlist` | `.CPlayer_GetFriendsGameplayInfo_Response.FriendsGameplayInfo` | `repeated` |  |  |
 
 </details>
 
@@ -89,9 +89,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steamid` | `fixed64` | `optional` | `` |  |
-| 2 | `minutes_played` | `uint32` | `optional` | `` |  |
-| 3 | `minutes_played_forever` | `uint32` | `optional` | `` |  |
+| 1 | `steamid` | `fixed64` | `optional` |  |  |
+| 2 | `minutes_played` | `uint32` | `optional` |  |  |
+| 3 | `minutes_played_forever` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -103,11 +103,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steamid` | `fixed64` | `optional` | `` |  |
-| 2 | `minutes_played` | `uint32` | `optional` | `` |  |
-| 3 | `minutes_played_forever` | `uint32` | `optional` | `` |  |
-| 4 | `in_wishlist` | `bool` | `optional` | `` |  |
-| 5 | `owned` | `bool` | `optional` | `` |  |
+| 1 | `steamid` | `fixed64` | `optional` |  |  |
+| 2 | `minutes_played` | `uint32` | `optional` |  |  |
+| 3 | `minutes_played_forever` | `uint32` | `optional` |  |  |
+| 4 | `in_wishlist` | `bool` | `optional` |  |  |
+| 5 | `owned` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -119,7 +119,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `appid` | `uint32` | `optional` | `` |  |
+| 1 | `appid` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -131,8 +131,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `player_level` | `uint32` | `optional` | `` |  |
-| 2 | `badges` | `.CPlayer_GetGameBadgeLevels_Response.Badge` | `repeated` | `` |  |
+| 1 | `player_level` | `uint32` | `optional` |  |  |
+| 2 | `badges` | `.CPlayer_GetGameBadgeLevels_Response.Badge` | `repeated` |  |  |
 
 </details>
 
@@ -144,9 +144,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `level` | `int32` | `optional` | `` |  |
-| 2 | `series` | `int32` | `optional` | `` |  |
-| 3 | `border_color` | `uint32` | `optional` | `` |  |
+| 1 | `level` | `int32` | `optional` |  |  |
+| 2 | `series` | `int32` | `optional` |  |  |
+| 3 | `border_color` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -158,7 +158,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `min_last_played` | `uint32` | `optional` | `` | (description) = "The most recent last-played time the client already knows about" |
+| 1 | `min_last_played` | `uint32` | `optional` |  | (description) = "The most recent last-played time the client already knows about" |
 
 </details>
 
@@ -170,7 +170,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `games` | `.CPlayer_GetLastPlayedTimes_Response.Game` | `repeated` | `` |  |
+| 1 | `games` | `.CPlayer_GetLastPlayedTimes_Response.Game` | `repeated` |  |  |
 
 </details>
 
@@ -182,11 +182,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `appid` | `int32` | `optional` | `` |  |
-| 2 | `last_playtime` | `uint32` | `optional` | `` |  |
-| 3 | `playtime_2weeks` | `int32` | `optional` | `` |  |
-| 4 | `playtime_forever` | `int32` | `optional` | `` |  |
-| 5 | `first_playtime` | `uint32` | `optional` | `` |  |
+| 1 | `appid` | `int32` | `optional` |  |  |
+| 2 | `last_playtime` | `uint32` | `optional` |  |  |
+| 3 | `playtime_2weeks` | `int32` | `optional` |  |  |
+| 4 | `playtime_forever` | `int32` | `optional` |  |  |
+| 5 | `first_playtime` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -234,7 +234,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `nicknames` | `.CPlayer_GetNicknameList_Response.PlayerNickname` | `repeated` | `` |  |
+| 1 | `nicknames` | `.CPlayer_GetNicknameList_Response.PlayerNickname` | `repeated` |  |  |
 
 </details>
 
@@ -246,8 +246,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `accountid` | `fixed32` | `optional` | `` |  |
-| 2 | `nickname` | `string` | `optional` | `` |  |
+| 1 | `accountid` | `fixed32` | `optional` |  |  |
+| 2 | `nickname` | `string` | `optional` |  |  |
 
 </details>
 
@@ -271,15 +271,15 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `accountid` | `fixed32` | `optional` | `` |  |
-| 2 | `nickname` | `string` | `optional` | `` |  |
-| 3 | `notifications_showingame` | `.ENotificationSetting` | `optional` | `` | default = k_ENotificationSettingNotifyUseDefault |
-| 4 | `notifications_showonline` | `.ENotificationSetting` | `optional` | `` | default = k_ENotificationSettingNotifyUseDefault |
-| 5 | `notifications_showmessages` | `.ENotificationSetting` | `optional` | `` | default = k_ENotificationSettingNotifyUseDefault |
-| 6 | `sounds_showingame` | `.ENotificationSetting` | `optional` | `` | default = k_ENotificationSettingNotifyUseDefault |
-| 7 | `sounds_showonline` | `.ENotificationSetting` | `optional` | `` | default = k_ENotificationSettingNotifyUseDefault |
-| 8 | `sounds_showmessages` | `.ENotificationSetting` | `optional` | `` | default = k_ENotificationSettingNotifyUseDefault |
-| 9 | `notifications_sendmobile` | `.ENotificationSetting` | `optional` | `` | default = k_ENotificationSettingNotifyUseDefault |
+| 1 | `accountid` | `fixed32` | `optional` |  |  |
+| 2 | `nickname` | `string` | `optional` |  |  |
+| 3 | `notifications_showingame` | `.ENotificationSetting` | `optional` |  | default = k_ENotificationSettingNotifyUseDefault |
+| 4 | `notifications_showonline` | `.ENotificationSetting` | `optional` |  | default = k_ENotificationSettingNotifyUseDefault |
+| 5 | `notifications_showmessages` | `.ENotificationSetting` | `optional` |  | default = k_ENotificationSettingNotifyUseDefault |
+| 6 | `sounds_showingame` | `.ENotificationSetting` | `optional` |  | default = k_ENotificationSettingNotifyUseDefault |
+| 7 | `sounds_showonline` | `.ENotificationSetting` | `optional` |  | default = k_ENotificationSettingNotifyUseDefault |
+| 8 | `sounds_showmessages` | `.ENotificationSetting` | `optional` |  | default = k_ENotificationSettingNotifyUseDefault |
+| 9 | `notifications_sendmobile` | `.ENotificationSetting` | `optional` |  | default = k_ENotificationSettingNotifyUseDefault |
 
 </details>
 
@@ -291,7 +291,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `preferences` | `.PerFriendPreferences` | `repeated` | `` |  |
+| 1 | `preferences` | `.PerFriendPreferences` | `repeated` |  |  |
 
 </details>
 
@@ -303,7 +303,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `preferences` | `.PerFriendPreferences` | `optional` | `` |  |
+| 1 | `preferences` | `.PerFriendPreferences` | `optional` |  |  |
 
 </details>
 
@@ -327,7 +327,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steamid` | `fixed64` | `optional` | `` | (description) = "Steam ID of user to whom to send a friend invite." |
+| 1 | `steamid` | `fixed64` | `optional` |  | (description) = "Steam ID of user to whom to send a friend invite." |
 
 </details>
 
@@ -339,8 +339,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `invite_sent` | `bool` | `optional` | `` | (description) = "True if the operation was successful, false otherwise." |
-| 2 | `friend_relationship` | `uint32` | `optional` | `` | (description) = "the resulting relationship.  Depending on state, may move directly to friends rather than invite sent" |
+| 1 | `invite_sent` | `bool` | `optional` |  | (description) = "True if the operation was successful, false otherwise." |
+| 2 | `friend_relationship` | `uint32` | `optional` |  | (description) = "the resulting relationship.  Depending on state, may move directly to friends rather than invite sent" |
 
 </details>
 
@@ -352,7 +352,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steamid` | `fixed64` | `optional` | `` | (description) = "Steam ID of friend to remove." |
+| 1 | `steamid` | `fixed64` | `optional` |  | (description) = "Steam ID of friend to remove." |
 
 </details>
 
@@ -364,7 +364,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `friend_relationship` | `uint32` | `optional` | `` | (description) = "the resulting relationship" |
+| 1 | `friend_relationship` | `uint32` | `optional` |  | (description) = "the resulting relationship" |
 
 </details>
 
@@ -376,8 +376,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steamid` | `fixed64` | `optional` | `` |  |
-| 2 | `unignore` | `bool` | `optional` | `` | (description) = "If set, remove from ignore/block list instead of adding " |
+| 1 | `steamid` | `fixed64` | `optional` |  |  |
+| 2 | `unignore` | `bool` | `optional` |  | (description) = "If set, remove from ignore/block list instead of adding " |
 
 </details>
 
@@ -389,7 +389,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `friend_relationship` | `uint32` | `optional` | `` | (description) = "the resulting relationship" |
+| 1 | `friend_relationship` | `uint32` | `optional` |  | (description) = "the resulting relationship" |
 
 </details>
 
@@ -413,10 +413,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `hide_adult_content_violence` | `bool` | `optional` | `` | default = true |
-| 2 | `hide_adult_content_sex` | `bool` | `optional` | `` | default = true |
-| 3 | `timestamp_updated` | `uint32` | `optional` | `` |  |
-| 4 | `parenthesize_nicknames` | `bool` | `optional` | `` | default = false |
+| 1 | `hide_adult_content_violence` | `bool` | `optional` |  | default = true |
+| 2 | `hide_adult_content_sex` | `bool` | `optional` |  | default = true |
+| 3 | `timestamp_updated` | `uint32` | `optional` |  |  |
+| 4 | `parenthesize_nicknames` | `bool` | `optional` |  | default = false |
 
 </details>
 
@@ -428,7 +428,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `preferences` | `.CPlayer_CommunityPreferences` | `optional` | `` |  |
+| 1 | `preferences` | `.CPlayer_CommunityPreferences` | `optional` |  |  |
 
 </details>
 
@@ -440,7 +440,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `preferences` | `.CPlayer_CommunityPreferences` | `optional` | `` |  |
+| 1 | `preferences` | `.CPlayer_CommunityPreferences` | `optional` |  |  |
 
 </details>
 
@@ -464,7 +464,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `language` | `int32` | `optional` | `` |  |
+| 1 | `language` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -476,11 +476,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `state` | `int32` | `optional` | `` |  |
-| 2 | `announcement_headline` | `string` | `optional` | `` |  |
-| 3 | `announcement_url` | `string` | `optional` | `` |  |
-| 4 | `time_posted` | `uint32` | `optional` | `` |  |
-| 5 | `announcement_gid` | `uint64` | `optional` | `` |  |
+| 1 | `state` | `int32` | `optional` |  |  |
+| 2 | `announcement_headline` | `string` | `optional` |  |  |
+| 3 | `announcement_url` | `string` | `optional` |  |  |
+| 4 | `time_posted` | `uint32` | `optional` |  |  |
+| 5 | `announcement_gid` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -492,8 +492,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `announcement_gid` | `uint64` | `optional` | `` |  |
-| 2 | `time_posted` | `uint32` | `optional` | `` |  |
+| 1 | `announcement_gid` | `uint64` | `optional` |  |  |
+| 2 | `time_posted` | `uint32` | `optional` |  |  |
 
 </details>
 

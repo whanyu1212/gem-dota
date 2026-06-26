@@ -26,8 +26,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `material_id` | `uint32` | `optional` | `` |  |
-| 2 | `material_count` | `uint32` | `optional` | `` |  |
+| 1 | `material_id` | `uint32` | `optional` |  |  |
+| 2 | `material_count` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -39,8 +39,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `stats` | `uint32` | `repeated` | `` |  |
-| 2 | `unlocked` | `bool` | `optional` | `` |  |
+| 1 | `stats` | `uint32` | `repeated` |  |  |
+| 2 | `unlocked` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -52,9 +52,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `material_inventory` | `.CMsgMonsterHunterMaterialQuantity` | `optional` | `` |  |
-| 2 | `hero_codex` | `.CMsgMonsterHunterUserData.HeroCodexEntry` | `repeated` | `` |  |
-| 3 | `unlocked_count` | `int32` | `optional` | `` |  |
+| 1 | `material_inventory` | `.CMsgMonsterHunterMaterialQuantity` | `optional` |  |  |
+| 2 | `hero_codex` | `.CMsgMonsterHunterUserData.HeroCodexEntry` | `repeated` |  |  |
+| 3 | `unlocked_count` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -66,8 +66,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `key` | `int32` | `optional` | `` |  |
-| 2 | `value` | `.CMsgMonsterHunterHeroCodexEntry` | `optional` | `` |  |
+| 1 | `key` | `int32` | `optional` |  |  |
+| 2 | `value` | `.CMsgMonsterHunterHeroCodexEntry` | `optional` |  |  |
 
 </details>
 
@@ -79,7 +79,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `players` | `.CMsgMonsterHunterMatchRewards.Player` | `repeated` | `` |  |
+| 1 | `players` | `.CMsgMonsterHunterMatchRewards.Player` | `repeated` |  |  |
 
 </details>
 
@@ -91,12 +91,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `player_slot` | `uint32` | `optional` | `` |  |
-| 2 | `possible_match_reward_materials` | `.CMsgMonsterHunterMaterialQuantity` | `optional` | `` |  |
-| 3 | `actual_match_reward_materials` | `.CMsgMonsterHunterMaterialQuantity` | `optional` | `` |  |
-| 4 | `hunt_reward` | `.CMsgMonsterHunterMatchRewards.Player.HuntReward` | `optional` | `` |  |
-| 5 | `denial_rewards` | `.CMsgMonsterHunterMatchRewards.Player.HuntReward` | `repeated` | `` |  |
-| 6 | `hunter_duel` | `bool` | `optional` | `` |  |
+| 1 | `player_slot` | `uint32` | `optional` |  |  |
+| 2 | `possible_match_reward_materials` | `.CMsgMonsterHunterMaterialQuantity` | `optional` |  |  |
+| 3 | `actual_match_reward_materials` | `.CMsgMonsterHunterMaterialQuantity` | `optional` |  |  |
+| 4 | `hunt_reward` | `.CMsgMonsterHunterMatchRewards.Player.HuntReward` | `optional` |  |  |
+| 5 | `denial_rewards` | `.CMsgMonsterHunterMatchRewards.Player.HuntReward` | `repeated` |  |  |
+| 6 | `hunter_duel` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -108,9 +108,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `hero_id` | `int32` | `optional` | `` |  |
-| 2 | `materials` | `.CMsgMonsterHunterMaterialQuantity` | `optional` | `` |  |
-| 3 | `success` | `bool` | `optional` | `` |  |
+| 1 | `hero_id` | `int32` | `optional` |  |  |
+| 2 | `materials` | `.CMsgMonsterHunterMaterialQuantity` | `optional` |  |  |
+| 3 | `success` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -134,8 +134,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCMonsterHunterGetUserDataResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `user_data` | `.CMsgMonsterHunterUserData` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCMonsterHunterGetUserDataResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `user_data` | `.CMsgMonsterHunterUserData` | `optional` |  |  |
 
 </details>
 
@@ -147,7 +147,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `user_data` | `.CMsgMonsterHunterUserData` | `optional` | `` |  |
+| 1 | `user_data` | `.CMsgMonsterHunterUserData` | `optional` |  |  |
 
 </details>
 
@@ -172,9 +172,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCMonsterHunterClaimRewardResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `claim_response` | `.CMsgDOTAClaimEventActionResponse` | `optional` | `` |  |
-| 3 | `materials_received` | `.CMsgMonsterHunterMaterialQuantity` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCMonsterHunterClaimRewardResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `claim_response` | `.CMsgDOTAClaimEventActionResponse` | `optional` |  |  |
+| 3 | `materials_received` | `.CMsgMonsterHunterMaterialQuantity` | `optional` |  |  |
 
 </details>
 
@@ -186,8 +186,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `econ_item_id` | `uint32` | `optional` | `` |  |
-| 2 | `set_index` | `uint32` | `optional` | `` |  |
+| 1 | `econ_item_id` | `uint32` | `optional` |  |  |
+| 2 | `set_index` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -199,7 +199,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `item_sets` | `.CMsgMonsterHunterItemSet` | `repeated` | `` |  |
+| 1 | `item_sets` | `.CMsgMonsterHunterItemSet` | `repeated` |  |  |
 
 </details>
 
@@ -211,8 +211,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCMonsterHunterClaimSetRewardResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `claim_responses` | `.CMsgDOTAClaimEventActionResponse` | `repeated` | `` |  |
+| 1 | `response` | `.CMsgClientToGCMonsterHunterClaimSetRewardResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `claim_responses` | `.CMsgDOTAClaimEventActionResponse` | `repeated` |  |  |
 
 </details>
 
@@ -224,9 +224,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `material_offer` | `.CMsgMonsterHunterMaterialQuantity` | `optional` | `` |  |
-| 2 | `material_request` | `.CMsgMonsterHunterMaterialQuantity` | `optional` | `` |  |
-| 3 | `recipe_id` | `uint32` | `optional` | `` |  |
+| 1 | `material_offer` | `.CMsgMonsterHunterMaterialQuantity` | `optional` |  |  |
+| 2 | `material_request` | `.CMsgMonsterHunterMaterialQuantity` | `optional` |  |  |
+| 3 | `recipe_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -238,8 +238,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCMonsterHunterTradeMaterialsResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `materials_received` | `.CMsgMonsterHunterMaterialQuantity` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCMonsterHunterTradeMaterialsResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `materials_received` | `.CMsgMonsterHunterMaterialQuantity` | `optional` |  |  |
 
 </details>
 
@@ -251,9 +251,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `token_gift` | `.CMsgMonsterHunterMaterialCount` | `optional` | `` |  |
-| 2 | `recipient_account_id` | `uint32` | `optional` | `` |  |
-| 3 | `periodic_resource_id` | `uint32` | `optional` | `` |  |
+| 1 | `token_gift` | `.CMsgMonsterHunterMaterialCount` | `optional` |  |  |
+| 2 | `recipient_account_id` | `uint32` | `optional` |  |  |
+| 3 | `periodic_resource_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -265,7 +265,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCMonsterHunterGiftMaterialsResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCMonsterHunterGiftMaterialsResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -277,7 +277,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `friend_account_id` | `uint32` | `optional` | `` |  |
+| 1 | `friend_account_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -289,8 +289,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCMonsterHunterRequestMaterialsNeededByFriendResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `token_quantity` | `.CMsgMonsterHunterMaterialQuantity` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCMonsterHunterRequestMaterialsNeededByFriendResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `token_quantity` | `.CMsgMonsterHunterMaterialQuantity` | `optional` |  |  |
 
 </details>
 
@@ -302,7 +302,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `reset_codex_only` | `bool` | `optional` | `` |  |
+| 1 | `reset_codex_only` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -314,7 +314,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCMonsterHunterDevResetAllResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCMonsterHunterDevResetAllResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -326,7 +326,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `material_quantity` | `.CMsgMonsterHunterMaterialQuantity` | `optional` | `` |  |
+| 1 | `material_quantity` | `.CMsgMonsterHunterMaterialQuantity` | `optional` |  |  |
 
 </details>
 
@@ -338,7 +338,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCMonsterHunterDevGrantMaterialsResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCMonsterHunterDevGrantMaterialsResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -362,7 +362,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCMonsterHunterDevClearInventoryResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCMonsterHunterDevClearInventoryResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -374,8 +374,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `investigation_game_state` | `.CMsgMonsterHunterInvestigationGameState` | `optional` | `` |  |
-| 2 | `win` | `bool` | `optional` | `` |  |
+| 1 | `investigation_game_state` | `.CMsgMonsterHunterInvestigationGameState` | `optional` |  |  |
+| 2 | `win` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -387,7 +387,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCMonsterHunterDevClaimInvestigationRewardsResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCMonsterHunterDevClaimInvestigationRewardsResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -399,8 +399,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `codex_id` | `uint32` | `optional` | `` |  |
-| 2 | `reward` | `uint32` | `optional` | `` |  |
+| 1 | `codex_id` | `uint32` | `optional` |  |  |
+| 2 | `reward` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -412,8 +412,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCMonsterHunterClaimCodexRewardResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `claim_response` | `.CMsgDOTAClaimEventActionResponse` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCMonsterHunterClaimCodexRewardResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `claim_response` | `.CMsgDOTAClaimEventActionResponse` | `optional` |  |  |
 
 </details>
 
@@ -425,9 +425,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `codex_id` | `uint32` | `optional` | `` |  |
-| 2 | `stat_type` | `.EHeroCodexEntryStatType` | `optional` | `` | default = k_eHeroCodexEntryStatType_Killed |
-| 3 | `action` | `.CMsgDevModifyCodexAction.EAction` | `optional` | `` | default = k_eClear |
+| 1 | `codex_id` | `uint32` | `optional` |  |  |
+| 2 | `stat_type` | `.EHeroCodexEntryStatType` | `optional` |  | default = k_eHeroCodexEntryStatType_Killed |
+| 3 | `action` | `.CMsgDevModifyCodexAction.EAction` | `optional` |  | default = k_eClear |
 
 </details>
 
@@ -439,7 +439,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `actions` | `.CMsgDevModifyCodexAction` | `repeated` | `` |  |
+| 1 | `actions` | `.CMsgDevModifyCodexAction` | `repeated` |  |  |
 
 </details>
 
@@ -451,7 +451,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCMonsterHunterDevModifyHeroCodexResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCMonsterHunterDevModifyHeroCodexResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -463,8 +463,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `language` | `uint32` | `optional` | `` |  |
-| 2 | `feedback` | `string` | `optional` | `` |  |
+| 1 | `language` | `uint32` | `optional` |  |  |
+| 2 | `feedback` | `string` | `optional` |  |  |
 
 </details>
 
@@ -476,7 +476,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCMonsterHunterFeedbackResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCMonsterHunterFeedbackResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 

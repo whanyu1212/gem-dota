@@ -54,7 +54,7 @@ Source: [src/gem/results/models.py:32](https://github.com/whanyu1212/gem-dota/bl
 | Name | Type | Default |
 |---|---|---|
 | `tick` | `int` | `-` |
-| `end_tick` | `int | None` | `-` |
+| `end_tick` | `int \| None` | `-` |
 | `modifier_name` | `str` | `-` |
 | `target_name` | `str` | `-` |
 | `caster_name` | `str` | `-` |
@@ -78,8 +78,8 @@ Source: [src/gem/results/models.py:58](https://github.com/whanyu1212/gem-dota/bl
 | `activator` | `str` | `-` |
 | `team` | `int` | `-` |
 | `smoked` | `list[str]` | `field(...)` |
-| `x` | `float | None` | `None` |
-| `y` | `float | None` | `None` |
+| `x` | `float \| None` | `None` |
+| `y` | `float \| None` | `None` |
 
 ### `ChatEntry`
 
@@ -179,7 +179,7 @@ Source: [src/gem/results/models.py:132](https://github.com/whanyu1212/gem-dota/b
 | `damage_targets` | `dict[str, dict[str, int]]` | `field(...)` |
 | `ability_targets` | `dict[str, dict[str, int]]` | `field(...)` |
 | `hero_hits` | `dict[str, int]` | `field(...)` |
-| `max_hero_hit` | `dict[str, Any] | None` | `None` |
+| `max_hero_hit` | `dict[str, Any] \| None` | `None` |
 | `healing` | `dict[str, int]` | `field(...)` |
 | `ability_uses` | `dict[str, int]` | `field(...)` |
 | `ability_upgrades_arr` | `list[int]` | `field(...)` |
@@ -203,8 +203,8 @@ Source: [src/gem/results/models.py:132](https://github.com/whanyu1212/gem-dota/b
 | `lane_total_gold` | `int` | `0` |
 | `lane_total_xp` | `int` | `0` |
 | `lane_efficiency_pct` | `int` | `0` |
-| `lane_gold_adv` | `int | None` | `None` |
-| `lane_xp_adv` | `int | None` | `None` |
+| `lane_gold_adv` | `int \| None` | `None` |
+| `lane_xp_adv` | `int \| None` | `None` |
 | `net_worth` | `int` | `0` |
 | `last_hits` | `int` | `0` |
 | `denies` | `int` | `0` |
@@ -267,14 +267,14 @@ Source: [src/gem/results/models.py:504](https://github.com/whanyu1212/gem-dota/b
 | `match_id` | `int` | `0` |
 | `game_mode` | `int` | `0` |
 | `leagueid` | `int` | `0` |
-| `radiant_win` | `bool | None` | `None` |
+| `radiant_win` | `bool \| None` | `None` |
 | `radiant_team_id` | `int` | `0` |
 | `radiant_team_name` | `str` | `''` |
 | `radiant_team_tag` | `str` | `''` |
 | `dire_team_id` | `int` | `0` |
 | `dire_team_name` | `str` | `''` |
 | `dire_team_tag` | `str` | `''` |
-| `game_start_tick` | `int | None` | `None` |
+| `game_start_tick` | `int \| None` | `None` |
 | `game_end_tick` | `int` | `0` |
 | `duration` | `int` | `0` |
 | `radiant_score` | `int` | `0` |

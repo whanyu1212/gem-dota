@@ -23,23 +23,23 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_name` | `string` | `optional` | `` |  |
-| 2 | `guild_tag` | `string` | `optional` | `` |  |
-| 3 | `created_timestamp` | `uint32` | `optional` | `` |  |
-| 4 | `guild_language` | `uint32` | `optional` | `` |  |
-| 5 | `guild_flags` | `uint32` | `optional` | `` |  |
-| 7 | `guild_logo` | `uint64` | `optional` | `` |  |
-| 8 | `guild_region` | `uint32` | `optional` | `` |  |
-| 9 | `guild_chat_group_id` | `uint64` | `optional` | `` |  |
-| 10 | `guild_description` | `string` | `optional` | `` |  |
-| 11 | `default_chat_channel_id` | `uint64` | `optional` | `` |  |
-| 12 | `guild_primary_color` | `uint32` | `optional` | `` |  |
-| 13 | `guild_secondary_color` | `uint32` | `optional` | `` |  |
-| 14 | `guild_pattern` | `uint32` | `optional` | `` |  |
-| 15 | `guild_refresh_time_offset` | `uint32` | `optional` | `` |  |
-| 16 | `guild_required_rank_tier` | `uint32` | `optional` | `` |  |
-| 17 | `guild_motd_timestamp` | `uint32` | `optional` | `` |  |
-| 18 | `guild_motd` | `string` | `optional` | `` |  |
+| 1 | `guild_name` | `string` | `optional` |  |  |
+| 2 | `guild_tag` | `string` | `optional` |  |  |
+| 3 | `created_timestamp` | `uint32` | `optional` |  |  |
+| 4 | `guild_language` | `uint32` | `optional` |  |  |
+| 5 | `guild_flags` | `uint32` | `optional` |  |  |
+| 7 | `guild_logo` | `uint64` | `optional` |  |  |
+| 8 | `guild_region` | `uint32` | `optional` |  |  |
+| 9 | `guild_chat_group_id` | `uint64` | `optional` |  |  |
+| 10 | `guild_description` | `string` | `optional` |  |  |
+| 11 | `default_chat_channel_id` | `uint64` | `optional` |  |  |
+| 12 | `guild_primary_color` | `uint32` | `optional` |  |  |
+| 13 | `guild_secondary_color` | `uint32` | `optional` |  |  |
+| 14 | `guild_pattern` | `uint32` | `optional` |  |  |
+| 15 | `guild_refresh_time_offset` | `uint32` | `optional` |  |  |
+| 16 | `guild_required_rank_tier` | `uint32` | `optional` |  |  |
+| 17 | `guild_motd_timestamp` | `uint32` | `optional` |  |  |
+| 18 | `guild_motd` | `string` | `optional` |  |  |
 
 </details>
 
@@ -51,9 +51,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_info` | `.CMsgGuildInfo` | `optional` | `` |  |
-| 2 | `member_count` | `uint32` | `optional` | `` |  |
-| 3 | `event_points` | `.CMsgGuildSummary.EventPoints` | `repeated` | `` |  |
+| 1 | `guild_info` | `.CMsgGuildInfo` | `optional` |  |  |
+| 2 | `member_count` | `uint32` | `optional` |  |  |
+| 3 | `event_points` | `.CMsgGuildSummary.EventPoints` | `repeated` |  |  |
 
 </details>
 
@@ -65,12 +65,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `event_id` | `uint32` | `optional` | `` |  |
-| 2 | `guild_points` | `uint32` | `optional` | `` |  |
-| 3 | `guild_rank` | `uint32` | `optional` | `` |  |
-| 4 | `guild_weekly_rank` | `uint32` | `optional` | `` |  |
-| 5 | `guild_weekly_percentile` | `uint32` | `optional` | `` |  |
-| 6 | `guild_current_percentile` | `uint32` | `optional` | `` |  |
+| 1 | `event_id` | `uint32` | `optional` |  |  |
+| 2 | `guild_points` | `uint32` | `optional` |  |  |
+| 3 | `guild_rank` | `uint32` | `optional` |  |  |
+| 4 | `guild_weekly_rank` | `uint32` | `optional` |  |  |
+| 5 | `guild_weekly_percentile` | `uint32` | `optional` |  |  |
+| 6 | `guild_current_percentile` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -82,10 +82,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `role_id` | `uint32` | `optional` | `` |  |
-| 2 | `role_name` | `string` | `optional` | `` |  |
-| 3 | `role_flags` | `uint32` | `optional` | `` |  |
-| 4 | `role_order` | `uint32` | `optional` | `` |  |
+| 1 | `role_id` | `uint32` | `optional` |  |  |
+| 2 | `role_name` | `string` | `optional` |  |  |
+| 3 | `role_flags` | `uint32` | `optional` |  |  |
+| 4 | `role_order` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -97,10 +97,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `member_account_id` | `uint32` | `optional` | `` |  |
-| 2 | `member_role_id` | `uint32` | `optional` | `` |  |
-| 3 | `member_joined_timestamp` | `uint32` | `optional` | `` |  |
-| 4 | `member_last_active_timestamp` | `uint32` | `optional` | `` |  |
+| 1 | `member_account_id` | `uint32` | `optional` |  |  |
+| 2 | `member_role_id` | `uint32` | `optional` |  |  |
+| 3 | `member_joined_timestamp` | `uint32` | `optional` |  |  |
+| 4 | `member_last_active_timestamp` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -112,9 +112,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `requester_account_id` | `uint32` | `optional` | `` |  |
-| 2 | `target_account_id` | `uint32` | `optional` | `` |  |
-| 3 | `timestamp_sent` | `uint32` | `optional` | `` |  |
+| 1 | `requester_account_id` | `uint32` | `optional` |  |  |
+| 2 | `target_account_id` | `uint32` | `optional` |  |  |
+| 3 | `timestamp_sent` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -126,11 +126,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
-| 2 | `guild_info` | `.CMsgGuildInfo` | `optional` | `` |  |
-| 3 | `guild_roles` | `.CMsgGuildRole` | `repeated` | `` |  |
-| 4 | `guild_members` | `.CMsgGuildMember` | `repeated` | `` |  |
-| 5 | `guild_invites` | `.CMsgGuildInvite` | `repeated` | `` |  |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
+| 2 | `guild_info` | `.CMsgGuildInfo` | `optional` |  |  |
+| 3 | `guild_roles` | `.CMsgGuildRole` | `repeated` |  |  |
+| 4 | `guild_members` | `.CMsgGuildMember` | `repeated` |  |  |
+| 5 | `guild_invites` | `.CMsgGuildInvite` | `repeated` |  |  |
 
 </details>
 
@@ -142,9 +142,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
-| 2 | `requester_account_id` | `uint32` | `optional` | `` |  |
-| 3 | `timestamp_sent` | `uint32` | `optional` | `` |  |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
+| 2 | `requester_account_id` | `uint32` | `optional` |  |  |
+| 3 | `timestamp_sent` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -156,8 +156,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_ids` | `uint32` | `repeated` | `` |  |
-| 2 | `guild_invites` | `.CMsgAccountGuildInvite` | `repeated` | `` |  |
+| 1 | `guild_ids` | `uint32` | `repeated` |  |  |
+| 2 | `guild_invites` | `.CMsgAccountGuildInvite` | `repeated` |  |  |
 
 </details>
 
@@ -169,9 +169,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
-| 2 | `guild_tag` | `string` | `optional` | `` |  |
-| 3 | `guild_flags` | `uint32` | `optional` | `` |  |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
+| 2 | `guild_tag` | `string` | `optional` |  |  |
+| 3 | `guild_flags` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -183,7 +183,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_persona_infos` | `.CMsgGuildPersonaInfo` | `repeated` | `` |  |
+| 1 | `guild_persona_infos` | `.CMsgGuildPersonaInfo` | `repeated` |  |  |
 
 </details>
 
@@ -195,12 +195,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `feed_event_id` | `uint64` | `optional` | `` |  |
-| 2 | `timestamp` | `uint32` | `optional` | `` |  |
-| 3 | `event_type` | `uint32` | `optional` | `` |  |
-| 4 | `param_uint_1` | `uint32` | `optional` | `` |  |
-| 5 | `param_uint_2` | `uint32` | `optional` | `` |  |
-| 6 | `param_uint_3` | `uint32` | `optional` | `` |  |
+| 1 | `feed_event_id` | `uint64` | `optional` |  |  |
+| 2 | `timestamp` | `uint32` | `optional` |  |  |
+| 3 | `event_type` | `uint32` | `optional` |  |  |
+| 4 | `param_uint_1` | `uint32` | `optional` |  |  |
+| 5 | `param_uint_2` | `uint32` | `optional` |  |  |
+| 6 | `param_uint_3` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -212,8 +212,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_info` | `.CMsgGuildInfo` | `optional` | `` |  |
-| 2 | `guild_chat_type` | `.EGuildChatType` | `optional` | `` | default = k_EGuildChatType_Unspecified |
+| 1 | `guild_info` | `.CMsgGuildInfo` | `optional` |  |  |
+| 2 | `guild_chat_type` | `.EGuildChatType` | `optional` |  | default = k_EGuildChatType_Unspecified |
 
 </details>
 
@@ -225,8 +225,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCCreateGuildResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `guild_id` | `uint32` | `optional` | `` |  |
+| 1 | `result` | `.CMsgClientToGCCreateGuildResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `guild_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -238,9 +238,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
-| 2 | `guild_info` | `.CMsgGuildInfo` | `optional` | `` |  |
-| 3 | `guild_chat_type` | `.EGuildChatType` | `optional` | `` | default = k_EGuildChatType_Unspecified |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
+| 2 | `guild_info` | `.CMsgGuildInfo` | `optional` |  |  |
+| 3 | `guild_chat_type` | `.EGuildChatType` | `optional` |  | default = k_EGuildChatType_Unspecified |
 
 </details>
 
@@ -252,7 +252,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCSetGuildInfoResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `result` | `.CMsgClientToGCSetGuildInfoResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -264,7 +264,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -276,8 +276,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCRequestGuildDataResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `guild_data` | `.CMsgGuildData` | `optional` | `` |  |
+| 1 | `result` | `.CMsgClientToGCRequestGuildDataResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `guild_data` | `.CMsgGuildData` | `optional` |  |  |
 
 </details>
 
@@ -289,8 +289,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_data` | `.CMsgGuildData` | `optional` | `` |  |
-| 2 | `update_flags` | `uint32` | `optional` | `` |  |
+| 1 | `guild_data` | `.CMsgGuildData` | `optional` |  |  |
+| 2 | `update_flags` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -302,8 +302,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
-| 2 | `members_data` | `.CMsgGuildMember` | `repeated` | `` |  |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
+| 2 | `members_data` | `.CMsgGuildMember` | `repeated` |  |  |
 
 </details>
 
@@ -327,8 +327,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCRequestGuildMembershipResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `guild_memberships` | `.CMsgAccountGuildMemberships` | `optional` | `` |  |
+| 1 | `result` | `.CMsgClientToGCRequestGuildMembershipResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `guild_memberships` | `.CMsgAccountGuildMemberships` | `optional` |  |  |
 
 </details>
 
@@ -340,7 +340,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_memberships` | `.CMsgAccountGuildMemberships` | `optional` | `` |  |
+| 1 | `guild_memberships` | `.CMsgAccountGuildMemberships` | `optional` |  |  |
 
 </details>
 
@@ -352,7 +352,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -364,7 +364,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCJoinGuildResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `result` | `.CMsgClientToGCJoinGuildResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -376,7 +376,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -388,7 +388,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCLeaveGuildResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `result` | `.CMsgClientToGCLeaveGuildResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -400,8 +400,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
-| 2 | `target_account_id` | `uint32` | `optional` | `` |  |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
+| 2 | `target_account_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -413,7 +413,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCKickGuildMemberResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `result` | `.CMsgClientToGCKickGuildMemberResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -425,9 +425,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
-| 2 | `target_account_id` | `uint32` | `optional` | `` |  |
-| 3 | `target_role_id` | `uint32` | `optional` | `` |  |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
+| 2 | `target_account_id` | `uint32` | `optional` |  |  |
+| 3 | `target_role_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -439,7 +439,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCSetGuildMemberRoleResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `result` | `.CMsgClientToGCSetGuildMemberRoleResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -451,8 +451,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
-| 2 | `target_account_id` | `uint32` | `optional` | `` |  |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
+| 2 | `target_account_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -464,7 +464,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCInviteToGuildResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `result` | `.CMsgClientToGCInviteToGuildResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -476,7 +476,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -488,7 +488,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCDeclineInviteToGuildResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `result` | `.CMsgClientToGCDeclineInviteToGuildResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -500,7 +500,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -512,7 +512,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCAcceptInviteToGuildResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `result` | `.CMsgClientToGCAcceptInviteToGuildResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -524,8 +524,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
-| 2 | `target_account_id` | `uint32` | `optional` | `` |  |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
+| 2 | `target_account_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -537,7 +537,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCCancelInviteToGuildResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `result` | `.CMsgClientToGCCancelInviteToGuildResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -549,9 +549,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
-| 2 | `role_name` | `string` | `optional` | `` |  |
-| 3 | `role_flags` | `uint32` | `optional` | `` |  |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
+| 2 | `role_name` | `string` | `optional` |  |  |
+| 3 | `role_flags` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -563,8 +563,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCAddGuildRoleResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `role_id` | `uint32` | `optional` | `` |  |
+| 1 | `result` | `.CMsgClientToGCAddGuildRoleResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `role_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -576,10 +576,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
-| 2 | `role_id` | `uint32` | `optional` | `` |  |
-| 3 | `role_name` | `string` | `optional` | `` |  |
-| 4 | `role_flags` | `uint32` | `optional` | `` |  |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
+| 2 | `role_id` | `uint32` | `optional` |  |  |
+| 3 | `role_name` | `string` | `optional` |  |  |
+| 4 | `role_flags` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -591,7 +591,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCModifyGuildRoleResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `result` | `.CMsgClientToGCModifyGuildRoleResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -603,8 +603,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
-| 2 | `role_id` | `uint32` | `optional` | `` |  |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
+| 2 | `role_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -616,7 +616,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCRemoveGuildRoleResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `result` | `.CMsgClientToGCRemoveGuildRoleResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -628,9 +628,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
-| 2 | `requested_role_ids` | `uint32` | `repeated` | `` |  |
-| 3 | `previous_role_ids` | `uint32` | `repeated` | `` |  |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
+| 2 | `requested_role_ids` | `uint32` | `repeated` |  |  |
+| 3 | `previous_role_ids` | `uint32` | `repeated` |  |  |
 
 </details>
 
@@ -642,8 +642,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCSetGuildRoleOrderResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `confirmed_role_ids` | `uint32` | `repeated` | `` |  |
+| 1 | `result` | `.CMsgClientToGCSetGuildRoleOrderResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `confirmed_role_ids` | `uint32` | `repeated` |  |  |
 
 </details>
 
@@ -655,8 +655,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
-| 2 | `last_seen_id` | `uint64` | `optional` | `` |  |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
+| 2 | `last_seen_id` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -668,9 +668,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCRequestGuildFeedResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `guild_id` | `uint32` | `optional` | `` |  |
-| 3 | `feed_events` | `.CMsgGuildFeedEvent` | `repeated` | `` |  |
+| 1 | `result` | `.CMsgClientToGCRequestGuildFeedResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `guild_id` | `uint32` | `optional` |  |  |
+| 3 | `feed_events` | `.CMsgGuildFeedEvent` | `repeated` |  |  |
 
 </details>
 
@@ -682,7 +682,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -694,7 +694,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -706,7 +706,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCAddPlayerToGuildChatResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `result` | `.CMsgClientToGCAddPlayerToGuildChatResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -718,9 +718,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgFindGuildByTagResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `guild_id` | `uint32` | `optional` | `` |  |
-| 3 | `guild_summary` | `.CMsgGuildSummary` | `optional` | `` |  |
+| 1 | `result` | `.CMsgFindGuildByTagResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `guild_id` | `uint32` | `optional` |  |  |
+| 3 | `guild_summary` | `.CMsgGuildSummary` | `optional` |  |  |
 
 </details>
 
@@ -732,9 +732,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgSearchForOpenGuildsResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `search_results` | `.CMsgSearchForOpenGuildsResponse.SearchResult` | `repeated` | `` |  |
-| 3 | `use_whitelist` | `bool` | `optional` | `` |  |
+| 1 | `result` | `.CMsgSearchForOpenGuildsResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `search_results` | `.CMsgSearchForOpenGuildsResponse.SearchResult` | `repeated` |  |  |
+| 3 | `use_whitelist` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -746,8 +746,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
-| 2 | `guild_summary` | `.CMsgGuildSummary` | `optional` | `` |  |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
+| 2 | `guild_summary` | `.CMsgGuildSummary` | `optional` |  |  |
 
 </details>
 
@@ -759,8 +759,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
-| 2 | `guild_content_flags` | `uint32` | `optional` | `` |  |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
+| 2 | `guild_content_flags` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -772,7 +772,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCReportGuildContentResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `result` | `.CMsgClientToGCReportGuildContentResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -784,7 +784,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -796,8 +796,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCRequestAccountGuildPersonaInfoResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `persona_info` | `.CMsgAccountGuildsPersonaInfo` | `optional` | `` |  |
+| 1 | `result` | `.CMsgClientToGCRequestAccountGuildPersonaInfoResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `persona_info` | `.CMsgAccountGuildsPersonaInfo` | `optional` |  |  |
 
 </details>
 
@@ -809,7 +809,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_ids` | `uint32` | `repeated` | `` |  |
+| 1 | `account_ids` | `uint32` | `repeated` |  |  |
 
 </details>
 
@@ -821,8 +821,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCRequestAccountGuildPersonaInfoBatchResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `persona_infos` | `.CMsgAccountGuildsPersonaInfo` | `repeated` | `` |  |
+| 1 | `result` | `.CMsgClientToGCRequestAccountGuildPersonaInfoBatchResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `persona_infos` | `.CMsgAccountGuildsPersonaInfo` | `repeated` |  |  |
 
 </details>
 

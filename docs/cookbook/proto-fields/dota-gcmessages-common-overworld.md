@@ -27,8 +27,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `token_id` | `uint32` | `optional` | `` |  |
-| 2 | `token_count` | `uint32` | `optional` | `` |  |
+| 1 | `token_id` | `uint32` | `optional` |  |  |
+| 2 | `token_count` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -40,7 +40,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `token_counts` | `.CMsgOverworldTokenCount` | `repeated` | `` |  |
+| 1 | `token_counts` | `.CMsgOverworldTokenCount` | `repeated` |  |  |
 
 </details>
 
@@ -52,7 +52,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `reward_options` | `.CMsgOverworldEncounterTokenTreasureData.RewardOption` | `repeated` | `` |  |
+| 1 | `reward_options` | `.CMsgOverworldEncounterTokenTreasureData.RewardOption` | `repeated` |  |  |
 
 </details>
 
@@ -64,9 +64,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `reward_data` | `uint32` | `optional` | `` |  |
-| 2 | `token_cost` | `.CMsgOverworldTokenQuantity` | `optional` | `` |  |
-| 3 | `token_reward` | `.CMsgOverworldTokenQuantity` | `optional` | `` |  |
+| 1 | `reward_data` | `uint32` | `optional` |  |  |
+| 2 | `token_cost` | `.CMsgOverworldTokenQuantity` | `optional` |  |  |
+| 3 | `token_reward` | `.CMsgOverworldTokenQuantity` | `optional` |  |  |
 
 </details>
 
@@ -78,7 +78,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `quests` | `.CMsgOverworldEncounterTokenQuestData.Quest` | `repeated` | `` |  |
+| 1 | `quests` | `.CMsgOverworldEncounterTokenQuestData.Quest` | `repeated` |  |  |
 
 </details>
 
@@ -90,9 +90,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `reward_data` | `uint32` | `optional` | `` |  |
-| 2 | `token_cost` | `.CMsgOverworldTokenQuantity` | `optional` | `` |  |
-| 3 | `token_reward` | `.CMsgOverworldTokenQuantity` | `optional` | `` |  |
+| 1 | `reward_data` | `uint32` | `optional` |  |  |
+| 2 | `token_cost` | `.CMsgOverworldTokenQuantity` | `optional` |  |  |
+| 3 | `token_reward` | `.CMsgOverworldTokenQuantity` | `optional` |  |  |
 
 </details>
 
@@ -104,7 +104,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `hero_ids` | `int32` | `repeated` | `` |  |
+| 1 | `hero_ids` | `int32` | `repeated` |  |  |
 
 </details>
 
@@ -116,8 +116,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `hero_list` | `.CMsgOverworldHeroList` | `optional` | `` |  |
-| 2 | `additive` | `bool` | `optional` | `` |  |
+| 1 | `hero_list` | `.CMsgOverworldHeroList` | `optional` |  |  |
+| 2 | `additive` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -129,10 +129,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `choice` | `int32` | `optional` | `` |  |
-| 2 | `progress` | `int32` | `optional` | `` |  |
-| 3 | `max_progress` | `int32` | `optional` | `` |  |
-| 4 | `visited` | `bool` | `optional` | `` |  |
+| 1 | `choice` | `int32` | `optional` |  |  |
+| 2 | `progress` | `int32` | `optional` |  |  |
+| 3 | `max_progress` | `int32` | `optional` |  |  |
+| 4 | `visited` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -144,7 +144,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `extra_encounter_data` | `.CExtraMsgBlock` | `repeated` | `` |  |
+| 1 | `extra_encounter_data` | `.CExtraMsgBlock` | `repeated` |  |  |
 
 </details>
 
@@ -156,9 +156,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `node_id` | `uint32` | `optional` | `` |  |
-| 2 | `node_state` | `.EOverworldNodeState` | `optional` | `` | default = k_eOverworldNodeState_Invalid |
-| 3 | `node_encounter_data` | `.CMsgOverworldEncounterData` | `optional` | `` |  |
+| 1 | `node_id` | `uint32` | `optional` |  |  |
+| 2 | `node_state` | `.EOverworldNodeState` | `optional` |  | default = k_eOverworldNodeState_Invalid |
+| 3 | `node_encounter_data` | `.CMsgOverworldEncounterData` | `optional` |  |  |
 
 </details>
 
@@ -170,9 +170,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `path_id` | `uint32` | `optional` | `` |  |
-| 2 | `path_cost` | `.CMsgOverworldTokenQuantity` | `optional` | `` |  |
-| 3 | `path_state` | `.EOverworldPathState` | `optional` | `` | default = k_eOverworldPathState_Invalid |
+| 1 | `path_id` | `uint32` | `optional` |  |  |
+| 2 | `path_cost` | `.CMsgOverworldTokenQuantity` | `optional` |  |  |
+| 3 | `path_state` | `.EOverworldPathState` | `optional` |  | default = k_eOverworldPathState_Invalid |
 
 </details>
 
@@ -196,9 +196,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `node_id` | `uint32` | `optional` | `` |  |
-| 2 | `currency_amount` | `uint32` | `optional` | `` |  |
-| 3 | `custom_data` | `.CMsgOverworldMinigameCustomData` | `optional` | `` |  |
+| 1 | `node_id` | `uint32` | `optional` |  |  |
+| 2 | `currency_amount` | `uint32` | `optional` |  |  |
+| 3 | `custom_data` | `.CMsgOverworldMinigameCustomData` | `optional` |  |  |
 
 </details>
 
@@ -210,10 +210,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `fortune1` | `uint32` | `optional` | `` |  |
-| 2 | `fortune2` | `uint32` | `optional` | `` |  |
-| 3 | `fortune3` | `uint32` | `optional` | `` |  |
-| 4 | `timestamp` | `uint32` | `optional` | `` |  |
+| 1 | `fortune1` | `uint32` | `optional` |  |  |
+| 2 | `fortune2` | `uint32` | `optional` |  |  |
+| 3 | `fortune3` | `uint32` | `optional` |  |  |
+| 4 | `timestamp` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -225,12 +225,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `token_inventory` | `.CMsgOverworldTokenQuantity` | `optional` | `` |  |
-| 2 | `overworld_nodes` | `.CMsgOverworldNode` | `repeated` | `` |  |
-| 3 | `overworld_paths` | `.CMsgOverworldPath` | `repeated` | `` |  |
-| 4 | `current_node_id` | `uint32` | `optional` | `` |  |
-| 5 | `minigame_data` | `.CMsgOverworldUserData.MinigameDataEntry` | `repeated` | `` |  |
-| 6 | `current_fortune` | `.CMsgOverworldFortune` | `optional` | `` |  |
+| 1 | `token_inventory` | `.CMsgOverworldTokenQuantity` | `optional` |  |  |
+| 2 | `overworld_nodes` | `.CMsgOverworldNode` | `repeated` |  |  |
+| 3 | `overworld_paths` | `.CMsgOverworldPath` | `repeated` |  |  |
+| 4 | `current_node_id` | `uint32` | `optional` |  |  |
+| 5 | `minigame_data` | `.CMsgOverworldUserData.MinigameDataEntry` | `repeated` |  |  |
+| 6 | `current_fortune` | `.CMsgOverworldFortune` | `optional` |  |  |
 
 </details>
 
@@ -242,8 +242,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `key` | `uint32` | `optional` | `` |  |
-| 2 | `value` | `.CMsgOverworldMinigameUserData` | `optional` | `` |  |
+| 1 | `key` | `uint32` | `optional` |  |  |
+| 2 | `value` | `.CMsgOverworldMinigameUserData` | `optional` |  |  |
 
 </details>
 
@@ -255,7 +255,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `players` | `.CMsgOverworldMatchRewards.Player` | `repeated` | `` |  |
+| 1 | `players` | `.CMsgOverworldMatchRewards.Player` | `repeated` |  |  |
 
 </details>
 
@@ -267,9 +267,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `player_slot` | `uint32` | `optional` | `` |  |
-| 2 | `tokens` | `.CMsgOverworldTokenQuantity` | `optional` | `` |  |
-| 3 | `overworld_id` | `uint32` | `optional` | `` |  |
+| 1 | `player_slot` | `uint32` | `optional` |  |  |
+| 2 | `tokens` | `.CMsgOverworldTokenQuantity` | `optional` |  |  |
+| 3 | `overworld_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -281,7 +281,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `overworld_id` | `uint32` | `optional` | `` |  |
+| 1 | `overworld_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -293,8 +293,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCOverworldGetUserDataResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `user_data` | `.CMsgOverworldUserData` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCOverworldGetUserDataResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `user_data` | `.CMsgOverworldUserData` | `optional` |  |  |
 
 </details>
 
@@ -306,8 +306,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `overworld_id` | `uint32` | `optional` | `` |  |
-| 2 | `user_data` | `.CMsgOverworldUserData` | `optional` | `` |  |
+| 1 | `overworld_id` | `uint32` | `optional` |  |  |
+| 2 | `user_data` | `.CMsgOverworldUserData` | `optional` |  |  |
 
 </details>
 
@@ -319,8 +319,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `overworld_id` | `uint32` | `optional` | `` |  |
-| 2 | `path_id` | `uint32` | `optional` | `` |  |
+| 1 | `overworld_id` | `uint32` | `optional` |  |  |
+| 2 | `path_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -332,8 +332,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCOverworldCompletePathResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `claim_response` | `.CMsgDOTAClaimEventActionResponse` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCOverworldCompletePathResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `claim_response` | `.CMsgDOTAClaimEventActionResponse` | `optional` |  |  |
 
 </details>
 
@@ -345,8 +345,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `token_id` | `uint32` | `optional` | `` |  |
-| 2 | `choice` | `uint32` | `optional` | `` |  |
+| 1 | `token_id` | `uint32` | `optional` |  |  |
+| 2 | `choice` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -358,14 +358,14 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `overworld_id` | `uint32` | `optional` | `` |  |
-| 2 | `node_id` | `uint32` | `optional` | `` |  |
-| 3 | `reward_data` | `uint32` | `optional` | `` |  |
-| 4 | `periodic_resource_id` | `uint32` | `optional` | `` |  |
-| 5 | `extra_reward_data` | `.CMsgOverworldEncounterData` | `optional` | `` |  |
-| 6 | `leaderboard_data` | `uint32` | `optional` | `` |  |
-| 7 | `leaderboard_index` | `uint32` | `optional` | `` |  |
-| 8 | `should_claim_reward` | `bool` | `optional` | `` |  |
+| 1 | `overworld_id` | `uint32` | `optional` |  |  |
+| 2 | `node_id` | `uint32` | `optional` |  |  |
+| 3 | `reward_data` | `uint32` | `optional` |  |  |
+| 4 | `periodic_resource_id` | `uint32` | `optional` |  |  |
+| 5 | `extra_reward_data` | `.CMsgOverworldEncounterData` | `optional` |  |  |
+| 6 | `leaderboard_data` | `uint32` | `optional` |  |  |
+| 7 | `leaderboard_index` | `uint32` | `optional` |  |  |
+| 8 | `should_claim_reward` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -377,9 +377,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCOverworldClaimEncounterRewardResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `claim_response` | `.CMsgDOTAClaimEventActionResponse` | `optional` | `` |  |
-| 3 | `tokens_received` | `.CMsgOverworldTokenQuantity` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCOverworldClaimEncounterRewardResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `claim_response` | `.CMsgDOTAClaimEventActionResponse` | `optional` |  |  |
+| 3 | `tokens_received` | `.CMsgOverworldTokenQuantity` | `optional` |  |  |
 
 </details>
 
@@ -391,8 +391,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `overworld_id` | `uint32` | `optional` | `` |  |
-| 2 | `node_id` | `uint32` | `optional` | `` |  |
+| 1 | `overworld_id` | `uint32` | `optional` |  |  |
+| 2 | `node_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -404,7 +404,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCOverworldVisitEncounterResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCOverworldVisitEncounterResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -416,8 +416,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `overworld_id` | `uint32` | `optional` | `` |  |
-| 2 | `node_id` | `uint32` | `optional` | `` |  |
+| 1 | `overworld_id` | `uint32` | `optional` |  |  |
+| 2 | `node_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -429,7 +429,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCOverworldMoveToNodeResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCOverworldMoveToNodeResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -441,11 +441,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `overworld_id` | `uint32` | `optional` | `` |  |
-| 2 | `token_offer` | `.CMsgOverworldTokenQuantity` | `optional` | `` |  |
-| 3 | `token_request` | `.CMsgOverworldTokenQuantity` | `optional` | `` |  |
-| 4 | `recipe` | `uint32` | `optional` | `` |  |
-| 5 | `encounter_id` | `uint32` | `optional` | `` |  |
+| 1 | `overworld_id` | `uint32` | `optional` |  |  |
+| 2 | `token_offer` | `.CMsgOverworldTokenQuantity` | `optional` |  |  |
+| 3 | `token_request` | `.CMsgOverworldTokenQuantity` | `optional` |  |  |
+| 4 | `recipe` | `uint32` | `optional` |  |  |
+| 5 | `encounter_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -457,8 +457,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCOverworldTradeTokensResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `tokens_received` | `.CMsgOverworldTokenQuantity` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCOverworldTradeTokensResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `tokens_received` | `.CMsgOverworldTokenQuantity` | `optional` |  |  |
 
 </details>
 
@@ -470,10 +470,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `overworld_id` | `uint32` | `optional` | `` |  |
-| 2 | `token_gift` | `.CMsgOverworldTokenCount` | `optional` | `` |  |
-| 3 | `recipient_account_id` | `uint32` | `optional` | `` |  |
-| 4 | `periodic_resource_id` | `uint32` | `optional` | `` |  |
+| 1 | `overworld_id` | `uint32` | `optional` |  |  |
+| 2 | `token_gift` | `.CMsgOverworldTokenCount` | `optional` |  |  |
+| 3 | `recipient_account_id` | `uint32` | `optional` |  |  |
+| 4 | `periodic_resource_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -485,7 +485,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCOverworldGiftTokensResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCOverworldGiftTokensResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -497,8 +497,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `friend_account_id` | `uint32` | `optional` | `` |  |
-| 2 | `overworld_id` | `uint32` | `optional` | `` |  |
+| 1 | `friend_account_id` | `uint32` | `optional` |  |  |
+| 2 | `overworld_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -510,8 +510,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCOverworldRequestTokensNeededByFriendResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `token_quantity` | `.CMsgOverworldTokenQuantity` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCOverworldRequestTokensNeededByFriendResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `token_quantity` | `.CMsgOverworldTokenQuantity` | `optional` |  |  |
 
 </details>
 
@@ -523,7 +523,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `overworld_id` | `uint32` | `optional` | `` |  |
+| 1 | `overworld_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -535,7 +535,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCOverworldDevResetAllResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCOverworldDevResetAllResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -547,8 +547,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `overworld_id` | `uint32` | `optional` | `` |  |
-| 2 | `node_id` | `uint32` | `optional` | `` |  |
+| 1 | `overworld_id` | `uint32` | `optional` |  |  |
+| 2 | `node_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -560,7 +560,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCOverworldDevResetNodeResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCOverworldDevResetNodeResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -572,8 +572,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `overworld_id` | `uint32` | `optional` | `` |  |
-| 2 | `token_quantity` | `.CMsgOverworldTokenQuantity` | `optional` | `` |  |
+| 1 | `overworld_id` | `uint32` | `optional` |  |  |
+| 2 | `token_quantity` | `.CMsgOverworldTokenQuantity` | `optional` |  |  |
 
 </details>
 
@@ -585,7 +585,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCOverworldDevGrantTokensResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCOverworldDevGrantTokensResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -597,7 +597,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `overworld_id` | `uint32` | `optional` | `` |  |
+| 1 | `overworld_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -609,7 +609,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCOverworldDevClearInventoryResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCOverworldDevClearInventoryResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -621,8 +621,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `overworld_id` | `uint32` | `optional` | `` |  |
-| 2 | `fortune_id` | `uint32` | `optional` | `` |  |
+| 1 | `overworld_id` | `uint32` | `optional` |  |  |
+| 2 | `fortune_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -634,7 +634,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCOverworldDevSetFortuneResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCOverworldDevSetFortuneResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -646,8 +646,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `overworld_id` | `uint32` | `optional` | `` |  |
-| 2 | `fortune_id` | `uint32` | `optional` | `` |  |
+| 1 | `overworld_id` | `uint32` | `optional` |  |  |
+| 2 | `fortune_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -659,7 +659,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCOverworldDevClearFortuneResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCOverworldDevClearFortuneResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -671,7 +671,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `overworld_id` | `uint32` | `optional` | `` |  |
+| 1 | `overworld_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -683,7 +683,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCOverworldRequestFortuneResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCOverworldRequestFortuneResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -695,9 +695,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `language` | `uint32` | `optional` | `` |  |
-| 2 | `overworld_id` | `uint32` | `optional` | `` |  |
-| 3 | `feedback` | `string` | `optional` | `` |  |
+| 1 | `language` | `uint32` | `optional` |  |  |
+| 2 | `overworld_id` | `uint32` | `optional` |  |  |
+| 3 | `feedback` | `string` | `optional` |  |  |
 
 </details>
 
@@ -709,7 +709,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCOverworldFeedbackResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCOverworldFeedbackResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -721,9 +721,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `magic` | `uint32` | `optional` | `` |  |
-| 2 | `image_id` | `uint32` | `optional` | `` |  |
-| 3 | `language` | `uint32` | `optional` | `` |  |
+| 1 | `magic` | `uint32` | `optional` |  |  |
+| 2 | `image_id` | `uint32` | `optional` |  |  |
+| 3 | `language` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -735,8 +735,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `image_id` | `uint32` | `optional` | `` |  |
-| 2 | `images` | `.CMsgClientToGCOverworldGetDynamicImageResponse.Image` | `repeated` | `` |  |
+| 1 | `image_id` | `uint32` | `optional` |  |  |
+| 2 | `images` | `.CMsgClientToGCOverworldGetDynamicImageResponse.Image` | `repeated` |  |  |
 
 </details>
 
@@ -748,10 +748,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `width` | `uint32` | `optional` | `` |  |
-| 2 | `height` | `uint32` | `optional` | `` |  |
-| 3 | `format` | `.CMsgClientToGCOverworldGetDynamicImageResponse.EDynamicImageFormat` | `optional` | `` | default = k_eUnknown |
-| 4 | `image_bytes` | `bytes` | `optional` | `` |  |
+| 1 | `width` | `uint32` | `optional` |  |  |
+| 2 | `height` | `uint32` | `optional` |  |  |
+| 3 | `format` | `.CMsgClientToGCOverworldGetDynamicImageResponse.EDynamicImageFormat` | `optional` |  | default = k_eUnknown |
+| 4 | `image_bytes` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -763,12 +763,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `overworld_id` | `uint32` | `optional` | `` |  |
-| 2 | `node_id` | `uint32` | `optional` | `` |  |
-| 3 | `action` | `.EOverworldMinigameAction` | `optional` | `` | default = k_eOverworldMinigameAction_Invalid |
-| 4 | `selection` | `uint32` | `optional` | `` |  |
-| 5 | `option_value` | `uint32` | `optional` | `` |  |
-| 6 | `currency_amount` | `uint32` | `optional` | `` |  |
+| 1 | `overworld_id` | `uint32` | `optional` |  |  |
+| 2 | `node_id` | `uint32` | `optional` |  |  |
+| 3 | `action` | `.EOverworldMinigameAction` | `optional` |  | default = k_eOverworldMinigameAction_Invalid |
+| 4 | `selection` | `uint32` | `optional` |  |  |
+| 5 | `option_value` | `uint32` | `optional` |  |  |
+| 6 | `currency_amount` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -780,7 +780,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCOverworldMinigameActionResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCOverworldMinigameActionResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 

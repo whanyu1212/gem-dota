@@ -23,7 +23,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `clientid` | `string` | `optional` | `` | (description) = "Client ID for which to count the number of issued tokens" |
+| 1 | `clientid` | `string` | `optional` |  | (description) = "Client ID for which to count the number of issued tokens" |
 
 </details>
 
@@ -35,8 +35,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `access_token` | `string` | `optional` | `` | (description) = "OAuth Token, granted on success" |
-| 2 | `redirect_uri` | `string` | `optional` | `` | (description) = "Redirection URI provided during client registration." |
+| 1 | `access_token` | `string` | `optional` |  | (description) = "OAuth Token, granted on success" |
+| 2 | `redirect_uri` | `string` | `optional` |  | (description) = "Redirection URI provided during client registration." |
 
 </details>
 

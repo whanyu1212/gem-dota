@@ -84,6 +84,17 @@ def _markdown_escape(text: str) -> str:
     return text.replace("|", "\\|")
 
 
+def _code_cell(text: str) -> str:
+    """Format a value as an inline-code table cell.
+
+    Returns an empty string for empty values so absent fields render as a
+    blank cell rather than a stray empty code span (the literal ``````).
+    """
+    if not text:
+        return ""
+    return f"`{_markdown_escape(text)}`"
+
+
 def _strip_line_comment(line: str) -> str:
     # Good enough for current proto style (no inline URL literals).
     idx = line.find("//")
@@ -354,7 +365,8 @@ def render_proto_page(doc: ProtoDoc, out_path: Path) -> tuple[int, int]:
             else:
                 for f in sorted(msg.fields, key=lambda x: x.tag):
                     lines.append(
-                        f"| {f.tag} | `{_markdown_escape(f.name)}` | `{_markdown_escape(f.type_name)}` | `{_markdown_escape(f.label)}` | `{_markdown_escape(f.oneof)}` | {_markdown_escape(f.notes)} |"
+                        f"| {f.tag} | {_code_cell(f.name)} | {_code_cell(f.type_name)} "
+                        f"| {_code_cell(f.label)} | {_code_cell(f.oneof)} | {_markdown_escape(f.notes)} |"
                     )
             lines.append("")
             lines.append("</details>")

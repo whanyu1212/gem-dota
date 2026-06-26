@@ -31,9 +31,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `stat_id` | `uint32` | `optional` | `` |  |
-| 2 | `stat_threshold` | `int32` | `optional` | `` |  |
-| 3 | `upgrade_level` | `uint32` | `optional` | `` |  |
+| 1 | `stat_id` | `uint32` | `optional` |  |  |
+| 2 | `stat_threshold` | `int32` | `optional` |  |  |
+| 3 | `upgrade_level` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -45,7 +45,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `token_count` | `uint32` | `optional` | `` |  |
+| 1 | `token_count` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -57,7 +57,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `squares` | `.CMsgBingoSquare` | `repeated` | `` |  |
+| 1 | `squares` | `.CMsgBingoSquare` | `repeated` |  |  |
 
 </details>
 
@@ -69,8 +69,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `bingo_cards` | `.CMsgBingoUserData.BingoCardsEntry` | `repeated` | `` |  |
-| 2 | `bingo_tokens` | `.CMsgBingoUserData.BingoTokensEntry` | `repeated` | `` |  |
+| 1 | `bingo_cards` | `.CMsgBingoUserData.BingoCardsEntry` | `repeated` |  |  |
+| 2 | `bingo_tokens` | `.CMsgBingoUserData.BingoTokensEntry` | `repeated` |  |  |
 
 </details>
 
@@ -82,8 +82,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `key` | `uint32` | `optional` | `` |  |
-| 2 | `value` | `.CMsgBingoCard` | `optional` | `` |  |
+| 1 | `key` | `uint32` | `optional` |  |  |
+| 2 | `value` | `.CMsgBingoCard` | `optional` |  |  |
 
 </details>
 
@@ -95,8 +95,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `key` | `uint32` | `optional` | `` |  |
-| 2 | `value` | `.CMsgBingoTokens` | `optional` | `` |  |
+| 1 | `key` | `uint32` | `optional` |  |  |
+| 2 | `value` | `.CMsgBingoTokens` | `optional` |  |  |
 
 </details>
 
@@ -108,7 +108,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `league_id` | `uint32` | `optional` | `` |  |
+| 1 | `league_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -120,8 +120,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCBingoGetUserDataResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `user_data` | `.CMsgBingoUserData` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCBingoGetUserDataResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `user_data` | `.CMsgBingoUserData` | `optional` |  |  |
 
 </details>
 
@@ -133,8 +133,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `stat_id` | `uint32` | `optional` | `` |  |
-| 2 | `stat_value` | `int32` | `optional` | `` |  |
+| 1 | `stat_id` | `uint32` | `optional` |  |  |
+| 2 | `stat_value` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -146,7 +146,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `stats_data` | `.CMsgBingoIndividualStatData` | `repeated` | `` |  |
+| 1 | `stats_data` | `.CMsgBingoIndividualStatData` | `repeated` |  |  |
 
 </details>
 
@@ -158,8 +158,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `league_id` | `uint32` | `optional` | `` |  |
-| 2 | `league_phase` | `uint32` | `optional` | `` |  |
+| 1 | `league_id` | `uint32` | `optional` |  |  |
+| 2 | `league_phase` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -171,8 +171,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCBingoGetStatsDataResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `stats_data` | `.CMsgBingoStatsData` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCBingoGetStatsDataResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `stats_data` | `.CMsgBingoStatsData` | `optional` |  |  |
 
 </details>
 
@@ -184,8 +184,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `league_id` | `uint32` | `optional` | `` |  |
-| 2 | `user_data` | `.CMsgBingoUserData` | `optional` | `` |  |
+| 1 | `league_id` | `uint32` | `optional` |  |  |
+| 2 | `user_data` | `.CMsgBingoUserData` | `optional` |  |  |
 
 </details>
 
@@ -197,9 +197,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `league_id` | `uint32` | `optional` | `` |  |
-| 2 | `league_phase` | `uint32` | `optional` | `` |  |
-| 3 | `row_index` | `uint32` | `optional` | `` |  |
+| 1 | `league_id` | `uint32` | `optional` |  |  |
+| 2 | `league_phase` | `uint32` | `optional` |  |  |
+| 3 | `row_index` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -211,7 +211,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCBingoClaimRowResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCBingoClaimRowResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -223,8 +223,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `league_id` | `uint32` | `optional` | `` |  |
-| 2 | `league_phase` | `uint32` | `optional` | `` |  |
+| 1 | `league_id` | `uint32` | `optional` |  |  |
+| 2 | `league_phase` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -236,7 +236,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCBingoShuffleCardResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCBingoShuffleCardResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -248,10 +248,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `league_id` | `uint32` | `optional` | `` |  |
-| 2 | `league_phase` | `uint32` | `optional` | `` |  |
-| 3 | `square_index` | `uint32` | `optional` | `` |  |
-| 4 | `action` | `.CMsgClientToGCBingoModifySquare.EModifyAction` | `optional` | `` | default = k_eRerollStat |
+| 1 | `league_id` | `uint32` | `optional` |  |  |
+| 2 | `league_phase` | `uint32` | `optional` |  |  |
+| 3 | `square_index` | `uint32` | `optional` |  |  |
+| 4 | `action` | `.CMsgClientToGCBingoModifySquare.EModifyAction` | `optional` |  | default = k_eRerollStat |
 
 </details>
 
@@ -263,7 +263,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCBingoModifySquareResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCBingoModifySquareResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -275,8 +275,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `league_id` | `uint32` | `optional` | `` |  |
-| 2 | `league_phase` | `uint32` | `optional` | `` |  |
+| 1 | `league_id` | `uint32` | `optional` |  |  |
+| 2 | `league_phase` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -288,7 +288,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCBingoDevRerollCardResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCBingoDevRerollCardResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -300,9 +300,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `league_id` | `uint32` | `optional` | `` |  |
-| 2 | `league_phase` | `uint32` | `optional` | `` |  |
-| 3 | `token_count` | `int32` | `optional` | `` |  |
+| 1 | `league_id` | `uint32` | `optional` |  |  |
+| 2 | `league_phase` | `uint32` | `optional` |  |  |
+| 3 | `token_count` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -314,7 +314,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCBingoDevAddTokensResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCBingoDevAddTokensResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -326,7 +326,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `league_id` | `uint32` | `optional` | `` |  |
+| 1 | `league_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -338,7 +338,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCBingoDevClearInventoryResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCBingoDevClearInventoryResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 

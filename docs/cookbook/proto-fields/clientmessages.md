@@ -19,8 +19,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `event_name` | `string` | `optional` | `` |  |
-| 2 | `data` | `bytes` | `optional` | `` |  |
+| 1 | `event_name` | `string` | `optional` |  |  |
+| 2 | `data` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -32,9 +32,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `event_name` | `string` | `optional` | `` |  |
-| 2 | `data` | `bytes` | `optional` | `` |  |
-| 3 | `player_slot` | `int32` | `optional` | `` | default = -1 |
+| 1 | `event_name` | `string` | `optional` |  |  |
+| 2 | `data` | `bytes` | `optional` |  |  |
+| 3 | `player_slot` | `int32` | `optional` |  | default = -1 |
 
 </details>
 
@@ -46,11 +46,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `event` | `.EClientUIEvent` | `optional` | `` | default = EClientUIEvent_Invalid |
-| 2 | `ent_ehandle` | `uint32` | `optional` | `` |  |
-| 3 | `client_ehandle` | `uint32` | `optional` | `` |  |
-| 4 | `data1` | `string` | `optional` | `` |  |
-| 5 | `data2` | `string` | `optional` | `` |  |
+| 1 | `event` | `.EClientUIEvent` | `optional` |  | default = EClientUIEvent_Invalid |
+| 2 | `ent_ehandle` | `uint32` | `optional` |  |  |
+| 3 | `client_ehandle` | `uint32` | `optional` |  |  |
+| 4 | `data1` | `string` | `optional` |  |  |
+| 5 | `data2` | `string` | `optional` |  |  |
 
 </details>
 
@@ -62,7 +62,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `visible` | `bool` | `optional` | `` |  |
+| 1 | `visible` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -74,9 +74,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `has_panel` | `bool` | `optional` | `` |  |
-| 2 | `client_ehandle` | `uint32` | `optional` | `` |  |
-| 3 | `literal_hand_type` | `uint32` | `optional` | `` |  |
+| 1 | `has_panel` | `bool` | `optional` |  |  |
+| 2 | `client_ehandle` | `uint32` | `optional` |  |  |
+| 3 | `literal_hand_type` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -88,7 +88,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `angle` | `float` | `optional` | `` |  |
+| 1 | `angle` | `float` | `optional` |  |  |
 
 </details>
 
@@ -100,7 +100,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `player_slot` | `int32` | `optional` | `` | default = -1 |
+| 1 | `player_slot` | `int32` | `optional` |  | default = -1 |
 
 </details>
 

@@ -23,7 +23,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `elements` | `.CMsgSteamLearnDataSourceDescElement` | `repeated` | `` |  |
+| 1 | `elements` | `.CMsgSteamLearnDataSourceDescElement` | `repeated` |  |  |
 
 </details>
 
@@ -35,10 +35,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `name` | `string` | `optional` | `` |  |
-| 2 | `data_type` | `.ESteamLearnDataType` | `optional` | `` | default = STEAMLEARN_DATATYPE_INVALID |
-| 3 | `object` | `.CMsgSteamLearnDataSourceDescObject` | `optional` | `` |  |
-| 4 | `count` | `uint32` | `optional` | `` |  |
+| 1 | `name` | `string` | `optional` |  |  |
+| 2 | `data_type` | `.ESteamLearnDataType` | `optional` |  | default = STEAMLEARN_DATATYPE_INVALID |
+| 3 | `object` | `.CMsgSteamLearnDataSourceDescObject` | `optional` |  |  |
+| 4 | `count` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -50,13 +50,13 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `id` | `uint32` | `optional` | `` |  |
-| 2 | `name` | `string` | `optional` | `` |  |
-| 3 | `version` | `uint32` | `optional` | `` |  |
-| 4 | `source_description` | `string` | `optional` | `` |  |
-| 5 | `structure` | `.CMsgSteamLearnDataSourceDescObject` | `optional` | `` |  |
-| 6 | `structure_crc` | `uint32` | `optional` | `` |  |
-| 7 | `cache_duration_seconds` | `uint32` | `optional` | `` |  |
+| 1 | `id` | `uint32` | `optional` |  |  |
+| 2 | `name` | `string` | `optional` |  |  |
+| 3 | `version` | `uint32` | `optional` |  |  |
+| 4 | `source_description` | `string` | `optional` |  |  |
+| 5 | `structure` | `.CMsgSteamLearnDataSourceDescObject` | `optional` |  |  |
+| 6 | `structure_crc` | `uint32` | `optional` |  |  |
+| 7 | `cache_duration_seconds` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -68,7 +68,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `elements` | `.CMsgSteamLearnDataElement` | `repeated` | `` |  |
+| 1 | `elements` | `.CMsgSteamLearnDataElement` | `repeated` |  |  |
 
 </details>
 
@@ -80,12 +80,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `name` | `string` | `optional` | `` |  |
-| 20 | `data_int32s` | `int32` | `repeated` | `` |  |
-| 21 | `data_floats` | `float` | `repeated` | `` |  |
-| 22 | `data_bools` | `bool` | `repeated` | `` |  |
-| 23 | `data_strings` | `string` | `repeated` | `` |  |
-| 24 | `data_objects` | `.CMsgSteamLearnDataObject` | `repeated` | `` |  |
+| 1 | `name` | `string` | `optional` |  |  |
+| 20 | `data_int32s` | `int32` | `repeated` |  |  |
+| 21 | `data_floats` | `float` | `repeated` |  |  |
+| 22 | `data_bools` | `bool` | `repeated` |  |  |
+| 23 | `data_strings` | `string` | `repeated` |  |  |
+| 24 | `data_objects` | `.CMsgSteamLearnDataObject` | `repeated` |  |  |
 
 </details>
 
@@ -97,9 +97,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `data_source_id` | `uint32` | `optional` | `` |  |
-| 2 | `keys` | `uint64` | `repeated` | `` |  |
-| 3 | `data_object` | `.CMsgSteamLearnDataObject` | `optional` | `` |  |
+| 1 | `data_source_id` | `uint32` | `optional` |  |  |
+| 2 | `keys` | `uint64` | `repeated` |  |  |
+| 3 | `data_object` | `.CMsgSteamLearnDataObject` | `optional` |  |  |
 
 </details>
 
@@ -111,7 +111,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `data` | `.CMsgSteamLearnData` | `repeated` | `` |  |
+| 1 | `data` | `.CMsgSteamLearnData` | `repeated` |  |  |
 
 </details>
 
@@ -123,8 +123,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `access_token` | `string` | `optional` | `` |  |
-| 3 | `data_source` | `.CMsgSteamLearnDataSource` | `optional` | `` |  |
+| 1 | `access_token` | `string` | `optional` |  |  |
+| 3 | `data_source` | `.CMsgSteamLearnDataSource` | `optional` |  |  |
 
 </details>
 
@@ -136,8 +136,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.ESteammLearnRegisterDataSourceResult` | `optional` | `` | default = STEAMLEARN_REGISTER_DATA_SOURCE_RESULT_ERROR |
-| 2 | `data_source` | `.CMsgSteamLearnDataSource` | `optional` | `` |  |
+| 1 | `result` | `.ESteammLearnRegisterDataSourceResult` | `optional` |  | default = STEAMLEARN_REGISTER_DATA_SOURCE_RESULT_ERROR |
+| 2 | `data_source` | `.CMsgSteamLearnDataSource` | `optional` |  |  |
 
 </details>
 
@@ -149,8 +149,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `access_token` | `string` | `optional` | `` |  |
-| 3 | `data` | `.CMsgSteamLearnData` | `optional` | `` |  |
+| 1 | `access_token` | `string` | `optional` |  |  |
+| 3 | `data` | `.CMsgSteamLearnData` | `optional` |  |  |
 
 </details>
 
@@ -162,7 +162,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `cache_data_result` | `.ESteamLearnCacheDataResult` | `optional` | `` | default = STEAMLEARN_CACHE_DATA_ERROR |
+| 1 | `cache_data_result` | `.ESteamLearnCacheDataResult` | `optional` |  | default = STEAMLEARN_CACHE_DATA_ERROR |
 
 </details>
 
@@ -174,12 +174,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `access_token` | `string` | `optional` | `` |  |
-| 3 | `project_id` | `uint32` | `optional` | `` |  |
-| 4 | `keys` | `uint64` | `repeated` | `` |  |
-| 5 | `data` | `.CMsgSteamLearnData` | `repeated` | `` |  |
-| 6 | `pending_data_limit_seconds` | `uint32` | `optional` | `` |  |
-| 7 | `published_version` | `uint32` | `optional` | `` |  |
+| 1 | `access_token` | `string` | `optional` |  |  |
+| 3 | `project_id` | `uint32` | `optional` |  |  |
+| 4 | `keys` | `uint64` | `repeated` |  |  |
+| 5 | `data` | `.CMsgSteamLearnData` | `repeated` |  |  |
+| 6 | `pending_data_limit_seconds` | `uint32` | `optional` |  |  |
+| 7 | `published_version` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -191,7 +191,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `snapshot_result` | `.ESteamLearnSnapshotProjectResult` | `optional` | `` | default = STEAMLEARN_SNAPSHOT_PROJECT_ERROR |
+| 1 | `snapshot_result` | `.ESteamLearnSnapshotProjectResult` | `optional` |  | default = STEAMLEARN_SNAPSHOT_PROJECT_ERROR |
 
 </details>
 
@@ -203,9 +203,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `cache_data_requests` | `.CMsgSteamLearn_CacheData_Request` | `repeated` | `` |  |
-| 2 | `snapshot_requests` | `.CMsgSteamLearn_SnapshotProject_Request` | `repeated` | `` |  |
-| 3 | `inference_requests` | `.CMsgSteamLearn_Inference_Request` | `repeated` | `` |  |
+| 1 | `cache_data_requests` | `.CMsgSteamLearn_CacheData_Request` | `repeated` |  |  |
+| 2 | `snapshot_requests` | `.CMsgSteamLearn_SnapshotProject_Request` | `repeated` |  |  |
+| 3 | `inference_requests` | `.CMsgSteamLearn_Inference_Request` | `repeated` |  |  |
 
 </details>
 
@@ -217,9 +217,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `cache_data_responses` | `.CMsgSteamLearn_CacheData_Response` | `repeated` | `` |  |
-| 2 | `snapshot_responses` | `.CMsgSteamLearn_SnapshotProject_Response` | `repeated` | `` |  |
-| 3 | `inference_responses` | `.CMsgSteamLearn_Inference_Response` | `repeated` | `` |  |
+| 1 | `cache_data_responses` | `.CMsgSteamLearn_CacheData_Response` | `repeated` |  |  |
+| 2 | `snapshot_responses` | `.CMsgSteamLearn_SnapshotProject_Response` | `repeated` |  |  |
+| 3 | `inference_responses` | `.CMsgSteamLearn_Inference_Response` | `repeated` |  |  |
 
 </details>
 
@@ -231,10 +231,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `register_data_source_access_token` | `string` | `optional` | `` |  |
-| 2 | `cache_data_access_tokens` | `.CMsgSteamLearnAccessTokens.CacheDataAccessToken` | `repeated` | `` |  |
-| 3 | `snapshot_project_access_tokens` | `.CMsgSteamLearnAccessTokens.SnapshotProjectAccessToken` | `repeated` | `` |  |
-| 4 | `inference_access_tokens` | `.CMsgSteamLearnAccessTokens.InferenceAccessToken` | `repeated` | `` |  |
+| 1 | `register_data_source_access_token` | `string` | `optional` |  |  |
+| 2 | `cache_data_access_tokens` | `.CMsgSteamLearnAccessTokens.CacheDataAccessToken` | `repeated` |  |  |
+| 3 | `snapshot_project_access_tokens` | `.CMsgSteamLearnAccessTokens.SnapshotProjectAccessToken` | `repeated` |  |  |
+| 4 | `inference_access_tokens` | `.CMsgSteamLearnAccessTokens.InferenceAccessToken` | `repeated` |  |  |
 
 </details>
 
@@ -246,8 +246,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `data_source_id` | `uint32` | `optional` | `` |  |
-| 2 | `access_token` | `string` | `optional` | `` |  |
+| 1 | `data_source_id` | `uint32` | `optional` |  |  |
+| 2 | `access_token` | `string` | `optional` |  |  |
 
 </details>
 
@@ -259,8 +259,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `project_id` | `uint32` | `optional` | `` |  |
-| 2 | `access_token` | `string` | `optional` | `` |  |
+| 1 | `project_id` | `uint32` | `optional` |  |  |
+| 2 | `access_token` | `string` | `optional` |  |  |
 
 </details>
 
@@ -272,8 +272,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `project_id` | `uint32` | `optional` | `` |  |
-| 2 | `access_token` | `string` | `optional` | `` |  |
+| 1 | `project_id` | `uint32` | `optional` |  |  |
+| 2 | `access_token` | `string` | `optional` |  |  |
 
 </details>
 
@@ -285,7 +285,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `appid` | `uint32` | `optional` | `` |  |
+| 1 | `appid` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -297,8 +297,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.ESteamLearnGetAccessTokensResult` | `optional` | `` | default = STEAMLEARN_GET_ACCESS_TOKENS_ERROR |
-| 2 | `access_tokens` | `.CMsgSteamLearnAccessTokens` | `optional` | `` |  |
+| 1 | `result` | `.ESteamLearnGetAccessTokensResult` | `optional` |  | default = STEAMLEARN_GET_ACCESS_TOKENS_ERROR |
+| 2 | `access_tokens` | `.CMsgSteamLearnAccessTokens` | `optional` |  |  |
 
 </details>
 
@@ -310,14 +310,14 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `beam_length` | `uint32` | `optional` | `` |  |
-| 2 | `beam_width` | `uint32` | `optional` | `` |  |
-| 3 | `item_decay` | `float` | `optional` | `` |  |
-| 4 | `next_item_count` | `uint32` | `optional` | `` |  |
-| 5 | `item_scalars` | `.CMsgInferenceIterateBeamSearch.CustomItemScalar` | `repeated` | `` |  |
-| 7 | `item_sequence_end` | `uint32` | `optional` | `` |  |
-| 8 | `item_sequence_end_threshold` | `float` | `optional` | `` |  |
-| 9 | `repeat_multiplier` | `float` | `optional` | `` |  |
+| 1 | `beam_length` | `uint32` | `optional` |  |  |
+| 2 | `beam_width` | `uint32` | `optional` |  |  |
+| 3 | `item_decay` | `float` | `optional` |  |  |
+| 4 | `next_item_count` | `uint32` | `optional` |  |  |
+| 5 | `item_scalars` | `.CMsgInferenceIterateBeamSearch.CustomItemScalar` | `repeated` |  |  |
+| 7 | `item_sequence_end` | `uint32` | `optional` |  |  |
+| 8 | `item_sequence_end_threshold` | `float` | `optional` |  |  |
+| 9 | `repeat_multiplier` | `float` | `optional` |  |  |
 
 </details>
 
@@ -329,8 +329,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `item` | `uint32` | `optional` | `` |  |
-| 2 | `scale` | `float` | `optional` | `` |  |
+| 1 | `item` | `uint32` | `optional` |  |  |
+| 2 | `scale` | `float` | `optional` |  |  |
 
 </details>
 
@@ -342,16 +342,16 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `access_token` | `string` | `optional` | `` |  |
-| 3 | `project_id` | `uint32` | `optional` | `` |  |
-| 4 | `published_version` | `uint32` | `optional` | `` |  |
-| 5 | `override_train_id` | `uint32` | `optional` | `` |  |
-| 6 | `data` | `.CMsgSteamLearnDataList` | `optional` | `` |  |
-| 7 | `additional_data` | `float` | `repeated` | `` |  |
-| 8 | `keys` | `uint64` | `repeated` | `` |  |
-| 9 | `named_inference` | `string` | `optional` | `` |  |
-| 13 | `iterate_beam_search` | `.CMsgInferenceIterateBeamSearch` | `optional` | `` |  |
-| 14 | `debug_spew` | `uint32` | `optional` | `` |  |
+| 1 | `access_token` | `string` | `optional` |  |  |
+| 3 | `project_id` | `uint32` | `optional` |  |  |
+| 4 | `published_version` | `uint32` | `optional` |  |  |
+| 5 | `override_train_id` | `uint32` | `optional` |  |  |
+| 6 | `data` | `.CMsgSteamLearnDataList` | `optional` |  |  |
+| 7 | `additional_data` | `float` | `repeated` |  |  |
+| 8 | `keys` | `uint64` | `repeated` |  |  |
+| 9 | `named_inference` | `string` | `optional` |  |  |
+| 13 | `iterate_beam_search` | `.CMsgInferenceIterateBeamSearch` | `optional` |  |  |
+| 14 | `debug_spew` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -363,10 +363,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `access_token` | `string` | `optional` | `` |  |
-| 3 | `project_id` | `uint32` | `optional` | `` |  |
-| 4 | `published_version` | `uint32` | `optional` | `` |  |
-| 5 | `override_train_id` | `uint32` | `optional` | `` |  |
+| 1 | `access_token` | `string` | `optional` |  |  |
+| 3 | `project_id` | `uint32` | `optional` |  |  |
+| 4 | `published_version` | `uint32` | `optional` |  |  |
+| 5 | `override_train_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -378,8 +378,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `project_id` | `uint32` | `optional` | `` |  |
-| 2 | `fetch_id` | `uint32` | `optional` | `` |  |
+| 1 | `project_id` | `uint32` | `optional` |  |  |
+| 2 | `fetch_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -391,15 +391,15 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `inference_metadata_result` | `.ESteamLearnInferenceMetadataResult` | `optional` | `` | default = STEAMLEARN_INFERENCE_METADATA_ERROR |
-| 2 | `row_range` | `.CMsgSteamLearn_InferenceMetadata_Response.RowRange` | `optional` | `` |  |
-| 3 | `ranges` | `.CMsgSteamLearn_InferenceMetadata_Response.Range` | `repeated` | `` |  |
-| 4 | `std_devs` | `.CMsgSteamLearn_InferenceMetadata_Response.StdDev` | `repeated` | `` |  |
-| 5 | `compact_tables` | `.CMsgSteamLearn_InferenceMetadata_Response.CompactTable` | `repeated` | `` |  |
-| 6 | `kmeans` | `.CMsgSteamLearn_InferenceMetadata_Response.KMeans` | `repeated` | `` |  |
-| 7 | `snapshot_histogram` | `.CMsgSteamLearn_InferenceMetadata_Response.SnapshotHistogram` | `optional` | `` |  |
-| 8 | `app_info` | `.CMsgSteamLearn_InferenceMetadata_Response.AppInfoEntry` | `repeated` | `` |  |
-| 9 | `sequence_tables` | `.CMsgSteamLearn_InferenceMetadata_Response.SequenceTable` | `repeated` | `` |  |
+| 1 | `inference_metadata_result` | `.ESteamLearnInferenceMetadataResult` | `optional` |  | default = STEAMLEARN_INFERENCE_METADATA_ERROR |
+| 2 | `row_range` | `.CMsgSteamLearn_InferenceMetadata_Response.RowRange` | `optional` |  |  |
+| 3 | `ranges` | `.CMsgSteamLearn_InferenceMetadata_Response.Range` | `repeated` |  |  |
+| 4 | `std_devs` | `.CMsgSteamLearn_InferenceMetadata_Response.StdDev` | `repeated` |  |  |
+| 5 | `compact_tables` | `.CMsgSteamLearn_InferenceMetadata_Response.CompactTable` | `repeated` |  |  |
+| 6 | `kmeans` | `.CMsgSteamLearn_InferenceMetadata_Response.KMeans` | `repeated` |  |  |
+| 7 | `snapshot_histogram` | `.CMsgSteamLearn_InferenceMetadata_Response.SnapshotHistogram` | `optional` |  |  |
+| 8 | `app_info` | `.CMsgSteamLearn_InferenceMetadata_Response.AppInfoEntry` | `repeated` |  |  |
+| 9 | `sequence_tables` | `.CMsgSteamLearn_InferenceMetadata_Response.SequenceTable` | `repeated` |  |  |
 
 </details>
 
@@ -411,8 +411,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `min_row` | `uint64` | `optional` | `` |  |
-| 2 | `max_row` | `uint64` | `optional` | `` |  |
+| 1 | `min_row` | `uint64` | `optional` |  |  |
+| 2 | `max_row` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -424,9 +424,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `data_element_path` | `string` | `optional` | `` |  |
-| 2 | `min_value` | `float` | `optional` | `` |  |
-| 3 | `max_value` | `float` | `optional` | `` |  |
+| 1 | `data_element_path` | `string` | `optional` |  |  |
+| 2 | `min_value` | `float` | `optional` |  |  |
+| 3 | `max_value` | `float` | `optional` |  |  |
 
 </details>
 
@@ -438,9 +438,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `data_element_path` | `string` | `optional` | `` |  |
-| 2 | `mean` | `float` | `optional` | `` |  |
-| 3 | `std_dev` | `float` | `optional` | `` |  |
+| 1 | `data_element_path` | `string` | `optional` |  |  |
+| 2 | `mean` | `float` | `optional` |  |  |
+| 3 | `std_dev` | `float` | `optional` |  |  |
 
 </details>
 
@@ -452,9 +452,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `name` | `string` | `optional` | `` |  |
-| 2 | `map_values` | `.CMsgSteamLearn_InferenceMetadata_Response.CompactTable.MapValuesEntry` | `repeated` | `` |  |
-| 3 | `map_mappings` | `.CMsgSteamLearn_InferenceMetadata_Response.CompactTable.MapMappingsEntry` | `repeated` | `` |  |
+| 1 | `name` | `string` | `optional` |  |  |
+| 2 | `map_values` | `.CMsgSteamLearn_InferenceMetadata_Response.CompactTable.MapValuesEntry` | `repeated` |  |  |
+| 3 | `map_mappings` | `.CMsgSteamLearn_InferenceMetadata_Response.CompactTable.MapMappingsEntry` | `repeated` |  |  |
 
 </details>
 
@@ -466,9 +466,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `value` | `uint32` | `optional` | `` |  |
-| 2 | `mapping` | `uint32` | `optional` | `` |  |
-| 3 | `count` | `uint64` | `optional` | `` |  |
+| 1 | `value` | `uint32` | `optional` |  |  |
+| 2 | `mapping` | `uint32` | `optional` |  |  |
+| 3 | `count` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -480,8 +480,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `key` | `uint32` | `optional` | `` |  |
-| 2 | `value` | `.CMsgSteamLearn_InferenceMetadata_Response.CompactTable.Entry` | `optional` | `` |  |
+| 1 | `key` | `uint32` | `optional` |  |  |
+| 2 | `value` | `.CMsgSteamLearn_InferenceMetadata_Response.CompactTable.Entry` | `optional` |  |  |
 
 </details>
 
@@ -493,8 +493,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `key` | `uint32` | `optional` | `` |  |
-| 2 | `value` | `.CMsgSteamLearn_InferenceMetadata_Response.CompactTable.Entry` | `optional` | `` |  |
+| 1 | `key` | `uint32` | `optional` |  |  |
+| 2 | `value` | `.CMsgSteamLearn_InferenceMetadata_Response.CompactTable.Entry` | `optional` |  |  |
 
 </details>
 
@@ -506,10 +506,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `name` | `string` | `optional` | `` |  |
-| 2 | `map_values` | `.CMsgSteamLearn_InferenceMetadata_Response.SequenceTable.MapValuesEntry` | `repeated` | `` |  |
-| 3 | `map_mappings` | `.CMsgSteamLearn_InferenceMetadata_Response.SequenceTable.MapMappingsEntry` | `repeated` | `` |  |
-| 4 | `total_count` | `uint64` | `optional` | `` |  |
+| 1 | `name` | `string` | `optional` |  |  |
+| 2 | `map_values` | `.CMsgSteamLearn_InferenceMetadata_Response.SequenceTable.MapValuesEntry` | `repeated` |  |  |
+| 3 | `map_mappings` | `.CMsgSteamLearn_InferenceMetadata_Response.SequenceTable.MapMappingsEntry` | `repeated` |  |  |
+| 4 | `total_count` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -521,9 +521,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `values` | `uint32` | `repeated` | `` |  |
-| 2 | `crc` | `uint32` | `optional` | `` |  |
-| 3 | `count` | `uint32` | `optional` | `` |  |
+| 1 | `values` | `uint32` | `repeated` |  |  |
+| 2 | `crc` | `uint32` | `optional` |  |  |
+| 3 | `count` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -535,8 +535,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `key` | `uint32` | `optional` | `` |  |
-| 2 | `value` | `.CMsgSteamLearn_InferenceMetadata_Response.SequenceTable.Entry` | `optional` | `` |  |
+| 1 | `key` | `uint32` | `optional` |  |  |
+| 2 | `value` | `.CMsgSteamLearn_InferenceMetadata_Response.SequenceTable.Entry` | `optional` |  |  |
 
 </details>
 
@@ -548,8 +548,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `key` | `string` | `optional` | `` |  |
-| 2 | `value` | `.CMsgSteamLearn_InferenceMetadata_Response.SequenceTable.Entry` | `optional` | `` |  |
+| 1 | `key` | `string` | `optional` |  |  |
+| 2 | `value` | `.CMsgSteamLearn_InferenceMetadata_Response.SequenceTable.Entry` | `optional` |  |  |
 
 </details>
 
@@ -561,8 +561,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `name` | `string` | `optional` | `` |  |
-| 2 | `clusters` | `.CMsgSteamLearn_InferenceMetadata_Response.KMeans.Cluster` | `repeated` | `` |  |
+| 1 | `name` | `string` | `optional` |  |  |
+| 2 | `clusters` | `.CMsgSteamLearn_InferenceMetadata_Response.KMeans.Cluster` | `repeated` |  |  |
 
 </details>
 
@@ -574,12 +574,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `x` | `float` | `optional` | `` |  |
-| 2 | `y` | `float` | `optional` | `` |  |
-| 3 | `radius` | `float` | `optional` | `` |  |
-| 4 | `radius_75pct` | `float` | `optional` | `` |  |
-| 5 | `radius_50pct` | `float` | `optional` | `` |  |
-| 6 | `radius_25pct` | `float` | `optional` | `` |  |
+| 1 | `x` | `float` | `optional` |  |  |
+| 2 | `y` | `float` | `optional` |  |  |
+| 3 | `radius` | `float` | `optional` |  |  |
+| 4 | `radius_75pct` | `float` | `optional` |  |  |
+| 5 | `radius_50pct` | `float` | `optional` |  |  |
+| 6 | `radius_25pct` | `float` | `optional` |  |  |
 
 </details>
 
@@ -591,10 +591,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `min_value` | `float` | `optional` | `` |  |
-| 2 | `max_value` | `float` | `optional` | `` |  |
-| 3 | `num_buckets` | `uint32` | `optional` | `` |  |
-| 4 | `bucket_counts` | `uint32` | `repeated` | `` |  |
+| 1 | `min_value` | `float` | `optional` |  |  |
+| 2 | `max_value` | `float` | `optional` |  |  |
+| 3 | `num_buckets` | `uint32` | `optional` |  |  |
+| 4 | `bucket_counts` | `uint32` | `repeated` |  |  |
 
 </details>
 
@@ -606,13 +606,13 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `country_allow` | `string` | `optional` | `` |  |
-| 2 | `country_deny` | `string` | `optional` | `` |  |
-| 3 | `platform_win` | `bool` | `optional` | `` |  |
-| 4 | `platform_mac` | `bool` | `optional` | `` |  |
-| 5 | `platform_linux` | `bool` | `optional` | `` |  |
-| 6 | `adult_violence` | `bool` | `optional` | `` |  |
-| 7 | `adult_sex` | `bool` | `optional` | `` |  |
+| 1 | `country_allow` | `string` | `optional` |  |  |
+| 2 | `country_deny` | `string` | `optional` |  |  |
+| 3 | `platform_win` | `bool` | `optional` |  |  |
+| 4 | `platform_mac` | `bool` | `optional` |  |  |
+| 5 | `platform_linux` | `bool` | `optional` |  |  |
+| 6 | `adult_violence` | `bool` | `optional` |  |  |
+| 7 | `adult_sex` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -624,8 +624,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `key` | `uint32` | `optional` | `` |  |
-| 2 | `value` | `.CMsgSteamLearn_InferenceMetadata_Response.AppInfo` | `optional` | `` |  |
+| 1 | `key` | `uint32` | `optional` |  |  |
+| 2 | `value` | `.CMsgSteamLearn_InferenceMetadata_Response.AppInfo` | `optional` |  |  |
 
 </details>
 
@@ -637,7 +637,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `outputs` | `.CMsgSteamLearn_InferenceBackend_Response.Output` | `repeated` | `` |  |
+| 1 | `outputs` | `.CMsgSteamLearn_InferenceBackend_Response.Output` | `repeated` |  |  |
 
 </details>
 
@@ -649,7 +649,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `value` | `float` | `repeated` | `` |  |
+| 1 | `value` | `float` | `repeated` |  |  |
 
 </details>
 
@@ -661,7 +661,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 2 | `value` | `float` | `optional` | `` |  |
+| 2 | `value` | `float` | `optional` |  |  |
 
 </details>
 
@@ -673,7 +673,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 3 | `value` | `float` | `repeated` | `` |  |
+| 3 | `value` | `float` | `repeated` |  |  |
 
 </details>
 
@@ -685,7 +685,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `value` | `float` | `optional` | `` |  |
+| 1 | `value` | `float` | `optional` |  |  |
 
 </details>
 
@@ -697,9 +697,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `weight` | `float` | `repeated` | `` |  |
-| 2 | `value` | `float` | `repeated` | `` |  |
-| 3 | `value_sequence` | `.CMsgSteamLearn_InferenceBackend_Response.Sequence` | `repeated` | `` |  |
+| 1 | `weight` | `float` | `repeated` |  |  |
+| 2 | `value` | `float` | `repeated` |  |  |
+| 3 | `value_sequence` | `.CMsgSteamLearn_InferenceBackend_Response.Sequence` | `repeated` |  |  |
 
 </details>
 
@@ -711,9 +711,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `weight` | `float` | `repeated` | `` |  |
-| 2 | `value` | `float` | `repeated` | `` |  |
-| 3 | `value_sequence` | `.CMsgSteamLearn_InferenceBackend_Response.Sequence` | `repeated` | `` |  |
+| 1 | `weight` | `float` | `repeated` |  |  |
+| 2 | `value` | `float` | `repeated` |  |  |
+| 3 | `value_sequence` | `.CMsgSteamLearn_InferenceBackend_Response.Sequence` | `repeated` |  |  |
 
 </details>
 
@@ -741,9 +741,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `inference_result` | `.ESteamLearnInferenceResult` | `optional` | `` | default = STEAMLEARN_INFERENCE_ERROR |
-| 2 | `backend_response` | `.CMsgSteamLearn_InferenceBackend_Response` | `optional` | `` |  |
-| 3 | `keys` | `uint64` | `repeated` | `` |  |
+| 1 | `inference_result` | `.ESteamLearnInferenceResult` | `optional` |  | default = STEAMLEARN_INFERENCE_ERROR |
+| 2 | `backend_response` | `.CMsgSteamLearn_InferenceBackend_Response` | `optional` |  |  |
+| 3 | `keys` | `uint64` | `repeated` |  |  |
 
 </details>
 

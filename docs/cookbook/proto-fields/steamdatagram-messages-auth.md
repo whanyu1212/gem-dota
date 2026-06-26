@@ -23,19 +23,19 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `time_expiry` | `fixed32` | `optional` | `` |  |
-| 2 | `legacy_authorized_steam_id` | `fixed64` | `optional` | `` |  |
-| 3 | `authorized_public_ip` | `fixed32` | `optional` | `` |  |
-| 4 | `legacy_gameserver_steam_id` | `fixed64` | `optional` | `` |  |
-| 7 | `app_id` | `uint32` | `optional` | `` |  |
-| 8 | `extra_fields` | `.CMsgSteamDatagramRelayAuthTicket.ExtraField` | `repeated` | `` |  |
-| 9 | `legacy_gameserver_pop_id` | `fixed32` | `optional` | `` |  |
-| 10 | `virtual_port` | `uint32` | `optional` | `` |  |
-| 11 | `gameserver_address` | `bytes` | `optional` | `` |  |
-| 12 | `legacy_authorized_client_identity_binary` | `bytes` | `optional` | `` |  |
-| 13 | `legacy_gameserver_identity_binary` | `bytes` | `optional` | `` |  |
-| 14 | `authorized_client_identity_string` | `string` | `optional` | `` |  |
-| 15 | `gameserver_identity_string` | `string` | `optional` | `` |  |
+| 1 | `time_expiry` | `fixed32` | `optional` |  |  |
+| 2 | `legacy_authorized_steam_id` | `fixed64` | `optional` |  |  |
+| 3 | `authorized_public_ip` | `fixed32` | `optional` |  |  |
+| 4 | `legacy_gameserver_steam_id` | `fixed64` | `optional` |  |  |
+| 7 | `app_id` | `uint32` | `optional` |  |  |
+| 8 | `extra_fields` | `.CMsgSteamDatagramRelayAuthTicket.ExtraField` | `repeated` |  |  |
+| 9 | `legacy_gameserver_pop_id` | `fixed32` | `optional` |  |  |
+| 10 | `virtual_port` | `uint32` | `optional` |  |  |
+| 11 | `gameserver_address` | `bytes` | `optional` |  |  |
+| 12 | `legacy_authorized_client_identity_binary` | `bytes` | `optional` |  |  |
+| 13 | `legacy_gameserver_identity_binary` | `bytes` | `optional` |  |  |
+| 14 | `authorized_client_identity_string` | `string` | `optional` |  |  |
+| 15 | `gameserver_identity_string` | `string` | `optional` |  |  |
 
 </details>
 
@@ -47,10 +47,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `name` | `string` | `optional` | `` |  |
-| 2 | `string_value` | `string` | `optional` | `` |  |
-| 3 | `int64_value` | `sint64` | `optional` | `` |  |
-| 5 | `fixed64_value` | `fixed64` | `optional` | `` |  |
+| 1 | `name` | `string` | `optional` |  |  |
+| 2 | `string_value` | `string` | `optional` |  |  |
+| 3 | `int64_value` | `sint64` | `optional` |  |  |
+| 5 | `fixed64_value` | `fixed64` | `optional` |  |  |
 
 </details>
 
@@ -62,11 +62,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `reserved_do_not_use` | `fixed64` | `optional` | `` |  |
-| 2 | `key_id` | `fixed64` | `optional` | `` |  |
-| 3 | `ticket` | `bytes` | `optional` | `` |  |
-| 4 | `signature` | `bytes` | `optional` | `` |  |
-| 5 | `certs` | `.CMsgSteamDatagramCertificateSigned` | `repeated` | `` |  |
+| 1 | `reserved_do_not_use` | `fixed64` | `optional` |  |  |
+| 2 | `key_id` | `fixed64` | `optional` |  |  |
+| 3 | `ticket` | `bytes` | `optional` |  |  |
+| 4 | `signature` | `bytes` | `optional` |  |  |
+| 5 | `certs` | `.CMsgSteamDatagramCertificateSigned` | `repeated` |  |  |
 
 </details>
 
@@ -78,9 +78,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `private_key` | `bytes` | `optional` | `` |  |
-| 2 | `cert` | `bytes` | `optional` | `` |  |
-| 3 | `relay_tickets` | `bytes` | `repeated` | `` |  |
+| 1 | `private_key` | `bytes` | `optional` |  |  |
+| 2 | `cert` | `bytes` | `optional` |  |  |
+| 3 | `relay_tickets` | `bytes` | `repeated` |  |  |
 
 </details>
 
@@ -92,13 +92,13 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `time_generated` | `uint32` | `optional` | `` |  |
-| 2 | `appid` | `uint32` | `optional` | `` |  |
-| 3 | `routing` | `bytes` | `optional` | `` |  |
-| 4 | `appdata` | `bytes` | `optional` | `` |  |
-| 5 | `legacy_identity_binary` | `bytes` | `optional` | `` |  |
-| 6 | `identity_string` | `string` | `optional` | `` |  |
-| 99 | `dummy_steam_id` | `fixed64` | `optional` | `` |  |
+| 1 | `time_generated` | `uint32` | `optional` |  |  |
+| 2 | `appid` | `uint32` | `optional` |  |  |
+| 3 | `routing` | `bytes` | `optional` |  |  |
+| 4 | `appdata` | `bytes` | `optional` |  |  |
+| 5 | `legacy_identity_binary` | `bytes` | `optional` |  |  |
+| 6 | `identity_string` | `string` | `optional` |  |  |
+| 99 | `dummy_steam_id` | `fixed64` | `optional` |  |  |
 
 </details>
 
@@ -110,9 +110,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `cert` | `.CMsgSteamDatagramCertificateSigned` | `optional` | `` |  |
-| 2 | `login` | `bytes` | `optional` | `` |  |
-| 3 | `signature` | `bytes` | `optional` | `` |  |
+| 1 | `cert` | `.CMsgSteamDatagramCertificateSigned` | `optional` |  |  |
+| 2 | `login` | `bytes` | `optional` |  |  |
+| 3 | `signature` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -124,11 +124,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `ipv4` | `fixed32` | `optional` | `` |  |
-| 2 | `ipv6` | `bytes` | `optional` | `` |  |
-| 3 | `port` | `uint32` | `optional` | `` |  |
-| 4 | `routing_secret` | `fixed64` | `optional` | `` |  |
-| 5 | `protocol_version` | `uint32` | `optional` | `` |  |
+| 1 | `ipv4` | `fixed32` | `optional` |  |  |
+| 2 | `ipv6` | `bytes` | `optional` |  |  |
+| 3 | `port` | `uint32` | `optional` |  |  |
+| 4 | `routing_secret` | `fixed64` | `optional` |  |  |
+| 5 | `protocol_version` | `uint32` | `optional` |  |  |
 
 </details>
 

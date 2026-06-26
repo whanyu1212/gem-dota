@@ -33,10 +33,10 @@ Source: [src/gem/extractors/wards.py:81](https://github.com/whanyu1212/gem-dota/
 | `placer` | `str` | `-` |
 | `ward_type` | `Literal['observer', 'sentry']` | `-` |
 | `team` | `int` | `-` |
-| `x` | `float | None` | `-` |
-| `y` | `float | None` | `-` |
-| `expires_tick` | `int | None` | `-` |
-| `killed_tick` | `int | None` | `-` |
+| `x` | `float \| None` | `-` |
+| `y` | `float \| None` | `-` |
+| `expires_tick` | `int \| None` | `-` |
+| `killed_tick` | `int \| None` | `-` |
 | `killer` | `str` | `-` |
 
 ### `WardsExtractor`

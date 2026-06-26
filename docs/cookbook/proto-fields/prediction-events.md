@@ -23,9 +23,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `origin` | `.CMsgVector` | `optional` | `` |  |
-| 2 | `angles` | `.CMsgQAngle` | `optional` | `` |  |
-| 3 | `drop_to_ground_range` | `float` | `optional` | `` |  |
+| 1 | `origin` | `.CMsgVector` | `optional` |  |  |
+| 2 | `angles` | `.CMsgQAngle` | `optional` |  |  |
+| 3 | `drop_to_ground_range` | `float` | `optional` |  |  |
 
 </details>
 
@@ -37,7 +37,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `command` | `string` | `optional` | `` |  |
+| 1 | `command` | `string` | `optional` |  |  |
 
 </details>
 
@@ -49,10 +49,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `id` | `uint32` | `optional` | `` |  |
-| 2 | `requested_sync` | `uint32` | `optional` | `` |  |
-| 3 | `requested_player_index` | `uint32` | `optional` | `` |  |
-| 4 | `execution_sync` | `uint32` | `repeated` | `` |  |
+| 1 | `id` | `uint32` | `optional` |  |  |
+| 2 | `requested_sync` | `uint32` | `optional` |  |  |
+| 3 | `requested_player_index` | `uint32` | `optional` |  |  |
+| 4 | `execution_sync` | `uint32` | `repeated` |  |  |
 
 </details>
 

@@ -69,17 +69,17 @@ Source: [src/gem/schema/sendtable/models.py:105](https://github.com/whanyu1212/g
 | `serializer_name` | `str` | `-` |
 | `serializer_version` | `int` | `-` |
 | `encoder` | `str` | `-` |
-| `encode_flags` | `int | None` | `-` |
-| `bit_count` | `int | None` | `-` |
-| `low_value` | `float | None` | `-` |
-| `high_value` | `float | None` | `-` |
+| `encode_flags` | `int \| None` | `-` |
+| `bit_count` | `int \| None` | `-` |
+| `low_value` | `float \| None` | `-` |
+| `high_value` | `float \| None` | `-` |
 | `parent_name` | `str` | `''` |
 | `field_type` | `FieldType` | `field(...)` |
-| `serializer` | `Serializer | None` | `None` |
+| `serializer` | `Serializer \| None` | `None` |
 | `model` | `int` | `FIELD_MODEL_SIMPLE` |
-| `decoder` | `FieldDecoder | None` | `None` |
-| `base_decoder` | `FieldDecoder | None` | `None` |
-| `child_decoder` | `FieldDecoder | None` | `None` |
+| `decoder` | `FieldDecoder \| None` | `None` |
+| `base_decoder` | `FieldDecoder \| None` | `None` |
+| `child_decoder` | `FieldDecoder \| None` | `None` |
 
 #### Methods
 
@@ -116,6 +116,6 @@ Source: [src/gem/schema/sendtable/models.py:53](https://github.com/whanyu1212/ge
 | Name | Type | Default |
 |---|---|---|
 | `base_type` | `str` | `-` |
-| `generic_type` | `FieldType | None` | `None` |
+| `generic_type` | `FieldType \| None` | `None` |
 | `pointer` | `bool` | `False` |
 | `count` | `int` | `0` |

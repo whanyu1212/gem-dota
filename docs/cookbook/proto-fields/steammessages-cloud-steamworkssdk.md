@@ -23,7 +23,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `appid` | `uint32` | `optional` | `` | (description) = "App ID to which a file will be uploaded to." |
+| 1 | `appid` | `uint32` | `optional` |  | (description) = "App ID to which a file will be uploaded to." |
 
 </details>
 
@@ -35,7 +35,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `server_url` | `string` | `optional` | `` |  |
+| 1 | `server_url` | `string` | `optional` |  |  |
 
 </details>
 
@@ -47,8 +47,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `ugcid` | `uint64` | `optional` | `` | (description) = "ID of the Cloud file to get details for." |
-| 2 | `appid` | `uint32` | `optional` | `` | (description) = "App ID the file belongs to." |
+| 1 | `ugcid` | `uint64` | `optional` |  | (description) = "ID of the Cloud file to get details for." |
+| 2 | `appid` | `uint32` | `optional` |  | (description) = "App ID the file belongs to." |
 
 </details>
 
@@ -60,13 +60,13 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `appid` | `uint32` | `optional` | `` |  |
-| 2 | `ugcid` | `uint64` | `optional` | `` |  |
-| 3 | `filename` | `string` | `optional` | `` |  |
-| 4 | `timestamp` | `uint64` | `optional` | `` |  |
-| 5 | `file_size` | `uint32` | `optional` | `` |  |
-| 6 | `url` | `string` | `optional` | `` |  |
-| 7 | `steamid_creator` | `fixed64` | `optional` | `` |  |
+| 1 | `appid` | `uint32` | `optional` |  |  |
+| 2 | `ugcid` | `uint64` | `optional` |  |  |
+| 3 | `filename` | `string` | `optional` |  |  |
+| 4 | `timestamp` | `uint64` | `optional` |  |  |
+| 5 | `file_size` | `uint32` | `optional` |  |  |
+| 6 | `url` | `string` | `optional` |  |  |
+| 7 | `steamid_creator` | `fixed64` | `optional` |  |  |
 
 </details>
 
@@ -78,7 +78,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `details` | `.CCloud_UserFile` | `optional` | `` |  |
+| 1 | `details` | `.CCloud_UserFile` | `optional` |  |  |
 
 </details>
 
@@ -90,10 +90,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `appid` | `uint32` | `optional` | `` | (description) = "App ID to enumerate the files of." |
-| 2 | `extended_details` | `bool` | `optional` | `` | (description) = "(Optional) Get extended details back on the files found. Defaults to only returned the app Id and UGC Id of the files found." |
-| 3 | `count` | `uint32` | `optional` | `` | (description) = "(Optional) Maximum number of results to return on this call. Defaults to a maximum of 500 files returned." |
-| 4 | `start_index` | `uint32` | `optional` | `` | (description) = "(Optional) Starting index to begin enumeration at. Defaults to the beginning of the list." |
+| 1 | `appid` | `uint32` | `optional` |  | (description) = "App ID to enumerate the files of." |
+| 2 | `extended_details` | `bool` | `optional` |  | (description) = "(Optional) Get extended details back on the files found. Defaults to only returned the app Id and UGC Id of the files found." |
+| 3 | `count` | `uint32` | `optional` |  | (description) = "(Optional) Maximum number of results to return on this call. Defaults to a maximum of 500 files returned." |
+| 4 | `start_index` | `uint32` | `optional` |  | (description) = "(Optional) Starting index to begin enumeration at. Defaults to the beginning of the list." |
 
 </details>
 
@@ -105,8 +105,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `files` | `.CCloud_UserFile` | `repeated` | `` |  |
-| 2 | `total_files` | `uint32` | `optional` | `` |  |
+| 1 | `files` | `.CCloud_UserFile` | `repeated` |  |  |
+| 2 | `total_files` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -118,8 +118,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `filename` | `string` | `optional` | `` |  |
-| 2 | `appid` | `uint32` | `optional` | `` | (description) = "App ID the file belongs to." |
+| 1 | `filename` | `string` | `optional` |  |  |
+| 2 | `appid` | `uint32` | `optional` |  | (description) = "App ID the file belongs to." |
 
 </details>
 
