@@ -109,6 +109,7 @@ from gem.replays.fetch import (
     fetch_replay_url,
 )
 from gem.results.models import (
+    BuybackEvent,
     ChatEntry,
     NeutralItemFoundEvent,
     ParsedMatch,
@@ -335,6 +336,7 @@ __all__ = [
     "OpenDotaTeamfightPlayer",
     "ChatEntry",
     "NeutralItemFoundEvent",
+    "BuybackEvent",
     "find_player",
     "hero_npc_name",
     "position_at_tick",

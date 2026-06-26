@@ -277,40 +277,43 @@ immediate-outcome window 180 s, event-association window 30 s. It reads only
 - Kills by summoned units (Warlock Golem, Undying zombie, Pugna Nether Ward, etc.) should be credited to the owning hero's kill count.
 - Deaths count all causes (hero, tower, creep, neutral, summon) — not just hero-dealt deaths.
 
-## Deferred: buyback cost breakdown (reliable vs unreliable gold)
+## Buyback cost (issue #119, implemented)
 
-Tracked in **issue #119**. A reliable/unreliable gold cost breakdown was
-investigated and deferred. Current state and findings:
+Each player exposes `ParsedPlayer.buybacks: list[BuybackEvent]` (alongside the raw
+`buyback_log`). `BuybackEvent` carries `tick`, `player_slot`, `net_worth` (at the
+buyback tick), and an estimated `cost`. The cost formula lives in one place,
+`results/derived.py::buyback_cost(net_worth)` = **`200 + net_worth // 13`**
+(Dota 2's formula; reduced from `/12` in an earlier patch — ref
+https://liquipedia.net/dota2/Gold). `results/assembly.py` builds the events from
+net worth at the buyback tick; `reports/sections/economy.py::build_buybacks` reads
+`BuybackEvent.cost` instead of recomputing, and `results/dataframes.py` adds
+`cost`/`net_worth` columns to the `player_buyback_log` table.
 
-- **The HTML report already shows an approximate per-buyback cost.**
-  `reports/sections/economy.py::build_buybacks` renders a "Gold Spent" column
-  using a net-worth formula (`cost = 200 + net_worth // 13`). What is missing is
-  (a) the cost as real `ParsedMatch` data rather than a view-layer computation,
-  and (b) the reliable-vs-unreliable split. `ParsedPlayer.buyback_log` currently
-  holds raw `CombatLogEntry` objects with no cost field.
-- ⚠️ **Formula inconsistency to fix:** this note historically gave the formula as
-  `200 + net_worth / 12`, but the shipped report uses `200 + net_worth // 13`.
-  Centralize it in one helper and make note + code agree.
-- `m_vecDataTeam.{slot}.m_iReliableGold` / `m_iUnreliableGold` on
-  `CDOTADataRadiant/Dire` are readable, but reflect **remaining gold after** the
-  buyback deduction — not the cost paid.
-- `CDOTAUserMsg_SendFinalGold` provides per-player reliable/unreliable gold at game
-  end only — not per buyback event. (Proto is present in `src/gem/proto/` but the
-  parser does not consume it today.)
-- The buyback cost is not stored directly in the entity stream.
+**The exact per-buyback cost is not recoverable from the replay — confirmed
+against all three major parsers.** The `cost` is a deliberate gem-original
+*estimate* from the published formula, not a measured deduction:
 
-**Approaches to explore when revisiting (see #119 for the full scoping):**
-1. Formula approximation (cheap, total only): promote the existing report formula
-   into a `results/derived.py` helper + a model field; net worth at the buyback
-   tick comes from the nearest `PlayerStateSnapshot`. Cannot produce the split.
-2. Event-driven sampling (exact, needed for the split): hook the BUYBACK combat-log
-   entry and snapshot `m_iReliableGold`/`m_iUnreliableGold` immediately before vs
-   after it fires (requires sampling outside the periodic `_maybe_sample()` loop);
-   the before-minus-after delta per pool is the exact amount paid.
+- **gem's entity stream:** `m_iReliableGold` / `m_iUnreliableGold` on `CDOTA_Data*`
+  (read via `team_data_field(slot, ...)`) are readable but reflect gold **after**
+  the deduction — the before/after delta at the BUYBACK tick is **zero** (verified
+  on fixture `8855188139`). The BUYBACK combat-log entry carries only the player
+  slot (`entry.value`), `gold_reason=0`, no gold amount.
+- **OpenDota:** records no per-buyback cost (`handleBuyback` stores only time/slot).
+- **STRATZ:** its GraphQL `BuyBackDetailType` *has* a `cost` field, but it is
+  **0 for every buyback** sampled (24 events across 3 matches: `8855188139`,
+  `8855242704`, `8822593932`) — i.e. even STRATZ (Clarity parser) does not surface
+  a real cost. `CDOTAUserMsg_SendFinalGold` is end-of-game only;
+  `CMsgDotaScenario_Hero.GoldSpentOnBuybacks` is a cumulative per-hero scenario
+  field (not per event, not parsed).
 
-**Files to change:** `results/models.py`, `results/assembly.py`,
-`results/derived.py` (formula helper), `reports/sections/economy.py`; plus
-`extractors/_snapshots.py` / `extractors/players.py` for Approach 2 only.
+Consequently the **reliable/unreliable split is also not provided** — it would
+require a per-event source that does not exist.
+
+**What IS validated:** buyback *detection* (event timing + hero attribution) is
+cross-validated against STRATZ — the buyback **times** and **hero IDs** match gem
+exactly on every event across those 3 matches (e.g. fixture `8855188139`: Ember
+@2385s, Keeper of the Light @2391s). Only the cost *value* is an unverifiable
+formula estimate; the events themselves are independently confirmed correct.
 
 ## Code Style
 

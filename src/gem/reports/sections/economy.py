@@ -33,6 +33,7 @@ from gem.reports.sections._shared import (
     _DIRE_COLORS,
     _RADIANT_COLORS,
 )
+from gem.results.derived import buyback_cost
 from gem.results.models import (
     ParsedMatch,
     ParsedPlayer,
@@ -625,6 +626,10 @@ def _net_worth_at(pp: ParsedPlayer, tick: int) -> int:
 
 def build_buybacks(match: ParsedMatch) -> str:
     """Build the buybacks section."""
+    # buyback_log is the canonical "a buyback happened" record; buybacks carries
+    # the cost. Count from buyback_log so a recorded buyback is never hidden when
+    # buybacks is unset (manually-assembled / older-serialized matches), matching
+    # build_dataframes' handling.
     total = sum(len(p.buyback_log) for p in match.players)
 
     parts = [
@@ -642,11 +647,16 @@ def build_buybacks(match: ParsedMatch) -> str:
             "<thead><tr><th>Time</th><th>Hero</th><th>Team</th><th>Gold Spent</th></tr></thead>"
         )
         parts.append("<tbody>")
+        # Iterate buyback_log (source of truth) and take cost from the aligned
+        # BuybackEvent when present; otherwise fall back to the formula so the row
+        # is still shown with a sensible cost.
         entries: list[tuple[int, str, int, int]] = []
         for pp in match.players:
-            for entry in pp.buyback_log:
-                nw = _net_worth_at(pp, entry.tick)
-                cost = 200 + nw // 13
+            for i, entry in enumerate(pp.buyback_log):
+                if i < len(pp.buybacks):
+                    cost = pp.buybacks[i].cost
+                else:
+                    cost = buyback_cost(_net_worth_at(pp, entry.tick))
                 entries.append((entry.tick, pp.hero_name, pp.team, cost))
         entries.sort(key=lambda x: x[0])
         for tick, hero_name, team, cost in entries:
