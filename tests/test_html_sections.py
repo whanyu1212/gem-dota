@@ -77,12 +77,14 @@ class TestNetWorthAt:
 
 
 class TestBuybackReport:
-    """Verify build_buybacks renders ParsedPlayer.buybacks cost, not a recompute."""
+    """Verify build_buybacks renders BuybackEvent cost and never hides a buyback."""
 
     def _make_match(self, cost: int, buyback_tick: int = 500):
+        from gem.combat.log import CombatLogEntry
         from gem.results.models import BuybackEvent
 
         pp = _make_player()
+        pp.buyback_log = [CombatLogEntry(tick=buyback_tick, log_type="BUYBACK", value=0)]
         pp.buybacks = [BuybackEvent(tick=buyback_tick, player_slot=0, cost=cost, net_worth=0)]
 
         match = MagicMock()
@@ -103,12 +105,29 @@ class TestBuybackReport:
 
     def test_no_buybacks_shows_no_table(self):
         pp = _make_player()
+        pp.buyback_log = []
         pp.buybacks = []
         match = MagicMock()
         match.players = [pp]
         html = _sections.build_buybacks(match)
         assert "Gold Spent" not in html
-        assert "no buybacks" in html
+
+    def test_buyback_log_without_buybacks_is_still_shown(self):
+        # Codex P2: a match with buyback_log populated but buybacks empty (manually
+        # assembled / older serialized data) must still render the buyback, with the
+        # cost derived from the formula fallback rather than being hidden.
+        from gem.combat.log import CombatLogEntry
+
+        pp = _make_player(times=[500], net_worth_t=[13000])
+        pp.buyback_log = [CombatLogEntry(tick=500, log_type="BUYBACK", value=0)]
+        pp.buybacks = []  # not populated
+        match = MagicMock()
+        match.players = [pp]
+        html = _sections.build_buybacks(match)
+        assert "Gold Spent" in html  # table rendered, not hidden
+        assert "Total buybacks: 1" in html
+        # formula fallback: 200 + 13000 // 13 = 1200
+        assert "1,200g" in html
 
 
 # ---------------------------------------------------------------------------
