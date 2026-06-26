@@ -110,6 +110,7 @@ extractors/lane.py          ← lane-position heatmaps
 extractors/courier.py       ← courier state
 extractors/draft.py         ← pick/ban resolution (three-tier hero-ID resolution)
 extractors/teamfights.py    ← teamfight window detection + per-fight stat attribution
+extractors/smoke_vision.py  ← Smoke of Deceit + vision-granting modifier events
 extractors/_snapshots.py    ← shared snapshot dataclasses/sampling helpers
 ```
 
@@ -208,6 +209,12 @@ Reference: `refs/parser/src/main/java/opendota/processors/warding/Wards.java` �
 
 ### Smoke of Deceit — empty group edge case
 
+Smoke and vision-granting modifier collection lives in
+`extractors/smoke_vision.py` (`SmokeExtractor`, `VisionModifierExtractor`),
+attached by `api.parse()` like the other extractors (`attach()`/`finalize()`;
+`finalize()` back-fills teams/centroids from `PlayerExtractor` snapshots). These
+are internal extractors, not part of the public `extractors` `__all__`.
+
 Tracking smoke:
 1. `ITEM` event (`inflictor_name = "item_smoke_of_deceit"`) — item consumed
 2. `MODIFIER_ADD` events (`inflictor_name = "modifier_smoke_of_deceit"`, `target_is_hero = True`) — one per hero that receives the buff
@@ -279,7 +286,8 @@ buyback tick), and an estimated `cost`. The cost formula lives in one place,
 (Dota 2's formula; reduced from `/12` in an earlier patch — ref
 https://liquipedia.net/dota2/Gold). `results/assembly.py` builds the events from
 net worth at the buyback tick; `reports/sections/economy.py::build_buybacks` reads
-`BuybackEvent.cost` instead of recomputing.
+`BuybackEvent.cost` instead of recomputing, and `results/dataframes.py` adds
+`cost`/`net_worth` columns to the `player_buyback_log` table.
 
 **The reliable/unreliable split is NOT provided — it is not recoverable offline.**
 Empirically verified (fixture `8855188139`): `m_iReliableGold` / `m_iUnreliableGold`
@@ -363,18 +371,22 @@ Key message classes used throughout the parser:
 
 ## Status
 
-Current version: **0.3.0** (see `pyproject.toml` and `CHANGELOG.md`).
+Current version: **0.4.2** (see `pyproject.toml` and `CHANGELOG.md`).
 
 The full parsing pipeline and all extractors are complete and stable: binary
 reader, entity system, combat log (S1+S2), string tables, every extractor, the
 `ParsedMatch` output model, DataFrame/JSON/Parquet export, bulk parsing, and
-replay fetch. Recent work is feature/data refreshes (neutral items, camp-zone
-annotations, Roshan conversion, OpenDota validation fixtures) rather than new
-core subsystems.
+replay fetch. Recent work (0.4.x) has been **OpenDota match-API parity** — final
+inventories, kill breakdowns, per-inflictor/per-target combat dicts, purchase
+timeline, building bitmasks, interval/advantage curves — plus code-quality
+refactors, rather than new core subsystems. `gem-dota` is published to PyPI.
 
 In flight / deferred:
-- **Distribution** — PyPI packaging + CI/CD (`gem-dota` on PyPI). 🚧
 - **Rust extension** (PyO3 + maturin) for a 3–5× speedup. Deferred.
+- **Buyback cost breakdown** (reliable/unreliable gold) — see the deferred
+  section above and issue #119.
+- Documented OpenDota-parity boundaries (replay vs Game-Coordinator data) tracked
+  in issues #67 / #68 / #93 — these are GC-only and exact only via API enrichment.
 
 `CHANGELOG.md` is the per-release record; consult it before assuming a feature's
 state rather than trusting a static table here.
