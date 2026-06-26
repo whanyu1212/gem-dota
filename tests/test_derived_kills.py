@@ -194,3 +194,30 @@ class TestBuildingStatus:
         r = building_status([_TK(2, "npc_dota_goodguys_tower1_bot")], [])
         assert r["tower_status_dire"] == self._ALL_TOWERS
         assert r["tower_status_radiant"] != self._ALL_TOWERS
+
+
+from gem.results.derived import buyback_cost  # noqa: E402
+
+
+class TestBuybackCost:
+    """Buyback cost formula: 200 + net_worth // 13."""
+
+    def test_zero_net_worth_is_base_cost(self):
+        assert buyback_cost(0) == 200
+
+    def test_typical_net_worth(self):
+        # 200 + 13000 // 13 = 200 + 1000 = 1200
+        assert buyback_cost(13000) == 1200
+
+    def test_floor_division(self):
+        # 1300 // 13 = 100, so 200 + 100 = 300; 1301 // 13 floors to 100 too.
+        assert buyback_cost(1300) == 300
+        assert buyback_cost(1301) == 300
+
+    def test_negative_net_worth_clamped(self):
+        assert buyback_cost(-500) == 200
+
+    def test_uses_divisor_13_not_12(self):
+        # Guard against the historical /12 formula regressing.
+        # nw=12 → //13 gives 0 (200); //12 would give 1 (201).
+        assert buyback_cost(12) == 200

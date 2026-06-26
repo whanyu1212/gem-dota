@@ -7,6 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.3] - 2026-06-26
+
+Adds per-buyback gold cost to the model and bundles a set of code-quality
+refactors (#106). The one user-visible addition is `ParsedPlayer.buybacks` /
+`gem.BuybackEvent`; the rest are behaviour-preserving internal cleanups with no
+change to parse/export output (OpenDota parity validator unchanged).
+
+### Added
+
+- `ParsedPlayer.buybacks` — a list of `BuybackEvent` (`tick`, `player_slot`,
+  `net_worth`, estimated `cost`) alongside the raw `buyback_log`; also added to the
+  `player_buyback_log` DataFrame (`cost`/`net_worth` columns) and exported as
+  `gem.BuybackEvent`. The HTML report's buyback table reads this `cost` instead of
+  recomputing it; the canonical formula lives in `gem.results.derived.buyback_cost`.
+
+  **The `cost` is an estimate, not a measured value.** It uses Dota 2's published
+  formula `200 + net_worth // 13` over net worth at the buyback tick, because the
+  exact per-buyback cost is **not recoverable from the replay** — confirmed against
+  all three major parsers: gem's entity gold-pool fields reflect gold *after* the
+  deduction (before/after delta is zero) and the BUYBACK combat-log entry carries
+  no gold amount; OpenDota records no per-buyback cost; and STRATZ's API `cost`
+  field is `0` for every buyback (24 events across 3 matches). The
+  reliable/unreliable split is likewise not provided.
+
+  Buyback *detection* (event timing + hero) is **cross-validated against STRATZ** —
+  times and hero IDs match exactly on every event in those matches. Only the cost
+  *value* is an unverifiable formula estimate. (#119)
+
+### Changed
+
+- Refactored the HTML report's ward-map section (`reports/sections/vision.py`,
+  `build_wards`) to inject its data through an inert
+  `<script type="application/json">` tag — matching the cleaner pattern already
+  used by the farming section in the same file — instead of interpolating it into
+  the executable `<script>`. This removes ~240 lines of fragile doubled-brace
+  (`{{ }}`) f-string escaping. No change to the rendered report. (#106 item #6)
+- **Internal:** the inline Smoke-of-Deceit and vision-modifier collection logic
+  (~100 lines of closures in `gem.api.parse`) is extracted into
+  `gem.extractors.smoke_vision` (`SmokeExtractor`, `VisionModifierExtractor`),
+  following the existing `attach()`/`finalize()` extractor contract. Both take the
+  `PlayerExtractor` (same dependency pattern as `_CombatAggregator`) for live hero
+  positions and the post-parse team back-fill. No output change — smoke groups,
+  centroids, and vision-modifier windows are identical (verified end-to-end on a
+  replay fixture); the extractors are internal and not part of the public API.
+  (#106 item #2)
+- **Internal:** the ~234-line per-player population loop in
+  `results/assembly.build_parsed_match` is extracted into a dedicated
+  `_populate_player_series(match, ...)` helper, shrinking the orchestrator from
+  527 to ~310 lines. Each player slot is populated independently (no cross-player
+  state), so the loop moved verbatim behind an explicit keyword-only signature.
+  No output change — the OpenDota parity validator and the full suite are
+  unchanged. (#106 item #3)
+
 ## [0.4.2] - 2026-06-25
 
 Report asset-cache tooling and a documentation overhaul. No change to the

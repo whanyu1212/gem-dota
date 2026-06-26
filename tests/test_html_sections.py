@@ -2,7 +2,8 @@
 
 Covers:
 - _net_worth_at: nearest net_worth sample lookup
-- build_buybacks: gold spent column (floor(200 + net_worth / 13))
+- build_buybacks: renders ParsedPlayer.buybacks cost (formula tested in
+  tests/test_derived_kills.py::TestBuybackCost)
 - build_objectives: healing lotus entries appear with correct hero label
 """
 
@@ -70,60 +71,169 @@ class TestNetWorthAt:
 
 
 # ---------------------------------------------------------------------------
-# Buyback gold cost formula: floor(200 + net_worth / 13)
+# build_buybacks renders the model's BuybackEvent cost (the formula itself is
+# tested in tests/test_derived_kills.py::TestBuybackCost).
 # ---------------------------------------------------------------------------
 
 
-class TestBuybackGoldCost:
-    """Verify the buyback cost formula via build_buybacks output."""
+class TestBuybackReport:
+    """Verify build_buybacks renders BuybackEvent cost and never hides a buyback."""
 
-    def _make_match(self, net_worth: int, buyback_tick: int = 500):
+    def _make_match(self, cost: int, buyback_tick: int = 500):
         from gem.combat.log import CombatLogEntry
+        from gem.results.models import BuybackEvent
 
-        buyback_entry = CombatLogEntry(tick=buyback_tick, log_type="BUYBACK", value=0)
-
-        pp = _make_player(
-            times=[buyback_tick],
-            net_worth_t=[net_worth],
-        )
-        pp.buyback_log = [buyback_entry]
+        pp = _make_player()
+        pp.buyback_log = [CombatLogEntry(tick=buyback_tick, log_type="BUYBACK", value=0)]
+        pp.buybacks = [BuybackEvent(tick=buyback_tick, player_slot=0, cost=cost, net_worth=0)]
 
         match = MagicMock()
         match.players = [pp]
         return match
 
-    def _cost_in_html(self, net_worth: int) -> str:
-        match = self._make_match(net_worth)
-        html = _sections.build_buybacks(match)
-        return html
+    def _cost_in_html(self, cost: int) -> str:
+        return _sections.build_buybacks(self._make_match(cost))
 
-    def test_zero_net_worth(self):
-        # floor(200 + 0/13) = 200
-        html = self._cost_in_html(0)
-        assert "200g" in html
+    def test_renders_cost_value(self):
+        assert "200g" in self._cost_in_html(200)
 
-    def test_typical_net_worth(self):
-        # net_worth=13000 → floor(200 + 13000/13) = floor(200 + 1000) = 1200
-        html = self._cost_in_html(13000)
-        assert "1,200g" in html
-
-    def test_fractional_rounds_down(self):
-        # net_worth=1300 → floor(200 + 1300/13) = floor(200 + 100) = 300
-        # net_worth=1301 → floor(200 + 1301/13) = floor(200 + 100.07...) = 300
-        html1 = self._cost_in_html(1300)
-        html2 = self._cost_in_html(1301)
-        assert "300g" in html1
-        assert "300g" in html2
+    def test_renders_thousands_separator(self):
+        assert "1,200g" in self._cost_in_html(1200)
 
     def test_gold_spent_column_header_present(self):
-        html = self._cost_in_html(5000)
-        assert "Gold Spent" in html
+        assert "Gold Spent" in self._cost_in_html(5000)
 
     def test_no_buybacks_shows_no_table(self):
         pp = _make_player()
         pp.buyback_log = []
+        pp.buybacks = []
         match = MagicMock()
         match.players = [pp]
         html = _sections.build_buybacks(match)
         assert "Gold Spent" not in html
-        assert "no buybacks" in html
+
+    def test_buyback_log_without_buybacks_is_still_shown(self):
+        # Codex P2: a match with buyback_log populated but buybacks empty (manually
+        # assembled / older serialized data) must still render the buyback, with the
+        # cost derived from the formula fallback rather than being hidden.
+        from gem.combat.log import CombatLogEntry
+
+        pp = _make_player(times=[500], net_worth_t=[13000])
+        pp.buyback_log = [CombatLogEntry(tick=500, log_type="BUYBACK", value=0)]
+        pp.buybacks = []  # not populated
+        match = MagicMock()
+        match.players = [pp]
+        html = _sections.build_buybacks(match)
+        assert "Gold Spent" in html  # table rendered, not hidden
+        assert "Total buybacks: 1" in html
+        # formula fallback: 200 + 13000 // 13 = 1200
+        assert "1,200g" in html
+
+
+# ---------------------------------------------------------------------------
+# build_wards: data crosses the Python -> JS boundary via an inert
+# <script type="application/json"> tag (the build_farming pattern), so the
+# executable <script> stays a plain string with no doubled-brace escaping.
+# ---------------------------------------------------------------------------
+
+
+class TestBuildWardsDataTag:
+    """Lock in the JSON-data-tag contract introduced for issue #106 item #6."""
+
+    def _make_ward(
+        self,
+        *,
+        ward_type: str = "observer",
+        team: int = 2,
+        tick: int = 900,
+        x: float = 1000.0,
+        y: float = -2000.0,
+        killed_tick: int | None = 1800,
+        expires_tick: int | None = None,
+    ) -> MagicMock:
+        w = MagicMock()
+        w.ward_type = ward_type
+        w.team = team
+        w.tick = tick
+        w.x = x
+        w.y = y
+        w.killed_tick = killed_tick
+        w.expires_tick = expires_tick
+        w.placer = "npc_dota_hero_axe"
+        w.killer = "npc_dota_hero_lina"
+        return w
+
+    def _make_smoke(self) -> MagicMock:
+        s = MagicMock()
+        s.x = 0.0
+        s.y = 0.0
+        s.tick = 1200
+        s.team = 2
+        s.activator = "npc_dota_hero_axe"
+        s.smoked = ["a", "b"]
+        return s
+
+    def _make_match(self) -> MagicMock:
+        match = MagicMock()
+        match.wards = [
+            self._make_ward(ward_type="observer", team=2),
+            self._make_ward(ward_type="sentry", team=3, killed_tick=None, expires_tick=2000),
+        ]
+        match.smoke_events = [self._make_smoke()]
+        match.game_start_tick = 900
+        match.game_end_tick = 3000
+        # estimate_vision() iterates match.players; empty == no enemy vision.
+        match.players = []
+        return match
+
+    def _data_tag_payload(self, html: str) -> dict:
+        import json
+        import re
+
+        m = re.search(
+            r'<script type="application/json" id="ward-data">(.*?)</script>',
+            html,
+            re.S,
+        )
+        assert m is not None, "ward-data JSON tag missing"
+        return json.loads(m.group(1))
+
+    def test_data_tag_present_and_parses(self):
+        html = _sections.build_wards(self._make_match(), None)
+        cfg = self._data_tag_payload(html)
+        assert len(cfg["wards"]) == 2
+        assert len(cfg["smokes"]) == 1
+        assert cfg["gameStartTick"] == 900
+        assert cfg["sliderMin"] is not None
+        assert cfg["sliderMax"] is not None
+
+    def test_exactly_one_json_data_tag(self):
+        html = _sections.build_wards(self._make_match(), None)
+        assert html.count('type="application/json"') == 1
+
+    def test_no_doubled_braces_in_output(self):
+        # The whole point of the refactor: no f-string brace escaping survives.
+        html = _sections.build_wards(self._make_match(), None)
+        assert "{{" not in html
+        assert "}}" not in html
+
+    def test_script_reads_the_data_tag(self):
+        html = _sections.build_wards(self._make_match(), None)
+        assert "JSON.parse(document.getElementById('ward-data')" in html
+
+    def test_has_map_flag_reflects_map_b64(self):
+        without = self._data_tag_payload(_sections.build_wards(self._make_match(), None))
+        with_map = self._data_tag_payload(_sections.build_wards(self._make_match(), "ZmFrZWI2NA=="))
+        assert without["hasMap"] is False
+        assert with_map["hasMap"] is True
+
+    def test_empty_wards_returns_placeholder_card(self):
+        match = MagicMock()
+        match.wards = []
+        match.smoke_events = []
+        match.game_start_tick = 0
+        match.game_end_tick = 0
+        match.players = []
+        html = _sections.build_wards(match, None)
+        assert "(no ward placement data)" in html
+        assert 'type="application/json"' not in html

@@ -215,3 +215,31 @@ def building_status(tower_kills: list, barracks_kills: list) -> dict[str, int]:
         "barracks_status_radiant": _rax_mask(rad_rax),
         "barracks_status_dire": _rax_mask(dire_rax),
     }
+
+
+# Buyback cost formula. The Dota 2 cost is ``200 + net_worth / 13`` (reduced from
+# ``/12`` in an earlier patch). This is the canonical home for the formula so the
+# model and the HTML report compute the same value.
+# Reference: https://liquipedia.net/dota2/Gold (Buyback section).
+_BUYBACK_BASE_COST = 200
+_BUYBACK_NET_WORTH_DIVISOR = 13
+
+
+def buyback_cost(net_worth: int) -> int:
+    """Estimate the gold cost of a buyback from the player's net worth.
+
+    Uses the Dota 2 formula ``200 + net_worth // 13``. This is an approximation:
+    the per-buyback cost is not stored in the replay stream, and the exact
+    reliable/unreliable split is not recoverable from the entity gold-pool fields
+    (they reflect gold *after* the deduction). The cost is computed from net worth
+    at the buyback tick instead.
+
+    Args:
+        net_worth: The player's net worth at the buyback tick. Negative values are
+            clamped to 0.
+
+    Returns:
+        The estimated buyback cost in gold.
+    """
+    nw = max(0, net_worth)
+    return _BUYBACK_BASE_COST + nw // _BUYBACK_NET_WORTH_DIVISOR

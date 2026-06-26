@@ -180,9 +180,17 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
             row["player_id"] = pp.player_id
             player_runes_rows.append(row)
 
-        for entry in pp.buyback_log:
+        # Buyback rows carry the estimated cost / net worth from the structured
+        # BuybackEvent (built 1:1 with buyback_log) so the DataFrame surfaces cost
+        # too. Iterate buyback_log (the source of truth that a buyback happened)
+        # and pull cost from the aligned BuybackEvent when present, so a row is
+        # never dropped if buybacks is unset.
+        for i, entry in enumerate(pp.buyback_log):
             row = _plain_row(entry)
             row["player_id"] = pp.player_id
+            bb = pp.buybacks[i] if i < len(pp.buybacks) else None
+            row["cost"] = bb.cost if bb is not None else None
+            row["net_worth"] = bb.net_worth if bb is not None else None
             player_buyback_rows.append(row)
 
     players_df = pd.DataFrame(player_rows)
