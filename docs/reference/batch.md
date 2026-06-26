@@ -85,8 +85,8 @@ Source: [src/gem/replays/batch.py:39](https://github.com/whanyu1212/gem-dota/blo
 | Name | Type | Default |
 |---|---|---|
 | `path` | `Path` | `-` |
-| `match` | `ParsedMatch | None` | `-` |
-| `error` | `Exception | None` | `-` |
+| `match` | `ParsedMatch \| None` | `-` |
+| `error` | `Exception \| None` | `-` |
 
 #### Properties
 

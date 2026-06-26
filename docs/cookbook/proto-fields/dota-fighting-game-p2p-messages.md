@@ -24,14 +24,14 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `last_acked_frame` | `int32` | `optional` | `` |  |
-| 2 | `player_id` | `uint32` | `optional` | `` |  |
-| 3 | `last_crc_frame` | `int32` | `optional` | `` |  |
-| 4 | `last_crc_value` | `uint32` | `optional` | `` |  |
-| 5 | `now` | `float` | `optional` | `` |  |
-| 6 | `peer_ack_time` | `float` | `optional` | `` |  |
-| 7 | `input_start_frame` | `int32` | `optional` | `` |  |
-| 8 | `input_sample` | `.CMsgFightingGame_GameData_Fighting.InputSample` | `repeated` | `` |  |
+| 1 | `last_acked_frame` | `int32` | `optional` |  |  |
+| 2 | `player_id` | `uint32` | `optional` |  |  |
+| 3 | `last_crc_frame` | `int32` | `optional` |  |  |
+| 4 | `last_crc_value` | `uint32` | `optional` |  |  |
+| 5 | `now` | `float` | `optional` |  |  |
+| 6 | `peer_ack_time` | `float` | `optional` |  |  |
+| 7 | `input_start_frame` | `int32` | `optional` |  |  |
+| 8 | `input_sample` | `.CMsgFightingGame_GameData_Fighting.InputSample` | `repeated` |  |  |
 
 </details>
 
@@ -43,7 +43,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `button_mask` | `uint32` | `optional` | `` |  |
+| 1 | `button_mask` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -55,12 +55,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `cursor_index` | `uint32` | `optional` | `` |  |
-| 2 | `selected_hero_id` | `int32` | `optional` | `` |  |
-| 3 | `selected_style` | `uint32` | `optional` | `` |  |
-| 4 | `econ_item_refs` | `.CMsgFightingGame_GameData_CharacterSelect.Item` | `repeated` | `` |  |
-| 5 | `message_ack` | `int64` | `optional` | `` |  |
-| 6 | `confirmed_style` | `bool` | `optional` | `` |  |
+| 1 | `cursor_index` | `uint32` | `optional` |  |  |
+| 2 | `selected_hero_id` | `int32` | `optional` |  |  |
+| 3 | `selected_style` | `uint32` | `optional` |  |  |
+| 4 | `econ_item_refs` | `.CMsgFightingGame_GameData_CharacterSelect.Item` | `repeated` |  |  |
+| 5 | `message_ack` | `int64` | `optional` |  |  |
+| 6 | `confirmed_style` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -72,8 +72,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `item_def` | `uint32` | `optional` | `` |  |
-| 2 | `style_index` | `uint32` | `optional` | `` | default = 255 |
+| 1 | `item_def` | `uint32` | `optional` |  |  |
+| 2 | `style_index` | `uint32` | `optional` |  | default = 255 |
 
 </details>
 
@@ -85,10 +85,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `now` | `float` | `optional` | `` |  |
-| 2 | `peer_ack_time` | `float` | `optional` | `` |  |
-| 3 | `proposed_start_time` | `float` | `optional` | `` |  |
-| 4 | `accepted_start_time` | `float` | `optional` | `` |  |
+| 1 | `now` | `float` | `optional` |  |  |
+| 2 | `peer_ack_time` | `float` | `optional` |  |  |
+| 3 | `proposed_start_time` | `float` | `optional` |  |  |
+| 4 | `accepted_start_time` | `float` | `optional` |  |  |
 
 </details>
 
@@ -100,7 +100,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `state` | `.CP2P_FightingGame_GameData.EState` | `optional` | `` | default = k_ChoosingCharacter |
+| 1 | `state` | `.CP2P_FightingGame_GameData.EState` | `optional` |  | default = k_ChoosingCharacter |
 | 2 | `fight` | `.CMsgFightingGame_GameData_Fighting` | `oneof` | `state_data` |  |
 | 3 | `character_select` | `.CMsgFightingGame_GameData_CharacterSelect` | `oneof` | `state_data` |  |
 | 4 | `loaded` | `.CMsgFightingGame_GameData_Loaded` | `oneof` | `state_data` |  |

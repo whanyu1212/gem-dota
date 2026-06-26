@@ -24,7 +24,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `text` | `bytes` | `optional` | `` |  |
+| 1 | `text` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -36,7 +36,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `voice_data` | `bytes` | `optional` | `` |  |
+| 1 | `voice_data` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -48,8 +48,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `audio` | `.CMsgVoiceAudio` | `optional` | `` |  |
-| 2 | `broadcast_group` | `uint32` | `optional` | `` |  |
+| 1 | `audio` | `.CMsgVoiceAudio` | `optional` |  |  |
+| 2 | `broadcast_group` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -61,8 +61,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `send_time` | `uint64` | `optional` | `` |  |
-| 2 | `is_reply` | `bool` | `optional` | `` |  |
+| 1 | `send_time` | `uint64` | `optional` |  |  |
+| 2 | `is_reply` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -74,10 +74,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `body_parts` | `.CP2P_VRAvatarPosition.COrientation` | `repeated` | `` |  |
-| 2 | `hat_id` | `int32` | `optional` | `` |  |
-| 3 | `scene_id` | `int32` | `optional` | `` |  |
-| 4 | `world_scale` | `int32` | `optional` | `` |  |
+| 1 | `body_parts` | `.CP2P_VRAvatarPosition.COrientation` | `repeated` |  |  |
+| 2 | `hat_id` | `int32` | `optional` |  |  |
+| 3 | `scene_id` | `int32` | `optional` |  |  |
+| 4 | `world_scale` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -89,8 +89,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `pos` | `.CMsgVector` | `optional` | `` |  |
-| 2 | `ang` | `.CMsgQAngle` | `optional` | `` |  |
+| 1 | `pos` | `.CMsgVector` | `optional` |  |  |
+| 2 | `ang` | `.CMsgQAngle` | `optional` |  |  |
 
 </details>
 
@@ -102,14 +102,14 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `demo_tick` | `int32` | `optional` | `` |  |
-| 2 | `paused` | `bool` | `optional` | `` |  |
-| 3 | `tv_listen_voice_indices` | `uint64` | `optional` | `` |  |
-| 4 | `dota_spectator_mode` | `int32` | `optional` | `` |  |
-| 5 | `dota_spectator_watching_broadcaster` | `bool` | `optional` | `` |  |
-| 6 | `dota_spectator_hero_index` | `int32` | `optional` | `` |  |
-| 7 | `dota_spectator_autospeed` | `int32` | `optional` | `` |  |
-| 8 | `dota_replay_speed` | `int32` | `optional` | `` |  |
+| 1 | `demo_tick` | `int32` | `optional` |  |  |
+| 2 | `paused` | `bool` | `optional` |  |  |
+| 3 | `tv_listen_voice_indices` | `uint64` | `optional` |  |  |
+| 4 | `dota_spectator_mode` | `int32` | `optional` |  |  |
+| 5 | `dota_spectator_watching_broadcaster` | `bool` | `optional` |  |  |
+| 6 | `dota_spectator_hero_index` | `int32` | `optional` |  |  |
+| 7 | `dota_spectator_autospeed` | `int32` | `optional` |  |  |
+| 8 | `dota_replay_speed` | `int32` | `optional` |  |  |
 
 </details>
 

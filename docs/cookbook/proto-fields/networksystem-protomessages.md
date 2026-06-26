@@ -19,7 +19,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `slot` | `uint32` | `optional` | `` |  |
+| 1 | `slot` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -31,8 +31,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `reason` | `uint32` | `optional` | `` |  |
-| 2 | `message` | `string` | `optional` | `` |  |
+| 1 | `reason` | `uint32` | `optional` |  |  |
+| 2 | `message` | `string` | `optional` |  |  |
 
 </details>
 
@@ -44,8 +44,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `reason` | `uint32` | `optional` | `` |  |
-| 2 | `message` | `string` | `optional` | `` |  |
+| 1 | `reason` | `uint32` | `optional` |  |  |
+| 2 | `message` | `string` | `optional` |  |  |
 
 </details>
 

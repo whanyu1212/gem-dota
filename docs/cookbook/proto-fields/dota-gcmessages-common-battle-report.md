@@ -29,9 +29,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `timestamp` | `uint32` | `optional` | `` |  |
-| 3 | `duration` | `uint32` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `timestamp` | `uint32` | `optional` |  |  |
+| 3 | `duration` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -43,56 +43,56 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `hero_id` | `int32` | `optional` | `` |  |
-| 2 | `kills` | `uint32` | `optional` | `` |  |
-| 3 | `deaths` | `uint32` | `optional` | `` |  |
-| 4 | `assists` | `uint32` | `optional` | `` |  |
-| 5 | `rank_change` | `int32` | `optional` | `` |  |
-| 6 | `last_hits` | `uint32` | `optional` | `` |  |
-| 7 | `gpm` | `uint32` | `optional` | `` |  |
-| 8 | `xpm` | `uint32` | `optional` | `` |  |
-| 9 | `role` | `.CMsgBattleReport_Role` | `optional` | `` | default = k_eUnknownRole |
-| 10 | `outcome` | `.CMsgBattleReport_EOutcome` | `optional` | `` | default = k_eWin |
-| 11 | `lane_outcome` | `.CMsgBattleReport_ELaneOutcome` | `optional` | `` | default = k_eUnknownLaneOutcome |
-| 12 | `ranked` | `bool` | `optional` | `` |  |
-| 13 | `match_id` | `uint64` | `optional` | `` |  |
-| 14 | `lane_selection_flags` | `uint32` | `optional` | `` |  |
-| 15 | `predicted_position` | `uint32` | `optional` | `` |  |
-| 16 | `seconds_dead` | `uint32` | `optional` | `` |  |
-| 17 | `winning_team` | `uint32` | `optional` | `` |  |
-| 19 | `party_game` | `bool` | `optional` | `` |  |
-| 20 | `start_time` | `uint32` | `optional` | `` |  |
-| 21 | `denies` | `uint32` | `optional` | `` |  |
-| 22 | `bounty_runes` | `uint32` | `optional` | `` |  |
-| 23 | `water_runes` | `uint32` | `optional` | `` |  |
-| 24 | `power_runes` | `uint32` | `optional` | `` |  |
-| 25 | `time_enemy_t1_tower_destroyed` | `uint32` | `optional` | `` |  |
-| 26 | `time_friendly_t1_tower_destroyed` | `uint32` | `optional` | `` |  |
-| 27 | `enemy_roshan_kills` | `uint32` | `optional` | `` |  |
-| 28 | `player_slot` | `uint32` | `optional` | `` |  |
-| 29 | `teleports_used` | `uint32` | `optional` | `` |  |
-| 30 | `dewards` | `uint32` | `optional` | `` |  |
-| 31 | `camps_stacked` | `uint32` | `optional` | `` |  |
-| 32 | `support_gold` | `uint32` | `optional` | `` |  |
-| 33 | `hero_damage` | `uint32` | `optional` | `` |  |
-| 34 | `hero_healing` | `uint32` | `optional` | `` |  |
-| 35 | `tower_damage` | `uint32` | `optional` | `` |  |
-| 36 | `successful_smokes` | `uint32` | `optional` | `` |  |
-| 37 | `stun_duration` | `uint32` | `optional` | `` |  |
-| 38 | `duration` | `uint32` | `optional` | `` |  |
-| 39 | `friendly_roshan_kills` | `uint32` | `optional` | `` |  |
-| 40 | `previous_rank` | `int32` | `optional` | `` |  |
-| 41 | `game_mode` | `uint32` | `optional` | `` |  |
-| 42 | `lobby_type` | `uint32` | `optional` | `` |  |
-| 43 | `time_purchased_shard` | `float` | `optional` | `` |  |
-| 44 | `time_purchased_scepter` | `float` | `optional` | `` |  |
-| 45 | `item0` | `int32` | `optional` | `` | default = -1 |
-| 46 | `item1` | `int32` | `optional` | `` | default = -1 |
-| 47 | `item2` | `int32` | `optional` | `` | default = -1 |
-| 48 | `item3` | `int32` | `optional` | `` | default = -1 |
-| 49 | `item4` | `int32` | `optional` | `` | default = -1 |
-| 50 | `item5` | `int32` | `optional` | `` | default = -1 |
-| 51 | `selected_facet` | `uint32` | `optional` | `` |  |
+| 1 | `hero_id` | `int32` | `optional` |  |  |
+| 2 | `kills` | `uint32` | `optional` |  |  |
+| 3 | `deaths` | `uint32` | `optional` |  |  |
+| 4 | `assists` | `uint32` | `optional` |  |  |
+| 5 | `rank_change` | `int32` | `optional` |  |  |
+| 6 | `last_hits` | `uint32` | `optional` |  |  |
+| 7 | `gpm` | `uint32` | `optional` |  |  |
+| 8 | `xpm` | `uint32` | `optional` |  |  |
+| 9 | `role` | `.CMsgBattleReport_Role` | `optional` |  | default = k_eUnknownRole |
+| 10 | `outcome` | `.CMsgBattleReport_EOutcome` | `optional` |  | default = k_eWin |
+| 11 | `lane_outcome` | `.CMsgBattleReport_ELaneOutcome` | `optional` |  | default = k_eUnknownLaneOutcome |
+| 12 | `ranked` | `bool` | `optional` |  |  |
+| 13 | `match_id` | `uint64` | `optional` |  |  |
+| 14 | `lane_selection_flags` | `uint32` | `optional` |  |  |
+| 15 | `predicted_position` | `uint32` | `optional` |  |  |
+| 16 | `seconds_dead` | `uint32` | `optional` |  |  |
+| 17 | `winning_team` | `uint32` | `optional` |  |  |
+| 19 | `party_game` | `bool` | `optional` |  |  |
+| 20 | `start_time` | `uint32` | `optional` |  |  |
+| 21 | `denies` | `uint32` | `optional` |  |  |
+| 22 | `bounty_runes` | `uint32` | `optional` |  |  |
+| 23 | `water_runes` | `uint32` | `optional` |  |  |
+| 24 | `power_runes` | `uint32` | `optional` |  |  |
+| 25 | `time_enemy_t1_tower_destroyed` | `uint32` | `optional` |  |  |
+| 26 | `time_friendly_t1_tower_destroyed` | `uint32` | `optional` |  |  |
+| 27 | `enemy_roshan_kills` | `uint32` | `optional` |  |  |
+| 28 | `player_slot` | `uint32` | `optional` |  |  |
+| 29 | `teleports_used` | `uint32` | `optional` |  |  |
+| 30 | `dewards` | `uint32` | `optional` |  |  |
+| 31 | `camps_stacked` | `uint32` | `optional` |  |  |
+| 32 | `support_gold` | `uint32` | `optional` |  |  |
+| 33 | `hero_damage` | `uint32` | `optional` |  |  |
+| 34 | `hero_healing` | `uint32` | `optional` |  |  |
+| 35 | `tower_damage` | `uint32` | `optional` |  |  |
+| 36 | `successful_smokes` | `uint32` | `optional` |  |  |
+| 37 | `stun_duration` | `uint32` | `optional` |  |  |
+| 38 | `duration` | `uint32` | `optional` |  |  |
+| 39 | `friendly_roshan_kills` | `uint32` | `optional` |  |  |
+| 40 | `previous_rank` | `int32` | `optional` |  |  |
+| 41 | `game_mode` | `uint32` | `optional` |  |  |
+| 42 | `lobby_type` | `uint32` | `optional` |  |  |
+| 43 | `time_purchased_shard` | `float` | `optional` |  |  |
+| 44 | `time_purchased_scepter` | `float` | `optional` |  |  |
+| 45 | `item0` | `int32` | `optional` |  | default = -1 |
+| 46 | `item1` | `int32` | `optional` |  | default = -1 |
+| 47 | `item2` | `int32` | `optional` |  | default = -1 |
+| 48 | `item3` | `int32` | `optional` |  | default = -1 |
+| 49 | `item4` | `int32` | `optional` |  | default = -1 |
+| 50 | `item5` | `int32` | `optional` |  | default = -1 |
+| 51 | `selected_facet` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -104,7 +104,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `games` | `.CMsgBattleReport_Game` | `repeated` | `` |  |
+| 1 | `games` | `.CMsgBattleReport_Game` | `repeated` |  |  |
 
 </details>
 
@@ -116,8 +116,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `games` | `.CMsgBattleReport_Game` | `repeated` | `` |  |
-| 3 | `highlights` | `.CMsgBattleReportHighlights` | `optional` | `` |  |
+| 1 | `games` | `.CMsgBattleReport_Game` | `repeated` |  |  |
+| 3 | `highlights` | `.CMsgBattleReportHighlights` | `optional` |  |  |
 
 </details>
 
@@ -129,10 +129,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `win_loss_window` | `int32` | `optional` | `` |  |
-| 2 | `win_percent` | `float` | `optional` | `` |  |
-| 3 | `mmr_delta` | `int32` | `optional` | `` |  |
-| 4 | `highlight_score` | `float` | `optional` | `` |  |
+| 1 | `win_loss_window` | `int32` | `optional` |  |  |
+| 2 | `win_percent` | `float` | `optional` |  |  |
+| 3 | `mmr_delta` | `int32` | `optional` |  |  |
+| 4 | `highlight_score` | `float` | `optional` |  |  |
 
 </details>
 
@@ -144,16 +144,16 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `highlight_id` | `uint32` | `optional` | `` |  |
-| 2 | `category` | `.CMsgBattleReport_HighlightCategory` | `optional` | `` | default = k_eHighlightGeneral |
-| 3 | `tier` | `.CMsgBattleReport_HighlightTier` | `optional` | `` | default = k_eHighlightTierLow |
-| 4 | `rarity` | `.CMsgBattleReport_HighlightRarity` | `optional` | `` | default = k_eHighlightCommon |
-| 5 | `score` | `float` | `optional` | `` |  |
-| 6 | `confidence` | `float` | `optional` | `` |  |
-| 7 | `hero_id` | `int32` | `optional` | `` |  |
-| 8 | `role` | `.CMsgBattleReport_Role` | `optional` | `` | default = k_eUnknownRole |
-| 9 | `comparison_delta_value` | `float` | `optional` | `` |  |
-| 10 | `context` | `.CMsgBattleReport_CompareContext` | `optional` | `` | default = k_eCompareContextInvalid |
+| 1 | `highlight_id` | `uint32` | `optional` |  |  |
+| 2 | `category` | `.CMsgBattleReport_HighlightCategory` | `optional` |  | default = k_eHighlightGeneral |
+| 3 | `tier` | `.CMsgBattleReport_HighlightTier` | `optional` |  | default = k_eHighlightTierLow |
+| 4 | `rarity` | `.CMsgBattleReport_HighlightRarity` | `optional` |  | default = k_eHighlightCommon |
+| 5 | `score` | `float` | `optional` |  |  |
+| 6 | `confidence` | `float` | `optional` |  |  |
+| 7 | `hero_id` | `int32` | `optional` |  |  |
+| 8 | `role` | `.CMsgBattleReport_Role` | `optional` |  | default = k_eUnknownRole |
+| 9 | `comparison_delta_value` | `float` | `optional` |  |  |
+| 10 | `context` | `.CMsgBattleReport_CompareContext` | `optional` |  | default = k_eCompareContextInvalid |
 
 </details>
 
@@ -165,13 +165,13 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `timestamp` | `uint32` | `optional` | `` |  |
-| 2 | `duration` | `uint32` | `optional` | `` |  |
-| 3 | `acknowledged` | `bool` | `optional` | `` |  |
-| 4 | `featured_hero_id` | `int32` | `optional` | `` |  |
-| 5 | `featured_position` | `uint32` | `optional` | `` |  |
-| 6 | `games_played` | `uint32` | `optional` | `` |  |
-| 7 | `medal_counts` | `uint32` | `repeated` | `` |  |
+| 1 | `timestamp` | `uint32` | `optional` |  |  |
+| 2 | `duration` | `uint32` | `optional` |  |  |
+| 3 | `acknowledged` | `bool` | `optional` |  |  |
+| 4 | `featured_hero_id` | `int32` | `optional` |  |  |
+| 5 | `featured_position` | `uint32` | `optional` |  |  |
+| 6 | `games_played` | `uint32` | `optional` |  |  |
+| 7 | `medal_counts` | `uint32` | `repeated` |  |  |
 
 </details>
 
@@ -183,7 +183,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `battle_report_info` | `.CMsgBattleReportInfo` | `repeated` | `` |  |
+| 1 | `battle_report_info` | `.CMsgBattleReportInfo` | `repeated` |  |  |
 
 </details>
 
@@ -195,7 +195,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `highlights` | `.CMsgBattleReport.Highlight` | `repeated` | `` |  |
+| 1 | `highlights` | `.CMsgBattleReport.Highlight` | `repeated` |  |  |
 
 </details>
 
@@ -207,7 +207,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgBattleReportAggregateStats.CMsgBattleReportAggregate` | `repeated` | `` |  |
+| 1 | `result` | `.CMsgBattleReportAggregateStats.CMsgBattleReportAggregate` | `repeated` |  |  |
 
 </details>
 
@@ -219,8 +219,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `mean` | `float` | `optional` | `` |  |
-| 2 | `stdev` | `float` | `optional` | `` |  |
+| 1 | `mean` | `float` | `optional` |  |  |
+| 2 | `stdev` | `float` | `optional` |  |  |
 
 </details>
 
@@ -232,37 +232,37 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `hero_id` | `int32` | `optional` | `` |  |
-| 2 | `predicted_position` | `uint32` | `optional` | `` |  |
-| 3 | `game_count` | `uint32` | `optional` | `` |  |
-| 4 | `win_count` | `uint32` | `optional` | `` |  |
-| 5 | `lane_win_count` | `uint32` | `optional` | `` |  |
-| 6 | `kills` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` | `` |  |
-| 7 | `deaths` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` | `` |  |
-| 8 | `assists` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` | `` |  |
-| 9 | `rank_change` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` | `` |  |
-| 10 | `last_hits` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` | `` |  |
-| 11 | `denies` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` | `` |  |
-| 12 | `gpm` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` | `` |  |
-| 13 | `xpm` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` | `` |  |
-| 14 | `seconds_dead` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` | `` |  |
-| 15 | `bounty_runes` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` | `` |  |
-| 16 | `water_runes` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` | `` |  |
-| 17 | `power_runes` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` | `` |  |
-| 18 | `time_enemy_t1_tower_destroyed` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` | `` |  |
-| 19 | `time_friendly_t1_tower_destroyed` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` | `` |  |
-| 20 | `enemy_roshan_kills` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` | `` |  |
-| 21 | `teleports_used` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` | `` |  |
-| 22 | `dewards` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` | `` |  |
-| 23 | `camps_stacked` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` | `` |  |
-| 24 | `support_gold` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` | `` |  |
-| 25 | `hero_damage` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` | `` |  |
-| 26 | `hero_healing` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` | `` |  |
-| 27 | `tower_damage` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` | `` |  |
-| 28 | `successful_smokes` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` | `` |  |
-| 29 | `stun_duration` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` | `` |  |
-| 30 | `duration` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` | `` |  |
-| 31 | `friendly_roshan_kills` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` | `` |  |
+| 1 | `hero_id` | `int32` | `optional` |  |  |
+| 2 | `predicted_position` | `uint32` | `optional` |  |  |
+| 3 | `game_count` | `uint32` | `optional` |  |  |
+| 4 | `win_count` | `uint32` | `optional` |  |  |
+| 5 | `lane_win_count` | `uint32` | `optional` |  |  |
+| 6 | `kills` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` |  |  |
+| 7 | `deaths` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` |  |  |
+| 8 | `assists` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` |  |  |
+| 9 | `rank_change` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` |  |  |
+| 10 | `last_hits` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` |  |  |
+| 11 | `denies` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` |  |  |
+| 12 | `gpm` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` |  |  |
+| 13 | `xpm` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` |  |  |
+| 14 | `seconds_dead` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` |  |  |
+| 15 | `bounty_runes` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` |  |  |
+| 16 | `water_runes` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` |  |  |
+| 17 | `power_runes` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` |  |  |
+| 18 | `time_enemy_t1_tower_destroyed` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` |  |  |
+| 19 | `time_friendly_t1_tower_destroyed` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` |  |  |
+| 20 | `enemy_roshan_kills` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` |  |  |
+| 21 | `teleports_used` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` |  |  |
+| 22 | `dewards` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` |  |  |
+| 23 | `camps_stacked` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` |  |  |
+| 24 | `support_gold` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` |  |  |
+| 25 | `hero_damage` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` |  |  |
+| 26 | `hero_healing` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` |  |  |
+| 27 | `tower_damage` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` |  |  |
+| 28 | `successful_smokes` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` |  |  |
+| 29 | `stun_duration` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` |  |  |
+| 30 | `duration` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` |  |  |
+| 31 | `friendly_roshan_kills` | `.CMsgBattleReportAggregateStats.CMsgBattleReportStat` | `optional` |  |  |
 
 </details>
 
@@ -286,10 +286,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `report` | `.CMsgBattleReport` | `optional` | `` |  |
-| 2 | `response` | `.CMsgClientToGCGetBattleReportResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 3 | `aggregate_stats` | `.CMsgBattleReportAggregateStats` | `optional` | `` |  |
-| 4 | `info` | `.CMsgBattleReportInfo` | `optional` | `` |  |
+| 1 | `report` | `.CMsgBattleReport` | `optional` |  |  |
+| 2 | `response` | `.CMsgClientToGCGetBattleReportResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 3 | `aggregate_stats` | `.CMsgBattleReportAggregateStats` | `optional` |  |  |
+| 4 | `info` | `.CMsgBattleReportInfo` | `optional` |  |  |
 
 </details>
 
@@ -301,10 +301,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `aggregate_keys` | `.CMsgClientToGCGetBattleReportAggregateStats.CMsgBattleReportAggregateKey` | `repeated` | `` |  |
-| 2 | `timestamp` | `uint32` | `optional` | `` |  |
-| 3 | `duration` | `uint32` | `optional` | `` |  |
-| 4 | `rank` | `uint32` | `optional` | `` |  |
+| 1 | `aggregate_keys` | `.CMsgClientToGCGetBattleReportAggregateStats.CMsgBattleReportAggregateKey` | `repeated` |  |  |
+| 2 | `timestamp` | `uint32` | `optional` |  |  |
+| 3 | `duration` | `uint32` | `optional` |  |  |
+| 4 | `rank` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -316,8 +316,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `hero_id` | `int32` | `optional` | `` |  |
-| 2 | `predicted_position` | `uint32` | `optional` | `` |  |
+| 1 | `hero_id` | `int32` | `optional` |  |  |
+| 2 | `predicted_position` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -329,8 +329,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `aggregate_stats` | `.CMsgBattleReportAggregateStats` | `optional` | `` |  |
-| 2 | `response` | `.CMsgClientToGCGetBattleReportAggregateStatsResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `aggregate_stats` | `.CMsgBattleReportAggregateStats` | `optional` |  |  |
+| 2 | `response` | `.CMsgClientToGCGetBattleReportAggregateStatsResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -342,7 +342,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -354,8 +354,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `battle_report_info_list` | `.CMsgBattleReportInfoList` | `optional` | `` |  |
-| 2 | `response` | `.CMsgClientToGCGetBattleReportInfoResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `battle_report_info_list` | `.CMsgBattleReportInfoList` | `optional` |  |  |
+| 2 | `response` | `.CMsgClientToGCGetBattleReportInfoResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -367,9 +367,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `timestamp` | `uint32` | `optional` | `` |  |
-| 3 | `duration` | `uint32` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `timestamp` | `uint32` | `optional` |  |  |
+| 3 | `duration` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -381,8 +381,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCAcknowledgeBattleReportResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `shards_awarded` | `uint32` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCAcknowledgeBattleReportResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `shards_awarded` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -394,9 +394,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `timestamp` | `uint32` | `optional` | `` |  |
-| 3 | `duration` | `uint32` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `timestamp` | `uint32` | `optional` |  |  |
+| 3 | `duration` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -408,8 +408,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCGetBattleReportMatchHistoryResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `games` | `.CMsgBattleReport_GameList` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCGetBattleReportMatchHistoryResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `games` | `.CMsgBattleReport_GameList` | `optional` |  |  |
 
 </details>
 

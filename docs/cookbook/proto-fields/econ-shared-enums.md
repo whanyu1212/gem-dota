@@ -19,8 +19,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `eresult` | `uint32` | `optional` | `` | default = 2 |
-| 2 | `debug_message` | `string` | `optional` | `` |  |
+| 1 | `eresult` | `uint32` | `optional` |  | default = 2 |
+| 2 | `debug_message` | `string` | `optional` |  |  |
 
 </details>
 

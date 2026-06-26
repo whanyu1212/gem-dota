@@ -23,22 +23,22 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `name` | `string` | `optional` | `` |  |
-| 3 | `country_code` | `string` | `optional` | `` |  |
-| 4 | `fantasy_role` | `.Fantasy_Roles` | `optional` | `` | default = FANTASY_ROLE_UNDEFINED |
-| 5 | `team_id` | `uint32` | `optional` | `` |  |
-| 6 | `team_name` | `string` | `optional` | `` |  |
-| 7 | `team_tag` | `string` | `optional` | `` |  |
-| 8 | `sponsor` | `string` | `optional` | `` |  |
-| 11 | `real_name` | `string` | `optional` | `` |  |
-| 13 | `total_earnings` | `uint32` | `optional` | `` |  |
-| 14 | `results` | `.CMsgDOTAPlayerInfo.Results` | `repeated` | `` |  |
-| 15 | `team_url_logo` | `string` | `optional` | `` |  |
-| 16 | `audit_entries` | `.CMsgDOTAPlayerInfo.AuditEntry` | `repeated` | `` |  |
-| 17 | `team_abbreviation` | `string` | `optional` | `` |  |
-| 18 | `pro_registration` | `.CMsgDOTAPlayerInfo.ProRegistration` | `repeated` | `` |  |
-| 19 | `has_played_in_international` | `bool` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `name` | `string` | `optional` |  |  |
+| 3 | `country_code` | `string` | `optional` |  |  |
+| 4 | `fantasy_role` | `.Fantasy_Roles` | `optional` |  | default = FANTASY_ROLE_UNDEFINED |
+| 5 | `team_id` | `uint32` | `optional` |  |  |
+| 6 | `team_name` | `string` | `optional` |  |  |
+| 7 | `team_tag` | `string` | `optional` |  |  |
+| 8 | `sponsor` | `string` | `optional` |  |  |
+| 11 | `real_name` | `string` | `optional` |  |  |
+| 13 | `total_earnings` | `uint32` | `optional` |  |  |
+| 14 | `results` | `.CMsgDOTAPlayerInfo.Results` | `repeated` |  |  |
+| 15 | `team_url_logo` | `string` | `optional` |  |  |
+| 16 | `audit_entries` | `.CMsgDOTAPlayerInfo.AuditEntry` | `repeated` |  |  |
+| 17 | `team_abbreviation` | `string` | `optional` |  |  |
+| 18 | `pro_registration` | `.CMsgDOTAPlayerInfo.ProRegistration` | `repeated` |  |  |
+| 19 | `has_played_in_international` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -50,9 +50,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `league_id` | `uint32` | `optional` | `` |  |
-| 2 | `placement` | `uint32` | `optional` | `` |  |
-| 3 | `earnings` | `uint32` | `optional` | `` |  |
+| 1 | `league_id` | `uint32` | `optional` |  |  |
+| 2 | `placement` | `uint32` | `optional` |  |  |
+| 3 | `earnings` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -64,12 +64,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `start_timestamp` | `uint32` | `optional` | `` |  |
-| 2 | `end_timestamp` | `uint32` | `optional` | `` |  |
-| 3 | `team_id` | `uint32` | `optional` | `` |  |
-| 4 | `team_name` | `string` | `optional` | `` |  |
-| 5 | `team_tag` | `string` | `optional` | `` |  |
-| 6 | `team_url_logo` | `string` | `optional` | `` |  |
+| 1 | `start_timestamp` | `uint32` | `optional` |  |  |
+| 2 | `end_timestamp` | `uint32` | `optional` |  |  |
+| 3 | `team_id` | `uint32` | `optional` |  |  |
+| 4 | `team_name` | `string` | `optional` |  |  |
+| 5 | `team_tag` | `string` | `optional` |  |  |
+| 6 | `team_url_logo` | `string` | `optional` |  |  |
 
 </details>
 
@@ -81,8 +81,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `registration_period` | `uint32` | `optional` | `` |  |
-| 2 | `timestamp` | `uint32` | `optional` | `` |  |
+| 1 | `registration_period` | `uint32` | `optional` |  |  |
+| 2 | `timestamp` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -94,8 +94,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `player_infos` | `.CMsgDOTAPlayerInfo` | `repeated` | `` |  |
-| 2 | `retry_time` | `uint32` | `optional` | `` |  |
+| 1 | `player_infos` | `.CMsgDOTAPlayerInfo` | `repeated` |  |  |
+| 2 | `retry_time` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -107,10 +107,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `timestamp` | `uint32` | `optional` | `` |  |
-| 2 | `team_id` | `uint32` | `optional` | `` |  |
-| 3 | `member_account_ids` | `uint32` | `repeated` | `` |  |
-| 4 | `coach_account_id` | `uint32` | `optional` | `` |  |
+| 1 | `timestamp` | `uint32` | `optional` |  |  |
+| 2 | `team_id` | `uint32` | `optional` |  |  |
+| 3 | `member_account_ids` | `uint32` | `repeated` |  |  |
+| 4 | `coach_account_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -122,10 +122,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `player_info` | `.CMsgDOTAPlayerInfo` | `optional` | `` |  |
-| 2 | `prediction_info` | `.CMsgDOTADPCProfileInfo.PredictionInfo` | `optional` | `` |  |
-| 3 | `fantasy_info` | `.CMsgDOTADPCProfileInfo.FantasyInfo` | `optional` | `` |  |
-| 4 | `disabled_notifications` | `uint32` | `repeated` | `` |  |
+| 1 | `player_info` | `.CMsgDOTAPlayerInfo` | `optional` |  |  |
+| 2 | `prediction_info` | `.CMsgDOTADPCProfileInfo.PredictionInfo` | `optional` |  |  |
+| 3 | `fantasy_info` | `.CMsgDOTADPCProfileInfo.FantasyInfo` | `optional` |  |  |
+| 4 | `disabled_notifications` | `uint32` | `repeated` |  |  |
 
 </details>
 
@@ -137,8 +137,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `percent` | `uint32` | `optional` | `` |  |
-| 2 | `shard_winnings` | `int32` | `optional` | `` |  |
+| 1 | `percent` | `uint32` | `optional` |  |  |
+| 2 | `shard_winnings` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -150,10 +150,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `top_90_finishes` | `uint32` | `optional` | `` |  |
-| 2 | `top_75_finishes` | `uint32` | `optional` | `` |  |
-| 3 | `top_50_finishes` | `uint32` | `optional` | `` |  |
-| 4 | `shard_winnings` | `uint32` | `optional` | `` |  |
+| 1 | `top_90_finishes` | `uint32` | `optional` |  |  |
+| 2 | `top_75_finishes` | `uint32` | `optional` |  |  |
+| 3 | `top_50_finishes` | `uint32` | `optional` |  |  |
+| 4 | `shard_winnings` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -165,7 +165,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 2 | `leaderboards` | `.CMsgDOTALeaderboards.RegionLeaderboard` | `repeated` | `` |  |
+| 2 | `leaderboards` | `.CMsgDOTALeaderboards.RegionLeaderboard` | `repeated` |  |  |
 
 </details>
 
@@ -177,8 +177,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `division` | `uint32` | `optional` | `` |  |
-| 2 | `account_ids` | `uint32` | `repeated` | `` |  |
+| 1 | `division` | `uint32` | `optional` |  |  |
+| 2 | `account_ids` | `uint32` | `repeated` |  |  |
 
 </details>
 
@@ -190,9 +190,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `league_id` | `uint32` | `optional` | `` |  |
-| 2 | `winner_id` | `uint32` | `optional` | `` |  |
-| 3 | `runnerup_id` | `uint32` | `optional` | `` |  |
+| 1 | `league_id` | `uint32` | `optional` |  |  |
+| 2 | `winner_id` | `uint32` | `optional` |  |  |
+| 3 | `runnerup_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -204,8 +204,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `selection_index` | `.DOTA_2013PassportSelectionIndices` | `optional` | `` | default = PP13_SEL_ALLSTAR_PLAYER_0 |
-| 2 | `selection` | `uint32` | `optional` | `` |  |
+| 1 | `selection_index` | `.DOTA_2013PassportSelectionIndices` | `optional` |  | default = PP13_SEL_ALLSTAR_PLAYER_0 |
+| 2 | `selection` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -217,8 +217,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steam_id` | `uint64` | `optional` | `` |  |
-| 2 | `stamp_level` | `uint32` | `optional` | `` |  |
+| 1 | `steam_id` | `uint64` | `optional` |  |  |
+| 2 | `stamp_level` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -230,7 +230,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `challenge_id` | `uint32` | `optional` | `` |  |
+| 1 | `challenge_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -242,10 +242,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `team_votes` | `.CMsgDOTAPassportVoteTeamGuess` | `repeated` | `` |  |
-| 2 | `generic_selections` | `.CMsgDOTAPassportVoteGenericSelection` | `repeated` | `` |  |
-| 3 | `stamped_players` | `.CMsgDOTAPassportStampedPlayer` | `repeated` | `` |  |
-| 4 | `player_card_challenges` | `.CMsgDOTAPassportPlayerCardChallenge` | `repeated` | `` |  |
+| 1 | `team_votes` | `.CMsgDOTAPassportVoteTeamGuess` | `repeated` |  |  |
+| 2 | `generic_selections` | `.CMsgDOTAPassportVoteGenericSelection` | `repeated` |  |  |
+| 3 | `stamped_players` | `.CMsgDOTAPassportStampedPlayer` | `repeated` |  |  |
+| 4 | `player_card_challenges` | `.CMsgDOTAPassportPlayerCardChallenge` | `repeated` |  |  |
 
 </details>
 
@@ -257,8 +257,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `league_id` | `uint32` | `optional` | `` |  |
-| 3 | `fantasy_period` | `uint32` | `optional` | `` | default = 4294967295 |
+| 1 | `league_id` | `uint32` | `optional` |  |  |
+| 3 | `fantasy_period` | `uint32` | `optional` |  | default = 4294967295 |
 
 </details>
 
@@ -270,11 +270,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCGetPlayerCardRosterResponse.Result` | `optional` | `` | default = SUCCESS |
-| 2 | `player_card_item_id` | `uint64` | `repeated` | `` |  |
-| 3 | `score` | `float` | `optional` | `` |  |
-| 4 | `finalized` | `bool` | `optional` | `` |  |
-| 5 | `percentile` | `float` | `optional` | `` |  |
+| 1 | `result` | `.CMsgClientToGCGetPlayerCardRosterResponse.Result` | `optional` |  | default = SUCCESS |
+| 2 | `player_card_item_id` | `uint64` | `repeated` |  |  |
+| 3 | `score` | `float` | `optional` |  |  |
+| 4 | `finalized` | `bool` | `optional` |  |  |
+| 5 | `percentile` | `float` | `optional` |  |  |
 
 </details>
 
@@ -286,7 +286,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `league_timestamps` | `.CMsgClientToGCBatchGetPlayerCardRosterRequest.LeagueTimestamp` | `repeated` | `` |  |
+| 1 | `league_timestamps` | `.CMsgClientToGCBatchGetPlayerCardRosterRequest.LeagueTimestamp` | `repeated` |  |  |
 
 </details>
 
@@ -298,8 +298,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `league_id` | `uint32` | `optional` | `` |  |
-| 3 | `fantasy_period` | `uint32` | `optional` | `` | default = 4294967295 |
+| 1 | `league_id` | `uint32` | `optional` |  |  |
+| 3 | `fantasy_period` | `uint32` | `optional` |  | default = 4294967295 |
 
 </details>
 
@@ -311,7 +311,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `responses` | `.CMsgClientToGCBatchGetPlayerCardRosterResponse.RosterResponse` | `repeated` | `` |  |
+| 1 | `responses` | `.CMsgClientToGCBatchGetPlayerCardRosterResponse.RosterResponse` | `repeated` |  |  |
 
 </details>
 
@@ -323,14 +323,14 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `league_id` | `uint32` | `optional` | `` |  |
-| 2 | `deprecated_timestamp` | `uint32` | `optional` | `` |  |
-| 3 | `result` | `.CMsgClientToGCBatchGetPlayerCardRosterResponse.Result` | `optional` | `` | default = SUCCESS |
-| 4 | `player_card_item_id` | `uint64` | `repeated` | `` |  |
-| 5 | `score` | `float` | `optional` | `` |  |
-| 6 | `finalized` | `bool` | `optional` | `` |  |
-| 7 | `percentile` | `float` | `optional` | `` |  |
-| 8 | `fantasy_period` | `uint32` | `optional` | `` | default = 4294967295 |
+| 1 | `league_id` | `uint32` | `optional` |  |  |
+| 2 | `deprecated_timestamp` | `uint32` | `optional` |  |  |
+| 3 | `result` | `.CMsgClientToGCBatchGetPlayerCardRosterResponse.Result` | `optional` |  | default = SUCCESS |
+| 4 | `player_card_item_id` | `uint64` | `repeated` |  |  |
+| 5 | `score` | `float` | `optional` |  |  |
+| 6 | `finalized` | `bool` | `optional` |  |  |
+| 7 | `percentile` | `float` | `optional` |  |  |
+| 8 | `fantasy_period` | `uint32` | `optional` |  | default = 4294967295 |
 
 </details>
 
@@ -342,12 +342,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `league_id` | `uint32` | `optional` | `` |  |
-| 2 | `deprecated_timestamp` | `uint32` | `optional` | `` |  |
-| 3 | `slot` | `uint32` | `optional` | `` |  |
-| 4 | `player_card_item_id` | `uint64` | `optional` | `` |  |
-| 5 | `event_id` | `uint32` | `optional` | `` |  |
-| 6 | `fantasy_period` | `uint32` | `optional` | `` | default = 4294967295 |
+| 1 | `league_id` | `uint32` | `optional` |  |  |
+| 2 | `deprecated_timestamp` | `uint32` | `optional` |  |  |
+| 3 | `slot` | `uint32` | `optional` |  |  |
+| 4 | `player_card_item_id` | `uint64` | `optional` |  |  |
+| 5 | `event_id` | `uint32` | `optional` |  |  |
+| 6 | `fantasy_period` | `uint32` | `optional` |  | default = 4294967295 |
 
 </details>
 
@@ -359,7 +359,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCSetPlayerCardRosterResponse.Result` | `optional` | `` | default = SUCCESS |
+| 1 | `result` | `.CMsgClientToGCSetPlayerCardRosterResponse.Result` | `optional` |  | default = SUCCESS |
 
 </details>
 
@@ -371,7 +371,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `league_infos` | `.CMsgDOTAFantasyDPCLeagueStatus.LeagueInfo` | `repeated` | `` |  |
+| 1 | `league_infos` | `.CMsgDOTAFantasyDPCLeagueStatus.LeagueInfo` | `repeated` |  |  |
 
 </details>
 
@@ -383,12 +383,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `league_id` | `uint32` | `optional` | `` |  |
-| 2 | `league_name` | `string` | `optional` | `` |  |
-| 3 | `start_timestamp` | `uint32` | `optional` | `` |  |
-| 4 | `end_timestamp` | `uint32` | `optional` | `` |  |
-| 5 | `day_timestamps` | `uint32` | `repeated` | `` |  |
-| 8 | `status` | `.CMsgDOTAFantasyDPCLeagueStatus.ERosterStatus` | `optional` | `` | default = UNSET |
+| 1 | `league_id` | `uint32` | `optional` |  |  |
+| 2 | `league_name` | `string` | `optional` |  |  |
+| 3 | `start_timestamp` | `uint32` | `optional` |  |  |
+| 4 | `end_timestamp` | `uint32` | `optional` |  |  |
+| 5 | `day_timestamps` | `uint32` | `repeated` |  |  |
+| 8 | `status` | `.CMsgDOTAFantasyDPCLeagueStatus.ERosterStatus` | `optional` |  | default = UNSET |
 
 </details>
 
@@ -400,9 +400,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `players` | `.CMsgDOTADPCSearchResults.Player` | `repeated` | `` |  |
-| 2 | `teams` | `.CMsgDOTADPCSearchResults.Team` | `repeated` | `` |  |
-| 3 | `leagues` | `.CMsgDOTADPCSearchResults.League` | `repeated` | `` |  |
+| 1 | `players` | `.CMsgDOTADPCSearchResults.Player` | `repeated` |  |  |
+| 2 | `teams` | `.CMsgDOTADPCSearchResults.Team` | `repeated` |  |  |
+| 3 | `leagues` | `.CMsgDOTADPCSearchResults.League` | `repeated` |  |  |
 
 </details>
 
@@ -414,9 +414,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `id` | `uint32` | `optional` | `` |  |
-| 2 | `name` | `string` | `optional` | `` |  |
-| 3 | `real_name` | `string` | `optional` | `` |  |
+| 1 | `id` | `uint32` | `optional` |  |  |
+| 2 | `name` | `string` | `optional` |  |  |
+| 3 | `real_name` | `string` | `optional` |  |  |
 
 </details>
 
@@ -428,9 +428,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `id` | `uint32` | `optional` | `` |  |
-| 2 | `name` | `string` | `optional` | `` |  |
-| 3 | `url` | `string` | `optional` | `` |  |
+| 1 | `id` | `uint32` | `optional` |  |  |
+| 2 | `name` | `string` | `optional` |  |  |
+| 3 | `url` | `string` | `optional` |  |  |
 
 </details>
 
@@ -442,8 +442,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `id` | `uint32` | `optional` | `` |  |
-| 2 | `name` | `string` | `optional` | `` |  |
+| 1 | `id` | `uint32` | `optional` |  |  |
+| 2 | `name` | `string` | `optional` |  |  |
 
 </details>
 
@@ -455,7 +455,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `teams` | `.CMsgDOTADPCTeamFavoriteRankings.Team` | `repeated` | `` |  |
+| 1 | `teams` | `.CMsgDOTADPCTeamFavoriteRankings.Team` | `repeated` |  |  |
 
 </details>
 
@@ -467,8 +467,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `team_id` | `uint32` | `optional` | `` |  |
-| 2 | `favorites` | `uint32` | `optional` | `` |  |
+| 1 | `team_id` | `uint32` | `optional` |  |  |
+| 2 | `favorites` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -480,8 +480,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `fantasy_period` | `uint32` | `optional` | `` | default = 4294967295 |
-| 2 | `tablets` | `.CMsgDotaFantasyCraftingTabletPeriodData.Tablet` | `repeated` | `` |  |
+| 1 | `fantasy_period` | `uint32` | `optional` |  | default = 4294967295 |
+| 2 | `tablets` | `.CMsgDotaFantasyCraftingTabletPeriodData.Tablet` | `repeated` |  |  |
 
 </details>
 
@@ -493,11 +493,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `type` | `.Fantasy_Gem_Type` | `optional` | `` | default = FANTASY_GEM_TYPE_RUBY |
-| 2 | `slot` | `uint32` | `optional` | `` |  |
-| 3 | `shape` | `uint32` | `optional` | `` |  |
-| 4 | `quality` | `uint32` | `optional` | `` |  |
-| 5 | `stat` | `.Fantasy_Scoring` | `optional` | `` | default = FANTASY_SCORING_KILLS |
+| 1 | `type` | `.Fantasy_Gem_Type` | `optional` |  | default = FANTASY_GEM_TYPE_RUBY |
+| 2 | `slot` | `uint32` | `optional` |  |  |
+| 3 | `shape` | `uint32` | `optional` |  |  |
+| 4 | `quality` | `uint32` | `optional` |  |  |
+| 5 | `stat` | `.Fantasy_Scoring` | `optional` |  | default = FANTASY_SCORING_KILLS |
 
 </details>
 
@@ -509,15 +509,15 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `tablet_id` | `uint32` | `optional` | `` |  |
-| 2 | `tablet_level` | `uint32` | `optional` | `` |  |
-| 3 | `fantasy_role` | `.Fantasy_Roles` | `optional` | `` | default = FANTASY_ROLE_UNDEFINED |
-| 4 | `account_id` | `uint32` | `optional` | `` |  |
-| 5 | `prefix` | `uint32` | `optional` | `` |  |
-| 6 | `suffix` | `uint32` | `optional` | `` |  |
-| 7 | `gems` | `.CMsgDotaFantasyCraftingTabletPeriodData.Gem` | `repeated` | `` |  |
-| 8 | `score` | `float` | `optional` | `` |  |
-| 9 | `best_series` | `uint32` | `optional` | `` |  |
+| 1 | `tablet_id` | `uint32` | `optional` |  |  |
+| 2 | `tablet_level` | `uint32` | `optional` |  |  |
+| 3 | `fantasy_role` | `.Fantasy_Roles` | `optional` |  | default = FANTASY_ROLE_UNDEFINED |
+| 4 | `account_id` | `uint32` | `optional` |  |  |
+| 5 | `prefix` | `uint32` | `optional` |  |  |
+| 6 | `suffix` | `uint32` | `optional` |  |  |
+| 7 | `gems` | `.CMsgDotaFantasyCraftingTabletPeriodData.Gem` | `repeated` |  |  |
+| 8 | `score` | `float` | `optional` |  |  |
+| 9 | `best_series` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -529,7 +529,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `tablet_period_data` | `.CMsgDotaFantasyCraftingTabletData.TabletPeriodDataEntry` | `repeated` | `` |  |
+| 1 | `tablet_period_data` | `.CMsgDotaFantasyCraftingTabletData.TabletPeriodDataEntry` | `repeated` |  |  |
 
 </details>
 
@@ -541,8 +541,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `key` | `uint32` | `optional` | `` |  |
-| 2 | `value` | `.CMsgDotaFantasyCraftingTabletPeriodData` | `optional` | `` |  |
+| 1 | `key` | `uint32` | `optional` |  |  |
+| 2 | `value` | `.CMsgDotaFantasyCraftingTabletPeriodData` | `optional` |  |  |
 
 </details>
 
@@ -554,9 +554,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `available_rolls` | `uint32` | `repeated` | `` |  |
-| 2 | `period_roll_tokens` | `.CMsgDotaFantasyCraftingUserData.PeriodRollTokensEntry` | `repeated` | `` |  |
-| 3 | `period_scores` | `.CMsgDotaFantasyCraftingUserData.PeriodScoresEntry` | `repeated` | `` |  |
+| 1 | `available_rolls` | `uint32` | `repeated` |  |  |
+| 2 | `period_roll_tokens` | `.CMsgDotaFantasyCraftingUserData.PeriodRollTokensEntry` | `repeated` |  |  |
+| 3 | `period_scores` | `.CMsgDotaFantasyCraftingUserData.PeriodScoresEntry` | `repeated` |  |  |
 
 </details>
 
@@ -568,8 +568,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `total_score` | `float` | `optional` | `` |  |
-| 2 | `percentile` | `float` | `optional` | `` |  |
+| 1 | `total_score` | `float` | `optional` |  |  |
+| 2 | `percentile` | `float` | `optional` |  |  |
 
 </details>
 
@@ -581,8 +581,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `key` | `uint32` | `optional` | `` |  |
-| 2 | `value` | `uint32` | `optional` | `` |  |
+| 1 | `key` | `uint32` | `optional` |  |  |
+| 2 | `value` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -594,8 +594,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `key` | `uint32` | `optional` | `` |  |
-| 2 | `value` | `.CMsgDotaFantasyCraftingUserData.PeriodScore` | `optional` | `` |  |
+| 1 | `key` | `uint32` | `optional` |  |  |
+| 2 | `value` | `.CMsgDotaFantasyCraftingUserData.PeriodScore` | `optional` |  |  |
 
 </details>
 
@@ -607,7 +607,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `cache_entries` | `.CMsgDotaFantasyCraftingDataCache.CacheEntry` | `repeated` | `` |  |
+| 1 | `cache_entries` | `.CMsgDotaFantasyCraftingDataCache.CacheEntry` | `repeated` |  |  |
 
 </details>
 
@@ -619,9 +619,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `fantasy_league` | `uint32` | `optional` | `` |  |
-| 3 | `cache_data` | `.CMsgGCToClientFantasyCraftingDataUpdated` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `fantasy_league` | `uint32` | `optional` |  |  |
+| 3 | `cache_data` | `.CMsgGCToClientFantasyCraftingDataUpdated` | `optional` |  |  |
 
 </details>
 
@@ -633,8 +633,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `fantasy_league` | `uint32` | `optional` | `` |  |
-| 2 | `account_id` | `uint32` | `optional` | `` |  |
+| 1 | `fantasy_league` | `uint32` | `optional` |  |  |
+| 2 | `account_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -646,9 +646,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCFantasyCraftingGetDataResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `user_data` | `.CMsgDotaFantasyCraftingUserData` | `optional` | `` |  |
-| 4 | `tablet_data` | `.CMsgDotaFantasyCraftingTabletData` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCFantasyCraftingGetDataResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `user_data` | `.CMsgDotaFantasyCraftingUserData` | `optional` |  |  |
+| 4 | `tablet_data` | `.CMsgDotaFantasyCraftingTabletData` | `optional` |  |  |
 
 </details>
 
@@ -660,10 +660,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `fantasy_league` | `uint32` | `optional` | `` |  |
-| 2 | `tablet_id` | `uint32` | `optional` | `` |  |
-| 3 | `operation_id` | `uint32` | `optional` | `` |  |
-| 4 | `extra_data` | `uint64` | `optional` | `` |  |
+| 1 | `fantasy_league` | `uint32` | `optional` |  |  |
+| 2 | `tablet_id` | `uint32` | `optional` |  |  |
+| 3 | `operation_id` | `uint32` | `optional` |  |  |
+| 4 | `extra_data` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -675,15 +675,15 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCFantasyCraftingPerformOperationResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `operation_id` | `uint32` | `optional` | `` |  |
-| 3 | `player_choices` | `uint32` | `repeated` | `` |  |
-| 4 | `prefix_choices` | `uint32` | `repeated` | `` |  |
-| 5 | `suffix_choices` | `uint32` | `repeated` | `` |  |
-| 6 | `title_choices` | `.CMsgClientToGCFantasyCraftingPerformOperationResponse.TitleChoice` | `repeated` | `` |  |
-| 7 | `tablet_id` | `uint32` | `optional` | `` |  |
-| 8 | `user_data` | `.CMsgDotaFantasyCraftingUserData` | `optional` | `` |  |
-| 9 | `tablet_data` | `.CMsgDotaFantasyCraftingTabletData` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCFantasyCraftingPerformOperationResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `operation_id` | `uint32` | `optional` |  |  |
+| 3 | `player_choices` | `uint32` | `repeated` |  |  |
+| 4 | `prefix_choices` | `uint32` | `repeated` |  |  |
+| 5 | `suffix_choices` | `uint32` | `repeated` |  |  |
+| 6 | `title_choices` | `.CMsgClientToGCFantasyCraftingPerformOperationResponse.TitleChoice` | `repeated` |  |  |
+| 7 | `tablet_id` | `uint32` | `optional` |  |  |
+| 8 | `user_data` | `.CMsgDotaFantasyCraftingUserData` | `optional` |  |  |
+| 9 | `tablet_data` | `.CMsgDotaFantasyCraftingTabletData` | `optional` |  |  |
 
 </details>
 
@@ -695,8 +695,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `prefix_choice` | `uint32` | `optional` | `` |  |
-| 2 | `suffix_choice` | `uint32` | `optional` | `` |  |
+| 1 | `prefix_choice` | `uint32` | `optional` |  |  |
+| 2 | `suffix_choice` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -708,9 +708,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `fantasy_league` | `uint32` | `optional` | `` |  |
-| 2 | `user_data` | `.CMsgDotaFantasyCraftingUserData` | `optional` | `` |  |
-| 4 | `tablet_data` | `.CMsgDotaFantasyCraftingTabletData` | `optional` | `` |  |
+| 1 | `fantasy_league` | `uint32` | `optional` |  |  |
+| 2 | `user_data` | `.CMsgDotaFantasyCraftingUserData` | `optional` |  |  |
+| 4 | `tablet_data` | `.CMsgDotaFantasyCraftingTabletData` | `optional` |  |  |
 
 </details>
 
@@ -722,11 +722,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `fantasy_league` | `uint32` | `optional` | `` |  |
-| 2 | `reset_tablet` | `bool` | `optional` | `` |  |
-| 3 | `modify_tokens` | `uint32` | `optional` | `` |  |
-| 5 | `fantasy_period` | `uint32` | `optional` | `` | default = 4294967295 |
-| 6 | `upgrade_tablets` | `bool` | `optional` | `` |  |
+| 1 | `fantasy_league` | `uint32` | `optional` |  |  |
+| 2 | `reset_tablet` | `bool` | `optional` |  |  |
+| 3 | `modify_tokens` | `uint32` | `optional` |  |  |
+| 5 | `fantasy_period` | `uint32` | `optional` |  | default = 4294967295 |
+| 6 | `upgrade_tablets` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -738,9 +738,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCFantasyCraftingDevModifyTabletResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `user_data` | `.CMsgDotaFantasyCraftingUserData` | `optional` | `` |  |
-| 3 | `tablet_data` | `.CMsgDotaFantasyCraftingTabletData` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCFantasyCraftingDevModifyTabletResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `user_data` | `.CMsgDotaFantasyCraftingUserData` | `optional` |  |  |
+| 3 | `tablet_data` | `.CMsgDotaFantasyCraftingTabletData` | `optional` |  |  |
 
 </details>
 
@@ -752,8 +752,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `fantasy_league` | `uint32` | `optional` | `` |  |
-| 2 | `account_id` | `uint32` | `optional` | `` |  |
+| 1 | `fantasy_league` | `uint32` | `optional` |  |  |
+| 2 | `account_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -765,8 +765,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCFantasyCraftingSelectPlayerResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `tablet_data` | `.CMsgDotaFantasyCraftingTabletData` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCFantasyCraftingSelectPlayerResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `tablet_data` | `.CMsgDotaFantasyCraftingTabletData` | `optional` |  |  |
 
 </details>
 
@@ -778,8 +778,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `fantasy_league` | `uint32` | `optional` | `` |  |
-| 2 | `account_ids` | `uint32` | `repeated` | `` |  |
+| 1 | `fantasy_league` | `uint32` | `optional` |  |  |
+| 2 | `account_ids` | `uint32` | `repeated` |  |  |
 
 </details>
 
@@ -791,9 +791,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCFantasyCraftingGenerateTabletsResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `user_data` | `.CMsgDotaFantasyCraftingUserData` | `optional` | `` |  |
-| 3 | `tablet_data` | `.CMsgDotaFantasyCraftingTabletData` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCFantasyCraftingGenerateTabletsResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `user_data` | `.CMsgDotaFantasyCraftingUserData` | `optional` |  |  |
+| 3 | `tablet_data` | `.CMsgDotaFantasyCraftingTabletData` | `optional` |  |  |
 
 </details>
 
@@ -805,7 +805,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `fantasy_league` | `uint32` | `optional` | `` |  |
+| 1 | `fantasy_league` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -817,8 +817,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGcFantasyCraftingUpgradeTabletsResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 3 | `tablet_data` | `.CMsgDotaFantasyCraftingTabletData` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGcFantasyCraftingUpgradeTabletsResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 3 | `tablet_data` | `.CMsgDotaFantasyCraftingTabletData` | `optional` |  |  |
 
 </details>
 
@@ -830,7 +830,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `fantasy_league` | `uint32` | `optional` | `` |  |
+| 1 | `fantasy_league` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -842,8 +842,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCFantasyCraftingRerollOptionsResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `user_data` | `.CMsgDotaFantasyCraftingUserData` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCFantasyCraftingRerollOptionsResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `user_data` | `.CMsgDotaFantasyCraftingUserData` | `optional` |  |  |
 
 </details>
 

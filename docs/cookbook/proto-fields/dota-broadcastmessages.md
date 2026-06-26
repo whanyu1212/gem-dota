@@ -19,8 +19,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `type` | `.EDotaBroadcastMessages` | `optional` | `` | default = DOTA_BM_LANLobbyRequest |
-| 2 | `msg` | `bytes` | `optional` | `` |  |
+| 1 | `type` | `.EDotaBroadcastMessages` | `optional` |  | default = DOTA_BM_LANLobbyRequest |
+| 2 | `msg` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -44,15 +44,15 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `id` | `uint64` | `optional` | `` |  |
-| 2 | `tournament_id` | `uint32` | `optional` | `` |  |
-| 3 | `tournament_game_id` | `uint32` | `optional` | `` |  |
-| 4 | `members` | `.CDOTABroadcastMsg_LANLobbyReply.CLobbyMember` | `repeated` | `` |  |
-| 5 | `requires_pass_key` | `bool` | `optional` | `` |  |
-| 6 | `leader_account_id` | `uint32` | `optional` | `` |  |
-| 7 | `game_mode` | `uint32` | `optional` | `` |  |
-| 8 | `name` | `string` | `optional` | `` |  |
-| 9 | `players` | `uint32` | `optional` | `` |  |
+| 1 | `id` | `uint64` | `optional` |  |  |
+| 2 | `tournament_id` | `uint32` | `optional` |  |  |
+| 3 | `tournament_game_id` | `uint32` | `optional` |  |  |
+| 4 | `members` | `.CDOTABroadcastMsg_LANLobbyReply.CLobbyMember` | `repeated` |  |  |
+| 5 | `requires_pass_key` | `bool` | `optional` |  |  |
+| 6 | `leader_account_id` | `uint32` | `optional` |  |  |
+| 7 | `game_mode` | `uint32` | `optional` |  |  |
+| 8 | `name` | `string` | `optional` |  |  |
+| 9 | `players` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -64,8 +64,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `player_name` | `string` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `player_name` | `string` | `optional` |  |  |
 
 </details>
 

@@ -24,10 +24,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `x` | `float` | `optional` | `` |  |
-| 2 | `y` | `float` | `optional` | `` |  |
-| 3 | `z` | `float` | `optional` | `` |  |
-| 4 | `w` | `float` | `optional` | `` |  |
+| 1 | `x` | `float` | `optional` |  |  |
+| 2 | `y` | `float` | `optional` |  |  |
+| 3 | `z` | `float` | `optional` |  |  |
+| 4 | `w` | `float` | `optional` |  |  |
 
 </details>
 
@@ -39,8 +39,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `x` | `float` | `optional` | `` |  |
-| 2 | `y` | `float` | `optional` | `` |  |
+| 1 | `x` | `float` | `optional` |  |  |
+| 2 | `y` | `float` | `optional` |  |  |
 
 </details>
 
@@ -52,9 +52,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `x` | `float` | `optional` | `` |  |
-| 2 | `y` | `float` | `optional` | `` |  |
-| 3 | `z` | `float` | `optional` | `` |  |
+| 1 | `x` | `float` | `optional` |  |  |
+| 2 | `y` | `float` | `optional` |  |  |
+| 3 | `z` | `float` | `optional` |  |  |
 
 </details>
 
@@ -66,10 +66,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `x` | `float` | `optional` | `` |  |
-| 2 | `y` | `float` | `optional` | `` |  |
-| 3 | `z` | `float` | `optional` | `` |  |
-| 4 | `w` | `float` | `optional` | `` |  |
+| 1 | `x` | `float` | `optional` |  |  |
+| 2 | `y` | `float` | `optional` |  |  |
+| 3 | `z` | `float` | `optional` |  |  |
+| 4 | `w` | `float` | `optional` |  |  |
 
 </details>
 
@@ -81,9 +81,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `position` | `.CMsgVector` | `optional` | `` |  |
-| 2 | `scale` | `float` | `optional` | `` |  |
-| 3 | `orientation` | `.CMsgQuaternion` | `optional` | `` |  |
+| 1 | `position` | `.CMsgVector` | `optional` |  |  |
+| 2 | `scale` | `float` | `optional` |  |  |
+| 3 | `orientation` | `.CMsgQuaternion` | `optional` |  |  |
 
 </details>
 
@@ -95,10 +95,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `r` | `int32` | `optional` | `` |  |
-| 2 | `g` | `int32` | `optional` | `` |  |
-| 3 | `b` | `int32` | `optional` | `` |  |
-| 4 | `a` | `int32` | `optional` | `` |  |
+| 1 | `r` | `int32` | `optional` |  |  |
+| 2 | `g` | `int32` | `optional` |  |  |
+| 3 | `b` | `int32` | `optional` |  |  |
+| 4 | `a` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -110,12 +110,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `name` | `string` | `optional` | `` |  |
-| 2 | `xuid` | `fixed64` | `optional` | `` |  |
-| 3 | `userid` | `int32` | `optional` | `` |  |
-| 4 | `steamid` | `fixed64` | `optional` | `` |  |
-| 5 | `fakeplayer` | `bool` | `optional` | `` |  |
-| 6 | `ishltv` | `bool` | `optional` | `` |  |
+| 1 | `name` | `string` | `optional` |  |  |
+| 2 | `xuid` | `fixed64` | `optional` |  |  |
+| 3 | `userid` | `int32` | `optional` |  |  |
+| 4 | `steamid` | `fixed64` | `optional` |  |  |
+| 5 | `fakeplayer` | `bool` | `optional` |  |  |
+| 6 | `ishltv` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -127,7 +127,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `target_entity` | `uint32` | `optional` | `` | default = 16777215 |
+| 1 | `target_entity` | `uint32` | `optional` |  | default = 16777215 |
 
 </details>
 
@@ -139,7 +139,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `cvars` | `.CMsg_CVars.CVar` | `repeated` | `` |  |
+| 1 | `cvars` | `.CMsg_CVars.CVar` | `repeated` |  |  |
 
 </details>
 
@@ -151,8 +151,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `name` | `string` | `optional` | `` |  |
-| 2 | `value` | `string` | `optional` | `` |  |
+| 1 | `name` | `string` | `optional` |  |  |
+| 2 | `value` | `string` | `optional` |  |  |
 
 </details>
 
@@ -176,7 +176,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `slot` | `int32` | `optional` | `` |  |
+| 1 | `slot` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -188,16 +188,16 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `tick` | `uint32` | `optional` | `` |  |
-| 4 | `host_computationtime` | `uint32` | `optional` | `` |  |
-| 5 | `host_computationtime_std_deviation` | `uint32` | `optional` | `` |  |
-| 7 | `legacy_host_loss` | `uint32` | `optional` | `` |  |
-| 8 | `host_unfiltered_frametime` | `uint32` | `optional` | `` |  |
-| 9 | `hltv_replay_flags` | `uint32` | `optional` | `` |  |
-| 10 | `expected_long_tick` | `uint32` | `optional` | `` |  |
-| 11 | `expected_long_tick_reason` | `string` | `optional` | `` |  |
-| 12 | `host_frame_dropped_pct_x10` | `uint32` | `optional` | `` |  |
-| 13 | `host_frame_irregular_arrival_pct_x10` | `uint32` | `optional` | `` |  |
+| 1 | `tick` | `uint32` | `optional` |  |  |
+| 4 | `host_computationtime` | `uint32` | `optional` |  |  |
+| 5 | `host_computationtime_std_deviation` | `uint32` | `optional` |  |  |
+| 7 | `legacy_host_loss` | `uint32` | `optional` |  |  |
+| 8 | `host_unfiltered_frametime` | `uint32` | `optional` |  |  |
+| 9 | `hltv_replay_flags` | `uint32` | `optional` |  |  |
+| 10 | `expected_long_tick` | `uint32` | `optional` |  |  |
+| 11 | `expected_long_tick_reason` | `string` | `optional` |  |  |
+| 12 | `host_frame_dropped_pct_x10` | `uint32` | `optional` |  |  |
+| 13 | `host_frame_irregular_arrival_pct_x10` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -209,8 +209,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `command` | `string` | `optional` | `` |  |
-| 2 | `prediction_sync` | `uint32` | `optional` | `` |  |
+| 1 | `command` | `string` | `optional` |  |  |
+| 2 | `prediction_sync` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -222,7 +222,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `convars` | `.CMsg_CVars` | `optional` | `` |  |
+| 1 | `convars` | `.CMsg_CVars` | `optional` |  |  |
 
 </details>
 
@@ -234,12 +234,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `signon_state` | `.SignonState_t` | `optional` | `` | default = SIGNONSTATE_NONE |
-| 2 | `spawn_count` | `uint32` | `optional` | `` |  |
-| 3 | `num_server_players` | `uint32` | `optional` | `` |  |
-| 4 | `players_networkids` | `string` | `repeated` | `` |  |
-| 5 | `map_name` | `string` | `optional` | `` |  |
-| 6 | `addons` | `string` | `optional` | `` |  |
+| 1 | `signon_state` | `.SignonState_t` | `optional` |  | default = SIGNONSTATE_NONE |
+| 2 | `spawn_count` | `uint32` | `optional` |  |  |
+| 3 | `num_server_players` | `uint32` | `optional` |  |  |
+| 4 | `players_networkids` | `string` | `repeated` |  |  |
+| 5 | `map_name` | `string` | `optional` |  |  |
+| 6 | `addons` | `string` | `optional` |  |  |
 
 </details>
 
@@ -251,9 +251,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `event_name` | `string` | `optional` | `` |  |
-| 2 | `eventid` | `int32` | `optional` | `` |  |
-| 3 | `keys` | `.CSVCMsg_GameEvent.key_t` | `repeated` | `` |  |
+| 1 | `event_name` | `string` | `optional` |  |  |
+| 2 | `eventid` | `int32` | `optional` |  |  |
+| 3 | `keys` | `.CSVCMsg_GameEvent.key_t` | `repeated` |  |  |
 
 </details>
 
@@ -265,14 +265,14 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `type` | `int32` | `optional` | `` |  |
-| 2 | `val_string` | `string` | `optional` | `` |  |
-| 3 | `val_float` | `float` | `optional` | `` |  |
-| 4 | `val_long` | `int32` | `optional` | `` |  |
-| 5 | `val_short` | `int32` | `optional` | `` |  |
-| 6 | `val_byte` | `int32` | `optional` | `` |  |
-| 7 | `val_bool` | `bool` | `optional` | `` |  |
-| 8 | `val_uint64` | `uint64` | `optional` | `` |  |
+| 1 | `type` | `int32` | `optional` |  |  |
+| 2 | `val_string` | `string` | `optional` |  |  |
+| 3 | `val_float` | `float` | `optional` |  |  |
+| 4 | `val_long` | `int32` | `optional` |  |  |
+| 5 | `val_short` | `int32` | `optional` |  |  |
+| 6 | `val_byte` | `int32` | `optional` |  |  |
+| 7 | `val_bool` | `bool` | `optional` |  |  |
+| 8 | `val_uint64` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -284,7 +284,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `events` | `.CSVCMsgList_GameEvents.event_t` | `repeated` | `` |  |
+| 1 | `events` | `.CSVCMsgList_GameEvents.event_t` | `repeated` |  |  |
 
 </details>
 
@@ -296,8 +296,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `tick` | `int32` | `optional` | `` |  |
-| 2 | `event` | `.CSVCMsg_GameEvent` | `optional` | `` |  |
+| 1 | `tick` | `int32` | `optional` |  |  |
+| 2 | `event` | `.CSVCMsg_GameEvent` | `optional` |  |  |
 
 </details>
 
@@ -309,26 +309,26 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `worldname` | `string` | `optional` | `` |  |
-| 2 | `entitylumpname` | `string` | `optional` | `` |  |
-| 3 | `entityfiltername` | `string` | `optional` | `` |  |
-| 4 | `spawngrouphandle` | `uint32` | `optional` | `` |  |
-| 5 | `spawngroupownerhandle` | `uint32` | `optional` | `` |  |
-| 6 | `world_offset_pos` | `.CMsgVector` | `optional` | `` |  |
-| 7 | `world_offset_angle` | `.CMsgQAngle` | `optional` | `` |  |
-| 8 | `spawngroupmanifest` | `bytes` | `optional` | `` |  |
-| 9 | `flags` | `uint32` | `optional` | `` |  |
-| 10 | `tickcount` | `int32` | `optional` | `` |  |
-| 11 | `manifestincomplete` | `bool` | `optional` | `` |  |
-| 12 | `localnamefixup` | `string` | `optional` | `` |  |
-| 13 | `parentnamefixup` | `string` | `optional` | `` |  |
-| 14 | `manifestloadpriority` | `int32` | `optional` | `` |  |
-| 15 | `worldgroupid` | `uint32` | `optional` | `` |  |
-| 16 | `creationsequence` | `uint32` | `optional` | `` |  |
-| 17 | `savegamefilename` | `string` | `optional` | `` |  |
-| 18 | `spawngroupparenthandle` | `uint32` | `optional` | `` |  |
-| 19 | `leveltransition` | `bool` | `optional` | `` |  |
-| 20 | `worldgroupname` | `string` | `optional` | `` |  |
+| 1 | `worldname` | `string` | `optional` |  |  |
+| 2 | `entitylumpname` | `string` | `optional` |  |  |
+| 3 | `entityfiltername` | `string` | `optional` |  |  |
+| 4 | `spawngrouphandle` | `uint32` | `optional` |  |  |
+| 5 | `spawngroupownerhandle` | `uint32` | `optional` |  |  |
+| 6 | `world_offset_pos` | `.CMsgVector` | `optional` |  |  |
+| 7 | `world_offset_angle` | `.CMsgQAngle` | `optional` |  |  |
+| 8 | `spawngroupmanifest` | `bytes` | `optional` |  |  |
+| 9 | `flags` | `uint32` | `optional` |  |  |
+| 10 | `tickcount` | `int32` | `optional` |  |  |
+| 11 | `manifestincomplete` | `bool` | `optional` |  |  |
+| 12 | `localnamefixup` | `string` | `optional` |  |  |
+| 13 | `parentnamefixup` | `string` | `optional` |  |  |
+| 14 | `manifestloadpriority` | `int32` | `optional` |  |  |
+| 15 | `worldgroupid` | `uint32` | `optional` |  |  |
+| 16 | `creationsequence` | `uint32` | `optional` |  |  |
+| 17 | `savegamefilename` | `string` | `optional` |  |  |
+| 18 | `spawngroupparenthandle` | `uint32` | `optional` |  |  |
+| 19 | `leveltransition` | `bool` | `optional` |  |  |
+| 20 | `worldgroupname` | `string` | `optional` |  |  |
 
 </details>
 
@@ -340,9 +340,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `spawngrouphandle` | `uint32` | `optional` | `` |  |
-| 2 | `spawngroupmanifest` | `bytes` | `optional` | `` |  |
-| 3 | `manifestincomplete` | `bool` | `optional` | `` |  |
+| 1 | `spawngrouphandle` | `uint32` | `optional` |  |  |
+| 2 | `spawngroupmanifest` | `bytes` | `optional` |  |  |
+| 3 | `manifestincomplete` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -354,9 +354,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `spawngrouphandle` | `uint32` | `optional` | `` |  |
-| 2 | `tickcount` | `int32` | `optional` | `` |  |
-| 3 | `creationsequence` | `uint32` | `optional` | `` |  |
+| 1 | `spawngrouphandle` | `uint32` | `optional` |  |  |
+| 2 | `tickcount` | `int32` | `optional` |  |  |
+| 3 | `creationsequence` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -368,9 +368,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `spawngrouphandle` | `uint32` | `optional` | `` |  |
-| 2 | `flags` | `uint32` | `optional` | `` |  |
-| 3 | `tickcount` | `int32` | `optional` | `` |  |
+| 1 | `spawngrouphandle` | `uint32` | `optional` |  |  |
+| 2 | `flags` | `uint32` | `optional` |  |  |
+| 3 | `tickcount` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -382,7 +382,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `spawngrouphandle` | `uint32` | `optional` | `` |  |
+| 1 | `spawngrouphandle` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -394,25 +394,25 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `is_multiplayer` | `bool` | `optional` | `` |  |
-| 2 | `is_loadsavegame` | `bool` | `optional` | `` |  |
-| 3 | `is_background_map` | `bool` | `optional` | `` |  |
-| 4 | `is_headless` | `bool` | `optional` | `` |  |
-| 5 | `min_client_limit` | `uint32` | `optional` | `` |  |
-| 6 | `max_client_limit` | `uint32` | `optional` | `` |  |
-| 7 | `max_clients` | `uint32` | `optional` | `` |  |
-| 8 | `tick_interval` | `fixed32` | `optional` | `` |  |
-| 9 | `hostname` | `string` | `optional` | `` |  |
-| 10 | `savegamename` | `string` | `optional` | `` |  |
-| 11 | `s1_mapname` | `string` | `optional` | `` |  |
-| 12 | `gamemode` | `string` | `optional` | `` |  |
-| 13 | `server_ip_address` | `string` | `optional` | `` |  |
-| 14 | `data` | `bytes` | `optional` | `` |  |
-| 15 | `is_localonly` | `bool` | `optional` | `` |  |
-| 16 | `is_transition` | `bool` | `optional` | `` |  |
-| 17 | `previouslevel` | `string` | `optional` | `` |  |
-| 18 | `landmarkname` | `string` | `optional` | `` |  |
-| 19 | `no_steam_server` | `bool` | `optional` | `` |  |
+| 1 | `is_multiplayer` | `bool` | `optional` |  |  |
+| 2 | `is_loadsavegame` | `bool` | `optional` |  |  |
+| 3 | `is_background_map` | `bool` | `optional` |  |  |
+| 4 | `is_headless` | `bool` | `optional` |  |  |
+| 5 | `min_client_limit` | `uint32` | `optional` |  |  |
+| 6 | `max_client_limit` | `uint32` | `optional` |  |  |
+| 7 | `max_clients` | `uint32` | `optional` |  |  |
+| 8 | `tick_interval` | `fixed32` | `optional` |  |  |
+| 9 | `hostname` | `string` | `optional` |  |  |
+| 10 | `savegamename` | `string` | `optional` |  |  |
+| 11 | `s1_mapname` | `string` | `optional` |  |  |
+| 12 | `gamemode` | `string` | `optional` |  |  |
+| 13 | `server_ip_address` | `string` | `optional` |  |  |
+| 14 | `data` | `bytes` | `optional` |  |  |
+| 15 | `is_localonly` | `bool` | `optional` |  |  |
+| 16 | `is_transition` | `bool` | `optional` |  |  |
+| 17 | `previouslevel` | `string` | `optional` |  |  |
+| 18 | `landmarkname` | `string` | `optional` |  |  |
+| 19 | `no_steam_server` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -424,14 +424,14 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `etype` | `int32` | `optional` | `` |  |
-| 2 | `vectors` | `.CMsgVector` | `repeated` | `` |  |
-| 3 | `colors` | `.CMsgRGBA` | `repeated` | `` |  |
-| 4 | `dimensions` | `float` | `repeated` | `` |  |
-| 5 | `times` | `float` | `repeated` | `` |  |
-| 6 | `bools` | `bool` | `repeated` | `` |  |
-| 7 | `uint64s` | `uint64` | `repeated` | `` |  |
-| 8 | `strings` | `string` | `repeated` | `` |  |
+| 1 | `etype` | `int32` | `optional` |  |  |
+| 2 | `vectors` | `.CMsgVector` | `repeated` |  |  |
+| 3 | `colors` | `.CMsgRGBA` | `repeated` |  |  |
+| 4 | `dimensions` | `float` | `repeated` |  |  |
+| 5 | `times` | `float` | `repeated` |  |  |
+| 6 | `bools` | `bool` | `repeated` |  |  |
+| 7 | `uint64s` | `uint64` | `repeated` |  |  |
+| 8 | `strings` | `string` | `repeated` |  |  |
 
 </details>
 

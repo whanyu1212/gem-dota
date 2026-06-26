@@ -19,10 +19,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 2 | `generic_bytes` | `bytes` | `optional` | `` |  |
-| 3 | `generic_string` | `string` | `optional` | `` |  |
-| 4 | `ipv6_and_port` | `bytes` | `optional` | `` |  |
-| 16 | `steam_id` | `fixed64` | `optional` | `` |  |
+| 2 | `generic_bytes` | `bytes` | `optional` |  |  |
+| 3 | `generic_string` | `string` | `optional` |  |  |
+| 4 | `ipv6_and_port` | `bytes` | `optional` |  |  |
+| 16 | `steam_id` | `fixed64` | `optional` |  |  |
 
 </details>
 
@@ -34,16 +34,16 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `key_type` | `.CMsgSteamDatagramCertificate.EKeyType` | `optional` | `` | default = INVALID |
-| 2 | `key_data` | `bytes` | `optional` | `` |  |
-| 4 | `legacy_steam_id` | `fixed64` | `optional` | `` |  |
-| 5 | `gameserver_datacenter_ids` | `fixed32` | `repeated` | `` |  |
-| 8 | `time_created` | `fixed32` | `optional` | `` |  |
-| 9 | `time_expiry` | `fixed32` | `optional` | `` |  |
-| 10 | `app_ids` | `uint32` | `repeated` | `` |  |
-| 11 | `legacy_identity_binary` | `.CMsgSteamNetworkingIdentityLegacyBinary` | `optional` | `` |  |
-| 12 | `identity_string` | `string` | `optional` | `` |  |
-| 13 | `ip_addresses` | `string` | `repeated` | `` |  |
+| 1 | `key_type` | `.CMsgSteamDatagramCertificate.EKeyType` | `optional` |  | default = INVALID |
+| 2 | `key_data` | `bytes` | `optional` |  |  |
+| 4 | `legacy_steam_id` | `fixed64` | `optional` |  |  |
+| 5 | `gameserver_datacenter_ids` | `fixed32` | `repeated` |  |  |
+| 8 | `time_created` | `fixed32` | `optional` |  |  |
+| 9 | `time_expiry` | `fixed32` | `optional` |  |  |
+| 10 | `app_ids` | `uint32` | `repeated` |  |  |
+| 11 | `legacy_identity_binary` | `.CMsgSteamNetworkingIdentityLegacyBinary` | `optional` |  |  |
+| 12 | `identity_string` | `string` | `optional` |  |  |
+| 13 | `ip_addresses` | `string` | `repeated` |  |  |
 
 </details>
 
@@ -55,10 +55,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `private_key_data` | `bytes` | `optional` | `` |  |
-| 4 | `cert` | `bytes` | `optional` | `` |  |
-| 5 | `ca_key_id` | `fixed64` | `optional` | `` |  |
-| 6 | `ca_signature` | `bytes` | `optional` | `` |  |
+| 1 | `private_key_data` | `bytes` | `optional` |  |  |
+| 4 | `cert` | `bytes` | `optional` |  |  |
+| 5 | `ca_key_id` | `fixed64` | `optional` |  |  |
+| 6 | `ca_signature` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -70,7 +70,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `cert` | `.CMsgSteamDatagramCertificate` | `optional` | `` |  |
+| 1 | `cert` | `.CMsgSteamDatagramCertificate` | `optional` |  |  |
 
 </details>
 

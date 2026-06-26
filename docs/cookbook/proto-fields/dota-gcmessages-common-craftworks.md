@@ -25,7 +25,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `component_quantities` | `.CMsgCraftworksComponents.ComponentQuantitiesEntry` | `repeated` | `` |  |
+| 1 | `component_quantities` | `.CMsgCraftworksComponents.ComponentQuantitiesEntry` | `repeated` |  |  |
 
 </details>
 
@@ -37,8 +37,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `key` | `uint32` | `optional` | `` |  |
-| 2 | `value` | `uint32` | `optional` | `` |  |
+| 1 | `key` | `uint32` | `optional` |  |  |
+| 2 | `value` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -50,9 +50,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `quest_id` | `uint32` | `optional` | `` |  |
-| 2 | `reward_components` | `.CMsgCraftworksComponents` | `optional` | `` |  |
-| 3 | `stat_value` | `uint32` | `optional` | `` |  |
+| 1 | `quest_id` | `uint32` | `optional` |  |  |
+| 2 | `reward_components` | `.CMsgCraftworksComponents` | `optional` |  |  |
+| 3 | `stat_value` | `uint32` | `optional` |  |  |
 
 </details>
 

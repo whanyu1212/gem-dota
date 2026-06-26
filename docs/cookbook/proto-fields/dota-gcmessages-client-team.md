@@ -23,33 +23,33 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `members` | `.CMsgDOTATeamInfo.Member` | `repeated` | `` |  |
-| 2 | `team_id` | `uint32` | `optional` | `` |  |
-| 3 | `name` | `string` | `optional` | `` |  |
-| 4 | `tag` | `string` | `optional` | `` |  |
-| 5 | `time_created` | `uint32` | `optional` | `` |  |
-| 6 | `pro` | `bool` | `optional` | `` |  |
-| 8 | `pickup_team` | `bool` | `optional` | `` |  |
-| 9 | `ugc_logo` | `uint64` | `optional` | `` |  |
-| 10 | `ugc_base_logo` | `uint64` | `optional` | `` |  |
-| 11 | `ugc_banner_logo` | `uint64` | `optional` | `` |  |
-| 12 | `ugc_sponsor_logo` | `uint64` | `optional` | `` |  |
-| 13 | `country_code` | `string` | `optional` | `` |  |
-| 14 | `url` | `string` | `optional` | `` |  |
-| 15 | `wins` | `uint32` | `optional` | `` |  |
-| 16 | `losses` | `uint32` | `optional` | `` |  |
-| 19 | `games_played_total` | `uint32` | `optional` | `` |  |
-| 20 | `games_played_matchmaking` | `uint32` | `optional` | `` |  |
-| 24 | `url_logo` | `string` | `optional` | `` |  |
-| 29 | `region` | `.ELeagueRegion` | `optional` | `` | default = LEAGUE_REGION_UNSET |
-| 31 | `audit_entries` | `.CMsgDOTATeamInfo.AuditEntry` | `repeated` | `` |  |
-| 32 | `abbreviation` | `string` | `optional` | `` |  |
-| 33 | `member_stats` | `.CMsgDOTATeamInfo.MemberStats` | `repeated` | `` |  |
-| 34 | `team_stats` | `.CMsgDOTATeamInfo.TeamStats` | `optional` | `` |  |
-| 35 | `dpc_results` | `.CMsgDOTATeamInfo.DPCResult` | `repeated` | `` |  |
-| 37 | `color_primary` | `string` | `optional` | `` |  |
-| 38 | `color_secondary` | `string` | `optional` | `` |  |
-| 39 | `team_captain` | `uint32` | `optional` | `` |  |
+| 1 | `members` | `.CMsgDOTATeamInfo.Member` | `repeated` |  |  |
+| 2 | `team_id` | `uint32` | `optional` |  |  |
+| 3 | `name` | `string` | `optional` |  |  |
+| 4 | `tag` | `string` | `optional` |  |  |
+| 5 | `time_created` | `uint32` | `optional` |  |  |
+| 6 | `pro` | `bool` | `optional` |  |  |
+| 8 | `pickup_team` | `bool` | `optional` |  |  |
+| 9 | `ugc_logo` | `uint64` | `optional` |  |  |
+| 10 | `ugc_base_logo` | `uint64` | `optional` |  |  |
+| 11 | `ugc_banner_logo` | `uint64` | `optional` |  |  |
+| 12 | `ugc_sponsor_logo` | `uint64` | `optional` |  |  |
+| 13 | `country_code` | `string` | `optional` |  |  |
+| 14 | `url` | `string` | `optional` |  |  |
+| 15 | `wins` | `uint32` | `optional` |  |  |
+| 16 | `losses` | `uint32` | `optional` |  |  |
+| 19 | `games_played_total` | `uint32` | `optional` |  |  |
+| 20 | `games_played_matchmaking` | `uint32` | `optional` |  |  |
+| 24 | `url_logo` | `string` | `optional` |  |  |
+| 29 | `region` | `.ELeagueRegion` | `optional` |  | default = LEAGUE_REGION_UNSET |
+| 31 | `audit_entries` | `.CMsgDOTATeamInfo.AuditEntry` | `repeated` |  |  |
+| 32 | `abbreviation` | `string` | `optional` |  |  |
+| 33 | `member_stats` | `.CMsgDOTATeamInfo.MemberStats` | `repeated` |  |  |
+| 34 | `team_stats` | `.CMsgDOTATeamInfo.TeamStats` | `optional` |  |  |
+| 35 | `dpc_results` | `.CMsgDOTATeamInfo.DPCResult` | `repeated` |  |  |
+| 37 | `color_primary` | `string` | `optional` |  |  |
+| 38 | `color_secondary` | `string` | `optional` |  |  |
+| 39 | `team_captain` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -61,15 +61,15 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `hero_id` | `int32` | `optional` | `` |  |
-| 2 | `picks` | `uint32` | `optional` | `` |  |
-| 3 | `wins` | `uint32` | `optional` | `` |  |
-| 4 | `bans` | `uint32` | `optional` | `` |  |
-| 5 | `avg_kills` | `float` | `optional` | `` |  |
-| 6 | `avg_deaths` | `float` | `optional` | `` |  |
-| 7 | `avg_assists` | `float` | `optional` | `` |  |
-| 8 | `avg_gpm` | `float` | `optional` | `` |  |
-| 9 | `avg_xpm` | `float` | `optional` | `` |  |
+| 1 | `hero_id` | `int32` | `optional` |  |  |
+| 2 | `picks` | `uint32` | `optional` |  |  |
+| 3 | `wins` | `uint32` | `optional` |  |  |
+| 4 | `bans` | `uint32` | `optional` |  |  |
+| 5 | `avg_kills` | `float` | `optional` |  |  |
+| 6 | `avg_deaths` | `float` | `optional` |  |  |
+| 7 | `avg_assists` | `float` | `optional` |  |  |
+| 8 | `avg_gpm` | `float` | `optional` |  |  |
+| 9 | `avg_xpm` | `float` | `optional` |  |  |
 
 </details>
 
@@ -81,13 +81,13 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `wins_with_team` | `uint32` | `optional` | `` |  |
-| 3 | `losses_with_team` | `uint32` | `optional` | `` |  |
-| 4 | `top_heroes` | `.CMsgDOTATeamInfo.HeroStats` | `repeated` | `` |  |
-| 5 | `avg_kills` | `float` | `optional` | `` |  |
-| 6 | `avg_deaths` | `float` | `optional` | `` |  |
-| 7 | `avg_assists` | `float` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `wins_with_team` | `uint32` | `optional` |  |  |
+| 3 | `losses_with_team` | `uint32` | `optional` |  |  |
+| 4 | `top_heroes` | `.CMsgDOTATeamInfo.HeroStats` | `repeated` |  |  |
+| 5 | `avg_kills` | `float` | `optional` |  |  |
+| 6 | `avg_deaths` | `float` | `optional` |  |  |
+| 7 | `avg_assists` | `float` | `optional` |  |  |
 
 </details>
 
@@ -99,13 +99,13 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `played_heroes` | `.CMsgDOTATeamInfo.HeroStats` | `repeated` | `` |  |
-| 2 | `farming` | `float` | `optional` | `` |  |
-| 3 | `fighting` | `float` | `optional` | `` |  |
-| 4 | `versatility` | `float` | `optional` | `` |  |
-| 5 | `avg_kills` | `float` | `optional` | `` |  |
-| 6 | `avg_deaths` | `float` | `optional` | `` |  |
-| 7 | `avg_duration` | `float` | `optional` | `` |  |
+| 1 | `played_heroes` | `.CMsgDOTATeamInfo.HeroStats` | `repeated` |  |  |
+| 2 | `farming` | `float` | `optional` |  |  |
+| 3 | `fighting` | `float` | `optional` |  |  |
+| 4 | `versatility` | `float` | `optional` |  |  |
+| 5 | `avg_kills` | `float` | `optional` |  |  |
+| 6 | `avg_deaths` | `float` | `optional` |  |  |
+| 7 | `avg_duration` | `float` | `optional` |  |  |
 
 </details>
 
@@ -117,11 +117,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `league_id` | `uint32` | `optional` | `` |  |
-| 2 | `standing` | `uint32` | `optional` | `` |  |
-| 3 | `points` | `uint32` | `optional` | `` |  |
-| 4 | `earnings` | `uint32` | `optional` | `` |  |
-| 5 | `timestamp` | `uint32` | `optional` | `` |  |
+| 1 | `league_id` | `uint32` | `optional` |  |  |
+| 2 | `standing` | `uint32` | `optional` |  |  |
+| 3 | `points` | `uint32` | `optional` |  |  |
+| 4 | `earnings` | `uint32` | `optional` |  |  |
+| 5 | `timestamp` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -133,12 +133,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `time_joined` | `uint32` | `optional` | `` |  |
-| 3 | `admin` | `bool` | `optional` | `` |  |
-| 6 | `pro_name` | `string` | `optional` | `` |  |
-| 8 | `role` | `.Fantasy_Roles` | `optional` | `` | default = FANTASY_ROLE_UNDEFINED |
-| 9 | `real_name` | `string` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `time_joined` | `uint32` | `optional` |  |  |
+| 3 | `admin` | `bool` | `optional` |  |  |
+| 6 | `pro_name` | `string` | `optional` |  |  |
+| 8 | `role` | `.Fantasy_Roles` | `optional` |  | default = FANTASY_ROLE_UNDEFINED |
+| 9 | `real_name` | `string` | `optional` |  |  |
 
 </details>
 
@@ -150,9 +150,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `audit_action` | `uint32` | `optional` | `` |  |
-| 2 | `timestamp` | `uint32` | `optional` | `` |  |
-| 3 | `account_id` | `uint32` | `optional` | `` |  |
+| 1 | `audit_action` | `uint32` | `optional` |  |  |
+| 2 | `timestamp` | `uint32` | `optional` |  |  |
+| 3 | `account_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -164,8 +164,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `league_id` | `uint32` | `optional` | `` |  |
-| 2 | `teams` | `.CMsgDOTATeamInfo` | `repeated` | `` |  |
+| 1 | `league_id` | `uint32` | `optional` |  |  |
+| 2 | `teams` | `.CMsgDOTATeamInfo` | `repeated` |  |  |
 
 </details>
 
@@ -177,7 +177,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `teams` | `.CMsgDOTATeamInfo` | `repeated` | `` |  |
+| 1 | `teams` | `.CMsgDOTATeamInfo` | `repeated` |  |  |
 
 </details>
 
@@ -189,8 +189,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `cache_timestamp` | `uint32` | `optional` | `` |  |
-| 2 | `team_list` | `.CMsgDOTATeamInfoList` | `optional` | `` |  |
+| 1 | `cache_timestamp` | `uint32` | `optional` |  |  |
+| 2 | `team_list` | `.CMsgDOTATeamInfoList` | `optional` |  |  |
 
 </details>
 
@@ -214,16 +214,16 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `name` | `string` | `optional` | `` |  |
-| 2 | `tag` | `string` | `optional` | `` |  |
-| 3 | `logo` | `uint64` | `optional` | `` |  |
-| 4 | `base_logo` | `uint64` | `optional` | `` |  |
-| 5 | `banner_logo` | `uint64` | `optional` | `` |  |
-| 6 | `sponsor_logo` | `uint64` | `optional` | `` |  |
-| 7 | `country_code` | `string` | `optional` | `` |  |
-| 8 | `url` | `string` | `optional` | `` |  |
-| 9 | `pickup_team` | `bool` | `optional` | `` |  |
-| 10 | `abbreviation` | `string` | `optional` | `` |  |
+| 1 | `name` | `string` | `optional` |  |  |
+| 2 | `tag` | `string` | `optional` |  |  |
+| 3 | `logo` | `uint64` | `optional` |  |  |
+| 4 | `base_logo` | `uint64` | `optional` |  |  |
+| 5 | `banner_logo` | `uint64` | `optional` |  |  |
+| 6 | `sponsor_logo` | `uint64` | `optional` |  |  |
+| 7 | `country_code` | `string` | `optional` |  |  |
+| 8 | `url` | `string` | `optional` |  |  |
+| 9 | `pickup_team` | `bool` | `optional` |  |  |
+| 10 | `abbreviation` | `string` | `optional` |  |  |
 
 </details>
 
@@ -235,8 +235,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgDOTACreateTeamResponse.Result` | `optional` | `` | default = INVALID |
-| 2 | `team_id` | `uint32` | `optional` | `` |  |
+| 1 | `result` | `.CMsgDOTACreateTeamResponse.Result` | `optional` |  | default = INVALID |
+| 2 | `team_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -248,17 +248,17 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `team_id` | `uint32` | `optional` | `` |  |
-| 2 | `name` | `string` | `optional` | `` |  |
-| 3 | `tag` | `string` | `optional` | `` |  |
-| 4 | `logo` | `uint64` | `optional` | `` |  |
-| 5 | `base_logo` | `uint64` | `optional` | `` |  |
-| 6 | `banner_logo` | `uint64` | `optional` | `` |  |
-| 7 | `sponsor_logo` | `uint64` | `optional` | `` |  |
-| 8 | `country_code` | `string` | `optional` | `` |  |
-| 9 | `url` | `string` | `optional` | `` |  |
-| 10 | `in_use_by_party` | `bool` | `optional` | `` |  |
-| 11 | `abbreviation` | `string` | `optional` | `` |  |
+| 1 | `team_id` | `uint32` | `optional` |  |  |
+| 2 | `name` | `string` | `optional` |  |  |
+| 3 | `tag` | `string` | `optional` |  |  |
+| 4 | `logo` | `uint64` | `optional` |  |  |
+| 5 | `base_logo` | `uint64` | `optional` |  |  |
+| 6 | `banner_logo` | `uint64` | `optional` |  |  |
+| 7 | `sponsor_logo` | `uint64` | `optional` |  |  |
+| 8 | `country_code` | `string` | `optional` |  |  |
+| 9 | `url` | `string` | `optional` |  |  |
+| 10 | `in_use_by_party` | `bool` | `optional` |  |  |
+| 11 | `abbreviation` | `string` | `optional` |  |  |
 
 </details>
 
@@ -270,7 +270,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgDOTAEditTeamDetailsResponse.Result` | `optional` | `` | default = SUCCESS |
+| 1 | `result` | `.CMsgDOTAEditTeamDetailsResponse.Result` | `optional` |  | default = SUCCESS |
 
 </details>
 
@@ -282,8 +282,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `team_id` | `uint32` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `team_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -295,9 +295,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.ETeamInviteResult` | `optional` | `` | default = TEAM_INVITE_SUCCESS |
-| 2 | `invitee_name` | `string` | `optional` | `` |  |
-| 3 | `required_play_time` | `uint32` | `optional` | `` |  |
+| 1 | `result` | `.ETeamInviteResult` | `optional` |  | default = TEAM_INVITE_SUCCESS |
+| 2 | `invitee_name` | `string` | `optional` |  |  |
+| 3 | `required_play_time` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -309,10 +309,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `inviter_account_id` | `uint32` | `optional` | `` |  |
-| 2 | `team_name` | `string` | `optional` | `` |  |
-| 3 | `team_tag` | `string` | `optional` | `` |  |
-| 4 | `logo` | `uint64` | `optional` | `` |  |
+| 1 | `inviter_account_id` | `uint32` | `optional` |  |  |
+| 2 | `team_name` | `string` | `optional` |  |  |
+| 3 | `team_tag` | `string` | `optional` |  |  |
+| 4 | `logo` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -324,7 +324,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.ETeamInviteResult` | `optional` | `` | default = TEAM_INVITE_SUCCESS |
+| 1 | `result` | `.ETeamInviteResult` | `optional` |  | default = TEAM_INVITE_SUCCESS |
 
 </details>
 
@@ -336,8 +336,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.ETeamInviteResult` | `optional` | `` | default = TEAM_INVITE_SUCCESS |
-| 2 | `invitee_name` | `string` | `optional` | `` |  |
+| 1 | `result` | `.ETeamInviteResult` | `optional` |  | default = TEAM_INVITE_SUCCESS |
+| 2 | `invitee_name` | `string` | `optional` |  |  |
 
 </details>
 
@@ -349,8 +349,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.ETeamInviteResult` | `optional` | `` | default = TEAM_INVITE_SUCCESS |
-| 2 | `team_name` | `string` | `optional` | `` |  |
+| 1 | `result` | `.ETeamInviteResult` | `optional` |  | default = TEAM_INVITE_SUCCESS |
+| 2 | `team_name` | `string` | `optional` |  |  |
 
 </details>
 
@@ -362,8 +362,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `team_id` | `uint32` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `team_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -375,7 +375,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgDOTAKickTeamMemberResponse.Result` | `optional` | `` | default = SUCCESS |
+| 1 | `result` | `.CMsgDOTAKickTeamMemberResponse.Result` | `optional` |  | default = SUCCESS |
 
 </details>
 
@@ -387,8 +387,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `new_admin_account_id` | `uint32` | `optional` | `` |  |
-| 2 | `team_id` | `uint32` | `optional` | `` |  |
+| 1 | `new_admin_account_id` | `uint32` | `optional` |  |  |
+| 2 | `team_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -400,7 +400,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgDOTATransferTeamAdminResponse.Result` | `optional` | `` | default = SUCCESS |
+| 1 | `result` | `.CMsgDOTATransferTeamAdminResponse.Result` | `optional` |  | default = SUCCESS |
 
 </details>
 
@@ -412,7 +412,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `team_id` | `uint32` | `optional` | `` |  |
+| 1 | `team_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -424,7 +424,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgDOTALeaveTeamResponse.Result` | `optional` | `` | default = SUCCESS |
+| 1 | `result` | `.CMsgDOTALeaveTeamResponse.Result` | `optional` |  | default = SUCCESS |
 
 </details>
 
@@ -436,7 +436,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `access_rights` | `uint32` | `optional` | `` |  |
+| 1 | `access_rights` | `uint32` | `optional` |  |  |
 
 </details>
 

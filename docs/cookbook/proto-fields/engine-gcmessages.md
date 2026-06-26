@@ -23,16 +23,16 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `match_id` | `uint64` | `optional` | `` |  |
-| 2 | `instance_id` | `uint32` | `optional` | `` |  |
-| 3 | `signupfragment` | `uint32` | `optional` | `` |  |
-| 4 | `currentfragment` | `uint32` | `optional` | `` |  |
-| 5 | `tickrate` | `float` | `optional` | `` |  |
-| 6 | `tick` | `uint32` | `optional` | `` |  |
-| 8 | `rtdelay` | `float` | `optional` | `` |  |
-| 9 | `rcvage` | `float` | `optional` | `` |  |
-| 10 | `keyframe_interval` | `float` | `optional` | `` |  |
-| 11 | `cdndelay` | `uint32` | `optional` | `` |  |
+| 1 | `match_id` | `uint64` | `optional` |  |  |
+| 2 | `instance_id` | `uint32` | `optional` |  |  |
+| 3 | `signupfragment` | `uint32` | `optional` |  |  |
+| 4 | `currentfragment` | `uint32` | `optional` |  |  |
+| 5 | `tickrate` | `float` | `optional` |  |  |
+| 6 | `tick` | `uint32` | `optional` |  |  |
+| 8 | `rtdelay` | `float` | `optional` |  |  |
+| 9 | `rcvage` | `float` | `optional` |  |  |
+| 10 | `keyframe_interval` | `float` | `optional` |  |  |
+| 11 | `cdndelay` | `uint32` | `optional` |  |  |
 
 </details>
 

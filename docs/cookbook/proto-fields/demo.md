@@ -19,21 +19,21 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `demo_file_stamp` | `string` | `required` | `` |  |
-| 2 | `patch_version` | `int32` | `optional` | `` |  |
-| 3 | `server_name` | `string` | `optional` | `` |  |
-| 4 | `client_name` | `string` | `optional` | `` |  |
-| 5 | `map_name` | `string` | `optional` | `` |  |
-| 6 | `game_directory` | `string` | `optional` | `` |  |
-| 7 | `fullpackets_version` | `int32` | `optional` | `` |  |
-| 8 | `allow_clientside_entities` | `bool` | `optional` | `` |  |
-| 9 | `allow_clientside_particles` | `bool` | `optional` | `` |  |
-| 10 | `addons` | `string` | `optional` | `` |  |
-| 11 | `demo_version_name` | `string` | `optional` | `` |  |
-| 12 | `demo_version_guid` | `string` | `optional` | `` |  |
-| 13 | `build_num` | `int32` | `optional` | `` |  |
-| 14 | `game` | `string` | `optional` | `` |  |
-| 15 | `server_start_tick` | `int32` | `optional` | `` |  |
+| 1 | `demo_file_stamp` | `string` | `required` |  |  |
+| 2 | `patch_version` | `int32` | `optional` |  |  |
+| 3 | `server_name` | `string` | `optional` |  |  |
+| 4 | `client_name` | `string` | `optional` |  |  |
+| 5 | `map_name` | `string` | `optional` |  |  |
+| 6 | `game_directory` | `string` | `optional` |  |  |
+| 7 | `fullpackets_version` | `int32` | `optional` |  |  |
+| 8 | `allow_clientside_entities` | `bool` | `optional` |  |  |
+| 9 | `allow_clientside_particles` | `bool` | `optional` |  |  |
+| 10 | `addons` | `string` | `optional` |  |  |
+| 11 | `demo_version_name` | `string` | `optional` |  |  |
+| 12 | `demo_version_guid` | `string` | `optional` |  |  |
+| 13 | `build_num` | `int32` | `optional` |  |  |
+| 14 | `game` | `string` | `optional` |  |  |
+| 15 | `server_start_tick` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -45,8 +45,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 4 | `dota` | `.CGameInfo.CDotaGameInfo` | `optional` | `` |  |
-| 5 | `cs` | `.CGameInfo.CCSGameInfo` | `optional` | `` |  |
+| 4 | `dota` | `.CGameInfo.CDotaGameInfo` | `optional` |  |  |
+| 5 | `cs` | `.CGameInfo.CCSGameInfo` | `optional` |  |  |
 
 </details>
 
@@ -58,17 +58,17 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `match_id` | `uint64` | `optional` | `` |  |
-| 2 | `game_mode` | `int32` | `optional` | `` |  |
-| 3 | `game_winner` | `int32` | `optional` | `` |  |
-| 4 | `player_info` | `.CGameInfo.CDotaGameInfo.CPlayerInfo` | `repeated` | `` |  |
-| 5 | `leagueid` | `uint32` | `optional` | `` |  |
-| 6 | `picks_bans` | `.CGameInfo.CDotaGameInfo.CHeroSelectEvent` | `repeated` | `` |  |
-| 7 | `radiant_team_id` | `uint32` | `optional` | `` |  |
-| 8 | `dire_team_id` | `uint32` | `optional` | `` |  |
-| 9 | `radiant_team_tag` | `string` | `optional` | `` |  |
-| 10 | `dire_team_tag` | `string` | `optional` | `` |  |
-| 11 | `end_time` | `uint32` | `optional` | `` |  |
+| 1 | `match_id` | `uint64` | `optional` |  |  |
+| 2 | `game_mode` | `int32` | `optional` |  |  |
+| 3 | `game_winner` | `int32` | `optional` |  |  |
+| 4 | `player_info` | `.CGameInfo.CDotaGameInfo.CPlayerInfo` | `repeated` |  |  |
+| 5 | `leagueid` | `uint32` | `optional` |  |  |
+| 6 | `picks_bans` | `.CGameInfo.CDotaGameInfo.CHeroSelectEvent` | `repeated` |  |  |
+| 7 | `radiant_team_id` | `uint32` | `optional` |  |  |
+| 8 | `dire_team_id` | `uint32` | `optional` |  |  |
+| 9 | `radiant_team_tag` | `string` | `optional` |  |  |
+| 10 | `dire_team_tag` | `string` | `optional` |  |  |
+| 11 | `end_time` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -80,11 +80,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `hero_name` | `string` | `optional` | `` |  |
-| 2 | `player_name` | `string` | `optional` | `` |  |
-| 3 | `is_fake_client` | `bool` | `optional` | `` |  |
-| 4 | `steamid` | `uint64` | `optional` | `` |  |
-| 5 | `game_team` | `int32` | `optional` | `` |  |
+| 1 | `hero_name` | `string` | `optional` |  |  |
+| 2 | `player_name` | `string` | `optional` |  |  |
+| 3 | `is_fake_client` | `bool` | `optional` |  |  |
+| 4 | `steamid` | `uint64` | `optional` |  |  |
+| 5 | `game_team` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -96,9 +96,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `is_pick` | `bool` | `optional` | `` |  |
-| 2 | `team` | `uint32` | `optional` | `` |  |
-| 3 | `hero_id` | `int32` | `optional` | `` |  |
+| 1 | `is_pick` | `bool` | `optional` |  |  |
+| 2 | `team` | `uint32` | `optional` |  |  |
+| 3 | `hero_id` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -110,7 +110,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `round_start_ticks` | `int32` | `repeated` | `` |  |
+| 1 | `round_start_ticks` | `int32` | `repeated` |  |  |
 
 </details>
 
@@ -122,10 +122,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `playback_time` | `float` | `optional` | `` |  |
-| 2 | `playback_ticks` | `int32` | `optional` | `` |  |
-| 3 | `playback_frames` | `int32` | `optional` | `` |  |
-| 4 | `game_info` | `.CGameInfo` | `optional` | `` |  |
+| 1 | `playback_time` | `float` | `optional` |  |  |
+| 2 | `playback_ticks` | `int32` | `optional` |  |  |
+| 3 | `playback_frames` | `int32` | `optional` |  |  |
+| 4 | `game_info` | `.CGameInfo` | `optional` |  |  |
 
 </details>
 
@@ -137,7 +137,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 3 | `data` | `bytes` | `optional` | `` |  |
+| 3 | `data` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -149,8 +149,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `string_table` | `.CDemoStringTables` | `optional` | `` |  |
-| 2 | `packet` | `.CDemoPacket` | `optional` | `` |  |
+| 1 | `string_table` | `.CDemoStringTables` | `optional` |  |  |
+| 2 | `packet` | `.CDemoPacket` | `optional` |  |  |
 
 </details>
 
@@ -162,10 +162,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `data` | `bytes` | `optional` | `` |  |
-| 2 | `steam_id` | `fixed64` | `optional` | `` |  |
-| 3 | `signature` | `fixed64` | `optional` | `` |  |
-| 4 | `version` | `int32` | `optional` | `` |  |
+| 1 | `data` | `bytes` | `optional` |  |  |
+| 2 | `steam_id` | `fixed64` | `optional` |  |  |
+| 3 | `signature` | `fixed64` | `optional` |  |  |
+| 4 | `version` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -189,7 +189,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `cmdstring` | `string` | `optional` | `` |  |
+| 1 | `cmdstring` | `string` | `optional` |  |  |
 
 </details>
 
@@ -201,7 +201,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `data` | `bytes` | `optional` | `` |  |
+| 1 | `data` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -213,7 +213,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `classes` | `.CDemoClassInfo.class_t` | `repeated` | `` |  |
+| 1 | `classes` | `.CDemoClassInfo.class_t` | `repeated` |  |  |
 
 </details>
 
@@ -225,9 +225,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `class_id` | `int32` | `optional` | `` |  |
-| 2 | `network_name` | `string` | `optional` | `` |  |
-| 3 | `table_name` | `string` | `optional` | `` |  |
+| 1 | `class_id` | `int32` | `optional` |  |  |
+| 2 | `network_name` | `string` | `optional` |  |  |
+| 3 | `table_name` | `string` | `optional` |  |  |
 
 </details>
 
@@ -239,8 +239,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `callback_index` | `int32` | `optional` | `` |  |
-| 2 | `data` | `bytes` | `optional` | `` |  |
+| 1 | `callback_index` | `int32` | `optional` |  |  |
+| 2 | `data` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -252,7 +252,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `save_id` | `string` | `repeated` | `` |  |
+| 1 | `save_id` | `string` | `repeated` |  |  |
 
 </details>
 
@@ -264,9 +264,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `entity_id` | `sint32` | `optional` | `` |  |
-| 2 | `tick` | `int32` | `optional` | `` |  |
-| 3 | `data` | `bytes` | `optional` | `` |  |
+| 1 | `entity_id` | `sint32` | `optional` |  |  |
+| 2 | `tick` | `int32` | `optional` |  |  |
+| 3 | `data` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -278,11 +278,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `entity_id` | `sint32` | `optional` | `` |  |
-| 2 | `start_tick` | `int32` | `optional` | `` |  |
-| 3 | `end_tick` | `int32` | `optional` | `` |  |
-| 4 | `data` | `bytes` | `optional` | `` |  |
-| 5 | `data_checksum` | `int64` | `optional` | `` |  |
+| 1 | `entity_id` | `sint32` | `optional` |  |  |
+| 2 | `start_tick` | `int32` | `optional` |  |  |
+| 3 | `end_tick` | `int32` | `optional` |  |  |
+| 4 | `data` | `bytes` | `optional` |  |  |
+| 5 | `data_checksum` | `int64` | `optional` |  |  |
 
 </details>
 
@@ -294,7 +294,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `tables` | `.CDemoStringTables.table_t` | `repeated` | `` |  |
+| 1 | `tables` | `.CDemoStringTables.table_t` | `repeated` |  |  |
 
 </details>
 
@@ -306,8 +306,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `str` | `string` | `optional` | `` |  |
-| 2 | `data` | `bytes` | `optional` | `` |  |
+| 1 | `str` | `string` | `optional` |  |  |
+| 2 | `data` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -319,10 +319,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `table_name` | `string` | `optional` | `` |  |
-| 2 | `items` | `.CDemoStringTables.items_t` | `repeated` | `` |  |
-| 3 | `items_clientside` | `.CDemoStringTables.items_t` | `repeated` | `` |  |
-| 4 | `table_flags` | `int32` | `optional` | `` |  |
+| 1 | `table_name` | `string` | `optional` |  |  |
+| 2 | `items` | `.CDemoStringTables.items_t` | `repeated` |  |  |
+| 3 | `items_clientside` | `.CDemoStringTables.items_t` | `repeated` |  |  |
+| 4 | `table_flags` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -346,8 +346,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `cmd_number` | `int32` | `optional` | `` |  |
-| 2 | `data` | `bytes` | `optional` | `` |  |
+| 1 | `cmd_number` | `int32` | `optional` |  |  |
+| 2 | `data` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -359,7 +359,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 3 | `msgs` | `bytes` | `repeated` | `` |  |
+| 3 | `msgs` | `bytes` | `repeated` |  |  |
 
 </details>
 
@@ -371,7 +371,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `data` | `bytes` | `optional` | `` |  |
+| 1 | `data` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -383,8 +383,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `initial_spawn_group` | `.CDemoRecovery.DemoInitialSpawnGroupEntry` | `optional` | `` |  |
-| 2 | `spawn_group_message` | `bytes` | `optional` | `` |  |
+| 1 | `initial_spawn_group` | `.CDemoRecovery.DemoInitialSpawnGroupEntry` | `optional` |  |  |
+| 2 | `spawn_group_message` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -396,8 +396,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `spawngrouphandle` | `uint32` | `optional` | `` |  |
-| 2 | `was_created` | `bool` | `optional` | `` |  |
+| 1 | `spawngrouphandle` | `uint32` | `optional` |  |  |
+| 2 | `was_created` | `bool` | `optional` |  |  |
 
 </details>
 

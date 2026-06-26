@@ -32,8 +32,8 @@ Source: [src/gem/extractors/courier.py:22](https://github.com/whanyu1212/gem-dot
 | `team` | `int` | `-` |
 | `state` | `int` | `-` |
 | `flying` | `bool` | `-` |
-| `x` | `float | None` | `-` |
-| `y` | `float | None` | `-` |
+| `x` | `float \| None` | `-` |
+| `y` | `float \| None` | `-` |
 
 ### `CourierExtractor`
 

@@ -19,8 +19,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `font_file_name` | `string` | `optional` | `` |  |
-| 2 | `opentype_font_data` | `bytes` | `optional` | `` |  |
+| 1 | `font_file_name` | `string` | `optional` |  |  |
+| 2 | `opentype_font_data` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -32,8 +32,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `package_version` | `uint32` | `optional` | `` |  |
-| 2 | `encrypted_font_files` | `.CUIFontFilePackagePB.CUIEncryptedFontFilePB` | `repeated` | `` |  |
+| 1 | `package_version` | `uint32` | `optional` |  |  |
+| 2 | `encrypted_font_files` | `.CUIFontFilePackagePB.CUIEncryptedFontFilePB` | `repeated` |  |  |
 
 </details>
 
@@ -45,7 +45,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `encrypted_contents` | `bytes` | `optional` | `` |  |
+| 1 | `encrypted_contents` | `bytes` | `optional` |  |  |
 
 </details>
 

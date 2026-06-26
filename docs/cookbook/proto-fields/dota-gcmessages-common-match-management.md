@@ -25,21 +25,21 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 2 | `is_coach` | `bool` | `optional` | `` |  |
-| 4 | `region_ping_codes` | `uint32` | `repeated` | `` | packed = true |
-| 5 | `region_ping_times` | `uint32` | `repeated` | `` | packed = true |
-| 6 | `region_ping_failed_bitmask` | `uint32` | `optional` | `` |  |
-| 7 | `tourney_skill_level` | `uint32` | `optional` | `` |  |
-| 8 | `tourney_buyin` | `uint32` | `optional` | `` |  |
-| 9 | `tourney_prevent_until` | `uint32` | `optional` | `` |  |
-| 10 | `is_plus_subscriber` | `bool` | `optional` | `` |  |
-| 11 | `lane_selection_flags` | `uint32` | `optional` | `` |  |
-| 12 | `joined_from_partyfinder` | `bool` | `optional` | `` |  |
-| 13 | `mm_data_valid` | `bool` | `optional` | `` |  |
-| 14 | `high_priority_disabled` | `bool` | `optional` | `` |  |
-| 15 | `has_hp_resource` | `bool` | `optional` | `` |  |
-| 16 | `is_steam_china` | `bool` | `optional` | `` |  |
-| 17 | `banned_hero_ids` | `int32` | `repeated` | `` |  |
+| 2 | `is_coach` | `bool` | `optional` |  |  |
+| 4 | `region_ping_codes` | `uint32` | `repeated` |  | packed = true |
+| 5 | `region_ping_times` | `uint32` | `repeated` |  | packed = true |
+| 6 | `region_ping_failed_bitmask` | `uint32` | `optional` |  |  |
+| 7 | `tourney_skill_level` | `uint32` | `optional` |  |  |
+| 8 | `tourney_buyin` | `uint32` | `optional` |  |  |
+| 9 | `tourney_prevent_until` | `uint32` | `optional` |  |  |
+| 10 | `is_plus_subscriber` | `bool` | `optional` |  |  |
+| 11 | `lane_selection_flags` | `uint32` | `optional` |  |  |
+| 12 | `joined_from_partyfinder` | `bool` | `optional` |  |  |
+| 13 | `mm_data_valid` | `bool` | `optional` |  |  |
+| 14 | `high_priority_disabled` | `bool` | `optional` |  |  |
+| 15 | `has_hp_resource` | `bool` | `optional` |  |  |
+| 16 | `is_steam_china` | `bool` | `optional` |  |  |
+| 17 | `banned_hero_ids` | `int32` | `repeated` |  |  |
 
 </details>
 
@@ -51,62 +51,62 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `party_id` | `uint64` | `optional` | `` | (key_field) = true |
-| 2 | `leader_id` | `fixed64` | `optional` | `` |  |
-| 3 | `member_ids` | `fixed64` | `repeated` | `` |  |
-| 4 | `game_modes` | `uint32` | `optional` | `` |  |
-| 6 | `state` | `.CSODOTAParty.State` | `optional` | `` | default = UI |
-| 7 | `effective_started_matchmaking_time` | `uint32` | `optional` | `` |  |
-| 11 | `matchgroups` | `uint32` | `optional` | `` |  |
-| 19 | `low_priority_account_id` | `uint32` | `optional` | `` |  |
-| 21 | `match_type` | `.MatchType` | `optional` | `` | default = MATCH_TYPE_CASUAL |
-| 23 | `team_id` | `uint32` | `optional` | `` |  |
-| 24 | `match_disabled_until_date` | `uint32` | `optional` | `` |  |
-| 25 | `match_disabled_account_id` | `uint32` | `optional` | `` |  |
-| 26 | `matchmaking_max_range_minutes` | `uint32` | `optional` | `` |  |
-| 27 | `matchlanguages` | `uint32` | `optional` | `` |  |
-| 29 | `members` | `.CSODOTAPartyMember` | `repeated` | `` |  |
-| 32 | `raw_started_matchmaking_time` | `uint32` | `optional` | `` |  |
-| 33 | `attempt_start_time` | `uint32` | `optional` | `` |  |
-| 34 | `attempt_num` | `uint32` | `optional` | `` |  |
-| 35 | `low_priority_games_remaining` | `uint32` | `optional` | `` |  |
-| 40 | `open_for_join_requests` | `bool` | `optional` | `` |  |
-| 41 | `sent_invites` | `.CSODOTAPartyInvite` | `repeated` | `` |  |
-| 42 | `recv_invites` | `.CSODOTAPartyInvite` | `repeated` | `` |  |
-| 43 | `account_flags` | `uint32` | `optional` | `` |  |
-| 44 | `region_select_flags` | `uint32` | `optional` | `` |  |
-| 45 | `exclusive_tournament_id` | `uint32` | `optional` | `` |  |
-| 47 | `tourney_division_id` | `uint32` | `optional` | `` |  |
-| 48 | `tourney_schedule_time` | `uint32` | `optional` | `` |  |
-| 49 | `tourney_skill_level` | `uint32` | `optional` | `` |  |
-| 50 | `tourney_bracket_round` | `uint32` | `optional` | `` |  |
-| 51 | `team_name` | `string` | `optional` | `` |  |
-| 52 | `team_ui_logo` | `uint64` | `optional` | `` |  |
-| 53 | `team_base_logo` | `uint64` | `optional` | `` |  |
-| 54 | `tourney_queue_deadline_time` | `uint32` | `optional` | `` |  |
-| 55 | `tourney_queue_deadline_state` | `.ETourneyQueueDeadlineState` | `optional` | `` | default = k_ETourneyQueueDeadlineState_Normal |
-| 56 | `party_builder_slots_to_fill` | `uint32` | `optional` | `` |  |
-| 57 | `party_builder_match_groups` | `uint32` | `optional` | `` |  |
-| 58 | `party_builder_start_time` | `uint32` | `optional` | `` |  |
-| 59 | `solo_queue` | `bool` | `optional` | `` |  |
-| 61 | `steam_clan_account_id` | `uint32` | `optional` | `` |  |
-| 62 | `ready_check` | `.CMsgReadyCheckStatus` | `optional` | `` |  |
-| 63 | `custom_game_disabled_until_date` | `uint32` | `optional` | `` |  |
-| 64 | `custom_game_disabled_account_id` | `uint32` | `optional` | `` |  |
-| 65 | `is_challenge_match` | `bool` | `optional` | `` |  |
-| 66 | `party_search_beacon_active` | `bool` | `optional` | `` |  |
-| 67 | `matchmaking_flags` | `uint32` | `optional` | `` |  |
-| 68 | `high_priority_state` | `.EHighPriorityMMState` | `optional` | `` | default = k_EHighPriorityMM_Unknown |
-| 69 | `lane_selections_enabled` | `bool` | `optional` | `` |  |
-| 70 | `custom_game_difficulty_mask` | `uint32` | `optional` | `` |  |
-| 71 | `is_steam_china` | `bool` | `optional` | `` |  |
-| 72 | `bot_difficulty_mask` | `uint32` | `optional` | `` |  |
-| 73 | `bot_script_index_mask` | `uint32` | `optional` | `` |  |
-| 74 | `restricted_from_ranked` | `bool` | `optional` | `` |  |
-| 75 | `restricted_from_ranked_account_id` | `uint32` | `optional` | `` |  |
-| 76 | `rank_spread_likert_scale` | `uint32` | `optional` | `` |  |
-| 77 | `behavior_score_likert_scale` | `uint32` | `optional` | `` |  |
-| 78 | `contains_required_playtester` | `bool` | `optional` | `` |  |
+| 1 | `party_id` | `uint64` | `optional` |  | (key_field) = true |
+| 2 | `leader_id` | `fixed64` | `optional` |  |  |
+| 3 | `member_ids` | `fixed64` | `repeated` |  |  |
+| 4 | `game_modes` | `uint32` | `optional` |  |  |
+| 6 | `state` | `.CSODOTAParty.State` | `optional` |  | default = UI |
+| 7 | `effective_started_matchmaking_time` | `uint32` | `optional` |  |  |
+| 11 | `matchgroups` | `uint32` | `optional` |  |  |
+| 19 | `low_priority_account_id` | `uint32` | `optional` |  |  |
+| 21 | `match_type` | `.MatchType` | `optional` |  | default = MATCH_TYPE_CASUAL |
+| 23 | `team_id` | `uint32` | `optional` |  |  |
+| 24 | `match_disabled_until_date` | `uint32` | `optional` |  |  |
+| 25 | `match_disabled_account_id` | `uint32` | `optional` |  |  |
+| 26 | `matchmaking_max_range_minutes` | `uint32` | `optional` |  |  |
+| 27 | `matchlanguages` | `uint32` | `optional` |  |  |
+| 29 | `members` | `.CSODOTAPartyMember` | `repeated` |  |  |
+| 32 | `raw_started_matchmaking_time` | `uint32` | `optional` |  |  |
+| 33 | `attempt_start_time` | `uint32` | `optional` |  |  |
+| 34 | `attempt_num` | `uint32` | `optional` |  |  |
+| 35 | `low_priority_games_remaining` | `uint32` | `optional` |  |  |
+| 40 | `open_for_join_requests` | `bool` | `optional` |  |  |
+| 41 | `sent_invites` | `.CSODOTAPartyInvite` | `repeated` |  |  |
+| 42 | `recv_invites` | `.CSODOTAPartyInvite` | `repeated` |  |  |
+| 43 | `account_flags` | `uint32` | `optional` |  |  |
+| 44 | `region_select_flags` | `uint32` | `optional` |  |  |
+| 45 | `exclusive_tournament_id` | `uint32` | `optional` |  |  |
+| 47 | `tourney_division_id` | `uint32` | `optional` |  |  |
+| 48 | `tourney_schedule_time` | `uint32` | `optional` |  |  |
+| 49 | `tourney_skill_level` | `uint32` | `optional` |  |  |
+| 50 | `tourney_bracket_round` | `uint32` | `optional` |  |  |
+| 51 | `team_name` | `string` | `optional` |  |  |
+| 52 | `team_ui_logo` | `uint64` | `optional` |  |  |
+| 53 | `team_base_logo` | `uint64` | `optional` |  |  |
+| 54 | `tourney_queue_deadline_time` | `uint32` | `optional` |  |  |
+| 55 | `tourney_queue_deadline_state` | `.ETourneyQueueDeadlineState` | `optional` |  | default = k_ETourneyQueueDeadlineState_Normal |
+| 56 | `party_builder_slots_to_fill` | `uint32` | `optional` |  |  |
+| 57 | `party_builder_match_groups` | `uint32` | `optional` |  |  |
+| 58 | `party_builder_start_time` | `uint32` | `optional` |  |  |
+| 59 | `solo_queue` | `bool` | `optional` |  |  |
+| 61 | `steam_clan_account_id` | `uint32` | `optional` |  |  |
+| 62 | `ready_check` | `.CMsgReadyCheckStatus` | `optional` |  |  |
+| 63 | `custom_game_disabled_until_date` | `uint32` | `optional` |  |  |
+| 64 | `custom_game_disabled_account_id` | `uint32` | `optional` |  |  |
+| 65 | `is_challenge_match` | `bool` | `optional` |  |  |
+| 66 | `party_search_beacon_active` | `bool` | `optional` |  |  |
+| 67 | `matchmaking_flags` | `uint32` | `optional` |  |  |
+| 68 | `high_priority_state` | `.EHighPriorityMMState` | `optional` |  | default = k_EHighPriorityMM_Unknown |
+| 69 | `lane_selections_enabled` | `bool` | `optional` |  |  |
+| 70 | `custom_game_difficulty_mask` | `uint32` | `optional` |  |  |
+| 71 | `is_steam_china` | `bool` | `optional` |  |  |
+| 72 | `bot_difficulty_mask` | `uint32` | `optional` |  |  |
+| 73 | `bot_script_index_mask` | `uint32` | `optional` |  |  |
+| 74 | `restricted_from_ranked` | `bool` | `optional` |  |  |
+| 75 | `restricted_from_ranked_account_id` | `uint32` | `optional` |  |  |
+| 76 | `rank_spread_likert_scale` | `uint32` | `optional` |  |  |
+| 77 | `behavior_score_likert_scale` | `uint32` | `optional` |  |  |
+| 78 | `contains_required_playtester` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -118,14 +118,14 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `group_id` | `uint64` | `optional` | `` | (key_field) = true |
-| 2 | `sender_id` | `fixed64` | `optional` | `` |  |
-| 3 | `sender_name` | `string` | `optional` | `` |  |
-| 4 | `members` | `.CSODOTAPartyInvite.PartyMember` | `repeated` | `` |  |
-| 5 | `team_id` | `uint32` | `optional` | `` |  |
-| 6 | `low_priority_status` | `bool` | `optional` | `` |  |
-| 7 | `as_coach` | `bool` | `optional` | `` |  |
-| 8 | `invite_gid` | `fixed64` | `optional` | `` |  |
+| 1 | `group_id` | `uint64` | `optional` |  | (key_field) = true |
+| 2 | `sender_id` | `fixed64` | `optional` |  |  |
+| 3 | `sender_name` | `string` | `optional` |  |  |
+| 4 | `members` | `.CSODOTAPartyInvite.PartyMember` | `repeated` |  |  |
+| 5 | `team_id` | `uint32` | `optional` |  |  |
+| 6 | `low_priority_status` | `bool` | `optional` |  |  |
+| 7 | `as_coach` | `bool` | `optional` |  |  |
+| 8 | `invite_gid` | `fixed64` | `optional` |  |  |
 
 </details>
 
@@ -137,9 +137,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `name` | `string` | `optional` | `` |  |
-| 2 | `steam_id` | `fixed64` | `optional` | `` |  |
-| 4 | `is_coach` | `bool` | `optional` | `` |  |
+| 1 | `name` | `string` | `optional` |  |  |
+| 2 | `steam_id` | `fixed64` | `optional` |  |  |
+| 4 | `is_coach` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -151,12 +151,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `lobby_state` | `uint32` | `optional` | `` |  |
-| 2 | `game_state` | `.DOTA_GameState` | `optional` | `` | default = DOTA_GAMERULES_STATE_INIT |
-| 3 | `leaver_detected` | `bool` | `optional` | `` |  |
-| 4 | `first_blood_happened` | `bool` | `optional` | `` |  |
-| 5 | `discard_match_results` | `bool` | `optional` | `` |  |
-| 6 | `mass_disconnect` | `bool` | `optional` | `` |  |
+| 1 | `lobby_state` | `uint32` | `optional` |  |  |
+| 2 | `game_state` | `.DOTA_GameState` | `optional` |  | default = DOTA_GAMERULES_STATE_INIT |
+| 3 | `leaver_detected` | `bool` | `optional` |  |  |
+| 4 | `first_blood_happened` | `bool` | `optional` |  |  |
+| 5 | `discard_match_results` | `bool` | `optional` |  |  |
+| 6 | `mass_disconnect` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -168,10 +168,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `start_timestamp` | `uint32` | `optional` | `` |  |
-| 2 | `finish_timestamp` | `uint32` | `optional` | `` |  |
-| 3 | `initiator_account_id` | `uint32` | `optional` | `` |  |
-| 4 | `ready_members` | `.CMsgReadyCheckStatus.ReadyMember` | `repeated` | `` |  |
+| 1 | `start_timestamp` | `uint32` | `optional` |  |  |
+| 2 | `finish_timestamp` | `uint32` | `optional` |  |  |
+| 3 | `initiator_account_id` | `uint32` | `optional` |  |  |
+| 4 | `ready_members` | `.CMsgReadyCheckStatus.ReadyMember` | `repeated` |  |  |
 
 </details>
 
@@ -183,8 +183,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `ready_status` | `.EReadyCheckStatus` | `optional` | `` | default = k_EReadyCheckStatus_Unknown |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `ready_status` | `.EReadyCheckStatus` | `optional` |  | default = k_EReadyCheckStatus_Unknown |
 
 </details>
 
@@ -208,7 +208,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.EReadyCheckRequestResult` | `optional` | `` | default = k_EReadyCheckRequestResult_Success |
+| 1 | `result` | `.EReadyCheckRequestResult` | `optional` |  | default = k_EReadyCheckRequestResult_Success |
 
 </details>
 
@@ -220,7 +220,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `ready_status` | `.EReadyCheckStatus` | `optional` | `` | default = k_EReadyCheckStatus_Unknown |
+| 1 | `ready_status` | `.EReadyCheckStatus` | `optional` |  | default = k_EReadyCheckStatus_Unknown |
 
 </details>
 
@@ -232,7 +232,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `kv_data` | `bytes` | `optional` | `` |  |
+| 1 | `kv_data` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -244,9 +244,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `average_queue_time` | `uint32` | `optional` | `` |  |
-| 2 | `maximum_queue_time` | `uint32` | `optional` | `` |  |
-| 3 | `behavior_score_variance` | `.EMatchBehaviorScoreVariance` | `optional` | `` | default = k_EMatchBehaviorScoreVariance_Invalid |
+| 1 | `average_queue_time` | `uint32` | `optional` |  |  |
+| 2 | `maximum_queue_time` | `uint32` | `optional` |  |  |
+| 3 | `behavior_score_variance` | `.EMatchBehaviorScoreVariance` | `optional` |  | default = k_EMatchBehaviorScoreVariance_Invalid |
 
 </details>
 
@@ -258,8 +258,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `mvps` | `.CMvpData.MvpDatum` | `repeated` | `` |  |
-| 2 | `event_mvps` | `.CMvpData.MvpDatum` | `repeated` | `` |  |
+| 1 | `mvps` | `.CMvpData.MvpDatum` | `repeated` |  |  |
+| 2 | `event_mvps` | `.CMvpData.MvpDatum` | `repeated` |  |  |
 
 </details>
 
@@ -271,8 +271,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `player_slot` | `uint32` | `optional` | `` |  |
-| 2 | `accolades` | `.CMvpData.MvpDatum.MvpAccolade` | `repeated` | `` |  |
+| 1 | `player_slot` | `uint32` | `optional` |  |  |
+| 2 | `accolades` | `.CMvpData.MvpDatum.MvpAccolade` | `repeated` |  |  |
 
 </details>
 
@@ -284,8 +284,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `type` | `.CMvpData.MvpDatum.MvpAccolade.MvpAccoladeType` | `optional` | `` | default = kills |
-| 2 | `detail_value` | `float` | `optional` | `` |  |
+| 1 | `type` | `.CMvpData.MvpDatum.MvpAccolade.MvpAccoladeType` | `optional` |  | default = kills |
+| 2 | `detail_value` | `float` | `optional` |  |  |
 
 </details>
 

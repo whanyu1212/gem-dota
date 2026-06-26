@@ -83,8 +83,8 @@ Source: [src/gem/extractors/teamfights.py:80](https://github.com/whanyu1212/gem-
 | `radiant_kills` | `int` | `0` |
 | `dire_kills` | `int` | `0` |
 | `winner` | `str` | `'unknown'` |
-| `centroid_x` | `float | None` | `None` |
-| `centroid_y` | `float | None` | `None` |
+| `centroid_x` | `float \| None` | `None` |
+| `centroid_y` | `float \| None` | `None` |
 | `centroid_n` | `int` | `0` |
 | `players` | `list[TeamfightPlayer]` | `field(...)` |
 
@@ -113,8 +113,8 @@ Source: [src/gem/extractors/teamfights.py:120](https://github.com/whanyu1212/gem
 | `healing` | `int` | `0` |
 | `gold_delta` | `int` | `0` |
 | `xp_delta` | `int` | `0` |
-| `xp_start` | `int | None` | `None` |
-| `xp_end` | `int | None` | `None` |
+| `xp_start` | `int \| None` | `None` |
+| `xp_end` | `int \| None` | `None` |
 
 ### `OpenDotaTeamfight`
 

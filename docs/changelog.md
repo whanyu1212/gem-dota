@@ -1,3 +1,7 @@
+---
+pageClass: changelog-minimal
+---
+
 # Changelog
 
 This page is a curated narrative summary of the parser, validation, and report changes that materially affect how `gem` behaves today.

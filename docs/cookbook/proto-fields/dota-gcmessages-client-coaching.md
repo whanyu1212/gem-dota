@@ -24,13 +24,13 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `match_id` | `uint64` | `optional` | `` |  |
-| 2 | `match_outcome` | `.EMatchOutcome` | `optional` | `` | default = k_EMatchOutcome_Unknown |
-| 3 | `coached_team` | `uint32` | `optional` | `` |  |
-| 4 | `start_time` | `fixed32` | `optional` | `` |  |
-| 5 | `duration` | `uint32` | `optional` | `` |  |
-| 6 | `teammate_ratings` | `.ECoachTeammateRating` | `repeated` | `` |  |
-| 7 | `coach_flags` | `uint32` | `optional` | `` |  |
+| 1 | `match_id` | `uint64` | `optional` |  |  |
+| 2 | `match_outcome` | `.EMatchOutcome` | `optional` |  | default = k_EMatchOutcome_Unknown |
+| 3 | `coached_team` | `uint32` | `optional` |  |  |
+| 4 | `start_time` | `fixed32` | `optional` |  |  |
+| 5 | `duration` | `uint32` | `optional` |  |  |
+| 6 | `teammate_ratings` | `.ECoachTeammateRating` | `repeated` |  |  |
+| 7 | `coach_flags` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -42,9 +42,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `member_flags` | `uint32` | `optional` | `` |  |
-| 3 | `member_session_rating` | `.ECoachTeammateRating` | `optional` | `` | default = k_ECoachTeammateRating_None |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `member_flags` | `uint32` | `optional` |  |  |
+| 3 | `member_session_rating` | `.ECoachTeammateRating` | `optional` |  | default = k_ECoachTeammateRating_None |
 
 </details>
 
@@ -56,15 +56,15 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `private_coaching_session_id` | `uint64` | `optional` | `` |  |
-| 2 | `requested_timestamp` | `fixed32` | `optional` | `` |  |
-| 3 | `requested_language` | `uint32` | `optional` | `` |  |
-| 4 | `coaching_session_state` | `.EPrivateCoachingSessionState` | `optional` | `` | default = k_ePrivateCoachingSessionState_Invalid |
-| 5 | `session_members` | `.CMsgPrivateCoachingSessionMember` | `repeated` | `` |  |
-| 6 | `current_lobby_id` | `uint64` | `optional` | `` |  |
-| 7 | `current_server_steam_id` | `uint64` | `optional` | `` |  |
-| 8 | `accepted_timestamp` | `fixed32` | `optional` | `` |  |
-| 9 | `completed_timestamp` | `fixed32` | `optional` | `` |  |
+| 1 | `private_coaching_session_id` | `uint64` | `optional` |  |  |
+| 2 | `requested_timestamp` | `fixed32` | `optional` |  |  |
+| 3 | `requested_language` | `uint32` | `optional` |  |  |
+| 4 | `coaching_session_state` | `.EPrivateCoachingSessionState` | `optional` |  | default = k_ePrivateCoachingSessionState_Invalid |
+| 5 | `session_members` | `.CMsgPrivateCoachingSessionMember` | `repeated` |  |  |
+| 6 | `current_lobby_id` | `uint64` | `optional` |  |  |
+| 7 | `current_server_steam_id` | `uint64` | `optional` |  |  |
+| 8 | `accepted_timestamp` | `fixed32` | `optional` |  |  |
+| 9 | `completed_timestamp` | `fixed32` | `optional` |  |  |
 
 </details>
 
@@ -76,8 +76,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `requester_competitive_rank_tier` | `uint32` | `optional` | `` |  |
-| 2 | `requester_games_played` | `uint32` | `optional` | `` |  |
+| 1 | `requester_competitive_rank_tier` | `uint32` | `optional` |  |  |
+| 2 | `requester_games_played` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -89,8 +89,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `coaching_session` | `.CMsgPrivateCoachingSession` | `optional` | `` |  |
-| 2 | `coaching_session_status` | `.CMsgPrivateCoachingSessionStatus` | `optional` | `` |  |
+| 1 | `coaching_session` | `.CMsgPrivateCoachingSession` | `optional` |  |  |
+| 2 | `coaching_session_status` | `.CMsgPrivateCoachingSessionStatus` | `optional` |  |  |
 
 </details>
 
@@ -102,7 +102,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `available_coaching_sessions` | `.CMsgAvailablePrivateCoachingSession` | `repeated` | `` |  |
+| 1 | `available_coaching_sessions` | `.CMsgAvailablePrivateCoachingSession` | `repeated` |  |  |
 
 </details>
 
@@ -114,7 +114,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `coaching_session_count` | `uint32` | `optional` | `` |  |
+| 1 | `coaching_session_count` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -138,8 +138,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCRequestPlayerCoachMatchesResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `coach_matches` | `.CMsgPlayerCoachMatch` | `repeated` | `` |  |
+| 1 | `result` | `.CMsgClientToGCRequestPlayerCoachMatchesResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `coach_matches` | `.CMsgPlayerCoachMatch` | `repeated` |  |  |
 
 </details>
 
@@ -151,7 +151,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `match_id` | `uint64` | `optional` | `` |  |
+| 1 | `match_id` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -163,8 +163,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCRequestPlayerCoachMatchResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `coach_match` | `.CMsgPlayerCoachMatch` | `optional` | `` |  |
+| 1 | `result` | `.CMsgClientToGCRequestPlayerCoachMatchResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `coach_match` | `.CMsgPlayerCoachMatch` | `optional` |  |  |
 
 </details>
 
@@ -176,10 +176,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `match_id` | `uint64` | `optional` | `` |  |
-| 2 | `coach_account_id` | `uint32` | `optional` | `` |  |
-| 3 | `rating` | `.ECoachTeammateRating` | `optional` | `` | default = k_ECoachTeammateRating_None |
-| 4 | `reason` | `string` | `optional` | `` |  |
+| 1 | `match_id` | `uint64` | `optional` |  |  |
+| 2 | `coach_account_id` | `uint32` | `optional` |  |  |
+| 3 | `rating` | `.ECoachTeammateRating` | `optional` |  | default = k_ECoachTeammateRating_None |
+| 4 | `reason` | `string` | `optional` |  |  |
 
 </details>
 
@@ -191,7 +191,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCSubmitCoachTeammateRatingResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `result` | `.CMsgClientToGCSubmitCoachTeammateRatingResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -203,7 +203,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `coach_match` | `.CMsgPlayerCoachMatch` | `optional` | `` |  |
+| 1 | `coach_match` | `.CMsgPlayerCoachMatch` | `optional` |  |  |
 
 </details>
 
@@ -215,7 +215,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `language` | `uint32` | `optional` | `` |  |
+| 1 | `language` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -227,8 +227,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCRequestPrivateCoachingSessionResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `coaching_session` | `.CMsgPrivateCoachingSession` | `optional` | `` |  |
+| 1 | `result` | `.CMsgClientToGCRequestPrivateCoachingSessionResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `coaching_session` | `.CMsgPrivateCoachingSession` | `optional` |  |  |
 
 </details>
 
@@ -240,7 +240,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `coaching_session_id` | `uint64` | `optional` | `` |  |
+| 1 | `coaching_session_id` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -252,8 +252,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `coaching_session` | `.CMsgPrivateCoachingSession` | `optional` | `` |  |
+| 1 | `result` | `.CMsgClientToGCAcceptPrivateCoachingSessionResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `coaching_session` | `.CMsgPrivateCoachingSession` | `optional` |  |  |
 
 </details>
 
@@ -277,7 +277,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCLeavePrivateCoachingSessionResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `result` | `.CMsgClientToGCLeavePrivateCoachingSessionResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -301,8 +301,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCGetCurrentPrivateCoachingSessionResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `current_session` | `.CMsgPrivateCoachingSession` | `optional` | `` |  |
+| 1 | `result` | `.CMsgClientToGCGetCurrentPrivateCoachingSessionResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `current_session` | `.CMsgPrivateCoachingSession` | `optional` |  |  |
 
 </details>
 
@@ -314,7 +314,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `coaching_session` | `.CMsgPrivateCoachingSession` | `optional` | `` |  |
+| 1 | `coaching_session` | `.CMsgPrivateCoachingSession` | `optional` |  |  |
 
 </details>
 
@@ -326,8 +326,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `coaching_session_id` | `uint64` | `optional` | `` |  |
-| 2 | `session_rating` | `.ECoachTeammateRating` | `optional` | `` | default = k_ECoachTeammateRating_None |
+| 1 | `coaching_session_id` | `uint64` | `optional` |  |  |
+| 2 | `session_rating` | `.ECoachTeammateRating` | `optional` |  | default = k_ECoachTeammateRating_None |
 
 </details>
 
@@ -339,7 +339,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `result` | `.CMsgClientToGCSubmitPrivateCoachingSessionRatingResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -351,7 +351,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `language` | `uint32` | `optional` | `` |  |
+| 1 | `language` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -363,8 +363,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCGetAvailablePrivateCoachingSessionsResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `available_sessions_list` | `.CMsgAvailablePrivateCoachingSessionList` | `optional` | `` |  |
+| 1 | `result` | `.CMsgClientToGCGetAvailablePrivateCoachingSessionsResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `available_sessions_list` | `.CMsgAvailablePrivateCoachingSessionList` | `optional` |  |  |
 
 </details>
 
@@ -388,8 +388,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCGetAvailablePrivateCoachingSessionsSummaryResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `coaching_session_summary` | `.CMsgAvailablePrivateCoachingSessionSummary` | `optional` | `` |  |
+| 1 | `result` | `.CMsgClientToGCGetAvailablePrivateCoachingSessionsSummaryResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `coaching_session_summary` | `.CMsgAvailablePrivateCoachingSessionSummary` | `optional` |  |  |
 
 </details>
 
@@ -413,7 +413,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `result` | `.CMsgClientToGCJoinPrivateCoachingSessionLobbyResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -425,7 +425,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `target_account_id` | `uint32` | `optional` | `` |  |
+| 1 | `target_account_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -437,7 +437,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCCoachFriendResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `result` | `.CMsgClientToGCCoachFriendResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -449,8 +449,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `coach_account_id` | `uint32` | `optional` | `` |  |
-| 2 | `response` | `.ELobbyMemberCoachRequestState` | `optional` | `` | default = k_eLobbyMemberCoachRequestState_None |
+| 1 | `coach_account_id` | `uint32` | `optional` |  |  |
+| 2 | `response` | `.ELobbyMemberCoachRequestState` | `optional` |  | default = k_eLobbyMemberCoachRequestState_None |
 
 </details>
 
@@ -462,7 +462,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCRespondToCoachFriendRequestResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `result` | `.CMsgClientToGCRespondToCoachFriendRequestResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
