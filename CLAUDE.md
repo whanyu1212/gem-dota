@@ -110,6 +110,7 @@ extractors/lane.py          ← lane-position heatmaps
 extractors/courier.py       ← courier state
 extractors/draft.py         ← pick/ban resolution (three-tier hero-ID resolution)
 extractors/teamfights.py    ← teamfight window detection + per-fight stat attribution
+extractors/smoke_vision.py  ← Smoke of Deceit + vision-granting modifier events
 extractors/_snapshots.py    ← shared snapshot dataclasses/sampling helpers
 ```
 
@@ -208,6 +209,12 @@ Reference: `refs/parser/src/main/java/opendota/processors/warding/Wards.java` �
 
 ### Smoke of Deceit — empty group edge case
 
+Smoke and vision-granting modifier collection lives in
+`extractors/smoke_vision.py` (`SmokeExtractor`, `VisionModifierExtractor`),
+attached by `api.parse()` like the other extractors (`attach()`/`finalize()`;
+`finalize()` back-fills teams/centroids from `PlayerExtractor` snapshots). These
+are internal extractors, not part of the public `extractors` `__all__`.
+
 Tracking smoke:
 1. `ITEM` event (`inflictor_name = "item_smoke_of_deceit"`) — item consumed
 2. `MODIFIER_ADD` events (`inflictor_name = "modifier_smoke_of_deceit"`, `target_is_hero = True`) — one per hero that receives the buff
@@ -272,24 +279,38 @@ immediate-outcome window 180 s, event-association window 30 s. It reads only
 
 ## Deferred: buyback cost breakdown (reliable vs unreliable gold)
 
-The HTML report buybacks section shows only time/hero/team. Adding a reliable/unreliable gold
-cost breakdown was investigated but deferred. Key findings:
+Tracked in **issue #119**. A reliable/unreliable gold cost breakdown was
+investigated and deferred. Current state and findings:
 
-- `m_vecDataTeam.{slot}.m_iReliableGold` / `m_iUnreliableGold` on `CDOTADataRadiant/Dire`
-  exist and are readable, but reflect **remaining gold after** the buyback deduction — not the
-  cost paid.
-- `CDOTAUserMsg_SendFinalGold` (type 514) provides per-player reliable/unreliable gold at game
-  end only — not per buyback event.
+- **The HTML report already shows an approximate per-buyback cost.**
+  `reports/sections/economy.py::build_buybacks` renders a "Gold Spent" column
+  using a net-worth formula (`cost = 200 + net_worth // 13`). What is missing is
+  (a) the cost as real `ParsedMatch` data rather than a view-layer computation,
+  and (b) the reliable-vs-unreliable split. `ParsedPlayer.buyback_log` currently
+  holds raw `CombatLogEntry` objects with no cost field.
+- ⚠️ **Formula inconsistency to fix:** this note historically gave the formula as
+  `200 + net_worth / 12`, but the shipped report uses `200 + net_worth // 13`.
+  Centralize it in one helper and make note + code agree.
+- `m_vecDataTeam.{slot}.m_iReliableGold` / `m_iUnreliableGold` on
+  `CDOTADataRadiant/Dire` are readable, but reflect **remaining gold after** the
+  buyback deduction — not the cost paid.
+- `CDOTAUserMsg_SendFinalGold` provides per-player reliable/unreliable gold at game
+  end only — not per buyback event. (Proto is present in `src/gem/proto/` but the
+  parser does not consume it today.)
 - The buyback cost is not stored directly in the entity stream.
 
-**Approaches to explore when revisiting:**
-1. Event-driven sampling: hook the BUYBACK combat log entry and snapshot gold immediately before
-   it fires (requires sampling outside the periodic `_maybe_sample()` loop).
-2. Formula approximation: `cost ≈ 200 + net_worth / 12` (capped ~2100 in Dota 7.x). Net worth
-   at buyback tick is available from the nearest `PlayerStateSnapshot`.
+**Approaches to explore when revisiting (see #119 for the full scoping):**
+1. Formula approximation (cheap, total only): promote the existing report formula
+   into a `results/derived.py` helper + a model field; net worth at the buyback
+   tick comes from the nearest `PlayerStateSnapshot`. Cannot produce the split.
+2. Event-driven sampling (exact, needed for the split): hook the BUYBACK combat-log
+   entry and snapshot `m_iReliableGold`/`m_iUnreliableGold` immediately before vs
+   after it fires (requires sampling outside the periodic `_maybe_sample()` loop);
+   the before-minus-after delta per pool is the exact amount paid.
 
-**Files to change:** `extractors/_snapshots.py`, `extractors/players.py`,
-`results/models.py`, `results/assembly.py`, `reports/_sections.py`.
+**Files to change:** `results/models.py`, `results/assembly.py`,
+`results/derived.py` (formula helper), `reports/sections/economy.py`; plus
+`extractors/_snapshots.py` / `extractors/players.py` for Approach 2 only.
 
 ## Code Style
 
@@ -362,18 +383,22 @@ Key message classes used throughout the parser:
 
 ## Status
 
-Current version: **0.3.0** (see `pyproject.toml` and `CHANGELOG.md`).
+Current version: **0.4.2** (see `pyproject.toml` and `CHANGELOG.md`).
 
 The full parsing pipeline and all extractors are complete and stable: binary
 reader, entity system, combat log (S1+S2), string tables, every extractor, the
 `ParsedMatch` output model, DataFrame/JSON/Parquet export, bulk parsing, and
-replay fetch. Recent work is feature/data refreshes (neutral items, camp-zone
-annotations, Roshan conversion, OpenDota validation fixtures) rather than new
-core subsystems.
+replay fetch. Recent work (0.4.x) has been **OpenDota match-API parity** — final
+inventories, kill breakdowns, per-inflictor/per-target combat dicts, purchase
+timeline, building bitmasks, interval/advantage curves — plus code-quality
+refactors, rather than new core subsystems. `gem-dota` is published to PyPI.
 
 In flight / deferred:
-- **Distribution** — PyPI packaging + CI/CD (`gem-dota` on PyPI). 🚧
 - **Rust extension** (PyO3 + maturin) for a 3–5× speedup. Deferred.
+- **Buyback cost breakdown** (reliable/unreliable gold) — see the deferred
+  section above and issue #119.
+- Documented OpenDota-parity boundaries (replay vs Game-Coordinator data) tracked
+  in issues #67 / #68 / #93 — these are GC-only and exact only via API enrichment.
 
 `CHANGELOG.md` is the per-release record; consult it before assuming a feature's
 state rather than trusting a static table here.
