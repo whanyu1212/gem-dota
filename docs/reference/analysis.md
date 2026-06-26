@@ -706,10 +706,10 @@ Source: [src/gem/analysis/map_context.py:40](https://github.com/whanyu1212/gem-d
 | `tower_alive_dire` | `int` | `-` |
 | `t1_mid_alive_radiant` | `bool` | `-` |
 | `t1_mid_alive_dire` | `bool` | `-` |
-| `roshan_last_kill_tick` | `int | None` | `-` |
-| `aegis_holder_team` | `int | None` | `-` |
+| `roshan_last_kill_tick` | `int \| None` | `-` |
+| `aegis_holder_team` | `int \| None` | `-` |
 | `aegis_active` | `bool` | `-` |
-| `tormentor_last_kill_tick` | `int | None` | `-` |
+| `tormentor_last_kill_tick` | `int \| None` | `-` |
 | `ward_count_radiant` | `int` | `-` |
 | `ward_count_dire` | `int` | `-` |
 | `net_worth_advantage` | `int` | `-` |
@@ -791,17 +791,17 @@ Source: [src/gem/analysis/roshan.py:55](https://github.com/whanyu1212/gem-dota/b
 | `rosh_number` | `int` | `-` |
 | `rosh_tick` | `int` | `-` |
 | `killer_name` | `str` | `-` |
-| `holder_team` | `int | None` | `-` |
-| `holder_player_id` | `int | None` | `-` |
+| `holder_team` | `int \| None` | `-` |
+| `holder_player_id` | `int \| None` | `-` |
 | `holder_name` | `str` | `-` |
-| `aegis_pickup_tick` | `int | None` | `-` |
+| `aegis_pickup_tick` | `int \| None` | `-` |
 | `immediate_end_tick` | `int` | `-` |
 | `aegis_end_tick` | `int` | `-` |
 | `aegis_eval_end_tick` | `int` | `-` |
 | `extended_end_tick` | `int` | `-` |
 | `aegis_fate` | `Literal['consumed', 'expired', 'denied', 'game_end', 'unknown']` | `-` |
-| `first_fight_tick` | `int | None` | `-` |
-| `first_objective_tick` | `int | None` | `-` |
+| `first_fight_tick` | `int \| None` | `-` |
+| `first_objective_tick` | `int \| None` | `-` |
 | `fight_count` | `int` | `-` |
 | `fights_won` | `int` | `-` |
 | `fights_lost` | `int` | `-` |

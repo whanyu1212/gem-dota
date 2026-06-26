@@ -24,11 +24,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `send_table_crc` | `fixed32` | `optional` | `` |  |
-| 2 | `server_count` | `uint32` | `optional` | `` |  |
-| 3 | `is_hltv` | `bool` | `optional` | `` |  |
-| 5 | `friends_id` | `uint32` | `optional` | `` |  |
-| 6 | `friends_name` | `string` | `optional` | `` |  |
+| 1 | `send_table_crc` | `fixed32` | `optional` |  |  |
+| 2 | `server_count` | `uint32` | `optional` |  |  |
+| 3 | `is_hltv` | `bool` | `optional` |  |  |
+| 5 | `friends_id` | `uint32` | `optional` |  |  |
+| 6 | `friends_name` | `string` | `optional` |  |  |
 
 </details>
 
@@ -40,8 +40,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 3 | `data` | `bytes` | `optional` | `` |  |
-| 4 | `last_command_number` | `uint32` | `optional` | `` |  |
+| 3 | `data` | `bytes` | `optional` |  |  |
+| 4 | `last_command_number` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -53,15 +53,15 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `format` | `.VoiceDataFormat_t` | `optional` | `` | default = VOICEDATA_FORMAT_STEAM |
-| 2 | `voice_data` | `bytes` | `optional` | `` |  |
-| 3 | `sequence_bytes` | `int32` | `optional` | `` |  |
-| 4 | `section_number` | `uint32` | `optional` | `` |  |
-| 5 | `sample_rate` | `uint32` | `optional` | `` |  |
-| 6 | `uncompressed_sample_offset` | `uint32` | `optional` | `` |  |
-| 7 | `num_packets` | `uint32` | `optional` | `` |  |
-| 8 | `packet_offsets` | `uint32` | `repeated` | `` | packed = true |
-| 9 | `voice_level` | `float` | `optional` | `` |  |
+| 1 | `format` | `.VoiceDataFormat_t` | `optional` |  | default = VOICEDATA_FORMAT_STEAM |
+| 2 | `voice_data` | `bytes` | `optional` |  |  |
+| 3 | `sequence_bytes` | `int32` | `optional` |  |  |
+| 4 | `section_number` | `uint32` | `optional` |  |  |
+| 5 | `sample_rate` | `uint32` | `optional` |  |  |
+| 6 | `uncompressed_sample_offset` | `uint32` | `optional` |  |  |
+| 7 | `num_packets` | `uint32` | `optional` |  |  |
+| 8 | `packet_offsets` | `uint32` | `repeated` |  | packed = true |
+| 9 | `voice_level` | `float` | `optional` |  |  |
 
 </details>
 
@@ -73,9 +73,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `audio` | `.CMsgVoiceAudio` | `optional` | `` |  |
-| 2 | `xuid` | `fixed64` | `optional` | `` |  |
-| 3 | `tick` | `uint32` | `optional` | `` |  |
+| 1 | `audio` | `.CMsgVoiceAudio` | `optional` |  |  |
+| 2 | `xuid` | `fixed64` | `optional` |  |  |
+| 3 | `tick` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -87,8 +87,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `baseline_tick` | `int32` | `optional` | `` |  |
-| 2 | `baseline_nr` | `int32` | `optional` | `` |  |
+| 1 | `baseline_tick` | `int32` | `optional` |  |  |
+| 2 | `baseline_nr` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -100,7 +100,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `event_mask` | `fixed32` | `repeated` | `` |  |
+| 1 | `event_mask` | `fixed32` | `repeated` |  |  |
 
 </details>
 
@@ -112,10 +112,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `cookie` | `int32` | `optional` | `` |  |
-| 2 | `status_code` | `int32` | `optional` | `` |  |
-| 3 | `name` | `string` | `optional` | `` |  |
-| 4 | `value` | `string` | `optional` | `` |  |
+| 1 | `cookie` | `int32` | `optional` |  |  |
+| 2 | `status_code` | `int32` | `optional` |  |  |
+| 3 | `name` | `string` | `optional` |  |  |
+| 4 | `value` | `string` | `optional` |  |  |
 
 </details>
 
@@ -127,7 +127,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `progress` | `int32` | `optional` | `` |  |
+| 1 | `progress` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -139,7 +139,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `playername` | `string` | `optional` | `` |  |
+| 1 | `playername` | `string` | `optional` |  |  |
 
 </details>
 
@@ -151,7 +151,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `slot` | `int32` | `optional` | `` |  |
+| 1 | `slot` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -163,7 +163,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `simplified` | `bool` | `optional` | `` |  |
+| 1 | `simplified` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -175,8 +175,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `pause_type` | `.RequestPause_t` | `optional` | `` | default = RP_PAUSE |
-| 2 | `pause_group` | `int32` | `optional` | `` |  |
+| 1 | `pause_type` | `.RequestPause_t` | `optional` |  | default = RP_PAUSE |
+| 2 | `pause_group` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -188,7 +188,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `data` | `bytes` | `optional` | `` |  |
+| 1 | `data` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -200,7 +200,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `token` | `bytes` | `optional` | `` |  |
+| 1 | `token` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -212,11 +212,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `system_specs` | `.CMsgSource2SystemSpecs` | `optional` | `` |  |
-| 2 | `vprof_report` | `.CMsgSource2VProfLiteReport` | `optional` | `` |  |
-| 3 | `downstream_flow` | `.CMsgSource2NetworkFlowQuality` | `optional` | `` |  |
-| 4 | `upstream_flow` | `.CMsgSource2NetworkFlowQuality` | `optional` | `` |  |
-| 5 | `perf_samples` | `.CMsgSource2PerfIntervalSample` | `repeated` | `` |  |
+| 1 | `system_specs` | `.CMsgSource2SystemSpecs` | `optional` |  |  |
+| 2 | `vprof_report` | `.CMsgSource2VProfLiteReport` | `optional` |  |  |
+| 3 | `downstream_flow` | `.CMsgSource2NetworkFlowQuality` | `optional` |  |  |
+| 4 | `upstream_flow` | `.CMsgSource2NetworkFlowQuality` | `optional` |  |  |
+| 5 | `perf_samples` | `.CMsgSource2PerfIntervalSample` | `repeated` |  |  |
 
 </details>
 
@@ -228,22 +228,22 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `protocol` | `int32` | `optional` | `` |  |
-| 2 | `server_count` | `int32` | `optional` | `` |  |
-| 3 | `is_dedicated` | `bool` | `optional` | `` |  |
-| 4 | `is_hltv` | `bool` | `optional` | `` |  |
-| 6 | `c_os` | `int32` | `optional` | `` |  |
-| 10 | `max_clients` | `int32` | `optional` | `` |  |
-| 11 | `max_classes` | `int32` | `optional` | `` |  |
-| 12 | `player_slot` | `int32` | `optional` | `` | default = -1 |
-| 13 | `tick_interval` | `float` | `optional` | `` |  |
-| 14 | `game_dir` | `string` | `optional` | `` |  |
-| 15 | `map_name` | `string` | `optional` | `` |  |
-| 16 | `sky_name` | `string` | `optional` | `` |  |
-| 17 | `host_name` | `string` | `optional` | `` |  |
-| 18 | `addon_name` | `string` | `optional` | `` |  |
-| 19 | `game_session_config` | `.CSVCMsg_GameSessionConfiguration` | `optional` | `` |  |
-| 20 | `game_session_manifest` | `bytes` | `optional` | `` |  |
+| 1 | `protocol` | `int32` | `optional` |  |  |
+| 2 | `server_count` | `int32` | `optional` |  |  |
+| 3 | `is_dedicated` | `bool` | `optional` |  |  |
+| 4 | `is_hltv` | `bool` | `optional` |  |  |
+| 6 | `c_os` | `int32` | `optional` |  |  |
+| 10 | `max_clients` | `int32` | `optional` |  |  |
+| 11 | `max_classes` | `int32` | `optional` |  |  |
+| 12 | `player_slot` | `int32` | `optional` |  | default = -1 |
+| 13 | `tick_interval` | `float` | `optional` |  |  |
+| 14 | `game_dir` | `string` | `optional` |  |  |
+| 15 | `map_name` | `string` | `optional` |  |  |
+| 16 | `sky_name` | `string` | `optional` |  |  |
+| 17 | `host_name` | `string` | `optional` |  |  |
+| 18 | `addon_name` | `string` | `optional` |  |  |
+| 19 | `game_session_config` | `.CSVCMsg_GameSessionConfiguration` | `optional` |  |  |
+| 20 | `game_session_manifest` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -255,8 +255,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `create_on_client` | `bool` | `optional` | `` |  |
-| 2 | `classes` | `.CSVCMsg_ClassInfo.class_t` | `repeated` | `` |  |
+| 1 | `create_on_client` | `bool` | `optional` |  |  |
+| 2 | `classes` | `.CSVCMsg_ClassInfo.class_t` | `repeated` |  |  |
 
 </details>
 
@@ -268,8 +268,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `class_id` | `int32` | `optional` | `` |  |
-| 3 | `class_name` | `string` | `optional` | `` |  |
+| 1 | `class_id` | `int32` | `optional` |  |  |
+| 3 | `class_name` | `string` | `optional` |  |  |
 
 </details>
 
@@ -281,7 +281,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `paused` | `bool` | `optional` | `` |  |
+| 1 | `paused` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -293,9 +293,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `quality` | `int32` | `optional` | `` |  |
-| 2 | `codec` | `string` | `optional` | `` |  |
-| 3 | `version` | `int32` | `optional` | `` | default = 0 |
+| 1 | `quality` | `int32` | `optional` |  |  |
+| 2 | `codec` | `string` | `optional` |  |  |
+| 3 | `version` | `int32` | `optional` |  | default = 0 |
 
 </details>
 
@@ -307,7 +307,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `text` | `string` | `optional` | `` |  |
+| 1 | `text` | `string` | `optional` |  |  |
 
 </details>
 
@@ -319,8 +319,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `reliable_sound` | `bool` | `optional` | `` |  |
-| 2 | `sounds` | `.CSVCMsg_Sounds.sounddata_t` | `repeated` | `` |  |
+| 1 | `reliable_sound` | `bool` | `optional` |  |  |
+| 2 | `sounds` | `.CSVCMsg_Sounds.sounddata_t` | `repeated` |  |  |
 
 </details>
 
@@ -332,25 +332,25 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `origin_x` | `sint32` | `optional` | `` |  |
-| 2 | `origin_y` | `sint32` | `optional` | `` |  |
-| 3 | `origin_z` | `sint32` | `optional` | `` |  |
-| 4 | `volume` | `uint32` | `optional` | `` |  |
-| 5 | `delay_value` | `float` | `optional` | `` |  |
-| 6 | `sequence_number` | `int32` | `optional` | `` |  |
-| 7 | `entity_index` | `int32` | `optional` | `` | default = -1 |
-| 8 | `channel` | `int32` | `optional` | `` |  |
-| 9 | `pitch` | `int32` | `optional` | `` |  |
-| 10 | `flags` | `int32` | `optional` | `` |  |
-| 11 | `sound_num` | `uint32` | `optional` | `` |  |
-| 12 | `sound_num_handle` | `fixed32` | `optional` | `` |  |
-| 13 | `speaker_entity` | `int32` | `optional` | `` |  |
-| 14 | `random_seed` | `int32` | `optional` | `` |  |
-| 15 | `sound_level` | `int32` | `optional` | `` |  |
-| 16 | `is_sentence` | `bool` | `optional` | `` |  |
-| 17 | `is_ambient` | `bool` | `optional` | `` |  |
-| 18 | `guid` | `uint32` | `optional` | `` |  |
-| 19 | `sound_resource_id` | `fixed64` | `optional` | `` |  |
+| 1 | `origin_x` | `sint32` | `optional` |  |  |
+| 2 | `origin_y` | `sint32` | `optional` |  |  |
+| 3 | `origin_z` | `sint32` | `optional` |  |  |
+| 4 | `volume` | `uint32` | `optional` |  |  |
+| 5 | `delay_value` | `float` | `optional` |  |  |
+| 6 | `sequence_number` | `int32` | `optional` |  |  |
+| 7 | `entity_index` | `int32` | `optional` |  | default = -1 |
+| 8 | `channel` | `int32` | `optional` |  |  |
+| 9 | `pitch` | `int32` | `optional` |  |  |
+| 10 | `flags` | `int32` | `optional` |  |  |
+| 11 | `sound_num` | `uint32` | `optional` |  |  |
+| 12 | `sound_num_handle` | `fixed32` | `optional` |  |  |
+| 13 | `speaker_entity` | `int32` | `optional` |  |  |
+| 14 | `random_seed` | `int32` | `optional` |  |  |
+| 15 | `sound_level` | `int32` | `optional` |  |  |
+| 16 | `is_sentence` | `bool` | `optional` |  |  |
+| 17 | `is_ambient` | `bool` | `optional` |  |  |
+| 18 | `guid` | `uint32` | `optional` |  |  |
+| 19 | `sound_resource_id` | `fixed64` | `optional` |  |  |
 
 </details>
 
@@ -362,8 +362,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `sound_index` | `int32` | `optional` | `` |  |
-| 2 | `resource_type` | `.PrefetchType` | `optional` | `` | default = PFT_SOUND |
+| 1 | `sound_index` | `int32` | `optional` |  |  |
+| 2 | `resource_type` | `.PrefetchType` | `optional` |  | default = PFT_SOUND |
 
 </details>
 
@@ -375,8 +375,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `entity_index` | `int32` | `optional` | `` | default = -1 |
-| 2 | `slot` | `int32` | `optional` | `` | default = -1 |
+| 1 | `entity_index` | `int32` | `optional` |  | default = -1 |
+| 2 | `slot` | `int32` | `optional` |  | default = -1 |
 
 </details>
 
@@ -388,8 +388,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `relative` | `bool` | `optional` | `` |  |
-| 2 | `angle` | `.CMsgQAngle` | `optional` | `` |  |
+| 1 | `relative` | `bool` | `optional` |  |  |
+| 2 | `angle` | `.CMsgQAngle` | `optional` |  |  |
 
 </details>
 
@@ -401,7 +401,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `angle` | `.CMsgQAngle` | `optional` | `` |  |
+| 1 | `angle` | `.CMsgQAngle` | `optional` |  |  |
 
 </details>
 
@@ -413,11 +413,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `pos` | `.CMsgVector` | `optional` | `` |  |
-| 2 | `decal_texture_index` | `int32` | `optional` | `` |  |
-| 3 | `entity_index` | `int32` | `optional` | `` | default = -1 |
-| 4 | `model_index` | `int32` | `optional` | `` |  |
-| 5 | `low_priority` | `bool` | `optional` | `` |  |
+| 1 | `pos` | `.CMsgVector` | `optional` |  |  |
+| 2 | `decal_texture_index` | `int32` | `optional` |  |  |
+| 3 | `entity_index` | `int32` | `optional` |  | default = -1 |
+| 4 | `model_index` | `int32` | `optional` |  |  |
+| 5 | `low_priority` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -429,9 +429,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `type` | `.ESplitScreenMessageType` | `optional` | `` | default = MSG_SPLITSCREEN_ADDUSER |
-| 2 | `slot` | `int32` | `optional` | `` |  |
-| 3 | `player_index` | `int32` | `optional` | `` | default = -1 |
+| 1 | `type` | `.ESplitScreenMessageType` | `optional` |  | default = MSG_SPLITSCREEN_ADDUSER |
+| 2 | `slot` | `int32` | `optional` |  |  |
+| 3 | `player_index` | `int32` | `optional` |  | default = -1 |
 
 </details>
 
@@ -443,8 +443,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `cookie` | `int32` | `optional` | `` |  |
-| 2 | `cvar_name` | `string` | `optional` | `` |  |
+| 1 | `cookie` | `int32` | `optional` |  |  |
+| 2 | `cvar_name` | `string` | `optional` |  |  |
 
 </details>
 
@@ -456,8 +456,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `dialog_type` | `int32` | `optional` | `` |  |
-| 2 | `menu_key_values` | `bytes` | `optional` | `` |  |
+| 1 | `dialog_type` | `int32` | `optional` |  |  |
+| 2 | `menu_key_values` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -469,9 +469,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `msg_type` | `int32` | `optional` | `` |  |
-| 2 | `msg_data` | `bytes` | `optional` | `` |  |
-| 3 | `passthrough` | `int32` | `optional` | `` |  |
+| 1 | `msg_type` | `int32` | `optional` |  |  |
+| 2 | `msg_data` | `bytes` | `optional` |  |  |
+| 3 | `passthrough` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -483,10 +483,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `is_end` | `bool` | `optional` | `` |  |
-| 2 | `net_table_name` | `string` | `optional` | `` |  |
-| 3 | `needs_decoder` | `bool` | `optional` | `` |  |
-| 4 | `props` | `.CSVCMsg_SendTable.sendprop_t` | `repeated` | `` |  |
+| 1 | `is_end` | `bool` | `optional` |  |  |
+| 2 | `net_table_name` | `string` | `optional` |  |  |
+| 3 | `needs_decoder` | `bool` | `optional` |  |  |
+| 4 | `props` | `.CSVCMsg_SendTable.sendprop_t` | `repeated` |  |  |
 
 </details>
 
@@ -498,15 +498,15 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `type` | `int32` | `optional` | `` |  |
-| 2 | `var_name` | `string` | `optional` | `` |  |
-| 3 | `flags` | `int32` | `optional` | `` |  |
-| 4 | `priority` | `int32` | `optional` | `` |  |
-| 5 | `dt_name` | `string` | `optional` | `` |  |
-| 6 | `num_elements` | `int32` | `optional` | `` |  |
-| 7 | `low_value` | `float` | `optional` | `` |  |
-| 8 | `high_value` | `float` | `optional` | `` |  |
-| 9 | `num_bits` | `int32` | `optional` | `` |  |
+| 1 | `type` | `int32` | `optional` |  |  |
+| 2 | `var_name` | `string` | `optional` |  |  |
+| 3 | `flags` | `int32` | `optional` |  |  |
+| 4 | `priority` | `int32` | `optional` |  |  |
+| 5 | `dt_name` | `string` | `optional` |  |  |
+| 6 | `num_elements` | `int32` | `optional` |  |  |
+| 7 | `low_value` | `float` | `optional` |  |  |
+| 8 | `high_value` | `float` | `optional` |  |  |
+| 9 | `num_bits` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -518,7 +518,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `descriptors` | `.CSVCMsg_GameEventList.descriptor_t` | `repeated` | `` |  |
+| 1 | `descriptors` | `.CSVCMsg_GameEventList.descriptor_t` | `repeated` |  |  |
 
 </details>
 
@@ -530,8 +530,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `type` | `int32` | `optional` | `` |  |
-| 2 | `name` | `string` | `optional` | `` |  |
+| 1 | `type` | `int32` | `optional` |  |  |
+| 2 | `name` | `string` | `optional` |  |  |
 
 </details>
 
@@ -543,9 +543,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `eventid` | `int32` | `optional` | `` |  |
-| 2 | `name` | `string` | `optional` | `` |  |
-| 3 | `keys` | `.CSVCMsg_GameEventList.key_t` | `repeated` | `` |  |
+| 1 | `eventid` | `int32` | `optional` |  |  |
+| 2 | `name` | `string` | `optional` |  |  |
+| 3 | `keys` | `.CSVCMsg_GameEventList.key_t` | `repeated` |  |  |
 
 </details>
 
@@ -557,28 +557,28 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `max_entries` | `int32` | `optional` | `` |  |
-| 2 | `updated_entries` | `int32` | `optional` | `` |  |
-| 3 | `legacy_is_delta` | `bool` | `optional` | `` |  |
-| 4 | `update_baseline` | `bool` | `optional` | `` |  |
-| 5 | `baseline` | `int32` | `optional` | `` |  |
-| 6 | `delta_from` | `int32` | `optional` | `` |  |
-| 7 | `entity_data` | `bytes` | `optional` | `` |  |
-| 8 | `pending_full_frame` | `bool` | `optional` | `` |  |
-| 9 | `active_spawngroup_handle` | `uint32` | `optional` | `` |  |
-| 10 | `max_spawngroup_creationsequence` | `uint32` | `optional` | `` |  |
-| 11 | `last_cmd_number_executed` | `uint32` | `optional` | `` |  |
-| 12 | `server_tick` | `uint32` | `optional` | `` |  |
-| 13 | `serialized_entities` | `bytes` | `optional` | `` |  |
-| 15 | `alternate_baselines` | `.CSVCMsg_PacketEntities.alternate_baseline_t` | `repeated` | `` |  |
-| 16 | `has_pvs_vis_bits_deprecated` | `uint32` | `optional` | `` |  |
-| 17 | `last_cmd_number_recv_delta` | `sint32` | `optional` | `` |  |
-| 19 | `non_transmitted_entities` | `.CSVCMsg_PacketEntities.non_transmitted_entities_t` | `optional` | `` |  |
-| 20 | `cq_starved_command_ticks` | `uint32` | `optional` | `` |  |
-| 21 | `cq_discarded_command_ticks` | `uint32` | `optional` | `` |  |
-| 22 | `cmd_recv_status` | `sint32` | `repeated` | `` | packed = true |
-| 23 | `outofpvs_entity_updates` | `.CSVCMsg_PacketEntities.outofpvs_entity_updates_t` | `optional` | `` |  |
-| 999 | `dev_padding` | `bytes` | `optional` | `` |  |
+| 1 | `max_entries` | `int32` | `optional` |  |  |
+| 2 | `updated_entries` | `int32` | `optional` |  |  |
+| 3 | `legacy_is_delta` | `bool` | `optional` |  |  |
+| 4 | `update_baseline` | `bool` | `optional` |  |  |
+| 5 | `baseline` | `int32` | `optional` |  |  |
+| 6 | `delta_from` | `int32` | `optional` |  |  |
+| 7 | `entity_data` | `bytes` | `optional` |  |  |
+| 8 | `pending_full_frame` | `bool` | `optional` |  |  |
+| 9 | `active_spawngroup_handle` | `uint32` | `optional` |  |  |
+| 10 | `max_spawngroup_creationsequence` | `uint32` | `optional` |  |  |
+| 11 | `last_cmd_number_executed` | `uint32` | `optional` |  |  |
+| 12 | `server_tick` | `uint32` | `optional` |  |  |
+| 13 | `serialized_entities` | `bytes` | `optional` |  |  |
+| 15 | `alternate_baselines` | `.CSVCMsg_PacketEntities.alternate_baseline_t` | `repeated` |  |  |
+| 16 | `has_pvs_vis_bits_deprecated` | `uint32` | `optional` |  |  |
+| 17 | `last_cmd_number_recv_delta` | `sint32` | `optional` |  |  |
+| 19 | `non_transmitted_entities` | `.CSVCMsg_PacketEntities.non_transmitted_entities_t` | `optional` |  |  |
+| 20 | `cq_starved_command_ticks` | `uint32` | `optional` |  |  |
+| 21 | `cq_discarded_command_ticks` | `uint32` | `optional` |  |  |
+| 22 | `cmd_recv_status` | `sint32` | `repeated` |  | packed = true |
+| 23 | `outofpvs_entity_updates` | `.CSVCMsg_PacketEntities.outofpvs_entity_updates_t` | `optional` |  |  |
+| 999 | `dev_padding` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -590,8 +590,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `entity_index` | `int32` | `optional` | `` |  |
-| 2 | `baseline_index` | `int32` | `optional` | `` |  |
+| 1 | `entity_index` | `int32` | `optional` |  |  |
+| 2 | `baseline_index` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -603,8 +603,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `header_count` | `int32` | `optional` | `` |  |
-| 2 | `data` | `bytes` | `optional` | `` |  |
+| 1 | `header_count` | `int32` | `optional` |  |  |
+| 2 | `data` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -616,8 +616,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `count` | `int32` | `optional` | `` |  |
-| 2 | `data` | `bytes` | `optional` | `` |  |
+| 1 | `count` | `int32` | `optional` |  |  |
+| 2 | `data` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -629,9 +629,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `reliable` | `bool` | `optional` | `` |  |
-| 2 | `num_entries` | `int32` | `optional` | `` |  |
-| 3 | `entity_data` | `bytes` | `optional` | `` |  |
+| 1 | `reliable` | `bool` | `optional` |  |  |
+| 2 | `num_entries` | `int32` | `optional` |  |  |
+| 3 | `entity_data` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -643,16 +643,16 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `name` | `string` | `optional` | `` |  |
-| 2 | `num_entries` | `int32` | `optional` | `` |  |
-| 3 | `user_data_fixed_size` | `bool` | `optional` | `` |  |
-| 4 | `user_data_size` | `int32` | `optional` | `` |  |
-| 5 | `user_data_size_bits` | `int32` | `optional` | `` |  |
-| 6 | `flags` | `int32` | `optional` | `` |  |
-| 7 | `string_data` | `bytes` | `optional` | `` |  |
-| 8 | `uncompressed_size` | `int32` | `optional` | `` |  |
-| 9 | `data_compressed` | `bool` | `optional` | `` |  |
-| 10 | `using_varint_bitcounts` | `bool` | `optional` | `` |  |
+| 1 | `name` | `string` | `optional` |  |  |
+| 2 | `num_entries` | `int32` | `optional` |  |  |
+| 3 | `user_data_fixed_size` | `bool` | `optional` |  |  |
+| 4 | `user_data_size` | `int32` | `optional` |  |  |
+| 5 | `user_data_size_bits` | `int32` | `optional` |  |  |
+| 6 | `flags` | `int32` | `optional` |  |  |
+| 7 | `string_data` | `bytes` | `optional` |  |  |
+| 8 | `uncompressed_size` | `int32` | `optional` |  |  |
+| 9 | `data_compressed` | `bool` | `optional` |  |  |
+| 10 | `using_varint_bitcounts` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -664,9 +664,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `table_id` | `int32` | `optional` | `` |  |
-| 2 | `num_changed_entries` | `int32` | `optional` | `` |  |
-| 3 | `string_data` | `bytes` | `optional` | `` |  |
+| 1 | `table_id` | `int32` | `optional` |  |  |
+| 2 | `num_changed_entries` | `int32` | `optional` |  |  |
+| 3 | `string_data` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -678,13 +678,13 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `audio` | `.CMsgVoiceAudio` | `optional` | `` |  |
-| 2 | `client` | `int32` | `optional` | `` | default = -1 |
-| 3 | `proximity` | `bool` | `optional` | `` |  |
-| 4 | `xuid` | `fixed64` | `optional` | `` |  |
-| 5 | `audible_mask` | `int32` | `optional` | `` |  |
-| 6 | `tick` | `uint32` | `optional` | `` |  |
-| 7 | `passthrough` | `int32` | `optional` | `` |  |
+| 1 | `audio` | `.CMsgVoiceAudio` | `optional` |  |  |
+| 2 | `client` | `int32` | `optional` |  | default = -1 |
+| 3 | `proximity` | `bool` | `optional` |  |  |
+| 4 | `xuid` | `fixed64` | `optional` |  |  |
+| 5 | `audible_mask` | `int32` | `optional` |  |  |
+| 6 | `tick` | `uint32` | `optional` |  |  |
+| 7 | `passthrough` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -696,9 +696,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `tick` | `int32` | `optional` | `` |  |
-| 2 | `messagessize` | `int32` | `optional` | `` |  |
-| 3 | `state` | `bool` | `optional` | `` |  |
+| 1 | `tick` | `int32` | `optional` |  |  |
+| 2 | `messagessize` | `int32` | `optional` |  |  |
+| 3 | `state` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -710,10 +710,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `tick` | `int32` | `optional` | `` |  |
-| 2 | `section` | `int32` | `optional` | `` |  |
-| 3 | `total` | `int32` | `optional` | `` |  |
-| 4 | `data` | `bytes` | `optional` | `` |  |
+| 1 | `tick` | `int32` | `optional` |  |  |
+| 2 | `section` | `int32` | `optional` |  |  |
+| 3 | `total` | `int32` | `optional` |  |  |
+| 4 | `data` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -725,10 +725,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `master` | `string` | `optional` | `` |  |
-| 2 | `clients` | `int32` | `optional` | `` |  |
-| 3 | `slots` | `int32` | `optional` | `` |  |
-| 4 | `proxies` | `int32` | `optional` | `` |  |
+| 1 | `master` | `string` | `optional` |  |  |
+| 2 | `clients` | `int32` | `optional` |  |  |
+| 3 | `slots` | `int32` | `optional` |  |  |
+| 4 | `proxies` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -740,7 +740,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steam_id` | `uint64` | `optional` | `` |  |
+| 1 | `steam_id` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -752,7 +752,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `data` | `bytes` | `optional` | `` |  |
+| 1 | `data` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -764,8 +764,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `token` | `bytes` | `optional` | `` |  |
-| 2 | `details` | `string` | `optional` | `` |  |
+| 1 | `token` | `bytes` | `optional` |  |  |
+| 2 | `details` | `string` | `optional` |  |  |
 
 </details>
 
@@ -777,8 +777,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `computer_guid` | `fixed64` | `optional` | `` |  |
-| 2 | `process_id` | `uint32` | `optional` | `` |  |
+| 1 | `computer_guid` | `fixed64` | `optional` |  |  |
+| 2 | `process_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -790,12 +790,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `player_slot` | `int32` | `optional` | `` | default = -1 |
-| 2 | `steamid` | `fixed64` | `optional` | `` |  |
-| 3 | `ipc` | `.CMsgIPCAddress` | `optional` | `` |  |
-| 4 | `they_hear_you` | `bool` | `optional` | `` |  |
-| 5 | `you_hear_them` | `bool` | `optional` | `` |  |
-| 6 | `is_listenserver_host` | `bool` | `optional` | `` |  |
+| 1 | `player_slot` | `int32` | `optional` |  | default = -1 |
+| 2 | `steamid` | `fixed64` | `optional` |  |  |
+| 3 | `ipc` | `.CMsgIPCAddress` | `optional` |  |  |
+| 4 | `they_hear_you` | `bool` | `optional` |  |  |
+| 5 | `you_hear_them` | `bool` | `optional` |  |  |
+| 6 | `is_listenserver_host` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -807,7 +807,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `peer` | `.CMsgServerPeer` | `repeated` | `` |  |
+| 1 | `peer` | `.CMsgServerPeer` | `repeated` |  |  |
 
 </details>
 
@@ -819,8 +819,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `mapname` | `string` | `optional` | `` |  |
-| 3 | `create_tables_skipped` | `bool` | `optional` | `` |  |
+| 1 | `mapname` | `string` | `optional` |  |  |
+| 3 | `create_tables_skipped` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -832,18 +832,18 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `var_type_sym` | `int32` | `optional` | `` |  |
-| 2 | `var_name_sym` | `int32` | `optional` | `` |  |
-| 3 | `bit_count` | `int32` | `optional` | `` |  |
-| 4 | `low_value` | `float` | `optional` | `` |  |
-| 5 | `high_value` | `float` | `optional` | `` |  |
-| 6 | `encode_flags` | `int32` | `optional` | `` |  |
-| 7 | `field_serializer_name_sym` | `int32` | `optional` | `` |  |
-| 8 | `field_serializer_version` | `int32` | `optional` | `` |  |
-| 9 | `send_node_sym` | `int32` | `optional` | `` |  |
-| 10 | `var_encoder_sym` | `int32` | `optional` | `` |  |
-| 11 | `polymorphic_types` | `.ProtoFlattenedSerializerField_t.polymorphic_field_t` | `repeated` | `` |  |
-| 12 | `var_serializer_sym` | `int32` | `optional` | `` |  |
+| 1 | `var_type_sym` | `int32` | `optional` |  |  |
+| 2 | `var_name_sym` | `int32` | `optional` |  |  |
+| 3 | `bit_count` | `int32` | `optional` |  |  |
+| 4 | `low_value` | `float` | `optional` |  |  |
+| 5 | `high_value` | `float` | `optional` |  |  |
+| 6 | `encode_flags` | `int32` | `optional` |  |  |
+| 7 | `field_serializer_name_sym` | `int32` | `optional` |  |  |
+| 8 | `field_serializer_version` | `int32` | `optional` |  |  |
+| 9 | `send_node_sym` | `int32` | `optional` |  |  |
+| 10 | `var_encoder_sym` | `int32` | `optional` |  |  |
+| 11 | `polymorphic_types` | `.ProtoFlattenedSerializerField_t.polymorphic_field_t` | `repeated` |  |  |
+| 12 | `var_serializer_sym` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -855,8 +855,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `polymorphic_field_serializer_name_sym` | `int32` | `optional` | `` |  |
-| 2 | `polymorphic_field_serializer_version` | `int32` | `optional` | `` |  |
+| 1 | `polymorphic_field_serializer_name_sym` | `int32` | `optional` |  |  |
+| 2 | `polymorphic_field_serializer_version` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -868,9 +868,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `serializer_name_sym` | `int32` | `optional` | `` |  |
-| 2 | `serializer_version` | `int32` | `optional` | `` |  |
-| 3 | `fields_index` | `int32` | `repeated` | `` |  |
+| 1 | `serializer_name_sym` | `int32` | `optional` |  |  |
+| 2 | `serializer_version` | `int32` | `optional` |  |  |
+| 3 | `fields_index` | `int32` | `repeated` |  |  |
 
 </details>
 
@@ -882,9 +882,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `serializers` | `.ProtoFlattenedSerializer_t` | `repeated` | `` |  |
-| 2 | `symbols` | `string` | `repeated` | `` |  |
-| 3 | `fields` | `.ProtoFlattenedSerializerField_t` | `repeated` | `` |  |
+| 1 | `serializers` | `.ProtoFlattenedSerializer_t` | `repeated` |  |  |
+| 2 | `symbols` | `string` | `repeated` |  |  |
+| 3 | `fields` | `.ProtoFlattenedSerializerField_t` | `repeated` |  |  |
 
 </details>
 
@@ -896,7 +896,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guid` | `fixed32` | `optional` | `` |  |
+| 1 | `guid` | `fixed32` | `optional` |  |  |
 
 </details>
 
@@ -908,10 +908,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `posttoserver` | `bool` | `optional` | `` |  |
-| 2 | `buftype` | `int32` | `optional` | `` |  |
-| 3 | `clientbitcount` | `uint32` | `optional` | `` |  |
-| 4 | `receivingclients` | `uint64` | `optional` | `` |  |
+| 1 | `posttoserver` | `bool` | `optional` |  |  |
+| 2 | `buftype` | `int32` | `optional` |  |  |
+| 3 | `clientbitcount` | `uint32` | `optional` |  |  |
+| 4 | `receivingclients` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -923,7 +923,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `eventsource` | `int32` | `optional` | `` |  |
+| 1 | `eventsource` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -935,10 +935,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `event_id` | `uint32` | `optional` | `` |  |
-| 2 | `event_data` | `bytes` | `optional` | `` |  |
-| 3 | `sync_type` | `uint32` | `optional` | `` |  |
-| 4 | `sync_val_uint32` | `uint32` | `optional` | `` |  |
+| 1 | `event_id` | `uint32` | `optional` |  |  |
+| 2 | `event_data` | `bytes` | `optional` |  |  |
+| 3 | `sync_type` | `uint32` | `optional` |  |  |
+| 4 | `sync_val_uint32` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -950,31 +950,31 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `dedicated` | `bool` | `optional` | `` |  |
-| 2 | `cpu_usage` | `int32` | `optional` | `` |  |
-| 3 | `memory_used_mb` | `int32` | `optional` | `` |  |
-| 4 | `memory_free_mb` | `int32` | `optional` | `` |  |
-| 5 | `uptime` | `int32` | `optional` | `` |  |
-| 6 | `spawn_count` | `int32` | `optional` | `` |  |
-| 8 | `num_clients` | `int32` | `optional` | `` |  |
-| 9 | `num_bots` | `int32` | `optional` | `` |  |
-| 10 | `num_spectators` | `int32` | `optional` | `` |  |
-| 11 | `num_tv_relays` | `int32` | `optional` | `` |  |
-| 12 | `fps` | `float` | `optional` | `` |  |
-| 17 | `ports` | `.CMsgServerNetworkStats.Port` | `repeated` | `` |  |
-| 18 | `avg_ping_ms` | `float` | `optional` | `` |  |
-| 19 | `avg_engine_latency_out` | `float` | `optional` | `` |  |
-| 20 | `avg_packets_out` | `float` | `optional` | `` |  |
-| 21 | `avg_packets_in` | `float` | `optional` | `` |  |
-| 22 | `avg_loss_out` | `float` | `optional` | `` |  |
-| 23 | `avg_loss_in` | `float` | `optional` | `` |  |
-| 24 | `avg_data_out` | `float` | `optional` | `` |  |
-| 25 | `avg_data_in` | `float` | `optional` | `` |  |
-| 26 | `total_data_in` | `uint64` | `optional` | `` |  |
-| 27 | `total_packets_in` | `uint64` | `optional` | `` |  |
-| 28 | `total_data_out` | `uint64` | `optional` | `` |  |
-| 29 | `total_packets_out` | `uint64` | `optional` | `` |  |
-| 30 | `players` | `.CMsgServerNetworkStats.Player` | `repeated` | `` |  |
+| 1 | `dedicated` | `bool` | `optional` |  |  |
+| 2 | `cpu_usage` | `int32` | `optional` |  |  |
+| 3 | `memory_used_mb` | `int32` | `optional` |  |  |
+| 4 | `memory_free_mb` | `int32` | `optional` |  |  |
+| 5 | `uptime` | `int32` | `optional` |  |  |
+| 6 | `spawn_count` | `int32` | `optional` |  |  |
+| 8 | `num_clients` | `int32` | `optional` |  |  |
+| 9 | `num_bots` | `int32` | `optional` |  |  |
+| 10 | `num_spectators` | `int32` | `optional` |  |  |
+| 11 | `num_tv_relays` | `int32` | `optional` |  |  |
+| 12 | `fps` | `float` | `optional` |  |  |
+| 17 | `ports` | `.CMsgServerNetworkStats.Port` | `repeated` |  |  |
+| 18 | `avg_ping_ms` | `float` | `optional` |  |  |
+| 19 | `avg_engine_latency_out` | `float` | `optional` |  |  |
+| 20 | `avg_packets_out` | `float` | `optional` |  |  |
+| 21 | `avg_packets_in` | `float` | `optional` |  |  |
+| 22 | `avg_loss_out` | `float` | `optional` |  |  |
+| 23 | `avg_loss_in` | `float` | `optional` |  |  |
+| 24 | `avg_data_out` | `float` | `optional` |  |  |
+| 25 | `avg_data_in` | `float` | `optional` |  |  |
+| 26 | `total_data_in` | `uint64` | `optional` |  |  |
+| 27 | `total_packets_in` | `uint64` | `optional` |  |  |
+| 28 | `total_data_out` | `uint64` | `optional` |  |  |
+| 29 | `total_packets_out` | `uint64` | `optional` |  |  |
+| 30 | `players` | `.CMsgServerNetworkStats.Player` | `repeated` |  |  |
 
 </details>
 
@@ -986,8 +986,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `port` | `int32` | `optional` | `` |  |
-| 2 | `name` | `string` | `optional` | `` |  |
+| 1 | `port` | `int32` | `optional` |  |  |
+| 2 | `name` | `string` | `optional` |  |  |
 
 </details>
 
@@ -999,14 +999,14 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steamid` | `uint64` | `optional` | `` |  |
-| 2 | `remote_addr` | `string` | `optional` | `` |  |
-| 4 | `ping_avg_ms` | `int32` | `optional` | `` |  |
-| 5 | `packet_loss_pct` | `float` | `optional` | `` |  |
-| 6 | `is_bot` | `bool` | `optional` | `` |  |
-| 7 | `loss_in` | `float` | `optional` | `` |  |
-| 8 | `loss_out` | `float` | `optional` | `` |  |
-| 9 | `engine_latency_ms` | `int32` | `optional` | `` |  |
+| 1 | `steamid` | `uint64` | `optional` |  |  |
+| 2 | `remote_addr` | `string` | `optional` |  |  |
+| 4 | `ping_avg_ms` | `int32` | `optional` |  |  |
+| 5 | `packet_loss_pct` | `float` | `optional` |  |  |
+| 6 | `is_bot` | `bool` | `optional` |  |  |
+| 7 | `loss_in` | `float` | `optional` |  |  |
+| 8 | `loss_out` | `float` | `optional` |  |  |
+| 9 | `engine_latency_ms` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -1018,14 +1018,14 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `delay` | `int32` | `optional` | `` |  |
-| 2 | `primary_target` | `int32` | `optional` | `` | default = -1 |
-| 3 | `replay_stop_at` | `int32` | `optional` | `` |  |
-| 4 | `replay_start_at` | `int32` | `optional` | `` |  |
-| 5 | `replay_slowdown_begin` | `int32` | `optional` | `` |  |
-| 6 | `replay_slowdown_end` | `int32` | `optional` | `` |  |
-| 7 | `replay_slowdown_rate` | `float` | `optional` | `` |  |
-| 8 | `reason` | `int32` | `optional` | `` |  |
+| 1 | `delay` | `int32` | `optional` |  |  |
+| 2 | `primary_target` | `int32` | `optional` |  | default = -1 |
+| 3 | `replay_stop_at` | `int32` | `optional` |  |  |
+| 4 | `replay_start_at` | `int32` | `optional` |  |  |
+| 5 | `replay_slowdown_begin` | `int32` | `optional` |  |  |
+| 6 | `replay_slowdown_end` | `int32` | `optional` |  |  |
+| 7 | `replay_slowdown_rate` | `float` | `optional` |  |  |
+| 8 | `reason` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -1037,11 +1037,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `request` | `int32` | `optional` | `` |  |
-| 2 | `slowdown_length` | `float` | `optional` | `` |  |
-| 3 | `slowdown_rate` | `float` | `optional` | `` |  |
-| 4 | `primary_target` | `int32` | `optional` | `` | default = -1 |
-| 5 | `event_time` | `float` | `optional` | `` |  |
+| 1 | `request` | `int32` | `optional` |  |  |
+| 2 | `slowdown_length` | `float` | `optional` |  |  |
+| 3 | `slowdown_rate` | `float` | `optional` |  |  |
+| 4 | `primary_target` | `int32` | `optional` |  | default = -1 |
+| 5 | `event_time` | `float` | `optional` |  |  |
 
 </details>
 
@@ -1053,7 +1053,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `cmd` | `string` | `optional` | `` |  |
+| 1 | `cmd` | `string` | `optional` |  |  |
 
 </details>
 
@@ -1065,14 +1065,14 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `tick` | `int32` | `optional` | `` |  |
-| 2 | `props_data` | `bytes` | `optional` | `` |  |
-| 3 | `origin` | `.CMsgVector` | `optional` | `` |  |
-| 4 | `eye_angles` | `.CMsgQAngle` | `optional` | `` |  |
-| 5 | `observer_mode` | `int32` | `optional` | `` |  |
-| 6 | `cameraman_scoreboard` | `bool` | `optional` | `` |  |
-| 7 | `observer_target` | `int32` | `optional` | `` |  |
-| 8 | `view_offset` | `.CMsgVector` | `optional` | `` |  |
+| 1 | `tick` | `int32` | `optional` |  |  |
+| 2 | `props_data` | `bytes` | `optional` |  |  |
+| 3 | `origin` | `.CMsgVector` | `optional` |  |  |
+| 4 | `eye_angles` | `.CMsgQAngle` | `optional` |  |  |
+| 5 | `observer_mode` | `int32` | `optional` |  |  |
+| 6 | `cameraman_scoreboard` | `bool` | `optional` |  |  |
+| 7 | `observer_target` | `int32` | `optional` |  |  |
+| 8 | `view_offset` | `.CMsgVector` | `optional` |  |  |
 
 </details>
 
@@ -1084,8 +1084,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `mode` | `uint32` | `optional` | `` |  |
-| 2 | `override_operator_name` | `string` | `optional` | `` |  |
+| 1 | `mode` | `uint32` | `optional` |  |  |
+| 2 | `override_operator_name` | `string` | `optional` |  |  |
 
 </details>
 
@@ -1097,11 +1097,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `data` | `bytes` | `optional` | `` |  |
-| 2 | `cmd_number` | `int32` | `optional` | `` |  |
-| 3 | `player_slot` | `int32` | `optional` | `` | default = -1 |
-| 4 | `server_tick_executed` | `int32` | `optional` | `` |  |
-| 5 | `client_tick` | `int32` | `optional` | `` |  |
+| 1 | `data` | `bytes` | `optional` |  |  |
+| 2 | `cmd_number` | `int32` | `optional` |  |  |
+| 3 | `player_slot` | `int32` | `optional` |  | default = -1 |
+| 4 | `server_tick_executed` | `int32` | `optional` |  |  |
+| 5 | `client_tick` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -1113,7 +1113,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `commands` | `.CMsgServerUserCmd` | `repeated` | `` |  |
+| 1 | `commands` | `.CMsgServerUserCmd` | `repeated` |  |  |
 
 </details>
 
@@ -1125,8 +1125,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `predicted_by_player_slot` | `int32` | `optional` | `` | default = -1 |
-| 2 | `message_type_id` | `uint32` | `optional` | `` |  |
+| 1 | `predicted_by_player_slot` | `int32` | `optional` |  | default = -1 |
+| 2 | `message_type_id` | `uint32` | `optional` |  |  |
 
 </details>
 

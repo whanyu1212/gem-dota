@@ -23,8 +23,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `pos` | `.CMsgVector` | `optional` | `` |  |
-| 2 | `dir` | `.CMsgVector` | `optional` | `` |  |
+| 1 | `pos` | `.CMsgVector` | `optional` |  |  |
+| 2 | `dir` | `.CMsgVector` | `optional` |  |  |
 
 </details>
 
@@ -36,18 +36,18 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `modelindex` | `fixed64` | `optional` | `` |  |
-| 2 | `haloindex` | `fixed64` | `optional` | `` |  |
-| 3 | `startframe` | `uint32` | `optional` | `` |  |
-| 4 | `framerate` | `uint32` | `optional` | `` |  |
-| 5 | `life` | `float` | `optional` | `` |  |
-| 6 | `width` | `float` | `optional` | `` |  |
-| 7 | `endwidth` | `float` | `optional` | `` |  |
-| 8 | `fadelength` | `uint32` | `optional` | `` |  |
-| 9 | `amplitude` | `float` | `optional` | `` |  |
-| 10 | `color` | `fixed32` | `optional` | `` |  |
-| 11 | `speed` | `uint32` | `optional` | `` |  |
-| 12 | `flags` | `uint32` | `optional` | `` |  |
+| 1 | `modelindex` | `fixed64` | `optional` |  |  |
+| 2 | `haloindex` | `fixed64` | `optional` |  |  |
+| 3 | `startframe` | `uint32` | `optional` |  |  |
+| 4 | `framerate` | `uint32` | `optional` |  |  |
+| 5 | `life` | `float` | `optional` |  |  |
+| 6 | `width` | `float` | `optional` |  |  |
+| 7 | `endwidth` | `float` | `optional` |  |  |
+| 8 | `fadelength` | `uint32` | `optional` |  |  |
+| 9 | `amplitude` | `float` | `optional` |  |  |
+| 10 | `color` | `fixed32` | `optional` |  |  |
+| 11 | `speed` | `uint32` | `optional` |  |  |
+| 12 | `flags` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -59,11 +59,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `base` | `.CMsgTEBaseBeam` | `optional` | `` |  |
-| 2 | `startentity` | `uint32` | `optional` | `` |  |
-| 3 | `endentity` | `uint32` | `optional` | `` |  |
-| 4 | `start` | `.CMsgVector` | `optional` | `` |  |
-| 5 | `end` | `.CMsgVector` | `optional` | `` |  |
+| 1 | `base` | `.CMsgTEBaseBeam` | `optional` |  |  |
+| 2 | `startentity` | `uint32` | `optional` |  |  |
+| 3 | `endentity` | `uint32` | `optional` |  |  |
+| 4 | `start` | `.CMsgVector` | `optional` |  |  |
+| 5 | `end` | `.CMsgVector` | `optional` |  |  |
 
 </details>
 
@@ -75,9 +75,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `base` | `.CMsgTEBaseBeam` | `optional` | `` |  |
-| 2 | `startentity` | `uint32` | `optional` | `` |  |
-| 3 | `endentity` | `uint32` | `optional` | `` |  |
+| 1 | `base` | `.CMsgTEBaseBeam` | `optional` |  |  |
+| 2 | `startentity` | `uint32` | `optional` |  |  |
+| 3 | `endentity` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -89,9 +89,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `base` | `.CMsgTEBaseBeam` | `optional` | `` |  |
-| 2 | `start` | `.CMsgVector` | `optional` | `` |  |
-| 3 | `end` | `.CMsgVector` | `optional` | `` |  |
+| 1 | `base` | `.CMsgTEBaseBeam` | `optional` |  |  |
+| 2 | `start` | `.CMsgVector` | `optional` |  |  |
+| 3 | `end` | `.CMsgVector` | `optional` |  |  |
 
 </details>
 
@@ -103,9 +103,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `base` | `.CMsgTEBaseBeam` | `optional` | `` |  |
-| 2 | `startentity` | `uint32` | `optional` | `` |  |
-| 3 | `endentity` | `uint32` | `optional` | `` |  |
+| 1 | `base` | `.CMsgTEBaseBeam` | `optional` |  |  |
+| 2 | `startentity` | `uint32` | `optional` |  |  |
+| 3 | `endentity` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -117,11 +117,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `mins` | `.CMsgVector` | `optional` | `` |  |
-| 2 | `maxs` | `.CMsgVector` | `optional` | `` |  |
-| 3 | `height` | `float` | `optional` | `` |  |
-| 4 | `count` | `uint32` | `optional` | `` |  |
-| 5 | `speed` | `float` | `optional` | `` |  |
+| 1 | `mins` | `.CMsgVector` | `optional` |  |  |
+| 2 | `maxs` | `.CMsgVector` | `optional` |  |  |
+| 3 | `height` | `float` | `optional` |  |  |
+| 4 | `count` | `uint32` | `optional` |  |  |
+| 5 | `speed` | `float` | `optional` |  |  |
 
 </details>
 
@@ -133,11 +133,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `mins` | `.CMsgVector` | `optional` | `` |  |
-| 2 | `maxs` | `.CMsgVector` | `optional` | `` |  |
-| 3 | `waterz` | `float` | `optional` | `` |  |
-| 4 | `count` | `uint32` | `optional` | `` |  |
-| 5 | `speed` | `float` | `optional` | `` |  |
+| 1 | `mins` | `.CMsgVector` | `optional` |  |  |
+| 2 | `maxs` | `.CMsgVector` | `optional` |  |  |
+| 3 | `waterz` | `float` | `optional` |  |  |
+| 4 | `count` | `uint32` | `optional` |  |  |
+| 5 | `speed` | `float` | `optional` |  |  |
 
 </details>
 
@@ -149,11 +149,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `origin` | `.CMsgVector` | `optional` | `` |  |
-| 2 | `start` | `.CMsgVector` | `optional` | `` |  |
-| 3 | `entity` | `int32` | `optional` | `` | default = -1 |
-| 4 | `hitbox` | `uint32` | `optional` | `` |  |
-| 5 | `index` | `uint32` | `optional` | `` |  |
+| 1 | `origin` | `.CMsgVector` | `optional` |  |  |
+| 2 | `start` | `.CMsgVector` | `optional` |  |  |
+| 3 | `entity` | `int32` | `optional` |  | default = -1 |
+| 4 | `hitbox` | `uint32` | `optional` |  |  |
+| 5 | `index` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -165,25 +165,25 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `origin` | `.CMsgVector` | `optional` | `` |  |
-| 2 | `start` | `.CMsgVector` | `optional` | `` |  |
-| 3 | `normal` | `.CMsgVector` | `optional` | `` |  |
-| 4 | `angles` | `.CMsgQAngle` | `optional` | `` |  |
-| 5 | `entity` | `fixed32` | `optional` | `` | default = 16777215 |
-| 6 | `otherentity` | `fixed32` | `optional` | `` | default = 16777215 |
-| 7 | `scale` | `float` | `optional` | `` |  |
-| 8 | `magnitude` | `float` | `optional` | `` |  |
-| 9 | `radius` | `float` | `optional` | `` |  |
-| 10 | `surfaceprop` | `fixed32` | `optional` | `` |  |
-| 11 | `effectindex` | `fixed64` | `optional` | `` |  |
-| 12 | `damagetype` | `uint32` | `optional` | `` |  |
-| 13 | `material` | `uint32` | `optional` | `` |  |
-| 14 | `hitbox` | `uint32` | `optional` | `` |  |
-| 15 | `color` | `uint32` | `optional` | `` |  |
-| 16 | `flags` | `uint32` | `optional` | `` |  |
-| 17 | `attachmentindex` | `int32` | `optional` | `` |  |
-| 18 | `effectname` | `uint32` | `optional` | `` |  |
-| 19 | `attachmentname` | `uint32` | `optional` | `` | default = 0 |
+| 1 | `origin` | `.CMsgVector` | `optional` |  |  |
+| 2 | `start` | `.CMsgVector` | `optional` |  |  |
+| 3 | `normal` | `.CMsgVector` | `optional` |  |  |
+| 4 | `angles` | `.CMsgQAngle` | `optional` |  |  |
+| 5 | `entity` | `fixed32` | `optional` |  | default = 16777215 |
+| 6 | `otherentity` | `fixed32` | `optional` |  | default = 16777215 |
+| 7 | `scale` | `float` | `optional` |  |  |
+| 8 | `magnitude` | `float` | `optional` |  |  |
+| 9 | `radius` | `float` | `optional` |  |  |
+| 10 | `surfaceprop` | `fixed32` | `optional` |  |  |
+| 11 | `effectindex` | `fixed64` | `optional` |  |  |
+| 12 | `damagetype` | `uint32` | `optional` |  |  |
+| 13 | `material` | `uint32` | `optional` |  |  |
+| 14 | `hitbox` | `uint32` | `optional` |  |  |
+| 15 | `color` | `uint32` | `optional` |  |  |
+| 16 | `flags` | `uint32` | `optional` |  |  |
+| 17 | `attachmentindex` | `int32` | `optional` |  |  |
+| 18 | `effectname` | `uint32` | `optional` |  |  |
+| 19 | `attachmentname` | `uint32` | `optional` |  | default = 0 |
 
 </details>
 
@@ -195,7 +195,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `effectdata` | `.CMsgEffectData` | `optional` | `` |  |
+| 1 | `effectdata` | `.CMsgEffectData` | `optional` |  |  |
 
 </details>
 
@@ -207,9 +207,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `pos` | `.CMsgVector` | `optional` | `` |  |
-| 2 | `dir` | `.CMsgVector` | `optional` | `` |  |
-| 3 | `explosive` | `bool` | `optional` | `` |  |
+| 1 | `pos` | `.CMsgVector` | `optional` |  |  |
+| 2 | `dir` | `.CMsgVector` | `optional` |  |  |
+| 3 | `explosive` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -221,9 +221,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `entity` | `int32` | `optional` | `` | default = -1 |
-| 2 | `density` | `uint32` | `optional` | `` |  |
-| 3 | `current` | `int32` | `optional` | `` |  |
+| 1 | `entity` | `int32` | `optional` |  | default = -1 |
+| 2 | `density` | `uint32` | `optional` |  |  |
+| 3 | `current` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -235,16 +235,16 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `origin` | `.CMsgVector` | `optional` | `` |  |
-| 2 | `angles` | `.CMsgQAngle` | `optional` | `` |  |
-| 3 | `force` | `.CMsgVector` | `optional` | `` |  |
-| 4 | `forcepos` | `.CMsgVector` | `optional` | `` |  |
-| 5 | `width` | `float` | `optional` | `` |  |
-| 6 | `height` | `float` | `optional` | `` |  |
-| 7 | `shardsize` | `float` | `optional` | `` |  |
-| 8 | `surfacetype` | `uint32` | `optional` | `` |  |
-| 9 | `frontcolor` | `fixed32` | `optional` | `` |  |
-| 10 | `backcolor` | `fixed32` | `optional` | `` |  |
+| 1 | `origin` | `.CMsgVector` | `optional` |  |  |
+| 2 | `angles` | `.CMsgQAngle` | `optional` |  |  |
+| 3 | `force` | `.CMsgVector` | `optional` |  |  |
+| 4 | `forcepos` | `.CMsgVector` | `optional` |  |  |
+| 5 | `width` | `float` | `optional` |  |  |
+| 6 | `height` | `float` | `optional` |  |  |
+| 7 | `shardsize` | `float` | `optional` |  |  |
+| 8 | `surfacetype` | `uint32` | `optional` |  |  |
+| 9 | `frontcolor` | `fixed32` | `optional` |  |  |
+| 10 | `backcolor` | `fixed32` | `optional` |  |  |
 
 </details>
 
@@ -256,10 +256,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `origin` | `.CMsgVector` | `optional` | `` |  |
-| 2 | `scale` | `float` | `optional` | `` |  |
-| 3 | `life` | `float` | `optional` | `` |  |
-| 4 | `brightness` | `uint32` | `optional` | `` |  |
+| 1 | `origin` | `.CMsgVector` | `optional` |  |  |
+| 2 | `scale` | `float` | `optional` |  |  |
+| 3 | `life` | `float` | `optional` |  |  |
+| 4 | `brightness` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -271,9 +271,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `origin` | `.CMsgVector` | `optional` | `` |  |
-| 2 | `normal` | `.CMsgVector` | `optional` | `` |  |
-| 3 | `type` | `uint32` | `optional` | `` |  |
+| 1 | `origin` | `.CMsgVector` | `optional` |  |  |
+| 2 | `normal` | `.CMsgVector` | `optional` |  |  |
+| 3 | `type` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -285,10 +285,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `origin` | `.CMsgVector` | `optional` | `` |  |
-| 2 | `angles` | `.CMsgQAngle` | `optional` | `` |  |
-| 3 | `scale` | `float` | `optional` | `` |  |
-| 4 | `type` | `uint32` | `optional` | `` |  |
+| 1 | `origin` | `.CMsgVector` | `optional` |  |  |
+| 2 | `angles` | `.CMsgQAngle` | `optional` |  |  |
+| 3 | `scale` | `float` | `optional` |  |  |
+| 4 | `type` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -300,10 +300,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `origin` | `.CMsgVector` | `optional` | `` |  |
-| 2 | `direction` | `.CMsgVector` | `optional` | `` |  |
-| 3 | `color` | `fixed32` | `optional` | `` |  |
-| 4 | `amount` | `uint32` | `optional` | `` |  |
+| 1 | `origin` | `.CMsgVector` | `optional` |  |  |
+| 2 | `direction` | `.CMsgVector` | `optional` |  |  |
+| 3 | `color` | `fixed32` | `optional` |  |  |
+| 4 | `amount` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -315,18 +315,18 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `origin` | `.CMsgVector` | `optional` | `` |  |
-| 3 | `flags` | `uint32` | `optional` | `` |  |
-| 4 | `normal` | `.CMsgVector` | `optional` | `` |  |
-| 6 | `radius` | `uint32` | `optional` | `` |  |
-| 7 | `magnitude` | `uint32` | `optional` | `` |  |
-| 9 | `affect_ragdolls` | `bool` | `optional` | `` |  |
-| 10 | `sound_name` | `string` | `optional` | `` |  |
-| 11 | `explosion_type` | `uint32` | `optional` | `` |  |
-| 12 | `create_debris` | `bool` | `optional` | `` |  |
-| 13 | `debris_origin` | `.CMsgVector` | `optional` | `` |  |
-| 14 | `debris_surfaceprop` | `fixed32` | `optional` | `` |  |
-| 15 | `explosion_type_name` | `uint32` | `optional` | `` | default = 0 |
+| 1 | `origin` | `.CMsgVector` | `optional` |  |  |
+| 3 | `flags` | `uint32` | `optional` |  |  |
+| 4 | `normal` | `.CMsgVector` | `optional` |  |  |
+| 6 | `radius` | `uint32` | `optional` |  |  |
+| 7 | `magnitude` | `uint32` | `optional` |  |  |
+| 9 | `affect_ragdolls` | `bool` | `optional` |  |  |
+| 10 | `sound_name` | `string` | `optional` |  |  |
+| 11 | `explosion_type` | `uint32` | `optional` |  |  |
+| 12 | `create_debris` | `bool` | `optional` |  |  |
+| 13 | `debris_origin` | `.CMsgVector` | `optional` |  |  |
+| 14 | `debris_surfaceprop` | `fixed32` | `optional` |  |  |
+| 15 | `explosion_type_name` | `uint32` | `optional` |  | default = 0 |
 
 </details>
 
@@ -338,10 +338,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `origin` | `.CMsgVector` | `optional` | `` |  |
-| 2 | `size` | `float` | `optional` | `` |  |
-| 3 | `speed` | `float` | `optional` | `` |  |
-| 4 | `direction` | `.CMsgVector` | `optional` | `` |  |
+| 1 | `origin` | `.CMsgVector` | `optional` |  |  |
+| 2 | `size` | `float` | `optional` |  |  |
+| 3 | `speed` | `float` | `optional` |  |  |
+| 4 | `direction` | `.CMsgVector` | `optional` |  |  |
 
 </details>
 
@@ -353,8 +353,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `origin` | `.CMsgVector` | `optional` | `` |  |
-| 2 | `reversed` | `uint32` | `optional` | `` |  |
+| 1 | `origin` | `.CMsgVector` | `optional` |  |  |
+| 2 | `reversed` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -366,10 +366,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `origin` | `.CMsgVector` | `optional` | `` |  |
-| 2 | `magnitude` | `uint32` | `optional` | `` |  |
-| 3 | `length` | `uint32` | `optional` | `` |  |
-| 4 | `direction` | `.CMsgVector` | `optional` | `` |  |
+| 1 | `origin` | `.CMsgVector` | `optional` |  |  |
+| 2 | `magnitude` | `uint32` | `optional` |  |  |
+| 3 | `length` | `uint32` | `optional` |  |  |
+| 4 | `direction` | `.CMsgVector` | `optional` |  |  |
 
 </details>
 
@@ -381,19 +381,19 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `origin` | `.CMsgVector` | `optional` | `` |  |
-| 2 | `velocity` | `.CMsgVector` | `optional` | `` |  |
-| 3 | `angles` | `.CMsgQAngle` | `optional` | `` |  |
-| 4 | `skin` | `fixed32` | `optional` | `` | default = 0 |
-| 5 | `flags` | `uint32` | `optional` | `` |  |
-| 6 | `effects` | `uint32` | `optional` | `` |  |
-| 7 | `color` | `fixed32` | `optional` | `` |  |
-| 8 | `modelindex` | `fixed64` | `optional` | `` |  |
-| 9 | `unused_breakmodelsnottomake` | `uint32` | `optional` | `` |  |
-| 10 | `scale` | `float` | `optional` | `` |  |
-| 11 | `dmgpos` | `.CMsgVector` | `optional` | `` |  |
-| 12 | `dmgdir` | `.CMsgVector` | `optional` | `` |  |
-| 13 | `dmgtype` | `int32` | `optional` | `` |  |
+| 1 | `origin` | `.CMsgVector` | `optional` |  |  |
+| 2 | `velocity` | `.CMsgVector` | `optional` |  |  |
+| 3 | `angles` | `.CMsgQAngle` | `optional` |  |  |
+| 4 | `skin` | `fixed32` | `optional` |  | default = 0 |
+| 5 | `flags` | `uint32` | `optional` |  |  |
+| 6 | `effects` | `uint32` | `optional` |  |  |
+| 7 | `color` | `fixed32` | `optional` |  |  |
+| 8 | `modelindex` | `fixed64` | `optional` |  |  |
+| 9 | `unused_breakmodelsnottomake` | `uint32` | `optional` |  |  |
+| 10 | `scale` | `float` | `optional` |  |  |
+| 11 | `dmgpos` | `.CMsgVector` | `optional` |  |  |
+| 12 | `dmgdir` | `.CMsgVector` | `optional` |  |  |
+| 13 | `dmgtype` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -405,8 +405,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `origin` | `.CMsgVector` | `optional` | `` |  |
-| 2 | `scale` | `float` | `optional` | `` |  |
+| 1 | `origin` | `.CMsgVector` | `optional` |  |  |
+| 2 | `scale` | `float` | `optional` |  |  |
 
 </details>
 
@@ -418,9 +418,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `origin` | `.CMsgVector` | `optional` | `` |  |
-| 2 | `normal` | `.CMsgVector` | `optional` | `` |  |
-| 3 | `index` | `uint32` | `optional` | `` |  |
+| 1 | `origin` | `.CMsgVector` | `optional` |  |  |
+| 2 | `normal` | `.CMsgVector` | `optional` |  |  |
+| 3 | `index` | `uint32` | `optional` |  |  |
 
 </details>
 

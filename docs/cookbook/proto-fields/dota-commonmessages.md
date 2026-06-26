@@ -23,9 +23,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `x` | `int32` | `optional` | `` |  |
-| 2 | `y` | `int32` | `optional` | `` |  |
-| 3 | `grid_nav_directions` | `bytes` | `optional` | `` |  |
+| 1 | `x` | `int32` | `optional` |  |  |
+| 2 | `y` | `int32` | `optional` |  |  |
+| 3 | `grid_nav_directions` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -37,13 +37,13 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `x` | `int32` | `optional` | `` |  |
-| 2 | `y` | `int32` | `optional` | `` |  |
-| 3 | `target` | `int32` | `optional` | `` | default = -1 |
-| 4 | `direct_ping` | `bool` | `optional` | `` |  |
-| 5 | `type` | `uint32` | `optional` | `` | default = 4294967295 |
-| 6 | `ping_source` | `.EPingSource` | `optional` | `` | default = k_ePingSource_Default |
-| 7 | `waypoint_path` | `.CDOTAMsg_PingWaypointPath` | `optional` | `` |  |
+| 1 | `x` | `int32` | `optional` |  |  |
+| 2 | `y` | `int32` | `optional` |  |  |
+| 3 | `target` | `int32` | `optional` |  | default = -1 |
+| 4 | `direct_ping` | `bool` | `optional` |  |  |
+| 5 | `type` | `uint32` | `optional` |  | default = 4294967295 |
+| 6 | `ping_source` | `.EPingSource` | `optional` |  | default = k_ePingSource_Default |
+| 7 | `waypoint_path` | `.CDOTAMsg_PingWaypointPath` | `optional` |  |  |
 
 </details>
 
@@ -55,9 +55,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `x` | `int32` | `optional` | `` |  |
-| 2 | `y` | `int32` | `optional` | `` |  |
-| 3 | `item_ability_id` | `int32` | `optional` | `` | default = -1 |
+| 1 | `x` | `int32` | `optional` |  |  |
+| 2 | `y` | `int32` | `optional` |  |  |
+| 3 | `item_ability_id` | `int32` | `optional` |  | default = -1 |
 
 </details>
 
@@ -69,9 +69,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `x` | `int32` | `optional` | `` |  |
-| 2 | `y` | `int32` | `optional` | `` |  |
-| 3 | `initial` | `bool` | `optional` | `` |  |
+| 1 | `x` | `int32` | `optional` |  |  |
+| 2 | `y` | `int32` | `optional` |  |  |
+| 3 | `initial` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -83,11 +83,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `x` | `int32` | `optional` | `` |  |
-| 2 | `y` | `int32` | `optional` | `` |  |
-| 3 | `z` | `int32` | `optional` | `` |  |
-| 4 | `initial` | `bool` | `optional` | `` |  |
-| 5 | `end` | `bool` | `optional` | `` |  |
+| 1 | `x` | `int32` | `optional` |  |  |
+| 2 | `y` | `int32` | `optional` |  |  |
+| 3 | `z` | `int32` | `optional` |  |  |
+| 4 | `initial` | `bool` | `optional` |  |  |
+| 5 | `end` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -99,13 +99,13 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `style` | `.EDOTAStatPopupTypes` | `optional` | `` | default = k_EDOTA_SPT_Textline |
-| 2 | `stat_strings` | `string` | `repeated` | `` |  |
-| 3 | `stat_images` | `int32` | `repeated` | `` |  |
-| 4 | `stat_image_types` | `int32` | `repeated` | `` |  |
-| 5 | `duration` | `float` | `optional` | `` |  |
-| 6 | `use_html` | `bool` | `optional` | `` |  |
-| 7 | `movie_name` | `string` | `optional` | `` |  |
+| 1 | `style` | `.EDOTAStatPopupTypes` | `optional` |  | default = k_EDOTA_SPT_Textline |
+| 2 | `stat_strings` | `string` | `repeated` |  |  |
+| 3 | `stat_images` | `int32` | `repeated` |  |  |
+| 4 | `stat_image_types` | `int32` | `repeated` |  |  |
+| 5 | `duration` | `float` | `optional` |  |  |
+| 6 | `use_html` | `bool` | `optional` |  |  |
+| 7 | `movie_name` | `string` | `optional` |  |  |
 
 </details>
 
@@ -117,7 +117,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `time_delay` | `float` | `optional` | `` |  |
+| 1 | `time_delay` | `float` | `optional` |  |  |
 
 </details>
 
@@ -129,9 +129,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `x` | `uint32` | `optional` | `` |  |
-| 2 | `y` | `uint32` | `optional` | `` |  |
-| 3 | `tgtpath` | `string` | `optional` | `` |  |
+| 1 | `x` | `uint32` | `optional` |  |  |
+| 2 | `y` | `uint32` | `optional` |  |  |
+| 3 | `tgtpath` | `string` | `optional` |  |  |
 
 </details>
 
@@ -143,13 +143,13 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 2 | `order_type` | `.dotaunitorder_t` | `optional` | `` | default = DOTA_UNIT_ORDER_NONE |
-| 3 | `units` | `int32` | `repeated` | `` |  |
-| 4 | `target_index` | `int32` | `optional` | `` | default = 0 |
-| 5 | `ability_index` | `int32` | `optional` | `` | default = -1 |
-| 6 | `position` | `.CMsgVector` | `optional` | `` |  |
-| 8 | `sequence_number` | `int32` | `optional` | `` |  |
-| 9 | `flags` | `uint32` | `optional` | `` |  |
+| 2 | `order_type` | `.dotaunitorder_t` | `optional` |  | default = DOTA_UNIT_ORDER_NONE |
+| 3 | `units` | `int32` | `repeated` |  |  |
+| 4 | `target_index` | `int32` | `optional` |  | default = 0 |
+| 5 | `ability_index` | `int32` | `optional` |  | default = -1 |
+| 6 | `position` | `.CMsgVector` | `optional` |  |  |
+| 8 | `sequence_number` | `int32` | `optional` |  |  |
+| 9 | `flags` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -161,8 +161,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `activities` | `.VersusScene_PlayActivity.ActivityInfo` | `repeated` | `` |  |
-| 2 | `playback_rate` | `float` | `optional` | `` |  |
+| 1 | `activities` | `.VersusScene_PlayActivity.ActivityInfo` | `repeated` |  |  |
+| 2 | `playback_rate` | `float` | `optional` |  |  |
 
 </details>
 
@@ -174,9 +174,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `activity` | `string` | `optional` | `` |  |
-| 2 | `disable_auto_kill` | `bool` | `optional` | `` |  |
-| 3 | `force_looping` | `bool` | `optional` | `` |  |
+| 1 | `activity` | `string` | `optional` |  |  |
+| 2 | `disable_auto_kill` | `bool` | `optional` |  |  |
+| 3 | `force_looping` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -188,8 +188,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `chat_message_id` | `uint32` | `optional` | `` | default = 4294967295 |
-| 2 | `emoticon_id` | `uint32` | `optional` | `` |  |
+| 1 | `chat_message_id` | `uint32` | `optional` |  | default = 4294967295 |
+| 2 | `emoticon_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -201,7 +201,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `rate` | `float` | `optional` | `` |  |
+| 1 | `rate` | `float` | `optional` |  |  |
 
 </details>
 

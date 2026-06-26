@@ -26,7 +26,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `friend_account_id` | `uint32` | `optional` | `` |  |
+| 1 | `friend_account_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -38,7 +38,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCFightingGameChallengeFriendResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCFightingGameChallengeFriendResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -50,7 +50,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `friend_account_id` | `uint32` | `optional` | `` |  |
+| 1 | `friend_account_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -62,8 +62,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `challenger_account_id` | `uint32` | `optional` | `` |  |
-| 2 | `accept` | `bool` | `optional` | `` |  |
+| 1 | `challenger_account_id` | `uint32` | `optional` |  |  |
+| 2 | `accept` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -75,7 +75,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCFightingGameAnswerChallengeResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCFightingGameAnswerChallengeResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -87,7 +87,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `challenger_account_id` | `uint32` | `optional` | `` |  |
+| 1 | `challenger_account_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -99,8 +99,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `challenger_account_id` | `uint32` | `optional` | `` |  |
-| 2 | `responder_account_id` | `uint32` | `optional` | `` |  |
+| 1 | `challenger_account_id` | `uint32` | `optional` |  |  |
+| 2 | `responder_account_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -112,8 +112,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `challenger_account_id` | `uint32` | `optional` | `` |  |
-| 2 | `responder_account_id` | `uint32` | `optional` | `` |  |
+| 1 | `challenger_account_id` | `uint32` | `optional` |  |  |
+| 2 | `responder_account_id` | `uint32` | `optional` |  |  |
 
 </details>
 

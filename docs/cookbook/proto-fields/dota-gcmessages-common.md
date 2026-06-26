@@ -26,62 +26,62 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` | (key_field) = true |
-| 3 | `wins` | `uint32` | `optional` | `` |  |
-| 4 | `losses` | `uint32` | `optional` | `` |  |
-| 12 | `xp` | `uint32` | `optional` | `` |  |
-| 13 | `level` | `uint32` | `optional` | `` |  |
-| 14 | `initial_skill` | `uint32` | `optional` | `` |  |
-| 15 | `leaver_count` | `uint32` | `optional` | `` |  |
-| 18 | `low_priority_until_date` | `uint32` | `optional` | `` |  |
-| 20 | `prevent_text_chat_until_date` | `uint32` | `optional` | `` |  |
-| 21 | `prevent_voice_until_date` | `uint32` | `optional` | `` |  |
-| 22 | `last_abandoned_game_date` | `uint32` | `optional` | `` |  |
-| 23 | `leaver_penalty_count` | `uint32` | `optional` | `` |  |
-| 24 | `completed_game_streak` | `uint32` | `optional` | `` |  |
-| 38 | `account_disabled_until_date` | `uint32` | `optional` | `` |  |
-| 39 | `account_disabled_count` | `uint32` | `optional` | `` |  |
-| 41 | `match_disabled_until_date` | `uint32` | `optional` | `` |  |
-| 42 | `match_disabled_count` | `uint32` | `optional` | `` |  |
-| 47 | `shutdownlawterminatetimestamp` | `uint32` | `optional` | `` |  |
-| 48 | `low_priority_games_remaining` | `uint32` | `optional` | `` |  |
-| 55 | `recruitment_level` | `uint32` | `optional` | `` |  |
-| 56 | `has_new_notifications` | `bool` | `optional` | `` |  |
-| 57 | `is_league_admin` | `bool` | `optional` | `` |  |
-| 58 | `secondary_leaver_count` | `uint32` | `optional` | `` |  |
-| 59 | `last_secondary_abandoned_game_date` | `uint32` | `optional` | `` |  |
-| 60 | `casual_games_played` | `uint32` | `optional` | `` |  |
-| 61 | `solo_competitive_games_played` | `uint32` | `optional` | `` |  |
-| 62 | `party_competitive_games_played` | `uint32` | `optional` | `` |  |
-| 65 | `casual_1v1_games_played` | `uint32` | `optional` | `` |  |
-| 67 | `curr_all_hero_challenge_id` | `int32` | `optional` | `` |  |
-| 68 | `play_time_points` | `uint32` | `optional` | `` |  |
-| 69 | `account_flags` | `uint32` | `optional` | `` |  |
-| 70 | `play_time_level` | `uint32` | `optional` | `` |  |
-| 71 | `player_behavior_seq_num_last_report` | `uint32` | `optional` | `` |  |
-| 72 | `player_behavior_score_last_report` | `uint32` | `optional` | `` |  |
-| 73 | `player_behavior_report_old_data` | `bool` | `optional` | `` |  |
-| 74 | `tourney_skill_level` | `uint32` | `optional` | `` |  |
-| 85 | `tourney_recent_participation_date` | `uint32` | `optional` | `` |  |
-| 86 | `prevent_public_text_chat_until_date` | `uint32` | `optional` | `` |  |
-| 88 | `anchored_phone_number_id` | `uint64` | `optional` | `` |  |
-| 89 | `ranked_matchmaking_ban_until_date` | `uint32` | `optional` | `` |  |
-| 90 | `recent_game_time_1` | `uint32` | `optional` | `` |  |
-| 91 | `recent_game_time_2` | `uint32` | `optional` | `` |  |
-| 92 | `recent_game_time_3` | `uint32` | `optional` | `` |  |
-| 103 | `favorite_team_packed` | `uint64` | `optional` | `` |  |
-| 104 | `recent_report_time` | `uint32` | `optional` | `` |  |
-| 105 | `custom_game_disabled_until_date` | `uint32` | `optional` | `` |  |
-| 106 | `recent_win_time_1` | `uint32` | `optional` | `` |  |
-| 107 | `recent_win_time_2` | `uint32` | `optional` | `` |  |
-| 108 | `recent_win_time_3` | `uint32` | `optional` | `` |  |
-| 109 | `coach_rating` | `uint32` | `optional` | `` |  |
-| 114 | `queue_points` | `uint32` | `optional` | `` |  |
-| 115 | `role_handicaps` | `.CSODOTAGameAccountClient.RoleHandicap` | `repeated` | `` |  |
-| 120 | `event_mode_recent_time` | `uint32` | `optional` | `` |  |
-| 121 | `mmr_recalibration_time` | `uint32` | `optional` | `` |  |
-| 122 | `prevent_new_player_chat_until_date` | `uint32` | `optional` | `` |  |
-| 123 | `banned_hero_ids` | `int32` | `repeated` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  | (key_field) = true |
+| 3 | `wins` | `uint32` | `optional` |  |  |
+| 4 | `losses` | `uint32` | `optional` |  |  |
+| 12 | `xp` | `uint32` | `optional` |  |  |
+| 13 | `level` | `uint32` | `optional` |  |  |
+| 14 | `initial_skill` | `uint32` | `optional` |  |  |
+| 15 | `leaver_count` | `uint32` | `optional` |  |  |
+| 18 | `low_priority_until_date` | `uint32` | `optional` |  |  |
+| 20 | `prevent_text_chat_until_date` | `uint32` | `optional` |  |  |
+| 21 | `prevent_voice_until_date` | `uint32` | `optional` |  |  |
+| 22 | `last_abandoned_game_date` | `uint32` | `optional` |  |  |
+| 23 | `leaver_penalty_count` | `uint32` | `optional` |  |  |
+| 24 | `completed_game_streak` | `uint32` | `optional` |  |  |
+| 38 | `account_disabled_until_date` | `uint32` | `optional` |  |  |
+| 39 | `account_disabled_count` | `uint32` | `optional` |  |  |
+| 41 | `match_disabled_until_date` | `uint32` | `optional` |  |  |
+| 42 | `match_disabled_count` | `uint32` | `optional` |  |  |
+| 47 | `shutdownlawterminatetimestamp` | `uint32` | `optional` |  |  |
+| 48 | `low_priority_games_remaining` | `uint32` | `optional` |  |  |
+| 55 | `recruitment_level` | `uint32` | `optional` |  |  |
+| 56 | `has_new_notifications` | `bool` | `optional` |  |  |
+| 57 | `is_league_admin` | `bool` | `optional` |  |  |
+| 58 | `secondary_leaver_count` | `uint32` | `optional` |  |  |
+| 59 | `last_secondary_abandoned_game_date` | `uint32` | `optional` |  |  |
+| 60 | `casual_games_played` | `uint32` | `optional` |  |  |
+| 61 | `solo_competitive_games_played` | `uint32` | `optional` |  |  |
+| 62 | `party_competitive_games_played` | `uint32` | `optional` |  |  |
+| 65 | `casual_1v1_games_played` | `uint32` | `optional` |  |  |
+| 67 | `curr_all_hero_challenge_id` | `int32` | `optional` |  |  |
+| 68 | `play_time_points` | `uint32` | `optional` |  |  |
+| 69 | `account_flags` | `uint32` | `optional` |  |  |
+| 70 | `play_time_level` | `uint32` | `optional` |  |  |
+| 71 | `player_behavior_seq_num_last_report` | `uint32` | `optional` |  |  |
+| 72 | `player_behavior_score_last_report` | `uint32` | `optional` |  |  |
+| 73 | `player_behavior_report_old_data` | `bool` | `optional` |  |  |
+| 74 | `tourney_skill_level` | `uint32` | `optional` |  |  |
+| 85 | `tourney_recent_participation_date` | `uint32` | `optional` |  |  |
+| 86 | `prevent_public_text_chat_until_date` | `uint32` | `optional` |  |  |
+| 88 | `anchored_phone_number_id` | `uint64` | `optional` |  |  |
+| 89 | `ranked_matchmaking_ban_until_date` | `uint32` | `optional` |  |  |
+| 90 | `recent_game_time_1` | `uint32` | `optional` |  |  |
+| 91 | `recent_game_time_2` | `uint32` | `optional` |  |  |
+| 92 | `recent_game_time_3` | `uint32` | `optional` |  |  |
+| 103 | `favorite_team_packed` | `uint64` | `optional` |  |  |
+| 104 | `recent_report_time` | `uint32` | `optional` |  |  |
+| 105 | `custom_game_disabled_until_date` | `uint32` | `optional` |  |  |
+| 106 | `recent_win_time_1` | `uint32` | `optional` |  |  |
+| 107 | `recent_win_time_2` | `uint32` | `optional` |  |  |
+| 108 | `recent_win_time_3` | `uint32` | `optional` |  |  |
+| 109 | `coach_rating` | `uint32` | `optional` |  |  |
+| 114 | `queue_points` | `uint32` | `optional` |  |  |
+| 115 | `role_handicaps` | `.CSODOTAGameAccountClient.RoleHandicap` | `repeated` |  |  |
+| 120 | `event_mode_recent_time` | `uint32` | `optional` |  |  |
+| 121 | `mmr_recalibration_time` | `uint32` | `optional` |  |  |
+| 122 | `prevent_new_player_chat_until_date` | `uint32` | `optional` |  |  |
+| 123 | `banned_hero_ids` | `int32` | `repeated` |  |  |
 
 </details>
 
@@ -93,8 +93,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `role` | `uint32` | `optional` | `` |  |
-| 2 | `handicap` | `float` | `optional` | `` |  |
+| 1 | `role` | `uint32` | `optional` |  |  |
+| 2 | `handicap` | `float` | `optional` |  |  |
 
 </details>
 
@@ -106,14 +106,14 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` | (key_field) = true |
-| 2 | `original_start_date` | `uint32` | `optional` | `` |  |
-| 3 | `plus_flags` | `uint32` | `optional` | `` |  |
-| 4 | `plus_status` | `uint32` | `optional` | `` |  |
-| 5 | `prepaid_time_start` | `uint32` | `optional` | `` |  |
-| 6 | `prepaid_time_balance` | `uint32` | `optional` | `` |  |
-| 7 | `next_payment_date` | `fixed32` | `optional` | `` |  |
-| 8 | `steam_agreement_id` | `fixed64` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  | (key_field) = true |
+| 2 | `original_start_date` | `uint32` | `optional` |  |  |
+| 3 | `plus_flags` | `uint32` | `optional` |  |  |
+| 4 | `plus_status` | `uint32` | `optional` |  |  |
+| 5 | `prepaid_time_start` | `uint32` | `optional` |  |  |
+| 6 | `prepaid_time_balance` | `uint32` | `optional` |  |  |
+| 7 | `next_payment_date` | `fixed32` | `optional` |  |  |
+| 8 | `steam_agreement_id` | `fixed64` | `optional` |  |  |
 
 </details>
 
@@ -125,7 +125,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `message_id` | `uint32` | `optional` | `` | default = 4294967295, (key_field) = true |
+| 1 | `message_id` | `uint32` | `optional` |  | default = 4294967295, (key_field) = true |
 
 </details>
 
@@ -137,7 +137,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `accounts` | `.CMsgLobbyFeaturedGamemodeProgress.AccountProgress` | `repeated` | `` |  |
+| 1 | `accounts` | `.CMsgLobbyFeaturedGamemodeProgress.AccountProgress` | `repeated` |  |  |
 
 </details>
 
@@ -149,9 +149,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `current_value` | `uint32` | `optional` | `` |  |
-| 3 | `max_value` | `uint32` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `current_value` | `uint32` | `optional` |  |  |
+| 3 | `max_value` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -163,15 +163,15 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `win_date` | `uint32` | `optional` | `` |  |
-| 3 | `valid_until` | `uint32` | `optional` | `` |  |
-| 4 | `skill_level` | `uint32` | `optional` | `` |  |
-| 5 | `tournament_id` | `uint32` | `optional` | `` |  |
-| 6 | `division_id` | `uint32` | `optional` | `` |  |
-| 7 | `team_id` | `uint32` | `optional` | `` |  |
-| 8 | `streak` | `uint32` | `optional` | `` |  |
-| 9 | `trophy_id` | `uint32` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `win_date` | `uint32` | `optional` |  |  |
+| 3 | `valid_until` | `uint32` | `optional` |  |  |
+| 4 | `skill_level` | `uint32` | `optional` |  |  |
+| 5 | `tournament_id` | `uint32` | `optional` |  |  |
+| 6 | `division_id` | `uint32` | `optional` |  |  |
+| 7 | `team_id` | `uint32` | `optional` |  |  |
+| 8 | `streak` | `uint32` | `optional` |  |  |
+| 9 | `trophy_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -183,7 +183,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `winners` | `.CMsgBattleCupVictory` | `repeated` | `` |  |
+| 1 | `winners` | `.CMsgBattleCupVictory` | `repeated` |  |  |
 
 </details>
 
@@ -195,7 +195,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `message` | `string` | `optional` | `` |  |
+| 1 | `message` | `string` | `optional` |  |  |
 
 </details>
 
@@ -207,14 +207,14 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `hero_id` | `int32` | `optional` | `` |  |
-| 2 | `status_effect_index` | `uint32` | `optional` | `` |  |
-| 3 | `sequence_name` | `string` | `optional` | `` |  |
-| 4 | `cycle` | `float` | `optional` | `` |  |
-| 5 | `wearable` | `uint32` | `repeated` | `` |  |
-| 6 | `inscription` | `string` | `optional` | `` |  |
-| 7 | `style` | `uint32` | `repeated` | `` |  |
-| 8 | `tournament_drop` | `bool` | `optional` | `` |  |
+| 1 | `hero_id` | `int32` | `optional` |  |  |
+| 2 | `status_effect_index` | `uint32` | `optional` |  |  |
+| 3 | `sequence_name` | `string` | `optional` |  |  |
+| 4 | `cycle` | `float` | `optional` |  |  |
+| 5 | `wearable` | `uint32` | `repeated` |  |  |
+| 6 | `inscription` | `string` | `optional` |  |  |
+| 7 | `style` | `uint32` | `repeated` |  |  |
+| 8 | `tournament_drop` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -226,8 +226,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `ability` | `int32` | `optional` | `` | default = -1 |
-| 2 | `time` | `uint32` | `optional` | `` |  |
+| 1 | `ability` | `int32` | `optional` |  | default = -1 |
+| 2 | `time` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -239,8 +239,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 2 | `stat` | `.EDOTAMatchPlayerTimeCustomStat` | `optional` | `` | default = k_EDOTA_MatchPlayerTimeCustomStat_HPRegenUnderT1Towers |
-| 3 | `value` | `float` | `optional` | `` |  |
+| 2 | `stat` | `.EDOTAMatchPlayerTimeCustomStat` | `optional` |  | default = k_EDOTA_MatchPlayerTimeCustomStat_HPRegenUnderT1Towers |
+| 3 | `value` | `float` | `optional` |  |  |
 
 </details>
 
@@ -252,43 +252,43 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `time` | `uint32` | `optional` | `` |  |
-| 2 | `kills` | `uint32` | `optional` | `` |  |
-| 3 | `deaths` | `uint32` | `optional` | `` |  |
-| 4 | `assists` | `uint32` | `optional` | `` |  |
-| 5 | `net_worth` | `uint32` | `optional` | `` |  |
-| 6 | `xp` | `uint32` | `optional` | `` |  |
-| 7 | `last_hits` | `uint32` | `optional` | `` |  |
-| 8 | `denies` | `uint32` | `optional` | `` |  |
-| 9 | `bounty_rune_gold` | `uint32` | `optional` | `` |  |
-| 10 | `range_creep_upgrade_gold` | `uint32` | `optional` | `` |  |
-| 11 | `observer_wards_dewarded` | `uint32` | `optional` | `` |  |
-| 12 | `reliable_gold_earned` | `uint32` | `optional` | `` |  |
-| 13 | `gold_loss_prevented` | `uint32` | `optional` | `` |  |
-| 14 | `hero_kill_gold` | `uint32` | `optional` | `` |  |
-| 15 | `creep_kill_gold` | `uint32` | `optional` | `` |  |
-| 16 | `building_gold` | `uint32` | `optional` | `` |  |
-| 17 | `other_gold` | `uint32` | `optional` | `` |  |
-| 18 | `comeback_gold` | `uint32` | `optional` | `` |  |
-| 19 | `experimental_gold` | `uint32` | `optional` | `` |  |
-| 20 | `experimental2_gold` | `uint32` | `optional` | `` |  |
-| 21 | `creep_deny_gold` | `uint32` | `optional` | `` |  |
-| 22 | `tp_scrolls_purchased_1` | `uint32` | `optional` | `` |  |
-| 23 | `tp_scrolls_purchased_2` | `uint32` | `optional` | `` |  |
-| 24 | `tp_scrolls_purchased_3` | `uint32` | `optional` | `` |  |
-| 25 | `tp_scrolls_purchased_4` | `uint32` | `optional` | `` |  |
-| 26 | `tp_scrolls_purchased_5` | `uint32` | `optional` | `` |  |
-| 27 | `neutral_gold` | `uint32` | `optional` | `` |  |
-| 28 | `courier_gold` | `uint32` | `optional` | `` |  |
-| 29 | `roshan_gold` | `uint32` | `optional` | `` |  |
-| 30 | `income_gold` | `uint32` | `optional` | `` |  |
-| 36 | `item_value` | `uint32` | `optional` | `` |  |
-| 37 | `support_gold_spent` | `uint32` | `optional` | `` |  |
-| 38 | `camps_stacked` | `uint32` | `optional` | `` |  |
-| 39 | `wards_placed` | `uint32` | `optional` | `` |  |
-| 40 | `triple_kills` | `uint32` | `optional` | `` |  |
-| 41 | `rampages` | `uint32` | `optional` | `` |  |
-| 42 | `custom_stats` | `.CMatchPlayerTimedCustomStat` | `repeated` | `` |  |
+| 1 | `time` | `uint32` | `optional` |  |  |
+| 2 | `kills` | `uint32` | `optional` |  |  |
+| 3 | `deaths` | `uint32` | `optional` |  |  |
+| 4 | `assists` | `uint32` | `optional` |  |  |
+| 5 | `net_worth` | `uint32` | `optional` |  |  |
+| 6 | `xp` | `uint32` | `optional` |  |  |
+| 7 | `last_hits` | `uint32` | `optional` |  |  |
+| 8 | `denies` | `uint32` | `optional` |  |  |
+| 9 | `bounty_rune_gold` | `uint32` | `optional` |  |  |
+| 10 | `range_creep_upgrade_gold` | `uint32` | `optional` |  |  |
+| 11 | `observer_wards_dewarded` | `uint32` | `optional` |  |  |
+| 12 | `reliable_gold_earned` | `uint32` | `optional` |  |  |
+| 13 | `gold_loss_prevented` | `uint32` | `optional` |  |  |
+| 14 | `hero_kill_gold` | `uint32` | `optional` |  |  |
+| 15 | `creep_kill_gold` | `uint32` | `optional` |  |  |
+| 16 | `building_gold` | `uint32` | `optional` |  |  |
+| 17 | `other_gold` | `uint32` | `optional` |  |  |
+| 18 | `comeback_gold` | `uint32` | `optional` |  |  |
+| 19 | `experimental_gold` | `uint32` | `optional` |  |  |
+| 20 | `experimental2_gold` | `uint32` | `optional` |  |  |
+| 21 | `creep_deny_gold` | `uint32` | `optional` |  |  |
+| 22 | `tp_scrolls_purchased_1` | `uint32` | `optional` |  |  |
+| 23 | `tp_scrolls_purchased_2` | `uint32` | `optional` |  |  |
+| 24 | `tp_scrolls_purchased_3` | `uint32` | `optional` |  |  |
+| 25 | `tp_scrolls_purchased_4` | `uint32` | `optional` |  |  |
+| 26 | `tp_scrolls_purchased_5` | `uint32` | `optional` |  |  |
+| 27 | `neutral_gold` | `uint32` | `optional` |  |  |
+| 28 | `courier_gold` | `uint32` | `optional` |  |  |
+| 29 | `roshan_gold` | `uint32` | `optional` |  |  |
+| 30 | `income_gold` | `uint32` | `optional` |  |  |
+| 36 | `item_value` | `uint32` | `optional` |  |  |
+| 37 | `support_gold_spent` | `uint32` | `optional` |  |  |
+| 38 | `camps_stacked` | `uint32` | `optional` |  |  |
+| 39 | `wards_placed` | `uint32` | `optional` |  |  |
+| 40 | `triple_kills` | `uint32` | `optional` |  |  |
+| 41 | `rampages` | `uint32` | `optional` |  |  |
+| 42 | `custom_stats` | `.CMatchPlayerTimedCustomStat` | `repeated` |  |  |
 
 </details>
 
@@ -300,11 +300,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `time` | `uint32` | `optional` | `` |  |
-| 2 | `enemy_towers_killed` | `uint32` | `optional` | `` |  |
-| 3 | `enemy_barracks_killed` | `uint32` | `optional` | `` |  |
-| 4 | `enemy_towers_status` | `uint32` | `optional` | `` |  |
-| 5 | `enemy_barracks_status` | `uint32` | `optional` | `` |  |
+| 1 | `time` | `uint32` | `optional` |  |  |
+| 2 | `enemy_towers_killed` | `uint32` | `optional` |  |  |
+| 3 | `enemy_barracks_killed` | `uint32` | `optional` |  |  |
+| 4 | `enemy_towers_status` | `uint32` | `optional` |  |  |
+| 5 | `enemy_barracks_status` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -316,8 +316,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `unit_name` | `string` | `optional` | `` |  |
-| 2 | `items` | `int32` | `repeated` | `` |  |
+| 1 | `unit_name` | `string` | `optional` |  |  |
+| 2 | `items` | `int32` | `repeated` |  |  |
 
 </details>
 
@@ -329,9 +329,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `permanent_buff` | `uint32` | `optional` | `` |  |
-| 2 | `stack_count` | `uint32` | `optional` | `` |  |
-| 3 | `grant_time` | `uint32` | `optional` | `` |  |
+| 1 | `permanent_buff` | `uint32` | `optional` |  |  |
+| 2 | `stack_count` | `uint32` | `optional` |  |  |
+| 3 | `grant_time` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -343,9 +343,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `is_pick` | `bool` | `optional` | `` |  |
-| 2 | `team` | `uint32` | `optional` | `` |  |
-| 3 | `hero_id` | `int32` | `optional` | `` |  |
+| 1 | `is_pick` | `bool` | `optional` |  |  |
+| 2 | `team` | `uint32` | `optional` |  |  |
+| 3 | `hero_id` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -357,15 +357,15 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `match_id` | `uint64` | `optional` | `` |  |
-| 2 | `player_account_id` | `uint32` | `optional` | `` |  |
-| 3 | `game_time_seconds` | `uint32` | `optional` | `` |  |
-| 4 | `duration_seconds` | `uint32` | `optional` | `` |  |
-| 5 | `player_id` | `uint32` | `optional` | `` |  |
-| 6 | `hero_id` | `int32` | `optional` | `` |  |
-| 7 | `ability_id` | `int32` | `optional` | `` | default = -1 |
-| 8 | `camera_mode` | `uint32` | `optional` | `` |  |
-| 9 | `comment` | `string` | `optional` | `` |  |
+| 1 | `match_id` | `uint64` | `optional` |  |  |
+| 2 | `player_account_id` | `uint32` | `optional` |  |  |
+| 3 | `game_time_seconds` | `uint32` | `optional` |  |  |
+| 4 | `duration_seconds` | `uint32` | `optional` |  |  |
+| 5 | `player_id` | `uint32` | `optional` |  |  |
+| 6 | `hero_id` | `int32` | `optional` |  |  |
+| 7 | `ability_id` | `int32` | `optional` |  | default = -1 |
+| 8 | `camera_mode` | `uint32` | `optional` |  |  |
+| 9 | `comment` | `string` | `optional` |  |  |
 
 </details>
 
@@ -377,9 +377,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `party_id` | `fixed64` | `optional` | `` |  |
-| 2 | `beacon_type` | `int32` | `optional` | `` |  |
-| 3 | `party_members` | `fixed32` | `repeated` | `` |  |
+| 1 | `party_id` | `fixed64` | `optional` |  |  |
+| 2 | `beacon_type` | `int32` | `optional` |  |  |
+| 3 | `party_members` | `fixed32` | `repeated` |  |  |
 
 </details>
 
@@ -391,8 +391,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `item_id` | `uint64` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `item_id` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -404,7 +404,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `has_item` | `bool` | `optional` | `` |  |
+| 1 | `has_item` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -416,9 +416,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `player_card_item_ids` | `uint64` | `repeated` | `` |  |
-| 3 | `all_for_event` | `uint32` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `player_card_item_ids` | `uint64` | `repeated` |  |  |
+| 3 | `all_for_event` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -430,7 +430,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `player_card_infos` | `.CMsgGCGetPlayerCardItemInfoResponse.PlayerCardInfo` | `repeated` | `` |  |
+| 1 | `player_card_infos` | `.CMsgGCGetPlayerCardItemInfoResponse.PlayerCardInfo` | `repeated` |  |  |
 
 </details>
 
@@ -442,9 +442,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `player_card_item_id` | `uint64` | `optional` | `` |  |
-| 2 | `account_id` | `uint32` | `optional` | `` |  |
-| 3 | `packed_bonuses` | `uint64` | `optional` | `` |  |
+| 1 | `player_card_item_id` | `uint64` | `optional` |  |  |
+| 2 | `account_id` | `uint32` | `optional` |  |  |
+| 3 | `packed_bonuses` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -456,9 +456,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` | (key_field) = true |
-| 2 | `location_id` | `int32` | `optional` | `` | (key_field) = true |
-| 3 | `completed` | `bool` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  | (key_field) = true |
+| 2 | `location_id` | `int32` | `optional` |  | (key_field) = true |
+| 3 | `completed` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -470,7 +470,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_ids` | `uint32` | `repeated` | `` |  |
+| 1 | `account_ids` | `uint32` | `repeated` |  |  |
 
 </details>
 
@@ -482,21 +482,21 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 3 | `slots` | `.CMsgDOTAProfileCard.Slot` | `repeated` | `` |  |
-| 4 | `badge_points` | `uint32` | `optional` | `` |  |
-| 6 | `event_id` | `uint32` | `optional` | `` |  |
-| 7 | `recent_battle_cup_victory` | `.CMsgBattleCupVictory` | `optional` | `` |  |
-| 8 | `rank_tier` | `uint32` | `optional` | `` |  |
-| 9 | `leaderboard_rank` | `uint32` | `optional` | `` |  |
-| 10 | `is_plus_subscriber` | `bool` | `optional` | `` |  |
-| 11 | `plus_original_start_date` | `uint32` | `optional` | `` |  |
-| 12 | `rank_tier_score` | `uint32` | `optional` | `` |  |
-| 17 | `leaderboard_rank_core` | `uint32` | `optional` | `` |  |
-| 23 | `title` | `uint32` | `optional` | `` |  |
-| 24 | `favorite_team_packed` | `uint64` | `optional` | `` |  |
-| 25 | `lifetime_games` | `uint32` | `optional` | `` |  |
-| 26 | `event_level` | `uint32` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 3 | `slots` | `.CMsgDOTAProfileCard.Slot` | `repeated` |  |  |
+| 4 | `badge_points` | `uint32` | `optional` |  |  |
+| 6 | `event_id` | `uint32` | `optional` |  |  |
+| 7 | `recent_battle_cup_victory` | `.CMsgBattleCupVictory` | `optional` |  |  |
+| 8 | `rank_tier` | `uint32` | `optional` |  |  |
+| 9 | `leaderboard_rank` | `uint32` | `optional` |  |  |
+| 10 | `is_plus_subscriber` | `bool` | `optional` |  |  |
+| 11 | `plus_original_start_date` | `uint32` | `optional` |  |  |
+| 12 | `rank_tier_score` | `uint32` | `optional` |  |  |
+| 17 | `leaderboard_rank_core` | `uint32` | `optional` |  |  |
+| 23 | `title` | `uint32` | `optional` |  |  |
+| 24 | `favorite_team_packed` | `uint64` | `optional` |  |  |
+| 25 | `lifetime_games` | `uint32` | `optional` |  |  |
+| 26 | `event_level` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -508,13 +508,13 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `slot_id` | `uint32` | `optional` | `` |  |
-| 2 | `trophy` | `.CMsgDOTAProfileCard.Slot.Trophy` | `optional` | `` |  |
-| 3 | `stat` | `.CMsgDOTAProfileCard.Slot.Stat` | `optional` | `` |  |
-| 4 | `item` | `.CMsgDOTAProfileCard.Slot.Item` | `optional` | `` |  |
-| 5 | `hero` | `.CMsgDOTAProfileCard.Slot.Hero` | `optional` | `` |  |
-| 6 | `emoticon` | `.CMsgDOTAProfileCard.Slot.Emoticon` | `optional` | `` |  |
-| 7 | `team` | `.CMsgDOTAProfileCard.Slot.Team` | `optional` | `` |  |
+| 1 | `slot_id` | `uint32` | `optional` |  |  |
+| 2 | `trophy` | `.CMsgDOTAProfileCard.Slot.Trophy` | `optional` |  |  |
+| 3 | `stat` | `.CMsgDOTAProfileCard.Slot.Stat` | `optional` |  |  |
+| 4 | `item` | `.CMsgDOTAProfileCard.Slot.Item` | `optional` |  |  |
+| 5 | `hero` | `.CMsgDOTAProfileCard.Slot.Hero` | `optional` |  |  |
+| 6 | `emoticon` | `.CMsgDOTAProfileCard.Slot.Emoticon` | `optional` |  |  |
+| 7 | `team` | `.CMsgDOTAProfileCard.Slot.Team` | `optional` |  |  |
 
 </details>
 
@@ -526,8 +526,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `trophy_id` | `uint32` | `optional` | `` |  |
-| 2 | `trophy_score` | `uint32` | `optional` | `` |  |
+| 1 | `trophy_id` | `uint32` | `optional` |  |  |
+| 2 | `trophy_score` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -539,8 +539,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `stat_id` | `.CMsgDOTAProfileCard.EStatID` | `optional` | `` | default = k_eStat_Wins |
-| 2 | `stat_score` | `uint32` | `optional` | `` |  |
+| 1 | `stat_id` | `.CMsgDOTAProfileCard.EStatID` | `optional` |  | default = k_eStat_Wins |
+| 2 | `stat_score` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -552,8 +552,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `serialized_item` | `bytes` | `optional` | `` |  |
-| 2 | `item_id` | `uint64` | `optional` | `` |  |
+| 1 | `serialized_item` | `bytes` | `optional` |  |  |
+| 2 | `item_id` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -565,9 +565,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `hero_id` | `int32` | `optional` | `` |  |
-| 2 | `hero_wins` | `uint32` | `optional` | `` |  |
-| 3 | `hero_losses` | `uint32` | `optional` | `` |  |
+| 1 | `hero_id` | `int32` | `optional` |  |  |
+| 2 | `hero_wins` | `uint32` | `optional` |  |  |
+| 3 | `hero_losses` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -579,7 +579,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `emoticon_id` | `uint32` | `optional` | `` |  |
+| 1 | `emoticon_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -591,7 +591,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `team_id` | `uint32` | `optional` | `` |  |
+| 1 | `team_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -603,23 +603,23 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` | (key_field) = true |
-| 2 | `event_id` | `uint32` | `optional` | `` | (key_field) = true |
-| 3 | `slot_id` | `uint32` | `optional` | `` | (key_field) = true |
-| 5 | `int_param_0` | `uint32` | `optional` | `` |  |
-| 6 | `int_param_1` | `uint32` | `optional` | `` |  |
-| 7 | `created_time` | `uint32` | `optional` | `` |  |
-| 8 | `completed` | `uint32` | `optional` | `` |  |
-| 9 | `sequence_id` | `uint32` | `optional` | `` |  |
-| 10 | `challenge_tier` | `uint32` | `optional` | `` |  |
-| 11 | `flags` | `uint32` | `optional` | `` |  |
-| 12 | `attempts` | `uint32` | `optional` | `` |  |
-| 13 | `complete_limit` | `uint32` | `optional` | `` |  |
-| 14 | `quest_rank` | `uint32` | `optional` | `` |  |
-| 15 | `max_quest_rank` | `uint32` | `optional` | `` |  |
-| 16 | `instance_id` | `uint32` | `optional` | `` |  |
-| 17 | `hero_id` | `int32` | `optional` | `` |  |
-| 18 | `template_id` | `uint32` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  | (key_field) = true |
+| 2 | `event_id` | `uint32` | `optional` |  | (key_field) = true |
+| 3 | `slot_id` | `uint32` | `optional` |  | (key_field) = true |
+| 5 | `int_param_0` | `uint32` | `optional` |  |  |
+| 6 | `int_param_1` | `uint32` | `optional` |  |  |
+| 7 | `created_time` | `uint32` | `optional` |  |  |
+| 8 | `completed` | `uint32` | `optional` |  |  |
+| 9 | `sequence_id` | `uint32` | `optional` |  |  |
+| 10 | `challenge_tier` | `uint32` | `optional` |  |  |
+| 11 | `flags` | `uint32` | `optional` |  |  |
+| 12 | `attempts` | `uint32` | `optional` |  |  |
+| 13 | `complete_limit` | `uint32` | `optional` |  |  |
+| 14 | `quest_rank` | `uint32` | `optional` |  |  |
+| 15 | `max_quest_rank` | `uint32` | `optional` |  |  |
+| 16 | `instance_id` | `uint32` | `optional` |  |  |
+| 17 | `hero_id` | `int32` | `optional` |  |  |
+| 18 | `template_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -631,9 +631,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `event_id` | `.EEvent` | `optional` | `` | default = EVENT_ID_NONE |
-| 3 | `sequence_id` | `uint32` | `optional` | `` |  |
-| 4 | `hero_id` | `int32` | `optional` | `` |  |
+| 1 | `event_id` | `.EEvent` | `optional` |  | default = EVENT_ID_NONE |
+| 3 | `sequence_id` | `uint32` | `optional` |  |  |
+| 4 | `hero_id` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -645,7 +645,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgGCRerollPlayerChallengeResponse.EResult` | `optional` | `` | default = eResult_Success |
+| 1 | `result` | `.CMsgGCRerollPlayerChallengeResponse.EResult` | `optional` |  | default = eResult_Success |
 
 </details>
 
@@ -657,8 +657,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `top_custom_games` | `uint64` | `repeated` | `` |  |
-| 2 | `game_of_the_day` | `uint64` | `optional` | `` |  |
+| 1 | `top_custom_games` | `uint64` | `repeated` |  |  |
+| 2 | `game_of_the_day` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -670,11 +670,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `match` | `.CMsgDOTARealtimeGameStats.MatchDetails` | `optional` | `` |  |
-| 2 | `teams` | `.CMsgDOTARealtimeGameStats.TeamDetails` | `repeated` | `` |  |
-| 3 | `buildings` | `.CMsgDOTARealtimeGameStats.BuildingDetails` | `repeated` | `` |  |
-| 4 | `graph_data` | `.CMsgDOTARealtimeGameStats.GraphData` | `optional` | `` |  |
-| 5 | `delta_frame` | `bool` | `optional` | `` |  |
+| 1 | `match` | `.CMsgDOTARealtimeGameStats.MatchDetails` | `optional` |  |  |
+| 2 | `teams` | `.CMsgDOTARealtimeGameStats.TeamDetails` | `repeated` |  |  |
+| 3 | `buildings` | `.CMsgDOTARealtimeGameStats.BuildingDetails` | `repeated` |  |  |
+| 4 | `graph_data` | `.CMsgDOTARealtimeGameStats.GraphData` | `optional` |  |  |
+| 5 | `delta_frame` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -686,17 +686,17 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `team_number` | `uint32` | `optional` | `` |  |
-| 2 | `team_id` | `uint32` | `optional` | `` |  |
-| 3 | `team_name` | `string` | `optional` | `` |  |
-| 4 | `team_logo` | `fixed64` | `optional` | `` |  |
-| 5 | `score` | `uint32` | `optional` | `` |  |
-| 6 | `players` | `.CMsgDOTARealtimeGameStats.PlayerDetails` | `repeated` | `` |  |
-| 7 | `only_team` | `bool` | `optional` | `` |  |
-| 8 | `cheers` | `uint32` | `optional` | `` |  |
-| 9 | `net_worth` | `uint32` | `optional` | `` |  |
-| 10 | `team_tag` | `string` | `optional` | `` |  |
-| 11 | `team_logo_url` | `string` | `optional` | `` |  |
+| 1 | `team_number` | `uint32` | `optional` |  |  |
+| 2 | `team_id` | `uint32` | `optional` |  |  |
+| 3 | `team_name` | `string` | `optional` |  |  |
+| 4 | `team_logo` | `fixed64` | `optional` |  |  |
+| 5 | `score` | `uint32` | `optional` |  |  |
+| 6 | `players` | `.CMsgDOTARealtimeGameStats.PlayerDetails` | `repeated` |  |  |
+| 7 | `only_team` | `bool` | `optional` |  |  |
+| 8 | `cheers` | `uint32` | `optional` |  |  |
+| 9 | `net_worth` | `uint32` | `optional` |  |  |
+| 10 | `team_tag` | `string` | `optional` |  |  |
+| 11 | `team_logo_url` | `string` | `optional` |  |  |
 
 </details>
 
@@ -708,11 +708,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `item_ability_id` | `int32` | `optional` | `` | default = -1 |
-| 2 | `name` | `string` | `optional` | `` |  |
-| 3 | `time` | `int32` | `optional` | `` |  |
-| 4 | `sold` | `bool` | `optional` | `` |  |
-| 5 | `stackcount` | `uint32` | `optional` | `` |  |
+| 1 | `item_ability_id` | `int32` | `optional` |  | default = -1 |
+| 2 | `name` | `string` | `optional` |  |  |
+| 3 | `time` | `int32` | `optional` |  |  |
+| 4 | `sold` | `bool` | `optional` |  |  |
+| 5 | `stackcount` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -724,11 +724,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `id` | `int32` | `optional` | `` | default = -1 |
-| 2 | `name` | `string` | `optional` | `` |  |
-| 3 | `level` | `uint32` | `optional` | `` |  |
-| 4 | `cooldown` | `float` | `optional` | `` |  |
-| 5 | `cooldown_max` | `float` | `optional` | `` |  |
+| 1 | `id` | `int32` | `optional` |  | default = -1 |
+| 2 | `name` | `string` | `optional` |  |  |
+| 3 | `level` | `uint32` | `optional` |  |  |
+| 4 | `cooldown` | `float` | `optional` |  |  |
+| 5 | `cooldown_max` | `float` | `optional` |  |  |
 
 </details>
 
@@ -740,9 +740,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `victimid` | `int32` | `optional` | `` | default = -1 |
-| 2 | `kills` | `uint32` | `optional` | `` |  |
-| 3 | `assists` | `uint32` | `optional` | `` |  |
+| 1 | `victimid` | `int32` | `optional` |  | default = -1 |
+| 2 | `kills` | `uint32` | `optional` |  |  |
+| 3 | `assists` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -754,7 +754,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `id` | `int32` | `repeated` | `` |  |
+| 1 | `id` | `int32` | `repeated` |  |  |
 
 </details>
 
@@ -766,56 +766,56 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `accountid` | `uint32` | `optional` | `` |  |
-| 2 | `playerid` | `int32` | `optional` | `` | default = -1 |
-| 3 | `name` | `string` | `optional` | `` |  |
-| 4 | `team` | `uint32` | `optional` | `` |  |
-| 5 | `heroid` | `int32` | `optional` | `` |  |
-| 6 | `healthpoints` | `uint32` | `optional` | `` |  |
-| 7 | `maxhealthpoints` | `uint32` | `optional` | `` |  |
-| 8 | `healthregenrate` | `float` | `optional` | `` |  |
-| 9 | `manapoints` | `uint32` | `optional` | `` |  |
-| 10 | `maxmanapoints` | `uint32` | `optional` | `` |  |
-| 11 | `manaregenrate` | `float` | `optional` | `` |  |
-| 12 | `base_strength` | `uint32` | `optional` | `` |  |
-| 13 | `base_agility` | `uint32` | `optional` | `` |  |
-| 14 | `base_intelligence` | `uint32` | `optional` | `` |  |
-| 15 | `base_armor` | `int32` | `optional` | `` |  |
-| 16 | `base_movespeed` | `uint32` | `optional` | `` |  |
-| 17 | `base_damage` | `uint32` | `optional` | `` |  |
-| 18 | `strength` | `uint32` | `optional` | `` |  |
-| 19 | `agility` | `uint32` | `optional` | `` |  |
-| 20 | `intelligence` | `uint32` | `optional` | `` |  |
-| 21 | `armor` | `int32` | `optional` | `` |  |
-| 22 | `movespeed` | `uint32` | `optional` | `` |  |
-| 23 | `damage` | `uint32` | `optional` | `` |  |
-| 24 | `hero_damage` | `uint32` | `optional` | `` |  |
-| 25 | `tower_damage` | `uint32` | `optional` | `` |  |
-| 26 | `abilities` | `.CMsgDOTARealtimeGameStats.AbilityDetails` | `repeated` | `` |  |
-| 27 | `level` | `uint32` | `optional` | `` |  |
-| 28 | `kill_count` | `uint32` | `optional` | `` |  |
-| 29 | `death_count` | `uint32` | `optional` | `` |  |
-| 30 | `assists_count` | `uint32` | `optional` | `` |  |
-| 31 | `denies_count` | `uint32` | `optional` | `` |  |
-| 32 | `lh_count` | `uint32` | `optional` | `` |  |
-| 33 | `hero_healing` | `uint32` | `optional` | `` |  |
-| 34 | `gold_per_min` | `uint32` | `optional` | `` |  |
-| 35 | `xp_per_min` | `uint32` | `optional` | `` |  |
-| 36 | `net_gold` | `uint32` | `optional` | `` |  |
-| 37 | `gold` | `uint32` | `optional` | `` |  |
-| 38 | `x` | `float` | `optional` | `` |  |
-| 39 | `y` | `float` | `optional` | `` |  |
-| 40 | `respawn_time` | `int32` | `optional` | `` |  |
-| 41 | `ultimate_cooldown` | `uint32` | `optional` | `` |  |
-| 42 | `has_buyback` | `bool` | `optional` | `` |  |
-| 43 | `items` | `.CMsgDOTARealtimeGameStats.ItemDetails` | `repeated` | `` |  |
-| 44 | `stashitems` | `.CMsgDOTARealtimeGameStats.ItemDetails` | `repeated` | `` |  |
-| 45 | `itemshoppinglist` | `.CMsgDOTARealtimeGameStats.ItemDetails` | `repeated` | `` |  |
-| 46 | `levelpoints` | `.CMsgDOTARealtimeGameStats.AbilityList` | `repeated` | `` |  |
-| 47 | `hero_to_hero_stats` | `.CMsgDOTARealtimeGameStats.HeroToHeroStats` | `repeated` | `` |  |
-| 48 | `has_ultimate` | `bool` | `optional` | `` |  |
-| 49 | `has_ultimate_mana` | `bool` | `optional` | `` |  |
-| 50 | `team_slot` | `uint32` | `optional` | `` |  |
+| 1 | `accountid` | `uint32` | `optional` |  |  |
+| 2 | `playerid` | `int32` | `optional` |  | default = -1 |
+| 3 | `name` | `string` | `optional` |  |  |
+| 4 | `team` | `uint32` | `optional` |  |  |
+| 5 | `heroid` | `int32` | `optional` |  |  |
+| 6 | `healthpoints` | `uint32` | `optional` |  |  |
+| 7 | `maxhealthpoints` | `uint32` | `optional` |  |  |
+| 8 | `healthregenrate` | `float` | `optional` |  |  |
+| 9 | `manapoints` | `uint32` | `optional` |  |  |
+| 10 | `maxmanapoints` | `uint32` | `optional` |  |  |
+| 11 | `manaregenrate` | `float` | `optional` |  |  |
+| 12 | `base_strength` | `uint32` | `optional` |  |  |
+| 13 | `base_agility` | `uint32` | `optional` |  |  |
+| 14 | `base_intelligence` | `uint32` | `optional` |  |  |
+| 15 | `base_armor` | `int32` | `optional` |  |  |
+| 16 | `base_movespeed` | `uint32` | `optional` |  |  |
+| 17 | `base_damage` | `uint32` | `optional` |  |  |
+| 18 | `strength` | `uint32` | `optional` |  |  |
+| 19 | `agility` | `uint32` | `optional` |  |  |
+| 20 | `intelligence` | `uint32` | `optional` |  |  |
+| 21 | `armor` | `int32` | `optional` |  |  |
+| 22 | `movespeed` | `uint32` | `optional` |  |  |
+| 23 | `damage` | `uint32` | `optional` |  |  |
+| 24 | `hero_damage` | `uint32` | `optional` |  |  |
+| 25 | `tower_damage` | `uint32` | `optional` |  |  |
+| 26 | `abilities` | `.CMsgDOTARealtimeGameStats.AbilityDetails` | `repeated` |  |  |
+| 27 | `level` | `uint32` | `optional` |  |  |
+| 28 | `kill_count` | `uint32` | `optional` |  |  |
+| 29 | `death_count` | `uint32` | `optional` |  |  |
+| 30 | `assists_count` | `uint32` | `optional` |  |  |
+| 31 | `denies_count` | `uint32` | `optional` |  |  |
+| 32 | `lh_count` | `uint32` | `optional` |  |  |
+| 33 | `hero_healing` | `uint32` | `optional` |  |  |
+| 34 | `gold_per_min` | `uint32` | `optional` |  |  |
+| 35 | `xp_per_min` | `uint32` | `optional` |  |  |
+| 36 | `net_gold` | `uint32` | `optional` |  |  |
+| 37 | `gold` | `uint32` | `optional` |  |  |
+| 38 | `x` | `float` | `optional` |  |  |
+| 39 | `y` | `float` | `optional` |  |  |
+| 40 | `respawn_time` | `int32` | `optional` |  |  |
+| 41 | `ultimate_cooldown` | `uint32` | `optional` |  |  |
+| 42 | `has_buyback` | `bool` | `optional` |  |  |
+| 43 | `items` | `.CMsgDOTARealtimeGameStats.ItemDetails` | `repeated` |  |  |
+| 44 | `stashitems` | `.CMsgDOTARealtimeGameStats.ItemDetails` | `repeated` |  |  |
+| 45 | `itemshoppinglist` | `.CMsgDOTARealtimeGameStats.ItemDetails` | `repeated` |  |  |
+| 46 | `levelpoints` | `.CMsgDOTARealtimeGameStats.AbilityList` | `repeated` |  |  |
+| 47 | `hero_to_hero_stats` | `.CMsgDOTARealtimeGameStats.HeroToHeroStats` | `repeated` |  |  |
+| 48 | `has_ultimate` | `bool` | `optional` |  |  |
+| 49 | `has_ultimate_mana` | `bool` | `optional` |  |  |
+| 50 | `team_slot` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -827,14 +827,14 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 2 | `team` | `uint32` | `optional` | `` |  |
-| 3 | `heading` | `float` | `optional` | `` |  |
-| 4 | `lane` | `uint32` | `optional` | `` |  |
-| 5 | `tier` | `uint32` | `optional` | `` |  |
-| 6 | `type` | `uint32` | `optional` | `` |  |
-| 7 | `x` | `float` | `optional` | `` |  |
-| 8 | `y` | `float` | `optional` | `` |  |
-| 9 | `destroyed` | `bool` | `optional` | `` |  |
+| 2 | `team` | `uint32` | `optional` |  |  |
+| 3 | `heading` | `float` | `optional` |  |  |
+| 4 | `lane` | `uint32` | `optional` |  |  |
+| 5 | `tier` | `uint32` | `optional` |  |  |
+| 6 | `type` | `uint32` | `optional` |  |  |
+| 7 | `x` | `float` | `optional` |  |  |
+| 8 | `y` | `float` | `optional` |  |  |
+| 9 | `destroyed` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -846,9 +846,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `player_id` | `int32` | `optional` | `` | default = -1 |
-| 2 | `death_time` | `int32` | `optional` | `` |  |
-| 3 | `killer_player_id` | `int32` | `optional` | `` | default = -1 |
+| 1 | `player_id` | `int32` | `optional` |  | default = -1 |
+| 2 | `death_time` | `int32` | `optional` |  |  |
+| 3 | `killer_player_id` | `int32` | `optional` |  | default = -1 |
 
 </details>
 
@@ -860,7 +860,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `player_id` | `int32` | `optional` | `` | default = -1 |
+| 1 | `player_id` | `int32` | `optional` |  | default = -1 |
 
 </details>
 
@@ -872,8 +872,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `hero` | `int32` | `optional` | `` |  |
-| 2 | `team` | `uint32` | `optional` | `` |  |
+| 1 | `hero` | `int32` | `optional` |  |  |
+| 2 | `team` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -885,27 +885,27 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `server_steam_id` | `fixed64` | `optional` | `` |  |
-| 2 | `match_id` | `uint64` | `optional` | `` |  |
-| 3 | `timestamp` | `uint32` | `optional` | `` |  |
-| 4 | `time_of_day` | `float` | `optional` | `` |  |
-| 5 | `is_nightstalker_night` | `bool` | `optional` | `` |  |
-| 6 | `game_time` | `int32` | `optional` | `` |  |
-| 8 | `teamid_radiant` | `uint32` | `optional` | `` |  |
-| 9 | `teamid_dire` | `uint32` | `optional` | `` |  |
-| 10 | `picks` | `.CMsgDOTARealtimeGameStats.PickBanDetails` | `repeated` | `` |  |
-| 11 | `bans` | `.CMsgDOTARealtimeGameStats.PickBanDetails` | `repeated` | `` |  |
-| 12 | `kills` | `.CMsgDOTARealtimeGameStats.KillDetails` | `repeated` | `` |  |
-| 13 | `broadcasters` | `.CMsgDOTARealtimeGameStats.BroadcasterDetails` | `repeated` | `` |  |
-| 14 | `game_mode` | `uint32` | `optional` | `` |  |
-| 15 | `league_id` | `uint32` | `optional` | `` |  |
-| 16 | `single_team` | `bool` | `optional` | `` |  |
-| 17 | `cheers_peak` | `uint32` | `optional` | `` |  |
-| 18 | `league_node_id` | `uint32` | `optional` | `` |  |
-| 19 | `game_state` | `uint32` | `optional` | `` |  |
-| 20 | `lobby_type` | `uint32` | `optional` | `` |  |
-| 21 | `start_timestamp` | `uint32` | `optional` | `` |  |
-| 22 | `is_player_draft` | `bool` | `optional` | `` |  |
+| 1 | `server_steam_id` | `fixed64` | `optional` |  |  |
+| 2 | `match_id` | `uint64` | `optional` |  |  |
+| 3 | `timestamp` | `uint32` | `optional` |  |  |
+| 4 | `time_of_day` | `float` | `optional` |  |  |
+| 5 | `is_nightstalker_night` | `bool` | `optional` |  |  |
+| 6 | `game_time` | `int32` | `optional` |  |  |
+| 8 | `teamid_radiant` | `uint32` | `optional` |  |  |
+| 9 | `teamid_dire` | `uint32` | `optional` |  |  |
+| 10 | `picks` | `.CMsgDOTARealtimeGameStats.PickBanDetails` | `repeated` |  |  |
+| 11 | `bans` | `.CMsgDOTARealtimeGameStats.PickBanDetails` | `repeated` |  |  |
+| 12 | `kills` | `.CMsgDOTARealtimeGameStats.KillDetails` | `repeated` |  |  |
+| 13 | `broadcasters` | `.CMsgDOTARealtimeGameStats.BroadcasterDetails` | `repeated` |  |  |
+| 14 | `game_mode` | `uint32` | `optional` |  |  |
+| 15 | `league_id` | `uint32` | `optional` |  |  |
+| 16 | `single_team` | `bool` | `optional` |  |  |
+| 17 | `cheers_peak` | `uint32` | `optional` |  |  |
+| 18 | `league_node_id` | `uint32` | `optional` |  |  |
+| 19 | `game_state` | `uint32` | `optional` |  |  |
+| 20 | `lobby_type` | `uint32` | `optional` |  |  |
+| 21 | `start_timestamp` | `uint32` | `optional` |  |  |
+| 22 | `is_player_draft` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -917,12 +917,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `graph_gold` | `int32` | `repeated` | `` |  |
-| 2 | `graph_xp` | `int32` | `repeated` | `` |  |
-| 3 | `graph_kill` | `int32` | `repeated` | `` |  |
-| 4 | `graph_tower` | `int32` | `repeated` | `` |  |
-| 5 | `graph_rax` | `int32` | `repeated` | `` |  |
-| 6 | `team_loc_stats` | `.CMsgDOTARealtimeGameStats.GraphData.TeamLocationStats` | `repeated` | `` |  |
+| 1 | `graph_gold` | `int32` | `repeated` |  |  |
+| 2 | `graph_xp` | `int32` | `repeated` |  |  |
+| 3 | `graph_kill` | `int32` | `repeated` |  |  |
+| 4 | `graph_tower` | `int32` | `repeated` |  |  |
+| 5 | `graph_rax` | `int32` | `repeated` |  |  |
+| 6 | `team_loc_stats` | `.CMsgDOTARealtimeGameStats.GraphData.TeamLocationStats` | `repeated` |  |  |
 
 </details>
 
@@ -934,7 +934,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `stats` | `int32` | `repeated` | `` |  |
+| 1 | `stats` | `int32` | `repeated` |  |  |
 
 </details>
 
@@ -946,7 +946,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `loc_stats` | `.CMsgDOTARealtimeGameStats.GraphData.LocationStats` | `repeated` | `` |  |
+| 1 | `loc_stats` | `.CMsgDOTARealtimeGameStats.GraphData.LocationStats` | `repeated` |  |  |
 
 </details>
 
@@ -958,11 +958,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `match` | `.CMsgDOTARealtimeGameStatsTerse.MatchDetails` | `optional` | `` |  |
-| 2 | `teams` | `.CMsgDOTARealtimeGameStatsTerse.TeamDetails` | `repeated` | `` |  |
-| 3 | `buildings` | `.CMsgDOTARealtimeGameStatsTerse.BuildingDetails` | `repeated` | `` |  |
-| 4 | `graph_data` | `.CMsgDOTARealtimeGameStatsTerse.GraphData` | `optional` | `` |  |
-| 5 | `delta_frame` | `bool` | `optional` | `` |  |
+| 1 | `match` | `.CMsgDOTARealtimeGameStatsTerse.MatchDetails` | `optional` |  |  |
+| 2 | `teams` | `.CMsgDOTARealtimeGameStatsTerse.TeamDetails` | `repeated` |  |  |
+| 3 | `buildings` | `.CMsgDOTARealtimeGameStatsTerse.BuildingDetails` | `repeated` |  |  |
+| 4 | `graph_data` | `.CMsgDOTARealtimeGameStatsTerse.GraphData` | `optional` |  |  |
+| 5 | `delta_frame` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -974,15 +974,15 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `team_number` | `uint32` | `optional` | `` |  |
-| 2 | `team_id` | `uint32` | `optional` | `` |  |
-| 3 | `team_name` | `string` | `optional` | `` |  |
-| 4 | `team_logo` | `fixed64` | `optional` | `` |  |
-| 5 | `score` | `uint32` | `optional` | `` |  |
-| 6 | `players` | `.CMsgDOTARealtimeGameStatsTerse.PlayerDetails` | `repeated` | `` |  |
-| 7 | `net_worth` | `uint32` | `optional` | `` |  |
-| 8 | `team_tag` | `string` | `optional` | `` |  |
-| 9 | `team_logo_url` | `string` | `optional` | `` |  |
+| 1 | `team_number` | `uint32` | `optional` |  |  |
+| 2 | `team_id` | `uint32` | `optional` |  |  |
+| 3 | `team_name` | `string` | `optional` |  |  |
+| 4 | `team_logo` | `fixed64` | `optional` |  |  |
+| 5 | `score` | `uint32` | `optional` |  |  |
+| 6 | `players` | `.CMsgDOTARealtimeGameStatsTerse.PlayerDetails` | `repeated` |  |  |
+| 7 | `net_worth` | `uint32` | `optional` |  |  |
+| 8 | `team_tag` | `string` | `optional` |  |  |
+| 9 | `team_logo_url` | `string` | `optional` |  |  |
 
 </details>
 
@@ -994,24 +994,24 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `accountid` | `uint32` | `optional` | `` |  |
-| 2 | `playerid` | `int32` | `optional` | `` | default = -1 |
-| 3 | `name` | `string` | `optional` | `` |  |
-| 4 | `team` | `uint32` | `optional` | `` |  |
-| 5 | `heroid` | `int32` | `optional` | `` |  |
-| 6 | `level` | `uint32` | `optional` | `` |  |
-| 7 | `kill_count` | `uint32` | `optional` | `` |  |
-| 8 | `death_count` | `uint32` | `optional` | `` |  |
-| 9 | `assists_count` | `uint32` | `optional` | `` |  |
-| 10 | `denies_count` | `uint32` | `optional` | `` |  |
-| 11 | `lh_count` | `uint32` | `optional` | `` |  |
-| 12 | `gold` | `uint32` | `optional` | `` |  |
-| 13 | `x` | `float` | `optional` | `` |  |
-| 14 | `y` | `float` | `optional` | `` |  |
-| 15 | `net_worth` | `uint32` | `optional` | `` |  |
-| 16 | `abilities` | `int32` | `repeated` | `` |  |
-| 17 | `items` | `int32` | `repeated` | `` |  |
-| 18 | `team_slot` | `uint32` | `optional` | `` |  |
+| 1 | `accountid` | `uint32` | `optional` |  |  |
+| 2 | `playerid` | `int32` | `optional` |  | default = -1 |
+| 3 | `name` | `string` | `optional` |  |  |
+| 4 | `team` | `uint32` | `optional` |  |  |
+| 5 | `heroid` | `int32` | `optional` |  |  |
+| 6 | `level` | `uint32` | `optional` |  |  |
+| 7 | `kill_count` | `uint32` | `optional` |  |  |
+| 8 | `death_count` | `uint32` | `optional` |  |  |
+| 9 | `assists_count` | `uint32` | `optional` |  |  |
+| 10 | `denies_count` | `uint32` | `optional` |  |  |
+| 11 | `lh_count` | `uint32` | `optional` |  |  |
+| 12 | `gold` | `uint32` | `optional` |  |  |
+| 13 | `x` | `float` | `optional` |  |  |
+| 14 | `y` | `float` | `optional` |  |  |
+| 15 | `net_worth` | `uint32` | `optional` |  |  |
+| 16 | `abilities` | `int32` | `repeated` |  |  |
+| 17 | `items` | `int32` | `repeated` |  |  |
+| 18 | `team_slot` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -1023,14 +1023,14 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `team` | `uint32` | `optional` | `` |  |
-| 2 | `heading` | `float` | `optional` | `` |  |
-| 3 | `type` | `uint32` | `optional` | `` |  |
-| 4 | `lane` | `uint32` | `optional` | `` |  |
-| 5 | `tier` | `uint32` | `optional` | `` |  |
-| 6 | `x` | `float` | `optional` | `` |  |
-| 7 | `y` | `float` | `optional` | `` |  |
-| 8 | `destroyed` | `bool` | `optional` | `` |  |
+| 1 | `team` | `uint32` | `optional` |  |  |
+| 2 | `heading` | `float` | `optional` |  |  |
+| 3 | `type` | `uint32` | `optional` |  |  |
+| 4 | `lane` | `uint32` | `optional` |  |  |
+| 5 | `tier` | `uint32` | `optional` |  |  |
+| 6 | `x` | `float` | `optional` |  |  |
+| 7 | `y` | `float` | `optional` |  |  |
+| 8 | `destroyed` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -1042,8 +1042,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `hero` | `int32` | `optional` | `` |  |
-| 2 | `team` | `uint32` | `optional` | `` |  |
+| 1 | `hero` | `int32` | `optional` |  |  |
+| 2 | `team` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -1055,20 +1055,20 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `server_steam_id` | `fixed64` | `optional` | `` |  |
-| 2 | `match_id` | `uint64` | `optional` | `` |  |
-| 3 | `timestamp` | `uint32` | `optional` | `` |  |
-| 4 | `game_time` | `int32` | `optional` | `` |  |
-| 6 | `steam_broadcaster_account_ids` | `uint32` | `repeated` | `` |  |
-| 7 | `game_mode` | `uint32` | `optional` | `` |  |
-| 8 | `league_id` | `uint32` | `optional` | `` |  |
-| 9 | `league_node_id` | `uint32` | `optional` | `` |  |
-| 10 | `game_state` | `uint32` | `optional` | `` |  |
-| 11 | `picks` | `.CMsgDOTARealtimeGameStatsTerse.PickBanDetails` | `repeated` | `` |  |
-| 12 | `bans` | `.CMsgDOTARealtimeGameStatsTerse.PickBanDetails` | `repeated` | `` |  |
-| 13 | `lobby_type` | `uint32` | `optional` | `` |  |
-| 14 | `start_timestamp` | `uint32` | `optional` | `` |  |
-| 15 | `is_player_draft` | `bool` | `optional` | `` |  |
+| 1 | `server_steam_id` | `fixed64` | `optional` |  |  |
+| 2 | `match_id` | `uint64` | `optional` |  |  |
+| 3 | `timestamp` | `uint32` | `optional` |  |  |
+| 4 | `game_time` | `int32` | `optional` |  |  |
+| 6 | `steam_broadcaster_account_ids` | `uint32` | `repeated` |  |  |
+| 7 | `game_mode` | `uint32` | `optional` |  |  |
+| 8 | `league_id` | `uint32` | `optional` |  |  |
+| 9 | `league_node_id` | `uint32` | `optional` |  |  |
+| 10 | `game_state` | `uint32` | `optional` |  |  |
+| 11 | `picks` | `.CMsgDOTARealtimeGameStatsTerse.PickBanDetails` | `repeated` |  |  |
+| 12 | `bans` | `.CMsgDOTARealtimeGameStatsTerse.PickBanDetails` | `repeated` |  |  |
+| 13 | `lobby_type` | `uint32` | `optional` |  |  |
+| 14 | `start_timestamp` | `uint32` | `optional` |  |  |
+| 15 | `is_player_draft` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -1080,7 +1080,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `graph_gold` | `int32` | `repeated` | `` |  |
+| 1 | `graph_gold` | `int32` | `repeated` |  |  |
 
 </details>
 
@@ -1092,10 +1092,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `event` | `.EBroadcastTimelineEvent` | `optional` | `` | default = EBroadcastTimelineEvent_MatchStarted |
-| 2 | `timestamp` | `fixed32` | `optional` | `` |  |
-| 3 | `data` | `uint32` | `optional` | `` |  |
-| 4 | `string_data` | `string` | `optional` | `` |  |
+| 1 | `event` | `.EBroadcastTimelineEvent` | `optional` |  | default = EBroadcastTimelineEvent_MatchStarted |
+| 2 | `timestamp` | `fixed32` | `optional` |  |  |
+| 3 | `data` | `uint32` | `optional` |  |  |
+| 4 | `string_data` | `string` | `optional` |  |  |
 
 </details>
 
@@ -1107,7 +1107,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `matchgroups_version` | `uint32` | `optional` | `` |  |
+| 1 | `matchgroups_version` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -1119,16 +1119,16 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `match_id` | `uint64` | `optional` | `` |  |
-| 2 | `game_mode` | `uint32` | `optional` | `` |  |
-| 3 | `lobby_type` | `uint32` | `optional` | `` |  |
-| 4 | `start_time` | `uint32` | `optional` | `` |  |
-| 5 | `won` | `bool` | `optional` | `` |  |
-| 6 | `gpm` | `uint32` | `optional` | `` |  |
-| 7 | `xpm` | `uint32` | `optional` | `` |  |
-| 8 | `kills` | `uint32` | `optional` | `` |  |
-| 9 | `deaths` | `uint32` | `optional` | `` |  |
-| 10 | `assists` | `uint32` | `optional` | `` |  |
+| 1 | `match_id` | `uint64` | `optional` |  |  |
+| 2 | `game_mode` | `uint32` | `optional` |  |  |
+| 3 | `lobby_type` | `uint32` | `optional` |  |  |
+| 4 | `start_time` | `uint32` | `optional` |  |  |
+| 5 | `won` | `bool` | `optional` |  |  |
+| 6 | `gpm` | `uint32` | `optional` |  |  |
+| 7 | `xpm` | `uint32` | `optional` |  |  |
+| 8 | `kills` | `uint32` | `optional` |  |  |
+| 9 | `deaths` | `uint32` | `optional` |  |  |
+| 10 | `assists` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -1140,10 +1140,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `value` | `uint32` | `optional` | `` |  |
-| 2 | `name` | `string` | `optional` | `` |  |
-| 3 | `min_raw_value` | `uint32` | `optional` | `` |  |
-| 4 | `max_raw_value` | `uint32` | `optional` | `` |  |
+| 1 | `value` | `uint32` | `optional` |  |  |
+| 2 | `name` | `string` | `optional` |  |  |
+| 3 | `min_raw_value` | `uint32` | `optional` |  |  |
+| 4 | `max_raw_value` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -1155,20 +1155,20 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `id` | `uint32` | `optional` | `` |  |
-| 2 | `name` | `string` | `optional` | `` |  |
-| 3 | `type` | `.CMsgInGamePrediction.EPredictionType` | `optional` | `` | default = Generic |
-| 4 | `group` | `.CMsgInGamePrediction.ERandomSelectionGroup_t` | `optional` | `` | default = EarlyGame |
-| 5 | `question` | `string` | `optional` | `` |  |
-| 6 | `choices` | `.CMsgPredictionChoice` | `repeated` | `` |  |
-| 7 | `required_heroes` | `string` | `repeated` | `` |  |
-| 8 | `query_name` | `string` | `optional` | `` |  |
-| 9 | `query_values` | `.CMsgInGamePrediction.QueryKeyValues` | `repeated` | `` |  |
-| 10 | `answer_resolution_type` | `.CMsgInGamePrediction.EResolutionType_t` | `optional` | `` | default = InvalidQuery |
-| 11 | `points_to_grant` | `uint32` | `optional` | `` |  |
-| 12 | `reward_action` | `uint32` | `optional` | `` |  |
-| 13 | `debug_force_selection` | `uint32` | `optional` | `` |  |
-| 14 | `raw_value_type` | `.CMsgInGamePrediction.ERawValueType_t` | `optional` | `` | default = Number |
+| 1 | `id` | `uint32` | `optional` |  |  |
+| 2 | `name` | `string` | `optional` |  |  |
+| 3 | `type` | `.CMsgInGamePrediction.EPredictionType` | `optional` |  | default = Generic |
+| 4 | `group` | `.CMsgInGamePrediction.ERandomSelectionGroup_t` | `optional` |  | default = EarlyGame |
+| 5 | `question` | `string` | `optional` |  |  |
+| 6 | `choices` | `.CMsgPredictionChoice` | `repeated` |  |  |
+| 7 | `required_heroes` | `string` | `repeated` |  |  |
+| 8 | `query_name` | `string` | `optional` |  |  |
+| 9 | `query_values` | `.CMsgInGamePrediction.QueryKeyValues` | `repeated` |  |  |
+| 10 | `answer_resolution_type` | `.CMsgInGamePrediction.EResolutionType_t` | `optional` |  | default = InvalidQuery |
+| 11 | `points_to_grant` | `uint32` | `optional` |  |  |
+| 12 | `reward_action` | `uint32` | `optional` |  |  |
+| 13 | `debug_force_selection` | `uint32` | `optional` |  |  |
+| 14 | `raw_value_type` | `.CMsgInGamePrediction.ERawValueType_t` | `optional` |  | default = Number |
 
 </details>
 
@@ -1180,8 +1180,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `name` | `string` | `optional` | `` |  |
-| 2 | `value` | `string` | `optional` | `` |  |
+| 1 | `name` | `string` | `optional` |  |  |
+| 2 | `value` | `string` | `optional` |  |  |
 
 </details>
 
@@ -1193,10 +1193,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `predictions` | `.CMsgDOTASeasonPredictions.Prediction` | `repeated` | `` |  |
-| 2 | `in_game_predictions` | `.CMsgInGamePrediction` | `repeated` | `` |  |
-| 3 | `in_game_prediction_count_per_game` | `uint32` | `optional` | `` |  |
-| 4 | `in_game_prediction_voting_period_minutes` | `uint32` | `optional` | `` |  |
+| 1 | `predictions` | `.CMsgDOTASeasonPredictions.Prediction` | `repeated` |  |  |
+| 2 | `in_game_predictions` | `.CMsgInGamePrediction` | `repeated` |  |  |
+| 3 | `in_game_prediction_count_per_game` | `uint32` | `optional` |  |  |
+| 4 | `in_game_prediction_voting_period_minutes` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -1208,26 +1208,26 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `type` | `.CMsgDOTASeasonPredictions.Prediction.EPredictionType` | `optional` | `` | default = Generic |
-| 2 | `question` | `string` | `optional` | `` |  |
-| 3 | `choices` | `.CMsgPredictionChoice` | `repeated` | `` |  |
-| 4 | `selection_id` | `uint32` | `optional` | `` |  |
-| 5 | `start_date` | `uint32` | `optional` | `` |  |
-| 6 | `lock_date` | `uint32` | `optional` | `` |  |
-| 7 | `reward` | `uint32` | `optional` | `` |  |
-| 8 | `answer_type` | `.CMsgDOTASeasonPredictions.Prediction.EAnswerType` | `optional` | `` | default = SingleInt |
-| 9 | `answer_id` | `uint32` | `optional` | `` |  |
-| 10 | `answers` | `.CMsgDOTASeasonPredictions.Prediction.Answers` | `repeated` | `` |  |
-| 11 | `query_name` | `string` | `optional` | `` |  |
-| 13 | `lock_on_selection_id` | `uint32` | `optional` | `` |  |
-| 14 | `lock_on_selection_value` | `uint32` | `optional` | `` |  |
-| 15 | `lock_on_selection_set` | `bool` | `optional` | `` |  |
-| 16 | `use_answer_value_ranges` | `bool` | `optional` | `` |  |
-| 17 | `region` | `.ELeagueRegion` | `optional` | `` | default = LEAGUE_REGION_UNSET |
-| 18 | `phases` | `.ELeaguePhase` | `repeated` | `` |  |
-| 19 | `reward_event` | `.EEvent` | `optional` | `` | default = EVENT_ID_NONE |
-| 20 | `league_node_id` | `uint32` | `optional` | `` |  |
-| 21 | `reward_event_action` | `string` | `optional` | `` |  |
+| 1 | `type` | `.CMsgDOTASeasonPredictions.Prediction.EPredictionType` | `optional` |  | default = Generic |
+| 2 | `question` | `string` | `optional` |  |  |
+| 3 | `choices` | `.CMsgPredictionChoice` | `repeated` |  |  |
+| 4 | `selection_id` | `uint32` | `optional` |  |  |
+| 5 | `start_date` | `uint32` | `optional` |  |  |
+| 6 | `lock_date` | `uint32` | `optional` |  |  |
+| 7 | `reward` | `uint32` | `optional` |  |  |
+| 8 | `answer_type` | `.CMsgDOTASeasonPredictions.Prediction.EAnswerType` | `optional` |  | default = SingleInt |
+| 9 | `answer_id` | `uint32` | `optional` |  |  |
+| 10 | `answers` | `.CMsgDOTASeasonPredictions.Prediction.Answers` | `repeated` |  |  |
+| 11 | `query_name` | `string` | `optional` |  |  |
+| 13 | `lock_on_selection_id` | `uint32` | `optional` |  |  |
+| 14 | `lock_on_selection_value` | `uint32` | `optional` |  |  |
+| 15 | `lock_on_selection_set` | `bool` | `optional` |  |  |
+| 16 | `use_answer_value_ranges` | `bool` | `optional` |  |  |
+| 17 | `region` | `.ELeagueRegion` | `optional` |  | default = LEAGUE_REGION_UNSET |
+| 18 | `phases` | `.ELeaguePhase` | `repeated` |  |  |
+| 19 | `reward_event` | `.EEvent` | `optional` |  | default = EVENT_ID_NONE |
+| 20 | `league_node_id` | `uint32` | `optional` |  |  |
+| 21 | `reward_event_action` | `string` | `optional` |  |  |
 
 </details>
 
@@ -1239,7 +1239,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `answer_id` | `uint32` | `optional` | `` |  |
+| 1 | `answer_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -1251,7 +1251,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `match_predictions` | `.CMsgAvailablePredictions.MatchPrediction` | `repeated` | `` |  |
+| 1 | `match_predictions` | `.CMsgAvailablePredictions.MatchPrediction` | `repeated` |  |  |
 
 </details>
 
@@ -1263,8 +1263,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `match_id` | `uint64` | `optional` | `` |  |
-| 2 | `predictions` | `.CMsgInGamePrediction` | `repeated` | `` |  |
+| 1 | `match_id` | `uint64` | `optional` |  |  |
+| 2 | `predictions` | `.CMsgInGamePrediction` | `repeated` |  |  |
 
 </details>
 
@@ -1276,7 +1276,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `leagues` | `.CMsgLeagueWatchedGames.League` | `repeated` | `` |  |
+| 1 | `leagues` | `.CMsgLeagueWatchedGames.League` | `repeated` |  |  |
 
 </details>
 
@@ -1288,8 +1288,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `node_id` | `uint32` | `optional` | `` |  |
-| 2 | `game` | `uint32` | `repeated` | `` |  |
+| 1 | `node_id` | `uint32` | `optional` |  |  |
+| 2 | `game` | `uint32` | `repeated` |  |  |
 
 </details>
 
@@ -1301,8 +1301,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `league_id` | `uint32` | `optional` | `` |  |
-| 2 | `series` | `.CMsgLeagueWatchedGames.Series` | `repeated` | `` |  |
+| 1 | `league_id` | `uint32` | `optional` |  |  |
+| 2 | `series` | `.CMsgLeagueWatchedGames.Series` | `repeated` |  |  |
 
 </details>
 
@@ -1314,54 +1314,54 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 3 | `duration` | `uint32` | `optional` | `` |  |
-| 4 | `starttime` | `fixed32` | `optional` | `` |  |
-| 5 | `players` | `.CMsgDOTAMatch.Player` | `repeated` | `` |  |
-| 6 | `match_id` | `uint64` | `optional` | `` |  |
-| 8 | `tower_status` | `uint32` | `repeated` | `` |  |
-| 9 | `barracks_status` | `uint32` | `repeated` | `` |  |
-| 10 | `cluster` | `uint32` | `optional` | `` |  |
-| 12 | `first_blood_time` | `uint32` | `optional` | `` |  |
-| 13 | `replay_salt` | `fixed32` | `optional` | `` |  |
-| 14 | `server_ip` | `fixed32` | `optional` | `` |  |
-| 15 | `server_port` | `uint32` | `optional` | `` |  |
-| 16 | `lobby_type` | `uint32` | `optional` | `` |  |
-| 17 | `human_players` | `uint32` | `optional` | `` |  |
-| 18 | `average_skill` | `uint32` | `optional` | `` |  |
-| 19 | `game_balance` | `float` | `optional` | `` |  |
-| 20 | `radiant_team_id` | `uint32` | `optional` | `` |  |
-| 21 | `dire_team_id` | `uint32` | `optional` | `` |  |
-| 22 | `leagueid` | `uint32` | `optional` | `` |  |
-| 23 | `radiant_team_name` | `string` | `optional` | `` |  |
-| 24 | `dire_team_name` | `string` | `optional` | `` |  |
-| 25 | `radiant_team_logo` | `uint64` | `optional` | `` |  |
-| 26 | `dire_team_logo` | `uint64` | `optional` | `` |  |
-| 27 | `radiant_team_complete` | `uint32` | `optional` | `` |  |
-| 28 | `dire_team_complete` | `uint32` | `optional` | `` |  |
-| 31 | `game_mode` | `.DOTA_GameMode` | `optional` | `` | default = DOTA_GAMEMODE_NONE |
-| 32 | `picks_bans` | `.CMatchHeroSelectEvent` | `repeated` | `` |  |
-| 33 | `match_seq_num` | `uint64` | `optional` | `` |  |
-| 34 | `replay_state` | `.CMsgDOTAMatch.ReplayState` | `optional` | `` | default = REPLAY_AVAILABLE |
-| 35 | `radiant_guild_id` | `uint32` | `optional` | `` |  |
-| 36 | `dire_guild_id` | `uint32` | `optional` | `` |  |
-| 37 | `radiant_team_tag` | `string` | `optional` | `` |  |
-| 38 | `dire_team_tag` | `string` | `optional` | `` |  |
-| 39 | `series_id` | `uint32` | `optional` | `` |  |
-| 40 | `series_type` | `uint32` | `optional` | `` |  |
-| 43 | `broadcaster_channels` | `.CMsgDOTAMatch.BroadcasterChannel` | `repeated` | `` |  |
-| 44 | `engine` | `uint32` | `optional` | `` |  |
-| 45 | `custom_game_data` | `.CMsgDOTAMatch.CustomGameData` | `optional` | `` |  |
-| 46 | `match_flags` | `uint32` | `optional` | `` |  |
-| 47 | `private_metadata_key` | `fixed32` | `optional` | `` |  |
-| 48 | `radiant_team_score` | `uint32` | `optional` | `` |  |
-| 49 | `dire_team_score` | `uint32` | `optional` | `` |  |
-| 50 | `match_outcome` | `.EMatchOutcome` | `optional` | `` | default = k_EMatchOutcome_Unknown |
-| 51 | `tournament_id` | `uint32` | `optional` | `` |  |
-| 52 | `tournament_round` | `uint32` | `optional` | `` |  |
-| 53 | `pre_game_duration` | `uint32` | `optional` | `` |  |
-| 54 | `radiant_team_logo_url` | `string` | `optional` | `` |  |
-| 55 | `dire_team_logo_url` | `string` | `optional` | `` |  |
-| 57 | `coaches` | `.CMsgDOTAMatch.Coach` | `repeated` | `` |  |
+| 3 | `duration` | `uint32` | `optional` |  |  |
+| 4 | `starttime` | `fixed32` | `optional` |  |  |
+| 5 | `players` | `.CMsgDOTAMatch.Player` | `repeated` |  |  |
+| 6 | `match_id` | `uint64` | `optional` |  |  |
+| 8 | `tower_status` | `uint32` | `repeated` |  |  |
+| 9 | `barracks_status` | `uint32` | `repeated` |  |  |
+| 10 | `cluster` | `uint32` | `optional` |  |  |
+| 12 | `first_blood_time` | `uint32` | `optional` |  |  |
+| 13 | `replay_salt` | `fixed32` | `optional` |  |  |
+| 14 | `server_ip` | `fixed32` | `optional` |  |  |
+| 15 | `server_port` | `uint32` | `optional` |  |  |
+| 16 | `lobby_type` | `uint32` | `optional` |  |  |
+| 17 | `human_players` | `uint32` | `optional` |  |  |
+| 18 | `average_skill` | `uint32` | `optional` |  |  |
+| 19 | `game_balance` | `float` | `optional` |  |  |
+| 20 | `radiant_team_id` | `uint32` | `optional` |  |  |
+| 21 | `dire_team_id` | `uint32` | `optional` |  |  |
+| 22 | `leagueid` | `uint32` | `optional` |  |  |
+| 23 | `radiant_team_name` | `string` | `optional` |  |  |
+| 24 | `dire_team_name` | `string` | `optional` |  |  |
+| 25 | `radiant_team_logo` | `uint64` | `optional` |  |  |
+| 26 | `dire_team_logo` | `uint64` | `optional` |  |  |
+| 27 | `radiant_team_complete` | `uint32` | `optional` |  |  |
+| 28 | `dire_team_complete` | `uint32` | `optional` |  |  |
+| 31 | `game_mode` | `.DOTA_GameMode` | `optional` |  | default = DOTA_GAMEMODE_NONE |
+| 32 | `picks_bans` | `.CMatchHeroSelectEvent` | `repeated` |  |  |
+| 33 | `match_seq_num` | `uint64` | `optional` |  |  |
+| 34 | `replay_state` | `.CMsgDOTAMatch.ReplayState` | `optional` |  | default = REPLAY_AVAILABLE |
+| 35 | `radiant_guild_id` | `uint32` | `optional` |  |  |
+| 36 | `dire_guild_id` | `uint32` | `optional` |  |  |
+| 37 | `radiant_team_tag` | `string` | `optional` |  |  |
+| 38 | `dire_team_tag` | `string` | `optional` |  |  |
+| 39 | `series_id` | `uint32` | `optional` |  |  |
+| 40 | `series_type` | `uint32` | `optional` |  |  |
+| 43 | `broadcaster_channels` | `.CMsgDOTAMatch.BroadcasterChannel` | `repeated` |  |  |
+| 44 | `engine` | `uint32` | `optional` |  |  |
+| 45 | `custom_game_data` | `.CMsgDOTAMatch.CustomGameData` | `optional` |  |  |
+| 46 | `match_flags` | `uint32` | `optional` |  |  |
+| 47 | `private_metadata_key` | `fixed32` | `optional` |  |  |
+| 48 | `radiant_team_score` | `uint32` | `optional` |  |  |
+| 49 | `dire_team_score` | `uint32` | `optional` |  |  |
+| 50 | `match_outcome` | `.EMatchOutcome` | `optional` |  | default = k_EMatchOutcome_Unknown |
+| 51 | `tournament_id` | `uint32` | `optional` |  |  |
+| 52 | `tournament_round` | `uint32` | `optional` |  |  |
+| 53 | `pre_game_duration` | `uint32` | `optional` |  |  |
+| 54 | `radiant_team_logo_url` | `string` | `optional` |  |  |
+| 55 | `dire_team_logo_url` | `string` | `optional` |  |  |
+| 57 | `coaches` | `.CMsgDOTAMatch.Coach` | `repeated` |  |  |
 
 </details>
 
@@ -1373,83 +1373,83 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `player_slot` | `uint32` | `optional` | `` |  |
-| 3 | `hero_id` | `int32` | `optional` | `` |  |
-| 4 | `item_0` | `int32` | `optional` | `` | default = -1 |
-| 5 | `item_1` | `int32` | `optional` | `` | default = -1 |
-| 6 | `item_2` | `int32` | `optional` | `` | default = -1 |
-| 7 | `item_3` | `int32` | `optional` | `` | default = -1 |
-| 8 | `item_4` | `int32` | `optional` | `` | default = -1 |
-| 9 | `item_5` | `int32` | `optional` | `` | default = -1 |
-| 10 | `expected_team_contribution` | `float` | `optional` | `` |  |
-| 11 | `scaled_metric` | `float` | `optional` | `` |  |
-| 12 | `previous_rank` | `uint32` | `optional` | `` |  |
-| 13 | `rank_change` | `sint32` | `optional` | `` |  |
-| 14 | `kills` | `uint32` | `optional` | `` |  |
-| 15 | `deaths` | `uint32` | `optional` | `` |  |
-| 16 | `assists` | `uint32` | `optional` | `` |  |
-| 17 | `leaver_status` | `uint32` | `optional` | `` |  |
-| 18 | `gold` | `uint32` | `optional` | `` |  |
-| 19 | `last_hits` | `uint32` | `optional` | `` |  |
-| 20 | `denies` | `uint32` | `optional` | `` |  |
-| 21 | `gold_per_min` | `uint32` | `optional` | `` |  |
-| 22 | `xp_per_min` | `uint32` | `optional` | `` |  |
-| 23 | `gold_spent` | `uint32` | `optional` | `` |  |
-| 24 | `hero_damage` | `uint32` | `optional` | `` |  |
-| 25 | `tower_damage` | `uint32` | `optional` | `` |  |
-| 26 | `hero_healing` | `uint32` | `optional` | `` |  |
-| 27 | `level` | `uint32` | `optional` | `` |  |
-| 28 | `time_last_seen` | `uint32` | `optional` | `` |  |
-| 29 | `player_name` | `string` | `optional` | `` |  |
-| 30 | `support_ability_value` | `uint32` | `optional` | `` |  |
-| 32 | `feeding_detected` | `bool` | `optional` | `` |  |
-| 34 | `search_rank` | `uint32` | `optional` | `` |  |
-| 35 | `search_rank_uncertainty` | `uint32` | `optional` | `` |  |
-| 36 | `rank_uncertainty_change` | `int32` | `optional` | `` |  |
-| 37 | `hero_play_count` | `uint32` | `optional` | `` |  |
-| 38 | `party_id` | `fixed64` | `optional` | `` |  |
-| 39 | `scaled_kills` | `float` | `optional` | `` |  |
-| 40 | `scaled_deaths` | `float` | `optional` | `` |  |
-| 41 | `scaled_assists` | `float` | `optional` | `` |  |
-| 42 | `claimed_farm_gold` | `uint32` | `optional` | `` |  |
-| 43 | `support_gold` | `uint32` | `optional` | `` |  |
-| 44 | `claimed_denies` | `uint32` | `optional` | `` |  |
-| 45 | `claimed_misses` | `uint32` | `optional` | `` |  |
-| 46 | `misses` | `uint32` | `optional` | `` |  |
-| 47 | `ability_upgrades` | `.CMatchPlayerAbilityUpgrade` | `repeated` | `` |  |
-| 48 | `additional_units_inventory` | `.CMatchAdditionalUnitInventory` | `repeated` | `` |  |
-| 50 | `custom_game_data` | `.CMsgDOTAMatch.Player.CustomGameData` | `optional` | `` |  |
-| 51 | `active_plus_subscription` | `bool` | `optional` | `` |  |
-| 52 | `net_worth` | `uint32` | `optional` | `` |  |
-| 54 | `scaled_hero_damage` | `uint32` | `optional` | `` |  |
-| 55 | `scaled_tower_damage` | `uint32` | `optional` | `` |  |
-| 56 | `scaled_hero_healing` | `uint32` | `optional` | `` |  |
-| 57 | `permanent_buffs` | `.CMatchPlayerPermanentBuff` | `repeated` | `` |  |
-| 58 | `bot_difficulty` | `uint32` | `optional` | `` |  |
-| 59 | `item_6` | `int32` | `optional` | `` | default = -1 |
-| 60 | `item_7` | `int32` | `optional` | `` | default = -1 |
-| 61 | `item_8` | `int32` | `optional` | `` | default = -1 |
-| 63 | `hero_pick_order` | `uint32` | `optional` | `` |  |
-| 64 | `hero_was_randomed` | `bool` | `optional` | `` |  |
-| 67 | `hero_damage_received` | `.CMsgDOTAMatch.Player.HeroDamageReceived` | `repeated` | `` |  |
-| 69 | `hero_was_dota_plus_suggestion` | `bool` | `optional` | `` |  |
-| 70 | `seconds_dead` | `uint32` | `optional` | `` |  |
-| 71 | `gold_lost_to_death` | `uint32` | `optional` | `` |  |
-| 72 | `pro_name` | `string` | `optional` | `` |  |
-| 73 | `real_name` | `string` | `optional` | `` |  |
-| 74 | `mmr_type` | `uint32` | `optional` | `` |  |
-| 75 | `lane_selection_flags` | `uint32` | `optional` | `` |  |
-| 76 | `item_9` | `int32` | `optional` | `` | default = -1 |
-| 77 | `bounty_runes` | `uint32` | `optional` | `` |  |
-| 78 | `outposts_captured` | `uint32` | `optional` | `` |  |
-| 79 | `hero_damage_dealt` | `.CMsgDOTAMatch.Player.HeroDamageReceived` | `repeated` | `` |  |
-| 80 | `team_number` | `.DOTA_GC_TEAM` | `optional` | `` | default = DOTA_GC_TEAM_GOOD_GUYS |
-| 81 | `team_slot` | `uint32` | `optional` | `` |  |
-| 82 | `selected_facet` | `uint32` | `optional` | `` |  |
-| 83 | `item_10` | `int32` | `optional` | `` | default = -1 |
-| 84 | `item_10_lvl` | `int32` | `optional` | `` |  |
-| 85 | `disable_duration` | `uint32` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `player_slot` | `uint32` | `optional` |  |  |
+| 3 | `hero_id` | `int32` | `optional` |  |  |
+| 4 | `item_0` | `int32` | `optional` |  | default = -1 |
+| 5 | `item_1` | `int32` | `optional` |  | default = -1 |
+| 6 | `item_2` | `int32` | `optional` |  | default = -1 |
+| 7 | `item_3` | `int32` | `optional` |  | default = -1 |
+| 8 | `item_4` | `int32` | `optional` |  | default = -1 |
+| 9 | `item_5` | `int32` | `optional` |  | default = -1 |
+| 10 | `expected_team_contribution` | `float` | `optional` |  |  |
+| 11 | `scaled_metric` | `float` | `optional` |  |  |
+| 12 | `previous_rank` | `uint32` | `optional` |  |  |
+| 13 | `rank_change` | `sint32` | `optional` |  |  |
+| 14 | `kills` | `uint32` | `optional` |  |  |
+| 15 | `deaths` | `uint32` | `optional` |  |  |
+| 16 | `assists` | `uint32` | `optional` |  |  |
+| 17 | `leaver_status` | `uint32` | `optional` |  |  |
+| 18 | `gold` | `uint32` | `optional` |  |  |
+| 19 | `last_hits` | `uint32` | `optional` |  |  |
+| 20 | `denies` | `uint32` | `optional` |  |  |
+| 21 | `gold_per_min` | `uint32` | `optional` |  |  |
+| 22 | `xp_per_min` | `uint32` | `optional` |  |  |
+| 23 | `gold_spent` | `uint32` | `optional` |  |  |
+| 24 | `hero_damage` | `uint32` | `optional` |  |  |
+| 25 | `tower_damage` | `uint32` | `optional` |  |  |
+| 26 | `hero_healing` | `uint32` | `optional` |  |  |
+| 27 | `level` | `uint32` | `optional` |  |  |
+| 28 | `time_last_seen` | `uint32` | `optional` |  |  |
+| 29 | `player_name` | `string` | `optional` |  |  |
+| 30 | `support_ability_value` | `uint32` | `optional` |  |  |
+| 32 | `feeding_detected` | `bool` | `optional` |  |  |
+| 34 | `search_rank` | `uint32` | `optional` |  |  |
+| 35 | `search_rank_uncertainty` | `uint32` | `optional` |  |  |
+| 36 | `rank_uncertainty_change` | `int32` | `optional` |  |  |
+| 37 | `hero_play_count` | `uint32` | `optional` |  |  |
+| 38 | `party_id` | `fixed64` | `optional` |  |  |
+| 39 | `scaled_kills` | `float` | `optional` |  |  |
+| 40 | `scaled_deaths` | `float` | `optional` |  |  |
+| 41 | `scaled_assists` | `float` | `optional` |  |  |
+| 42 | `claimed_farm_gold` | `uint32` | `optional` |  |  |
+| 43 | `support_gold` | `uint32` | `optional` |  |  |
+| 44 | `claimed_denies` | `uint32` | `optional` |  |  |
+| 45 | `claimed_misses` | `uint32` | `optional` |  |  |
+| 46 | `misses` | `uint32` | `optional` |  |  |
+| 47 | `ability_upgrades` | `.CMatchPlayerAbilityUpgrade` | `repeated` |  |  |
+| 48 | `additional_units_inventory` | `.CMatchAdditionalUnitInventory` | `repeated` |  |  |
+| 50 | `custom_game_data` | `.CMsgDOTAMatch.Player.CustomGameData` | `optional` |  |  |
+| 51 | `active_plus_subscription` | `bool` | `optional` |  |  |
+| 52 | `net_worth` | `uint32` | `optional` |  |  |
+| 54 | `scaled_hero_damage` | `uint32` | `optional` |  |  |
+| 55 | `scaled_tower_damage` | `uint32` | `optional` |  |  |
+| 56 | `scaled_hero_healing` | `uint32` | `optional` |  |  |
+| 57 | `permanent_buffs` | `.CMatchPlayerPermanentBuff` | `repeated` |  |  |
+| 58 | `bot_difficulty` | `uint32` | `optional` |  |  |
+| 59 | `item_6` | `int32` | `optional` |  | default = -1 |
+| 60 | `item_7` | `int32` | `optional` |  | default = -1 |
+| 61 | `item_8` | `int32` | `optional` |  | default = -1 |
+| 63 | `hero_pick_order` | `uint32` | `optional` |  |  |
+| 64 | `hero_was_randomed` | `bool` | `optional` |  |  |
+| 67 | `hero_damage_received` | `.CMsgDOTAMatch.Player.HeroDamageReceived` | `repeated` |  |  |
+| 69 | `hero_was_dota_plus_suggestion` | `bool` | `optional` |  |  |
+| 70 | `seconds_dead` | `uint32` | `optional` |  |  |
+| 71 | `gold_lost_to_death` | `uint32` | `optional` |  |  |
+| 72 | `pro_name` | `string` | `optional` |  |  |
+| 73 | `real_name` | `string` | `optional` |  |  |
+| 74 | `mmr_type` | `uint32` | `optional` |  |  |
+| 75 | `lane_selection_flags` | `uint32` | `optional` |  |  |
+| 76 | `item_9` | `int32` | `optional` |  | default = -1 |
+| 77 | `bounty_runes` | `uint32` | `optional` |  |  |
+| 78 | `outposts_captured` | `uint32` | `optional` |  |  |
+| 79 | `hero_damage_dealt` | `.CMsgDOTAMatch.Player.HeroDamageReceived` | `repeated` |  |  |
+| 80 | `team_number` | `.DOTA_GC_TEAM` | `optional` |  | default = DOTA_GC_TEAM_GOOD_GUYS |
+| 81 | `team_slot` | `uint32` | `optional` |  |  |
+| 82 | `selected_facet` | `uint32` | `optional` |  |  |
+| 83 | `item_10` | `int32` | `optional` |  | default = -1 |
+| 84 | `item_10_lvl` | `int32` | `optional` |  |  |
+| 85 | `disable_duration` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -1461,8 +1461,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `dota_team` | `uint32` | `optional` | `` |  |
-| 2 | `winner` | `bool` | `optional` | `` |  |
+| 1 | `dota_team` | `uint32` | `optional` |  |  |
+| 2 | `winner` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -1474,9 +1474,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `pre_reduction` | `uint32` | `optional` | `` |  |
-| 2 | `post_reduction` | `uint32` | `optional` | `` |  |
-| 3 | `damage_type` | `.CMsgDOTAMatch.Player.HeroDamageType` | `optional` | `` | default = HERO_DAMAGE_PHYSICAL |
+| 1 | `pre_reduction` | `uint32` | `optional` |  |  |
+| 2 | `post_reduction` | `uint32` | `optional` |  |  |
+| 3 | `damage_type` | `.CMsgDOTAMatch.Player.HeroDamageType` | `optional` |  | default = HERO_DAMAGE_PHYSICAL |
 
 </details>
 
@@ -1488,8 +1488,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `name` | `string` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `name` | `string` | `optional` |  |  |
 
 </details>
 
@@ -1501,10 +1501,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `country_code` | `string` | `optional` | `` |  |
-| 2 | `description` | `string` | `optional` | `` |  |
-| 3 | `broadcaster_infos` | `.CMsgDOTAMatch.BroadcasterInfo` | `repeated` | `` |  |
-| 4 | `language_code` | `string` | `optional` | `` |  |
+| 1 | `country_code` | `string` | `optional` |  |  |
+| 2 | `description` | `string` | `optional` |  |  |
+| 3 | `broadcaster_infos` | `.CMsgDOTAMatch.BroadcasterInfo` | `repeated` |  |  |
+| 4 | `language_code` | `string` | `optional` |  |  |
 
 </details>
 
@@ -1516,12 +1516,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `coach_name` | `string` | `optional` | `` |  |
-| 3 | `coach_rating` | `uint32` | `optional` | `` |  |
-| 4 | `coach_team` | `uint32` | `optional` | `` |  |
-| 5 | `coach_party_id` | `uint64` | `optional` | `` |  |
-| 6 | `is_private_coach` | `bool` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `coach_name` | `string` | `optional` |  |  |
+| 3 | `coach_rating` | `uint32` | `optional` |  |  |
+| 4 | `coach_team` | `uint32` | `optional` |  |  |
+| 5 | `coach_party_id` | `uint64` | `optional` |  |  |
+| 6 | `is_private_coach` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -1533,8 +1533,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `custom_game_id` | `uint64` | `optional` | `` |  |
-| 2 | `map_name` | `string` | `optional` | `` |  |
+| 1 | `custom_game_id` | `uint64` | `optional` |  |  |
+| 2 | `map_name` | `string` | `optional` |  |  |
 
 </details>
 
@@ -1546,8 +1546,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `stat_modifier` | `.CMsgPlayerCard.StatModifier` | `repeated` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `stat_modifier` | `.CMsgPlayerCard.StatModifier` | `repeated` |  |  |
 
 </details>
 
@@ -1559,8 +1559,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `stat` | `uint32` | `optional` | `` |  |
-| 2 | `value` | `uint32` | `optional` | `` |  |
+| 1 | `stat` | `uint32` | `optional` |  |  |
+| 2 | `value` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -1572,33 +1572,33 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `player_account_id` | `uint32` | `optional` | `` |  |
-| 2 | `match_id` | `uint64` | `optional` | `` |  |
-| 3 | `match_completed` | `bool` | `optional` | `` |  |
-| 4 | `team_id` | `uint32` | `optional` | `` |  |
-| 5 | `league_id` | `uint32` | `optional` | `` |  |
-| 6 | `delay` | `uint32` | `optional` | `` |  |
-| 7 | `series_id` | `uint32` | `optional` | `` |  |
-| 8 | `series_type` | `uint32` | `optional` | `` |  |
-| 10 | `kills` | `uint32` | `optional` | `` |  |
-| 11 | `deaths` | `uint32` | `optional` | `` |  |
-| 12 | `cs` | `uint32` | `optional` | `` |  |
-| 13 | `gpm` | `float` | `optional` | `` |  |
-| 14 | `tower_kills` | `uint32` | `optional` | `` |  |
-| 15 | `roshan_kills` | `uint32` | `optional` | `` |  |
-| 16 | `teamfight_participation` | `float` | `optional` | `` |  |
-| 17 | `wards_placed` | `uint32` | `optional` | `` |  |
-| 18 | `camps_stacked` | `uint32` | `optional` | `` |  |
-| 19 | `runes_grabbed` | `uint32` | `optional` | `` |  |
-| 20 | `first_blood` | `uint32` | `optional` | `` |  |
-| 21 | `stuns` | `float` | `optional` | `` |  |
-| 22 | `smokes` | `uint32` | `optional` | `` |  |
-| 24 | `watchers` | `uint32` | `optional` | `` |  |
-| 25 | `lotuses` | `uint32` | `optional` | `` |  |
-| 26 | `tormentors` | `uint32` | `optional` | `` |  |
-| 27 | `courier_kills` | `uint32` | `optional` | `` |  |
-| 28 | `title_stats` | `fixed64` | `optional` | `` |  |
-| 29 | `madstone` | `uint32` | `optional` | `` |  |
+| 1 | `player_account_id` | `uint32` | `optional` |  |  |
+| 2 | `match_id` | `uint64` | `optional` |  |  |
+| 3 | `match_completed` | `bool` | `optional` |  |  |
+| 4 | `team_id` | `uint32` | `optional` |  |  |
+| 5 | `league_id` | `uint32` | `optional` |  |  |
+| 6 | `delay` | `uint32` | `optional` |  |  |
+| 7 | `series_id` | `uint32` | `optional` |  |  |
+| 8 | `series_type` | `uint32` | `optional` |  |  |
+| 10 | `kills` | `uint32` | `optional` |  |  |
+| 11 | `deaths` | `uint32` | `optional` |  |  |
+| 12 | `cs` | `uint32` | `optional` |  |  |
+| 13 | `gpm` | `float` | `optional` |  |  |
+| 14 | `tower_kills` | `uint32` | `optional` |  |  |
+| 15 | `roshan_kills` | `uint32` | `optional` |  |  |
+| 16 | `teamfight_participation` | `float` | `optional` |  |  |
+| 17 | `wards_placed` | `uint32` | `optional` |  |  |
+| 18 | `camps_stacked` | `uint32` | `optional` |  |  |
+| 19 | `runes_grabbed` | `uint32` | `optional` |  |  |
+| 20 | `first_blood` | `uint32` | `optional` |  |  |
+| 21 | `stuns` | `float` | `optional` |  |  |
+| 22 | `smokes` | `uint32` | `optional` |  |  |
+| 24 | `watchers` | `uint32` | `optional` |  |  |
+| 25 | `lotuses` | `uint32` | `optional` |  |  |
+| 26 | `tormentors` | `uint32` | `optional` |  |  |
+| 27 | `courier_kills` | `uint32` | `optional` |  |  |
+| 28 | `title_stats` | `fixed64` | `optional` |  |  |
+| 29 | `madstone` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -1610,7 +1610,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `matches` | `.CMsgDOTAFantasyPlayerStats` | `repeated` | `` |  |
+| 1 | `matches` | `.CMsgDOTAFantasyPlayerStats` | `repeated` |  |  |
 
 </details>
 
@@ -1622,19 +1622,19 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `bots` | `.CMsgDOTABotDebugInfo.Bot` | `repeated` | `` |  |
-| 2 | `desire_push_lane_top` | `float` | `optional` | `` |  |
-| 3 | `desire_push_lane_mid` | `float` | `optional` | `` |  |
-| 4 | `desire_push_lane_bot` | `float` | `optional` | `` |  |
-| 5 | `desire_defend_lane_top` | `float` | `optional` | `` |  |
-| 6 | `desire_defend_lane_mid` | `float` | `optional` | `` |  |
-| 7 | `desire_defend_lane_bot` | `float` | `optional` | `` |  |
-| 8 | `desire_farm_lane_top` | `float` | `optional` | `` |  |
-| 9 | `desire_farm_lane_mid` | `float` | `optional` | `` |  |
-| 10 | `desire_farm_lane_bot` | `float` | `optional` | `` |  |
-| 11 | `desire_farm_roshan` | `float` | `optional` | `` |  |
-| 12 | `execution_time` | `float` | `optional` | `` |  |
-| 13 | `rune_status` | `uint32` | `repeated` | `` |  |
+| 1 | `bots` | `.CMsgDOTABotDebugInfo.Bot` | `repeated` |  |  |
+| 2 | `desire_push_lane_top` | `float` | `optional` |  |  |
+| 3 | `desire_push_lane_mid` | `float` | `optional` |  |  |
+| 4 | `desire_push_lane_bot` | `float` | `optional` |  |  |
+| 5 | `desire_defend_lane_top` | `float` | `optional` |  |  |
+| 6 | `desire_defend_lane_mid` | `float` | `optional` |  |  |
+| 7 | `desire_defend_lane_bot` | `float` | `optional` |  |  |
+| 8 | `desire_farm_lane_top` | `float` | `optional` |  |  |
+| 9 | `desire_farm_lane_mid` | `float` | `optional` |  |  |
+| 10 | `desire_farm_lane_bot` | `float` | `optional` |  |  |
+| 11 | `desire_farm_roshan` | `float` | `optional` |  |  |
+| 12 | `execution_time` | `float` | `optional` |  |  |
+| 13 | `rune_status` | `uint32` | `repeated` |  |  |
 
 </details>
 
@@ -1646,18 +1646,18 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `player_owner_id` | `int32` | `optional` | `` | default = -1 |
-| 2 | `hero_id` | `int32` | `optional` | `` |  |
-| 3 | `difficulty` | `uint32` | `optional` | `` |  |
-| 4 | `power_current` | `uint32` | `optional` | `` |  |
-| 5 | `power_max` | `uint32` | `optional` | `` |  |
-| 6 | `move_target_x` | `uint32` | `optional` | `` |  |
-| 7 | `move_target_y` | `uint32` | `optional` | `` |  |
-| 8 | `move_target_z` | `uint32` | `optional` | `` |  |
-| 9 | `active_mode_id` | `uint32` | `optional` | `` |  |
-| 10 | `execution_time` | `float` | `optional` | `` |  |
-| 11 | `modes` | `.CMsgDOTABotDebugInfo.Bot.Mode` | `repeated` | `` |  |
-| 12 | `action` | `.CMsgDOTABotDebugInfo.Bot.Action` | `optional` | `` |  |
+| 1 | `player_owner_id` | `int32` | `optional` |  | default = -1 |
+| 2 | `hero_id` | `int32` | `optional` |  |  |
+| 3 | `difficulty` | `uint32` | `optional` |  |  |
+| 4 | `power_current` | `uint32` | `optional` |  |  |
+| 5 | `power_max` | `uint32` | `optional` |  |  |
+| 6 | `move_target_x` | `uint32` | `optional` |  |  |
+| 7 | `move_target_y` | `uint32` | `optional` |  |  |
+| 8 | `move_target_z` | `uint32` | `optional` |  |  |
+| 9 | `active_mode_id` | `uint32` | `optional` |  |  |
+| 10 | `execution_time` | `float` | `optional` |  |  |
+| 11 | `modes` | `.CMsgDOTABotDebugInfo.Bot.Mode` | `repeated` |  |  |
+| 12 | `action` | `.CMsgDOTABotDebugInfo.Bot.Action` | `optional` |  |  |
 
 </details>
 
@@ -1669,12 +1669,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `mode_id` | `uint32` | `optional` | `` |  |
-| 2 | `desire` | `float` | `optional` | `` |  |
-| 3 | `target_entity` | `int32` | `optional` | `` | default = -1 |
-| 4 | `target_x` | `uint32` | `optional` | `` |  |
-| 5 | `target_y` | `uint32` | `optional` | `` |  |
-| 6 | `target_z` | `uint32` | `optional` | `` |  |
+| 1 | `mode_id` | `uint32` | `optional` |  |  |
+| 2 | `desire` | `float` | `optional` |  |  |
+| 3 | `target_entity` | `int32` | `optional` |  | default = -1 |
+| 4 | `target_x` | `uint32` | `optional` |  |  |
+| 5 | `target_y` | `uint32` | `optional` |  |  |
+| 6 | `target_z` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -1686,8 +1686,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `action_id` | `uint32` | `optional` | `` |  |
-| 2 | `action_target` | `string` | `optional` | `` |  |
+| 1 | `action_id` | `uint32` | `optional` |  |  |
+| 2 | `action_target` | `string` | `optional` |  |  |
 
 </details>
 
@@ -1699,9 +1699,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `hero_id` | `int32` | `optional` | `` |  |
-| 2 | `win_percent` | `float` | `optional` | `` |  |
-| 3 | `longest_streak` | `uint32` | `optional` | `` |  |
+| 1 | `hero_id` | `int32` | `optional` |  |  |
+| 2 | `win_percent` | `float` | `optional` |  |  |
+| 3 | `longest_streak` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -1713,17 +1713,17 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `match_id` | `uint64` | `optional` | `` |  |
-| 2 | `game_mode` | `.DOTA_GameMode` | `optional` | `` | default = DOTA_GAMEMODE_NONE |
-| 3 | `kills` | `uint32` | `optional` | `` |  |
-| 4 | `deaths` | `uint32` | `optional` | `` |  |
-| 5 | `assists` | `uint32` | `optional` | `` |  |
-| 6 | `duration` | `uint32` | `optional` | `` |  |
-| 7 | `player_slot` | `uint32` | `optional` | `` |  |
-| 8 | `match_outcome` | `.EMatchOutcome` | `optional` | `` | default = k_EMatchOutcome_Unknown |
-| 9 | `timestamp` | `uint32` | `optional` | `` |  |
-| 10 | `lobby_type` | `uint32` | `optional` | `` |  |
-| 11 | `team_number` | `uint32` | `optional` | `` |  |
+| 1 | `match_id` | `uint64` | `optional` |  |  |
+| 2 | `game_mode` | `.DOTA_GameMode` | `optional` |  | default = DOTA_GAMEMODE_NONE |
+| 3 | `kills` | `uint32` | `optional` |  |  |
+| 4 | `deaths` | `uint32` | `optional` |  |  |
+| 5 | `assists` | `uint32` | `optional` |  |  |
+| 6 | `duration` | `uint32` | `optional` |  |  |
+| 7 | `player_slot` | `uint32` | `optional` |  |  |
+| 8 | `match_outcome` | `.EMatchOutcome` | `optional` |  | default = k_EMatchOutcome_Unknown |
+| 9 | `timestamp` | `uint32` | `optional` |  |  |
+| 10 | `lobby_type` | `uint32` | `optional` |  |  |
+| 11 | `team_number` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -1735,7 +1735,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 2 | `tips` | `.CMsgMatchTips.SingleTip` | `repeated` | `` |  |
+| 2 | `tips` | `.CMsgMatchTips.SingleTip` | `repeated` |  |  |
 
 </details>
 
@@ -1747,10 +1747,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `source_account_id` | `uint32` | `optional` | `` |  |
-| 2 | `target_account_id` | `uint32` | `optional` | `` |  |
-| 3 | `tip_amount` | `uint32` | `optional` | `` |  |
-| 4 | `event_id` | `.EEvent` | `optional` | `` | default = EVENT_ID_NONE |
+| 1 | `source_account_id` | `uint32` | `optional` |  |  |
+| 2 | `target_account_id` | `uint32` | `optional` |  |  |
+| 3 | `tip_amount` | `uint32` | `optional` |  |  |
+| 4 | `event_id` | `.EEvent` | `optional` |  | default = EVENT_ID_NONE |
 
 </details>
 
@@ -1762,17 +1762,17 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `match_id` | `uint64` | `optional` | `` |  |
-| 2 | `start_time` | `fixed32` | `optional` | `` |  |
-| 3 | `duration` | `uint32` | `optional` | `` |  |
-| 4 | `game_mode` | `.DOTA_GameMode` | `optional` | `` | default = DOTA_GAMEMODE_NONE |
-| 6 | `players` | `.CMsgDOTAMatchMinimal.Player` | `repeated` | `` |  |
-| 7 | `tourney` | `.CMsgDOTAMatchMinimal.Tourney` | `optional` | `` |  |
-| 8 | `match_outcome` | `.EMatchOutcome` | `optional` | `` | default = k_EMatchOutcome_Unknown |
-| 9 | `radiant_score` | `uint32` | `optional` | `` |  |
-| 10 | `dire_score` | `uint32` | `optional` | `` |  |
-| 11 | `lobby_type` | `uint32` | `optional` | `` |  |
-| 12 | `is_player_draft` | `bool` | `optional` | `` |  |
+| 1 | `match_id` | `uint64` | `optional` |  |  |
+| 2 | `start_time` | `fixed32` | `optional` |  |  |
+| 3 | `duration` | `uint32` | `optional` |  |  |
+| 4 | `game_mode` | `.DOTA_GameMode` | `optional` |  | default = DOTA_GAMEMODE_NONE |
+| 6 | `players` | `.CMsgDOTAMatchMinimal.Player` | `repeated` |  |  |
+| 7 | `tourney` | `.CMsgDOTAMatchMinimal.Tourney` | `optional` |  |  |
+| 8 | `match_outcome` | `.EMatchOutcome` | `optional` |  | default = k_EMatchOutcome_Unknown |
+| 9 | `radiant_score` | `uint32` | `optional` |  |  |
+| 10 | `dire_score` | `uint32` | `optional` |  |  |
+| 11 | `lobby_type` | `uint32` | `optional` |  |  |
+| 12 | `is_player_draft` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -1784,16 +1784,16 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `hero_id` | `int32` | `optional` | `` |  |
-| 3 | `kills` | `uint32` | `optional` | `` |  |
-| 4 | `deaths` | `uint32` | `optional` | `` |  |
-| 5 | `assists` | `uint32` | `optional` | `` |  |
-| 6 | `items` | `int32` | `repeated` | `` |  |
-| 7 | `player_slot` | `uint32` | `optional` | `` |  |
-| 8 | `pro_name` | `string` | `optional` | `` |  |
-| 9 | `level` | `uint32` | `optional` | `` |  |
-| 10 | `team_number` | `.DOTA_GC_TEAM` | `optional` | `` | default = DOTA_GC_TEAM_GOOD_GUYS |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `hero_id` | `int32` | `optional` |  |  |
+| 3 | `kills` | `uint32` | `optional` |  |  |
+| 4 | `deaths` | `uint32` | `optional` |  |  |
+| 5 | `assists` | `uint32` | `optional` |  |  |
+| 6 | `items` | `int32` | `repeated` |  |  |
+| 7 | `player_slot` | `uint32` | `optional` |  |  |
+| 8 | `pro_name` | `string` | `optional` |  |  |
+| 9 | `level` | `uint32` | `optional` |  |  |
+| 10 | `team_number` | `.DOTA_GC_TEAM` | `optional` |  | default = DOTA_GC_TEAM_GOOD_GUYS |
 
 </details>
 
@@ -1805,21 +1805,21 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `league_id` | `uint32` | `optional` | `` |  |
-| 2 | `radiant_team_id` | `uint32` | `optional` | `` |  |
-| 3 | `radiant_team_name` | `string` | `optional` | `` |  |
-| 4 | `radiant_team_logo` | `fixed64` | `optional` | `` |  |
-| 5 | `dire_team_id` | `uint32` | `optional` | `` |  |
-| 6 | `dire_team_name` | `string` | `optional` | `` |  |
-| 7 | `dire_team_logo` | `fixed64` | `optional` | `` |  |
-| 8 | `series_type` | `uint32` | `optional` | `` |  |
-| 9 | `series_game` | `uint32` | `optional` | `` |  |
-| 10 | `weekend_tourney_tournament_id` | `uint32` | `optional` | `` |  |
-| 11 | `weekend_tourney_season_trophy_id` | `uint32` | `optional` | `` |  |
-| 12 | `weekend_tourney_division` | `uint32` | `optional` | `` |  |
-| 13 | `weekend_tourney_skill_level` | `uint32` | `optional` | `` |  |
-| 14 | `radiant_team_logo_url` | `string` | `optional` | `` |  |
-| 15 | `dire_team_logo_url` | `string` | `optional` | `` |  |
+| 1 | `league_id` | `uint32` | `optional` |  |  |
+| 2 | `radiant_team_id` | `uint32` | `optional` |  |  |
+| 3 | `radiant_team_name` | `string` | `optional` |  |  |
+| 4 | `radiant_team_logo` | `fixed64` | `optional` |  |  |
+| 5 | `dire_team_id` | `uint32` | `optional` |  |  |
+| 6 | `dire_team_name` | `string` | `optional` |  |  |
+| 7 | `dire_team_logo` | `fixed64` | `optional` |  |  |
+| 8 | `series_type` | `uint32` | `optional` |  |  |
+| 9 | `series_game` | `uint32` | `optional` |  |  |
+| 10 | `weekend_tourney_tournament_id` | `uint32` | `optional` |  |  |
+| 11 | `weekend_tourney_season_trophy_id` | `uint32` | `optional` |  |  |
+| 12 | `weekend_tourney_division` | `uint32` | `optional` |  |  |
+| 13 | `weekend_tourney_skill_level` | `uint32` | `optional` |  |  |
+| 14 | `radiant_team_logo_url` | `string` | `optional` |  |  |
+| 15 | `dire_team_logo_url` | `string` | `optional` |  |  |
 
 </details>
 
@@ -1831,8 +1831,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `item_def` | `uint32` | `optional` | `` |  |
-| 2 | `quantity_change` | `int32` | `optional` | `` |  |
+| 1 | `item_def` | `uint32` | `optional` |  |  |
+| 2 | `quantity_change` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -1844,7 +1844,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `player_consumables_used` | `.CMsgMatchConsumableUsage.PlayerUsage` | `repeated` | `` |  |
+| 1 | `player_consumables_used` | `.CMsgMatchConsumableUsage.PlayerUsage` | `repeated` |  |  |
 
 </details>
 
@@ -1856,8 +1856,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `consumables_used` | `.CMsgConsumableUsage` | `repeated` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `consumables_used` | `.CMsgConsumableUsage` | `repeated` |  |  |
 
 </details>
 
@@ -1869,7 +1869,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `player_grants` | `.CMsgMatchEventActionGrants.PlayerGrants` | `repeated` | `` |  |
+| 1 | `player_grants` | `.CMsgMatchEventActionGrants.PlayerGrants` | `repeated` |  |  |
 
 </details>
 
@@ -1881,8 +1881,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 3 | `actions_granted` | `.CMsgPendingEventAward` | `repeated` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 3 | `actions_granted` | `.CMsgPendingEventAward` | `repeated` |  |  |
 
 </details>
 
@@ -1894,9 +1894,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `version` | `uint32` | `optional` | `` |  |
-| 2 | `custom_games_whitelist` | `uint64` | `repeated` | `` |  |
-| 3 | `disable_whitelist` | `bool` | `optional` | `` |  |
+| 1 | `version` | `uint32` | `optional` |  |  |
+| 2 | `custom_games_whitelist` | `uint64` | `repeated` |  |  |
+| 3 | `disable_whitelist` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -1908,7 +1908,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `whitelist_entries` | `.CMsgCustomGameWhitelistForEdit.WhitelistEntry` | `repeated` | `` |  |
+| 1 | `whitelist_entries` | `.CMsgCustomGameWhitelistForEdit.WhitelistEntry` | `repeated` |  |  |
 
 </details>
 
@@ -1920,8 +1920,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `custom_game_id` | `uint64` | `optional` | `` |  |
-| 2 | `whitelist_state` | `.ECustomGameWhitelistState` | `optional` | `` | default = CUSTOM_GAME_WHITELIST_STATE_UNKNOWN |
+| 1 | `custom_game_id` | `uint64` | `optional` |  |  |
+| 2 | `whitelist_state` | `.ECustomGameWhitelistState` | `optional` |  | default = CUSTOM_GAME_WHITELIST_STATE_UNKNOWN |
 
 </details>
 
@@ -1933,14 +1933,14 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `match_id` | `uint64` | `optional` | `` |  |
-| 2 | `timestamp` | `uint32` | `optional` | `` |  |
-| 3 | `duration` | `uint32` | `optional` | `` |  |
-| 4 | `win` | `bool` | `optional` | `` |  |
-| 5 | `hero_id` | `int32` | `optional` | `` |  |
-| 6 | `kills` | `uint32` | `optional` | `` |  |
-| 7 | `deaths` | `uint32` | `optional` | `` |  |
-| 8 | `assists` | `uint32` | `optional` | `` |  |
+| 1 | `match_id` | `uint64` | `optional` |  |  |
+| 2 | `timestamp` | `uint32` | `optional` |  |  |
+| 3 | `duration` | `uint32` | `optional` |  |  |
+| 4 | `win` | `bool` | `optional` |  |  |
+| 5 | `hero_id` | `int32` | `optional` |  |  |
+| 6 | `kills` | `uint32` | `optional` |  |  |
+| 7 | `deaths` | `uint32` | `optional` |  |  |
+| 8 | `assists` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -1952,8 +1952,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `wins` | `uint32` | `optional` | `` |  |
-| 2 | `losses` | `uint32` | `optional` | `` |  |
+| 1 | `wins` | `uint32` | `optional` |  |  |
+| 2 | `losses` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -1965,8 +1965,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `outcomes` | `uint32` | `optional` | `` |  |
-| 2 | `match_count` | `uint32` | `optional` | `` |  |
+| 1 | `outcomes` | `uint32` | `optional` |  |  |
+| 2 | `match_count` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -1978,8 +1978,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `commends` | `uint32` | `optional` | `` |  |
-| 2 | `match_count` | `uint32` | `optional` | `` |  |
+| 1 | `commends` | `uint32` | `optional` |  |  |
+| 2 | `match_count` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -1991,14 +1991,14 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `recent_outcomes` | `.CMsgPlayerRecentMatchOutcomes` | `optional` | `` |  |
-| 2 | `total_record` | `.CMsgPlayerMatchRecord` | `optional` | `` |  |
-| 3 | `prediction_streak` | `uint32` | `optional` | `` |  |
-| 4 | `plus_prediction_streak` | `uint32` | `optional` | `` |  |
-| 5 | `recent_commends` | `.CMsgPlayerRecentCommends` | `optional` | `` |  |
-| 6 | `first_match_timestamp` | `uint32` | `optional` | `` |  |
-| 7 | `last_match` | `.CMsgPlayerRecentMatchInfo` | `optional` | `` |  |
-| 8 | `recent_mvps` | `.CMsgPlayerRecentMatchOutcomes` | `optional` | `` |  |
+| 1 | `recent_outcomes` | `.CMsgPlayerRecentMatchOutcomes` | `optional` |  |  |
+| 2 | `total_record` | `.CMsgPlayerMatchRecord` | `optional` |  |  |
+| 3 | `prediction_streak` | `uint32` | `optional` |  |  |
+| 4 | `plus_prediction_streak` | `uint32` | `optional` |  |  |
+| 5 | `recent_commends` | `.CMsgPlayerRecentCommends` | `optional` |  |  |
+| 6 | `first_match_timestamp` | `uint32` | `optional` |  |  |
+| 7 | `last_match` | `.CMsgPlayerRecentMatchInfo` | `optional` |  |  |
+| 8 | `recent_mvps` | `.CMsgPlayerRecentMatchOutcomes` | `optional` |  |  |
 
 </details>
 
@@ -2010,9 +2010,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `recent_outcomes` | `.CMsgPlayerRecentMatchOutcomes` | `optional` | `` |  |
-| 2 | `total_record` | `.CMsgPlayerMatchRecord` | `optional` | `` |  |
-| 3 | `last_match` | `.CMsgPlayerRecentMatchInfo` | `optional` | `` |  |
+| 1 | `recent_outcomes` | `.CMsgPlayerRecentMatchOutcomes` | `optional` |  |  |
+| 2 | `total_record` | `.CMsgPlayerMatchRecord` | `optional` |  |  |
+| 3 | `last_match` | `.CMsgPlayerRecentMatchInfo` | `optional` |  |  |
 
 </details>
 
@@ -2024,8 +2024,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `player_accomplishments` | `.CMsgPlayerRecentAccomplishments` | `optional` | `` |  |
-| 2 | `hero_accomplishments` | `.CMsgPlayerHeroRecentAccomplishments` | `optional` | `` |  |
+| 1 | `player_accomplishments` | `.CMsgPlayerRecentAccomplishments` | `optional` |  |  |
+| 2 | `hero_accomplishments` | `.CMsgPlayerHeroRecentAccomplishments` | `optional` |  |  |
 
 </details>
 
@@ -2037,8 +2037,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `hero_id` | `int32` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `hero_id` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -2050,8 +2050,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgServerToGCRequestPlayerRecentAccomplishmentsResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `player_accomplishments` | `.CMsgRecentAccomplishments` | `optional` | `` |  |
+| 1 | `result` | `.CMsgServerToGCRequestPlayerRecentAccomplishmentsResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `player_accomplishments` | `.CMsgRecentAccomplishments` | `optional` |  |  |
 
 </details>
 
@@ -2063,9 +2063,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `match_id` | `uint32` | `optional` | `` |  |
-| 2 | `hero_id` | `int32` | `optional` | `` |  |
-| 3 | `vote_count` | `uint32` | `optional` | `` |  |
+| 1 | `match_id` | `uint32` | `optional` |  |  |
+| 2 | `hero_id` | `int32` | `optional` |  |  |
+| 3 | `vote_count` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -2077,10 +2077,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `num_matches_to_search` | `uint32` | `optional` | `` |  |
-| 3 | `min_shared_match_count` | `uint32` | `optional` | `` |  |
-| 4 | `num_additional_players` | `uint32` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `num_matches_to_search` | `uint32` | `optional` |  |  |
+| 3 | `min_shared_match_count` | `uint32` | `optional` |  |  |
+| 4 | `num_additional_players` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -2092,7 +2092,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `accounts` | `.CMsgGCtoGCAssociatedExploiterAccountInfoResponse.Account` | `repeated` | `` |  |
+| 1 | `accounts` | `.CMsgGCtoGCAssociatedExploiterAccountInfoResponse.Account` | `repeated` |  |  |
 
 </details>
 
@@ -2104,13 +2104,13 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `num_common_matches` | `uint32` | `optional` | `` |  |
-| 3 | `earliest_common_match` | `uint32` | `optional` | `` |  |
-| 4 | `latest_common_match` | `uint32` | `optional` | `` |  |
-| 5 | `generation` | `uint32` | `optional` | `` |  |
-| 6 | `persona` | `string` | `optional` | `` |  |
-| 7 | `already_banned` | `bool` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `num_common_matches` | `uint32` | `optional` |  |  |
+| 3 | `earliest_common_match` | `uint32` | `optional` |  |  |
+| 4 | `latest_common_match` | `uint32` | `optional` |  |  |
+| 5 | `generation` | `uint32` | `optional` |  |  |
+| 6 | `persona` | `string` | `optional` |  |  |
+| 7 | `already_banned` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -2122,9 +2122,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `slots` | `.CMsgPullTabsData.Slot` | `repeated` | `` |  |
-| 2 | `jackpots` | `.CMsgPullTabsData.Jackpot` | `repeated` | `` |  |
-| 3 | `last_board` | `uint32` | `optional` | `` |  |
+| 1 | `slots` | `.CMsgPullTabsData.Slot` | `repeated` |  |  |
+| 2 | `jackpots` | `.CMsgPullTabsData.Jackpot` | `repeated` |  |  |
+| 3 | `last_board` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -2136,11 +2136,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `event_id` | `uint32` | `optional` | `` |  |
-| 2 | `board_id` | `uint32` | `optional` | `` |  |
-| 3 | `hero_id` | `int32` | `optional` | `` |  |
-| 4 | `action_id` | `uint32` | `optional` | `` |  |
-| 5 | `redeemed` | `bool` | `optional` | `` |  |
+| 1 | `event_id` | `uint32` | `optional` |  |  |
+| 2 | `board_id` | `uint32` | `optional` |  |  |
+| 3 | `hero_id` | `int32` | `optional` |  |  |
+| 4 | `action_id` | `uint32` | `optional` |  |  |
+| 5 | `redeemed` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -2152,9 +2152,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `board_id` | `uint32` | `optional` | `` |  |
-| 2 | `action_id` | `uint32` | `optional` | `` |  |
-| 3 | `hero_id` | `int32` | `optional` | `` |  |
+| 1 | `board_id` | `uint32` | `optional` |  |  |
+| 2 | `action_id` | `uint32` | `optional` |  |  |
+| 3 | `hero_id` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -2166,11 +2166,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `bench_slots` | `.CMsgUnderDraftData.BenchSlot` | `repeated` | `` |  |
-| 2 | `shop_slots` | `.CMsgUnderDraftData.ShopSlot` | `repeated` | `` |  |
-| 3 | `gold` | `uint32` | `optional` | `` |  |
-| 4 | `total_gold` | `uint32` | `optional` | `` |  |
-| 5 | `not_restorable` | `bool` | `optional` | `` |  |
+| 1 | `bench_slots` | `.CMsgUnderDraftData.BenchSlot` | `repeated` |  |  |
+| 2 | `shop_slots` | `.CMsgUnderDraftData.ShopSlot` | `repeated` |  |  |
+| 3 | `gold` | `uint32` | `optional` |  |  |
+| 4 | `total_gold` | `uint32` | `optional` |  |  |
+| 5 | `not_restorable` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -2182,9 +2182,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `slot_id` | `uint32` | `optional` | `` |  |
-| 2 | `hero_id` | `int32` | `optional` | `` |  |
-| 3 | `stars` | `uint32` | `optional` | `` |  |
+| 1 | `slot_id` | `uint32` | `optional` |  |  |
+| 2 | `hero_id` | `int32` | `optional` |  |  |
+| 3 | `stars` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -2196,9 +2196,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `slot_id` | `uint32` | `optional` | `` |  |
-| 2 | `hero_id` | `int32` | `optional` | `` |  |
-| 3 | `is_special_reward` | `bool` | `optional` | `` |  |
+| 1 | `slot_id` | `uint32` | `optional` |  |  |
+| 2 | `hero_id` | `int32` | `optional` |  |  |
+| 3 | `is_special_reward` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -2210,9 +2210,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `title` | `uint32` | `repeated` | `` |  |
-| 2 | `event_id` | `uint32` | `repeated` | `` |  |
-| 3 | `active` | `uint32` | `optional` | `` |  |
+| 1 | `title` | `uint32` | `repeated` |  |  |
+| 2 | `event_id` | `uint32` | `repeated` |  |  |
+| 3 | `active` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -2224,12 +2224,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `question_id` | `uint32` | `optional` | `` |  |
-| 2 | `category` | `.EDOTATriviaQuestionCategory` | `optional` | `` | default = k_EDOTATriviaQuestionCategory_AbilityIcon |
-| 3 | `timestamp` | `uint32` | `optional` | `` |  |
-| 4 | `question_value` | `string` | `optional` | `` |  |
-| 5 | `answer_values` | `string` | `repeated` | `` |  |
-| 6 | `correct_answer_index` | `uint32` | `optional` | `` |  |
+| 1 | `question_id` | `uint32` | `optional` |  |  |
+| 2 | `category` | `.EDOTATriviaQuestionCategory` | `optional` |  | default = k_EDOTATriviaQuestionCategory_AbilityIcon |
+| 3 | `timestamp` | `uint32` | `optional` |  |  |
+| 4 | `question_value` | `string` | `optional` |  |  |
+| 5 | `answer_values` | `string` | `repeated` |  |  |
+| 6 | `correct_answer_index` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -2241,8 +2241,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `summary_available` | `bool` | `optional` | `` |  |
-| 2 | `picked_count` | `uint32` | `repeated` | `` |  |
+| 1 | `summary_available` | `bool` | `optional` |  |  |
+| 2 | `picked_count` | `uint32` | `repeated` |  |  |
 
 </details>
 
@@ -2254,9 +2254,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `name` | `string` | `optional` | `` |  |
-| 2 | `value` | `float` | `optional` | `` |  |
-| 3 | `operation` | `uint32` | `optional` | `` |  |
+| 1 | `name` | `string` | `optional` |  |  |
+| 2 | `value` | `float` | `optional` |  |  |
+| 3 | `operation` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -2268,15 +2268,15 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `name` | `string` | `optional` | `` |  |
-| 2 | `values_float` | `float` | `repeated` | `` |  |
-| 4 | `is_percentage` | `bool` | `optional` | `` |  |
-| 5 | `heading_loc` | `string` | `optional` | `` |  |
-| 6 | `bonuses` | `.CMsgGameDataSpecialValueBonus` | `repeated` | `` |  |
-| 7 | `values_shard` | `float` | `repeated` | `` |  |
-| 8 | `values_scepter` | `float` | `repeated` | `` |  |
-| 9 | `facet_bonus` | `.CMsgGameDataFacetAbilityBonus` | `optional` | `` |  |
-| 10 | `required_facet` | `string` | `optional` | `` |  |
+| 1 | `name` | `string` | `optional` |  |  |
+| 2 | `values_float` | `float` | `repeated` |  |  |
+| 4 | `is_percentage` | `bool` | `optional` |  |  |
+| 5 | `heading_loc` | `string` | `optional` |  |  |
+| 6 | `bonuses` | `.CMsgGameDataSpecialValueBonus` | `repeated` |  |  |
+| 7 | `values_shard` | `float` | `repeated` |  |  |
+| 8 | `values_scepter` | `float` | `repeated` |  |  |
+| 9 | `facet_bonus` | `.CMsgGameDataFacetAbilityBonus` | `optional` |  |  |
+| 10 | `required_facet` | `string` | `optional` |  |  |
 
 </details>
 
@@ -2288,9 +2288,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `name` | `string` | `optional` | `` |  |
-| 2 | `values` | `float` | `repeated` | `` |  |
-| 3 | `operation` | `uint32` | `optional` | `` |  |
+| 1 | `name` | `string` | `optional` |  |  |
+| 2 | `values` | `float` | `repeated` |  |  |
+| 3 | `operation` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -2302,46 +2302,46 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `id` | `int32` | `optional` | `` | default = -1 |
-| 2 | `name` | `string` | `optional` | `` |  |
-| 5 | `name_loc` | `string` | `optional` | `` |  |
-| 6 | `desc_loc` | `string` | `optional` | `` |  |
-| 7 | `lore_loc` | `string` | `optional` | `` |  |
-| 8 | `notes_loc` | `string` | `repeated` | `` |  |
-| 9 | `shard_loc` | `string` | `optional` | `` |  |
-| 10 | `scepter_loc` | `string` | `optional` | `` |  |
-| 11 | `facets_loc` | `string` | `repeated` | `` |  |
-| 20 | `type` | `uint32` | `optional` | `` |  |
-| 21 | `behavior` | `uint64` | `optional` | `` |  |
-| 22 | `target_team` | `uint32` | `optional` | `` |  |
-| 23 | `target_type` | `uint32` | `optional` | `` |  |
-| 24 | `flags` | `uint32` | `optional` | `` |  |
-| 25 | `damage` | `uint32` | `optional` | `` |  |
-| 26 | `immunity` | `uint32` | `optional` | `` |  |
-| 27 | `dispellable` | `uint32` | `optional` | `` |  |
-| 28 | `max_level` | `uint32` | `optional` | `` |  |
-| 30 | `cast_ranges` | `uint32` | `repeated` | `` |  |
-| 31 | `cast_points` | `float` | `repeated` | `` |  |
-| 32 | `channel_times` | `float` | `repeated` | `` |  |
-| 33 | `cooldowns` | `float` | `repeated` | `` |  |
-| 34 | `durations` | `float` | `repeated` | `` |  |
-| 35 | `damages` | `uint32` | `repeated` | `` |  |
-| 36 | `mana_costs` | `uint32` | `repeated` | `` |  |
-| 37 | `gold_costs` | `uint32` | `repeated` | `` |  |
-| 38 | `health_costs` | `uint32` | `repeated` | `` |  |
-| 40 | `special_values` | `.CMsgGameDataSpecialValues` | `repeated` | `` |  |
-| 50 | `is_item` | `bool` | `optional` | `` |  |
-| 60 | `ability_has_scepter` | `bool` | `optional` | `` |  |
-| 61 | `ability_has_shard` | `bool` | `optional` | `` |  |
-| 62 | `ability_is_granted_by_scepter` | `bool` | `optional` | `` |  |
-| 63 | `ability_is_granted_by_shard` | `bool` | `optional` | `` |  |
-| 64 | `ability_is_innate` | `bool` | `optional` | `` |  |
-| 70 | `item_cost` | `uint32` | `optional` | `` |  |
-| 71 | `item_initial_charges` | `uint32` | `optional` | `` |  |
-| 72 | `item_neutral_tier` | `uint32` | `optional` | `` |  |
-| 73 | `item_stock_max` | `uint32` | `optional` | `` |  |
-| 74 | `item_stock_time` | `float` | `optional` | `` |  |
-| 85 | `item_quality` | `uint32` | `optional` | `` |  |
+| 1 | `id` | `int32` | `optional` |  | default = -1 |
+| 2 | `name` | `string` | `optional` |  |  |
+| 5 | `name_loc` | `string` | `optional` |  |  |
+| 6 | `desc_loc` | `string` | `optional` |  |  |
+| 7 | `lore_loc` | `string` | `optional` |  |  |
+| 8 | `notes_loc` | `string` | `repeated` |  |  |
+| 9 | `shard_loc` | `string` | `optional` |  |  |
+| 10 | `scepter_loc` | `string` | `optional` |  |  |
+| 11 | `facets_loc` | `string` | `repeated` |  |  |
+| 20 | `type` | `uint32` | `optional` |  |  |
+| 21 | `behavior` | `uint64` | `optional` |  |  |
+| 22 | `target_team` | `uint32` | `optional` |  |  |
+| 23 | `target_type` | `uint32` | `optional` |  |  |
+| 24 | `flags` | `uint32` | `optional` |  |  |
+| 25 | `damage` | `uint32` | `optional` |  |  |
+| 26 | `immunity` | `uint32` | `optional` |  |  |
+| 27 | `dispellable` | `uint32` | `optional` |  |  |
+| 28 | `max_level` | `uint32` | `optional` |  |  |
+| 30 | `cast_ranges` | `uint32` | `repeated` |  |  |
+| 31 | `cast_points` | `float` | `repeated` |  |  |
+| 32 | `channel_times` | `float` | `repeated` |  |  |
+| 33 | `cooldowns` | `float` | `repeated` |  |  |
+| 34 | `durations` | `float` | `repeated` |  |  |
+| 35 | `damages` | `uint32` | `repeated` |  |  |
+| 36 | `mana_costs` | `uint32` | `repeated` |  |  |
+| 37 | `gold_costs` | `uint32` | `repeated` |  |  |
+| 38 | `health_costs` | `uint32` | `repeated` |  |  |
+| 40 | `special_values` | `.CMsgGameDataSpecialValues` | `repeated` |  |  |
+| 50 | `is_item` | `bool` | `optional` |  |  |
+| 60 | `ability_has_scepter` | `bool` | `optional` |  |  |
+| 61 | `ability_has_shard` | `bool` | `optional` |  |  |
+| 62 | `ability_is_granted_by_scepter` | `bool` | `optional` |  |  |
+| 63 | `ability_is_granted_by_shard` | `bool` | `optional` |  |  |
+| 64 | `ability_is_innate` | `bool` | `optional` |  |  |
+| 70 | `item_cost` | `uint32` | `optional` |  |  |
+| 71 | `item_initial_charges` | `uint32` | `optional` |  |  |
+| 72 | `item_neutral_tier` | `uint32` | `optional` |  |  |
+| 73 | `item_stock_max` | `uint32` | `optional` |  |  |
+| 74 | `item_stock_time` | `float` | `optional` |  |  |
+| 85 | `item_quality` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -2353,7 +2353,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `abilities` | `.CMsgGameDataAbilityOrItem` | `repeated` | `` |  |
+| 1 | `abilities` | `.CMsgGameDataAbilityOrItem` | `repeated` |  |  |
 
 </details>
 
@@ -2365,42 +2365,42 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `id` | `int32` | `optional` | `` |  |
-| 2 | `name` | `string` | `optional` | `` |  |
-| 3 | `order_id` | `uint32` | `optional` | `` |  |
-| 5 | `name_loc` | `string` | `optional` | `` |  |
-| 6 | `bio_loc` | `string` | `optional` | `` |  |
-| 7 | `hype_loc` | `string` | `optional` | `` |  |
-| 8 | `npe_desc_loc` | `string` | `optional` | `` |  |
-| 10 | `str_base` | `uint32` | `optional` | `` |  |
-| 11 | `str_gain` | `float` | `optional` | `` |  |
-| 12 | `agi_base` | `uint32` | `optional` | `` |  |
-| 13 | `agi_gain` | `float` | `optional` | `` |  |
-| 14 | `int_base` | `uint32` | `optional` | `` |  |
-| 15 | `int_gain` | `float` | `optional` | `` |  |
-| 20 | `primary_attr` | `uint32` | `optional` | `` |  |
-| 21 | `complexity` | `uint32` | `optional` | `` |  |
-| 22 | `attack_capability` | `uint32` | `optional` | `` |  |
-| 23 | `role_levels` | `uint32` | `repeated` | `` |  |
-| 24 | `damage_min` | `int32` | `optional` | `` |  |
-| 25 | `damage_max` | `int32` | `optional` | `` |  |
-| 26 | `attack_rate` | `float` | `optional` | `` |  |
-| 27 | `attack_range` | `uint32` | `optional` | `` |  |
-| 28 | `projectile_speed` | `uint32` | `optional` | `` |  |
-| 29 | `armor` | `float` | `optional` | `` |  |
-| 30 | `magic_resistance` | `uint32` | `optional` | `` |  |
-| 31 | `movement_speed` | `uint32` | `optional` | `` |  |
-| 32 | `turn_rate` | `float` | `optional` | `` |  |
-| 33 | `sight_range_day` | `uint32` | `optional` | `` |  |
-| 34 | `sight_range_night` | `uint32` | `optional` | `` |  |
-| 35 | `max_health` | `uint32` | `optional` | `` |  |
-| 36 | `health_regen` | `float` | `optional` | `` |  |
-| 37 | `max_mana` | `uint32` | `optional` | `` |  |
-| 38 | `mana_regen` | `float` | `optional` | `` |  |
-| 40 | `abilities` | `.CMsgGameDataAbilityOrItem` | `repeated` | `` |  |
-| 41 | `talents` | `.CMsgGameDataAbilityOrItem` | `repeated` | `` |  |
-| 42 | `facet_abilities` | `.CMsgGameDataAbilityOrItemList` | `repeated` | `` |  |
-| 43 | `facets` | `.CMsgGameDataHero.Facet` | `repeated` | `` |  |
+| 1 | `id` | `int32` | `optional` |  |  |
+| 2 | `name` | `string` | `optional` |  |  |
+| 3 | `order_id` | `uint32` | `optional` |  |  |
+| 5 | `name_loc` | `string` | `optional` |  |  |
+| 6 | `bio_loc` | `string` | `optional` |  |  |
+| 7 | `hype_loc` | `string` | `optional` |  |  |
+| 8 | `npe_desc_loc` | `string` | `optional` |  |  |
+| 10 | `str_base` | `uint32` | `optional` |  |  |
+| 11 | `str_gain` | `float` | `optional` |  |  |
+| 12 | `agi_base` | `uint32` | `optional` |  |  |
+| 13 | `agi_gain` | `float` | `optional` |  |  |
+| 14 | `int_base` | `uint32` | `optional` |  |  |
+| 15 | `int_gain` | `float` | `optional` |  |  |
+| 20 | `primary_attr` | `uint32` | `optional` |  |  |
+| 21 | `complexity` | `uint32` | `optional` |  |  |
+| 22 | `attack_capability` | `uint32` | `optional` |  |  |
+| 23 | `role_levels` | `uint32` | `repeated` |  |  |
+| 24 | `damage_min` | `int32` | `optional` |  |  |
+| 25 | `damage_max` | `int32` | `optional` |  |  |
+| 26 | `attack_rate` | `float` | `optional` |  |  |
+| 27 | `attack_range` | `uint32` | `optional` |  |  |
+| 28 | `projectile_speed` | `uint32` | `optional` |  |  |
+| 29 | `armor` | `float` | `optional` |  |  |
+| 30 | `magic_resistance` | `uint32` | `optional` |  |  |
+| 31 | `movement_speed` | `uint32` | `optional` |  |  |
+| 32 | `turn_rate` | `float` | `optional` |  |  |
+| 33 | `sight_range_day` | `uint32` | `optional` |  |  |
+| 34 | `sight_range_night` | `uint32` | `optional` |  |  |
+| 35 | `max_health` | `uint32` | `optional` |  |  |
+| 36 | `health_regen` | `float` | `optional` |  |  |
+| 37 | `max_mana` | `uint32` | `optional` |  |  |
+| 38 | `mana_regen` | `float` | `optional` |  |  |
+| 40 | `abilities` | `.CMsgGameDataAbilityOrItem` | `repeated` |  |  |
+| 41 | `talents` | `.CMsgGameDataAbilityOrItem` | `repeated` |  |  |
+| 42 | `facet_abilities` | `.CMsgGameDataAbilityOrItemList` | `repeated` |  |  |
+| 43 | `facets` | `.CMsgGameDataHero.Facet` | `repeated` |  |  |
 
 </details>
 
@@ -2412,13 +2412,13 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `color` | `uint32` | `optional` | `` |  |
-| 2 | `title_loc` | `string` | `optional` | `` |  |
-| 3 | `description_loc` | `string` | `optional` | `` |  |
-| 4 | `name` | `string` | `optional` | `` |  |
-| 5 | `icon` | `string` | `optional` | `` |  |
-| 6 | `gradient_id` | `int32` | `optional` | `` |  |
-| 7 | `index` | `uint32` | `optional` | `` |  |
+| 1 | `color` | `uint32` | `optional` |  |  |
+| 2 | `title_loc` | `string` | `optional` |  |  |
+| 3 | `description_loc` | `string` | `optional` |  |  |
+| 4 | `name` | `string` | `optional` |  |  |
+| 5 | `icon` | `string` | `optional` |  |  |
+| 6 | `gradient_id` | `int32` | `optional` |  |  |
+| 7 | `index` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -2430,7 +2430,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `abilities` | `.CMsgGameDataAbilityOrItem` | `repeated` | `` |  |
+| 1 | `abilities` | `.CMsgGameDataAbilityOrItem` | `repeated` |  |  |
 
 </details>
 
@@ -2442,7 +2442,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `items` | `.CMsgGameDataAbilityOrItem` | `repeated` | `` |  |
+| 1 | `items` | `.CMsgGameDataAbilityOrItem` | `repeated` |  |  |
 
 </details>
 
@@ -2454,7 +2454,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `heroes` | `.CMsgGameDataHero` | `repeated` | `` |  |
+| 1 | `heroes` | `.CMsgGameDataHero` | `repeated` |  |  |
 
 </details>
 
@@ -2466,7 +2466,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `heroes` | `.CMsgGameDataHeroList.HeroInfo` | `repeated` | `` |  |
+| 1 | `heroes` | `.CMsgGameDataHeroList.HeroInfo` | `repeated` |  |  |
 
 </details>
 
@@ -2478,12 +2478,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `id` | `int32` | `optional` | `` |  |
-| 2 | `name` | `string` | `optional` | `` |  |
-| 3 | `name_loc` | `string` | `optional` | `` |  |
-| 4 | `name_english_loc` | `string` | `optional` | `` |  |
-| 5 | `primary_attr` | `uint32` | `optional` | `` |  |
-| 6 | `complexity` | `uint32` | `optional` | `` |  |
+| 1 | `id` | `int32` | `optional` |  |  |
+| 2 | `name` | `string` | `optional` |  |  |
+| 3 | `name_loc` | `string` | `optional` |  |  |
+| 4 | `name_english_loc` | `string` | `optional` |  |  |
+| 5 | `primary_attr` | `uint32` | `optional` |  |  |
+| 6 | `complexity` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -2495,7 +2495,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `itemabilities` | `.CMsgGameDataItemAbilityList.ItemAbilityInfo` | `repeated` | `` |  |
+| 1 | `itemabilities` | `.CMsgGameDataItemAbilityList.ItemAbilityInfo` | `repeated` |  |  |
 
 </details>
 
@@ -2507,16 +2507,16 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `id` | `int32` | `optional` | `` | default = -1 |
-| 2 | `name` | `string` | `optional` | `` |  |
-| 3 | `name_loc` | `string` | `optional` | `` |  |
-| 4 | `name_english_loc` | `string` | `optional` | `` |  |
-| 5 | `neutral_item_tier` | `int32` | `optional` | `` |  |
-| 6 | `is_pregame_suggested` | `bool` | `optional` | `` |  |
-| 7 | `is_earlygame_suggested` | `bool` | `optional` | `` |  |
-| 8 | `is_lategame_suggested` | `bool` | `optional` | `` |  |
-| 9 | `recipes` | `.CMsgGameDataItemAbilityList.ItemAbilityInfo.Recipe` | `repeated` | `` |  |
-| 10 | `is_innate` | `bool` | `optional` | `` |  |
+| 1 | `id` | `int32` | `optional` |  | default = -1 |
+| 2 | `name` | `string` | `optional` |  |  |
+| 3 | `name_loc` | `string` | `optional` |  |  |
+| 4 | `name_english_loc` | `string` | `optional` |  |  |
+| 5 | `neutral_item_tier` | `int32` | `optional` |  |  |
+| 6 | `is_pregame_suggested` | `bool` | `optional` |  |  |
+| 7 | `is_earlygame_suggested` | `bool` | `optional` |  |  |
+| 8 | `is_lategame_suggested` | `bool` | `optional` |  |  |
+| 9 | `recipes` | `.CMsgGameDataItemAbilityList.ItemAbilityInfo.Recipe` | `repeated` |  |  |
+| 10 | `is_innate` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -2528,7 +2528,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `items` | `int32` | `repeated` | `` |  |
+| 1 | `items` | `int32` | `repeated` |  |  |
 
 </details>
 
@@ -2540,7 +2540,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `shuffle_draft_order` | `bool` | `optional` | `` |  |
+| 1 | `shuffle_draft_order` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -2552,14 +2552,14 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` | (key_field) = true |
-| 2 | `expiration_date` | `fixed32` | `optional` | `` |  |
-| 3 | `bonus` | `float` | `optional` | `` | (key_field) = true |
-| 4 | `bonus_count` | `uint32` | `optional` | `` |  |
-| 5 | `item_id` | `uint64` | `optional` | `` |  |
-| 6 | `def_index` | `uint32` | `optional` | `` |  |
-| 7 | `seconds_left` | `uint32` | `optional` | `` |  |
-| 8 | `booster_type` | `uint32` | `optional` | `` | (key_field) = true |
+| 1 | `account_id` | `uint32` | `optional` |  | (key_field) = true |
+| 2 | `expiration_date` | `fixed32` | `optional` |  |  |
+| 3 | `bonus` | `float` | `optional` |  | (key_field) = true |
+| 4 | `bonus_count` | `uint32` | `optional` |  |  |
+| 5 | `item_id` | `uint64` | `optional` |  |  |
+| 6 | `def_index` | `uint32` | `optional` |  |  |
+| 7 | `seconds_left` | `uint32` | `optional` |  |  |
+| 8 | `booster_type` | `uint32` | `optional` |  | (key_field) = true |
 
 </details>
 
@@ -2571,14 +2571,14 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `league_id` | `uint32` | `optional` | `` |  |
-| 3 | `item_id` | `uint64` | `optional` | `` |  |
-| 4 | `original_purchaser_id` | `uint32` | `optional` | `` |  |
-| 5 | `passports_bought` | `uint32` | `optional` | `` |  |
-| 6 | `version` | `uint32` | `optional` | `` |  |
-| 7 | `def_index` | `uint32` | `optional` | `` |  |
-| 8 | `reward_flags` | `uint32` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `league_id` | `uint32` | `optional` |  |  |
+| 3 | `item_id` | `uint64` | `optional` |  |  |
+| 4 | `original_purchaser_id` | `uint32` | `optional` |  |  |
+| 5 | `passports_bought` | `uint32` | `optional` |  |  |
+| 6 | `version` | `uint32` | `optional` |  |  |
+| 7 | `def_index` | `uint32` | `optional` |  |  |
+| 8 | `reward_flags` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -2590,16 +2590,16 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `item_def_id` | `uint32` | `optional` | `` |  |
-| 2 | `sticker_num` | `uint32` | `optional` | `` |  |
-| 3 | `quality` | `uint32` | `optional` | `` |  |
-| 4 | `position_x` | `float` | `optional` | `` |  |
-| 5 | `position_y` | `float` | `optional` | `` |  |
-| 6 | `rotation` | `float` | `optional` | `` |  |
-| 7 | `scale` | `float` | `optional` | `` |  |
-| 8 | `position_z` | `float` | `optional` | `` |  |
-| 9 | `source_item_id` | `uint64` | `optional` | `` |  |
-| 10 | `depth_bias` | `uint32` | `optional` | `` |  |
+| 1 | `item_def_id` | `uint32` | `optional` |  |  |
+| 2 | `sticker_num` | `uint32` | `optional` |  |  |
+| 3 | `quality` | `uint32` | `optional` |  |  |
+| 4 | `position_x` | `float` | `optional` |  |  |
+| 5 | `position_y` | `float` | `optional` |  |  |
+| 6 | `rotation` | `float` | `optional` |  |  |
+| 7 | `scale` | `float` | `optional` |  |  |
+| 8 | `position_z` | `float` | `optional` |  |  |
+| 9 | `source_item_id` | `uint64` | `optional` |  |  |
+| 10 | `depth_bias` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -2611,11 +2611,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `page_num` | `uint32` | `optional` | `` |  |
-| 2 | `event_id` | `.EEvent` | `optional` | `` | default = EVENT_ID_NONE |
-| 3 | `team_id` | `uint32` | `optional` | `` |  |
-| 4 | `stickers` | `.CMsgStickerbookSticker` | `repeated` | `` |  |
-| 5 | `page_type` | `.EStickerbookPageType` | `optional` | `` | default = STICKER_PAGE_GENERIC |
+| 1 | `page_num` | `uint32` | `optional` |  |  |
+| 2 | `event_id` | `.EEvent` | `optional` |  | default = EVENT_ID_NONE |
+| 3 | `team_id` | `uint32` | `optional` |  |  |
+| 4 | `stickers` | `.CMsgStickerbookSticker` | `repeated` |  |  |
+| 5 | `page_type` | `.EStickerbookPageType` | `optional` |  | default = STICKER_PAGE_GENERIC |
 
 </details>
 
@@ -2627,7 +2627,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `page_numbers` | `uint32` | `repeated` | `` |  |
+| 1 | `page_numbers` | `uint32` | `repeated` |  |  |
 
 </details>
 
@@ -2639,9 +2639,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `pages` | `.CMsgStickerbookPage` | `repeated` | `` |  |
-| 2 | `team_page_order_sequence` | `.CMsgStickerbookTeamPageOrderSequence` | `optional` | `` |  |
-| 3 | `favorite_page_num` | `uint32` | `optional` | `` |  |
+| 1 | `pages` | `.CMsgStickerbookPage` | `repeated` |  |  |
+| 2 | `team_page_order_sequence` | `.CMsgStickerbookTeamPageOrderSequence` | `optional` |  |  |
+| 3 | `favorite_page_num` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -2653,10 +2653,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `hero_id` | `int32` | `optional` | `` |  |
-| 2 | `item_def_id` | `uint32` | `optional` | `` |  |
-| 3 | `quality` | `uint32` | `optional` | `` |  |
-| 4 | `source_item_id` | `uint64` | `optional` | `` |  |
+| 1 | `hero_id` | `int32` | `optional` |  |  |
+| 2 | `item_def_id` | `uint32` | `optional` |  |  |
+| 3 | `quality` | `uint32` | `optional` |  |  |
+| 4 | `source_item_id` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -2668,7 +2668,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `heroes` | `.CMsgStickerHero` | `repeated` | `` |  |
+| 1 | `heroes` | `.CMsgStickerHero` | `repeated` |  |  |
 
 </details>
 
@@ -2680,9 +2680,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `lane_selection_flags` | `uint32` | `optional` | `` |  |
-| 2 | `match_count` | `uint32` | `optional` | `` |  |
-| 3 | `win_count` | `uint32` | `optional` | `` |  |
+| 1 | `lane_selection_flags` | `uint32` | `optional` |  |  |
+| 2 | `match_count` | `uint32` | `optional` |  |  |
+| 3 | `win_count` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -2694,8 +2694,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `hero_id` | `int32` | `optional` | `` |  |
-| 2 | `role_stats` | `.CMsgHeroRoleStats` | `repeated` | `` |  |
+| 1 | `hero_id` | `int32` | `optional` |  |  |
+| 2 | `role_stats` | `.CMsgHeroRoleStats` | `repeated` |  |  |
 
 </details>
 
@@ -2707,8 +2707,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `rank_tier` | `uint32` | `optional` | `` |  |
-| 2 | `hero_stats` | `.CMsgHeroRoleHeroStats` | `repeated` | `` |  |
+| 1 | `rank_tier` | `uint32` | `optional` |  |  |
+| 2 | `hero_stats` | `.CMsgHeroRoleHeroStats` | `repeated` |  |  |
 
 </details>
 
@@ -2720,9 +2720,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `start_timestamp` | `uint32` | `optional` | `` |  |
-| 2 | `end_timestamp` | `uint32` | `optional` | `` |  |
-| 3 | `rank_stats` | `.CMsgHeroRoleRankStats` | `repeated` | `` |  |
+| 1 | `start_timestamp` | `uint32` | `optional` |  |  |
+| 2 | `end_timestamp` | `uint32` | `optional` |  |  |
+| 3 | `rank_stats` | `.CMsgHeroRoleRankStats` | `repeated` |  |  |
 
 </details>
 
@@ -2734,16 +2734,16 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `timestamp` | `uint32` | `optional` | `` |  |
-| 2 | `lotuses_gained` | `uint64` | `optional` | `` |  |
-| 3 | `wisdom_runes_gained` | `uint64` | `optional` | `` |  |
-| 4 | `roshan_kills_day` | `uint64` | `optional` | `` |  |
-| 5 | `roshan_kills_night` | `uint64` | `optional` | `` |  |
-| 6 | `portals_used` | `uint64` | `optional` | `` |  |
-| 7 | `watchers_taken` | `uint64` | `optional` | `` |  |
-| 8 | `tormentor_kills` | `uint64` | `optional` | `` |  |
-| 9 | `outposts_captured` | `uint64` | `optional` | `` |  |
-| 10 | `shield_runes_gained` | `uint64` | `optional` | `` |  |
+| 1 | `timestamp` | `uint32` | `optional` |  |  |
+| 2 | `lotuses_gained` | `uint64` | `optional` |  |  |
+| 3 | `wisdom_runes_gained` | `uint64` | `optional` |  |  |
+| 4 | `roshan_kills_day` | `uint64` | `optional` |  |  |
+| 5 | `roshan_kills_night` | `uint64` | `optional` |  |  |
+| 6 | `portals_used` | `uint64` | `optional` |  |  |
+| 7 | `watchers_taken` | `uint64` | `optional` |  |  |
+| 8 | `tormentor_kills` | `uint64` | `optional` |  |  |
+| 9 | `outposts_captured` | `uint64` | `optional` |  |  |
+| 10 | `shield_runes_gained` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -2755,9 +2755,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `current` | `.CMsgMapStatsSnapshot` | `optional` | `` |  |
-| 2 | `window_start` | `.CMsgMapStatsSnapshot` | `optional` | `` |  |
-| 3 | `window_end` | `.CMsgMapStatsSnapshot` | `optional` | `` |  |
+| 1 | `current` | `.CMsgMapStatsSnapshot` | `optional` |  |  |
+| 2 | `window_start` | `.CMsgMapStatsSnapshot` | `optional` |  |  |
+| 3 | `window_end` | `.CMsgMapStatsSnapshot` | `optional` |  |  |
 
 </details>
 
@@ -2769,8 +2769,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `tracked_stat_id` | `uint32` | `optional` | `` |  |
-| 2 | `tracked_stat_value` | `int32` | `optional` | `` |  |
+| 1 | `tracked_stat_id` | `uint32` | `optional` |  |  |
+| 2 | `tracked_stat_value` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -2782,9 +2782,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgDOTAClaimEventActionResponse.ResultCode` | `optional` | `` | default = Success |
-| 2 | `reward_results` | `.CMsgDOTAClaimEventActionResponse.GrantedRewardData` | `repeated` | `` |  |
-| 3 | `action_id` | `uint32` | `optional` | `` |  |
+| 1 | `result` | `.CMsgDOTAClaimEventActionResponse.ResultCode` | `optional` |  | default = Success |
+| 2 | `reward_results` | `.CMsgDOTAClaimEventActionResponse.GrantedRewardData` | `repeated` |  |  |
+| 3 | `action_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -2796,8 +2796,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `item_def` | `uint32` | `optional` | `` |  |
-| 2 | `item_category` | `uint32` | `optional` | `` |  |
+| 1 | `item_def` | `uint32` | `optional` |  |  |
+| 2 | `item_category` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -2809,7 +2809,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `item_def` | `uint32` | `repeated` | `` |  |
+| 1 | `item_def` | `uint32` | `repeated` |  |  |
 
 </details>
 
@@ -2821,8 +2821,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `action_id` | `uint32` | `optional` | `` |  |
-| 2 | `result_reward_data` | `bytes` | `optional` | `` |  |
+| 1 | `action_id` | `uint32` | `optional` |  |  |
+| 2 | `result_reward_data` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -2834,7 +2834,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `tokens` | `.CMsgDOTAClaimEventActionResponse.OverworldTokenRewardData.TokenQuantity` | `repeated` | `` |  |
+| 1 | `tokens` | `.CMsgDOTAClaimEventActionResponse.OverworldTokenRewardData.TokenQuantity` | `repeated` |  |  |
 
 </details>
 
@@ -2846,8 +2846,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `token_id` | `uint32` | `optional` | `` |  |
-| 2 | `token_count` | `uint32` | `optional` | `` |  |
+| 1 | `token_id` | `uint32` | `optional` |  |  |
+| 2 | `token_count` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -2859,7 +2859,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `materials` | `.CMsgDOTAClaimEventActionResponse.MonsterHunterMaterialRewardData.MaterialQuantity` | `repeated` | `` |  |
+| 1 | `materials` | `.CMsgDOTAClaimEventActionResponse.MonsterHunterMaterialRewardData.MaterialQuantity` | `repeated` |  |  |
 
 </details>
 
@@ -2871,8 +2871,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `material_id` | `uint32` | `optional` | `` |  |
-| 2 | `material_count` | `uint32` | `optional` | `` |  |
+| 1 | `material_id` | `uint32` | `optional` |  |  |
+| 2 | `material_count` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -2884,11 +2884,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `grant_index` | `uint32` | `optional` | `` |  |
-| 2 | `score_index` | `uint32` | `optional` | `` |  |
-| 3 | `reward_index` | `uint32` | `optional` | `` |  |
-| 4 | `reward_data` | `bytes` | `optional` | `` |  |
-| 5 | `action_id` | `uint32` | `optional` | `` |  |
+| 1 | `grant_index` | `uint32` | `optional` |  |  |
+| 2 | `score_index` | `uint32` | `optional` |  |  |
+| 3 | `reward_index` | `uint32` | `optional` |  |  |
+| 4 | `reward_data` | `bytes` | `optional` |  |  |
+| 5 | `action_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -2900,9 +2900,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `language` | `uint32` | `optional` | `` |  |
-| 2 | `feedback_item` | `uint32` | `optional` | `` |  |
-| 3 | `feedback` | `string` | `optional` | `` |  |
+| 1 | `language` | `uint32` | `optional` |  |  |
+| 2 | `feedback_item` | `uint32` | `optional` |  |  |
+| 3 | `feedback` | `string` | `optional` |  |  |
 
 </details>
 
@@ -2914,7 +2914,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCDotaLabsFeedbackResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCDotaLabsFeedbackResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -2926,10 +2926,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `match_id` | `uint64` | `optional` | `` |  |
-| 3 | `correct` | `bool` | `optional` | `` |  |
-| 4 | `predictions` | `.CDotaMsg_PredictionResult.Prediction` | `repeated` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `match_id` | `uint64` | `optional` |  |  |
+| 3 | `correct` | `bool` | `optional` |  |  |
+| 4 | `predictions` | `.CDotaMsg_PredictionResult.Prediction` | `repeated` |  |  |
 
 </details>
 
@@ -2941,11 +2941,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `item_def` | `uint32` | `optional` | `` |  |
-| 2 | `num_correct` | `uint32` | `optional` | `` |  |
-| 3 | `num_fails` | `uint32` | `optional` | `` |  |
-| 4 | `result` | `.CDotaMsg_PredictionResult.Prediction.EResult` | `optional` | `` | default = k_eResult_ItemGranted |
-| 6 | `granted_item_defs` | `uint32` | `repeated` | `` |  |
+| 1 | `item_def` | `uint32` | `optional` |  |  |
+| 2 | `num_correct` | `uint32` | `optional` |  |  |
+| 3 | `num_fails` | `uint32` | `optional` |  |  |
+| 4 | `result` | `.CDotaMsg_PredictionResult.Prediction.EResult` | `optional` |  | default = k_eResult_ItemGranted |
+| 6 | `granted_item_defs` | `uint32` | `repeated` |  |  |
 
 </details>
 
@@ -2957,20 +2957,20 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `ability_name_loc_token` | `string` | `optional` | `` |  |
-| 2 | `ability_category` | `.CDotaMsgStructuredTooltipProperties.EAbilityTooltipCategory` | `optional` | `` | default = kPassive |
-| 3 | `ability_level` | `int32` | `optional` | `` |  |
-| 4 | `current_mana_cost` | `int32` | `optional` | `` |  |
-| 5 | `current_health_cost` | `int32` | `optional` | `` |  |
-| 6 | `current_cooldown` | `float` | `optional` | `` |  |
-| 7 | `summary_description_loc_token` | `string` | `optional` | `` |  |
-| 8 | `summary_description_embed_values` | `.CDotaMsgStructuredTooltipProperties.Attribute` | `repeated` | `` |  |
-| 9 | `summary_description_surfaced_lines` | `string` | `repeated` | `` |  |
-| 10 | `summary_description_embedded_sub_abilities` | `.CDotaMsgStructuredTooltipProperties.SummaryDescriptionEmbeddedSubAbility` | `repeated` | `` |  |
-| 11 | `summary_description_aghs_scepter` | `string` | `optional` | `` |  |
-| 12 | `summary_description_aghs_shard` | `string` | `optional` | `` |  |
-| 13 | `preview_video_url` | `string` | `optional` | `` |  |
-| 20 | `chunks` | `.CDotaMsgStructuredTooltipProperties.TooltipContentChunk` | `repeated` | `` |  |
+| 1 | `ability_name_loc_token` | `string` | `optional` |  |  |
+| 2 | `ability_category` | `.CDotaMsgStructuredTooltipProperties.EAbilityTooltipCategory` | `optional` |  | default = kPassive |
+| 3 | `ability_level` | `int32` | `optional` |  |  |
+| 4 | `current_mana_cost` | `int32` | `optional` |  |  |
+| 5 | `current_health_cost` | `int32` | `optional` |  |  |
+| 6 | `current_cooldown` | `float` | `optional` |  |  |
+| 7 | `summary_description_loc_token` | `string` | `optional` |  |  |
+| 8 | `summary_description_embed_values` | `.CDotaMsgStructuredTooltipProperties.Attribute` | `repeated` |  |  |
+| 9 | `summary_description_surfaced_lines` | `string` | `repeated` |  |  |
+| 10 | `summary_description_embedded_sub_abilities` | `.CDotaMsgStructuredTooltipProperties.SummaryDescriptionEmbeddedSubAbility` | `repeated` |  |  |
+| 11 | `summary_description_aghs_scepter` | `string` | `optional` |  |  |
+| 12 | `summary_description_aghs_shard` | `string` | `optional` |  |  |
+| 13 | `preview_video_url` | `string` | `optional` |  |  |
+| 20 | `chunks` | `.CDotaMsgStructuredTooltipProperties.TooltipContentChunk` | `repeated` |  |  |
 
 </details>
 
@@ -2982,8 +2982,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `value` | `float` | `optional` | `` |  |
-| 2 | `is_active_value` | `bool` | `optional` | `` |  |
+| 1 | `value` | `float` | `optional` |  |  |
+| 2 | `is_active_value` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -2995,7 +2995,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `single_value` | `.CDotaMsgStructuredTooltipProperties.AttributeValueValue` | `optional` | `` |  |
+| 1 | `single_value` | `.CDotaMsgStructuredTooltipProperties.AttributeValueValue` | `optional` |  |  |
 
 </details>
 
@@ -3007,7 +3007,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `values` | `.CDotaMsgStructuredTooltipProperties.AttributeValueValue` | `repeated` | `` |  |
+| 1 | `values` | `.CDotaMsgStructuredTooltipProperties.AttributeValueValue` | `repeated` |  |  |
 
 </details>
 
@@ -3019,8 +3019,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `prev` | `.CDotaMsgStructuredTooltipProperties.AttributeValueValue` | `optional` | `` |  |
-| 2 | `next` | `.CDotaMsgStructuredTooltipProperties.AttributeValueValue` | `optional` | `` |  |
+| 1 | `prev` | `.CDotaMsgStructuredTooltipProperties.AttributeValueValue` | `optional` |  |  |
+| 2 | `next` | `.CDotaMsgStructuredTooltipProperties.AttributeValueValue` | `optional` |  |  |
 
 </details>
 
@@ -3046,10 +3046,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `internal_name` | `string` | `optional` | `` |  |
-| 2 | `localized_name_text` | `string` | `optional` | `` |  |
-| 3 | `type` | `.CDotaMsgStructuredTooltipProperties.EAttributeType` | `optional` | `` | default = kUnknown |
-| 4 | `value` | `.CDotaMsgStructuredTooltipProperties.AttributeValue` | `optional` | `` |  |
+| 1 | `internal_name` | `string` | `optional` |  |  |
+| 2 | `localized_name_text` | `string` | `optional` |  |  |
+| 3 | `type` | `.CDotaMsgStructuredTooltipProperties.EAttributeType` | `optional` |  | default = kUnknown |
+| 4 | `value` | `.CDotaMsgStructuredTooltipProperties.AttributeValue` | `optional` |  |  |
 
 </details>
 
@@ -3073,8 +3073,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `title_loc_token` | `string` | `optional` | `` |  |
-| 2 | `desc_loc_token` | `string` | `optional` | `` |  |
+| 1 | `title_loc_token` | `string` | `optional` |  |  |
+| 2 | `desc_loc_token` | `string` | `optional` |  |  |
 
 </details>
 
@@ -3100,8 +3100,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `desc` | `.CDotaMsgStructuredTooltipProperties.AttributeGroupDescription` | `optional` | `` |  |
-| 2 | `attributes` | `.CDotaMsgStructuredTooltipProperties.Attribute` | `repeated` | `` |  |
+| 1 | `desc` | `.CDotaMsgStructuredTooltipProperties.AttributeGroupDescription` | `optional` |  |  |
+| 2 | `attributes` | `.CDotaMsgStructuredTooltipProperties.Attribute` | `repeated` |  |  |
 
 </details>
 
@@ -3113,7 +3113,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `groups` | `.CDotaMsgStructuredTooltipProperties.AttributeGroup` | `repeated` | `` |  |
+| 1 | `groups` | `.CDotaMsgStructuredTooltipProperties.AttributeGroup` | `repeated` |  |  |
 
 </details>
 
@@ -3137,9 +3137,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `ability_name_loc_token` | `string` | `optional` | `` |  |
-| 2 | `ability_desc_loc_token` | `string` | `optional` | `` |  |
-| 3 | `ability_icon_url` | `string` | `optional` | `` |  |
+| 1 | `ability_name_loc_token` | `string` | `optional` |  |  |
+| 2 | `ability_desc_loc_token` | `string` | `optional` |  |  |
+| 3 | `ability_icon_url` | `string` | `optional` |  |  |
 
 </details>
 

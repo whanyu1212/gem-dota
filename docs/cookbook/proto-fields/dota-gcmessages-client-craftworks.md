@@ -32,7 +32,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `component_inventory` | `.CMsgCraftworksComponents` | `optional` | `` |  |
+| 1 | `component_inventory` | `.CMsgCraftworksComponents` | `optional` |  |  |
 
 </details>
 
@@ -44,7 +44,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `craftworks_id` | `uint32` | `optional` | `` |  |
+| 1 | `craftworks_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -56,8 +56,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCCraftworksGetUserDataResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `user_data` | `.CMsgCraftworksUserData` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCCraftworksGetUserDataResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `user_data` | `.CMsgCraftworksUserData` | `optional` |  |  |
 
 </details>
 
@@ -69,8 +69,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `craftworks_id` | `uint32` | `optional` | `` |  |
-| 2 | `user_data` | `.CMsgCraftworksUserData` | `optional` | `` |  |
+| 1 | `craftworks_id` | `uint32` | `optional` |  |  |
+| 2 | `user_data` | `.CMsgCraftworksUserData` | `optional` |  |  |
 
 </details>
 
@@ -82,8 +82,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `craftworks_id` | `uint32` | `optional` | `` |  |
-| 2 | `recipe_id` | `uint64` | `optional` | `` |  |
+| 1 | `craftworks_id` | `uint32` | `optional` |  |  |
+| 2 | `recipe_id` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -95,8 +95,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCCraftworksCraftRecipeResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `claim_response` | `.CMsgDOTAClaimEventActionResponse` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCCraftworksCraftRecipeResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `claim_response` | `.CMsgDOTAClaimEventActionResponse` | `optional` |  |  |
 
 </details>
 
@@ -108,9 +108,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `craftworks_id` | `uint32` | `optional` | `` |  |
-| 2 | `components` | `.CMsgCraftworksComponents` | `optional` | `` |  |
-| 3 | `operation` | `.CMsgClientToGCCraftworksDevModifyComponents.EOperation` | `optional` | `` | default = k_eAddComponents |
+| 1 | `craftworks_id` | `uint32` | `optional` |  |  |
+| 2 | `components` | `.CMsgCraftworksComponents` | `optional` |  |  |
+| 3 | `operation` | `.CMsgClientToGCCraftworksDevModifyComponents.EOperation` | `optional` |  | default = k_eAddComponents |
 
 </details>
 
@@ -122,7 +122,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCCraftworksDevModifyComponentsResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCCraftworksDevModifyComponentsResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 

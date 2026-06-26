@@ -23,11 +23,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `status` | `uint32` | `optional` | `` | default = 255 |
-| 2 | `account_id` | `uint32` | `optional` | `` | default = 0 |
-| 3 | `publisher_group_id` | `uint32` | `optional` | `` | default = 0 |
-| 4 | `key_id` | `uint32` | `optional` | `` |  |
-| 5 | `domain` | `string` | `optional` | `` |  |
+| 1 | `status` | `uint32` | `optional` |  | default = 255 |
+| 2 | `account_id` | `uint32` | `optional` |  | default = 0 |
+| 3 | `publisher_group_id` | `uint32` | `optional` |  | default = 0 |
+| 4 | `key_id` | `uint32` | `optional` |  |  |
+| 5 | `domain` | `string` | `optional` |  |  |
 
 </details>
 
@@ -39,15 +39,15 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `request_method` | `uint32` | `optional` | `` |  |
-| 2 | `hostname` | `string` | `optional` | `` |  |
-| 3 | `url` | `string` | `optional` | `` |  |
-| 4 | `headers` | `.CMsgHttpRequest.RequestHeader` | `repeated` | `` |  |
-| 5 | `get_params` | `.CMsgHttpRequest.QueryParam` | `repeated` | `` |  |
-| 6 | `post_params` | `.CMsgHttpRequest.QueryParam` | `repeated` | `` |  |
-| 7 | `body` | `bytes` | `optional` | `` |  |
-| 8 | `absolute_timeout` | `uint32` | `optional` | `` |  |
-| 9 | `use_https` | `bool` | `optional` | `` |  |
+| 1 | `request_method` | `uint32` | `optional` |  |  |
+| 2 | `hostname` | `string` | `optional` |  |  |
+| 3 | `url` | `string` | `optional` |  |  |
+| 4 | `headers` | `.CMsgHttpRequest.RequestHeader` | `repeated` |  |  |
+| 5 | `get_params` | `.CMsgHttpRequest.QueryParam` | `repeated` |  |  |
+| 6 | `post_params` | `.CMsgHttpRequest.QueryParam` | `repeated` |  |  |
+| 7 | `body` | `bytes` | `optional` |  |  |
+| 8 | `absolute_timeout` | `uint32` | `optional` |  |  |
+| 9 | `use_https` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -59,8 +59,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `name` | `string` | `optional` | `` |  |
-| 2 | `value` | `string` | `optional` | `` |  |
+| 1 | `name` | `string` | `optional` |  |  |
+| 2 | `value` | `string` | `optional` |  |  |
 
 </details>
 
@@ -72,8 +72,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `name` | `string` | `optional` | `` |  |
-| 2 | `value` | `bytes` | `optional` | `` |  |
+| 1 | `name` | `string` | `optional` |  |  |
+| 2 | `value` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -85,12 +85,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 2 | `interface_name` | `string` | `optional` | `` |  |
-| 3 | `method_name` | `string` | `optional` | `` |  |
-| 4 | `version` | `uint32` | `optional` | `` |  |
-| 5 | `api_key` | `.CMsgWebAPIKey` | `optional` | `` |  |
-| 6 | `request` | `.CMsgHttpRequest` | `optional` | `` |  |
-| 7 | `routing_app_id` | `uint32` | `optional` | `` |  |
+| 2 | `interface_name` | `string` | `optional` |  |  |
+| 3 | `method_name` | `string` | `optional` |  |  |
+| 4 | `version` | `uint32` | `optional` |  |  |
+| 5 | `api_key` | `.CMsgWebAPIKey` | `optional` |  |  |
+| 6 | `request` | `.CMsgHttpRequest` | `optional` |  |  |
+| 7 | `routing_app_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -102,9 +102,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `status_code` | `uint32` | `optional` | `` |  |
-| 2 | `headers` | `.CMsgHttpResponse.ResponseHeader` | `repeated` | `` |  |
-| 3 | `body` | `bytes` | `optional` | `` |  |
+| 1 | `status_code` | `uint32` | `optional` |  |  |
+| 2 | `headers` | `.CMsgHttpResponse.ResponseHeader` | `repeated` |  |  |
+| 3 | `body` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -116,8 +116,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `name` | `string` | `optional` | `` |  |
-| 2 | `value` | `string` | `optional` | `` |  |
+| 1 | `name` | `string` | `optional` |  |  |
+| 2 | `value` | `string` | `optional` |  |  |
 
 </details>
 
@@ -129,8 +129,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `search_type` | `uint32` | `optional` | `` |  |
-| 2 | `search_string` | `string` | `optional` | `` |  |
+| 1 | `search_type` | `uint32` | `optional` |  |  |
+| 2 | `search_string` | `string` | `optional` |  |  |
 
 </details>
 
@@ -142,7 +142,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steam_id` | `fixed64` | `repeated` | `` |  |
+| 1 | `steam_id` | `fixed64` | `repeated` |  |  |
 
 </details>
 
@@ -154,13 +154,13 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `source` | `uint32` | `optional` | `` |  |
-| 2 | `alert_type` | `uint32` | `optional` | `` |  |
-| 4 | `critical` | `bool` | `optional` | `` |  |
-| 5 | `time` | `uint32` | `optional` | `` |  |
-| 6 | `appid` | `uint32` | `optional` | `` |  |
-| 7 | `text` | `string` | `optional` | `` |  |
-| 12 | `recipient` | `string` | `optional` | `` |  |
+| 1 | `source` | `uint32` | `optional` |  |  |
+| 2 | `alert_type` | `uint32` | `optional` |  |  |
+| 4 | `critical` | `bool` | `optional` |  |  |
+| 5 | `time` | `uint32` | `optional` |  |  |
+| 6 | `appid` | `uint32` | `optional` |  |  |
+| 7 | `text` | `string` | `optional` |  |  |
+| 12 | `recipient` | `string` | `optional` |  |  |
 
 </details>
 
@@ -172,7 +172,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steamid` | `fixed64` | `optional` | `` |  |
+| 1 | `steamid` | `fixed64` | `optional` |  |  |
 
 </details>
 
@@ -184,9 +184,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `package_id` | `uint32` | `optional` | `` |  |
-| 2 | `time_created` | `uint32` | `optional` | `` |  |
-| 3 | `owner_id` | `uint32` | `optional` | `` |  |
+| 1 | `package_id` | `uint32` | `optional` |  |  |
+| 2 | `time_created` | `uint32` | `optional` |  |  |
+| 3 | `owner_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -198,8 +198,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `license` | `.CMsgPackageLicense` | `repeated` | `` |  |
-| 2 | `result` | `uint32` | `optional` | `` |  |
+| 1 | `license` | `.CMsgPackageLicense` | `repeated` |  |  |
+| 2 | `result` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -211,8 +211,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `app_id` | `uint32` | `optional` | `` |  |
-| 2 | `command_prefix` | `string` | `optional` | `` |  |
+| 1 | `app_id` | `uint32` | `optional` |  |  |
+| 2 | `command_prefix` | `string` | `optional` |  |  |
 
 </details>
 
@@ -224,7 +224,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `command_name` | `string` | `repeated` | `` |  |
+| 1 | `command_name` | `string` | `repeated` |  |  |
 
 </details>
 
@@ -236,7 +236,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `keys` | `string` | `repeated` | `` |  |
+| 1 | `keys` | `string` | `repeated` |  |  |
 
 </details>
 
@@ -248,7 +248,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `values` | `.CGCMsgMemCachedGetResponse.ValueTag` | `repeated` | `` |  |
+| 1 | `values` | `.CGCMsgMemCachedGetResponse.ValueTag` | `repeated` |  |  |
 
 </details>
 
@@ -260,8 +260,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `found` | `bool` | `optional` | `` |  |
-| 2 | `value` | `bytes` | `optional` | `` |  |
+| 1 | `found` | `bool` | `optional` |  |  |
+| 2 | `value` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -273,7 +273,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `keys` | `.CGCMsgMemCachedSet.KeyPair` | `repeated` | `` |  |
+| 1 | `keys` | `.CGCMsgMemCachedSet.KeyPair` | `repeated` |  |  |
 
 </details>
 
@@ -285,8 +285,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `name` | `string` | `optional` | `` |  |
-| 2 | `value` | `bytes` | `optional` | `` |  |
+| 1 | `name` | `string` | `optional` |  |  |
+| 2 | `value` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -298,7 +298,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `keys` | `string` | `repeated` | `` |  |
+| 1 | `keys` | `string` | `repeated` |  |  |
 
 </details>
 
@@ -322,20 +322,20 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `curr_connections` | `uint64` | `optional` | `` |  |
-| 2 | `cmd_get` | `uint64` | `optional` | `` |  |
-| 3 | `cmd_set` | `uint64` | `optional` | `` |  |
-| 4 | `cmd_flush` | `uint64` | `optional` | `` |  |
-| 5 | `get_hits` | `uint64` | `optional` | `` |  |
-| 6 | `get_misses` | `uint64` | `optional` | `` |  |
-| 7 | `delete_hits` | `uint64` | `optional` | `` |  |
-| 8 | `delete_misses` | `uint64` | `optional` | `` |  |
-| 9 | `bytes_read` | `uint64` | `optional` | `` |  |
-| 10 | `bytes_written` | `uint64` | `optional` | `` |  |
-| 11 | `limit_maxbytes` | `uint64` | `optional` | `` |  |
-| 12 | `curr_items` | `uint64` | `optional` | `` |  |
-| 13 | `evictions` | `uint64` | `optional` | `` |  |
-| 14 | `bytes` | `uint64` | `optional` | `` |  |
+| 1 | `curr_connections` | `uint64` | `optional` |  |  |
+| 2 | `cmd_get` | `uint64` | `optional` |  |  |
+| 3 | `cmd_set` | `uint64` | `optional` |  |  |
+| 4 | `cmd_flush` | `uint64` | `optional` |  |  |
+| 5 | `get_hits` | `uint64` | `optional` |  |  |
+| 6 | `get_misses` | `uint64` | `optional` |  |  |
+| 7 | `delete_hits` | `uint64` | `optional` |  |  |
+| 8 | `delete_misses` | `uint64` | `optional` |  |  |
+| 9 | `bytes_read` | `uint64` | `optional` |  |  |
+| 10 | `bytes_written` | `uint64` | `optional` |  |  |
+| 11 | `limit_maxbytes` | `uint64` | `optional` |  |  |
+| 12 | `curr_items` | `uint64` | `optional` |  |  |
+| 13 | `evictions` | `uint64` | `optional` |  |  |
+| 14 | `bytes` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -347,7 +347,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `schema_catalog` | `uint32` | `optional` | `` |  |
+| 1 | `schema_catalog` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -359,15 +359,15 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `threads` | `uint32` | `optional` | `` |  |
-| 2 | `threads_connected` | `uint32` | `optional` | `` |  |
-| 3 | `threads_active` | `uint32` | `optional` | `` |  |
-| 4 | `operations_submitted` | `uint32` | `optional` | `` |  |
-| 5 | `prepared_statements_executed` | `uint32` | `optional` | `` |  |
-| 6 | `non_prepared_statements_executed` | `uint32` | `optional` | `` |  |
-| 7 | `deadlock_retries` | `uint32` | `optional` | `` |  |
-| 8 | `operations_timed_out_in_queue` | `uint32` | `optional` | `` |  |
-| 9 | `errors` | `uint32` | `optional` | `` |  |
+| 1 | `threads` | `uint32` | `optional` |  |  |
+| 2 | `threads_connected` | `uint32` | `optional` |  |  |
+| 3 | `threads_active` | `uint32` | `optional` |  |  |
+| 4 | `operations_submitted` | `uint32` | `optional` |  |  |
+| 5 | `prepared_statements_executed` | `uint32` | `optional` |  |  |
+| 6 | `non_prepared_statements_executed` | `uint32` | `optional` |  |  |
+| 7 | `deadlock_retries` | `uint32` | `optional` |  |  |
+| 8 | `operations_timed_out_in_queue` | `uint32` | `optional` |  |  |
+| 9 | `errors` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -379,10 +379,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steamid` | `fixed64` | `optional` | `` |  |
-| 2 | `ip_public` | `uint32` | `optional` | `` |  |
-| 3 | `packageid` | `uint32` | `optional` | `` |  |
-| 4 | `store_country_code` | `string` | `optional` | `` |  |
+| 1 | `steamid` | `fixed64` | `optional` |  |  |
+| 2 | `ip_public` | `uint32` | `optional` |  |  |
+| 3 | `packageid` | `uint32` | `optional` |  |  |
+| 4 | `store_country_code` | `string` | `optional` |  |  |
 
 </details>
 
@@ -394,9 +394,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `eresult` | `int32` | `optional` | `` | default = 2 |
-| 2 | `purchase_result_detail` | `int32` | `optional` | `` |  |
-| 3 | `transid` | `fixed64` | `optional` | `` |  |
+| 1 | `eresult` | `int32` | `optional` |  | default = 2 |
+| 2 | `purchase_result_detail` | `int32` | `optional` |  |  |
+| 3 | `transid` | `fixed64` | `optional` |  |  |
 
 </details>
 
@@ -408,7 +408,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `ips` | `fixed32` | `repeated` | `` |  |
+| 1 | `ips` | `fixed32` | `repeated` |  |  |
 
 </details>
 
@@ -420,7 +420,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `ips` | `fixed32` | `repeated` | `` |  |
+| 1 | `ips` | `fixed32` | `repeated` |  |  |
 
 </details>
 
@@ -432,8 +432,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `ip` | `fixed32` | `optional` | `` |  |
-| 2 | `asn` | `uint32` | `optional` | `` |  |
+| 1 | `ip` | `fixed32` | `optional` |  |  |
+| 2 | `asn` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -445,7 +445,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `infos` | `.CIPASNInfo` | `repeated` | `` |  |
+| 1 | `infos` | `.CIPASNInfo` | `repeated` |  |  |
 
 </details>
 
@@ -457,12 +457,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steamid` | `fixed64` | `optional` | `` |  |
-| 2 | `email_msg_type` | `uint32` | `optional` | `` |  |
-| 3 | `email_format` | `uint32` | `optional` | `` |  |
-| 5 | `persona_name_tokens` | `.CMsgAMSendEmail.PersonaNameReplacementToken` | `repeated` | `` |  |
-| 6 | `source_gc` | `uint32` | `optional` | `` |  |
-| 7 | `tokens` | `.CMsgAMSendEmail.ReplacementToken` | `repeated` | `` |  |
+| 1 | `steamid` | `fixed64` | `optional` |  |  |
+| 2 | `email_msg_type` | `uint32` | `optional` |  |  |
+| 3 | `email_format` | `uint32` | `optional` |  |  |
+| 5 | `persona_name_tokens` | `.CMsgAMSendEmail.PersonaNameReplacementToken` | `repeated` |  |  |
+| 6 | `source_gc` | `uint32` | `optional` |  |  |
+| 7 | `tokens` | `.CMsgAMSendEmail.ReplacementToken` | `repeated` |  |  |
 
 </details>
 
@@ -474,8 +474,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `token_name` | `string` | `optional` | `` |  |
-| 2 | `token_value` | `string` | `optional` | `` |  |
+| 1 | `token_name` | `string` | `optional` |  |  |
+| 2 | `token_value` | `string` | `optional` |  |  |
 
 </details>
 
@@ -487,8 +487,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steamid` | `fixed64` | `optional` | `` |  |
-| 2 | `token_name` | `string` | `optional` | `` |  |
+| 1 | `steamid` | `fixed64` | `optional` |  |  |
+| 2 | `token_name` | `string` | `optional` |  |  |
 
 </details>
 
@@ -500,7 +500,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `eresult` | `uint32` | `optional` | `` | default = 2 |
+| 1 | `eresult` | `uint32` | `optional` |  | default = 2 |
 
 </details>
 
@@ -512,10 +512,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `app_id` | `uint32` | `optional` | `` |  |
-| 2 | `email_msg_type` | `uint32` | `optional` | `` |  |
-| 3 | `email_lang` | `int32` | `optional` | `` |  |
-| 4 | `email_format` | `int32` | `optional` | `` |  |
+| 1 | `app_id` | `uint32` | `optional` |  |  |
+| 2 | `email_msg_type` | `uint32` | `optional` |  |  |
+| 3 | `email_lang` | `int32` | `optional` |  |  |
+| 4 | `email_format` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -527,9 +527,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `eresult` | `uint32` | `optional` | `` | default = 2 |
-| 2 | `template_exists` | `bool` | `optional` | `` |  |
-| 3 | `template` | `string` | `optional` | `` |  |
+| 1 | `eresult` | `uint32` | `optional` |  | default = 2 |
+| 2 | `template_exists` | `bool` | `optional` |  |  |
+| 3 | `template` | `string` | `optional` |  |  |
 
 </details>
 
@@ -541,11 +541,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steam_id` | `fixed64` | `optional` | `` |  |
-| 2 | `package_id` | `uint32` | `optional` | `` |  |
-| 3 | `passes_to_grant` | `int32` | `optional` | `` |  |
-| 4 | `days_to_expiration` | `int32` | `optional` | `` |  |
-| 5 | `action` | `int32` | `optional` | `` |  |
+| 1 | `steam_id` | `fixed64` | `optional` |  |  |
+| 2 | `package_id` | `uint32` | `optional` |  |  |
+| 3 | `passes_to_grant` | `int32` | `optional` |  |  |
+| 4 | `days_to_expiration` | `int32` | `optional` |  |  |
+| 5 | `action` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -557,8 +557,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `eresult` | `int32` | `optional` | `` | default = 2 |
-| 2 | `passes_granted` | `int32` | `optional` | `` | default = 0 |
+| 1 | `eresult` | `int32` | `optional` |  | default = 2 |
+| 2 | `passes_granted` | `int32` | `optional` |  | default = 0 |
 
 </details>
 
@@ -570,7 +570,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steamids` | `fixed64` | `repeated` | `` |  |
+| 1 | `steamids` | `fixed64` | `repeated` |  |  |
 
 </details>
 
@@ -582,8 +582,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `succeeded_lookups` | `.CMsgGCGetPersonaNames_Response.PersonaName` | `repeated` | `` |  |
-| 2 | `failed_lookup_steamids` | `fixed64` | `repeated` | `` |  |
+| 1 | `succeeded_lookups` | `.CMsgGCGetPersonaNames_Response.PersonaName` | `repeated` |  |  |
+| 2 | `failed_lookup_steamids` | `fixed64` | `repeated` |  |  |
 
 </details>
 
@@ -595,8 +595,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steamid` | `fixed64` | `optional` | `` |  |
-| 2 | `persona_name` | `string` | `optional` | `` |  |
+| 1 | `steamid` | `fixed64` | `optional` |  |  |
+| 2 | `persona_name` | `string` | `optional` |  |  |
 
 </details>
 
@@ -608,8 +608,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steamid_left` | `fixed64` | `optional` | `` |  |
-| 2 | `steamid_right` | `fixed64` | `optional` | `` |  |
+| 1 | `steamid_left` | `fixed64` | `optional` |  |  |
+| 2 | `steamid_right` | `fixed64` | `optional` |  |  |
 
 </details>
 
@@ -621,8 +621,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `success` | `bool` | `optional` | `` |  |
-| 2 | `found_friendship` | `bool` | `optional` | `` |  |
+| 1 | `success` | `bool` | `optional` |  |  |
+| 2 | `found_friendship` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -634,9 +634,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steamid` | `fixed64` | `optional` | `` |  |
-| 2 | `include_friendship_timestamps` | `bool` | `optional` | `` |  |
-| 3 | `include_friends_with_no_play_time` | `bool` | `optional` | `` |  |
+| 1 | `steamid` | `fixed64` | `optional` |  |  |
+| 2 | `include_friendship_timestamps` | `bool` | `optional` |  |  |
+| 3 | `include_friends_with_no_play_time` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -648,10 +648,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `success` | `bool` | `optional` | `` |  |
-| 2 | `steamids` | `fixed64` | `repeated` | `` |  |
-| 3 | `friendship_timestamps` | `fixed32` | `repeated` | `` |  |
-| 4 | `last_playtimes` | `fixed32` | `repeated` | `` |  |
+| 1 | `success` | `bool` | `optional` |  |  |
+| 2 | `steamids` | `fixed64` | `repeated` |  |  |
+| 3 | `friendship_timestamps` | `fixed32` | `repeated` |  |  |
+| 4 | `last_playtimes` | `fixed32` | `repeated` |  |  |
 
 </details>
 
@@ -663,8 +663,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `master_dir_index` | `int32` | `optional` | `` | default = -1 |
-| 2 | `dir` | `.CMsgGCMsgMasterSetDirectory.SubGC` | `repeated` | `` |  |
+| 1 | `master_dir_index` | `int32` | `optional` |  | default = -1 |
+| 2 | `dir` | `.CMsgGCMsgMasterSetDirectory.SubGC` | `repeated` |  |  |
 
 </details>
 
@@ -676,11 +676,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `dir_index` | `int32` | `optional` | `` | default = -1 |
-| 2 | `name` | `string` | `optional` | `` |  |
-| 3 | `box` | `string` | `optional` | `` |  |
-| 4 | `command_line` | `string` | `optional` | `` |  |
-| 5 | `gc_binary` | `string` | `optional` | `` |  |
+| 1 | `dir_index` | `int32` | `optional` |  | default = -1 |
+| 2 | `name` | `string` | `optional` |  |  |
+| 3 | `box` | `string` | `optional` |  |  |
+| 4 | `command_line` | `string` | `optional` |  |  |
+| 5 | `gc_binary` | `string` | `optional` |  |  |
 
 </details>
 
@@ -692,8 +692,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `eresult` | `int32` | `optional` | `` | default = 2 |
-| 2 | `message` | `string` | `optional` | `` |  |
+| 1 | `eresult` | `int32` | `optional` |  | default = 2 |
+| 2 | `message` | `string` | `optional` |  |  |
 
 </details>
 
@@ -705,7 +705,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `dir_index` | `int32` | `optional` | `` | default = -1 |
+| 1 | `dir_index` | `int32` | `optional` |  | default = -1 |
 
 </details>
 
@@ -717,7 +717,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steamid` | `fixed64` | `optional` | `` |  |
+| 1 | `steamid` | `fixed64` | `optional` |  |  |
 
 </details>
 
@@ -729,10 +729,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `has_prior_purchase_history` | `bool` | `optional` | `` |  |
-| 2 | `has_no_recent_password_resets` | `bool` | `optional` | `` |  |
-| 3 | `is_wallet_cash_trusted` | `bool` | `optional` | `` |  |
-| 4 | `time_all_trusted` | `uint32` | `optional` | `` |  |
+| 1 | `has_prior_purchase_history` | `bool` | `optional` |  |  |
+| 2 | `has_no_recent_password_resets` | `bool` | `optional` |  |  |
+| 3 | `is_wallet_cash_trusted` | `bool` | `optional` |  |  |
+| 4 | `time_all_trusted` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -744,11 +744,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steam_id` | `fixed64` | `optional` | `` |  |
-| 2 | `app_id` | `uint32` | `optional` | `` |  |
-| 3 | `rtime_vacban_starts` | `uint32` | `optional` | `` |  |
-| 4 | `is_banned_now` | `bool` | `optional` | `` |  |
-| 5 | `is_banned_future` | `bool` | `optional` | `` |  |
+| 1 | `steam_id` | `fixed64` | `optional` |  |  |
+| 2 | `app_id` | `uint32` | `optional` |  |  |
+| 3 | `rtime_vacban_starts` | `uint32` | `optional` |  |  |
+| 4 | `is_banned_now` | `bool` | `optional` |  |  |
+| 5 | `is_banned_future` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -760,11 +760,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `dir_index` | `int32` | `repeated` | `` |  |
-| 2 | `method` | `.CMsgGCRoutingInfo.RoutingMethod` | `optional` | `` | default = RANDOM |
-| 3 | `fallback` | `.CMsgGCRoutingInfo.RoutingMethod` | `optional` | `` | default = DISCARD |
-| 4 | `protobuf_field` | `uint32` | `optional` | `` |  |
-| 5 | `webapi_param` | `string` | `optional` | `` |  |
+| 1 | `dir_index` | `int32` | `repeated` |  |  |
+| 2 | `method` | `.CMsgGCRoutingInfo.RoutingMethod` | `optional` |  | default = RANDOM |
+| 3 | `fallback` | `.CMsgGCRoutingInfo.RoutingMethod` | `optional` |  | default = DISCARD |
+| 4 | `protobuf_field` | `uint32` | `optional` |  |  |
+| 5 | `webapi_param` | `string` | `optional` |  |  |
 
 </details>
 
@@ -776,7 +776,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `entries` | `.CMsgGCMsgMasterSetWebAPIRouting.Entry` | `repeated` | `` |  |
+| 1 | `entries` | `.CMsgGCMsgMasterSetWebAPIRouting.Entry` | `repeated` |  |  |
 
 </details>
 
@@ -788,9 +788,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `interface_name` | `string` | `optional` | `` |  |
-| 2 | `method_name` | `string` | `optional` | `` |  |
-| 3 | `routing` | `.CMsgGCRoutingInfo` | `optional` | `` |  |
+| 1 | `interface_name` | `string` | `optional` |  |  |
+| 2 | `method_name` | `string` | `optional` |  |  |
+| 3 | `routing` | `.CMsgGCRoutingInfo` | `optional` |  |  |
 
 </details>
 
@@ -802,7 +802,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `entries` | `.CMsgGCMsgMasterSetClientMsgRouting.Entry` | `repeated` | `` |  |
+| 1 | `entries` | `.CMsgGCMsgMasterSetClientMsgRouting.Entry` | `repeated` |  |  |
 
 </details>
 
@@ -814,8 +814,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `msg_type` | `uint32` | `optional` | `` |  |
-| 2 | `routing` | `.CMsgGCRoutingInfo` | `optional` | `` |  |
+| 1 | `msg_type` | `uint32` | `optional` |  |  |
+| 2 | `routing` | `.CMsgGCRoutingInfo` | `optional` |  |  |
 
 </details>
 
@@ -827,7 +827,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `eresult` | `int32` | `optional` | `` | default = 2 |
+| 1 | `eresult` | `int32` | `optional` |  | default = 2 |
 
 </details>
 
@@ -839,7 +839,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `eresult` | `int32` | `optional` | `` | default = 2 |
+| 1 | `eresult` | `int32` | `optional` |  | default = 2 |
 
 </details>
 
@@ -851,9 +851,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `options` | `.CMsgGCMsgSetOptions.Option` | `repeated` | `` |  |
-| 2 | `client_msg_ranges` | `.CMsgGCMsgSetOptions.MessageRange` | `repeated` | `` |  |
-| 3 | `gcsql_version` | `.CMsgGCMsgSetOptions.GCSQLVersion` | `optional` | `` | default = GCSQL_VERSION_BASELINE |
+| 1 | `options` | `.CMsgGCMsgSetOptions.Option` | `repeated` |  |  |
+| 2 | `client_msg_ranges` | `.CMsgGCMsgSetOptions.MessageRange` | `repeated` |  |  |
+| 3 | `gcsql_version` | `.CMsgGCMsgSetOptions.GCSQLVersion` | `optional` |  | default = GCSQL_VERSION_BASELINE |
 
 </details>
 
@@ -865,8 +865,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `low` | `uint32` | `required` | `` |  |
-| 2 | `high` | `uint32` | `required` | `` |  |
+| 1 | `low` | `uint32` | `required` |  |  |
+| 2 | `high` | `uint32` | `required` |  |  |
 
 </details>
 
@@ -878,15 +878,15 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steam_id` | `fixed64` | `optional` | `` |  |
-| 2 | `app_id` | `uint32` | `optional` | `` |  |
-| 3 | `online` | `bool` | `optional` | `` |  |
-| 4 | `server_steam_id` | `fixed64` | `optional` | `` |  |
-| 5 | `server_addr` | `uint32` | `optional` | `` |  |
-| 6 | `server_port` | `uint32` | `optional` | `` |  |
-| 7 | `os_type` | `uint32` | `optional` | `` |  |
-| 8 | `client_addr` | `uint32` | `optional` | `` |  |
-| 9 | `extra_fields` | `.CMsgGCHUpdateSession.ExtraField` | `repeated` | `` |  |
+| 1 | `steam_id` | `fixed64` | `optional` |  |  |
+| 2 | `app_id` | `uint32` | `optional` |  |  |
+| 3 | `online` | `bool` | `optional` |  |  |
+| 4 | `server_steam_id` | `fixed64` | `optional` |  |  |
+| 5 | `server_addr` | `uint32` | `optional` |  |  |
+| 6 | `server_port` | `uint32` | `optional` |  |  |
+| 7 | `os_type` | `uint32` | `optional` |  |  |
+| 8 | `client_addr` | `uint32` | `optional` |  |  |
+| 9 | `extra_fields` | `.CMsgGCHUpdateSession.ExtraField` | `repeated` |  |  |
 
 </details>
 
@@ -898,8 +898,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `name` | `string` | `optional` | `` |  |
-| 2 | `value` | `string` | `optional` | `` |  |
+| 1 | `name` | `string` | `optional` |  |  |
+| 2 | `value` | `string` | `optional` |  |  |
 
 </details>
 
@@ -911,9 +911,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steamid` | `fixed64` | `optional` | `` |  |
-| 2 | `appid` | `uint32` | `optional` | `` |  |
-| 3 | `multiple_instances` | `.CMsgNotificationOfSuspiciousActivity.MultipleGameInstances` | `optional` | `` |  |
+| 1 | `steamid` | `fixed64` | `optional` |  |  |
+| 2 | `appid` | `uint32` | `optional` |  |  |
+| 3 | `multiple_instances` | `.CMsgNotificationOfSuspiciousActivity.MultipleGameInstances` | `optional` |  |  |
 
 </details>
 
@@ -925,8 +925,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `app_instance_count` | `uint32` | `optional` | `` |  |
-| 2 | `other_steamids` | `fixed64` | `repeated` | `` |  |
+| 1 | `app_instance_count` | `uint32` | `optional` |  |  |
+| 2 | `other_steamids` | `fixed64` | `repeated` |  |  |
 
 </details>
 
@@ -938,9 +938,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steamid` | `fixed64` | `optional` | `` |  |
-| 2 | `appid` | `uint32` | `optional` | `` |  |
-| 3 | `is_verified` | `bool` | `optional` | `` |  |
+| 1 | `steamid` | `fixed64` | `optional` |  |  |
+| 2 | `appid` | `uint32` | `optional` |  |  |
+| 3 | `is_verified` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -952,11 +952,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steamid` | `fixed64` | `optional` | `` |  |
-| 2 | `appid` | `uint32` | `optional` | `` |  |
-| 3 | `phone_id` | `uint64` | `optional` | `` |  |
-| 4 | `is_verified` | `bool` | `optional` | `` |  |
-| 5 | `is_identifying` | `bool` | `optional` | `` |  |
+| 1 | `steamid` | `fixed64` | `optional` |  |  |
+| 2 | `appid` | `uint32` | `optional` |  |  |
+| 3 | `phone_id` | `uint64` | `optional` |  |  |
+| 4 | `is_verified` | `bool` | `optional` |  |  |
+| 5 | `is_identifying` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -968,9 +968,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steamid` | `fixed64` | `optional` | `` |  |
-| 2 | `appid` | `uint32` | `optional` | `` |  |
-| 3 | `twofactor_enabled` | `bool` | `optional` | `` |  |
+| 1 | `steamid` | `fixed64` | `optional` |  |  |
+| 2 | `appid` | `uint32` | `optional` |  |  |
+| 3 | `twofactor_enabled` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -982,8 +982,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `steamid` | `fixed64` | `optional` | `` |  |
-| 2 | `clanid` | `uint32` | `optional` | `` |  |
+| 1 | `steamid` | `fixed64` | `optional` |  |  |
+| 2 | `clanid` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -995,7 +995,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `ismember` | `bool` | `optional` | `` |  |
+| 1 | `ismember` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -1007,8 +1007,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `appid` | `uint32` | `optional` | `` |  |
-| 2 | `cheer_targets` | `.CMsgGCHAppCheersReceived.CheerTarget` | `repeated` | `` |  |
+| 1 | `appid` | `uint32` | `optional` |  |  |
+| 2 | `cheer_targets` | `.CMsgGCHAppCheersReceived.CheerTarget` | `repeated` |  |  |
 
 </details>
 
@@ -1020,8 +1020,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `cheer_type` | `uint32` | `optional` | `` |  |
-| 2 | `cheer_amount` | `uint32` | `optional` | `` |  |
+| 1 | `cheer_type` | `uint32` | `optional` |  |  |
+| 2 | `cheer_amount` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -1033,8 +1033,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `cheer_target` | `uint64` | `optional` | `` |  |
-| 2 | `cheer_types` | `.CMsgGCHAppCheersReceived.CheerTypeAmount` | `repeated` | `` |  |
+| 1 | `cheer_target` | `uint64` | `optional` |  |  |
+| 2 | `cheer_types` | `.CMsgGCHAppCheersReceived.CheerTypeAmount` | `repeated` |  |  |
 
 </details>
 
@@ -1046,8 +1046,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `appid` | `uint32` | `optional` | `` |  |
-| 2 | `cheer_target` | `uint64` | `optional` | `` |  |
+| 1 | `appid` | `uint32` | `optional` |  |  |
+| 2 | `cheer_target` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -1059,9 +1059,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `cheer_types_valid_all_users` | `uint32` | `repeated` | `` |  |
-| 2 | `cheer_remaps` | `.CMsgGCHAppCheersGetAllowedTypesResponse.CheerRemaps` | `repeated` | `` |  |
-| 3 | `cache_duration` | `uint32` | `optional` | `` |  |
+| 1 | `cheer_types_valid_all_users` | `uint32` | `repeated` |  |  |
+| 2 | `cheer_remaps` | `.CMsgGCHAppCheersGetAllowedTypesResponse.CheerRemaps` | `repeated` |  |  |
+| 3 | `cache_duration` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -1073,9 +1073,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `original_cheer_type` | `uint32` | `optional` | `` |  |
-| 2 | `remapped_cheer_type` | `uint32` | `optional` | `` |  |
-| 3 | `account_ids` | `uint32` | `repeated` | `` |  |
+| 1 | `original_cheer_type` | `uint32` | `optional` |  |  |
+| 2 | `remapped_cheer_type` | `uint32` | `optional` |  |  |
+| 3 | `account_ids` | `uint32` | `repeated` |  |  |
 
 </details>
 
@@ -1087,11 +1087,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `appid` | `uint32` | `optional` | `` |  |
-| 2 | `gameitemid` | `uint32` | `optional` | `` |  |
-| 3 | `date` | `string` | `optional` | `` |  |
-| 4 | `payment_us_usd` | `uint64` | `optional` | `` |  |
-| 5 | `payment_row_usd` | `uint64` | `optional` | `` |  |
+| 1 | `appid` | `uint32` | `optional` |  |  |
+| 2 | `gameitemid` | `uint32` | `optional` |  |  |
+| 3 | `date` | `string` | `optional` |  |  |
+| 4 | `payment_us_usd` | `uint64` | `optional` |  |  |
+| 5 | `payment_row_usd` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -1115,9 +1115,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `appid` | `uint32` | `optional` | `` |  |
-| 2 | `gameitemid` | `uint32` | `optional` | `` |  |
-| 3 | `date` | `string` | `optional` | `` |  |
+| 1 | `appid` | `uint32` | `optional` |  |  |
+| 2 | `gameitemid` | `uint32` | `optional` |  |  |
+| 3 | `date` | `string` | `optional` |  |  |
 
 </details>
 
@@ -1129,7 +1129,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `special_payments` | `.CWorkshop_GetSpecialPayments_Response.SpecialPayment` | `repeated` | `` |  |
+| 1 | `special_payments` | `.CWorkshop_GetSpecialPayments_Response.SpecialPayment` | `repeated` |  |  |
 
 </details>
 
@@ -1141,11 +1141,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `appid` | `uint32` | `optional` | `` |  |
-| 2 | `gameitemid` | `uint32` | `optional` | `` |  |
-| 3 | `date` | `string` | `optional` | `` |  |
-| 4 | `net_payment_us_usd` | `uint64` | `optional` | `` |  |
-| 5 | `net_payment_row_usd` | `uint64` | `optional` | `` |  |
+| 1 | `appid` | `uint32` | `optional` |  |  |
+| 2 | `gameitemid` | `uint32` | `optional` |  |  |
+| 3 | `date` | `string` | `optional` |  |  |
+| 4 | `net_payment_us_usd` | `uint64` | `optional` |  |  |
+| 5 | `net_payment_row_usd` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -1157,7 +1157,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `metric_data` | `.CMsgGCReportMetrics.MetricEntry` | `repeated` | `` |  |
+| 1 | `metric_data` | `.CMsgGCReportMetrics.MetricEntry` | `repeated` |  |  |
 
 </details>
 
@@ -1169,11 +1169,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `catalog` | `string` | `optional` | `` |  |
-| 2 | `operation` | `string` | `optional` | `` |  |
-| 3 | `timestamp` | `double` | `optional` | `` |  |
-| 10 | `dimensions` | `.CMsgGCReportMetrics.MetricEntry.Dimension` | `repeated` | `` |  |
-| 11 | `measurements` | `.CMsgGCReportMetrics.MetricEntry.Measurement` | `repeated` | `` |  |
+| 1 | `catalog` | `string` | `optional` |  |  |
+| 2 | `operation` | `string` | `optional` |  |  |
+| 3 | `timestamp` | `double` | `optional` |  |  |
+| 10 | `dimensions` | `.CMsgGCReportMetrics.MetricEntry.Dimension` | `repeated` |  |  |
+| 11 | `measurements` | `.CMsgGCReportMetrics.MetricEntry.Measurement` | `repeated` |  |  |
 
 </details>
 
@@ -1185,7 +1185,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `name` | `string` | `optional` | `` |  |
+| 1 | `name` | `string` | `optional` |  |  |
 | 2 | `value_string` | `string` | `oneof` | `value` |  |
 | 3 | `value_integer` | `int64` | `oneof` | `value` |  |
 | 4 | `value_boolean` | `bool` | `oneof` | `value` |  |
@@ -1200,7 +1200,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `name` | `string` | `optional` | `` |  |
+| 1 | `name` | `string` | `optional` |  |  |
 | 2 | `value_integer` | `int64` | `oneof` | `value` |  |
 | 3 | `value_float` | `double` | `oneof` | `value` |  |
 
@@ -1214,8 +1214,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `eresult` | `int32` | `optional` | `` | default = 2 |
-| 2 | `failed_entry_count` | `uint32` | `optional` | `` |  |
+| 1 | `eresult` | `int32` | `optional` |  | default = 2 |
+| 2 | `failed_entry_count` | `uint32` | `optional` |  |  |
 
 </details>
 

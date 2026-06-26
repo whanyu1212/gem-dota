@@ -26,8 +26,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `attribute_levels` | `.CMsgSurvivorsUserData.AttributeLevelsEntry` | `repeated` | `` |  |
-| 2 | `unlocked_difficulty` | `uint32` | `optional` | `` |  |
+| 1 | `attribute_levels` | `.CMsgSurvivorsUserData.AttributeLevelsEntry` | `repeated` |  |  |
+| 2 | `unlocked_difficulty` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -39,8 +39,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `key` | `int32` | `optional` | `` |  |
-| 2 | `value` | `uint32` | `optional` | `` |  |
+| 1 | `key` | `int32` | `optional` |  |  |
+| 2 | `value` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -52,13 +52,13 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `powerup_id` | `uint32` | `optional` | `` |  |
-| 2 | `level` | `uint32` | `optional` | `` |  |
-| 3 | `time_received` | `uint32` | `optional` | `` |  |
-| 4 | `time_held` | `uint32` | `optional` | `` |  |
-| 5 | `total_damage` | `uint64` | `optional` | `` |  |
-| 6 | `dps` | `uint32` | `optional` | `` |  |
-| 7 | `has_scepter` | `uint32` | `optional` | `` |  |
+| 1 | `powerup_id` | `uint32` | `optional` |  |  |
+| 2 | `level` | `uint32` | `optional` |  |  |
+| 3 | `time_received` | `uint32` | `optional` |  |  |
+| 4 | `time_held` | `uint32` | `optional` |  |  |
+| 5 | `total_damage` | `uint64` | `optional` |  |  |
+| 6 | `dps` | `uint32` | `optional` |  |  |
+| 7 | `has_scepter` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -70,13 +70,13 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `time_survived` | `uint32` | `optional` | `` |  |
-| 2 | `player_level` | `uint32` | `optional` | `` |  |
-| 3 | `game_result` | `uint32` | `optional` | `` |  |
-| 4 | `gold_earned` | `uint32` | `optional` | `` |  |
-| 5 | `powerups` | `.CMsgClientToGCSurvivorsPowerUpTelemetryData` | `repeated` | `` |  |
-| 6 | `difficulty` | `uint32` | `optional` | `` |  |
-| 7 | `metaprogression_level` | `uint32` | `optional` | `` |  |
+| 1 | `time_survived` | `uint32` | `optional` |  |  |
+| 2 | `player_level` | `uint32` | `optional` |  |  |
+| 3 | `game_result` | `uint32` | `optional` |  |  |
+| 4 | `gold_earned` | `uint32` | `optional` |  |  |
+| 5 | `powerups` | `.CMsgClientToGCSurvivorsPowerUpTelemetryData` | `repeated` |  |  |
+| 6 | `difficulty` | `uint32` | `optional` |  |  |
+| 7 | `metaprogression_level` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -88,7 +88,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCSurvivorsGameTelemetryDataResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCSurvivorsGameTelemetryDataResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 

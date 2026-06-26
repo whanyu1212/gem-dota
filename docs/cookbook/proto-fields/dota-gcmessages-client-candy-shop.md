@@ -31,8 +31,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `candy_type` | `uint32` | `optional` | `` |  |
-| 2 | `candy_count` | `uint32` | `optional` | `` |  |
+| 1 | `candy_type` | `uint32` | `optional` |  |  |
+| 2 | `candy_count` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -44,7 +44,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `candy_counts` | `.CMsgCandyShopCandyCount` | `repeated` | `` |  |
+| 1 | `candy_counts` | `.CMsgCandyShopCandyCount` | `repeated` |  |  |
 
 </details>
 
@@ -56,9 +56,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `recipe_id` | `uint32` | `optional` | `` |  |
-| 2 | `input` | `.CMsgCandyShopCandyQuantity` | `optional` | `` |  |
-| 3 | `output` | `.CMsgCandyShopCandyQuantity` | `optional` | `` |  |
+| 1 | `recipe_id` | `uint32` | `optional` |  |  |
+| 2 | `input` | `.CMsgCandyShopCandyQuantity` | `optional` |  |  |
+| 3 | `output` | `.CMsgCandyShopCandyQuantity` | `optional` |  |  |
 
 </details>
 
@@ -70,7 +70,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `item_def` | `uint32` | `optional` | `` |  |
+| 1 | `item_def` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -82,8 +82,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `event_id` | `.EEvent` | `optional` | `` | default = EVENT_ID_NONE |
-| 2 | `action_id` | `uint32` | `optional` | `` |  |
+| 1 | `event_id` | `.EEvent` | `optional` |  | default = EVENT_ID_NONE |
+| 2 | `action_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -95,8 +95,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `event_id` | `.EEvent` | `optional` | `` | default = EVENT_ID_NONE |
-| 2 | `points` | `uint32` | `optional` | `` |  |
+| 1 | `event_id` | `.EEvent` | `optional` |  | default = EVENT_ID_NONE |
+| 2 | `points` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -108,13 +108,13 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `reward_id` | `uint32` | `optional` | `` |  |
-| 2 | `reward_option_id` | `uint32` | `optional` | `` |  |
-| 3 | `price` | `.CMsgCandyShopCandyQuantity` | `optional` | `` |  |
-| 4 | `reward_type` | `.ECandyShopRewardType` | `optional` | `` | default = k_eCandyShopRewardType_None |
-| 5 | `item_data` | `.CMsgCandyShopRewardData_Item` | `optional` | `` |  |
-| 6 | `event_action_data` | `.CMsgCandyShopRewardData_EventAction` | `optional` | `` |  |
-| 7 | `event_points_data` | `.CMsgCandyShopRewardData_EventPoints` | `optional` | `` |  |
+| 1 | `reward_id` | `uint32` | `optional` |  |  |
+| 2 | `reward_option_id` | `uint32` | `optional` |  |  |
+| 3 | `price` | `.CMsgCandyShopCandyQuantity` | `optional` |  |  |
+| 4 | `reward_type` | `.ECandyShopRewardType` | `optional` |  | default = k_eCandyShopRewardType_None |
+| 5 | `item_data` | `.CMsgCandyShopRewardData_Item` | `optional` |  |  |
+| 6 | `event_action_data` | `.CMsgCandyShopRewardData_EventAction` | `optional` |  |  |
+| 7 | `event_points_data` | `.CMsgCandyShopRewardData_EventPoints` | `optional` |  |  |
 
 </details>
 
@@ -126,15 +126,15 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `inventory_max` | `uint32` | `optional` | `` |  |
-| 2 | `inventory` | `.CMsgCandyShopCandyQuantity` | `optional` | `` |  |
-| 3 | `exchange_recipe_max` | `uint32` | `optional` | `` |  |
-| 4 | `exchange_reset_timestamp` | `fixed32` | `optional` | `` |  |
-| 5 | `exchange_recipes` | `.CMsgCandyShopExchangeRecipe` | `repeated` | `` |  |
-| 6 | `active_reward_max` | `uint32` | `optional` | `` |  |
-| 7 | `active_rewards` | `.CMsgCandyShopReward` | `repeated` | `` |  |
-| 8 | `reroll_charges_max` | `uint32` | `optional` | `` |  |
-| 9 | `reroll_charges` | `uint32` | `optional` | `` |  |
+| 1 | `inventory_max` | `uint32` | `optional` |  |  |
+| 2 | `inventory` | `.CMsgCandyShopCandyQuantity` | `optional` |  |  |
+| 3 | `exchange_recipe_max` | `uint32` | `optional` |  |  |
+| 4 | `exchange_reset_timestamp` | `fixed32` | `optional` |  |  |
+| 5 | `exchange_recipes` | `.CMsgCandyShopExchangeRecipe` | `repeated` |  |  |
+| 6 | `active_reward_max` | `uint32` | `optional` |  |  |
+| 7 | `active_rewards` | `.CMsgCandyShopReward` | `repeated` |  |  |
+| 8 | `reroll_charges_max` | `uint32` | `optional` |  |  |
+| 9 | `reroll_charges` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -146,7 +146,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `candy_shop_id` | `uint32` | `optional` | `` |  |
+| 1 | `candy_shop_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -158,8 +158,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCCandyShopGetUserDataResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `user_data` | `.CMsgCandyShopUserData` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCCandyShopGetUserDataResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `user_data` | `.CMsgCandyShopUserData` | `optional` |  |  |
 
 </details>
 
@@ -171,8 +171,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `candy_shop_id` | `uint32` | `optional` | `` |  |
-| 2 | `user_data` | `.CMsgCandyShopUserData` | `optional` | `` |  |
+| 1 | `candy_shop_id` | `uint32` | `optional` |  |  |
+| 2 | `user_data` | `.CMsgCandyShopUserData` | `optional` |  |  |
 
 </details>
 
@@ -184,8 +184,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `candy_shop_id` | `uint32` | `optional` | `` |  |
-| 2 | `reward_id` | `uint64` | `optional` | `` |  |
+| 1 | `candy_shop_id` | `uint32` | `optional` |  |  |
+| 2 | `reward_id` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -197,7 +197,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCCandyShopPurchaseRewardResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCCandyShopPurchaseRewardResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -209,8 +209,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `candy_shop_id` | `uint32` | `optional` | `` |  |
-| 2 | `bag_count` | `uint32` | `optional` | `` |  |
+| 1 | `candy_shop_id` | `uint32` | `optional` |  |  |
+| 2 | `bag_count` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -222,7 +222,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCCandyShopOpenBagsResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCCandyShopOpenBagsResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -234,8 +234,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `candy_shop_id` | `uint32` | `optional` | `` |  |
-| 2 | `recipe_id` | `uint32` | `optional` | `` |  |
+| 1 | `candy_shop_id` | `uint32` | `optional` |  |  |
+| 2 | `recipe_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -247,7 +247,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCCandyShopDoExchangeResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCCandyShopDoExchangeResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -259,9 +259,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `candy_shop_id` | `uint32` | `optional` | `` |  |
-| 2 | `input` | `.CMsgCandyShopCandyQuantity` | `optional` | `` |  |
-| 3 | `output` | `.CMsgCandyShopCandyQuantity` | `optional` | `` |  |
+| 1 | `candy_shop_id` | `uint32` | `optional` |  |  |
+| 2 | `input` | `.CMsgCandyShopCandyQuantity` | `optional` |  |  |
+| 3 | `output` | `.CMsgCandyShopCandyQuantity` | `optional` |  |  |
 
 </details>
 
@@ -273,7 +273,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCCandyShopDoVariableExchangeResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCCandyShopDoVariableExchangeResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -285,7 +285,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `candy_shop_id` | `uint32` | `optional` | `` |  |
+| 1 | `candy_shop_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -297,7 +297,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCCandyShopRerollRewardsResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCCandyShopRerollRewardsResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -321,8 +321,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `candy_shop_id` | `uint32` | `optional` | `` |  |
-| 2 | `candy_quantity` | `.CMsgCandyShopCandyQuantity` | `optional` | `` |  |
+| 1 | `candy_shop_id` | `uint32` | `optional` |  |  |
+| 2 | `candy_quantity` | `.CMsgCandyShopCandyQuantity` | `optional` |  |  |
 
 </details>
 
@@ -334,7 +334,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CCandyShopDev.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CCandyShopDev.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -346,7 +346,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `candy_shop_id` | `uint32` | `optional` | `` |  |
+| 1 | `candy_shop_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -358,7 +358,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CCandyShopDev.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CCandyShopDev.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -370,8 +370,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `candy_shop_id` | `uint32` | `optional` | `` |  |
-| 2 | `quantity` | `uint32` | `optional` | `` |  |
+| 1 | `candy_shop_id` | `uint32` | `optional` |  |  |
+| 2 | `quantity` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -383,7 +383,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CCandyShopDev.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CCandyShopDev.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -395,7 +395,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `candy_shop_id` | `uint32` | `optional` | `` |  |
+| 1 | `candy_shop_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -407,7 +407,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CCandyShopDev.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CCandyShopDev.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -419,8 +419,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `candy_shop_id` | `uint32` | `optional` | `` |  |
-| 2 | `reroll_charges` | `uint32` | `optional` | `` |  |
+| 1 | `candy_shop_id` | `uint32` | `optional` |  |  |
+| 2 | `reroll_charges` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -432,7 +432,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CCandyShopDev.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CCandyShopDev.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -444,7 +444,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `candy_shop_id` | `uint32` | `optional` | `` |  |
+| 1 | `candy_shop_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -456,7 +456,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CCandyShopDev.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CCandyShopDev.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 

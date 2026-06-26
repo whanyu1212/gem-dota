@@ -97,8 +97,8 @@ Source: [src/gem/combat/log.py:134](https://github.com/whanyu1212/gem-dota/blob/
 | `stun_duration` | `float` | `0.0` |
 | `neutral_camp_type` | `int` | `0` |
 | `neutral_camp_team` | `int` | `0` |
-| `location_x` | `float | None` | `None` |
-| `location_y` | `float | None` | `None` |
-| `timestamp_s` | `float | None` | `None` |
-| `game_time_s` | `int | None` | `None` |
+| `location_x` | `float \| None` | `None` |
+| `location_y` | `float \| None` | `None` |
+| `timestamp_s` | `float \| None` | `None` |
+| `game_time_s` | `int \| None` | `None` |
 | `will_reincarnate` | `bool` | `False` |

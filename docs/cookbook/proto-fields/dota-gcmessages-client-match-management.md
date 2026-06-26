@@ -27,26 +27,26 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `key` | `string` | `optional` | `` |  |
-| 2 | `matchgroups` | `uint32` | `optional` | `` | default = 4294967295 |
-| 3 | `client_version` | `uint32` | `optional` | `` |  |
-| 4 | `game_modes` | `uint32` | `optional` | `` | default = 4294967295 |
-| 6 | `match_type` | `.MatchType` | `optional` | `` | default = MATCH_TYPE_CASUAL |
-| 7 | `matchlanguages` | `uint32` | `optional` | `` | default = 4294967295 |
-| 8 | `team_id` | `uint32` | `optional` | `` |  |
-| 10 | `game_language_enum` | `.MatchLanguages` | `optional` | `` | default = MATCH_LANGUAGE_INVALID |
-| 11 | `game_language_name` | `string` | `optional` | `` |  |
-| 12 | `ping_data` | `.CMsgClientPingData` | `optional` | `` |  |
-| 13 | `region_select_flags` | `uint32` | `optional` | `` |  |
-| 14 | `solo_queue` | `bool` | `optional` | `` |  |
-| 16 | `steam_clan_account_id` | `uint32` | `optional` | `` |  |
-| 17 | `is_challenge_match` | `bool` | `optional` | `` |  |
-| 18 | `lane_selection_flags` | `uint32` | `optional` | `` |  |
-| 19 | `high_priority_disabled` | `bool` | `optional` | `` |  |
-| 20 | `disable_experimental_gameplay` | `bool` | `optional` | `` |  |
-| 21 | `custom_game_difficulty_mask` | `uint32` | `optional` | `` |  |
-| 22 | `bot_difficulty_mask` | `uint32` | `optional` | `` |  |
-| 23 | `bot_script_index_mask` | `uint32` | `optional` | `` |  |
+| 1 | `key` | `string` | `optional` |  |  |
+| 2 | `matchgroups` | `uint32` | `optional` |  | default = 4294967295 |
+| 3 | `client_version` | `uint32` | `optional` |  |  |
+| 4 | `game_modes` | `uint32` | `optional` |  | default = 4294967295 |
+| 6 | `match_type` | `.MatchType` | `optional` |  | default = MATCH_TYPE_CASUAL |
+| 7 | `matchlanguages` | `uint32` | `optional` |  | default = 4294967295 |
+| 8 | `team_id` | `uint32` | `optional` |  |  |
+| 10 | `game_language_enum` | `.MatchLanguages` | `optional` |  | default = MATCH_LANGUAGE_INVALID |
+| 11 | `game_language_name` | `string` | `optional` |  |  |
+| 12 | `ping_data` | `.CMsgClientPingData` | `optional` |  |  |
+| 13 | `region_select_flags` | `uint32` | `optional` |  |  |
+| 14 | `solo_queue` | `bool` | `optional` |  |  |
+| 16 | `steam_clan_account_id` | `uint32` | `optional` |  |  |
+| 17 | `is_challenge_match` | `bool` | `optional` |  |  |
+| 18 | `lane_selection_flags` | `uint32` | `optional` |  |  |
+| 19 | `high_priority_disabled` | `bool` | `optional` |  |  |
+| 20 | `disable_experimental_gameplay` | `bool` | `optional` |  |  |
+| 21 | `custom_game_difficulty_mask` | `uint32` | `optional` |  |  |
+| 22 | `bot_difficulty_mask` | `uint32` | `optional` |  |  |
+| 23 | `bot_script_index_mask` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -58,12 +58,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `legacy_generic_eresult` | `uint32` | `optional` | `` | default = 2 |
-| 2 | `result` | `.EStartFindingMatchResult` | `optional` | `` | default = k_EStartFindingMatchResult_Invalid |
-| 3 | `error_token` | `string` | `optional` | `` |  |
-| 4 | `debug_message` | `string` | `optional` | `` |  |
-| 5 | `responsible_party_members` | `fixed64` | `repeated` | `` |  |
-| 6 | `result_metadata` | `uint32` | `optional` | `` |  |
+| 1 | `legacy_generic_eresult` | `uint32` | `optional` |  | default = 2 |
+| 2 | `result` | `.EStartFindingMatchResult` | `optional` |  | default = k_EStartFindingMatchResult_Invalid |
+| 3 | `error_token` | `string` | `optional` |  |  |
+| 4 | `debug_message` | `string` | `optional` |  |  |
+| 5 | `responsible_party_members` | `fixed64` | `repeated` |  |  |
+| 6 | `result_metadata` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -75,7 +75,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `accept_cooldown` | `bool` | `optional` | `` |  |
+| 1 | `accept_cooldown` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -87,11 +87,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `additional_slots` | `uint32` | `optional` | `` |  |
-| 2 | `match_type` | `.MatchType` | `optional` | `` | default = MATCH_TYPE_CASUAL |
-| 3 | `matchgroups` | `uint32` | `optional` | `` |  |
-| 4 | `client_version` | `uint32` | `optional` | `` |  |
-| 5 | `language` | `.MatchLanguages` | `optional` | `` | default = MATCH_LANGUAGE_INVALID |
+| 1 | `additional_slots` | `uint32` | `optional` |  |  |
+| 2 | `match_type` | `.MatchType` | `optional` |  | default = MATCH_TYPE_CASUAL |
+| 3 | `matchgroups` | `uint32` | `optional` |  |  |
+| 4 | `client_version` | `uint32` | `optional` |  |  |
+| 5 | `language` | `.MatchLanguages` | `optional` |  | default = MATCH_LANGUAGE_INVALID |
 
 </details>
 
@@ -103,9 +103,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `state` | `.DOTALobbyReadyState` | `optional` | `` | default = DOTALobbyReadyState_UNDECLARED |
-| 2 | `ready_up_key` | `fixed64` | `optional` | `` |  |
-| 3 | `hardware_specs` | `.CDOTAClientHardwareSpecs` | `optional` | `` |  |
+| 1 | `state` | `.DOTALobbyReadyState` | `optional` |  | default = DOTALobbyReadyState_UNDECLARED |
+| 2 | `ready_up_key` | `fixed64` | `optional` |  |  |
+| 3 | `hardware_specs` | `.CDOTAClientHardwareSpecs` | `optional` |  |  |
 
 </details>
 
@@ -117,12 +117,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `lobby_id` | `fixed64` | `optional` | `` |  |
-| 2 | `accepted_ids` | `uint32` | `repeated` | `` |  |
-| 3 | `declined_ids` | `uint32` | `repeated` | `` |  |
-| 4 | `accepted_indices` | `uint32` | `repeated` | `` |  |
-| 5 | `declined_indices` | `uint32` | `repeated` | `` |  |
-| 6 | `local_ready_state` | `.DOTALobbyReadyState` | `optional` | `` | default = DOTALobbyReadyState_UNDECLARED |
+| 1 | `lobby_id` | `fixed64` | `optional` |  |  |
+| 2 | `accepted_ids` | `uint32` | `repeated` |  |  |
+| 3 | `declined_ids` | `uint32` | `repeated` |  |  |
+| 4 | `accepted_indices` | `uint32` | `repeated` |  |  |
+| 5 | `declined_indices` | `uint32` | `repeated` |  |  |
+| 6 | `local_ready_state` | `.DOTALobbyReadyState` | `optional` |  | default = DOTALobbyReadyState_UNDECLARED |
 
 </details>
 
@@ -146,8 +146,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `version` | `int32` | `optional` | `` |  |
-| 2 | `data` | `bytes` | `optional` | `` |  |
+| 1 | `version` | `int32` | `optional` |  |  |
+| 2 | `data` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -159,49 +159,49 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `lobby_id` | `uint64` | `optional` | `` |  |
-| 2 | `game_name` | `string` | `optional` | `` |  |
-| 3 | `team_details` | `.CLobbyTeamDetails` | `repeated` | `` |  |
-| 4 | `server_region` | `uint32` | `optional` | `` |  |
-| 5 | `game_mode` | `uint32` | `optional` | `` |  |
-| 6 | `cm_pick` | `.DOTA_CM_PICK` | `optional` | `` | default = DOTA_CM_RANDOM |
-| 9 | `bot_difficulty_radiant` | `.DOTABotDifficulty` | `optional` | `` | default = BOT_DIFFICULTY_PASSIVE |
-| 10 | `allow_cheats` | `bool` | `optional` | `` |  |
-| 11 | `fill_with_bots` | `bool` | `optional` | `` |  |
-| 13 | `allow_spectating` | `bool` | `optional` | `` |  |
-| 15 | `pass_key` | `string` | `optional` | `` |  |
-| 16 | `leagueid` | `uint32` | `optional` | `` |  |
-| 17 | `penalty_level_radiant` | `uint32` | `optional` | `` |  |
-| 18 | `penalty_level_dire` | `uint32` | `optional` | `` |  |
-| 20 | `series_type` | `uint32` | `optional` | `` |  |
-| 21 | `radiant_series_wins` | `uint32` | `optional` | `` |  |
-| 22 | `dire_series_wins` | `uint32` | `optional` | `` |  |
-| 23 | `allchat` | `bool` | `optional` | `` | default = false |
-| 24 | `dota_tv_delay` | `.LobbyDotaTVDelay` | `optional` | `` | default = LobbyDotaTV_120 |
-| 25 | `lan` | `bool` | `optional` | `` |  |
-| 26 | `custom_game_mode` | `string` | `optional` | `` |  |
-| 27 | `custom_map_name` | `string` | `optional` | `` |  |
-| 28 | `custom_difficulty` | `uint32` | `optional` | `` |  |
-| 29 | `custom_game_id` | `uint64` | `optional` | `` |  |
-| 30 | `custom_min_players` | `uint32` | `optional` | `` |  |
-| 31 | `custom_max_players` | `uint32` | `optional` | `` |  |
-| 33 | `visibility` | `.DOTALobbyVisibility` | `optional` | `` | default = DOTALobbyVisibility_Public |
-| 34 | `custom_game_crc` | `fixed64` | `optional` | `` |  |
-| 37 | `custom_game_timestamp` | `fixed32` | `optional` | `` |  |
-| 38 | `previous_match_override` | `uint64` | `optional` | `` |  |
-| 42 | `pause_setting` | `.LobbyDotaPauseSetting` | `optional` | `` | default = LobbyDotaPauseSetting_Unlimited |
-| 43 | `bot_difficulty_dire` | `.DOTABotDifficulty` | `optional` | `` | default = BOT_DIFFICULTY_PASSIVE |
-| 44 | `bot_radiant` | `uint64` | `optional` | `` |  |
-| 45 | `bot_dire` | `uint64` | `optional` | `` |  |
-| 46 | `selection_priority_rules` | `.DOTASelectionPriorityRules` | `optional` | `` | default = k_DOTASelectionPriorityRules_Manual |
-| 47 | `custom_game_penalties` | `bool` | `optional` | `` |  |
-| 48 | `lan_host_ping_location` | `string` | `optional` | `` |  |
-| 49 | `league_node_id` | `uint32` | `optional` | `` |  |
-| 50 | `requested_hero_ids` | `int32` | `repeated` | `` |  |
-| 51 | `scenario_save` | `.CMsgLobbyScenarioSave` | `optional` | `` |  |
-| 52 | `ability_draft_specific_details` | `.CMsgPracticeLobbySetDetails.AbilityDraftSpecificDetails` | `optional` | `` |  |
-| 53 | `do_player_draft` | `bool` | `optional` | `` |  |
-| 54 | `requested_hero_teams` | `int32` | `repeated` | `` |  |
+| 1 | `lobby_id` | `uint64` | `optional` |  |  |
+| 2 | `game_name` | `string` | `optional` |  |  |
+| 3 | `team_details` | `.CLobbyTeamDetails` | `repeated` |  |  |
+| 4 | `server_region` | `uint32` | `optional` |  |  |
+| 5 | `game_mode` | `uint32` | `optional` |  |  |
+| 6 | `cm_pick` | `.DOTA_CM_PICK` | `optional` |  | default = DOTA_CM_RANDOM |
+| 9 | `bot_difficulty_radiant` | `.DOTABotDifficulty` | `optional` |  | default = BOT_DIFFICULTY_PASSIVE |
+| 10 | `allow_cheats` | `bool` | `optional` |  |  |
+| 11 | `fill_with_bots` | `bool` | `optional` |  |  |
+| 13 | `allow_spectating` | `bool` | `optional` |  |  |
+| 15 | `pass_key` | `string` | `optional` |  |  |
+| 16 | `leagueid` | `uint32` | `optional` |  |  |
+| 17 | `penalty_level_radiant` | `uint32` | `optional` |  |  |
+| 18 | `penalty_level_dire` | `uint32` | `optional` |  |  |
+| 20 | `series_type` | `uint32` | `optional` |  |  |
+| 21 | `radiant_series_wins` | `uint32` | `optional` |  |  |
+| 22 | `dire_series_wins` | `uint32` | `optional` |  |  |
+| 23 | `allchat` | `bool` | `optional` |  | default = false |
+| 24 | `dota_tv_delay` | `.LobbyDotaTVDelay` | `optional` |  | default = LobbyDotaTV_120 |
+| 25 | `lan` | `bool` | `optional` |  |  |
+| 26 | `custom_game_mode` | `string` | `optional` |  |  |
+| 27 | `custom_map_name` | `string` | `optional` |  |  |
+| 28 | `custom_difficulty` | `uint32` | `optional` |  |  |
+| 29 | `custom_game_id` | `uint64` | `optional` |  |  |
+| 30 | `custom_min_players` | `uint32` | `optional` |  |  |
+| 31 | `custom_max_players` | `uint32` | `optional` |  |  |
+| 33 | `visibility` | `.DOTALobbyVisibility` | `optional` |  | default = DOTALobbyVisibility_Public |
+| 34 | `custom_game_crc` | `fixed64` | `optional` |  |  |
+| 37 | `custom_game_timestamp` | `fixed32` | `optional` |  |  |
+| 38 | `previous_match_override` | `uint64` | `optional` |  |  |
+| 42 | `pause_setting` | `.LobbyDotaPauseSetting` | `optional` |  | default = LobbyDotaPauseSetting_Unlimited |
+| 43 | `bot_difficulty_dire` | `.DOTABotDifficulty` | `optional` |  | default = BOT_DIFFICULTY_PASSIVE |
+| 44 | `bot_radiant` | `uint64` | `optional` |  |  |
+| 45 | `bot_dire` | `uint64` | `optional` |  |  |
+| 46 | `selection_priority_rules` | `.DOTASelectionPriorityRules` | `optional` |  | default = k_DOTASelectionPriorityRules_Manual |
+| 47 | `custom_game_penalties` | `bool` | `optional` |  |  |
+| 48 | `lan_host_ping_location` | `string` | `optional` |  |  |
+| 49 | `league_node_id` | `uint32` | `optional` |  |  |
+| 50 | `requested_hero_ids` | `int32` | `repeated` |  |  |
+| 51 | `scenario_save` | `.CMsgLobbyScenarioSave` | `optional` |  |  |
+| 52 | `ability_draft_specific_details` | `.CMsgPracticeLobbySetDetails.AbilityDraftSpecificDetails` | `optional` |  |  |
+| 53 | `do_player_draft` | `bool` | `optional` |  |  |
+| 54 | `requested_hero_teams` | `int32` | `repeated` |  |  |
 
 </details>
 
@@ -213,7 +213,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `shuffle_draft_order` | `bool` | `optional` | `` |  |
+| 1 | `shuffle_draft_order` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -225,10 +225,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `search_key` | `string` | `optional` | `` |  |
-| 5 | `pass_key` | `string` | `optional` | `` |  |
-| 6 | `client_version` | `uint32` | `optional` | `` |  |
-| 7 | `lobby_details` | `.CMsgPracticeLobbySetDetails` | `optional` | `` |  |
+| 1 | `search_key` | `string` | `optional` |  |  |
+| 5 | `pass_key` | `string` | `optional` |  |  |
+| 6 | `client_version` | `uint32` | `optional` |  |  |
+| 7 | `lobby_details` | `.CMsgPracticeLobbySetDetails` | `optional` |  |  |
 
 </details>
 
@@ -240,9 +240,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `team` | `.DOTA_GC_TEAM` | `optional` | `` | default = DOTA_GC_TEAM_GOOD_GUYS |
-| 2 | `slot` | `uint32` | `optional` | `` |  |
-| 3 | `bot_difficulty` | `.DOTABotDifficulty` | `optional` | `` | default = BOT_DIFFICULTY_PASSIVE |
+| 1 | `team` | `.DOTA_GC_TEAM` | `optional` |  | default = DOTA_GC_TEAM_GOOD_GUYS |
+| 2 | `slot` | `uint32` | `optional` |  |  |
+| 3 | `bot_difficulty` | `.DOTABotDifficulty` | `optional` |  | default = BOT_DIFFICULTY_PASSIVE |
 
 </details>
 
@@ -254,7 +254,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `team` | `.DOTA_GC_TEAM` | `optional` | `` | default = DOTA_GC_TEAM_GOOD_GUYS |
+| 1 | `team` | `.DOTA_GC_TEAM` | `optional` |  | default = DOTA_GC_TEAM_GOOD_GUYS |
 
 </details>
 
@@ -266,10 +266,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `channel` | `uint32` | `optional` | `` |  |
-| 2 | `preferred_description` | `string` | `optional` | `` |  |
-| 3 | `preferred_country_code` | `string` | `optional` | `` |  |
-| 4 | `preferred_language_code` | `string` | `optional` | `` |  |
+| 1 | `channel` | `uint32` | `optional` |  |  |
+| 2 | `preferred_description` | `string` | `optional` |  |  |
+| 3 | `preferred_country_code` | `string` | `optional` |  |  |
+| 4 | `preferred_language_code` | `string` | `optional` |  |  |
 
 </details>
 
@@ -281,7 +281,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `channel` | `uint32` | `optional` | `` |  |
+| 1 | `channel` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -305,7 +305,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 3 | `account_id` | `uint32` | `optional` | `` |  |
+| 3 | `account_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -317,7 +317,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -341,7 +341,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 5 | `client_version` | `uint32` | `optional` | `` |  |
+| 5 | `client_version` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -353,7 +353,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `team_id` | `uint32` | `optional` | `` |  |
+| 1 | `team_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -365,9 +365,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 2 | `pass_key` | `string` | `optional` | `` |  |
-| 3 | `region` | `uint32` | `optional` | `` |  |
-| 4 | `game_mode` | `.DOTA_GameMode` | `optional` | `` | default = DOTA_GAMEMODE_NONE |
+| 2 | `pass_key` | `string` | `optional` |  |  |
+| 3 | `region` | `uint32` | `optional` |  |  |
+| 4 | `game_mode` | `.DOTA_GameMode` | `optional` |  | default = DOTA_GAMEMODE_NONE |
 
 </details>
 
@@ -379,22 +379,22 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `id` | `uint64` | `optional` | `` | (key_field) = true |
-| 5 | `members` | `.CMsgPracticeLobbyListResponseEntry.CLobbyMember` | `repeated` | `` |  |
-| 6 | `requires_pass_key` | `bool` | `optional` | `` |  |
-| 7 | `leader_account_id` | `uint32` | `optional` | `` |  |
-| 10 | `name` | `string` | `optional` | `` |  |
-| 11 | `custom_game_mode` | `string` | `optional` | `` |  |
-| 12 | `game_mode` | `.DOTA_GameMode` | `optional` | `` | default = DOTA_GAMEMODE_NONE |
-| 13 | `friend_present` | `bool` | `optional` | `` |  |
-| 14 | `players` | `uint32` | `optional` | `` |  |
-| 15 | `custom_map_name` | `string` | `optional` | `` |  |
-| 16 | `max_player_count` | `uint32` | `optional` | `` |  |
-| 17 | `server_region` | `uint32` | `optional` | `` |  |
-| 19 | `league_id` | `uint32` | `optional` | `` |  |
-| 20 | `lan_host_ping_location` | `string` | `optional` | `` |  |
-| 21 | `min_player_count` | `uint32` | `optional` | `` |  |
-| 22 | `penalties_enabled` | `bool` | `optional` | `` |  |
+| 1 | `id` | `uint64` | `optional` |  | (key_field) = true |
+| 5 | `members` | `.CMsgPracticeLobbyListResponseEntry.CLobbyMember` | `repeated` |  |  |
+| 6 | `requires_pass_key` | `bool` | `optional` |  |  |
+| 7 | `leader_account_id` | `uint32` | `optional` |  |  |
+| 10 | `name` | `string` | `optional` |  |  |
+| 11 | `custom_game_mode` | `string` | `optional` |  |  |
+| 12 | `game_mode` | `.DOTA_GameMode` | `optional` |  | default = DOTA_GAMEMODE_NONE |
+| 13 | `friend_present` | `bool` | `optional` |  |  |
+| 14 | `players` | `uint32` | `optional` |  |  |
+| 15 | `custom_map_name` | `string` | `optional` |  |  |
+| 16 | `max_player_count` | `uint32` | `optional` |  |  |
+| 17 | `server_region` | `uint32` | `optional` |  |  |
+| 19 | `league_id` | `uint32` | `optional` |  |  |
+| 20 | `lan_host_ping_location` | `string` | `optional` |  |  |
+| 21 | `min_player_count` | `uint32` | `optional` |  |  |
+| 22 | `penalties_enabled` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -406,8 +406,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `player_name` | `string` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `player_name` | `string` | `optional` |  |  |
 
 </details>
 
@@ -419,7 +419,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 2 | `lobbies` | `.CMsgPracticeLobbyListResponseEntry` | `repeated` | `` |  |
+| 2 | `lobbies` | `.CMsgPracticeLobbyListResponseEntry` | `repeated` |  |  |
 
 </details>
 
@@ -431,8 +431,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `server_region` | `uint32` | `optional` | `` | default = 0 |
-| 2 | `game_mode` | `.DOTA_GameMode` | `optional` | `` | default = DOTA_GAMEMODE_NONE |
+| 1 | `server_region` | `uint32` | `optional` |  | default = 0 |
+| 2 | `game_mode` | `.DOTA_GameMode` | `optional` |  | default = DOTA_GAMEMODE_NONE |
 
 </details>
 
@@ -444,7 +444,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `lobbies` | `.CMsgPracticeLobbyListResponseEntry` | `repeated` | `` |  |
+| 1 | `lobbies` | `.CMsgPracticeLobbyListResponseEntry` | `repeated` |  |  |
 
 </details>
 
@@ -456,11 +456,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `lobby_id` | `uint64` | `optional` | `` |  |
-| 2 | `client_version` | `uint32` | `optional` | `` |  |
-| 3 | `pass_key` | `string` | `optional` | `` |  |
-| 4 | `custom_game_crc` | `fixed64` | `optional` | `` |  |
-| 5 | `custom_game_timestamp` | `fixed32` | `optional` | `` |  |
+| 1 | `lobby_id` | `uint64` | `optional` |  |  |
+| 2 | `client_version` | `uint32` | `optional` |  |  |
+| 3 | `pass_key` | `string` | `optional` |  |  |
+| 4 | `custom_game_crc` | `fixed64` | `optional` |  |  |
+| 5 | `custom_game_timestamp` | `fixed32` | `optional` |  |  |
 
 </details>
 
@@ -472,7 +472,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.DOTAJoinLobbyResult` | `optional` | `` | default = DOTA_JOIN_RESULT_SUCCESS |
+| 1 | `result` | `.DOTAJoinLobbyResult` | `optional` |  | default = DOTA_JOIN_RESULT_SUCCESS |
 
 </details>
 
@@ -484,7 +484,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `friends` | `uint32` | `repeated` | `` |  |
+| 1 | `friends` | `uint32` | `repeated` |  |  |
 
 </details>
 
@@ -496,7 +496,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `lobbies` | `.CMsgPracticeLobbyListResponseEntry` | `repeated` | `` |  |
+| 1 | `lobbies` | `.CMsgPracticeLobbyListResponseEntry` | `repeated` |  |  |
 
 </details>
 
@@ -508,7 +508,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `server_region` | `uint32` | `optional` | `` |  |
+| 1 | `server_region` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -520,9 +520,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `custom_game_id` | `uint64` | `optional` | `` |  |
-| 2 | `lobby_count` | `uint32` | `optional` | `` |  |
-| 3 | `player_count` | `uint32` | `optional` | `` |  |
+| 1 | `custom_game_id` | `uint64` | `optional` |  |  |
+| 2 | `lobby_count` | `uint32` | `optional` |  |  |
+| 3 | `player_count` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -534,7 +534,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `game_modes` | `.CMsgJoinableCustomGameModesResponseEntry` | `repeated` | `` |  |
+| 1 | `game_modes` | `.CMsgJoinableCustomGameModesResponseEntry` | `repeated` |  |  |
 
 </details>
 
@@ -546,8 +546,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `server_region` | `uint32` | `optional` | `` |  |
-| 2 | `custom_game_id` | `uint64` | `optional` | `` |  |
+| 1 | `server_region` | `uint32` | `optional` |  |  |
+| 2 | `custom_game_id` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -559,22 +559,22 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `lobby_id` | `fixed64` | `optional` | `` |  |
-| 2 | `custom_game_id` | `uint64` | `optional` | `` |  |
-| 3 | `lobby_name` | `string` | `optional` | `` |  |
-| 4 | `member_count` | `uint32` | `optional` | `` |  |
-| 5 | `leader_account_id` | `uint32` | `optional` | `` |  |
-| 6 | `leader_name` | `string` | `optional` | `` |  |
-| 7 | `custom_map_name` | `string` | `optional` | `` |  |
-| 8 | `max_player_count` | `uint32` | `optional` | `` |  |
-| 9 | `server_region` | `uint32` | `optional` | `` |  |
-| 11 | `has_pass_key` | `bool` | `optional` | `` |  |
-| 12 | `lan_host_ping_location` | `string` | `optional` | `` |  |
-| 13 | `lobby_creation_time` | `uint32` | `optional` | `` |  |
-| 14 | `custom_game_timestamp` | `uint32` | `optional` | `` |  |
-| 15 | `custom_game_crc` | `uint64` | `optional` | `` |  |
-| 16 | `min_player_count` | `uint32` | `optional` | `` |  |
-| 17 | `penalties_enabled` | `bool` | `optional` | `` |  |
+| 1 | `lobby_id` | `fixed64` | `optional` |  |  |
+| 2 | `custom_game_id` | `uint64` | `optional` |  |  |
+| 3 | `lobby_name` | `string` | `optional` |  |  |
+| 4 | `member_count` | `uint32` | `optional` |  |  |
+| 5 | `leader_account_id` | `uint32` | `optional` |  |  |
+| 6 | `leader_name` | `string` | `optional` |  |  |
+| 7 | `custom_map_name` | `string` | `optional` |  |  |
+| 8 | `max_player_count` | `uint32` | `optional` |  |  |
+| 9 | `server_region` | `uint32` | `optional` |  |  |
+| 11 | `has_pass_key` | `bool` | `optional` |  |  |
+| 12 | `lan_host_ping_location` | `string` | `optional` |  |  |
+| 13 | `lobby_creation_time` | `uint32` | `optional` |  |  |
+| 14 | `custom_game_timestamp` | `uint32` | `optional` |  |  |
+| 15 | `custom_game_crc` | `uint64` | `optional` |  |  |
+| 16 | `min_player_count` | `uint32` | `optional` |  |  |
+| 17 | `penalties_enabled` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -586,7 +586,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `lobbies` | `.CMsgJoinableCustomLobbiesResponseEntry` | `repeated` | `` |  |
+| 1 | `lobbies` | `.CMsgJoinableCustomLobbiesResponseEntry` | `repeated` |  |  |
 
 </details>
 
@@ -598,13 +598,13 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `legacy_server_region` | `uint32` | `optional` | `` |  |
-| 2 | `custom_game_id` | `uint64` | `optional` | `` |  |
-| 3 | `client_version` | `uint32` | `optional` | `` |  |
-| 4 | `create_lobby_details` | `.CMsgPracticeLobbySetDetails` | `optional` | `` |  |
-| 5 | `allow_any_map` | `bool` | `optional` | `` |  |
-| 6 | `legacy_region_pings` | `.CMsgQuickJoinCustomLobby.LegacyRegionPing` | `repeated` | `` |  |
-| 7 | `ping_data` | `.CMsgClientPingData` | `optional` | `` |  |
+| 1 | `legacy_server_region` | `uint32` | `optional` |  |  |
+| 2 | `custom_game_id` | `uint64` | `optional` |  |  |
+| 3 | `client_version` | `uint32` | `optional` |  |  |
+| 4 | `create_lobby_details` | `.CMsgPracticeLobbySetDetails` | `optional` |  |  |
+| 5 | `allow_any_map` | `bool` | `optional` |  |  |
+| 6 | `legacy_region_pings` | `.CMsgQuickJoinCustomLobby.LegacyRegionPing` | `repeated` |  |  |
+| 7 | `ping_data` | `.CMsgClientPingData` | `optional` |  |  |
 
 </details>
 
@@ -616,9 +616,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `server_region` | `uint32` | `optional` | `` |  |
-| 2 | `ping` | `uint32` | `optional` | `` |  |
-| 3 | `region_code` | `fixed32` | `optional` | `` |  |
+| 1 | `server_region` | `uint32` | `optional` |  |  |
+| 2 | `ping` | `uint32` | `optional` |  |  |
+| 3 | `region_code` | `fixed32` | `optional` |  |  |
 
 </details>
 
@@ -630,7 +630,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.DOTAJoinLobbyResult` | `optional` | `` | default = DOTA_JOIN_RESULT_SUCCESS |
+| 1 | `result` | `.DOTAJoinLobbyResult` | `optional` |  | default = DOTA_JOIN_RESULT_SUCCESS |
 
 </details>
 
@@ -642,12 +642,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `search_key` | `string` | `optional` | `` |  |
-| 2 | `client_version` | `uint32` | `optional` | `` |  |
-| 3 | `difficulty_radiant` | `.DOTABotDifficulty` | `optional` | `` | default = BOT_DIFFICULTY_PASSIVE |
-| 4 | `team` | `.DOTA_GC_TEAM` | `optional` | `` | default = DOTA_GC_TEAM_GOOD_GUYS |
-| 5 | `game_mode` | `uint32` | `optional` | `` |  |
-| 6 | `difficulty_dire` | `.DOTABotDifficulty` | `optional` | `` | default = BOT_DIFFICULTY_PASSIVE |
+| 1 | `search_key` | `string` | `optional` |  |  |
+| 2 | `client_version` | `uint32` | `optional` |  |  |
+| 3 | `difficulty_radiant` | `.DOTABotDifficulty` | `optional` |  | default = BOT_DIFFICULTY_PASSIVE |
+| 4 | `team` | `.DOTA_GC_TEAM` | `optional` |  | default = DOTA_GC_TEAM_GOOD_GUYS |
+| 5 | `game_mode` | `uint32` | `optional` |  |  |
+| 6 | `difficulty_dire` | `.DOTABotDifficulty` | `optional` |  | default = BOT_DIFFICULTY_PASSIVE |
 
 </details>
 
@@ -659,7 +659,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `wants_coach` | `bool` | `optional` | `` |  |
+| 1 | `wants_coach` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -671,7 +671,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `new_leader_steamid` | `fixed64` | `optional` | `` |  |
+| 1 | `new_leader_steamid` | `fixed64` | `optional` |  |  |
 
 </details>
 
@@ -683,8 +683,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `invited_steamids` | `fixed64` | `repeated` | `` |  |
-| 2 | `invited_groupids` | `fixed64` | `repeated` | `` |  |
+| 1 | `invited_steamids` | `fixed64` | `repeated` |  |  |
+| 2 | `invited_groupids` | `fixed64` | `repeated` |  |  |
 
 </details>
 
@@ -696,7 +696,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `open` | `bool` | `optional` | `` |  |
+| 1 | `open` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -708,7 +708,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `other_group_id` | `fixed64` | `optional` | `` |  |
+| 1 | `other_group_id` | `fixed64` | `optional` |  |  |
 
 </details>
 
@@ -720,8 +720,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `initiator_group_id` | `fixed64` | `optional` | `` |  |
-| 2 | `accept` | `bool` | `optional` | `` |  |
+| 1 | `initiator_group_id` | `fixed64` | `optional` |  |  |
+| 2 | `accept` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -733,7 +733,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.EDOTAGroupMergeResult` | `optional` | `` | default = k_EDOTAGroupMergeResult_OK |
+| 1 | `result` | `.EDOTAGroupMergeResult` | `optional` |  | default = k_EDOTAGroupMergeResult_OK |
 
 </details>
 
@@ -745,16 +745,16 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `language` | `uint32` | `optional` | `` |  |
-| 2 | `match_id` | `uint64` | `optional` | `` |  |
-| 3 | `server_steam_id` | `fixed64` | `optional` | `` |  |
-| 4 | `stream_url` | `string` | `optional` | `` |  |
-| 5 | `stream_name` | `string` | `optional` | `` |  |
-| 6 | `league_id` | `uint32` | `optional` | `` |  |
-| 7 | `series_type` | `uint32` | `optional` | `` |  |
-| 8 | `series_game` | `uint32` | `optional` | `` |  |
-| 9 | `radiant_team` | `.CMsgSpectatorLobbyGameDetails.Team` | `optional` | `` |  |
-| 10 | `dire_team` | `.CMsgSpectatorLobbyGameDetails.Team` | `optional` | `` |  |
+| 1 | `language` | `uint32` | `optional` |  |  |
+| 2 | `match_id` | `uint64` | `optional` |  |  |
+| 3 | `server_steam_id` | `fixed64` | `optional` |  |  |
+| 4 | `stream_url` | `string` | `optional` |  |  |
+| 5 | `stream_name` | `string` | `optional` |  |  |
+| 6 | `league_id` | `uint32` | `optional` |  |  |
+| 7 | `series_type` | `uint32` | `optional` |  |  |
+| 8 | `series_game` | `uint32` | `optional` |  |  |
+| 9 | `radiant_team` | `.CMsgSpectatorLobbyGameDetails.Team` | `optional` |  |  |
+| 10 | `dire_team` | `.CMsgSpectatorLobbyGameDetails.Team` | `optional` |  |  |
 
 </details>
 
@@ -766,9 +766,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `team_id` | `uint32` | `optional` | `` |  |
-| 2 | `team_name` | `string` | `optional` | `` |  |
-| 3 | `team_logo` | `fixed64` | `optional` | `` |  |
+| 1 | `team_id` | `uint32` | `optional` |  |  |
+| 2 | `team_name` | `string` | `optional` |  |  |
+| 3 | `team_logo` | `fixed64` | `optional` |  |  |
 
 </details>
 
@@ -780,10 +780,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `lobby_id` | `uint64` | `optional` | `` |  |
-| 2 | `lobby_name` | `string` | `optional` | `` |  |
-| 3 | `pass_key` | `string` | `optional` | `` |  |
-| 4 | `game_details` | `.CMsgSpectatorLobbyGameDetails` | `optional` | `` |  |
+| 1 | `lobby_id` | `uint64` | `optional` |  |  |
+| 2 | `lobby_name` | `string` | `optional` |  |  |
+| 3 | `pass_key` | `string` | `optional` |  |  |
+| 4 | `game_details` | `.CMsgSpectatorLobbyGameDetails` | `optional` |  |  |
 
 </details>
 
@@ -795,8 +795,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `client_version` | `uint32` | `optional` | `` |  |
-| 2 | `details` | `.CMsgSetSpectatorLobbyDetails` | `optional` | `` |  |
+| 1 | `client_version` | `uint32` | `optional` |  |  |
+| 2 | `details` | `.CMsgSetSpectatorLobbyDetails` | `optional` |  |  |
 
 </details>
 
@@ -820,7 +820,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `lobbies` | `.CMsgSpectatorLobbyListResponse.SpectatorLobby` | `repeated` | `` |  |
+| 1 | `lobbies` | `.CMsgSpectatorLobbyListResponse.SpectatorLobby` | `repeated` |  |  |
 
 </details>
 
@@ -832,12 +832,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `lobby_id` | `uint64` | `optional` | `` |  |
-| 2 | `game_name` | `string` | `optional` | `` |  |
-| 3 | `requires_pass_key` | `bool` | `optional` | `` |  |
-| 4 | `leader_account_id` | `uint32` | `optional` | `` |  |
-| 5 | `member_count` | `uint32` | `optional` | `` |  |
-| 7 | `game_details` | `.CMsgSpectatorLobbyGameDetails` | `optional` | `` |  |
+| 1 | `lobby_id` | `uint64` | `optional` |  |  |
+| 2 | `game_name` | `string` | `optional` |  |  |
+| 3 | `requires_pass_key` | `bool` | `optional` |  |  |
+| 4 | `leader_account_id` | `uint32` | `optional` |  |  |
+| 5 | `member_count` | `uint32` | `optional` |  |  |
+| 7 | `game_details` | `.CMsgSpectatorLobbyGameDetails` | `optional` |  |  |
 
 </details>
 
@@ -849,7 +849,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `server_steam_id` | `fixed64` | `optional` | `` |  |
+| 1 | `server_steam_id` | `fixed64` | `optional` |  |  |
 
 </details>
 
@@ -861,8 +861,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `serialized_ticket` | `bytes` | `optional` | `` |  |
-| 2 | `message` | `string` | `optional` | `` |  |
+| 1 | `serialized_ticket` | `bytes` | `optional` |  |  |
+| 2 | `message` | `string` | `optional` |  |  |
 
 </details>
 
@@ -874,15 +874,15 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `legacy_time_expiry` | `fixed32` | `optional` | `` |  |
-| 2 | `legacy_authorized_steam_id` | `fixed64` | `optional` | `` |  |
-| 3 | `legacy_authorized_public_ip` | `fixed32` | `optional` | `` |  |
-| 4 | `legacy_gameserver_steam_id` | `fixed64` | `optional` | `` |  |
-| 5 | `legacy_gameserver_net_id` | `fixed64` | `optional` | `` |  |
-| 6 | `legacy_signature` | `bytes` | `optional` | `` |  |
-| 7 | `legacy_app_id` | `uint32` | `optional` | `` |  |
-| 8 | `legacy_extra_fields` | `bytes` | `repeated` | `` |  |
-| 16 | `serialized_ticket` | `bytes` | `optional` | `` |  |
+| 1 | `legacy_time_expiry` | `fixed32` | `optional` |  |  |
+| 2 | `legacy_authorized_steam_id` | `fixed64` | `optional` |  |  |
+| 3 | `legacy_authorized_public_ip` | `fixed32` | `optional` |  |  |
+| 4 | `legacy_gameserver_steam_id` | `fixed64` | `optional` |  |  |
+| 5 | `legacy_gameserver_net_id` | `fixed64` | `optional` |  |  |
+| 6 | `legacy_signature` | `bytes` | `optional` |  |  |
+| 7 | `legacy_app_id` | `uint32` | `optional` |  |  |
+| 8 | `legacy_extra_fields` | `bytes` | `repeated` |  |  |
+| 16 | `serialized_ticket` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -906,8 +906,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `lane_selection_flags` | `uint32` | `optional` | `` |  |
-| 2 | `high_priority_disabled` | `bool` | `optional` | `` |  |
+| 1 | `lane_selection_flags` | `uint32` | `optional` |  |  |
+| 2 | `high_priority_disabled` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -931,8 +931,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `lane_selection_flags` | `uint32` | `optional` | `` |  |
-| 2 | `high_priority_disabled` | `bool` | `optional` | `` |  |
+| 1 | `lane_selection_flags` | `uint32` | `optional` |  |  |
+| 2 | `high_priority_disabled` | `bool` | `optional` |  |  |
 
 </details>
 

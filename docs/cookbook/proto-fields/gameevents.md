@@ -23,8 +23,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `clientid` | `int32` | `optional` | `` |  |
-| 2 | `gamesessionid` | `string` | `optional` | `` |  |
+| 1 | `clientid` | `int32` | `optional` |  |  |
+| 2 | `gamesessionid` | `string` | `optional` |  |  |
 
 </details>
 
@@ -36,20 +36,20 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `position` | `.CMsgVector` | `optional` | `` |  |
-| 2 | `normal` | `.CMsgVector` | `optional` | `` |  |
-| 3 | `saxis` | `.CMsgVector` | `optional` | `` |  |
-| 4 | `boneindex` | `int32` | `optional` | `` |  |
-| 5 | `flags` | `uint32` | `optional` | `` |  |
-| 6 | `color` | `fixed32` | `optional` | `` |  |
-| 7 | `random_seed` | `int32` | `optional` | `` |  |
-| 8 | `decal_group_name` | `uint32` | `optional` | `` |  |
-| 9 | `size_override` | `float` | `optional` | `` |  |
-| 10 | `entityhandle` | `uint32` | `optional` | `` | default = 16777215 |
-| 11 | `material_id` | `uint64` | `optional` | `` |  |
-| 12 | `sequence_name` | `uint32` | `optional` | `` |  |
-| 13 | `triangleindex` | `int32` | `optional` | `` |  |
-| 14 | `position_objectspace` | `.CMsgVector` | `optional` | `` |  |
+| 1 | `position` | `.CMsgVector` | `optional` |  |  |
+| 2 | `normal` | `.CMsgVector` | `optional` |  |  |
+| 3 | `saxis` | `.CMsgVector` | `optional` |  |  |
+| 4 | `boneindex` | `int32` | `optional` |  |  |
+| 5 | `flags` | `uint32` | `optional` |  |  |
+| 6 | `color` | `fixed32` | `optional` |  |  |
+| 7 | `random_seed` | `int32` | `optional` |  |  |
+| 8 | `decal_group_name` | `uint32` | `optional` |  |  |
+| 9 | `size_override` | `float` | `optional` |  |  |
+| 10 | `entityhandle` | `uint32` | `optional` |  | default = 16777215 |
+| 11 | `material_id` | `uint64` | `optional` |  |  |
+| 12 | `sequence_name` | `uint32` | `optional` |  |  |
+| 13 | `triangleindex` | `int32` | `optional` |  |  |
+| 14 | `position_objectspace` | `.CMsgVector` | `optional` |  |  |
 
 </details>
 
@@ -61,7 +61,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `flagstoclear` | `uint32` | `optional` | `` |  |
+| 1 | `flagstoclear` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -73,7 +73,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `flagstoclear` | `uint32` | `optional` | `` |  |
+| 1 | `flagstoclear` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -85,8 +85,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `flagstoclear` | `uint32` | `optional` | `` |  |
-| 2 | `entityhandle` | `uint32` | `optional` | `` | default = 16777215 |
+| 1 | `flagstoclear` | `uint32` | `optional` |  |  |
+| 2 | `entityhandle` | `uint32` | `optional` |  | default = 16777215 |
 
 </details>
 
@@ -98,7 +98,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `descriptors` | `.CMsgSource1LegacyGameEventList.descriptor_t` | `repeated` | `` |  |
+| 1 | `descriptors` | `.CMsgSource1LegacyGameEventList.descriptor_t` | `repeated` |  |  |
 
 </details>
 
@@ -110,8 +110,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `type` | `int32` | `optional` | `` |  |
-| 2 | `name` | `string` | `optional` | `` |  |
+| 1 | `type` | `int32` | `optional` |  |  |
+| 2 | `name` | `string` | `optional` |  |  |
 
 </details>
 
@@ -123,9 +123,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `eventid` | `int32` | `optional` | `` |  |
-| 2 | `name` | `string` | `optional` | `` |  |
-| 3 | `keys` | `.CMsgSource1LegacyGameEventList.key_t` | `repeated` | `` |  |
+| 1 | `eventid` | `int32` | `optional` |  |  |
+| 2 | `name` | `string` | `optional` |  |  |
+| 3 | `keys` | `.CMsgSource1LegacyGameEventList.key_t` | `repeated` |  |  |
 
 </details>
 
@@ -137,8 +137,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `playerslot` | `int32` | `optional` | `` |  |
-| 2 | `eventarraybits` | `uint32` | `repeated` | `` |  |
+| 1 | `playerslot` | `int32` | `optional` |  |  |
+| 2 | `eventarraybits` | `uint32` | `repeated` |  |  |
 
 </details>
 
@@ -150,11 +150,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `event_name` | `string` | `optional` | `` |  |
-| 2 | `eventid` | `int32` | `optional` | `` |  |
-| 3 | `keys` | `.CMsgSource1LegacyGameEvent.key_t` | `repeated` | `` |  |
-| 4 | `server_tick` | `int32` | `optional` | `` |  |
-| 5 | `passthrough` | `int32` | `optional` | `` |  |
+| 1 | `event_name` | `string` | `optional` |  |  |
+| 2 | `eventid` | `int32` | `optional` |  |  |
+| 3 | `keys` | `.CMsgSource1LegacyGameEvent.key_t` | `repeated` |  |  |
+| 4 | `server_tick` | `int32` | `optional` |  |  |
+| 5 | `passthrough` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -166,14 +166,14 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `type` | `int32` | `optional` | `` |  |
-| 2 | `val_string` | `string` | `optional` | `` |  |
-| 3 | `val_float` | `float` | `optional` | `` |  |
-| 4 | `val_long` | `int32` | `optional` | `` |  |
-| 5 | `val_short` | `int32` | `optional` | `` |  |
-| 6 | `val_byte` | `int32` | `optional` | `` |  |
-| 7 | `val_bool` | `bool` | `optional` | `` |  |
-| 8 | `val_uint64` | `uint64` | `optional` | `` |  |
+| 1 | `type` | `int32` | `optional` |  |  |
+| 2 | `val_string` | `string` | `optional` |  |  |
+| 3 | `val_float` | `float` | `optional` |  |  |
+| 4 | `val_long` | `int32` | `optional` |  |  |
+| 5 | `val_short` | `int32` | `optional` |  |  |
+| 6 | `val_byte` | `int32` | `optional` |  |  |
+| 7 | `val_bool` | `bool` | `optional` |  |  |
+| 8 | `val_uint64` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -185,12 +185,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `soundevent_guid` | `int32` | `optional` | `` |  |
-| 2 | `soundevent_hash` | `fixed32` | `optional` | `` |  |
-| 3 | `source_entity_index` | `int32` | `optional` | `` | default = -1 |
-| 4 | `seed` | `int32` | `optional` | `` |  |
-| 5 | `packed_params` | `bytes` | `optional` | `` |  |
-| 6 | `start_time` | `float` | `optional` | `` |  |
+| 1 | `soundevent_guid` | `int32` | `optional` |  |  |
+| 2 | `soundevent_hash` | `fixed32` | `optional` |  |  |
+| 3 | `source_entity_index` | `int32` | `optional` |  | default = -1 |
+| 4 | `seed` | `int32` | `optional` |  |  |
+| 5 | `packed_params` | `bytes` | `optional` |  |  |
+| 6 | `start_time` | `float` | `optional` |  |  |
 
 </details>
 
@@ -202,7 +202,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `soundevent_guid` | `int32` | `optional` | `` |  |
+| 1 | `soundevent_guid` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -214,8 +214,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `soundevent_hash` | `fixed32` | `optional` | `` |  |
-| 2 | `source_entity_index` | `int32` | `optional` | `` | default = -1 |
+| 1 | `soundevent_hash` | `fixed32` | `optional` |  |  |
+| 2 | `source_entity_index` | `int32` | `optional` |  | default = -1 |
 
 </details>
 
@@ -227,8 +227,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `soundevent_guid` | `int32` | `optional` | `` |  |
-| 5 | `packed_params` | `bytes` | `optional` | `` |  |
+| 1 | `soundevent_guid` | `int32` | `optional` |  |  |
+| 5 | `packed_params` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -240,8 +240,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `stack_hash` | `fixed32` | `optional` | `` |  |
-| 5 | `packed_fields` | `bytes` | `optional` | `` |  |
+| 1 | `stack_hash` | `fixed32` | `optional` |  |  |
+| 5 | `packed_fields` | `bytes` | `optional` |  |  |
 
 </details>
 
@@ -253,12 +253,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `source_entity_index` | `int32` | `optional` | `` | default = -1 |
-| 2 | `vertex_set_hash` | `int32` | `optional` | `` |  |
-| 3 | `intensity` | `float` | `optional` | `` |  |
-| 4 | `length` | `float` | `optional` | `` |  |
-| 5 | `speed_in` | `float` | `optional` | `` |  |
-| 6 | `speed_out` | `float` | `optional` | `` |  |
+| 1 | `source_entity_index` | `int32` | `optional` |  | default = -1 |
+| 2 | `vertex_set_hash` | `int32` | `optional` |  |  |
+| 3 | `intensity` | `float` | `optional` |  |  |
+| 4 | `length` | `float` | `optional` |  |  |
+| 5 | `speed_in` | `float` | `optional` |  |  |
+| 6 | `speed_out` | `float` | `optional` |  |  |
 
 </details>
 
@@ -270,12 +270,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `source_entity_index` | `int32` | `optional` | `` | default = -1 |
-| 2 | `effect_name_hash` | `int32` | `optional` | `` |  |
-| 3 | `operation` | `int32` | `optional` | `` |  |
-| 4 | `flags` | `int32` | `optional` | `` |  |
-| 5 | `tags` | `string` | `optional` | `` |  |
-| 6 | `pte` | `.CMsgVector` | `optional` | `` |  |
+| 1 | `source_entity_index` | `int32` | `optional` |  | default = -1 |
+| 2 | `effect_name_hash` | `int32` | `optional` |  |  |
+| 3 | `operation` | `int32` | `optional` |  |  |
+| 4 | `flags` | `int32` | `optional` |  |  |
+| 5 | `tags` | `string` | `optional` |  |  |
+| 6 | `pte` | `.CMsgVector` | `optional` |  |  |
 
 </details>
 

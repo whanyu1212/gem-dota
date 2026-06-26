@@ -23,12 +23,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `contract_id` | `uint64` | `optional` | `` |  |
-| 2 | `challenge_instance_id` | `uint32` | `optional` | `` |  |
-| 3 | `challenge_parameter` | `uint32` | `optional` | `` |  |
-| 4 | `challenge_timestamp` | `uint32` | `optional` | `` |  |
-| 5 | `assigned_account_id` | `uint32` | `optional` | `` |  |
-| 6 | `contract_flags` | `uint32` | `optional` | `` |  |
+| 1 | `contract_id` | `uint64` | `optional` |  |  |
+| 2 | `challenge_instance_id` | `uint32` | `optional` |  |  |
+| 3 | `challenge_parameter` | `uint32` | `optional` |  |  |
+| 4 | `challenge_timestamp` | `uint32` | `optional` |  |  |
+| 5 | `assigned_account_id` | `uint32` | `optional` |  |  |
+| 6 | `contract_flags` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -40,7 +40,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `contract` | `.CMsgGuildContract` | `optional` | `` |  |
+| 1 | `contract` | `.CMsgGuildContract` | `optional` |  |  |
 
 </details>
 
@@ -52,15 +52,15 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_points` | `uint32` | `optional` | `` |  |
-| 2 | `contracts_refreshed_timestamp` | `uint32` | `optional` | `` |  |
-| 3 | `contract_slots` | `.CMsgGuildContractSlot` | `repeated` | `` |  |
-| 4 | `completed_challenge_count` | `uint32` | `optional` | `` |  |
-| 5 | `challenges_refresh_timestamp` | `uint32` | `optional` | `` |  |
-| 6 | `guild_weekly_percentile` | `uint32` | `optional` | `` |  |
-| 7 | `guild_weekly_last_timestamp` | `uint32` | `optional` | `` |  |
-| 8 | `last_weekly_claim_time` | `uint32` | `optional` | `` |  |
-| 9 | `guild_current_percentile` | `uint32` | `optional` | `` |  |
+| 1 | `guild_points` | `uint32` | `optional` |  |  |
+| 2 | `contracts_refreshed_timestamp` | `uint32` | `optional` |  |  |
+| 3 | `contract_slots` | `.CMsgGuildContractSlot` | `repeated` |  |  |
+| 4 | `completed_challenge_count` | `uint32` | `optional` |  |  |
+| 5 | `challenges_refresh_timestamp` | `uint32` | `optional` |  |  |
+| 6 | `guild_weekly_percentile` | `uint32` | `optional` |  |  |
+| 7 | `guild_weekly_last_timestamp` | `uint32` | `optional` |  |  |
+| 8 | `last_weekly_claim_time` | `uint32` | `optional` |  |  |
+| 9 | `guild_current_percentile` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -72,8 +72,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `contracts_refreshed_timestamp` | `uint32` | `optional` | `` |  |
-| 2 | `contracts` | `.CMsgGuildContract` | `repeated` | `` |  |
+| 1 | `contracts_refreshed_timestamp` | `uint32` | `optional` |  |  |
+| 2 | `contracts` | `.CMsgGuildContract` | `repeated` |  |  |
 
 </details>
 
@@ -85,11 +85,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `challenge_instance_id` | `uint32` | `optional` | `` |  |
-| 2 | `challenge_parameter` | `uint32` | `optional` | `` |  |
-| 3 | `challenge_timestamp` | `uint32` | `optional` | `` |  |
-| 4 | `challenge_progress` | `uint32` | `optional` | `` |  |
-| 5 | `challenge_flags` | `uint32` | `optional` | `` |  |
+| 1 | `challenge_instance_id` | `uint32` | `optional` |  |  |
+| 2 | `challenge_parameter` | `uint32` | `optional` |  |  |
+| 3 | `challenge_timestamp` | `uint32` | `optional` |  |  |
+| 4 | `challenge_progress` | `uint32` | `optional` |  |  |
+| 5 | `challenge_flags` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -101,8 +101,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `guild_points_earned` | `uint32` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `guild_points_earned` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -114,8 +114,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
-| 2 | `event_id` | `.EEvent` | `optional` | `` | default = EVENT_ID_NONE |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
+| 2 | `event_id` | `.EEvent` | `optional` |  | default = EVENT_ID_NONE |
 
 </details>
 
@@ -127,9 +127,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCRequestAccountGuildEventDataResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `event_id` | `.EEvent` | `optional` | `` | default = EVENT_ID_NONE |
-| 3 | `event_data` | `.CMsgAccountGuildEventData` | `optional` | `` |  |
+| 1 | `result` | `.CMsgClientToGCRequestAccountGuildEventDataResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `event_id` | `.EEvent` | `optional` |  | default = EVENT_ID_NONE |
+| 3 | `event_data` | `.CMsgAccountGuildEventData` | `optional` |  |  |
 
 </details>
 
@@ -141,11 +141,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
-| 2 | `event_id` | `.EEvent` | `optional` | `` | default = EVENT_ID_NONE |
-| 3 | `update_flags` | `uint32` | `optional` | `` |  |
-| 4 | `guild_event_data` | `.CMsgAccountGuildEventData` | `optional` | `` |  |
-| 5 | `contracts_updated` | `bool` | `optional` | `` |  |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
+| 2 | `event_id` | `.EEvent` | `optional` |  | default = EVENT_ID_NONE |
+| 3 | `update_flags` | `uint32` | `optional` |  |  |
+| 4 | `guild_event_data` | `.CMsgAccountGuildEventData` | `optional` |  |  |
+| 5 | `contracts_updated` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -157,8 +157,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
-| 2 | `event_id` | `.EEvent` | `optional` | `` | default = EVENT_ID_NONE |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
+| 2 | `event_id` | `.EEvent` | `optional` |  | default = EVENT_ID_NONE |
 
 </details>
 
@@ -170,9 +170,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCRequestActiveGuildContractsResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `active_contracts` | `.CMsgGuildActiveContracts` | `optional` | `` |  |
-| 3 | `active_challenges` | `.CMsgGuildChallenge` | `optional` | `` |  |
+| 1 | `result` | `.CMsgClientToGCRequestActiveGuildContractsResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `active_contracts` | `.CMsgGuildActiveContracts` | `optional` |  |  |
+| 3 | `active_challenges` | `.CMsgGuildChallenge` | `optional` |  |  |
 
 </details>
 
@@ -184,8 +184,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
-| 2 | `event_id` | `.EEvent` | `optional` | `` | default = EVENT_ID_NONE |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
+| 2 | `event_id` | `.EEvent` | `optional` |  | default = EVENT_ID_NONE |
 
 </details>
 
@@ -197,10 +197,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
-| 2 | `event_id` | `.EEvent` | `optional` | `` | default = EVENT_ID_NONE |
-| 3 | `contract_id` | `uint64` | `optional` | `` |  |
-| 4 | `contract_slot` | `uint32` | `optional` | `` |  |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
+| 2 | `event_id` | `.EEvent` | `optional` |  | default = EVENT_ID_NONE |
+| 3 | `contract_id` | `uint64` | `optional` |  |  |
+| 4 | `contract_slot` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -212,7 +212,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCSelectGuildContractResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `result` | `.CMsgClientToGCSelectGuildContractResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -224,8 +224,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
-| 2 | `event_id` | `.EEvent` | `optional` | `` | default = EVENT_ID_NONE |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
+| 2 | `event_id` | `.EEvent` | `optional` |  | default = EVENT_ID_NONE |
 
 </details>
 
@@ -237,8 +237,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCRequestActiveGuildChallengeResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `active_challenge` | `.CMsgGuildChallenge` | `optional` | `` |  |
+| 1 | `result` | `.CMsgClientToGCRequestActiveGuildChallengeResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `active_challenge` | `.CMsgGuildChallenge` | `optional` |  |  |
 
 </details>
 
@@ -250,9 +250,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
-| 2 | `event_id` | `.EEvent` | `optional` | `` | default = EVENT_ID_NONE |
-| 3 | `active_challenge` | `.CMsgGuildChallenge` | `optional` | `` |  |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
+| 2 | `event_id` | `.EEvent` | `optional` |  | default = EVENT_ID_NONE |
+| 3 | `active_challenge` | `.CMsgGuildChallenge` | `optional` |  |  |
 
 </details>
 
@@ -264,8 +264,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
-| 2 | `event_id` | `.EEvent` | `optional` | `` | default = EVENT_ID_NONE |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
+| 2 | `event_id` | `.EEvent` | `optional` |  | default = EVENT_ID_NONE |
 
 </details>
 
@@ -277,8 +277,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCRequestGuildEventMembersResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `members` | `.CMsgGuildEventMember` | `repeated` | `` |  |
+| 1 | `result` | `.CMsgClientToGCRequestGuildEventMembersResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `members` | `.CMsgGuildEventMember` | `repeated` |  |  |
 
 </details>
 
@@ -290,14 +290,14 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `event_id` | `.EEvent` | `optional` | `` | default = EVENT_ID_NONE |
-| 2 | `region` | `uint32` | `optional` | `` |  |
-| 3 | `last_updated` | `uint32` | `optional` | `` |  |
-| 4 | `guild_id` | `uint32` | `repeated` | `` | packed = true |
-| 5 | `rank` | `uint32` | `repeated` | `` | packed = true |
-| 6 | `current_percentile` | `uint32` | `repeated` | `` | packed = true |
-| 7 | `weekly_percentile` | `uint32` | `repeated` | `` | packed = true |
-| 8 | `points` | `uint32` | `repeated` | `` | packed = true |
+| 1 | `event_id` | `.EEvent` | `optional` |  | default = EVENT_ID_NONE |
+| 2 | `region` | `uint32` | `optional` |  |  |
+| 3 | `last_updated` | `uint32` | `optional` |  |  |
+| 4 | `guild_id` | `uint32` | `repeated` |  | packed = true |
+| 5 | `rank` | `uint32` | `repeated` |  | packed = true |
+| 6 | `current_percentile` | `uint32` | `repeated` |  | packed = true |
+| 7 | `weekly_percentile` | `uint32` | `repeated` |  | packed = true |
+| 8 | `points` | `uint32` | `repeated` |  | packed = true |
 
 </details>
 
@@ -309,8 +309,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `guild_id` | `uint32` | `optional` | `` |  |
-| 2 | `event_id` | `.EEvent` | `optional` | `` | default = EVENT_ID_NONE |
+| 1 | `guild_id` | `uint32` | `optional` |  |  |
+| 2 | `event_id` | `.EEvent` | `optional` |  | default = EVENT_ID_NONE |
 
 </details>
 
@@ -322,8 +322,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCClaimLeaderboardRewardsResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `event_points` | `uint32` | `optional` | `` |  |
+| 1 | `result` | `.CMsgClientToGCClaimLeaderboardRewardsResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `event_points` | `uint32` | `optional` |  |  |
 
 </details>
 

@@ -19,13 +19,13 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `logical_processors` | `uint32` | `optional` | `` |  |
-| 2 | `cpu_cycles_per_second` | `fixed64` | `optional` | `` |  |
-| 3 | `total_physical_memory` | `fixed64` | `optional` | `` |  |
-| 4 | `is_64_bit_os` | `bool` | `optional` | `` |  |
-| 5 | `upload_measurement` | `uint64` | `optional` | `` |  |
-| 6 | `prefer_not_host` | `bool` | `optional` | `` |  |
-| 7 | `crc` | `uint32` | `repeated` | `` |  |
+| 1 | `logical_processors` | `uint32` | `optional` |  |  |
+| 2 | `cpu_cycles_per_second` | `fixed64` | `optional` |  |  |
+| 3 | `total_physical_memory` | `fixed64` | `optional` |  |  |
+| 4 | `is_64_bit_os` | `bool` | `optional` |  |  |
+| 5 | `upload_measurement` | `uint64` | `optional` |  |  |
+| 6 | `prefer_not_host` | `bool` | `optional` |  |  |
+| 7 | `crc` | `uint32` | `repeated` |  |  |
 
 </details>
 
@@ -37,10 +37,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 2 | `save_time` | `uint32` | `optional` | `` |  |
-| 3 | `players` | `.CDOTASaveGame.Player` | `repeated` | `` |  |
-| 4 | `save_instances` | `.CDOTASaveGame.SaveInstance` | `repeated` | `` |  |
-| 5 | `match_id` | `uint64` | `optional` | `` |  |
+| 2 | `save_time` | `uint32` | `optional` |  |  |
+| 3 | `players` | `.CDOTASaveGame.Player` | `repeated` |  |  |
+| 4 | `save_instances` | `.CDOTASaveGame.SaveInstance` | `repeated` |  |  |
+| 5 | `match_id` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -52,9 +52,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `team` | `.DOTA_GC_TEAM` | `optional` | `` | default = DOTA_GC_TEAM_GOOD_GUYS |
-| 2 | `name` | `string` | `optional` | `` |  |
-| 3 | `hero` | `string` | `optional` | `` |  |
+| 1 | `team` | `.DOTA_GC_TEAM` | `optional` |  | default = DOTA_GC_TEAM_GOOD_GUYS |
+| 2 | `name` | `string` | `optional` |  |  |
+| 3 | `hero` | `string` | `optional` |  |  |
 
 </details>
 
@@ -66,12 +66,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 2 | `game_time` | `uint32` | `optional` | `` |  |
-| 3 | `team1_score` | `uint32` | `optional` | `` |  |
-| 4 | `team2_score` | `uint32` | `optional` | `` |  |
-| 5 | `player_positions` | `.CDOTASaveGame.SaveInstance.PlayerPositions` | `repeated` | `` |  |
-| 6 | `save_id` | `uint32` | `optional` | `` |  |
-| 7 | `save_time` | `uint32` | `optional` | `` |  |
+| 2 | `game_time` | `uint32` | `optional` |  |  |
+| 3 | `team1_score` | `uint32` | `optional` |  |  |
+| 4 | `team2_score` | `uint32` | `optional` |  |  |
+| 5 | `player_positions` | `.CDOTASaveGame.SaveInstance.PlayerPositions` | `repeated` |  |  |
+| 6 | `save_id` | `uint32` | `optional` |  |  |
+| 7 | `save_time` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -83,8 +83,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `x` | `float` | `optional` | `` |  |
-| 2 | `y` | `float` | `optional` | `` |  |
+| 1 | `x` | `float` | `optional` |  |  |
+| 2 | `y` | `float` | `optional` |  |  |
 
 </details>
 
@@ -96,88 +96,88 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `type` | `.DOTA_COMBATLOG_TYPES` | `optional` | `` | default = DOTA_COMBATLOG_INVALID |
-| 2 | `target_name` | `uint32` | `optional` | `` |  |
-| 3 | `target_source_name` | `uint32` | `optional` | `` |  |
-| 4 | `attacker_name` | `uint32` | `optional` | `` |  |
-| 5 | `damage_source_name` | `uint32` | `optional` | `` |  |
-| 6 | `inflictor_name` | `uint32` | `optional` | `` |  |
-| 7 | `is_attacker_illusion` | `bool` | `optional` | `` |  |
-| 8 | `is_attacker_hero` | `bool` | `optional` | `` |  |
-| 9 | `is_target_illusion` | `bool` | `optional` | `` |  |
-| 10 | `is_target_hero` | `bool` | `optional` | `` |  |
-| 11 | `is_visible_radiant` | `bool` | `optional` | `` |  |
-| 12 | `is_visible_dire` | `bool` | `optional` | `` |  |
-| 13 | `value` | `uint32` | `optional` | `` |  |
-| 14 | `health` | `int32` | `optional` | `` |  |
-| 15 | `timestamp` | `float` | `optional` | `` |  |
-| 16 | `stun_duration` | `float` | `optional` | `` |  |
-| 17 | `slow_duration` | `float` | `optional` | `` |  |
-| 18 | `is_ability_toggle_on` | `bool` | `optional` | `` |  |
-| 19 | `is_ability_toggle_off` | `bool` | `optional` | `` |  |
-| 20 | `ability_level` | `uint32` | `optional` | `` |  |
-| 21 | `location_x` | `float` | `optional` | `` |  |
-| 22 | `location_y` | `float` | `optional` | `` |  |
-| 23 | `gold_reason` | `uint32` | `optional` | `` |  |
-| 24 | `timestamp_raw` | `float` | `optional` | `` |  |
-| 25 | `modifier_duration` | `float` | `optional` | `` |  |
-| 26 | `xp_reason` | `uint32` | `optional` | `` |  |
-| 27 | `last_hits` | `uint32` | `optional` | `` |  |
-| 28 | `attacker_team` | `uint32` | `optional` | `` |  |
-| 29 | `target_team` | `uint32` | `optional` | `` |  |
-| 30 | `obs_wards_placed` | `uint32` | `optional` | `` |  |
-| 31 | `assist_player0` | `uint32` | `optional` | `` |  |
-| 32 | `assist_player1` | `uint32` | `optional` | `` |  |
-| 33 | `assist_player2` | `uint32` | `optional` | `` |  |
-| 34 | `assist_player3` | `uint32` | `optional` | `` |  |
-| 35 | `stack_count` | `uint32` | `optional` | `` |  |
-| 36 | `hidden_modifier` | `bool` | `optional` | `` |  |
-| 37 | `is_target_building` | `bool` | `optional` | `` |  |
-| 38 | `neutral_camp_type` | `uint32` | `optional` | `` |  |
-| 39 | `rune_type` | `uint32` | `optional` | `` |  |
-| 40 | `assist_players` | `int32` | `repeated` | `` |  |
-| 41 | `is_heal_save` | `bool` | `optional` | `` |  |
-| 42 | `is_ultimate_ability` | `bool` | `optional` | `` |  |
-| 43 | `attacker_hero_level` | `uint32` | `optional` | `` |  |
-| 44 | `target_hero_level` | `uint32` | `optional` | `` |  |
-| 45 | `xpm` | `uint32` | `optional` | `` |  |
-| 46 | `gpm` | `uint32` | `optional` | `` |  |
-| 47 | `event_location` | `uint32` | `optional` | `` |  |
-| 48 | `target_is_self` | `bool` | `optional` | `` |  |
-| 49 | `damage_type` | `uint32` | `optional` | `` |  |
-| 50 | `invisibility_modifier` | `bool` | `optional` | `` |  |
-| 51 | `damage_category` | `uint32` | `optional` | `` |  |
-| 52 | `networth` | `uint32` | `optional` | `` |  |
-| 53 | `building_type` | `uint32` | `optional` | `` |  |
-| 54 | `modifier_elapsed_duration` | `float` | `optional` | `` |  |
-| 55 | `silence_modifier` | `bool` | `optional` | `` |  |
-| 56 | `heal_from_lifesteal` | `bool` | `optional` | `` |  |
-| 57 | `modifier_purged` | `bool` | `optional` | `` |  |
-| 58 | `spell_evaded` | `bool` | `optional` | `` |  |
-| 59 | `motion_controller_modifier` | `bool` | `optional` | `` |  |
-| 60 | `long_range_kill` | `bool` | `optional` | `` |  |
-| 61 | `modifier_purge_ability` | `uint32` | `optional` | `` |  |
-| 62 | `modifier_purge_npc` | `uint32` | `optional` | `` |  |
-| 63 | `root_modifier` | `bool` | `optional` | `` |  |
-| 64 | `total_unit_death_count` | `uint32` | `optional` | `` |  |
-| 65 | `aura_modifier` | `bool` | `optional` | `` |  |
-| 66 | `armor_debuff_modifier` | `bool` | `optional` | `` |  |
-| 67 | `no_physical_damage_modifier` | `bool` | `optional` | `` |  |
-| 68 | `modifier_ability` | `uint32` | `optional` | `` |  |
-| 69 | `modifier_hidden` | `bool` | `optional` | `` |  |
-| 70 | `inflictor_is_stolen_ability` | `bool` | `optional` | `` |  |
-| 71 | `kill_eater_event` | `uint32` | `optional` | `` |  |
-| 72 | `unit_status_label` | `uint32` | `optional` | `` |  |
-| 73 | `spell_generated_attack` | `bool` | `optional` | `` |  |
-| 74 | `at_night_time` | `bool` | `optional` | `` |  |
-| 75 | `attacker_has_scepter` | `bool` | `optional` | `` |  |
-| 76 | `neutral_camp_team` | `uint32` | `optional` | `` |  |
-| 77 | `regenerated_health` | `float` | `optional` | `` |  |
-| 78 | `will_reincarnate` | `bool` | `optional` | `` |  |
-| 79 | `uses_charges` | `bool` | `optional` | `` |  |
-| 80 | `tracked_stat_id` | `uint32` | `optional` | `` |  |
-| 81 | `modifier_purged_duration` | `float` | `optional` | `` |  |
-| 82 | `heal_from_regen` | `bool` | `optional` | `` |  |
+| 1 | `type` | `.DOTA_COMBATLOG_TYPES` | `optional` |  | default = DOTA_COMBATLOG_INVALID |
+| 2 | `target_name` | `uint32` | `optional` |  |  |
+| 3 | `target_source_name` | `uint32` | `optional` |  |  |
+| 4 | `attacker_name` | `uint32` | `optional` |  |  |
+| 5 | `damage_source_name` | `uint32` | `optional` |  |  |
+| 6 | `inflictor_name` | `uint32` | `optional` |  |  |
+| 7 | `is_attacker_illusion` | `bool` | `optional` |  |  |
+| 8 | `is_attacker_hero` | `bool` | `optional` |  |  |
+| 9 | `is_target_illusion` | `bool` | `optional` |  |  |
+| 10 | `is_target_hero` | `bool` | `optional` |  |  |
+| 11 | `is_visible_radiant` | `bool` | `optional` |  |  |
+| 12 | `is_visible_dire` | `bool` | `optional` |  |  |
+| 13 | `value` | `uint32` | `optional` |  |  |
+| 14 | `health` | `int32` | `optional` |  |  |
+| 15 | `timestamp` | `float` | `optional` |  |  |
+| 16 | `stun_duration` | `float` | `optional` |  |  |
+| 17 | `slow_duration` | `float` | `optional` |  |  |
+| 18 | `is_ability_toggle_on` | `bool` | `optional` |  |  |
+| 19 | `is_ability_toggle_off` | `bool` | `optional` |  |  |
+| 20 | `ability_level` | `uint32` | `optional` |  |  |
+| 21 | `location_x` | `float` | `optional` |  |  |
+| 22 | `location_y` | `float` | `optional` |  |  |
+| 23 | `gold_reason` | `uint32` | `optional` |  |  |
+| 24 | `timestamp_raw` | `float` | `optional` |  |  |
+| 25 | `modifier_duration` | `float` | `optional` |  |  |
+| 26 | `xp_reason` | `uint32` | `optional` |  |  |
+| 27 | `last_hits` | `uint32` | `optional` |  |  |
+| 28 | `attacker_team` | `uint32` | `optional` |  |  |
+| 29 | `target_team` | `uint32` | `optional` |  |  |
+| 30 | `obs_wards_placed` | `uint32` | `optional` |  |  |
+| 31 | `assist_player0` | `uint32` | `optional` |  |  |
+| 32 | `assist_player1` | `uint32` | `optional` |  |  |
+| 33 | `assist_player2` | `uint32` | `optional` |  |  |
+| 34 | `assist_player3` | `uint32` | `optional` |  |  |
+| 35 | `stack_count` | `uint32` | `optional` |  |  |
+| 36 | `hidden_modifier` | `bool` | `optional` |  |  |
+| 37 | `is_target_building` | `bool` | `optional` |  |  |
+| 38 | `neutral_camp_type` | `uint32` | `optional` |  |  |
+| 39 | `rune_type` | `uint32` | `optional` |  |  |
+| 40 | `assist_players` | `int32` | `repeated` |  |  |
+| 41 | `is_heal_save` | `bool` | `optional` |  |  |
+| 42 | `is_ultimate_ability` | `bool` | `optional` |  |  |
+| 43 | `attacker_hero_level` | `uint32` | `optional` |  |  |
+| 44 | `target_hero_level` | `uint32` | `optional` |  |  |
+| 45 | `xpm` | `uint32` | `optional` |  |  |
+| 46 | `gpm` | `uint32` | `optional` |  |  |
+| 47 | `event_location` | `uint32` | `optional` |  |  |
+| 48 | `target_is_self` | `bool` | `optional` |  |  |
+| 49 | `damage_type` | `uint32` | `optional` |  |  |
+| 50 | `invisibility_modifier` | `bool` | `optional` |  |  |
+| 51 | `damage_category` | `uint32` | `optional` |  |  |
+| 52 | `networth` | `uint32` | `optional` |  |  |
+| 53 | `building_type` | `uint32` | `optional` |  |  |
+| 54 | `modifier_elapsed_duration` | `float` | `optional` |  |  |
+| 55 | `silence_modifier` | `bool` | `optional` |  |  |
+| 56 | `heal_from_lifesteal` | `bool` | `optional` |  |  |
+| 57 | `modifier_purged` | `bool` | `optional` |  |  |
+| 58 | `spell_evaded` | `bool` | `optional` |  |  |
+| 59 | `motion_controller_modifier` | `bool` | `optional` |  |  |
+| 60 | `long_range_kill` | `bool` | `optional` |  |  |
+| 61 | `modifier_purge_ability` | `uint32` | `optional` |  |  |
+| 62 | `modifier_purge_npc` | `uint32` | `optional` |  |  |
+| 63 | `root_modifier` | `bool` | `optional` |  |  |
+| 64 | `total_unit_death_count` | `uint32` | `optional` |  |  |
+| 65 | `aura_modifier` | `bool` | `optional` |  |  |
+| 66 | `armor_debuff_modifier` | `bool` | `optional` |  |  |
+| 67 | `no_physical_damage_modifier` | `bool` | `optional` |  |  |
+| 68 | `modifier_ability` | `uint32` | `optional` |  |  |
+| 69 | `modifier_hidden` | `bool` | `optional` |  |  |
+| 70 | `inflictor_is_stolen_ability` | `bool` | `optional` |  |  |
+| 71 | `kill_eater_event` | `uint32` | `optional` |  |  |
+| 72 | `unit_status_label` | `uint32` | `optional` |  |  |
+| 73 | `spell_generated_attack` | `bool` | `optional` |  |  |
+| 74 | `at_night_time` | `bool` | `optional` |  |  |
+| 75 | `attacker_has_scepter` | `bool` | `optional` |  |  |
+| 76 | `neutral_camp_team` | `uint32` | `optional` |  |  |
+| 77 | `regenerated_health` | `float` | `optional` |  |  |
+| 78 | `will_reincarnate` | `bool` | `optional` |  |  |
+| 79 | `uses_charges` | `bool` | `optional` |  |  |
+| 80 | `tracked_stat_id` | `uint32` | `optional` |  |  |
+| 81 | `modifier_purged_duration` | `float` | `optional` |  |  |
+| 82 | `heal_from_regen` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -189,12 +189,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `event_id` | `.EEvent` | `optional` | `` | default = EVENT_ID_NONE |
-| 2 | `action_id` | `uint32` | `optional` | `` |  |
-| 3 | `num_to_grant` | `uint32` | `optional` | `` |  |
-| 4 | `score_mode` | `.EEventActionScoreMode` | `optional` | `` | default = k_eEventActionScoreMode_Add |
-| 5 | `audit_action` | `uint32` | `optional` | `` |  |
-| 6 | `audit_data` | `uint64` | `optional` | `` |  |
+| 1 | `event_id` | `.EEvent` | `optional` |  | default = EVENT_ID_NONE |
+| 2 | `action_id` | `uint32` | `optional` |  |  |
+| 3 | `num_to_grant` | `uint32` | `optional` |  |  |
+| 4 | `score_mode` | `.EEventActionScoreMode` | `optional` |  | default = k_eEventActionScoreMode_Add |
+| 5 | `audit_action` | `uint32` | `optional` |  |  |
+| 6 | `audit_data` | `uint64` | `optional` |  |  |
 
 </details>
 
@@ -206,7 +206,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `material_counts` | `.CMsgMonsterHunterMaterialQuantity.MaterialCountsEntry` | `repeated` | `` |  |
+| 1 | `material_counts` | `.CMsgMonsterHunterMaterialQuantity.MaterialCountsEntry` | `repeated` |  |  |
 
 </details>
 
@@ -218,8 +218,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `key` | `uint32` | `optional` | `` |  |
-| 2 | `value` | `int32` | `optional` | `` |  |
+| 1 | `key` | `uint32` | `optional` |  |  |
+| 2 | `value` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -231,11 +231,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `hero_id` | `int32` | `optional` | `` |  |
-| 2 | `persona_id` | `int32` | `optional` | `` |  |
-| 3 | `match_rewards` | `.CMsgMonsterHunterMaterialQuantity` | `optional` | `` |  |
-| 4 | `hunt_rewards` | `.CMsgMonsterHunterMaterialQuantity` | `optional` | `` |  |
-| 5 | `success_state` | `bool` | `optional` | `` |  |
+| 1 | `hero_id` | `int32` | `optional` |  |  |
+| 2 | `persona_id` | `int32` | `optional` |  |  |
+| 3 | `match_rewards` | `.CMsgMonsterHunterMaterialQuantity` | `optional` |  |  |
+| 4 | `hunt_rewards` | `.CMsgMonsterHunterMaterialQuantity` | `optional` |  |  |
+| 5 | `success_state` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -247,8 +247,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `selected_investigation` | `.CMsgMonsterHunterInvestigation` | `optional` | `` |  |
-| 2 | `hunted_by` | `.CMsgMonsterHunterInvestigationGameState.HuntedBy` | `repeated` | `` |  |
+| 1 | `selected_investigation` | `.CMsgMonsterHunterInvestigation` | `optional` |  |  |
+| 2 | `hunted_by` | `.CMsgMonsterHunterInvestigationGameState.HuntedBy` | `repeated` |  |  |
 
 </details>
 
@@ -260,10 +260,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `hero_id` | `int32` | `optional` | `` |  |
-| 2 | `persona_id` | `int32` | `optional` | `` |  |
-| 3 | `hunt_rewards` | `.CMsgMonsterHunterMaterialQuantity` | `optional` | `` |  |
-| 4 | `success_state` | `bool` | `optional` | `` |  |
+| 1 | `hero_id` | `int32` | `optional` |  |  |
+| 2 | `persona_id` | `int32` | `optional` |  |  |
+| 3 | `hunt_rewards` | `.CMsgMonsterHunterMaterialQuantity` | `optional` |  |  |
+| 4 | `success_state` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -275,10 +275,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `player_hero` | `int32` | `optional` | `` |  |
-| 2 | `allies` | `int32` | `repeated` | `` |  |
-| 3 | `enemies` | `int32` | `repeated` | `` |  |
-| 4 | `player_kills` | `.CMsgMonsterHunterCodexUpdateData.KillInfo` | `repeated` | `` |  |
+| 1 | `player_hero` | `int32` | `optional` |  |  |
+| 2 | `allies` | `int32` | `repeated` |  |  |
+| 3 | `enemies` | `int32` | `repeated` |  |  |
+| 4 | `player_kills` | `.CMsgMonsterHunterCodexUpdateData.KillInfo` | `repeated` |  |  |
 
 </details>
 
@@ -290,8 +290,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `hero_id` | `int32` | `optional` | `` |  |
-| 2 | `kill_count` | `int32` | `optional` | `` |  |
+| 1 | `hero_id` | `int32` | `optional` |  |  |
+| 2 | `kill_count` | `int32` | `optional` |  |  |
 
 </details>
 

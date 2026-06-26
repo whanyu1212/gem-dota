@@ -31,10 +31,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `id` | `uint64` | `optional` | `` |  |
-| 2 | `original_id` | `uint64` | `optional` | `` |  |
-| 3 | `definition_index` | `uint32` | `optional` | `` |  |
-| 4 | `equipment_slot_index` | `int32` | `optional` | `` | default = -1 |
+| 1 | `id` | `uint64` | `optional` |  |  |
+| 2 | `original_id` | `uint64` | `optional` |  |  |
+| 3 | `definition_index` | `uint32` | `optional` |  |  |
+| 4 | `equipment_slot_index` | `int32` | `optional` |  | default = -1 |
 
 </details>
 
@@ -46,7 +46,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `flags` | `uint32` | `optional` | `` |  |
+| 1 | `flags` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -58,8 +58,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `data` | `.CMsgShowcaseItem_Trophy.Data` | `optional` | `` |  |
-| 2 | `trophy_id` | `uint32` | `optional` | `` |  |
+| 1 | `data` | `.CMsgShowcaseItem_Trophy.Data` | `optional` |  |  |
+| 2 | `trophy_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -71,7 +71,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `trophy_score` | `uint32` | `optional` | `` |  |
+| 1 | `trophy_score` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -83,8 +83,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `data` | `.CMsgShowcaseItem_EconItem.Data` | `optional` | `` |  |
-| 2 | `ref` | `.CMsgShowcaseEconItemReference` | `optional` | `` |  |
+| 1 | `data` | `.CMsgShowcaseItem_EconItem.Data` | `optional` |  |  |
+| 2 | `ref` | `.CMsgShowcaseEconItemReference` | `optional` |  |  |
 
 </details>
 
@@ -96,7 +96,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `econ_item` | `.CSOEconItem` | `optional` | `` |  |
+| 1 | `econ_item` | `.CSOEconItem` | `optional` |  |  |
 
 </details>
 
@@ -108,18 +108,18 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `data` | `.CMsgShowcaseItem_Hero.Data` | `optional` | `` |  |
-| 2 | `hero_id` | `int32` | `optional` | `` |  |
-| 3 | `econ_item_refs` | `.CMsgShowcaseEconItemReference` | `repeated` | `` |  |
-| 4 | `rotation` | `uint32` | `optional` | `` |  |
-| 5 | `flags` | `uint32` | `optional` | `` |  |
-| 6 | `plus_info` | `.CMsgHeroPlusInfo` | `optional` | `` |  |
-| 7 | `animation_name` | `string` | `optional` | `` |  |
-| 8 | `animation_playback_speed` | `uint32` | `optional` | `` | default = 100 |
-| 9 | `animation_offset` | `uint32` | `optional` | `` |  |
-| 10 | `zoom` | `uint32` | `optional` | `` | default = 100 |
-| 11 | `slot_index` | `uint32` | `optional` | `` |  |
-| 12 | `model_index` | `uint32` | `optional` | `` |  |
+| 1 | `data` | `.CMsgShowcaseItem_Hero.Data` | `optional` |  |  |
+| 2 | `hero_id` | `int32` | `optional` |  |  |
+| 3 | `econ_item_refs` | `.CMsgShowcaseEconItemReference` | `repeated` |  |  |
+| 4 | `rotation` | `uint32` | `optional` |  |  |
+| 5 | `flags` | `uint32` | `optional` |  |  |
+| 6 | `plus_info` | `.CMsgHeroPlusInfo` | `optional` |  |  |
+| 7 | `animation_name` | `string` | `optional` |  |  |
+| 8 | `animation_playback_speed` | `uint32` | `optional` |  | default = 100 |
+| 9 | `animation_offset` | `uint32` | `optional` |  |  |
+| 10 | `zoom` | `uint32` | `optional` |  | default = 100 |
+| 11 | `slot_index` | `uint32` | `optional` |  |  |
+| 12 | `model_index` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -131,9 +131,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `econ_items` | `.CSOEconItem` | `repeated` | `` |  |
-| 2 | `actual_hero_id` | `int32` | `optional` | `` |  |
-| 3 | `plus_hero_xp` | `uint32` | `optional` | `` |  |
+| 1 | `econ_items` | `.CSOEconItem` | `repeated` |  |  |
+| 2 | `actual_hero_id` | `int32` | `optional` |  |  |
+| 3 | `plus_hero_xp` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -145,9 +145,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `data` | `.CMsgShowcaseItem_HeroIcon.Data` | `optional` | `` |  |
-| 2 | `hero_id` | `int32` | `optional` | `` |  |
-| 3 | `econ_item_ref` | `.CMsgShowcaseEconItemReference` | `optional` | `` |  |
+| 1 | `data` | `.CMsgShowcaseItem_HeroIcon.Data` | `optional` |  |  |
+| 2 | `hero_id` | `int32` | `optional` |  |  |
+| 3 | `econ_item_ref` | `.CMsgShowcaseEconItemReference` | `optional` |  |  |
 
 </details>
 
@@ -159,7 +159,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `econ_item` | `.CSOEconItem` | `optional` | `` |  |
+| 1 | `econ_item` | `.CSOEconItem` | `optional` |  |  |
 
 </details>
 
@@ -171,9 +171,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `data` | `.CMsgShowcaseItem_PlayerMatch.Data` | `optional` | `` |  |
-| 2 | `match_id` | `uint64` | `optional` | `` |  |
-| 3 | `player_slot` | `uint32` | `optional` | `` |  |
+| 1 | `data` | `.CMsgShowcaseItem_PlayerMatch.Data` | `optional` |  |  |
+| 2 | `match_id` | `uint64` | `optional` |  |  |
+| 3 | `player_slot` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -185,14 +185,14 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `hero_id` | `int32` | `optional` | `` |  |
-| 2 | `timestamp` | `uint32` | `optional` | `` |  |
-| 3 | `duration` | `uint32` | `optional` | `` |  |
-| 4 | `game_mode` | `.DOTA_GameMode` | `optional` | `` | default = DOTA_GAMEMODE_NONE |
-| 5 | `outcome` | `.CMsgShowcaseItem_PlayerMatch.EPlayerOutcome` | `optional` | `` | default = k_eInvalid |
-| 6 | `kills` | `uint32` | `optional` | `` |  |
-| 7 | `deaths` | `uint32` | `optional` | `` |  |
-| 8 | `assists` | `uint32` | `optional` | `` |  |
+| 1 | `hero_id` | `int32` | `optional` |  |  |
+| 2 | `timestamp` | `uint32` | `optional` |  |  |
+| 3 | `duration` | `uint32` | `optional` |  |  |
+| 4 | `game_mode` | `.DOTA_GameMode` | `optional` |  | default = DOTA_GAMEMODE_NONE |
+| 5 | `outcome` | `.CMsgShowcaseItem_PlayerMatch.EPlayerOutcome` | `optional` |  | default = k_eInvalid |
+| 6 | `kills` | `uint32` | `optional` |  |  |
+| 7 | `deaths` | `uint32` | `optional` |  |  |
+| 8 | `assists` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -204,8 +204,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `data` | `.CMsgShowcaseItem_ChatWheel.Data` | `optional` | `` |  |
-| 2 | `chat_wheel_message_id` | `uint32` | `optional` | `` | default = 4294967295 |
+| 1 | `data` | `.CMsgShowcaseItem_ChatWheel.Data` | `optional` |  |  |
+| 2 | `chat_wheel_message_id` | `uint32` | `optional` |  | default = 4294967295 |
 
 </details>
 
@@ -229,8 +229,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `data` | `.CMsgShowcaseItem_Emoticon.Data` | `optional` | `` |  |
-| 2 | `emoticon_id` | `uint32` | `optional` | `` |  |
+| 1 | `data` | `.CMsgShowcaseItem_Emoticon.Data` | `optional` |  |  |
+| 2 | `emoticon_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -254,7 +254,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `data` | `.CMsgShowcaseItem_SpiderGraph.Data` | `optional` | `` |  |
+| 1 | `data` | `.CMsgShowcaseItem_SpiderGraph.Data` | `optional` |  |  |
 
 </details>
 
@@ -278,7 +278,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `data` | `.CMsgShowcaseItem_UserFeed.Data` | `optional` | `` |  |
+| 1 | `data` | `.CMsgShowcaseItem_UserFeed.Data` | `optional` |  |  |
 
 </details>
 
@@ -302,8 +302,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `data` | `.CMsgShowcaseItem_Stat.Data` | `optional` | `` |  |
-| 2 | `stat_id` | `.CMsgDOTAProfileCard.EStatID` | `optional` | `` | default = k_eStat_Wins |
+| 1 | `data` | `.CMsgShowcaseItem_Stat.Data` | `optional` |  |  |
+| 2 | `stat_id` | `.CMsgDOTAProfileCard.EStatID` | `optional` |  | default = k_eStat_Wins |
 
 </details>
 
@@ -315,7 +315,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `stat_score` | `uint32` | `optional` | `` |  |
+| 1 | `stat_score` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -327,11 +327,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `data` | `.CMsgShowcaseBackground.Data` | `optional` | `` |  |
-| 2 | `loading_screen_ref` | `.CMsgShowcaseEconItemReference` | `optional` | `` |  |
-| 3 | `dim` | `uint32` | `optional` | `` |  |
-| 4 | `blur` | `uint32` | `optional` | `` |  |
-| 5 | `background_id` | `uint32` | `optional` | `` |  |
+| 1 | `data` | `.CMsgShowcaseBackground.Data` | `optional` |  |  |
+| 2 | `loading_screen_ref` | `.CMsgShowcaseEconItemReference` | `optional` |  |  |
+| 3 | `dim` | `uint32` | `optional` |  |  |
+| 4 | `blur` | `uint32` | `optional` |  |  |
+| 5 | `background_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -343,7 +343,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `loading_screen` | `.CSOEconItem` | `optional` | `` |  |
+| 1 | `loading_screen` | `.CSOEconItem` | `optional` |  |  |
 
 </details>
 
@@ -386,16 +386,16 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `position_x` | `int32` | `optional` | `` |  |
-| 2 | `position_y` | `int32` | `optional` | `` |  |
-| 3 | `scale` | `uint32` | `optional` | `` |  |
-| 4 | `width` | `uint32` | `optional` | `` |  |
-| 5 | `height` | `uint32` | `optional` | `` |  |
-| 6 | `rotation` | `uint32` | `optional` | `` |  |
-| 7 | `parent_id` | `uint32` | `optional` | `` |  |
-| 8 | `parent_attachment_point_id` | `uint32` | `optional` | `` |  |
-| 9 | `attachment_anchor_x` | `uint32` | `optional` | `` |  |
-| 10 | `attachment_anchor_y` | `uint32` | `optional` | `` |  |
+| 1 | `position_x` | `int32` | `optional` |  |  |
+| 2 | `position_y` | `int32` | `optional` |  |  |
+| 3 | `scale` | `uint32` | `optional` |  |  |
+| 4 | `width` | `uint32` | `optional` |  |  |
+| 5 | `height` | `uint32` | `optional` |  |  |
+| 6 | `rotation` | `uint32` | `optional` |  |  |
+| 7 | `parent_id` | `uint32` | `optional` |  |  |
+| 8 | `parent_attachment_point_id` | `uint32` | `optional` |  |  |
+| 9 | `attachment_anchor_x` | `uint32` | `optional` |  |  |
+| 10 | `attachment_anchor_y` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -407,11 +407,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `showcase_item_id` | `uint32` | `optional` | `` |  |
-| 2 | `item_position` | `.CMsgShowcaseItemPosition` | `optional` | `` |  |
-| 3 | `item_data` | `.CMsgShowcaseItemData` | `optional` | `` |  |
-| 4 | `state` | `.EShowcaseItemState` | `optional` | `` | default = k_eShowcaseItemState_Ok |
-| 5 | `flags` | `uint32` | `optional` | `` |  |
+| 1 | `showcase_item_id` | `uint32` | `optional` |  |  |
+| 2 | `item_position` | `.CMsgShowcaseItemPosition` | `optional` |  |  |
+| 3 | `item_data` | `.CMsgShowcaseItemData` | `optional` |  |  |
+| 4 | `state` | `.EShowcaseItemState` | `optional` |  | default = k_eShowcaseItemState_Ok |
+| 5 | `flags` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -423,9 +423,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `showcase_items` | `.CMsgShowcaseItem` | `repeated` | `` |  |
-| 3 | `background` | `.CMsgShowcaseItem` | `optional` | `` |  |
-| 4 | `moderation_state` | `.CMsgShowcase.EModerationState` | `optional` | `` | default = k_eModerationState_Ok |
+| 1 | `showcase_items` | `.CMsgShowcaseItem` | `repeated` |  |  |
+| 3 | `background` | `.CMsgShowcaseItem` | `optional` |  |  |
+| 4 | `moderation_state` | `.CMsgShowcase.EModerationState` | `optional` |  | default = k_eModerationState_Ok |
 
 </details>
 
@@ -437,8 +437,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `showcase_type` | `.EShowcaseType` | `optional` | `` | default = k_eShowcaseType_Invalid |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `showcase_type` | `.EShowcaseType` | `optional` |  | default = k_eShowcaseType_Invalid |
 
 </details>
 
@@ -450,8 +450,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCShowcaseGetUserDataResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `showcase` | `.CMsgShowcase` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCShowcaseGetUserDataResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `showcase` | `.CMsgShowcase` | `optional` |  |  |
 
 </details>
 
@@ -463,9 +463,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `showcase_type` | `.EShowcaseType` | `optional` | `` | default = k_eShowcaseType_Invalid |
-| 2 | `showcase` | `.CMsgShowcase` | `optional` | `` |  |
-| 3 | `format_version` | `uint32` | `optional` | `` |  |
+| 1 | `showcase_type` | `.EShowcaseType` | `optional` |  | default = k_eShowcaseType_Invalid |
+| 2 | `showcase` | `.CMsgShowcase` | `optional` |  |  |
+| 3 | `format_version` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -477,9 +477,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCShowcaseSetUserDataResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `validated_showcase` | `.CMsgShowcase` | `optional` | `` |  |
-| 3 | `locked_until_timestamp` | `uint32` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCShowcaseSetUserDataResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `validated_showcase` | `.CMsgShowcase` | `optional` |  |  |
+| 3 | `locked_until_timestamp` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -491,9 +491,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `target_account_id` | `uint32` | `optional` | `` |  |
-| 2 | `showcase_type` | `.EShowcaseType` | `optional` | `` | default = k_eShowcaseType_Invalid |
-| 3 | `report_comment` | `string` | `optional` | `` |  |
+| 1 | `target_account_id` | `uint32` | `optional` |  |  |
+| 2 | `showcase_type` | `.EShowcaseType` | `optional` |  | default = k_eShowcaseType_Invalid |
+| 3 | `report_comment` | `string` | `optional` |  |  |
 
 </details>
 
@@ -505,7 +505,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCShowcaseSubmitReportResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCShowcaseSubmitReportResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -517,9 +517,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `rollup_id` | `uint32` | `optional` | `` |  |
-| 2 | `start_timestamp` | `uint32` | `optional` | `` |  |
-| 3 | `end_timestamp` | `uint32` | `optional` | `` |  |
+| 1 | `rollup_id` | `uint32` | `optional` |  |  |
+| 2 | `start_timestamp` | `uint32` | `optional` |  |  |
+| 3 | `end_timestamp` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -531,7 +531,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `rollups` | `.CMsgShowcaseReportsRollupInfo` | `repeated` | `` |  |
+| 1 | `rollups` | `.CMsgShowcaseReportsRollupInfo` | `repeated` |  |  |
 
 </details>
 
@@ -543,9 +543,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `showcase_type` | `.EShowcaseType` | `optional` | `` | default = k_eShowcaseType_Invalid |
-| 3 | `report_count` | `uint32` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `showcase_type` | `.EShowcaseType` | `optional` |  | default = k_eShowcaseType_Invalid |
+| 3 | `report_count` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -557,8 +557,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `rollup_info` | `.CMsgShowcaseReportsRollupInfo` | `optional` | `` |  |
-| 2 | `rollup_entries` | `.CMsgShowcaseReportsRollupEntry` | `repeated` | `` |  |
+| 1 | `rollup_info` | `.CMsgShowcaseReportsRollupInfo` | `optional` |  |  |
+| 2 | `rollup_entries` | `.CMsgShowcaseReportsRollupEntry` | `repeated` |  |  |
 
 </details>
 
@@ -582,8 +582,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCShowcaseAdminGetReportsRollupListResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `rollup_list` | `.CMsgShowcaseReportsRollupList` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCShowcaseAdminGetReportsRollupListResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `rollup_list` | `.CMsgShowcaseReportsRollupList` | `optional` |  |  |
 
 </details>
 
@@ -595,7 +595,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `rollup_id` | `uint32` | `optional` | `` |  |
+| 1 | `rollup_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -607,8 +607,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCShowcaseAdminGetReportsRollupResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `rollup` | `.CMsgShowcaseReportsRollup` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCShowcaseAdminGetReportsRollupResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `rollup` | `.CMsgShowcaseReportsRollup` | `optional` |  |  |
 
 </details>
 
@@ -620,10 +620,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `showcase_type` | `.EShowcaseType` | `optional` | `` | default = k_eShowcaseType_Invalid |
-| 2 | `audit_action` | `.EShowcaseAuditAction` | `optional` | `` | default = k_eShowcaseAuditAction_Invalid |
-| 3 | `audit_data` | `uint64` | `optional` | `` |  |
-| 4 | `timestamp` | `uint32` | `optional` | `` |  |
+| 1 | `showcase_type` | `.EShowcaseType` | `optional` |  | default = k_eShowcaseType_Invalid |
+| 2 | `audit_action` | `.EShowcaseAuditAction` | `optional` |  | default = k_eShowcaseAuditAction_Invalid |
+| 3 | `audit_data` | `uint64` | `optional` |  |  |
+| 4 | `timestamp` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -635,10 +635,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `reporter_account_id` | `uint32` | `optional` | `` |  |
-| 2 | `showcase_type` | `.EShowcaseType` | `optional` | `` | default = k_eShowcaseType_Invalid |
-| 3 | `report_timestamp` | `uint32` | `optional` | `` |  |
-| 4 | `report_comment` | `string` | `optional` | `` |  |
+| 1 | `reporter_account_id` | `uint32` | `optional` |  |  |
+| 2 | `showcase_type` | `.EShowcaseType` | `optional` |  | default = k_eShowcaseType_Invalid |
+| 3 | `report_timestamp` | `uint32` | `optional` |  |  |
+| 4 | `report_comment` | `string` | `optional` |  |  |
 
 </details>
 
@@ -650,9 +650,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `locked_until_timestamp` | `uint32` | `optional` | `` |  |
-| 2 | `audit_entries` | `.CMsgShowcaseAuditEntry` | `repeated` | `` |  |
-| 3 | `reports` | `.CMsgShowcaseReport` | `repeated` | `` |  |
+| 1 | `locked_until_timestamp` | `uint32` | `optional` |  |  |
+| 2 | `audit_entries` | `.CMsgShowcaseAuditEntry` | `repeated` |  |  |
+| 3 | `reports` | `.CMsgShowcaseReport` | `repeated` |  |  |
 
 </details>
 
@@ -664,7 +664,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -676,8 +676,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCShowcaseAdminGetUserDetailsResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `user_details` | `.CMsgShowcaseAdminUserDetails` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCShowcaseAdminGetUserDetailsResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `user_details` | `.CMsgShowcaseAdminUserDetails` | `optional` |  |  |
 
 </details>
 
@@ -689,8 +689,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `target_account_id` | `uint32` | `optional` | `` |  |
-| 2 | `showcase_type` | `.EShowcaseType` | `optional` | `` | default = k_eShowcaseType_Invalid |
+| 1 | `target_account_id` | `uint32` | `optional` |  |  |
+| 2 | `showcase_type` | `.EShowcaseType` | `optional` |  | default = k_eShowcaseType_Invalid |
 
 </details>
 
@@ -702,7 +702,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCShowcaseAdminResetResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCShowcaseAdminResetResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -714,8 +714,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `target_account_id` | `uint32` | `optional` | `` |  |
-| 2 | `locked_until_timestamp` | `uint32` | `optional` | `` |  |
+| 1 | `target_account_id` | `uint32` | `optional` |  |  |
+| 2 | `locked_until_timestamp` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -727,7 +727,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCShowcaseAdminLockAccountResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCShowcaseAdminLockAccountResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -739,8 +739,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `target_account_id` | `uint32` | `optional` | `` |  |
-| 2 | `showcase_type` | `.EShowcaseType` | `optional` | `` | default = k_eShowcaseType_Invalid |
+| 1 | `target_account_id` | `uint32` | `optional` |  |  |
+| 2 | `showcase_type` | `.EShowcaseType` | `optional` |  | default = k_eShowcaseType_Invalid |
 
 </details>
 
@@ -752,7 +752,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCShowcaseAdminConvictResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCShowcaseAdminConvictResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -764,8 +764,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `target_account_id` | `uint32` | `optional` | `` |  |
-| 2 | `showcase_type` | `.EShowcaseType` | `optional` | `` | default = k_eShowcaseType_Invalid |
+| 1 | `target_account_id` | `uint32` | `optional` |  |  |
+| 2 | `showcase_type` | `.EShowcaseType` | `optional` |  | default = k_eShowcaseType_Invalid |
 
 </details>
 
@@ -777,7 +777,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCShowcaseAdminExonerateResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCShowcaseAdminExonerateResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -789,9 +789,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `showcase_type` | `.EShowcaseType` | `optional` | `` | default = k_eShowcaseType_Invalid |
-| 3 | `showcase_timestamp` | `uint32` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `showcase_type` | `.EShowcaseType` | `optional` |  | default = k_eShowcaseType_Invalid |
+| 3 | `showcase_timestamp` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -803,8 +803,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `start_timestamp` | `uint32` | `optional` | `` |  |
-| 2 | `result_count` | `uint32` | `optional` | `` |  |
+| 1 | `start_timestamp` | `uint32` | `optional` |  |  |
+| 2 | `result_count` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -816,8 +816,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCShowcaseModerationGetQueueResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `showcases` | `.CMsgShowcaseModerationInfo` | `repeated` | `` |  |
+| 1 | `response` | `.CMsgClientToGCShowcaseModerationGetQueueResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `showcases` | `.CMsgShowcaseModerationInfo` | `repeated` |  |  |
 
 </details>
 
@@ -829,10 +829,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `showcase_type` | `.EShowcaseType` | `optional` | `` | default = k_eShowcaseType_Invalid |
-| 3 | `showcase_timestamp` | `uint32` | `optional` | `` |  |
-| 4 | `approve` | `bool` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `showcase_type` | `.EShowcaseType` | `optional` |  | default = k_eShowcaseType_Invalid |
+| 3 | `showcase_timestamp` | `uint32` | `optional` |  |  |
+| 4 | `approve` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -844,7 +844,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCShowcaseModerationApplyModerationResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCShowcaseModerationApplyModerationResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 

@@ -23,10 +23,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `appid` | `uint32` | `optional` | `` |  |
-| 2 | `log_type` | `string` | `optional` | `` |  |
-| 3 | `version_string` | `string` | `optional` | `` |  |
-| 4 | `log_contents` | `string` | `optional` | `` |  |
+| 1 | `appid` | `uint32` | `optional` |  |  |
+| 2 | `log_type` | `string` | `optional` |  |  |
+| 3 | `version_string` | `string` | `optional` |  |  |
+| 4 | `log_contents` | `string` | `optional` |  |  |
 
 </details>
 
@@ -38,7 +38,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `id` | `uint64` | `optional` | `` |  |
+| 1 | `id` | `uint64` | `optional` |  |  |
 
 </details>
 

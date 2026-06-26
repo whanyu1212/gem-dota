@@ -24,9 +24,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `connection_id` | `fixed32` | `optional` | `` |  |
-| 3 | `my_timestamp` | `fixed64` | `optional` | `` |  |
-| 4 | `protocol_version` | `uint32` | `optional` | `` |  |
+| 1 | `connection_id` | `fixed32` | `optional` |  |  |
+| 3 | `my_timestamp` | `fixed64` | `optional` |  |  |
+| 4 | `protocol_version` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -38,10 +38,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `connection_id` | `fixed32` | `optional` | `` |  |
-| 2 | `challenge` | `fixed64` | `optional` | `` |  |
-| 3 | `your_timestamp` | `fixed64` | `optional` | `` |  |
-| 4 | `protocol_version` | `uint32` | `optional` | `` |  |
+| 1 | `connection_id` | `fixed32` | `optional` |  |  |
+| 2 | `challenge` | `fixed64` | `optional` |  |  |
+| 3 | `your_timestamp` | `fixed64` | `optional` |  |  |
+| 4 | `protocol_version` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -53,16 +53,16 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `client_connection_id` | `fixed32` | `optional` | `` |  |
-| 2 | `challenge` | `fixed64` | `optional` | `` |  |
-| 3 | `legacy_client_steam_id` | `fixed64` | `optional` | `` |  |
-| 4 | `cert` | `.CMsgSteamDatagramCertificateSigned` | `optional` | `` |  |
-| 5 | `my_timestamp` | `fixed64` | `optional` | `` |  |
-| 6 | `ping_est_ms` | `uint32` | `optional` | `` |  |
-| 7 | `crypt` | `.CMsgSteamDatagramSessionCryptInfoSigned` | `optional` | `` |  |
-| 8 | `legacy_protocol_version` | `uint32` | `optional` | `` |  |
-| 9 | `legacy_identity_binary` | `.CMsgSteamNetworkingIdentityLegacyBinary` | `optional` | `` |  |
-| 10 | `identity_string` | `string` | `optional` | `` |  |
+| 1 | `client_connection_id` | `fixed32` | `optional` |  |  |
+| 2 | `challenge` | `fixed64` | `optional` |  |  |
+| 3 | `legacy_client_steam_id` | `fixed64` | `optional` |  |  |
+| 4 | `cert` | `.CMsgSteamDatagramCertificateSigned` | `optional` |  |  |
+| 5 | `my_timestamp` | `fixed64` | `optional` |  |  |
+| 6 | `ping_est_ms` | `uint32` | `optional` |  |  |
+| 7 | `crypt` | `.CMsgSteamDatagramSessionCryptInfoSigned` | `optional` |  |  |
+| 8 | `legacy_protocol_version` | `uint32` | `optional` |  |  |
+| 9 | `legacy_identity_binary` | `.CMsgSteamNetworkingIdentityLegacyBinary` | `optional` |  |  |
+| 10 | `identity_string` | `string` | `optional` |  |  |
 
 </details>
 
@@ -74,15 +74,15 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `client_connection_id` | `fixed32` | `optional` | `` |  |
-| 2 | `legacy_server_steam_id` | `fixed64` | `optional` | `` |  |
-| 3 | `your_timestamp` | `fixed64` | `optional` | `` |  |
-| 4 | `delay_time_usec` | `uint32` | `optional` | `` |  |
-| 5 | `server_connection_id` | `fixed32` | `optional` | `` |  |
-| 7 | `crypt` | `.CMsgSteamDatagramSessionCryptInfoSigned` | `optional` | `` |  |
-| 8 | `cert` | `.CMsgSteamDatagramCertificateSigned` | `optional` | `` |  |
-| 10 | `legacy_identity_binary` | `.CMsgSteamNetworkingIdentityLegacyBinary` | `optional` | `` |  |
-| 11 | `identity_string` | `string` | `optional` | `` |  |
+| 1 | `client_connection_id` | `fixed32` | `optional` |  |  |
+| 2 | `legacy_server_steam_id` | `fixed64` | `optional` |  |  |
+| 3 | `your_timestamp` | `fixed64` | `optional` |  |  |
+| 4 | `delay_time_usec` | `uint32` | `optional` |  |  |
+| 5 | `server_connection_id` | `fixed32` | `optional` |  |  |
+| 7 | `crypt` | `.CMsgSteamDatagramSessionCryptInfoSigned` | `optional` |  |  |
+| 8 | `cert` | `.CMsgSteamDatagramCertificateSigned` | `optional` |  |  |
+| 10 | `legacy_identity_binary` | `.CMsgSteamNetworkingIdentityLegacyBinary` | `optional` |  |  |
+| 11 | `identity_string` | `string` | `optional` |  |  |
 
 </details>
 
@@ -94,10 +94,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 2 | `debug` | `string` | `optional` | `` |  |
-| 3 | `reason_code` | `uint32` | `optional` | `` |  |
-| 4 | `to_connection_id` | `fixed32` | `optional` | `` |  |
-| 5 | `from_connection_id` | `fixed32` | `optional` | `` |  |
+| 2 | `debug` | `string` | `optional` |  |  |
+| 3 | `reason_code` | `uint32` | `optional` |  |  |
+| 4 | `to_connection_id` | `fixed32` | `optional` |  |  |
+| 5 | `from_connection_id` | `fixed32` | `optional` |  |  |
 
 </details>
 
@@ -109,8 +109,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 2 | `from_connection_id` | `fixed32` | `optional` | `` |  |
-| 3 | `to_connection_id` | `fixed32` | `optional` | `` |  |
+| 2 | `from_connection_id` | `fixed32` | `optional` |  |  |
+| 3 | `to_connection_id` | `fixed32` | `optional` |  |  |
 
 </details>
 
@@ -122,8 +122,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `stats` | `.CMsgSteamDatagramConnectionQuality` | `optional` | `` |  |
-| 3 | `flags` | `uint32` | `optional` | `` |  |
+| 1 | `stats` | `.CMsgSteamDatagramConnectionQuality` | `optional` |  |  |
+| 3 | `flags` | `uint32` | `optional` |  |  |
 
 </details>
 

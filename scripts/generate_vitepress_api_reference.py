@@ -419,8 +419,11 @@ def _render_class(cls: ast.ClassDef, context: ModuleContext) -> list[str]:
             out.append("| Name | Type | Default |")
             out.append("|---|---|---|")
             for name, ann, default in fields:
-                ann_text = ann or "-"
-                default_text = default or "-"
+                # Escape pipes so union types (``int | None``) do not split the
+                # markdown table into extra columns. The cells are wrapped in
+                # inline code, where ``\|`` renders as a literal pipe.
+                ann_text = (ann or "-").replace("|", "\\|")
+                default_text = (default or "-").replace("|", "\\|")
                 out.append(f"| `{name}` | `{ann_text}` | `{default_text}` |")
             out.append("")
 

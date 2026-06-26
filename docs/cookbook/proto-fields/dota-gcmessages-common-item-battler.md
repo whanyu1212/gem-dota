@@ -26,11 +26,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `rank` | `uint32` | `optional` | `` |  |
-| 3 | `run_count` | `uint32` | `optional` | `` |  |
-| 4 | `victory_count` | `uint32` | `optional` | `` |  |
-| 5 | `concede_count` | `uint32` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `rank` | `uint32` | `optional` |  |  |
+| 3 | `run_count` | `uint32` | `optional` |  |  |
+| 4 | `victory_count` | `uint32` | `optional` |  |  |
+| 5 | `concede_count` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -42,9 +42,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `type` | `uint32` | `optional` | `` |  |
-| 2 | `value` | `float` | `optional` | `` |  |
-| 3 | `multiplicative` | `bool` | `optional` | `` |  |
+| 1 | `type` | `uint32` | `optional` |  |  |
+| 2 | `value` | `float` | `optional` |  |  |
+| 3 | `multiplicative` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -56,12 +56,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `item_definition_id` | `uint32` | `optional` | `` |  |
-| 2 | `item_instance_id` | `uint32` | `optional` | `` |  |
-| 3 | `item_container_id` | `uint32` | `optional` | `` |  |
-| 4 | `position_x` | `uint32` | `optional` | `` |  |
-| 5 | `position_y` | `uint32` | `optional` | `` |  |
-| 6 | `permanent_modifiers` | `.CMsgItemBattlerItemModifier` | `repeated` | `` |  |
+| 1 | `item_definition_id` | `uint32` | `optional` |  |  |
+| 2 | `item_instance_id` | `uint32` | `optional` |  |  |
+| 3 | `item_container_id` | `uint32` | `optional` |  |  |
+| 4 | `position_x` | `uint32` | `optional` |  |  |
+| 5 | `position_y` | `uint32` | `optional` |  |  |
+| 6 | `permanent_modifiers` | `.CMsgItemBattlerItemModifier` | `repeated` |  |  |
 
 </details>
 
@@ -73,11 +73,11 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `item_container_id` | `uint32` | `optional` | `` |  |
-| 2 | `item_slot_ids` | `uint32` | `repeated` | `` |  |
-| 3 | `width` | `int32` | `optional` | `` |  |
-| 4 | `height` | `int32` | `optional` | `` |  |
-| 5 | `is_shop` | `bool` | `optional` | `` |  |
+| 1 | `item_container_id` | `uint32` | `optional` |  |  |
+| 2 | `item_slot_ids` | `uint32` | `repeated` |  |  |
+| 3 | `width` | `int32` | `optional` |  |  |
+| 4 | `height` | `int32` | `optional` |  |  |
+| 5 | `is_shop` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -89,13 +89,13 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `item_instance_id` | `uint32` | `optional` | `` |  |
-| 2 | `item_target_instance_ids` | `uint32` | `repeated` | `` |  |
-| 3 | `tick` | `uint32` | `optional` | `` |  |
-| 4 | `effect` | `uint32` | `optional` | `` |  |
-| 5 | `value` | `int32` | `optional` | `` |  |
-| 6 | `critical` | `bool` | `optional` | `` |  |
-| 7 | `lifesteal_healing` | `uint32` | `optional` | `` |  |
+| 1 | `item_instance_id` | `uint32` | `optional` |  |  |
+| 2 | `item_target_instance_ids` | `uint32` | `repeated` |  |  |
+| 3 | `tick` | `uint32` | `optional` |  |  |
+| 4 | `effect` | `uint32` | `optional` |  |  |
+| 5 | `value` | `int32` | `optional` |  |  |
+| 6 | `critical` | `bool` | `optional` |  |  |
+| 7 | `lifesteal_healing` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -107,9 +107,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `win` | `bool` | `optional` | `` |  |
-| 2 | `events` | `.CMsgItemBattlerFightEvent` | `repeated` | `` |  |
-| 3 | `error` | `bool` | `optional` | `` |  |
+| 1 | `win` | `bool` | `optional` |  |  |
+| 2 | `events` | `.CMsgItemBattlerFightEvent` | `repeated` |  |  |
+| 3 | `error` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -121,21 +121,21 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` | `` |  |
-| 2 | `hero_id` | `uint32` | `optional` | `` |  |
-| 3 | `monster_id` | `uint32` | `optional` | `` |  |
-| 4 | `board` | `.CMsgItemBattlerItemContainer` | `optional` | `` |  |
-| 5 | `wins` | `int32` | `optional` | `` |  |
-| 6 | `losses` | `int32` | `optional` | `` |  |
-| 7 | `prestige` | `int32` | `optional` | `` |  |
-| 8 | `level` | `uint32` | `optional` | `` |  |
-| 9 | `experience` | `int32` | `optional` | `` |  |
-| 10 | `skills` | `uint32` | `repeated` | `` |  |
-| 11 | `income` | `int32` | `optional` | `` |  |
-| 12 | `gold` | `int32` | `optional` | `` |  |
-| 13 | `base_max_health` | `uint32` | `optional` | `` |  |
-| 14 | `bonus_max_health` | `uint32` | `optional` | `` |  |
-| 15 | `abilities` | `.CMsgItemBattlerItemContainer` | `optional` | `` |  |
+| 1 | `account_id` | `uint32` | `optional` |  |  |
+| 2 | `hero_id` | `uint32` | `optional` |  |  |
+| 3 | `monster_id` | `uint32` | `optional` |  |  |
+| 4 | `board` | `.CMsgItemBattlerItemContainer` | `optional` |  |  |
+| 5 | `wins` | `int32` | `optional` |  |  |
+| 6 | `losses` | `int32` | `optional` |  |  |
+| 7 | `prestige` | `int32` | `optional` |  |  |
+| 8 | `level` | `uint32` | `optional` |  |  |
+| 9 | `experience` | `int32` | `optional` |  |  |
+| 10 | `skills` | `uint32` | `repeated` |  |  |
+| 11 | `income` | `int32` | `optional` |  |  |
+| 12 | `gold` | `int32` | `optional` |  |  |
+| 13 | `base_max_health` | `uint32` | `optional` |  |  |
+| 14 | `bonus_max_health` | `uint32` | `optional` |  |  |
+| 15 | `abilities` | `.CMsgItemBattlerItemContainer` | `optional` |  |  |
 
 </details>
 
@@ -147,9 +147,9 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `is_shop` | `bool` | `optional` | `` |  |
-| 2 | `encounter_id` | `uint32` | `optional` | `` |  |
-| 3 | `shop_items` | `.CMsgItemBattlerItemContainer` | `optional` | `` |  |
+| 1 | `is_shop` | `bool` | `optional` |  |  |
+| 2 | `encounter_id` | `uint32` | `optional` |  |  |
+| 3 | `shop_items` | `.CMsgItemBattlerItemContainer` | `optional` |  |  |
 
 </details>
 
@@ -161,10 +161,10 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `player_data` | `.CMsgItemBattlerPlayerData` | `optional` | `` |  |
-| 2 | `items` | `.CMsgItemBattlerGhostData.ItemsEntry` | `repeated` | `` |  |
-| 3 | `day` | `int32` | `optional` | `` |  |
-| 4 | `abilities` | `.CMsgItemBattlerGhostData.AbilitiesEntry` | `repeated` | `` |  |
+| 1 | `player_data` | `.CMsgItemBattlerPlayerData` | `optional` |  |  |
+| 2 | `items` | `.CMsgItemBattlerGhostData.ItemsEntry` | `repeated` |  |  |
+| 3 | `day` | `int32` | `optional` |  |  |
+| 4 | `abilities` | `.CMsgItemBattlerGhostData.AbilitiesEntry` | `repeated` |  |  |
 
 </details>
 
@@ -176,8 +176,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `key` | `uint32` | `optional` | `` |  |
-| 2 | `value` | `.CMsgItemBattlerItem` | `optional` | `` |  |
+| 1 | `key` | `uint32` | `optional` |  |  |
+| 2 | `value` | `.CMsgItemBattlerItem` | `optional` |  |  |
 
 </details>
 
@@ -189,8 +189,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `key` | `uint32` | `optional` | `` |  |
-| 2 | `value` | `.CMsgItemBattlerItem` | `optional` | `` |  |
+| 1 | `key` | `uint32` | `optional` |  |  |
+| 2 | `value` | `.CMsgItemBattlerItem` | `optional` |  |  |
 
 </details>
 
@@ -202,20 +202,20 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `run_active` | `bool` | `optional` | `` |  |
-| 2 | `run_id` | `uint32` | `optional` | `` |  |
-| 3 | `game_state` | `.EItemBattlerGameState` | `optional` | `` | default = k_eGameState_Invalid |
-| 4 | `player_data` | `.CMsgItemBattlerPlayerData` | `optional` | `` |  |
-| 5 | `opponent_data` | `.CMsgItemBattlerPlayerData` | `optional` | `` |  |
-| 6 | `stash` | `.CMsgItemBattlerItemContainer` | `optional` | `` |  |
-| 7 | `encounter` | `.CMsgItemBattlerEncounterData` | `optional` | `` |  |
-| 8 | `fight_result` | `.CMsgItemBattlerFightResult` | `optional` | `` |  |
-| 9 | `items` | `.CMsgItemBattlerWorldData.ItemsEntry` | `repeated` | `` |  |
-| 10 | `day` | `int32` | `optional` | `` |  |
-| 11 | `hour` | `int32` | `optional` | `` |  |
-| 12 | `encounter_choices` | `uint32` | `repeated` | `` |  |
-| 13 | `monster_choices` | `uint32` | `repeated` | `` |  |
-| 14 | `conceded` | `bool` | `optional` | `` |  |
+| 1 | `run_active` | `bool` | `optional` |  |  |
+| 2 | `run_id` | `uint32` | `optional` |  |  |
+| 3 | `game_state` | `.EItemBattlerGameState` | `optional` |  | default = k_eGameState_Invalid |
+| 4 | `player_data` | `.CMsgItemBattlerPlayerData` | `optional` |  |  |
+| 5 | `opponent_data` | `.CMsgItemBattlerPlayerData` | `optional` |  |  |
+| 6 | `stash` | `.CMsgItemBattlerItemContainer` | `optional` |  |  |
+| 7 | `encounter` | `.CMsgItemBattlerEncounterData` | `optional` |  |  |
+| 8 | `fight_result` | `.CMsgItemBattlerFightResult` | `optional` |  |  |
+| 9 | `items` | `.CMsgItemBattlerWorldData.ItemsEntry` | `repeated` |  |  |
+| 10 | `day` | `int32` | `optional` |  |  |
+| 11 | `hour` | `int32` | `optional` |  |  |
+| 12 | `encounter_choices` | `uint32` | `repeated` |  |  |
+| 13 | `monster_choices` | `uint32` | `repeated` |  |  |
+| 14 | `conceded` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -227,8 +227,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `key` | `uint32` | `optional` | `` |  |
-| 2 | `value` | `.CMsgItemBattlerItem` | `optional` | `` |  |
+| 1 | `key` | `uint32` | `optional` |  |  |
+| 2 | `value` | `.CMsgItemBattlerItem` | `optional` |  |  |
 
 </details>
 
@@ -240,8 +240,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `seed` | `uint32` | `optional` | `` |  |
-| 2 | `world_data` | `.CMsgItemBattlerWorldData` | `optional` | `` |  |
+| 1 | `seed` | `uint32` | `optional` |  |  |
+| 2 | `world_data` | `.CMsgItemBattlerWorldData` | `optional` |  |  |
 
 </details>
 
@@ -265,8 +265,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCItemBattlerGetUserDataResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `world_data` | `.CMsgItemBattlerWorldData` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCItemBattlerGetUserDataResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `world_data` | `.CMsgItemBattlerWorldData` | `optional` |  |  |
 
 </details>
 
@@ -290,12 +290,12 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `action` | `.CMsgClientToGCItemBattlerGameAction.EAction` | `optional` | `` | default = k_eInvalid |
-| 2 | `choice_index` | `uint32` | `optional` | `` |  |
-| 3 | `item_instance_id` | `uint32` | `optional` | `` |  |
-| 4 | `item_container_id` | `uint32` | `optional` | `` |  |
-| 5 | `item_position_x` | `uint32` | `optional` | `` |  |
-| 6 | `item_position_y` | `uint32` | `optional` | `` |  |
+| 1 | `action` | `.CMsgClientToGCItemBattlerGameAction.EAction` | `optional` |  | default = k_eInvalid |
+| 2 | `choice_index` | `uint32` | `optional` |  |  |
+| 3 | `item_instance_id` | `uint32` | `optional` |  |  |
+| 4 | `item_container_id` | `uint32` | `optional` |  |  |
+| 5 | `item_position_x` | `uint32` | `optional` |  |  |
+| 6 | `item_position_y` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -307,8 +307,8 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCItemBattlerGameActionResponse.EResponse` | `optional` | `` | default = k_eInternalError |
-| 2 | `updated_world_data` | `.CMsgItemBattlerWorldData` | `optional` | `` |  |
+| 1 | `response` | `.CMsgClientToGCItemBattlerGameActionResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `updated_world_data` | `.CMsgItemBattlerWorldData` | `optional` |  |  |
 
 </details>
 
@@ -320,7 +320,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `item_definition_id` | `uint32` | `optional` | `` |  |
+| 1 | `item_definition_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -332,7 +332,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `response` | `.CMsgClientToGCItemBattlerDevGrantItemResponse.EResponse` | `optional` | `` | default = k_eInternalError |
+| 1 | `response` | `.CMsgClientToGCItemBattlerDevGrantItemResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -344,7 +344,7 @@ Expand any message to inspect all fields.
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `world_data` | `.CMsgItemBattlerWorldData` | `optional` | `` |  |
+| 1 | `world_data` | `.CMsgItemBattlerWorldData` | `optional` |  |  |
 
 </details>
 

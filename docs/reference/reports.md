@@ -27,9 +27,9 @@ Source: [src/gem/reports/assets.py:12](https://github.com/whanyu1212/gem-dota/bl
 
 | Name | Type | Default |
 |---|---|---|
-| `map_image` | `str | Path | None` | `None` |
-| `hero_icon_dir` | `str | Path | None` | `None` |
-| `item_icon_dir` | `str | Path | None` | `None` |
+| `map_image` | `str \| Path \| None` | `None` |
+| `hero_icon_dir` | `str \| Path \| None` | `None` |
+| `item_icon_dir` | `str \| Path \| None` | `None` |
 
 #### Methods
 
