@@ -24,6 +24,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   centroids, and vision-modifier windows are identical (verified end-to-end on a
   replay fixture); the extractors are internal and not part of the public API.
   (#106 item #2)
+- **Internal:** the ~234-line per-player population loop in
+  `results/assembly.build_parsed_match` is extracted into a dedicated
+  `_populate_player_series(match, ...)` helper, shrinking the orchestrator from
+  527 to ~310 lines. Each player slot is populated independently (no cross-player
+  state), so the loop moved verbatim behind an explicit keyword-only signature.
+  No output change — the OpenDota parity validator and the full suite are
+  unchanged. (#106 item #3)
 
 ## [0.4.2] - 2026-06-25
 
