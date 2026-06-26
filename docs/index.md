@@ -16,20 +16,6 @@ title: Gem
   </div>
 </section>
 
-<div class="gem-readout" role="img" aria-label="A replay decoding from raw bytes into a typed ParsedMatch object.">
-  <div class="gem-readout-head">
-    <span class="gem-readout-name">replay.dem</span>
-    <span class="gem-readout-meta">PBDEMS2 · 142 MB</span>
-  </div>
-  <div class="gem-readout-stream">
-    <span class="gem-readout-row"><i>tick</i><b>0x0001f4</b><em>net_Tick</em></span>
-    <span class="gem-readout-row"><i>strtab</i><b>instancebaseline</b><em>baselines ready</em></span>
-    <span class="gem-readout-row"><i>entity</i><b>#612 CREATE</b><em>CDOTA_Unit_Hero</em></span>
-    <span class="gem-readout-row"><i>combat</i><b>DEATH</b><em>hero ← hero</em></span>
-    <span class="gem-readout-row gem-readout-row--out"><i>parsed</i><b>ParsedMatch</b><em>10 players · 42.3 min</em></span>
-  </div>
-</div>
-
 <div class="gem-trust">
   <a class="gem-trust-item" href="https://pypi.org/project/gem-dota/" target="_blank" rel="noreferrer">
     <span class="gem-trust-k">Install</span>
@@ -61,9 +47,19 @@ Requires Python 3.10+. The import name is `gem`; the PyPI package is `gem-dota`.
 
 ```python
 import gem
+from gem.constants import hero_display
 
-match = gem.parse("my_replay.dem")
-print(match.duration_minutes, "min,", len(match.players), "players")
+# Parse a local replay into a typed ParsedMatch object.
+match = gem.parse("replay.dem")
+print(match.duration_minutes, "min ·", len(match.players), "players")
+
+# Every field is a real Python attribute — inspect players directly.
+for p in match.players:
+    print(hero_display(p.hero_name), p.net_worth, p.kills, p.deaths)
+
+# Or pull analysis-ready pandas DataFrames in one call.
+frames = gem.parse_to_dataframe("replay.dem")
+frames["combat_log"].head()
 ```
 
 ## What you can do

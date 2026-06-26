@@ -195,6 +195,40 @@ body {
   border-color: color-mix(in srgb, var(--gem-accent), transparent 52%);
 }
 
+/* ---- Changelog: minimalist, single-tone callouts ------------------ */
+/* The changelog uses tip/info/warning blocks purely for structure, not
+   severity, so flatten them all to one neutral tone on that page only.
+   Scoped via `pageClass: changelog-minimal` in the page frontmatter so
+   semantic colors stay intact everywhere else in the docs. */
+.changelog-minimal .custom-block.tip,
+.changelog-minimal .custom-block.info,
+.changelog-minimal .custom-block.warning {
+  border-color: var(--vp-c-divider);
+  background: var(--gem-surface-soft);
+}
+
+.changelog-minimal .custom-block.tip .custom-block-title,
+.changelog-minimal .custom-block.info .custom-block-title,
+.changelog-minimal .custom-block.warning .custom-block-title {
+  color: var(--vp-c-text-1);
+}
+
+.changelog-minimal .custom-block.tip a,
+.changelog-minimal .custom-block.info a,
+.changelog-minimal .custom-block.warning a {
+  color: var(--vp-c-brand-1);
+}
+
+/* Inline code inside these blocks otherwise inherits the block's accent
+   (e.g. amber in `warning`); pin it to the normal code colors so chips read
+   identically across every changelog block. */
+.changelog-minimal .custom-block.tip code,
+.changelog-minimal .custom-block.info code,
+.changelog-minimal .custom-block.warning code {
+  background: var(--vp-code-bg);
+  color: var(--vp-code-color);
+}
+
 /* ---- Hero: copy then replay readout (stacked) --------------------- */
 
 .gem-hero {
@@ -241,98 +275,6 @@ body {
   gap: 0.72rem;
   margin-top: 1.5rem;
 }
-
-/* Signature element: a replay decoding from bytes to a typed object. */
-.gem-readout {
-  overflow: hidden;
-  margin: 0 0 1.8rem;
-  border: 1px solid color-mix(in srgb, var(--vp-c-brand-1), transparent 56%);
-  border-radius: calc(var(--gem-radius) + 2px);
-  background:
-    radial-gradient(120% 120% at 100% 0%, rgba(94, 224, 160, 0.12), transparent 55%),
-    #0b1410;
-  box-shadow: 0 22px 48px rgba(7, 18, 12, 0.3);
-  font-family: var(--vp-font-family-mono);
-  animation: gem-rise 560ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
-  animation-delay: 90ms;
-}
-
-.gem-readout-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.6rem 0.95rem;
-  border-bottom: 1px solid rgba(135, 231, 179, 0.16);
-  background: rgba(135, 231, 179, 0.05);
-}
-
-.gem-readout-name {
-  color: #d6efe1;
-  font-size: 0.82rem;
-  font-weight: 600;
-}
-
-.gem-readout-meta {
-  color: #6f8a7d;
-  font-size: 0.74rem;
-}
-
-.gem-readout-stream {
-  display: flex;
-  flex-direction: column;
-  padding: 0.5rem 0.4rem 0.7rem;
-}
-
-.gem-readout-row {
-  display: grid;
-  grid-template-columns: 4.2rem minmax(0, auto) 1fr;
-  align-items: baseline;
-  gap: 0.7rem;
-  padding: 0.34rem 0.6rem;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  white-space: nowrap;
-  animation: gem-feed 460ms ease both;
-}
-
-.gem-readout-row:nth-child(1) { animation-delay: 0.32s; }
-.gem-readout-row:nth-child(2) { animation-delay: 0.46s; }
-.gem-readout-row:nth-child(3) { animation-delay: 0.6s; }
-.gem-readout-row:nth-child(4) { animation-delay: 0.74s; }
-.gem-readout-row:nth-child(5) { animation-delay: 0.92s; }
-
-.gem-readout-row i {
-  color: #4f7d66;
-  font-style: normal;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-size: 0.68rem;
-}
-
-.gem-readout-row b {
-  color: #87e7b3;
-  font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.gem-readout-row em {
-  color: #7f9c8e;
-  font-style: normal;
-  text-align: right;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.gem-readout-row--out {
-  margin-top: 0.25rem;
-  background: rgba(94, 224, 160, 0.1);
-}
-
-.gem-readout-row--out i { color: var(--gem-accent); }
-.gem-readout-row--out b { color: #effff5; }
-.gem-readout-row--out em { color: #b7d9c8; }
 
 /* ---- Trust strip --------------------------------------------------- */
 
@@ -606,19 +548,6 @@ a.gem-trust-item:hover {
   color: #ffb4a8;
 }
 
-.mermaid {
-  display: flex;
-  justify-content: center;
-  margin: 1.5rem auto;
-}
-
-.mermaid svg {
-  width: 100%;
-  max-width: 860px;
-  height: auto;
-  border-radius: var(--gem-radius);
-}
-
 .arch-layers {
   display: flex;
   flex-direction: column;
@@ -704,6 +633,90 @@ a.gem-trust-item:hover {
 
 .arch-layer--output .arch-badge {
   background: rgba(233, 30, 99, 0.16);
+}
+
+/* ---- Pipeline flow (CSS, replaces Mermaid) ------------------------- */
+
+.arch-flow {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  margin: 1.5rem 0;
+}
+
+.arch-flow-node {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--vp-c-divider);
+  border-left-width: 3px;
+  border-radius: var(--gem-radius);
+  background: var(--gem-surface);
+  box-shadow: 0 1px 0 rgba(20, 34, 27, 0.03);
+}
+
+.arch-flow-title {
+  font-size: 0.78rem;
+  font-weight: 760;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--vp-c-text-1);
+}
+
+.arch-flow-desc {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--vp-c-text-2);
+}
+
+.arch-flow-desc code {
+  font-size: 0.82em;
+}
+
+/* Downward connectors between stages. */
+.arch-flow-arrow {
+  align-self: center;
+  padding: 0.15rem 0;
+  color: var(--vp-c-brand-1);
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+/* Parallel branch: Events + Extractors both consume schema state and
+   both feed assembly. */
+.arch-flow-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+}
+
+/* Reuse the per-layer accent colors from the "Layers at a glance" band so
+   a given layer reads the same color in both the flow and the inventory. */
+.arch-flow--io {
+  border-left-color: #7c4dff;
+  background: rgba(103, 80, 164, 0.06);
+}
+
+.arch-flow--parse {
+  border-left-color: #2196f3;
+  background: rgba(33, 150, 243, 0.06);
+}
+
+.arch-flow--extract {
+  border-left-color: #009688;
+  background: rgba(0, 150, 136, 0.06);
+}
+
+.arch-flow--assemble {
+  border-left-color: #ff9800;
+  background: rgba(255, 152, 0, 0.06);
+}
+
+.arch-flow--output {
+  border-left-color: #e91e63;
+  background: rgba(233, 30, 99, 0.06);
 }
 
 .output-table {
@@ -810,6 +823,10 @@ a.gem-trust-item:hover {
   .arch-layer {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .arch-flow-split {
+    grid-template-columns: 1fr;
   }
 }
 

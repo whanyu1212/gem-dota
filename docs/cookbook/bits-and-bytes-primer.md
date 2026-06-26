@@ -1,4 +1,4 @@
-# Bits & Bytes Primer (Dota Replay Context)
+# Bits & Bytes Primer
 
 This page is a practical prerequisite for parser deep dives.
 

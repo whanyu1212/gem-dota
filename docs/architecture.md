@@ -5,55 +5,59 @@ This page shows how the modules fit together and what each layer produces.
 
 ## Pipeline
 
-```mermaid
-flowchart TD
-    A(["gem.parse()  /  gem.parse_to_dataframe()"])
+Data flows top to bottom in a single pass. The schema layer feeds two parallel
+consumers — event processing and the extractors — which both fan back into
+assembly.
 
-    subgraph BINARY ["Binary decoding"]
-        direction LR
-        B["binary/stream.py<br/>outer frames"] --> C["binary/reader.py<br/>bits & varints"]
-    end
+<div class="arch-flow">
 
-    subgraph SCHEMA ["Schema & state"]
-        direction LR
-        D["schema/sendtable/<br/>serializer tree"] --> E["schema/field_decoder/<br/>type dispatch"]
-        D --> F["schema/field_path/<br/>Huffman paths"]
-        G["state/string_table.py<br/>key-value tables"]
-        H["state/entities.py<br/>delta updates"]
-    end
+  <div class="arch-flow-node arch-flow--io">
+    <span class="arch-flow-title">Entry point</span>
+    <span class="arch-flow-desc"><code>gem.parse()</code> · <code>gem.parse_to_dataframe()</code></span>
+  </div>
 
-    subgraph EVENTS ["Events"]
-        direction LR
-        I["state/game_events.py"]
-        J["combat/log.py"]
-    end
+  <div class="arch-flow-arrow" aria-hidden="true">↓</div>
 
-    subgraph EXTRACT ["Extractors"]
-        direction LR
-        X1["players"]
-        X2["objectives"]
-        X3["wards"]
-        X4["courier"]
-        X5["draft"]
-        X6["teamfights"]
-    end
+  <div class="arch-flow-node arch-flow--parse">
+    <span class="arch-flow-title">Binary decoding</span>
+    <span class="arch-flow-desc">Outer demo frames → bits, bytes, and varints</span>
+  </div>
 
-    subgraph ASSEMBLE ["Assembly"]
-        K["combat/aggregator.py"] --> L["results/assembly.py"]
-    end
+  <div class="arch-flow-arrow" aria-hidden="true">↓</div>
 
-    O(["ParsedMatch"])
-    P(["dict[str, DataFrame]  /  JSON  /  Parquet"])
+  <div class="arch-flow-node arch-flow--parse">
+    <span class="arch-flow-title">Schema &amp; state</span>
+    <span class="arch-flow-desc">Serializer tree, field decoders, string tables, entity deltas</span>
+  </div>
 
-    A --> BINARY
-    BINARY --> SCHEMA
-    SCHEMA --> EVENTS
-    SCHEMA --> EXTRACT
-    EVENTS --> ASSEMBLE
-    EXTRACT --> ASSEMBLE
-    ASSEMBLE --> O
-    O --> P
-```
+  <div class="arch-flow-arrow arch-flow-arrow--split" aria-hidden="true">↓</div>
+
+  <div class="arch-flow-split">
+    <div class="arch-flow-node arch-flow--parse">
+      <span class="arch-flow-title">Events</span>
+      <span class="arch-flow-desc">Game events &amp; the combat log (S1 + S2)</span>
+    </div>
+    <div class="arch-flow-node arch-flow--extract">
+      <span class="arch-flow-title">Extractors</span>
+      <span class="arch-flow-desc">Players, objectives, wards, courier, draft, teamfights</span>
+    </div>
+  </div>
+
+  <div class="arch-flow-arrow arch-flow-arrow--merge" aria-hidden="true">↓</div>
+
+  <div class="arch-flow-node arch-flow--assemble">
+    <span class="arch-flow-title">Assembly</span>
+    <span class="arch-flow-desc">Combat aggregation → typed result assembly</span>
+  </div>
+
+  <div class="arch-flow-arrow" aria-hidden="true">↓</div>
+
+  <div class="arch-flow-node arch-flow--output">
+    <span class="arch-flow-title">Output</span>
+    <span class="arch-flow-desc"><code>ParsedMatch</code> → DataFrames · JSON · Parquet</span>
+  </div>
+
+</div>
 
 ## Layers at a glance
 
