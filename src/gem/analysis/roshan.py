@@ -19,7 +19,7 @@ from gem.analysis._shared import (
 )
 
 if TYPE_CHECKING:
-    from gem.extractors.objectives import AegisEvent
+    from gem.extractors.objectives import AegisEvent, BannerPlant
     from gem.extractors.teamfights import Teamfight
     from gem.results.models import ParsedMatch
 
@@ -28,6 +28,35 @@ _AEGIS_DURATION_TICKS = 5 * 60 * _TICKS_PER_SEC
 _IMMEDIATE_WINDOW_TICKS = 180 * _TICKS_PER_SEC
 _ASSOCIATION_WINDOW_TICKS = 30 * _TICKS_PER_SEC
 _POST_CONSUME_GRACE_TICKS = 30 * _TICKS_PER_SEC
+
+# Roshan drops worth flagging beyond the always-present Aegis. Cheese (burst
+# heal/mana), the Refresher Shard (a free ultimate reset), and Roshan's Banner
+# (a pushing siege unit) all materially raise the stakes of the kill. Surfaced
+# descriptively only — they deliberately do not affect ``conversion_score`` or
+# ``conversion_label`` so downstream consumers can weight them themselves.
+_HIGH_VALUE_DROPS = frozenset({"cheese", "refresher_shard", "banner"})
+
+# Lanes recognised in a barracks NPC name suffix (``..._rax_<lane>``).
+_RAX_LANES = ("top", "mid", "bot")
+
+
+def _rax_lane(barracks_name: str) -> str | None:
+    """Return the lane (``"top"``/``"mid"``/``"bot"``) from a barracks NPC name.
+
+    Mirrors the suffix parse in ``results/derived.py::_rax_bit`` but yields the
+    lane token rather than a status-bit index — kept local so this post-parse
+    module does not depend on the assembly layer.
+
+    Args:
+        barracks_name: e.g. ``"npc_dota_badguys_melee_rax_mid"``.
+
+    Returns:
+        The lane token, or ``None`` if no recognised lane suffix is present.
+    """
+    for lane in _RAX_LANES:
+        if barracks_name.endswith(f"_rax_{lane}"):
+            return lane
+    return None
 
 
 @dataclass
@@ -53,11 +82,41 @@ class RoshTimelineEvent:
 
 @dataclass
 class RoshConversion:
-    """Derived summary for one Roshan kill and the advantage window that followed."""
+    """Derived summary for one Roshan kill and the advantage window that followed.
+
+    Most fields summarise the Aegis window (holder, fights, objectives, map
+    control). ``drops`` and ``had_high_value_drop`` describe what Roshan yielded
+    beyond the Aegis itself.
+
+    Attributes:
+        drops: Short drop names captured from entity state at the kill tick (e.g.
+            ``["aegis", "cheese", "banner"]``). Mirrors ``RoshanKill.drops`` and
+            always includes ``"aegis"``. Empty only if drop tracking found nothing.
+        had_high_value_drop: ``True`` when a non-Aegis premium drop (cheese,
+            refresher shard, or banner) was present. Provided as a convenience
+            signal; it does not influence ``conversion_score`` or
+            ``conversion_label``.
+        banner_planted: ``True`` when the Roshan holder's team planted a Roshan's
+            Banner inside this conversion window. Independent of whether the
+            ``"banner"`` drop was recorded — a banner from an *earlier* Roshan can
+            be planted in this window.
+        banner_rax_conversion: ``True`` when ``banner_planted`` and at least one
+            enemy barracks fell *after* that plant within the window — an
+            associative (lane + time) signal that the banner's siege push helped
+            break a rax, not a proven spatial link. Like the drop flags it does
+            not influence ``conversion_score`` or ``conversion_label``.
+        banner_rax_lane: Lane (``"top"``/``"mid"``/``"bot"``) of the earliest such
+            converted barracks, or ``None`` when there is no banner→rax link.
+    """
 
     rosh_number: int
     rosh_tick: int
     killer_name: str
+    drops: list[str]
+    had_high_value_drop: bool
+    banner_planted: bool
+    banner_rax_conversion: bool
+    banner_rax_lane: str | None
     holder_team: int | None
     holder_player_id: int | None
     holder_name: str
@@ -237,6 +296,50 @@ def _count_objectives(
     return towers_taken, barracks_taken
 
 
+def _banner_rax_signal(
+    match: ParsedMatch, team: int, start_tick: int, end_tick: int
+) -> tuple[bool, bool, str | None]:
+    """Associate a banner plant with a barracks push inside the window.
+
+    Roshan's Banner plants a stationary aura unit (movement speed + bonus attack
+    damage to nearby allied heroes *and creeps*) used to amplify a high-ground
+    siege. This is an associative lane+time signal, not a proven spatial one: gem
+    does not store barracks world positions, so a banner→rax link means "the
+    holder team planted a banner in this window and an enemy rax then fell",
+    gated on side by ``_count_objectives``'s enemy-owned-barracks filter.
+
+    Args:
+        match: The parsed match.
+        team: The Roshan holder's team.
+        start_tick: Window start (inclusive).
+        end_tick: Window end (inclusive).
+
+    Returns:
+        ``(banner_planted, banner_rax_conversion, banner_rax_lane)``.
+    """
+    plants: list[BannerPlant] = [
+        plant
+        for plant in match.banner_plants
+        if plant.team == team and start_tick <= plant.tick <= end_tick
+    ]
+    if not plants:
+        return False, False, None
+
+    earliest_plant_tick = min(plant.tick for plant in plants)
+    enemy_team = _enemy_team(team)
+    converted_lanes = [
+        (barracks.tick, _rax_lane(barracks.barracks_name))
+        for barracks in match.barracks
+        if barracks.team == enemy_team and earliest_plant_tick <= barracks.tick <= end_tick
+    ]
+    if not converted_lanes:
+        return True, False, None
+
+    # Earliest converted rax wins the lane attribution.
+    _, lane = min(converted_lanes, key=lambda item: item[0])
+    return True, True, lane
+
+
 def _first_objective_tick(
     match: ParsedMatch, team: int, start_tick: int, end_tick: int
 ) -> int | None:
@@ -372,6 +475,11 @@ def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]:
     conversions: list[RoshConversion] = []
 
     for index, roshan in enumerate(match.roshans, start=1):
+        drops = list(getattr(roshan, "drops", ()) or ())
+        had_high_value_drop = any(drop in _HIGH_VALUE_DROPS for drop in drops)
+        banner_planted = False
+        banner_rax_conversion = False
+        banner_rax_lane: str | None = None
         next_rosh_tick = match.roshans[index].tick if index < len(match.roshans) else None
         immediate_end_tick = min(roshan.tick + _IMMEDIATE_WINDOW_TICKS, game_end_tick)
         extended_end_tick = (next_rosh_tick - 1) if next_rosh_tick is not None else game_end_tick
@@ -508,6 +616,9 @@ def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]:
             first_objective_tick = _first_objective_tick(
                 match, holder_team, holder_window_start, holder_window_end
             )
+            banner_planted, banner_rax_conversion, banner_rax_lane = _banner_rax_signal(
+                match, holder_team, holder_window_start, holder_window_end
+            )
 
         first_fight_tick = min(
             (max(fight.first_death_tick, holder_window_start) for fight in fights),
@@ -564,6 +675,11 @@ def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]:
             drivers.append(f"took {towers_taken} tower(s)")
         if barracks_taken:
             drivers.append(f"took {barracks_taken} barracks")
+        if banner_rax_conversion:
+            lane_text = f"{banner_rax_lane} " if banner_rax_lane else ""
+            drivers.append(f"planted Roshan's Banner ahead of a {lane_text}barracks push")
+        elif banner_planted:
+            drivers.append("planted Roshan's Banner during the window")
         if enemy_buybacks_forced:
             drivers.append(f"forced {enemy_buybacks_forced} enemy buyback(s)")
         if enemy_half_observer_delta > 0:
@@ -671,6 +787,11 @@ def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]:
                 rosh_number=index,
                 rosh_tick=roshan.tick,
                 killer_name=roshan.killer,
+                drops=drops,
+                had_high_value_drop=had_high_value_drop,
+                banner_planted=banner_planted,
+                banner_rax_conversion=banner_rax_conversion,
+                banner_rax_lane=banner_rax_lane,
                 holder_team=holder_team,
                 holder_player_id=holder_player_id,
                 holder_name=holder_name,

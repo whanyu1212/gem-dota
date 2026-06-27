@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Roshan non-Aegis drops** surfaced on the conversion analysis. `RoshConversion`
+  now carries `drops` (mirrors `RoshanKill.drops` — Cheese, Refresher Shard,
+  Roshan's Banner, captured from the entity stream) and a `had_high_value_drop`
+  convenience flag. These are descriptive only and do **not** affect
+  `conversion_score`/`conversion_label`. The objectives DataFrame gains a `drops`
+  column and the HTML Roshan Conversion section shows the drops per card plus a
+  Drops summary-table column with a high-value marker.
+- **Roshan's Banner plant tracking + banner→rax conversion signal.**
+  `ParsedMatch.banner_plants: list[BannerPlant]` records each planted banner's
+  tick, team, planter slot, and world position, recovered from the
+  `CDOTA_Unit_Roshans_Banner` unit in the entity stream (the position-less banner
+  *item* drop is unchanged). `RoshConversion` gains `banner_planted`,
+  `banner_rax_conversion`, and `banner_rax_lane`: an associative (lane + time)
+  signal flagging when a banner planted inside the conversion window was followed
+  by an enemy barracks falling. Like the drop flags it is descriptive and does
+  not affect the score/label. Surfaced in the report (a "Banner planted → Rax"
+  badge on the card and a ⚑ marker in the summary Rax cell) and the objectives
+  DataFrame (a `banner_plant` row type with coordinates). Note: gem does not
+  store barracks world positions, so this is a lane-associative signal, not a
+  proven banner-to-rax *distance* link.
+
+### Fixed
+- Roshan drop tracking now removes an item entity on any delete (bitwise
+  `EntityOp.DELETED` test) rather than only the exact `DELETED_LEFT` composite, so
+  a delete arriving without the `LEFT` bit no longer leaves a stale item in the
+  drop snapshot.
+
 ## [0.4.3] - 2026-06-26
 
 Adds per-buyback gold cost to the model and bundles a set of code-quality

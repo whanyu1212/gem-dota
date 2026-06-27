@@ -1,8 +1,14 @@
 from __future__ import annotations
 
-from gem.analysis.roshan import build_rosh_conversions
+from gem.analysis.roshan import _rax_lane, build_rosh_conversions
 from gem.combat.log import CombatLogEntry
-from gem.extractors.objectives import AegisEvent, BarracksKill, RoshanKill, TowerKill
+from gem.extractors.objectives import (
+    AegisEvent,
+    BannerPlant,
+    BarracksKill,
+    RoshanKill,
+    TowerKill,
+)
 from gem.extractors.teamfights import Teamfight, TeamfightPlayer
 from gem.extractors.wards import WardEvent
 from gem.reports._sections import build_rosh_conversion
@@ -220,6 +226,129 @@ def test_holder_window_clamped_to_next_roshan_no_double_count() -> None:
     assert conversions[1].towers_taken == 1
 
 
+def test_rax_lane_parses_known_suffixes() -> None:
+    assert _rax_lane("npc_dota_badguys_melee_rax_mid") == "mid"
+    assert _rax_lane("npc_dota_goodguys_range_rax_top") == "top"
+    assert _rax_lane("npc_dota_badguys_melee_rax_bot") == "bot"
+    # No lane suffix (or an unknown one) yields None rather than guessing.
+    assert _rax_lane("npc_dota_badguys_fort") is None
+
+
+def test_banner_rax_conversion_links_plant_to_barracks() -> None:
+    # Radiant (hero_0) holds the Aegis, plants a banner, then an enemy (Dire)
+    # mid rax falls after the plant -> banner_rax_conversion on the mid lane.
+    players = _make_players()
+    match = ParsedMatch(
+        game_start_tick=0,
+        game_end_tick=10000,
+        radiant_win=None,
+        players=players,
+        roshans=[RoshanKill(tick=1000, killer="npc_dota_hero_hero_0", kill_number=1)],
+        aegis_events=[AegisEvent(tick=1010, player_id=0, event_type="pickup")],
+        banner_plants=[BannerPlant(tick=1200, team=2, player_id=0, x=22000.0, y=18000.0)],
+        barracks=[
+            BarracksKill(
+                tick=1500,
+                team=3,
+                killer="npc_dota_hero_hero_0",
+                barracks_name="npc_dota_badguys_melee_rax_mid",
+            )
+        ],
+    )
+
+    conversion = build_rosh_conversions(match)[0]
+    assert conversion.banner_planted is True
+    assert conversion.banner_rax_conversion is True
+    assert conversion.banner_rax_lane == "mid"
+    assert any("Banner" in driver for driver in conversion.drivers)
+
+
+def test_banner_planted_without_rax_is_not_a_conversion() -> None:
+    # A banner planted in the window but with no enemy rax falling afterwards is
+    # surfaced as planted-only — never asserted as a rax conversion.
+    players = _make_players()
+    match = ParsedMatch(
+        game_start_tick=0,
+        game_end_tick=10000,
+        radiant_win=None,
+        players=players,
+        roshans=[RoshanKill(tick=1000, killer="npc_dota_hero_hero_0", kill_number=1)],
+        aegis_events=[AegisEvent(tick=1010, player_id=0, event_type="pickup")],
+        banner_plants=[BannerPlant(tick=1200, team=2, player_id=0, x=22000.0, y=18000.0)],
+    )
+
+    conversion = build_rosh_conversions(match)[0]
+    assert conversion.banner_planted is True
+    assert conversion.banner_rax_conversion is False
+    assert conversion.banner_rax_lane is None
+
+
+def test_banner_rax_ignores_rax_before_plant_and_enemy_banner() -> None:
+    # Two guards in one: a rax that fell BEFORE the plant must not count, and an
+    # enemy-team banner must not attribute to the Radiant holder.
+    players = _make_players()
+    match = ParsedMatch(
+        game_start_tick=0,
+        game_end_tick=10000,
+        radiant_win=None,
+        players=players,
+        roshans=[RoshanKill(tick=1000, killer="npc_dota_hero_hero_0", kill_number=1)],
+        aegis_events=[AegisEvent(tick=1010, player_id=0, event_type="pickup")],
+        # Enemy (Dire) banner — wrong team for the Radiant holder.
+        banner_plants=[BannerPlant(tick=1300, team=3, player_id=5, x=8000.0, y=8000.0)],
+        # Rax fell at 1100, before any (hypothetical) Radiant plant.
+        barracks=[
+            BarracksKill(
+                tick=1100,
+                team=3,
+                killer="npc_dota_hero_hero_0",
+                barracks_name="npc_dota_badguys_melee_rax_mid",
+            )
+        ],
+    )
+
+    conversion = build_rosh_conversions(match)[0]
+    assert conversion.banner_planted is False
+    assert conversion.banner_rax_conversion is False
+
+
+def test_build_rosh_conversion_html_banner_badge() -> None:
+    # A banner→rax conversion renders the planted line and the "→ Rax" badge with
+    # the lane in the card.
+    players = _make_players()
+    match = ParsedMatch(
+        game_start_tick=0,
+        game_end_tick=6000,
+        radiant_win=None,
+        players=players,
+        roshans=[
+            RoshanKill(
+                tick=1000,
+                killer="npc_dota_hero_hero_0",
+                kill_number=1,
+                drops=["aegis", "banner"],
+            )
+        ],
+        aegis_events=[AegisEvent(tick=1010, player_id=0, event_type="pickup")],
+        banner_plants=[BannerPlant(tick=1200, team=2, player_id=0, x=22000.0, y=18000.0)],
+        barracks=[
+            BarracksKill(
+                tick=1500,
+                team=3,
+                killer="npc_dota_hero_hero_0",
+                barracks_name="npc_dota_badguys_melee_rax_mid",
+            )
+        ],
+    )
+
+    html = build_rosh_conversion(match)
+    assert "Banner planted" in html
+    assert "rosh-banner-badge" in html
+    assert "Rax" in html  # the lane-tagged badge text
+    # The summary-table Rax cell gains the banner flag marker.
+    assert "⚑" in html
+
+
 def test_build_rosh_conversion_html_smoke() -> None:
     players = _make_players()
     match = ParsedMatch(
@@ -227,10 +356,47 @@ def test_build_rosh_conversion_html_smoke() -> None:
         game_end_tick=6000,
         radiant_win=None,
         players=players,
-        roshans=[RoshanKill(tick=1000, killer="npc_dota_hero_hero_0", kill_number=1)],
+        roshans=[
+            RoshanKill(
+                tick=1000,
+                killer="npc_dota_hero_hero_0",
+                kill_number=1,
+                drops=["aegis", "cheese", "banner"],
+            )
+        ],
         aegis_events=[AegisEvent(tick=1010, player_id=0, event_type="pickup")],
     )
 
     html = build_rosh_conversion(match)
     assert "Roshan Conversion" in html
     assert "Roshan #1" in html
+    # Drops surface on the card (human-readable) and the summary table gains a
+    # Drops column; a non-Aegis premium drop flips the high-value badge on.
+    assert "Drops:" in html
+    assert "Aegis, Cheese, Banner" in html
+    assert "rosh-hv-badge" in html
+    assert "<th>Drops</th>" in html
+
+
+def test_build_rosh_conversion_html_no_high_value_badge_for_aegis_only() -> None:
+    # An Aegis-only kill must NOT show the high-value badge — guards against the
+    # badge firing on every Roshan regardless of drop contents.
+    players = _make_players()
+    match = ParsedMatch(
+        game_start_tick=0,
+        game_end_tick=6000,
+        radiant_win=None,
+        players=players,
+        roshans=[
+            RoshanKill(
+                tick=1000,
+                killer="npc_dota_hero_hero_0",
+                kill_number=1,
+                drops=["aegis"],
+            )
+        ],
+        aegis_events=[AegisEvent(tick=1010, player_id=0, event_type="pickup")],
+    )
+
+    html = build_rosh_conversion(match)
+    assert "rosh-hv-badge" not in html

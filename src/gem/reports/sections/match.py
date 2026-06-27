@@ -7,6 +7,7 @@ shim for backward-compatible re-exports).
 from __future__ import annotations
 
 from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 from gem.analysis import (
     build_rosh_conversions,
@@ -31,6 +32,9 @@ from gem.results.models import (
     ParsedMatch,
     ParsedPlayer,
 )
+
+if TYPE_CHECKING:
+    from gem.analysis.roshan import RoshConversion
 
 
 def _draft_portrait(npc_name: str, alt: str, noicon_cls: str) -> str:
@@ -376,6 +380,53 @@ _ROSH_FATE_DISPLAY: dict[str, str] = {
 }
 
 
+_ROSH_DROP_DISPLAY: dict[str, str] = {
+    "aegis": "Aegis",
+    "cheese": "Cheese",
+    "refresher_shard": "Refresher Shard",
+    "banner": "Banner",
+}
+
+
+def _rosh_drops_display(drops: list[str]) -> str:
+    """Render Roshan drop tokens as a human-readable comma list.
+
+    Args:
+        drops: Short drop tokens (e.g. ``["aegis", "cheese", "banner"]``).
+
+    Returns:
+        A comma-joined display string (e.g. ``"Aegis, Cheese, Banner"``), or
+        ``"none"`` when no drops were captured.
+    """
+    if not drops:
+        return "none"
+    return ", ".join(_ROSH_DROP_DISPLAY.get(drop, drop.replace("_", " ").title()) for drop in drops)
+
+
+def _rosh_banner_line(conversion: RoshConversion) -> str:
+    """Render the Roshan's Banner plant/push line for a conversion card.
+
+    A banner planted by the holder team is shown only when it was actually used;
+    when that plant was followed by an enemy barracks falling, a "→ Rax" badge
+    (with the lane, if known) flags the associative siege conversion.
+
+    Args:
+        conversion: The Roshan conversion record.
+
+    Returns:
+        An HTML ``<div>`` describing the banner plant, or ``""`` when no banner
+        was planted in the window.
+    """
+    if not conversion.banner_planted:
+        return ""
+    if conversion.banner_rax_conversion:
+        lane = f" ({conversion.banner_rax_lane})" if conversion.banner_rax_lane else ""
+        badge = f'<span class="rosh-banner-badge">&rarr; Rax{e(lane)}</span>'
+    else:
+        badge = ""
+    return f'<div class="rosh-banner">Banner planted{badge}</div>'
+
+
 _ROSH_LABEL_EXPLANATION: dict[str, tuple[str, str]] = {
     "low_conversion": (
         "Roshan was secured, but the window did not clearly translate into fights, structures, or territorial squeeze.",
@@ -551,6 +602,13 @@ def build_rosh_conversion(match: ParsedMatch) -> str:
         first_objective = (
             fmt_tick(conversion.first_objective_tick) if conversion.first_objective_tick else "—"
         )
+        drops_display = _rosh_drops_display(conversion.drops)
+        hv_badge = (
+            '<span class="rosh-hv-badge">High value</span>'
+            if conversion.had_high_value_drop
+            else ""
+        )
+        banner_html = _rosh_banner_line(conversion)
         chips = "".join(
             f'<span class="rosh-chip rosh-chip-{event.kind}">'
             f'<span class="rosh-chip-time">{e(fmt_tick(event.tick))}</span>'
@@ -572,7 +630,9 @@ def build_rosh_conversion(match: ParsedMatch) -> str:
             f" — {e(holder_label)}</div>"
             f'<div class="rosh-meta">Rosh {e(fmt_tick(conversion.rosh_tick))} · '
             f"Aegis {e(fate_display)} at {e(fmt_tick(conversion.aegis_end_tick))} · "
-            f"Extended window ends {e(fmt_tick(conversion.extended_end_tick))}</div></div>"
+            f"Extended window ends {e(fmt_tick(conversion.extended_end_tick))}</div>"
+            f'<div class="rosh-drops">Drops: {e(drops_display)}{hv_badge}</div>'
+            f"{banner_html}</div>"
             '<div class="rosh-head-right">'
             f'<span class="rosh-badge rosh-badge-{e(label_key)}">{e(label_display)}</span>'
             f'<span class="rosh-outcome-badge rosh-outcome-{e(conversion.aegis_outcome)}">{e(outcome_display)}</span>'
@@ -595,7 +655,7 @@ def build_rosh_conversion(match: ParsedMatch) -> str:
     parts.append('<div class="rosh-table-wrap"><table>')
     parts.append(
         "<thead><tr>"
-        "<th>Rosh</th><th>Team</th><th>Holder</th><th>Aegis</th><th>Outcome</th>"
+        "<th>Rosh</th><th>Team</th><th>Holder</th><th>Aegis</th><th>Outcome</th><th>Drops</th>"
         '<th class="r">Fights</th><th class="r">Towers</th><th class="r">Rax</th>'
         '<th class="r">Buybacks</th><th class="r">Ward Δ</th><th class="r">Presence Δ</th>'
         "<th>Label</th>"
@@ -614,6 +674,15 @@ def build_rosh_conversion(match: ParsedMatch) -> str:
             conversion.aegis_outcome.replace("_", " ").title(),
         )
         presence_delta_pct = round(conversion.enemy_half_farm_share_delta * 100)
+        drops_cell = _rosh_drops_display(conversion.drops)
+        if conversion.had_high_value_drop:
+            drops_cell += " ★"
+        # Flag a banner→rax push in the Rax column: ⚑ when a planted banner was
+        # followed by a barracks falling, with the lane initial when known.
+        rax_cell = str(conversion.barracks_taken)
+        if conversion.banner_rax_conversion:
+            lane_initial = (conversion.banner_rax_lane or "")[:1].upper()
+            rax_cell += f" ⚑{lane_initial}" if lane_initial else " ⚑"
         parts.append(
             "<tr>"
             f"<td>#{conversion.rosh_number}</td>"
@@ -621,9 +690,10 @@ def build_rosh_conversion(match: ParsedMatch) -> str:
             f"<td>{e(holder_label)}</td>"
             f"<td>{e(fate_display)}</td>"
             f"<td>{e(outcome_display)}</td>"
+            f"<td>{e(drops_cell)}</td>"
             f'<td class="r">{conversion.fights_won}-{conversion.fights_lost}-{conversion.fights_drawn}</td>'
             f'<td class="r">{conversion.towers_taken}</td>'
-            f'<td class="r">{conversion.barracks_taken}</td>'
+            f'<td class="r">{e(rax_cell)}</td>'
             f'<td class="r">{conversion.enemy_buybacks_forced}</td>'
             f'<td class="r">{conversion.enemy_half_observer_delta:+d}</td>'
             f'<td class="r">{presence_delta_pct:+d} pts</td>'
