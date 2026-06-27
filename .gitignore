@@ -51,6 +51,9 @@ notes/
 superpowers/
 competitor-feature-landscape.md
 
+# Local code-graph index (tooling artifact, not part of the project)
+.codegraph/
+
 # Test/coverage artifacts
 .pytest_cache/
 .coverage
