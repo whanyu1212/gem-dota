@@ -12,16 +12,20 @@ Provides three public functions:
   Replays are processed and discarded one at a time to keep memory bounded.
 
 All three functions use ``ProcessPoolExecutor`` for true parallelism (CPU-bound
-work) and display a Rich progress bar by default.
+work) and display a Rich progress bar by default. Optional timeouts are enforced
+inside each worker process, per replay.
 """
 
 from __future__ import annotations
 
 import os
-from collections.abc import Sequence
+import signal
+from collections.abc import Iterator, Sequence
 from concurrent.futures import Future, ProcessPoolExecutor, as_completed
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
+from types import FrameType
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -91,6 +95,50 @@ def _collect_paths(
     return [Path(p) for p in source]
 
 
+def _supports_worker_timeout() -> bool:
+    return (
+        hasattr(signal, "SIGALRM")
+        and hasattr(signal, "ITIMER_REAL")
+        and hasattr(signal, "setitimer")
+    )
+
+
+def _validate_timeout(timeout: float | None) -> None:
+    if timeout is None:
+        return
+    if timeout <= 0:
+        raise ValueError("timeout must be a positive number of seconds")
+    if not _supports_worker_timeout():
+        raise RuntimeError(
+            "parse_many(timeout=...) requires signal.SIGALRM/setitimer support on this platform"
+        )
+
+
+@contextmanager
+def _replay_timeout(path: Path, timeout: float | None) -> Iterator[None]:
+    """Raise ``TimeoutError`` inside a worker if one replay exceeds *timeout*."""
+    if timeout is None:
+        yield
+        return
+
+    if not _supports_worker_timeout():
+        raise RuntimeError(
+            "parse_many(timeout=...) requires signal.SIGALRM/setitimer support on this platform"
+        )
+
+    def _handle_timeout(signum: int, frame: FrameType | None) -> None:
+        raise TimeoutError(f"Parsing {path} timed out after {timeout:g} seconds")
+
+    previous_handler = signal.getsignal(signal.SIGALRM)
+    signal.signal(signal.SIGALRM, _handle_timeout)
+    signal.setitimer(signal.ITIMER_REAL, timeout)
+    try:
+        yield
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, previous_handler)
+
+
 def _parse_one(path: Path) -> tuple[Path, ParsedMatch | None, Exception | None]:
     """Top-level worker function — must be importable at module level for pickling.
 
@@ -106,6 +154,93 @@ def _parse_one(path: Path) -> tuple[Path, ParsedMatch | None, Exception | None]:
         return path, parse(path), None
     except Exception as exc:  # noqa: BLE001
         return path, None, exc
+
+
+def _parse_one_with_timeout(
+    path: Path,
+    timeout: float | None,
+) -> tuple[Path, ParsedMatch | None, Exception | None]:
+    """Parse one replay with an optional worker-local timeout."""
+    try:
+        with _replay_timeout(path, timeout):
+            return _parse_one(path)
+    except Exception as exc:  # noqa: BLE001
+        return path, None, exc
+
+
+def _iter_parse_results(
+    paths: Sequence[Path],
+    *,
+    workers: int | None,
+    progress: bool,
+    timeout: float | None,
+) -> Iterator[ParseResult]:
+    """Yield parse results as worker futures complete, with bounded in-flight work."""
+    _validate_timeout(timeout)
+    if not paths:
+        return
+
+    n_workers = min(workers or os.cpu_count() or 1, len(paths))
+
+    from rich.progress import (
+        BarColumn,
+        MofNCompleteColumn,
+        Progress,
+        TaskID,
+        TextColumn,
+        TimeElapsedColumn,
+    )
+
+    rich_progress: Progress | None = (
+        Progress(
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            MofNCompleteColumn(),
+            TimeElapsedColumn(),
+        )
+        if progress
+        else None
+    )
+    task_id: TaskID | None = None
+
+    def _run(executor: ProcessPoolExecutor) -> Iterator[ParseResult]:
+        path_iter = iter(paths)
+        future_to_path: dict[Future[tuple], Path] = {}
+
+        def _submit_next() -> None:
+            try:
+                path = next(path_iter)
+            except StopIteration:
+                return
+            future_to_path[executor.submit(_parse_one_with_timeout, path, timeout)] = path
+
+        for _ in range(n_workers):
+            _submit_next()
+
+        while future_to_path:
+            future = next(as_completed(future_to_path))
+            path = future_to_path.pop(future)
+            try:
+                result_path, match, error = future.result()
+            except Exception as exc:  # noqa: BLE001
+                result_path, match, error = path, None, exc
+            _submit_next()
+            if rich_progress is not None and task_id is not None:
+                rich_progress.advance(task_id)
+            yield ParseResult(path=result_path, match=match, error=error)
+
+    def _execute() -> Iterator[ParseResult]:
+        with ProcessPoolExecutor(max_workers=n_workers) as pool:
+            yield from _run(pool)
+
+    if rich_progress is not None:
+        with rich_progress:
+            task_id = rich_progress.add_task(
+                f"[cyan]Parsing {len(paths)} replay(s)…[/cyan]", total=len(paths)
+            )
+            yield from _execute()
+    else:
+        yield from _execute()
 
 
 # ---------------------------------------------------------------------------
@@ -130,60 +265,25 @@ def parse_many(
             capped at the number of replays.
         recursive: When *source* is a directory, scan subdirectories too.
         progress: Show a Rich progress bar while parsing.
-        timeout: Per-replay timeout in seconds.  ``None`` means no limit.
+        timeout: Per-replay parsing timeout in seconds, enforced after a worker
+            starts a replay on platforms with ``signal.SIGALRM``/``setitimer``.
+            Timed-out replays return ``ParseResult(error=TimeoutError(...))``.
+            Unsupported platforms raise once before workers start. ``None`` means
+            no limit.
 
     Returns:
         List of :class:`ParseResult` in completion order.  Failed replays have
         ``result.ok == False`` and carry the exception in ``result.error``.
     """
     paths = _collect_paths(source, recursive=recursive)
-    n_workers = min(workers or os.cpu_count() or 1, len(paths))
-
-    results: list[ParseResult] = []
-
-    from rich.progress import (
-        BarColumn,
-        MofNCompleteColumn,
-        Progress,
-        TextColumn,
-        TimeElapsedColumn,
-    )
-
-    rich_progress: Progress | None = (
-        Progress(
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(),
-            MofNCompleteColumn(),
-            TimeElapsedColumn(),
+    return list(
+        _iter_parse_results(
+            paths,
+            workers=workers,
+            progress=progress,
+            timeout=timeout,
         )
-        if progress
-        else None
     )
-
-    def _run(executor: ProcessPoolExecutor) -> None:
-        future_to_path: dict[Future[tuple], Path] = {
-            executor.submit(_parse_one, p): p for p in paths
-        }
-        for future in as_completed(future_to_path, timeout=timeout):
-            path, match, error = future.result()
-            results.append(ParseResult(path=path, match=match, error=error))
-            if rich_progress is not None:
-                rich_progress.advance(task_id)
-
-    def _execute() -> None:
-        with ProcessPoolExecutor(max_workers=n_workers) as pool:
-            _run(pool)
-
-    if rich_progress is not None:
-        with rich_progress:
-            task_id = rich_progress.add_task(
-                f"[cyan]Parsing {len(paths)} replay(s)…[/cyan]", total=len(paths)
-            )
-            _execute()
-    else:
-        _execute()
-
-    return results
 
 
 def parse_many_to_dataframe(
@@ -204,7 +304,7 @@ def parse_many_to_dataframe(
         workers: Number of worker processes (default: ``os.cpu_count()``).
         recursive: Scan subdirectories when *source* is a directory.
         progress: Show a Rich progress bar while parsing.
-        timeout: Per-replay timeout in seconds.
+        timeout: Per-replay parsing timeout in seconds.
 
     Returns:
         ``dict[str, DataFrame]`` with the same keys as
@@ -259,7 +359,7 @@ def parse_many_to_parquet(
         workers: Number of worker processes (default: ``os.cpu_count()``).
         recursive: Scan subdirectories when *source* is a directory.
         progress: Show a Rich progress bar while parsing.
-        timeout: Per-replay timeout in seconds.
+        timeout: Per-replay parsing timeout in seconds.
         index: Whether to include the DataFrame index in parquet output.
 
     Returns:
@@ -267,14 +367,16 @@ def parse_many_to_parquet(
     """
     from gem import to_parquet
 
-    results = parse_many(
-        source, workers=workers, recursive=recursive, progress=progress, timeout=timeout
-    )
-
+    paths = _collect_paths(source, recursive=recursive)
     out_root = Path(output_dir)
     written: list[Path] = []
 
-    for result in results:
+    for result in _iter_parse_results(
+        paths,
+        workers=workers,
+        progress=progress,
+        timeout=timeout,
+    ):
         if not result.ok or result.match is None:
             continue
         subdir = out_root / result.path.stem

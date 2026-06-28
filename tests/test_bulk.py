@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import concurrent.futures
+import signal
+import time
 from pathlib import Path
 from unittest.mock import patch
 
@@ -55,6 +57,11 @@ def _fail(path: Path) -> tuple[Path, ParsedMatch | None, Exception | None]:
 
 def _mixed(path: Path) -> tuple[Path, ParsedMatch | None, Exception | None]:
     return _fail(path) if path.name == "bad.dem" else _ok(path)
+
+
+def _slow(path: Path) -> tuple[Path, ParsedMatch | None, Exception | None]:
+    time.sleep(1)
+    return _ok(path)
 
 
 # ---------------------------------------------------------------------------
@@ -177,6 +184,65 @@ class TestParseMany:
 
         assert len(results) == 3
 
+    def test_in_flight_work_is_bounded_by_worker_count(self, tmp_path):
+        paths = [tmp_path / f"{i}.dem" for i in range(5)]
+        for p in paths:
+            p.touch()
+        batch_sizes: list[int] = []
+
+        def fake_as_completed(futures):
+            batch_sizes.append(len(futures))
+            return iter([next(iter(futures))])
+
+        with (
+            patch("gem.replays.batch.ProcessPoolExecutor", _SyncExecutor),
+            patch("gem.replays.batch._parse_one", side_effect=_ok),
+            patch("gem.replays.batch.as_completed", side_effect=fake_as_completed),
+        ):
+            results = parse_many(paths, workers=2, progress=False)
+
+        assert len(results) == 5
+        assert batch_sizes[0] == 2
+        assert max(batch_sizes) == 2
+
+    @pytest.mark.skipif(not hasattr(signal, "SIGALRM"), reason="requires SIGALRM")
+    def test_timeout_is_per_replay_error(self, tmp_path):
+        p = tmp_path / "slow.dem"
+        p.touch()
+
+        with (
+            patch("gem.replays.batch.ProcessPoolExecutor", _SyncExecutor),
+            patch("gem.replays.batch._parse_one", side_effect=_slow),
+        ):
+            results = parse_many([p], progress=False, timeout=0.05)
+
+        assert len(results) == 1
+        assert not results[0].ok
+        assert isinstance(results[0].error, TimeoutError)
+        assert "timed out" in str(results[0].error)
+
+    def test_timeout_must_be_positive(self, tmp_path):
+        p = tmp_path / "a.dem"
+        p.touch()
+
+        with pytest.raises(ValueError, match="timeout must be a positive"):
+            parse_many([p], progress=False, timeout=0)
+
+    def test_timeout_unsupported_platform_raises_once_before_workers(self, tmp_path):
+        p = tmp_path / "a.dem"
+        p.touch()
+
+        class _UnexpectedExecutor:
+            def __init__(self, **kwargs):
+                raise AssertionError("executor should not be created")
+
+        with (
+            patch("gem.replays.batch._supports_worker_timeout", return_value=False),
+            patch("gem.replays.batch.ProcessPoolExecutor", _UnexpectedExecutor),
+            pytest.raises(RuntimeError, match="requires signal.SIGALRM/setitimer"),
+        ):
+            parse_many([p], progress=False, timeout=1)
+
     def test_parse_result_ok_property(self):
         assert ParseResult(path=Path("a.dem"), match=ParsedMatch(), error=None).ok is True
         assert ParseResult(path=Path("b.dem"), match=None, error=ValueError()).ok is False
@@ -247,6 +313,35 @@ class TestParseManyToDataframe:
 
 
 class TestParseManyToParquet:
+    def test_streams_each_result_to_parquet_before_requesting_next(self, tmp_path):
+        first = tmp_path / "first.dem"
+        second = tmp_path / "second.dem"
+        first.touch()
+        second.touch()
+        out_dir = tmp_path / "out"
+        calls: list[Path] = []
+
+        def fake_results(*args, **kwargs):
+            yield ParseResult(path=first, match=ParsedMatch(match_id=1), error=None)
+            assert calls == [out_dir / "first"]
+            yield ParseResult(path=second, match=ParsedMatch(match_id=2), error=None)
+
+        def fake_to_parquet(match, subdir, *, index=False):
+            calls.append(subdir)
+            return [subdir / "match.parquet"]
+
+        with (
+            patch("gem.replays.batch._iter_parse_results", side_effect=fake_results),
+            patch("gem.to_parquet", side_effect=fake_to_parquet),
+        ):
+            written = gem.parse_many_to_parquet([first, second], out_dir, progress=False)
+
+        assert calls == [out_dir / "first", out_dir / "second"]
+        assert written == [
+            out_dir / "first" / "match.parquet",
+            out_dir / "second" / "match.parquet",
+        ]
+
     @pytest.mark.skipif(
         not __import__("importlib").util.find_spec("pyarrow"),
         reason="pyarrow not installed",

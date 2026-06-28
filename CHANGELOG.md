@@ -18,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ParsedMatch.parse_error` and `ParsedMatch.truncated_at_tick` surface opt-in
   partial-parse failures in structured output and the `match` DataFrame.
 
+### Fixed
+- `parse_many(timeout=...)` now enforces the timeout per replay inside each
+  worker instead of treating it as a global timeout for the whole batch.
+- `parse_many_to_parquet()` now streams completed parse results directly to
+  parquet output instead of first holding all `ParsedMatch` objects in memory via
+  `parse_many()`.
+
 ## [0.5.0] - 2026-06-28
 
 Extends the Roshan conversion analysis beyond the Aegis. Non-Aegis Roshan drops
