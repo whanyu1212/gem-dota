@@ -306,6 +306,9 @@ Source: [src/gem/results/models.py:504](https://github.com/whanyu1212/gem-dota/b
 | `teamfights` | `list[Teamfight]` | `field(...)` |
 | `opendota_teamfights` | `list[OpenDotaTeamfight]` | `field(...)` |
 | `vision_modifiers` | `list[VisionModifierEvent]` | `field(...)` |
+| `banner_plants` | `list[BannerPlant]` | `field(...)` |
+| `parse_error` | `str \| None` | `None` |
+| `truncated_at_tick` | `int \| None` | `None` |
 
 #### Properties
 

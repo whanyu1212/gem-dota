@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Breaking:** Replay parsing now fails loudly by default: `ReplayParser.parse()`
+  and high-level `gem.parse()` re-raise stream/decoder/extractor errors after
+  recording them on `parse_error` / `truncated_at_tick`. Pass
+  `allow_partial=True` to opt into the previous best-effort partial-replay
+  workflow.
+
+### Added
+- `ParsedMatch.parse_error` and `ParsedMatch.truncated_at_tick` surface opt-in
+  partial-parse failures in structured output and the `match` DataFrame.
+
 ## [0.5.0] - 2026-06-28
 
 Extends the Roshan conversion analysis beyond the Aegis. Non-Aegis Roshan drops

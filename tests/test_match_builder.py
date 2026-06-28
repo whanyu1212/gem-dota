@@ -84,6 +84,8 @@ def _make_parser(
     entity_manager=None,
     match_metadata=None,
     duration_s: int | None = None,
+    parse_error: Exception | None = None,
+    truncated_at_tick: int | None = None,
 ) -> MagicMock:
     p = MagicMock()
     p.match_id = match_id
@@ -95,6 +97,8 @@ def _make_parser(
     p.entity_manager = entity_manager
     p.match_metadata = match_metadata
     p.duration_s = duration_s
+    p.parse_error = parse_error
+    p.truncated_at_tick = truncated_at_tick
     return p
 
 
@@ -281,6 +285,11 @@ class TestBuildParsedMatchSmoke:
     def test_game_start_tick_propagated(self):
         m = self._build(game_start_tick=6000)
         assert m.game_start_tick == 6000
+
+    def test_partial_parse_metadata_propagated(self):
+        m = self._build(parse_error=ValueError("bad tail"), truncated_at_tick=1234)
+        assert m.parse_error == "bad tail"
+        assert m.truncated_at_tick == 1234
 
     def test_opendota_teamfights_populated(self):
         parser = _make_parser(game_start_tick=6000)

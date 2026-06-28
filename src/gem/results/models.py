@@ -612,6 +612,11 @@ class ParsedMatch:
             OpenDota's ``pre_game_duration``. Currently always ``0`` — deriving it
             needs the GAME_IN_PROGRESS state-transition timestamp the parser does
             not yet expose; reserved for a follow-up.
+        parse_error: String representation of the stream/decoder/extractor error
+            that ended parsing early when ``allow_partial=True`` was used; ``None``
+            for a clean parse. Strict parses raise the underlying exception.
+        truncated_at_tick: Last replay tick reached when ``parse_error`` was set;
+            ``None`` for a clean parse.
     """
 
     match_id: int = 0
@@ -663,6 +668,8 @@ class ParsedMatch:
     # arguments. (Logically banner_plants belongs near the other objective lists,
     # but inserting it there would silently misalign positional callers.)
     banner_plants: list[BannerPlant] = field(default_factory=list)
+    parse_error: str | None = None
+    truncated_at_tick: int | None = None
 
     @property
     def duration_seconds(self) -> float:

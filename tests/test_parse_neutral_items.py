@@ -42,7 +42,8 @@ def test_parse_collects_neutral_item_found_events(monkeypatch):
         def on_neutral_item_found(self, handler):
             self.neutral_item_found_callbacks.append(handler)
 
-        def parse(self):
+        def parse(self, *, allow_partial=False):
+            self.allow_partial = allow_partial
             for callback in self.neutral_item_found_callbacks:
                 callback(event)
 

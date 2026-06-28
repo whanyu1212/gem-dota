@@ -40,7 +40,7 @@ class TestParquetExport:
     def test_parse_to_parquet_delegates_to_parse_and_to_parquet(self, monkeypatch, tmp_path):
         fake_match = ParsedMatch(match_id=123)
 
-        monkeypatch.setattr(gem.api, "parse", lambda path: fake_match)
+        monkeypatch.setattr(gem.api, "parse", lambda path, *, allow_partial=False: fake_match)
 
         def _fake_to_parquet(match, output_dir, *, index=False):
             assert match is fake_match

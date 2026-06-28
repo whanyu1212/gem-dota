@@ -111,8 +111,10 @@ gem intentionally falls back to live game-rule entities when possible, for examp
 3. late-game scoreboard values from authoritative player-resource fields
 
 This is why "missing metadata" does not always mean "parse failed". When parsing ends
-early, `ReplayParser` also records `parse_error` and `truncated_at_tick` so callers can
-distinguish complete output from useful partial output.
+early, `ReplayParser` records `parse_error` and `truncated_at_tick` before raising by
+default. Call `parse(..., allow_partial=True)` to keep useful partial output; the
+returned `ParsedMatch` carries those same fields so callers can distinguish complete
+output from incomplete output.
 
 ## Build-specific field and schema differences
 

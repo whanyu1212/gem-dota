@@ -112,6 +112,14 @@ class TestBuildDataframes:
         assert dfs["neutral_item_finds"].empty
         assert dfs["opendota_teamfights"].empty
 
+    def test_match_dataframe_includes_partial_parse_metadata(self):
+        match = ParsedMatch(parse_error="bad tail", truncated_at_tick=1234)
+
+        row = build_dataframes(match)["match"].iloc[0]
+
+        assert row["parse_error"] == "bad tail"
+        assert row["truncated_at_tick"] == 1234
+
     def test_neutral_item_finds_dataframe_includes_event_fields(self):
         neutral_event_cls = getattr(model_module, "NeutralItemFoundEvent", None)
         assert neutral_event_cls is not None
