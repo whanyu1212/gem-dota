@@ -103,6 +103,29 @@ class _FakeBannerEntity:
         return None
 
 
+class _FakeItemEntity:
+    """Minimal entity stub for a Roshan-dropped ``CDOTA_Item_*`` entity."""
+
+    def __init__(self, idx, class_name) -> None:
+        self._idx = idx
+        self._class_name = class_name
+
+    def get_class_name(self):
+        return self._class_name
+
+    def get_index(self):
+        return self._idx
+
+    def get_int32(self, field):
+        return None
+
+    def get_uint32(self, field):
+        return None
+
+    def get_float32(self, field):
+        return None
+
+
 # ---------------------------------------------------------------------------
 # ObjectivesExtractor
 # ---------------------------------------------------------------------------
@@ -456,3 +479,55 @@ class TestBannerPlantCapture:
 
         parser.fire_entity(_Other(7, life_state=0), EntityOp.CREATED, tick=500)
         assert ext.banner_plants == []
+
+
+class TestRoshanDropAttribution:
+    """A drop belongs to the Roshan whose death it followed. A held-but-unused
+    item from an earlier Roshan stays a live ``CDOTA_Item_*`` entity, so the
+    snapshot must exclude it from a *later* Roshan's drops (regression for the
+    duplicate-banner contamination on real replay 8855188139).
+    """
+
+    def _make(self):
+        from gem.extractors.objectives import ObjectivesExtractor
+
+        ext = ObjectivesExtractor()
+        parser = FakeParser()
+        ext.attach(parser)
+        return ext, parser
+
+    def test_single_roshan_snapshots_its_drops(self):
+        from gem.state.entities import EntityOp
+
+        ext, parser = self._make()
+        # Aegis + banner spawn when Roshan spawns, before its death.
+        parser.fire_entity(_FakeItemEntity(10, "CDOTA_Item_Aegis"), EntityOp.CREATED, tick=900)
+        parser.fire_entity(
+            _FakeItemEntity(11, "CDOTA_Item_Roshans_Banner"), EntityOp.CREATED, tick=900
+        )
+        parser.fire_combat_log(_make_combat_log_entry(tick=1000, target_name="npc_dota_roshan"))
+        assert ext.roshan_kills[0].drops == ["aegis", "banner"]
+
+    def test_held_drop_from_earlier_roshan_excluded_from_later(self):
+        from gem.state.entities import EntityOp
+
+        ext, parser = self._make()
+
+        # --- Roshan #1: aegis + banner spawn, Roshan dies. ---
+        parser.fire_entity(_FakeItemEntity(10, "CDOTA_Item_Aegis"), EntityOp.CREATED, tick=900)
+        parser.fire_entity(
+            _FakeItemEntity(11, "CDOTA_Item_Roshans_Banner"), EntityOp.CREATED, tick=900
+        )
+        parser.fire_combat_log(_make_combat_log_entry(tick=1000, target_name="npc_dota_roshan"))
+        assert ext.roshan_kills[0].drops == ["aegis", "banner"]
+
+        # Roshan #1's banner (idx 11) is picked up but NOT used — it stays a live
+        # entity (no DELETED), exactly the real-replay case. Roshan #2 spawns its
+        # own aegis + cheese after Roshan #1's death.
+        parser.fire_entity(_FakeItemEntity(20, "CDOTA_Item_Aegis"), EntityOp.CREATED, tick=2900)
+        parser.fire_entity(_FakeItemEntity(21, "CDOTA_Item_Cheese"), EntityOp.CREATED, tick=2900)
+        parser.fire_combat_log(_make_combat_log_entry(tick=3000, target_name="npc_dota_roshan"))
+
+        # Roshan #2's drops must be its own aegis + cheese — NOT the stale banner.
+        assert ext.roshan_kills[1].drops == ["aegis", "cheese"]
+        assert "banner" not in ext.roshan_kills[1].drops

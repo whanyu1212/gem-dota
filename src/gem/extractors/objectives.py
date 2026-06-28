@@ -283,8 +283,16 @@ class ObjectivesExtractor:
         self.shrine_kills = []
         self.courier_deaths = []
         self.banner_plants = []
-        # index → short drop name for currently-alive Roshan item entities
-        self._roshan_items: dict[int, str] = {}
+        # index → (creation_tick, short drop name) for currently-alive Roshan
+        # item entities. The creation tick lets a Roshan death snapshot exclude
+        # items held over from an earlier Roshan: a held but unused Cheese /
+        # Refresher Shard / Banner stays a live CDOTA_Item_* entity, so without
+        # this it would be re-counted as a later Roshan's drop (e.g. a banner
+        # from Roshan #2 reappearing in Roshan #3's drops).
+        self._roshan_items: dict[int, tuple[int, str]] = {}
+        # Death tick of the most recently recorded Roshan; a drop belongs to the
+        # next Roshan only if it was created after this tick.
+        self._last_roshan_death_tick: int = -1
         # Banner-unit index → last seen m_lifeState. A plant is the transition
         # into alive (0), which fires on a fresh CREATED and on a recycled slot
         # re-entering as UPDATED|ENTERED — gating on CREATED alone would miss the
@@ -321,7 +329,13 @@ class ObjectivesExtractor:
         if op.has(EntityOp.DELETED):
             self._roshan_items.pop(idx, None)
         else:
-            self._roshan_items[idx] = drop_name
+            # Stamp the creation tick once and keep it across later updates so a
+            # position/state refresh does not reset the item's age. A recycled
+            # slot (DELETED then re-CREATED) is a genuinely new item, so re-stamp
+            # only when the slot is not already tracked or the op is CREATED.
+            if op.has(EntityOp.CREATED) or idx not in self._roshan_items:
+                tick = self._parser.tick if self._parser is not None else 0
+                self._roshan_items[idx] = (tick, drop_name)
 
     def _on_banner_unit(self, entity: Entity, op: EntityOp) -> None:
         # A banner plant is the unit's transition into the alive life state, not a
@@ -396,15 +410,23 @@ class ObjectivesExtractor:
             return
         target = entry.target_name
         if target == "npc_dota_roshan":
-            # Snapshot alive Roshan item entities as drops. Items are created
-            # when Roshan spawns and deleted when picked up, so the set alive
-            # at the kill tick is exactly what Roshan dropped.
+            # Snapshot alive Roshan item entities as this Roshan's drops. An
+            # item entity is created when Roshan spawns and deleted when picked
+            # up *and consumed*; a held-but-unused drop from an earlier Roshan
+            # is still alive here, so restrict the snapshot to items created
+            # after the previous Roshan's death — those belong to this Roshan.
+            drops = sorted(
+                token
+                for created_tick, token in self._roshan_items.values()
+                if created_tick > self._last_roshan_death_tick
+            )
+            self._last_roshan_death_tick = entry.tick
             self.roshan_kills.append(
                 RoshanKill(
                     tick=entry.tick,
                     killer=entry.attacker_name,
                     kill_number=len(self.roshan_kills) + 1,
-                    drops=sorted(self._roshan_items.values()),
+                    drops=drops,
                     killer_source=entry.damage_source_name,
                 )
             )

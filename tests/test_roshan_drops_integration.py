@@ -63,6 +63,18 @@ class TestRoshanDropsPopulate:
             unknown = set(r.drops) - known
             assert not unknown, f"unexpected drop token(s) {unknown} in {r.drops}"
 
+    def test_no_duplicate_drops_per_roshan(self, match):
+        # Each Roshan drops at most one of each item. A held-but-unused drop from
+        # an earlier Roshan stays a live entity; without the creation-tick filter
+        # it leaks into a later Roshan's snapshot as a duplicate (this fixture
+        # previously produced drops=[aegis, banner, banner, cheese,
+        # refresher_shard] on Roshan #3). A duplicate token is the contamination
+        # signal.
+        for r in match.roshans:
+            assert len(r.drops) == len(set(r.drops)), (
+                f"Roshan #{r.kill_number} has duplicate drops: {r.drops}"
+            )
+
     def test_banner_plants_populate_with_position(self, match):
         # This fixture is known to contain planted Roshan's Banner units. The
         # planted-unit entity path (CDOTA_Unit_Roshans_Banner) is exercised only
