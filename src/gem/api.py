@@ -109,6 +109,7 @@ from gem.replays.fetch import (
     fetch_replay_url,
 )
 from gem.results.models import (
+    BannerPlant,
     BuybackEvent,
     ChatEntry,
     NeutralItemFoundEvent,
@@ -337,6 +338,7 @@ __all__ = [
     "ChatEntry",
     "NeutralItemFoundEvent",
     "BuybackEvent",
+    "BannerPlant",
     "find_player",
     "hero_npc_name",
     "position_at_tick",

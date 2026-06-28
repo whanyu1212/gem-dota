@@ -104,3 +104,17 @@ class TestParsedMatchFieldOrder:
         match = ParsedMatch(*args)
         assert match.objectives == sentinel
         assert match.banner_plants == []
+
+
+class TestPublicExports:
+    """``ParsedMatch.banner_plants`` is a public parse-result field whose value
+    type is documented as ``gem.BannerPlant``, so the package must re-export it
+    (matching the ``gem.BuybackEvent`` precedent for a parse-result value type).
+    """
+
+    def test_banner_plant_is_publicly_exported(self):
+        import gem
+        from gem.results.models import BannerPlant
+
+        assert "BannerPlant" in gem.__all__
+        assert gem.BannerPlant is BannerPlant
