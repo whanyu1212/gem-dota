@@ -285,9 +285,13 @@ class ObjectivesExtractor:
         self.banner_plants = []
         # index → short drop name for currently-alive Roshan item entities
         self._roshan_items: dict[int, str] = {}
-        # Entity slots are recycled across a game, so the same banner-unit index
-        # can be CREATED more than once. Track (index, spawn_tick) pairs already
-        # recorded so one planted banner yields exactly one BannerPlant.
+        # Banner-unit index → last seen m_lifeState. A plant is the transition
+        # into alive (0), which fires on a fresh CREATED and on a recycled slot
+        # re-entering as UPDATED|ENTERED — gating on CREATED alone would miss the
+        # latter (same lifecycle the ward extractor handles).
+        self._banner_lifestate: dict[int, int] = {}
+        # Belt-and-suspenders against a transition re-emitted at the same tick:
+        # one (index, spawn_tick) pair yields at most one BannerPlant.
         self._banner_seen: set[tuple[int, int]] = set()
         self._parser: ReplayParser | None = None
 
@@ -320,13 +324,28 @@ class ObjectivesExtractor:
             self._roshan_items[idx] = drop_name
 
     def _on_banner_unit(self, entity: Entity, op: EntityOp) -> None:
-        # Only the creation edge marks a plant; ignore deletes and the position
-        # updates that follow. A recycled slot re-creates the class, so dedup on
-        # (index, spawn_tick) to keep one plant per planted banner.
-        if not op.has(EntityOp.CREATED):
+        # A banner plant is the unit's transition into the alive life state, not a
+        # specific op: a fresh plant arrives as CREATED, but a banner reusing a
+        # recycled slot re-enters as UPDATED|ENTERED. Detecting the life-state
+        # edge (mirroring the ward extractor) captures both while ignoring pure
+        # position updates on an already-planted banner. Deletes clear the slot.
+        idx = entity.get_index()
+        if op.has(EntityOp.DELETED):
+            self._banner_lifestate.pop(idx, None)
             return
+
+        life_state = entity.get_int32("m_lifeState")
+        if life_state is None:
+            life_state = 0 if op.has(EntityOp.CREATED) else 2
+        prev_ls = self._banner_lifestate.get(idx, 2)
+        self._banner_lifestate[idx] = life_state
+
+        # Only a transition into alive (0) from a non-alive prior is a plant.
+        if not (life_state == 0 and prev_ls != 0):
+            return
+
         tick = self._parser.tick if self._parser is not None else 0
-        key = (entity.get_index(), tick)
+        key = (idx, tick)
         if key in self._banner_seen:
             return
         self._banner_seen.add(key)

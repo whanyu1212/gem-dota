@@ -40,6 +40,9 @@ class FakeParser:
     def __init__(self) -> None:
         self._combat_log_handlers = []
         self._chat_event_handlers = []
+        self._entity_handlers = []
+        self.tick = 0
+        self.entity_manager = None
 
     def on_combat_log_entry(self, handler) -> None:
         self._combat_log_handlers.append(handler)
@@ -48,7 +51,7 @@ class FakeParser:
         self._chat_event_handlers.append(handler)
 
     def on_entity(self, handler) -> None:
-        pass
+        self._entity_handlers.append(handler)
 
     def on_game_start(self, handler) -> None:
         pass
@@ -59,6 +62,45 @@ class FakeParser:
     def fire_combat_log(self, entry) -> None:
         for h in self._combat_log_handlers:
             h(entry)
+
+    def fire_entity(self, entity, op, *, tick=None) -> None:
+        if tick is not None:
+            self.tick = tick
+        for h in self._entity_handlers:
+            h(entity, op)
+
+
+class _FakeBannerEntity:
+    """Minimal entity stub for the planted Roshan's Banner unit.
+
+    Carries only the fields ``_on_banner_unit`` reads (class name, index,
+    life state, team). Owner resolution and position are left absent so the
+    handler falls back to ``player_id=-1`` / ``None`` coordinates.
+    """
+
+    def __init__(self, idx, life_state, team=2) -> None:
+        self._idx = idx
+        self._life_state = life_state
+        self._team = team
+
+    def get_class_name(self):
+        return "CDOTA_Unit_Roshans_Banner"
+
+    def get_index(self):
+        return self._idx
+
+    def get_int32(self, field):
+        if field == "m_lifeState":
+            return self._life_state
+        if field == "m_iTeamNum":
+            return self._team
+        return None
+
+    def get_uint32(self, field):
+        return None
+
+    def get_float32(self, field):
+        return None
 
 
 # ---------------------------------------------------------------------------
@@ -356,3 +398,61 @@ class TestShrineKills:
         ext = ObjectivesExtractor()
         ext._on_chat_event(MagicMock(type=_CHAT_MSG_SHRINE_KILLED, value=None), tick=500)
         assert ext.shrine_kills[0].team == 0
+
+
+class TestBannerPlantCapture:
+    def _make(self):
+        from gem.extractors.objectives import ObjectivesExtractor
+
+        ext = ObjectivesExtractor()
+        parser = FakeParser()
+        ext.attach(parser)
+        return ext, parser
+
+    def test_fresh_created_banner_is_a_plant(self):
+        from gem.state.entities import EntityOp
+
+        ext, parser = self._make()
+        parser.fire_entity(_FakeBannerEntity(5, life_state=0, team=2), EntityOp.CREATED, tick=1000)
+        assert len(ext.banner_plants) == 1
+        assert ext.banner_plants[0].tick == 1000
+        assert ext.banner_plants[0].team == 2
+
+    def test_pure_update_on_live_banner_is_not_a_second_plant(self):
+        from gem.state.entities import EntityOp
+
+        ext, parser = self._make()
+        parser.fire_entity(_FakeBannerEntity(5, life_state=0), EntityOp.CREATED, tick=1000)
+        # A position refresh on the already-alive banner must not re-record it.
+        parser.fire_entity(_FakeBannerEntity(5, life_state=0), EntityOp.UPDATED, tick=1005)
+        assert len(ext.banner_plants) == 1
+
+    def test_recycled_slot_re_entering_alive_is_a_plant(self):
+        # The Codex P2 case: a banner reusing a slot that was deleted re-enters as
+        # UPDATED|ENTERED, not CREATED. Gating on CREATED alone would drop it.
+        from gem.state.entities import EntityOp
+
+        ext, parser = self._make()
+        # First banner on slot 5: planted, dies, slot deleted.
+        parser.fire_entity(_FakeBannerEntity(5, life_state=0), EntityOp.CREATED, tick=1000)
+        parser.fire_entity(_FakeBannerEntity(5, life_state=1), EntityOp.UPDATED, tick=1300)
+        parser.fire_entity(_FakeBannerEntity(5, life_state=2), EntityOp.DELETED, tick=1301)
+        # Second banner reuses slot 5, re-entering alive without a CREATED op.
+        parser.fire_entity(
+            _FakeBannerEntity(5, life_state=0),
+            EntityOp.UPDATED | EntityOp.ENTERED,
+            tick=2000,
+        )
+        assert [p.tick for p in ext.banner_plants] == [1000, 2000]
+
+    def test_non_banner_entity_is_ignored(self):
+        from gem.state.entities import EntityOp
+
+        ext, parser = self._make()
+
+        class _Other(_FakeBannerEntity):
+            def get_class_name(self):
+                return "CDOTA_Unit_Hero_Axe"
+
+        parser.fire_entity(_Other(7, life_state=0), EntityOp.CREATED, tick=500)
+        assert ext.banner_plants == []
