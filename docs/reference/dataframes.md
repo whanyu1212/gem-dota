@@ -24,7 +24,7 @@ pip install pyarrow
 | `"smoke_events"` | Smoke activations with grouped heroes and centroid |
 | `"aegis_events"` | Aegis pickups, steals, and denies |
 | `"draft"` | Pick and ban events in order |
-| `"match"` | Single-row match metadata (id, duration, winner, …) |
+| `"match"` | Single-row match metadata (id, duration, winner, partial-parse status, …) |
 | `"radiant_advantage"` | Per-minute gold and XP advantage curves |
 | `"chat"` | All-chat and team-chat messages |
 | `"courier_snapshots"` | Courier state sampled each tick |

@@ -23,6 +23,9 @@ from __future__ import annotations
 import logging
 from unittest.mock import MagicMock, patch
 
+import pytest
+from google.protobuf.message import DecodeError
+
 import gem.parser as parser_module
 import gem.results.models as model_module
 from gem.binary.reader import BitReader
@@ -246,29 +249,46 @@ class TestReplayParserInit:
 
 
 class TestReplayParserPartialParse:
-    def test_missing_magic_is_recorded_not_raised(self, caplog):
-        # The magic-header check runs inside parse()'s swallowed try-block, so an
-        # unparseable file (here: empty input, which fails magic validation) is
-        # reported via the attributes rather than propagating a ValueError.
+    def test_missing_magic_raises_by_default_after_recording_error(self):
         p = ReplayParser(b"")
 
-        with caplog.at_level(logging.WARNING, logger="gem.parser"):
-            p.parse()  # must not raise
+        with pytest.raises(ValueError):
+            p.parse()
 
         assert isinstance(p.parse_error, ValueError)
         assert p.truncated_at_tick == 0
 
-    def test_stream_exception_is_recorded_not_raised(self, caplog):
+    def test_missing_magic_allow_partial_records_not_raises(self, caplog):
+        p = ReplayParser(b"")
+
+        with caplog.at_level(logging.WARNING, logger="gem.parser"):
+            p.parse(allow_partial=True)
+
+        assert isinstance(p.parse_error, ValueError)
+        assert p.truncated_at_tick == 0
+        assert any(
+            "stream ended early" in r.message and r.levelno == logging.WARNING
+            for r in caplog.records
+        )
+
+    def test_stream_exception_raises_by_default_after_recording_error(self):
         # Valid Source 2 magic + the 8-byte metadata skip, then a single outer
-        # message whose payload decodes to a bogus CDemoPacket. The stream
-        # constructs (magic passes) and then raises mid-iteration, which parse()
-        # must swallow — recording the failure on the parser instead of
-        # propagating, and logging at WARNING so it is visible by default.
+        # message whose payload decodes to a bogus CDemoPacket.
+        buf = b"PBDEMS2\x00" + (b"\x00" * 8) + b"\x07\x00\xff\xff\xff\xff\x0f\x41"
+        p = ReplayParser(buf)
+
+        with pytest.raises(DecodeError):
+            p.parse()
+
+        assert p.parse_error is not None
+        assert p.truncated_at_tick == 0
+
+    def test_stream_exception_allow_partial_records_not_raises(self, caplog):
         buf = b"PBDEMS2\x00" + (b"\x00" * 8) + b"\x07\x00\xff\xff\xff\xff\x0f\x41"
         p = ReplayParser(buf)
 
         with caplog.at_level(logging.WARNING, logger="gem.parser"):
-            p.parse()  # must not raise
+            p.parse(allow_partial=True)
 
         assert p.parse_error is not None
         assert p.truncated_at_tick == 0

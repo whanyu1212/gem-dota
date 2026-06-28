@@ -18,10 +18,10 @@ Source: [src/gem/api.py](https://github.com/whanyu1212/gem-dota/blob/main/src/ge
 ### `parse`
 
 ```python
-def parse(path: str | Path) -> ParsedMatch
+def parse(path: str | Path, *, allow_partial: bool = False) -> ParsedMatch
 ```
 
-Parse a Dota 2 replay file and return structured match data.
+Parse a Dota 2 replay file and return structured match data. By default replay stream/decoder errors are raised; pass `allow_partial=True` to return best-effort partial output with `ParsedMatch.parse_error` / `truncated_at_tick` populated.
 
 Source: [src/gem/api.py:128](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L128)
 
@@ -58,7 +58,7 @@ Source: [src/gem/api.py:349](https://github.com/whanyu1212/gem-dota/blob/main/sr
 ### `parse_to_json`
 
 ```python
-def parse_to_json(path: str | Path, *, indent: int | None = None, sort_keys: bool = False) -> str
+def parse_to_json(path: str | Path, *, indent: int | None = None, sort_keys: bool = False, allow_partial: bool = False) -> str
 ```
 
 Parse a replay and return the result as JSON.
@@ -68,7 +68,7 @@ Source: [src/gem/api.py:354](https://github.com/whanyu1212/gem-dota/blob/main/sr
 ### `parse_to_dataframe`
 
 ```python
-def parse_to_dataframe(path: str | Path) -> dict[str, pd.DataFrame]
+def parse_to_dataframe(path: str | Path, *, allow_partial: bool = False) -> dict[str, pd.DataFrame]
 ```
 
 Parse a replay and return tabular projections as pandas DataFrames.
@@ -88,7 +88,7 @@ Source: [src/gem/api.py:381](https://github.com/whanyu1212/gem-dota/blob/main/sr
 ### `parse_to_parquet`
 
 ```python
-def parse_to_parquet(path: str | Path, output_dir: str | Path, *, index: bool = False) -> list[Path]
+def parse_to_parquet(path: str | Path, output_dir: str | Path, *, index: bool = False, allow_partial: bool = False) -> list[Path]
 ```
 
 Parse a replay and export DataFrame projections to parquet files.

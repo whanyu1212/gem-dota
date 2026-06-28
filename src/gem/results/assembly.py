@@ -862,6 +862,9 @@ def build_parsed_match(
     if radiant_win is None:
         radiant_win = _radiant_win_from_ancient(all_entries)
 
+    parser_error = getattr(parser, "parse_error", None)
+    parse_error_text = str(parser_error) if isinstance(parser_error, Exception) else None
+
     match = ParsedMatch(
         match_id=parser.match_id,
         game_mode=parser.game_mode,
@@ -885,6 +888,8 @@ def build_parsed_match(
         game_start_tick=parser.game_start_tick,
         game_end_tick=parser.tick,
         duration=getattr(parser, "duration_s", None) or 0,
+        parse_error=parse_error_text,
+        truncated_at_tick=getattr(parser, "truncated_at_tick", None),
     )
 
     # Post-process buybacks (7b).

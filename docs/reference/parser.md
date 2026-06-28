@@ -96,8 +96,8 @@ Source: [src/gem/parser.py:384](https://github.com/whanyu1212/gem-dota/blob/main
 
 ##### `parse`
 
-Signature: `def ReplayParser.parse(self) -> None`
+Signature: `def ReplayParser.parse(self, *, allow_partial: bool = False) -> None`
 
-Parse the replay from start to finish (or until stop_after_tick).
+Parse the replay from start to finish (or until stop_after_tick). By default stream/decoder errors are recorded and re-raised; pass `allow_partial=True` to keep partial parser state.
 
 Source: [src/gem/parser.py:396](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/parser.py#L396)

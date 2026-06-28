@@ -58,7 +58,7 @@ class TestSerializationHelpers:
     def test_parse_to_json_uses_parse_result(self, monkeypatch):
         fake_match = ParsedMatch(match_id=999)
 
-        monkeypatch.setattr(gem.api, "parse", lambda path: fake_match)
+        monkeypatch.setattr(gem.api, "parse", lambda path, *, allow_partial=False: fake_match)
 
         payload = gem.parse_to_json("dummy.dem")
         decoded = json.loads(payload)

@@ -214,11 +214,10 @@ class ReplayParser:
         self.duration_s: int | None = None
         # Set when the stream loop terminates on an exception rather than running
         # to completion. ``parse_error`` is the exception, ``truncated_at_tick``
-        # the last tick reached. Both stay None on a clean parse. This is the
-        # programmatic counterpart to the WARNING logged in ``parse()``: an
-        # expected truncated-tail and a genuine mid-stream bug are
-        # indistinguishable here, so consumers can inspect these to tell whether a
-        # ``ParsedMatch`` is complete instead of trusting silent partial output.
+        # is the last tick reached. Both stay None on a clean parse. Strict parse
+        # calls re-raise the exception after recording these; allow-partial calls
+        # keep the old truncated-replay workflow but make the partial state
+        # programmatically visible.
         self.parse_error: Exception | None = None
         self.truncated_at_tick: int | None = None
         self._game_start_callbacks: list[Callable[[int], None]] = []
@@ -393,12 +392,22 @@ class ReplayParser:
     # Parse entry point
     # ------------------------------------------------------------------
 
-    def parse(self) -> None:
+    def parse(self, *, allow_partial: bool = False) -> None:
         """Parse the replay from start to finish (or until stop_after_tick).
 
         Processes every outer message in order, decoding inner net messages
         from DEM_Packet / DEM_SignonPacket / DEM_FullPacket, and routing
         each to the appropriate subsystem handler.
+
+        Args:
+            allow_partial: When ``False`` (default), stream/decoder/extractor
+                exceptions are recorded on ``parse_error`` / ``truncated_at_tick``
+                and then re-raised. When ``True``, parsing returns the partial
+                state accumulated before the exception and logs a warning.
+
+        Raises:
+            Exception: Re-raises the underlying stream/decoder/extractor error
+                unless ``allow_partial=True``.
         """
         try:
             with DemoStream(self._source) as stream:
@@ -408,15 +417,14 @@ class ReplayParser:
                         break
                     self._dispatch_outer(msg_type, data)
         except Exception as exc:
-            # Truncated files raise on the final corrupt snappy block — that is
-            # expected for partial replays, so parsing continues with whatever was
-            # read. Log at warning level: a genuine mid-stream decoder/extractor
-            # bug is indistinguishable here from an expected truncated tail, so
-            # surface it rather than letting silent partial output look complete.
-            # Record it on the parser too, so consumers can detect a partial
-            # parse programmatically instead of scraping logs.
             self.parse_error = exc
             self.truncated_at_tick = self.tick
+            if not allow_partial:
+                raise
+            # Truncated files raise on the final corrupt snappy block — that is
+            # expected for partial-replay analysis, so allow_partial preserves
+            # whatever was read. A genuine mid-stream decoder/extractor bug is
+            # indistinguishable here, so log and surface the error attributes.
             logger.warning("Replay stream ended early at tick %d: %r", self.tick, exc)
 
         # Read match metadata from CDOTAGamerulesProxy entity if DEM_FileInfo

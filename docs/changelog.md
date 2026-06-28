@@ -36,9 +36,9 @@ Per-player `purchase`, `purchase_time`, and `first_purchase_time` now match the 
 
 :::
 
-::: info Partial-parse visibility (0.4.1)
+::: warning Breaking: strict parser errors (unreleased)
 
-`ReplayParser.parse()` now records a swallowed stream-end exception on the parser as `parse_error` and `truncated_at_tick` (both `None` on a clean parse), and logs it at `WARNING`. Truncated or partial replays legitimately raise on the final corrupt block, but at `DEBUG` that was invisible — consumers can now detect a partial parse programmatically instead of trusting silently-incomplete output.
+`ReplayParser.parse()` records stream-end exceptions on the parser as `parse_error` and `truncated_at_tick` (both `None` on a clean parse). Current unreleased changes raise those errors by default; pass `allow_partial=True` to keep best-effort partial output and inspect the parse metadata programmatically.
 
 :::
 

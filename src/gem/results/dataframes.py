@@ -337,6 +337,8 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                 "tower_status_dire": match.tower_status_dire,
                 "barracks_status_radiant": match.barracks_status_radiant,
                 "barracks_status_dire": match.barracks_status_dire,
+                "parse_error": match.parse_error,
+                "truncated_at_tick": match.truncated_at_tick,
             }
         ]
     )

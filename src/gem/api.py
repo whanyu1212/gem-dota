@@ -2,8 +2,9 @@
 
 Public API
 ----------
-``parse(path)``
-    Parse a replay and return a :class:`ParsedMatch`.
+``parse(path, allow_partial=False)``
+    Parse a replay and return a :class:`ParsedMatch`; pass
+    ``allow_partial=True`` to recover best-effort output from truncated replays.
 
 ``parse_to_dataframe(path)``
     Parse a replay and return a dict of pandas DataFrames.
@@ -127,7 +128,7 @@ if TYPE_CHECKING:
     import pandas as pd
 
 
-def parse(path: str | Path) -> ParsedMatch:
+def parse(path: str | Path, *, allow_partial: bool = False) -> ParsedMatch:
     """Parse a Dota 2 replay file and return structured match data.
 
     Attaches all standard extractors (players, objectives, wards), runs the
@@ -136,9 +137,17 @@ def parse(path: str | Path) -> ParsedMatch:
 
     Args:
         path: Path to the ``.dem`` replay file.
+        allow_partial: When ``False`` (default), replay stream/decoder errors
+            are raised. When ``True``, return the partial match accumulated
+            before the error; ``ParsedMatch.parse_error`` and
+            ``ParsedMatch.truncated_at_tick`` describe the failure.
 
     Returns:
         A :class:`ParsedMatch` with all extracted data populated.
+
+    Raises:
+        Exception: Re-raises replay stream/decoder/extractor errors unless
+            ``allow_partial=True``.
     """
     from gem.combat.aggregator import _CombatAggregator
     from gem.combat.log import CombatLogEntry
@@ -188,7 +197,7 @@ def parse(path: str | Path) -> ParsedMatch:
     smoke_ext.attach(p)
     vision_mod_ext.attach(p)
 
-    p.parse()
+    p.parse(allow_partial=allow_partial)
     draft_ext.finalize()
     ward_ext.finalize()
     smoke_events = smoke_ext.finalize()
@@ -252,12 +261,18 @@ def to_json(match: ParsedMatch, *, indent: int | None = None, sort_keys: bool = 
     return json.dumps(to_dict(match), indent=indent, sort_keys=sort_keys)
 
 
-def parse_to_json(path: str | Path, *, indent: int | None = None, sort_keys: bool = False) -> str:
+def parse_to_json(
+    path: str | Path,
+    *,
+    indent: int | None = None,
+    sort_keys: bool = False,
+    allow_partial: bool = False,
+) -> str:
     """Parse a replay and return the result as JSON."""
-    return to_json(parse(path), indent=indent, sort_keys=sort_keys)
+    return to_json(parse(path, allow_partial=allow_partial), indent=indent, sort_keys=sort_keys)
 
 
-def parse_to_dataframe(path: str | Path) -> dict[str, pd.DataFrame]:
+def parse_to_dataframe(path: str | Path, *, allow_partial: bool = False) -> dict[str, pd.DataFrame]:
     """Parse a replay and return tabular projections as pandas DataFrames.
 
     Convenience wrapper around :func:`parse` that converts the structured
@@ -265,6 +280,7 @@ def parse_to_dataframe(path: str | Path) -> dict[str, pd.DataFrame]:
 
     Args:
         path: Path to the ``.dem`` replay file.
+        allow_partial: Forwarded to :func:`parse`.
 
     Returns:
         Dictionary of DataFrames including (at minimum):
@@ -276,7 +292,7 @@ def parse_to_dataframe(path: str | Path) -> dict[str, pd.DataFrame]:
     """
     from gem.results.dataframes import build_dataframes
 
-    return build_dataframes(parse(path))
+    return build_dataframes(parse(path, allow_partial=allow_partial))
 
 
 def to_parquet(match: ParsedMatch, output_dir: str | Path, *, index: bool = False) -> list[Path]:
@@ -311,10 +327,14 @@ def to_parquet(match: ParsedMatch, output_dir: str | Path, *, index: bool = Fals
 
 
 def parse_to_parquet(
-    path: str | Path, output_dir: str | Path, *, index: bool = False
+    path: str | Path,
+    output_dir: str | Path,
+    *,
+    index: bool = False,
+    allow_partial: bool = False,
 ) -> list[Path]:
     """Parse a replay and export DataFrame projections to parquet files."""
-    return to_parquet(parse(path), output_dir, index=index)
+    return to_parquet(parse(path, allow_partial=allow_partial), output_dir, index=index)
 
 
 # Re-export for convenience
