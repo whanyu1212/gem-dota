@@ -13,7 +13,9 @@ each match immediately, keeping memory usage flat regardless of batch size.
 ::: info Timeouts
 `timeout=` is enforced per replay inside the worker after that replay starts
 parsing. A timed-out replay is returned as `ParseResult(error=TimeoutError(...))`;
-it does not raise a batch-level timeout or hide other completed results.
+it does not raise a batch-level timeout or hide other completed results. On
+platforms without `signal.SIGALRM`/`setitimer` support, passing `timeout=` raises
+once before workers start.
 :::
 
 ::: tip Parquet dependency

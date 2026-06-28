@@ -95,9 +95,23 @@ def _collect_paths(
     return [Path(p) for p in source]
 
 
+def _supports_worker_timeout() -> bool:
+    return (
+        hasattr(signal, "SIGALRM")
+        and hasattr(signal, "ITIMER_REAL")
+        and hasattr(signal, "setitimer")
+    )
+
+
 def _validate_timeout(timeout: float | None) -> None:
-    if timeout is not None and timeout <= 0:
+    if timeout is None:
+        return
+    if timeout <= 0:
         raise ValueError("timeout must be a positive number of seconds")
+    if not _supports_worker_timeout():
+        raise RuntimeError(
+            "parse_many(timeout=...) requires signal.SIGALRM/setitimer support on this platform"
+        )
 
 
 @contextmanager
@@ -107,8 +121,10 @@ def _replay_timeout(path: Path, timeout: float | None) -> Iterator[None]:
         yield
         return
 
-    if not hasattr(signal, "SIGALRM") or not hasattr(signal, "setitimer"):
-        raise RuntimeError("Per-replay timeout requires signal.SIGALRM support")
+    if not _supports_worker_timeout():
+        raise RuntimeError(
+            "parse_many(timeout=...) requires signal.SIGALRM/setitimer support on this platform"
+        )
 
     def _handle_timeout(signum: int, frame: FrameType | None) -> None:
         raise TimeoutError(f"Parsing {path} timed out after {timeout:g} seconds")
@@ -250,8 +266,10 @@ def parse_many(
         recursive: When *source* is a directory, scan subdirectories too.
         progress: Show a Rich progress bar while parsing.
         timeout: Per-replay parsing timeout in seconds, enforced after a worker
-            starts a replay. Timed-out replays return ``ParseResult(error=TimeoutError(...))``.
-            ``None`` means no limit.
+            starts a replay on platforms with ``signal.SIGALRM``/``setitimer``.
+            Timed-out replays return ``ParseResult(error=TimeoutError(...))``.
+            Unsupported platforms raise once before workers start. ``None`` means
+            no limit.
 
     Returns:
         List of :class:`ParseResult` in completion order.  Failed replays have

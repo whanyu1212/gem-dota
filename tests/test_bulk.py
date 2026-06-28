@@ -228,6 +228,21 @@ class TestParseMany:
         with pytest.raises(ValueError, match="timeout must be a positive"):
             parse_many([p], progress=False, timeout=0)
 
+    def test_timeout_unsupported_platform_raises_once_before_workers(self, tmp_path):
+        p = tmp_path / "a.dem"
+        p.touch()
+
+        class _UnexpectedExecutor:
+            def __init__(self, **kwargs):
+                raise AssertionError("executor should not be created")
+
+        with (
+            patch("gem.replays.batch._supports_worker_timeout", return_value=False),
+            patch("gem.replays.batch.ProcessPoolExecutor", _UnexpectedExecutor),
+            pytest.raises(RuntimeError, match="requires signal.SIGALRM/setitimer"),
+        ):
+            parse_many([p], progress=False, timeout=1)
+
     def test_parse_result_ok_property(self):
         assert ParseResult(path=Path("a.dem"), match=ParsedMatch(), error=None).ok is True
         assert ParseResult(path=Path("b.dem"), match=None, error=ValueError()).ok is False
