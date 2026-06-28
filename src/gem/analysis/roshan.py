@@ -112,11 +112,6 @@ class RoshConversion:
     rosh_number: int
     rosh_tick: int
     killer_name: str
-    drops: list[str]
-    had_high_value_drop: bool
-    banner_planted: bool
-    banner_rax_conversion: bool
-    banner_rax_lane: str | None
     holder_team: int | None
     holder_player_id: int | None
     holder_name: str
@@ -158,6 +153,14 @@ class RoshConversion:
     ]
     drivers: list[str] = field(default_factory=list)
     timeline_events: list[RoshTimelineEvent] = field(default_factory=list)
+    # Roshan drop + banner→rax fields carry safe legacy defaults and sit last so
+    # the public constructor stays backward-compatible: existing callers that
+    # built a RoshConversion with the pre-drops keyword set keep working.
+    drops: list[str] = field(default_factory=list)
+    had_high_value_drop: bool = False
+    banner_planted: bool = False
+    banner_rax_conversion: bool = False
+    banner_rax_lane: str | None = None
 
 
 def _team_for_player(match: ParsedMatch, player_id: int | None) -> int | None:

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from gem.analysis.roshan import _rax_lane, build_rosh_conversions
+from gem.analysis.roshan import RoshConversion, _rax_lane, build_rosh_conversions
 from gem.combat.log import CombatLogEntry
 from gem.extractors.objectives import (
     AegisEvent,
@@ -224,6 +224,48 @@ def test_holder_window_clamped_to_next_roshan_no_double_count() -> None:
     assert total_towers == 1, f"tower double-counted across Roshans: {total_towers}"
     assert conversions[0].towers_taken == 0
     assert conversions[1].towers_taken == 1
+
+
+def test_rosh_conversion_legacy_constructor_keeps_working() -> None:
+    # RoshConversion is part of the public ``gem`` API, so the drops + banner→rax
+    # fields must stay optional: a caller using the pre-drops keyword set must
+    # still construct without a missing-argument TypeError, and the new fields
+    # must fall back to safe legacy defaults.
+    conversion = RoshConversion(
+        rosh_number=1,
+        rosh_tick=1000,
+        killer_name="npc_dota_hero_x",
+        holder_team=2,
+        holder_player_id=0,
+        holder_name="npc_dota_hero_x",
+        aegis_pickup_tick=1010,
+        immediate_end_tick=6400,
+        aegis_end_tick=10000,
+        aegis_eval_end_tick=10000,
+        extended_end_tick=10000,
+        aegis_fate="expired",
+        first_fight_tick=None,
+        first_objective_tick=None,
+        fight_count=0,
+        fights_won=0,
+        fights_lost=0,
+        fights_drawn=0,
+        towers_taken=0,
+        barracks_taken=0,
+        enemy_buybacks_forced=0,
+        enemy_half_observer_delta=0,
+        enemy_half_farm_share_before=0.0,
+        enemy_half_farm_share_during=0.0,
+        enemy_half_farm_share_delta=0.0,
+        conversion_score=25,
+        conversion_label="low_conversion",
+        aegis_outcome="expired_unused",
+    )
+    assert conversion.drops == []
+    assert conversion.had_high_value_drop is False
+    assert conversion.banner_planted is False
+    assert conversion.banner_rax_conversion is False
+    assert conversion.banner_rax_lane is None
 
 
 def test_rax_lane_parses_known_suffixes() -> None:
