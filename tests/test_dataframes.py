@@ -6,7 +6,7 @@ import gem.results.models as model_module
 from gem.combat.log import CombatLogEntry, CombatLogType
 from gem.extractors.objectives import AegisEvent, ShrineKill, TormentorKill
 from gem.results.dataframes import build_dataframes
-from gem.results.models import ParsedMatch, ParsedPlayer
+from gem.results.models import ParsedMatch, ParsedPlayer, VisionModifierEvent
 
 
 class TestBuildDataframes:
@@ -102,6 +102,7 @@ class TestBuildDataframes:
         assert "teamfights" in dfs
         assert "opendota_teamfights" in dfs
         assert "smoke_events" in dfs
+        assert "vision_modifiers" in dfs
         assert "courier_snapshots" in dfs
         assert "neutral_item_finds" in dfs
         assert "player_kills_log" in dfs
@@ -111,6 +112,32 @@ class TestBuildDataframes:
 
         assert dfs["neutral_item_finds"].empty
         assert dfs["opendota_teamfights"].empty
+        assert dfs["vision_modifiers"].empty
+
+    def test_vision_modifiers_dataframe_includes_event_fields(self):
+        match = ParsedMatch(
+            vision_modifiers=[
+                VisionModifierEvent(
+                    tick=100,
+                    end_tick=200,
+                    modifier_name="modifier_bounty_hunter_track",
+                    target_name="npc_dota_hero_axe",
+                    caster_name="npc_dota_hero_bounty_hunter",
+                    caster_team=3,
+                )
+            ]
+        )
+
+        df = build_dataframes(match)["vision_modifiers"]
+
+        assert len(df) == 1
+        row = df.iloc[0]
+        assert row["tick"] == 100
+        assert row["end_tick"] == 200
+        assert row["modifier_name"] == "modifier_bounty_hunter_track"
+        assert row["target_name"] == "npc_dota_hero_axe"
+        assert row["caster_name"] == "npc_dota_hero_bounty_hunter"
+        assert row["caster_team"] == 3
 
     def test_match_dataframe_includes_partial_parse_metadata(self):
         match = ParsedMatch(parse_error="bad tail", truncated_at_tick=1234)

@@ -22,9 +22,9 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
 
     Returns:
         Dictionary with tabular projections of match-level, player-level,
-        and event-level data. Existing keys are preserved:
-        ``players``, ``positions``, ``combat_log``, ``wards``,
-        ``objectives``, and ``chat``.
+        and event-level data. Existing keys are preserved and extended with
+        event tables such as ``smoke_events``, ``vision_modifiers``, and
+        ``neutral_item_finds``.
     """
     from dataclasses import asdict
     from enum import Enum
@@ -372,6 +372,11 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         if match.smoke_events
         else pd.DataFrame()
     )
+    vision_modifiers_df = (
+        pd.DataFrame([asdict(ev) for ev in match.vision_modifiers])
+        if match.vision_modifiers
+        else pd.DataFrame()
+    )
     courier_df = (
         pd.DataFrame([asdict(cs) for cs in match.courier_snapshots])
         if match.courier_snapshots
@@ -398,6 +403,7 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         "teamfights": teamfights_df,
         "opendota_teamfights": opendota_teamfights_df,
         "smoke_events": smoke_df,
+        "vision_modifiers": vision_modifiers_df,
         "courier_snapshots": courier_df,
         "neutral_item_finds": neutral_item_finds_df,
         "player_kills_log": pd.DataFrame(player_kills_rows),

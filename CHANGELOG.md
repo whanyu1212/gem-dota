@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `ParsedMatch.parse_error` and `ParsedMatch.truncated_at_tick` surface opt-in
   partial-parse failures in structured output and the `match` DataFrame.
+- `build_dataframes()` / parquet exports now include a `vision_modifiers` table
+  for `ParsedMatch.vision_modifiers`.
+- `SmokeEvent` is now exported from the top-level `gem` package, matching other
+  public parse-result value types.
 
 ### Fixed
 - Replay download and report asset download helpers now use verified HTTPS/TLS

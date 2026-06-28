@@ -107,10 +107,7 @@ class TestParsedMatchFieldOrder:
 
 
 class TestPublicExports:
-    """``ParsedMatch.banner_plants`` is a public parse-result field whose value
-    type is documented as ``gem.BannerPlant``, so the package must re-export it
-    (matching the ``gem.BuybackEvent`` precedent for a parse-result value type).
-    """
+    """Parse-result value types should be available from the top-level package."""
 
     def test_banner_plant_is_publicly_exported(self):
         import gem
@@ -118,3 +115,10 @@ class TestPublicExports:
 
         assert "BannerPlant" in gem.__all__
         assert gem.BannerPlant is BannerPlant
+
+    def test_smoke_event_is_publicly_exported(self):
+        import gem
+        from gem.results.models import SmokeEvent
+
+        assert "SmokeEvent" in gem.__all__
+        assert gem.SmokeEvent is SmokeEvent
