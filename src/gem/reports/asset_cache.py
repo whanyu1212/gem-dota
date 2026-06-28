@@ -395,10 +395,8 @@ def _download_dir(out_dir: str | Path | None, subdir: str) -> Path:
 
 
 def _cdn_ssl_context() -> ssl.SSLContext:
-    ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
-    return ctx
+    """Return the verified TLS context used for report asset downloads."""
+    return ssl.create_default_context()
 
 
 def _download_first(urls: list[str], out_path: Path, ctx: ssl.SSLContext) -> bool:

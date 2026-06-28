@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ssl
 from pathlib import Path
 from typing import Any
 
@@ -7,6 +8,13 @@ import gem.reports.asset_cache as asset_cache
 from gem.reports import ReportAssets, add_map_image, report_asset_status
 
 _PNG_BYTES = b"\x89PNG\r\n\x1a\nfake-png"
+
+
+def test_report_asset_download_tls_context_verifies_certificates() -> None:
+    ctx = asset_cache._cdn_ssl_context()
+
+    assert ctx.verify_mode == ssl.CERT_REQUIRED
+    assert ctx.check_hostname is True
 
 
 def test_report_assets_auto_uses_cache_icons_and_fallback_map(tmp_path: Path) -> None:

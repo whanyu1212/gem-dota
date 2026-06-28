@@ -16,6 +16,7 @@ from __future__ import annotations
 import bz2
 import json
 import ssl
+import urllib.parse
 import urllib.request
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -25,10 +26,24 @@ if TYPE_CHECKING:
 
 OPENDOTA_API = "https://api.opendota.com/api/matches"
 
-# Relax SSL verification for CDN hosts that occasionally present cert issues.
+# Use the platform trust store and hostname verification for OpenDota/CDN HTTPS.
 _SSL_CONTEXT = ssl.create_default_context()
-_SSL_CONTEXT.check_hostname = False
-_SSL_CONTEXT.verify_mode = ssl.CERT_NONE
+
+
+def _normalize_replay_url(replay_url: str) -> str:
+    """Return an HTTPS replay URL, upgrading known Valve replay hosts."""
+    parsed = urllib.parse.urlsplit(replay_url)
+    scheme = parsed.scheme.lower()
+    if scheme == "https":
+        return replay_url
+
+    host = (parsed.hostname or "").lower()
+    if scheme == "http" and host.startswith("replay") and host.endswith(".valve.net"):
+        return urllib.parse.urlunsplit(
+            ("https", parsed.netloc, parsed.path, parsed.query, parsed.fragment)
+        )
+
+    raise ValueError(f"Replay download URL must use HTTPS: {replay_url}")
 
 
 def fetch_replay_url(match_id: int) -> str:
@@ -62,7 +77,9 @@ def fetch_replay_url(match_id: int) -> str:
             "The match may not have been ingested yet. "
             f"Force a parse with: curl -X POST {OPENDOTA_API.replace('/matches', '')}/request/{match_id}"
         )
-    return replay_url
+    if not isinstance(replay_url, str):
+        raise ValueError(f"OpenDota returned a non-string replay_url for match {match_id}")
+    return _normalize_replay_url(replay_url)
 
 
 def download_and_decompress(match_id: int, replay_url: str, out_dir: Path | str = ".") -> Path:
@@ -83,6 +100,7 @@ def download_and_decompress(match_id: int, replay_url: str, out_dir: Path | str 
     dem_path = out_dir / f"{match_id}.dem"
     bz2_path = out_dir / f"{match_id}.dem.bz2"
 
+    replay_url = _normalize_replay_url(replay_url)
     req = urllib.request.Request(replay_url, headers={"User-Agent": "Mozilla/5.0"})
     # Larger timeout than the JSON API calls: a full replay is 100-300 MB.
     with urllib.request.urlopen(req, context=_SSL_CONTEXT, timeout=120) as resp:
