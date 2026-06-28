@@ -116,6 +116,7 @@ from gem.results.models import (
     NeutralItemFoundEvent,
     ParsedMatch,
     ParsedPlayer,
+    SmokeEvent,
     VisionModifierEvent,
 )
 
@@ -287,8 +288,8 @@ def parse_to_dataframe(path: str | Path, *, allow_partial: bool = False) -> dict
         - ``"players"``, ``"players_minute"``
         - ``"positions"``, ``"combat_log"``, ``"wards"``, ``"objectives"``, ``"chat"``
         - ``"match"``, ``"radiant_advantage"``
-        - ``"draft"``, ``"teamfights"``, ``"smoke_events"``, ``"courier_snapshots"``
-        - per-player event logs (kills/purchases/runes/buybacks)
+        - ``"draft"``, ``"teamfights"``, ``"smoke_events"``, ``"vision_modifiers"``
+        - ``"courier_snapshots"`` and per-player event logs (kills/purchases/runes/buybacks)
     """
     from gem.results.dataframes import build_dataframes
 
@@ -369,6 +370,7 @@ __all__ = [
     "ability_level_at_tick",
     "estimate_vision",
     "VisionSource",
+    "SmokeEvent",
     "VisionModifierEvent",
     "net_worth_at",
     "ward_vision_impact",

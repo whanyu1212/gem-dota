@@ -63,6 +63,7 @@ Available DataFrames:
 | `teamfights` | Gem teamfight windows with participant stats |
 | `opendota_teamfights` | OpenDota-compatible 3+ death temporal teamfight windows |
 | `smoke_events` | Smoke of Deceit usages and grouped heroes |
+| `vision_modifiers` | Vision/reveal modifier windows used by vision analysis |
 | `courier_snapshots` | Courier state over time |
 | `neutral_item_finds` | Neutral item find events from `DOTA_UM_FoundNeutralItem` |
 | `player_kills_log` | Per-player kill log rows |

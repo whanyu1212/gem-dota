@@ -19,10 +19,10 @@ pip install pyarrow
 | `"positions"` | Hero position heatmap grid (64-unit cells) |
 | `"combat_log"` | Every damage, kill, heal, and modifier event |
 | `"wards"` | Ward placements with exact map coordinates |
-| `"objectives"` | Tower kills, barracks, Roshan kills |
+| `"objectives"` | Tower kills, barracks, Roshan kills, Aegis events, and other objective events |
 | `"teamfights"` | Detected fight windows with participant stats |
 | `"smoke_events"` | Smoke activations with grouped heroes and centroid |
-| `"aegis_events"` | Aegis pickups, steals, and denies |
+| `"vision_modifiers"` | Vision/reveal modifier windows used by vision analysis |
 | `"draft"` | Pick and ban events in order |
 | `"match"` | Single-row match metadata (id, duration, winner, partial-parse status, …) |
 | `"radiant_advantage"` | Per-minute gold and XP advantage curves |

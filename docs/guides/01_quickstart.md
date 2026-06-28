@@ -90,8 +90,8 @@ print(frames["combat_log"].head())
 
 Use DataFrames for pandas, notebooks, and ML pipelines. Common tables include
 `players`, `players_minute`, `positions`, `combat_log`, `wards`, `objectives`,
-`opendota_objectives`, `teamfights`, `opendota_teamfights`, `neutral_item_finds`, and
-per-player event logs.
+`opendota_objectives`, `teamfights`, `opendota_teamfights`, `smoke_events`,
+`vision_modifiers`, `neutral_item_finds`, and per-player event logs.
 
 ### Parquet
 
