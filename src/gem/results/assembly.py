@@ -873,6 +873,7 @@ def build_parsed_match(
         aegis_events=obj_ext.aegis_events,
         tormentors=obj_ext.tormentor_kills,
         shrines=obj_ext.shrine_kills,
+        banner_plants=obj_ext.banner_plants,
         wards=ward_ext.ward_events,
         combat_log=all_entries,
         chat=chat_entries,

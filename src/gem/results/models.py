@@ -17,6 +17,7 @@ from gem.extractors.courier import CourierSnapshot
 from gem.extractors.draft import DraftEvent
 from gem.extractors.objectives import (
     AegisEvent,
+    BannerPlant,
     BarracksKill,
     CourierDeath,
     RoshanKill,
@@ -555,6 +556,9 @@ class ParsedMatch:
         tormentors: All Tormentor (miniboss) kill events in chronological order.
         shrines: All Shrine of Wisdom destruction events in chronological order.
         courier_deaths: All courier deaths (combat-log DEATH on a courier).
+        banner_plants: All Roshan's Banner plant events (tick, team, planter,
+            and world position), recovered from the planted banner unit's
+            creation in the entity stream.
         objectives: OpenDota-shaped unified objective timeline, merging building
             kills and the ``CHAT_MESSAGE_*`` events (Roshan, Aegis, Tormentor,
             first blood, courier lost) into one chronological list of
@@ -637,6 +641,7 @@ class ParsedMatch:
     tormentors: list[TormentorKill] = field(default_factory=list)
     shrines: list[ShrineKill] = field(default_factory=list)
     courier_deaths: list[CourierDeath] = field(default_factory=list)
+    banner_plants: list[BannerPlant] = field(default_factory=list)
     objectives: list[dict[str, Any]] = field(default_factory=list)
     tower_status_radiant: int = 0
     tower_status_dire: int = 0

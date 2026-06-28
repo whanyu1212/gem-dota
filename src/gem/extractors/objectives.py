@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 from gem.combat.log import CombatLogEntry
+from gem.extractors._snapshots import _player_id_from_entity, _pos
 from gem.state.entities import EntityOp
 
 if TYPE_CHECKING:
@@ -39,6 +40,14 @@ _ROSHAN_ITEM_DROPS: dict[str, str] = {
     "CDOTA_Item_RefresherOrb_Shard": "refresher_shard",
     "CDOTA_Item_Roshans_Banner": "banner",
 }
+
+# Planted Roshan's Banner *unit* entity (distinct from the position-less
+# ``CDOTA_Item_Roshans_Banner`` drop). When a held banner is planted it spawns a
+# stationary allied unit that projects a movement-speed / bonus-damage aura to
+# nearby allied heroes and creeps — a siege amplifier used to push barracks. The
+# unit carries a readable world position via ``CBodyComponent`` (same fields the
+# ward extractor reads), so the plant location is recoverable here.
+_BANNER_UNIT_CLASS = "CDOTA_Unit_Roshans_Banner"
 
 # Tower NPC name prefix → owning team
 _TOWER_TEAM: dict[str, int] = {
@@ -187,6 +196,30 @@ class AegisEvent:
 
 
 @dataclass
+class BannerPlant:
+    """One Roshan's Banner plant event.
+
+    Recovered from the ``CDOTA_Unit_Roshans_Banner`` unit's creation in the
+    entity stream — the unit spawns where the banner is planted and carries a
+    world position, unlike the position-less banner *item* drop. The planter team
+    and slot come from ``m_iTeamNum`` and the owner entity respectively.
+
+    Attributes:
+        tick: Game tick the banner was planted (the unit's creation tick).
+        team: Team that planted the banner (2=Radiant, 3=Dire), or 0 if unknown.
+        player_id: Player slot (0–9) of the planter, or -1 if unresolved.
+        x: World x coordinate of the plant, or ``None`` if unavailable.
+        y: World y coordinate of the plant, or ``None`` if unavailable.
+    """
+
+    tick: int
+    team: int
+    player_id: int
+    x: float | None
+    y: float | None
+
+
+@dataclass
 class CourierDeath:
     """One courier death, detected from the combat log.
 
@@ -239,6 +272,7 @@ class ObjectivesExtractor:
     tormentor_kills: list[TormentorKill]
     shrine_kills: list[ShrineKill]
     courier_deaths: list[CourierDeath]
+    banner_plants: list[BannerPlant]
 
     def __init__(self) -> None:
         self.tower_kills = []
@@ -248,8 +282,18 @@ class ObjectivesExtractor:
         self.tormentor_kills = []
         self.shrine_kills = []
         self.courier_deaths = []
+        self.banner_plants = []
         # index → short drop name for currently-alive Roshan item entities
         self._roshan_items: dict[int, str] = {}
+        # Banner-unit index → last seen m_lifeState. A plant is the transition
+        # into alive (0), which fires on a fresh CREATED and on a recycled slot
+        # re-entering as UPDATED|ENTERED — gating on CREATED alone would miss the
+        # latter (same lifecycle the ward extractor handles).
+        self._banner_lifestate: dict[int, int] = {}
+        # Belt-and-suspenders against a transition re-emitted at the same tick:
+        # one (index, spawn_tick) pair yields at most one BannerPlant.
+        self._banner_seen: set[tuple[int, int]] = set()
+        self._parser: ReplayParser | None = None
 
     def attach(self, parser: ReplayParser) -> None:
         """Register this extractor's callbacks with a parser.
@@ -257,20 +301,80 @@ class ObjectivesExtractor:
         Args:
             parser: The ``ReplayParser`` instance to attach to.
         """
+        self._parser = parser
         parser.on_combat_log_entry(self._on_combat_log)
         parser.on_chat_event(self._on_chat_event)
         parser.on_entity(self._on_entity)
 
     def _on_entity(self, entity: Entity, op: EntityOp) -> None:
         name = entity.get_class_name()
+        if name == _BANNER_UNIT_CLASS:
+            self._on_banner_unit(entity, op)
+            return
         drop_name = _ROSHAN_ITEM_DROPS.get(name)
         if drop_name is None:
             return
         idx = entity.get_index()
-        if op == EntityOp.DELETED_LEFT:
+        # Use a bitwise test rather than ``op == EntityOp.DELETED_LEFT``: a delete
+        # may arrive without the LEFT bit, and an exact composite match would then
+        # leave the item in ``_roshan_items`` and inflate the drop snapshot.
+        if op.has(EntityOp.DELETED):
             self._roshan_items.pop(idx, None)
         else:
             self._roshan_items[idx] = drop_name
+
+    def _on_banner_unit(self, entity: Entity, op: EntityOp) -> None:
+        # A banner plant is the unit's transition into the alive life state, not a
+        # specific op: a fresh plant arrives as CREATED, but a banner reusing a
+        # recycled slot re-enters as UPDATED|ENTERED. Detecting the life-state
+        # edge (mirroring the ward extractor) captures both while ignoring pure
+        # position updates on an already-planted banner. Deletes clear the slot.
+        idx = entity.get_index()
+        if op.has(EntityOp.DELETED):
+            self._banner_lifestate.pop(idx, None)
+            return
+
+        life_state = entity.get_int32("m_lifeState")
+        if life_state is None:
+            life_state = 0 if op.has(EntityOp.CREATED) else 2
+        prev_ls = self._banner_lifestate.get(idx, 2)
+        self._banner_lifestate[idx] = life_state
+
+        # Only a transition into alive (0) from a non-alive prior is a plant.
+        if not (life_state == 0 and prev_ls != 0):
+            return
+
+        tick = self._parser.tick if self._parser is not None else 0
+        key = (idx, tick)
+        if key in self._banner_seen:
+            return
+        self._banner_seen.add(key)
+
+        pos = _pos(entity)
+        team = entity.get_int32("m_iTeamNum") or 0
+
+        # Resolve the planter via m_hOwnerEntity → owner entity → player slot,
+        # mirroring ward placer attribution (the owner may be an owned unit, so
+        # allow the m_iPlayerOwnerID fallback). -1 = unresolved.
+        player_id = -1
+        owner_handle = entity.get_uint32("m_hOwnerEntity")
+        if owner_handle is not None and self._parser is not None:
+            em = self._parser.entity_manager
+            if em is not None:
+                owner = em.find_by_handle(owner_handle)
+                resolved = _player_id_from_entity(owner, allow_owner=True)
+                if resolved is not None:
+                    player_id = resolved
+
+        self.banner_plants.append(
+            BannerPlant(
+                tick=tick,
+                team=team,
+                player_id=player_id,
+                x=pos[0] if pos else None,
+                y=pos[1] if pos else None,
+            )
+        )
 
     def _on_chat_event(self, msg: Any, tick: int) -> None:
         event_type = _AEGIS_EVENT_TYPE.get(msg.type)
