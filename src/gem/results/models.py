@@ -17,6 +17,7 @@ from gem.extractors.courier import CourierSnapshot
 from gem.extractors.draft import DraftEvent
 from gem.extractors.objectives import (
     AegisEvent,
+    BannerPlant,
     BarracksKill,
     CourierDeath,
     RoshanKill,
@@ -555,6 +556,9 @@ class ParsedMatch:
         tormentors: All Tormentor (miniboss) kill events in chronological order.
         shrines: All Shrine of Wisdom destruction events in chronological order.
         courier_deaths: All courier deaths (combat-log DEATH on a courier).
+        banner_plants: All Roshan's Banner plant events (tick, team, planter,
+            and world position), recovered from the planted banner unit's
+            creation in the entity stream.
         objectives: OpenDota-shaped unified objective timeline, merging building
             kills and the ``CHAT_MESSAGE_*`` events (Roshan, Aegis, Tormentor,
             first blood, courier lost) into one chronological list of
@@ -654,6 +658,11 @@ class ParsedMatch:
     teamfights: list[Teamfight] = field(default_factory=list)
     opendota_teamfights: list[OpenDotaTeamfight] = field(default_factory=list)
     vision_modifiers: list[VisionModifierEvent] = field(default_factory=list)
+    # Append-only: ParsedMatch is a public dataclass and supports positional
+    # construction, so new fields go LAST to avoid shifting existing positional
+    # arguments. (Logically banner_plants belongs near the other objective lists,
+    # but inserting it there would silently misalign positional callers.)
+    banner_plants: list[BannerPlant] = field(default_factory=list)
 
     @property
     def duration_seconds(self) -> float:

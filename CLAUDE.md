@@ -386,16 +386,20 @@ Key message classes used throughout the parser:
 
 ## Status
 
-Current version: **0.4.3** (see `pyproject.toml` and `CHANGELOG.md`).
+Current version: **0.5.0** (see `pyproject.toml` and `CHANGELOG.md`).
 
 The full parsing pipeline and all extractors are complete and stable: binary
 reader, entity system, combat log (S1+S2), string tables, every extractor, the
 `ParsedMatch` output model, DataFrame/JSON/Parquet export, bulk parsing, and
-replay fetch. Recent work (0.4.x) has been **OpenDota match-API parity** — final
+replay fetch. Recent work has been **OpenDota match-API parity** (0.4.x) — final
 inventories, kill breakdowns, per-inflictor/per-target combat dicts, purchase
 timeline, building bitmasks, interval/advantage curves — plus small additive
 refinements (e.g. `ParsedPlayer.buybacks` in 0.4.3) and code-quality refactors,
-rather than new core subsystems. `gem-dota` is published to PyPI.
+rather than new core subsystems. 0.5.0 extends the Roshan conversion analysis:
+non-Aegis drops (Cheese, Refresher Shard, Roshan's Banner) surfaced from the
+entity stream, plus `ParsedMatch.banner_plants` / `gem.BannerPlant` and a
+banner→rax conversion signal on `RoshConversion`. `gem-dota` is published to
+PyPI.
 
 In flight / deferred:
 - **Rust extension** (PyO3 + maturin) for a 3–5× speedup. Deferred.

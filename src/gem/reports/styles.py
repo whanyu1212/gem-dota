@@ -733,6 +733,44 @@ details[open].sub-accordion > summary::before {
     color: #8b949e;
     font-size: 12px;
 }
+.rosh-drops {
+    margin-top: 4px;
+    color: #c9d1d9;
+    font-size: 12px;
+}
+.rosh-hv-badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    background: rgba(255, 183, 77, .16);
+    color: #ffb74d;
+    border: 1px solid rgba(255, 183, 77, .35);
+    vertical-align: middle;
+}
+.rosh-banner {
+    margin-top: 4px;
+    color: #c9d1d9;
+    font-size: 12px;
+}
+.rosh-banner-badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    background: rgba(110, 231, 183, .14);
+    color: #6ee7b7;
+    border: 1px solid rgba(110, 231, 183, .32);
+    vertical-align: middle;
+}
 .rosh-head-right {
     display: flex;
     flex-direction: column;

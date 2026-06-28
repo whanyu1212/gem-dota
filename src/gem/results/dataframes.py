@@ -233,6 +233,10 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                 "name": "roshan",
                 "killer": r.killer,
                 "kill_number": r.kill_number,
+                # Comma-joined raw drop tokens (e.g. "aegis,cheese,banner"). A
+                # string keeps the cell filterable (df.drops.str.contains(...))
+                # and round-trips cleanly to Parquet/CSV/JSON, unlike a list cell.
+                "drops": ",".join(r.drops),
             }
         )
     for tm in match.tormentors:
@@ -277,6 +281,21 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                 "team": 0,
                 "name": "npc_dota_courier",
                 "killer": cd.killer,
+            }
+        )
+    for bp in match.banner_plants:
+        obj_rows.append(
+            {
+                "type": "banner_plant",
+                "tick": bp.tick,
+                "team": bp.team,
+                "name": "roshans_banner",
+                "killer": "",
+                "player_id": bp.player_id,
+                # World plant position (None when the banner unit carried no
+                # readable coordinates); enables spatial filtering downstream.
+                "x": bp.x,
+                "y": bp.y,
             }
         )
     objectives_df = pd.DataFrame(obj_rows)
