@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-06-28
+
+Extends the Roshan conversion analysis beyond the Aegis. Non-Aegis Roshan drops
+(Cheese, Refresher Shard, Roshan's Banner) are now surfaced from the entity
+stream, and a new banner→rax conversion signal links a planted Roshan's Banner
+to a barracks push. All additions are backward-compatible: new `ParsedMatch` /
+`RoshConversion` fields carry safe defaults and the public `RoshConversion`
+constructor is unchanged for existing callers. Parse/export output for prior
+fields is unaffected (OpenDota parity validator unchanged).
+
 ### Added
 - **Roshan non-Aegis drops** surfaced on the conversion analysis. `RoshConversion`
   now carries `drops` (mirrors `RoshanKill.drops` — Cheese, Refresher Shard,
