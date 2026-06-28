@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   partial-parse failures in structured output and the `match` DataFrame.
 
 ### Fixed
+- Replay download and report asset download helpers now use verified HTTPS/TLS
+  contexts instead of disabling certificate and hostname verification.
 - `parse_many(timeout=...)` now enforces the timeout per replay inside each
   worker instead of treating it as a global timeout for the whole batch.
 - `parse_many_to_parquet()` now streams completed parse results directly to

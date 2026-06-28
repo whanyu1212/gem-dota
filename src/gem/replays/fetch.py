@@ -25,10 +25,8 @@ if TYPE_CHECKING:
 
 OPENDOTA_API = "https://api.opendota.com/api/matches"
 
-# Relax SSL verification for CDN hosts that occasionally present cert issues.
+# Use the platform trust store and hostname verification for OpenDota/CDN HTTPS.
 _SSL_CONTEXT = ssl.create_default_context()
-_SSL_CONTEXT.check_hostname = False
-_SSL_CONTEXT.verify_mode = ssl.CERT_NONE
 
 
 def fetch_replay_url(match_id: int) -> str:
