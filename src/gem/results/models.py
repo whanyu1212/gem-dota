@@ -641,7 +641,6 @@ class ParsedMatch:
     tormentors: list[TormentorKill] = field(default_factory=list)
     shrines: list[ShrineKill] = field(default_factory=list)
     courier_deaths: list[CourierDeath] = field(default_factory=list)
-    banner_plants: list[BannerPlant] = field(default_factory=list)
     objectives: list[dict[str, Any]] = field(default_factory=list)
     tower_status_radiant: int = 0
     tower_status_dire: int = 0
@@ -659,6 +658,11 @@ class ParsedMatch:
     teamfights: list[Teamfight] = field(default_factory=list)
     opendota_teamfights: list[OpenDotaTeamfight] = field(default_factory=list)
     vision_modifiers: list[VisionModifierEvent] = field(default_factory=list)
+    # Append-only: ParsedMatch is a public dataclass and supports positional
+    # construction, so new fields go LAST to avoid shifting existing positional
+    # arguments. (Logically banner_plants belongs near the other objective lists,
+    # but inserting it there would silently misalign positional callers.)
+    banner_plants: list[BannerPlant] = field(default_factory=list)
 
     @property
     def duration_seconds(self) -> float:

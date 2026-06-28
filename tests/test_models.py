@@ -66,3 +66,41 @@ class TestParsedMatchRepr:
 
     def test_player_count(self):
         assert "players=10" in repr(ParsedMatch())
+
+
+class TestParsedMatchFieldOrder:
+    """``ParsedMatch`` is a public dataclass that supports positional
+    construction, so additive fields must stay at the end of the declaration
+    order — inserting one in the middle silently shifts every later positional
+    argument by one slot.
+    """
+
+    def test_banner_plants_is_last_field(self):
+        import dataclasses
+
+        fields = [f.name for f in dataclasses.fields(ParsedMatch)]
+        assert fields[-1] == "banner_plants", (
+            "banner_plants must remain the last field to preserve positional "
+            f"construction; current order tail: {fields[-3:]}"
+        )
+
+    def test_positional_construction_keeps_objectives_aligned(self):
+        # Build positionally through the `objectives` slot and confirm the
+        # sentinel lands in `.objectives`, not the trailing `.banner_plants`.
+        import dataclasses
+
+        sentinel = [{"sentinel": True}]
+        args = []
+        for f in dataclasses.fields(ParsedMatch):
+            if f.name == "objectives":
+                args.append(sentinel)
+                break
+            if f.default_factory is not dataclasses.MISSING:
+                args.append(f.default_factory())
+            elif f.default is not dataclasses.MISSING:
+                args.append(f.default)
+            else:
+                args.append(None)
+        match = ParsedMatch(*args)
+        assert match.objectives == sentinel
+        assert match.banner_plants == []
