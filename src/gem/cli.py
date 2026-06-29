@@ -119,6 +119,17 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Scan source directory recursively for .dem files.",
     )
+    batch_cmd.add_argument(
+        "--timeout",
+        type=float,
+        default=None,
+        help="Per-replay parse timeout in seconds.",
+    )
+    batch_cmd.add_argument(
+        "--strict",
+        action="store_true",
+        help="Exit with status 1 when any replay fails.",
+    )
     _add_common_flags(batch_cmd)
 
     # ── reports subcommand ──────────────────────────────────────────────────
@@ -417,16 +428,18 @@ def _print_batch_summary(
 
     if not quiet:
         console.print(
-            f"\n[green]✓[/green] [bold]{len(ok)}[/bold] succeeded  "
+            f"\n[bold]Batch summary:[/bold] "
+            f"[green]✓[/green] [bold]{len(ok)}[/bold] succeeded  "
             f"[red]✗[/red] [bold]{len(failed)}[/bold] failed"
         )
 
     if failed:
         table = Table(title="Failed replays", show_header=True, header_style="bold red")
-        table.add_column("Path", style="dim")
-        table.add_column("Error")
+        table.add_column("Path", style="dim", overflow="fold")
+        table.add_column("Type", no_wrap=True)
+        table.add_column("Message", overflow="fold")
         for r in failed:
-            table.add_row(str(r.path), str(r.error))
+            table.add_row(str(r.path), r.error_type, r.error_message)
         console.print(table)
 
 
@@ -495,7 +508,9 @@ def _run_parse(args: argparse.Namespace, console: Console) -> None:
 
 
 def _run_batch(args: argparse.Namespace, console: Console) -> None:
-    from gem.replays.batch import parse_many_to_dataframe, parse_many_to_parquet
+    from gem import to_parquet
+    from gem.replays.batch import ParseResult, parse_many
+    from gem.results.dataframes import build_dataframes
 
     # source is a list (nargs="+") — unwrap to single path if it's a directory
     source: list[Path] | Path = (
@@ -508,46 +523,60 @@ def _run_batch(args: argparse.Namespace, console: Console) -> None:
         console=console,
     )
 
+    results: list[ParseResult] = []
     try:
         if args.format == "parquet":
             tracker.start("batch_parquet")
-            # batch already shows its own Rich progress bar; suppress tracker's
-            # bar to avoid two overlapping bars when --progress is set
-            results = parse_many_to_parquet(
+            results = parse_many(
                 source,
-                args.output,
                 workers=args.workers,
                 recursive=args.recursive,
                 progress=not args.quiet,
+                timeout=args.timeout,
             )
+            written = []
+            for result in results:
+                if not result.ok or result.match is None:
+                    continue
+                subdir = args.output / result.path.stem
+                written.extend(to_parquet(result.match, subdir))
             tracker.end("batch_parquet")
 
-            # parse_many_to_parquet returns file paths; recover ParseResults for summary
-            # by re-running parse_many (already done internally) — instead, call parse_many
-            # directly so we can show the failure table.  For the simple case just report counts.
             if not args.quiet:
                 console.print(
-                    f"[green]✓[/green] Wrote [bold]{len(results)}[/bold] "
+                    f"[green]✓[/green] Wrote [bold]{len(written)}[/bold] "
                     f"parquet file(s) to [bold]{args.output}[/bold]"
                 )
 
         else:  # dataframe
             tracker.start("batch_dataframe")
-            dfs = parse_many_to_dataframe(
+            results = parse_many(
                 source,
                 workers=args.workers,
                 recursive=args.recursive,
                 progress=not args.quiet,
+                timeout=args.timeout,
             )
+            import pandas as pd
+
+            per_table: dict[str, list[pd.DataFrame]] = {}
+            for result in results:
+                if not result.ok or result.match is None:
+                    continue
+                dfs = build_dataframes(result.match)
+                for key, df in dfs.items():
+                    df = df.copy()
+                    df.insert(0, "match_path", str(result.path))
+                    per_table.setdefault(key, []).append(df)
             tracker.end("batch_dataframe")
 
             tracker.start("write_dataframe")
             args.output.mkdir(parents=True, exist_ok=True)
             written = []
-            for key, df in dfs.items():
+            for key, frames in per_table.items():
                 p = args.output / f"{key}.parquet"
                 try:
-                    df.to_parquet(p, index=False)
+                    pd.concat(frames, ignore_index=True).to_parquet(p, index=False)
                 except ImportError as exc:
                     raise ImportError(
                         "Parquet export requires 'pyarrow' or 'fastparquet'."
@@ -560,6 +589,10 @@ def _run_batch(args: argparse.Namespace, console: Console) -> None:
                     f"[green]✓[/green] Wrote [bold]{len(written)}[/bold] "
                     f"concatenated parquet file(s) to [bold]{args.output}[/bold]"
                 )
+
+        _print_batch_summary(results, console, quiet=args.quiet)
+        if args.strict and any(not result.ok for result in results):
+            sys.exit(1)
     finally:
         tracker.report()
 

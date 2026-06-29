@@ -22,6 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Parse-result value types including objective events, ward/courier/draft events,
   teamfight records, combat-log records, `SmokeEvent`, and `VisionModifierEvent`
   are now exported consistently from top-level `gem` and `gem.results`.
+- Typed replay error classes (`GemError`, `ReplayParseError`,
+  `ReplayTimeoutError`, `ReplayDownloadError`, `ReplayFetchError`,
+  `ReplayUrlError`, and `ReplayDecompressionError`) are exported from `gem`,
+  with replay-specific classes also available from `gem.replays`.
+- `python -m gem batch` now accepts `--timeout` for per-replay parse limits and
+  `--strict` to exit non-zero when any replay fails.
 
 ### Fixed
 - Empty and heterogeneous `build_dataframes()` tables now preserve declared columns,
@@ -34,11 +40,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   contexts instead of disabling certificate and hostname verification; Valve
   replay URLs returned as plain `http://` are upgraded to HTTPS, and other
   non-HTTPS replay URLs are rejected.
-- `parse_many(timeout=...)` now enforces the timeout per replay inside each
-  worker instead of treating it as a global timeout for the whole batch.
+- `parse_many(timeout=...)` now enforces the timeout per replay with portable
+  worker termination instead of requiring Unix `SIGALRM`/`setitimer` support or
+  treating it as a global timeout for the whole batch.
 - `parse_many_to_parquet()` now streams completed parse results directly to
   parquet output instead of first holding all `ParsedMatch` objects in memory via
   `parse_many()`.
+- Batch CLI exports now report failed replay counts and a typed failure table
+  from the same parse pass used to write outputs, without re-parsing successful
+  replays.
 
 ## [0.5.0] - 2026-06-28
 

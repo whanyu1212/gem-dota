@@ -12,6 +12,7 @@ from pathlib import Path
 
 import pytest
 
+from gem.errors import ReplayDecompressionError, ReplayFetchError, ReplayUrlError
 from gem.replays import fetch
 
 
@@ -28,12 +29,25 @@ def test_normalize_replay_url_upgrades_valve_http_urls() -> None:
 
 
 def test_normalize_replay_url_rejects_non_https_non_valve_urls() -> None:
-    try:
+    with pytest.raises(ReplayUrlError, match="must use HTTPS") as exc:
         fetch._normalize_replay_url("http://example.invalid/123.dem.bz2")
-    except ValueError as exc:
-        assert "must use HTTPS" in str(exc)
-    else:  # pragma: no cover - defensive assertion for readability
-        raise AssertionError("expected ValueError")
+
+    assert isinstance(exc.value, ValueError)
+
+
+def test_fetch_replay_url_rejects_missing_replay_url_with_typed_error(monkeypatch) -> None:
+    body = json.dumps({"match_id": 123}).encode()
+
+    @contextlib.contextmanager
+    def fake_urlopen(*_args, **_kwargs):
+        yield io.BytesIO(body)
+
+    monkeypatch.setattr(fetch.urllib.request, "urlopen", fake_urlopen)
+
+    with pytest.raises(ReplayFetchError, match="returned no replay_url") as exc:
+        fetch.fetch_replay_url(123)
+
+    assert isinstance(exc.value, ValueError)
 
 
 def test_fetch_replay_url_returns_https_for_opendota_valve_http_url(monkeypatch) -> None:
@@ -158,13 +172,14 @@ def test_download_and_decompress_cleans_temp_and_preserves_existing_file(
 
     monkeypatch.setattr(fetch.urllib.request, "urlopen", fake_urlopen)
 
-    with pytest.raises((EOFError, OSError)):
+    with pytest.raises(ReplayDecompressionError, match="Could not decompress") as exc:
         fetch.download_and_decompress(
             789,
             "https://replay274.valve.net/570/789.dem.bz2",
             tmp_path,
         )
 
+    assert isinstance(exc.value, OSError)
     assert dem_path.read_bytes() == b"existing replay"
     assert stat.S_IMODE(dem_path.stat().st_mode) == 0o640
     assert not (tmp_path / "789.dem.bz2").exists()

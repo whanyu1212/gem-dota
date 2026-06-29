@@ -174,3 +174,38 @@ class TestPublicExports:
             assert getattr(gem, name) is obj
             assert name in results.__all__
             assert getattr(results, name) is obj
+
+    def test_error_types_are_publicly_exported(self):
+        import gem
+        import gem.replays as replays
+        from gem.errors import (
+            GemError,
+            ReplayDecompressionError,
+            ReplayDownloadError,
+            ReplayError,
+            ReplayFetchError,
+            ReplayParseError,
+            ReplayTimeoutError,
+            ReplayUrlError,
+        )
+
+        top_level_expected = {
+            "GemError": GemError,
+            "ReplayError": ReplayError,
+            "ReplayParseError": ReplayParseError,
+            "ReplayTimeoutError": ReplayTimeoutError,
+            "ReplayDownloadError": ReplayDownloadError,
+            "ReplayFetchError": ReplayFetchError,
+            "ReplayUrlError": ReplayUrlError,
+            "ReplayDecompressionError": ReplayDecompressionError,
+        }
+        replay_expected = {
+            name: obj for name, obj in top_level_expected.items() if name != "GemError"
+        }
+
+        for name, obj in top_level_expected.items():
+            assert name in gem.__all__
+            assert getattr(gem, name) is obj
+        for name, obj in replay_expected.items():
+            assert name in replays.__all__
+            assert getattr(replays, name) is obj

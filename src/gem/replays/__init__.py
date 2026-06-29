@@ -1,5 +1,14 @@
 """Replay utility helpers for fetching and batch-processing replay files."""
 
+from gem.errors import (
+    ReplayDecompressionError,
+    ReplayDownloadError,
+    ReplayError,
+    ReplayFetchError,
+    ReplayParseError,
+    ReplayTimeoutError,
+    ReplayUrlError,
+)
 from gem.replays.batch import (
     ParseResult,
     parse_many,
@@ -16,6 +25,13 @@ from gem.replays.fetch import (
 )
 
 __all__ = [
+    "ReplayError",
+    "ReplayParseError",
+    "ReplayTimeoutError",
+    "ReplayDownloadError",
+    "ReplayFetchError",
+    "ReplayUrlError",
+    "ReplayDecompressionError",
     "ParseResult",
     "apply_api_rates",
     "download_and_decompress",

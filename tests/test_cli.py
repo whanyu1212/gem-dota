@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from gem.cli import main
+from gem.replays.batch import ParseResult
 from gem.results.models import ParsedMatch
 
 
@@ -204,3 +205,89 @@ class TestCli:
         assert "Hero icons" in out
         assert "Item icons" in out
         assert "Map images" in out
+
+    def test_batch_parquet_reports_failures_from_single_parse(self, monkeypatch, tmp_path, capsys):
+        import gem
+        import gem.replays.batch as batch
+
+        out_dir = tmp_path / "out"
+        good = tmp_path / "good.dem"
+        bad = tmp_path / "bad.dem"
+        match = _mock_match()
+        results = [
+            ParseResult(path=good, match=match, error=None),
+            ParseResult(path=bad, match=None, error=ValueError("corrupt replay")),
+        ]
+        parse_calls = 0
+        parquet_dirs: list[Path] = []
+
+        def _fake_parse_many(source, **kwargs):
+            nonlocal parse_calls
+            parse_calls += 1
+            assert source == [good, bad]
+            assert kwargs["timeout"] == 2.5
+            return results
+
+        def _fake_to_parquet(parsed_match, output_dir):
+            assert parsed_match is match
+            parquet_dirs.append(Path(output_dir))
+            return [Path(output_dir) / "players.parquet"]
+
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "gem",
+                "batch",
+                str(good),
+                str(bad),
+                "--format",
+                "parquet",
+                "--output",
+                str(out_dir),
+                "--timeout",
+                "2.5",
+                "--no-banner",
+            ],
+        )
+        monkeypatch.setattr(batch, "parse_many", _fake_parse_many)
+        monkeypatch.setattr(gem, "to_parquet", _fake_to_parquet)
+
+        main()
+
+        out = capsys.readouterr().out
+        assert parse_calls == 1
+        assert parquet_dirs == [out_dir / "good"]
+        assert "Wrote 1 parquet file(s)" in out
+        assert "Batch summary" in out
+        assert "1 succeeded" in out
+        assert "1 failed" in out
+        assert "ValueError" in out
+        assert "corrupt replay" in out
+
+    def test_batch_strict_exits_nonzero_on_failure(self, monkeypatch, tmp_path):
+        import gem.replays.batch as batch
+
+        out_dir = tmp_path / "out"
+        bad = tmp_path / "bad.dem"
+        results = [ParseResult(path=bad, match=None, error=ValueError("corrupt replay"))]
+
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "gem",
+                "batch",
+                str(bad),
+                "--format",
+                "parquet",
+                "--output",
+                str(out_dir),
+                "--strict",
+                "--no-banner",
+            ],
+        )
+        monkeypatch.setattr(batch, "parse_many", lambda *args, **kwargs: results)
+
+        with pytest.raises(SystemExit) as exc:
+            main()
+
+        assert exc.value.code == 1

@@ -42,6 +42,12 @@ Per-player `purchase`, `purchase_time`, and `first_purchase_time` now match the 
 
 :::
 
+::: info Batch/runtime failure handling (unreleased)
+
+Batch parsing now uses portable per-replay timeout termination and surfaces timeouts as `ReplayTimeoutError` (`TimeoutError`-compatible). Replay download/fetch helpers expose typed error classes such as `ReplayFetchError`, `ReplayUrlError`, and `ReplayDecompressionError`, and the batch CLI prints a typed failure table from the same parse pass used to write outputs. The default batch exit code remains `0` for compatibility; pass `--strict` for CI-style failure on any replay error.
+
+:::
+
 ::: tip Report asset cache
 
 HTML reports can inline hero icons, item icons, and map images from a local user cache instead of bundling them in the wheel. Manage the cache from the CLI:
