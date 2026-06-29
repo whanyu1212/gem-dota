@@ -1,7 +1,9 @@
 # DataFrames
 
 Converts a `ParsedMatch` into a dictionary of pandas DataFrames, one per table.
-This is the primary interface for ML/data-science workflows.
+This is the primary interface for ML/data-science workflows. Empty event tables
+still include their stable column set, so downstream code can select columns or
+write Parquet without special-casing matches where an event type never occurred.
 
 ::: info Parquet dependency
 `to_parquet()` requires `pyarrow` (recommended) or `fastparquet`:

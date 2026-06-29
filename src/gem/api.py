@@ -89,12 +89,27 @@ from gem.analysis import (
     ward_vision_impact,
 )
 from gem.catalog import hero_npc_name
-from gem.extractors.draft import resolve_pick_team
+from gem.combat.log import CombatLogEntry, CombatLogType
+from gem.extractors.courier import CourierSnapshot
+from gem.extractors.draft import DraftEvent, resolve_pick_team
+from gem.extractors.objectives import (
+    AegisEvent,
+    BannerPlant,
+    BarracksKill,
+    CourierDeath,
+    RoshanKill,
+    ShrineKill,
+    TormentorKill,
+    TowerKill,
+)
 from gem.extractors.teamfights import (
     OpenDotaTeamfight,
     OpenDotaTeamfightPlayer,
+    Teamfight,
+    TeamfightPlayer,
     detect_opendota_teamfights,
 )
+from gem.extractors.wards import WardEvent
 from gem.replays.batch import (
     ParseResult,
     parse_many,
@@ -110,7 +125,6 @@ from gem.replays.fetch import (
     fetch_replay_url,
 )
 from gem.results.models import (
-    BannerPlant,
     BuybackEvent,
     ChatEntry,
     NeutralItemFoundEvent,
@@ -151,7 +165,6 @@ def parse(path: str | Path, *, allow_partial: bool = False) -> ParsedMatch:
             ``allow_partial=True``.
     """
     from gem.combat.aggregator import _CombatAggregator
-    from gem.combat.log import CombatLogEntry
     from gem.extractors.courier import CourierExtractor
     from gem.extractors.draft import DraftExtractor
     from gem.extractors.intervals import IntervalExtractor
@@ -354,12 +367,26 @@ __all__ = [
     "parse_many_to_parquet",
     "ParsedMatch",
     "ParsedPlayer",
+    "CombatLogEntry",
+    "CombatLogType",
+    "TowerKill",
+    "BarracksKill",
+    "RoshanKill",
+    "AegisEvent",
+    "TormentorKill",
+    "ShrineKill",
+    "CourierDeath",
+    "BannerPlant",
+    "WardEvent",
+    "CourierSnapshot",
+    "DraftEvent",
+    "Teamfight",
+    "TeamfightPlayer",
     "OpenDotaTeamfight",
     "OpenDotaTeamfightPlayer",
     "ChatEntry",
     "NeutralItemFoundEvent",
     "BuybackEvent",
-    "BannerPlant",
     "find_player",
     "hero_npc_name",
     "position_at_tick",

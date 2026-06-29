@@ -107,18 +107,70 @@ class TestParsedMatchFieldOrder:
 
 
 class TestPublicExports:
-    """Parse-result value types should be available from the top-level package."""
+    """Parse-result value types should be available from public packages."""
 
-    def test_banner_plant_is_publicly_exported(self):
+    def test_parse_result_value_types_are_publicly_exported(self):
         import gem
-        from gem.results.models import BannerPlant
+        import gem.results as results
+        from gem.combat.log import CombatLogEntry, CombatLogType
+        from gem.extractors.courier import CourierSnapshot
+        from gem.extractors.draft import DraftEvent
+        from gem.extractors.objectives import (
+            AegisEvent,
+            BannerPlant,
+            BarracksKill,
+            CourierDeath,
+            RoshanKill,
+            ShrineKill,
+            TormentorKill,
+            TowerKill,
+        )
+        from gem.extractors.teamfights import (
+            OpenDotaTeamfight,
+            OpenDotaTeamfightPlayer,
+            Teamfight,
+            TeamfightPlayer,
+        )
+        from gem.extractors.wards import WardEvent
+        from gem.results.models import (
+            BuybackEvent,
+            ChatEntry,
+            NeutralItemFoundEvent,
+            ParsedMatch,
+            ParsedPlayer,
+            SmokeEvent,
+            VisionModifierEvent,
+        )
 
-        assert "BannerPlant" in gem.__all__
-        assert gem.BannerPlant is BannerPlant
+        expected = {
+            "CombatLogEntry": CombatLogEntry,
+            "CombatLogType": CombatLogType,
+            "TowerKill": TowerKill,
+            "BarracksKill": BarracksKill,
+            "RoshanKill": RoshanKill,
+            "AegisEvent": AegisEvent,
+            "TormentorKill": TormentorKill,
+            "ShrineKill": ShrineKill,
+            "CourierDeath": CourierDeath,
+            "BannerPlant": BannerPlant,
+            "WardEvent": WardEvent,
+            "CourierSnapshot": CourierSnapshot,
+            "DraftEvent": DraftEvent,
+            "Teamfight": Teamfight,
+            "TeamfightPlayer": TeamfightPlayer,
+            "OpenDotaTeamfight": OpenDotaTeamfight,
+            "OpenDotaTeamfightPlayer": OpenDotaTeamfightPlayer,
+            "ChatEntry": ChatEntry,
+            "NeutralItemFoundEvent": NeutralItemFoundEvent,
+            "BuybackEvent": BuybackEvent,
+            "ParsedMatch": ParsedMatch,
+            "ParsedPlayer": ParsedPlayer,
+            "SmokeEvent": SmokeEvent,
+            "VisionModifierEvent": VisionModifierEvent,
+        }
 
-    def test_smoke_event_is_publicly_exported(self):
-        import gem
-        from gem.results.models import SmokeEvent
-
-        assert "SmokeEvent" in gem.__all__
-        assert gem.SmokeEvent is SmokeEvent
+        for name, obj in expected.items():
+            assert name in gem.__all__
+            assert getattr(gem, name) is obj
+            assert name in results.__all__
+            assert getattr(results, name) is obj

@@ -19,10 +19,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   partial-parse failures in structured output and the `match` DataFrame.
 - `build_dataframes()` / parquet exports now include a `vision_modifiers` table
   for `ParsedMatch.vision_modifiers`.
-- `SmokeEvent` is now exported from the top-level `gem` package, matching other
-  public parse-result value types.
+- Parse-result value types including objective events, ward/courier/draft events,
+  teamfight records, combat-log records, `SmokeEvent`, and `VisionModifierEvent`
+  are now exported consistently from top-level `gem` and `gem.results`.
 
 ### Fixed
+- Empty and heterogeneous `build_dataframes()` tables now preserve declared columns,
+  avoiding KeyErrors and inconsistent export schemas when a match has no rows or
+  only a subset of event row types.
 - Replay download and report asset download helpers now use verified HTTPS/TLS
   contexts instead of disabling certificate and hostname verification; Valve
   replay URLs returned as plain `http://` are upgraded to HTTPS, and other
