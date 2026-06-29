@@ -45,6 +45,242 @@ def _at(values: list[Any], index: int, default: Any = 0) -> Any:
     return values[index] if index < len(values) else default
 
 
+_COMBAT_LOG_COLUMNS = [
+    "tick",
+    "log_type",
+    "attacker_name",
+    "damage_source_name",
+    "target_name",
+    "inflictor_name",
+    "value",
+    "attacker_is_hero",
+    "target_is_hero",
+    "attacker_is_illusion",
+    "target_is_illusion",
+    "ability_level",
+    "gold_reason",
+    "xp_reason",
+    "value_name",
+    "damage_type",
+    "stun_duration",
+    "neutral_camp_type",
+    "neutral_camp_team",
+    "location_x",
+    "location_y",
+    "timestamp_s",
+    "game_time_s",
+    "will_reincarnate",
+]
+
+_PLAYER_COLUMNS = [
+    "player_id",
+    "player_name",
+    "hero_name",
+    "team",
+    "tick",
+    "gold",
+    "total_earned_gold",
+    "net_worth",
+    "lh",
+    "dn",
+    "xp",
+    "kills",
+    "deaths",
+    "assists",
+    "stuns_dealt",
+    "lane_role",
+    "lane_last_hits",
+    "lane_denies",
+    "lane_total_gold",
+    "lane_total_xp",
+    "lane_efficiency_pct",
+    "lane_gold_adv",
+    "lane_xp_adv",
+    "final_net_worth",
+    "final_last_hits",
+    "final_denies",
+    "camps_stacked",
+    "creeps_stacked",
+    "obs_placed",
+    "sen_placed",
+    "rune_pickups",
+    "tower_kills",
+    "kda",
+    "buyback_count",
+    "is_radiant",
+    "win",
+    "kills_per_min",
+    "gold_per_min",
+    "xp_per_min",
+    "total_gold",
+    "total_xp",
+    "hero_damage",
+    "tower_damage",
+    "hero_healing",
+    "damage_physical",
+    "damage_magical",
+    "damage_pure",
+    "damage_taken_physical",
+    "damage_taken_magical",
+    "damage_taken_pure",
+    "damage",
+    "damage_taken",
+    "damage_inflictor",
+    "damage_inflictor_received",
+    "damage_targets",
+    "ability_targets",
+    "hero_hits",
+    "max_hero_hit",
+    "healing",
+    "ability_uses",
+    "item_uses",
+    "purchase",
+    "purchase_time",
+    "first_purchase_time",
+    "purchase_tpscroll",
+    "purchase_ward_observer",
+    "purchase_ward_sentry",
+    "observer_uses",
+    "sentry_uses",
+    "observers_placed",
+    "gold_reasons",
+    "xp_reasons",
+    "lane_pos",
+]
+
+_PLAYER_MINUTE_COLUMNS = [
+    "player_id",
+    "player_name",
+    "hero_name",
+    "team",
+    "tick",
+    "gold",
+    "total_earned_gold",
+    "total_earned_xp",
+    "net_worth",
+    "lh",
+    "dn",
+    "xp",
+]
+
+_POSITION_COLUMNS = ["player_id", "hero_name", "team", "tick", "x", "y"]
+
+_WARD_COLUMNS = [
+    "tick",
+    "player_id",
+    "placer",
+    "ward_type",
+    "team",
+    "x",
+    "y",
+    "expires_tick",
+    "killed_tick",
+    "killer",
+]
+
+_OBJECTIVE_COLUMNS = [
+    "type",
+    "tick",
+    "team",
+    "name",
+    "killer",
+    "kill_number",
+    "drops",
+    "killer_player_id",
+    "player_id",
+    "event_type",
+    "x",
+    "y",
+]
+
+_OPENDOTA_OBJECTIVE_COLUMNS = [
+    "time",
+    "type",
+    "key",
+    "unit",
+    "slot",
+    "player_slot",
+    "team",
+    "killer",
+]
+
+_CHAT_COLUMNS = ["tick", "player_slot", "channel", "text"]
+
+_MATCH_COLUMNS = [
+    "match_id",
+    "game_mode",
+    "leagueid",
+    "radiant_win",
+    "game_start_tick",
+    "game_end_tick",
+    "tower_status_radiant",
+    "tower_status_dire",
+    "barracks_status_radiant",
+    "barracks_status_dire",
+    "parse_error",
+    "truncated_at_tick",
+]
+
+_RADIANT_ADVANTAGE_COLUMNS = ["minute", "radiant_gold_adv", "radiant_xp_adv"]
+
+_DRAFT_COLUMNS = ["tick", "slot_index", "hero_id", "hero_name", "is_pick", "team"]
+
+_TEAMFIGHT_COLUMNS = [
+    "start_tick",
+    "end_tick",
+    "last_death_tick",
+    "deaths",
+    "first_death_tick",
+    "radiant_kills",
+    "dire_kills",
+    "winner",
+    "centroid_x",
+    "centroid_y",
+    "centroid_n",
+    "players",
+]
+
+_OPENDOTA_TEAMFIGHT_COLUMNS = ["start", "end", "last_death", "deaths", "players"]
+
+_SMOKE_EVENT_COLUMNS = ["tick", "activator", "team", "smoked", "x", "y"]
+
+_VISION_MODIFIER_COLUMNS = [
+    "tick",
+    "end_tick",
+    "modifier_name",
+    "target_name",
+    "caster_name",
+    "caster_team",
+]
+
+_COURIER_SNAPSHOT_COLUMNS = ["tick", "team", "state", "flying", "x", "y"]
+
+_NEUTRAL_ITEM_FIND_COLUMNS = [
+    "tick",
+    "player_id",
+    "item_ability_id",
+    "item_key",
+    "item_tier",
+    "tier_item_count",
+    "enhancement_ability_id",
+    "enhancement_key",
+    "enhancement_level",
+    "trinket_level",
+]
+
+_PLAYER_LOG_COLUMNS = [*_COMBAT_LOG_COLUMNS, "player_id"]
+_PLAYER_BUYBACK_LOG_COLUMNS = [*_PLAYER_LOG_COLUMNS, "cost", "net_worth"]
+
+
+def _dataframe(rows: list[dict[str, Any]], columns: list[str]) -> pd.DataFrame:
+    """Build a DataFrame with declared columns present in every row shape."""
+    import pandas as pd
+
+    df = pd.DataFrame(rows)
+    extra_columns = [column for column in df.columns if column not in columns]
+    return df.reindex(columns=[*columns, *extra_columns])
+
+
 def _player_sample_base_fields(pp: ParsedPlayer, index: int) -> dict[str, Any]:
     """Build base identity, tick, and scoreboard fields for a player sample."""
     return {
@@ -439,30 +675,38 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         event tables such as ``smoke_events``, ``vision_modifiers``, and
         ``neutral_item_finds``.
     """
-    import pandas as pd
-
     player_rows = _player_table_rows(match)
 
     return {
-        "players": pd.DataFrame(player_rows["players"]),
-        "players_minute": pd.DataFrame(player_rows["players_minute"]),
-        "positions": pd.DataFrame(_position_rows(match)),
-        "combat_log": pd.DataFrame(_plain_rows(match.combat_log)),
-        "wards": pd.DataFrame(_dataclass_rows(match.wards)),
-        "objectives": pd.DataFrame(_objective_rows(match)),
-        "opendota_objectives": pd.DataFrame(match.objectives),
-        "chat": pd.DataFrame(_dataclass_rows(match.chat)),
-        "match": pd.DataFrame(_match_rows(match)),
-        "radiant_advantage": pd.DataFrame(_radiant_advantage_rows(match)),
-        "draft": pd.DataFrame(_dataclass_rows(match.draft)),
-        "teamfights": pd.DataFrame(_dataclass_rows(match.teamfights)),
-        "opendota_teamfights": pd.DataFrame(_dataclass_rows(match.opendota_teamfights)),
-        "smoke_events": pd.DataFrame(_dataclass_rows(match.smoke_events)),
-        "vision_modifiers": pd.DataFrame(_dataclass_rows(match.vision_modifiers)),
-        "courier_snapshots": pd.DataFrame(_dataclass_rows(match.courier_snapshots)),
-        "neutral_item_finds": pd.DataFrame(_dataclass_rows(match.neutral_item_finds)),
-        "player_kills_log": pd.DataFrame(player_rows["player_kills_log"]),
-        "player_purchase_log": pd.DataFrame(player_rows["player_purchase_log"]),
-        "player_runes_log": pd.DataFrame(player_rows["player_runes_log"]),
-        "player_buyback_log": pd.DataFrame(player_rows["player_buyback_log"]),
+        "players": _dataframe(player_rows["players"], _PLAYER_COLUMNS),
+        "players_minute": _dataframe(player_rows["players_minute"], _PLAYER_MINUTE_COLUMNS),
+        "positions": _dataframe(_position_rows(match), _POSITION_COLUMNS),
+        "combat_log": _dataframe(_plain_rows(match.combat_log), _COMBAT_LOG_COLUMNS),
+        "wards": _dataframe(_dataclass_rows(match.wards), _WARD_COLUMNS),
+        "objectives": _dataframe(_objective_rows(match), _OBJECTIVE_COLUMNS),
+        "opendota_objectives": _dataframe(match.objectives, _OPENDOTA_OBJECTIVE_COLUMNS),
+        "chat": _dataframe(_dataclass_rows(match.chat), _CHAT_COLUMNS),
+        "match": _dataframe(_match_rows(match), _MATCH_COLUMNS),
+        "radiant_advantage": _dataframe(_radiant_advantage_rows(match), _RADIANT_ADVANTAGE_COLUMNS),
+        "draft": _dataframe(_dataclass_rows(match.draft), _DRAFT_COLUMNS),
+        "teamfights": _dataframe(_dataclass_rows(match.teamfights), _TEAMFIGHT_COLUMNS),
+        "opendota_teamfights": _dataframe(
+            _dataclass_rows(match.opendota_teamfights), _OPENDOTA_TEAMFIGHT_COLUMNS
+        ),
+        "smoke_events": _dataframe(_dataclass_rows(match.smoke_events), _SMOKE_EVENT_COLUMNS),
+        "vision_modifiers": _dataframe(
+            _dataclass_rows(match.vision_modifiers), _VISION_MODIFIER_COLUMNS
+        ),
+        "courier_snapshots": _dataframe(
+            _dataclass_rows(match.courier_snapshots), _COURIER_SNAPSHOT_COLUMNS
+        ),
+        "neutral_item_finds": _dataframe(
+            _dataclass_rows(match.neutral_item_finds), _NEUTRAL_ITEM_FIND_COLUMNS
+        ),
+        "player_kills_log": _dataframe(player_rows["player_kills_log"], _PLAYER_LOG_COLUMNS),
+        "player_purchase_log": _dataframe(player_rows["player_purchase_log"], _PLAYER_LOG_COLUMNS),
+        "player_runes_log": _dataframe(player_rows["player_runes_log"], _PLAYER_LOG_COLUMNS),
+        "player_buyback_log": _dataframe(
+            player_rows["player_buyback_log"], _PLAYER_BUYBACK_LOG_COLUMNS
+        ),
     }
