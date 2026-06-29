@@ -212,6 +212,151 @@ def _ward_left_entry(ward: WardEvent, game_start_tick: int | None) -> dict[str, 
     }
 
 
+def _objective_slot_fields(player_id: int | None) -> dict[str, Any]:
+    """Return OpenDota slot fields for a valid gem player id."""
+    if not isinstance(player_id, int) or not (0 <= player_id < 10):
+        return {}
+    return {"slot": player_id, "player_slot": _player_id_to_player_slot(player_id)}
+
+
+def _append_building_kill_objectives(
+    objectives: list[dict[str, Any]],
+    events: list[Any],
+    *,
+    key_attr: str,
+    combat_agg: _CombatAggregator,
+    game_start_tick: int | None,
+) -> None:
+    """Append tower/barracks building_kill objective rows."""
+    for event in events:
+        pid = combat_agg.resolve_kill_pid(event.killer_source, event.killer)
+        objectives.append(
+            {
+                "time": _tick_game_seconds(event.tick, game_start_tick),
+                "type": "building_kill",
+                "key": getattr(event, key_attr),
+                "unit": event.killer_source or event.killer,
+                **_objective_slot_fields(pid),
+            }
+        )
+
+
+def _append_roshan_objectives(
+    objectives: list[dict[str, Any]],
+    *,
+    obj_ext: ObjectivesExtractor,
+    combat_agg: _CombatAggregator,
+    pid_to_team: dict[int, int],
+    game_start_tick: int | None,
+) -> None:
+    """Append CHAT_MESSAGE_ROSHAN_KILL objective rows."""
+    for rk in obj_ext.roshan_kills:
+        pid = combat_agg.resolve_kill_pid(rk.killer_source, rk.killer)
+        team = pid_to_team.get(pid) if pid is not None else None
+        entry: dict[str, Any] = {
+            "time": _tick_game_seconds(rk.tick, game_start_tick),
+            "type": "CHAT_MESSAGE_ROSHAN_KILL",
+        }
+        if team is not None:
+            entry["team"] = team
+        objectives.append(entry)
+
+
+def _append_aegis_objectives(
+    objectives: list[dict[str, Any]],
+    *,
+    obj_ext: ObjectivesExtractor,
+    game_start_tick: int | None,
+) -> None:
+    """Append CHAT_MESSAGE_AEGIS / stolen / denied rows."""
+    aegis_type = {
+        "pickup": "CHAT_MESSAGE_AEGIS",
+        "stolen": "CHAT_MESSAGE_AEGIS_STOLEN",
+        "denied": "CHAT_MESSAGE_DENIED_AEGIS",
+    }
+    for ae in obj_ext.aegis_events:
+        pid = ae.player_id if 0 <= ae.player_id < 10 else None
+        objectives.append(
+            {
+                "time": _tick_game_seconds(ae.tick, game_start_tick),
+                "type": aegis_type.get(ae.event_type, "CHAT_MESSAGE_AEGIS"),
+                **_objective_slot_fields(pid),
+            }
+        )
+
+
+def _append_tormentor_objectives(
+    objectives: list[dict[str, Any]],
+    *,
+    obj_ext: ObjectivesExtractor,
+    pid_to_team: dict[int, int],
+    game_start_tick: int | None,
+) -> None:
+    """Append CHAT_MESSAGE_MINIBOSS_KILL objective rows."""
+    for tm in obj_ext.tormentor_kills:
+        pid = tm.killer_player_id if 0 <= tm.killer_player_id < 10 else None
+        entry = {
+            "time": _tick_game_seconds(tm.tick, game_start_tick),
+            "type": "CHAT_MESSAGE_MINIBOSS_KILL",
+            **_objective_slot_fields(pid),
+        }
+        team = pid_to_team.get(pid) if pid is not None else None
+        if team is not None:
+            entry["team"] = team
+        objectives.append(entry)
+
+
+def _append_firstblood_objective(
+    objectives: list[dict[str, Any]],
+    *,
+    first_blood_entry: CombatLogEntry | None,
+    combat_agg: _CombatAggregator,
+    game_start_tick: int | None,
+) -> None:
+    """Append the CHAT_MESSAGE_FIRSTBLOOD objective row when present."""
+    if first_blood_entry is None:
+        return
+
+    # Resolve the killer source-first (like every other objective): a summon
+    # or projectile first blood carries the owning hero in damage_source_name
+    # while attacker_name is the non-hero unit.
+    killer_pid = combat_agg.resolve_kill_pid(
+        first_blood_entry.damage_source_name, first_blood_entry.attacker_name
+    )
+    victim_pid = combat_agg._hero_to_pid(first_blood_entry.target_name)
+    entry = {
+        "time": _entry_game_seconds(first_blood_entry, game_start_tick),
+        "type": "CHAT_MESSAGE_FIRSTBLOOD",
+        **_objective_slot_fields(killer_pid),
+    }
+    if victim_pid is not None:
+        entry["key"] = str(victim_pid)
+    objectives.append(entry)
+
+
+def _append_courier_objectives(
+    objectives: list[dict[str, Any]],
+    *,
+    obj_ext: ObjectivesExtractor,
+    combat_agg: _CombatAggregator,
+    pid_to_team: dict[int, int],
+    game_start_tick: int | None,
+) -> None:
+    """Append CHAT_MESSAGE_COURIER_LOST objective rows."""
+    for cd in obj_ext.courier_deaths:
+        killer_pid = combat_agg.resolve_kill_pid(cd.killer_source, cd.killer)
+        killer_team = pid_to_team.get(killer_pid) if killer_pid is not None else None
+        entry = {
+            "time": _tick_game_seconds(cd.tick, game_start_tick),
+            "type": "CHAT_MESSAGE_COURIER_LOST",
+        }
+        if killer_team in (2, 3):
+            entry["team"] = 3 if killer_team == 2 else 2  # owner = opposite of killer
+        if killer_pid is not None:
+            entry["killer"] = _player_id_to_player_slot(killer_pid)
+        objectives.append(entry)
+
+
 def _build_objectives(
     obj_ext: ObjectivesExtractor,
     combat_agg: _CombatAggregator,
@@ -238,102 +383,50 @@ def _build_objectives(
     """
     objectives: list[dict[str, Any]] = []
 
-    def secs(tick: int) -> int:
-        return _tick_game_seconds(tick, game_start_tick)
-
-    def slot_fields(player_id: int | None) -> dict[str, Any]:
-        if not isinstance(player_id, int) or not (0 <= player_id < 10):
-            return {}
-        return {"slot": player_id, "player_slot": _player_id_to_player_slot(player_id)}
-
     # building_kill — towers and barracks, attributed source-first (a summon /
     # projectile killer carries the owning hero in killer_source). unit is the
     # crediting source unit when present, mirroring OpenDota.
-    for tk in obj_ext.tower_kills:
-        pid = combat_agg.resolve_kill_pid(tk.killer_source, tk.killer)
-        objectives.append(
-            {
-                "time": secs(tk.tick),
-                "type": "building_kill",
-                "key": tk.tower_name,
-                "unit": tk.killer_source or tk.killer,
-                **slot_fields(pid),
-            }
-        )
-    for bk in obj_ext.barracks_kills:
-        pid = combat_agg.resolve_kill_pid(bk.killer_source, bk.killer)
-        objectives.append(
-            {
-                "time": secs(bk.tick),
-                "type": "building_kill",
-                "key": bk.barracks_name,
-                "unit": bk.killer_source or bk.killer,
-                **slot_fields(pid),
-            }
-        )
-
-    # CHAT_MESSAGE_ROSHAN_KILL — team that killed Roshan (killer's team).
-    for rk in obj_ext.roshan_kills:
-        pid = combat_agg.resolve_kill_pid(rk.killer_source, rk.killer)
-        team = pid_to_team.get(pid) if pid is not None else None
-        entry: dict[str, Any] = {"time": secs(rk.tick), "type": "CHAT_MESSAGE_ROSHAN_KILL"}
-        if team is not None:
-            entry["team"] = team
-        objectives.append(entry)
-
-    # CHAT_MESSAGE_AEGIS / _AEGIS_STOLEN / _DENIED_AEGIS.
-    _aegis_type = {
-        "pickup": "CHAT_MESSAGE_AEGIS",
-        "stolen": "CHAT_MESSAGE_AEGIS_STOLEN",
-        "denied": "CHAT_MESSAGE_DENIED_AEGIS",
-    }
-    for ae in obj_ext.aegis_events:
-        pid = ae.player_id if 0 <= ae.player_id < 10 else None
-        objectives.append(
-            {
-                "time": secs(ae.tick),
-                "type": _aegis_type.get(ae.event_type, "CHAT_MESSAGE_AEGIS"),
-                **slot_fields(pid),
-            }
-        )
-
-    # CHAT_MESSAGE_MINIBOSS_KILL — Tormentor, by killing player + their team.
-    for tm in obj_ext.tormentor_kills:
-        pid = tm.killer_player_id if 0 <= tm.killer_player_id < 10 else None
-        entry = {"time": secs(tm.tick), "type": "CHAT_MESSAGE_MINIBOSS_KILL", **slot_fields(pid)}
-        team = pid_to_team.get(pid) if pid is not None else None
-        if team is not None:
-            entry["team"] = team
-        objectives.append(entry)
-
-    # CHAT_MESSAGE_FIRSTBLOOD — the first real hero death; key is the victim slot.
-    if first_blood_entry is not None:
-        # Resolve the killer source-first (like every other objective): a summon
-        # or projectile first blood carries the owning hero in damage_source_name
-        # while attacker_name is the non-hero unit.
-        killer_pid = combat_agg.resolve_kill_pid(
-            first_blood_entry.damage_source_name, first_blood_entry.attacker_name
-        )
-        victim_pid = combat_agg._hero_to_pid(first_blood_entry.target_name)
-        entry = {
-            "time": _entry_game_seconds(first_blood_entry, game_start_tick),
-            "type": "CHAT_MESSAGE_FIRSTBLOOD",
-            **slot_fields(killer_pid),
-        }
-        if victim_pid is not None:
-            entry["key"] = str(victim_pid)
-        objectives.append(entry)
-
-    # CHAT_MESSAGE_COURIER_LOST — team is the courier's owner (killer's opposite).
-    for cd in obj_ext.courier_deaths:
-        killer_pid = combat_agg.resolve_kill_pid(cd.killer_source, cd.killer)
-        killer_team = pid_to_team.get(killer_pid) if killer_pid is not None else None
-        entry = {"time": secs(cd.tick), "type": "CHAT_MESSAGE_COURIER_LOST"}
-        if killer_team in (2, 3):
-            entry["team"] = 3 if killer_team == 2 else 2  # owner = opposite of killer
-        if killer_pid is not None:
-            entry["killer"] = _player_id_to_player_slot(killer_pid)
-        objectives.append(entry)
+    _append_building_kill_objectives(
+        objectives,
+        obj_ext.tower_kills,
+        key_attr="tower_name",
+        combat_agg=combat_agg,
+        game_start_tick=game_start_tick,
+    )
+    _append_building_kill_objectives(
+        objectives,
+        obj_ext.barracks_kills,
+        key_attr="barracks_name",
+        combat_agg=combat_agg,
+        game_start_tick=game_start_tick,
+    )
+    _append_roshan_objectives(
+        objectives,
+        obj_ext=obj_ext,
+        combat_agg=combat_agg,
+        pid_to_team=pid_to_team,
+        game_start_tick=game_start_tick,
+    )
+    _append_aegis_objectives(objectives, obj_ext=obj_ext, game_start_tick=game_start_tick)
+    _append_tormentor_objectives(
+        objectives,
+        obj_ext=obj_ext,
+        pid_to_team=pid_to_team,
+        game_start_tick=game_start_tick,
+    )
+    _append_firstblood_objective(
+        objectives,
+        first_blood_entry=first_blood_entry,
+        combat_agg=combat_agg,
+        game_start_tick=game_start_tick,
+    )
+    _append_courier_objectives(
+        objectives,
+        obj_ext=obj_ext,
+        combat_agg=combat_agg,
+        pid_to_team=pid_to_team,
+        game_start_tick=game_start_tick,
+    )
 
     objectives.sort(key=lambda o: o["time"])
     return objectives
@@ -531,6 +624,351 @@ def _interval_series_by_player(
     return series
 
 
+def _populate_player_time_arrays(
+    pp: ParsedPlayer,
+    *,
+    ts: Any,
+    mts: Any,
+    interval_ts: IntervalTimeSeries | None,
+) -> None:
+    """Copy dense and minute time-series arrays onto a player."""
+    pp.times = ts.ticks
+    pp.gold_t = ts.gold_t
+    pp.total_earned_gold_t = ts.total_earned_gold_t
+    pp.net_worth_t = ts.net_worth_t
+    pp.lh_t = ts.lh_t
+    pp.dn_t = ts.dn_t
+    pp.xp_t = ts.xp_t
+    if interval_ts is not None:
+        # OpenDota interval records use cumulative earned gold/XP for
+        # gold_t/xp_t. Mirror that on the minute arrays when complete
+        # interval batches are available; keep dense series unchanged.
+        pp.times_min = interval_ts.ticks
+        pp.gold_t_min = interval_ts.gold_t
+        pp.total_earned_gold_t_min = interval_ts.gold_t
+        pp.total_earned_xp_t_min = interval_ts.xp_t
+        pp.net_worth_t_min = interval_ts.net_worth_t
+        pp.lh_t_min = interval_ts.lh_t
+        pp.dn_t_min = interval_ts.dn_t
+        pp.xp_t_min = interval_ts.xp_t
+    else:
+        pp.times_min = mts.ticks
+        pp.gold_t_min = mts.gold_t
+        pp.total_earned_gold_t_min = mts.total_earned_gold_t
+        pp.total_earned_xp_t_min = mts.total_earned_xp_t
+        pp.net_worth_t_min = mts.net_worth_t
+        pp.lh_t_min = mts.lh_t
+        pp.dn_t_min = mts.dn_t
+        pp.xp_t_min = mts.xp_t
+    pp.total_hero_damage_t_min = mts.total_hero_damage_t
+    pp.total_hero_healing_t_min = mts.total_hero_healing_t
+    pp.total_deaths_t_min = mts.total_deaths_t
+    pp.total_stuns_t_min = mts.total_stuns_t
+
+
+def _populate_player_identity(
+    pp: ParsedPlayer,
+    *,
+    player_ext: PlayerExtractor,
+    player_id: int,
+) -> None:
+    """Populate position log, hero name, and team from player snapshots."""
+    pp.position_log = [
+        (snap.tick, snap.x, snap.y)
+        for snap in player_ext.snapshots
+        if snap.player_id == player_id and snap.x is not None and snap.y is not None
+    ]
+
+    # Resolve hero name from snapshots.
+    for snap in player_ext.snapshots:
+        if snap.player_id == player_id:
+            pp.hero_name = snap.npc_name
+            pp.team = snap.team
+            break
+
+
+def _populate_purchase_fields(
+    pp: ParsedPlayer,
+    *,
+    purchase_log: list[CombatLogEntry],
+    game_start_tick: int | None,
+) -> None:
+    """Populate purchase log and OpenDota-shaped purchase aggregates."""
+    # Chronological order, keeping every per-unit entry but EXCLUDING
+    # recipes — matching OpenDota's purchase_log (CreateParsedDataBlob
+    # filters key.startsWith("recipe_") out of the log while still counting
+    # recipes in the `purchase` map). OpenDota does NOT dedup starting items
+    # (its log genuinely lists e.g. 2x faerie_fire), so collapsing
+    # same-(tick, item) entries here under-counted starting consumables.
+    sorted_purchases = sorted(purchase_log, key=lambda e: e.tick)
+    pp.purchase_log = [
+        entry
+        for entry in sorted_purchases
+        if not (opendota_translate(entry.value_name) or "").startswith("recipe_")
+    ]
+
+    # Aggregates are derived from the FULL log (with recipes): the `purchase`
+    # count map includes recipes, while purchase_time/first_purchase_time
+    # exclude them. _build_purchase_aggregates handles that split internally.
+    purchase_aggs = _build_purchase_aggregates(sorted_purchases, game_start_tick)
+    pp.purchase = purchase_aggs["purchase"]
+    pp.purchase_time = purchase_aggs["purchase_time"]
+    pp.first_purchase_time = purchase_aggs["first_purchase_time"]
+    pp.purchase_tpscroll = purchase_aggs["purchase_tpscroll"]
+    pp.purchase_ward_observer = purchase_aggs["purchase_ward_observer"]
+    pp.purchase_ward_sentry = purchase_aggs["purchase_ward_sentry"]
+
+
+def _populate_buyback_events(
+    pp: ParsedPlayer,
+    *,
+    buyback_log: list[CombatLogEntry],
+    player_id: int,
+) -> None:
+    """Populate structured buyback events with estimated costs."""
+    # Structured buybacks with an estimated cost. The per-buyback cost is
+    # not in the replay stream, so it is derived from net worth at the
+    # buyback tick (200 + net_worth // 13); net_worth_t is already
+    # populated above, so net_worth_at() resolves the nearest sample.
+    buybacks: list[BuybackEvent] = []
+    for entry in buyback_log:
+        nw = net_worth_at(pp, entry.tick)
+        buybacks.append(
+            BuybackEvent(
+                tick=entry.tick,
+                player_slot=player_id,
+                net_worth=nw,
+                cost=buyback_cost(nw),
+            )
+        )
+    pp.buybacks = buybacks
+
+
+def _apply_combat_aggregate(
+    pp: ParsedPlayer,
+    *,
+    agg: Any | None,
+    player_id: int,
+    game_start_tick: int | None,
+) -> None:
+    """Overlay combat-log aggregate fields onto a player."""
+    if agg is None:
+        return
+
+    pp.damage = agg.damage
+    pp.damage_taken = agg.damage_taken
+    pp.damage_by_type = agg.damage_by_type
+    pp.damage_taken_by_type = agg.damage_taken_by_type
+    # OpenDota per-inflictor / per-target attribution breakdowns. Nested
+    # defaultdicts are flattened to plain dicts for clean serialization.
+    pp.damage_inflictor = dict(agg.damage_inflictor)
+    pp.damage_inflictor_received = dict(agg.damage_inflictor_received)
+    pp.damage_targets = {k: dict(v) for k, v in agg.damage_targets.items()}
+    pp.ability_targets = {k: dict(v) for k, v in agg.ability_targets.items()}
+    pp.hero_hits = dict(agg.hero_hits)
+    pp.max_hero_hit = agg.max_hero_hit
+    pp.healing = agg.healing
+    pp.ability_uses = agg.ability_uses
+    pp.item_uses = agg.item_uses
+    pp.gold_reasons = agg.gold_reasons
+    pp.xp_reasons = agg.xp_reasons
+    pp.kills_log = agg.kills_log
+    _populate_purchase_fields(pp, purchase_log=agg.purchase_log, game_start_tick=game_start_tick)
+    # Ward-use scalars: item_uses keys keep the item_ prefix.
+    pp.observer_uses = agg.item_uses.get("item_ward_observer", 0)
+    pp.sentry_uses = agg.item_uses.get("item_ward_sentry", 0)
+    pp.runes_log = agg.runes_log
+    pp.buyback_log = agg.buyback_log
+    _populate_buyback_events(pp, buyback_log=agg.buyback_log, player_id=player_id)
+    pp.stuns_dealt = agg.stuns_dealt
+    # OpenDota-style combat scalars (combat-log reconstruction; exact via
+    # apply_api_rates). Best-effort offline estimates.
+    pp.hero_damage = agg.hero_damage
+    pp.tower_damage = agg.tower_damage
+    pp.hero_healing = agg.hero_healing
+
+
+def _populate_kill_aggregates(pp: ParsedPlayer) -> None:
+    """Populate OpenDota-shaped kill category aggregates."""
+    pp.killed = killed_counts(pp.kills_log)
+    kill_cats = categorize_kills(pp.killed)
+    pp.ancient_kills = kill_cats.ancient_kills
+    pp.neutral_kills = kill_cats.neutral_kills
+    pp.lane_kills = kill_cats.lane_kills
+    pp.courier_kills = kill_cats.courier_kills
+    pp.observer_kills = kill_cats.observer_kills
+    pp.sentry_kills = kill_cats.sentry_kills
+    pp.roshan_kills = kill_cats.roshan_kills
+
+
+def _populate_scoreboard_stats(
+    pp: ParsedPlayer,
+    *,
+    player_ext: PlayerExtractor,
+    player_id: int,
+) -> None:
+    """Populate K/D/A scoreboard stats when present."""
+    kda = player_ext.scoreboard.get(player_id)
+    if kda is not None:
+        pp.kills, pp.deaths, pp.assists = kda
+
+
+def _populate_lane_stats(
+    pp: ParsedPlayer,
+    *,
+    player_ext: PlayerExtractor,
+    player_id: int,
+    game_start_tick: int | None,
+) -> None:
+    """Populate lane heatmap, lane role, and 10-minute lane totals."""
+    # Lane position heatmap — restricted to first 10 game-minutes (OpenDota: t<=600s).
+    # position_log above is left unfiltered; this loop is separate and independent.
+    lane_pos: defaultdict[str, int] = defaultdict(int)
+    for snap in player_ext.snapshots:
+        if snap.player_id != player_id or snap.x is None or snap.y is None:
+            continue
+        if game_start_tick is not None and (
+            snap.tick < game_start_tick or snap.tick > game_start_tick + _LANE_WINDOW
+        ):
+            continue
+        lane_pos[f"{int(snap.x) // _LANE_GRID}_{int(snap.y) // _LANE_GRID}"] += 1
+    pp.lane_pos = lane_pos
+
+    # Lane role and 10-minute raw stats.
+    pp.lane_role = classify_lane(pp.lane_pos, pp.team)
+    lane_minute = 10  # minute-series index for the 10-minute mark
+    if len(pp.lh_t_min) > lane_minute:
+        pp.lane_last_hits = pp.lh_t_min[lane_minute]
+    if len(pp.dn_t_min) > lane_minute:
+        pp.lane_denies = pp.dn_t_min[lane_minute]
+    if len(pp.total_earned_gold_t_min) > lane_minute:
+        pp.lane_total_gold = pp.total_earned_gold_t_min[lane_minute]
+    if len(pp.total_earned_xp_t_min) > lane_minute:
+        pp.lane_total_xp = pp.total_earned_xp_t_min[lane_minute]
+
+
+def _populate_terminal_player_state(
+    pp: ParsedPlayer,
+    *,
+    player_ext: PlayerExtractor,
+    player_id: int,
+) -> None:
+    """Populate terminal scalar, inventory, hero, and gold-spent fields."""
+    # End-of-game terminal scalars: read the LAST DENSE sample (not the last
+    # minute boundary, which can lag the game end by up to ~59s). These match
+    # OpenDota's terminal net_worth / last_hits / denies to the unit; see the
+    # active "[30t]" checks in scripts/validate_opendota.py.
+    if pp.net_worth_t:
+        pp.net_worth = pp.net_worth_t[-1]
+    if pp.lh_t:
+        pp.last_hits = pp.lh_t[-1]
+    if pp.dn_t:
+        pp.denies = pp.dn_t[-1]
+
+    # End-of-game inventory: the items on this player's last dense snapshot
+    # (taken at the game-end tick). Mirrors OpenDota's per-slot item_0..5 /
+    # backpack / item_neutral, but keyed by slot with names. Use the last
+    # snapshot even when its inventory is empty — a player can legitimately
+    # end with no items (sold/dropped/destroyed before Ancient death), and
+    # filtering on non-empty would copy a stale earlier inventory.
+    last_snap = next(
+        (snap for snap in reversed(player_ext.snapshots) if snap.player_id == player_id),
+        None,
+    )
+    if last_snap is not None:
+        pp.final_items = dict(last_snap.items)
+        # Terminal hero level from the last dense snapshot.
+        pp.level = last_snap.level
+
+    # Numeric hero_id from the resolved hero NPC name (robust per-player link;
+    # avoids the draft pick-order trap). 0 if the hero is absent from the
+    # bundled heroes.json snapshot.
+    pp.hero_id = hero_id(pp.hero_name) if pp.hero_name else 0
+
+    # gold_spent = total earned gold − current spendable gold (OpenDota parity).
+    if pp.total_earned_gold_t and pp.gold_t:
+        pp.gold_spent = max(0, pp.total_earned_gold_t[-1] - pp.gold_t[-1])
+
+
+def _populate_life_state_dead(
+    pp: ParsedPlayer,
+    *,
+    player_ext: PlayerExtractor,
+    player_id: int,
+) -> None:
+    """Populate dead-seconds count from life-state snapshots."""
+    # life_state_dead: seconds spent dead. OpenDota samples life_state once per
+    # game-second and sums the non-alive samples (states 1 + 2). We mirror that
+    # by counting DISTINCT dead game-seconds, which is robust to gem's snapshot
+    # cadence (multiple dense samples can fall in one second). Falls back to the
+    # tick second when game_time_s is unavailable (S1/early frames).
+    dead_seconds: set[int] = set()
+    for snap in player_ext.snapshots:
+        if snap.player_id != player_id or snap.life_state == 0:
+            continue
+        sec = snap.game_time_s if snap.game_time_s is not None else snap.tick // 30
+        dead_seconds.add(sec)
+    pp.life_state_dead = len(dead_seconds)
+
+
+def _populate_interval_player_fields(
+    pp: ParsedPlayer,
+    *,
+    interval_ext: IntervalExtractor | None,
+    player_id: int,
+) -> None:
+    """Populate terminal team counters and PlayerResource scalars."""
+    if interval_ext is None:
+        return
+
+    # Terminal team-data counters (camps/creeps stacked, wards placed, rune
+    # pickups, tower kills) read from the same m_vecDataTeam entry as gold/xp.
+    # The last observed value is the end-of-game total; each matches OpenDota's
+    # per-player scalar to the unit. (m_iRoshanKills is intentionally NOT used
+    # here — it disagrees with OpenDota's combat-log-attributed roshan_kills.)
+    counters = interval_ext.team_counters(player_id)
+    pp.camps_stacked = counters["camps_stacked"]
+    pp.creeps_stacked = counters["creeps_stacked"]
+    pp.obs_placed = counters["obs_placed"]
+    pp.sen_placed = counters["sen_placed"]
+    pp.rune_pickups = counters["rune_pickups"]
+    pp.tower_kills = counters["tower_kills"]
+
+    # firstblood_claimed: authoritative CDOTA_PlayerResource flag (the field
+    # OpenDota reads), not a combat-log reconstruction.
+    pp.firstblood_claimed = int(
+        interval_ext.player_resource_scalars(player_id)["firstblood_claimed"]
+    )
+
+
+def _populate_computed_player_fields(
+    pp: ParsedPlayer,
+    *,
+    match_duration: int,
+    radiant_win: bool | None,
+) -> None:
+    """Populate computed player fields derived from previously assembled values."""
+    # OpenDota-style computed convenience fields (no duration dependency).
+    # kda uses a +1 denominator and 2-decimal rounding, matching OpenDota.
+    pp.kda = round((pp.kills + pp.assists) / (pp.deaths + 1), 2)
+    pp.buyback_count = len(pp.buyback_log)
+    pp.is_radiant = pp.team == 2  # 2 = Radiant
+    # win is 0 when the winner is unknown (radiant_win is None).
+    pp.win = 1 if (radiant_win is not None and pp.is_radiant == radiant_win) else 0
+    # kills_per_min uses OpenDota's gameplay duration (match.duration), which
+    # is the horn-to-ancient combat-log span — not the raw tick span. 0.0 when
+    # duration is unknown.
+    if match_duration > 0:
+        pp.kills_per_min = pp.kills / (match_duration / 60)
+
+    # Tier-1: lane efficiency % (OpenDota formula, same denominator for all players)
+    # Reference: odota/core svc/util/compute.ts
+    # melee(40×60) + ranged(45×20) + siege(74×2) + passive(600×1.5) + starting(600) = 4948
+    lane_gold_baseline = 4948
+    if pp.lane_total_gold > 0:
+        pp.lane_efficiency_pct = int(pp.lane_total_gold / lane_gold_baseline * 100)
+
+
 def _populate_player_series(
     match: ParsedMatch,
     *,
@@ -549,8 +987,8 @@ def _populate_player_series(
     fields. Each iteration is independent (no cross-player state), so the loop is
     a straight single-pass population of one ``ParsedPlayer`` per slot.
 
-    Extracted verbatim from ``build_parsed_match`` (issue #106 item #3) to keep
-    the orchestrator readable; behaviour is unchanged.
+    Delegates each independent population step to focused helpers so the
+    per-player assembly order stays explicit without one oversized loop body.
 
     Args:
         match: The match being assembled; ``match.players`` is mutated in place.
@@ -566,250 +1004,42 @@ def _populate_player_series(
         mts = player_ext.minute_time_series(player_id)
         pp = match.players[player_id]
         pp.player_id = player_id
-        pp.times = ts.ticks
-        pp.gold_t = ts.gold_t
-        pp.total_earned_gold_t = ts.total_earned_gold_t
-        pp.net_worth_t = ts.net_worth_t
-        pp.lh_t = ts.lh_t
-        pp.dn_t = ts.dn_t
-        pp.xp_t = ts.xp_t
-        interval_ts = interval_min_series.get(player_id)
-        if interval_ts is not None:
-            # OpenDota interval records use cumulative earned gold/XP for
-            # gold_t/xp_t. Mirror that on the minute arrays when complete
-            # interval batches are available; keep dense series unchanged.
-            pp.times_min = interval_ts.ticks
-            pp.gold_t_min = interval_ts.gold_t
-            pp.total_earned_gold_t_min = interval_ts.gold_t
-            pp.total_earned_xp_t_min = interval_ts.xp_t
-            pp.net_worth_t_min = interval_ts.net_worth_t
-            pp.lh_t_min = interval_ts.lh_t
-            pp.dn_t_min = interval_ts.dn_t
-            pp.xp_t_min = interval_ts.xp_t
-        else:
-            pp.times_min = mts.ticks
-            pp.gold_t_min = mts.gold_t
-            pp.total_earned_gold_t_min = mts.total_earned_gold_t
-            pp.total_earned_xp_t_min = mts.total_earned_xp_t
-            pp.net_worth_t_min = mts.net_worth_t
-            pp.lh_t_min = mts.lh_t
-            pp.dn_t_min = mts.dn_t
-            pp.xp_t_min = mts.xp_t
-        pp.total_hero_damage_t_min = mts.total_hero_damage_t
-        pp.total_hero_healing_t_min = mts.total_hero_healing_t
-        pp.total_deaths_t_min = mts.total_deaths_t
-        pp.total_stuns_t_min = mts.total_stuns_t
-        pp.position_log = [
-            (snap.tick, snap.x, snap.y)
-            for snap in player_ext.snapshots
-            if snap.player_id == player_id and snap.x is not None and snap.y is not None
-        ]
-
-        # Resolve hero name from snapshots
-        for snap in player_ext.snapshots:
-            if snap.player_id == player_id:
-                pp.hero_name = snap.npc_name
-                pp.team = snap.team
-                break
-
-        agg = combat_agg.players.get(player_id)
-        if agg is not None:
-            pp.damage = agg.damage
-            pp.damage_taken = agg.damage_taken
-            pp.damage_by_type = agg.damage_by_type
-            pp.damage_taken_by_type = agg.damage_taken_by_type
-            # OpenDota per-inflictor / per-target attribution breakdowns. Nested
-            # defaultdicts are flattened to plain dicts for clean serialization.
-            pp.damage_inflictor = dict(agg.damage_inflictor)
-            pp.damage_inflictor_received = dict(agg.damage_inflictor_received)
-            pp.damage_targets = {k: dict(v) for k, v in agg.damage_targets.items()}
-            pp.ability_targets = {k: dict(v) for k, v in agg.ability_targets.items()}
-            pp.hero_hits = dict(agg.hero_hits)
-            pp.max_hero_hit = agg.max_hero_hit
-            pp.healing = agg.healing
-            pp.ability_uses = agg.ability_uses
-            pp.item_uses = agg.item_uses
-            pp.gold_reasons = agg.gold_reasons
-            pp.xp_reasons = agg.xp_reasons
-            pp.kills_log = agg.kills_log
-            # Chronological order, keeping every per-unit entry but EXCLUDING
-            # recipes — matching OpenDota's purchase_log (CreateParsedDataBlob
-            # filters key.startsWith("recipe_") out of the log while still counting
-            # recipes in the `purchase` map). OpenDota does NOT dedup starting items
-            # (its log genuinely lists e.g. 2x faerie_fire), so collapsing
-            # same-(tick, item) entries here under-counted starting consumables.
-            sorted_purchases = sorted(agg.purchase_log, key=lambda e: e.tick)
-            pp.purchase_log = [
-                entry
-                for entry in sorted_purchases
-                if not (opendota_translate(entry.value_name) or "").startswith("recipe_")
-            ]
-            # Aggregates are derived from the FULL log (with recipes): the `purchase`
-            # count map includes recipes, while purchase_time/first_purchase_time
-            # exclude them. _build_purchase_aggregates handles that split internally.
-            purchase_aggs = _build_purchase_aggregates(sorted_purchases, game_start_tick)
-            pp.purchase = purchase_aggs["purchase"]
-            pp.purchase_time = purchase_aggs["purchase_time"]
-            pp.first_purchase_time = purchase_aggs["first_purchase_time"]
-            pp.purchase_tpscroll = purchase_aggs["purchase_tpscroll"]
-            pp.purchase_ward_observer = purchase_aggs["purchase_ward_observer"]
-            pp.purchase_ward_sentry = purchase_aggs["purchase_ward_sentry"]
-            # Ward-use scalars: item_uses keys keep the item_ prefix.
-            pp.observer_uses = agg.item_uses.get("item_ward_observer", 0)
-            pp.sentry_uses = agg.item_uses.get("item_ward_sentry", 0)
-            pp.runes_log = agg.runes_log
-            pp.buyback_log = agg.buyback_log
-            # Structured buybacks with an estimated cost. The per-buyback cost is
-            # not in the replay stream, so it is derived from net worth at the
-            # buyback tick (200 + net_worth // 13); net_worth_t is already
-            # populated above, so net_worth_at() resolves the nearest sample.
-            buybacks: list[BuybackEvent] = []
-            for entry in agg.buyback_log:
-                nw = net_worth_at(pp, entry.tick)
-                buybacks.append(
-                    BuybackEvent(
-                        tick=entry.tick,
-                        player_slot=player_id,
-                        net_worth=nw,
-                        cost=buyback_cost(nw),
-                    )
-                )
-            pp.buybacks = buybacks
-            pp.stuns_dealt = agg.stuns_dealt
-            # OpenDota-style combat scalars (combat-log reconstruction; exact via
-            # apply_api_rates). Best-effort offline estimates.
-            pp.hero_damage = agg.hero_damage
-            pp.tower_damage = agg.tower_damage
-            pp.hero_healing = agg.hero_healing
-
-        # OpenDota-shaped kill aggregates, derived from kills_log above.
-        pp.killed = killed_counts(pp.kills_log)
-        kill_cats = categorize_kills(pp.killed)
-        pp.ancient_kills = kill_cats.ancient_kills
-        pp.neutral_kills = kill_cats.neutral_kills
-        pp.lane_kills = kill_cats.lane_kills
-        pp.courier_kills = kill_cats.courier_kills
-        pp.observer_kills = kill_cats.observer_kills
-        pp.sentry_kills = kill_cats.sentry_kills
-        pp.roshan_kills = kill_cats.roshan_kills
-
-        kda = player_ext.scoreboard.get(player_id)
-        if kda is not None:
-            pp.kills, pp.deaths, pp.assists = kda
-
-        # Lane position heatmap — restricted to first 10 game-minutes (OpenDota: t<=600s).
-        # position_log above is left unfiltered; this loop is separate and independent.
-        lane_pos: defaultdict[str, int] = defaultdict(int)
-        for snap in player_ext.snapshots:
-            if snap.player_id != player_id or snap.x is None or snap.y is None:
-                continue
-            if game_start_tick is not None and (
-                snap.tick < game_start_tick or snap.tick > game_start_tick + _LANE_WINDOW
-            ):
-                continue
-            lane_pos[f"{int(snap.x) // _LANE_GRID}_{int(snap.y) // _LANE_GRID}"] += 1
-        pp.lane_pos = lane_pos
-
-        # Lane role and 10-minute raw stats
-        pp.lane_role = classify_lane(pp.lane_pos, pp.team)
-        _LM = 10  # minute-series index for the 10-minute mark
-        if len(pp.lh_t_min) > _LM:
-            pp.lane_last_hits = pp.lh_t_min[_LM]
-        if len(pp.dn_t_min) > _LM:
-            pp.lane_denies = pp.dn_t_min[_LM]
-        if len(pp.total_earned_gold_t_min) > _LM:
-            pp.lane_total_gold = pp.total_earned_gold_t_min[_LM]
-        if len(pp.total_earned_xp_t_min) > _LM:
-            pp.lane_total_xp = pp.total_earned_xp_t_min[_LM]
-
-        # End-of-game terminal scalars: read the LAST DENSE sample (not the last
-        # minute boundary, which can lag the game end by up to ~59s). These match
-        # OpenDota's terminal net_worth / last_hits / denies to the unit; see the
-        # active "[30t]" checks in scripts/validate_opendota.py.
-        if pp.net_worth_t:
-            pp.net_worth = pp.net_worth_t[-1]
-        if pp.lh_t:
-            pp.last_hits = pp.lh_t[-1]
-        if pp.dn_t:
-            pp.denies = pp.dn_t[-1]
-
-        # End-of-game inventory: the items on this player's last dense snapshot
-        # (taken at the game-end tick). Mirrors OpenDota's per-slot item_0..5 /
-        # backpack / item_neutral, but keyed by slot with names. Use the last
-        # snapshot even when its inventory is empty — a player can legitimately
-        # end with no items (sold/dropped/destroyed before Ancient death), and
-        # filtering on non-empty would copy a stale earlier inventory.
-        last_snap = next(
-            (snap for snap in reversed(player_ext.snapshots) if snap.player_id == player_id),
-            None,
+        _populate_player_time_arrays(
+            pp,
+            ts=ts,
+            mts=mts,
+            interval_ts=interval_min_series.get(player_id),
         )
-        if last_snap is not None:
-            pp.final_items = dict(last_snap.items)
-            # Terminal hero level from the last dense snapshot.
-            pp.level = last_snap.level
+        _populate_player_identity(pp, player_ext=player_ext, player_id=player_id)
 
-        # Numeric hero_id from the resolved hero NPC name (robust per-player link;
-        # avoids the draft pick-order trap). 0 if the hero is absent from the
-        # bundled heroes.json snapshot.
-        pp.hero_id = hero_id(pp.hero_name) if pp.hero_name else 0
+        _apply_combat_aggregate(
+            pp,
+            agg=combat_agg.players.get(player_id),
+            player_id=player_id,
+            game_start_tick=game_start_tick,
+        )
 
-        # gold_spent = total earned gold − current spendable gold (OpenDota parity).
-        if pp.total_earned_gold_t and pp.gold_t:
-            pp.gold_spent = max(0, pp.total_earned_gold_t[-1] - pp.gold_t[-1])
+        _populate_kill_aggregates(pp)
+        _populate_scoreboard_stats(pp, player_ext=player_ext, player_id=player_id)
 
-        # life_state_dead: seconds spent dead. OpenDota samples life_state once per
-        # game-second and sums the non-alive samples (states 1 + 2). We mirror that
-        # by counting DISTINCT dead game-seconds, which is robust to gem's snapshot
-        # cadence (multiple dense samples can fall in one second). Falls back to the
-        # tick second when game_time_s is unavailable (S1/early frames).
-        dead_seconds: set[int] = set()
-        for snap in player_ext.snapshots:
-            if snap.player_id != player_id or snap.life_state == 0:
-                continue
-            sec = snap.game_time_s if snap.game_time_s is not None else snap.tick // 30
-            dead_seconds.add(sec)
-        pp.life_state_dead = len(dead_seconds)
+        _populate_lane_stats(
+            pp,
+            player_ext=player_ext,
+            player_id=player_id,
+            game_start_tick=game_start_tick,
+        )
 
-        # Terminal team-data counters (camps/creeps stacked, wards placed, rune
-        # pickups, tower kills) read from the same m_vecDataTeam entry as gold/xp.
-        # The last observed value is the end-of-game total; each matches OpenDota's
-        # per-player scalar to the unit. (m_iRoshanKills is intentionally NOT used
-        # here — it disagrees with OpenDota's combat-log-attributed roshan_kills.)
-        if interval_ext is not None:
-            counters = interval_ext.team_counters(player_id)
-            pp.camps_stacked = counters["camps_stacked"]
-            pp.creeps_stacked = counters["creeps_stacked"]
-            pp.obs_placed = counters["obs_placed"]
-            pp.sen_placed = counters["sen_placed"]
-            pp.rune_pickups = counters["rune_pickups"]
-            pp.tower_kills = counters["tower_kills"]
+        _populate_terminal_player_state(pp, player_ext=player_ext, player_id=player_id)
 
-        # firstblood_claimed: authoritative CDOTA_PlayerResource flag (the field
-        # OpenDota reads), not a combat-log reconstruction.
-        if interval_ext is not None:
-            pp.firstblood_claimed = int(
-                interval_ext.player_resource_scalars(player_id)["firstblood_claimed"]
-            )
+        _populate_life_state_dead(pp, player_ext=player_ext, player_id=player_id)
 
-        # OpenDota-style computed convenience fields (no duration dependency).
-        # kda uses a +1 denominator and 2-decimal rounding, matching OpenDota.
-        pp.kda = round((pp.kills + pp.assists) / (pp.deaths + 1), 2)
-        pp.buyback_count = len(pp.buyback_log)
-        pp.is_radiant = pp.team == 2  # 2 = Radiant
-        # win is 0 when the winner is unknown (radiant_win is None).
-        pp.win = 1 if (radiant_win is not None and pp.is_radiant == radiant_win) else 0
-        # kills_per_min uses OpenDota's gameplay duration (match.duration), which
-        # is the horn-to-ancient combat-log span — not the raw tick span. 0.0 when
-        # duration is unknown.
-        if match.duration > 0:
-            pp.kills_per_min = pp.kills / (match.duration / 60)
+        _populate_interval_player_fields(pp, interval_ext=interval_ext, player_id=player_id)
 
-        # Tier-1: lane efficiency % (OpenDota formula, same denominator for all players)
-        # Reference: odota/core svc/util/compute.ts
-        # melee(40×60) + ranged(45×20) + siege(74×2) + passive(600×1.5) + starting(600) = 4948
-        _LANE_GOLD_BASELINE = 4948
-        if pp.lane_total_gold > 0:
-            pp.lane_efficiency_pct = int(pp.lane_total_gold / _LANE_GOLD_BASELINE * 100)
+        _populate_computed_player_fields(
+            pp,
+            match_duration=match.duration,
+            radiant_win=radiant_win,
+        )
 
 
 def build_parsed_match(
@@ -852,55 +1082,23 @@ def build_parsed_match(
     Returns:
         Fully populated :class:`ParsedMatch`.
     """
-    from gem.extractors.teamfights import detect_opendota_teamfights, detect_teamfights
-
-    # radiant_win resolution — three tiers in priority order:
-    #   1. CDemoFileInfo.game_winner (set during parse, empty for HLTV replays)
-    #   2. m_pGameRules.m_nGameWinner entity field (set post-parse in parser.py)
-    #   3. Ancient DEATH in combat log — no API needed
-    radiant_win = parser.radiant_win
-    if radiant_win is None:
-        radiant_win = _radiant_win_from_ancient(all_entries)
-
-    parser_error = getattr(parser, "parse_error", None)
-    parse_error_text = str(parser_error) if isinstance(parser_error, Exception) else None
-
-    match = ParsedMatch(
-        match_id=parser.match_id,
-        game_mode=parser.game_mode,
-        leagueid=parser.leagueid,
+    radiant_win = _resolve_radiant_win(parser, all_entries)
+    match = _new_parsed_match(
+        parser=parser,
+        obj_ext=obj_ext,
+        ward_ext=ward_ext,
+        courier_ext=courier_ext,
+        draft_ext=draft_ext,
+        all_entries=all_entries,
+        chat_entries=chat_entries,
         radiant_win=radiant_win,
-        towers=obj_ext.tower_kills,
-        barracks=obj_ext.barracks_kills,
-        roshans=obj_ext.roshan_kills,
-        aegis_events=obj_ext.aegis_events,
-        tormentors=obj_ext.tormentor_kills,
-        shrines=obj_ext.shrine_kills,
-        banner_plants=obj_ext.banner_plants,
-        wards=ward_ext.ward_events,
-        combat_log=all_entries,
-        chat=chat_entries,
-        courier_snapshots=courier_ext.snapshots,
-        neutral_item_finds=neutral_item_finds or [],
-        smoke_events=smoke_events or [],
-        vision_modifiers=vision_modifier_events or [],
-        draft=draft_ext.draft_events,
-        game_start_tick=parser.game_start_tick,
-        game_end_tick=parser.tick,
-        duration=getattr(parser, "duration_s", None) or 0,
-        parse_error=parse_error_text,
-        truncated_at_tick=getattr(parser, "truncated_at_tick", None),
+        smoke_events=smoke_events,
+        vision_modifier_events=vision_modifier_events,
+        neutral_item_finds=neutral_item_finds,
     )
 
     # Post-process buybacks (7b).
-    # For BUYBACK entries, entry.value = player slot (0-9).
-    # Reference: refs/parser/src/main/java/opendota/CreateParsedDataBlob.java handleBuyback()
-    for entry in all_entries:
-        if entry.log_type != "BUYBACK":
-            continue
-        pid = entry.value
-        if 0 <= pid < 10:
-            combat_agg._agg(pid).buyback_log.append(entry)
+    _attach_buyback_entries(all_entries, combat_agg)
 
     # Capture game_start_tick once — used for lane_pos time filter below
     game_start_tick = parser.game_start_tick
@@ -911,22 +1109,8 @@ def build_parsed_match(
     # an illusion, so the explicit not-illusion filter is required). The per-player
     # firstblood_claimed flag is read separately from the authoritative
     # CDOTA_PlayerResource field below, not reconstructed from this entry.
-    first_blood_entry = next(
-        (
-            e
-            for e in all_entries
-            if e.log_type == "DEATH"
-            and e.target_is_hero
-            and not e.target_is_illusion
-            and not e.will_reincarnate
-        ),
-        None,
-    )
-    if first_blood_entry is not None:
-        if first_blood_entry.game_time_s is not None:
-            match.first_blood_time = int(first_blood_entry.game_time_s)
-        elif game_start_tick is not None:
-            match.first_blood_time = max(0, (first_blood_entry.tick - game_start_tick) // 30)
+    first_blood_entry = _first_real_hero_death(all_entries)
+    _populate_first_blood_time(match, first_blood_entry, game_start_tick)
 
     # NOTE: pre_game_duration (horn → creep-spawn span, ~90s) is intentionally
     # left at its default 0 here. It requires the GAME_IN_PROGRESS state-transition
@@ -945,6 +1129,83 @@ def build_parsed_match(
         radiant_win=radiant_win,
     )
 
+    _apply_metadata_ability_upgrades(match, parser)
+
+    _populate_lane_advantages(match)
+    _populate_player_resource_and_team_metadata(match, parser)
+    _attach_ward_logs(match, game_start_tick)
+    _populate_objective_outputs(
+        match,
+        obj_ext=obj_ext,
+        combat_agg=combat_agg,
+        first_blood_entry=first_blood_entry,
+        game_start_tick=game_start_tick,
+    )
+
+    # Compute radiant_gold_adv / radiant_xp_adv per game-minute boundary.
+    _populate_advantage_curves(match, interval_ext)
+
+    # Detect teamfights (Phase 9)
+    _populate_teamfights(match, all_entries=all_entries, player_ext=player_ext)
+
+    # teamfight_participation: authoritative PlayerResource scalar.
+    _populate_teamfight_participation(match, interval_ext)
+
+    # Team kill scores = sum of each side's player kills (OpenDota parity).
+    _populate_team_scores(match)
+
+    # Build per-player ability level snapshots for ability_level_at_tick().
+    _populate_ability_snapshots(match, player_ext)
+
+    return match
+
+
+def _attach_buyback_entries(
+    all_entries: list[CombatLogEntry],
+    combat_agg: _CombatAggregator,
+) -> None:
+    """Attach BUYBACK combat-log entries to per-player aggregators."""
+    # For BUYBACK entries, entry.value = player slot (0-9).
+    # Reference: refs/parser/src/main/java/opendota/CreateParsedDataBlob.java handleBuyback()
+    for entry in all_entries:
+        if entry.log_type != "BUYBACK":
+            continue
+        pid = entry.value
+        if 0 <= pid < 10:
+            combat_agg._agg(pid).buyback_log.append(entry)
+
+
+def _first_real_hero_death(all_entries: list[CombatLogEntry]) -> CombatLogEntry | None:
+    """Return the earliest counted hero death for first-blood output."""
+    return next(
+        (
+            e
+            for e in all_entries
+            if e.log_type == "DEATH"
+            and e.target_is_hero
+            and not e.target_is_illusion
+            and not e.will_reincarnate
+        ),
+        None,
+    )
+
+
+def _populate_first_blood_time(
+    match: ParsedMatch,
+    first_blood_entry: CombatLogEntry | None,
+    game_start_tick: int | None,
+) -> None:
+    """Populate OpenDota-style first blood time on the match."""
+    if first_blood_entry is None:
+        return
+    if first_blood_entry.game_time_s is not None:
+        match.first_blood_time = int(first_blood_entry.game_time_s)
+    elif game_start_tick is not None:
+        match.first_blood_time = max(0, (first_blood_entry.tick - game_start_tick) // 30)
+
+
+def _apply_metadata_ability_upgrades(match: ParsedMatch, parser: ReplayParser) -> None:
+    """Copy match-metadata ability upgrade arrays onto players when available."""
     match_metadata = getattr(parser, "match_metadata", None)
     metadata = getattr(match_metadata, "metadata", None)
     for team in getattr(metadata, "teams", []) or []:
@@ -955,14 +1216,17 @@ def build_parsed_match(
                     metadata_player.ability_upgrades
                 )
 
+
+def _populate_lane_advantages(match: ParsedMatch) -> None:
+    """Populate per-player lane gold/XP advantages against lane opponents."""
     # Tier-2: lane advantage vs opponents — paired by gold rank within the lane.
     # Players are sorted by lane_total_gold descending within each (team, lane_role)
     # group, then matched by rank: richest vs richest, poorest vs poorest.
     # This fairly pairs carries against carries and supports against supports
     # without requiring an explicit position field.
     # Jungle (4) and roaming (5) are excluded — no direct lane opponent.
-    _LANE_ROLES_WITH_OPPONENTS = {1, 2, 3}
-    for role in _LANE_ROLES_WITH_OPPONENTS:
+    lane_roles_with_opponents = {1, 2, 3}
+    for role in lane_roles_with_opponents:
         radiant = sorted(
             [pp for pp in match.players if pp.team == 2 and pp.lane_role == role],
             key=lambda p: p.lane_total_gold,
@@ -979,47 +1243,52 @@ def build_parsed_match(
             dire_opp.lane_gold_adv = dire_opp.lane_total_gold - rad.lane_total_gold
             dire_opp.lane_xp_adv = dire_opp.lane_total_xp - rad.lane_total_xp
 
+
+def _populate_player_resource_and_team_metadata(match: ParsedMatch, parser: ReplayParser) -> None:
+    """Extract player names, Steam IDs, and team metadata from entity state."""
+    if parser.entity_manager is None:
+        return
+
     # Extract player names and Steam IDs from CDOTA_PlayerResource entity.
     # Two field path variants: newer replays use m_vecPlayerData.{slot}.m_iszPlayerName,
     # older replays use m_iszPlayerNames.{slot}.
     # Reference: refs/manta/manta_test.go line ~703, refs/parser/Parse.java line ~602
-    _STEAM_ID_BASE = 76561197960265728
-    if parser.entity_manager is not None:
-        pr = parser.entity_manager.find_by_class_name("CDOTA_PlayerResource")
-        if pr is not None:
-            for player_id in range(10):
-                slot = f"{player_id:04d}"
-                name = pr.get_string(f"m_vecPlayerData.{slot}.m_iszPlayerName")
-                if not name:
-                    name = pr.get_string(f"m_iszPlayerNames.{slot}")
-                if name:
-                    match.players[player_id].player_name = name
-                steam_id = pr.get_uint64(f"m_vecPlayerData.{slot}.m_iPlayerSteamID")
-                if not steam_id:
-                    steam_id = pr.get_uint64(f"m_iPlayerSteamIDs.{slot}")
-                if isinstance(steam_id, int) and steam_id > 0:
-                    match.players[player_id].steam_id = steam_id
-                    if steam_id > _STEAM_ID_BASE:
-                        match.players[player_id].account_id = steam_id - _STEAM_ID_BASE
+    steam_id_base = 76561197960265728
+    pr = parser.entity_manager.find_by_class_name("CDOTA_PlayerResource")
+    if pr is not None:
+        for player_id in range(10):
+            slot = f"{player_id:04d}"
+            name = pr.get_string(f"m_vecPlayerData.{slot}.m_iszPlayerName")
+            if not name:
+                name = pr.get_string(f"m_iszPlayerNames.{slot}")
+            if name:
+                match.players[player_id].player_name = name
+            steam_id = pr.get_uint64(f"m_vecPlayerData.{slot}.m_iPlayerSteamID")
+            if not steam_id:
+                steam_id = pr.get_uint64(f"m_iPlayerSteamIDs.{slot}")
+            if isinstance(steam_id, int) and steam_id > 0:
+                match.players[player_id].steam_id = steam_id
+                if steam_id > steam_id_base:
+                    match.players[player_id].account_id = steam_id - steam_id_base
 
-        # Extract team names and tags from CDOTATeam entities.
-        # m_iTeamNum 2 = Radiant, 3 = Dire.
-        for ent in parser.entity_manager.entities:
-            if ent is None or not ent.active or ent.get_class_name() != "CDOTATeam":
-                continue
-            team_num = ent.get_int32("m_iTeamNum")
-            if team_num == 2:
-                match.radiant_team_id = ent.get_uint32("m_unTournamentTeamID") or 0
-                match.radiant_team_name = ent.get_string("m_szTeamname") or ""
-                match.radiant_team_tag = ent.get_string("m_szTag") or ""
-            elif team_num == 3:
-                match.dire_team_id = ent.get_uint32("m_unTournamentTeamID") or 0
-                match.dire_team_name = ent.get_string("m_szTeamname") or ""
-                match.dire_team_tag = ent.get_string("m_szTag") or ""
+    # Extract team names and tags from CDOTATeam entities.
+    # m_iTeamNum 2 = Radiant, 3 = Dire.
+    for ent in parser.entity_manager.entities:
+        if ent is None or not ent.active or ent.get_class_name() != "CDOTATeam":
+            continue
+        team_num = ent.get_int32("m_iTeamNum")
+        if team_num == 2:
+            match.radiant_team_id = ent.get_uint32("m_unTournamentTeamID") or 0
+            match.radiant_team_name = ent.get_string("m_szTeamname") or ""
+            match.radiant_team_tag = ent.get_string("m_szTag") or ""
+        elif team_num == 3:
+            match.dire_team_id = ent.get_uint32("m_unTournamentTeamID") or 0
+            match.dire_team_name = ent.get_string("m_szTeamname") or ""
+            match.dire_team_tag = ent.get_string("m_szTag") or ""
 
-    # Attach ward logs per player. obs_log/sen_log keep gem's native WardEvent
-    # records; the OpenDota-shaped expiry logs (obs_left_log/sen_left_log) and the
-    # nested placement coordinate maps (obs/sen) are derived alongside.
+
+def _attach_ward_logs(match: ParsedMatch, game_start_tick: int | None) -> None:
+    """Attach native and OpenDota-shaped ward logs to each player."""
     for ward in match.wards:
         if not (0 <= ward.player_id < 10):
             continue
@@ -1045,7 +1314,16 @@ def build_parsed_match(
     for pp in match.players:
         pp.observers_placed = len(pp.obs_log)
 
-    # OpenDota-shaped unified objectives timeline + building-status bitmasks.
+
+def _populate_objective_outputs(
+    match: ParsedMatch,
+    *,
+    obj_ext: ObjectivesExtractor,
+    combat_agg: _CombatAggregator,
+    first_blood_entry: CombatLogEntry | None,
+    game_start_tick: int | None,
+) -> None:
+    """Populate unified objectives, courier deaths, and building status bitmasks."""
     pid_to_team = {pp.player_id: pp.team for pp in match.players if pp.team}
     match.objectives = _build_objectives(
         obj_ext, combat_agg, first_blood_entry, pid_to_team, game_start_tick
@@ -1057,30 +1335,33 @@ def build_parsed_match(
     match.barracks_status_radiant = bitmasks["barracks_status_radiant"]
     match.barracks_status_dire = bitmasks["barracks_status_dire"]
 
-    # Compute radiant_gold_adv / radiant_xp_adv per game-minute boundary.
-    # Both curves come from monotonically-increasing total-earned fields
-    # (m_iTotalEarnedGold / m_iTotalEarnedXP), never spendable gold or
-    # combat-log XP. OpenDota builds these the same way: its interval entries
-    # read the team-data entity, and xp_t/gold_t are the minute-boundary
-    # downsamples of those entries — combat-log XP only feeds the xp_reasons
-    # histogram, not the advantage curves.
-    # Reference: refs/parser/src/main/java/opendota/Parse.java interval block
-    #   (m_vecDataTeam.%i.m_iTotalEarnedGold/XP) and CreateParsedDataBlob.java
-    #   addIntervalData("xp_t"/"gold_t", ...).
+
+def _populate_advantage_curves(match: ParsedMatch, interval_ext: IntervalExtractor | None) -> None:
+    """Populate Radiant gold/XP advantage curves from interval or minute data."""
     interval_adv = _radiant_adv_from_intervals(interval_ext)
     if interval_adv is not None:
         # Authoritative path: OpenDota-style interval snapshots are complete.
         gold_adv, xp_adv = interval_adv
         match.radiant_gold_adv = gold_adv
         match.radiant_xp_adv = xp_adv
-    else:
-        # Fallback path: no complete interval batches were observed, so derive
-        # the curves from the dense player minute series' total-earned arrays.
-        minute_adv = _radiant_adv_from_minute_series(match.players)
-        if minute_adv is not None:
-            match.radiant_gold_adv, match.radiant_xp_adv = minute_adv
+        return
 
-    # Detect teamfights (Phase 9)
+    # Fallback path: no complete interval batches were observed, so derive
+    # the curves from the dense player minute series' total-earned arrays.
+    minute_adv = _radiant_adv_from_minute_series(match.players)
+    if minute_adv is not None:
+        match.radiant_gold_adv, match.radiant_xp_adv = minute_adv
+
+
+def _populate_teamfights(
+    match: ParsedMatch,
+    *,
+    all_entries: list[CombatLogEntry],
+    player_ext: PlayerExtractor,
+) -> None:
+    """Detect native and OpenDota-compatible teamfight windows."""
+    from gem.extractors.teamfights import detect_opendota_teamfights, detect_teamfights
+
     hero_to_slot = {pp.hero_name: pp.player_id for pp in match.players if pp.hero_name}
     slot_to_team = {pp.player_id: pp.team for pp in match.players if pp.team}
     player_snaps: dict[int, Any] = {
@@ -1100,24 +1381,29 @@ def build_parsed_match(
         duration_s=match.duration or None,
     )
 
-    # teamfight_participation: read the authoritative game-computed value from
-    # CDOTA_PlayerResource.m_flTeamFightParticipation — the exact field OpenDota
-    # reads (Parse.java), not a teamfight-window reconstruction (which OpenDota
-    # itself does not do, and which can't match the engine's metric).
-    if interval_ext is not None:
-        for player_id in range(10):
-            scalars = interval_ext.player_resource_scalars(player_id)
-            match.players[player_id].teamfight_participation = round(
-                scalars["teamfight_participation"], 7
-            )
 
-    # Team kill scores = sum of each side's player kills (OpenDota parity).
+def _populate_teamfight_participation(
+    match: ParsedMatch,
+    interval_ext: IntervalExtractor | None,
+) -> None:
+    """Populate authoritative teamfight participation scalars from PlayerResource."""
+    if interval_ext is None:
+        return
+    for player_id in range(10):
+        scalars = interval_ext.player_resource_scalars(player_id)
+        match.players[player_id].teamfight_participation = round(
+            scalars["teamfight_participation"], 7
+        )
+
+
+def _populate_team_scores(match: ParsedMatch) -> None:
+    """Populate final Radiant/Dire kill scores from per-player kills."""
     match.radiant_score = sum(pp.kills for pp in match.players if pp.team == 2)
     match.dire_score = sum(pp.kills for pp in match.players if pp.team == 3)
 
-    # Build per-player ability level snapshots for ability_level_at_tick().
-    # Collect (tick, ability_levels) pairs from minute-boundary snapshots,
-    # sorted by tick, and attach as _ability_snapshots on each ParsedPlayer.
+
+def _populate_ability_snapshots(match: ParsedMatch, player_ext: PlayerExtractor) -> None:
+    """Attach per-player ability level snapshots for ability_level_at_tick()."""
     for player_id in range(10):
         snaps = sorted(
             (s for s in player_ext.snapshots if s.player_id == player_id and s.ability_levels),
@@ -1128,4 +1414,63 @@ def build_parsed_match(
         ]
         match.players[player_id]._ability_snapshots = ability_snapshots
 
-    return match
+
+def _resolve_radiant_win(
+    parser: ReplayParser,
+    all_entries: list[CombatLogEntry],
+) -> bool | None:
+    """Resolve match winner from parser metadata or ancient death fallback."""
+    # radiant_win resolution — three tiers in priority order:
+    #   1. CDemoFileInfo.game_winner (set during parse, empty for HLTV replays)
+    #   2. m_pGameRules.m_nGameWinner entity field (set post-parse in parser.py)
+    #   3. Ancient DEATH in combat log — no API needed
+    radiant_win = parser.radiant_win
+    if radiant_win is None:
+        radiant_win = _radiant_win_from_ancient(all_entries)
+    return radiant_win
+
+
+def _new_parsed_match(
+    *,
+    parser: ReplayParser,
+    obj_ext: ObjectivesExtractor,
+    ward_ext: WardsExtractor,
+    courier_ext: CourierExtractor,
+    draft_ext: DraftExtractor,
+    all_entries: list[CombatLogEntry],
+    chat_entries: list[ChatEntry],
+    radiant_win: bool | None,
+    smoke_events: list[SmokeEvent] | None,
+    vision_modifier_events: list[VisionModifierEvent] | None,
+    neutral_item_finds: list[NeutralItemFoundEvent] | None,
+) -> ParsedMatch:
+    """Create the initial match object from extractor-owned collections."""
+    parser_error = getattr(parser, "parse_error", None)
+    parse_error_text = str(parser_error) if isinstance(parser_error, Exception) else None
+
+    return ParsedMatch(
+        match_id=parser.match_id,
+        game_mode=parser.game_mode,
+        leagueid=parser.leagueid,
+        radiant_win=radiant_win,
+        towers=obj_ext.tower_kills,
+        barracks=obj_ext.barracks_kills,
+        roshans=obj_ext.roshan_kills,
+        aegis_events=obj_ext.aegis_events,
+        tormentors=obj_ext.tormentor_kills,
+        shrines=obj_ext.shrine_kills,
+        banner_plants=obj_ext.banner_plants,
+        wards=ward_ext.ward_events,
+        combat_log=all_entries,
+        chat=chat_entries,
+        courier_snapshots=courier_ext.snapshots,
+        neutral_item_finds=neutral_item_finds or [],
+        smoke_events=smoke_events or [],
+        vision_modifiers=vision_modifier_events or [],
+        draft=draft_ext.draft_events,
+        game_start_tick=parser.game_start_tick,
+        game_end_tick=parser.tick,
+        duration=getattr(parser, "duration_s", None) or 0,
+        parse_error=parse_error_text,
+        truncated_at_tick=getattr(parser, "truncated_at_tick", None),
+    )
