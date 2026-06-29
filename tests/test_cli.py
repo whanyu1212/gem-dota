@@ -208,7 +208,7 @@ class TestCli:
 
     def test_batch_parquet_reports_failures_from_single_parse(self, monkeypatch, tmp_path, capsys):
         import gem
-        import gem.replays.batch as batch
+        import gem.cli as cli
 
         out_dir = tmp_path / "out"
         good = tmp_path / "good.dem"
@@ -220,18 +220,26 @@ class TestCli:
         ]
         parse_calls = 0
         parquet_dirs: list[Path] = []
+        captured_summary = []
+        original_summary = cli._print_batch_summary
 
-        def _fake_parse_many(source, **kwargs):
+        def _fake_iter_batch_parse_results(source, **kwargs):
             nonlocal parse_calls
             parse_calls += 1
             assert source == [good, bad]
             assert kwargs["timeout"] == 2.5
-            return results
+            yield results[0]
+            assert parquet_dirs == [out_dir / "good"]
+            yield results[1]
 
         def _fake_to_parquet(parsed_match, output_dir):
             assert parsed_match is match
             parquet_dirs.append(Path(output_dir))
             return [Path(output_dir) / "players.parquet"]
+
+        def _capturing_summary(results, console, *, quiet=False):
+            captured_summary.extend(results)
+            original_summary(results, console, quiet=quiet)
 
         monkeypatch.setattr(
             "sys.argv",
@@ -249,7 +257,8 @@ class TestCli:
                 "--no-banner",
             ],
         )
-        monkeypatch.setattr(batch, "parse_many", _fake_parse_many)
+        monkeypatch.setattr(cli, "_iter_batch_parse_results", _fake_iter_batch_parse_results)
+        monkeypatch.setattr(cli, "_print_batch_summary", _capturing_summary)
         monkeypatch.setattr(gem, "to_parquet", _fake_to_parquet)
 
         main()
@@ -257,6 +266,7 @@ class TestCli:
         out = capsys.readouterr().out
         assert parse_calls == 1
         assert parquet_dirs == [out_dir / "good"]
+        assert all(not hasattr(result, "match") for result in captured_summary)
         assert "Wrote 1 parquet file(s)" in out
         assert "Batch summary" in out
         assert "1 succeeded" in out
@@ -265,7 +275,7 @@ class TestCli:
         assert "corrupt replay" in out
 
     def test_batch_strict_exits_nonzero_on_failure(self, monkeypatch, tmp_path):
-        import gem.replays.batch as batch
+        import gem.cli as cli
 
         out_dir = tmp_path / "out"
         bad = tmp_path / "bad.dem"
@@ -285,7 +295,7 @@ class TestCli:
                 "--no-banner",
             ],
         )
-        monkeypatch.setattr(batch, "parse_many", lambda *args, **kwargs: results)
+        monkeypatch.setattr(cli, "_iter_batch_parse_results", lambda *args, **kwargs: iter(results))
 
         with pytest.raises(SystemExit) as exc:
             main()

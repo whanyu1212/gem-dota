@@ -20,6 +20,8 @@ from __future__ import annotations
 import argparse
 import sys
 import time
+from collections.abc import Iterator, Sequence
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -35,6 +37,7 @@ from gem import __version__, parse, parse_to_json, parse_to_parquet
 from gem.results.models import ParsedMatch
 
 if TYPE_CHECKING:
+    from gem.replays.batch import ParseResult
     from gem.reports.asset_cache import IconDownloadResult
 
 # ---------------------------------------------------------------------------
@@ -417,8 +420,53 @@ def _print_summary(
 # ---------------------------------------------------------------------------
 
 
+@dataclass(frozen=True)
+class _BatchResultSummary:
+    """Lightweight parse-result summary that does not retain ParsedMatch data."""
+
+    path: Path
+    error: Exception | None
+
+    @property
+    def ok(self) -> bool:
+        return self.error is None
+
+    @property
+    def error_type(self) -> str:
+        return type(self.error).__name__ if self.error is not None else ""
+
+    @property
+    def error_message(self) -> str:
+        return str(self.error) if self.error is not None else ""
+
+
+def _summarize_batch_result(result: ParseResult) -> _BatchResultSummary:
+    """Copy only lightweight fields needed for batch CLI summaries."""
+    return _BatchResultSummary(path=result.path, error=result.error)
+
+
+def _iter_batch_parse_results(
+    source: list[Path] | Path,
+    *,
+    workers: int | None,
+    recursive: bool,
+    progress: bool,
+    timeout: float | None,
+) -> Iterator[ParseResult]:
+    """Stream parse results for CLI batch commands."""
+    from gem.replays.batch import _collect_paths, _iter_parse_results
+
+    paths = _collect_paths(source, recursive=recursive)
+    yield from _iter_parse_results(
+        paths,
+        workers=workers,
+        progress=progress,
+        timeout=timeout,
+    )
+
+
 def _print_batch_summary(
-    results: list,
+    results: Sequence[_BatchResultSummary],
     console: Console,
     *,
     quiet: bool = False,
@@ -509,7 +557,6 @@ def _run_parse(args: argparse.Namespace, console: Console) -> None:
 
 def _run_batch(args: argparse.Namespace, console: Console) -> None:
     from gem import to_parquet
-    from gem.replays.batch import ParseResult, parse_many
     from gem.results.dataframes import build_dataframes
 
     # source is a list (nargs="+") — unwrap to single path if it's a directory
@@ -523,23 +570,22 @@ def _run_batch(args: argparse.Namespace, console: Console) -> None:
         console=console,
     )
 
-    results: list[ParseResult] = []
+    results: list[_BatchResultSummary] = []
     try:
         if args.format == "parquet":
             tracker.start("batch_parquet")
-            results = parse_many(
+            written = []
+            for result in _iter_batch_parse_results(
                 source,
                 workers=args.workers,
                 recursive=args.recursive,
                 progress=not args.quiet,
                 timeout=args.timeout,
-            )
-            written = []
-            for result in results:
-                if not result.ok or result.match is None:
-                    continue
-                subdir = args.output / result.path.stem
-                written.extend(to_parquet(result.match, subdir))
+            ):
+                if result.ok and result.match is not None:
+                    subdir = args.output / result.path.stem
+                    written.extend(to_parquet(result.match, subdir))
+                results.append(_summarize_batch_result(result))
             tracker.end("batch_parquet")
 
             if not args.quiet:
@@ -550,24 +596,23 @@ def _run_batch(args: argparse.Namespace, console: Console) -> None:
 
         else:  # dataframe
             tracker.start("batch_dataframe")
-            results = parse_many(
+            import pandas as pd
+
+            per_table: dict[str, list[pd.DataFrame]] = {}
+            for result in _iter_batch_parse_results(
                 source,
                 workers=args.workers,
                 recursive=args.recursive,
                 progress=not args.quiet,
                 timeout=args.timeout,
-            )
-            import pandas as pd
-
-            per_table: dict[str, list[pd.DataFrame]] = {}
-            for result in results:
-                if not result.ok or result.match is None:
-                    continue
-                dfs = build_dataframes(result.match)
-                for key, df in dfs.items():
-                    df = df.copy()
-                    df.insert(0, "match_path", str(result.path))
-                    per_table.setdefault(key, []).append(df)
+            ):
+                if result.ok and result.match is not None:
+                    dfs = build_dataframes(result.match)
+                    for key, df in dfs.items():
+                        df = df.copy()
+                        df.insert(0, "match_path", str(result.path))
+                        per_table.setdefault(key, []).append(df)
+                results.append(_summarize_batch_result(result))
             tracker.end("batch_dataframe")
 
             tracker.start("write_dataframe")
