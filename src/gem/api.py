@@ -90,6 +90,16 @@ from gem.analysis import (
 )
 from gem.catalog import hero_npc_name
 from gem.combat.log import CombatLogEntry, CombatLogType
+from gem.errors import (
+    GemError,
+    ReplayDecompressionError,
+    ReplayDownloadError,
+    ReplayError,
+    ReplayFetchError,
+    ReplayParseError,
+    ReplayTimeoutError,
+    ReplayUrlError,
+)
 from gem.extractors.courier import CourierSnapshot
 from gem.extractors.draft import DraftEvent, resolve_pick_team
 from gem.extractors.objectives import (
@@ -361,6 +371,14 @@ __all__ = [
     "parse_to_dataframe",
     "to_parquet",
     "parse_to_parquet",
+    "GemError",
+    "ReplayError",
+    "ReplayParseError",
+    "ReplayTimeoutError",
+    "ReplayDownloadError",
+    "ReplayFetchError",
+    "ReplayUrlError",
+    "ReplayDecompressionError",
     "ParseResult",
     "parse_many",
     "parse_many_to_dataframe",

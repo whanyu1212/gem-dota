@@ -16,7 +16,6 @@ from __future__ import annotations
 import bz2
 import json
 import os
-import shutil
 import ssl
 import stat
 import tempfile
@@ -25,6 +24,8 @@ import urllib.request
 from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING
+
+from gem.errors import ReplayDecompressionError, ReplayFetchError, ReplayUrlError
 
 if TYPE_CHECKING:
     from gem.results.models import ParsedMatch
@@ -66,7 +67,7 @@ def _normalize_replay_url(replay_url: str) -> str:
             ("https", parsed.netloc, parsed.path, parsed.query, parsed.fragment)
         )
 
-    raise ValueError(f"Replay download URL must use HTTPS: {replay_url}")
+    raise ReplayUrlError(f"Replay download URL must use HTTPS: {replay_url}")
 
 
 def fetch_replay_url(match_id: int) -> str:
@@ -79,7 +80,8 @@ def fetch_replay_url(match_id: int) -> str:
         The ``replay_url`` string from the OpenDota API response.
 
     Raises:
-        ValueError: If OpenDota returns no replay URL or a non-JSON response.
+        ReplayFetchError: If OpenDota returns no replay URL or a malformed response.
+        ReplayUrlError: If OpenDota returns a replay URL that cannot be normalized to HTTPS.
         urllib.error.URLError: If the API request fails.
     """
     url = f"{OPENDOTA_API}/{match_id}"
@@ -89,19 +91,19 @@ def fetch_replay_url(match_id: int) -> str:
     try:
         data = json.loads(raw)
     except json.JSONDecodeError as exc:
-        raise ValueError(
+        raise ReplayFetchError(
             f"OpenDota returned a non-JSON response for match {match_id} ({url})"
         ) from exc
 
     replay_url = data.get("replay_url")
     if not replay_url:
-        raise ValueError(
+        raise ReplayFetchError(
             f"OpenDota returned no replay_url for match {match_id}. "
             "The match may not have been ingested yet. "
             f"Force a parse with: curl -X POST {OPENDOTA_API.replace('/matches', '')}/request/{match_id}"
         )
     if not isinstance(replay_url, str):
-        raise ValueError(f"OpenDota returned a non-string replay_url for match {match_id}")
+        raise ReplayFetchError(f"OpenDota returned a non-string replay_url for match {match_id}")
     return _normalize_replay_url(replay_url)
 
 
@@ -116,6 +118,11 @@ def download_and_decompress(match_id: int, replay_url: str, out_dir: Path | str 
 
     Returns:
         Path to the decompressed ``.dem`` file.
+
+    Raises:
+        ReplayUrlError: If *replay_url* is not HTTPS and cannot be upgraded safely.
+        ReplayDecompressionError: If the downloaded payload is not a valid bzip2 stream.
+        urllib.error.URLError: If the download request fails.
     """
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -137,10 +144,19 @@ def download_and_decompress(match_id: int, replay_url: str, out_dir: Path | str 
                 suffix=".tmp",
                 delete=False,
             ) as tmp,
-            bz2.BZ2File(resp) as decompressed,
         ):
             temp_path = Path(tmp.name)
-            shutil.copyfileobj(decompressed, tmp, length=_DOWNLOAD_CHUNK_SIZE)
+            with bz2.BZ2File(resp) as decompressed:
+                while True:
+                    try:
+                        chunk = decompressed.read(_DOWNLOAD_CHUNK_SIZE)
+                    except (EOFError, OSError) as exc:
+                        raise ReplayDecompressionError(
+                            f"Could not decompress replay archive for match {match_id}"
+                        ) from exc
+                    if not chunk:
+                        break
+                    tmp.write(chunk)
 
         temp_path.chmod(file_mode)
         temp_path.replace(dem_path)
@@ -248,7 +264,7 @@ def fetch_opendota_match(match_id: int) -> dict:
     try:
         return json.loads(raw)
     except json.JSONDecodeError as exc:
-        raise ValueError(
+        raise ReplayFetchError(
             f"OpenDota returned a non-JSON response for match {match_id} ({url})"
         ) from exc
 

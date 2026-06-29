@@ -3,6 +3,21 @@
 High-level helpers exposed from `import gem`. The implementation lives in
 `gem.api`; `gem.__init__` re-exports this supported package surface.
 
+## Replay error types
+
+The public API exports typed exceptions for replay workflows:
+
+- `GemError` / `ReplayError` — gem-specific base classes.
+- `ReplayParseError` — parser/batch parse failures surfaced by gem helpers.
+- `ReplayTimeoutError` — per-replay batch timeout; also a `TimeoutError`.
+- `ReplayDownloadError` — replay metadata/download/decompression base class.
+- `ReplayFetchError` and `ReplayUrlError` — OpenDota metadata or URL validation
+  failures; both remain `ValueError` subclasses for compatibility.
+- `ReplayDecompressionError` — invalid `.dem.bz2` download payload; also an
+  `OSError` through `ReplayDownloadError`.
+
+Replay-specific classes are also available from `gem.replays`.
+
 ---
 
 ## Generated API

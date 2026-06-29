@@ -23,6 +23,9 @@ python -m gem parse my_replay.dem --format parquet --output ./out
 # Parse a folder in parallel
 python -m gem batch replays/ --format parquet --output ./out --workers 4
 
+# Fail CI if any replay fails or times out
+python -m gem batch replays/ --format parquet --output ./out --timeout 120 --strict
+
 # Concatenate all replays into one set of DataFrames
 python -m gem batch replays/ --format dataframe --output ./out
 
@@ -112,6 +115,8 @@ python -m gem batch <source> [options]
 | `--output` | directory | - | Required root output directory |
 | `--workers` | integer | `os.cpu_count()` | Number of parallel worker processes |
 | `--recursive` | flag | off | Scan source directories recursively |
+| `--timeout` | seconds | off | Per-replay parse timeout; timed-out replays are reported as failures |
+| `--strict` | flag | off | Exit with code `1` if any replay fails |
 | `--progress` | flag | off | Show a Rich progress bar |
 | `--timings` | flag | off | Print timing breakdown after all replays |
 | `--quiet`, `-q` | flag | off | Suppress all non-essential output |
@@ -149,9 +154,9 @@ python -m gem batch replays/ --format dataframe --output ./out
 ```
 
 ::: warning Exit codes
-The `batch` command exits with code `0` even when some replays fail. It prints a summary
-table of failed replays to stderr, so check the output before treating the batch as
-complete.
+By default, the `batch` command exits with code `0` even when some replays fail, for
+backward compatibility. It prints a batch summary plus a typed table of failed replays;
+pass `--strict` to exit with code `1` whenever any replay fails or times out.
 :::
 
 ## `reports assets` - report asset cache

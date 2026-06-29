@@ -11,22 +11,26 @@ Provides three public functions:
   subdirectory under ``output_dir``, one ``.parquet`` file per table.
   Replays are processed and discarded one at a time to keep memory bounded.
 
-All three functions use ``ProcessPoolExecutor`` for true parallelism (CPU-bound
-work) and display a Rich progress bar by default. Optional timeouts are enforced
-inside each worker process, per replay.
+All three functions use worker processes for true parallelism (CPU-bound work)
+and display a Rich progress bar by default. Optional timeouts are enforced per
+replay with portable worker termination.
 """
 
 from __future__ import annotations
 
+import multiprocessing as mp
 import os
-import signal
+import queue
+import time
+from collections import deque
 from collections.abc import Iterator, Sequence
 from concurrent.futures import Future, ProcessPoolExecutor, as_completed
-from contextlib import contextmanager
+from contextlib import suppress
 from dataclasses import dataclass
 from pathlib import Path
-from types import FrameType
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+
+from gem.errors import ReplayParseError, ReplayTimeoutError
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -57,6 +61,16 @@ class ParseResult:
     def ok(self) -> bool:
         """Return ``True`` when parsing succeeded."""
         return self.error is None
+
+    @property
+    def error_type(self) -> str:
+        """Return a stable display type for the parse error, or ``""`` on success."""
+        return type(self.error).__name__ if self.error is not None else ""
+
+    @property
+    def error_message(self) -> str:
+        """Return a display message for the parse error, or ``""`` on success."""
+        return str(self.error) if self.error is not None else ""
 
 
 # ---------------------------------------------------------------------------
@@ -95,48 +109,11 @@ def _collect_paths(
     return [Path(p) for p in source]
 
 
-def _supports_worker_timeout() -> bool:
-    return (
-        hasattr(signal, "SIGALRM")
-        and hasattr(signal, "ITIMER_REAL")
-        and hasattr(signal, "setitimer")
-    )
-
-
 def _validate_timeout(timeout: float | None) -> None:
     if timeout is None:
         return
     if timeout <= 0:
         raise ValueError("timeout must be a positive number of seconds")
-    if not _supports_worker_timeout():
-        raise RuntimeError(
-            "parse_many(timeout=...) requires signal.SIGALRM/setitimer support on this platform"
-        )
-
-
-@contextmanager
-def _replay_timeout(path: Path, timeout: float | None) -> Iterator[None]:
-    """Raise ``TimeoutError`` inside a worker if one replay exceeds *timeout*."""
-    if timeout is None:
-        yield
-        return
-
-    if not _supports_worker_timeout():
-        raise RuntimeError(
-            "parse_many(timeout=...) requires signal.SIGALRM/setitimer support on this platform"
-        )
-
-    def _handle_timeout(signum: int, frame: FrameType | None) -> None:
-        raise TimeoutError(f"Parsing {path} timed out after {timeout:g} seconds")
-
-    previous_handler = signal.getsignal(signal.SIGALRM)
-    signal.signal(signal.SIGALRM, _handle_timeout)
-    signal.setitimer(signal.ITIMER_REAL, timeout)
-    try:
-        yield
-    finally:
-        signal.setitimer(signal.ITIMER_REAL, 0)
-        signal.signal(signal.SIGALRM, previous_handler)
 
 
 def _parse_one(path: Path) -> tuple[Path, ParsedMatch | None, Exception | None]:
@@ -156,16 +133,127 @@ def _parse_one(path: Path) -> tuple[Path, ParsedMatch | None, Exception | None]:
         return path, None, exc
 
 
-def _parse_one_with_timeout(
-    path: Path,
-    timeout: float | None,
-) -> tuple[Path, ParsedMatch | None, Exception | None]:
-    """Parse one replay with an optional worker-local timeout."""
+@dataclass
+class _ActiveParseWorker:
+    """One running replay parse process used for cross-platform timeouts."""
+
+    path: Path
+    process: mp.Process
+    queue: Any
+    started_at: float
+
+
+def _parse_one_process(path: Path, result_queue: Any) -> None:
+    """Run one parse in a child process and send the result through a queue."""
+    result_queue.put(_parse_one(path))
+
+
+def _timeout_error(path: Path, timeout: float) -> ReplayTimeoutError:
+    """Build the public timeout error for one replay."""
+    return ReplayTimeoutError(f"Parsing {path} timed out after {timeout:g} seconds")
+
+
+def _stop_process(process: mp.Process) -> None:
+    """Terminate a timed-out worker process and wait briefly for exit."""
+    if process.is_alive():
+        process.terminate()
+        process.join(timeout=1)
+    if process.is_alive() and hasattr(process, "kill"):
+        process.kill()
+        process.join(timeout=1)
+
+
+def _close_queue(result_queue: Any) -> None:
+    """Close a multiprocessing queue without surfacing cleanup errors."""
+    with suppress(Exception):
+        result_queue.close()
+    with suppress(Exception):
+        result_queue.join_thread()
+
+
+def _result_from_worker(worker: _ActiveParseWorker) -> ParseResult | None:
+    """Return a completed worker result, or ``None`` if it is still running."""
     try:
-        with _replay_timeout(path, timeout):
-            return _parse_one(path)
-    except Exception as exc:  # noqa: BLE001
-        return path, None, exc
+        result_path, match, error = worker.queue.get_nowait()
+    except queue.Empty:
+        if worker.process.is_alive():
+            return None
+        worker.process.join()
+        try:
+            result_path, match, error = worker.queue.get_nowait()
+        except queue.Empty:
+            error = ReplayParseError(
+                f"Worker exited without returning a result (exit code {worker.process.exitcode})"
+            )
+            return ParseResult(path=worker.path, match=None, error=error)
+    else:
+        worker.process.join()
+
+    return ParseResult(path=result_path, match=match, error=error)
+
+
+def _timeout_context() -> Any:
+    """Return a multiprocessing context suitable for timeout-managed workers."""
+    if "fork" in mp.get_all_start_methods():
+        return mp.get_context("fork")
+    return mp.get_context()
+
+
+def _iter_parse_results_with_process_timeout(
+    paths: Sequence[Path],
+    *,
+    workers: int,
+    timeout: float,
+) -> Iterator[ParseResult]:
+    """Yield parse results using one process per replay so timeouts are portable."""
+    ctx = _timeout_context()
+    pending = deque(paths)
+    active: list[_ActiveParseWorker] = []
+
+    def _submit_next() -> None:
+        if not pending:
+            return
+        path = pending.popleft()
+        result_queue = ctx.Queue(maxsize=1)
+        process = ctx.Process(target=_parse_one_process, args=(path, result_queue))
+        process.start()
+        active.append(
+            _ActiveParseWorker(
+                path=path,
+                process=process,
+                queue=result_queue,
+                started_at=time.monotonic(),
+            )
+        )
+
+    for _ in range(workers):
+        _submit_next()
+
+    while active:
+        yielded = False
+        now = time.monotonic()
+        for worker in list(active):
+            result = _result_from_worker(worker)
+            if result is not None:
+                active.remove(worker)
+                _close_queue(worker.queue)
+                _submit_next()
+                yielded = True
+                yield result
+                continue
+
+            if now - worker.started_at >= timeout:
+                _stop_process(worker.process)
+                active.remove(worker)
+                _close_queue(worker.queue)
+                _submit_next()
+                yielded = True
+                yield ParseResult(
+                    path=worker.path, match=None, error=_timeout_error(worker.path, timeout)
+                )
+
+        if not yielded and active:
+            time.sleep(0.05)
 
 
 def _iter_parse_results(
@@ -212,7 +300,7 @@ def _iter_parse_results(
                 path = next(path_iter)
             except StopIteration:
                 return
-            future_to_path[executor.submit(_parse_one_with_timeout, path, timeout)] = path
+            future_to_path[executor.submit(_parse_one, path)] = path
 
         for _ in range(n_workers):
             _submit_next()
@@ -230,6 +318,17 @@ def _iter_parse_results(
             yield ParseResult(path=result_path, match=match, error=error)
 
     def _execute() -> Iterator[ParseResult]:
+        if timeout is not None:
+            for result in _iter_parse_results_with_process_timeout(
+                paths,
+                workers=n_workers,
+                timeout=timeout,
+            ):
+                if rich_progress is not None and task_id is not None:
+                    rich_progress.advance(task_id)
+                yield result
+            return
+
         with ProcessPoolExecutor(max_workers=n_workers) as pool:
             yield from _run(pool)
 

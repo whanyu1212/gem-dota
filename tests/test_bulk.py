@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import concurrent.futures
-import signal
+import multiprocessing as mp
 import time
 from pathlib import Path
 from unittest.mock import patch
@@ -11,6 +11,7 @@ from unittest.mock import patch
 import pytest
 
 import gem
+from gem.errors import ReplayTimeoutError
 from gem.replays.batch import ParseResult, _collect_paths, parse_many
 from gem.results.models import ParsedMatch
 
@@ -57,11 +58,6 @@ def _fail(path: Path) -> tuple[Path, ParsedMatch | None, Exception | None]:
 
 def _mixed(path: Path) -> tuple[Path, ParsedMatch | None, Exception | None]:
     return _fail(path) if path.name == "bad.dem" else _ok(path)
-
-
-def _slow(path: Path) -> tuple[Path, ParsedMatch | None, Exception | None]:
-    time.sleep(1)
-    return _ok(path)
 
 
 # ---------------------------------------------------------------------------
@@ -205,21 +201,52 @@ class TestParseMany:
         assert batch_sizes[0] == 2
         assert max(batch_sizes) == 2
 
-    @pytest.mark.skipif(not hasattr(signal, "SIGALRM"), reason="requires SIGALRM")
     def test_timeout_is_per_replay_error(self, tmp_path):
         p = tmp_path / "slow.dem"
         p.touch()
 
-        with (
-            patch("gem.replays.batch.ProcessPoolExecutor", _SyncExecutor),
-            patch("gem.replays.batch._parse_one", side_effect=_slow),
+        def _fake_timeout_results(paths, *, workers, timeout):
+            assert list(paths) == [p]
+            assert workers == 1
+            assert timeout == 0.05
+            yield ParseResult(
+                path=p,
+                match=None,
+                error=ReplayTimeoutError("Parsing slow.dem timed out"),
+            )
+
+        with patch(
+            "gem.replays.batch._iter_parse_results_with_process_timeout",
+            side_effect=_fake_timeout_results,
         ):
             results = parse_many([p], progress=False, timeout=0.05)
 
         assert len(results) == 1
         assert not results[0].ok
+        assert isinstance(results[0].error, ReplayTimeoutError)
         assert isinstance(results[0].error, TimeoutError)
-        assert "timed out" in str(results[0].error)
+        assert results[0].error_type == "ReplayTimeoutError"
+        assert "timed out" in results[0].error_message
+
+    @pytest.mark.skipif(
+        "fork" not in mp.get_all_start_methods(), reason="requires fork start method"
+    )
+    def test_timeout_terminates_worker_process(self, tmp_path):
+        p = tmp_path / "slow.dem"
+        p.touch()
+
+        def _sleeping_parse(path: Path) -> tuple[Path, ParsedMatch | None, Exception | None]:
+            time.sleep(30)
+            return _ok(path)
+
+        start = time.monotonic()
+        with patch("gem.replays.batch._parse_one", side_effect=_sleeping_parse):
+            results = parse_many([p], progress=False, timeout=0.05)
+
+        assert time.monotonic() - start < 2
+        assert len(results) == 1
+        assert not results[0].ok
+        assert isinstance(results[0].error, ReplayTimeoutError)
 
     def test_timeout_must_be_positive(self, tmp_path):
         p = tmp_path / "a.dem"
@@ -228,24 +255,29 @@ class TestParseMany:
         with pytest.raises(ValueError, match="timeout must be a positive"):
             parse_many([p], progress=False, timeout=0)
 
-    def test_timeout_unsupported_platform_raises_once_before_workers(self, tmp_path):
+    def test_timeout_does_not_require_sigalrm(self, tmp_path):
         p = tmp_path / "a.dem"
         p.touch()
 
-        class _UnexpectedExecutor:
-            def __init__(self, **kwargs):
-                raise AssertionError("executor should not be created")
+        with patch(
+            "gem.replays.batch._iter_parse_results_with_process_timeout",
+            return_value=iter([ParseResult(path=p, match=ParsedMatch(), error=None)]),
+        ) as worker_timeout:
+            results = parse_many([p], progress=False, timeout=1)
 
-        with (
-            patch("gem.replays.batch._supports_worker_timeout", return_value=False),
-            patch("gem.replays.batch.ProcessPoolExecutor", _UnexpectedExecutor),
-            pytest.raises(RuntimeError, match="requires signal.SIGALRM/setitimer"),
-        ):
-            parse_many([p], progress=False, timeout=1)
+        assert results[0].ok
+        worker_timeout.assert_called_once()
 
     def test_parse_result_ok_property(self):
         assert ParseResult(path=Path("a.dem"), match=ParsedMatch(), error=None).ok is True
         assert ParseResult(path=Path("b.dem"), match=None, error=ValueError()).ok is False
+
+    def test_parse_result_error_display_properties(self):
+        result = ParseResult(path=Path("bad.dem"), match=None, error=ValueError("bad replay"))
+
+        assert result.error_type == "ValueError"
+        assert result.error_message == "bad replay"
+        assert ParseResult(path=Path("ok.dem"), match=ParsedMatch(), error=None).error_type == ""
 
 
 # ---------------------------------------------------------------------------

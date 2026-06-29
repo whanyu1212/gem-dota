@@ -1,7 +1,7 @@
 # Batch Processing
 
-Parallel multi-replay parsing via `ProcessPoolExecutor`.
-Each worker process parses one replay independently, so performance scales with CPU cores.
+Parallel multi-replay parsing with bounded worker processes.
+Each worker parses one replay independently, so performance scales with CPU cores.
 
 ::: info Memory
 `parse_many_to_parquet` streams completed parses directly to parquet and discards
@@ -11,11 +11,11 @@ each match immediately, keeping memory usage flat regardless of batch size.
 :::
 
 ::: info Timeouts
-`timeout=` is enforced per replay inside the worker after that replay starts
-parsing. A timed-out replay is returned as `ParseResult(error=TimeoutError(...))`;
-it does not raise a batch-level timeout or hide other completed results. On
-platforms without `signal.SIGALRM`/`setitimer` support, passing `timeout=` raises
-once before workers start.
+`timeout=` is enforced per replay after that replay starts parsing. A timed-out
+replay is returned as `ParseResult(error=ReplayTimeoutError(...))`, which remains
+a `TimeoutError` subclass for compatibility; it does not raise a batch-level
+timeout or hide other completed results. Timeout enforcement terminates only the
+overdue replay worker and works on platforms without `signal.SIGALRM`.
 :::
 
 ::: tip Parquet dependency
@@ -106,3 +106,15 @@ Signature: `def ParseResult.ok(self) -> bool`
 Return ``True`` when parsing succeeded.
 
 Source: [src/gem/replays/batch.py:57](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L57)
+
+##### `error_type`
+
+Signature: `def ParseResult.error_type(self) -> str`
+
+Return a display type for the parse error, or ``""`` on success.
+
+##### `error_message`
+
+Signature: `def ParseResult.error_message(self) -> str`
+
+Return a display message for the parse error, or ``""`` on success.
