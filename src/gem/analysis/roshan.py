@@ -9,7 +9,7 @@ fights, objectives, map expansion, or a game-closing sequence?
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from gem.analysis._shared import (
     _TEAM_DIRE,
@@ -468,6 +468,577 @@ def _conversion_score(
     return max(0, min(100, raw))
 
 
+@dataclass
+class _RoshWindowBounds:
+    """Tick boundaries for one Roshan conversion window."""
+
+    next_rosh_tick: int | None
+    immediate_end_tick: int
+    extended_end_tick: int
+
+
+@dataclass
+class _AegisState:
+    """Resolved Aegis ownership/fate plus initial timeline events."""
+
+    holder_player_id: int | None
+    holder_team: int | None
+    holder_name: str
+    aegis_pickup_tick: int | None
+    aegis_end_tick: int
+    aegis_fate: Literal["consumed", "expired", "denied", "game_end", "unknown"]
+    timeline_events: list[RoshTimelineEvent]
+
+
+@dataclass
+class _HolderWindowStats:
+    """Aggregated stats over the holder's evaluated conversion window."""
+
+    holder_window_start: int
+    holder_window_end: int
+    fights: list[Teamfight]
+    fights_won: int
+    fights_lost: int
+    fights_drawn: int
+    towers_taken: int
+    barracks_taken: int
+    enemy_buybacks_forced: int
+    enemy_half_observer_delta: int
+    enemy_half_farm_share_before: float
+    enemy_half_farm_share_during: float
+    enemy_half_farm_share_delta: float
+    first_objective_tick: int | None
+    banner_planted: bool = False
+    banner_rax_conversion: bool = False
+    banner_rax_lane: str | None = None
+
+
+def _rosh_window_bounds(
+    match: ParsedMatch,
+    rosh_index: int,
+    rosh_tick: int,
+    game_end_tick: int,
+) -> _RoshWindowBounds:
+    """Compute immediate and extended tick boundaries for one Roshan."""
+    next_rosh_tick = match.roshans[rosh_index].tick if rosh_index < len(match.roshans) else None
+    immediate_end_tick = min(rosh_tick + _IMMEDIATE_WINDOW_TICKS, game_end_tick)
+    extended_end_tick = (next_rosh_tick - 1) if next_rosh_tick is not None else game_end_tick
+    extended_end_tick = min(extended_end_tick, game_end_tick)
+    return _RoshWindowBounds(
+        next_rosh_tick=next_rosh_tick,
+        immediate_end_tick=immediate_end_tick,
+        extended_end_tick=extended_end_tick,
+    )
+
+
+def _initial_timeline_events(rosh_number: int, rosh_tick: int) -> list[RoshTimelineEvent]:
+    """Create the timeline seed for one Roshan kill."""
+    return [
+        RoshTimelineEvent(
+            tick=rosh_tick,
+            kind="roshan",
+            label=f"Roshan #{rosh_number} killed",
+        )
+    ]
+
+
+def _aegis_pickup_label(holder_name: str) -> str:
+    """Return the display label for an Aegis pickup event."""
+    if not holder_name:
+        return "Aegis claimed"
+    return "Aegis -> " + holder_name.removeprefix("npc_dota_hero_").replace("_", " ")
+
+
+def _resolve_aegis_state(
+    match: ParsedMatch,
+    *,
+    rosh_tick: int,
+    next_rosh_tick: int | None,
+    game_end_tick: int,
+    timeline_events: list[RoshTimelineEvent],
+) -> _AegisState:
+    """Resolve associated Aegis pickup/denial, holder, end tick, and fate."""
+    aegis_event = _find_associated_aegis_event(match, rosh_tick, next_rosh_tick)
+    holder_player_id: int | None = None
+    holder_team: int | None = None
+    holder_name = ""
+    aegis_pickup_tick: int | None = None
+    aegis_end_tick = min(rosh_tick + _AEGIS_DURATION_TICKS, game_end_tick)
+    aegis_fate: Literal["consumed", "expired", "denied", "game_end", "unknown"] = "unknown"
+
+    if aegis_event is not None:
+        if aegis_event.event_type == "denied":
+            aegis_pickup_tick = aegis_event.tick
+            aegis_end_tick = aegis_event.tick
+            aegis_fate = "denied"
+            timeline_events.append(
+                RoshTimelineEvent(tick=aegis_event.tick, kind="aegis_denied", label="Aegis denied")
+            )
+        else:
+            holder_player_id = aegis_event.player_id if aegis_event.player_id >= 0 else None
+            holder_team = _team_for_player(match, holder_player_id)
+            holder_name = _hero_for_player(match, holder_player_id)
+            aegis_pickup_tick = aegis_event.tick
+            timeline_events.append(
+                RoshTimelineEvent(
+                    tick=aegis_event.tick,
+                    kind="aegis_pickup",
+                    label=_aegis_pickup_label(holder_name),
+                )
+            )
+            raw_expiry_tick = min(aegis_event.tick + _AEGIS_DURATION_TICKS, game_end_tick)
+            consume_tick = _holder_death_tick(match, holder_name, aegis_event.tick, raw_expiry_tick)
+            if consume_tick is not None:
+                aegis_end_tick = consume_tick
+                aegis_fate = "consumed"
+            elif raw_expiry_tick >= game_end_tick:
+                aegis_end_tick = game_end_tick
+                aegis_fate = "game_end"
+            else:
+                aegis_end_tick = raw_expiry_tick
+                aegis_fate = "expired"
+
+    return _AegisState(
+        holder_player_id=holder_player_id,
+        holder_team=holder_team,
+        holder_name=holder_name,
+        aegis_pickup_tick=aegis_pickup_tick,
+        aegis_end_tick=aegis_end_tick,
+        aegis_fate=aegis_fate,
+        timeline_events=timeline_events,
+    )
+
+
+def _aegis_eval_end_tick(
+    match: ParsedMatch,
+    *,
+    aegis_end_tick: int,
+    aegis_fate: str,
+    extended_end_tick: int,
+    game_end_tick: int,
+) -> int:
+    """Return the end tick for evaluating the Aegis conversion window."""
+    eval_end_tick = aegis_end_tick
+    if aegis_fate == "consumed":
+        overlapping = _window_teamfights(match, aegis_end_tick, aegis_end_tick)
+        if overlapping:
+            eval_end_tick = min(
+                game_end_tick,
+                max(
+                    aegis_end_tick + _POST_CONSUME_GRACE_TICKS,
+                    max(f.end_tick for f in overlapping),
+                ),
+            )
+        else:
+            eval_end_tick = min(game_end_tick, aegis_end_tick + _POST_CONSUME_GRACE_TICKS)
+
+    # Clamp the holder window to this Roshan's upper boundary (next_rosh_tick
+    # - 1). Without this, the post-consume grace can push aegis_eval_end_tick
+    # past the next Roshan kill, so the same tower/barracks/teamfight/buyback
+    # is counted in BOTH consecutive RoshConversion records. extended_end_tick
+    # is purpose-built as the per-Roshan boundary; the counting windows must
+    # respect it so each event belongs to exactly one Roshan.
+    return min(eval_end_tick, extended_end_tick)
+
+
+def _unknown_holder_window_stats(
+    match: ParsedMatch,
+    *,
+    rosh_tick: int,
+    holder_window_end: int,
+) -> _HolderWindowStats:
+    """Return neutral stats for a Roshan with no resolved holder team."""
+    fights = _window_teamfights(match, rosh_tick, holder_window_end)
+    return _HolderWindowStats(
+        holder_window_start=rosh_tick,
+        holder_window_end=holder_window_end,
+        fights=fights,
+        fights_won=0,
+        fights_lost=0,
+        fights_drawn=len(fights),
+        towers_taken=0,
+        barracks_taken=0,
+        enemy_buybacks_forced=0,
+        enemy_half_observer_delta=0,
+        enemy_half_farm_share_before=0.0,
+        enemy_half_farm_share_during=0.0,
+        enemy_half_farm_share_delta=0.0,
+        first_objective_tick=None,
+    )
+
+
+def _holder_window_stats(
+    match: ParsedMatch,
+    *,
+    holder_team: int | None,
+    aegis_pickup_tick: int | None,
+    rosh_tick: int,
+    immediate_end_tick: int,
+    aegis_eval_end_tick: int,
+) -> _HolderWindowStats:
+    """Aggregate fight/objective/map-control stats over the holder window."""
+    if holder_team is None:
+        return _unknown_holder_window_stats(
+            match,
+            rosh_tick=rosh_tick,
+            holder_window_end=aegis_eval_end_tick,
+        )
+
+    holder_window_start = aegis_pickup_tick or rosh_tick
+    holder_window_end = aegis_eval_end_tick
+    fights, fights_won, fights_lost, fights_drawn = _fight_results(
+        match, holder_team, holder_window_start, holder_window_end
+    )
+    towers_taken, barracks_taken = _count_objectives(
+        match, holder_team, holder_window_start, holder_window_end
+    )
+    enemy_buybacks_forced = _count_enemy_buybacks(
+        match, holder_team, holder_window_start, holder_window_end
+    )
+    own_enemy_half_wards = _enemy_half_observer_placements(
+        match, holder_team, holder_window_start, holder_window_end
+    )
+    enemy_enemy_half_wards = _enemy_half_observer_placements(
+        match, _enemy_team(holder_team), holder_window_start, holder_window_end
+    )
+    enemy_half_observer_delta = own_enemy_half_wards - enemy_enemy_half_wards
+    baseline_start = max((match.game_start_tick or 0), rosh_tick - _IMMEDIATE_WINDOW_TICKS)
+    baseline_end = rosh_tick - 1
+    enemy_half_farm_share_before = _enemy_half_farm_share(
+        match, holder_team, baseline_start, baseline_end
+    )
+    enemy_half_farm_share_during = _enemy_half_farm_share(
+        match, holder_team, rosh_tick, immediate_end_tick
+    )
+    enemy_half_farm_share_delta = enemy_half_farm_share_during - enemy_half_farm_share_before
+    first_objective_tick = _first_objective_tick(
+        match, holder_team, holder_window_start, holder_window_end
+    )
+    banner_planted, banner_rax_conversion, banner_rax_lane = _banner_rax_signal(
+        match, holder_team, holder_window_start, holder_window_end
+    )
+
+    return _HolderWindowStats(
+        holder_window_start=holder_window_start,
+        holder_window_end=holder_window_end,
+        fights=fights,
+        fights_won=fights_won,
+        fights_lost=fights_lost,
+        fights_drawn=fights_drawn,
+        towers_taken=towers_taken,
+        barracks_taken=barracks_taken,
+        enemy_buybacks_forced=enemy_buybacks_forced,
+        enemy_half_observer_delta=enemy_half_observer_delta,
+        enemy_half_farm_share_before=enemy_half_farm_share_before,
+        enemy_half_farm_share_during=enemy_half_farm_share_during,
+        enemy_half_farm_share_delta=enemy_half_farm_share_delta,
+        first_objective_tick=first_objective_tick,
+        banner_planted=banner_planted,
+        banner_rax_conversion=banner_rax_conversion,
+        banner_rax_lane=banner_rax_lane,
+    )
+
+
+def _first_fight_tick(stats: _HolderWindowStats) -> int | None:
+    """Return the first fight tick inside a holder window."""
+    return min(
+        (max(fight.first_death_tick, stats.holder_window_start) for fight in stats.fights),
+        default=None,
+    )
+
+
+def _game_closed_by_holder(
+    match: ParsedMatch,
+    *,
+    holder_team: int | None,
+    extended_end_tick: int,
+) -> bool:
+    """Return whether the holder team ended the game inside this Roshan window."""
+    return (
+        holder_team is not None
+        and match.radiant_win is not None
+        and (
+            (holder_team == _TEAM_RADIANT and match.radiant_win)
+            or (holder_team == _TEAM_DIRE and not match.radiant_win)
+        )
+        and match.game_end_tick > 0
+        and match.game_end_tick <= extended_end_tick
+    )
+
+
+def _conversion_drivers(
+    *,
+    stats: _HolderWindowStats,
+    aegis_outcome: str,
+    aegis_fate: str,
+) -> list[str]:
+    """Build human-readable driver strings for a conversion summary."""
+    drivers: list[str] = []
+    if stats.fights_won:
+        drivers.append(f"won {stats.fights_won} fight(s) during the Aegis window")
+    if stats.fights_lost:
+        drivers.append(f"lost {stats.fights_lost} fight(s) during the Aegis window")
+    if stats.towers_taken:
+        drivers.append(f"took {stats.towers_taken} tower(s)")
+    if stats.barracks_taken:
+        drivers.append(f"took {stats.barracks_taken} barracks")
+    if stats.banner_rax_conversion:
+        lane_text = f"{stats.banner_rax_lane} " if stats.banner_rax_lane else ""
+        drivers.append(f"planted Roshan's Banner ahead of a {lane_text}barracks push")
+    elif stats.banner_planted:
+        drivers.append("planted Roshan's Banner during the window")
+    if stats.enemy_buybacks_forced:
+        drivers.append(f"forced {stats.enemy_buybacks_forced} enemy buyback(s)")
+    if stats.enemy_half_observer_delta > 0:
+        drivers.append(
+            f"placed {stats.enemy_half_observer_delta} more observer ward(s) in enemy territory than they conceded"
+        )
+    if stats.enemy_half_farm_share_delta >= 0.10:
+        drivers.append(
+            f"expanded enemy-half presence by {round(stats.enemy_half_farm_share_delta * 100):d} percentage points"
+        )
+    if aegis_outcome == "expired_unused":
+        drivers.append("Aegis expired before delivering a second life")
+    elif aegis_outcome == "expired_after_use":
+        drivers.append("Aegis expired after the team had already used the window")
+    elif aegis_fate == "denied":
+        drivers.append("Aegis was denied, so the team never got the immortality window")
+    elif aegis_outcome == "window_lost":
+        drivers.append("The Aegis window was lost without offsetting structures")
+    elif aegis_fate == "consumed":
+        drivers.append("Aegis was popped during the conversion window")
+    return drivers
+
+
+def _fight_timeline_event(
+    fight: Teamfight,
+    *,
+    holder_team: int | None,
+    holder_window_start: int,
+) -> RoshTimelineEvent:
+    """Build a timeline event for one fight in the conversion window."""
+    fight_tick = max(fight.first_death_tick, holder_window_start)
+    if holder_team is None or fight.winner == "draw":
+        kind: Literal["fight_win", "fight_loss", "fight_draw"] = "fight_draw"
+        label_text = (
+            f"Fight already underway ({fight.deaths} deaths)"
+            if fight.first_death_tick < holder_window_start
+            else f"Fight ({fight.deaths} deaths)"
+        )
+    elif (holder_team == _TEAM_RADIANT and fight.winner == "radiant") or (
+        holder_team == _TEAM_DIRE and fight.winner == "dire"
+    ):
+        kind = "fight_win"
+        label_text = (
+            f"Fight already underway, then won ({fight.deaths} deaths)"
+            if fight.first_death_tick < holder_window_start
+            else f"Fight won ({fight.deaths} deaths)"
+        )
+    else:
+        kind = "fight_loss"
+        label_text = (
+            f"Fight already underway, then lost ({fight.deaths} deaths)"
+            if fight.first_death_tick < holder_window_start
+            else f"Fight lost ({fight.deaths} deaths)"
+        )
+    return RoshTimelineEvent(tick=fight_tick, kind=kind, label=label_text)
+
+
+def _append_fight_timeline_events(
+    timeline_events: list[RoshTimelineEvent],
+    stats: _HolderWindowStats,
+    holder_team: int | None,
+) -> None:
+    """Append fight events to the conversion timeline."""
+    for fight in stats.fights:
+        timeline_events.append(
+            _fight_timeline_event(
+                fight,
+                holder_team=holder_team,
+                holder_window_start=stats.holder_window_start,
+            )
+        )
+
+
+def _append_objective_timeline_events(
+    timeline_events: list[RoshTimelineEvent],
+    match: ParsedMatch,
+    *,
+    holder_team: int | None,
+    stats: _HolderWindowStats,
+) -> None:
+    """Append structure and buyback events to the conversion timeline."""
+    if holder_team is None:
+        return
+    for tower in match.towers:
+        if (
+            stats.holder_window_start <= tower.tick <= stats.holder_window_end
+            and tower.team == _enemy_team(holder_team)
+        ):
+            timeline_events.append(
+                RoshTimelineEvent(tick=tower.tick, kind="tower", label="Tower taken")
+            )
+    for barracks in match.barracks:
+        if (
+            stats.holder_window_start <= barracks.tick <= stats.holder_window_end
+            and barracks.team == _enemy_team(holder_team)
+        ):
+            timeline_events.append(
+                RoshTimelineEvent(tick=barracks.tick, kind="barracks", label="Barracks taken")
+            )
+    enemy_team = _enemy_team(holder_team)
+    for player in match.players:
+        if player.team != enemy_team:
+            continue
+        for entry in player.buyback_log:
+            if stats.holder_window_start <= entry.tick <= stats.holder_window_end:
+                timeline_events.append(
+                    RoshTimelineEvent(tick=entry.tick, kind="buyback", label="Enemy buyback")
+                )
+
+
+def _aegis_end_label(aegis_fate: str) -> str:
+    """Return the timeline label for the Aegis window end."""
+    return (
+        "Aegis consumed"
+        if aegis_fate == "consumed"
+        else "Aegis expired"
+        if aegis_fate == "expired"
+        else "Aegis denied"
+        if aegis_fate == "denied"
+        else "Game ended"
+        if aegis_fate == "game_end"
+        else "Aegis window ended"
+    )
+
+
+def _finalize_timeline_events(
+    timeline_events: list[RoshTimelineEvent],
+    match: ParsedMatch,
+    *,
+    stats: _HolderWindowStats,
+    holder_team: int | None,
+    aegis_end_tick: int,
+    aegis_fate: str,
+    game_closed: bool,
+) -> list[RoshTimelineEvent]:
+    """Append derived timeline events and return them sorted."""
+    _append_fight_timeline_events(timeline_events, stats, holder_team)
+    _append_objective_timeline_events(timeline_events, match, holder_team=holder_team, stats=stats)
+    timeline_events.append(
+        RoshTimelineEvent(
+            tick=aegis_end_tick,
+            kind="aegis_end",
+            label=_aegis_end_label(aegis_fate),
+        )
+    )
+    if game_closed and match.game_end_tick > 0:
+        timeline_events.append(
+            RoshTimelineEvent(tick=match.game_end_tick, kind="game_end", label="Game ended")
+        )
+    timeline_events.sort(key=lambda event: (event.tick, event.kind))
+    return timeline_events
+
+
+def _build_conversion_record(
+    match: ParsedMatch,
+    *,
+    rosh_number: int,
+    roshan: Any,
+    drops: list[str],
+    had_high_value_drop: bool,
+    bounds: _RoshWindowBounds,
+    aegis: _AegisState,
+    aegis_eval_end_tick: int,
+    stats: _HolderWindowStats,
+    game_closed: bool,
+    timeline_events: list[RoshTimelineEvent],
+) -> RoshConversion:
+    """Build the final public conversion record from resolved inputs."""
+    label = _conversion_label(
+        holder_team=aegis.holder_team,
+        aegis_fate=aegis.aegis_fate,
+        fights_won=stats.fights_won,
+        fights_lost=stats.fights_lost,
+        towers_taken=stats.towers_taken,
+        barracks_taken=stats.barracks_taken,
+        enemy_half_observer_delta=stats.enemy_half_observer_delta,
+        enemy_half_farm_share_delta=stats.enemy_half_farm_share_delta,
+        game_closed=game_closed,
+    )
+    aegis_outcome = _aegis_outcome(
+        holder_team=aegis.holder_team,
+        aegis_fate=aegis.aegis_fate,
+        fights_won=stats.fights_won,
+        fights_lost=stats.fights_lost,
+        towers_taken=stats.towers_taken,
+        barracks_taken=stats.barracks_taken,
+    )
+    score = _conversion_score(
+        fights_won=stats.fights_won,
+        fights_lost=stats.fights_lost,
+        towers_taken=stats.towers_taken,
+        barracks_taken=stats.barracks_taken,
+        enemy_buybacks_forced=stats.enemy_buybacks_forced,
+        enemy_half_observer_delta=stats.enemy_half_observer_delta,
+        enemy_half_farm_share_delta=stats.enemy_half_farm_share_delta,
+        game_closed=game_closed,
+        aegis_fate=aegis.aegis_fate,
+    )
+    drivers = _conversion_drivers(
+        stats=stats,
+        aegis_outcome=aegis_outcome,
+        aegis_fate=aegis.aegis_fate,
+    )
+    timeline_events = _finalize_timeline_events(
+        timeline_events,
+        match,
+        stats=stats,
+        holder_team=aegis.holder_team,
+        aegis_end_tick=aegis.aegis_end_tick,
+        aegis_fate=aegis.aegis_fate,
+        game_closed=game_closed,
+    )
+
+    return RoshConversion(
+        rosh_number=rosh_number,
+        rosh_tick=roshan.tick,
+        killer_name=roshan.killer,
+        drops=drops,
+        had_high_value_drop=had_high_value_drop,
+        banner_planted=stats.banner_planted,
+        banner_rax_conversion=stats.banner_rax_conversion,
+        banner_rax_lane=stats.banner_rax_lane,
+        holder_team=aegis.holder_team,
+        holder_player_id=aegis.holder_player_id,
+        holder_name=aegis.holder_name,
+        aegis_pickup_tick=aegis.aegis_pickup_tick,
+        immediate_end_tick=bounds.immediate_end_tick,
+        aegis_end_tick=aegis.aegis_end_tick,
+        aegis_eval_end_tick=aegis_eval_end_tick,
+        extended_end_tick=bounds.extended_end_tick,
+        aegis_fate=aegis.aegis_fate,
+        first_fight_tick=_first_fight_tick(stats),
+        first_objective_tick=stats.first_objective_tick,
+        fight_count=len(stats.fights),
+        fights_won=stats.fights_won,
+        fights_lost=stats.fights_lost,
+        fights_drawn=stats.fights_drawn,
+        towers_taken=stats.towers_taken,
+        barracks_taken=stats.barracks_taken,
+        enemy_buybacks_forced=stats.enemy_buybacks_forced,
+        enemy_half_observer_delta=stats.enemy_half_observer_delta,
+        enemy_half_farm_share_before=stats.enemy_half_farm_share_before,
+        enemy_half_farm_share_during=stats.enemy_half_farm_share_during,
+        enemy_half_farm_share_delta=stats.enemy_half_farm_share_delta,
+        conversion_score=score,
+        conversion_label=label,
+        aegis_outcome=aegis_outcome,
+        drivers=drivers,
+        timeline_events=timeline_events,
+    )
+
+
 def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]:
     """Summarise how well each Roshan was converted into advantage."""
 
@@ -480,347 +1051,49 @@ def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]:
     for index, roshan in enumerate(match.roshans, start=1):
         drops = list(getattr(roshan, "drops", ()) or ())
         had_high_value_drop = any(drop in _HIGH_VALUE_DROPS for drop in drops)
-        banner_planted = False
-        banner_rax_conversion = False
-        banner_rax_lane: str | None = None
-        next_rosh_tick = match.roshans[index].tick if index < len(match.roshans) else None
-        immediate_end_tick = min(roshan.tick + _IMMEDIATE_WINDOW_TICKS, game_end_tick)
-        extended_end_tick = (next_rosh_tick - 1) if next_rosh_tick is not None else game_end_tick
-        extended_end_tick = min(extended_end_tick, game_end_tick)
+        bounds = _rosh_window_bounds(match, index, roshan.tick, game_end_tick)
+        timeline_events = _initial_timeline_events(index, roshan.tick)
 
-        aegis_event = _find_associated_aegis_event(match, roshan.tick, next_rosh_tick)
-        holder_player_id: int | None = None
-        holder_team: int | None = None
-        holder_name = ""
-        aegis_pickup_tick: int | None = None
-        aegis_end_tick = min(roshan.tick + _AEGIS_DURATION_TICKS, game_end_tick)
-        aegis_fate: Literal["consumed", "expired", "denied", "game_end", "unknown"] = "unknown"
-        timeline_events = [
-            RoshTimelineEvent(
-                tick=roshan.tick,
-                kind="roshan",
-                label=f"Roshan #{index} killed",
-            )
-        ]
-
-        if aegis_event is not None:
-            if aegis_event.event_type == "denied":
-                aegis_pickup_tick = aegis_event.tick
-                aegis_end_tick = aegis_event.tick
-                aegis_fate = "denied"
-                timeline_events.append(
-                    RoshTimelineEvent(
-                        tick=aegis_event.tick, kind="aegis_denied", label="Aegis denied"
-                    )
-                )
-            else:
-                holder_player_id = aegis_event.player_id if aegis_event.player_id >= 0 else None
-                holder_team = _team_for_player(match, holder_player_id)
-                holder_name = _hero_for_player(match, holder_player_id)
-                aegis_pickup_tick = aegis_event.tick
-                timeline_events.append(
-                    RoshTimelineEvent(
-                        tick=aegis_event.tick,
-                        kind="aegis_pickup",
-                        label=(
-                            "Aegis -> "
-                            + holder_name.removeprefix("npc_dota_hero_").replace("_", " ")
-                        )
-                        if holder_name
-                        else "Aegis claimed",
-                    )
-                )
-                raw_expiry_tick = min(aegis_event.tick + _AEGIS_DURATION_TICKS, game_end_tick)
-                consume_tick = _holder_death_tick(
-                    match, holder_name, aegis_event.tick, raw_expiry_tick
-                )
-                if consume_tick is not None:
-                    aegis_end_tick = consume_tick
-                    aegis_fate = "consumed"
-                elif raw_expiry_tick >= game_end_tick:
-                    aegis_end_tick = game_end_tick
-                    aegis_fate = "game_end"
-                else:
-                    aegis_end_tick = raw_expiry_tick
-                    aegis_fate = "expired"
-        else:
-            aegis_end_tick = min(roshan.tick + _AEGIS_DURATION_TICKS, game_end_tick)
-
-        aegis_eval_end_tick = aegis_end_tick
-        if aegis_fate == "consumed":
-            overlapping = _window_teamfights(match, aegis_end_tick, aegis_end_tick)
-            if overlapping:
-                aegis_eval_end_tick = min(
-                    game_end_tick,
-                    max(
-                        aegis_end_tick + _POST_CONSUME_GRACE_TICKS,
-                        max(f.end_tick for f in overlapping),
-                    ),
-                )
-            else:
-                aegis_eval_end_tick = min(game_end_tick, aegis_end_tick + _POST_CONSUME_GRACE_TICKS)
-
-        # Clamp the holder window to this Roshan's upper boundary (next_rosh_tick
-        # - 1). Without this, the post-consume grace can push aegis_eval_end_tick
-        # past the next Roshan kill, so the same tower/barracks/teamfight/buyback
-        # is counted in BOTH consecutive RoshConversion records. extended_end_tick
-        # is purpose-built as the per-Roshan boundary; the counting windows must
-        # respect it so each event belongs to exactly one Roshan.
-        aegis_eval_end_tick = min(aegis_eval_end_tick, extended_end_tick)
-
-        if holder_team is None:
-            holder_window_start = roshan.tick
-            holder_window_end = aegis_eval_end_tick
-            fights: list[Teamfight] = _window_teamfights(
-                match, holder_window_start, holder_window_end
-            )
-            fights_won = fights_lost = 0
-            fights_drawn = len(fights)
-            towers_taken = 0
-            barracks_taken = 0
-            enemy_buybacks_forced = 0
-            enemy_half_observer_delta = 0
-            enemy_half_farm_share_before = 0.0
-            enemy_half_farm_share_during = 0.0
-            enemy_half_farm_share_delta = 0.0
-            first_objective_tick = None
-        else:
-            holder_window_start = aegis_pickup_tick or roshan.tick
-            holder_window_end = aegis_eval_end_tick
-            fights, fights_won, fights_lost, fights_drawn = _fight_results(
-                match, holder_team, holder_window_start, holder_window_end
-            )
-            towers_taken, barracks_taken = _count_objectives(
-                match, holder_team, holder_window_start, holder_window_end
-            )
-            enemy_buybacks_forced = _count_enemy_buybacks(
-                match, holder_team, holder_window_start, holder_window_end
-            )
-            own_enemy_half_wards = _enemy_half_observer_placements(
-                match, holder_team, holder_window_start, holder_window_end
-            )
-            enemy_enemy_half_wards = _enemy_half_observer_placements(
-                match, _enemy_team(holder_team), holder_window_start, holder_window_end
-            )
-            enemy_half_observer_delta = own_enemy_half_wards - enemy_enemy_half_wards
-            baseline_start = max(
-                (match.game_start_tick or 0), roshan.tick - _IMMEDIATE_WINDOW_TICKS
-            )
-            baseline_end = roshan.tick - 1
-            enemy_half_farm_share_before = _enemy_half_farm_share(
-                match, holder_team, baseline_start, baseline_end
-            )
-            enemy_half_farm_share_during = _enemy_half_farm_share(
-                match, holder_team, roshan.tick, immediate_end_tick
-            )
-            enemy_half_farm_share_delta = (
-                enemy_half_farm_share_during - enemy_half_farm_share_before
-            )
-            first_objective_tick = _first_objective_tick(
-                match, holder_team, holder_window_start, holder_window_end
-            )
-            banner_planted, banner_rax_conversion, banner_rax_lane = _banner_rax_signal(
-                match, holder_team, holder_window_start, holder_window_end
-            )
-
-        first_fight_tick = min(
-            (max(fight.first_death_tick, holder_window_start) for fight in fights),
-            default=None,
+        aegis = _resolve_aegis_state(
+            match,
+            rosh_tick=roshan.tick,
+            next_rosh_tick=bounds.next_rosh_tick,
+            game_end_tick=game_end_tick,
+            timeline_events=timeline_events,
         )
-        game_closed = (
-            holder_team is not None
-            and match.radiant_win is not None
-            and (
-                (holder_team == _TEAM_RADIANT and match.radiant_win)
-                or (holder_team == _TEAM_DIRE and not match.radiant_win)
-            )
-            and match.game_end_tick > 0
-            and match.game_end_tick <= extended_end_tick
+        aegis_eval_end_tick = _aegis_eval_end_tick(
+            match,
+            aegis_end_tick=aegis.aegis_end_tick,
+            aegis_fate=aegis.aegis_fate,
+            extended_end_tick=bounds.extended_end_tick,
+            game_end_tick=game_end_tick,
         )
-
-        label = _conversion_label(
-            holder_team=holder_team,
-            aegis_fate=aegis_fate,
-            fights_won=fights_won,
-            fights_lost=fights_lost,
-            towers_taken=towers_taken,
-            barracks_taken=barracks_taken,
-            enemy_half_observer_delta=enemy_half_observer_delta,
-            enemy_half_farm_share_delta=enemy_half_farm_share_delta,
-            game_closed=game_closed,
+        stats = _holder_window_stats(
+            match,
+            holder_team=aegis.holder_team,
+            aegis_pickup_tick=aegis.aegis_pickup_tick,
+            rosh_tick=roshan.tick,
+            immediate_end_tick=bounds.immediate_end_tick,
+            aegis_eval_end_tick=aegis_eval_end_tick,
         )
-        aegis_outcome = _aegis_outcome(
-            holder_team=holder_team,
-            aegis_fate=aegis_fate,
-            fights_won=fights_won,
-            fights_lost=fights_lost,
-            towers_taken=towers_taken,
-            barracks_taken=barracks_taken,
+        game_closed = _game_closed_by_holder(
+            match,
+            holder_team=aegis.holder_team,
+            extended_end_tick=bounds.extended_end_tick,
         )
-        score = _conversion_score(
-            fights_won=fights_won,
-            fights_lost=fights_lost,
-            towers_taken=towers_taken,
-            barracks_taken=barracks_taken,
-            enemy_buybacks_forced=enemy_buybacks_forced,
-            enemy_half_observer_delta=enemy_half_observer_delta,
-            enemy_half_farm_share_delta=enemy_half_farm_share_delta,
-            game_closed=game_closed,
-            aegis_fate=aegis_fate,
-        )
-
-        drivers: list[str] = []
-        if fights_won:
-            drivers.append(f"won {fights_won} fight(s) during the Aegis window")
-        if fights_lost:
-            drivers.append(f"lost {fights_lost} fight(s) during the Aegis window")
-        if towers_taken:
-            drivers.append(f"took {towers_taken} tower(s)")
-        if barracks_taken:
-            drivers.append(f"took {barracks_taken} barracks")
-        if banner_rax_conversion:
-            lane_text = f"{banner_rax_lane} " if banner_rax_lane else ""
-            drivers.append(f"planted Roshan's Banner ahead of a {lane_text}barracks push")
-        elif banner_planted:
-            drivers.append("planted Roshan's Banner during the window")
-        if enemy_buybacks_forced:
-            drivers.append(f"forced {enemy_buybacks_forced} enemy buyback(s)")
-        if enemy_half_observer_delta > 0:
-            drivers.append(
-                f"placed {enemy_half_observer_delta} more observer ward(s) in enemy territory than they conceded"
-            )
-        if enemy_half_farm_share_delta >= 0.10:
-            drivers.append(
-                f"expanded enemy-half presence by {round(enemy_half_farm_share_delta * 100):d} percentage points"
-            )
-        if aegis_outcome == "expired_unused":
-            drivers.append("Aegis expired before delivering a second life")
-        elif aegis_outcome == "expired_after_use":
-            drivers.append("Aegis expired after the team had already used the window")
-        elif aegis_fate == "denied":
-            drivers.append("Aegis was denied, so the team never got the immortality window")
-        elif aegis_outcome == "window_lost":
-            drivers.append("The Aegis window was lost without offsetting structures")
-        elif aegis_fate == "consumed":
-            drivers.append("Aegis was popped during the conversion window")
-
-        for fight in fights:
-            fight_tick = max(fight.first_death_tick, holder_window_start)
-            if holder_team is None or fight.winner == "draw":
-                kind: Literal["fight_win", "fight_loss", "fight_draw"] = "fight_draw"
-                label_text = (
-                    f"Fight already underway ({fight.deaths} deaths)"
-                    if fight.first_death_tick < holder_window_start
-                    else f"Fight ({fight.deaths} deaths)"
-                )
-            elif (holder_team == _TEAM_RADIANT and fight.winner == "radiant") or (
-                holder_team == _TEAM_DIRE and fight.winner == "dire"
-            ):
-                kind = "fight_win"
-                label_text = (
-                    f"Fight already underway, then won ({fight.deaths} deaths)"
-                    if fight.first_death_tick < holder_window_start
-                    else f"Fight won ({fight.deaths} deaths)"
-                )
-            else:
-                kind = "fight_loss"
-                label_text = (
-                    f"Fight already underway, then lost ({fight.deaths} deaths)"
-                    if fight.first_death_tick < holder_window_start
-                    else f"Fight lost ({fight.deaths} deaths)"
-                )
-            timeline_events.append(RoshTimelineEvent(tick=fight_tick, kind=kind, label=label_text))
-
-        if holder_team is not None:
-            for tower in match.towers:
-                if (
-                    holder_window_start <= tower.tick <= holder_window_end
-                    and tower.team == _enemy_team(holder_team)
-                ):
-                    timeline_events.append(
-                        RoshTimelineEvent(tick=tower.tick, kind="tower", label="Tower taken")
-                    )
-            for barracks in match.barracks:
-                if (
-                    holder_window_start <= barracks.tick <= holder_window_end
-                    and barracks.team == _enemy_team(holder_team)
-                ):
-                    timeline_events.append(
-                        RoshTimelineEvent(
-                            tick=barracks.tick, kind="barracks", label="Barracks taken"
-                        )
-                    )
-            enemy_team = _enemy_team(holder_team)
-            for player in match.players:
-                if player.team != enemy_team:
-                    continue
-                for entry in player.buyback_log:
-                    if holder_window_start <= entry.tick <= holder_window_end:
-                        timeline_events.append(
-                            RoshTimelineEvent(
-                                tick=entry.tick, kind="buyback", label="Enemy buyback"
-                            )
-                        )
-
-        timeline_events.append(
-            RoshTimelineEvent(
-                tick=aegis_end_tick,
-                kind="aegis_end",
-                label=(
-                    "Aegis consumed"
-                    if aegis_fate == "consumed"
-                    else "Aegis expired"
-                    if aegis_fate == "expired"
-                    else "Aegis denied"
-                    if aegis_fate == "denied"
-                    else "Game ended"
-                    if aegis_fate == "game_end"
-                    else "Aegis window ended"
-                ),
-            )
-        )
-        if game_closed and match.game_end_tick > 0:
-            timeline_events.append(
-                RoshTimelineEvent(tick=match.game_end_tick, kind="game_end", label="Game ended")
-            )
-        timeline_events.sort(key=lambda event: (event.tick, event.kind))
 
         conversions.append(
-            RoshConversion(
+            _build_conversion_record(
+                match,
                 rosh_number=index,
-                rosh_tick=roshan.tick,
-                killer_name=roshan.killer,
+                roshan=roshan,
                 drops=drops,
                 had_high_value_drop=had_high_value_drop,
-                banner_planted=banner_planted,
-                banner_rax_conversion=banner_rax_conversion,
-                banner_rax_lane=banner_rax_lane,
-                holder_team=holder_team,
-                holder_player_id=holder_player_id,
-                holder_name=holder_name,
-                aegis_pickup_tick=aegis_pickup_tick,
-                immediate_end_tick=immediate_end_tick,
-                aegis_end_tick=aegis_end_tick,
+                bounds=bounds,
+                aegis=aegis,
                 aegis_eval_end_tick=aegis_eval_end_tick,
-                extended_end_tick=extended_end_tick,
-                aegis_fate=aegis_fate,
-                first_fight_tick=first_fight_tick,
-                first_objective_tick=first_objective_tick,
-                fight_count=len(fights),
-                fights_won=fights_won,
-                fights_lost=fights_lost,
-                fights_drawn=fights_drawn,
-                towers_taken=towers_taken,
-                barracks_taken=barracks_taken,
-                enemy_buybacks_forced=enemy_buybacks_forced,
-                enemy_half_observer_delta=enemy_half_observer_delta,
-                enemy_half_farm_share_before=enemy_half_farm_share_before,
-                enemy_half_farm_share_during=enemy_half_farm_share_during,
-                enemy_half_farm_share_delta=enemy_half_farm_share_delta,
-                conversion_score=score,
-                conversion_label=label,
-                aegis_outcome=aegis_outcome,
-                drivers=drivers,
+                stats=stats,
+                game_closed=game_closed,
                 timeline_events=timeline_events,
             )
         )
