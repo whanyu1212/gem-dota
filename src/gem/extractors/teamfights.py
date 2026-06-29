@@ -201,7 +201,46 @@ def detect_teamfights(
     h2s: dict[str, int] = hero_to_slot or {}
     entries = sorted(combat_log, key=lambda e: e.tick)
 
-    # --- Pass 1: detect fight windows from hero deaths ----------------------
+    fights, death_fight = _detect_teamfight_windows(entries, h2s, player_snapshots)
+    if not fights:
+        return []
+
+    _populate_teamfight_player_stats(
+        fights,
+        entries,
+        death_fight,
+        h2s,
+        player_snapshots,
+        slot_to_team,
+    )
+    _populate_teamfight_xp_deltas(fights, player_snapshots)
+    _populate_teamfight_winners(fights, slot_to_team)
+
+    return fights
+
+
+def _is_counted_teamfight_death(entry: CombatLogEntry) -> bool:
+    """Return True for real hero deaths that should open/extend fights."""
+    # Skip reincarnation/aegis trigger deaths (will_reincarnate=True) — the
+    # hero comes back, so the trigger must not open/extend a fight or count
+    # toward Teamfight.deaths. Filtering only in pass 1 covers pass 2 too,
+    # since pass-2 death attribution looks up death_fight by entry id and
+    # skips any entry not recorded here. Matches the death-curve fix in
+    # players.py so teamfight/Roshan-conversion summaries stay consistent.
+    return (
+        entry.log_type == "DEATH"
+        and entry.target_is_hero
+        and not entry.target_is_illusion
+        and not entry.will_reincarnate
+    )
+
+
+def _detect_teamfight_windows(
+    entries: list[CombatLogEntry],
+    hero_to_slot: dict[str, int],
+    player_snapshots: dict[int, list[PlayerStateSnapshot]] | None,
+) -> tuple[list[Teamfight], dict[int, Teamfight]]:
+    """Detect fight windows from hero deaths and return death membership."""
     # ``active`` holds fights still within their cooldown window.
     # ``closed`` holds fights whose cooldown has expired.
     # ``death_fight`` records which fight each death was absorbed into, so pass 2
@@ -212,94 +251,132 @@ def detect_teamfights(
     death_fight: dict[int, Teamfight] = {}
 
     for entry in entries:
-        if entry.log_type != "DEATH":
-            continue
-        # Skip reincarnation/aegis trigger deaths (will_reincarnate=True) — the
-        # hero comes back, so the trigger must not open/extend a fight or count
-        # toward Teamfight.deaths. Filtering only in pass 1 covers pass 2 too,
-        # since pass-2 death attribution looks up death_fight by entry id and
-        # skips any entry not recorded here. Matches the death-curve fix in
-        # players.py so teamfight/Roshan-conversion summaries stay consistent.
-        if not entry.target_is_hero or entry.target_is_illusion or entry.will_reincarnate:
+        if not _is_counted_teamfight_death(entry):
             continue
 
-        # Expire any active fights whose cooldown has elapsed before this death.
-        still_active: list[Teamfight] = []
-        for f in active:
-            if entry.tick - f.last_death_tick >= _COOLDOWN_TICKS:
-                f.end_tick = f.last_death_tick + _COOLDOWN_TICKS
-                closed.append(f)
-            else:
-                still_active.append(f)
-        active = still_active
-
-        # Resolve the dying hero's position from the nearest snapshot.
-        death_pos: tuple[float, float] | None = None
-        if player_snapshots:
-            tgt_slot = h2s.get(entry.target_name)
-            if tgt_slot is not None:
-                snaps = player_snapshots.get(tgt_slot, [])
-                death_pos = _nearest_pos(snaps, entry.tick)
-
-        # Find the best active fight to absorb this death into.
-        target_fight: Teamfight | None = None
-        if active:
-            if death_pos is not None:
-                # Spatial mode: pick the closest fight centroid within radius.
-                # Fights without a centroid (position unavailable for all their
-                # deaths so far) are treated as infinitely far — never absorb
-                # into them when we have position data for the current death.
-                best_dist = _FIGHT_RADIUS
-                for f in active:
-                    if f.centroid_x is not None and f.centroid_y is not None:
-                        d = math.dist(death_pos, (f.centroid_x, f.centroid_y))
-                        if d < best_dist:
-                            best_dist = d
-                            target_fight = f
-            else:
-                # No position data for this death — fall back to temporal-only:
-                # absorb into the most recently active fight.
-                target_fight = max(active, key=lambda f: f.last_death_tick)
+        active = _close_expired_teamfights(active, closed, entry.tick)
+        death_pos = _death_position(entry, hero_to_slot, player_snapshots)
+        target_fight = _select_teamfight_for_death(active, death_pos)
 
         if target_fight is None:
-            # No suitable active fight — open a new window.
-            target_fight = Teamfight(
-                start_tick=max(0, entry.tick - _COOLDOWN_TICKS),
-                end_tick=0,
-                last_death_tick=entry.tick,
-                deaths=0,
-                first_death_tick=entry.tick,
-                players=[TeamfightPlayer(player_id=i) for i in range(10)],
-            )
+            target_fight = _new_teamfight(entry)
             active.append(target_fight)
 
-        target_fight.last_death_tick = entry.tick
-        target_fight.deaths += 1
-        death_fight[id(entry)] = target_fight
+        _record_teamfight_death(target_fight, entry, death_pos, death_fight)
 
-        # Update the fight's running centroid with this death's position. The
-        # divisor is the count of *positioned* deaths (centroid_n), not the total
-        # death count, so position-less deaths don't bias the incremental mean.
-        if death_pos is not None:
-            target_fight.centroid_n += 1
-            target_fight.centroid_x, target_fight.centroid_y = _update_centroid(
-                target_fight.centroid_x,
-                target_fight.centroid_y,
-                target_fight.centroid_n,
-                death_pos,
-            )
+    _close_remaining_teamfights(active, closed)
+    return sorted(closed, key=lambda f: f.start_tick), death_fight
 
-    # Close any fights still active at end of log.
-    for f in active:
-        f.end_tick = f.last_death_tick + _COOLDOWN_TICKS
-        closed.append(f)
 
-    fights = sorted(closed, key=lambda f: f.start_tick)
+def _close_expired_teamfights(
+    active: list[Teamfight],
+    closed: list[Teamfight],
+    tick: int,
+) -> list[Teamfight]:
+    """Move active fights whose cooldown elapsed before ``tick`` into closed."""
+    still_active: list[Teamfight] = []
+    for fight in active:
+        if tick - fight.last_death_tick >= _COOLDOWN_TICKS:
+            fight.end_tick = fight.last_death_tick + _COOLDOWN_TICKS
+            closed.append(fight)
+        else:
+            still_active.append(fight)
+    return still_active
 
-    if not fights:
-        return []
 
-    # --- Pass 2: populate per-player stats ----------------------------------
+def _close_remaining_teamfights(active: list[Teamfight], closed: list[Teamfight]) -> None:
+    """Close fights still active at end of log."""
+    for fight in active:
+        fight.end_tick = fight.last_death_tick + _COOLDOWN_TICKS
+        closed.append(fight)
+
+
+def _death_position(
+    entry: CombatLogEntry,
+    hero_to_slot: dict[str, int],
+    player_snapshots: dict[int, list[PlayerStateSnapshot]] | None,
+) -> tuple[float, float] | None:
+    """Resolve the dying hero's position from the nearest snapshot."""
+    if not player_snapshots:
+        return None
+    target_slot = hero_to_slot.get(entry.target_name)
+    if target_slot is None:
+        return None
+    return _nearest_pos(player_snapshots.get(target_slot, []), entry.tick)
+
+
+def _select_teamfight_for_death(
+    active: list[Teamfight],
+    death_pos: tuple[float, float] | None,
+) -> Teamfight | None:
+    """Find the best active fight to absorb a death into."""
+    if not active:
+        return None
+    if death_pos is None:
+        # No position data for this death — fall back to temporal-only:
+        # absorb into the most recently active fight.
+        return max(active, key=lambda f: f.last_death_tick)
+
+    # Spatial mode: pick the closest fight centroid within radius.
+    # Fights without a centroid (position unavailable for all their deaths so
+    # far) are treated as infinitely far — never absorb into them when we have
+    # position data for the current death.
+    best_dist = _FIGHT_RADIUS
+    target_fight: Teamfight | None = None
+    for fight in active:
+        if fight.centroid_x is not None and fight.centroid_y is not None:
+            distance = math.dist(death_pos, (fight.centroid_x, fight.centroid_y))
+            if distance < best_dist:
+                best_dist = distance
+                target_fight = fight
+    return target_fight
+
+
+def _new_teamfight(entry: CombatLogEntry) -> Teamfight:
+    """Open a new teamfight window from a counted death entry."""
+    return Teamfight(
+        start_tick=max(0, entry.tick - _COOLDOWN_TICKS),
+        end_tick=0,
+        last_death_tick=entry.tick,
+        deaths=0,
+        first_death_tick=entry.tick,
+        players=[TeamfightPlayer(player_id=i) for i in range(10)],
+    )
+
+
+def _record_teamfight_death(
+    fight: Teamfight,
+    entry: CombatLogEntry,
+    death_pos: tuple[float, float] | None,
+    death_fight: dict[int, Teamfight],
+) -> None:
+    """Record a counted death on its selected fight window."""
+    fight.last_death_tick = entry.tick
+    fight.deaths += 1
+    death_fight[id(entry)] = fight
+
+    # Update the fight's running centroid with this death's position. The
+    # divisor is the count of *positioned* deaths (centroid_n), not the total
+    # death count, so position-less deaths don't bias the incremental mean.
+    if death_pos is not None:
+        fight.centroid_n += 1
+        fight.centroid_x, fight.centroid_y = _update_centroid(
+            fight.centroid_x,
+            fight.centroid_y,
+            fight.centroid_n,
+            death_pos,
+        )
+
+
+def _populate_teamfight_player_stats(
+    fights: list[Teamfight],
+    entries: list[CombatLogEntry],
+    death_fight: dict[int, Teamfight],
+    hero_to_slot: dict[str, int],
+    player_snapshots: dict[int, list[PlayerStateSnapshot]] | None,
+    slot_to_team: dict[int, int] | None,
+) -> None:
+    """Populate per-player stats for detected teamfight windows."""
     # DEATH and BUYBACK are attributed by single fight membership, NOT by
     # re-checking position in this pass:
     #   - a death is credited to the exact fight pass 1 absorbed it into
@@ -313,113 +390,153 @@ def detect_teamfights(
     # so heroes elsewhere on the map and overlapping parallel windows don't get
     # mis-credited; ``_near_fight`` falls back to True with no position data.
     for entry in entries:
-        # DEATH is attributed once, to its pass-1 fight, outside the per-fight
-        # loop below (no window/position re-check).
         if entry.log_type == "DEATH":
-            fight = death_fight.get(id(entry))
-            if fight is None:
-                continue
-            tgt_slot = h2s.get(entry.target_name)
-            if tgt_slot is None:
-                continue
-            fight.players[tgt_slot].deaths += 1
-            # A Radiant hero dying = a kill for Dire, and vice versa.
-            if slot_to_team:
-                dying_team = slot_to_team.get(tgt_slot, 0)
-                if dying_team == 2:
-                    fight.dire_kills += 1
-                elif dying_team == 3:
-                    fight.radiant_kills += 1
+            _populate_teamfight_death(entry, death_fight, hero_to_slot, slot_to_team)
             continue
-
-        # BUYBACK is attributed to the single fight whose window contains it (the
-        # player is typically at fountain, so no position guard).
         if entry.log_type == "BUYBACK":
-            bslot = entry.value  # buyback value = player slot
-            if not (isinstance(bslot, int) and 0 <= bslot < 10):
-                continue
-            for fight in fights:
-                if fight.start_tick <= entry.tick <= fight.end_tick:
-                    fight.players[bslot].buybacks += 1
-                    break
+            _populate_teamfight_buyback(fights, entry)
             continue
+        _populate_teamfight_window_events(fights, entry, hero_to_slot, player_snapshots)
 
-        for fight in fights:
-            if entry.tick < fight.start_tick or entry.tick > fight.end_tick:
-                continue
 
-            atk_slot = h2s.get(entry.attacker_name)
-            tgt_slot = h2s.get(entry.target_name)
-
-            if entry.log_type == "DAMAGE":
-                if entry.target_is_hero and not entry.target_is_illusion and entry.attacker_is_hero:
-                    if atk_slot is not None and _near_fight(
-                        atk_slot, entry.tick, fight, player_snapshots
-                    ):
-                        fight.players[atk_slot].damage_dealt += entry.value
-                    if tgt_slot is not None and _near_fight(
-                        tgt_slot, entry.tick, fight, player_snapshots
-                    ):
-                        fight.players[tgt_slot].damage_taken += entry.value
-
-            elif entry.log_type == "HEAL":
-                # Only count healing dealt to a different allied hero (not self-heals from consumables)
-                if (
-                    entry.target_is_hero
-                    and not entry.target_is_illusion
-                    and entry.attacker_is_hero
-                    and entry.attacker_name != entry.target_name
-                    and atk_slot is not None
-                    and _near_fight(atk_slot, entry.tick, fight, player_snapshots)
-                ):
-                    fight.players[atk_slot].healing += entry.value
-
-            elif entry.log_type == "GOLD":
-                # Gold is credited to the *recipient*, which the combat log
-                # stores in target_name (not the attacker). Matches OpenDota and
-                # gem's own combat aggregator (see combat/aggregator.py GOLD).
-                if tgt_slot is not None and _near_fight(
-                    tgt_slot, entry.tick, fight, player_snapshots
-                ):
-                    fight.players[tgt_slot].gold_delta += entry.value
-
-            elif entry.log_type in ("ABILITY", "ITEM") and (
-                entry.attacker_is_hero
-                and not entry.attacker_is_illusion
-                and atk_slot is not None
-                and entry.inflictor_name
-                and _near_fight(atk_slot, entry.tick, fight, player_snapshots)
-            ):
-                uses = (
-                    fight.players[atk_slot].ability_uses
-                    if entry.log_type == "ABILITY"
-                    else fight.players[atk_slot].item_uses
-                )
-                uses[entry.inflictor_name] = uses.get(entry.inflictor_name, 0) + 1
-
-    # --- Pass 3: XP deltas from snapshots -----------------------------------
-    if player_snapshots:
-        for fight in fights:
-            for pid, snaps in player_snapshots.items():
-                if not snaps or pid >= 10:
-                    continue
-                xp_start = _nearest_xp(snaps, fight.start_tick)
-                xp_end = _nearest_xp(snaps, fight.end_tick)
-                if xp_start is not None and xp_end is not None:
-                    fight.players[pid].xp_delta = max(0, xp_end - xp_start)
-
-    # --- Pass 4: compute winner from kill counts ----------------------------
+def _populate_teamfight_death(
+    entry: CombatLogEntry,
+    death_fight: dict[int, Teamfight],
+    hero_to_slot: dict[str, int],
+    slot_to_team: dict[int, int] | None,
+) -> None:
+    """Attribute a death to the exact fight selected during window detection."""
+    fight = death_fight.get(id(entry))
+    if fight is None:
+        return
+    target_slot = hero_to_slot.get(entry.target_name)
+    if target_slot is None:
+        return
+    fight.players[target_slot].deaths += 1
+    # A Radiant hero dying = a kill for Dire, and vice versa.
     if slot_to_team:
-        for fight in fights:
-            r, d = fight.radiant_kills, fight.dire_kills
-            if r > d:
-                fight.winner = "radiant"
-            elif d > r:
-                fight.winner = "dire"
-            else:
-                fight.winner = "draw"
+        dying_team = slot_to_team.get(target_slot, 0)
+        if dying_team == 2:
+            fight.dire_kills += 1
+        elif dying_team == 3:
+            fight.radiant_kills += 1
 
-    return fights
+
+def _populate_teamfight_buyback(fights: list[Teamfight], entry: CombatLogEntry) -> None:
+    """Attribute a buyback to the first fight window containing its tick."""
+    # BUYBACK is attributed to the single fight whose window contains it (the
+    # player is typically at fountain, so no position guard).
+    buyback_slot = entry.value  # buyback value = player slot
+    if not (isinstance(buyback_slot, int) and 0 <= buyback_slot < 10):
+        return
+    for fight in fights:
+        if fight.start_tick <= entry.tick <= fight.end_tick:
+            fight.players[buyback_slot].buybacks += 1
+            break
+
+
+def _populate_teamfight_window_events(
+    fights: list[Teamfight],
+    entry: CombatLogEntry,
+    hero_to_slot: dict[str, int],
+    player_snapshots: dict[int, list[PlayerStateSnapshot]] | None,
+) -> None:
+    """Attribute non-death/non-buyback events to fight windows."""
+    for fight in fights:
+        if entry.tick < fight.start_tick or entry.tick > fight.end_tick:
+            continue
+        _populate_teamfight_window_event(fight, entry, hero_to_slot, player_snapshots)
+
+
+def _populate_teamfight_window_event(
+    fight: Teamfight,
+    entry: CombatLogEntry,
+    hero_to_slot: dict[str, int],
+    player_snapshots: dict[int, list[PlayerStateSnapshot]] | None,
+) -> None:
+    """Attribute a single in-window event to a fight's player rows."""
+    attacker_slot = hero_to_slot.get(entry.attacker_name)
+    target_slot = hero_to_slot.get(entry.target_name)
+
+    if entry.log_type == "DAMAGE":
+        if entry.target_is_hero and not entry.target_is_illusion and entry.attacker_is_hero:
+            if attacker_slot is not None and _near_fight(
+                attacker_slot, entry.tick, fight, player_snapshots
+            ):
+                fight.players[attacker_slot].damage_dealt += entry.value
+            if target_slot is not None and _near_fight(
+                target_slot, entry.tick, fight, player_snapshots
+            ):
+                fight.players[target_slot].damage_taken += entry.value
+
+    elif entry.log_type == "HEAL":
+        # Only count healing dealt to a different allied hero (not self-heals from consumables)
+        if (
+            entry.target_is_hero
+            and not entry.target_is_illusion
+            and entry.attacker_is_hero
+            and entry.attacker_name != entry.target_name
+            and attacker_slot is not None
+            and _near_fight(attacker_slot, entry.tick, fight, player_snapshots)
+        ):
+            fight.players[attacker_slot].healing += entry.value
+
+    elif entry.log_type == "GOLD":
+        # Gold is credited to the *recipient*, which the combat log stores in
+        # target_name (not the attacker). Matches OpenDota and gem's own combat
+        # aggregator (see combat/aggregator.py GOLD).
+        if target_slot is not None and _near_fight(
+            target_slot, entry.tick, fight, player_snapshots
+        ):
+            fight.players[target_slot].gold_delta += entry.value
+
+    elif entry.log_type in ("ABILITY", "ITEM") and (
+        entry.attacker_is_hero
+        and not entry.attacker_is_illusion
+        and attacker_slot is not None
+        and entry.inflictor_name
+        and _near_fight(attacker_slot, entry.tick, fight, player_snapshots)
+    ):
+        uses = (
+            fight.players[attacker_slot].ability_uses
+            if entry.log_type == "ABILITY"
+            else fight.players[attacker_slot].item_uses
+        )
+        uses[entry.inflictor_name] = uses.get(entry.inflictor_name, 0) + 1
+
+
+def _populate_teamfight_xp_deltas(
+    fights: list[Teamfight],
+    player_snapshots: dict[int, list[PlayerStateSnapshot]] | None,
+) -> None:
+    """Populate XP deltas from snapshots for each fight/player."""
+    if not player_snapshots:
+        return
+    for fight in fights:
+        for player_id, snaps in player_snapshots.items():
+            if not snaps or player_id >= 10:
+                continue
+            xp_start = _nearest_xp(snaps, fight.start_tick)
+            xp_end = _nearest_xp(snaps, fight.end_tick)
+            if xp_start is not None and xp_end is not None:
+                fight.players[player_id].xp_delta = max(0, xp_end - xp_start)
+
+
+def _populate_teamfight_winners(
+    fights: list[Teamfight],
+    slot_to_team: dict[int, int] | None,
+) -> None:
+    """Populate winner labels from Radiant/Dire kill counts."""
+    if not slot_to_team:
+        return
+    for fight in fights:
+        radiant_kills, dire_kills = fight.radiant_kills, fight.dire_kills
+        if radiant_kills > dire_kills:
+            fight.winner = "radiant"
+        elif dire_kills > radiant_kills:
+            fight.winner = "dire"
+        else:
+            fight.winner = "draw"
 
 
 def detect_opendota_teamfights(
