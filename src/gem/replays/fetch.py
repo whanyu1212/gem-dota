@@ -15,9 +15,14 @@ from __future__ import annotations
 
 import bz2
 import json
+import os
+import shutil
 import ssl
+import stat
+import tempfile
 import urllib.parse
 import urllib.request
+from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -28,6 +33,24 @@ OPENDOTA_API = "https://api.opendota.com/api/matches"
 
 # Use the platform trust store and hostname verification for OpenDota/CDN HTTPS.
 _SSL_CONTEXT = ssl.create_default_context()
+
+# Copy in bounded chunks so large 100-300 MB replay archives are never held fully
+# in memory during download or decompression.
+_DOWNLOAD_CHUNK_SIZE = 1024 * 1024
+
+
+def _default_replay_file_mode() -> int:
+    """Return the normal file mode a new replay should get under the process umask."""
+    current_umask = os.umask(0)
+    os.umask(current_umask)
+    return 0o666 & ~current_umask
+
+
+def _target_replay_file_mode(dem_path: Path) -> int:
+    """Return the final replay mode, preserving existing files when replacing."""
+    with suppress(FileNotFoundError):
+        return stat.S_IMODE(dem_path.stat().st_mode)
+    return _default_replay_file_mode()
 
 
 def _normalize_replay_url(replay_url: str) -> str:
@@ -98,16 +121,34 @@ def download_and_decompress(match_id: int, replay_url: str, out_dir: Path | str 
     out_dir.mkdir(parents=True, exist_ok=True)
 
     dem_path = out_dir / f"{match_id}.dem"
-    bz2_path = out_dir / f"{match_id}.dem.bz2"
+    temp_path: Path | None = None
+    file_mode = _target_replay_file_mode(dem_path)
 
     replay_url = _normalize_replay_url(replay_url)
     req = urllib.request.Request(replay_url, headers={"User-Agent": "Mozilla/5.0"})
-    # Larger timeout than the JSON API calls: a full replay is 100-300 MB.
-    with urllib.request.urlopen(req, context=_SSL_CONTEXT, timeout=120) as resp:
-        bz2_path.write_bytes(resp.read())
+    try:
+        # Larger timeout than the JSON API calls: a full replay is 100-300 MB.
+        with (
+            urllib.request.urlopen(req, context=_SSL_CONTEXT, timeout=120) as resp,
+            tempfile.NamedTemporaryFile(
+                "wb",
+                dir=out_dir,
+                prefix=f".{match_id}.dem.",
+                suffix=".tmp",
+                delete=False,
+            ) as tmp,
+            bz2.BZ2File(resp) as decompressed,
+        ):
+            temp_path = Path(tmp.name)
+            shutil.copyfileobj(decompressed, tmp, length=_DOWNLOAD_CHUNK_SIZE)
 
-    dem_path.write_bytes(bz2.decompress(bz2_path.read_bytes()))
-    bz2_path.unlink()
+        temp_path.chmod(file_mode)
+        temp_path.replace(dem_path)
+    except Exception:
+        if temp_path is not None:
+            with suppress(FileNotFoundError):
+                temp_path.unlink()
+        raise
 
     return dem_path
 

@@ -27,6 +27,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Empty and heterogeneous `build_dataframes()` tables now preserve declared columns,
   avoiding KeyErrors and inconsistent export schemas when a match has no rows or
   only a subset of event row types.
+- Replay downloads now stream `.bz2` decompression directly to an atomic temporary
+  `.dem` file, preserve normal final-file permissions, and leave any existing
+  final replay untouched if download or decompression fails.
 - Replay download and report asset download helpers now use verified HTTPS/TLS
   contexts instead of disabling certificate and hostname verification; Valve
   replay URLs returned as plain `http://` are upgraded to HTTPS, and other
