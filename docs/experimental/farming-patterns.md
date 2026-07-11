@@ -78,9 +78,9 @@ Instead of saying "nearest camp center wins", gem asks whether a hero sample fal
 
 ### 2. Build route segments from hero movement
 
-Hero movement is read from `player.position_log`.
+Hero movement is read from `player.position_log`. Farming analysis starts at **10:00** (`game_start_tick + 10 * TICKS_PER_MIN`). The first 10 minutes (laning phase, pulls/stacks) are deliberately excluded — those are covered by lane role classification (`lane.py`, `_LANE_WINDOW`) and lane efficiency. This avoids labelling early support play as `Safe Home Farm` (where `tower_diff=0`, `winning=False` makes labels noise).
 
-A route segment is created when a hero spends time moving through or around a camp zone. The feature no longer tries to draw a strict binary line between "actual farm" and "transit" because, for route analysis, both often express the same strategic intent: this is space the hero is using.
+A route segment is created when a hero spends time moving through or around a camp zone after the 10-minute cutoff. The feature no longer tries to draw a strict binary line between "actual farm" and "transit" because, for route analysis, both often express the same strategic intent: this is space the hero is using.
 
 Support signals are still recorded when available:
 

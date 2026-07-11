@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Farming Patterns tab now starts at **10:00** (`game_start_tick + 10 min`) to avoid labelling early laning pulls/stacks as farming patterns (which collapsed to `Safe Home Farm` with no signal). Laning phase remains covered by lane role + efficiency. Report note updated accordingly (`vision.py:_FARMING_LANE_CUTOFF_TICKS`).
 - **Breaking:** Replay parsing now fails loudly by default: `ReplayParser.parse()`
   and high-level `gem.parse()` re-raise stream/decoder/extractor errors after
   recording them on `parse_error` / `truncated_at_tick`. Pass

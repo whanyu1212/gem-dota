@@ -23,6 +23,7 @@ from gem.reports._formatting import (
     MAP_YMAX,
     MAP_YMIN,
     TEAM_COLOR_CSS,
+    TICKS_PER_MIN,
     TICKS_PER_SEC,
     e,
     fmt_tick,
@@ -731,6 +732,11 @@ _FARM_CAMP_COLORS: dict[str, str] = {
 
 _FARM_TEAM_TRAIL: dict[int, str] = {2: "#7ee787", 3: "#ff7b72"}
 
+# Laning phase (0-10 min) is handled by lane.py / lane efficiency. Farming
+# patterns start after that window to avoid labelling pulls/stacks as
+# `Safe Home Farm` etc. which carries no signal (tower_diff=0, winning=False).
+_FARMING_LANE_CUTOFF_TICKS: int = 10 * TICKS_PER_MIN
+
 
 def _load_camp_zones() -> dict:
     try:
@@ -1332,6 +1338,10 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
         3: build_map_context_timeline(match, 3),
     }
 
+    # Farming analysis starts after laning (10:00) to avoid labelling pulls /
+    # stacks as farming patterns. Laning is covered by lane role + efficiency.
+    farming_start_tick = (match.game_start_tick or 0) + _FARMING_LANE_CUTOFF_TICKS
+
     panels: list[str] = []
     options: list[str] = []
     for idx, player in enumerate(players):
@@ -1340,14 +1350,14 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
             player,
             camps,
             team_context.get(player.team, []),
-            min_tick=match.game_start_tick or 0,
+            min_tick=farming_start_tick,
         )
         map_svg, timeline_points = _build_farming_map_svg(
             player=player,
             camps=camps,
             visits=visits,
             map_b64=map_b64,
-            start_tick=match.game_start_tick or 0,
+            start_tick=farming_start_tick,
         )
 
         option_label = (
@@ -1616,7 +1626,8 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
         '<div class="card-body">'
         '<p class="section-note">'
         "Camp-path segments are inferred from time spent routing through camp zones. "
-        "Neutral interaction and XP are supporting signals, not requirements. "
+        "Farming analysis starts at <b>10:00</b> — early laning phase (pulls/stacks) is excluded; "
+        "see the Laning tab for 0-10 min. Neutral interaction and XP are supporting signals, not requirements. "
         "Short route touches can introduce some noise, so use playback to judge exact pathing. "
         "Context labels are objective-aware heuristics, not true fog-of-war ground truth."
         "</p>"
