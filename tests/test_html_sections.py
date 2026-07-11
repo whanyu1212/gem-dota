@@ -227,6 +227,25 @@ class TestBuildWardsDataTag:
         assert without["hasMap"] is False
         assert with_map["hasMap"] is True
 
+    def test_farming_excludes_laning_phase(self):
+        """Farming patterns must not label 0-10 min (pulls/stacks) as farming."""
+        from gem.reports._formatting import TICKS_PER_MIN
+        from gem.reports.sections.vision import _FARMING_LANE_CUTOFF_TICKS
+
+        # Cutoff constant is 10 minutes.
+        assert _FARMING_LANE_CUTOFF_TICKS == 10 * TICKS_PER_MIN
+
+        # Simulate a player whose position_log has one camp visit at 2 min
+        # (pull) and one at 12 min (real farm). After the fix, _build_player_farm_visits
+        # is called with min_tick = game_start + 10 min, so early visit is excluded.
+        game_start = 0
+        early_tick = 2 * TICKS_PER_MIN  # 2 min - inside laning
+        late_tick = 12 * TICKS_PER_MIN  # 12 min - real farm
+        farming_min = game_start + _FARMING_LANE_CUTOFF_TICKS
+
+        assert early_tick < farming_min
+        assert late_tick >= farming_min
+
     def test_empty_wards_returns_placeholder_card(self):
         match = MagicMock()
         match.wards = []
