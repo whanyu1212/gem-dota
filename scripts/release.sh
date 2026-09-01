@@ -59,6 +59,8 @@ path.write_text(new_text, encoding="utf-8")
 print(f"Updated pyproject.toml version -> {version}")
 PY
 
+uv lock
+
 echo "Running quick checks..."
 uv run ruff check src tests examples scripts
 uv run mypy src/gem/
@@ -67,7 +69,7 @@ uv run pytest tests/ -m "not integration" -q
 echo "Building dist artifacts..."
 uv build
 
-git add pyproject.toml CHANGELOG.md
+git add pyproject.toml CHANGELOG.md uv.lock
 git commit -m "chore(release): v$VERSION"
 git tag "v$VERSION"
 
