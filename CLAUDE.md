@@ -386,7 +386,7 @@ Key message classes used throughout the parser:
 
 ## Status
 
-Current version: **0.5.0** (see `pyproject.toml` and `CHANGELOG.md`).
+Current version: **0.5.1** (see `pyproject.toml` and `CHANGELOG.md`).
 
 The full parsing pipeline and all extractors are complete and stable: binary
 reader, entity system, combat log (S1+S2), string tables, every extractor, the

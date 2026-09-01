@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-09-02
+
+Restores replay downloads for current Valve CDN archives while preserving
+support for older replays.
+
 ### Fixed
 - **`fetch_replay` on Zstandard replays.** Valve switched replay compression from
   bzip2 to Zstandard around late July 2026 while keeping the `.dem.bz2` URL
@@ -537,7 +542,12 @@ combat-log layers. The supported top-level API (`gem.parse`, `gem.ParsedMatch`,
 - CLI and example scripts, including HTML match report.
 - Validation, fuzzing, and parser robustness foundations.
 
-[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/whanyu1212/gem-dota/compare/v0.5.0...v0.5.1
+[0.5.0]: https://github.com/whanyu1212/gem-dota/compare/v0.4.3...v0.5.0
+[0.4.3]: https://github.com/whanyu1212/gem-dota/compare/v0.4.2...v0.4.3
+[0.4.2]: https://github.com/whanyu1212/gem-dota/compare/v0.4.1...v0.4.2
+[0.4.1]: https://github.com/whanyu1212/gem-dota/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/whanyu1212/gem-dota/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/whanyu1212/gem-dota/compare/v0.2.8...v0.3.0
 [0.2.8]: https://github.com/whanyu1212/gem-dota/compare/v0.2.7...v0.2.8
