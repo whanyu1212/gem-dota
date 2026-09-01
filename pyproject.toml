@@ -30,6 +30,7 @@ dependencies = [
     "protobuf>=7.34.0",
     "protoc-wheel-0>=30.2",
     "python-snappy>=0.7.3",
+    "zstandard>=0.25.0",
 ]
 
 [project.urls]

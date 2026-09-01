@@ -2,6 +2,8 @@
 
 Fetches replay URLs from the OpenDota API and downloads ``.dem.bz2`` files
 from the Valve CDN, decompressing them to ``.dem`` files ready for parsing.
+Valve serves both bzip2 and Zstandard archives under the ``.bz2`` extension,
+so the format is detected from the payload's magic bytes rather than the name.
 
 Example::
 
@@ -14,6 +16,7 @@ Example::
 from __future__ import annotations
 
 import bz2
+import io
 import json
 import ssl
 import urllib.request
@@ -65,6 +68,45 @@ def fetch_replay_url(match_id: int) -> str:
     return replay_url
 
 
+# Valve serves both formats under the same ``.dem.bz2`` URL (the switch to
+# Zstandard landed mid-2026), so the extension does not identify the archive.
+_BZIP2_MAGIC = b"BZh"
+_ZSTD_MAGIC = b"\x28\xb5\x2f\xfd"
+
+
+def _decompress_replay(payload: bytes) -> bytes:
+    """Decompress a downloaded replay archive, detecting its format.
+
+    Args:
+        payload: Raw bytes of the downloaded ``.dem.bz2`` archive, which may be
+            either a bzip2 or a Zstandard stream.
+
+    Returns:
+        The decompressed ``.dem`` bytes.
+
+    Raises:
+        RuntimeError: If the payload is Zstandard but the ``zstandard`` package
+            is unavailable, or if the payload is in neither known format.
+    """
+    if payload.startswith(_BZIP2_MAGIC):
+        return bz2.decompress(payload)
+    if payload.startswith(_ZSTD_MAGIC):
+        try:
+            import zstandard
+        except ImportError as exc:  # pragma: no cover - depends on install extras
+            raise RuntimeError(
+                "Replay archive is Zstandard-compressed but the 'zstandard' package "
+                "is not installed. Install it with: pip install zstandard"
+            ) from exc
+        # stream_reader avoids the one-shot decompress() size cap: replay frames
+        # do not carry a content-size header.
+        with zstandard.ZstdDecompressor().stream_reader(io.BytesIO(payload)) as reader:
+            return reader.read()
+    raise RuntimeError(
+        f"Replay archive is neither bzip2 nor Zstandard (magic bytes: {payload[:4].hex(' ')})"
+    )
+
+
 def download_and_decompress(match_id: int, replay_url: str, out_dir: Path | str = ".") -> Path:
     """Download and decompress a replay .dem.bz2 to out_dir/<match_id>.dem.
 
@@ -88,7 +130,7 @@ def download_and_decompress(match_id: int, replay_url: str, out_dir: Path | str 
     with urllib.request.urlopen(req, context=_SSL_CONTEXT, timeout=120) as resp:
         bz2_path.write_bytes(resp.read())
 
-    dem_path.write_bytes(bz2.decompress(bz2_path.read_bytes()))
+    dem_path.write_bytes(_decompress_replay(bz2_path.read_bytes()))
     bz2_path.unlink()
 
     return dem_path
