@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **`fetch_replay` on Zstandard replays.** Valve switched replay compression from
+  bzip2 to Zstandard around late July 2026 while keeping the `.dem.bz2` URL
+  extension, so `download_and_decompress` raised
+  `OSError: Invalid data stream` on newer matches. The archive format is now
+  detected from the payload's magic bytes (`BZh` vs `28 b5 2f fd`) instead of the
+  filename, and both formats decompress correctly. Adds a `zstandard` dependency.
+  Thanks to @codeturtleam for the report ([#137](https://github.com/whanyu1212/gem-dota/issues/137)).
+
 ## [0.5.0] - 2026-06-28
 
 Extends the Roshan conversion analysis beyond the Aegis. Non-Aegis Roshan drops
