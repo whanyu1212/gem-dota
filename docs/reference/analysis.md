@@ -752,7 +752,7 @@ def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]
 
 Summarise how well each Roshan was converted into advantage.
 
-Source: [src/gem/analysis/roshan.py:365](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L365)
+Source: [src/gem/analysis/roshan.py:471](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L471)
 
 ### Top-level classes
 
@@ -764,7 +764,7 @@ class RoshTimelineEvent
 
 One notable event inside a Roshan conversion sequence.
 
-Source: [src/gem/analysis/roshan.py:34](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L34)
+Source: [src/gem/analysis/roshan.py:63](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L63)
 
 #### Dataclass fields
 
@@ -782,7 +782,7 @@ class RoshConversion
 
 Derived summary for one Roshan kill and the advantage window that followed.
 
-Source: [src/gem/analysis/roshan.py:55](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L55)
+Source: [src/gem/analysis/roshan.py:84](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L84)
 
 #### Dataclass fields
 
@@ -818,3 +818,8 @@ Source: [src/gem/analysis/roshan.py:55](https://github.com/whanyu1212/gem-dota/b
 | `aegis_outcome` | `Literal['consumed_in_fight', 'expired_after_use', 'expired_unused', 'denied', 'window_lost', 'game_ended', 'unknown']` | `-` |
 | `drivers` | `list[str]` | `field(...)` |
 | `timeline_events` | `list[RoshTimelineEvent]` | `field(...)` |
+| `drops` | `list[str]` | `field(...)` |
+| `had_high_value_drop` | `bool` | `False` |
+| `banner_planted` | `bool` | `False` |
+| `banner_rax_conversion` | `bool` | `False` |
+| `banner_rax_lane` | `str \| None` | `None` |
