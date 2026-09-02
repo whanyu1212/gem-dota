@@ -516,6 +516,15 @@ class ParsedPlayer:
     # Append-only: ParsedPlayer is a public dataclass and supports positional
     # construction, so new fields go last to avoid shifting existing callers.
     game_times_min: list[int] = field(default_factory=list)
+    # Internal provenance for values copied from CMsgDOTAMatch. The serializer
+    # omits this implementation detail from the public ParsedPlayer shape.
+    _match_details_fields: set[str] = field(
+        default_factory=set,
+        init=False,
+        repr=False,
+        compare=False,
+        metadata={"serialize": False},
+    )
 
     def __repr__(self) -> str:
         hero = self.hero_name.removeprefix("npc_dota_hero_") if self.hero_name else "unknown"
@@ -666,6 +675,14 @@ class ParsedMatch:
     # inserting them there would silently misalign positional callers.)
     banner_plants: list[BannerPlant] = field(default_factory=list)
     game_times_min: list[int] = field(default_factory=list)
+    # Internal provenance for match-level values copied from CMsgDOTAMatch.
+    _match_details_fields: set[str] = field(
+        default_factory=set,
+        init=False,
+        repr=False,
+        compare=False,
+        metadata={"serialize": False},
+    )
 
     @property
     def duration_seconds(self) -> float:

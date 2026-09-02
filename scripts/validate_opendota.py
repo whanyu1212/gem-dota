@@ -434,6 +434,10 @@ _POSTGAME_SUMMARY_NOTE = (
     "Exact comparison of the replay-embedded CMsgDOTAMatch postgame summary "
     "with OpenDota's corresponding Game Coordinator scalar."
 )
+_POSTGAME_SUMMARY_MISSING_NOTE = (
+    "Exact comparison skipped because this replay did not embed the corresponding "
+    "CMsgDOTAMatch field; gem retained its documented fallback value."
+)
 
 _NET_WORTH_TOLERANCE = 0.08
 # Advantage and player minute curves: gem decodes CNETMsg_Tick, samples minute
@@ -714,13 +718,14 @@ def validate_match(
     od_dir_status = od.get("tower_status_dire", 0x7FF)
     od_tower_kills = bin(0x7FF ^ od_rad_status).count("1") + bin(0x7FF ^ od_dir_status).count("1")
     result.match_fields.append(FieldResult("tower_kills", gem_tower_kills, od_tower_kills))
+    exact_duration = "duration" in getattr(m, "_match_details_fields", ())
     result.match_fields.append(
         FieldResult(
             "duration",
             m.duration,
             od.get("duration"),
-            skip=od.get("duration") is None,
-            note=_POSTGAME_SUMMARY_NOTE,
+            skip=od.get("duration") is None or not exact_duration,
+            note=(_POSTGAME_SUMMARY_NOTE if exact_duration else _POSTGAME_SUMMARY_MISSING_NOTE),
         )
     )
 
@@ -870,13 +875,16 @@ def validate_match(
             "total_xp",
         ):
             reference_value = od_player.get(field_name)
+            exact_field = field_name in getattr(gp, "_match_details_fields", ())
             fields.append(
                 FieldResult(
                     f"{label}/{field_name}",
                     getattr(gp, field_name),
                     reference_value,
-                    skip=reference_value is None,
-                    note=_POSTGAME_SUMMARY_NOTE,
+                    skip=reference_value is None or not exact_field,
+                    note=(
+                        _POSTGAME_SUMMARY_NOTE if exact_field else _POSTGAME_SUMMARY_MISSING_NOTE
+                    ),
                 )
             )
 

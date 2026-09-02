@@ -55,6 +55,16 @@ class TestSerializationHelpers:
         assert data["opendota_teamfights"][0]["start"] == 10
         assert data["opendota_teamfights"][0]["players"][0]["damage"] == 0
 
+    def test_to_dict_omits_internal_match_details_provenance(self):
+        match = ParsedMatch(match_id=7)
+        match._match_details_fields.add("duration")
+        match.players[0]._match_details_fields.add("hero_damage")
+
+        data = gem.to_dict(match)
+
+        assert "_match_details_fields" not in data
+        assert "_match_details_fields" not in data["players"][0]
+
     def test_parse_to_json_uses_parse_result(self, monkeypatch):
         fake_match = ParsedMatch(match_id=999)
 

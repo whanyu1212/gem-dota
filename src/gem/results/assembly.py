@@ -71,11 +71,14 @@ def _apply_match_details_scalars(match: ParsedMatch, details: CMsgDOTAMatch | No
 
     Proto2 presence checks are intentional: an explicitly encoded zero is an
     authoritative result, while an absent field leaves the existing replay
-    reconstruction/default untouched. This keeps truncated and older replays on
-    their current fallback path.
+    reconstruction/default untouched. Internal per-field provenance lets the
+    validator distinguish these exact values from fallbacks without changing
+    the public serialized output.
     """
     if details is None:
         return
+    if details.HasField("duration"):
+        match._match_details_fields.add("duration")
 
     for source in details.players:
         if not source.HasField("player_slot"):
@@ -88,13 +91,20 @@ def _apply_match_details_scalars(match: ParsedMatch, details: CMsgDOTAMatch | No
         for field_name in ("hero_damage", "tower_damage", "hero_healing"):
             if source.HasField(field_name):
                 setattr(player, field_name, int(getattr(source, field_name)))
+                player._match_details_fields.add(field_name)
 
         if source.HasField("gold_per_min"):
             player.gold_per_min = int(source.gold_per_min)
             player.total_gold = (player.gold_per_min * match.duration) // 60
+            player._match_details_fields.add("gold_per_min")
+            if "duration" in match._match_details_fields:
+                player._match_details_fields.add("total_gold")
         if source.HasField("xp_per_min"):
             player.xp_per_min = int(source.xp_per_min)
             player.total_xp = (player.xp_per_min * match.duration) // 60
+            player._match_details_fields.add("xp_per_min")
+            if "duration" in match._match_details_fields:
+                player._match_details_fields.add("total_xp")
 
 
 def _tick_game_seconds(tick: int, game_start_tick: int | None) -> int:

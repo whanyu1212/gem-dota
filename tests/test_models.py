@@ -78,9 +78,9 @@ class TestParsedMatchFieldOrder:
     def test_additive_fields_remain_at_the_tail(self):
         import dataclasses
 
-        fields = [f.name for f in dataclasses.fields(ParsedMatch)]
+        fields = [f.name for f in dataclasses.fields(ParsedMatch) if f.init]
         assert fields[-2:] == ["banner_plants", "game_times_min"], (
-            "new ParsedMatch fields must be appended to preserve positional "
+            "new constructor fields must be appended to preserve positional "
             f"construction; current order tail: {fields[-3:]}"
         )
 
