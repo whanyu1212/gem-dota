@@ -1,5 +1,6 @@
 from . import steammessages_pb2 as _steammessages_pb2
 from . import dota_shared_enums_pb2 as _dota_shared_enums_pb2
+from . import events_pb2 as _events_pb2
 from . import dota_gcmessages_common_pb2 as _dota_gcmessages_common_pb2
 from . import dota_gcmessages_webapi_pb2 as _dota_gcmessages_webapi_pb2
 from . import gcsdk_gcmessages_pb2 as _gcsdk_gcmessages_pb2
@@ -88,17 +89,17 @@ class CMsgCandyShopRewardData_EventAction(_message.Message):
     __slots__ = ("event_id", "action_id")
     EVENT_ID_FIELD_NUMBER: _ClassVar[int]
     ACTION_ID_FIELD_NUMBER: _ClassVar[int]
-    event_id: _dota_shared_enums_pb2.EEvent
+    event_id: _events_pb2.EEvent
     action_id: int
-    def __init__(self, event_id: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ..., action_id: _Optional[int] = ...) -> None: ...
+    def __init__(self, event_id: _Optional[_Union[_events_pb2.EEvent, str]] = ..., action_id: _Optional[int] = ...) -> None: ...
 
 class CMsgCandyShopRewardData_EventPoints(_message.Message):
     __slots__ = ("event_id", "points")
     EVENT_ID_FIELD_NUMBER: _ClassVar[int]
     POINTS_FIELD_NUMBER: _ClassVar[int]
-    event_id: _dota_shared_enums_pb2.EEvent
+    event_id: _events_pb2.EEvent
     points: int
-    def __init__(self, event_id: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ..., points: _Optional[int] = ...) -> None: ...
+    def __init__(self, event_id: _Optional[_Union[_events_pb2.EEvent, str]] = ..., points: _Optional[int] = ...) -> None: ...
 
 class CMsgCandyShopReward(_message.Message):
     __slots__ = ("reward_id", "reward_option_id", "price", "reward_type", "item_data", "event_action_data", "event_points_data")

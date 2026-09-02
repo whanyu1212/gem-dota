@@ -2802,7 +2802,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CDOTAUserMsg_GiveItem</code> — fields: 4; oneofs: 0; nested messages: 0; nested enums: 1</summary>
+<summary><code>CDOTAUserMsg_GiveItem</code> — fields: 5; oneofs: 0; nested messages: 0; nested enums: 1</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -2813,6 +2813,7 @@ Expand any message to inspect all fields.
 | 2 | `receiver_ent_index` | `uint32` | `optional` |  | default = 16777215 |
 | 3 | `item_ent_index` | `uint32` | `optional` |  | default = 16777215 |
 | 4 | `give_status` | `.CDOTAUserMsg_GiveItem.EGiveStatus` | `optional` |  | default = Start |
+| 5 | `id` | `uint32` | `optional` |  |  |
 
 </details>
 

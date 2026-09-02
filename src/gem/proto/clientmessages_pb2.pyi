@@ -13,7 +13,6 @@ class EBaseClientMessages(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     CM_DevPaletteVisibilityChanged: _ClassVar[EBaseClientMessages]
     CM_WorldUIControllerHasPanelChanged: _ClassVar[EBaseClientMessages]
     CM_RotateAnchor: _ClassVar[EBaseClientMessages]
-    CM_ListenForResponseFound: _ClassVar[EBaseClientMessages]
     CM_MAX_BASE: _ClassVar[EBaseClientMessages]
 
 class EClientUIEvent(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
@@ -27,7 +26,6 @@ CM_ClientUIEvent: EBaseClientMessages
 CM_DevPaletteVisibilityChanged: EBaseClientMessages
 CM_WorldUIControllerHasPanelChanged: EBaseClientMessages
 CM_RotateAnchor: EBaseClientMessages
-CM_ListenForResponseFound: EBaseClientMessages
 CM_MAX_BASE: EBaseClientMessages
 EClientUIEvent_Invalid: EClientUIEvent
 EClientUIEvent_DialogFinished: EClientUIEvent
@@ -86,9 +84,3 @@ class CClientMsg_RotateAnchor(_message.Message):
     ANGLE_FIELD_NUMBER: _ClassVar[int]
     angle: float
     def __init__(self, angle: _Optional[float] = ...) -> None: ...
-
-class CClientMsg_ListenForResponseFound(_message.Message):
-    __slots__ = ("player_slot",)
-    PLAYER_SLOT_FIELD_NUMBER: _ClassVar[int]
-    player_slot: int
-    def __init__(self, player_slot: _Optional[int] = ...) -> None: ...

@@ -1,5 +1,6 @@
 from . import dota_commonmessages_pb2 as _dota_commonmessages_pb2
 from . import dota_shared_enums_pb2 as _dota_shared_enums_pb2
+from . import events_pb2 as _events_pb2
 from . import base_gcmessages_pb2 as _base_gcmessages_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
@@ -512,7 +513,7 @@ class CDOTAClientMsg_UpdateQuickBuy(_message.Message):
     def __init__(self, items: _Optional[_Iterable[_Union[CDOTAClientMsg_UpdateQuickBuyItem, _Mapping]]] = ..., goal_item_ability_ids: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CDOTAClientMsg_QuickBuyAction(_message.Message):
-    __slots__ = ("action", "item_ability_id", "slot_index", "purchaser_entindex", "new_slot_index", "top_level_item", "old_slot_ability_ids")
+    __slots__ = ("action", "item_ability_id", "slot_index", "purchaser_entindex", "new_slot_index", "top_level_item", "old_slot_ability_ids", "disable_buyback_protection_for_purchase")
     class EActionType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
         INVALID: _ClassVar[CDOTAClientMsg_QuickBuyAction.EActionType]
@@ -546,6 +547,7 @@ class CDOTAClientMsg_QuickBuyAction(_message.Message):
     NEW_SLOT_INDEX_FIELD_NUMBER: _ClassVar[int]
     TOP_LEVEL_ITEM_FIELD_NUMBER: _ClassVar[int]
     OLD_SLOT_ABILITY_IDS_FIELD_NUMBER: _ClassVar[int]
+    DISABLE_BUYBACK_PROTECTION_FOR_PURCHASE_FIELD_NUMBER: _ClassVar[int]
     action: CDOTAClientMsg_QuickBuyAction.EActionType
     item_ability_id: int
     slot_index: int
@@ -553,7 +555,8 @@ class CDOTAClientMsg_QuickBuyAction(_message.Message):
     new_slot_index: int
     top_level_item: bool
     old_slot_ability_ids: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(self, action: _Optional[_Union[CDOTAClientMsg_QuickBuyAction.EActionType, str]] = ..., item_ability_id: _Optional[int] = ..., slot_index: _Optional[int] = ..., purchaser_entindex: _Optional[int] = ..., new_slot_index: _Optional[int] = ..., top_level_item: bool = ..., old_slot_ability_ids: _Optional[_Iterable[int]] = ...) -> None: ...
+    disable_buyback_protection_for_purchase: bool
+    def __init__(self, action: _Optional[_Union[CDOTAClientMsg_QuickBuyAction.EActionType, str]] = ..., item_ability_id: _Optional[int] = ..., slot_index: _Optional[int] = ..., purchaser_entindex: _Optional[int] = ..., new_slot_index: _Optional[int] = ..., top_level_item: bool = ..., old_slot_ability_ids: _Optional[_Iterable[int]] = ..., disable_buyback_protection_for_purchase: bool = ...) -> None: ...
 
 class CDOTAClientMsg_RecordVote(_message.Message):
     __slots__ = ("choice_index",)
@@ -672,11 +675,11 @@ class CDOTAClientMsg_ChallengeReroll(_message.Message):
     SLOT_ID_FIELD_NUMBER: _ClassVar[int]
     SEQUENCE_ID_FIELD_NUMBER: _ClassVar[int]
     HERO_ID_FIELD_NUMBER: _ClassVar[int]
-    event_id: _dota_shared_enums_pb2.EEvent
+    event_id: _events_pb2.EEvent
     slot_id: int
     sequence_id: int
     hero_id: int
-    def __init__(self, event_id: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ..., slot_id: _Optional[int] = ..., sequence_id: _Optional[int] = ..., hero_id: _Optional[int] = ...) -> None: ...
+    def __init__(self, event_id: _Optional[_Union[_events_pb2.EEvent, str]] = ..., slot_id: _Optional[int] = ..., sequence_id: _Optional[int] = ..., hero_id: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_CoinWager(_message.Message):
     __slots__ = ("wager_amount",)

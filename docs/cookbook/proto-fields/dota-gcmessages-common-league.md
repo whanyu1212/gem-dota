@@ -47,7 +47,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgDOTALeagueNode.MatchDetails</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgDOTALeagueNode.MatchDetails</code> — fields: 3; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: `CMsgDOTALeagueNode`
 - Oneofs: *(none)*
@@ -56,6 +56,7 @@ Expand any message to inspect all fields.
 |---:|---|---|---|---|---|
 | 1 | `match_id` | `uint64` | `optional` |  |  |
 | 2 | `winning_team_id` | `uint32` | `optional` |  |  |
+| 3 | `duration` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -112,7 +113,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgDOTALeagueNodeGroup.TeamStanding</code> — fields: 15; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgDOTALeagueNodeGroup.TeamStanding</code> — fields: 16; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: `CMsgDOTALeagueNodeGroup`
 - Oneofs: *(none)*
@@ -134,6 +135,7 @@ Expand any message to inspect all fields.
 | 16 | `tiebreak_opponent_match_wins` | `uint32` | `optional` |  |  |
 | 17 | `tiebreak_opponent_game_win_pct` | `uint32` | `optional` |  |  |
 | 18 | `tiebreak_coinflip` | `uint32` | `optional` |  |  |
+| 19 | `tiebereak_average_game_length` | `uint32` | `optional` |  |  |
 
 </details>
 

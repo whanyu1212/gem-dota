@@ -1,6 +1,7 @@
 from . import steammessages_pb2 as _steammessages_pb2
 from . import gcsdk_gcmessages_pb2 as _gcsdk_gcmessages_pb2
 from . import dota_shared_enums_pb2 as _dota_shared_enums_pb2
+from . import events_pb2 as _events_pb2
 from . import dota_gcmessages_common_pb2 as _dota_gcmessages_common_pb2
 from . import dota_match_metadata_pb2 as _dota_match_metadata_pb2
 from google.protobuf.internal import containers as _containers

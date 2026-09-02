@@ -1,5 +1,6 @@
 from . import steammessages_pb2 as _steammessages_pb2
 from . import dota_shared_enums_pb2 as _dota_shared_enums_pb2
+from . import events_pb2 as _events_pb2
 from . import dota_client_enums_pb2 as _dota_client_enums_pb2
 from . import base_gcmessages_pb2 as _base_gcmessages_pb2
 from . import dota_gcmessages_common_lobby_pb2 as _dota_gcmessages_common_lobby_pb2

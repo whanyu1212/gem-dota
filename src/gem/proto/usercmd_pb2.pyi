@@ -1,3 +1,4 @@
+from . import valveextensions_pb2 as _valveextensions_pb2
 from . import networkbasetypes_pb2 as _networkbasetypes_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor

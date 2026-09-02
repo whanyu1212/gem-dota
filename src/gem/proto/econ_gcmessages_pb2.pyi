@@ -768,10 +768,28 @@ class CMsgDevNewItemRequest(_message.Message):
     def __init__(self, item_def_name: _Optional[str] = ..., loot_list_name: _Optional[str] = ..., attr_def_name: _Optional[_Iterable[str]] = ..., attr_value: _Optional[_Iterable[str]] = ..., item_quality: _Optional[int] = ...) -> None: ...
 
 class CMsgDevNewItemRequestResponse(_message.Message):
-    __slots__ = ("success",)
-    SUCCESS_FIELD_NUMBER: _ClassVar[int]
-    success: bool
-    def __init__(self, success: bool = ...) -> None: ...
+    __slots__ = ("result",)
+    class EResponse(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        k_eInternalError: _ClassVar[CMsgDevNewItemRequestResponse.EResponse]
+        k_eSuccess: _ClassVar[CMsgDevNewItemRequestResponse.EResponse]
+        k_eTooBusy: _ClassVar[CMsgDevNewItemRequestResponse.EResponse]
+        k_eDisabled: _ClassVar[CMsgDevNewItemRequestResponse.EResponse]
+        k_eTimeout: _ClassVar[CMsgDevNewItemRequestResponse.EResponse]
+        k_eNotAllowed: _ClassVar[CMsgDevNewItemRequestResponse.EResponse]
+        k_eUnknownItemDef: _ClassVar[CMsgDevNewItemRequestResponse.EResponse]
+        k_eItemDefNotAllowed: _ClassVar[CMsgDevNewItemRequestResponse.EResponse]
+    k_eInternalError: CMsgDevNewItemRequestResponse.EResponse
+    k_eSuccess: CMsgDevNewItemRequestResponse.EResponse
+    k_eTooBusy: CMsgDevNewItemRequestResponse.EResponse
+    k_eDisabled: CMsgDevNewItemRequestResponse.EResponse
+    k_eTimeout: CMsgDevNewItemRequestResponse.EResponse
+    k_eNotAllowed: CMsgDevNewItemRequestResponse.EResponse
+    k_eUnknownItemDef: CMsgDevNewItemRequestResponse.EResponse
+    k_eItemDefNotAllowed: CMsgDevNewItemRequestResponse.EResponse
+    RESULT_FIELD_NUMBER: _ClassVar[int]
+    result: CMsgDevNewItemRequestResponse.EResponse
+    def __init__(self, result: _Optional[_Union[CMsgDevNewItemRequestResponse.EResponse, str]] = ...) -> None: ...
 
 class CMsgDevUnlockAllItemStyles(_message.Message):
     __slots__ = ("item_id",)

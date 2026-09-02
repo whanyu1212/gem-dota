@@ -4,7 +4,7 @@
 - Syntax: `unknown`
 - Package: `(none)`
 - Imports: **10**
-- Messages: **45** (top-level: 3)
+- Messages: **46** (top-level: 3)
 - Enums: **2** (top-level: 1)
 
 ## Imports
@@ -332,7 +332,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CDOTAMatchMetadata.Team.Player</code> — fields: 57; oneofs: 0; nested messages: 2; nested enums: 0</summary>
+<summary><code>CDOTAMatchMetadata.Team.Player</code> — fields: 59; oneofs: 0; nested messages: 3; nested enums: 0</summary>
 
 - Parent: `CDOTAMatchMetadata.Team`
 - Oneofs: *(none)*
@@ -396,6 +396,8 @@ Expand any message to inspect all fields.
 | 60 | `craftworks_quest_rewards` | `.CMsgCraftworksQuestReward` | `repeated` |  |  |
 | 61 | `ad_facet_hero_id` | `int32` | `optional` |  |  |
 | 62 | `monster_hunter_rewards` | `.CMsgMonsterHunterMatchRewards.Player` | `optional` |  |  |
+| 63 | `wisdom_shrines_taken` | `uint32` | `optional` |  |  |
+| 64 | `neutral_items` | `.CDOTAMatchMetadata.Team.Player.NeutralItem` | `repeated` |  |  |
 
 </details>
 
@@ -427,6 +429,20 @@ Expand any message to inspect all fields.
 |---:|---|---|---|---|---|
 | 1 | `overworld_id` | `uint32` | `optional` |  |  |
 | 2 | `tokens` | `.CMsgOverworldTokenQuantity` | `optional` |  |  |
+
+</details>
+
+<details>
+<summary><code>CDOTAMatchMetadata.Team.Player.NeutralItem</code> — fields: 3; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: `CDOTAMatchMetadata.Team.Player`
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `trinket_id` | `int32` | `optional` |  | default = -1 |
+| 2 | `enchantment_id` | `int32` | `optional` |  | default = -1 |
+| 3 | `tier` | `int32` | `optional` |  |  |
 
 </details>
 
@@ -478,7 +494,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CDOTAMatchPrivateMetadata</code> — fields: 4; oneofs: 0; nested messages: 3; nested enums: 0</summary>
+<summary><code>CDOTAMatchPrivateMetadata</code> — fields: 5; oneofs: 0; nested messages: 3; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -489,6 +505,7 @@ Expand any message to inspect all fields.
 | 2 | `graph_win_probability` | `float` | `repeated` |  |  |
 | 3 | `string_names` | `.CDOTAMatchPrivateMetadata.StringName` | `repeated` |  |  |
 | 4 | `contributions` | `.CDOTAMatchPrivateMetadata.ContributionsCombatSegment` | `repeated` |  |  |
+| 5 | `contribution_unit_names` | `string` | `repeated` |  |  |
 
 </details>
 
@@ -642,7 +659,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CDOTAMatchPrivateMetadata.Team.Player.GoldReceived</code> — fields: 8; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CDOTAMatchPrivateMetadata.Team.Player.GoldReceived</code> — fields: 9; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: `CDOTAMatchPrivateMetadata.Team.Player`
 - Oneofs: *(none)*
@@ -657,11 +674,12 @@ Expand any message to inspect all fields.
 | 6 | `abilities` | `uint32` | `optional` |  |  |
 | 7 | `wards` | `uint32` | `optional` |  |  |
 | 8 | `other` | `uint32` | `optional` |  |  |
+| 9 | `summons` | `uint32` | `optional` |  |  |
 
 </details>
 
 <details>
-<summary><code>CDOTAMatchPrivateMetadata.Team.Player.XPReceived</code> — fields: 7; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CDOTAMatchPrivateMetadata.Team.Player.XPReceived</code> — fields: 8; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: `CDOTAMatchPrivateMetadata.Team.Player`
 - Oneofs: *(none)*
@@ -675,6 +693,7 @@ Expand any message to inspect all fields.
 | 5 | `outpost` | `uint32` | `optional` |  |  |
 | 6 | `other` | `uint32` | `optional` |  |  |
 | 7 | `abilities` | `uint32` | `optional` |  |  |
+| 8 | `summons` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -712,7 +731,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CDOTAMatchPrivateMetadata.ContributionsCombatSegment.DamageContributionRecord</code> — fields: 7; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CDOTAMatchPrivateMetadata.ContributionsCombatSegment.DamageContributionRecord</code> — fields: 8; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: `CDOTAMatchPrivateMetadata.ContributionsCombatSegment`
 - Oneofs: *(none)*
@@ -726,11 +745,12 @@ Expand any message to inspect all fields.
 | 5 | `contributor_hero_id` | `int32` | `optional` |  |  |
 | 6 | `value` | `uint32` | `optional` |  |  |
 | 7 | `type` | `uint32` | `optional` |  |  |
+| 8 | `attacker_unit_index` | `uint32` | `optional` |  |  |
 
 </details>
 
 <details>
-<summary><code>CDOTAMatchPrivateMetadata.ContributionsCombatSegment.DamageMitigationRecord</code> — fields: 7; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CDOTAMatchPrivateMetadata.ContributionsCombatSegment.DamageMitigationRecord</code> — fields: 8; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: `CDOTAMatchPrivateMetadata.ContributionsCombatSegment`
 - Oneofs: *(none)*
@@ -744,11 +764,12 @@ Expand any message to inspect all fields.
 | 5 | `contributor_hero_id` | `int32` | `optional` |  |  |
 | 6 | `value` | `uint32` | `optional` |  |  |
 | 7 | `type` | `uint32` | `optional` |  |  |
+| 8 | `attacker_unit_index` | `uint32` | `optional` |  |  |
 
 </details>
 
 <details>
-<summary><code>CDOTAMatchPrivateMetadata.ContributionsCombatSegment.HealingContributionRecord</code> — fields: 7; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CDOTAMatchPrivateMetadata.ContributionsCombatSegment.HealingContributionRecord</code> — fields: 8; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: `CDOTAMatchPrivateMetadata.ContributionsCombatSegment`
 - Oneofs: *(none)*
@@ -762,11 +783,12 @@ Expand any message to inspect all fields.
 | 5 | `contributor_hero_id` | `int32` | `optional` |  |  |
 | 6 | `value` | `uint32` | `optional` |  |  |
 | 7 | `type` | `uint32` | `optional` |  |  |
+| 8 | `attacker_unit_index` | `uint32` | `optional` |  |  |
 
 </details>
 
 <details>
-<summary><code>CDOTAMatchPrivateMetadata.ContributionsCombatSegment.HealingReductionRecord</code> — fields: 7; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CDOTAMatchPrivateMetadata.ContributionsCombatSegment.HealingReductionRecord</code> — fields: 8; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: `CDOTAMatchPrivateMetadata.ContributionsCombatSegment`
 - Oneofs: *(none)*
@@ -780,6 +802,7 @@ Expand any message to inspect all fields.
 | 5 | `contributor_hero_id` | `int32` | `optional` |  |  |
 | 6 | `value` | `uint32` | `optional` |  |  |
 | 7 | `type` | `uint32` | `optional` |  |  |
+| 8 | `attacker_unit_index` | `uint32` | `optional` |  |  |
 
 </details>
 

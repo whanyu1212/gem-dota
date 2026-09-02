@@ -1,4 +1,5 @@
 from . import dota_shared_enums_pb2 as _dota_shared_enums_pb2
+from . import events_pb2 as _events_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
@@ -608,13 +609,14 @@ class CMsgDotaFantasyCraftingTabletPeriodData(_message.Message):
         stat: _dota_shared_enums_pb2.Fantasy_Scoring
         def __init__(self, type: _Optional[_Union[_dota_shared_enums_pb2.Fantasy_Gem_Type, str]] = ..., slot: _Optional[int] = ..., shape: _Optional[int] = ..., quality: _Optional[int] = ..., stat: _Optional[_Union[_dota_shared_enums_pb2.Fantasy_Scoring, str]] = ...) -> None: ...
     class Tablet(_message.Message):
-        __slots__ = ("tablet_id", "tablet_level", "fantasy_role", "account_id", "prefix", "suffix", "gems", "score", "best_series")
+        __slots__ = ("tablet_id", "tablet_level", "fantasy_role", "account_id", "prefix", "suffix", "team_id", "gems", "score", "best_series")
         TABLET_ID_FIELD_NUMBER: _ClassVar[int]
         TABLET_LEVEL_FIELD_NUMBER: _ClassVar[int]
         FANTASY_ROLE_FIELD_NUMBER: _ClassVar[int]
         ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
         PREFIX_FIELD_NUMBER: _ClassVar[int]
         SUFFIX_FIELD_NUMBER: _ClassVar[int]
+        TEAM_ID_FIELD_NUMBER: _ClassVar[int]
         GEMS_FIELD_NUMBER: _ClassVar[int]
         SCORE_FIELD_NUMBER: _ClassVar[int]
         BEST_SERIES_FIELD_NUMBER: _ClassVar[int]
@@ -624,10 +626,11 @@ class CMsgDotaFantasyCraftingTabletPeriodData(_message.Message):
         account_id: int
         prefix: int
         suffix: int
+        team_id: int
         gems: _containers.RepeatedCompositeFieldContainer[CMsgDotaFantasyCraftingTabletPeriodData.Gem]
         score: float
         best_series: int
-        def __init__(self, tablet_id: _Optional[int] = ..., tablet_level: _Optional[int] = ..., fantasy_role: _Optional[_Union[_dota_shared_enums_pb2.Fantasy_Roles, str]] = ..., account_id: _Optional[int] = ..., prefix: _Optional[int] = ..., suffix: _Optional[int] = ..., gems: _Optional[_Iterable[_Union[CMsgDotaFantasyCraftingTabletPeriodData.Gem, _Mapping]]] = ..., score: _Optional[float] = ..., best_series: _Optional[int] = ...) -> None: ...
+        def __init__(self, tablet_id: _Optional[int] = ..., tablet_level: _Optional[int] = ..., fantasy_role: _Optional[_Union[_dota_shared_enums_pb2.Fantasy_Roles, str]] = ..., account_id: _Optional[int] = ..., prefix: _Optional[int] = ..., suffix: _Optional[int] = ..., team_id: _Optional[int] = ..., gems: _Optional[_Iterable[_Union[CMsgDotaFantasyCraftingTabletPeriodData.Gem, _Mapping]]] = ..., score: _Optional[float] = ..., best_series: _Optional[int] = ...) -> None: ...
     FANTASY_PERIOD_FIELD_NUMBER: _ClassVar[int]
     TABLETS_FIELD_NUMBER: _ClassVar[int]
     fantasy_period: int
@@ -864,13 +867,120 @@ class CMsgClientToGCFantasyCraftingSelectPlayerResponse(_message.Message):
     tablet_data: CMsgDotaFantasyCraftingTabletData
     def __init__(self, response: _Optional[_Union[CMsgClientToGCFantasyCraftingSelectPlayerResponse.EResponse, str]] = ..., tablet_data: _Optional[_Union[CMsgDotaFantasyCraftingTabletData, _Mapping]] = ...) -> None: ...
 
+class CMsgClientToGCFantasyCraftingSelectTeam(_message.Message):
+    __slots__ = ("fantasy_league", "role", "team_id")
+    FANTASY_LEAGUE_FIELD_NUMBER: _ClassVar[int]
+    ROLE_FIELD_NUMBER: _ClassVar[int]
+    TEAM_ID_FIELD_NUMBER: _ClassVar[int]
+    fantasy_league: int
+    role: _dota_shared_enums_pb2.Fantasy_Roles
+    team_id: int
+    def __init__(self, fantasy_league: _Optional[int] = ..., role: _Optional[_Union[_dota_shared_enums_pb2.Fantasy_Roles, str]] = ..., team_id: _Optional[int] = ...) -> None: ...
+
+class CMsgClientToGCFantasyCraftingSelectTeamResponse(_message.Message):
+    __slots__ = ("response", "tablet_data")
+    class EResponse(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        k_eInternalError: _ClassVar[CMsgClientToGCFantasyCraftingSelectTeamResponse.EResponse]
+        k_eSuccess: _ClassVar[CMsgClientToGCFantasyCraftingSelectTeamResponse.EResponse]
+        k_eTooBusy: _ClassVar[CMsgClientToGCFantasyCraftingSelectTeamResponse.EResponse]
+        k_eDisabled: _ClassVar[CMsgClientToGCFantasyCraftingSelectTeamResponse.EResponse]
+        k_eTimeout: _ClassVar[CMsgClientToGCFantasyCraftingSelectTeamResponse.EResponse]
+        k_eInvalidLeague: _ClassVar[CMsgClientToGCFantasyCraftingSelectTeamResponse.EResponse]
+        k_eInvalidTeam: _ClassVar[CMsgClientToGCFantasyCraftingSelectTeamResponse.EResponse]
+    k_eInternalError: CMsgClientToGCFantasyCraftingSelectTeamResponse.EResponse
+    k_eSuccess: CMsgClientToGCFantasyCraftingSelectTeamResponse.EResponse
+    k_eTooBusy: CMsgClientToGCFantasyCraftingSelectTeamResponse.EResponse
+    k_eDisabled: CMsgClientToGCFantasyCraftingSelectTeamResponse.EResponse
+    k_eTimeout: CMsgClientToGCFantasyCraftingSelectTeamResponse.EResponse
+    k_eInvalidLeague: CMsgClientToGCFantasyCraftingSelectTeamResponse.EResponse
+    k_eInvalidTeam: CMsgClientToGCFantasyCraftingSelectTeamResponse.EResponse
+    RESPONSE_FIELD_NUMBER: _ClassVar[int]
+    TABLET_DATA_FIELD_NUMBER: _ClassVar[int]
+    response: CMsgClientToGCFantasyCraftingSelectTeamResponse.EResponse
+    tablet_data: CMsgDotaFantasyCraftingTabletData
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCFantasyCraftingSelectTeamResponse.EResponse, str]] = ..., tablet_data: _Optional[_Union[CMsgDotaFantasyCraftingTabletData, _Mapping]] = ...) -> None: ...
+
+class CMsgClientToGCFantasyCraftingSelectGlobalPrefix(_message.Message):
+    __slots__ = ("fantasy_league", "prefix")
+    FANTASY_LEAGUE_FIELD_NUMBER: _ClassVar[int]
+    PREFIX_FIELD_NUMBER: _ClassVar[int]
+    fantasy_league: int
+    prefix: int
+    def __init__(self, fantasy_league: _Optional[int] = ..., prefix: _Optional[int] = ...) -> None: ...
+
+class CMsgClientToGCFantasyCraftingSelectGlobalPrefixResponse(_message.Message):
+    __slots__ = ("response", "tablet_data")
+    class EResponse(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        k_eInternalError: _ClassVar[CMsgClientToGCFantasyCraftingSelectGlobalPrefixResponse.EResponse]
+        k_eSuccess: _ClassVar[CMsgClientToGCFantasyCraftingSelectGlobalPrefixResponse.EResponse]
+        k_eTooBusy: _ClassVar[CMsgClientToGCFantasyCraftingSelectGlobalPrefixResponse.EResponse]
+        k_eDisabled: _ClassVar[CMsgClientToGCFantasyCraftingSelectGlobalPrefixResponse.EResponse]
+        k_eTimeout: _ClassVar[CMsgClientToGCFantasyCraftingSelectGlobalPrefixResponse.EResponse]
+        k_eInvalidLeague: _ClassVar[CMsgClientToGCFantasyCraftingSelectGlobalPrefixResponse.EResponse]
+        k_eInvalidPrefix: _ClassVar[CMsgClientToGCFantasyCraftingSelectGlobalPrefixResponse.EResponse]
+    k_eInternalError: CMsgClientToGCFantasyCraftingSelectGlobalPrefixResponse.EResponse
+    k_eSuccess: CMsgClientToGCFantasyCraftingSelectGlobalPrefixResponse.EResponse
+    k_eTooBusy: CMsgClientToGCFantasyCraftingSelectGlobalPrefixResponse.EResponse
+    k_eDisabled: CMsgClientToGCFantasyCraftingSelectGlobalPrefixResponse.EResponse
+    k_eTimeout: CMsgClientToGCFantasyCraftingSelectGlobalPrefixResponse.EResponse
+    k_eInvalidLeague: CMsgClientToGCFantasyCraftingSelectGlobalPrefixResponse.EResponse
+    k_eInvalidPrefix: CMsgClientToGCFantasyCraftingSelectGlobalPrefixResponse.EResponse
+    RESPONSE_FIELD_NUMBER: _ClassVar[int]
+    TABLET_DATA_FIELD_NUMBER: _ClassVar[int]
+    response: CMsgClientToGCFantasyCraftingSelectGlobalPrefixResponse.EResponse
+    tablet_data: CMsgDotaFantasyCraftingTabletData
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCFantasyCraftingSelectGlobalPrefixResponse.EResponse, str]] = ..., tablet_data: _Optional[_Union[CMsgDotaFantasyCraftingTabletData, _Mapping]] = ...) -> None: ...
+
+class CMsgClientToGCFantasyCraftingSelectGlobalSuffix(_message.Message):
+    __slots__ = ("fantasy_league", "suffix")
+    FANTASY_LEAGUE_FIELD_NUMBER: _ClassVar[int]
+    SUFFIX_FIELD_NUMBER: _ClassVar[int]
+    fantasy_league: int
+    suffix: int
+    def __init__(self, fantasy_league: _Optional[int] = ..., suffix: _Optional[int] = ...) -> None: ...
+
+class CMsgClientToGCFantasyCraftingSelectGlobalSuffixResponse(_message.Message):
+    __slots__ = ("response", "tablet_data")
+    class EResponse(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        k_eInternalError: _ClassVar[CMsgClientToGCFantasyCraftingSelectGlobalSuffixResponse.EResponse]
+        k_eSuccess: _ClassVar[CMsgClientToGCFantasyCraftingSelectGlobalSuffixResponse.EResponse]
+        k_eTooBusy: _ClassVar[CMsgClientToGCFantasyCraftingSelectGlobalSuffixResponse.EResponse]
+        k_eDisabled: _ClassVar[CMsgClientToGCFantasyCraftingSelectGlobalSuffixResponse.EResponse]
+        k_eTimeout: _ClassVar[CMsgClientToGCFantasyCraftingSelectGlobalSuffixResponse.EResponse]
+        k_eInvalidLeague: _ClassVar[CMsgClientToGCFantasyCraftingSelectGlobalSuffixResponse.EResponse]
+        k_eInvalidSuffix: _ClassVar[CMsgClientToGCFantasyCraftingSelectGlobalSuffixResponse.EResponse]
+    k_eInternalError: CMsgClientToGCFantasyCraftingSelectGlobalSuffixResponse.EResponse
+    k_eSuccess: CMsgClientToGCFantasyCraftingSelectGlobalSuffixResponse.EResponse
+    k_eTooBusy: CMsgClientToGCFantasyCraftingSelectGlobalSuffixResponse.EResponse
+    k_eDisabled: CMsgClientToGCFantasyCraftingSelectGlobalSuffixResponse.EResponse
+    k_eTimeout: CMsgClientToGCFantasyCraftingSelectGlobalSuffixResponse.EResponse
+    k_eInvalidLeague: CMsgClientToGCFantasyCraftingSelectGlobalSuffixResponse.EResponse
+    k_eInvalidSuffix: CMsgClientToGCFantasyCraftingSelectGlobalSuffixResponse.EResponse
+    RESPONSE_FIELD_NUMBER: _ClassVar[int]
+    TABLET_DATA_FIELD_NUMBER: _ClassVar[int]
+    response: CMsgClientToGCFantasyCraftingSelectGlobalSuffixResponse.EResponse
+    tablet_data: CMsgDotaFantasyCraftingTabletData
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCFantasyCraftingSelectGlobalSuffixResponse.EResponse, str]] = ..., tablet_data: _Optional[_Union[CMsgDotaFantasyCraftingTabletData, _Mapping]] = ...) -> None: ...
+
 class CMsgClientToGCFantasyCraftingGenerateTablets(_message.Message):
-    __slots__ = ("fantasy_league", "account_ids")
+    __slots__ = ("fantasy_league", "account_ids", "selected_teams")
+    class TeamChoice(_message.Message):
+        __slots__ = ("fantasy_role", "team_id")
+        FANTASY_ROLE_FIELD_NUMBER: _ClassVar[int]
+        TEAM_ID_FIELD_NUMBER: _ClassVar[int]
+        fantasy_role: _dota_shared_enums_pb2.Fantasy_Roles
+        team_id: int
+        def __init__(self, fantasy_role: _Optional[_Union[_dota_shared_enums_pb2.Fantasy_Roles, str]] = ..., team_id: _Optional[int] = ...) -> None: ...
     FANTASY_LEAGUE_FIELD_NUMBER: _ClassVar[int]
     ACCOUNT_IDS_FIELD_NUMBER: _ClassVar[int]
+    SELECTED_TEAMS_FIELD_NUMBER: _ClassVar[int]
     fantasy_league: int
     account_ids: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(self, fantasy_league: _Optional[int] = ..., account_ids: _Optional[_Iterable[int]] = ...) -> None: ...
+    selected_teams: _containers.RepeatedCompositeFieldContainer[CMsgClientToGCFantasyCraftingGenerateTablets.TeamChoice]
+    def __init__(self, fantasy_league: _Optional[int] = ..., account_ids: _Optional[_Iterable[int]] = ..., selected_teams: _Optional[_Iterable[_Union[CMsgClientToGCFantasyCraftingGenerateTablets.TeamChoice, _Mapping]]] = ...) -> None: ...
 
 class CMsgClientToGCFantasyCraftingGenerateTabletsResponse(_message.Message):
     __slots__ = ("response", "user_data", "tablet_data")
@@ -883,6 +993,7 @@ class CMsgClientToGCFantasyCraftingGenerateTabletsResponse(_message.Message):
         k_eTimeout: _ClassVar[CMsgClientToGCFantasyCraftingGenerateTabletsResponse.EResponse]
         k_eInvalidLeague: _ClassVar[CMsgClientToGCFantasyCraftingGenerateTabletsResponse.EResponse]
         k_eInvalidPlayer: _ClassVar[CMsgClientToGCFantasyCraftingGenerateTabletsResponse.EResponse]
+        k_eInvalidTeam: _ClassVar[CMsgClientToGCFantasyCraftingGenerateTabletsResponse.EResponse]
     k_eInternalError: CMsgClientToGCFantasyCraftingGenerateTabletsResponse.EResponse
     k_eSuccess: CMsgClientToGCFantasyCraftingGenerateTabletsResponse.EResponse
     k_eTooBusy: CMsgClientToGCFantasyCraftingGenerateTabletsResponse.EResponse
@@ -890,6 +1001,7 @@ class CMsgClientToGCFantasyCraftingGenerateTabletsResponse(_message.Message):
     k_eTimeout: CMsgClientToGCFantasyCraftingGenerateTabletsResponse.EResponse
     k_eInvalidLeague: CMsgClientToGCFantasyCraftingGenerateTabletsResponse.EResponse
     k_eInvalidPlayer: CMsgClientToGCFantasyCraftingGenerateTabletsResponse.EResponse
+    k_eInvalidTeam: CMsgClientToGCFantasyCraftingGenerateTabletsResponse.EResponse
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     USER_DATA_FIELD_NUMBER: _ClassVar[int]
     TABLET_DATA_FIELD_NUMBER: _ClassVar[int]

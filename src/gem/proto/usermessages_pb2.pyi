@@ -12,8 +12,6 @@ DESCRIPTOR: _descriptor.FileDescriptor
 class EBaseUserMessages(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
     UM_AchievementEvent: _ClassVar[EBaseUserMessages]
-    UM_CloseCaption: _ClassVar[EBaseUserMessages]
-    UM_CloseCaptionDirect: _ClassVar[EBaseUserMessages]
     UM_CurrentTimescale: _ClassVar[EBaseUserMessages]
     UM_DesiredTimescale: _ClassVar[EBaseUserMessages]
     UM_Fade: _ClassVar[EBaseUserMessages]
@@ -61,13 +59,14 @@ class EBaseUserMessages(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     UM_ExtraUserData: _ClassVar[EBaseUserMessages]
     UM_NotifyResponseFound: _ClassVar[EBaseUserMessages]
     UM_PlayResponseConditional: _ClassVar[EBaseUserMessages]
+    UM_UserSentBugBug: _ClassVar[EBaseUserMessages]
+    UM_UsageReport: _ClassVar[EBaseUserMessages]
     UM_MAX_BASE: _ClassVar[EBaseUserMessages]
 
 class EBaseEntityMessages(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
     EM_PlayJingle: _ClassVar[EBaseEntityMessages]
     EM_ScreenOverlay: _ClassVar[EBaseEntityMessages]
-    EM_RemoveAllDecals: _ClassVar[EBaseEntityMessages]
     EM_PropagateForce: _ClassVar[EBaseEntityMessages]
     EM_DoSpark: _ClassVar[EBaseEntityMessages]
     EM_FixAngle: _ClassVar[EBaseEntityMessages]
@@ -131,8 +130,6 @@ class EHapticPulseType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     VR_HAND_HAPTIC_PULSE_MEDIUM: _ClassVar[EHapticPulseType]
     VR_HAND_HAPTIC_PULSE_STRONG: _ClassVar[EHapticPulseType]
 UM_AchievementEvent: EBaseUserMessages
-UM_CloseCaption: EBaseUserMessages
-UM_CloseCaptionDirect: EBaseUserMessages
 UM_CurrentTimescale: EBaseUserMessages
 UM_DesiredTimescale: EBaseUserMessages
 UM_Fade: EBaseUserMessages
@@ -180,10 +177,11 @@ UM_DiagnosticResponse: EBaseUserMessages
 UM_ExtraUserData: EBaseUserMessages
 UM_NotifyResponseFound: EBaseUserMessages
 UM_PlayResponseConditional: EBaseUserMessages
+UM_UserSentBugBug: EBaseUserMessages
+UM_UsageReport: EBaseUserMessages
 UM_MAX_BASE: EBaseUserMessages
 EM_PlayJingle: EBaseEntityMessages
 EM_ScreenOverlay: EBaseEntityMessages
-EM_RemoveAllDecals: EBaseEntityMessages
 EM_PropagateForce: EBaseEntityMessages
 EM_DoSpark: EBaseEntityMessages
 EM_FixAngle: EBaseEntityMessages
@@ -243,30 +241,6 @@ class CUserMessageAchievementEvent(_message.Message):
     ACHIEVEMENT_FIELD_NUMBER: _ClassVar[int]
     achievement: int
     def __init__(self, achievement: _Optional[int] = ...) -> None: ...
-
-class CUserMessageCloseCaption(_message.Message):
-    __slots__ = ("hash", "duration", "from_player", "ent_index")
-    HASH_FIELD_NUMBER: _ClassVar[int]
-    DURATION_FIELD_NUMBER: _ClassVar[int]
-    FROM_PLAYER_FIELD_NUMBER: _ClassVar[int]
-    ENT_INDEX_FIELD_NUMBER: _ClassVar[int]
-    hash: int
-    duration: float
-    from_player: bool
-    ent_index: int
-    def __init__(self, hash: _Optional[int] = ..., duration: _Optional[float] = ..., from_player: bool = ..., ent_index: _Optional[int] = ...) -> None: ...
-
-class CUserMessageCloseCaptionDirect(_message.Message):
-    __slots__ = ("hash", "duration", "from_player", "ent_index")
-    HASH_FIELD_NUMBER: _ClassVar[int]
-    DURATION_FIELD_NUMBER: _ClassVar[int]
-    FROM_PLAYER_FIELD_NUMBER: _ClassVar[int]
-    ENT_INDEX_FIELD_NUMBER: _ClassVar[int]
-    hash: int
-    duration: float
-    from_player: bool
-    ent_index: int
-    def __init__(self, hash: _Optional[int] = ..., duration: _Optional[float] = ..., from_player: bool = ..., ent_index: _Optional[int] = ...) -> None: ...
 
 class CUserMessageCloseCaptionPlaceholder(_message.Message):
     __slots__ = ("string", "duration", "from_player", "ent_index")
@@ -539,14 +513,6 @@ class CEntityMessageScreenOverlay(_message.Message):
     start_effect: bool
     entity_msg: _networkbasetypes_pb2.CEntityMsg
     def __init__(self, start_effect: bool = ..., entity_msg: _Optional[_Union[_networkbasetypes_pb2.CEntityMsg, _Mapping]] = ...) -> None: ...
-
-class CEntityMessageRemoveAllDecals(_message.Message):
-    __slots__ = ("remove_decals", "entity_msg")
-    REMOVE_DECALS_FIELD_NUMBER: _ClassVar[int]
-    ENTITY_MSG_FIELD_NUMBER: _ClassVar[int]
-    remove_decals: bool
-    entity_msg: _networkbasetypes_pb2.CEntityMsg
-    def __init__(self, remove_decals: bool = ..., entity_msg: _Optional[_Union[_networkbasetypes_pb2.CEntityMsg, _Mapping]] = ...) -> None: ...
 
 class CEntityMessagePropagateForce(_message.Message):
     __slots__ = ("impulse", "entity_msg")
@@ -1459,3 +1425,9 @@ class CUserMessage_PlayResponseConditional(_message.Message):
     pre_delay: float
     mix_priority: int
     def __init__(self, ent_index: _Optional[int] = ..., player_slots: _Optional[_Iterable[int]] = ..., response: _Optional[str] = ..., ent_origin: _Optional[_Union[_networkbasetypes_pb2.CMsgVector, _Mapping]] = ..., pre_delay: _Optional[float] = ..., mix_priority: _Optional[int] = ...) -> None: ...
+
+class CUserMessage_UsageReport(_message.Message):
+    __slots__ = ("usage",)
+    USAGE_FIELD_NUMBER: _ClassVar[int]
+    usage: str
+    def __init__(self, usage: _Optional[str] = ...) -> None: ...

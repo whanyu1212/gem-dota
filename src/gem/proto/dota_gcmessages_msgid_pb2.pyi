@@ -449,6 +449,7 @@ class EDOTAGCMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgClientToGCSetPlayerCardRosterRequest: _ClassVar[EDOTAGCMsg]
     k_EMsgClientToGCSetPlayerCardRosterResponse: _ClassVar[EDOTAGCMsg]
     k_EMsgServerToGCCloseCompendiumInGamePredictionVotingResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgLobbyOverworldFortuneList: _ClassVar[EDOTAGCMsg]
     k_EMsgLobbyBattleCupVictory: _ClassVar[EDOTAGCMsg]
     k_EMsgGCGetPlayerCardItemInfo: _ClassVar[EDOTAGCMsg]
     k_EMsgGCGetPlayerCardItemInfoResponse: _ClassVar[EDOTAGCMsg]
@@ -995,6 +996,12 @@ class EDOTAGCMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgClientToGCMonsterHunterClaimCodexRewardResponse: _ClassVar[EDOTAGCMsg]
     k_EMsgClientToGCMonsterHunterClaimSetReward: _ClassVar[EDOTAGCMsg]
     k_EMsgClientToGCMonsterHunterClaimSetRewardResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCFantasyCraftingSelectTeam: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCFantasyCraftingSelectTeamResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCFantasyCraftingSelectGlobalPrefix: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCFantasyCraftingSelectGlobalPrefixResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCFantasyCraftingSelectGlobalSuffix: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCFantasyCraftingSelectGlobalSuffixResponse: _ClassVar[EDOTAGCMsg]
     k_EMsgClientToGCItemBattlerGetUserData: _ClassVar[EDOTAGCMsg]
     k_EMsgClientToGCItemBattlerGetUserDataResponse: _ClassVar[EDOTAGCMsg]
     k_EMsgClientToGCItemBattlerGameAction: _ClassVar[EDOTAGCMsg]
@@ -1018,6 +1025,14 @@ class EDOTAGCMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgClientToGCOverworldRequestFortuneResponse: _ClassVar[EDOTAGCMsg]
     k_EMsgClientToGCOverworldDevClearFortune: _ClassVar[EDOTAGCMsg]
     k_EMsgClientToGCOverworldDevClearFortuneResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldClaimFortuneReward: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldClaimFortuneRewardResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldDevGrantFortuneTellerCoin: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldDevGrantFortuneTellerCoinResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldClaimFortunePermanentReward: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldClaimFortunePermanentRewardResponse: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldClaimFortuneTellerStoryNode: _ClassVar[EDOTAGCMsg]
+    k_EMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse: _ClassVar[EDOTAGCMsg]
 k_EMsgGCDOTABase: EDOTAGCMsg
 k_EMsgGCGameMatchSignOut: EDOTAGCMsg
 k_EMsgGCGameMatchSignOutResponse: EDOTAGCMsg
@@ -1461,6 +1476,7 @@ k_EMsgClientToGCGetPlayerCardRosterResponse: EDOTAGCMsg
 k_EMsgClientToGCSetPlayerCardRosterRequest: EDOTAGCMsg
 k_EMsgClientToGCSetPlayerCardRosterResponse: EDOTAGCMsg
 k_EMsgServerToGCCloseCompendiumInGamePredictionVotingResponse: EDOTAGCMsg
+k_EMsgLobbyOverworldFortuneList: EDOTAGCMsg
 k_EMsgLobbyBattleCupVictory: EDOTAGCMsg
 k_EMsgGCGetPlayerCardItemInfo: EDOTAGCMsg
 k_EMsgGCGetPlayerCardItemInfoResponse: EDOTAGCMsg
@@ -2007,6 +2023,12 @@ k_EMsgClientToGCMonsterHunterClaimCodexReward: EDOTAGCMsg
 k_EMsgClientToGCMonsterHunterClaimCodexRewardResponse: EDOTAGCMsg
 k_EMsgClientToGCMonsterHunterClaimSetReward: EDOTAGCMsg
 k_EMsgClientToGCMonsterHunterClaimSetRewardResponse: EDOTAGCMsg
+k_EMsgClientToGCFantasyCraftingSelectTeam: EDOTAGCMsg
+k_EMsgClientToGCFantasyCraftingSelectTeamResponse: EDOTAGCMsg
+k_EMsgClientToGCFantasyCraftingSelectGlobalPrefix: EDOTAGCMsg
+k_EMsgClientToGCFantasyCraftingSelectGlobalPrefixResponse: EDOTAGCMsg
+k_EMsgClientToGCFantasyCraftingSelectGlobalSuffix: EDOTAGCMsg
+k_EMsgClientToGCFantasyCraftingSelectGlobalSuffixResponse: EDOTAGCMsg
 k_EMsgClientToGCItemBattlerGetUserData: EDOTAGCMsg
 k_EMsgClientToGCItemBattlerGetUserDataResponse: EDOTAGCMsg
 k_EMsgClientToGCItemBattlerGameAction: EDOTAGCMsg
@@ -2030,3 +2052,11 @@ k_EMsgClientToGCOverworldRequestFortune: EDOTAGCMsg
 k_EMsgClientToGCOverworldRequestFortuneResponse: EDOTAGCMsg
 k_EMsgClientToGCOverworldDevClearFortune: EDOTAGCMsg
 k_EMsgClientToGCOverworldDevClearFortuneResponse: EDOTAGCMsg
+k_EMsgClientToGCOverworldClaimFortuneReward: EDOTAGCMsg
+k_EMsgClientToGCOverworldClaimFortuneRewardResponse: EDOTAGCMsg
+k_EMsgClientToGCOverworldDevGrantFortuneTellerCoin: EDOTAGCMsg
+k_EMsgClientToGCOverworldDevGrantFortuneTellerCoinResponse: EDOTAGCMsg
+k_EMsgClientToGCOverworldClaimFortunePermanentReward: EDOTAGCMsg
+k_EMsgClientToGCOverworldClaimFortunePermanentRewardResponse: EDOTAGCMsg
+k_EMsgClientToGCOverworldClaimFortuneTellerStoryNode: EDOTAGCMsg
+k_EMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse: EDOTAGCMsg

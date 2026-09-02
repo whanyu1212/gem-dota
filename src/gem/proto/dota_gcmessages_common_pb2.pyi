@@ -1,6 +1,7 @@
 from . import steammessages_pb2 as _steammessages_pb2
 from . import gcsdk_gcmessages_pb2 as _gcsdk_gcmessages_pb2
 from . import dota_shared_enums_pb2 as _dota_shared_enums_pb2
+from . import events_pb2 as _events_pb2
 from . import networkbasetypes_pb2 as _networkbasetypes_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
@@ -460,7 +461,7 @@ class CMatchPlayerTimedCustomStat(_message.Message):
     def __init__(self, stat: _Optional[_Union[EDOTAMatchPlayerTimeCustomStat, str]] = ..., value: _Optional[float] = ...) -> None: ...
 
 class CMatchPlayerTimedStats(_message.Message):
-    __slots__ = ("time", "kills", "deaths", "assists", "net_worth", "xp", "last_hits", "denies", "bounty_rune_gold", "range_creep_upgrade_gold", "observer_wards_dewarded", "reliable_gold_earned", "gold_loss_prevented", "hero_kill_gold", "creep_kill_gold", "building_gold", "other_gold", "comeback_gold", "experimental_gold", "experimental2_gold", "creep_deny_gold", "tp_scrolls_purchased_1", "tp_scrolls_purchased_2", "tp_scrolls_purchased_3", "tp_scrolls_purchased_4", "tp_scrolls_purchased_5", "neutral_gold", "courier_gold", "roshan_gold", "income_gold", "item_value", "support_gold_spent", "camps_stacked", "wards_placed", "triple_kills", "rampages", "custom_stats")
+    __slots__ = ("time", "kills", "deaths", "assists", "net_worth", "xp", "last_hits", "denies", "bounty_rune_gold", "range_creep_upgrade_gold", "observer_wards_dewarded", "reliable_gold_earned", "gold_loss_prevented", "hero_kill_gold", "creep_kill_gold", "building_gold", "other_gold", "comeback_gold", "experimental_gold", "experimental2_gold", "creep_deny_gold", "tp_scrolls_purchased_1", "tp_scrolls_purchased_2", "tp_scrolls_purchased_3", "tp_scrolls_purchased_4", "tp_scrolls_purchased_5", "neutral_gold", "courier_gold", "roshan_gold", "income_gold", "item_value", "support_gold_spent", "camps_stacked", "wards_placed", "triple_kills", "rampages", "custom_stats", "summon_kill_gold")
     TIME_FIELD_NUMBER: _ClassVar[int]
     KILLS_FIELD_NUMBER: _ClassVar[int]
     DEATHS_FIELD_NUMBER: _ClassVar[int]
@@ -498,6 +499,7 @@ class CMatchPlayerTimedStats(_message.Message):
     TRIPLE_KILLS_FIELD_NUMBER: _ClassVar[int]
     RAMPAGES_FIELD_NUMBER: _ClassVar[int]
     CUSTOM_STATS_FIELD_NUMBER: _ClassVar[int]
+    SUMMON_KILL_GOLD_FIELD_NUMBER: _ClassVar[int]
     time: int
     kills: int
     deaths: int
@@ -535,7 +537,8 @@ class CMatchPlayerTimedStats(_message.Message):
     triple_kills: int
     rampages: int
     custom_stats: _containers.RepeatedCompositeFieldContainer[CMatchPlayerTimedCustomStat]
-    def __init__(self, time: _Optional[int] = ..., kills: _Optional[int] = ..., deaths: _Optional[int] = ..., assists: _Optional[int] = ..., net_worth: _Optional[int] = ..., xp: _Optional[int] = ..., last_hits: _Optional[int] = ..., denies: _Optional[int] = ..., bounty_rune_gold: _Optional[int] = ..., range_creep_upgrade_gold: _Optional[int] = ..., observer_wards_dewarded: _Optional[int] = ..., reliable_gold_earned: _Optional[int] = ..., gold_loss_prevented: _Optional[int] = ..., hero_kill_gold: _Optional[int] = ..., creep_kill_gold: _Optional[int] = ..., building_gold: _Optional[int] = ..., other_gold: _Optional[int] = ..., comeback_gold: _Optional[int] = ..., experimental_gold: _Optional[int] = ..., experimental2_gold: _Optional[int] = ..., creep_deny_gold: _Optional[int] = ..., tp_scrolls_purchased_1: _Optional[int] = ..., tp_scrolls_purchased_2: _Optional[int] = ..., tp_scrolls_purchased_3: _Optional[int] = ..., tp_scrolls_purchased_4: _Optional[int] = ..., tp_scrolls_purchased_5: _Optional[int] = ..., neutral_gold: _Optional[int] = ..., courier_gold: _Optional[int] = ..., roshan_gold: _Optional[int] = ..., income_gold: _Optional[int] = ..., item_value: _Optional[int] = ..., support_gold_spent: _Optional[int] = ..., camps_stacked: _Optional[int] = ..., wards_placed: _Optional[int] = ..., triple_kills: _Optional[int] = ..., rampages: _Optional[int] = ..., custom_stats: _Optional[_Iterable[_Union[CMatchPlayerTimedCustomStat, _Mapping]]] = ...) -> None: ...
+    summon_kill_gold: int
+    def __init__(self, time: _Optional[int] = ..., kills: _Optional[int] = ..., deaths: _Optional[int] = ..., assists: _Optional[int] = ..., net_worth: _Optional[int] = ..., xp: _Optional[int] = ..., last_hits: _Optional[int] = ..., denies: _Optional[int] = ..., bounty_rune_gold: _Optional[int] = ..., range_creep_upgrade_gold: _Optional[int] = ..., observer_wards_dewarded: _Optional[int] = ..., reliable_gold_earned: _Optional[int] = ..., gold_loss_prevented: _Optional[int] = ..., hero_kill_gold: _Optional[int] = ..., creep_kill_gold: _Optional[int] = ..., building_gold: _Optional[int] = ..., other_gold: _Optional[int] = ..., comeback_gold: _Optional[int] = ..., experimental_gold: _Optional[int] = ..., experimental2_gold: _Optional[int] = ..., creep_deny_gold: _Optional[int] = ..., tp_scrolls_purchased_1: _Optional[int] = ..., tp_scrolls_purchased_2: _Optional[int] = ..., tp_scrolls_purchased_3: _Optional[int] = ..., tp_scrolls_purchased_4: _Optional[int] = ..., tp_scrolls_purchased_5: _Optional[int] = ..., neutral_gold: _Optional[int] = ..., courier_gold: _Optional[int] = ..., roshan_gold: _Optional[int] = ..., income_gold: _Optional[int] = ..., item_value: _Optional[int] = ..., support_gold_spent: _Optional[int] = ..., camps_stacked: _Optional[int] = ..., wards_placed: _Optional[int] = ..., triple_kills: _Optional[int] = ..., rampages: _Optional[int] = ..., custom_stats: _Optional[_Iterable[_Union[CMatchPlayerTimedCustomStat, _Mapping]]] = ..., summon_kill_gold: _Optional[int] = ...) -> None: ...
 
 class CMatchTeamTimedStats(_message.Message):
     __slots__ = ("time", "enemy_towers_killed", "enemy_barracks_killed", "enemy_towers_status", "enemy_barracks_status")
@@ -814,10 +817,10 @@ class CMsgClientToGCRerollPlayerChallenge(_message.Message):
     EVENT_ID_FIELD_NUMBER: _ClassVar[int]
     SEQUENCE_ID_FIELD_NUMBER: _ClassVar[int]
     HERO_ID_FIELD_NUMBER: _ClassVar[int]
-    event_id: _dota_shared_enums_pb2.EEvent
+    event_id: _events_pb2.EEvent
     sequence_id: int
     hero_id: int
-    def __init__(self, event_id: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ..., sequence_id: _Optional[int] = ..., hero_id: _Optional[int] = ...) -> None: ...
+    def __init__(self, event_id: _Optional[_Union[_events_pb2.EEvent, str]] = ..., sequence_id: _Optional[int] = ..., hero_id: _Optional[int] = ...) -> None: ...
 
 class CMsgGCRerollPlayerChallengeResponse(_message.Message):
     __slots__ = ("result",)
@@ -1524,10 +1527,10 @@ class CMsgDOTASeasonPredictions(_message.Message):
         use_answer_value_ranges: bool
         region: _dota_shared_enums_pb2.ELeagueRegion
         phases: _containers.RepeatedScalarFieldContainer[_dota_shared_enums_pb2.ELeaguePhase]
-        reward_event: _dota_shared_enums_pb2.EEvent
+        reward_event: _events_pb2.EEvent
         league_node_id: int
         reward_event_action: str
-        def __init__(self, type: _Optional[_Union[CMsgDOTASeasonPredictions.Prediction.EPredictionType, str]] = ..., question: _Optional[str] = ..., choices: _Optional[_Iterable[_Union[CMsgPredictionChoice, _Mapping]]] = ..., selection_id: _Optional[int] = ..., start_date: _Optional[int] = ..., lock_date: _Optional[int] = ..., reward: _Optional[int] = ..., answer_type: _Optional[_Union[CMsgDOTASeasonPredictions.Prediction.EAnswerType, str]] = ..., answer_id: _Optional[int] = ..., answers: _Optional[_Iterable[_Union[CMsgDOTASeasonPredictions.Prediction.Answers, _Mapping]]] = ..., query_name: _Optional[str] = ..., lock_on_selection_id: _Optional[int] = ..., lock_on_selection_value: _Optional[int] = ..., lock_on_selection_set: bool = ..., use_answer_value_ranges: bool = ..., region: _Optional[_Union[_dota_shared_enums_pb2.ELeagueRegion, str]] = ..., phases: _Optional[_Iterable[_Union[_dota_shared_enums_pb2.ELeaguePhase, str]]] = ..., reward_event: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ..., league_node_id: _Optional[int] = ..., reward_event_action: _Optional[str] = ...) -> None: ...
+        def __init__(self, type: _Optional[_Union[CMsgDOTASeasonPredictions.Prediction.EPredictionType, str]] = ..., question: _Optional[str] = ..., choices: _Optional[_Iterable[_Union[CMsgPredictionChoice, _Mapping]]] = ..., selection_id: _Optional[int] = ..., start_date: _Optional[int] = ..., lock_date: _Optional[int] = ..., reward: _Optional[int] = ..., answer_type: _Optional[_Union[CMsgDOTASeasonPredictions.Prediction.EAnswerType, str]] = ..., answer_id: _Optional[int] = ..., answers: _Optional[_Iterable[_Union[CMsgDOTASeasonPredictions.Prediction.Answers, _Mapping]]] = ..., query_name: _Optional[str] = ..., lock_on_selection_id: _Optional[int] = ..., lock_on_selection_value: _Optional[int] = ..., lock_on_selection_set: bool = ..., use_answer_value_ranges: bool = ..., region: _Optional[_Union[_dota_shared_enums_pb2.ELeagueRegion, str]] = ..., phases: _Optional[_Iterable[_Union[_dota_shared_enums_pb2.ELeaguePhase, str]]] = ..., reward_event: _Optional[_Union[_events_pb2.EEvent, str]] = ..., league_node_id: _Optional[int] = ..., reward_event_action: _Optional[str] = ...) -> None: ...
     PREDICTIONS_FIELD_NUMBER: _ClassVar[int]
     IN_GAME_PREDICTIONS_FIELD_NUMBER: _ClassVar[int]
     IN_GAME_PREDICTION_COUNT_PER_GAME_FIELD_NUMBER: _ClassVar[int]
@@ -2105,8 +2108,8 @@ class CMsgMatchTips(_message.Message):
         source_account_id: int
         target_account_id: int
         tip_amount: int
-        event_id: _dota_shared_enums_pb2.EEvent
-        def __init__(self, source_account_id: _Optional[int] = ..., target_account_id: _Optional[int] = ..., tip_amount: _Optional[int] = ..., event_id: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ...) -> None: ...
+        event_id: _events_pb2.EEvent
+        def __init__(self, source_account_id: _Optional[int] = ..., target_account_id: _Optional[int] = ..., tip_amount: _Optional[int] = ..., event_id: _Optional[_Union[_events_pb2.EEvent, str]] = ...) -> None: ...
     TIPS_FIELD_NUMBER: _ClassVar[int]
     tips: _containers.RepeatedCompositeFieldContainer[CMsgMatchTips.SingleTip]
     def __init__(self, tips: _Optional[_Iterable[_Union[CMsgMatchTips.SingleTip, _Mapping]]] = ...) -> None: ...
@@ -2879,11 +2882,11 @@ class CMsgStickerbookPage(_message.Message):
     STICKERS_FIELD_NUMBER: _ClassVar[int]
     PAGE_TYPE_FIELD_NUMBER: _ClassVar[int]
     page_num: int
-    event_id: _dota_shared_enums_pb2.EEvent
+    event_id: _events_pb2.EEvent
     team_id: int
     stickers: _containers.RepeatedCompositeFieldContainer[CMsgStickerbookSticker]
     page_type: EStickerbookPageType
-    def __init__(self, page_num: _Optional[int] = ..., event_id: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ..., team_id: _Optional[int] = ..., stickers: _Optional[_Iterable[_Union[CMsgStickerbookSticker, _Mapping]]] = ..., page_type: _Optional[_Union[EStickerbookPageType, str]] = ...) -> None: ...
+    def __init__(self, page_num: _Optional[int] = ..., event_id: _Optional[_Union[_events_pb2.EEvent, str]] = ..., team_id: _Optional[int] = ..., stickers: _Optional[_Iterable[_Union[CMsgStickerbookSticker, _Mapping]]] = ..., page_type: _Optional[_Union[EStickerbookPageType, str]] = ...) -> None: ...
 
 class CMsgStickerbookTeamPageOrderSequence(_message.Message):
     __slots__ = ("page_numbers",)
@@ -3195,6 +3198,8 @@ class CDotaMsgStructuredTooltipProperties(_message.Message):
         kAbilityDefinedDamage: _ClassVar[CDotaMsgStructuredTooltipProperties.EAttributeType]
         kDispellability: _ClassVar[CDotaMsgStructuredTooltipProperties.EAttributeType]
         kSpellImmunityPiercing: _ClassVar[CDotaMsgStructuredTooltipProperties.EAttributeType]
+        kHealthPercentageAsPureDamage: _ClassVar[CDotaMsgStructuredTooltipProperties.EAttributeType]
+        kPhysicalDamagePercentage: _ClassVar[CDotaMsgStructuredTooltipProperties.EAttributeType]
     kUnknown: CDotaMsgStructuredTooltipProperties.EAttributeType
     kDuration: CDotaMsgStructuredTooltipProperties.EAttributeType
     kManaCost: CDotaMsgStructuredTooltipProperties.EAttributeType
@@ -3218,6 +3223,8 @@ class CDotaMsgStructuredTooltipProperties(_message.Message):
     kAbilityDefinedDamage: CDotaMsgStructuredTooltipProperties.EAttributeType
     kDispellability: CDotaMsgStructuredTooltipProperties.EAttributeType
     kSpellImmunityPiercing: CDotaMsgStructuredTooltipProperties.EAttributeType
+    kHealthPercentageAsPureDamage: CDotaMsgStructuredTooltipProperties.EAttributeType
+    kPhysicalDamagePercentage: CDotaMsgStructuredTooltipProperties.EAttributeType
     class AttributeValueValue(_message.Message):
         __slots__ = ("value", "is_active_value")
         VALUE_FIELD_NUMBER: _ClassVar[int]
@@ -3252,16 +3259,16 @@ class CDotaMsgStructuredTooltipProperties(_message.Message):
         delta: CDotaMsgStructuredTooltipProperties.AttributeValue_Delta
         def __init__(self, single: _Optional[_Union[CDotaMsgStructuredTooltipProperties.AttributeValue_Single, _Mapping]] = ..., variable: _Optional[_Union[CDotaMsgStructuredTooltipProperties.AttributeValue_Variable, _Mapping]] = ..., delta: _Optional[_Union[CDotaMsgStructuredTooltipProperties.AttributeValue_Delta, _Mapping]] = ...) -> None: ...
     class Attribute(_message.Message):
-        __slots__ = ("internal_name", "localized_name_text", "type", "value")
+        __slots__ = ("internal_name", "localized_name_text", "resolved_type", "value")
         INTERNAL_NAME_FIELD_NUMBER: _ClassVar[int]
         LOCALIZED_NAME_TEXT_FIELD_NUMBER: _ClassVar[int]
-        TYPE_FIELD_NUMBER: _ClassVar[int]
+        RESOLVED_TYPE_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
         internal_name: str
         localized_name_text: str
-        type: CDotaMsgStructuredTooltipProperties.EAttributeType
+        resolved_type: CDotaMsgStructuredTooltipProperties.EAttributeType
         value: CDotaMsgStructuredTooltipProperties.AttributeValue
-        def __init__(self, internal_name: _Optional[str] = ..., localized_name_text: _Optional[str] = ..., type: _Optional[_Union[CDotaMsgStructuredTooltipProperties.EAttributeType, str]] = ..., value: _Optional[_Union[CDotaMsgStructuredTooltipProperties.AttributeValue, _Mapping]] = ...) -> None: ...
+        def __init__(self, internal_name: _Optional[str] = ..., localized_name_text: _Optional[str] = ..., resolved_type: _Optional[_Union[CDotaMsgStructuredTooltipProperties.EAttributeType, str]] = ..., value: _Optional[_Union[CDotaMsgStructuredTooltipProperties.AttributeValue, _Mapping]] = ...) -> None: ...
     class AttributeGroupDesc_Basic(_message.Message):
         __slots__ = ()
         def __init__(self) -> None: ...

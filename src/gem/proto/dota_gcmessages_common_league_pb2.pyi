@@ -1,4 +1,5 @@
 from . import dota_shared_enums_pb2 as _dota_shared_enums_pb2
+from . import events_pb2 as _events_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
@@ -47,12 +48,14 @@ BEST_OF_TWO: ELeagueNodeType
 class CMsgDOTALeagueNode(_message.Message):
     __slots__ = ("name", "node_id", "node_group_id", "winning_node_id", "losing_node_id", "incoming_node_id_1", "incoming_node_id_2", "node_type", "scheduled_time", "actual_time", "series_id", "team_id_1", "team_id_2", "matches", "team_1_wins", "team_2_wins", "has_started", "is_completed", "stream_ids", "vods")
     class MatchDetails(_message.Message):
-        __slots__ = ("match_id", "winning_team_id")
+        __slots__ = ("match_id", "winning_team_id", "duration")
         MATCH_ID_FIELD_NUMBER: _ClassVar[int]
         WINNING_TEAM_ID_FIELD_NUMBER: _ClassVar[int]
+        DURATION_FIELD_NUMBER: _ClassVar[int]
         match_id: int
         winning_team_id: int
-        def __init__(self, match_id: _Optional[int] = ..., winning_team_id: _Optional[int] = ...) -> None: ...
+        duration: int
+        def __init__(self, match_id: _Optional[int] = ..., winning_team_id: _Optional[int] = ..., duration: _Optional[int] = ...) -> None: ...
     class VOD(_message.Message):
         __slots__ = ("series_game", "stream_id", "url")
         SERIES_GAME_FIELD_NUMBER: _ClassVar[int]
@@ -107,7 +110,7 @@ class CMsgDOTALeagueNode(_message.Message):
 class CMsgDOTALeagueNodeGroup(_message.Message):
     __slots__ = ("name", "node_group_id", "parent_node_group_id", "incoming_node_group_ids", "advancing_node_group_id", "advancing_team_count", "team_count", "node_group_type", "default_node_type", "round", "max_rounds", "win_loss_limit", "is_tiebreaker", "is_final_group", "is_completed", "phase", "region", "start_time", "end_time", "secondary_advancing_node_group_id", "secondary_advancing_team_count", "tertiary_advancing_node_group_id", "tertiary_advancing_team_count", "elimination_dpc_points", "team_standings", "nodes", "node_groups")
     class TeamStanding(_message.Message):
-        __slots__ = ("standing", "team_id", "team_name", "team_tag", "team_logo", "team_logo_url", "wins", "losses", "score", "team_abbreviation", "is_pro", "tiebreak_game_win_pct", "tiebreak_opponent_match_wins", "tiebreak_opponent_game_win_pct", "tiebreak_coinflip")
+        __slots__ = ("standing", "team_id", "team_name", "team_tag", "team_logo", "team_logo_url", "wins", "losses", "score", "team_abbreviation", "is_pro", "tiebreak_game_win_pct", "tiebreak_opponent_match_wins", "tiebreak_opponent_game_win_pct", "tiebreak_coinflip", "tiebereak_average_game_length")
         STANDING_FIELD_NUMBER: _ClassVar[int]
         TEAM_ID_FIELD_NUMBER: _ClassVar[int]
         TEAM_NAME_FIELD_NUMBER: _ClassVar[int]
@@ -123,6 +126,7 @@ class CMsgDOTALeagueNodeGroup(_message.Message):
         TIEBREAK_OPPONENT_MATCH_WINS_FIELD_NUMBER: _ClassVar[int]
         TIEBREAK_OPPONENT_GAME_WIN_PCT_FIELD_NUMBER: _ClassVar[int]
         TIEBREAK_COINFLIP_FIELD_NUMBER: _ClassVar[int]
+        TIEBEREAK_AVERAGE_GAME_LENGTH_FIELD_NUMBER: _ClassVar[int]
         standing: int
         team_id: int
         team_name: str
@@ -138,7 +142,8 @@ class CMsgDOTALeagueNodeGroup(_message.Message):
         tiebreak_opponent_match_wins: int
         tiebreak_opponent_game_win_pct: int
         tiebreak_coinflip: int
-        def __init__(self, standing: _Optional[int] = ..., team_id: _Optional[int] = ..., team_name: _Optional[str] = ..., team_tag: _Optional[str] = ..., team_logo: _Optional[int] = ..., team_logo_url: _Optional[str] = ..., wins: _Optional[int] = ..., losses: _Optional[int] = ..., score: _Optional[int] = ..., team_abbreviation: _Optional[str] = ..., is_pro: bool = ..., tiebreak_game_win_pct: _Optional[int] = ..., tiebreak_opponent_match_wins: _Optional[int] = ..., tiebreak_opponent_game_win_pct: _Optional[int] = ..., tiebreak_coinflip: _Optional[int] = ...) -> None: ...
+        tiebereak_average_game_length: int
+        def __init__(self, standing: _Optional[int] = ..., team_id: _Optional[int] = ..., team_name: _Optional[str] = ..., team_tag: _Optional[str] = ..., team_logo: _Optional[int] = ..., team_logo_url: _Optional[str] = ..., wins: _Optional[int] = ..., losses: _Optional[int] = ..., score: _Optional[int] = ..., team_abbreviation: _Optional[str] = ..., is_pro: bool = ..., tiebreak_game_win_pct: _Optional[int] = ..., tiebreak_opponent_match_wins: _Optional[int] = ..., tiebreak_opponent_game_win_pct: _Optional[int] = ..., tiebreak_coinflip: _Optional[int] = ..., tiebereak_average_game_length: _Optional[int] = ...) -> None: ...
     NAME_FIELD_NUMBER: _ClassVar[int]
     NODE_GROUP_ID_FIELD_NUMBER: _ClassVar[int]
     PARENT_NODE_GROUP_ID_FIELD_NUMBER: _ClassVar[int]

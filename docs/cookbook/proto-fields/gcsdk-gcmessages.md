@@ -480,7 +480,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgClientHello</code> — fields: 23; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgClientHello</code> — fields: 22; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -491,7 +491,6 @@ Expand any message to inspect all fields.
 | 2 | `socache_have_versions` | `.CMsgSOCacheHaveVersion` | `repeated` |  |  |
 | 3 | `client_session_need` | `uint32` | `optional` |  |  |
 | 4 | `client_launcher` | `.PartnerAccountType` | `optional` |  | default = PARTNER_NONE |
-| 5 | `secret_key` | `string` | `optional` |  |  |
 | 6 | `client_language` | `uint32` | `optional` |  |  |
 | 7 | `engine` | `.ESourceEngine` | `optional` |  | default = k_ESE_Source1 |
 | 8 | `steamdatagram_login` | `bytes` | `optional` |  |  |

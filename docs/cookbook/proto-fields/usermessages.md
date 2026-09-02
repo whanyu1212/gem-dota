@@ -4,7 +4,7 @@
 - Syntax: `unknown`
 - Package: `(none)`
 - Imports: **1**
-- Messages: **109** (top-level: 56)
+- Messages: **107** (top-level: 54)
 - Enums: **5** (top-level: 5)
 
 ## Imports
@@ -24,36 +24,6 @@ Expand any message to inspect all fields.
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
 | 1 | `achievement` | `uint32` | `optional` |  |  |
-
-</details>
-
-<details>
-<summary><code>CUserMessageCloseCaption</code> — fields: 4; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: *(top-level)*
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `hash` | `fixed32` | `optional` |  |  |
-| 2 | `duration` | `float` | `optional` |  |  |
-| 3 | `from_player` | `bool` | `optional` |  |  |
-| 4 | `ent_index` | `int32` | `optional` |  | default = -1 |
-
-</details>
-
-<details>
-<summary><code>CUserMessageCloseCaptionDirect</code> — fields: 4; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: *(top-level)*
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `hash` | `fixed32` | `optional` |  |  |
-| 2 | `duration` | `float` | `optional` |  |  |
-| 3 | `from_player` | `bool` | `optional` |  |  |
-| 4 | `ent_index` | `int32` | `optional` |  | default = -1 |
 
 </details>
 
@@ -444,19 +414,6 @@ Expand any message to inspect all fields.
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
 | 1 | `start_effect` | `bool` | `optional` |  |  |
-| 2 | `entity_msg` | `.CEntityMsg` | `optional` |  |  |
-
-</details>
-
-<details>
-<summary><code>CEntityMessageRemoveAllDecals</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: *(top-level)*
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `remove_decals` | `bool` | `optional` |  |  |
 | 2 | `entity_msg` | `.CEntityMsg` | `optional` |  |  |
 
 </details>
@@ -1639,6 +1596,18 @@ Expand any message to inspect all fields.
 
 </details>
 
+<details>
+<summary><code>CUserMessage_UsageReport</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `usage` | `string` | `optional` |  |  |
+
+</details>
+
 ## Enums
 
 Expand any enum to inspect all values.
@@ -1651,8 +1620,6 @@ Expand any enum to inspect all values.
 | Name | Number |
 |---|---:|
 | `UM_AchievementEvent` | 101 |
-| `UM_CloseCaption` | 102 |
-| `UM_CloseCaptionDirect` | 103 |
 | `UM_CurrentTimescale` | 104 |
 | `UM_DesiredTimescale` | 105 |
 | `UM_Fade` | 106 |
@@ -1700,12 +1667,14 @@ Expand any enum to inspect all values.
 | `UM_ExtraUserData` | 164 |
 | `UM_NotifyResponseFound` | 165 |
 | `UM_PlayResponseConditional` | 166 |
+| `UM_UserSentBugBug` | 167 |
+| `UM_UsageReport` | 168 |
 | `UM_MAX_BASE` | 200 |
 
 </details>
 
 <details>
-<summary><code>EBaseEntityMessages</code> — values: 6</summary>
+<summary><code>EBaseEntityMessages</code> — values: 5</summary>
 
 - Parent: *(top-level)*
 
@@ -1713,7 +1682,6 @@ Expand any enum to inspect all values.
 |---|---:|
 | `EM_PlayJingle` | 136 |
 | `EM_ScreenOverlay` | 137 |
-| `EM_RemoveAllDecals` | 138 |
 | `EM_PropagateForce` | 139 |
 | `EM_DoSpark` | 140 |
 | `EM_FixAngle` | 141 |

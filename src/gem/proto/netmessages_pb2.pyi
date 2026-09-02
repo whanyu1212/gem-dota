@@ -697,22 +697,24 @@ class CSVCMsg_UpdateStringTable(_message.Message):
     def __init__(self, table_id: _Optional[int] = ..., num_changed_entries: _Optional[int] = ..., string_data: _Optional[bytes] = ...) -> None: ...
 
 class CSVCMsg_VoiceData(_message.Message):
-    __slots__ = ("audio", "client", "proximity", "xuid", "audible_mask", "tick", "passthrough")
+    __slots__ = ("audio", "client_deprecated", "proximity", "xuid", "audible_mask", "tick", "passthrough", "entity")
     AUDIO_FIELD_NUMBER: _ClassVar[int]
-    CLIENT_FIELD_NUMBER: _ClassVar[int]
+    CLIENT_DEPRECATED_FIELD_NUMBER: _ClassVar[int]
     PROXIMITY_FIELD_NUMBER: _ClassVar[int]
     XUID_FIELD_NUMBER: _ClassVar[int]
     AUDIBLE_MASK_FIELD_NUMBER: _ClassVar[int]
     TICK_FIELD_NUMBER: _ClassVar[int]
     PASSTHROUGH_FIELD_NUMBER: _ClassVar[int]
+    ENTITY_FIELD_NUMBER: _ClassVar[int]
     audio: CMsgVoiceAudio
-    client: int
+    client_deprecated: int
     proximity: bool
     xuid: int
     audible_mask: int
     tick: int
     passthrough: int
-    def __init__(self, audio: _Optional[_Union[CMsgVoiceAudio, _Mapping]] = ..., client: _Optional[int] = ..., proximity: bool = ..., xuid: _Optional[int] = ..., audible_mask: _Optional[int] = ..., tick: _Optional[int] = ..., passthrough: _Optional[int] = ...) -> None: ...
+    entity: int
+    def __init__(self, audio: _Optional[_Union[CMsgVoiceAudio, _Mapping]] = ..., client_deprecated: _Optional[int] = ..., proximity: bool = ..., xuid: _Optional[int] = ..., audible_mask: _Optional[int] = ..., tick: _Optional[int] = ..., passthrough: _Optional[int] = ..., entity: _Optional[int] = ...) -> None: ...
 
 class CSVCMsg_PacketReliable(_message.Message):
     __slots__ = ("tick", "messagessize", "state")
@@ -1052,18 +1054,20 @@ class CSVCMsg_HltvFixupOperatorStatus(_message.Message):
     def __init__(self, mode: _Optional[int] = ..., override_operator_name: _Optional[str] = ...) -> None: ...
 
 class CMsgServerUserCmd(_message.Message):
-    __slots__ = ("data", "cmd_number", "player_slot", "server_tick_executed", "client_tick")
+    __slots__ = ("data", "cmd_number", "player_slot", "server_tick_executed", "client_tick", "delta_data")
     DATA_FIELD_NUMBER: _ClassVar[int]
     CMD_NUMBER_FIELD_NUMBER: _ClassVar[int]
     PLAYER_SLOT_FIELD_NUMBER: _ClassVar[int]
     SERVER_TICK_EXECUTED_FIELD_NUMBER: _ClassVar[int]
     CLIENT_TICK_FIELD_NUMBER: _ClassVar[int]
+    DELTA_DATA_FIELD_NUMBER: _ClassVar[int]
     data: bytes
     cmd_number: int
     player_slot: int
     server_tick_executed: int
     client_tick: int
-    def __init__(self, data: _Optional[bytes] = ..., cmd_number: _Optional[int] = ..., player_slot: _Optional[int] = ..., server_tick_executed: _Optional[int] = ..., client_tick: _Optional[int] = ...) -> None: ...
+    delta_data: bytes
+    def __init__(self, data: _Optional[bytes] = ..., cmd_number: _Optional[int] = ..., player_slot: _Optional[int] = ..., server_tick_executed: _Optional[int] = ..., client_tick: _Optional[int] = ..., delta_data: _Optional[bytes] = ...) -> None: ...
 
 class CSVCMsg_UserCommands(_message.Message):
     __slots__ = ("commands",)

@@ -25,6 +25,10 @@ _sym_db = _symbol_database.Default()
 from . import steammessages_pb2 as steammessages__pb2
 from . import gcsdk_gcmessages_pb2 as gcsdk__gcmessages__pb2
 from . import dota_shared_enums_pb2 as dota__shared__enums__pb2
+try:
+  events__pb2 = dota__shared__enums__pb2.events__pb2
+except AttributeError:
+  events__pb2 = dota__shared__enums__pb2.events_pb2
 from . import dota_gcmessages_common_pb2 as dota__gcmessages__common__pb2
 from . import dota_match_metadata_pb2 as dota__match__metadata__pb2
 

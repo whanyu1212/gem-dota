@@ -20,7 +20,7 @@ if [ -n "$GITHUB_TOKEN" ]; then
     echo -e "${YELLOW}Using GITHUB_TOKEN for authenticated requests.${NC}"
 fi
 
-echo -e "${GREEN}Downloading Dota 2 proto files from SteamDatabase...${NC}"
+echo -e "${GREEN}Downloading Dota 2 proto files from SteamTracking...${NC}"
 
 mkdir -p "$DEST_DIR"
 
@@ -68,17 +68,17 @@ while IFS='|' read -r filename url; do
     # Skip if already downloaded (use --force flag to re-download)
     if [ -f "$dest" ] && [ "${FORCE:-0}" != "1" ]; then
         echo "  $filename ... skipped (already exists)"
-        ((SKIPPED++))
+        ((SKIPPED += 1))
         continue
     fi
 
     echo -n "  $filename ... "
     if curl -sfL -o "$dest" "$url"; then
         echo -e "${GREEN}✓${NC}"
-        ((DOWNLOADED++))
+        ((DOWNLOADED += 1))
     else
         echo -e "${RED}✗ (failed)${NC}"
-        ((FAILED++))
+        ((FAILED += 1))
     fi
 done <<< "$FILE_INFO"
 

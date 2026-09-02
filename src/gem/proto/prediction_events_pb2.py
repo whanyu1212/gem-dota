@@ -25,19 +25,19 @@ _sym_db = _symbol_database.Default()
 from . import networkbasetypes_pb2 as networkbasetypes__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x17prediction_events.proto\x1a\x16networkbasetypes.proto\"s\n\x19\x43PredictionEvent_Teleport\x12\x1b\n\x06origin\x18\x01 \x01(\x0b\x32\x0b.CMsgVector\x12\x1b\n\x06\x61ngles\x18\x02 \x01(\x0b\x32\x0b.CMsgQAngle\x12\x1c\n\x14\x64rop_to_ground_range\x18\x03 \x01(\x02\"1\n\x1e\x43PredictionEvent_StringCommand\x12\x0f\n\x07\x63ommand\x18\x01 \x01(\t\"y\n\x1b\x43PredictionEvent_Diagnostic\x12\n\n\x02id\x18\x01 \x01(\r\x12\x16\n\x0erequested_sync\x18\x02 \x01(\r\x12\x1e\n\x16requested_player_index\x18\x03 \x01(\r\x12\x16\n\x0e\x65xecution_sync\x18\x04 \x03(\r*X\n\x15\x45\x42\x61sePredictionEvents\x12\x16\n\x11\x42PE_StringCommand\x10\x80\x01\x12\x11\n\x0c\x42PE_Teleport\x10\x82\x01\x12\x14\n\x0e\x42PE_Diagnostic\x10\x80\x80\x01')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x17prediction_events.proto\x1a\x16networkbasetypes.proto\"\x92\x01\n\x19\x43PredictionEvent_Teleport\x12\x1b\n\x06origin\x18\x01 \x01(\x0b\x32\x0b.CMsgVector\x12\x1b\n\x06\x61ngles\x18\x02 \x01(\x0b\x32\x0b.CMsgQAngle\x12\x1c\n\x14\x64rop_to_ground_range\x18\x03 \x01(\x02\x12\x1d\n\x08velocity\x18\x04 \x01(\x0b\x32\x0b.CMsgVector\"1\n\x1e\x43PredictionEvent_StringCommand\x12\x0f\n\x07\x63ommand\x18\x01 \x01(\t\"y\n\x1b\x43PredictionEvent_Diagnostic\x12\n\n\x02id\x18\x01 \x01(\r\x12\x16\n\x0erequested_sync\x18\x02 \x01(\r\x12\x1e\n\x16requested_player_index\x18\x03 \x01(\r\x12\x16\n\x0e\x65xecution_sync\x18\x04 \x03(\r*X\n\x15\x45\x42\x61sePredictionEvents\x12\x16\n\x11\x42PE_StringCommand\x10\x80\x01\x12\x11\n\x0c\x42PE_Teleport\x10\x82\x01\x12\x14\n\x0e\x42PE_Diagnostic\x10\x80\x80\x01')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'prediction_events_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_EBASEPREDICTIONEVENTS']._serialized_start=342
-  _globals['_EBASEPREDICTIONEVENTS']._serialized_end=430
-  _globals['_CPREDICTIONEVENT_TELEPORT']._serialized_start=51
-  _globals['_CPREDICTIONEVENT_TELEPORT']._serialized_end=166
-  _globals['_CPREDICTIONEVENT_STRINGCOMMAND']._serialized_start=168
-  _globals['_CPREDICTIONEVENT_STRINGCOMMAND']._serialized_end=217
-  _globals['_CPREDICTIONEVENT_DIAGNOSTIC']._serialized_start=219
-  _globals['_CPREDICTIONEVENT_DIAGNOSTIC']._serialized_end=340
+  _globals['_EBASEPREDICTIONEVENTS']._serialized_start=374
+  _globals['_EBASEPREDICTIONEVENTS']._serialized_end=462
+  _globals['_CPREDICTIONEVENT_TELEPORT']._serialized_start=52
+  _globals['_CPREDICTIONEVENT_TELEPORT']._serialized_end=198
+  _globals['_CPREDICTIONEVENT_STRINGCOMMAND']._serialized_start=200
+  _globals['_CPREDICTIONEVENT_STRINGCOMMAND']._serialized_end=249
+  _globals['_CPREDICTIONEVENT_DIAGNOSTIC']._serialized_start=251
+  _globals['_CPREDICTIONEVENT_DIAGNOSTIC']._serialized_end=372
 # @@protoc_insertion_point(module_scope)

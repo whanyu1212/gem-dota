@@ -270,7 +270,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgDotaScenario.Hero</code> — fields: 68; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgDotaScenario.Hero</code> — fields: 70; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: `CMsgDotaScenario`
 - Oneofs: *(none)*
@@ -345,6 +345,8 @@ Expand any message to inspect all fields.
 | 155 | `current_madstone` | `uint32` | `optional` |  |  |
 | 156 | `neutral_tiers` | `.CMsgDotaScenario.HeroNeutralTier` | `repeated` |  |  |
 | 157 | `refresher_charges_used` | `int32` | `optional` |  |  |
+| 158 | `summon_kill_gold` | `int32` | `optional` |  |  |
+| 159 | `wisdom_shrines_taken` | `int32` | `optional` |  |  |
 
 </details>
 

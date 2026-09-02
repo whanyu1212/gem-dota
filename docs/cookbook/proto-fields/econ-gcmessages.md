@@ -5,7 +5,7 @@
 - Package: `(none)`
 - Imports: **4**
 - Messages: **143** (top-level: 121)
-- Enums: **15** (top-level: 2)
+- Enums: **16** (top-level: 2)
 
 ## Imports
 
@@ -615,14 +615,14 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgDevNewItemRequestResponse</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgDevNewItemRequestResponse</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 1</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `success` | `bool` | `optional` |  |  |
+| 1 | `result` | `.CMsgDevNewItemRequestResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -2193,6 +2193,24 @@ Expand any enum to inspect all values.
 | `k_Failed_CodeNotFound` | 1 |
 | `k_Failed_CodeAlreadyUsed` | 2 |
 | `k_Failed_OtherError` | 3 |
+
+</details>
+
+<details>
+<summary><code>CMsgDevNewItemRequestResponse.EResponse</code> — values: 8</summary>
+
+- Parent: `CMsgDevNewItemRequestResponse`
+
+| Name | Number |
+|---|---:|
+| `k_eInternalError` | 0 |
+| `k_eSuccess` | 1 |
+| `k_eTooBusy` | 2 |
+| `k_eDisabled` | 3 |
+| `k_eTimeout` | 4 |
+| `k_eNotAllowed` | 5 |
+| `k_eUnknownItemDef` | 6 |
+| `k_eItemDefNotAllowed` | 7 |
 
 </details>
 

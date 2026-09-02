@@ -3,12 +3,13 @@
 - Module: `networkbasetypes_pb2`
 - Syntax: `unknown`
 - Package: `(none)`
-- Imports: **2**
+- Imports: **3**
 - Messages: **27** (top-level: 24)
 - Enums: **3** (top-level: 3)
 
 ## Imports
 
+- `valveextensions.proto`
 - `google/protobuf/descriptor.proto`
 - `network_connection.proto`
 

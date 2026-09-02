@@ -4,8 +4,8 @@
 - Syntax: `unknown`
 - Package: `(none)`
 - Imports: **5**
-- Messages: **58** (top-level: 53)
-- Enums: **22** (top-level: 4)
+- Messages: **68** (top-level: 62)
+- Enums: **26** (top-level: 4)
 
 ## Imports
 
@@ -203,22 +203,50 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgOverworldFortune</code> — fields: 4; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgOverworldFortune</code> — fields: 6; oneofs: 0; nested messages: 1; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `fortune1` | `uint32` | `optional` |  |  |
-| 2 | `fortune2` | `uint32` | `optional` |  |  |
-| 3 | `fortune3` | `uint32` | `optional` |  |  |
+| 1 | `fortune` | `uint32` | `optional` |  |  |
 | 4 | `timestamp` | `uint32` | `optional` |  |  |
+| 5 | `times_completed` | `uint32` | `optional` |  |  |
+| 7 | `reward_claimed` | `bool` | `optional` |  |  |
+| 8 | `fortune_count` | `uint32` | `optional` |  |  |
+| 9 | `fortune_counts` | `.CMsgOverworldFortune.CMsgFortuneCount` | `repeated` |  |  |
 
 </details>
 
 <details>
-<summary><code>CMsgOverworldUserData</code> — fields: 6; oneofs: 0; nested messages: 1; nested enums: 0</summary>
+<summary><code>CMsgOverworldFortune.CMsgFortuneCount</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: `CMsgOverworldFortune`
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `fortune` | `uint32` | `optional` |  |  |
+| 2 | `count` | `uint32` | `optional` |  |  |
+
+</details>
+
+<details>
+<summary><code>CMsgLobbyOverworldFortuneList</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `account_id` | `uint32` | `repeated` |  |  |
+| 2 | `fortune` | `.CMsgOverworldFortune` | `repeated` |  |  |
+
+</details>
+
+<details>
+<summary><code>CMsgOverworldUserData</code> — fields: 8; oneofs: 0; nested messages: 1; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -231,6 +259,8 @@ Expand any message to inspect all fields.
 | 4 | `current_node_id` | `uint32` | `optional` |  |  |
 | 5 | `minigame_data` | `.CMsgOverworldUserData.MinigameDataEntry` | `repeated` |  |  |
 | 6 | `current_fortune` | `.CMsgOverworldFortune` | `optional` |  |  |
+| 7 | `last_related_hero_id` | `int32` | `optional` |  |  |
+| 8 | `overworld_version` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -312,7 +342,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgClientToGCOverworldCompletePath</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgClientToGCOverworldCompletePath</code> — fields: 4; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -321,6 +351,8 @@ Expand any message to inspect all fields.
 |---:|---|---|---|---|---|
 | 1 | `overworld_id` | `uint32` | `optional` |  |  |
 | 2 | `path_id` | `uint32` | `optional` |  |  |
+| 3 | `use_path_unlocker` | `bool` | `optional` |  |  |
+| 4 | `dev_ignore_release_schedule` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -664,6 +696,30 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
+<summary><code>CMsgClientToGCOverworldDevGrantFortuneTellerCoin</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `overworld_id` | `uint32` | `optional` |  |  |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCOverworldDevGrantFortuneTellerCoinResponse</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 1</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `response` | `.CMsgClientToGCOverworldDevGrantFortuneTellerCoinResponse.EResponse` | `optional` |  | default = k_eInternalError |
+
+</details>
+
+<details>
 <summary><code>CMsgClientToGCOverworldRequestFortune</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
@@ -676,7 +732,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgClientToGCOverworldRequestFortuneResponse</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 1</summary>
+<summary><code>CMsgClientToGCOverworldRequestFortuneResponse</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 1</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -684,6 +740,59 @@ Expand any message to inspect all fields.
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
 | 1 | `response` | `.CMsgClientToGCOverworldRequestFortuneResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `claim_response` | `.CMsgDOTAClaimEventActionResponse` | `optional` |  |  |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCOverworldClaimFortuneReward</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `overworld_id` | `uint32` | `optional` |  |  |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCOverworldClaimFortuneRewardResponse</code> — fields: 3; oneofs: 0; nested messages: 0; nested enums: 1</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `response` | `.CMsgClientToGCOverworldClaimFortuneRewardResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `token_quantity` | `.CMsgOverworldTokenQuantity` | `optional` |  |  |
+| 3 | `claim_response` | `.CMsgDOTAClaimEventActionResponse` | `optional` |  |  |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCOverworldClaimFortunePermanentReward</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `overworld_id` | `uint32` | `optional` |  |  |
+| 2 | `fortune_id` | `uint32` | `optional` |  |  |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCOverworldClaimFortunePermanentRewardResponse</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 1</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `response` | `.CMsgClientToGCOverworldClaimFortunePermanentRewardResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `claim_response` | `.CMsgDOTAClaimEventActionResponse` | `optional` |  |  |
 
 </details>
 
@@ -784,6 +893,32 @@ Expand any message to inspect all fields.
 
 </details>
 
+<details>
+<summary><code>CMsgClientToGCOverworldClaimFortuneTellerStoryNode</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `overworld_id` | `uint32` | `optional` |  |  |
+| 2 | `story_node_id` | `uint32` | `optional` |  |  |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 1</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `response` | `.CMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `claim_response` | `.CMsgDOTAClaimEventActionResponse` | `optional` |  |  |
+
+</details>
+
 ## Enums
 
 Expand any enum to inspect all values.
@@ -815,7 +950,7 @@ Expand any enum to inspect all values.
 </details>
 
 <details>
-<summary><code>EOverworldAuditAction</code> — values: 20</summary>
+<summary><code>EOverworldAuditAction</code> — values: 25</summary>
 
 - Parent: *(top-level)*
 
@@ -841,6 +976,11 @@ Expand any enum to inspect all values.
 | `k_eOverworldAuditAction_DevSetFortune` | 18 |
 | `k_eOverworldAuditAction_DevClearFortune` | 19 |
 | `k_eOverworldAuditAction_RequestFortune` | 20 |
+| `k_eOverworldAuditAction_ClaimFortuneReward` | 21 |
+| `k_eOverworldAuditAction_DevGrantFortuneTellerCoin` | 22 |
+| `k_eOverworldAuditAction_ClaimFortuneTellerStoryNodeReward` | 23 |
+| `k_eOverworldAuditAction_MatchRewardsAbilityDraft` | 24 |
+| `k_eOverworldAuditAction_MatchRewardsCoopBotMatch` | 25 |
 
 </details>
 
@@ -878,7 +1018,7 @@ Expand any enum to inspect all values.
 </details>
 
 <details>
-<summary><code>CMsgClientToGCOverworldCompletePathResponse.EResponse</code> — values: 11</summary>
+<summary><code>CMsgClientToGCOverworldCompletePathResponse.EResponse</code> — values: 12</summary>
 
 - Parent: `CMsgClientToGCOverworldCompletePathResponse`
 
@@ -895,6 +1035,7 @@ Expand any enum to inspect all values.
 | `k_ePathIsLocked` | 8 |
 | `k_ePathAlreadyUnlocked` | 9 |
 | `k_eEventExpired` | 10 |
+| `k_eNodeNotReleased` | 11 |
 
 </details>
 
@@ -1132,7 +1273,24 @@ Expand any enum to inspect all values.
 </details>
 
 <details>
-<summary><code>CMsgClientToGCOverworldRequestFortuneResponse.EResponse</code> — values: 7</summary>
+<summary><code>CMsgClientToGCOverworldDevGrantFortuneTellerCoinResponse.EResponse</code> — values: 7</summary>
+
+- Parent: `CMsgClientToGCOverworldDevGrantFortuneTellerCoinResponse`
+
+| Name | Number |
+|---|---:|
+| `k_eInternalError` | 0 |
+| `k_eSuccess` | 1 |
+| `k_eTooBusy` | 2 |
+| `k_eDisabled` | 3 |
+| `k_eTimeout` | 4 |
+| `k_eNotAllowed` | 5 |
+| `k_eInvalidOverworld` | 6 |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCOverworldRequestFortuneResponse.EResponse</code> — values: 9</summary>
 
 - Parent: `CMsgClientToGCOverworldRequestFortuneResponse`
 
@@ -1145,6 +1303,44 @@ Expand any enum to inspect all values.
 | `k_eTimeout` | 4 |
 | `k_eNotAllowed` | 5 |
 | `k_eInvalidOverworld` | 6 |
+| `k_eNotEnoughPoints` | 7 |
+| `k_ePendingRewardAvailable` | 8 |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCOverworldClaimFortuneRewardResponse.EResponse</code> — values: 8</summary>
+
+- Parent: `CMsgClientToGCOverworldClaimFortuneRewardResponse`
+
+| Name | Number |
+|---|---:|
+| `k_eInternalError` | 0 |
+| `k_eSuccess` | 1 |
+| `k_eTooBusy` | 2 |
+| `k_eDisabled` | 3 |
+| `k_eTimeout` | 4 |
+| `k_eNotAllowed` | 5 |
+| `k_eInvalidOverworld` | 6 |
+| `k_eNoFortuneRewardAvailable` | 7 |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCOverworldClaimFortunePermanentRewardResponse.EResponse</code> — values: 8</summary>
+
+- Parent: `CMsgClientToGCOverworldClaimFortunePermanentRewardResponse`
+
+| Name | Number |
+|---|---:|
+| `k_eInternalError` | 0 |
+| `k_eSuccess` | 1 |
+| `k_eTooBusy` | 2 |
+| `k_eDisabled` | 3 |
+| `k_eTimeout` | 4 |
+| `k_eNotAllowed` | 5 |
+| `k_eInvalidOverworld` | 6 |
+| `k_eRewardAlreadyClaimed` | 7 |
 
 </details>
 
@@ -1197,5 +1393,24 @@ Expand any enum to inspect all values.
 | `k_eNotEnoughTokens` | 9 |
 | `k_eNotEnoughMinigameCurrency` | 10 |
 | `k_eNotAllowed` | 11 |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse.EResponse</code> — values: 9</summary>
+
+- Parent: `CMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse`
+
+| Name | Number |
+|---|---:|
+| `k_eInternalError` | 0 |
+| `k_eSuccess` | 1 |
+| `k_eTooBusy` | 2 |
+| `k_eDisabled` | 3 |
+| `k_eTimeout` | 4 |
+| `k_eNotAllowed` | 5 |
+| `k_eInvalidOverworld` | 6 |
+| `k_eRewardAlreadyClaimed` | 7 |
+| `k_eInsufficientFortuneCount` | 8 |
 
 </details>
