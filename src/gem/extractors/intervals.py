@@ -128,7 +128,8 @@ class IntervalExtractor:
         self._data_dire: Entity | None = None
         # Per-team-slot team-data history, kept to the two most recent observed
         # frames as ``(observed_tick, (gold, xp, lh, dn, net_worth))``. The
-        # production tick-start path reads ``cur`` after its one-tick deferral.
+        # production tick-start path reads ``cur`` after its one-tick deferral
+        # for regular boundaries; minute zero reads it immediately.
         # ``prev`` preserves the entity-callback compatibility path, where the
         # latest frame strictly before a crossing is required. Entities mutate
         # in place, so values are copied eagerly rather than held by reference.
@@ -148,9 +149,11 @@ class IntervalExtractor:
         self._next_interval_s: int | None = None
         self._tick_start_driven = False
         # Clarity's @OnTickStart interval read is effectively one decoded net
-        # tick after the first CNETMsg_Tick whose rounded clock reaches the
-        # boundary. Queue that first crossing and emit at the next tick start,
-        # after the crossing tick's entity deltas but before the next tick's.
+        # tick after the first CNETMsg_Tick whose rounded clock reaches regular
+        # boundaries. Minute zero is different: it is read immediately, before
+        # same-tick bounty/entity deltas. Queue regular crossings and emit at the
+        # next tick start, after the crossing tick's entity deltas but before the
+        # next tick's.
         self._pending_tick_start_boundary: tuple[int, int] | None = None
         self._last_queued_time_s: int | None = None
         self._last_clock_tick: int | None = None
@@ -223,13 +226,15 @@ class IntervalExtractor:
         self._ended = True
 
     def _on_tick_start(self, net_tick: int) -> None:
-        """Queue a crossing, then sample before the following tick's updates.
+        """Sample minute zero immediately; defer later crossings one tick.
 
         ``ReplayParser`` refreshes ``game_time_s`` from ``net_tick`` before
-        invoking this callback. Clarity's ``@OnTickStart`` interval handler is
-        one network tick later than the first rounded-clock crossing observed
-        here. Deferring to the following callback includes the crossing tick's
-        entity deltas while still reading before the next tick's mutations.
+        invoking this callback. At minute zero, Clarity reads the pre-update
+        entity table immediately; delaying would incorrectly include same-tick
+        bounty payouts. At later boundaries its interval output aligns one
+        network tick after the first rounded-clock crossing observed here, so
+        deferring includes the crossing tick's entity deltas while still reading
+        before the next tick's mutations.
 
         Args:
             net_tick: Decoded ``CNETMsg_Tick.tick`` value.
@@ -244,14 +249,23 @@ class IntervalExtractor:
             and game_time_s % self._interval_s == 0
             and game_time_s != self._last_queued_time_s
         ):
-            self._pending_tick_start_boundary = (game_time_s, net_tick)
             self._last_queued_time_s = game_time_s
+            if game_time_s == 0 and self._last_emitted_time_s is None:
+                self._try_emit(game_time_s, use_live=False, prefer_previous=True)
+                if self._last_emitted_time_s == game_time_s:
+                    return
+            self._pending_tick_start_boundary = (game_time_s, net_tick)
 
         pending = self._pending_tick_start_boundary
         if pending is None or net_tick <= pending[1]:
             return
         boundary_time_s = pending[0]
-        self._try_emit(boundary_time_s, use_live=True)
+        initial_boundary = boundary_time_s == 0 and self._last_emitted_time_s is None
+        self._try_emit(
+            boundary_time_s,
+            use_live=not initial_boundary,
+            prefer_previous=initial_boundary,
+        )
         if self._last_emitted_time_s == boundary_time_s:
             self._pending_tick_start_boundary = None
 
@@ -336,6 +350,7 @@ class IntervalExtractor:
         game_time_s: int | None,
         *,
         use_live: bool,
+        prefer_previous: bool = False,
         require_fresh_clock: bool = False,
     ) -> None:
         """Emit one complete interval batch when ``game_time_s`` is eligible."""
@@ -375,7 +390,11 @@ class IntervalExtractor:
         if self._next_interval_s is not None and boundary_time_s < self._next_interval_s:
             return
 
-        emitted = self._emit(boundary_time_s, use_live=use_live or initial_boundary)
+        emitted = self._emit(
+            boundary_time_s,
+            use_live=use_live or (initial_boundary and not prefer_previous),
+            prefer_previous=prefer_previous,
+        )
         if emitted:
             if initial_boundary:
                 self._initial_boundary_pending = False
@@ -532,13 +551,15 @@ class IntervalExtractor:
         emit_tick: int,
         *,
         use_live: bool = False,
+        prefer_previous: bool = False,
     ) -> tuple[int, int, int, int, int]:
         """Return the team-data values for an interval boundary.
 
         Normal boundaries use the latest recorded frame strictly before the
-        crossing tick, matching OpenDota's entity dispatch order. Initial and
-        terminal boundaries set ``use_live`` because they are snapshots of the
-        currently observed counters rather than crossing-tick nudges.
+        crossing tick, matching OpenDota's entity dispatch order. Tick-driven
+        minute zero prefers the prior observed frame because Gem detects the
+        rounded clock crossing one entity update after Clarity; terminal and
+        compatibility-path boundaries can select the live frame explicitly.
 
         Args:
             team: ``TEAM_RADIANT`` or ``TEAM_DIRE``.
@@ -546,6 +567,7 @@ class IntervalExtractor:
             data_entity: The live data entity for the team (fallback source).
             emit_tick: The tick of the boundary emit.
             use_live: Select the current frame without the boundary nudge.
+            prefer_previous: Select the prior observed frame when available.
 
         Returns:
             ``(gold, xp, lh, dn, net_worth)`` for the boundary frame.
@@ -553,11 +575,16 @@ class IntervalExtractor:
         cur = self._cur_data_radiant if team == TEAM_RADIANT else self._cur_data_dire
         prev = self._prev_data_radiant if team == TEAM_RADIANT else self._prev_data_dire
         cur_frame = cur.get(team_slot)
+        prev_frame = prev.get(team_slot)
+        if prefer_previous:
+            if prev_frame is not None:
+                return prev_frame[1]
+            if cur_frame is not None:
+                return cur_frame[1]
         if use_live and cur_frame is not None:
             return cur_frame[1]
         if cur_frame is not None and cur_frame[0] < emit_tick:
             return cur_frame[1]
-        prev_frame = prev.get(team_slot)
         if prev_frame is not None and prev_frame[0] < emit_tick:
             return prev_frame[1]
         prefix = team_data_prefix(team_slot)
@@ -569,7 +596,13 @@ class IntervalExtractor:
             _int_or_zero(data_entity.get_int32(f"{prefix}.m_iNetWorth")),
         )
 
-    def _emit(self, game_time_s: int, *, use_live: bool = False) -> bool:
+    def _emit(
+        self,
+        game_time_s: int,
+        *,
+        use_live: bool = False,
+        prefer_previous: bool = False,
+    ) -> bool:
         emitted = False
         tick = self._parser.tick if self._parser is not None else 0
 
@@ -588,14 +621,8 @@ class IntervalExtractor:
                 data_entity,
                 tick,
                 use_live=use_live,
+                prefer_previous=prefer_previous,
             )
-            # The live team-data baseline is consistently one earned-gold unit
-            # above OpenDota at minute zero. Remove only that initialization
-            # offset in the production tick-start path. Genuine nonzero pre-horn
-            # earnings remain intact (e.g. 322 -> 321, not 322 -> 0), and legacy
-            # parser adapters retain their raw values.
-            if self._tick_start_driven and game_time_s == 0 and gold > 0:
-                gold -= 1
             player_slot = team_slot if team == TEAM_RADIANT else 128 + team_slot
             self.snapshots.append(
                 IntervalSnapshot(

@@ -84,6 +84,7 @@ def _make_parser(
     leagueid: int = 0,
     entity_manager=None,
     match_metadata=None,
+    match_details=None,
     duration_s: int | None = None,
 ) -> MagicMock:
     p = MagicMock()
@@ -95,6 +96,7 @@ def _make_parser(
     p.leagueid = leagueid
     p.entity_manager = entity_manager
     p.match_metadata = match_metadata
+    p.match_details = match_details
     p.duration_s = duration_s
     return p
 
@@ -664,6 +666,103 @@ class TestBuildParsedMatchPlayerCombatFields:
         assert pp.damage_by_type == agg3.damage_by_type
         assert pp.ability_uses == agg3.ability_uses
         assert pp.stuns_dealt == pytest.approx(2.5)
+
+
+# ---------------------------------------------------------------------------
+# Embedded postgame match details
+# ---------------------------------------------------------------------------
+
+
+class TestBuildParsedMatchMatchDetails:
+    def _build(self, *, include_duration: bool = True):
+        from gem.combat.aggregator import _ParsedPlayerAgg
+        from gem.proto.dota_gcmessages_common_pb2 import CMsgDOTAMatch
+
+        details = CMsgDOTAMatch()
+        if include_duration:
+            details.duration = 3351
+        radiant = details.players.add(player_slot=0)
+        radiant.hero_damage = 0
+        radiant.tower_damage = 2345
+        radiant.gold_per_min = 612
+        radiant.xp_per_min = 701
+
+        dire = details.players.add(player_slot=128)
+        dire.hero_damage = 34567
+        dire.tower_damage = 0
+        dire.hero_healing = 456
+        dire.gold_per_min = 0
+        dire.xp_per_min = 589
+
+        # Invalid player slots in a postgame summary must be ignored safely.
+        details.players.add(player_slot=200, hero_damage=999999)
+        details.players.add(hero_damage=888888)
+
+        radiant_agg = _ParsedPlayerAgg(hero_damage=111, tower_damage=222, hero_healing=333)
+        dire_agg = _ParsedPlayerAgg(hero_damage=444, tower_damage=555, hero_healing=666)
+        combat_agg = MagicMock()
+        combat_agg.players = {0: radiant_agg, 5: dire_agg}
+
+        match = build_parsed_match(
+            _make_parser(match_details=details, duration_s=3350),
+            _make_player_ext(),
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            combat_agg,
+            [],
+            [],
+        )
+        return match
+
+    def test_embedded_duration_is_authoritative(self):
+        match = self._build()
+
+        assert match.duration == 3351
+        assert match._match_details_fields == {"duration"}
+
+    def test_embedded_scalars_override_combat_reconstruction_by_slot(self):
+        match = self._build()
+
+        assert match.players[0].hero_damage == 0
+        assert match.players[0].tower_damage == 2345
+        # Absent proto fields retain the combat-log fallback.
+        assert match.players[0].hero_healing == 333
+        assert "hero_healing" not in match.players[0]._match_details_fields
+        assert match.players[5].hero_damage == 34567
+        assert match.players[5].tower_damage == 0
+        assert match.players[5].hero_healing == 456
+        assert {"hero_damage", "tower_damage", "hero_healing"}.issubset(
+            match.players[5]._match_details_fields
+        )
+
+    def test_embedded_rates_derive_opendota_totals(self):
+        match = self._build()
+
+        assert match.players[0].gold_per_min == 612
+        assert match.players[0].xp_per_min == 701
+        assert match.players[0].total_gold == (612 * 3351) // 60
+        assert match.players[0].total_xp == (701 * 3351) // 60
+        assert match.players[5].gold_per_min == 0
+        assert match.players[5].total_gold == 0
+        assert match.players[5].xp_per_min == 589
+        assert match.players[5].total_xp == (589 * 3351) // 60
+        assert {
+            "gold_per_min",
+            "xp_per_min",
+            "total_gold",
+            "total_xp",
+        }.issubset(match.players[5]._match_details_fields)
+
+    def test_derived_totals_are_not_exact_without_embedded_duration(self):
+        match = self._build(include_duration=False)
+
+        assert match.duration == 3350
+        assert match._match_details_fields == set()
+        assert {"gold_per_min", "xp_per_min"}.issubset(match.players[0]._match_details_fields)
+        assert "total_gold" not in match.players[0]._match_details_fields
+        assert "total_xp" not in match.players[0]._match_details_fields
 
 
 # ---------------------------------------------------------------------------

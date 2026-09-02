@@ -24,10 +24,10 @@ parse_many([paths]) ──── ProcessPoolExecutor ─────┘   (one w
 
 - **`fetch.py`** is I/O over the network: resolve the replay URL, stream-download
   the bz2 blob, decompress to `.dem`. `enrich_with_api_rates` / `apply_api_rates`
-  are a separate opt-in step that overlays OpenDota's published
-  `hero_damage`/`tower_damage`/`gpm`/`xpm` scalars onto a `ParsedMatch` (these are
-  GC values the replay alone cannot reproduce exactly — see issue #68 and the
-  repo `Known limitations`).
+  are a separate opt-in step that can overwrite OpenDota's published
+  `hero_damage`/`tower_damage`/`hero_healing`/`gpm`/`xpm` scalars on a
+  `ParsedMatch`. Complete current replays already provide the same exact values
+  in their embedded `CMsgDOTAMatch` postgame summary.
 - **`batch.py`** is CPU parallelism: each replay is parsed in its own process
   (`_parse_one`), so a failed replay yields a `ParseResult` with the exception
   rather than aborting the whole run. `parse_many_to_dataframe` /
@@ -40,8 +40,8 @@ parse_many([paths]) ──── ProcessPoolExecutor ─────┘   (one w
   `gem.parse()`.
 - It does **not** require network access for `batch.py`. Only `fetch.py` reaches
   the network; bulk parsing of local files is fully offline.
-- `apply_api_rates` does **not** change replay-derived fields — it only overlays
-  GC scalars, and it is opt-in. Plain `gem.parse()` never calls the network.
+- `apply_api_rates` only overlays the supplied GC scalars, and it is opt-in.
+  Plain `gem.parse()` never calls the network.
 
 ## Pitfalls
 

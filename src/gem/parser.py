@@ -36,6 +36,9 @@ Relevant inner IDs:
   svc_UserMessage                 =  72
   GE_Source1LegacyGameEventList   = 205
   GE_Source1LegacyGameEvent       = 207
+  DOTA_UM_CombatLogDataHLTV       = 554  (direct)
+  DOTA_UM_MatchMetadata           = 557  (direct)
+  DOTA_UM_MatchDetails            = 558  (direct postgame summary)
 
 Reference: manta/parser.go, manta/demo_packet.go, manta/game_event.go
 """
@@ -60,6 +63,7 @@ from gem.proto import (
     networkbasetypes_pb2,  # noqa: F401
 )
 from gem.proto.demo_pb2 import CDemoClassInfo, CDemoFileInfo, CDemoFullPacket, CDemoPacket
+from gem.proto.dota_gcmessages_common_pb2 import CMsgDOTAMatch
 from gem.proto.dota_match_metadata_pb2 import CDOTAMatchMetadataFile
 from gem.proto.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
 from gem.proto.dota_usermessages_pb2 import (
@@ -67,6 +71,7 @@ from gem.proto.dota_usermessages_pb2 import (
     CDOTAUserMsg_ChatMessage,
     CDOTAUserMsg_CombatLogBulkData,
     CDOTAUserMsg_FoundNeutralItem,
+    DOTA_UM_MatchDetails,
     DOTA_UM_MatchMetadata,
 )
 from gem.proto.gameevents_pb2 import (
@@ -117,6 +122,7 @@ _DOTA_UM_COMBAT_LOG_BULK_DATA = 470  # CDOTAUserMsg_CombatLogBulkData (alternate
 _DOTA_UM_COMBAT_LOG_HLTV = 554  # CMsgDOTACombatLogEntry (direct, one entry per message)
 _DOTA_UM_CHAT_EVENT = 466  # CDOTAUserMsg_ChatEvent (direct)
 _DOTA_UM_MATCH_METADATA = DOTA_UM_MatchMetadata  # CDOTAMatchMetadataFile (direct)
+_DOTA_UM_MATCH_DETAILS = DOTA_UM_MatchDetails  # CMsgDOTAMatch postgame summary (direct)
 _DOTA_UM_FOUND_NEUTRAL_ITEM = 593  # CDOTAUserMsg_FoundNeutralItem (direct)
 _DOTA_UM_CHAT_MESSAGE = 612  # CDOTAUserMsg_ChatMessage (direct)
 
@@ -179,6 +185,7 @@ class ReplayParser:
         entity_manager: Live entity table.
         game_event_manager: Game event schema and handler registry.
         combat_log: Combat log processor for S1 and S2 entries.
+        match_details: Embedded ``CMsgDOTAMatch`` postgame summary, when present.
     """
 
     def __init__(self, source: str | Path | bytes) -> None:
@@ -203,6 +210,7 @@ class ReplayParser:
         self.game_mode: int = 0
         self.leagueid: int = 0
         self.match_metadata: CDOTAMatchMetadataFile | None = None
+        self.match_details: CMsgDOTAMatch | None = None
         self.radiant_win: bool | None = None
         self.game_start_tick: int | None = None
         self.game_time_s: int | None = None
@@ -624,6 +632,9 @@ class ReplayParser:
         elif type_id == _DOTA_UM_MATCH_METADATA:
             self._on_match_metadata(payload)
 
+        elif type_id == _DOTA_UM_MATCH_DETAILS:
+            self._on_match_details(payload)
+
         elif type_id == _DOTA_UM_FOUND_NEUTRAL_ITEM:
             self._emit_neutral_item_found(payload)
 
@@ -699,6 +710,8 @@ class ReplayParser:
                         self._mark_game_end(self.tick)
         elif msg.msg_type == _DOTA_UM_MATCH_METADATA:
             self._on_match_metadata(msg.msg_data)
+        elif msg.msg_type == _DOTA_UM_MATCH_DETAILS:
+            self._on_match_details(msg.msg_data)
 
     def _combat_log_game_time_s(self, msg: CMsgDOTACombatLogEntry) -> int | None:
         """Return OpenDota-style game-relative combat-log time for an S2 entry.
@@ -736,6 +749,14 @@ class ReplayParser:
         metadata = CDOTAMatchMetadataFile()
         metadata.ParseFromString(payload)
         self.match_metadata = metadata
+
+    def _on_match_details(self, payload: bytes) -> None:
+        """Store the embedded Game Coordinator postgame match summary."""
+        details = CMsgDOTAMatch()
+        details.ParseFromString(payload)
+        self.match_details = details
+        if not self.match_id and details.HasField("match_id"):
+            self.match_id = int(details.match_id)
 
     def _emit_chat_message(self, payload: bytes) -> None:
         if not self._chat_callbacks:

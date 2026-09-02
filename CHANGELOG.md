@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Exact minute-zero interval phase.** Minute zero is now sampled immediately
+  from the preceding observed team-data frame, while later minute boundaries
+  retain their one-tick deferral. This excludes transient initialization values
+  and same-tick bounty payouts without zeroing or subtracting legitimate
+  pre-horn earnings, closing the remaining TI2026 gold-curve residuals under the
+  strict 0.25% gate.
+- **Exact offline postgame scalars.** Complete replays now decode the embedded
+  `DOTA_UM_MatchDetails` / `CMsgDOTAMatch` summary and use its exact duration,
+  `hero_damage`, `tower_damage`, `hero_healing`, GPM, and XPM values. Derived
+  `total_gold` / `total_xp` now match OpenDota exactly without a network call;
+  combat-log reconstruction and explicit API enrichment remain fallbacks.
+
 ## [0.6.0] - 2026-09-02
 
 Aligns Gem's minute-level gold, XP, last-hit, and deny curves exactly with

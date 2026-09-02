@@ -234,7 +234,11 @@ def find_player(match: ParsedMatch, hero: str) -> ParsedPlayer | None:
 def _to_json_compatible(value: Any) -> Any:
     """Recursively convert values to JSON-compatible Python types."""
     if is_dataclass(value):
-        return {f.name: _to_json_compatible(getattr(value, f.name)) for f in fields(value)}
+        return {
+            f.name: _to_json_compatible(getattr(value, f.name))
+            for f in fields(value)
+            if f.metadata.get("serialize", True)
+        }
     if isinstance(value, Mapping):
         return {str(k): _to_json_compatible(v) for k, v in value.items()}
     if isinstance(value, (list, tuple, set)):

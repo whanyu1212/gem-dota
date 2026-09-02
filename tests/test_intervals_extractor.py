@@ -411,6 +411,20 @@ def _radiant_data_with(gold: int, xp: int, lh: int, dn: int, net_worth: int) -> 
     )
 
 
+def _dire_data_with(gold: int, xp: int, lh: int, dn: int, net_worth: int) -> Entity:
+    """Dire data entity carrying explicit team-slot-4 totals."""
+    return _ent(
+        "CDOTA_DataDire",
+        **{
+            "m_vecDataTeam.0004.m_iTotalEarnedGold": gold,
+            "m_vecDataTeam.0004.m_iTotalEarnedXP": xp,
+            "m_vecDataTeam.0004.m_iLastHitCount": lh,
+            "m_vecDataTeam.0004.m_iDenyCount": dn,
+            "m_vecDataTeam.0004.m_iNetWorth": net_worth,
+        },
+    )
+
+
 def test_tick_start_defers_crossing_by_one_net_tick():
     """Production sampling includes crossing-tick but not next-tick deltas."""
     ext = IntervalExtractor()
@@ -440,22 +454,97 @@ def test_tick_start_defers_crossing_by_one_net_tick():
     assert radiant.dn == 5
 
 
-def test_tick_start_removes_only_minute_zero_gold_offset():
+def test_tick_start_samples_minute_zero_before_same_tick_bounty_delta():
     ext = IntervalExtractor()
     parser = TickStartFakeParser(tick=1800, game_time_s=0)
     ext.attach(parser)  # type: ignore[arg-type]
     ext._on_entity(_player_resource(), EntityOp.UPDATED)
-    ext._on_entity(_radiant_data_with(322, 40, 0, 0, 922), EntityOp.UPDATED)
-    ext._on_entity(_dire_data(), EntityOp.UPDATED)
+    ext._on_entity(_radiant_data_with(0, 0, 0, 0, 600), EntityOp.UPDATED)
+    ext._on_entity(_zero_dire_data(), EntityOp.UPDATED)
 
+    # Minute zero is OpenDota's immediate @OnTickStart read. A team-wide bounty
+    # payout arriving later in this same tick must not leak into that boundary.
     parser.fire_tick_start(6000)
+    assert [snap.gold for snap in ext.snapshots] == [0, 0]
+
+    ext._on_entity(_radiant_data_with(40, 0, 0, 0, 640), EntityOp.UPDATED)
     parser.tick = 1801
     parser.fire_tick_start(6001)
 
+    assert [snap.gold for snap in ext.snapshots] == [0, 0]
+
+
+def test_tick_start_minute_zero_prefers_previous_team_data_frame():
+    ext = IntervalExtractor()
+    parser = TickStartFakeParser(tick=1798, game_time_s=0)
+    ext.attach(parser)  # type: ignore[arg-type]
+    ext._on_entity(_player_resource(), EntityOp.UPDATED)
+
+    # The frame visible to OpenDota's minute-zero callback has all counters at
+    # zero. Gem receives one newer team-data frame before its rounded game clock
+    # reaches zero; that frame contains the engine's transient starting gold.
+    ext._on_entity(_zero_radiant_data(), EntityOp.UPDATED)
+    ext._on_entity(_zero_dire_data(), EntityOp.UPDATED)
+    parser.tick = 1799
+    ext._on_entity(_radiant_data_with(1, 2, 3, 4, 605), EntityOp.UPDATED)
+    ext._on_entity(_dire_data_with(1, 2, 3, 4, 605), EntityOp.UPDATED)
+
+    parser.tick = 1800
+    parser.fire_tick_start(6000)
+
+    assert [snap.gold for snap in ext.snapshots] == [0, 0]
+    assert [snap.xp for snap in ext.snapshots] == [0, 0]
+    assert [snap.lh for snap in ext.snapshots] == [0, 0]
+    assert [snap.dn for snap in ext.snapshots] == [0, 0]
+    assert [snap.net_worth for snap in ext.snapshots] == [600, 600]
+
+
+def test_tick_start_delayed_minute_zero_retains_previous_frame_phase():
+    ext = IntervalExtractor()
+    parser = TickStartFakeParser(tick=1798, game_time_s=0)
+    ext.attach(parser)  # type: ignore[arg-type]
+
+    ext._on_entity(_zero_radiant_data(), EntityOp.UPDATED)
+    ext._on_entity(_zero_dire_data(), EntityOp.UPDATED)
+    parser.tick = 1799
+    ext._on_entity(_radiant_data_with(1, 0, 0, 0, 601), EntityOp.UPDATED)
+    ext._on_entity(_dire_data_with(1, 0, 0, 0, 601), EntityOp.UPDATED)
+
+    # The initial callback cannot emit until PlayerResource establishes logical
+    # slots. Its next-tick retry must keep minute zero's prior-frame semantics.
+    parser.tick = 1800
+    parser.fire_tick_start(6000)
+    assert ext.snapshots == []
+    ext._on_entity(_player_resource(), EntityOp.UPDATED)
+
+    parser.tick = 1801
+    parser.fire_tick_start(6001)
+
+    assert [snap.gold for snap in ext.snapshots] == [0, 0]
+
+
+def test_tick_start_preserves_nonzero_minute_zero_gold():
+    ext = IntervalExtractor()
+    parser = TickStartFakeParser(tick=1798, game_time_s=0)
+    ext.attach(parser)  # type: ignore[arg-type]
+    ext._on_entity(_player_resource(), EntityOp.UPDATED)
+
+    # Real pre-horn earnings can already be present in both adjacent frames.
+    # Selecting the prior frame must preserve those values verbatim rather than
+    # applying a blanket minute-zero normalization.
+    ext._on_entity(_radiant_data_with(322, 40, 0, 0, 922), EntityOp.UPDATED)
+    ext._on_entity(_dire_data(), EntityOp.UPDATED)
+    parser.tick = 1799
+    ext._on_entity(_radiant_data_with(322, 40, 0, 0, 922), EntityOp.UPDATED)
+    ext._on_entity(_dire_data(), EntityOp.UPDATED)
+
+    parser.tick = 1800
+    parser.fire_tick_start(6000)
+
     radiant = next(s for s in ext.snapshots if s.team == 2)
     dire = next(s for s in ext.snapshots if s.team == 3)
-    assert radiant.gold == 321
-    assert dire.gold == 599
+    assert radiant.gold == 322
+    assert dire.gold == 600
     assert radiant.xp == 40
 
 

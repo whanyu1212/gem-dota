@@ -279,7 +279,7 @@ class ParsedMatch
 
 Top-level parsed output for a single Dota 2 replay.
 
-Source: [src/gem/results/models.py:542](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L542)
+Source: [src/gem/results/models.py:544](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L544)
 
 #### Dataclass fields
 
@@ -338,7 +338,7 @@ Signature: `def ParsedMatch.duration_seconds(self) -> float`
 
 Game duration in seconds, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:678](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L678)
+Source: [src/gem/results/models.py:688](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L688)
 
 ##### `duration_minutes`
 
@@ -346,4 +346,4 @@ Signature: `def ParsedMatch.duration_minutes(self) -> float`
 
 Game duration in minutes, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:684](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L684)
+Source: [src/gem/results/models.py:694](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L694)

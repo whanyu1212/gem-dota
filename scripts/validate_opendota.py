@@ -2,21 +2,22 @@
 
 For each configured replay, parses the .dem file with gem, fetches match data
 from the OpenDota API, and diffs key fields: total kills, per-player net_worth,
-last_hits, denies, hero deaths, tower kills, and teamfight count.
+last_hits, denies, hero deaths, tower kills, exact postgame combat/rate scalars,
+and teamfight count.
 
 Notes on expected discrepancies
 --------------------------------
-OpenDota's scalar per-player stats (``kills``, ``deaths``, ``last_hits``,
-``net_worth``) are sourced from the Steam API ``GetMatchDetails`` endpoint,
-which records the final game-state snapshot taken by the server at game-end.
-gem forces a terminal entity sample at the game-end tick and samples ``_min``
-arrays at exact non-negative 60-second game-time boundaries. Terminal scalars
-are compared only with terminal scalars; minute curves are joined to OpenDota's
-array indices through gem's explicit game-time axes before their values are
-compared. ``net_worth`` is the least stable scalar here: the replay-exposed
-``m_iNetWorth`` / ``m_vecDataTeam.*.m_iNetWorth`` values can diverge slightly
-from Steam's final server scalar, so the validator uses a looser tolerance for
-that field than it does for kills / last hits / denies.
+OpenDota's scalar per-player stats are sourced from the Steam API
+``GetMatchDetails`` endpoint, which records the final game-state snapshot taken
+by the server at game-end. Complete replays embed the corresponding
+``CMsgDOTAMatch`` postgame summary, so gem compares its duration, combat totals,
+and GPM/XPM-derived totals exactly. Other terminal fields come from the final
+entity sample. Minute curves are joined to OpenDota's array indices through
+gem's explicit game-time axes before their values are compared. ``net_worth``
+is the least stable scalar here: the replay-exposed ``m_iNetWorth`` /
+``m_vecDataTeam.*.m_iNetWorth`` values can diverge slightly from Steam's final
+server scalar, so the validator uses a looser tolerance for that field than it
+does for kills / last hits / denies.
 
 OpenDota data availability
 --------------------------
@@ -429,15 +430,21 @@ _TERMINAL_NOTE = (
     "game-end tick; OpenDota's scalar comes from Steam's final server snapshot. "
     "Replay-exposed m_iNetWorth can still differ slightly from the Steam scalar."
 )
+_POSTGAME_SUMMARY_NOTE = (
+    "Exact comparison of the replay-embedded CMsgDOTAMatch postgame summary "
+    "with OpenDota's corresponding Game Coordinator scalar."
+)
+_POSTGAME_SUMMARY_MISSING_NOTE = (
+    "Exact comparison skipped because this replay did not embed the corresponding "
+    "CMsgDOTAMatch field; gem retained its documented fallback value."
+)
 
 _NET_WORTH_TOLERANCE = 0.08
-# Advantage and player minute curves: gem decodes CNETMsg_Tick, queues the first
-# rounded-minute crossing, and samples the reconstructed entity table at the
-# following tick start. This reproduces Clarity's effective @OnTickStart phase;
-# the minute-zero m_iTotalEarnedGold offset is removed without zeroing genuine
-# pre-horn earnings. Across four replay fixtures (1,410 player-minute points per
-# metric, including the 2026 TI sample), gold/XP/LH/DN and both advantage curves
-# are point-exact after this alignment. The remaining nonzero gates are narrow
+# Advantage and player minute curves: gem decodes CNETMsg_Tick, samples minute
+# zero immediately from the pre-update entity table, and queues later rounded-
+# minute crossings for the following tick start. This reproduces Clarity's
+# effective @OnTickStart phase while preserving genuine pre-horn earnings and
+# excluding same-tick bounty payouts. The remaining nonzero gates are narrow
 # portability headroom for unseen patches: a one-creep boundary regression is
 # warned immediately and meaningful frame/clock drift fails.
 _GOLD_ADV_TOLERANCE = 0.0025
@@ -711,6 +718,16 @@ def validate_match(
     od_dir_status = od.get("tower_status_dire", 0x7FF)
     od_tower_kills = bin(0x7FF ^ od_rad_status).count("1") + bin(0x7FF ^ od_dir_status).count("1")
     result.match_fields.append(FieldResult("tower_kills", gem_tower_kills, od_tower_kills))
+    exact_duration = "duration" in getattr(m, "_match_details_fields", ())
+    result.match_fields.append(
+        FieldResult(
+            "duration",
+            m.duration,
+            od.get("duration"),
+            skip=od.get("duration") is None or not exact_duration,
+            note=(_POSTGAME_SUMMARY_NOTE if exact_duration else _POSTGAME_SUMMARY_MISSING_NOTE),
+        )
+    )
 
     if mode in {"parsed", "full"}:
         # Teamfight detection — compare against an OpenDota-compatible projection
@@ -847,6 +864,29 @@ def validate_match(
                 note=_TERMINAL_NOTE,
             )
         )
+
+        for field_name in (
+            "hero_damage",
+            "tower_damage",
+            "hero_healing",
+            "gold_per_min",
+            "xp_per_min",
+            "total_gold",
+            "total_xp",
+        ):
+            reference_value = od_player.get(field_name)
+            exact_field = field_name in getattr(gp, "_match_details_fields", ())
+            fields.append(
+                FieldResult(
+                    f"{label}/{field_name}",
+                    getattr(gp, field_name),
+                    reference_value,
+                    skip=reference_value is None or not exact_field,
+                    note=(
+                        _POSTGAME_SUMMARY_NOTE if exact_field else _POSTGAME_SUMMARY_MISSING_NOTE
+                    ),
+                )
+            )
 
         if mode in {"parsed", "full"}:
             fields.extend(
@@ -1124,7 +1164,7 @@ def main() -> None:
         choices=("scalar", "parsed", "full"),
         default="full",
         help=(
-            "Validation mode: scalar=end-state scoreboard parity only; "
+            "Validation mode: scalar=end-state scoreboard/postgame parity; "
             "parsed=scalar plus OpenDota replay-parser fields; full=current alias for parsed."
         ),
     )

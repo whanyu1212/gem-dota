@@ -26,6 +26,7 @@ if TYPE_CHECKING:
     from gem.extractors.players import PlayerExtractor
     from gem.extractors.wards import WardEvent, WardsExtractor
     from gem.parser import ReplayParser
+    from gem.proto.dota_gcmessages_common_pb2 import CMsgDOTAMatch
     from gem.results.models import (
         ChatEntry,
         NeutralItemFoundEvent,
@@ -40,8 +41,8 @@ _LANE_GRID = 64
 _LANE_WINDOW = 600 * 30
 
 
-def _metadata_slot_to_player_id(player_slot: int) -> int | None:
-    """Convert match-metadata player slots to gem player ids."""
+def _player_slot_to_player_id(player_slot: int) -> int | None:
+    """Convert a Dota player slot to a gem player id."""
     if 0 <= player_slot <= 4:
         return player_slot
     if 128 <= player_slot <= 132:
@@ -54,7 +55,7 @@ def _player_id_to_player_slot(player_id: int) -> int:
 
     OpenDota encodes Radiant players as ``0-4`` and Dire players as ``128-132``
     in ``player_slot`` fields, while the ``slot`` field stays ``0-9``. This is the
-    inverse of :func:`_metadata_slot_to_player_id`.
+    inverse of :func:`_player_slot_to_player_id`.
 
     Args:
         player_id: gem logical player id, 0-9 (0-4 Radiant, 5-9 Dire).
@@ -63,6 +64,47 @@ def _player_id_to_player_slot(player_id: int) -> int:
         The OpenDota ``player_slot`` (0-4 for Radiant, 128-132 for Dire).
     """
     return player_id if player_id < 5 else 128 + (player_id - 5)
+
+
+def _apply_match_details_scalars(match: ParsedMatch, details: CMsgDOTAMatch | None) -> None:
+    """Overlay exact terminal scalars from the replay's postgame summary.
+
+    Proto2 presence checks are intentional: an explicitly encoded zero is an
+    authoritative result, while an absent field leaves the existing replay
+    reconstruction/default untouched. Internal per-field provenance lets the
+    validator distinguish these exact values from fallbacks without changing
+    the public serialized output.
+    """
+    if details is None:
+        return
+    if details.HasField("duration"):
+        match._match_details_fields.add("duration")
+
+    for source in details.players:
+        if not source.HasField("player_slot"):
+            continue
+        player_id = _player_slot_to_player_id(source.player_slot)
+        if player_id is None or player_id >= len(match.players):
+            continue
+
+        player = match.players[player_id]
+        for field_name in ("hero_damage", "tower_damage", "hero_healing"):
+            if source.HasField(field_name):
+                setattr(player, field_name, int(getattr(source, field_name)))
+                player._match_details_fields.add(field_name)
+
+        if source.HasField("gold_per_min"):
+            player.gold_per_min = int(source.gold_per_min)
+            player.total_gold = (player.gold_per_min * match.duration) // 60
+            player._match_details_fields.add("gold_per_min")
+            if "duration" in match._match_details_fields:
+                player._match_details_fields.add("total_gold")
+        if source.HasField("xp_per_min"):
+            player.xp_per_min = int(source.xp_per_min)
+            player.total_xp = (player.xp_per_min * match.duration) // 60
+            player._match_details_fields.add("xp_per_min")
+            if "duration" in match._match_details_fields:
+                player._match_details_fields.add("total_xp")
 
 
 def _tick_game_seconds(tick: int, game_start_tick: int | None) -> int:
@@ -694,8 +736,8 @@ def _populate_player_series(
                 )
             pp.buybacks = buybacks
             pp.stuns_dealt = agg.stuns_dealt
-            # OpenDota-style combat scalars (combat-log reconstruction; exact via
-            # apply_api_rates). Best-effort offline estimates.
+            # Best-effort combat-log fallbacks. The embedded postgame summary is
+            # applied after this loop when available.
             pp.hero_damage = agg.hero_damage
             pp.tower_damage = agg.tower_damage
             pp.hero_healing = agg.hero_healing
@@ -880,6 +922,11 @@ def build_parsed_match(
     if radiant_win is None:
         radiant_win = _radiant_win_from_ancient(all_entries)
 
+    match_details = getattr(parser, "match_details", None)
+    duration = getattr(parser, "duration_s", None) or 0
+    if match_details is not None and match_details.HasField("duration"):
+        duration = int(match_details.duration)
+
     match = ParsedMatch(
         match_id=parser.match_id,
         game_mode=parser.game_mode,
@@ -902,7 +949,7 @@ def build_parsed_match(
         draft=draft_ext.draft_events,
         game_start_tick=parser.game_start_tick,
         game_end_tick=parser.tick,
-        duration=getattr(parser, "duration_s", None) or 0,
+        duration=duration,
     )
 
     # Post-process buybacks (7b).
@@ -958,11 +1005,16 @@ def build_parsed_match(
         radiant_win=radiant_win,
     )
 
+    # Complete replays carry an embedded CMsgDOTAMatch postgame summary. Its
+    # terminal combat scalars and GPM/XPM are the same Game Coordinator values
+    # exposed by OpenDota, so they take precedence over combat-log estimates.
+    _apply_match_details_scalars(match, match_details)
+
     match_metadata = getattr(parser, "match_metadata", None)
     metadata = getattr(match_metadata, "metadata", None)
     for team in getattr(metadata, "teams", []) or []:
         for metadata_player in getattr(team, "players", []) or []:
-            metadata_player_id = _metadata_slot_to_player_id(metadata_player.player_slot)
+            metadata_player_id = _player_slot_to_player_id(metadata_player.player_slot)
             if metadata_player_id is not None:
                 match.players[metadata_player_id].ability_upgrades_arr = list(
                     metadata_player.ability_upgrades

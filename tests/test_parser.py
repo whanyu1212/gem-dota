@@ -32,6 +32,7 @@ from gem.parser import (
     _DOTA_UM_CHAT_MESSAGE,
     _DOTA_UM_COMBAT_LOG_DATA,
     _DOTA_UM_COMBAT_LOG_HLTV,
+    _DOTA_UM_MATCH_DETAILS,
     _DOTA_UM_MATCH_METADATA,
     _NET_TICK,
     _SVC_CREATE_STRING_TABLE,
@@ -197,6 +198,10 @@ class TestReplayParserInit:
     def test_match_metadata_starts_none(self):
         p = ReplayParser(b"")
         assert p.match_metadata is None
+
+    def test_match_details_starts_none(self):
+        p = ReplayParser(b"")
+        assert p.match_details is None
 
     def test_radiant_win_starts_none(self):
         p = ReplayParser(b"")
@@ -730,6 +735,41 @@ class TestDispatchInnerRouting:
         assert p.match_metadata is not None
         assert p.match_metadata.match_id == 67890
         assert list(p.match_metadata.metadata.teams[0].players[0].ability_upgrades) == [9, 8]
+
+    def test_direct_match_details_is_stored_and_supplies_missing_match_id(self):
+        from gem.proto.dota_gcmessages_common_pb2 import CMsgDOTAMatch
+
+        p = ReplayParser(b"")
+        details = CMsgDOTAMatch(match_id=8956943534, duration=3351)
+        player = details.players.add(player_slot=128)
+        player.hero_damage = 12345
+        player.gold_per_min = 612
+
+        p._dispatch_inner(_DOTA_UM_MATCH_DETAILS, details.SerializeToString())
+
+        assert p.match_details is not None
+        assert p.match_details.duration == 3351
+        assert p.match_details.players[0].hero_damage == 12345
+        assert p.match_id == 8956943534
+
+    def test_wrapped_match_details_is_stored_without_overwriting_match_id(self):
+        from gem.proto.dota_gcmessages_common_pb2 import CMsgDOTAMatch
+        from gem.proto.netmessages_pb2 import CSVCMsg_UserMessage
+
+        p = ReplayParser(b"")
+        p.match_id = 777
+        details = CMsgDOTAMatch(match_id=8956943534, duration=3351)
+        details.players.add(player_slot=0, xp_per_min=701)
+        user_msg = CSVCMsg_UserMessage(
+            msg_type=_DOTA_UM_MATCH_DETAILS,
+            msg_data=details.SerializeToString(),
+        )
+
+        p._dispatch_inner(_SVC_USER_MESSAGE, user_msg.SerializeToString())
+
+        assert p.match_details is not None
+        assert p.match_details.players[0].xp_per_min == 701
+        assert p.match_id == 777
 
 
 # ---------------------------------------------------------------------------

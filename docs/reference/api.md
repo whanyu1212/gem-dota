@@ -43,7 +43,7 @@ def to_dict(match: ParsedMatch) -> dict[str, Any]
 
 Convert a :class:`ParsedMatch` to a JSON-serializable dictionary.
 
-Source: [src/gem/api.py:245](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L245)
+Source: [src/gem/api.py:249](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L249)
 
 ### `to_json`
 
@@ -53,7 +53,7 @@ def to_json(match: ParsedMatch, *, indent: int | None = None, sort_keys: bool = 
 
 Serialize a :class:`ParsedMatch` to a JSON string.
 
-Source: [src/gem/api.py:250](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L250)
+Source: [src/gem/api.py:254](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L254)
 
 ### `parse_to_json`
 
@@ -63,7 +63,7 @@ def parse_to_json(path: str | Path, *, indent: int | None = None, sort_keys: boo
 
 Parse a replay and return the result as JSON.
 
-Source: [src/gem/api.py:255](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L255)
+Source: [src/gem/api.py:259](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L259)
 
 ### `parse_to_dataframe`
 
@@ -73,7 +73,7 @@ def parse_to_dataframe(path: str | Path) -> dict[str, pd.DataFrame]
 
 Parse a replay and return tabular projections as pandas DataFrames.
 
-Source: [src/gem/api.py:260](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L260)
+Source: [src/gem/api.py:264](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L264)
 
 ### `to_parquet`
 
@@ -83,7 +83,7 @@ def to_parquet(match: ParsedMatch, output_dir: str | Path, *, index: bool = Fals
 
 Export DataFrame projections for a parsed match to parquet files.
 
-Source: [src/gem/api.py:282](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L282)
+Source: [src/gem/api.py:286](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L286)
 
 ### `parse_to_parquet`
 
@@ -93,4 +93,4 @@ def parse_to_parquet(path: str | Path, output_dir: str | Path, *, index: bool = 
 
 Parse a replay and export DataFrame projections to parquet files.
 
-Source: [src/gem/api.py:313](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L313)
+Source: [src/gem/api.py:317](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L317)

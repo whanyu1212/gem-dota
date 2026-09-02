@@ -382,6 +382,7 @@ Key message classes used throughout the parser:
 - `demo_pb2` — `CDemoSendTables`, `CDemoClassInfo`, `CDemoFullPacket`
 - `netmessages_pb2` — `CSVCMsg_PacketEntities`, `CSVCMsg_CreateStringTable`, `CSVCMsg_FlattenedSerializer`
 - `dota_shared_enums_pb2` — `CMsgDOTACombatLogEntry` (S2 combat log; *not* in `dota_commonmessages_pb2`)
+- `dota_gcmessages_common_pb2` — `CMsgDOTAMatch` (embedded postgame match summary)
 - `dota_usermessages_pb2` — `CDOTAUserMsg_*` (chat, rune, found-neutral-item, etc.)
 
 ## Status
@@ -405,8 +406,9 @@ In flight / deferred:
 - **Rust extension** (PyO3 + maturin) for a 3–5× speedup. Deferred.
 - **Buyback cost breakdown** (reliable/unreliable gold) — see the deferred
   section above and issue #119.
-- Documented OpenDota-parity boundaries (replay vs Game-Coordinator data) tracked
-  in issues #67 / #68 / #93 — these are GC-only and exact only via API enrichment.
+- Permanent postgame buff/flag parity from the embedded Game Coordinator summary
+  is tracked in issue #93. Headline combat scalars and GPM/XPM are already decoded
+  exactly from that summary; API enrichment remains an optional override/fallback.
 
 `CHANGELOG.md` is the per-release record; consult it before assuming a feature's
 state rather than trusting a static table here.

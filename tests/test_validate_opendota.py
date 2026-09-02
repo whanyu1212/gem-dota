@@ -1,9 +1,13 @@
 """Unit tests for local OpenDota validator helpers."""
 
+from types import SimpleNamespace
+
+import gem
 from gem.combat.log import CombatLogEntry
 from scripts.validate_opendota import (
     _compare_opendota_player_array,
     _opendota_teamfights_from_combat_log,
+    validate_match,
 )
 
 
@@ -179,3 +183,149 @@ def test_player_count_curve_comparison_can_scale_absolute_error_threshold() -> N
     assert fields[2].ref_value == 15
     assert fields[3].gem_value == 15
     assert fields[3].ref_value == 15
+
+
+def test_scalar_validation_gates_embedded_postgame_fields_exactly(tmp_path, monkeypatch) -> None:
+    fixture = tmp_path / "match.dem"
+    fixture.write_bytes(b"synthetic")
+    player = SimpleNamespace(
+        player_id=0,
+        hero_name="npc_dota_hero_axe",
+        kills=3,
+        deaths=2,
+        net_worth=12000,
+        last_hits=150,
+        denies=7,
+        hero_damage=23456,
+        tower_damage=3456,
+        hero_healing=789,
+        gold_per_min=600,
+        xp_per_min=700,
+        total_gold=1200,
+        total_xp=1400,
+        _match_details_fields={
+            "hero_damage",
+            "tower_damage",
+            "hero_healing",
+            "gold_per_min",
+            "xp_per_min",
+            "total_gold",
+            "total_xp",
+        },
+    )
+    parsed = SimpleNamespace(
+        players=[player],
+        radiant_win=True,
+        towers=[],
+        duration=120,
+        _match_details_fields={"duration"},
+    )
+    monkeypatch.setattr(gem, "parse", lambda _: parsed)
+    opendota = {
+        "players": [
+            {
+                "player_slot": 0,
+                "hero_id": 2,
+                "kills": 3,
+                "deaths": 2,
+                "net_worth": 12000,
+                "last_hits": 150,
+                "denies": 7,
+                "hero_damage": 23456,
+                "tower_damage": 3456,
+                "hero_healing": 789,
+                "gold_per_min": 600,
+                "xp_per_min": 700,
+                "total_gold": 1200,
+                "total_xp": 1400,
+            }
+        ],
+        "radiant_win": True,
+        "tower_status_radiant": 0x7FF,
+        "tower_status_dire": 0x7FF,
+        "duration": 120,
+    }
+
+    result = validate_match(1, fixture, od=opendota, mode="scalar")
+
+    fields = {field.name: field for field in result.all_fields}
+    assert fields["duration"].tolerance == 0
+    assert fields["npc_dota_hero_axe/hero_damage"].tolerance == 0
+    assert fields["npc_dota_hero_axe/gold_per_min"].tolerance == 0
+    assert fields["npc_dota_hero_axe/total_xp"].tolerance == 0
+    assert fields["duration"].status == "PASS"
+    assert fields["npc_dota_hero_axe/hero_damage"].status == "PASS"
+    assert fields["npc_dota_hero_axe/total_xp"].status == "PASS"
+    assert result.failed == 0
+
+
+def test_scalar_validation_skips_postgame_fields_without_exact_provenance(
+    tmp_path, monkeypatch
+) -> None:
+    fixture = tmp_path / "match.dem"
+    fixture.write_bytes(b"synthetic")
+    player = SimpleNamespace(
+        player_id=0,
+        hero_name="npc_dota_hero_axe",
+        kills=3,
+        deaths=2,
+        net_worth=12000,
+        last_hits=150,
+        denies=7,
+        hero_damage=99999,
+        tower_damage=99999,
+        hero_healing=99999,
+        gold_per_min=0,
+        xp_per_min=0,
+        total_gold=0,
+        total_xp=0,
+        _match_details_fields=set(),
+    )
+    parsed = SimpleNamespace(
+        players=[player],
+        radiant_win=True,
+        towers=[],
+        duration=119,
+        _match_details_fields=set(),
+    )
+    monkeypatch.setattr(gem, "parse", lambda _: parsed)
+    opendota = {
+        "players": [
+            {
+                "player_slot": 0,
+                "hero_id": 2,
+                "kills": 3,
+                "deaths": 2,
+                "net_worth": 12000,
+                "last_hits": 150,
+                "denies": 7,
+                "hero_damage": 23456,
+                "tower_damage": 3456,
+                "hero_healing": 789,
+                "gold_per_min": 600,
+                "xp_per_min": 700,
+                "total_gold": 1200,
+                "total_xp": 1400,
+            }
+        ],
+        "radiant_win": True,
+        "tower_status_radiant": 0x7FF,
+        "tower_status_dire": 0x7FF,
+        "duration": 120,
+    }
+
+    result = validate_match(1, fixture, od=opendota, mode="scalar")
+
+    fields = {field.name: field for field in result.all_fields}
+    exact_names = {
+        "duration",
+        "npc_dota_hero_axe/hero_damage",
+        "npc_dota_hero_axe/tower_damage",
+        "npc_dota_hero_axe/hero_healing",
+        "npc_dota_hero_axe/gold_per_min",
+        "npc_dota_hero_axe/xp_per_min",
+        "npc_dota_hero_axe/total_gold",
+        "npc_dota_hero_axe/total_xp",
+    }
+    assert all(fields[name].status == "SKIP" for name in exact_names)
+    assert result.failed == 0

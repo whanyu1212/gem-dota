@@ -122,14 +122,10 @@ class _ParsedPlayerAgg:
     runes_log: list[CombatLogEntry] = field(default_factory=list)
     buyback_log: list[CombatLogEntry] = field(default_factory=list)
     stuns_dealt: float = 0.0
-    # OpenDota-style combat scalars, reconstructed from the combat log by
-    # crediting the damage *source* (see _accumulate_hero_tower_damage). Offline
-    # accuracy vs OpenDota across five fixtures: tower_damage ~exact (~99.97%),
-    # hero_damage ~90%. hero_damage/hero_healing residuals are not a filter gap —
-    # OpenDota's headline scalars are Game-Coordinator (CMsgGameMatchSignOut)
-    # values that account for in-engine mitigation the combat log cannot see, so
-    # they are unclosable offline; they are exactly overwritten when the match is
-    # enriched from the API (gem.replays.fetch.apply_api_rates).
+    # OpenDota-style combat scalars reconstructed from the combat log by
+    # crediting the damage *source* (see _accumulate_hero_tower_damage). Assembly
+    # uses these as a fallback, then overlays exact Game Coordinator values from
+    # the replay-embedded CMsgDOTAMatch postgame summary when available.
     hero_damage: int = 0
     tower_damage: int = 0
     hero_healing: int = 0
@@ -243,15 +239,11 @@ class _CombatAggregator:
         combat log carries no illusion marker on the source name), keeping the
         scalar consistent with the per-target ``damage`` dict.
 
-        Accuracy vs OpenDota's per-player scalars, measured across five OpenDota
-        fixtures: ``tower_damage`` is essentially exact (~99.97%, the combat-log
-        building sum equals the Game Coordinator value); ``hero_damage`` is a gross
-        combat-log over-estimate (~63–90%). The ``hero_damage``/``hero_healing``
-        residual is **not** a filter gap: OpenDota's headline scalars are
-        Game-Coordinator (``CMsgGameMatchSignOut``) values that account for
-        in-engine mitigation and an engine-internal illusion split the combat log
-        does not expose, so they are unclosable offline. Exact values come from the
-        API via ``apply_api_rates`` / ``enrich_with_api_rates``.
+        These counters are fallback estimates: the combat log does not expose all
+        of the in-engine mitigation and illusion accounting represented by the
+        headline Game Coordinator values. Match assembly overlays exact values
+        from the replay-embedded ``CMsgDOTAMatch`` summary when present; explicit
+        API enrichment can overwrite them as well.
 
         Args:
             source_pid: The resolved damage-source player slot 0-9.
