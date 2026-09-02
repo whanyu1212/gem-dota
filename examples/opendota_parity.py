@@ -17,13 +17,13 @@ Usage:
     python examples/opendota_parity.py                      # default fixture (see below)
     python examples/opendota_parity.py path/to/replay.dem   # your own replay
 
-With no argument, the script prefers the full OpenDota validation replay
-(``tests/fixtures/opendota/8822520406.dem``) when that local/ignored download is
+With no argument, the script prefers the canonical TI2026 validation replay
+(``tests/fixtures/opendota/8868259993.dem``) when that local/ignored download is
 present — it ships the sibling ``.opendota.json`` that drives the parity
 cross-check. That replay is NOT committed, so on a fresh clone the script falls
 back to the committed but *truncated* TI14 fixture (partial match, no parity
-reference) and prints a heads-up. Fetch a full replay for the complete demo:
-``gem.fetch_replay(8822520406, "tests/fixtures/opendota")``.
+reference) and prints a heads-up. Synchronize the canonical replay for the complete demo:
+``uv run python scripts/sync_opendota_fixtures.py``.
 
 Notes on representation differences (intentional, called out inline below):
   * ``final_items`` keeps the ``item_`` *name* (``item_power_treads``); OpenDota
@@ -347,14 +347,14 @@ def report_catalog_helpers() -> None:
 # Default fixture resolution
 # ---------------------------------------------------------------------------
 
-# The full OpenDota validation replay (98 MB) is a local/ignored download — it is
+# The canonical TI2026 OpenDota validation replay is a local/ignored download — it is
 # NOT committed (see CLAUDE.md: "Full replay fixtures should be local/ignored
 # OpenDota downloads"). It is the *preferred* default because it ships a sibling
 # <match_id>.opendota.json that drives the parity cross-check. When it isn't
 # present, fall back to the committed (but truncated) TI14 replay so a fresh clone
 # still runs — at the cost of a partial match and no parity reference.
 _FIXTURES = Path(__file__).parent.parent / "tests" / "fixtures"
-_OPENDOTA_FIXTURE = _FIXTURES / "opendota" / "8822520406.dem"
+_OPENDOTA_FIXTURE = _FIXTURES / "opendota" / "8868259993.dem"
 _COMMITTED_FIXTURE = _FIXTURES / "ti14_finals_g3_xg_vs_falcons_truncated.dem"
 
 
@@ -390,8 +390,8 @@ def main() -> None:
         if resolved is None:
             print("No bundled replay found to demo against.")
             print(
-                "The full OpenDota fixture is a local/ignored download; fetch one with\n"
-                "  uv run python -c \"import gem; gem.fetch_replay(8822520406, 'tests/fixtures/opendota')\"\n"
+                "The full OpenDota fixture is a local/ignored download; sync it with\n"
+                "  uv run python scripts/sync_opendota_fixtures.py\n"
                 "or pass your own: python examples/opendota_parity.py path/to/replay.dem"
             )
             sys.exit(1)
@@ -402,7 +402,7 @@ def main() -> None:
                 "download isn't present). The match is partial — final items, building\n"
                 "status, and scores reflect only the captured portion, and there is no\n"
                 "OpenDota reference to cross-check against. For the full parity demo,\n"
-                "fetch a replay (see --help) or pass a path with a sibling .opendota.json.\n"
+                "sync the canonical replay or pass a path with a sibling .opendota.json.\n"
             )
 
     ref = load_opendota_ref(dem_path)

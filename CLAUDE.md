@@ -425,7 +425,11 @@ scripts (`test_audit_camp_annotations.py`, `test_audit_opendota_fixture_constant
 
 - Fixtures live in `tests/fixtures/`; shared config in `tests/conftest.py`.
   Keep committed replay fixtures truncated. Full replay fixtures should be
-  local/ignored OpenDota downloads under `tests/fixtures/opendota/`.
+  local/ignored OpenDota downloads under `tests/fixtures/opendota/`. Synchronize
+  the canonical TI2026 fixture with
+  `uv run python scripts/sync_opendota_fixtures.py`; select broader tiers or exact
+  match IDs when required. The committed `manifest.json` is the source of truth
+  for fixture lifecycle, capabilities, integrity metadata, and replacements.
   Map/reference images for examples, reports, and camp-zone tooling live under
   `assets/maps/`, not `tests/fixtures/`.
 - `uv run pytest` skips `slow` and `integration` markers by default so local

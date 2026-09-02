@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Curated TI2026 replay corpus.** The short, medium, and long TI2026 qualifier
+  replays are now named canonical, extended, and stress fixture tiers in the
+  committed OpenDota manifest. The new `scripts/sync_opendota_fixtures.py`
+  command downloads ignored full replays atomically and verifies their recorded
+  decompressed size and SHA-256 digest.
+
+### Changed
+- **Deterministic integration fixture selection.** Generic full-replay tests and
+  examples now use the explicit short TI2026 fixture instead of whichever local
+  replay happens to be found first. The DreamLeague performance baseline and
+  feature-specific regression fixtures remain available, while replaced medium
+  and long DreamLeague entries are retained as deprecated manifest records.
+
 ## [0.7.0] - 2026-09-02
 
 Completes exact offline OpenDota parity for current complete replays by using

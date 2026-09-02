@@ -25,16 +25,16 @@ python examples/steam_match_info.py <match_id>            # Steam API integratio
 
 ## Replay fixtures (`opendota_parity.py` no-arg default)
 
-The full OpenDota validation replay and its sibling `<match_id>.opendota.json`
+The canonical short TI2026 replay and its sibling `<match_id>.opendota.json`
 (which powers the parity cross-check) are **local/ignored downloads, not committed**
 to the repo (see the root `CLAUDE.md` and `tests/fixtures/` notes). With no argument,
 `opendota_parity.py` prefers that download when present (full match + parity
 cross-check), and otherwise falls back to the committed but **truncated** TI14
 replay — which runs on a *partial* match with no OpenDota reference, and prints a
-heads-up saying so. For the complete experience, fetch a replay:
+heads-up saying so. For the complete experience, synchronize the canonical fixture:
 
 ```bash
-uv run python -c "import gem; gem.fetch_replay(8822520406, 'tests/fixtures/opendota')"
+uv run python scripts/sync_opendota_fixtures.py
 ```
 
 or pass any replay path with a sibling `<match_id>.opendota.json` to enable the

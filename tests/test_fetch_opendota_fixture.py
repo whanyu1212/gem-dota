@@ -43,6 +43,8 @@ def test_build_manifest_entry_uses_stable_shape() -> None:
         "lobby_type": 1,
         "patch": 7.41,
         "replay_url": "https://replay.example/123.dem.bz2",
+        "dem_size_bytes": None,
+        "dem_sha256": None,
         "note": "7.41 facets regression",
     }
 
@@ -72,10 +74,11 @@ def test_update_manifest_creates_sorted_manifest(tmp_path: Path) -> None:
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
     assert manifest == {
+        "schema_version": 2,
         "matches": [
             {"match_id": 11, "dem": "11.dem"},
             {"match_id": 22, "dem": "22.dem"},
-        ]
+        ],
     }
 
 
@@ -86,7 +89,44 @@ def test_update_manifest_replaces_existing_entry(tmp_path: Path) -> None:
 
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
-    assert manifest == {"matches": [{"match_id": 11, "dem": "new.dem"}]}
+    assert manifest == {
+        "schema_version": 2,
+        "matches": [{"match_id": 11, "dem": "new.dem"}],
+    }
+
+
+def test_update_manifest_preserves_curated_metadata(tmp_path: Path) -> None:
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "schema_version": 2,
+                "matches": [
+                    {
+                        "match_id": 11,
+                        "name": "canonical-replay",
+                        "tier": "canonical",
+                        "dem": "old.dem",
+                        "note": "keep this curated explanation",
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    update_manifest(manifest_path, {"match_id": 11, "dem": "new.dem"})
+
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    assert manifest["matches"] == [
+        {
+            "match_id": 11,
+            "name": "canonical-replay",
+            "tier": "canonical",
+            "dem": "new.dem",
+            "note": "keep this curated explanation",
+        }
+    ]
 
 
 def test_ensure_can_write_fixture_rejects_existing_outputs_without_force(tmp_path: Path) -> None:

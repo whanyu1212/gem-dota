@@ -206,7 +206,13 @@ uv run pytest -m "not slow and not integration"
 - Tests live in `tests/` mirroring the module they cover; low-level binary tests
   are grouped under `tests/binary/`
 - Use synthetic binary fixtures (construct minimal valid byte sequences) rather than real replay files for unit tests
-- Keep committed replay fixtures truncated. Full replay fixtures should stay ignored/local under `tests/fixtures/opendota/`.
+- Keep committed replay fixtures truncated. Full replay fixtures stay ignored/local
+  under `tests/fixtures/opendota/`; synchronize the canonical TI2026 replay with
+  `uv run python scripts/sync_opendota_fixtures.py`. Use `--tier extended`,
+  `--tier stress`, or `--match <id>` for broader and feature-specific coverage.
+- Treat `tests/fixtures/opendota/manifest.json` as the source of truth for replay
+  lifecycle, tiers, capabilities, integrity metadata, and replacements. Deprecate
+  entries in the manifest instead of deleting their metadata.
 - Keep map/reference images for examples, reports, and camp-zone tooling under `assets/maps/`, not `tests/fixtures/`.
 - Real replay tests go in a `slow`/`integration` marked class
 - Test both the happy path and error conditions

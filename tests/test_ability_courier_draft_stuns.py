@@ -428,7 +428,7 @@ class TestPhase8Integration:
             assert snap.team in (2, 3), f"Unexpected courier team {snap.team}"
 
     def test_draft_events_populated(self, match):
-        # TI14 finals is CM — should have bans and picks
+        # The canonical TI2026 fixture is CM — it should have bans and picks.
         assert len(match.draft) > 0
 
     def test_draft_picks_count(self, match):

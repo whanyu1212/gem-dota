@@ -17,7 +17,7 @@ import gem
 from gem.reports import ReportAssets, apply_opendota_player_names_from_path, write_html_report
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_DEM = REPO_ROOT / "tests" / "fixtures" / "opendota" / "8822520406.dem"
+DEFAULT_DEM = REPO_ROOT / "tests" / "fixtures" / "opendota" / "8868259993.dem"
 DEFAULT_MAP = REPO_ROOT / "assets" / "maps" / "Game_map_7.40.jpg"
 
 

@@ -93,8 +93,8 @@ def _build_hero_id_map() -> dict[int, str]:
 # Keep the default gate small and stable. Larger/edge replay fixtures are kept
 # in tests/fixtures/opendota/manifest.json and can be run explicitly with --match.
 REPLAYS: list[tuple[int, Path]] = [
-    (8822520406, OPENDOTA_FIXTURES_DIR / "8822520406.dem"),
-    (8822593932, OPENDOTA_FIXTURES_DIR / "8822593932.dem"),
+    (8868259993, OPENDOTA_FIXTURES_DIR / "8868259993.dem"),
+    (8860187335, OPENDOTA_FIXTURES_DIR / "8860187335.dem"),
 ]
 
 
