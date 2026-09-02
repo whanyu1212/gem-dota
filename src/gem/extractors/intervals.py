@@ -155,6 +155,7 @@ class IntervalExtractor:
         self._last_clock_tick: int | None = None
         self._last_emitted_time_s: int | None = None
         self._last_emitted_tick: int | None = None
+        self._initial_boundary_pending = False
         self._ended = False
         self.snapshots = []
 
@@ -294,6 +295,13 @@ class IntervalExtractor:
     def _maybe_emit(self) -> None:
         if self._parser is None or self._ended:
             return
+
+        game_time_s = self._clock()
+        if game_time_s is None or game_time_s < 0:
+            return
+        if game_time_s == 0 and self._last_emitted_time_s is None:
+            self._initial_boundary_pending = True
+
         if self._player_resource is None or not self._player_index_by_id:
             return
         teams = set(self._player_team.values())
@@ -302,29 +310,29 @@ class IntervalExtractor:
         if TEAM_DIRE in teams and self._data_dire is None:
             return
 
-        game_time_s = self._clock()
-        if game_time_s is None or game_time_s < 0:
-            return
-        initial_boundary = game_time_s == 0 and self._last_emitted_time_s is None
+        initial_boundary = self._initial_boundary_pending and self._last_emitted_time_s is None
+        boundary_time_s = 0 if initial_boundary else game_time_s
         # ``game_time_s`` is only refreshed by CDOTAGamerulesProxy. Other
         # entity updates may arrive on later ticks while that value is stale.
-        # The one exception is the initial t=0 boundary: the clock callback may
-        # precede the player/team entities needed for a complete batch, so allow
-        # those entities to complete the boundary on a later tick.
+        # The one exception is a pending initial t=0 boundary: the clock callback
+        # may precede the player/team entities needed for a complete batch, and
+        # the combat-log clock may advance before those entities arrive.
         if self._last_clock_tick != self._parser.tick and not initial_boundary:
             return
-        if game_time_s % self._interval_s != 0:
+        if boundary_time_s % self._interval_s != 0:
             return
-        if self._last_emitted_time_s == game_time_s:
+        if self._last_emitted_time_s == boundary_time_s:
             return
-        if self._next_interval_s is not None and game_time_s < self._next_interval_s:
+        if self._next_interval_s is not None and boundary_time_s < self._next_interval_s:
             return
 
-        emitted = self._emit(game_time_s, use_live=initial_boundary)
+        emitted = self._emit(boundary_time_s, use_live=initial_boundary)
         if emitted:
-            self._last_emitted_time_s = game_time_s
+            if initial_boundary:
+                self._initial_boundary_pending = False
+            self._last_emitted_time_s = boundary_time_s
             self._last_emitted_tick = self._parser.tick
-            self._next_interval_s = game_time_s + self._interval_s
+            self._next_interval_s = boundary_time_s + self._interval_s
 
     def _emit_final_boundary(self, tick: int) -> None:
         """Recover a recently elapsed interval boundary at game end.

@@ -213,6 +213,28 @@ def test_allows_delayed_initial_boundary_after_clock_tick():
     assert {snap.dn for snap in ext.snapshots} == {0}
 
 
+def test_preserves_pending_initial_boundary_after_clock_advances():
+    ext = IntervalExtractor()
+    parser = FakeParser(tick=1800, game_time_s=0, combat_log_time_s=0)
+    ext.attach(parser)
+
+    # Observe t=0 before the player and team entities are ready.
+    ext._on_entity(_ent("CDOTAGamerulesProxy"), EntityOp.UPDATED)
+
+    # A combat-log entry advances the authoritative clock before those entities
+    # arrive. The pending initial boundary must still emit at t=0 with live data.
+    parser.tick = 1801
+    parser.game_time_s = 1
+    parser.combat_log_time_s = 1
+    ext._on_entity(_player_resource(), EntityOp.UPDATED)
+    ext._on_entity(_radiant_data(), EntityOp.UPDATED)
+    ext._on_entity(_dire_data(), EntityOp.UPDATED)
+
+    assert len(ext.snapshots) == 2
+    assert [snap.time_s for snap in ext.snapshots] == [0, 0]
+    assert [snap.gold for snap in ext.snapshots] == [1000, 600]
+
+
 def test_initial_boundary_keeps_live_nonzero_values():
     ext = IntervalExtractor()
     parser = FakeParser(tick=1799, game_time_s=-1)
