@@ -14,8 +14,6 @@ class EGCPlatform(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_eGCPlatform_PC: _ClassVar[EGCPlatform]
     k_eGCPlatform_Mac: _ClassVar[EGCPlatform]
     k_eGCPlatform_Linux: _ClassVar[EGCPlatform]
-    k_eGCPlatform_Android: _ClassVar[EGCPlatform]
-    k_eGCPlatform_iOS: _ClassVar[EGCPlatform]
 
 class GCProtoBufMsgSrc(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -29,8 +27,6 @@ k_eGCPlatform_None: EGCPlatform
 k_eGCPlatform_PC: EGCPlatform
 k_eGCPlatform_Mac: EGCPlatform
 k_eGCPlatform_Linux: EGCPlatform
-k_eGCPlatform_Android: EGCPlatform
-k_eGCPlatform_iOS: EGCPlatform
 GCProtoBufMsgSrc_Unspecified: GCProtoBufMsgSrc
 GCProtoBufMsgSrc_FromSystem: GCProtoBufMsgSrc
 GCProtoBufMsgSrc_FromSteamID: GCProtoBufMsgSrc

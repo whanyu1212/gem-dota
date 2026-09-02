@@ -1,5 +1,6 @@
 from . import steammessages_pb2 as _steammessages_pb2
 from . import dota_shared_enums_pb2 as _dota_shared_enums_pb2
+from . import events_pb2 as _events_pb2
 from . import dota_gcmessages_common_pb2 as _dota_gcmessages_common_pb2
 from . import dota_gcmessages_common_survivors_pb2 as _dota_gcmessages_common_survivors_pb2
 from . import gcsdk_gcmessages_pb2 as _gcsdk_gcmessages_pb2
@@ -46,6 +47,11 @@ class EOverworldAuditAction(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_eOverworldAuditAction_DevSetFortune: _ClassVar[EOverworldAuditAction]
     k_eOverworldAuditAction_DevClearFortune: _ClassVar[EOverworldAuditAction]
     k_eOverworldAuditAction_RequestFortune: _ClassVar[EOverworldAuditAction]
+    k_eOverworldAuditAction_ClaimFortuneReward: _ClassVar[EOverworldAuditAction]
+    k_eOverworldAuditAction_DevGrantFortuneTellerCoin: _ClassVar[EOverworldAuditAction]
+    k_eOverworldAuditAction_ClaimFortuneTellerStoryNodeReward: _ClassVar[EOverworldAuditAction]
+    k_eOverworldAuditAction_MatchRewardsAbilityDraft: _ClassVar[EOverworldAuditAction]
+    k_eOverworldAuditAction_MatchRewardsCoopBotMatch: _ClassVar[EOverworldAuditAction]
 
 class EOverworldMinigameAction(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -82,6 +88,11 @@ k_eOverworldAuditAction_TokenGiftSent: EOverworldAuditAction
 k_eOverworldAuditAction_DevSetFortune: EOverworldAuditAction
 k_eOverworldAuditAction_DevClearFortune: EOverworldAuditAction
 k_eOverworldAuditAction_RequestFortune: EOverworldAuditAction
+k_eOverworldAuditAction_ClaimFortuneReward: EOverworldAuditAction
+k_eOverworldAuditAction_DevGrantFortuneTellerCoin: EOverworldAuditAction
+k_eOverworldAuditAction_ClaimFortuneTellerStoryNodeReward: EOverworldAuditAction
+k_eOverworldAuditAction_MatchRewardsAbilityDraft: EOverworldAuditAction
+k_eOverworldAuditAction_MatchRewardsCoopBotMatch: EOverworldAuditAction
 k_eOverworldMinigameAction_Invalid: EOverworldMinigameAction
 k_eOverworldMinigameAction_DevReset: EOverworldMinigameAction
 k_eOverworldMinigameAction_DevGiveCurrency: EOverworldMinigameAction
@@ -203,19 +214,38 @@ class CMsgOverworldMinigameUserData(_message.Message):
     def __init__(self, node_id: _Optional[int] = ..., currency_amount: _Optional[int] = ..., custom_data: _Optional[_Union[CMsgOverworldMinigameCustomData, _Mapping]] = ...) -> None: ...
 
 class CMsgOverworldFortune(_message.Message):
-    __slots__ = ("fortune1", "fortune2", "fortune3", "timestamp")
-    FORTUNE1_FIELD_NUMBER: _ClassVar[int]
-    FORTUNE2_FIELD_NUMBER: _ClassVar[int]
-    FORTUNE3_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("fortune", "timestamp", "times_completed", "reward_claimed", "fortune_count", "fortune_counts")
+    class CMsgFortuneCount(_message.Message):
+        __slots__ = ("fortune", "count")
+        FORTUNE_FIELD_NUMBER: _ClassVar[int]
+        COUNT_FIELD_NUMBER: _ClassVar[int]
+        fortune: int
+        count: int
+        def __init__(self, fortune: _Optional[int] = ..., count: _Optional[int] = ...) -> None: ...
+    FORTUNE_FIELD_NUMBER: _ClassVar[int]
     TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
-    fortune1: int
-    fortune2: int
-    fortune3: int
+    TIMES_COMPLETED_FIELD_NUMBER: _ClassVar[int]
+    REWARD_CLAIMED_FIELD_NUMBER: _ClassVar[int]
+    FORTUNE_COUNT_FIELD_NUMBER: _ClassVar[int]
+    FORTUNE_COUNTS_FIELD_NUMBER: _ClassVar[int]
+    fortune: int
     timestamp: int
-    def __init__(self, fortune1: _Optional[int] = ..., fortune2: _Optional[int] = ..., fortune3: _Optional[int] = ..., timestamp: _Optional[int] = ...) -> None: ...
+    times_completed: int
+    reward_claimed: bool
+    fortune_count: int
+    fortune_counts: _containers.RepeatedCompositeFieldContainer[CMsgOverworldFortune.CMsgFortuneCount]
+    def __init__(self, fortune: _Optional[int] = ..., timestamp: _Optional[int] = ..., times_completed: _Optional[int] = ..., reward_claimed: bool = ..., fortune_count: _Optional[int] = ..., fortune_counts: _Optional[_Iterable[_Union[CMsgOverworldFortune.CMsgFortuneCount, _Mapping]]] = ...) -> None: ...
+
+class CMsgLobbyOverworldFortuneList(_message.Message):
+    __slots__ = ("account_id", "fortune")
+    ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
+    FORTUNE_FIELD_NUMBER: _ClassVar[int]
+    account_id: _containers.RepeatedScalarFieldContainer[int]
+    fortune: _containers.RepeatedCompositeFieldContainer[CMsgOverworldFortune]
+    def __init__(self, account_id: _Optional[_Iterable[int]] = ..., fortune: _Optional[_Iterable[_Union[CMsgOverworldFortune, _Mapping]]] = ...) -> None: ...
 
 class CMsgOverworldUserData(_message.Message):
-    __slots__ = ("token_inventory", "overworld_nodes", "overworld_paths", "current_node_id", "minigame_data", "current_fortune")
+    __slots__ = ("token_inventory", "overworld_nodes", "overworld_paths", "current_node_id", "minigame_data", "current_fortune", "last_related_hero_id", "overworld_version")
     class MinigameDataEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -229,13 +259,17 @@ class CMsgOverworldUserData(_message.Message):
     CURRENT_NODE_ID_FIELD_NUMBER: _ClassVar[int]
     MINIGAME_DATA_FIELD_NUMBER: _ClassVar[int]
     CURRENT_FORTUNE_FIELD_NUMBER: _ClassVar[int]
+    LAST_RELATED_HERO_ID_FIELD_NUMBER: _ClassVar[int]
+    OVERWORLD_VERSION_FIELD_NUMBER: _ClassVar[int]
     token_inventory: CMsgOverworldTokenQuantity
     overworld_nodes: _containers.RepeatedCompositeFieldContainer[CMsgOverworldNode]
     overworld_paths: _containers.RepeatedCompositeFieldContainer[CMsgOverworldPath]
     current_node_id: int
     minigame_data: _containers.RepeatedCompositeFieldContainer[CMsgOverworldUserData.MinigameDataEntry]
     current_fortune: CMsgOverworldFortune
-    def __init__(self, token_inventory: _Optional[_Union[CMsgOverworldTokenQuantity, _Mapping]] = ..., overworld_nodes: _Optional[_Iterable[_Union[CMsgOverworldNode, _Mapping]]] = ..., overworld_paths: _Optional[_Iterable[_Union[CMsgOverworldPath, _Mapping]]] = ..., current_node_id: _Optional[int] = ..., minigame_data: _Optional[_Iterable[_Union[CMsgOverworldUserData.MinigameDataEntry, _Mapping]]] = ..., current_fortune: _Optional[_Union[CMsgOverworldFortune, _Mapping]] = ...) -> None: ...
+    last_related_hero_id: int
+    overworld_version: int
+    def __init__(self, token_inventory: _Optional[_Union[CMsgOverworldTokenQuantity, _Mapping]] = ..., overworld_nodes: _Optional[_Iterable[_Union[CMsgOverworldNode, _Mapping]]] = ..., overworld_paths: _Optional[_Iterable[_Union[CMsgOverworldPath, _Mapping]]] = ..., current_node_id: _Optional[int] = ..., minigame_data: _Optional[_Iterable[_Union[CMsgOverworldUserData.MinigameDataEntry, _Mapping]]] = ..., current_fortune: _Optional[_Union[CMsgOverworldFortune, _Mapping]] = ..., last_related_hero_id: _Optional[int] = ..., overworld_version: _Optional[int] = ...) -> None: ...
 
 class CMsgOverworldMatchRewards(_message.Message):
     __slots__ = ("players",)
@@ -289,12 +323,16 @@ class CMsgGCToClientOverworldUserDataUpdated(_message.Message):
     def __init__(self, overworld_id: _Optional[int] = ..., user_data: _Optional[_Union[CMsgOverworldUserData, _Mapping]] = ...) -> None: ...
 
 class CMsgClientToGCOverworldCompletePath(_message.Message):
-    __slots__ = ("overworld_id", "path_id")
+    __slots__ = ("overworld_id", "path_id", "use_path_unlocker", "dev_ignore_release_schedule")
     OVERWORLD_ID_FIELD_NUMBER: _ClassVar[int]
     PATH_ID_FIELD_NUMBER: _ClassVar[int]
+    USE_PATH_UNLOCKER_FIELD_NUMBER: _ClassVar[int]
+    DEV_IGNORE_RELEASE_SCHEDULE_FIELD_NUMBER: _ClassVar[int]
     overworld_id: int
     path_id: int
-    def __init__(self, overworld_id: _Optional[int] = ..., path_id: _Optional[int] = ...) -> None: ...
+    use_path_unlocker: bool
+    dev_ignore_release_schedule: bool
+    def __init__(self, overworld_id: _Optional[int] = ..., path_id: _Optional[int] = ..., use_path_unlocker: bool = ..., dev_ignore_release_schedule: bool = ...) -> None: ...
 
 class CMsgClientToGCOverworldCompletePathResponse(_message.Message):
     __slots__ = ("response", "claim_response")
@@ -311,6 +349,7 @@ class CMsgClientToGCOverworldCompletePathResponse(_message.Message):
         k_ePathIsLocked: _ClassVar[CMsgClientToGCOverworldCompletePathResponse.EResponse]
         k_ePathAlreadyUnlocked: _ClassVar[CMsgClientToGCOverworldCompletePathResponse.EResponse]
         k_eEventExpired: _ClassVar[CMsgClientToGCOverworldCompletePathResponse.EResponse]
+        k_eNodeNotReleased: _ClassVar[CMsgClientToGCOverworldCompletePathResponse.EResponse]
     k_eInternalError: CMsgClientToGCOverworldCompletePathResponse.EResponse
     k_eSuccess: CMsgClientToGCOverworldCompletePathResponse.EResponse
     k_eTooBusy: CMsgClientToGCOverworldCompletePathResponse.EResponse
@@ -322,6 +361,7 @@ class CMsgClientToGCOverworldCompletePathResponse(_message.Message):
     k_ePathIsLocked: CMsgClientToGCOverworldCompletePathResponse.EResponse
     k_ePathAlreadyUnlocked: CMsgClientToGCOverworldCompletePathResponse.EResponse
     k_eEventExpired: CMsgClientToGCOverworldCompletePathResponse.EResponse
+    k_eNodeNotReleased: CMsgClientToGCOverworldCompletePathResponse.EResponse
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     CLAIM_RESPONSE_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCOverworldCompletePathResponse.EResponse
@@ -780,6 +820,34 @@ class CMsgClientToGCOverworldDevClearFortuneResponse(_message.Message):
     response: CMsgClientToGCOverworldDevClearFortuneResponse.EResponse
     def __init__(self, response: _Optional[_Union[CMsgClientToGCOverworldDevClearFortuneResponse.EResponse, str]] = ...) -> None: ...
 
+class CMsgClientToGCOverworldDevGrantFortuneTellerCoin(_message.Message):
+    __slots__ = ("overworld_id",)
+    OVERWORLD_ID_FIELD_NUMBER: _ClassVar[int]
+    overworld_id: int
+    def __init__(self, overworld_id: _Optional[int] = ...) -> None: ...
+
+class CMsgClientToGCOverworldDevGrantFortuneTellerCoinResponse(_message.Message):
+    __slots__ = ("response",)
+    class EResponse(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        k_eInternalError: _ClassVar[CMsgClientToGCOverworldDevGrantFortuneTellerCoinResponse.EResponse]
+        k_eSuccess: _ClassVar[CMsgClientToGCOverworldDevGrantFortuneTellerCoinResponse.EResponse]
+        k_eTooBusy: _ClassVar[CMsgClientToGCOverworldDevGrantFortuneTellerCoinResponse.EResponse]
+        k_eDisabled: _ClassVar[CMsgClientToGCOverworldDevGrantFortuneTellerCoinResponse.EResponse]
+        k_eTimeout: _ClassVar[CMsgClientToGCOverworldDevGrantFortuneTellerCoinResponse.EResponse]
+        k_eNotAllowed: _ClassVar[CMsgClientToGCOverworldDevGrantFortuneTellerCoinResponse.EResponse]
+        k_eInvalidOverworld: _ClassVar[CMsgClientToGCOverworldDevGrantFortuneTellerCoinResponse.EResponse]
+    k_eInternalError: CMsgClientToGCOverworldDevGrantFortuneTellerCoinResponse.EResponse
+    k_eSuccess: CMsgClientToGCOverworldDevGrantFortuneTellerCoinResponse.EResponse
+    k_eTooBusy: CMsgClientToGCOverworldDevGrantFortuneTellerCoinResponse.EResponse
+    k_eDisabled: CMsgClientToGCOverworldDevGrantFortuneTellerCoinResponse.EResponse
+    k_eTimeout: CMsgClientToGCOverworldDevGrantFortuneTellerCoinResponse.EResponse
+    k_eNotAllowed: CMsgClientToGCOverworldDevGrantFortuneTellerCoinResponse.EResponse
+    k_eInvalidOverworld: CMsgClientToGCOverworldDevGrantFortuneTellerCoinResponse.EResponse
+    RESPONSE_FIELD_NUMBER: _ClassVar[int]
+    response: CMsgClientToGCOverworldDevGrantFortuneTellerCoinResponse.EResponse
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCOverworldDevGrantFortuneTellerCoinResponse.EResponse, str]] = ...) -> None: ...
+
 class CMsgClientToGCOverworldRequestFortune(_message.Message):
     __slots__ = ("overworld_id",)
     OVERWORLD_ID_FIELD_NUMBER: _ClassVar[int]
@@ -787,7 +855,7 @@ class CMsgClientToGCOverworldRequestFortune(_message.Message):
     def __init__(self, overworld_id: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCOverworldRequestFortuneResponse(_message.Message):
-    __slots__ = ("response",)
+    __slots__ = ("response", "claim_response")
     class EResponse(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
         k_eInternalError: _ClassVar[CMsgClientToGCOverworldRequestFortuneResponse.EResponse]
@@ -797,6 +865,8 @@ class CMsgClientToGCOverworldRequestFortuneResponse(_message.Message):
         k_eTimeout: _ClassVar[CMsgClientToGCOverworldRequestFortuneResponse.EResponse]
         k_eNotAllowed: _ClassVar[CMsgClientToGCOverworldRequestFortuneResponse.EResponse]
         k_eInvalidOverworld: _ClassVar[CMsgClientToGCOverworldRequestFortuneResponse.EResponse]
+        k_eNotEnoughPoints: _ClassVar[CMsgClientToGCOverworldRequestFortuneResponse.EResponse]
+        k_ePendingRewardAvailable: _ClassVar[CMsgClientToGCOverworldRequestFortuneResponse.EResponse]
     k_eInternalError: CMsgClientToGCOverworldRequestFortuneResponse.EResponse
     k_eSuccess: CMsgClientToGCOverworldRequestFortuneResponse.EResponse
     k_eTooBusy: CMsgClientToGCOverworldRequestFortuneResponse.EResponse
@@ -804,9 +874,81 @@ class CMsgClientToGCOverworldRequestFortuneResponse(_message.Message):
     k_eTimeout: CMsgClientToGCOverworldRequestFortuneResponse.EResponse
     k_eNotAllowed: CMsgClientToGCOverworldRequestFortuneResponse.EResponse
     k_eInvalidOverworld: CMsgClientToGCOverworldRequestFortuneResponse.EResponse
+    k_eNotEnoughPoints: CMsgClientToGCOverworldRequestFortuneResponse.EResponse
+    k_ePendingRewardAvailable: CMsgClientToGCOverworldRequestFortuneResponse.EResponse
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
+    CLAIM_RESPONSE_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCOverworldRequestFortuneResponse.EResponse
-    def __init__(self, response: _Optional[_Union[CMsgClientToGCOverworldRequestFortuneResponse.EResponse, str]] = ...) -> None: ...
+    claim_response: _dota_gcmessages_common_pb2.CMsgDOTAClaimEventActionResponse
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCOverworldRequestFortuneResponse.EResponse, str]] = ..., claim_response: _Optional[_Union[_dota_gcmessages_common_pb2.CMsgDOTAClaimEventActionResponse, _Mapping]] = ...) -> None: ...
+
+class CMsgClientToGCOverworldClaimFortuneReward(_message.Message):
+    __slots__ = ("overworld_id",)
+    OVERWORLD_ID_FIELD_NUMBER: _ClassVar[int]
+    overworld_id: int
+    def __init__(self, overworld_id: _Optional[int] = ...) -> None: ...
+
+class CMsgClientToGCOverworldClaimFortuneRewardResponse(_message.Message):
+    __slots__ = ("response", "token_quantity", "claim_response")
+    class EResponse(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        k_eInternalError: _ClassVar[CMsgClientToGCOverworldClaimFortuneRewardResponse.EResponse]
+        k_eSuccess: _ClassVar[CMsgClientToGCOverworldClaimFortuneRewardResponse.EResponse]
+        k_eTooBusy: _ClassVar[CMsgClientToGCOverworldClaimFortuneRewardResponse.EResponse]
+        k_eDisabled: _ClassVar[CMsgClientToGCOverworldClaimFortuneRewardResponse.EResponse]
+        k_eTimeout: _ClassVar[CMsgClientToGCOverworldClaimFortuneRewardResponse.EResponse]
+        k_eNotAllowed: _ClassVar[CMsgClientToGCOverworldClaimFortuneRewardResponse.EResponse]
+        k_eInvalidOverworld: _ClassVar[CMsgClientToGCOverworldClaimFortuneRewardResponse.EResponse]
+        k_eNoFortuneRewardAvailable: _ClassVar[CMsgClientToGCOverworldClaimFortuneRewardResponse.EResponse]
+    k_eInternalError: CMsgClientToGCOverworldClaimFortuneRewardResponse.EResponse
+    k_eSuccess: CMsgClientToGCOverworldClaimFortuneRewardResponse.EResponse
+    k_eTooBusy: CMsgClientToGCOverworldClaimFortuneRewardResponse.EResponse
+    k_eDisabled: CMsgClientToGCOverworldClaimFortuneRewardResponse.EResponse
+    k_eTimeout: CMsgClientToGCOverworldClaimFortuneRewardResponse.EResponse
+    k_eNotAllowed: CMsgClientToGCOverworldClaimFortuneRewardResponse.EResponse
+    k_eInvalidOverworld: CMsgClientToGCOverworldClaimFortuneRewardResponse.EResponse
+    k_eNoFortuneRewardAvailable: CMsgClientToGCOverworldClaimFortuneRewardResponse.EResponse
+    RESPONSE_FIELD_NUMBER: _ClassVar[int]
+    TOKEN_QUANTITY_FIELD_NUMBER: _ClassVar[int]
+    CLAIM_RESPONSE_FIELD_NUMBER: _ClassVar[int]
+    response: CMsgClientToGCOverworldClaimFortuneRewardResponse.EResponse
+    token_quantity: CMsgOverworldTokenQuantity
+    claim_response: _dota_gcmessages_common_pb2.CMsgDOTAClaimEventActionResponse
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCOverworldClaimFortuneRewardResponse.EResponse, str]] = ..., token_quantity: _Optional[_Union[CMsgOverworldTokenQuantity, _Mapping]] = ..., claim_response: _Optional[_Union[_dota_gcmessages_common_pb2.CMsgDOTAClaimEventActionResponse, _Mapping]] = ...) -> None: ...
+
+class CMsgClientToGCOverworldClaimFortunePermanentReward(_message.Message):
+    __slots__ = ("overworld_id", "fortune_id")
+    OVERWORLD_ID_FIELD_NUMBER: _ClassVar[int]
+    FORTUNE_ID_FIELD_NUMBER: _ClassVar[int]
+    overworld_id: int
+    fortune_id: int
+    def __init__(self, overworld_id: _Optional[int] = ..., fortune_id: _Optional[int] = ...) -> None: ...
+
+class CMsgClientToGCOverworldClaimFortunePermanentRewardResponse(_message.Message):
+    __slots__ = ("response", "claim_response")
+    class EResponse(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        k_eInternalError: _ClassVar[CMsgClientToGCOverworldClaimFortunePermanentRewardResponse.EResponse]
+        k_eSuccess: _ClassVar[CMsgClientToGCOverworldClaimFortunePermanentRewardResponse.EResponse]
+        k_eTooBusy: _ClassVar[CMsgClientToGCOverworldClaimFortunePermanentRewardResponse.EResponse]
+        k_eDisabled: _ClassVar[CMsgClientToGCOverworldClaimFortunePermanentRewardResponse.EResponse]
+        k_eTimeout: _ClassVar[CMsgClientToGCOverworldClaimFortunePermanentRewardResponse.EResponse]
+        k_eNotAllowed: _ClassVar[CMsgClientToGCOverworldClaimFortunePermanentRewardResponse.EResponse]
+        k_eInvalidOverworld: _ClassVar[CMsgClientToGCOverworldClaimFortunePermanentRewardResponse.EResponse]
+        k_eRewardAlreadyClaimed: _ClassVar[CMsgClientToGCOverworldClaimFortunePermanentRewardResponse.EResponse]
+    k_eInternalError: CMsgClientToGCOverworldClaimFortunePermanentRewardResponse.EResponse
+    k_eSuccess: CMsgClientToGCOverworldClaimFortunePermanentRewardResponse.EResponse
+    k_eTooBusy: CMsgClientToGCOverworldClaimFortunePermanentRewardResponse.EResponse
+    k_eDisabled: CMsgClientToGCOverworldClaimFortunePermanentRewardResponse.EResponse
+    k_eTimeout: CMsgClientToGCOverworldClaimFortunePermanentRewardResponse.EResponse
+    k_eNotAllowed: CMsgClientToGCOverworldClaimFortunePermanentRewardResponse.EResponse
+    k_eInvalidOverworld: CMsgClientToGCOverworldClaimFortunePermanentRewardResponse.EResponse
+    k_eRewardAlreadyClaimed: CMsgClientToGCOverworldClaimFortunePermanentRewardResponse.EResponse
+    RESPONSE_FIELD_NUMBER: _ClassVar[int]
+    CLAIM_RESPONSE_FIELD_NUMBER: _ClassVar[int]
+    response: CMsgClientToGCOverworldClaimFortunePermanentRewardResponse.EResponse
+    claim_response: _dota_gcmessages_common_pb2.CMsgDOTAClaimEventActionResponse
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCOverworldClaimFortunePermanentRewardResponse.EResponse, str]] = ..., claim_response: _Optional[_Union[_dota_gcmessages_common_pb2.CMsgDOTAClaimEventActionResponse, _Mapping]] = ...) -> None: ...
 
 class CMsgClientToGCOverworldFeedback(_message.Message):
     __slots__ = ("language", "overworld_id", "feedback")
@@ -924,3 +1066,39 @@ class CMsgClientToGCOverworldMinigameActionResponse(_message.Message):
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     response: CMsgClientToGCOverworldMinigameActionResponse.EResponse
     def __init__(self, response: _Optional[_Union[CMsgClientToGCOverworldMinigameActionResponse.EResponse, str]] = ...) -> None: ...
+
+class CMsgClientToGCOverworldClaimFortuneTellerStoryNode(_message.Message):
+    __slots__ = ("overworld_id", "story_node_id")
+    OVERWORLD_ID_FIELD_NUMBER: _ClassVar[int]
+    STORY_NODE_ID_FIELD_NUMBER: _ClassVar[int]
+    overworld_id: int
+    story_node_id: int
+    def __init__(self, overworld_id: _Optional[int] = ..., story_node_id: _Optional[int] = ...) -> None: ...
+
+class CMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse(_message.Message):
+    __slots__ = ("response", "claim_response")
+    class EResponse(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        k_eInternalError: _ClassVar[CMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse.EResponse]
+        k_eSuccess: _ClassVar[CMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse.EResponse]
+        k_eTooBusy: _ClassVar[CMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse.EResponse]
+        k_eDisabled: _ClassVar[CMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse.EResponse]
+        k_eTimeout: _ClassVar[CMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse.EResponse]
+        k_eNotAllowed: _ClassVar[CMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse.EResponse]
+        k_eInvalidOverworld: _ClassVar[CMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse.EResponse]
+        k_eRewardAlreadyClaimed: _ClassVar[CMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse.EResponse]
+        k_eInsufficientFortuneCount: _ClassVar[CMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse.EResponse]
+    k_eInternalError: CMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse.EResponse
+    k_eSuccess: CMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse.EResponse
+    k_eTooBusy: CMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse.EResponse
+    k_eDisabled: CMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse.EResponse
+    k_eTimeout: CMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse.EResponse
+    k_eNotAllowed: CMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse.EResponse
+    k_eInvalidOverworld: CMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse.EResponse
+    k_eRewardAlreadyClaimed: CMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse.EResponse
+    k_eInsufficientFortuneCount: CMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse.EResponse
+    RESPONSE_FIELD_NUMBER: _ClassVar[int]
+    CLAIM_RESPONSE_FIELD_NUMBER: _ClassVar[int]
+    response: CMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse.EResponse
+    claim_response: _dota_gcmessages_common_pb2.CMsgDOTAClaimEventActionResponse
+    def __init__(self, response: _Optional[_Union[CMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse.EResponse, str]] = ..., claim_response: _Optional[_Union[_dota_gcmessages_common_pb2.CMsgDOTAClaimEventActionResponse, _Mapping]] = ...) -> None: ...

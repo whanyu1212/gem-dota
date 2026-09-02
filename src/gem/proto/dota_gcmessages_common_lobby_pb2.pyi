@@ -1,5 +1,6 @@
 from . import steammessages_pb2 as _steammessages_pb2
 from . import dota_shared_enums_pb2 as _dota_shared_enums_pb2
+from . import events_pb2 as _events_pb2
 from . import gcsdk_gcmessages_pb2 as _gcsdk_gcmessages_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
@@ -19,6 +20,7 @@ class ELobbyMemberCoachRequestState(int, metaclass=_enum_type_wrapper.EnumTypeWr
 class LobbyDotaTVDelay(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
     LobbyDotaTV_10: _ClassVar[LobbyDotaTVDelay]
+    LobbyDotaTV_60: _ClassVar[LobbyDotaTVDelay]
     LobbyDotaTV_120: _ClassVar[LobbyDotaTVDelay]
     LobbyDotaTV_300: _ClassVar[LobbyDotaTVDelay]
     LobbyDotaTV_900: _ClassVar[LobbyDotaTVDelay]
@@ -32,6 +34,7 @@ k_eLobbyMemberCoachRequestState_None: ELobbyMemberCoachRequestState
 k_eLobbyMemberCoachRequestState_Accepted: ELobbyMemberCoachRequestState
 k_eLobbyMemberCoachRequestState_Rejected: ELobbyMemberCoachRequestState
 LobbyDotaTV_10: LobbyDotaTVDelay
+LobbyDotaTV_60: LobbyDotaTVDelay
 LobbyDotaTV_120: LobbyDotaTVDelay
 LobbyDotaTV_300: LobbyDotaTVDelay
 LobbyDotaTV_900: LobbyDotaTVDelay
@@ -337,14 +340,14 @@ class CLobbyGuildChallenge(_message.Message):
     CHALLENGE_PROGRESS_AT_START_FIELD_NUMBER: _ClassVar[int]
     ELIGIBLE_ACCOUNT_IDS_FIELD_NUMBER: _ClassVar[int]
     guild_id: int
-    event_id: _dota_shared_enums_pb2.EEvent
+    event_id: _events_pb2.EEvent
     challenge_instance_id: int
     challenge_parameter: int
     challenge_timestamp: int
     challenge_period_serial: int
     challenge_progress_at_start: int
     eligible_account_ids: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(self, guild_id: _Optional[int] = ..., event_id: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ..., challenge_instance_id: _Optional[int] = ..., challenge_parameter: _Optional[int] = ..., challenge_timestamp: _Optional[int] = ..., challenge_period_serial: _Optional[int] = ..., challenge_progress_at_start: _Optional[int] = ..., eligible_account_ids: _Optional[_Iterable[int]] = ...) -> None: ...
+    def __init__(self, guild_id: _Optional[int] = ..., event_id: _Optional[_Union[_events_pb2.EEvent, str]] = ..., challenge_instance_id: _Optional[int] = ..., challenge_parameter: _Optional[int] = ..., challenge_timestamp: _Optional[int] = ..., challenge_period_serial: _Optional[int] = ..., challenge_progress_at_start: _Optional[int] = ..., eligible_account_ids: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CDOTALobbyMatchQualityData(_message.Message):
     __slots__ = ("overall_quality", "team_balance", "match_skill_range", "match_behavior")
@@ -564,15 +567,15 @@ class CSODOTALobby(_message.Message):
     bot_difficulty_dire: _dota_shared_enums_pb2.DOTABotDifficulty
     bot_radiant: int
     bot_dire: int
-    event_progression_enabled: _containers.RepeatedScalarFieldContainer[_dota_shared_enums_pb2.EEvent]
+    event_progression_enabled: _containers.RepeatedScalarFieldContainer[_events_pb2.EEvent]
     selection_priority_rules: _dota_shared_enums_pb2.DOTASelectionPriorityRules
     series_previous_selection_priority_team_id: int
     series_current_selection_priority_team_id: int
     series_current_priority_team_choice: _dota_shared_enums_pb2.DOTASelectionPriorityChoice
     series_current_non_priority_team_choice: _dota_shared_enums_pb2.DOTASelectionPriorityChoice
     series_current_selection_priority_used_coin_toss: bool
-    current_primary_event: _dota_shared_enums_pb2.EEvent
-    current_primary_event_for_display: _dota_shared_enums_pb2.EEvent
+    current_primary_event: _events_pb2.EEvent
+    current_primary_event_for_display: _events_pb2.EEvent
     emergency_disabled_hero_ids: _containers.RepeatedScalarFieldContainer[int]
     custom_game_private_key: int
     custom_game_penalties: bool
@@ -591,7 +594,7 @@ class CSODOTALobby(_message.Message):
     event_game_definition: str
     match_quality_data: CDOTALobbyMatchQualityData
     requested_hero_teams: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(self, lobby_id: _Optional[int] = ..., all_members: _Optional[_Iterable[_Union[CSODOTALobbyMember, _Mapping]]] = ..., member_indices: _Optional[_Iterable[int]] = ..., left_member_indices: _Optional[_Iterable[int]] = ..., free_member_indices: _Optional[_Iterable[int]] = ..., leader_id: _Optional[int] = ..., server_id: _Optional[int] = ..., game_mode: _Optional[int] = ..., pending_invites: _Optional[_Iterable[int]] = ..., state: _Optional[_Union[CSODOTALobby.State, str]] = ..., connect: _Optional[str] = ..., lobby_type: _Optional[_Union[CSODOTALobby.LobbyType, str]] = ..., allow_cheats: bool = ..., fill_with_bots: bool = ..., game_name: _Optional[str] = ..., team_details: _Optional[_Iterable[_Union[CLobbyTeamDetails, _Mapping]]] = ..., tournament_id: _Optional[int] = ..., tournament_game_id: _Optional[int] = ..., server_region: _Optional[int] = ..., game_state: _Optional[_Union[_dota_shared_enums_pb2.DOTA_GameState, str]] = ..., num_spectators: _Optional[int] = ..., matchgroup: _Optional[int] = ..., cm_pick: _Optional[_Union[_dota_shared_enums_pb2.DOTA_CM_PICK, str]] = ..., match_id: _Optional[int] = ..., allow_spectating: bool = ..., bot_difficulty_radiant: _Optional[_Union[_dota_shared_enums_pb2.DOTABotDifficulty, str]] = ..., pass_key: _Optional[str] = ..., leagueid: _Optional[int] = ..., penalty_level_radiant: _Optional[int] = ..., penalty_level_dire: _Optional[int] = ..., series_type: _Optional[int] = ..., radiant_series_wins: _Optional[int] = ..., dire_series_wins: _Optional[int] = ..., allchat: bool = ..., dota_tv_delay: _Optional[_Union[LobbyDotaTVDelay, str]] = ..., custom_game_mode: _Optional[str] = ..., custom_map_name: _Optional[str] = ..., custom_difficulty: _Optional[int] = ..., lan: bool = ..., broadcast_channel_info: _Optional[_Iterable[_Union[CLobbyBroadcastChannelInfo, _Mapping]]] = ..., first_leaver_accountid: _Optional[int] = ..., series_id: _Optional[int] = ..., low_priority: bool = ..., extra_messages: _Optional[_Iterable[_Union[CSODOTALobby.CExtraMsg, _Mapping]]] = ..., first_blood_happened: bool = ..., match_outcome: _Optional[_Union[_dota_shared_enums_pb2.EMatchOutcome, str]] = ..., mass_disconnect: bool = ..., custom_game_id: _Optional[int] = ..., custom_min_players: _Optional[int] = ..., custom_max_players: _Optional[int] = ..., visibility: _Optional[_Union[_dota_shared_enums_pb2.DOTALobbyVisibility, str]] = ..., custom_game_crc: _Optional[int] = ..., custom_game_auto_created_lobby: bool = ..., custom_game_timestamp: _Optional[int] = ..., previous_series_matches: _Optional[_Iterable[int]] = ..., previous_match_override: _Optional[int] = ..., game_start_time: _Optional[int] = ..., pause_setting: _Optional[_Union[LobbyDotaPauseSetting, str]] = ..., weekend_tourney_division_id: _Optional[int] = ..., weekend_tourney_skill_level: _Optional[int] = ..., weekend_tourney_bracket_round: _Optional[int] = ..., bot_difficulty_dire: _Optional[_Union[_dota_shared_enums_pb2.DOTABotDifficulty, str]] = ..., bot_radiant: _Optional[int] = ..., bot_dire: _Optional[int] = ..., event_progression_enabled: _Optional[_Iterable[_Union[_dota_shared_enums_pb2.EEvent, str]]] = ..., selection_priority_rules: _Optional[_Union[_dota_shared_enums_pb2.DOTASelectionPriorityRules, str]] = ..., series_previous_selection_priority_team_id: _Optional[int] = ..., series_current_selection_priority_team_id: _Optional[int] = ..., series_current_priority_team_choice: _Optional[_Union[_dota_shared_enums_pb2.DOTASelectionPriorityChoice, str]] = ..., series_current_non_priority_team_choice: _Optional[_Union[_dota_shared_enums_pb2.DOTASelectionPriorityChoice, str]] = ..., series_current_selection_priority_used_coin_toss: bool = ..., current_primary_event: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ..., current_primary_event_for_display: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ..., emergency_disabled_hero_ids: _Optional[_Iterable[int]] = ..., custom_game_private_key: _Optional[int] = ..., custom_game_penalties: bool = ..., lan_host_ping_location: _Optional[str] = ..., league_node_id: _Optional[int] = ..., match_duration: _Optional[int] = ..., league_phase: _Optional[int] = ..., experimental_gameplay_enabled: bool = ..., guild_challenges: _Optional[_Iterable[_Union[CLobbyGuildChallenge, _Mapping]]] = ..., guild_details: _Optional[_Iterable[_Union[CLobbyGuildDetails, _Mapping]]] = ..., requested_hero_ids: _Optional[_Iterable[int]] = ..., coach_friend_requests: _Optional[_Iterable[_Union[CMsgLobbyCoachFriendRequest, _Mapping]]] = ..., is_in_steam_china: bool = ..., with_scenario_save: bool = ..., lobby_creation_time: _Optional[int] = ..., event_game_definition: _Optional[str] = ..., match_quality_data: _Optional[_Union[CDOTALobbyMatchQualityData, _Mapping]] = ..., requested_hero_teams: _Optional[_Iterable[int]] = ...) -> None: ...
+    def __init__(self, lobby_id: _Optional[int] = ..., all_members: _Optional[_Iterable[_Union[CSODOTALobbyMember, _Mapping]]] = ..., member_indices: _Optional[_Iterable[int]] = ..., left_member_indices: _Optional[_Iterable[int]] = ..., free_member_indices: _Optional[_Iterable[int]] = ..., leader_id: _Optional[int] = ..., server_id: _Optional[int] = ..., game_mode: _Optional[int] = ..., pending_invites: _Optional[_Iterable[int]] = ..., state: _Optional[_Union[CSODOTALobby.State, str]] = ..., connect: _Optional[str] = ..., lobby_type: _Optional[_Union[CSODOTALobby.LobbyType, str]] = ..., allow_cheats: bool = ..., fill_with_bots: bool = ..., game_name: _Optional[str] = ..., team_details: _Optional[_Iterable[_Union[CLobbyTeamDetails, _Mapping]]] = ..., tournament_id: _Optional[int] = ..., tournament_game_id: _Optional[int] = ..., server_region: _Optional[int] = ..., game_state: _Optional[_Union[_dota_shared_enums_pb2.DOTA_GameState, str]] = ..., num_spectators: _Optional[int] = ..., matchgroup: _Optional[int] = ..., cm_pick: _Optional[_Union[_dota_shared_enums_pb2.DOTA_CM_PICK, str]] = ..., match_id: _Optional[int] = ..., allow_spectating: bool = ..., bot_difficulty_radiant: _Optional[_Union[_dota_shared_enums_pb2.DOTABotDifficulty, str]] = ..., pass_key: _Optional[str] = ..., leagueid: _Optional[int] = ..., penalty_level_radiant: _Optional[int] = ..., penalty_level_dire: _Optional[int] = ..., series_type: _Optional[int] = ..., radiant_series_wins: _Optional[int] = ..., dire_series_wins: _Optional[int] = ..., allchat: bool = ..., dota_tv_delay: _Optional[_Union[LobbyDotaTVDelay, str]] = ..., custom_game_mode: _Optional[str] = ..., custom_map_name: _Optional[str] = ..., custom_difficulty: _Optional[int] = ..., lan: bool = ..., broadcast_channel_info: _Optional[_Iterable[_Union[CLobbyBroadcastChannelInfo, _Mapping]]] = ..., first_leaver_accountid: _Optional[int] = ..., series_id: _Optional[int] = ..., low_priority: bool = ..., extra_messages: _Optional[_Iterable[_Union[CSODOTALobby.CExtraMsg, _Mapping]]] = ..., first_blood_happened: bool = ..., match_outcome: _Optional[_Union[_dota_shared_enums_pb2.EMatchOutcome, str]] = ..., mass_disconnect: bool = ..., custom_game_id: _Optional[int] = ..., custom_min_players: _Optional[int] = ..., custom_max_players: _Optional[int] = ..., visibility: _Optional[_Union[_dota_shared_enums_pb2.DOTALobbyVisibility, str]] = ..., custom_game_crc: _Optional[int] = ..., custom_game_auto_created_lobby: bool = ..., custom_game_timestamp: _Optional[int] = ..., previous_series_matches: _Optional[_Iterable[int]] = ..., previous_match_override: _Optional[int] = ..., game_start_time: _Optional[int] = ..., pause_setting: _Optional[_Union[LobbyDotaPauseSetting, str]] = ..., weekend_tourney_division_id: _Optional[int] = ..., weekend_tourney_skill_level: _Optional[int] = ..., weekend_tourney_bracket_round: _Optional[int] = ..., bot_difficulty_dire: _Optional[_Union[_dota_shared_enums_pb2.DOTABotDifficulty, str]] = ..., bot_radiant: _Optional[int] = ..., bot_dire: _Optional[int] = ..., event_progression_enabled: _Optional[_Iterable[_Union[_events_pb2.EEvent, str]]] = ..., selection_priority_rules: _Optional[_Union[_dota_shared_enums_pb2.DOTASelectionPriorityRules, str]] = ..., series_previous_selection_priority_team_id: _Optional[int] = ..., series_current_selection_priority_team_id: _Optional[int] = ..., series_current_priority_team_choice: _Optional[_Union[_dota_shared_enums_pb2.DOTASelectionPriorityChoice, str]] = ..., series_current_non_priority_team_choice: _Optional[_Union[_dota_shared_enums_pb2.DOTASelectionPriorityChoice, str]] = ..., series_current_selection_priority_used_coin_toss: bool = ..., current_primary_event: _Optional[_Union[_events_pb2.EEvent, str]] = ..., current_primary_event_for_display: _Optional[_Union[_events_pb2.EEvent, str]] = ..., emergency_disabled_hero_ids: _Optional[_Iterable[int]] = ..., custom_game_private_key: _Optional[int] = ..., custom_game_penalties: bool = ..., lan_host_ping_location: _Optional[str] = ..., league_node_id: _Optional[int] = ..., match_duration: _Optional[int] = ..., league_phase: _Optional[int] = ..., experimental_gameplay_enabled: bool = ..., guild_challenges: _Optional[_Iterable[_Union[CLobbyGuildChallenge, _Mapping]]] = ..., guild_details: _Optional[_Iterable[_Union[CLobbyGuildDetails, _Mapping]]] = ..., requested_hero_ids: _Optional[_Iterable[int]] = ..., coach_friend_requests: _Optional[_Iterable[_Union[CMsgLobbyCoachFriendRequest, _Mapping]]] = ..., is_in_steam_china: bool = ..., with_scenario_save: bool = ..., lobby_creation_time: _Optional[int] = ..., event_game_definition: _Optional[str] = ..., match_quality_data: _Optional[_Union[CDOTALobbyMatchQualityData, _Mapping]] = ..., requested_hero_teams: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CSODOTAServerLobby(_message.Message):
     __slots__ = ("all_members", "extra_startup_messages", "broadcast_active")
@@ -673,7 +676,7 @@ class CMsgLocalServerGuildData(_message.Message):
     GUILD_FLAGS_FIELD_NUMBER: _ClassVar[int]
     GUILD_WEEKLY_PERCENTILE_FIELD_NUMBER: _ClassVar[int]
     guild_id: int
-    event_id: _dota_shared_enums_pb2.EEvent
+    event_id: _events_pb2.EEvent
     guild_points: int
     guild_logo: int
     guild_primary_color: int
@@ -681,7 +684,7 @@ class CMsgLocalServerGuildData(_message.Message):
     guild_pattern: int
     guild_flags: int
     guild_weekly_percentile: int
-    def __init__(self, guild_id: _Optional[int] = ..., event_id: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ..., guild_points: _Optional[int] = ..., guild_logo: _Optional[int] = ..., guild_primary_color: _Optional[int] = ..., guild_secondary_color: _Optional[int] = ..., guild_pattern: _Optional[int] = ..., guild_flags: _Optional[int] = ..., guild_weekly_percentile: _Optional[int] = ...) -> None: ...
+    def __init__(self, guild_id: _Optional[int] = ..., event_id: _Optional[_Union[_events_pb2.EEvent, str]] = ..., guild_points: _Optional[int] = ..., guild_logo: _Optional[int] = ..., guild_primary_color: _Optional[int] = ..., guild_secondary_color: _Optional[int] = ..., guild_pattern: _Optional[int] = ..., guild_flags: _Optional[int] = ..., guild_weekly_percentile: _Optional[int] = ...) -> None: ...
 
 class CMsgLocalServerFakeLobbyData(_message.Message):
     __slots__ = ("account_id", "event_points", "is_plus_subscriber", "primary_event_id", "favorite_team", "favorite_team_quality", "guild_info", "teleport_fx_level", "additional_data")

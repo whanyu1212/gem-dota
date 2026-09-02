@@ -640,16 +640,17 @@ Expand any enum to inspect all values.
 </details>
 
 <details>
-<summary><code>LobbyDotaTVDelay</code> — values: 4</summary>
+<summary><code>LobbyDotaTVDelay</code> — values: 5</summary>
 
 - Parent: *(top-level)*
 
 | Name | Number |
 |---|---:|
 | `LobbyDotaTV_10` | 0 |
-| `LobbyDotaTV_120` | 1 |
-| `LobbyDotaTV_300` | 2 |
-| `LobbyDotaTV_900` | 3 |
+| `LobbyDotaTV_60` | 1 |
+| `LobbyDotaTV_120` | 2 |
+| `LobbyDotaTV_300` | 3 |
+| `LobbyDotaTV_900` | 4 |
 
 </details>
 

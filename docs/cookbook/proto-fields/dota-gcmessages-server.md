@@ -4,7 +4,7 @@
 - Syntax: `unknown`
 - Package: `(none)`
 - Imports: **14**
-- Messages: **187** (top-level: 120)
+- Messages: **170** (top-level: 111)
 - Enums: **6** (top-level: 1)
 
 ## Imports
@@ -299,7 +299,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgGameMatchSignOut</code> — fields: 30; oneofs: 0; nested messages: 6; nested enums: 0</summary>
+<summary><code>CMsgGameMatchSignOut</code> — fields: 29; oneofs: 0; nested messages: 5; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -330,7 +330,6 @@ Expand any message to inspect all fields.
 | 40 | `pre_game_duration` | `uint32` | `optional` |  |  |
 | 41 | `fantasy_stats` | `.CMsgDOTAFantasyPlayerStats` | `repeated` |  |  |
 | 42 | `event_game_leaderboard_entries` | `.CMsgGameMatchSignOut.EventGameLeaderboardEntry` | `repeated` |  |  |
-| 43 | `ward_placements` | `.CMsgGameMatchSignOut.WardPlacement` | `repeated` |  |  |
 | 44 | `gameplay_stats` | `.CMsgSignOutGameplayStats` | `optional` |  |  |
 | 54 | `extra_messages` | `.CExtraMsgBlock` | `repeated` |  |  |
 | 56 | `winning_team` | `.DOTA_GC_TEAM` | `optional` |  | default = DOTA_GC_TEAM_GOOD_GUYS |
@@ -353,7 +352,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgGameMatchSignOut.CTeam.CPlayer</code> — fields: 74; oneofs: 0; nested messages: 2; nested enums: 1</summary>
+<summary><code>CMsgGameMatchSignOut.CTeam.CPlayer</code> — fields: 76; oneofs: 0; nested messages: 2; nested enums: 1</summary>
 
 - Parent: `CMsgGameMatchSignOut.CTeam`
 - Oneofs: *(none)*
@@ -434,6 +433,8 @@ Expand any message to inspect all fields.
 | 82 | `selected_facet` | `uint32` | `optional` |  |  |
 | 83 | `enhancement_level` | `uint32` | `optional` |  |  |
 | 84 | `disable_duration` | `uint32` | `optional` |  |  |
+| 85 | `tormentor_kills` | `uint32` | `optional` |  |  |
+| 86 | `wisdom_shrines_taken` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -524,25 +525,6 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgGameMatchSignOut.WardPlacement</code> — fields: 8; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: `CMsgGameMatchSignOut`
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `player_id` | `int32` | `optional` |  | default = -1 |
-| 2 | `team_id` | `uint32` | `optional` |  |  |
-| 3 | `placed_time` | `uint32` | `optional` |  |  |
-| 4 | `building_state` | `uint32` | `optional` |  |  |
-| 5 | `creep_state` | `uint32` | `optional` |  |  |
-| 6 | `roshan_alive` | `bool` | `optional` |  |  |
-| 7 | `position_x` | `uint32` | `optional` |  |  |
-| 8 | `position_y` | `uint32` | `optional` |  |  |
-
-</details>
-
-<details>
 <summary><code>CMsgSignOutDraftInfo</code> — fields: 3; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
@@ -598,7 +580,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgSignOutPlayerStats</code> — fields: 30; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgSignOutPlayerStats</code> — fields: 31; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -635,6 +617,7 @@ Expand any message to inspect all fields.
 | 28 | `observer_wards_placed` | `uint32` | `optional` |  |  |
 | 29 | `wards_destroyed` | `uint32` | `optional` |  |  |
 | 30 | `lobby_type` | `uint32` | `optional` |  |  |
+| 31 | `wisdom_shrines_taken` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -1676,269 +1659,6 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgServerToGCMatchPlayerItemPurchaseHistory</code> — fields: 3; oneofs: 0; nested messages: 2; nested enums: 0</summary>
-
-- Parent: *(top-level)*
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `match_id` | `uint64` | `optional` |  |  |
-| 2 | `mmr` | `uint32` | `optional` |  |  |
-| 3 | `players` | `.CMsgServerToGCMatchPlayerItemPurchaseHistory.Player` | `repeated` |  |  |
-
-</details>
-
-<details>
-<summary><code>CMsgServerToGCMatchPlayerItemPurchaseHistory.ItemPurchase</code> — fields: 6; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: `CMsgServerToGCMatchPlayerItemPurchaseHistory`
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `item` | `int32` | `optional` |  | default = -1 |
-| 2 | `gold` | `uint32` | `optional` |  |  |
-| 3 | `net_worth` | `uint32` | `optional` |  |  |
-| 4 | `game_time` | `uint32` | `optional` |  |  |
-| 5 | `inventory_items` | `int32` | `repeated` |  |  |
-| 7 | `talents_skilled` | `bool` | `repeated` |  |  |
-
-</details>
-
-<details>
-<summary><code>CMsgServerToGCMatchPlayerItemPurchaseHistory.Player</code> — fields: 8; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: `CMsgServerToGCMatchPlayerItemPurchaseHistory`
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `player_slot` | `uint32` | `optional` |  |  |
-| 2 | `account_id` | `uint32` | `optional` |  |  |
-| 3 | `hero_id` | `int32` | `optional` |  |  |
-| 4 | `allied_hero_ids` | `int32` | `repeated` |  |  |
-| 5 | `enemy_hero_ids` | `int32` | `repeated` |  |  |
-| 6 | `item_purchases` | `.CMsgServerToGCMatchPlayerItemPurchaseHistory.ItemPurchase` | `repeated` |  |  |
-| 7 | `lane` | `uint32` | `optional` |  |  |
-| 8 | `is_winner` | `bool` | `optional` |  |  |
-
-</details>
-
-<details>
-<summary><code>CMsgServerToGCMatchPlayerNeutralItemEquipHistory</code> — fields: 2; oneofs: 0; nested messages: 2; nested enums: 0</summary>
-
-- Parent: *(top-level)*
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `match_id` | `uint64` | `optional` |  |  |
-| 2 | `players` | `.CMsgServerToGCMatchPlayerNeutralItemEquipHistory.Player` | `repeated` |  |  |
-
-</details>
-
-<details>
-<summary><code>CMsgServerToGCMatchPlayerNeutralItemEquipHistory.ItemEquip</code> — fields: 5; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: `CMsgServerToGCMatchPlayerNeutralItemEquipHistory`
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `item` | `int32` | `optional` |  | default = -1 |
-| 2 | `game_time` | `uint32` | `optional` |  |  |
-| 3 | `inventory_items` | `int32` | `repeated` |  |  |
-| 4 | `talents_skilled` | `bool` | `repeated` |  |  |
-| 5 | `available_neutral_items` | `int32` | `repeated` |  |  |
-
-</details>
-
-<details>
-<summary><code>CMsgServerToGCMatchPlayerNeutralItemEquipHistory.Player</code> — fields: 5; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: `CMsgServerToGCMatchPlayerNeutralItemEquipHistory`
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `account_id` | `uint32` | `optional` |  |  |
-| 2 | `allied_hero_ids` | `int32` | `repeated` |  |  |
-| 3 | `enemy_hero_ids` | `int32` | `repeated` |  |  |
-| 4 | `item_equips` | `.CMsgServerToGCMatchPlayerNeutralItemEquipHistory.ItemEquip` | `repeated` |  |  |
-| 5 | `is_winner` | `bool` | `optional` |  |  |
-
-</details>
-
-<details>
-<summary><code>CMsgServerToGCMatchStateHistory</code> — fields: 4; oneofs: 0; nested messages: 3; nested enums: 0</summary>
-
-- Parent: *(top-level)*
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `match_id` | `uint64` | `optional` |  |  |
-| 2 | `radiant_won` | `bool` | `optional` |  |  |
-| 3 | `mmr` | `uint32` | `optional` |  |  |
-| 4 | `match_states` | `.CMsgServerToGCMatchStateHistory.MatchState` | `repeated` |  |  |
-
-</details>
-
-<details>
-<summary><code>CMsgServerToGCMatchStateHistory.PlayerState</code> — fields: 9; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: `CMsgServerToGCMatchStateHistory`
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `hero_id` | `int32` | `optional` |  |  |
-| 2 | `net_worth` | `uint32` | `optional` |  |  |
-| 3 | `level` | `uint32` | `optional` |  |  |
-| 4 | `deaths` | `uint32` | `optional` |  |  |
-| 5 | `respawn_time` | `uint32` | `optional` |  |  |
-| 6 | `has_buyback` | `bool` | `optional` |  |  |
-| 7 | `has_aegis` | `bool` | `optional` |  |  |
-| 8 | `has_rapier` | `bool` | `optional` |  |  |
-| 9 | `distance` | `uint32` | `optional` |  |  |
-
-</details>
-
-<details>
-<summary><code>CMsgServerToGCMatchStateHistory.TeamState</code> — fields: 10; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: `CMsgServerToGCMatchStateHistory`
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `team` | `uint32` | `optional` |  |  |
-| 2 | `player_states` | `.CMsgServerToGCMatchStateHistory.PlayerState` | `repeated` |  | (steamml_max_entries) = 5 |
-| 3 | `tower_health_pct` | `uint32` | `repeated` |  | (steamml_max_entries) = 11 |
-| 4 | `barracks_health_pct` | `uint32` | `repeated` |  | (steamml_max_entries) = 3 |
-| 5 | `ancient_health_pct` | `uint32` | `optional` |  |  |
-| 6 | `glyph_cooldown` | `uint32` | `optional` |  |  |
-| 7 | `kills` | `uint32` | `optional` |  |  |
-| 8 | `creep_distance_safe` | `uint32` | `optional` |  |  |
-| 9 | `creep_distance_mid` | `uint32` | `optional` |  |  |
-| 10 | `creep_distance_off` | `uint32` | `optional` |  |  |
-
-</details>
-
-<details>
-<summary><code>CMsgServerToGCMatchStateHistory.MatchState</code> — fields: 3; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: `CMsgServerToGCMatchStateHistory`
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `game_time` | `uint32` | `optional` |  |  |
-| 2 | `radiant_state` | `.CMsgServerToGCMatchStateHistory.TeamState` | `optional` |  |  |
-| 3 | `dire_state` | `.CMsgServerToGCMatchStateHistory.TeamState` | `optional` |  |  |
-
-</details>
-
-<details>
-<summary><code>CMsgMatchStateSteamMLEntry</code> — fields: 3; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: *(top-level)*
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `match_state` | `.CMsgServerToGCMatchStateHistory.MatchState` | `optional` |  |  |
-| 2 | `mmr` | `uint32` | `optional` |  |  |
-| 3 | `radiant_won` | `bool` | `optional` |  |  |
-
-</details>
-
-<details>
-<summary><code>CMsgLaneSelectionSteamMLEntry</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: *(top-level)*
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `hero_ids` | `int32` | `repeated` |  | (steamml_max_entries) = 10 |
-| 2 | `lanes` | `uint32` | `repeated` |  | (steamml_max_entries) = 6 |
-
-</details>
-
-<details>
-<summary><code>CMsgAbilitySelectionSteamMLEntry</code> — fields: 6; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: *(top-level)*
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `mmr` | `uint32` | `optional` |  |  |
-| 2 | `hero_id` | `int32` | `optional` |  |  |
-| 3 | `enemy_hero_ids` | `int32` | `repeated` |  | (steamml_max_entries) = 4 |
-| 4 | `lane` | `uint32` | `optional` |  |  |
-| 5 | `abilities` | `int32` | `repeated` |  | (steamml_max_entries) = 25 |
-| 6 | `selected_ability` | `int32` | `optional` |  | default = -1 |
-
-</details>
-
-<details>
-<summary><code>CMsgItemPurchasePregameSteamMLEntry</code> — fields: 7; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: *(top-level)*
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `mmr` | `uint32` | `optional` |  |  |
-| 2 | `lane` | `uint32` | `optional` |  |  |
-| 3 | `balance` | `float` | `optional` |  |  |
-| 4 | `hero_id` | `int32` | `optional` |  |  |
-| 5 | `allied_hero_ids` | `int32` | `repeated` |  | (steamml_max_entries) = 4 |
-| 6 | `enemy_hero_ids` | `int32` | `repeated` |  | (steamml_max_entries) = 5 |
-| 7 | `items` | `int32` | `repeated` |  | (steamml_max_entries) = 9 |
-
-</details>
-
-<details>
-<summary><code>CMsgItemPurchaseSteamMLEntry</code> — fields: 7; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: *(top-level)*
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `mmr` | `uint32` | `optional` |  |  |
-| 2 | `lane` | `uint32` | `optional` |  |  |
-| 3 | `hero_id` | `int32` | `optional` |  |  |
-| 4 | `allied_hero_ids` | `int32` | `repeated` |  | (steamml_max_entries) = 4 |
-| 5 | `enemy_hero_ids` | `int32` | `repeated` |  | (steamml_max_entries) = 5 |
-| 6 | `items` | `int32` | `repeated` |  | (steamml_max_entries) = 20 |
-| 7 | `items_to_be_purchased` | `int32` | `repeated` |  | (steamml_max_entries) = 20 |
-
-</details>
-
-<details>
-<summary><code>CMsgItemPurchaseSequenceSteamMLEntry</code> — fields: 7; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: *(top-level)*
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `mmr` | `uint32` | `optional` |  |  |
-| 2 | `lane` | `uint32` | `optional` |  |  |
-| 3 | `hero_id` | `int32` | `optional` |  |  |
-| 4 | `allied_hero_ids` | `int32` | `repeated` |  | (steamml_max_entries) = 4 |
-| 5 | `enemy_hero_ids` | `int32` | `repeated` |  | (steamml_max_entries) = 5 |
-| 6 | `items` | `int32` | `repeated` |  | (steamml_max_entries) = 20 |
-| 7 | `item_to_be_purchased` | `int32` | `optional` |  | default = -1 |
-
-</details>
-
-<details>
 <summary><code>CMsgServerToGCCavernCrawlIsHeroActive</code> — fields: 5; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
@@ -2936,7 +2656,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgSignOutOverworld.Player</code> — fields: 3; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgSignOutOverworld.Player</code> — fields: 4; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: `CMsgSignOutOverworld`
 - Oneofs: *(none)*
@@ -2946,6 +2666,7 @@ Expand any message to inspect all fields.
 | 1 | `account_id` | `uint32` | `optional` |  |  |
 | 2 | `overworld_id` | `uint32` | `optional` |  |  |
 | 3 | `desired_token_rewards` | `uint32` | `repeated` |  |  |
+| 4 | `fortune` | `.CMsgOverworldFortune` | `optional` |  |  |
 
 </details>
 

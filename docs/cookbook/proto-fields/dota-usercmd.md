@@ -3,12 +3,13 @@
 - Module: `dota_usercmd_pb2`
 - Syntax: `unknown`
 - Package: `(none)`
-- Imports: **2**
+- Imports: **3**
 - Messages: **1** (top-level: 1)
 - Enums: **0** (top-level: 0)
 
 ## Imports
 
+- `valveextensions.proto`
 - `networkbasetypes.proto`
 - `usercmd.proto`
 

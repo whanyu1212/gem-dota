@@ -1,11 +1,73 @@
+from . import events_pb2 as _events_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from collections.abc import Iterable as _Iterable, Mapping as _Mapping
 from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
+from .events_pb2 import EEvent as EEvent
 
 DESCRIPTOR: _descriptor.FileDescriptor
+EVENT_ID_NONE: _events_pb2.EEvent
+EVENT_ID_DIRETIDE: _events_pb2.EEvent
+EVENT_ID_SPRING_FESTIVAL: _events_pb2.EEvent
+EVENT_ID_FROSTIVUS_2013: _events_pb2.EEvent
+EVENT_ID_COMPENDIUM_2014: _events_pb2.EEvent
+EVENT_ID_NEXON_PC_BANG: _events_pb2.EEvent
+EVENT_ID_PWRD_DAC_2015: _events_pb2.EEvent
+EVENT_ID_NEW_BLOOM_2015: _events_pb2.EEvent
+EVENT_ID_INTERNATIONAL_2015: _events_pb2.EEvent
+EVENT_ID_FALL_MAJOR_2015: _events_pb2.EEvent
+EVENT_ID_ORACLE_PA: _events_pb2.EEvent
+EVENT_ID_NEW_BLOOM_2015_PREBEAST: _events_pb2.EEvent
+EVENT_ID_FROSTIVUS: _events_pb2.EEvent
+EVENT_ID_WINTER_MAJOR_2016: _events_pb2.EEvent
+EVENT_ID_INTERNATIONAL_2016: _events_pb2.EEvent
+EVENT_ID_FALL_MAJOR_2016: _events_pb2.EEvent
+EVENT_ID_WINTER_MAJOR_2017: _events_pb2.EEvent
+EVENT_ID_NEW_BLOOM_2017: _events_pb2.EEvent
+EVENT_ID_INTERNATIONAL_2017: _events_pb2.EEvent
+EVENT_ID_PLUS_SUBSCRIPTION: _events_pb2.EEvent
+EVENT_ID_SINGLES_DAY_2017: _events_pb2.EEvent
+EVENT_ID_FROSTIVUS_2017: _events_pb2.EEvent
+EVENT_ID_INTERNATIONAL_2018: _events_pb2.EEvent
+EVENT_ID_FROSTIVUS_2018: _events_pb2.EEvent
+EVENT_ID_NEW_BLOOM_2019: _events_pb2.EEvent
+EVENT_ID_INTERNATIONAL_2019: _events_pb2.EEvent
+EVENT_ID_NEW_PLAYER_EXPERIENCE: _events_pb2.EEvent
+EVENT_ID_FROSTIVUS_2019: _events_pb2.EEvent
+EVENT_ID_NEW_BLOOM_2020: _events_pb2.EEvent
+EVENT_ID_INTERNATIONAL_2020: _events_pb2.EEvent
+EVENT_ID_TEAM_FANDOM: _events_pb2.EEvent
+EVENT_ID_DIRETIDE_2020: _events_pb2.EEvent
+EVENT_ID_SPRING_2021: _events_pb2.EEvent
+EVENT_ID_FALL_2021: _events_pb2.EEvent
+EVENT_ID_TEAM_FANDOM_FALL_2021: _events_pb2.EEvent
+EVENT_ID_TEAM_2021_2022_TOUR2: _events_pb2.EEvent
+EVENT_ID_INTERNATIONAL_2022: _events_pb2.EEvent
+EVENT_ID_TEAM_2021_2022_TOUR3: _events_pb2.EEvent
+EVENT_ID_TEAM_INTERNATIONAL_2022: _events_pb2.EEvent
+EVENT_ID_PERMANENT_GRANTS: _events_pb2.EEvent
+EVENT_ID_MUERTA_RELEASE_SPRING2023: _events_pb2.EEvent
+EVENT_ID_TEAM_2023_TOUR1: _events_pb2.EEvent
+EVENT_ID_TEAM_2023_TOUR2: _events_pb2.EEvent
+EVENT_ID_TEAM_2023_TOUR3: _events_pb2.EEvent
+EVENT_ID_INTERNATIONAL_2023: _events_pb2.EEvent
+EVENT_ID_10TH_ANNIVERSARY: _events_pb2.EEvent
+EVENT_ID_CROWNFALL: _events_pb2.EEvent
+EVENT_ID_FROSTIVUS_2023: _events_pb2.EEvent
+EVENT_ID_INTERNATIONAL_2024: _events_pb2.EEvent
+EVENT_ID_FROSTIVUS_2024: _events_pb2.EEvent
+EVENT_ID_MONSTER_HUNTER: _events_pb2.EEvent
+EVENT_ID_INTERNATIONAL_2025: _events_pb2.EEvent
+EVENT_ID_FALL_2025: _events_pb2.EEvent
+EVENT_ID_DARK_CARNIVAL: _events_pb2.EEvent
+EVENT_ID_WINTER_2025: _events_pb2.EEvent
+EVENT_ID_SPRING_2026: _events_pb2.EEvent
+EVENT_ID_SUMMER_2026: _events_pb2.EEvent
+EVENT_ID_FALL_2026: _events_pb2.EEvent
+EVENT_ID_WINTER_2026: _events_pb2.EEvent
+EVENT_ID_INTERNATIONAL_2026: _events_pb2.EEvent
 
 class DOTA_GameMode(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -71,68 +133,6 @@ class DOTA_GC_TEAM(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     DOTA_GC_TEAM_CUSTOM_7: _ClassVar[DOTA_GC_TEAM]
     DOTA_GC_TEAM_CUSTOM_8: _ClassVar[DOTA_GC_TEAM]
     DOTA_GC_TEAM_NEUTRALS: _ClassVar[DOTA_GC_TEAM]
-
-class EEvent(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
-    __slots__ = ()
-    EVENT_ID_NONE: _ClassVar[EEvent]
-    EVENT_ID_DIRETIDE: _ClassVar[EEvent]
-    EVENT_ID_SPRING_FESTIVAL: _ClassVar[EEvent]
-    EVENT_ID_FROSTIVUS_2013: _ClassVar[EEvent]
-    EVENT_ID_COMPENDIUM_2014: _ClassVar[EEvent]
-    EVENT_ID_NEXON_PC_BANG: _ClassVar[EEvent]
-    EVENT_ID_PWRD_DAC_2015: _ClassVar[EEvent]
-    EVENT_ID_NEW_BLOOM_2015: _ClassVar[EEvent]
-    EVENT_ID_INTERNATIONAL_2015: _ClassVar[EEvent]
-    EVENT_ID_FALL_MAJOR_2015: _ClassVar[EEvent]
-    EVENT_ID_ORACLE_PA: _ClassVar[EEvent]
-    EVENT_ID_NEW_BLOOM_2015_PREBEAST: _ClassVar[EEvent]
-    EVENT_ID_FROSTIVUS: _ClassVar[EEvent]
-    EVENT_ID_WINTER_MAJOR_2016: _ClassVar[EEvent]
-    EVENT_ID_INTERNATIONAL_2016: _ClassVar[EEvent]
-    EVENT_ID_FALL_MAJOR_2016: _ClassVar[EEvent]
-    EVENT_ID_WINTER_MAJOR_2017: _ClassVar[EEvent]
-    EVENT_ID_NEW_BLOOM_2017: _ClassVar[EEvent]
-    EVENT_ID_INTERNATIONAL_2017: _ClassVar[EEvent]
-    EVENT_ID_PLUS_SUBSCRIPTION: _ClassVar[EEvent]
-    EVENT_ID_SINGLES_DAY_2017: _ClassVar[EEvent]
-    EVENT_ID_FROSTIVUS_2017: _ClassVar[EEvent]
-    EVENT_ID_INTERNATIONAL_2018: _ClassVar[EEvent]
-    EVENT_ID_FROSTIVUS_2018: _ClassVar[EEvent]
-    EVENT_ID_NEW_BLOOM_2019: _ClassVar[EEvent]
-    EVENT_ID_INTERNATIONAL_2019: _ClassVar[EEvent]
-    EVENT_ID_NEW_PLAYER_EXPERIENCE: _ClassVar[EEvent]
-    EVENT_ID_FROSTIVUS_2019: _ClassVar[EEvent]
-    EVENT_ID_NEW_BLOOM_2020: _ClassVar[EEvent]
-    EVENT_ID_INTERNATIONAL_2020: _ClassVar[EEvent]
-    EVENT_ID_TEAM_FANDOM: _ClassVar[EEvent]
-    EVENT_ID_DIRETIDE_2020: _ClassVar[EEvent]
-    EVENT_ID_SPRING_2021: _ClassVar[EEvent]
-    EVENT_ID_FALL_2021: _ClassVar[EEvent]
-    EVENT_ID_TEAM_FANDOM_FALL_2021: _ClassVar[EEvent]
-    EVENT_ID_TEAM_2021_2022_TOUR2: _ClassVar[EEvent]
-    EVENT_ID_INTERNATIONAL_2022: _ClassVar[EEvent]
-    EVENT_ID_TEAM_2021_2022_TOUR3: _ClassVar[EEvent]
-    EVENT_ID_TEAM_INTERNATIONAL_2022: _ClassVar[EEvent]
-    EVENT_ID_PERMANENT_GRANTS: _ClassVar[EEvent]
-    EVENT_ID_MUERTA_RELEASE_SPRING2023: _ClassVar[EEvent]
-    EVENT_ID_TEAM_2023_TOUR1: _ClassVar[EEvent]
-    EVENT_ID_TEAM_2023_TOUR2: _ClassVar[EEvent]
-    EVENT_ID_TEAM_2023_TOUR3: _ClassVar[EEvent]
-    EVENT_ID_INTERNATIONAL_2023: _ClassVar[EEvent]
-    EVENT_ID_10TH_ANNIVERSARY: _ClassVar[EEvent]
-    EVENT_ID_CROWNFALL: _ClassVar[EEvent]
-    EVENT_ID_FROSTIVUS_2023: _ClassVar[EEvent]
-    EVENT_ID_INTERNATIONAL_2024: _ClassVar[EEvent]
-    EVENT_ID_FROSTIVUS_2024: _ClassVar[EEvent]
-    EVENT_ID_MONSTER_HUNTER: _ClassVar[EEvent]
-    EVENT_ID_INTERNATIONAL_2025: _ClassVar[EEvent]
-    EVENT_ID_FALL_2025: _ClassVar[EEvent]
-    EVENT_ID_WINTER_2025: _ClassVar[EEvent]
-    EVENT_ID_SPRING_2026: _ClassVar[EEvent]
-    EVENT_ID_SUMMER_2026: _ClassVar[EEvent]
-    EVENT_ID_FALL_2026: _ClassVar[EEvent]
-    EVENT_ID_WINTER_2026: _ClassVar[EEvent]
-    EVENT_ID_INTERNATIONAL_2026: _ClassVar[EEvent]
 
 class ERankType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -531,6 +531,11 @@ class EBadgeType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EBadgeType_TI14_FinalsDay3: _ClassVar[EBadgeType]
     k_EBadgeType_TI14_FinalsDay4: _ClassVar[EBadgeType]
     k_EBadgeType_TI14_Special: _ClassVar[EBadgeType]
+    k_EBadgeType_TI15_FinalsDay1: _ClassVar[EBadgeType]
+    k_EBadgeType_TI15_FinalsDay2: _ClassVar[EBadgeType]
+    k_EBadgeType_TI15_FinalsDay3: _ClassVar[EBadgeType]
+    k_EBadgeType_TI15_FinalsDay4: _ClassVar[EBadgeType]
+    k_EBadgeType_TI15_Special: _ClassVar[EBadgeType]
 
 class ELeagueStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -806,65 +811,6 @@ DOTA_GC_TEAM_CUSTOM_6: DOTA_GC_TEAM
 DOTA_GC_TEAM_CUSTOM_7: DOTA_GC_TEAM
 DOTA_GC_TEAM_CUSTOM_8: DOTA_GC_TEAM
 DOTA_GC_TEAM_NEUTRALS: DOTA_GC_TEAM
-EVENT_ID_NONE: EEvent
-EVENT_ID_DIRETIDE: EEvent
-EVENT_ID_SPRING_FESTIVAL: EEvent
-EVENT_ID_FROSTIVUS_2013: EEvent
-EVENT_ID_COMPENDIUM_2014: EEvent
-EVENT_ID_NEXON_PC_BANG: EEvent
-EVENT_ID_PWRD_DAC_2015: EEvent
-EVENT_ID_NEW_BLOOM_2015: EEvent
-EVENT_ID_INTERNATIONAL_2015: EEvent
-EVENT_ID_FALL_MAJOR_2015: EEvent
-EVENT_ID_ORACLE_PA: EEvent
-EVENT_ID_NEW_BLOOM_2015_PREBEAST: EEvent
-EVENT_ID_FROSTIVUS: EEvent
-EVENT_ID_WINTER_MAJOR_2016: EEvent
-EVENT_ID_INTERNATIONAL_2016: EEvent
-EVENT_ID_FALL_MAJOR_2016: EEvent
-EVENT_ID_WINTER_MAJOR_2017: EEvent
-EVENT_ID_NEW_BLOOM_2017: EEvent
-EVENT_ID_INTERNATIONAL_2017: EEvent
-EVENT_ID_PLUS_SUBSCRIPTION: EEvent
-EVENT_ID_SINGLES_DAY_2017: EEvent
-EVENT_ID_FROSTIVUS_2017: EEvent
-EVENT_ID_INTERNATIONAL_2018: EEvent
-EVENT_ID_FROSTIVUS_2018: EEvent
-EVENT_ID_NEW_BLOOM_2019: EEvent
-EVENT_ID_INTERNATIONAL_2019: EEvent
-EVENT_ID_NEW_PLAYER_EXPERIENCE: EEvent
-EVENT_ID_FROSTIVUS_2019: EEvent
-EVENT_ID_NEW_BLOOM_2020: EEvent
-EVENT_ID_INTERNATIONAL_2020: EEvent
-EVENT_ID_TEAM_FANDOM: EEvent
-EVENT_ID_DIRETIDE_2020: EEvent
-EVENT_ID_SPRING_2021: EEvent
-EVENT_ID_FALL_2021: EEvent
-EVENT_ID_TEAM_FANDOM_FALL_2021: EEvent
-EVENT_ID_TEAM_2021_2022_TOUR2: EEvent
-EVENT_ID_INTERNATIONAL_2022: EEvent
-EVENT_ID_TEAM_2021_2022_TOUR3: EEvent
-EVENT_ID_TEAM_INTERNATIONAL_2022: EEvent
-EVENT_ID_PERMANENT_GRANTS: EEvent
-EVENT_ID_MUERTA_RELEASE_SPRING2023: EEvent
-EVENT_ID_TEAM_2023_TOUR1: EEvent
-EVENT_ID_TEAM_2023_TOUR2: EEvent
-EVENT_ID_TEAM_2023_TOUR3: EEvent
-EVENT_ID_INTERNATIONAL_2023: EEvent
-EVENT_ID_10TH_ANNIVERSARY: EEvent
-EVENT_ID_CROWNFALL: EEvent
-EVENT_ID_FROSTIVUS_2023: EEvent
-EVENT_ID_INTERNATIONAL_2024: EEvent
-EVENT_ID_FROSTIVUS_2024: EEvent
-EVENT_ID_MONSTER_HUNTER: EEvent
-EVENT_ID_INTERNATIONAL_2025: EEvent
-EVENT_ID_FALL_2025: EEvent
-EVENT_ID_WINTER_2025: EEvent
-EVENT_ID_SPRING_2026: EEvent
-EVENT_ID_SUMMER_2026: EEvent
-EVENT_ID_FALL_2026: EEvent
-EVENT_ID_WINTER_2026: EEvent
-EVENT_ID_INTERNATIONAL_2026: EEvent
 k_ERankType_Invalid: ERankType
 k_ERankType_Casual: ERankType
 k_ERankType_Ranked: ERankType
@@ -1164,6 +1110,11 @@ k_EBadgeType_TI14_FinalsDay2: EBadgeType
 k_EBadgeType_TI14_FinalsDay3: EBadgeType
 k_EBadgeType_TI14_FinalsDay4: EBadgeType
 k_EBadgeType_TI14_Special: EBadgeType
+k_EBadgeType_TI15_FinalsDay1: EBadgeType
+k_EBadgeType_TI15_FinalsDay2: EBadgeType
+k_EBadgeType_TI15_FinalsDay3: EBadgeType
+k_EBadgeType_TI15_FinalsDay4: EBadgeType
+k_EBadgeType_TI15_Special: EBadgeType
 LEAGUE_STATUS_UNSET: ELeagueStatus
 LEAGUE_STATUS_UNSUBMITTED: ELeagueStatus
 LEAGUE_STATUS_SUBMITTED: ELeagueStatus
@@ -1570,13 +1521,13 @@ class CMsgPendingEventAward(_message.Message):
     SCORE_MODE_FIELD_NUMBER: _ClassVar[int]
     AUDIT_ACTION_FIELD_NUMBER: _ClassVar[int]
     AUDIT_DATA_FIELD_NUMBER: _ClassVar[int]
-    event_id: EEvent
+    event_id: _events_pb2.EEvent
     action_id: int
     num_to_grant: int
     score_mode: EEventActionScoreMode
     audit_action: int
     audit_data: int
-    def __init__(self, event_id: _Optional[_Union[EEvent, str]] = ..., action_id: _Optional[int] = ..., num_to_grant: _Optional[int] = ..., score_mode: _Optional[_Union[EEventActionScoreMode, str]] = ..., audit_action: _Optional[int] = ..., audit_data: _Optional[int] = ...) -> None: ...
+    def __init__(self, event_id: _Optional[_Union[_events_pb2.EEvent, str]] = ..., action_id: _Optional[int] = ..., num_to_grant: _Optional[int] = ..., score_mode: _Optional[_Union[EEventActionScoreMode, str]] = ..., audit_action: _Optional[int] = ..., audit_data: _Optional[int] = ...) -> None: ...
 
 class CMsgMonsterHunterMaterialQuantity(_message.Message):
     __slots__ = ("material_counts",)

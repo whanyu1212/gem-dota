@@ -131,7 +131,7 @@ Expand any message to inspect all fields.
 Expand any enum to inspect all values.
 
 <details>
-<summary><code>EGCPlatform</code> — values: 6</summary>
+<summary><code>EGCPlatform</code> — values: 4</summary>
 
 - Parent: *(top-level)*
 
@@ -141,8 +141,6 @@ Expand any enum to inspect all values.
 | `k_eGCPlatform_PC` | 1 |
 | `k_eGCPlatform_Mac` | 2 |
 | `k_eGCPlatform_Linux` | 3 |
-| `k_eGCPlatform_Android` | 4 |
-| `k_eGCPlatform_iOS` | 5 |
 
 </details>
 

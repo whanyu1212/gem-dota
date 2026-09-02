@@ -245,7 +245,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMatchPlayerTimedStats</code> — fields: 37; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMatchPlayerTimedStats</code> — fields: 38; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -289,6 +289,7 @@ Expand any message to inspect all fields.
 | 40 | `triple_kills` | `uint32` | `optional` |  |  |
 | 41 | `rampages` | `uint32` | `optional` |  |  |
 | 42 | `custom_stats` | `.CMatchPlayerTimedCustomStat` | `repeated` |  |  |
+| 43 | `summon_kill_gold` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -3048,7 +3049,7 @@ Expand any message to inspect all fields.
 |---:|---|---|---|---|---|
 | 1 | `internal_name` | `string` | `optional` |  |  |
 | 2 | `localized_name_text` | `string` | `optional` |  |  |
-| 3 | `type` | `.CDotaMsgStructuredTooltipProperties.EAttributeType` | `optional` |  | default = kUnknown |
+| 3 | `resolved_type` | `.CDotaMsgStructuredTooltipProperties.EAttributeType` | `optional` |  | default = kUnknown |
 | 4 | `value` | `.CDotaMsgStructuredTooltipProperties.AttributeValue` | `optional` |  |  |
 
 </details>
@@ -3625,7 +3626,7 @@ Expand any enum to inspect all values.
 </details>
 
 <details>
-<summary><code>CDotaMsgStructuredTooltipProperties.EAttributeType</code> — values: 23</summary>
+<summary><code>CDotaMsgStructuredTooltipProperties.EAttributeType</code> — values: 25</summary>
 
 - Parent: `CDotaMsgStructuredTooltipProperties`
 
@@ -3654,5 +3655,7 @@ Expand any enum to inspect all values.
 | `kAbilityDefinedDamage` | 20 |
 | `kDispellability` | 21 |
 | `kSpellImmunityPiercing` | 22 |
+| `kHealthPercentageAsPureDamage` | 23 |
+| `kPhysicalDamagePercentage` | 24 |
 
 </details>

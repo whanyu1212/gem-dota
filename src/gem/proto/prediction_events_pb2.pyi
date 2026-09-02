@@ -18,14 +18,16 @@ BPE_Teleport: EBasePredictionEvents
 BPE_Diagnostic: EBasePredictionEvents
 
 class CPredictionEvent_Teleport(_message.Message):
-    __slots__ = ("origin", "angles", "drop_to_ground_range")
+    __slots__ = ("origin", "angles", "drop_to_ground_range", "velocity")
     ORIGIN_FIELD_NUMBER: _ClassVar[int]
     ANGLES_FIELD_NUMBER: _ClassVar[int]
     DROP_TO_GROUND_RANGE_FIELD_NUMBER: _ClassVar[int]
+    VELOCITY_FIELD_NUMBER: _ClassVar[int]
     origin: _networkbasetypes_pb2.CMsgVector
     angles: _networkbasetypes_pb2.CMsgQAngle
     drop_to_ground_range: float
-    def __init__(self, origin: _Optional[_Union[_networkbasetypes_pb2.CMsgVector, _Mapping]] = ..., angles: _Optional[_Union[_networkbasetypes_pb2.CMsgQAngle, _Mapping]] = ..., drop_to_ground_range: _Optional[float] = ...) -> None: ...
+    velocity: _networkbasetypes_pb2.CMsgVector
+    def __init__(self, origin: _Optional[_Union[_networkbasetypes_pb2.CMsgVector, _Mapping]] = ..., angles: _Optional[_Union[_networkbasetypes_pb2.CMsgQAngle, _Mapping]] = ..., drop_to_ground_range: _Optional[float] = ..., velocity: _Optional[_Union[_networkbasetypes_pb2.CMsgVector, _Mapping]] = ...) -> None: ...
 
 class CPredictionEvent_StringCommand(_message.Message):
     __slots__ = ("command",)

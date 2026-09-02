@@ -1,8 +1,9 @@
 from . import networkbasetypes_pb2 as _networkbasetypes_pb2
+from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from collections.abc import Mapping as _Mapping
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
 from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
@@ -15,7 +16,7 @@ DOTA_MODIFIER_ENTRY_TYPE_ACTIVE: DOTA_MODIFIER_ENTRY_TYPE
 DOTA_MODIFIER_ENTRY_TYPE_REMOVED: DOTA_MODIFIER_ENTRY_TYPE
 
 class CDOTAModifierBuffTableEntry(_message.Message):
-    __slots__ = ("entry_type", "parent", "index", "serial_num", "modifier_class", "ability_level", "stack_count", "creation_time", "duration", "caster", "ability", "armor", "fade_time", "subtle", "channel_time", "v_start", "v_end", "portal_loop_appear", "portal_loop_disappear", "hero_loop_appear", "hero_loop_disappear", "movement_speed", "aura", "activity", "damage", "range", "dd_modifier_index", "dd_ability_id", "illusion_label", "active", "player_ids", "lua_name", "attack_speed", "aura_owner", "bonus_all_stats", "bonus_health", "bonus_mana", "custom_entity", "aura_within_range", "move_slow", "has_scepter", "has_shard")
+    __slots__ = ("entry_type", "parent", "index", "serial_num", "modifier_class", "ability_level", "stack_count", "creation_time", "duration", "caster", "ability", "armor", "fade_time", "subtle", "channel_time", "v_start", "v_end", "portal_loop_appear", "portal_loop_disappear", "hero_loop_appear", "hero_loop_disappear", "movement_speed", "aura", "activity", "damage", "range", "dd_modifier_index", "dd_ability_id", "illusion_label", "active", "player_ids", "lua_name", "attack_speed", "aura_owner", "bonus_all_stats", "bonus_health", "bonus_mana", "custom_entity", "aura_within_range", "move_slow", "has_scepter", "has_shard", "custom_int_values", "custom_float_values")
     ENTRY_TYPE_FIELD_NUMBER: _ClassVar[int]
     PARENT_FIELD_NUMBER: _ClassVar[int]
     INDEX_FIELD_NUMBER: _ClassVar[int]
@@ -58,6 +59,8 @@ class CDOTAModifierBuffTableEntry(_message.Message):
     MOVE_SLOW_FIELD_NUMBER: _ClassVar[int]
     HAS_SCEPTER_FIELD_NUMBER: _ClassVar[int]
     HAS_SHARD_FIELD_NUMBER: _ClassVar[int]
+    CUSTOM_INT_VALUES_FIELD_NUMBER: _ClassVar[int]
+    CUSTOM_FLOAT_VALUES_FIELD_NUMBER: _ClassVar[int]
     entry_type: DOTA_MODIFIER_ENTRY_TYPE
     parent: int
     index: int
@@ -100,7 +103,9 @@ class CDOTAModifierBuffTableEntry(_message.Message):
     move_slow: float
     has_scepter: bool
     has_shard: bool
-    def __init__(self, entry_type: _Optional[_Union[DOTA_MODIFIER_ENTRY_TYPE, str]] = ..., parent: _Optional[int] = ..., index: _Optional[int] = ..., serial_num: _Optional[int] = ..., modifier_class: _Optional[int] = ..., ability_level: _Optional[int] = ..., stack_count: _Optional[int] = ..., creation_time: _Optional[float] = ..., duration: _Optional[float] = ..., caster: _Optional[int] = ..., ability: _Optional[int] = ..., armor: _Optional[int] = ..., fade_time: _Optional[float] = ..., subtle: bool = ..., channel_time: _Optional[float] = ..., v_start: _Optional[_Union[_networkbasetypes_pb2.CMsgVector, _Mapping]] = ..., v_end: _Optional[_Union[_networkbasetypes_pb2.CMsgVector, _Mapping]] = ..., portal_loop_appear: _Optional[str] = ..., portal_loop_disappear: _Optional[str] = ..., hero_loop_appear: _Optional[str] = ..., hero_loop_disappear: _Optional[str] = ..., movement_speed: _Optional[int] = ..., aura: bool = ..., activity: _Optional[int] = ..., damage: _Optional[int] = ..., range: _Optional[int] = ..., dd_modifier_index: _Optional[int] = ..., dd_ability_id: _Optional[int] = ..., illusion_label: _Optional[str] = ..., active: bool = ..., player_ids: _Optional[str] = ..., lua_name: _Optional[str] = ..., attack_speed: _Optional[int] = ..., aura_owner: _Optional[int] = ..., bonus_all_stats: _Optional[int] = ..., bonus_health: _Optional[int] = ..., bonus_mana: _Optional[int] = ..., custom_entity: _Optional[int] = ..., aura_within_range: bool = ..., move_slow: _Optional[float] = ..., has_scepter: bool = ..., has_shard: bool = ...) -> None: ...
+    custom_int_values: _containers.RepeatedScalarFieldContainer[int]
+    custom_float_values: _containers.RepeatedScalarFieldContainer[float]
+    def __init__(self, entry_type: _Optional[_Union[DOTA_MODIFIER_ENTRY_TYPE, str]] = ..., parent: _Optional[int] = ..., index: _Optional[int] = ..., serial_num: _Optional[int] = ..., modifier_class: _Optional[int] = ..., ability_level: _Optional[int] = ..., stack_count: _Optional[int] = ..., creation_time: _Optional[float] = ..., duration: _Optional[float] = ..., caster: _Optional[int] = ..., ability: _Optional[int] = ..., armor: _Optional[int] = ..., fade_time: _Optional[float] = ..., subtle: bool = ..., channel_time: _Optional[float] = ..., v_start: _Optional[_Union[_networkbasetypes_pb2.CMsgVector, _Mapping]] = ..., v_end: _Optional[_Union[_networkbasetypes_pb2.CMsgVector, _Mapping]] = ..., portal_loop_appear: _Optional[str] = ..., portal_loop_disappear: _Optional[str] = ..., hero_loop_appear: _Optional[str] = ..., hero_loop_disappear: _Optional[str] = ..., movement_speed: _Optional[int] = ..., aura: bool = ..., activity: _Optional[int] = ..., damage: _Optional[int] = ..., range: _Optional[int] = ..., dd_modifier_index: _Optional[int] = ..., dd_ability_id: _Optional[int] = ..., illusion_label: _Optional[str] = ..., active: bool = ..., player_ids: _Optional[str] = ..., lua_name: _Optional[str] = ..., attack_speed: _Optional[int] = ..., aura_owner: _Optional[int] = ..., bonus_all_stats: _Optional[int] = ..., bonus_health: _Optional[int] = ..., bonus_mana: _Optional[int] = ..., custom_entity: _Optional[int] = ..., aura_within_range: bool = ..., move_slow: _Optional[float] = ..., has_scepter: bool = ..., has_shard: bool = ..., custom_int_values: _Optional[_Iterable[int]] = ..., custom_float_values: _Optional[_Iterable[float]] = ...) -> None: ...
 
 class CDOTALuaModifierEntry(_message.Message):
     __slots__ = ("modifier_type", "modifier_filename")

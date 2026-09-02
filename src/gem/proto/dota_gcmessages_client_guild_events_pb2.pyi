@@ -1,4 +1,5 @@
 from . import dota_shared_enums_pb2 as _dota_shared_enums_pb2
+from . import events_pb2 as _events_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
@@ -108,8 +109,8 @@ class CMsgClientToGCRequestAccountGuildEventData(_message.Message):
     GUILD_ID_FIELD_NUMBER: _ClassVar[int]
     EVENT_ID_FIELD_NUMBER: _ClassVar[int]
     guild_id: int
-    event_id: _dota_shared_enums_pb2.EEvent
-    def __init__(self, guild_id: _Optional[int] = ..., event_id: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ...) -> None: ...
+    event_id: _events_pb2.EEvent
+    def __init__(self, guild_id: _Optional[int] = ..., event_id: _Optional[_Union[_events_pb2.EEvent, str]] = ...) -> None: ...
 
 class CMsgClientToGCRequestAccountGuildEventDataResponse(_message.Message):
     __slots__ = ("result", "event_id", "event_data")
@@ -137,9 +138,9 @@ class CMsgClientToGCRequestAccountGuildEventDataResponse(_message.Message):
     EVENT_ID_FIELD_NUMBER: _ClassVar[int]
     EVENT_DATA_FIELD_NUMBER: _ClassVar[int]
     result: CMsgClientToGCRequestAccountGuildEventDataResponse.EResponse
-    event_id: _dota_shared_enums_pb2.EEvent
+    event_id: _events_pb2.EEvent
     event_data: CMsgAccountGuildEventData
-    def __init__(self, result: _Optional[_Union[CMsgClientToGCRequestAccountGuildEventDataResponse.EResponse, str]] = ..., event_id: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ..., event_data: _Optional[_Union[CMsgAccountGuildEventData, _Mapping]] = ...) -> None: ...
+    def __init__(self, result: _Optional[_Union[CMsgClientToGCRequestAccountGuildEventDataResponse.EResponse, str]] = ..., event_id: _Optional[_Union[_events_pb2.EEvent, str]] = ..., event_data: _Optional[_Union[CMsgAccountGuildEventData, _Mapping]] = ...) -> None: ...
 
 class CMsgGCToClientAccountGuildEventDataUpdated(_message.Message):
     __slots__ = ("guild_id", "event_id", "update_flags", "guild_event_data", "contracts_updated")
@@ -149,19 +150,19 @@ class CMsgGCToClientAccountGuildEventDataUpdated(_message.Message):
     GUILD_EVENT_DATA_FIELD_NUMBER: _ClassVar[int]
     CONTRACTS_UPDATED_FIELD_NUMBER: _ClassVar[int]
     guild_id: int
-    event_id: _dota_shared_enums_pb2.EEvent
+    event_id: _events_pb2.EEvent
     update_flags: int
     guild_event_data: CMsgAccountGuildEventData
     contracts_updated: bool
-    def __init__(self, guild_id: _Optional[int] = ..., event_id: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ..., update_flags: _Optional[int] = ..., guild_event_data: _Optional[_Union[CMsgAccountGuildEventData, _Mapping]] = ..., contracts_updated: bool = ...) -> None: ...
+    def __init__(self, guild_id: _Optional[int] = ..., event_id: _Optional[_Union[_events_pb2.EEvent, str]] = ..., update_flags: _Optional[int] = ..., guild_event_data: _Optional[_Union[CMsgAccountGuildEventData, _Mapping]] = ..., contracts_updated: bool = ...) -> None: ...
 
 class CMsgClientToGCRequestActiveGuildContracts(_message.Message):
     __slots__ = ("guild_id", "event_id")
     GUILD_ID_FIELD_NUMBER: _ClassVar[int]
     EVENT_ID_FIELD_NUMBER: _ClassVar[int]
     guild_id: int
-    event_id: _dota_shared_enums_pb2.EEvent
-    def __init__(self, guild_id: _Optional[int] = ..., event_id: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ...) -> None: ...
+    event_id: _events_pb2.EEvent
+    def __init__(self, guild_id: _Optional[int] = ..., event_id: _Optional[_Union[_events_pb2.EEvent, str]] = ...) -> None: ...
 
 class CMsgClientToGCRequestActiveGuildContractsResponse(_message.Message):
     __slots__ = ("result", "active_contracts", "active_challenges")
@@ -198,8 +199,8 @@ class CMsgGCToClientActiveGuildContractsUpdated(_message.Message):
     GUILD_ID_FIELD_NUMBER: _ClassVar[int]
     EVENT_ID_FIELD_NUMBER: _ClassVar[int]
     guild_id: int
-    event_id: _dota_shared_enums_pb2.EEvent
-    def __init__(self, guild_id: _Optional[int] = ..., event_id: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ...) -> None: ...
+    event_id: _events_pb2.EEvent
+    def __init__(self, guild_id: _Optional[int] = ..., event_id: _Optional[_Union[_events_pb2.EEvent, str]] = ...) -> None: ...
 
 class CMsgClientToGCSelectGuildContract(_message.Message):
     __slots__ = ("guild_id", "event_id", "contract_id", "contract_slot")
@@ -208,10 +209,10 @@ class CMsgClientToGCSelectGuildContract(_message.Message):
     CONTRACT_ID_FIELD_NUMBER: _ClassVar[int]
     CONTRACT_SLOT_FIELD_NUMBER: _ClassVar[int]
     guild_id: int
-    event_id: _dota_shared_enums_pb2.EEvent
+    event_id: _events_pb2.EEvent
     contract_id: int
     contract_slot: int
-    def __init__(self, guild_id: _Optional[int] = ..., event_id: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ..., contract_id: _Optional[int] = ..., contract_slot: _Optional[int] = ...) -> None: ...
+    def __init__(self, guild_id: _Optional[int] = ..., event_id: _Optional[_Union[_events_pb2.EEvent, str]] = ..., contract_id: _Optional[int] = ..., contract_slot: _Optional[int] = ...) -> None: ...
 
 class CMsgClientToGCSelectGuildContractResponse(_message.Message):
     __slots__ = ("result",)
@@ -260,8 +261,8 @@ class CMsgClientToGCRequestActiveGuildChallenge(_message.Message):
     GUILD_ID_FIELD_NUMBER: _ClassVar[int]
     EVENT_ID_FIELD_NUMBER: _ClassVar[int]
     guild_id: int
-    event_id: _dota_shared_enums_pb2.EEvent
-    def __init__(self, guild_id: _Optional[int] = ..., event_id: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ...) -> None: ...
+    event_id: _events_pb2.EEvent
+    def __init__(self, guild_id: _Optional[int] = ..., event_id: _Optional[_Union[_events_pb2.EEvent, str]] = ...) -> None: ...
 
 class CMsgClientToGCRequestActiveGuildChallengeResponse(_message.Message):
     __slots__ = ("result", "active_challenge")
@@ -297,17 +298,17 @@ class CMsgGCToClientActiveGuildChallengeUpdated(_message.Message):
     EVENT_ID_FIELD_NUMBER: _ClassVar[int]
     ACTIVE_CHALLENGE_FIELD_NUMBER: _ClassVar[int]
     guild_id: int
-    event_id: _dota_shared_enums_pb2.EEvent
+    event_id: _events_pb2.EEvent
     active_challenge: CMsgGuildChallenge
-    def __init__(self, guild_id: _Optional[int] = ..., event_id: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ..., active_challenge: _Optional[_Union[CMsgGuildChallenge, _Mapping]] = ...) -> None: ...
+    def __init__(self, guild_id: _Optional[int] = ..., event_id: _Optional[_Union[_events_pb2.EEvent, str]] = ..., active_challenge: _Optional[_Union[CMsgGuildChallenge, _Mapping]] = ...) -> None: ...
 
 class CMsgClientToGCRequestGuildEventMembers(_message.Message):
     __slots__ = ("guild_id", "event_id")
     GUILD_ID_FIELD_NUMBER: _ClassVar[int]
     EVENT_ID_FIELD_NUMBER: _ClassVar[int]
     guild_id: int
-    event_id: _dota_shared_enums_pb2.EEvent
-    def __init__(self, guild_id: _Optional[int] = ..., event_id: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ...) -> None: ...
+    event_id: _events_pb2.EEvent
+    def __init__(self, guild_id: _Optional[int] = ..., event_id: _Optional[_Union[_events_pb2.EEvent, str]] = ...) -> None: ...
 
 class CMsgClientToGCRequestGuildEventMembersResponse(_message.Message):
     __slots__ = ("result", "members")
@@ -347,7 +348,7 @@ class CMsgGuildLeaderboardCombinedResponse(_message.Message):
     CURRENT_PERCENTILE_FIELD_NUMBER: _ClassVar[int]
     WEEKLY_PERCENTILE_FIELD_NUMBER: _ClassVar[int]
     POINTS_FIELD_NUMBER: _ClassVar[int]
-    event_id: _dota_shared_enums_pb2.EEvent
+    event_id: _events_pb2.EEvent
     region: int
     last_updated: int
     guild_id: _containers.RepeatedScalarFieldContainer[int]
@@ -355,15 +356,15 @@ class CMsgGuildLeaderboardCombinedResponse(_message.Message):
     current_percentile: _containers.RepeatedScalarFieldContainer[int]
     weekly_percentile: _containers.RepeatedScalarFieldContainer[int]
     points: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(self, event_id: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ..., region: _Optional[int] = ..., last_updated: _Optional[int] = ..., guild_id: _Optional[_Iterable[int]] = ..., rank: _Optional[_Iterable[int]] = ..., current_percentile: _Optional[_Iterable[int]] = ..., weekly_percentile: _Optional[_Iterable[int]] = ..., points: _Optional[_Iterable[int]] = ...) -> None: ...
+    def __init__(self, event_id: _Optional[_Union[_events_pb2.EEvent, str]] = ..., region: _Optional[int] = ..., last_updated: _Optional[int] = ..., guild_id: _Optional[_Iterable[int]] = ..., rank: _Optional[_Iterable[int]] = ..., current_percentile: _Optional[_Iterable[int]] = ..., weekly_percentile: _Optional[_Iterable[int]] = ..., points: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CMsgClientToGCClaimLeaderboardRewards(_message.Message):
     __slots__ = ("guild_id", "event_id")
     GUILD_ID_FIELD_NUMBER: _ClassVar[int]
     EVENT_ID_FIELD_NUMBER: _ClassVar[int]
     guild_id: int
-    event_id: _dota_shared_enums_pb2.EEvent
-    def __init__(self, guild_id: _Optional[int] = ..., event_id: _Optional[_Union[_dota_shared_enums_pb2.EEvent, str]] = ...) -> None: ...
+    event_id: _events_pb2.EEvent
+    def __init__(self, guild_id: _Optional[int] = ..., event_id: _Optional[_Union[_events_pb2.EEvent, str]] = ...) -> None: ...
 
 class CMsgClientToGCClaimLeaderboardRewardsResponse(_message.Message):
     __slots__ = ("result", "event_points")

@@ -1,5 +1,6 @@
 from . import networkbasetypes_pb2 as _networkbasetypes_pb2
 from . import dota_shared_enums_pb2 as _dota_shared_enums_pb2
+from . import events_pb2 as _events_pb2
 from . import dota_commonmessages_pb2 as _dota_commonmessages_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
@@ -3063,7 +3064,7 @@ class CDOTAUserMsg_KillEffect(_message.Message):
     def __init__(self, victim_ent_index: _Optional[int] = ..., killer_player_id: _Optional[int] = ...) -> None: ...
 
 class CDOTAUserMsg_GiveItem(_message.Message):
-    __slots__ = ("giver_ent_index", "receiver_ent_index", "item_ent_index", "give_status")
+    __slots__ = ("giver_ent_index", "receiver_ent_index", "item_ent_index", "give_status", "id")
     class EGiveStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
         Start: _ClassVar[CDOTAUserMsg_GiveItem.EGiveStatus]
@@ -3074,8 +3075,10 @@ class CDOTAUserMsg_GiveItem(_message.Message):
     RECEIVER_ENT_INDEX_FIELD_NUMBER: _ClassVar[int]
     ITEM_ENT_INDEX_FIELD_NUMBER: _ClassVar[int]
     GIVE_STATUS_FIELD_NUMBER: _ClassVar[int]
+    ID_FIELD_NUMBER: _ClassVar[int]
     giver_ent_index: int
     receiver_ent_index: int
     item_ent_index: int
     give_status: CDOTAUserMsg_GiveItem.EGiveStatus
-    def __init__(self, giver_ent_index: _Optional[int] = ..., receiver_ent_index: _Optional[int] = ..., item_ent_index: _Optional[int] = ..., give_status: _Optional[_Union[CDOTAUserMsg_GiveItem.EGiveStatus, str]] = ...) -> None: ...
+    id: int
+    def __init__(self, giver_ent_index: _Optional[int] = ..., receiver_ent_index: _Optional[int] = ..., item_ent_index: _Optional[int] = ..., give_status: _Optional[_Union[CDOTAUserMsg_GiveItem.EGiveStatus, str]] = ..., id: _Optional[int] = ...) -> None: ...

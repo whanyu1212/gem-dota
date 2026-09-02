@@ -412,7 +412,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CDOTAClientMsg_QuickBuyAction</code> — fields: 7; oneofs: 0; nested messages: 0; nested enums: 1</summary>
+<summary><code>CDOTAClientMsg_QuickBuyAction</code> — fields: 8; oneofs: 0; nested messages: 0; nested enums: 1</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -426,6 +426,7 @@ Expand any message to inspect all fields.
 | 5 | `new_slot_index` | `int32` | `optional` |  |  |
 | 6 | `top_level_item` | `bool` | `optional` |  |  |
 | 7 | `old_slot_ability_ids` | `int32` | `repeated` |  |  |
+| 8 | `disable_buyback_protection_for_purchase` | `bool` | `optional` |  |  |
 
 </details>
 

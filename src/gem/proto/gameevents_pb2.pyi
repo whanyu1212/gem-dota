@@ -50,7 +50,7 @@ class CMsgVDebugGameSessionIDEvent(_message.Message):
     def __init__(self, clientid: _Optional[int] = ..., gamesessionid: _Optional[str] = ...) -> None: ...
 
 class CMsgPlaceDecalEvent(_message.Message):
-    __slots__ = ("position", "normal", "saxis", "boneindex", "triangleindex", "flags", "color", "random_seed", "decal_group_name", "size_override", "entityhandle", "material_id", "sequence_name", "position_objectspace")
+    __slots__ = ("position", "normal", "saxis", "boneindex", "triangleindex", "flags", "color", "random_seed", "decal_group_name", "size_override", "entityhandle", "material_id", "sequence_name", "position_objectspace", "normal_objectspace")
     POSITION_FIELD_NUMBER: _ClassVar[int]
     NORMAL_FIELD_NUMBER: _ClassVar[int]
     SAXIS_FIELD_NUMBER: _ClassVar[int]
@@ -65,6 +65,7 @@ class CMsgPlaceDecalEvent(_message.Message):
     MATERIAL_ID_FIELD_NUMBER: _ClassVar[int]
     SEQUENCE_NAME_FIELD_NUMBER: _ClassVar[int]
     POSITION_OBJECTSPACE_FIELD_NUMBER: _ClassVar[int]
+    NORMAL_OBJECTSPACE_FIELD_NUMBER: _ClassVar[int]
     position: _networkbasetypes_pb2.CMsgVector
     normal: _networkbasetypes_pb2.CMsgVector
     saxis: _networkbasetypes_pb2.CMsgVector
@@ -79,7 +80,8 @@ class CMsgPlaceDecalEvent(_message.Message):
     material_id: int
     sequence_name: int
     position_objectspace: _networkbasetypes_pb2.CMsgVector
-    def __init__(self, position: _Optional[_Union[_networkbasetypes_pb2.CMsgVector, _Mapping]] = ..., normal: _Optional[_Union[_networkbasetypes_pb2.CMsgVector, _Mapping]] = ..., saxis: _Optional[_Union[_networkbasetypes_pb2.CMsgVector, _Mapping]] = ..., boneindex: _Optional[int] = ..., triangleindex: _Optional[int] = ..., flags: _Optional[int] = ..., color: _Optional[int] = ..., random_seed: _Optional[int] = ..., decal_group_name: _Optional[int] = ..., size_override: _Optional[float] = ..., entityhandle: _Optional[int] = ..., material_id: _Optional[int] = ..., sequence_name: _Optional[int] = ..., position_objectspace: _Optional[_Union[_networkbasetypes_pb2.CMsgVector, _Mapping]] = ...) -> None: ...
+    normal_objectspace: _networkbasetypes_pb2.CMsgVector
+    def __init__(self, position: _Optional[_Union[_networkbasetypes_pb2.CMsgVector, _Mapping]] = ..., normal: _Optional[_Union[_networkbasetypes_pb2.CMsgVector, _Mapping]] = ..., saxis: _Optional[_Union[_networkbasetypes_pb2.CMsgVector, _Mapping]] = ..., boneindex: _Optional[int] = ..., triangleindex: _Optional[int] = ..., flags: _Optional[int] = ..., color: _Optional[int] = ..., random_seed: _Optional[int] = ..., decal_group_name: _Optional[int] = ..., size_override: _Optional[float] = ..., entityhandle: _Optional[int] = ..., material_id: _Optional[int] = ..., sequence_name: _Optional[int] = ..., position_objectspace: _Optional[_Union[_networkbasetypes_pb2.CMsgVector, _Mapping]] = ..., normal_objectspace: _Optional[_Union[_networkbasetypes_pb2.CMsgVector, _Mapping]] = ...) -> None: ...
 
 class CMsgClearWorldDecalsEvent(_message.Message):
     __slots__ = ("flagstoclear",)

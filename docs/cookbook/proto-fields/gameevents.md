@@ -29,7 +29,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgPlaceDecalEvent</code> — fields: 14; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgPlaceDecalEvent</code> — fields: 15; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -50,6 +50,7 @@ Expand any message to inspect all fields.
 | 12 | `sequence_name` | `uint32` | `optional` |  |  |
 | 13 | `triangleindex` | `int32` | `optional` |  |  |
 | 14 | `position_objectspace` | `.CMsgVector` | `optional` |  |  |
+| 15 | `normal_objectspace` | `.CMsgVector` | `optional` |  |  |
 
 </details>
 

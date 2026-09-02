@@ -17,6 +17,8 @@ k_EProtoDebugVisibility_Server: EProtoDebugVisiblity
 k_EProtoDebugVisibility_ValveServer: EProtoDebugVisiblity
 k_EProtoDebugVisibility_GC: EProtoDebugVisiblity
 k_EProtoDebugVisibility_Never: EProtoDebugVisiblity
+CODEGEN_DELTA_ENCODER_FIELD_NUMBER: _ClassVar[int]
+codegen_delta_encoder: _descriptor.FieldDescriptor
 VALVE_MAP_FIELD_FIELD_NUMBER: _ClassVar[int]
 valve_map_field: _descriptor.FieldDescriptor
 VALVE_MAP_KEY_FIELD_NUMBER: _ClassVar[int]
@@ -25,6 +27,8 @@ DIFF_ENCODE_FIELD_FIELD_NUMBER: _ClassVar[int]
 diff_encode_field: _descriptor.FieldDescriptor
 DELTA_IGNORE_FIELD_NUMBER: _ClassVar[int]
 delta_ignore: _descriptor.FieldDescriptor
+UNTRUSTED_DELTA_MAX_FIELD_NUMBER: _ClassVar[int]
+untrusted_delta_max: _descriptor.FieldDescriptor
 STEAMML_MAX_ENTRIES_FIELD_NUMBER: _ClassVar[int]
 steamml_max_entries: _descriptor.FieldDescriptor
 STEAMML_IS_TIMESTAMP_FIELD_NUMBER: _ClassVar[int]

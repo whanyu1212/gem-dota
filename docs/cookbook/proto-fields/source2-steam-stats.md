@@ -4,7 +4,7 @@
 - Syntax: `unknown`
 - Package: `(none)`
 - Imports: **0**
-- Messages: **15** (top-level: 10)
+- Messages: **16** (top-level: 11)
 - Enums: **1** (top-level: 1)
 
 ## Messages
@@ -201,7 +201,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgSource2PlayStatsPackedRecordList</code> — fields: 19; oneofs: 0; nested messages: 2; nested enums: 0</summary>
+<summary><code>CMsgSource2PlayStatsPackedRecordList</code> — fields: 20; oneofs: 0; nested messages: 2; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -227,6 +227,7 @@ Expand any message to inspect all fields.
 | 17 | `utcdatetime_vals` | `fixed32` | `repeated` |  | packed = true |
 | 18 | `steamidtrustbucket_vals` | `fixed64` | `repeated` |  | packed = true |
 | 19 | `trustbucket_vals` | `.CMsgSource2PlayStatsPackedRecordList.SteamIDList` | `repeated` |  |  |
+| 20 | `steamid_vals` | `uint64` | `repeated` |  | packed = true |
 
 </details>
 
@@ -311,12 +312,30 @@ Expand any message to inspect all fields.
 
 </details>
 
+<details>
+<summary><code>CUserMessage_UserSentBugBug</code> — fields: 7; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `command_line` | `string` | `optional` |  |  |
+| 2 | `autoexec_cfg` | `string` | `optional` |  |  |
+| 3 | `system_specs` | `.CMsgSource2SystemSpecs` | `optional` |  |  |
+| 4 | `build_id` | `uint32` | `optional` |  |  |
+| 5 | `osversion` | `int32` | `optional` |  |  |
+| 6 | `command_logs` | `string` | `optional` |  |  |
+| 7 | `bugbug_no` | `int32` | `optional` |  |  |
+
+</details>
+
 ## Enums
 
 Expand any enum to inspect all values.
 
 <details>
-<summary><code>ESource2PlayStatsFieldType</code> — values: 17</summary>
+<summary><code>ESource2PlayStatsFieldType</code> — values: 18</summary>
 
 - Parent: *(top-level)*
 
@@ -339,5 +358,6 @@ Expand any enum to inspect all values.
 | `Source2PlayStats_UTCDateTime` | 14 |
 | `Source2PlayStats_SteamIDTrustBucket` | 15 |
 | `Source2PlayStats_SteamIDTrustBucketMin` | 16 |
+| `Source2PlayStats_SteamID` | 17 |
 
 </details>

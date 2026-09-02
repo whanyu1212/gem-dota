@@ -4,7 +4,7 @@
 - Syntax: `unknown`
 - Package: `(none)`
 - Imports: **0**
-- Messages: **7** (top-level: 7)
+- Messages: **6** (top-level: 6)
 - Enums: **2** (top-level: 2)
 
 ## Messages
@@ -92,24 +92,12 @@ Expand any message to inspect all fields.
 
 </details>
 
-<details>
-<summary><code>CClientMsg_ListenForResponseFound</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: *(top-level)*
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `player_slot` | `int32` | `optional` |  | default = -1 |
-
-</details>
-
 ## Enums
 
 Expand any enum to inspect all values.
 
 <details>
-<summary><code>EBaseClientMessages</code> — values: 8</summary>
+<summary><code>EBaseClientMessages</code> — values: 7</summary>
 
 - Parent: *(top-level)*
 
@@ -121,7 +109,6 @@ Expand any enum to inspect all values.
 | `CM_DevPaletteVisibilityChanged` | 283 |
 | `CM_WorldUIControllerHasPanelChanged` | 284 |
 | `CM_RotateAnchor` | 285 |
-| `CM_ListenForResponseFound` | 286 |
 | `CM_MAX_BASE` | 300 |
 
 </details>

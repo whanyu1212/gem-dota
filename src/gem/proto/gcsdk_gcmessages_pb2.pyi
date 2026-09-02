@@ -349,12 +349,11 @@ class CMsgSOCacheHaveVersion(_message.Message):
     def __init__(self, soid: _Optional[_Union[CMsgSOIDOwner, _Mapping]] = ..., version: _Optional[int] = ..., service_id: _Optional[int] = ..., cached_file_version: _Optional[int] = ...) -> None: ...
 
 class CMsgClientHello(_message.Message):
-    __slots__ = ("version", "socache_have_versions", "client_session_need", "client_launcher", "secret_key", "client_language", "engine", "steamdatagram_login", "platform_id", "game_msg", "os_type", "render_system", "render_system_req", "screen_width", "screen_height", "screen_refresh", "render_width", "render_height", "swap_width", "swap_height", "is_steam_china", "is_steam_china_client", "platform_name")
+    __slots__ = ("version", "socache_have_versions", "client_session_need", "client_launcher", "client_language", "engine", "steamdatagram_login", "platform_id", "game_msg", "os_type", "render_system", "render_system_req", "screen_width", "screen_height", "screen_refresh", "render_width", "render_height", "swap_width", "swap_height", "is_steam_china", "is_steam_china_client", "platform_name")
     VERSION_FIELD_NUMBER: _ClassVar[int]
     SOCACHE_HAVE_VERSIONS_FIELD_NUMBER: _ClassVar[int]
     CLIENT_SESSION_NEED_FIELD_NUMBER: _ClassVar[int]
     CLIENT_LAUNCHER_FIELD_NUMBER: _ClassVar[int]
-    SECRET_KEY_FIELD_NUMBER: _ClassVar[int]
     CLIENT_LANGUAGE_FIELD_NUMBER: _ClassVar[int]
     ENGINE_FIELD_NUMBER: _ClassVar[int]
     STEAMDATAGRAM_LOGIN_FIELD_NUMBER: _ClassVar[int]
@@ -377,7 +376,6 @@ class CMsgClientHello(_message.Message):
     socache_have_versions: _containers.RepeatedCompositeFieldContainer[CMsgSOCacheHaveVersion]
     client_session_need: int
     client_launcher: PartnerAccountType
-    secret_key: str
     client_language: int
     engine: ESourceEngine
     steamdatagram_login: bytes
@@ -396,7 +394,7 @@ class CMsgClientHello(_message.Message):
     is_steam_china: bool
     is_steam_china_client: bool
     platform_name: str
-    def __init__(self, version: _Optional[int] = ..., socache_have_versions: _Optional[_Iterable[_Union[CMsgSOCacheHaveVersion, _Mapping]]] = ..., client_session_need: _Optional[int] = ..., client_launcher: _Optional[_Union[PartnerAccountType, str]] = ..., secret_key: _Optional[str] = ..., client_language: _Optional[int] = ..., engine: _Optional[_Union[ESourceEngine, str]] = ..., steamdatagram_login: _Optional[bytes] = ..., platform_id: _Optional[int] = ..., game_msg: _Optional[bytes] = ..., os_type: _Optional[int] = ..., render_system: _Optional[int] = ..., render_system_req: _Optional[int] = ..., screen_width: _Optional[int] = ..., screen_height: _Optional[int] = ..., screen_refresh: _Optional[int] = ..., render_width: _Optional[int] = ..., render_height: _Optional[int] = ..., swap_width: _Optional[int] = ..., swap_height: _Optional[int] = ..., is_steam_china: bool = ..., is_steam_china_client: bool = ..., platform_name: _Optional[str] = ...) -> None: ...
+    def __init__(self, version: _Optional[int] = ..., socache_have_versions: _Optional[_Iterable[_Union[CMsgSOCacheHaveVersion, _Mapping]]] = ..., client_session_need: _Optional[int] = ..., client_launcher: _Optional[_Union[PartnerAccountType, str]] = ..., client_language: _Optional[int] = ..., engine: _Optional[_Union[ESourceEngine, str]] = ..., steamdatagram_login: _Optional[bytes] = ..., platform_id: _Optional[int] = ..., game_msg: _Optional[bytes] = ..., os_type: _Optional[int] = ..., render_system: _Optional[int] = ..., render_system_req: _Optional[int] = ..., screen_width: _Optional[int] = ..., screen_height: _Optional[int] = ..., screen_refresh: _Optional[int] = ..., render_width: _Optional[int] = ..., render_height: _Optional[int] = ..., swap_width: _Optional[int] = ..., swap_height: _Optional[int] = ..., is_steam_china: bool = ..., is_steam_china_client: bool = ..., platform_name: _Optional[str] = ...) -> None: ...
 
 class CMsgClientWelcome(_message.Message):
     __slots__ = ("version", "game_data", "outofdate_subscribed_caches", "uptodate_subscribed_caches", "location", "gc_socache_file_version", "txn_country_code", "game_data2", "rtime32_gc_welcome_timestamp", "currency", "balance", "balance_url", "has_accepted_china_ssa", "is_banned_steam_china", "additional_welcome_msgs", "steam_learn_server_info")

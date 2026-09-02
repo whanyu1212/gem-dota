@@ -59,6 +59,42 @@
       "patch": 60,
       "replay_url": "http://replay225.valve.net/570/8855242704_307043427.dem.bz2",
       "note": "Interval validation sample (--match only): long replay that exposed the radiant_xp_adv source bug (combat-log XP override gave -94899 vs OpenDota -30499). After the fix, interval m_iTotalEarnedXP gives -30237. Kept as a regression sample; not in the default gate."
+    },
+    {
+      "match_id": 8856501050,
+      "dem": "8856501050.dem",
+      "opendota_json": "8856501050.opendota.json",
+      "fetched_at": "2026-09-02T01:19:25Z",
+      "duration": 5576,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 60,
+      "replay_url": "http://replay225.valve.net/570/8856501050_1230793646.dem.bz2",
+      "note": "TI2026 China regional qualifier: long 93-minute fixture for proto-refresh OpenDota parity"
+    },
+    {
+      "match_id": 8860187335,
+      "dem": "8860187335.dem",
+      "opendota_json": "8860187335.opendota.json",
+      "fetched_at": "2026-09-02T01:16:46Z",
+      "duration": 3005,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 60,
+      "replay_url": "http://replay152.valve.net/570/8860187335_670734759.dem.bz2",
+      "note": "TI2026 Southeast Asia regional qualifier: medium 50-minute fixture for proto-refresh OpenDota parity"
+    },
+    {
+      "match_id": 8868259993,
+      "dem": "8868259993.dem",
+      "opendota_json": "8868259993.opendota.json",
+      "fetched_at": "2026-09-02T01:16:29Z",
+      "duration": 1142,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 60,
+      "replay_url": "http://replay121.valve.net/570/8868259993_728230634.dem.bz2",
+      "note": "TI2026 North America regional qualifier: short 19-minute fixture for proto-refresh OpenDota parity"
     }
   ]
 }

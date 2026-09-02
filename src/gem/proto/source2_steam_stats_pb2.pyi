@@ -26,6 +26,7 @@ class ESource2PlayStatsFieldType(int, metaclass=_enum_type_wrapper.EnumTypeWrapp
     Source2PlayStats_UTCDateTime: _ClassVar[ESource2PlayStatsFieldType]
     Source2PlayStats_SteamIDTrustBucket: _ClassVar[ESource2PlayStatsFieldType]
     Source2PlayStats_SteamIDTrustBucketMin: _ClassVar[ESource2PlayStatsFieldType]
+    Source2PlayStats_SteamID: _ClassVar[ESource2PlayStatsFieldType]
 Source2PlayStats_Invalid: ESource2PlayStatsFieldType
 Source2PlayStats_UInt64: ESource2PlayStatsFieldType
 Source2PlayStats_UInt32: ESource2PlayStatsFieldType
@@ -43,6 +44,7 @@ Source2PlayStats_LowCardinalityString: ESource2PlayStatsFieldType
 Source2PlayStats_UTCDateTime: ESource2PlayStatsFieldType
 Source2PlayStats_SteamIDTrustBucket: ESource2PlayStatsFieldType
 Source2PlayStats_SteamIDTrustBucketMin: ESource2PlayStatsFieldType
+Source2PlayStats_SteamID: ESource2PlayStatsFieldType
 
 class CMsgSource2SystemSpecs(_message.Message):
     __slots__ = ("cpu_id", "cpu_brand", "cpu_model", "cpu_num_physical", "ram_physical_total_mb", "gpu_rendersystem_dll_name", "gpu_vendor_id", "gpu_driver_name", "gpu_driver_version_high", "gpu_driver_version_low", "gpu_dx_support_level", "gpu_texture_memory_size_mb", "backbuffer_width", "backbuffer_height")
@@ -277,7 +279,7 @@ class CSource2Metrics_MatchPerfSummary_Notification(_message.Message):
     def __init__(self, appid: _Optional[int] = ..., game_mode: _Optional[str] = ..., server_build_id: _Optional[int] = ..., server_popid: _Optional[int] = ..., server_profile: _Optional[_Union[CMsgSource2VProfLiteReport, _Mapping]] = ..., clients: _Optional[_Iterable[_Union[CSource2Metrics_MatchPerfSummary_Notification.Client, _Mapping]]] = ..., map: _Optional[str] = ...) -> None: ...
 
 class CMsgSource2PlayStatsPackedRecordList(_message.Message):
-    __slots__ = ("record_name", "field_defs", "record_count", "uint64_vals", "uint32_vals", "uint16_vals", "uint8_vals", "int64_vals", "int32_vals", "int16_vals", "int8_vals", "float64_vals", "float32_vals", "bool_vals", "string_vals", "low_cardinality_string_vals", "utcdatetime_vals", "steamidtrustbucket_vals", "trustbucket_vals")
+    __slots__ = ("record_name", "field_defs", "record_count", "uint64_vals", "uint32_vals", "uint16_vals", "uint8_vals", "int64_vals", "int32_vals", "int16_vals", "int8_vals", "float64_vals", "float32_vals", "bool_vals", "string_vals", "low_cardinality_string_vals", "utcdatetime_vals", "steamidtrustbucket_vals", "trustbucket_vals", "steamid_vals")
     class FieldDef(_message.Message):
         __slots__ = ("field_name", "field_type")
         FIELD_NAME_FIELD_NUMBER: _ClassVar[int]
@@ -309,6 +311,7 @@ class CMsgSource2PlayStatsPackedRecordList(_message.Message):
     UTCDATETIME_VALS_FIELD_NUMBER: _ClassVar[int]
     STEAMIDTRUSTBUCKET_VALS_FIELD_NUMBER: _ClassVar[int]
     TRUSTBUCKET_VALS_FIELD_NUMBER: _ClassVar[int]
+    STEAMID_VALS_FIELD_NUMBER: _ClassVar[int]
     record_name: str
     field_defs: _containers.RepeatedCompositeFieldContainer[CMsgSource2PlayStatsPackedRecordList.FieldDef]
     record_count: int
@@ -328,7 +331,8 @@ class CMsgSource2PlayStatsPackedRecordList(_message.Message):
     utcdatetime_vals: _containers.RepeatedScalarFieldContainer[int]
     steamidtrustbucket_vals: _containers.RepeatedScalarFieldContainer[int]
     trustbucket_vals: _containers.RepeatedCompositeFieldContainer[CMsgSource2PlayStatsPackedRecordList.SteamIDList]
-    def __init__(self, record_name: _Optional[str] = ..., field_defs: _Optional[_Iterable[_Union[CMsgSource2PlayStatsPackedRecordList.FieldDef, _Mapping]]] = ..., record_count: _Optional[int] = ..., uint64_vals: _Optional[_Iterable[int]] = ..., uint32_vals: _Optional[_Iterable[int]] = ..., uint16_vals: _Optional[_Iterable[int]] = ..., uint8_vals: _Optional[_Iterable[int]] = ..., int64_vals: _Optional[_Iterable[int]] = ..., int32_vals: _Optional[_Iterable[int]] = ..., int16_vals: _Optional[_Iterable[int]] = ..., int8_vals: _Optional[_Iterable[int]] = ..., float64_vals: _Optional[_Iterable[float]] = ..., float32_vals: _Optional[_Iterable[float]] = ..., bool_vals: _Optional[_Iterable[bool]] = ..., string_vals: _Optional[_Iterable[str]] = ..., low_cardinality_string_vals: _Optional[_Iterable[str]] = ..., utcdatetime_vals: _Optional[_Iterable[int]] = ..., steamidtrustbucket_vals: _Optional[_Iterable[int]] = ..., trustbucket_vals: _Optional[_Iterable[_Union[CMsgSource2PlayStatsPackedRecordList.SteamIDList, _Mapping]]] = ...) -> None: ...
+    steamid_vals: _containers.RepeatedScalarFieldContainer[int]
+    def __init__(self, record_name: _Optional[str] = ..., field_defs: _Optional[_Iterable[_Union[CMsgSource2PlayStatsPackedRecordList.FieldDef, _Mapping]]] = ..., record_count: _Optional[int] = ..., uint64_vals: _Optional[_Iterable[int]] = ..., uint32_vals: _Optional[_Iterable[int]] = ..., uint16_vals: _Optional[_Iterable[int]] = ..., uint8_vals: _Optional[_Iterable[int]] = ..., int64_vals: _Optional[_Iterable[int]] = ..., int32_vals: _Optional[_Iterable[int]] = ..., int16_vals: _Optional[_Iterable[int]] = ..., int8_vals: _Optional[_Iterable[int]] = ..., float64_vals: _Optional[_Iterable[float]] = ..., float32_vals: _Optional[_Iterable[float]] = ..., bool_vals: _Optional[_Iterable[bool]] = ..., string_vals: _Optional[_Iterable[str]] = ..., low_cardinality_string_vals: _Optional[_Iterable[str]] = ..., utcdatetime_vals: _Optional[_Iterable[int]] = ..., steamidtrustbucket_vals: _Optional[_Iterable[int]] = ..., trustbucket_vals: _Optional[_Iterable[_Union[CMsgSource2PlayStatsPackedRecordList.SteamIDList, _Mapping]]] = ..., steamid_vals: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CSource2Metrics_RecordPlayStats_Notification(_message.Message):
     __slots__ = ("record_types", "appid")
@@ -368,3 +372,21 @@ class CSource2Metrics_FetchMapData_Response(_message.Message):
     RESULTS_FIELD_NUMBER: _ClassVar[int]
     results: _containers.RepeatedCompositeFieldContainer[CSource2Metrics_FetchMapData_Response.MapData]
     def __init__(self, results: _Optional[_Iterable[_Union[CSource2Metrics_FetchMapData_Response.MapData, _Mapping]]] = ...) -> None: ...
+
+class CUserMessage_UserSentBugBug(_message.Message):
+    __slots__ = ("command_line", "autoexec_cfg", "system_specs", "build_id", "osversion", "command_logs", "bugbug_no")
+    COMMAND_LINE_FIELD_NUMBER: _ClassVar[int]
+    AUTOEXEC_CFG_FIELD_NUMBER: _ClassVar[int]
+    SYSTEM_SPECS_FIELD_NUMBER: _ClassVar[int]
+    BUILD_ID_FIELD_NUMBER: _ClassVar[int]
+    OSVERSION_FIELD_NUMBER: _ClassVar[int]
+    COMMAND_LOGS_FIELD_NUMBER: _ClassVar[int]
+    BUGBUG_NO_FIELD_NUMBER: _ClassVar[int]
+    command_line: str
+    autoexec_cfg: str
+    system_specs: CMsgSource2SystemSpecs
+    build_id: int
+    osversion: int
+    command_logs: str
+    bugbug_no: int
+    def __init__(self, command_line: _Optional[str] = ..., autoexec_cfg: _Optional[str] = ..., system_specs: _Optional[_Union[CMsgSource2SystemSpecs, _Mapping]] = ..., build_id: _Optional[int] = ..., osversion: _Optional[int] = ..., command_logs: _Optional[str] = ..., bugbug_no: _Optional[int] = ...) -> None: ...

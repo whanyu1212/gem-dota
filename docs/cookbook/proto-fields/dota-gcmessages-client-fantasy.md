@@ -4,8 +4,8 @@
 - Syntax: `unknown`
 - Package: `(none)`
 - Imports: **1**
-- Messages: **59** (top-level: 38)
-- Enums: **13** (top-level: 1)
+- Messages: **66** (top-level: 44)
+- Enums: **16** (top-level: 1)
 
 ## Imports
 
@@ -502,7 +502,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgDotaFantasyCraftingTabletPeriodData.Tablet</code> — fields: 9; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgDotaFantasyCraftingTabletPeriodData.Tablet</code> — fields: 10; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: `CMsgDotaFantasyCraftingTabletPeriodData`
 - Oneofs: *(none)*
@@ -518,6 +518,7 @@ Expand any message to inspect all fields.
 | 7 | `gems` | `.CMsgDotaFantasyCraftingTabletPeriodData.Gem` | `repeated` |  |  |
 | 8 | `score` | `float` | `optional` |  |  |
 | 9 | `best_series` | `uint32` | `optional` |  |  |
+| 10 | `team_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -771,7 +772,86 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgClientToGCFantasyCraftingGenerateTablets</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgClientToGCFantasyCraftingSelectTeam</code> — fields: 3; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `fantasy_league` | `uint32` | `optional` |  |  |
+| 2 | `role` | `.Fantasy_Roles` | `optional` |  | default = FANTASY_ROLE_UNDEFINED |
+| 3 | `team_id` | `uint32` | `optional` |  |  |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCFantasyCraftingSelectTeamResponse</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 1</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `response` | `.CMsgClientToGCFantasyCraftingSelectTeamResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `tablet_data` | `.CMsgDotaFantasyCraftingTabletData` | `optional` |  |  |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCFantasyCraftingSelectGlobalPrefix</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `fantasy_league` | `uint32` | `optional` |  |  |
+| 2 | `prefix` | `uint32` | `optional` |  |  |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCFantasyCraftingSelectGlobalPrefixResponse</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 1</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `response` | `.CMsgClientToGCFantasyCraftingSelectGlobalPrefixResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `tablet_data` | `.CMsgDotaFantasyCraftingTabletData` | `optional` |  |  |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCFantasyCraftingSelectGlobalSuffix</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `fantasy_league` | `uint32` | `optional` |  |  |
+| 2 | `suffix` | `uint32` | `optional` |  |  |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCFantasyCraftingSelectGlobalSuffixResponse</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 1</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `response` | `.CMsgClientToGCFantasyCraftingSelectGlobalSuffixResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 2 | `tablet_data` | `.CMsgDotaFantasyCraftingTabletData` | `optional` |  |  |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCFantasyCraftingGenerateTablets</code> — fields: 3; oneofs: 0; nested messages: 1; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -780,6 +860,20 @@ Expand any message to inspect all fields.
 |---:|---|---|---|---|---|
 | 1 | `fantasy_league` | `uint32` | `optional` |  |  |
 | 2 | `account_ids` | `uint32` | `repeated` |  |  |
+| 3 | `selected_teams` | `.CMsgClientToGCFantasyCraftingGenerateTablets.TeamChoice` | `repeated` |  |  |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCFantasyCraftingGenerateTablets.TeamChoice</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: `CMsgClientToGCFantasyCraftingGenerateTablets`
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `fantasy_role` | `.Fantasy_Roles` | `optional` |  | default = FANTASY_ROLE_UNDEFINED |
+| 2 | `team_id` | `uint32` | `optional` |  |  |
 
 </details>
 
@@ -1102,7 +1196,58 @@ Expand any enum to inspect all values.
 </details>
 
 <details>
-<summary><code>CMsgClientToGCFantasyCraftingGenerateTabletsResponse.EResponse</code> — values: 7</summary>
+<summary><code>CMsgClientToGCFantasyCraftingSelectTeamResponse.EResponse</code> — values: 7</summary>
+
+- Parent: `CMsgClientToGCFantasyCraftingSelectTeamResponse`
+
+| Name | Number |
+|---|---:|
+| `k_eInternalError` | 0 |
+| `k_eSuccess` | 1 |
+| `k_eTooBusy` | 2 |
+| `k_eDisabled` | 3 |
+| `k_eTimeout` | 4 |
+| `k_eInvalidLeague` | 5 |
+| `k_eInvalidTeam` | 7 |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCFantasyCraftingSelectGlobalPrefixResponse.EResponse</code> — values: 7</summary>
+
+- Parent: `CMsgClientToGCFantasyCraftingSelectGlobalPrefixResponse`
+
+| Name | Number |
+|---|---:|
+| `k_eInternalError` | 0 |
+| `k_eSuccess` | 1 |
+| `k_eTooBusy` | 2 |
+| `k_eDisabled` | 3 |
+| `k_eTimeout` | 4 |
+| `k_eInvalidLeague` | 5 |
+| `k_eInvalidPrefix` | 7 |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCFantasyCraftingSelectGlobalSuffixResponse.EResponse</code> — values: 7</summary>
+
+- Parent: `CMsgClientToGCFantasyCraftingSelectGlobalSuffixResponse`
+
+| Name | Number |
+|---|---:|
+| `k_eInternalError` | 0 |
+| `k_eSuccess` | 1 |
+| `k_eTooBusy` | 2 |
+| `k_eDisabled` | 3 |
+| `k_eTimeout` | 4 |
+| `k_eInvalidLeague` | 5 |
+| `k_eInvalidSuffix` | 7 |
+
+</details>
+
+<details>
+<summary><code>CMsgClientToGCFantasyCraftingGenerateTabletsResponse.EResponse</code> — values: 8</summary>
 
 - Parent: `CMsgClientToGCFantasyCraftingGenerateTabletsResponse`
 
@@ -1115,6 +1260,7 @@ Expand any enum to inspect all values.
 | `k_eTimeout` | 4 |
 | `k_eInvalidLeague` | 5 |
 | `k_eInvalidPlayer` | 6 |
+| `k_eInvalidTeam` | 7 |
 
 </details>
 

@@ -671,7 +671,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CSVCMsg_VoiceData</code> — fields: 7; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CSVCMsg_VoiceData</code> — fields: 8; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -679,12 +679,13 @@ Expand any message to inspect all fields.
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
 | 1 | `audio` | `.CMsgVoiceAudio` | `optional` |  |  |
-| 2 | `client` | `int32` | `optional` |  | default = -1 |
+| 2 | `client_deprecated` | `int32` | `optional` |  | default = -1 |
 | 3 | `proximity` | `bool` | `optional` |  |  |
 | 4 | `xuid` | `fixed64` | `optional` |  |  |
 | 5 | `audible_mask` | `int32` | `optional` |  |  |
 | 6 | `tick` | `uint32` | `optional` |  |  |
 | 7 | `passthrough` | `int32` | `optional` |  |  |
+| 8 | `entity` | `int32` | `optional` |  | default = -1 |
 
 </details>
 
@@ -1090,7 +1091,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgServerUserCmd</code> — fields: 5; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgServerUserCmd</code> — fields: 6; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -1102,6 +1103,7 @@ Expand any message to inspect all fields.
 | 3 | `player_slot` | `int32` | `optional` |  | default = -1 |
 | 4 | `server_tick_executed` | `int32` | `optional` |  |  |
 | 5 | `client_tick` | `int32` | `optional` |  |  |
+| 6 | `delta_data` | `bytes` | `optional` |  |  |
 
 </details>
 

@@ -2,8 +2,8 @@
 
 This page catalogs the full Dota 2 proto surface used by gem.
 
-- Source proto files: **80**
-- Generated Python protobuf modules (`*_pb2.py`, including subdirectories): **80**
+- Source proto files: **84**
+- Generated Python protobuf modules (`*_pb2.py`, including subdirectories): **84**
 
 ## Index
 
@@ -11,7 +11,7 @@ Use this list to jump directly to a file section:
 
 - [base_gcmessages.proto](#base-gcmessages-proto) — imports: 3, enums: 6, messages: 62
 - [c_peer2peer_netmessages.proto](#c-peer2peer-netmessages-proto) — imports: 2, enums: 2, messages: 7
-- [clientmessages.proto](#clientmessages-proto) — imports: 0, enums: 2, messages: 7
+- [clientmessages.proto](#clientmessages-proto) — imports: 0, enums: 2, messages: 6
 - [connectionless_netmessages.proto](#connectionless-netmessages-proto) — imports: 1, enums: 0, messages: 3
 - [demo.proto](#demo-proto) — imports: 0, enums: 1, messages: 28
 - [dota_broadcastmessages.proto](#dota-broadcastmessages-proto) — imports: 0, enums: 1, messages: 4
@@ -25,7 +25,7 @@ Use this list to jump directly to a file section:
 - [dota_gcmessages_client_chat.proto](#dota-gcmessages-client-chat-proto) — imports: 1, enums: 2, messages: 27
 - [dota_gcmessages_client_coaching.proto](#dota-gcmessages-client-coaching-proto) — imports: 2, enums: 17, messages: 35
 - [dota_gcmessages_client_craftworks.proto](#dota-gcmessages-client-craftworks-proto) — imports: 10, enums: 4, messages: 8
-- [dota_gcmessages_client_fantasy.proto](#dota-gcmessages-client-fantasy-proto) — imports: 1, enums: 13, messages: 59
+- [dota_gcmessages_client_fantasy.proto](#dota-gcmessages-client-fantasy-proto) — imports: 1, enums: 16, messages: 66
 - [dota_gcmessages_client_guild.proto](#dota-gcmessages-client-guild-proto) — imports: 1, enums: 26, messages: 61
 - [dota_gcmessages_client_guild_events.proto](#dota-gcmessages-client-guild-events-proto) — imports: 1, enums: 7, messages: 22
 - [dota_gcmessages_client_match_management.proto](#dota-gcmessages-client-match-management-proto) — imports: 5, enums: 1, messages: 62
@@ -43,31 +43,35 @@ Use this list to jump directly to a file section:
 - [dota_gcmessages_common_lobby.proto](#dota-gcmessages-common-lobby-proto) — imports: 3, enums: 5, messages: 32
 - [dota_gcmessages_common_match_management.proto](#dota-gcmessages-common-match-management-proto) — imports: 3, enums: 9, messages: 15
 - [dota_gcmessages_common_monster_hunter.proto](#dota-gcmessages-common-monster-hunter-proto) — imports: 4, enums: 16, messages: 36
-- [dota_gcmessages_common_overworld.proto](#dota-gcmessages-common-overworld-proto) — imports: 5, enums: 22, messages: 58
+- [dota_gcmessages_common_overworld.proto](#dota-gcmessages-common-overworld-proto) — imports: 5, enums: 26, messages: 68
 - [dota_gcmessages_common_survivors.proto](#dota-gcmessages-common-survivors-proto) — imports: 4, enums: 1, messages: 5
 - [dota_gcmessages_msgid.proto](#dota-gcmessages-msgid-proto) — imports: 0, enums: 1, messages: 0
-- [dota_gcmessages_server.proto](#dota-gcmessages-server-proto) — imports: 14, enums: 6, messages: 187
+- [dota_gcmessages_server.proto](#dota-gcmessages-server-proto) — imports: 14, enums: 6, messages: 170
 - [dota_gcmessages_webapi.proto](#dota-gcmessages-webapi-proto) — imports: 5, enums: 15, messages: 39
 - [dota_hud_types.proto](#dota-hud-types-proto) — imports: 1, enums: 1, messages: 0
-- [dota_match_metadata.proto](#dota-match-metadata-proto) — imports: 10, enums: 2, messages: 45
+- [dota_match_metadata.proto](#dota-match-metadata-proto) — imports: 10, enums: 2, messages: 46
 - [dota_modifiers.proto](#dota-modifiers-proto) — imports: 1, enums: 1, messages: 2
 - [dota_scenariomessages.proto](#dota-scenariomessages-proto) — imports: 1, enums: 0, messages: 23
-- [dota_shared_enums.proto](#dota-shared-enums-proto) — imports: 0, enums: 54, messages: 14
-- [dota_usercmd.proto](#dota-usercmd-proto) — imports: 2, enums: 0, messages: 1
+- [dota_shared_enums.proto](#dota-shared-enums-proto) — imports: 0, enums: 53, messages: 14
+- [dota_usercmd.proto](#dota-usercmd-proto) — imports: 3, enums: 0, messages: 1
 - [dota_usermessages.proto](#dota-usermessages-proto) — imports: 3, enums: 20, messages: 191
-- [econ_gcmessages.proto](#econ-gcmessages-proto) — imports: 4, enums: 15, messages: 143
+- [econ_gcmessages.proto](#econ-gcmessages-proto) — imports: 4, enums: 16, messages: 143
 - [econ_shared_enums.proto](#econ-shared-enums-proto) — imports: 0, enums: 3, messages: 1
 - [engine_gcmessages.proto](#engine-gcmessages-proto) — imports: 1, enums: 0, messages: 1
 - [enums_clientserver.proto](#enums-clientserver-proto) — imports: 0, enums: 4, messages: 0
+- [event_gcmessages_client.proto](#event-gcmessages-client-proto) — imports: 2, enums: 2, messages: 3
+- [event_gcmessages_common.proto](#event-gcmessages-common-proto) — imports: 0, enums: 0, messages: 2
+- [event_gcmessages_server.proto](#event-gcmessages-server-proto) — imports: 0, enums: 0, messages: 0
+- [events.proto](#events-proto) — imports: 0, enums: 1, messages: 0
 - [gameevents.proto](#gameevents-proto) — imports: 1, enums: 1, messages: 18
 - [gcsdk_gcmessages.proto](#gcsdk-gcmessages-proto) — imports: 3, enums: 3, messages: 74
 - [gcsystemmsgs.proto](#gcsystemmsgs-proto) — imports: 0, enums: 2, messages: 0
 - [netmessages.proto](#netmessages-proto) — imports: 2, enums: 12, messages: 74
 - [network_connection.proto](#network-connection-proto) — imports: 1, enums: 1, messages: 0
-- [networkbasetypes.proto](#networkbasetypes-proto) — imports: 2, enums: 3, messages: 27
+- [networkbasetypes.proto](#networkbasetypes-proto) — imports: 3, enums: 3, messages: 27
 - [networksystem_protomessages.proto](#networksystem-protomessages-proto) — imports: 0, enums: 0, messages: 5
 - [prediction_events.proto](#prediction-events-proto) — imports: 1, enums: 1, messages: 3
-- [source2_steam_stats.proto](#source2-steam-stats-proto) — imports: 0, enums: 1, messages: 15
+- [source2_steam_stats.proto](#source2-steam-stats-proto) — imports: 0, enums: 1, messages: 16
 - [steamdatagram_messages_auth.proto](#steamdatagram-messages-auth-proto) — imports: 1, enums: 0, messages: 7
 - [steamdatagram_messages_sdr.proto](#steamdatagram-messages-sdr-proto) — imports: 2, enums: 10, messages: 42
 - [steammessages.proto](#steammessages-proto) — imports: 1, enums: 2, messages: 5
@@ -86,8 +90,8 @@ Use this list to jump directly to a file section:
 - [steamnetworkingsockets_messages_udp.proto](#steamnetworkingsockets-messages-udp-proto) — imports: 2, enums: 2, messages: 7
 - [te.proto](#te-proto) — imports: 1, enums: 1, messages: 25
 - [uifontfile_format.proto](#uifontfile-format-proto) — imports: 0, enums: 0, messages: 3
-- [usercmd.proto](#usercmd-proto) — imports: 1, enums: 0, messages: 5
-- [usermessages.proto](#usermessages-proto) — imports: 1, enums: 5, messages: 109
+- [usercmd.proto](#usercmd-proto) — imports: 2, enums: 0, messages: 5
+- [usermessages.proto](#usermessages-proto) — imports: 1, enums: 5, messages: 107
 - [valveextensions.proto](#valveextensions-proto) — imports: 1, enums: 1, messages: 0
 
 ## Per-file declarations
@@ -201,20 +205,19 @@ Each file is collapsed by default. Expand to view its declarations.
 ### clientmessages.proto
 
 <details>
-<summary><code>clientmessages.proto</code> — module: <code>clientmessages_pb2</code>; imports: 0; enums: 2; messages: 7</summary>
+<summary><code>clientmessages.proto</code> — module: <code>clientmessages_pb2</code>; imports: 0; enums: 2; messages: 6</summary>
 
 - Imports: *(none)*
 
 ```text
 1: enum EBaseClientMessages
-12: enum EClientUIEvent
-18: message CClientMsg_CustomGameEvent
-23: message CClientMsg_CustomGameEventBounce
-29: message CClientMsg_ClientUIEvent
-37: message CClientMsg_DevPaletteVisibilityChangedEvent
-41: message CClientMsg_WorldUIControllerHasPanelChangedEvent
-47: message CClientMsg_RotateAnchor
-51: message CClientMsg_ListenForResponseFound
+11: enum EClientUIEvent
+17: message CClientMsg_CustomGameEvent
+22: message CClientMsg_CustomGameEventBounce
+28: message CClientMsg_ClientUIEvent
+36: message CClientMsg_DevPaletteVisibilityChangedEvent
+40: message CClientMsg_WorldUIControllerHasPanelChangedEvent
+46: message CClientMsg_RotateAnchor
 ```
 
 </details>
@@ -360,94 +363,94 @@ Each file is collapsed by default. Expand to view its declarations.
 287: message CDOTAClientMsg_UpdateQuickBuy
 292: message CDOTAClientMsg_QuickBuyAction
 293: enum EActionType
-317: message CDOTAClientMsg_RecordVote
-321: message CDOTAClientMsg_WillPurchaseAlert
-327: message CDOTAClientMsg_BuyBackStateAlert
-330: message CDOTAClientMsg_QuickBuyAlert
-337: message CDOTAClientMsg_PlayerShowCase
-341: message CDOTAClientMsg_CameraZoomAmount
-345: message CDOTAClientMsg_BroadcasterUsingCameraman
-349: message CDOTAClientMsg_BroadcasterUsingAssistedCameraOperator
-353: message CDOTAClientMsg_FillEmptySlotsWithBots
-357: message CDOTAClientMsg_HeroStatueLike
-361: message CDOTAClientMsg_EventCNY2015Cmd
-365: message CDOTAClientMsg_DemoHero
-366: message PreviewItem
-381: message CDOTAClientMsg_ChallengeSelect
-387: message CDOTAClientMsg_ChallengeReroll
-394: message CDOTAClientMsg_CoinWager
-398: message CDOTAClientMsg_CoinWagerToken
-402: message CDOTAClientMsg_RankWager
-406: message CDOTAClientMsg_PlayerBounty
-410: message CDOTAClientMsg_EventPointsTip
-414: message CDOTAClientMsg_ExecuteOrders
-419: message CDOTAClientMsg_XPAlert
-424: message CDOTAClientMsg_TalentTreeAlert
-431: message CDOTAClientMsg_KillcamDamageTaken
-440: message CDOTAClientMsg_KillMyHero
-443: message CDOTAClientMsg_QuestStatus
-453: message CDOTAClientMsg_ToggleAutoattack
-458: message CDOTAClientMsg_SpecialAbility
-463: message CDOTAClientMsg_SetEnemyStartingPosition
-468: message CDOTAClientMsg_SetDesiredWardPlacement
-474: message CDOTAClientMsg_RollDice
-480: message CDOTAClientMsg_FlipCoin
-484: message CDOTAClientMsg_RequestItemSuggestions
-487: message CDOTAClientMsg_SuggestItemPreference
-488: message ItemPreference
-496: message CDOTAClientMsg_SuggestItemRefresh
-500: message CDOTAClientMsg_SuggestItemGetVariants
-504: message CDOTAClientMsg_SuggestItemSelectVariant
-508: message CDOTAClientMsg_MakeTeamCaptain
-512: message CDOTAClientMsg_HelpTipSystemStateChanged
-516: message CDOTAClientMsg_RequestBulkCombatLog
-523: message CDOTAClientMsg_AbilityDraftRequestAbility
-530: message CDOTAClientMsg_GuideSelectOption
-535: message CDOTAClientMsg_GuideSelected
-540: message CDOTAClientMsg_DamageReport
-547: message CDOTAClientMsg_SalutePlayer
-552: message CDOTAClientMsg_GiftPlayer
-557: message CDOTAClientMsg_GiftEveryone
-561: message CDOTAClientMsg_TipAlert
-565: message CDOTAClientMsg_EmptyTeleportAlert
-569: message CDOTAClientMsg_SetCavernMapVariant
-573: message CDOTAClientMsg_PauseGameOrder
-578: message CDOTAClientMsg_VersusScene_PlayerBehavior
-585: message CDOTAClientMsg_EmptyItemSlotAlert
-590: message CDOTAClientMsg_AddOverwatchReportMarker
-596: message CDOTAClientMsg_AddCommunicationsReportMarker
-600: message CDOTAClientMsg_AddCommunicationsBlockMarker
-604: message CDOTAClientMsg_AghsStatusAlert
-611: message CDOTAClientMsg_PerfReport
-636: message CDOTAClientMsg_ContextualTips_Subscribe_Entry
-643: message CDOTAClientMsg_ContextualTips_Subscribe
-647: message CDOTAClientMsg_ChatMessage
-652: message CDOTAClientMsg_DuelAccepted
-657: message CDOTAClientMsg_ChooseNeutralItem
-663: message CDOTAClientMsg_RerollNeutralItem
-668: message CDOTAClientMsg_PlayerDraftPick
-672: message CDOTAClientMsg_PlayerDraftSuggest
-676: message CDOTAClientMsg_PlayerDraftPreferRole
-681: message CDOTAClientMsg_PlayerDraftPreferTeam
-685: message CDOTAClientMsg_AbilityAlert
-695: message CDOTAClientMsg_SelectOverworldTokenRewards
-699: message CDOTAClientMsg_FacetAlert
-705: message CDOTAClientMsg_InnateAlert
-710: message CDOTAClientMsg_SelectOverworldID
-714: message CDOTAClientMsg_RoshanTimer
-718: message CDOTAClientMsg_TormentorTimer
-722: message CDOTAClientMsg_CraftNeutralItem
-725: message CDOTAClientMsg_ChooseCraftedNeutralItem
-731: message CDOTAClientMsg_TimerAlert
-735: message CDOTAClientMsg_MadstoneAlert
-739: message CDOTAClientMsg_UpdateAutoCourierSettings
-743: message CDOTAClientMsg_AutoCourierExecute
-748: message CDOTAClientMsg_MonsterHunter_SelectInvestigation
-752: message CDOTAClientMsg_MonsterHunter_HuntAlert
-757: message CDOTAClientMsg_ChooseDeityBlessing
-761: message CDOTAClientMsg_ChooseAghanimUpgrade
-767: message CDOTAClientMsg_ChooseAbilityImbue
-771: message CDOTAClientMsg_NetworkStats
+318: message CDOTAClientMsg_RecordVote
+322: message CDOTAClientMsg_WillPurchaseAlert
+328: message CDOTAClientMsg_BuyBackStateAlert
+331: message CDOTAClientMsg_QuickBuyAlert
+338: message CDOTAClientMsg_PlayerShowCase
+342: message CDOTAClientMsg_CameraZoomAmount
+346: message CDOTAClientMsg_BroadcasterUsingCameraman
+350: message CDOTAClientMsg_BroadcasterUsingAssistedCameraOperator
+354: message CDOTAClientMsg_FillEmptySlotsWithBots
+358: message CDOTAClientMsg_HeroStatueLike
+362: message CDOTAClientMsg_EventCNY2015Cmd
+366: message CDOTAClientMsg_DemoHero
+367: message PreviewItem
+382: message CDOTAClientMsg_ChallengeSelect
+388: message CDOTAClientMsg_ChallengeReroll
+395: message CDOTAClientMsg_CoinWager
+399: message CDOTAClientMsg_CoinWagerToken
+403: message CDOTAClientMsg_RankWager
+407: message CDOTAClientMsg_PlayerBounty
+411: message CDOTAClientMsg_EventPointsTip
+415: message CDOTAClientMsg_ExecuteOrders
+420: message CDOTAClientMsg_XPAlert
+425: message CDOTAClientMsg_TalentTreeAlert
+432: message CDOTAClientMsg_KillcamDamageTaken
+441: message CDOTAClientMsg_KillMyHero
+444: message CDOTAClientMsg_QuestStatus
+454: message CDOTAClientMsg_ToggleAutoattack
+459: message CDOTAClientMsg_SpecialAbility
+464: message CDOTAClientMsg_SetEnemyStartingPosition
+469: message CDOTAClientMsg_SetDesiredWardPlacement
+475: message CDOTAClientMsg_RollDice
+481: message CDOTAClientMsg_FlipCoin
+485: message CDOTAClientMsg_RequestItemSuggestions
+488: message CDOTAClientMsg_SuggestItemPreference
+489: message ItemPreference
+497: message CDOTAClientMsg_SuggestItemRefresh
+501: message CDOTAClientMsg_SuggestItemGetVariants
+505: message CDOTAClientMsg_SuggestItemSelectVariant
+509: message CDOTAClientMsg_MakeTeamCaptain
+513: message CDOTAClientMsg_HelpTipSystemStateChanged
+517: message CDOTAClientMsg_RequestBulkCombatLog
+524: message CDOTAClientMsg_AbilityDraftRequestAbility
+531: message CDOTAClientMsg_GuideSelectOption
+536: message CDOTAClientMsg_GuideSelected
+541: message CDOTAClientMsg_DamageReport
+548: message CDOTAClientMsg_SalutePlayer
+553: message CDOTAClientMsg_GiftPlayer
+558: message CDOTAClientMsg_GiftEveryone
+562: message CDOTAClientMsg_TipAlert
+566: message CDOTAClientMsg_EmptyTeleportAlert
+570: message CDOTAClientMsg_SetCavernMapVariant
+574: message CDOTAClientMsg_PauseGameOrder
+579: message CDOTAClientMsg_VersusScene_PlayerBehavior
+586: message CDOTAClientMsg_EmptyItemSlotAlert
+591: message CDOTAClientMsg_AddOverwatchReportMarker
+597: message CDOTAClientMsg_AddCommunicationsReportMarker
+601: message CDOTAClientMsg_AddCommunicationsBlockMarker
+605: message CDOTAClientMsg_AghsStatusAlert
+612: message CDOTAClientMsg_PerfReport
+637: message CDOTAClientMsg_ContextualTips_Subscribe_Entry
+644: message CDOTAClientMsg_ContextualTips_Subscribe
+648: message CDOTAClientMsg_ChatMessage
+653: message CDOTAClientMsg_DuelAccepted
+658: message CDOTAClientMsg_ChooseNeutralItem
+664: message CDOTAClientMsg_RerollNeutralItem
+669: message CDOTAClientMsg_PlayerDraftPick
+673: message CDOTAClientMsg_PlayerDraftSuggest
+677: message CDOTAClientMsg_PlayerDraftPreferRole
+682: message CDOTAClientMsg_PlayerDraftPreferTeam
+686: message CDOTAClientMsg_AbilityAlert
+696: message CDOTAClientMsg_SelectOverworldTokenRewards
+700: message CDOTAClientMsg_FacetAlert
+706: message CDOTAClientMsg_InnateAlert
+711: message CDOTAClientMsg_SelectOverworldID
+715: message CDOTAClientMsg_RoshanTimer
+719: message CDOTAClientMsg_TormentorTimer
+723: message CDOTAClientMsg_CraftNeutralItem
+726: message CDOTAClientMsg_ChooseCraftedNeutralItem
+732: message CDOTAClientMsg_TimerAlert
+736: message CDOTAClientMsg_MadstoneAlert
+740: message CDOTAClientMsg_UpdateAutoCourierSettings
+744: message CDOTAClientMsg_AutoCourierExecute
+749: message CDOTAClientMsg_MonsterHunter_SelectInvestigation
+753: message CDOTAClientMsg_MonsterHunter_HuntAlert
+758: message CDOTAClientMsg_ChooseDeityBlessing
+762: message CDOTAClientMsg_ChooseAghanimUpgrade
+768: message CDOTAClientMsg_ChooseAbilityImbue
+772: message CDOTAClientMsg_NetworkStats
 ```
 
 </details>
@@ -1063,15 +1066,15 @@ Each file is collapsed by default. Expand to view its declarations.
 3382: enum ResultCode
 3395: message CMsgClientToGCGetEventRanking
 3400: message CMsgClientToGCGetEventRankingResponse
-3408: message CMsgClientToGCGetEventCoupon
-3412: message CMsgClientToGCGetEventCouponResponse
-3413: message Coupon
-3418: enum ResultCode
-3433: message CMsgClientToGCConvertEventPoints
-3440: message CMsgClientToGCConvertEventPointsResponse
-3441: enum ResultCode
-3453: message CMsgClientToGCInviteToDemoMode
-3458: message CMsgGCToClientInviteToDemoMode
+3409: message CMsgClientToGCGetEventCoupon
+3413: message CMsgClientToGCGetEventCouponResponse
+3414: message Coupon
+3419: enum ResultCode
+3434: message CMsgClientToGCConvertEventPoints
+3441: message CMsgClientToGCConvertEventPointsResponse
+3442: enum ResultCode
+3454: message CMsgClientToGCInviteToDemoMode
+3459: message CMsgGCToClientInviteToDemoMode
 ```
 
 </details>
@@ -1316,7 +1319,7 @@ Each file is collapsed by default. Expand to view its declarations.
 ### dota_gcmessages_client_fantasy.proto
 
 <details>
-<summary><code>dota_gcmessages_client_fantasy.proto</code> — module: <code>dota_gcmessages_client_fantasy_pb2</code>; imports: 1; enums: 13; messages: 59</summary>
+<summary><code>dota_gcmessages_client_fantasy.proto</code> — module: <code>dota_gcmessages_client_fantasy_pb2</code>; imports: 1; enums: 16; messages: 66</summary>
 
 - Imports: dota_shared_enums.proto
 
@@ -1362,37 +1365,47 @@ Each file is collapsed by default. Expand to view its declarations.
 345: message CMsgDotaFantasyCraftingTabletPeriodData
 346: message Gem
 354: message Tablet
-370: message CMsgDotaFantasyCraftingTabletData
-371: message TabletPeriodDataEntry
-379: message CMsgDotaFantasyCraftingUserData
-380: message PeriodScore
-385: message PeriodRollTokensEntry
-390: message PeriodScoresEntry
-400: message CMsgDotaFantasyCraftingDataCache
-401: message CacheEntry
-410: message CMsgClientToGCFantasyCraftingGetData
-415: message CMsgClientToGCFantasyCraftingGetDataResponse
-416: enum EResponse
-430: message CMsgClientToGCFantasyCraftingPerformOperation
-437: message CMsgClientToGCFantasyCraftingPerformOperationResponse
-438: message TitleChoice
-443: enum EResponse
-465: message CMsgGCToClientFantasyCraftingDataUpdated
-471: message CMsgClientToGCFantasyCraftingDevModifyTablet
-479: message CMsgClientToGCFantasyCraftingDevModifyTabletResponse
-480: enum EResponse
-494: message CMsgClientToGCFantasyCraftingSelectPlayer
-499: message CMsgClientToGCFantasyCraftingSelectPlayerResponse
-500: enum EResponse
-514: message CMsgClientToGCFantasyCraftingGenerateTablets
-519: message CMsgClientToGCFantasyCraftingGenerateTabletsResponse
-520: enum EResponse
-535: message CMsgClientToGcFantasyCraftingUpgradeTablets
-539: message CMsgClientToGcFantasyCraftingUpgradeTabletsResponse
-540: enum EResponse
-553: message CMsgClientToGCFantasyCraftingRerollOptions
-557: message CMsgClientToGCFantasyCraftingRerollOptionsResponse
-558: enum EResponse
+371: message CMsgDotaFantasyCraftingTabletData
+372: message TabletPeriodDataEntry
+380: message CMsgDotaFantasyCraftingUserData
+381: message PeriodScore
+386: message PeriodRollTokensEntry
+391: message PeriodScoresEntry
+401: message CMsgDotaFantasyCraftingDataCache
+402: message CacheEntry
+411: message CMsgClientToGCFantasyCraftingGetData
+416: message CMsgClientToGCFantasyCraftingGetDataResponse
+417: enum EResponse
+431: message CMsgClientToGCFantasyCraftingPerformOperation
+438: message CMsgClientToGCFantasyCraftingPerformOperationResponse
+439: message TitleChoice
+444: enum EResponse
+466: message CMsgGCToClientFantasyCraftingDataUpdated
+472: message CMsgClientToGCFantasyCraftingDevModifyTablet
+480: message CMsgClientToGCFantasyCraftingDevModifyTabletResponse
+481: enum EResponse
+495: message CMsgClientToGCFantasyCraftingSelectPlayer
+500: message CMsgClientToGCFantasyCraftingSelectPlayerResponse
+501: enum EResponse
+515: message CMsgClientToGCFantasyCraftingSelectTeam
+521: message CMsgClientToGCFantasyCraftingSelectTeamResponse
+522: enum EResponse
+536: message CMsgClientToGCFantasyCraftingSelectGlobalPrefix
+541: message CMsgClientToGCFantasyCraftingSelectGlobalPrefixResponse
+542: enum EResponse
+556: message CMsgClientToGCFantasyCraftingSelectGlobalSuffix
+561: message CMsgClientToGCFantasyCraftingSelectGlobalSuffixResponse
+562: enum EResponse
+576: message CMsgClientToGCFantasyCraftingGenerateTablets
+577: message TeamChoice
+587: message CMsgClientToGCFantasyCraftingGenerateTabletsResponse
+588: enum EResponse
+604: message CMsgClientToGcFantasyCraftingUpgradeTablets
+608: message CMsgClientToGcFantasyCraftingUpgradeTabletsResponse
+609: enum EResponse
+622: message CMsgClientToGCFantasyCraftingRerollOptions
+626: message CMsgClientToGCFantasyCraftingRerollOptionsResponse
+627: enum EResponse
 ```
 
 </details>
@@ -1861,196 +1874,196 @@ Each file is collapsed by default. Expand to view its declarations.
 251: message CMatchPlayerAbilityUpgrade
 256: message CMatchPlayerTimedCustomStat
 261: message CMatchPlayerTimedStats
-301: message CMatchTeamTimedStats
-309: message CMatchAdditionalUnitInventory
-314: message CMatchPlayerPermanentBuff
-320: message CMatchHeroSelectEvent
-326: message CMatchClip
-338: message CPartySearchClientParty
-344: message CMsgDOTAHasItemQuery
-349: message CMsgDOTAHasItemResponse
-353: message CMsgGCGetPlayerCardItemInfo
-359: message CMsgGCGetPlayerCardItemInfoResponse
-360: message PlayerCardInfo
-369: message CSODOTAMapLocationState
-375: message CMsgLeagueAdminList
-379: message CMsgDOTAProfileCard
-380: message Slot
-381: message Trophy
-386: message Stat
-391: message Item
-396: message Hero
-402: message Emoticon
-406: message Team
-419: enum EStatID
-445: message CSODOTAPlayerChallenge
-465: message CMsgClientToGCRerollPlayerChallenge
-471: message CMsgGCRerollPlayerChallengeResponse
-472: enum EResult
-483: message CMsgGCTopCustomGamesList
-488: message CMsgDOTARealtimeGameStats
-489: message TeamDetails
-503: message ItemDetails
-511: message AbilityDetails
-519: message HeroToHeroStats
-525: message AbilityList
-529: message PlayerDetails
-582: message BuildingDetails
-593: message KillDetails
-599: message BroadcasterDetails
-603: message PickBanDetails
-608: message MatchDetails
-632: message GraphData
-633: message LocationStats
-637: message TeamLocationStats
-641: enum eStat
-648: enum eLocation
-672: message CMsgDOTARealtimeGameStatsTerse
-673: message TeamDetails
-685: message PlayerDetails
-706: message BuildingDetails
-717: message PickBanDetails
-722: message MatchDetails
-739: message GraphData
-750: message CMsgDOTABroadcastTimelineEvent
-757: message CMsgGCToClientMatchGroupsVersion
-761: message CMsgDOTASDOHeroStatsHistory
-774: message CMsgPredictionChoice
-781: message CMsgInGamePrediction
-782: message QueryKeyValues
-787: enum ERawValueType_t
-792: enum EPredictionType
-802: enum EResolutionType_t
-814: enum ERandomSelectionGroup_t
-837: message CMsgDOTASeasonPredictions
-838: message Prediction
-839: message Answers
-843: enum EPredictionType
-854: enum EAnswerType
-893: message CMsgAvailablePredictions
-894: message MatchPrediction
-902: message CMsgLeagueWatchedGames
-903: message Series
-908: message League
-916: message CMsgDOTAMatch
-919: message Player
-920: message CustomGameData
-925: message HeroDamageReceived
-931: enum HeroDamageType
-1016: message BroadcasterInfo
-1021: message BroadcasterChannel
-1028: message Coach
-1037: message CustomGameData
-1042: enum ReplayState
-1098: message CMsgPlayerCard
-1099: message StatModifier
-1108: message CMsgDOTAFantasyPlayerStats
-1138: message CMsgDOTAFantasyPlayerMatchStats
-1142: message CMsgDOTABotDebugInfo
-1143: message Bot
-1144: message Mode
-1153: message Action
-1187: message CMsgSuccessfulHero
-1193: message CMsgRecentMatchInfo
-1207: message CMsgMatchTips
-1208: message SingleTip
-1218: message CMsgDOTAMatchMinimal
-1219: message Player
-1232: message Tourney
-1263: message CMsgConsumableUsage
-1268: message CMsgMatchConsumableUsage
-1269: message PlayerUsage
-1277: message CMsgMatchEventActionGrants
-1278: message PlayerGrants
-1286: message CMsgCustomGameWhitelist
-1292: message CMsgCustomGameWhitelistForEdit
-1293: message WhitelistEntry
-1301: message CMsgPlayerRecentMatchInfo
-1312: message CMsgPlayerMatchRecord
-1317: message CMsgPlayerRecentMatchOutcomes
-1322: message CMsgPlayerRecentCommends
-1327: message CMsgPlayerRecentAccomplishments
-1338: message CMsgPlayerHeroRecentAccomplishments
-1344: message CMsgRecentAccomplishments
-1349: message CMsgServerToGCRequestPlayerRecentAccomplishments
-1354: message CMsgServerToGCRequestPlayerRecentAccomplishmentsResponse
-1355: enum EResponse
-1367: message CMsgArcanaVoteMatchVotes
-1373: message CMsgGCtoGCAssociatedExploiterAccountInfo
-1380: message CMsgGCtoGCAssociatedExploiterAccountInfoResponse
-1381: message Account
-1394: message CMsgPullTabsData
-1395: message Slot
-1403: message Jackpot
-1414: message CMsgUnderDraftData
-1415: message BenchSlot
-1421: message ShopSlot
-1434: message CMsgPlayerTitleData
-1440: message CMsgDOTATriviaQuestion
-1449: message CMsgDOTATriviaQuestionAnswersSummary
-1454: message CMsgGameDataSpecialValueBonus
-1460: message CMsgGameDataSpecialValues
-1472: message CMsgGameDataFacetAbilityBonus
-1478: message CMsgGameDataAbilityOrItem
-1521: message CMsgGameDataAbilityOrItemList
-1525: message CMsgGameDataHero
-1526: message Facet
-1574: message CMsgGameDataAbilities
-1578: message CMsgGameDataItems
-1582: message CMsgGameDataHeroes
-1586: message CMsgGameDataHeroList
-1587: message HeroInfo
-1599: message CMsgGameDataItemAbilityList
-1600: message ItemAbilityInfo
-1601: message Recipe
-1620: message CMsgLobbyAbilityDraftData
-1624: message CSOEconItemDropRateBonus
-1635: message CSOEconItemTournamentPassport
-1646: message CMsgStickerbookSticker
-1659: message CMsgStickerbookPage
-1667: message CMsgStickerbookTeamPageOrderSequence
-1671: message CMsgStickerbook
-1677: message CMsgStickerHero
-1684: message CMsgStickerHeroes
-1688: message CMsgHeroRoleStats
-1694: message CMsgHeroRoleHeroStats
-1699: message CMsgHeroRoleRankStats
-1704: message CMsgHeroRoleAllRanksStats
-1710: message CMsgMapStatsSnapshot
-1723: message CMsgGlobalMapStats
-1729: message CMsgTrackedStat
-1734: message CMsgDOTAClaimEventActionResponse
-1735: message MysteryItemRewardData
-1740: message LootListRewardData
-1744: message ActionListRewardData
-1749: message OverworldTokenRewardData
-1750: message TokenQuantity
-1758: message MonsterHunterMaterialRewardData
-1759: message MaterialQuantity
-1767: message GrantedRewardData
-1775: enum ResultCode
-1798: message CMsgClientToGCDotaLabsFeedback
-1804: message CMsgClientToGCDotaLabsFeedbackResponse
-1805: enum EResponse
-1818: message CDotaMsg_PredictionResult
-1819: message Prediction
-1820: enum EResult
-1838: message CDotaMsgStructuredTooltipProperties
-1839: message AttributeValueValue
-1844: message AttributeValue_Single
-1848: message AttributeValue_Variable
-1852: message AttributeValue_Delta
-1857: message AttributeValue
-1865: message Attribute
-1872: message AttributeGroupDesc_Basic
-1875: message AttributeGroupDesc_Specific
-1880: message AttributeGroupDescription
-1888: message AttributeGroup
-1893: message ContentChunk_AttributeGroup
-1897: message TooltipContentChunk
-1903: message SummaryDescriptionEmbeddedSubAbility
-1909: enum EAbilityTooltipCategory
-1916: enum EAttributeType
+302: message CMatchTeamTimedStats
+310: message CMatchAdditionalUnitInventory
+315: message CMatchPlayerPermanentBuff
+321: message CMatchHeroSelectEvent
+327: message CMatchClip
+339: message CPartySearchClientParty
+345: message CMsgDOTAHasItemQuery
+350: message CMsgDOTAHasItemResponse
+354: message CMsgGCGetPlayerCardItemInfo
+360: message CMsgGCGetPlayerCardItemInfoResponse
+361: message PlayerCardInfo
+370: message CSODOTAMapLocationState
+376: message CMsgLeagueAdminList
+380: message CMsgDOTAProfileCard
+381: message Slot
+382: message Trophy
+387: message Stat
+392: message Item
+397: message Hero
+403: message Emoticon
+407: message Team
+420: enum EStatID
+446: message CSODOTAPlayerChallenge
+466: message CMsgClientToGCRerollPlayerChallenge
+472: message CMsgGCRerollPlayerChallengeResponse
+473: enum EResult
+484: message CMsgGCTopCustomGamesList
+489: message CMsgDOTARealtimeGameStats
+490: message TeamDetails
+504: message ItemDetails
+512: message AbilityDetails
+520: message HeroToHeroStats
+526: message AbilityList
+530: message PlayerDetails
+583: message BuildingDetails
+594: message KillDetails
+600: message BroadcasterDetails
+604: message PickBanDetails
+609: message MatchDetails
+633: message GraphData
+634: message LocationStats
+638: message TeamLocationStats
+642: enum eStat
+649: enum eLocation
+673: message CMsgDOTARealtimeGameStatsTerse
+674: message TeamDetails
+686: message PlayerDetails
+707: message BuildingDetails
+718: message PickBanDetails
+723: message MatchDetails
+740: message GraphData
+751: message CMsgDOTABroadcastTimelineEvent
+758: message CMsgGCToClientMatchGroupsVersion
+762: message CMsgDOTASDOHeroStatsHistory
+775: message CMsgPredictionChoice
+782: message CMsgInGamePrediction
+783: message QueryKeyValues
+788: enum ERawValueType_t
+793: enum EPredictionType
+803: enum EResolutionType_t
+815: enum ERandomSelectionGroup_t
+838: message CMsgDOTASeasonPredictions
+839: message Prediction
+840: message Answers
+844: enum EPredictionType
+855: enum EAnswerType
+894: message CMsgAvailablePredictions
+895: message MatchPrediction
+903: message CMsgLeagueWatchedGames
+904: message Series
+909: message League
+917: message CMsgDOTAMatch
+920: message Player
+921: message CustomGameData
+926: message HeroDamageReceived
+932: enum HeroDamageType
+1017: message BroadcasterInfo
+1022: message BroadcasterChannel
+1029: message Coach
+1038: message CustomGameData
+1043: enum ReplayState
+1099: message CMsgPlayerCard
+1100: message StatModifier
+1109: message CMsgDOTAFantasyPlayerStats
+1139: message CMsgDOTAFantasyPlayerMatchStats
+1143: message CMsgDOTABotDebugInfo
+1144: message Bot
+1145: message Mode
+1154: message Action
+1188: message CMsgSuccessfulHero
+1194: message CMsgRecentMatchInfo
+1208: message CMsgMatchTips
+1209: message SingleTip
+1219: message CMsgDOTAMatchMinimal
+1220: message Player
+1233: message Tourney
+1264: message CMsgConsumableUsage
+1269: message CMsgMatchConsumableUsage
+1270: message PlayerUsage
+1278: message CMsgMatchEventActionGrants
+1279: message PlayerGrants
+1287: message CMsgCustomGameWhitelist
+1293: message CMsgCustomGameWhitelistForEdit
+1294: message WhitelistEntry
+1302: message CMsgPlayerRecentMatchInfo
+1313: message CMsgPlayerMatchRecord
+1318: message CMsgPlayerRecentMatchOutcomes
+1323: message CMsgPlayerRecentCommends
+1328: message CMsgPlayerRecentAccomplishments
+1339: message CMsgPlayerHeroRecentAccomplishments
+1345: message CMsgRecentAccomplishments
+1350: message CMsgServerToGCRequestPlayerRecentAccomplishments
+1355: message CMsgServerToGCRequestPlayerRecentAccomplishmentsResponse
+1356: enum EResponse
+1368: message CMsgArcanaVoteMatchVotes
+1374: message CMsgGCtoGCAssociatedExploiterAccountInfo
+1381: message CMsgGCtoGCAssociatedExploiterAccountInfoResponse
+1382: message Account
+1395: message CMsgPullTabsData
+1396: message Slot
+1404: message Jackpot
+1415: message CMsgUnderDraftData
+1416: message BenchSlot
+1422: message ShopSlot
+1435: message CMsgPlayerTitleData
+1441: message CMsgDOTATriviaQuestion
+1450: message CMsgDOTATriviaQuestionAnswersSummary
+1455: message CMsgGameDataSpecialValueBonus
+1461: message CMsgGameDataSpecialValues
+1473: message CMsgGameDataFacetAbilityBonus
+1479: message CMsgGameDataAbilityOrItem
+1522: message CMsgGameDataAbilityOrItemList
+1526: message CMsgGameDataHero
+1527: message Facet
+1575: message CMsgGameDataAbilities
+1579: message CMsgGameDataItems
+1583: message CMsgGameDataHeroes
+1587: message CMsgGameDataHeroList
+1588: message HeroInfo
+1600: message CMsgGameDataItemAbilityList
+1601: message ItemAbilityInfo
+1602: message Recipe
+1621: message CMsgLobbyAbilityDraftData
+1625: message CSOEconItemDropRateBonus
+1636: message CSOEconItemTournamentPassport
+1647: message CMsgStickerbookSticker
+1660: message CMsgStickerbookPage
+1668: message CMsgStickerbookTeamPageOrderSequence
+1672: message CMsgStickerbook
+1678: message CMsgStickerHero
+1685: message CMsgStickerHeroes
+1689: message CMsgHeroRoleStats
+1695: message CMsgHeroRoleHeroStats
+1700: message CMsgHeroRoleRankStats
+1705: message CMsgHeroRoleAllRanksStats
+1711: message CMsgMapStatsSnapshot
+1724: message CMsgGlobalMapStats
+1730: message CMsgTrackedStat
+1735: message CMsgDOTAClaimEventActionResponse
+1736: message MysteryItemRewardData
+1741: message LootListRewardData
+1745: message ActionListRewardData
+1750: message OverworldTokenRewardData
+1751: message TokenQuantity
+1759: message MonsterHunterMaterialRewardData
+1760: message MaterialQuantity
+1768: message GrantedRewardData
+1776: enum ResultCode
+1799: message CMsgClientToGCDotaLabsFeedback
+1805: message CMsgClientToGCDotaLabsFeedbackResponse
+1806: enum EResponse
+1819: message CDotaMsg_PredictionResult
+1820: message Prediction
+1821: enum EResult
+1839: message CDotaMsgStructuredTooltipProperties
+1840: message AttributeValueValue
+1845: message AttributeValue_Single
+1849: message AttributeValue_Variable
+1853: message AttributeValue_Delta
+1858: message AttributeValue
+1866: message Attribute
+1873: message AttributeGroupDesc_Basic
+1876: message AttributeGroupDesc_Specific
+1881: message AttributeGroupDescription
+1889: message AttributeGroup
+1894: message ContentChunk_AttributeGroup
+1898: message TooltipContentChunk
+1904: message SummaryDescriptionEmbeddedSubAbility
+1910: enum EAbilityTooltipCategory
+1917: enum EAttributeType
 ```
 
 </details>
@@ -2231,41 +2244,41 @@ Each file is collapsed by default. Expand to view its declarations.
 16: enum ELeagueNodeType
 24: message CMsgDOTALeagueNode
 25: message MatchDetails
-30: message VOD
-58: message CMsgDOTALeagueNodeGroup
-59: message TeamStanding
-106: message CMsgDOTALeague
-107: message Info
-124: message Admin
-130: message PrizePoolItem
-137: message PrizePool
-144: message Stream
-153: message SeriesInfo
-162: message Player
-177: message CMsgDOTALeagueList
-181: message CMsgDOTALeagueInfo
-193: message CMsgDOTALeagueInfoList
-197: message CMsgDOTALeagueLiveGames
-198: message LiveGame
-217: message CMsgDOTALeagueMessages
-218: message Message
-227: message CMsgDOTALeaguePrizePool
-232: message CMsgDOTALeagueInfoListAdminsRequest
-235: message CMsgDOTALeagueAvailableLobbyNodesRequest
-239: message CMsgDOTALeagueAvailableLobbyNodes
-240: message NodeInfo
-251: message CMsgDOTALeagueNodeResults
-252: message Result
-275: message CMsgDOTADPCLeagueResults
-276: message Result
-294: message CMsgDOTADPCTeamResults
-295: message Result
-306: message CMsgDOTADPCSeasonResults
-307: message TeamLeagueResult
-317: message TeamResult
-328: message StandingEntry
-337: message Standing
-350: message CMsgDOTADPCSeasonSpoilerResults
+31: message VOD
+59: message CMsgDOTALeagueNodeGroup
+60: message TeamStanding
+108: message CMsgDOTALeague
+109: message Info
+126: message Admin
+132: message PrizePoolItem
+139: message PrizePool
+146: message Stream
+155: message SeriesInfo
+164: message Player
+179: message CMsgDOTALeagueList
+183: message CMsgDOTALeagueInfo
+195: message CMsgDOTALeagueInfoList
+199: message CMsgDOTALeagueLiveGames
+200: message LiveGame
+219: message CMsgDOTALeagueMessages
+220: message Message
+229: message CMsgDOTALeaguePrizePool
+234: message CMsgDOTALeagueInfoListAdminsRequest
+237: message CMsgDOTALeagueAvailableLobbyNodesRequest
+241: message CMsgDOTALeagueAvailableLobbyNodes
+242: message NodeInfo
+253: message CMsgDOTALeagueNodeResults
+254: message Result
+277: message CMsgDOTADPCLeagueResults
+278: message Result
+296: message CMsgDOTADPCTeamResults
+297: message Result
+308: message CMsgDOTADPCSeasonResults
+309: message TeamLeagueResult
+319: message TeamResult
+330: message StandingEntry
+339: message Standing
+352: message CMsgDOTADPCSeasonSpoilerResults
 ```
 
 </details>
@@ -2281,41 +2294,41 @@ Each file is collapsed by default. Expand to view its declarations.
 ```text
 5: enum ELobbyMemberCoachRequestState
 11: enum LobbyDotaTVDelay
-18: enum LobbyDotaPauseSetting
-24: message CMsgLobbyCoachFriendRequest
-30: message CMsgLobbyPlayerPlusSubscriptionData
-31: message HeroBadge
-39: message CMsgEventActionData
-44: message CMsgPeriodicResourceData
-50: message CMsgLobbyEventPoints
-51: message AccountPoints
-72: message CMsgLobbyEventGameData
-77: message CSODOTALobbyInvite
-78: message LobbyMember
-93: message CSODOTALobbyMember
-110: message CSODOTAServerLobbyMember
-113: message CSODOTAStaticLobbyMember
-120: message CSODOTAServerStaticLobbyMember
-141: message CLobbyTeamDetails
-158: message CLobbyGuildDetails
-172: message CLobbyTimedRewardDetails
-180: message CLobbyBroadcastChannelInfo
-187: message CLobbyGuildChallenge
-198: message CDOTALobbyMatchQualityData
-205: message CSODOTALobby
-206: message CExtraMsg
-211: enum State
-221: enum LobbyType
-329: message CSODOTAServerLobby
-335: message CSODOTAStaticLobby
-341: message CSODOTAServerStaticLobby
-348: message CMsgAdditionalLobbyStartupAccountData
-349: message ChatWheelMessageRange
-354: message PingWheelMessageRange
-365: message CMsgLobbyInitializationComplete
-368: message CMsgLobbyPlaytestDetails
-372: message CMsgLocalServerGuildData
-384: message CMsgLocalServerFakeLobbyData
+19: enum LobbyDotaPauseSetting
+25: message CMsgLobbyCoachFriendRequest
+31: message CMsgLobbyPlayerPlusSubscriptionData
+32: message HeroBadge
+40: message CMsgEventActionData
+45: message CMsgPeriodicResourceData
+51: message CMsgLobbyEventPoints
+52: message AccountPoints
+73: message CMsgLobbyEventGameData
+78: message CSODOTALobbyInvite
+79: message LobbyMember
+94: message CSODOTALobbyMember
+111: message CSODOTAServerLobbyMember
+114: message CSODOTAStaticLobbyMember
+121: message CSODOTAServerStaticLobbyMember
+142: message CLobbyTeamDetails
+159: message CLobbyGuildDetails
+173: message CLobbyTimedRewardDetails
+181: message CLobbyBroadcastChannelInfo
+188: message CLobbyGuildChallenge
+199: message CDOTALobbyMatchQualityData
+206: message CSODOTALobby
+207: message CExtraMsg
+212: enum State
+222: enum LobbyType
+330: message CSODOTAServerLobby
+336: message CSODOTAStaticLobby
+342: message CSODOTAServerStaticLobby
+349: message CMsgAdditionalLobbyStartupAccountData
+350: message ChatWheelMessageRange
+355: message PingWheelMessageRange
+366: message CMsgLobbyInitializationComplete
+369: message CMsgLobbyPlaytestDetails
+373: message CMsgLocalServerGuildData
+385: message CMsgLocalServerFakeLobbyData
 ```
 
 </details>
@@ -2426,7 +2439,7 @@ Each file is collapsed by default. Expand to view its declarations.
 ### dota_gcmessages_common_overworld.proto
 
 <details>
-<summary><code>dota_gcmessages_common_overworld.proto</code> — module: <code>dota_gcmessages_common_overworld_pb2</code>; imports: 5; enums: 22; messages: 58</summary>
+<summary><code>dota_gcmessages_common_overworld.proto</code> — module: <code>dota_gcmessages_common_overworld_pb2</code>; imports: 5; enums: 26; messages: 68</summary>
 
 - Imports: steammessages.proto, dota_shared_enums.proto, dota_gcmessages_common.proto, dota_gcmessages_common_survivors.proto, gcsdk_gcmessages.proto
 
@@ -2434,83 +2447,97 @@ Each file is collapsed by default. Expand to view its declarations.
 7: enum EOverworldNodeState
 13: enum EOverworldPathState
 19: enum EOverworldAuditAction
-42: enum EOverworldMinigameAction
-52: message CMsgOverworldTokenCount
-57: message CMsgOverworldTokenQuantity
-61: message CMsgOverworldEncounterTokenTreasureData
-62: message RewardOption
-71: message CMsgOverworldEncounterTokenQuestData
-72: message Quest
-81: message CMsgOverworldHeroList
-85: message CMsgOverworldEncounterChooseHeroData
-90: message CMsgOverworldEncounterProgressData
-97: message CMsgOverworldEncounterData
-101: message CMsgOverworldNode
-107: message CMsgOverworldPath
-113: message CMsgOverworldMinigameCustomData
-119: message CMsgOverworldMinigameUserData
-125: message CMsgOverworldFortune
-132: message CMsgOverworldUserData
-133: message MinigameDataEntry
-146: message CMsgOverworldMatchRewards
-147: message Player
-156: message CMsgClientToGCOverworldGetUserData
-160: message CMsgClientToGCOverworldGetUserDataResponse
-161: enum EResponse
-174: message CMsgGCToClientOverworldUserDataUpdated
-179: message CMsgClientToGCOverworldCompletePath
-184: message CMsgClientToGCOverworldCompletePathResponse
-185: enum EResponse
-203: message CMsgOverworldEncounterPitFighterRewardData
-208: message CMsgClientToGCOverworldClaimEncounterReward
-219: message CMsgClientToGCOverworldClaimEncounterRewardResponse
-220: enum EResponse
-245: message CMsgClientToGCOverworldVisitEncounter
-250: message CMsgClientToGCOverworldVisitEncounterResponse
-251: enum EResponse
-267: message CMsgClientToGCOverworldMoveToNode
-272: message CMsgClientToGCOverworldMoveToNodeResponse
+47: enum EOverworldMinigameAction
+57: message CMsgOverworldTokenCount
+62: message CMsgOverworldTokenQuantity
+66: message CMsgOverworldEncounterTokenTreasureData
+67: message RewardOption
+76: message CMsgOverworldEncounterTokenQuestData
+77: message Quest
+86: message CMsgOverworldHeroList
+90: message CMsgOverworldEncounterChooseHeroData
+95: message CMsgOverworldEncounterProgressData
+102: message CMsgOverworldEncounterData
+106: message CMsgOverworldNode
+112: message CMsgOverworldPath
+118: message CMsgOverworldMinigameCustomData
+124: message CMsgOverworldMinigameUserData
+130: message CMsgOverworldFortune
+131: message CMsgFortuneCount
+144: message CMsgLobbyOverworldFortuneList
+149: message CMsgOverworldUserData
+150: message MinigameDataEntry
+165: message CMsgOverworldMatchRewards
+166: message Player
+175: message CMsgClientToGCOverworldGetUserData
+179: message CMsgClientToGCOverworldGetUserDataResponse
+180: enum EResponse
+193: message CMsgGCToClientOverworldUserDataUpdated
+198: message CMsgClientToGCOverworldCompletePath
+205: message CMsgClientToGCOverworldCompletePathResponse
+206: enum EResponse
+225: message CMsgOverworldEncounterPitFighterRewardData
+230: message CMsgClientToGCOverworldClaimEncounterReward
+241: message CMsgClientToGCOverworldClaimEncounterRewardResponse
+242: enum EResponse
+267: message CMsgClientToGCOverworldVisitEncounter
+272: message CMsgClientToGCOverworldVisitEncounterResponse
 273: enum EResponse
-287: message CMsgClientToGCOverworldTradeTokens
-295: message CMsgClientToGCOverworldTradeTokensResponse
-296: enum EResponse
-316: message CMsgClientToGCOverworldGiftTokens
-323: message CMsgClientToGCOverworldGiftTokensResponse
-324: enum EResponse
-342: message CMsgClientToGCOverworldRequestTokensNeededByFriend
-347: message CMsgClientToGCOverworldRequestTokensNeededByFriendResponse
-348: enum EResponse
-365: message CMsgClientToGCOverworldDevResetAll
-369: message CMsgClientToGCOverworldDevResetAllResponse
+289: message CMsgClientToGCOverworldMoveToNode
+294: message CMsgClientToGCOverworldMoveToNodeResponse
+295: enum EResponse
+309: message CMsgClientToGCOverworldTradeTokens
+317: message CMsgClientToGCOverworldTradeTokensResponse
+318: enum EResponse
+338: message CMsgClientToGCOverworldGiftTokens
+345: message CMsgClientToGCOverworldGiftTokensResponse
+346: enum EResponse
+364: message CMsgClientToGCOverworldRequestTokensNeededByFriend
+369: message CMsgClientToGCOverworldRequestTokensNeededByFriendResponse
 370: enum EResponse
-383: message CMsgClientToGCOverworldDevResetNode
-388: message CMsgClientToGCOverworldDevResetNodeResponse
-389: enum EResponse
-403: message CMsgClientToGCOverworldDevGrantTokens
-408: message CMsgClientToGCOverworldDevGrantTokensResponse
-409: enum EResponse
-422: message CMsgClientToGCOverworldDevClearInventory
-426: message CMsgClientToGCOverworldDevClearInventoryResponse
-427: enum EResponse
-440: message CMsgClientToGCOverworldDevSetFortune
-445: message CMsgClientToGCOverworldDevSetFortuneResponse
-446: enum EResponse
-459: message CMsgClientToGCOverworldDevClearFortune
-464: message CMsgClientToGCOverworldDevClearFortuneResponse
-465: enum EResponse
-478: message CMsgClientToGCOverworldRequestFortune
-482: message CMsgClientToGCOverworldRequestFortuneResponse
-483: enum EResponse
-496: message CMsgClientToGCOverworldFeedback
-502: message CMsgClientToGCOverworldFeedbackResponse
-503: enum EResponse
-516: message CMsgClientToGCOverworldGetDynamicImage
-522: message CMsgClientToGCOverworldGetDynamicImageResponse
-523: message Image
-530: enum EDynamicImageFormat
-540: message CMsgClientToGCOverworldMinigameAction
-549: message CMsgClientToGCOverworldMinigameActionResponse
-550: enum EResponse
+387: message CMsgClientToGCOverworldDevResetAll
+391: message CMsgClientToGCOverworldDevResetAllResponse
+392: enum EResponse
+405: message CMsgClientToGCOverworldDevResetNode
+410: message CMsgClientToGCOverworldDevResetNodeResponse
+411: enum EResponse
+425: message CMsgClientToGCOverworldDevGrantTokens
+430: message CMsgClientToGCOverworldDevGrantTokensResponse
+431: enum EResponse
+444: message CMsgClientToGCOverworldDevClearInventory
+448: message CMsgClientToGCOverworldDevClearInventoryResponse
+449: enum EResponse
+462: message CMsgClientToGCOverworldDevSetFortune
+467: message CMsgClientToGCOverworldDevSetFortuneResponse
+468: enum EResponse
+481: message CMsgClientToGCOverworldDevClearFortune
+486: message CMsgClientToGCOverworldDevClearFortuneResponse
+487: enum EResponse
+500: message CMsgClientToGCOverworldDevGrantFortuneTellerCoin
+504: message CMsgClientToGCOverworldDevGrantFortuneTellerCoinResponse
+505: enum EResponse
+518: message CMsgClientToGCOverworldRequestFortune
+522: message CMsgClientToGCOverworldRequestFortuneResponse
+523: enum EResponse
+539: message CMsgClientToGCOverworldClaimFortuneReward
+543: message CMsgClientToGCOverworldClaimFortuneRewardResponse
+544: enum EResponse
+560: message CMsgClientToGCOverworldClaimFortunePermanentReward
+565: message CMsgClientToGCOverworldClaimFortunePermanentRewardResponse
+566: enum EResponse
+581: message CMsgClientToGCOverworldFeedback
+587: message CMsgClientToGCOverworldFeedbackResponse
+588: enum EResponse
+601: message CMsgClientToGCOverworldGetDynamicImage
+607: message CMsgClientToGCOverworldGetDynamicImageResponse
+608: message Image
+615: enum EDynamicImageFormat
+625: message CMsgClientToGCOverworldMinigameAction
+634: message CMsgClientToGCOverworldMinigameActionResponse
+635: enum EResponse
+653: message CMsgClientToGCOverworldClaimFortuneTellerStoryNode
+658: message CMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse
+659: enum EResponse
 ```
 
 </details>
@@ -2552,7 +2579,7 @@ Each file is collapsed by default. Expand to view its declarations.
 ### dota_gcmessages_server.proto
 
 <details>
-<summary><code>dota_gcmessages_server.proto</code> — module: <code>dota_gcmessages_server_pb2</code>; imports: 14; enums: 6; messages: 187</summary>
+<summary><code>dota_gcmessages_server.proto</code> — module: <code>dota_gcmessages_server_pb2</code>; imports: 14; enums: 6; messages: 170</summary>
 
 - Imports: steammessages.proto, valveextensions.proto, dota_shared_enums.proto, dota_gcmessages_common.proto, econ_gcmessages.proto, base_gcmessages.proto, network_connection.proto, dota_gcmessages_common_lobby.proto, dota_gcmessages_common_match_management.proto, dota_gcmessages_common_overworld.proto, dota_gcmessages_common_craftworks.proto, dota_gcmessages_common_monster_hunter.proto, gcsdk_gcmessages.proto, steammessages_steamlearn.steamworkssdk.proto
 
@@ -2584,172 +2611,155 @@ Each file is collapsed by default. Expand to view its declarations.
 191: message CCustomGameData
 196: message HeroDamageReceived
 202: enum HeroDamageType
-288: message CAdditionalSignoutMsg
-293: message CSocialFeedMatchEvent
-301: message CCustomGameData
-305: message EventGameLeaderboardEntry
-315: message WardPlacement
-358: message CMsgSignOutDraftInfo
-364: message CMsgSignOutBotInfo
-371: message CMsgSignOutTextMuteInfo
-372: message TextMuteMessage
-381: message CMsgSignOutPlayerStats
-414: message CMsgSignOutCommunicationSummary
-415: message PlayerCommunication
-416: message PingDetail
-444: message CMsgGameMatchSignoutResponse
-445: message PlayerMetadata
-475: message CMsgGameMatchSignOutPermissionRequest
-482: message CMsgGameMatchSignOutPermissionResponse
-488: message CMsgGameMatchSignOutEventGameData
-496: message CMsgGameMatchSignOutPerfData
-529: message CMsgGameMatchSignOutBanData
-534: message CMsgDOTALiveScoreboardUpdate
-535: message Team
-536: message Player
-537: message HeroAbility
-543: enum DOTAUltimateState
-598: message CMsgServerToGCRequestBatchPlayerResources
-604: message CMsgServerToGCRequestBatchPlayerResourcesResponse
-605: message Result
-625: message CMsgDOTAPlayerFailedToConnect
-630: message CMsgGCToRelayConnect
-640: message CMsgGCGCToLANServerRelayConnect
-644: message CMsgGCBanStatusRequest
-648: message CMsgGCBanStatusResponse
-655: message CMsgTournamentItemEvent
-670: message CMsgTournamentItemEventResponse
-675: message CMsgTeamFanfare
-679: message CMsgResponseTeamFanfare
-684: message CMsgDOTAAwardEventPoints
-685: message AwardPoints
-701: message CMsgGCToServerPingRequest
-706: message CMsgGCToServerPingResponse
-712: message CMsgServerToGCMatchConnectionStats
-713: message Player
-729: message CMsgServerGCUpdateSpectatorCount
-733: message CSerializedCombatLog
-734: message Dictionary
-735: message DictString
-748: message CMsgServerToGCVictoryPredictions
-749: message PredictionItem
-754: message Record
-763: message CMsgServerToGCRequestStatus
-766: message CMsgServerToGCRequestStatus_Response
-770: message CMsgGCToServerEvaluateToxicChat
-775: message CMsgServerToGCEvaluateToxicChat
-783: message CMsgServerToGCEvaluateToxicChatResponse
-791: message CMsgSignOutAssassinMiniGameInfo
-802: message CMsgServerToGCKillSummaries
-803: message KillSummary
-813: message CMsgServerToGCLockCharmTrading
-818: message CMsgSignOutUpdatePlayerChallenge
-819: message Challenge
-834: message CMsgServerToGCRerollPlayerChallenge
-839: message CMsgSpendWager
-840: message Player
-853: message CMsgSignOutXPCoins
-854: message Player
-869: message CMsgSignOutBounties
-870: message Bounty
-882: message CMsgSignOutCommunityGoalProgress
-883: message EventGoalIncrement
-892: message CMsgServerToGCCloseCompendiumInGamePredictionVoting
-898: message CMsgServerToGCCloseCompendiumInGamePredictionVotingResponse
-902: message CMsgServerToGCCompendiumInGamePredictionResults
-903: message PredictionResult
-915: message CMsgServerToGCCompendiumChosenInGamePredictions
-916: message Prediction
-925: message CMsgGCToGCCompendiumInGamePredictionResults
-929: message CMsgServerToGCMatchPlayerItemPurchaseHistory
-930: message ItemPurchase
-939: message Player
-955: message CMsgServerToGCMatchPlayerNeutralItemEquipHistory
-956: message ItemEquip
-964: message Player
-976: message CMsgServerToGCMatchStateHistory
-977: message PlayerState
-989: message TeamState
-1002: message MatchState
-1014: message CMsgMatchStateSteamMLEntry
-1020: message CMsgLaneSelectionSteamMLEntry
-1025: message CMsgAbilitySelectionSteamMLEntry
-1034: message CMsgItemPurchasePregameSteamMLEntry
-1044: message CMsgItemPurchaseSteamMLEntry
-1054: message CMsgItemPurchaseSequenceSteamMLEntry
-1064: message CMsgServerToGCCavernCrawlIsHeroActive
-1072: message CMsgServerToGCPlayerChallengeHistory
-1073: message PlayerChallenge
-1091: message CMsgServerToGCCavernCrawlIsHeroActiveResponse
-1092: message MapResults
-1104: message CMsgNeutralItemStats
-1105: message NeutralItem
-1117: message CMsgGCToServerLobbyHeroBanRates
-1118: message HeroBanEntry
-1127: message CMsgSignOutGuildContractProgress
-1128: message CompletedGuildEventContracts
-1134: message PlayerContract
-1142: message CMsgSignOutGuildChallengeProgress
-1143: message ChallengeProgress
-1156: message CMsgSignOutMVPStats
-1157: message Player
-1158: message KillEaterEvent
-1197: message CMsgServerToGCGetGuildContracts
-1201: message CMsgServerToGCGetGuildContractsResponse
-1202: message ContractDetails
-1210: message Player
-1220: message CMsgMatchDiretideCandy
-1221: message CandyDetails
-1226: message PlayerCandy
-1237: message CMsgGCToServerCheerData
-1238: message CheerTypeCount
-1246: message CMsgCheerConfig
-1267: message CMsgGCToServerCheerConfig
-1271: message CMsgServerToGCGetCheerConfig
-1275: message CMsgServerToGCGetCheerConfigResponse
-1279: message CMsgGCToServerCheerScalesOverride
-1283: message CMsgGCToServerGetCheerState
-1286: message CMsgCheerTypeState
-1293: message CMsgCheerState
-1299: message CMsgServerToGCReportCheerState
-1304: message CMsgServerToGCGetStickerHeroes
-1308: message CMsgServerToGCGetStickerHeroesResponse
-1309: message Player
-1317: message CMsgSteamLearnMatchInfo
-1325: message CMsgSteamLearnMatchInfoPlayer
-1334: message CMsgSteamLearnMatchInfoTeam
-1335: message Player
-1348: message CMsgSteamLearnMatchHeroesV3
-1359: message CMsgSteamLearnMatchHeroesV4
-1368: message CMsgSteamLearnMatchHeroV6
-1378: message CMsgSteamLearnMatchHeroV8
-1386: message CMsgSteamLearnPlayerTimedStats
-1387: message StatBucket
-1405: message CMsgSteamLearnMatchStateV5
-1406: message PlayerState
-1419: message TeamState
-1437: message CMsgSteamLearnItemPurchaseV7
-1442: message CMsgSteamLearnPreGameItemPurchases
-1448: message CMsgSteamLearnPreGameItemPurchase
-1453: message CMsgSteamLearnNeutralItemPurchaseV4
-1461: message CMsgSteamLearnNeutralItemPurchaseV6
-1469: message CMsgSteamLearnAbilitySkill
-1476: message CMsgSteamLearnWardPlacement
-1477: message Location
-1487: message CMsgSteamLearnPlayerMatchState
-1502: message CMsgSignOutMuertaMinigame
-1506: message CMsgSignOutMapStats
-1507: message Player
-1516: message CMsgServerToGCNewBloomGift
-1522: message CMsgServerToGCNewBloomGiftResponse
-1527: message CMsgSignOutOverworld
-1528: message Player
-1538: message CMsgSignOutCraftworks
-1539: message Player
-1548: message CMsgSignOutMonsterHunter
-1549: message Player
-1559: message CMsgServerToGCWarningLowServerFramerate
-1567: message CMsgServerToGCWarningInvalidBotAbilityUsage
+290: message CAdditionalSignoutMsg
+295: message CSocialFeedMatchEvent
+303: message CCustomGameData
+307: message EventGameLeaderboardEntry
+348: message CMsgSignOutDraftInfo
+354: message CMsgSignOutBotInfo
+361: message CMsgSignOutTextMuteInfo
+362: message TextMuteMessage
+371: message CMsgSignOutPlayerStats
+405: message CMsgSignOutCommunicationSummary
+406: message PlayerCommunication
+407: message PingDetail
+435: message CMsgGameMatchSignoutResponse
+436: message PlayerMetadata
+466: message CMsgGameMatchSignOutPermissionRequest
+473: message CMsgGameMatchSignOutPermissionResponse
+479: message CMsgGameMatchSignOutEventGameData
+487: message CMsgGameMatchSignOutPerfData
+520: message CMsgGameMatchSignOutBanData
+525: message CMsgDOTALiveScoreboardUpdate
+526: message Team
+527: message Player
+528: message HeroAbility
+534: enum DOTAUltimateState
+589: message CMsgServerToGCRequestBatchPlayerResources
+595: message CMsgServerToGCRequestBatchPlayerResourcesResponse
+596: message Result
+616: message CMsgDOTAPlayerFailedToConnect
+621: message CMsgGCToRelayConnect
+631: message CMsgGCGCToLANServerRelayConnect
+635: message CMsgGCBanStatusRequest
+639: message CMsgGCBanStatusResponse
+646: message CMsgTournamentItemEvent
+661: message CMsgTournamentItemEventResponse
+666: message CMsgTeamFanfare
+670: message CMsgResponseTeamFanfare
+675: message CMsgDOTAAwardEventPoints
+676: message AwardPoints
+692: message CMsgGCToServerPingRequest
+697: message CMsgGCToServerPingResponse
+703: message CMsgServerToGCMatchConnectionStats
+704: message Player
+720: message CMsgServerGCUpdateSpectatorCount
+724: message CSerializedCombatLog
+725: message Dictionary
+726: message DictString
+739: message CMsgServerToGCVictoryPredictions
+740: message PredictionItem
+745: message Record
+754: message CMsgServerToGCRequestStatus
+757: message CMsgServerToGCRequestStatus_Response
+761: message CMsgGCToServerEvaluateToxicChat
+766: message CMsgServerToGCEvaluateToxicChat
+774: message CMsgServerToGCEvaluateToxicChatResponse
+782: message CMsgSignOutAssassinMiniGameInfo
+793: message CMsgServerToGCKillSummaries
+794: message KillSummary
+804: message CMsgServerToGCLockCharmTrading
+809: message CMsgSignOutUpdatePlayerChallenge
+810: message Challenge
+825: message CMsgServerToGCRerollPlayerChallenge
+830: message CMsgSpendWager
+831: message Player
+844: message CMsgSignOutXPCoins
+845: message Player
+860: message CMsgSignOutBounties
+861: message Bounty
+873: message CMsgSignOutCommunityGoalProgress
+874: message EventGoalIncrement
+883: message CMsgServerToGCCloseCompendiumInGamePredictionVoting
+889: message CMsgServerToGCCloseCompendiumInGamePredictionVotingResponse
+893: message CMsgServerToGCCompendiumInGamePredictionResults
+894: message PredictionResult
+906: message CMsgServerToGCCompendiumChosenInGamePredictions
+907: message Prediction
+916: message CMsgGCToGCCompendiumInGamePredictionResults
+920: message CMsgServerToGCCavernCrawlIsHeroActive
+928: message CMsgServerToGCPlayerChallengeHistory
+929: message PlayerChallenge
+947: message CMsgServerToGCCavernCrawlIsHeroActiveResponse
+948: message MapResults
+960: message CMsgNeutralItemStats
+961: message NeutralItem
+973: message CMsgGCToServerLobbyHeroBanRates
+974: message HeroBanEntry
+983: message CMsgSignOutGuildContractProgress
+984: message CompletedGuildEventContracts
+990: message PlayerContract
+998: message CMsgSignOutGuildChallengeProgress
+999: message ChallengeProgress
+1012: message CMsgSignOutMVPStats
+1013: message Player
+1014: message KillEaterEvent
+1053: message CMsgServerToGCGetGuildContracts
+1057: message CMsgServerToGCGetGuildContractsResponse
+1058: message ContractDetails
+1066: message Player
+1076: message CMsgMatchDiretideCandy
+1077: message CandyDetails
+1082: message PlayerCandy
+1093: message CMsgGCToServerCheerData
+1094: message CheerTypeCount
+1102: message CMsgCheerConfig
+1123: message CMsgGCToServerCheerConfig
+1127: message CMsgServerToGCGetCheerConfig
+1131: message CMsgServerToGCGetCheerConfigResponse
+1135: message CMsgGCToServerCheerScalesOverride
+1139: message CMsgGCToServerGetCheerState
+1142: message CMsgCheerTypeState
+1149: message CMsgCheerState
+1155: message CMsgServerToGCReportCheerState
+1160: message CMsgServerToGCGetStickerHeroes
+1164: message CMsgServerToGCGetStickerHeroesResponse
+1165: message Player
+1173: message CMsgSteamLearnMatchInfo
+1181: message CMsgSteamLearnMatchInfoPlayer
+1190: message CMsgSteamLearnMatchInfoTeam
+1191: message Player
+1204: message CMsgSteamLearnMatchHeroesV3
+1215: message CMsgSteamLearnMatchHeroesV4
+1224: message CMsgSteamLearnMatchHeroV6
+1234: message CMsgSteamLearnMatchHeroV8
+1242: message CMsgSteamLearnPlayerTimedStats
+1243: message StatBucket
+1261: message CMsgSteamLearnMatchStateV5
+1262: message PlayerState
+1275: message TeamState
+1293: message CMsgSteamLearnItemPurchaseV7
+1298: message CMsgSteamLearnPreGameItemPurchases
+1304: message CMsgSteamLearnPreGameItemPurchase
+1309: message CMsgSteamLearnNeutralItemPurchaseV4
+1317: message CMsgSteamLearnNeutralItemPurchaseV6
+1325: message CMsgSteamLearnAbilitySkill
+1332: message CMsgSteamLearnWardPlacement
+1333: message Location
+1343: message CMsgSteamLearnPlayerMatchState
+1358: message CMsgSignOutMuertaMinigame
+1362: message CMsgSignOutMapStats
+1363: message Player
+1372: message CMsgServerToGCNewBloomGift
+1378: message CMsgServerToGCNewBloomGiftResponse
+1383: message CMsgSignOutOverworld
+1384: message Player
+1395: message CMsgSignOutCraftworks
+1396: message Player
+1405: message CMsgSignOutMonsterHunter
+1406: message Player
+1416: message CMsgServerToGCWarningLowServerFramerate
+1424: message CMsgServerToGCWarningInvalidBotAbilityUsage
 ```
 
 </details>
@@ -2839,7 +2849,7 @@ Each file is collapsed by default. Expand to view its declarations.
 ### dota_match_metadata.proto
 
 <details>
-<summary><code>dota_match_metadata.proto</code> — module: <code>dota_match_metadata_pb2</code>; imports: 10; enums: 2; messages: 45</summary>
+<summary><code>dota_match_metadata.proto</code> — module: <code>dota_match_metadata_pb2</code>; imports: 10; enums: 2; messages: 46</summary>
 
 - Imports: base_gcmessages.proto, dota_gcmessages_common_match_management.proto, dota_gcmessages_common_lobby.proto, dota_gcmessages_common_overworld.proto, dota_gcmessages_common_craftworks.proto, dota_gcmessages_common_monster_hunter.proto, dota_gcmessages_common.proto, dota_shared_enums.proto, gcsdk_gcmessages.proto, networkbasetypes.proto
 
@@ -2867,30 +2877,31 @@ Each file is collapsed by default. Expand to view its declarations.
 164: message Player
 165: message ContractProgress
 175: message OverworldRewards
-251: message GuildChallengeProgress
-252: message IndividualProgress
-267: message Tip
-288: message CDOTAMatchPrivateMetadata
-289: message StringName
-294: message Team
-295: message Player
-296: message CombatSegment
-297: message DamageByAbility
-298: message ByHeroTarget
-308: message HealingByAbility
-309: message ByHeroTarget
-324: message BuffRecord
-325: message ByHeroTarget
-337: message GoldReceived
-348: message XPReceived
-374: message Building
-386: message ContributionsCombatSegment
-387: message DamageContributionRecord
-397: message DamageMitigationRecord
-407: message HealingContributionRecord
-417: message HealingReductionRecord
-427: message KillingBlow
-433: message Dispel
+180: message NeutralItem
+259: message GuildChallengeProgress
+260: message IndividualProgress
+275: message Tip
+296: message CDOTAMatchPrivateMetadata
+297: message StringName
+302: message Team
+303: message Player
+304: message CombatSegment
+305: message DamageByAbility
+306: message ByHeroTarget
+316: message HealingByAbility
+317: message ByHeroTarget
+332: message BuffRecord
+333: message ByHeroTarget
+345: message GoldReceived
+357: message XPReceived
+384: message Building
+396: message ContributionsCombatSegment
+397: message DamageContributionRecord
+408: message DamageMitigationRecord
+419: message HealingContributionRecord
+430: message HealingReductionRecord
+441: message KillingBlow
+447: message Dispel
 ```
 
 </details>
@@ -2906,7 +2917,7 @@ Each file is collapsed by default. Expand to view its declarations.
 ```text
 3: enum DOTA_MODIFIER_ENTRY_TYPE
 8: message CDOTAModifierBuffTableEntry
-53: message CDOTALuaModifierEntry
+55: message CDOTALuaModifierEntry
 ```
 
 </details>
@@ -2938,11 +2949,11 @@ Each file is collapsed by default. Expand to view its declarations.
 97: message HeroNeutralChoice
 103: message HeroNeutralTier
 110: message Hero
-181: message Stock
-190: message Building
-198: message Entity
-205: message Item
-218: message Modifier
+183: message Stock
+192: message Building
+200: message Entity
+207: message Item
+220: message Modifier
 ```
 
 </details>
@@ -2951,79 +2962,78 @@ Each file is collapsed by default. Expand to view its declarations.
 ### dota_shared_enums.proto
 
 <details>
-<summary><code>dota_shared_enums.proto</code> — module: <code>dota_shared_enums_pb2</code>; imports: 0; enums: 54; messages: 14</summary>
+<summary><code>dota_shared_enums.proto</code> — module: <code>dota_shared_enums_pb2</code>; imports: 0; enums: 53; messages: 14</summary>
 
 - Imports: *(none)*
 
 ```text
-1: enum DOTA_GameMode
-31: enum DOTA_GameState
-48: enum DOTA_GC_TEAM
-66: enum EEvent
-128: enum ERankType
-142: enum DOTALeaverStatus_t
-155: enum DOTAConnectionState_t
-165: enum Fantasy_Roles
-173: enum Fantasy_Scoring
-196: enum Fantasy_Team_Slots
-204: enum Fantasy_Selection_Mode
-217: enum Fantasy_Gem_Type
-223: enum DOTAChatChannelType_t
-251: enum EChatSpecialPrivileges
-257: enum DOTACommType_t
-276: enum DOTACommLevel_t
-287: enum DOTABehaviorLevel_t
-295: enum EProfileCardSlotType
-305: enum EMatchGroupServerStatus
-311: enum DOTA_CM_PICK
-317: enum DOTALowPriorityBanType
-324: enum DOTALobbyReadyState
-331: enum DOTAJoinLobbyResult
-349: enum DOTASelectionPriorityRules
-354: enum DOTASelectionPriorityChoice
-362: enum DOTAMatchVote
-368: enum DOTALobbyVisibility
-374: enum EDOTAPlayerMMRType
-380: enum EDOTAMMRBoostType
-386: enum MatchType
-396: enum DOTABotDifficulty
-409: enum DOTA_BOT_MODE
-444: enum MatchLanguages
-455: enum ETourneyQueueDeadlineState
-465: enum EMatchOutcome
-487: enum ELaneType
-496: enum EBadgeType
-526: enum ELeagueStatus
-536: enum ELeagueRegion
-546: enum ELeagueTier
-559: enum ELeagueTierCategory
-565: enum ELeagueDivision
-571: enum ELeagueBroadcastProvider
-579: enum ELeaguePhase
-586: enum ELeagueAuditAction
-631: enum DOTA_COMBATLOG_TYPES
-680: enum EDPCFavoriteType
-687: enum EDPCPushNotification
-701: enum EEventActionScoreMode
-706: enum EPlayerChallengeHistoryType
-715: enum EOverwatchReportReason
-724: enum ECandyShopUpgrade
-731: enum EItemSuggestPreference
-737: enum ETimerAlertType
-745: message CDOTAClientHardwareSpecs
-755: message CDOTASaveGame
-756: message Player
-762: message SaveInstance
-763: message PlayerPositions
-782: message CMsgDOTACombatLogEntry
-867: message CMsgPendingEventAward
-876: message CMsgMonsterHunterMaterialQuantity
-877: message MaterialCountsEntry
-885: message CMsgMonsterHunterInvestigation
-893: message CMsgMonsterHunterInvestigationGameState
-894: message HuntedBy
-905: message CMsgMonsterHunterCodexUpdateData
-906: message KillInfo
+3: enum DOTA_GameMode
+33: enum DOTA_GameState
+50: enum DOTA_GC_TEAM
+68: enum ERankType
+82: enum DOTALeaverStatus_t
+95: enum DOTAConnectionState_t
+105: enum Fantasy_Roles
+113: enum Fantasy_Scoring
+136: enum Fantasy_Team_Slots
+144: enum Fantasy_Selection_Mode
+157: enum Fantasy_Gem_Type
+163: enum DOTAChatChannelType_t
+191: enum EChatSpecialPrivileges
+197: enum DOTACommType_t
+216: enum DOTACommLevel_t
+227: enum DOTABehaviorLevel_t
+235: enum EProfileCardSlotType
+245: enum EMatchGroupServerStatus
+251: enum DOTA_CM_PICK
+257: enum DOTALowPriorityBanType
+264: enum DOTALobbyReadyState
+271: enum DOTAJoinLobbyResult
+289: enum DOTASelectionPriorityRules
+294: enum DOTASelectionPriorityChoice
+302: enum DOTAMatchVote
+308: enum DOTALobbyVisibility
+314: enum EDOTAPlayerMMRType
+320: enum EDOTAMMRBoostType
+326: enum MatchType
+336: enum DOTABotDifficulty
+349: enum DOTA_BOT_MODE
+384: enum MatchLanguages
+395: enum ETourneyQueueDeadlineState
+405: enum EMatchOutcome
+427: enum ELaneType
+436: enum EBadgeType
+471: enum ELeagueStatus
+481: enum ELeagueRegion
+491: enum ELeagueTier
+504: enum ELeagueTierCategory
+510: enum ELeagueDivision
+516: enum ELeagueBroadcastProvider
+524: enum ELeaguePhase
+531: enum ELeagueAuditAction
+576: enum DOTA_COMBATLOG_TYPES
+625: enum EDPCFavoriteType
+632: enum EDPCPushNotification
+646: enum EEventActionScoreMode
+651: enum EPlayerChallengeHistoryType
+660: enum EOverwatchReportReason
+669: enum ECandyShopUpgrade
+676: enum EItemSuggestPreference
+682: enum ETimerAlertType
+690: message CDOTAClientHardwareSpecs
+700: message CDOTASaveGame
+701: message Player
+707: message SaveInstance
+708: message PlayerPositions
+727: message CMsgDOTACombatLogEntry
+812: message CMsgPendingEventAward
+821: message CMsgMonsterHunterMaterialQuantity
+822: message MaterialCountsEntry
+830: message CMsgMonsterHunterInvestigation
+838: message CMsgMonsterHunterInvestigationGameState
+839: message HuntedBy
+850: message CMsgMonsterHunterCodexUpdateData
+851: message KillInfo
 ```
 
 </details>
@@ -3032,12 +3042,12 @@ Each file is collapsed by default. Expand to view its declarations.
 ### dota_usercmd.proto
 
 <details>
-<summary><code>dota_usercmd.proto</code> — module: <code>dota_usercmd_pb2</code>; imports: 2; enums: 0; messages: 1</summary>
+<summary><code>dota_usercmd.proto</code> — module: <code>dota_usercmd_pb2</code>; imports: 3; enums: 0; messages: 1</summary>
 
-- Imports: networkbasetypes.proto, usercmd.proto
+- Imports: valveextensions.proto, networkbasetypes.proto, usercmd.proto
 
 ```text
-4: message CDota2UserCmdPB
+5: message CDota2UserCmdPB
 ```
 
 </details>
@@ -3270,7 +3280,7 @@ Each file is collapsed by default. Expand to view its declarations.
 ### econ_gcmessages.proto
 
 <details>
-<summary><code>econ_gcmessages.proto</code> — module: <code>econ_gcmessages_pb2</code>; imports: 4; enums: 15; messages: 143</summary>
+<summary><code>econ_gcmessages.proto</code> — module: <code>econ_gcmessages_pb2</code>; imports: 4; enums: 16; messages: 143</summary>
 
 - Imports: steammessages.proto, econ_shared_enums.proto, gcsdk_gcmessages.proto, base_gcmessages.proto
 
@@ -3324,115 +3334,116 @@ Each file is collapsed by default. Expand to view its declarations.
 420: enum EResultCode
 431: message CMsgDevNewItemRequest
 439: message CMsgDevNewItemRequestResponse
-443: message CMsgDevUnlockAllItemStyles
-447: message CMsgDevUnlockAllItemStylesResponse
-451: message CMsgGCGetAccountSubscriptionItem
-455: message CMsgGCGetAccountSubscriptionItemResponse
-459: message CMsgGCAddGiftItem
-467: message CMsgClientToGCWrapAndDeliverGift
-473: message CMsgSQLGCToGCRevokeUntrustedGift
-478: message CMsgClientToGCWrapAndDeliverGiftResponse
-488: message CMsgClientToGCUnwrapGift
-492: message CMsgClientToGCGetGiftPermissions
-495: message CMsgClientToGCGetGiftPermissionsResponse
-496: message FriendPermission
-509: message CMsgClientToGCUnpackBundle
-513: message CMsgClientToGCUnpackBundleResponse
-514: enum EUnpackBundle
-529: message CMsgClientToGCPackBundle
-534: message CMsgClientToGCPackBundleResponse
-535: enum EPackBundle
-557: message CMsgGCToClientStoreTransactionCompleted
-562: message CMsgClientToGCEquipItems
-566: message CMsgClientToGCEquipItemsResponse
-570: message CMsgClientToGCSetItemStyle
-575: message CMsgClientToGCSetItemStyleResponse
-576: enum ESetStyle
-585: message CMsgClientToGCUnlockItemStyle
-591: message CMsgClientToGCUnlockItemStyleResponse
-592: enum EUnlockStyle
-613: message CMsgClientToGCSetItemInventoryCategory
-620: message CMsgClientToGCUnlockCrate
-625: message CMsgClientToGCUnlockCrateResponse
-626: message Item
-635: message CMsgClientToGCRemoveItemAttribute
-639: message CMsgClientToGCRemoveItemAttributeResponse
-640: enum ERemoveItemAttribute
-652: message CMsgClientToGCNameItem
-658: message CMsgClientToGCNameItemResponse
-659: enum ENameItem
-671: message CMsgGCSetItemPosition
-676: message CAttribute_ItemDynamicRecipeComponent
-689: message CProtoItemSocket
-699: message CProtoItemSocket_Empty
-703: message CProtoItemSocket_Effect
-708: message CProtoItemSocket_Color
-715: message CProtoItemSocket_Strange
-721: message CProtoItemSocket_Strange_DESERIALIZE_FROM_STRING_ONLY
-728: message CProtoItemSocket_Spectator
-736: message CProtoItemSocket_AssetModifier
-741: message CProtoItemSocket_AssetModifier_DESERIALIZE_FROM_STRING_ONLY
-748: message CProtoItemSocket_Autograph
-755: message CProtoItemSocket_StaticVisuals
-759: message CAttribute_String
-763: message CWorkshop_GetItemDailyRevenue_Request
-770: message CWorkshop_GetItemDailyRevenue_Response
-771: message CountryDailyRevenue
-781: message CWorkshop_GetPackageDailyRevenue_Request
-787: message CWorkshop_GetPackageDailyRevenue_Response
-788: message CountryDailyRevenue
-798: message CMsgSQLGCToGCGrantBackpackSlots
-803: message CMsgClientToGCLookupAccountName
-807: message CMsgClientToGCLookupAccountNameResponse
-812: message CMsgClientToGCCreateStaticRecipe
-813: message Item
-822: message CMsgClientToGCCreateStaticRecipeResponse
-823: message OutputItem
-829: message InputError
-834: message AdditionalOutput
-839: enum EResponse
-854: message CMsgProcessTransactionOrder
-855: message Item
-879: message CMsgGCToGCStoreProcessCDKeyTransaction
-885: message CMsgGCToGCStoreProcessCDKeyTransactionResponse
-889: message CMsgGCToGCStoreProcessSettlement
-893: message CMsgGCToGCStoreProcessSettlementResponse
-897: message CMsgGCToGCBroadcastConsoleCommand
-905: message CMsgGCToGCConsoleOutput
-906: message OutputLine
-917: message CMsgItemAges
-918: message MaxItemIDTimestamp
-926: message CMsgGCToGCInternalTestMsg
-936: message CMsgGCToGCClientServerVersionsUpdated
-944: message CMsgGCToGCBroadcastMessageFromSub
-951: message CMsgGCToClientCurrencyPricePoints
-952: message Currency
-961: message CMsgBannedWordList
-966: message CMsgGCToGCFlushSteamInventoryCache
-967: message Key
-975: message CMsgGCToGCUpdateSubscriptionItems
-980: message CMsgGCToGCSelfPing
-984: message CMsgGCToGCGetInfuxIntervalStats
-987: message CMsgGCToGCGetInfuxIntervalStatsResponse
-995: message CMsgGCToGCPurchaseSucceeded
-998: message CMsgClientToGCGetLimitedItemPurchaseQuantity
-1002: message CMsgClientToGCGetLimitedItemPurchaseQuantityResponse
-1003: enum EResponse
-1017: message CMsgClientToGCGetInFlightItemCharges
-1021: message CMsgClientToGCGetInFlightItemChargesResponse
-1022: enum EResponse
-1035: message CMsgClientToGCPurchaseChargeCostItems
-1036: message Item
-1047: message CMsgClientToGCPurchaseChargeCostItemsResponse
-1048: enum EResponse
-1065: message CMsgGCToClientInFlightChargesUpdated
-1066: message ItemCharges
-1074: message CMsgClientToGCCancelUnfinalizedTransactions
-1078: message CMsgClientToGCCancelUnfinalizedTransactionsResponse
-1082: message CMsgGCToGCUpdateWelcomeMsg
-1088: message CMsgClientToGCRecycleMultipleItems
-1089: message Item
-1098: message CMsgClientToGCRecycleMultipleItemsResponse
+440: enum EResponse
+454: message CMsgDevUnlockAllItemStyles
+458: message CMsgDevUnlockAllItemStylesResponse
+462: message CMsgGCGetAccountSubscriptionItem
+466: message CMsgGCGetAccountSubscriptionItemResponse
+470: message CMsgGCAddGiftItem
+478: message CMsgClientToGCWrapAndDeliverGift
+484: message CMsgSQLGCToGCRevokeUntrustedGift
+489: message CMsgClientToGCWrapAndDeliverGiftResponse
+499: message CMsgClientToGCUnwrapGift
+503: message CMsgClientToGCGetGiftPermissions
+506: message CMsgClientToGCGetGiftPermissionsResponse
+507: message FriendPermission
+520: message CMsgClientToGCUnpackBundle
+524: message CMsgClientToGCUnpackBundleResponse
+525: enum EUnpackBundle
+540: message CMsgClientToGCPackBundle
+545: message CMsgClientToGCPackBundleResponse
+546: enum EPackBundle
+568: message CMsgGCToClientStoreTransactionCompleted
+573: message CMsgClientToGCEquipItems
+577: message CMsgClientToGCEquipItemsResponse
+581: message CMsgClientToGCSetItemStyle
+586: message CMsgClientToGCSetItemStyleResponse
+587: enum ESetStyle
+596: message CMsgClientToGCUnlockItemStyle
+602: message CMsgClientToGCUnlockItemStyleResponse
+603: enum EUnlockStyle
+624: message CMsgClientToGCSetItemInventoryCategory
+631: message CMsgClientToGCUnlockCrate
+636: message CMsgClientToGCUnlockCrateResponse
+637: message Item
+646: message CMsgClientToGCRemoveItemAttribute
+650: message CMsgClientToGCRemoveItemAttributeResponse
+651: enum ERemoveItemAttribute
+663: message CMsgClientToGCNameItem
+669: message CMsgClientToGCNameItemResponse
+670: enum ENameItem
+682: message CMsgGCSetItemPosition
+687: message CAttribute_ItemDynamicRecipeComponent
+700: message CProtoItemSocket
+710: message CProtoItemSocket_Empty
+714: message CProtoItemSocket_Effect
+719: message CProtoItemSocket_Color
+726: message CProtoItemSocket_Strange
+732: message CProtoItemSocket_Strange_DESERIALIZE_FROM_STRING_ONLY
+739: message CProtoItemSocket_Spectator
+747: message CProtoItemSocket_AssetModifier
+752: message CProtoItemSocket_AssetModifier_DESERIALIZE_FROM_STRING_ONLY
+759: message CProtoItemSocket_Autograph
+766: message CProtoItemSocket_StaticVisuals
+770: message CAttribute_String
+774: message CWorkshop_GetItemDailyRevenue_Request
+781: message CWorkshop_GetItemDailyRevenue_Response
+782: message CountryDailyRevenue
+792: message CWorkshop_GetPackageDailyRevenue_Request
+798: message CWorkshop_GetPackageDailyRevenue_Response
+799: message CountryDailyRevenue
+809: message CMsgSQLGCToGCGrantBackpackSlots
+814: message CMsgClientToGCLookupAccountName
+818: message CMsgClientToGCLookupAccountNameResponse
+823: message CMsgClientToGCCreateStaticRecipe
+824: message Item
+833: message CMsgClientToGCCreateStaticRecipeResponse
+834: message OutputItem
+840: message InputError
+845: message AdditionalOutput
+850: enum EResponse
+865: message CMsgProcessTransactionOrder
+866: message Item
+890: message CMsgGCToGCStoreProcessCDKeyTransaction
+896: message CMsgGCToGCStoreProcessCDKeyTransactionResponse
+900: message CMsgGCToGCStoreProcessSettlement
+904: message CMsgGCToGCStoreProcessSettlementResponse
+908: message CMsgGCToGCBroadcastConsoleCommand
+916: message CMsgGCToGCConsoleOutput
+917: message OutputLine
+928: message CMsgItemAges
+929: message MaxItemIDTimestamp
+937: message CMsgGCToGCInternalTestMsg
+947: message CMsgGCToGCClientServerVersionsUpdated
+955: message CMsgGCToGCBroadcastMessageFromSub
+962: message CMsgGCToClientCurrencyPricePoints
+963: message Currency
+972: message CMsgBannedWordList
+977: message CMsgGCToGCFlushSteamInventoryCache
+978: message Key
+986: message CMsgGCToGCUpdateSubscriptionItems
+991: message CMsgGCToGCSelfPing
+995: message CMsgGCToGCGetInfuxIntervalStats
+998: message CMsgGCToGCGetInfuxIntervalStatsResponse
+1006: message CMsgGCToGCPurchaseSucceeded
+1009: message CMsgClientToGCGetLimitedItemPurchaseQuantity
+1013: message CMsgClientToGCGetLimitedItemPurchaseQuantityResponse
+1014: enum EResponse
+1028: message CMsgClientToGCGetInFlightItemCharges
+1032: message CMsgClientToGCGetInFlightItemChargesResponse
+1033: enum EResponse
+1046: message CMsgClientToGCPurchaseChargeCostItems
+1047: message Item
+1058: message CMsgClientToGCPurchaseChargeCostItemsResponse
+1059: enum EResponse
+1076: message CMsgGCToClientInFlightChargesUpdated
+1077: message ItemCharges
+1085: message CMsgClientToGCCancelUnfinalizedTransactions
+1089: message CMsgClientToGCCancelUnfinalizedTransactionsResponse
+1093: message CMsgGCToGCUpdateWelcomeMsg
+1099: message CMsgClientToGCRecycleMultipleItems
+1100: message Item
+1109: message CMsgClientToGCRecycleMultipleItemsResponse
 ```
 
 </details>
@@ -3485,6 +3496,66 @@ Each file is collapsed by default. Expand to view its declarations.
 
 </details>
 
+<a id="event-gcmessages-client-proto"></a>
+### event_gcmessages_client.proto
+
+<details>
+<summary><code>event_gcmessages_client.proto</code> — module: <code>event_gcmessages_client_pb2</code>; imports: 2; enums: 2; messages: 3</summary>
+
+- Imports: events.proto, event_gcmessages_common.proto
+
+```text
+4: enum EGCEventClientMessages
+10: message CMsgClientToGCGetEventPoints
+15: message CMsgClientToGCGetEventPointsResponse
+16: enum EResponse
+29: message CMsgGCToClientEventPointsUpdated
+```
+
+</details>
+
+<a id="event-gcmessages-common-proto"></a>
+### event_gcmessages_common.proto
+
+<details>
+<summary><code>event_gcmessages_common.proto</code> — module: <code>event_gcmessages_common_pb2</code>; imports: 0; enums: 0; messages: 2</summary>
+
+- Imports: *(none)*
+
+```text
+1: message CMsgEventAction
+6: message CMsgUserEventPoints
+```
+
+</details>
+
+<a id="event-gcmessages-server-proto"></a>
+### event_gcmessages_server.proto
+
+<details>
+<summary><code>event_gcmessages_server.proto</code> — module: <code>event_gcmessages_server_pb2</code>; imports: 0; enums: 0; messages: 0</summary>
+
+- Imports: *(none)*
+
+```text
+```
+
+</details>
+
+<a id="events-proto"></a>
+### events.proto
+
+<details>
+<summary><code>events.proto</code> — module: <code>events_pb2</code>; imports: 0; enums: 1; messages: 0</summary>
+
+- Imports: *(none)*
+
+```text
+1: enum EEvent
+```
+
+</details>
+
 <a id="gameevents-proto"></a>
 ### gameevents.proto
 
@@ -3497,22 +3568,22 @@ Each file is collapsed by default. Expand to view its declarations.
 3: enum EBaseGameEvents
 21: message CMsgVDebugGameSessionIDEvent
 26: message CMsgPlaceDecalEvent
-43: message CMsgClearWorldDecalsEvent
-47: message CMsgClearEntityDecalsEvent
-51: message CMsgClearDecalsForEntityEvent
-56: message CMsgSource1LegacyGameEventList
-59: message key_t
-64: message descriptor_t
-73: message CMsgSource1LegacyListenEvents
-78: message CMsgSource1LegacyGameEvent
-79: message key_t
-97: message CMsgSosStartSoundEvent
-106: message CMsgSosStopSoundEvent
-110: message CMsgSosStopSoundEventHash
-115: message CMsgSosSetSoundEventParams
-120: message CMsgSosSetLibraryStackFields
-125: message CMsgClothStiffenAnimEvent
-134: message CMsgClothEffectAnimEvent
+44: message CMsgClearWorldDecalsEvent
+48: message CMsgClearEntityDecalsEvent
+52: message CMsgClearDecalsForEntityEvent
+57: message CMsgSource1LegacyGameEventList
+60: message key_t
+65: message descriptor_t
+74: message CMsgSource1LegacyListenEvents
+79: message CMsgSource1LegacyGameEvent
+80: message key_t
+98: message CMsgSosStartSoundEvent
+107: message CMsgSosStopSoundEvent
+111: message CMsgSosStopSoundEventHash
+116: message CMsgSosSetSoundEventParams
+121: message CMsgSosSetLibraryStackFields
+126: message CMsgClothStiffenAnimEvent
+135: message CMsgClothEffectAnimEvent
 ```
 
 </details>
@@ -3564,45 +3635,45 @@ Each file is collapsed by default. Expand to view its declarations.
 205: message CMsgGCRequestSubGCSessionInfoResponse
 212: message CMsgSOCacheHaveVersion
 219: message CMsgClientHello
-245: message CMsgClientWelcome
-246: message Location
-270: message CMsgConnectionStatus
-279: message CMsgGCToGCSOCacheSubscribe
-280: message CMsgHaveVersions
-292: message CMsgGCToGCSOCacheUnsubscribe
-298: message CMsgGCClientPing
-301: message CMsgGCToGCForwardAccountDetails
-307: message CMsgGCToGCLoadSessionSOCache
-312: message CMsgGCToGCLoadSessionSOCacheResponse
-315: message CMsgGCToGCUpdateSessionStats
-321: message CMsgGCToClientRequestDropped
-324: message CWorkshop_PopulateItemDescriptions_Request
-325: message SingleItemDescription
-330: message ItemDescriptionsLanguageBlock
-339: message CWorkshop_GetContributors_Request
-344: message CWorkshop_GetContributors_Response
-348: message CWorkshop_SetItemPaymentRules_Request
-349: message WorkshopItemPaymentRule
-356: message WorkshopDirectPaymentRule
-361: message PartnerItemPaymentRule
-376: message CWorkshop_SetItemPaymentRules_Response
-380: message CCommunity_ClanAnnouncementInfo
-395: message CCommunity_GetClanAnnouncements_Request
-411: message CCommunity_GetClanAnnouncements_Response
-417: message CBroadcast_PostGameDataFrame_Request
-424: message CMsgSerializedSOCache
-425: message TypeCache
-431: message Cache
-432: message Version
-448: message CMsgGCToClientPollConvarRequest
-453: message CMsgGCToClientPollConvarResponse
-458: message CGCMsgCompressedMsgToClient
-463: message CMsgGCToGCMasterBroadcastMessage
-472: message CMsgGCToGCMasterSubscribeToCache
-479: message CMsgGCToGCMasterSubscribeToCacheResponse
-482: message CMsgGCToGCMasterSubscribeToCacheAsync
-486: message CMsgGCToGCMasterUnsubscribeFromCache
-493: message CMsgGCToGCMasterDestroyCache
+244: message CMsgClientWelcome
+245: message Location
+269: message CMsgConnectionStatus
+278: message CMsgGCToGCSOCacheSubscribe
+279: message CMsgHaveVersions
+291: message CMsgGCToGCSOCacheUnsubscribe
+297: message CMsgGCClientPing
+300: message CMsgGCToGCForwardAccountDetails
+306: message CMsgGCToGCLoadSessionSOCache
+311: message CMsgGCToGCLoadSessionSOCacheResponse
+314: message CMsgGCToGCUpdateSessionStats
+320: message CMsgGCToClientRequestDropped
+323: message CWorkshop_PopulateItemDescriptions_Request
+324: message SingleItemDescription
+329: message ItemDescriptionsLanguageBlock
+338: message CWorkshop_GetContributors_Request
+343: message CWorkshop_GetContributors_Response
+347: message CWorkshop_SetItemPaymentRules_Request
+348: message WorkshopItemPaymentRule
+355: message WorkshopDirectPaymentRule
+360: message PartnerItemPaymentRule
+375: message CWorkshop_SetItemPaymentRules_Response
+379: message CCommunity_ClanAnnouncementInfo
+394: message CCommunity_GetClanAnnouncements_Request
+410: message CCommunity_GetClanAnnouncements_Response
+416: message CBroadcast_PostGameDataFrame_Request
+423: message CMsgSerializedSOCache
+424: message TypeCache
+430: message Cache
+431: message Version
+447: message CMsgGCToClientPollConvarRequest
+452: message CMsgGCToClientPollConvarResponse
+457: message CGCMsgCompressedMsgToClient
+462: message CMsgGCToGCMasterBroadcastMessage
+471: message CMsgGCToGCMasterSubscribeToCache
+478: message CMsgGCToGCMasterSubscribeToCacheResponse
+481: message CMsgGCToGCMasterSubscribeToCacheAsync
+485: message CMsgGCToGCMasterUnsubscribeFromCache
+492: message CMsgGCToGCMasterDestroyCache
 ```
 
 </details>
@@ -3687,36 +3758,36 @@ Each file is collapsed by default. Expand to view its declarations.
 405: message CSVCMsg_CreateStringTable
 420: message CSVCMsg_UpdateStringTable
 428: message CSVCMsg_VoiceData
-438: message CSVCMsg_PacketReliable
-444: message CSVCMsg_FullFrameSplit
-451: message CSVCMsg_HLTVStatus
-458: message CSVCMsg_ServerSteamID
-462: message CSVCMsg_CmdKeyValues
-466: message CSVCMsg_RconServerDetails
-471: message CMsgIPCAddress
-476: message CMsgServerPeer
-485: message CSVCMsg_PeerList
-489: message CSVCMsg_ClearAllStringTables
-494: message ProtoFlattenedSerializerField_t
-495: message polymorphic_field_t
-514: message ProtoFlattenedSerializer_t
-520: message CSVCMsg_FlattenedSerializer
-528: message CSVCMsg_StopSound
-532: message CBidirMsg_RebroadcastGameEvent
-539: message CBidirMsg_RebroadcastSource
-543: message CBidirMsg_PredictionEvent
-544: enum ESyncType
-555: message CMsgServerNetworkStats
-556: message Port
-561: message Player
-599: message CSVCMsg_HltvReplay
-610: message CCLCMsg_HltvReplay
-618: message CSVCMsg_Broadcast_Command
-622: message CCLCMsg_HltvFixupOperatorTick
-633: message CSVCMsg_HltvFixupOperatorStatus
-638: message CMsgServerUserCmd
-646: message CSVCMsg_UserCommands
-650: message CSVCMsg_NextMsgPredicted
+439: message CSVCMsg_PacketReliable
+445: message CSVCMsg_FullFrameSplit
+452: message CSVCMsg_HLTVStatus
+459: message CSVCMsg_ServerSteamID
+463: message CSVCMsg_CmdKeyValues
+467: message CSVCMsg_RconServerDetails
+472: message CMsgIPCAddress
+477: message CMsgServerPeer
+486: message CSVCMsg_PeerList
+490: message CSVCMsg_ClearAllStringTables
+495: message ProtoFlattenedSerializerField_t
+496: message polymorphic_field_t
+515: message ProtoFlattenedSerializer_t
+521: message CSVCMsg_FlattenedSerializer
+529: message CSVCMsg_StopSound
+533: message CBidirMsg_RebroadcastGameEvent
+540: message CBidirMsg_RebroadcastSource
+544: message CBidirMsg_PredictionEvent
+545: enum ESyncType
+556: message CMsgServerNetworkStats
+557: message Port
+562: message Player
+600: message CSVCMsg_HltvReplay
+611: message CCLCMsg_HltvReplay
+619: message CSVCMsg_Broadcast_Command
+623: message CCLCMsg_HltvFixupOperatorTick
+634: message CSVCMsg_HltvFixupOperatorStatus
+639: message CMsgServerUserCmd
+648: message CSVCMsg_UserCommands
+652: message CSVCMsg_NextMsgPredicted
 ```
 
 </details>
@@ -3739,41 +3810,41 @@ Each file is collapsed by default. Expand to view its declarations.
 ### networkbasetypes.proto
 
 <details>
-<summary><code>networkbasetypes.proto</code> — module: <code>networkbasetypes_pb2</code>; imports: 2; enums: 3; messages: 27</summary>
+<summary><code>networkbasetypes.proto</code> — module: <code>networkbasetypes_pb2</code>; imports: 3; enums: 3; messages: 27</summary>
 
-- Imports: google/protobuf/descriptor.proto, network_connection.proto
+- Imports: valveextensions.proto, google/protobuf/descriptor.proto, network_connection.proto
 
 ```text
-8: enum SignonState_t
-19: enum NET_Messages
-35: enum SpawnGroupFlags_t
-46: message CMsgVector
-53: message CMsgVector2D
-58: message CMsgQAngle
-64: message CMsgQuaternion
-71: message CMsgTransform
-77: message CMsgRGBA
-84: message CMsgPlayerInfo
-93: message CEntityMsg
-97: message CMsg_CVars
-98: message CVar
-106: message CNETMsg_NOP
-109: message CNETMsg_SplitScreenUser
-113: message CNETMsg_Tick
-126: message CNETMsg_StringCmd
-131: message CNETMsg_SetConVar
-137: message CNETMsg_SignonState
-146: message CSVCMsg_GameEvent
-147: message key_t
-163: message CSVCMsgList_GameEvents
-164: message event_t
-172: message CNETMsg_SpawnGroup_Load
-197: message CNETMsg_SpawnGroup_ManifestUpdate
-205: message CNETMsg_SpawnGroup_SetCreationTick
-211: message CNETMsg_SpawnGroup_Unload
-217: message CNETMsg_SpawnGroup_LoadCompleted
-221: message CSVCMsg_GameSessionConfiguration
-243: message CNETMsg_DebugOverlay
+9: enum SignonState_t
+20: enum NET_Messages
+36: enum SpawnGroupFlags_t
+47: message CMsgVector
+56: message CMsgVector2D
+63: message CMsgQAngle
+71: message CMsgQuaternion
+80: message CMsgTransform
+88: message CMsgRGBA
+97: message CMsgPlayerInfo
+106: message CEntityMsg
+110: message CMsg_CVars
+111: message CVar
+119: message CNETMsg_NOP
+122: message CNETMsg_SplitScreenUser
+126: message CNETMsg_Tick
+139: message CNETMsg_StringCmd
+144: message CNETMsg_SetConVar
+150: message CNETMsg_SignonState
+159: message CSVCMsg_GameEvent
+160: message key_t
+176: message CSVCMsgList_GameEvents
+177: message event_t
+185: message CNETMsg_SpawnGroup_Load
+210: message CNETMsg_SpawnGroup_ManifestUpdate
+218: message CNETMsg_SpawnGroup_SetCreationTick
+224: message CNETMsg_SpawnGroup_Unload
+230: message CNETMsg_SpawnGroup_LoadCompleted
+234: message CSVCMsg_GameSessionConfiguration
+256: message CNETMsg_DebugOverlay
 ```
 
 </details>
@@ -3807,8 +3878,8 @@ Each file is collapsed by default. Expand to view its declarations.
 ```text
 3: enum EBasePredictionEvents
 9: message CPredictionEvent_Teleport
-15: message CPredictionEvent_StringCommand
-19: message CPredictionEvent_Diagnostic
+16: message CPredictionEvent_StringCommand
+20: message CPredictionEvent_Diagnostic
 ```
 
 </details>
@@ -3817,27 +3888,28 @@ Each file is collapsed by default. Expand to view its declarations.
 ### source2_steam_stats.proto
 
 <details>
-<summary><code>source2_steam_stats.proto</code> — module: <code>source2_steam_stats_pb2</code>; imports: 0; enums: 1; messages: 15</summary>
+<summary><code>source2_steam_stats.proto</code> — module: <code>source2_steam_stats_pb2</code>; imports: 0; enums: 1; messages: 16</summary>
 
 - Imports: *(none)*
 
 ```text
 1: enum ESource2PlayStatsFieldType
-21: message CMsgSource2SystemSpecs
-38: message CMsgSource2VProfLiteReportItem
-59: message CMsgSource2VProfLiteReport
-65: message CMsgSource2NetworkFlowQuality
-112: message CMsgSource2PerfIntervalSample
-113: message Tag
-126: message CSource2Metrics_MatchPerfSummary_Notification
-127: message Client
-146: message CMsgSource2PlayStatsPackedRecordList
-147: message FieldDef
-152: message SteamIDList
-177: message CSource2Metrics_RecordPlayStats_Notification
-182: message CSource2Metrics_FetchMapData_Request
-191: message CSource2Metrics_FetchMapData_Response
-192: message MapData
+22: message CMsgSource2SystemSpecs
+39: message CMsgSource2VProfLiteReportItem
+60: message CMsgSource2VProfLiteReport
+66: message CMsgSource2NetworkFlowQuality
+113: message CMsgSource2PerfIntervalSample
+114: message Tag
+127: message CSource2Metrics_MatchPerfSummary_Notification
+128: message Client
+147: message CMsgSource2PlayStatsPackedRecordList
+148: message FieldDef
+153: message SteamIDList
+179: message CSource2Metrics_RecordPlayStats_Notification
+184: message CSource2Metrics_FetchMapData_Request
+193: message CSource2Metrics_FetchMapData_Response
+194: message MapData
+203: message CUserMessage_UserSentBugBug
 ```
 
 </details>
@@ -3937,12 +4009,12 @@ Each file is collapsed by default. Expand to view its declarations.
 
 ```text
 12: enum EGCPlatform
-21: enum GCProtoBufMsgSrc
-30: message CMsgProtoBufHeader
-46: message CGCSystemMsg_GetAccountDetails
-54: message CGCSystemMsg_GetAccountDetails_Response
-97: message CIPLocationInfo
-106: message CGCMsgGetIPLocationResponse
+19: enum GCProtoBufMsgSrc
+28: message CMsgProtoBufHeader
+44: message CGCSystemMsg_GetAccountDetails
+52: message CGCSystemMsg_GetAccountDetails_Response
+95: message CIPLocationInfo
+104: message CGCMsgGetIPLocationResponse
 ```
 
 </details>
@@ -4456,16 +4528,16 @@ Each file is collapsed by default. Expand to view its declarations.
 ### usercmd.proto
 
 <details>
-<summary><code>usercmd.proto</code> — module: <code>usercmd_pb2</code>; imports: 1; enums: 0; messages: 5</summary>
+<summary><code>usercmd.proto</code> — module: <code>usercmd_pb2</code>; imports: 2; enums: 0; messages: 5</summary>
 
-- Imports: networkbasetypes.proto
+- Imports: valveextensions.proto, networkbasetypes.proto
 
 ```text
-3: message CInButtonStatePB
-9: message CSubtickMoveStep
-19: message CBaseUserCmdExecutionNotes
-23: message CBaseUserCmdPB
-45: message CUserCmdBasePB
+4: message CInButtonStatePB
+12: message CSubtickMoveStep
+24: message CBaseUserCmdExecutionNotes
+30: message CBaseUserCmdPB
+54: message CUserCmdBasePB
 ```
 
 </details>
@@ -4474,125 +4546,123 @@ Each file is collapsed by default. Expand to view its declarations.
 ### usermessages.proto
 
 <details>
-<summary><code>usermessages.proto</code> — module: <code>usermessages_pb2</code>; imports: 1; enums: 5; messages: 109</summary>
+<summary><code>usermessages.proto</code> — module: <code>usermessages_pb2</code>; imports: 1; enums: 5; messages: 107</summary>
 
 - Imports: networkbasetypes.proto
 
 ```text
 3: enum EBaseUserMessages
 57: enum EBaseEntityMessages
-66: enum eRollType
-74: enum PARTICLE_MESSAGE
-119: enum EHapticPulseType
-125: message CUserMessageAchievementEvent
-129: message CUserMessageCloseCaption
-136: message CUserMessageCloseCaptionDirect
-143: message CUserMessageCloseCaptionPlaceholder
-150: message CUserMessageCurrentTimescale
-154: message CUserMessageDesiredTimescale
-161: message CUserMessageFade
-168: message CUserMessageShake
-175: message CUserMessageShakeDir
-180: message CUserMessageWaterShake
-187: message CUserMessageScreenTilt
-195: message CUserMessageSayText
-201: message CUserMessageSayText2
-211: message CUserMessageHudMsg
-221: message CUserMessageHudText
-225: message CUserMessageTextMsg
-230: message CUserMessageGameTitle
-233: message CUserMessageResetHUD
-236: message CUserMessageSendAudio
-241: message CUserMessageAudioParameter
-248: message CUserMessageVoiceMask
-254: message CUserMessageRequestState
-257: message CUserMessageRumble
-263: message CUserMessageSayTextChannel
-269: message CUserMessageColoredText
-278: message CUserMessageItemPickup
-282: message CUserMessageAmmoDenied
-286: message CUserMessageShowMenu
-293: message CUserMessageCreditsMsg
-298: message CEntityMessagePlayJingle
-302: message CEntityMessageScreenOverlay
-307: message CEntityMessageRemoveAllDecals
-312: message CEntityMessagePropagateForce
-317: message CEntityMessageDoSpark
-328: message CEntityMessageFixAngle
-334: message CUserMessageCameraTransition
-335: message Transition_DataDriven
-346: message CUserMsg_ParticleManager
-349: message ReleaseParticleIndex
-352: message CreateParticle
-365: message DestroyParticle
-369: message DestroyParticleInvolving
-374: message DestroyParticleNamed
-381: message UpdateParticle_OBSOLETE
-386: message UpdateParticleFwd_OBSOLETE
-391: message UpdateParticleOrient_OBSOLETE
-399: message UpdateParticleTransform
-406: message UpdateParticleFallback
-411: message UpdateParticleOffset
-417: message UpdateParticleEnt
-428: message UpdateParticleSetFrozen
-433: message UpdateParticleShouldDraw
-437: message ChangeControlPointAttachment
-443: message UpdateEntityPosition
-448: message SetParticleFoWProperties
-454: message SetParticleShouldCheckFoW
-458: message SetControlPointModel
-463: message SetControlPointSnapshot
-468: message SetParticleText
-473: message SetTextureAttribute
-478: message SetOverrideTexture
-482: message SetSceneObjectGenericFlag
-486: message SetSceneObjectTintAndDesat
-491: message ParticleSkipToTime
-495: message ParticleCanFreeze
-499: message ParticleFreezeTransitionOverride
-503: message FreezeParticleInvolving
-509: message AddModellistOverrideElement
-515: message ClearModellistOverride
-519: message SetParticleNamedValueContext
-520: message FloatContextValue
-525: message VectorContextValue
-530: message TransformContextValue
-536: message EHandleContext
-547: message CreatePhysicsSim
-553: message DestroyPhysicsSim
-556: message CreateSmokeGrid
-560: message SetVData
-564: message SetMaterialOverride
-569: message AddFan
-590: message UpdateFan
-600: message RemoveFan
-603: message SetParticleClusterGrowth
-655: message CUserMsg_HudError
-659: message CUserMsg_CustomGameEvent
-664: message CUserMessageHapticsManagerPulse
-671: message CUserMessageHapticsManagerEffect
-677: message CUserMessageAnimStateGraphState
-682: message CUserMessageUpdateCssClasses
-688: message CUserMessageServerFrameTime
-692: message CUserMessageLagCompensationError
-696: message CUserMessageRequestDllStatus
-701: message CUserMessageRequestUtilAction
-709: message CUserMessage_UtilMsg_Response
-710: message ItemDetail
-731: message CUserMessage_DllStatus
-732: message CVDiagnostic
-739: message CModule
-756: message CUserMessageRequestInventory
-762: message CUserMessage_Inventory_Response
-763: message InventoryDetail
-791: message CUserMessageRequestDiagnostic
+65: enum eRollType
+73: enum PARTICLE_MESSAGE
+118: enum EHapticPulseType
+124: message CUserMessageAchievementEvent
+128: message CUserMessageCloseCaptionPlaceholder
+135: message CUserMessageCurrentTimescale
+139: message CUserMessageDesiredTimescale
+146: message CUserMessageFade
+153: message CUserMessageShake
+160: message CUserMessageShakeDir
+165: message CUserMessageWaterShake
+172: message CUserMessageScreenTilt
+180: message CUserMessageSayText
+186: message CUserMessageSayText2
+196: message CUserMessageHudMsg
+206: message CUserMessageHudText
+210: message CUserMessageTextMsg
+215: message CUserMessageGameTitle
+218: message CUserMessageResetHUD
+221: message CUserMessageSendAudio
+226: message CUserMessageAudioParameter
+233: message CUserMessageVoiceMask
+239: message CUserMessageRequestState
+242: message CUserMessageRumble
+248: message CUserMessageSayTextChannel
+254: message CUserMessageColoredText
+263: message CUserMessageItemPickup
+267: message CUserMessageAmmoDenied
+271: message CUserMessageShowMenu
+278: message CUserMessageCreditsMsg
+283: message CEntityMessagePlayJingle
+287: message CEntityMessageScreenOverlay
+292: message CEntityMessagePropagateForce
+297: message CEntityMessageDoSpark
+308: message CEntityMessageFixAngle
+314: message CUserMessageCameraTransition
+315: message Transition_DataDriven
+326: message CUserMsg_ParticleManager
+329: message ReleaseParticleIndex
+332: message CreateParticle
+345: message DestroyParticle
+349: message DestroyParticleInvolving
+354: message DestroyParticleNamed
+361: message UpdateParticle_OBSOLETE
+366: message UpdateParticleFwd_OBSOLETE
+371: message UpdateParticleOrient_OBSOLETE
+379: message UpdateParticleTransform
+386: message UpdateParticleFallback
+391: message UpdateParticleOffset
+397: message UpdateParticleEnt
+408: message UpdateParticleSetFrozen
+413: message UpdateParticleShouldDraw
+417: message ChangeControlPointAttachment
+423: message UpdateEntityPosition
+428: message SetParticleFoWProperties
+434: message SetParticleShouldCheckFoW
+438: message SetControlPointModel
+443: message SetControlPointSnapshot
+448: message SetParticleText
+453: message SetTextureAttribute
+458: message SetOverrideTexture
+462: message SetSceneObjectGenericFlag
+466: message SetSceneObjectTintAndDesat
+471: message ParticleSkipToTime
+475: message ParticleCanFreeze
+479: message ParticleFreezeTransitionOverride
+483: message FreezeParticleInvolving
+489: message AddModellistOverrideElement
+495: message ClearModellistOverride
+499: message SetParticleNamedValueContext
+500: message FloatContextValue
+505: message VectorContextValue
+510: message TransformContextValue
+516: message EHandleContext
+527: message CreatePhysicsSim
+533: message DestroyPhysicsSim
+536: message CreateSmokeGrid
+540: message SetVData
+544: message SetMaterialOverride
+549: message AddFan
+570: message UpdateFan
+580: message RemoveFan
+583: message SetParticleClusterGrowth
+635: message CUserMsg_HudError
+639: message CUserMsg_CustomGameEvent
+644: message CUserMessageHapticsManagerPulse
+651: message CUserMessageHapticsManagerEffect
+657: message CUserMessageAnimStateGraphState
+662: message CUserMessageUpdateCssClasses
+668: message CUserMessageServerFrameTime
+672: message CUserMessageLagCompensationError
+676: message CUserMessageRequestDllStatus
+681: message CUserMessageRequestUtilAction
+689: message CUserMessage_UtilMsg_Response
+690: message ItemDetail
+711: message CUserMessage_DllStatus
+712: message CVDiagnostic
+719: message CModule
+736: message CUserMessageRequestInventory
+742: message CUserMessage_Inventory_Response
+743: message InventoryDetail
+771: message CUserMessageRequestDiagnostic
+772: message Diagnostic
+791: message CUserMessage_Diagnostic_Response
 792: message Diagnostic
-811: message CUserMessage_Diagnostic_Response
-812: message Diagnostic
-838: message CUserMessage_ExtraUserData
-846: message CUserMessage_NotifyResponseFound
-847: message Criteria
-866: message CUserMessage_PlayResponseConditional
+818: message CUserMessage_ExtraUserData
+826: message CUserMessage_NotifyResponseFound
+827: message Criteria
+846: message CUserMessage_PlayResponseConditional
+855: message CUserMessage_UsageReport
 ```
 
 </details>
@@ -4606,7 +4676,7 @@ Each file is collapsed by default. Expand to view its declarations.
 - Imports: google/protobuf/descriptor.proto
 
 ```text
-20: enum EProtoDebugVisiblity
+25: enum EProtoDebugVisiblity
 ```
 
 </details>

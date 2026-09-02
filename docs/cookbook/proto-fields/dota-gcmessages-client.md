@@ -6430,7 +6430,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgClientToGCGetEventRankingResponse</code> — fields: 5; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgClientToGCGetEventRankingResponse</code> — fields: 6; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -6442,6 +6442,7 @@ Expand any message to inspect all fields.
 | 3 | `score` | `float` | `optional` |  |  |
 | 4 | `percentile` | `float` | `optional` |  |  |
 | 5 | `final_rank_bucket` | `uint32` | `optional` |  |  |
+| 6 | `update_in_progress` | `bool` | `optional` |  |  |
 
 </details>
 

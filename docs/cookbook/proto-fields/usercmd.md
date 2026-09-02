@@ -3,12 +3,13 @@
 - Module: `usercmd_pb2`
 - Syntax: `unknown`
 - Package: `(none)`
-- Imports: **1**
+- Imports: **2**
 - Messages: **5** (top-level: 5)
 - Enums: **0** (top-level: 0)
 
 ## Imports
 
+- `valveextensions.proto`
 - `networkbasetypes.proto`
 
 ## Messages

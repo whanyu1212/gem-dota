@@ -16,7 +16,7 @@
 Expand any message to inspect all fields.
 
 <details>
-<summary><code>CPredictionEvent_Teleport</code> — fields: 3; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CPredictionEvent_Teleport</code> — fields: 4; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -26,6 +26,7 @@ Expand any message to inspect all fields.
 | 1 | `origin` | `.CMsgVector` | `optional` |  |  |
 | 2 | `angles` | `.CMsgQAngle` | `optional` |  |  |
 | 3 | `drop_to_ground_range` | `float` | `optional` |  |  |
+| 4 | `velocity` | `.CMsgVector` | `optional` |  |  |
 
 </details>
 

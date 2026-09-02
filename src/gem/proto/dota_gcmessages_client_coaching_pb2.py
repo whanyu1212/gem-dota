@@ -23,6 +23,10 @@ _sym_db = _symbol_database.Default()
 
 
 from . import dota_shared_enums_pb2 as dota__shared__enums__pb2
+try:
+  events__pb2 = dota__shared__enums__pb2.events__pb2
+except AttributeError:
+  events__pb2 = dota__shared__enums__pb2.events_pb2
 from . import dota_gcmessages_common_lobby_pb2 as dota__gcmessages__common__lobby__pb2
 
 

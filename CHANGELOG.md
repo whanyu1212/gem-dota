@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **OpenDota minute-curve boundary parity.** Minute-zero interval samples now
+  retain live player counters instead of synthetic zeros, and terminal recovery
+  no longer fabricates a future interval boundary when postGame arrives before
+  the next minute.
+
+### Changed
+- **Dota 2 protobuf definitions refreshed.** Regenerated the bundled Python
+  bindings from the latest `SteamTracking/Protobufs` Dota 2 definitions through
+  commit `e52bafd` (80 → 84 source files), including the new event proto modules
+  and recent match-metadata, modifier, user-message, and network-message fields.
+  The proto downloader now completes full refreshes reliably, and the compiler
+  rewrites protobuf public imports for use inside the `gem.proto` package.
+
 ## [0.5.1] - 2026-09-02
 
 Restores replay downloads for current Valve CDN archives while preserving

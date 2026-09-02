@@ -18,7 +18,7 @@ Expand any message to inspect all fields.
 Expand any enum to inspect all values.
 
 <details>
-<summary><code>EDOTAGCMsg</code> — values: 1012</summary>
+<summary><code>EDOTAGCMsg</code> — values: 1027</summary>
 
 - Parent: *(top-level)*
 
@@ -467,6 +467,7 @@ Expand any enum to inspect all values.
 | `k_EMsgClientToGCSetPlayerCardRosterRequest` | 8180 |
 | `k_EMsgClientToGCSetPlayerCardRosterResponse` | 8181 |
 | `k_EMsgServerToGCCloseCompendiumInGamePredictionVotingResponse` | 8183 |
+| `k_EMsgLobbyOverworldFortuneList` | 8185 |
 | `k_EMsgLobbyBattleCupVictory` | 8186 |
 | `k_EMsgGCGetPlayerCardItemInfo` | 8187 |
 | `k_EMsgGCGetPlayerCardItemInfoResponse` | 8188 |
@@ -1013,6 +1014,12 @@ Expand any enum to inspect all values.
 | `k_EMsgClientToGCMonsterHunterClaimCodexRewardResponse` | 9048 |
 | `k_EMsgClientToGCMonsterHunterClaimSetReward` | 9049 |
 | `k_EMsgClientToGCMonsterHunterClaimSetRewardResponse` | 9050 |
+| `k_EMsgClientToGCFantasyCraftingSelectTeam` | 9051 |
+| `k_EMsgClientToGCFantasyCraftingSelectTeamResponse` | 9052 |
+| `k_EMsgClientToGCFantasyCraftingSelectGlobalPrefix` | 9053 |
+| `k_EMsgClientToGCFantasyCraftingSelectGlobalPrefixResponse` | 9054 |
+| `k_EMsgClientToGCFantasyCraftingSelectGlobalSuffix` | 9055 |
+| `k_EMsgClientToGCFantasyCraftingSelectGlobalSuffixResponse` | 9056 |
 | `k_EMsgClientToGCItemBattlerGetUserData` | 9100 |
 | `k_EMsgClientToGCItemBattlerGetUserDataResponse` | 9101 |
 | `k_EMsgClientToGCItemBattlerGameAction` | 9102 |
@@ -1036,5 +1043,13 @@ Expand any enum to inspect all values.
 | `k_EMsgClientToGCOverworldRequestFortuneResponse` | 9120 |
 | `k_EMsgClientToGCOverworldDevClearFortune` | 9121 |
 | `k_EMsgClientToGCOverworldDevClearFortuneResponse` | 9122 |
+| `k_EMsgClientToGCOverworldClaimFortuneReward` | 9123 |
+| `k_EMsgClientToGCOverworldClaimFortuneRewardResponse` | 9124 |
+| `k_EMsgClientToGCOverworldDevGrantFortuneTellerCoin` | 9125 |
+| `k_EMsgClientToGCOverworldDevGrantFortuneTellerCoinResponse` | 9126 |
+| `k_EMsgClientToGCOverworldClaimFortunePermanentReward` | 9127 |
+| `k_EMsgClientToGCOverworldClaimFortunePermanentRewardResponse` | 9128 |
+| `k_EMsgClientToGCOverworldClaimFortuneTellerStoryNode` | 9129 |
+| `k_EMsgClientToGCOverworldClaimFortuneTellerStoryNodeResponse` | 9130 |
 
 </details>
