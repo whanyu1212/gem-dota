@@ -128,6 +128,25 @@ def test_load_fixture_manifest_requires_active_integrity_metadata(
         load_fixture_manifest(path)
 
 
+@pytest.mark.parametrize("field", ["dem_size_bytes", "dem_sha256"])
+def test_load_fixture_manifest_requires_deprecated_integrity_metadata(
+    tmp_path: Path, field: str
+) -> None:
+    path = tmp_path / "manifest.json"
+    deprecated = _entry(
+        1,
+        name="deprecated-missing-integrity",
+        tier="archive",
+        status="deprecated",
+        replaced_by=2,
+    )
+    deprecated[field] = None
+    _write_manifest(path, [deprecated, _entry(2, name="replacement", tier="canonical")])
+
+    with pytest.raises(FixtureManifestError, match="must define dem_size_bytes and dem_sha256"):
+        load_fixture_manifest(path)
+
+
 def test_load_fixture_manifest_rejects_inactive_replacement(tmp_path: Path) -> None:
     path = tmp_path / "manifest.json"
     _write_manifest(

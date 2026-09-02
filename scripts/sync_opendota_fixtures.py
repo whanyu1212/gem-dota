@@ -170,13 +170,12 @@ def load_fixture_manifest(path: Path = DEFAULT_MANIFEST) -> list[FixtureSpec]:
 
     by_id = {spec.match_id: spec for spec in specs}
     for spec in specs:
-        if spec.status == "active":
-            if spec.source_url is None:
-                raise FixtureManifestError(f"active fixture {spec.match_id} has no download URL")
-            if spec.dem_size_bytes is None or spec.dem_sha256 is None:
-                raise FixtureManifestError(
-                    f"active fixture {spec.match_id} must define dem_size_bytes and dem_sha256"
-                )
+        if spec.dem_size_bytes is None or spec.dem_sha256 is None:
+            raise FixtureManifestError(
+                f"fixture {spec.match_id} must define dem_size_bytes and dem_sha256"
+            )
+        if spec.status == "active" and spec.source_url is None:
+            raise FixtureManifestError(f"active fixture {spec.match_id} has no download URL")
         if spec.status == "deprecated":
             replacement = by_id.get(spec.replaced_by) if spec.replaced_by is not None else None
             if replacement is None or replacement.status != "active":
