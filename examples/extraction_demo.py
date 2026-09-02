@@ -21,7 +21,7 @@ from pathlib import Path
 # Allow running from repo root without installing
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from gem.combat.log import CombatLogEntry
+from gem.combat.log import CombatLogEntry, CombatLogType
 from gem.constants import (
     ABILITIES,
     HEROES,
@@ -355,8 +355,8 @@ def report_combat_log(collector: CombatLogCollector, last_tick: int) -> None:
         total_xp = sum(e.value for e in collector.xp_events)
         print(f"\nXP events: {len(collector.xp_events):,} events, {total_xp:,} total XP")
 
-    add_count = type_counts.get("MODIFIER_ADD", 0)
-    rem_count = type_counts.get("MODIFIER_REMOVE", 0)
+    add_count = type_counts.get(CombatLogType.MODIFIER_ADD, 0)
+    rem_count = type_counts.get(CombatLogType.MODIFIER_REMOVE, 0)
     print(f"\nBuff/debuff activity: {add_count:,} applied, {rem_count:,} removed")
 
     ability_entries = [e for e in entries if e.log_type == "ABILITY"]
