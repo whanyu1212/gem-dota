@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-09-02
+
+Aligns Gem's minute-level gold, XP, last-hit, and deny curves exactly with
+OpenDota's effective sampling boundaries on current replays, adds explicit
+game-time axes to time-series output, and refreshes the bundled Dota 2 protobuf
+definitions.
+
 ### Added
 - **Explicit game-time axes for minute curves.** `ParsedPlayer.game_times_min`
   and `ParsedMatch.game_times_min` now carry the game-relative seconds
@@ -578,7 +585,8 @@ combat-log layers. The supported top-level API (`gem.parse`, `gem.ParsedMatch`,
 - CLI and example scripts, including HTML match report.
 - Validation, fuzzing, and parser robustness foundations.
 
-[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/whanyu1212/gem-dota/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/whanyu1212/gem-dota/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/whanyu1212/gem-dota/compare/v0.4.3...v0.5.0
 [0.4.3]: https://github.com/whanyu1212/gem-dota/compare/v0.4.2...v0.4.3
