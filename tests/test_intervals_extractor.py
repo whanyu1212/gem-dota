@@ -194,7 +194,7 @@ def test_waits_for_game_clock_before_first_interval_emit():
     assert len(ext.snapshots) == 2
 
 
-def test_allows_delayed_zero_baseline_after_clock_tick():
+def test_allows_delayed_initial_boundary_after_clock_tick():
     ext = IntervalExtractor()
     parser = FakeParser(tick=1800, game_time_s=0)
     ext.attach(parser)
@@ -213,25 +213,32 @@ def test_allows_delayed_zero_baseline_after_clock_tick():
     assert {snap.dn for snap in ext.snapshots} == {0}
 
 
-def test_replaces_nonzero_zero_boundary_with_synthetic_baseline():
+def test_initial_boundary_keeps_live_nonzero_values():
     ext = IntervalExtractor()
-    parser = FakeParser(tick=1800, game_time_s=0)
+    parser = FakeParser(tick=1799, game_time_s=-1)
     ext.attach(parser)
 
     ext._on_entity(_player_resource(), EntityOp.UPDATED)
+    ext._on_entity(_zero_radiant_data(), EntityOp.UPDATED)
+    ext._on_entity(_zero_dire_data(), EntityOp.UPDATED)
+
+    # Both teams advance on the boundary tick. The t=0 snapshot must use these
+    # live counters, not nudge back to the cached zero-valued pre-boundary frame.
+    parser.tick = 1800
     ext._on_entity(_radiant_data(), EntityOp.UPDATED)
     ext._on_entity(_dire_data(), EntityOp.UPDATED)
+    parser.game_time_s = 0
     ext._on_entity(_ent("CDOTAGamerulesProxy"), EntityOp.UPDATED)
 
     assert len(ext.snapshots) == 2
     assert [snap.time_s for snap in ext.snapshots] == [0, 0]
-    assert [snap.gold for snap in ext.snapshots] == [0, 0]
-    assert [snap.xp for snap in ext.snapshots] == [0, 0]
-    assert [snap.lh for snap in ext.snapshots] == [0, 0]
-    assert [snap.dn for snap in ext.snapshots] == [0, 0]
+    assert [snap.gold for snap in ext.snapshots] == [1000, 600]
+    assert [snap.xp for snap in ext.snapshots] == [700, 450]
+    assert [snap.lh for snap in ext.snapshots] == [22, 16]
+    assert [snap.dn for snap in ext.snapshots] == [3, 1]
 
 
-def test_rejects_delayed_zero_baseline_with_nonzero_counters():
+def test_allows_delayed_initial_boundary_with_nonzero_counters():
     ext = IntervalExtractor()
     parser = FakeParser(tick=1800, game_time_s=0)
     ext.attach(parser)
@@ -242,7 +249,9 @@ def test_rejects_delayed_zero_baseline_with_nonzero_counters():
     ext._on_entity(_radiant_data(), EntityOp.UPDATED)
     ext._on_entity(_dire_data(), EntityOp.UPDATED)
 
-    assert ext.snapshots == []
+    assert len(ext.snapshots) == 2
+    assert [snap.time_s for snap in ext.snapshots] == [0, 0]
+    assert [snap.gold for snap in ext.snapshots] == [1000, 600]
 
     parser.tick = 3600
     parser.game_time_s = 60
@@ -250,20 +259,42 @@ def test_rejects_delayed_zero_baseline_with_nonzero_counters():
 
     assert len(ext.snapshots) == 4
     assert [snap.time_s for snap in ext.snapshots] == [0, 0, 60, 60]
-    assert [snap.gold for snap in ext.snapshots[:2]] == [0, 0]
+    assert [snap.gold for snap in ext.snapshots[:2]] == [1000, 600]
     assert [snap.gold for snap in ext.snapshots[2:]] == [1000, 600]
 
 
-def test_game_end_emits_nearby_final_interval_boundary():
+def test_game_end_recovers_recent_elapsed_interval_boundary():
+    ext, parser = _attach_ready_extractor(game_time_s=60)
+
+    parser.tick = 3550
+    parser.game_time_s = 122
+    ext._on_game_end(parser.tick)
+
+    assert len(ext.snapshots) == 4
+    assert [snap.time_s for snap in ext.snapshots] == [60, 60, 120, 120]
+    assert [snap.gold for snap in ext.snapshots[2:]] == [1000, 600]
+
+
+def test_game_end_does_not_emit_future_interval_boundary():
     ext, parser = _attach_ready_extractor(game_time_s=60)
 
     parser.tick = 3550
     parser.game_time_s = 118
     ext._on_game_end(parser.tick)
 
-    assert len(ext.snapshots) == 4
-    assert [snap.time_s for snap in ext.snapshots] == [60, 60, 120, 120]
-    assert [snap.gold for snap in ext.snapshots[2:]] == [1000, 600]
+    assert len(ext.snapshots) == 2
+    assert [snap.time_s for snap in ext.snapshots] == [60, 60]
+
+
+def test_game_end_does_not_recover_stale_interval_boundary():
+    ext, parser = _attach_ready_extractor(game_time_s=60)
+
+    parser.tick = 4100
+    parser.game_time_s = 136
+    ext._on_game_end(parser.tick)
+
+    assert len(ext.snapshots) == 2
+    assert [snap.time_s for snap in ext.snapshots] == [60, 60]
 
 
 def test_requires_fresh_game_clock_for_subsequent_interval_emit():
@@ -404,10 +435,10 @@ def test_final_boundary_keeps_live_terminal_values_not_nudged():
 
     Unlike a regular boundary, ``_emit_final_boundary`` is a terminal read: there
     is no future crossing whose on-tick increment must be excluded, so it keeps
-    the last-observed team-data values. Because its ``emit_tick`` is the game-end
-    tick (later than every recorded data frame), ``_team_data_values`` selects the
-    current frame. Here a later data frame (1500 gold) is recorded before game
-    end; the final boundary must emit 1500, not the earlier nudge frame.
+    the last-observed team-data values. The explicit live-value mode selects the
+    current frame even when it arrives on the game-end tick. Here a terminal
+    frame (1500 gold) is recorded over an older frame; the final boundary must
+    emit 1500, not the earlier nudge frame.
 
     Guards against a future change wrongly extending the nudge to the final
     minute, which would regress the terminal value (measured to match OpenDota
@@ -424,14 +455,16 @@ def test_final_boundary_keeps_live_terminal_values_not_nudged():
     ext._on_entity(_ent("CDOTAGamerulesProxy"), EntityOp.UPDATED)
     assert len(ext.snapshots) == 2
 
-    # A later data frame arrives, then the game ends within the grace window of
-    # the t=120 boundary. The final flush must use the terminal (1500) values.
+    # Establish an older post-boundary frame that the regular nudge would use.
     parser.tick = 3500
-    parser.game_time_s = 116
-    ext._on_entity(_radiant_data_with(1500, 1100, 30, 5, 2200), EntityOp.UPDATED)
+    parser.game_time_s = 122
+    ext._on_entity(_radiant_data_with(1300, 900, 27, 4, 1950), EntityOp.UPDATED)
     ext._on_entity(_dire_data(), EntityOp.UPDATED)
 
+    # The terminal frame arrives on the same tick as postGame. Recovery must
+    # bypass the normal crossing-tick nudge and retain these live values.
     parser.tick = 3560
+    ext._on_entity(_radiant_data_with(1500, 1100, 30, 5, 2200), EntityOp.UPDATED)
     ext._on_game_end(parser.tick)
 
     final_radiant = next(s for s in ext.snapshots if s.team == 2 and s.time_s == 120)
