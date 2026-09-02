@@ -72,19 +72,24 @@ def build_manifest_entry(
     }
 
 
+def _load_manifest_for_update(manifest_path: Path) -> dict[str, Any]:
+    if not manifest_path.exists():
+        return {"schema_version": 2, "matches": []}
+
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if not isinstance(manifest, dict):
+        raise ValueError(f"Fixture manifest root must be an object: {manifest_path}")
+    schema_version = manifest.get("schema_version")
+    if schema_version != 2:
+        raise ValueError(
+            f"Fixture manifest uses schema_version {schema_version!r}; "
+            "migrate it to schema_version 2 before updating"
+        )
+    return manifest
+
+
 def update_manifest(manifest_path: Path, entry: dict[str, Any]) -> None:
-    if manifest_path.exists():
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        if not isinstance(manifest, dict):
-            raise ValueError(f"Fixture manifest root must be an object: {manifest_path}")
-        schema_version = manifest.get("schema_version")
-        if schema_version != 2:
-            raise ValueError(
-                f"Fixture manifest uses schema_version {schema_version!r}; "
-                "migrate it to schema_version 2 before updating"
-            )
-    else:
-        manifest = {"schema_version": 2, "matches": []}
+    manifest = _load_manifest_for_update(manifest_path)
 
     matches = list(manifest.get("matches", []))
     existing = next((m for m in matches if m.get("match_id") == entry["match_id"]), None)
@@ -125,6 +130,9 @@ def write_opendota_snapshot(path: Path, payload: dict[str, Any]) -> None:
 
 
 def fetch_fixture(match_id: int, *, out_dir: Path, force: bool, note: str | None) -> Path:
+    manifest_path = out_dir / "manifest.json"
+    _load_manifest_for_update(manifest_path)
+
     from gem.replays.fetch import download_and_decompress
 
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -156,7 +164,7 @@ def fetch_fixture(match_id: int, *, out_dir: Path, force: bool, note: str | None
         dem_size_bytes=dem_path.stat().st_size,
         dem_sha256=file_sha256(dem_path),
     )
-    update_manifest(out_dir / "manifest.json", entry)
+    update_manifest(manifest_path, entry)
     return dem_path
 
 
