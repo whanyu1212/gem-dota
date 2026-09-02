@@ -15,7 +15,7 @@ from __future__ import annotations
 import enum
 import math
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from typing import Any
 
@@ -345,15 +345,33 @@ def _resolve_in_field(f: Field, fp: FieldPath, name: str, depth: int) -> bool:
 EntityHandler = Callable[[Entity, EntityOp], None]
 
 
+@dataclass(frozen=True, slots=True)
+class _EntityHandlerRegistration:
+    """One ordered catch-all or class-filtered entity handler registration."""
+
+    handler: EntityHandler
+    class_names: frozenset[str] = frozenset()
+    class_prefixes: tuple[str, ...] = ()
+
+    def matches(self, class_name: str) -> bool:
+        """Return whether this registration consumes *class_name*."""
+        if not self.class_names and not self.class_prefixes:
+            return True
+        return class_name in self.class_names or class_name.startswith(self.class_prefixes)
+
+
 class EntityTracker:
-    """Manages entity event handler registration and dispatch.
+    """Manages ordered entity handler registration and class-aware dispatch.
 
     Attributes:
-        _handlers: List of registered EntityHandler callables.
+        _registrations: Ordered catch-all and filtered handler registrations.
+        _handlers_by_class_id: Precompiled handlers for each known entity class.
     """
 
     def __init__(self) -> None:
-        self._handlers: list[EntityHandler] = []
+        self._registrations: list[_EntityHandlerRegistration] = []
+        self._class_names_by_id: dict[int, str] | None = None
+        self._handlers_by_class_id: dict[int, tuple[EntityHandler, ...]] = {}
 
     def on_entity(self, handler: EntityHandler) -> None:
         """Register a handler to be called on entity events.
@@ -361,7 +379,50 @@ class EntityTracker:
         Args:
             handler: Callable ``(Entity, EntityOp) -> None``.
         """
-        self._handlers.append(handler)
+        self._register(_EntityHandlerRegistration(handler=handler))
+
+    def _on_entity_filtered(
+        self,
+        handler: EntityHandler,
+        *,
+        class_names: Iterable[str] = (),
+        class_prefixes: Iterable[str] = (),
+    ) -> None:
+        """Register an internal handler for selected entity classes."""
+        names = frozenset(class_names)
+        prefixes = tuple(dict.fromkeys(class_prefixes))
+        if not names and not prefixes:
+            raise ValueError("filtered entity handlers require a class name or prefix")
+        if any(not value for value in names) or any(not value for value in prefixes):
+            raise ValueError("entity class names and prefixes must be non-empty")
+        self._register(
+            _EntityHandlerRegistration(
+                handler=handler,
+                class_names=names,
+                class_prefixes=prefixes,
+            )
+        )
+
+    def _register(self, registration: _EntityHandlerRegistration) -> None:
+        self._registrations.append(registration)
+        if self._class_names_by_id is None:
+            return
+        for class_id, class_name in self._class_names_by_id.items():
+            if registration.matches(class_name):
+                handlers = self._handlers_by_class_id[class_id]
+                self._handlers_by_class_id[class_id] = (*handlers, registration.handler)
+
+    def _on_class_info(self, classes: Iterable[ClassInfo]) -> None:
+        """Compile ordered handler tuples for the supplied entity classes."""
+        self._class_names_by_id = {cls.class_id: cls.name for cls in classes}
+        self._handlers_by_class_id = {
+            class_id: tuple(
+                registration.handler
+                for registration in self._registrations
+                if registration.matches(class_name)
+            )
+            for class_id, class_name in self._class_names_by_id.items()
+        }
 
     def _dispatch(self, entity: Entity, op: EntityOp) -> None:
         """Invoke all registered handlers for the given entity event.
@@ -370,7 +431,16 @@ class EntityTracker:
             entity: The entity that changed.
             op: The EntityOp bitmask.
         """
-        for h in self._handlers:
+        handlers = self._handlers_by_class_id.get(entity.cls.class_id)
+        if handlers is None:
+            # EntityManager cannot dispatch an unknown class in a real replay,
+            # but preserve direct/synthetic tracker behavior before class info.
+            handlers = tuple(
+                registration.handler
+                for registration in self._registrations
+                if registration.matches(entity.cls.name)
+            )
+        for h in handlers:
             h(entity, op)
 
 
@@ -418,6 +488,20 @@ class EntityManager:
         """
         self.tracker.on_entity(handler)
 
+    def _on_entity_filtered(
+        self,
+        handler: EntityHandler,
+        *,
+        class_names: Iterable[str] = (),
+        class_prefixes: Iterable[str] = (),
+    ) -> None:
+        """Register an internal handler for selected entity classes."""
+        self.tracker._on_entity_filtered(
+            handler,
+            class_names=class_names,
+            class_prefixes=class_prefixes,
+        )
+
     # ------------------------------------------------------------------
     # Handlers
     # ------------------------------------------------------------------
@@ -455,6 +539,7 @@ class EntityManager:
             self.classes_by_id[class_id] = ci
             self.classes_by_name[net_name] = ci
 
+        self.tracker._on_class_info(self.classes_by_id.values())
         self._class_info_ready = True
         self._update_baselines()
 

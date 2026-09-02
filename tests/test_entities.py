@@ -205,8 +205,13 @@ class FakeClass:
         self.serializer = None
 
 
-def _entity(name: str = "TestClass", index: int = 0, serial: int = 0) -> Entity:
-    return Entity(index=index, serial=serial, cls=FakeClass(name))
+def _entity(
+    name: str = "TestClass",
+    index: int = 0,
+    serial: int = 0,
+    class_id: int = 1,
+) -> Entity:
+    return Entity(index=index, serial=serial, cls=FakeClass(name, class_id))
 
 
 def _fp(*path: int) -> FieldPath:
@@ -599,6 +604,117 @@ class TestEntityTrackerMultiHandler:
         tracker._dispatch(e, EntityOp.UPDATED)
         assert received[0] is e
 
+    @pytest.mark.parametrize(
+        "op",
+        [
+            EntityOp.CREATED,
+            EntityOp.UPDATED,
+            EntityOp.ENTERED,
+            EntityOp.LEFT,
+            EntityOp.DELETED,
+            EntityOp.CREATED_ENTERED,
+            EntityOp.UPDATED_ENTERED,
+            EntityOp.DELETED_LEFT,
+        ],
+    )
+    def test_generic_and_filtered_handlers_receive_every_operation(self, op):
+        tracker = EntityTracker()
+        received = []
+        tracker.on_entity(lambda _e, value: received.append(("generic", value)))
+        tracker._on_entity_filtered(
+            lambda _e, value: received.append(("filtered", value)),
+            class_names=("ExactClass",),
+        )
+        tracker._on_class_info([ClassInfo(7, "ExactClass", None)])
+
+        tracker._dispatch(_entity("ExactClass", class_id=7), op)
+
+        assert received == [("generic", op), ("filtered", op)]
+
+    def test_exact_and_prefix_filters_ignore_nonmatching_classes(self):
+        tracker = EntityTracker()
+        received = []
+        tracker._on_entity_filtered(
+            lambda entity, _op: received.append(("exact", entity.get_class_name())),
+            class_names=("ExactClass",),
+        )
+        tracker._on_entity_filtered(
+            lambda entity, _op: received.append(("prefix", entity.get_class_name())),
+            class_prefixes=("Hero_",),
+        )
+        tracker._on_class_info(
+            [
+                ClassInfo(1, "ExactClass", None),
+                ClassInfo(2, "Hero_Axe", None),
+                ClassInfo(3, "OtherClass", None),
+            ]
+        )
+
+        tracker._dispatch(_entity("ExactClass", class_id=1), EntityOp.UPDATED)
+        tracker._dispatch(_entity("Hero_Axe", class_id=2), EntityOp.UPDATED)
+        tracker._dispatch(_entity("OtherClass", class_id=3), EntityOp.UPDATED)
+
+        assert received == [("exact", "ExactClass"), ("prefix", "Hero_Axe")]
+
+    def test_registration_order_is_preserved_before_and_after_class_info(self):
+        tracker = EntityTracker()
+        received = []
+        tracker.on_entity(lambda _e, _op: received.append("generic-before"))
+        tracker._on_entity_filtered(
+            lambda _e, _op: received.append("filtered-before"),
+            class_prefixes=("Hero_",),
+        )
+        tracker._on_class_info([ClassInfo(4, "Hero_Axe", None)])
+        tracker._on_entity_filtered(
+            lambda _e, _op: received.append("filtered-after"),
+            class_names=("Hero_Axe",),
+        )
+        tracker.on_entity(lambda _e, _op: received.append("generic-after"))
+
+        tracker._dispatch(_entity("Hero_Axe", class_id=4), EntityOp.CREATED_ENTERED)
+
+        assert received == [
+            "generic-before",
+            "filtered-before",
+            "filtered-after",
+            "generic-after",
+        ]
+
+    def test_overlapping_filters_and_recompile_do_not_duplicate_handler(self):
+        tracker = EntityTracker()
+        received = []
+        tracker._on_entity_filtered(
+            lambda _e, _op: received.append("matched"),
+            class_names=("Hero_Axe",),
+            class_prefixes=("Hero_",),
+        )
+        classes = [ClassInfo(5, "Hero_Axe", None)]
+        tracker._on_class_info(classes)
+        tracker._on_class_info(classes)
+
+        tracker._dispatch(_entity("Hero_Axe", class_id=5), EntityOp.UPDATED)
+
+        assert received == ["matched"]
+
+    def test_filtered_handler_matches_before_class_info_for_direct_dispatch(self):
+        tracker = EntityTracker()
+        received = []
+        tracker._on_entity_filtered(
+            lambda entity, _op: received.append(entity.get_class_name()),
+            class_prefixes=("Hero_",),
+        )
+
+        tracker._dispatch(_entity("Hero_Axe"), EntityOp.UPDATED)
+        tracker._dispatch(_entity("OtherClass"), EntityOp.UPDATED)
+
+        assert received == ["Hero_Axe"]
+
+    def test_filtered_handler_requires_a_nonempty_filter(self):
+        tracker = EntityTracker()
+
+        with pytest.raises(ValueError, match="require a class name or prefix"):
+            tracker._on_entity_filtered(lambda _e, _op: None)
+
 
 # ---------------------------------------------------------------------------
 # ClassInfo
@@ -699,6 +815,37 @@ class TestEntityManagerClassInfo:
 
         em.on_class_info(Msg())
         assert em._class_info_ready is True
+
+    def test_class_info_compiles_filtered_handlers(self):
+        em = self._make_em()
+        received = []
+        em._on_entity_filtered(
+            lambda entity, _op: received.append(entity.get_class_name()),
+            class_prefixes=("CDOTA_Unit_Hero_",),
+        )
+
+        class HeroClass:
+            class_id = 1
+            network_name = "CDOTA_Unit_Hero_Axe"
+
+        class OtherClass:
+            class_id = 2
+            network_name = "CDOTA_BaseNPC"
+
+        class Msg:
+            classes = [HeroClass(), OtherClass()]
+
+        em.on_class_info(Msg())
+        em.tracker._dispatch(
+            Entity(index=0, serial=0, cls=em.classes_by_id[1]),
+            EntityOp.CREATED_ENTERED,
+        )
+        em.tracker._dispatch(
+            Entity(index=1, serial=0, cls=em.classes_by_id[2]),
+            EntityOp.CREATED_ENTERED,
+        )
+
+        assert received == ["CDOTA_Unit_Hero_Axe"]
 
 
 # ---------------------------------------------------------------------------

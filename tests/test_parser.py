@@ -23,6 +23,8 @@ from __future__ import annotations
 import logging
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 import gem.parser as parser_module
 import gem.results.models as model_module
 from gem.binary.reader import BitReader
@@ -356,7 +358,8 @@ class TestCallbackRegistration:
             return None
 
         p.on_entity(cb)
-        assert cb in p._entity_callbacks
+        assert p._entity_callbacks[-1].callback is cb
+        assert p._entity_callbacks[-1].filtered is False
 
     def test_on_entity_also_registers_with_entity_manager_when_present(self):
         p = ReplayParser(b"")
@@ -380,8 +383,116 @@ class TestCallbackRegistration:
 
         p.on_entity(cb1)
         p.on_entity(cb2)
-        user_callbacks = [cb for cb in p._entity_callbacks if cb in {cb1, cb2}]
+        user_callbacks = [
+            registration.callback
+            for registration in p._entity_callbacks
+            if registration.callback in {cb1, cb2}
+        ]
         assert user_callbacks == [cb1, cb2]
+
+    def test_internal_game_start_callback_is_gamerules_filtered(self):
+        p = ReplayParser(b"")
+
+        registration = p._entity_callbacks[0]
+
+        assert registration.callback == p._on_entity_game_start
+        assert registration.class_names == frozenset({"CDOTAGamerulesProxy"})
+        assert registration.class_prefixes == ()
+
+    def test_filtered_callback_registers_with_existing_entity_manager(self):
+        p = ReplayParser(b"")
+        em = MagicMock()
+        p.entity_manager = em
+
+        def cb(e, op):
+            return None
+
+        p._on_entity_filtered(
+            cb,
+            class_names=("ExactClass",),
+            class_prefixes=("Prefix_",),
+        )
+
+        em._on_entity_filtered.assert_called_once_with(
+            cb,
+            class_names=frozenset({"ExactClass"}),
+            class_prefixes=("Prefix_",),
+        )
+
+    def test_filtered_callback_requires_a_nonempty_filter(self):
+        p = ReplayParser(b"")
+
+        with pytest.raises(ValueError, match="require a class name or prefix"):
+            p._on_entity_filtered(lambda _e, _op: None)
+
+    def test_built_in_extractors_register_only_consumed_classes(self):
+        from gem.extractors.courier import CourierExtractor
+        from gem.extractors.draft import DraftExtractor
+        from gem.extractors.intervals import IntervalExtractor
+        from gem.extractors.objectives import ObjectivesExtractor
+        from gem.extractors.players import PlayerExtractor
+        from gem.extractors.wards import WardsExtractor
+
+        p = ReplayParser(b"")
+        expected = [
+            (
+                PlayerExtractor(),
+                {
+                    "CDOTAGamerulesProxy",
+                    "CDOTAPlayerController",
+                    "CDOTADataRadiant",
+                    "CDOTA_DataRadiant",
+                    "CDOTADataDire",
+                    "CDOTA_DataDire",
+                    "CDOTA_PlayerResource",
+                },
+                ("CDOTA_Unit_Hero_",),
+            ),
+            (
+                IntervalExtractor(),
+                {
+                    "CDOTAGamerulesProxy",
+                    "CDOTA_PlayerResource",
+                    "CDOTADataRadiant",
+                    "CDOTA_DataRadiant",
+                    "CDOTADataDire",
+                    "CDOTA_DataDire",
+                },
+                ("CDOTA_Unit_Hero_",),
+            ),
+            (
+                ObjectivesExtractor(),
+                {
+                    "CDOTA_Item_Aegis",
+                    "CDOTA_Item_Cheese",
+                    "CDOTA_Item_RefresherOrb_Shard",
+                    "CDOTA_Item_Roshans_Banner",
+                    "CDOTA_Unit_Roshans_Banner",
+                },
+                (),
+            ),
+            (
+                WardsExtractor(),
+                {"CDOTA_NPC_Observer_Ward", "CDOTA_NPC_Observer_Ward_TrueSight"},
+                ("CDOTA_Unit_Hero_",),
+            ),
+            (CourierExtractor(), set(), ("CDOTA_Unit_Courier",)),
+            (
+                DraftExtractor(),
+                {"CDOTAGamerulesProxy", "CDOTA_PlayerResource"},
+                (),
+            ),
+        ]
+
+        for extractor, class_names, class_prefixes in expected:
+            extractor.attach(p)
+            registration = next(
+                registration
+                for registration in reversed(p._entity_callbacks)
+                if registration.callback == extractor._on_entity
+            )
+            assert registration.class_names == frozenset(class_names)
+            assert registration.class_prefixes == class_prefixes
 
     def test_on_tick_start_appends_callback(self):
         p = ReplayParser(b"")

@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   decompressed size and SHA-256 digest.
 
 ### Changed
+- **Class-aware entity callback dispatch.** Built-in entity handlers are now
+  precompiled into ordered class-ID-specific dispatch tables, avoiding callbacks
+  for entity classes they do not consume while preserving catch-all callbacks and
+  handler ordering.
 - **Deterministic integration fixture selection.** Generic full-replay tests and
   examples now use the explicit short TI2026 fixture instead of whichever local
   replay happens to be found first. The DreamLeague performance baseline and

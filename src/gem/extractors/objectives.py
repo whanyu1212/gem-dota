@@ -312,7 +312,10 @@ class ObjectivesExtractor:
         self._parser = parser
         parser.on_combat_log_entry(self._on_combat_log)
         parser.on_chat_event(self._on_chat_event)
-        parser.on_entity(self._on_entity)
+        parser._on_entity_filtered(
+            self._on_entity,
+            class_names=(*_ROSHAN_ITEM_DROPS, _BANNER_UNIT_CLASS),
+        )
 
     def _on_entity(self, entity: Entity, op: EntityOp) -> None:
         name = entity.get_class_name()

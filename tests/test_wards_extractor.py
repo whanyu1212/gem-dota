@@ -89,6 +89,9 @@ class FakeParser:
     def on_entity(self, h):
         self._ent_handlers.append(h)
 
+    def _on_entity_filtered(self, h, **_filters):
+        self.on_entity(h)
+
 
 def _ward_extractor(tick: int = 0) -> tuple[WardsExtractor, FakeParser]:
     ext = WardsExtractor()

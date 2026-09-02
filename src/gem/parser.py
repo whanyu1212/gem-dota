@@ -46,7 +46,8 @@ Reference: manta/parser.go, manta/demo_packet.go, manta/game_event.go
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
+from dataclasses import dataclass
 from pathlib import Path
 
 # Proto side-effect import order is critical
@@ -144,6 +145,20 @@ ChatEventCallback = Callable[["CDOTAUserMsg_ChatEvent", int], None]
 NeutralItemFoundCallback = Callable[["NeutralItemFoundEvent"], None]
 
 
+@dataclass(frozen=True, slots=True)
+class _EntityCallbackRegistration:
+    """A pending catch-all or internally filtered entity callback."""
+
+    callback: EntityCallback
+    class_names: frozenset[str] = frozenset()
+    class_prefixes: tuple[str, ...] = ()
+
+    @property
+    def filtered(self) -> bool:
+        """Return whether this registration has a class filter."""
+        return bool(self.class_names or self.class_prefixes)
+
+
 def _read_inner_messages(data: bytes) -> list[tuple[int, bytes]]:
     """Unpack the inner message sequence from a CDemoPacket.data blob.
 
@@ -198,7 +213,7 @@ class ReplayParser:
         self.entity_manager: EntityManager | None = None
         self.game_event_manager = GameEventManager()
         self.combat_log = CombatLogProcessor()
-        self._entity_callbacks: list[EntityCallback] = [self._on_entity_game_start]
+        self._entity_callbacks: list[_EntityCallbackRegistration] = []
         self._tick_start_callbacks: list[TickStartCallback] = []
         self._chat_callbacks: list[ChatCallback] = []
         self._chat_event_callbacks: list[ChatEventCallback] = []
@@ -241,6 +256,10 @@ class ReplayParser:
         self._pending_game_end_tick: int | None = None
         self._game_start_time_s: int | None = None
         self._combat_log_game_start_time_s: int | None = None
+        self._on_entity_filtered(
+            self._on_entity_game_start,
+            class_names=("CDOTAGamerulesProxy",),
+        )
 
     # ------------------------------------------------------------------
     # Public callback registration
@@ -252,9 +271,42 @@ class ReplayParser:
         Args:
             callback: ``(Entity, EntityOp) -> None``.
         """
-        self._entity_callbacks.append(callback)
-        if self.entity_manager is not None:
-            self.entity_manager.on_entity(callback)
+        self._register_entity_callback(_EntityCallbackRegistration(callback=callback))
+
+    def _on_entity_filtered(
+        self,
+        callback: EntityCallback,
+        *,
+        class_names: Iterable[str] = (),
+        class_prefixes: Iterable[str] = (),
+    ) -> None:
+        """Register an internal callback for selected entity classes."""
+        names = frozenset(class_names)
+        prefixes = tuple(dict.fromkeys(class_prefixes))
+        if not names and not prefixes:
+            raise ValueError("filtered entity callbacks require a class name or prefix")
+        if any(not value for value in names) or any(not value for value in prefixes):
+            raise ValueError("entity class names and prefixes must be non-empty")
+        self._register_entity_callback(
+            _EntityCallbackRegistration(
+                callback=callback,
+                class_names=names,
+                class_prefixes=prefixes,
+            )
+        )
+
+    def _register_entity_callback(self, registration: _EntityCallbackRegistration) -> None:
+        self._entity_callbacks.append(registration)
+        if self.entity_manager is None:
+            return
+        if registration.filtered:
+            self.entity_manager._on_entity_filtered(
+                registration.callback,
+                class_names=registration.class_names,
+                class_prefixes=registration.class_prefixes,
+            )
+        else:
+            self.entity_manager.on_entity(registration.callback)
 
     def on_tick_start(self, callback: TickStartCallback) -> None:
         """Register a handler called before the current tick's entity deltas.
@@ -648,8 +700,15 @@ class ReplayParser:
     def _on_send_tables(self, data: bytes) -> None:
         serializers = parse_send_tables(data, self.game_build)
         self.entity_manager = EntityManager(serializers, self.string_tables)
-        for cb in self._entity_callbacks:
-            self.entity_manager.on_entity(cb)
+        for registration in self._entity_callbacks:
+            if registration.filtered:
+                self.entity_manager._on_entity_filtered(
+                    registration.callback,
+                    class_names=registration.class_names,
+                    class_prefixes=registration.class_prefixes,
+                )
+            else:
+                self.entity_manager.on_entity(registration.callback)
         # Apply ServerInfo if it arrived before the send tables
         if self._pending_server_info is not None:
             self._on_server_info(self._pending_server_info)

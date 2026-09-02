@@ -41,6 +41,9 @@ class FakeParser:
     def on_entity(self, handler):
         self.entity_handlers.append(handler)
 
+    def _on_entity_filtered(self, handler, **_filters):
+        self.on_entity(handler)
+
     def on_game_end(self, handler):
         self.game_end_handlers.append(handler)
 

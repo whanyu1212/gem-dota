@@ -166,7 +166,18 @@ class IntervalExtractor:
     def attach(self, parser: ReplayParser) -> None:
         """Register parser callbacks."""
         self._parser = parser
-        parser.on_entity(self._on_entity)
+        parser._on_entity_filtered(
+            self._on_entity,
+            class_names=(
+                "CDOTAGamerulesProxy",
+                "CDOTA_PlayerResource",
+                "CDOTADataRadiant",
+                "CDOTA_DataRadiant",
+                "CDOTADataDire",
+                "CDOTA_DataDire",
+            ),
+            class_prefixes=(_HERO_CLASS_PREFIX,),
+        )
         parser.on_game_end(self._on_game_end)
         on_tick_start = getattr(parser, "on_tick_start", None)
         if callable(on_tick_start):

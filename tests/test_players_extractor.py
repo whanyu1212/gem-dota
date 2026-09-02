@@ -202,6 +202,9 @@ class FakeParser:
     def on_entity(self, h):
         self._handlers.append(h)
 
+    def _on_entity_filtered(self, h, **_filters):
+        self.on_entity(h)
+
     def on_combat_log_entry(self, h):
         pass
 

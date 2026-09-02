@@ -136,7 +136,19 @@ class PlayerExtractor:
             parser: The ``ReplayParser`` instance to attach to.
         """
         self._parser = parser
-        parser.on_entity(self._on_entity)
+        parser._on_entity_filtered(
+            self._on_entity,
+            class_names=(
+                "CDOTAGamerulesProxy",
+                "CDOTAPlayerController",
+                "CDOTADataRadiant",
+                "CDOTA_DataRadiant",
+                "CDOTADataDire",
+                "CDOTA_DataDire",
+                "CDOTA_PlayerResource",
+            ),
+            class_prefixes=(_HERO_CLASS_PREFIX,),
+        )
         parser.on_combat_log_entry(self._on_combat_log_entry)
         if self._minute_snapshots:
             parser.on_game_start(self._on_game_start)
