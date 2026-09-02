@@ -1,9 +1,10 @@
 """Integration lock-in for OpenDota's tick-start interval boundary.
 
 OpenDota reads interval entities from Clarity's ``@OnTickStart`` callback. Gem
-decodes ``CNETMsg_Tick``, queues the first rounded-minute crossing, and samples
-before the following tick's entity deltas to reproduce Clarity's effective
-phase. This fixture locks in point-level parity against the published arrays.
+decodes ``CNETMsg_Tick``, samples minute zero immediately, and queues later
+rounded-minute crossings for the following tick start to reproduce Clarity's
+effective phase. This fixture locks in point-level parity against the published
+arrays.
 
 Marked ``slow`` + ``integration`` — needs a real ``.dem`` plus its ``.opendota.json``.
 """

@@ -175,14 +175,15 @@ Three subtle behaviours distinguish it from the dense player sampler:
 - **Network-tick clock**: `ReplayParser` decodes `CNETMsg_Tick` and refreshes
   `game_time_s` from that server tick (including pause ticks), rather than the
   unrelated outer demo tick or the latest, possibly stale combat-log event.
-- **Clarity phase** (`_on_tick_start`): the first rounded-minute crossing is
-  queued and sampled at the following network tick start. This includes the
-  crossing tick's entity deltas but precedes the next tick's deltas, matching
-  OpenDota's effective `@OnTickStart` read. Parsers without the new callback
-  retain the two-frame entity-callback fallback.
-- **Minute-zero offset**: the production path subtracts the observed one-unit
-  earned-gold initialization offset while preserving genuine
-  pre-horn earnings. `_emit_final_boundary` remains a live terminal read.
+- **Clarity phase** (`_on_tick_start`): minute zero is sampled immediately from
+  the preceding observed team-data frame, preventing transient initialization
+  values and same-tick bounty payouts from leaking backward. Later rounded-minute
+  crossings are sampled at the following network tick start, including the
+  crossing tick's entity deltas but preceding the next tick's. Parsers without
+  the callback retain the two-frame entity fallback.
+- **Raw minute-zero counters**: no blanket zeroing or numeric compensation is
+  applied, so legitimate pre-horn earnings remain intact.
+  `_emit_final_boundary` remains a live terminal read.
 
 It also carries terminal scalar counters (`team_counters`) read from the same
 `m_vecDataTeam` entry (camps/creeps stacked, wards placed, rune pickups, tower

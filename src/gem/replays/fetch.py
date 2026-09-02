@@ -166,17 +166,18 @@ def _opendota_slot_to_player_id(player_slot: int) -> int:
 
 
 def apply_api_rates(match: ParsedMatch, opendota_match: dict) -> ParsedMatch:
-    """Populate API-sourced per-minute rates and totals on a parsed match.
+    """Apply API-sourced rates, totals, and combat scalars to a parsed match.
 
-    ``gold_per_min``/``xp_per_min`` are not present in the replay — they come from
-    the Steam GC match summary (also exposed by the OpenDota match API). This
-    helper maps those per-player rates onto :class:`~gem.results.models.ParsedPlayer`
-    and derives ``total_gold``/``total_xp`` with OpenDota's exact formula
-    ``floor(rate * duration / 60)``. The pure mapping is kept separate from the
+    Complete replays already expose these Game Coordinator values through their
+    embedded ``CMsgDOTAMatch`` postgame summary. This helper remains useful as an
+    explicit override or as a fallback for older/truncated replays: it maps
+    per-player rates and combat scalars from an OpenDota/Steam response and
+    derives ``total_gold``/``total_xp`` with OpenDota's exact formula
+    ``floor(rate * duration / 60)``. The pure mapping stays separate from the
     network call so it can be tested against fixtures offline.
 
     Players are matched by OpenDota ``player_slot`` (Radiant 0-4, Dire 128-132).
-    Missing rates leave the corresponding fields at ``0``.
+    Missing API fields leave the corresponding parsed values unchanged.
 
     Args:
         match: A :class:`~gem.results.models.ParsedMatch` to enrich in place.
@@ -237,13 +238,13 @@ def fetch_opendota_match(match_id: int) -> dict:
 
 
 def enrich_with_api_rates(match: ParsedMatch, match_id: int) -> ParsedMatch:
-    """Fetch OpenDota match rates and apply them to a parsed match.
+    """Fetch OpenDota match scalars and apply them to a parsed match.
 
-    Opt-in enrichment for the API-only fields (``gold_per_min``, ``xp_per_min``,
-    ``total_gold``, ``total_xp``). ``gem.parse`` never makes network calls and
-    leaves these at ``0``; call this afterwards to fill them from the OpenDota
-    match API (keyless). Thin wrapper over :func:`fetch_opendota_match` plus
-    :func:`apply_api_rates`.
+    Opt-in API override/fallback for ``gold_per_min``, ``xp_per_min``, derived
+    totals, and headline combat scalars. ``gem.parse`` never makes network calls;
+    on complete current replays it normally obtains the same values from the
+    embedded postgame summary. This is a thin wrapper over
+    :func:`fetch_opendota_match` plus :func:`apply_api_rates`.
 
     Args:
         match: A parsed match to enrich in place.

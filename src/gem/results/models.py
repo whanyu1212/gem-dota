@@ -375,34 +375,27 @@ class ParsedPlayer:
         kills_per_min: Kills divided by match duration in minutes
             (``kills / (ParsedMatch.duration / 60)``). Unrounded float matching
             OpenDota's ``kills_per_min``. ``0.0`` when duration is unknown.
-        hero_damage: Damage dealt to enemy heroes, reconstructed from the combat
-            log by crediting the damage source (``damage_source_name``) to
-            non-illusion hero targets. Best-effort offline estimate (~90% vs
-            OpenDota across fixtures). The residual is **not** a filter gap:
-            OpenDota's headline ``hero_damage`` is a Game-Coordinator
-            (``CMsgGameMatchSignOut``) value that accounts for in-engine
-            mitigation the combat log cannot see, so it is unclosable offline.
-            Overwritten with the exact API value by
-            :func:`gem.replays.fetch.apply_api_rates`.
+        hero_damage: Damage dealt to enemy heroes. Complete replays source the
+            exact Game Coordinator value from the embedded ``CMsgDOTAMatch``
+            postgame summary. Older or truncated replays fall back to combat-log
+            reconstruction; :func:`gem.replays.fetch.apply_api_rates` can still
+            overwrite it from an explicit API response.
         tower_damage: Damage dealt to building structures (towers, barracks,
-            fort/ancient), reconstructed from the combat log by damage source.
-            Essentially exact offline (~99.97% vs OpenDota — the building sum
-            equals the GC value); refreshed exactly via ``apply_api_rates``.
+            fort/ancient). Uses the embedded postgame summary when present and
+            combat-log reconstruction otherwise; ``apply_api_rates`` can
+            explicitly overwrite it.
         hero_healing: Healing given to allied heroes (excluding self-heal),
-            credited to the heal source, from the combat log. Best-effort offline
-            estimate; OpenDota's headline value is GC-sourced (self-heal-excluded,
-            mitigation-aware) and exact via ``apply_api_rates``.
-        gold_per_min: Gold per minute. NOT derivable from the replay — sourced
-            from the Steam GC / OpenDota match API. ``0`` until populated by
-            :func:`gem.replays.fetch.enrich_with_api_rates`. See
-            ``opendota-gpm-is-steam-api`` (the team-data earned-gold counter is a
-            different quantity and does not match OpenDota's value).
-        xp_per_min: XP per minute. Same API provenance as ``gold_per_min``;
-            ``0`` until enriched.
+            using the embedded postgame summary when present and combat-log
+            reconstruction otherwise. Can be overwritten via ``apply_api_rates``.
+        gold_per_min: Game Coordinator gold per minute from the replay-embedded
+            postgame summary. ``0`` when that summary/field is absent; optional
+            API enrichment can overwrite it.
+        xp_per_min: Game Coordinator XP per minute, with the same embedded-summary
+            and optional API provenance as ``gold_per_min``.
         total_gold: Total gold, ``floor(gold_per_min * duration / 60)`` (OpenDota's
-            own formula). ``0`` until ``gold_per_min`` is enriched.
+            own formula). ``0`` when ``gold_per_min`` is unavailable.
         total_xp: Total XP, ``floor(xp_per_min * duration / 60)``. ``0`` until
-            ``xp_per_min`` is enriched.
+            ``xp_per_min`` is available.
     """
 
     player_id: int
@@ -604,12 +597,12 @@ class ParsedMatch:
         game_start_tick: Absolute tick when the game clock started (creeps spawn).
             ``None`` if the transition was not observed.
         game_end_tick: Absolute tick of the final parser tick.
-        duration: OpenDota-style match duration in seconds — the horn-anchored
-            combat-log time at GAME_STATE==6 (ancient destroyed). Matches
-            OpenDota's ``duration`` to within ~1s (sub-second rounding). ``0`` if
-            the postGame transition was not observed. Distinct from the
-            tick-derived ``duration_seconds`` property, which spans the raw parser
-            ticks and includes pre/post-game time.
+        duration: OpenDota-style match duration in seconds. Complete replays use
+            the exact value from the embedded ``CMsgDOTAMatch`` postgame summary;
+            otherwise this falls back to horn-anchored combat-log time at
+            GAME_STATE==6 (ancient destroyed). ``0`` if neither is available.
+            Distinct from the tick-derived ``duration_seconds`` property, which
+            spans the raw parser ticks and includes pre/post-game time.
         radiant_score: Radiant's final kill score (sum of Radiant players'
             kills), mirroring OpenDota's ``radiant_score``.
         dire_score: Dire's final kill score (sum of Dire players' kills),
