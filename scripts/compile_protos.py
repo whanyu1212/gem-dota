@@ -31,8 +31,9 @@ from pathlib import Path
 #   2. dotted: `from steammessages_steamlearn import steamworkssdk_pb2 as ...`
 #              (a dependency that lives in the subpackage steammessages_steamlearn/)
 #              -> `from <dots>steammessages_steamlearn import steamworkssdk_pb2 as ...`
-#   3. public: `from events_pb2 import *`
-#              -> `from .events_pb2 import *`
+#   3. public: `from events_pb2 import *` or
+#              `from events_pb2 import EEvent as EEvent`
+#              -> `from .events_pb2 import ...`
 #
 # google.protobuf imports are left untouched (real installed package). The dotted
 # rewrite's leading dots depend on the importing file's depth, so it is applied
@@ -40,7 +41,7 @@ from pathlib import Path
 # the original (dot-less) form, so re-running on fixed files is a no-op.
 _FLAT_IMPORT_RE = re.compile(r"^import (\w+_pb2) as (\w+)$", re.MULTILINE)
 _DOTTED_IMPORT_RE = re.compile(r"^from (\w+) import (\w+_pb2) as (\w+)$", re.MULTILINE)
-_PUBLIC_IMPORT_RE = re.compile(r"^from (\w+_pb2) import \*$", re.MULTILINE)
+_PUBLIC_IMPORT_RE = re.compile(r"^from (\w+_pb2) import (.+)$", re.MULTILINE)
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -148,7 +149,8 @@ def fix_relative_imports(out_dir: Path) -> int:
     - flat: ``import foo_pb2 as foo__pb2`` -> ``from . import foo_pb2 as ...``
     - dotted: ``from subpkg import bar_pb2 as ...`` (a dependency under the
       ``subpkg/`` subpackage) -> ``from <dots>subpkg import bar_pb2 as ...``
-    - public: ``from foo_pb2 import *`` -> ``from <dots>foo_pb2 import *``
+    - public: ``from foo_pb2 import *`` or a named import such as
+      ``from foo_pb2 import Bar as Bar`` -> ``from <dots>foo_pb2 import ...``
 
     The leading-dot count for the dotted form depends on how deep the importing
     file sits below ``out_dir``: a top-level module needs one dot, a module one
@@ -172,7 +174,7 @@ def fix_relative_imports(out_dir: Path) -> int:
         depth = len(generated_module.relative_to(out_dir).parts) - 1
         dots = "." * (depth + 1)
         new_text = _DOTTED_IMPORT_RE.sub(rf"from {dots}\1 import \2 as \3", new_text)
-        new_text = _PUBLIC_IMPORT_RE.sub(rf"from {dots}\1 import *", new_text)
+        new_text = _PUBLIC_IMPORT_RE.sub(rf"from {dots}\1 import \2", new_text)
 
         if new_text != text:
             generated_module.write_text(new_text)

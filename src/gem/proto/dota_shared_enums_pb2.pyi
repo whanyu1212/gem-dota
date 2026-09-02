@@ -5,7 +5,7 @@ from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from collections.abc import Iterable as _Iterable, Mapping as _Mapping
 from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
-from events_pb2 import EEvent as EEvent
+from .events_pb2 import EEvent as EEvent
 
 DESCRIPTOR: _descriptor.FileDescriptor
 EVENT_ID_NONE: _events_pb2.EEvent
