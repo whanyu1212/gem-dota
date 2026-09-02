@@ -80,6 +80,7 @@ from gem.proto.netmessages_pb2 import (
     CSVCMsg_UpdateStringTable,
     CSVCMsg_UserMessage,
 )
+from gem.proto.networkbasetypes_pb2 import CNETMsg_Tick
 from gem.results.models import ChatEntry, NeutralItemFoundEvent
 from gem.schema.sendtable import parse_send_tables
 from gem.state.entities import Entity, EntityManager, EntityOp
@@ -131,6 +132,7 @@ def _round_positive_seconds(value: float) -> int:
 
 
 EntityCallback = Callable[[Entity, EntityOp], None]
+TickStartCallback = Callable[[int], None]
 ChatCallback = Callable[["ChatEntry"], None]
 ChatEventCallback = Callable[["CDOTAUserMsg_ChatEvent", int], None]
 NeutralItemFoundCallback = Callable[["NeutralItemFoundEvent"], None]
@@ -171,6 +173,7 @@ class ReplayParser:
     Attributes:
         tick: Current game tick.
         net_tick: Current net tick (from net_Tick inner messages).
+        game_time_s: Rounded game-relative clock refreshed at network tick start.
         game_build: Build number extracted from CSVCMsg_ServerInfo.
         string_tables: All string tables created so far.
         entity_manager: Live entity table.
@@ -182,12 +185,14 @@ class ReplayParser:
         self._source = source
         self.tick: int = 0
         self.net_tick: int = 0
+        self._net_tick_seen: bool = False
         self.game_build: int = 0
         self.string_tables = StringTables()
         self.entity_manager: EntityManager | None = None
         self.game_event_manager = GameEventManager()
         self.combat_log = CombatLogProcessor()
         self._entity_callbacks: list[EntityCallback] = [self._on_entity_game_start]
+        self._tick_start_callbacks: list[TickStartCallback] = []
         self._chat_callbacks: list[ChatCallback] = []
         self._chat_event_callbacks: list[ChatEventCallback] = []
         self._neutral_item_found_callbacks: list[NeutralItemFoundCallback] = []
@@ -201,13 +206,9 @@ class ReplayParser:
         self.radiant_win: bool | None = None
         self.game_start_tick: int | None = None
         self.game_time_s: int | None = None
-        # OpenDota-axis game clock, anchored on the combat-log timestamp (the
-        # GAME_STATE==5 horn). ``game_time_s`` is the entity-derived clock; this
-        # one tracks the combat-log timestamp axis that OpenDota uses for its
-        # interval boundaries AND its postGame stop. The two differ by a
-        # per-replay constant (the gap between the horn timestamp and
-        # ``m_flGameStartTime``), so consumers that must agree with OpenDota's
-        # minute boundaries (the interval extractor) should read this clock.
+        # Horn-anchored timestamp of the latest combat-log entry. This is an
+        # event clock, not a continuously advancing sampling clock; interval
+        # consumers use ``game_time_s`` refreshed at CNETMsg_Tick start instead.
         self.combat_log_time_s: int | None = None
         # OpenDota-style match duration in seconds: the horn-anchored combat-log
         # time at GAME_STATE==6 (ancient destroyed). None until that state is seen.
@@ -247,6 +248,19 @@ class ReplayParser:
         if self.entity_manager is not None:
             self.entity_manager.on_entity(callback)
 
+    def on_tick_start(self, callback: TickStartCallback) -> None:
+        """Register a handler called before the current tick's entity deltas.
+
+        ``CNETMsg_Tick`` is dispatched ahead of ``svc_PacketEntities``. The
+        callback therefore sees the reconstructed entity table at the same
+        pre-update boundary as Clarity's ``@OnTickStart``, which OpenDota uses
+        for interval snapshots.
+
+        Args:
+            callback: ``(net_tick: int) -> None``.
+        """
+        self._tick_start_callbacks.append(callback)
+
     def _on_entity_game_start(self, entity: Entity, op: EntityOp) -> None:
         if entity.get_class_name() != "CDOTAGamerulesProxy":
             return
@@ -283,7 +297,8 @@ class ReplayParser:
             paused = entity.get_bool("m_pGameRules.m_bGamePaused") or False
             pause_start_tick = entity.get_int32("m_pGameRules.m_nPauseStartTick")
             total_paused_ticks = entity.get_int32("m_pGameRules.m_nTotalPausedTicks") or 0
-            time_tick = pause_start_tick if paused and pause_start_tick is not None else self.tick
+            parser_tick = self.net_tick if self._net_tick_seen else self.tick
+            time_tick = pause_start_tick if paused and pause_start_tick is not None else parser_tick
             raw_time_s = _round_positive_seconds((time_tick - total_paused_ticks) / 30.0)
 
         self.game_time_s = raw_time_s - self._game_start_time_s
@@ -524,8 +539,20 @@ class ReplayParser:
 
     def _dispatch_inner(self, type_id: int, payload: bytes) -> None:
         if type_id == _NET_TICK:
-            # net_Tick is tiny — just skip (tick already set from outer)
-            pass
+            tick_msg = CNETMsg_Tick()
+            tick_msg.ParseFromString(payload)
+            self.net_tick = tick_msg.tick
+            self._net_tick_seen = True
+
+            # Match OpenDota/Clarity's @OnTickStart ordering: compute the clock
+            # and notify samplers from the entity table reconstructed through
+            # the previous tick, before this packet's entity deltas are applied.
+            if self.entity_manager is not None:
+                grp = self.entity_manager.find_by_class_name("CDOTAGamerulesProxy")
+                if grp is not None:
+                    self._update_game_clock(grp)
+            for callback in self._tick_start_callbacks:
+                callback(self.net_tick)
 
         elif type_id == _SVC_SERVER_INFO:
             m = CSVCMsg_ServerInfo()

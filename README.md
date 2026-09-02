@@ -262,8 +262,8 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 | Hero picks and bans with timestamps | `ParsedMatch.draft` |
 | Per-player K/D/A + core combat summaries | `ParsedPlayer.kills` / `.deaths` / `.assists` / `.damage` |
 | Gold / XP / net-worth time series | `ParsedPlayer.times`, `.gold_t`, `.xp_t`, `.net_worth_t` |
-| Minute-aligned economy/XP series | `ParsedPlayer.times_min`, `.total_earned_gold_t_min`, `.total_earned_xp_t_min` |
-| Radiant gold / XP advantage curves | `ParsedMatch.radiant_gold_adv` / `.radiant_xp_adv` |
+| Minute-aligned economy/XP series | `ParsedPlayer.game_times_min`, `.times_min`, `.total_earned_gold_t_min`, `.total_earned_xp_t_min` |
+| Radiant gold / XP advantage curves | `ParsedMatch.game_times_min`, `.radiant_gold_adv`, `.radiant_xp_adv` |
 | Ward placements with exact coordinates | `ParsedMatch.wards` |
 | Smoke of Deceit activations + grouped heroes | `ParsedMatch.smoke_events` |
 | Roshan kills + aegis events | `ParsedMatch.roshans` / `.aegis_events` |

@@ -170,21 +170,23 @@ so the authoritative `gold_t`/`xp_t` advantage curves come from
 `CDOTA_DataRadiant`/`Dire` (via `m_vecDataTeam`) sampled exactly on game-clock
 interval boundaries, without overloading `PlayerExtractor`.
 
-Two subtle behaviours distinguish it from the dense player sampler:
+Three subtle behaviours distinguish it from the dense player sampler:
 
-- **Clock axis** (`_clock`): it samples on `parser.combat_log_time_s` (the
-  combat-log timestamp axis anchored at the GAME_STATE==5 horn), falling back to
-  `parser.game_time_s` only before the horn timestamp is known. This avoids an
-  off-by-one final minute.
-- **Frame nudge** (`_team_data_values`): OpenDota reads the interval one entity
-  frame *before* gem's clock crossing, so `_emit` uses the latest team-data
-  frame with `observed_tick < emit_tick` rather than the live boundary-tick
-  value, removing a systematic +1. `_emit_final_boundary` is the one exception —
-  a terminal read at game end keeps the live value.
+- **Network-tick clock**: `ReplayParser` decodes `CNETMsg_Tick` and refreshes
+  `game_time_s` from that server tick (including pause ticks), rather than the
+  unrelated outer demo tick or the latest, possibly stale combat-log event.
+- **Clarity phase** (`_on_tick_start`): the first rounded-minute crossing is
+  queued and sampled at the following network tick start. This includes the
+  crossing tick's entity deltas but precedes the next tick's deltas, matching
+  OpenDota's effective `@OnTickStart` read. Parsers without the new callback
+  retain the two-frame entity-callback fallback.
+- **Minute-zero offset**: the production path subtracts the observed one-unit
+  earned-gold initialization offset while preserving genuine
+  pre-horn earnings. `_emit_final_boundary` remains a live terminal read.
 
 It also carries terminal scalar counters (`team_counters`) read from the same
 `m_vecDataTeam` entry (camps/creeps stacked, wards placed, rune pickups, tower
-kills) and emits OpenDota's synthetic t=0 baseline.
+kills) and emits OpenDota's observed t=0 baseline.
 
 ### teamfights.py — `detect_teamfights` (post-parse function)
 

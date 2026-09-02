@@ -112,6 +112,33 @@ class TestBuildDataframes:
         assert dfs["neutral_item_finds"].empty
         assert dfs["opendota_teamfights"].empty
 
+    def test_minute_tables_include_authoritative_game_time_axis(self):
+        pp = ParsedPlayer(
+            player_id=0,
+            team=2,
+            times_min=[12_345, 14_145],
+            gold_t_min=[600, 700],
+            game_times_min=[0, 60],
+        )
+        match = ParsedMatch(
+            players=[pp],
+            radiant_gold_adv=[100, 250],
+            radiant_xp_adv=[50, 125],
+            game_times_min=[0, 60],
+        )
+
+        dfs = build_dataframes(match)
+
+        assert list(dfs["players_minute"]["game_time_s"]) == [0, 60]
+        assert list(dfs["players_minute"]["minute"]) == [0, 1]
+        assert list(dfs["radiant_advantage"]["game_time_s"]) == [0, 60]
+        assert list(dfs["radiant_advantage"]["minute"]) == [0, 1]
+
+        legacy = ParsedMatch(radiant_gold_adv=[100, 250], radiant_xp_adv=[50, 125])
+        legacy_adv = build_dataframes(legacy)["radiant_advantage"]
+        assert list(legacy_adv["game_time_s"]) == [0, 60]
+        assert list(legacy_adv["minute"]) == [0, 1]
+
     def test_neutral_item_finds_dataframe_includes_event_fields(self):
         neutral_event_cls = getattr(model_module, "NeutralItemFoundEvent", None)
         assert neutral_event_cls is not None

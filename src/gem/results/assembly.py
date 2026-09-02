@@ -364,15 +364,17 @@ def _radiant_win_from_ancient(combat_log: list[CombatLogEntry]) -> bool | None:
 
 def _radiant_adv_from_intervals(
     interval_ext: IntervalExtractor | None,
-) -> tuple[list[int], list[int]] | None:
+) -> tuple[list[int], list[int], list[int]] | None:
     """Build Radiant gold/XP advantage from OpenDota-style interval snapshots."""
     batches = _complete_interval_batches(interval_ext)
     if batches is None:
         return None
 
+    game_times_s: list[int] = []
     gold_adv: list[int] = []
     xp_adv: list[int] = []
     for by_player in batches:
+        game_times_s.append(next(iter(by_player.values())).time_s)
         gold = 0
         xp = 0
         for snap in by_player.values():
@@ -382,7 +384,7 @@ def _radiant_adv_from_intervals(
         gold_adv.append(gold)
         xp_adv.append(xp)
 
-    return gold_adv, xp_adv
+    return game_times_s, gold_adv, xp_adv
 
 
 _MINUTE_TICKS = 1800  # 60 s * 30 ticks/s
@@ -390,7 +392,7 @@ _MINUTE_TICKS = 1800  # 60 s * 30 ticks/s
 
 def _radiant_adv_from_minute_series(
     players: list[ParsedPlayer],
-) -> tuple[list[int], list[int]] | None:
+) -> tuple[list[int], list[int], list[int]] | None:
     """Build Radiant gold/XP advantage from dense per-player minute series.
 
     Fallback for when no complete interval batches exist. Buckets each player's
@@ -407,17 +409,18 @@ def _radiant_adv_from_minute_series(
             ``total_earned_gold_t_min`` / ``total_earned_xp_t_min`` minute arrays.
 
     Returns:
-        ``(gold_adv, xp_adv)`` lists, or ``None`` if no player has minute data.
+        ``(game_times_s, gold_adv, xp_adv)`` lists, or ``None`` if no player has
+        minute data.
     """
     active = [pp for pp in players if pp.total_earned_gold_t_min and pp.total_earned_xp_t_min]
     if not active:
         return None
 
-    # Map each player's samples to absolute minute indices using times_min. The
+    # ``game_times_min`` is authoritative. ``times_min`` remains as a legacy
+    # fallback for ParsedPlayer objects built by older/custom integrations. Its
     # global origin is the earliest sample tick across players, so a player who
-    # first appears at minute 1 lands at index 1, not 0. Fall back to 0 when no
-    # player has tick data (positional indexing kicks in per-player below).
-    first_ticks = [pp.times_min[0] for pp in active if pp.times_min]
+    # first appears at minute 1 lands at index 1 rather than index 0.
+    first_ticks = [pp.times_min[0] for pp in active if not pp.game_times_min and pp.times_min]
     origin = min(first_ticks) if first_ticks else 0
 
     def _minute_index(tick: int) -> int:
@@ -429,17 +432,23 @@ def _radiant_adv_from_minute_series(
     for pp in active:
         sign = 1 if pp.team == 2 else -1  # 2=Radiant, 3=Dire
         by_minute: dict[int, tuple[int, int]] = {}
-        ticks = pp.times_min
         gold_series = pp.total_earned_gold_t_min
         xp_series = pp.total_earned_xp_t_min
-        n = min(len(ticks), len(gold_series), len(xp_series))
-        for i in range(n):
-            minute = _minute_index(ticks[i])
-            by_minute[minute] = (gold_series[i], xp_series[i])
-            last_minute = max(last_minute, minute)
-        # A player with no times_min falls back to positional indexing so we never
-        # silently drop their contribution.
-        if not ticks:
+        if pp.game_times_min:
+            n = min(len(pp.game_times_min), len(gold_series), len(xp_series))
+            for i in range(n):
+                minute = max(0, pp.game_times_min[i] // 60)
+                by_minute[minute] = (gold_series[i], xp_series[i])
+                last_minute = max(last_minute, minute)
+        elif pp.times_min:
+            n = min(len(pp.times_min), len(gold_series), len(xp_series))
+            for i in range(n):
+                minute = _minute_index(pp.times_min[i])
+                by_minute[minute] = (gold_series[i], xp_series[i])
+                last_minute = max(last_minute, minute)
+        else:
+            # A player with neither axis falls back to positional indexing so we
+            # never silently drop their contribution.
             for i in range(min(len(gold_series), len(xp_series))):
                 by_minute[i] = (gold_series[i], xp_series[i])
                 last_minute = max(last_minute, i)
@@ -458,7 +467,8 @@ def _radiant_adv_from_minute_series(
             # after their last sample it holds the final monotonic value.
             gold_adv[minute] += sign * carry_gold
             xp_adv[minute] += sign * carry_xp
-    return gold_adv, xp_adv
+    game_times_s = [minute * 60 for minute in range(n_minutes)]
+    return game_times_s, gold_adv, xp_adv
 
 
 def _complete_interval_batches(
@@ -579,6 +589,7 @@ def _populate_player_series(
             # gold_t/xp_t. Mirror that on the minute arrays when complete
             # interval batches are available; keep dense series unchanged.
             pp.times_min = interval_ts.ticks
+            pp.game_times_min = interval_ts.times
             pp.gold_t_min = interval_ts.gold_t
             pp.total_earned_gold_t_min = interval_ts.gold_t
             pp.total_earned_xp_t_min = interval_ts.xp_t
@@ -588,6 +599,13 @@ def _populate_player_series(
             pp.xp_t_min = interval_ts.xp_t
         else:
             pp.times_min = mts.ticks
+            minute_game_times = list(getattr(mts, "game_times_s", []) or [])
+            # Real PlayerTimeSeries objects always carry the explicit axis. Keep
+            # a positional compatibility fallback for third-party/custom
+            # extractors that still return the pre-axis shape.
+            if len(minute_game_times) != len(pp.times_min):
+                minute_game_times = [i * 60 for i in range(len(pp.times_min))]
+            pp.game_times_min = minute_game_times
             pp.gold_t_min = mts.gold_t
             pp.total_earned_gold_t_min = mts.total_earned_gold_t
             pp.total_earned_xp_t_min = mts.total_earned_xp_t
@@ -1065,7 +1083,8 @@ def build_parsed_match(
     interval_adv = _radiant_adv_from_intervals(interval_ext)
     if interval_adv is not None:
         # Authoritative path: OpenDota-style interval snapshots are complete.
-        gold_adv, xp_adv = interval_adv
+        game_times_s, gold_adv, xp_adv = interval_adv
+        match.game_times_min = game_times_s
         match.radiant_gold_adv = gold_adv
         match.radiant_xp_adv = xp_adv
     else:
@@ -1073,7 +1092,7 @@ def build_parsed_match(
         # the curves from the dense player minute series' total-earned arrays.
         minute_adv = _radiant_adv_from_minute_series(match.players)
         if minute_adv is not None:
-            match.radiant_gold_adv, match.radiant_xp_adv = minute_adv
+            match.game_times_min, match.radiant_gold_adv, match.radiant_xp_adv = minute_adv
 
     # Detect teamfights (Phase 9)
     hero_to_slot = {pp.hero_name: pp.player_id for pp in match.players if pp.hero_name}

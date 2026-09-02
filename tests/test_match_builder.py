@@ -45,6 +45,7 @@ def _damage_entry(pid_attacker_name: str = "hero_a", tick: int = 100) -> CombatL
 @dataclass
 class _FakeTimeSeries:
     ticks: list[int] = field(default_factory=list)
+    game_times_s: list[int] = field(default_factory=list)
     gold_t: list[int] = field(default_factory=list)
     net_worth_t: list[int] = field(default_factory=list)
     lh_t: list[int] = field(default_factory=list)
@@ -877,6 +878,7 @@ class TestBuildParsedMatchGoldXpAdv:
         def make_ts(gold, xp):
             ts = _FakeTimeSeries()
             ts.ticks = [1800 * (i + 1) for i in range(max(len(gold), len(xp)))]
+            ts.game_times_s = [i * 60 for i in range(max(len(gold), len(xp)))]
             ts.gold_t = [value // 10 for value in gold]
             ts.total_earned_gold_t = gold
             ts.total_earned_xp_t = xp
@@ -930,6 +932,7 @@ class TestBuildParsedMatchGoldXpAdv:
         assert m.radiant_gold_adv[0] == 500
         assert m.radiant_gold_adv[1] == 1000
         assert m.radiant_xp_adv == [300, 600]
+        assert m.game_times_min == [0, 60]
 
     def test_dire_ahead(self):
         ts = {
@@ -1107,6 +1110,7 @@ class TestBuildParsedMatchGoldXpAdv:
 
         p0 = m.players[0]
         assert p0.times_min == [1800]
+        assert p0.game_times_min == [60]
         assert p0.gold_t_min == [1000]
         assert p0.total_earned_gold_t_min == [1000]
         assert p0.xp_t_min == [700]
@@ -1180,6 +1184,7 @@ class TestBuildParsedMatchGoldXpAdv:
 
         p0 = m.players[0]
         assert p0.times_min == [1800]
+        assert p0.game_times_min == [0]
         assert p0.gold_t_min == [100]
         assert p0.total_earned_gold_t_min == [1000]
         assert p0.xp_t_min == [500]
@@ -2306,6 +2311,7 @@ class TestRadiantAdvFromMinuteSeries:
         pp.total_earned_xp_t_min = xp
         # Default to one sample per game minute starting at tick 0 (minute 0).
         pp.times_min = times if times is not None else [i * 1800 for i in range(len(gold))]
+        pp.game_times_min = [tick // 30 for tick in pp.times_min]
         return pp
 
     def test_full_length_equal_teams(self):
@@ -2315,7 +2321,8 @@ class TestRadiantAdvFromMinuteSeries:
             self._player(0, 2, [100, 200, 300], [10, 20, 30]),
             self._player(5, 3, [100, 200, 300], [10, 20, 30]),
         ]
-        gold_adv, xp_adv = _radiant_adv_from_minute_series(players)
+        game_times_s, gold_adv, xp_adv = _radiant_adv_from_minute_series(players)
+        assert game_times_s == [0, 60, 120]
         assert gold_adv == [0, 0, 0]
         assert xp_adv == [0, 0, 0]
 
@@ -2330,9 +2337,10 @@ class TestRadiantAdvFromMinuteSeries:
             self._player(0, 2, [100, 200, 300, 400], [0, 0, 0, 0]),  # Radiant, full
             self._player(5, 3, [100, 200], [0, 0]),  # Dire, leaves after minute 1
         ]
-        gold_adv, _ = _radiant_adv_from_minute_series(players)
+        game_times_s, gold_adv, _ = _radiant_adv_from_minute_series(players)
         # Curve spans 4 minutes (longest), not 2 (shortest).
         assert len(gold_adv) == 4
+        assert game_times_s == [0, 60, 120, 180]
         # Radiant pulls ahead as Dire's carried-forward value (200) stays flat.
         assert gold_adv == [0, 0, 100, 200]
 
@@ -2346,7 +2354,8 @@ class TestRadiantAdvFromMinuteSeries:
         radiant = self._player(0, 2, [100, 200, 300], [0, 0, 0], times=[0, 1800, 3600])
         # Dire missing minute 0: samples land at ticks 1800 (min 1) and 3600 (min 2).
         dire = self._player(5, 3, [500, 700], [0, 0], times=[1800, 3600])
-        gold_adv, _ = _radiant_adv_from_minute_series([radiant, dire])
+        game_times_s, gold_adv, _ = _radiant_adv_from_minute_series([radiant, dire])
+        assert game_times_s == [0, 60, 120]
         # Minute 0: only Radiant present (Dire contributes 0, not its minute-1 value).
         assert gold_adv[0] == 100
         # Minute 1: 200 - 500. Minute 2: 300 - 700.

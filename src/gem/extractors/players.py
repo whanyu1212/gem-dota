@@ -307,7 +307,8 @@ class PlayerExtractor:
         Returns a ``PlayerTimeSeries`` sampled at each game-minute boundary
         (every 1800 ticks from game start). ``total_earned_gold_t`` /
         ``total_earned_xp_t`` match OpenDota's cumulative gold/XP semantics;
-        ``gold_t`` remains current unspent gold.
+        ``gold_t`` remains current unspent gold. ``game_times_s`` is the
+        authoritative parallel game-relative axis (``0, 60, 120, ...``).
 
         Only populated when ``minute_snapshots=True`` (the default) and the
         parser fires the game-start event.
@@ -336,6 +337,15 @@ class PlayerExtractor:
         ts = PlayerTimeSeries(player_id=player_id)
         for snap in (seen[k] for k in sorted(seen)):
             ts.ticks.append(snap.tick)
+            # ``seen`` is keyed by the authoritative game-minute index. Preserve
+            # that axis explicitly instead of asking consumers to reconstruct it
+            # from absolute replay ticks (whose origin differs across replays).
+            if snap.game_time_s is not None and snap.game_time_s >= 0:
+                ts.game_times_s.append((snap.game_time_s // 60) * 60)
+            elif self._game_start_tick is not None:
+                ts.game_times_s.append(max(0, (snap.tick - self._game_start_tick) // 1800) * 60)
+            else:
+                ts.game_times_s.append(len(ts.game_times_s) * 60)
             ts.gold_t.append(snap.gold)
             ts.total_earned_gold_t.append(snap.total_earned_gold)
             ts.total_earned_xp_t.append(snap.total_earned_xp)

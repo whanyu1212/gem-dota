@@ -100,10 +100,11 @@ class IntervalTimeSeries:
 class IntervalExtractor:
     """Collect 60-second player intervals from authoritative team entities.
 
-    The extractor is internal plumbing for OpenDota-parity output. It samples
-    only when the parser's game clock lands on an exact interval boundary and
-    falls silent otherwise; callers can fall back to existing player minute
-    series when no complete interval data was observed for a replay.
+    The extractor is internal plumbing for OpenDota-parity output. It queues an
+    exact rounded-minute crossing, then samples at the following network tick
+    start before that tick's entity deltas. This mirrors OpenDota's effective
+    Clarity ``@OnTickStart`` phase; callers can fall back to existing player
+    minute series when no complete interval data was observed for a replay.
     """
 
     snapshots: list[IntervalSnapshot]
@@ -126,18 +127,11 @@ class IntervalExtractor:
         self._data_radiant: Entity | None = None
         self._data_dire: Entity | None = None
         # Per-team-slot team-data history, kept to the two most recent observed
-        # frames as ``(observed_tick, (gold, xp, lh, dn, net_worth))``. OpenDota's
-        # interval read lands one entity frame earlier than gem's clock crossing,
-        # so emitting the live (boundary-tick) value double-counts the increment
-        # that arrived on the boundary tick. ``_emit`` instead reads the latest
-        # frame observed *strictly before* the boundary tick, removing the
-        # systematic +1. Two frames suffice for that rule: when a slot updates on
-        # the boundary tick the prior frame is used; when a slot is off-cadence
-        # and did not update on the boundary tick its current frame already
-        # precedes the crossing and is used directly. Entities mutate in place,
-        # so values are copied eagerly rather than held by reference. See
-        # ``_record_team_data`` / ``_team_data_values`` and
-        # ``test_nudge_reads_previous_data_frame``.
+        # frames as ``(observed_tick, (gold, xp, lh, dn, net_worth))``. The
+        # production tick-start path reads ``cur`` after its one-tick deferral.
+        # ``prev`` preserves the entity-callback compatibility path, where the
+        # latest frame strictly before a crossing is required. Entities mutate
+        # in place, so values are copied eagerly rather than held by reference.
         self._prev_data_radiant: dict[int, _TeamDataFrame] = {}
         self._prev_data_dire: dict[int, _TeamDataFrame] = {}
         self._cur_data_radiant: dict[int, _TeamDataFrame] = {}
@@ -152,6 +146,13 @@ class IntervalExtractor:
         self._player_team_slot: dict[int, int] = {}
         self._hero_names: dict[int, str] = {}
         self._next_interval_s: int | None = None
+        self._tick_start_driven = False
+        # Clarity's @OnTickStart interval read is effectively one decoded net
+        # tick after the first CNETMsg_Tick whose rounded clock reaches the
+        # boundary. Queue that first crossing and emit at the next tick start,
+        # after the crossing tick's entity deltas but before the next tick's.
+        self._pending_tick_start_boundary: tuple[int, int] | None = None
+        self._last_queued_time_s: int | None = None
         self._last_clock_tick: int | None = None
         self._last_emitted_time_s: int | None = None
         self._last_emitted_tick: int | None = None
@@ -164,6 +165,10 @@ class IntervalExtractor:
         self._parser = parser
         parser.on_entity(self._on_entity)
         parser.on_game_end(self._on_game_end)
+        on_tick_start = getattr(parser, "on_tick_start", None)
+        if callable(on_tick_start):
+            self._tick_start_driven = True
+            on_tick_start(self._on_tick_start)
 
     @property
     def all_snapshots(self) -> list[IntervalSnapshot]:
@@ -195,21 +200,16 @@ class IntervalExtractor:
         return ts
 
     def _clock(self) -> int | None:
-        """Return the game clock the extractor samples boundaries on.
+        """Return the clock used by the entity-callback fallback and final flush.
 
-        OpenDota times its interval boundaries and its postGame stop on a single
-        axis: the combat-log timestamp axis, anchored at the GAME_STATE==5 horn.
-        gem's entity-derived ``game_time_s`` differs from that axis by a
-        per-replay constant (the gap between the horn timestamp and
-        ``m_flGameStartTime``), large enough on some replays to drop the final
-        minute boundary before ``_on_game_end`` (also combat-log timed) fires.
+        Normal parsing samples ``parser.game_time_s`` directly from
+        :meth:`_on_tick_start`; the parser refreshes it from ``CNETMsg_Tick``
+        before current-tick entity deltas. The combat-log clock remains useful
+        for the terminal recovery path because postGame is itself a combat-log
+        event. It is also retained for parsers without tick-start callbacks.
 
-        Prefer the combat-log axis (``parser.combat_log_time_s``); fall back to
-        the entity clock (``game_time_s``) before the horn timestamp is known,
-        when no intervals should emit yet anyway.
-
-        Reference: refs/parser/src/main/java/opendota/Parse.java — single
-        ``time`` axis shifted by ``gameStartTime`` for intervals and postGame.
+        Reference: refs/parser/src/main/java/opendota/Parse.java —
+        ``@OnTickStart`` for intervals and combat-log GAME_STATE 6 for postGame.
         """
         if self._parser is None:
             return None
@@ -221,6 +221,39 @@ class IntervalExtractor:
     def _on_game_end(self, tick: int) -> None:
         self._emit_final_boundary(tick)
         self._ended = True
+
+    def _on_tick_start(self, net_tick: int) -> None:
+        """Queue a crossing, then sample before the following tick's updates.
+
+        ``ReplayParser`` refreshes ``game_time_s`` from ``net_tick`` before
+        invoking this callback. Clarity's ``@OnTickStart`` interval handler is
+        one network tick later than the first rounded-clock crossing observed
+        here. Deferring to the following callback includes the crossing tick's
+        entity deltas while still reading before the next tick's mutations.
+
+        Args:
+            net_tick: Decoded ``CNETMsg_Tick.tick`` value.
+        """
+        if self._parser is None or self._ended:
+            return
+        game_time_s = getattr(self._parser, "game_time_s", None)
+        if (
+            self._pending_tick_start_boundary is None
+            and game_time_s is not None
+            and game_time_s >= 0
+            and game_time_s % self._interval_s == 0
+            and game_time_s != self._last_queued_time_s
+        ):
+            self._pending_tick_start_boundary = (game_time_s, net_tick)
+            self._last_queued_time_s = game_time_s
+
+        pending = self._pending_tick_start_boundary
+        if pending is None or net_tick <= pending[1]:
+            return
+        boundary_time_s = pending[0]
+        self._try_emit(boundary_time_s, use_live=True)
+        if self._last_emitted_time_s == boundary_time_s:
+            self._pending_tick_start_boundary = None
 
     def _on_entity(self, entity: Entity, op: EntityOp) -> None:
         cls = entity.get_class_name()
@@ -293,10 +326,22 @@ class IntervalExtractor:
         self._player_team_slot = scan.team_slot_by_id
 
     def _maybe_emit(self) -> None:
+        if self._tick_start_driven or self._parser is None:
+            return
+
+        self._try_emit(self._clock(), use_live=False, require_fresh_clock=True)
+
+    def _try_emit(
+        self,
+        game_time_s: int | None,
+        *,
+        use_live: bool,
+        require_fresh_clock: bool = False,
+    ) -> None:
+        """Emit one complete interval batch when ``game_time_s`` is eligible."""
         if self._parser is None or self._ended:
             return
 
-        game_time_s = self._clock()
         if game_time_s is None or game_time_s < 0:
             return
         if game_time_s == 0 and self._last_emitted_time_s is None:
@@ -317,7 +362,11 @@ class IntervalExtractor:
         # The one exception is a pending initial t=0 boundary: the clock callback
         # may precede the player/team entities needed for a complete batch, and
         # the combat-log clock may advance before those entities arrive.
-        if self._last_clock_tick != self._parser.tick and not initial_boundary:
+        if (
+            require_fresh_clock
+            and self._last_clock_tick != self._parser.tick
+            and not initial_boundary
+        ):
             return
         if boundary_time_s % self._interval_s != 0:
             return
@@ -326,7 +375,7 @@ class IntervalExtractor:
         if self._next_interval_s is not None and boundary_time_s < self._next_interval_s:
             return
 
-        emitted = self._emit(boundary_time_s, use_live=initial_boundary)
+        emitted = self._emit(boundary_time_s, use_live=use_live or initial_boundary)
         if emitted:
             if initial_boundary:
                 self._initial_boundary_pending = False
@@ -540,6 +589,13 @@ class IntervalExtractor:
                 tick,
                 use_live=use_live,
             )
+            # The live team-data baseline is consistently one earned-gold unit
+            # above OpenDota at minute zero. Remove only that initialization
+            # offset in the production tick-start path. Genuine nonzero pre-horn
+            # earnings remain intact (e.g. 322 -> 321, not 322 -> 0), and legacy
+            # parser adapters retain their raw values.
+            if self._tick_start_driven and game_time_s == 0 and gold > 0:
+                gold -= 1
             player_slot = team_slot if team == TEAM_RADIANT else 128 + team_slot
             self.snapshots.append(
                 IntervalSnapshot(

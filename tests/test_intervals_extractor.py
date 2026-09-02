@@ -45,6 +45,21 @@ class FakeParser:
         self.game_end_handlers.append(handler)
 
 
+class TickStartFakeParser(FakeParser):
+    """Fake parser exposing the pre-entity-update callback used in production."""
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.tick_start_handlers = []
+
+    def on_tick_start(self, handler):
+        self.tick_start_handlers.append(handler)
+
+    def fire_tick_start(self, net_tick: int) -> None:
+        for handler in self.tick_start_handlers:
+            handler(net_tick)
+
+
 def _player_resource() -> Entity:
     """Build PlayerResource with non-contiguous resource indices."""
     return _ent(
@@ -394,6 +409,54 @@ def _radiant_data_with(gold: int, xp: int, lh: int, dn: int, net_worth: int) -> 
             "m_vecDataTeam.0001.m_iNetWorth": net_worth,
         },
     )
+
+
+def test_tick_start_defers_crossing_by_one_net_tick():
+    """Production sampling includes crossing-tick but not next-tick deltas."""
+    ext = IntervalExtractor()
+    parser = TickStartFakeParser(tick=1700, game_time_s=58)
+    ext.attach(parser)  # type: ignore[arg-type]
+    ext._on_entity(_player_resource(), EntityOp.UPDATED)
+    ext._on_entity(_radiant_data(), EntityOp.UPDATED)
+    ext._on_entity(_dire_data(), EntityOp.UPDATED)
+
+    # The first CNETMsg_Tick at t=60 queues the boundary. Its entity delta is
+    # incorporated, then the next CNETMsg_Tick emits before any newer delta.
+    parser.tick = 1800
+    parser.game_time_s = 60
+    parser.fire_tick_start(6000)
+    assert ext.snapshots == []
+    ext._on_entity(_radiant_data_with(1500, 1100, 30, 5, 2200), EntityOp.UPDATED)
+    ext._on_entity(_ent("CDOTAGamerulesProxy"), EntityOp.UPDATED)
+    parser.tick = 1801
+    parser.fire_tick_start(6001)
+
+    assert len(ext.snapshots) == 2
+    radiant = next(s for s in ext.snapshots if s.team == 2)
+    assert radiant.time_s == 60
+    assert radiant.gold == 1500
+    assert radiant.xp == 1100
+    assert radiant.lh == 30
+    assert radiant.dn == 5
+
+
+def test_tick_start_removes_only_minute_zero_gold_offset():
+    ext = IntervalExtractor()
+    parser = TickStartFakeParser(tick=1800, game_time_s=0)
+    ext.attach(parser)  # type: ignore[arg-type]
+    ext._on_entity(_player_resource(), EntityOp.UPDATED)
+    ext._on_entity(_radiant_data_with(322, 40, 0, 0, 922), EntityOp.UPDATED)
+    ext._on_entity(_dire_data(), EntityOp.UPDATED)
+
+    parser.fire_tick_start(6000)
+    parser.tick = 1801
+    parser.fire_tick_start(6001)
+
+    radiant = next(s for s in ext.snapshots if s.team == 2)
+    dire = next(s for s in ext.snapshots if s.team == 3)
+    assert radiant.gold == 321
+    assert dire.gold == 599
+    assert radiant.xp == 40
 
 
 def test_nudge_reads_previous_data_frame_not_boundary_frame():
