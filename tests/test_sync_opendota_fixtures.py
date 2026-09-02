@@ -36,8 +36,8 @@ def _entry(
         "capabilities": [tier],
         "replay_url": f"https://replay.example/{match_id}.dem.bz2",
         "artifact_url": None,
-        "dem_size_bytes": None,
-        "dem_sha256": None,
+        "dem_size_bytes": 1,
+        "dem_sha256": "0" * 64,
         "replaced_by": replaced_by,
     }
 
@@ -112,6 +112,19 @@ def test_load_fixture_manifest_rejects_non_string_enum_fields(
     _write_manifest(path, [entry])
 
     with pytest.raises(FixtureManifestError, match=rf"invalid {field}"):
+        load_fixture_manifest(path)
+
+
+@pytest.mark.parametrize("field", ["dem_size_bytes", "dem_sha256"])
+def test_load_fixture_manifest_requires_active_integrity_metadata(
+    tmp_path: Path, field: str
+) -> None:
+    path = tmp_path / "manifest.json"
+    entry = _entry(1, name="missing-integrity", tier="canonical")
+    entry[field] = None
+    _write_manifest(path, [entry])
+
+    with pytest.raises(FixtureManifestError, match="must define dem_size_bytes and dem_sha256"):
         load_fixture_manifest(path)
 
 
