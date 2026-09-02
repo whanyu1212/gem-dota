@@ -95,6 +95,21 @@ def test_update_manifest_replaces_existing_entry(tmp_path: Path) -> None:
     }
 
 
+def test_update_manifest_refuses_legacy_schema_without_rewriting(tmp_path: Path) -> None:
+    manifest_path = tmp_path / "manifest.json"
+    legacy_manifest = {
+        "schema_version": 1,
+        "matches": [{"match_id": 11, "dem": "11.dem"}],
+    }
+    original = json.dumps(legacy_manifest, indent=2) + "\n"
+    manifest_path.write_text(original, encoding="utf-8")
+
+    with pytest.raises(ValueError, match="migrate it to schema_version 2"):
+        update_manifest(manifest_path, {"match_id": 22, "dem": "22.dem"})
+
+    assert manifest_path.read_text(encoding="utf-8") == original
+
+
 def test_update_manifest_preserves_curated_metadata(tmp_path: Path) -> None:
     manifest_path = tmp_path / "manifest.json"
     manifest_path.write_text(

@@ -75,6 +75,14 @@ def build_manifest_entry(
 def update_manifest(manifest_path: Path, entry: dict[str, Any]) -> None:
     if manifest_path.exists():
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if not isinstance(manifest, dict):
+            raise ValueError(f"Fixture manifest root must be an object: {manifest_path}")
+        schema_version = manifest.get("schema_version")
+        if schema_version != 2:
+            raise ValueError(
+                f"Fixture manifest uses schema_version {schema_version!r}; "
+                "migrate it to schema_version 2 before updating"
+            )
     else:
         manifest = {"schema_version": 2, "matches": []}
 
