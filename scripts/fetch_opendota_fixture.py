@@ -9,6 +9,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 import urllib.error
@@ -52,6 +53,8 @@ def build_manifest_entry(
     *,
     fetched_at: str,
     note: str | None,
+    dem_size_bytes: int | None = None,
+    dem_sha256: str | None = None,
 ) -> dict[str, Any]:
     return {
         "match_id": match_id,
@@ -63,22 +66,55 @@ def build_manifest_entry(
         "lobby_type": opendota_payload.get("lobby_type"),
         "patch": opendota_payload.get("patch"),
         "replay_url": opendota_payload.get("replay_url"),
+        "dem_size_bytes": dem_size_bytes,
+        "dem_sha256": dem_sha256,
         "note": note,
     }
 
 
-def update_manifest(manifest_path: Path, entry: dict[str, Any]) -> None:
-    if manifest_path.exists():
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    else:
-        manifest = {"matches": []}
+def _load_manifest_for_update(manifest_path: Path) -> dict[str, Any]:
+    if not manifest_path.exists():
+        return {"schema_version": 2, "matches": []}
 
-    matches = [m for m in manifest.get("matches", []) if m.get("match_id") != entry["match_id"]]
-    matches.append(entry)
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if not isinstance(manifest, dict):
+        raise ValueError(f"Fixture manifest root must be an object: {manifest_path}")
+    schema_version = manifest.get("schema_version")
+    if schema_version != 2:
+        raise ValueError(
+            f"Fixture manifest uses schema_version {schema_version!r}; "
+            "migrate it to schema_version 2 before updating"
+        )
+    return manifest
+
+
+def update_manifest(manifest_path: Path, entry: dict[str, Any]) -> None:
+    manifest = _load_manifest_for_update(manifest_path)
+
+    matches = list(manifest.get("matches", []))
+    existing = next((m for m in matches if m.get("match_id") == entry["match_id"]), None)
+    merged = dict(existing) if isinstance(existing, dict) else {}
+    updates = entry
+    if isinstance(existing, dict) and entry.get("note") is None:
+        updates = {key: value for key, value in entry.items() if key != "note"}
+    merged.update(updates)
+    matches = [m for m in matches if m.get("match_id") != entry["match_id"]]
+    matches.append(merged)
     matches.sort(key=lambda m: int(m["match_id"]))
 
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
-    manifest_path.write_text(json.dumps({"matches": matches}, indent=2) + "\n", encoding="utf-8")
+    manifest["schema_version"] = 2
+    manifest["matches"] = matches
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+
+def file_sha256(path: Path) -> str:
+    """Return the SHA-256 digest for a replay without loading it all into memory."""
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def ensure_can_write_fixture(dem_path: Path, json_path: Path, *, force: bool) -> None:
@@ -94,6 +130,9 @@ def write_opendota_snapshot(path: Path, payload: dict[str, Any]) -> None:
 
 
 def fetch_fixture(match_id: int, *, out_dir: Path, force: bool, note: str | None) -> Path:
+    manifest_path = out_dir / "manifest.json"
+    _load_manifest_for_update(manifest_path)
+
     from gem.replays.fetch import download_and_decompress
 
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -117,8 +156,15 @@ def fetch_fixture(match_id: int, *, out_dir: Path, force: bool, note: str | None
         ) from exc
 
     write_opendota_snapshot(json_path, payload)
-    entry = build_manifest_entry(match_id, payload, fetched_at=utc_now_iso(), note=note)
-    update_manifest(out_dir / "manifest.json", entry)
+    entry = build_manifest_entry(
+        match_id,
+        payload,
+        fetched_at=utc_now_iso(),
+        note=note,
+        dem_size_bytes=dem_path.stat().st_size,
+        dem_sha256=file_sha256(dem_path),
+    )
+    update_manifest(manifest_path, entry)
     return dem_path
 
 

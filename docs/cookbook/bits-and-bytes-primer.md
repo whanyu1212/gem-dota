@@ -70,7 +70,9 @@ Why parser skips metadata:
 Example from the committed truncated fixture:
 
 - `ti14_finals_g3_xg_vs_falcons_truncated.dem` metadata: `278882831`, `278882714`
-- Full replay fixtures are intentionally kept as ignored local files under `tests/fixtures/opendota/`.
+- Full replay fixtures are intentionally kept as ignored local files under
+  `tests/fixtures/opendota/`. Synchronize the canonical TI2026 replay with
+  `uv run python scripts/sync_opendota_fixtures.py`.
 
 If magic mismatches, `DemoStream` raises immediately before parsing anything else.
 
