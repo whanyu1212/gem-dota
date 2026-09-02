@@ -1,4 +1,4 @@
-"""Unit tests for API-rate enrichment (gold_per_min/xp_per_min and derived totals).
+"""Unit tests for explicit API enrichment of postgame player values.
 
 These cover the pure mapping/derivation in ``apply_api_rates`` offline — the
 network wrapper ``enrich_with_api_rates`` is a thin shim over ``fetch_opendota_match``
@@ -121,3 +121,88 @@ def test_missing_combat_scalar_preserves_reconstruction():
     od = {"duration": 600, "players": [{"player_slot": 0, "gold_per_min": 500}]}  # no combat stats
     apply_api_rates(m, od)
     assert m.players[0].hero_damage == 1234  # left untouched
+
+
+def test_applies_top_level_permanent_buff_flags_by_player_slot():
+    m = _match()
+    od = {
+        "players": [
+            {
+                "player_slot": 0,
+                "aghanims_scepter": 1,
+                "aghanims_shard": 0,
+                "moonshard": 1,
+            },
+            {
+                "player_slot": 128,
+                "aghanims_scepter": 0,
+                "aghanims_shard": 1,
+                "moonshard": 0,
+            },
+        ]
+    }
+
+    apply_api_rates(m, od)
+
+    assert (
+        m.players[0].aghanims_scepter,
+        m.players[0].aghanims_shard,
+        m.players[0].moonshard,
+    ) == (1, 0, 1)
+    assert (
+        m.players[5].aghanims_scepter,
+        m.players[5].aghanims_shard,
+        m.players[5].moonshard,
+    ) == (0, 1, 0)
+
+
+def test_derives_missing_api_flags_from_permanent_buffs():
+    m = _match()
+    od = {
+        "players": [
+            {
+                "player_slot": 0,
+                "aghanims_scepter": 0,
+                "permanent_buffs": [
+                    {"permanent_buff": 1},
+                    {"permanent_buff": 2},
+                    {"permanent_buff": 12},
+                    {"permanent_buff": 23},
+                    {"missing_id": True},
+                ],
+            },
+            {"player_slot": 128, "permanent_buffs": []},
+        ]
+    }
+
+    apply_api_rates(m, od)
+
+    # An explicit top-level value wins; missing fields fall back to the array.
+    assert (
+        m.players[0].aghanims_scepter,
+        m.players[0].aghanims_shard,
+        m.players[0].moonshard,
+    ) == (0, 1, 1)
+    assert (
+        m.players[5].aghanims_scepter,
+        m.players[5].aghanims_shard,
+        m.players[5].moonshard,
+    ) == (0, 0, 0)
+
+
+def test_missing_api_buff_data_preserves_existing_availability():
+    m = _match()
+    m.players[0].aghanims_scepter = 1
+    m.players[0].aghanims_shard = 0
+    m.players[0].moonshard = 1
+
+    apply_api_rates(m, {"players": [{"player_slot": 0, "gold_per_min": 500}]})
+
+    assert (
+        m.players[0].aghanims_scepter,
+        m.players[0].aghanims_shard,
+        m.players[0].moonshard,
+    ) == (1, 0, 1)
+    assert m.players[1].aghanims_scepter is None
+    assert m.players[1].aghanims_shard is None
+    assert m.players[1].moonshard is None

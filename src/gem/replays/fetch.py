@@ -23,6 +23,8 @@ import urllib.request
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from gem.results.permanent_buffs import PERMANENT_BUFF_FLAG_IDS, permanent_buff_flags
+
 if TYPE_CHECKING:
     from gem.results.models import ParsedMatch
 
@@ -165,16 +167,30 @@ def _opendota_slot_to_player_id(player_slot: int) -> int:
     return player_slot if player_slot < 128 else (player_slot - 128) + 5
 
 
+def _api_permanent_buff_flags(opendota_player: dict) -> dict[str, int] | None:
+    """Derive consumed-upgrade flags when an API row omits top-level flags."""
+    rows = opendota_player.get("permanent_buffs")
+    if not isinstance(rows, list):
+        return None
+    buff_ids = [
+        int(row["permanent_buff"])
+        for row in rows
+        if isinstance(row, dict) and isinstance(row.get("permanent_buff"), int)
+    ]
+    return permanent_buff_flags(buff_ids)
+
+
 def apply_api_rates(match: ParsedMatch, opendota_match: dict) -> ParsedMatch:
-    """Apply API-sourced rates, totals, and combat scalars to a parsed match.
+    """Apply API-sourced rates, terminal scalars, and permanent-buff flags.
 
     Complete replays already expose these Game Coordinator values through their
     embedded ``CMsgDOTAMatch`` postgame summary. This helper remains useful as an
     explicit override or as a fallback for older/truncated replays: it maps
-    per-player rates and combat scalars from an OpenDota/Steam response and
-    derives ``total_gold``/``total_xp`` with OpenDota's exact formula
-    ``floor(rate * duration / 60)``. The pure mapping stays separate from the
-    network call so it can be tested against fixtures offline.
+    per-player rates, combat scalars, and consumed-upgrade flags from an
+    OpenDota/Steam response and derives ``total_gold``/``total_xp`` with
+    OpenDota's exact formula ``floor(rate * duration / 60)``. The pure mapping
+    stays separate from the network call so it can be tested against fixtures
+    offline.
 
     Players are matched by OpenDota ``player_slot`` (Radiant 0-4, Dire 128-132).
     Missing API fields leave the corresponding parsed values unchanged.
@@ -209,6 +225,14 @@ def apply_api_rates(match: ParsedMatch, opendota_match: dict) -> ParsedMatch:
             value = od_player.get(attr)
             if value is not None:
                 setattr(pp, attr, int(value))
+
+        derived_buff_flags = _api_permanent_buff_flags(od_player)
+        for attr in PERMANENT_BUFF_FLAG_IDS:
+            value = od_player.get(attr)
+            if value is not None:
+                setattr(pp, attr, int(bool(int(value))))
+            elif derived_buff_flags is not None:
+                setattr(pp, attr, derived_buff_flags[attr])
     return match
 
 
@@ -241,9 +265,9 @@ def enrich_with_api_rates(match: ParsedMatch, match_id: int) -> ParsedMatch:
     """Fetch OpenDota match scalars and apply them to a parsed match.
 
     Opt-in API override/fallback for ``gold_per_min``, ``xp_per_min``, derived
-    totals, and headline combat scalars. ``gem.parse`` never makes network calls;
-    on complete current replays it normally obtains the same values from the
-    embedded postgame summary. This is a thin wrapper over
+    totals, headline combat scalars, and consumed-upgrade flags. ``gem.parse``
+    never makes network calls; on complete current replays it normally obtains
+    the same values from the embedded postgame summary. This is a thin wrapper over
     :func:`fetch_opendota_match` plus :func:`apply_api_rates`.
 
     Args:

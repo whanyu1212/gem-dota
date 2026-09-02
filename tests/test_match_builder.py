@@ -686,6 +686,8 @@ class TestBuildParsedMatchMatchDetails:
         radiant.tower_damage = 2345
         radiant.gold_per_min = 612
         radiant.xp_per_min = 701
+        radiant.permanent_buffs.add(permanent_buff=12, grant_time=1200)
+        radiant.permanent_buffs.add(permanent_buff=23, stack_count=4)
 
         dire = details.players.add(player_slot=128)
         dire.hero_damage = 34567
@@ -693,6 +695,11 @@ class TestBuildParsedMatchMatchDetails:
         dire.hero_healing = 456
         dire.gold_per_min = 0
         dire.xp_per_min = 589
+        dire.permanent_buffs.add(permanent_buff=1, grant_time=1800)
+        dire.permanent_buffs.add(permanent_buff=2, grant_time=2000)
+
+        # A present player record with no entries is an authoritative all-zero list.
+        details.players.add(player_slot=1)
 
         # Invalid player slots in a postgame summary must be ignored safely.
         details.players.add(player_slot=200, hero_damage=999999)
@@ -754,6 +761,28 @@ class TestBuildParsedMatchMatchDetails:
             "total_gold",
             "total_xp",
         }.issubset(match.players[5]._match_details_fields)
+
+    def test_embedded_permanent_buffs_derive_exact_opendota_flags(self):
+        match = self._build()
+
+        assert match.players[0].aghanims_scepter == 0
+        assert match.players[0].aghanims_shard == 1
+        assert match.players[0].moonshard == 0
+        assert match.players[5].aghanims_scepter == 1
+        assert match.players[5].aghanims_shard == 0
+        assert match.players[5].moonshard == 1
+        assert match.players[1].aghanims_scepter == 0
+        assert match.players[1].aghanims_shard == 0
+        assert match.players[1].moonshard == 0
+        assert (
+            match.players[2].aghanims_scepter,
+            match.players[2].aghanims_shard,
+            match.players[2].moonshard,
+        ) == (None, None, None)
+        expected_fields = {"aghanims_scepter", "aghanims_shard", "moonshard"}
+        assert expected_fields.issubset(match.players[0]._match_details_fields)
+        assert expected_fields.issubset(match.players[1]._match_details_fields)
+        assert expected_fields.issubset(match.players[5]._match_details_fields)
 
     def test_derived_totals_are_not_exact_without_embedded_duration(self):
         match = self._build(include_duration=False)

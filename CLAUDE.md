@@ -399,16 +399,15 @@ refinements (e.g. `ParsedPlayer.buybacks` in 0.4.3) and code-quality refactors,
 rather than new core subsystems. 0.5.0 extends the Roshan conversion analysis:
 non-Aegis drops (Cheese, Refresher Shard, Roshan's Banner) surfaced from the
 entity stream, plus `ParsedMatch.banner_plants` / `gem.BannerPlant` and a
-banner→rax conversion signal on `RoshConversion`. `gem-dota` is published to
-PyPI.
+banner→rax conversion signal on `RoshConversion`. Complete current replays also
+expose OpenDota-compatible consumed Aghanim's Scepter, Aghanim's Shard, and Moon
+Shard flags from the embedded Game Coordinator postgame summary. `gem-dota` is
+published to PyPI.
 
 In flight / deferred:
 - **Rust extension** (PyO3 + maturin) for a 3–5× speedup. Deferred.
 - **Buyback cost breakdown** (reliable/unreliable gold) — see the deferred
   section above and issue #119.
-- Permanent postgame buff/flag parity from the embedded Game Coordinator summary
-  is tracked in issue #93. Headline combat scalars and GPM/XPM are already decoded
-  exactly from that summary; API enrichment remains an optional override/fallback.
 
 `CHANGELOG.md` is the per-release record; consult it before assuming a feature's
 state rather than trusting a static table here.

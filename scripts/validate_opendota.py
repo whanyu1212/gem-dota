@@ -873,6 +873,9 @@ def validate_match(
             "xp_per_min",
             "total_gold",
             "total_xp",
+            "aghanims_scepter",
+            "aghanims_shard",
+            "moonshard",
         ):
             reference_value = od_player.get(field_name)
             exact_field = field_name in getattr(gp, "_match_details_fields", ())

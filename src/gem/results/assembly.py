@@ -15,6 +15,7 @@ from gem.combat.log import opendota_translate
 from gem.extractors.lane import classify_lane
 from gem.results.derived import building_status, buyback_cost, categorize_kills, killed_counts
 from gem.results.models import BuybackEvent, ParsedMatch
+from gem.results.permanent_buffs import permanent_buff_flags
 
 if TYPE_CHECKING:
     from gem.combat.aggregator import _CombatAggregator
@@ -70,10 +71,11 @@ def _apply_match_details_scalars(match: ParsedMatch, details: CMsgDOTAMatch | No
     """Overlay exact terminal scalars from the replay's postgame summary.
 
     Proto2 presence checks are intentional: an explicitly encoded zero is an
-    authoritative result, while an absent field leaves the existing replay
-    reconstruction/default untouched. Internal per-field provenance lets the
-    validator distinguish these exact values from fallbacks without changing
-    the public serialized output.
+    authoritative result, while an absent scalar leaves the existing replay
+    reconstruction/default untouched. A present player summary makes its
+    repeated ``permanent_buffs`` list authoritative even when empty. Internal
+    per-field provenance lets the validator distinguish these exact values from
+    fallbacks without changing the public serialized output.
     """
     if details is None:
         return
@@ -88,6 +90,15 @@ def _apply_match_details_scalars(match: ParsedMatch, details: CMsgDOTAMatch | No
             continue
 
         player = match.players[player_id]
+        buff_flags = permanent_buff_flags(
+            int(buff.permanent_buff)
+            for buff in source.permanent_buffs
+            if buff.HasField("permanent_buff")
+        )
+        for field_name, value in buff_flags.items():
+            setattr(player, field_name, value)
+            player._match_details_fields.add(field_name)
+
         for field_name in ("hero_damage", "tower_damage", "hero_healing"):
             if source.HasField(field_name):
                 setattr(player, field_name, int(getattr(source, field_name)))
@@ -1006,8 +1017,9 @@ def build_parsed_match(
     )
 
     # Complete replays carry an embedded CMsgDOTAMatch postgame summary. Its
-    # terminal combat scalars and GPM/XPM are the same Game Coordinator values
-    # exposed by OpenDota, so they take precedence over combat-log estimates.
+    # terminal combat scalars, GPM/XPM, and permanent buffs are the same Game
+    # Coordinator values exposed by OpenDota, so they take precedence over
+    # combat-log estimates and unavailable defaults.
     _apply_match_details_scalars(match, match_details)
 
     match_metadata = getattr(parser, "match_metadata", None)
