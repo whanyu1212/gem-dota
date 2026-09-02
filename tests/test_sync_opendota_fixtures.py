@@ -91,6 +91,19 @@ def test_load_fixture_manifest_rejects_duplicate_names(tmp_path: Path) -> None:
         load_fixture_manifest(path)
 
 
+@pytest.mark.parametrize(("field", "value"), [("tier", []), ("status", {})])
+def test_load_fixture_manifest_rejects_non_string_enum_fields(
+    tmp_path: Path, field: str, value: object
+) -> None:
+    path = tmp_path / "manifest.json"
+    entry = _entry(1, name="invalid", tier="canonical")
+    entry[field] = value
+    _write_manifest(path, [entry])
+
+    with pytest.raises(FixtureManifestError, match=rf"invalid {field}"):
+        load_fixture_manifest(path)
+
+
 def test_load_fixture_manifest_rejects_inactive_replacement(tmp_path: Path) -> None:
     path = tmp_path / "manifest.json"
     _write_manifest(

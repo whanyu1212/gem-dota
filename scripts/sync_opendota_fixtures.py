@@ -98,9 +98,9 @@ def _parse_spec(raw: object) -> FixtureSpec:
         raise FixtureManifestError(f"fixture {match_id}: name must be a non-empty string")
     if not isinstance(dem, str) or not dem or Path(dem).name != dem:
         raise FixtureManifestError(f"fixture {match_id}: dem must be a plain filename")
-    if tier not in VALID_TIERS:
+    if not isinstance(tier, str) or tier not in VALID_TIERS:
         raise FixtureManifestError(f"fixture {match_id}: invalid tier {tier!r}")
-    if status not in VALID_STATUSES:
+    if not isinstance(status, str) or status not in VALID_STATUSES:
         raise FixtureManifestError(f"fixture {match_id}: invalid status {status!r}")
 
     raw_capabilities = raw.get("capabilities", [])
