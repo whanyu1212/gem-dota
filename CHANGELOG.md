@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-09-02
+
+Completes exact offline OpenDota parity for current complete replays by using
+their embedded Game Coordinator postgame summary, closes the remaining
+minute-zero boundary residuals, and exposes consumed-upgrade flags on each
+player.
+
 ### Added
 - **Exact consumed-upgrade flags.** `ParsedPlayer.aghanims_scepter`,
   `aghanims_shard`, and `moonshard` now mirror OpenDota's `0`/`1` flags from
@@ -606,7 +613,8 @@ combat-log layers. The supported top-level API (`gem.parse`, `gem.ParsedMatch`,
 - CLI and example scripts, including HTML match report.
 - Validation, fuzzing, and parser robustness foundations.
 
-[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/whanyu1212/gem-dota/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/whanyu1212/gem-dota/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/whanyu1212/gem-dota/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/whanyu1212/gem-dota/compare/v0.4.3...v0.5.0
