@@ -396,6 +396,15 @@ class ParsedPlayer:
             own formula). ``0`` when ``gold_per_min`` is unavailable.
         total_xp: Total XP, ``floor(xp_per_min * duration / 60)``. ``0`` until
             ``xp_per_min`` is available.
+        aghanims_scepter: OpenDota-compatible consumed Aghanim's Scepter flag.
+            ``1`` when permanent buff ID 2 is present, ``0`` when its absence is
+            confirmed, and ``None`` when no postgame summary or API value is
+            available.
+        aghanims_shard: OpenDota-compatible Aghanim's Shard flag using permanent
+            buff ID 12, with the same ``1`` / ``0`` / ``None`` availability
+            semantics as ``aghanims_scepter``.
+        moonshard: OpenDota-compatible consumed Moon Shard flag using permanent
+            buff ID 1, with the same ``1`` / ``0`` / ``None`` semantics.
     """
 
     player_id: int
@@ -516,6 +525,9 @@ class ParsedPlayer:
     # Append-only: ParsedPlayer is a public dataclass and supports positional
     # construction, so new fields go last to avoid shifting existing callers.
     game_times_min: list[int] = field(default_factory=list)
+    aghanims_scepter: int | None = None
+    aghanims_shard: int | None = None
+    moonshard: int | None = None
     # Internal provenance for values copied from CMsgDOTAMatch. The serializer
     # omits this implementation detail from the public ParsedPlayer shape.
     _match_details_fields: set[str] = field(

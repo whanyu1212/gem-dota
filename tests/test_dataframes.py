@@ -21,6 +21,9 @@ class TestBuildDataframes:
             lh_t=[10],
             dn_t=[2],
             xp_t=[600],
+            aghanims_scepter=1,
+            aghanims_shard=0,
+            moonshard=1,
         )
         pp.damage_by_type = {"physical": 1200, "magical": 300, "pure": 50}
         pp.damage_taken_by_type = {"physical": 800, "magical": 450, "pure": 20}
@@ -46,6 +49,9 @@ class TestBuildDataframes:
         assert row["damage_taken_physical"] == 800
         assert row["damage_taken_magical"] == 450
         assert row["damage_taken_pure"] == 20
+        assert row["aghanims_scepter"] == 1
+        assert row["aghanims_shard"] == 0
+        assert row["moonshard"] == 1
 
     def test_log_type_is_plain_str_in_every_log_bearing_table(self):
         # log_type is a CombatLogType enum internally, but every exported table

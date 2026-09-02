@@ -203,6 +203,9 @@ def test_scalar_validation_gates_embedded_postgame_fields_exactly(tmp_path, monk
         xp_per_min=700,
         total_gold=1200,
         total_xp=1400,
+        aghanims_scepter=1,
+        aghanims_shard=0,
+        moonshard=1,
         _match_details_fields={
             "hero_damage",
             "tower_damage",
@@ -211,6 +214,9 @@ def test_scalar_validation_gates_embedded_postgame_fields_exactly(tmp_path, monk
             "xp_per_min",
             "total_gold",
             "total_xp",
+            "aghanims_scepter",
+            "aghanims_shard",
+            "moonshard",
         },
     )
     parsed = SimpleNamespace(
@@ -238,6 +244,9 @@ def test_scalar_validation_gates_embedded_postgame_fields_exactly(tmp_path, monk
                 "xp_per_min": 700,
                 "total_gold": 1200,
                 "total_xp": 1400,
+                "aghanims_scepter": 1,
+                "aghanims_shard": 0,
+                "moonshard": 1,
             }
         ],
         "radiant_win": True,
@@ -253,9 +262,11 @@ def test_scalar_validation_gates_embedded_postgame_fields_exactly(tmp_path, monk
     assert fields["npc_dota_hero_axe/hero_damage"].tolerance == 0
     assert fields["npc_dota_hero_axe/gold_per_min"].tolerance == 0
     assert fields["npc_dota_hero_axe/total_xp"].tolerance == 0
+    assert fields["npc_dota_hero_axe/aghanims_scepter"].tolerance == 0
     assert fields["duration"].status == "PASS"
     assert fields["npc_dota_hero_axe/hero_damage"].status == "PASS"
     assert fields["npc_dota_hero_axe/total_xp"].status == "PASS"
+    assert fields["npc_dota_hero_axe/moonshard"].status == "PASS"
     assert result.failed == 0
 
 
@@ -279,6 +290,9 @@ def test_scalar_validation_skips_postgame_fields_without_exact_provenance(
         xp_per_min=0,
         total_gold=0,
         total_xp=0,
+        aghanims_scepter=None,
+        aghanims_shard=None,
+        moonshard=None,
         _match_details_fields=set(),
     )
     parsed = SimpleNamespace(
@@ -306,6 +320,9 @@ def test_scalar_validation_skips_postgame_fields_without_exact_provenance(
                 "xp_per_min": 700,
                 "total_gold": 1200,
                 "total_xp": 1400,
+                "aghanims_scepter": 1,
+                "aghanims_shard": 0,
+                "moonshard": 1,
             }
         ],
         "radiant_win": True,
@@ -326,6 +343,9 @@ def test_scalar_validation_skips_postgame_fields_without_exact_provenance(
         "npc_dota_hero_axe/xp_per_min",
         "npc_dota_hero_axe/total_gold",
         "npc_dota_hero_axe/total_xp",
+        "npc_dota_hero_axe/aghanims_scepter",
+        "npc_dota_hero_axe/aghanims_shard",
+        "npc_dota_hero_axe/moonshard",
     }
     assert all(fields[name].status == "SKIP" for name in exact_names)
     assert result.failed == 0

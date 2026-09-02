@@ -262,6 +262,7 @@ In short: think of `ParsedMatch` as one container holding both **per-player summ
 | Hero picks and bans with timestamps | `ParsedMatch.draft` |
 | Per-player K/D/A + core combat summaries | `ParsedPlayer.kills` / `.deaths` / `.assists` / `.damage` |
 | Exact postgame damage/healing + GPM/XPM scalars | `ParsedPlayer.hero_damage` / `.tower_damage` / `.hero_healing` / `.gold_per_min` / `.xp_per_min` |
+| Consumed Aghanim's Scepter/Shard and Moon Shard flags | `ParsedPlayer.aghanims_scepter` / `.aghanims_shard` / `.moonshard` |
 | Gold / XP / net-worth time series | `ParsedPlayer.times`, `.gold_t`, `.xp_t`, `.net_worth_t` |
 | Minute-aligned economy/XP series | `ParsedPlayer.game_times_min`, `.times_min`, `.total_earned_gold_t_min`, `.total_earned_xp_t_min` |
 | Radiant gold / XP advantage curves | `ParsedMatch.game_times_min`, `.radiant_gold_adv`, `.radiant_xp_adv` |

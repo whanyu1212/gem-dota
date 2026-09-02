@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Exact consumed-upgrade flags.** `ParsedPlayer.aghanims_scepter`,
+  `aghanims_shard`, and `moonshard` now mirror OpenDota's `0`/`1` flags from
+  the replay-embedded Game Coordinator `permanent_buffs` summary. They remain
+  `None` when that summary is unavailable, preserving the distinction between
+  unknown and a confirmed zero; explicit API enrichment can populate or
+  override them from either OpenDota's top-level flags or `permanent_buffs[]`.
+
 ### Fixed
 - **Exact minute-zero interval phase.** Minute zero is now sampled immediately
   from the preceding observed team-data frame, while later minute boundaries

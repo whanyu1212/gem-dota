@@ -134,6 +134,12 @@ player.net_worth       # int: net worth at game end
 player.last_hits       # int: last-hit count at game end
 player.denies          # int: deny count at game end
 
+# Permanent consumed-upgrade state from the embedded postgame summary.
+# None means that the summary was unavailable; 0 and 1 are exact values.
+player.aghanims_scepter  # int | None
+player.aghanims_shard    # int | None
+player.moonshard         # int | None
+
 # Net worth / gold / XP are also available as per-minute time-series. The minute
 # arrays can lag the exact game-end tick by up to ~59s, so prefer the scalars above
 # for terminal values and the arrays for curves.
@@ -151,6 +157,10 @@ sum(player.damage.values())       # total damage dealt across all targets
 player.damage_by_type        # dict[str, int]: damage dealt keyed by "physical"/"magical"/"pure"/"others"
 player.damage_taken_by_type  # dict[str, int]: damage received keyed by damage type
 ```
+
+The upgrade flags describe permanent consumed or granted state. They
+intentionally do not mean that the corresponding item was merely held in
+inventory.
 
 ### Time-series logs
 

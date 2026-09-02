@@ -65,6 +65,17 @@ class TestSerializationHelpers:
         assert "_match_details_fields" not in data
         assert "_match_details_fields" not in data["players"][0]
 
+    def test_to_dict_preserves_permanent_buff_availability(self):
+        match = ParsedMatch()
+        match.players[0].aghanims_scepter = 1
+        match.players[0].aghanims_shard = 0
+
+        data = gem.to_dict(match)
+
+        assert data["players"][0]["aghanims_scepter"] == 1
+        assert data["players"][0]["aghanims_shard"] == 0
+        assert data["players"][0]["moonshard"] is None
+
     def test_parse_to_json_uses_parse_result(self, monkeypatch):
         fake_match = ParsedMatch(match_id=999)
 

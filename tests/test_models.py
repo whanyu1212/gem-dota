@@ -52,6 +52,15 @@ class TestParsedPlayerRepr:
         assert "unknown" in repr(ParsedPlayer(player_id=0))
 
 
+class TestParsedPlayerPermanentBuffFlags:
+    def test_defaults_distinguish_unavailable_from_confirmed_zero(self):
+        pp = ParsedPlayer(player_id=0)
+
+        assert pp.aghanims_scepter is None
+        assert pp.aghanims_shard is None
+        assert pp.moonshard is None
+
+
 class TestParsedMatchRepr:
     def test_radiant_win(self):
         r = repr(ParsedMatch(match_id=12345, radiant_win=True))
