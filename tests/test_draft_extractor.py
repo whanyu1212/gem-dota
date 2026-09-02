@@ -485,6 +485,9 @@ class TestCheckDraftIdempotency:
             def on_entity(self, _):
                 pass
 
+            def _on_entity_filtered(self, handler, **_filters):
+                self.on_entity(handler)
+
         ext = DE()
         fp = FakeParser()
         ext.attach(fp)
@@ -524,6 +527,9 @@ class TestOnEntity:
 
             def on_entity(self, h):
                 self._handlers.append(h)
+
+            def _on_entity_filtered(self, h, **_filters):
+                self.on_entity(h)
 
         return FakeParser()
 

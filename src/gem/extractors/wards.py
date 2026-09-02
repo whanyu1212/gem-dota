@@ -153,7 +153,11 @@ class WardsExtractor:
         """
         self._parser = parser
         parser.on_combat_log_entry(self._on_combat_log)
-        parser.on_entity(self._on_entity)
+        parser._on_entity_filtered(
+            self._on_entity,
+            class_names=_WARD_CLASSES,
+            class_prefixes=("CDOTA_Unit_Hero_",),
+        )
 
     @property
     def _tick(self) -> int:

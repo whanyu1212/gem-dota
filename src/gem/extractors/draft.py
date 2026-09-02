@@ -166,7 +166,10 @@ class DraftExtractor:
             parser: The ``ReplayParser`` instance to attach to.
         """
         self._parser = parser
-        parser.on_entity(self._on_entity)
+        parser._on_entity_filtered(
+            self._on_entity,
+            class_names=("CDOTAGamerulesProxy", "CDOTA_PlayerResource"),
+        )
 
     def _resolve_name(self, hero_id: int) -> str:
         """Resolve a hero_id to an NPC name.
