@@ -137,6 +137,7 @@ player.denies          # int: deny count at game end
 # Net worth / gold / XP are also available as per-minute time-series. The minute
 # arrays can lag the exact game-end tick by up to ~59s, so prefer the scalars above
 # for terminal values and the arrays for curves.
+player.game_times_min                 # [0, 60, 120, ...]: authoritative game-time axis
 player.net_worth_t_min[-1]          # int: net worth at the last minute sample
 player.total_earned_gold_t_min[-1]  # int: cumulative gold at the last minute sample
 player.lh_t_min[-1]                 # int: last-hit count at the last minute sample

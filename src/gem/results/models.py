@@ -179,6 +179,9 @@ class ParsedPlayer:
         dn_t: Deny count at each sample tick.
         xp_t: Cumulative XP at each sample tick.
         times_min: Tick values at each game-minute boundary (OpenDota-aligned).
+        game_times_min: Game-relative seconds parallel to ``times_min`` and all
+            ``*_t_min`` arrays. Values are exact non-negative minute boundaries
+            (``0, 60, 120, ...``) and are the authoritative join key.
         gold_t_min: OpenDota-compatible cumulative earned gold at each
             game-minute boundary when interval data is available; legacy
             current-unspent-gold fallback on replays without complete intervals.
@@ -517,6 +520,9 @@ class ParsedPlayer:
     sentry_uses: int = 0
     observers_placed: int = 0
     _ability_snapshots: list[tuple[int, dict[str, int]]] = field(default_factory=list)
+    # Append-only: ParsedPlayer is a public dataclass and supports positional
+    # construction, so new fields go last to avoid shifting existing callers.
+    game_times_min: list[int] = field(default_factory=list)
 
     def __repr__(self) -> str:
         hero = self.hero_name.removeprefix("npc_dota_hero_") if self.hero_name else "unknown"
@@ -578,6 +584,9 @@ class ParsedMatch:
         wards: All ward placement events with coordinates.
         radiant_gold_adv: Radiant gold advantage at each minute boundary.
         radiant_xp_adv: Radiant XP advantage at each minute boundary.
+        game_times_min: Game-relative seconds parallel to
+            ``radiant_gold_adv`` / ``radiant_xp_adv``. Values are exact
+            non-negative minute boundaries and are the authoritative join key.
         combat_log: All raw combat log entries (unfiltered).
         chat: All chat messages in chronological order.
         courier_snapshots: Courier state snapshots at each sample interval.
@@ -660,9 +669,10 @@ class ParsedMatch:
     vision_modifiers: list[VisionModifierEvent] = field(default_factory=list)
     # Append-only: ParsedMatch is a public dataclass and supports positional
     # construction, so new fields go LAST to avoid shifting existing positional
-    # arguments. (Logically banner_plants belongs near the other objective lists,
-    # but inserting it there would silently misalign positional callers.)
+    # arguments. (Logically these fields belong beside related timelines, but
+    # inserting them there would silently misalign positional callers.)
     banner_plants: list[BannerPlant] = field(default_factory=list)
+    game_times_min: list[int] = field(default_factory=list)
 
     @property
     def duration_seconds(self) -> float:

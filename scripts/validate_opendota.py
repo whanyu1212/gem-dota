@@ -9,13 +9,14 @@ Notes on expected discrepancies
 OpenDota's scalar per-player stats (``kills``, ``deaths``, ``last_hits``,
 ``net_worth``) are sourced from the Steam API ``GetMatchDetails`` endpoint,
 which records the final game-state snapshot taken by the server at game-end.
-gem's ``_t`` arrays are sampled from entity state at 30-tick (≈1 s) intervals
-and the ``_min`` arrays at exact 60-second game-time boundaries.  A small
-residual difference is therefore expected and acceptable. ``net_worth`` is the
-least stable scalar here: the replay-exposed ``m_iNetWorth`` /
-``m_vecDataTeam.*.m_iNetWorth`` values can diverge slightly from Steam's final
-server scalar, so the validator uses a looser tolerance for that field than it
-does for kills / last hits / denies.
+gem forces a terminal entity sample at the game-end tick and samples ``_min``
+arrays at exact non-negative 60-second game-time boundaries. Terminal scalars
+are compared only with terminal scalars; minute curves are joined to OpenDota's
+array indices through gem's explicit game-time axes before their values are
+compared. ``net_worth`` is the least stable scalar here: the replay-exposed
+``m_iNetWorth`` / ``m_vecDataTeam.*.m_iNetWorth`` values can diverge slightly
+from Steam's final server scalar, so the validator uses a looser tolerance for
+that field than it does for kills / last hits / denies.
 
 OpenDota data availability
 --------------------------
@@ -110,6 +111,7 @@ class FieldResult:
     note: str = ""  # optional explanatory note shown in verbose mode
     skip: bool = False  # True = known limitation, exclude from pass/fail count
     ok_override: bool | None = None  # if set, overrides ok computation
+    warn_override: bool = False  # True = within hard tolerance but outside warning band
 
     @property
     def diff(self) -> float | None:
@@ -129,6 +131,16 @@ class FieldResult:
         if d is None:
             return self.gem_value == self.ref_value
         return d <= self.tolerance
+
+    @property
+    def status(self) -> Literal["PASS", "WARN", "FAIL", "SKIP"]:
+        if self.skip:
+            return "SKIP"
+        if not self.ok:
+            return "FAIL"
+        if self.warn_override:
+            return "WARN"
+        return "PASS"
 
 
 @dataclass
@@ -150,11 +162,19 @@ class MatchResult:
 
     @property
     def passed(self) -> int:
-        return sum(1 for f in self.all_fields if f.ok)
+        return sum(1 for f in self.all_fields if f.status == "PASS")
+
+    @property
+    def warned(self) -> int:
+        return sum(1 for f in self.all_fields if f.status == "WARN")
 
     @property
     def failed(self) -> int:
-        return sum(1 for f in self.all_fields if not f.ok)
+        return sum(1 for f in self.all_fields if f.status == "FAIL")
+
+    @property
+    def skipped(self) -> int:
+        return sum(1 for f in self.all_fields if f.status == "SKIP")
 
 
 @dataclass
@@ -404,50 +424,44 @@ def _opendota_teamfights_from_combat_log(combat_log: list[Any]) -> list[dict[str
 # Core validation
 # ---------------------------------------------------------------------------
 
-_SAMPLE_NOTE = (
-    "gem samples entity state at 30-tick (≈1 s) intervals; "
-    "OpenDota uses the server's final game-end snapshot. "
-    "Small residual differences are expected; net worth can drift a bit more "
-    "than kills / last hits because Steam final scalars and replay-exposed "
-    "m_iNetWorth values are not always identical."
+_TERMINAL_NOTE = (
+    "Terminal-to-terminal comparison. gem forces a dense entity sample at the "
+    "game-end tick; OpenDota's scalar comes from Steam's final server snapshot. "
+    "Replay-exposed m_iNetWorth can still differ slightly from the Steam scalar."
 )
 
 _NET_WORTH_TOLERANCE = 0.08
-# Advantage and player minute curves: gem samples interval boundaries on the
-# combat-log timestamp axis OpenDota uses (parser.combat_log_time_s) AND reads
-# the team-data frame observed one entity tick before the boundary crossing
-# (the boundary-nudge fix), matching OpenDota's effective read instant. The
-# curves now coincide with OpenDota almost exactly. Observed max element-wise
-# error across the five validation fixtures (tournament + ranked pub), measured
-# 2026-06-18: gold_t <=0.65%, xp_t <=0.40%, gold_adv <=0.88%, xp_adv <=0.47%,
-# with every advantage final matching to within 1 unit. Tolerances sit a few
-# multiples above that worst case: tight enough that reverting the nudge or the
-# clock/source alignment (which pushes errors back to ~10%) fails the gate,
-# loose enough that an unseen fixture's sub-second end-game wiggle still passes.
-_GOLD_ADV_TOLERANCE = 0.02
-_GOLD_ADV_CURVE_TOLERANCE_PCT = 3.0
-_XP_ADV_TOLERANCE = 0.02
-_XP_ADV_CURVE_TOLERANCE_PCT = 2.5
-_PLAYER_GOLD_T_CURVE_TOLERANCE_PCT = 3.0
-_PLAYER_XP_T_CURVE_TOLERANCE_PCT = 3.0
-_PLAYER_LH_T_ABS_TOLERANCE = 5
-_PLAYER_LH_T_REL_TOLERANCE = 0.02
-_PLAYER_DN_T_ABS_TOLERANCE = 2
+# Advantage and player minute curves: gem decodes CNETMsg_Tick, queues the first
+# rounded-minute crossing, and samples the reconstructed entity table at the
+# following tick start. This reproduces Clarity's effective @OnTickStart phase;
+# the minute-zero m_iTotalEarnedGold offset is removed without zeroing genuine
+# pre-horn earnings. Across four replay fixtures (1,410 player-minute points per
+# metric, including the 2026 TI sample), gold/XP/LH/DN and both advantage curves
+# are point-exact after this alignment. The remaining nonzero gates are narrow
+# portability headroom for unseen patches: a one-creep boundary regression is
+# warned immediately and meaningful frame/clock drift fails.
+_GOLD_ADV_TOLERANCE = 0.0025
+_GOLD_ADV_CURVE_TOLERANCE_PCT = 0.25
+_XP_ADV_TOLERANCE = 0.0025
+_XP_ADV_CURVE_TOLERANCE_PCT = 0.25
+_PLAYER_GOLD_T_CURVE_TOLERANCE_PCT = 0.25
+_PLAYER_XP_T_CURVE_TOLERANCE_PCT = 0.25
+_PLAYER_LH_T_ABS_TOLERANCE = 2
+_PLAYER_LH_T_REL_TOLERANCE = 0.0025
+_PLAYER_DN_T_ABS_TOLERANCE = 1
+_ADV_CURVE_WARNING_PCT = 0.05
+_PLAYER_CURVE_WARNING_PCT = 0.05
+_PLAYER_LH_T_WARNING_ABS = 0
+_PLAYER_DN_T_WARNING_ABS = 0
 _GOLD_ADV_NOTE = (
-    "gem builds gold_adv from m_iTotalEarnedGold sampled on the combat-log "
-    "timestamp axis (the same axis OpenDota uses for its interval boundaries), "
-    "so the curves match OpenDota almost exactly. Any residual is sub-second "
-    "end-game wiggle at the final minute boundary."
+    "gem builds advantage curves from m_iTotalEarnedGold/m_iTotalEarnedXP at "
+    "the decoded network-tick phase corresponding to OpenDota's @OnTickStart "
+    "interval read. Any residual indicates an entity-update boundary mismatch."
 )
 _PLAYER_MINUTE_ARRAY_NOTE = (
-    "OpenDota player minute arrays come from its interval parser pipeline. "
-    "Compare by array index; residual drift is tracked before changing parser behavior."
-)
-_MINUTE_SAMPLE_NOTE = (
-    "This is the last whole-minute snapshot before game end, compared against "
-    "a final server scalar. It is informational only and is excluded from "
-    "pass/fail counts because up to 59 seconds of gameplay can elapse after "
-    "the final minute boundary."
+    "OpenDota player minute arrays come from its @OnTickStart interval pipeline. "
+    "Values are joined by the explicit non-negative game-minute key; list "
+    "position is never used when gem exposes its game-time axis."
 )
 
 
@@ -475,61 +489,123 @@ def _allowed_abs_error(
     return max(absolute_floor, math.ceil(max_abs_ref * relative_tolerance))
 
 
+def _minute_key_summary(keys: list[int]) -> str:
+    """Return a compact, readable representation of a minute-key axis."""
+    if not keys:
+        return "[]"
+    if keys == list(range(keys[0], keys[-1] + 1)):
+        return f"{keys[0]}..{keys[-1]} ({len(keys)} keys)"
+    if len(keys) <= 10:
+        return str(keys)
+    return f"{keys[:4]} ... {keys[-4:]} ({len(keys)} keys)"
+
+
 def _compare_opendota_player_array(
     label: str,
     name: str,
     gem_values: list[int],
     ref_values: list[int],
     *,
+    gem_times_s: list[int] | None = None,
     max_curve_error_pct: float | None = None,
     max_abs_error: int | None = None,
     max_abs_error_pct: float | None = None,
+    final_relative_tolerance: float | None = None,
+    warning_curve_error_pct: float | None = None,
+    warning_abs_error: int | None = None,
+    comparison_note: str | None = None,
 ) -> list[FieldResult]:
-    """Compare one gem player minute array against one OpenDota player array."""
+    """Compare one gem minute array against OpenDota by game-minute key.
+
+    OpenDota arrays are indexed by the non-negative game minute. ``gem_times_s``
+    carries gem's explicit game-relative axis. ``None`` is retained only as a
+    backwards-compatible positional axis for direct helper callers; production
+    validation always passes the parsed axis explicitly.
+    """
+    prefix = f"{label}/{name}" if label else name
     missing_ref = not ref_values
-    missing_note = f"OpenDota did not expose player {name} for this match."
-    note = missing_note if missing_ref else _PLAYER_MINUTE_ARRAY_NOTE
+    missing_note = (
+        f"OpenDota did not expose player {name} for this match."
+        if label
+        else f"OpenDota did not expose {name} for this match."
+    )
+    note = missing_note if missing_ref else (comparison_note or _PLAYER_MINUTE_ARRAY_NOTE)
+
+    if gem_times_s is None:
+        gem_minute_keys = list(range(len(gem_values)))
+        axis_valid = True
+    else:
+        axis_valid = len(gem_times_s) == len(gem_values) and all(
+            isinstance(time_s, int) and time_s >= 0 and time_s % 60 == 0 for time_s in gem_times_s
+        )
+        gem_minute_keys = [time_s // 60 for time_s in gem_times_s]
+        axis_valid = axis_valid and len(set(gem_minute_keys)) == len(gem_minute_keys)
+
+    ref_minute_keys = list(range(len(ref_values)))
+    coverage_matches = axis_valid and gem_minute_keys == ref_minute_keys
     fields = [
         FieldResult(
-            f"{label}/{name}/length",
+            f"{prefix}/length",
             len(gem_values),
             len(ref_values),
             skip=missing_ref,
             note=note if missing_ref else "",
-        )
+        ),
+        FieldResult(
+            f"{prefix}/minute_keys",
+            _minute_key_summary(gem_minute_keys),
+            _minute_key_summary(ref_minute_keys),
+            skip=missing_ref,
+            ok_override=coverage_matches,
+            note=note,
+        ),
     ]
 
-    gem_final = gem_values[-1] if gem_values else None
+    # A value comparison is meaningful only when both curves cover the same
+    # minute keys. The length/key fields above provide the actionable failure.
+    if missing_ref or not coverage_matches:
+        return fields
+
+    gem_by_minute = dict(zip(gem_minute_keys, gem_values, strict=True))
+    aligned_gem_values = [gem_by_minute[minute] for minute in ref_minute_keys]
+
+    gem_final = aligned_gem_values[-1] if aligned_gem_values else None
     ref_final = ref_values[-1] if ref_values else None
     if max_curve_error_pct is not None:
+        final_tolerance = (
+            final_relative_tolerance
+            if final_relative_tolerance is not None
+            else max_curve_error_pct / 100
+        )
+        final_warn = False
+        if (
+            warning_curve_error_pct is not None
+            and isinstance(gem_final, (int, float))
+            and isinstance(ref_final, (int, float))
+            and ref_final != 0
+        ):
+            final_warn = abs(gem_final - ref_final) / abs(ref_final) * 100 > warning_curve_error_pct
         fields.append(
             FieldResult(
-                f"{label}/{name}/final",
+                f"{prefix}/final",
                 gem_final,
                 ref_final,
-                tolerance=max_curve_error_pct / 100,
-                skip=missing_ref,
+                tolerance=final_tolerance,
+                warn_override=final_warn,
                 note=note,
             )
         )
-        if gem_values and ref_values and len(gem_values) == len(ref_values):
-            err_pct = _max_curve_error_pct(gem_values, ref_values)
+        if aligned_gem_values and ref_values:
+            err_pct = _max_curve_error_pct(aligned_gem_values, ref_values)
             fields.append(
                 FieldResult(
-                    f"{label}/{name}/max_curve_err%",
+                    f"{prefix}/max_curve_err%",
                     err_pct,
                     max_curve_error_pct,
                     ok_override=err_pct <= max_curve_error_pct,
-                    note=note,
-                )
-            )
-        elif missing_ref:
-            fields.append(
-                FieldResult(
-                    f"{label}/{name}/max_curve_err%",
-                    None,
-                    max_curve_error_pct,
-                    skip=True,
+                    warn_override=(
+                        warning_curve_error_pct is not None and err_pct > warning_curve_error_pct
+                    ),
                     note=note,
                 )
             )
@@ -546,32 +622,27 @@ def _compare_opendota_player_array(
     )
     fields.append(
         FieldResult(
-            f"{label}/{name}/final_abs_err",
+            f"{prefix}/final_abs_err",
             final_abs_error,
             allowed_abs_error,
-            skip=missing_ref,
             ok_override=final_abs_error is not None and final_abs_error <= allowed_abs_error,
+            warn_override=(
+                warning_abs_error is not None
+                and final_abs_error is not None
+                and final_abs_error > warning_abs_error
+            ),
             note=note,
         )
     )
-    if gem_values and ref_values and len(gem_values) == len(ref_values):
-        err = _max_abs_error(gem_values, ref_values)
+    if aligned_gem_values and ref_values:
+        err = _max_abs_error(aligned_gem_values, ref_values)
         fields.append(
             FieldResult(
-                f"{label}/{name}/max_abs_err",
+                f"{prefix}/max_abs_err",
                 err,
                 allowed_abs_error,
                 ok_override=err <= allowed_abs_error,
-                note=note,
-            )
-        )
-    elif missing_ref:
-        fields.append(
-            FieldResult(
-                f"{label}/{name}/max_abs_err",
-                None,
-                allowed_abs_error,
-                skip=True,
+                warn_override=warning_abs_error is not None and err > warning_abs_error,
                 note=note,
             )
         )
@@ -690,99 +761,40 @@ def validate_match(
             )
 
     if mode in {"parsed", "full"}:
-        # radiant_gold_adv / radiant_xp_adv — per-minute curves
-        # Compare array length and last value (full curve comparison via max element-wise diff)
+        # Radiant advantage curves: OpenDota's array index is the non-negative
+        # game minute. Join it to gem's explicit game-time axis before measuring
+        # final or max error; equal-length shifted curves must not compare.
         od_gold_adv = od.get("radiant_gold_adv") or []
         od_xp_adv = od.get("radiant_xp_adv") or []
         gem_gold_adv = m.radiant_gold_adv or []
         gem_xp_adv = m.radiant_xp_adv or []
-
-        od_adv_missing = not od_gold_adv and not od_xp_adv
-        result.match_fields.append(
-            FieldResult(
-                "radiant_gold_adv/length",
-                len(gem_gold_adv),
-                len(od_gold_adv),
-                skip=od_adv_missing,
-                note="OpenDota did not compute gold/XP advantage curves for this match."
-                if od_adv_missing
-                else "",
+        gem_adv_times = list(m.game_times_min or [])
+        result.match_fields.extend(
+            _compare_opendota_player_array(
+                "",
+                "radiant_gold_adv",
+                list(gem_gold_adv),
+                list(od_gold_adv),
+                gem_times_s=gem_adv_times,
+                max_curve_error_pct=_GOLD_ADV_CURVE_TOLERANCE_PCT,
+                final_relative_tolerance=_GOLD_ADV_TOLERANCE,
+                warning_curve_error_pct=_ADV_CURVE_WARNING_PCT,
+                comparison_note=_GOLD_ADV_NOTE,
             )
         )
-        result.match_fields.append(
-            FieldResult(
-                "radiant_xp_adv/length",
-                len(gem_xp_adv),
-                len(od_xp_adv),
-                skip=od_adv_missing,
-                note="OpenDota did not compute gold/XP advantage curves for this match."
-                if od_adv_missing
-                else "",
+        result.match_fields.extend(
+            _compare_opendota_player_array(
+                "",
+                "radiant_xp_adv",
+                list(gem_xp_adv),
+                list(od_xp_adv),
+                gem_times_s=gem_adv_times,
+                max_curve_error_pct=_XP_ADV_CURVE_TOLERANCE_PCT,
+                final_relative_tolerance=_XP_ADV_TOLERANCE,
+                warning_curve_error_pct=_ADV_CURVE_WARNING_PCT,
+                comparison_note=_GOLD_ADV_NOTE,
             )
         )
-
-        # Final value comparison (last minute — most meaningful single scalar)
-        gem_gold_final = gem_gold_adv[-1] if gem_gold_adv else None
-        od_gold_final = od_gold_adv[-1] if od_gold_adv else None
-        result.match_fields.append(
-            FieldResult(
-                "radiant_gold_adv/final",
-                gem_gold_final,
-                od_gold_final,
-                tolerance=_GOLD_ADV_TOLERANCE,
-                skip=od_adv_missing,
-                note="OpenDota did not compute gold/XP advantage curves for this match."
-                if od_adv_missing
-                else _GOLD_ADV_NOTE,
-            )
-        )
-        gem_xp_final = gem_xp_adv[-1] if gem_xp_adv else None
-        od_xp_final = od_xp_adv[-1] if od_xp_adv else None
-        result.match_fields.append(
-            FieldResult(
-                "radiant_xp_adv/final",
-                gem_xp_final,
-                od_xp_final,
-                tolerance=_XP_ADV_TOLERANCE,
-                skip=od_adv_missing,
-                note="OpenDota did not compute gold/XP advantage curves for this match."
-                if od_adv_missing
-                else "",
-            )
-        )
-
-        # Max element-wise relative error across the curve (gem=actual %, ref=5% threshold).
-        if gem_gold_adv and od_gold_adv and len(gem_gold_adv) == len(od_gold_adv):
-            max_abs = max(abs(v) for v in od_gold_adv) or 1
-            err_pct = round(
-                max(abs(g - o) for g, o in zip(gem_gold_adv, od_gold_adv, strict=True))
-                / max_abs
-                * 100,
-                2,
-            )
-            result.match_fields.append(
-                FieldResult(
-                    "radiant_gold_adv/max_curve_err%",
-                    err_pct,
-                    _GOLD_ADV_CURVE_TOLERANCE_PCT,
-                    ok_override=err_pct <= _GOLD_ADV_CURVE_TOLERANCE_PCT,
-                    note=_GOLD_ADV_NOTE,
-                )
-            )
-        if gem_xp_adv and od_xp_adv and len(gem_xp_adv) == len(od_xp_adv):
-            max_abs = max(abs(v) for v in od_xp_adv) or 1
-            err_pct = round(
-                max(abs(g - o) for g, o in zip(gem_xp_adv, od_xp_adv, strict=True)) / max_abs * 100,
-                2,
-            )
-            result.match_fields.append(
-                FieldResult(
-                    "radiant_xp_adv/max_curve_err%",
-                    err_pct,
-                    _XP_ADV_CURVE_TOLERANCE_PCT,
-                    ok_override=err_pct <= _XP_ADV_CURVE_TOLERANCE_PCT,
-                )
-            )
 
     # -----------------------------------------------------------------------
     # Player-level fields
@@ -808,61 +820,31 @@ def validate_match(
             result.player_fields.append(fields)
             continue
 
-        # --- 30-tick sampler (last sample, ≈1 s resolution) ---
-        gem_nw = gp.net_worth_t[-1] if gp.net_worth_t else None
+        # --- terminal scalars (same game-end semantic on both sides) ---
         fields.append(
             FieldResult(
-                f"{label}/net_worth[30t]",
-                gem_nw,
+                f"{label}/net_worth[terminal]",
+                gp.net_worth,
                 od_player["net_worth"],
                 tolerance=_NET_WORTH_TOLERANCE,
-                note=_SAMPLE_NOTE,
+                note=_TERMINAL_NOTE,
             )
         )
-        gem_lh = gp.lh_t[-1] if gp.lh_t else None
         fields.append(
             FieldResult(
-                f"{label}/last_hits[30t]",
-                gem_lh,
+                f"{label}/last_hits[terminal]",
+                gp.last_hits,
                 od_player["last_hits"],
                 tolerance=0.01,
-                note=_SAMPLE_NOTE,
+                note=_TERMINAL_NOTE,
             )
         )
-        gem_dn = gp.dn_t[-1] if gp.dn_t else None
-        fields.append(FieldResult(f"{label}/denies[30t]", gem_dn, od_player["denies"]))
-
-        # --- per-minute sampler (last whole-minute snapshot, OpenDota-aligned) ---
-        gem_nw_min = gp.net_worth_t_min[-1] if gp.net_worth_t_min else None
         fields.append(
             FieldResult(
-                f"{label}/net_worth[min]",
-                gem_nw_min,
-                od_player["net_worth"],
-                tolerance=_NET_WORTH_TOLERANCE,
-                note=_MINUTE_SAMPLE_NOTE,
-                skip=True,
-            )
-        )
-        gem_lh_min = gp.lh_t_min[-1] if gp.lh_t_min else None
-        fields.append(
-            FieldResult(
-                f"{label}/last_hits[min]",
-                gem_lh_min,
-                od_player["last_hits"],
-                tolerance=0.01,
-                note=_MINUTE_SAMPLE_NOTE,
-                skip=True,
-            )
-        )
-        gem_dn_min = gp.dn_t_min[-1] if gp.dn_t_min else None
-        fields.append(
-            FieldResult(
-                f"{label}/denies[min]",
-                gem_dn_min,
+                f"{label}/denies[terminal]",
+                gp.denies,
                 od_player["denies"],
-                note=_MINUTE_SAMPLE_NOTE,
-                skip=True,
+                note=_TERMINAL_NOTE,
             )
         )
 
@@ -873,7 +855,9 @@ def validate_match(
                     "gold_t",
                     list(gp.gold_t_min),
                     list(od_player.get("gold_t") or []),
+                    gem_times_s=list(gp.game_times_min),
                     max_curve_error_pct=_PLAYER_GOLD_T_CURVE_TOLERANCE_PCT,
+                    warning_curve_error_pct=_PLAYER_CURVE_WARNING_PCT,
                 )
             )
             fields.extend(
@@ -882,7 +866,9 @@ def validate_match(
                     "xp_t",
                     list(gp.xp_t_min),
                     list(od_player.get("xp_t") or []),
+                    gem_times_s=list(gp.game_times_min),
                     max_curve_error_pct=_PLAYER_XP_T_CURVE_TOLERANCE_PCT,
+                    warning_curve_error_pct=_PLAYER_CURVE_WARNING_PCT,
                 )
             )
             fields.extend(
@@ -891,8 +877,10 @@ def validate_match(
                     "lh_t",
                     list(gp.lh_t_min),
                     list(od_player.get("lh_t") or []),
+                    gem_times_s=list(gp.game_times_min),
                     max_abs_error=_PLAYER_LH_T_ABS_TOLERANCE,
                     max_abs_error_pct=_PLAYER_LH_T_REL_TOLERANCE,
+                    warning_abs_error=_PLAYER_LH_T_WARNING_ABS,
                 )
             )
             fields.extend(
@@ -901,7 +889,9 @@ def validate_match(
                     "dn_t",
                     list(gp.dn_t_min),
                     list(od_player.get("dn_t") or []),
+                    gem_times_s=list(gp.game_times_min),
                     max_abs_error=_PLAYER_DN_T_ABS_TOLERANCE,
+                    warning_abs_error=_PLAYER_DN_T_WARNING_ABS,
                 )
             )
 
@@ -928,9 +918,13 @@ def _diff_str(f: FieldResult) -> str:
 
 def _status_style(f: FieldResult) -> tuple[str, str]:
     """Return (status_text, rich_style) for a field result."""
-    if f.skip:
-        return ("SKIP", "yellow")
-    return ("OK", "green") if f.ok else ("FAIL", "bold red")
+    styles = {
+        "PASS": "green",
+        "WARN": "bold yellow",
+        "FAIL": "bold red",
+        "SKIP": "dim",
+    }
+    return f.status, styles[f.status]
 
 
 def print_result(r: MatchResult, verbose: bool = False) -> None:
@@ -978,8 +972,8 @@ def print_result(r: MatchResult, verbose: bool = False) -> None:
     console.print(mtable)
 
     # --- Per-player table ---
-    failures = [f for pf in r.player_fields for f in pf if not f.ok]
-    shown_fields = [f for pf in r.player_fields for f in pf] if verbose else failures
+    findings = [f for pf in r.player_fields for f in pf if f.status in {"WARN", "FAIL"}]
+    shown_fields = [f for pf in r.player_fields for f in pf] if verbose else findings
 
     if shown_fields:
         ptable = Table(box=box.SIMPLE_HEAVY, show_header=True, header_style="bold")
@@ -1001,18 +995,23 @@ def print_result(r: MatchResult, verbose: bool = False) -> None:
 
         console.print(
             "[bold]Per-player[/]"
-            + ("" if verbose else " [dim](failures only — use --verbose for all)[/]")
+            + ("" if verbose else " [dim](warnings/failures only — use --verbose for all)[/]")
         )
         console.print(ptable)
 
-        if failures and verbose:
-            console.print(f"  [dim]{_SAMPLE_NOTE}[/]")
+        if findings and verbose:
+            console.print(f"  [dim]{_TERMINAL_NOTE}[/]")
     else:
         console.print("[bold]Per-player[/]")
         console.print("  [green]All player fields OK[/] [dim](use --verbose to show all)[/]")
 
-    style = "green" if r.failed == 0 else "bold red"
-    console.print(f"  Result: [{style}]{r.passed} passed, {r.failed} failed[/]\n")
+    style = "green" if r.failed == 0 and r.warned == 0 else "yellow"
+    if r.failed:
+        style = "bold red"
+    console.print(
+        f"  Result: [{style}]{r.passed} passed, {r.warned} warned, "
+        f"{r.failed} failed, {r.skipped} skipped[/]\n"
+    )
 
 
 def results_to_jsonable(results: list[MatchResult]) -> list[dict[str, Any]]:
@@ -1026,13 +1025,16 @@ def results_to_jsonable(results: list[MatchResult]) -> list[dict[str, Any]]:
                 "mode": r.mode,
                 "errors": r.errors,
                 "passed": r.passed,
+                "warned": r.warned,
                 "failed": r.failed,
+                "skipped": r.skipped,
                 "fields": [
                     {
                         "name": f.name,
                         "gem": f.gem_value,
                         "ref": f.ref_value,
                         "ok": f.ok,
+                        "status": f.status,
                         "diff_pct": round(f.diff * 100, 2) if f.diff is not None else None,
                         "note": f.note or None,
                     }
@@ -1317,12 +1319,18 @@ def main() -> None:
             print_result(r, verbose=args.verbose)
 
         total_failed = sum(r.failed for r in results)
+        total_warned = sum(r.warned for r in results)
         total_errors = sum(len(r.errors) for r in results)
         console.print(Rule())
-        style = "green" if total_failed == 0 and total_errors == 0 else "bold red"
+        style = "green"
+        if total_warned:
+            style = "yellow"
+        if total_failed or total_errors:
+            style = "bold red"
         console.print(
             f"[{style}]Summary: {len(results)} match(es), "
-            f"{total_failed} field failures, {total_errors} errors[/]"
+            f"{total_warned} field warnings, {total_failed} field failures, "
+            f"{total_errors} errors[/]"
         )
 
     total_failed = sum(r.failed for r in results)

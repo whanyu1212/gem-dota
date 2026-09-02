@@ -335,6 +335,9 @@ class PlayerTimeSeries:
     Attributes:
         player_id: Player slot (0-9).
         ticks: Tick values for each sample.
+        game_times_s: Game-relative seconds for each minute sample, using exact
+            non-negative 60-second boundaries. Populated by
+            ``PlayerExtractor.minute_time_series``; empty for the dense series.
         gold_t: Current unspent gold at each sample tick.
         total_earned_gold_t: Cumulative total earned gold at each sample tick.
         total_earned_xp_t: Cumulative total earned XP at each sample tick.
@@ -369,3 +372,6 @@ class PlayerTimeSeries:
     total_hero_healing_t: list[int] = field(default_factory=list)
     total_deaths_t: list[int] = field(default_factory=list)
     total_stuns_t: list[float] = field(default_factory=list)
+    # Append-only: this internal dataclass is also constructed in downstream
+    # integrations, so keep new defaulted fields at the end.
+    game_times_s: list[int] = field(default_factory=list)

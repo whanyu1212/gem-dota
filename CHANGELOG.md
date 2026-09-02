@@ -7,11 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Explicit game-time axes for minute curves.** `ParsedPlayer.game_times_min`
+  and `ParsedMatch.game_times_min` now carry the game-relative seconds
+  (`0, 60, 120, ...`) parallel to their minute arrays. The `players_minute` and
+  `radiant_advantage` DataFrames expose the same axis as `game_time_s` plus the
+  derived integer `minute`, so callers no longer need to infer time from list
+  position or absolute replay ticks.
+
 ### Fixed
 - **OpenDota minute-curve boundary parity.** Minute-zero interval samples now
-  retain live player counters instead of synthetic zeros, and terminal recovery
-  no longer fabricates a future interval boundary when postGame arrives before
-  the next minute.
+  retain live player counters instead of synthetic zeros, remove only the
+  observed one-unit earned-gold initialization offset, and sample one decoded
+  network tick after the first rounded-minute crossing to match Clarity's
+  effective `@OnTickStart` phase. Terminal recovery no longer fabricates a
+  future interval boundary when postGame arrives before the next minute.
+- **OpenDota validation alignment.** Minute curves are now joined by explicit
+  game-minute keys before comparison, so equal-length shifted curves fail the
+  gate instead of being compared positionally. End-of-game net worth, last hits,
+  and denies are compared terminal-to-terminal; the misleading last-minute vs
+  final-scalar rows were removed. In-tolerance residuals above the review band
+  are reported as warnings without changing the validator's exit code.
+- **Stricter OpenDota minute-curve gates.** Match gold/XP curve limits are now
+  0.25% (from 3.0%/2.5%), player gold/XP limits are both 0.25% (from 3.0%),
+  and the review band begins at 0.05%. Last-hit curves now allow
+  `max(2, 0.25%)` instead of `max(5, 2%)`, deny curves allow one unit, and any
+  count mismatch enters review. The separate terminal net-worth limit is
+  unchanged because it compares replay state with a Steam-sourced scalar.
 
 ### Changed
 - **Dota 2 protobuf definitions refreshed.** Regenerated the bundled Python

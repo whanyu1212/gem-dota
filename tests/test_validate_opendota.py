@@ -56,6 +56,7 @@ def test_player_curve_comparison_passes_within_percent_tolerance() -> None:
 
     assert [field.name for field in fields] == [
         "npc_dota_hero_axe/gold_t/length",
+        "npc_dota_hero_axe/gold_t/minute_keys",
         "npc_dota_hero_axe/gold_t/final",
         "npc_dota_hero_axe/gold_t/max_curve_err%",
     ]
@@ -73,9 +74,9 @@ def test_player_curve_comparison_fails_above_percent_tolerance() -> None:
     )
 
     assert fields[0].ok
-    assert not fields[1].ok
     assert not fields[2].ok
-    assert fields[2].gem_value == 50.0
+    assert not fields[3].ok
+    assert fields[3].gem_value == 50.0
 
 
 def test_player_curve_length_mismatch_fails_and_skips_max_curve_error() -> None:
@@ -92,7 +93,7 @@ def test_player_curve_length_mismatch_fails_and_skips_max_curve_error() -> None:
     assert fields[0].ref_value == 3
     assert [field.name for field in fields] == [
         "npc_dota_hero_axe/gold_t/length",
-        "npc_dota_hero_axe/gold_t/final",
+        "npc_dota_hero_axe/gold_t/minute_keys",
     ]
 
 
@@ -107,6 +108,39 @@ def test_missing_opendota_player_curve_is_skipped() -> None:
 
     assert all(field.skip for field in fields)
     assert all(field.ok for field in fields)
+
+
+def test_equal_length_shifted_player_curve_fails_minute_key_alignment() -> None:
+    fields = _compare_opendota_player_array(
+        "npc_dota_hero_axe",
+        "gold_t",
+        [0, 100, 200],
+        [0, 100, 200],
+        gem_times_s=[60, 120, 180],
+        max_curve_error_pct=3.0,
+    )
+
+    assert fields[0].ok
+    assert not fields[1].ok
+    assert fields[1].name == "npc_dota_hero_axe/gold_t/minute_keys"
+    assert fields[1].gem_value == "1..3 (3 keys)"
+    assert fields[1].ref_value == "0..2 (3 keys)"
+    assert len(fields) == 2
+
+
+def test_player_curve_inside_hard_tolerance_can_warn() -> None:
+    fields = _compare_opendota_player_array(
+        "npc_dota_hero_axe",
+        "gold_t",
+        [0, 100, 196],
+        [0, 100, 200],
+        max_curve_error_pct=3.0,
+        warning_curve_error_pct=1.0,
+    )
+
+    assert all(field.ok for field in fields)
+    assert fields[-1].gem_value == 2.0
+    assert fields[-1].status == "WARN"
 
 
 def test_player_count_curve_comparison_uses_absolute_error_threshold() -> None:
@@ -126,9 +160,9 @@ def test_player_count_curve_comparison_uses_absolute_error_threshold() -> None:
     )
 
     assert all(field.ok for field in passing)
-    assert not failing[1].ok
     assert not failing[2].ok
-    assert failing[2].gem_value == 5
+    assert not failing[3].ok
+    assert failing[3].gem_value == 5
 
 
 def test_player_count_curve_comparison_can_scale_absolute_error_threshold() -> None:
@@ -142,6 +176,6 @@ def test_player_count_curve_comparison_can_scale_absolute_error_threshold() -> N
     )
 
     assert all(field.ok for field in fields)
-    assert fields[1].ref_value == 15
-    assert fields[2].gem_value == 15
     assert fields[2].ref_value == 15
+    assert fields[3].gem_value == 15
+    assert fields[3].ref_value == 15

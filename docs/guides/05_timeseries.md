@@ -7,7 +7,8 @@ outputs from the high-level API and, when needed, from the lower-level extractor
 ## Per-minute advantage curves
 
 `match.radiant_gold_adv` and `match.radiant_xp_adv` are lists of integers, one entry per
-game minute. Positive values favor Radiant; negative values favor Dire.
+game minute. `match.game_times_min` is their parallel, authoritative game-relative axis
+in seconds (`0, 60, 120, ...`). Positive values favor Radiant; negative values favor Dire.
 
 ```python
 import gem
@@ -15,7 +16,13 @@ import gem
 match = gem.parse("my_replay.dem")
 
 print("Minute  Gold adv  XP adv")
-for minute, (gold, xp) in enumerate(zip(match.radiant_gold_adv, match.radiant_xp_adv)):
+for game_time_s, gold, xp in zip(
+    match.game_times_min,
+    match.radiant_gold_adv,
+    match.radiant_xp_adv,
+    strict=True,
+):
+    minute = game_time_s // 60
     gold_sign = "+" if gold >= 0 else ""
     xp_sign = "+" if xp >= 0 else ""
     print(f"{minute:>6}  {gold_sign}{gold:>8,}  {xp_sign}{xp:>7,}")
@@ -50,7 +57,7 @@ Available DataFrames:
 | Key | Contents |
 |---|---|
 | `players` | Per-player sampled state with terminal scalar stats repeated on each row |
-| `players_minute` | Per-player series resampled to one row per game minute |
+| `players_minute` | Per-player series resampled to one row per game minute, with `game_time_s` / `minute` join keys |
 | `positions` | Per-player world `(x, y)` positions over time |
 | `combat_log` | Raw normalized combat log entries |
 | `wards` | Ward placement events with coordinates |
@@ -58,7 +65,7 @@ Available DataFrames:
 | `opendota_objectives` | OpenDota-shaped unified objective timeline |
 | `chat` | Chat messages |
 | `match` | Single-row match metadata and final status bitmasks |
-| `radiant_advantage` | Radiant gold/XP advantage per minute |
+| `radiant_advantage` | Radiant gold/XP advantage per minute, with `game_time_s` / `minute` join keys |
 | `draft` | Pick and ban events |
 | `teamfights` | Gem teamfight windows with participant stats |
 | `opendota_teamfights` | OpenDota-compatible 3+ death temporal teamfight windows |
@@ -102,7 +109,7 @@ import gem
 
 match = gem.parse("my_replay.dem")
 
-minutes = list(range(len(match.radiant_gold_adv)))
+minutes = [game_time_s / 60 for game_time_s in match.game_times_min]
 gold_adv = match.radiant_gold_adv
 
 fig, ax = plt.subplots(figsize=(12, 4))
@@ -140,7 +147,9 @@ print(series.y_t[:5])
 `PlayerTimeSeries` fields include `player_id`, `ticks`, `gold_t`,
 `total_earned_gold_t`, `total_earned_xp_t`, `net_worth_t`, `lh_t`, `dn_t`, `xp_t`,
 `hp_t`, `mana_t`, `x_t`, `y_t`, `total_hero_damage_t`, `total_hero_healing_t`,
-`total_deaths_t`, and `total_stuns_t`.
+`total_deaths_t`, and `total_stuns_t`. The object returned by
+`minute_time_series()` also populates `game_times_s` with its exact game-relative
+minute boundaries; the dense `time_series()` output leaves that axis empty.
 
 For most analysis code, prefer `gem.parse()` or `gem.parse_to_dataframe()` and use the
 lower-level extractor only when you need a different sampling interval or custom parser

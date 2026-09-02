@@ -1,15 +1,9 @@
-"""Integration lock-in: the combat-log axis beats the entity axis for intervals.
+"""Integration lock-in for OpenDota's tick-start interval boundary.
 
-OpenDota times its interval boundaries on the combat-log timestamp axis, anchored
-at the GAME_STATE==5 horn. gem's entity-derived ``game_time_s`` differs from that
-axis by a per-replay constant, so sampling boundaries on the entity clock drifts
-the per-minute gold/xp/lh curves away from OpenDota.
-
-This test parses one fixture once and attaches two interval extractors: one on the
-authoritative combat-log axis (the default) and one forced onto the entity axis. It
-asserts the combat-log axis produces a strictly smaller residual against the
-published OpenDota arrays. It is a guard against any future change flipping
-``IntervalExtractor._clock()`` back to the entity clock.
+OpenDota reads interval entities from Clarity's ``@OnTickStart`` callback. Gem
+decodes ``CNETMsg_Tick``, queues the first rounded-minute crossing, and samples
+before the following tick's entity deltas to reproduce Clarity's effective
+phase. This fixture locks in point-level parity against the published arrays.
 
 Marked ``slow`` + ``integration`` — needs a real ``.dem`` plus its ``.opendota.json``.
 """
@@ -35,9 +29,9 @@ def _od_slot_to_logical(slot: int) -> int:
     return slot if slot < 128 else (slot - 128) + 5
 
 
-def _residual(series_fn, od_by_logical: dict[int, dict]) -> int:
-    """Sum element-wise absolute error of a player's minute arrays vs OpenDota."""
-    total = 0
+def _residuals(series_fn, od_by_logical: dict[int, dict]) -> dict[str, int]:
+    """Sum element-wise absolute error by metric vs OpenDota."""
+    totals = dict.fromkeys(_METRICS, 0)
     for pid, ref in od_by_logical.items():
         ts = series_fn(pid)
         gem = {"gold_t": ts.gold_t, "xp_t": ts.xp_t, "lh_t": ts.lh_t, "dn_t": ts.dn_t}
@@ -45,20 +39,16 @@ def _residual(series_fn, od_by_logical: dict[int, dict]) -> int:
             g, r = gem[metric], ref[metric]
             # Compare the overlapping prefix; arrays may differ in trailing length.
             for a, b in zip(g, r, strict=False):
-                total += abs(a - b)
-    return total
+                totals[metric] += abs(a - b)
+    return totals
 
 
 @pytest.mark.slow
 @pytest.mark.integration
 class TestIntervalAxisLockIn:
     @pytest.fixture(scope="class")
-    def axes(self):
-        """Parse the fixture once, sampling both clock axes in a single pass.
-
-        Returns:
-            ``(combat_log_residual, entity_residual)`` against OpenDota arrays.
-        """
+    def residuals(self):
+        """Parse once and return per-metric residuals against OpenDota."""
         dem = FIXTURES_DIR / f"{_MATCH_ID}.dem"
         od_path = FIXTURES_DIR / f"{_MATCH_ID}.opendota.json"
         if not dem.exists() or not od_path.exists():
@@ -66,19 +56,8 @@ class TestIntervalAxisLockIn:
 
         parser = ReplayParser(str(dem))
 
-        combat_log_ext = IntervalExtractor(interval_s=60)
-        entity_ext = IntervalExtractor(interval_s=60)
-
-        # Force the second extractor onto the entity clock so both axes are
-        # measured from the same single parse. The default extractor keeps the
-        # authoritative combat-log axis.
-        def _entity_clock() -> int | None:
-            return getattr(parser, "game_time_s", None)
-
-        entity_ext._clock = _entity_clock  # type: ignore[method-assign]
-
-        combat_log_ext.attach(parser)
-        entity_ext.attach(parser)
+        interval_ext = IntervalExtractor(interval_s=60)
+        interval_ext.attach(parser)
         parser.parse()
 
         with open(od_path) as fh:
@@ -93,18 +72,12 @@ class TestIntervalAxisLockIn:
                 "dn_t": player.get("dn_t") or [],
             }
 
-        combat_log_residual = _residual(combat_log_ext.series, od_by_logical)
-        entity_residual = _residual(entity_ext.series, od_by_logical)
-        return combat_log_residual, entity_residual
+        return _residuals(interval_ext.series, od_by_logical)
 
-    def test_combat_log_axis_residual_is_smaller_than_entity_axis(self, axes):
-        combat_log_residual, entity_residual = axes
-        # The combat-log axis must beat the entity axis by a wide margin; on this
-        # fixture the entity axis drifts the curves by orders of magnitude more.
-        assert combat_log_residual < entity_residual
+    def test_tick_start_xp_lh_and_denies_are_exact(self, residuals):
+        assert residuals["xp_t"] == 0
+        assert residuals["lh_t"] == 0
+        assert residuals["dn_t"] == 0
 
-    def test_combat_log_axis_residual_is_small_absolute(self, axes):
-        combat_log_residual, _ = axes
-        # The nudged combat-log axis lands the per-minute curves within a few
-        # hundred total absolute units across all 10 players (measured ~142).
-        assert combat_log_residual < 400
+    def test_tick_start_gold_is_exact(self, residuals):
+        assert residuals["gold_t"] == 0

@@ -41,6 +41,7 @@ from gem.parser import (
     ReplayParser,
     _read_inner_messages,
 )
+from gem.proto.networkbasetypes_pb2 import CNETMsg_Tick
 
 # ---------------------------------------------------------------------------
 # Helpers — build synthetic inner message blobs
@@ -316,6 +317,26 @@ class TestReplayParserGameClock:
         assert p._combat_log_game_time_s(start) == 0
         assert p._combat_log_game_time_s(death) == 30
 
+    def test_fallback_clock_uses_decoded_net_tick(self):
+        p = ReplayParser(b"")
+        p.tick = 9999
+        p.net_tick = 6000
+        p._net_tick_seen = True
+        entity = MagicMock()
+        entity.get_float32.side_effect = lambda name: {
+            "m_pGameRules.m_flGameStartTime": 100.0,
+            "m_pGameRules.m_fGameTime": None,
+        }.get(name)
+        entity.get_bool.return_value = False
+        entity.get_int32.side_effect = lambda name: {
+            "m_pGameRules.m_nPauseStartTick": 0,
+            "m_pGameRules.m_nTotalPausedTicks": 0,
+        }.get(name)
+
+        p._update_game_clock(entity)
+
+        assert p.game_time_s == 100
+
 
 # ---------------------------------------------------------------------------
 # Callback registration
@@ -356,6 +377,15 @@ class TestCallbackRegistration:
         p.on_entity(cb2)
         user_callbacks = [cb for cb in p._entity_callbacks if cb in {cb1, cb2}]
         assert user_callbacks == [cb1, cb2]
+
+    def test_on_tick_start_appends_callback(self):
+        p = ReplayParser(b"")
+
+        def cb(tick):
+            return None
+
+        p.on_tick_start(cb)
+        assert cb in p._tick_start_callbacks
 
     def test_on_chat_message_appends_callback(self):
         p = ReplayParser(b"")
@@ -541,11 +571,23 @@ class TestOnServerInfo:
 
 
 class TestDispatchInnerRouting:
-    def test_net_tick_is_a_noop(self):
-        """_NET_TICK must not raise and must not change any state."""
+    def test_net_tick_updates_clock_then_dispatches_tick_start(self):
         p = ReplayParser(b"")
-        # Just prove it doesn't raise
-        p._dispatch_inner(_NET_TICK, b"")
+        grp = MagicMock()
+        p.entity_manager = MagicMock()
+        p.entity_manager.find_by_class_name.return_value = grp
+        order = []
+        p.on_tick_start(lambda tick: order.append(("callback", tick)))
+        message = CNETMsg_Tick(tick=4321)
+
+        with patch.object(
+            p, "_update_game_clock", side_effect=lambda entity: order.append(("clock", entity))
+        ):
+            p._dispatch_inner(_NET_TICK, message.SerializeToString())
+
+        assert p.net_tick == 4321
+        assert p._net_tick_seen is True
+        assert order == [("clock", grp), ("callback", 4321)]
 
     def test_svc_packet_entities_skipped_when_no_entity_manager(self):
         p = ReplayParser(b"")

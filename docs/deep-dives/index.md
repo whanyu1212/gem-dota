@@ -49,8 +49,9 @@ Important parser state includes:
 - `match_id`, `game_mode`, `leagueid`, `radiant_win`, and `match_metadata`
 - `game_start_tick`, `game_time_s`, `combat_log_time_s`, and `duration_s`
 - `parse_error` and `truncated_at_tick` for partial parses
-- callback hooks such as `on_entity`, `on_combat_log_entry`, `on_chat_message`,
-  `on_chat_event`, `on_neutral_item_found`, `on_game_start`, and `on_game_end`
+- callback hooks such as `on_entity`, `on_tick_start`, `on_combat_log_entry`,
+  `on_chat_message`, `on_chat_event`, `on_neutral_item_found`, `on_game_start`,
+  and `on_game_end`
 
 For custom callback usage, see [Writing Custom Extractors](../guides/07_custom_extractors.md).
 

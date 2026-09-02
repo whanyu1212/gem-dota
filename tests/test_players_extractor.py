@@ -878,6 +878,7 @@ class TestTimeSeries:
         ts = ext.minute_time_series(0)
 
         assert ts.ticks == [99999, 3600]
+        assert ts.game_times_s == [60, 120]
         assert ts.gold_t == [250, 300]
 
     def test_maybe_sample_uses_parser_game_time_for_minute_boundaries(self):

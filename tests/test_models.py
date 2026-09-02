@@ -75,12 +75,12 @@ class TestParsedMatchFieldOrder:
     argument by one slot.
     """
 
-    def test_banner_plants_is_last_field(self):
+    def test_additive_fields_remain_at_the_tail(self):
         import dataclasses
 
         fields = [f.name for f in dataclasses.fields(ParsedMatch)]
-        assert fields[-1] == "banner_plants", (
-            "banner_plants must remain the last field to preserve positional "
+        assert fields[-2:] == ["banner_plants", "game_times_min"], (
+            "new ParsedMatch fields must be appended to preserve positional "
             f"construction; current order tail: {fields[-3:]}"
         )
 

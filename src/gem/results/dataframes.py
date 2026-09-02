@@ -144,6 +144,7 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
 
         m = len(pp.times_min)
         for i in range(m):
+            game_time_s = pp.game_times_min[i] if i < len(pp.game_times_min) else None
             player_min_rows.append(
                 {
                     "player_id": pp.player_id,
@@ -151,6 +152,8 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                     "hero_name": pp.hero_name,
                     "team": pp.team,
                     "tick": pp.times_min[i],
+                    "game_time_s": game_time_s,
+                    "minute": game_time_s // 60 if game_time_s is not None else None,
                     "gold": pp.gold_t_min[i] if i < len(pp.gold_t_min) else 0,
                     "total_earned_gold": (
                         pp.total_earned_gold_t_min[i] if i < len(pp.total_earned_gold_t_min) else 0
@@ -345,7 +348,8 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
     adv_len = max(len(match.radiant_gold_adv), len(match.radiant_xp_adv))
     advantage_rows = [
         {
-            "minute": i,
+            "game_time_s": (match.game_times_min[i] if i < len(match.game_times_min) else i * 60),
+            "minute": (match.game_times_min[i] // 60 if i < len(match.game_times_min) else i),
             "radiant_gold_adv": match.radiant_gold_adv[i] if i < len(match.radiant_gold_adv) else 0,
             "radiant_xp_adv": match.radiant_xp_adv[i] if i < len(match.radiant_xp_adv) else 0,
         }
