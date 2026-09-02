@@ -91,6 +91,17 @@ def test_load_fixture_manifest_rejects_duplicate_names(tmp_path: Path) -> None:
         load_fixture_manifest(path)
 
 
+def test_load_fixture_manifest_rejects_duplicate_dem_filenames(tmp_path: Path) -> None:
+    path = tmp_path / "manifest.json"
+    first = _entry(1, name="first", tier="canonical")
+    second = _entry(2, name="second", tier="extended")
+    second["dem"] = first["dem"]
+    _write_manifest(path, [first, second])
+
+    with pytest.raises(FixtureManifestError, match="duplicate dem filenames"):
+        load_fixture_manifest(path)
+
+
 @pytest.mark.parametrize(("field", "value"), [("tier", []), ("status", {})])
 def test_load_fixture_manifest_rejects_non_string_enum_fields(
     tmp_path: Path, field: str, value: object

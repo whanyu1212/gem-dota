@@ -160,10 +160,13 @@ def load_fixture_manifest(path: Path = DEFAULT_MANIFEST) -> list[FixtureSpec]:
     specs = [_parse_spec(raw) for raw in raw_matches]
     ids = [spec.match_id for spec in specs]
     names = [spec.name for spec in specs]
+    dem_filenames = [spec.dem for spec in specs]
     if len(ids) != len(set(ids)):
         raise FixtureManifestError("fixture manifest contains duplicate match IDs")
     if len(names) != len(set(names)):
         raise FixtureManifestError("fixture manifest contains duplicate names")
+    if len(dem_filenames) != len(set(dem_filenames)):
+        raise FixtureManifestError("fixture manifest contains duplicate dem filenames")
 
     by_id = {spec.match_id: spec for spec in specs}
     for spec in specs:
