@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   decompressed size and SHA-256 digest.
 
 ### Changed
+- **Lower per-entity parser overhead.** Replay parsing now skips unused
+  entity-operation result tuples, deduplicates player sampling checks per tick,
+  and caches stable hero-name resolution without changing parsed output.
 - **Class-aware entity callback dispatch.** Built-in entity handlers are now
   precompiled into ordered class-ID-specific dispatch tables, avoiding callbacks
   for entity classes they do not consume while preserving catch-all callbacks and

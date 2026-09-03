@@ -719,6 +719,20 @@ class TestDispatchInnerRouting:
         p._dispatch_inner(_SVC_PACKET_ENTITIES, b"\x00" * 4)
         em.on_packet_entities.assert_not_called()
 
+    def test_svc_packet_entities_uses_non_collecting_path(self):
+        from gem.proto.netmessages_pb2 import CSVCMsg_PacketEntities
+
+        p = ReplayParser(b"")
+        em = MagicMock()
+        em.class_id_size = 1
+        p.entity_manager = em
+        message = CSVCMsg_PacketEntities(legacy_is_delta=True)
+
+        p._dispatch_inner(_SVC_PACKET_ENTITIES, message.SerializeToString())
+
+        em._on_packet_entities.assert_called_once()
+        em.on_packet_entities.assert_not_called()
+
     def test_svc_user_message_dispatches_to_on_user_message(self):
         p = ReplayParser(b"")
         from gem.proto.netmessages_pb2 import CSVCMsg_UserMessage

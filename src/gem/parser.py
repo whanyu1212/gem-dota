@@ -640,7 +640,7 @@ class ReplayParser:
         ):
             pe_msg = CSVCMsg_PacketEntities()
             pe_msg.ParseFromString(payload)
-            self.entity_manager.on_packet_entities(pe_msg)
+            self.entity_manager._on_packet_entities(pe_msg)
 
         elif type_id == _SVC_USER_MESSAGE:
             um_msg = CSVCMsg_UserMessage()

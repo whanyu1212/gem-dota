@@ -6,6 +6,7 @@ import pytest
 
 from gem.extractors.intervals import IntervalExtractor
 from gem.state.entities import Entity, EntityOp
+from gem.state.string_table import StringTable, StringTables
 
 
 class FakeClass:
@@ -455,6 +456,99 @@ def test_tick_start_defers_crossing_by_one_net_tick():
     assert radiant.xp == 1100
     assert radiant.lh == 30
     assert radiant.dn == 5
+
+
+def test_tick_start_entity_updates_do_not_attempt_entity_side_emit():
+    ext = IntervalExtractor()
+    parser = TickStartFakeParser(tick=1700, game_time_s=58)
+    ext.attach(parser)  # type: ignore[arg-type]
+    calls = []
+    ext._maybe_emit = lambda: calls.append(parser.tick)  # type: ignore[method-assign]
+
+    ext._on_entity(_player_resource(), EntityOp.UPDATED)
+    ext._on_entity(_radiant_data(), EntityOp.UPDATED)
+    ext._on_entity(_dire_data(), EntityOp.UPDATED)
+    ext._on_entity(_ent("CDOTAGamerulesProxy"), EntityOp.UPDATED)
+    ext._on_entity(_ent("CDOTA_Unit_Hero_Axe", m_nPlayerID=0), EntityOp.UPDATED)
+
+    assert calls == []
+    assert ext._player_resource is not None
+    assert ext._data_radiant is not None
+    assert ext._hero_names[0] == "npc_dota_hero_axe"
+
+
+def test_interval_hero_name_retries_until_canonical_table_item_exists():
+    ext = IntervalExtractor()
+    parser = FakeParser()
+    parser.string_tables = StringTables()
+    ext.attach(parser)
+    hero = _ent(
+        "CDOTA_Unit_Hero_QueenOfPain",
+        index=10,
+        serial=3,
+        m_nPlayerID=0,
+        **{"m_pEntity.m_nameStringableIndex": 7},
+    )
+
+    ext._on_entity(hero, EntityOp.UPDATED)
+    assert ext._hero_names[0] == "npc_dota_hero_queen_of_pain"
+    assert ext._hero_name_by_entity[10][4] is False
+
+    names = StringTable(index=0, name="EntityNames")
+    names.items[7] = ("npc_dota_hero_queenofpain", b"")
+    parser.string_tables.add(names)
+    ext._on_entity(hero, EntityOp.UPDATED)
+
+    assert ext._hero_names[0] == "npc_dota_hero_queenofpain"
+    assert ext._hero_name_by_entity[10][4] is True
+    assert len(ext._canonical_hero_names) == 1
+
+
+def test_interval_hero_name_source_survives_stale_delete_and_slot_recycle():
+    ext = IntervalExtractor()
+    parser = FakeParser()
+    parser.string_tables = StringTables()
+    names = StringTable(index=0, name="EntityNames")
+    names.items.update(
+        {
+            1: ("npc_dota_hero_axe", b""),
+            2: ("npc_dota_hero_pudge", b""),
+        }
+    )
+    parser.string_tables.add(names)
+    ext.attach(parser)
+    old = _ent(
+        "CDOTA_Unit_Hero_Axe",
+        index=10,
+        serial=1,
+        m_nPlayerID=0,
+        **{"m_pEntity.m_nameStringableIndex": 1},
+    )
+    reconnect = _ent(
+        "CDOTA_Unit_Hero_Axe",
+        index=11,
+        serial=1,
+        m_nPlayerID=0,
+        **{"m_pEntity.m_nameStringableIndex": 1},
+    )
+    replacement = _ent(
+        "CDOTA_Unit_Hero_Pudge",
+        index=11,
+        serial=2,
+        m_nPlayerID=2,
+        **{"m_pEntity.m_nameStringableIndex": 2},
+    )
+
+    ext._on_entity(old, EntityOp.CREATED)
+    ext._on_entity(reconnect, EntityOp.CREATED)
+    ext._on_entity(old, EntityOp.DELETED)
+    assert ext._hero_names[0] == "npc_dota_hero_axe"
+
+    ext._on_entity(replacement, EntityOp.CREATED)
+    ext._on_entity(reconnect, EntityOp.DELETED)
+
+    assert 0 not in ext._hero_names
+    assert ext._hero_names[1] == "npc_dota_hero_pudge"
 
 
 def test_tick_start_samples_minute_zero_before_same_tick_bounty_delta():

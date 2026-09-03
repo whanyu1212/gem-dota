@@ -407,6 +407,36 @@ class TestOnEntityHero:
         ext._on_entity(e, EntityOp.DELETED)
         assert 5 not in ext._heroes
 
+    def test_hero_alias_normalization_is_cached_by_class(self):
+        ext = PlayerExtractor()
+        parser = FakeParser()
+        ext.attach(parser)
+
+        ext._on_entity(_hero("TemplarAssassin", index=5), EntityOp.CREATED)
+        ext._on_entity(_hero("TemplarAssassin", index=6), EntityOp.CREATED)
+
+        assert ext._hero_aliases_by_class == {
+            "CDOTA_Unit_Hero_TemplarAssassin": (
+                "npc_dota_hero_templarassassin",
+                "npc_dota_hero_templar_assassin",
+            )
+        }
+
+    def test_recycled_hero_slot_removes_only_old_identity(self):
+        ext = PlayerExtractor()
+        parser = FakeParser()
+        ext.attach(parser)
+        old = _hero("Axe", index=5, serial=1)
+        replacement = _hero("Pudge", index=5, serial=2)
+
+        ext._on_entity(old, EntityOp.CREATED)
+        ext._on_entity(replacement, EntityOp.CREATED)
+        ext._on_entity(old, EntityOp.DELETED)
+
+        assert ext._heroes[5] is replacement
+        assert "npc_dota_hero_axe" not in ext._heroes_by_npc
+        assert ext._heroes_by_npc["npc_dota_hero_pudge"] is replacement
+
     def test_controller_registered(self):
         ext = PlayerExtractor()
         parser = FakeParser()
@@ -562,6 +592,67 @@ class TestHeroPos:
 
 
 class TestMaybeSample:
+    def test_entity_sampling_check_runs_once_per_tick(self):
+        ext = PlayerExtractor()
+        parser = FakeParser(tick=300)
+        ext.attach(parser)
+        calls = []
+        ext._maybe_sample = lambda: calls.append(parser.tick)  # type: ignore[method-assign]
+
+        ext._on_entity(_hero("Axe", index=1), EntityOp.UPDATED)
+        ext._on_entity(_ent("CDOTADataRadiant"), EntityOp.UPDATED)
+        ext._on_entity(_ent("CDOTAGamerulesProxy"), EntityOp.UPDATED)
+        parser.tick = 301
+        ext._on_entity(_ent("CDOTADataDire"), EntityOp.UPDATED)
+
+        assert calls == [300, 301]
+
+    def test_deletion_does_not_consume_tick_sampling_check(self):
+        ext = PlayerExtractor()
+        parser = FakeParser(tick=300)
+        ext.attach(parser)
+        hero = _hero("Axe", index=1, serial=2)
+        ext._heroes[1] = hero
+        calls = []
+        ext._maybe_sample = lambda: calls.append(parser.tick)  # type: ignore[method-assign]
+
+        ext._on_entity(hero, EntityOp.DELETED)
+        ext._on_entity(_ent("CDOTADataRadiant"), EntityOp.UPDATED)
+
+        assert calls == [300]
+
+    def test_game_start_preserves_late_minute_zero_sample(self):
+        ext = PlayerExtractor(sample_interval=0)
+        parser = FakeParser(tick=300, game_time_s=None)
+        ext.attach(parser)
+        samples = []
+        ext._sample = (  # type: ignore[method-assign]
+            lambda tick, minute=False: samples.append((tick, minute))
+        )
+
+        ext._on_entity(_hero("Axe", index=1), EntityOp.UPDATED)
+        parser.game_time_s = 0
+        ext._on_game_start(parser.tick)
+        ext._on_entity(_ent("CDOTAGamerulesProxy"), EntityOp.UPDATED)
+
+        assert samples == [(300, False), (300, True)]
+
+    def test_game_start_leaves_first_entity_to_take_minute_zero_sample(self):
+        ext = PlayerExtractor(sample_interval=9999)
+        parser = FakeParser(tick=300, game_time_s=0)
+        ext.attach(parser)
+        samples = []
+        ext._sample = (  # type: ignore[method-assign]
+            lambda tick, minute=False: samples.append((tick, minute))
+        )
+
+        ext._on_game_start(parser.tick)
+        assert samples == []
+
+        ext._on_entity(_ent("CDOTAGamerulesProxy"), EntityOp.UPDATED)
+
+        assert samples == [(300, True)]
+
     def test_sample_taken_when_interval_elapsed(self):
         ext = PlayerExtractor(sample_interval=100)
         parser = FakeParser(tick=200)

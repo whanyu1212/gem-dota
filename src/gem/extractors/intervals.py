@@ -146,6 +146,13 @@ class IntervalExtractor:
         self._player_team: dict[int, int] = {}
         self._player_team_slot: dict[int, int] = {}
         self._hero_names: dict[int, str] = {}
+        # entity index → (serial, class name, player id, NPC name, stable)
+        self._hero_name_by_entity: dict[int, tuple[int, str, int, str, bool]] = {}
+        # player id → entity identity currently supplying its hero name
+        self._hero_name_sources: dict[int, tuple[int, int]] = {}
+        # (class name, EntityNames table id, item index) → canonical NPC name
+        self._canonical_hero_names: dict[tuple[str, int, int], str] = {}
+        self._fallback_hero_names: dict[str, str] = {}
         self._next_interval_s: int | None = None
         self._tick_start_driven = False
         # Clarity's @OnTickStart interval read is effectively one decoded net
@@ -286,7 +293,8 @@ class IntervalExtractor:
         if cls == "CDOTAGamerulesProxy":
             if not op.has(EntityOp.DELETED):
                 self._last_clock_tick = self._parser.tick if self._parser is not None else None
-                self._maybe_emit()
+                if not self._tick_start_driven:
+                    self._maybe_emit()
             return
 
         if cls == "CDOTA_PlayerResource":
@@ -298,7 +306,8 @@ class IntervalExtractor:
             else:
                 self._player_resource = entity
                 self._refresh_player_mappings()
-                self._maybe_emit()
+                if not self._tick_start_driven:
+                    self._maybe_emit()
             return
 
         if cls in ("CDOTADataRadiant", "CDOTA_DataRadiant"):
@@ -308,7 +317,8 @@ class IntervalExtractor:
                 self._data_radiant = entity
                 self._record_team_data(entity, self._cur_data_radiant, self._prev_data_radiant)
                 self._record_team_counters(entity, TEAM_RADIANT)
-                self._maybe_emit()
+                if not self._tick_start_driven:
+                    self._maybe_emit()
             return
 
         if cls in ("CDOTADataDire", "CDOTA_DataDire"):
@@ -318,18 +328,55 @@ class IntervalExtractor:
                 self._data_dire = entity
                 self._record_team_data(entity, self._cur_data_dire, self._prev_data_dire)
                 self._record_team_counters(entity, TEAM_DIRE)
-                self._maybe_emit()
+                if not self._tick_start_driven:
+                    self._maybe_emit()
             return
 
         if cls.startswith(_HERO_CLASS_PREFIX):
+            idx = entity.get_index()
+            serial = entity.get_serial()
+            if op.has(EntityOp.DELETED):
+                self._remove_hero_name_entity(idx, serial)
+                return
+
             player_id = _player_id_from_entity(entity)
             if player_id is None:
                 return
-            if op.has(EntityOp.DELETED):
-                self._hero_names.pop(player_id, None)
+
+            cached = self._hero_name_by_entity.get(idx)
+            if cached is not None and (cached[0] != serial or cached[1] != cls):
+                self._remove_hero_name_entity(idx, cached[0])
+                cached = None
+
+            if cached is not None and cached[4]:
+                hero_name = cached[3]
+                stable = True
             else:
-                self._hero_names[player_id] = self._hero_name(entity)
+                hero_name, stable = self._hero_name(entity)
+
+            if cached is not None and cached[2] != player_id:
+                old_player_id = cached[2]
+                if self._hero_name_sources.get(old_player_id) == (idx, serial):
+                    self._hero_name_sources.pop(old_player_id, None)
+                    self._hero_names.pop(old_player_id, None)
+
+            self._hero_name_by_entity[idx] = (serial, cls, player_id, hero_name, stable)
+            self._hero_name_sources[player_id] = (idx, serial)
+            self._hero_names[player_id] = hero_name
+            if not self._tick_start_driven:
                 self._maybe_emit()
+
+    def _remove_hero_name_entity(self, index: int, serial: int) -> None:
+        """Remove cached hero-name state owned by one entity identity."""
+        cached = self._hero_name_by_entity.get(index)
+        if cached is None or cached[0] != serial:
+            return
+
+        self._hero_name_by_entity.pop(index, None)
+        player_id = cached[2]
+        if self._hero_name_sources.get(player_id) == (index, serial):
+            self._hero_name_sources.pop(player_id, None)
+            self._hero_names.pop(player_id, None)
 
     def _refresh_player_mappings(self) -> None:
         """Build OpenDota logical slot mappings from ``CDOTA_PlayerResource``.
@@ -655,7 +702,9 @@ class IntervalExtractor:
 
         return emitted
 
-    def _hero_name(self, entity: Entity) -> str:
+    def _hero_name(self, entity: Entity) -> tuple[str, bool]:
+        """Return a hero NPC name and whether its table identity is stable."""
+        class_name = entity.get_class_name()
         entity_names = (
             self._parser.string_tables.get_by_name("EntityNames")
             if self._parser is not None and self._parser.string_tables is not None
@@ -668,10 +717,20 @@ class IntervalExtractor:
             if name_idx is not None and name_idx >= 0:
                 item = entity_names.items.get(name_idx)
                 if item is not None:
-                    return item[0] if isinstance(item, tuple) else str(item)
+                    key = (class_name, entity_names.index, name_idx)
+                    cached = self._canonical_hero_names.get(key)
+                    if cached is not None:
+                        return cached, True
+                    name = item[0] if isinstance(item, tuple) else str(item)
+                    self._canonical_hero_names[key] = name
+                    return name, True
 
-        ending = entity.get_class_name()[len(_HERO_CLASS_PREFIX) :].replace("_", "")
-        return "npc_dota_hero" + re.sub(r"([A-Z])", r"_\1", ending).lower()
+        cached_fallback = self._fallback_hero_names.get(class_name)
+        if cached_fallback is None:
+            ending = class_name[len(_HERO_CLASS_PREFIX) :].replace("_", "")
+            cached_fallback = "npc_dota_hero" + re.sub(r"([A-Z])", r"_\1", ending).lower()
+            self._fallback_hero_names[class_name] = cached_fallback
+        return cached_fallback, False
 
 
 def _int_or_zero(value: int | None) -> int:

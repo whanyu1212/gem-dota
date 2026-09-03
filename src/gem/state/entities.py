@@ -556,18 +556,31 @@ class EntityManager:
         Returns:
             List of (Entity, EntityOp) tuples in the order they were processed.
         """
+        results: list[tuple[Entity, EntityOp]] = []
+        self._decode_packet_entities(msg, results)
+        return results
+
+    def _on_packet_entities(self, msg: object) -> None:
+        """Decode packet entities without collecting unused operation tuples."""
+        self._decode_packet_entities(msg, None)
+
+    def _decode_packet_entities(
+        self,
+        msg: object,
+        results: list[tuple[Entity, EntityOp]] | None,
+    ) -> None:
+        """Decode and dispatch packet entities into an optional result sink."""
         is_delta: bool = msg.legacy_is_delta  # type: ignore[attr-defined]
         updates: int = msg.updated_entries  # type: ignore[attr-defined]
         entity_data: bytes = msg.entity_data  # type: ignore[attr-defined]
 
         if not is_delta:
             if self._full_packets > 0:
-                return []
+                return
             self._full_packets += 1
 
         r = BitReader(entity_data)
         index = -1
-        results: list[tuple[Entity, EntityOp]] = []
 
         for _ in range(updates):
             index += r.read_ubit_var() + 1
@@ -637,9 +650,8 @@ class EntityManager:
                     entity.active = False
 
             self.tracker._dispatch(entity, op)
-            results.append((entity, op))
-
-        return results
+            if results is not None:
+                results.append((entity, op))
 
     # ------------------------------------------------------------------
     # Internal helpers
