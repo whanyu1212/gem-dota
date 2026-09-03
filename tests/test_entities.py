@@ -1169,6 +1169,28 @@ class TestEntityManagerPacketEntities:
         assert len(dispatched) == 1
         assert dispatched[0][0] is e
 
+    def test_internal_packet_path_dispatches_without_results(self):
+        """The parser-only path applies updates without building result tuples."""
+        em = self._make_em()
+        e = _entity("Hero", index=0, serial=0)
+        em.entities[0] = e
+        dispatched = []
+        em.on_entity(lambda ent, op: dispatched.append((ent, op)))
+
+        data = self._pack_bits([0, 0, 0, 0, 0, 0, 1, 0])
+
+        class Msg:
+            legacy_is_delta = True
+            updated_entries = 1
+            entity_data = data
+
+        result = em._on_packet_entities(Msg())
+
+        assert result is None
+        assert len(dispatched) == 1
+        assert dispatched[0][0] is e
+        assert e.active is False
+
     @staticmethod
     def _pack_bits(raw_bits: list[int]) -> bytes:
         while len(raw_bits) % 8:

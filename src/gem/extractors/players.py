@@ -94,10 +94,13 @@ class PlayerExtractor:
         self._game_start_tick: int | None = None
         self._game_end_tick: int | None = None
         self._last_minute: int = -1  # last game-minute index sampled
+        self._last_sample_check_tick: int | None = None
         # entity index → Entity (mutable reference; entity is updated in place)
         self._heroes: dict[int, Entity] = {}
         # npc_name → Entity (for external position lookups)
         self._heroes_by_npc: dict[str, Entity] = {}
+        # Hero class name → combat-log NPC aliases.
+        self._hero_aliases_by_class: dict[str, tuple[str, str]] = {}
         # player_id → Entity (CDOTAPlayerController)
         self._controllers: dict[int, Entity] = {}
         # CDOTADataRadiant / CDOTADataDire entities (authoritative gold/LH/DN per team)
@@ -158,6 +161,16 @@ class PlayerExtractor:
         self._game_start_tick = game_start_tick
         # Align the 150-tick sampler to game start so both series share origin
         self._last_sample = game_start_tick
+        # The first relevant entity in this tick can arrive before the parser's
+        # gamerules callback establishes game time. Preserve the minute-zero
+        # snapshot here while ordinary eligibility checks remain once per tick.
+        game_time_s = getattr(self._parser, "game_time_s", None)
+        if game_time_s == 0 and self._last_sample_check_tick == game_start_tick:
+            self._maybe_sample_minute(game_start_tick)
+        elif game_time_s is None:
+            # Compatibility parsers without a game-time clock establish minute
+            # zero from the next relevant entity callback, as before.
+            self._last_sample_check_tick = None
 
     def _on_game_end(self, tick: int) -> None:
         # Force a final snapshot at the exact game-end tick so lh/nw/gold
@@ -377,29 +390,25 @@ class PlayerExtractor:
 
     def _on_entity(self, entity: Entity, op: EntityOp) -> None:
         cls = entity.get_class_name()
+        should_sample = False
 
         if cls == "CDOTAGamerulesProxy":
             if not op.has(EntityOp.DELETED):
-                self._maybe_sample()
+                should_sample = True
 
         elif cls.startswith(_HERO_CLASS_PREFIX):
             idx = entity.get_index()
-            ending = cls[len(_HERO_CLASS_PREFIX) :]
-            # Register two name forms to cover inconsistent combat log names.
-            # "combatLogName":  simple lowercase ("npc_dota_hero_templarassassin")
-            # "combatLogName2": insert _ before each capital ("npc_dota_hero_templar_assassin")
-            # Reference: refs/parser/src/main/java/opendota/Parse.java
-            npc1 = "npc_dota_hero_" + ending.lower()
-            npc2 = "npc_dota_hero" + re.sub(r"([A-Z])", r"_\1", ending.replace("_", "")).lower()
             if op.has(EntityOp.DELETED):
-                self._heroes.pop(idx, None)
-                self._heroes_by_npc.pop(npc1, None)
-                self._heroes_by_npc.pop(npc2, None)
+                self._remove_hero(entity)
             else:
+                previous = self._heroes.get(idx)
+                if previous is not None and previous.get_serial() != entity.get_serial():
+                    self._remove_hero(previous)
+                npc1, npc2 = self._hero_aliases(cls)
                 self._heroes[idx] = entity
                 self._heroes_by_npc[npc1] = entity
                 self._heroes_by_npc[npc2] = entity
-                self._maybe_sample()
+                should_sample = True
 
         elif cls == "CDOTAPlayerController":
             pid = _player_id_from_entity(entity)
@@ -408,17 +417,17 @@ class PlayerExtractor:
                     self._controllers.pop(pid, None)
                 else:
                     self._controllers[pid] = entity
-                    self._maybe_sample()
+                    should_sample = True
 
         elif cls in ("CDOTADataRadiant", "CDOTA_DataRadiant"):
             self._data_radiant = None if op.has(EntityOp.DELETED) else entity
             if not op.has(EntityOp.DELETED):
-                self._maybe_sample()
+                should_sample = True
 
         elif cls in ("CDOTADataDire", "CDOTA_DataDire"):
             self._data_dire = None if op.has(EntityOp.DELETED) else entity
             if not op.has(EntityOp.DELETED):
-                self._maybe_sample()
+                should_sample = True
 
         elif cls == "CDOTA_PlayerResource":
             if op.has(EntityOp.DELETED):
@@ -426,7 +435,41 @@ class PlayerExtractor:
             else:
                 self._player_resource = entity
                 self._refresh_team_slots()
+                should_sample = True
+
+        if should_sample and self._parser is not None:
+            tick = self._parser.tick
+            if tick != self._last_sample_check_tick:
+                self._last_sample_check_tick = tick
                 self._maybe_sample()
+
+    def _hero_aliases(self, class_name: str) -> tuple[str, str]:
+        """Return cached combat-log aliases for a hero entity class."""
+        cached = self._hero_aliases_by_class.get(class_name)
+        if cached is not None:
+            return cached
+
+        ending = class_name[len(_HERO_CLASS_PREFIX) :]
+        # Register two name forms to cover inconsistent combat log names.
+        # Reference: refs/parser/src/main/java/opendota/Parse.java
+        aliases = (
+            "npc_dota_hero_" + ending.lower(),
+            "npc_dota_hero" + re.sub(r"([A-Z])", r"_\1", ending.replace("_", "")).lower(),
+        )
+        self._hero_aliases_by_class[class_name] = aliases
+        return aliases
+
+    def _remove_hero(self, entity: Entity) -> None:
+        """Remove hero mappings only when they still belong to this identity."""
+        idx = entity.get_index()
+        current = self._heroes.get(idx)
+        if current is None or current.get_serial() != entity.get_serial():
+            return
+
+        self._heroes.pop(idx, None)
+        for npc_name in self._hero_aliases(current.get_class_name()):
+            if self._heroes_by_npc.get(npc_name) is current:
+                self._heroes_by_npc.pop(npc_name, None)
 
     def _refresh_team_slots(self) -> None:
         """Build the logical→resource remap and read m_iTeamSlot per player.
@@ -473,7 +516,16 @@ class PlayerExtractor:
             return
 
         # Minute-boundary sampling (OpenDota-aligned)
-        minute_fired = False
+        minute_fired = self._maybe_sample_minute(tick)
+
+        # Regular interval sampling — skip if minute boundary just fired at same tick
+        if tick - self._last_sample >= self._sample_interval:
+            self._last_sample = tick
+            if not minute_fired:
+                self._sample(tick, minute=False)
+
+    def _maybe_sample_minute(self, tick: int) -> bool:
+        """Sample a newly reached minute boundary and report whether it fired."""
         if self._minute_snapshots and self._game_start_tick is not None:
             game_time_s = getattr(self._parser, "game_time_s", None)
             if game_time_s is not None and game_time_s >= 0 and game_time_s % 60 == 0:
@@ -487,13 +539,8 @@ class PlayerExtractor:
             if current_minute is not None and current_minute > self._last_minute:
                 self._last_minute = current_minute
                 self._sample(tick, minute=True)
-                minute_fired = True
-
-        # Regular interval sampling — skip if minute boundary just fired at same tick
-        if tick - self._last_sample >= self._sample_interval:
-            self._last_sample = tick
-            if not minute_fired:
-                self._sample(tick, minute=False)
+                return True
+        return False
 
     def _hero_handle_for_player(self, player_id: int) -> int | None:
         ctrl = self._controllers.get(player_id)
