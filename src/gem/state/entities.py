@@ -157,7 +157,7 @@ class Entity:
         resolved = serializer._resolve_field(name)
         if resolved.path is None:
             return None
-        return self._field_state.get(resolved.path)
+        return self._field_state._get_compact(resolved.path)
 
     def _resolve_fields(self, plan: FieldAccessPlan) -> tuple[ResolvedField, ...]:
         """Resolve one reusable field plan for this entity's serializer."""
@@ -173,14 +173,14 @@ class Entity:
             return value
         if field.path is None:
             return None
-        return self._field_state.get(field.path)
+        return self._field_state._get_compact(field.path)
 
     def _get_int32_resolved(self, field: ResolvedField) -> int | None:
         value = self._state.get(field.name, _MISSING)
         if value is _MISSING:
             if field.path is None:
                 return None
-            value = self._field_state.get(field.path)
+            value = self._field_state._get_compact(field.path)
         return value if isinstance(value, int) else None
 
     def _get_uint32_resolved(self, field: ResolvedField) -> int | None:
@@ -188,7 +188,7 @@ class Entity:
         if value is _MISSING:
             if field.path is None:
                 return None
-            value = self._field_state.get(field.path)
+            value = self._field_state._get_compact(field.path)
         return (value & 0xFFFFFFFF) if isinstance(value, int) else None
 
     def _get_uint64_resolved(self, field: ResolvedField) -> int | None:
@@ -196,7 +196,7 @@ class Entity:
         if value is _MISSING:
             if field.path is None:
                 return None
-            value = self._field_state.get(field.path)
+            value = self._field_state._get_compact(field.path)
         return value if isinstance(value, int) else None
 
     def _get_float32_resolved(self, field: ResolvedField) -> float | None:
@@ -204,7 +204,7 @@ class Entity:
         if value is _MISSING:
             if field.path is None:
                 return None
-            value = self._field_state.get(field.path)
+            value = self._field_state._get_compact(field.path)
         return float(value) if isinstance(value, (int, float)) else None
 
     def _get_string_resolved(self, field: ResolvedField) -> str | None:
@@ -212,7 +212,7 @@ class Entity:
         if value is _MISSING:
             if field.path is None:
                 return None
-            value = self._field_state.get(field.path)
+            value = self._field_state._get_compact(field.path)
         return value if isinstance(value, str) else None
 
     def _get_bool_resolved(self, field: ResolvedField) -> bool | None:
@@ -220,7 +220,7 @@ class Entity:
         if value is _MISSING:
             if field.path is None:
                 return None
-            value = self._field_state.get(field.path)
+            value = self._field_state._get_compact(field.path)
         return bool(value) if isinstance(value, (bool, int)) else None
 
     def exists(self, name: str) -> bool:
@@ -339,7 +339,8 @@ class Entity:
 
 
 def _find_field_path(serializer: Serializer, name: str) -> FieldPath | None:
-    return serializer._resolve_field(name).path
+    path = serializer._resolve_field(name).path
+    return FieldPath._from_tuple(path) if path is not None else None
 
 
 # ---------------------------------------------------------------------------

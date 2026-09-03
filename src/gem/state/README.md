@@ -120,15 +120,18 @@ them in order:
 _state        a plain dict overlay. Checked FIRST. Tests (and any flat lookup)
               can write here directly to bypass schema resolution.
 _field_state  the FieldState tree that replay decoding actually writes into,
-              addressed by FieldPath. The real source of decoded values.
+              addressed internally by compact active-index tuples. The real
+              source of decoded values.
 ```
 
 `get("m_iHealth")` returns `_state["m_iHealth"]` if present, otherwise it
-resolves the name to a `FieldPath` through the serializer and reads
+resolves the name to a compact field path through the serializer and reads
 `_field_state`. Positive and negative resolutions are cached on the shared
 serializer, so every entity using that schema reuses the same lookup result.
+Entity-delta decoder selection is cached on that same parse-scoped serializer.
 Built-in hot loops can resolve immutable field plans once and read those paths
-directly while retaining the same overlay precedence.
+directly while retaining the same overlay precedence. The public mutable
+`FieldPath` model remains available for schema-level callers and diagnostics.
 
 Typed accessors (`get_int32`, `get_float32`, `get_string`, …) wrap `get()` and
 coerce. This dual-storage design is why test code can construct an `Entity` and

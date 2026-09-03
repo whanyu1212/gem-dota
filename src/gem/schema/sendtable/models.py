@@ -15,6 +15,7 @@ from dataclasses import dataclass, field
 
 from gem.schema.field_decoder import FieldDecoder, find_decoder, find_decoder_by_base_type
 from gem.schema.field_path import FieldPath
+from gem.schema.field_path.models import CompactFieldPath
 
 # Types whose serializer is embedded by pointer (fixed-table model).
 _POINTER_TYPES: frozenset[str] = frozenset(
@@ -178,7 +179,7 @@ class ResolvedField:
     """One serializer-relative entity field lookup result."""
 
     name: str
-    path: FieldPath | None
+    path: CompactFieldPath | None
 
 
 @dataclass(frozen=True, slots=True, eq=False)
@@ -224,6 +225,12 @@ class Serializer:
         repr=False,
         compare=False,
     )
+    _resolved_decoders: dict[CompactFieldPath, FieldDecoder | None] = field(
+        default_factory=dict,
+        init=False,
+        repr=False,
+        compare=False,
+    )
 
     def _resolve_field(self, name: str) -> ResolvedField:
         """Return the parse-scoped cached resolution for *name*."""
@@ -248,10 +255,10 @@ class Serializer:
         return f"Serializer({self.name!r}, v{self.version}, {len(self.fields)} fields)"
 
 
-def _find_field_path(serializer: Serializer, name: str) -> FieldPath | None:
+def _find_field_path(serializer: Serializer, name: str) -> CompactFieldPath | None:
     fp = FieldPath()
     if _resolve_in_serializer(serializer, fp, name, 0):
-        return fp
+        return fp.to_tuple()
     return None
 
 

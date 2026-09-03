@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   decompressed size and SHA-256 digest.
 
 ### Changed
+- **Compact cached field decoding.** Entity deltas now retain compact immutable
+  field paths and reuse parse-scoped serializer decoder resolutions, reducing
+  path allocation and repeated schema traversal without changing decoded state.
 - **Shared compiled entity field access.** Entity field-name resolutions now
   live on parse-scoped serializers, and built-in parser/extractor hot loops
   reuse compiled field plans instead of allocating per-entity lookup caches.

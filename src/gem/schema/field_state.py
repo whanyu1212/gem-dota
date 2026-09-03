@@ -8,6 +8,7 @@ from __future__ import annotations
 from typing import TypeAlias, TypeGuard
 
 from gem.schema.field_path import FieldPath
+from gem.schema.field_path.models import CompactFieldPath
 
 FieldValue: TypeAlias = object | None
 
@@ -62,6 +63,21 @@ class FieldState:
             state = child._state
         return None
 
+    def _get_compact(self, path: CompactFieldPath) -> FieldValue:
+        """Read an internal compact path without materializing a FieldPath."""
+        state = self._state
+        last = len(path) - 1
+        for i, idx in enumerate(path):
+            if len(state) < idx + 2:
+                return None
+            if i == last:
+                return state[idx]
+            child = state[idx]
+            if not isinstance(child, FieldState):
+                return None
+            state = child._state
+        return None
+
     def set(self, fp: FieldPath, value: FieldValue) -> None:
         """Write a value at the given field path, growing the tree as needed.
 
@@ -78,6 +94,26 @@ class FieldState:
         state = self._state
         for i in range(last + 1):
             idx = path[i]
+            current_len = len(state)
+            if current_len < idx + 2:
+                new_len = max(idx + 2, current_len * 2)
+                state.extend([None] * (new_len - current_len))
+
+            current = state[idx]
+            if i == last:
+                if not isinstance(current, FieldState):
+                    state[idx] = value
+                return
+            if not isinstance(current, FieldState):
+                current = FieldState()
+                state[idx] = current
+            state = current._state
+
+    def _set_compact(self, path: CompactFieldPath, value: FieldValue) -> None:
+        """Write an internal compact path without materializing a FieldPath."""
+        state = self._state
+        last = len(path) - 1
+        for i, idx in enumerate(path):
             current_len = len(state)
             if current_len < idx + 2:
                 new_len = max(idx + 2, current_len * 2)
