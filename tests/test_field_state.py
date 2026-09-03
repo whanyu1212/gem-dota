@@ -279,6 +279,79 @@ class TestFieldStateSetDepth2:
 
 
 # ---------------------------------------------------------------------------
+# Hot-path traversal invariants
+# ---------------------------------------------------------------------------
+
+
+class TestFieldStateTraversal:
+    def test_get_and_set_do_not_dispatch_through_helpers(self, monkeypatch):
+        def fail(*_args):
+            pytest.fail("hot traversal dispatched through a helper")
+
+        monkeypatch.setattr(FieldState, "_has_slot", fail)
+        monkeypatch.setattr(FieldState, "_ensure", fail)
+        monkeypatch.setattr(FieldState, "_is_child", staticmethod(fail))
+
+        fs = FieldState()
+        fp = _make_fp(7, 100)
+        fs.set(fp, "value")
+        assert fs.get(fp) == "value"
+
+    def test_sparse_nested_write_uses_exact_growth_rule(self):
+        fs = FieldState()
+        fs.set(_make_fp(7, 100), "value")
+
+        assert len(fs._state) == 16
+        child = fs._state[7]
+        assert isinstance(child, FieldState)
+        assert len(child._state) == 102
+        assert child._state[100] == "value"
+
+    def test_missing_nested_read_does_not_mutate_state(self):
+        fs = FieldState()
+        child = FieldState()
+        child._state[0] = "existing"
+        fs._state[0] = child
+        root_before = list(fs._state)
+        child_before = list(child._state)
+
+        assert fs.get(_make_fp(0, 100)) is None
+        assert fs._state == root_before
+        assert child._state == child_before
+
+    def test_deeper_write_replaces_intermediate_leaf_with_child(self):
+        fs = FieldState()
+        fs._state[0] = "leaf"
+
+        fs.set(_make_fp(0, 1), "nested")
+
+        assert isinstance(fs._state[0], FieldState)
+        assert fs.get(_make_fp(0, 1)) == "nested"
+
+    def test_leaf_write_preserves_subclass_child(self):
+        class DerivedFieldState(FieldState):
+            pass
+
+        fs = FieldState()
+        child = DerivedFieldState()
+        child._state[0] = "existing"
+        fs._state[0] = child
+
+        fs.set(_make_fp(0), "replacement")
+
+        assert fs._state[0] is child
+        assert fs.get(_make_fp(0, 0)) == "existing"
+
+    def test_maximum_depth_roundtrip(self):
+        fs = FieldState()
+        fp = _make_fp(0, 1, 2, 3, 4, 5, 6)
+
+        fs.set(fp, "deep")
+
+        assert fs.get(fp) == "deep"
+
+
+# ---------------------------------------------------------------------------
 # Multiple paths on the same FieldState
 # ---------------------------------------------------------------------------
 
