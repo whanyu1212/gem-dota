@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from typing import TypeAlias
+
 _RESET = [-1, 0, 0, 0, 0, 0, 0]
+CompactFieldPath: TypeAlias = tuple[int, ...]
 
 
 class FieldPath:
@@ -52,13 +55,38 @@ class FieldPath:
         fp.done = self.done
         return fp
 
-    def to_tuple(self) -> tuple[int, ...]:
+    def to_tuple(self) -> CompactFieldPath:
         """Return the active indices as an immutable tuple.
 
         Returns:
             Tuple of active integer indices, e.g. ``(2, 0, 5)``.
         """
-        return tuple(self.path[: self.last + 1])
+        path = self.path
+        last = self.last
+        if last < 0:
+            return ()
+        if last == 0:
+            return (path[0],)
+        if last == 1:
+            return (path[0], path[1])
+        if last == 2:
+            return (path[0], path[1], path[2])
+        if last == 3:
+            return (path[0], path[1], path[2], path[3])
+        if last == 4:
+            return (path[0], path[1], path[2], path[3], path[4])
+        if last == 5:
+            return (path[0], path[1], path[2], path[3], path[4], path[5])
+        return (path[0], path[1], path[2], path[3], path[4], path[5], path[6])
+
+    @classmethod
+    def _from_tuple(cls, path: CompactFieldPath) -> FieldPath:
+        """Materialize a mutable compatibility path from compact indices."""
+        fp = cls()
+        for index, value in enumerate(path):
+            fp.path[index] = value
+        fp.last = len(path) - 1
+        return fp
 
     def to_str(self) -> str:
         """Return a slash-separated string of active indices.

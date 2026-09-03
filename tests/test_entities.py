@@ -425,7 +425,7 @@ class TestEntityGetViaFieldState:
         e = Entity(index=0, serial=0, cls=cls)
         e._field_state.set(_fp(0), 99)
         e.get("m_iHealth")
-        assert ser._resolved_fields["m_iHealth"].path is not None
+        assert ser._resolved_fields["m_iHealth"].path == (0,)
         assert e.get("m_iHealth") == 99  # hits cache
 
     def test_entities_share_positive_and_negative_resolutions(self):

@@ -8,7 +8,13 @@ from __future__ import annotations
 import pytest
 
 from gem.schema.field_path import FieldPath
-from gem.schema.field_reader import _resolve_decoder, _resolve_field_decoder, read_fields
+from gem.schema.field_reader import (
+    _resolve_cached_decoder,
+    _resolve_compact_decoder,
+    _resolve_decoder,
+    _resolve_field_decoder,
+    read_fields,
+)
 from gem.schema.field_state import FieldState
 from gem.schema.sendtable import (
     FIELD_MODEL_FIXED_ARRAY,
@@ -66,6 +72,13 @@ def _make_serializer(*fields: Field, name: str = "TestSerializer") -> Serializer
     s = Serializer(name=name, version=0)
     s.fields = list(fields)
     return s
+
+
+def _constant_decoder(value):
+    def decode(_reader):
+        return value
+
+    return decode
 
 
 # ---------------------------------------------------------------------------
@@ -297,6 +310,156 @@ class TestGetDecoder:
 
 
 # ---------------------------------------------------------------------------
+# compact decoder resolution and serializer cache
+# ---------------------------------------------------------------------------
+
+
+class TestCompactDecoderResolution:
+    def test_simple_and_fixed_array_match_mutable_resolution(self):
+        for model, path in (
+            (FIELD_MODEL_SIMPLE, (0,)),
+            (FIELD_MODEL_FIXED_ARRAY, (0, 3)),
+        ):
+            decoder = _constant_decoder(5)
+            serializer = _make_serializer(_make_field(model, decoder=decoder))
+
+            assert _resolve_compact_decoder(serializer, path, 0) is decoder
+            assert _resolve_decoder(serializer, _make_fp(*path), 0) is decoder
+
+    def test_fixed_table_base_and_deep_paths_match_mutable_resolution(self):
+        base_decoder = _constant_decoder(True)
+        child_decoder = _constant_decoder(7)
+        child = _make_serializer(
+            _make_field(FIELD_MODEL_SIMPLE, decoder=child_decoder),
+            name="Inner",
+        )
+        serializer = _make_serializer(
+            _make_field(
+                FIELD_MODEL_FIXED_TABLE,
+                base_decoder=base_decoder,
+                serializer=child,
+            )
+        )
+
+        for path, expected in (((0,), base_decoder), ((0, 0), child_decoder)):
+            assert _resolve_compact_decoder(serializer, path, 0) is expected
+            assert _resolve_decoder(serializer, _make_fp(*path), 0) is expected
+
+    def test_variable_array_base_and_child_paths_match_mutable_resolution(self):
+        base_decoder = _constant_decoder(3)
+        child_decoder = _constant_decoder("element")
+        serializer = _make_serializer(
+            _make_field(
+                FIELD_MODEL_VARIABLE_ARRAY,
+                base_decoder=base_decoder,
+                child_decoder=child_decoder,
+            )
+        )
+
+        for path, expected in (((0,), base_decoder), ((0, 4), child_decoder)):
+            assert _resolve_compact_decoder(serializer, path, 0) is expected
+            assert _resolve_decoder(serializer, _make_fp(*path), 0) is expected
+
+    def test_variable_table_boundaries_and_deep_path_match_mutable_resolution(self):
+        base_decoder = _constant_decoder(2)
+        child_decoder = _constant_decoder("deep")
+        child = _make_serializer(
+            _make_field(FIELD_MODEL_SIMPLE, decoder=child_decoder),
+            name="Inner",
+        )
+        serializer = _make_serializer(
+            _make_field(
+                FIELD_MODEL_VARIABLE_TABLE,
+                base_decoder=base_decoder,
+                serializer=child,
+            )
+        )
+
+        for path, expected in (
+            ((0,), base_decoder),
+            ((0, 3), base_decoder),
+            ((0, 3, 0), child_decoder),
+        ):
+            assert _resolve_compact_decoder(serializer, path, 0) is expected
+            assert _resolve_decoder(serializer, _make_fp(*path), 0) is expected
+
+    def test_missing_nested_serializer_preserves_error(self):
+        serializer = _make_serializer(
+            _make_field(FIELD_MODEL_FIXED_TABLE, base_decoder=lambda r: True)
+        )
+
+        with pytest.raises(
+            ValueError,
+            match="fixed-table field 'test' needs a serializer.*'0/0'.*position 1",
+        ):
+            _resolve_compact_decoder(serializer, (0, 0), 0)
+
+    def test_invalid_top_level_index_preserves_index_error(self):
+        serializer = _make_serializer(_make_field(FIELD_MODEL_SIMPLE, decoder=lambda r: 0))
+
+        with pytest.raises(IndexError):
+            _resolve_compact_decoder(serializer, (5,), 0)
+
+
+class TestDecoderCache:
+    def test_reuses_resolution_for_repeated_path(self, monkeypatch):
+        import gem.schema.field_reader as field_reader
+
+        decoder = _constant_decoder(5)
+        serializer = _make_serializer(_make_field(FIELD_MODEL_SIMPLE, decoder=decoder))
+        original = field_reader._resolve_compact_decoder
+        calls = 0
+
+        def counting_resolver(serializer, path, pos):
+            nonlocal calls
+            calls += 1
+            return original(serializer, path, pos)
+
+        monkeypatch.setattr(field_reader, "_resolve_compact_decoder", counting_resolver)
+
+        assert _resolve_cached_decoder(serializer, (0,)) is decoder
+        assert _resolve_cached_decoder(serializer, (0,)) is decoder
+        assert calls == 1
+
+    def test_caches_explicit_none(self, monkeypatch):
+        import gem.schema.field_reader as field_reader
+
+        serializer = _make_serializer(_make_field(FIELD_MODEL_SIMPLE, decoder=None))
+        original = field_reader._resolve_compact_decoder
+        calls = 0
+
+        def counting_resolver(serializer, path, pos):
+            nonlocal calls
+            calls += 1
+            return original(serializer, path, pos)
+
+        monkeypatch.setattr(field_reader, "_resolve_compact_decoder", counting_resolver)
+
+        assert _resolve_cached_decoder(serializer, (0,)) is None
+        assert _resolve_cached_decoder(serializer, (0,)) is None
+        assert serializer._resolved_decoders == {(0,): None}
+        assert calls == 1
+
+    def test_same_name_and_version_serializers_are_isolated(self):
+        first_decoder = _constant_decoder(1)
+        second_decoder = _constant_decoder(2)
+        first = _make_serializer(_make_field(FIELD_MODEL_SIMPLE, decoder=first_decoder))
+        second = _make_serializer(_make_field(FIELD_MODEL_SIMPLE, decoder=second_decoder))
+
+        assert _resolve_cached_decoder(first, (0,)) is first_decoder
+        assert _resolve_cached_decoder(second, (0,)) is second_decoder
+        assert first._resolved_decoders is not second._resolved_decoders
+
+    def test_failed_resolution_is_not_cached(self):
+        serializer = _make_serializer(_make_field(FIELD_MODEL_FIXED_TABLE))
+
+        with pytest.raises(ValueError):
+            _resolve_cached_decoder(serializer, (0, 0))
+
+        assert serializer._resolved_decoders == {}
+
+
+# ---------------------------------------------------------------------------
 # read_fields — integration with BitReader
 # ---------------------------------------------------------------------------
 
@@ -431,3 +594,37 @@ class TestReadFields:
         state = FieldState()
         r = BitReader(data)
         assert read_fields(r, ser, state) is None
+
+    def test_read_fields_uses_compact_paths_and_reuses_decoder_cache(self, monkeypatch):
+        """The production path bypasses mutable copies and public state traversal."""
+        from gem.binary.reader import BitReader
+        from gem.schema.field_path import FieldPath
+
+        def fail(*_args):
+            pytest.fail("read_fields dispatched through a mutable compatibility path")
+
+        monkeypatch.setattr(FieldPath, "copy", fail)
+        monkeypatch.setattr(FieldState, "set", fail)
+        decoder = _constant_decoder(42)
+        ser = _make_serializer(_make_field(FIELD_MODEL_SIMPLE, decoder=decoder))
+        state = FieldState()
+        data = self._bits_to_bytes("010")
+
+        read_fields(BitReader(data), ser, state)
+        read_fields(BitReader(data), ser, state)
+
+        assert state._get_compact((0,)) == 42
+        assert ser._resolved_decoders == {(0,): decoder}
+
+    def test_read_fields_caches_none_decoder(self):
+        from gem.binary.reader import BitReader
+
+        ser = _make_serializer(_make_field(FIELD_MODEL_SIMPLE, decoder=None))
+        state = FieldState()
+        data = self._bits_to_bytes("010")
+
+        read_fields(BitReader(data), ser, state)
+        read_fields(BitReader(data), ser, state)
+
+        assert ser._resolved_decoders == {(0,): None}
+        assert state._get_compact((0,)) is None

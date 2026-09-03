@@ -22,6 +22,13 @@ def _make_fp(*indices: int) -> FieldPath:
     return fp
 
 
+def _state_tree(state: FieldState):
+    """Return nested list contents without comparing node identities."""
+    return [
+        _state_tree(value) if isinstance(value, FieldState) else value for value in state._state
+    ]
+
+
 # ---------------------------------------------------------------------------
 # Construction
 # ---------------------------------------------------------------------------
@@ -349,6 +356,74 @@ class TestFieldStateTraversal:
         fs.set(fp, "deep")
 
         assert fs.get(fp) == "deep"
+
+
+# ---------------------------------------------------------------------------
+# compact-path traversal
+# ---------------------------------------------------------------------------
+
+
+class TestFieldStateCompactTraversal:
+    @pytest.mark.parametrize(
+        "path",
+        [(0,), (7,), (7, 100), (0, 1, 2, 3, 4, 5, 6)],
+    )
+    def test_roundtrip_matches_mutable_path(self, path):
+        compact_state = FieldState()
+        mutable_state = FieldState()
+
+        compact_state._set_compact(path, "value")
+        mutable_state.set(_make_fp(*path), "value")
+
+        assert _state_tree(compact_state) == _state_tree(mutable_state)
+        assert compact_state._get_compact(path) == "value"
+
+    def test_write_sequence_preserves_tree_semantics(self):
+        compact_state = FieldState()
+        mutable_state = FieldState()
+        writes = [((0,), "leaf"), ((0, 2), "nested"), ((0,), "ignored"), ((1,), None)]
+
+        for path, value in writes:
+            compact_state._set_compact(path, value)
+            mutable_state.set(_make_fp(*path), value)
+
+        assert _state_tree(compact_state) == _state_tree(mutable_state)
+        assert compact_state._get_compact((0, 2)) == "nested"
+        assert compact_state._get_compact((0,)) is compact_state._state[0]
+        assert compact_state._get_compact((1,)) is None
+
+    def test_missing_read_does_not_mutate_state(self):
+        state = FieldState()
+        state._set_compact((0, 1), "existing")
+        root_before = list(state._state)
+        child = state._state[0]
+        assert isinstance(child, FieldState)
+        child_before = list(child._state)
+
+        assert state._get_compact((0, 100)) is None
+        assert state._state == root_before
+        assert child._state == child_before
+
+    def test_empty_compact_path_is_a_noop(self):
+        state = FieldState()
+        before = list(state._state)
+
+        state._set_compact((), "ignored")
+
+        assert state._get_compact(()) is None
+        assert state._state == before
+
+    def test_compact_traversal_bypasses_public_methods(self, monkeypatch):
+        def fail(*_args):
+            pytest.fail("compact traversal dispatched through a public method")
+
+        monkeypatch.setattr(FieldState, "get", fail)
+        monkeypatch.setattr(FieldState, "set", fail)
+        state = FieldState()
+
+        state._set_compact((2, 3), "value")
+
+        assert state._get_compact((2, 3)) == "value"
 
 
 # ---------------------------------------------------------------------------

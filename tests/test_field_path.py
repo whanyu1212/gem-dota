@@ -123,6 +123,18 @@ class TestFieldPath:
         fp.last = 1
         assert fp.to_str() == "1/2"
 
+    @pytest.mark.parametrize(
+        "indices",
+        [(), (0,), (1, 2), (1, 2, 3), (1, 2, 3, 4, 5, 6, 7)],
+    )
+    def test_tuple_roundtrip_uses_only_active_indices(self, indices):
+        from gem.schema.field_path import FieldPath
+
+        fp = FieldPath._from_tuple(indices)
+
+        assert fp.to_tuple() == indices
+        assert fp.last == len(indices) - 1
+
 
 class TestReadFieldPaths:
     def test_returns_list(self, read_field_paths, reader_cls):
@@ -138,6 +150,27 @@ class TestReadFieldPaths:
         result = read_field_paths(r)
         assert isinstance(result, list)
         assert len(result) == 1
+        assert result[0].to_tuple() == (0,)
+
+    def test_public_results_remain_independent_mutable_paths(self, read_field_paths, reader_cls):
+        data = _bits_to_bytes("0010")  # PlusOne, PlusOne, Finish
+
+        first, second = read_field_paths(reader_cls(data))
+        first.path[0] = 99
+
+        assert first.to_tuple() == (99,)
+        assert second.to_tuple() == (1,)
+
+    def test_compact_reader_does_not_copy_mutable_paths(self, monkeypatch, reader_cls):
+        from gem.schema.field_path import FieldPath
+        from gem.schema.field_path.path_sequence import _read_compact_field_paths
+
+        def fail_copy(_self):
+            pytest.fail("compact decoding must not call FieldPath.copy")
+
+        monkeypatch.setattr(FieldPath, "copy", fail_copy)
+
+        assert _read_compact_field_paths(reader_cls(_bits_to_bytes("0010"))) == [(0,), (1,)]
 
     def test_empty_result_on_immediate_finish(self, read_field_paths, reader_cls):
         """If the first op decoded is FinishEncoding, result should be empty.
