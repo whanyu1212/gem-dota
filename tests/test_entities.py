@@ -379,9 +379,7 @@ class TestEntityGetViaFieldState:
         f.child_decoder = None
         f.serializer = None
 
-        ser = Serializer.__new__(Serializer)
-        ser.name = "TestSer"
-        ser.version = 0
+        ser = Serializer(name="TestSer", version=0)
         ser.fields = [f]
         return ser
 
@@ -397,9 +395,7 @@ class TestEntityGetViaFieldState:
         f.child_decoder = None
         f.serializer = None
 
-        ser = Serializer.__new__(Serializer)
-        ser.name = "ArrSer"
-        ser.version = 0
+        ser = Serializer(name="ArrSer", version=0)
         ser.fields = [f]
         return ser
 
@@ -417,10 +413,10 @@ class TestEntityGetViaFieldState:
         cls = FakeClass("T")
         cls.serializer = ser
         e = Entity(index=0, serial=0, cls=cls)
-        # First call for unknown field adds to _fp_noop
+        # First call records an explicit shared serializer miss.
         assert e.get("nonexistent") is None
-        assert e.get("nonexistent") is None  # hits noop cache
-        assert "nonexistent" in e._fp_noop
+        assert e.get("nonexistent") is None
+        assert ser._resolved_fields["nonexistent"].path is None
 
     def test_get_cache_hit_on_second_call(self):
         ser = self._make_simple_serializer()
@@ -428,9 +424,79 @@ class TestEntityGetViaFieldState:
         cls.serializer = ser
         e = Entity(index=0, serial=0, cls=cls)
         e._field_state.set(_fp(0), 99)
-        e.get("m_iHealth")  # populates _fp_cache
-        assert "m_iHealth" in e._fp_cache
+        e.get("m_iHealth")
+        assert ser._resolved_fields["m_iHealth"].path is not None
         assert e.get("m_iHealth") == 99  # hits cache
+
+    def test_entities_share_positive_and_negative_resolutions(self):
+        ser = self._make_simple_serializer()
+        cls = FakeClass("T")
+        cls.serializer = ser
+        first = Entity(index=0, serial=0, cls=cls)
+        second = Entity(index=1, serial=0, cls=cls)
+        first._field_state.set(_fp(0), 10)
+        second._field_state.set(_fp(0), 20)
+
+        assert first.get("m_iHealth") == 10
+        hit = ser._resolved_fields["m_iHealth"]
+        assert second.get("m_iHealth") == 20
+        assert ser._resolved_fields["m_iHealth"] is hit
+
+        assert first.get("missing") is None
+        miss = ser._resolved_fields["missing"]
+        assert miss.path is None
+        assert second.get("missing") is None
+        assert ser._resolved_fields["missing"] is miss
+
+    def test_distinct_serializers_do_not_share_resolution_state(self):
+        first_ser = self._make_simple_serializer()
+        second_ser = self._make_simple_serializer()
+        second_ser.version = 1
+
+        first_hit = first_ser._resolve_field("m_iHealth")
+        second_hit = second_ser._resolve_field("m_iHealth")
+
+        assert first_hit is not second_hit
+        assert first_ser._resolved_fields is not second_ser._resolved_fields
+
+    def test_resolved_access_preserves_overlay_precedence(self):
+        from gem.schema.sendtable.models import FieldAccessPlan
+
+        ser = self._make_simple_serializer()
+        cls = FakeClass("T")
+        cls.serializer = ser
+        e = Entity(index=0, serial=0, cls=cls)
+        e._field_state.set(_fp(0), 99)
+        plan = FieldAccessPlan(("m_iHealth", "missing"))
+        health, missing = e._resolve_fields(plan)
+
+        assert e._get_int32_resolved(health) == 99
+        e._state["m_iHealth"] = None
+        e._state["missing"] = 42
+        assert e._get_int32_resolved(health) is None
+        assert e._get_int32_resolved(missing) == 42
+
+    def test_field_plan_tuple_is_reused_by_serializer(self):
+        from gem.schema.sendtable.models import FieldAccessPlan
+
+        ser = self._make_simple_serializer()
+        plan = FieldAccessPlan(("m_iHealth", "missing"))
+
+        first = ser._resolve_plan(plan)
+        second = ser._resolve_plan(plan)
+
+        assert second is first
+        assert first[0].path is not None
+        assert first[1].path is None
+
+    def test_entity_does_not_allocate_field_resolution_caches(self):
+        ser = self._make_simple_serializer()
+        cls = FakeClass("T")
+        cls.serializer = ser
+        entity = Entity(index=0, serial=0, cls=cls)
+
+        assert not hasattr(entity, "_fp_cache")
+        assert not hasattr(entity, "_fp_noop")
 
     def test_get_array_field_by_index(self):
         ser = self._make_array_serializer()
@@ -462,9 +528,7 @@ class TestFindFieldPath:
             f.serializer = None
             fields.append(f)
 
-        ser = Serializer.__new__(Serializer)
-        ser.name = "S"
-        ser.version = 0
+        ser = Serializer(name="S", version=0)
         ser.fields = fields
         return ser
 
@@ -498,9 +562,7 @@ class TestFindFieldPath:
         f.child_decoder = None
         f.serializer = inner
 
-        ser = Serializer.__new__(Serializer)
-        ser.name = "S"
-        ser.version = 0
+        ser = Serializer(name="S", version=0)
         ser.fields = [f]
 
         fp = _find_field_path(ser, "m_nested.m_x")
@@ -520,9 +582,7 @@ class TestFindFieldPath:
         f.child_decoder = None
         f.serializer = None
 
-        ser = Serializer.__new__(Serializer)
-        ser.name = "S"
-        ser.version = 0
+        ser = Serializer(name="S", version=0)
         ser.fields = [f]
 
         fp = _find_field_path(ser, "m_Items.0002")
@@ -542,9 +602,7 @@ class TestFindFieldPath:
         f.child_decoder = None
         f.serializer = None
 
-        ser = Serializer.__new__(Serializer)
-        ser.name = "S"
-        ser.version = 0
+        ser = Serializer(name="S", version=0)
         ser.fields = [f]
 
         fp = _find_field_path(ser, "m_Vec.0007")
@@ -564,9 +622,7 @@ class TestFindFieldPath:
         f.child_decoder = None
         f.serializer = inner
 
-        ser = Serializer.__new__(Serializer)
-        ser.name = "S"
-        ser.version = 0
+        ser = Serializer(name="S", version=0)
         ser.fields = [f]
 
         fp = _find_field_path(ser, "m_tbl.0001.m_val")
@@ -788,10 +844,7 @@ class TestEntityManagerClassInfo:
     def test_serializer_linked_when_present(self):
         from gem.schema.sendtable import Serializer
 
-        ser = Serializer.__new__(Serializer)
-        ser.name = "CDOTA_Unit_Hero_Axe"
-        ser.version = 0
-        ser.fields = []
+        ser = Serializer(name="CDOTA_Unit_Hero_Axe", version=0)
 
         em = EntityManager(serializers={"CDOTA_Unit_Hero_Axe": ser}, string_tables=StringTables())
 

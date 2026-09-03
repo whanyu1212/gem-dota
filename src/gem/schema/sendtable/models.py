@@ -14,6 +14,7 @@ import re
 from dataclasses import dataclass, field
 
 from gem.schema.field_decoder import FieldDecoder, find_decoder, find_decoder_by_base_type
+from gem.schema.field_path import FieldPath
 
 # Types whose serializer is embedded by pointer (fixed-table model).
 _POINTER_TYPES: frozenset[str] = frozenset(
@@ -172,6 +173,38 @@ class Field:
         }.get(self.model, "unknown")
 
 
+@dataclass(frozen=True, slots=True)
+class ResolvedField:
+    """One serializer-relative entity field lookup result."""
+
+    name: str
+    path: FieldPath | None
+
+
+@dataclass(frozen=True, slots=True, eq=False)
+class FieldAccessPlan:
+    """Identity-keyed group of entity fields compiled together by a serializer.
+
+    Plans are module-level constants on hot paths.  Identity equality keeps each
+    serializer lookup O(1) without re-hashing every field name in a large plan.
+    """
+
+    names: tuple[str, ...]
+    unresolved: tuple[ResolvedField, ...] = field(
+        init=False,
+        repr=False,
+        compare=False,
+        hash=False,
+    )
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "unresolved",
+            tuple(ResolvedField(name, None) for name in self.names),
+        )
+
+
 @dataclass
 class Serializer:
     """A named, versioned entity class schema with ordered fields."""
@@ -179,7 +212,87 @@ class Serializer:
     name: str
     version: int
     fields: list[Field] = field(default_factory=list)
+    _resolved_fields: dict[str, ResolvedField] = field(
+        default_factory=dict,
+        init=False,
+        repr=False,
+        compare=False,
+    )
+    _resolved_plans: dict[FieldAccessPlan, tuple[ResolvedField, ...]] = field(
+        default_factory=dict,
+        init=False,
+        repr=False,
+        compare=False,
+    )
+
+    def _resolve_field(self, name: str) -> ResolvedField:
+        """Return the parse-scoped cached resolution for *name*."""
+        try:
+            return self._resolved_fields[name]
+        except KeyError:
+            resolved = ResolvedField(name, _find_field_path(self, name))
+            self._resolved_fields[name] = resolved
+            return resolved
+
+    def _resolve_plan(self, plan: FieldAccessPlan) -> tuple[ResolvedField, ...]:
+        """Resolve and cache every field in *plan* as one reusable tuple."""
+        try:
+            return self._resolved_plans[plan]
+        except KeyError:
+            resolved = tuple(self._resolve_field(name) for name in plan.names)
+            self._resolved_plans[plan] = resolved
+            return resolved
 
     def __repr__(self) -> str:
         """Return a compact representation for parser/debug output."""
         return f"Serializer({self.name!r}, v{self.version}, {len(self.fields)} fields)"
+
+
+def _find_field_path(serializer: Serializer, name: str) -> FieldPath | None:
+    fp = FieldPath()
+    if _resolve_in_serializer(serializer, fp, name, 0):
+        return fp
+    return None
+
+
+def _resolve_in_serializer(serializer: Serializer, fp: FieldPath, name: str, depth: int) -> bool:
+    for i, f in enumerate(serializer.fields):
+        if name == f.var_name:
+            fp.path[depth] = i
+            fp.last = depth
+            return True
+        if name.startswith(f.var_name + "."):
+            fp.path[depth] = i
+            remainder = name[len(f.var_name) + 1 :]
+            return _resolve_in_field(f, fp, remainder, depth + 1)
+    return False
+
+
+def _resolve_in_field(f: Field, fp: FieldPath, name: str, depth: int) -> bool:
+    model = f.model
+
+    if model in (FIELD_MODEL_FIXED_ARRAY, FIELD_MODEL_VARIABLE_ARRAY):
+        if len(name) == 4:
+            try:
+                fp.path[depth] = int(name)
+                fp.last = depth
+                return True
+            except ValueError:
+                return False
+        return False
+
+    if model == FIELD_MODEL_FIXED_TABLE:
+        if f.serializer is not None:
+            return _resolve_in_serializer(f.serializer, fp, name, depth)
+        return False
+
+    if model == FIELD_MODEL_VARIABLE_TABLE:
+        if f.serializer is not None and len(name) >= 6:
+            try:
+                fp.path[depth] = int(name[:4])
+            except ValueError:
+                return False
+            return _resolve_in_serializer(f.serializer, fp, name[5:], depth + 1)
+        return False
+
+    return False

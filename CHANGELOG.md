@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   decompressed size and SHA-256 digest.
 
 ### Changed
+- **Shared compiled entity field access.** Entity field-name resolutions now
+  live on parse-scoped serializers, and built-in parser/extractor hot loops
+  reuse compiled field plans instead of allocating per-entity lookup caches.
 - **Faster entity field traversal.** Nested entity field reads and writes now
   inline their slot and child checks, reducing core decoder overhead without
   changing the stored state model or missing-value behavior.

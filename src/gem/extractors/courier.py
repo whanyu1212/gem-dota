@@ -12,10 +12,13 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from gem.extractors._snapshots import _pos
+from gem.schema.sendtable.models import FieldAccessPlan
 from gem.state.entities import Entity, EntityOp
 
 if TYPE_CHECKING:
     from gem.parser import ReplayParser
+
+_COURIER_FIELDS = FieldAccessPlan(("m_iTeamNum", "m_iCourierState", "m_bFlyingCourier"))
 
 
 @dataclass
@@ -103,9 +106,10 @@ class CourierExtractor:
 
     def _sample(self, tick: int) -> None:
         for entity in self._couriers.values():
-            team = entity.get_int32("m_iTeamNum") or 0
-            state = entity.get_int32("m_iCourierState") or 0
-            flying = entity.get_bool("m_bFlyingCourier") or False
+            fields = entity._resolve_fields(_COURIER_FIELDS)
+            team = entity._get_int32_resolved(fields[0]) or 0
+            state = entity._get_int32_resolved(fields[1]) or 0
+            flying = entity._get_bool_resolved(fields[2]) or False
             pos = _pos(entity)
             self.snapshots.append(
                 CourierSnapshot(

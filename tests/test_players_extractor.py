@@ -290,6 +290,19 @@ class TestSnapshotHero:
         assert snap.xp == 1000
         assert snap.hp == 600
 
+    def test_hot_snapshot_path_bypasses_public_entity_get(self, monkeypatch):
+        entity = _hero("Axe", player_id=2)
+
+        def fail(*_args):
+            raise AssertionError("snapshot fell back through Entity.get")
+
+        monkeypatch.setattr(Entity, "get", fail)
+
+        snap = _snapshot_hero(entity, tick=100)
+
+        assert snap is not None
+        assert snap.player_id == 2
+
     def test_player_id_halved(self):
         e = _hero("Pudge", player_id=3)  # m_nPlayerID = 6
         snap = _snapshot_hero(e, tick=0)

@@ -23,6 +23,7 @@ from gem.extractors._snapshots import (
     scan_player_resource,
     team_data_field,
 )
+from gem.schema.sendtable.models import FieldAccessPlan
 from gem.state.entities import Entity, EntityOp
 
 if TYPE_CHECKING:
@@ -41,6 +42,49 @@ _ITEM_SLOTS = 17  # total slots to scan (0-16) for ongoing inventory snapshots
 _STARTING_ITEM_SLOTS = 8
 _ABILITY_SLOTS = 32  # m_hAbilities.0000-0031 per hero entity
 _NULL_HANDLE = 0xFFFFFF  # empty slot sentinel
+
+_CONTROLLER_FIELDS = FieldAccessPlan(("m_hAssignedHero", "m_iGold", "m_iNetWorth"))
+_ENTITY_NAME_FIELDS = FieldAccessPlan(
+    ("m_pEntity.m_nameStringTableIndex", "m_pEntity.m_nameStringableIndex")
+)
+_ABILITY_ENTITY_FIELDS = FieldAccessPlan(
+    ("m_pEntity.m_nameStringTableIndex", "m_pEntity.m_nameStringableIndex", "m_iLevel")
+)
+_PLAYER_RESOURCE_KDA_FIELDS = FieldAccessPlan(
+    tuple(
+        f"m_vecPlayerTeamData.{resource_idx:04d}.{field_name}"
+        for resource_idx in range(30)
+        for field_name in ("m_iKills", "m_iDeaths", "m_iAssists")
+    )
+)
+_PLAYER_RESOURCE_HERO_FIELDS = FieldAccessPlan(
+    tuple(
+        f"m_vecPlayerTeamData.{resource_idx:04d}.{field_name}"
+        for resource_idx in range(30)
+        for field_name in ("m_hSelectedHero", "m_iLevel")
+    )
+)
+_TEAM_DATA_FIELDS = FieldAccessPlan(
+    tuple(
+        team_data_field(team_slot, field_name)
+        for team_slot in range(5)
+        for field_name in (
+            "m_iNetWorth",
+            "m_iTotalEarnedGold",
+            "m_iTotalEarnedXP",
+            "m_iLastHitCount",
+            "m_iDenyCount",
+        )
+    )
+)
+_ABILITY_HANDLE_FIELDS = FieldAccessPlan(
+    tuple(
+        field_name
+        for slot in range(_ABILITY_SLOTS)
+        for field_name in (f"m_hAbilities.{slot:04d}", f"m_vecAbilities.{slot:04d}")
+    )
+)
+_ITEM_HANDLE_FIELDS = FieldAccessPlan(tuple(f"m_hItems.{slot:04d}" for slot in range(_ITEM_SLOTS)))
 
 __all__ = ["PlayerExtractor", "PlayerStateSnapshot", "PlayerTimeSeries"]
 
@@ -182,14 +226,15 @@ class PlayerExtractor:
         # m_vecPlayerTeamData.%04d.m_iKills/Deaths/Assists on CDOTA_PlayerResource.
         pr = self._player_resource
         if pr is not None:
+            fields = pr._resolve_fields(_PLAYER_RESOURCE_KDA_FIELDS)
             for player_id in range(10):
                 # Read at the resource-array index for this logical slot — a coach
                 # shifts the array so index != slot. Reference: Parse.java
                 # validIndices.
-                prefix = f"m_vecPlayerTeamData.{self._resource_index(player_id):04d}"
-                k = pr.get_int32(f"{prefix}.m_iKills")
-                d = pr.get_int32(f"{prefix}.m_iDeaths")
-                a = pr.get_int32(f"{prefix}.m_iAssists")
+                offset = self._resource_index(player_id) * 3
+                k = pr._get_int32_resolved(fields[offset])
+                d = pr._get_int32_resolved(fields[offset + 1])
+                a = pr._get_int32_resolved(fields[offset + 2])
                 if k is not None or d is not None or a is not None:
                     self.scoreboard[player_id] = (k or 0, d or 0, a or 0)
 
@@ -545,15 +590,16 @@ class PlayerExtractor:
     def _hero_handle_for_player(self, player_id: int) -> int | None:
         ctrl = self._controllers.get(player_id)
         if ctrl is not None:
-            handle = ctrl.get_uint32("m_hAssignedHero")
+            assigned_hero = ctrl._resolve_fields(_CONTROLLER_FIELDS)[0]
+            handle = ctrl._get_uint32_resolved(assigned_hero)
             if handle is not None and handle != _NULL_HANDLE:
                 return handle
         pr = self._player_resource
         if pr is None:
             return None
-        handle = pr.get_uint32(
-            f"m_vecPlayerTeamData.{self._resource_index(player_id):04d}.m_hSelectedHero"
-        )
+        fields = pr._resolve_fields(_PLAYER_RESOURCE_HERO_FIELDS)
+        offset = self._resource_index(player_id) * 2
+        handle = pr._get_uint32_resolved(fields[offset])
         if handle is None or handle == _NULL_HANDLE:
             return None
         return handle
@@ -598,7 +644,8 @@ class PlayerExtractor:
             # The camelCase→snake_case conversion in _snapshot_hero inserts word
             # boundaries at every capital letter, which is wrong for compound names.
             if entity_names is not None:
-                name_idx = entity.get_int32("m_pEntity.m_nameStringableIndex")
+                name_fields = entity._resolve_fields(_ENTITY_NAME_FIELDS)
+                name_idx = entity._get_int32_resolved(name_fields[1])
                 if name_idx is not None and name_idx >= 0:
                     item = entity_names.items.get(name_idx)
                     if item is not None:
@@ -608,8 +655,9 @@ class PlayerExtractor:
             # m_iNetWorth = gold + item value (also on controller for convenience).
             ctrl = self._controllers.get(snap.player_id)
             if ctrl is not None:
-                gold = ctrl.get_int32("m_iGold")
-                nw = ctrl.get_int32("m_iNetWorth")
+                controller_fields = ctrl._resolve_fields(_CONTROLLER_FIELDS)
+                gold = ctrl._get_int32_resolved(controller_fields[1])
+                nw = ctrl._get_int32_resolved(controller_fields[2])
                 if gold is not None:
                     snap.gold = gold
                 if nw is not None:
@@ -632,19 +680,21 @@ class PlayerExtractor:
             if data_entity is not None:
                 # Prefer authoritative team slot; fall back to pid % 5
                 team_slot = self._player_team_slot.get(snap.player_id, snap.player_id % 5)
-                nw = data_entity.get_int32(team_data_field(team_slot, "m_iNetWorth"))
+                data_fields = data_entity._resolve_fields(_TEAM_DATA_FIELDS)
+                offset = team_slot * 5
+                nw = data_entity._get_int32_resolved(data_fields[offset])
                 if nw is not None and nw > 0:
                     snap.net_worth = nw
-                teg = data_entity.get_int32(team_data_field(team_slot, "m_iTotalEarnedGold"))
+                teg = data_entity._get_int32_resolved(data_fields[offset + 1])
                 if teg is not None and teg > 0:
                     snap.total_earned_gold = teg
-                tex = data_entity.get_int32(team_data_field(team_slot, "m_iTotalEarnedXP"))
+                tex = data_entity._get_int32_resolved(data_fields[offset + 2])
                 if tex is not None and tex > 0:
                     snap.total_earned_xp = tex
-                lh = data_entity.get_int32(team_data_field(team_slot, "m_iLastHitCount"))
+                lh = data_entity._get_int32_resolved(data_fields[offset + 3])
                 if lh is not None and lh > 0:
                     snap.lh = lh
-                dn = data_entity.get_int32(team_data_field(team_slot, "m_iDenyCount"))
+                dn = data_entity._get_int32_resolved(data_fields[offset + 4])
                 if dn is not None and dn > 0:
                     snap.dn = dn
             # Overlay authoritative hero level from CDOTA_PlayerResource
@@ -653,9 +703,9 @@ class PlayerExtractor:
             # Parse.java level read. Use the coach-aware resource index.
             pr = self._player_resource
             if pr is not None:
-                lvl = pr.get_int32(
-                    f"m_vecPlayerTeamData.{self._resource_index(snap.player_id):04d}.m_iLevel"
-                )
+                resource_fields = pr._resolve_fields(_PLAYER_RESOURCE_HERO_FIELDS)
+                offset = self._resource_index(snap.player_id) * 2
+                lvl = pr._get_int32_resolved(resource_fields[offset + 1])
                 if lvl is not None and lvl > 0:
                     snap.level = lvl
             snap.ability_levels = self._read_abilities(entity)
@@ -701,18 +751,21 @@ class PlayerExtractor:
             return {}
 
         result: dict[str, int] = {}
+        handle_fields = hero._resolve_fields(_ABILITY_HANDLE_FIELDS)
         for slot in range(_ABILITY_SLOTS):
-            handle = hero.get_uint32(f"m_hAbilities.{slot:04d}")
+            offset = slot * 2
+            handle = hero._get_uint32_resolved(handle_fields[offset])
             if handle is None:
-                handle = hero.get_uint32(f"m_vecAbilities.{slot:04d}")
+                handle = hero._get_uint32_resolved(handle_fields[offset + 1])
             if handle is None or handle == _NULL_HANDLE:
                 continue
             ability_entity = em.find_by_handle(handle)
             if ability_entity is None:
                 continue
-            name_idx = ability_entity.get_int32("m_pEntity.m_nameStringTableIndex")
+            ability_fields = ability_entity._resolve_fields(_ABILITY_ENTITY_FIELDS)
+            name_idx = ability_entity._get_int32_resolved(ability_fields[0])
             if name_idx is None:
-                name_idx = ability_entity.get_int32("m_pEntity.m_nameStringableIndex")
+                name_idx = ability_entity._get_int32_resolved(ability_fields[1])
             if name_idx is None or name_idx < 0:
                 continue
             item = entity_names.items.get(name_idx)
@@ -721,7 +774,7 @@ class PlayerExtractor:
             name = item[0] if isinstance(item, tuple) else str(item)
             if not name:
                 continue
-            level = ability_entity.get_int32("m_iLevel") or 0
+            level = ability_entity._get_int32_resolved(ability_fields[2]) or 0
             if level > 0:
                 result[name] = level
         return result
@@ -749,8 +802,9 @@ class PlayerExtractor:
             return {}
 
         result: dict[int, str] = {}
+        handle_fields = hero._resolve_fields(_ITEM_HANDLE_FIELDS)
         for slot in range(_ITEM_SLOTS):
-            handle = hero.get_uint32(f"m_hItems.{slot:04d}")
+            handle = hero._get_uint32_resolved(handle_fields[slot])
             if handle is None or handle == _NULL_HANDLE:
                 continue
             item_entity = em.find_by_handle(handle)
@@ -758,9 +812,10 @@ class PlayerExtractor:
                 continue
             # Newer replays use m_nameStringTableIndex; older ones use
             # m_nameStringableIndex. Try both, mirroring _read_abilities.
-            name_idx = item_entity.get_int32("m_pEntity.m_nameStringTableIndex")
+            name_fields = item_entity._resolve_fields(_ENTITY_NAME_FIELDS)
+            name_idx = item_entity._get_int32_resolved(name_fields[0])
             if name_idx is None:
-                name_idx = item_entity.get_int32("m_pEntity.m_nameStringableIndex")
+                name_idx = item_entity._get_int32_resolved(name_fields[1])
             if name_idx is None or name_idx < 0:
                 continue
             # EntityNames items are stored as (key_str, value_bytes); key_str is the name

@@ -125,11 +125,10 @@ _field_state  the FieldState tree that replay decoding actually writes into,
 
 `get("m_iHealth")` returns `_state["m_iHealth"]` if present, otherwise it
 resolves the name to a `FieldPath` through the serializer and reads
-`_field_state`. Two small caches make the slow path cheap on repeat:
-
-- `_fp_cache` — memoizes `name → FieldPath` so a resolved field isn't re-walked.
-- `_fp_noop` — memoizes names that **don't** resolve, so repeatedly asking for a
-  field a class doesn't have doesn't re-search the serializer tree every time.
+`_field_state`. Positive and negative resolutions are cached on the shared
+serializer, so every entity using that schema reuses the same lookup result.
+Built-in hot loops can resolve immutable field plans once and read those paths
+directly while retaining the same overlay precedence.
 
 Typed accessors (`get_int32`, `get_float32`, `get_string`, …) wrap `get()` and
 coerce. This dual-storage design is why test code can construct an `Entity` and
@@ -179,8 +178,8 @@ missing fields. This is an ordering bug, not a decoder bug.
 ### `_field_state` is sparse; `get()` returns `None` for absent fields
 
 An entity only carries the fields that were actually sent. Reading a field a
-class doesn't have returns `None` (and is cached in `_fp_noop`). Callers must
-tolerate `None` rather than assume every field is present.
+class doesn't have returns `None` (and the miss is cached by its serializer).
+Callers must tolerate `None` rather than assume every field is present.
 
 ### Slot indices are reused — check serials
 

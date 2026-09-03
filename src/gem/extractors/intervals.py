@@ -32,6 +32,7 @@ from gem.extractors._snapshots import (
     scan_player_resource,
     team_data_prefix,
 )
+from gem.schema.sendtable.models import FieldAccessPlan
 from gem.state.entities import Entity, EntityOp
 
 if TYPE_CHECKING:
@@ -57,6 +58,32 @@ _TEAM_COUNTER_FIELDS: dict[str, str] = {
     "rune_pickups": "m_iRunePickups",
     "tower_kills": "m_iTowerKills",
 }
+
+_TEAM_DATA_FIELD_NAMES = (
+    "m_iTotalEarnedGold",
+    "m_iTotalEarnedXP",
+    "m_iLastHitCount",
+    "m_iDenyCount",
+    "m_iNetWorth",
+    *_TEAM_COUNTER_FIELDS.values(),
+)
+_TEAM_DATA_FIELDS = FieldAccessPlan(
+    tuple(
+        f"{team_data_prefix(team_slot)}.{field_name}"
+        for team_slot in range(5)
+        for field_name in _TEAM_DATA_FIELD_NAMES
+    )
+)
+_PLAYER_RESOURCE_SCALAR_FIELDS = FieldAccessPlan(
+    tuple(
+        f"m_vecPlayerTeamData.{resource_idx:04d}.{field_name}"
+        for resource_idx in range(30)
+        for field_name in ("m_flTeamFightParticipation", "m_iFirstBloodClaimed")
+    )
+)
+_HERO_NAME_FIELDS = FieldAccessPlan(
+    ("m_pEntity.m_nameStringableIndex", "m_pEntity.m_nameStringTableIndex")
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -511,19 +538,21 @@ class IntervalExtractor:
             prev: Per-team-slot cache of the frame before ``cur``.
         """
         tick = self._parser.tick if self._parser is not None else 0
+        fields = entity._resolve_fields(_TEAM_DATA_FIELDS)
+        width = len(_TEAM_DATA_FIELD_NAMES)
         for team_slot in range(5):
             existing = cur.get(team_slot)
             if existing is not None and existing[0] != tick:
                 prev[team_slot] = existing
-            prefix = team_data_prefix(team_slot)
+            offset = team_slot * width
             cur[team_slot] = (
                 tick,
                 (
-                    _int_or_zero(entity.get_int32(f"{prefix}.m_iTotalEarnedGold")),
-                    _int_or_zero(entity.get_int32(f"{prefix}.m_iTotalEarnedXP")),
-                    _int_or_zero(entity.get_int32(f"{prefix}.m_iLastHitCount")),
-                    _int_or_zero(entity.get_int32(f"{prefix}.m_iDenyCount")),
-                    _int_or_zero(entity.get_int32(f"{prefix}.m_iNetWorth")),
+                    _int_or_zero(entity._get_int32_resolved(fields[offset])),
+                    _int_or_zero(entity._get_int32_resolved(fields[offset + 1])),
+                    _int_or_zero(entity._get_int32_resolved(fields[offset + 2])),
+                    _int_or_zero(entity._get_int32_resolved(fields[offset + 3])),
+                    _int_or_zero(entity._get_int32_resolved(fields[offset + 4])),
                 ),
             )
 
@@ -539,11 +568,14 @@ class IntervalExtractor:
             entity: The just-updated ``CDOTA_DataRadiant``/``CDOTA_DataDire``.
             team: ``TEAM_RADIANT`` or ``TEAM_DIRE``.
         """
+        fields = entity._resolve_fields(_TEAM_DATA_FIELDS)
+        width = len(_TEAM_DATA_FIELD_NAMES)
+        counter_offset = 5
         for team_slot in range(5):
-            prefix = team_data_prefix(team_slot)
+            offset = team_slot * width + counter_offset
             counters = self._team_counters.setdefault((team, team_slot), {})
-            for attr, field_name in _TEAM_COUNTER_FIELDS.items():
-                value = entity.get_int32(f"{prefix}.{field_name}")
+            for field_index, attr in enumerate(_TEAM_COUNTER_FIELDS):
+                value = entity._get_int32_resolved(fields[offset + field_index])
                 if value is not None:
                     counters[attr] = value
 
@@ -592,11 +624,12 @@ class IntervalExtractor:
         resource_idx = self._player_index_by_id.get(player_id)
         if pr is None or resource_idx is None:
             return result
-        prefix = f"m_vecPlayerTeamData.{resource_idx:04d}"
-        tf = pr.get_float32(f"{prefix}.m_flTeamFightParticipation")
+        fields = pr._resolve_fields(_PLAYER_RESOURCE_SCALAR_FIELDS)
+        offset = resource_idx * 2
+        tf = pr._get_float32_resolved(fields[offset])
         if tf is not None and tf != float("inf"):
             result["teamfight_participation"] = tf
-        fb = pr.get_int32(f"{prefix}.m_iFirstBloodClaimed")
+        fb = pr._get_int32_resolved(fields[offset + 1])
         if fb is not None:
             result["firstblood_claimed"] = fb
         return result
@@ -645,13 +678,14 @@ class IntervalExtractor:
             return cur_frame[1]
         if prev_frame is not None and prev_frame[0] < emit_tick:
             return prev_frame[1]
-        prefix = team_data_prefix(team_slot)
+        fields = data_entity._resolve_fields(_TEAM_DATA_FIELDS)
+        offset = team_slot * len(_TEAM_DATA_FIELD_NAMES)
         return (
-            _int_or_zero(data_entity.get_int32(f"{prefix}.m_iTotalEarnedGold")),
-            _int_or_zero(data_entity.get_int32(f"{prefix}.m_iTotalEarnedXP")),
-            _int_or_zero(data_entity.get_int32(f"{prefix}.m_iLastHitCount")),
-            _int_or_zero(data_entity.get_int32(f"{prefix}.m_iDenyCount")),
-            _int_or_zero(data_entity.get_int32(f"{prefix}.m_iNetWorth")),
+            _int_or_zero(data_entity._get_int32_resolved(fields[offset])),
+            _int_or_zero(data_entity._get_int32_resolved(fields[offset + 1])),
+            _int_or_zero(data_entity._get_int32_resolved(fields[offset + 2])),
+            _int_or_zero(data_entity._get_int32_resolved(fields[offset + 3])),
+            _int_or_zero(data_entity._get_int32_resolved(fields[offset + 4])),
         )
 
     def _emit(
@@ -711,9 +745,10 @@ class IntervalExtractor:
             else None
         )
         if entity_names is not None:
-            name_idx = entity.get_int32("m_pEntity.m_nameStringableIndex")
+            fields = entity._resolve_fields(_HERO_NAME_FIELDS)
+            name_idx = entity._get_int32_resolved(fields[0])
             if name_idx is None:
-                name_idx = entity.get_int32("m_pEntity.m_nameStringTableIndex")
+                name_idx = entity._get_int32_resolved(fields[1])
             if name_idx is not None and name_idx >= 0:
                 item = entity_names.items.get(name_idx)
                 if item is not None:

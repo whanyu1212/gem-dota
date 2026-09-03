@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any
 
 from gem.combat.log import CombatLogEntry
 from gem.extractors._snapshots import _player_id_from_entity, _pos
+from gem.schema.sendtable.models import FieldAccessPlan
 from gem.state.entities import EntityOp
 
 if TYPE_CHECKING:
@@ -48,6 +49,7 @@ _ROSHAN_ITEM_DROPS: dict[str, str] = {
 # unit carries a readable world position via ``CBodyComponent`` (same fields the
 # ward extractor reads), so the plant location is recoverable here.
 _BANNER_UNIT_CLASS = "CDOTA_Unit_Roshans_Banner"
+_BANNER_FIELDS = FieldAccessPlan(("m_lifeState", "m_iTeamNum", "m_hOwnerEntity"))
 
 # Tower NPC name prefix → owning team
 _TOWER_TEAM: dict[str, int] = {
@@ -351,7 +353,8 @@ class ObjectivesExtractor:
             self._banner_lifestate.pop(idx, None)
             return
 
-        life_state = entity.get_int32("m_lifeState")
+        fields = entity._resolve_fields(_BANNER_FIELDS)
+        life_state = entity._get_int32_resolved(fields[0])
         if life_state is None:
             life_state = 0 if op.has(EntityOp.CREATED) else 2
         prev_ls = self._banner_lifestate.get(idx, 2)
@@ -368,13 +371,13 @@ class ObjectivesExtractor:
         self._banner_seen.add(key)
 
         pos = _pos(entity)
-        team = entity.get_int32("m_iTeamNum") or 0
+        team = entity._get_int32_resolved(fields[1]) or 0
 
         # Resolve the planter via m_hOwnerEntity → owner entity → player slot,
         # mirroring ward placer attribution (the owner may be an owned unit, so
         # allow the m_iPlayerOwnerID fallback). -1 = unresolved.
         player_id = -1
-        owner_handle = entity.get_uint32("m_hOwnerEntity")
+        owner_handle = entity._get_uint32_resolved(fields[2])
         if owner_handle is not None and self._parser is not None:
             em = self._parser.entity_manager
             if em is not None:
