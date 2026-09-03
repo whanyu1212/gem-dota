@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING, Literal
 
 from gem.combat.log import CombatLogEntry
 from gem.extractors._snapshots import _player_id_from_entity, _pos
+from gem.schema.sendtable.models import FieldAccessPlan
 from gem.state.entities import Entity, EntityOp
 
 if TYPE_CHECKING:
@@ -35,6 +36,7 @@ _WARD_CLASSES: frozenset[str] = frozenset(
         "CDOTA_NPC_Observer_Ward_TrueSight",
     }
 )
+_WARD_FIELDS = FieldAccessPlan(("m_lifeState", "m_iTeamNum", "m_hOwnerEntity"))
 
 # Combat-log target names used in DEATH events for wards (ref Wards.java)
 _WARD_TARGET_NAMES: frozenset[str] = frozenset({"npc_dota_observer_wards", "npc_dota_sentry_wards"})
@@ -241,7 +243,8 @@ class WardsExtractor:
             self._active.pop(idx, None)
             return
 
-        life_state = entity.get_int32("m_lifeState")
+        fields = entity._resolve_fields(_WARD_FIELDS)
+        life_state = entity._get_int32_resolved(fields[0])
         if life_state is None:
             life_state = 0 if op.has(EntityOp.CREATED) else 2
 
@@ -265,12 +268,13 @@ class WardsExtractor:
     ) -> None:
         pos = _pos(entity)
         ward_type: Literal["observer", "sentry"] = "sentry" if "TrueSight" in cls else "observer"
-        team = entity.get_int32("m_iTeamNum") or 0
+        fields = entity._resolve_fields(_WARD_FIELDS)
+        team = entity._get_int32_resolved(fields[1]) or 0
 
         # Resolve placer via m_hOwnerEntity → owner entity → player slot
         player_id = -1
         placer_npc = ""
-        owner_handle = entity.get_uint32("m_hOwnerEntity")
+        owner_handle = entity._get_uint32_resolved(fields[2])
         if owner_handle is not None and self._parser is not None:
             em = self._parser.entity_manager
             if em is not None:

@@ -7,9 +7,11 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import fields
+from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 from gem.combat.aggregator import _CombatAggregator, _ParsedPlayerAgg
+from gem.state.entities import Entity
 
 # ---------------------------------------------------------------------------
 # _ParsedPlayerAgg
@@ -65,15 +67,25 @@ class TestParsedPlayerAgg:
 # ---------------------------------------------------------------------------
 
 
-def _make_agg(player_id_raw: int = 0) -> tuple[_CombatAggregator, MagicMock]:
+def _hero_entity(player_id_raw: int) -> Entity:
+    """Return a real entity with a flat player-ID overlay."""
+    entity = Entity(
+        index=0,
+        serial=0,
+        cls=SimpleNamespace(name="CDOTA_Unit_Hero", class_id=0, serializer=None),
+    )
+    entity._state["m_nPlayerID"] = player_id_raw
+    return entity
+
+
+def _make_agg(player_id_raw: int = 0) -> tuple[_CombatAggregator, Entity]:
     """Return a _CombatAggregator wired to a single fake hero entity."""
     player_ext = MagicMock()
     # No entity manager in unit tests -> the summon->owner resolution path no-ops
     # cleanly (it returns None when ``_parser`` is None) instead of dereferencing
     # auto-generated MagicMock attributes.
     player_ext._parser = None
-    hero_entity = MagicMock()
-    hero_entity.get_int32.return_value = player_id_raw
+    hero_entity = _hero_entity(player_id_raw)
     player_ext._heroes_by_npc = {"npc_dota_hero_axe": hero_entity}
     return _CombatAggregator(player_ext), hero_entity
 
@@ -134,10 +146,8 @@ class TestCombatAggregatorDamage:
     def test_damage_taken_on_target(self):
         player_ext = MagicMock()
         # attacker = axe (pid 0), target = mirana (pid 1)
-        axe_entity = MagicMock()
-        axe_entity.get_int32.return_value = 0
-        mirana_entity = MagicMock()
-        mirana_entity.get_int32.return_value = 2  # slot 1
+        axe_entity = _hero_entity(0)
+        mirana_entity = _hero_entity(2)  # slot 1
         player_ext._heroes_by_npc = {
             "npc_dota_hero_axe": axe_entity,
             "npc_dota_hero_mirana": mirana_entity,
@@ -157,10 +167,8 @@ class TestCombatAggregatorDamage:
 
     def test_damage_taken_by_type_accumulates_for_target(self):
         player_ext = MagicMock()
-        axe_entity = MagicMock()
-        axe_entity.get_int32.return_value = 0
-        mirana_entity = MagicMock()
-        mirana_entity.get_int32.return_value = 2  # slot 1
+        axe_entity = _hero_entity(0)
+        mirana_entity = _hero_entity(2)  # slot 1
         player_ext._heroes_by_npc = {
             "npc_dota_hero_axe": axe_entity,
             "npc_dota_hero_mirana": mirana_entity,
@@ -288,10 +296,8 @@ class TestCombatAggregatorSourceAttribution:
     def test_damage_taken_keyed_by_source(self):
         player_ext = MagicMock()
         player_ext._parser = None
-        axe_entity = MagicMock()
-        axe_entity.get_int32.return_value = 0
-        mirana_entity = MagicMock()
-        mirana_entity.get_int32.return_value = 2  # slot 1
+        axe_entity = _hero_entity(0)
+        mirana_entity = _hero_entity(2)  # slot 1
         player_ext._heroes_by_npc = {
             "npc_dota_hero_axe": axe_entity,
             "npc_dota_hero_mirana": mirana_entity,
@@ -429,10 +435,8 @@ class TestDamageTypeConsistency:
 
     def test_damage_taken_by_type_sums_to_total_taken(self):
         player_ext = MagicMock()
-        axe_entity = MagicMock()
-        axe_entity.get_int32.return_value = 0
-        mirana_entity = MagicMock()
-        mirana_entity.get_int32.return_value = 2  # slot 1
+        axe_entity = _hero_entity(0)
+        mirana_entity = _hero_entity(2)  # slot 1
         player_ext._heroes_by_npc = {
             "npc_dota_hero_axe": axe_entity,
             "npc_dota_hero_mirana": mirana_entity,
@@ -472,8 +476,7 @@ class TestSummonKillAttribution:
         em = MagicMock()
         summon_entity = MagicMock()
         summon_entity.get_uint32.return_value = 12345  # owner handle
-        owner_entity = MagicMock()
-        owner_entity.get_int32.return_value = owner_slot_raw
+        owner_entity = _hero_entity(owner_slot_raw)
 
         def _find_by_npc_name(name):
             return summon_entity if name == summon_name else None
@@ -556,10 +559,8 @@ def _two_hero_agg() -> _CombatAggregator:
     """Aggregator with axe (pid 0) and mirana (pid 1) as resolvable heroes."""
     player_ext = MagicMock()
     player_ext._parser = None
-    axe = MagicMock()
-    axe.get_int32.return_value = 0  # raw // 2 -> slot 0
-    mirana = MagicMock()
-    mirana.get_int32.return_value = 2  # raw // 2 -> slot 1
+    axe = _hero_entity(0)  # raw // 2 -> slot 0
+    mirana = _hero_entity(2)  # raw // 2 -> slot 1
     player_ext._heroes_by_npc = {
         "npc_dota_hero_axe": axe,
         "npc_dota_hero_mirana": mirana,

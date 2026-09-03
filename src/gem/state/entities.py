@@ -24,13 +24,9 @@ from gem.schema.field_path import FieldPath
 from gem.schema.field_reader import read_fields
 from gem.schema.field_state import FieldState
 from gem.schema.sendtable import (
-    FIELD_MODEL_FIXED_ARRAY,
-    FIELD_MODEL_FIXED_TABLE,
-    FIELD_MODEL_VARIABLE_ARRAY,
-    FIELD_MODEL_VARIABLE_TABLE,
-    Field,
     Serializer,
 )
+from gem.schema.sendtable.models import FieldAccessPlan, ResolvedField
 from gem.state.string_table import StringTables
 
 # ---------------------------------------------------------------------------
@@ -40,6 +36,8 @@ from gem.state.string_table import StringTables
 _INDEX_BITS: int = 14
 _HANDLE_MASK: int = (1 << _INDEX_BITS) - 1
 _GAME_BUILD_RE = re.compile(r"/dota_v(\d+)/")
+_MISSING = object()
+_ENTITY_NAME_FIELDS = FieldAccessPlan(("m_pEntity.m_nameStringableIndex",))
 
 
 # ---------------------------------------------------------------------------
@@ -121,8 +119,6 @@ class Entity:
         "active",
         "_field_state",
         "_state",
-        "_fp_cache",
-        "_fp_noop",
     )
 
     def __init__(self, index: int, serial: int, cls: Any) -> None:
@@ -133,8 +129,6 @@ class Entity:
         self._field_state = FieldState()
         # Flat dict for direct key-value access (tests may write here directly)
         self._state: dict[str, Any] = {}
-        self._fp_cache: dict[str, FieldPath] = {}
-        self._fp_noop: set[str] = set()
 
     # ------------------------------------------------------------------
     # Field access
@@ -156,22 +150,78 @@ class Entity:
         if name in self._state:
             return self._state[name]
 
-        # Slow path: resolve through serializer field paths
+        # Resolve once per shared serializer, rather than once per entity.
         serializer = getattr(self.cls, "serializer", None)
         if serializer is None:
             return None
-        if name in self._fp_noop:
+        resolved = serializer._resolve_field(name)
+        if resolved.path is None:
             return None
-        if name in self._fp_cache:
-            return self._field_state.get(self._fp_cache[name])
+        return self._field_state.get(resolved.path)
 
-        fp = _find_field_path(serializer, name)
-        if fp is None:
-            self._fp_noop.add(name)
+    def _resolve_fields(self, plan: FieldAccessPlan) -> tuple[ResolvedField, ...]:
+        """Resolve one reusable field plan for this entity's serializer."""
+        serializer = self.cls.serializer
+        if serializer is None:
+            return plan.unresolved
+        return serializer._resolve_plan(plan)
+
+    def _get_resolved(self, field: ResolvedField) -> Any:
+        """Read a pre-resolved field while preserving flat-overlay precedence."""
+        value = self._state.get(field.name, _MISSING)
+        if value is not _MISSING:
+            return value
+        if field.path is None:
             return None
+        return self._field_state.get(field.path)
 
-        self._fp_cache[name] = fp
-        return self._field_state.get(fp)
+    def _get_int32_resolved(self, field: ResolvedField) -> int | None:
+        value = self._state.get(field.name, _MISSING)
+        if value is _MISSING:
+            if field.path is None:
+                return None
+            value = self._field_state.get(field.path)
+        return value if isinstance(value, int) else None
+
+    def _get_uint32_resolved(self, field: ResolvedField) -> int | None:
+        value = self._state.get(field.name, _MISSING)
+        if value is _MISSING:
+            if field.path is None:
+                return None
+            value = self._field_state.get(field.path)
+        return (value & 0xFFFFFFFF) if isinstance(value, int) else None
+
+    def _get_uint64_resolved(self, field: ResolvedField) -> int | None:
+        value = self._state.get(field.name, _MISSING)
+        if value is _MISSING:
+            if field.path is None:
+                return None
+            value = self._field_state.get(field.path)
+        return value if isinstance(value, int) else None
+
+    def _get_float32_resolved(self, field: ResolvedField) -> float | None:
+        value = self._state.get(field.name, _MISSING)
+        if value is _MISSING:
+            if field.path is None:
+                return None
+            value = self._field_state.get(field.path)
+        return float(value) if isinstance(value, (int, float)) else None
+
+    def _get_string_resolved(self, field: ResolvedField) -> str | None:
+        value = self._state.get(field.name, _MISSING)
+        if value is _MISSING:
+            if field.path is None:
+                return None
+            value = self._field_state.get(field.path)
+        return value if isinstance(value, str) else None
+
+    def _get_bool_resolved(self, field: ResolvedField) -> bool | None:
+        value = self._state.get(field.name, _MISSING)
+        if value is _MISSING:
+            if field.path is None:
+                return None
+            value = self._field_state.get(field.path)
+        return bool(value) if isinstance(value, (bool, int)) else None
 
     def exists(self, name: str) -> bool:
         """Return True if *name* has a value in the entity state.
@@ -289,53 +339,7 @@ class Entity:
 
 
 def _find_field_path(serializer: Serializer, name: str) -> FieldPath | None:
-    fp = FieldPath()
-    if _resolve_in_serializer(serializer, fp, name, 0):
-        return fp
-    return None
-
-
-def _resolve_in_serializer(serializer: Serializer, fp: FieldPath, name: str, depth: int) -> bool:
-    for i, f in enumerate(serializer.fields):
-        if name == f.var_name:
-            fp.path[depth] = i
-            fp.last = depth
-            return True
-        if name.startswith(f.var_name + "."):
-            fp.path[depth] = i
-            remainder = name[len(f.var_name) + 1 :]
-            return _resolve_in_field(f, fp, remainder, depth + 1)
-    return False
-
-
-def _resolve_in_field(f: Field, fp: FieldPath, name: str, depth: int) -> bool:
-    model = f.model
-
-    if model in (FIELD_MODEL_FIXED_ARRAY, FIELD_MODEL_VARIABLE_ARRAY):
-        if len(name) == 4:
-            try:
-                fp.path[depth] = int(name)
-                fp.last = depth
-                return True
-            except ValueError:
-                return False
-        return False
-
-    if model == FIELD_MODEL_FIXED_TABLE:
-        if f.serializer is not None:
-            return _resolve_in_serializer(f.serializer, fp, name, depth)
-        return False
-
-    if model == FIELD_MODEL_VARIABLE_TABLE:
-        if f.serializer is not None and len(name) >= 6:
-            try:
-                fp.path[depth] = int(name[:4])
-            except ValueError:
-                return False
-            return _resolve_in_serializer(f.serializer, fp, name[5:], depth + 1)
-        return False
-
-    return False
+    return serializer._resolve_field(name).path
 
 
 # ---------------------------------------------------------------------------
@@ -743,7 +747,8 @@ class EntityManager:
         for e in self.entities:
             if e is None or not e.active:
                 continue
-            idx = e.get_int32("m_pEntity.m_nameStringableIndex")
+            name_field = e._resolve_fields(_ENTITY_NAME_FIELDS)[0]
+            idx = e._get_int32_resolved(name_field)
             if idx is None:
                 continue
             item = names_table.items.get(idx)

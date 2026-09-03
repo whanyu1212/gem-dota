@@ -89,11 +89,26 @@ from gem.proto.netmessages_pb2 import (
 from gem.proto.networkbasetypes_pb2 import CNETMsg_Tick
 from gem.results.models import ChatEntry, NeutralItemFoundEvent
 from gem.schema.sendtable import parse_send_tables
+from gem.schema.sendtable.models import FieldAccessPlan
 from gem.state.entities import Entity, EntityManager, EntityOp
 from gem.state.game_events import GameEventHandler, GameEventManager
 from gem.state.string_table import StringTables, handle_create, handle_update
 
 logger = logging.getLogger(__name__)
+
+_GAMERULES_FIELDS = FieldAccessPlan(
+    (
+        "m_pGameRules.m_flGameStartTime",
+        "m_pGameRules.m_fGameTime",
+        "m_pGameRules.m_bGamePaused",
+        "m_pGameRules.m_nPauseStartTick",
+        "m_pGameRules.m_nTotalPausedTicks",
+        "m_pGameRules.m_unMatchID64",
+        "m_pGameRules.m_iGameMode",
+        "m_pGameRules.m_unLeagueID",
+        "m_pGameRules.m_nGameWinner",
+    )
+)
 
 # ---------------------------------------------------------------------------
 # Outer EDemoCommands IDs (stripped of DEM_IsCompressed = 0x40)
@@ -327,7 +342,8 @@ class ReplayParser:
         self._update_game_clock(entity)
         if self._grp_game_start_seen:
             return
-        v = entity.get_float32("m_pGameRules.m_flGameStartTime")
+        game_start = entity._resolve_fields(_GAMERULES_FIELDS)[0]
+        v = entity._get_float32_resolved(game_start)
         if v is None or v == 0.0:
             return
         self._grp_game_start_seen = True
@@ -343,20 +359,21 @@ class ReplayParser:
         output time is then shifted by ``m_flGameStartTime``. Keep this as
         separate metadata so public raw-tick fields remain unchanged.
         """
-        start = entity.get_float32("m_pGameRules.m_flGameStartTime")
+        fields = entity._resolve_fields(_GAMERULES_FIELDS)
+        start = entity._get_float32_resolved(fields[0])
         if start is not None and start != 0.0:
             self._game_start_time_s = _round_positive_seconds(start)
 
         if self._game_start_time_s is None:
             return
 
-        game_time = entity.get_float32("m_pGameRules.m_fGameTime")
+        game_time = entity._get_float32_resolved(fields[1])
         if game_time is not None:
             raw_time_s = _round_positive_seconds(game_time)
         else:
-            paused = entity.get_bool("m_pGameRules.m_bGamePaused") or False
-            pause_start_tick = entity.get_int32("m_pGameRules.m_nPauseStartTick")
-            total_paused_ticks = entity.get_int32("m_pGameRules.m_nTotalPausedTicks") or 0
+            paused = entity._get_bool_resolved(fields[2]) or False
+            pause_start_tick = entity._get_int32_resolved(fields[3])
+            total_paused_ticks = entity._get_int32_resolved(fields[4]) or 0
             parser_tick = self.net_tick if self._net_tick_seen else self.tick
             time_tick = pause_start_tick if paused and pause_start_tick is not None else parser_tick
             raw_time_s = _round_positive_seconds((time_tick - total_paused_ticks) / 30.0)
@@ -501,16 +518,17 @@ class ReplayParser:
         if self.entity_manager is not None:
             grp = self.entity_manager.find_by_class_name("CDOTAGamerulesProxy")
             if grp is not None:
+                fields = grp._resolve_fields(_GAMERULES_FIELDS)
                 if not self.match_id:
-                    v = grp.get_uint32("m_pGameRules.m_unMatchID64")
+                    v = grp._get_uint32_resolved(fields[5])
                     if v:
                         self.match_id = v
                 if not self.game_mode:
-                    v = grp.get_int32("m_pGameRules.m_iGameMode")
+                    v = grp._get_int32_resolved(fields[6])
                     if v:
                         self.game_mode = v
                 if not self.leagueid:
-                    v = grp.get_uint32("m_pGameRules.m_unLeagueID")
+                    v = grp._get_uint32_resolved(fields[7])
                     if v:
                         self.leagueid = v
                 # Fallback for radiant_win when CDemoFileInfo.game_winner == 0
@@ -518,7 +536,7 @@ class ReplayParser:
                 # 2 = RadVictory, 3 = DireVictory.
                 # Reference: refs/manta/dota/dota_shared_enums.proto
                 if self.radiant_win is None:
-                    v = grp.get_int32("m_pGameRules.m_nGameWinner")
+                    v = grp._get_int32_resolved(fields[8])
                     if v == 2:
                         self.radiant_win = True
                     elif v == 3:

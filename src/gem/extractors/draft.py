@@ -20,6 +20,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from gem.catalog import HEROES
+from gem.schema.sendtable.models import FieldAccessPlan
 from gem.state.entities import Entity, EntityOp
 
 if TYPE_CHECKING:
@@ -56,6 +57,23 @@ def _class_to_npc(class_name: str) -> str:
 # Number of ban slots (indices 0-13) and pick slots (indices 0-9) in draft
 _BAN_SLOTS = 14
 _PICK_SLOTS = 10
+_PLAYER_RESOURCE_DRAFT_FIELDS = FieldAccessPlan(
+    tuple(
+        field_name
+        for slot in range(_PICK_SLOTS)
+        for field_name in (
+            f"m_vecPlayerTeamData.{slot:04d}.m_nSelectedHeroID",
+            f"m_vecPlayerTeamData.{slot:04d}.m_hSelectedHero",
+        )
+    )
+)
+_GAMERULES_DRAFT_FIELDS = FieldAccessPlan(
+    (
+        "m_pGameRules.m_iActiveTeam",
+        *(f"m_pGameRules.m_BannedHeroes.{slot:04d}" for slot in range(_BAN_SLOTS)),
+        *(f"m_pGameRules.m_SelectedHeroes.{slot:04d}" for slot in range(_PICK_SLOTS)),
+    )
+)
 
 
 @dataclass
@@ -194,11 +212,13 @@ class DraftExtractor:
         if self._parser is None or self._parser.entity_manager is None:
             return
         em = self._parser.entity_manager
+        fields = pr._resolve_fields(_PLAYER_RESOURCE_DRAFT_FIELDS)
         for i in range(_PICK_SLOTS):
-            hid = pr.get_int32(f"m_vecPlayerTeamData.{i:04d}.m_nSelectedHeroID")
+            offset = i * 2
+            hid = pr._get_int32_resolved(fields[offset])
             if hid is None or hid <= 0 or hid in self._live_id_to_npc:
                 continue
-            handle = pr.get_uint32(f"m_vecPlayerTeamData.{i:04d}.m_hSelectedHero")
+            handle = pr._get_uint32_resolved(fields[offset + 1])
             if handle is None:
                 continue
             hero_entity = em.find_by_handle(handle)
@@ -224,11 +244,12 @@ class DraftExtractor:
 
     def _check_draft(self, entity: Entity) -> None:
         tick = self._parser.tick if self._parser else 0
-        active_team = entity.get_int32("m_pGameRules.m_iActiveTeam") or 0
+        fields = entity._resolve_fields(_GAMERULES_DRAFT_FIELDS)
+        active_team = entity._get_int32_resolved(fields[0]) or 0
 
         # Bans: m_pGameRules.m_BannedHeroes.0000-0013
         for i in range(_BAN_SLOTS):
-            hero_id = entity.get_int32(f"m_pGameRules.m_BannedHeroes.{i:04d}")
+            hero_id = entity._get_int32_resolved(fields[1 + i])
             if hero_id is None or hero_id <= 0:
                 continue
             key = (False, i, hero_id)
@@ -247,8 +268,9 @@ class DraftExtractor:
             )
 
         # Picks: m_pGameRules.m_SelectedHeroes.0000-0009
+        pick_offset = 1 + _BAN_SLOTS
         for i in range(_PICK_SLOTS):
-            hero_id = entity.get_int32(f"m_pGameRules.m_SelectedHeroes.{i:04d}")
+            hero_id = entity._get_int32_resolved(fields[pick_offset + i])
             if hero_id is None or hero_id <= 0:
                 continue
             key = (True, i, hero_id)

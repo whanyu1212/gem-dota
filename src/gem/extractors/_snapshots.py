@@ -12,6 +12,8 @@ import re
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from gem.schema.sendtable.models import FieldAccessPlan
+
 if TYPE_CHECKING:
     from gem.state.entities import Entity
 
@@ -30,6 +32,42 @@ TEAM_DIRE = 3
 # A coach occupies a row, so the 10 players can span more than 10 indices.
 PLAYER_RESOURCE_SCAN_LIMIT = 30
 
+_POSITION_FIELDS = FieldAccessPlan(
+    (
+        "CBodyComponent.m_cellX",
+        "CBodyComponent.m_cellY",
+        "CBodyComponent.m_vecX",
+        "CBodyComponent.m_vecY",
+    )
+)
+_PLAYER_ID_FIELDS = FieldAccessPlan(("m_nPlayerID", "m_iPlayerID", "m_iPlayerOwnerID"))
+_PLAYER_RESOURCE_FIELDS = FieldAccessPlan(
+    tuple(
+        field_name
+        for resource_idx in range(PLAYER_RESOURCE_SCAN_LIMIT)
+        for field_name in (
+            f"m_vecPlayerData.{resource_idx:04d}.m_iPlayerTeam",
+            f"m_vecPlayerTeamData.{resource_idx:04d}.m_iTeamSlot",
+        )
+    )
+)
+_HERO_SNAPSHOT_FIELDS = FieldAccessPlan(
+    (
+        "m_nPlayerID",
+        "m_iPlayerID",
+        "m_iTeamNum",
+        "m_nCurrentLevel",
+        "m_iCurrentXP",
+        "m_iHealth",
+        "m_iMaxHealth",
+        "m_flMana",
+        "m_flMaxMana",
+        "m_iLastHitCount",
+        "m_iDenies",
+        "m_lifeState",
+    )
+)
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -44,10 +82,11 @@ def _pos(entity: Entity) -> tuple[float, float] | None:
     Returns:
         ``(x, y)`` world coordinates, or ``None`` if any field is missing.
     """
-    cell_x = entity.get_uint32("CBodyComponent.m_cellX")
-    cell_y = entity.get_uint32("CBodyComponent.m_cellY")
-    vec_x = entity.get_float32("CBodyComponent.m_vecX")
-    vec_y = entity.get_float32("CBodyComponent.m_vecY")
+    cell_x_field, cell_y_field, vec_x_field, vec_y_field = entity._resolve_fields(_POSITION_FIELDS)
+    cell_x = entity._get_uint32_resolved(cell_x_field)
+    cell_y = entity._get_uint32_resolved(cell_y_field)
+    vec_x = entity._get_float32_resolved(vec_x_field)
+    vec_y = entity._get_float32_resolved(vec_y_field)
     if cell_x is None or cell_y is None or vec_x is None or vec_y is None:
         return None
     return (cell_x * _CELL_SIZE + vec_x, cell_y * _CELL_SIZE + vec_y)
@@ -81,16 +120,10 @@ def _player_id_from_entity(entity: Entity | None, *, allow_owner: bool = False) 
     """
     if entity is None:
         return None
-    fields = (
-        ("m_nPlayerID", "m_iPlayerID", "m_iPlayerOwnerID")
-        if allow_owner
-        else (
-            "m_nPlayerID",
-            "m_iPlayerID",
-        )
-    )
-    for field_name in fields:
-        val = entity.get_int32(field_name)
+    fields = entity._resolve_fields(_PLAYER_ID_FIELDS)
+    field_count = 3 if allow_owner else 2
+    for field_index in range(field_count):
+        val = entity._get_int32_resolved(fields[field_index])
         if val is not None and val >= 0:
             return val // 2
     return None
@@ -139,9 +172,10 @@ def scan_player_resource(player_resource: Entity) -> PlayerResourceScan:
     team_by_id: dict[int, int] = {}
     team_slot_by_id: dict[int, int] = {}
 
+    fields = player_resource._resolve_fields(_PLAYER_RESOURCE_FIELDS)
     for resource_idx in range(PLAYER_RESOURCE_SCAN_LIMIT):
-        team = player_resource.get_int32(f"m_vecPlayerData.{resource_idx:04d}.m_iPlayerTeam")
-        team_slot = player_resource.get_int32(f"m_vecPlayerTeamData.{resource_idx:04d}.m_iTeamSlot")
+        team = player_resource._get_int32_resolved(fields[resource_idx * 2])
+        team_slot = player_resource._get_int32_resolved(fields[resource_idx * 2 + 1])
         if team not in (TEAM_RADIANT, TEAM_DIRE) or team_slot is None or team_slot < 0:
             continue
         player_id = len(index_by_id)
@@ -205,26 +239,27 @@ def _snapshot_hero(entity: Entity, tick: int) -> PlayerStateSnapshot | None:
     """
     # m_nPlayerID (post-7.31) or m_iPlayerID (pre-7.31) — raw value is doubled;
     # divide by 2 to get player slot 0-9. Reference: opendota/Parse.java getPlayerSlotFromEntity()
-    player_id = entity.get_int32("m_nPlayerID")
+    fields = entity._resolve_fields(_HERO_SNAPSHOT_FIELDS)
+    player_id = entity._get_int32_resolved(fields[0])
     if player_id is None:
-        player_id = entity.get_int32("m_iPlayerID")
+        player_id = entity._get_int32_resolved(fields[1])
     if player_id is None or player_id < 0:
         return None
     player_id //= 2
 
-    team = entity.get_int32("m_iTeamNum") or 0
-    level = entity.get_int32("m_nCurrentLevel") or 0
-    xp = entity.get_int32("m_iCurrentXP") or 0
-    hp = entity.get_int32("m_iHealth") or 0
-    max_hp = entity.get_int32("m_iMaxHealth") or 0
-    mana = entity.get_float32("m_flMana") or 0.0
-    max_mana = entity.get_float32("m_flMaxMana") or 0.0
-    lh = entity.get_int32("m_iLastHitCount") or 0
-    dn = entity.get_int32("m_iDenies") or 0
+    team = entity._get_int32_resolved(fields[2]) or 0
+    level = entity._get_int32_resolved(fields[3]) or 0
+    xp = entity._get_int32_resolved(fields[4]) or 0
+    hp = entity._get_int32_resolved(fields[5]) or 0
+    max_hp = entity._get_int32_resolved(fields[6]) or 0
+    mana = entity._get_float32_resolved(fields[7]) or 0.0
+    max_mana = entity._get_float32_resolved(fields[8]) or 0.0
+    lh = entity._get_int32_resolved(fields[9]) or 0
+    dn = entity._get_int32_resolved(fields[10]) or 0
     # m_lifeState: 0 = alive, 1 = dying, 2 = dead. OpenDota's life_state_dead
     # counts time spent in the non-alive states; we treat any non-zero value as
     # dead for the per-snapshot sample. Defaults to 0 (alive) when absent.
-    life_state = entity.get_int32("m_lifeState") or 0
+    life_state = entity._get_int32_resolved(fields[11]) or 0
 
     pos = _pos(entity)
 

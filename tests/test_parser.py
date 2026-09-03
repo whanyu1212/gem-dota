@@ -21,6 +21,7 @@ Reference: manta/parser.go, manta/demo_packet.go
 from __future__ import annotations
 
 import logging
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -45,6 +46,7 @@ from gem.parser import (
     _read_inner_messages,
 )
 from gem.proto.networkbasetypes_pb2 import CNETMsg_Tick
+from gem.state.entities import Entity
 
 # ---------------------------------------------------------------------------
 # Helpers — build synthetic inner message blobs
@@ -295,12 +297,17 @@ class TestReplayParserGameClock:
     def test_game_rules_proxy_updates_game_time_seconds(self):
         p = ReplayParser(b"")
         p.tick = 6000
-        entity = MagicMock()
-        entity.get_class_name.return_value = "CDOTAGamerulesProxy"
-        entity.get_float32.side_effect = lambda name: {
-            "m_pGameRules.m_flGameStartTime": 100.0,
-            "m_pGameRules.m_fGameTime": 165.2,
-        }.get(name)
+        entity = Entity(
+            index=0,
+            serial=0,
+            cls=SimpleNamespace(name="CDOTAGamerulesProxy", class_id=1, serializer=None),
+        )
+        entity._state.update(
+            {
+                "m_pGameRules.m_flGameStartTime": 100.0,
+                "m_pGameRules.m_fGameTime": 165.2,
+            }
+        )
 
         p._on_entity_game_start(entity, MagicMock())
 
@@ -329,16 +336,20 @@ class TestReplayParserGameClock:
         p.tick = 9999
         p.net_tick = 6000
         p._net_tick_seen = True
-        entity = MagicMock()
-        entity.get_float32.side_effect = lambda name: {
-            "m_pGameRules.m_flGameStartTime": 100.0,
-            "m_pGameRules.m_fGameTime": None,
-        }.get(name)
-        entity.get_bool.return_value = False
-        entity.get_int32.side_effect = lambda name: {
-            "m_pGameRules.m_nPauseStartTick": 0,
-            "m_pGameRules.m_nTotalPausedTicks": 0,
-        }.get(name)
+        entity = Entity(
+            index=0,
+            serial=0,
+            cls=SimpleNamespace(name="CDOTAGamerulesProxy", class_id=1, serializer=None),
+        )
+        entity._state.update(
+            {
+                "m_pGameRules.m_flGameStartTime": 100.0,
+                "m_pGameRules.m_fGameTime": None,
+                "m_pGameRules.m_bGamePaused": False,
+                "m_pGameRules.m_nPauseStartTick": 0,
+                "m_pGameRules.m_nTotalPausedTicks": 0,
+            }
+        )
 
         p._update_game_clock(entity)
 

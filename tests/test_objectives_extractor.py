@@ -10,6 +10,7 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 from gem.combat.log import CombatLogEntry
+from gem.state.entities import Entity
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -73,7 +74,14 @@ class FakeParser:
             h(entity, op)
 
 
-class _FakeBannerEntity:
+class _FakeClass:
+    def __init__(self, name: str) -> None:
+        self.name = name
+        self.class_id = 1
+        self.serializer = None
+
+
+class _FakeBannerEntity(Entity):
     """Minimal entity stub for the planted Roshan's Banner unit.
 
     Carries only the fields ``_on_banner_unit`` reads (class name, index,
@@ -82,51 +90,15 @@ class _FakeBannerEntity:
     """
 
     def __init__(self, idx, life_state, team=2) -> None:
-        self._idx = idx
-        self._life_state = life_state
-        self._team = team
-
-    def get_class_name(self):
-        return "CDOTA_Unit_Roshans_Banner"
-
-    def get_index(self):
-        return self._idx
-
-    def get_int32(self, field):
-        if field == "m_lifeState":
-            return self._life_state
-        if field == "m_iTeamNum":
-            return self._team
-        return None
-
-    def get_uint32(self, field):
-        return None
-
-    def get_float32(self, field):
-        return None
+        super().__init__(idx, serial=0, cls=_FakeClass("CDOTA_Unit_Roshans_Banner"))
+        self._state.update({"m_lifeState": life_state, "m_iTeamNum": team})
 
 
-class _FakeItemEntity:
+class _FakeItemEntity(Entity):
     """Minimal entity stub for a Roshan-dropped ``CDOTA_Item_*`` entity."""
 
     def __init__(self, idx, class_name) -> None:
-        self._idx = idx
-        self._class_name = class_name
-
-    def get_class_name(self):
-        return self._class_name
-
-    def get_index(self):
-        return self._idx
-
-    def get_int32(self, field):
-        return None
-
-    def get_uint32(self, field):
-        return None
-
-    def get_float32(self, field):
-        return None
+        super().__init__(idx, serial=0, cls=_FakeClass(class_name))
 
 
 # ---------------------------------------------------------------------------
