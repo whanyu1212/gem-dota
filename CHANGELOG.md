@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   decompressed size and SHA-256 digest.
 
 ### Changed
+- **Faster entity field traversal.** Nested entity field reads and writes now
+  inline their slot and child checks, reducing core decoder overhead without
+  changing the stored state model or missing-value behavior.
 - **Lower per-entity parser overhead.** Replay parsing now skips unused
   entity-operation result tuples, deduplicates player sampling checks per tick,
   and caches stable hero-name resolution without changing parsed output.

@@ -47,17 +47,19 @@ class FieldState:
         Returns:
             The stored value, or None if the slot is empty/missing.
         """
-        node: FieldState = self
-        for i in range(fp.last + 1):
-            z = fp.path[i]
-            if not node._has_slot(z):
+        path = fp.path
+        last = fp.last
+        state = self._state
+        for i in range(last + 1):
+            idx = path[i]
+            if len(state) < idx + 2:
                 return None
-            if i == fp.last:
-                return node._state[z]
-            child = node._state[z]
-            if not self._is_child(child):
+            if i == last:
+                return state[idx]
+            child = state[idx]
+            if not isinstance(child, FieldState):
                 return None
-            node = child
+            state = child._state
         return None
 
     def set(self, fp: FieldPath, value: FieldValue) -> None:
@@ -71,16 +73,22 @@ class FieldState:
             fp: A FieldPath produced by read_field_paths.
             value: The decoded value to store.
         """
-        node: FieldState = self
-        for i in range(fp.last + 1):
-            z = fp.path[i]
-            node._ensure(z)
-            if i == fp.last:
-                if not self._is_child(node._state[z]):
-                    node._state[z] = value
+        path = fp.path
+        last = fp.last
+        state = self._state
+        for i in range(last + 1):
+            idx = path[i]
+            current_len = len(state)
+            if current_len < idx + 2:
+                new_len = max(idx + 2, current_len * 2)
+                state.extend([None] * (new_len - current_len))
+
+            current = state[idx]
+            if i == last:
+                if not isinstance(current, FieldState):
+                    state[idx] = value
                 return
-            child = node._state[z]
-            if not self._is_child(child):
-                child = FieldState()
-                node._state[z] = child
-            node = child
+            if not isinstance(current, FieldState):
+                current = FieldState()
+                state[idx] = current
+            state = current._state
