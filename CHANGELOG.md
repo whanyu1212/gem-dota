@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-09-04
+
+Improves full-replay parsing speed without changing public APIs or normalized
+parser output, and makes integration fixture selection reproducible across
+development environments.
+
 ### Added
 - **Curated TI2026 replay corpus.** The short, medium, and long TI2026 qualifier
   replays are now named canonical, extended, and stress fixture tiers in the
@@ -36,6 +42,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   replay happens to be found first. The DreamLeague performance baseline and
   feature-specific regression fixtures remain available, while replaced medium
   and long DreamLeague entries are retained as deprecated manifest records.
+- **Documented parser performance profile.** A new maintainer deep dive records
+  the benchmark method, the effect of the five Python optimization passes, output
+  parity checks, measurement limitations, and the remaining CPU and memory work.
 
 ## [0.7.0] - 2026-09-02
 
@@ -643,7 +652,8 @@ combat-log layers. The supported top-level API (`gem.parse`, `gem.ParsedMatch`,
 - CLI and example scripts, including HTML match report.
 - Validation, fuzzing, and parser robustness foundations.
 
-[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.7.1...HEAD
+[0.7.1]: https://github.com/whanyu1212/gem-dota/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/whanyu1212/gem-dota/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/whanyu1212/gem-dota/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/whanyu1212/gem-dota/compare/v0.5.0...v0.5.1

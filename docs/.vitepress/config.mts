@@ -36,6 +36,7 @@ export default defineConfig({
         text: "Internals",
         items: [
           { text: "Parser Internals", link: "/deep-dives/" },
+          { text: "Parser Performance", link: "/deep-dives/parser-performance" },
           { text: "Replay Edge Cases", link: "/deep-dives/replay-edge-cases" },
         ],
       },

@@ -22,7 +22,7 @@ class CourierSnapshot
 
 A single courier state sample at one tick.
 
-Source: [src/gem/extractors/courier.py:22](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/courier.py#L22)
+Source: [src/gem/extractors/courier.py:25](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/courier.py#L25)
 
 #### Dataclass fields
 
@@ -43,7 +43,7 @@ class CourierExtractor
 
 Polls courier entity state and accumulates snapshots.
 
-Source: [src/gem/extractors/courier.py:42](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/courier.py#L42)
+Source: [src/gem/extractors/courier.py:45](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/courier.py#L45)
 
 #### Methods
 
@@ -53,4 +53,4 @@ Signature: `def CourierExtractor.attach(self, parser: ReplayParser) -> None`
 
 Register callbacks with the parser.
 
-Source: [src/gem/extractors/courier.py:72](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/courier.py#L72)
+Source: [src/gem/extractors/courier.py:75](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/courier.py#L75)

@@ -22,7 +22,7 @@ def resolve_pick_team(event: DraftEvent, players: list[ParsedPlayer]) -> int
 
 Resolve the team (2=Radiant, 3=Dire) for a draft event.
 
-Source: [src/gem/extractors/draft.py:82](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/draft.py#L82)
+Source: [src/gem/extractors/draft.py:100](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/draft.py#L100)
 
 ### Top-level classes
 
@@ -34,7 +34,7 @@ class DraftEvent
 
 A single hero ban or pick in the draft.
 
-Source: [src/gem/extractors/draft.py:62](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/draft.py#L62)
+Source: [src/gem/extractors/draft.py:80](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/draft.py#L80)
 
 #### Dataclass fields
 
@@ -55,7 +55,7 @@ class DraftExtractor
 
 Detects hero picks and bans by polling ``CDOTAGamerulesProxy``.
 
-Source: [src/gem/extractors/draft.py:124](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/draft.py#L124)
+Source: [src/gem/extractors/draft.py:142](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/draft.py#L142)
 
 #### Methods
 
@@ -65,7 +65,7 @@ Signature: `def DraftExtractor.attach(self, parser: ReplayParser) -> None`
 
 Register callbacks with the parser.
 
-Source: [src/gem/extractors/draft.py:162](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/draft.py#L162)
+Source: [src/gem/extractors/draft.py:180](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/draft.py#L180)
 
 ##### `finalize`
 
@@ -73,4 +73,4 @@ Signature: `def DraftExtractor.finalize(self) -> None`
 
 Re-resolve all hero names using the fully-populated live map.
 
-Source: [src/gem/extractors/draft.py:266](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/draft.py#L266)
+Source: [src/gem/extractors/draft.py:291](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/draft.py#L291)
