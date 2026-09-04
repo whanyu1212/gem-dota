@@ -22,7 +22,7 @@ class WardEvent
 
 A complete ward placement record with coordinates.
 
-Source: [src/gem/extractors/wards.py:81](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/wards.py#L81)
+Source: [src/gem/extractors/wards.py:83](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/wards.py#L83)
 
 #### Dataclass fields
 
@@ -47,7 +47,7 @@ class WardsExtractor
 
 Extracts ward placement, expiry, and kill events from the entity stream.
 
-Source: [src/gem/extractors/wards.py:115](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/wards.py#L115)
+Source: [src/gem/extractors/wards.py:117](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/wards.py#L117)
 
 #### Properties
 
@@ -57,7 +57,7 @@ Signature: `def WardsExtractor._tick(self) -> int`
 
 No docstring available.
 
-Source: [src/gem/extractors/wards.py:159](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/wards.py#L159)
+Source: [src/gem/extractors/wards.py:165](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/wards.py#L165)
 
 #### Methods
 
@@ -67,7 +67,7 @@ Signature: `def WardsExtractor.attach(self, parser: ReplayParser) -> None`
 
 Register callbacks with the parser.
 
-Source: [src/gem/extractors/wards.py:148](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/wards.py#L148)
+Source: [src/gem/extractors/wards.py:150](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/wards.py#L150)
 
 ##### `finalize`
 
@@ -75,4 +75,4 @@ Signature: `def WardsExtractor.finalize(self) -> list[WardEvent]`
 
 Back-fill placer names and return ward events.
 
-Source: [src/gem/extractors/wards.py:162](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/wards.py#L162)
+Source: [src/gem/extractors/wards.py:168](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/wards.py#L168)

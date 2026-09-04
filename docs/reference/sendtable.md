@@ -37,7 +37,7 @@ class Serializer
 
 A named, versioned entity class schema with ordered fields.
 
-Source: [src/gem/schema/sendtable/models.py:176](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/sendtable/models.py#L176)
+Source: [src/gem/schema/sendtable/models.py:210](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/sendtable/models.py#L210)
 
 #### Dataclass fields
 
@@ -57,7 +57,7 @@ class Field
 
 One property of a serializer, including its type model and decoders.
 
-Source: [src/gem/schema/sendtable/models.py:105](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/sendtable/models.py#L105)
+Source: [src/gem/schema/sendtable/models.py:107](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/sendtable/models.py#L107)
 
 #### Dataclass fields
 
@@ -89,7 +89,7 @@ Signature: `def Field.set_model(self, model: int) -> None`
 
 Assign the field model and wire up the appropriate decoders.
 
-Source: [src/gem/schema/sendtable/models.py:131](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/sendtable/models.py#L131)
+Source: [src/gem/schema/sendtable/models.py:133](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/sendtable/models.py#L133)
 
 ##### `model_name`
 
@@ -97,7 +97,7 @@ Signature: `def Field.model_name(self) -> str`
 
 Return a human-readable model name for debugging.
 
-Source: [src/gem/schema/sendtable/models.py:164](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/sendtable/models.py#L164)
+Source: [src/gem/schema/sendtable/models.py:166](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/sendtable/models.py#L166)
 
 ## `gem.schema.sendtable.FieldType`
 
@@ -109,7 +109,7 @@ class FieldType
 
 Parsed representation of a C++ field type string.
 
-Source: [src/gem/schema/sendtable/models.py:53](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/sendtable/models.py#L53)
+Source: [src/gem/schema/sendtable/models.py:55](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/sendtable/models.py#L55)
 
 #### Dataclass fields
 

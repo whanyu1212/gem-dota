@@ -8,6 +8,9 @@ If you are new to the binary format, start with
 [Bits & Bytes Primer](../cookbook/bits-and-bytes-primer.md) and
 [How Proto Parsing Works](../cookbook/proto-parsing-pipeline.md).
 
+For benchmark methodology, completed optimization work, and remaining hot paths,
+see [Parser Performance](parser-performance.md).
+
 ## Pipeline
 
 ```text
