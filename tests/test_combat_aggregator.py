@@ -10,7 +10,10 @@ from dataclasses import fields
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
+import pytest
+
 from gem.combat.aggregator import _CombatAggregator, _ParsedPlayerAgg
+from gem.combat.log import CombatLogEntry, CombatLogType
 from gem.state.entities import Entity
 
 # ---------------------------------------------------------------------------
@@ -682,3 +685,182 @@ class TestInflictorDicts:
         p = agg.players[0]
         assert p.ability_uses["axe_battle_hunger"] == 1
         assert p.ability_targets["axe_battle_hunger"]["npc_dota_hero_mirana"] == 1
+
+
+_OWNER = "npc_dota_hero_warlock"
+_SOURCE = "npc_dota_hero_axe"
+_TARGET = "npc_dota_hero_mirana"
+_SUMMONS = (
+    "npc_dota_warlock_golem_1",
+    "npc_dota_lone_druid_bear1",
+    "npc_dota_neutral_centaur_khan",  # Chen-controlled creep
+    "npc_dota_pugna_nether_ward_1",
+    "npc_dota_beastmaster_boar_1",
+    "npc_dota_brewmaster_earth_1",
+    "npc_dota_brewmaster_storm_1",
+    "npc_dota_brewmaster_fire_1",
+)
+
+
+@pytest.fixture(params=_SUMMONS)
+def owned_unit(request):
+    owner = _hero_entity(0)
+    unit = MagicMock(spec=Entity)
+    unit.get_uint32.return_value = 12345
+    em = MagicMock()
+    em.find_by_npc_name.side_effect = lambda name: unit if name == request.param else None
+    em.find_by_handle.return_value = owner
+    player_ext = SimpleNamespace(
+        _parser=SimpleNamespace(entity_manager=em),
+        _heroes_by_npc={_OWNER: owner, _SOURCE: _hero_entity(2), _TARGET: _hero_entity(4)},
+    )
+    return _CombatAggregator(player_ext), em, request.param
+
+
+def _summon_entry(attacker, **overrides):
+    values = {
+        "tick": 300,
+        "log_type": CombatLogType.DAMAGE,
+        "attacker_name": attacker,
+        "damage_source_name": _SOURCE,
+        "target_name": _TARGET,
+        "target_is_hero": True,
+        "value": 100,
+        "damage_type": "magical",
+        "inflictor_name": "item_radiance",
+        "game_time_s": 10,
+    }
+    values.update(overrides)
+    return CombatLogEntry(**values)
+
+
+def _expected_summon_damage(source, credited_pid):
+    victim = _ParsedPlayerAgg(damage_taken={source: 100}, damage_taken_by_type={"magical": 100})
+    expected = {2: victim}
+    if credited_pid is not None:
+        expected[credited_pid] = _ParsedPlayerAgg(
+            damage={_TARGET: 100},
+            damage_by_type={"magical": 100},
+            damage_targets={"radiance": {_TARGET: 100}},
+            hero_hits={"radiance": 1},
+            damage_inflictor={"radiance": 100},
+            hero_damage=100,
+            max_hero_hit={
+                "type": "max_hero_hit",
+                "time": 10,
+                "max": True,
+                "inflictor": "radiance",
+                "unit": source,
+                "key": _TARGET,
+                "value": 100,
+            },
+        )
+        if source == _SOURCE:
+            victim.damage_inflictor_received["radiance"] = 100
+    return expected
+
+
+class TestSummonOwnershipScans:
+    @pytest.mark.parametrize("source_kind", ["hero", "summon", "unresolved"])
+    @pytest.mark.parametrize("stun_duration", [0.0, 1.5])
+    def test_sourced_damage(self, owned_unit, source_kind, stun_duration):
+        agg, em, attacker = owned_unit
+        source = {"hero": _SOURCE, "summon": attacker, "unresolved": "unknown_source"}[source_kind]
+        entry = _summon_entry(attacker, damage_source_name=source, stun_duration=stun_duration)
+        agg.on_entry(entry)
+        expected = _expected_summon_damage(source, 1 if source_kind == "hero" else None)
+        if stun_duration:
+            expected[0] = _ParsedPlayerAgg(stuns_dealt=stun_duration)
+            em.find_by_npc_name.assert_called_once_with(attacker)
+            em.find_by_handle.assert_called_once_with(12345)
+        else:
+            em.find_by_npc_name.assert_not_called()
+            em.find_by_handle.assert_not_called()
+        assert agg.players == expected
+
+    @pytest.mark.parametrize("source", ["", None, "missing"])
+    def test_missing_source_damage_uses_owner(self, owned_unit, source):
+        agg, em, attacker = owned_unit
+        entry = _summon_entry(attacker, damage_source_name=source)
+        if source == "missing":
+            values = vars(entry).copy()
+            del values["damage_source_name"]
+            entry = SimpleNamespace(**values)
+        agg.on_entry(entry)
+        em.find_by_npc_name.assert_called_once_with(attacker)
+        em.find_by_handle.assert_called_once_with(12345)
+        assert agg.players == _expected_summon_damage(attacker, 0)
+
+    @pytest.mark.parametrize("source", ["", _SOURCE, "unknown_source"])
+    @pytest.mark.parametrize("kind", [CombatLogType.ABILITY, CombatLogType.ITEM])
+    def test_uses_remain_credited_to_owner(self, owned_unit, source, kind):
+        agg, em, attacker = owned_unit
+        entry = _summon_entry(attacker, log_type=kind, damage_source_name=source)
+        agg.on_entry(entry)
+        em.find_by_npc_name.assert_called_once_with(attacker)
+        em.find_by_handle.assert_called_once_with(12345)
+        expected = _ParsedPlayerAgg()
+        if kind == CombatLogType.ABILITY:
+            expected.ability_uses["item_radiance"] = 1
+            expected.ability_targets["radiance"][_TARGET] = 1
+        else:
+            expected.item_uses["item_radiance"] = 1
+        assert agg.players == {0: expected}
+
+    @pytest.mark.parametrize("source", [_SOURCE, "", "unknown_source"])
+    def test_death_source_first_then_owner(self, owned_unit, source):
+        agg, em, attacker = owned_unit
+        entry = _summon_entry(attacker, log_type=CombatLogType.DEATH, damage_source_name=source)
+        agg.on_entry(entry)
+        if source == _SOURCE:
+            em.find_by_npc_name.assert_not_called()
+            em.find_by_handle.assert_not_called()
+            pid = 1
+        else:
+            em.find_by_npc_name.assert_called_once_with(attacker)
+            em.find_by_handle.assert_called_once_with(12345)
+            pid = 0
+        assert agg.players == {pid: _ParsedPlayerAgg(kills_log=[entry])}
+
+    def test_self_death_does_not_resolve_owner(self, owned_unit):
+        agg, em, attacker = owned_unit
+        agg.on_entry(_summon_entry(attacker, log_type=CombatLogType.DEATH, target_name=attacker))
+        em.find_by_npc_name.assert_not_called()
+        em.find_by_handle.assert_not_called()
+        assert agg.players == {}
+
+    @pytest.mark.parametrize("attacker,is_hero", [(_SOURCE, True), ("unknown", True), ("", False)])
+    def test_ineligible_attackers_do_not_scan(self, owned_unit, attacker, is_hero):
+        agg, em, _ = owned_unit
+        agg.on_entry(_summon_entry(attacker, attacker_is_hero=is_hero, stun_duration=1.5))
+        expected = _expected_summon_damage(_SOURCE, 1)
+        if attacker == _SOURCE:
+            expected[1].stuns_dealt = 1.5
+        em.find_by_npc_name.assert_not_called()
+        em.find_by_handle.assert_not_called()
+        assert agg.players == expected
+
+    @pytest.mark.parametrize(
+        "attacker",
+        ["npc_dota_creep_goodguys_melee", "npc_dota_neutral_kobold", "npc_dota_badguys_tower1_mid"],
+    )
+    @pytest.mark.parametrize("source", ["", _SOURCE])
+    def test_unowned_units(self, owned_unit, attacker, source):
+        agg, em, _ = owned_unit
+        em.find_by_npc_name.side_effect = None
+        em.find_by_npc_name.return_value = None
+        agg.on_entry(_summon_entry(attacker, damage_source_name=source))
+        if source:
+            em.find_by_npc_name.assert_not_called()
+        else:
+            em.find_by_npc_name.assert_called_once_with(attacker)
+        em.find_by_handle.assert_not_called()
+        assert agg.players == _expected_summon_damage(source or attacker, 1 if source else None)
+
+    def test_unresolved_owner_preserves_source_damage(self, owned_unit):
+        agg, em, attacker = owned_unit
+        em.find_by_handle.return_value = None
+        agg.on_entry(_summon_entry(attacker, stun_duration=1.5))
+        em.find_by_npc_name.assert_called_once_with(attacker)
+        em.find_by_handle.assert_called_once_with(12345)
+        assert agg.players == _expected_summon_damage(_SOURCE, 1)
