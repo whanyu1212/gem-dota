@@ -326,16 +326,19 @@ class _CombatAggregator:
             entry: A ``CombatLogEntry`` instance.
         """
         attacker_pid = self._hero_to_pid(entry.attacker_name) if entry.attacker_is_hero else None
-        # Credit summoned unit damage/stuns/uses to the owning hero when the
-        # attacker is not a hero itself (Warlock Golem, LD bear, Chen creeps,
-        # Pugna ward, Beastmaster boars, etc.). DEATH is handled separately
-        # below because OpenDota credits kills to the combat-log sourcename, not
-        # the attacker name.
+        source_name = getattr(entry, "damage_source_name", "") or ""
+        # Resolve summon ownership for ability/item uses, positive stuns, and
+        # damage without a source name. Sourced damage does not otherwise use
+        # the owner slot, even when the source is not a hero. DEATH has separate
+        # source-first attribution below.
         if (
             attacker_pid is None
             and not entry.attacker_is_hero
             and entry.attacker_name
             and entry.log_type in ("DAMAGE", "ABILITY", "ITEM")
+            and (
+                entry.log_type != CombatLogType.DAMAGE or not source_name or entry.stun_duration > 0
+            )
         ):
             attacker_pid = self._summon_to_pid(entry.attacker_name)
 
@@ -352,7 +355,6 @@ class _CombatAggregator:
         # transient units such as Beastmaster boars and Brewmaster split units.
         # When the source name is empty (auto-attack: source == attacker), fall
         # back to the attacker slot.
-        source_name = getattr(entry, "damage_source_name", "") or ""
         if source_name:
             source_pid = self._hero_to_pid(source_name)
             source_unit = source_name

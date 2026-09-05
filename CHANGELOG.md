@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **Fewer summon ownership scans.** Skip redundant entity lookups for damage
+  events with a source name and no positive stun duration, preserving damage,
+  stun, ability/item usage, and kill attribution.
 - **Lower entity-operation check overhead.** `EntityOp.has()` checks flag values
   directly, avoiding `IntFlag` operation overhead in extractor callbacks while
   preserving overlap semantics and integer-mask compatibility.
