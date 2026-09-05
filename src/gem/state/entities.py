@@ -61,14 +61,16 @@ class EntityOp(enum.IntFlag):
     DELETED_LEFT = 0x04 | 0x10
 
     def has(self, other: EntityOp) -> bool:
-        """Return True if this op includes *other*.
+        """Return True if this op overlaps any bit in *other*.
 
         Args:
             other: The flag to test for.
 
         Returns:
-            True if the flag is set.
+            True if any queried bit is set. Querying ``NONE`` returns False.
         """
+        if isinstance(other, EntityOp):
+            return bool(self._value_ & other._value_)
         return bool(self & other)
 
 

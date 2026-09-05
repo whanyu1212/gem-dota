@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Lower entity-operation check overhead.** `EntityOp.has()` checks flag values
+  directly, avoiding `IntFlag` operation overhead in extractor callbacks while
+  preserving overlap semantics and integer-mask compatibility.
+
 ## [0.7.1] - 2026-09-04
 
 Improves full-replay parsing speed without changing public APIs or normalized

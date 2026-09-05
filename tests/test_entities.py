@@ -36,6 +36,44 @@ def entity_op():
 
 
 class TestEntityOp:
+    @pytest.mark.parametrize("op", [EntityOp(mask) for mask in range(32)])
+    @pytest.mark.parametrize("query", [EntityOp(mask) for mask in range(32)])
+    def test_all_defined_masks_match_intflag_overlap(self, op, query):
+        expected = bool(op & query)
+        assert op.has(query) is expected
+
+    @pytest.mark.parametrize("op", EntityOp.__members__.values(), ids=EntityOp.__members__)
+    @pytest.mark.parametrize("query", list(EntityOp))
+    def test_named_operations_match_intflag_overlap(self, op, query):
+        assert op.has(query) is bool(op & query)
+
+    def test_composite_query_requires_any_overlap(self):
+        assert EntityOp.CREATED.has(EntityOp.CREATED_ENTERED) is True
+        assert EntityOp.ENTERED.has(EntityOp.CREATED_ENTERED) is True
+        assert EntityOp.UPDATED.has(EntityOp.CREATED_ENTERED) is False
+
+    @pytest.mark.parametrize("op", EntityOp.__members__.values(), ids=EntityOp.__members__)
+    def test_zero_masks_never_overlap(self, op):
+        assert op.has(EntityOp.NONE) is False
+        assert EntityOp.NONE.has(op) is False
+
+    @pytest.mark.parametrize("op", [EntityOp(mask) for mask in range(32)])
+    @pytest.mark.parametrize("query", [0, 1, 2, 9, 10, 20, 31, 32, 33, -1, -2, False, True])
+    def test_integer_masks_preserve_operator_behavior(self, op, query):
+        assert op.has(query) is bool(op & query)
+
+    @pytest.mark.parametrize("op", [EntityOp(32), EntityOp(33), EntityOp(-1)])
+    @pytest.mark.parametrize("query", [EntityOp.NONE, EntityOp.CREATED, EntityOp(32), EntityOp(-1)])
+    def test_unknown_and_negative_flag_masks_preserve_operator_behavior(self, op, query):
+        assert op.has(query) is bool(op & query)
+
+    @pytest.mark.parametrize("query", [None, "CREATED", 1.5, object()])
+    def test_invalid_operands_preserve_type_error(self, query):
+        with pytest.raises(TypeError):
+            EntityOp.CREATED & query
+        with pytest.raises(TypeError):
+            EntityOp.CREATED.has(query)
+
     def test_flag_check(self, entity_op):
         op = entity_op.CREATED | entity_op.ENTERED
         assert op.has(entity_op.CREATED)
