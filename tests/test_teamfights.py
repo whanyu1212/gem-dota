@@ -6,6 +6,10 @@ Integration tests parse a real .dem fixture and verify plausible output.
 
 from __future__ import annotations
 
+import math
+from itertools import combinations_with_replacement
+from types import SimpleNamespace
+
 import pytest
 
 from gem.combat.log import CombatLogEntry
@@ -13,7 +17,9 @@ from gem.extractors.teamfights import (
     Teamfight,
     _near_fight,
     _nearest_pos,
+    _nearest_snapshot,
     _nearest_xp,
+    _SnapshotLookup,
     _update_centroid,
     detect_opendota_teamfights,
     detect_teamfights,
@@ -960,3 +966,179 @@ class TestTeamfightsIntegration:
         for tf in match.teamfights:
             for p in tf.players:
                 assert p.xp_delta >= 0
+
+
+def _lookup_snap(tick, marker=0, **overrides):
+    values = {
+        "tick": tick,
+        "x": float(marker),
+        "y": float(-marker),
+        "total_earned_xp": 1000 + marker,
+        "xp": marker,
+    }
+    values.update(overrides)
+    return SimpleNamespace(**values)
+
+
+def _linear_snapshot(snaps, tick):
+    if isinstance(snaps, _SnapshotLookup):
+        snaps = snaps.snapshots
+    return min(snaps, key=lambda snap: abs(snap.tick - tick), default=None)
+
+
+class TestSnapshotLookup:
+    def test_generated_chronological_lists_match_by_identity(self):
+        for size in range(6):
+            for ticks in combinations_with_replacement(range(-2, 3), size):
+                snaps = [_lookup_snap(tick, i) for i, tick in enumerate(ticks)]
+                lookup = _SnapshotLookup(snaps)
+                assert lookup.snapshots is snaps
+                assert lookup.ticks == ticks
+                for query in range(-3, 4):
+                    assert _nearest_snapshot(lookup, query) is _linear_snapshot(snaps, query)
+
+    @pytest.mark.parametrize(
+        "ticks,query,index",
+        [
+            ([], 10, None),
+            ([10], -1, 0),
+            ([10], 99, 0),
+            ([10, 10, 20, 20], 0, 0),
+            ([10, 10, 20, 20], 10, 0),
+            ([10, 10, 20, 20], 14, 0),
+            ([10, 10, 20, 20], 15, 0),
+            ([10, 10, 20, 20], 16, 2),
+            ([10, 10, 20, 20], 20, 2),
+            ([10, 10, 20, 20], 99, 2),
+            ([10, 10, 10], 99, 0),
+            ([20, 10, 20, 10], 15, 0),
+            ([30, 10, 10], 11, 1),
+        ],
+    )
+    def test_boundaries_duplicates_and_unordered_ties(self, ticks, query, index):
+        snaps = [_lookup_snap(tick, i) for i, tick in enumerate(ticks)]
+        original = snaps.copy()
+        lookup = _SnapshotLookup(snaps)
+        expected = None if index is None else snaps[index]
+        for value in (snaps, lookup):
+            assert _nearest_snapshot(value, query) is expected
+            assert _nearest_xp(value, query) == (
+                None if expected is None else expected.total_earned_xp
+            )
+            assert _nearest_pos(value, query) == (
+                None if expected is None else (expected.x, expected.y)
+            )
+        assert all(a is b for a, b in zip(snaps, original, strict=True))
+        if ticks != sorted(ticks):
+            assert lookup.ticks is None
+
+    @pytest.mark.parametrize("x,y", [(None, 0.0), (0.0, None), (None, None), (0.0, 0.0)])
+    def test_selected_missing_coordinates_do_not_seek_another_snapshot(self, x, y):
+        snaps = [_lookup_snap(10, x=x, y=y), _lookup_snap(10, 1), _lookup_snap(20, 2)]
+        lookup = _SnapshotLookup(snaps)
+        assert _nearest_snapshot(lookup, 15) is snaps[0]
+        assert _nearest_pos(lookup, 15) == (None if x is None or y is None else (x, y))
+        assert _nearest_xp(lookup, 15) == 1000
+
+    @pytest.mark.parametrize("duplicate", [False, True])
+    def test_query_tick_probes_are_logarithmic(self, duplicate):
+        ticks = [0] * 4096 + [10] * 4096 if duplicate else list(range(8192))
+        snaps = [_lookup_snap(tick, i) for i, tick in enumerate(ticks)]
+        lookup = _SnapshotLookup(snaps)
+
+        class CountedTicks:
+            probes = 0
+
+            def __len__(self):
+                return len(ticks)
+
+            def __getitem__(self, index):
+                self.probes += 1
+                return ticks[index]
+
+        counted = CountedTicks()
+        lookup.ticks = counted
+
+        class IndexedSnapshots(list):
+            def __iter__(self):
+                pytest.fail("A prepared lookup must not iterate over snapshots")
+
+        lookup.snapshots = IndexedSnapshots(snaps)
+        for query in (-1, 0, 5, 10, 4096, 8193):
+            counted.probes = 0
+            assert _nearest_snapshot(lookup, query) is _linear_snapshot(snaps, query)
+            assert counted.probes > 0
+            assert counted.probes <= 2 * math.ceil(math.log2(len(ticks) + 1)) + 6
+
+    @pytest.mark.parametrize("detector", [detect_teamfights, detect_opendota_teamfights])
+    @pytest.mark.parametrize("unordered", [False, True])
+    def test_detectors_reuse_preparation_and_match_linear_results(
+        self, monkeypatch, detector, unordered
+    ):
+        import gem.extractors.teamfights as tf
+
+        heroes = ["npc_dota_hero_axe", "npc_dota_hero_pudge", "npc_dota_hero_lina"]
+        snaps = {
+            pid: [
+                _lookup_snap(tick, i, x=pid * 10000.0 + i, y=0.0)
+                for i, tick in enumerate((2400, 2700, 2700, 3000, 3300, 3600))
+            ]
+            for pid in range(3)
+        }
+        snaps[0][3].x = None
+        if unordered:
+            snaps = {pid: list(reversed(values)) for pid, values in snaps.items()}
+        original_lists = {pid: values.copy() for pid, values in snaps.items()}
+        original_values = [[vars(s).copy() for s in values] for values in snaps.values()]
+        entries = [
+            _death(3000, heroes[0], game_time_s=100),
+            _death(3030, heroes[1], game_time_s=101),
+            _death(3060, heroes[2], game_time_s=102),
+            _damage(3045, heroes[0], heroes[1]),
+            _ability(3045, heroes[0], "axe_berserkers_call"),
+        ]
+        for entry in entries:
+            entry.game_time_s = entry.tick // 30
+        kwargs = {
+            "hero_to_slot": dict(zip(heroes, range(3), strict=True)),
+            "player_snapshots": snaps,
+        }
+        if detector is detect_opendota_teamfights:
+            kwargs["game_start_tick"] = 0
+        prepared = []
+        used = []
+        original_init = _SnapshotLookup.__init__
+        original_nearest = tf._nearest_snapshot
+
+        def prepare(self, snapshots):
+            original_init(self, snapshots)
+            prepared.append(self)
+
+        def nearest(lookup, tick):
+            assert isinstance(lookup, _SnapshotLookup)
+            used.append(lookup)
+            return original_nearest(lookup, tick)
+
+        with monkeypatch.context() as patch:
+            patch.setattr(_SnapshotLookup, "__init__", prepare)
+            patch.setattr(tf, "_nearest_snapshot", nearest)
+            actual = detector(entries, **kwargs)
+        assert len(prepared) == len(snaps)
+        assert {id(v.snapshots) for v in prepared} == {id(v) for v in snaps.values()}
+        assert {id(v) for v in used} == {id(v) for v in prepared}
+        assert len(used) > len(prepared)
+        with monkeypatch.context() as patch:
+            patch.setattr(tf, "_nearest_snapshot", _linear_snapshot)
+            expected = detector(entries, **kwargs)
+        assert actual == expected
+        assert actual
+        assert [[vars(s) for s in values] for values in snaps.values()] == original_values
+        for pid, values in snaps.items():
+            assert all(a is b for a, b in zip(values, original_lists[pid], strict=True))
+
+    def test_no_opendota_fights_does_not_prepare(self, monkeypatch):
+        def unexpected(*args):
+            pytest.fail("No-fights return should precede snapshot preparation")
+
+        monkeypatch.setattr(_SnapshotLookup, "__init__", unexpected)
+        assert detect_opendota_teamfights([], player_snapshots={0: [_lookup_snap(0)]}) == []
