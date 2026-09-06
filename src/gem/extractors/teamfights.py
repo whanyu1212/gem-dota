@@ -29,7 +29,10 @@ Reference: refs/parser/src/main/java/opendota/CreateParsedDataBlob.java
 from __future__ import annotations
 
 import math
+from bisect import bisect_left
+from collections.abc import Mapping
 from dataclasses import dataclass, field
+from itertools import pairwise
 from typing import TYPE_CHECKING
 
 from gem.combat.log import CombatLogEntry, opendota_translate
@@ -200,6 +203,7 @@ def detect_teamfights(
     """
     h2s: dict[str, int] = hero_to_slot or {}
     entries = sorted(combat_log, key=lambda e: e.tick)
+    snapshot_lookups = _prepare_snapshot_lookups(player_snapshots)
 
     # --- Pass 1: detect fight windows from hero deaths ----------------------
     # ``active`` holds fights still within their cooldown window.
@@ -235,11 +239,12 @@ def detect_teamfights(
 
         # Resolve the dying hero's position from the nearest snapshot.
         death_pos: tuple[float, float] | None = None
-        if player_snapshots:
+        if snapshot_lookups:
             tgt_slot = h2s.get(entry.target_name)
             if tgt_slot is not None:
-                snaps = player_snapshots.get(tgt_slot, [])
-                death_pos = _nearest_pos(snaps, entry.tick)
+                snaps = snapshot_lookups.get(tgt_slot)
+                if snaps is not None:
+                    death_pos = _nearest_pos(snaps, entry.tick)
 
         # Find the best active fight to absorb this death into.
         target_fight: Teamfight | None = None
@@ -354,11 +359,11 @@ def detect_teamfights(
             if entry.log_type == "DAMAGE":
                 if entry.target_is_hero and not entry.target_is_illusion and entry.attacker_is_hero:
                     if atk_slot is not None and _near_fight(
-                        atk_slot, entry.tick, fight, player_snapshots
+                        atk_slot, entry.tick, fight, snapshot_lookups
                     ):
                         fight.players[atk_slot].damage_dealt += entry.value
                     if tgt_slot is not None and _near_fight(
-                        tgt_slot, entry.tick, fight, player_snapshots
+                        tgt_slot, entry.tick, fight, snapshot_lookups
                     ):
                         fight.players[tgt_slot].damage_taken += entry.value
 
@@ -370,7 +375,7 @@ def detect_teamfights(
                     and entry.attacker_is_hero
                     and entry.attacker_name != entry.target_name
                     and atk_slot is not None
-                    and _near_fight(atk_slot, entry.tick, fight, player_snapshots)
+                    and _near_fight(atk_slot, entry.tick, fight, snapshot_lookups)
                 ):
                     fight.players[atk_slot].healing += entry.value
 
@@ -379,7 +384,7 @@ def detect_teamfights(
                 # stores in target_name (not the attacker). Matches OpenDota and
                 # gem's own combat aggregator (see combat/aggregator.py GOLD).
                 if tgt_slot is not None and _near_fight(
-                    tgt_slot, entry.tick, fight, player_snapshots
+                    tgt_slot, entry.tick, fight, snapshot_lookups
                 ):
                     fight.players[tgt_slot].gold_delta += entry.value
 
@@ -388,7 +393,7 @@ def detect_teamfights(
                 and not entry.attacker_is_illusion
                 and atk_slot is not None
                 and entry.inflictor_name
-                and _near_fight(atk_slot, entry.tick, fight, player_snapshots)
+                and _near_fight(atk_slot, entry.tick, fight, snapshot_lookups)
             ):
                 uses = (
                     fight.players[atk_slot].ability_uses
@@ -398,10 +403,10 @@ def detect_teamfights(
                 uses[entry.inflictor_name] = uses.get(entry.inflictor_name, 0) + 1
 
     # --- Pass 3: XP deltas from snapshots -----------------------------------
-    if player_snapshots:
+    if snapshot_lookups:
         for fight in fights:
-            for pid, snaps in player_snapshots.items():
-                if not snaps or pid >= 10:
+            for pid, snaps in snapshot_lookups.items():
+                if not snaps.snapshots or pid >= 10:
                     continue
                 xp_start = _nearest_xp(snaps, fight.start_tick)
                 xp_end = _nearest_xp(snaps, fight.end_tick)
@@ -475,10 +480,11 @@ def detect_opendota_teamfights(
     if not fights:
         return []
 
+    snapshot_lookups = _prepare_snapshot_lookups(player_snapshots)
     for fight in fights:
         _populate_opendota_xp_bounds(
             fight,
-            player_snapshots,
+            snapshot_lookups,
             game_start_tick=game_start_tick,
         )
 
@@ -493,7 +499,7 @@ def detect_opendota_teamfights(
                 fight,
                 entry,
                 h2s,
-                player_snapshots,
+                snapshot_lookups,
             )
 
     return fights
@@ -537,7 +543,7 @@ def _is_counted_opendota_death(entry: CombatLogEntry) -> bool:
 
 def _populate_opendota_xp_bounds(
     fight: OpenDotaTeamfight,
-    player_snapshots: dict[int, list[PlayerStateSnapshot]] | None,
+    player_snapshots: Mapping[int, list[PlayerStateSnapshot] | _SnapshotLookup] | None,
     *,
     game_start_tick: int | None,
 ) -> None:
@@ -560,7 +566,7 @@ def _populate_opendota_teamfight_event(
     fight: OpenDotaTeamfight,
     entry: CombatLogEntry,
     hero_to_slot: dict[str, int],
-    player_snapshots: dict[int, list[PlayerStateSnapshot]] | None,
+    player_snapshots: Mapping[int, list[PlayerStateSnapshot] | _SnapshotLookup] | None,
 ) -> None:
     if entry.log_type == "DEATH":
         _populate_opendota_death(fight, entry, hero_to_slot, player_snapshots)
@@ -604,7 +610,7 @@ def _populate_opendota_death(
     fight: OpenDotaTeamfight,
     entry: CombatLogEntry,
     hero_to_slot: dict[str, int],
-    player_snapshots: dict[int, list[PlayerStateSnapshot]] | None,
+    player_snapshots: Mapping[int, list[PlayerStateSnapshot] | _SnapshotLookup] | None,
 ) -> None:
     if not _is_counted_opendota_death(entry):
         return
@@ -646,7 +652,7 @@ def _near_fight(
     slot: int,
     tick: int,
     fight: Teamfight,
-    player_snapshots: dict | None,
+    player_snapshots: Mapping[int, list[PlayerStateSnapshot] | _SnapshotLookup] | None,
 ) -> bool:
     """Return True if the player was spatially close to the fight at the given tick.
 
@@ -676,7 +682,49 @@ def _near_fight(
     return math.dist(pos, (fight.centroid_x, fight.centroid_y)) <= _FIGHT_RADIUS
 
 
-def _nearest_xp(snaps: list, tick: int) -> int | None:
+@dataclass(slots=True)
+class _SnapshotLookup:
+    """Per-detector tick index; unordered inputs retain linear selection."""
+
+    snapshots: list[PlayerStateSnapshot]
+    ticks: tuple[int, ...] | None = field(init=False)
+
+    def __post_init__(self) -> None:
+        ticks = tuple(snap.tick for snap in self.snapshots)
+        self.ticks = None if any(a > b for a, b in pairwise(ticks)) else ticks
+
+
+def _prepare_snapshot_lookups(
+    player_snapshots: dict[int, list[PlayerStateSnapshot]] | None,
+) -> dict[int, _SnapshotLookup] | None:
+    if player_snapshots is None:
+        return None
+    return {pid: _SnapshotLookup(snaps) for pid, snaps in player_snapshots.items()}
+
+
+def _nearest_snapshot(
+    snaps: list[PlayerStateSnapshot] | _SnapshotLookup, tick: int
+) -> PlayerStateSnapshot | None:
+    if isinstance(snaps, _SnapshotLookup):
+        snapshots, ticks = snaps.snapshots, snaps.ticks
+    else:
+        snapshots, ticks = snaps, None
+    if not snapshots:
+        return None
+    if ticks is None:
+        return min(snapshots, key=lambda snap: abs(snap.tick - tick))
+
+    right = bisect_left(ticks, tick)
+    if right == 0:
+        return snapshots[0]
+    if right == len(ticks) or tick - ticks[right - 1] <= ticks[right] - tick:
+        # The predecessor may be the last of many equal ticks. Match min()'s
+        # first-in-list tie behavior without walking backward through the run.
+        return snapshots[bisect_left(ticks, ticks[right - 1], 0, right)]
+    return snapshots[right]
+
+
+def _nearest_xp(snaps: list[PlayerStateSnapshot] | _SnapshotLookup, tick: int) -> int | None:
     """Return cumulative earned XP from the snapshot nearest to the given tick.
 
     Uses ``total_earned_xp`` (``m_iTotalEarnedXP``, monotonically increasing),
@@ -684,17 +732,16 @@ def _nearest_xp(snaps: list, tick: int) -> int | None:
     ``m_iCurrentXP`` across a fight window would erase the XP gain of any hero
     who levels up mid-fight once the ``max(0, ...)`` clamp is applied.
     """
-    if not snaps:
-        return None
-    return min(snaps, key=lambda s: abs(s.tick - tick)).total_earned_xp
+    snap = _nearest_snapshot(snaps, tick)
+    return None if snap is None else snap.total_earned_xp
 
 
-def _nearest_pos(snaps: list, tick: int) -> tuple[float, float] | None:
+def _nearest_pos(
+    snaps: list[PlayerStateSnapshot] | _SnapshotLookup, tick: int
+) -> tuple[float, float] | None:
     """Return world (x, y) from the snapshot nearest to the given tick."""
-    if not snaps:
-        return None
-    snap = min(snaps, key=lambda s: abs(s.tick - tick))
-    if snap.x is None or snap.y is None:
+    snap = _nearest_snapshot(snaps, tick)
+    if snap is None or snap.x is None or snap.y is None:
         return None
     return snap.x, snap.y
 
