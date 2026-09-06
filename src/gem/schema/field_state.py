@@ -66,6 +66,24 @@ class FieldState:
     def _get_compact(self, path: CompactFieldPath) -> FieldValue:
         """Read an internal compact path without materializing a FieldPath."""
         state = self._state
+        depth = len(path)
+        if depth == 1:
+            idx = path[0]
+            if len(state) < idx + 2:
+                return None
+            return state[idx]
+        if depth == 2:
+            idx = path[0]
+            if len(state) < idx + 2:
+                return None
+            child = state[idx]
+            if not isinstance(child, FieldState):
+                return None
+            state = child._state
+            idx = path[1]
+            if len(state) < idx + 2:
+                return None
+            return state[idx]
         last = len(path) - 1
         for i, idx in enumerate(path):
             if len(state) < idx + 2:
@@ -112,6 +130,32 @@ class FieldState:
     def _set_compact(self, path: CompactFieldPath, value: FieldValue) -> None:
         """Write an internal compact path without materializing a FieldPath."""
         state = self._state
+        depth = len(path)
+        if depth == 1:
+            idx = path[0]
+            current_len = len(state)
+            if current_len < idx + 2:
+                state.extend([None] * (max(idx + 2, current_len * 2) - current_len))
+            if not isinstance(state[idx], FieldState):
+                state[idx] = value
+            return
+        if depth == 2:
+            idx = path[0]
+            current_len = len(state)
+            if current_len < idx + 2:
+                state.extend([None] * (max(idx + 2, current_len * 2) - current_len))
+            current = state[idx]
+            if not isinstance(current, FieldState):
+                current = FieldState()
+                state[idx] = current
+            state = current._state
+            idx = path[1]
+            current_len = len(state)
+            if current_len < idx + 2:
+                state.extend([None] * (max(idx + 2, current_len * 2) - current_len))
+            if not isinstance(state[idx], FieldState):
+                state[idx] = value
+            return
         last = len(path) - 1
         for i, idx in enumerate(path):
             current_len = len(state)

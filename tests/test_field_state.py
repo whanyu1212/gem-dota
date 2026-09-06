@@ -6,7 +6,8 @@ Reference: manta/field_state.go
 import pytest
 
 from gem.schema.field_path import FieldPath
-from gem.schema.field_state import FieldState
+from gem.schema.field_path.models import CompactFieldPath
+from gem.schema.field_state import FieldState, FieldValue
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -545,3 +546,150 @@ class TestFieldStateIsolation:
         fs1.set(_make_fp(0, 0), "in_fs1")
         # fs2 has no children, so fp(0,0) should return None
         assert fs2.get(_make_fp(0, 0)) is None
+
+
+class _OriginalFieldState(FieldState):
+    def _get_compact(self, path: CompactFieldPath) -> FieldValue:
+        """Read an internal compact path without materializing a FieldPath."""
+        state = self._state
+        last = len(path) - 1
+        for i, idx in enumerate(path):
+            if len(state) < idx + 2:
+                return None
+            if i == last:
+                return state[idx]
+            child = state[idx]
+            if not isinstance(child, FieldState):
+                return None
+            state = child._state
+        return None
+
+    def _set_compact(self, path: CompactFieldPath, value: FieldValue) -> None:
+        """Write an internal compact path without materializing a FieldPath."""
+        state = self._state
+        last = len(path) - 1
+        for i, idx in enumerate(path):
+            current_len = len(state)
+            if current_len < idx + 2:
+                new_len = max(idx + 2, current_len * 2)
+                state.extend([None] * (new_len - current_len))
+
+            current = state[idx]
+            if i == last:
+                if not isinstance(current, FieldState):
+                    state[idx] = value
+                return
+            if not isinstance(current, FieldState):
+                current = FieldState()
+                state[idx] = current
+            state = current._state
+
+
+def _outcome(call):
+    try:
+        return call()
+    except (IndexError, TypeError) as exc:
+        return type(exc), str(exc)
+
+
+class TestShallowCompactEquivalence:
+    @pytest.mark.parametrize("depth", range(1, 8))
+    def test_operations_match_original_and_public(self, depth):
+        states = [FieldState(), _OriginalFieldState(), FieldState()]
+        value = object()
+        for index in (0, 6, 7, 8, 15, 16, 100):
+            path = (index,) * depth
+            for i, state in enumerate(states):
+                read = (
+                    (lambda state=state, path=path: state.get(_make_fp(*path)))
+                    if i == 2
+                    else (lambda state=state, path=path: state._get_compact(path))
+                )
+                assert read() is None
+                if i == 2:
+                    state.set(_make_fp(*path), value)
+                else:
+                    state._set_compact(path, value)
+                assert read() is value
+            assert _state_tree(states[0]) == _state_tree(states[1]) == _state_tree(states[2])
+
+    @pytest.mark.parametrize(
+        "path",
+        [
+            (),
+            (-1,),
+            (-8,),
+            (-9,),
+            (True,),
+            (False, True),
+            (7, -9),
+            (0, -1),
+            (0, -8),
+            (0, -9),
+            (-9, 0),
+            (1.5,),
+            ("x",),
+            (7, 1.5),
+            (7, "x"),
+        ],
+    )
+    def test_index_behavior_and_partial_failure(self, path):
+        candidate, original, public = FieldState(), _OriginalFieldState(), FieldState()
+        assert (
+            _outcome(lambda: candidate._get_compact(path))
+            == _outcome(lambda: original._get_compact(path))
+            == _outcome(lambda: public.get(_make_fp(*path)))
+        )
+        assert (
+            _outcome(lambda: candidate._set_compact(path, 42))
+            == _outcome(lambda: original._set_compact(path, 42))
+            == _outcome(lambda: public.set(_make_fp(*path), 42))
+        )
+        assert _state_tree(candidate) == _state_tree(original) == _state_tree(public)
+
+    @pytest.mark.parametrize("depth", [1, 2])
+    def test_extra_slot_bound_does_not_read_populated_last_slot(self, depth):
+        state = FieldState()
+        leaf = state
+        if depth == 2:
+            leaf = FieldState()
+            state._state[0] = leaf
+        leaf._state[7] = object()
+        before = _state_tree(state)
+        assert state._get_compact((0,) * (depth - 1) + (7,)) is None
+        assert _state_tree(state) == before
+
+    def test_aliases_children_and_mixed_depth_writes(self):
+        class Child(FieldState):
+            pass
+
+        state = FieldState()
+        root_storage = state._state
+        child = Child()
+        child_storage = child._state
+        state._state[7] = child
+        value = object()
+        state._set_compact((7, 100), value)
+        assert state._state is root_storage and len(root_storage) == 16
+        assert state._state[7] is child and child._state is child_storage
+        assert len(child_storage) == 102 and state._get_compact((7, 100)) is value
+        for replacement in (None, 0, object(), FieldState()):
+            state._set_compact((7,), replacement)
+            assert state._get_compact((7,)) is child
+        state._set_compact((7, 100, 0), value)
+        terminal = state._get_compact((7, 100))
+        for replacement in (None, 0, object(), FieldState()):
+            state._set_compact((7, 100), replacement)
+            assert state._get_compact((7, 100)) is terminal
+        assert state._get_compact((7, 100, 0)) is value
+
+    def test_compact_paths_bypass_helpers(self, monkeypatch):
+        def fail(*args):
+            pytest.fail("compact path dispatched through a helper")
+
+        for name in ("get", "set", "_ensure", "_has_slot", "_is_child"):
+            monkeypatch.setattr(FieldState, name, fail)
+        state = FieldState()
+        for path in ((100,), (100, 100), (100, 100, 100)):
+            state._set_compact(path, 42)
+            assert state._get_compact(path) == 42

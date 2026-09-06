@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **Lower field-decoding overhead.** Specialize shallow compact field-state paths
+  and store Huffman operation/count lookups in compact byte tables.
 - **Less interval-frame copying.** Read team values at sampling boundaries after
   the initial interval, preserving minute-zero history and terminal counters.
 - **Less draft polling.** Stop scanning draft slots after the game-start tick,
