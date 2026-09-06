@@ -17,9 +17,11 @@ from gem.extractors._snapshots import (
     TEAM_RADIANT,
     PlayerStateSnapshot,
     PlayerTimeSeries,
+    _build_hero_snapshot,
     _player_id_from_entity,
     _pos,
-    _snapshot_hero,
+    _snapshot_hero,  # noqa: F401 — retained private compatibility import
+    _snapshot_player_id,
     scan_player_resource,
     team_data_field,
 )
@@ -621,21 +623,26 @@ class PlayerExtractor:
             if self._parser is not None and self._parser.string_tables is not None
             else None
         )
-        snaps_by_player: dict[int, tuple[Entity, PlayerStateSnapshot]] = {}
+        selected: dict[int, Entity] = {}
         for player_id in range(10):
             entity = self._canonical_hero_entity(player_id)
             if entity is None:
                 continue
-            snap = _snapshot_hero(entity, tick)
-            if snap is not None:
-                snap.game_time_s = getattr(self._parser, "game_time_s", None)
-                snaps_by_player[snap.player_id] = (entity, snap)
+            resolved_id = _snapshot_player_id(entity)
+            if resolved_id is not None:
+                selected[resolved_id] = entity
         for _, entity in sorted(self._heroes.items()):
-            snap = _snapshot_hero(entity, tick)
-            if snap is None or snap.player_id in snaps_by_player:
-                continue
+            resolved_id = _snapshot_player_id(entity)
+            if resolved_id is not None and resolved_id not in selected:
+                selected[resolved_id] = entity
+
+        # Finish selection before constructing full snapshots, preserving the
+        # last canonical / first fallback winner and staging before overlays.
+        snaps_by_player: dict[int, tuple[Entity, PlayerStateSnapshot]] = {}
+        for player_id, entity in selected.items():
+            snap = _build_hero_snapshot(entity, tick, player_id)
             snap.game_time_s = getattr(self._parser, "game_time_s", None)
-            snaps_by_player[snap.player_id] = (entity, snap)
+            snaps_by_player[player_id] = (entity, snap)
         for player_id in sorted(snaps_by_player):
             entity, snap = snaps_by_player[player_id]
             # Resolve canonical NPC name from the EntityNames string table so that

@@ -8,6 +8,8 @@ All tests use fake entities and a fake parser — no real .dem files.
 
 from __future__ import annotations
 
+import pytest
+
 from gem.extractors._snapshots import (
     TEAM_DIRE,
     TEAM_RADIANT,
@@ -1531,3 +1533,329 @@ class TestDeathCountReincarnation:
             )
         )
         assert ext._total_deaths.get(0) == 1
+
+
+def _decoded_id_entity(values=(None, None, None), *, nested=False, index=1, serial=1):
+    from gem.schema.sendtable.models import Field, ResolvedField, Serializer
+    from gem.state.entities import ClassInfo
+
+    names = ("m_nPlayerID", "m_iPlayerID", "m_iPlayerOwnerID")
+    serializer = Serializer("Hero", 0)
+    serializer.fields = [Field(n, "int32", "", "", 0, "", None, None, None, None) for n in names]
+    entity = Entity(index, serial, ClassInfo(1, "CDOTA_Unit_Hero_Axe", serializer))
+    for i, (name, value) in enumerate(zip(names, values, strict=True)):
+        path = (i, 0) if nested else (i,)
+        if nested:
+            serializer._resolved_fields[name] = ResolvedField(name, path)
+        entity._field_state._set_compact(path, value)
+    return entity
+
+
+def _linear_player_id(entity, mode):
+    from gem.extractors._snapshots import _PLAYER_ID_FIELDS
+
+    fields = entity._resolve_fields(_PLAYER_ID_FIELDS)
+    for field in fields[: 3 if mode == 1 else 2]:
+        value = entity._get_int32_resolved(field)
+        if value is None:
+            continue
+        if value >= 0:
+            return value // 2
+        if mode == 2:
+            return None
+    return None
+
+
+def _resolve_id_mode(entity, mode):
+    from gem.extractors._snapshots import _snapshot_player_id
+
+    if mode == 2:
+        return _snapshot_player_id(entity)
+    return _player_id_from_entity(entity, allow_owner=mode == 1)
+
+
+class TestGuardedPlayerIds:
+    @pytest.mark.parametrize("mode", range(3))
+    @pytest.mark.parametrize(
+        "values",
+        [
+            (0, 8, 10),
+            (6, 8, 10),
+            (None, 8, 10),
+            (-1, 8, 10),
+            (None, None, 10),
+            (-1, -2, 10),
+            (None, None, None),
+            (6.0, 8, 10),
+            ("6", False, 10),
+            (True, 8, 10),
+            (20, None, None),
+        ],
+    )
+    def test_decoded_modes_match_original(self, values, mode):
+        entity = _decoded_id_entity(values)
+        assert entity._player_id_cache is None
+        expected = _linear_player_id(entity, mode)
+        assert _resolve_id_mode(entity, mode) == expected
+        assert _resolve_id_mode(entity, mode) == expected
+        if expected is None:
+            assert entity._player_id_cache is None
+        else:
+            assert entity._player_id_cache[mode].player_id == expected
+
+    def test_hits_skip_resolved_readers_and_unrelated_updates(self, monkeypatch):
+        entity = _decoded_id_entity((0, None, None))
+        for mode in range(3):
+            assert _resolve_id_mode(entity, mode) == 0
+        entries = dict(entity._player_id_cache)
+
+        def unexpected(*args):
+            pytest.fail("cache hit resolved fields again")
+
+        monkeypatch.setattr(Entity, "_resolve_fields", unexpected)
+        monkeypatch.setattr(Entity, "_get_int32_resolved", unexpected)
+        entity._field_state._set_compact((100,), 99)
+        entity.active = False
+        for mode in range(3):
+            assert _resolve_id_mode(entity, mode) == 0
+            assert entity._player_id_cache[mode] is entries[mode]
+        entity.active = True
+        assert _resolve_id_mode(entity, 2) == 0
+
+    @pytest.mark.parametrize("mode", range(3))
+    def test_late_population_priority_and_replacement(self, mode):
+        entity = _decoded_id_entity()
+        for values in [
+            (None, None, None),
+            (None, 8, 10),
+            (0, 8, 10),
+            (6, 8, 10),
+            (6.0, 8, 10),
+            (-1, 8, 10),
+            (None, None, 12),
+            (None, None, None),
+            (False, 8, 10),
+        ]:
+            for i, value in enumerate(values):
+                entity._field_state._state[i] = value
+            assert _resolve_id_mode(entity, mode) == _linear_player_id(entity, mode)
+            assert _resolve_id_mode(entity, mode) == _linear_player_id(entity, mode)
+            if _linear_player_id(entity, mode) is None:
+                assert not entity._player_id_cache or mode not in entity._player_id_cache
+
+    @pytest.mark.parametrize("change", ["index", "serial", "class", "serializer", "field_state"])
+    def test_identity_changes_discard_entry(self, change):
+        from copy import copy
+
+        from gem.schema.field_state import FieldState
+
+        entity = _decoded_id_entity((6, None, None))
+        assert _resolve_id_mode(entity, 0) == 3
+        old = entity._player_id_cache[0]
+        if change == "index":
+            entity.index += 1
+        elif change == "serial":
+            entity.serial += 1
+        elif change == "class":
+            entity.cls = copy(entity.cls)
+        elif change == "serializer":
+            entity.cls.serializer = copy(entity.cls.serializer)
+        else:
+            entity._field_state = FieldState()
+            entity._field_state._set_compact((0,), 6)
+        assert _resolve_id_mode(entity, 0) == 3
+        assert entity._player_id_cache[0] is not old
+
+    def test_current_root_storage_and_extra_slot_bound(self):
+        entity = _decoded_id_entity((None, 8, None))
+        assert _resolve_id_mode(entity, 0) == 4
+        entity._field_state._state = [None, 8]
+        assert _resolve_id_mode(entity, 0) is None  # index 1 requires length >= 3
+        entity._field_state._state.append(None)
+        assert _resolve_id_mode(entity, 0) == 4
+        entity._field_state._state = [0, 8, None]
+        assert _resolve_id_mode(entity, 0) == 0
+
+    def test_raw_identity_does_not_confuse_equal_float_and_int(self):
+        entity = _decoded_id_entity((6, 8, None))
+        assert _resolve_id_mode(entity, 0) == 3
+        entity._field_state._state[0] = 6.0
+        assert _resolve_id_mode(entity, 0) == 4
+        entity._field_state._state[0] = int("1000")
+        assert _resolve_id_mode(entity, 0) == 500
+        entry = entity._player_id_cache[0]
+        entity._field_state._state[0] = int("1000")
+        assert _resolve_id_mode(entity, 0) == 500
+        assert entity._player_id_cache[0] is not entry
+
+    def test_overlay_added_changed_cleared(self):
+        entity = _decoded_id_entity((6, 8, 10))
+        for mode in range(3):
+            _resolve_id_mode(entity, mode)
+        for value in [0, None, -1, "invalid"]:
+            entity._state["m_nPlayerID"] = value
+            for mode in range(3):
+                assert _resolve_id_mode(entity, mode) == _linear_player_id(entity, mode)
+                assert entity._player_id_cache is None
+        entity._state.clear()
+        assert _resolve_id_mode(entity, 0) == 3
+        assert entity._player_id_cache is not None
+
+    @pytest.mark.parametrize("mode", range(3))
+    def test_nested_paths_are_uncached(self, mode):
+        entity = _decoded_id_entity((None, 8, 10), nested=True)
+        assert _resolve_id_mode(entity, mode) == 4
+        assert entity._player_id_cache is None
+        entity._field_state._set_compact((0, 0), 0)
+        assert _resolve_id_mode(entity, mode) == 0
+        assert entity._player_id_cache is None
+
+    def test_entries_are_entity_local_with_recycled_indices(self):
+        first = _decoded_id_entity((6, None, None))
+        second = _decoded_id_entity((8, None, None), serial=2)
+        third = _decoded_id_entity((0, None, None))
+        for e, expected in [(first, 3), (second, 4), (third, 0)]:
+            assert e._player_id_cache is None
+            assert _resolve_id_mode(e, 0) == expected
+        assert first._player_id_cache is not second._player_id_cache
+        assert first._player_id_cache is not third._player_id_cache
+
+    def test_absent_primary_schema_and_owner_mode_are_independent(self):
+        entity = _decoded_id_entity((None, None, 8))
+        entity.cls.serializer.fields = entity.cls.serializer.fields[2:]
+        entity._field_state._state = [8, None]
+        assert _resolve_id_mode(entity, 1) == 4
+        assert _resolve_id_mode(entity, 0) is None
+        assert _resolve_id_mode(entity, 2) is None
+        assert set(entity._player_id_cache) == {1}
+        entity._field_state._state[0] = 10
+        assert _resolve_id_mode(entity, 1) == 5
+
+
+@pytest.mark.parametrize("minute", [False, True])
+def test_prefilter_matches_original_selection_and_complete_snapshots(monkeypatch, minute):
+    from gem.extractors import players as module
+
+    heroes = [
+        _hero("Axe", index=i, m_nPlayerID=raw, m_iHealth=100 + i)
+        for i, raw in [(40, 0), (5, 0), (30, 2), (2, 2), (50, 4)]
+    ]
+    illusion = _ent("CDOTA_Unit_Hero_Axe", m_iPlayerOwnerID=6)
+    invalid = _ent("CDOTA_Unit_Hero_Axe", m_nPlayerID=-1, m_iPlayerID=6)
+    canonical = [heroes[0], heroes[1], heroes[0], None, illusion, invalid]
+    fallback = {
+        50: heroes[4],
+        30: heroes[2],
+        2: heroes[3],
+        40: heroes[0],
+        60: illusion,
+        70: invalid,
+    }
+    # Original algorithm: construct first, last canonical wins, sorted fallback first wins.
+    expected = {}
+    for entity in canonical:
+        if entity is not None:
+            snap = _snapshot_hero(entity, 123)
+            if snap is not None:
+                expected[snap.player_id] = (entity, snap)
+    for _, entity in sorted(fallback.items()):
+        snap = _snapshot_hero(entity, 123)
+        if snap is not None and snap.player_id not in expected:
+            expected[snap.player_id] = (entity, snap)
+    ext = PlayerExtractor()
+    ext.attach(FakeParser())
+    ext._parser.game_time_s = 17
+    ext._heroes = fallback
+    monkeypatch.setattr(
+        ext, "_canonical_hero_entity", lambda p: canonical[p] if p < len(canonical) else None
+    )
+    monkeypatch.setattr(ext, "_read_abilities", lambda e: {"ability": e.index})
+    monkeypatch.setattr(ext, "_read_inventory", lambda e: {0: "item_blink"})
+    diffs = []
+    monkeypatch.setattr(ext, "_diff_inventory", lambda *args: diffs.append(args))
+    built = []
+    original = module._build_hero_snapshot
+
+    def build(entity, tick, player_id):
+        built.append((player_id, entity))
+        return original(entity, tick, player_id)
+
+    monkeypatch.setattr(module, "_build_hero_snapshot", build)
+    ext._sample(123, minute=minute)
+    assert len(built) == len(expected) == 3
+    assert all(entity is expected[pid][0] for pid, entity in built)
+    expected_snaps = []
+    for pid in sorted(expected):
+        entity, snap = expected[pid]
+        snap.game_time_s = 17
+        snap.ability_levels = {"ability": entity.index}
+        if not minute:
+            snap.items = {0: "item_blink"}
+        expected_snaps.append(snap)
+    assert (ext._minute_snaps if minute else ext.snapshots) == expected_snaps
+    assert len(diffs) == (0 if minute else 3)
+
+
+def test_fallback_npc_name_cache_is_bounded_and_reused():
+    from gem.extractors._snapshots import _fallback_npc_name
+
+    _fallback_npc_name.cache_clear()
+    assert _fallback_npc_name("CDOTA_Unit_Hero_TemplarAssassin") == "npc_dota_hero_templar_assassin"
+    assert _fallback_npc_name("CDOTA_Unit_Hero_Nyx_Assassin") == "npc_dota_hero_nyx_assassin"
+    _fallback_npc_name("CDOTA_Unit_Hero_TemplarAssassin")
+    assert _fallback_npc_name.cache_info().hits == 1
+    for i in range(300):
+        _fallback_npc_name(f"CDOTA_Unit_Hero_Test{i}")
+    assert _fallback_npc_name.cache_info().currsize == 256
+    _fallback_npc_name.cache_clear()
+
+
+def test_cached_fallback_does_not_freeze_entity_names():
+    from gem.state.string_table import StringTable, StringTables
+
+    table = StringTable(0, "EntityNames")
+    tables = StringTables()
+    tables.add(table)
+    parser = FakeParser()
+    parser.string_tables = tables
+    ext = PlayerExtractor()
+    ext.attach(parser)
+    entity = _hero("QueenOfPain", **{"m_pEntity.m_nameStringableIndex": 7})
+    ext._heroes[0] = entity
+    ext._sample(1)
+    table.items[7] = ("npc_dota_hero_queenofpain", b"")
+    ext._sample(2)
+    table.items[7] = ("updated_name", b"")
+    ext._sample(3)
+    assert [s.npc_name for s in ext.snapshots] == [
+        "npc_dota_hero_queen_of_pain",
+        "npc_dota_hero_queenofpain",
+        "updated_name",
+    ]
+
+
+def test_decoded_cache_and_canonical_handles_remain_parser_local():
+    from gem.state.string_table import StringTables
+
+    extractors = []
+    for raw in [0, 8]:
+        parser = FakeParser()
+        parser.string_tables = StringTables()
+        entity = _decoded_id_entity((raw, None, None))
+        replacement = _decoded_id_entity((raw, None, None), serial=2)
+        parser.entity_manager = FakeEntityManager({100: entity, 200: replacement})
+        ext = PlayerExtractor()
+        ext.attach(parser)
+        controller = _ent("CDOTAPlayerController", m_hAssignedHero=100)
+        ext._controllers[0] = controller
+        ext._sample(1)
+        assert entity._player_id_cache[2].player_id == raw // 2
+        assert replacement._player_id_cache is None
+        controller._state["m_hAssignedHero"] = 200
+        ext._sample(2)
+        assert replacement._player_id_cache[2].player_id == raw // 2
+        controller._state["m_hAssignedHero"] = 999
+        ext._sample(3)
+        assert [s.player_id for s in ext.snapshots] == [raw // 2, raw // 2]
+        extractors.append(ext)
+    assert extractors[0].snapshots[0].player_id != extractors[1].snapshots[0].player_id
