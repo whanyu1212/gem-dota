@@ -84,7 +84,7 @@ class FieldState:
             if len(state) < idx + 2:
                 return None
             return state[idx]
-        last = len(path) - 1
+        last = depth - 1
         for i, idx in enumerate(path):
             if len(state) < idx + 2:
                 return None
@@ -156,7 +156,7 @@ class FieldState:
             if not isinstance(state[idx], FieldState):
                 state[idx] = value
             return
-        last = len(path) - 1
+        last = depth - 1
         for i, idx in enumerate(path):
             current_len = len(state)
             if current_len < idx + 2:
