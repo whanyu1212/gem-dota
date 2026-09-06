@@ -233,6 +233,8 @@ class BitReader:
 
         Full bytes are emitted in stream order. If ``n`` is not divisible by
         8, the final output byte contains the remaining low-order bits.
+        Larger valid requests use bulk byte reads. Small and truncated requests
+        retain byte-by-byte reads, including partial consumption on failure.
 
         Args:
             n: Number of bits to read (need not be a multiple of 8).
@@ -240,6 +242,13 @@ class BitReader:
         Returns:
             bytes: The bits packed into ceil(n/8) bytes.
         """
+        if n >= 24 and n <= self.rem_bits():
+            full_bytes, remainder = divmod(n, 8)
+            data = self.read_bytes(full_bytes)
+            if remainder:
+                data += bytes((self.read_bits(remainder),))
+            return data
+
         out = bytearray()
         while n >= 8:
             out.append(self._read_byte())
