@@ -6,7 +6,8 @@ import struct
 from typing import TYPE_CHECKING
 
 from gem.schema.field_path.huffman import (
-    _HUFF_DECODE_TABLE,
+    _HUFF_BITS,
+    _HUFF_OPS,
     _HUFF_TABLE_BITS,
     HUFF_TREE,
 )
@@ -38,7 +39,8 @@ def _read_compact_field_paths(r: BitReader) -> list[CompactFieldPath]:
     fp = FieldPath()
     paths: list[CompactFieldPath] = []
     ops = FIELD_PATH_OPS
-    table = _HUFF_DECODE_TABLE
+    table_ops = _HUFF_OPS
+    table_consumed = _HUFF_BITS
     table_bits = _HUFF_TABLE_BITS
     mask = (1 << table_bits) - 1
 
@@ -63,7 +65,8 @@ def _read_compact_field_paths(r: BitReader) -> list[CompactFieldPath]:
                 else:
                     break
             bits = r._bit_val & mask
-            op_idx, consumed = table[bits]
+            op_idx = table_ops[bits]
+            consumed = table_consumed[bits]
             # Inline skip_bits(consumed).
             r._bit_val >>= consumed
             r._bit_count -= consumed

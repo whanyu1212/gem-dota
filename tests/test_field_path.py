@@ -4,8 +4,6 @@ Tests for gem.schema.field_path — Huffman field path decoding.
 Reference: manta/field_path.go, manta/huffman.go
 """
 
-from typing import Any
-
 import pytest
 
 
@@ -280,65 +278,209 @@ class TestDecodeTableCrossValidation:
         This directly catches any divergence in the decode table without
         requiring a full parse.
         """
-        try:
-            from gem.schema.field_path import _HUFF_DECODE_TABLE, _HUFF_TABLE_BITS
-        except ImportError:
-            pytest.skip("decode table not yet implemented")
-        from gem.schema.field_path import FIELD_PATH_OPS, HUFF_TREE, FieldPath
-
-        mismatches = 0
-        total = 0
+        from gem.schema.field_path.path_sequence import _read_compact_field_paths
 
         for buf, pos, bit_val, bit_count in captured_buffers:
-            # Restore identical reader state for both implementations
-            def make_reader(
-                _buf: bytes = buf,
-                _pos: int = pos,
-                _bit_val: int = bit_val,
-                _bit_count: int = bit_count,
-            ) -> Any:
-                r = reader_cls(_buf)
-                r._pos = _pos
-                r._bit_val = _bit_val
-                r._bit_count = _bit_count
+
+            def make_reader(buf=buf, pos=pos, bit_val=bit_val, bit_count=bit_count):
+                r = reader_cls(buf)
+                r._pos, r._bit_val, r._bit_count = pos, bit_val, bit_count
                 return r
 
-            # Tree-walk reference
-            ref_paths = _read_field_paths_tree_walk(make_reader())
+            reference = make_reader()
+            expected = [fp.to_tuple() for fp in _read_field_paths_tree_walk(reference)]
+            compact = make_reader()
+            assert _read_compact_field_paths(compact) == expected
+            public = make_reader()
+            from gem.schema.field_path import read_field_paths
 
-            # Table-based candidate
-            r_new = make_reader()
-            fp = FieldPath()
-            new_paths = []
-            table = _HUFF_DECODE_TABLE
-            table_bits = _HUFF_TABLE_BITS
-            ops = FIELD_PATH_OPS
-            while not fp.done:
-                if r_new.rem_bits() >= table_bits:
-                    bits = r_new.peek_bits(table_bits)
-                    op_idx, consumed = table[bits]
-                    r_new.skip_bits(consumed)
+            assert [fp.to_tuple() for fp in read_field_paths(public)] == expected
+            assert compact.position() == public.position() == reference.position()
+            assert compact.rem_bits() == public.rem_bits() == reference.rem_bits()
+
+
+def _original_decode(r, table):
+    import struct
+
+    from gem.schema.field_path import _HUFF_TABLE_BITS, FIELD_PATH_OPS, HUFF_TREE, FieldPath
+
+    fp = FieldPath()
+    paths = []
+    ops = FIELD_PATH_OPS
+    table_bits = _HUFF_TABLE_BITS
+    mask = (1 << table_bits) - 1
+
+    buf = r._buf
+    size = r._size
+    unpack_from = struct.unpack_from
+
+    while not fp.done:
+        # Inline rem_bits: (size - pos) * 8 + bit_count.
+        if (size - r._pos) * 8 + r._bit_count >= table_bits:
+            # Inline peek_bits(table_bits): refill then read without consuming.
+            while table_bits > r._bit_count:
+                remaining = size - r._pos
+                if remaining >= 4:
+                    r._bit_val |= unpack_from("<I", buf, r._pos)[0] << r._bit_count
+                    r._pos += 4
+                    r._bit_count += 32
+                elif remaining > 0:
+                    r._bit_val |= buf[r._pos] << r._bit_count
+                    r._pos += 1
+                    r._bit_count += 8
                 else:
-                    node = HUFF_TREE
-                    while not node.is_leaf:
-                        node = node.right if r_new.read_bits(1) else node.left
-                    op_idx = node.value
-                ops[op_idx].fn(r_new, fp)
-                if not fp.done:
-                    new_paths.append(fp.copy())
+                    break
+            bits = r._bit_val & mask
+            op_idx, consumed = table[bits]
+            # Inline skip_bits(consumed).
+            r._bit_val >>= consumed
+            r._bit_count -= consumed
+        else:
+            # Fallback: tree walk for the last few bits.
+            node = HUFF_TREE
+            while not node.is_leaf:
+                node = node.right if r.read_bits(1) else node.left  # type: ignore[assignment]
+            op_idx = node.value
 
-            ref_tuples = [p.to_tuple() for p in ref_paths]
-            new_tuples = [p.to_tuple() for p in new_paths]
+        ops[op_idx].fn(r, fp)
+        if not fp.done:
+            path = fp.path
+            last = fp.last
+            if last == 0:
+                paths.append((path[0],))
+            elif last == 1:
+                paths.append((path[0], path[1]))
+            elif last == 2:
+                paths.append((path[0], path[1], path[2]))
+            elif last == 3:
+                paths.append((path[0], path[1], path[2], path[3]))
+            elif last == 4:
+                paths.append((path[0], path[1], path[2], path[3], path[4]))
+            elif last == 5:
+                paths.append((path[0], path[1], path[2], path[3], path[4], path[5]))
+            else:
+                paths.append((path[0], path[1], path[2], path[3], path[4], path[5], path[6]))
 
-            total += 1
-            if ref_tuples != new_tuples:
-                mismatches += 1
-                if mismatches <= 3:
-                    pytest.fail(
-                        f"Mismatch on snapshot #{total}:\n"
-                        f"  ref[:{min(5, len(ref_tuples))}] = {ref_tuples[:5]}\n"
-                        f"  new[:{min(5, len(new_tuples))}] = {new_tuples[:5]}\n"
-                        f"  ref_len={len(ref_tuples)} new_len={len(new_tuples)}"
+    return paths
+
+
+@pytest.fixture(scope="module")
+def original_table():
+    from gem.schema.field_path import _HUFF_TABLE_BITS, HUFF_TREE
+
+    table = [(0, 0)] * (1 << _HUFF_TABLE_BITS)
+    stack = [(HUFF_TREE, 0, 0)]
+    while stack:
+        node, code, depth = stack.pop()
+        if node.is_leaf:
+            for suffix in range(1 << (_HUFF_TABLE_BITS - depth)):
+                table[code | (suffix << depth)] = (node.value, depth)
+        else:
+            stack.append((node.left, code, depth + 1))
+            stack.append((node.right, code | (1 << depth), depth + 1))
+    return table
+
+
+def _reader_state(r):
+    return r._pos, r._bit_val, r._bit_count, r.position(), r.rem_bits()
+
+
+def _decode_outcome(call):
+    try:
+        return call()
+    except Exception as exc:
+        return type(exc), str(exc)
+
+
+def _exact_reader(bits, prefetched=0):
+    from gem.binary.reader import BitReader
+
+    # Align at the front so truncations have no invented trailing zero bits.
+    padding = -len(bits) % 8
+    r = BitReader(_bits_to_bytes("0" * padding + bits))
+    r.read_bits(padding)
+    if prefetched:
+        r.peek_bits(min(prefetched, r.rem_bits()))
+    return r
+
+
+def _codes():
+    from gem.schema.field_path import FIELD_PATH_OPS, HUFF_TREE
+
+    result = {}
+    stack = [(HUFF_TREE, "")]
+    while stack:
+        node, bits = stack.pop()
+        if node.is_leaf:
+            result[FIELD_PATH_OPS[node.value].name] = bits
+        else:
+            stack.extend([(node.left, bits + "0"), (node.right, bits + "1")])
+    return result
+
+
+class TestPackedHuffman:
+    def test_every_entry_matches_original_and_tree(self, original_table):
+        from gem.schema.field_path import _HUFF_TABLE_BITS, FIELD_PATH_OPS, HUFF_TREE
+        from gem.schema.field_path.huffman import _HUFF_BITS, _HUFF_OPS
+
+        assert type(_HUFF_OPS) is bytes and type(_HUFF_BITS) is bytes
+        assert len(_HUFF_OPS) == len(_HUFF_BITS) == 1 << _HUFF_TABLE_BITS == 131072
+        assert set(_HUFF_OPS) == set(range(len(FIELD_PATH_OPS)))
+        assert min(_HUFF_BITS) > 0 and max(_HUFF_BITS) == 17
+        for index, expected in enumerate(original_table):
+            node, depth = HUFF_TREE, 0
+            while not node.is_leaf:
+                node = node.right if (index >> depth) & 1 else node.left
+                depth += 1
+            assert (_HUFF_OPS[index], _HUFF_BITS[index]) == expected == (node.value, depth)
+
+    @pytest.mark.parametrize("prefetched", [0, 8, 16, 17, 18, 24, 32])
+    def test_truncations_and_malformed_sequences_match_original(self, original_table, prefetched):
+        from gem.schema.field_path.path_sequence import _read_compact_field_paths
+
+        codes = _codes()
+        finish = codes["FieldPathEncodeFinish"]
+        sequences = [
+            codes["PlusOne"] * 24 + finish,
+            codes["PlusN"] + "0" * 12 + finish,
+            codes["PushOneLeftDeltaNRightNonZeroPack6Bits"] + "001101" + finish,
+            codes["PushOneLeftDeltaZeroRightZero"] * 7 + finish,
+            codes["PopOnePlusOne"] + finish,
+        ]
+        for bits in sequences:
+            for end in range(len(bits) + 1):
+                candidate = _exact_reader(bits[:end], prefetched)
+                original = _exact_reader(bits[:end], prefetched)
+                assert _decode_outcome(
+                    lambda candidate=candidate: _read_compact_field_paths(candidate)
+                ) == (
+                    _decode_outcome(
+                        lambda original=original: _original_decode(original, original_table)
                     )
+                )
+                assert _reader_state(candidate) == _reader_state(original)
 
-        assert mismatches == 0, f"{mismatches}/{total} snapshots had mismatches"
+    @pytest.mark.parametrize("offset", range(8))
+    @pytest.mark.parametrize("prefetched", [0, 17, 32])
+    def test_consecutive_sequences_and_following_reads(self, original_table, offset, prefetched):
+        from gem.binary.reader import BitReader
+        from gem.schema.field_path.path_sequence import _read_compact_field_paths
+
+        bits = "0" * offset + "010" + "0010" + "10100111" * 8
+        readers = [BitReader(_bits_to_bytes(bits)) for _ in range(2)]
+        for r in readers:
+            r.read_bits(offset)
+            if prefetched:
+                r.peek_bits(prefetched)
+        candidate, original = readers
+        for _ in range(2):
+            assert _read_compact_field_paths(candidate) == _original_decode(
+                original, original_table
+            )
+            assert _reader_state(candidate) == _reader_state(original)
+        assert candidate.read_bits(3) == original.read_bits(3)
+        assert candidate.peek_bits(7) == original.peek_bits(7)
+        candidate.skip_bits(7)
+        original.skip_bits(7)
+        assert candidate.read_bytes(3) == original.read_bytes(3)
+        assert _reader_state(candidate) == _reader_state(original)
