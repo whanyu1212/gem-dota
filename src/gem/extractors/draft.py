@@ -240,6 +240,14 @@ class DraftExtractor:
             self._grp = None
             return
         self._grp = entity
+        # The marker is set before this callback, so finish its tick to retain
+        # draft fields arriving with or immediately after the start update.
+        if (
+            self._parser is not None
+            and self._parser.game_start_tick is not None
+            and self._parser.tick > self._parser.game_start_tick
+        ):
+            return
         self._check_draft(entity)
 
     def _check_draft(self, entity: Entity) -> None:
