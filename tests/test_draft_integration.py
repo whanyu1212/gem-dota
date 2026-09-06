@@ -111,6 +111,7 @@ def od_hero_id_map() -> dict[int, str]:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.network
 @pytest.mark.integration
 @pytest.mark.slow
 @pytest.mark.parametrize("match_id", MATCH_IDS)

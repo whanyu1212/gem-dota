@@ -15,27 +15,17 @@ Marked ``slow`` + ``integration`` — needs a real ``.dem``.
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import pytest
 
-import gem
 from gem.analysis.roshan import _HIGH_VALUE_DROPS, build_rosh_conversions
-
-FIXTURES_DIR = Path(__file__).parent / "fixtures" / "opendota"
-_MATCH_ID = 8855188139
 
 
 @pytest.mark.slow
 @pytest.mark.integration
 class TestRoshanDropsPopulate:
     @pytest.fixture(scope="class")
-    def match(self):
-        """Parse the fixture once for the whole class."""
-        dem = FIXTURES_DIR / f"{_MATCH_ID}.dem"
-        if not dem.exists():
-            pytest.skip(f"OpenDota fixture {_MATCH_ID}.dem not available")
-        return gem.parse(str(dem))
+    def match(self, feature_parity_match):
+        return feature_parity_match
 
     def test_has_roshan_kills(self, match):
         assert match.roshans, "fixture expected to contain at least one Roshan kill"
@@ -93,11 +83,8 @@ class TestRoshanDropsPopulate:
 @pytest.mark.integration
 class TestRoshConversionDrops:
     @pytest.fixture(scope="class")
-    def conversions(self):
-        dem = FIXTURES_DIR / f"{_MATCH_ID}.dem"
-        if not dem.exists():
-            pytest.skip(f"OpenDota fixture {_MATCH_ID}.dem not available")
-        return build_rosh_conversions(gem.parse(str(dem)))
+    def conversions(self, feature_parity_match):
+        return build_rosh_conversions(feature_parity_match)
 
     def test_conversions_built(self, conversions):
         assert conversions

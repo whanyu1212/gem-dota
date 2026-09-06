@@ -1,6 +1,11 @@
+import json
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
+
+if TYPE_CHECKING:
+    from gem.results.models import ParsedMatch
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 OPENDOTA_FIXTURES_DIR = FIXTURES_DIR / "opendota"
@@ -8,6 +13,7 @@ TI2026_SHORT_MATCH_ID = 8868259993
 TI2026_MEDIUM_MATCH_ID = 8860187335
 TI2026_LONG_MATCH_ID = 8856501050
 PERFORMANCE_BASELINE_MATCH_ID = 8822520406
+FEATURE_PARITY_MATCH_ID = 8855188139
 DEPRECATED_OPENDOTA_REPLAY_IDS = frozenset({8821954344, 8822593932})
 DEPRECATED_OPENDOTA_REPLAY_NAMES = frozenset(
     f"{match_id}.dem" for match_id in DEPRECATED_OPENDOTA_REPLAY_IDS
@@ -21,8 +27,9 @@ PREFERRED_OPENDOTA_REPLAY_IDS = (
 
 
 def pytest_configure(config):
-    config.addinivalue_line("markers", "slow: marks tests that require real replay files")
+    config.addinivalue_line("markers", "slow: marks expensive tests requiring full replay files")
     config.addinivalue_line("markers", "integration: marks integration tests against full replays")
+    config.addinivalue_line("markers", "network: marks tests that contact live external services")
 
 
 def available_opendota_replay_paths() -> list[Path]:
@@ -79,3 +86,30 @@ def performance_baseline_replay_path() -> Path:
 def full_replay_path(ti2026_short_replay_path: Path) -> Path:
     """Compatibility alias for the canonical TI2026 integration replay."""
     return ti2026_short_replay_path
+
+
+@pytest.fixture(scope="session")
+def canonical_parsed_match(full_replay_path: Path) -> "ParsedMatch":
+    """Parse the canonical replay once; consumers must treat the result as read-only."""
+    import gem
+
+    return gem.parse(str(full_replay_path))
+
+
+@pytest.fixture(scope="session")
+def feature_parity_match() -> "ParsedMatch":
+    """Share read-only feature parity output independently of the reference JSON."""
+    import gem
+
+    path = _required_replay_path(FEATURE_PARITY_MATCH_ID, "feature parity")
+    return gem.parse(str(path))
+
+
+@pytest.fixture(scope="session")
+def feature_parity_reference() -> dict:
+    """Load the read-only OpenDota reference once, only for tests that need it."""
+    path = OPENDOTA_FIXTURES_DIR / f"{FEATURE_PARITY_MATCH_ID}.opendota.json"
+    if not path.exists():
+        pytest.skip(f"OpenDota reference {path.name} not available")
+    with path.open() as stream:
+        return json.load(stream)

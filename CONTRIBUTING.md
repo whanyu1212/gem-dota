@@ -178,7 +178,7 @@ uv run mypy src/gem/
 ### Running tests
 
 ```bash
-# Full suite
+# Fast developer/PR suite
 uv run pytest
 
 # Single file
@@ -191,15 +191,33 @@ uv run pytest tests/binary/test_reader.py::TestReadVarUint32::test_two_bytes
 uv run pytest --cov=gem --cov-report=html
 ```
 
-### Test markers
+### Test tiers
 
-- `@pytest.mark.slow` — tests that require a real `.dem` file (not run in CI by default)
-- `@pytest.mark.integration` — full-replay integration tests
+| Purpose | Command |
+|---|---|
+| Developer/PR fast suite | `uv run pytest` |
+| Offline integration | `uv run pytest -m "integration and not network"` |
+| All offline tests | `uv run pytest -m "not network"` |
+| Live network smoke | `uv run pytest -m network` |
+| Everything, including network | `uv run pytest -m ""` |
 
-Skip slow tests during development:
-```bash
-uv run pytest -m "not slow and not integration"
-```
+The default suite and PR CI exclude `slow`, `integration`, and `network`.
+`slow` covers expensive full-replay tests; `integration` covers full-replay
+integration checks; `network` identifies live external services. Mocked network
+tests remain in the fast suite, as do small committed truncated replay checks.
+Offline commands do not download missing fixtures; missing assets are reported as
+skips. Synchronize fixtures explicitly before required integration validation.
+
+Run focused tests during iteration and fast tests plus lint/type checks for every
+PR. Parser changes also need relevant offline integration. Broader parity matrices
+and performance benchmarks belong to releases or changes that warrant them.
+The live draft smoke still supports `GEM_DRAFT_INTEGRATION_FULL=1` for its broader
+five-replay sample.
+
+Shared parsed matches are lazy session fixtures and must be treated as read-only.
+Reuse them when parsing configuration is identical; tests that mutate results or
+configure different extractors need isolated setup. OpenDota JSON is a separate
+fixture so replay-only assertions do not require reference data.
 
 ### Writing tests
 

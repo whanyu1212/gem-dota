@@ -27,6 +27,17 @@ FIXTURE_TRUNCATED = (
     Path(__file__).parent / "fixtures" / "ti14_finals_g3_xg_vs_falcons_truncated.dem"
 )
 
+
+@pytest.fixture(scope="module")
+def truncated_parsed_match():
+    """Share the read-only truncated result between the public parse checks."""
+    import gem
+
+    if not FIXTURE_TRUNCATED.exists():
+        pytest.skip("Truncated fixture not found")
+    return gem.parse(str(FIXTURE_TRUNCATED))
+
+
 _MAGIC_S2 = b"PBDEMS2\x00"
 
 
@@ -180,27 +191,18 @@ class TestParseFuzz:
         result = gem.parse(str(f))
         assert isinstance(result, ParsedMatch)
 
-    def test_truncated_fixture(self) -> None:
+    def test_truncated_fixture(self, truncated_parsed_match) -> None:
         """Pre-built truncated fixture parses without hanging."""
-        import gem
         from gem.results.models import ParsedMatch
 
-        if not FIXTURE_TRUNCATED.exists():
-            pytest.skip("Truncated fixture not found")
-
-        result = gem.parse(str(FIXTURE_TRUNCATED))
+        result = truncated_parsed_match
         assert isinstance(result, ParsedMatch)
         # Truncated replay should still extract some partial data
         assert result.match_id >= 0
 
-    def test_truncated_fixture_has_partial_data(self) -> None:
+    def test_truncated_fixture_has_partial_data(self, truncated_parsed_match) -> None:
         """Truncated fixture returns partial (non-empty) data, not a completely blank match."""
-        import gem
-
-        if not FIXTURE_TRUNCATED.exists():
-            pytest.skip("Truncated fixture not found")
-
-        result = gem.parse(str(FIXTURE_TRUNCATED))
+        result = truncated_parsed_match
         # At minimum the sendtables/entitymanager must have initialised
         # (truncation happens after the header, so some data is available).
         assert result.match_id != 0 or len(result.combat_log) > 0 or len(result.players) == 10

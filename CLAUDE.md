@@ -12,10 +12,10 @@ fuller contributor workflow; the list below is the day-to-day short version.)
 # Install project + dev dependencies
 uv sync --group dev
 
-# Run default test suite (skips slow/integration markers via pyproject.toml)
+# Run default test suite (skips slow/integration/network markers via pyproject.toml)
 uv run pytest
 
-# Run all tests, including slow/integration markers
+# Run all tests, including slow/integration/network markers
 uv run pytest -m ""
 
 # Run a single test file
@@ -28,10 +28,16 @@ uv run pytest tests/binary/test_reader.py::TestReadBits::test_read_8_bits
 uv run pytest --cov=gem --cov-report=term-missing
 
 # Explicit fast loop — equivalent to the default marker filter
-uv run pytest -m "not slow and not integration"
+uv run pytest -m "not slow and not integration and not network"
 
-# Integration suite (requires replay fixtures)
-uv run pytest -m integration
+# Offline integration suite (requires local replay fixtures)
+uv run pytest -m "integration and not network"
+
+# All offline tests
+uv run pytest -m "not network"
+
+# Live network smoke
+uv run pytest -m network
 
 # Broader remote draft integration sample (downloads/parses 5 pro replays)
 GEM_DRAFT_INTEGRATION_FULL=1 uv run pytest tests/test_draft_integration.py -m integration
@@ -432,15 +438,22 @@ scripts (`test_audit_camp_annotations.py`, `test_audit_opendota_fixture_constant
   for fixture lifecycle, capabilities, integrity metadata, and replacements.
   Map/reference images for examples, reports, and camp-zone tooling live under
   `assets/maps/`, not `tests/fixtures/`.
-- `uv run pytest` skips `slow` and `integration` markers by default so local
+- `uv run pytest` skips `slow`, `integration`, and `network` markers by default so local
   checks do not fetch or parse large replay files accidentally. Use `-m ""` to
   include every marker category in a full local run.
-- Real `.dem` files are needed only for tests marked `@pytest.mark.integration`
-  and/or `@pytest.mark.slow` — skip them in the fast loop with
-  `-m "not slow and not integration"`.
+- Full `.dem` files belong in tests marked `integration` and `slow`. Small
+  committed truncated replays remain permissible in the fast suite. Live external
+  services require the `network` marker; mocked network unit tests do not.
 - `tests/test_draft_integration.py` is intentionally a one-replay remote smoke
   test by default; set `GEM_DRAFT_INTEGRATION_FULL=1` when you need the broader
   five-replay OpenDota sample.
+- Run touched tests during iteration and the fast suite plus lint/type checks for
+  every PR. Run relevant offline integration for parser changes. Use broader
+  parity matrices and performance benchmarks for releases or changes that warrant
+  them; they are not required for every small edit.
+- Shared parsed-match fixtures in `tests/conftest.py` are lazy and read-only by
+  convention. Tests that mutate output or configure different extractors must use
+  isolated setup. Reference JSON is a separate dependency from replay parsing.
 - Markers are declared in `pyproject.toml` under `[tool.pytest.ini_options]`.
 
 ## Examples
