@@ -50,10 +50,10 @@ def _build_huffman_tree(weights: list[int]) -> _HNode:
     return heap[0][2]
 
 
-def _build_decode_table(root: _HNode, table_bits: int) -> list[tuple[int, int]]:
+def _build_decode_table(root: _HNode, table_bits: int) -> tuple[bytes, bytes]:
     """Build a flat O(1) decode table from the Huffman tree.
 
-    Each entry ``table[i] = (op_index, bits_consumed)`` covers all ``table_bits``-
+    Entries ``ops[i]`` and ``bits[i]`` cover all ``table_bits``-
     bit integers whose leading bits match the Huffman code for ``op_index``.
     Shorter codes fill multiple entries (one per possible suffix).
 
@@ -62,11 +62,12 @@ def _build_decode_table(root: _HNode, table_bits: int) -> list[tuple[int, int]]:
         table_bits: Width of the table in bits (``2**table_bits`` entries).
 
     Returns:
-        List of ``(op_index, bits_consumed)`` tuples, indexed by the
+        Parallel bytes of operation indices and consumed-bit counts, indexed by the
         ``table_bits``-bit integer peeked from the bit stream.
     """
     size = 1 << table_bits
-    table: list[tuple[int, int]] = [(0, 0)] * size
+    ops = bytearray(size)
+    bits = bytearray(size)
 
     stack: list[tuple[_HNode, int, int]] = [(root, 0, 0)]  # node, code, depth
     while stack:
@@ -74,14 +75,16 @@ def _build_decode_table(root: _HNode, table_bits: int) -> list[tuple[int, int]]:
         if node.is_leaf:
             suffix_count = 1 << (table_bits - depth)
             for s in range(suffix_count):
-                table[code | (s << depth)] = (node.value, depth)
+                index = code | (s << depth)
+                ops[index] = node.value
+                bits[index] = depth
         else:
             if node.left is not None:
                 stack.append((node.left, code, depth + 1))
             if node.right is not None:
                 stack.append((node.right, code | (1 << depth), depth + 1))
 
-    return table
+    return bytes(ops), bytes(bits)
 
 
 def _tree_depth(node: _HNode) -> int:
@@ -102,4 +105,4 @@ def _tree_depth(node: _HNode) -> int:
 
 HUFF_TREE: _HNode = _build_huffman_tree([op.weight for op in FIELD_PATH_OPS])
 _HUFF_TABLE_BITS: int = _tree_depth(HUFF_TREE)
-_HUFF_DECODE_TABLE: list[tuple[int, int]] = _build_decode_table(HUFF_TREE, _HUFF_TABLE_BITS)
+_HUFF_OPS, _HUFF_BITS = _build_decode_table(HUFF_TREE, _HUFF_TABLE_BITS)

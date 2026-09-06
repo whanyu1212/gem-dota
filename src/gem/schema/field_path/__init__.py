@@ -2,14 +2,12 @@
 
 The implementation is split into models, operations, Huffman, and sequence
 modules, but callers should continue to import from ``gem.schema.field_path``.
-``__all__`` lists the stable public surface. The underscore-prefixed names
-re-exported below (``_HUFF_DECODE_TABLE``, ``_HUFF_TABLE_BITS``) are internal
-Huffman-table details shared with tests — importable by name, but not part of
-the public contract.
+``__all__`` lists the stable public surface. The underscore-prefixed name
+``_HUFF_TABLE_BITS`` re-exported below is an internal Huffman-table detail
+shared with tests — importable by name, but not part of the public contract.
 """
 
 from gem.schema.field_path.huffman import (
-    _HUFF_DECODE_TABLE as _HUFF_DECODE_TABLE,
     _HUFF_TABLE_BITS as _HUFF_TABLE_BITS,
     HUFF_TREE,
 )
