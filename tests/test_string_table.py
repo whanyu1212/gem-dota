@@ -693,6 +693,37 @@ class TestVarintBitCounts:
 class TestFixedSizeUserData:
     """user_data_fixed_size=True path: value is exactly user_data_size_bits bits."""
 
+    @pytest.mark.parametrize("width", [25, 31, 257])
+    def test_consecutive_partial_byte_payloads(self, parse_string_table, width):
+        values = [(1 << width) - 1, (1 << (width - 1)) | 5, 0]
+        bits = []
+        for value in values:
+            bits.extend([1, 0, 1])  # sequential index, no key, value present
+            bits.extend((value >> i) & 1 for i in range(width))
+        items = parse_string_table(_pack_bits(bits), 3, "test", True, width, 0, False)
+        assert [(item.index, item.key, item.value) for item in items] == [
+            (i, "", value.to_bytes((width + 7) // 8, "little")) for i, value in enumerate(values)
+        ]
+
+    @pytest.mark.parametrize("compressed", [False, True])
+    def test_consecutive_large_variable_payloads(self, parse_string_table, compressed):
+        values = [bytes(range(256)) * 4, b"second payload" * 32, b"last"]
+        bits = []
+        for i, value in enumerate(values):
+            bits.extend(
+                _build_entry_bits(
+                    incr=True,
+                    key=f"entry{i}",
+                    value=snappy.compress(value) if compressed else value,
+                    flags=int(compressed),
+                    compressed=compressed,
+                )
+            )
+        items = parse_string_table(_pack_bits(bits), 3, "test", False, 0, int(compressed), False)
+        assert [(item.index, item.key, item.value) for item in items] == [
+            (i, f"entry{i}", value) for i, value in enumerate(values)
+        ]
+
     def test_fixed_size_8bit(self, parse_string_table):
         # 8-bit fixed value: the parser reads user_data_size_bits=8 bits directly.
         bits: list[int] = []

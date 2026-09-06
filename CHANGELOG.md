@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **Lower string-table payload overhead.** Use bulk byte reads for larger payloads,
+  preserving partial-byte packing and truncated-input behavior.
 - **Less repeated test setup.** Share read-only replay results across integration
   checks and separate fast, offline, and live-network test commands.
 - **Lower player sampling overhead.** Reuse guarded player-ID resolutions and

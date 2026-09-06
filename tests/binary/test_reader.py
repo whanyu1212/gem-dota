@@ -427,6 +427,105 @@ class TestReadBytesUnaligned:
 
 
 class TestReadBitsAsBytes:
+    @staticmethod
+    def _original(reader, n):
+        out = bytearray()
+        while n >= 8:
+            out.append(reader._read_byte())
+            n -= 8
+        if n > 0:
+            out.append(reader.read_bits(n))
+        return bytes(out)
+
+    @pytest.mark.parametrize("offset", range(8))
+    @pytest.mark.parametrize("prefetch", [0, 8, 32])
+    def test_matches_original_and_mixed_continuation(self, offset, prefetch):
+        patterns = [bytes(96), b"\xff" * 96, bytes(range(96)), b"\xaa\x55" * 48]
+        for data in patterns:
+            for n in (0, 1, 7, 8, 15, 16, 23, 24, 25, 31, 32, 255, 256, 257, 511):
+                candidate, original = BitReader(data), BitReader(data)
+                for r in (candidate, original):
+                    if offset:
+                        r.read_bits(offset)
+                    if prefetch:
+                        r.peek_bits(prefetch)
+                actual = candidate.read_bits_as_bytes(n)
+                assert actual == self._original(original, n)
+                expected = (int.from_bytes(data, "little") >> offset) & ((1 << n) - 1)
+                assert actual == expected.to_bytes((n + 7) // 8, "little")
+                assert candidate.position() == original.position()
+                assert candidate.rem_bits() == original.rem_bits()
+                assert candidate.read_bits(3) == original.read_bits(3)
+                assert candidate.read_bytes(3) == original.read_bytes(3)
+                assert candidate.peek_bits(13) == original.peek_bits(13)
+                candidate.skip_bits(5)
+                original.skip_bits(5)
+                assert candidate.read_boolean() == original.read_boolean()
+                while original.rem_bits():
+                    width = min(17, original.rem_bits())
+                    assert candidate.read_bits(width) == original.read_bits(width)
+                assert candidate.position() == original.position()
+                assert candidate.rem_bits() == 0
+
+    @pytest.mark.parametrize("offset", range(8))
+    @pytest.mark.parametrize("prefetch", [False, True])
+    def test_boundaries_and_truncation_match_original(self, offset, prefetch):
+        for size in (1, 2, 3, 4, 8, 33):
+            data = bytes(range(size))
+            available = size * 8 - offset
+            for n in (available, available + 1, available + 7, available + 8, available + 33):
+                candidate, original = BitReader(data), BitReader(data)
+                for r in (candidate, original):
+                    if offset:
+                        r.read_bits(offset)
+                    if prefetch:
+                        r.peek_bits(min(available, 32))
+                if n == available:
+                    assert candidate.read_bits_as_bytes(n) == self._original(original, n)
+                    assert candidate.position() == original.position()
+                    assert candidate.rem_bits() == original.rem_bits() == 0
+                else:
+                    with pytest.raises(BufferReadError) as expected:
+                        self._original(original, n)
+                    with pytest.raises(BufferReadError) as actual:
+                        candidate.read_bits_as_bytes(n)
+                    assert type(actual.value) is type(expected.value)
+                    assert str(actual.value) == str(expected.value)
+                    assert tuple(getattr(candidate, k) for k in BitReader.__slots__) == tuple(
+                        getattr(original, k) for k in BitReader.__slots__
+                    )
+
+    @pytest.mark.parametrize("n", [0, -1, -8, -100])
+    def test_nonpositive_lengths_do_not_change_state(self, n):
+        for data in (b"", bytes(range(8))):
+            r = BitReader(data)
+            if data:
+                r.read_bits(3)
+            before = tuple(getattr(r, k) for k in BitReader.__slots__)
+            assert r.read_bits_as_bytes(n) == b""
+            assert tuple(getattr(r, k) for k in BitReader.__slots__) == before
+
+    @pytest.mark.parametrize("offset", range(8))
+    @pytest.mark.parametrize("remainder", [0, 1, 7])
+    def test_large_reads_use_bulk_reader(self, monkeypatch, offset, remainder):
+        calls = []
+        bulk = BitReader.read_bytes
+
+        def tracked_bulk(reader, n):
+            calls.append(n)
+            return bulk(reader, n)
+
+        def unexpected_byte(reader):
+            pytest.fail("large valid payload used the per-byte loop")
+
+        monkeypatch.setattr(BitReader, "read_bytes", tracked_bulk)
+        monkeypatch.setattr(BitReader, "_read_byte", unexpected_byte)
+        r = BitReader(bytes(range(96)))
+        if offset:
+            r.read_bits(offset)
+        assert len(r.read_bits_as_bytes(256 + remainder)) == 32 + bool(remainder)
+        assert calls == [32]
+
     def test_exact_multiple_of_8(self):
         r = BitReader(b"\xab\xcd")
         result = r.read_bits_as_bytes(16)
