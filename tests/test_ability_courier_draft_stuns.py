@@ -388,12 +388,10 @@ class TestStunDuration:
 @pytest.mark.integration
 class TestPhase8Integration:
     @pytest.fixture(scope="class")
-    def match(self, full_replay_path):
-        import gem
+    def match(self, canonical_parsed_match):
+        return canonical_parsed_match
 
-        return gem.parse(str(full_replay_path))
-
-    def test_ability_levels_populated(self, match, full_replay_path):
+    def test_ability_levels_populated(self, full_replay_path):
         from gem.extractors.players import PlayerExtractor
 
         # Re-parse to access snapshots directly

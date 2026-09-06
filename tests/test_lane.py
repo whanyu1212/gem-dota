@@ -434,10 +434,8 @@ class TestLaneAdvantage:
 @pytest.mark.integration
 class TestLaneIntegration:
     @pytest.fixture(scope="class")
-    def match(self, full_replay_path):
-        import gem
-
-        return gem.parse(str(full_replay_path))
+    def match(self, canonical_parsed_match):
+        return canonical_parsed_match
 
     def test_all_players_have_valid_lane_role(self, match):
         for pp in match.players:

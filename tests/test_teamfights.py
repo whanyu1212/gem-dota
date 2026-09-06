@@ -931,10 +931,8 @@ class TestSpatialSplit:
 @pytest.mark.integration
 class TestTeamfightsIntegration:
     @pytest.fixture(scope="class")
-    def match(self, full_replay_path):
-        import gem
-
-        return gem.parse(str(full_replay_path))
+    def match(self, canonical_parsed_match):
+        return canonical_parsed_match
 
     def test_teamfights_detected(self, match):
         assert len(match.teamfights) > 0, "Expected at least one teamfight in replay fixture"

@@ -10,16 +10,9 @@ Marked ``slow`` + ``integration`` — needs a real ``.dem`` plus its
 
 from __future__ import annotations
 
-import json
-from pathlib import Path
-
 import pytest
 
-import gem
 from gem.catalog.heroes import HEROES
-
-FIXTURES_DIR = Path(__file__).parent / "fixtures" / "opendota"
-_MATCH_ID = 8855188139
 
 _NAME_TO_HERO_ID = {name: meta["id"] for name, meta in HEROES.items()}
 
@@ -38,20 +31,14 @@ _SCALARS = [
 @pytest.mark.integration
 class TestDerivedKillsMatchOpenDota:
     @pytest.fixture(scope="class")
-    def rows(self):
-        """Parse once; pair each player with OpenDota by hero.
+    def rows(self, feature_parity_reference, feature_parity_match):
+        """Pair each player in the shared match with OpenDota by hero.
 
         Returns:
             List of ``(hero_name, {scalar: (gem, od)})`` tuples.
         """
-        dem = FIXTURES_DIR / f"{_MATCH_ID}.dem"
-        od_path = FIXTURES_DIR / f"{_MATCH_ID}.opendota.json"
-        if not dem.exists() or not od_path.exists():
-            pytest.skip(f"OpenDota fixture {_MATCH_ID} (.dem + .opendota.json) not available")
-
-        match = gem.parse(str(dem))
-        with open(od_path) as fh:
-            od = json.load(fh)
+        match = feature_parity_match
+        od = feature_parity_reference
         od_by_hero = {p["hero_id"]: p for p in od.get("players") or []}
 
         out = []

@@ -71,11 +71,12 @@ addopts = [
     "-v",
     "--tb=short",
     "-m",
-    "not slow and not integration",
+    "not slow and not integration and not network",
 ]
 markers = [
-    "slow: marks tests that require real replay files",
+    "slow: marks expensive tests requiring full replay files",
     "integration: marks integration tests against full replays",
+    "network: marks tests that contact live external services",
 ]
 
 [tool.coverage.run]
