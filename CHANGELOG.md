@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **Lower player sampling overhead.** Reuse guarded player-ID resolutions and
+  select hero candidates before constructing full snapshots, preserving attribution
+  and sampling behavior.
 - **Faster teamfight snapshot lookup.** Reuse binary-search tick indexes for
   chronological position and XP queries, preserving ties and unordered-input
   compatibility.

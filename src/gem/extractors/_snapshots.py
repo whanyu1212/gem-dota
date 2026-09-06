@@ -10,7 +10,8 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from functools import lru_cache
+from typing import TYPE_CHECKING, Any
 
 from gem.schema.sendtable.models import FieldAccessPlan
 
@@ -120,12 +121,85 @@ def _player_id_from_entity(entity: Entity | None, *, allow_owner: bool = False) 
     """
     if entity is None:
         return None
+    return _resolve_player_id(entity, 1 if allow_owner else 0)
+
+
+@dataclass(slots=True)
+class _PlayerIdCacheEntry:
+    index: int
+    serial: int
+    cls: Any
+    serializer: Any
+    field_state: Any
+    dependencies: tuple[tuple[int, Any], ...]
+    player_id: int
+
+
+def _snapshot_player_id(entity: Entity) -> int | None:
+    return _resolve_player_id(entity, 2)
+
+
+def _resolve_player_id(entity: Entity, mode: int) -> int | None:
+    # Modes: direct, owner fallback, snapshot. Unlike general attribution,
+    # snapshots reject a negative primary ID instead of trying the secondary.
+    cache = entity._player_id_cache
+    if entity._state:
+        entity._player_id_cache = cache = None
+    elif cache is not None:
+        entry = cache.get(mode)
+        if entry is not None:
+            if (
+                entry.index == entity.index
+                and entry.serial == entity.serial
+                and entry.cls is entity.cls
+                and entry.serializer is entity.cls.serializer
+                and entry.field_state is entity._field_state
+            ):
+                # Read current storage: FieldState can grow or replace its list.
+                state = entity._field_state._state
+                for index, previous in entry.dependencies:
+                    # Match FieldState._get_compact's extra-slot bound exactly.
+                    raw = state[index] if len(state) >= index + 2 else None
+                    if raw is not previous:
+                        break
+                else:
+                    return entry.player_id
+            del cache[mode]
+
     fields = entity._resolve_fields(_PLAYER_ID_FIELDS)
-    field_count = 3 if allow_owner else 2
+    field_count = 3 if mode == 1 else 2
     for field_index in range(field_count):
         val = entity._get_int32_resolved(fields[field_index])
-        if val is not None and val >= 0:
-            return val // 2
+        if val is None:
+            continue
+        if val < 0:
+            if mode == 2:
+                return None
+            continue
+        player_id = val // 2
+        if not entity._state and all(
+            field.path is None or len(field.path) == 1 for field in fields[:field_count]
+        ):
+            state = entity._field_state._state
+            dependencies = tuple(
+                (field.path[0], state[field.path[0]] if len(state) >= field.path[0] + 2 else None)
+                for field in fields[: field_index + 1]
+                if field.path is not None
+            )
+            entry = _PlayerIdCacheEntry(
+                entity.index,
+                entity.serial,
+                entity.cls,
+                entity.cls.serializer,
+                entity._field_state,
+                dependencies,
+                player_id,
+            )
+            if cache is None:
+                entity._player_id_cache = {mode: entry}
+            else:
+                cache[mode] = entry
+        return player_id
     return None
 
 
@@ -237,16 +311,21 @@ def _snapshot_hero(entity: Entity, tick: int) -> PlayerStateSnapshot | None:
     Returns:
         A snapshot, or ``None`` if the player ID could not be resolved.
     """
-    # m_nPlayerID (post-7.31) or m_iPlayerID (pre-7.31) — raw value is doubled;
-    # divide by 2 to get player slot 0-9. Reference: opendota/Parse.java getPlayerSlotFromEntity()
-    fields = entity._resolve_fields(_HERO_SNAPSHOT_FIELDS)
-    player_id = entity._get_int32_resolved(fields[0])
+    player_id = _snapshot_player_id(entity)
     if player_id is None:
-        player_id = entity._get_int32_resolved(fields[1])
-    if player_id is None or player_id < 0:
         return None
-    player_id //= 2
+    return _build_hero_snapshot(entity, tick, player_id)
 
+
+@lru_cache(maxsize=256)
+def _fallback_npc_name(class_name: str) -> str:
+    # Preserve the existing conversion; EntityNames can override it later.
+    ending = class_name[len(_HERO_CLASS_PREFIX) :].replace("_", "")
+    return "npc_dota_hero" + re.sub(r"([A-Z])", r"_\1", ending).lower()
+
+
+def _build_hero_snapshot(entity: Entity, tick: int, player_id: int) -> PlayerStateSnapshot:
+    fields = entity._resolve_fields(_HERO_SNAPSHOT_FIELDS)
     team = entity._get_int32_resolved(fields[2]) or 0
     level = entity._get_int32_resolved(fields[3]) or 0
     xp = entity._get_int32_resolved(fields[4]) or 0
@@ -263,17 +342,10 @@ def _snapshot_hero(entity: Entity, tick: int) -> PlayerStateSnapshot | None:
 
     pos = _pos(entity)
 
-    # Convert entity class name to the canonical NPC name (camelCase → snake_case).
-    # "CDOTA_Unit_Hero_TemplarAssassin" → "npc_dota_hero_templar_assassin"
-    # "CDOTA_Unit_Hero_Nyx_Assassin"   → "npc_dota_hero_nyx_assassin" (already underscored)
-    # This matches dotaconstants keys and the combat log string table.
-    # Reference: refs/parser/Parse.java combatLogName2
-    _ending = entity.get_class_name()[len(_HERO_CLASS_PREFIX) :].replace("_", "")
-    _npc_name = "npc_dota_hero" + re.sub(r"([A-Z])", r"_\1", _ending).lower()
     return PlayerStateSnapshot(
         tick=tick,
         player_id=player_id,
-        npc_name=_npc_name,
+        npc_name=_fallback_npc_name(entity.get_class_name()),
         team=team,
         level=level,
         xp=xp,

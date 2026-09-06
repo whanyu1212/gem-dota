@@ -120,6 +120,7 @@ class Entity:
         "cls",
         "active",
         "_field_state",
+        "_player_id_cache",
         "_state",
     )
 
@@ -129,6 +130,7 @@ class Entity:
         self.cls = cls
         self.active = True
         self._field_state = FieldState()
+        self._player_id_cache: Any = None
         # Flat dict for direct key-value access (tests may write here directly)
         self._state: dict[str, Any] = {}
 
