@@ -155,11 +155,10 @@ class IntervalExtractor:
         self._data_dire: Entity | None = None
         # Per-team-slot team-data history, kept to the two most recent observed
         # frames as ``(observed_tick, (gold, xp, lh, dn, net_worth))``. The
-        # production tick-start path reads ``cur`` after its one-tick deferral
-        # for regular boundaries; minute zero reads it immediately.
-        # ``prev`` preserves the entity-callback compatibility path, where the
-        # latest frame strictly before a crossing is required. Entities mutate
-        # in place, so values are copied eagerly rather than held by reference.
+        # tick-start path retains these copies until its first successful batch
+        # to preserve minute-zero prior-frame selection, then reads live entities
+        # at boundaries. The entity-callback compatibility path keeps history
+        # throughout parsing to select a frame strictly before each crossing.
         self._prev_data_radiant: dict[int, _TeamDataFrame] = {}
         self._prev_data_dire: dict[int, _TeamDataFrame] = {}
         self._cur_data_radiant: dict[int, _TeamDataFrame] = {}
@@ -342,7 +341,8 @@ class IntervalExtractor:
                 self._data_radiant = None
             else:
                 self._data_radiant = entity
-                self._record_team_data(entity, self._cur_data_radiant, self._prev_data_radiant)
+                if not self._tick_start_driven or self._last_emitted_time_s is None:
+                    self._record_team_data(entity, self._cur_data_radiant, self._prev_data_radiant)
                 self._record_team_counters(entity, TEAM_RADIANT)
                 if not self._tick_start_driven:
                     self._maybe_emit()
@@ -353,7 +353,8 @@ class IntervalExtractor:
                 self._data_dire = None
             else:
                 self._data_dire = entity
-                self._record_team_data(entity, self._cur_data_dire, self._prev_data_dire)
+                if not self._tick_start_driven or self._last_emitted_time_s is None:
+                    self._record_team_data(entity, self._cur_data_dire, self._prev_data_dire)
                 self._record_team_counters(entity, TEAM_DIRE)
                 if not self._tick_start_driven:
                     self._maybe_emit()
@@ -483,6 +484,12 @@ class IntervalExtractor:
         if emitted:
             if initial_boundary:
                 self._initial_boundary_pending = False
+            if self._tick_start_driven and self._last_emitted_time_s is None:
+                # Only the initial sample needs previous-frame selection.
+                self._cur_data_radiant.clear()
+                self._prev_data_radiant.clear()
+                self._cur_data_dire.clear()
+                self._prev_data_dire.clear()
             self._last_emitted_time_s = boundary_time_s
             self._last_emitted_tick = self._parser.tick
             self._next_interval_s = boundary_time_s + self._interval_s
@@ -646,16 +653,18 @@ class IntervalExtractor:
     ) -> tuple[int, int, int, int, int]:
         """Return the team-data values for an interval boundary.
 
-        Normal boundaries use the latest recorded frame strictly before the
+        Compatibility boundaries use the latest recorded frame strictly before the
         crossing tick, matching OpenDota's entity dispatch order. Tick-driven
         minute zero prefers the prior observed frame because Gem detects the
         rounded clock crossing one entity update after Clarity; terminal and
         compatibility-path boundaries can select the live frame explicitly.
+        After the initial tick-driven sample, read the retained entity directly;
+        tick-start dispatch precedes the next tick's entity mutations.
 
         Args:
             team: ``TEAM_RADIANT`` or ``TEAM_DIRE``.
             team_slot: The player's team slot, 0-4.
-            data_entity: The live data entity for the team (fallback source).
+            data_entity: The live team entity, also used when history is unavailable.
             emit_tick: The tick of the boundary emit.
             use_live: Select the current frame without the boundary nudge.
             prefer_previous: Select the prior observed frame when available.
@@ -663,21 +672,22 @@ class IntervalExtractor:
         Returns:
             ``(gold, xp, lh, dn, net_worth)`` for the boundary frame.
         """
-        cur = self._cur_data_radiant if team == TEAM_RADIANT else self._cur_data_dire
-        prev = self._prev_data_radiant if team == TEAM_RADIANT else self._prev_data_dire
-        cur_frame = cur.get(team_slot)
-        prev_frame = prev.get(team_slot)
-        if prefer_previous:
-            if prev_frame is not None:
-                return prev_frame[1]
-            if cur_frame is not None:
+        if not self._tick_start_driven or self._last_emitted_time_s is None:
+            cur = self._cur_data_radiant if team == TEAM_RADIANT else self._cur_data_dire
+            prev = self._prev_data_radiant if team == TEAM_RADIANT else self._prev_data_dire
+            cur_frame = cur.get(team_slot)
+            prev_frame = prev.get(team_slot)
+            if prefer_previous:
+                if prev_frame is not None:
+                    return prev_frame[1]
+                if cur_frame is not None:
+                    return cur_frame[1]
+            if use_live and cur_frame is not None:
                 return cur_frame[1]
-        if use_live and cur_frame is not None:
-            return cur_frame[1]
-        if cur_frame is not None and cur_frame[0] < emit_tick:
-            return cur_frame[1]
-        if prev_frame is not None and prev_frame[0] < emit_tick:
-            return prev_frame[1]
+            if cur_frame is not None and cur_frame[0] < emit_tick:
+                return cur_frame[1]
+            if prev_frame is not None and prev_frame[0] < emit_tick:
+                return prev_frame[1]
         fields = data_entity._resolve_fields(_TEAM_DATA_FIELDS)
         offset = team_slot * len(_TEAM_DATA_FIELD_NAMES)
         return (

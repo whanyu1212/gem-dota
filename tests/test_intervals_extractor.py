@@ -821,3 +821,201 @@ def test_team_counters_track_last_observed_values():
         ),
         0,
     )
+
+
+@pytest.mark.parametrize("tick_driven", [False, True])
+@pytest.mark.parametrize("first_time", [0, 60])
+def test_frame_capture_lifetime_matches_sampling_mode(monkeypatch, tick_driven, first_time):
+    from unittest.mock import Mock
+
+    ext = IntervalExtractor()
+    parser_type = TickStartFakeParser if tick_driven else FakeParser
+    parser = parser_type(tick=10, game_time_s=None)
+    ext.attach(parser)
+    capture = Mock(wraps=ext._record_team_data)
+    counters = Mock(wraps=ext._record_team_counters)
+    monkeypatch.setattr(ext, "_record_team_data", capture)
+    monkeypatch.setattr(ext, "_record_team_counters", counters)
+    radiant, dire = _radiant_data(), _dire_data()
+    ext._on_entity(radiant, EntityOp.UPDATED)
+    parser.tick = 11
+    ext._on_entity(radiant, EntityOp.UPDATED)
+    ext._on_entity(dire, EntityOp.UPDATED)
+    assert ext._prev_data_radiant
+    assert not ext.snapshots
+    parser.game_time_s = first_time
+    if tick_driven:
+        parser.fire_tick_start(11)
+        parser.tick = 12
+        parser.fire_tick_start(12)
+    else:
+        ext._on_entity(_ent("CDOTAGamerulesProxy"), EntityOp.UPDATED)
+    # Missing PlayerResource must not discard the history needed by minute zero.
+    assert ext._cur_data_radiant and ext._prev_data_radiant
+    ext._on_entity(_player_resource(), EntityOp.UPDATED)
+    if tick_driven:
+        parser.tick = 13
+        parser.fire_tick_start(13)
+    assert len(ext.snapshots) == 2
+    histories = (
+        ext._cur_data_radiant,
+        ext._prev_data_radiant,
+        ext._cur_data_dire,
+        ext._prev_data_dire,
+    )
+    assert any(histories) is not tick_driven
+    previous_calls = capture.call_count
+    parser.tick += 1
+    ext._on_entity(radiant, EntityOp.UPDATED)
+    ext._on_entity(dire, EntityOp.UPDATED)
+    assert capture.call_count == previous_calls + (0 if tick_driven else 2)
+    assert counters.call_count == 5
+
+
+@pytest.mark.parametrize("radiant_name", ["CDOTADataRadiant", "CDOTA_DataRadiant"])
+@pytest.mark.parametrize("dire_name", ["CDOTADataDire", "CDOTA_DataDire"])
+def test_later_tick_boundaries_read_latest_complete_team_values(radiant_name, dire_name):
+    from gem.extractors.intervals import IntervalSnapshot
+
+    ext = IntervalExtractor()
+    parser = TickStartFakeParser(tick=0, game_time_s=0)
+    ext.attach(parser)
+    radiant, dire = _radiant_data(), _dire_data()
+    radiant.cls.name, dire.cls.name = radiant_name, dire_name
+    ext._on_entity(_player_resource(), EntityOp.UPDATED)
+    ext._on_entity(radiant, EntityOp.CREATED)
+    ext._on_entity(dire, EntityOp.CREATED)
+    parser.fire_tick_start(0)
+    parser.tick = 1800
+    parser.game_time_s = 60
+    parser.fire_tick_start(1800)
+    radiant._state.update(_radiant_data_with(1200, 900, 24, 4, 1800)._state)
+    ext._on_entity(radiant, EntityOp.UPDATED)
+    radiant._state.update(_radiant_data_with(1500, 1100, 30, 5, 2200)._state)
+    ext._on_entity(radiant, EntityOp.UPDATED)
+    parser.fire_tick_start(1800)
+    assert len(ext.snapshots) == 2
+    parser.tick = 1801
+    parser.fire_tick_start(1801)
+    assert ext.snapshots[2:] == [
+        IntervalSnapshot(1801, 60, 0, 1, 2, 1, gold=1500, xp=1100, lh=30, dn=5, net_worth=2200),
+        IntervalSnapshot(1801, 60, 1, 132, 3, 4, gold=600, xp=450, lh=16, dn=1, net_worth=1200),
+    ]
+    # The subsequent tick's deltas must not change the already emitted batch.
+    radiant._state["m_vecDataTeam.0001.m_iTotalEarnedGold"] = 9999
+    ext._on_entity(radiant, EntityOp.UPDATED)
+    parser.fire_tick_start(1801)
+    assert len(ext.snapshots) == 4
+    assert ext.snapshots[2].gold == 1500
+    ext._on_entity(radiant, EntityOp.DELETED)
+    replacement = _radiant_data_with(2000, 1700, 35, 6, 2700)
+    replacement.serial = 1
+    ext._on_entity(replacement, EntityOp.CREATED_ENTERED)
+    ext._on_entity(replacement, EntityOp.UPDATED_ENTERED)
+    parser.tick = 3600
+    parser.game_time_s = 120
+    parser.fire_tick_start(3600)
+    parser.tick = 3601
+    parser.fire_tick_start(3601)
+    assert ext.snapshots[4] == IntervalSnapshot(
+        3601, 120, 0, 1, 2, 1, gold=2000, xp=1700, lh=35, dn=6, net_worth=2700
+    )
+
+
+@pytest.mark.parametrize("invalid", [None, "missing", 1.5])
+@pytest.mark.parametrize("tick_driven", [False, True])
+def test_counter_last_valid_history_survives_frame_optimization(invalid, tick_driven):
+    ext = IntervalExtractor()
+    parser = (TickStartFakeParser if tick_driven else FakeParser)(tick=0, game_time_s=0)
+    ext.attach(parser)
+    ext._on_entity(_player_resource(), EntityOp.UPDATED)
+    radiant, dire = _radiant_data(), _dire_data()
+    key = "m_vecDataTeam.0001.m_iCampsStacked"
+    radiant._state[key] = 9
+    ext._on_entity(radiant, EntityOp.UPDATED)
+    ext._on_entity(dire, EntityOp.UPDATED)
+    if tick_driven:
+        parser.fire_tick_start(0)
+    assert ext.snapshots
+    radiant._state[key] = invalid
+    ext._on_entity(radiant, EntityOp.UPDATED)
+    assert ext.team_counters(0)["camps_stacked"] == 9
+    radiant._state.pop(key)
+    ext._on_entity(radiant, EntityOp.UPDATED)
+    ext._on_entity(radiant, EntityOp.DELETED)
+    assert ext.team_counters(0)["camps_stacked"] == 9
+    replacement = _radiant_data()
+    ext._on_entity(replacement, EntityOp.CREATED)
+    assert ext.team_counters(0)["camps_stacked"] == 9
+    ext._on_game_end(parser.tick)
+    replacement._state[key] = 0
+    ext._on_entity(replacement, EntityOp.UPDATED)
+    assert ext.team_counters(0)["camps_stacked"] == 0
+
+
+@pytest.mark.parametrize(
+    "end_time,expected_times", [(59, [0]), (60, [0, 60]), (75, [0, 60]), (76, [0])]
+)
+def test_tick_driven_terminal_recovery_uses_final_live_values(end_time, expected_times):
+    from gem.parser import ReplayParser
+
+    ext = IntervalExtractor()
+    parser = ReplayParser(b"")
+    ext.attach(parser)
+    radiant = _radiant_data()
+    ext._on_entity(_player_resource(), EntityOp.UPDATED)
+    ext._on_entity(radiant, EntityOp.UPDATED)
+    ext._on_entity(_dire_data(), EntityOp.UPDATED)
+    parser.game_time_s = 0
+    ext._on_tick_start(0)
+    parser.tick = 1800
+    parser.combat_log_time_s = end_time
+    # Game end is deferred until all packet entity deltas have been applied.
+    parser._pending_game_end_tick = parser.tick
+    radiant._state.update(_radiant_data_with(5000, 4000, 80, 7, 7000)._state)
+    ext._on_entity(radiant, EntityOp.UPDATED)
+    parser._flush_game_end()
+    parser._flush_game_end()
+    assert sorted({snap.time_s for snap in ext.snapshots}) == expected_times
+    if len(expected_times) == 2:
+        from gem.extractors.intervals import IntervalSnapshot
+
+        assert ext.snapshots[2] == IntervalSnapshot(
+            1800, 60, 0, 1, 2, 1, gold=5000, xp=4000, lh=80, dn=7, net_worth=7000
+        )
+    parser.game_time_s = 120
+    ext._on_tick_start(3600)
+    ext._on_tick_start(3601)
+    assert sorted({snap.time_s for snap in ext.snapshots}) == expected_times
+
+
+@pytest.mark.parametrize("sample_before_truncation", [False, True])
+def test_truncated_tick_driven_stream_retains_initial_or_completed_state(
+    monkeypatch, sample_before_truncation
+):
+    from contextlib import nullcontext
+
+    from gem.parser import ReplayParser
+
+    ext = IntervalExtractor()
+    parser = ReplayParser(b"")
+    ext.attach(parser)
+    ext._on_entity(_player_resource(), EntityOp.UPDATED)
+    ext._on_entity(_radiant_data(), EntityOp.UPDATED)
+    ext._on_entity(_dire_data(), EntityOp.UPDATED)
+
+    def stream():
+        yield 0, 0, b""
+        raise EOFError("truncated interval test")
+
+    def update(_kind, _data):
+        if sample_before_truncation:
+            parser.game_time_s = 0
+            ext._on_tick_start(0)
+
+    monkeypatch.setattr("gem.parser.DemoStream", lambda _source: nullcontext(stream()))
+    monkeypatch.setattr(parser, "_dispatch_outer", update)
+    parser.parse()
+    assert isinstance(parser.parse_error, EOFError)
+    assert len(ext.snapshots) == (2 if sample_before_truncation else 0)
+    assert bool(ext._cur_data_radiant) is not sample_before_truncation
