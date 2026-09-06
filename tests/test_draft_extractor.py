@@ -7,6 +7,8 @@ needed — all tests use fake objects and bundled data only.
 
 from __future__ import annotations
 
+import pytest
+
 from gem.extractors.draft import (
     _HERO_ID_TO_NPC,
     DraftEvent,
@@ -522,6 +524,7 @@ class TestOnEntity:
         class FakeParser:
             def __init__(self) -> None:
                 self.tick = 0
+                self.game_start_tick = None
                 self.entity_manager = None
                 self._handlers: list = []
 
@@ -600,3 +603,166 @@ class TestOnEntity:
         )
         ext._on_entity(entity, EntityOp.UPDATED)
         assert ext.draft_events == []
+
+
+def _attached_draft():
+    from gem.parser import ReplayParser
+    from gem.state.entities import EntityManager
+
+    parser = ReplayParser(b"")
+    parser.entity_manager = EntityManager({}, parser.string_tables)
+    # ReplayParser transfers these registrations when send tables are decoded.
+    for registration in parser._entity_callbacks:
+        parser.entity_manager._on_entity_filtered(
+            registration.callback,
+            class_names=registration.class_names,
+            class_prefixes=registration.class_prefixes,
+        )
+    extractor = DraftExtractor()
+    extractor.attach(parser)
+    return parser, extractor, parser.entity_manager.tracker._dispatch
+
+
+class TestDraftPollingCutoff:
+    def test_pre_start_replacements_and_idempotency(self):
+        from gem.state.entities import EntityOp
+
+        parser, ext, dispatch = _attached_draft()
+        entity = _make_entity(
+            "CDOTAGamerulesProxy",
+            {
+                "m_pGameRules.m_BannedHeroes.0000": 4,
+                "m_pGameRules.m_SelectedHeroes.0000": 28,
+                "m_pGameRules.m_iActiveTeam": 2,
+            },
+        )
+        parser.tick = 10
+        dispatch(entity, EntityOp.CREATED_ENTERED)
+        dispatch(entity, EntityOp.UPDATED)
+        parser.tick = 20
+        entity._state["m_pGameRules.m_SelectedHeroes.0000"] = 4
+        entity._state["m_pGameRules.m_iActiveTeam"] = 3
+        dispatch(entity, EntityOp.UPDATED)
+        assert ext.draft_events == [
+            DraftEvent(10, 0, 4, "npc_dota_hero_axe", False, 2),
+            DraftEvent(10, 0, 28, "npc_dota_hero_pudge", True, 2),
+            DraftEvent(20, 0, 4, "npc_dota_hero_axe", True, 3),
+        ]
+
+    def test_start_update_and_same_tick_are_scanned(self, monkeypatch):
+        from unittest.mock import Mock
+
+        from gem.state.entities import EntityOp
+
+        parser, ext, dispatch = _attached_draft()
+        scan = Mock(wraps=ext._check_draft)
+        monkeypatch.setattr(ext, "_check_draft", scan)
+        # The first reconstructed entity already contains the start marker.
+        entity = _make_entity(
+            "CDOTAGamerulesProxy",
+            {
+                "m_pGameRules.m_flGameStartTime": 100.0,
+                "m_pGameRules.m_BannedHeroes.0000": 4,
+            },
+        )
+        dispatch(entity, EntityOp.CREATED_ENTERED)
+        assert parser.game_start_tick == 0
+        entity._state["m_pGameRules.m_SelectedHeroes.0000"] = 28
+        dispatch(entity, EntityOp.UPDATED)
+        assert scan.call_count == 2
+        expected = list(ext.draft_events)
+        assert [(e.hero_id, e.is_pick, e.tick) for e in expected] == [(4, False, 0), (28, True, 0)]
+        parser.tick = 1
+        entity._state["m_pGameRules.m_SelectedHeroes.0000"] = 4
+        entity._state["m_pGameRules.m_BannedHeroes.0001"] = 28
+        dispatch(entity, EntityOp.UPDATED)
+        assert scan.call_count == 2
+        assert ext.draft_events == expected
+        dispatch(entity, EntityOp.DELETED_LEFT)
+        assert ext._grp is None
+        replacement = _make_entity("CDOTAGamerulesProxy", dict(entity._state))
+        dispatch(replacement, EntityOp.CREATED_ENTERED)
+        dispatch(replacement, EntityOp.UPDATED_ENTERED)
+        assert ext._grp is replacement
+        assert scan.call_count == 2
+
+    def test_missing_marker_continues_polling(self):
+        from gem.state.entities import EntityOp
+
+        parser, ext, dispatch = _attached_draft()
+        entity = _make_entity("CDOTAGamerulesProxy")
+        for tick, hero in ((0, 4), (100_000, 28)):
+            parser.tick = tick
+            entity._state["m_pGameRules.m_SelectedHeroes.0000"] = hero
+            dispatch(entity, EntityOp.UPDATED)
+        assert parser.game_start_tick is None
+        assert [e.tick for e in ext.draft_events] == [0, 100_000]
+        standalone = DraftExtractor()
+        standalone._on_entity(entity, EntityOp.UPDATED)
+        assert standalone.draft_events[0].hero_id == 28
+
+    def test_late_player_resource_resolves_names(self):
+        from gem.state.entities import EntityOp
+
+        parser, ext, dispatch = _attached_draft()
+        entity = _make_entity(
+            "CDOTAGamerulesProxy",
+            {
+                "m_pGameRules.m_flGameStartTime": 100.0,
+                "m_pGameRules.m_SelectedHeroes.0000": 9998,
+            },
+        )
+        dispatch(entity, EntityOp.CREATED)
+        assert ext.draft_events[0].hero_name == ""
+        parser.tick = 100
+        resource = _make_entity(
+            "CDOTA_PlayerResource",
+            {
+                "m_vecPlayerTeamData.0000.m_nSelectedHeroID": 9998,
+                "m_vecPlayerTeamData.0000.m_hSelectedHero": 1,
+            },
+        )
+        dispatch(resource, EntityOp.UPDATED)
+        assert ext._live_id_to_npc == {}
+        hero = _make_entity("CDOTA_Unit_Hero_Axe")
+        hero.index = 1
+        parser.entity_manager.entities = [entity, hero]
+        dispatch(resource, EntityOp.UPDATED)
+        ext.finalize()
+        assert ext.draft_events[0].hero_name == "npc_dota_hero_axe"
+
+    @pytest.mark.parametrize("include_start", [False, True])
+    def test_truncated_stream_preserves_collected_draft(self, monkeypatch, include_start):
+        from contextlib import nullcontext
+
+        from gem.state.entities import EntityOp
+
+        parser, ext, dispatch = _attached_draft()
+        entity = _make_entity("CDOTAGamerulesProxy")
+
+        def stream():
+            yield 10, 0, {"m_pGameRules.m_BannedHeroes.0000": 4}
+            if include_start:
+                yield (
+                    20,
+                    0,
+                    {
+                        "m_pGameRules.m_flGameStartTime": 100.0,
+                        "m_pGameRules.m_SelectedHeroes.0000": 28,
+                    },
+                )
+                yield 21, 0, {"m_pGameRules.m_SelectedHeroes.0000": 4}
+            raise EOFError("truncated test stream")
+
+        def update(_kind, state):
+            entity._state.update(state)
+            dispatch(entity, EntityOp.UPDATED)
+
+        monkeypatch.setattr("gem.parser.DemoStream", lambda _source: nullcontext(stream()))
+        monkeypatch.setattr(parser, "_dispatch_outer", update)
+        parser.parse()
+        ext.finalize()
+        assert isinstance(parser.parse_error, EOFError)
+        assert [(e.hero_id, e.tick) for e in ext.draft_events] == (
+            [(4, 10), (28, 20)] if include_start else [(4, 10)]
+        )

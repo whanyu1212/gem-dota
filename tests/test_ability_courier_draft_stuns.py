@@ -34,6 +34,7 @@ def _make_entity(class_name: str, state: dict | None = None):
 class FakeParser:
     def __init__(self, tick: int = 0) -> None:
         self.tick = tick
+        self.game_start_tick = None
         self._entity_handlers = []
         self.entity_manager = None
         self.string_tables = type("ST", (), {"get_by_name": lambda self, n: None})()

@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **Less draft polling.** Stop scanning draft slots after the game-start tick,
+  preserving start-tick assignments and late hero-name resolution.
 - **Lower string-table payload overhead.** Use bulk byte reads for larger payloads,
   preserving partial-byte packing and truncated-input behavior.
 - **Less repeated test setup.** Share read-only replay results across integration
