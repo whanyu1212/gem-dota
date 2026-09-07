@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **Parser record compatibility study.** Evaluate slotted records and document
+  their memory tradeoffs while retaining public dataclass dictionaries, dynamic
+  attributes, and weak-reference support.
 - **Python runtime guidance.** Document controlled CPython 3.10–3.13 parser
   benchmarks and a separate 3.14 dependency-environment comparison, with
   compatibility results and reproducible measurements for macOS arm64.
