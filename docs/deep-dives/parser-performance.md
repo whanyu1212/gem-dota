@@ -4,7 +4,9 @@ Runtime builds, dependencies, replay duration, patch, entity volume, and enabled
 extractors all affect parse time. This page records measured results and their
 limits; historical optimization measurements are preserved below.
 
-## CPython runtime study — 7 September 2026 {#cpython-runtime-study}
+## CPython runtime study
+
+Study date: 7 September 2026.
 
 This study measures source commit
 `3d1b734b60ba418b8c1324bc9cf1fb5c7688fbc8`, after the optimizations through
