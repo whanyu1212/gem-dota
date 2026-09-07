@@ -184,10 +184,10 @@ native pandas 3 environment on newer Python minors.
 | CPython | Fast suite | All offline tests | Full OpenDota parity |
 |---|---|---|---|
 | 3.10.21 | 3854 passed, 3 skipped, 62 deselected in 11.30s | 3915 passed, 3 skipped, 1 deselected in 258.39s (0:04:18) | 982 PASS; 0 WARN; 0 FAIL; 3 informational SKIP |
-| 3.11.16 | 3818 passed, 3 skipped, 62 deselected in 10.43s | 3879 passed, 3 skipped, 1 deselected in 563.45s (0:09:23) | In progress |
-| 3.12.14 | 3818 passed, 3 skipped, 62 deselected in 9.39s | 3879 passed, 3 skipped, 1 deselected in 558.58s (0:09:18) | In progress |
+| 3.11.16 | 3818 passed, 3 skipped, 62 deselected in 10.43s | 3879 passed, 3 skipped, 1 deselected in 563.45s (0:09:23) | 982 PASS; 0 WARN; 0 FAIL; 3 informational SKIP |
+| 3.12.14 | 3818 passed, 3 skipped, 62 deselected in 9.39s | 3879 passed, 3 skipped, 1 deselected in 558.58s (0:09:18) | 982 PASS; 0 WARN; 0 FAIL; 3 informational SKIP |
 | 3.13.15 | 3818 passed, 3 skipped, 62 deselected in 10.37s | Not selected | Not selected |
-| 3.14.7 | 1 failed, 3817 passed, 3 skipped, 62 deselected in 29.21s | 1 failed, 3878 passed, 3 skipped, 1 deselected in 539.59s (0:08:59) | In progress |
+| 3.14.7 | 1 failed, 3817 passed, 3 skipped, 62 deselected in 29.21s | 1 failed, 3878 passed, 3 skipped, 1 deselected in 539.59s (0:08:59) | 982 PASS; 0 WARN; 0 FAIL; 3 informational SKIP |
 
 Python 3.14.7 with pandas 3.0.1 fails the existing
 `tests/test_bulk.py::TestParseManyToDataframe::test_match_path_column_is_string`
@@ -240,11 +240,11 @@ SHA-256:
 
 ### Reproduction and provenance
 
-The [study record](https://github.com/whanyu1212/gem-dota/issues/159) preserves complete bootstrap and benchmark
+The [study PR](https://github.com/whanyu1212/gem-dota/pull/179) preserves complete bootstrap and benchmark
 scripts, commands, common/native constraints, all installed package manifests,
 binary-wheel URLs and hashes, executable paths, build configuration, individual
 measurements, load observations, and compatibility/skip results in linked
-reproduction notes. Temporary runtimes, environments, wheels, scripts, and
+reproduction notes. The [complete scripts](https://github.com/whanyu1212/gem-dota/pull/179#issuecomment-5564141791), [primary measurements](https://github.com/whanyu1212/gem-dota/pull/179#issuecomment-5564142377), and [fixed follow-ups](https://github.com/whanyu1212/gem-dota/pull/179#issuecomment-5564142779) are available directly. Temporary runtimes, environments, wheels, scripts, and
 outputs were removed only after publication was verified.
 
 To reproduce the controlled configuration, use the exact source commit and
