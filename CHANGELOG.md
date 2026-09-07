@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **Python runtime guidance.** Document controlled CPython 3.10–3.13 parser
+  benchmarks and a separate 3.14 dependency-environment comparison, with
+  compatibility results and reproducible measurements for macOS arm64.
 - **Lower field-decoding overhead.** Specialize shallow compact field-state paths
   and store Huffman operation/count lookups in compact byte tables.
 - **Less interval-frame copying.** Read team values at sampling boundaries after

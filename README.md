@@ -49,6 +49,11 @@ Skadistats once open-sourced SMOKE (Cython-based rather than pure Python), but i
 
 Requires Python 3.10+.
 
+For parser workloads on macOS arm64, consult the
+[runtime study](docs/deep-dives/parser-performance.md#cpython-runtime-study)
+before choosing a Python version. It compares CPython 3.10–3.14 and documents
+the dependency constraints and compatibility checks behind its guidance.
+
 > [!IMPORTANT]
 > Parquet export requires either `pyarrow` or `fastparquet` in your environment.
 
