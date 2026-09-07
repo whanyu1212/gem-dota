@@ -4,6 +4,316 @@ Runtime builds, dependencies, replay duration, patch, entity volume, and enabled
 extractors all affect parse time. This page records measured results and their
 limits; historical optimization measurements are preserved below.
 
+## Public record layout study
+
+Study date: 7 September 2026. Source commit:
+`f79d4d9cdbd4199991d7b917350a9dc88a8dfaba`.
+
+**Keep `CombatLogEntry` and `PlayerStateSnapshot` as ordinary dataclasses.**
+This resolves [#164](https://github.com/whanyu1212/gem-dota/issues/164) with a
+compatibility decision and measurements, not a shipped layout optimization.
+The temporary experiment adds `slots=True` to just those two dataclass
+decorators. It is incompatible with existing behavior and is not included in
+the release. Its savings do not establish what a future compatible design
+could save.
+
+### Compatibility boundary
+
+Both records are mutable and public. `CombatLogEntry` is exported by
+`gem.combat`, delivered to callbacks, and retained in `ParsedMatch.combat_log`.
+`PlayerStateSnapshot` is exported by `gem.extractors` and
+`gem.extractors.players`; `PlayerExtractor.snapshots` exposes those objects.
+Ordinary public parsing uses snapshots during assembly and returns derived
+arrays instead of retaining the snapshot records themselves. Values and nested
+mappings can still be shared with those derived arrays; a collected snapshot
+record does not imply that all of its former field values were freed.
+
+Existing combat aggregator tests use `vars()` on actual `CombatLogEntry`
+objects to construct an older-shaped callback input. The teamfight lookup
+tests also compare dictionaries, but their `_lookup_snap` helper returns
+`SimpleNamespace` doubles; those assertions do not establish the public
+snapshot contract. The new tests exercise actual `PlayerStateSnapshot`
+instances directly. Production JSON serialization uses dataclass fields and `getattr`;
+DataFrame construction uses `asdict`. Those paths working with slots does not
+make dictionary consumers compatible. Batch workers pickle `ParsedMatch`,
+including its combat entries, back to the parent process.
+
+Audit sources: [record definitions](https://github.com/whanyu1212/gem-dota/blob/f79d4d9cdbd4199991d7b917350a9dc88a8dfaba/src/gem/combat/log.py#L133),
+[snapshot definitions](https://github.com/whanyu1212/gem-dota/blob/f79d4d9cdbd4199991d7b917350a9dc88a8dfaba/src/gem/extractors/_snapshots.py#L372),
+[JSON serialization](https://github.com/whanyu1212/gem-dota/blob/f79d4d9cdbd4199991d7b917350a9dc88a8dfaba/src/gem/api.py#L234),
+[DataFrame conversion](https://github.com/whanyu1212/gem-dota/blob/f79d4d9cdbd4199991d7b917350a9dc88a8dfaba/src/gem/results/dataframes.py#L29),
+and [batch worker return](https://github.com/whanyu1212/gem-dota/blob/f79d4d9cdbd4199991d7b917350a9dc88a8dfaba/src/gem/replays/batch.py#L94).
+
+| Behavior | Ordinary records | Temporary `slots=True` experiment |
+|---|---|---|
+| Positional/keyword construction and ordinary subclasses | Preserved | Preserved in focused checks |
+| Mutable fields, independent snapshot default mappings | Preserved | Preserved |
+| Equality, repr, `asdict`, `replace` | Preserved | Preserved for declared fields |
+| JSON, DataFrame conversion, ordinary pickle round trips | Preserved | Validated separately |
+| `vars()` containing declared fields; live dictionary writes | Preserved | No instance dictionary |
+| Dynamic attributes and their pickle round trips | Preserved | Attribute assignment fails |
+| Weak references to direct record instances | Preserved | Unsupported |
+
+The new compatibility tests exercise these behaviors without weakening the
+existing assertions. External consumers were not exhaustively audited;
+absence of another repository caller is not evidence that an API can be
+removed. Pickle checks cover same-layout, same-interpreter round trips with protocol 4
+and this interpreter's highest protocol. They do not establish historical
+pickle migration across layouts or Python versions.
+
+Adding a dictionary alongside slots is not a drop-in repair: declared slots
+still live outside that dictionary, so `vars(record)` would not expose the
+same fields or support the same dictionary writes. See Python's
+[`__slots__` rules](https://docs.python.org/3.10/reference/datamodel.html#slots).
+[Manta's combat callback registration](https://github.com/dotabuff/manta/blob/096933cf157ace54902463ff0599ea46a6673f98/callbacks.go#L1322),
+[Clarity's S1/S2 combat event dispatch](https://github.com/skadistats/clarity/blob/7fb3f1d07564a12efa99194d45cfbf5762ba5910/src/main/java/skadistats/clarity/processor/gameevents/CombatLog.java),
+and [OpenDota's `Entry` record](https://github.com/odota/parser/blob/e58a668f72866531b9a4e0293387163e8a927f5b/src/main/java/opendota/Entry.java) establish dataflow and output context; none
+establish Python object-layout compatibility. A future change needs a separate
+compatibility proposal. Internal replacement records and retention options are
+outside this study; the final profile and native-code boundary remain under
+[#158](https://github.com/whanyu1212/gem-dota/issues/158).
+
+### Measurement method
+
+B is the unchanged source; E is the incompatible experiment. The source trees
+came from the same commit and differ only in the two decorators. Every child
+asserts its imported Gem path. No production dependencies or project settings
+were changed, and the preceding five-runtime study was not repeated.
+
+Each replay uses three sequential fresh-process pairs in order **B/E, E/B,
+B/E**: 12 timed public parses total. The harness preloads public parse's lazy
+imports, leaves normal garbage collection enabled, and collects just before
+timing. A common one-call wrapper checks `ReplayParser.parse_error`; fixture
+size/hash checks against the committed manifest and match identity/count
+checks supplement that guard. Fixture hashing uses a streaming 1 MiB buffer.
+Elapsed time and user CPU exclude imports, hashing and serialization. Peak RSS
+is captured before JSON conversion and includes earlier process allocations;
+it is not retained-result memory. No tests or instrumented parses ran alongside
+accepted timed runs. Preliminary harness runs were discarded before restarting
+the complete measurement sequence with streaming fixture hashing.
+
+Twelve additional fresh-process parses measure storage separately, three per
+variant/replay. At assembly entry they count unique combat entries and both
+dense and minute snapshots. Inspection retains only scalar summaries, not the
+records. After parsing, a full collection runs while the result stays alive;
+current RSS is captured before the final graph inspection. This RSS is
+**instrumented**: allocator effects from earlier assembly inspection remain
+possible. Only the uninstrumented timing runs supply production peak-RSS
+comparisons.
+
+The graph walker counts each identity once across dataclasses, their instance
+dictionaries, containers and scalar values. It excludes class/module graphs,
+treats enum members as atomic shared values, rejects unhandled types, and
+removes synthetic collector-list storage from record-union measurements.
+Reachable bytes include shared values once; they are not exclusively owned
+bytes or an estimate of memory returned to the OS on deletion. Record shells,
+instance dictionaries, and snapshot mapping shells are reported separately.
+The post-collection snapshot count checks transient lifetime independently of
+result graph traversal.
+
+
+### Environment and controls
+
+The existing project environment used CPython **3.10.4**, built by Clang 14.0.3
+on 12 September 2023, with pymalloc enabled. The executable was
+`/Users/hanyuwu/Study/gem/.venv/bin/python`, resolving to
+`/Users/hanyuwu/.pyenv/versions/3.10.4/bin/python3.10`. This is not the 3.10.21
+build from the preceding runtime study; compare only within this experiment.
+
+Host: Apple M2, 8 CPUs, 16 GiB RAM, macOS 26.6.2 arm64. The existing environment
+included NumPy 2.2.6, pandas 2.3.3, protobuf 7.34.0, python-snappy 0.7.3 and
+psutil 7.2.2. uv was 0.9.8. Full installed versions and interpreter build
+configuration are preserved in the reproduction notes. Validation uses
+`uv run --no-sync` to avoid changing that environment.
+
+`PYTHONHASHSEED=0` and `PYTHON_JIT=0` were set for every measurement child;
+this CPython 3.10 build has no JIT. All timed start/end power readings showed
+AC attached at 80%, not charging. A separate environment check reported
+low-power mode disabled. Recorded
+1-minute load averages ranged from 2.45 to 4.68. Host load does not establish
+exclusive CPU use; the reordered pairs and individual measurements expose
+variation without eliminating it.
+
+Both replay hashes and byte lengths matched the committed fixture manifest:
+
+| Replay | Bytes | SHA-256 |
+|---|---:|---|
+| 8822520406 | 98,983,300 | `5f976ab73b2efb0e4eca9f7f14d5980f3aae5f63e7952e16a8497eeded57d39d` |
+| 8856501050 | 385,487,555 | `0f7577525b995347ed9df0c793cc8661c2a9db4ee176bf35cb5dd940e5af17e2` |
+
+
+
+### Public parse results
+
+Individual measurements; seconds and MiB. B = ordinary records, E = incompatible slots.
+
+| Replay | Run | Variant | Elapsed | User CPU | Peak RSS |
+|---|---:|---|---:|---:|---:|
+| 8822520406 | 1 | B | 50.231 | 49.877 | 197.67 |
+| 8822520406 | 1 | E | 49.211 | 48.957 | 197.05 |
+| 8822520406 | 2 | E | 50.678 | 49.891 | 197.19 |
+| 8822520406 | 2 | B | 49.649 | 49.446 | 209.97 |
+| 8822520406 | 3 | B | 49.581 | 49.191 | 200.95 |
+| 8822520406 | 3 | E | 49.459 | 49.276 | 196.98 |
+| 8856501050 | 1 | B | 159.543 | 158.915 | 639.67 |
+| 8856501050 | 1 | E | 157.596 | 157.036 | 557.89 |
+| 8856501050 | 2 | E | 161.276 | 159.660 | 574.16 |
+| 8856501050 | 2 | B | 160.347 | 159.252 | 622.25 |
+| 8856501050 | 3 | B | 162.738 | 161.171 | 633.12 |
+| 8856501050 | 3 | E | 160.876 | 159.677 | 557.55 |
+
+Medians of three runs (elapsed range in parentheses):
+
+| Replay | Variant | Elapsed (range) | User CPU | Peak RSS |
+|---|---|---:|---:|---:|
+| 8822520406 | B | 49.649 (49.581–50.231) | 49.446 | 200.95 |
+| 8822520406 | E | 49.459 (49.211–50.678) | 49.276 | 197.05 |
+| 8856501050 | B | 160.347 (159.543–162.738) | 159.252 | 633.12 |
+| 8856501050 | E | 160.876 (157.596–161.276) | 159.660 | 557.89 |
+
+### Record storage and retained results
+
+Unique records at assembly entry; storage in MiB. Mapping shells are additional to record shells and instance dictionaries.
+
+| Replay | Variant | Record | Count | Shells | Instance dictionaries | Snapshot mapping shells |
+|---|---|---|---:|---:|---:|---:|
+| 8822520406 | B | combat | 44,686 | 2.046 | 17.046 | 0.000 |
+| 8822520406 | B | snapshots | 16,040 | 0.734 | 6.119 | 9.719 |
+| 8822520406 | E | combat | 44,686 | 9.546 | 0.000 | 0.000 |
+| 8822520406 | E | snapshots | 16,040 | 3.671 | 0.000 | 9.719 |
+| 8856501050 | B | combat | 272,400 | 12.469 | 103.912 | 0.000 |
+| 8856501050 | B | snapshots | 59,280 | 2.714 | 22.614 | 47.945 |
+| 8856501050 | E | combat | 272,400 | 58.191 | 0.000 | 0.000 |
+| 8856501050 | E | snapshots | 59,280 | 13.568 | 0.000 | 47.945 |
+
+Post-collection measurements with the public result alive; MiB. RSS is instrumented, not an exclusive result size.
+
+| Replay | Variant | Reachable graph | Current RSS median (range) | Live player snapshots |
+|---|---|---:|---:|---:|
+| 8822520406 | B | 32.871 | 140.12 (132.22–140.66) | 0 |
+| 8822520406 | E | 23.324 | 119.16 (109.08–121.12) | 0 |
+| 8856501050 | B | 182.337 | 383.70 (379.72–384.02) | 0 |
+| 8856501050 | E | 124.145 | 312.81 (312.70–324.31) | 0 |
+
+Reachable result graph breakdown (MiB); record shells include every result record type, and dictionaries include both instance dictionaries and payload mappings.
+
+| Category | Short B | Short E | Long B | Long E |
+|---|---:|---:|---:|---:|
+| Record shells | 2.292 | 9.792 | 13.126 | 58.847 |
+| Dictionaries | 22.483 | 5.437 | 132.598 | 28.686 |
+| Strings/bytes | 0.295 | 0.294 | 0.427 | 0.426 |
+| Scalars/enums | 4.419 | 4.419 | 22.951 | 22.951 |
+| Lists/tuples/sets | 3.382 | 3.382 | 13.235 | 13.235 |
+
+
+### Interpretation and unchanged output
+
+All three instrumented repetitions produced identical graph summaries and
+assembly counts within each variant/replay. The short replay had 15,800 dense
+and 240 minute snapshots; the long replay had 58,350 dense and 930 minute
+snapshots. Snapshot mapping shells occupied 9.719 and 47.945 MiB respectively
+in both layouts. They are separate from record-layout overhead.
+
+In this CPython build, both ordinary record types used a 48-byte shell plus a
+400-byte instance dictionary. Experimental combat records used 224-byte shells;
+snapshots used 240-byte shells, with their field pointers inside the slots.
+The combat shell/dictionary reduction was 9.546 MiB on the short replay and
+58.191 MiB on the long replay. Snapshot shells/dictionaries reduced assembly
+storage by another 3.182 and 11.759 MiB. These are shallow record-storage
+measurements, not the issue's historical modeled totals, and they are not all
+retained by the returned result.
+
+The returned graph was 9.547 MiB smaller on the short replay and 58.192 MiB
+smaller on the long replay. Neither variant retained any `PlayerStateSnapshot`
+objects after collection in any run. The small difference between graph
+reduction and combat shell/dictionary reduction also includes shared dictionary
+key strings. Graph bytes and instrumented current RSS describe different things;
+RSS additionally reflects native allocations, allocator reuse and inspection
+history.
+
+Uninstrumented median peak RSS fell by 3.91 MiB (1.94%) on the short replay and
+75.23 MiB (11.88%) on the long replay. All three pairs had lower experimental
+peak RSS, but individual baseline values varied. Timing does not show a useful
+speed improvement: median elapsed/user CPU changed by −0.38%/−0.35% on the
+short replay and +0.33%/+0.26% on the long replay. Directions differed between
+pairs, and the changes are small relative to run variation. No speedup claim
+or further timing campaign is needed to make this compatibility decision.
+
+Every timed parse passed the completeness checks. All six serialized outputs
+per replay were compared byte-for-byte and had the same SHA-256. Serialization
+used `json.dumps(gem.to_dict(match), sort_keys=True, separators=(',', ':'))`
+with UTF-8 encoding and `PYTHONHASHSEED=0`; no floats were rounded or arrays
+reordered for comparison.
+
+| Replay | Players | Combat entries | End tick | Teamfights | Output SHA-256 |
+|---|---:|---:|---:|---:|---|
+| 8822520406 | 10 | 44,686 | 102642 | 24 | `3b0844312187a2856743092e991ab425878d64e101d91cf8f9c83bb2b3580427` |
+| 8856501050 | 10 | 272,400 | 224720 | 36 | `1e8d1f6f172d7bc39abd6b2a338539b231395780e599b9b8fbf44068128a9e5e` |
+
+**The public layout remains unchanged.** The experiment demonstrates a memory
+tradeoff worth preserving as evidence, but fails the selected compatibility
+requirement. It does not justify silently dropping dictionaries, dynamic
+attributes or weak references. No claim is made that a compatible alternative
+would deliver these savings.
+
+
+### Validation and reproduction
+
+The delivered change adds 24 fast compatibility cases and changes no production
+code. The focused delivered suite passed **612 tests**, with one optional
+Parquet-engine skip and seven integration tests deselected. The experimental
+subset passed 385 tests and failed 22 as expected: 14 new compatibility cases
+and eight existing combat-entry `vars()` cases. Its one optional Parquet skip
+and seven deselections match the subset's selection. Extension-pickle cases
+fail when assigning the unsupported dynamic attribute, before pickling; plain
+record and match pickle round trips pass. Existing teamfight tests pass because
+their dictionary comparisons use doubles, as noted above.
+
+- Fast suite: **3,878 passed, 3 skipped, 62 deselected**.
+- All offline tests: **3,939 passed, 3 skipped, 1 network test deselected**.
+- Full offline OpenDota parity: **325, 326 and 331 passing fields** for
+  `8868259993`, `8860187335` and `8856501050`, with zero warnings or failures.
+  Each fixture skips `teamfights/total_count`: the existing validator treats
+  that count as informational because the event pipelines differ. Thresholds
+  were unchanged; no required fixture or reference JSON was missing.
+- Ruff lint, format-check, mypy and documentation build passed. Built tables
+  were visually reviewed. The build's chunk-size warning remains; generated
+  reference-page changes were restored to keep this PR's scope.
+
+The three suite skips are explicit: `tests/test_bulk.py:250` needs optional
+pyarrow; `tests/test_parquet_export.py:56` needs a Parquet engine; and
+`tests/test_field_decoder.py:208` skips an existing range configuration whose
+flag is optimized away. No dependencies were installed or changed. Full-suite
+and parity validation ran concurrently only after all measurement processes
+finished; their durations are not performance evidence. No live download was
+needed.
+
+Commands used from the repository root, with `UV_CACHE_DIR` pointed at the
+temporary study directory:
+
+```bash
+uv run --no-sync pytest tests/test_record_compatibility.py tests/test_combatlog.py tests/test_combat_aggregator.py tests/test_players_extractor.py tests/test_teamfights.py tests/test_serialization.py tests/test_dataframes.py tests/test_bulk.py -ra
+uv run --no-sync pytest -ra
+uv run --no-sync pytest -m "not network" -ra --durations=25
+uv run --no-sync ruff check src/ tests/
+uv run --no-sync ruff format --check src/ tests/
+uv run --no-sync mypy src/gem/
+uv run --no-sync python /private/tmp/gem-164/parity.py
+```
+
+The documentation command was `npm run docs:build` from `docs/`, with the
+project environment first on `PATH`. The offline parity script supplies
+existing JSON directly and rejects network fetches. Benchmark bootstrap,
+[complete scripts and two-decorator diff](https://github.com/whanyu1212/gem-dota/pull/180#issuecomment-5566950041),
+[full-precision timings and environment manifest](https://github.com/whanyu1212/gem-dota/pull/180#issuecomment-5566950611),
+[short-replay memory measurements](https://github.com/whanyu1212/gem-dota/pull/180#issuecomment-5566950991),
+[long-replay memory measurements](https://github.com/whanyu1212/gem-dota/pull/180#issuecomment-5566951404) and
+[validation commands and skip details](https://github.com/whanyu1212/gem-dota/pull/180#issuecomment-5566951918) are preserved
+in [PR #180](https://github.com/whanyu1212/gem-dota/pull/180).
+Temporary source trees, scripts and generated outputs are removed after
+publication and CI verification.
+
+
 ## CPython runtime study
 
 Study date: 7 September 2026.
