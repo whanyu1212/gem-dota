@@ -131,6 +131,21 @@ python -m gem batch replays/ --format parquet --output ./out
 #     ...
 ```
 
+Parquet batch export writes completed replays serially in the parent process.
+At most one replay per worker is outstanding, including completed matches waiting
+for export. Slow writing applies backpressure instead of accumulating the batch.
+Memory still includes worker processes, in-flight matches, IPC buffers, and one
+match's complete DataFrame collection. Input and returned path metadata grow with
+batch size; lowering `--workers` reduces the in-flight match limit.
+
+For the Python API, `parse_many_to_parquet(..., timeout=seconds)` uses one
+cooperative batch deadline after path collection, including parsing and writing.
+Running parses and synchronous writes are not forcibly interrupted, so shutdown
+can exceed the deadline. Parse failures are skipped; executor failures, export
+errors, and timeouts propagate. Files already written, including partial exports,
+remain on disk after failure. Duplicate replay stems retain the existing serial
+overwrite behavior.
+
 ### Concatenated DataFrames
 
 `--format dataframe` concatenates each table across all parsed replays and writes one

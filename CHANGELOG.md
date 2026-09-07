@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Bound outstanding replay results during batch Parquet export and release each match after writing. Parquet export now documents a cooperative batch deadline, including writing, and preserves partial outputs on failure.
+
+
 ### Changed
 - **Parser record compatibility study.** Evaluate slotted records and document
   their memory tradeoffs while retaining public dataclass dictionaries, dynamic

@@ -31,6 +31,9 @@ class _SyncExecutor:
     def __exit__(self, *args):
         pass
 
+    def shutdown(self, *, wait=True, cancel_futures=False):
+        pass
+
     def submit(self, fn, *args, **kwargs):
         future: concurrent.futures.Future = concurrent.futures.Future()
         try:

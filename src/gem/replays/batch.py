@@ -9,7 +9,7 @@ Provides three public functions:
   ``match_path`` column added for provenance).
 - :func:`parse_many_to_parquet` — parse-and-write each replay into its own
   subdirectory under ``output_dir``, one ``.parquet`` file per table.
-  Replays are processed and discarded one at a time to keep memory bounded.
+  Outstanding replays are bounded by the worker count and exported serially.
 
 All three functions use ``ProcessPoolExecutor`` for true parallelism (CPU-bound
 work) and display a Rich progress bar by default.
@@ -19,9 +19,17 @@ from __future__ import annotations
 
 import os
 from collections.abc import Sequence
-from concurrent.futures import Future, ProcessPoolExecutor, as_completed
+from concurrent.futures import (
+    FIRST_COMPLETED,
+    Future,
+    ProcessPoolExecutor,
+    TimeoutError,
+    as_completed,
+    wait,
+)
 from dataclasses import dataclass
 from pathlib import Path
+from time import monotonic
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -244,8 +252,11 @@ def parse_many_to_parquet(
 ) -> list[Path]:
     """Parse multiple replays and write each to its own parquet subdirectory.
 
-    Each replay is written and discarded immediately to keep memory usage
-    bounded regardless of batch size.  The output layout is::
+    At most one replay per worker is outstanding, including completed matches
+    waiting for the parent to export them. Full-match memory scales with this
+    limit and the largest in-flight matches, plus one export's DataFrame
+    collection and process/IPC buffers. Input and returned path metadata still
+    grow with batch size. The output layout is::
 
         output_dir/
           <replay_stem>/
@@ -259,25 +270,105 @@ def parse_many_to_parquet(
         workers: Number of worker processes (default: ``os.cpu_count()``).
         recursive: Scan subdirectories when *source* is a directory.
         progress: Show a Rich progress bar while parsing.
-        timeout: Per-replay timeout in seconds.
+        timeout: Cooperative batch deadline in seconds, including parsing and
+            writing after path collection. Running parses and synchronous writes
+            are not interrupted, so shutdown can exceed the deadline. ``None``
+            means no limit.
         index: Whether to include the DataFrame index in parquet output.
 
     Returns:
-        List of all parquet file paths written.
-    """
-    from gem import to_parquet
+        List of all parquet file paths written, grouped in completion-driven
+        replay order. Replays already ready together have no defined internal order.
 
-    results = parse_many(
-        source, workers=workers, recursive=recursive, progress=progress, timeout=timeout
+    Raises:
+        TimeoutError: If the batch deadline expires.
+        Exception: Executor or export failures propagate; ordinary parse failures
+            are skipped. Previously written and partially written files remain
+            after failure or timeout.
+    """
+    from rich.progress import (
+        BarColumn,
+        MofNCompleteColumn,
+        Progress,
+        TextColumn,
+        TimeElapsedColumn,
     )
 
+    from gem import to_parquet
+
+    paths = _collect_paths(source, recursive=recursive)
+    deadline = None if timeout is None else monotonic() + timeout
+    n_workers = min(workers or os.cpu_count() or 1, len(paths))
     out_root = Path(output_dir)
     written: list[Path] = []
+    rich_progress = (
+        Progress(
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            MofNCompleteColumn(),
+            TimeElapsedColumn(),
+        )
+        if progress
+        else None
+    )
 
-    for result in results:
-        if not result.ok or result.match is None:
-            continue
-        subdir = out_root / result.path.stem
-        written.extend(to_parquet(result.match, subdir, index=index))
+    def remaining() -> float | None:
+        if deadline is None:
+            return None
+        seconds = deadline - monotonic()
+        if seconds <= 0:
+            raise TimeoutError("Batch Parquet export timed out")
+        return seconds
 
+    def execute() -> None:
+        pending: set[Future[tuple[Path, ParsedMatch | None, Exception | None]]] = set()
+        done: set[Future[tuple[Path, ParsedMatch | None, Exception | None]]] = set()
+        sources = iter(paths)
+        pool = ProcessPoolExecutor(max_workers=n_workers)
+
+        def submit_next() -> None:
+            path = next(sources, None)
+            if path is not None:
+                remaining()
+                pending.add(pool.submit(_parse_one, path))
+
+        try:
+            for _ in range(n_workers):
+                submit_next()
+            while pending:
+                done = wait(pending, timeout=remaining(), return_when=FIRST_COMPLETED)[0]
+                remaining()
+                while done:
+                    future = done.pop()
+                    pending.remove(future)
+                    try:
+                        path, match, error = future.result()
+                        try:
+                            if rich_progress is not None:
+                                rich_progress.advance(task_id)
+                            if error is None and match is not None:
+                                remaining()
+                                written.extend(to_parquet(match, out_root / path.stem, index=index))
+                            remaining()
+                        finally:
+                            del match, error
+                    finally:
+                        del future
+                    # Refill only after exporting and releasing the completed result.
+                    submit_next()
+        finally:
+            try:
+                pool.shutdown(wait=True, cancel_futures=True)
+            finally:
+                done.clear()
+                pending.clear()
+
+    if rich_progress is not None:
+        with rich_progress:
+            task_id = rich_progress.add_task(
+                f"[cyan]Parsing {len(paths)} replay(s)…[/cyan]", total=len(paths)
+            )
+            execute()
+    else:
+        execute()
     return written
