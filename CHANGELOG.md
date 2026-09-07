@@ -7,10 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-09-08
+
+Reduces parser lookup, decoding, and sampling overhead and bounds outstanding
+replay results during batch Parquet export. Public APIs, result models, and
+Python 3.10+ support remain unchanged.
+
 ### Fixed
 
 - Bound outstanding replay results during batch Parquet export and release each match after writing. Parquet export now documents a cooperative batch deadline, including writing, and preserves partial outputs on failure.
-
 
 ### Changed
 - **Parser record compatibility study.** Evaluate slotted records and document
@@ -41,6 +46,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Lower entity-operation check overhead.** `EntityOp.has()` checks flag values
   directly, avoiding `IntFlag` operation overhead in extractor callbacks while
   preserving overlap semantics and integer-mask compatibility.
+
+### Compatibility and known limitations
+
+- **Batch Parquet timeout.** `parse_many_to_parquet()` uses one cooperative
+  deadline covering parsing and interleaved writing after path collection.
+  Running parses and synchronous writes are not forcibly interrupted; cleanup
+  can exceed the deadline and partial outputs remain on failure. Other batch
+  APIs retain their existing timeout behavior.
+- **Existing PyArrow limitation.** Full-replay export with PyArrow 21.0.0 can
+  fail on an empty `ability_targets` struct. The batch-memory study used the
+  supported Fastparquet engine for both revisions; this release does not change
+  engine selection or resolve that serialization limitation.
+- **Performance scope.** Improvements depend on workload and environment.
+  Large-batch throughput measurements were inconclusive under host contention;
+  bounded result retention does not imply constant total RSS or a guaranteed
+  throughput improvement. See the [parser performance studies](docs/deep-dives/parser-performance.md)
+  and [batch-export measurements](https://github.com/whanyu1212/gem-dota/pull/181#issuecomment-5572954464).
 
 ## [0.7.1] - 2026-09-04
 
@@ -687,7 +709,8 @@ combat-log layers. The supported top-level API (`gem.parse`, `gem.ParsedMatch`,
 - CLI and example scripts, including HTML match report.
 - Validation, fuzzing, and parser robustness foundations.
 
-[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.7.1...HEAD
+[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/whanyu1212/gem-dota/compare/v0.7.1...v0.8.0
 [0.7.1]: https://github.com/whanyu1212/gem-dota/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/whanyu1212/gem-dota/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/whanyu1212/gem-dota/compare/v0.5.1...v0.6.0
