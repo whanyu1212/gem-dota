@@ -304,8 +304,12 @@ uv run --no-sync python /private/tmp/gem-164/parity.py
 The documentation command was `npm run docs:build` from `docs/`, with the
 project environment first on `PATH`. The offline parity script supplies
 existing JSON directly and rejects network fetches. Benchmark bootstrap,
-complete scripts, the two-decorator diff, full dependency/build manifest,
-individual measurements and parity details are preserved in the PR discussion.
+[complete scripts and two-decorator diff](https://github.com/whanyu1212/gem-dota/pull/180#issuecomment-5566950041),
+[full-precision timings and environment manifest](https://github.com/whanyu1212/gem-dota/pull/180#issuecomment-5566950611),
+[short-replay memory measurements](https://github.com/whanyu1212/gem-dota/pull/180#issuecomment-5566950991),
+[long-replay memory measurements](https://github.com/whanyu1212/gem-dota/pull/180#issuecomment-5566951404) and
+[validation commands and skip details](https://github.com/whanyu1212/gem-dota/pull/180#issuecomment-5566951918) are preserved
+in [PR #180](https://github.com/whanyu1212/gem-dota/pull/180).
 Temporary source trees, scripts and generated outputs are removed after
 publication and CI verification.
 
