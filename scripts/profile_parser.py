@@ -28,6 +28,47 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+# Exact normalized public outputs validated in parser-profile-2026-09.md.
+EXPECTED_OUTPUT_SHA256 = {
+    8822520406: "3b0844312187a2856743092e991ab425878d64e101d91cf8f9c83bb2b3580427",
+    8856501050: "1e8d1f6f172d7bc39abd6b2a338539b231395780e599b9b8fbf44068128a9e5e",
+}
+
+
+def _parser_commit() -> str:
+    status = subprocess.run(
+        ["git", "-C", str(ROOT), "status", "--porcelain", "--untracked-files=all", "--", "src/gem"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    if status:
+        raise RuntimeError(f"Refusing to profile dirty parser sources:\n{status}")
+    return subprocess.run(
+        ["git", "-C", str(ROOT), "rev-parse", "HEAD"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
+
+
+def _checked_output(match: Any) -> dict[str, Any]:
+    import gem
+
+    expected = EXPECTED_OUTPUT_SHA256[match.match_id]
+    payload = json.dumps(gem.to_dict(match), sort_keys=True, separators=(",", ":")).encode()
+    digest = hashlib.sha256(payload).hexdigest()
+    if digest != expected:
+        raise RuntimeError(
+            f"Public output mismatch for {match.match_id}: expected {expected}, got {digest}"
+        )
+    return {
+        "bytes": len(payload),
+        "sha256": digest,
+        "players": len(match.players),
+        "combat_log_entries": len(match.combat_log),
+        "duration": match.duration,
+    }
 
 
 def _command(*args: str) -> str:
@@ -92,6 +133,7 @@ def _sample_summary(session: Any) -> dict[str, Any]:
 
 
 def _run(args: argparse.Namespace) -> dict[str, Any]:
+    commit = _parser_commit()
     sys.path.insert(0, str(ROOT / "src"))
     import gem
     from gem.parser import ReplayParser
@@ -114,6 +156,8 @@ def _run(args: argparse.Namespace) -> dict[str, Any]:
     replay = args.replay.resolve()
     manifest = json.loads((ROOT / "tests/fixtures/opendota/manifest.json").read_text())
     fixture = next(m for m in manifest["matches"] if m["dem"] == replay.name)
+    if args.scenario == "public" and fixture["match_id"] not in EXPECTED_OUTPUT_SHA256:
+        raise ValueError(f"No validated public output hash for {fixture['match_id']}")
     digest = hashlib.sha256()
     with replay.open("rb") as stream:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
@@ -126,7 +170,7 @@ def _run(args: argparse.Namespace) -> dict[str, Any]:
         "started_utc": datetime.now(timezone.utc).isoformat(),
         "mode": args.mode,
         "scenario": args.scenario,
-        "commit": _command("git", "-C", str(ROOT), "rev-parse", "HEAD"),
+        "commit": commit,
         "harness_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "python": sys.version,
         "executable": sys.executable,
@@ -216,14 +260,7 @@ def _run(args: argparse.Namespace) -> dict[str, Any]:
         assert match.match_id == fixture["match_id"] and len(match.players) == 10
         assert match.duration == fixture["duration"]
         # All output, without removing fields; no full JSON artifacts are needed.
-        payload = json.dumps(gem.to_dict(match), sort_keys=True, separators=(",", ":")).encode()
-        report["output"] = {
-            "bytes": len(payload),
-            "sha256": hashlib.sha256(payload).hexdigest(),
-            "players": len(match.players),
-            "combat_log_entries": len(match.combat_log),
-            "duration": match.duration,
-        }
+        report["output"] = _checked_output(match)
     if sample:
         assert sample.last_session is not None
         report["sampling"] = _sample_summary(sample.last_session)
@@ -244,6 +281,8 @@ def _run(args: argparse.Namespace) -> dict[str, Any]:
                 for k, v in sorted(stats.stats.items(), key=lambda item: -item[1][2])  # type: ignore[attr-defined]
             ],
         }
+    if _parser_commit() != commit:
+        raise RuntimeError("Git HEAD changed during profiling")
     return report
 
 

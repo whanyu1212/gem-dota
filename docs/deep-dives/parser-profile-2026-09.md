@@ -300,15 +300,20 @@ environment and the local ignored replay files. It requires `psutil` for
 current RSS; the sampling mode additionally requires Pyinstrument 5.1.3.
 Neither profiler is added to Gem's production dependencies.
 The recorded commit is Git HEAD; reproduce against the named clean parser
-source. This study verifies that `src/gem` has no changes from that revision.
+source. The current harness rejects staged, unstaged, and untracked changes in
+`src/gem` before importing the parser and again before returning the report.
+It also rejects a changed HEAD or failed Git command. Unrelated edits and
+ignored cache files do not invalidate parser provenance.
 
 The measured harness SHA-256 is
 `3b130052940674c4768dc0c3c60c3fb1fb4d0214a1fbfeeb441a2145f693b85c`.
-PR preparation subsequently added five inline `type: ignore` comments for the
-intentional profiler monkeypatches, core parser's `None` return, and pstats
-attributes absent from type stubs. Its executable AST is unchanged; removing
-those five comments (including their two preceding spaces) reproduces the
-measured harness bytes. Measurement records retain their original hash.
+The original PR commit `f0f4e90814f517f4d19313d55e81d1983657f31a` contains that
+harness plus five inline `type: ignore` comments; removing those comments and
+their two preceding spaces from that revision reproduces the measured bytes.
+Review subsequently added automatic parser-provenance and output-hash guards
+outside the measurement window. The original study checked these conditions
+separately; its 21 records retain their original hashes and were not rerun or
+relabeled as measurements of the updated harness.
 
 ```bash
 PYTHONHASHSEED=0 PYTHON_JIT=0 .venv/bin/python scripts/profile_parser.py \
@@ -328,7 +333,10 @@ All normalized public outputs use
 encoded as UTF-8. Serialization happens after measurements. Core runs check
 terminal parser metadata; they do not construct or claim to validate a public
 `ParsedMatch`. Instrumented public output hashes must equal the uninstrumented
-ones and the earlier validated hashes.
+ones and the earlier validated hashes. The current harness enforces the two
+documented expected hashes and fails before saving a measurement on mismatch.
+Public runs on other fixtures require a separately validated expected hash
+before profiling; a newly observed digest is not automatically a baseline.
 
 ## Validation
 
@@ -339,6 +347,10 @@ ones and the earlier validated hashes.
 - Mypy passed for all 88 checked source files.
 - PR preparation also type-checked the harness and reran its two regression
   tests after the typing-only comments described above.
+- Review follow-up adds regression checks for detailed output changes despite
+  unchanged metadata, staged/unstaged/deleted/untracked parser sources, clean
+  checkouts with unrelated files, Git failures, and the recorded public hashes.
+  The updated fast suite passed: **3,903 passed, 5 skipped, 62 deselected**.
 - All 21 measurement records have the same harness hash, source commit,
   interpreter, and installed-package manifest. All 11 public parses, including
   instrumented runs, match the expected output hashes.

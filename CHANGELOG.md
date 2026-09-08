@@ -12,7 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Final Python performance profile.** Add a reproducible full-replay profiling
   harness and v0.8.0 public/core CPU and memory measurements, with exact output
   checks and an entity-field decode/apply boundary selected for a future Rust
-  prototype. No parser behavior or runtime requirement changes.
+  prototype. The harness rejects dirty parser sources and incompatible public
+  output hashes before saving measurements. No parser behavior or runtime
+  requirement changes.
 
 ## [0.8.0] - 2026-09-08
 
