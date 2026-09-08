@@ -4,6 +4,15 @@ Runtime builds, dependencies, replay duration, patch, entity volume, and enabled
 extractors all affect parse time. This page records measured results and their
 limits; historical optimization measurements are preserved below.
 
+## Final v0.8.0 profile
+
+The [8 September final profile](parser-profile-2026-09.md) records fresh
+public/core timing and RSS measurements, CPU and allocation diagnostics on
+the short and long fixtures, and the selected native field-decode/apply
+boundary for the next prototype. Its reproducible harness and measurement
+records are in the repository. The studies below retain their original dates
+and scopes; their remaining-work notes should be read in that historical context.
+
 ## Public record layout study
 
 Study date: 7 September 2026. Source commit:
@@ -70,7 +79,8 @@ same fields or support the same dictionary writes. See Python's
 and [OpenDota's `Entry` record](https://github.com/odota/parser/blob/e58a668f72866531b9a4e0293387163e8a927f5b/src/main/java/opendota/Entry.java) establish dataflow and output context; none
 establish Python object-layout compatibility. A future change needs a separate
 compatibility proposal. Internal replacement records and retention options are
-outside this study; the final profile and native-code boundary remain under
+outside this study; the subsequent [final profile](parser-profile-2026-09.md)
+records the native-code boundary decision for
 [#158](https://github.com/whanyu1212/gem-dota/issues/158).
 
 ### Measurement method
@@ -578,7 +588,7 @@ pins or Python-version requirements in Gem were changed by this study.
 
 </details>
 
-Final hotspot profiling and the Rust boundary decision remain under [#158](https://github.com/whanyu1212/gem-dota/issues/158). This study makes no claims about Linux, x86, other CPython builds, or JIT/free-threaded configurations.
+The subsequent [final profile](parser-profile-2026-09.md) records hotspot profiling and the Rust boundary decision for [#158](https://github.com/whanyu1212/gem-dota/issues/158). This runtime study makes no claims about Linux, x86, other CPython builds, or JIT/free-threaded configurations.
 
 ## Historical optimization work (#143–#156)
 

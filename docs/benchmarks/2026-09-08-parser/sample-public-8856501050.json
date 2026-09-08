@@ -1,0 +1,2051 @@
+{
+  "started_utc": "2026-09-08T10:52:19.369551+00:00",
+  "mode": "sample",
+  "scenario": "public",
+  "commit": "e3ec865e8d4831a2f7518663cec10a0ae0136283",
+  "harness_sha256": "3b130052940674c4768dc0c3c60c3fb1fb4d0214a1fbfeeb441a2145f693b85c",
+  "python": "3.10.4 (main, Sep 12 2023, 14:13:09) [Clang 14.0.3 (clang-1403.0.22.14.1)]",
+  "executable": "/Users/hanyuwu/Study/gem/.venv/bin/python",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "machine": "arm64",
+  "cpu_count": 8,
+  "gc_enabled": true,
+  "hash_seed": "0",
+  "packages": {
+    "tomli": "2.4.0",
+    "pexpect": "4.9.0",
+    "platformdirs": "4.9.4",
+    "identify": "2.6.17",
+    "traitlets": "5.14.3",
+    "exceptiongroup": "1.3.1",
+    "tornado": "6.5.5",
+    "numpy": "2.2.6",
+    "nest-asyncio": "1.6.0",
+    "asttokens": "3.0.1",
+    "ptyprocess": "0.7.0",
+    "tzdata": "2025.3",
+    "iniconfig": "2.3.0",
+    "nodeenv": "1.10.0",
+    "plotly": "6.6.0",
+    "cfgv": "3.5.0",
+    "gem-dota": "0.8.0",
+    "executing": "2.2.1",
+    "ipython": "8.38.0",
+    "jedi": "0.19.2",
+    "debugpy": "1.8.20",
+    "virtualenv": "21.1.0",
+    "distlib": "0.4.0",
+    "zstandard": "0.25.0",
+    "mypy": "1.19.1",
+    "rich": "14.3.3",
+    "appnope": "0.1.4",
+    "librt": "0.8.1",
+    "pillow": "12.1.1",
+    "prompt_toolkit": "3.0.52",
+    "decorator": "5.2.1",
+    "protobuf": "7.34.0",
+    "jupyter_client": "8.8.0",
+    "stack-data": "0.6.3",
+    "protoc-wheel-0": "30.2",
+    "markdown-it-py": "4.0.0",
+    "ipykernel": "7.2.0",
+    "matplotlib-inline": "0.2.1",
+    "pytz": "2026.1.post1",
+    "narwhals": "2.17.0",
+    "mdurl": "0.1.2",
+    "pathspec": "1.0.4",
+    "python-dateutil": "2.9.0.post0",
+    "PyYAML": "6.0.3",
+    "parso": "0.8.6",
+    "cramjam": "2.11.0",
+    "wcwidth": "0.6.0",
+    "typing_extensions": "4.15.0",
+    "jupyter_core": "5.9.1",
+    "ruff": "0.15.5",
+    "Jinja2": "3.1.6",
+    "python-discovery": "1.1.1",
+    "pandas": "2.3.3",
+    "MarkupSafe": "3.0.3",
+    "pure_eval": "0.2.3",
+    "pluggy": "1.6.0",
+    "Pygments": "2.19.2",
+    "coverage": "7.13.4",
+    "pre_commit": "4.5.1",
+    "packaging": "26.0",
+    "pymdown-extensions": "10.21",
+    "psutil": "7.2.2",
+    "filelock": "3.25.0",
+    "python-snappy": "0.7.3",
+    "Markdown": "3.10.2",
+    "mypy_extensions": "1.1.0",
+    "six": "1.17.0",
+    "pyzmq": "27.1.0",
+    "pytest-cov": "7.0.0",
+    "pytest": "9.0.2",
+    "comm": "0.2.3"
+  },
+  "fixture": {
+    "match_id": 8856501050,
+    "duration": 5576,
+    "dem_size_bytes": 385487555,
+    "dem_sha256": "0f7577525b995347ed9df0c793cc8661c2a9db4ee176bf35cb5dd940e5af17e2"
+  },
+  "power_start": "Now drawing from 'AC Power'\n -InternalBattery-0 (id=36044899)\t80%; AC attached; not charging present: true",
+  "pyinstrument_version": "5.1.3",
+  "rss_before_bytes": 51068928,
+  "load_start": [
+    3.03076171875,
+    3.07177734375,
+    3.23046875
+  ],
+  "elapsed_s": 320.2798688330222,
+  "user_s": 319.01023299999997,
+  "system_s": 0.53453,
+  "peak_rss_bytes": 821657600,
+  "rss_after_parse_bytes": 468533248,
+  "load_end": [
+    3.556640625,
+    3.31201171875,
+    3.28759765625
+  ],
+  "parser": {
+    "match_id": 8856501050,
+    "tick": 224720,
+    "game_build": 6810
+  },
+  "rss_after_gc_bytes": 488390656,
+  "power_end": "Now drawing from 'AC Power'\n -InternalBattery-0 (id=36044899)\t80%; AC attached; not charging present: true",
+  "output": {
+    "bytes": 187363261,
+    "sha256": "1e8d1f6f172d7bc39abd6b2a338539b231395780e599b9b8fbf44068128a9e5e",
+    "players": 10,
+    "combat_log_entries": 272400,
+    "duration": 5576
+  },
+  "sampling": {
+    "duration_s": 320.26942014694214,
+    "cpu_s": 319.54484799999994,
+    "sample_count": 63830,
+    "interval_s": 0.005,
+    "functions": [
+      {
+        "file": "src/gem/schema/field_path/path_sequence.py",
+        "line": 21,
+        "function": "_read_compact_field_paths",
+        "self_s": 50.432408077293076,
+        "inclusive_s": 91.1504380343249
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 69,
+        "function": "read_bits",
+        "self_s": 44.159055844298564,
+        "inclusive_s": 46.429122542147525
+      },
+      {
+        "file": "src/gem/schema/field_state.py",
+        "line": 130,
+        "function": "_set_compact",
+        "self_s": 21.40746613929514,
+        "inclusive_s": 30.477011346956715
+      },
+      {
+        "file": "src/gem/schema/field_reader.py",
+        "line": 111,
+        "function": "read_fields",
+        "self_s": 17.257780416635796,
+        "inclusive_s": 189.43919223384
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 576,
+        "function": "_decode_packet_entities",
+        "self_s": 15.477076314738952,
+        "inclusive_s": 272.87354075792246
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 284,
+        "function": "read_varuint32",
+        "self_s": 10.53683262760751,
+        "inclusive_s": 25.82883867493365
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 107,
+        "function": "read_boolean",
+        "self_s": 8.845564356422983,
+        "inclusive_s": 8.875807482399978
+      },
+      {
+        "file": "src/gem/schema/field_state.py",
+        "line": 66,
+        "function": "_get_compact",
+        "self_s": 8.671544769429602,
+        "inclusive_s": 11.806646600947715
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 360,
+        "function": "read_ubit_var",
+        "self_s": 7.6275300739798695,
+        "inclusive_s": 19.893435090780258
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "len",
+        "self_s": 7.420172336045653,
+        "inclusive_s": 7.420172336045653
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 152,
+        "function": "read_bytes",
+        "self_s": 6.8884525874163955,
+        "inclusive_s": 9.603607717435807
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "isinstance",
+        "self_s": 6.165286957519129,
+        "inclusive_s": 6.165286957519129
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 131,
+        "function": "_read_byte",
+        "self_s": 5.575401337584481,
+        "inclusive_s": 15.73702767083887
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 182,
+        "function": "_get_int32_resolved",
+        "self_s": 5.375187851837836,
+        "inclusive_s": 15.626797314034775
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 384,
+        "function": "read_ubit_var_fp",
+        "self_s": 5.330238576279953,
+        "inclusive_s": 17.086066011921503
+      },
+      {
+        "file": "src/gem/schema/field_decoder/quantized_float.py",
+        "line": 131,
+        "function": "decode",
+        "self_s": 5.270592622226104,
+        "inclusive_s": 10.715966324671172
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 436,
+        "function": "_dispatch",
+        "self_s": 5.265730167855509,
+        "inclusive_s": 47.69573888985906
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "unpack_from",
+        "self_s": 4.6205546129494905,
+        "inclusive_s": 4.6205546129494905
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 731,
+        "function": "find_by_npc_name",
+        "self_s": 3.6460250832606107,
+        "inclusive_s": 8.89626971737016
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "dict.get",
+        "self_s": 3.6351314892526716,
+        "inclusive_s": 3.6351314892526716
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 438,
+        "function": "_on_entity",
+        "self_s": 3.565441776299849,
+        "inclusive_s": 23.037073455634527
+      },
+      {
+        "file": "src/gem/extractors/_snapshots.py",
+        "line": 142,
+        "function": "_resolve_player_id",
+        "self_s": 3.4440920426277444,
+        "inclusive_s": 3.9941039201803505
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "list.append",
+        "self_s": 2.905145706376061,
+        "inclusive_s": 2.905145706376061
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 166,
+        "function": "_resolve_fields",
+        "self_s": 2.8746677153976634,
+        "inclusive_s": 4.224730879534036
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 47,
+        "function": "plus_n",
+        "self_s": 2.8602394838817418,
+        "inclusive_s": 16.77095950418152
+      },
+      {
+        "file": "src/gem/schema/field_path/models.py",
+        "line": 25,
+        "function": "__init__",
+        "self_s": 2.725199421402067,
+        "inclusive_s": 2.725199421402067
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 307,
+        "function": "read_varint32",
+        "self_s": 2.6700826757587492,
+        "inclusive_s": 16.391433725715615
+      },
+      {
+        "file": "src/gem/schema/field_decoder/scalar_codecs.py",
+        "line": 32,
+        "function": "noscale_decoder",
+        "self_s": 2.5750594899291173,
+        "inclusive_s": 9.175468514556997
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 177,
+        "function": "_read_inner_messages",
+        "self_s": 2.0708247339352965,
+        "inclusive_s": 18.082877529901452
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 618,
+        "function": "_dispatch_inner",
+        "self_s": 2.0401697573252022,
+        "inclusive_s": 296.07789459242485
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 83,
+        "function": "push1_ln_rn_pack8",
+        "self_s": 2.010070830117911,
+        "inclusive_s": 4.830221666023135
+      },
+      {
+        "file": "src/gem/extractors/intervals.py",
+        "line": 316,
+        "function": "_on_entity",
+        "self_s": 1.8450722837587819,
+        "inclusive_s": 12.797635390190408
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 190,
+        "function": "_get_uint32_resolved",
+        "self_s": 1.78018125356175,
+        "inclusive_s": 4.550274342182092
+      },
+      {
+        "file": "src/gem/schema/field_decoder/scalar_codecs.py",
+        "line": 27,
+        "function": "signed_decoder",
+        "self_s": 1.5900427545420825,
+        "inclusive_s": 17.46145651768893
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 35,
+        "function": "plus_one",
+        "self_s": 1.5351498689269647,
+        "inclusive_s": 1.5351498689269647
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 733,
+        "function": "_read_abilities",
+        "self_s": 1.4700705321738496,
+        "inclusive_s": 7.805444205645472
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 63,
+        "function": "has",
+        "self_s": 1.4550375719554722,
+        "inclusive_s": 1.7800455729011446
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 247,
+        "function": "finish",
+        "self_s": 1.440038085449487,
+        "inclusive_s": 1.440038085449487
+      },
+      {
+        "file": "src/gem/schema/sendtable/models.py",
+        "line": 244,
+        "function": "_resolve_plan",
+        "self_s": 1.3150609981967136,
+        "inclusive_s": 1.3500631641363725
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 720,
+        "function": "find_by_class_name",
+        "self_s": 1.2358231156831607,
+        "inclusive_s": 1.7308394523570314
+      },
+      {
+        "file": "src/gem/combat/log.py",
+        "line": 383,
+        "function": "process_s2_entry",
+        "self_s": 1.1801253671292216,
+        "inclusive_s": 13.536659384611994
+      },
+      {
+        "file": "src/gem/schema/field_decoder/scalar_codecs.py",
+        "line": 22,
+        "function": "unsigned_decoder",
+        "self_s": 1.170026960899122,
+        "inclusive_s": 9.060903036384843
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "pack",
+        "self_s": 1.1150235363747925,
+        "inclusive_s": 1.1150235363747925
+      },
+      {
+        "file": "src/gem/extractors/intervals.py",
+        "line": 566,
+        "function": "_record_team_counters",
+        "self_s": 1.1099979144055396,
+        "inclusive_s": 8.576493765343912
+      },
+      {
+        "file": "src/gem/extractors/_snapshots.py",
+        "line": 96,
+        "function": "_player_id_from_entity",
+        "self_s": 1.0451107561821118,
+        "inclusive_s": 4.969212301191874
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 170,
+        "function": "detect_teamfights",
+        "self_s": 1.006820167065598,
+        "inclusive_s": 1.1112446669721976
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 320,
+        "function": "get_class_name",
+        "self_s": 0.9700200040824711,
+        "inclusive_s": 0.9700200040824711
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 587,
+        "function": "_dispatch_inner_packet",
+        "self_s": 0.8850330855930224,
+        "inclusive_s": 316.1976537479786
+      },
+      {
+        "file": "src/gem/extractors/wards.py",
+        "line": 224,
+        "function": "_on_entity",
+        "self_s": 0.8100206287344918,
+        "inclusive_s": 1.985110878944397
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "int.from_bytes",
+        "self_s": 0.78508129355032,
+        "inclusive_s": 0.78508129355032
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "int.to_bytes",
+        "self_s": 0.7750417942879722,
+        "inclusive_s": 0.7750417942879722
+      },
+      {
+        "file": "src/gem/schema/field_path/models.py",
+        "line": 36,
+        "function": "pop",
+        "self_s": 0.7650938315782696,
+        "inclusive_s": 0.7650938315782696
+      },
+      {
+        "file": "src/gem/extractors/courier.py",
+        "line": 87,
+        "function": "_on_entity",
+        "self_s": 0.7300270842388272,
+        "inclusive_s": 1.5851028750184923
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "str.startswith",
+        "self_s": 0.6701134535251185,
+        "inclusive_s": 0.6701134535251185
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "unpack",
+        "self_s": 0.6600093357264996,
+        "inclusive_s": 0.6600093357264996
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 594,
+        "function": "_priority",
+        "self_s": 0.6100289610913023,
+        "inclusive_s": 0.6100289610913023
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 696,
+        "function": "find_by_handle",
+        "self_s": 0.61002292111516,
+        "inclusive_s": 1.135090047493577
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 78,
+        "function": "push1_ln_rn_pack6",
+        "self_s": 0.5850214579841122,
+        "inclusive_s": 1.3500570503529161
+      },
+      {
+        "file": "src/gem/combat/aggregator.py",
+        "line": 322,
+        "function": "on_entry",
+        "self_s": 0.5650515016168356,
+        "inclusive_s": 10.645855642622337
+      },
+      {
+        "file": "src/gem/state/string_table.py",
+        "line": 114,
+        "function": "parse_string_table",
+        "self_s": 0.5650188338477165,
+        "inclusive_s": 3.840647572418675
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 568,
+        "function": "rem_bits",
+        "self_s": 0.5400192046072334,
+        "inclusive_s": 0.5400192046072334
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 789,
+        "function": "_read_inventory",
+        "self_s": 0.5350707567995414,
+        "inclusive_s": 3.28020647529047
+      },
+      {
+        "file": "<string>",
+        "line": 2,
+        "function": "__init__",
+        "self_s": 0.48138445778749883,
+        "inclusive_s": 0.5485487917903811
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 208,
+        "function": "pop_all_but1_plus_n",
+        "self_s": 0.48001449776347727,
+        "inclusive_s": 2.7703874116996303
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "min",
+        "self_s": 0.47501645574811846,
+        "inclusive_s": 0.47501645574811846
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 686,
+        "function": "find",
+        "self_s": 0.4200642112409696,
+        "inclusive_s": 0.525067126378417
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 620,
+        "function": "_sample",
+        "self_s": 0.39501858316361904,
+        "inclusive_s": 14.01627617480699
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 354,
+        "function": "_update_game_clock",
+        "self_s": 0.3950086657423526,
+        "inclusive_s": 1.7350665802368894
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 608,
+        "function": "<lambda>",
+        "self_s": 0.3950041615171358,
+        "inclusive_s": 1.0050331226084381
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 440,
+        "function": "read_angle",
+        "self_s": 0.36501233268063515,
+        "inclusive_s": 0.9100390807725489
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "bytes.join",
+        "self_s": 0.35501066769938916,
+        "inclusive_s": 0.35501066769938916
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 216,
+        "function": "pop_all_but1_plus_n_pack6",
+        "self_s": 0.3450460429303348,
+        "inclusive_s": 0.9350725829135627
+      },
+      {
+        "file": "src/gem/combat/log.py",
+        "line": 296,
+        "function": "_emit",
+        "self_s": 0.32038641767576337,
+        "inclusive_s": 11.49611726636067
+      },
+      {
+        "file": "src/gem/state/string_table.py",
+        "line": 260,
+        "function": "handle_update",
+        "self_s": 0.3101458827732131,
+        "inclusive_s": 4.085783120128326
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "decompress_raw",
+        "self_s": 0.29538567014969885,
+        "inclusive_s": 0.29538567014969885
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 430,
+        "function": "detect_opendota_teamfights",
+        "self_s": 0.28000596002675593,
+        "inclusive_s": 0.6104713750537485
+      },
+      {
+        "file": "src/gem/combat/log.py",
+        "line": 234,
+        "function": "_resolve_name",
+        "self_s": 0.28000533394515514,
+        "inclusive_s": 0.3900098749436438
+      },
+      {
+        "file": "src/gem/binary/stream.py",
+        "line": 127,
+        "function": "_read_message",
+        "self_s": 0.2750660815509036,
+        "inclusive_s": 1.0354807085823268
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 206,
+        "function": "_get_float32_resolved",
+        "self_s": 0.27002341591287404,
+        "inclusive_s": 0.7200387982884422
+      },
+      {
+        "file": "src/gem/schema/field_decoder/composite_codecs.py",
+        "line": 26,
+        "function": "pitch_yaw",
+        "self_s": 0.2600053317146376,
+        "inclusive_s": 1.1700444124871865
+      },
+      {
+        "file": "src/gem/binary/stream.py",
+        "line": 106,
+        "function": "_read_varuint32",
+        "self_s": 0.25502524769399315,
+        "inclusive_s": 0.25502524769399315
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 793,
+        "function": "_combat_log_game_time_s",
+        "self_s": 0.25501212489325553,
+        "inclusive_s": 0.35001579264644533
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 48,
+        "function": "_next_byte",
+        "self_s": 0.2450093801598996,
+        "inclusive_s": 0.2450093801598996
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 328,
+        "function": "get_index",
+        "self_s": 0.2400008369004354,
+        "inclusive_s": 0.2400008369004354
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 549,
+        "function": "_dispatch_outer",
+        "self_s": 0.22502204263582826,
+        "inclusive_s": 316.64425154053606
+      },
+      {
+        "file": "src/gem/combat/aggregator.py",
+        "line": 157,
+        "function": "_hero_to_pid",
+        "self_s": 0.22000896057579666,
+        "inclusive_s": 0.9282679206226021
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 58,
+        "function": "push1_l1_r0",
+        "self_s": 0.22000783251132816,
+        "inclusive_s": 0.22000783251132816
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 44,
+        "function": "plus_four",
+        "self_s": 0.21500870876479894,
+        "inclusive_s": 0.21500870876479894
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 231,
+        "function": "read_bits_as_bytes",
+        "self_s": 0.2050067080417648,
+        "inclusive_s": 1.5288474099943414
+      },
+      {
+        "file": "src/gem/extractors/_snapshots.py",
+        "line": 229,
+        "function": "scan_player_resource",
+        "self_s": 0.19500700198113918,
+        "inclusive_s": 1.3400342604145408
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 322,
+        "function": "read_varuint64",
+        "self_s": 0.19500624667853117,
+        "inclusive_s": 0.570024412125349
+      },
+      {
+        "file": "src/gem/state/string_table.py",
+        "line": 83,
+        "function": "get_by_name",
+        "self_s": 0.18522537231910974,
+        "inclusive_s": 0.25522883236408234
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 332,
+        "function": "get_serial",
+        "self_s": 0.1850021240534261,
+        "inclusive_s": 0.1850021240534261
+      },
+      {
+        "file": "src/gem/schema/field_decoder/scalar_codecs.py",
+        "line": 12,
+        "function": "boolean_decoder",
+        "self_s": 0.1800048768054694,
+        "inclusive_s": 0.5900204996578395
+      },
+      {
+        "file": "src/gem/extractors/courier.py",
+        "line": 98,
+        "function": "_maybe_sample",
+        "self_s": 0.17000416619703174,
+        "inclusive_s": 0.29507078928872943
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 493,
+        "function": "_hero_aliases",
+        "self_s": 0.1700021685101092,
+        "inclusive_s": 0.23000129160936922
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 234,
+        "function": "non_topo_complex",
+        "self_s": 0.16500387620180845,
+        "inclusive_s": 0.6550194207811728
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 345,
+        "function": "time_series",
+        "self_s": 0.16500162612646818,
+        "inclusive_s": 0.21000166807789356
+      },
+      {
+        "file": "src/gem/extractors/_snapshots.py",
+        "line": 327,
+        "function": "_build_hero_snapshot",
+        "self_s": 0.16001308616250753,
+        "inclusive_s": 1.410541669698432
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 597,
+        "function": "_populate_player_series",
+        "self_s": 0.15491979208309203,
+        "inclusive_s": 0.5085100419819355
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 41,
+        "function": "plus_three",
+        "self_s": 0.1454271659022197,
+        "inclusive_s": 0.1454271659022197
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "list.sort",
+        "self_s": 0.1318151254672557,
+        "inclusive_s": 0.1318151254672557
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "CMsgDOTACombatLogEntry.HasField",
+        "self_s": 0.13000333402305841,
+        "inclusive_s": 0.13000333402305841
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "str.lower",
+        "self_s": 0.13000100234057754,
+        "inclusive_s": 0.13000100234057754
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 448,
+        "function": "<lambda>",
+        "self_s": 0.11501025105826557,
+        "inclusive_s": 0.16500999906565994
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 38,
+        "function": "plus_two",
+        "self_s": 0.11500871053431183,
+        "inclusive_s": 0.11500871053431183
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 37,
+        "function": "__init__",
+        "self_s": 0.11500370840076357,
+        "inclusive_s": 0.14500433334615082
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 527,
+        "function": "_combat_time_s",
+        "self_s": 0.11499987205024809,
+        "inclusive_s": 0.11499987205024809
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 673,
+        "function": "<listcomp>",
+        "self_s": 0.10860066569875926,
+        "inclusive_s": 0.10860066569875926
+      },
+      {
+        "file": "src/gem/combat/aggregator.py",
+        "line": 228,
+        "function": "_accumulate_hero_tower_damage",
+        "self_s": 0.10625771014019847,
+        "inclusive_s": 0.14625846140552312
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 151,
+        "function": "_round_positive_seconds",
+        "self_s": 0.10500337195117027,
+        "inclusive_s": 0.10500337195117027
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 222,
+        "function": "_get_bool_resolved",
+        "self_s": 0.10500270500779152,
+        "inclusive_s": 0.3400076205143705
+      },
+      {
+        "file": "src/gem/schema/field_decoder/scalar_codecs.py",
+        "line": 67,
+        "function": "default_decoder",
+        "self_s": 0.10000178997870535,
+        "inclusive_s": 1.1150458371266723
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "getattr",
+        "self_s": 0.10000137786846608,
+        "inclusive_s": 0.10000137786846608
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 243,
+        "function": "_on_combat_log_entry",
+        "self_s": 0.09500462317373604,
+        "inclusive_s": 0.25974012224469334
+      },
+      {
+        "file": "<string>",
+        "line": 1,
+        "function": "<lambda>",
+        "self_s": 0.09000520722474903,
+        "inclusive_s": 0.1200059981783852
+      },
+      {
+        "file": "src/gem/extractors/smoke_vision.py",
+        "line": 183,
+        "function": "_on_entry",
+        "self_s": 0.08500554074998945,
+        "inclusive_s": 0.08500554074998945
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 68,
+        "function": "push1_ln_r0",
+        "self_s": 0.08500162500422448,
+        "inclusive_s": 0.5450167870149016
+      },
+      {
+        "file": "src/gem/extractors/draft.py",
+        "line": 232,
+        "function": "_on_entity",
+        "self_s": 0.08000299998093396,
+        "inclusive_s": 0.8200262958416715
+      },
+      {
+        "file": "src/gem/binary/stream.py",
+        "line": 156,
+        "function": "__iter__",
+        "self_s": 0.0800016667926684,
+        "inclusive_s": 1.1154823753749952
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "CMsgDOTACombatLogEntry.ParseFromString",
+        "self_s": 0.07999979320447892,
+        "inclusive_s": 0.07999979320447892
+      },
+      {
+        "file": "src/gem/extractors/wards.py",
+        "line": 188,
+        "function": "_on_combat_log",
+        "self_s": 0.07512737496290356,
+        "inclusive_s": 0.07512737496290356
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "list.extend",
+        "self_s": 0.07500695821363479,
+        "inclusive_s": 0.07500695821363479
+      },
+      {
+        "file": ".venv/lib/python3.10/site-packages/snappy/snappy.py",
+        "line": 80,
+        "function": "uncompress",
+        "self_s": 0.07500399893615395,
+        "inclusive_s": 0.3853899191599339
+      },
+      {
+        "file": "src/gem/extractors/draft.py",
+        "line": 253,
+        "function": "_check_draft",
+        "self_s": 0.07500270917080343,
+        "inclusive_s": 0.635020297835581
+      },
+      {
+        "file": "src/gem/schema/sendtable/parser.py",
+        "line": 210,
+        "function": "parse_send_tables",
+        "self_s": 0.07000287505798042,
+        "inclusive_s": 0.13631941692437977
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/enum.py",
+        "line": 678,
+        "function": "__new__",
+        "self_s": 0.07000241603236645,
+        "inclusive_s": 0.07000241603236645
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "dict.setdefault",
+        "self_s": 0.07000129285734147,
+        "inclusive_s": 0.07000129285734147
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 148,
+        "function": "push2_ln",
+        "self_s": 0.07000099983997643,
+        "inclusive_s": 0.5050204991130158
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 63,
+        "function": "push1_l1_rn",
+        "self_s": 0.07000099879223853,
+        "inclusive_s": 0.3100105404155329
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 488,
+        "function": "parse",
+        "self_s": 0.07000025117304176,
+        "inclusive_s": 317.8297341670841
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 574,
+        "function": "_maybe_sample_minute",
+        "self_s": 0.06508799898438156,
+        "inclusive_s": 0.2600928738247603
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 1201,
+        "function": "<genexpr>",
+        "self_s": 0.06501137500163168,
+        "inclusive_s": 0.06501137500163168
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "CDemoPacket.ParseFromString",
+        "self_s": 0.060005123959854245,
+        "inclusive_s": 0.060005123959854245
+      },
+      {
+        "file": "src/gem/extractors/intervals.py",
+        "line": 272,
+        "function": "_on_tick_start",
+        "self_s": 0.055012166034430265,
+        "inclusive_s": 0.0650125410174951
+      },
+      {
+        "file": "src/gem/binary/stream.py",
+        "line": 173,
+        "function": "_snappy_decompress",
+        "self_s": 0.05500333511736244,
+        "inclusive_s": 0.43538612918928266
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "hasattr",
+        "self_s": 0.05500195734202862,
+        "inclusive_s": 0.05500195734202862
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 228,
+        "function": "pop_n_non_topo",
+        "self_s": 0.05500166502315551,
+        "inclusive_s": 0.2900110362097621
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 155,
+        "function": "push2_pack5_ln",
+        "self_s": 0.05000175104942173,
+        "inclusive_s": 0.19000633503310382
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "max",
+        "self_s": 0.049141832860186696,
+        "inclusive_s": 0.049141832860186696
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/enum.py",
+        "line": 980,
+        "function": "__or__",
+        "self_s": 0.04500270856078714,
+        "inclusive_s": 0.175004874705337
+      },
+      {
+        "file": "src/gem/schema/field_decoder/scalar_codecs.py",
+        "line": 57,
+        "function": "fixed64_decoder",
+        "self_s": 0.045001958729699254,
+        "inclusive_s": 0.40501987689640373
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 492,
+        "function": "read_string",
+        "self_s": 0.045001044985838234,
+        "inclusive_s": 0.1250048780348152
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 609,
+        "function": "_canonical_hero_entity",
+        "self_s": 0.04500070714857429,
+        "inclusive_s": 0.20501845853868872
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/enum.py",
+        "line": 359,
+        "function": "__call__",
+        "self_s": 0.04499962506815791,
+        "inclusive_s": 0.11500204110052437
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 1165,
+        "function": "<listcomp>",
+        "self_s": 0.04336324997711927,
+        "inclusive_s": 0.04336324997711927
+      },
+      {
+        "file": "src/gem/schema/field_state.py",
+        "line": 26,
+        "function": "__init__",
+        "self_s": 0.04007587709929794,
+        "inclusive_s": 0.04007587709929794
+      },
+      {
+        "file": "src/gem/extractors/smoke_vision.py",
+        "line": 100,
+        "function": "_on_entry",
+        "self_s": 0.04000124998856336,
+        "inclusive_s": 0.04000124998856336
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 204,
+        "function": "pop_all_but1_plus1",
+        "self_s": 0.040000915876589715,
+        "inclusive_s": 0.07500216597691178
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 73,
+        "function": "push1_ln_rn",
+        "self_s": 0.04000074928626418,
+        "inclusive_s": 0.16000787320081145
+      },
+      {
+        "file": "src/gem/extractors/objectives.py",
+        "line": 414,
+        "function": "_on_combat_log",
+        "self_s": 0.0400003339163959,
+        "inclusive_s": 0.05000070994719863
+      },
+      {
+        "file": "src/gem/combat/aggregator.py",
+        "line": 152,
+        "function": "_agg",
+        "self_s": 0.04000012425240129,
+        "inclusive_s": 0.04000012425240129
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 886,
+        "function": "build_parsed_match",
+        "self_s": 0.03773604112211615,
+        "inclusive_s": 2.4308305410668254
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 669,
+        "function": "_update_baselines",
+        "self_s": 0.035482876002788544,
+        "inclusive_s": 0.035482876002788544
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 558,
+        "function": "_maybe_sample",
+        "self_s": 0.03500337596051395,
+        "inclusive_s": 14.131367967813276
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 242,
+        "function": "non_topo_complex_pack4",
+        "self_s": 0.03500125324353576,
+        "inclusive_s": 0.09500546311028302
+      },
+      {
+        "file": "src/gem/extractors/_snapshots.py",
+        "line": 77,
+        "function": "_pos",
+        "self_s": 0.03500104206614196,
+        "inclusive_s": 0.5000142103526741
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 205,
+        "function": "<lambda>",
+        "self_s": 0.034998416900634766,
+        "inclusive_s": 0.034998416900634766
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 1204,
+        "function": "<listcomp>",
+        "self_s": 0.03449641598854214,
+        "inclusive_s": 0.03449641598854214
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "sorted",
+        "self_s": 0.03271920792758465,
+        "inclusive_s": 0.03271920792758465
+      },
+      {
+        "file": "src/gem/schema/field_path/huffman.py",
+        "line": 20,
+        "function": "is_leaf",
+        "self_s": 0.030003458843566477,
+        "inclusive_s": 0.030003458843566477
+      },
+      {
+        "file": "src/gem/schema/field_reader.py",
+        "line": 46,
+        "function": "_resolve_compact_field_decoder",
+        "self_s": 0.030002666171640158,
+        "inclusive_s": 0.04000316630117595
+      },
+      {
+        "file": "src/gem/schema/field_decoder/type_resolver.py",
+        "line": 76,
+        "function": "<listcomp>",
+        "self_s": 0.030001334263943136,
+        "inclusive_s": 0.2750096647068858
+      },
+      {
+        "file": "src/gem/combat/aggregator.py",
+        "line": 255,
+        "function": "<genexpr>",
+        "self_s": 0.030000834143720567,
+        "inclusive_s": 0.030000834143720567
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "tuple.__new__",
+        "self_s": 0.03000079095363617,
+        "inclusive_s": 0.03000079095363617
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 535,
+        "function": "_is_counted_opendota_death",
+        "self_s": 0.03000037488527596,
+        "inclusive_s": 0.03000037488527596
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 592,
+        "function": "_hero_handle_for_player",
+        "self_s": 0.030000125989317894,
+        "inclusive_s": 0.13001729315146804
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 693,
+        "function": "<genexpr>",
+        "self_s": 0.02999950002413243,
+        "inclusive_s": 0.02999950002413243
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 127,
+        "function": "__init__",
+        "self_s": 0.02500162401702255,
+        "inclusive_s": 0.03500304103363305
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "CSVCMsg_UpdateStringTable.ParseFromString",
+        "self_s": 0.025001375004649162,
+        "inclusive_s": 0.025001375004649162
+      },
+      {
+        "file": "src/gem/schema/field_decoder/type_resolver.py",
+        "line": 75,
+        "function": "decoder",
+        "self_s": 0.025001166970469058,
+        "inclusive_s": 0.30001083167735487
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "CSVCMsg_PacketEntities.ParseFromString",
+        "self_s": 0.025000625057145953,
+        "inclusive_s": 0.025000625057145953
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 692,
+        "function": "__post_init__",
+        "self_s": 0.022163375979289412,
+        "inclusive_s": 0.06716433400288224
+      },
+      {
+        "file": "src/gem/schema/sendtable/models.py",
+        "line": 265,
+        "function": "_resolve_in_serializer",
+        "self_s": 0.02000170887913555,
+        "inclusive_s": 0.03500216593965888
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 572,
+        "function": "_on_packet_entities",
+        "self_s": 0.020000623888336122,
+        "inclusive_s": 272.8935413818108
+      },
+      {
+        "file": "src/gem/extractors/_snapshots.py",
+        "line": 138,
+        "function": "_snapshot_player_id",
+        "self_s": 0.02000058302655816,
+        "inclusive_s": 0.09000295819714665
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 339,
+        "function": "_on_entity_game_start",
+        "self_s": 0.020000499906018376,
+        "inclusive_s": 0.8300253759371117
+      },
+      {
+        "file": "src/gem/schema/field_decoder/scalar_codecs.py",
+        "line": 52,
+        "function": "unsigned64_decoder",
+        "self_s": 0.020000374759547412,
+        "inclusive_s": 0.5900247868848965
+      },
+      {
+        "file": "src/gem/schema/sendtable/parser.py",
+        "line": 163,
+        "function": "_get_or_build_field",
+        "self_s": 0.020000290824100375,
+        "inclusive_s": 0.04000066593289375
+      },
+      {
+        "file": "src/gem/extractors/smoke_vision.py",
+        "line": 232,
+        "function": "<dictcomp>",
+        "self_s": 0.019088791916146874,
+        "inclusive_s": 0.019088791916146874
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "CDemoFullPacket.ParseFromString",
+        "self_s": 0.01525095896795392,
+        "inclusive_s": 0.01525095896795392
+      },
+      {
+        "file": "src/gem/combat/aggregator.py",
+        "line": 260,
+        "function": "_accumulate_inflictor_damage",
+        "self_s": 0.01500279305037111,
+        "inclusive_s": 0.020002918085083365
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 694,
+        "function": "<genexpr>",
+        "self_s": 0.0150014579994604,
+        "inclusive_s": 0.0150014579994604
+      },
+      {
+        "file": "src/gem/combat/aggregator.py",
+        "line": 73,
+        "function": "_is_unit_target",
+        "self_s": 0.015000875107944012,
+        "inclusive_s": 0.045001666294410825
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "CNETMsg_Tick.ParseFromString",
+        "self_s": 0.015000417013652623,
+        "inclusive_s": 0.015000417013652623
+      },
+      {
+        "file": "src/gem/schema/field_decoder/scalar_codecs.py",
+        "line": 37,
+        "function": "float_coord_decoder",
+        "self_s": 0.015000375919044018,
+        "inclusive_s": 0.080003292998299
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 272,
+        "function": "read_le_uint64",
+        "self_s": 0.01500029198359698,
+        "inclusive_s": 0.3600179181667045
+      },
+      {
+        "file": "src/gem/schema/field_reader.py",
+        "line": 36,
+        "function": "_resolve_compact_decoder",
+        "self_s": 0.01500024984125048,
+        "inclusive_s": 0.050003208103589714
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "divmod",
+        "self_s": 0.014999959152191877,
+        "inclusive_s": 0.014999959152191877
+      },
+      {
+        "file": "src/gem/extractors/courier.py",
+        "line": 107,
+        "function": "_sample",
+        "self_s": 0.010065166978165507,
+        "inclusive_s": 0.1250666230916977
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 416,
+        "function": "read_coord",
+        "self_s": 0.010001083952374756,
+        "inclusive_s": 0.06500291707925498
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 837,
+        "function": "_diff_inventory",
+        "self_s": 0.01000054192263633,
+        "inclusive_s": 0.01000054192263633
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 467,
+        "function": "_flush_game_end",
+        "self_s": 0.01000041700899601,
+        "inclusive_s": 0.01500029198359698
+      },
+      {
+        "file": "src/gem/extractors/draft.py",
+        "line": 210,
+        "function": "_update_live_map",
+        "self_s": 0.010000416077673435,
+        "inclusive_s": 0.09500258194748312
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "bytearray.decode",
+        "self_s": 0.01000037498306483,
+        "inclusive_s": 0.01000037498306483
+      },
+      {
+        "file": "src/gem/extractors/intervals.py",
+        "line": 409,
+        "function": "_refresh_player_mappings",
+        "self_s": 0.010000207927078009,
+        "inclusive_s": 0.6650189193896949
+      },
+      {
+        "file": "src/gem/schema/sendtable/parser.py",
+        "line": 65,
+        "function": "_symbol",
+        "self_s": 0.010000125039368868,
+        "inclusive_s": 0.010000125039368868
+      },
+      {
+        "file": "src/gem/schema/field_decoder/scalar_codecs.py",
+        "line": 17,
+        "function": "string_decoder",
+        "self_s": 0.010000083013437688,
+        "inclusive_s": 0.07000237610191107
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 739,
+        "function": "_nearest_pos",
+        "self_s": 0.009999916073866189,
+        "inclusive_s": 0.024998958106152713
+      },
+      {
+        "file": "src/gem/state/string_table.py",
+        "line": 97,
+        "function": "get_by_id",
+        "self_s": 0.009999749134294689,
+        "inclusive_s": 0.014999832026660442
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 239,
+        "function": "non_topo_penultimate_plus1",
+        "self_s": 0.009999707923270762,
+        "inclusive_s": 0.009999707923270762
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 644,
+        "function": "_source_slot",
+        "self_s": 0.0099996670614928,
+        "inclusive_s": 0.0099996670614928
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "bisect_left",
+        "self_s": 0.009999500005505979,
+        "inclusive_s": 0.009999500005505979
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "abs",
+        "self_s": 0.009996374137699604,
+        "inclusive_s": 0.009996374137699604
+      },
+      {
+        "file": "src/gem/analysis/spatial.py",
+        "line": 97,
+        "function": "net_worth_at",
+        "self_s": 0.009995709056966007,
+        "inclusive_s": 0.02499025024008006
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "CSVCMsg_FlattenedSerializer.ParseFromString",
+        "self_s": 0.006314124912023544,
+        "inclusive_s": 0.006314124912023544
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "CDOTAMatchMetadataFile.ParseFromString",
+        "self_s": 0.005111292004585266,
+        "inclusive_s": 0.005111292004585266
+      },
+      {
+        "file": "src/gem/extractors/wards.py",
+        "line": 262,
+        "function": "_on_ward_placed",
+        "self_s": 0.005001334007829428,
+        "inclusive_s": 0.010001625982113183
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 757,
+        "function": "_on_game_event",
+        "self_s": 0.005000957986339927,
+        "inclusive_s": 0.005000957986339927
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "dict.items",
+        "self_s": 0.005000709090381861,
+        "inclusive_s": 0.005000709090381861
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 365,
+        "function": "matches",
+        "self_s": 0.005000416073016822,
+        "inclusive_s": 0.01000025006942451
+      },
+      {
+        "file": "src/gem/extractors/objectives.py",
+        "line": 345,
+        "function": "_on_banner_unit",
+        "self_s": 0.005000375094823539,
+        "inclusive_s": 0.005000375094823539
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "CDOTAUserMsg_ChatEvent.ParseFromString",
+        "self_s": 0.005000334000214934,
+        "inclusive_s": 0.005000334000214934
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 54,
+        "function": "push1_l0_rn",
+        "self_s": 0.00500033306889236,
+        "inclusive_s": 0.015000416082330048
+      },
+      {
+        "file": "src/gem/schema/field_reader.py",
+        "line": 83,
+        "function": "_require_serializer",
+        "self_s": 0.005000292090699077,
+        "inclusive_s": 0.005000292090699077
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 544,
+        "function": "_resource_index",
+        "self_s": 0.00500029104296118,
+        "inclusive_s": 0.00500029104296118
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "dict.values",
+        "self_s": 0.005000290926545858,
+        "inclusive_s": 0.005000290926545858
+      },
+      {
+        "file": "src/gem/schema/sendtable/models.py",
+        "line": 133,
+        "function": "set_model",
+        "self_s": 0.005000208038836718,
+        "inclusive_s": 0.01000025006942451
+      },
+      {
+        "file": "src/gem/extractors/wards.py",
+        "line": 318,
+        "function": "_on_ward_left",
+        "self_s": 0.005000208038836718,
+        "inclusive_s": 0.005000208038836718
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 50,
+        "function": "push1_l0_r0",
+        "self_s": 0.005000207922421396,
+        "inclusive_s": 0.005000207922421396
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "any",
+        "self_s": 0.0050001670606434345,
+        "inclusive_s": 0.0050001670606434345
+      },
+      {
+        "file": "src/gem/combat/aggregator.py",
+        "line": 36,
+        "function": "_inflictor_key",
+        "self_s": 0.005000125034712255,
+        "inclusive_s": 0.005000125034712255
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "dict.update",
+        "self_s": 0.005000124918296933,
+        "inclusive_s": 0.005000124918296933
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 212,
+        "function": "pop_all_but1_plus_n_pack3",
+        "self_s": 0.005000124918296933,
+        "inclusive_s": 0.025000958936288953
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 196,
+        "function": "pop1_plus1",
+        "self_s": 0.0050000830087810755,
+        "inclusive_s": 0.020001500961370766
+      },
+      {
+        "file": "src/gem/combat/aggregator.py",
+        "line": 56,
+        "function": "_illusion_key",
+        "self_s": 0.0050000830087810755,
+        "inclusive_s": 0.0050000830087810755
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 296,
+        "function": "_hero_to_pid",
+        "self_s": 0.005000000004656613,
+        "inclusive_s": 0.1647354990709573
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 565,
+        "function": "_populate_opendota_teamfight_event",
+        "self_s": 0.005000000004656613,
+        "inclusive_s": 0.014999667066149414
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 705,
+        "function": "_nearest_snapshot",
+        "self_s": 0.004999542026780546,
+        "inclusive_s": 0.014999042032286525
+      },
+      {
+        "file": "<built-in>",
+        "line": 0,
+        "function": "dist",
+        "self_s": 0.004999457974918187,
+        "inclusive_s": 0.004999457974918187
+      },
+      {
+        "file": "src/gem/results/derived.py",
+        "line": 25,
+        "function": "killed_counts",
+        "self_s": 0.004999415948987007,
+        "inclusive_s": 0.004999415948987007
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 376,
+        "function": "minute_time_series",
+        "self_s": 0.0049982499331235886,
+        "inclusive_s": 0.0049982499331235886
+      },
+      {
+        "file": "src/gem/analysis/spatial.py",
+        "line": 118,
+        "function": "<lambda>",
+        "self_s": 0.004998167045414448,
+        "inclusive_s": 0.014994541183114052
+      },
+      {
+        "file": "scripts/profile_parser.py",
+        "line": 94,
+        "function": "_run",
+        "self_s": 0.0,
+        "inclusive_s": 320.27965350006707
+      },
+      {
+        "file": "src/gem/api.py",
+        "line": 130,
+        "function": "parse",
+        "self_s": 0.0,
+        "inclusive_s": 320.27965350006707
+      },
+      {
+        "file": "scripts/profile_parser.py",
+        "line": 147,
+        "function": "checked_parse",
+        "self_s": 0.0,
+        "inclusive_s": 317.8297341670841
+      },
+      {
+        "file": "src/gem/state/string_table.py",
+        "line": 204,
+        "function": "handle_create",
+        "self_s": 0.0,
+        "inclusive_s": 0.08001016709022224
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 718,
+        "function": "_on_send_tables",
+        "self_s": 0.0,
+        "inclusive_s": 0.13631941692437977
+      },
+      {
+        "file": "src/gem/schema/sendtable/parser.py",
+        "line": 44,
+        "function": "_parse_flattened_serializer",
+        "self_s": 0.0,
+        "inclusive_s": 0.006314124912023544
+      },
+      {
+        "file": "src/gem/schema/sendtable/parser.py",
+        "line": 86,
+        "function": "_build_field",
+        "self_s": 0.0,
+        "inclusive_s": 0.010000125039368868
+      },
+      {
+        "file": "src/gem/schema/sendtable/parser.py",
+        "line": 74,
+        "function": "_optional_symbol",
+        "self_s": 0.0,
+        "inclusive_s": 0.010000125039368868
+      },
+      {
+        "file": "<frozen importlib._bootstrap>",
+        "line": 1053,
+        "function": "_handle_fromlist",
+        "self_s": 0.0,
+        "inclusive_s": 0.005000042030587792
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 743,
+        "function": "_on_class_info",
+        "self_s": 0.0,
+        "inclusive_s": 0.01000025006942451
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 537,
+        "function": "on_class_info",
+        "self_s": 0.0,
+        "inclusive_s": 0.01000025006942451
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 424,
+        "function": "_on_class_info",
+        "self_s": 0.0,
+        "inclusive_s": 0.01000025006942451
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 427,
+        "function": "<dictcomp>",
+        "self_s": 0.0,
+        "inclusive_s": 0.01000025006942451
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 428,
+        "function": "<genexpr>",
+        "self_s": 0.0,
+        "inclusive_s": 0.01000025006942451
+      },
+      {
+        "file": "src/gem/extractors/intervals.py",
+        "line": 528,
+        "function": "_record_team_data",
+        "self_s": 0.0,
+        "inclusive_s": 0.020000332850031555
+      },
+      {
+        "file": "src/gem/schema/sendtable/models.py",
+        "line": 249,
+        "function": "<genexpr>",
+        "self_s": 0.0,
+        "inclusive_s": 0.03500216593965888
+      },
+      {
+        "file": "src/gem/schema/sendtable/models.py",
+        "line": 235,
+        "function": "_resolve_field",
+        "self_s": 0.0,
+        "inclusive_s": 0.03500216593965888
+      },
+      {
+        "file": "src/gem/schema/sendtable/models.py",
+        "line": 258,
+        "function": "_find_field_path",
+        "self_s": 0.0,
+        "inclusive_s": 0.03500216593965888
+      },
+      {
+        "file": "src/gem/schema/sendtable/models.py",
+        "line": 278,
+        "function": "_resolve_in_field",
+        "self_s": 0.0,
+        "inclusive_s": 0.005000207922421396
+      },
+      {
+        "file": "src/gem/schema/field_decoder/composite_codecs.py",
+        "line": 39,
+        "function": "coord_angle",
+        "self_s": 0.0,
+        "inclusive_s": 0.005000125034712255
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 521,
+        "function": "_refresh_team_slots",
+        "self_s": 0.0,
+        "inclusive_s": 0.6900156738702208
+      },
+      {
+        "file": "src/gem/combat/aggregator.py",
+        "line": 161,
+        "function": "_summon_to_pid",
+        "self_s": 0.0,
+        "inclusive_s": 8.89626971737016
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 555,
+        "function": "on_baseline_updated",
+        "self_s": 0.0,
+        "inclusive_s": 0.035482876002788544
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 162,
+        "function": "push3_ln",
+        "self_s": 0.0,
+        "inclusive_s": 0.05000241694506258
+      },
+      {
+        "file": "src/gem/schema/field_decoder/scalar_codecs.py",
+        "line": 42,
+        "function": "simulation_time_decoder",
+        "self_s": 0.0,
+        "inclusive_s": 0.010001126094721258
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 509,
+        "function": "_remove_hero",
+        "self_s": 0.0,
+        "inclusive_s": 0.005000249948352575
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 308,
+        "function": "_source_to_pid",
+        "self_s": 0.0,
+        "inclusive_s": 0.1597354990663007
+      },
+      {
+        "file": "src/gem/extractors/objectives.py",
+        "line": 322,
+        "function": "_on_entity",
+        "self_s": 0.0,
+        "inclusive_s": 0.005000375094823539
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 200,
+        "function": "pop1_plus_n",
+        "self_s": 0.0,
+        "inclusive_s": 0.005000625038519502
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 221,
+        "function": "_on_game_end",
+        "self_s": 0.0,
+        "inclusive_s": 0.004999874974600971
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 825,
+        "function": "_on_match_metadata",
+        "self_s": 0.0,
+        "inclusive_s": 0.005111292004585266
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 123,
+        "function": "push2_pack5_l1",
+        "self_s": 0.0,
+        "inclusive_s": 0.005000417004339397
+      },
+      {
+        "file": "src/gem/extractors/smoke_vision.py",
+        "line": 210,
+        "function": "finalize",
+        "self_s": 0.0,
+        "inclusive_s": 0.011905874940566719
+      },
+      {
+        "file": "src/gem/extractors/smoke_vision.py",
+        "line": 230,
+        "function": "_team_by_npc",
+        "self_s": 0.0,
+        "inclusive_s": 0.019088791916146874
+      },
+      {
+        "file": "src/gem/extractors/smoke_vision.py",
+        "line": 123,
+        "function": "finalize",
+        "self_s": 0.0,
+        "inclusive_s": 0.007182916975580156
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 268,
+        "function": "_build_objectives",
+        "self_s": 0.0,
+        "inclusive_s": 0.019997374969534576
+      },
+      {
+        "file": "src/gem/combat/aggregator.py",
+        "line": 201,
+        "function": "resolve_kill_pid",
+        "self_s": 0.0,
+        "inclusive_s": 0.019997374969534576
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 1164,
+        "function": "<dictcomp>",
+        "self_s": 0.0,
+        "inclusive_s": 0.04336324997711927
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 697,
+        "function": "_prepare_snapshot_lookups",
+        "self_s": 0.0,
+        "inclusive_s": 0.06716433400288224
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 702,
+        "function": "<dictcomp>",
+        "self_s": 0.0,
+        "inclusive_s": 0.06716433400288224
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 651,
+        "function": "_near_fight",
+        "self_s": 0.0,
+        "inclusive_s": 0.0299984160810709
+      }
+    ]
+  }
+}
