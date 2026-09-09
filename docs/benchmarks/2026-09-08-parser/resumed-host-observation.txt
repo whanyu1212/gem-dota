@@ -1,0 +1,28 @@
+Read-only observations during the resumed memory-core-8856501050 run,
+8 September 2026 UTC (9 September in Singapore).
+These are diagnostic host observations, not baseline measurements.
+
+ps -p 2291 -o pid=,etime=,time=,%cpu=,rss=,state=
+ 2291 14:17  11:59.87  92.6 109072 R
+ 2291 18:26  15:38.03  45.9  46320 R
+RSS in these ps observations is KiB. The process was the harness's
+long-core allocation-tracing child.
+
+vm_stat excerpt:
+  page size:                       16384 bytes
+  Pages free:                       4270
+  Pages active:                    176135
+  Pages inactive:                  169074
+  Pages speculative:                 5999
+  Pages wired down:                241468
+  Pages stored in compressor:     2051644
+  Pages occupied by compressor:    413999
+  Swapins:                        7039590
+  Swapouts:                       9192729
+
+memory_pressure excerpt:
+  Physical memory: 17179869184 bytes
+  System-wide memory free percentage: 35%
+
+Swap/compression event counts are cumulative, not rates measured for this
+run. These observations do not isolate a causal explanation for its slowdown.

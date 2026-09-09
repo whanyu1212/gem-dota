@@ -1,0 +1,4800 @@
+{
+  "started_utc": "2026-09-08T16:17:24.090707+00:00",
+  "mode": "cprofile",
+  "scenario": "public",
+  "commit": "e3ec865e8d4831a2f7518663cec10a0ae0136283",
+  "harness_sha256": "3b130052940674c4768dc0c3c60c3fb1fb4d0214a1fbfeeb441a2145f693b85c",
+  "python": "3.10.4 (main, Sep 12 2023, 14:13:09) [Clang 14.0.3 (clang-1403.0.22.14.1)]",
+  "executable": "/Users/hanyuwu/Study/gem/.venv/bin/python",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "machine": "arm64",
+  "cpu_count": 8,
+  "gc_enabled": true,
+  "hash_seed": "0",
+  "packages": {
+    "tomli": "2.4.0",
+    "pexpect": "4.9.0",
+    "platformdirs": "4.9.4",
+    "identify": "2.6.17",
+    "traitlets": "5.14.3",
+    "exceptiongroup": "1.3.1",
+    "tornado": "6.5.5",
+    "numpy": "2.2.6",
+    "nest-asyncio": "1.6.0",
+    "asttokens": "3.0.1",
+    "ptyprocess": "0.7.0",
+    "tzdata": "2025.3",
+    "iniconfig": "2.3.0",
+    "nodeenv": "1.10.0",
+    "plotly": "6.6.0",
+    "cfgv": "3.5.0",
+    "gem-dota": "0.8.0",
+    "executing": "2.2.1",
+    "ipython": "8.38.0",
+    "jedi": "0.19.2",
+    "debugpy": "1.8.20",
+    "virtualenv": "21.1.0",
+    "distlib": "0.4.0",
+    "zstandard": "0.25.0",
+    "mypy": "1.19.1",
+    "rich": "14.3.3",
+    "appnope": "0.1.4",
+    "librt": "0.8.1",
+    "pillow": "12.1.1",
+    "prompt_toolkit": "3.0.52",
+    "decorator": "5.2.1",
+    "protobuf": "7.34.0",
+    "jupyter_client": "8.8.0",
+    "stack-data": "0.6.3",
+    "protoc-wheel-0": "30.2",
+    "markdown-it-py": "4.0.0",
+    "ipykernel": "7.2.0",
+    "matplotlib-inline": "0.2.1",
+    "pytz": "2026.1.post1",
+    "narwhals": "2.17.0",
+    "mdurl": "0.1.2",
+    "pathspec": "1.0.4",
+    "python-dateutil": "2.9.0.post0",
+    "PyYAML": "6.0.3",
+    "parso": "0.8.6",
+    "cramjam": "2.11.0",
+    "wcwidth": "0.6.0",
+    "typing_extensions": "4.15.0",
+    "jupyter_core": "5.9.1",
+    "ruff": "0.15.5",
+    "Jinja2": "3.1.6",
+    "python-discovery": "1.1.1",
+    "pandas": "2.3.3",
+    "MarkupSafe": "3.0.3",
+    "pure_eval": "0.2.3",
+    "pluggy": "1.6.0",
+    "Pygments": "2.19.2",
+    "coverage": "7.13.4",
+    "pre_commit": "4.5.1",
+    "packaging": "26.0",
+    "pymdown-extensions": "10.21",
+    "psutil": "7.2.2",
+    "filelock": "3.25.0",
+    "python-snappy": "0.7.3",
+    "Markdown": "3.10.2",
+    "mypy_extensions": "1.1.0",
+    "six": "1.17.0",
+    "pyzmq": "27.1.0",
+    "pytest-cov": "7.0.0",
+    "pytest": "9.0.2",
+    "comm": "0.2.3"
+  },
+  "fixture": {
+    "match_id": 8822520406,
+    "duration": 1397,
+    "dem_size_bytes": 98983300,
+    "dem_sha256": "5f976ab73b2efb0e4eca9f7f14d5980f3aae5f63e7952e16a8497eeded57d39d"
+  },
+  "power_start": "Now drawing from 'AC Power'\n -InternalBattery-0 (id=36044899)\t80%; AC attached; not charging present: true",
+  "rss_before_bytes": 51560448,
+  "load_start": [
+    11.20556640625,
+    11.8291015625,
+    9.69970703125
+  ],
+  "elapsed_s": 165.61731133400463,
+  "user_s": 158.928211,
+  "system_s": 1.754458,
+  "peak_rss_bytes": 197033984,
+  "rss_after_parse_bytes": 109740032,
+  "load_end": [
+    5.1591796875,
+    8.91943359375,
+    8.8671875
+  ],
+  "parser": {
+    "match_id": 8822520406,
+    "tick": 102642,
+    "game_build": 6792
+  },
+  "rss_after_gc_bytes": 115441664,
+  "power_end": "Now drawing from 'AC Power'\n -InternalBattery-0 (id=36044899)\t80%; AC attached; not charging present: true",
+  "output": {
+    "bytes": 30401205,
+    "sha256": "3b0844312187a2856743092e991ab425878d64e101d91cf8f9c83bb2b3580427",
+    "players": 10,
+    "combat_log_entries": 44686,
+    "duration": 1397
+  },
+  "cprofile": {
+    "total_s": 165.4006880799998,
+    "functions": [
+      {
+        "file": "src/gem/schema/field_path/path_sequence.py",
+        "line": 21,
+        "function": "_read_compact_field_paths",
+        "primitive_calls": 5272673,
+        "calls": 5272673,
+        "self_s": 25.338821767000002,
+        "inclusive_s": 45.597982253000005
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 69,
+        "function": "read_bits",
+        "primitive_calls": 34056940,
+        "calls": 34056940,
+        "self_s": 19.183437969,
+        "inclusive_s": 20.246659702000002
+      },
+      {
+        "file": "src/gem/schema/field_state.py",
+        "line": 130,
+        "function": "_set_compact",
+        "primitive_calls": 9962805,
+        "calls": 9962805,
+        "self_s": 9.459199078000001,
+        "inclusive_s": 12.721644795000001
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 576,
+        "function": "_decode_packet_entities",
+        "primitive_calls": 51370,
+        "calls": 51370,
+        "self_s": 9.229530292,
+        "inclusive_s": 146.95038347300002
+      },
+      {
+        "file": "src/gem/schema/field_reader.py",
+        "line": 111,
+        "function": "read_fields",
+        "primitive_calls": 5272673,
+        "calls": 5272673,
+        "self_s": 9.028806732000001,
+        "inclusive_s": 89.303372216
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 107,
+        "function": "read_boolean",
+        "primitive_calls": 11945160,
+        "calls": 11945160,
+        "self_s": 4.9097882120000005,
+        "inclusive_s": 4.9273762340000005
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 438,
+        "function": "_on_entity",
+        "primitive_calls": 2169028,
+        "calls": 2169028,
+        "self_s": 4.862211273000001,
+        "inclusive_s": 15.05548993
+      },
+      {
+        "file": "src/gem/schema/field_state.py",
+        "line": 66,
+        "function": "_get_compact",
+        "primitive_calls": 4100949,
+        "calls": 4100949,
+        "self_s": 4.456762724,
+        "inclusive_s": 5.536948172000001
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 284,
+        "function": "read_varuint32",
+        "primitive_calls": 5060472,
+        "calls": 5060472,
+        "self_s": 4.172504719,
+        "inclusive_s": 9.881729979000001
+      },
+      {
+        "file": "src/gem/extractors/intervals.py",
+        "line": 316,
+        "function": "_on_entity",
+        "primitive_calls": 1428797,
+        "calls": 1428797,
+        "self_s": 3.7825073160000002,
+        "inclusive_s": 11.618784689
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 436,
+        "function": "_dispatch",
+        "primitive_calls": 5270100,
+        "calls": 5270100,
+        "self_s": 3.7135768970000003,
+        "inclusive_s": 38.344229689
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 360,
+        "function": "read_ubit_var",
+        "primitive_calls": 6160587,
+        "calls": 6160587,
+        "self_s": 3.695089641,
+        "inclusive_s": 9.404168544000001
+      },
+      {
+        "file": "src/gem/extractors/_snapshots.py",
+        "line": 142,
+        "function": "_resolve_player_id",
+        "primitive_calls": 3556127,
+        "calls": 3556127,
+        "self_s": 3.4707657170000004,
+        "inclusive_s": 4.036872876
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 384,
+        "function": "read_ubit_var_fp",
+        "primitive_calls": 4478441,
+        "calls": 4478441,
+        "self_s": 3.365235359,
+        "inclusive_s": 9.922223865000001
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method builtins.len>",
+        "primitive_calls": 44806952,
+        "calls": 44806952,
+        "self_s": 2.948093139,
+        "inclusive_s": 2.948093139
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 152,
+        "function": "read_bytes",
+        "primitive_calls": 870099,
+        "calls": 870099,
+        "self_s": 2.757112577,
+        "inclusive_s": 3.8096481160000004
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 182,
+        "function": "_get_int32_resolved",
+        "primitive_calls": 4627829,
+        "calls": 4627829,
+        "self_s": 2.4179517170000002,
+        "inclusive_s": 7.206196635
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method builtins.isinstance>",
+        "primitive_calls": 29555641,
+        "calls": 29555641,
+        "self_s": 2.399375962,
+        "inclusive_s": 2.399375962
+      },
+      {
+        "file": "src/gem/schema/field_decoder/scalar_codecs.py",
+        "line": 32,
+        "function": "noscale_decoder",
+        "primitive_calls": 3009952,
+        "calls": 3009952,
+        "self_s": 2.269236648,
+        "inclusive_s": 6.455756142
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method _struct.unpack_from>",
+        "primitive_calls": 11460193,
+        "calls": 11460193,
+        "self_s": 2.2106645460000003,
+        "inclusive_s": 2.2106645460000003
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 131,
+        "function": "_read_byte",
+        "primitive_calls": 7169732,
+        "calls": 7169732,
+        "self_s": 2.150273237,
+        "inclusive_s": 5.913115085
+      },
+      {
+        "file": "src/gem/extractors/wards.py",
+        "line": 224,
+        "function": "_on_entity",
+        "primitive_calls": 1332472,
+        "calls": 1332472,
+        "self_s": 2.0192267800000003,
+        "inclusive_s": 4.456297612
+      },
+      {
+        "file": "src/gem/schema/field_decoder/quantized_float.py",
+        "line": 131,
+        "function": "decode",
+        "primitive_calls": 2325581,
+        "calls": 2325581,
+        "self_s": 1.707939104,
+        "inclusive_s": 3.3335236750000004
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'get' of 'dict' objects>",
+        "primitive_calls": 20306619,
+        "calls": 20306619,
+        "self_s": 1.6823480240000002,
+        "inclusive_s": 1.6823480240000002
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 47,
+        "function": "plus_n",
+        "primitive_calls": 3845036,
+        "calls": 3845036,
+        "self_s": 1.65971006,
+        "inclusive_s": 10.070753624
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 63,
+        "function": "has",
+        "primitive_calls": 4045451,
+        "calls": 4045451,
+        "self_s": 1.6198963460000002,
+        "inclusive_s": 1.9400740150000002
+      },
+      {
+        "file": "src/gem/schema/field_path/models.py",
+        "line": 25,
+        "function": "__init__",
+        "primitive_calls": 5274740,
+        "calls": 5274740,
+        "self_s": 1.407031544,
+        "inclusive_s": 1.407031544
+      },
+      {
+        "file": "src/gem/extractors/_snapshots.py",
+        "line": 96,
+        "function": "_player_id_from_entity",
+        "primitive_calls": 3497975,
+        "calls": 3497975,
+        "self_s": 1.224322071,
+        "inclusive_s": 5.174181158000001
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 307,
+        "function": "read_varint32",
+        "primitive_calls": 2233256,
+        "calls": 2233256,
+        "self_s": 1.16675637,
+        "inclusive_s": 6.171042678
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 177,
+        "function": "_read_inner_messages",
+        "primitive_calls": 51380,
+        "calls": 51380,
+        "self_s": 1.0003758390000002,
+        "inclusive_s": 7.287399366000001
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'append' of 'list' objects>",
+        "primitive_calls": 13003231,
+        "calls": 13003231,
+        "self_s": 0.9885542530000001,
+        "inclusive_s": 0.9885542530000001
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'startswith' of 'str' objects>",
+        "primitive_calls": 5317660,
+        "calls": 5317660,
+        "self_s": 0.9253359470000001,
+        "inclusive_s": 0.9253359470000001
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 731,
+        "function": "find_by_npc_name",
+        "primitive_calls": 621,
+        "calls": 621,
+        "self_s": 0.925098105,
+        "inclusive_s": 2.133371838
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 618,
+        "function": "_dispatch_inner",
+        "primitive_calls": 722197,
+        "calls": 722197,
+        "self_s": 0.8127910740000001,
+        "inclusive_s": 155.33425307000002
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 320,
+        "function": "get_class_name",
+        "primitive_calls": 7878439,
+        "calls": 7878439,
+        "self_s": 0.804005924,
+        "inclusive_s": 0.804005924
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 166,
+        "function": "_resolve_fields",
+        "primitive_calls": 2302556,
+        "calls": 2302556,
+        "self_s": 0.780325381,
+        "inclusive_s": 1.225019652
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 733,
+        "function": "_read_abilities",
+        "primitive_calls": 16040,
+        "calls": 16040,
+        "self_s": 0.737675759,
+        "inclusive_s": 3.2084113320000003
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 190,
+        "function": "_get_uint32_resolved",
+        "primitive_calls": 1371845,
+        "calls": 1371845,
+        "self_s": 0.7330981240000001,
+        "inclusive_s": 1.715283936
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 247,
+        "function": "finish",
+        "primitive_calls": 5272673,
+        "calls": 5272673,
+        "self_s": 0.720149786,
+        "inclusive_s": 0.720149786
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 720,
+        "function": "find_by_class_name",
+        "primitive_calls": 51372,
+        "calls": 51372,
+        "self_s": 0.690154386,
+        "inclusive_s": 0.883140271
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 83,
+        "function": "push1_ln_rn_pack8",
+        "primitive_calls": 884615,
+        "calls": 884615,
+        "self_s": 0.6740313360000001,
+        "inclusive_s": 1.4267673060000001
+      },
+      {
+        "file": "src/gem/schema/field_decoder/scalar_codecs.py",
+        "line": 27,
+        "function": "signed_decoder",
+        "primitive_calls": 2128119,
+        "calls": 2128119,
+        "self_s": 0.665461658,
+        "inclusive_s": 6.598912407
+      },
+      {
+        "file": "src/gem/extractors/intervals.py",
+        "line": 566,
+        "function": "_record_team_counters",
+        "primitive_calls": 45561,
+        "calls": 45561,
+        "self_s": 0.634617616,
+        "inclusive_s": 4.1493814680000005
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method _struct.pack>",
+        "primitive_calls": 3009952,
+        "calls": 3009952,
+        "self_s": 0.6060939430000001,
+        "inclusive_s": 0.6060939430000001
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 35,
+        "function": "plus_one",
+        "primitive_calls": 3036135,
+        "calls": 3036135,
+        "self_s": 0.551797846,
+        "inclusive_s": 0.551797846
+      },
+      {
+        "file": "src/gem/extractors/courier.py",
+        "line": 87,
+        "function": "_on_entity",
+        "primitive_calls": 346752,
+        "calls": 346752,
+        "self_s": 0.551179231,
+        "inclusive_s": 1.086978279
+      },
+      {
+        "file": "src/gem/schema/field_decoder/scalar_codecs.py",
+        "line": 22,
+        "function": "unsigned_decoder",
+        "primitive_calls": 1842143,
+        "calls": 1842143,
+        "self_s": 0.5430784670000001,
+        "inclusive_s": 3.6822309460000002
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method _struct.unpack>",
+        "primitive_calls": 3009952,
+        "calls": 3009952,
+        "self_s": 0.531064791,
+        "inclusive_s": 0.531064791
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 493,
+        "function": "_hero_aliases",
+        "primitive_calls": 1330202,
+        "calls": 1330202,
+        "self_s": 0.44609261,
+        "inclusive_s": 0.567896615
+      },
+      {
+        "file": "src/gem/combat/log.py",
+        "line": 383,
+        "function": "process_s2_entry",
+        "primitive_calls": 44604,
+        "calls": 44604,
+        "self_s": 0.42464792900000004,
+        "inclusive_s": 3.5745825570000003
+      },
+      {
+        "file": "src/gem/schema/sendtable/models.py",
+        "line": 244,
+        "function": "_resolve_plan",
+        "primitive_calls": 2302556,
+        "calls": 2302556,
+        "self_s": 0.391382632,
+        "inclusive_s": 0.44469427100000003
+      },
+      {
+        "file": "src/gem/schema/field_path/models.py",
+        "line": 36,
+        "function": "pop",
+        "primitive_calls": 611796,
+        "calls": 611796,
+        "self_s": 0.379804059,
+        "inclusive_s": 0.379804059
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 332,
+        "function": "get_serial",
+        "primitive_calls": 3990522,
+        "calls": 3990522,
+        "self_s": 0.361773756,
+        "inclusive_s": 0.361773756
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 587,
+        "function": "_dispatch_inner_packet",
+        "primitive_calls": 51380,
+        "calls": 51380,
+        "self_s": 0.359794816,
+        "inclusive_s": 163.57497937600002
+      },
+      {
+        "file": "src/gem/state/string_table.py",
+        "line": 114,
+        "function": "parse_string_table",
+        "primitive_calls": 32804,
+        "calls": 32804,
+        "self_s": 0.359460785,
+        "inclusive_s": 1.895453269
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method from_bytes>",
+        "primitive_calls": 687112,
+        "calls": 687112,
+        "self_s": 0.313074452,
+        "inclusive_s": 0.313074452
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'to_bytes' of 'int' objects>",
+        "primitive_calls": 1466488,
+        "calls": 1466488,
+        "self_s": 0.300394449,
+        "inclusive_s": 0.300394449
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 328,
+        "function": "get_index",
+        "primitive_calls": 3009435,
+        "calls": 3009435,
+        "self_s": 0.300315679,
+        "inclusive_s": 0.300315679
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method snappy.decompress_raw>",
+        "primitive_calls": 41013,
+        "calls": 41013,
+        "self_s": 0.29990020700000003,
+        "inclusive_s": 0.29990020700000003
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 354,
+        "function": "_update_game_clock",
+        "primitive_calls": 102681,
+        "calls": 102681,
+        "self_s": 0.279591682,
+        "inclusive_s": 1.196260512
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 789,
+        "function": "_read_inventory",
+        "primitive_calls": 15810,
+        "calls": 15810,
+        "self_s": 0.26720876800000004,
+        "inclusive_s": 1.245112161
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 208,
+        "function": "pop_all_but1_plus_n",
+        "primitive_calls": 330742,
+        "calls": 330742,
+        "self_s": 0.256491046,
+        "inclusive_s": 1.387500339
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 594,
+        "function": "_priority",
+        "primitive_calls": 722197,
+        "calls": 722197,
+        "self_s": 0.24344158200000002,
+        "inclusive_s": 0.24344158200000002
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 78,
+        "function": "push1_ln_rn_pack6",
+        "primitive_calls": 299455,
+        "calls": 299455,
+        "self_s": 0.241802444,
+        "inclusive_s": 0.494589496
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 696,
+        "function": "find_by_handle",
+        "primitive_calls": 502259,
+        "calls": 502259,
+        "self_s": 0.24003301200000002,
+        "inclusive_s": 0.43150692900000004
+      },
+      {
+        "file": "src/gem/binary/stream.py",
+        "line": 127,
+        "function": "_read_message",
+        "primitive_calls": 51391,
+        "calls": 51391,
+        "self_s": 0.235120247,
+        "inclusive_s": 0.940027252
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 568,
+        "function": "rem_bits",
+        "primitive_calls": 886932,
+        "calls": 886932,
+        "self_s": 0.226542035,
+        "inclusive_s": 0.226542035
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 206,
+        "function": "_get_float32_resolved",
+        "primitive_calls": 264314,
+        "calls": 264314,
+        "self_s": 0.21207114500000002,
+        "inclusive_s": 0.49837017000000006
+      },
+      {
+        "file": "src/gem/binary/stream.py",
+        "line": 106,
+        "function": "_read_varuint32",
+        "primitive_calls": 154170,
+        "calls": 154170,
+        "self_s": 0.209008522,
+        "inclusive_s": 0.209008522
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method builtins.min>",
+        "primitive_calls": 853054,
+        "calls": 853054,
+        "self_s": 0.203014997,
+        "inclusive_s": 0.203014997
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 620,
+        "function": "_sample",
+        "primitive_calls": 2521,
+        "calls": 2521,
+        "self_s": 0.200865797,
+        "inclusive_s": 5.790350050000001
+      },
+      {
+        "file": "src/gem/combat/aggregator.py",
+        "line": 322,
+        "function": "on_entry",
+        "primitive_calls": 44686,
+        "calls": 44686,
+        "self_s": 0.192110687,
+        "inclusive_s": 2.670634252
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 608,
+        "function": "<lambda>",
+        "primitive_calls": 722197,
+        "calls": 722197,
+        "self_s": 0.18463604900000002,
+        "inclusive_s": 0.428077631
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 549,
+        "function": "_dispatch_outer",
+        "primitive_calls": 51390,
+        "calls": 51390,
+        "self_s": 0.17752293100000002,
+        "inclusive_s": 164.03680656
+      },
+      {
+        "file": "src/gem/state/string_table.py",
+        "line": 260,
+        "function": "handle_update",
+        "primitive_calls": 32784,
+        "calls": 32784,
+        "self_s": 0.175183042,
+        "inclusive_s": 1.9808155230000002
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 440,
+        "function": "read_angle",
+        "primitive_calls": 346436,
+        "calls": 346436,
+        "self_s": 0.173215326,
+        "inclusive_s": 0.40738848000000005
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 216,
+        "function": "pop_all_but1_plus_n_pack6",
+        "primitive_calls": 230330,
+        "calls": 230330,
+        "self_s": 0.17258998,
+        "inclusive_s": 0.42192446100000003
+      },
+      {
+        "file": "src/gem/extractors/draft.py",
+        "line": 253,
+        "function": "_check_draft",
+        "primitive_calls": 15097,
+        "calls": 15097,
+        "self_s": 0.163132236,
+        "inclusive_s": 1.1079772760000002
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 686,
+        "function": "find",
+        "primitive_calls": 502259,
+        "calls": 502259,
+        "self_s": 0.159800721,
+        "inclusive_s": 0.19147391700000002
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'lower' of 'str' objects>",
+        "primitive_calls": 1427584,
+        "calls": 1427584,
+        "self_s": 0.15733163900000002,
+        "inclusive_s": 0.15733163900000002
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'ParseFromString' of 'google._upb._message.Message' objects>",
+        "primitive_calls": 232259,
+        "calls": 232259,
+        "self_s": 0.156081888,
+        "inclusive_s": 0.156081888
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 170,
+        "function": "detect_teamfights",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 0.153253317,
+        "inclusive_s": 0.193569458
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'sort' of 'list' objects>",
+        "primitive_calls": 51381,
+        "calls": 51381,
+        "self_s": 0.148558051,
+        "inclusive_s": 0.5766368070000001
+      },
+      {
+        "file": "src/gem/schema/sendtable/parser.py",
+        "line": 210,
+        "function": "parse_send_tables",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 0.127176818,
+        "inclusive_s": 0.224750042
+      },
+      {
+        "file": "src/gem/extractors/courier.py",
+        "line": 98,
+        "function": "_maybe_sample",
+        "primitive_calls": 346752,
+        "calls": 346752,
+        "self_s": 0.125686393,
+        "inclusive_s": 0.21443540400000002
+      },
+      {
+        "file": "src/gem/schema/field_decoder/composite_codecs.py",
+        "line": 26,
+        "function": "pitch_yaw",
+        "primitive_calls": 173218,
+        "calls": 173218,
+        "self_s": 0.122175742,
+        "inclusive_s": 0.5295642220000001
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'join' of 'bytes' objects>",
+        "primitive_calls": 853051,
+        "calls": 853051,
+        "self_s": 0.121301373,
+        "inclusive_s": 0.121301373
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 231,
+        "function": "read_bits_as_bytes",
+        "primitive_calls": 113359,
+        "calls": 113359,
+        "self_s": 0.12074203200000001,
+        "inclusive_s": 0.669774729
+      },
+      {
+        "file": "src/gem/combat/log.py",
+        "line": 296,
+        "function": "_emit",
+        "primitive_calls": 44686,
+        "calls": 44686,
+        "self_s": 0.114087003,
+        "inclusive_s": 2.916812354
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 58,
+        "function": "push1_l1_r0",
+        "primitive_calls": 233871,
+        "calls": 233871,
+        "self_s": 0.10150892600000001,
+        "inclusive_s": 0.10150892600000001
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 48,
+        "function": "_next_byte",
+        "primitive_calls": 313733,
+        "calls": 313733,
+        "self_s": 0.09827020600000001,
+        "inclusive_s": 0.09827020600000001
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 155,
+        "function": "push2_pack5_ln",
+        "primitive_calls": 21939,
+        "calls": 21939,
+        "self_s": 0.09340076,
+        "inclusive_s": 0.156786592
+      },
+      {
+        "file": "src/gem/extractors/_snapshots.py",
+        "line": 327,
+        "function": "_build_hero_snapshot",
+        "primitive_calls": 16040,
+        "calls": 16040,
+        "self_s": 0.09167686400000001,
+        "inclusive_s": 0.493656254
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 488,
+        "function": "parse",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 0.079456131,
+        "inclusive_s": 165.113867333
+      },
+      {
+        "file": "src/gem/extractors/_snapshots.py",
+        "line": 229,
+        "function": "scan_player_resource",
+        "primitive_calls": 3444,
+        "calls": 3444,
+        "self_s": 0.079325395,
+        "inclusive_s": 0.5380501050000001
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 37,
+        "function": "__init__",
+        "primitive_calls": 144134,
+        "calls": 144134,
+        "self_s": 0.077546448,
+        "inclusive_s": 0.09300219300000001
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 322,
+        "function": "read_varuint64",
+        "primitive_calls": 34816,
+        "calls": 34816,
+        "self_s": 0.07589024100000001,
+        "inclusive_s": 0.19570414400000002
+      },
+      {
+        "file": "src/gem/combat/aggregator.py",
+        "line": 157,
+        "function": "_hero_to_pid",
+        "primitive_calls": 91328,
+        "calls": 91328,
+        "self_s": 0.073399453,
+        "inclusive_s": 0.252871358
+      },
+      {
+        "file": "src/gem/schema/field_decoder/scalar_codecs.py",
+        "line": 12,
+        "function": "boolean_decoder",
+        "primitive_calls": 269142,
+        "calls": 269142,
+        "self_s": 0.071076288,
+        "inclusive_s": 0.29373481500000004
+      },
+      {
+        "file": "src/gem/extractors/draft.py",
+        "line": 232,
+        "function": "_on_entity",
+        "primitive_calls": 53034,
+        "calls": 53034,
+        "self_s": 0.07040556,
+        "inclusive_s": 1.257930017
+      },
+      {
+        "file": ".venv/lib/python3.10/site-packages/snappy/snappy.py",
+        "line": 80,
+        "function": "uncompress",
+        "primitive_calls": 41013,
+        "calls": 41013,
+        "self_s": 0.068899814,
+        "inclusive_s": 0.375236673
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 63,
+        "function": "push1_l1_rn",
+        "primitive_calls": 105790,
+        "calls": 105790,
+        "self_s": 0.067708764,
+        "inclusive_s": 0.24227753300000002
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 222,
+        "function": "_get_bool_resolved",
+        "primitive_calls": 77333,
+        "calls": 77333,
+        "self_s": 0.067459102,
+        "inclusive_s": 0.17104296900000002
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 151,
+        "function": "_round_positive_seconds",
+        "primitive_calls": 189548,
+        "calls": 189548,
+        "self_s": 0.06731047100000001,
+        "inclusive_s": 0.06731047100000001
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 234,
+        "function": "non_topo_complex",
+        "primitive_calls": 37225,
+        "calls": 37225,
+        "self_s": 0.065082606,
+        "inclusive_s": 0.27930898400000004
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 44,
+        "function": "plus_four",
+        "primitive_calls": 261454,
+        "calls": 261454,
+        "self_s": 0.063228488,
+        "inclusive_s": 0.063228488
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 793,
+        "function": "_combat_log_game_time_s",
+        "primitive_calls": 44604,
+        "calls": 44604,
+        "self_s": 0.062080595,
+        "inclusive_s": 0.092480328
+      },
+      {
+        "file": "src/gem/combat/log.py",
+        "line": 234,
+        "function": "_resolve_name",
+        "primitive_calls": 178753,
+        "calls": 178753,
+        "self_s": 0.059209841000000006,
+        "inclusive_s": 0.076049928
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 41,
+        "function": "plus_three",
+        "primitive_calls": 249586,
+        "calls": 249586,
+        "self_s": 0.05879965,
+        "inclusive_s": 0.05879965
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 339,
+        "function": "_on_entity_game_start",
+        "primitive_calls": 51312,
+        "calls": 51312,
+        "self_s": 0.056326462,
+        "inclusive_s": 0.6518945610000001
+      },
+      {
+        "file": "src/gem/binary/stream.py",
+        "line": 173,
+        "function": "_snappy_decompress",
+        "primitive_calls": 40620,
+        "calls": 40620,
+        "self_s": 0.053903668,
+        "inclusive_s": 0.42651367500000004
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 345,
+        "function": "time_series",
+        "primitive_calls": 10,
+        "calls": 10,
+        "self_s": 0.052711455000000004,
+        "inclusive_s": 0.06308870700000001
+      },
+      {
+        "file": "src/gem/schema/field_reader.py",
+        "line": 46,
+        "function": "_resolve_compact_field_decoder",
+        "primitive_calls": 53325,
+        "calls": 80258,
+        "self_s": 0.05229766,
+        "inclusive_s": 0.07181367500000001
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 148,
+        "function": "push2_ln",
+        "primitive_calls": 31235,
+        "calls": 31235,
+        "self_s": 0.05196893,
+        "inclusive_s": 0.23477639200000003
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 68,
+        "function": "push1_ln_r0",
+        "primitive_calls": 80023,
+        "calls": 80023,
+        "self_s": 0.051130425,
+        "inclusive_s": 0.21653591400000002
+      },
+      {
+        "file": "src/gem/state/string_table.py",
+        "line": 83,
+        "function": "get_by_name",
+        "primitive_calls": 79796,
+        "calls": 79796,
+        "self_s": 0.049350221,
+        "inclusive_s": 0.06898293700000001
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 242,
+        "function": "non_topo_complex_pack4",
+        "primitive_calls": 29117,
+        "calls": 29117,
+        "self_s": 0.048215693000000004,
+        "inclusive_s": 0.113710476
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 558,
+        "function": "_maybe_sample",
+        "primitive_calls": 51312,
+        "calls": 51312,
+        "self_s": 0.047264918,
+        "inclusive_s": 5.863619268000001
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 492,
+        "function": "read_string",
+        "primitive_calls": 19918,
+        "calls": 19918,
+        "self_s": 0.045093773000000004,
+        "inclusive_s": 0.14126448800000002
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 572,
+        "function": "_on_packet_entities",
+        "primitive_calls": 51370,
+        "calls": 51370,
+        "self_s": 0.044443919000000005,
+        "inclusive_s": 146.99482739200002
+      },
+      {
+        "file": "src/gem/extractors/intervals.py",
+        "line": 272,
+        "function": "_on_tick_start",
+        "primitive_calls": 51371,
+        "calls": 51371,
+        "self_s": 0.04424935,
+        "inclusive_s": 0.056372245
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'HasField' of 'google._upb._message.Message' objects>",
+        "primitive_calls": 285963,
+        "calls": 285963,
+        "self_s": 0.043132895000000004,
+        "inclusive_s": 0.043132895000000004
+      },
+      {
+        "file": "<string>",
+        "line": 1,
+        "function": "<lambda>",
+        "primitive_calls": 118394,
+        "calls": 118394,
+        "self_s": 0.043004268000000005,
+        "inclusive_s": 0.071426951
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 1204,
+        "function": "<listcomp>",
+        "primitive_calls": 10,
+        "calls": 10,
+        "self_s": 0.042203417,
+        "inclusive_s": 0.042203417
+      },
+      {
+        "file": "src/gem/binary/stream.py",
+        "line": 156,
+        "function": "__iter__",
+        "primitive_calls": 51391,
+        "calls": 51391,
+        "self_s": 0.041785640000000006,
+        "inclusive_s": 0.9818128920000001
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'setdefault' of 'dict' objects>",
+        "primitive_calls": 228022,
+        "calls": 228022,
+        "self_s": 0.040893794000000004,
+        "inclusive_s": 0.040893794000000004
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 38,
+        "function": "plus_two",
+        "primitive_calls": 169742,
+        "calls": 169742,
+        "self_s": 0.039075071,
+        "inclusive_s": 0.039075071
+      },
+      {
+        "file": "src/gem/schema/sendtable/parser.py",
+        "line": 163,
+        "function": "_get_or_build_field",
+        "primitive_calls": 230030,
+        "calls": 230030,
+        "self_s": 0.0387935,
+        "inclusive_s": 0.074923892
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 243,
+        "function": "_on_combat_log_entry",
+        "primitive_calls": 44686,
+        "calls": 44686,
+        "self_s": 0.038115747000000005,
+        "inclusive_s": 0.060315392
+      },
+      {
+        "file": "src/gem/schema/field_decoder/scalar_codecs.py",
+        "line": 67,
+        "function": "default_decoder",
+        "primitive_calls": 147556,
+        "calls": 147556,
+        "self_s": 0.037126729000000004,
+        "inclusive_s": 0.44704610800000005
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 228,
+        "function": "pop_n_non_topo",
+        "primitive_calls": 15096,
+        "calls": 15096,
+        "self_s": 0.034252347,
+        "inclusive_s": 0.143436276
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 597,
+        "function": "_populate_player_series",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 0.033937508000000005,
+        "inclusive_s": 0.1287405
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method builtins.getattr>",
+        "primitive_calls": 172660,
+        "calls": 172660,
+        "self_s": 0.033263520000000005,
+        "inclusive_s": 0.033264354
+      },
+      {
+        "file": "src/gem/extractors/_snapshots.py",
+        "line": 77,
+        "function": "_pos",
+        "primitive_calls": 20982,
+        "calls": 20982,
+        "self_s": 0.032976029000000004,
+        "inclusive_s": 0.2099493
+      },
+      {
+        "file": "src/gem/schema/sendtable/models.py",
+        "line": 265,
+        "function": "_resolve_in_serializer",
+        "primitive_calls": 2067,
+        "calls": 3086,
+        "self_s": 0.031676925,
+        "inclusive_s": 0.046261095
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 592,
+        "function": "_hero_handle_for_player",
+        "primitive_calls": 25231,
+        "calls": 25231,
+        "self_s": 0.031437382,
+        "inclusive_s": 0.12515078200000002
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method builtins.sorted>",
+        "primitive_calls": 5119,
+        "calls": 5119,
+        "self_s": 0.028729895000000002,
+        "inclusive_s": 0.08396571200000001
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method __new__ of type object at 0x10097ba40>",
+        "primitive_calls": 118395,
+        "calls": 118395,
+        "self_s": 0.028423142000000002,
+        "inclusive_s": 0.028423142000000002
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 574,
+        "function": "_maybe_sample_minute",
+        "primitive_calls": 37441,
+        "calls": 37441,
+        "self_s": 0.028309607,
+        "inclusive_s": 0.100876133
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/enum.py",
+        "line": 980,
+        "function": "__or__",
+        "primitive_calls": 14717,
+        "calls": 14717,
+        "self_s": 0.028198654,
+        "inclusive_s": 0.061415965
+      },
+      {
+        "file": "src/gem/schema/field_reader.py",
+        "line": 36,
+        "function": "_resolve_compact_decoder",
+        "primitive_calls": 53325,
+        "calls": 80258,
+        "self_s": 0.028069679,
+        "inclusive_s": 0.090647823
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 609,
+        "function": "_canonical_hero_entity",
+        "primitive_calls": 25231,
+        "calls": 25231,
+        "self_s": 0.027683018,
+        "inclusive_s": 0.17643535800000001
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 272,
+        "function": "read_le_uint64",
+        "primitive_calls": 34546,
+        "calls": 34546,
+        "self_s": 0.026752881000000003,
+        "inclusive_s": 0.17925817500000002
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 527,
+        "function": "_combat_time_s",
+        "primitive_calls": 134092,
+        "calls": 134092,
+        "self_s": 0.02662992,
+        "inclusive_s": 0.026726464000000002
+      },
+      {
+        "file": "src/gem/combat/aggregator.py",
+        "line": 228,
+        "function": "_accumulate_hero_tower_damage",
+        "primitive_calls": 11536,
+        "calls": 11536,
+        "self_s": 0.025040443000000003,
+        "inclusive_s": 0.043675746
+      },
+      {
+        "file": "src/gem/schema/field_decoder/type_resolver.py",
+        "line": 75,
+        "function": "decoder",
+        "primitive_calls": 12812,
+        "calls": 12812,
+        "self_s": 0.023860755,
+        "inclusive_s": 0.11402724700000001
+      },
+      {
+        "file": "src/gem/extractors/_snapshots.py",
+        "line": 138,
+        "function": "_snapshot_player_id",
+        "primitive_calls": 76731,
+        "calls": 76731,
+        "self_s": 0.022564483,
+        "inclusive_s": 0.109578272
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 430,
+        "function": "detect_opendota_teamfights",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 0.022280610000000003,
+        "inclusive_s": 0.09234083300000001
+      },
+      {
+        "file": "src/gem/extractors/smoke_vision.py",
+        "line": 183,
+        "function": "_on_entry",
+        "primitive_calls": 44686,
+        "calls": 44686,
+        "self_s": 0.021884514,
+        "inclusive_s": 0.022389639000000003
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method builtins.hasattr>",
+        "primitive_calls": 108478,
+        "calls": 108478,
+        "self_s": 0.020658316000000003,
+        "inclusive_s": 0.020658316000000003
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 673,
+        "function": "<listcomp>",
+        "primitive_calls": 10,
+        "calls": 10,
+        "self_s": 0.019514708000000002,
+        "inclusive_s": 0.019514708000000002
+      },
+      {
+        "file": "src/gem/schema/field_decoder/scalar_codecs.py",
+        "line": 42,
+        "function": "simulation_time_decoder",
+        "primitive_calls": 757,
+        "calls": 757,
+        "self_s": 0.019455221,
+        "inclusive_s": 0.022878383000000002
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 448,
+        "function": "<lambda>",
+        "primitive_calls": 44686,
+        "calls": 44686,
+        "self_s": 0.017815815000000002,
+        "inclusive_s": 0.035556147
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method builtins.divmod>",
+        "primitive_calls": 113355,
+        "calls": 113355,
+        "self_s": 0.017542919,
+        "inclusive_s": 0.017542919
+      },
+      {
+        "file": "src/gem/extractors/smoke_vision.py",
+        "line": 100,
+        "function": "_on_entry",
+        "primitive_calls": 44686,
+        "calls": 44686,
+        "self_s": 0.016569715000000002,
+        "inclusive_s": 0.016775793
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method builtins.max>",
+        "primitive_calls": 45517,
+        "calls": 45517,
+        "self_s": 0.016002204000000003,
+        "inclusive_s": 0.016009203
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/enum.py",
+        "line": 678,
+        "function": "__new__",
+        "primitive_calls": 29434,
+        "calls": 29434,
+        "self_s": 0.015954565,
+        "inclusive_s": 0.015954565
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/enum.py",
+        "line": 359,
+        "function": "__call__",
+        "primitive_calls": 29434,
+        "calls": 29434,
+        "self_s": 0.015801700000000002,
+        "inclusive_s": 0.031756265
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 669,
+        "function": "_update_baselines",
+        "primitive_calls": 158,
+        "calls": 158,
+        "self_s": 0.01553354,
+        "inclusive_s": 0.015757251
+      },
+      {
+        "file": "src/gem/extractors/courier.py",
+        "line": 107,
+        "function": "_sample",
+        "primitive_calls": 487,
+        "calls": 487,
+        "self_s": 0.015493573000000002,
+        "inclusive_s": 0.088749011
+      },
+      {
+        "file": "src/gem/combat/aggregator.py",
+        "line": 152,
+        "function": "_agg",
+        "primitive_calls": 48500,
+        "calls": 48500,
+        "self_s": 0.015440932000000001,
+        "inclusive_s": 0.015534432
+      },
+      {
+        "file": "src/gem/schema/field_state.py",
+        "line": 26,
+        "function": "__init__",
+        "primitive_calls": 41024,
+        "calls": 41024,
+        "self_s": 0.015149854,
+        "inclusive_s": 0.015149854
+      },
+      {
+        "file": "src/gem/schema/field_path/huffman.py",
+        "line": 20,
+        "function": "is_leaf",
+        "primitive_calls": 56822,
+        "calls": 56822,
+        "self_s": 0.015100081000000001,
+        "inclusive_s": 0.015100081000000001
+      },
+      {
+        "file": "src/gem/binary/stream.py",
+        "line": 64,
+        "function": "__init__",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 0.014940999000000002,
+        "inclusive_s": 0.015078958000000002
+      },
+      {
+        "file": "src/gem/extractors/objectives.py",
+        "line": 414,
+        "function": "_on_combat_log",
+        "primitive_calls": 44686,
+        "calls": 44686,
+        "self_s": 0.014868479,
+        "inclusive_s": 0.017059272
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 73,
+        "function": "push1_ln_rn",
+        "primitive_calls": 16350,
+        "calls": 16350,
+        "self_s": 0.014804843000000002,
+        "inclusive_s": 0.08462881200000001
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'extend' of 'list' objects>",
+        "primitive_calls": 45226,
+        "calls": 45226,
+        "self_s": 0.014649296000000001,
+        "inclusive_s": 0.014649296000000001
+      },
+      {
+        "file": "src/gem/schema/field_decoder/scalar_codecs.py",
+        "line": 52,
+        "function": "unsigned64_decoder",
+        "primitive_calls": 34816,
+        "calls": 34816,
+        "self_s": 0.013206463000000002,
+        "inclusive_s": 0.20891060700000003
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 467,
+        "function": "_flush_game_end",
+        "primitive_calls": 51380,
+        "calls": 51380,
+        "self_s": 0.012820650000000001,
+        "inclusive_s": 0.016898692
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 1201,
+        "function": "<genexpr>",
+        "primitive_calls": 15810,
+        "calls": 15810,
+        "self_s": 0.012767806000000001,
+        "inclusive_s": 0.012767806000000001
+      },
+      {
+        "file": "src/gem/state/string_table.py",
+        "line": 97,
+        "function": "get_by_id",
+        "primitive_calls": 32784,
+        "calls": 32784,
+        "self_s": 0.01276417,
+        "inclusive_s": 0.016613253
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 204,
+        "function": "pop_all_but1_plus1",
+        "primitive_calls": 25874,
+        "calls": 25874,
+        "self_s": 0.012565343000000001,
+        "inclusive_s": 0.026840914
+      },
+      {
+        "file": "src/gem/schema/field_decoder/scalar_codecs.py",
+        "line": 57,
+        "function": "fixed64_decoder",
+        "primitive_calls": 34546,
+        "calls": 34546,
+        "self_s": 0.012056382000000001,
+        "inclusive_s": 0.19131455700000002
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 416,
+        "function": "read_coord",
+        "primitive_calls": 8107,
+        "calls": 8107,
+        "self_s": 0.011511576,
+        "inclusive_s": 0.027397332000000003
+      },
+      {
+        "file": "src/gem/extractors/wards.py",
+        "line": 188,
+        "function": "_on_combat_log",
+        "primitive_calls": 44686,
+        "calls": 44686,
+        "self_s": 0.011419118,
+        "inclusive_s": 0.01144666
+      },
+      {
+        "file": "src/gem/combat/aggregator.py",
+        "line": 260,
+        "function": "_accumulate_inflictor_damage",
+        "primitive_calls": 2366,
+        "calls": 2366,
+        "self_s": 0.011120805000000001,
+        "inclusive_s": 0.016954764
+      },
+      {
+        "file": "src/gem/schema/field_decoder/type_resolver.py",
+        "line": 76,
+        "function": "<listcomp>",
+        "primitive_calls": 12812,
+        "calls": 12812,
+        "self_s": 0.011105413000000001,
+        "inclusive_s": 0.090166492
+      },
+      {
+        "file": "src/gem/extractors/intervals.py",
+        "line": 528,
+        "function": "_record_team_data",
+        "primitive_calls": 700,
+        "calls": 700,
+        "self_s": 0.01091508,
+        "inclusive_s": 0.061916914
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 127,
+        "function": "__init__",
+        "primitive_calls": 8645,
+        "calls": 8645,
+        "self_s": 0.010674965,
+        "inclusive_s": 0.015249093000000002
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 1165,
+        "function": "<listcomp>",
+        "primitive_calls": 10,
+        "calls": 10,
+        "self_s": 0.010255417000000001,
+        "inclusive_s": 0.010255417000000001
+      },
+      {
+        "file": "src/gem/combat/aggregator.py",
+        "line": 255,
+        "function": "<genexpr>",
+        "primitive_calls": 36204,
+        "calls": 36204,
+        "self_s": 0.010132118,
+        "inclusive_s": 0.010132118
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method builtins.any>",
+        "primitive_calls": 9218,
+        "calls": 9218,
+        "self_s": 0.009943359,
+        "inclusive_s": 0.023082206
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 544,
+        "function": "_resource_index",
+        "primitive_calls": 25268,
+        "calls": 25268,
+        "self_s": 0.009349419000000001,
+        "inclusive_s": 0.011458622
+      },
+      {
+        "file": "src/gem/extractors/draft.py",
+        "line": 210,
+        "function": "_update_live_map",
+        "primitive_calls": 1722,
+        "calls": 1722,
+        "self_s": 0.009133711000000001,
+        "inclusive_s": 0.051380126000000005
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 693,
+        "function": "<genexpr>",
+        "primitive_calls": 31620,
+        "calls": 31620,
+        "self_s": 0.00895069,
+        "inclusive_s": 0.00895069
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 296,
+        "function": "_hero_to_pid",
+        "primitive_calls": 5935,
+        "calls": 5935,
+        "self_s": 0.008078634000000001,
+        "inclusive_s": 0.017339627
+      },
+      {
+        "file": "src/gem/schema/sendtable/parser.py",
+        "line": 86,
+        "function": "_build_field",
+        "primitive_calls": 2024,
+        "calls": 2024,
+        "self_s": 0.007723896,
+        "inclusive_s": 0.023847462
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 50,
+        "function": "push1_l0_r0",
+        "primitive_calls": 24475,
+        "calls": 24475,
+        "self_s": 0.0074820600000000004,
+        "inclusive_s": 0.0074820600000000004
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 886,
+        "function": "build_parsed_match",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 0.007352448,
+        "inclusive_s": 0.49732025
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 365,
+        "function": "matches",
+        "primitive_calls": 22554,
+        "calls": 22554,
+        "self_s": 0.0062773920000000006,
+        "inclusive_s": 0.009952546000000001
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'append' of 'bytearray' objects>",
+        "primitive_calls": 72812,
+        "calls": 72812,
+        "self_s": 0.006184415,
+        "inclusive_s": 0.006184415
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 837,
+        "function": "_diff_inventory",
+        "primitive_calls": 15800,
+        "calls": 15800,
+        "self_s": 0.006052396000000001,
+        "inclusive_s": 0.007241096000000001
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 239,
+        "function": "non_topo_penultimate_plus1",
+        "primitive_calls": 19712,
+        "calls": 19712,
+        "self_s": 0.006048520000000001,
+        "inclusive_s": 0.006048520000000001
+      },
+      {
+        "file": "src/gem/schema/field_reader.py",
+        "line": 83,
+        "function": "_require_serializer",
+        "primitive_calls": 26933,
+        "calls": 26933,
+        "self_s": 0.0059444680000000005,
+        "inclusive_s": 0.0059444680000000005
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'decode' of 'bytearray' objects>",
+        "primitive_calls": 19918,
+        "calls": 19918,
+        "self_s": 0.005918378,
+        "inclusive_s": 0.005918378
+      },
+      {
+        "file": "src/gem/extractors/smoke_vision.py",
+        "line": 232,
+        "function": "<dictcomp>",
+        "primitive_calls": 2,
+        "calls": 2,
+        "self_s": 0.005677584,
+        "inclusive_s": 0.005677584
+      },
+      {
+        "file": "src/gem/combat/aggregator.py",
+        "line": 73,
+        "function": "_is_unit_target",
+        "primitive_calls": 12495,
+        "calls": 12495,
+        "self_s": 0.005400741000000001,
+        "inclusive_s": 0.009252361
+      },
+      {
+        "file": "src/gem/schema/sendtable/parser.py",
+        "line": 74,
+        "function": "_optional_symbol",
+        "primitive_calls": 10120,
+        "calls": 10120,
+        "self_s": 0.005375556,
+        "inclusive_s": 0.010275399000000001
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 705,
+        "function": "_nearest_snapshot",
+        "primitive_calls": 7039,
+        "calls": 7039,
+        "self_s": 0.005301417,
+        "inclusive_s": 0.009477163
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 535,
+        "function": "_is_counted_opendota_death",
+        "primitive_calls": 44894,
+        "calls": 44894,
+        "self_s": 0.005287602000000001,
+        "inclusive_s": 0.005287602000000001
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 212,
+        "function": "pop_all_but1_plus_n_pack3",
+        "primitive_calls": 4220,
+        "calls": 4220,
+        "self_s": 0.005152824,
+        "inclusive_s": 0.009520314
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 205,
+        "function": "<lambda>",
+        "primitive_calls": 44686,
+        "calls": 44686,
+        "self_s": 0.0051166580000000005,
+        "inclusive_s": 0.0051166580000000005
+      },
+      {
+        "file": "src/gem/schema/field_decoder/scalar_codecs.py",
+        "line": 17,
+        "function": "string_decoder",
+        "primitive_calls": 12713,
+        "calls": 12713,
+        "self_s": 0.005057187,
+        "inclusive_s": 0.033184135000000003
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 651,
+        "function": "_near_fight",
+        "primitive_calls": 6453,
+        "calls": 6453,
+        "self_s": 0.004790858,
+        "inclusive_s": 0.017255396000000003
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 537,
+        "function": "on_class_info",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 0.004625935,
+        "inclusive_s": 0.0222695
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 308,
+        "function": "_source_to_pid",
+        "primitive_calls": 5637,
+        "calls": 5637,
+        "self_s": 0.0042573310000000005,
+        "inclusive_s": 0.020628954
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 428,
+        "function": "<genexpr>",
+        "primitive_calls": 3632,
+        "calls": 3632,
+        "self_s": 0.004234343000000001,
+        "inclusive_s": 0.014186889000000001
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 521,
+        "function": "_refresh_team_slots",
+        "primitive_calls": 1722,
+        "calls": 1722,
+        "self_s": 0.003935313,
+        "inclusive_s": 0.288153596
+      },
+      {
+        "file": "src/gem/extractors/lane.py",
+        "line": 83,
+        "function": "_zone_counts",
+        "primitive_calls": 10,
+        "calls": 10,
+        "self_s": 0.0036897820000000004,
+        "inclusive_s": 0.005797499
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 123,
+        "function": "push2_pack5_l1",
+        "primitive_calls": 2378,
+        "calls": 2378,
+        "self_s": 0.003446741,
+        "inclusive_s": 0.006326682
+      },
+      {
+        "file": "src/gem/extractors/intervals.py",
+        "line": 409,
+        "function": "_refresh_player_mappings",
+        "primitive_calls": 1722,
+        "calls": 1722,
+        "self_s": 0.003430214,
+        "inclusive_s": 0.25878059200000003
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method _bisect.bisect_left>",
+        "primitive_calls": 10474,
+        "calls": 10474,
+        "self_s": 0.0033385140000000003,
+        "inclusive_s": 0.0033385140000000003
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 565,
+        "function": "_populate_opendota_teamfight_event",
+        "primitive_calls": 4808,
+        "calls": 4808,
+        "self_s": 0.0032547210000000003,
+        "inclusive_s": 0.004968622000000001
+      },
+      {
+        "file": "src/gem/schema/sendtable/parser.py",
+        "line": 65,
+        "function": "_symbol",
+        "primitive_calls": 9454,
+        "calls": 9454,
+        "self_s": 0.0031323730000000004,
+        "inclusive_s": 0.003920584
+      },
+      {
+        "file": "src/gem/schema/field_decoder/scalar_codecs.py",
+        "line": 37,
+        "function": "float_coord_decoder",
+        "primitive_calls": 7648,
+        "calls": 7648,
+        "self_s": 0.0031286770000000003,
+        "inclusive_s": 0.028962585000000002
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 694,
+        "function": "<genexpr>",
+        "primitive_calls": 31600,
+        "calls": 31600,
+        "self_s": 0.0030681920000000004,
+        "inclusive_s": 0.0030681920000000004
+      },
+      {
+        "file": "src/gem/combat/aggregator.py",
+        "line": 56,
+        "function": "_illusion_key",
+        "primitive_calls": 16695,
+        "calls": 16695,
+        "self_s": 0.0028672790000000004,
+        "inclusive_s": 0.0028672790000000004
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 187,
+        "function": "push_n_non_topo",
+        "primitive_calls": 721,
+        "calls": 721,
+        "self_s": 0.0027100120000000004,
+        "inclusive_s": 0.009411890000000001
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 739,
+        "function": "_nearest_pos",
+        "primitive_calls": 6499,
+        "calls": 6499,
+        "self_s": 0.002705947,
+        "inclusive_s": 0.011450060000000001
+      },
+      {
+        "file": "src/gem/schema/sendtable/models.py",
+        "line": 235,
+        "function": "_resolve_field",
+        "primitive_calls": 2360,
+        "calls": 2360,
+        "self_s": 0.0026015540000000003,
+        "inclusive_s": 0.052635487
+      },
+      {
+        "file": "src/gem/combat/log.py",
+        "line": 210,
+        "function": "opendota_translate",
+        "primitive_calls": 6033,
+        "calls": 6033,
+        "self_s": 0.002494458,
+        "inclusive_s": 0.003663172
+      },
+      {
+        "file": "src/gem/schema/sendtable/models.py",
+        "line": 133,
+        "function": "set_model",
+        "primitive_calls": 2024,
+        "calls": 2024,
+        "self_s": 0.002323869,
+        "inclusive_s": 0.007407287
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 196,
+        "function": "pop1_plus1",
+        "primitive_calls": 3659,
+        "calls": 3659,
+        "self_s": 0.002294561,
+        "inclusive_s": 0.00484547
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 692,
+        "function": "__post_init__",
+        "primitive_calls": 20,
+        "calls": 20,
+        "self_s": 0.002178396,
+        "inclusive_s": 0.016189793
+      },
+      {
+        "file": "src/gem/extractors/intervals.py",
+        "line": 781,
+        "function": "_int_or_zero",
+        "primitive_calls": 18650,
+        "calls": 18650,
+        "self_s": 0.002175914,
+        "inclusive_s": 0.002175914
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 427,
+        "function": "<dictcomp>",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 0.0021038610000000003,
+        "inclusive_s": 0.01629075
+      },
+      {
+        "file": "<frozen importlib._bootstrap>",
+        "line": 1053,
+        "function": "_handle_fromlist",
+        "primitive_calls": 2024,
+        "calls": 2024,
+        "self_s": 0.0020111400000000002,
+        "inclusive_s": 0.002849078
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 162,
+        "function": "push3_ln",
+        "primitive_calls": 835,
+        "calls": 835,
+        "self_s": 0.001850545,
+        "inclusive_s": 0.007868831
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 1202,
+        "function": "<lambda>",
+        "primitive_calls": 15800,
+        "calls": 15800,
+        "self_s": 0.001634365,
+        "inclusive_s": 0.001634365
+      },
+      {
+        "file": "src/gem/schema/sendtable/models.py",
+        "line": 258,
+        "function": "_find_field_path",
+        "primitive_calls": 2067,
+        "calls": 2067,
+        "self_s": 0.001582985,
+        "inclusive_s": 0.048872121000000004
+      },
+      {
+        "file": "src/gem/combat/aggregator.py",
+        "line": 316,
+        "function": "_is_self_death",
+        "primitive_calls": 1834,
+        "calls": 1834,
+        "self_s": 0.00153669,
+        "inclusive_s": 0.0018205180000000001
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'update' of 'dict' objects>",
+        "primitive_calls": 1723,
+        "calls": 1723,
+        "self_s": 0.001519806,
+        "inclusive_s": 0.001519806
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 200,
+        "function": "pop1_plus_n",
+        "primitive_calls": 1572,
+        "calls": 1572,
+        "self_s": 0.001502326,
+        "inclusive_s": 0.004997447
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 757,
+        "function": "_on_game_event",
+        "primitive_calls": 504,
+        "calls": 504,
+        "self_s": 0.00146564,
+        "inclusive_s": 0.0031205760000000003
+      },
+      {
+        "file": "src/gem/combat/aggregator.py",
+        "line": 36,
+        "function": "_inflictor_key",
+        "primitive_calls": 2366,
+        "calls": 2366,
+        "self_s": 0.001452369,
+        "inclusive_s": 0.0033018540000000003
+      },
+      {
+        "file": "src/gem/schema/sendtable/models.py",
+        "line": 278,
+        "function": "_resolve_in_field",
+        "primitive_calls": 1509,
+        "calls": 1533,
+        "self_s": 0.0014119150000000001,
+        "inclusive_s": 0.0064152260000000004
+      },
+      {
+        "file": "src/gem/state/string_table.py",
+        "line": 204,
+        "function": "handle_create",
+        "primitive_calls": 20,
+        "calls": 20,
+        "self_s": 0.001353751,
+        "inclusive_s": 0.107953793
+      },
+      {
+        "file": "src/gem/schema/field_decoder/type_resolver.py",
+        "line": 124,
+        "function": "find_decoder",
+        "primitive_calls": 1906,
+        "calls": 1906,
+        "self_s": 0.001269984,
+        "inclusive_s": 0.0021979250000000003
+      },
+      {
+        "file": "src/gem/extractors/lane.py",
+        "line": 56,
+        "function": "_cell_zone",
+        "primitive_calls": 3784,
+        "calls": 3784,
+        "self_s": 0.0012544910000000002,
+        "inclusive_s": 0.0014292830000000002
+      },
+      {
+        "file": "src/gem/schema/sendtable/models.py",
+        "line": 126,
+        "function": "<lambda>",
+        "primitive_calls": 2024,
+        "calls": 2024,
+        "self_s": 0.001171722,
+        "inclusive_s": 0.002002963
+      },
+      {
+        "file": "src/gem/combat/aggregator.py",
+        "line": 161,
+        "function": "_summon_to_pid",
+        "primitive_calls": 621,
+        "calls": 621,
+        "self_s": 0.0010573140000000002,
+        "inclusive_s": 2.134429152
+      },
+      {
+        "file": "src/gem/state/game_events.py",
+        "line": 206,
+        "function": "dispatch",
+        "primitive_calls": 504,
+        "calls": 504,
+        "self_s": 0.001056225,
+        "inclusive_s": 0.001360852
+      },
+      {
+        "file": "src/gem/schema/sendtable/models.py",
+        "line": 80,
+        "function": "_parse_field_type",
+        "primitive_calls": 259,
+        "calls": 350,
+        "self_s": 0.00099842,
+        "inclusive_s": 0.001938699
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'items' of 'dict' objects>",
+        "primitive_calls": 5312,
+        "calls": 5312,
+        "self_s": 0.000988435,
+        "inclusive_s": 0.000988435
+      },
+      {
+        "file": "src/gem/extractors/wards.py",
+        "line": 164,
+        "function": "_tick",
+        "primitive_calls": 2270,
+        "calls": 2270,
+        "self_s": 0.000956193,
+        "inclusive_s": 0.000956193
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 644,
+        "function": "_source_slot",
+        "primitive_calls": 4600,
+        "calls": 4600,
+        "self_s": 0.0009386500000000001,
+        "inclusive_s": 0.001138438
+      },
+      {
+        "file": "src/gem/schema/sendtable/parser.py",
+        "line": 126,
+        "function": "_select_field_model",
+        "primitive_calls": 2024,
+        "calls": 2024,
+        "self_s": 0.0009344720000000001,
+        "inclusive_s": 0.0009344720000000001
+      },
+      {
+        "file": "src/gem/state/game_events.py",
+        "line": 160,
+        "function": "register_schema",
+        "primitive_calls": 363,
+        "calls": 363,
+        "self_s": 0.000931581,
+        "inclusive_s": 0.001185672
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 376,
+        "function": "minute_time_series",
+        "primitive_calls": 10,
+        "calls": 10,
+        "self_s": 0.000929922,
+        "inclusive_s": 0.001760248
+      },
+      {
+        "file": "src/gem/schema/sendtable/models.py",
+        "line": 249,
+        "function": "<genexpr>",
+        "primitive_calls": 2933,
+        "calls": 2933,
+        "self_s": 0.000886321,
+        "inclusive_s": 0.053311639
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method math.dist>",
+        "primitive_calls": 6468,
+        "calls": 6468,
+        "self_s": 0.000854357,
+        "inclusive_s": 0.000854357
+      },
+      {
+        "file": "src/gem/results/derived.py",
+        "line": 25,
+        "function": "killed_counts",
+        "primitive_calls": 10,
+        "calls": 10,
+        "self_s": 0.000849543,
+        "inclusive_s": 0.0009114590000000001
+      },
+      {
+        "file": "src/gem/schema/sendtable/patches.py",
+        "line": 40,
+        "function": "patch_pre991",
+        "primitive_calls": 2024,
+        "calls": 2024,
+        "self_s": 0.0008427990000000001,
+        "inclusive_s": 0.0008427990000000001
+      },
+      {
+        "file": "src/gem/extractors/intervals.py",
+        "line": 701,
+        "function": "_emit",
+        "primitive_calls": 24,
+        "calls": 24,
+        "self_s": 0.000812372,
+        "inclusive_s": 0.005455959000000001
+      },
+      {
+        "file": "src/gem/schema/field_decoder/composite_codecs.py",
+        "line": 39,
+        "function": "coord_angle",
+        "primitive_calls": 824,
+        "calls": 824,
+        "self_s": 0.000779533,
+        "inclusive_s": 0.003305863
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'pop' of 'list' objects>",
+        "primitive_calls": 4516,
+        "calls": 4516,
+        "self_s": 0.0007745050000000001,
+        "inclusive_s": 0.0007745050000000001
+      },
+      {
+        "file": "src/gem/extractors/wards.py",
+        "line": 262,
+        "function": "_on_ward_placed",
+        "primitive_calls": 60,
+        "calls": 60,
+        "self_s": 0.000752603,
+        "inclusive_s": 0.002691755
+      },
+      {
+        "file": "src/gem/extractors/intervals.py",
+        "line": 644,
+        "function": "_team_data_values",
+        "primitive_calls": 240,
+        "calls": 240,
+        "self_s": 0.000689025,
+        "inclusive_s": 0.003988793
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'close' of 'mmap.mmap' objects>",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 0.0006817910000000001,
+        "inclusive_s": 0.0006817910000000001
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 748,
+        "function": "_on_game_event_list",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 0.000639081,
+        "inclusive_s": 0.002394958
+      },
+      {
+        "file": "src/gem/extractors/wards.py",
+        "line": 349,
+        "function": "_find_ward_event",
+        "primitive_calls": 60,
+        "calls": 60,
+        "self_s": 0.00057308,
+        "inclusive_s": 0.00057308
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 753,
+        "function": "<listcomp>",
+        "primitive_calls": 363,
+        "calls": 363,
+        "self_s": 0.0005702050000000001,
+        "inclusive_s": 0.0005702050000000001
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 54,
+        "function": "push1_l0_rn",
+        "primitive_calls": 739,
+        "calls": 739,
+        "self_s": 0.000517672,
+        "inclusive_s": 0.001559461
+      },
+      {
+        "file": "src/gem/schema/sendtable/patches.py",
+        "line": 95,
+        "function": "patch_simtime",
+        "primitive_calls": 2024,
+        "calls": 2024,
+        "self_s": 0.00049332,
+        "inclusive_s": 0.00049332
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 718,
+        "function": "_on_send_tables",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 0.00048599900000000003,
+        "inclusive_s": 0.22532379200000002
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'split' of 'str' objects>",
+        "primitive_calls": 3784,
+        "calls": 3784,
+        "self_s": 0.00048394800000000005,
+        "inclusive_s": 0.00048394800000000005
+      },
+      {
+        "file": "src/gem/schema/field_path/models.py",
+        "line": 58,
+        "function": "to_tuple",
+        "primitive_calls": 1331,
+        "calls": 1331,
+        "self_s": 0.000473831,
+        "inclusive_s": 0.000473831
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 156,
+        "function": "_build_purchase_aggregates",
+        "primitive_calls": 10,
+        "calls": 10,
+        "self_s": 0.00046797900000000004,
+        "inclusive_s": 0.0009762490000000001
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'match' of 're.Pattern' objects>",
+        "primitive_calls": 350,
+        "calls": 350,
+        "self_s": 0.00044942,
+        "inclusive_s": 0.00044942
+      },
+      {
+        "file": "src/gem/schema/sendtable/patches.py",
+        "line": 76,
+        "function": "patch_pre955",
+        "primitive_calls": 2024,
+        "calls": 2024,
+        "self_s": 0.00038627400000000004,
+        "inclusive_s": 0.00038627400000000004
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 400,
+        "function": "<genexpr>",
+        "primitive_calls": 250,
+        "calls": 250,
+        "self_s": 0.00036055600000000005,
+        "inclusive_s": 0.00036055600000000005
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 986,
+        "function": "<genexpr>",
+        "primitive_calls": 2,
+        "calls": 2,
+        "self_s": 0.000351041,
+        "inclusive_s": 0.000351041
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 426,
+        "function": "<dictcomp>",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 0.00032258300000000004,
+        "inclusive_s": 0.00032258300000000004
+      },
+      {
+        "file": "src/gem/extractors/objectives.py",
+        "line": 399,
+        "function": "_on_chat_event",
+        "primitive_calls": 186,
+        "calls": 186,
+        "self_s": 0.000298333,
+        "inclusive_s": 0.000352586
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 569,
+        "function": "_interval_series_by_player",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 0.000295192,
+        "inclusive_s": 0.0005430000000000001
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 94,
+        "function": "push2_pack5_l0",
+        "primitive_calls": 240,
+        "calls": 240,
+        "self_s": 0.000290661,
+        "inclusive_s": 0.0005607510000000001
+      },
+      {
+        "file": "src/gem/schema/field_decoder/type_resolver.py",
+        "line": 42,
+        "function": "_float_factory",
+        "primitive_calls": 490,
+        "calls": 490,
+        "self_s": 0.000288262,
+        "inclusive_s": 0.0005196360000000001
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 180,
+        "function": "push_n",
+        "primitive_calls": 80,
+        "calls": 80,
+        "self_s": 0.000278818,
+        "inclusive_s": 0.001049126
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 116,
+        "function": "push2_l1",
+        "primitive_calls": 187,
+        "calls": 187,
+        "self_s": 0.000263141,
+        "inclusive_s": 0.001086799
+      },
+      {
+        "file": "src/gem/state/game_events.py",
+        "line": 186,
+        "function": "get_schema",
+        "primitive_calls": 504,
+        "calls": 504,
+        "self_s": 0.000259995,
+        "inclusive_s": 0.000294084
+      },
+      {
+        "file": "src/gem/extractors/wards.py",
+        "line": 318,
+        "function": "_on_ward_left",
+        "primitive_calls": 60,
+        "calls": 60,
+        "self_s": 0.000237934,
+        "inclusive_s": 0.00098959
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 220,
+        "function": "pop_n_plus1",
+        "primitive_calls": 268,
+        "calls": 268,
+        "self_s": 0.00023533900000000002,
+        "inclusive_s": 0.000847918
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 727,
+        "function": "_nearest_xp",
+        "primitive_calls": 540,
+        "calls": 540,
+        "self_s": 0.00023324600000000002,
+        "inclusive_s": 0.0009662960000000001
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'group' of 're.Match' objects>",
+        "primitive_calls": 1437,
+        "calls": 1437,
+        "self_s": 0.00023144000000000002,
+        "inclusive_s": 0.00023144000000000002
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 854,
+        "function": "_emit_neutral_item_found",
+        "primitive_calls": 20,
+        "calls": 20,
+        "self_s": 0.000214624,
+        "inclusive_s": 0.000348961
+      },
+      {
+        "file": "src/gem/results/derived.py",
+        "line": 73,
+        "function": "categorize_kills",
+        "primitive_calls": 10,
+        "calls": 10,
+        "self_s": 0.00021176200000000002,
+        "inclusive_s": 0.000397875
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method builtins.round>",
+        "primitive_calls": 1232,
+        "calls": 1232,
+        "self_s": 0.00020046400000000002,
+        "inclusive_s": 0.00020046400000000002
+      },
+      {
+        "file": "src/gem/extractors/intervals.py",
+        "line": 434,
+        "function": "_try_emit",
+        "primitive_calls": 24,
+        "calls": 24,
+        "self_s": 0.000185959,
+        "inclusive_s": 0.005649874
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method builtins.abs>",
+        "primitive_calls": 3828,
+        "calls": 3828,
+        "self_s": 0.000182334,
+        "inclusive_s": 0.000182334
+      },
+      {
+        "file": "src/gem/extractors/_snapshots.py",
+        "line": 180,
+        "function": "<genexpr>",
+        "primitive_calls": 379,
+        "calls": 379,
+        "self_s": 0.00017667300000000002,
+        "inclusive_s": 0.000186045
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 713,
+        "function": "<listcomp>",
+        "primitive_calls": 10,
+        "calls": 10,
+        "self_s": 0.000172773,
+        "inclusive_s": 0.00041671000000000004
+      },
+      {
+        "file": "src/gem/extractors/intervals.py",
+        "line": 749,
+        "function": "_hero_name",
+        "primitive_calls": 42,
+        "calls": 42,
+        "self_s": 0.00017120900000000002,
+        "inclusive_s": 0.000721963
+      },
+      {
+        "file": "src/gem/schema/field_decoder/quantized_float.py",
+        "line": 44,
+        "function": "__init__",
+        "primitive_calls": 44,
+        "calls": 44,
+        "self_s": 0.00016666400000000002,
+        "inclusive_s": 0.000324206
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 527,
+        "function": "_complete_interval_batches",
+        "primitive_calls": 2,
+        "calls": 2,
+        "self_s": 0.00014853900000000002,
+        "inclusive_s": 0.000248375
+      },
+      {
+        "file": "src/gem/extractors/_snapshots.py",
+        "line": 184,
+        "function": "<genexpr>",
+        "primitive_calls": 244,
+        "calls": 244,
+        "self_s": 0.000141251,
+        "inclusive_s": 0.00014984000000000002
+      },
+      {
+        "file": "src/gem/combat/aggregator.py",
+        "line": 27,
+        "function": "_int_counter",
+        "primitive_calls": 182,
+        "calls": 182,
+        "self_s": 0.000132995,
+        "inclusive_s": 0.000132995
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method builtins.id>",
+        "primitive_calls": 1868,
+        "calls": 1868,
+        "self_s": 0.000132222,
+        "inclusive_s": 0.000132222
+      },
+      {
+        "file": "src/gem/schema/sendtable/parser.py",
+        "line": 44,
+        "function": "_parse_flattened_serializer",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 0.000130166,
+        "inclusive_s": 0.004796542
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 70,
+        "function": "_apply_match_details_scalars",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 0.000128758,
+        "inclusive_s": 0.00020116600000000002
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'values' of 'dict' objects>",
+        "primitive_calls": 571,
+        "calls": 571,
+        "self_s": 0.00012608,
+        "inclusive_s": 0.00012608
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'sub' of 're.Pattern' objects>",
+        "primitive_calls": 30,
+        "calls": 30,
+        "self_s": 0.000124127,
+        "inclusive_s": 0.000272958
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method builtins.all>",
+        "primitive_calls": 122,
+        "calls": 122,
+        "self_s": 0.00012320700000000001,
+        "inclusive_s": 0.00030925200000000004
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 712,
+        "function": "<lambda>",
+        "primitive_calls": 389,
+        "calls": 389,
+        "self_s": 0.000122796,
+        "inclusive_s": 0.000122796
+      },
+      {
+        "file": "src/gem/api.py",
+        "line": 130,
+        "function": "parse",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 0.00011987500000000001,
+        "inclusive_s": 165.61730083400002
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 555,
+        "function": "on_baseline_updated",
+        "primitive_calls": 157,
+        "calls": 157,
+        "self_s": 0.00011679100000000001,
+        "inclusive_s": 0.015844875
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 136,
+        "function": "_entry_game_seconds",
+        "primitive_calls": 363,
+        "calls": 363,
+        "self_s": 0.00011237000000000001,
+        "inclusive_s": 0.00012786700000000001
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 418,
+        "function": "_radiant_adv_from_intervals",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 0.000106045,
+        "inclusive_s": 0.000237459
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 171,
+        "function": "push3_pack5_ln",
+        "primitive_calls": 42,
+        "calls": 42,
+        "self_s": 0.00010237700000000001,
+        "inclusive_s": 0.00021662700000000003
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 838,
+        "function": "_emit_chat_message",
+        "primitive_calls": 12,
+        "calls": 12,
+        "self_s": 0.000101668,
+        "inclusive_s": 0.000120124
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 237,
+        "function": "_ward_left_entry",
+        "primitive_calls": 60,
+        "calls": 60,
+        "self_s": 9.812400000000001e-05,
+        "inclusive_s": 0.00020900200000000002
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'add' of 'set' objects>",
+        "primitive_calls": 1089,
+        "calls": 1089,
+        "self_s": 9.0665e-05,
+        "inclusive_s": 9.0665e-05
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 609,
+        "function": "_populate_opendota_death",
+        "primitive_calls": 208,
+        "calls": 208,
+        "self_s": 8.9623e-05,
+        "inclusive_s": 0.00018650600000000002
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'pop' of 'dict' objects>",
+        "primitive_calls": 183,
+        "calls": 183,
+        "self_s": 8.8702e-05,
+        "inclusive_s": 8.8702e-05
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 545,
+        "function": "<setcomp>",
+        "primitive_calls": 2,
+        "calls": 2,
+        "self_s": 8.820900000000001e-05,
+        "inclusive_s": 8.820900000000001e-05
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 277,
+        "function": "<listcomp>",
+        "primitive_calls": 24,
+        "calls": 24,
+        "self_s": 8.7126e-05,
+        "inclusive_s": 0.00103242
+      },
+      {
+        "file": "src/gem/extractors/intervals.py",
+        "line": 609,
+        "function": "player_resource_scalars",
+        "primitive_calls": 20,
+        "calls": 20,
+        "self_s": 7.778900000000001e-05,
+        "inclusive_s": 0.001340375
+      },
+      {
+        "file": "src/gem/combat/log.py",
+        "line": 280,
+        "function": "process_rune_pickup",
+        "primitive_calls": 30,
+        "calls": 30,
+        "self_s": 7.525e-05,
+        "inclusive_s": 0.000518998
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 696,
+        "function": "<dictcomp>",
+        "primitive_calls": 10,
+        "calls": 10,
+        "self_s": 6.9417e-05,
+        "inclusive_s": 6.9417e-05
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method posix.open>",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 6.675000000000001e-05,
+        "inclusive_s": 7.720800000000001e-05
+      },
+      {
+        "file": "src/gem/schema/field_decoder/type_resolver.py",
+        "line": 70,
+        "function": "factory",
+        "primitive_calls": 75,
+        "calls": 75,
+        "self_s": 6.392e-05,
+        "inclusive_s": 0.00010337700000000001
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 217,
+        "function": "_ward_coord_key",
+        "primitive_calls": 60,
+        "calls": 60,
+        "self_s": 6.2791e-05,
+        "inclusive_s": 8.933e-05
+      },
+      {
+        "file": "src/gem/schema/field_decoder/quantized_float.py",
+        "line": 115,
+        "function": "_assign_multipliers",
+        "primitive_calls": 44,
+        "calls": 44,
+        "self_s": 6.258400000000001e-05,
+        "inclusive_s": 7.0126e-05
+      },
+      {
+        "file": "src/gem/binary/reader.py",
+        "line": 141,
+        "function": "_read_bytes_slow",
+        "primitive_calls": 14,
+        "calls": 14,
+        "self_s": 6.2453e-05,
+        "inclusive_s": 8.9375e-05
+      },
+      {
+        "file": "src/gem/extractors/draft.py",
+        "line": 192,
+        "function": "_resolve_name",
+        "primitive_calls": 48,
+        "calls": 48,
+        "self_s": 6.0084e-05,
+        "inclusive_s": 6.0084e-05
+      },
+      {
+        "file": "src/gem/schema/field_decoder/type_resolver.py",
+        "line": 56,
+        "function": "_quantized_factory",
+        "primitive_calls": 44,
+        "calls": 44,
+        "self_s": 5.9377000000000004e-05,
+        "inclusive_s": 0.000383583
+      },
+      {
+        "file": "src/gem/schema/field_decoder/quantized_float.py",
+        "line": 97,
+        "function": "_validate_flags",
+        "primitive_calls": 44,
+        "calls": 44,
+        "self_s": 5.6709e-05,
+        "inclusive_s": 5.6709e-05
+      },
+      {
+        "file": "src/gem/catalog/units.py",
+        "line": 40,
+        "function": "is_neutral",
+        "primitive_calls": 263,
+        "calls": 263,
+        "self_s": 5.441e-05,
+        "inclusive_s": 8.9664e-05
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 139,
+        "function": "push3_pack5_l1",
+        "primitive_calls": 27,
+        "calls": 27,
+        "self_s": 5.2498000000000005e-05,
+        "inclusive_s": 9.704e-05
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 166,
+        "function": "<listcomp>",
+        "primitive_calls": 19,
+        "calls": 19,
+        "self_s": 5.0005e-05,
+        "inclusive_s": 0.00021870800000000002
+      },
+      {
+        "file": "<string>",
+        "line": 2,
+        "function": "__init__",
+        "primitive_calls": 10,
+        "calls": 10,
+        "self_s": 4.8165000000000004e-05,
+        "inclusive_s": 4.8165000000000004e-05
+      },
+      {
+        "file": "src/gem/extractors/lane.py",
+        "line": 126,
+        "function": "classify_lane",
+        "primitive_calls": 10,
+        "calls": 10,
+        "self_s": 4.7332e-05,
+        "inclusive_s": 0.005884332000000001
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'strip' of 'str' objects>",
+        "primitive_calls": 350,
+        "calls": 350,
+        "self_s": 4.6577000000000005e-05,
+        "inclusive_s": 4.6577000000000005e-05
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/sre_parse.py",
+        "line": 1056,
+        "function": "expand_template",
+        "primitive_calls": 36,
+        "calls": 36,
+        "self_s": 4.6414e-05,
+        "inclusive_s": 6.471000000000001e-05
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/collections/__init__.py",
+        "line": 565,
+        "function": "__init__",
+        "primitive_calls": 10,
+        "calls": 10,
+        "self_s": 4.3167e-05,
+        "inclusive_s": 4.6584e-05
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 210,
+        "function": "_to_od_cell",
+        "primitive_calls": 360,
+        "calls": 360,
+        "self_s": 4.1879000000000003e-05,
+        "inclusive_s": 4.1879000000000003e-05
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 326,
+        "function": "hero_pos",
+        "primitive_calls": 22,
+        "calls": 22,
+        "self_s": 4.1087e-05,
+        "inclusive_s": 0.00047424900000000005
+      },
+      {
+        "file": "src/gem/schema/sendtable/parser.py",
+        "line": 139,
+        "function": "_resolve_serializer_reference",
+        "primitive_calls": 68,
+        "calls": 68,
+        "self_s": 3.7261e-05,
+        "inclusive_s": 6.8089e-05
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 291,
+        "function": "_on_entity_filtered",
+        "primitive_calls": 7,
+        "calls": 7,
+        "self_s": 3.7246e-05,
+        "inclusive_s": 7.2499e-05
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 141,
+        "function": "get",
+        "primitive_calls": 41,
+        "calls": 41,
+        "self_s": 3.6832e-05,
+        "inclusive_s": 0.000298249
+      },
+      {
+        "file": "src/gem/schema/field_path/operations.py",
+        "line": 224,
+        "function": "pop_n_plus_n",
+        "primitive_calls": 35,
+        "calls": 35,
+        "self_s": 3.6628e-05,
+        "inclusive_s": 0.00017891600000000002
+      },
+      {
+        "file": "src/gem/extractors/smoke_vision.py",
+        "line": 123,
+        "function": "finalize",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 3.4211e-05,
+        "inclusive_s": 0.0023462920000000003
+      },
+      {
+        "file": "src/gem/extractors/intervals.py",
+        "line": 589,
+        "function": "team_counters",
+        "primitive_calls": 10,
+        "calls": 10,
+        "self_s": 3.3163e-05,
+        "inclusive_s": 6.8082e-05
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 178,
+        "function": "<lambda>",
+        "primitive_calls": 389,
+        "calls": 389,
+        "self_s": 3.2878e-05,
+        "inclusive_s": 3.2878e-05
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 410,
+        "function": "<genexpr>",
+        "primitive_calls": 250,
+        "calls": 250,
+        "self_s": 3.1748e-05,
+        "inclusive_s": 3.1748e-05
+      },
+      {
+        "file": "src/gem/extractors/wards.py",
+        "line": 168,
+        "function": "finalize",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 3.0584000000000004e-05,
+        "inclusive_s": 3.2166000000000003e-05
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/re.py",
+        "line": 324,
+        "function": "_subx",
+        "primitive_calls": 30,
+        "calls": 30,
+        "self_s": 2.979e-05,
+        "inclusive_s": 6.279e-05
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 268,
+        "function": "_build_objectives",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 2.9207000000000003e-05,
+        "inclusive_s": 0.003284958
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 544,
+        "function": "_populate_opendota_xp_bounds",
+        "primitive_calls": 3,
+        "calls": 3,
+        "self_s": 2.5793000000000002e-05,
+        "inclusive_s": 0.000118541
+      },
+      {
+        "file": "src/gem/schema/field_decoder/type_resolver.py",
+        "line": 156,
+        "function": "find_decoder_by_base_type",
+        "primitive_calls": 50,
+        "calls": 50,
+        "self_s": 2.5788e-05,
+        "inclusive_s": 3.6415e-05
+      },
+      {
+        "file": "src/gem/catalog/items.py",
+        "line": 42,
+        "function": "item_key_by_id",
+        "primitive_calls": 40,
+        "calls": 40,
+        "self_s": 2.4912e-05,
+        "inclusive_s": 7.708300000000001e-05
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 393,
+        "function": "_on_entity_filtered",
+        "primitive_calls": 7,
+        "calls": 7,
+        "self_s": 2.3628e-05,
+        "inclusive_s": 5.3876000000000004e-05
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/re.py",
+        "line": 202,
+        "function": "sub",
+        "primitive_calls": 20,
+        "calls": 20,
+        "self_s": 2.3249e-05,
+        "inclusive_s": 0.00024483100000000004
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 221,
+        "function": "__init__",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 2.3209e-05,
+        "inclusive_s": 6.0292000000000005e-05
+      },
+      {
+        "file": "src/gem/catalog/units.py",
+        "line": 28,
+        "function": "is_ancient",
+        "primitive_calls": 166,
+        "calls": 166,
+        "self_s": 2.2665e-05,
+        "inclusive_s": 2.2665e-05
+      },
+      {
+        "file": "src/gem/schema/field_decoder/quantized_float.py",
+        "line": 127,
+        "function": "_quantize",
+        "primitive_calls": 23,
+        "calls": 23,
+        "self_s": 2.1667e-05,
+        "inclusive_s": 2.1667e-05
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/re.py",
+        "line": 288,
+        "function": "_compile",
+        "primitive_calls": 20,
+        "calls": 20,
+        "self_s": 2.1450000000000003e-05,
+        "inclusive_s": 2.8832e-05
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/re.py",
+        "line": 330,
+        "function": "filter",
+        "primitive_calls": 36,
+        "calls": 36,
+        "self_s": 2.1331000000000003e-05,
+        "inclusive_s": 8.604100000000001e-05
+      },
+      {
+        "file": "src/gem/extractors/intervals.py",
+        "line": 607,
+        "function": "<dictcomp>",
+        "primitive_calls": 10,
+        "calls": 10,
+        "self_s": 2.091e-05,
+        "inclusive_s": 2.5500000000000003e-05
+      },
+      {
+        "file": "src/gem/catalog/units.py",
+        "line": 52,
+        "function": "is_lane_creep",
+        "primitive_calls": 97,
+        "calls": 97,
+        "self_s": 2.0826e-05,
+        "inclusive_s": 3.4414e-05
+      },
+      {
+        "file": "src/gem/extractors/smoke_vision.py",
+        "line": 210,
+        "function": "finalize",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 2.0414e-05,
+        "inclusive_s": 0.003413375
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 697,
+        "function": "<dictcomp>",
+        "primitive_calls": 10,
+        "calls": 10,
+        "self_s": 1.9707000000000003e-05,
+        "inclusive_s": 1.9707000000000003e-05
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method builtins.sum>",
+        "primitive_calls": 24,
+        "calls": 24,
+        "self_s": 1.9624e-05,
+        "inclusive_s": 3.1875e-05
+      },
+      {
+        "file": "src/gem/extractors/objectives.py",
+        "line": 322,
+        "function": "_on_entity",
+        "primitive_calls": 5,
+        "calls": 5,
+        "self_s": 1.9502e-05,
+        "inclusive_s": 2.7792e-05
+      },
+      {
+        "file": "src/gem/schema/field_decoder/type_resolver.py",
+        "line": 30,
+        "function": "_unsigned_factory",
+        "primitive_calls": 101,
+        "calls": 101,
+        "self_s": 1.9337e-05,
+        "inclusive_s": 1.9337e-05
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/pathlib.py",
+        "line": 56,
+        "function": "parse_parts",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.8500000000000002e-05,
+        "inclusive_s": 2.8708e-05
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 121,
+        "function": "_tick_game_seconds",
+        "primitive_calls": 78,
+        "calls": 78,
+        "self_s": 1.7538e-05,
+        "inclusive_s": 1.7538e-05
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 93,
+        "function": "<genexpr>",
+        "primitive_calls": 12,
+        "calls": 12,
+        "self_s": 1.7291e-05,
+        "inclusive_s": 1.7708e-05
+      },
+      {
+        "file": "src/gem/extractors/draft.py",
+        "line": 43,
+        "function": "_class_to_npc_names",
+        "primitive_calls": 10,
+        "calls": 10,
+        "self_s": 1.7128000000000003e-05,
+        "inclusive_s": 0.00010045900000000001
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 702,
+        "function": "<dictcomp>",
+        "primitive_calls": 2,
+        "calls": 2,
+        "self_s": 1.6958000000000003e-05,
+        "inclusive_s": 0.016217333
+      },
+      {
+        "file": "src/gem/results/models.py",
+        "line": 658,
+        "function": "<listcomp>",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.6878e-05,
+        "inclusive_s": 0.000166209
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 830,
+        "function": "_on_match_details",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.6083000000000002e-05,
+        "inclusive_s": 4.7000000000000004e-05
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 221,
+        "function": "_on_game_end",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.5918000000000002e-05,
+        "inclusive_s": 0.004072667
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/collections/__init__.py",
+        "line": 579,
+        "function": "__missing__",
+        "primitive_calls": 263,
+        "calls": 263,
+        "self_s": 1.5332e-05,
+        "inclusive_s": 1.5332e-05
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/sre_parse.py",
+        "line": 971,
+        "function": "parse_template",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.4501e-05,
+        "inclusive_s": 2.9709000000000003e-05
+      },
+      {
+        "file": "src/gem/schema/field_decoder/type_resolver.py",
+        "line": 35,
+        "function": "_unsigned64_factory",
+        "primitive_calls": 50,
+        "calls": 50,
+        "self_s": 1.4374000000000002e-05,
+        "inclusive_s": 1.4374000000000002e-05
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 1164,
+        "function": "<dictcomp>",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.3958000000000001e-05,
+        "inclusive_s": 0.010269375
+      },
+      {
+        "file": "src/gem/catalog/heroes.py",
+        "line": 88,
+        "function": "hero_id",
+        "primitive_calls": 10,
+        "calls": 10,
+        "self_s": 1.3836000000000001e-05,
+        "inclusive_s": 2.5332e-05
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 166,
+        "function": "<lambda>",
+        "primitive_calls": 19,
+        "calls": 19,
+        "self_s": 1.3710000000000001e-05,
+        "inclusive_s": 0.00023241800000000002
+      },
+      {
+        "file": "src/gem/extractors/draft.py",
+        "line": 51,
+        "function": "_class_to_npc",
+        "primitive_calls": 10,
+        "calls": 10,
+        "self_s": 1.3582000000000001e-05,
+        "inclusive_s": 0.000114041
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 518,
+        "function": "on_server_info",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.3458e-05,
+        "inclusive_s": 1.7083000000000002e-05
+      },
+      {
+        "file": "src/gem/extractors/_snapshots.py",
+        "line": 320,
+        "function": "_fallback_npc_name",
+        "primitive_calls": 10,
+        "calls": 10,
+        "self_s": 1.3337000000000001e-05,
+        "inclusive_s": 8.3207e-05
+      },
+      {
+        "file": "src/gem/extractors/objectives.py",
+        "line": 76,
+        "function": "_find_team",
+        "primitive_calls": 6,
+        "calls": 6,
+        "self_s": 1.304e-05,
+        "inclusive_s": 1.6459e-05
+      },
+      {
+        "file": "src/gem/results/permanent_buffs.py",
+        "line": 19,
+        "function": "permanent_buff_flags",
+        "primitive_calls": 10,
+        "calls": 10,
+        "self_s": 1.3001000000000001e-05,
+        "inclusive_s": 3.9167e-05
+      },
+      {
+        "file": "src/gem/extractors/intervals.py",
+        "line": 139,
+        "function": "__init__",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.2750000000000002e-05,
+        "inclusive_s": 1.2750000000000002e-05
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 814,
+        "function": "<genexpr>",
+        "primitive_calls": 20,
+        "calls": 20,
+        "self_s": 1.2124000000000001e-05,
+        "inclusive_s": 1.2124000000000001e-05
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 509,
+        "function": "_remove_hero",
+        "primitive_calls": 4,
+        "calls": 4,
+        "self_s": 1.1707e-05,
+        "inclusive_s": 1.7332e-05
+      },
+      {
+        "file": "src/gem/results/derived.py",
+        "line": 118,
+        "function": "_tower_bit",
+        "primitive_calls": 6,
+        "calls": 6,
+        "self_s": 1.1707e-05,
+        "inclusive_s": 1.4625000000000001e-05
+      },
+      {
+        "file": "src/gem/binary/stream.py",
+        "line": 80,
+        "function": "close",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.0875e-05,
+        "inclusive_s": 0.0006975000000000001
+      },
+      {
+        "file": "src/gem/extractors/draft.py",
+        "line": 299,
+        "function": "finalize",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.0331e-05,
+        "inclusive_s": 1.9125e-05
+      },
+      {
+        "file": "src/gem/schema/field_decoder/composite_codecs.py",
+        "line": 18,
+        "function": "_qangle_factory",
+        "primitive_calls": 6,
+        "calls": 6,
+        "self_s": 1.0167000000000001e-05,
+        "inclusive_s": 1.0167000000000001e-05
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 54,
+        "function": "_player_id_to_player_slot",
+        "primitive_calls": 68,
+        "calls": 68,
+        "self_s": 1.0044e-05,
+        "inclusive_s": 1.0044e-05
+      },
+      {
+        "file": "src/gem/binary/stream.py",
+        "line": 95,
+        "function": "_validate_magic",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 9.917e-06,
+        "inclusive_s": 9.917e-06
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'join' of 'str' objects>",
+        "primitive_calls": 38,
+        "calls": 38,
+        "self_s": 9.75e-06,
+        "inclusive_s": 9.75e-06
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 508,
+        "function": "_append_closed_opendota_fight",
+        "primitive_calls": 20,
+        "calls": 20,
+        "self_s": 9.583000000000001e-06,
+        "inclusive_s": 1.354e-05
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 749,
+        "function": "_update_centroid",
+        "primitive_calls": 34,
+        "calls": 34,
+        "self_s": 9.501000000000001e-06,
+        "inclusive_s": 9.501000000000001e-06
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method builtins.setattr>",
+        "primitive_calls": 60,
+        "calls": 60,
+        "self_s": 9.456e-06,
+        "inclusive_s": 9.456e-06
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/pathlib.py",
+        "line": 567,
+        "function": "_parse_args",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 9.374e-06,
+        "inclusive_s": 3.8291e-05
+      },
+      {
+        "file": "src/gem/catalog/units.py",
+        "line": 64,
+        "function": "is_courier",
+        "primitive_calls": 47,
+        "calls": 47,
+        "self_s": 9.168000000000001e-06,
+        "inclusive_s": 9.168000000000001e-06
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method builtins.next>",
+        "primitive_calls": 35,
+        "calls": 35,
+        "self_s": 9.166e-06,
+        "inclusive_s": 0.000367666
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method resource.getrusage>",
+        "primitive_calls": 2,
+        "calls": 2,
+        "self_s": 8.834e-06,
+        "inclusive_s": 8.834e-06
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 288,
+        "function": "get_string",
+        "primitive_calls": 14,
+        "calls": 14,
+        "self_s": 8.541e-06,
+        "inclusive_s": 0.000135582
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 825,
+        "function": "_on_match_metadata",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 8.499000000000001e-06,
+        "inclusive_s": 0.000223458
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 303,
+        "function": "<genexpr>",
+        "primitive_calls": 41,
+        "calls": 41,
+        "self_s": 8.456e-06,
+        "inclusive_s": 8.456e-06
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'replace' of 'str' objects>",
+        "primitive_calls": 20,
+        "calls": 20,
+        "self_s": 8.414000000000001e-06,
+        "inclusive_s": 8.414000000000001e-06
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 405,
+        "function": "<genexpr>",
+        "primitive_calls": 41,
+        "calls": 41,
+        "self_s": 8.249e-06,
+        "inclusive_s": 8.249e-06
+      },
+      {
+        "file": "src/gem/extractors/intervals.py",
+        "line": 397,
+        "function": "_remove_hero_name_entity",
+        "primitive_calls": 4,
+        "calls": 4,
+        "self_s": 7.795e-06,
+        "inclusive_s": 9.168000000000001e-06
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 117,
+        "function": "__init__",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 7.792000000000001e-06,
+        "inclusive_s": 7.792000000000001e-06
+      },
+      {
+        "file": "src/gem/extractors/intervals.py",
+        "line": 199,
+        "function": "attach",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 7.666e-06,
+        "inclusive_s": 1.7375000000000002e-05
+      },
+      {
+        "file": "src/gem/results/permanent_buffs.py",
+        "line": 30,
+        "function": "<dictcomp>",
+        "primitive_calls": 10,
+        "calls": 10,
+        "self_s": 7.542000000000001e-06,
+        "inclusive_s": 7.542000000000001e-06
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 424,
+        "function": "_on_class_info",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 7.292000000000001e-06,
+        "inclusive_s": 0.016620833
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/pathlib.py",
+        "line": 239,
+        "function": "splitroot",
+        "primitive_calls": 9,
+        "calls": 9,
+        "self_s": 7.083000000000001e-06,
+        "inclusive_s": 8.167e-06
+      },
+      {
+        "file": "src/gem/extractors/lane.py",
+        "line": 155,
+        "function": "<lambda>",
+        "primitive_calls": 38,
+        "calls": 38,
+        "self_s": 6.999e-06,
+        "inclusive_s": 6.999e-06
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 238,
+        "function": "get_int32",
+        "primitive_calls": 15,
+        "calls": 15,
+        "self_s": 6.749e-06,
+        "inclusive_s": 3.8209e-05
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 479,
+        "function": "__init__",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 6.625e-06,
+        "inclusive_s": 8.000000000000001e-06
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 580,
+        "function": "<dictcomp>",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 6.418e-06,
+        "inclusive_s": 5.4583e-05
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 743,
+        "function": "_on_class_info",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 6.3760000000000004e-06,
+        "inclusive_s": 0.022292417000000002
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 181,
+        "function": "attach",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 6.251000000000001e-06,
+        "inclusive_s": 2.0542e-05
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/pathlib.py",
+        "line": 587,
+        "function": "_from_parts",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 6e-06,
+        "inclusive_s": 4.4750000000000004e-05
+      },
+      {
+        "file": "src/gem/catalog/units.py",
+        "line": 88,
+        "function": "is_sentry_ward",
+        "primitive_calls": 43,
+        "calls": 43,
+        "self_s": 5.8750000000000005e-06,
+        "inclusive_s": 5.8750000000000005e-06
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 313,
+        "function": "_register_entity_callback",
+        "primitive_calls": 7,
+        "calls": 7,
+        "self_s": 5.832e-06,
+        "inclusive_s": 6.750000000000001e-06
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/pathlib.py",
+        "line": 619,
+        "function": "__str__",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 5.75e-06,
+        "inclusive_s": 9.208e-06
+      },
+      {
+        "file": "src/gem/results/derived.py",
+        "line": 162,
+        "function": "_tower_mask",
+        "primitive_calls": 2,
+        "calls": 2,
+        "self_s": 5.667e-06,
+        "inclusive_s": 2.0292e-05
+      },
+      {
+        "file": "src/gem/catalog/units.py",
+        "line": 76,
+        "function": "is_observer_ward",
+        "primitive_calls": 46,
+        "calls": 46,
+        "self_s": 5.618e-06,
+        "inclusive_s": 5.618e-06
+      },
+      {
+        "file": "src/gem/extractors/wards.py",
+        "line": 136,
+        "function": "__init__",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 5.458e-06,
+        "inclusive_s": 6.292e-06
+      },
+      {
+        "file": "src/gem/extractors/smoke_vision.py",
+        "line": 230,
+        "function": "_team_by_npc",
+        "primitive_calls": 2,
+        "calls": 2,
+        "self_s": 5.3330000000000004e-06,
+        "inclusive_s": 0.005682917
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 45,
+        "function": "_player_slot_to_player_id",
+        "primitive_calls": 20,
+        "calls": 20,
+        "self_s": 5.251e-06,
+        "inclusive_s": 5.251e-06
+      },
+      {
+        "file": "src/gem/catalog/units.py",
+        "line": 100,
+        "function": "is_roshan",
+        "primitive_calls": 37,
+        "calls": 37,
+        "self_s": 5.249e-06,
+        "inclusive_s": 5.249e-06
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 697,
+        "function": "_prepare_snapshot_lookups",
+        "primitive_calls": 2,
+        "calls": 2,
+        "self_s": 5.2090000000000004e-06,
+        "inclusive_s": 0.016223626
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 264,
+        "function": "get_uint64",
+        "primitive_calls": 10,
+        "calls": 10,
+        "self_s": 5.0020000000000006e-06,
+        "inclusive_s": 0.0001295
+      },
+      {
+        "file": "src/gem/results/models.py",
+        "line": 463,
+        "function": "<lambda>",
+        "primitive_calls": 10,
+        "calls": 10,
+        "self_s": 5.001e-06,
+        "inclusive_s": 5.001e-06
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 297,
+        "function": "slot_fields",
+        "primitive_calls": 8,
+        "calls": 8,
+        "self_s": 4.957e-06,
+        "inclusive_s": 7.000000000000001e-06
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method posix.close>",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 4.834000000000001e-06,
+        "inclusive_s": 4.834000000000001e-06
+      },
+      {
+        "file": "src/gem/combat/aggregator.py",
+        "line": 31,
+        "function": "_nested_int_counter",
+        "primitive_calls": 20,
+        "calls": 20,
+        "self_s": 4.7930000000000005e-06,
+        "inclusive_s": 4.7930000000000005e-06
+      },
+      {
+        "file": "src/gem/extractors/smoke_vision.py",
+        "line": 225,
+        "function": "<genexpr>",
+        "primitive_calls": 23,
+        "calls": 23,
+        "self_s": 4.7930000000000005e-06,
+        "inclusive_s": 4.7930000000000005e-06
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/sre_parse.py",
+        "line": 224,
+        "function": "__init__",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 4.792e-06,
+        "inclusive_s": 6.375000000000001e-06
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method fromkeys>",
+        "primitive_calls": 14,
+        "calls": 14,
+        "self_s": 4.709e-06,
+        "inclusive_s": 4.709e-06
+      },
+      {
+        "file": "src/gem/schema/sendtable/parser.py",
+        "line": 226,
+        "function": "<listcomp>",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 4.7080000000000005e-06,
+        "inclusive_s": 8.416e-06
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/pathlib.py",
+        "line": 955,
+        "function": "__new__",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 4.667e-06,
+        "inclusive_s": 4.9417000000000005e-05
+      },
+      {
+        "file": "src/gem/combat/aggregator.py",
+        "line": 201,
+        "function": "resolve_kill_pid",
+        "primitive_calls": 9,
+        "calls": 9,
+        "self_s": 4.378e-06,
+        "inclusive_s": 0.003235335
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method math.log2>",
+        "primitive_calls": 8,
+        "calls": 8,
+        "self_s": 4.373e-06,
+        "inclusive_s": 4.373e-06
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/sre_parse.py",
+        "line": 233,
+        "function": "__next",
+        "primitive_calls": 4,
+        "calls": 4,
+        "self_s": 4.291e-06,
+        "inclusive_s": 4.291e-06
+      },
+      {
+        "file": "scripts/profile_parser.py",
+        "line": 147,
+        "function": "checked_parse",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 4.25e-06,
+        "inclusive_s": 165.11387283300002
+      },
+      {
+        "file": "src/gem/extractors/objectives.py",
+        "line": 279,
+        "function": "__init__",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 4.167e-06,
+        "inclusive_s": 4.167e-06
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 500,
+        "function": "_on_entity_filtered",
+        "primitive_calls": 7,
+        "calls": 7,
+        "self_s": 4.124000000000001e-06,
+        "inclusive_s": 5.8e-05
+      },
+      {
+        "file": "src/gem/results/derived.py",
+        "line": 193,
+        "function": "building_status",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 3.958e-06,
+        "inclusive_s": 2.6875000000000003e-05
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 1044,
+        "function": "<listcomp>",
+        "primitive_calls": 3,
+        "calls": 3,
+        "self_s": 3.834e-06,
+        "inclusive_s": 3.834e-06
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 392,
+        "function": "on_combat_log_entry",
+        "primitive_calls": 7,
+        "calls": 7,
+        "self_s": 3.7930000000000004e-06,
+        "inclusive_s": 7.458e-06
+      },
+      {
+        "file": "src/gem/state/game_events.py",
+        "line": 155,
+        "function": "__init__",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 3.791e-06,
+        "inclusive_s": 3.791e-06
+      },
+      {
+        "file": "src/gem/schema/sendtable/patches.py",
+        "line": 30,
+        "function": "should_apply",
+        "primitive_calls": 4,
+        "calls": 4,
+        "self_s": 3.7080000000000003e-06,
+        "inclusive_s": 3.7080000000000003e-06
+      },
+      {
+        "file": "src/gem/extractors/objectives.py",
+        "line": 308,
+        "function": "attach",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 3.501e-06,
+        "inclusive_s": 1.1625000000000001e-05
+      },
+      {
+        "file": "src/gem/combat/aggregator.py",
+        "line": 148,
+        "function": "__init__",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 3.5000000000000004e-06,
+        "inclusive_s": 3.5000000000000004e-06
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 415,
+        "function": "_register",
+        "primitive_calls": 7,
+        "calls": 7,
+        "self_s": 3.497e-06,
+        "inclusive_s": 3.957e-06
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 294,
+        "function": "secs",
+        "primitive_calls": 9,
+        "calls": 9,
+        "self_s": 3.418e-06,
+        "inclusive_s": 5.459000000000001e-06
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/collections/__init__.py",
+        "line": 640,
+        "function": "update",
+        "primitive_calls": 10,
+        "calls": 10,
+        "self_s": 3.417e-06,
+        "inclusive_s": 3.417e-06
+      },
+      {
+        "file": "src/gem/state/string_table.py",
+        "line": 69,
+        "function": "__init__",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 3.417e-06,
+        "inclusive_s": 3.417e-06
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/re.py",
+        "line": 314,
+        "function": "_compile_repl",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 3.2910000000000003e-06,
+        "inclusive_s": 3.3e-05
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 1193,
+        "function": "<genexpr>",
+        "primitive_calls": 6,
+        "calls": 6,
+        "self_s": 3.209e-06,
+        "inclusive_s": 3.209e-06
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/sre_parse.py",
+        "line": 980,
+        "function": "addgroup",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 3.2070000000000004e-06,
+        "inclusive_s": 4.0830000000000005e-06
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 1049,
+        "function": "<listcomp>",
+        "primitive_calls": 3,
+        "calls": 3,
+        "self_s": 3.1660000000000003e-06,
+        "inclusive_s": 3.1660000000000003e-06
+      },
+      {
+        "file": "src/gem/combat/log.py",
+        "line": 272,
+        "function": "on_combat_log_entry",
+        "primitive_calls": 7,
+        "calls": 7,
+        "self_s": 3.1660000000000003e-06,
+        "inclusive_s": 3.665e-06
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 171,
+        "function": "filtered",
+        "primitive_calls": 7,
+        "calls": 7,
+        "self_s": 3.085e-06,
+        "inclusive_s": 3.085e-06
+      },
+      {
+        "file": "src/gem/extractors/smoke_vision.py",
+        "line": 226,
+        "function": "<genexpr>",
+        "primitive_calls": 23,
+        "calls": 23,
+        "self_s": 2.875e-06,
+        "inclusive_s": 2.875e-06
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/pathlib.py",
+        "line": 606,
+        "function": "_format_parsed_parts",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 2.792e-06,
+        "inclusive_s": 3.458e-06
+      },
+      {
+        "file": "src/gem/extractors/teamfights.py",
+        "line": 302,
+        "function": "<lambda>",
+        "primitive_calls": 24,
+        "calls": 24,
+        "self_s": 2.542e-06,
+        "inclusive_s": 2.542e-06
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 735,
+        "function": "_on_server_info",
+        "primitive_calls": 2,
+        "calls": 2,
+        "self_s": 2.542e-06,
+        "inclusive_s": 1.9625000000000003e-05
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'endswith' of 'str' objects>",
+        "primitive_calls": 12,
+        "calls": 12,
+        "self_s": 2.418e-06,
+        "inclusive_s": 2.418e-06
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 1162,
+        "function": "<dictcomp>",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 2.4170000000000003e-06,
+        "inclusive_s": 2.4170000000000003e-06
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 1126,
+        "function": "<dictcomp>",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 2.375e-06,
+        "inclusive_s": 2.375e-06
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'search' of 're.Pattern' objects>",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 2.2920000000000002e-06,
+        "inclusive_s": 2.2920000000000002e-06
+      },
+      {
+        "file": "src/gem/extractors/intervals.py",
+        "line": 268,
+        "function": "_on_game_end",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 2.2080000000000003e-06,
+        "inclusive_s": 5.375e-06
+      },
+      {
+        "file": "src/gem/extractors/intervals.py",
+        "line": 497,
+        "function": "_emit_final_boundary",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 2.001e-06,
+        "inclusive_s": 3.1670000000000003e-06
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'clear' of 'dict' objects>",
+        "primitive_calls": 4,
+        "calls": 4,
+        "self_s": 1.833e-06,
+        "inclusive_s": 1.833e-06
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method builtins.iter>",
+        "primitive_calls": 24,
+        "calls": 24,
+        "self_s": 1.833e-06,
+        "inclusive_s": 1.833e-06
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 250,
+        "function": "get_uint32",
+        "primitive_calls": 2,
+        "calls": 2,
+        "self_s": 1.8320000000000002e-06,
+        "inclusive_s": 1.95e-05
+      },
+      {
+        "file": "src/gem/results/models.py",
+        "line": 658,
+        "function": "<lambda>",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.791e-06,
+        "inclusive_s": 0.00016800000000000002
+      },
+      {
+        "file": "src/gem/extractors/wards.py",
+        "line": 150,
+        "function": "attach",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.7500000000000002e-06,
+        "inclusive_s": 8.833e-06
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method math.ceil>",
+        "primitive_calls": 7,
+        "calls": 7,
+        "self_s": 1.6650000000000002e-06,
+        "inclusive_s": 1.6650000000000002e-06
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/sre_parse.py",
+        "line": 254,
+        "function": "get",
+        "primitive_calls": 3,
+        "calls": 3,
+        "self_s": 1.6260000000000002e-06,
+        "inclusive_s": 4.417e-06
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 1163,
+        "function": "<dictcomp>",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.6250000000000001e-06,
+        "inclusive_s": 1.6250000000000001e-06
+      },
+      {
+        "file": "src/gem/extractors/players.py",
+        "line": 206,
+        "function": "_on_game_start",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.624e-06,
+        "inclusive_s": 0.002424542
+      },
+      {
+        "file": "src/gem/extractors/courier.py",
+        "line": 62,
+        "function": "__init__",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.584e-06,
+        "inclusive_s": 1.584e-06
+      },
+      {
+        "file": "src/gem/binary/stream.py",
+        "line": 92,
+        "function": "__exit__",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.542e-06,
+        "inclusive_s": 0.0006990420000000001
+      },
+      {
+        "file": "src/gem/extractors/draft.py",
+        "line": 169,
+        "function": "__init__",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.5e-06,
+        "inclusive_s": 1.5e-06
+      },
+      {
+        "file": "src/gem/state/entities.py",
+        "line": 380,
+        "function": "__init__",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.3750000000000002e-06,
+        "inclusive_s": 1.3750000000000002e-06
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 1194,
+        "function": "<genexpr>",
+        "primitive_calls": 6,
+        "calls": 6,
+        "self_s": 1.374e-06,
+        "inclusive_s": 1.374e-06
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method time.perf_counter>",
+        "primitive_calls": 2,
+        "calls": 2,
+        "self_s": 1.333e-06,
+        "inclusive_s": 1.333e-06
+      },
+      {
+        "file": "/Users/hanyuwu/.pyenv/versions/3.10.4/lib/python3.10/pathlib.py",
+        "line": 629,
+        "function": "__fspath__",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.25e-06,
+        "inclusive_s": 1.0458e-05
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method sys.intern>",
+        "primitive_calls": 8,
+        "calls": 8,
+        "self_s": 1.25e-06,
+        "inclusive_s": 1.25e-06
+      },
+      {
+        "file": "src/gem/results/derived.py",
+        "line": 209,
+        "function": "<listcomp>",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.2080000000000001e-06,
+        "inclusive_s": 1.2080000000000001e-06
+      },
+      {
+        "file": "src/gem/extractors/smoke_vision.py",
+        "line": 161,
+        "function": "__init__",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.167e-06,
+        "inclusive_s": 1.167e-06
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 391,
+        "function": "<lambda>",
+        "primitive_calls": 10,
+        "calls": 10,
+        "self_s": 1.125e-06,
+        "inclusive_s": 1.125e-06
+      },
+      {
+        "file": "src/gem/extractors/draft.py",
+        "line": 180,
+        "function": "attach",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.083e-06,
+        "inclusive_s": 6.5000000000000004e-06
+      },
+      {
+        "file": "src/gem/extractors/courier.py",
+        "line": 75,
+        "function": "attach",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.041e-06,
+        "inclusive_s": 6.666e-06
+      },
+      {
+        "file": "src/gem/extractors/intervals.py",
+        "line": 249,
+        "function": "_clock",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.0000000000000002e-06,
+        "inclusive_s": 1.1660000000000001e-06
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 1045,
+        "function": "<lambda>",
+        "primitive_calls": 5,
+        "calls": 5,
+        "self_s": 9.58e-07,
+        "inclusive_s": 9.58e-07
+      },
+      {
+        "file": "src/gem/extractors/objectives.py",
+        "line": 424,
+        "function": "<genexpr>",
+        "primitive_calls": 2,
+        "calls": 2,
+        "self_s": 9.58e-07,
+        "inclusive_s": 9.58e-07
+      },
+      {
+        "file": "src/gem/extractors/wards.py",
+        "line": 144,
+        "function": "<dictcomp>",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 8.340000000000001e-07,
+        "inclusive_s": 8.340000000000001e-07
+      },
+      {
+        "file": "src/gem/extractors/intervals.py",
+        "line": 220,
+        "function": "all_snapshots",
+        "primitive_calls": 2,
+        "calls": 2,
+        "self_s": 8.340000000000001e-07,
+        "inclusive_s": 8.340000000000001e-07
+      },
+      {
+        "file": "src/gem/combat/log.py",
+        "line": 269,
+        "function": "__init__",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 7.92e-07,
+        "inclusive_s": 7.92e-07
+      },
+      {
+        "file": "src/gem/results/derived.py",
+        "line": 208,
+        "function": "<listcomp>",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 7.5e-07,
+        "inclusive_s": 7.5e-07
+      },
+      {
+        "file": "src/gem/extractors/smoke_vision.py",
+        "line": 80,
+        "function": "__init__",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 7.5e-07,
+        "inclusive_s": 7.5e-07
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'lstrip' of 'str' objects>",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 7.09e-07,
+        "inclusive_s": 7.09e-07
+      },
+      {
+        "file": "src/gem/results/assembly.py",
+        "line": 1050,
+        "function": "<lambda>",
+        "primitive_calls": 5,
+        "calls": 5,
+        "self_s": 7.09e-07,
+        "inclusive_s": 7.09e-07
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 448,
+        "function": "_mark_game_end",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 7.08e-07,
+        "inclusive_s": 7.08e-07
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 436,
+        "function": "on_game_end",
+        "primitive_calls": 2,
+        "calls": 2,
+        "self_s": 6.67e-07,
+        "inclusive_s": 7.91e-07
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 424,
+        "function": "on_game_start",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 5.420000000000001e-07,
+        "inclusive_s": 6.25e-07
+      },
+      {
+        "file": "src/gem/extractors/smoke_vision.py",
+        "line": 92,
+        "function": "attach",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 5.420000000000001e-07,
+        "inclusive_s": 1.292e-06
+      },
+      {
+        "file": "src/gem/extractors/smoke_vision.py",
+        "line": 175,
+        "function": "attach",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 5.41e-07,
+        "inclusive_s": 1.458e-06
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 416,
+        "function": "on_neutral_item_found",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 5.000000000000001e-07,
+        "inclusive_s": 5.420000000000001e-07
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 326,
+        "function": "on_tick_start",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 4.5800000000000005e-07,
+        "inclusive_s": 5.000000000000001e-07
+      },
+      {
+        "file": "src/gem/results/derived.py",
+        "line": 183,
+        "function": "_rax_mask",
+        "primitive_calls": 2,
+        "calls": 2,
+        "self_s": 3.3300000000000003e-07,
+        "inclusive_s": 3.3300000000000003e-07
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 400,
+        "function": "on_chat_message",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 2.92e-07,
+        "inclusive_s": 3.75e-07
+      },
+      {
+        "file": "src/gem/parser.py",
+        "line": 408,
+        "function": "on_chat_event",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 2.91e-07,
+        "inclusive_s": 3.3300000000000003e-07
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<built-in method builtins.callable>",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 2.5000000000000004e-07,
+        "inclusive_s": 2.5000000000000004e-07
+      },
+      {
+        "file": "src/gem/results/derived.py",
+        "line": 210,
+        "function": "<listcomp>",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.67e-07,
+        "inclusive_s": 1.67e-07
+      },
+      {
+        "file": "src/gem/results/derived.py",
+        "line": 211,
+        "function": "<listcomp>",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.67e-07,
+        "inclusive_s": 1.67e-07
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'reverse' of 'list' objects>",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.66e-07,
+        "inclusive_s": 1.66e-07
+      },
+      {
+        "file": "src/gem/binary/stream.py",
+        "line": 89,
+        "function": "__enter__",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 1.2500000000000002e-07,
+        "inclusive_s": 1.2500000000000002e-07
+      },
+      {
+        "file": "~",
+        "line": 0,
+        "function": "<method 'disable' of '_lsprof.Profiler' objects>",
+        "primitive_calls": 1,
+        "calls": 1,
+        "self_s": 8.3e-08,
+        "inclusive_s": 8.3e-08
+      }
+    ]
+  }
+}

@@ -393,7 +393,7 @@ Key message classes used throughout the parser:
 
 ## Status
 
-Current version: **0.7.0** (see `pyproject.toml` and `CHANGELOG.md`).
+Current version: **0.8.0** (see `pyproject.toml` and `CHANGELOG.md`).
 
 The full parsing pipeline and all extractors are complete and stable: binary
 reader, entity system, combat log (S1+S2), string tables, every extractor, the
@@ -411,7 +411,9 @@ Shard flags from the embedded Game Coordinator postgame summary. `gem-dota` is
 published to PyPI.
 
 In flight / deferred:
-- **Rust extension** (PyO3 + maturin) for a 3–5× speedup. Deferred.
+- **Rust extension** (PyO3 + maturin). Implementation deferred; the final
+  v0.8.0 profile selects an entity-field decode/apply boundary. See
+  `docs/deep-dives/parser-profile-2026-09.md`. No end-to-end speedup is promised.
 - **Buyback cost breakdown** (reliable/unreliable gold) — see the deferred
   section above and issue #119.
 
