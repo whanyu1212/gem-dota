@@ -28,6 +28,7 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+FIXTURE_MANIFEST = "tests/fixtures/opendota/manifest.json"
 # Exact normalized public outputs validated in parser-profile-2026-09.md.
 EXPECTED_OUTPUT_SHA256 = {
     8822520406: "3b0844312187a2856743092e991ab425878d64e101d91cf8f9c83bb2b3580427",
@@ -37,13 +38,25 @@ EXPECTED_OUTPUT_SHA256 = {
 
 def _parser_commit() -> str:
     status = subprocess.run(
-        ["git", "-C", str(ROOT), "status", "--porcelain", "--untracked-files=all", "--", "src/gem"],
+        [
+            "git",
+            "-C",
+            str(ROOT),
+            "status",
+            "--porcelain",
+            "--untracked-files=all",
+            "--",
+            "src/gem",
+            FIXTURE_MANIFEST,
+        ],
         capture_output=True,
         text=True,
         check=True,
     ).stdout
     if status:
-        raise RuntimeError(f"Refusing to profile dirty parser sources:\n{status}")
+        raise RuntimeError(
+            f"Refusing to profile dirty parser sources or fixture manifest:\n{status}"
+        )
     return subprocess.run(
         ["git", "-C", str(ROOT), "rev-parse", "HEAD"],
         capture_output=True,
@@ -154,7 +167,7 @@ def _run(args: argparse.Namespace) -> dict[str, Any]:
         importlib.import_module(module)
     _rss()  # Import psutil outside the timer.
     replay = args.replay.resolve()
-    manifest = json.loads((ROOT / "tests/fixtures/opendota/manifest.json").read_text())
+    manifest = json.loads((ROOT / FIXTURE_MANIFEST).read_text())
     fixture = next(m for m in manifest["matches"] if m["dem"] == replay.name)
     if args.scenario == "public" and fixture["match_id"] not in EXPECTED_OUTPUT_SHA256:
         raise ValueError(f"No validated public output hash for {fixture['match_id']}")

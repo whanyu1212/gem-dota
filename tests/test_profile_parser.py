@@ -79,6 +79,9 @@ def parser_checkout(tmp_path, monkeypatch):
     source = tmp_path / "src/gem/parser.py"
     source.parent.mkdir(parents=True)
     source.write_text("original = True\n")
+    manifest = tmp_path / profile_parser.FIXTURE_MANIFEST
+    manifest.parent.mkdir(parents=True)
+    manifest.write_text('{"matches": []}\n')
     (tmp_path / ".gitignore").write_text("__pycache__/\n")
     git("add", ".")
     git("-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "fixture")
@@ -108,6 +111,20 @@ def test_dirty_parser_is_rejected(parser_checkout, change) -> None:
         if change == "staged":
             git("add", "src/gem/parser.py")
     with pytest.raises(RuntimeError, match="dirty parser sources"):
+        profile_parser._parser_commit()
+
+
+@pytest.mark.parametrize("change", ["unstaged", "staged", "deleted"])
+def test_dirty_fixture_manifest_is_rejected(parser_checkout, change) -> None:
+    root, git = parser_checkout
+    manifest = root / profile_parser.FIXTURE_MANIFEST
+    if change == "deleted":
+        manifest.unlink()
+    else:
+        manifest.write_text('{"matches": [{"dem": "different.dem"}]}\n')
+        if change == "staged":
+            git("add", profile_parser.FIXTURE_MANIFEST)
+    with pytest.raises(RuntimeError, match="fixture manifest"):
         profile_parser._parser_commit()
 
 
