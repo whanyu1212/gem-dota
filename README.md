@@ -94,6 +94,25 @@ combat, laning, farming, teamfight, vision, economy, draft, and movement views.
   <sub>Interactive HTML report generated from a real <code>.dem</code> replay.</sub>
 </p>
 
+<table>
+  <tr>
+    <td width="34%" valign="top" align="center">
+      <a href="https://raw.githubusercontent.com/whanyu1212/gem-dota/main/assets/readme-report-vision.png">
+        <img src="https://raw.githubusercontent.com/whanyu1212/gem-dota/main/assets/readme-report-vision.png" alt="Gem interactive ward map at 16 minutes" width="100%">
+      </a>
+      <br>
+      <sub><strong>Vision</strong> — scrub through observer and sentry ward activity.</sub>
+    </td>
+    <td width="66%" valign="top" align="center">
+      <a href="https://raw.githubusercontent.com/whanyu1212/gem-dota/main/assets/readme-report-teamfight.png">
+        <img src="https://raw.githubusercontent.com/whanyu1212/gem-dota/main/assets/readme-report-teamfight.png" alt="Gem teamfight breakdown with map and combat statistics" width="100%">
+      </a>
+      <br>
+      <sub><strong>Teamfights</strong> — inspect positions, damage, abilities, and reveals.</sub>
+    </td>
+  </tr>
+</table>
+
 ```python
 from gem.reports import write_html_report
 

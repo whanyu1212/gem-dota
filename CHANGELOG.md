@@ -20,7 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **README refresh.** Rework the project README into a concise landing page,
   update API and replay-scope guidance, remove stale release, roadmap, and sample
-  claims, and replace the legacy screenshot gallery with a current report view.
+  claims, and replace the legacy screenshot gallery with current overview,
+  vision, and teamfight views.
 
 ### Fixed
 
