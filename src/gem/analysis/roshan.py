@@ -459,12 +459,15 @@ def _count_objectives(
     towers_taken = sum(
         1
         for tower in match.towers
-        if start_tick <= tower.tick <= end_tick and tower.team == _enemy_team(team)
+        if start_tick <= tower.tick <= end_tick
+        and _structure_destroyer_team(match, tower.team, tower.killer, tower.killer_source) == team
     )
     barracks_taken = sum(
         1
         for barracks in match.barracks
-        if start_tick <= barracks.tick <= end_tick and barracks.team == _enemy_team(team)
+        if start_tick <= barracks.tick <= end_tick
+        and _structure_destroyer_team(match, barracks.team, barracks.killer, barracks.killer_source)
+        == team
     )
     return towers_taken, barracks_taken
 
@@ -479,7 +482,7 @@ def _banner_rax_signal(
     siege. This is an associative lane+time signal, not a proven spatial one: gem
     does not store barracks world positions, so a banner→rax link means "the
     holder team planted a banner in this window and an enemy rax then fell",
-    gated on side by ``_count_objectives``'s enemy-owned-barracks filter.
+    gated on side by attributed destruction and excluding allied denies.
 
     Args:
         match: The parsed match.
@@ -499,11 +502,12 @@ def _banner_rax_signal(
         return False, False, None
 
     earliest_plant_tick = min(plant.tick for plant in plants)
-    enemy_team = _enemy_team(team)
     converted_lanes = [
         (barracks.tick, _rax_lane(barracks.barracks_name))
         for barracks in match.barracks
-        if barracks.team == enemy_team and earliest_plant_tick <= barracks.tick <= end_tick
+        if earliest_plant_tick <= barracks.tick <= end_tick
+        and _structure_destroyer_team(match, barracks.team, barracks.killer, barracks.killer_source)
+        == team
     ]
     if not converted_lanes:
         return True, False, None
@@ -519,12 +523,15 @@ def _first_objective_tick(
     candidates = [
         tower.tick
         for tower in match.towers
-        if start_tick <= tower.tick <= end_tick and tower.team == _enemy_team(team)
+        if start_tick <= tower.tick <= end_tick
+        and _structure_destroyer_team(match, tower.team, tower.killer, tower.killer_source) == team
     ]
     candidates.extend(
         barracks.tick
         for barracks in match.barracks
-        if start_tick <= barracks.tick <= end_tick and barracks.team == _enemy_team(team)
+        if start_tick <= barracks.tick <= end_tick
+        and _structure_destroyer_team(match, barracks.team, barracks.killer, barracks.killer_source)
+        == team
     )
     return min(candidates) if candidates else None
 
@@ -631,6 +638,26 @@ def _team_for_roshan_killer(match: ParsedMatch, killer: str, killer_source: str)
     return None
 
 
+def _structure_destroyer_team(
+    match: ParsedMatch,
+    owner_team: int,
+    killer: str,
+    killer_source: str,
+) -> int | None:
+    killer_team = _team_for_roshan_killer(match, killer, killer_source)
+    if killer_team == owner_team:
+        return None
+    if killer_team in (_TEAM_RADIANT, _TEAM_DIRE):
+        return killer_team
+    if owner_team in (_TEAM_RADIANT, _TEAM_DIRE):
+        return _enemy_team(owner_team)
+    return None
+
+
+def _team_for_tormentor_kill(match: ParsedMatch, killer_player_id: int, killer: str) -> int | None:
+    return _team_for_player(match, killer_player_id) or _team_for_roshan_killer(match, killer, "")
+
+
 def _tower_value(tower_name: str) -> int:
     for tier, value in (("tower4", 4), ("tower3", 3), ("tower2", 2), ("tower1", 1)):
         if tier in tower_name:
@@ -646,40 +673,28 @@ def _structure_values(
         tower
         for tower in match.towers
         if start_tick <= tower.tick <= end_tick
-        and (
-            _team_for_roshan_killer(match, tower.killer, tower.killer_source)
-            or _enemy_team(tower.team)
-        )
+        and _structure_destroyer_team(match, tower.team, tower.killer, tower.killer_source)
         == conversion_team
     ]
     opponent_towers = [
         tower
         for tower in match.towers
         if start_tick <= tower.tick <= end_tick
-        and (
-            _team_for_roshan_killer(match, tower.killer, tower.killer_source)
-            or _enemy_team(tower.team)
-        )
+        and _structure_destroyer_team(match, tower.team, tower.killer, tower.killer_source)
         == opponent_team
     ]
     conversion_barracks = [
         barracks
         for barracks in match.barracks
         if start_tick <= barracks.tick <= end_tick
-        and (
-            _team_for_roshan_killer(match, barracks.killer, barracks.killer_source)
-            or _enemy_team(barracks.team)
-        )
+        and _structure_destroyer_team(match, barracks.team, barracks.killer, barracks.killer_source)
         == conversion_team
     ]
     opponent_barracks = [
         barracks
         for barracks in match.barracks
         if start_tick <= barracks.tick <= end_tick
-        and (
-            _team_for_roshan_killer(match, barracks.killer, barracks.killer_source)
-            or _enemy_team(barracks.team)
-        )
+        and _structure_destroyer_team(match, barracks.team, barracks.killer, barracks.killer_source)
         == opponent_team
     ]
     conversion_value = sum(_tower_value(tower.tower_name) for tower in conversion_towers)
@@ -758,7 +773,7 @@ def _tormentor_counts(
     for tormentor in match.tormentors:
         if not start_tick <= tormentor.tick <= end_tick:
             continue
-        team = _team_for_player(match, tormentor.killer_player_id)
+        team = _team_for_tormentor_kill(match, tormentor.killer_player_id, tormentor.killer)
         if team == conversion_team:
             conversion_count += 1
         elif team == _enemy_team(conversion_team):
@@ -1258,9 +1273,9 @@ def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]:
             for tower in match.towers:
                 if not analysis_start <= tower.tick <= analysis_end:
                     continue
-                destroyer_team = _team_for_roshan_killer(
-                    match, tower.killer, tower.killer_source
-                ) or _enemy_team(tower.team)
+                destroyer_team = _structure_destroyer_team(
+                    match, tower.team, tower.killer, tower.killer_source
+                )
                 if destroyer_team == conversion_team:
                     timeline_events.append(
                         RoshTimelineEvent(tick=tower.tick, kind="tower", label="Tower taken")
@@ -1276,9 +1291,9 @@ def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]:
             for barracks in match.barracks:
                 if not analysis_start <= barracks.tick <= analysis_end:
                     continue
-                destroyer_team = _team_for_roshan_killer(
-                    match, barracks.killer, barracks.killer_source
-                ) or _enemy_team(barracks.team)
+                destroyer_team = _structure_destroyer_team(
+                    match, barracks.team, barracks.killer, barracks.killer_source
+                )
                 if destroyer_team == conversion_team:
                     timeline_events.append(
                         RoshTimelineEvent(
@@ -1314,7 +1329,9 @@ def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]:
             for tormentor in match.tormentors:
                 if not analysis_start <= tormentor.tick <= analysis_end:
                     continue
-                killer_team = _team_for_player(match, tormentor.killer_player_id)
+                killer_team = _team_for_tormentor_kill(
+                    match, tormentor.killer_player_id, tormentor.killer
+                )
                 if killer_team in (conversion_team, enemy_team):
                     label_text = (
                         "Tormentor secured"

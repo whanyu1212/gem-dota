@@ -545,6 +545,85 @@ def test_differential_counts_both_sides_and_tormentor_timeline() -> None:
     assert {"tower", "tower_lost", "barracks", "tormentor", "opponent_tormentor"} <= kinds
 
 
+def test_structure_denies_are_not_credited_to_either_team() -> None:
+    match = ParsedMatch(
+        game_start_tick=0,
+        game_end_tick=10000,
+        players=_make_players(),
+        roshans=[RoshanKill(tick=1000, killer="npc_dota_hero_hero_0", kill_number=1)],
+        aegis_events=[AegisEvent(tick=1010, player_id=0, event_type="pickup")],
+        towers=[
+            TowerKill(
+                tick=1500,
+                team=2,
+                killer="npc_dota_hero_hero_0",
+                tower_name="npc_dota_goodguys_tower3_mid",
+            ),
+            TowerKill(
+                tick=1550,
+                team=3,
+                killer="npc_dota_hero_hero_5",
+                tower_name="npc_dota_badguys_tower3_mid",
+            ),
+        ],
+        barracks=[
+            BarracksKill(
+                tick=1600,
+                team=2,
+                killer="npc_dota_hero_hero_1",
+                barracks_name="npc_dota_goodguys_melee_rax_mid",
+            ),
+            BarracksKill(
+                tick=1650,
+                team=3,
+                killer="npc_dota_hero_hero_6",
+                barracks_name="npc_dota_badguys_melee_rax_mid",
+            ),
+        ],
+    )
+
+    conversion = build_rosh_conversions(match)[0]
+    profile = conversion.differential_profile
+    assert profile.conversion_towers == 0
+    assert profile.opponent_towers == 0
+    assert profile.conversion_barracks == 0
+    assert profile.opponent_barracks == 0
+    assert profile.structure_delta == 0
+    assert conversion.towers_taken == 0
+    assert conversion.barracks_taken == 0
+    assert conversion.first_objective_tick is None
+    assert not {"tower", "tower_lost", "barracks", "barracks_lost"} & {
+        event.kind for event in conversion.timeline_events
+    }
+
+
+def test_tormentor_attribution_falls_back_to_killer_hero() -> None:
+    match = ParsedMatch(
+        game_start_tick=0,
+        game_end_tick=10000,
+        players=_make_players(),
+        roshans=[RoshanKill(tick=1000, killer="npc_dota_hero_hero_0", kill_number=1)],
+        aegis_events=[AegisEvent(tick=1010, player_id=0, event_type="pickup")],
+        tormentors=[
+            TormentorKill(
+                tick=1500,
+                killer="npc_dota_hero_hero_0",
+                killer_player_id=-1,
+                kill_number=1,
+            )
+        ],
+    )
+
+    conversion = build_rosh_conversions(match)[0]
+    profile = conversion.differential_profile
+    assert profile.conversion_tormentors == 1
+    assert profile.opponent_tormentors == 0
+    assert profile.tormentor_delta == 1
+    assert "tormentor_attribution_unavailable" not in profile.status_reasons
+    assert any(event.kind == "tormentor" for event in conversion.timeline_events)
+    assert all(event.kind != "tormentor_unknown" for event in conversion.timeline_events)
+
+
 def test_consumed_aegis_is_inferred_only_inside_ownership_horizon() -> None:
     players = _make_players()
     inside = ParsedMatch(
