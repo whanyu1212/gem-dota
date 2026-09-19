@@ -750,9 +750,9 @@ Source: [src/gem/analysis/roshan.py](https://github.com/whanyu1212/gem-dota/blob
 def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]
 ```
 
-Summarise how well each Roshan was converted into advantage.
+Summarise each Roshan with legacy fields and differential evidence.
 
-Source: [src/gem/analysis/roshan.py:471](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L471)
+Source: [src/gem/analysis/roshan.py:985](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L985)
 
 ### Top-level classes
 
@@ -764,15 +764,70 @@ class RoshTimelineEvent
 
 One notable event inside a Roshan conversion sequence.
 
-Source: [src/gem/analysis/roshan.py:63](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L63)
+Source: [src/gem/analysis/roshan.py:86](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L86)
 
 #### Dataclass fields
 
 | Name | Type | Default |
 |---|---|---|
 | `tick` | `int` | `-` |
-| `kind` | `Literal['roshan', 'aegis_pickup', 'aegis_denied', 'fight_win', 'fight_loss', 'fight_draw', 'tower', 'barracks', 'buyback', 'aegis_end', 'game_end']` | `-` |
+| `kind` | `Literal['roshan', 'aegis_pickup', 'aegis_denied', 'fight_win', 'fight_loss', 'fight_draw', 'tower', 'tower_lost', 'barracks', 'barracks_lost', 'buyback', 'own_buyback', 'tormentor', 'opponent_tormentor', 'tormentor_unknown', 'banner', 'opponent_banner', 'aegis_end', 'game_end']` | `-` |
 | `label` | `str` | `-` |
+
+### `RoshDifferentialProfile`
+
+```python
+class RoshDifferentialProfile
+```
+
+Evidence-first conversion-team profile over one hardened Rosh window.
+
+Source: [src/gem/analysis/roshan.py:115](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L115)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `conversion_team` | `int \| None` | `None` |
+| `opponent_team` | `int \| None` | `None` |
+| `window_start_tick` | `int \| None` | `None` |
+| `window_end_tick` | `int \| None` | `None` |
+| `conversion_fights_won` | `int \| None` | `None` |
+| `opponent_fights_won` | `int \| None` | `None` |
+| `fights_drawn` | `int \| None` | `None` |
+| `fight_differential` | `int \| None` | `None` |
+| `conversion_towers` | `int \| None` | `None` |
+| `opponent_towers` | `int \| None` | `None` |
+| `conversion_barracks` | `int \| None` | `None` |
+| `opponent_barracks` | `int \| None` | `None` |
+| `conversion_structure_value` | `int \| None` | `None` |
+| `opponent_structure_value` | `int \| None` | `None` |
+| `structure_delta` | `int \| None` | `None` |
+| `net_worth_advantage_start` | `int \| None` | `None` |
+| `net_worth_advantage_end` | `int \| None` | `None` |
+| `net_worth_swing` | `int \| None` | `None` |
+| `net_worth_swing_per_minute` | `float \| None` | `None` |
+| `xp_advantage_start` | `int \| None` | `None` |
+| `xp_advantage_end` | `int \| None` | `None` |
+| `xp_swing` | `int \| None` | `None` |
+| `xp_swing_per_minute` | `float \| None` | `None` |
+| `before_territory` | `RoshTerritoryWindow` | `field(...)` |
+| `during_territory` | `RoshTerritoryWindow` | `field(...)` |
+| `conversion_coverage_swing_pct` | `float \| None` | `None` |
+| `opponent_coverage_swing_pct` | `float \| None` | `None` |
+| `coverage_swing_pct` | `float \| None` | `None` |
+| `conversion_depth_swing` | `float \| None` | `None` |
+| `opponent_depth_swing` | `float \| None` | `None` |
+| `depth_swing` | `float \| None` | `None` |
+| `conversion_forward_wards` | `int \| None` | `None` |
+| `opponent_forward_wards` | `int \| None` | `None` |
+| `forward_ward_delta` | `int \| None` | `None` |
+| `conversion_tormentors` | `int \| None` | `None` |
+| `opponent_tormentors` | `int \| None` | `None` |
+| `tormentor_delta` | `int \| None` | `None` |
+| `tags` | `list[str]` | `field(...)` |
+| `status` | `Literal['complete', 'partial', 'unavailable']` | `'unavailable'` |
+| `status_reasons` | `list[str]` | `field(...)` |
 
 ### `RoshConversion`
 
@@ -782,7 +837,7 @@ class RoshConversion
 
 Derived summary for one Roshan kill and the advantage window that followed.
 
-Source: [src/gem/analysis/roshan.py:84](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L84)
+Source: [src/gem/analysis/roshan.py:213](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L213)
 
 #### Dataclass fields
 
@@ -823,3 +878,10 @@ Source: [src/gem/analysis/roshan.py:84](https://github.com/whanyu1212/gem-dota/b
 | `banner_planted` | `bool` | `False` |
 | `banner_rax_conversion` | `bool` | `False` |
 | `banner_rax_lane` | `str \| None` | `None` |
+| `roshan_team` | `int \| None` | `None` |
+| `conversion_team` | `int \| None` | `None` |
+| `aegis_fate_inferred` | `bool` | `False` |
+| `conversion_tags` | `list[str]` | `field(...)` |
+| `analysis_status` | `Literal['complete', 'partial', 'unavailable']` | `'unavailable'` |
+| `analysis_status_reasons` | `list[str]` | `field(...)` |
+| `differential_profile` | `RoshDifferentialProfile` | `field(...)` |

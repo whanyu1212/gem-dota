@@ -170,18 +170,27 @@ hand-tuned, not ground truth).
 ### Roshan conversion (`roshan.py`)
 
 - `build_rosh_conversions(match)` returns one `RoshConversion` per entry in
-  `match.roshans`, answering "did this Roshan convert into fights / objectives /
-  map control / a closing sequence?" For each kill it associates the nearest
-  `AegisEvent` (within `_ASSOCIATION_WINDOW_TICKS = 30 s`), resolves the holder
-  team/hero, decides the aegis `fate` (`consumed` via a holder DEATH in the
-  combat log / `expired` / `denied` / `game_end` / `unknown`), then tallies
-  fights won/lost/drawn, towers, barracks, forced enemy buybacks, enemy-half
-  observer delta, and enemy-half farm-share shift across the advantage window. It
-  produces a 0–100 `conversion_score`, a `conversion_label`, an `aegis_outcome`,
-  human-readable `drivers`, and a sorted `timeline_events` list of
-  `RoshTimelineEvent`. Key windows: aegis duration `_AEGIS_DURATION_TICKS = 5 min`,
-  immediate-outcome `_IMMEDIATE_WINDOW_TICKS = 180 s`, post-consume grace
-  `_POST_CONSUME_GRACE_TICKS = 30 s` (all at 30 ticks/s).
+  `match.roshans`. It associates Aegis only inside the 30-second post-kill
+  boundary, caps ownership and analysis at the next Roshan/game end, and infers
+  consume only from a holder death inside the bounded five-minute ownership
+  horizon. The main analysis may include up to two minutes of aftermath, plus
+  the rest of a fight containing an inferred consume.
+- `RoshDifferentialProfile` compares the attributed conversion team with its
+  opponent over one hardened window. It exposes signed fight, weighted
+  structure, net-worth, XP, forward-ward, sustained-territory, and Tormentor
+  differentials, together with both teams' raw values. Optional resource and
+  territory values remain `None` when evidence is incomplete.
+- `RoshTerritoryWindow` and `RoshCoverageCell` describe sampled forward presence:
+  roughly 600-unit cells, 30-second buckets, a 10 hero-second / two-hero
+  occupancy threshold, no interpolation across gaps longer than 10 seconds,
+  and a 70% expected player-time requirement. Coverage and time-weighted p90
+  depth are compared against the three minutes before Roshan.
+- `conversion_tags` are non-exclusive summaries of the raw profile; they are
+  calibration heuristics rather than a composite score. The old
+  `conversion_score`, `conversion_label`, and legacy enemy-half presence fields
+  remain available for constructor and API compatibility.
+- Buybacks remain context/timeline annotations. Tormentor is a separate signed
+  secondary-objective dimension and is not folded into the structure value.
 
 ## Shared Internals (`_shared.py`)
 
@@ -283,10 +292,11 @@ diagonal, so the effective perpendicular half-width is `1200 / sqrt(2) ≈ 849`.
 
 ### The heavy builders are experimental and weight-tuned
 `score_camp_visit_context`, `build_map_context_timeline`, and
-`build_rosh_conversions` encode hand-picked thresholds (e.g. `>= 3500` net-worth
-"winning_state", `0.10` farm-share delta, the 0–100 score weights). Treat their
-labels/scores as opinionated heuristics, not derived constants, and expect them
-to change between releases.
+`build_rosh_conversions` encode hand-picked thresholds (for example, Roshan's
+fight, structure, resource, territory, ward, and Tormentor tags). Treat their
+labels/tags as opinionated heuristics, not derived constants, and expect them to
+change between releases. Prefer Roshan's raw signed differentials over either
+the new tags or the legacy 0–100 score.
 
 ## When To Add Code Here
 
