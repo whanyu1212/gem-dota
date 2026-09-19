@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   incompatible public output hashes before saving measurements. No parser
   behavior or runtime requirement changes.
 
+### Fixed
+
+- **Dota protobuf ping failure bitmasks.** Regenerate the public descriptors so
+  `CMsgClientPingData.region_ping_failed_bitmask` and
+  `CSODOTAPartyMember.region_ping_failed_bitmask` use the upstream `uint64` type
+  instead of `uint32`.
+
 ## [0.8.0] - 2026-09-08
 
 Reduces parser lookup, decoding, and sampling overhead and bounds outstanding
