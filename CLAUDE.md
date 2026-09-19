@@ -384,6 +384,19 @@ Generated protobuf classes live in `src/gem/proto/`. Do not hand-edit them.
 uv run python scripts/compile_protos.py
 ```
 
+`proto-upstream.lock.json` records the exact `SteamTracking/Protobufs` commit
+and `dota2` tree used for the generated snapshot. The daily
+`.github/workflows/proto-watch.yml` check compares that tree, then regenerates,
+tests, and opens or updates one draft PR only when it changes. For a manual
+pinned refresh, run:
+
+```bash
+PROTO_UPSTREAM_REF=<40-character-SHA> FORCE=1 bash scripts/download_protos.sh
+uv run python scripts/compile_protos.py --force
+```
+
+Advance the lock only after the generated bindings pass validation.
+
 Key message classes used throughout the parser:
 - `demo_pb2` — `CDemoSendTables`, `CDemoClassInfo`, `CDemoFullPacket`
 - `netmessages_pb2` — `CSVCMsg_PacketEntities`, `CSVCMsg_CreateStringTable`, `CSVCMsg_FlattenedSerializer`

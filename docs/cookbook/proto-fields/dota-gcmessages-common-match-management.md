@@ -28,7 +28,7 @@ Expand any message to inspect all fields.
 | 2 | `is_coach` | `bool` | `optional` |  |  |
 | 4 | `region_ping_codes` | `uint32` | `repeated` |  | packed = true |
 | 5 | `region_ping_times` | `uint32` | `repeated` |  | packed = true |
-| 6 | `region_ping_failed_bitmask` | `uint32` | `optional` |  |  |
+| 6 | `region_ping_failed_bitmask` | `uint64` | `optional` |  |  |
 | 7 | `tourney_skill_level` | `uint32` | `optional` |  |  |
 | 8 | `tourney_buyin` | `uint32` | `optional` |  |  |
 | 9 | `tourney_prevent_until` | `uint32` | `optional` |  |  |
