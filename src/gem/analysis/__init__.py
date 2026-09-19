@@ -15,7 +15,14 @@ from gem.analysis.map_context import (
     score_camp_visit_context,
     world_in_bounds,
 )
-from gem.analysis.roshan import RoshConversion, RoshTimelineEvent, build_rosh_conversions
+from gem.analysis.roshan import (
+    RoshConversion,
+    RoshCoverageCell,
+    RoshDifferentialProfile,
+    RoshTerritoryWindow,
+    RoshTimelineEvent,
+    build_rosh_conversions,
+)
 from gem.analysis.spatial import heroes_near, net_worth_at, position_at_tick
 from gem.analysis.vision import (
     VisionSource,
@@ -30,6 +37,9 @@ __all__ = [
     "CampVisitContext",
     "MapContextBucket",
     "RoshConversion",
+    "RoshCoverageCell",
+    "RoshDifferentialProfile",
+    "RoshTerritoryWindow",
     "RoshTimelineEvent",
     "VisionSource",
     "_is_daytime",

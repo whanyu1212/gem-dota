@@ -1,254 +1,216 @@
 # Roshan Conversion
 
-`Roshan Conversion` is an experimental analysis layer that asks a practical question:
+`Roshan Conversion` is an experimental, evidence-first analysis of what changed
+after each Roshan kill.
 
-> After securing Roshan, did the team actually turn that advantage into anything?
-
-The replay tells us when Roshan died, who claimed Aegis, when towers and barracks fell, when buybacks happened, where heroes moved, and where teamfights were detected.
-
-This feature joins those facts into a post-Roshan summary that tries to answer whether the window became:
-
-- a fight advantage
-- an objective push
-- a territorial squeeze
-- a game-closing sequence
-- or a low-conversion window
+Instead of forcing every Roshan into one exclusive category, gem compares the
+two teams across fights, structures, resources, territory, vision, and the
+Tormentor. The HTML report keeps the underlying signed values visible and adds
+non-exclusive tags only as a quick summary.
 
 ## Why this is experimental
 
-The replay does **not** contain a native field called `rosh_conversion`.
+The replay does not contain a native `rosh_conversion` field. This analysis
+joins already-parsed facts:
 
-This page is describing an interpretation layer that combines:
-
-- Roshan kills
-- Aegis pickup / steal / deny events
+- Roshan kills and Aegis pickup, steal, or deny events
 - teamfight windows
-- towers and barracks taken
-- enemy buybacks forced
-- observer wards placed in enemy territory
-- movement-based territorial expansion after Roshan
+- towers and barracks destroyed
+- team gold and XP advantage curves
+- sampled hero positions and observer-ward placements
+- Tormentor kills and buybacks
 
-That means the feature is useful, but still heuristic.
+The facts are observed replay data, but their association with one Roshan and
+the thresholds used for summary tags are analytical choices. Treat the output
+as an explainable comparison, not proof that Roshan caused every later event.
 
-## Main windows
+## Attribution and windows
 
-The analysis uses 3 nested windows.
+An Aegis event is associated only when it occurs between the Roshan kill and the
+earliest of:
 
-### Immediate window
+- 30 seconds after the kill
+- one tick before the next Roshan
+- game end
+
+For a pickup or steal, the conversion team is the holder's team. The ownership
+horizon runs from pickup until the earliest of five minutes, the next Roshan,
+or game end. A holder death inside that horizon is treated as an inferred Aegis
+consume; the replay does not expose an authoritative “Aegis popped” event.
+
+The analysis window may continue for up to 120 seconds after Aegis ends so that
+the immediate aftermath remains visible. If the inferred consume occurs inside
+a detected fight, that whole fight is included. The result is always capped at
+the next Roshan and game end, so one event cannot be credited to two Roshan
+windows.
+
+When Aegis is denied or no reliable holder is available, gem uses the immediate
+three-minute post-Roshan window and marks the profile `partial` or
+`unavailable`. If the Roshan killer's team can be resolved, that team remains
+the comparison side; otherwise team-dependent values are unavailable rather
+than reported as zero.
+
+## Differential profile
+
+Every differential is signed from the conversion team's perspective:
 
 ```text
-rosh_tick -> rosh_tick + 180 seconds
+conversion team value - opponent value
 ```
 
-This is the quick-read lens.
-
-It answers questions like:
-
-- did the team fight quickly after Roshan?
-- did they hit a tower soon after?
-- did their map presence expand immediately?
-
-### Aegis window
-
-```text
-aegis_pickup_tick -> inferred consume / expire / deny
-```
-
-This is the main evaluation window.
-
-If Aegis is consumed mid-fight, the overlapping fight is still counted in full. The report does **not** cut the fight in half at the consume tick.
-
-### Extended window
-
-```text
-rosh_tick -> next Roshan or game end
-```
-
-This is only for broader context.
-
-It is useful for questions like:
-
-- did this Roshan lead into the final closing sequence?
-- did the game state materially change before the next Roshan?
-
-## Labels shown in the report
-
-The report now separates 2 things:
-
-1. the **conversion label**
-2. the **Aegis outcome**
-
-That split is intentional. A team can have a low-conversion Roshan and also have an Aegis that expired unused, or a low-conversion Roshan where the Aegis window was actively lost.
-
-### Conversion labels
-
-#### `Low Conversion`
-
-Roshan was secured, but the window did not clearly translate into fights, structures, or territorial squeeze.
-
-This is the fallback label when none of the stronger downstream signals fired.
-
-#### `Fight Conversion`
-
-Roshan mainly translated into won fights.
-
-Used when post-Roshan fight results are favorable but structural conversion is not large enough to call it an objective push.
-
-#### `Objective Conversion`
-
-Roshan translated into clear structural damage.
-
-Current rule of thumb:
-
-- at least 2 towers, or
-- any barracks
-
-inside the main evaluation window.
-
-#### `Map Squeeze`
-
-Roshan mainly translated into territorial pressure rather than raw building damage.
-
-This shows up when the Aegis side:
-
-- places more forward observer wards, or
-- meaningfully expands its enemy-half map presence
-
-without a stronger fight/objective label taking priority.
-
-#### `Game-Closing Rosh`
-
-This Roshan fed directly into the final closing sequence before the game ended.
-
-### Aegis outcomes
-
-#### `Consumed In Fight`
-
-The Aegis holder died once during the evaluated window and Aegis triggered.
-
-#### `Expired After Use`
-
-Aegis timed out, but the team still got useful value from the Roshan window before expiry.
-
-#### `Expired Unused`
-
-Aegis expired without a second life and without meaningful downstream conversion.
-
-#### `Denied`
-
-The Aegis was denied, so the immortality window never existed for that team.
-
-#### `Window Lost`
-
-The Aegis side lost the key window and did not offset that with structures.
-
-Current rule of thumb:
-
-- more fights lost than won
-- and no towers / barracks taken
-
-#### `Game Ended`
-
-The game ended before Aegis could be consumed or expire normally.
-
-#### `Unknown`
-
-The replay does not let gem classify the Aegis lifecycle confidently.
-
-## Important timing caveat
-
-The Roshan report uses teamfight timing carefully.
-
-`Teamfight.start_tick` in gem is padded backward by the detector cooldown window, so it is **not** a literal “combat began here” timestamp.
-
-To avoid misleading timelines, the Roshan layer now uses:
-
-- `first_death_tick` from the teamfight
-- clamped against the Aegis window start when needed
-
-So if a fight was already underway around the Roshan/Aegis transition, the report will say:
-
-- `Fight already underway ...`
-
-instead of pretending that combat began exactly at the padded fight-window start.
-
-## Metrics shown in the report
+A positive value favors the conversion team; a negative value shows a
+counter-conversion by the opponent.
 
 ### Fights
 
 ```text
-wins-losses-draws
+fights won by conversion team - fights won by opponent
 ```
 
-Counted from teamfight windows that overlap the main Aegis evaluation window.
+Drawn or unknown-winner fights are reported separately and do not change the
+differential.
 
-### Objectives
+### Structures
+
+Each destroyed structure contributes a transparent, tier-aware value:
+
+| Structure | Value |
+| --- | ---: |
+| Tier 1 tower | 1 |
+| Tier 2 tower | 2 |
+| Tier 3 tower | 3 |
+| Tier 4 tower | 4 |
+| Barracks | 4 |
+
+The profile reports both teams' tower and barracks counts, both weighted
+values, and their signed difference. Actual structures are always shown beside
+the weighted comparison.
+
+### Net worth and XP
+
+Gold and XP use the match-level `radiant_gold_adv` and `radiant_xp_adv` curves,
+which come from total-earned team fields. Values are signed for the conversion
+team and sampled immediately after the acquisition boundary so the direct
+Roshan bounty does not masquerade as downstream conversion.
+
+For each resource the profile reports:
+
+- advantage at the start and end of the analysis window
+- total swing (`end - start`)
+- swing per minute
+
+Missing or incomplete curves produce `None` / **Unavailable**, never a
+fabricated zero.
+
+### Sustained territory
+
+Territory measures sustained forward presence, not distance travelled and not
+true map control.
+
+Hero positions are accumulated into roughly 600 × 600 world-unit cells and
+30-second buckets. A cell counts as occupied in a bucket when it contains at
+least 10 hero-seconds or at least two distinct allied heroes. Samples are not
+interpolated across gaps longer than 10 seconds, which prevents teleports and
+missing telemetry from drawing imaginary paths.
+
+Two forward-presence measures are computed for each side:
+
+- **coverage:** average occupied enemy-side area per bucket
+- **depth:** time-weighted 90th-percentile progress toward the enemy fountain
+
+With complete sampling, a team that never enters the enemy side has observed
+depth `0.0`; unavailable depth is reserved for insufficient position evidence.
+
+The report compares a three-minute pre-Roshan baseline with the hardened
+analysis window:
 
 ```text
-towers_taken / barracks_taken
+coverage swing =
+  (conversion coverage - opponent coverage) during
+  - (conversion coverage - opponent coverage) before
 ```
 
-Only enemy structures count.
+Depth swing uses the same double-differential shape. A territory window needs at
+least 70% of the expected player-time for both sides; insufficient sampling is
+reported as unavailable. The paired maps show sampled occupied cells, not fog,
+vision, or continuous paths.
 
-### Enemy Buybacks
-
-Count of enemy players whose `BUYBACK` events happened inside the Aegis evaluation window.
-
-### Ward Delta
+### Forward wards
 
 ```text
-Aegis-side observer wards placed in enemy half
-- enemy observer wards placed in their own forward half
+conversion observer wards in enemy territory
+- opponent observer wards in conversion territory
 ```
 
-Positive means the Roshan team pushed vision deeper than the opponent did during the same window.
+Only observer wards with known coordinates inside the analysis window count.
 
-### Presence Delta
+### Tormentor
 
 ```text
-enemy_half_farm_share_during - enemy_half_farm_share_before
+conversion-team Tormentor kills - opponent Tormentor kills
 ```
 
-Where:
+Tormentor remains a separate secondary-objective dimension. It is not assigned
+the same weight as towers or barracks. Events without a resolvable killer team
+are excluded rather than guessed.
 
-- `enemy_half_farm_share_before` = percentage of holder-team position samples in the enemy half during the **3 minutes before Roshan**
-- `enemy_half_farm_share_during` = percentage of holder-team position samples in the enemy half during the **first 3 minutes after Roshan**
+### Buybacks
 
-The report shows this in **percentage points**.
+Buybacks remain timeline context. They can help explain the cost of a push or
+fight, but they are not a headline differential and do not affect any tag.
 
-Example:
+## Non-exclusive tags
 
-- before: `22%`
-- during: `37%`
-- presence delta: `+15 pts`
+Several tags can describe the same Roshan. The initial thresholds are explicit
+calibration points, not universal Dota truths:
 
-This is a territorial-expansion proxy, not true map-control truth.
+| Tag | Initial rule |
+| --- | --- |
+| `fight_advantage` | fight differential ≥ 2 |
+| `objective_gain` | weighted structure differential ≥ 2 |
+| `resource_gain` | net-worth swing ≥ 2,000 or XP swing ≥ 1,500 |
+| `territorial_expansion` | coverage double-differential ≥ 8 percentage points |
+| `vision_expansion` | ward differential ≥ 2, or ≥ 1 with positive coverage swing |
+| `tormentor_secured` | Tormentor differential > 0 |
+| `game_closing` | the conversion team wins and the game ends inside this analysis window |
+| `counter_conversion` | the opponent owns the material signed evidence in the window |
 
-## Why there is no single score in the report
+The report does not show a radar chart or aggregate score. Independent metrics
+have different units and meanings; keeping raw signed values visible is more
+honest than making them look directly additive.
 
-Earlier versions exposed a rolled-up score.
+## Status and missing data
 
-That looked tidy, but it is not a good apples-to-apples comparison because:
+Each profile carries a status and concrete reasons:
 
-- late-game Roshan windows naturally have more game-ending leverage
-- one tower at 18 minutes does not mean the same thing as one tower at 48 minutes
-- some Roshan windows are more about squeeze and buybacks than raw structure count
+- `complete`: the team and main evidence needed for the profile are available
+- `partial`: attribution exists, but one or more evidence streams are incomplete
+- `unavailable`: the conversion team cannot be established or the comparison
+  cannot be made responsibly
 
-So the report now favors:
+A genuine zero means the replay contained the relevant evidence and the event
+did not occur. **Unavailable** means the evidence was absent or insufficient.
 
-- labels
-- counts
-- timelines
-- drivers
+## Compatibility
 
-instead of pretending the windows are directly comparable through one number.
+`RoshConversion` still exposes the earlier `conversion_label`,
+`conversion_score`, Aegis outcome, and legacy presence fields for API
+compatibility. New consumers should prefer `differential_profile` and
+`conversion_tags`. The report treats the old exclusive label as secondary
+context and never presents the legacy score.
+
+No Roshan conversion table is added to the default DataFrame, JSON, or Parquet
+exports in this iteration.
 
 ## Current limits
 
-- Aegis consume is inferred from the holder's first hero death before expiry, not from a dedicated “Aegis popped here” replay event.
-- `Presence Delta` is movement-sample based, so it is a territorial proxy, not true control.
-- Teamfight detection is still built on death-window clustering, so it is better at capturing meaningful engagements than perfectly timestamping every skirmish start.
-- The labels are intentionally conservative and may still be tuned further on real match review.
+- Aegis consume remains inferred from the holder's first hero death inside the
+  ownership horizon.
+- Teamfight detection is death-window based, so it captures meaningful
+  engagements better than exact combat start times.
+- Forward territory is only as complete as the replay's sampled position logs.
+- Map halves and depth use calibrated geometry, not lane topology or fog state.
+- The tag thresholds need continued review against real matches.
 
 ## Related pages
 

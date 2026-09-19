@@ -18,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Evidence-first Roshan conversion.** Harden Aegis attribution and per-Roshan
+  boundaries, add signed fight, tier-weighted structure, gold, XP, sustained
+  territory, forward-ward, and Tormentor differentials, and replace the report's
+  exclusive-label emphasis with non-exclusive tags, paired occupancy maps,
+  resource slopes, and a two-sided event timeline. Existing public conversion
+  fields and constructor behavior remain available for compatibility; missing
+  telemetry is now reported as unavailable instead of a neutral zero.
 - **README refresh.** Rework the project README into a concise landing page,
   update API and replay-scope guidance, remove stale release, roadmap, and sample
   claims, and replace the legacy screenshot gallery with current overview,

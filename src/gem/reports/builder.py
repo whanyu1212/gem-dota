@@ -290,7 +290,7 @@ def build_html_report(
         ("Laning", _ext_build_laning(match, map_b64)),
         ("Farming", _ext_build_farming(match, map_b64)),
         ("Fights", _ext_build_teamfights(match, map_b64)),
-        ("Roshan Conversion", _ext_build_rosh_conversion(match)),
+        ("Roshan Conversion", _ext_build_rosh_conversion(match, map_b64)),
         ("Vision", _ext_build_wards(match, map_b64)),
         (
             "Economy",
@@ -410,8 +410,16 @@ def build_html_report(
     # are patched on DOMContentLoaded to avoid embedding the same base64 N times.
     map_js = ""
     if map_b64:
+        # ``map_b64`` is a public argument, so keep it inside a JSON string and
+        # escape HTML-significant characters before placing it in a script.
+        # Quotes alone are not enough: an unescaped ``</script>`` terminates the
+        # element even while the JavaScript parser considers it part of a string.
+        map_src_json = json.dumps(f"data:image/jpeg;base64,{map_b64}")
+        map_src_json = (
+            map_src_json.replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+        )
         map_js = (
-            f'<script>window._GEM_MAP_SRC="data:image/jpeg;base64,{map_b64}";</script>\n'
+            f"<script>window._GEM_MAP_SRC={map_src_json};</script>\n"
             '<script>document.addEventListener("DOMContentLoaded",function(){'
             "var src=window._GEM_MAP_SRC;"
             'document.querySelectorAll("image.gem-map-bg").forEach(function(el){'
