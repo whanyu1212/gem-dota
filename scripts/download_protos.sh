@@ -11,7 +11,9 @@ NC='\033[0m'
 DEST_DIR="proto_definitions/dota2"
 # Note: the upstream repo was renamed SteamDatabase/Protobufs -> SteamTracking/Protobufs.
 # All curl calls use -L so the GitHub redirect from the old name is followed.
-API_URL="https://api.github.com/repos/SteamTracking/Protobufs/contents/dota2"
+PROTO_UPSTREAM_REF="${PROTO_UPSTREAM_REF:-master}"
+ENCODED_REF=$(python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' "$PROTO_UPSTREAM_REF")
+API_URL="https://api.github.com/repos/SteamTracking/Protobufs/contents/dota2?ref=$ENCODED_REF"
 
 # Optional: set GITHUB_TOKEN env var to avoid API rate limits (60 req/hr unauthenticated)
 AUTH_HEADER=""
@@ -20,9 +22,25 @@ if [ -n "$GITHUB_TOKEN" ]; then
     echo -e "${YELLOW}Using GITHUB_TOKEN for authenticated requests.${NC}"
 fi
 
-echo -e "${GREEN}Downloading Dota 2 proto files from SteamTracking...${NC}"
+echo -e "${GREEN}Downloading Dota 2 proto files from SteamTracking at $PROTO_UPSTREAM_REF...${NC}"
 
 mkdir -p "$DEST_DIR"
+
+# Forced refreshes download into an isolated directory first. The existing
+# snapshot is replaced only after every file succeeds, so failures cannot leave
+# a mixed or partial set and removed upstream files do not linger locally.
+DOWNLOAD_DIR="$DEST_DIR"
+TEMP_DIR=""
+cleanup_temp_dir() {
+    if [ -n "$TEMP_DIR" ] && [ -d "$TEMP_DIR" ]; then
+        rm -rf "$TEMP_DIR"
+    fi
+}
+trap cleanup_temp_dir EXIT
+if [ "${FORCE:-0}" = "1" ]; then
+    TEMP_DIR=$(mktemp -d "$DEST_DIR/.download.XXXXXX")
+    DOWNLOAD_DIR="$TEMP_DIR"
+fi
 
 # Fetch file list via GitHub API — use python3 to parse JSON properly
 echo -e "${YELLOW}Fetching file list from GitHub API...${NC}"
@@ -63,7 +81,8 @@ SKIPPED=0
 FAILED=0
 
 while IFS='|' read -r filename url; do
-    dest="$DEST_DIR/$filename"
+    dest="$DOWNLOAD_DIR/$filename"
+    temp_dest="$dest.tmp"
 
     # Skip if already downloaded (use --force flag to re-download)
     if [ -f "$dest" ] && [ "${FORCE:-0}" != "1" ]; then
@@ -73,10 +92,13 @@ while IFS='|' read -r filename url; do
     fi
 
     echo -n "  $filename ... "
-    if curl -sfL -o "$dest" "$url"; then
+    rm -f "$temp_dest"
+    if curl -sfL -o "$temp_dest" "$url"; then
+        mv "$temp_dest" "$dest"
         echo -e "${GREEN}✓${NC}"
         ((DOWNLOADED += 1))
     else
+        rm -f "$temp_dest"
         echo -e "${RED}✗ (failed)${NC}"
         ((FAILED += 1))
     fi
@@ -86,6 +108,17 @@ echo ""
 echo -e "${GREEN}Downloaded: $DOWNLOADED${NC}"
 [ "$SKIPPED" -gt 0 ] && echo -e "${YELLOW}Skipped (already exist): $SKIPPED${NC}"
 [ "$FAILED"  -gt 0 ] && echo -e "${RED}Failed: $FAILED${NC}"
+
+if [ "$FAILED" -gt 0 ]; then
+    exit 1
+fi
+
+if [ -n "$TEMP_DIR" ]; then
+    find "$DEST_DIR" -maxdepth 1 -type f -name '*.proto' -delete
+    mv "$TEMP_DIR"/*.proto "$DEST_DIR"/
+    rmdir "$TEMP_DIR"
+    TEMP_DIR=""
+fi
 
 echo ""
 TOTAL=$(ls -1 "$DEST_DIR"/*.proto 2>/dev/null | wc -l | tr -d ' ')

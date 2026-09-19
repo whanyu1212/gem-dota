@@ -74,7 +74,7 @@ Expand any message to inspect all fields.
 | 5 | `relay_pings` | `uint32` | `repeated` |  | packed = true |
 | 8 | `region_codes` | `uint32` | `repeated` |  | packed = true |
 | 9 | `region_pings` | `uint32` | `repeated` |  | packed = true |
-| 10 | `region_ping_failed_bitmask` | `uint32` | `optional` |  |  |
+| 10 | `region_ping_failed_bitmask` | `uint64` | `optional` |  |  |
 
 </details>
 

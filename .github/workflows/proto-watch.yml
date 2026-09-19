@@ -1,0 +1,197 @@
+name: Watch Dota 2 protos
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dota-proto-watch
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Check upstream Dota 2 tree
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      changed: ${{ steps.upstream.outputs.changed }}
+      update_needed: ${{ steps.existing.outputs.update_needed }}
+      old_commit: ${{ steps.upstream.outputs.old_commit }}
+      commit: ${{ steps.upstream.outputs.commit }}
+      tree: ${{ steps.upstream.outputs.tree }}
+      old_commit_url: ${{ steps.upstream.outputs.old_commit_url }}
+      commit_url: ${{ steps.upstream.outputs.commit_url }}
+      compare_url: ${{ steps.upstream.outputs.compare_url }}
+      source_url: ${{ steps.upstream.outputs.source_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve latest upstream Dota 2 tree
+        id: upstream
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python scripts/check_proto_updates.py --github-output
+
+      - name: Check for an open proto update
+        if: steps.upstream.outputs.changed == 'true'
+        id: existing
+        env:
+          BRANCH_NAME: automation/dota-protos
+          GH_TOKEN: ${{ github.token }}
+          UPSTREAM_TREE: ${{ steps.upstream.outputs.tree }}
+        run: |
+          OPEN_PR=$(gh pr list \
+            --base main \
+            --head "$BRANCH_NAME" \
+            --state open \
+            --json number \
+            --jq '.[0].number // empty')
+          if [ -z "$OPEN_PR" ]; then
+            echo "No automated proto update PR is open."
+            echo "update_needed=true" >> "$GITHUB_OUTPUT"
+          elif PR_TREE=$(gh api \
+            "repos/$GITHUB_REPOSITORY/contents/proto-upstream.lock.json?ref=$BRANCH_NAME" \
+            --jq '.content' | base64 --decode | jq -r '.tree'); then
+            if [ "$PR_TREE" = "$UPSTREAM_TREE" ]; then
+              echo "PR #$OPEN_PR already contains upstream tree $UPSTREAM_TREE."
+              echo "update_needed=false" >> "$GITHUB_OUTPUT"
+            else
+              echo "PR #$OPEN_PR needs upstream tree $UPSTREAM_TREE."
+              echo "update_needed=true" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "Could not read PR #$OPEN_PR's lock; regenerating it."
+            echo "update_needed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  update:
+    name: Regenerate and validate protos
+    needs: check
+    if: needs.check.outputs.changed == 'true' && needs.check.outputs.update_needed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      UPSTREAM_COMMIT: ${{ needs.check.outputs.commit }}
+      UPSTREAM_TREE: ${{ needs.check.outputs.tree }}
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --group dev --locked
+
+      - name: Download exact upstream snapshot
+        env:
+          PROTO_UPSTREAM_REF: ${{ needs.check.outputs.commit }}
+          FORCE: "1"
+        run: bash scripts/download_protos.sh
+
+      - name: Regenerate bindings and documentation
+        run: |
+          find src/gem/proto -type f \( -name '*_pb2.py' -o -name '*_pb2.pyi' \) -delete
+          find docs/cookbook/proto-fields -type f -name '*.md' -delete
+          uv run python scripts/compile_protos.py --force
+          uv run python scripts/generate_proto_catalog_docs.py
+          uv run python scripts/generate_proto_field_docs.py
+
+      - name: Import every generated binding
+        run: |
+          uv run python - <<'PY'
+          import importlib
+          from pathlib import Path
+
+          root = Path("src/gem/proto")
+          modules = []
+          for path in root.rglob("*_pb2.py"):
+              relative = path.relative_to("src").with_suffix("")
+              modules.append(".".join(relative.parts))
+          for module in sorted(modules):
+              importlib.import_module(module)
+          print(f"Imported {len(modules)} generated protobuf modules.")
+          PY
+
+      - name: Run the full fast test suite
+        run: uv run pytest tests/ -m "not slow and not integration and not network" -q
+
+      - name: Update the verified upstream lock
+        run: >-
+          uv run python scripts/check_proto_updates.py --update-lock
+          --commit "$UPSTREAM_COMMIT" --tree "$UPSTREAM_TREE"
+
+      - name: Commit generated changes
+        id: commit
+        run: |
+          BRANCH_NAME="automation/dota-protos"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C "$BRANCH_NAME"
+          git add -A -- \
+            src/gem/proto \
+            docs/cookbook/proto-dota2-catalog.md \
+            docs/cookbook/proto-fields \
+            proto-upstream.lock.json
+          if git diff --cached --quiet; then
+            echo "No generated changes were produced."
+            exit 1
+          fi
+          git commit -m "chore: update Dota 2 protobufs to ${UPSTREAM_COMMIT:0:12}"
+          if git ls-remote --exit-code --heads origin "$BRANCH_NAME" >/dev/null; then
+            git fetch origin "+refs/heads/$BRANCH_NAME:refs/remotes/origin/$BRANCH_NAME"
+          fi
+          git push --force-with-lease origin "$BRANCH_NAME"
+          echo "branch=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Open or update draft pull request
+        env:
+          BRANCH_NAME: ${{ steps.commit.outputs.branch }}
+          OLD_COMMIT_URL: ${{ needs.check.outputs.old_commit_url }}
+          NEW_COMMIT_URL: ${{ needs.check.outputs.commit_url }}
+          COMPARE_URL: ${{ needs.check.outputs.compare_url }}
+          SOURCE_URL: ${{ needs.check.outputs.source_url }}
+        run: |
+          EXISTING_PR=$(gh pr list --base main --head "$BRANCH_NAME" --state open --json number --jq '.[0].number // empty')
+          BODY_FILE=$(mktemp)
+          trap 'rm -f "$BODY_FILE"' EXIT
+          cat > "$BODY_FILE" <<EOF
+          Updates the generated Dota 2 protobuf bindings and reference docs after the upstream Dota 2 tree changed.
+
+          - Previous upstream: $OLD_COMMIT_URL
+          - New upstream: $NEW_COMMIT_URL
+          - Source comparison: $COMPARE_URL
+          - Pinned source directory: $SOURCE_URL
+
+          Validation completed before this PR was opened:
+
+          - Regenerated every Python protobuf binding and type stub with compile_protos.py --force
+          - Imported every generated Python protobuf module
+          - Regenerated the proto catalog and field reference docs
+          - Ran the complete fast test suite (excluding slow, integration, and network tests)
+          EOF
+          TITLE="chore: update Dota 2 protobufs to ${UPSTREAM_COMMIT:0:12}"
+          if [ -n "$EXISTING_PR" ]; then
+            gh pr edit "$EXISTING_PR" --title "$TITLE" --body-file "$BODY_FILE"
+            echo "Updated existing PR #$EXISTING_PR."
+          else
+            gh pr create \
+              --draft \
+              --base main \
+              --head "$BRANCH_NAME" \
+              --title "$TITLE" \
+              --body-file "$BODY_FILE"
+          fi
