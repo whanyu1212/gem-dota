@@ -15,6 +15,10 @@ from gem.analysis import (
 )
 from gem.catalog import hero_display
 from gem.reports._formatting import (
+    MAP_XMAX,
+    MAP_XMIN,
+    MAP_YMAX,
+    MAP_YMIN,
     TEAM_COLOR_CSS,
     e,
     fmt_tick,
@@ -34,7 +38,7 @@ from gem.results.models import (
 )
 
 if TYPE_CHECKING:
-    from gem.analysis.roshan import RoshConversion
+    from gem.analysis.roshan import RoshConversion, RoshTerritoryWindow
 
 
 def _draft_portrait(npc_name: str, alt: str, noicon_cls: str) -> str:
@@ -427,30 +431,6 @@ def _rosh_banner_line(conversion: RoshConversion) -> str:
     return f'<div class="rosh-banner">Banner planted{badge}</div>'
 
 
-_ROSH_LABEL_EXPLANATION: dict[str, tuple[str, str]] = {
-    "low_conversion": (
-        "Roshan was secured, but the window did not clearly translate into fights, structures, or territorial squeeze.",
-        "Fallback when no stronger fight/objective/map-control signal fired.",
-    ),
-    "fight_conversion": (
-        "The team used Roshan mainly to win fights, but did not turn that advantage into major structural damage yet.",
-        "Assigned when post-Rosh fight results are favorable without large objective conversion.",
-    ),
-    "objective_conversion": (
-        "Roshan was translated into towers, barracks, or a clearly destructive push sequence.",
-        "Assigned when the Aegis team takes at least 2 towers or any barracks during the conversion window.",
-    ),
-    "map_squeeze": (
-        "The main gain was territorial: deeper warding or noticeably more farming presence in enemy territory.",
-        "Assigned when enemy-half warding or enemy-half presence expands without a stronger fight/objective label.",
-    ),
-    "game_closing_rosh": (
-        "This Roshan directly fed into the final closing sequence before the game ended.",
-        "Assigned when the Roshan-holding team ends the game before the next Roshan window.",
-    ),
-}
-
-
 _ROSH_AEGIS_OUTCOME_DISPLAY: dict[str, str] = {
     "consumed_in_fight": "Consumed In Fight",
     "expired_after_use": "Expired After Use",
@@ -462,145 +442,470 @@ _ROSH_AEGIS_OUTCOME_DISPLAY: dict[str, str] = {
 }
 
 
-_ROSH_AEGIS_OUTCOME_EXPLANATION: dict[str, tuple[str, str]] = {
-    "consumed_in_fight": (
-        "The holder died once and Aegis actually triggered during the evaluated window.",
-        "Inferred from the Aegis holder's first hero death before expiry.",
-    ),
-    "expired_after_use": (
-        "Aegis timed out, but the team still got meaningful use from the Roshan window first.",
-        "Used when Aegis expires after fights, structures, or map-control conversion.",
-    ),
-    "expired_unused": (
-        "Aegis expired without a second life and without meaningful downstream conversion.",
-        "Used when expiry happens with no fight wins and no structures.",
-    ),
-    "denied": (
-        "The Aegis was denied, so the team never got the immortality window.",
-        "Comes directly from the replay Aegis-denied event.",
-    ),
-    "window_lost": (
-        "The Aegis team lost momentum in the key window and did not offset that with structures.",
-        "Used when the Aegis side loses more fights than it wins and takes no towers or barracks.",
-    ),
-    "game_ended": (
-        "The game ended before Aegis could be consumed or expire normally.",
-        "Used when the replay ends during the Aegis ownership window.",
-    ),
-    "unknown": (
-        "The replay does not let us classify the Aegis lifecycle confidently.",
-        "Fallback when attribution is incomplete.",
-    ),
+_ROSH_TAG_DISPLAY: dict[str, str] = {
+    "fight_advantage": "Fight advantage",
+    "objective_gain": "Objective gain",
+    "resource_gain": "Resource gain",
+    "territorial_expansion": "Territorial expansion",
+    "vision_expansion": "Vision expansion",
+    "tormentor_secured": "Tormentor secured",
+    "game_closing": "Game closing",
+    "counter_conversion": "Counter-conversion",
+}
+
+_ROSH_BALANCE_SCALE: dict[str, float] = {
+    "fight": 3.0,
+    "structure": 12.0,
+    "net_worth": 10_000.0,
+    "xp": 8_000.0,
+    "coverage": 25.0,
+    "depth": 0.5,
+    "ward": 5.0,
+    "tormentor": 2.0,
 }
 
 
-def build_rosh_conversion(match: ParsedMatch) -> str:
-    """Build the Roshan conversion section."""
+def _display_token(value: str) -> str:
+    words: list[str] = []
+    for token in value.replace("_", " ").split():
+        lowered = token.lower()
+        if lowered == "xp":
+            words.append("XP")
+        elif lowered.endswith("pct") and lowered[:-3].replace(".", "", 1).isdigit():
+            words.append(f"{token[:-3]}%")
+        else:
+            words.append(token.title())
+    return " ".join(words)
+
+
+def _format_signed(
+    value: int | float | None,
+    *,
+    decimals: int = 0,
+    suffix: str = "",
+) -> str:
+    if value is None:
+        return "Unavailable"
+    if decimals:
+        rendered = f"{value:+,.{decimals}f}" if value else f"{value:,.{decimals}f}"
+    else:
+        rendered = f"{value:+,.0f}" if value else "0"
+    return f"{rendered}{suffix}"
+
+
+def _analysis_status_html(conversion: RoshConversion) -> str:
+    status = conversion.analysis_status
+    reasons = conversion.analysis_status_reasons
+    status_text = _display_token(status)
+    reason_text = "; ".join(_display_token(reason) for reason in reasons)
+    title = f' title="{e(reason_text)}"' if reason_text else ""
+    reason_html = (
+        '<ul class="rosh-status-reasons">'
+        + "".join(f"<li>{e(_display_token(reason))}</li>" for reason in reasons)
+        + "</ul>"
+        if reasons
+        else ""
+    )
+    return (
+        '<div class="rosh-status-block">'
+        f'<span class="rosh-status rosh-status-{e(status)}"{title}>'
+        f"Evidence: {e(status_text)}</span>{reason_html}</div>"
+    )
+
+
+def _tag_chips(tags: list[str]) -> str:
+    if not tags:
+        return '<span class="rosh-tag rosh-tag-none">No evidence tags</span>'
+    return "".join(
+        f'<span class="rosh-tag rosh-tag-{e(tag)}">'
+        f"{e(_ROSH_TAG_DISPLAY.get(tag, _display_token(tag)))}</span>"
+        for tag in tags
+    )
+
+
+def _balance_row(
+    label: str,
+    value: int | float | None,
+    scale_key: str,
+    *,
+    decimals: int = 0,
+    suffix: str = "",
+) -> str:
+    rendered = _format_signed(value, decimals=decimals, suffix=suffix)
+    if value is None:
+        bar = '<span class="rosh-balance-unavailable">No evidence</span>'
+        value_class = " unavailable"
+    else:
+        width = min(abs(float(value)) / _ROSH_BALANCE_SCALE[scale_key], 1.0) * 50.0
+        direction = "positive" if value > 0 else "negative" if value < 0 else "neutral"
+        bar = (
+            '<span class="rosh-balance-track" aria-hidden="true">'
+            f'<span class="rosh-balance-fill {direction}" style="--rosh-bar:{width:.1f}%"></span>'
+            "</span>"
+        )
+        value_class = f" {direction}"
+    return (
+        f'<div class="rosh-balance-row" role="img" aria-label="{e(label)}: {e(rendered)}">'
+        f'<span class="rosh-balance-label">{e(label)}</span>{bar}'
+        f'<span class="rosh-balance-value{value_class}">{e(rendered)}</span></div>'
+    )
+
+
+def _balance_panel(conversion: RoshConversion) -> str:
+    profile = conversion.differential_profile
+    rows = [
+        _balance_row("Fight differential", profile.fight_differential, "fight"),
+        _balance_row("Weighted structure differential", profile.structure_delta, "structure"),
+        _balance_row("Net worth swing", profile.net_worth_swing, "net_worth"),
+        _balance_row("XP swing", profile.xp_swing, "xp"),
+        _balance_row(
+            "Coverage swing", profile.coverage_swing_pct, "coverage", decimals=1, suffix=" pp"
+        ),
+        _balance_row("Depth swing", profile.depth_swing, "depth", decimals=3),
+        _balance_row("Forward-ward differential", profile.forward_ward_delta, "ward"),
+        _balance_row("Tormentor differential", profile.tormentor_delta, "tormentor"),
+    ]
+    return (
+        '<section class="rosh-panel rosh-balance-panel" '
+        'aria-label="Signed conversion balance">'
+        "<h4>Signed conversion balance</h4>"
+        '<p class="rosh-panel-note">Positive values favor the conversion team; each row uses '
+        "its own visual scale.</p>" + "".join(rows) + "</section>"
+    )
+
+
+def _resource_card(
+    label: str,
+    start: int | None,
+    end: int | None,
+    swing: int | None,
+    rate: float | None,
+) -> str:
+    complete = all(value is not None for value in (start, end, swing, rate))
+    note = "" if complete else '<p class="rosh-resource-note">Insufficient samples</p>'
+    return (
+        '<div class="rosh-resource-card">'
+        f"<h5>{e(label)}</h5>"
+        f'<div class="rosh-resource-flow"><span>{e(_format_signed(start))}</span>'
+        '<span aria-hidden="true">→</span>'
+        f"<span>{e(_format_signed(end))}</span></div>"
+        f'<div class="rosh-resource-detail"><span>Raw swing</span>'
+        f"<strong>{e(_format_signed(swing))}</strong></div>"
+        f'<div class="rosh-resource-detail"><span>Rate / minute</span>'
+        f"<strong>{e(_format_signed(rate, decimals=1))}</strong></div>{note}</div>"
+    )
+
+
+def _resource_panel(conversion: RoshConversion) -> str:
+    profile = conversion.differential_profile
+    return (
+        '<section class="rosh-panel" aria-label="Resource advantage movement">'
+        "<h4>Resource movement</h4>"
+        '<p class="rosh-panel-note">Conversion-team advantage at the first and last valid '
+        "samples in the analysis window.</p>"
+        '<div class="rosh-resource-grid">'
+        + _resource_card(
+            "Net worth advantage",
+            profile.net_worth_advantage_start,
+            profile.net_worth_advantage_end,
+            profile.net_worth_swing,
+            profile.net_worth_swing_per_minute,
+        )
+        + _resource_card(
+            "XP advantage",
+            profile.xp_advantage_start,
+            profile.xp_advantage_end,
+            profile.xp_swing,
+            profile.xp_swing_per_minute,
+        )
+        + "</div></section>"
+    )
+
+
+def _rosh_world_to_px(x: float, y: float, size: int) -> tuple[float, float]:
+    px = (x - MAP_XMIN) / (MAP_XMAX - MAP_XMIN) * size
+    py = (1.0 - (y - MAP_YMIN) / (MAP_YMAX - MAP_YMIN)) * size
+    return px, py
+
+
+def _territory_metric(value: float | None, *, suffix: str = "") -> str:
+    return "Unavailable" if value is None else f"{value:.1f}{suffix}"
+
+
+def _coverage_map_svg(
+    match: ParsedMatch,
+    window: RoshTerritoryWindow,
+    *,
+    conversion_number: int,
+    phase: str,
+    map_b64: str | None,
+    conversion_team: int | None,
+    size: int = 360,
+) -> str:
+    phase_label = "Before" if phase == "before" else "During"
+    reasons = ", ".join(_display_token(reason) for reason in window.status_reasons)
+    if window.status == "unavailable":
+        detail = f": {reasons}" if reasons else ""
+        return (
+            f'<figure class="rosh-map-card" aria-label="{phase_label} territory coverage unavailable">'
+            f"<h5>{phase_label}</h5>"
+            f'<div class="rosh-map-empty" role="status">Coverage unavailable{e(detail)}</div>'
+            "<figcaption>Sampled/sustained occupancy is unavailable; no true control is "
+            "inferred.</figcaption></figure>"
+        )
+
+    svg_id = f"rosh-{conversion_number}-{phase}"
+    conversion_cells = {(cell.grid_x, cell.grid_y): cell for cell in window.conversion_cells}
+    opponent_cells = {(cell.grid_x, cell.grid_y): cell for cell in window.opponent_cells}
+    cell_fragments: list[str] = []
+    for key in sorted(conversion_cells.keys() | opponent_cells.keys()):
+        own_cell = conversion_cells.get(key)
+        opponent_cell = opponent_cells.get(key)
+        cell = own_cell or opponent_cell
+        if cell is None:
+            continue
+        left, bottom = _rosh_world_to_px(cell.x_min, cell.y_min, size)
+        right, top = _rosh_world_to_px(cell.x_max, cell.y_max, size)
+        opacity = 0.24 + 0.66 * max(
+            own_cell.occupancy_share if own_cell else 0.0,
+            opponent_cell.occupancy_share if opponent_cell else 0.0,
+        )
+        cell_class = (
+            "contested"
+            if own_cell is not None and opponent_cell is not None
+            else "conversion"
+            if own_cell is not None
+            else "opponent"
+        )
+        cell_fragments.append(
+            f'<rect class="rosh-coverage-cell {cell_class}" x="{left:.2f}" y="{top:.2f}" '
+            f'width="{right - left:.2f}" height="{bottom - top:.2f}" '
+            f'fill="url(#{svg_id}-{cell_class})" fill-opacity="{opacity:.2f}">'
+            f"<title>{e(_display_token(cell_class))} sampled occupancy; "
+            f"{cell.occupancy_share * 100:.1f}% of time buckets</title></rect>"
+        )
+
+    ward_fragments: list[str] = []
+    for ward in match.wards:
+        if (
+            ward.x is None
+            or ward.y is None
+            or ward.tick < window.start_tick
+            or ward.tick > window.end_tick
+        ):
+            continue
+        cx, cy = _rosh_world_to_px(ward.x, ward.y, size)
+        relation = (
+            "conversion"
+            if ward.team == conversion_team
+            else "opponent"
+            if ward.team in (2, 3)
+            else "unknown"
+        )
+        ward_label = f"{team_name(ward.team) if ward.team in (2, 3) else 'Unknown'} "
+        ward_label += f"{ward.ward_type} ward at {fmt_tick(ward.tick)}"
+        ward_fragments.append(
+            f'<circle class="rosh-ward-marker {relation} {e(ward.ward_type)}" '
+            f'cx="{cx:.2f}" cy="{cy:.2f}" r="4.2"><title>{e(ward_label)}</title></circle>'
+        )
+
+    background = (
+        f'<image class="gem-map-bg" href="" x="0" y="0" width="{size}" height="{size}" '
+        'preserveAspectRatio="xMidYMid slice"/>'
+        if map_b64
+        else f'<rect class="rosh-map-fallback" width="{size}" height="{size}"/>'
+    )
+    title_id = f"{svg_id}-title"
+    description_id = f"{svg_id}-description"
+    svg = (
+        f'<svg class="rosh-coverage-map" viewBox="0 0 {size} {size}" role="img" '
+        f'aria-labelledby="{title_id} {description_id}" xmlns="http://www.w3.org/2000/svg">'
+        f'<title id="{title_id}">{phase_label} sampled territory occupancy</title>'
+        f'<desc id="{description_id}">Conversion team, opponent, and contested sustained '
+        "occupancy cells with ward placement markers.</desc>"
+        "<defs>"
+        f'<pattern id="{svg_id}-conversion" width="8" height="8" patternUnits="userSpaceOnUse">'
+        '<rect width="8" height="8" fill="#238636"/></pattern>'
+        f'<pattern id="{svg_id}-opponent" width="8" height="8" patternUnits="userSpaceOnUse">'
+        '<rect width="8" height="8" fill="#da3633"/></pattern>'
+        f'<pattern id="{svg_id}-contested" width="8" height="8" '
+        'patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#238636"/>'
+        '<path d="M-2,2 L2,-2 M0,8 L8,0 M6,10 L10,6" stroke="#ff7b72" '
+        'stroke-width="3"/></pattern></defs>'
+        f"{background}{''.join(cell_fragments)}{''.join(ward_fragments)}</svg>"
+    )
+    metrics = (
+        '<div class="rosh-map-metrics">'
+        f"<span>Conversion coverage <strong>{e(_territory_metric(window.conversion_coverage_pct, suffix='%'))}</strong></span>"
+        f"<span>Opponent coverage <strong>{e(_territory_metric(window.opponent_coverage_pct, suffix='%'))}</strong></span>"
+        f"<span>Coverage differential <strong>{e(_format_signed(window.coverage_differential_pct, decimals=1, suffix=' pp'))}</strong></span>"
+        f"<span>Depth differential <strong>{e(_format_signed(window.depth_differential, decimals=3))}</strong></span>"
+        "</div>"
+    )
+    status_note = f'<p class="rosh-map-status">{e(_display_token(window.status))}'
+    if reasons:
+        status_note += f": {e(reasons)}"
+    status_note += "</p>"
+    return (
+        f'<figure class="rosh-map-card"><h5>{phase_label}</h5>{svg}{metrics}{status_note}'
+        '<div class="rosh-map-legend" aria-label="Coverage map legend">'
+        '<span><i class="conversion"></i>Conversion team occupancy</span>'
+        '<span><i class="opponent"></i>Opponent occupancy</span>'
+        '<span><i class="contested"></i>Contested cell</span>'
+        '<span><i class="ward"></i>Ward placement</span></div>'
+        "<figcaption>Cells show sampled/sustained occupancy, not true control. Ward markers "
+        "show recorded placements in the same window.</figcaption></figure>"
+    )
+
+
+def _territory_panel(
+    match: ParsedMatch,
+    conversion: RoshConversion,
+    map_b64: str | None,
+) -> str:
+    profile = conversion.differential_profile
+    return (
+        '<section class="rosh-panel" aria-label="Paired territory coverage maps">'
+        "<h4>Before vs during territory evidence</h4>"
+        '<div class="rosh-map-pair">'
+        + _coverage_map_svg(
+            match,
+            profile.before_territory,
+            conversion_number=conversion.rosh_number,
+            phase="before",
+            map_b64=map_b64,
+            conversion_team=conversion.conversion_team,
+        )
+        + _coverage_map_svg(
+            match,
+            profile.during_territory,
+            conversion_number=conversion.rosh_number,
+            phase="during",
+            map_b64=map_b64,
+            conversion_team=conversion.conversion_team,
+        )
+        + "</div></section>"
+    )
+
+
+_ROSH_TIMELINE_POSITIVE = {
+    "fight_win",
+    "tower",
+    "barracks",
+    "buyback",
+    "tormentor",
+    "banner",
+}
+_ROSH_TIMELINE_ADVERSE = {
+    "fight_loss",
+    "tower_lost",
+    "barracks_lost",
+    "own_buyback",
+    "opponent_tormentor",
+    "opponent_banner",
+    "aegis_denied",
+}
+
+
+def _timeline_side(kind: str) -> str:
+    if kind in _ROSH_TIMELINE_POSITIVE:
+        return "positive"
+    if kind in _ROSH_TIMELINE_ADVERSE:
+        return "adverse"
+    return "anchor"
+
+
+def _timeline_html(conversion: RoshConversion) -> str:
+    events = sorted(conversion.timeline_events, key=lambda event: (event.tick, event.kind))
+    if not events:
+        event_html = '<li class="rosh-timeline-empty">No timeline evidence available.</li>'
+    else:
+        rendered: list[str] = []
+        for event in events:
+            side = _timeline_side(event.kind)
+            kind_class = "".join(
+                character if character.isalnum() or character in "-_" else "-"
+                for character in event.kind
+            )
+            rendered.append(
+                f'<li class="rosh-timeline-event {side} rosh-event-{e(kind_class)}" '
+                f'data-tick="{event.tick}"><div class="rosh-timeline-content">'
+                f"<time>{e(fmt_tick(event.tick))}</time><span>{e(event.label)}</span>"
+                "</div></li>"
+            )
+        event_html = "".join(rendered)
+    return (
+        '<section class="rosh-panel rosh-timeline-panel" aria-label="Chronological conversion evidence">'
+        "<h4>Chronological evidence</h4>"
+        '<p class="rosh-panel-note">Events are aligned by conversion-positive, neutral anchor, '
+        "or adverse kind. Timing proximity does not establish causation.</p>"
+        f'<ol class="rosh-timeline-list">{event_html}</ol></section>'
+    )
+
+
+def _summary_metric(value: int | float | None, *, decimals: int = 0, suffix: str = "") -> str:
+    return e(_format_signed(value, decimals=decimals, suffix=suffix))
+
+
+def build_rosh_conversion(match: ParsedMatch, map_b64: str | None = None) -> str:
+    """Build the evidence-first Roshan conversion section.
+
+    Args:
+        match: Parsed match carrying Roshan and downstream replay evidence.
+        map_b64: Optional pre-encoded map background. The full report patches the
+            shared source into ``image.gem-map-bg`` elements after load.
+
+    Returns:
+        Self-contained HTML for the Roshan conversion tab, or an empty string
+        when the match has no Roshan kills.
+    """
     conversions = build_rosh_conversions(match)
     if not conversions:
         return ""
 
-    label_rows = "".join(
-        (
-            "<tr>"
-            f'<td><span class="rosh-badge rosh-badge-{label_key}">{e(_ROSH_LABEL_DISPLAY[label_key])}</span></td>'
-            f"<td>{e(explanation)}</td>"
-            f'<td style="color:#8b949e">{e(rule)}</td>'
-            "</tr>"
-        )
-        for label_key, (explanation, rule) in _ROSH_LABEL_EXPLANATION.items()
-    )
-    aegis_outcome_rows = "".join(
-        (
-            "<tr>"
-            f'<td><span class="rosh-outcome-badge rosh-outcome-{outcome_key}">{e(_ROSH_AEGIS_OUTCOME_DISPLAY[outcome_key])}</span></td>'
-            f"<td>{e(explanation)}</td>"
-            f'<td style="color:#8b949e">{e(rule)}</td>'
-            "</tr>"
-        )
-        for outcome_key, (explanation, rule) in _ROSH_AEGIS_OUTCOME_EXPLANATION.items()
-    )
-    metric_rows = "".join(
-        (
-            "<tr>"
-            f"<td>{e(name)}</td>"
-            f"<td>{e(formula)}</td>"
-            f'<td style="color:#8b949e">{e(description)}</td>'
-            "</tr>"
-        )
-        for name, formula, description in [
-            (
-                "Immediate Window",
-                "Roshan kill -> +180s",
-                "Quick-read lens for whether the team acted on the spike immediately.",
-            ),
-            (
-                "Aegis Window",
-                "Aegis pickup -> inferred consume / expire / deny",
-                "Primary evaluation window. If Aegis is consumed mid-fight, the overlapping fight is still counted.",
-            ),
-            (
-                "Extended Window",
-                "Roshan kill -> next Roshan or game end",
-                "Used for broader context like game-closing sequences.",
-            ),
-            (
-                "Ward Delta",
-                "Aegis-side observer wards in enemy half - enemy observer wards in their own forward half",
-                "Positive means the Roshan team pushed vision deeper than the opponent did during the same Aegis window.",
-            ),
-            (
-                "Presence Delta",
-                "enemy_half_farm_share_during - enemy_half_farm_share_before",
-                "Before = % of holder-team position samples in enemy half during the 3 minutes before Roshan. During = % in enemy half during the first 3 minutes after Roshan. Reported in percentage points.",
-            ),
-        ]
-    )
-
     parts = [
-        '<div class="card">',
+        '<div class="card rosh-section">',
         "<details open>",
         "<summary>Roshan Conversion</summary>",
         '<div class="card-body">',
-        '<p class="section-note">'
-        "Each card asks whether a Roshan translated into fights, objectives, map expansion, "
-        "or a game-closing sequence. Aegis consume is inferred from the holder's first death, "
-        "so treat the timing as analytical rather than authoritative. No single score is shown "
-        "because late-game Roshan windows naturally have more game-ending leverage than early ones."
-        "</p>",
-        '<div class="rosh-guide-grid">'
-        '<div class="rosh-guide-block">'
-        '<div class="rosh-guide-title">Labels</div>'
-        f'<div class="rosh-table-wrap"><table class="rosh-guide-table"><thead><tr><th>Label</th><th>Meaning</th><th>Rule</th></tr></thead><tbody>{label_rows}</tbody></table></div>'
-        "</div>"
-        '<div class="rosh-guide-block">'
-        '<div class="rosh-guide-title">Aegis Outcomes</div>'
-        f'<div class="rosh-table-wrap"><table class="rosh-guide-table"><thead><tr><th>Outcome</th><th>Meaning</th><th>Rule</th></tr></thead><tbody>{aegis_outcome_rows}</tbody></table></div>'
-        "</div>"
-        '<div class="rosh-guide-block">'
-        '<div class="rosh-guide-title">Definitions</div>'
-        f'<div class="rosh-table-wrap"><table class="rosh-guide-table"><thead><tr><th>Metric</th><th>Formula</th><th>Interpretation</th></tr></thead><tbody>{metric_rows}</tbody></table></div>'
-        "</div>"
-        "</div>",
+        '<p class="section-note">Each card compares the conversion team with its opponent using '
+        "raw, signed evidence. Tags are non-exclusive and status explains missing telemetry. "
+        "Aegis use can be inferred from replay events.</p>"
+        '<details class="rosh-definitions"><summary>Definitions &amp; evidence limits</summary>'
+        '<div class="rosh-definitions-body"><p><strong>Balance:</strong> conversion team minus '
+        "opponent. Structure value weights towers by tier and barracks separately.</p>"
+        "<p><strong>Territory:</strong> a three-minute baseline and the hardened analysis window "
+        "use sampled hero-seconds and sustained occupancy. This is not true map control or a causal claim.</p>"
+        "<p><strong>Resources:</strong> first-to-last valid team-advantage samples; unavailable "
+        "samples remain unavailable rather than becoming zero.</p></div></details>"
         '<div class="rosh-card-grid">',
     ]
 
     for conversion in conversions:
-        team = conversion.holder_team
+        team = (
+            conversion.conversion_team
+            if conversion.conversion_team in (2, 3)
+            else conversion.holder_team
+        )
         team_color = TEAM_COLOR_CSS.get(team or 0, "#8b949e")
         team_label = team_name(team) if team in (2, 3) else "Unknown"
+        roshan_team_label = (
+            team_name(conversion.roshan_team) if conversion.roshan_team in (2, 3) else "Unknown"
+        )
         holder_label = hero(conversion.holder_name) if conversion.holder_name else "Unknown"
         label_key = conversion.conversion_label
-        label_display = _ROSH_LABEL_DISPLAY.get(label_key, label_key.replace("_", " ").title())
-        fate_display = _ROSH_FATE_DISPLAY.get(conversion.aegis_fate, conversion.aegis_fate.title())
+        label_display = _ROSH_LABEL_DISPLAY.get(label_key, _display_token(label_key))
+        fate_display = _ROSH_FATE_DISPLAY.get(
+            conversion.aegis_fate, _display_token(conversion.aegis_fate)
+        )
         outcome_display = _ROSH_AEGIS_OUTCOME_DISPLAY.get(
             conversion.aegis_outcome,
-            conversion.aegis_outcome.replace("_", " ").title(),
+            _display_token(conversion.aegis_outcome),
         )
-        presence_delta_pct = round(conversion.enemy_half_farm_share_delta * 100)
-        first_fight = fmt_tick(conversion.first_fight_tick) if conversion.first_fight_tick else "—"
-        first_objective = (
-            fmt_tick(conversion.first_objective_tick) if conversion.first_objective_tick else "—"
+        inferred_badge = (
+            '<span class="rosh-inferred-badge">Inferred</span>'
+            if conversion.aegis_fate_inferred
+            else ""
         )
         drops_display = _rosh_drops_display(conversion.drops)
         hv_badge = (
@@ -608,97 +913,93 @@ def build_rosh_conversion(match: ParsedMatch) -> str:
             if conversion.had_high_value_drop
             else ""
         )
-        banner_html = _rosh_banner_line(conversion)
-        chips = "".join(
-            f'<span class="rosh-chip rosh-chip-{event.kind}">'
-            f'<span class="rosh-chip-time">{e(fmt_tick(event.tick))}</span>'
-            f"{e(event.label)}</span>"
-            for event in conversion.timeline_events
-        )
-        drivers_html = (
-            '<ul class="rosh-driver-list">'
-            + "".join(f"<li>{e(driver)}</li>" for driver in conversion.drivers)
-            + "</ul>"
-            if conversion.drivers
-            else '<p class="dim">No strong downstream conversion signals were detected.</p>'
-        )
         parts.append(
-            '<div class="rosh-card">'
-            '<div class="rosh-card-head">'
-            f'<div><div class="rosh-kicker">Roshan #{conversion.rosh_number}</div>'
-            f'<div class="rosh-title"><span style="color:{team_color}">{e(team_label)}</span>'
-            f" — {e(holder_label)}</div>"
-            f'<div class="rosh-meta">Rosh {e(fmt_tick(conversion.rosh_tick))} · '
-            f"Aegis {e(fate_display)} at {e(fmt_tick(conversion.aegis_end_tick))} · "
-            f"Extended window ends {e(fmt_tick(conversion.extended_end_tick))}</div>"
+            '<article class="rosh-card">'
+            '<header class="rosh-card-head">'
+            '<div class="rosh-head-evidence">'
+            f'<div class="rosh-kicker">Roshan #{conversion.rosh_number} · '
+            f"{e(fmt_tick(conversion.rosh_tick))}</div>"
+            f'<h3 class="rosh-title"><span style="color:{team_color}">{e(team_label)}</span>'
+            f" conversion · {e(holder_label)}</h3>"
+            f'<p class="rosh-meta">Roshan secured by {e(roshan_team_label)} · '
+            f"Analysis window ends {e(fmt_tick(conversion.differential_profile.window_end_tick)) if conversion.differential_profile.window_end_tick is not None else 'Unavailable'}</p>"
             f'<div class="rosh-drops">Drops: {e(drops_display)}{hv_badge}</div>'
-            f"{banner_html}</div>"
+            f"{_rosh_banner_line(conversion)}</div>"
             '<div class="rosh-head-right">'
-            f'<span class="rosh-badge rosh-badge-{e(label_key)}">{e(label_display)}</span>'
-            f'<span class="rosh-outcome-badge rosh-outcome-{e(conversion.aegis_outcome)}">{e(outcome_display)}</span>'
-            "</div>"
-            "</div>"
-            '<div class="rosh-metric-grid">'
-            f'<div class="rosh-metric"><span class="label">Fights</span><span class="value">{conversion.fights_won}-{conversion.fights_lost}-{conversion.fights_drawn}</span></div>'
-            f'<div class="rosh-metric"><span class="label">Objectives</span><span class="value">{conversion.towers_taken} T / {conversion.barracks_taken} Rax</span></div>'
-            f'<div class="rosh-metric"><span class="label">Enemy Buybacks</span><span class="value">{conversion.enemy_buybacks_forced}</span></div>'
-            f'<div class="rosh-metric"><span class="label">Ward Delta</span><span class="value">{conversion.enemy_half_observer_delta:+d}</span></div>'
-            f'<div class="rosh-metric"><span class="label">Presence Delta</span><span class="value">{presence_delta_pct:+d} pts</span></div>'
-            f'<div class="rosh-metric"><span class="label">First Fight / Obj</span><span class="value">{e(first_fight)} / {e(first_objective)}</span></div>'
-            "</div>"
-            f'<div class="rosh-timeline">{chips}</div>'
-            f"{drivers_html}"
-            "</div>"
+            f'<span class="rosh-outcome-badge rosh-outcome-{e(conversion.aegis_outcome)}">'
+            f"Aegis: {e(outcome_display)} {inferred_badge}</span>"
+            f'<span class="rosh-fate">Lifecycle: {e(fate_display)}</span>'
+            f"{_analysis_status_html(conversion)}"
+            f'<span class="rosh-legacy-context">Context: {e(label_display)}</span>'
+            "</div></header>"
+            '<div class="rosh-tags" aria-label="Non-exclusive conversion tags">'
+            f"{_tag_chips(conversion.conversion_tags)}</div>"
+            '<div class="rosh-core-grid">'
+            f"{_balance_panel(conversion)}{_resource_panel(conversion)}</div>"
+            f"{_territory_panel(match, conversion, map_b64)}"
+            f"{_timeline_html(conversion)}"
+            "</article>"
         )
 
     parts.append("</div>")
-    parts.append('<div class="rosh-table-wrap"><table>')
+    parts.append('<div class="rosh-table-wrap"><table class="rosh-summary-table">')
     parts.append(
-        "<thead><tr>"
-        "<th>Rosh</th><th>Team</th><th>Holder</th><th>Aegis</th><th>Outcome</th><th>Drops</th>"
-        '<th class="r">Fights</th><th class="r">Towers</th><th class="r">Rax</th>'
-        '<th class="r">Buybacks</th><th class="r">Ward Δ</th><th class="r">Presence Δ</th>'
-        "<th>Label</th>"
-        "</tr></thead><tbody>"
+        "<thead><tr><th>Rosh</th><th>Conversion / Holder</th><th>Aegis</th><th>Drops</th>"
+        "<th>Tags</th>"
+        '<th class="r">Fight Δ</th><th class="r">Structure Δ</th>'
+        '<th class="r">NW swing</th><th class="r">XP swing</th>'
+        '<th class="r">Coverage Δ</th><th class="r">Depth Δ</th>'
+        '<th class="r">Ward Δ</th><th class="r">Tormentor Δ</th>'
+        "<th>Banner</th><th>Status</th></tr></thead><tbody>"
     )
     for conversion in conversions:
-        team = conversion.holder_team
+        profile = conversion.differential_profile
+        team = (
+            conversion.conversion_team
+            if conversion.conversion_team in (2, 3)
+            else conversion.holder_team
+        )
         team_color = TEAM_COLOR_CSS.get(team or 0, "#8b949e")
         team_label = team_name(team) if team in (2, 3) else "Unknown"
         holder_label = hero(conversion.holder_name) if conversion.holder_name else "Unknown"
-        label_key = conversion.conversion_label
-        label_display = _ROSH_LABEL_DISPLAY.get(label_key, label_key.replace("_", " ").title())
-        fate_display = _ROSH_FATE_DISPLAY.get(conversion.aegis_fate, conversion.aegis_fate.title())
         outcome_display = _ROSH_AEGIS_OUTCOME_DISPLAY.get(
             conversion.aegis_outcome,
-            conversion.aegis_outcome.replace("_", " ").title(),
+            _display_token(conversion.aegis_outcome),
         )
-        presence_delta_pct = round(conversion.enemy_half_farm_share_delta * 100)
         drops_cell = _rosh_drops_display(conversion.drops)
         if conversion.had_high_value_drop:
             drops_cell += " ★"
-        # Flag a banner→rax push in the Rax column: ⚑ when a planted banner was
-        # followed by a barracks falling, with the lane initial when known.
-        rax_cell = str(conversion.barracks_taken)
+        tags_cell = (
+            ", ".join(
+                _ROSH_TAG_DISPLAY.get(tag, _display_token(tag))
+                for tag in conversion.conversion_tags
+            )
+            or "None"
+        )
+        banner_cell = "—"
+        if conversion.banner_planted:
+            banner_cell = "Planted"
         if conversion.banner_rax_conversion:
-            lane_initial = (conversion.banner_rax_lane or "")[:1].upper()
-            rax_cell += f" ⚑{lane_initial}" if lane_initial else " ⚑"
+            lane = f" {conversion.banner_rax_lane.title()}" if conversion.banner_rax_lane else ""
+            banner_cell = f"⚑ Rax{lane}"
+        reasons = "; ".join(_display_token(reason) for reason in conversion.analysis_status_reasons)
+        status_cell = _display_token(conversion.analysis_status)
+        if reasons:
+            status_cell += f": {reasons}"
         parts.append(
             "<tr>"
             f"<td>#{conversion.rosh_number}</td>"
-            f'<td><span style="color:{team_color}">{e(team_label)}</span></td>'
-            f"<td>{e(holder_label)}</td>"
-            f"<td>{e(fate_display)}</td>"
-            f"<td>{e(outcome_display)}</td>"
-            f"<td>{e(drops_cell)}</td>"
-            f'<td class="r">{conversion.fights_won}-{conversion.fights_lost}-{conversion.fights_drawn}</td>'
-            f'<td class="r">{conversion.towers_taken}</td>'
-            f'<td class="r">{e(rax_cell)}</td>'
-            f'<td class="r">{conversion.enemy_buybacks_forced}</td>'
-            f'<td class="r">{conversion.enemy_half_observer_delta:+d}</td>'
-            f'<td class="r">{presence_delta_pct:+d} pts</td>'
-            f"<td>{e(label_display)}</td>"
-            "</tr>"
+            f'<td><span style="color:{team_color}">{e(team_label)}</span> / {e(holder_label)}</td>'
+            f"<td>{e(outcome_display)}</td><td>{e(drops_cell)}</td><td>{e(tags_cell)}</td>"
+            f'<td class="r">{_summary_metric(profile.fight_differential)}</td>'
+            f'<td class="r">{_summary_metric(profile.structure_delta)}</td>'
+            f'<td class="r">{_summary_metric(profile.net_worth_swing)}</td>'
+            f'<td class="r">{_summary_metric(profile.xp_swing)}</td>'
+            f'<td class="r">{_summary_metric(profile.coverage_swing_pct, decimals=1, suffix=" pp")}</td>'
+            f'<td class="r">{_summary_metric(profile.depth_swing, decimals=3)}</td>'
+            f'<td class="r">{_summary_metric(profile.forward_ward_delta)}</td>'
+            f'<td class="r">{_summary_metric(profile.tormentor_delta)}</td>'
+            f"<td>{e(banner_cell)}</td><td>{e(status_cell)}</td></tr>"
         )
     parts.append("</tbody></table></div>")
     parts.extend(["</div>", "</details>", "</div>"])
