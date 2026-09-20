@@ -46,6 +46,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Pause-aware smoke lifecycle matching.** Associate modifier removals using
+  reported elapsed duration or pause-aware game time before falling back to raw
+  replay ticks, so a long pause cannot leave a legitimate removal unobserved.
 - **Dota protobuf ping failure bitmasks.** Regenerate the public descriptors so
   `CMsgClientPingData.region_ping_failed_bitmask` and
   `CSODOTAPartyMember.region_ping_failed_bitmask` use the upstream `uint64` type

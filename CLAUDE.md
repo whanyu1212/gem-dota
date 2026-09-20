@@ -246,6 +246,9 @@ the extractor.
 `SmokeEvent.tick` and each participant's `applied_tick` / `removed_tick` are the
 canonical exact replay ticks. Positions are sampled from `PlayerExtractor` at
 roughly one-second intervals and must be described as sampled evidence.
+Removal association uses modifier elapsed time or the pause-aware game clock;
+raw replay ticks continue during pauses and are only a fallback when neither
+pause-aware source is available.
 
 Alternative approach (refs): read the `ActiveModifiers` string table directly — each entry is a `CDOTAModifierBuffTableEntry` protobuf with a `player_ids` field (comma-separated player slots). Would give the same result for empty-group cases. Not currently implemented; requires parsing an additional string table of protobufs.
 

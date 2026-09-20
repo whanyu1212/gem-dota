@@ -58,6 +58,8 @@ _SMOKE_MODIFIER = "modifier_smoke_of_deceit"
 _SMOKE_ADD_WINDOW_TICKS = 90
 _SMOKE_DEFAULT_REMOVE_WINDOW_TICKS = 60 * 30
 _SMOKE_REMOVE_GRACE_TICKS = 60
+_SMOKE_DEFAULT_REMOVE_WINDOW_S = _SMOKE_DEFAULT_REMOVE_WINDOW_TICKS / 30
+_SMOKE_REMOVE_GRACE_S = _SMOKE_REMOVE_GRACE_TICKS / 30
 
 
 class VisionModifierExtractor:
@@ -173,11 +175,16 @@ class SmokeExtractor:
                 positions and the NPC-name → team map during ``finalize``.
         """
         self._player_ext = player_ext
+        self._parser: ReplayParser | None = None
         self.events = []
         # Retain all item uses in activation order. Incomplete/empty activations
         # are evidence too and must not be overwritten by a later use from the
         # same caster.
         self._open_activations: list[SmokeEvent] = []
+        # Matching removals needs a pause-aware clock: raw replay ticks continue
+        # while modifier duration is frozen. Keys are object identities because
+        # participants are mutable public dataclasses retained for the parse.
+        self._participant_applied_game_time_s: dict[int, int] = {}
 
     def attach(self, parser: ReplayParser) -> None:
         """Register the combat-log callback with the parser.
@@ -185,6 +192,7 @@ class SmokeExtractor:
         Args:
             parser: The ``ReplayParser`` instance to attach to.
         """
+        self._parser = parser
         parser.on_combat_log_entry(self._on_entry)
 
     def _on_entry(self, entry: CombatLogEntry) -> None:
@@ -204,20 +212,27 @@ class SmokeExtractor:
                     None,
                 )
                 if existing is None:
-                    activation.participants.append(
-                        SmokeParticipant(
-                            hero_name=entry.target_name,
-                            player_id=None,
-                            applied_tick=entry.tick,
-                            modifier_duration_s=entry.modifier_duration_s,
-                            modifier_elapsed_duration_s=entry.modifier_elapsed_duration_s,
-                        )
+                    new_participant = SmokeParticipant(
+                        hero_name=entry.target_name,
+                        player_id=None,
+                        applied_tick=entry.tick,
+                        modifier_duration_s=entry.modifier_duration_s,
+                        modifier_elapsed_duration_s=entry.modifier_elapsed_duration_s,
                     )
+                    activation.participants.append(new_participant)
+                    applied_game_time_s = self._entry_game_time_s(entry)
+                    if applied_game_time_s is not None:
+                        self._participant_applied_game_time_s[id(new_participant)] = (
+                            applied_game_time_s
+                        )
                     activation.smoked.append(entry.target_name)
                 elif entry.tick < existing.applied_tick:
                     # Combat-log batches can be delivered out of order. Keep the
                     # canonical earliest add tick without duplicating the hero.
                     existing.applied_tick = entry.tick
+                    applied_game_time_s = self._entry_game_time_s(entry)
+                    if applied_game_time_s is not None:
+                        self._participant_applied_game_time_s[id(existing)] = applied_game_time_s
                     if entry.modifier_duration_s is not None:
                         existing.modifier_duration_s = entry.modifier_duration_s
                     if entry.modifier_elapsed_duration_s is not None:
@@ -254,6 +269,7 @@ class SmokeExtractor:
         return max(eligible, key=lambda pair: (pair[1].tick, pair[0]))[1]
 
     def _participant_for_remove(self, entry: CombatLogEntry) -> SmokeParticipant | None:
+        removal_game_time_s = self._entry_game_time_s(entry)
         eligible = [
             participant
             for event in self._open_activations
@@ -261,11 +277,53 @@ class SmokeExtractor:
             if participant.hero_name == entry.target_name
             and participant.removed_tick is None
             and participant.applied_tick <= entry.tick
-            and entry.tick <= _participant_remove_deadline(participant)
+            and self._removal_is_within_window(
+                participant,
+                entry,
+                removal_game_time_s,
+            )
         ]
         if not eligible:
             return None
         return max(eligible, key=lambda participant: participant.applied_tick)
+
+    def _entry_game_time_s(self, entry: CombatLogEntry) -> int | None:
+        """Return the best pause-aware game clock available for an entry."""
+        if entry.game_time_s is not None:
+            return entry.game_time_s
+        if self._parser is not None:
+            return getattr(self._parser, "game_time_s", None)
+        return None
+
+    def _removal_is_within_window(
+        self,
+        participant: SmokeParticipant,
+        entry: CombatLogEntry,
+        removal_game_time_s: int | None,
+    ) -> bool:
+        """Return whether a removal plausibly belongs to ``participant``.
+
+        Modifier elapsed time and the replay's game clock freeze during pauses,
+        unlike raw replay ticks. Use either pause-aware source when possible and
+        keep the historical raw-tick deadline only for evidence-poor entries.
+        """
+        duration_s = participant.modifier_duration_s
+        if duration_s is None or duration_s <= 0:
+            duration_s = entry.modifier_duration_s
+        if duration_s is None or duration_s <= 0:
+            duration_s = _SMOKE_DEFAULT_REMOVE_WINDOW_S
+        deadline_s = duration_s + _SMOKE_REMOVE_GRACE_S
+
+        applied_game_time_s = self._participant_applied_game_time_s.get(id(participant))
+        if applied_game_time_s is not None and removal_game_time_s is not None:
+            elapsed_game_time_s = removal_game_time_s - applied_game_time_s
+            return 0 <= elapsed_game_time_s <= deadline_s
+
+        elapsed_s = entry.modifier_elapsed_duration_s
+        if elapsed_s is not None:
+            return 0 <= elapsed_s <= deadline_s
+
+        return entry.tick <= _participant_remove_deadline(participant)
 
     def finalize(self) -> list[SmokeEvent]:
         """Back-fill identities and exact-tick sampled positions.

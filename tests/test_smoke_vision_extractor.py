@@ -399,6 +399,81 @@ class TestSmokeExtractor:
 
         assert ext.finalize()[0].participants[0].removed_tick is None
 
+    def test_pause_aware_game_time_accepts_remove_beyond_raw_tick_deadline(self):
+        ext = SmokeExtractor(_fake_player_ext())
+        parser = FakeParser()
+        ext.attach(parser)
+        parser.fire(_entry(tick=100, log_type="ITEM", inflictor_name="item_smoke_of_deceit"))
+        parser.fire(
+            _entry(
+                tick=101,
+                game_time_s=10,
+                inflictor_name="modifier_smoke_of_deceit",
+                modifier_duration_s=1.0,
+            )
+        )
+        # Raw ticks advanced far beyond the 1s duration + 2s grace while the
+        # pause-aware game clock advanced by only one second.
+        parser.fire(
+            _entry(
+                tick=500,
+                game_time_s=11,
+                log_type="MODIFIER_REMOVE",
+                inflictor_name="modifier_smoke_of_deceit",
+            )
+        )
+
+        assert ext.finalize()[0].participants[0].removed_tick == 500
+
+    def test_parser_game_clock_is_pause_aware_fallback_for_source_one(self):
+        ext = SmokeExtractor(_fake_player_ext())
+        parser = FakeParser()
+        parser.game_time_s = 10
+        ext.attach(parser)
+        parser.fire(_entry(tick=100, log_type="ITEM", inflictor_name="item_smoke_of_deceit"))
+        parser.fire(
+            _entry(
+                tick=101,
+                inflictor_name="modifier_smoke_of_deceit",
+                modifier_duration_s=1.0,
+            )
+        )
+        parser.game_time_s = 11
+        parser.fire(
+            _entry(
+                tick=500,
+                log_type="MODIFIER_REMOVE",
+                inflictor_name="modifier_smoke_of_deceit",
+            )
+        )
+
+        assert ext.finalize()[0].participants[0].removed_tick == 500
+
+    def test_pause_aware_clock_rejects_stale_remove_despite_elapsed_metadata(self):
+        ext = SmokeExtractor(_fake_player_ext())
+        parser = FakeParser()
+        ext.attach(parser)
+        parser.fire(_entry(tick=100, log_type="ITEM", inflictor_name="item_smoke_of_deceit"))
+        parser.fire(
+            _entry(
+                tick=101,
+                game_time_s=10,
+                inflictor_name="modifier_smoke_of_deceit",
+                modifier_duration_s=1.0,
+            )
+        )
+        parser.fire(
+            _entry(
+                tick=500,
+                game_time_s=20,
+                log_type="MODIFIER_REMOVE",
+                inflictor_name="modifier_smoke_of_deceit",
+                modifier_elapsed_duration_s=0.5,
+            )
+        )
+
+        assert ext.finalize()[0].participants[0].removed_tick is None
+
     def test_multiple_same_caster_and_concurrent_caster_activations_survive(self):
         ext = SmokeExtractor(_fake_player_ext())
         parser = FakeParser()
