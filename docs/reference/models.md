@@ -96,6 +96,31 @@ Source: [src/gem/results/models.py:73](https://github.com/whanyu1212/gem-dota/bl
 | `caster_name` | `str` | `-` |
 | `caster_team` | `int` | `-` |
 
+### `SmokeParticipant`
+
+```python
+class SmokeParticipant
+```
+
+One hero's observed Smoke of Deceit modifier lifecycle.
+
+Source: [src/gem/results/models.py:99](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L99)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `hero_name` | `str` | `-` |
+| `player_id` | `int \| None` | `-` |
+| `applied_tick` | `int` | `-` |
+| `removed_tick` | `int \| None` | `None` |
+| `modifier_duration_s` | `float \| None` | `None` |
+| `modifier_elapsed_duration_s` | `float \| None` | `None` |
+| `applied_x` | `float \| None` | `None` |
+| `applied_y` | `float \| None` | `None` |
+| `removed_x` | `float \| None` | `None` |
+| `removed_y` | `float \| None` | `None` |
+
 ### `SmokeEvent`
 
 ```python
@@ -104,7 +129,7 @@ class SmokeEvent
 
 One Smoke of Deceit activation.
 
-Source: [src/gem/results/models.py:99](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L99)
+Source: [src/gem/results/models.py:132](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L132)
 
 #### Dataclass fields
 
@@ -116,6 +141,9 @@ Source: [src/gem/results/models.py:99](https://github.com/whanyu1212/gem-dota/bl
 | `smoked` | `list[str]` | `field(...)` |
 | `x` | `float \| None` | `None` |
 | `y` | `float \| None` | `None` |
+| `activation_x` | `float \| None` | `None` |
+| `activation_y` | `float \| None` | `None` |
+| `participants` | `list[SmokeParticipant]` | `field(...)` |
 
 ### `BuybackEvent`
 
@@ -125,7 +153,7 @@ class BuybackEvent
 
 One buyback, with its estimated gold cost.
 
-Source: [src/gem/results/models.py:122](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L122)
+Source: [src/gem/results/models.py:164](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L164)
 
 #### Dataclass fields
 
@@ -144,7 +172,7 @@ class ChatEntry
 
 A single chat message from the match.
 
-Source: [src/gem/results/models.py:150](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L150)
+Source: [src/gem/results/models.py:192](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L192)
 
 #### Dataclass fields
 
@@ -163,7 +191,7 @@ class NeutralItemFoundEvent
 
 A neutral item found event emitted by DOTA_UM_FoundNeutralItem.
 
-Source: [src/gem/results/models.py:167](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L167)
+Source: [src/gem/results/models.py:209](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L209)
 
 #### Dataclass fields
 
@@ -188,7 +216,7 @@ class ParsedPlayer
 
 Aggregated statistics for one player over a full match.
 
-Source: [src/gem/results/models.py:201](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L201)
+Source: [src/gem/results/models.py:243](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L243)
 
 #### Dataclass fields
 
@@ -318,7 +346,7 @@ class ParsedMatch
 
 Top-level parsed output for a single Dota 2 replay.
 
-Source: [src/gem/results/models.py:596](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L596)
+Source: [src/gem/results/models.py:638](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L638)
 
 #### Dataclass fields
 
@@ -378,7 +406,7 @@ Signature: `def ParsedMatch.duration_seconds(self) -> float`
 
 Game duration in seconds, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:741](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L741)
+Source: [src/gem/results/models.py:783](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L783)
 
 ##### `duration_minutes`
 
@@ -386,4 +414,4 @@ Signature: `def ParsedMatch.duration_minutes(self) -> float`
 
 Game duration in minutes, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:747](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L747)
+Source: [src/gem/results/models.py:789](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L789)

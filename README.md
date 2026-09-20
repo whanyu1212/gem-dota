@@ -134,7 +134,7 @@ for customization.
 | Economy | Gold, XP, net-worth and minute-aligned advantage curves, purchases, buybacks |
 | Map state | Player positions, lane heatmaps, wards, smoke groups, courier snapshots |
 | Items | Final inventories, neutral-item finds, consumed upgrades, Roshan drops and banner plants |
-| Analysis | Nearby heroes, point-in-time lookups, ability levels, vision estimates, Roshan conversion |
+| Analysis | Nearby heroes, point-in-time lookups, ability levels, smoke lifecycles, vision, Roshan conversion |
 | Exports | DataFrames, JSON, Parquet, multi-replay processing, interactive HTML reports |
 
 Useful entry points include:

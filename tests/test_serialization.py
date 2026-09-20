@@ -8,7 +8,7 @@ from collections import defaultdict
 import gem
 import gem.api
 from gem.extractors.teamfights import OpenDotaTeamfight
-from gem.results.models import ParsedMatch, ParsedPlayer
+from gem.results.models import ParsedMatch, ParsedPlayer, SmokeEvent, SmokeParticipant
 
 
 class TestSerializationHelpers:
@@ -54,6 +54,35 @@ class TestSerializationHelpers:
 
         assert data["opendota_teamfights"][0]["start"] == 10
         assert data["opendota_teamfights"][0]["players"][0]["damage"] == 0
+
+    def test_to_dict_preserves_nested_smoke_lifecycle_ticks(self):
+        match = ParsedMatch(
+            smoke_events=[
+                SmokeEvent(
+                    tick=1_000,
+                    activator="npc_dota_hero_axe",
+                    team=2,
+                    participants=[
+                        SmokeParticipant(
+                            hero_name="npc_dota_hero_axe",
+                            player_id=0,
+                            applied_tick=1_002,
+                            removed_tick=1_452,
+                            modifier_duration_s=45.0,
+                            modifier_elapsed_duration_s=15.0,
+                        )
+                    ],
+                )
+            ]
+        )
+
+        data = gem.to_dict(match)
+
+        smoke = data["smoke_events"][0]
+        assert smoke["tick"] == 1_000
+        assert smoke["participants"][0]["applied_tick"] == 1_002
+        assert smoke["participants"][0]["removed_tick"] == 1_452
+        assert smoke["participants"][0]["modifier_elapsed_duration_s"] == 15.0
 
     def test_to_dict_omits_internal_match_details_provenance(self):
         match = ParsedMatch(match_id=7)

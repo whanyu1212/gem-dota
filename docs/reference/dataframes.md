@@ -21,7 +21,8 @@ pip install pyarrow
 | `"wards"` | Ward placements with exact map coordinates |
 | `"objectives"` | Tower kills, barracks, Roshan kills |
 | `"teamfights"` | Detected fight windows with participant stats |
-| `"smoke_events"` | Smoke activations with grouped heroes and centroid |
+| `"smoke_events"` | Smoke activations, grouped heroes, centroid, and nested member lifecycles |
+| `"smoke_members"` | Flat per-hero smoke application/removal ticks, durations, and sampled positions |
 | `"hero_visibility_events"` | Change-only Radiant/Dire visibility state for canonical player heroes |
 | `"aegis_events"` | Aegis pickups, steals, and denies |
 | `"draft"` | Pick and ban events in order |

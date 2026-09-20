@@ -805,3 +805,74 @@ class TestCombatLogVisibility:
 
         with pytest.raises(ValueError, match="team"):
             entry.visible_to(1)
+
+
+class TestCombatLogModifierMetadata:
+    def test_s2_preserves_present_modifier_and_team_fields(self):
+        from gem.proto.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
+
+        processor = CombatLogProcessor()
+        received: list[CombatLogEntry] = []
+        processor.on_combat_log_entry(received.append)
+
+        processor.process_s2_entry(
+            CMsgDOTACombatLogEntry(
+                type=2,
+                modifier_duration=45.0,
+                modifier_elapsed_duration=0.0,
+                attacker_team=2,
+                target_team=0,
+            ),
+            FakeNameTable({}),
+            tick=123,
+        )
+
+        entry = received[0]
+        assert entry.modifier_duration_s == 45.0
+        # Explicit proto defaults remain distinguishable from absent fields.
+        assert entry.modifier_elapsed_duration_s == 0.0
+        assert entry.attacker_team == 2
+        assert entry.target_team == 0
+
+    def test_s2_absent_modifier_and_team_fields_are_none(self):
+        from gem.proto.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
+
+        processor = CombatLogProcessor()
+        received: list[CombatLogEntry] = []
+        processor.on_combat_log_entry(received.append)
+
+        processor.process_s2_entry(CMsgDOTACombatLogEntry(type=2), FakeNameTable({}))
+
+        entry = received[0]
+        assert entry.modifier_duration_s is None
+        assert entry.modifier_elapsed_duration_s is None
+        assert entry.attacker_team is None
+        assert entry.target_team is None
+
+    def test_s1_modifier_and_team_fields_are_none(self):
+        processor = CombatLogProcessor()
+        received: list[CombatLogEntry] = []
+        processor.on_combat_log_entry(received.append)
+        processor.process_s1_event(
+            FakeGameEvent(
+                int_fields={
+                    "type": 2,
+                    "attackername": 0,
+                    "sourcename": 0,
+                    "targetname": 0,
+                    "inflictorname": 0,
+                    "value": 0,
+                },
+                bool_fields={
+                    "attackerillusion": False,
+                    "targetillusion": False,
+                },
+            ),
+            FakeNameTable({}),
+        )
+
+        entry = received[0]
+        assert entry.modifier_duration_s is None
+        assert entry.modifier_elapsed_duration_s is None
+        assert entry.attacker_team is None
+        assert entry.target_team is None

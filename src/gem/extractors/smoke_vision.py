@@ -26,10 +26,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from gem.combat.log import CombatLogEntry
-from gem.results.models import SmokeEvent, VisionModifierEvent
+from gem.results.models import SmokeEvent, SmokeParticipant, VisionModifierEvent
 
 if TYPE_CHECKING:
-    from gem.extractors.players import PlayerExtractor
+    from gem.extractors.players import PlayerExtractor, PlayerStateSnapshot
     from gem.parser import ReplayParser
 
 # Modifiers that reveal / grant vision of enemy heroes. Kept here (rather than
@@ -52,6 +52,12 @@ VISION_MODIFIER_NAMES: frozenset[str] = frozenset(
 
 _SMOKE_ITEM = "item_smoke_of_deceit"
 _SMOKE_MODIFIER = "modifier_smoke_of_deceit"
+# The canonical fixture contains a legitimate late join 82 ticks after item use
+# with a correspondingly shortened reported duration (42.23s of the 45s buff).
+# Three seconds keeps that evidence while still bounding stray historical adds.
+_SMOKE_ADD_WINDOW_TICKS = 90
+_SMOKE_DEFAULT_REMOVE_WINDOW_TICKS = 60 * 30
+_SMOKE_REMOVE_GRACE_TICKS = 60
 
 
 class VisionModifierExtractor:
@@ -135,13 +141,14 @@ class VisionModifierExtractor:
 
 
 class SmokeExtractor:
-    """Collects Smoke of Deceit activations with their smoked-hero groups.
+    """Collect Smoke activations and each hero's modifier lifecycle.
 
-    The ``ITEM`` event (item consumed) opens a pending event keyed by the
-    activator's NPC name. Each subsequent ``MODIFIER_ADD`` on a hero target adds
-    that hero to the group and captures its live position; the activation
-    centroid is the mean of those positions. ``MODIFIER_REMOVE`` closes the
-    pending event once at least one hero was smoked.
+    Every ``ITEM`` event creates a distinct activation. A hero-targeted
+    ``MODIFIER_ADD`` joins the most recent same-activator activation whose item
+    tick is not later than the modifier tick. Duplicate adds for the same hero
+    are folded into one participant. ``MODIFIER_REMOVE`` closes only the most
+    recently applied still-open participant for its target, so one hero losing
+    smoke does not close the rest of the group.
 
     Attach to a ``ReplayParser`` before calling ``parse()``, then call
     ``finalize()`` to back-fill teams / centroids and get the events:
@@ -167,10 +174,10 @@ class SmokeExtractor:
         """
         self._player_ext = player_ext
         self.events = []
-        # activator NPC → pending (not-yet-closed) event.
-        self._pending: dict[str, SmokeEvent] = {}
-        # activator NPC → live (x, y) positions captured at MODIFIER_ADD time.
-        self._positions: dict[str, list[tuple[float, float]]] = {}
+        # Retain all item uses in activation order. Incomplete/empty activations
+        # are evidence too and must not be overwritten by a later use from the
+        # same caster.
+        self._open_activations: list[SmokeEvent] = []
 
     def attach(self, parser: ReplayParser) -> None:
         """Register the combat-log callback with the parser.
@@ -183,44 +190,130 @@ class SmokeExtractor:
     def _on_entry(self, entry: CombatLogEntry) -> None:
         if entry.log_type == "ITEM" and entry.inflictor_name == _SMOKE_ITEM:
             ev = SmokeEvent(tick=entry.tick, activator=entry.attacker_name, team=0)
-            self._pending[entry.attacker_name] = ev
-            self._positions[entry.attacker_name] = []
             self.events.append(ev)
+            self._open_activations.append(ev)
         elif (
             entry.log_type == "MODIFIER_ADD"
             and entry.inflictor_name == _SMOKE_MODIFIER
             and entry.target_is_hero
         ):
-            pending = self._pending.get(entry.attacker_name)
-            if pending is not None:
-                pending.smoked.append(entry.target_name)
-                # Capture this hero's live position at buff-arrival time.
-                pos = self._player_ext.hero_pos(entry.target_name)
-                if pos is not None:
-                    self._positions[entry.attacker_name].append(pos)
+            activation = self._activation_for_add(entry)
+            if activation is not None:
+                existing = next(
+                    (p for p in activation.participants if p.hero_name == entry.target_name),
+                    None,
+                )
+                if existing is None:
+                    activation.participants.append(
+                        SmokeParticipant(
+                            hero_name=entry.target_name,
+                            player_id=None,
+                            applied_tick=entry.tick,
+                            modifier_duration_s=entry.modifier_duration_s,
+                            modifier_elapsed_duration_s=entry.modifier_elapsed_duration_s,
+                        )
+                    )
+                    activation.smoked.append(entry.target_name)
+                elif entry.tick < existing.applied_tick:
+                    # Combat-log batches can be delivered out of order. Keep the
+                    # canonical earliest add tick without duplicating the hero.
+                    existing.applied_tick = entry.tick
+                    if entry.modifier_duration_s is not None:
+                        existing.modifier_duration_s = entry.modifier_duration_s
+                    if entry.modifier_elapsed_duration_s is not None:
+                        existing.modifier_elapsed_duration_s = entry.modifier_elapsed_duration_s
+                else:
+                    if existing.modifier_duration_s is None:
+                        existing.modifier_duration_s = entry.modifier_duration_s
+                    if existing.modifier_elapsed_duration_s is None:
+                        existing.modifier_elapsed_duration_s = entry.modifier_elapsed_duration_s
         elif (
             entry.log_type == "MODIFIER_REMOVE"
             and entry.inflictor_name == _SMOKE_MODIFIER
             and entry.target_is_hero
         ):
-            pending = self._pending.get(entry.attacker_name)
-            if pending is not None and len(pending.smoked) >= 1:
-                self._pending.pop(entry.attacker_name, None)
+            participant = self._participant_for_remove(entry)
+            if participant is not None:
+                participant.removed_tick = entry.tick
+                if entry.modifier_duration_s is not None:
+                    participant.modifier_duration_s = entry.modifier_duration_s
+                if entry.modifier_elapsed_duration_s is not None:
+                    participant.modifier_elapsed_duration_s = entry.modifier_elapsed_duration_s
+
+    def _activation_for_add(self, entry: CombatLogEntry) -> SmokeEvent | None:
+        eligible = [
+            (index, event)
+            for index, event in enumerate(self._open_activations)
+            if event.activator == entry.attacker_name
+            and event.tick <= entry.tick
+            and entry.tick - event.tick <= _SMOKE_ADD_WINDOW_TICKS
+        ]
+        if not eligible:
+            return None
+        # The list index breaks same-tick ties in favour of the latest item use.
+        return max(eligible, key=lambda pair: (pair[1].tick, pair[0]))[1]
+
+    def _participant_for_remove(self, entry: CombatLogEntry) -> SmokeParticipant | None:
+        eligible = [
+            participant
+            for event in self._open_activations
+            for participant in event.participants
+            if participant.hero_name == entry.target_name
+            and participant.removed_tick is None
+            and participant.applied_tick <= entry.tick
+            and entry.tick <= _participant_remove_deadline(participant)
+        ]
+        if not eligible:
+            return None
+        return max(eligible, key=lambda participant: participant.applied_tick)
 
     def finalize(self) -> list[SmokeEvent]:
-        """Back-fill team + centroid from player snapshots and return the events.
+        """Back-fill identities and exact-tick sampled positions.
 
-        Call after ``parser.parse()``. The centroid (x, y) is the mean of the
-        live positions captured at each hero's ``MODIFIER_ADD``; an empty group
-        leaves the position ``None``.
+        Call after ``parser.parse()``. ``activation_x``/``activation_y`` use the
+        activator snapshot nearest the item-use tick. Participant coordinates
+        use their own exact apply/remove ticks. Legacy ``x``/``y`` remain the
+        centroid of available participant application positions; an empty group
+        leaves that centroid ``None``.
 
         Returns:
             The collected smoke events.
         """
+        snapshot_index = _snapshots_by_npc(self._player_ext)
         team_by_npc = _team_by_npc(self._player_ext)
         for ev in self.events:
-            ev.team = team_by_npc.get(ev.activator, 0)
-            positions = self._positions.get(ev.activator, [])
+            activation_snapshot = _snapshot_at_tick(snapshot_index, ev.activator, ev.tick)
+            ev.team = (
+                activation_snapshot.team
+                if activation_snapshot is not None and activation_snapshot.team
+                else team_by_npc.get(ev.activator, 0)
+            )
+            activation_pos = _snapshot_position(activation_snapshot)
+            if activation_pos is not None:
+                ev.activation_x, ev.activation_y = activation_pos
+
+            positions: list[tuple[float, float]] = []
+            for participant in ev.participants:
+                applied_snapshot = _snapshot_at_tick(
+                    snapshot_index, participant.hero_name, participant.applied_tick
+                )
+                if applied_snapshot is not None:
+                    participant.player_id = applied_snapshot.player_id
+                applied_pos = _snapshot_position(applied_snapshot)
+                if applied_pos is not None:
+                    participant.applied_x, participant.applied_y = applied_pos
+                    positions.append(applied_pos)
+
+                if participant.removed_tick is not None:
+                    removed_snapshot = _snapshot_at_tick(
+                        snapshot_index,
+                        participant.hero_name,
+                        participant.removed_tick,
+                    )
+                    removed_pos = _snapshot_position(removed_snapshot)
+                    if removed_pos is not None:
+                        participant.removed_x, participant.removed_y = removed_pos
+
             if positions:
                 ev.x = sum(p[0] for p in positions) / len(positions)
                 ev.y = sum(p[1] for p in positions) / len(positions)
@@ -230,3 +323,51 @@ class SmokeExtractor:
 def _team_by_npc(player_ext: PlayerExtractor) -> dict[str, int]:
     """Build an NPC-name → team map from player snapshots (non-zero teams only)."""
     return {snap.npc_name: snap.team for snap in player_ext.snapshots if snap.team}
+
+
+def _snapshots_by_npc(
+    player_ext: PlayerExtractor,
+) -> dict[str, list[PlayerStateSnapshot]]:
+    """Index position-capable player snapshots by NPC name."""
+    result: dict[str, list[PlayerStateSnapshot]] = {}
+    for snapshot in player_ext.snapshots:
+        npc_name = getattr(snapshot, "npc_name", None)
+        tick = getattr(snapshot, "tick", None)
+        if not isinstance(npc_name, str) or not isinstance(tick, int):
+            continue
+        result.setdefault(npc_name, []).append(snapshot)
+    for snapshots in result.values():
+        snapshots.sort(key=lambda snapshot: snapshot.tick)
+    return result
+
+
+def _snapshot_at_tick(
+    snapshot_index: dict[str, list[PlayerStateSnapshot]], npc_name: str, tick: int
+) -> PlayerStateSnapshot | None:
+    """Return the nearest sampled state for ``npc_name`` at a canonical tick."""
+    snapshots = snapshot_index.get(npc_name)
+    if not snapshots:
+        return None
+    return min(snapshots, key=lambda snapshot: abs(snapshot.tick - tick))
+
+
+def _snapshot_position(
+    snapshot: PlayerStateSnapshot | None,
+) -> tuple[float, float] | None:
+    """Return a snapshot's complete position pair, if available."""
+    if snapshot is None:
+        return None
+    x = getattr(snapshot, "x", None)
+    y = getattr(snapshot, "y", None)
+    if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
+        return None
+    return (float(x), float(y))
+
+
+def _participant_remove_deadline(participant: SmokeParticipant) -> int:
+    """Return the latest plausible removal tick for a participant."""
+    duration_s = participant.modifier_duration_s
+    if duration_s is not None and duration_s > 0:
+        duration_ticks = round(duration_s * 30)
+        return participant.applied_tick + duration_ticks + _SMOKE_REMOVE_GRACE_TICKS
+    return participant.applied_tick + _SMOKE_DEFAULT_REMOVE_WINDOW_TICKS

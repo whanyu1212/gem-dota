@@ -28,6 +28,7 @@ from gem.reports.sections import (
     build_rosh_conversion,
     build_runes,
     build_scoreboard,
+    build_smokes,
     build_teamfights,
     build_wards,
 )
@@ -49,6 +50,7 @@ __all__ = [
     "build_rosh_conversion",
     "build_runes",
     "build_scoreboard",
+    "build_smokes",
     "build_teamfights",
     "build_wards",
 ]

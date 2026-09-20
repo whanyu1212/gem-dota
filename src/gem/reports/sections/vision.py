@@ -11,8 +11,9 @@ import math
 
 from gem.analysis import (
     MapContextBucket,
+    SmokeLifecycleStatus,
     build_map_context_timeline,
-    estimate_vision,
+    build_smoke_analysis,
     score_camp_visit_context,
 )
 from gem.analysis._shared import nearest_series_value
@@ -40,7 +41,287 @@ from gem.reports.sections._shared import _ward_enemies_seen
 from gem.results.models import (
     ParsedMatch,
     ParsedPlayer,
+    VisibilityState,
 )
+
+
+def _smoke_route(match: ParsedMatch, smoke: object) -> list[dict[str, float | int]]:
+    """Build a sampled member-centroid route from recorded position samples."""
+    participants = getattr(smoke, "participants", [])
+    if not participants:
+        return []
+
+    start_tick = getattr(smoke, "tick", 0)
+    players_by_id = {player.player_id: player for player in match.players}
+    players_by_name = {player.hero_name: player for player in match.players}
+    buckets: dict[int, dict[int, tuple[int, float, float]]] = {}
+
+    for participant in participants:
+        player = players_by_id.get(participant.player_id)
+        if player is None:
+            player = players_by_name.get(participant.hero_name)
+        if player is None:
+            continue
+        participant_end_tick = participant.removed_tick or participant.applied_tick
+        for sample_tick, x, y in player.position_log:
+            if not participant.applied_tick <= sample_tick <= participant_end_tick:
+                continue
+            bucket = (sample_tick - start_tick) // TICKS_PER_SEC
+            buckets.setdefault(bucket, {})[player.player_id] = (sample_tick, x, y)
+
+    route: list[dict[str, float | int]] = []
+    for samples in buckets.values():
+        if not samples:
+            continue
+        ticks = [sample[0] for sample in samples.values()]
+        xs = [sample[1] for sample in samples.values()]
+        ys = [sample[2] for sample in samples.values()]
+        route.append(
+            {
+                "tick": round(sum(ticks) / len(ticks)),
+                "fx": round((sum(xs) / len(xs) - MAP_XMIN) / (MAP_XMAX - MAP_XMIN), 5),
+                "fy": round(1.0 - (sum(ys) / len(ys) - MAP_YMIN) / (MAP_YMAX - MAP_YMIN), 5),
+            }
+        )
+    route.sort(key=lambda point: point["tick"])
+    return route
+
+
+def _visibility_badge(state: VisibilityState) -> str:
+    """Render authoritative enemy visibility without collapsing unknown state."""
+    if state is VisibilityState.VISIBLE:
+        return '<span style="color:#ff7b72">Visible to enemy</span>'
+    if state is VisibilityState.HIDDEN:
+        return '<span style="color:#bc8cff">Hidden from enemy</span>'
+    return '<span style="color:#8b949e">Visibility unknown</span>'
+
+
+def build_smokes(match: ParsedMatch, map_b64: str | None) -> str:
+    """Build evidence-first Smoke of Deceit lifecycle analysis."""
+    analyses = build_smoke_analysis(match)
+    if not analyses:
+        return ""
+
+    map_events: list[dict[str, object]] = []
+    rows: list[str] = []
+    member_details: list[str] = []
+
+    status_labels = {
+        "no_members_observed": ("No members observed", "#8b949e"),
+        "early_removal": ("Early removal", "#d29922"),
+        "expired": ("Expired", "#3fb950"),
+        "incomplete": ("Incomplete", "#8b949e"),
+    }
+
+    for index, analysis in enumerate(analyses, start=1):
+        raw = match.smoke_events[index - 1] if index <= len(match.smoke_events) else None
+        status_value = analysis.status.value
+        status_label, status_color = status_labels[status_value]
+        early_members = sorted(
+            (
+                member
+                for member in analysis.members
+                if member.lifecycle_status is SmokeLifecycleStatus.EARLY
+                and member.removed_tick is not None
+            ),
+            key=lambda member: member.removed_tick or 0,
+        )
+        first_early = early_members[0] if early_members else None
+
+        if first_early is None:
+            early_html = "—"
+            visibility_html = "—"
+            nearest_html = "—"
+        else:
+            removed_tick = first_early.removed_tick or analysis.activation_tick
+            elapsed_s = (removed_tick - analysis.activation_tick) / TICKS_PER_SEC
+            early_html = (
+                f'{e(hero(first_early.hero_name))}<br><span class="dim" '
+                f'title="Replay tick {removed_tick}">{e(fmt_tick(removed_tick))} '
+                f"(+{elapsed_s:.2f}s)</span>"
+            )
+            visibility_html = _visibility_badge(first_early.visibility_at_remove)
+            if first_early.nearest_enemy_hero and first_early.nearest_enemy_distance is not None:
+                nearest_html = (
+                    f"{e(hero(first_early.nearest_enemy_hero))}<br>"
+                    f'<span class="dim">{first_early.nearest_enemy_distance:,.0f}u sampled</span>'
+                )
+            else:
+                nearest_html = '<span class="dim">Unavailable</span>'
+
+        members_html = ", ".join(e(hero(member.hero_name)) for member in analysis.members) or "—"
+        team_color = TEAM_COLOR_CSS.get(analysis.team, "#8b949e")
+        team_html = (
+            f'<span style="color:{team_color}">{e(team_name(analysis.team))}</span><br>'
+            f'<span class="dim">{e(hero(analysis.activator))}</span>'
+        )
+        fight = analysis.first_teamfight
+        if fight is None:
+            fight_html = "—"
+        else:
+            delta_s = (fight.first_death_tick - analysis.activation_tick) / TICKS_PER_SEC
+            fight_html = (
+                f'<span title="First death tick {fight.first_death_tick}">+{delta_s:.1f}s</span><br>'
+                f'<span class="dim">{e(fight.winner.title())}, '
+                f"{fight.radiant_kills}–{fight.dire_kills}</span>"
+            )
+
+        rows.append(
+            "<tr>"
+            f'<td class="r"><strong>#{index}</strong><br><span title="Replay tick '
+            f'{analysis.activation_tick}">{e(fmt_tick(analysis.activation_tick))}</span></td>'
+            f"<td>{team_html}</td>"
+            f"<td>{members_html}</td>"
+            f'<td><span style="color:{status_color}">{status_label}</span></td>'
+            f"<td>{early_html}</td><td>{visibility_html}</td>"
+            f"<td>{nearest_html}</td><td>{fight_html}</td>"
+            "</tr>"
+        )
+
+        detail_rows = []
+        raw_participants = {
+            (participant.hero_name, participant.applied_tick): participant
+            for participant in getattr(raw, "participants", [])
+        }
+        for member in analysis.members:
+            participant = raw_participants.get((member.hero_name, member.applied_tick))
+            end_html = "Unobserved"
+            if member.removed_tick is not None:
+                elapsed_s = (member.removed_tick - member.applied_tick) / TICKS_PER_SEC
+                end_html = (
+                    f'<span title="Replay tick {member.removed_tick}">'
+                    f"{e(fmt_tick(member.removed_tick))} (+{elapsed_s:.2f}s)</span>"
+                )
+            duration_html = "—"
+            if participant is not None and participant.modifier_duration_s is not None:
+                duration_html = f"{participant.modifier_duration_s:.2f}s"
+            evidence = []
+            if member.same_tick_actions:
+                evidence.append("action at same tick")
+            if member.same_tick_deaths:
+                evidence.append("death at same tick")
+            evidence_html = ", ".join(evidence) or "—"
+            detail_rows.append(
+                "<tr>"
+                f"<td>{e(hero(member.hero_name))}</td>"
+                f'<td title="Replay tick {member.applied_tick}">{e(fmt_tick(member.applied_tick))}</td>'
+                f"<td>{end_html}</td><td>{duration_html}</td>"
+                f"<td>{_visibility_badge(member.visibility_at_apply)}</td>"
+                f"<td>{_visibility_badge(member.visibility_at_remove)}</td>"
+                f"<td>{evidence_html}</td>"
+                "</tr>"
+            )
+        if not detail_rows:
+            detail_rows.append(
+                '<tr><td colspan="7" class="dim">No smoke members observed.</td></tr>'
+            )
+        member_details.append(
+            f'<details style="margin-top:8px"><summary>#{index} member timing</summary>'
+            '<table style="margin-top:8px"><thead><tr><th>Hero</th><th>Applied</th>'
+            "<th>Removed</th><th>Expected duration</th><th>At apply</th>"
+            f"<th>At removal</th><th>Same-tick evidence</th></tr></thead><tbody>{''.join(detail_rows)}"
+            "</tbody></table></details>"
+        )
+
+        activation_x = analysis.activation_x
+        activation_y = analysis.activation_y
+        first_early_position = None
+        if first_early is not None and raw is not None:
+            for participant in raw.participants:
+                if (
+                    participant.hero_name == first_early.hero_name
+                    and participant.removed_tick == first_early.removed_tick
+                    and participant.removed_x is not None
+                    and participant.removed_y is not None
+                ):
+                    first_early_position = {
+                        "fx": round((participant.removed_x - MAP_XMIN) / (MAP_XMAX - MAP_XMIN), 5),
+                        "fy": round(
+                            1.0 - (participant.removed_y - MAP_YMIN) / (MAP_YMAX - MAP_YMIN),
+                            5,
+                        ),
+                    }
+                    break
+        map_events.append(
+            {
+                "number": index,
+                "team": analysis.team,
+                "start": (
+                    {
+                        "fx": round((activation_x - MAP_XMIN) / (MAP_XMAX - MAP_XMIN), 5),
+                        "fy": round(1.0 - (activation_y - MAP_YMIN) / (MAP_YMAX - MAP_YMIN), 5),
+                    }
+                    if activation_x is not None and activation_y is not None
+                    else None
+                ),
+                "route": _smoke_route(match, raw) if raw is not None else [],
+                "early": first_early_position,
+            }
+        )
+
+    config = json.dumps({"events": map_events, "hasMap": bool(map_b64)}).replace("</", "<\\/")
+    located_count = sum(bool(event["start"] or event["route"]) for event in map_events)
+    map_html = ""
+    if located_count:
+        map_html = f"""
+<div style="margin:14px 0">
+  <canvas id="smokeCanvas" width="700" height="700"
+    style="max-width:700px;width:100%;aspect-ratio:1;border:1px solid #30363d;border-radius:6px;display:block"></canvas>
+  <p class="dim" style="font-size:12px;margin-top:6px">Solid dots mark activation, lines are sampled member centroids, and × marks the first observed early removal. Spatial samples are lower precision than combat-log ticks.</p>
+</div>
+<script type="application/json" id="smoke-data">{config}</script>
+<script>
+(function() {{
+  var cfg = JSON.parse(document.getElementById('smoke-data').textContent || '{{}}');
+  var canvas = document.getElementById('smokeCanvas');
+  var ctx = canvas.getContext('2d');
+  var mapImg = new Image();
+  function draw() {{
+    var W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+    if (mapImg.complete && mapImg.naturalWidth > 0) ctx.drawImage(mapImg, 0, 0, W, H);
+    else {{ ctx.fillStyle = '#111820'; ctx.fillRect(0, 0, W, H); }}
+    (cfg.events || []).forEach(function(ev) {{
+      var color = ev.team === 2 ? '#3fb950' : ev.team === 3 ? '#f85149' : '#8b949e';
+      if (ev.route && ev.route.length) {{
+        ctx.beginPath();
+        ev.route.forEach(function(p, i) {{
+          if (i === 0) ctx.moveTo(p.fx * W, p.fy * H);
+          else ctx.lineTo(p.fx * W, p.fy * H);
+        }});
+        ctx.strokeStyle = color; ctx.globalAlpha = 0.85; ctx.lineWidth = 4; ctx.stroke();
+      }}
+      if (ev.start) {{
+        var x = ev.start.fx * W, y = ev.start.fy * H;
+        ctx.globalAlpha = 1; ctx.beginPath(); ctx.arc(x, y, 10, 0, 2 * Math.PI);
+        ctx.fillStyle = color; ctx.fill(); ctx.fillStyle = '#fff';
+        ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(ev.number, x, y);
+      }}
+      if (ev.early) {{
+        var x = ev.early.fx * W, y = ev.early.fy * H;
+        ctx.globalAlpha = 1; ctx.strokeStyle = '#ffd33d'; ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.moveTo(x - 7, y - 7); ctx.lineTo(x + 7, y + 7);
+        ctx.moveTo(x + 7, y - 7); ctx.lineTo(x - 7, y + 7); ctx.stroke();
+      }}
+    }});
+  }}
+  mapImg.onload = draw;
+  if (cfg.hasMap && window._GEM_MAP_SRC) mapImg.src = window._GEM_MAP_SRC;
+  else draw();
+}})();
+</script>"""
+
+    return (
+        '<div class="card"><details open><summary>Smoke Operations</summary><div class="card-body">'
+        '<p class="dim">Modifier removal, authoritative enemy visibility, sampled proximity, and follow-up fights are reported as separate evidence. Early removal does not by itself prove the hero was seen.</p>'
+        + map_html
+        + '<div style="overflow-x:auto"><table><thead><tr><th class="r">Activation</th><th>Team / activator</th>'
+        "<th>Members</th><th>Lifecycle</th><th>First early removal</th>"
+        "<th>Enemy state</th><th>Nearest enemy</th><th>Follow-up fight</th>"
+        f"</tr></thead><tbody>{''.join(rows)}</tbody></table></div>{''.join(member_details)}"
+        "</div></details></div>"
+    )
 
 
 def build_wards(match: ParsedMatch, map_b64: str | None) -> str:
@@ -103,28 +384,6 @@ def build_wards(match: ParsedMatch, map_b64: str | None) -> str:
             }
         )
 
-    _SMOKE_SHOW_TICKS = 300
-    smoke_data = []
-    for s in match.smoke_events:
-        if s.x is None or s.y is None:
-            continue
-        fx = (s.x - _XMIN) / (_XMAX - _XMIN)
-        fy = 1.0 - (s.y - _YMIN) / (_YMAX - _YMIN)
-        enemy_team = 3 if s.team == 2 else 2
-        seen_by_enemy = bool(estimate_vision(match, enemy_team, s.tick, s.x, s.y))
-        smoke_data.append(
-            {
-                "fx": round(fx, 5),
-                "fy": round(fy, 5),
-                "tick": s.tick,
-                "end_tick": s.tick + _SMOKE_SHOW_TICKS,
-                "team": s.team,
-                "activator": _hero(s.activator),
-                "count": len(s.smoked),
-                "tick_fmt": _fmt_tick(s.tick),
-                "seen": seen_by_enemy,
-            }
-        )
     # Bundle every value that crosses the Python -> JS boundary into a single
     # inert ``<script type="application/json">`` config tag (mirrors the cleaner
     # ``build_farming`` pattern in this file). The executable ``<script>`` below
@@ -132,7 +391,6 @@ def build_wards(match: ParsedMatch, map_b64: str | None) -> str:
     # it, so its body stays a plain string with natural single braces.
     ward_config = {
         "wards": ward_data,
-        "smokes": smoke_data,
         "gameStartTick": match.game_start_tick or 0,
         "sliderMin": slider_min,
         "sliderMax": slider_max,
@@ -140,7 +398,6 @@ def build_wards(match: ParsedMatch, map_b64: str | None) -> str:
         "hasMap": bool(map_b64),
         "iconObs": ITEM_ICON_B64.get("ward_observer", ""),
         "iconSen": ITEM_ICON_B64.get("ward_sentry", ""),
-        "iconSmoke": ITEM_ICON_B64.get("smoke_of_deceit", ""),
     }
     # ``</`` is escaped so a stray ``</script>`` substring in the data cannot
     # close the data tag early (defensive; base64/JSON values won't contain it).
@@ -173,7 +430,6 @@ def build_wards(match: ParsedMatch, map_b64: str | None) -> str:
     <div style="margin-top:6px;display:flex;gap:14px;font-size:12px;color:#8b949e;align-items:center">
       <span>{_item_icon_tag("ward_observer", 16)} Observer <span style="color:#8b949e">(vision 1600)</span></span>
       <span>{_item_icon_tag("ward_sentry", 16)} Sentry <span style="color:#8b949e">(truesight 1050)</span></span>
-      <span>{_item_icon_tag("smoke_of_deceit", 16)} Smoke</span>
     </div>
     <div id="wardTooltip" style="margin-top:8px;min-height:40px;font-size:12px;color:#8b949e"></div>
   </div>
@@ -198,11 +454,9 @@ def build_wards(match: ParsedMatch, map_b64: str | None) -> str:
 (function() {
   var cfg = JSON.parse(document.getElementById('ward-data').textContent || '{}');
   var wards = cfg.wards || [];
-  var smokes = cfg.smokes || [];
   var imgSrc = cfg.hasMap ? (window._GEM_MAP_SRC || '') : '';
   var iconObsSrc = cfg.iconObs || '';
   var iconSenSrc = cfg.iconSen || '';
-  var iconSmokeSrc = cfg.iconSmoke || '';
   var gameStartTick = cfg.gameStartTick || 0;
   var sliderMin = cfg.sliderMin || 0;
   var sliderMax = cfg.sliderMax || 0;
@@ -232,7 +486,6 @@ var speedSel = document.getElementById('wardSpeed');
   }
   var iconObs = _makeIcon(iconObsSrc);
   var iconSen = _makeIcon(iconSenSrc);
-  var iconSmoke = _makeIcon(iconSmokeSrc);
 
   function fmtTick(tick) {
     var rel = tick - gameStartTick;
@@ -306,30 +559,6 @@ var speedSel = document.getElementById('wardSpeed');
       drawIcon(icon, cx, cy, isObs ? 18 : 16, borderColor);
     }
 
-    for (var i = 0; i < smokes.length; i++) {
-      var s = smokes[i];
-      if (tick < s.tick || tick > s.end_tick) continue;
-
-      var cx = s.fx * W;
-      var cy = s.fy * H;
-      var borderColor = s.team === 2 ? '#4caf50' : '#f44336';
-      var age = (tick - s.tick) / (s.end_tick - s.tick);
-      var alpha = 1.0 - age * 0.6;
-      drawIcon(iconSmoke, cx, cy, 20, borderColor, alpha);
-
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.fillStyle = 'rgba(0,0,0,0.75)';
-      ctx.beginPath();
-      ctx.arc(cx + 8, cy - 8, 7, 0, 2 * Math.PI);
-      ctx.fill();
-      ctx.fillStyle = '#fff';
-      ctx.font = 'bold 9px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(s.count, cx + 8, cy - 8);
-      ctx.restore();
-    }
   }
 
   function setTick(tick) {
@@ -397,14 +626,6 @@ var speedSel = document.getElementById('wardSpeed');
       var dist = Math.sqrt(dx * dx + dy * dy);
       if (dist < bestDist) { bestDist = dist; hit = w; hitType = 'ward'; }
     }
-    for (var i = 0; i < smokes.length; i++) {
-      var s = smokes[i];
-      if (currentTick < s.tick || currentTick > s.end_tick) continue;
-      var dx = s.fx * W - mx, dy = s.fy * H - my;
-      var dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < bestDist) { bestDist = dist; hit = s; hitType = 'smoke'; }
-    }
-
     if (hit && hitType === 'ward') {
       var teamName = hit.team === 2 ? 'Radiant' : 'Dire';
       var teamColor = hit.team === 2 ? '#4caf50' : '#f44336';
@@ -416,19 +637,6 @@ var speedSel = document.getElementById('wardSpeed');
         '<span style="color:' + teamColor + '">' + teamName + '</span><br>' +
         'Placed: ' + hit.placed_fmt + ' by ' + hit.placer + '<br>' +
         fateStr;
-      canvas.style.cursor = 'pointer';
-    } else if (hit && hitType === 'smoke') {
-      var teamName = hit.team === 2 ? 'Radiant' : 'Dire';
-      var teamColor = hit.team === 2 ? '#4caf50' : '#f44336';
-      var seenStr = hit.seen
-        ? '<span style="color:#f44336">&#128065; Enemy had vision &#10003;</span>'
-        : '<span style="color:#4caf50">&#10008; Undetected</span>';
-      tooltip.innerHTML =
-        '<strong style="color:#9c27b0">Smoke of Deceit</strong> &mdash; ' +
-        '<span style="color:' + teamColor + '">' + teamName + '</span><br>' +
-        'Activated: ' + hit.tick_fmt + ' by ' + hit.activator + '<br>' +
-        hit.count + ' hero' + (hit.count !== 1 ? 'es' : '') + ' smoked<br>' +
-        seenStr;
       canvas.style.cursor = 'pointer';
     } else {
       tooltip.innerHTML = '';

@@ -19,6 +19,7 @@ Canonical implementation modules are split by responsibility:
 - `gem.analysis.vision` — geometry-based vision approximation helpers
 - `gem.analysis.map_context` — objective-aware farming context helpers
 - `gem.analysis.roshan` — Roshan conversion summaries
+- `gem.analysis.smoke` — evidence-first Smoke of Deceit lifecycle analysis
 
 `gem.analysis` re-exports the public helpers below. Use `gem.analysis.map_context`
 and `gem.analysis.roshan` for module-level imports.
@@ -34,6 +35,7 @@ fight   = gem.teamfight_at_tick(match, tick)
 near    = gem.heroes_near(match, tick, x, y, radius=2000)
 lvl     = gem.ability_level_at_tick(player, "axe_berserkers_call", tick)
 sources = gem.estimate_vision(match, team=2, tick=tick, x=x, y=y)
+smokes  = gem.build_smoke_analysis(match)
 ```
 
 ---
@@ -789,7 +791,7 @@ def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]
 
 Summarise each Roshan with legacy fields and differential evidence.
 
-Source: [src/gem/analysis/roshan.py:985](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L985)
+Source: [src/gem/analysis/roshan.py:1000](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L1000)
 
 ### Top-level classes
 
@@ -922,3 +924,98 @@ Source: [src/gem/analysis/roshan.py:213](https://github.com/whanyu1212/gem-dota/
 | `analysis_status` | `Literal['complete', 'partial', 'unavailable']` | `'unavailable'` |
 | `analysis_status_reasons` | `list[str]` | `field(...)` |
 | `differential_profile` | `RoshDifferentialProfile` | `field(...)` |
+
+## Module `gem.analysis.smoke`
+
+Evidence-first post-parse Smoke of Deceit lifecycle analysis.
+
+Source: [src/gem/analysis/smoke.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L1)
+
+### Top-level functions
+
+### `build_smoke_analysis`
+
+```python
+def build_smoke_analysis(match: ParsedMatch) -> list[SmokeAnalysis]
+```
+
+Build factual lifecycle summaries for every smoke item use.
+
+Source: [src/gem/analysis/smoke.py:146](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L146)
+
+### Top-level classes
+
+### `SmokeLifecycleStatus`
+
+```python
+class SmokeLifecycleStatus(str, Enum)
+```
+
+Observed lifecycle classification for one smoke participant.
+
+Source: [src/gem/analysis/smoke.py:33](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L33)
+
+### `SmokeGroupStatus`
+
+```python
+class SmokeGroupStatus(str, Enum)
+```
+
+Evidence-based aggregate state for one smoke activation.
+
+Source: [src/gem/analysis/smoke.py:50](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L50)
+
+### `SmokeMemberAnalysis`
+
+```python
+class SmokeMemberAnalysis
+```
+
+Evidence summary for one hero in a smoke activation.
+
+Source: [src/gem/analysis/smoke.py:70](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L70)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `hero_name` | `str` | `-` |
+| `player_id` | `int \| None` | `-` |
+| `applied_tick` | `int` | `-` |
+| `removed_tick` | `int \| None` | `-` |
+| `lifecycle_status` | `SmokeLifecycleStatus` | `-` |
+| `visibility_at_apply` | `VisibilityState` | `-` |
+| `visibility_at_remove` | `VisibilityState` | `-` |
+| `first_visible_tick` | `int \| None` | `None` |
+| `nearest_enemy_hero` | `str \| None` | `None` |
+| `nearest_enemy_player_id` | `int \| None` | `None` |
+| `nearest_enemy_distance` | `float \| None` | `None` |
+| `same_tick_actions` | `list[CombatLogEntry]` | `field(...)` |
+| `same_tick_deaths` | `list[CombatLogEntry]` | `field(...)` |
+| `evidence_gaps` | `list[str]` | `field(...)` |
+
+### `SmokeAnalysis`
+
+```python
+class SmokeAnalysis
+```
+
+Evidence summary for one Smoke of Deceit item use.
+
+Source: [src/gem/analysis/smoke.py:113](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L113)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `activation_tick` | `int` | `-` |
+| `activator` | `str` | `-` |
+| `team` | `int` | `-` |
+| `status` | `SmokeGroupStatus` | `-` |
+| `activation_x` | `float \| None` | `-` |
+| `activation_y` | `float \| None` | `-` |
+| `member_centroid_x` | `float \| None` | `-` |
+| `member_centroid_y` | `float \| None` | `-` |
+| `members` | `list[SmokeMemberAnalysis]` | `field(...)` |
+| `first_teamfight` | `Teamfight \| None` | `None` |
+| `evidence_gaps` | `list[str]` | `field(...)` |

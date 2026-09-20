@@ -30,6 +30,7 @@ from gem.reports.sections.match import (
 from gem.reports.sections.vision import (
     build_farming,
     build_laning,
+    build_smokes,
     build_wards,
 )
 
@@ -50,6 +51,7 @@ __all__ = [
     "build_rosh_conversion",
     "build_runes",
     "build_scoreboard",
+    "build_smokes",
     "build_teamfights",
     "build_wards",
 ]

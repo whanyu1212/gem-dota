@@ -99,6 +99,7 @@ analysis/abilities.py     ← ability-level lookup helpers
 analysis/vision.py        ← geometry-based vision approximation helpers
 analysis/map_context.py   ← objective-aware map-context buckets (experimental farming analysis)
 analysis/roshan.py        ← post-parse Roshan conversion records (did a Rosh convert to a win?)
+analysis/smoke.py         ← evidence-first Smoke of Deceit lifecycle analysis
 replays/batch.py          ← bulk replay parsing (parse_many, parallel workers)
 replays/fetch.py          ← download + decompress replays from OpenDota/Valve CDN
 cli.py                    ← CLI implementation
@@ -169,7 +170,8 @@ Headline exports (see `__all__` for the full list):
   `net_worth_at`, `teamfight_at_tick`, `heroes_near`, `ability_level_at_tick`,
   `is_active_teamfight_participant`, `estimate_vision`, `ward_vision_impact`
 - **Experimental:** `build_map_context_timeline`, `score_camp_visit_context`,
-  `build_rosh_conversions`, `RoshConversion`
+  `build_rosh_conversions`, `RoshConversion`, `build_smoke_analysis`,
+  `SmokeAnalysis`
 - **Replay fetch:** `fetch_replay`, `fetch_replay_url`, `download_and_decompress`
 - **Catalog/constants:** `catalog` (grouped lookup modules) and `constants`
   (compatibility namespace of hero/item/ability lookups)
@@ -214,7 +216,7 @@ Correct approach: for each combat log placement event, find the entity event wit
 
 Reference: `refs/parser/src/main/java/opendota/processors/warding/Wards.java` — uses `m_lifeState==0` transitions instead of op type. Either works; what matters is accepting all non-DELETED events and not consuming entity records globally in the matcher.
 
-### Smoke of Deceit — empty group edge case
+### Smoke of Deceit lifecycle extraction
 
 Smoke and vision-granting modifier collection lives in
 `extractors/smoke_vision.py` (`SmokeExtractor`, `VisionModifierExtractor`),
@@ -225,10 +227,25 @@ are internal extractors, not part of the public `extractors` `__all__`.
 Tracking smoke:
 1. `ITEM` event (`inflictor_name = "item_smoke_of_deceit"`) — item consumed
 2. `MODIFIER_ADD` events (`inflictor_name = "modifier_smoke_of_deceit"`, `target_is_hero = True`) — one per hero that receives the buff
+3. `MODIFIER_REMOVE` events close each hero's lifecycle independently and carry
+   S2 duration/elapsed-duration evidence used to distinguish observed expiry
+   from observed early removal
 
 Filter `MODIFIER_ADD` by `target_is_hero = True` to exclude summoned units (e.g. Beastmaster boars) from the group.
 
-**Empty group edge case**: if the activating hero is standing inside a sentry ward's truesight radius at activation time, the smoke breaks instantly before any `MODIFIER_ADD` fires. The `ITEM` event is still recorded (item consumed) but zero modifier events follow. This is correct game behaviour — the item was wasted — not a parsing gap. Output this as a smoke usage with an empty group.
+**Empty group edge case**: the `ITEM` event can be recorded with zero resolved
+`MODIFIER_ADD` events. One possible real-game cause is an immediate break, but
+the extractor must preserve the activation without assuming a cause.
+
+The public analysis nevertheless labels this state **`no_members_observed`**, not
+“wasted”: the combat log proves the item use and absence of resolved member adds,
+but does not by itself prove the cause. Modifier-name resolution can also lag in
+some replays. Preserve the empty activation and keep causal interpretation out of
+the extractor.
+
+`SmokeEvent.tick` and each participant's `applied_tick` / `removed_tick` are the
+canonical exact replay ticks. Positions are sampled from `PlayerExtractor` at
+roughly one-second intervals and must be described as sampled evidence.
 
 Alternative approach (refs): read the `ActiveModifiers` string table directly — each entry is a `CDOTAModifierBuffTableEntry` protobuf with a `player_ids` field (comma-separated player slots). Would give the same result for empty-group cases. Not currently implemented; requires parsing an additional string table of protobufs.
 

@@ -96,6 +96,39 @@ class VisionModifierEvent:
 
 
 @dataclass
+class SmokeParticipant:
+    """One hero's observed Smoke of Deceit modifier lifecycle.
+
+    Attributes:
+        hero_name: NPC name of the hero that received the smoke modifier.
+        player_id: Logical player slot from 0 through 9, or ``None`` when the
+            hero could not be matched to a player snapshot.
+        applied_tick: Exact combat-log tick when the modifier was added.
+        removed_tick: Exact combat-log tick when the modifier was removed, or
+            ``None`` when no removal was observed.
+        modifier_duration_s: Intended modifier duration reported by the S2
+            combat log, or ``None`` when unavailable.
+        modifier_elapsed_duration_s: Elapsed duration reported on modifier
+            removal, or ``None`` when unavailable.
+        applied_x: Sampled world x coordinate at ``applied_tick``, or ``None``.
+        applied_y: Sampled world y coordinate at ``applied_tick``, or ``None``.
+        removed_x: Sampled world x coordinate at ``removed_tick``, or ``None``.
+        removed_y: Sampled world y coordinate at ``removed_tick``, or ``None``.
+    """
+
+    hero_name: str
+    player_id: int | None
+    applied_tick: int
+    removed_tick: int | None = None
+    modifier_duration_s: float | None = None
+    modifier_elapsed_duration_s: float | None = None
+    applied_x: float | None = None
+    applied_y: float | None = None
+    removed_x: float | None = None
+    removed_y: float | None = None
+
+
+@dataclass
 class SmokeEvent:
     """One Smoke of Deceit activation.
 
@@ -104,10 +137,16 @@ class SmokeEvent:
         activator: NPC hero name of the player who used the smoke.
         team: Team number (2=Radiant, 3=Dire), or 0 if unknown.
         smoked: NPC hero names of all heroes that received the buff.
-        x: World x coordinate of the activating hero at activation tick,
-            or ``None`` if position data is unavailable.
-        y: World y coordinate of the activating hero at activation tick,
-            or ``None`` if position data is unavailable.
+        x: Legacy member-centroid world x coordinate, computed from participant
+            positions at their individual modifier-application ticks, or
+            ``None`` when no participant position is available.
+        y: Legacy member-centroid world y coordinate, with the same semantics as
+            ``x``.
+        activation_x: Activating hero's sampled world x coordinate at the exact
+            item-use tick, or ``None`` when unavailable.
+        activation_y: Activating hero's sampled world y coordinate at the exact
+            item-use tick, or ``None`` when unavailable.
+        participants: Per-hero modifier lifecycles in observed application order.
     """
 
     tick: int
@@ -116,6 +155,9 @@ class SmokeEvent:
     smoked: list[str] = field(default_factory=list)
     x: float | None = None
     y: float | None = None
+    activation_x: float | None = None
+    activation_y: float | None = None
+    participants: list[SmokeParticipant] = field(default_factory=list)
 
 
 @dataclass
