@@ -736,15 +736,6 @@ class ParsedMatch:
         compare=False,
         metadata={"serialize": False},
     )
-    _hero_visibility_index: (
-        dict[int, tuple[tuple[int, ...], tuple[HeroVisibilityEvent, ...]]] | None
-    ) = field(
-        default=None,
-        init=False,
-        repr=False,
-        compare=False,
-        metadata={"serialize": False},
-    )
 
     @property
     def duration_seconds(self) -> float:

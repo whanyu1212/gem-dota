@@ -335,5 +335,35 @@ def test_same_tick_query_uses_last_matching_event() -> None:
     assert (
         hero_visibility_at(match, player_id=0, observing_team=2, tick=10) is VisibilityState.VISIBLE
     )
-    assert match._hero_visibility_index is not None
-    assert "_hero_visibility_index" not in gem.to_dict(match)
+
+
+def test_query_reflects_public_timeline_mutations() -> None:
+    match = ParsedMatch(
+        hero_visibility_events=[
+            HeroVisibilityEvent(10, 0, "axe", 1, 0, VisibilityState.HIDDEN, VisibilityState.HIDDEN)
+        ]
+    )
+    assert (
+        hero_visibility_at(match, player_id=0, observing_team=2, tick=20) is VisibilityState.HIDDEN
+    )
+
+    match.hero_visibility_events.append(
+        HeroVisibilityEvent(20, 0, "axe", 1, 0, VisibilityState.VISIBLE, VisibilityState.HIDDEN)
+    )
+    assert (
+        hero_visibility_at(match, player_id=0, observing_team=2, tick=20) is VisibilityState.VISIBLE
+    )
+
+    match.hero_visibility_events[-1] = HeroVisibilityEvent(
+        20, 0, "axe", 1, 0, VisibilityState.HIDDEN, VisibilityState.HIDDEN
+    )
+    assert (
+        hero_visibility_at(match, player_id=0, observing_team=2, tick=20) is VisibilityState.HIDDEN
+    )
+
+    match.hero_visibility_events = [
+        HeroVisibilityEvent(20, 0, "axe", 1, 0, VisibilityState.VISIBLE, VisibilityState.HIDDEN)
+    ]
+    assert (
+        hero_visibility_at(match, player_id=0, observing_team=2, tick=20) is VisibilityState.VISIBLE
+    )

@@ -612,7 +612,7 @@ def is_daytime(game_start_tick: int | None, tick: int) -> bool
 
 Return True if it is daytime at the given absolute tick.
 
-Source: [src/gem/analysis/vision.py:58](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L58)
+Source: [src/gem/analysis/vision.py:57](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L57)
 
 ### `hero_visibility_at`
 
@@ -622,7 +622,7 @@ def hero_visibility_at(match: ParsedMatch, *, player_id: int, observing_team: in
 
 Return authoritative hero-entity visibility at or before ``tick``.
 
-Source: [src/gem/analysis/vision.py:85](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L85)
+Source: [src/gem/analysis/vision.py:84](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L84)
 
 ### `estimate_vision`
 
@@ -632,7 +632,7 @@ def estimate_vision(match: ParsedMatch, team: int, tick: int, x: float, y: float
 
 Estimate which allied units were providing vision of ``(x, y)`` at ``tick``.
 
-Source: [src/gem/analysis/vision.py:135](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L135)
+Source: [src/gem/analysis/vision.py:126](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L126)
 
 ### `ward_vision_impact`
 
@@ -642,7 +642,7 @@ def ward_vision_impact(ward: object, match: ParsedMatch) -> int
 
 Count distinct enemy heroes spotted by an observer ward during its lifetime.
 
-Source: [src/gem/analysis/vision.py:283](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L283)
+Source: [src/gem/analysis/vision.py:274](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L274)
 
 ### Top-level classes
 
@@ -654,7 +654,7 @@ class VisionSource
 
 One unit that was providing vision of a map point at a given tick.
 
-Source: [src/gem/analysis/vision.py:33](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L33)
+Source: [src/gem/analysis/vision.py:32](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L32)
 
 #### Dataclass fields
 

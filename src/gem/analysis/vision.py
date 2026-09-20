@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import math
-from bisect import bisect_right
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal
 
 from gem.analysis.spatial import position_at_tick
-from gem.results.models import HeroVisibilityEvent, VisibilityState
+from gem.results.models import VisibilityState
 
 if TYPE_CHECKING:
     from gem.results.models import ParsedMatch
@@ -110,26 +109,18 @@ def hero_visibility_at(
     if observing_team not in (2, 3):
         raise ValueError("observing_team must be 2 (Radiant) or 3 (Dire)")
 
-    index = match._hero_visibility_index
-    if index is None:
-        grouped: dict[int, list[tuple[int, int, HeroVisibilityEvent]]] = {}
-        for order, event in enumerate(match.hero_visibility_events):
-            grouped.setdefault(event.player_id, []).append((event.tick, order, event))
-        index = {}
-        for indexed_player_id, rows in grouped.items():
-            rows.sort(key=lambda row: (row[0], row[1]))
-            index[indexed_player_id] = (
-                tuple(row[0] for row in rows),
-                tuple(row[2] for row in rows),
-            )
-        match._hero_visibility_index = index
+    latest = None
+    for event in match.hero_visibility_events:
+        if (
+            event.player_id == player_id
+            and event.tick <= tick
+            and (latest is None or event.tick >= latest.tick)
+        ):
+            latest = event
 
-    ticks, events = index.get(player_id, ((), ()))
-    position = bisect_right(ticks, tick) - 1
-    if position < 0:
+    if latest is None:
         return VisibilityState.UNKNOWN
-    event = events[position]
-    return event.radiant_state if observing_team == 2 else event.dire_state
+    return latest.radiant_state if observing_team == 2 else latest.dire_state
 
 
 def estimate_vision(
