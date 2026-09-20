@@ -28,6 +28,7 @@ from gem.analysis.vision import (
     VisionSource,
     _is_daytime,
     estimate_vision,
+    hero_visibility_at,
     is_daytime,
     ward_vision_impact,
 )
@@ -47,6 +48,7 @@ __all__ = [
     "build_map_context_timeline",
     "build_rosh_conversions",
     "estimate_vision",
+    "hero_visibility_at",
     "format_npc_name",
     "group_ability_hits",
     "heroes_near",

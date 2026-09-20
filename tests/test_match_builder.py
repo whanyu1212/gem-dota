@@ -18,7 +18,13 @@ import gem.results.models as model_module
 from gem.combat.log import CombatLogEntry
 from gem.extractors.intervals import IntervalSnapshot
 from gem.results.assembly import _radiant_win_from_ancient, build_parsed_match
-from gem.results.models import ChatEntry, ParsedMatch, SmokeEvent
+from gem.results.models import (
+    ChatEntry,
+    HeroVisibilityEvent,
+    ParsedMatch,
+    SmokeEvent,
+    VisibilityState,
+)
 
 # ---------------------------------------------------------------------------
 # Helpers — minimal stubs
@@ -479,6 +485,8 @@ class TestBuildParsedMatchExtractorOutputs:
         optional_kwargs = {}
         if "neutral_item_finds" in kw:
             optional_kwargs["neutral_item_finds"] = kw["neutral_item_finds"]
+        if "hero_visibility_events" in kw:
+            optional_kwargs["hero_visibility_events"] = kw["hero_visibility_events"]
         return build_parsed_match(
             parser,
             player_ext,
@@ -533,6 +541,26 @@ class TestBuildParsedMatchExtractorOutputs:
     def test_neutral_item_finds_defaults_to_empty_list_when_none(self):
         m = self._base_build(neutral_item_finds=None)
         assert m.neutral_item_finds == []
+
+    def test_hero_visibility_events_stored(self):
+        events = [
+            HeroVisibilityEvent(
+                100,
+                0,
+                "npc_dota_hero_axe",
+                64,
+                1,
+                VisibilityState.VISIBLE,
+                VisibilityState.HIDDEN,
+            )
+        ]
+
+        match = self._base_build(hero_visibility_events=events)
+
+        assert match.hero_visibility_events is events
+
+    def test_hero_visibility_events_default_to_empty_list(self):
+        assert self._base_build(hero_visibility_events=None).hero_visibility_events == []
 
     def test_draft_events_stored(self):
         from gem.extractors.draft import DraftEvent

@@ -155,6 +155,7 @@ def _round_positive_seconds(value: float) -> int:
 
 EntityCallback = Callable[[Entity, EntityOp], None]
 TickStartCallback = Callable[[int], None]
+PacketEndCallback = Callable[[int], None]
 ChatCallback = Callable[["ChatEntry"], None]
 ChatEventCallback = Callable[["CDOTAUserMsg_ChatEvent", int], None]
 NeutralItemFoundCallback = Callable[["NeutralItemFoundEvent"], None]
@@ -230,6 +231,7 @@ class ReplayParser:
         self.combat_log = CombatLogProcessor()
         self._entity_callbacks: list[_EntityCallbackRegistration] = []
         self._tick_start_callbacks: list[TickStartCallback] = []
+        self._packet_end_callbacks: list[PacketEndCallback] = []
         self._chat_callbacks: list[ChatCallback] = []
         self._chat_event_callbacks: list[ChatEventCallback] = []
         self._neutral_item_found_callbacks: list[NeutralItemFoundCallback] = []
@@ -335,6 +337,16 @@ class ReplayParser:
             callback: ``(net_tick: int) -> None``.
         """
         self._tick_start_callbacks.append(callback)
+
+    def _on_packet_end(self, callback: PacketEndCallback) -> None:
+        """Register an internal completed-packet callback.
+
+        Callbacks run after every sorted inner message has been dispatched and
+        before a deferred game-end flush. This boundary is intentionally private:
+        it exists for extractors that need a stable entity view, not as a public
+        replay-parser event API.
+        """
+        self._packet_end_callbacks.append(callback)
 
     def _on_entity_game_start(self, entity: Entity, op: EntityOp) -> None:
         if entity.get_class_name() != "CDOTAGamerulesProxy":
@@ -585,9 +597,6 @@ class ReplayParser:
     # ------------------------------------------------------------------
 
     def _dispatch_inner_packet(self, data: bytes) -> None:
-        if not data:
-            return
-
         # Collect and sort: string table updates before packet entities
         messages = _read_inner_messages(data)
 
@@ -609,6 +618,9 @@ class ReplayParser:
 
         for type_id, payload in messages:
             self._dispatch_inner(type_id, payload)
+
+        for callback in self._packet_end_callbacks:
+            callback(self.tick)
 
         # Fire deferred game-end callbacks only after every message in this
         # packet — crucially the priority-5 svc_PacketEntities deltas — has been

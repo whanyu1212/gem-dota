@@ -39,7 +39,7 @@ assembly.
     </div>
     <div class="arch-flow-node arch-flow--extract">
       <span class="arch-flow-title">Extractors</span>
-      <span class="arch-flow-desc">Players, objectives, wards, courier, draft, teamfights</span>
+      <span class="arch-flow-desc">Players, objectives, wards, visibility, courier, draft, teamfights</span>
     </div>
   </div>
 
@@ -106,6 +106,7 @@ assembly.
       <span class="arch-badge">extractors/players.py</span>
       <span class="arch-badge">extractors/objectives.py</span>
       <span class="arch-badge">extractors/wards.py</span>
+      <span class="arch-badge">extractors/visibility.py</span>
       <span class="arch-badge">extractors/courier.py</span>
       <span class="arch-badge">extractors/draft.py</span>
       <span class="arch-badge">extractors/teamfights.py</span>
@@ -188,6 +189,11 @@ a list of typed dataclasses — no raw dicts, no untyped payloads.
       <td><code>smoke_events</code></td>
       <td><code>list[SmokeEvent]</code></td>
       <td>Smoke activations with grouped heroes and centroid position</td>
+    </tr>
+    <tr>
+      <td><code>hero_visibility_events</code></td>
+      <td><code>list[HeroVisibilityEvent]</code></td>
+      <td>Change-only, per-team visibility states for each canonical player hero</td>
     </tr>
     <tr>
       <td><code>aegis_events</code></td>

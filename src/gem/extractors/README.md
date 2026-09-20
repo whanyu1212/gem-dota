@@ -33,7 +33,8 @@ ReplayParser
   ├─ on_combat_log_entry(cb)   → cb(entry)             every CombatLogEntry
   ├─ on_chat_event(cb)         → cb(msg, tick)         CDOTAUserMsg_ChatEvent
   ├─ on_game_start(cb)         → cb(game_start_tick)
-  └─ on_game_end(cb)           → cb(tick)
+  ├─ on_game_end(cb)           → cb(tick)
+  └─ _on_packet_end(cb)        → cb(tick)              stable post-packet entity view
 ```
 
 An extractor's `attach()` wires itself to whichever subset it needs, stashes the
@@ -53,9 +54,10 @@ The package splits into two tiers:
   `PlayerExtractor`, `ObjectivesExtractor`, `WardsExtractor`, `CourierExtractor`,
   `DraftExtractor`, plus their record dataclasses.
 - **Internal helpers** (not in `__all__`): `IntervalExtractor` (intervals.py),
-  `detect_teamfights` (teamfights.py), `classify_lane` (lane.py), and the shared
-  `_snapshots.py` helpers. These are wired up by `gem.api.parse` and
-  `gem.results.assembly`, not imported by end users.
+  `VisibilityExtractor` (visibility.py), `detect_teamfights` (teamfights.py),
+  `classify_lane` (lane.py), and the shared `_snapshots.py` helpers. These are
+  wired up by `gem.api.parse` and `gem.results.assembly`, not imported by end
+  users.
 
 ## The attach → parse → read timing contract
 
@@ -160,6 +162,19 @@ module-level helper used at assembly time to pin a pick to the correct team via
 the player roster.
 
 ## Internal extractors and helpers
+
+### VisibilityExtractor (visibility.py) — INTERNAL
+
+Reads `m_bNPCVisibleState` from the Radiant and Dire team-data entities and
+records change-only visibility states for each player's canonical hero. Entity
+updates only mark the extractor dirty; it samples at the parser's private
+completed-packet boundary, after every entity delta in the packet has landed.
+
+Visibility is keyed by `(entity_index, entity_serial)`. Deletion or replacement
+emits a terminal `UNKNOWN` event, preventing a recycled slot from inheriting an
+older hero's state. Missing team data or a missing visibility word is also
+`UNKNOWN`, never `HIDDEN`. Only the one 64-bit word containing each tracked
+hero's slot is read; the extractor does not retain full fog bitsets.
 
 ### IntervalExtractor (intervals.py) — INTERNAL
 

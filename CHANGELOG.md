@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Authoritative hero visibility timeline.** Parse the Radiant and Dire
+  `m_bNPCVisibleState` entity bitsets into change-only
+  `ParsedMatch.hero_visibility_events`, expose tri-state
+  `gem.hero_visibility_at(...)` queries, and preserve the optional Radiant/Dire
+  visibility flags carried by Source 2 combat-log entries. JSON, DataFrame, and
+  Parquet exports include the new visibility data; unavailable replay state is
+  reported as `unknown`, never inferred to mean hidden.
 - **Final Python performance profile.** Add a reproducible full-replay profiling
   harness and v0.8.0 public/core CPU and memory measurements, with exact output
   checks and an entity-field decode/apply boundary selected for a future Rust

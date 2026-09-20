@@ -13,6 +13,7 @@ def test_parse_collects_neutral_item_found_events(monkeypatch):
     import gem.extractors.intervals
     import gem.extractors.objectives
     import gem.extractors.players
+    import gem.extractors.visibility
     import gem.extractors.wards
     import gem.parser
     import gem.results.assembly
@@ -26,6 +27,15 @@ def test_parse_collects_neutral_item_found_events(monkeypatch):
         item_key="stonefeather_satchel",
         enhancement_ability_id=1865,
         enhancement_key="enhancement_vital",
+    )
+    visibility_event = model_module.HeroVisibilityEvent(
+        tick=29858,
+        player_id=6,
+        hero_name="npc_dota_hero_lina",
+        entity_index=64,
+        entity_serial=1,
+        radiant_state=model_module.VisibilityState.VISIBLE,
+        dire_state=model_module.VisibilityState.HIDDEN,
     )
 
     class FakeParser:
@@ -71,6 +81,13 @@ def test_parse_collects_neutral_item_found_events(monkeypatch):
         def on_entry(self, _entry):
             return None
 
+    class FakeVisibilityExtractor:
+        def __init__(self, _player_ext):
+            self.events = [visibility_event]
+
+        def attach(self, _parser):
+            return None
+
     captured = {}
 
     def fake_build_parsed_match(**kwargs):
@@ -84,10 +101,12 @@ def test_parse_collects_neutral_item_found_events(monkeypatch):
     monkeypatch.setattr(gem.extractors.courier, "CourierExtractor", FakeExtractor)
     monkeypatch.setattr(gem.extractors.draft, "DraftExtractor", FakeExtractor)
     monkeypatch.setattr(gem.extractors.intervals, "IntervalExtractor", FakeExtractor)
+    monkeypatch.setattr(gem.extractors.visibility, "VisibilityExtractor", FakeVisibilityExtractor)
     monkeypatch.setattr(gem.combat.aggregator, "_CombatAggregator", FakeCombatAggregator)
     monkeypatch.setattr(gem.results.assembly, "build_parsed_match", fake_build_parsed_match)
 
     match = gem.parse("dummy.dem")
 
     assert captured["neutral_item_finds"] == [event]
+    assert captured["hero_visibility_events"] == [visibility_event]
     assert match.neutral_item_finds == [event]

@@ -13,6 +13,10 @@ See also: [Full Match Data](../guides/04_match_data.md), [Quickstart](../guides/
 - `ParsedPlayer.account_id`: `int` — 32-bit account ID (the ID in OpenDota/Dotabuff player URLs). `0` if unavailable.
 - `ParsedMatch.neutral_item_finds`: `list[NeutralItemFoundEvent]` — replay-observed neutral item finds from `DOTA_UM_FoundNeutralItem`, including resolved item and enhancement keys.
 - `ParsedMatch.vision_modifiers`: `list[VisionModifierEvent]` *(experimental)* — every application of a vision-granting modifier (Slardar Corrosive Haze, BH Track, Dust of Appearance, Gem of True Sight). See [`estimate_vision`](analysis.md) for how these integrate with the vision API.
+- `ParsedMatch.hero_visibility_events`: `list[HeroVisibilityEvent]` — authoritative,
+  change-only visibility states for canonical player heroes, read from each
+  team's replay bitset. `unknown` means the replay state was unavailable; it
+  does not mean hidden.
 - `ParsedMatch.tormentors`: `list[TormentorKill]` — chronological Tormentor kill events.
 - `ParsedMatch.shrines`: `list[ShrineKill]` — chronological Shrine of Wisdom destruction events.
 - `ParsedPlayer.damage_by_type`: `dict[str, int]` — total damage dealt by damage type (`physical`, `magical`, `pure`).
@@ -39,6 +43,38 @@ Source: [src/gem/results/models.py](https://github.com/whanyu1212/gem-dota/blob/
 
 ### Top-level classes
 
+### `VisibilityState`
+
+```python
+class VisibilityState(str, Enum)
+```
+
+A team's authoritative visibility state for one hero entity.
+
+Source: [src/gem/results/models.py:33](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L33)
+
+### `HeroVisibilityEvent`
+
+```python
+class HeroVisibilityEvent
+```
+
+A visibility-state transition for one canonical player hero identity.
+
+Source: [src/gem/results/models.py:50](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L50)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `tick` | `int` | `-` |
+| `player_id` | `int` | `-` |
+| `hero_name` | `str` | `-` |
+| `entity_index` | `int` | `-` |
+| `entity_serial` | `int` | `-` |
+| `radiant_state` | `VisibilityState` | `-` |
+| `dire_state` | `VisibilityState` | `-` |
+
 ### `VisionModifierEvent`
 
 ```python
@@ -47,7 +83,7 @@ class VisionModifierEvent
 
 A vision-granting modifier applied to a hero (Slardar ulti, BH Track, Dust, Gem, etc.).
 
-Source: [src/gem/results/models.py:33](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L33)
+Source: [src/gem/results/models.py:73](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L73)
 
 #### Dataclass fields
 
@@ -68,7 +104,7 @@ class SmokeEvent
 
 One Smoke of Deceit activation.
 
-Source: [src/gem/results/models.py:59](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L59)
+Source: [src/gem/results/models.py:99](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L99)
 
 #### Dataclass fields
 
@@ -89,7 +125,7 @@ class BuybackEvent
 
 One buyback, with its estimated gold cost.
 
-Source: [src/gem/results/models.py:82](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L82)
+Source: [src/gem/results/models.py:122](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L122)
 
 #### Dataclass fields
 
@@ -108,7 +144,7 @@ class ChatEntry
 
 A single chat message from the match.
 
-Source: [src/gem/results/models.py:110](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L110)
+Source: [src/gem/results/models.py:150](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L150)
 
 #### Dataclass fields
 
@@ -127,7 +163,7 @@ class NeutralItemFoundEvent
 
 A neutral item found event emitted by DOTA_UM_FoundNeutralItem.
 
-Source: [src/gem/results/models.py:127](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L127)
+Source: [src/gem/results/models.py:167](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L167)
 
 #### Dataclass fields
 
@@ -152,7 +188,7 @@ class ParsedPlayer
 
 Aggregated statistics for one player over a full match.
 
-Source: [src/gem/results/models.py:161](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L161)
+Source: [src/gem/results/models.py:201](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L201)
 
 #### Dataclass fields
 
@@ -282,7 +318,7 @@ class ParsedMatch
 
 Top-level parsed output for a single Dota 2 replay.
 
-Source: [src/gem/results/models.py:556](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L556)
+Source: [src/gem/results/models.py:596](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L596)
 
 #### Dataclass fields
 
@@ -332,6 +368,7 @@ Source: [src/gem/results/models.py:556](https://github.com/whanyu1212/gem-dota/b
 | `vision_modifiers` | `list[VisionModifierEvent]` | `field(...)` |
 | `banner_plants` | `list[BannerPlant]` | `field(...)` |
 | `game_times_min` | `list[int]` | `field(...)` |
+| `hero_visibility_events` | `list[HeroVisibilityEvent]` | `field(...)` |
 
 #### Properties
 
@@ -341,7 +378,7 @@ Signature: `def ParsedMatch.duration_seconds(self) -> float`
 
 Game duration in seconds, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:700](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L700)
+Source: [src/gem/results/models.py:741](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L741)
 
 ##### `duration_minutes`
 
@@ -349,4 +386,4 @@ Signature: `def ParsedMatch.duration_minutes(self) -> float`
 
 Game duration in minutes, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:706](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L706)
+Source: [src/gem/results/models.py:747](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L747)

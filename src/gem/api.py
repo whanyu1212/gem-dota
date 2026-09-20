@@ -82,6 +82,7 @@ from gem.analysis import (
     estimate_vision,
     format_npc_name,
     group_ability_hits,
+    hero_visibility_at,
     heroes_near,
     is_active_teamfight_participant,
     net_worth_at,
@@ -115,9 +116,11 @@ from gem.results.models import (
     BannerPlant,
     BuybackEvent,
     ChatEntry,
+    HeroVisibilityEvent,
     NeutralItemFoundEvent,
     ParsedMatch,
     ParsedPlayer,
+    VisibilityState,
     VisionModifierEvent,
 )
 
@@ -151,6 +154,7 @@ def parse(path: str | Path) -> ParsedMatch:
     from gem.extractors.objectives import ObjectivesExtractor
     from gem.extractors.players import PlayerExtractor
     from gem.extractors.smoke_vision import SmokeExtractor, VisionModifierExtractor
+    from gem.extractors.visibility import VisibilityExtractor
     from gem.extractors.wards import WardsExtractor
     from gem.parser import ReplayParser
     from gem.results.assembly import build_parsed_match
@@ -162,8 +166,10 @@ def parse(path: str | Path) -> ParsedMatch:
     courier_ext = CourierExtractor()
     draft_ext = DraftExtractor()
     interval_ext = IntervalExtractor()
+    visibility_ext = VisibilityExtractor(player_ext)
 
     player_ext.attach(p)
+    visibility_ext.attach(p)
     interval_ext.attach(p)
     obj_ext.attach(p)
     ward_ext.attach(p)
@@ -211,6 +217,7 @@ def parse(path: str | Path) -> ParsedMatch:
         vision_modifier_events=vision_modifier_events,
         neutral_item_finds=neutral_item_finds,
         interval_ext=interval_ext,
+        hero_visibility_events=visibility_ext.events,
     )
 
 
@@ -357,6 +364,9 @@ __all__ = [
     "estimate_vision",
     "VisionSource",
     "VisionModifierEvent",
+    "HeroVisibilityEvent",
+    "VisibilityState",
+    "hero_visibility_at",
     "net_worth_at",
     "ward_vision_impact",
     "is_active_teamfight_participant",
