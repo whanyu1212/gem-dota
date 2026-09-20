@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any
 
 from gem.combat.log import CombatLogEntry
@@ -27,6 +28,45 @@ from gem.extractors.objectives import (
 )
 from gem.extractors.teamfights import OpenDotaTeamfight, Teamfight
 from gem.extractors.wards import WardEvent
+
+
+class VisibilityState(str, Enum):
+    """A team's authoritative visibility state for one hero entity.
+
+    Attributes:
+        VISIBLE: The team visibility bit is present and set.
+        HIDDEN: The team visibility bit is present and clear.
+        UNKNOWN: The team entity, visibility word, or hero identity is absent.
+    """
+
+    __str__ = str.__str__
+
+    VISIBLE = "visible"
+    HIDDEN = "hidden"
+    UNKNOWN = "unknown"
+
+
+@dataclass(frozen=True, slots=True)
+class HeroVisibilityEvent:
+    """A visibility-state transition for one canonical player hero identity.
+
+    Attributes:
+        tick: Replay tick at the completed-packet boundary.
+        player_id: Logical player slot from 0 through 9.
+        hero_name: Canonical NPC hero name when available.
+        entity_index: Entity-table index for this hero identity.
+        entity_serial: Entity serial distinguishing reuse of the same index.
+        radiant_state: Visibility of the hero to Radiant.
+        dire_state: Visibility of the hero to Dire.
+    """
+
+    tick: int
+    player_id: int
+    hero_name: str
+    entity_index: int
+    entity_serial: int
+    radiant_state: VisibilityState
+    dire_state: VisibilityState
 
 
 @dataclass
@@ -687,9 +727,19 @@ class ParsedMatch:
     # inserting them there would silently misalign positional callers.)
     banner_plants: list[BannerPlant] = field(default_factory=list)
     game_times_min: list[int] = field(default_factory=list)
+    hero_visibility_events: list[HeroVisibilityEvent] = field(default_factory=list)
     # Internal provenance for match-level values copied from CMsgDOTAMatch.
     _match_details_fields: set[str] = field(
         default_factory=set,
+        init=False,
+        repr=False,
+        compare=False,
+        metadata={"serialize": False},
+    )
+    _hero_visibility_index: (
+        dict[int, tuple[tuple[int, ...], tuple[HeroVisibilityEvent, ...]]] | None
+    ) = field(
+        default=None,
         init=False,
         repr=False,
         compare=False,

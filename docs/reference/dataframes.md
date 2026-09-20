@@ -22,6 +22,7 @@ pip install pyarrow
 | `"objectives"` | Tower kills, barracks, Roshan kills |
 | `"teamfights"` | Detected fight windows with participant stats |
 | `"smoke_events"` | Smoke activations with grouped heroes and centroid |
+| `"hero_visibility_events"` | Change-only Radiant/Dire visibility state for canonical player heroes |
 | `"aegis_events"` | Aegis pickups, steals, and denies |
 | `"draft"` | Pick and ban events in order |
 | `"match"` | Single-row match metadata (id, duration, winner, …) |

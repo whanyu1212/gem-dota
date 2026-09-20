@@ -249,6 +249,14 @@ class TestReplayParserInit:
         p = ReplayParser(b"")
         assert p._game_ended is False
 
+    def test_private_packet_end_registration(self):
+        p = ReplayParser(b"")
+        callback = MagicMock()
+
+        p._on_packet_end(callback)
+
+        assert callback in p._packet_end_callbacks
+
 
 # ---------------------------------------------------------------------------
 # ReplayParser partial-parse / truncation reporting
@@ -1092,6 +1100,42 @@ class TestChatEventRune:
 
 
 class TestInnerPacketPriority:
+    def test_packet_end_runs_after_sorted_messages_before_game_end_flush(self):
+        p = ReplayParser(b"")
+        p.tick = 77
+        events = []
+        p._pending_game_end_tick = 77
+        p._on_packet_end(lambda tick: events.append(("packet_end", tick)))
+        p.on_game_end(lambda tick: events.append(("game_end", tick)))
+        blob = _make_inner_blob(
+            [
+                (_SVC_PACKET_ENTITIES, b""),
+                (_SVC_CREATE_STRING_TABLE, b""),
+            ]
+        )
+
+        with patch.object(
+            p, "_dispatch_inner", side_effect=lambda type_id, _: events.append(type_id)
+        ):
+            p._dispatch_inner_packet(blob)
+
+        assert events == [
+            _SVC_CREATE_STRING_TABLE,
+            _SVC_PACKET_ENTITIES,
+            ("packet_end", 77),
+            ("game_end", 77),
+        ]
+
+    def test_empty_packet_still_completes_packet_boundary(self):
+        p = ReplayParser(b"")
+        callback = MagicMock()
+        p.tick = 12
+        p._on_packet_end(callback)
+
+        p._dispatch_inner_packet(b"")
+
+        callback.assert_called_once_with(12)
+
     def test_string_table_create_processed_before_packet_entities(self):
         """svc_CreateStringTable (priority -10) must be processed before
         svc_PacketEntities (priority +5) regardless of order in the blob.

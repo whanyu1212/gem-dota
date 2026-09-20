@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import math
+from bisect import bisect_right
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal
 
 from gem.analysis.spatial import position_at_tick
+from gem.results.models import HeroVisibilityEvent, VisibilityState
 
 if TYPE_CHECKING:
     from gem.results.models import ParsedMatch
@@ -80,6 +82,56 @@ def is_daytime(game_start_tick: int | None, tick: int) -> bool:
 _is_daytime = is_daytime
 
 
+def hero_visibility_at(
+    match: ParsedMatch,
+    *,
+    player_id: int,
+    observing_team: int,
+    tick: int,
+) -> VisibilityState:
+    """Return authoritative hero-entity visibility at or before ``tick``.
+
+    The last event at the latest eligible tick wins. A query before the first
+    observation, or after an identity's terminal event, returns ``UNKNOWN``.
+
+    Args:
+        match: Parsed match containing hero visibility events.
+        player_id: Logical player slot from 0 through 9.
+        observing_team: Radiant (2) or Dire (3).
+        tick: Replay tick to query.
+
+    Returns:
+        The latest known :class:`VisibilityState`, or ``UNKNOWN`` when no
+        eligible observation exists or the identity has terminated.
+
+    Raises:
+        ValueError: If ``observing_team`` is not 2 or 3.
+    """
+    if observing_team not in (2, 3):
+        raise ValueError("observing_team must be 2 (Radiant) or 3 (Dire)")
+
+    index = match._hero_visibility_index
+    if index is None:
+        grouped: dict[int, list[tuple[int, int, HeroVisibilityEvent]]] = {}
+        for order, event in enumerate(match.hero_visibility_events):
+            grouped.setdefault(event.player_id, []).append((event.tick, order, event))
+        index = {}
+        for indexed_player_id, rows in grouped.items():
+            rows.sort(key=lambda row: (row[0], row[1]))
+            index[indexed_player_id] = (
+                tuple(row[0] for row in rows),
+                tuple(row[2] for row in rows),
+            )
+        match._hero_visibility_index = index
+
+    ticks, events = index.get(player_id, ((), ()))
+    position = bisect_right(ticks, tick) - 1
+    if position < 0:
+        return VisibilityState.UNKNOWN
+    event = events[position]
+    return event.radiant_state if observing_team == 2 else event.dire_state
+
+
 def estimate_vision(
     match: ParsedMatch,
     team: int,
@@ -94,6 +146,10 @@ def estimate_vision(
     point.  Hero vision radius is day/night adjusted (1800 day / 800 night).
     Observer wards have a constant 1600-unit radius.
 
+    This point-geometry helper is distinct from :func:`hero_visibility_at`,
+    which queries authoritative replay visibility bits for canonical hero
+    entities. It cannot answer arbitrary-point visibility questions.
+
     **Limitations** — this is an approximation.  It does not model:
 
     - High-ground vision penalties (enemy cannot see down from high ground).
@@ -101,9 +157,6 @@ def estimate_vision(
       Aghanim's Scepter upgrades, Shroud of Stillness scouting).
     - Summon/creep vision (only heroes and observer wards are checked).
     - Sentry ward true-sight (sentries do not grant standard vision).
-
-    For the primary agentic use case ("was this initiation telegraphed or
-    blind?") this gives ~85–90% accuracy across typical professional games.
 
     Args:
         match: A parsed replay.
@@ -115,7 +168,8 @@ def estimate_vision(
     Returns:
         List of :class:`VisionSource` objects for each allied unit that had
         vision of ``(x, y)`` at ``tick``, sorted by ascending distance.
-        An empty list means no vision (point was in fog for that team).
+        An empty list means no modelled source covered the point; it does not
+        establish that the point was authoritatively hidden in the replay.
 
     Example:
         >>> sources = estimate_vision(match, 3, fight.start_tick,

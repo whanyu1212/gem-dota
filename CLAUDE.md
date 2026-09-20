@@ -117,6 +117,7 @@ extractors/courier.py       ← courier state
 extractors/draft.py         ← pick/ban resolution (three-tier hero-ID resolution)
 extractors/teamfights.py    ← teamfight window detection + per-fight stat attribution
 extractors/smoke_vision.py  ← Smoke of Deceit + vision-granting modifier events
+extractors/visibility.py    ← authoritative per-team visibility transitions for player heroes
 extractors/_snapshots.py    ← shared snapshot dataclasses/sampling helpers
 ```
 

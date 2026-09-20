@@ -171,6 +171,10 @@ class CombatLogEntry:
         will_reincarnate: True if this DEATH is a reincarnation/aegis *trigger*
             (the hero will return), not a final death (S2 only; always False for
             S1). Consumers counting deaths should skip entries where this is True.
+        visible_radiant: Whether the event was visible to Radiant in S2, or
+            ``None`` when the optional field is absent (always ``None`` for S1).
+        visible_dire: Whether the event was visible to Dire in S2, or ``None``
+            when the optional field is absent (always ``None`` for S1).
     """
 
     tick: int
@@ -197,6 +201,27 @@ class CombatLogEntry:
     timestamp_s: float | None = None
     game_time_s: int | None = None
     will_reincarnate: bool = False
+    visible_radiant: bool | None = None
+    visible_dire: bool | None = None
+
+    def visible_to(self, team: int) -> bool | None:
+        """Return this event's S2 visibility flag for a playing team.
+
+        Args:
+            team: Radiant (2) or Dire (3).
+
+        Returns:
+            ``True`` or ``False`` when the optional S2 field was present, or
+            ``None`` for an absent S2 field and all S1 events.
+
+        Raises:
+            ValueError: If ``team`` is not 2 or 3.
+        """
+        if team == 2:
+            return self.visible_radiant
+        if team == 3:
+            return self.visible_dire
+        raise ValueError("team must be 2 (Radiant) or 3 (Dire)")
 
 
 CombatLogHandler = Callable[[CombatLogEntry], None]
@@ -439,6 +464,10 @@ class CombatLogProcessor:
         # death. Reference: refs/clarity S2CombatLogEntry.isWillReincarnate (proto
         # field 78). S1 has no equivalent field.
         will_reincarnate = bool(msg.will_reincarnate) if msg.HasField("will_reincarnate") else False
+        visible_radiant = (
+            bool(msg.is_visible_radiant) if msg.HasField("is_visible_radiant") else None
+        )
+        visible_dire = bool(msg.is_visible_dire) if msg.HasField("is_visible_dire") else None
         damage_type = ""
         if log_type == "DAMAGE" and hasattr(msg, "damage_type"):
             damage_type = _DAMAGE_TYPE_NAMES.get(msg.damage_type, "")
@@ -467,5 +496,7 @@ class CombatLogProcessor:
             timestamp_s=timestamp_s,
             game_time_s=game_time_s,
             will_reincarnate=will_reincarnate,
+            visible_radiant=visible_radiant,
+            visible_dire=visible_dire,
         )
         self._emit(entry)

@@ -33,7 +33,30 @@ match.game_end_tick        # int: last tick observed by the parser
 
 match.radiant_gold_adv     # list[int]: per-minute Radiant gold advantage
 match.radiant_xp_adv       # list[int]: per-minute Radiant XP advantage
+match.hero_visibility_events  # list[HeroVisibilityEvent]: change-only hero visibility
 ```
+
+### Hero visibility
+
+Modern Source 2 replays carry a per-team bitset describing which entity slots
+are visible. gem records state changes for the ten canonical player heroes:
+
+```python
+state = gem.hero_visibility_at(
+    match,
+    player_id=7,
+    observing_team=2,  # Radiant
+    tick=120_000,
+)
+
+if state is gem.VisibilityState.VISIBLE:
+    print("Radiant could see the hero")
+```
+
+`UNKNOWN` is distinct from `HIDDEN`: it covers missing team data, time before
+the first sample, and the period after an entity identity is deleted or
+replaced. The timeline answers entity visibility only; it does not reconstruct
+fog geometry or attribute the revealing source.
 
 ### Neutral item finds
 

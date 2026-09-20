@@ -387,6 +387,7 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         if match.neutral_item_finds
         else pd.DataFrame()
     )
+    hero_visibility_df = pd.DataFrame(_plain_rows(match.hero_visibility_events))
 
     return {
         "players": players_df,
@@ -405,6 +406,7 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         "smoke_events": smoke_df,
         "courier_snapshots": courier_df,
         "neutral_item_finds": neutral_item_finds_df,
+        "hero_visibility_events": hero_visibility_df,
         "player_kills_log": pd.DataFrame(player_kills_rows),
         "player_purchase_log": pd.DataFrame(player_purchase_rows),
         "player_runes_log": pd.DataFrame(player_runes_rows),

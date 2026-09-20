@@ -11,7 +11,11 @@ This question matters for practical replay analysis:
 - was a gank visible before it happened?
 - was a ward or hero actually giving information at that location?
 
-The replay does not give gem a perfect, terrain-accurate fog-of-war oracle. So `estimate_vision` is intentionally implemented as a geometry-based approximation with explicit inputs and explicit limits.
+The replay exposes whether particular entities were visible to each team, but
+it does not provide a terrain-accurate raster for arbitrary map coordinates.
+`estimate_vision` is therefore a separate geometry-based approximation with
+explicit inputs and explicit limits. For a canonical player hero, prefer the
+authoritative `hero_visibility_at(...)` query.
 
 > [!IMPORTANT]
 > `estimate_vision` is useful, but it is not true fog-of-war reconstruction.
@@ -40,7 +44,22 @@ Each source is one thing that plausibly grants vision of the queried point:
 - an allied observer ward
 - a vision-granting modifier reveal
 
-If the list is empty, the point is treated as in fog for that team under the current approximation.
+If the list is empty, no vision source was found by the current approximation.
+That is not proof that the point was in fog.
+
+## Authoritative hero visibility versus estimated point visibility
+
+These APIs answer different questions:
+
+| API | Question | Evidence |
+|---|---|---|
+| `hero_visibility_at(...)` | Could one team see this canonical player hero? | `CDOTA_DataRadiant` / `CDOTA_DataDire` visibility bitsets |
+| `estimate_vision(...)` | Which modelled source might cover this map coordinate? | Sampled positions, ward geometry, and reveal modifiers |
+
+`hero_visibility_at(...)` returns `VISIBLE`, `HIDDEN`, or `UNKNOWN`. It is the
+right foundation for later smoke-break and teamfight-information analysis, but
+it cannot identify the revealing source or answer visibility for an empty map
+coordinate.
 
 ## Why this is experimental
 

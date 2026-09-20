@@ -3,6 +3,8 @@
 Reference: clarity/CombatLog.java, odota/Parse.java
 """
 
+import pytest
+
 from gem.combat.log import (
     _LOG_TYPE_NAMES,
     COMBAT_LOG_TYPES,
@@ -741,3 +743,65 @@ class TestS1S2Parity:
         assert s1.attacker_is_hero == s2.attacker_is_hero
         assert s1.target_is_hero == s2.target_is_hero
         assert s1.tick == s2.tick
+
+
+class TestCombatLogVisibility:
+    def test_s2_preserves_explicit_false_and_absent_presence(self):
+        from gem.proto.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
+
+        processor = CombatLogProcessor()
+        received: list[CombatLogEntry] = []
+        processor.on_combat_log_entry(received.append)
+        message = CMsgDOTACombatLogEntry(type=0, is_visible_radiant=False)
+
+        processor.process_s2_entry(message, FakeNameTable({}))
+
+        entry = received[0]
+        assert entry.visible_radiant is False
+        assert entry.visible_dire is None
+        assert entry.visible_to(2) is False
+        assert entry.visible_to(3) is None
+
+    def test_s2_present_true_is_true(self):
+        from gem.proto.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
+
+        processor = CombatLogProcessor()
+        received: list[CombatLogEntry] = []
+        processor.on_combat_log_entry(received.append)
+
+        processor.process_s2_entry(
+            CMsgDOTACombatLogEntry(type=0, is_visible_dire=True), FakeNameTable({})
+        )
+
+        assert received[0].visible_dire is True
+
+    def test_s1_visibility_is_none(self):
+        processor = CombatLogProcessor()
+        received: list[CombatLogEntry] = []
+        processor.on_combat_log_entry(received.append)
+        processor.process_s1_event(
+            FakeGameEvent(
+                int_fields={
+                    "type": 0,
+                    "attackername": 0,
+                    "sourcename": 0,
+                    "targetname": 0,
+                    "inflictorname": 0,
+                    "value": 1,
+                },
+                bool_fields={
+                    "attackerillusion": False,
+                    "targetillusion": False,
+                },
+            ),
+            FakeNameTable({}),
+        )
+
+        assert received[0].visible_radiant is None
+        assert received[0].visible_dire is None
+
+    def test_visible_to_rejects_non_playing_team(self):
+        entry = CombatLogEntry(tick=0, log_type=CombatLogType.DAMAGE)
+
+        with pytest.raises(ValueError, match="team"):
+            entry.visible_to(1)

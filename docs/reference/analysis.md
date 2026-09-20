@@ -189,6 +189,32 @@ for cast in casts:
 
 ---
 
+## `hero_visibility_at`
+
+```python
+state = gem.hero_visibility_at(
+    match,
+    player_id=7,
+    observing_team=2,
+    tick=120_000,
+)
+
+if state is gem.VisibilityState.VISIBLE:
+    print("Radiant could see player 7's canonical hero")
+```
+
+This query reads the replay's team visibility bitsets. It returns one of
+`VISIBLE`, `HIDDEN`, or `UNKNOWN`; times before the first observation and after
+an entity is deleted or replaced are `UNKNOWN`. The result applies to that hero
+entity only. It does not reconstruct the visible map area or identify which
+hero, ward, or spell supplied the vision.
+
+Source 2 combat-log entries also expose event-local `visible_radiant` and
+`visible_dire` values. Those values are `None` when the optional protobuf field
+was absent, including for legacy Source 1 events.
+
+---
+
 ## `estimate_vision` *(experimental)*
 
 Detailed explanation:
@@ -208,8 +234,9 @@ gem.estimate_vision(
 Estimate which allied units were providing vision of `(x, y)` at `tick` for the given team
 (2=Radiant, 3=Dire).
 
-Returns a list of `VisionSource` objects sorted by ascending distance. An empty list means
-the point was in fog for that team.
+Returns a list of `VisionSource` objects sorted by ascending distance. An empty
+list means that no source was found by this model; it is not authoritative proof
+that the point was hidden.
 
 **Checks three sources:**
 
@@ -250,7 +277,7 @@ if sources:
     elif s.kind == "modifier":
         print(f"Dire had reveal via {s.name} on the target hero")
 else:
-    print("Blind initiation — target was in fog")
+    print("No modelled vision source found")
 ```
 
 ---
@@ -585,7 +612,17 @@ def is_daytime(game_start_tick: int | None, tick: int) -> bool
 
 Return True if it is daytime at the given absolute tick.
 
-Source: [src/gem/analysis/vision.py:56](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L56)
+Source: [src/gem/analysis/vision.py:58](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L58)
+
+### `hero_visibility_at`
+
+```python
+def hero_visibility_at(match: ParsedMatch, *, player_id: int, observing_team: int, tick: int) -> VisibilityState
+```
+
+Return authoritative hero-entity visibility at or before ``tick``.
+
+Source: [src/gem/analysis/vision.py:85](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L85)
 
 ### `estimate_vision`
 
@@ -595,7 +632,7 @@ def estimate_vision(match: ParsedMatch, team: int, tick: int, x: float, y: float
 
 Estimate which allied units were providing vision of ``(x, y)`` at ``tick``.
 
-Source: [src/gem/analysis/vision.py:83](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L83)
+Source: [src/gem/analysis/vision.py:135](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L135)
 
 ### `ward_vision_impact`
 
@@ -605,7 +642,7 @@ def ward_vision_impact(ward: object, match: ParsedMatch) -> int
 
 Count distinct enemy heroes spotted by an observer ward during its lifetime.
 
-Source: [src/gem/analysis/vision.py:229](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L229)
+Source: [src/gem/analysis/vision.py:283](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L283)
 
 ### Top-level classes
 
@@ -617,7 +654,7 @@ class VisionSource
 
 One unit that was providing vision of a map point at a given tick.
 
-Source: [src/gem/analysis/vision.py:31](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L31)
+Source: [src/gem/analysis/vision.py:33](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L33)
 
 #### Dataclass fields
 
