@@ -325,14 +325,14 @@ class VisionModifierExtractor:
 
         narrowed = candidates
         if remove.attacker_name:
-            caster_matches = [
+            caster_compatible = [
                 event
                 for event in candidates
-                if event.caster_name and event.caster_name == remove.attacker_name
+                if not event.caster_name or event.caster_name == remove.attacker_name
             ]
-            if not caster_matches:
+            if not caster_compatible:
                 return None, VisionModifierPairingStatus.UNMATCHED
-            narrowed = caster_matches
+            narrowed = caster_compatible
 
         identity_matches = [
             event for event in narrowed if self._identity_flags_match(event, remove)
@@ -340,7 +340,11 @@ class VisionModifierExtractor:
         if not identity_matches:
             return None, VisionModifierPairingStatus.UNMATCHED
         narrowed = identity_matches
-        if remove.attacker_name and len(narrowed) == 1:
+        if (
+            remove.attacker_name
+            and len(narrowed) == 1
+            and narrowed[0].caster_name == remove.attacker_name
+        ):
             return narrowed[0], VisionModifierPairingStatus.EXACT
 
         timed = self._duration_match(remove, narrowed)

@@ -319,6 +319,58 @@ class TestVisionModifierExtractor:
         assert ext.pairing_issues[0].reason == "unmatched"
         assert ext.pairing_issues[0].candidate_add_ticks == []
 
+    def test_unnamed_caster_remains_compatible_with_named_removal(self):
+        ext = VisionModifierExtractor(_fake_player_ext())
+        parser = FakeParser()
+        ext.attach(parser)
+        common = {
+            "inflictor_name": "modifier_slardar_amplify_damage",
+            "target_name": "npc_dota_hero_riki",
+        }
+        parser.fire(_entry(tick=100, attacker_name="", **common))
+        parser.fire(_entry(tick=110, attacker_name="npc_dota_hero_slardar", **common))
+        parser.fire(
+            _entry(
+                tick=200,
+                log_type="MODIFIER_REMOVE",
+                attacker_name="npc_dota_hero_slardar",
+                **common,
+            )
+        )
+
+        events = ext.finalize()
+
+        assert all(event.end_tick is None for event in events)
+        assert all(
+            event.pairing_status is VisionModifierPairingStatus.AMBIGUOUS for event in events
+        )
+        assert ext.pairing_issues[0].candidate_add_ticks == [100, 110]
+
+    def test_sole_unnamed_caster_is_unique_fallback_for_named_removal(self):
+        ext = VisionModifierExtractor(_fake_player_ext())
+        parser = FakeParser()
+        ext.attach(parser)
+        common = {
+            "inflictor_name": "modifier_bounty_hunter_track",
+            "target_name": "npc_dota_hero_riki",
+        }
+        parser.fire(_entry(tick=100, attacker_name="", **common))
+        parser.fire(
+            _entry(
+                tick=200,
+                log_type="MODIFIER_REMOVE",
+                attacker_name="npc_dota_hero_bounty_hunter",
+                **common,
+            )
+        )
+
+        event = ext.finalize()[0]
+
+        assert event.end_tick == 200
+        assert event.pairing_status is VisionModifierPairingStatus.UNIQUE_FALLBACK
+        assert event.lifecycle_status is VisionModifierLifecycleStatus.INCOMPLETE
+        assert ext.pairing_issues == []
+
     def test_contradictory_illusion_flag_does_not_close_real_target(self):
         ext = VisionModifierExtractor(_fake_player_ext())
         parser = FakeParser()
