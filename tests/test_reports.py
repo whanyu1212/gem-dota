@@ -299,6 +299,37 @@ def test_kill_feed_uses_authoritative_visible_hidden_unknown_labels() -> None:
     assert "blind" not in html.lower()
 
 
+def test_kill_feed_prefers_event_visibility_over_same_tick_hero_state() -> None:
+    match = _minimal_match()
+    match.combat_log = [
+        CombatLogEntry(
+            tick=10,
+            log_type=CombatLogType.DEATH,
+            attacker_name="npc_dota_hero_axe",
+            target_name="npc_dota_hero_bane",
+            attacker_is_hero=True,
+            target_is_hero=True,
+            visible_radiant=False,
+        )
+    ]
+    match.hero_visibility_events = [
+        HeroVisibilityEvent(
+            tick=10,
+            player_id=5,
+            hero_name="npc_dota_hero_bane",
+            entity_index=7,
+            entity_serial=1,
+            radiant_state=VisibilityState.VISIBLE,
+            dire_state=VisibilityState.UNKNOWN,
+        )
+    ]
+
+    html = build_kill_feed(match)
+
+    assert "◌ hidden" in html
+    assert "👁 visible" not in html
+
+
 def test_kill_feed_does_not_apply_canonical_visibility_to_illusion_death() -> None:
     match = _minimal_match()
     match.combat_log = [

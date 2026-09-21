@@ -255,18 +255,25 @@ def build_kill_feed(match: ParsedMatch) -> str:
             else:
                 via = '<span style="color:#6e7681">auto-attack</span>'
 
-            # Canonical hero visibility is authoritative replay evidence. Point
-            # geometry must not turn an empty modeled source list into "fog".
+            # Prefer the combat event's visibility because it preserves
+            # intra-tick ordering. Canonical hero visibility is the fallback
+            # for S1 and S2 events where the optional flag is absent.
             vision_badge = ""
             if attacker_team in (2, 3):
                 victim_player = npc_to_player.get(entry.target_name)
                 if victim_player and not entry.target_is_illusion:
-                    visibility = hero_visibility_at(
-                        match,
-                        player_id=victim_player.player_id,
-                        observing_team=attacker_team,
-                        tick=entry.tick,
-                    )
+                    event_visibility = entry.visible_to(attacker_team)
+                    if event_visibility is None:
+                        visibility = hero_visibility_at(
+                            match,
+                            player_id=victim_player.player_id,
+                            observing_team=attacker_team,
+                            tick=entry.tick,
+                        )
+                    else:
+                        visibility = (
+                            VisibilityState.VISIBLE if event_visibility else VisibilityState.HIDDEN
+                        )
                     color = {
                         VisibilityState.VISIBLE: "#3fb950",
                         VisibilityState.HIDDEN: "#8b949e",
