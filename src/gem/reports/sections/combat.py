@@ -46,6 +46,9 @@ from gem.results.models import (
     ParsedMatch,
     ParsedPlayer,
     VisionModifierEvent,
+    VisionModifierLifecycleStatus,
+    VisionModifierPairingStatus,
+    VisionModifierSemantic,
 )
 
 
@@ -585,11 +588,21 @@ def _fight_reveals_html(
     active: list[VisionModifierEvent] = []
     seen: set[tuple[str, str]] = set()
     for ev in match.vision_modifiers:
+        if ev.semantic != VisionModifierSemantic.DIRECT_TARGET_REVEAL:
+            continue
+        if not ev.target_is_hero or ev.target_is_illusion:
+            continue
+        if ev.lifecycle_status == VisionModifierLifecycleStatus.INCOMPLETE:
+            continue
+        if ev.pairing_status == VisionModifierPairingStatus.AMBIGUOUS:
+            continue
         if ev.tick > end_tick:
             continue
-        if ev.end_tick is not None and ev.end_tick < start_tick:
+        # Duration-only expiry has no exact replay tick and raw ticks advance
+        # during pauses, so fight windows use observed removals only.
+        if ev.end_tick is None:
             continue
-        if not ev.target_name.startswith("npc_dota_hero_"):
+        if ev.end_tick < start_tick:
             continue
         key = (ev.modifier_name, ev.target_name)
         if key in seen:

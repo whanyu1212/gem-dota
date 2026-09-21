@@ -339,6 +339,15 @@ class TestReplayParserGameClock:
         assert p._combat_log_game_time_s(start) == 0
         assert p._combat_log_game_time_s(death) == 30
 
+    def test_combat_log_game_time_ignores_absent_timestamp(self):
+        from gem.proto.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
+
+        p = ReplayParser(b"")
+        entry = CMsgDOTACombatLogEntry(type=9, value=5)
+
+        assert p._combat_log_game_time_s(entry) is None
+        assert p._combat_log_game_start_time_s is None
+
     def test_fallback_clock_uses_decoded_net_tick(self):
         p = ReplayParser(b"")
         p.tick = 9999

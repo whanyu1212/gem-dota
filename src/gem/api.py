@@ -100,6 +100,7 @@ from gem.analysis import (
     ward_vision_impact,
 )
 from gem.catalog import hero_npc_name
+from gem.combat.log import CombatLogSource
 from gem.extractors.draft import resolve_pick_team
 from gem.extractors.teamfights import (
     OpenDotaTeamfight,
@@ -131,7 +132,13 @@ from gem.results.models import (
     SmokeEvent,
     SmokeParticipant,
     VisibilityState,
+    VisionModifierCloseEvidence,
     VisionModifierEvent,
+    VisionModifierLifecycleStatus,
+    VisionModifierPairingIssue,
+    VisionModifierPairingStatus,
+    VisionModifierSemantic,
+    VisionModifierTeamSource,
 )
 
 try:
@@ -225,6 +232,7 @@ def parse(path: str | Path) -> ParsedMatch:
         chat_entries=chat_entries,
         smoke_events=smoke_events,
         vision_modifier_events=vision_modifier_events,
+        vision_modifier_pairing_issues=vision_mod_ext.pairing_issues,
         neutral_item_finds=neutral_item_finds,
         interval_ext=interval_ext,
         hero_visibility_events=visibility_ext.events,
@@ -376,6 +384,13 @@ __all__ = [
     "estimate_vision",
     "VisionSource",
     "VisionModifierEvent",
+    "VisionModifierPairingIssue",
+    "VisionModifierSemantic",
+    "VisionModifierLifecycleStatus",
+    "VisionModifierCloseEvidence",
+    "VisionModifierPairingStatus",
+    "VisionModifierTeamSource",
+    "CombatLogSource",
     "HeroVisibilityEvent",
     "VisibilityState",
     "hero_visibility_at",

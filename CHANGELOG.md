@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Evidence-preserving vision modifier lifecycles.** Classify direct reveals,
+  reveal auras, and Gem carriers; retain protocol/source/duration/purge evidence,
+  non-hero applications, conservative lifecycle states, and public ambiguous or
+  orphan removal issues. JSON and stable flat DataFrame exports include both
+  applications and pairing issues.
 - **Evidence-first Smoke of Deceit analysis.** Preserve exact activation and
   per-hero modifier ticks, duration evidence, sampled application/removal
   positions, and authoritative enemy visibility; expose

@@ -56,7 +56,7 @@ from google.protobuf import descriptor_pb2  # noqa: F401
 from gem.binary.reader import BitReader
 from gem.binary.stream import DemoStream
 from gem.catalog import item_key_by_id
-from gem.combat.log import CombatLogHandler, CombatLogProcessor
+from gem.combat.log import CombatLogHandler, CombatLogProcessor, CombatLogSource
 from gem.proto import (
     dota_commonmessages_pb2,  # noqa: F401
     dota_shared_enums_pb2,  # noqa: F401
@@ -793,7 +793,11 @@ class ReplayParser:
                 for entry_msg in bulk_msg.combat_entries:
                     game_time_s = self._combat_log_game_time_s(entry_msg)
                     self.combat_log.process_s2_entry(
-                        entry_msg, name_table, tick=self.tick, game_time_s=game_time_s
+                        entry_msg,
+                        name_table,
+                        tick=self.tick,
+                        game_time_s=game_time_s,
+                        source=CombatLogSource.S2_BULK,
                     )
                     if entry_msg.type == 9 and entry_msg.value == 6:
                         self._mark_game_end(self.tick)
@@ -814,9 +818,9 @@ class ReplayParser:
         axis clock, so entity-driven consumers (e.g. the interval extractor) can
         sample minute boundaries on the same axis OpenDota uses.
         """
-        timestamp = getattr(msg, "timestamp", None)
-        if timestamp is None:
+        if not msg.HasField("timestamp"):
             return None
+        timestamp = msg.timestamp
 
         raw_time_s = _round_positive_seconds(timestamp)
         if msg.type == 9 and msg.value == 5 and self._combat_log_game_start_time_s is None:

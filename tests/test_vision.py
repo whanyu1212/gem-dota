@@ -6,7 +6,12 @@ from unittest.mock import MagicMock
 
 from gem.analysis import estimate_vision, is_daytime
 from gem.extractors.wards import WardEvent
-from gem.results.models import VisionModifierEvent
+from gem.results.models import (
+    VisionModifierEvent,
+    VisionModifierLifecycleStatus,
+    VisionModifierPairingStatus,
+    VisionModifierSemantic,
+)
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -61,7 +66,13 @@ def _mod(
     caster_name: str,
     caster_team: int,
     tick: int = 0,
-    end_tick: int | None = None,
+    end_tick: int | None = 30000,
+    add_modifier_duration_s: float | None = 600.0,
+    semantic: VisionModifierSemantic = VisionModifierSemantic.DIRECT_TARGET_REVEAL,
+    target_is_hero: bool = True,
+    target_is_illusion: bool = False,
+    lifecycle_status: VisionModifierLifecycleStatus = VisionModifierLifecycleStatus.OPEN,
+    pairing_status: VisionModifierPairingStatus = VisionModifierPairingStatus.EXACT,
 ) -> VisionModifierEvent:
     return VisionModifierEvent(
         tick=tick,
@@ -70,6 +81,12 @@ def _mod(
         target_name=target_name,
         caster_name=caster_name,
         caster_team=caster_team,
+        add_modifier_duration_s=add_modifier_duration_s,
+        semantic=semantic,
+        target_is_hero=target_is_hero,
+        target_is_illusion=target_is_illusion,
+        lifecycle_status=lifecycle_status,
+        pairing_status=pairing_status,
     )
 
 
@@ -402,16 +419,56 @@ class TestEstimateVisionModifier:
         result = estimate_vision(match, 2, _DAY_TICK, 0.0, 0.0)
         assert result == []
 
-    def test_modifier_distance_computed_from_revealed_hero_position(self) -> None:
-        # Revealed hero is at (300, 0). Query is at (0, 0). Distance should be ~300.
+    def test_gem_carrier_is_not_treated_as_direct_reveal(self) -> None:
         revealed = _player(3, [(_DAY_TICK, 300.0, 0.0)])
         mod = _mod(
             modifier_name="modifier_item_gem_of_true_sight",
             target_name=revealed.hero_name,
             caster_name="npc_dota_hero_crystal_maiden",
             caster_team=2,
+            semantic=VisionModifierSemantic.AURA_CARRIER,
         )
         match = _match([revealed], [], vision_modifiers=[mod])
         result = estimate_vision(match, 2, _DAY_TICK, 0.0, 0.0)
-        assert len(result) == 1
-        assert abs(result[0].distance - 300.0) < 1.0
+        assert result == []
+
+    def test_unbounded_open_modifier_is_not_active_forever(self) -> None:
+        revealed = _player(3, [(_DAY_TICK, 0.0, 0.0)])
+        mod = _mod(
+            modifier_name="modifier_bounty_hunter_track",
+            target_name=revealed.hero_name,
+            caster_name="npc_dota_hero_bounty_hunter",
+            caster_team=2,
+            end_tick=None,
+            add_modifier_duration_s=None,
+        )
+
+        assert (
+            estimate_vision(
+                _match([revealed], [], vision_modifiers=[mod]),
+                2,
+                _DAY_TICK,
+                0.0,
+                0.0,
+            )
+            == []
+        )
+
+    def test_incomplete_nonhero_or_illusion_direct_reveal_is_ignored(self) -> None:
+        revealed = _player(3, [(_DAY_TICK, 0.0, 0.0)])
+        common = {
+            "modifier_name": "modifier_slardar_amplify_damage",
+            "target_name": revealed.hero_name,
+            "caster_name": "npc_dota_hero_slardar",
+            "caster_team": 2,
+        }
+        incomplete = _mod(
+            **common,
+            lifecycle_status=VisionModifierLifecycleStatus.INCOMPLETE,
+            pairing_status=VisionModifierPairingStatus.AMBIGUOUS,
+        )
+        nonhero = _mod(**common, target_is_hero=False)
+        illusion = _mod(**common, target_is_illusion=True)
+
+        match = _match([revealed], [], vision_modifiers=[incomplete, nonhero, illusion])
+        assert estimate_vision(match, 2, _DAY_TICK, 0.0, 0.0) == []
