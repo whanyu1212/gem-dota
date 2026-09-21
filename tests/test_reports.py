@@ -7,7 +7,15 @@ from gem.reports import (
     is_displayable_player_name,
     write_html_report,
 )
-from gem.results.models import ParsedMatch, ParsedPlayer
+from gem.reports.sections.combat import _fight_reveals_html
+from gem.results.models import (
+    ParsedMatch,
+    ParsedPlayer,
+    VisionModifierEvent,
+    VisionModifierLifecycleStatus,
+    VisionModifierPairingStatus,
+    VisionModifierSemantic,
+)
 
 
 def _minimal_match() -> ParsedMatch:
@@ -161,3 +169,71 @@ def test_has_hero_icon_tracks_loaded_cache() -> None:
     assert has_hero_icon("npc_dota_hero_axe")
     assert has_hero_icon("axe")
     HERO_ICON_B64.clear()
+
+
+def test_fight_reveal_badges_use_only_bounded_direct_hero_reveals() -> None:
+    direct = VisionModifierEvent(
+        100,
+        250,
+        "modifier_slardar_amplify_damage",
+        "npc_dota_hero_bane",
+        "npc_dota_hero_slardar",
+        2,
+        add_modifier_duration_s=10.0,
+    )
+    gem_carrier = VisionModifierEvent(
+        100,
+        None,
+        "modifier_item_gem_of_true_sight",
+        "npc_dota_hero_axe",
+        "npc_dota_hero_axe",
+        2,
+        semantic=VisionModifierSemantic.AURA_CARRIER,
+        add_modifier_duration_s=10.0,
+    )
+    ambiguous = VisionModifierEvent(
+        100,
+        None,
+        "modifier_bounty_hunter_track",
+        "npc_dota_hero_bane",
+        "npc_dota_hero_bounty_hunter",
+        2,
+        lifecycle_status=VisionModifierLifecycleStatus.INCOMPLETE,
+        pairing_status=VisionModifierPairingStatus.AMBIGUOUS,
+        add_modifier_duration_s=10.0,
+    )
+    illusion = VisionModifierEvent(
+        100,
+        250,
+        "modifier_item_dustofappearance",
+        "npc_dota_hero_bane",
+        "npc_dota_hero_slardar",
+        2,
+        target_is_illusion=True,
+    )
+    match = _minimal_match()
+    match.vision_modifiers = [direct, gem_carrier, ambiguous, illusion]
+
+    html = _fight_reveals_html(150, 200, match)
+
+    assert "Corrosive Haze" in html
+    assert "Gem of True Sight" not in html
+    assert "Track" not in html
+    assert "Dust of Appearance" not in html
+
+
+def test_fight_reveal_badges_skip_duration_only_boundaries() -> None:
+    inferred = VisionModifierEvent(
+        100,
+        None,
+        "modifier_slardar_amplify_damage",
+        "npc_dota_hero_bane",
+        "npc_dota_hero_slardar",
+        2,
+        lifecycle_status=VisionModifierLifecycleStatus.EXPIRED,
+        add_modifier_duration_s=10.0,
+    )
+    match = _minimal_match()
+    match.vision_modifiers = [inferred]
+
+    assert _fight_reveals_html(150, 200, match) == ""

@@ -86,6 +86,17 @@ class CombatLogType(str, Enum):
     UNKNOWN = ("UNKNOWN", _NO_PROTO_ID)
 
 
+class CombatLogSource(str, Enum):
+    """Wire path from which a combat-log entry was normalized."""
+
+    __str__ = str.__str__
+
+    UNKNOWN = "unknown"
+    S1_GAME_EVENT = "s1_game_event"
+    S2_DIRECT = "s2_direct"
+    S2_BULK = "s2_bulk"
+
+
 # Backward-compatible frozenset of label strings, derived from the enum.
 COMBAT_LOG_TYPES: frozenset[str] = frozenset(t.value for t in CombatLogType)
 
@@ -184,6 +195,18 @@ class CombatLogEntry:
             optional field is absent (always ``None`` for S1).
         target_team: Raw target team number in S2, or ``None`` when the optional
             field is absent (always ``None`` for S1).
+        source: Wire path that supplied this entry.
+        aura_modifier: S2 aura-modifier flag, preserving absent versus false.
+        modifier_purged: S2 purge flag, preserving absent versus false.
+        modifier_purged_duration_s: S2 purged-duration evidence in seconds.
+        attacker_is_hero_present: Whether the wire event explicitly supplied
+            ``attacker_is_hero``.
+        target_is_hero_present: Whether the wire event explicitly supplied
+            ``target_is_hero``.
+        attacker_is_illusion_present: Whether the wire event explicitly supplied
+            ``attacker_is_illusion``.
+        target_is_illusion_present: Whether the wire event explicitly supplied
+            ``target_is_illusion``.
     """
 
     tick: int
@@ -216,6 +239,14 @@ class CombatLogEntry:
     modifier_elapsed_duration_s: float | None = None
     attacker_team: int | None = None
     target_team: int | None = None
+    source: CombatLogSource = CombatLogSource.UNKNOWN
+    aura_modifier: bool | None = None
+    modifier_purged: bool | None = None
+    modifier_purged_duration_s: float | None = None
+    attacker_is_hero_present: bool = False
+    target_is_hero_present: bool = False
+    attacker_is_illusion_present: bool = False
+    target_is_illusion_present: bool = False
 
     def visible_to(self, team: int) -> bool | None:
         """Return this event's S2 visibility flag for a playing team.
@@ -328,6 +359,7 @@ class CombatLogProcessor:
             log_type=CombatLogType.PICKUP_RUNE,
             value=player_slot,
             gold_reason=rune_type,
+            source=CombatLogSource.UNKNOWN,
         )
         self._emit(entry)
 
@@ -361,8 +393,8 @@ class CombatLogProcessor:
         inflictor_idx, _ = game_event.get_int32(_S1_FIELD_INFLICTOR)
 
         value, _ = game_event.get_int32(_S1_FIELD_VALUE)
-        attacker_illusion, _ = game_event.get_bool(_S1_FIELD_ATTACKER_ILLUSION)
-        target_illusion, _ = game_event.get_bool(_S1_FIELD_TARGET_ILLUSION)
+        attacker_illusion, attacker_illusion_err = game_event.get_bool(_S1_FIELD_ATTACKER_ILLUSION)
+        target_illusion, target_illusion_err = game_event.get_bool(_S1_FIELD_TARGET_ILLUSION)
         # Legacy S1 descriptors may omit attackerhero/targethero. Clarity defaults
         # these to True when the index is absent (S1CombatLogEntry: the nullable
         # attackerHeroIdx/targetHeroIdx fall back to `: true`), so a missing field
@@ -403,6 +435,11 @@ class CombatLogProcessor:
             ability_level=ability_level,
             gold_reason=gold_reason,
             xp_reason=xp_reason,
+            source=CombatLogSource.S1_GAME_EVENT,
+            attacker_is_hero_present=attacker_hero_err is None,
+            target_is_hero_present=target_hero_err is None,
+            attacker_is_illusion_present=attacker_illusion_err is None,
+            target_is_illusion_present=target_illusion_err is None,
         )
         self._emit(entry)
 
@@ -416,7 +453,12 @@ class CombatLogProcessor:
             tick: Current game tick.
         """
         for entry_msg in msg.combat_entries:
-            self.process_s2_entry(entry_msg, name_table, tick=tick)
+            self.process_s2_entry(
+                entry_msg,
+                name_table,
+                tick=tick,
+                source=CombatLogSource.S2_BULK,
+            )
 
     def process_s2_entry(
         self,
@@ -424,6 +466,7 @@ class CombatLogProcessor:
         name_table: Any,
         tick: int = 0,
         game_time_s: int | None = None,
+        source: CombatLogSource = CombatLogSource.S2_DIRECT,
     ) -> None:
         """Parse a CMsgDOTACombatLogEntry and emit a CombatLogEntry.
 
@@ -436,6 +479,7 @@ class CombatLogProcessor:
             tick: Current game tick.
             game_time_s: Optional game-relative timestamp computed by
                 ``ReplayParser`` from the combat-log ``GAME_STATE`` marker.
+            source: Wire path that supplied the S2 entry.
         """
         log_type = _LOG_TYPE_NAMES.get(msg.type, CombatLogType.UNKNOWN)
 
@@ -471,7 +515,7 @@ class CombatLogProcessor:
         neutral_camp_team = msg.neutral_camp_team if msg.HasField("neutral_camp_team") else 0
         location_x = msg.location_x if msg.HasField("location_x") else None
         location_y = msg.location_y if msg.HasField("location_y") else None
-        timestamp_s = msg.timestamp if hasattr(msg, "timestamp") else None
+        timestamp_s = float(msg.timestamp) if msg.HasField("timestamp") else None
         # will_reincarnate marks a DEATH that is a reincarnation/aegis *trigger*,
         # not a final death — the hero comes back, so it must not be counted as a
         # death. Reference: refs/clarity S2CombatLogEntry.isWillReincarnate (proto
@@ -491,6 +535,13 @@ class CombatLogProcessor:
         )
         attacker_team = int(msg.attacker_team) if msg.HasField("attacker_team") else None
         target_team = int(msg.target_team) if msg.HasField("target_team") else None
+        aura_modifier = bool(msg.aura_modifier) if msg.HasField("aura_modifier") else None
+        modifier_purged = bool(msg.modifier_purged) if msg.HasField("modifier_purged") else None
+        modifier_purged_duration_s = (
+            float(msg.modifier_purged_duration)
+            if msg.HasField("modifier_purged_duration")
+            else None
+        )
         damage_type = ""
         if log_type == "DAMAGE" and hasattr(msg, "damage_type"):
             damage_type = _DAMAGE_TYPE_NAMES.get(msg.damage_type, "")
@@ -525,5 +576,13 @@ class CombatLogProcessor:
             modifier_elapsed_duration_s=modifier_elapsed_duration_s,
             attacker_team=attacker_team,
             target_team=target_team,
+            source=source,
+            aura_modifier=aura_modifier,
+            modifier_purged=modifier_purged,
+            modifier_purged_duration_s=modifier_purged_duration_s,
+            attacker_is_hero_present=msg.HasField("is_attacker_hero"),
+            target_is_hero_present=msg.HasField("is_target_hero"),
+            attacker_is_illusion_present=msg.HasField("is_attacker_illusion"),
+            target_is_illusion_present=msg.HasField("is_target_illusion"),
         )
         self._emit(entry)

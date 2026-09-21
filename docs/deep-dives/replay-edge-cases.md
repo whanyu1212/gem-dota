@@ -139,7 +139,7 @@ Examples:
 2. farming context labels like `safe_home_farm` or `high_risk_invade`
 3. map control proxies
 4. teamfight clustering windows
-5. vision modifier windows and other reveal approximations
+5. vision modifier semantics and lifecycle inferences
 
 These are analytics heuristics, not raw replay facts.
 

@@ -6,6 +6,7 @@ from gem.combat.log import (
     CombatLogEntry,
     CombatLogHandler,
     CombatLogProcessor,
+    CombatLogSource,
     CombatLogType,
 )
 
@@ -14,6 +15,7 @@ __all__ = [
     "CombatLogEntry",
     "CombatLogHandler",
     "CombatLogProcessor",
+    "CombatLogSource",
     "CombatLogType",
     "_CombatAggregator",
     "_ParsedPlayerAgg",

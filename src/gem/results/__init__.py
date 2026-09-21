@@ -11,7 +11,13 @@ from gem.results.models import (
     SmokeEvent,
     SmokeParticipant,
     VisibilityState,
+    VisionModifierCloseEvidence,
     VisionModifierEvent,
+    VisionModifierLifecycleStatus,
+    VisionModifierPairingIssue,
+    VisionModifierPairingStatus,
+    VisionModifierSemantic,
+    VisionModifierTeamSource,
 )
 
 __all__ = [
@@ -23,6 +29,12 @@ __all__ = [
     "SmokeEvent",
     "SmokeParticipant",
     "VisionModifierEvent",
+    "VisionModifierPairingIssue",
+    "VisionModifierSemantic",
+    "VisionModifierLifecycleStatus",
+    "VisionModifierCloseEvidence",
+    "VisionModifierPairingStatus",
+    "VisionModifierTeamSource",
     "VisibilityState",
     "build_dataframes",
     "build_parsed_match",

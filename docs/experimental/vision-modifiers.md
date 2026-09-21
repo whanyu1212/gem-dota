@@ -1,399 +1,90 @@
 # Vision Modifiers
 
-`match.vision_modifiers` is an experimental replay-derived event stream that records reveal-style modifier windows on heroes.
-
-This is the structure that lets gem say things like:
-
-- "this hero was under Track during this interval"
-- "this target was revealed by Corrosive Haze here"
-- "a Dust / Gem-style reveal window was active on this hero at this tick"
-
-It is also one of the core inputs used by [Estimate Vision](./estimate-vision.md).
+`match.vision_modifiers` is an experimental, evidence-preserving stream of
+vision-relevant modifier **applications**. It is broader than a list of direct
+hero reveals: non-hero targets, aura carriers, and reveal auras remain in the
+stream so downstream analysis can distinguish them instead of silently treating
+every modifier as Track or Corrosive Haze.
 
 > [!IMPORTANT]
-> `match.vision_modifiers` is not a raw Valve fog-of-war feed.
->
-> It is gem's reconstruction of reveal windows from combat-log modifier events for a curated set of vision-relevant modifiers.
+> This is combat-log evidence, not Valve's fog-of-war feed. Use
+> `hero_visibility_at(...)` when authoritative hero visibility bits answer the
+> question directly.
 
-## Why this exists
+## Semantics
 
-Pure geometry is not enough for visibility analysis.
+Each modifier is described by a typed registry:
 
-A hero can be visible because:
-
-- an allied hero is nearby
-- an allied observer ward covers the area
-- a reveal-style modifier is active on that hero
-
-The third case is important because it bypasses ordinary line-of-sight logic in ways that simple radius checks do not capture well.
-
-Without `match.vision_modifiers`, `estimate_vision` would miss some of the most analytically important visibility cases:
-
-- Track
-- Corrosive Haze
-- Dust
-- Gem-style reveals
-
-So this structure exists to preserve those reveal windows as explicit replay-derived events.
-
-## What the replay gives us
-
-The replay gives gem combat-log entries, including modifier add/remove events.
-
-gem watches those events during parse and reconstructs reveal windows from them.
-
-That means the feature is:
-
-- replay-derived
-- deterministic
-- tied to actual observed modifier events
-
-But it is still experimental because gem must decide:
-
-- which modifiers count as vision-relevant
-- how to pair add/remove events
-- how to handle overlapping or refreshed applications
-
-## Data model
-
-`ParsedMatch.vision_modifiers` is a:
-
-```python
-list[VisionModifierEvent]
-```
-
-Each `VisionModifierEvent` has:
-
-```python
-ev.tick           # int: tick when modifier was applied
-ev.end_tick       # int | None: tick when removed, or None if still open at game end
-ev.modifier_name  # str: internal modifier name
-ev.target_name    # str: NPC hero name of the revealed target
-ev.caster_name    # str: NPC hero name of the applier
-ev.caster_team    # int: team of the caster (2=Radiant, 3=Dire), or 0 if unknown
-```
-
-Interpretation:
-
-- `tick` is the open time of the reveal window
-- `end_tick` is the close time if gem observed one
-- `modifier_name` says what caused the reveal
-- `target_name` says who was revealed
-- `caster_name` / `caster_team` say who revealed them
-
-## Current tracked modifier set
-
-The current curated set in `src/gem/api.py` is:
-
-| Modifier | Interpretation |
+| Modifier | `semantic` |
 |---|---|
-| `modifier_slardar_amplify_damage` | Slardar Corrosive Haze reveal window |
-| `modifier_bounty_hunter_track` | Bounty Hunter Track reveal window |
-| `modifier_item_dustofappearance` | Dust of Appearance reveal window |
-| `modifier_item_gem_of_true_sight` | Gem-based reveal on target |
-| `modifier_gem_active_truesight` | Gem thinker / active true sight style reveal |
+| `modifier_slardar_amplify_damage` | `direct_target_reveal` |
+| `modifier_bounty_hunter_track` | `direct_target_reveal` |
+| `modifier_item_dustofappearance` | `direct_target_reveal` |
+| `modifier_item_gem_of_true_sight` | `aura_carrier` |
+| `modifier_gem_active_truesight` | `reveal_aura` |
 
-This is intentionally a curated list, not a blanket "every modifier in the game" stream.
+This registry was audited against the repository's modern Source 2 fixtures for
+OpenDota patch id 60, including match `8822520406` (Corrosive Haze) and match
+`8868259993` (Gem carrier). Modifier names and behavior are patch-sensitive;
+new supported patches must be re-audited rather than inheriting these meanings
+silently.
 
-## High-level derivation
+Gem's carrier modifier is commonly self-applied and same-team. It is retained as
+carrier evidence; it is not a direct reveal of the carrier. Non-hero applications
+are also retained with `target_is_hero=False`.
 
-The event stream is built in five stages.
+## Lifecycle evidence
 
-### 1. Subscribe to combat-log entries
+The original first six `VisionModifierEvent` fields remain in their historical
+order: `tick`, `end_tick`, `modifier_name`, `target_name`, `caster_name`, and
+`caster_team`. New fields append semantic, identity, team-provenance, duration,
+aura/purge, pairing, and lifecycle evidence.
 
-During `gem.parse()`, gem registers a combat-log callback.
+- `end_tick` is set only from an observed `MODIFIER_REMOVE`. gem never invents
+  an exact tick from a duration.
+- `lifecycle_status` is `removed`, `expired`, `open`, or `incomplete`.
+- `close_evidence` distinguishes `observed`, `duration_inferred`, `unobserved`,
+  and `ambiguous` closes.
+- Application and removal durations, elapsed duration, pause-aware game times,
+  sources, protocol teams, aura flags, and purge evidence remain separate.
+- Hero/illusion values retain explicit presence flags; absent optional fields are
+  not silently treated as authoritative `False` during pairing.
+- Protocol team 2/3 wins; player snapshots are used only as a recorded,
+  consensus-only fallback. Conflicting snapshot teams remain unknown.
 
-That callback inspects each `CombatLogEntry` as it is emitted during parse.
+An unobserved application may be classified `expired` once the pause-aware final
+game time passes its reported duration, but its `end_tick` stays `None`. A
+plausibly live near-end application is `open`; `None` does **not** mean "active
+until game end."
 
-The relevant code lives in `src/gem/api.py`.
+## Pairing adds and removes
 
-### 2. Filter to relevant modifier names
+Relevant observations are resolved after parsing in tick and ingestion order.
+For a removal, gem requires any explicit caster and hero/illusion identity to be
+compatible, then uses pause-aware elapsed-time evidence, then a single remaining
+candidate. Intended duration is retained but is not mistaken for elapsed age.
+Pending ambiguity is revisited when a later exact match eliminates a candidate.
+Gem does not use LIFO when multiple applications remain plausible.
 
-Only modifiers in the curated `_VISION_MODIFIER_NAMES` set are considered.
-
-This is important because the combat log contains many modifier adds/removes that are irrelevant to visibility.
-
-So the first gate is:
-
-```text
-entry.inflictor_name in _VISION_MODIFIER_NAMES
-```
-
-If not, the entry is ignored for this feature.
-
-### 3. Open a reveal window on `MODIFIER_ADD`
-
-When gem sees:
-
-```text
-entry.log_type == "MODIFIER_ADD"
-```
-
-and the modifier is in the tracked set, gem creates a new `VisionModifierEvent`:
-
-```python
-VisionModifierEvent(
-    tick=entry.tick,
-    end_tick=None,
-    modifier_name=entry.inflictor_name,
-    target_name=entry.target_name,
-    caster_name=entry.attacker_name,
-    caster_team=0,  # filled later
-)
-```
-
-This new event is:
-
-- appended to `vision_modifier_events`
-- pushed onto an "open events" stack keyed by `(modifier_name, target_name)`
-
-That key choice is deliberate.
-
-### Why the key is `(modifier_name, target_name)`
-
-The same hero can receive the same modifier more than once.
-
-Examples:
-
-- Dust can be refreshed
-- repeated applications can overlap in replay logs
-- add/remove events may not always arrive in a perfectly simple single-window pattern
-
-So gem does **not** use a single open event slot per modifier.
-
-Instead it keeps:
+Ambiguous candidates become `incomplete`. Ambiguous and orphan removals are
+preserved separately in:
 
 ```python
-_open_vision_mods[(modifier_name, target_name)] = list[VisionModifierEvent]
+match.vision_modifier_pairing_issues  # list[VisionModifierPairingIssue]
 ```
 
-That list behaves like a stack.
-
-This gives two practical benefits:
-
-1. refreshed or overlapping applications do not immediately destroy earlier state
-2. a later `MODIFIER_REMOVE` can close the most recent still-open application first
-
-This is a pragmatic replay-parsing choice, not a claim about Valve internals.
-
-### 4. Close a reveal window on `MODIFIER_REMOVE`
-
-When gem sees:
-
-```text
-entry.log_type == "MODIFIER_REMOVE"
-```
-
-for a tracked modifier, it looks up:
-
-```python
-key = (modifier_name, target_name)
-```
-
-If an open stack exists, gem:
-
-1. pops the most recently opened event
-2. sets its `end_tick = entry.tick`
-
-This is effectively LIFO matching.
-
-That means:
-
-- the newest open application closes first
-- older still-open applications remain until matched or left open
-
-This is the most defensible matching strategy once you admit that refreshes and overlaps can happen in the combat-log stream.
-
-### 5. Back-fill `caster_team` after parse
-
-When the modifier event is first created, gem does **not** yet assign a final team.
-
-It initially sets:
-
-```python
-caster_team = 0
-```
-
-After parse completes, gem builds a map from hero NPC name to team using player snapshots:
-
-```python
-_team_by_npc = {snap.npc_name: snap.team for snap in player_ext.snapshots if snap.team}
-```
-
-Then it back-fills:
-
-```python
-vev.caster_team = _team_by_npc.get(vev.caster_name, 0)
-```
-
-Why this happens after parse:
-
-- team mapping is more reliable once player extraction has finished
-- the modifier event can be captured immediately, then enriched afterward
-
-## Exact decision logic
-
-Conceptually, the collection logic is:
-
-```text
-for each combat log entry:
-    if entry is MODIFIER_ADD and modifier is tracked:
-        create VisionModifierEvent(end_tick=None)
-        append to global list
-        push onto open stack keyed by (modifier_name, target_name)
-
-    if entry is MODIFIER_REMOVE and modifier is tracked:
-        find the open stack for (modifier_name, target_name)
-        if stack exists:
-            pop newest event
-            set end_tick = entry.tick
-
-after parse:
-    back-fill caster_team from hero -> team mapping
-```
-
-## Why `end_tick` can be `None`
-
-`end_tick` stays `None` when gem sees an add but never sees a matching remove.
-
-That can happen for several reasons:
-
-- the replay ends while the modifier is still active
-- the replay is truncated
-- the combat-log stream did not contain the remove event gem expected
-
-This is not necessarily a bug. It means:
-
-> gem observed the reveal begin, but did not observe a clean close
-
-In downstream analysis, that should be interpreted as:
-
-- "active until observed otherwise"
-- not "guaranteed active forever"
-
-## Why this is useful
-
-This structure turns one-off combat-log lines into explicit visibility windows.
-
-That unlocks queries like:
-
-- how long was this hero under Track?
-- was Corrosive Haze active at the moment of the gank?
-- did Dust overlap with the initiation window?
-- did the enemy team have a reveal-based reason to see this hero?
-
-Without this structure, every one of those questions would need to be reconstructed manually from raw combat-log entries.
-
-## Relationship to `estimate_vision`
-
-`estimate_vision` consumes `match.vision_modifiers` later as one of its vision-source inputs.
-
-The simplified relationship is:
-
-1. `match.vision_modifiers` captures reveal windows
-2. `estimate_vision` checks whether a reveal window is active at tick `t`
-3. if it is active, the revealed hero contributes a modifier-based visibility source
-
-So:
-
-- `match.vision_modifiers` is the event stream
-- `estimate_vision` is the visibility query layer built on top of it
-
-## What this feature does well
-
-It does well when the question is:
-
-- "was a reveal-style modifier active?"
-- "who was revealed?"
-- "for how long?"
-- "which team applied the reveal?"
-
-Those are exactly the questions the structure is designed to answer.
-
-## What this feature does not do
-
-It does **not** do these things:
-
-- reconstruct every vision-affecting mechanic in Dota
-- model the exact geometry of Dust or Gem aura coverage
-- guarantee that every relevant modifier in the game is tracked
-- infer visibility without an observed tracked modifier event
-
-It is intentionally narrow and explicit.
-
-## Known limitations
-
-Current limitations include:
-
-- only a curated set of modifiers is tracked
-- matching uses pragmatic LIFO stack logic, not engine-internal state
-- `caster_team` can remain `0` if back-fill fails
-- `end_tick` can remain `None`
-- replay truncation can leave windows apparently open
-- downstream interpretation still depends on sampled hero positions when the event stream is used inside `estimate_vision`
-
-## Example analysis patterns
-
-### How long was a hero under Track?
-
-```python
-for ev in match.vision_modifiers:
-    if ev.modifier_name == "modifier_bounty_hunter_track":
-        duration = ((ev.end_tick or match.game_end_tick) - ev.tick) / 30
-        print(f"{ev.target_name} tracked for {duration:.1f}s")
-```
-
-### Which reveal windows were active at a specific tick?
-
-```python
-active = [
-    ev
-    for ev in match.vision_modifiers
-    if ev.tick <= tick and (ev.end_tick is None or tick <= ev.end_tick)
-]
-```
-
-### Which team applied the most tracked reveals?
-
-```python
-from collections import Counter
-
-counts = Counter(ev.caster_team for ev in match.vision_modifiers)
-print(counts)
-```
-
-## Thought process behind the design
-
-The design is intentionally conservative.
-
-Instead of claiming to solve "true Dota vision", gem splits the problem:
-
-1. preserve replay-observed reveal windows faithfully enough
-2. expose them as explicit structured events
-3. let downstream helpers like `estimate_vision` consume them
-
-That separation makes the system easier to debug and easier to refine.
-
-If the visibility interpretation looks wrong, you can ask:
-
-- was the raw modifier event missing?
-- was the window opened or closed incorrectly?
-- was the downstream geometric query too loose or too strict?
-
-That is much better than one opaque monolithic vision heuristic.
-
-## Code locations
-
-If you want to inspect or tune the implementation:
-
-- `src/gem/api.py`
-- `src/gem/results/models.py`
-- `src/gem/results/assembly.py`
-- `src/gem/analysis/vision.py`
-- `docs/reference/analysis.md`
-
-## Related reading
-
-1. [Estimate Vision](./estimate-vision.md)
-2. [Analysis Helpers](../reference/analysis.md)
-3. [Replay Edge Cases](../deep-dives/replay-edge-cases.md)
+Pairing issues include their reason, removal tick and identity, combat-log
+source, candidate add ticks, and key duration/team evidence. They do not create
+fake application rows.
+
+## Conservative consumers
+
+`estimate_vision(...)` and fight reveal badges consume only direct-target,
+non-illusion hero, non-ambiguous evidence with an observed `end_tick`. Duration-only
+expiry is pause-aware evidence but cannot provide an exact replay-tick interval,
+so consumers do not synthesize one. Gem carrier/aura events and incomplete or
+unobserved-close events are not reported as direct target reveals.
+
+For tabular workflows, `build_dataframes(...)` always provides the flat
+`vision_modifiers` and `vision_modifier_pairing_issues` tables, with declared
+columns even when empty.

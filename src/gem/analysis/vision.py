@@ -7,7 +7,12 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal
 
 from gem.analysis.spatial import position_at_tick
-from gem.results.models import VisibilityState
+from gem.results.models import (
+    VisibilityState,
+    VisionModifierLifecycleStatus,
+    VisionModifierPairingStatus,
+    VisionModifierSemantic,
+)
 
 if TYPE_CHECKING:
     from gem.results.models import ParsedMatch
@@ -230,11 +235,24 @@ def estimate_vision(
     # standard hero/ward radius.  We use the revealed hero's position at the tick
     # to compute distance.
     for mod_ev in getattr(match, "vision_modifiers", []):
+        if mod_ev.semantic != VisionModifierSemantic.DIRECT_TARGET_REVEAL:
+            continue
+        if not mod_ev.target_is_hero or mod_ev.target_is_illusion:
+            continue
+        if mod_ev.lifecycle_status == VisionModifierLifecycleStatus.INCOMPLETE:
+            continue
+        if mod_ev.pairing_status == VisionModifierPairingStatus.AMBIGUOUS:
+            continue
         if mod_ev.caster_team != team:
             continue
         if mod_ev.tick > tick:
             continue
-        if mod_ev.end_tick is not None and mod_ev.end_tick < tick:
+        # A duration can classify an application as expired on the pause-aware
+        # game-time axis, but it cannot supply an exact replay tick.  Point
+        # queries therefore consume only observed add/remove intervals.
+        if mod_ev.end_tick is None:
+            continue
+        if mod_ev.end_tick < tick:
             continue
         # Find the revealed hero's position
         target_player = next(

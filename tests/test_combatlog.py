@@ -10,6 +10,7 @@ from gem.combat.log import (
     COMBAT_LOG_TYPES,
     CombatLogEntry,
     CombatLogProcessor,
+    CombatLogSource,
     CombatLogType,
     _resolve_name,
     opendota_translate,
@@ -130,6 +131,8 @@ class FakeS2Entry:
             return self.location_x != 0.0
         if name == "location_y":
             return self.location_y != 0.0
+        if name == "timestamp":
+            return self.timestamp != 0.0
         return False
 
 
@@ -246,6 +249,14 @@ class TestCombatLogEntry:
         assert e.ability_level == 0
         assert e.gold_reason == 0
         assert e.xp_reason == 0
+        assert e.source is CombatLogSource.UNKNOWN
+        assert e.aura_modifier is None
+        assert e.modifier_purged is None
+        assert e.modifier_purged_duration_s is None
+        assert e.attacker_is_hero_present is False
+        assert e.target_is_hero_present is False
+        assert e.attacker_is_illusion_present is False
+        assert e.target_is_illusion_present is False
 
     def test_all_fields_set(self):
         e = CombatLogEntry(
@@ -401,6 +412,8 @@ class TestS1CombatLog:
         e = received[0]
         assert e.attacker_is_hero is True
         assert e.target_is_hero is False
+        assert e.attacker_is_hero_present is True
+        assert e.target_is_hero_present is True
 
     def test_illusion_flags(self):
         p, received = self._make_processor_with_handler()
@@ -409,6 +422,8 @@ class TestS1CombatLog:
         e = received[0]
         assert e.attacker_is_illusion is True
         assert e.target_is_illusion is True
+        assert e.attacker_is_illusion_present is True
+        assert e.target_is_illusion_present is True
 
     def test_purchase_resolves_value_name(self):
         # S1 PURCHASE (type 11) must resolve value_name from the value index,
@@ -435,6 +450,8 @@ class TestS1CombatLog:
         e = received[0]
         assert e.attacker_is_hero is True
         assert e.target_is_hero is True
+        assert e.attacker_is_hero_present is False
+        assert e.target_is_hero_present is False
 
     def test_hero_flags_respected_when_field_present(self):
         # When the descriptor carries the flags, their actual values win (the
@@ -475,6 +492,7 @@ class TestS1CombatLog:
         table = FakeNameTable({})
         p.process_s1_event(self._make_event(), table, tick=42000)
         assert received[0].tick == 42000
+        assert received[0].source is CombatLogSource.S1_GAME_EVENT
 
 
 # ---------------------------------------------------------------------------
@@ -511,6 +529,7 @@ class TestS2CombatLog:
         assert e.tick == 5000
         assert e.attacker_is_hero is True
         assert e.damage_type == "magical"
+        assert e.source is CombatLogSource.S2_DIRECT
 
     def test_heal_entry(self):
         p, received = self._make_processor_with_handler()
@@ -599,6 +618,47 @@ class TestS2CombatLog:
         assert e.timestamp_s == 123.4
         assert e.game_time_s == 17
 
+    def test_s2_absent_timestamp_is_none(self):
+        from gem.proto.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
+
+        p, received = self._make_processor_with_handler()
+        p.process_s2_entry(CMsgDOTACombatLogEntry(type=4), FakeNameTable({}))
+
+        assert received[0].timestamp_s is None
+
+    def test_s2_explicit_zero_timestamp_is_preserved(self):
+        from gem.proto.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
+
+        p, received = self._make_processor_with_handler()
+        p.process_s2_entry(CMsgDOTACombatLogEntry(type=4, timestamp=0.0), FakeNameTable({}))
+
+        assert received[0].timestamp_s == 0.0
+
+    def test_s2_identity_flag_presence_is_preserved(self):
+        from gem.proto.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
+
+        p, received = self._make_processor_with_handler()
+        p.process_s2_entry(
+            CMsgDOTACombatLogEntry(
+                type=2,
+                is_attacker_hero=False,
+                is_target_hero=True,
+                is_attacker_illusion=False,
+                is_target_illusion=True,
+            ),
+            FakeNameTable({}),
+        )
+
+        entry = received[0]
+        assert entry.attacker_is_hero is False
+        assert entry.attacker_is_hero_present is True
+        assert entry.target_is_hero is True
+        assert entry.target_is_hero_present is True
+        assert entry.attacker_is_illusion is False
+        assert entry.attacker_is_illusion_present is True
+        assert entry.target_is_illusion is True
+        assert entry.target_is_illusion_present is True
+
     def test_all_twelve_types(self):
         p, received = self._make_processor_with_handler()
         table = FakeNameTable({})
@@ -681,6 +741,7 @@ class TestS2BulkCombatLog:
         entries = [FakeS2Entry(), FakeS2Entry(), FakeS2Entry()]
         p.process_s2_bulk(FakeBulkMsg(entries), FakeNameTable({}), tick=12345)
         assert all(e.tick == 12345 for e in received)
+        assert all(e.source is CombatLogSource.S2_BULK for e in received)
 
 
 # ---------------------------------------------------------------------------
@@ -822,6 +883,9 @@ class TestCombatLogModifierMetadata:
                 modifier_elapsed_duration=0.0,
                 attacker_team=2,
                 target_team=0,
+                aura_modifier=False,
+                modifier_purged=False,
+                modifier_purged_duration=0.0,
             ),
             FakeNameTable({}),
             tick=123,
@@ -833,6 +897,9 @@ class TestCombatLogModifierMetadata:
         assert entry.modifier_elapsed_duration_s == 0.0
         assert entry.attacker_team == 2
         assert entry.target_team == 0
+        assert entry.aura_modifier is False
+        assert entry.modifier_purged is False
+        assert entry.modifier_purged_duration_s == 0.0
 
     def test_s2_absent_modifier_and_team_fields_are_none(self):
         from gem.proto.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
@@ -848,6 +915,9 @@ class TestCombatLogModifierMetadata:
         assert entry.modifier_elapsed_duration_s is None
         assert entry.attacker_team is None
         assert entry.target_team is None
+        assert entry.aura_modifier is None
+        assert entry.modifier_purged is None
+        assert entry.modifier_purged_duration_s is None
 
     def test_s1_modifier_and_team_fields_are_none(self):
         processor = CombatLogProcessor()

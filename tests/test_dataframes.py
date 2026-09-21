@@ -3,10 +3,18 @@
 from __future__ import annotations
 
 import gem.results.models as model_module
-from gem.combat.log import CombatLogEntry, CombatLogType
+from gem.combat.log import CombatLogEntry, CombatLogSource, CombatLogType
 from gem.extractors.objectives import AegisEvent, ShrineKill, TormentorKill
 from gem.results.dataframes import build_dataframes
-from gem.results.models import ParsedMatch, ParsedPlayer, SmokeEvent, SmokeParticipant
+from gem.results.models import (
+    ParsedMatch,
+    ParsedPlayer,
+    SmokeEvent,
+    SmokeParticipant,
+    VisionModifierEvent,
+    VisionModifierPairingIssue,
+    VisionModifierSemantic,
+)
 
 
 class TestBuildDataframes:
@@ -111,6 +119,8 @@ class TestBuildDataframes:
         assert "smoke_members" in dfs
         assert "courier_snapshots" in dfs
         assert "neutral_item_finds" in dfs
+        assert "vision_modifiers" in dfs
+        assert "vision_modifier_pairing_issues" in dfs
         assert "player_kills_log" in dfs
         assert "player_purchase_log" in dfs
         assert "player_runes_log" in dfs
@@ -135,6 +145,56 @@ class TestBuildDataframes:
             "removed_x",
             "removed_y",
         ]
+        assert dfs["vision_modifiers"].empty
+        assert dfs["vision_modifier_pairing_issues"].empty
+        assert list(dfs["vision_modifiers"].columns[:6]) == [
+            "tick",
+            "end_tick",
+            "modifier_name",
+            "target_name",
+            "caster_name",
+            "caster_team",
+        ]
+        assert list(dfs["vision_modifier_pairing_issues"].columns[:6]) == [
+            "tick",
+            "reason",
+            "modifier_name",
+            "caster_name",
+            "target_name",
+            "source",
+        ]
+
+    def test_vision_modifier_tables_are_flat_and_enum_backed_values_are_plain(self):
+        match = ParsedMatch(
+            vision_modifiers=[
+                VisionModifierEvent(
+                    100,
+                    200,
+                    "modifier_slardar_amplify_damage",
+                    "npc_dota_hero_riki",
+                    "npc_dota_hero_slardar",
+                    2,
+                    semantic=VisionModifierSemantic.DIRECT_TARGET_REVEAL,
+                )
+            ],
+            vision_modifier_pairing_issues=[
+                VisionModifierPairingIssue(
+                    tick=300,
+                    reason="unmatched",
+                    modifier_name="modifier_bounty_hunter_track",
+                    caster_name="",
+                    target_name="npc_dota_hero_riki",
+                    source=CombatLogSource.S2_BULK,
+                    candidate_add_ticks=[],
+                )
+            ],
+        )
+
+        dfs = build_dataframes(match)
+
+        assert dfs["vision_modifiers"].iloc[0]["semantic"] == "direct_target_reveal"
+        assert dfs["vision_modifier_pairing_issues"].iloc[0]["source"] == "s2_bulk"
+        assert dfs["vision_modifier_pairing_issues"].iloc[0]["candidate_add_ticks"] == []
 
     def test_smoke_members_dataframe_is_flat_and_preserves_exact_ticks(self):
         match = ParsedMatch(

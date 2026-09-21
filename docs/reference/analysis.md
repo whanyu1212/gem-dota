@@ -246,10 +246,12 @@ that the point was hidden.
 |---|---|---|
 | Allied hero | 1800 (day) / 800 (night) | Yes |
 | Observer ward | 1600 | No |
-| Vision modifier (Slardar, BH Track, Dust, Gem) | N/A — direct reveal | No |
+| Direct-target modifier (Slardar, BH Track, Dust) | N/A — direct reveal | No |
 
-Vision modifiers are tracked from combat log `MODIFIER_ADD`/`MODIFIER_REMOVE` events during
-parse and stored in `match.vision_modifiers`.
+Vision modifiers are tracked from combat log `MODIFIER_ADD`/`MODIFIER_REMOVE`
+events during parse and stored in `match.vision_modifiers`. This helper consumes
+only non-illusion hero applications classified as direct-target reveals with a
+non-ambiguous, observed add/remove interval.
 
 **`VisionSource` fields:**
 
@@ -265,7 +267,7 @@ source.vision_radius # int: radius used (0 for modifier reveals)
 - No high-ground vision penalties
 - No summon/creep vision (only heroes and observer wards)
 - No sentry ward true-sight (sentries do not grant standard vision)
-- Dust/Gem aura radii are not modelled — modifier reveals are unconditional
+- Aura/carrier geometry is not modelled; those events are not direct reveal sources
 
 **Example:**
 
@@ -290,19 +292,23 @@ Detailed explanation:
 
 1. [Experimental Features → Vision Modifiers](../experimental/vision-modifiers.md)
 
-`ParsedMatch.vision_modifiers` is a `list[VisionModifierEvent]` populated by `gem.parse()`.
-It tracks every application of a vision-granting ability or item (Slardar Corrosive Haze,
-Bounty Hunter Track, Dust of Appearance, Gem of True Sight).
+`ParsedMatch.vision_modifiers` is a `list[VisionModifierEvent]` populated by
+`gem.parse()`. It retains direct reveals, aura/carrier evidence, non-hero
+targets, lifecycle evidence, and team provenance. Ambiguous/orphan removals are
+available separately as `match.vision_modifier_pairing_issues`.
 
 **`VisionModifierEvent` fields:**
 
 ```python
 ev.tick           # int: tick when modifier was applied
-ev.end_tick       # int | None: tick when removed, or None if still active at game end
+ev.end_tick       # int | None: observed removal tick only
 ev.modifier_name  # str: e.g. "modifier_slardar_amplify_damage"
 ev.target_name    # str: NPC name of the revealed hero
 ev.caster_name    # str: NPC name of the caster
 ev.caster_team    # int: team of the caster (2=Radiant, 3=Dire)
+ev.semantic       # direct_target_reveal, reveal_aura, aura_carrier, ...
+ev.lifecycle_status  # removed, expired, open, or incomplete
+ev.close_evidence    # observed, duration_inferred, unobserved, or ambiguous
 ```
 
 **Tracked modifier names:**
@@ -312,16 +318,15 @@ ev.caster_team    # int: team of the caster (2=Radiant, 3=Dire)
 | `modifier_slardar_amplify_damage` | Slardar — Corrosive Haze (ultimate) |
 | `modifier_bounty_hunter_track` | Bounty Hunter — Track |
 | `modifier_item_dustofappearance` | Dust of Appearance (item) |
-| `modifier_item_gem_of_true_sight` | Gem of True Sight (item, on target) |
-| `modifier_gem_active_truesight` | Gem of True Sight (thinker aura) |
+| `modifier_item_gem_of_true_sight` | Gem carrier evidence (not a direct reveal) |
+| `modifier_gem_active_truesight` | Gem reveal-aura evidence |
 
 **Example — how long was each hero tracked by BH?**
 
 ```python
 for ev in match.vision_modifiers:
     if ev.modifier_name == "modifier_bounty_hunter_track":
-        duration = ((ev.end_tick or match.game_end_tick) - ev.tick) / 30
-        print(f"{ev.target_name} tracked for {duration:.1f}s")
+        print(ev.target_name, ev.lifecycle_status, ev.end_tick)
 ```
 
 ---
@@ -614,7 +619,7 @@ def is_daytime(game_start_tick: int | None, tick: int) -> bool
 
 Return True if it is daytime at the given absolute tick.
 
-Source: [src/gem/analysis/vision.py:57](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L57)
+Source: [src/gem/analysis/vision.py:62](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L62)
 
 ### `hero_visibility_at`
 
@@ -624,7 +629,7 @@ def hero_visibility_at(match: ParsedMatch, *, player_id: int, observing_team: in
 
 Return authoritative hero-entity visibility at or before ``tick``.
 
-Source: [src/gem/analysis/vision.py:84](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L84)
+Source: [src/gem/analysis/vision.py:89](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L89)
 
 ### `estimate_vision`
 
@@ -634,7 +639,7 @@ def estimate_vision(match: ParsedMatch, team: int, tick: int, x: float, y: float
 
 Estimate which allied units were providing vision of ``(x, y)`` at ``tick``.
 
-Source: [src/gem/analysis/vision.py:126](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L126)
+Source: [src/gem/analysis/vision.py:131](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L131)
 
 ### `ward_vision_impact`
 
@@ -644,7 +649,7 @@ def ward_vision_impact(ward: object, match: ParsedMatch) -> int
 
 Count distinct enemy heroes spotted by an observer ward during its lifetime.
 
-Source: [src/gem/analysis/vision.py:274](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L274)
+Source: [src/gem/analysis/vision.py:292](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L292)
 
 ### Top-level classes
 
@@ -656,7 +661,7 @@ class VisionSource
 
 One unit that was providing vision of a map point at a given tick.
 
-Source: [src/gem/analysis/vision.py:32](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L32)
+Source: [src/gem/analysis/vision.py:37](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L37)
 
 #### Dataclass fields
 

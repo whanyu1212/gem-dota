@@ -35,6 +35,7 @@ if TYPE_CHECKING:
         ParsedPlayer,
         SmokeEvent,
         VisionModifierEvent,
+        VisionModifierPairingIssue,
     )
 
 # Lane position grid resolution in world units (7d)
@@ -899,6 +900,7 @@ def build_parsed_match(
     neutral_item_finds: list[NeutralItemFoundEvent] | None = None,
     interval_ext: IntervalExtractor | None = None,
     hero_visibility_events: list[HeroVisibilityEvent] | None = None,
+    vision_modifier_pairing_issues: list[VisionModifierPairingIssue] | None = None,
 ) -> ParsedMatch:
     """Assemble a :class:`ParsedMatch` from extractor state after a completed parse.
 
@@ -922,6 +924,7 @@ def build_parsed_match(
         interval_ext: Optional internal interval extractor used for OpenDota-style
             match-level gold/XP advantage curves.
         hero_visibility_events: Authoritative hero visibility transitions.
+        vision_modifier_pairing_issues: Ambiguous or unmatched modifier removals.
 
     Returns:
         Fully populated :class:`ParsedMatch`.
@@ -961,6 +964,7 @@ def build_parsed_match(
         smoke_events=smoke_events or [],
         vision_modifiers=vision_modifier_events or [],
         hero_visibility_events=hero_visibility_events or [],
+        vision_modifier_pairing_issues=vision_modifier_pairing_issues or [],
         draft=draft_ext.draft_events,
         game_start_tick=parser.game_start_tick,
         game_end_tick=parser.tick,

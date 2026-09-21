@@ -95,7 +95,8 @@ Most match events are arrays of records:
 | `opendota_teamfights` | OpenDota-compatible teamfight windows |
 | `smoke_events` | Smoke activations with grouped heroes and exact per-member modifier lifecycles |
 | `neutral_item_finds` | Neutral item find user messages |
-| `vision_modifiers` | Reveal/vision modifier windows used by vision analysis |
+| `vision_modifiers` | Vision-relevant modifier applications with semantic, lifecycle, pairing, and provenance evidence |
+| `vision_modifier_pairing_issues` | Ambiguous or orphan modifier removals that were not force-paired |
 
 ## Combat log entries
 

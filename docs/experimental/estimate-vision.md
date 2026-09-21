@@ -209,20 +209,20 @@ gem tracks certain reveal modifiers during parse and stores them in:
 match.vision_modifiers
 ```
 
-Each event records:
+Each application records:
 
-- when the reveal started
-- when it ended
-- which modifier caused it
-- which hero was revealed
-- which team applied it
+- exact observed add/remove ticks when available
+- lifecycle and pairing confidence
+- modifier semantics
+- target/caster identity and team provenance
+- duration, elapsed-time, protocol, and optional-field evidence
 
 The current function then applies this rule:
 
-1. keep modifier events where `caster_team == team`
-2. require the modifier to be active at the queried tick
-3. find the revealed target hero
-4. get that hero's position at the queried tick
+1. keep only `direct_target_reveal` events for non-illusion hero targets
+2. reject incomplete, ambiguous, and unobserved-close applications
+3. keep events where `caster_team == team` and the observed interval covers the tick
+4. find the revealed target hero and get its position at the queried tick
 5. treat that revealed hero position as a vision source for the query
 
 Unlike hero and ward checks, modifier reveals do **not** use a radius gate in this approximation.
@@ -253,14 +253,14 @@ The modifier is treated as a direct reveal mechanism. So `vision_radius = 0` is 
 
 ### Tracked modifier families
 
-The docs already list the current modifier set in the API reference, including examples like:
+The direct-target set includes:
 
 - Slardar Corrosive Haze
 - Bounty Hunter Track
 - Dust of Appearance
-- Gem of True Sight
 
-Those are the reveal-style effects the current approximation extends beyond pure geometry.
+Gem carrier and reveal-aura modifiers are also preserved in the event stream,
+but this point query does not reinterpret either as a direct target reveal.
 
 ## Data flow behind `match.vision_modifiers`
 
@@ -290,7 +290,7 @@ if allied hero is within day/night hero radius:
 if allied observer ward is alive and within 1600:
     add ward source
 
-if a reveal modifier is active on a hero (the revealed target):
+if a bounded, direct-target reveal modifier is active on a non-illusion hero:
     add modifier source based on the revealed hero position
 
 sort all accepted sources by ascending distance

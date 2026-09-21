@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-from gem.combat.log import CombatLogEntry
+from gem.combat.log import CombatLogEntry, CombatLogSource
 from gem.extractors.courier import CourierSnapshot
 from gem.extractors.draft import DraftEvent
 from gem.extractors.objectives import (
@@ -69,22 +69,113 @@ class HeroVisibilityEvent:
     dire_state: VisibilityState
 
 
+class VisionModifierSemantic(str, Enum):
+    """How a tracked modifier contributes vision evidence."""
+
+    __str__ = str.__str__
+
+    DIRECT_TARGET_REVEAL = "direct_target_reveal"
+    REVEAL_AURA = "reveal_aura"
+    AURA_CARRIER = "aura_carrier"
+    OTHER_VISION_RELEVANT = "other_vision_relevant"
+
+
+class VisionModifierLifecycleStatus(str, Enum):
+    """Best-supported lifecycle state for a modifier application."""
+
+    __str__ = str.__str__
+
+    REMOVED = "removed"
+    EXPIRED = "expired"
+    OPEN = "open"
+    INCOMPLETE = "incomplete"
+
+
+class VisionModifierCloseEvidence(str, Enum):
+    """Evidence supporting the lifecycle close classification."""
+
+    __str__ = str.__str__
+
+    OBSERVED = "observed"
+    DURATION_INFERRED = "duration_inferred"
+    UNOBSERVED = "unobserved"
+    AMBIGUOUS = "ambiguous"
+
+
+class VisionModifierPairingStatus(str, Enum):
+    """Confidence with which a removal was paired to an application."""
+
+    __str__ = str.__str__
+
+    EXACT = "exact"
+    UNIQUE_FALLBACK = "unique_fallback"
+    AMBIGUOUS = "ambiguous"
+    UNMATCHED = "unmatched"
+
+
+class VisionModifierTeamSource(str, Enum):
+    """Evidence source used to attribute a modifier participant's team."""
+
+    __str__ = str.__str__
+
+    PROTOCOL = "protocol"
+    SNAPSHOT_FALLBACK = "snapshot_fallback"
+    UNKNOWN = "unknown"
+
+
 @dataclass
 class VisionModifierEvent:
-    """A vision-granting modifier applied to a hero (Slardar ulti, BH Track, Dust, Gem, etc.).
+    """One tracked vision-relevant modifier application and its evidence.
 
-    Tracks the time window during which an enemy hero is revealed by a
-    vision-granting ability or item. Used by ``estimate_vision`` to extend the
-    geometry-based approximation with special-ability reveals.
+    Applications include direct hero reveals, non-hero targets, reveal auras,
+    and aura carriers. Only a conservative subset is consumed by point-vision
+    analysis; this record preserves the broader combat-log evidence.
 
     Attributes:
         tick: Game tick when the modifier was applied.
         end_tick: Game tick when the modifier was removed, or ``None`` if still
             active at game end or removal was not observed.
         modifier_name: Internal modifier name, e.g. ``"modifier_slardar_amplify_damage"``.
-        target_name: NPC name of the hero who received the modifier (the revealed hero).
-        caster_name: NPC name of the hero who applied the modifier.
+        target_name: NPC name of the unit that received the modifier.
+        caster_name: NPC name of the unit that applied the modifier.
         caster_team: Team of the caster (2=Radiant, 3=Dire), or 0 if unknown.
+        semantic: Descriptor-backed interpretation of the modifier.
+        lifecycle_status: Removed, expired, open, or incomplete classification.
+        close_evidence: Observed, duration-inferred, unobserved, or ambiguous close.
+        pairing_status: Confidence linking an observed removal to this application.
+        target_is_hero: Whether the application target was protocol-marked as a hero.
+        caster_is_hero: Whether the application caster was protocol-marked as a hero.
+        caster_is_illusion: Whether the application caster was an illusion.
+        target_is_illusion: Whether the application target was an illusion.
+        caster_is_hero_present: Whether caster hero status was explicit.
+        target_is_hero_present: Whether target hero status was explicit.
+        caster_is_illusion_present: Whether caster illusion status was explicit.
+        target_is_illusion_present: Whether target illusion status was explicit.
+        target_team: Team of the target, or 0 if unknown.
+        caster_team_source: Evidence source used for ``caster_team``.
+        target_team_source: Evidence source used for ``target_team``.
+        add_attacker_team: Raw protocol attacker team on application.
+        add_target_team: Raw protocol target team on application.
+        remove_attacker_team: Raw protocol attacker team on removal.
+        remove_target_team: Raw protocol target team on removal.
+        add_source: Combat-log ingestion path for the application.
+        remove_source: Combat-log ingestion path for the removal, when observed.
+        add_game_time_s: Pause-aware application game time, when available.
+        remove_game_time_s: Pause-aware removal game time, when available.
+        add_modifier_duration_s: Intended duration reported on application.
+        remove_modifier_duration_s: Intended duration reported on removal.
+        add_modifier_elapsed_duration_s: Elapsed duration reported on application.
+        remove_modifier_elapsed_duration_s: Elapsed duration reported on removal.
+        add_aura_modifier: Optional aura flag reported on application.
+        remove_aura_modifier: Optional aura flag reported on removal.
+        remove_modifier_purged: Optional purge flag reported on removal.
+        remove_modifier_purged_duration_s: Purged-duration evidence on removal.
+        remove_caster_name: Caster name carried by the removal observation.
+        remove_caster_is_hero: Explicit removal caster hero status, if present.
+        remove_target_is_hero: Explicit removal target hero status, if present.
+        remove_caster_is_illusion: Explicit removal caster illusion status, if present.
+        remove_target_is_illusion: Explicit removal target illusion status, if present.
+        evidence_gaps: Stable labels describing unavailable or ambiguous evidence.
     """
 
     tick: int
@@ -93,6 +184,87 @@ class VisionModifierEvent:
     target_name: str
     caster_name: str
     caster_team: int
+    semantic: VisionModifierSemantic = VisionModifierSemantic.DIRECT_TARGET_REVEAL
+    lifecycle_status: VisionModifierLifecycleStatus = VisionModifierLifecycleStatus.OPEN
+    close_evidence: VisionModifierCloseEvidence = VisionModifierCloseEvidence.UNOBSERVED
+    pairing_status: VisionModifierPairingStatus = VisionModifierPairingStatus.EXACT
+    target_is_hero: bool = True
+    caster_is_hero: bool = False
+    caster_is_illusion: bool = False
+    target_is_illusion: bool = False
+    caster_is_hero_present: bool = False
+    target_is_hero_present: bool = False
+    caster_is_illusion_present: bool = False
+    target_is_illusion_present: bool = False
+    target_team: int = 0
+    caster_team_source: VisionModifierTeamSource = VisionModifierTeamSource.UNKNOWN
+    target_team_source: VisionModifierTeamSource = VisionModifierTeamSource.UNKNOWN
+    add_attacker_team: int | None = None
+    add_target_team: int | None = None
+    remove_attacker_team: int | None = None
+    remove_target_team: int | None = None
+    add_source: CombatLogSource = CombatLogSource.UNKNOWN
+    remove_source: CombatLogSource | None = None
+    add_game_time_s: int | None = None
+    remove_game_time_s: int | None = None
+    add_modifier_duration_s: float | None = None
+    remove_modifier_duration_s: float | None = None
+    add_modifier_elapsed_duration_s: float | None = None
+    remove_modifier_elapsed_duration_s: float | None = None
+    add_aura_modifier: bool | None = None
+    remove_aura_modifier: bool | None = None
+    remove_modifier_purged: bool | None = None
+    remove_modifier_purged_duration_s: float | None = None
+    remove_caster_name: str = ""
+    remove_caster_is_hero: bool | None = None
+    remove_target_is_hero: bool | None = None
+    remove_caster_is_illusion: bool | None = None
+    remove_target_is_illusion: bool | None = None
+    evidence_gaps: list[str] = field(default_factory=list)
+
+
+@dataclass
+class VisionModifierPairingIssue:
+    """Removal evidence that could not be paired to one application safely.
+
+    Attributes:
+        tick: Exact replay tick of the removal observation.
+        reason: Stable machine-readable reason (``ambiguous`` or ``unmatched``).
+        modifier_name: Internal modifier name.
+        caster_name: Caster name carried by the removal.
+        target_name: Target name carried by the removal.
+        source: Combat-log ingestion path for the removal.
+        candidate_add_ticks: Eligible application ticks when pairing was ambiguous.
+        game_time_s: Pause-aware removal game time when available.
+        modifier_duration_s: Duration carried by the removal when available.
+        modifier_elapsed_duration_s: Elapsed duration carried by the removal.
+        attacker_team: Protocol attacker team on the removal.
+        target_team: Protocol target team on the removal.
+        caster_is_hero: Explicit caster hero status on the removal, if present.
+        target_is_hero: Explicit target hero status on the removal, if present.
+        caster_is_illusion: Explicit caster illusion status, if present.
+        target_is_illusion: Explicit target illusion status, if present.
+    """
+
+    tick: int
+    reason: str
+    modifier_name: str
+    caster_name: str
+    target_name: str
+    source: CombatLogSource = CombatLogSource.UNKNOWN
+    candidate_add_ticks: list[int] = field(default_factory=list)
+    game_time_s: int | None = None
+    modifier_duration_s: float | None = None
+    modifier_elapsed_duration_s: float | None = None
+    attacker_team: int | None = None
+    target_team: int | None = None
+    caster_is_hero: bool | None = None
+    target_is_hero: bool | None = None
+    caster_is_illusion: bool | None = None
+    target_is_illusion: bool | None = None
+    aura_modifier: bool | None = None
+    modifier_purged: bool | None = None
+    modifier_purged_duration_s: float | None = None
 
 
 @dataclass
@@ -770,6 +942,7 @@ class ParsedMatch:
     banner_plants: list[BannerPlant] = field(default_factory=list)
     game_times_min: list[int] = field(default_factory=list)
     hero_visibility_events: list[HeroVisibilityEvent] = field(default_factory=list)
+    vision_modifier_pairing_issues: list[VisionModifierPairingIssue] = field(default_factory=list)
     # Internal provenance for match-level values copied from CMsgDOTAMatch.
     _match_details_fields: set[str] = field(
         default_factory=set,

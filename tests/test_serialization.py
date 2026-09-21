@@ -7,8 +7,17 @@ from collections import defaultdict
 
 import gem
 import gem.api
+from gem.combat.log import CombatLogSource
 from gem.extractors.teamfights import OpenDotaTeamfight
-from gem.results.models import ParsedMatch, ParsedPlayer, SmokeEvent, SmokeParticipant
+from gem.results.models import (
+    ParsedMatch,
+    ParsedPlayer,
+    SmokeEvent,
+    SmokeParticipant,
+    VisionModifierEvent,
+    VisionModifierPairingIssue,
+    VisionModifierSemantic,
+)
 
 
 class TestSerializationHelpers:
@@ -93,6 +102,39 @@ class TestSerializationHelpers:
 
         assert "_match_details_fields" not in data
         assert "_match_details_fields" not in data["players"][0]
+
+    def test_to_dict_preserves_vision_lifecycle_and_pairing_evidence(self):
+        match = ParsedMatch(
+            vision_modifiers=[
+                VisionModifierEvent(
+                    10,
+                    20,
+                    "modifier_slardar_amplify_damage",
+                    "npc_dota_hero_riki",
+                    "npc_dota_hero_slardar",
+                    2,
+                    semantic=VisionModifierSemantic.DIRECT_TARGET_REVEAL,
+                    add_source=CombatLogSource.S2_DIRECT,
+                )
+            ],
+            vision_modifier_pairing_issues=[
+                VisionModifierPairingIssue(
+                    tick=30,
+                    reason="unmatched",
+                    modifier_name="modifier_bounty_hunter_track",
+                    caster_name="",
+                    target_name="npc_dota_hero_riki",
+                    source=CombatLogSource.S2_BULK,
+                )
+            ],
+        )
+
+        data = gem.to_dict(match)
+
+        assert data["vision_modifiers"][0]["semantic"] == "direct_target_reveal"
+        assert data["vision_modifiers"][0]["add_source"] == "s2_direct"
+        assert data["vision_modifier_pairing_issues"][0]["reason"] == "unmatched"
+        assert data["vision_modifier_pairing_issues"][0]["source"] == "s2_bulk"
 
     def test_to_dict_preserves_permanent_buff_availability(self):
         match = ParsedMatch()

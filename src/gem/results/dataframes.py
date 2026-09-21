@@ -26,10 +26,12 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         ``players``, ``positions``, ``combat_log``, ``wards``,
         ``objectives``, and ``chat``.
     """
-    from dataclasses import asdict
+    from dataclasses import asdict, fields
     from enum import Enum
 
     import pandas as pd
+
+    from gem.results.models import VisionModifierEvent, VisionModifierPairingIssue
 
     def _plain_row(item: Any) -> dict:
         """``asdict`` an item, demoting Enum field values to their raw value.
@@ -416,6 +418,15 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         else pd.DataFrame()
     )
     hero_visibility_df = pd.DataFrame(_plain_rows(match.hero_visibility_events))
+    vision_modifier_columns = [item.name for item in fields(VisionModifierEvent)]
+    vision_modifiers_df = pd.DataFrame(
+        _plain_rows(match.vision_modifiers), columns=vision_modifier_columns
+    )
+    vision_pairing_issue_columns = [item.name for item in fields(VisionModifierPairingIssue)]
+    vision_modifier_pairing_issues_df = pd.DataFrame(
+        _plain_rows(match.vision_modifier_pairing_issues),
+        columns=vision_pairing_issue_columns,
+    )
 
     return {
         "players": players_df,
@@ -436,6 +447,8 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         "courier_snapshots": courier_df,
         "neutral_item_finds": neutral_item_finds_df,
         "hero_visibility_events": hero_visibility_df,
+        "vision_modifiers": vision_modifiers_df,
+        "vision_modifier_pairing_issues": vision_modifier_pairing_issues_df,
         "player_kills_log": pd.DataFrame(player_kills_rows),
         "player_purchase_log": pd.DataFrame(player_purchase_rows),
         "player_runes_log": pd.DataFrame(player_runes_rows),
