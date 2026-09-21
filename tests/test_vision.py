@@ -1,12 +1,24 @@
-"""Tests for estimate_vision, is_daytime, and vision modifier reveals."""
+"""Tests for point-vision geometry, authoritative state, and target reveals."""
 
 from __future__ import annotations
 
+from typing import Literal
 from unittest.mock import MagicMock
 
-from gem.analysis import estimate_vision, is_daytime
+import pytest
+
+import gem
+from gem.analysis import (
+    PointVisionStatus,
+    assess_point_vision,
+    estimate_vision,
+    is_daytime,
+)
 from gem.extractors.wards import WardEvent
 from gem.results.models import (
+    HeroVisibilityEvent,
+    VisibilityState,
+    VisionModifierCloseEvidence,
     VisionModifierEvent,
     VisionModifierLifecycleStatus,
     VisionModifierPairingStatus,
@@ -39,12 +51,12 @@ def _player(team: int, position_log: list[tuple[int, float, float]]) -> MagicMoc
 
 def _ward(
     team: int,
-    x: float,
-    y: float,
+    x: float | None,
+    y: float | None,
     tick: int = 0,
     killed_tick: int | None = None,
     expires_tick: int | None = None,
-    ward_type: str = "observer",
+    ward_type: Literal["observer", "sentry"] = "observer",
 ) -> WardEvent:
     return WardEvent(
         tick=tick,
@@ -71,7 +83,9 @@ def _mod(
     semantic: VisionModifierSemantic = VisionModifierSemantic.DIRECT_TARGET_REVEAL,
     target_is_hero: bool = True,
     target_is_illusion: bool = False,
-    lifecycle_status: VisionModifierLifecycleStatus = VisionModifierLifecycleStatus.OPEN,
+    target_team: int = 0,
+    lifecycle_status: VisionModifierLifecycleStatus = VisionModifierLifecycleStatus.REMOVED,
+    close_evidence: VisionModifierCloseEvidence = VisionModifierCloseEvidence.OBSERVED,
     pairing_status: VisionModifierPairingStatus = VisionModifierPairingStatus.EXACT,
 ) -> VisionModifierEvent:
     return VisionModifierEvent(
@@ -85,7 +99,9 @@ def _mod(
         semantic=semantic,
         target_is_hero=target_is_hero,
         target_is_illusion=target_is_illusion,
+        target_team=target_team,
         lifecycle_status=lifecycle_status,
+        close_evidence=close_evidence,
         pairing_status=pairing_status,
     )
 
@@ -94,13 +110,16 @@ def _match(
     players: list,
     wards: list,
     game_start_tick: int = 0,
+    game_end_tick: int = 30_000,
     vision_modifiers: list | None = None,
 ) -> MagicMock:
     m = MagicMock()
     m.players = players
     m.wards = wards
     m.game_start_tick = game_start_tick
+    m.game_end_tick = game_end_tick
     m.vision_modifiers = vision_modifiers or []
+    m.hero_visibility_events = []
     return m
 
 
@@ -177,6 +196,9 @@ class TestEstimateVisionHero:
         assert len(result) == 1
         assert result[0].kind == "hero"
         assert result[0].vision_radius == _DAY_VISION
+        assert result[0].position_tick == _DAY_TICK
+        assert result[0].position_age_ticks == 0
+        assert result[0].position_provenance == "sampled_player_position"
 
     def test_allied_hero_outside_day_range(self) -> None:
         p = _player(2, [(_DAY_TICK, 0.0, 0.0)])
@@ -186,7 +208,7 @@ class TestEstimateVisionHero:
 
     def test_night_uses_reduced_radius(self) -> None:
         # Hero at (0,0), query at (1000, 0) — within day range but not night range
-        p = _player(2, [(_NIGHT_TICK, 0.0, 0.0)])
+        p = _player(2, [(_DAY_TICK, 0.0, 0.0), (_NIGHT_TICK, 0.0, 0.0)])
         match = _match([p], [], game_start_tick=0)
         # Day: 1000 < 1800 → vision
         result_day = estimate_vision(match, 2, _DAY_TICK, 1000.0, 0.0)
@@ -326,7 +348,7 @@ class TestEstimateVisionCombined:
 
 
 # ---------------------------------------------------------------------------
-# estimate_vision — vision modifier reveals
+# Direct-target reveals stay separate from estimate_vision geometry
 # ---------------------------------------------------------------------------
 
 
@@ -343,11 +365,21 @@ class TestEstimateVisionModifier:
             tick=0,
         )
         match = _match([revealed], [], vision_modifiers=[mod])
-        result = estimate_vision(match, 2, _DAY_TICK, 500.0, 0.0)
-        assert len(result) == 1
-        assert result[0].kind == "modifier"
-        assert result[0].name == "modifier_slardar_amplify_damage"
-        assert result[0].vision_radius == 0
+        assert estimate_vision(match, 2, _DAY_TICK, 500.0, 0.0) == []
+
+        assessment = assess_point_vision(
+            match,
+            2,
+            _DAY_TICK,
+            500.0,
+            0.0,
+            target_player_id=revealed.player_id,
+        )
+        assert assessment.status is PointVisionStatus.INCOMPLETE
+        assert assessment.sources == []
+        assert assessment.direct_target_reveals[0].modifier_name == (
+            "modifier_slardar_amplify_damage"
+        )
 
     def test_modifier_not_yet_applied(self) -> None:
         revealed = _player(3, [(_DAY_TICK, 0.0, 0.0)])
@@ -390,8 +422,8 @@ class TestEstimateVisionModifier:
         # Radiant should not see a VisionSource from Dire's tracker
         assert not any(s.kind == "modifier" for s in result)
 
-    def test_modifier_still_active_at_end_tick(self) -> None:
-        # end_tick == query tick — modifier is still active at this exact tick
+    def test_modifier_is_inactive_at_end_tick(self) -> None:
+        # Removal bounds a half-open interval: [application, removal).
         revealed = _player(3, [(_DAY_TICK, 0.0, 0.0)])
         mod = _mod(
             modifier_name="modifier_item_dustofappearance",
@@ -402,10 +434,15 @@ class TestEstimateVisionModifier:
             end_tick=_DAY_TICK,
         )
         match = _match([revealed], [], vision_modifiers=[mod])
-        result = estimate_vision(match, 2, _DAY_TICK, 0.0, 0.0)
-        # end_tick < tick is the exclusion condition; end_tick == tick is still active
-        assert len(result) == 1
-        assert result[0].kind == "modifier"
+        assessment = assess_point_vision(
+            match,
+            2,
+            _DAY_TICK,
+            0.0,
+            0.0,
+            target_player_id=revealed.player_id,
+        )
+        assert assessment.direct_target_reveals == []
 
     def test_modifier_target_hero_not_in_players(self) -> None:
         # The modifier's target_name doesn't match any player — no crash, no result
@@ -472,3 +509,379 @@ class TestEstimateVisionModifier:
 
         match = _match([revealed], [], vision_modifiers=[incomplete, nonhero, illusion])
         assert estimate_vision(match, 2, _DAY_TICK, 0.0, 0.0) == []
+
+
+# ---------------------------------------------------------------------------
+# assess_point_vision — structured evidence contract
+# ---------------------------------------------------------------------------
+
+
+class TestAssessPointVision:
+    def test_fresh_hero_support_and_provenance(self) -> None:
+        player = _player(2, [(_DAY_TICK - 30, 0.0, 0.0)])
+
+        result = assess_point_vision(_match([player], []), 2, _DAY_TICK, 100.0, 0.0)
+
+        assert result.status is PointVisionStatus.SUPPORTED
+        assert result.gaps == []
+        assert result.sources[0].kind == "hero"
+        assert result.sources[0].position_tick == _DAY_TICK - 30
+        assert result.sources[0].position_age_ticks == 30
+        assert result.sources[0].position_provenance == "sampled_player_position"
+
+    def test_fresh_out_of_range_is_unsupported_not_hidden(self) -> None:
+        player = _player(2, [(_DAY_TICK, 0.0, 0.0)])
+
+        result = assess_point_vision(_match([player], []), 2, _DAY_TICK, 5_000.0, 0.0)
+
+        assert result.status is PointVisionStatus.UNSUPPORTED
+        assert result.sources == []
+        assert result.gaps == []
+
+    def test_missing_and_stale_allied_positions_are_incomplete(self) -> None:
+        missing = _player(2, [])
+        stale = _player(2, [(_DAY_TICK - 151, 0.0, 0.0)])
+        stale.hero_name = "npc_dota_hero_bane"
+
+        result = assess_point_vision(_match([missing, stale], []), 2, _DAY_TICK, 0.0, 0.0)
+
+        assert result.status is PointVisionStatus.INCOMPLETE
+        assert {gap.code for gap in result.gaps} == {
+            "allied_hero_position_missing",
+            "allied_hero_position_stale",
+        }
+
+    def test_position_age_bound_is_configurable(self) -> None:
+        player = _player(2, [(_DAY_TICK - 151, 0.0, 0.0)])
+
+        default = assess_point_vision(_match([player], []), 2, _DAY_TICK, 0.0, 0.0)
+        relaxed = assess_point_vision(
+            _match([player], []),
+            2,
+            _DAY_TICK,
+            0.0,
+            0.0,
+            max_position_age_ticks=151,
+        )
+
+        assert default.status is PointVisionStatus.INCOMPLETE
+        assert relaxed.status is PointVisionStatus.SUPPORTED
+
+    def test_supported_status_retains_other_source_gaps(self) -> None:
+        fresh = _player(2, [(_DAY_TICK, 0.0, 0.0)])
+        missing = _player(2, [])
+        missing.hero_name = "npc_dota_hero_bane"
+
+        result = assess_point_vision(_match([fresh, missing], []), 2, _DAY_TICK, 0.0, 0.0)
+
+        assert result.status is PointVisionStatus.SUPPORTED
+        assert [gap.code for gap in result.gaps] == ["allied_hero_position_missing"]
+
+    def test_empty_allied_roster_is_incomplete(self) -> None:
+        result = assess_point_vision(_match([], []), 2, _DAY_TICK, 0.0, 0.0)
+
+        assert result.status is PointVisionStatus.INCOMPLETE
+        assert result.gaps[0].code == "allied_roster_empty"
+
+    def test_ward_interval_is_half_open_and_sentries_do_not_source(self) -> None:
+        placement = 100
+        removal = 200
+        observer = _ward(2, 0.0, 0.0, tick=placement, killed_tick=removal)
+        sentry = _ward(2, 0.0, 0.0, tick=placement, ward_type="sentry")
+        match = _match([], [observer, sentry])
+
+        at_placement = assess_point_vision(match, 2, placement, 0.0, 0.0)
+        at_removal = assess_point_vision(match, 2, removal, 0.0, 0.0)
+
+        assert [source.kind for source in at_placement.sources] == ["observer_ward"]
+        assert at_placement.sources[0].position_tick == placement
+        assert at_placement.sources[0].position_age_ticks is None
+        assert at_removal.sources == []
+
+    def test_ward_uses_earliest_kill_or_expiry_boundary(self) -> None:
+        ward = _ward(2, 0.0, 0.0, killed_tick=300, expires_tick=200)
+
+        result = assess_point_vision(_match([], [ward]), 2, 250, 0.0, 0.0)
+
+        assert result.sources == []
+
+    def test_live_allied_ward_missing_coordinates_is_a_gap(self) -> None:
+        ward = _ward(2, None, None, killed_tick=_DAY_TICK + 1)
+
+        result = assess_point_vision(_match([], [ward]), 2, _DAY_TICK, 0.0, 0.0)
+
+        assert "observer_ward_position_missing" in {gap.code for gap in result.gaps}
+
+    def test_live_unknown_team_observer_is_a_gap(self) -> None:
+        ward = _ward(0, 0.0, 0.0, killed_tick=_DAY_TICK + 1)
+
+        result = assess_point_vision(_match([], [ward]), 2, _DAY_TICK, 0.0, 0.0)
+
+        assert "observer_ward_team_unknown" in {gap.code for gap in result.gaps}
+
+    def test_open_ward_requires_known_query_horizon(self) -> None:
+        ward = _ward(2, 0.0, 0.0)
+        unknown = assess_point_vision(_match([], [ward], game_end_tick=0), 2, _DAY_TICK, 0.0, 0.0)
+        beyond = assess_point_vision(
+            _match([], [ward], game_end_tick=_DAY_TICK - 1), 2, _DAY_TICK, 0.0, 0.0
+        )
+        observed = assess_point_vision(
+            _match([], [ward], game_end_tick=_DAY_TICK), 2, _DAY_TICK, 0.0, 0.0
+        )
+
+        assert "observer_ward_lifetime_unknown" in {gap.code for gap in unknown.gaps}
+        assert "observer_ward_lifetime_unknown" in {gap.code for gap in beyond.gaps}
+        assert [source.kind for source in observed.sources] == ["observer_ward"]
+
+    def test_direct_reveal_is_target_specific_not_point_support(self) -> None:
+        target = _player(3, [(_DAY_TICK, 0.0, 0.0)])
+        target.player_id = 5
+        target.hero_name = "npc_dota_hero_bane"
+        modifier = _mod(
+            modifier_name="modifier_slardar_amplify_damage",
+            target_name=target.hero_name,
+            caster_name="npc_dota_hero_slardar",
+            caster_team=2,
+        )
+
+        result = assess_point_vision(
+            _match([target], [], vision_modifiers=[modifier]),
+            2,
+            _DAY_TICK,
+            99_999.0,
+            99_999.0,
+            target_player_id=target.player_id,
+        )
+
+        assert result.sources == []
+        assert len(result.direct_target_reveals) == 1
+        assert result.direct_target_reveals[0].target_player_id == 5
+        reveal_payload = gem.to_dict(result)["direct_target_reveals"][0]
+        assert reveal_payload["start_tick"] == modifier.tick
+        assert "tick" not in reveal_payload
+
+    @pytest.mark.parametrize(
+        ("event_changes", "gap_code"),
+        [
+            (
+                {"lifecycle_status": VisionModifierLifecycleStatus.INCOMPLETE},
+                "direct_target_reveal_incomplete",
+            ),
+            (
+                {"pairing_status": VisionModifierPairingStatus.AMBIGUOUS},
+                "direct_target_reveal_ambiguous",
+            ),
+            ({"end_tick": None}, "direct_target_reveal_unbounded"),
+            (
+                {"close_evidence": VisionModifierCloseEvidence.DURATION_INFERRED},
+                "direct_target_reveal_unbounded",
+            ),
+        ],
+    )
+    def test_unusable_matching_direct_reveal_creates_gap(
+        self, event_changes: dict, gap_code: str
+    ) -> None:
+        target = _player(3, [])
+        target.player_id = 5
+        target.hero_name = "npc_dota_hero_bane"
+        ally = _player(2, [(_DAY_TICK, 5_000.0, 0.0)])
+        modifier = _mod(
+            modifier_name="modifier_bounty_hunter_track",
+            target_name=target.hero_name,
+            caster_name="npc_dota_hero_bounty_hunter",
+            caster_team=2,
+            **event_changes,
+        )
+
+        result = assess_point_vision(
+            _match([ally, target], [], vision_modifiers=[modifier]),
+            2,
+            _DAY_TICK,
+            0.0,
+            0.0,
+            target_player_id=5,
+        )
+
+        assert gap_code in {gap.code for gap in result.gaps}
+        assert result.direct_target_reveals == []
+        assert result.status is PointVisionStatus.UNSUPPORTED
+
+    def test_duplicate_target_hero_name_prevents_reveal_attribution(self) -> None:
+        target = _player(3, [])
+        target.player_id = 5
+        target.hero_name = "npc_dota_hero_bane"
+        duplicate = _player(3, [])
+        duplicate.player_id = 6
+        duplicate.hero_name = target.hero_name
+        modifier = _mod(
+            modifier_name="modifier_bounty_hunter_track",
+            target_name=target.hero_name,
+            caster_name="npc_dota_hero_bounty_hunter",
+            caster_team=2,
+            target_team=3,
+        )
+
+        result = assess_point_vision(
+            _match([target, duplicate], [], vision_modifiers=[modifier]),
+            2,
+            _DAY_TICK,
+            0.0,
+            0.0,
+            target_player_id=target.player_id,
+        )
+
+        assert result.authoritative_applicable is True
+        assert result.direct_target_reveals == []
+        assert "target_identity_ambiguous" in {gap.code for gap in result.gaps}
+
+    def test_conflicting_modifier_target_team_prevents_reveal_attribution(self) -> None:
+        target = _player(3, [])
+        target.player_id = 5
+        target.hero_name = "npc_dota_hero_bane"
+        modifier = _mod(
+            modifier_name="modifier_slardar_amplify_damage",
+            target_name=target.hero_name,
+            caster_name="npc_dota_hero_slardar",
+            caster_team=2,
+            target_team=2,
+        )
+
+        result = assess_point_vision(
+            _match([target], [], vision_modifiers=[modifier]),
+            2,
+            _DAY_TICK,
+            0.0,
+            0.0,
+            target_player_id=target.player_id,
+        )
+
+        assert result.direct_target_reveals == []
+        assert "direct_target_reveal_target_team_conflict" in {gap.code for gap in result.gaps}
+
+    @pytest.mark.parametrize(
+        ("target_team", "gap_code"),
+        [
+            (0, "target_team_unknown"),
+            (2, "direct_target_reveal_target_team_conflict"),
+        ],
+    )
+    def test_target_team_must_be_known_opponent(self, target_team: int, gap_code: str) -> None:
+        target = _player(target_team, [])
+        target.player_id = 5
+        target.hero_name = "npc_dota_hero_bane"
+        modifier = _mod(
+            modifier_name="modifier_slardar_amplify_damage",
+            target_name=target.hero_name,
+            caster_name="npc_dota_hero_slardar",
+            caster_team=2,
+        )
+
+        result = assess_point_vision(
+            _match([target], [], vision_modifiers=[modifier]),
+            2,
+            _DAY_TICK,
+            0.0,
+            0.0,
+            target_player_id=target.player_id,
+        )
+
+        assert result.authoritative_applicable is True
+        assert result.direct_target_reveals == []
+        assert gap_code in {gap.code for gap in result.gaps}
+
+    def test_ended_modifier_does_not_add_current_evidence_gap(self) -> None:
+        target = _player(3, [])
+        target.player_id = 5
+        target.hero_name = "npc_dota_hero_bane"
+        historical = _mod(
+            modifier_name="modifier_bounty_hunter_track",
+            target_name=target.hero_name,
+            caster_name="npc_dota_hero_bounty_hunter",
+            caster_team=0,
+            tick=0,
+            end_tick=_DAY_TICK,
+            lifecycle_status=VisionModifierLifecycleStatus.INCOMPLETE,
+        )
+
+        result = assess_point_vision(
+            _match([target], [], vision_modifiers=[historical]),
+            2,
+            _DAY_TICK,
+            0.0,
+            0.0,
+            target_player_id=target.player_id,
+        )
+
+        assert result.direct_target_reveals == []
+        assert not any(gap.code.startswith("direct_target_reveal") for gap in result.gaps)
+
+    @pytest.mark.parametrize(
+        ("state", "expected"),
+        [
+            (VisibilityState.VISIBLE, VisibilityState.VISIBLE),
+            (VisibilityState.HIDDEN, VisibilityState.HIDDEN),
+            (VisibilityState.UNKNOWN, VisibilityState.UNKNOWN),
+        ],
+    )
+    def test_authoritative_target_visibility_is_separate(
+        self, state: VisibilityState, expected: VisibilityState
+    ) -> None:
+        target = _player(3, [])
+        target.player_id = 5
+        target.hero_name = "npc_dota_hero_bane"
+        match = _match([target], [])
+        match.hero_visibility_events = [
+            HeroVisibilityEvent(
+                tick=_DAY_TICK,
+                player_id=5,
+                hero_name=target.hero_name,
+                entity_index=7,
+                entity_serial=1,
+                radiant_state=state,
+                dire_state=VisibilityState.UNKNOWN,
+            )
+        ]
+
+        result = assess_point_vision(
+            match, 2, _DAY_TICK, 0.0, 0.0, target_player_id=target.player_id
+        )
+
+        assert result.authoritative_applicable is True
+        assert result.authoritative_visibility is expected
+
+    def test_unknown_target_is_not_authoritatively_applicable(self) -> None:
+        ally = _player(2, [(_DAY_TICK, 5_000.0, 0.0)])
+        result = assess_point_vision(
+            _match([ally], []), 2, _DAY_TICK, 0.0, 0.0, target_player_id=99
+        )
+
+        assert result.authoritative_applicable is False
+        assert result.authoritative_visibility is VisibilityState.UNKNOWN
+        assert result.status is PointVisionStatus.UNSUPPORTED
+        assert result.gaps == [
+            gem.PointVisionGap(code="target_player_missing", subject="player:99")
+        ]
+
+    def test_validation(self) -> None:
+        with pytest.raises(ValueError, match="team"):
+            assess_point_vision(_match([], []), 1, 0, 0.0, 0.0)
+        with pytest.raises(ValueError, match="nonnegative"):
+            assess_point_vision(_match([], []), 2, 0, 0.0, 0.0, max_position_age_ticks=-1)
+
+    def test_public_exports_and_generic_serialization(self) -> None:
+        result = assess_point_vision(
+            _match([_player(2, [(_DAY_TICK, 0.0, 0.0)])], []),
+            2,
+            _DAY_TICK,
+            0.0,
+            0.0,
+        )
+
+        assert gem.assess_point_vision is assess_point_vision
+        assert gem.PointVisionStatus is PointVisionStatus
+        assert "PointVisionAssessment" in gem.__all__
+        payload = gem.to_dict(result)
+        assert payload["status"] == "supported"
+        assert payload["sources"][0]["name"].startswith("npc_dota_hero_")
+        assert payload["sources"][0]["vision_radius"] == _DAY_VISION
+        assert payload["sources"][0]["position_tick"] == _DAY_TICK

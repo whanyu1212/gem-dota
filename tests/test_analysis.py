@@ -2,17 +2,20 @@
 
 from __future__ import annotations
 
+from typing import Any
 from unittest.mock import MagicMock
 
 import gem.analysis as analysis
 import gem.analysis.combat as analysis_combat
 import gem.analysis.spatial as analysis_spatial
-from gem.analysis import group_ability_hits, position_at_tick
+from gem.analysis import group_ability_hits, position_at_tick, position_sample_at_tick
 from gem.combat.log import CombatLogEntry
 
 
 def test_analysis_package_reexports_public_helpers() -> None:
     assert analysis.position_at_tick is analysis_spatial.position_at_tick
+    assert analysis.position_sample_at_tick is analysis_spatial.position_sample_at_tick
+    assert analysis.SampledPosition is analysis_spatial.SampledPosition
     assert analysis.group_ability_hits is analysis_combat.group_ability_hits
     assert analysis.AbilityCast is analysis_combat.AbilityCast
 
@@ -28,8 +31,8 @@ def _player(position_log: list[tuple[int, float, float]]) -> MagicMock:
     return p
 
 
-def _entry(**kwargs) -> CombatLogEntry:
-    defaults = {
+def _entry(**kwargs: Any) -> CombatLogEntry:
+    defaults: dict[str, Any] = {
         "tick": 0,
         "log_type": "DAMAGE",
         "attacker_name": "npc_dota_hero_axe",
@@ -91,6 +94,26 @@ class TestPositionAtTick:
         player = _player(log)
         pos = position_at_tick(player, 30 * 50)
         assert pos == (50.0, 50.0)
+
+
+class TestPositionSampleAtTick:
+    def test_empty_log_returns_none(self) -> None:
+        assert position_sample_at_tick(_player([]), 100) is None
+
+    def test_returns_nearest_sample_metadata(self) -> None:
+        sample = position_sample_at_tick(_player([(100, 1.0, 2.0), (200, 3.0, 4.0)]), 175)
+
+        assert sample is not None
+        assert (sample.x, sample.y) == (3.0, 4.0)
+        assert sample.sample_tick == 200
+        assert sample.age_ticks == 25
+
+    def test_equidistant_sample_prefers_earlier(self) -> None:
+        sample = position_sample_at_tick(_player([(100, 1.0, 2.0), (200, 3.0, 4.0)]), 150)
+
+        assert sample is not None
+        assert sample.sample_tick == 100
+        assert sample.age_ticks == 50
 
 
 # ---------------------------------------------------------------------------

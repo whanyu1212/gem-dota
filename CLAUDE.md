@@ -252,6 +252,23 @@ pause-aware source is available.
 
 Alternative approach (refs): read the `ActiveModifiers` string table directly — each entry is a `CDOTAModifierBuffTableEntry` protobuf with a `player_ids` field (comma-separated player slots). Would give the same result for empty-group cases. Not currently implemented; requires parsing an additional string table of protobufs.
 
+### Point-vision evidence boundaries
+
+Canonical hero visibility and arbitrary map-point coverage are different APIs.
+Use `hero_visibility_at(...)` for replay-authoritative visible/hidden/unknown
+state on a canonical player hero. Use `assess_point_vision(...)` for bounded
+hero/observer geometry with explicit supported/unsupported/incomplete status,
+sample provenance, and evidence gaps. `estimate_vision(...)` is the compatibility
+list view and cannot explain a negative result.
+
+Never present absent modelled point sources as proof of fog. Direct-target
+modifiers such as Track and Corrosive Haze apply to their target only; they are
+reported separately when `target_player_id` is supplied and must not become
+unlimited arbitrary-point sources. Hero positions older than the documented
+freshness bound are unavailable, not silently carried forward. Observer ward
+lifetimes are half-open at the observed kill/expiry tick; sentries remain
+distinct because true sight does not grant standard map vision.
+
 ### Gold / XP field sources — critical distinction
 
 Three different gold/XP fields exist; using the wrong one silently produces wrong curves.

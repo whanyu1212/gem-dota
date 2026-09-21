@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Evidence-aware point-vision assessment.** Add
+  `assess_point_vision(...)` with explicit supported, unsupported, and
+  incomplete states; bounded sampled-position provenance; observer lifetime
+  and missing-evidence details; optional authoritative canonical-hero
+  visibility; and target-specific reveal evidence kept separate from map-point
+  coverage.
 - **Evidence-preserving vision modifier lifecycles.** Classify direct reveals,
   reveal auras, and Gem carriers; retain protocol/source/duration/purge evidence,
   non-hero applications, conservative lifecycle states, and public ambiguous or
@@ -37,6 +43,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Safer experimental vision interpretation.** `estimate_vision(...)` keeps
+  its compatibility list result while using the hardened freshness and ward
+  boundary rules, and direct-target modifiers no longer act as unlimited
+  arbitrary-point sources. The kill feed now reports authoritative
+  visible/hidden/unknown hero state instead of inferring a blind kill from an
+  empty geometry result.
 - **Evidence-first Roshan conversion.** Harden Aegis attribution and per-Roshan
   boundaries, add signed fight, tier-weighted structure, gold, XP, sustained
   territory, forward-ward, and Tormentor differentials, and replace the report's
