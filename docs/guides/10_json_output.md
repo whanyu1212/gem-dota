@@ -93,7 +93,7 @@ Most match events are arrays of records:
 | `towers`, `barracks`, `roshans`, `tormentors`, `shrines` | Typed Gem objective lists |
 | `teamfights` | Gem teamfight windows with richer participant stats |
 | `opendota_teamfights` | OpenDota-compatible teamfight windows |
-| `smoke_events` | Smoke of Deceit activations and grouped heroes |
+| `smoke_events` | Smoke activations with grouped heroes and exact per-member modifier lifecycles |
 | `neutral_item_finds` | Neutral item find user messages |
 | `vision_modifiers` | Reveal/vision modifier windows used by vision analysis |
 

@@ -69,7 +69,8 @@ Available DataFrames:
 | `draft` | Pick and ban events |
 | `teamfights` | Gem teamfight windows with participant stats |
 | `opendota_teamfights` | OpenDota-compatible 3+ death temporal teamfight windows |
-| `smoke_events` | Smoke of Deceit usages and grouped heroes |
+| `smoke_events` | Smoke activations with exact per-hero modifier lifecycles |
+| `smoke_members` | Flat per-hero smoke application/removal timing and sampled positions |
 | `courier_snapshots` | Courier state over time |
 | `neutral_item_finds` | Neutral item find events from `DOTA_UM_FoundNeutralItem` |
 | `player_kills_log` | Per-player kill log rows |

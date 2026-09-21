@@ -377,6 +377,34 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         if match.smoke_events
         else pd.DataFrame()
     )
+    smoke_member_columns = [
+        "smoke_event_index",
+        "activation_tick",
+        "activator",
+        "team",
+        "hero_name",
+        "player_id",
+        "applied_tick",
+        "removed_tick",
+        "modifier_duration_s",
+        "modifier_elapsed_duration_s",
+        "applied_x",
+        "applied_y",
+        "removed_x",
+        "removed_y",
+    ]
+    smoke_member_rows = [
+        {
+            "smoke_event_index": event_index,
+            "activation_tick": smoke.tick,
+            "activator": smoke.activator,
+            "team": smoke.team,
+            **asdict(participant),
+        }
+        for event_index, smoke in enumerate(match.smoke_events)
+        for participant in smoke.participants
+    ]
+    smoke_members_df = pd.DataFrame(smoke_member_rows, columns=smoke_member_columns)
     courier_df = (
         pd.DataFrame([asdict(cs) for cs in match.courier_snapshots])
         if match.courier_snapshots
@@ -404,6 +432,7 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         "teamfights": teamfights_df,
         "opendota_teamfights": opendota_teamfights_df,
         "smoke_events": smoke_df,
+        "smoke_members": smoke_members_df,
         "courier_snapshots": courier_df,
         "neutral_item_finds": neutral_item_finds_df,
         "hero_visibility_events": hero_visibility_df,

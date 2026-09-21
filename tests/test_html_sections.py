@@ -11,8 +11,17 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
+import pytest
+
+from gem.analysis.smoke import (
+    SmokeAnalysis,
+    SmokeGroupStatus,
+    SmokeLifecycleStatus,
+    SmokeMemberAnalysis,
+)
 from gem.reports import _sections
 from gem.reports.sections.economy import _net_worth_at
+from gem.results.models import SmokeEvent, SmokeParticipant, VisibilityState
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -163,26 +172,15 @@ class TestBuildWardsDataTag:
         w.killer = "npc_dota_hero_lina"
         return w
 
-    def _make_smoke(self) -> MagicMock:
-        s = MagicMock()
-        s.x = 0.0
-        s.y = 0.0
-        s.tick = 1200
-        s.team = 2
-        s.activator = "npc_dota_hero_axe"
-        s.smoked = ["a", "b"]
-        return s
-
     def _make_match(self) -> MagicMock:
         match = MagicMock()
         match.wards = [
             self._make_ward(ward_type="observer", team=2),
             self._make_ward(ward_type="sentry", team=3, killed_tick=None, expires_tick=2000),
         ]
-        match.smoke_events = [self._make_smoke()]
+        match.smoke_events = []
         match.game_start_tick = 900
         match.game_end_tick = 3000
-        # estimate_vision() iterates match.players; empty == no enemy vision.
         match.players = []
         return match
 
@@ -202,7 +200,7 @@ class TestBuildWardsDataTag:
         html = _sections.build_wards(self._make_match(), None)
         cfg = self._data_tag_payload(html)
         assert len(cfg["wards"]) == 2
-        assert len(cfg["smokes"]) == 1
+        assert "smokes" not in cfg
         assert cfg["gameStartTick"] == 900
         assert cfg["sliderMin"] is not None
         assert cfg["sliderMax"] is not None
@@ -237,3 +235,245 @@ class TestBuildWardsDataTag:
         html = _sections.build_wards(match, None)
         assert "(no ward placement data)" in html
         assert 'type="application/json"' not in html
+
+
+class TestBuildSmokes:
+    """Smoke reporting keeps lifecycle, visibility, and spatial evidence separate."""
+
+    @staticmethod
+    def _smoke_config(html: str) -> dict:
+        import json
+        import re
+
+        match = re.search(
+            r'<script type="application/json" id="smoke-data">(.*?)</script>',
+            html,
+            re.S,
+        )
+        assert match is not None
+        return json.loads(match.group(1))
+
+    def test_renders_exact_early_removal_without_guessing_detection(self, monkeypatch):
+        participant = SmokeParticipant(
+            hero_name="npc_dota_hero_axe",
+            player_id=0,
+            applied_tick=1_002,
+            removed_tick=1_452,
+            modifier_duration_s=45.0,
+            modifier_elapsed_duration_s=15.0,
+            applied_x=100.0,
+            applied_y=200.0,
+            removed_x=300.0,
+            removed_y=400.0,
+        )
+        smoke = SmokeEvent(
+            tick=1_000,
+            activator="npc_dota_hero_axe",
+            team=2,
+            smoked=[participant.hero_name],
+            activation_x=50.0,
+            activation_y=75.0,
+            participants=[participant],
+        )
+        member = SmokeMemberAnalysis(
+            hero_name=participant.hero_name,
+            player_id=0,
+            applied_tick=1_002,
+            removed_tick=1_452,
+            lifecycle_status=SmokeLifecycleStatus.EARLY,
+            visibility_at_apply=VisibilityState.HIDDEN,
+            visibility_at_remove=VisibilityState.HIDDEN,
+            nearest_enemy_hero="npc_dota_hero_lina",
+            nearest_enemy_player_id=5,
+            nearest_enemy_distance=1_046.4,
+            same_tick_actions=[MagicMock()],
+        )
+        analysis = SmokeAnalysis(
+            activation_tick=1_000,
+            activator=smoke.activator,
+            team=2,
+            status=SmokeGroupStatus.EARLY_REMOVAL,
+            activation_x=50.0,
+            activation_y=75.0,
+            member_centroid_x=100.0,
+            member_centroid_y=200.0,
+            members=[member],
+        )
+        match = MagicMock()
+        match.smoke_events = [smoke]
+        player = _make_player(player_id=0, team=2)
+        player.position_log = [(1_000, 50.0, 75.0), (1_452, 300.0, 400.0)]
+        match.players = [player]
+
+        from gem.reports.sections import vision as vision_section
+
+        monkeypatch.setattr(vision_section, "build_smoke_analysis", lambda _: [analysis])
+        html = _sections.build_smokes(match, None)
+
+        assert "Smoke Operations" in html
+        assert "Early removal" in html
+        assert "+15.07s" in html
+        assert "Hidden from enemy" in html
+        assert "1,046u sampled" in html
+        assert "action at same tick" in html
+        assert "Enemy had vision" not in html
+        assert "Undetected" not in html
+
+    def test_empty_unlocated_smoke_renders_without_wards_or_map(self, monkeypatch):
+        smoke = SmokeEvent(tick=2_000, activator="npc_dota_hero_riki", team=0)
+        analysis = SmokeAnalysis(
+            activation_tick=2_000,
+            activator=smoke.activator,
+            team=0,
+            status=SmokeGroupStatus.NO_MEMBERS_OBSERVED,
+            activation_x=None,
+            activation_y=None,
+            member_centroid_x=None,
+            member_centroid_y=None,
+        )
+        match = MagicMock(smoke_events=[smoke], players=[], wards=[])
+
+        from gem.reports.sections import vision as vision_section
+
+        monkeypatch.setattr(vision_section, "build_smoke_analysis", lambda _: [analysis])
+        html = _sections.build_smokes(match, None)
+
+        assert "Smoke Operations" in html
+        assert "No members observed" in html
+        assert "No smoke members observed" in html
+        assert "smokeCanvas" not in html
+
+    def test_route_centroid_uses_only_each_members_observed_lifecycle(self):
+        from gem.reports._formatting import MAP_XMAX, MAP_XMIN
+        from gem.reports.sections.vision import _smoke_route
+
+        first = SmokeParticipant(
+            hero_name="first",
+            player_id=0,
+            applied_tick=100,
+            removed_tick=130,
+        )
+        late = SmokeParticipant(
+            hero_name="late",
+            player_id=1,
+            applied_tick=130,
+            removed_tick=160,
+        )
+        smoke = SmokeEvent(
+            tick=100,
+            activator="first",
+            team=2,
+            participants=[first, late],
+        )
+        first_player = _make_player(player_id=0, hero_name="first")
+        first_player.position_log = [(100, 0.0, 0.0), (130, 30.0, 0.0), (160, 60.0, 0.0)]
+        late_player = _make_player(player_id=1, hero_name="late")
+        late_player.position_log = [(100, 100.0, 0.0), (130, 130.0, 0.0), (160, 160.0, 0.0)]
+        match = MagicMock(players=[first_player, late_player])
+
+        route = _smoke_route(match, smoke)
+        world_x = [point["fx"] * (MAP_XMAX - MAP_XMIN) + MAP_XMIN for point in route]
+
+        assert [point["tick"] for point in route] == [100, 130, 160]
+        assert world_x == pytest.approx([0.0, 80.0, 160.0], abs=0.1)
+
+    def test_missing_activation_position_is_not_replaced_by_member_centroid(self, monkeypatch):
+        participant = SmokeParticipant(
+            hero_name="npc_dota_hero_axe",
+            player_id=0,
+            applied_tick=101,
+            removed_tick=130,
+            modifier_duration_s=45.0,
+        )
+        smoke = SmokeEvent(
+            tick=100,
+            activator=participant.hero_name,
+            team=2,
+            x=500.0,
+            y=600.0,
+            participants=[participant],
+        )
+        member = SmokeMemberAnalysis(
+            hero_name=participant.hero_name,
+            player_id=0,
+            applied_tick=101,
+            removed_tick=130,
+            lifecycle_status=SmokeLifecycleStatus.EARLY,
+            visibility_at_apply=VisibilityState.HIDDEN,
+            visibility_at_remove=VisibilityState.HIDDEN,
+        )
+        analysis = SmokeAnalysis(
+            activation_tick=100,
+            activator=participant.hero_name,
+            team=2,
+            status=SmokeGroupStatus.EARLY_REMOVAL,
+            activation_x=None,
+            activation_y=None,
+            member_centroid_x=500.0,
+            member_centroid_y=600.0,
+            members=[member],
+        )
+        player = _make_player(player_id=0, hero_name=participant.hero_name)
+        player.position_log = [(101, 500.0, 600.0), (130, 700.0, 800.0)]
+        match = MagicMock(smoke_events=[smoke], players=[player])
+
+        from gem.reports.sections import vision as vision_section
+
+        monkeypatch.setattr(vision_section, "build_smoke_analysis", lambda _: [analysis])
+        config = self._smoke_config(_sections.build_smokes(match, None))
+
+        assert config["events"][0]["start"] is None
+        assert config["events"][0]["route"]
+
+    def test_same_tick_same_activator_events_keep_their_own_raw_lifecycles(self, monkeypatch):
+        raw_events = []
+        analyses = []
+        for duration in (10.0, 20.0):
+            participant = SmokeParticipant(
+                hero_name="npc_dota_hero_axe",
+                player_id=0,
+                applied_tick=101,
+                removed_tick=130,
+                modifier_duration_s=duration,
+            )
+            raw_events.append(
+                SmokeEvent(
+                    tick=100,
+                    activator=participant.hero_name,
+                    team=2,
+                    participants=[participant],
+                )
+            )
+            analyses.append(
+                SmokeAnalysis(
+                    activation_tick=100,
+                    activator=participant.hero_name,
+                    team=2,
+                    status=SmokeGroupStatus.EARLY_REMOVAL,
+                    activation_x=None,
+                    activation_y=None,
+                    member_centroid_x=None,
+                    member_centroid_y=None,
+                    members=[
+                        SmokeMemberAnalysis(
+                            hero_name=participant.hero_name,
+                            player_id=0,
+                            applied_tick=101,
+                            removed_tick=130,
+                            lifecycle_status=SmokeLifecycleStatus.EARLY,
+                            visibility_at_apply=VisibilityState.UNKNOWN,
+                            visibility_at_remove=VisibilityState.UNKNOWN,
+                        )
+                    ],
+                )
+            )
+        match = MagicMock(smoke_events=raw_events, players=[])
+
+        from gem.reports.sections import vision as vision_section
+
+        monkeypatch.setattr(vision_section, "build_smoke_analysis", lambda _: analyses)
+        html = _sections.build_smokes(match, None)
+
+        assert html.count("10.00s") == 1
+        assert html.count("20.00s") == 1
+        assert html.index("10.00s") < html.index("20.00s")

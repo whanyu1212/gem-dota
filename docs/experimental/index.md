@@ -24,6 +24,7 @@ An experimental feature usually has at least one of these properties:
 |---|---|
 | [Farming Patterns](./farming-patterns.md) | Where a hero is routing on the map, how safe or forced those routes look, and what objective state may be shaping those choices |
 | [Roshan Conversion](./rosh-conversion.md) | Whether a team actually translated Roshan into fights, structures, territorial squeeze, or a game-closing sequence |
+| [Smoke Analysis](./smoke-analysis.md) | When each smoked hero gained and lost the modifier, what the enemy could see, and what happened next |
 | [Estimate Vision](./estimate-vision.md) | Whether a team likely had vision of a point, which source provided it, and how that approximation is derived |
 | [Vision Modifiers](./vision-modifiers.md) | Which reveal-style modifier windows gem tracks, how they are derived from combat-log events, and how they feed later vision analysis |
 
@@ -34,7 +35,8 @@ An experimental feature usually has at least one of these properties:
 3. [Reports](../reports/index.md)
 4. [Farming Patterns](./farming-patterns.md)
 5. [Roshan Conversion](./rosh-conversion.md)
-6. [Estimate Vision](./estimate-vision.md)
-7. [Vision Modifiers](./vision-modifiers.md)
+6. [Smoke Analysis](./smoke-analysis.md)
+7. [Estimate Vision](./estimate-vision.md)
+8. [Vision Modifiers](./vision-modifiers.md)
 
 The first three tell you where the underlying replay data comes from. The Experimental Features pages explain how gem turns that raw data into analyst-facing interpretations.

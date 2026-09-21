@@ -23,6 +23,13 @@ from gem.analysis.roshan import (
     RoshTimelineEvent,
     build_rosh_conversions,
 )
+from gem.analysis.smoke import (
+    SmokeAnalysis,
+    SmokeGroupStatus,
+    SmokeLifecycleStatus,
+    SmokeMemberAnalysis,
+    build_smoke_analysis,
+)
 from gem.analysis.spatial import heroes_near, net_worth_at, position_at_tick
 from gem.analysis.vision import (
     VisionSource,
@@ -42,11 +49,16 @@ __all__ = [
     "RoshDifferentialProfile",
     "RoshTerritoryWindow",
     "RoshTimelineEvent",
+    "SmokeAnalysis",
+    "SmokeGroupStatus",
+    "SmokeLifecycleStatus",
+    "SmokeMemberAnalysis",
     "VisionSource",
     "_is_daytime",
     "ability_level_at_tick",
     "build_map_context_timeline",
     "build_rosh_conversions",
+    "build_smoke_analysis",
     "estimate_vision",
     "hero_visibility_at",
     "format_npc_name",

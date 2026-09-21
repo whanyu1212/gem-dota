@@ -9,6 +9,7 @@ from gem.results.models import (
     ParsedMatch,
     ParsedPlayer,
     SmokeEvent,
+    SmokeParticipant,
     VisibilityState,
     VisionModifierEvent,
 )
@@ -20,6 +21,7 @@ __all__ = [
     "ParsedMatch",
     "ParsedPlayer",
     "SmokeEvent",
+    "SmokeParticipant",
     "VisionModifierEvent",
     "VisibilityState",
     "build_dataframes",

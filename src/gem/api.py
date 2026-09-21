@@ -47,6 +47,9 @@ Public API
 ``build_rosh_conversions(match)``
     Summarize how each Roshan translated into fights, objectives, and map pressure.
 
+``build_smoke_analysis(match)``
+    Summarize exact smoke modifier lifecycles and supporting evidence.
+
 ``resolve_pick_team(event, players)``
     Resolve the team (Radiant/Dire) for a draft pick/ban event.
 
@@ -75,10 +78,15 @@ from gem.analysis import (
     RoshDifferentialProfile,
     RoshTerritoryWindow,
     RoshTimelineEvent,
+    SmokeAnalysis,
+    SmokeGroupStatus,
+    SmokeLifecycleStatus,
+    SmokeMemberAnalysis,
     VisionSource,
     ability_level_at_tick,
     build_map_context_timeline,
     build_rosh_conversions,
+    build_smoke_analysis,
     estimate_vision,
     format_npc_name,
     group_ability_hits,
@@ -120,6 +128,8 @@ from gem.results.models import (
     NeutralItemFoundEvent,
     ParsedMatch,
     ParsedPlayer,
+    SmokeEvent,
+    SmokeParticipant,
     VisibilityState,
     VisionModifierEvent,
 )
@@ -353,6 +363,8 @@ __all__ = [
     "NeutralItemFoundEvent",
     "BuybackEvent",
     "BannerPlant",
+    "SmokeEvent",
+    "SmokeParticipant",
     "find_player",
     "hero_npc_name",
     "position_at_tick",
@@ -377,11 +389,16 @@ __all__ = [
     "build_map_context_timeline",
     "score_camp_visit_context",
     "RoshTimelineEvent",
+    "SmokeAnalysis",
+    "SmokeGroupStatus",
+    "SmokeLifecycleStatus",
+    "SmokeMemberAnalysis",
     "RoshConversion",
     "RoshCoverageCell",
     "RoshDifferentialProfile",
     "RoshTerritoryWindow",
     "build_rosh_conversions",
+    "build_smoke_analysis",
     "resolve_pick_team",
     "catalog",
     "constants",

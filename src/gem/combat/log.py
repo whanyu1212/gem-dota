@@ -175,6 +175,15 @@ class CombatLogEntry:
             ``None`` when the optional field is absent (always ``None`` for S1).
         visible_dire: Whether the event was visible to Dire in S2, or ``None``
             when the optional field is absent (always ``None`` for S1).
+        modifier_duration_s: Intended modifier duration in seconds in S2, or
+            ``None`` when the optional field is absent (always ``None`` for S1).
+        modifier_elapsed_duration_s: Elapsed modifier duration in seconds in
+            S2, or ``None`` when the optional field is absent (always ``None``
+            for S1).
+        attacker_team: Raw attacker team number in S2, or ``None`` when the
+            optional field is absent (always ``None`` for S1).
+        target_team: Raw target team number in S2, or ``None`` when the optional
+            field is absent (always ``None`` for S1).
     """
 
     tick: int
@@ -203,6 +212,10 @@ class CombatLogEntry:
     will_reincarnate: bool = False
     visible_radiant: bool | None = None
     visible_dire: bool | None = None
+    modifier_duration_s: float | None = None
+    modifier_elapsed_duration_s: float | None = None
+    attacker_team: int | None = None
+    target_team: int | None = None
 
     def visible_to(self, team: int) -> bool | None:
         """Return this event's S2 visibility flag for a playing team.
@@ -468,6 +481,16 @@ class CombatLogProcessor:
             bool(msg.is_visible_radiant) if msg.HasField("is_visible_radiant") else None
         )
         visible_dire = bool(msg.is_visible_dire) if msg.HasField("is_visible_dire") else None
+        modifier_duration_s = (
+            float(msg.modifier_duration) if msg.HasField("modifier_duration") else None
+        )
+        modifier_elapsed_duration_s = (
+            float(msg.modifier_elapsed_duration)
+            if msg.HasField("modifier_elapsed_duration")
+            else None
+        )
+        attacker_team = int(msg.attacker_team) if msg.HasField("attacker_team") else None
+        target_team = int(msg.target_team) if msg.HasField("target_team") else None
         damage_type = ""
         if log_type == "DAMAGE" and hasattr(msg, "damage_type"):
             damage_type = _DAMAGE_TYPE_NAMES.get(msg.damage_type, "")
@@ -498,5 +521,9 @@ class CombatLogProcessor:
             will_reincarnate=will_reincarnate,
             visible_radiant=visible_radiant,
             visible_dire=visible_dire,
+            modifier_duration_s=modifier_duration_s,
+            modifier_elapsed_duration_s=modifier_elapsed_duration_s,
+            attacker_team=attacker_team,
+            target_team=target_team,
         )
         self._emit(entry)

@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Evidence-first Smoke of Deceit analysis.** Preserve exact activation and
+  per-hero modifier ticks, duration evidence, sampled application/removal
+  positions, and authoritative enemy visibility; expose
+  `build_smoke_analysis(...)` plus a flat `smoke_members` DataFrame. The report's
+  new Smoke Operations card separates early removal, visibility, sampled enemy
+  proximity, and follow-up fights instead of assigning a success score or a
+  guessed break cause.
 - **Authoritative hero visibility timeline.** Parse the Radiant and Dire
   `m_bNPCVisibleState` entity bitsets into change-only
   `ParsedMatch.hero_visibility_events`, expose tri-state
@@ -39,6 +46,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Pause-aware smoke lifecycle matching.** Associate modifier removals using
+  reported elapsed duration or pause-aware game time before falling back to raw
+  replay ticks, so a long pause cannot leave a legitimate removal unobserved.
 - **Dota protobuf ping failure bitmasks.** Regenerate the public descriptors so
   `CMsgClientPingData.region_ping_failed_bitmask` and
   `CSODOTAPartyMember.region_ping_failed_bitmask` use the upstream `uint64` type

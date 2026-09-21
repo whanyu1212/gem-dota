@@ -48,6 +48,7 @@ from gem.reports._sections import (
     build_rosh_conversion as _ext_build_rosh_conversion,
     build_runes as _ext_build_runes,
     build_scoreboard as _ext_build_scoreboard,
+    build_smokes as _ext_build_smokes,
     build_teamfights as _ext_build_teamfights,
     build_wards as _ext_build_wards,
 )
@@ -291,7 +292,18 @@ def build_html_report(
         ("Farming", _ext_build_farming(match, map_b64)),
         ("Fights", _ext_build_teamfights(match, map_b64)),
         ("Roshan Conversion", _ext_build_rosh_conversion(match, map_b64)),
-        ("Vision", _ext_build_wards(match, map_b64)),
+        (
+            "Vision",
+            "\n".join(
+                filter(
+                    None,
+                    [
+                        _ext_build_smokes(match, map_b64),
+                        _ext_build_wards(match, map_b64),
+                    ],
+                )
+            ),
+        ),
         (
             "Economy",
             "\n".join(

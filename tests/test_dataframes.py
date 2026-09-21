@@ -6,7 +6,7 @@ import gem.results.models as model_module
 from gem.combat.log import CombatLogEntry, CombatLogType
 from gem.extractors.objectives import AegisEvent, ShrineKill, TormentorKill
 from gem.results.dataframes import build_dataframes
-from gem.results.models import ParsedMatch, ParsedPlayer
+from gem.results.models import ParsedMatch, ParsedPlayer, SmokeEvent, SmokeParticipant
 
 
 class TestBuildDataframes:
@@ -108,6 +108,7 @@ class TestBuildDataframes:
         assert "teamfights" in dfs
         assert "opendota_teamfights" in dfs
         assert "smoke_events" in dfs
+        assert "smoke_members" in dfs
         assert "courier_snapshots" in dfs
         assert "neutral_item_finds" in dfs
         assert "player_kills_log" in dfs
@@ -117,6 +118,57 @@ class TestBuildDataframes:
 
         assert dfs["neutral_item_finds"].empty
         assert dfs["opendota_teamfights"].empty
+        assert dfs["smoke_members"].empty
+        assert list(dfs["smoke_members"].columns) == [
+            "smoke_event_index",
+            "activation_tick",
+            "activator",
+            "team",
+            "hero_name",
+            "player_id",
+            "applied_tick",
+            "removed_tick",
+            "modifier_duration_s",
+            "modifier_elapsed_duration_s",
+            "applied_x",
+            "applied_y",
+            "removed_x",
+            "removed_y",
+        ]
+
+    def test_smoke_members_dataframe_is_flat_and_preserves_exact_ticks(self):
+        match = ParsedMatch(
+            smoke_events=[
+                SmokeEvent(
+                    tick=1_000,
+                    activator="npc_dota_hero_axe",
+                    team=2,
+                    participants=[
+                        SmokeParticipant(
+                            hero_name="npc_dota_hero_axe",
+                            player_id=0,
+                            applied_tick=1_001,
+                            removed_tick=1_448,
+                            modifier_duration_s=45.0,
+                            modifier_elapsed_duration_s=14.9,
+                            applied_x=100.0,
+                            applied_y=200.0,
+                            removed_x=300.0,
+                            removed_y=400.0,
+                        )
+                    ],
+                )
+            ]
+        )
+
+        row = build_dataframes(match)["smoke_members"].iloc[0]
+
+        assert row["smoke_event_index"] == 0
+        assert row["activation_tick"] == 1_000
+        assert row["activator"] == "npc_dota_hero_axe"
+        assert row["applied_tick"] == 1_001
+        assert row["removed_tick"] == 1_448
+        assert row["modifier_elapsed_duration_s"] == 14.9
 
     def test_minute_tables_include_authoritative_game_time_axis(self):
         pp = ParsedPlayer(
