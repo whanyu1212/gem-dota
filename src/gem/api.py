@@ -72,18 +72,25 @@ import gem.reports as reports  # re-export so `gem.reports.build_html_report()` 
 from gem.analysis import (
     AbilityCast,
     CampVisitContext,
+    DirectTargetRevealEvidence,
     MapContextBucket,
+    PointVisionAssessment,
+    PointVisionGap,
+    PointVisionSource,
+    PointVisionStatus,
     RoshConversion,
     RoshCoverageCell,
     RoshDifferentialProfile,
     RoshTerritoryWindow,
     RoshTimelineEvent,
+    SampledPosition,
     SmokeAnalysis,
     SmokeGroupStatus,
     SmokeLifecycleStatus,
     SmokeMemberAnalysis,
     VisionSource,
     ability_level_at_tick,
+    assess_point_vision,
     build_map_context_timeline,
     build_rosh_conversions,
     build_smoke_analysis,
@@ -95,6 +102,7 @@ from gem.analysis import (
     is_active_teamfight_participant,
     net_worth_at,
     position_at_tick,
+    position_sample_at_tick,
     score_camp_visit_context,
     teamfight_at_tick,
     ward_vision_impact,
@@ -274,9 +282,16 @@ def _to_json_compatible(value: Any) -> Any:
     return value
 
 
-def to_dict(match: ParsedMatch) -> dict[str, Any]:
-    """Convert a :class:`ParsedMatch` to a JSON-serializable dictionary."""
-    return _to_json_compatible(match)
+def to_dict(value: Any) -> Any:
+    """Convert a supported dataclass or nested value to JSON-compatible data.
+
+    Args:
+        value: Parsed match, analysis assessment, or another supported nested value.
+
+    Returns:
+        A recursively converted JSON-compatible value.
+    """
+    return _to_json_compatible(value)
 
 
 def to_json(match: ParsedMatch, *, indent: int | None = None, sort_keys: bool = False) -> str:
@@ -376,13 +391,21 @@ __all__ = [
     "find_player",
     "hero_npc_name",
     "position_at_tick",
+    "position_sample_at_tick",
+    "SampledPosition",
     "group_ability_hits",
     "AbilityCast",
     "teamfight_at_tick",
     "heroes_near",
     "ability_level_at_tick",
     "estimate_vision",
+    "assess_point_vision",
     "VisionSource",
+    "PointVisionStatus",
+    "PointVisionSource",
+    "PointVisionGap",
+    "DirectTargetRevealEvidence",
+    "PointVisionAssessment",
     "VisionModifierEvent",
     "VisionModifierPairingIssue",
     "VisionModifierSemantic",

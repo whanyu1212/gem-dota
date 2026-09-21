@@ -1,13 +1,73 @@
-"""Spatial and time-series helpers for parsed match analysis."""
+"""Spatial and time-series helpers for parsed match analysis.
+
+Reference: ``refs/parser/src/main/java/opendota/Parse.java`` for the sampled
+player-position data consumed by these post-parse helpers.
+"""
 
 from __future__ import annotations
 
 import bisect
 import math
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from gem.results.models import ParsedMatch, ParsedPlayer
+
+
+@dataclass(frozen=True, slots=True)
+class SampledPosition:
+    """Nearest recorded player position and its sampling provenance.
+
+    Attributes:
+        x: Sampled world x coordinate.
+        y: Sampled world y coordinate.
+        sample_tick: Replay tick at which the position was sampled.
+        age_ticks: Absolute distance between the query and sample ticks.
+    """
+
+    x: float
+    y: float
+    sample_tick: int
+    age_ticks: int
+
+
+def position_sample_at_tick(player: ParsedPlayer, tick: int) -> SampledPosition | None:
+    """Return the nearest recorded position with its sampling metadata.
+
+    An equidistant tie is resolved in favor of the earlier sample. This helper
+    does not impose a freshness policy; callers can compare ``age_ticks`` with
+    the bound appropriate for their analysis.
+
+    Args:
+        player: A ``ParsedPlayer`` with a populated ``position_log``.
+        tick: Replay tick to query.
+
+    Returns:
+        The nearest position sample, or ``None`` when no samples are available.
+    """
+    log = player.position_log
+    if not log:
+        return None
+
+    ticks = [entry[0] for entry in log]
+    idx = bisect.bisect_left(ticks, tick)
+
+    if idx == 0:
+        chosen = log[0]
+    elif idx >= len(log):
+        chosen = log[-1]
+    else:
+        before = log[idx - 1]
+        after = log[idx]
+        chosen = before if tick - before[0] <= after[0] - tick else after
+
+    return SampledPosition(
+        x=chosen[1],
+        y=chosen[2],
+        sample_tick=chosen[0],
+        age_ticks=abs(tick - chosen[0]),
+    )
 
 
 def position_at_tick(
@@ -33,24 +93,10 @@ def position_at_tick(
         >>> if pos:
         ...     print(f"Axe was at ({pos[0]:.0f}, {pos[1]:.0f}) when the fight started")
     """
-    log = player.position_log
-    if not log:
+    sample = position_sample_at_tick(player, tick)
+    if sample is None:
         return None
-
-    ticks = [entry[0] for entry in log]
-    idx = bisect.bisect_left(ticks, tick)
-
-    if idx == 0:
-        return (log[0][1], log[0][2])
-    if idx >= len(log):
-        return (log[-1][1], log[-1][2])
-
-    before = log[idx - 1]
-    after = log[idx]
-    # Pick whichever sample is closer in tick distance
-    if tick - before[0] <= after[0] - tick:
-        return (before[1], before[2])
-    return (after[1], after[2])
+    return (sample.x, sample.y)
 
 
 def heroes_near(

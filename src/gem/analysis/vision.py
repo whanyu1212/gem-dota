@@ -1,14 +1,22 @@
-"""Vision approximation helpers for parsed matches."""
+"""Evidence-aware visibility helpers for parsed matches.
+
+Ward type and lifetime semantics follow
+``refs/parser/src/main/java/opendota/processors/warding/Wards.java``. Arbitrary
+point geometry is gem-specific and deliberately separate from authoritative
+canonical-hero visibility.
+"""
 
 from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from enum import Enum
 from typing import TYPE_CHECKING, Literal
 
-from gem.analysis.spatial import position_at_tick
+from gem.analysis.spatial import position_sample_at_tick
 from gem.results.models import (
     VisibilityState,
+    VisionModifierCloseEvidence,
     VisionModifierLifecycleStatus,
     VisionModifierPairingStatus,
     VisionModifierSemantic,
@@ -35,28 +43,166 @@ _NIGHT_START_TICKS: int = 5 * 60 * 30  # 9000 ticks (night starts at 5:00)
 
 @dataclass
 class VisionSource:
-    """One unit that was providing vision of a map point at a given tick.
+    """One modeled geometry source covering a map point at a given tick.
 
     Attributes:
-        kind: ``"hero"`` if the source is an allied hero, ``"ward"`` if an
-            observer ward, or ``"modifier"`` if a vision-granting ability or item
-            (Slardar Corrosive Haze, Bounty Hunter Track, Dust of Appearance, Gem
-            of True Sight, etc.) is revealing the target hero.
+        kind: ``"hero"`` if the source is an allied hero or ``"ward"`` if an
+            observer ward. The historical ``"modifier"`` literal remains in
+            the type for constructor compatibility, but hardened point queries
+            report direct-target reveals separately.
         name: NPC hero name (e.g. ``"npc_dota_hero_axe"``) for heroes,
-            ``"observer_ward"`` for wards, or the internal modifier name (e.g.
-            ``"modifier_slardar_amplify_damage"``) for modifier-based reveals.
-        distance: World-unit distance from the source to the queried point.  For
-            modifier sources this is the distance from the revealed hero's position
-            to the query point.
+            or ``"observer_ward"`` for wards.
+        distance: World-unit distance from the source to the queried point.
         vision_radius: Vision radius used for this source at the queried tick
-            (day/night-adjusted for heroes; constant for wards; 0 for modifiers
-            since the reveal is unconditional rather than radius-based).
+            (day/night-adjusted for heroes; constant for wards).
+        x: Source world x coordinate when available.
+        y: Source world y coordinate when available.
+        position_tick: Hero sample tick or ward placement tick.
+        position_age_ticks: Hero sample age; ``None`` for static ward positions.
+        player_id: Canonical hero slot or ward placer slot when known.
+        position_provenance: Sampled-hero or entity-derived ward provenance.
     """
 
     kind: Literal["hero", "ward", "modifier"]
     name: str
     distance: float
     vision_radius: int
+    x: float | None = None
+    y: float | None = None
+    position_tick: int | None = None
+    position_age_ticks: int | None = None
+    player_id: int | None = None
+    position_provenance: Literal["sampled_player_position", "ward_placement"] | None = None
+
+
+class PointVisionStatus(str, Enum):
+    """Modeled support state for an arbitrary map point."""
+
+    __str__ = str.__str__
+
+    SUPPORTED = "supported"
+    UNSUPPORTED = "unsupported"
+    INCOMPLETE = "incomplete"
+
+
+@dataclass(frozen=True, slots=True)
+class PointVisionSource:
+    """One bounded geometry source supporting point coverage.
+
+    Attributes:
+        kind: ``"hero"`` or ``"observer_ward"``.
+        name: Canonical hero name or ``"observer_ward"``.
+        distance: World-unit distance from the source to the query point.
+        vision_radius: Circular vision radius used for the assessment.
+        x: Source world x coordinate.
+        y: Source world y coordinate.
+        position_provenance: How the coordinate was obtained.
+        position_tick: Tick of the position sample or ward placement.
+        position_age_ticks: Absolute query-to-position tick difference.
+        player_id: Logical player slot for hero and ward attribution when known.
+    """
+
+    kind: Literal["hero", "observer_ward"]
+    name: str
+    distance: float
+    vision_radius: int
+    x: float
+    y: float
+    position_provenance: Literal["sampled_player_position", "ward_placement"]
+    position_tick: int | None = None
+    position_age_ticks: int | None = None
+    player_id: int | None = None
+
+    @property
+    def identity(self) -> str:
+        """Return the source name as its stable identity."""
+        return self.name
+
+    @property
+    def radius(self) -> int:
+        """Return the modeled circular vision radius."""
+        return self.vision_radius
+
+
+@dataclass(frozen=True, slots=True)
+class PointVisionGap:
+    """One material omission or ambiguity in a point-vision assessment.
+
+    Attributes:
+        code: Stable machine-readable gap code.
+        subject: Hero, ward, modifier, or roster identity affected by the gap.
+    """
+
+    code: str
+    subject: str
+
+
+@dataclass(frozen=True, slots=True)
+class DirectTargetRevealEvidence:
+    """Bounded direct-reveal evidence for the requested canonical hero.
+
+    Direct target reveals are returned separately because they establish
+    evidence about that target, not circular coverage of an arbitrary point.
+
+    Attributes:
+        modifier_name: Internal reveal modifier name.
+        target_name: Canonical NPC hero name receiving the modifier.
+        caster_name: NPC name recorded as applying the modifier.
+        caster_team: Team receiving the direct reveal.
+        start_tick: Exact application tick.
+        end_tick: Exact observed interval end tick.
+        target_player_id: Canonical logical player slot of the target.
+    """
+
+    modifier_name: str
+    target_name: str
+    caster_name: str
+    caster_team: int
+    start_tick: int
+    end_tick: int
+    target_player_id: int
+
+    @property
+    def tick(self) -> int:
+        """Return the interval start using modifier-event terminology."""
+        return self.start_tick
+
+
+@dataclass(frozen=True, slots=True)
+class PointVisionAssessment:
+    """Evidence-aware modeled coverage assessment for one arbitrary point.
+
+    ``status`` describes only modeled hero/observer geometry. Authoritative
+    visible/hidden/unknown state applies only when ``target_player_id`` resolves
+    to a canonical player hero and is therefore exposed separately.
+
+    Attributes:
+        team: Team whose modeled vision is being assessed.
+        tick: Replay tick queried.
+        x: Queried world x coordinate.
+        y: Queried world y coordinate.
+        status: Supported, unsupported, or incomplete modeled state.
+        sources: Bounded geometry sources covering the point.
+        gaps: Material missing, stale, or ambiguous evidence.
+        direct_target_reveals: Qualifying target-specific reveal evidence.
+        target_player_id: Requested canonical target slot, if any.
+        authoritative_applicable: Whether the target resolved to a player hero.
+        authoritative_visibility: Replay-observed hero visibility state.
+        max_position_age_ticks: Freshness bound applied to hero samples.
+    """
+
+    team: int
+    tick: int
+    x: float
+    y: float
+    status: PointVisionStatus
+    sources: list[PointVisionSource]
+    gaps: list[PointVisionGap]
+    direct_target_reveals: list[DirectTargetRevealEvidence]
+    target_player_id: int | None
+    authoritative_applicable: bool
+    authoritative_visibility: VisibilityState
+    max_position_age_ticks: int
 
 
 def is_daytime(game_start_tick: int | None, tick: int) -> bool:
@@ -128,73 +274,97 @@ def hero_visibility_at(
     return latest.radiant_state if observing_team == 2 else latest.dire_state
 
 
-def estimate_vision(
+def assess_point_vision(
     match: ParsedMatch,
     team: int,
     tick: int,
     x: float,
     y: float,
-) -> list[VisionSource]:
-    """Estimate which allied units were providing vision of ``(x, y)`` at ``tick``.
+    *,
+    target_player_id: int | None = None,
+    max_position_age_ticks: int = 150,
+) -> PointVisionAssessment:
+    """Assess bounded modeled evidence for team vision of one map point.
 
-    Uses a geometry-based approximation: a team has vision of a point if any
-    allied hero or live observer ward is within their vision radius of that
-    point.  Hero vision radius is day/night adjusted (1800 day / 800 night).
-    Observer wards have a constant 1600-unit radius.
+    Hero coordinates use the nearest sampled position only when its absolute
+    age is at most ``max_position_age_ticks`` (five seconds at 30 ticks/sec by
+    default). Observer wards use a half-open active interval
+    ``[placement_tick, min(killed_tick, expires_tick))``. Open ward lifetimes
+    are usable only through a known observed match horizon.
 
-    This point-geometry helper is distinct from :func:`hero_visibility_at`,
-    which queries authoritative replay visibility bits for canonical hero
-    entities. It cannot answer arbitrary-point visibility questions.
+    Direct target reveals never become point-radius sources. When a canonical
+    ``target_player_id`` is supplied, qualifying bounded reveals and the
+    authoritative hero visibility state are returned in separate fields.
 
-    **Limitations** — this is an approximation.  It does not model:
-
-    - High-ground vision penalties (enemy cannot see down from high ground).
-    - Vision modifiers from abilities or items (e.g. Slardar Corrosive Haze,
-      Aghanim's Scepter upgrades, Shroud of Stillness scouting).
-    - Summon/creep vision (only heroes and observer wards are checked).
-    - Sentry ward true-sight (sentries do not grant standard vision).
+    ``UNSUPPORTED`` means only that no currently modeled geometry source covers
+    the point. It is not proof that the point was hidden in-game. Terrain,
+    trees, blockers, summons, buildings, and many temporary mechanics are not
+    modeled.
 
     Args:
         match: A parsed replay.
-        team: Team number to check vision for (2=Radiant, 3=Dire).
+        team: Team number to assess (2=Radiant, 3=Dire).
         tick: Game tick to query.
-        x: World x coordinate of the point to check.
-        y: World y coordinate of the point to check.
+        x: Queried world x coordinate.
+        y: Queried world y coordinate.
+        target_player_id: Optional canonical player slot at the queried subject.
+        max_position_age_ticks: Maximum allowed absolute hero sample age.
 
     Returns:
-        List of :class:`VisionSource` objects for each allied unit that had
-        vision of ``(x, y)`` at ``tick``, sorted by ascending distance.
-        An empty list means no modelled source covered the point; it does not
-        establish that the point was authoritatively hidden in the replay.
+        A structured assessment containing modeled sources, evidence gaps,
+        target-specific reveals, and separately scoped authoritative evidence.
 
-    Example:
-        >>> sources = estimate_vision(match, 3, fight.start_tick,
-        ...                           target_x, target_y)
-        >>> if sources:
-        ...     print(f"Dire had vision via {sources[0].kind}: {sources[0].name}")
-        ... else:
-        ...     print("Blind initiation — target was in fog")
+    Raises:
+        ValueError: If ``team`` is not 2 or 3, or the age bound is negative.
     """
+    if team not in (2, 3):
+        raise ValueError("team must be 2 (Radiant) or 3 (Dire)")
+    if max_position_age_ticks < 0:
+        raise ValueError("max_position_age_ticks must be nonnegative")
+
     daytime = is_daytime(match.game_start_tick, tick)
     hero_radius = _DAY_VISION if daytime else _NIGHT_VISION
 
-    sources: list[VisionSource] = []
+    sources: list[PointVisionSource] = []
+    gaps: list[PointVisionGap] = []
+    point_incomplete = False
+
+    def add_gap(code: str, subject: str, *, point_evidence: bool = False) -> None:
+        nonlocal point_incomplete
+        gap = PointVisionGap(code=code, subject=subject)
+        if gap not in gaps:
+            gaps.append(gap)
+        if point_evidence:
+            point_incomplete = True
 
     # --- Hero vision ---
-    for player in match.players:
-        if player.team != team:
+    allied_players = [player for player in match.players if player.team == team]
+    if not allied_players:
+        add_gap("allied_roster_empty", f"team:{team}", point_evidence=True)
+
+    for player in allied_players:
+        identity = player.hero_name or f"player:{player.player_id}"
+        sample = position_sample_at_tick(player, tick)
+        if sample is None:
+            add_gap("allied_hero_position_missing", identity, point_evidence=True)
             continue
-        pos = position_at_tick(player, tick)
-        if pos is None:
+        if sample.age_ticks > max_position_age_ticks:
+            add_gap("allied_hero_position_stale", identity, point_evidence=True)
             continue
-        dist = math.dist(pos, (x, y))
+        dist = math.dist((sample.x, sample.y), (x, y))
         if dist <= hero_radius:
             sources.append(
-                VisionSource(
+                PointVisionSource(
                     kind="hero",
-                    name=player.hero_name,
+                    name=identity,
                     distance=dist,
                     vision_radius=hero_radius,
+                    x=sample.x,
+                    y=sample.y,
+                    position_provenance="sampled_player_position",
+                    position_tick=sample.sample_tick,
+                    position_age_ticks=sample.age_ticks,
+                    player_id=player.player_id,
                 )
             )
 
@@ -202,88 +372,240 @@ def estimate_vision(
     for ward in match.wards:
         if ward.ward_type != "observer":
             continue
-        if ward.team != team:
-            continue
-        if ward.x is None or ward.y is None:
-            continue
-        # Ward must have been placed by this tick and still alive
         if ward.tick > tick:
             continue
-        end_tick = ward.killed_tick or ward.expires_tick
-        if end_tick is not None and end_tick < tick:
+
+        bounded_ends = [end for end in (ward.killed_tick, ward.expires_tick) if end is not None]
+        end_tick = min(bounded_ends) if bounded_ends else None
+        subject = f"observer_ward:{ward.player_id}:{ward.tick}"
+        if end_tick is not None and tick >= end_tick:
             continue
-        dist = math.dist((ward.x, ward.y), (x, y))
+
+        if ward.team not in (2, 3):
+            add_gap("observer_ward_team_unknown", subject, point_evidence=True)
+            continue
+        if ward.team != team:
+            continue
+
+        unusable_ward = False
+        if end_tick is None:
+            game_end_tick = getattr(match, "game_end_tick", None)
+            known_horizon = (
+                game_end_tick if isinstance(game_end_tick, int) and game_end_tick > 0 else None
+            )
+            if known_horizon is None or tick > known_horizon:
+                add_gap("observer_ward_lifetime_unknown", subject, point_evidence=True)
+                unusable_ward = True
+
+        ward_x = ward.x
+        ward_y = ward.y
+        if ward_x is None or ward_y is None:
+            add_gap("observer_ward_position_missing", subject, point_evidence=True)
+            unusable_ward = True
+        if unusable_ward:
+            continue
+        assert ward_x is not None and ward_y is not None
+
+        dist = math.dist((ward_x, ward_y), (x, y))
         if dist <= _WARD_VISION:
             sources.append(
-                VisionSource(
-                    kind="ward",
+                PointVisionSource(
+                    kind="observer_ward",
                     name="observer_ward",
                     distance=dist,
                     vision_radius=_WARD_VISION,
+                    x=ward_x,
+                    y=ward_y,
+                    position_provenance="ward_placement",
+                    position_tick=ward.tick,
+                    position_age_ticks=None,
+                    player_id=ward.player_id if ward.player_id >= 0 else None,
                 )
             )
 
-    # --- Vision modifier reveals ---
-    # Modifiers like Slardar Corrosive Haze, Bounty Hunter Track, and Dust of
-    # Appearance mark specific enemy heroes as revealed for the caster's team.
-    # If the revealed hero is near the query point, it counts as vision.
-    #
-    # We check modifiers where caster_team == team (the team we're checking vision
-    # for) and the modifier is active at the queried tick.  The modifier's target
-    # is the enemy hero that has been revealed; if that hero is near the query
-    # point, the modifier itself is sufficient to grant vision regardless of the
-    # standard hero/ward radius.  We use the revealed hero's position at the tick
-    # to compute distance.
-    for mod_ev in getattr(match, "vision_modifiers", []):
-        if mod_ev.semantic != VisionModifierSemantic.DIRECT_TARGET_REVEAL:
-            continue
-        if not mod_ev.target_is_hero or mod_ev.target_is_illusion:
-            continue
-        if mod_ev.lifecycle_status == VisionModifierLifecycleStatus.INCOMPLETE:
-            continue
-        if mod_ev.pairing_status == VisionModifierPairingStatus.AMBIGUOUS:
-            continue
-        if mod_ev.caster_team != team:
-            continue
-        if mod_ev.tick > tick:
-            continue
-        # A duration can classify an application as expired on the pause-aware
-        # game-time axis, but it cannot supply an exact replay tick.  Point
-        # queries therefore consume only observed add/remove intervals.
-        if mod_ev.end_tick is None:
-            continue
-        if mod_ev.end_tick < tick:
-            continue
-        # Find the revealed hero's position
+    authoritative_applicable = False
+    authoritative_visibility = VisibilityState.UNKNOWN
+    direct_target_reveals: list[DirectTargetRevealEvidence] = []
+
+    target_player = None
+    if target_player_id is not None:
         target_player = next(
-            (pl for pl in match.players if pl.hero_name == mod_ev.target_name),
+            (
+                player
+                for player in match.players
+                if player.player_id == target_player_id and player.hero_name
+            ),
             None,
         )
-        if target_player is None:
-            continue
-        pos = position_at_tick(target_player, tick)
-        if pos is None:
-            continue
-        dist = math.dist(pos, (x, y))
-        # Use the revealed hero's own position as the vision source location
-        # (the modifier grants direct vision of that hero, so the "radius" is
-        # how far the modifier source is from the query point — effectively
-        # dist == 0 means the query IS at the hero).  We report the distance
-        # from the revealed hero to the query point.  No radius check — a
-        # modifier-revealed hero is always "seen" regardless of how far the
-        # query point is from the hero's position.  (Dust/Gem have a static
-        # aura radius; we use 0 as an approximation since we don't model auras.)
-        sources.append(
-            VisionSource(
-                kind="modifier",
-                name=mod_ev.modifier_name,
-                distance=dist,
-                vision_radius=0,
+        if target_player is not None:
+            authoritative_applicable = True
+            authoritative_visibility = hero_visibility_at(
+                match,
+                player_id=target_player_id,
+                observing_team=team,
+                tick=tick,
             )
-        )
+
+            matching_players = [
+                player for player in match.players if player.hero_name == target_player.hero_name
+            ]
+            target_reveal_usable = True
+            if len(matching_players) != 1:
+                add_gap("target_identity_ambiguous", target_player.hero_name)
+                target_reveal_usable = False
+            if target_player.team not in (2, 3):
+                add_gap("target_team_unknown", target_player.hero_name)
+                target_reveal_usable = False
+            elif target_player.team == team:
+                add_gap(
+                    "direct_target_reveal_target_team_conflict",
+                    target_player.hero_name,
+                )
+                target_reveal_usable = False
+
+            for mod_ev in getattr(match, "vision_modifiers", []):
+                if not target_reveal_usable:
+                    break
+                if mod_ev.semantic != VisionModifierSemantic.DIRECT_TARGET_REVEAL:
+                    continue
+                if mod_ev.target_name != target_player.hero_name:
+                    continue
+                if not mod_ev.target_is_hero or mod_ev.target_is_illusion:
+                    continue
+                if mod_ev.tick > tick:
+                    continue
+                # Observed removal ticks bound a half-open interval. Check
+                # temporal relevance before recording gaps so old, ended
+                # evidence cannot make a current assessment incomplete.
+                if mod_ev.end_tick is not None and tick >= mod_ev.end_tick:
+                    continue
+                if mod_ev.target_team in (2, 3) and mod_ev.target_team != target_player.team:
+                    add_gap(
+                        "direct_target_reveal_target_team_conflict",
+                        mod_ev.modifier_name,
+                    )
+                    continue
+                if mod_ev.caster_team == 0:
+                    add_gap("direct_target_reveal_team_unknown", mod_ev.modifier_name)
+                    continue
+                if mod_ev.caster_team != team:
+                    continue
+
+                unusable = False
+                if mod_ev.lifecycle_status not in (
+                    VisionModifierLifecycleStatus.REMOVED,
+                    VisionModifierLifecycleStatus.EXPIRED,
+                ):
+                    add_gap("direct_target_reveal_incomplete", mod_ev.modifier_name)
+                    unusable = True
+                if mod_ev.pairing_status not in (
+                    VisionModifierPairingStatus.EXACT,
+                    VisionModifierPairingStatus.UNIQUE_FALLBACK,
+                ):
+                    add_gap("direct_target_reveal_ambiguous", mod_ev.modifier_name)
+                    unusable = True
+                if (
+                    mod_ev.end_tick is None
+                    or mod_ev.close_evidence is not VisionModifierCloseEvidence.OBSERVED
+                ):
+                    add_gap("direct_target_reveal_unbounded", mod_ev.modifier_name)
+                    unusable = True
+                if unusable:
+                    continue
+
+                direct_target_reveals.append(
+                    DirectTargetRevealEvidence(
+                        modifier_name=mod_ev.modifier_name,
+                        target_name=mod_ev.target_name,
+                        caster_name=mod_ev.caster_name,
+                        caster_team=mod_ev.caster_team,
+                        start_tick=mod_ev.tick,
+                        end_tick=mod_ev.end_tick,
+                        target_player_id=target_player_id,
+                    )
+                )
+        else:
+            add_gap("target_player_missing", f"player:{target_player_id}")
 
     sources.sort(key=lambda s: s.distance)
-    return sources
+    if sources:
+        status = PointVisionStatus.SUPPORTED
+    elif point_incomplete:
+        status = PointVisionStatus.INCOMPLETE
+    else:
+        status = PointVisionStatus.UNSUPPORTED
+
+    return PointVisionAssessment(
+        team=team,
+        tick=tick,
+        x=x,
+        y=y,
+        status=status,
+        sources=sources,
+        gaps=gaps,
+        direct_target_reveals=direct_target_reveals,
+        target_player_id=target_player_id,
+        authoritative_applicable=authoritative_applicable,
+        authoritative_visibility=authoritative_visibility,
+        max_position_age_ticks=max_position_age_ticks,
+    )
+
+
+def estimate_vision(
+    match: ParsedMatch,
+    team: int,
+    tick: int,
+    x: float,
+    y: float,
+    *,
+    max_position_age_ticks: int = 150,
+) -> list[VisionSource]:
+    """Return bounded modeled hero and observer sources covering a map point.
+
+    This compatibility helper retains its list return shape. It now applies the
+    same sample freshness and ward lifetime rules as :func:`assess_point_vision`
+    and no longer treats target-specific modifier reveals as arbitrary-point
+    geometry. Use the structured API when unsupported and incomplete evidence
+    must be distinguished.
+
+    Args:
+        match: A parsed replay.
+        team: Team number to assess (2=Radiant, 3=Dire).
+        tick: Replay tick to query.
+        x: Queried world x coordinate.
+        y: Queried world y coordinate.
+        max_position_age_ticks: Maximum allowed absolute hero sample age.
+
+    Returns:
+        Compatible source records sorted by ascending distance. An empty list
+        is not proof that the point was hidden in-game.
+
+    Raises:
+        ValueError: If ``team`` is invalid or the age bound is negative.
+    """
+    assessment = assess_point_vision(
+        match,
+        team,
+        tick,
+        x,
+        y,
+        max_position_age_ticks=max_position_age_ticks,
+    )
+    return [
+        VisionSource(
+            kind="ward" if source.kind == "observer_ward" else "hero",
+            name=source.name,
+            distance=source.distance,
+            vision_radius=source.vision_radius,
+            x=source.x,
+            y=source.y,
+            position_tick=source.position_tick,
+            position_age_ticks=source.position_age_ticks,
+            player_id=source.player_id,
+            position_provenance=source.position_provenance,
+        )
+        for source in assessment.sources
+    ]
 
 
 _WARD_VISION_RADIUS_SQ: int = _WARD_VISION * _WARD_VISION

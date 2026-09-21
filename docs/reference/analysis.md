@@ -3,13 +3,15 @@
 Post-parse utilities in `gem.analysis` that transform raw `ParsedMatch` / `ParsedPlayer`
 data into higher-level structures for agentic and analytical use.
 
-> **Note:** `estimate_vision` and `match.vision_modifiers` are **experimental**. Vision
-> calculations use straight-line geometry only — high-ground penalties, terrain line-of-sight
-> (trees/cliffs), and per-hero vision range modifiers are not modelled. Treat results as
-> approximations.
+> **Note:** `assess_point_vision`, `estimate_vision`, and
+> `match.vision_modifiers` are **experimental**. Point calculations use
+> straight-line geometry only — high-ground penalties, terrain line-of-sight
+> (trees/cliffs), and per-hero vision range modifiers are not modelled. Treat
+> geometry as an approximation and prefer `hero_visibility_at(...)` for a
+> canonical player hero.
 >
 > For the full derivation, data flow, and limitations, see
-> [Experimental Features → Estimate Vision](../experimental/estimate-vision.md).
+> [Experimental Features → Point-Vision Evidence](../experimental/estimate-vision.md).
 
 Canonical implementation modules are split by responsibility:
 
@@ -35,6 +37,7 @@ fight   = gem.teamfight_at_tick(match, tick)
 near    = gem.heroes_near(match, tick, x, y, radius=2000)
 lvl     = gem.ability_level_at_tick(player, "axe_berserkers_call", tick)
 sources = gem.estimate_vision(match, team=2, tick=tick, x=x, y=y)
+vision  = gem.assess_point_vision(match, team=2, tick=tick, x=x, y=y)
 smokes  = gem.build_smoke_analysis(match)
 ```
 
@@ -217,11 +220,60 @@ was absent, including for legacy Source 1 events.
 
 ---
 
-## `estimate_vision` *(experimental)*
+## `assess_point_vision` *(experimental)*
 
 Detailed explanation:
 
-1. [Experimental Features → Estimate Vision](../experimental/estimate-vision.md)
+1. [Experimental Features → Point-Vision Evidence](../experimental/estimate-vision.md)
+
+```python
+assessment = gem.assess_point_vision(
+    match: ParsedMatch,
+    team: int,
+    tick: int,
+    x: float,
+    y: float,
+    *,
+    target_player_id: int | None = None,
+    max_position_age_ticks: int = 150,
+) -> PointVisionAssessment
+```
+
+Assess the evidence that currently modelled sources covered `(x, y)` for the
+given team. The result distinguishes `supported`, `unsupported`, and
+`incomplete`; negative geometry is never presented as authoritative fog.
+
+Hero sources retain their sampled coordinate, sample tick, age, player identity,
+and freshness provenance. Samples older than `max_position_age_ticks` are
+excluded and recorded as evidence gaps. Observer wards use their entity-derived
+placement coordinates and a half-open placement-to-removal lifetime.
+
+**Point-coverage sources:**
+
+| Source | Radius | Night penalty |
+|---|---|---|
+| Allied hero | 1800 (day) / 800 (night) | Yes |
+| Observer ward | 1600 | No |
+
+Sentries are not standard vision sources. Missing or stale hero positions,
+unknown ward ownership, missing observer coordinates, and queries beyond the
+observed replay horizon are represented as gaps.
+
+When `target_player_id` is supplied, the assessment also exposes the canonical
+target's authoritative `visible`/`hidden`/`unknown` state and any defensible
+direct-target reveal intervals. Those facts remain separate from map-point
+geometry.
+
+```python
+if assessment.status is gem.PointVisionStatus.SUPPORTED:
+    print(assessment.sources[0])
+elif assessment.status is gem.PointVisionStatus.INCOMPLETE:
+    print([gap.code for gap in assessment.gaps])
+```
+
+---
+
+## `estimate_vision` compatibility helper *(experimental)*
 
 ```python
 gem.estimate_vision(
@@ -233,56 +285,20 @@ gem.estimate_vision(
 ) -> list[VisionSource]
 ```
 
-Estimate which allied units were providing vision of `(x, y)` at `tick` for the given team
-(2=Radiant, 3=Dire).
+Return only the distance-sorted modelled geometry sources. It uses the same
+freshness and ward-lifetime rules as `assess_point_vision(...)`, but its list
+shape cannot preserve evidence gaps. An empty list is therefore ambiguous.
 
-Returns a list of `VisionSource` objects sorted by ascending distance. An empty
-list means that no source was found by this model; it is not authoritative proof
-that the point was hidden.
+Direct-target modifiers are no longer arbitrary-point sources. Query them for a
+specific canonical target through `assess_point_vision(...,
+target_player_id=...)`.
 
-**Checks three sources:**
-
-| Source | Radius | Night penalty |
-|---|---|---|
-| Allied hero | 1800 (day) / 800 (night) | Yes |
-| Observer ward | 1600 | No |
-| Direct-target modifier (Slardar, BH Track, Dust) | N/A — direct reveal | No |
-
-Vision modifiers are tracked from combat log `MODIFIER_ADD`/`MODIFIER_REMOVE`
-events during parse and stored in `match.vision_modifiers`. This helper consumes
-only non-illusion hero applications classified as direct-target reveals with a
-non-ambiguous, observed add/remove interval.
-
-**`VisionSource` fields:**
-
-```python
-source.kind          # "hero", "ward", or "modifier"
-source.name          # hero NPC name, "observer_ward", or modifier internal name
-source.distance      # float: world-unit distance from source to query point
-source.vision_radius # int: radius used (0 for modifier reveals)
-```
-
-**Limitations** — geometry approximation only:
+Both point APIs remain geometry approximations:
 
 - No high-ground vision penalties
 - No summon/creep vision (only heroes and observer wards)
 - No sentry ward true-sight (sentries do not grant standard vision)
 - Aura/carrier geometry is not modelled; those events are not direct reveal sources
-
-**Example:**
-
-```python
-sources = gem.estimate_vision(match, team=3, tick=fight.start_tick,
-                               x=target_x, y=target_y)
-if sources:
-    s = sources[0]
-    if s.kind == "hero":
-        print(f"Dire had vision via {s.name} ({s.vision_radius} units away)")
-    elif s.kind == "modifier":
-        print(f"Dire had reveal via {s.name} on the target hero")
-else:
-    print("No modelled vision source found")
-```
 
 ---
 
@@ -492,6 +508,16 @@ Source: [src/gem/analysis/spatial.py](https://github.com/whanyu1212/gem-dota/blo
 
 ### Top-level functions
 
+### `position_sample_at_tick`
+
+```python
+def position_sample_at_tick(player: ParsedPlayer, tick: int) -> SampledPosition | None
+```
+
+Return the nearest recorded position with its sampling metadata.
+
+Source: [src/gem/analysis/spatial.py:35](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/spatial.py#L35)
+
 ### `position_at_tick`
 
 ```python
@@ -500,7 +526,7 @@ def position_at_tick(player: ParsedPlayer, tick: int) -> tuple[float, float] | N
 
 Return the closest recorded (x, y) position for a player at a given tick.
 
-Source: [src/gem/analysis/spatial.py:13](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/spatial.py#L13)
+Source: [src/gem/analysis/spatial.py:73](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/spatial.py#L73)
 
 ### `heroes_near`
 
@@ -510,7 +536,7 @@ def heroes_near(match: ParsedMatch, tick: int, x: float, y: float, radius: float
 
 Return all heroes within ``radius`` world units of ``(x, y)`` at ``tick``.
 
-Source: [src/gem/analysis/spatial.py:56](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/spatial.py#L56)
+Source: [src/gem/analysis/spatial.py:102](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/spatial.py#L102)
 
 ### `net_worth_at`
 
@@ -520,7 +546,28 @@ def net_worth_at(player: ParsedPlayer, tick: int) -> int
 
 Return the closest sampled net worth for a player at the given tick.
 
-Source: [src/gem/analysis/spatial.py:97](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/spatial.py#L97)
+Source: [src/gem/analysis/spatial.py:143](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/spatial.py#L143)
+
+### Top-level classes
+
+### `SampledPosition`
+
+```python
+class SampledPosition
+```
+
+Nearest recorded player position and its sampling provenance.
+
+Source: [src/gem/analysis/spatial.py:19](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/spatial.py#L19)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `x` | `float` | `-` |
+| `y` | `float` | `-` |
+| `sample_tick` | `int` | `-` |
+| `age_ticks` | `int` | `-` |
 
 ## Module `gem.analysis.combat`
 
@@ -605,7 +652,7 @@ Source: [src/gem/analysis/abilities.py:12](https://github.com/whanyu1212/gem-dot
 
 ## Module `gem.analysis.vision`
 
-Vision approximation helpers for parsed matches.
+Evidence-aware visibility helpers for parsed matches.
 
 Source: [src/gem/analysis/vision.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L1)
 
@@ -619,7 +666,7 @@ def is_daytime(game_start_tick: int | None, tick: int) -> bool
 
 Return True if it is daytime at the given absolute tick.
 
-Source: [src/gem/analysis/vision.py:62](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L62)
+Source: [src/gem/analysis/vision.py:208](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L208)
 
 ### `hero_visibility_at`
 
@@ -629,17 +676,27 @@ def hero_visibility_at(match: ParsedMatch, *, player_id: int, observing_team: in
 
 Return authoritative hero-entity visibility at or before ``tick``.
 
-Source: [src/gem/analysis/vision.py:89](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L89)
+Source: [src/gem/analysis/vision.py:235](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L235)
+
+### `assess_point_vision`
+
+```python
+def assess_point_vision(match: ParsedMatch, team: int, tick: int, x: float, y: float, *, target_player_id: int | None = None, max_position_age_ticks: int = 150) -> PointVisionAssessment
+```
+
+Assess bounded modeled evidence for team vision of one map point.
+
+Source: [src/gem/analysis/vision.py:277](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L277)
 
 ### `estimate_vision`
 
 ```python
-def estimate_vision(match: ParsedMatch, team: int, tick: int, x: float, y: float) -> list[VisionSource]
+def estimate_vision(match: ParsedMatch, team: int, tick: int, x: float, y: float, *, max_position_age_ticks: int = 150) -> list[VisionSource]
 ```
 
-Estimate which allied units were providing vision of ``(x, y)`` at ``tick``.
+Return bounded modeled hero and observer sources covering a map point.
 
-Source: [src/gem/analysis/vision.py:131](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L131)
+Source: [src/gem/analysis/vision.py:554](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L554)
 
 ### `ward_vision_impact`
 
@@ -649,7 +706,7 @@ def ward_vision_impact(ward: object, match: ParsedMatch) -> int
 
 Count distinct enemy heroes spotted by an observer ward during its lifetime.
 
-Source: [src/gem/analysis/vision.py:292](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L292)
+Source: [src/gem/analysis/vision.py:614](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L614)
 
 ### Top-level classes
 
@@ -659,9 +716,9 @@ Source: [src/gem/analysis/vision.py:292](https://github.com/whanyu1212/gem-dota/
 class VisionSource
 ```
 
-One unit that was providing vision of a map point at a given tick.
+One modeled geometry source covering a map point at a given tick.
 
-Source: [src/gem/analysis/vision.py:37](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L37)
+Source: [src/gem/analysis/vision.py:45](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L45)
 
 #### Dataclass fields
 
@@ -671,6 +728,141 @@ Source: [src/gem/analysis/vision.py:37](https://github.com/whanyu1212/gem-dota/b
 | `name` | `str` | `-` |
 | `distance` | `float` | `-` |
 | `vision_radius` | `int` | `-` |
+| `x` | `float \| None` | `None` |
+| `y` | `float \| None` | `None` |
+| `position_tick` | `int \| None` | `None` |
+| `position_age_ticks` | `int \| None` | `None` |
+| `player_id` | `int \| None` | `None` |
+| `position_provenance` | `Literal['sampled_player_position', 'ward_placement'] \| None` | `None` |
+
+### `PointVisionStatus`
+
+```python
+class PointVisionStatus(str, Enum)
+```
+
+Modeled support state for an arbitrary map point.
+
+Source: [src/gem/analysis/vision.py:78](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L78)
+
+### `PointVisionSource`
+
+```python
+class PointVisionSource
+```
+
+One bounded geometry source supporting point coverage.
+
+Source: [src/gem/analysis/vision.py:89](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L89)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `kind` | `Literal['hero', 'observer_ward']` | `-` |
+| `name` | `str` | `-` |
+| `distance` | `float` | `-` |
+| `vision_radius` | `int` | `-` |
+| `x` | `float` | `-` |
+| `y` | `float` | `-` |
+| `position_provenance` | `Literal['sampled_player_position', 'ward_placement']` | `-` |
+| `position_tick` | `int \| None` | `None` |
+| `position_age_ticks` | `int \| None` | `None` |
+| `player_id` | `int \| None` | `None` |
+
+#### Properties
+
+##### `identity`
+
+Signature: `def PointVisionSource.identity(self) -> str`
+
+Return the source name as its stable identity.
+
+Source: [src/gem/analysis/vision.py:117](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L117)
+
+##### `radius`
+
+Signature: `def PointVisionSource.radius(self) -> int`
+
+Return the modeled circular vision radius.
+
+Source: [src/gem/analysis/vision.py:122](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L122)
+
+### `PointVisionGap`
+
+```python
+class PointVisionGap
+```
+
+One material omission or ambiguity in a point-vision assessment.
+
+Source: [src/gem/analysis/vision.py:128](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L128)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `code` | `str` | `-` |
+| `subject` | `str` | `-` |
+
+### `DirectTargetRevealEvidence`
+
+```python
+class DirectTargetRevealEvidence
+```
+
+Bounded direct-reveal evidence for the requested canonical hero.
+
+Source: [src/gem/analysis/vision.py:141](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L141)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `modifier_name` | `str` | `-` |
+| `target_name` | `str` | `-` |
+| `caster_name` | `str` | `-` |
+| `caster_team` | `int` | `-` |
+| `start_tick` | `int` | `-` |
+| `end_tick` | `int` | `-` |
+| `target_player_id` | `int` | `-` |
+
+#### Properties
+
+##### `tick`
+
+Signature: `def DirectTargetRevealEvidence.tick(self) -> int`
+
+Return the interval start using modifier-event terminology.
+
+Source: [src/gem/analysis/vision.py:166](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L166)
+
+### `PointVisionAssessment`
+
+```python
+class PointVisionAssessment
+```
+
+Evidence-aware modeled coverage assessment for one arbitrary point.
+
+Source: [src/gem/analysis/vision.py:172](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L172)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `team` | `int` | `-` |
+| `tick` | `int` | `-` |
+| `x` | `float` | `-` |
+| `y` | `float` | `-` |
+| `status` | `PointVisionStatus` | `-` |
+| `sources` | `list[PointVisionSource]` | `-` |
+| `gaps` | `list[PointVisionGap]` | `-` |
+| `direct_target_reveals` | `list[DirectTargetRevealEvidence]` | `-` |
+| `target_player_id` | `int \| None` | `-` |
+| `authoritative_applicable` | `bool` | `-` |
+| `authoritative_visibility` | `VisibilityState` | `-` |
+| `max_position_age_ticks` | `int` | `-` |
 
 ## Module `gem.analysis.formatting`
 

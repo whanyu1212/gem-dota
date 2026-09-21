@@ -868,7 +868,9 @@ class ParsedMatch:
             filter, while ``teamfights`` keeps Gem's richer spatial detector.
         vision_modifiers: Vision-granting modifier events (Slardar Corrosive Haze,
             Bounty Hunter Track, Dust of Appearance, Gem of True Sight, etc.).
-            Used by ``estimate_vision`` to detect reveals beyond geometry.
+            Target-specific reveal evidence is exposed by
+            ``assess_point_vision(..., target_player_id=...)``; modifiers are
+            not arbitrary-point geometry sources.
         game_start_tick: Absolute tick when the game clock started (creeps spawn).
             ``None`` if the transition was not observed.
         game_end_tick: Absolute tick of the final parser tick.

@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from pathlib import Path
+
+from gem.combat.log import CombatLogEntry, CombatLogType
 from gem.reports import (
     ReportOptions,
     apply_opendota_player_names,
@@ -7,10 +10,12 @@ from gem.reports import (
     is_displayable_player_name,
     write_html_report,
 )
-from gem.reports.sections.combat import _fight_reveals_html
+from gem.reports.sections.combat import _fight_reveals_html, build_kill_feed
 from gem.results.models import (
+    HeroVisibilityEvent,
     ParsedMatch,
     ParsedPlayer,
+    VisibilityState,
     VisionModifierEvent,
     VisionModifierLifecycleStatus,
     VisionModifierPairingStatus,
@@ -84,7 +89,7 @@ def test_opendota_player_names_make_reports_display_clean_cjk_names() -> None:
     assert "\ufffd" not in html
 
 
-def test_write_html_report_returns_written_path(tmp_path) -> None:
+def test_write_html_report_returns_written_path(tmp_path: Path) -> None:
     output = tmp_path / "report.html"
 
     written = write_html_report(
@@ -144,7 +149,11 @@ def test_purchase_rows_show_item_name_once_without_icons() -> None:
 
     match = _minimal_match()
     match.players[0].purchase_log = [
-        CombatLogEntry(tick=600, log_type="PURCHASE", value_name="item_blink"),
+        CombatLogEntry(
+            tick=600,
+            log_type=CombatLogType.PURCHASE,
+            value_name="item_blink",
+        ),
     ]
 
     configure_assets(ReportAssets())
@@ -237,3 +246,116 @@ def test_fight_reveal_badges_skip_duration_only_boundaries() -> None:
     match.vision_modifiers = [inferred]
 
     assert _fight_reveals_html(150, 200, match) == ""
+
+
+def test_kill_feed_uses_authoritative_visible_hidden_unknown_labels() -> None:
+    match = _minimal_match()
+    match.combat_log = [
+        CombatLogEntry(
+            tick=tick,
+            log_type=CombatLogType.DEATH,
+            attacker_name="npc_dota_hero_axe",
+            target_name="npc_dota_hero_bane",
+            attacker_is_hero=True,
+            target_is_hero=True,
+        )
+        for tick in (10, 20, 30)
+    ]
+    match.hero_visibility_events = [
+        HeroVisibilityEvent(
+            tick=10,
+            player_id=5,
+            hero_name="npc_dota_hero_bane",
+            entity_index=7,
+            entity_serial=1,
+            radiant_state=VisibilityState.VISIBLE,
+            dire_state=VisibilityState.UNKNOWN,
+        ),
+        HeroVisibilityEvent(
+            tick=20,
+            player_id=5,
+            hero_name="npc_dota_hero_bane",
+            entity_index=7,
+            entity_serial=1,
+            radiant_state=VisibilityState.HIDDEN,
+            dire_state=VisibilityState.UNKNOWN,
+        ),
+        HeroVisibilityEvent(
+            tick=30,
+            player_id=5,
+            hero_name="npc_dota_hero_bane",
+            entity_index=7,
+            entity_serial=1,
+            radiant_state=VisibilityState.UNKNOWN,
+            dire_state=VisibilityState.UNKNOWN,
+        ),
+    ]
+
+    html = build_kill_feed(match)
+
+    assert "visible" in html
+    assert "hidden" in html
+    assert "unknown" in html
+    assert "blind" not in html.lower()
+
+
+def test_kill_feed_prefers_event_visibility_over_same_tick_hero_state() -> None:
+    match = _minimal_match()
+    match.combat_log = [
+        CombatLogEntry(
+            tick=10,
+            log_type=CombatLogType.DEATH,
+            attacker_name="npc_dota_hero_axe",
+            target_name="npc_dota_hero_bane",
+            attacker_is_hero=True,
+            target_is_hero=True,
+            visible_radiant=False,
+        )
+    ]
+    match.hero_visibility_events = [
+        HeroVisibilityEvent(
+            tick=10,
+            player_id=5,
+            hero_name="npc_dota_hero_bane",
+            entity_index=7,
+            entity_serial=1,
+            radiant_state=VisibilityState.VISIBLE,
+            dire_state=VisibilityState.UNKNOWN,
+        )
+    ]
+
+    html = build_kill_feed(match)
+
+    assert "◌ hidden" in html
+    assert "👁 visible" not in html
+
+
+def test_kill_feed_does_not_apply_canonical_visibility_to_illusion_death() -> None:
+    match = _minimal_match()
+    match.combat_log = [
+        CombatLogEntry(
+            tick=10,
+            log_type=CombatLogType.DEATH,
+            attacker_name="npc_dota_hero_axe",
+            target_name="npc_dota_hero_bane",
+            attacker_is_hero=True,
+            target_is_hero=True,
+            target_is_illusion=True,
+        )
+    ]
+    match.hero_visibility_events = [
+        HeroVisibilityEvent(
+            tick=10,
+            player_id=5,
+            hero_name="npc_dota_hero_bane",
+            entity_index=7,
+            entity_serial=1,
+            radiant_state=VisibilityState.VISIBLE,
+            dire_state=VisibilityState.UNKNOWN,
+        )
+    ]
+
+    html = build_kill_feed(match)
+
+    assert "Bane" in html
+    assert "👁 visible" not in html

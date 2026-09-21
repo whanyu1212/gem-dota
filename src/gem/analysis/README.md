@@ -39,7 +39,7 @@ ReplayParser  ──parse──▶  ParsedMatch
    position_at_tick / heroes_near /     build_map_context_timeline /
    net_worth_at / teamfight_at_tick /   build_rosh_conversions
    group_ability_hits / ability_                  │
-   level_at_tick / estimate_vision               ▼
+   level_at_tick / assess_point_vision           ▼
                   │                     new dataclasses
                   ▼                     (MapContextBucket,
           tuples / lists /              CampVisitContext,
@@ -66,6 +66,9 @@ These are O(log N) or single-pass helpers over a sorted/parallel fact list.
 - `position_at_tick(player, tick)` searches `player.position_log` (a list of
   `(tick, x, y)` tuples sampled ~1/sec) with `bisect`, returning the `(x, y)` of
   the nearest sample by tick distance, or `None` if the log is empty.
+- `position_sample_at_tick(player, tick)` uses the same selection rule while
+  retaining the chosen sample tick and absolute age for callers that must apply
+  an explicit freshness policy.
 - `heroes_near(match, tick, x, y, radius)` calls `position_at_tick` for every
   player, keeps those within `radius` world units of `(x, y)`, and returns them
   in **ascending distance order**. Heroes with no position sample are skipped.
@@ -122,16 +125,17 @@ that the results are heuristics with no terrain/high-ground modelling.
   (Reference: [Liquipedia — Time of Day](https://liquipedia.net/dota2/Time_of_Day).)
   `_is_daytime` is a backwards-compatible alias for the same function (kept
   because the dev branch exported the underscored name).
-- `estimate_vision(match, team, tick, x, y)` returns a distance-sorted list of
-  `VisionSource` dataclasses (`kind` ∈ `"hero" | "ward" | "modifier"`) for every
-  allied unit that *could* see `(x, y)`. Hero radius is day/night-adjusted
-  (`_DAY_VISION = 1800` / `_NIGHT_VISION = 800`); observer wards use a constant
-  `_WARD_VISION = 1600`; modifier reveals (from `match.vision_modifiers`, e.g.
-  Slardar Corrosive Haze, Track, Dust) report distance to the revealed hero with
-  `vision_radius = 0` and **no radius gate**. The docstring quotes ~85–90%
-  accuracy for the "was this initiation telegraphed or blind?" use case and lists
-  what it does *not* model (high ground, ability vision, summon/creep vision,
-  sentry true-sight).
+- `assess_point_vision(match, team, tick, x, y, ...)` is the primary point query.
+  It returns `supported`, `unsupported`, or `incomplete`, retains sampled-position
+  provenance and missing-evidence gaps, and optionally reports authoritative
+  canonical-target visibility plus bounded direct-target reveals as separate
+  evidence. Hero radius is day/night-adjusted (`_DAY_VISION = 1800` /
+  `_NIGHT_VISION = 800`); observer wards use `_WARD_VISION = 1600`.
+- `estimate_vision(match, team, tick, x, y)` is the compatibility list view over
+  the same bounded hero/observer geometry. Its empty list cannot distinguish
+  unsupported from incomplete evidence, so negative conclusions should use the
+  assessment API. Direct-target modifiers are target evidence, not arbitrary
+  point sources.
 - `ward_vision_impact(ward, match)` counts *distinct* enemy heroes whose
   `position_log` samples ever fell inside the ward's 1600-unit radius during its
   alive window (squared-distance check against `_WARD_VISION_RADIUS_SQ`, one
@@ -247,17 +251,16 @@ it in the extractor that produced the field, not in the lookup that reads it.
 
 ## Common Pitfalls
 
-### `estimate_vision` / `ward_vision_impact` are approximations, not truth
+### Point vision / `ward_vision_impact` are approximations, not truth
 They do flat 2D radius checks with no high-ground, tree, or cliff modelling, and
-sample positions only every ~1–5 seconds. An empty `estimate_vision` result
-means "no *modelled* vision", not a guaranteed fog state. Do not treat their
-output as replay-accurate vision.
+sample positions only every ~1–5 seconds. `PointVisionStatus.UNSUPPORTED` means
+"no *modelled* source", not a guaranteed fog state. Do not treat the geometry
+output as replay-accurate visibility.
 
-### `modifier` vision sources have `vision_radius = 0` and no radius check
-In `estimate_vision`, a modifier-revealed enemy hero is *always* added as a
-source regardless of how far the query point is from that hero — the `distance`
-field is informational only. This is intentional (the modifier grants direct
-vision of the hero), not a missing radius gate.
+### Direct reveals are target evidence, not point coverage
+`assess_point_vision(..., target_player_id=...)` reports defensible direct-target
+modifier intervals separately from hero/observer geometry. Do not turn Track,
+Corrosive Haze, Dust, or a carrier/aura record into general map coverage.
 
 ### `net_worth_at` scans linearly; `position_at_tick` bisects
 `net_worth_at` uses an O(N) `min()` over `player.times`, while `position_at_tick`

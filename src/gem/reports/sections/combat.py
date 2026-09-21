@@ -9,10 +9,9 @@ from __future__ import annotations
 import json
 
 from gem.analysis import (
-    estimate_vision,
     group_ability_hits,
+    hero_visibility_at,
     is_active_teamfight_participant,
-    position_at_tick,
 )
 from gem.catalog import (
     ability_display,
@@ -45,6 +44,7 @@ from gem.reports.sections._shared import (
 from gem.results.models import (
     ParsedMatch,
     ParsedPlayer,
+    VisibilityState,
     VisionModifierEvent,
     VisionModifierLifecycleStatus,
     VisionModifierPairingStatus,
@@ -255,20 +255,40 @@ def build_kill_feed(match: ParsedMatch) -> str:
             else:
                 via = '<span style="color:#6e7681">auto-attack</span>'
 
-            # Vision badge: was the victim visible to the killer's team at death?
+            # Prefer the combat event's visibility because it preserves
+            # intra-tick ordering. Canonical hero visibility is the fallback
+            # for S1 and S2 events where the optional flag is absent.
             vision_badge = ""
             if attacker_team in (2, 3):
                 victim_player = npc_to_player.get(entry.target_name)
-                if victim_player:
-                    pos = position_at_tick(victim_player, entry.tick)
-                    if pos:
-                        sources = estimate_vision(match, attacker_team, entry.tick, pos[0], pos[1])
-                        if not sources:
-                            vision_badge = (
-                                '<span style="background:#21262d;border:1px solid #30363d;'
-                                "border-radius:10px;padding:1px 7px;font-size:11px;"
-                                'color:#6e7681;white-space:nowrap">🌫 blind</span>'
-                            )
+                if victim_player and not entry.target_is_illusion:
+                    event_visibility = entry.visible_to(attacker_team)
+                    if event_visibility is None:
+                        visibility = hero_visibility_at(
+                            match,
+                            player_id=victim_player.player_id,
+                            observing_team=attacker_team,
+                            tick=entry.tick,
+                        )
+                    else:
+                        visibility = (
+                            VisibilityState.VISIBLE if event_visibility else VisibilityState.HIDDEN
+                        )
+                    color = {
+                        VisibilityState.VISIBLE: "#3fb950",
+                        VisibilityState.HIDDEN: "#8b949e",
+                        VisibilityState.UNKNOWN: "#d29922",
+                    }[visibility]
+                    icon = {
+                        VisibilityState.VISIBLE: "👁",
+                        VisibilityState.HIDDEN: "◌",
+                        VisibilityState.UNKNOWN: "?",
+                    }[visibility]
+                    vision_badge = (
+                        '<span style="background:#21262d;border:1px solid #30363d;'
+                        "border-radius:10px;padding:1px 7px;font-size:11px;"
+                        f'color:{color};white-space:nowrap">{icon} {visibility.value}</span>'
+                    )
 
             parts.append(
                 f"<tr>"

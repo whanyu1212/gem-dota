@@ -1,437 +1,231 @@
-# Estimate Vision
+# Point-Vision Evidence
 
-`estimate_vision` is an experimental post-parse helper that tries to answer a simple but important question:
+gem exposes two different kinds of visibility evidence:
 
-> At tick `t`, did team `X` likely have vision of map point `(x, y)`?
+- `hero_visibility_at(...)` reads authoritative replay visibility for a
+  canonical player hero.
+- `assess_point_vision(...)` models whether the sources gem currently knows
+  about could cover an arbitrary map coordinate.
 
-This question matters for practical replay analysis:
-
-- was an initiation blind or telegraphed?
-- did a smoke break in enemy vision?
-- was a gank visible before it happened?
-- was a ward or hero actually giving information at that location?
-
-The replay exposes whether particular entities were visible to each team, but
-it does not provide a terrain-accurate raster for arbitrary map coordinates.
-`estimate_vision` is therefore a separate geometry-based approximation with
-explicit inputs and explicit limits. For a canonical player hero, prefer the
-authoritative `hero_visibility_at(...)` query.
+These answers are deliberately kept separate. A geometric model can explain
+possible sources, but it cannot prove Valve's terrain-aware fog-of-war state.
 
 > [!IMPORTANT]
-> `estimate_vision` is useful, but it is not true fog-of-war reconstruction.
->
-> It gives a defensible first-pass answer for many analytical workflows, not a terrain-perfect verdict.
+> An `unsupported` point assessment means only that no currently modelled
+> source covered the point. It does not mean the replay proved that the point
+> was hidden.
 
-## What the function returns
+## Choosing the right API
 
-API:
-
-```python
-gem.estimate_vision(
-    match: ParsedMatch,
-    team: int,
-    tick: int,
-    x: float,
-    y: float,
-) -> list[VisionSource]
-```
-
-It returns a list of `VisionSource` objects sorted by ascending distance.
-
-Each source is one thing that plausibly grants vision of the queried point:
-
-- an allied hero
-- an allied observer ward
-- a vision-granting modifier reveal
-
-If the list is empty, no vision source was found by the current approximation.
-That is not proof that the point was in fog.
-
-## Authoritative hero visibility versus estimated point visibility
-
-These APIs answer different questions:
-
-| API | Question | Evidence |
+| Question | API | Result |
 |---|---|---|
-| `hero_visibility_at(...)` | Could one team see this canonical player hero? | `CDOTA_DataRadiant` / `CDOTA_DataDire` visibility bitsets |
-| `estimate_vision(...)` | Which modelled source might cover this map coordinate? | Sampled positions, ward geometry, and reveal modifiers |
+| Could Radiant see player 7's canonical hero? | `hero_visibility_at(...)` | `visible`, `hidden`, or `unknown` |
+| What modelled sources could cover `(x, y)`? | `assess_point_vision(...)` | Evidence-rich `PointVisionAssessment` |
+| Which modelled geometry sources covered `(x, y)`? | `estimate_vision(...)` | Compatibility list of `VisionSource` |
 
-`hero_visibility_at(...)` returns `VISIBLE`, `HIDDEN`, or `UNKNOWN`. It is the
-right foundation for later smoke-break and teamfight-information analysis, but
-it cannot identify the revealing source or answer visibility for an empty map
-coordinate.
+Prefer the authoritative query whenever the subject is a canonical player
+hero. Use the point assessment for empty map coordinates, source explanations,
+or cases where authoritative entity visibility does not apply.
 
-## Why this is experimental
-
-True Dota vision depends on more than Euclidean distance:
-
-- cliffs and high-ground rules
-- trees and terrain occlusion
-- hero-specific or item-specific vision changes
-- summons and creep vision
-- special reveal mechanics
-
-gem does not reconstruct all of that. Instead, `estimate_vision` deliberately uses the subset it can model reliably from parsed replay data.
-
-That tradeoff is why the feature belongs in `Experimental Features` instead of being presented as a final truth layer.
-
-## Inputs used by the model
-
-The current implementation in `src/gem/analysis/vision.py` uses these inputs:
-
-- `match.players`
-- `player.position_log`
-- `match.wards`
-- `match.vision_modifiers`
-- `match.game_start_tick`
-- the queried `(team, tick, x, y)`
-
-These are all replay-derived structures. The approximation begins when gem interprets them geometrically.
-
-## High-level derivation
-
-The function works in four steps.
-
-### 1. Determine whether it is day or night
-
-Dota vision changes with the day/night cycle, so the function first asks whether the queried tick is daytime.
-
-Current constants in `src/gem/analysis/vision.py`:
-
-```text
-day hero vision   = 1800
-night hero vision = 800
-ward vision       = 1600
-full cycle        = 10 minutes
-night starts      = 5:00 into the cycle
-tick rate         = 30 ticks/sec
-```
-
-Derived tick constants:
-
-```text
-DAY_NIGHT_CYCLE_TICKS = 10 * 60 * 30 = 18000
-NIGHT_START_TICKS     = 5 * 60 * 30  = 9000
-```
-
-The function converts absolute replay tick into game-relative tick:
-
-```text
-game_ticks = max(tick - game_start_tick, 0)
-phase      = game_ticks % 18000
-daytime    = phase < 9000
-```
-
-Interpretation:
-
-- before `5:00`, it is day
-- at/after `5:00`, it is night
-- at `10:00`, the cycle repeats
-
-This yields the hero vision radius for the rest of the check.
-
-### 2. Check allied hero vision
-
-For every player on the queried team:
-
-1. get the hero position at the queried tick with `position_at_tick(...)`
-2. compute Euclidean distance from the hero position to `(x, y)`
-3. compare that distance to the current day/night hero radius
-
-If:
-
-```text
-distance <= hero_radius
-```
-
-then that hero is included as a `VisionSource(kind="hero", ...)`.
-
-### Why this works reasonably well
-
-For many tactical replay questions, the first-order question is simply:
-
-> Was an allied hero physically close enough that the target point was probably visible?
-
-That is exactly what this check tries to answer.
-
-### What it ignores
-
-This hero check does **not** model:
-
-- cliffs
-- trees
-- special hero vision bonuses
-- temporary vision reductions or increases
-
-So it is best understood as a straight-line radius test around the hero's estimated position.
-
-### 3. Check observer ward vision
-
-For every observer ward on the queried team:
-
-1. ignore sentries
-2. ignore wards with missing coordinates
-3. require the ward to have already been placed by the queried tick
-4. require the ward to still be alive
-5. compute Euclidean distance from ward position to `(x, y)`
-6. compare that distance to the fixed observer radius `1600`
-
-If:
-
-```text
-distance <= 1600
-```
-
-then the ward is included as a `VisionSource(kind="ward", ...)`.
-
-The alive check is:
-
-```text
-ward.tick <= query_tick
-and query_tick <= (ward.killed_tick or ward.expires_tick)
-```
-
-with the usual handling for missing kill / expire ticks.
-
-### Why wards are simpler than heroes
-
-Observer wards do not have a day/night penalty in this model. They use a single constant vision radius.
-
-That keeps the ward part of the approximation fairly straightforward.
-
-### 4. Check vision-granting modifiers
-
-This is the least obvious part of the function, and it is where the derivation matters most.
-
-gem tracks certain reveal modifiers during parse and stores them in:
+## Evidence-rich point assessment
 
 ```python
-match.vision_modifiers
+assessment = gem.assess_point_vision(
+    match,
+    team=2,
+    tick=120_000,
+    x=-1_250.0,
+    y=2_400.0,
+)
+
+if assessment.status is gem.PointVisionStatus.SUPPORTED:
+    for source in assessment.sources:
+        print(source.kind, source.name, source.distance)
+elif assessment.status is gem.PointVisionStatus.INCOMPLETE:
+    for gap in assessment.gaps:
+        print(gap.code, gap.subject)
+else:
+    print("No currently modelled source covered the point")
 ```
 
-Each application records:
+The assessment preserves the query inputs, evidence status, contributing
+sources, and any evidence gaps. Its status is one of:
 
-- exact observed add/remove ticks when available
-- lifecycle and pairing confidence
-- modifier semantics
-- target/caster identity and team provenance
-- duration, elapsed-time, protocol, and optional-field evidence
+- `supported`: at least one fresh, modelled geometry source covers the point;
+- `unsupported`: the relevant model inputs were available, but none covered
+  the point;
+- `incomplete`: missing or stale evidence could change an otherwise negative
+  answer.
 
-The current function then applies this rule:
+Support takes precedence over incompleteness. An assessment can therefore be
+`supported` and still contain gaps for other allied heroes or wards. Consumers
+that require complete evidence should inspect both `status` and `gaps`.
 
-1. keep only `direct_target_reveal` events for non-illusion hero targets
-2. reject incomplete, ambiguous, and unobserved-close applications
-3. keep events where `caster_team == team` and the observed interval covers the tick
-4. find the revealed target hero and get its position at the queried tick
-5. treat that revealed hero position as a vision source for the query
+## Position freshness and provenance
 
-Unlike hero and ward checks, modifier reveals do **not** use a radius gate in this approximation.
+Player positions are sampled, not continuous. The default parser samples at
+roughly one-second intervals, but callers can configure a wider interval.
 
-Instead, the function always adds a `VisionSource(kind="modifier", vision_radius=0)` once the modifier is active and the target hero position can be resolved.
+`assess_point_vision(...)` accepts `max_position_age_ticks`, which defaults to
+150 ticks (five seconds at 30 ticks per second). A hero sample older than this
+bound is excluded and recorded as a gap instead of being silently carried over
+an arbitrary distance in time.
 
-The reported `distance` is:
+Every accepted sampled hero source records:
+
+- the sampled world coordinate;
+- the source sample tick;
+- the absolute age of that sample at the query tick;
+- sampled-position provenance;
+- the canonical player ID when available.
+
+The lower-level `position_sample_at_tick(...)` helper exposes the nearest
+sample and its tick/age without applying a freshness policy. The older
+`position_at_tick(...)` coordinate-only helper remains available.
+
+The model never interpolates between samples. In particular, it does not draw a
+path across a teleport or another large movement discontinuity.
+
+## Modelled point sources
+
+The point model currently accepts two source families.
+
+### Allied canonical heroes
+
+An allied hero supports the point when:
+
+1. a position sample exists within the configured freshness bound; and
+2. its straight-line distance to the point is within the modelled hero radius.
+
+The model uses 1800 world units during the day and 800 at night. It does not
+model hero-specific vision changes, cliffs, trees, or terrain occlusion.
+
+### Allied observer wards
+
+An observer supports the point when:
+
+1. its team is known and matches the queried team;
+2. its placement coordinates are available;
+3. the query lies in its observed lifetime; and
+4. its straight-line distance to the point is at most 1600 world units.
+
+Ward lifetimes are half-open: placement is active at `ward.tick`, while the
+observed kill or expiry tick is no longer active. This matches the entity
+life-state transition that produced the terminal event.
+
+An observer with no terminal event remains active only through the replay's
+observed horizon. A query beyond that horizon is incomplete. Missing coordinates
+or unknown team attribution are also gaps rather than negative evidence.
+
+Sentry wards are kept distinct. They provide true sight but do not grant
+standard map vision, so they are not point-coverage sources.
+
+## Direct-target reveals are not point sources
+
+Track, Corrosive Haze, and similar direct reveals answer a target question:
+
+> Was this specific hero covered by a defensible direct-reveal interval?
+
+They do not establish coverage of every arbitrary coordinate. Pass
+`target_player_id` when the point corresponds to a canonical player hero:
+
+```python
+assessment = gem.assess_point_vision(
+    match,
+    team=3,
+    tick=tick,
+    x=x,
+    y=y,
+    target_player_id=4,
+)
+
+print(assessment.authoritative_visibility)
+for reveal in assessment.direct_target_reveals:
+    print(reveal.modifier_name, reveal.start_tick, reveal.end_tick)
+```
+
+The result exposes three independent facts:
+
+- authoritative visibility of the canonical target, when applicable;
+- geometry sources covering the coordinate;
+- bounded direct-target reveal evidence for that target.
+
+Only non-illusion hero applications with a supported team, unambiguous pairing,
+and bounded observed interval are returned as direct-target evidence. Ambiguous
+or incomplete matching evidence is preserved as a gap, not promoted into
+coverage.
+
+Authoritative `visible`, `hidden`, and `unknown` values are never blended with
+the modelled point status. `unknown` does not mean hidden.
+
+## Compatibility helper
+
+`estimate_vision(...)` remains available for callers that need a simple,
+distance-sorted `list[VisionSource]`:
+
+```python
+sources = gem.estimate_vision(match, team=2, tick=tick, x=x, y=y)
+```
+
+It now uses the same bounded hero-position and ward-lifetime rules as the
+evidence-rich assessment. Its list shape cannot represent why evidence was
+missing, so an empty list remains ambiguous. New code should use
+`assess_point_vision(...)` whenever a negative result matters.
+
+Direct-target modifiers are no longer returned as arbitrary point sources. Use
+`target_player_id` on `assess_point_vision(...)` to request that separate
+evidence.
+
+## Day and night
+
+The model uses a ten-minute cycle:
 
 ```text
-distance(revealed_hero_position, query_point)
+day:   0:00 through 4:59.99
+night: 5:00 through 9:59.99
 ```
 
-Interpretation:
+The cycle repeats every 18,000 ticks at 30 ticks per second. If
+`game_start_tick` is unavailable, tick zero is used as the fallback origin.
 
-- if the query point is exactly the revealed hero's position, distance is `0`
-- if the query point is near that hero, distance is small
-- if the query point is far from that hero, distance is large
+## Known limits
 
-The modifier source still appears because the revealed hero itself is considered directly seen.
+The assessment intentionally does not claim terrain-perfect vision. It omits:
 
-### Why `vision_radius = 0` for modifiers
+- cliffs, trees, blockers, and patch-specific map geometry;
+- summon, creep, building, and temporary ability vision;
+- hero-specific day/night radius changes;
+- exact rasterized fog-of-war state;
+- attribution of authoritative visibility to one revealing source.
 
-Because this is not a radius-based visibility check in the same sense as hero or ward vision.
+An observer circle or hero radius is evidence of modelled support, not proof
+that terrain allowed vision. Conversely, `unsupported` is model non-support,
+not proof of fog.
 
-The modifier is treated as a direct reveal mechanism. So `vision_radius = 0` is really a signal that says:
+## Serialization
 
-> this source was not accepted because of a radius threshold; it was accepted because the target was actively revealed
+The assessment and its nested evidence records are public dataclasses. They can
+be converted with `gem.to_dict(...)` or Python's `dataclasses.asdict(...)`:
 
-### Tracked modifier families
-
-The direct-target set includes:
-
-- Slardar Corrosive Haze
-- Bounty Hunter Track
-- Dust of Appearance
-
-Gem carrier and reveal-aura modifiers are also preserved in the event stream,
-but this point query does not reinterpret either as a direct target reveal.
-
-## Data flow behind `match.vision_modifiers`
-
-`estimate_vision` only works because the parser already extracts reveal-style modifier events during parse.
-
-The high-level flow is:
-
-1. combat log normalization sees relevant modifier add/remove events
-2. gem records them as `VisionModifierEvent`
-3. `results/assembly.py` places them onto `ParsedMatch.vision_modifiers`
-4. `estimate_vision` reads them later during post-parse analysis
-
-This means the function is not inventing modifier state from scratch at query time. It consumes a replay-derived event stream that was already captured during parsing.
-
-For the event-stream derivation itself, see [Vision Modifiers](./vision-modifiers.md).
-
-## Exact decision model
-
-The practical decision model is:
-
-```text
-vision_sources = []
-
-if allied hero is within day/night hero radius:
-    add hero source
-
-if allied observer ward is alive and within 1600:
-    add ward source
-
-if a bounded, direct-target reveal modifier is active on a non-illusion hero:
-    add modifier source based on the revealed hero position
-
-sort all accepted sources by ascending distance
-return them
+```python
+payload = gem.to_dict(assessment)
 ```
 
-The function therefore answers:
+Point assessments are query results rather than persistent match timelines, so
+they are not added as a separate `ParsedMatch` DataFrame or Parquet table.
 
-> Which modeled sources support the claim that this team could see this point?
+## Validation boundaries
 
-not:
+Tests cover:
 
-> Can we reconstruct Valve's exact internal fog-of-war state?
+- fresh, stale, and missing player positions;
+- day/night range boundaries;
+- observer placement, kill, and expiry equality;
+- sentry separation and missing ward evidence;
+- complete versus incomplete negative results;
+- authoritative visible, hidden, and unknown target states;
+- direct-target reveal separation;
+- serialization and real-replay provenance.
 
-## Why distance sorting matters
-
-The function sorts accepted sources by ascending distance before returning them.
-
-That makes the first source a useful first explanation:
-
-- nearest hero vision
-- nearest ward
-- nearest revealed-hero modifier source
-
-This is especially useful in analyst tooling and reports where you want a compact answer like:
-
-- \"Radiant had vision via observer ward\"
-- \"Dire had vision via Shadow Demon\"
-- \"Dire had reveal via modifier_bounty_hunter_track\"
-
-## What this approximation does well
-
-It works reasonably well for questions like:
-
-- \"Was this blink initiation likely visible?\"
-- \"Did this ward plausibly cover that ramp?\"
-- \"Was the target hero explicitly revealed by Track or Corrosive Haze?\"
-- \"Was there any obvious allied source that should have seen this point?\"
-
-These are practical analyst questions, and straight-line geometry captures a large fraction of them usefully.
-
-## What this approximation does poorly
-
-It is weaker for questions where terrain and line-of-sight dominate:
-
-- exact uphill/downhill vision disputes
-- tree occlusion edge cases
-- unusual hero-specific vision ranges
-- summon-based scouting
-- precise Dust/Gem aura geometry
-
-This is where the feature should be treated as suggestive, not definitive.
-
-## Limitations by source type
-
-### Heroes
-
-Limitations:
-
-- uses nearest sampled hero position, not continuous movement
-- ignores terrain and cliffs
-- assumes a generic day/night radius
-
-### Wards
-
-Limitations:
-
-- uses simple circular coverage
-- ignores terrain-specific ward vision interactions
-- ignores all non-observer sight sources
-
-### Modifiers
-
-Limitations:
-
-- the query uses the revealed hero position, not a full reveal field
-- Dust / Gem auras are approximated as direct reveals once tracked
-- modifier coverage is only as good as the extracted modifier event stream
-
-## Relationship to `position_at_tick`
-
-`estimate_vision` depends on `position_at_tick(...)` for hero positions and revealed-target positions.
-
-That means its output inherits the assumptions of sampled movement:
-
-- position logs are discrete samples, not full continuous trajectories
-- the nearest sample is used for the queried tick
-
-This is usually acceptable for high-level tactical questions, but it still matters for fine edge cases.
-
-## Why this is still useful
-
-Even with the limitations, the function is valuable because the alternative is often much worse:
-
-- manually eyeballing the replay
-- guessing whether a ward covered an area
-- ignoring reveal modifiers entirely
-- treating every initiation as either obviously seen or obviously blind
-
-`estimate_vision` gives a structured, repeatable approximation with explicit source objects and explicit caveats.
-
-That is a good fit for automated replay analysis, agentic workflows, and report generation.
-
-## How to interpret the output responsibly
-
-Use the function as:
-
-- a first-pass visibility check
-- an explanation generator for likely vision sources
-- a screening tool for \"visible vs likely fogged\" situations
-
-Do **not** use it as:
-
-- final proof of true fog-of-war state
-- exact terrain-aware scouting reconstruction
-- a substitute for replay review in high-stakes edge cases
-
-## Example reasoning workflow
-
-If a gank starts at `(x, y)` on tick `t`, a good workflow is:
-
-1. call `estimate_vision(match, team, t, x, y)`
-2. inspect whether the list is empty
-3. if not empty, inspect the nearest source
-4. check whether that source is a hero, ward, or modifier reveal
-5. confirm visually in replay if the situation is high stakes or terrain-sensitive
-
-That makes the function useful without pretending it is perfect.
-
-## Code locations
-
-Implementation and supporting structures:
-
-- `src/gem/analysis/vision.py`
-- `src/gem/results/models.py`
-- `src/gem/results/assembly.py`
-- `docs/reference/analysis.md`
-
-## Related reading
-
-1. [Analysis Helpers](../reference/analysis.md)
-2. [Vision Modifiers](./vision-modifiers.md)
-3. [Replay Edge Cases](../deep-dives/replay-edge-cases.md)
-4. [Experimental Features](./index.md)
+For terrain-sensitive decisions, retain the assessment as screening evidence
+and confirm the situation in the game replay.

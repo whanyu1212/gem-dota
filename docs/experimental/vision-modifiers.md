@@ -79,11 +79,13 @@ fake application rows.
 
 ## Conservative consumers
 
-`estimate_vision(...)` and fight reveal badges consume only direct-target,
-non-illusion hero, non-ambiguous evidence with an observed `end_tick`. Duration-only
-expiry is pause-aware evidence but cannot provide an exact replay-tick interval,
-so consumers do not synthesize one. Gem carrier/aura events and incomplete or
-unobserved-close events are not reported as direct target reveals.
+`assess_point_vision(..., target_player_id=...)` and fight reveal badges consume
+only direct-target, non-illusion hero, non-ambiguous evidence with an observed
+`end_tick`. The point assessment keeps that target evidence separate from
+hero/observer map geometry. Duration-only expiry is pause-aware evidence but
+cannot provide an exact replay-tick interval, so consumers do not synthesize
+one. Gem carrier/aura events and incomplete or unobserved-close events are not
+reported as direct target reveals.
 
 For tabular workflows, `build_dataframes(...)` always provides the flat
 `vision_modifiers` and `vision_modifier_pairing_issues` tables, with declared
