@@ -21,10 +21,14 @@ class FieldState:
     Paths from ``read_field_paths`` index into this tree.
     """
 
-    __slots__ = ("_state",)
+    __slots__ = ("_state", "_updated_paths")
 
     def __init__(self) -> None:
         self._state: list[FieldValue] = [None] * 8
+        # The most recent decoder-provided delta paths. ``None`` preserves a
+        # useful distinction for synthetic entities whose state is populated
+        # directly rather than through ``read_fields``.
+        self._updated_paths: list[CompactFieldPath] | None = None
 
     @staticmethod
     def _is_child(value: FieldValue) -> TypeGuard[FieldState]:

@@ -274,6 +274,52 @@ def hero_visibility_at(
     return latest.radiant_state if observing_team == 2 else latest.dire_state
 
 
+def entity_visibility_at(
+    match: ParsedMatch,
+    *,
+    entity_index: int,
+    entity_serial: int,
+    observing_team: int,
+    tick: int,
+) -> VisibilityState:
+    """Return authoritative NPC-entity visibility at or before ``tick``.
+
+    Identity includes both the entity-table index and serial, so reuse of a
+    slot cannot leak visibility across entities. The last eligible event wins;
+    an inactive terminal event returns ``UNKNOWN``.
+
+    Args:
+        match: Parsed match containing entity visibility events.
+        entity_index: Entity-table slot index.
+        entity_serial: Entity serial for the queried identity.
+        observing_team: Radiant (2) or Dire (3).
+        tick: Replay tick to query.
+
+    Returns:
+        The latest known :class:`VisibilityState`, or ``UNKNOWN`` when no
+        eligible active observation exists.
+
+    Raises:
+        ValueError: If ``observing_team`` is not 2 or 3.
+    """
+    if observing_team not in (2, 3):
+        raise ValueError("observing_team must be 2 (Radiant) or 3 (Dire)")
+
+    latest = None
+    for event in match.entity_visibility_events:
+        if (
+            event.entity_index == entity_index
+            and event.entity_serial == entity_serial
+            and event.tick <= tick
+            and (latest is None or event.tick >= latest.tick)
+        ):
+            latest = event
+
+    if latest is None or not latest.active:
+        return VisibilityState.UNKNOWN
+    return latest.radiant_state if observing_team == 2 else latest.dire_state
+
+
 def assess_point_vision(
     match: ParsedMatch,
     team: int,

@@ -9,22 +9,44 @@ from types import SimpleNamespace
 import pytest
 
 import gem
-from gem.analysis import hero_visibility_at
+from gem.analysis import entity_visibility_at, hero_visibility_at
 from gem.extractors.visibility import VisibilityExtractor
 from gem.results.dataframes import build_dataframes
-from gem.results.models import HeroVisibilityEvent, ParsedMatch, VisibilityState
+from gem.results.models import (
+    EntityVisibilityEvent,
+    HeroVisibilityEvent,
+    ParsedMatch,
+    VisibilityState,
+)
 from gem.state.entities import Entity, EntityOp
 
 
 class _Class:
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, class_id: int) -> None:
         self.name = name
-        self.class_id = 1
+        self.class_id = class_id
         self.serializer = None
 
 
-def _entity(class_name: str, *, index: int = 0, serial: int = 0, **state: int) -> Entity:
-    entity = Entity(index=index, serial=serial, cls=_Class(class_name))
+_next_class_id = 1
+
+
+def _entity(
+    class_name: str,
+    *,
+    index: int = 0,
+    serial: int = 0,
+    class_id: int | None = None,
+    npc: bool = False,
+    **state: int,
+) -> Entity:
+    global _next_class_id
+    if class_id is None:
+        class_id = _next_class_id
+        _next_class_id += 1
+    entity = Entity(index=index, serial=serial, cls=_Class(class_name, class_id))
+    if npc:
+        state.setdefault("m_iDayTimeVisionRange", 1800)
     entity._state.update(state)
     return entity
 
@@ -56,11 +78,9 @@ class _Parser:
         self.string_tables = _StringTables()
         self.entity_callback = None
         self.packet_callback = None
-        self.filters: dict[str, object] = {}
 
-    def _on_entity_filtered(self, callback, **filters) -> None:
+    def on_entity(self, callback) -> None:
         self.entity_callback = callback
-        self.filters = filters
 
     def _on_packet_end(self, callback) -> None:
         self.packet_callback = callback
@@ -130,12 +150,7 @@ def test_team_data_aliases_are_watched(radiant_class: str, dire_class: str) -> N
 
     assert extractor.events[0].radiant_state is VisibilityState.VISIBLE
     assert extractor.events[0].dire_state is VisibilityState.HIDDEN
-    assert set(parser.filters["class_names"]) >= {
-        "CDOTADataRadiant",
-        "CDOTA_DataRadiant",
-        "CDOTADataDire",
-        "CDOTA_DataDire",
-    }
+    assert parser.entity_callback is not None
 
 
 def test_missing_team_or_word_is_unknown_never_hidden() -> None:
@@ -366,4 +381,331 @@ def test_query_reflects_public_timeline_mutations() -> None:
     ]
     assert (
         hero_visibility_at(match, player_id=0, observing_team=2, tick=20) is VisibilityState.VISIBLE
+    )
+
+
+def test_entity_timeline_covers_npc_schema_across_class_names_and_visibility_words() -> None:
+    extractor, _players, parser = _attached()
+    parser.string_tables = _StringTables(
+        SimpleNamespace(
+            items={
+                1: ("npc_dota_hero_axe", b""),
+                2: ("npc_dota_observer_wards", b""),
+                3: ("npc_dota_creep_goodguys_melee", b""),
+                4: ("npc_dota_goodguys_tower1_mid", b""),
+                5: ("npc_dota_unprefixed_test", b""),
+            }
+        )
+    )
+    radiant = _entity(
+        "CDOTADataRadiant",
+        **{
+            "m_bNPCVisibleState.0000": (1 << 0) | (1 << 63),
+            "m_bNPCVisibleState.0001": 1,
+            "m_bNPCVisibleState.0002": 1 << 2,
+        },
+    )
+    dire = _entity(
+        "CDOTADataDire",
+        **{
+            "m_bNPCVisibleState.0000": 0,
+            "m_bNPCVisibleState.0001": 1 << 1,
+            "m_bNPCVisibleState.0002": 0,
+        },
+    )
+    entities = [
+        _entity(
+            "CDOTA_Unit_Hero_Axe",
+            index=0,
+            npc=True,
+            **{"m_pEntity.m_nameStringTableIndex": 1, "m_iTeamNum": 2},
+        ),
+        _entity(
+            "CDOTA_NPC_Observer_Ward",
+            index=63,
+            npc=True,
+            **{"m_pEntity.m_nameStringableIndex": 2, "m_iTeamNum": 2},
+        ),
+        _entity(
+            "CDOTA_BaseNPC_Creep_Lane",
+            index=64,
+            npc=True,
+            **{"m_pEntity.m_nameStringTableIndex": 3, "m_iTeamNum": 2},
+        ),
+        _entity(
+            "CDOTA_BaseNPC_Tower",
+            index=65,
+            npc=True,
+            **{"m_pEntity.m_nameStringTableIndex": 4, "m_iTeamNum": 3},
+        ),
+        _entity(
+            "CompletelyNonstandardNetworkClass",
+            index=130,
+            npc=True,
+            **{"m_pEntity.m_nameStringTableIndex": 5, "m_iTeamNum": 4},
+        ),
+    ]
+    non_npc = _entity("CDOTAPlayerController", index=9)
+
+    parser.entity(radiant)
+    parser.entity(dire)
+    for entity in entities:
+        parser.entity(entity, EntityOp.CREATED_ENTERED)
+    parser.entity(non_npc, EntityOp.CREATED_ENTERED)
+    parser.packet_end(100)
+
+    assert [event.entity_index for event in extractor.entity_events] == [0, 63, 64, 65, 130]
+    assert [event.npc_name for event in extractor.entity_events] == [
+        "npc_dota_hero_axe",
+        "npc_dota_observer_wards",
+        "npc_dota_creep_goodguys_melee",
+        "npc_dota_goodguys_tower1_mid",
+        "npc_dota_unprefixed_test",
+    ]
+    assert [(event.radiant_state, event.dire_state) for event in extractor.entity_events] == [
+        (VisibilityState.VISIBLE, VisibilityState.HIDDEN),
+        (VisibilityState.VISIBLE, VisibilityState.HIDDEN),
+        (VisibilityState.VISIBLE, VisibilityState.HIDDEN),
+        (VisibilityState.HIDDEN, VisibilityState.VISIBLE),
+        (VisibilityState.VISIBLE, VisibilityState.HIDDEN),
+    ]
+
+
+def test_npc_classification_is_cached_by_class_id_and_name_falls_back_to_class() -> None:
+    extractor, _players, parser = _attached()
+    first = _entity("OddNpc", index=1, class_id=700, npc=True, m_iTeamNum=3)
+    second = _entity("OddNpc", index=2, class_id=700, m_iTeamNum=3)
+    parser.entity(first, EntityOp.CREATED_ENTERED)
+    parser.entity(second, EntityOp.CREATED_ENTERED)
+    parser.packet_end(10)
+
+    assert len(extractor.entity_events) == 2
+    assert extractor.entity_events[1].class_name == "OddNpc"
+    assert extractor.entity_events[1].npc_name == "OddNpc"
+    assert extractor.entity_events[1].team == 3
+
+
+def test_entity_missing_team_or_visibility_word_is_unknown() -> None:
+    extractor, _players, parser = _attached()
+    npc = _entity("CDOTA_BaseNPC_Creep", index=64, npc=True)
+    parser.entity(_entity("CDOTADataRadiant", **{"m_bNPCVisibleState.0000": 0}))
+    parser.entity(npc, EntityOp.CREATED_ENTERED)
+    parser.packet_end(10)
+
+    event = extractor.entity_events[0]
+    assert event.team is None
+    assert event.radiant_state is VisibilityState.UNKNOWN
+    assert event.dire_state is VisibilityState.UNKNOWN
+
+
+def test_entity_lifecycle_leave_enter_delete_and_same_tick_slot_reuse() -> None:
+    extractor, _players, parser = _attached()
+    parser.entity(_entity("CDOTADataRadiant", **{"m_bNPCVisibleState.0000": 1 << 7}))
+    old = _entity("CDOTA_BaseNPC_Creep", index=7, serial=1, npc=True, m_iTeamNum=2)
+    parser.entity(old, EntityOp.CREATED_ENTERED)
+    parser.packet_end(10)
+
+    old.active = False
+    parser.entity(old, EntityOp.LEFT)
+    parser.packet_end(20)
+    assert extractor.entity_events[-1].active is False
+    assert extractor.entity_events[-1].radiant_state is VisibilityState.UNKNOWN
+
+    old.active = True
+    parser.entity(old, EntityOp.UPDATED_ENTERED)
+    parser.packet_end(30)
+    assert extractor.entity_events[-1].active is True
+    assert extractor.entity_events[-1].radiant_state is VisibilityState.VISIBLE
+
+    parser.entity(old, EntityOp.DELETED_LEFT)
+    parser.packet_end(40)
+    replacement = _entity("CDOTA_NPC_Observer_Ward", index=7, serial=2, npc=True, m_iTeamNum=2)
+    parser.entity(replacement, EntityOp.CREATED_ENTERED)
+    parser.packet_end(40)
+
+    at_reuse_tick = [event for event in extractor.entity_events if event.tick == 40]
+    assert [(event.entity_serial, event.active) for event in at_reuse_tick] == [
+        (1, False),
+        (2, True),
+    ]
+
+
+def test_entity_visibility_changes_coalesce_to_final_same_tick_state() -> None:
+    extractor, _players, parser = _attached()
+    team = _entity("CDOTADataRadiant", **{"m_bNPCVisibleState.0000": 0})
+    npc = _entity("CDOTA_BaseNPC_Creep", index=2, npc=True)
+    parser.entity(team)
+    parser.entity(npc, EntityOp.CREATED_ENTERED)
+    parser.packet_end(10)
+
+    team._state["m_bNPCVisibleState.0000"] = 1 << 2
+    parser.entity(team)
+    parser.packet_end(20)
+    team._state["m_bNPCVisibleState.0000"] = 0
+    parser.entity(team)
+    parser.packet_end(20)
+
+    assert [(event.tick, event.radiant_state) for event in extractor.entity_events] == [
+        (10, VisibilityState.HIDDEN)
+    ]
+
+
+def test_new_entity_created_and_deleted_same_tick_has_no_net_event() -> None:
+    extractor, _players, parser = _attached()
+    npc = _entity("CDOTA_BaseNPC_Creep", index=2, serial=7, npc=True)
+
+    parser.entity(npc, EntityOp.CREATED_ENTERED)
+    parser.packet_end(20)
+    parser.entity(npc, EntityOp.DELETED_LEFT)
+    parser.packet_end(20)
+
+    assert extractor.entity_events == []
+
+
+class _CountingEntity(Entity):
+    def __init__(self, class_name: str) -> None:
+        global _next_class_id
+        super().__init__(index=0, serial=0, cls=_Class(class_name, _next_class_id))
+        _next_class_id += 1
+        self.reads: list[str] = []
+
+    def _get_uint64_resolved(self, field) -> int | None:
+        self.reads.append(field.name)
+        return super()._get_uint64_resolved(field)
+
+
+def test_visibility_words_are_read_once_per_team_and_occupied_word() -> None:
+    extractor, _players, parser = _attached()
+    radiant = _CountingEntity("CDOTADataRadiant")
+    dire = _CountingEntity("CDOTADataDire")
+    radiant._state.update(
+        {"m_bNPCVisibleState.0000": (1 << 1) | (1 << 2), "m_bNPCVisibleState.0001": 1}
+    )
+    dire._state.update({"m_bNPCVisibleState.0000": 0, "m_bNPCVisibleState.0001": 0})
+    parser.entity(radiant)
+    parser.entity(dire)
+    for index in (1, 2, 64):
+        parser.entity(_entity("NPC", index=index, class_id=800, npc=True), EntityOp.CREATED_ENTERED)
+    parser.packet_end(10)
+
+    assert radiant.reads == ["m_bNPCVisibleState.0000", "m_bNPCVisibleState.0001"]
+    assert dire.reads == ["m_bNPCVisibleState.0000", "m_bNPCVisibleState.0001"]
+
+
+def test_ordinary_npc_updates_do_not_resample_unchanged_visibility() -> None:
+    extractor, _players, parser = _attached()
+    radiant = _CountingEntity("CDOTADataRadiant")
+    radiant._state["m_bNPCVisibleState.0000"] = 1 << 2
+    npc = _entity("NPC", index=2, npc=True, m_iTeamNum=2)
+    parser.entity(radiant)
+    parser.entity(npc, EntityOp.CREATED_ENTERED)
+    parser.packet_end(10)
+    radiant.reads.clear()
+
+    npc._state["m_iHealth"] = 500
+    parser.entity(npc, EntityOp.UPDATED)
+    parser.packet_end(20)
+
+    assert radiant.reads == []
+    assert len(extractor.entity_events) == 1
+
+
+def test_entity_metadata_changes_emit_transition_without_visibility_change() -> None:
+    extractor, _players, parser = _attached()
+    npc = _entity("NPC", index=2, npc=True, m_iTeamNum=2)
+    parser.entity(npc, EntityOp.CREATED_ENTERED)
+    parser.packet_end(10)
+
+    npc._state["m_iTeamNum"] = 3
+    parser.entity(npc, EntityOp.UPDATED)
+    parser.packet_end(20)
+
+    assert [(event.tick, event.team) for event in extractor.entity_events] == [(10, 2), (20, 3)]
+
+
+def test_entity_query_serial_terminal_metadata_serialization_and_exports() -> None:
+    events = [
+        EntityVisibilityEvent(
+            tick=10,
+            entity_index=7,
+            entity_serial=1,
+            class_name="CDOTA_NPC_Observer_Ward",
+            npc_name="npc_dota_observer_wards",
+            team=2,
+            active=True,
+            radiant_state=VisibilityState.VISIBLE,
+            dire_state=VisibilityState.HIDDEN,
+        ),
+        EntityVisibilityEvent(
+            tick=20,
+            entity_index=7,
+            entity_serial=1,
+            class_name="CDOTA_NPC_Observer_Ward",
+            npc_name="npc_dota_observer_wards",
+            team=2,
+            active=False,
+            radiant_state=VisibilityState.UNKNOWN,
+            dire_state=VisibilityState.UNKNOWN,
+        ),
+        EntityVisibilityEvent(
+            tick=20,
+            entity_index=7,
+            entity_serial=2,
+            class_name="CDOTA_BaseNPC_Creep",
+            npc_name="npc_dota_creep_badguys_melee",
+            team=3,
+            active=True,
+            radiant_state=VisibilityState.HIDDEN,
+            dire_state=VisibilityState.VISIBLE,
+        ),
+    ]
+    match = ParsedMatch(entity_visibility_events=events)
+
+    assert (
+        entity_visibility_at(match, entity_index=7, entity_serial=1, observing_team=2, tick=10)
+        is VisibilityState.VISIBLE
+    )
+    assert (
+        entity_visibility_at(match, entity_index=7, entity_serial=1, observing_team=2, tick=20)
+        is VisibilityState.UNKNOWN
+    )
+    assert (
+        entity_visibility_at(match, entity_index=7, entity_serial=2, observing_team=3, tick=20)
+        is VisibilityState.VISIBLE
+    )
+    with pytest.raises(ValueError, match="observing_team"):
+        entity_visibility_at(match, entity_index=7, entity_serial=2, observing_team=4, tick=20)
+    with pytest.raises(FrozenInstanceError):
+        events[0].active = False  # type: ignore[misc]
+
+    plain = gem.to_dict(match)["entity_visibility_events"]
+    assert plain[0]["radiant_state"] == "visible"
+    assert json.loads(gem.to_json(match))["entity_visibility_events"][1]["active"] is False
+    dataframe = build_dataframes(match)["entity_visibility"]
+    assert list(dataframe["entity_serial"]) == [1, 1, 2]
+    assert dataframe.loc[2, "dire_state"] == "visible"
+    assert gem.EntityVisibilityEvent is EntityVisibilityEvent
+    assert gem.entity_visibility_at is entity_visibility_at
+
+
+def test_entity_query_latest_same_tick_event_wins() -> None:
+    common = {
+        "tick": 10,
+        "entity_index": 3,
+        "entity_serial": 4,
+        "class_name": "NPC",
+        "npc_name": "npc",
+        "team": None,
+        "active": True,
+        "dire_state": VisibilityState.HIDDEN,
+    }
+    match = ParsedMatch(
+        entity_visibility_events=[
+            EntityVisibilityEvent(radiant_state=VisibilityState.HIDDEN, **common),
+            EntityVisibilityEvent(radiant_state=VisibilityState.VISIBLE, **common),
+        ]
+    )
+    assert (
+        entity_visibility_at(match, entity_index=3, entity_serial=4, observing_team=2, tick=10)
+        is VisibilityState.VISIBLE
     )

@@ -34,6 +34,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   visibility flags carried by Source 2 combat-log entries. JSON, DataFrame, and
   Parquet exports include the new visibility data; unavailable replay state is
   reported as `unknown`, never inferred to mean hidden.
+- **Authoritative all-NPC entity visibility.** Add identity-safe, change-only
+  packet-boundary visibility and lifecycle events for active networked Dota NPC
+  entities, plus `entity_visibility_at(...)` and JSON/DataFrame export. This
+  does not reconstruct arbitrary-point fog of war, attribute visibility
+  sources, model temporary viewers, or simulate terrain/navigation.
 - **Final Python performance profile.** Add a reproducible full-replay profiling
   harness and v0.8.0 public/core CPU and memory measurements, with exact output
   checks and an entity-field decode/apply boundary selected for a future Rust

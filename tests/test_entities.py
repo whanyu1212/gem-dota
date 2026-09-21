@@ -677,6 +677,23 @@ class TestFindFieldPath:
 
 
 class TestEntityTrackerMultiHandler:
+    @staticmethod
+    def _class_with_fields(class_id: int, name: str, *field_names: str) -> ClassInfo:
+        from gem.schema.sendtable import FIELD_MODEL_SIMPLE, Field, Serializer
+
+        fields = []
+        for field_name in field_names:
+            field = Field.__new__(Field)
+            field.var_name = field_name
+            field.model = FIELD_MODEL_SIMPLE
+            field.decoder = None
+            field.base_decoder = None
+            field.child_decoder = None
+            field.serializer = None
+            fields.append(field)
+        serializer = Serializer(name=name, version=0, fields=fields)
+        return ClassInfo(class_id, name, serializer)
+
     def test_multiple_handlers_all_called(self):
         tracker = EntityTracker()
         log = []
@@ -808,6 +825,55 @@ class TestEntityTrackerMultiHandler:
 
         with pytest.raises(ValueError, match="require a class name or prefix"):
             tracker._on_entity_filtered(lambda _e, _op: None)
+
+    def test_schema_handler_filters_classes_and_unrelated_updates(self):
+        tracker = EntityTracker()
+        received = []
+        tracker._on_entity_fields(
+            lambda entity, op: received.append((entity.get_class_name(), op)),
+            required_fields=("m_iVision",),
+            changed_fields=("m_iTeamNum",),
+        )
+        npc_class = self._class_with_fields(11, "NPC", "m_iTeamNum", "m_iVision")
+        other_class = self._class_with_fields(12, "Other", "m_iTeamNum")
+        tracker._on_class_info([npc_class, other_class])
+        npc = Entity(1, 1, npc_class)
+        other = Entity(2, 1, other_class)
+
+        npc._field_state._updated_paths = [(1,)]
+        tracker._dispatch(npc, EntityOp.UPDATED)
+        npc._field_state._updated_paths = [(0,)]
+        tracker._dispatch(npc, EntityOp.UPDATED)
+        tracker._dispatch(npc, EntityOp.DELETED_LEFT)
+        tracker._dispatch(other, EntityOp.CREATED_ENTERED)
+
+        assert received == [
+            ("NPC", EntityOp.UPDATED),
+            ("NPC", EntityOp.DELETED_LEFT),
+        ]
+
+    def test_schema_handler_preserves_registration_order_with_ordinary_handlers(self):
+        tracker = EntityTracker()
+        received = []
+        tracker.on_entity(lambda _entity, _op: received.append("first"))
+        tracker._on_entity_fields(
+            lambda _entity, _op: received.append("field"),
+            required_fields=("m_iVision",),
+            changed_fields=("m_iTeamNum",),
+        )
+        tracker.on_entity(lambda _entity, _op: received.append("last"))
+        npc_class = self._class_with_fields(13, "NPC", "m_iTeamNum", "m_iVision")
+        tracker._on_class_info([npc_class])
+
+        tracker._dispatch(Entity(1, 1, npc_class), EntityOp.CREATED_ENTERED)
+
+        assert received == ["first", "field", "last"]
+
+    def test_schema_handler_validates_required_fields(self):
+        tracker = EntityTracker()
+
+        with pytest.raises(ValueError, match="require a field"):
+            tracker._on_entity_fields(lambda _e, _op: None, required_fields=())
 
 
 # ---------------------------------------------------------------------------

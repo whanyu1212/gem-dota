@@ -18,6 +18,9 @@ See also: [Full Match Data](../guides/04_match_data.md), [Quickstart](../guides/
   change-only visibility states for canonical player heroes, read from each
   team's replay bitset. `unknown` means the replay state was unavailable; it
   does not mean hidden.
+- `ParsedMatch.entity_visibility_events`: `list[EntityVisibilityEvent]` —
+  identity-safe packet-boundary visibility and active lifecycle for networked
+  Dota NPC entities.
 - `ParsedMatch.tormentors`: `list[TormentorKill]` — chronological Tormentor kill events.
 - `ParsedMatch.shrines`: `list[ShrineKill]` — chronological Shrine of Wisdom destruction events.
 - `ParsedPlayer.damage_by_type`: `dict[str, int]` — total damage dealt by damage type (`physical`, `magical`, `pure`).
@@ -520,6 +523,7 @@ Source: [src/gem/results/models.py:810](https://github.com/whanyu1212/gem-dota/b
 | `game_times_min` | `list[int]` | `field(...)` |
 | `hero_visibility_events` | `list[HeroVisibilityEvent]` | `field(...)` |
 | `vision_modifier_pairing_issues` | `list[VisionModifierPairingIssue]` | `field(...)` |
+| `entity_visibility_events` | `list[EntityVisibilityEvent]` | `field(...)` |
 
 #### Properties
 

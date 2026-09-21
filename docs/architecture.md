@@ -196,6 +196,11 @@ a list of typed dataclasses — no raw dicts, no untyped payloads.
       <td>Change-only, per-team visibility states for each canonical player hero</td>
     </tr>
     <tr>
+      <td><code>entity_visibility_events</code></td>
+      <td><code>list[EntityVisibilityEvent]</code></td>
+      <td>Identity-safe visibility and lifecycle transitions for networked Dota NPCs</td>
+    </tr>
+    <tr>
       <td><code>aegis_events</code></td>
       <td><code>list[AegisEvent]</code></td>
       <td>Aegis pickups, steals, and denies</td>

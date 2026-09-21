@@ -31,7 +31,11 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
 
     import pandas as pd
 
-    from gem.results.models import VisionModifierEvent, VisionModifierPairingIssue
+    from gem.results.models import (
+        EntityVisibilityEvent,
+        VisionModifierEvent,
+        VisionModifierPairingIssue,
+    )
 
     def _plain_row(item: Any) -> dict:
         """``asdict`` an item, demoting Enum field values to their raw value.
@@ -418,6 +422,10 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         else pd.DataFrame()
     )
     hero_visibility_df = pd.DataFrame(_plain_rows(match.hero_visibility_events))
+    entity_visibility_columns = [item.name for item in fields(EntityVisibilityEvent)]
+    entity_visibility_df = pd.DataFrame(
+        _plain_rows(match.entity_visibility_events), columns=entity_visibility_columns
+    )
     vision_modifier_columns = [item.name for item in fields(VisionModifierEvent)]
     vision_modifiers_df = pd.DataFrame(
         _plain_rows(match.vision_modifiers), columns=vision_modifier_columns
@@ -447,6 +455,7 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         "courier_snapshots": courier_df,
         "neutral_item_finds": neutral_item_finds_df,
         "hero_visibility_events": hero_visibility_df,
+        "entity_visibility": entity_visibility_df,
         "vision_modifiers": vision_modifiers_df,
         "vision_modifier_pairing_issues": vision_modifier_pairing_issues_df,
         "player_kills_log": pd.DataFrame(player_kills_rows),

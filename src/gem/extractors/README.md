@@ -166,15 +166,19 @@ the player roster.
 ### VisibilityExtractor (visibility.py) — INTERNAL
 
 Reads `m_bNPCVisibleState` from the Radiant and Dire team-data entities and
-records change-only visibility states for each player's canonical hero. Entity
-updates only mark the extractor dirty; it samples at the parser's private
-completed-packet boundary, after every entity delta in the packet has landed.
+records change-only visibility states for every active networked Dota NPC as
+well as each player's canonical hero. NPC classes are identified by send-table
+presence of `m_iDayTimeVisionRange`, not class-name prefixes. Sampling happens
+at completed-packet boundaries after all entity deltas have landed.
 
-Visibility is keyed by `(entity_index, entity_serial)`. Deletion or replacement
-emits a terminal `UNKNOWN` event, preventing a recycled slot from inheriting an
-older hero's state. Missing team data or a missing visibility word is also
-`UNKNOWN`, never `HIDDEN`. Only the one 64-bit word containing each tracked
-hero's slot is read; the extractor does not retain full fog bitsets.
+Visibility is keyed by `(entity_index, entity_serial)`. Leave, deletion, or
+replacement emits an inactive terminal event with `UNKNOWN` states, preventing
+a recycled slot from inheriting an older entity's state. Missing evidence is
+also `UNKNOWN`, never `HIDDEN`; occupied team/word reads are shared per sample.
+
+This is packet-boundary entity evidence, not arbitrary-point fog-of-war
+reconstruction, source attribution, temporary-viewer modeling, or
+terrain/navigation simulation.
 
 ### IntervalExtractor (intervals.py) — INTERNAL
 

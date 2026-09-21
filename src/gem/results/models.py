@@ -69,6 +69,38 @@ class HeroVisibilityEvent:
     dire_state: VisibilityState
 
 
+@dataclass(frozen=True, slots=True)
+class EntityVisibilityEvent:
+    """Packet-boundary visibility evidence for one networked Dota NPC entity.
+
+    Only active networked entities whose send-table class derives from the
+    Dota NPC schema (identified by ``m_iDayTimeVisionRange``) are sampled.
+    Visibility states are evidence at completed packet boundaries, not a
+    reconstruction of fog of war between packets.
+
+    Attributes:
+        tick: Replay tick at the completed-packet boundary.
+        entity_index: Entity-table slot index.
+        entity_serial: Entity serial distinguishing reuse of the same slot.
+        class_name: Network send-table class name.
+        npc_name: ``EntityNames`` value, or ``class_name`` when unavailable.
+        team: Raw ``m_iTeamNum`` value, or ``None`` when unavailable.
+        active: Whether this identity was active at the packet boundary.
+        radiant_state: Visibility of the entity to Radiant.
+        dire_state: Visibility of the entity to Dire.
+    """
+
+    tick: int
+    entity_index: int
+    entity_serial: int
+    class_name: str
+    npc_name: str
+    team: int | None
+    active: bool
+    radiant_state: VisibilityState
+    dire_state: VisibilityState
+
+
 class VisionModifierSemantic(str, Enum):
     """How a tracked modifier contributes vision evidence."""
 
@@ -945,6 +977,7 @@ class ParsedMatch:
     game_times_min: list[int] = field(default_factory=list)
     hero_visibility_events: list[HeroVisibilityEvent] = field(default_factory=list)
     vision_modifier_pairing_issues: list[VisionModifierPairingIssue] = field(default_factory=list)
+    entity_visibility_events: list[EntityVisibilityEvent] = field(default_factory=list)
     # Internal provenance for match-level values copied from CMsgDOTAMatch.
     _match_details_fields: set[str] = field(
         default_factory=set,

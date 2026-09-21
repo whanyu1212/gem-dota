@@ -4,6 +4,7 @@ from gem.results.assembly import build_parsed_match
 from gem.results.dataframes import build_dataframes
 from gem.results.models import (
     ChatEntry,
+    EntityVisibilityEvent,
     HeroVisibilityEvent,
     NeutralItemFoundEvent,
     ParsedMatch,
@@ -22,6 +23,7 @@ from gem.results.models import (
 
 __all__ = [
     "ChatEntry",
+    "EntityVisibilityEvent",
     "HeroVisibilityEvent",
     "NeutralItemFoundEvent",
     "ParsedMatch",

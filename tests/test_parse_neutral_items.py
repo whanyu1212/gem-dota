@@ -84,6 +84,7 @@ def test_parse_collects_neutral_item_found_events(monkeypatch):
     class FakeVisibilityExtractor:
         def __init__(self, _player_ext):
             self.events = [visibility_event]
+            self.entity_events = []
 
         def attach(self, _parser):
             return None
@@ -109,4 +110,5 @@ def test_parse_collects_neutral_item_found_events(monkeypatch):
 
     assert captured["neutral_item_finds"] == [event]
     assert captured["hero_visibility_events"] == [visibility_event]
+    assert captured["entity_visibility_events"] == []
     assert match.neutral_item_finds == [event]
