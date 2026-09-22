@@ -696,6 +696,16 @@ Return authoritative hero-entity visibility at or before ``tick``.
 
 Source: [src/gem/analysis/vision.py:235](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L235)
 
+### `entity_visibility_at`
+
+```python
+def entity_visibility_at(match: ParsedMatch, *, entity_index: int, entity_serial: int, observing_team: int, tick: int) -> VisibilityState
+```
+
+Return authoritative NPC-entity visibility at or before ``tick``.
+
+Source: [src/gem/analysis/vision.py:277](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L277)
+
 ### `assess_point_vision`
 
 ```python
@@ -704,7 +714,7 @@ def assess_point_vision(match: ParsedMatch, team: int, tick: int, x: float, y: f
 
 Assess bounded modeled evidence for team vision of one map point.
 
-Source: [src/gem/analysis/vision.py:277](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L277)
+Source: [src/gem/analysis/vision.py:323](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L323)
 
 ### `estimate_vision`
 
@@ -714,7 +724,7 @@ def estimate_vision(match: ParsedMatch, team: int, tick: int, x: float, y: float
 
 Return bounded modeled hero and observer sources covering a map point.
 
-Source: [src/gem/analysis/vision.py:554](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L554)
+Source: [src/gem/analysis/vision.py:600](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L600)
 
 ### `ward_vision_impact`
 
@@ -724,7 +734,7 @@ def ward_vision_impact(ward: object, match: ParsedMatch) -> int
 
 Count distinct enemy heroes spotted by an observer ward during its lifetime.
 
-Source: [src/gem/analysis/vision.py:614](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L614)
+Source: [src/gem/analysis/vision.py:660](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L660)
 
 ### Top-level classes
 
