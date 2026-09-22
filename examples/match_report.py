@@ -18,7 +18,7 @@ from gem.reports import ReportAssets, apply_opendota_player_names_from_path, wri
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DEM = REPO_ROOT / "tests" / "fixtures" / "opendota" / "8868259993.dem"
-DEFAULT_MAP = REPO_ROOT / "assets" / "maps" / "Game_map_7.40.jpg"
+DEFAULT_MAP = REPO_ROOT / "assets" / "maps" / "Game_map_7.41.jpg"
 
 
 def _existing(path: Path) -> Path | None:
@@ -40,7 +40,7 @@ def main() -> None:
     parser.add_argument(
         "--map",
         default=None,
-        help="Path to map image for report overlays (default: assets/maps/Game_map_7.40.jpg)",
+        help="Path to map image for report overlays (default: assets/maps/Game_map_7.41.jpg)",
     )
     parser.add_argument(
         "--asset-dir",

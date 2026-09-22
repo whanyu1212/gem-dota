@@ -15,7 +15,7 @@ from gem.results.models import ParsedMatch, ParsedPlayer
 
 # ---------------------------------------------------------------------------
 # Dota 2 map coordinate system
-# Calibrated against assets/maps/Game_map_7.40.jpg using fountain positions as anchors.
+# The 7.41 background retains the 7.40 canvas and fountain-anchor projection.
 # Radiant fountain: (9684, 9684)  Dire fountain: (23120, 22350)
 # ---------------------------------------------------------------------------
 

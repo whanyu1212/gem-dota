@@ -48,6 +48,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Patch 7.41 report map.** Replace the default patch 7.40 report background
+  with Liquipedia's patch 7.41 map, normalized to the existing 8,878 × 8,356
+  canvas so report layout and coordinate projection dimensions stay stable.
 - **Safer experimental vision interpretation.** `estimate_vision(...)` keeps
   its compatibility list result while using the hardened freshness and ward
   boundary rules, and direct-target modifiers no longer act as unlimited

@@ -3,10 +3,22 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from PIL import Image
+
 import gem.reports.asset_cache as asset_cache
 from gem.reports import ReportAssets, add_map_image, report_asset_status
 
 _PNG_BYTES = b"\x89PNG\r\n\x1a\nfake-png"
+
+
+def test_checkout_map_uses_patch_741_at_legacy_resolution() -> None:
+    map_dir = Path(__file__).resolve().parents[1] / "assets" / "maps"
+    map_path = map_dir / "Game_map_7.41.jpg"
+
+    with Image.open(map_path) as image:
+        assert image.size == (8878, 8356)
+        assert image.format == "JPEG"
+    assert not (map_dir / "Game_map_7.40.jpg").exists()
 
 
 def test_report_assets_auto_uses_cache_icons_and_fallback_map(tmp_path: Path) -> None:
@@ -17,7 +29,7 @@ def test_report_assets_auto_uses_cache_icons_and_fallback_map(tmp_path: Path) ->
     item_dir.mkdir(parents=True)
     (hero_dir / "axe.png").write_bytes(_PNG_BYTES)
     (item_dir / "blink.png").write_bytes(_PNG_BYTES)
-    fallback_map = tmp_path / "Game_map_7.40.jpg"
+    fallback_map = tmp_path / "Game_map_7.41.jpg"
     fallback_map.write_bytes(b"map")
 
     assets = ReportAssets.auto(root=root, fallback_map=fallback_map)
@@ -31,7 +43,7 @@ def test_report_assets_auto_prefers_cached_map(tmp_path: Path) -> None:
     root = tmp_path / "cache"
     map_dir = root / "maps"
     map_dir.mkdir(parents=True)
-    cached_map = map_dir / "Game_map_7.40.jpg"
+    cached_map = map_dir / "Game_map_7.41.jpg"
     cached_map.write_bytes(b"map")
     fallback_map = tmp_path / "fallback.jpg"
     fallback_map.write_bytes(b"fallback")
@@ -54,16 +66,16 @@ def test_report_asset_status_reports_missing_assets(tmp_path: Path) -> None:
     assert status.hero_icons.present >= 1
     assert "axe" not in status.hero_icons.missing
     assert status.item_icons.missing
-    assert status.maps.missing == ("Game_map_7.40.jpg",)
+    assert status.maps.missing == ("Game_map_7.41.jpg",)
 
 
 def test_add_map_image_copies_into_cache(tmp_path: Path) -> None:
     source = tmp_path / "source-map.jpg"
     source.write_bytes(b"map")
 
-    dest = add_map_image(source, root=tmp_path / "cache", name="Game_map_7.40.jpg")
+    dest = add_map_image(source, root=tmp_path / "cache", name="Game_map_7.41.jpg")
 
-    assert dest == tmp_path / "cache" / "maps" / "Game_map_7.40.jpg"
+    assert dest == tmp_path / "cache" / "maps" / "Game_map_7.41.jpg"
     assert dest.read_bytes() == b"map"
 
 

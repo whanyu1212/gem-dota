@@ -16,7 +16,7 @@ from pathlib import Path
 from gem.reports.assets import ReportAssets
 
 REPORT_ASSET_ENV = "GEM_REPORT_ASSET_DIR"
-DEFAULT_MAP_NAME = "Game_map_7.40.jpg"
+DEFAULT_MAP_NAME = "Game_map_7.41.jpg"
 
 HERO_ICON_SUBDIR = "hero_icons"
 ITEM_ICON_SUBDIR = "item_icons"

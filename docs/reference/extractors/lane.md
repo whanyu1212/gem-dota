@@ -36,4 +36,4 @@ def classify_lane(lane_pos: dict[str, int], team: int) -> int
 
 Classify a player's lane role from their 10-minute position heatmap.
 
-Source: [src/gem/extractors/lane.py:126](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/lane.py#L126)
+Source: [src/gem/extractors/lane.py:127](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/lane.py#L127)

@@ -21,8 +21,8 @@ _TEAM_DIRE = 3
 # Map geometry is sourced from the bundled ``map_constants.json`` so there is a
 # single source of truth — the same file the public ``catalog.load_map_constants``
 # exposes. The literals below are a calibrated fallback used only if the JSON is
-# missing or malformed (they must mirror the JSON). Calibrated against
-# assets/maps/Game_map_7.40.jpg.
+# missing or malformed (they must mirror the JSON). The patch 7.41 background
+# retains the previous canvas and calibrated fountain-anchor projection.
 _FALLBACK_MAP_BOUNDS = (7563.0, 25900.0, 7800.0, 25600.0)  # xmin, xmax, ymin, ymax
 _FALLBACK_RADIANT_FOUNTAIN = (9684.0, 9684.0)
 _FALLBACK_DIRE_FOUNTAIN = (23120.0, 22350.0)
