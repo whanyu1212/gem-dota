@@ -22,9 +22,10 @@ Canonical implementation modules are split by responsibility:
 - `gem.analysis.map_context` — objective-aware farming context helpers
 - `gem.analysis.roshan` — Roshan conversion summaries
 - `gem.analysis.smoke` — evidence-first Smoke of Deceit lifecycle analysis
+- `gem.analysis.teamfight_positioning` — bounded fight-moment spatial evidence
 
-`gem.analysis` re-exports the public helpers below. Use `gem.analysis.map_context`
-and `gem.analysis.roshan` for module-level imports.
+`gem.analysis` re-exports the public helpers below. Use the implementation
+modules directly only when module-level imports are useful.
 
 All functions are exported directly from `gem.*`:
 
@@ -39,6 +40,7 @@ lvl     = gem.ability_level_at_tick(player, "axe_berserkers_call", tick)
 sources = gem.estimate_vision(match, team=2, tick=tick, x=x, y=y)
 vision  = gem.assess_point_vision(match, team=2, tick=tick, x=x, y=y)
 smokes  = gem.build_smoke_analysis(match)
+fights  = gem.build_teamfight_positioning(match)
 ```
 
 ---
@@ -1244,3 +1246,153 @@ Source: [src/gem/analysis/smoke.py:113](https://github.com/whanyu1212/gem-dota/b
 | `members` | `list[SmokeMemberAnalysis]` | `field(...)` |
 | `first_teamfight` | `Teamfight \| None` | `None` |
 | `evidence_gaps` | `list[str]` | `field(...)` |
+
+## Module `gem.analysis.teamfight_positioning`
+
+Evidence-aware positioning snapshots for detected teamfights.
+
+Source: [src/gem/analysis/teamfight_positioning.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L1)
+
+### Top-level functions
+
+### `build_teamfight_positioning`
+
+```python
+def build_teamfight_positioning(match: ParsedMatch, *, pre_engagement_ticks: int = 300, max_position_age_ticks: int = 60, nearby_radius: float = 3000.0) -> list[TeamfightPositioning]
+```
+
+Build evidence-aware positioning records for detected teamfights.
+
+Source: [src/gem/analysis/teamfight_positioning.py:209](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L209)
+
+### Top-level classes
+
+### `SnapshotKind`
+
+```python
+class SnapshotKind(str, Enum)
+```
+
+Logical moment represented by a positioning snapshot.
+
+Source: [src/gem/analysis/teamfight_positioning.py:23](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L23)
+
+### `EngagementStartSource`
+
+```python
+class EngagementStartSource(str, Enum)
+```
+
+Provenance for the engagement-start tick.
+
+Source: [src/gem/analysis/teamfight_positioning.py:41](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L41)
+
+### `EvidenceCompleteness`
+
+```python
+class EvidenceCompleteness(str, Enum)
+```
+
+Position-evidence completeness for one team at one snapshot.
+
+Source: [src/gem/analysis/teamfight_positioning.py:54](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L54)
+
+### `HeroPositionEvidence`
+
+```python
+class HeroPositionEvidence
+```
+
+Position and contextual evidence for one canonical player hero.
+
+Source: [src/gem/analysis/teamfight_positioning.py:71](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L71)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `player_id` | `int` | `-` |
+| `hero_name` | `str` | `-` |
+| `player_name` | `str` | `-` |
+| `team` | `int` | `-` |
+| `active_participant` | `bool` | `-` |
+| `near_fight` | `bool \| None` | `-` |
+| `x` | `float \| None` | `-` |
+| `y` | `float \| None` | `-` |
+| `sample_tick` | `int \| None` | `-` |
+| `sample_age_ticks` | `int \| None` | `-` |
+| `visibility` | `VisibilityState` | `-` |
+| `distance_to_team_centroid` | `float \| None` | `-` |
+| `nearest_ally_distance` | `float \| None` | `-` |
+| `nearest_enemy_distance` | `float \| None` | `-` |
+| `active_smoke_activation_tick` | `int \| None` | `-` |
+| `active_reveal_modifiers` | `tuple[str, ...]` | `-` |
+| `evidence_gaps` | `tuple[str, ...]` | `-` |
+
+### `TeamPositionSummary`
+
+```python
+class TeamPositionSummary
+```
+
+Fresh-position geometry and completeness for one team.
+
+Source: [src/gem/analysis/teamfight_positioning.py:119](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L119)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `team` | `int` | `-` |
+| `expected_count` | `int` | `-` |
+| `positioned_count` | `int` | `-` |
+| `unpositioned_count` | `int` | `-` |
+| `completeness` | `EvidenceCompleteness` | `-` |
+| `centroid_x` | `float \| None` | `-` |
+| `centroid_y` | `float \| None` | `-` |
+| `rms_spread` | `float \| None` | `-` |
+
+### `FightPositionSnapshot`
+
+```python
+class FightPositionSnapshot
+```
+
+All canonical hero evidence at one logical teamfight moment.
+
+Source: [src/gem/analysis/teamfight_positioning.py:145](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L145)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `kind` | `SnapshotKind` | `-` |
+| `tick` | `int` | `-` |
+| `heroes` | `tuple[HeroPositionEvidence, ...]` | `-` |
+| `radiant` | `TeamPositionSummary` | `-` |
+| `dire` | `TeamPositionSummary` | `-` |
+| `centroid_distance` | `float \| None` | `-` |
+| `active_participant_centroid_x` | `float \| None` | `-` |
+| `active_participant_centroid_y` | `float \| None` | `-` |
+
+### `TeamfightPositioning`
+
+```python
+class TeamfightPositioning
+```
+
+Four evidence-aware positioning snapshots for one detected teamfight.
+
+Source: [src/gem/analysis/teamfight_positioning.py:172](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L172)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `fight_index` | `int` | `-` |
+| `start_tick` | `int` | `-` |
+| `engagement_start_tick` | `int` | `-` |
+| `first_death_tick` | `int` | `-` |
+| `end_tick` | `int` | `-` |
+| `engagement_start_source` | `EngagementStartSource` | `-` |
+| `snapshots` | `tuple[FightPositionSnapshot, ...]` | `-` |

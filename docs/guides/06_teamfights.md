@@ -69,7 +69,42 @@ for player in fight.players:
 ```
 
 A hero is an active participant when they died, dealt hero damage, took hero damage,
-healed an allied hero, bought back, or used abilities/items in the fight window.
+or healed an allied hero in the fight window. Buybacks, ability uses, and item uses
+remain available as fight statistics, but do not by themselves establish direct
+combat participation.
+
+## Evidence-first positioning snapshots
+
+Use `gem.build_teamfight_positioning(match)` to obtain four deterministic
+spatial views for every Gem teamfight:
+
+```python
+for positioning in gem.build_teamfight_positioning(match):
+    for snapshot in positioning.snapshots:
+        print(snapshot.kind.value, snapshot.tick)
+        print(snapshot.radiant.completeness.value)
+        print(snapshot.dire.completeness.value)
+
+        for hero in snapshot.heroes:
+            print(
+                hero.hero_name,
+                hero.active_participant,
+                hero.x,
+                hero.y,
+                hero.sample_tick,
+                hero.sample_age_ticks,
+                hero.visibility.value,
+            )
+```
+
+The requested moment tick and the sampled position tick are intentionally
+separate. By default, a position older than 60 ticks is treated as unavailable,
+although its sample tick and age remain in the result. Team spread is RMS
+distance from the fresh-position centroid. Opposing-team visibility is the
+authoritative canonical-hero state and is never replaced by a geometric guess.
+
+See [Teamfight Positioning](../experimental/teamfight-positioning.md) for the
+moment definitions, geometry formulas, smoke/reveal boundaries, and report UI.
 
 ## OpenDota-compatible teamfights
 

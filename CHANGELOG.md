@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Evidence-first teamfight positioning.** Add deterministic pre-engagement,
+  engagement-start, first-death, and fight-end snapshots with bounded sampled
+  positions, derived team geometry, authoritative opposing-team visibility,
+  smoke/reveal context, and explicit completeness. A flat DataFrame export and
+  interactive report map preserve missing or stale evidence without assigning
+  qualitative positioning grades.
 - **Evidence-aware point-vision assessment.** Add
   `assess_point_vision(...)` with explicit supported, unsupported, and
   incomplete states; bounded sampled-position provenance; observer lifetime

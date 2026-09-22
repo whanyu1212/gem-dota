@@ -12,7 +12,8 @@ The package divides into two halves:
 
 - **Cheap lookups** (`spatial.py`, `combat.py`, `abilities.py`, `formatting.py`)
   — near-instant point queries over already-collected fact lists.
-- **Heavy, experimental builders** (`map_context.py`, `roshan.py`) — multi-pass
+- **Heavy, experimental builders** (`map_context.py`, `roshan.py`,
+  `teamfight_positioning.py`) — multi-pass
   scans that synthesise new derived records (context buckets, Roshan-conversion
   summaries) from many fact sources at once.
 
@@ -37,9 +38,10 @@ ReplayParser  ──parse──▶  ParsedMatch
                   │                                   │
           cheap point lookups               heavy derived builders
    position_at_tick / heroes_near /     build_map_context_timeline /
-   net_worth_at / teamfight_at_tick /   build_rosh_conversions
-   group_ability_hits / ability_                  │
-   level_at_tick / assess_point_vision           ▼
+   net_worth_at / teamfight_at_tick /   build_rosh_conversions /
+   group_ability_hits / ability_        build_teamfight_positioning
+   level_at_tick / assess_point_vision            │
+                                                  ▼
                   │                     new dataclasses
                   ▼                     (MapContextBucket,
           tuples / lists /              CampVisitContext,

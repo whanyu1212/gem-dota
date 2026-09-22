@@ -552,7 +552,74 @@ details[open].sub-accordion > summary::before {
     padding: 10px;
     border-right: 1px solid #30363d;
     flex-shrink: 0;
+    width: 340px;
 }
+.tf-fight-map svg { display: block; max-width: 100%; height: auto; }
+.tf-position-trail {
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-dasharray: 4 4;
+    opacity: .65;
+}
+.tf-snapshot-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+    margin-top: 8px;
+}
+.tf-snapshot-btn {
+    color: #8b949e;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 5px;
+    padding: 5px 7px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 10px;
+    text-align: left;
+}
+.tf-snapshot-btn span {
+    display: block;
+    margin-top: 2px;
+    color: #6e7681;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.tf-snapshot-btn:hover,
+.tf-snapshot-btn.active {
+    color: #e6edf3;
+    border-color: #58a6ff;
+    background: #1b2735;
+}
+.tf-snapshot-btn.active span { color: #c9d1d9; }
+.tf-position-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px 10px;
+    margin-top: 8px;
+    color: #8b949e;
+    font-size: 10px;
+}
+.tf-position-legend span::before {
+    content: "";
+    display: inline-block;
+    width: 12px;
+    height: 7px;
+    margin-right: 4px;
+    border: 2px solid #c9d1d9;
+    border-radius: 50%;
+    vertical-align: -1px;
+}
+.tf-position-legend .tf-vis-dashed::before { border-style: dashed; }
+.tf-position-legend .tf-vis-dotted::before { border-style: dotted; border-color: #8b949e; }
+.tf-position-note,
+.tf-position-source {
+    margin-top: 7px;
+    color: #8b949e;
+    font-size: 10px;
+    line-height: 1.4;
+}
+.tf-position-source { color: #d29922; }
 .tf-fight-right { flex: 1; min-width: 0; }
 
 .tf-participants {
@@ -606,6 +673,16 @@ details[open].sub-accordion > summary::before {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+@media (max-width: 820px) {
+    .tf-fight-body { flex-direction: column; }
+    .tf-fight-map {
+        width: auto;
+        border-right: 0;
+        border-bottom: 1px solid #30363d;
+    }
+    .tf-fight-map svg { margin: 0 auto; }
 }
 
 .tf-table-wrap { padding: 10px 12px 12px; overflow-x: auto; }

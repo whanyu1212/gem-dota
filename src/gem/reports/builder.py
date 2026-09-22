@@ -414,6 +414,22 @@ def build_html_report(
   var tfParts = document.getElementById('tf-participants');
   if (tfDeaths) tfDeaths.addEventListener('input', applyTeamfightFilters);
   if (tfParts) tfParts.addEventListener('input', applyTeamfightFilters);
+
+  document.querySelectorAll('.tf-snapshot-btn').forEach(function(button) {
+    button.addEventListener('click', function() {
+      var map = button.closest('.tf-fight-map');
+      if (!map) return;
+      var snapshot = button.getAttribute('data-snapshot');
+      map.querySelectorAll('.tf-snapshot-btn').forEach(function(candidate) {
+        var selected = candidate === button;
+        candidate.classList.toggle('active', selected);
+        candidate.setAttribute('aria-pressed', selected ? 'true' : 'false');
+      });
+      map.querySelectorAll('.tf-position-layer, .tf-position-note').forEach(function(item) {
+        item.style.display = item.getAttribute('data-snapshot') === snapshot ? '' : 'none';
+      });
+    });
+  });
   applyTeamfightFilters();
 })();
 </script>"""

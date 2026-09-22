@@ -9,6 +9,9 @@ from __future__ import annotations
 import json
 
 from gem.analysis import (
+    HeroPositionEvidence,
+    TeamfightPositioning,
+    build_teamfight_positioning,
     group_ability_hits,
     hero_visibility_at,
     is_active_teamfight_participant,
@@ -523,16 +526,21 @@ def _fight_combat_log_html(
     )
 
 
-def _teamfight_minimap_svg(
+_SNAPSHOT_LABELS = {
+    "pre_engagement": "Pre-engagement",
+    "engagement_start": "Engagement start",
+    "first_death": "First death",
+    "fight_end": "Fight end",
+}
+
+
+def _teamfight_positioning_svg(
     fight_idx: int,
-    mid_tick: int,
-    slot_to_player: dict[int, ParsedPlayer],
-    active_slots: list[int],
-    died_slots: set[int],
+    analysis: TeamfightPositioning,
     map_b64: str | None,
-    size: int = 260,
+    size: int = 320,
 ) -> str:
-    """Render one fight minimap SVG with hero portrait markers."""
+    """Render one fight map with selectable evidence-first snapshot layers."""
     _XMIN, _XMAX = MAP_XMIN, MAP_XMAX
     _YMIN, _YMAX = MAP_YMIN, MAP_YMAX
 
@@ -542,26 +550,84 @@ def _teamfight_minimap_svg(
         return px, py
 
     icon_r = 12
-    hero_elements: list[str] = []
-    for slot in active_slots:
-        pp = slot_to_player.get(slot)
-        if pp is None or not pp.position_log or not pp.hero_name:
-            continue
-        closest = min(pp.position_log, key=lambda t: abs(t[0] - mid_tick))
-        _, wx, wy = closest
-        cx, cy = _world_to_px(wx, wy)
+    layers: list[str] = []
+    previous_by_player: dict[int, HeroPositionEvidence] = {}
+    for snapshot_index, snapshot in enumerate(analysis.snapshots):
+        kind = snapshot.kind.value
+        display = "" if snapshot_index == 0 else ' style="display:none"'
+        elements: list[str] = []
+        current_by_player = {hero.player_id: hero for hero in snapshot.heroes}
 
-        stroke = "#ffffff" if slot in died_slots else TEAM_COLOR_CSS.get(pp.team, "#8b949e")
-        stroke_w = 2.4 if slot in died_slots else 1.8
-        clip_id = f"tf_clip_{fight_idx}_{slot}"
-        src = hero_icon_src(pp.hero_name)
+        for player_id, current in current_by_player.items():
+            previous = previous_by_player.get(player_id)
+            if (
+                snapshot_index == 0
+                or snapshot.tick == analysis.snapshots[snapshot_index - 1].tick
+                or previous is None
+                or previous.x is None
+                or previous.y is None
+                or current.x is None
+                or current.y is None
+            ):
+                continue
+            x1, y1 = _world_to_px(previous.x, previous.y)
+            x2, y2 = _world_to_px(current.x, current.y)
+            trail_color = TEAM_COLOR_CSS.get(current.team, "#8b949e")
+            elements.append(
+                f'<line class="tf-position-trail" x1="{x1:.1f}" y1="{y1:.1f}" '
+                f'x2="{x2:.1f}" y2="{y2:.1f}" stroke="{trail_color}"/>'
+            )
 
-        hero_elements.append(
-            f'<defs><clipPath id="{clip_id}"><circle cx="{cx:.1f}" cy="{cy:.1f}" r="{icon_r}"/></clipPath></defs>'
-            f'<image href="{src}" x="{cx - icon_r:.1f}" y="{cy - icon_r:.1f}" '
-            f'width="{icon_r * 2}" height="{icon_r * 2}" clip-path="url(#{clip_id})" preserveAspectRatio="xMidYMid slice"/>'
-            f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{icon_r}" fill="none" stroke="{stroke}" stroke-width="{stroke_w}"/>'
+        for hero_evidence in snapshot.heroes:
+            if hero_evidence.x is None or hero_evidence.y is None:
+                continue
+            cx, cy = _world_to_px(hero_evidence.x, hero_evidence.y)
+            team_color = TEAM_COLOR_CSS.get(hero_evidence.team, "#8b949e")
+            visibility = hero_evidence.visibility.value
+            dash = ""
+            visibility_color = "#f0f6fc"
+            if visibility == "hidden":
+                dash = ' stroke-dasharray="5 3"'
+                visibility_color = "#0d1117"
+            elif visibility == "unknown":
+                dash = ' stroke-dasharray="1 4"'
+                visibility_color = "#8b949e"
+            opacity = "1" if hero_evidence.active_participant else "0.48"
+            clip_id = f"tf_pos_clip_{fight_idx}_{snapshot_index}_{hero_evidence.player_id}"
+            hero_label = hero(hero_evidence.hero_name)
+            sample_label = (
+                f"sample {hero_evidence.sample_tick}, age {hero_evidence.sample_age_ticks} ticks"
+                if hero_evidence.sample_tick is not None
+                else "position sample unavailable"
+            )
+            title = e(
+                f"{hero_label}: {visibility} to opponents; {sample_label}; "
+                f"{'active participant' if hero_evidence.active_participant else 'nonparticipant'}"
+            )
+            elements.append(f'<g opacity="{opacity}"><title>{title}</title>')
+            if hero_evidence.hero_name and has_hero_icon(hero_evidence.hero_name):
+                src = hero_icon_src(hero_evidence.hero_name)
+                elements.append(
+                    f'<defs><clipPath id="{clip_id}"><circle cx="{cx:.1f}" cy="{cy:.1f}" r="{icon_r}"/></clipPath></defs>'
+                    f'<image href="{src}" x="{cx - icon_r:.1f}" y="{cy - icon_r:.1f}" '
+                    f'width="{icon_r * 2}" height="{icon_r * 2}" clip-path="url(#{clip_id})" preserveAspectRatio="xMidYMid slice"/>'
+                )
+            else:
+                elements.append(
+                    f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{icon_r}" fill="#21262d"/>'
+                )
+            active_width = 3.2 if hero_evidence.active_participant else 1.8
+            elements.append(
+                f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{icon_r + 1}" fill="none" '
+                f'stroke="{team_color}" stroke-width="{active_width}"/>'
+                f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{icon_r - 3}" fill="none" '
+                f'stroke="{visibility_color}" stroke-width="2"{dash}/></g>'
+            )
+
+        layers.append(
+            f'<g class="tf-position-layer" data-snapshot="{kind}"{display}>{"".join(elements)}</g>'
         )
+        previous_by_player = current_by_player
 
     bg_img = (
         f'<image class="gem-map-bg" href="" x="0" y="0" width="{size}" height="{size}" '
@@ -575,8 +641,58 @@ def _teamfight_minimap_svg(
         f'style="border-radius:6px;overflow:hidden;flex-shrink:0">'
         f'<rect x="0" y="0" width="{size}" height="{size}" fill="#1a2a1a"/>'
         f"{bg_img}"
-        f"{''.join(hero_elements)}"
+        f"{''.join(layers)}"
         f"</svg>"
+    )
+
+
+def _teamfight_positioning_controls(
+    fight_idx: int,
+    analysis: TeamfightPositioning,
+) -> str:
+    """Return snapshot controls and evidence notes for one fight map."""
+    buttons: list[str] = []
+    notes: list[str] = []
+    for index, snapshot in enumerate(analysis.snapshots):
+        kind = snapshot.kind.value
+        selected = " true" if index == 0 else " false"
+        active_class = " active" if index == 0 else ""
+        buttons.append(
+            f'<button type="button" class="tf-snapshot-btn{active_class}" '
+            f'data-fight="{fight_idx}" data-snapshot="{kind}" '
+            f'aria-pressed="{selected.strip()}">{e(_SNAPSHOT_LABELS[kind])}'
+            f"<span>{e(fmt_tick(snapshot.tick))}</span></button>"
+        )
+        stale = sum("position_sample_stale" in hero.evidence_gaps for hero in snapshot.heroes)
+        missing = sum(
+            "position_sample_unavailable" in hero.evidence_gaps for hero in snapshot.heroes
+        )
+        positioned = snapshot.radiant.positioned_count + snapshot.dire.positioned_count
+        expected = snapshot.radiant.expected_count + snapshot.dire.expected_count
+        note_bits = [f"{positioned}/{expected} fresh positions"]
+        if stale:
+            note_bits.append(f"{stale} stale")
+        if missing:
+            note_bits.append(f"{missing} missing")
+        note_bits.append("positions are sampled; visibility is authoritative")
+        display = "" if index == 0 else ' style="display:none"'
+        notes.append(
+            f'<div class="tf-position-note" data-snapshot="{kind}"{display}>'
+            f"{e(' · '.join(note_bits))}</div>"
+        )
+
+    return (
+        '<div class="tf-snapshot-controls" role="group" aria-label="Fight snapshot">'
+        + "".join(buttons)
+        + "</div>"
+        + '<div class="tf-position-legend">'
+        + '<span class="tf-vis-solid">visible</span>'
+        + '<span class="tf-vis-dashed">hidden</span>'
+        + '<span class="tf-vis-dotted">unknown</span>'
+        + "<span>dimmed = nonparticipant</span></div>"
+        + "".join(notes)
+        + '<div class="tf-position-source">Engagement start uses the exact first-death tick '
+        + "(conservative fallback).</div>"
     )
 
 
@@ -691,9 +807,17 @@ def build_teamfights(match: ParsedMatch, map_b64: str | None) -> str:
             "</details></div>"
         )
 
-    slot_to_player: dict[int, ParsedPlayer] = {pp.player_id: pp for pp in match.players}
-    h2s: dict[str, int] = {pp.hero_name: pp.player_id for pp in match.players if pp.hero_name}
-    load_hero_icons([pp.hero_name for pp in match.players if pp.hero_name])
+    slot_to_player: dict[int, ParsedPlayer] = {}
+    for pp in match.players:
+        if pp.team in (2, 3) and 0 <= pp.player_id <= 9:
+            slot_to_player.setdefault(pp.player_id, pp)
+    h2s: dict[str, int] = {
+        pp.hero_name: pp.player_id for pp in slot_to_player.values() if pp.hero_name
+    }
+    load_hero_icons([pp.hero_name for pp in slot_to_player.values() if pp.hero_name])
+    positioning_by_index = {
+        analysis.fight_index: analysis for analysis in build_teamfight_positioning(match)
+    }
 
     max_deaths = max((tf.deaths for tf in fights), default=1)
     max_participants = max(
@@ -720,6 +844,7 @@ def build_teamfights(match: ParsedMatch, map_b64: str | None) -> str:
     ]
 
     for i, tf in enumerate(fights, start=1):
+        positioning = positioning_by_index[i - 1]
         tf_by_slot = {p.player_id: p for p in tf.players}
         active_slots = [p.player_id for p in tf.players if is_active_teamfight_participant(p)]
         died_slots = {p.player_id for p in tf.players if p.deaths > 0}
@@ -750,7 +875,9 @@ def build_teamfights(match: ParsedMatch, map_b64: str | None) -> str:
             f'<span class="tf-fight-meta">☠ {tf.deaths} · 👤 {n_participants}</span>'
             f"</div>"
             f'<div class="tf-fight-body">'
-            f'<div class="tf-fight-map">{_teamfight_minimap_svg(i, (tf.start_tick + tf.end_tick) // 2, slot_to_player, active_slots, died_slots, map_b64)}</div>'
+            f'<div class="tf-fight-map" data-fight="{i}">'
+            f"{_teamfight_positioning_svg(i, positioning, map_b64)}"
+            f"{_teamfight_positioning_controls(i, positioning)}</div>"
             f'<div class="tf-fight-right">'
         )
 

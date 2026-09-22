@@ -31,6 +31,7 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
 
     import pandas as pd
 
+    from gem.analysis.teamfight_positioning import build_teamfight_positioning
     from gem.results.models import (
         EntityVisibilityEvent,
         VisionModifierEvent,
@@ -436,6 +437,102 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         columns=vision_pairing_issue_columns,
     )
 
+    positioning_columns = [
+        "fight_index",
+        "fight_start_tick",
+        "engagement_start_tick",
+        "first_death_tick",
+        "fight_end_tick",
+        "engagement_start_source",
+        "snapshot_kind",
+        "snapshot_tick",
+        "player_id",
+        "player_name",
+        "hero_name",
+        "team",
+        "active_participant",
+        "near_fight",
+        "x",
+        "y",
+        "sample_tick",
+        "sample_age_ticks",
+        "visibility",
+        "distance_to_team_centroid",
+        "nearest_ally_distance",
+        "nearest_enemy_distance",
+        "active_smoke_activation_tick",
+        "active_reveal_modifiers",
+        "evidence_gaps",
+        "radiant_expected_count",
+        "radiant_positioned_count",
+        "radiant_unpositioned_count",
+        "radiant_completeness",
+        "radiant_centroid_x",
+        "radiant_centroid_y",
+        "radiant_rms_spread",
+        "dire_expected_count",
+        "dire_positioned_count",
+        "dire_unpositioned_count",
+        "dire_completeness",
+        "dire_centroid_x",
+        "dire_centroid_y",
+        "dire_rms_spread",
+        "centroid_distance",
+        "active_participant_centroid_x",
+        "active_participant_centroid_y",
+    ]
+    positioning_rows: list[dict[str, Any]] = []
+    for fight in build_teamfight_positioning(match):
+        for snapshot in fight.snapshots:
+            for hero in snapshot.heroes:
+                positioning_rows.append(
+                    {
+                        "fight_index": fight.fight_index,
+                        "fight_start_tick": fight.start_tick,
+                        "engagement_start_tick": fight.engagement_start_tick,
+                        "first_death_tick": fight.first_death_tick,
+                        "fight_end_tick": fight.end_tick,
+                        "engagement_start_source": fight.engagement_start_source.value,
+                        "snapshot_kind": snapshot.kind.value,
+                        "snapshot_tick": snapshot.tick,
+                        "player_id": hero.player_id,
+                        "player_name": hero.player_name,
+                        "hero_name": hero.hero_name,
+                        "team": hero.team,
+                        "active_participant": hero.active_participant,
+                        "near_fight": hero.near_fight,
+                        "x": hero.x,
+                        "y": hero.y,
+                        "sample_tick": hero.sample_tick,
+                        "sample_age_ticks": hero.sample_age_ticks,
+                        "visibility": hero.visibility.value,
+                        "distance_to_team_centroid": hero.distance_to_team_centroid,
+                        "nearest_ally_distance": hero.nearest_ally_distance,
+                        "nearest_enemy_distance": hero.nearest_enemy_distance,
+                        "active_smoke_activation_tick": hero.active_smoke_activation_tick,
+                        "active_reveal_modifiers": hero.active_reveal_modifiers,
+                        "evidence_gaps": hero.evidence_gaps,
+                        "radiant_expected_count": snapshot.radiant.expected_count,
+                        "radiant_positioned_count": snapshot.radiant.positioned_count,
+                        "radiant_unpositioned_count": snapshot.radiant.unpositioned_count,
+                        "radiant_completeness": snapshot.radiant.completeness.value,
+                        "radiant_centroid_x": snapshot.radiant.centroid_x,
+                        "radiant_centroid_y": snapshot.radiant.centroid_y,
+                        "radiant_rms_spread": snapshot.radiant.rms_spread,
+                        "dire_expected_count": snapshot.dire.expected_count,
+                        "dire_positioned_count": snapshot.dire.positioned_count,
+                        "dire_unpositioned_count": snapshot.dire.unpositioned_count,
+                        "dire_completeness": snapshot.dire.completeness.value,
+                        "dire_centroid_x": snapshot.dire.centroid_x,
+                        "dire_centroid_y": snapshot.dire.centroid_y,
+                        "dire_rms_spread": snapshot.dire.rms_spread,
+                        "centroid_distance": snapshot.centroid_distance,
+                        "active_participant_centroid_x": (snapshot.active_participant_centroid_x),
+                        "active_participant_centroid_y": (snapshot.active_participant_centroid_y),
+                    }
+                )
+    teamfight_positioning_df = pd.DataFrame(positioning_rows, columns=positioning_columns)
+
     return {
         "players": players_df,
         "players_minute": players_min_df,
@@ -449,6 +546,7 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         "radiant_advantage": advantage_df,
         "draft": draft_df,
         "teamfights": teamfights_df,
+        "teamfight_positioning": teamfight_positioning_df,
         "opendota_teamfights": opendota_teamfights_df,
         "smoke_events": smoke_df,
         "smoke_members": smoke_members_df,

@@ -5,9 +5,11 @@ from __future__ import annotations
 from typing import Any
 from unittest.mock import MagicMock
 
+import gem
 import gem.analysis as analysis
 import gem.analysis.combat as analysis_combat
 import gem.analysis.spatial as analysis_spatial
+import gem.analysis.teamfight_positioning as analysis_teamfight_positioning
 from gem.analysis import group_ability_hits, position_at_tick, position_sample_at_tick
 from gem.combat.log import CombatLogEntry
 
@@ -18,6 +20,11 @@ def test_analysis_package_reexports_public_helpers() -> None:
     assert analysis.SampledPosition is analysis_spatial.SampledPosition
     assert analysis.group_ability_hits is analysis_combat.group_ability_hits
     assert analysis.AbilityCast is analysis_combat.AbilityCast
+    assert (
+        analysis.build_teamfight_positioning
+        is analysis_teamfight_positioning.build_teamfight_positioning
+    )
+    assert gem.build_teamfight_positioning is analysis.build_teamfight_positioning
 
 
 # ---------------------------------------------------------------------------

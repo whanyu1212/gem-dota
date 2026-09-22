@@ -65,6 +65,7 @@ export default defineConfig({
           { text: "Overview", link: "/experimental/" },
           { text: "Farming Patterns", link: "/experimental/farming-patterns" },
           { text: "Roshan Conversion", link: "/experimental/rosh-conversion" },
+          { text: "Teamfight Positioning", link: "/experimental/teamfight-positioning" },
           { text: "Estimate Vision", link: "/experimental/estimate-vision" },
           { text: "Vision Modifiers", link: "/experimental/vision-modifiers" },
         ],

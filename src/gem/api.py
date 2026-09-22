@@ -50,6 +50,9 @@ Public API
 ``build_smoke_analysis(match)``
     Summarize exact smoke modifier lifecycles and supporting evidence.
 
+``build_teamfight_positioning(match)``
+    Build bounded spatial and visibility snapshots for detected teamfights.
+
 ``resolve_pick_team(event, players)``
     Resolve the team (Radiant/Dire) for a draft pick/ban event.
 
@@ -73,6 +76,10 @@ from gem.analysis import (
     AbilityCast,
     CampVisitContext,
     DirectTargetRevealEvidence,
+    EngagementStartSource,
+    EvidenceCompleteness,
+    FightPositionSnapshot,
+    HeroPositionEvidence,
     MapContextBucket,
     PointVisionAssessment,
     PointVisionGap,
@@ -88,12 +95,16 @@ from gem.analysis import (
     SmokeGroupStatus,
     SmokeLifecycleStatus,
     SmokeMemberAnalysis,
+    SnapshotKind,
+    TeamfightPositioning,
+    TeamPositionSummary,
     VisionSource,
     ability_level_at_tick,
     assess_point_vision,
     build_map_context_timeline,
     build_rosh_conversions,
     build_smoke_analysis,
+    build_teamfight_positioning,
     entity_visibility_at,
     estimate_vision,
     format_npc_name,
@@ -321,7 +332,8 @@ def parse_to_dataframe(path: str | Path) -> dict[str, pd.DataFrame]:
         - ``"players"``, ``"players_minute"``
         - ``"positions"``, ``"combat_log"``, ``"wards"``, ``"objectives"``, ``"chat"``
         - ``"match"``, ``"radiant_advantage"``
-        - ``"draft"``, ``"teamfights"``, ``"smoke_events"``, ``"courier_snapshots"``
+        - ``"draft"``, ``"teamfights"``, ``"teamfight_positioning"``,
+          ``"smoke_events"``, ``"courier_snapshots"``
         - per-player event logs (kills/purchases/runes/buybacks)
     """
     from gem.results.dataframes import build_dataframes
@@ -408,6 +420,10 @@ __all__ = [
     "PointVisionSource",
     "PointVisionGap",
     "DirectTargetRevealEvidence",
+    "EngagementStartSource",
+    "EvidenceCompleteness",
+    "FightPositionSnapshot",
+    "HeroPositionEvidence",
     "PointVisionAssessment",
     "VisionModifierEvent",
     "VisionModifierPairingIssue",
@@ -436,12 +452,16 @@ __all__ = [
     "SmokeGroupStatus",
     "SmokeLifecycleStatus",
     "SmokeMemberAnalysis",
+    "SnapshotKind",
+    "TeamPositionSummary",
+    "TeamfightPositioning",
     "RoshConversion",
     "RoshCoverageCell",
     "RoshDifferentialProfile",
     "RoshTerritoryWindow",
     "build_rosh_conversions",
     "build_smoke_analysis",
+    "build_teamfight_positioning",
     "resolve_pick_team",
     "catalog",
     "constants",
