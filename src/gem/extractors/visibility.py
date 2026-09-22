@@ -112,11 +112,12 @@ class VisibilityExtractor:
         if hasattr(parser, "_on_entity_fields"):
             parser._on_entity_filtered(
                 self._on_entity,
-                class_names=(
-                    *_RADIANT_DATA_CLASSES,
-                    *_DIRE_DATA_CLASSES,
-                    *_HERO_IDENTITY_CLASSES,
-                ),
+                class_names=_HERO_IDENTITY_CLASSES,
+            )
+            parser._on_entity_fields(
+                self._on_entity,
+                required_fields=(_VISIBILITY_FIELDS.names[0],),
+                changed_fields=_VISIBILITY_FIELDS.names,
             )
             parser._on_entity_fields(
                 self._on_entity,
@@ -485,10 +486,18 @@ class VisibilityExtractor:
             if hero is not None:
                 canonical_heroes[player_id] = hero
 
-        identities_by_word: dict[int, set[tuple[int, int]]] = {}
-        for identity in self._active_entities:
-            identities_by_word.setdefault(identity[0] >> 6, set()).add(identity)
         hero_words = {hero.get_index() >> 6 for hero in canonical_heroes.values()}
+        uncached_hero_words = {
+            word
+            for word in hero_words
+            if word not in self._radiant_words or word not in self._dire_words
+        }
+        identities_by_word: dict[int, set[tuple[int, int]]] = {}
+        if self._visibility_dirty or uncached_hero_words:
+            for identity in self._active_entities:
+                word = identity[0] >> 6
+                if self._visibility_dirty or word in uncached_hero_words:
+                    identities_by_word.setdefault(word, set()).add(identity)
         affected = set(metadata_changed)
         for identity, (active, _entity) in lifecycle.items():
             if active:
@@ -503,11 +512,7 @@ class VisibilityExtractor:
             words_to_read.update(identities_by_word)
             words_to_read.update(hero_words)
         else:
-            words_to_read.update(
-                word
-                for word in hero_words
-                if word not in self._radiant_words or word not in self._dire_words
-            )
+            words_to_read.update(uncached_hero_words)
 
         radiant_updates, dire_updates = self._visibility_words(words_to_read)
         changed_words: set[int] = set()

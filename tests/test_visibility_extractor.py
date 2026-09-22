@@ -95,12 +95,43 @@ class _Parser:
         self.packet_callback(tick)
 
 
+class _FilteringParser(_Parser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.filtered_registrations: list[dict[str, object]] = []
+        self.field_registrations: list[dict[str, object]] = []
+
+    def _on_entity_filtered(self, callback, **filters) -> None:
+        self.filtered_registrations.append({"callback": callback, **filters})
+
+    def _on_entity_fields(self, callback, **filters) -> None:
+        self.field_registrations.append({"callback": callback, **filters})
+
+
 def _attached() -> tuple[VisibilityExtractor, _Players, _Parser]:
     players = _Players()
     parser = _Parser()
     extractor = VisibilityExtractor(players)  # type: ignore[arg-type]
     extractor.attach(parser)  # type: ignore[arg-type]
     return extractor, players, parser
+
+
+def test_attach_gates_team_data_updates_to_visibility_fields() -> None:
+    players = _Players()
+    parser = _FilteringParser()
+    extractor = VisibilityExtractor(players)  # type: ignore[arg-type]
+
+    extractor.attach(parser)  # type: ignore[arg-type]
+
+    assert parser.filtered_registrations[0]["class_names"] == (
+        "CDOTAPlayerController",
+        "CDOTA_PlayerResource",
+    )
+    visibility = parser.field_registrations[0]
+    assert visibility["required_fields"] == ("m_bNPCVisibleState.0000",)
+    assert visibility["changed_fields"] == tuple(
+        f"m_bNPCVisibleState.{word:04d}" for word in range(256)
+    )
 
 
 def test_samples_bits_zero_63_and_64_at_packet_end() -> None:
@@ -608,6 +639,29 @@ def test_ordinary_npc_updates_do_not_resample_unchanged_visibility() -> None:
 
     assert radiant.reads == []
     assert len(extractor.entity_events) == 1
+
+
+def test_controller_update_does_not_scan_active_npc_word_index() -> None:
+    extractor, _players, parser = _attached()
+    radiant = _entity("CDOTADataRadiant", **{"m_bNPCVisibleState.0000": 1 << 2})
+    npc = _entity("NPC", index=2, npc=True, m_iTeamNum=2)
+    parser.entity(radiant)
+    parser.entity(npc, EntityOp.CREATED_ENTERED)
+    parser.packet_end(10)
+
+    class _IterationCountingDict(dict):
+        iterations = 0
+
+        def __iter__(self):
+            self.iterations += 1
+            return super().__iter__()
+
+    active = _IterationCountingDict(extractor._active_entities)
+    extractor._active_entities = active
+    parser.entity(_entity("CDOTAPlayerController"), EntityOp.UPDATED)
+    parser.packet_end(20)
+
+    assert active.iterations == 0
 
 
 def test_entity_metadata_changes_emit_transition_without_visibility_change() -> None:
