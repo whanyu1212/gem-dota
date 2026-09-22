@@ -161,7 +161,7 @@ in `sections/combat.py`; only the filter *handler* lives in `builder.py`.
 - Users can inspect or populate the cache with
   `python -m gem reports assets status`,
   `python -m gem reports assets download --icons`, and
-  `python -m gem reports assets add-map assets/maps/Game_map_7.40.jpg`.
+  `python -m gem reports assets add-map assets/maps/Game_map_7.41.jpg`.
   The older `scripts/fetch_*_icons.py` entry points are compatibility wrappers
   around the same package functions.
 - Module-global dicts `ITEM_ICON_B64` and `HERO_ICON_B64` map short names to

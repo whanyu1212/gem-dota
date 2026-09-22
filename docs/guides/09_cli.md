@@ -200,8 +200,8 @@ python -m gem reports assets status --include-recipes
 python -m gem reports assets download --item-icons --include-recipes
 
 # Add a locally downloaded map image to the cache
-python -m gem reports assets add-map ./Game_map_7.40.jpg
-python -m gem reports assets add-map ./map.jpg --name Game_map_7.40.jpg
+python -m gem reports assets add-map ./Game_map_7.41.jpg
+python -m gem reports assets add-map ./map.jpg --name Game_map_7.41.jpg
 ```
 
 All `reports assets` subcommands accept `--asset-dir` to use a custom cache root. You can

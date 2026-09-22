@@ -13,7 +13,8 @@ TICKS_PER_MIN = TICKS_PER_SEC * 60
 TEAM_COLOR_CSS: dict[int, str] = {2: "#4caf50", 3: "#f44336"}
 TEAM_NAMES: dict[int, str] = {2: "Radiant", 3: "Dire"}
 
-# World-coordinate bounds calibrated against assets/maps/Game_map_7.40.jpg.
+# World-coordinate bounds used with assets/maps/Game_map_7.41.jpg. The 7.41
+# image is normalized to the legacy canvas so the established projection stays stable.
 MAP_XMIN, MAP_XMAX = 7563, 25900
 MAP_YMIN, MAP_YMAX = 7800, 25600
 

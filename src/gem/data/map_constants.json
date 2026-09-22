@@ -10,5 +10,5 @@
     "dire": {"x": 23120, "y": 22350}
   },
   "river_strip": 1200,
-  "notes": "Calibrated against assets/maps/Game_map_7.40.jpg (patch 7.40). World coords are Source 2 units. river_strip is the |x - y| threshold for the diagonal river (perpendicular half-width = river_strip / sqrt(2))."
+  "notes": "Displayed against assets/maps/Game_map_7.41.jpg, normalized to the legacy report canvas while retaining the established fountain-anchor projection. World coords are Source 2 units. river_strip is the |x - y| threshold for the diagonal river (perpendicular half-width = river_strip / sqrt(2))."
 }

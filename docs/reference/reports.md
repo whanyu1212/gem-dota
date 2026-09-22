@@ -35,7 +35,7 @@ Source: [src/gem/reports/assets.py:12](https://github.com/whanyu1212/gem-dota/bl
 
 ##### `auto`
 
-Signature: `def ReportAssets.auto(cls, *, root: str | Path | None = None, fallback_map: str | Path | None = None, map_name: str = 'Game_map_7.40.jpg') -> ReportAssets`
+Signature: `def ReportAssets.auto(cls, *, root: str | Path | None = None, fallback_map: str | Path | None = None, map_name: str = 'Game_map_7.41.jpg') -> ReportAssets`
 
 Discover local report assets from the configured asset cache.
 
