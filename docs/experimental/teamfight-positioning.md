@@ -50,6 +50,16 @@ conservative engagement-start fallback and exposes
 moments remain in the result so a future, stronger start signal can be added
 without changing the snapshot shape.
 
+For legacy or manually constructed fights, the dataclass default
+`first_death_tick=0` is treated as missing rather than as observed evidence. An
+out-of-window first-death tick is also rejected. The builder then uses an
+in-window `last_death_tick` with
+`engagement_start_source="last_death_fallback"`; if neither death tick is
+usable, it uses the nonnegative fight-window start with
+`engagement_start_source="fight_window_start_fallback"`. The report labels
+these degraded cases as death fallbacks instead of presenting them as exact
+first-death observations.
+
 ## Sample freshness
 
 Snapshot ticks are requested analytical moments. Hero coordinates are sampled

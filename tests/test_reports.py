@@ -160,6 +160,17 @@ def test_teamfight_report_uses_first_player_for_duplicate_slots() -> None:
     assert "Drow Ranger" not in html
 
 
+def test_teamfight_report_discloses_missing_first_death_tick_fallback() -> None:
+    match = _positioning_match()
+    match.teamfights[0].first_death_tick = 0
+
+    html = build_teamfights(match, None)
+
+    assert "Death fallback" in html
+    assert "use the observed last-death tick" in html
+    assert ">00:00<" not in html
+
+
 def test_full_report_wires_teamfight_snapshot_controls() -> None:
     html = build_html_report(
         _positioning_match(),

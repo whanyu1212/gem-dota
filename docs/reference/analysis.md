@@ -1263,7 +1263,7 @@ def build_teamfight_positioning(match: ParsedMatch, *, pre_engagement_ticks: int
 
 Build evidence-aware positioning records for detected teamfights.
 
-Source: [src/gem/analysis/teamfight_positioning.py:209](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L209)
+Source: [src/gem/analysis/teamfight_positioning.py:218](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L218)
 
 ### Top-level classes
 
@@ -1285,7 +1285,7 @@ class EngagementStartSource(str, Enum)
 
 Provenance for the engagement-start tick.
 
-Source: [src/gem/analysis/teamfight_positioning.py:41](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L41)
+Source: [src/gem/analysis/teamfight_positioning.py:43](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L43)
 
 ### `EvidenceCompleteness`
 
@@ -1295,7 +1295,7 @@ class EvidenceCompleteness(str, Enum)
 
 Position-evidence completeness for one team at one snapshot.
 
-Source: [src/gem/analysis/teamfight_positioning.py:54](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L54)
+Source: [src/gem/analysis/teamfight_positioning.py:62](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L62)
 
 ### `HeroPositionEvidence`
 
@@ -1305,7 +1305,7 @@ class HeroPositionEvidence
 
 Position and contextual evidence for one canonical player hero.
 
-Source: [src/gem/analysis/teamfight_positioning.py:71](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L71)
+Source: [src/gem/analysis/teamfight_positioning.py:79](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L79)
 
 #### Dataclass fields
 
@@ -1337,7 +1337,7 @@ class TeamPositionSummary
 
 Fresh-position geometry and completeness for one team.
 
-Source: [src/gem/analysis/teamfight_positioning.py:119](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L119)
+Source: [src/gem/analysis/teamfight_positioning.py:127](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L127)
 
 #### Dataclass fields
 
@@ -1360,7 +1360,7 @@ class FightPositionSnapshot
 
 All canonical hero evidence at one logical teamfight moment.
 
-Source: [src/gem/analysis/teamfight_positioning.py:145](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L145)
+Source: [src/gem/analysis/teamfight_positioning.py:153](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L153)
 
 #### Dataclass fields
 
@@ -1383,7 +1383,7 @@ class TeamfightPositioning
 
 Four evidence-aware positioning snapshots for one detected teamfight.
 
-Source: [src/gem/analysis/teamfight_positioning.py:172](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L172)
+Source: [src/gem/analysis/teamfight_positioning.py:180](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L180)
 
 #### Dataclass fields
 

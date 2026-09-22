@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 
 from gem.analysis import (
+    EngagementStartSource,
     HeroPositionEvidence,
     TeamfightPositioning,
     build_teamfight_positioning,
@@ -657,10 +658,16 @@ def _teamfight_positioning_controls(
         kind = snapshot.kind.value
         selected = " true" if index == 0 else " false"
         active_class = " active" if index == 0 else ""
+        label = _SNAPSHOT_LABELS[kind]
+        if (
+            kind == "first_death"
+            and analysis.engagement_start_source is not EngagementStartSource.FIRST_DEATH_FALLBACK
+        ):
+            label = "Death fallback"
         buttons.append(
             f'<button type="button" class="tf-snapshot-btn{active_class}" '
             f'data-fight="{fight_idx}" data-snapshot="{kind}" '
-            f'aria-pressed="{selected.strip()}">{e(_SNAPSHOT_LABELS[kind])}'
+            f'aria-pressed="{selected.strip()}">{e(label)}'
             f"<span>{e(fmt_tick(snapshot.tick))}</span></button>"
         )
         stale = sum("position_sample_stale" in hero.evidence_gaps for hero in snapshot.heroes)
@@ -681,6 +688,19 @@ def _teamfight_positioning_controls(
             f"{e(' · '.join(note_bits))}</div>"
         )
 
+    if analysis.engagement_start_source is EngagementStartSource.FIRST_DEATH_FALLBACK:
+        source_note = "Engagement start uses the exact first-death tick (conservative fallback)."
+    elif analysis.engagement_start_source is EngagementStartSource.LAST_DEATH_FALLBACK:
+        source_note = (
+            "First-death metadata is unavailable or invalid; engagement start and the death "
+            "snapshot use the observed last-death tick."
+        )
+    else:
+        source_note = (
+            "Death-tick metadata is unavailable or invalid; engagement start and the death "
+            "snapshot use the detected fight-window start."
+        )
+
     return (
         '<div class="tf-snapshot-controls" role="group" aria-label="Fight snapshot">'
         + "".join(buttons)
@@ -691,8 +711,7 @@ def _teamfight_positioning_controls(
         + '<span class="tf-vis-dotted">unknown</span>'
         + "<span>dimmed = nonparticipant</span></div>"
         + "".join(notes)
-        + '<div class="tf-position-source">Engagement start uses the exact first-death tick '
-        + "(conservative fallback).</div>"
+        + f'<div class="tf-position-source">{e(source_note)}</div>'
     )
 
 

@@ -139,12 +139,49 @@ def test_pre_engagement_clamps_to_zero_without_usable_game_start() -> None:
     match = ParsedMatch(
         game_start_tick=2_000,
         players=[_player(0, positions=[(100, 0.0, 0.0)])],
-        teamfights=[_fight(first_death_tick=100)],
+        teamfights=[_fight(first_death_tick=100, start_tick=0, end_tick=550)],
     )
 
     result = build_teamfight_positioning(match, pre_engagement_ticks=300)[0]
 
     assert result.snapshots[0].tick == 0
+
+
+def test_default_first_death_tick_uses_observed_last_death_with_provenance() -> None:
+    fight = Teamfight(
+        start_tick=550,
+        end_tick=1_450,
+        last_death_tick=1_000,
+        deaths=1,
+        players=[TeamfightPlayer(player_id=i) for i in range(10)],
+    )
+    match = ParsedMatch(
+        players=[_player(0, positions=[(700, 1.0, 2.0), (1_000, 3.0, 4.0)])],
+        teamfights=[fight],
+    )
+
+    result = build_teamfight_positioning(match)[0]
+
+    assert result.engagement_start_tick == 1_000
+    assert result.first_death_tick == 1_000
+    assert result.engagement_start_source is EngagementStartSource.LAST_DEATH_FALLBACK
+    assert [snapshot.tick for snapshot in result.snapshots] == [700, 1_000, 1_000, 1_450]
+
+
+def test_invalid_death_ticks_fall_back_to_nonnegative_fight_window_start() -> None:
+    fight = Teamfight(
+        start_tick=550,
+        end_tick=1_450,
+        first_death_tick=100,
+        last_death_tick=2_000,
+        deaths=1,
+    )
+
+    result = build_teamfight_positioning(ParsedMatch(teamfights=[fight]))[0]
+
+    assert result.engagement_start_tick == 550
+    assert result.engagement_start_source is EngagementStartSource.FIGHT_WINDOW_START_FALLBACK
+    assert [snapshot.tick for snapshot in result.snapshots] == [250, 550, 550, 1_450]
 
 
 def test_fresh_stale_and_missing_positions_keep_sample_provenance() -> None:

@@ -26,7 +26,9 @@ class SnapshotKind(str, Enum):
     Attributes:
         PRE_ENGAGEMENT: Configured lookback before engagement-start evidence.
         ENGAGEMENT_START: Best-supported engagement-start moment.
-        FIRST_DEATH: Exact first observed hero-death moment.
+        FIRST_DEATH: Best-supported first hero-death moment. For legacy or
+            manually constructed fights without a usable first-death tick, the
+            engagement source records which conservative fallback was used.
         FIGHT_END: Detected teamfight window end.
     """
 
@@ -44,11 +46,17 @@ class EngagementStartSource(str, Enum):
     Attributes:
         FIRST_DEATH_FALLBACK: No earlier observed engagement boundary exists,
             so the first hero death is used without implying combat began then.
+        LAST_DEATH_FALLBACK: First-death metadata is missing or outside the
+            fight window, so the observed last-death tick is used.
+        FIGHT_WINDOW_START_FALLBACK: Neither death tick is usable, so the
+            detected fight-window start is used without claiming a death there.
     """
 
     __str__ = str.__str__
 
     FIRST_DEATH_FALLBACK = "first_death_fallback"
+    LAST_DEATH_FALLBACK = "last_death_fallback"
+    FIGHT_WINDOW_START_FALLBACK = "fight_window_start_fallback"
 
 
 class EvidenceCompleteness(str, Enum):
@@ -176,7 +184,8 @@ class TeamfightPositioning:
         fight_index: Deterministic zero-based index in ``match.teamfights``.
         start_tick: Detector's padded teamfight-window start tick.
         engagement_start_tick: Best-supported engagement-start tick.
-        first_death_tick: Exact first observed hero-death tick.
+        first_death_tick: Best-supported first-death snapshot tick. Consult
+            ``engagement_start_source`` before treating it as exact.
         end_tick: Detector's teamfight-window end tick.
         engagement_start_source: Provenance for ``engagement_start_tick``.
         snapshots: Four logical moments in enum declaration order. Logical
@@ -215,9 +224,12 @@ def build_teamfight_positioning(
 ) -> list[TeamfightPositioning]:
     """Build evidence-aware positioning records for detected teamfights.
 
-    Engagement start currently uses the first observed hero death as an
-    explicitly labelled fallback. Every output retains all four logical
-    snapshots even when two logical moments have the same tick.
+    Engagement start currently uses the best-supported death tick as an
+    explicitly labelled fallback. A positive first-death tick is accepted only
+    when it falls inside the detected fight window; otherwise the last-death
+    tick, then the fight-window start, is used with distinct provenance. Every
+    output retains all four logical snapshots even when two logical moments
+    have the same tick.
 
     Args:
         match: Parsed match containing players, teamfights, and evidence
@@ -249,13 +261,13 @@ def build_teamfight_positioning(
 
     results: list[TeamfightPositioning] = []
     for fight_index, fight in enumerate(match.teamfights):
-        engagement_tick = fight.first_death_tick
+        engagement_tick, engagement_source = _resolve_engagement_tick(fight)
         lower_bound = _pre_engagement_lower_bound(match.game_start_tick, engagement_tick)
         pre_tick = max(lower_bound, engagement_tick - pre_engagement_ticks)
         moments = (
             (SnapshotKind.PRE_ENGAGEMENT, pre_tick),
             (SnapshotKind.ENGAGEMENT_START, engagement_tick),
-            (SnapshotKind.FIRST_DEATH, fight.first_death_tick),
+            (SnapshotKind.FIRST_DEATH, engagement_tick),
             (SnapshotKind.FIGHT_END, fight.end_tick),
         )
         snapshots = tuple(
@@ -276,14 +288,25 @@ def build_teamfight_positioning(
                 fight_index=fight_index,
                 start_tick=fight.start_tick,
                 engagement_start_tick=engagement_tick,
-                first_death_tick=fight.first_death_tick,
+                first_death_tick=engagement_tick,
                 end_tick=fight.end_tick,
-                engagement_start_source=EngagementStartSource.FIRST_DEATH_FALLBACK,
+                engagement_start_source=engagement_source,
                 snapshots=snapshots,
             )
         )
 
     return results
+
+
+def _resolve_engagement_tick(
+    fight: Teamfight,
+) -> tuple[int, EngagementStartSource]:
+    """Return a usable in-window death tick and its evidence provenance."""
+    if fight.start_tick <= fight.first_death_tick <= fight.end_tick and fight.first_death_tick > 0:
+        return fight.first_death_tick, EngagementStartSource.FIRST_DEATH_FALLBACK
+    if fight.start_tick <= fight.last_death_tick <= fight.end_tick and fight.last_death_tick > 0:
+        return fight.last_death_tick, EngagementStartSource.LAST_DEATH_FALLBACK
+    return max(0, fight.start_tick), EngagementStartSource.FIGHT_WINDOW_START_FALLBACK
 
 
 def _canonical_roster(match: ParsedMatch) -> tuple[ParsedPlayer, ...]:
