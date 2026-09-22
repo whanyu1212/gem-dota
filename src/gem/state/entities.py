@@ -21,6 +21,7 @@ from typing import Any
 
 from gem.binary.reader import BitReader
 from gem.schema.field_path import FieldPath
+from gem.schema.field_path.models import CompactFieldPath
 from gem.schema.field_reader import read_fields
 from gem.schema.field_state import FieldState
 from gem.schema.sendtable import (
@@ -361,12 +362,55 @@ class _EntityHandlerRegistration:
     handler: EntityHandler
     class_names: frozenset[str] = frozenset()
     class_prefixes: tuple[str, ...] = ()
+    required_fields: tuple[str, ...] = ()
+    changed_fields: tuple[str, ...] = ()
 
-    def matches(self, class_name: str) -> bool:
-        """Return whether this registration consumes *class_name*."""
-        if not self.class_names and not self.class_prefixes:
+    def matches(self, cls: ClassInfo) -> bool:
+        """Return whether this registration consumes *cls*."""
+        if (
+            (self.class_names or self.class_prefixes)
+            and cls.name not in self.class_names
+            and not cls.name.startswith(self.class_prefixes)
+        ):
+            return False
+        serializer = cls.serializer
+        return not self.required_fields or (
+            serializer is not None
+            and all(
+                serializer._resolve_field(name).path is not None for name in self.required_fields
+            )
+        )
+
+    def compile_field_handler(self, cls: ClassInfo) -> _FieldEntityHandler:
+        serializer = cls.serializer
+        changed_paths = None
+        if self.changed_fields:
+            changed_paths = (
+                frozenset(
+                    field.path
+                    for field in (serializer._resolve_field(name) for name in self.changed_fields)
+                    if field.path is not None
+                )
+                if serializer is not None
+                else frozenset()
+            )
+        return _FieldEntityHandler(self.handler, changed_paths)
+
+
+@dataclass(frozen=True, slots=True)
+class _FieldEntityHandler:
+    """Class-resolved handler with an optional update-path gate."""
+
+    handler: EntityHandler
+    changed_paths: frozenset[CompactFieldPath] | None = None
+
+    def accepts(self, entity: Entity, op: EntityOp) -> bool:
+        if self.changed_paths is None or op != EntityOp.UPDATED:
             return True
-        return class_name in self.class_names or class_name.startswith(self.class_prefixes)
+        updated_paths = entity._field_state._updated_paths
+        # Direct synthetic dispatch has no decoder change signal, so preserve
+        # observable callback behavior for tests and custom in-memory entities.
+        return updated_paths is None or not self.changed_paths.isdisjoint(updated_paths)
 
 
 class EntityTracker:
@@ -379,8 +423,11 @@ class EntityTracker:
 
     def __init__(self) -> None:
         self._registrations: list[_EntityHandlerRegistration] = []
-        self._class_names_by_id: dict[int, str] | None = None
+        self._classes_by_id: dict[int, ClassInfo] | None = None
         self._handlers_by_class_id: dict[int, tuple[EntityHandler, ...]] = {}
+        self._ordered_handlers_by_class_id: dict[
+            int, tuple[EntityHandler | _FieldEntityHandler, ...]
+        ] = {}
 
     def on_entity(self, handler: EntityHandler) -> None:
         """Register a handler to be called on entity events.
@@ -412,26 +459,67 @@ class EntityTracker:
             )
         )
 
+    def _on_entity_fields(
+        self,
+        handler: EntityHandler,
+        *,
+        required_fields: Iterable[str],
+        changed_fields: Iterable[str] = (),
+    ) -> None:
+        """Register for matching schemas and relevant decoded field changes."""
+        required = tuple(dict.fromkeys(required_fields))
+        changed = tuple(dict.fromkeys(changed_fields))
+        if not required:
+            raise ValueError("schema-filtered entity handlers require a field")
+        if any(not value for value in (*required, *changed)):
+            raise ValueError("schema field names must be non-empty")
+        self._register(
+            _EntityHandlerRegistration(
+                handler=handler,
+                required_fields=required,
+                changed_fields=changed,
+            )
+        )
+
     def _register(self, registration: _EntityHandlerRegistration) -> None:
         self._registrations.append(registration)
-        if self._class_names_by_id is None:
+        if self._classes_by_id is None:
             return
-        for class_id, class_name in self._class_names_by_id.items():
-            if registration.matches(class_name):
-                handlers = self._handlers_by_class_id[class_id]
-                self._handlers_by_class_id[class_id] = (*handlers, registration.handler)
+        for class_id, cls in self._classes_by_id.items():
+            if registration.matches(cls):
+                if registration.required_fields or class_id in self._ordered_handlers_by_class_id:
+                    self._compile_class_handlers(cls)
+                else:
+                    handlers = self._handlers_by_class_id[class_id]
+                    self._handlers_by_class_id[class_id] = (*handlers, registration.handler)
+
+    def _compile_class_handlers(self, cls: ClassInfo) -> None:
+        """Compile one class, preserving registration order when gating is needed."""
+        matching = [
+            registration for registration in self._registrations if registration.matches(cls)
+        ]
+        ordinary = tuple(
+            registration.handler for registration in matching if not registration.required_fields
+        )
+        self._handlers_by_class_id[cls.class_id] = ordinary
+        if any(registration.required_fields for registration in matching):
+            self._ordered_handlers_by_class_id[cls.class_id] = tuple(
+                registration.compile_field_handler(cls)
+                if registration.required_fields
+                else registration.handler
+                for registration in matching
+            )
+        else:
+            self._ordered_handlers_by_class_id.pop(cls.class_id, None)
 
     def _on_class_info(self, classes: Iterable[ClassInfo]) -> None:
         """Compile ordered handler tuples for the supplied entity classes."""
-        self._class_names_by_id = {cls.class_id: cls.name for cls in classes}
-        self._handlers_by_class_id = {
-            class_id: tuple(
-                registration.handler
-                for registration in self._registrations
-                if registration.matches(class_name)
-            )
-            for class_id, class_name in self._class_names_by_id.items()
-        }
+        class_list = list(classes)
+        self._classes_by_id = {cls.class_id: cls for cls in class_list}
+        self._handlers_by_class_id = {}
+        self._ordered_handlers_by_class_id = {}
+        for cls in class_list:
+            self._compile_class_handlers(cls)
 
     def _dispatch(self, entity: Entity, op: EntityOp) -> None:
         """Invoke all registered handlers for the given entity event.
@@ -440,17 +528,38 @@ class EntityTracker:
             entity: The entity that changed.
             op: The EntityOp bitmask.
         """
-        handlers = self._handlers_by_class_id.get(entity.cls.class_id)
+        class_id = entity.cls.class_id
+        ordered_handlers = self._ordered_handlers_by_class_id.get(class_id)
+        if ordered_handlers is not None:
+            for handler in ordered_handlers:
+                if isinstance(handler, _FieldEntityHandler):
+                    if handler.accepts(entity, op):
+                        handler.handler(entity, op)
+                else:
+                    handler(entity, op)
+            return
+
+        handlers = self._handlers_by_class_id.get(class_id)
         if handlers is None:
             # EntityManager cannot dispatch an unknown class in a real replay,
             # but preserve direct/synthetic tracker behavior before class info.
-            handlers = tuple(
-                registration.handler
+            matching = [
+                registration
                 for registration in self._registrations
-                if registration.matches(entity.cls.name)
-            )
-        for h in handlers:
-            h(entity, op)
+                if registration.matches(entity.cls)
+            ]
+            if any(registration.required_fields for registration in matching):
+                for registration in matching:
+                    if registration.required_fields:
+                        field_handler = registration.compile_field_handler(entity.cls)
+                        if field_handler.accepts(entity, op):
+                            field_handler.handler(entity, op)
+                    else:
+                        registration.handler(entity, op)
+                return
+            handlers = tuple(registration.handler for registration in matching)
+        for handler in handlers:
+            handler(entity, op)
 
 
 # ---------------------------------------------------------------------------
@@ -509,6 +618,20 @@ class EntityManager:
             handler,
             class_names=class_names,
             class_prefixes=class_prefixes,
+        )
+
+    def _on_entity_fields(
+        self,
+        handler: EntityHandler,
+        *,
+        required_fields: Iterable[str],
+        changed_fields: Iterable[str] = (),
+    ) -> None:
+        """Register an internal schema/change-path filtered handler."""
+        self.tracker._on_entity_fields(
+            handler,
+            required_fields=required_fields,
+            changed_fields=changed_fields,
         )
 
     # ------------------------------------------------------------------

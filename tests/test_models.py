@@ -88,11 +88,12 @@ class TestParsedMatchFieldOrder:
         import dataclasses
 
         fields = [f.name for f in dataclasses.fields(ParsedMatch) if f.init]
-        assert fields[-4:] == [
+        assert fields[-5:] == [
             "banner_plants",
             "game_times_min",
             "hero_visibility_events",
             "vision_modifier_pairing_issues",
+            "entity_visibility_events",
         ], (
             "new constructor fields must be appended to preserve positional "
             f"construction; current order tail: {fields[-5:]}"

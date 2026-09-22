@@ -94,6 +94,7 @@ from gem.analysis import (
     build_map_context_timeline,
     build_rosh_conversions,
     build_smoke_analysis,
+    entity_visibility_at,
     estimate_vision,
     format_npc_name,
     group_ability_hits,
@@ -133,6 +134,7 @@ from gem.results.models import (
     BannerPlant,
     BuybackEvent,
     ChatEntry,
+    EntityVisibilityEvent,
     HeroVisibilityEvent,
     NeutralItemFoundEvent,
     ParsedMatch,
@@ -244,6 +246,7 @@ def parse(path: str | Path) -> ParsedMatch:
         neutral_item_finds=neutral_item_finds,
         interval_ext=interval_ext,
         hero_visibility_events=visibility_ext.events,
+        entity_visibility_events=visibility_ext.entity_events,
     )
 
 
@@ -415,8 +418,10 @@ __all__ = [
     "VisionModifierTeamSource",
     "CombatLogSource",
     "HeroVisibilityEvent",
+    "EntityVisibilityEvent",
     "VisibilityState",
     "hero_visibility_at",
+    "entity_visibility_at",
     "net_worth_at",
     "ward_vision_impact",
     "is_active_teamfight_participant",

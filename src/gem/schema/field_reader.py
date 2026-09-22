@@ -117,6 +117,7 @@ def read_fields(r: BitReader, serializer: Serializer, state: FieldState) -> None
         state: The FieldState tree to update.
     """
     paths = _read_compact_field_paths(r)
+    state._updated_paths = paths
     decoder_cache = serializer._resolved_decoders
     for path in paths:
         try:

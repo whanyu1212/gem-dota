@@ -20,6 +20,7 @@ from gem.extractors.intervals import IntervalSnapshot
 from gem.results.assembly import _radiant_win_from_ancient, build_parsed_match
 from gem.results.models import (
     ChatEntry,
+    EntityVisibilityEvent,
     HeroVisibilityEvent,
     ParsedMatch,
     SmokeEvent,
@@ -487,6 +488,8 @@ class TestBuildParsedMatchExtractorOutputs:
             optional_kwargs["neutral_item_finds"] = kw["neutral_item_finds"]
         if "hero_visibility_events" in kw:
             optional_kwargs["hero_visibility_events"] = kw["hero_visibility_events"]
+        if "entity_visibility_events" in kw:
+            optional_kwargs["entity_visibility_events"] = kw["entity_visibility_events"]
         return build_parsed_match(
             parser,
             player_ext,
@@ -561,6 +564,28 @@ class TestBuildParsedMatchExtractorOutputs:
 
     def test_hero_visibility_events_default_to_empty_list(self):
         assert self._base_build(hero_visibility_events=None).hero_visibility_events == []
+
+    def test_entity_visibility_events_stored(self):
+        events = [
+            EntityVisibilityEvent(
+                tick=100,
+                entity_index=64,
+                entity_serial=1,
+                class_name="CDOTA_BaseNPC_Creep",
+                npc_name="npc_dota_creep_goodguys_melee",
+                team=2,
+                active=True,
+                radiant_state=VisibilityState.VISIBLE,
+                dire_state=VisibilityState.HIDDEN,
+            )
+        ]
+
+        match = self._base_build(entity_visibility_events=events)
+
+        assert match.entity_visibility_events is events
+
+    def test_entity_visibility_events_default_to_empty_list(self):
+        assert self._base_build(entity_visibility_events=None).entity_visibility_events == []
 
     def test_draft_events_stored(self):
         from gem.extractors.draft import DraftEvent

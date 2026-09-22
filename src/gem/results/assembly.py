@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from gem.proto.dota_gcmessages_common_pb2 import CMsgDOTAMatch
     from gem.results.models import (
         ChatEntry,
+        EntityVisibilityEvent,
         HeroVisibilityEvent,
         NeutralItemFoundEvent,
         ParsedPlayer,
@@ -901,6 +902,7 @@ def build_parsed_match(
     interval_ext: IntervalExtractor | None = None,
     hero_visibility_events: list[HeroVisibilityEvent] | None = None,
     vision_modifier_pairing_issues: list[VisionModifierPairingIssue] | None = None,
+    entity_visibility_events: list[EntityVisibilityEvent] | None = None,
 ) -> ParsedMatch:
     """Assemble a :class:`ParsedMatch` from extractor state after a completed parse.
 
@@ -925,6 +927,7 @@ def build_parsed_match(
             match-level gold/XP advantage curves.
         hero_visibility_events: Authoritative hero visibility transitions.
         vision_modifier_pairing_issues: Ambiguous or unmatched modifier removals.
+        entity_visibility_events: Authoritative networked Dota NPC visibility transitions.
 
     Returns:
         Fully populated :class:`ParsedMatch`.
@@ -965,6 +968,7 @@ def build_parsed_match(
         vision_modifiers=vision_modifier_events or [],
         hero_visibility_events=hero_visibility_events or [],
         vision_modifier_pairing_issues=vision_modifier_pairing_issues or [],
+        entity_visibility_events=entity_visibility_events or [],
         draft=draft_ext.draft_events,
         game_start_tick=parser.game_start_tick,
         game_end_tick=parser.tick,

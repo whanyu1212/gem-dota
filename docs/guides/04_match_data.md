@@ -34,6 +34,7 @@ match.game_end_tick        # int: last tick observed by the parser
 match.radiant_gold_adv     # list[int]: per-minute Radiant gold advantage
 match.radiant_xp_adv       # list[int]: per-minute Radiant XP advantage
 match.hero_visibility_events  # list[HeroVisibilityEvent]: change-only hero visibility
+match.entity_visibility_events  # list[EntityVisibilityEvent]: networked Dota NPC visibility
 ```
 
 ### Hero visibility
@@ -57,6 +58,11 @@ if state is gem.VisibilityState.VISIBLE:
 the first sample, and the period after an entity identity is deleted or
 replaced. The timeline answers entity visibility only; it does not reconstruct
 fog geometry or attribute the revealing source.
+
+Use `gem.entity_visibility_at(...)` with an entity index and serial for wards,
+creeps, buildings, summons, and other active networked Dota NPCs. These records
+are packet-boundary evidence only; they do not model arbitrary-point fog of war,
+source attribution, temporary viewers, terrain, or navigation.
 
 ### Neutral item finds
 

@@ -24,6 +24,7 @@ pip install pyarrow
 | `"smoke_events"` | Smoke activations, grouped heroes, centroid, and nested member lifecycles |
 | `"smoke_members"` | Flat per-hero smoke application/removal ticks, durations, and sampled positions |
 | `"hero_visibility_events"` | Change-only Radiant/Dire visibility state for canonical player heroes |
+| `"entity_visibility"` | Change-only packet-boundary visibility and lifecycle for networked Dota NPC entities |
 | `"vision_modifiers"` | Flat vision-relevant modifier application lifecycles and evidence |
 | `"vision_modifier_pairing_issues"` | Flat ambiguous/orphan modifier removal evidence |
 | `"aegis_events"` | Aegis pickups, steals, and denies |

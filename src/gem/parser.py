@@ -168,11 +168,13 @@ class _EntityCallbackRegistration:
     callback: EntityCallback
     class_names: frozenset[str] = frozenset()
     class_prefixes: tuple[str, ...] = ()
+    required_fields: tuple[str, ...] = ()
+    changed_fields: tuple[str, ...] = ()
 
     @property
     def filtered(self) -> bool:
         """Return whether this registration has a class filter."""
-        return bool(self.class_names or self.class_prefixes)
+        return bool(self.class_names or self.class_prefixes or self.required_fields)
 
 
 def _read_inner_messages(data: bytes) -> list[tuple[int, bytes]]:
@@ -312,16 +314,45 @@ class ReplayParser:
             )
         )
 
+    def _on_entity_fields(
+        self,
+        callback: EntityCallback,
+        *,
+        required_fields: Iterable[str],
+        changed_fields: Iterable[str] = (),
+    ) -> None:
+        """Register an internal callback for schema and decoded-path changes."""
+        required = tuple(dict.fromkeys(required_fields))
+        changed = tuple(dict.fromkeys(changed_fields))
+        if not required:
+            raise ValueError("schema-filtered entity callbacks require a field")
+        if any(not value for value in (*required, *changed)):
+            raise ValueError("schema field names must be non-empty")
+        self._register_entity_callback(
+            _EntityCallbackRegistration(
+                callback=callback,
+                required_fields=required,
+                changed_fields=changed,
+            )
+        )
+
     def _register_entity_callback(self, registration: _EntityCallbackRegistration) -> None:
         self._entity_callbacks.append(registration)
         if self.entity_manager is None:
             return
         if registration.filtered:
-            self.entity_manager._on_entity_filtered(
-                registration.callback,
-                class_names=registration.class_names,
-                class_prefixes=registration.class_prefixes,
-            )
+            if registration.required_fields:
+                self.entity_manager._on_entity_fields(
+                    registration.callback,
+                    required_fields=registration.required_fields,
+                    changed_fields=registration.changed_fields,
+                )
+            else:
+                self.entity_manager._on_entity_filtered(
+                    registration.callback,
+                    class_names=registration.class_names,
+                    class_prefixes=registration.class_prefixes,
+                )
         else:
             self.entity_manager.on_entity(registration.callback)
 
@@ -732,11 +763,18 @@ class ReplayParser:
         self.entity_manager = EntityManager(serializers, self.string_tables)
         for registration in self._entity_callbacks:
             if registration.filtered:
-                self.entity_manager._on_entity_filtered(
-                    registration.callback,
-                    class_names=registration.class_names,
-                    class_prefixes=registration.class_prefixes,
-                )
+                if registration.required_fields:
+                    self.entity_manager._on_entity_fields(
+                        registration.callback,
+                        required_fields=registration.required_fields,
+                        changed_fields=registration.changed_fields,
+                    )
+                else:
+                    self.entity_manager._on_entity_filtered(
+                        registration.callback,
+                        class_names=registration.class_names,
+                        class_prefixes=registration.class_prefixes,
+                    )
             else:
                 self.entity_manager.on_entity(registration.callback)
         # Apply ServerInfo if it arrived before the send tables

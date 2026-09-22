@@ -18,6 +18,9 @@ See also: [Full Match Data](../guides/04_match_data.md), [Quickstart](../guides/
   change-only visibility states for canonical player heroes, read from each
   team's replay bitset. `unknown` means the replay state was unavailable; it
   does not mean hidden.
+- `ParsedMatch.entity_visibility_events`: `list[EntityVisibilityEvent]` —
+  identity-safe packet-boundary visibility and active lifecycle for networked
+  Dota NPC entities.
 - `ParsedMatch.tormentors`: `list[TormentorKill]` — chronological Tormentor kill events.
 - `ParsedMatch.shrines`: `list[ShrineKill]` — chronological Shrine of Wisdom destruction events.
 - `ParsedPlayer.damage_by_type`: `dict[str, int]` — total damage dealt by damage type (`physical`, `magical`, `pure`).
@@ -76,6 +79,30 @@ Source: [src/gem/results/models.py:50](https://github.com/whanyu1212/gem-dota/bl
 | `radiant_state` | `VisibilityState` | `-` |
 | `dire_state` | `VisibilityState` | `-` |
 
+### `EntityVisibilityEvent`
+
+```python
+class EntityVisibilityEvent
+```
+
+Packet-boundary visibility evidence for one networked Dota NPC entity.
+
+Source: [src/gem/results/models.py:73](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L73)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `tick` | `int` | `-` |
+| `entity_index` | `int` | `-` |
+| `entity_serial` | `int` | `-` |
+| `class_name` | `str` | `-` |
+| `npc_name` | `str` | `-` |
+| `team` | `int \| None` | `-` |
+| `active` | `bool` | `-` |
+| `radiant_state` | `VisibilityState` | `-` |
+| `dire_state` | `VisibilityState` | `-` |
+
 ### `VisionModifierSemantic`
 
 ```python
@@ -84,7 +111,7 @@ class VisionModifierSemantic(str, Enum)
 
 How a tracked modifier contributes vision evidence.
 
-Source: [src/gem/results/models.py:72](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L72)
+Source: [src/gem/results/models.py:104](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L104)
 
 ### `VisionModifierLifecycleStatus`
 
@@ -94,7 +121,7 @@ class VisionModifierLifecycleStatus(str, Enum)
 
 Best-supported lifecycle state for a modifier application.
 
-Source: [src/gem/results/models.py:83](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L83)
+Source: [src/gem/results/models.py:115](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L115)
 
 ### `VisionModifierCloseEvidence`
 
@@ -104,7 +131,7 @@ class VisionModifierCloseEvidence(str, Enum)
 
 Evidence supporting the lifecycle close classification.
 
-Source: [src/gem/results/models.py:94](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L94)
+Source: [src/gem/results/models.py:126](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L126)
 
 ### `VisionModifierPairingStatus`
 
@@ -114,7 +141,7 @@ class VisionModifierPairingStatus(str, Enum)
 
 Confidence with which a removal was paired to an application.
 
-Source: [src/gem/results/models.py:105](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L105)
+Source: [src/gem/results/models.py:137](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L137)
 
 ### `VisionModifierTeamSource`
 
@@ -124,7 +151,7 @@ class VisionModifierTeamSource(str, Enum)
 
 Evidence source used to attribute a modifier participant's team.
 
-Source: [src/gem/results/models.py:116](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L116)
+Source: [src/gem/results/models.py:148](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L148)
 
 ### `VisionModifierEvent`
 
@@ -134,7 +161,7 @@ class VisionModifierEvent
 
 One tracked vision-relevant modifier application and its evidence.
 
-Source: [src/gem/results/models.py:127](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L127)
+Source: [src/gem/results/models.py:159](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L159)
 
 #### Dataclass fields
 
@@ -192,7 +219,7 @@ class VisionModifierPairingIssue
 
 Removal evidence that could not be paired to one application safely.
 
-Source: [src/gem/results/models.py:227](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L227)
+Source: [src/gem/results/models.py:259](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L259)
 
 #### Dataclass fields
 
@@ -226,7 +253,7 @@ class SmokeParticipant
 
 One hero's observed Smoke of Deceit modifier lifecycle.
 
-Source: [src/gem/results/models.py:271](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L271)
+Source: [src/gem/results/models.py:303](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L303)
 
 #### Dataclass fields
 
@@ -251,7 +278,7 @@ class SmokeEvent
 
 One Smoke of Deceit activation.
 
-Source: [src/gem/results/models.py:304](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L304)
+Source: [src/gem/results/models.py:336](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L336)
 
 #### Dataclass fields
 
@@ -275,7 +302,7 @@ class BuybackEvent
 
 One buyback, with its estimated gold cost.
 
-Source: [src/gem/results/models.py:336](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L336)
+Source: [src/gem/results/models.py:368](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L368)
 
 #### Dataclass fields
 
@@ -294,7 +321,7 @@ class ChatEntry
 
 A single chat message from the match.
 
-Source: [src/gem/results/models.py:364](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L364)
+Source: [src/gem/results/models.py:396](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L396)
 
 #### Dataclass fields
 
@@ -313,7 +340,7 @@ class NeutralItemFoundEvent
 
 A neutral item found event emitted by DOTA_UM_FoundNeutralItem.
 
-Source: [src/gem/results/models.py:381](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L381)
+Source: [src/gem/results/models.py:413](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L413)
 
 #### Dataclass fields
 
@@ -338,7 +365,7 @@ class ParsedPlayer
 
 Aggregated statistics for one player over a full match.
 
-Source: [src/gem/results/models.py:415](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L415)
+Source: [src/gem/results/models.py:447](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L447)
 
 #### Dataclass fields
 
@@ -468,7 +495,7 @@ class ParsedMatch
 
 Top-level parsed output for a single Dota 2 replay.
 
-Source: [src/gem/results/models.py:810](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L810)
+Source: [src/gem/results/models.py:842](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L842)
 
 #### Dataclass fields
 
@@ -520,6 +547,7 @@ Source: [src/gem/results/models.py:810](https://github.com/whanyu1212/gem-dota/b
 | `game_times_min` | `list[int]` | `field(...)` |
 | `hero_visibility_events` | `list[HeroVisibilityEvent]` | `field(...)` |
 | `vision_modifier_pairing_issues` | `list[VisionModifierPairingIssue]` | `field(...)` |
+| `entity_visibility_events` | `list[EntityVisibilityEvent]` | `field(...)` |
 
 #### Properties
 
@@ -529,7 +557,7 @@ Signature: `def ParsedMatch.duration_seconds(self) -> float`
 
 Game duration in seconds, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:958](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L958)
+Source: [src/gem/results/models.py:991](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L991)
 
 ##### `duration_minutes`
 
@@ -537,4 +565,4 @@ Signature: `def ParsedMatch.duration_minutes(self) -> float`
 
 Game duration in minutes, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:964](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L964)
+Source: [src/gem/results/models.py:997](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L997)

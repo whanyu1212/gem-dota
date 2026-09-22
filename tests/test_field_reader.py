@@ -511,6 +511,18 @@ class TestReadFields:
         # path[0] == 0 → fields[0] decoded → state slot [0] == 42
         fp = _make_fp(0)
         assert state.get(fp) == 42
+        assert state._updated_paths == [(0,)]
+
+    def test_read_fields_records_an_empty_decoded_path_set(self):
+        """An empty real delta differs from synthetic state with no signal."""
+        from gem.binary.reader import BitReader
+
+        state = FieldState()
+        assert state._updated_paths is None
+
+        read_fields(BitReader(self._bits_to_bytes("10")), _make_serializer(), state)
+
+        assert state._updated_paths == []
 
     def test_read_fields_no_paths_when_immediate_finish(self):
         """If the first Huffman op is FieldPathEncodeFinish, no fields are decoded."""
