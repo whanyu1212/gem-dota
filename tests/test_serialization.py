@@ -7,8 +7,9 @@ from collections import defaultdict
 
 import gem
 import gem.api
+from gem.analysis.teamfight_positioning import build_teamfight_positioning
 from gem.combat.log import CombatLogSource
-from gem.extractors.teamfights import OpenDotaTeamfight
+from gem.extractors.teamfights import OpenDotaTeamfight, Teamfight, TeamfightPlayer
 from gem.results.models import (
     ParsedMatch,
     ParsedPlayer,
@@ -52,6 +53,42 @@ class TestSerializationHelpers:
         decoded = json.loads(payload)
         assert decoded["match_id"] == 7
         assert "players" in decoded
+
+    def test_positioning_analysis_preserves_enum_values_and_unknowns(self):
+        players = [
+            ParsedPlayer(
+                player_id=0,
+                hero_name="npc_dota_hero_axe",
+                team=2,
+                position_log=[(1_000, 100.0, 200.0)],
+            ),
+            ParsedPlayer(player_id=5, hero_name="npc_dota_hero_bane", team=3),
+        ]
+        fight_players = [TeamfightPlayer(player_id=i) for i in range(10)]
+        match = ParsedMatch(
+            players=players,
+            teamfights=[
+                Teamfight(
+                    start_tick=550,
+                    end_tick=1_450,
+                    first_death_tick=1_000,
+                    last_death_tick=1_000,
+                    deaths=1,
+                    players=fight_players,
+                )
+            ],
+        )
+
+        payload = gem.to_dict(build_teamfight_positioning(match))
+        decoded = json.loads(json.dumps(payload))
+
+        assert decoded[0]["engagement_start_source"] == "first_death_fallback"
+        assert decoded[0]["snapshots"][0]["kind"] == "pre_engagement"
+        heroes = decoded[0]["snapshots"][1]["heroes"]
+        assert {hero["visibility"] for hero in heroes} == {"unknown"}
+        bane = next(hero for hero in heroes if hero["player_id"] == 5)
+        assert bane["x"] is None
+        assert bane["sample_tick"] is None
 
     def test_to_dict_includes_opendota_teamfights(self):
         match = ParsedMatch(

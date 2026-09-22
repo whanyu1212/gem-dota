@@ -5,6 +5,7 @@ from __future__ import annotations
 import gem.results.models as model_module
 from gem.combat.log import CombatLogEntry, CombatLogSource, CombatLogType
 from gem.extractors.objectives import AegisEvent, ShrineKill, TormentorKill
+from gem.extractors.teamfights import Teamfight, TeamfightPlayer
 from gem.results.dataframes import build_dataframes
 from gem.results.models import (
     ParsedMatch,
@@ -114,6 +115,7 @@ class TestBuildDataframes:
         assert "radiant_advantage" in dfs
         assert "draft" in dfs
         assert "teamfights" in dfs
+        assert "teamfight_positioning" in dfs
         assert "opendota_teamfights" in dfs
         assert "smoke_events" in dfs
         assert "smoke_members" in dfs
@@ -128,6 +130,17 @@ class TestBuildDataframes:
 
         assert dfs["neutral_item_finds"].empty
         assert dfs["opendota_teamfights"].empty
+        assert dfs["teamfight_positioning"].empty
+        assert list(dfs["teamfight_positioning"].columns[:8]) == [
+            "fight_index",
+            "fight_start_tick",
+            "engagement_start_tick",
+            "first_death_tick",
+            "fight_end_tick",
+            "engagement_start_source",
+            "snapshot_kind",
+            "snapshot_tick",
+        ]
         assert dfs["smoke_members"].empty
         assert list(dfs["smoke_members"].columns) == [
             "smoke_event_index",
@@ -163,6 +176,52 @@ class TestBuildDataframes:
             "target_name",
             "source",
         ]
+
+    def test_teamfight_positioning_table_is_flat_and_preserves_missing_values(self):
+        radiant = ParsedPlayer(
+            player_id=0,
+            hero_name="npc_dota_hero_axe",
+            team=2,
+            position_log=[(1_000, 100.0, 200.0)],
+        )
+        dire = ParsedPlayer(
+            player_id=5,
+            hero_name="npc_dota_hero_bane",
+            team=3,
+            position_log=[],
+        )
+        fight_players = [TeamfightPlayer(player_id=i) for i in range(10)]
+        fight_players[0].damage_dealt = 50
+        match = ParsedMatch(
+            players=[radiant, dire],
+            teamfights=[
+                Teamfight(
+                    start_tick=550,
+                    end_tick=1_450,
+                    first_death_tick=1_000,
+                    last_death_tick=1_000,
+                    deaths=1,
+                    players=fight_players,
+                )
+            ],
+        )
+
+        frame = build_dataframes(match)["teamfight_positioning"]
+
+        assert len(frame) == 8  # four logical snapshots × two canonical heroes
+        assert set(frame["snapshot_kind"]) == {
+            "pre_engagement",
+            "engagement_start",
+            "first_death",
+            "fight_end",
+        }
+        assert set(frame["engagement_start_source"]) == {"first_death_fallback"}
+        assert set(frame["visibility"]) == {"unknown"}
+        assert all(type(value) is str for value in frame["snapshot_kind"])
+        bane = frame[frame["player_id"] == 5]
+        assert bane["x"].isna().all()
+        assert bane["sample_tick"].isna().all()
+        assert set(bane["dire_completeness"]) == {"unavailable"}
 
     def test_vision_modifier_tables_are_flat_and_enum_backed_values_are_plain(self):
         match = ParsedMatch(

@@ -21,6 +21,7 @@ pip install pyarrow
 | `"wards"` | Ward placements with exact map coordinates |
 | `"objectives"` | Tower kills, barracks, Roshan kills |
 | `"teamfights"` | Detected fight windows with participant stats |
+| `"teamfight_positioning"` | Flat per-fight, per-snapshot, per-hero positioning evidence with freshness, geometry, and visibility |
 | `"smoke_events"` | Smoke activations, grouped heroes, centroid, and nested member lifecycles |
 | `"smoke_members"` | Flat per-hero smoke application/removal ticks, durations, and sampled positions |
 | `"hero_visibility_events"` | Change-only Radiant/Dire visibility state for canonical player heroes |

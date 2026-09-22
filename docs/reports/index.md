@@ -12,6 +12,12 @@ event timeline; see
 [Experimental Features → Roshan Conversion](../experimental/rosh-conversion.md)
 for the exact windows, formulas, and missing-data rules.
 
+The `Fights` tab includes one evidence-first positioning map per fight with
+pre-engagement, engagement-start, first-death, and fight-end controls. Marker
+visibility, position freshness, missing samples, and the current conservative
+engagement-start fallback are documented in
+[Experimental Features → Teamfight Positioning](../experimental/teamfight-positioning.md).
+
 ## Hosted samples
 
 Sample reports are not bundled into this VitePress site. They are large,

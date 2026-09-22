@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from gem.combat.log import CombatLogEntry, CombatLogType
+from gem.extractors.teamfights import Teamfight, TeamfightPlayer
 from gem.reports import (
     ReportOptions,
     apply_opendota_player_names,
@@ -10,7 +11,7 @@ from gem.reports import (
     is_displayable_player_name,
     write_html_report,
 )
-from gem.reports.sections.combat import _fight_reveals_html, build_kill_feed
+from gem.reports.sections.combat import _fight_reveals_html, build_kill_feed, build_teamfights
 from gem.results.models import (
     HeroVisibilityEvent,
     ParsedMatch,
@@ -37,6 +38,70 @@ def _minimal_match() -> ParsedMatch:
     )
 
 
+def _positioning_match(*, missing_position: bool = False) -> ParsedMatch:
+    players = [
+        ParsedPlayer(
+            player_id=0,
+            hero_name="npc_dota_hero_axe",
+            player_name="Radiant One",
+            team=2,
+            position_log=[(700, 10_000.0, 10_000.0), (1_000, 11_000.0, 11_000.0)],
+        ),
+        ParsedPlayer(
+            player_id=5,
+            hero_name="npc_dota_hero_bane",
+            player_name="Dire One",
+            team=3,
+            position_log=(
+                [] if missing_position else [(700, 10_400.0, 10_000.0), (1_000, 11_400.0, 11_000.0)]
+            ),
+        ),
+        ParsedPlayer(
+            player_id=1,
+            hero_name="npc_dota_hero_crystal_maiden",
+            player_name="Nearby Support",
+            team=2,
+            position_log=[(700, 10_100.0, 10_100.0), (1_000, 11_100.0, 11_100.0)],
+        ),
+    ]
+    fight_players = [TeamfightPlayer(player_id=i) for i in range(10)]
+    fight_players[0].damage_dealt = 100
+    fight_players[5].damage_taken = 100
+    fight = Teamfight(
+        start_tick=550,
+        end_tick=1_450,
+        first_death_tick=1_000,
+        last_death_tick=1_000,
+        deaths=1,
+        players=fight_players,
+    )
+    return ParsedMatch(
+        game_end_tick=1_500,
+        players=players,
+        teamfights=[fight],
+        hero_visibility_events=[
+            HeroVisibilityEvent(
+                tick=700,
+                player_id=0,
+                hero_name="npc_dota_hero_axe",
+                entity_index=1,
+                entity_serial=1,
+                radiant_state=VisibilityState.UNKNOWN,
+                dire_state=VisibilityState.VISIBLE,
+            ),
+            HeroVisibilityEvent(
+                tick=700,
+                player_id=5,
+                hero_name="npc_dota_hero_bane",
+                entity_index=2,
+                entity_serial=1,
+                radiant_state=VisibilityState.HIDDEN,
+                dire_state=VisibilityState.UNKNOWN,
+            ),
+        ],
+    )
+
+
 def test_build_html_report_smoke_without_assets() -> None:
     html = build_html_report(
         _minimal_match(),
@@ -47,6 +112,73 @@ def test_build_html_report_smoke_without_assets() -> None:
     assert "<title>Smoke Report</title>" in html
     assert "Match ID" in html
     assert "123456789" in html
+
+
+def test_teamfight_report_renders_four_evidence_snapshots_on_one_map() -> None:
+    html = build_teamfights(_positioning_match(), "ZmFrZQ==")
+
+    assert html.count('class="tf-snapshot-btn') == 4
+    assert html.count('class="tf-position-layer"') == 4
+    assert html.count('class="gem-map-bg"') == 1
+    assert "Pre-engagement" in html
+    assert "Engagement start" in html
+    assert "First death" in html
+    assert "Fight end" in html
+    assert "visible to opponents" in html
+    assert "hidden to opponents" in html
+    assert "dimmed = nonparticipant" in html
+    assert "conservative fallback" in html
+    assert "bad positioning" not in html.lower()
+    assert "outplayed" not in html.lower()
+
+
+def test_teamfight_report_surfaces_partial_position_evidence() -> None:
+    html = build_teamfights(_positioning_match(missing_position=True), None)
+
+    assert "fresh positions" in html
+    assert "missing" in html
+    assert "position sample unavailable" not in html  # absent heroes do not get map markers
+
+
+def test_teamfight_report_uses_first_player_for_duplicate_slots() -> None:
+    match = _positioning_match()
+    match.players.append(
+        ParsedPlayer(
+            player_id=0,
+            hero_name="npc_dota_hero_drow_ranger",
+            player_name="Duplicate",
+            team=2,
+            position_log=[(700, 5_000.0, 5_000.0), (1_000, 5_100.0, 5_100.0)],
+        )
+    )
+
+    html = build_teamfights(match, None)
+
+    assert "Radiant One" in html
+    assert "Axe" in html
+    assert "Duplicate" not in html
+    assert "Drow Ranger" not in html
+
+
+def test_teamfight_report_discloses_missing_first_death_tick_fallback() -> None:
+    match = _positioning_match()
+    match.teamfights[0].first_death_tick = 0
+
+    html = build_teamfights(match, None)
+
+    assert "Death fallback" in html
+    assert "use the observed last-death tick" in html
+    assert ">00:00<" not in html
+
+
+def test_full_report_wires_teamfight_snapshot_controls() -> None:
+    html = build_html_report(
+        _positioning_match(),
+        options=ReportOptions(include_movement=False),
+    )
+
+    assert "document.querySelectorAll('.tf-snapshot-btn')" in html
+    assert "tf-position-layer, .tf-position-note" in html
 
 
 def test_player_name_display_gate_rejects_binary_looking_text() -> None:
