@@ -32,6 +32,7 @@ class TestSerializationHelpers:
             hero_name="npc_dota_hero_axe",
             team=2,
             times=[30],
+            total_earned_xp_t=[725],
             position_log=[(30, 100.5, -50.25)],
         )
         pp.lane_pos = defaultdict(int, {"100_200": 3})
@@ -49,6 +50,7 @@ class TestSerializationHelpers:
         assert data["players"][0]["lane_pos"]["100_200"] == 3
         assert isinstance(data["players"][0]["position_log"], list)
         assert data["players"][0]["position_log"][0] == [30, 100.5, -50.25]
+        assert data["players"][0]["total_earned_xp_t"] == [725]
 
     def test_to_json_returns_valid_json(self):
         match = ParsedMatch(match_id=7)

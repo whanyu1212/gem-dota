@@ -489,6 +489,7 @@ Source: [src/gem/results/models.py:456](https://github.com/whanyu1212/gem-dota/b
 | `aghanims_scepter` | `int \| None` | `None` |
 | `aghanims_shard` | `int \| None` | `None` |
 | `moonshard` | `int \| None` | `None` |
+| `total_earned_xp_t` | `list[int]` | `field(...)` |
 
 ### `ParsedMatch`
 
@@ -498,7 +499,7 @@ class ParsedMatch
 
 Top-level parsed output for a single Dota 2 replay.
 
-Source: [src/gem/results/models.py:851](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L851)
+Source: [src/gem/results/models.py:855](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L855)
 
 #### Dataclass fields
 
@@ -560,7 +561,7 @@ Signature: `def ParsedMatch.duration_seconds(self) -> float`
 
 Game duration in seconds, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:1000](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1000)
+Source: [src/gem/results/models.py:1004](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1004)
 
 ##### `duration_minutes`
 
@@ -568,4 +569,4 @@ Signature: `def ParsedMatch.duration_minutes(self) -> float`
 
 Game duration in minutes, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:1006](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1006)
+Source: [src/gem/results/models.py:1010](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1010)

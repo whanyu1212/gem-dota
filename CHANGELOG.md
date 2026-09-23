@@ -11,10 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Evidence-first farming routes.** Add deterministic camp-zone assignment,
   sample-gap and large-jump boundaries, same-camp micro-exit merging, neutral
-  and fresh resource support, explicit strength/gap records, public Python
-  models, and flat route/segment/point DataFrame exports. The Farming report now
-  consumes the same public records, leads with evidence strength, and marks
-  unavailable legacy context instead of inserting neutral values.
+  and fresh cumulative-resource support, explicit strength/gap records, public
+  Python models, and flat route/segment/point DataFrame exports. Dense parsed
+  players now preserve cumulative total-earned XP alongside level-local XP. The
+  Farming report consumes the same public records, leads with evidence strength,
+  preserves discontinuities while downsampling long routes, and marks unavailable
+  legacy context instead of inserting neutral values.
 
 - **Calibrated Roshan conversion evidence.** Add a reproducible real-replay
   corpus (including denied, stolen, expired, inferred-consumed, preexisting-

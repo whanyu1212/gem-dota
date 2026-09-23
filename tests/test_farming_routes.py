@@ -47,6 +47,7 @@ def _player(
     *,
     times: list[int] | None = None,
     xp: list[int] | None = None,
+    current_xp: list[int] | None = None,
     gold: list[int] | None = None,
 ) -> ParsedPlayer:
     return ParsedPlayer(
@@ -55,7 +56,8 @@ def _player(
         team=2,
         position_log=points,
         times=times or [],
-        xp_t=xp or [],
+        xp_t=current_xp or [],
+        total_earned_xp_t=xp or [],
         total_earned_gold_t=gold or [],
     )
 
@@ -307,6 +309,24 @@ def test_short_resource_only_touch_remains_transit_like(
 
     assert segment.evidence_strength is FarmingEvidenceStrength.TRANSIT_LIKE
     assert segment.evidence_reasons == ["window_xp_gain", "window_gold_gain"]
+
+
+def test_xp_delta_uses_cumulative_total_across_level_up(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(farming, "load_camp_zones", lambda: _catalog(_zone(1, 0)))
+    player = _player(
+        [(0, 0.0, 0.0), (150, 1.0, 0.0)],
+        times=[0, 150],
+        xp=[990, 1010],
+        current_xp=[990, 10],
+        gold=[200, 200],
+    )
+
+    segment = build_farming_routes(ParsedMatch(players=[player]))[0].segments[0]
+
+    assert segment.window_xp_delta == 20
+    assert "xp_endpoint_samples_unavailable" not in segment.evidence_gaps
 
 
 @pytest.mark.parametrize(

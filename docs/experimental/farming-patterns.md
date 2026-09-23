@@ -119,7 +119,8 @@ Each segment retains:
 - sampled-window coverage and largest supported gap;
 - whether a micro-exit was merged;
 - neutral deaths and neutral damage;
-- XP and total-earned-gold deltas when both endpoint samples are fresh;
+- cumulative total-earned-XP and total-earned-gold deltas when both endpoint
+  samples are fresh;
 - evidence reasons and evidence gaps.
 
 Neutral events must fall inside the segment window, target an
@@ -128,9 +129,10 @@ Neutral events must fall inside the segment window, target an
 coordinates must also lie inside the segment's camp zone. An event without
 coordinates remains attributable by the bounded time window and source.
 
-XP and gold stay `None` when fresh endpoints are unavailable. They are never
-converted to zero. The route status becomes `partial` when a segment has these
-resource gaps.
+XP comes from `ParsedPlayer.total_earned_xp_t`, not the level-local `xp_t`
+counter that resets on level-up. XP and gold stay `None` when fresh endpoints
+are unavailable. They are never converted to zero. The route status becomes
+`partial` when a segment has these resource gaps.
 
 ## Evidence strength
 

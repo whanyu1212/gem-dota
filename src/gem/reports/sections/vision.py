@@ -11,7 +11,9 @@ import math
 
 from gem.analysis import (
     ExactEventKind,
+    FarmingBoundaryReason,
     FarmingRoute,
+    FarmingRoutePoint,
     MapContextBucket,
     SmokeFightInsight,
     SmokeFightStatus,
@@ -1101,6 +1103,37 @@ def _farm_smooth_path(points: list[dict]) -> str:
     return " ".join(_farm_smooth_chunk(chunk) for chunk in chunks)
 
 
+def _downsample_farming_route_points(
+    points: list[FarmingRoutePoint],
+    *,
+    target_count: int = 1400,
+) -> list[FarmingRoutePoint]:
+    """Thin long routes without discarding observed discontinuities.
+
+    ``target_count`` is a soft rendering budget: breakpoints and the samples
+    immediately before them are retained even when that makes the result a few
+    points larger. This prevents the rendered path from bridging sample gaps or
+    large position jumps that the route analysis explicitly preserved.
+    """
+    if len(points) <= target_count:
+        return list(points)
+
+    step = max(1, math.ceil(len(points) / target_count))
+    selected_indices = set(range(0, len(points), step))
+    selected_indices.add(len(points) - 1)
+    discontinuities = {
+        FarmingBoundaryReason.SAMPLE_GAP,
+        FarmingBoundaryReason.LARGE_JUMP,
+    }
+    for index, point in enumerate(points):
+        if point.boundary_before in discontinuities:
+            selected_indices.add(index)
+            if index > 0:
+                selected_indices.add(index - 1)
+
+    return [points[index] for index in sorted(selected_indices)]
+
+
 def _build_farming_map_svg(
     *,
     player: ParsedPlayer,
@@ -1143,10 +1176,7 @@ def _build_farming_map_svg(
     raw_points = [point for point in route.points if point.tick >= start_tick]
     if not raw_points:
         raw_points = list(route.points)
-    step = max(1, math.ceil(len(raw_points) / 1400)) if raw_points else 1
-    trail_points = raw_points[::step]
-    if raw_points and trail_points and trail_points[-1].tick != raw_points[-1].tick:
-        trail_points.append(raw_points[-1])
+    trail_points = _downsample_farming_route_points(raw_points)
 
     timeline_points: list[dict] = []
     for point in trail_points:

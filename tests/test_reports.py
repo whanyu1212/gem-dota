@@ -3,6 +3,9 @@ from __future__ import annotations
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
+
+from gem.analysis import FarmingBoundaryReason, FarmingRoutePoint
 from gem.combat.log import CombatLogEntry, CombatLogType
 from gem.extractors.teamfights import Teamfight, TeamfightPlayer
 from gem.reports import (
@@ -13,7 +16,11 @@ from gem.reports import (
     write_html_report,
 )
 from gem.reports.sections.combat import _fight_reveals_html, build_kill_feed, build_teamfights
-from gem.reports.sections.vision import _insight_delta, build_farming
+from gem.reports.sections.vision import (
+    _downsample_farming_route_points,
+    _insight_delta,
+    build_farming,
+)
 from gem.results.models import (
     HeroVisibilityEvent,
     ParsedMatch,
@@ -199,6 +206,33 @@ def test_farming_report_leads_with_evidence_and_preserves_missing_context() -> N
     assert '"break_before": true' in html
     assert "S:0.50 P:0.50 V:0.50" not in html
     assert html.index("Strong Farm Evidence") < html.index("Legacy context heuristic reference")
+
+
+@pytest.mark.parametrize(
+    "boundary",
+    [FarmingBoundaryReason.SAMPLE_GAP, FarmingBoundaryReason.LARGE_JUMP],
+)
+def test_farming_route_downsampling_preserves_discontinuities(
+    boundary: FarmingBoundaryReason,
+) -> None:
+    points = [
+        FarmingRoutePoint(
+            tick=index * 30,
+            x=float(index),
+            y=0.0,
+            camp_id=None,
+            camp_type=None,
+            inside_base_zone=False,
+            boundary_before=(boundary if index == 701 else None),
+        )
+        for index in range(1405)
+    ]
+
+    sampled = _downsample_farming_route_points(points)
+
+    assert points[700] in sampled
+    assert points[701] in sampled
+    assert sampled[-1] is points[-1]
 
 
 def test_teamfight_report_renders_four_evidence_snapshots_on_one_map() -> None:

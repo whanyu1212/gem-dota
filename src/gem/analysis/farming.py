@@ -403,10 +403,16 @@ def _resource_deltas(
     config: FarmingRouteConfig,
 ) -> tuple[int | None, int | None, int | None, int | None, list[str]]:
     start_xp = _nearest_fresh_sample(
-        player.times, player.xp_t, start_tick, config.resource_max_age_ticks
+        player.times,
+        player.total_earned_xp_t,
+        start_tick,
+        config.resource_max_age_ticks,
     )
     end_xp = _nearest_fresh_sample(
-        player.times, player.xp_t, end_tick, config.resource_max_age_ticks
+        player.times,
+        player.total_earned_xp_t,
+        end_tick,
+        config.resource_max_age_ticks,
     )
     start_gold = _nearest_fresh_sample(
         player.times,
