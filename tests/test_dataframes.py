@@ -135,6 +135,7 @@ class TestBuildDataframes:
         assert "farming_routes" in dfs
         assert "farming_route_segments" in dfs
         assert "farming_route_points" in dfs
+        assert "farming_context_tags" in dfs
         assert "courier_snapshots" in dfs
         assert "neutral_item_finds" in dfs
         assert "vision_modifiers" in dfs
@@ -490,14 +491,28 @@ class TestBuildDataframes:
         segment = dfs["farming_route_segments"].iloc[0]
         points = dfs["farming_route_points"]
 
-        assert route["camp_catalog_version"] == 1
+        assert route["camp_catalog_version"] == 2
         assert route["camp_map_patch"] == "7.40"
+        assert route["camp_topology_patch"] == "7.41"
         assert route["status"] == "partial"
         assert route["segment_count"] == 1
         assert segment["camp_id"] == 1
         assert segment["evidence_strength"] == "weak_farm_evidence"
         assert segment["window_xp_delta"] is None
         assert segment["window_total_earned_gold_delta"] is None
+        assert segment["camp_owner_team"] == 2
+        assert segment["camp_lane"] == "top"
+        assert segment["camp_catalog_version"] == 2
+        assert segment["camp_map_patch"] == "7.40"
+        assert segment["camp_topology_patch"] == "7.41"
+        assert segment["context_camp_side"] == "own_side"
+        assert segment["context_status"] == "partial"
+        assert "own_side" in segment["context_tags"]
+        assert "incomplete_context" in segment["context_tags"]
+        assert set(dfs["farming_context_tags"]["tag"]) >= {
+            "own_side",
+            "incomplete_context",
+        }
         assert list(points["segment_index"]) == [1, 1]
         assert list(points["inside_base_zone"]) == [True, True]
 

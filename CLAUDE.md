@@ -97,7 +97,9 @@ analysis/spatial.py       ← position, nearby-hero, and net-worth lookup helper
 analysis/combat.py        ← ability-hit grouping and teamfight lookup helpers
 analysis/abilities.py     ← ability-level lookup helpers
 analysis/vision.py        ← geometry-based vision approximation helpers
-analysis/map_context.py   ← objective-aware map-context buckets (experimental farming analysis)
+analysis/farming.py       ← evidence-first camp-route reconstruction + public context records
+analysis/farming_context.py ← comparative presence/vision/topology/objective context tags
+analysis/map_context.py   ← legacy objective-aware farming-context compatibility API
 analysis/roshan.py        ← post-parse Roshan conversion records (did a Rosh convert to a win?)
 analysis/smoke.py         ← evidence-first Smoke of Deceit lifecycle analysis
 replays/batch.py          ← bulk replay parsing (parse_many, parallel workers)
@@ -181,9 +183,10 @@ Headline exports (see `__all__` for the full list):
 - **Analysis helpers (post-parse):** `find_player`, `position_at_tick`,
   `net_worth_at`, `teamfight_at_tick`, `heroes_near`, `ability_level_at_tick`,
   `is_active_teamfight_participant`, `estimate_vision`, `ward_vision_impact`
-- **Experimental:** `build_map_context_timeline`, `score_camp_visit_context`,
-  `build_rosh_conversions`, `RoshConversion`, `build_smoke_analysis`,
-  `SmokeAnalysis`
+- **Experimental:** `build_farming_routes`, `FarmingRoute`,
+  `FarmingSegmentContext`, `build_map_context_timeline` (legacy compatibility),
+  `score_camp_visit_context` (legacy compatibility), `build_rosh_conversions`,
+  `RoshConversion`, `build_smoke_analysis`, `SmokeAnalysis`
 - **Replay fetch:** `fetch_replay`, `fetch_replay_url`, `download_and_decompress`
 - **Catalog/constants:** `catalog` (grouped lookup modules) and `constants`
   (compatibility namespace of hero/item/ability lookups)

@@ -931,12 +931,12 @@ Source: [src/gem/analysis/farming.py](https://github.com/whanyu1212/gem-dota/blo
 ### `build_farming_routes`
 
 ```python
-def build_farming_routes(match: ParsedMatch, *, config: FarmingRouteConfig = DEFAULT_FARMING_ROUTE_CONFIG) -> list[FarmingRoute]
+def build_farming_routes(match: ParsedMatch, *, config: FarmingRouteConfig = DEFAULT_FARMING_ROUTE_CONFIG, context_config: FarmingContextConfig = DEFAULT_FARMING_CONTEXT_CONFIG) -> list[FarmingRoute]
 ```
 
 Build deterministic camp-local route evidence for every parsed player.
 
-Source: [src/gem/analysis/farming.py:574](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L574)
+Source: [src/gem/analysis/farming.py:704](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L704)
 
 ### Top-level classes
 
@@ -960,6 +960,16 @@ Observed reason a route segment started or ended.
 
 Source: [src/gem/analysis/farming.py:31](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L31)
 
+### `FarmingContextTag`
+
+```python
+class FarmingContextTag(str, Enum)
+```
+
+Independent evidence-aware context tags for one farming segment.
+
+Source: [src/gem/analysis/farming.py:42](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L42)
+
 ### `FarmingRouteConfig`
 
 ```python
@@ -968,7 +978,7 @@ class FarmingRouteConfig
 
 Inspectable thresholds for farming-route reconstruction.
 
-Source: [src/gem/analysis/farming.py:43](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L43)
+Source: [src/gem/analysis/farming.py:57](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L57)
 
 #### Dataclass fields
 
@@ -980,6 +990,83 @@ Source: [src/gem/analysis/farming.py:43](https://github.com/whanyu1212/gem-dota/
 | `min_weak_dwell_ticks` | `int` | `5 * _TICKS_PER_SECOND` |
 | `resource_max_age_ticks` | `int` | `2 * _TICKS_PER_SECOND` |
 
+### `FarmingContextConfig`
+
+```python
+class FarmingContextConfig
+```
+
+Inspectable thresholds for comparative farming context.
+
+Source: [src/gem/analysis/farming.py:83](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L83)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `lookback_ticks` | `int` | `90 * _TICKS_PER_SECOND` |
+| `territory_lookback_ticks` | `int` | `120 * _TICKS_PER_SECOND` |
+| `max_position_gap_ticks` | `int` | `10 * _TICKS_PER_SECOND` |
+| `max_resource_age_ticks` | `int` | `2 * _TICKS_PER_SECOND` |
+| `max_vision_position_age_ticks` | `int` | `5 * _TICKS_PER_SECOND` |
+| `presence_radius` | `float` | `1600.0` |
+| `min_presence_coverage` | `float` | `0.7` |
+| `high_enemy_presence_seconds` | `float` | `30.0` |
+| `presence_advantage_seconds` | `float` | `15.0` |
+| `territorial_depth_delta` | `float` | `0.1` |
+| `territorial_coverage_delta_pct` | `float` | `0.5` |
+
+### `FarmingSegmentContext`
+
+```python
+class FarmingSegmentContext
+```
+
+Comparative, provenance-preserving context for one farming segment.
+
+Source: [src/gem/analysis/farming.py:127](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L127)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `midpoint_tick` | `int` | `-` |
+| `lookback_start_tick` | `int` | `-` |
+| `camp_side` | `Literal['own_side', 'enemy_side', 'border', 'unknown']` | `-` |
+| `camp_lane` | `Literal['top', 'mid', 'bot', 'none', 'unknown']` | `-` |
+| `camp_area` | `str` | `-` |
+| `own_presence_hero_seconds` | `float \| None` | `None` |
+| `enemy_presence_hero_seconds` | `float \| None` | `None` |
+| `own_presence_position_coverage` | `float \| None` | `None` |
+| `enemy_presence_position_coverage` | `float \| None` | `None` |
+| `own_point_vision_status` | `str \| None` | `None` |
+| `enemy_point_vision_status` | `str \| None` | `None` |
+| `own_point_vision_source_count` | `int \| None` | `None` |
+| `enemy_point_vision_source_count` | `int \| None` | `None` |
+| `own_observer_vision_source_count` | `int \| None` | `None` |
+| `enemy_observer_vision_source_count` | `int \| None` | `None` |
+| `own_point_vision_gaps` | `list[str]` | `field(...)` |
+| `enemy_point_vision_gaps` | `list[str]` | `field(...)` |
+| `own_relevant_towers_alive` | `int \| None` | `None` |
+| `enemy_relevant_towers_alive` | `int \| None` | `None` |
+| `net_worth_advantage` | `int \| None` | `None` |
+| `total_earned_xp_advantage` | `int \| None` | `None` |
+| `aegis_holder_team` | `int \| None` | `None` |
+| `aegis_active` | `bool \| None` | `None` |
+| `aegis_source` | `str \| None` | `None` |
+| `last_roshan_tick` | `int \| None` | `None` |
+| `last_roshan_team` | `int \| None` | `None` |
+| `roshan_team_source` | `str \| None` | `None` |
+| `last_tormentor_tick` | `int \| None` | `None` |
+| `last_tormentor_team` | `int \| None` | `None` |
+| `tormentor_team_source` | `str \| None` | `None` |
+| `territory_coverage_differential_pct` | `float \| None` | `None` |
+| `territory_depth_differential` | `float \| None` | `None` |
+| `tags` | `list[FarmingContextTag]` | `field(...)` |
+| `tag_reasons` | `dict[str, list[str]]` | `field(...)` |
+| `status` | `Literal['complete', 'partial', 'unavailable']` | `'unavailable'` |
+| `status_reasons` | `list[str]` | `field(...)` |
+
 ### `FarmingCampZone`
 
 ```python
@@ -988,7 +1075,7 @@ class FarmingCampZone
 
 One calibrated neutral-camp zone from the bundled catalog.
 
-Source: [src/gem/analysis/farming.py:69](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L69)
+Source: [src/gem/analysis/farming.py:169](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L169)
 
 #### Dataclass fields
 
@@ -1005,6 +1092,9 @@ Source: [src/gem/analysis/farming.py:69](https://github.com/whanyu1212/gem-dota/
 | `polygon_points` | `tuple[tuple[float, float], ...]` | `()` |
 | `enter_margin` | `float` | `0.0` |
 | `exit_margin` | `float` | `0.0` |
+| `owner_team` | `int \| None` | `None` |
+| `lane` | `Literal['top', 'mid', 'bot', 'none', 'unknown']` | `'unknown'` |
+| `area` | `str` | `'unknown'` |
 
 ### `FarmingRoutePoint`
 
@@ -1014,7 +1104,7 @@ class FarmingRoutePoint
 
 One sampled route point and its selected camp membership.
 
-Source: [src/gem/analysis/farming.py:86](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L86)
+Source: [src/gem/analysis/farming.py:189](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L189)
 
 #### Dataclass fields
 
@@ -1036,7 +1126,7 @@ class FarmingRouteSegment
 
 One camp-local sampled route segment with factual support evidence.
 
-Source: [src/gem/analysis/farming.py:99](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L99)
+Source: [src/gem/analysis/farming.py:202](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L202)
 
 #### Dataclass fields
 
@@ -1068,6 +1158,14 @@ Source: [src/gem/analysis/farming.py:99](https://github.com/whanyu1212/gem-dota/
 | `evidence_reasons` | `list[str]` | `field(...)` |
 | `evidence_gaps` | `list[str]` | `field(...)` |
 | `points` | `list[FarmingRoutePoint]` | `field(...)` |
+| `distance_travelled` | `float \| None` | `None` |
+| `camp_owner_team` | `int \| None` | `None` |
+| `camp_lane` | `str` | `'unknown'` |
+| `camp_area` | `str` | `'unknown'` |
+| `context` | `FarmingSegmentContext \| None` | `None` |
+| `camp_catalog_version` | `int \| None` | `None` |
+| `camp_map_patch` | `str \| None` | `None` |
+| `camp_topology_patch` | `str \| None` | `None` |
 
 ### `FarmingRoute`
 
@@ -1077,7 +1175,7 @@ class FarmingRoute
 
 Evidence-first farming route for one parsed player.
 
-Source: [src/gem/analysis/farming.py:131](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L131)
+Source: [src/gem/analysis/farming.py:242](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L242)
 
 #### Dataclass fields
 
@@ -1092,6 +1190,7 @@ Source: [src/gem/analysis/farming.py:131](https://github.com/whanyu1212/gem-dota
 | `status_reasons` | `list[str]` | `field(...)` |
 | `points` | `list[FarmingRoutePoint]` | `field(...)` |
 | `segments` | `list[FarmingRouteSegment]` | `field(...)` |
+| `camp_topology_patch` | `str \| None` | `None` |
 
 ## Module `gem.analysis.map_context`
 

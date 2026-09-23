@@ -13,13 +13,17 @@ It is intentionally short-range. The full per-release SemVer history lives in th
 Farming Patterns now reconstructs camp-local routes with explicit zone,
 sample-gap, movement-discontinuity, and micro-exit rules. Public route, segment,
 and point records preserve neutral interaction, fresh cumulative XP/gold deltas,
-sampled coverage, strength, and missing-evidence reasons; three flat DataFrames
-expose the same facts. Dense player records retain total-earned XP separately
-from level-local XP, and report downsampling preserves route discontinuities.
-The report leads with these evidence categories and keeps the older
-safety/pressure labels as a secondary compatibility view.
+sampled coverage, strength, and missing-evidence reasons; four flat DataFrames
+expose the same route facts. Dense player records retain total-earned XP
+separately from level-local XP, and report downsampling preserves route
+discontinuities. A comparative context layer adds explicit camp topology,
+bounded local presence, modeled observer coverage, lane towers, objective and
+territory provenance, composable tags, and a fourth normalized tag table. The
+report exposes why each tag appeared; the older safety/pressure scorer remains
+available only as a compatibility API and collapsed formula reference.
 
-See [Farming Patterns](./experimental/farming-patterns.md).
+See [Farming Patterns](./experimental/farming-patterns.md) and the
+[calibration record](./experimental/farming-patterns-calibration.md).
 
 ## September 2026 — Roshan evidence calibration
 
