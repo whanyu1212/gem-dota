@@ -27,6 +27,8 @@ HEROES_JSON = DATA_DIR / "heroes.json"
 ITEMS_JSON = DATA_DIR / "items.json"
 SOURCE_HERO_ICON_DIR = DATA_DIR / HERO_ICON_SUBDIR
 SOURCE_ITEM_ICON_DIR = DATA_DIR / ITEM_ICON_SUBDIR
+# Repository map images; present only in a source checkout, not in installed wheels.
+SOURCE_MAP_DIR = Path(__file__).resolve().parents[3] / "assets" / MAP_SUBDIR
 
 _IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
 _HERO_CDN_URLS = (
@@ -155,9 +157,10 @@ def auto_report_assets(
     """Build a ``ReportAssets`` value from the configured cache.
 
     The user cache is checked first. In source checkouts, the local
-    ``src/gem/data/*_icons`` directories are used as a development fallback
-    when no explicit cache root is supplied. ``fallback_map`` is useful for
-    examples that keep a map image in the repository instead of the user cache.
+    ``src/gem/data/*_icons`` directories and the ``assets/maps/<map_name>``
+    image are used as a development fallback when no explicit cache root is
+    supplied. An explicit ``fallback_map`` takes precedence over the checkout
+    map.
     """
 
     paths = report_asset_paths(root)
@@ -166,6 +169,8 @@ def auto_report_assets(
     map_image = _choose_map(paths.map_dir, map_name)
     if map_image is None:
         map_image = _existing_file(fallback_map)
+    if map_image is None and use_source_fallback:
+        map_image = _existing_file(SOURCE_MAP_DIR / map_name)
 
     hero_icon_dir = _populated_icon_dir(paths.hero_icon_dir)
     item_icon_dir = _populated_icon_dir(paths.item_icon_dir)

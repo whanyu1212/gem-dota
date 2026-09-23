@@ -135,6 +135,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   samples to ticks through the pause-aware clock. The calibration corpus and
   tag-frequency audit are updated accordingly (`game_closing` 0 → 5,
   `counter_conversion` 3 → 7 of 31 conversions).
+- **Report map in source checkouts.** `ReportAssets.auto()` now falls back to
+  the repository's `assets/maps/Game_map_7.41.jpg` when the user cache has no
+  map and no `fallback_map` is given, matching the existing icon fallback.
+  Reports built directly through the Python API in a checkout previously had no
+  map, so map panels were blank and the Movement tab was omitted.
 - **Pause-aware smoke lifecycle matching.** Associate modifier removals using
   reported elapsed duration or pause-aware game time before falling back to raw
   replay ticks, so a long pause cannot leave a legitimate removal unobserved.

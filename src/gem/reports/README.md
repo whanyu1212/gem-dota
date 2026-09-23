@@ -152,8 +152,9 @@ in `sections/combat.py`; only the filter *handler* lives in `builder.py`.
 - `ReportAssets` is a frozen dataclass of three optional paths: `map_image`,
   `hero_icon_dir`, `item_icon_dir`. `gem` does **not** ship map images or icon
   caches in the wheel. `ReportAssets.auto()` checks the configured user cache
-  first, then uses the source-checkout icon directories as a development
-  fallback when no explicit cache root is passed.
+  first, then an explicit `fallback_map`, then the source-checkout icon
+  directories and `assets/maps/<map_name>` as a development fallback when no
+  explicit cache root is passed.
 - The report asset cache root is `GEM_REPORT_ASSET_DIR` when set, otherwise the
   platform user cache (`~/Library/Caches/gem-dota/reports` on macOS,
   `%LOCALAPPDATA%/gem-dota/reports` on Windows, or
