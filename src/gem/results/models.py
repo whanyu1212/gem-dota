@@ -958,8 +958,6 @@ class ParsedMatch:
     dire_team_tag: str = ""
     game_start_tick: int | None = None
     game_end_tick: int = 0
-    post_game_tick: int | None = None
-    game_clock: GameClock | None = None
     duration: int = 0
     radiant_score: int = 0
     dire_score: int = 0
@@ -1001,6 +999,8 @@ class ParsedMatch:
     hero_visibility_events: list[HeroVisibilityEvent] = field(default_factory=list)
     vision_modifier_pairing_issues: list[VisionModifierPairingIssue] = field(default_factory=list)
     entity_visibility_events: list[EntityVisibilityEvent] = field(default_factory=list)
+    post_game_tick: int | None = None
+    game_clock: GameClock | None = None
     # Internal provenance for match-level values copied from CMsgDOTAMatch.
     _match_details_fields: set[str] = field(
         default_factory=set,

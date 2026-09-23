@@ -84,20 +84,82 @@ class TestParsedMatchFieldOrder:
     argument by one slot.
     """
 
-    def test_additive_fields_remain_at_the_tail(self):
+    # Released positional order. Append new constructor fields to this list;
+    # never insert or reorder, which would silently shift positional callers.
+    _POSITIONAL_ORDER = [
+        "match_id",
+        "game_mode",
+        "leagueid",
+        "radiant_win",
+        "radiant_team_id",
+        "radiant_team_name",
+        "radiant_team_tag",
+        "dire_team_id",
+        "dire_team_name",
+        "dire_team_tag",
+        "game_start_tick",
+        "game_end_tick",
+        "duration",
+        "radiant_score",
+        "dire_score",
+        "first_blood_time",
+        "pre_game_duration",
+        "players",
+        "towers",
+        "barracks",
+        "roshans",
+        "aegis_events",
+        "tormentors",
+        "shrines",
+        "courier_deaths",
+        "objectives",
+        "tower_status_radiant",
+        "tower_status_dire",
+        "barracks_status_radiant",
+        "barracks_status_dire",
+        "wards",
+        "radiant_gold_adv",
+        "radiant_xp_adv",
+        "combat_log",
+        "chat",
+        "courier_snapshots",
+        "neutral_item_finds",
+        "smoke_events",
+        "draft",
+        "teamfights",
+        "opendota_teamfights",
+        "vision_modifiers",
+        "banner_plants",
+        "game_times_min",
+        "hero_visibility_events",
+        "vision_modifier_pairing_issues",
+        "entity_visibility_events",
+        "post_game_tick",
+        "game_clock",
+    ]
+
+    def test_positional_order_is_append_only(self):
         import dataclasses
 
         fields = [f.name for f in dataclasses.fields(ParsedMatch) if f.init]
-        assert fields[-5:] == [
-            "banner_plants",
-            "game_times_min",
-            "hero_visibility_events",
-            "vision_modifier_pairing_issues",
-            "entity_visibility_events",
-        ], (
+        assert fields == self._POSITIONAL_ORDER, (
             "new constructor fields must be appended to preserve positional "
-            f"construction; current order tail: {fields[-5:]}"
+            f"construction; current order: {fields}"
         )
+
+    def test_positional_duration_is_not_shifted(self):
+        import dataclasses
+
+        defaults = []
+        for f in dataclasses.fields(ParsedMatch):
+            if f.name == "duration":
+                break
+            defaults.append(
+                f.default_factory() if f.default_factory is not dataclasses.MISSING else f.default
+            )
+        match = ParsedMatch(*defaults, 3005)
+        assert match.duration == 3005
+        assert match.post_game_tick is None
 
     def test_positional_construction_keeps_objectives_aligned(self):
         # Build positionally through the `objectives` slot and confirm the

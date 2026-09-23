@@ -517,8 +517,6 @@ Source: [src/gem/results/models.py:856](https://github.com/whanyu1212/gem-dota/b
 | `dire_team_tag` | `str` | `''` |
 | `game_start_tick` | `int \| None` | `None` |
 | `game_end_tick` | `int` | `0` |
-| `post_game_tick` | `int \| None` | `None` |
-| `game_clock` | `GameClock \| None` | `None` |
 | `duration` | `int` | `0` |
 | `radiant_score` | `int` | `0` |
 | `dire_score` | `int` | `0` |
@@ -554,6 +552,8 @@ Source: [src/gem/results/models.py:856](https://github.com/whanyu1212/gem-dota/b
 | `hero_visibility_events` | `list[HeroVisibilityEvent]` | `field(...)` |
 | `vision_modifier_pairing_issues` | `list[VisionModifierPairingIssue]` | `field(...)` |
 | `entity_visibility_events` | `list[EntityVisibilityEvent]` | `field(...)` |
+| `post_game_tick` | `int \| None` | `None` |
+| `game_clock` | `GameClock \| None` | `None` |
 
 #### Properties
 
