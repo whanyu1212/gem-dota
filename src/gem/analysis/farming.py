@@ -10,7 +10,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 from gem.catalog.map import load_camp_zones
 
@@ -37,6 +37,20 @@ class FarmingBoundaryReason(str, Enum):
     SAMPLE_GAP = "sample_gap"
     LARGE_JUMP = "large_jump"
     LOG_END = "log_end"
+
+
+class FarmingContextTag(str, Enum):
+    """Independent evidence-aware context tags for one farming segment."""
+
+    OWN_SIDE = "own_side"
+    ENEMY_SIDE = "enemy_side"
+    BORDER = "border"
+    HIGH_ENEMY_PRESENCE = "high_enemy_presence"
+    VISION_DISADVANTAGE = "vision_disadvantage"
+    TOWER_DISADVANTAGE = "tower_disadvantage"
+    ENEMY_AEGIS_ACTIVE = "enemy_aegis_active"
+    TERRITORIAL_ADVANCE = "territorial_advance"
+    INCOMPLETE_CONTEXT = "incomplete_context"
 
 
 @dataclass(frozen=True, slots=True)
@@ -66,6 +80,92 @@ DEFAULT_FARMING_ROUTE_CONFIG = FarmingRouteConfig()
 
 
 @dataclass(frozen=True, slots=True)
+class FarmingContextConfig:
+    """Inspectable thresholds for comparative farming context."""
+
+    lookback_ticks: int = 90 * _TICKS_PER_SECOND
+    territory_lookback_ticks: int = 120 * _TICKS_PER_SECOND
+    max_position_gap_ticks: int = 10 * _TICKS_PER_SECOND
+    max_resource_age_ticks: int = 2 * _TICKS_PER_SECOND
+    max_vision_position_age_ticks: int = 5 * _TICKS_PER_SECOND
+    presence_radius: float = 1600.0
+    min_presence_coverage: float = 0.70
+    high_enemy_presence_seconds: float = 30.0
+    presence_advantage_seconds: float = 15.0
+    territorial_depth_delta: float = 0.10
+    territorial_coverage_delta_pct: float = 0.50
+
+    def __post_init__(self) -> None:
+        if self.lookback_ticks <= 0:
+            raise ValueError("lookback_ticks must be positive")
+        if self.territory_lookback_ticks <= 0:
+            raise ValueError("territory_lookback_ticks must be positive")
+        if self.max_position_gap_ticks <= 0:
+            raise ValueError("max_position_gap_ticks must be positive")
+        if self.max_resource_age_ticks < 0:
+            raise ValueError("max_resource_age_ticks must be nonnegative")
+        if self.max_vision_position_age_ticks < 0:
+            raise ValueError("max_vision_position_age_ticks must be nonnegative")
+        if self.presence_radius <= 0:
+            raise ValueError("presence_radius must be positive")
+        if not 0.0 <= self.min_presence_coverage <= 1.0:
+            raise ValueError("min_presence_coverage must be between 0 and 1")
+        if self.high_enemy_presence_seconds < 0:
+            raise ValueError("high_enemy_presence_seconds must be nonnegative")
+        if self.presence_advantage_seconds < 0:
+            raise ValueError("presence_advantage_seconds must be nonnegative")
+        if self.territorial_depth_delta < 0:
+            raise ValueError("territorial_depth_delta must be nonnegative")
+        if self.territorial_coverage_delta_pct < 0:
+            raise ValueError("territorial_coverage_delta_pct must be nonnegative")
+
+
+DEFAULT_FARMING_CONTEXT_CONFIG = FarmingContextConfig()
+
+
+@dataclass(slots=True)
+class FarmingSegmentContext:
+    """Comparative, provenance-preserving context for one farming segment."""
+
+    midpoint_tick: int
+    lookback_start_tick: int
+    camp_side: Literal["own_side", "enemy_side", "border", "unknown"]
+    camp_lane: Literal["top", "mid", "bot", "none", "unknown"]
+    camp_area: str
+    own_presence_hero_seconds: float | None = None
+    enemy_presence_hero_seconds: float | None = None
+    own_presence_position_coverage: float | None = None
+    enemy_presence_position_coverage: float | None = None
+    own_point_vision_status: str | None = None
+    enemy_point_vision_status: str | None = None
+    own_point_vision_source_count: int | None = None
+    enemy_point_vision_source_count: int | None = None
+    own_observer_vision_source_count: int | None = None
+    enemy_observer_vision_source_count: int | None = None
+    own_point_vision_gaps: list[str] = field(default_factory=list)
+    enemy_point_vision_gaps: list[str] = field(default_factory=list)
+    own_relevant_towers_alive: int | None = None
+    enemy_relevant_towers_alive: int | None = None
+    net_worth_advantage: int | None = None
+    total_earned_xp_advantage: int | None = None
+    aegis_holder_team: int | None = None
+    aegis_active: bool | None = None
+    aegis_source: str | None = None
+    last_roshan_tick: int | None = None
+    last_roshan_team: int | None = None
+    roshan_team_source: str | None = None
+    last_tormentor_tick: int | None = None
+    last_tormentor_team: int | None = None
+    tormentor_team_source: str | None = None
+    territory_coverage_differential_pct: float | None = None
+    territory_depth_differential: float | None = None
+    tags: list[FarmingContextTag] = field(default_factory=list)
+    tag_reasons: dict[str, list[str]] = field(default_factory=dict)
+    status: Literal["complete", "partial", "unavailable"] = "unavailable"
+    status_reasons: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True, slots=True)
 class FarmingCampZone:
     """One calibrated neutral-camp zone from the bundled catalog."""
 
@@ -80,6 +180,9 @@ class FarmingCampZone:
     polygon_points: tuple[tuple[float, float], ...] = ()
     enter_margin: float = 0.0
     exit_margin: float = 0.0
+    owner_team: int | None = None
+    lane: Literal["top", "mid", "bot", "none", "unknown"] = "unknown"
+    area: str = "unknown"
 
 
 @dataclass(frozen=True, slots=True)
@@ -125,6 +228,14 @@ class FarmingRouteSegment:
     evidence_reasons: list[str] = field(default_factory=list)
     evidence_gaps: list[str] = field(default_factory=list)
     points: list[FarmingRoutePoint] = field(default_factory=list)
+    distance_travelled: float | None = None
+    camp_owner_team: int | None = None
+    camp_lane: str = "unknown"
+    camp_area: str = "unknown"
+    context: FarmingSegmentContext | None = None
+    camp_catalog_version: int | None = None
+    camp_map_patch: str | None = None
+    camp_topology_patch: str | None = None
 
 
 @dataclass(slots=True)
@@ -140,6 +251,7 @@ class FarmingRoute:
     status_reasons: list[str] = field(default_factory=list)
     points: list[FarmingRoutePoint] = field(default_factory=list)
     segments: list[FarmingRouteSegment] = field(default_factory=list)
+    camp_topology_patch: str | None = None
 
 
 @dataclass(slots=True)
@@ -158,6 +270,7 @@ def _parse_zones(payload: dict[str, Any]) -> tuple[FarmingCampZone, ...]:
         center = raw.get("center", {})
         geometry = raw.get("zone", {})
         hysteresis = raw.get("hysteresis", {})
+        topology = raw.get("topology", {})
         points = tuple(
             (
                 float(point.get("x", 0.0) if isinstance(point, dict) else point[0]),
@@ -178,6 +291,14 @@ def _parse_zones(payload: dict[str, Any]) -> tuple[FarmingCampZone, ...]:
                 polygon_points=points,
                 enter_margin=float(hysteresis.get("enter_margin", 0.0)),
                 exit_margin=float(hysteresis.get("exit_margin", 0.0)),
+                owner_team=(
+                    int(topology["owner_team"]) if topology.get("owner_team") in (2, 3) else None
+                ),
+                lane=cast(
+                    Literal["top", "mid", "bot", "none", "unknown"],
+                    str(topology.get("lane", "unknown")),
+                ),
+                area=str(topology.get("area", "unknown")),
             )
         )
     return tuple(sorted(zones, key=lambda zone: zone.camp_id))
@@ -518,6 +639,11 @@ def _build_segments(
         in_zone_count, coverage, maximum_gap = _position_metrics(
             segment_points, candidate.zone.camp_id
         )
+        distance_travelled = sum(
+            math.dist((previous.x, previous.y), (current.x, current.y))
+            for previous, current in zip(segment_points, segment_points[1:], strict=False)
+            if current.boundary_before is None
+        )
         duration_ticks = max(end_tick - start_tick, 0)
         evidence_reasons: list[str] = []
         if kills > 0:
@@ -566,6 +692,10 @@ def _build_segments(
                 evidence_reasons=evidence_reasons,
                 evidence_gaps=evidence_gaps,
                 points=segment_points,
+                distance_travelled=distance_travelled,
+                camp_owner_team=candidate.zone.owner_team,
+                camp_lane=candidate.zone.lane,
+                camp_area=candidate.zone.area,
             )
         )
     return segments
@@ -575,6 +705,7 @@ def build_farming_routes(
     match: ParsedMatch,
     *,
     config: FarmingRouteConfig = DEFAULT_FARMING_ROUTE_CONFIG,
+    context_config: FarmingContextConfig = DEFAULT_FARMING_CONTEXT_CONFIG,
 ) -> list[FarmingRoute]:
     """Build deterministic camp-local route evidence for every parsed player.
 
@@ -587,10 +718,14 @@ def build_farming_routes(
         zones = _parse_zones(payload)
         catalog_version = int(payload["version"]) if "version" in payload else None
         map_patch = str(payload["dota_patch"]) if payload.get("dota_patch") is not None else None
+        topology_patch = (
+            str(payload["topology_patch"]) if payload.get("topology_patch") is not None else None
+        )
     except (OSError, ValueError, KeyError, TypeError):
         zones = ()
         catalog_version = None
         map_patch = None
+        topology_patch = None
 
     routes: list[FarmingRoute] = []
     for player in sorted(match.players, key=lambda item: item.player_id):
@@ -609,6 +744,7 @@ def build_farming_routes(
                     camp_map_patch=map_patch,
                     status="unavailable",
                     status_reasons=reasons,
+                    camp_topology_patch=topology_patch,
                 )
             )
             continue
@@ -624,10 +760,15 @@ def build_farming_routes(
                     camp_map_patch=map_patch,
                     status="unavailable",
                     status_reasons=["in_game_position_samples_unavailable"],
+                    camp_topology_patch=topology_patch,
                 )
             )
             continue
         segments = _build_segments(match, player, points, zones, config)
+        for segment in segments:
+            segment.camp_catalog_version = catalog_version
+            segment.camp_map_patch = map_patch
+            segment.camp_topology_patch = topology_patch
         status_reasons = sorted({gap for segment in segments for gap in segment.evidence_gaps})
         routes.append(
             FarmingRoute(
@@ -640,19 +781,28 @@ def build_farming_routes(
                 status_reasons=status_reasons,
                 points=points,
                 segments=segments,
+                camp_topology_patch=topology_patch,
             )
         )
+    if zones:
+        from gem.analysis.farming_context import attach_farming_contexts
+
+        attach_farming_contexts(match, routes, zones, context_config)
     return routes
 
 
 __all__ = [
+    "DEFAULT_FARMING_CONTEXT_CONFIG",
     "DEFAULT_FARMING_ROUTE_CONFIG",
     "FarmingBoundaryReason",
     "FarmingCampZone",
+    "FarmingContextConfig",
+    "FarmingContextTag",
     "FarmingEvidenceStrength",
     "FarmingRoute",
     "FarmingRouteConfig",
     "FarmingRoutePoint",
     "FarmingRouteSegment",
+    "FarmingSegmentContext",
     "build_farming_routes",
 ]

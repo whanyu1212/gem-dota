@@ -24,7 +24,8 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         Dictionary with tabular projections of match-level, player-level,
         event-level, and post-parse analysis data. Existing keys are preserved;
         farming analysis adds ``farming_routes``,
-        ``farming_route_segments``, and ``farming_route_points``.
+        ``farming_route_segments``, ``farming_route_points``, and
+        ``farming_context_tags``.
     """
     from dataclasses import asdict, fields
     from enum import Enum
@@ -969,6 +970,7 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         "team",
         "camp_catalog_version",
         "camp_map_patch",
+        "camp_topology_patch",
         "status",
         "status_reasons",
         "segment_count",
@@ -1000,6 +1002,46 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         "evidence_strength",
         "evidence_reasons",
         "evidence_gaps",
+        "distance_travelled",
+        "camp_owner_team",
+        "camp_lane",
+        "camp_area",
+        "camp_catalog_version",
+        "camp_map_patch",
+        "camp_topology_patch",
+        "context_midpoint_tick",
+        "context_lookback_start_tick",
+        "context_camp_side",
+        "context_status",
+        "context_status_reasons",
+        "context_tags",
+        "own_presence_hero_seconds",
+        "enemy_presence_hero_seconds",
+        "own_presence_position_coverage",
+        "enemy_presence_position_coverage",
+        "own_point_vision_status",
+        "enemy_point_vision_status",
+        "own_point_vision_source_count",
+        "enemy_point_vision_source_count",
+        "own_observer_vision_source_count",
+        "enemy_observer_vision_source_count",
+        "own_point_vision_gaps",
+        "enemy_point_vision_gaps",
+        "own_relevant_towers_alive",
+        "enemy_relevant_towers_alive",
+        "net_worth_advantage",
+        "total_earned_xp_advantage",
+        "aegis_holder_team",
+        "aegis_active",
+        "aegis_source",
+        "last_roshan_tick",
+        "last_roshan_team",
+        "roshan_team_source",
+        "last_tormentor_tick",
+        "last_tormentor_team",
+        "tormentor_team_source",
+        "territory_coverage_differential_pct",
+        "territory_depth_differential",
     ]
     farming_point_columns = [
         "player_id",
@@ -1017,6 +1059,7 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
     farming_route_rows: list[dict[str, Any]] = []
     farming_segment_rows: list[dict[str, Any]] = []
     farming_point_rows: list[dict[str, Any]] = []
+    farming_context_tag_rows: list[dict[str, Any]] = []
     for route in build_farming_routes(match):
         farming_route_rows.append(
             {
@@ -1025,6 +1068,7 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                 "team": route.team,
                 "camp_catalog_version": route.camp_catalog_version,
                 "camp_map_patch": route.camp_map_patch,
+                "camp_topology_patch": route.camp_topology_patch,
                 "status": route.status,
                 "status_reasons": ";".join(route.status_reasons),
                 "segment_count": len(route.segments),
@@ -1037,6 +1081,7 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
             for point in segment.points
         }
         for segment in route.segments:
+            context = segment.context
             farming_segment_rows.append(
                 {
                     "player_id": segment.player_id,
@@ -1064,8 +1109,100 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                     "evidence_strength": segment.evidence_strength.value,
                     "evidence_reasons": ";".join(segment.evidence_reasons),
                     "evidence_gaps": ";".join(segment.evidence_gaps),
+                    "distance_travelled": segment.distance_travelled,
+                    "camp_owner_team": segment.camp_owner_team,
+                    "camp_lane": segment.camp_lane,
+                    "camp_area": segment.camp_area,
+                    "camp_catalog_version": segment.camp_catalog_version,
+                    "camp_map_patch": segment.camp_map_patch,
+                    "camp_topology_patch": segment.camp_topology_patch,
+                    "context_midpoint_tick": context.midpoint_tick if context else None,
+                    "context_lookback_start_tick": (
+                        context.lookback_start_tick if context else None
+                    ),
+                    "context_camp_side": context.camp_side if context else None,
+                    "context_status": context.status if context else None,
+                    "context_status_reasons": (";".join(context.status_reasons) if context else ""),
+                    "context_tags": (
+                        ";".join(tag.value for tag in context.tags) if context else ""
+                    ),
+                    "own_presence_hero_seconds": (
+                        context.own_presence_hero_seconds if context else None
+                    ),
+                    "enemy_presence_hero_seconds": (
+                        context.enemy_presence_hero_seconds if context else None
+                    ),
+                    "own_presence_position_coverage": (
+                        context.own_presence_position_coverage if context else None
+                    ),
+                    "enemy_presence_position_coverage": (
+                        context.enemy_presence_position_coverage if context else None
+                    ),
+                    "own_point_vision_status": (
+                        context.own_point_vision_status if context else None
+                    ),
+                    "enemy_point_vision_status": (
+                        context.enemy_point_vision_status if context else None
+                    ),
+                    "own_point_vision_source_count": (
+                        context.own_point_vision_source_count if context else None
+                    ),
+                    "enemy_point_vision_source_count": (
+                        context.enemy_point_vision_source_count if context else None
+                    ),
+                    "own_observer_vision_source_count": (
+                        context.own_observer_vision_source_count if context else None
+                    ),
+                    "enemy_observer_vision_source_count": (
+                        context.enemy_observer_vision_source_count if context else None
+                    ),
+                    "own_point_vision_gaps": (
+                        ";".join(context.own_point_vision_gaps) if context else ""
+                    ),
+                    "enemy_point_vision_gaps": (
+                        ";".join(context.enemy_point_vision_gaps) if context else ""
+                    ),
+                    "own_relevant_towers_alive": (
+                        context.own_relevant_towers_alive if context else None
+                    ),
+                    "enemy_relevant_towers_alive": (
+                        context.enemy_relevant_towers_alive if context else None
+                    ),
+                    "net_worth_advantage": context.net_worth_advantage if context else None,
+                    "total_earned_xp_advantage": (
+                        context.total_earned_xp_advantage if context else None
+                    ),
+                    "aegis_holder_team": context.aegis_holder_team if context else None,
+                    "aegis_active": context.aegis_active if context else None,
+                    "aegis_source": context.aegis_source if context else None,
+                    "last_roshan_tick": context.last_roshan_tick if context else None,
+                    "last_roshan_team": context.last_roshan_team if context else None,
+                    "roshan_team_source": context.roshan_team_source if context else None,
+                    "last_tormentor_tick": context.last_tormentor_tick if context else None,
+                    "last_tormentor_team": context.last_tormentor_team if context else None,
+                    "tormentor_team_source": (context.tormentor_team_source if context else None),
+                    "territory_coverage_differential_pct": (
+                        context.territory_coverage_differential_pct if context else None
+                    ),
+                    "territory_depth_differential": (
+                        context.territory_depth_differential if context else None
+                    ),
                 }
             )
+            if context is not None:
+                for tag in context.tags:
+                    farming_context_tag_rows.append(
+                        {
+                            "player_id": segment.player_id,
+                            "hero_name": segment.hero_name,
+                            "team": segment.team,
+                            "segment_index": segment.segment_index,
+                            "camp_id": segment.camp_id,
+                            "tag": tag.value,
+                            "reasons": ";".join(context.tag_reasons.get(tag.value, [])),
+                            "context_status": context.status,
+                        }
+                    )
         for point in route.points:
             farming_point_rows.append(
                 {
@@ -1087,6 +1224,19 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
     farming_routes_df = pd.DataFrame(farming_route_rows, columns=farming_route_columns)
     farming_route_segments_df = pd.DataFrame(farming_segment_rows, columns=farming_segment_columns)
     farming_route_points_df = pd.DataFrame(farming_point_rows, columns=farming_point_columns)
+    farming_context_tags_df = pd.DataFrame(
+        farming_context_tag_rows,
+        columns=[
+            "player_id",
+            "hero_name",
+            "team",
+            "segment_index",
+            "camp_id",
+            "tag",
+            "reasons",
+            "context_status",
+        ],
+    )
 
     return {
         "players": players_df,
@@ -1113,6 +1263,7 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         "farming_routes": farming_routes_df,
         "farming_route_segments": farming_route_segments_df,
         "farming_route_points": farming_route_points_df,
+        "farming_context_tags": farming_context_tags_df,
         "courier_snapshots": courier_df,
         "neutral_item_finds": neutral_item_finds_df,
         "hero_visibility_events": hero_visibility_df,

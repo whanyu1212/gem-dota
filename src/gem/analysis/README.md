@@ -147,7 +147,7 @@ that the results are heuristics with no terrain/high-ground modelling.
   coordinates. The docstring flags it as approximate: ~5 s sampling gaps, flat 2D
   radius (no terrain), and day-vision radius always used.
 
-## Heavy Builders — Experimental (`farming.py`, `map_context.py`, `roshan.py`)
+## Heavy Builders — Experimental (`farming.py`, `farming_context.py`, `map_context.py`, `roshan.py`)
 
 These are multi-pass scans that emit *new* derived dataclasses. They are the
 experimental, opinionated end of the package (scoring weights and thresholds are
@@ -169,8 +169,15 @@ hand-tuned, not ground truth).
   support strength only; they do not assert player intent or a complete clear.
   Resource changes remain visible but do not promote a brief touch by
   themselves, because they may be passive or earned away from the camp.
+- Every segment also carries explicit camp topology, contiguous distance, and
+  a `FarmingSegmentContext`. The context compares bounded local hero-seconds,
+  modeled observer coverage, lane-affiliated tower state, fresh team economy,
+  hardened Aegis/Roshan/Tormentor provenance, and paired territory evidence.
+  Independent `FarmingContextTag` values never replace the underlying facts;
+  incomplete dimensions stay `None` and add stable gap codes.
 - The same public records feed `farming_routes`, `farming_route_segments`, and
-  `farming_route_points` DataFrames plus the Farming report tab.
+  `farming_route_points` DataFrames, the normalized `farming_context_tags`
+  table, and the Farming report tab.
 
 ### Map context (`map_context.py`)
 
@@ -328,10 +335,11 @@ labels/tags as opinionated heuristics, not derived constants, and expect them to
 change between ruleset revisions. Prefer Roshan's raw signed differentials over
 either the provisional tags or the deprecated 0–100 score.
 
-`build_farming_routes` also has inspectable thresholds, but its public strength
-labels are evidence categories rather than strategy grades. The older camp
-context labels remain compatibility heuristics and should be treated as
-secondary to route facts.
+`build_farming_routes` has separate inspectable route and context thresholds.
+Its strength labels are evidence categories rather than strategy grades, and
+its context tags are independent factual heuristics rather than a universal
+quality score. The older exclusive camp-context labels remain compatibility
+APIs and are not used as the primary report interpretation.
 
 ## When To Add Code Here
 

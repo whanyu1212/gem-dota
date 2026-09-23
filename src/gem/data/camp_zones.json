@@ -1,6 +1,7 @@
 {
-  "version": 1,
+  "version": 2,
   "dota_patch": "7.40",
+  "topology_patch": "7.41",
   "source_image": "assets/maps/camp_annotated.png",
   "world_bounds": {
     "xmin": 7563,
@@ -54,6 +55,7 @@
         "x": 8647,
         "y": 15564
       },
+      "topology": {"owner_team": 2, "lane": "top", "area": "jungle"},
       "zone": {
         "shape": "ellipse",
         "rx": 760,
@@ -72,6 +74,7 @@
         "x": 8861,
         "y": 14346
       },
+      "topology": {"owner_team": 2, "lane": "top", "area": "jungle"},
       "zone": {
         "shape": "ellipse",
         "rx": 560,
@@ -90,6 +93,7 @@
         "x": 11769,
         "y": 16088
       },
+      "topology": {"owner_team": 2, "lane": "top", "area": "triangle"},
       "zone": {
         "shape": "ellipse",
         "rx": 900,
@@ -108,6 +112,7 @@
         "x": 11810,
         "y": 20099
       },
+      "topology": {"owner_team": 2, "lane": "top", "area": "jungle"},
       "zone": {
         "shape": "ellipse",
         "rx": 760,
@@ -126,6 +131,7 @@
         "x": 12068,
         "y": 24032
       },
+      "topology": {"owner_team": 3, "lane": "top", "area": "jungle"},
       "zone": {
         "shape": "ellipse",
         "rx": 640,
@@ -144,6 +150,7 @@
         "x": 12721,
         "y": 16976
       },
+      "topology": {"owner_team": 2, "lane": "top", "area": "triangle"},
       "zone": {
         "shape": "ellipse",
         "rx": 640,
@@ -162,6 +169,7 @@
         "x": 12723,
         "y": 21013
       },
+      "topology": {"owner_team": 3, "lane": "top", "area": "jungle"},
       "zone": {
         "shape": "ellipse",
         "rx": 560,
@@ -180,6 +188,7 @@
         "x": 13184,
         "y": 24068
       },
+      "topology": {"owner_team": 3, "lane": "top", "area": "flooded"},
       "zone": {
         "shape": "ellipse",
         "rx": 600,
@@ -198,6 +207,7 @@
         "x": 13876,
         "y": 19918
       },
+      "topology": {"owner_team": 3, "lane": "top", "area": "jungle"},
       "zone": {
         "shape": "ellipse",
         "rx": 640,
@@ -216,6 +226,7 @@
         "x": 14178,
         "y": 8225
       },
+      "topology": {"owner_team": 2, "lane": "bot", "area": "jungle"},
       "zone": {
         "shape": "ellipse",
         "rx": 760,
@@ -234,6 +245,7 @@
         "x": 14501,
         "y": 11469
       },
+      "topology": {"owner_team": 2, "lane": "bot", "area": "jungle"},
       "zone": {
         "shape": "ellipse",
         "rx": 640,
@@ -252,6 +264,7 @@
         "x": 15030,
         "y": 12828
       },
+      "topology": {"owner_team": null, "lane": "mid", "area": "river"},
       "zone": {
         "shape": "ellipse",
         "rx": 760,
@@ -270,6 +283,7 @@
         "x": 15732,
         "y": 21124
       },
+      "topology": {"owner_team": 3, "lane": "top", "area": "flooded"},
       "zone": {
         "shape": "ellipse",
         "rx": 700,
@@ -288,6 +302,7 @@
         "x": 16538,
         "y": 24416
       },
+      "topology": {"owner_team": 3, "lane": "top", "area": "flooded"},
       "zone": {
         "shape": "ellipse",
         "rx": 700,
@@ -306,6 +321,7 @@
         "x": 15770,
         "y": 8798
       },
+      "topology": {"owner_team": 2, "lane": "bot", "area": "flooded"},
       "zone": {
         "shape": "ellipse",
         "rx": 700,
@@ -324,6 +340,7 @@
         "x": 16570,
         "y": 10987
       },
+      "topology": {"owner_team": 2, "lane": "bot", "area": "flooded"},
       "zone": {
         "shape": "ellipse",
         "rx": 700,
@@ -342,6 +359,7 @@
         "x": 17448,
         "y": 18764
       },
+      "topology": {"owner_team": null, "lane": "mid", "area": "river"},
       "zone": {
         "shape": "ellipse",
         "rx": 760,
@@ -360,6 +378,7 @@
         "x": 17608,
         "y": 20360
       },
+      "topology": {"owner_team": 3, "lane": "mid", "area": "jungle"},
       "zone": {
         "shape": "ellipse",
         "rx": 640,
@@ -378,6 +397,7 @@
         "x": 18345,
         "y": 12122
       },
+      "topology": {"owner_team": 2, "lane": "bot", "area": "jungle"},
       "zone": {
         "shape": "ellipse",
         "rx": 640,
@@ -396,6 +416,7 @@
         "x": 18576,
         "y": 24160
       },
+      "topology": {"owner_team": 3, "lane": "top", "area": "jungle"},
       "zone": {
         "shape": "ellipse",
         "rx": 640,
@@ -414,6 +435,7 @@
         "x": 19584,
         "y": 8178
       },
+      "topology": {"owner_team": 2, "lane": "bot", "area": "flooded"},
       "zone": {
         "shape": "ellipse",
         "rx": 600,
@@ -432,6 +454,7 @@
         "x": 19676,
         "y": 14876
       },
+      "topology": {"owner_team": 3, "lane": "bot", "area": "triangle"},
       "zone": {
         "shape": "ellipse",
         "rx": 640,
@@ -450,6 +473,7 @@
         "x": 20285,
         "y": 11259
       },
+      "topology": {"owner_team": 2, "lane": "bot", "area": "jungle"},
       "zone": {
         "shape": "ellipse",
         "rx": 560,
@@ -468,6 +492,7 @@
         "x": 20586,
         "y": 16282
       },
+      "topology": {"owner_team": 3, "lane": "bot", "area": "triangle"},
       "zone": {
         "shape": "ellipse",
         "rx": 900,
@@ -486,6 +511,7 @@
         "x": 20933,
         "y": 12585
       },
+      "topology": {"owner_team": 3, "lane": "bot", "area": "jungle"},
       "zone": {
         "shape": "ellipse",
         "rx": 760,
@@ -504,6 +530,7 @@
         "x": 21186,
         "y": 8134
       },
+      "topology": {"owner_team": 2, "lane": "bot", "area": "jungle"},
       "zone": {
         "shape": "ellipse",
         "rx": 640,
@@ -522,6 +549,7 @@
         "x": 24062,
         "y": 16064
       },
+      "topology": {"owner_team": 3, "lane": "bot", "area": "jungle"},
       "zone": {
         "shape": "ellipse",
         "rx": 760,
@@ -540,6 +568,7 @@
         "x": 24514,
         "y": 17447
       },
+      "topology": {"owner_team": 3, "lane": "bot", "area": "jungle"},
       "zone": {
         "shape": "ellipse",
         "rx": 560,

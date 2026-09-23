@@ -14,15 +14,12 @@ from gem.analysis import (
     FarmingBoundaryReason,
     FarmingRoute,
     FarmingRoutePoint,
-    MapContextBucket,
     SmokeFightInsight,
     SmokeFightStatus,
     SmokeLifecycleStatus,
     build_farming_routes,
-    build_map_context_timeline,
     build_smoke_analysis,
     build_smoke_fight_insights,
-    score_camp_visit_context,
 )
 from gem.catalog.map import load_camp_zones
 from gem.reports._formatting import (
@@ -1046,21 +1043,6 @@ def _farm_world_to_px(wx: float, wy: float, size: int) -> tuple[float, float]:
     return px, py
 
 
-def _context_bucket_at(timeline: list[MapContextBucket], tick: int) -> MapContextBucket | None:
-    if not timeline:
-        return None
-    start = timeline[0].start_tick
-    width = timeline[0].end_tick - timeline[0].start_tick + 1
-    if width <= 0:
-        return timeline[-1]
-    idx = (tick - start) // width
-    if idx < 0:
-        return timeline[0]
-    if idx >= len(timeline):
-        return timeline[-1]
-    return timeline[int(idx)]
-
-
 def _farm_smooth_chunk(points: list[dict]) -> str:
     if not points:
         return ""
@@ -1244,21 +1226,27 @@ def _build_farming_map_svg(
 
 def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
     """Build the Farming tab from evidence-first route segments."""
-    context_label_display = {
-        "safe_home_farm": "Safe Home Farm",
-        "pressured_home_farm": "Cautious Home Farm",
-        "defensive_home_farm": "Forced Home Farm",
-        "safe_invade": "Safe Invade",
-        "pressure_invade": "Contested Invade",
-        "high_risk_invade": "High-Risk Invade",
+    context_tag_display = {
+        "own_side": "Own Side",
+        "enemy_side": "Enemy Side",
+        "border": "Border",
+        "high_enemy_presence": "High Enemy Presence",
+        "vision_disadvantage": "Modeled Vision Disadvantage",
+        "tower_disadvantage": "Lane Tower Disadvantage",
+        "enemy_aegis_active": "Enemy Aegis Active",
+        "territorial_advance": "Territorial Advance",
+        "incomplete_context": "Incomplete Context",
     }
-    context_label_class = {
-        "safe_home_farm": "farm-tag-safe",
-        "pressured_home_farm": "farm-tag-pressured",
-        "defensive_home_farm": "farm-tag-defensive",
-        "safe_invade": "farm-tag-invade-safe",
-        "pressure_invade": "farm-tag-invade-mid",
-        "high_risk_invade": "farm-tag-invade-risk",
+    context_tag_class = {
+        "own_side": "farm-tag-safe",
+        "enemy_side": "farm-tag-invade-mid",
+        "border": "farm-tag-pressured",
+        "high_enemy_presence": "farm-tag-invade-risk",
+        "vision_disadvantage": "farm-tag-invade-risk",
+        "tower_disadvantage": "farm-tag-defensive",
+        "enemy_aegis_active": "farm-tag-invade-risk",
+        "territorial_advance": "farm-tag-invade-safe",
+        "incomplete_context": "farm-tag-unavailable",
     }
     evidence_label_display = {
         "strong_farm_evidence": "Strong Farm Evidence",
@@ -1483,37 +1471,13 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
     )
     load_hero_icons([player.hero_name for player in players])
 
-    team_context = {
-        2: build_map_context_timeline(match, 2),
-        3: build_map_context_timeline(match, 3),
-    }
-
     panels: list[str] = []
     options: list[str] = []
     for idx, player in enumerate(players):
         route = routes_by_player[player.player_id]
         visits: list[dict] = []
         for segment in route.segments:
-            midpoint = (segment.start_tick + segment.end_tick) // 2
-            bucket = _context_bucket_at(team_context.get(player.team, []), midpoint)
-            context = None
-            context_gap = None
-            if bucket is None:
-                context_gap = "map context bucket unavailable"
-            elif segment.window_xp_delta is None:
-                # The legacy scorer only accepts a numeric XP gain. Do not turn
-                # an unavailable resource delta into a synthetic zero.
-                context_gap = "fresh XP endpoints unavailable"
-            else:
-                context = score_camp_visit_context(
-                    team=player.team,
-                    camp_id=segment.camp_id,
-                    camp_type=segment.camp_type,
-                    neutral_kills=segment.neutral_kills,
-                    neutral_damage=segment.neutral_damage,
-                    xp_gain=segment.window_xp_delta,
-                    bucket=bucket,
-                )
+            context = segment.context
             visits.append(
                 {
                     "order": segment.segment_index,
@@ -1535,9 +1499,49 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
                     "evidence_strength": segment.evidence_strength.value,
                     "evidence_reasons": segment.evidence_reasons,
                     "evidence_gaps": segment.evidence_gaps,
-                    "context_label": context.context_label if context else None,
-                    "context_drivers": context.context_drivers if context else [],
-                    "context_gap": context_gap,
+                    "distance_travelled": segment.distance_travelled,
+                    "camp_lane": segment.camp_lane,
+                    "camp_area": segment.camp_area,
+                    "camp_side": context.camp_side if context else "unknown",
+                    "camp_catalog_version": segment.camp_catalog_version,
+                    "camp_map_patch": segment.camp_map_patch,
+                    "camp_topology_patch": segment.camp_topology_patch,
+                    "context_status": context.status if context else "unavailable",
+                    "context_tags": (
+                        [tag.value for tag in context.tags] if context else ["incomplete_context"]
+                    ),
+                    "context_tag_reasons": context.tag_reasons if context else {},
+                    "context_gaps": (
+                        context.status_reasons if context else ["segment_context_unavailable"]
+                    ),
+                    "own_presence": context.own_presence_hero_seconds if context else None,
+                    "enemy_presence": context.enemy_presence_hero_seconds if context else None,
+                    "own_presence_coverage": (
+                        context.own_presence_position_coverage if context else None
+                    ),
+                    "enemy_presence_coverage": (
+                        context.enemy_presence_position_coverage if context else None
+                    ),
+                    "own_vision": context.own_point_vision_status if context else None,
+                    "enemy_vision": context.enemy_point_vision_status if context else None,
+                    "own_towers": context.own_relevant_towers_alive if context else None,
+                    "enemy_towers": context.enemy_relevant_towers_alive if context else None,
+                    "net_worth_advantage": context.net_worth_advantage if context else None,
+                    "total_xp_advantage": (context.total_earned_xp_advantage if context else None),
+                    "aegis_holder_team": context.aegis_holder_team if context else None,
+                    "aegis_source": context.aegis_source if context else None,
+                    "last_roshan_tick": context.last_roshan_tick if context else None,
+                    "last_roshan_team": context.last_roshan_team if context else None,
+                    "roshan_team_source": context.roshan_team_source if context else None,
+                    "last_tormentor_tick": context.last_tormentor_tick if context else None,
+                    "last_tormentor_team": context.last_tormentor_team if context else None,
+                    "tormentor_team_source": (context.tormentor_team_source if context else None),
+                    "territory_coverage_delta": (
+                        context.territory_coverage_differential_pct if context else None
+                    ),
+                    "territory_depth_delta": (
+                        context.territory_depth_differential if context else None
+                    ),
                 }
             )
         map_svg, timeline_points = _build_farming_map_svg(
@@ -1560,15 +1564,61 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
         rows: list[str] = []
         visit_payload: list[dict] = []
         for visit in visits:
-            context_label = visit["context_label"]
-            if context_label is None:
-                label_cls = "farm-tag-unavailable"
-                label_text = "Context Unavailable"
-                drivers = str(visit["context_gap"] or "required context unavailable")
-            else:
-                label_cls = context_label_class.get(str(context_label), "farm-tag-pressured")
-                label_text = context_label_display.get(str(context_label), str(context_label))
-                drivers = ", ".join(visit["context_drivers"]) or "—"
+            context_tags = [str(tag) for tag in visit["context_tags"]]
+            context_tags_html = " ".join(
+                f'<span class="farm-tag {context_tag_class.get(tag, "farm-tag-pressured")}">'
+                f"{e(context_tag_display.get(tag, tag.replace('_', ' ').title()))}</span>"
+                for tag in context_tags
+            )
+            context_text = ", ".join(
+                context_tag_display.get(tag, tag.replace("_", " ").title()) for tag in context_tags
+            )
+
+            def metric(value: object, *, suffix: str = "") -> str:
+                if value is None:
+                    return "unavailable"
+                if isinstance(value, float):
+                    return f"{value:.2f}{suffix}"
+                return f"{value}{suffix}"
+
+            context_parts = [
+                f"topology: {visit['camp_side']}, {visit['camp_area']}/{visit['camp_lane']}",
+                f"catalog: v{metric(visit['camp_catalog_version'])}, geometry "
+                f"{metric(visit['camp_map_patch'])}, topology "
+                f"{metric(visit['camp_topology_patch'])}",
+                "local hero-seconds: "
+                f"own {metric(visit['own_presence'])}, enemy {metric(visit['enemy_presence'])}",
+                "position coverage: "
+                f"own {metric(visit['own_presence_coverage'])}, "
+                f"enemy {metric(visit['enemy_presence_coverage'])}",
+                f"modeled point vision: own {metric(visit['own_vision'])}, "
+                f"enemy {metric(visit['enemy_vision'])}",
+                f"lane T1/T2 alive: own {metric(visit['own_towers'])}, "
+                f"enemy {metric(visit['enemy_towers'])}",
+                f"team advantage: NW {metric(visit['net_worth_advantage'])}, "
+                f"total XP {metric(visit['total_xp_advantage'])}",
+                f"Aegis: holder {metric(visit['aegis_holder_team'])}, "
+                f"source {metric(visit['aegis_source'])}",
+                f"last Roshan: tick {metric(visit['last_roshan_tick'])}, "
+                f"team {metric(visit['last_roshan_team'])}, "
+                f"source {metric(visit['roshan_team_source'])}",
+                f"last Tormentor: tick {metric(visit['last_tormentor_tick'])}, "
+                f"team {metric(visit['last_tormentor_team'])}, "
+                f"source {metric(visit['tormentor_team_source'])}",
+                f"territory delta: coverage {metric(visit['territory_coverage_delta'])}, "
+                f"depth {metric(visit['territory_depth_delta'])}",
+            ]
+            tag_reason_map = visit["context_tag_reasons"]
+            for tag in context_tags:
+                reasons = tag_reason_map.get(tag, [])
+                if reasons:
+                    context_parts.append(f"{tag}: " + "; ".join(reasons))
+            if visit["context_gaps"]:
+                context_parts.append("gaps: " + ", ".join(visit["context_gaps"]))
+            context_details = (
+                '<details class="farm-context-details"><summary>Why these tags?</summary>'
+                f"<div>{e(' · '.join(context_parts))}</div></details>"
+            )
 
             evidence_strength = str(visit["evidence_strength"])
             evidence_text = evidence_label_display[evidence_strength]
@@ -1592,6 +1642,9 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
             coverage = visit["position_coverage"]
             if coverage is not None:
                 support_parts.append(f"{float(coverage):.0%} sampled-window coverage")
+            distance_travelled = visit["distance_travelled"]
+            if distance_travelled is not None:
+                support_parts.append(f"{float(distance_travelled):,.0f} units travelled")
             support_parts.append(f"{visit['start_reason']} → {visit['end_reason']}")
             if bool(visit["micro_exit_merged"]):
                 support_parts.append("micro-exit merged")
@@ -1605,7 +1658,7 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
                     "end_tick": int(visit["end_tick"]),
                     "camp_id": int(visit["camp_id"]),
                     "camp_type": str(visit["camp_type"]),
-                    "label_text": label_text,
+                    "label_text": context_text,
                     "evidence_text": evidence_text,
                 }
             )
@@ -1619,9 +1672,9 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
                 f"<td>{e(str(visit['camp_type']))}</td>"
                 f'<td class="r">{visit["duration_s"]:.1f}s</td>'
                 f'<td><span class="farm-tag {evidence_cls}">{e(evidence_text)}</span></td>'
-                f'<td><span class="farm-tag {label_cls}">{e(label_text)}</span></td>'
+                f'<td style="max-width:240px;white-space:normal">{context_tags_html}</td>'
                 f'<td style="max-width:180px;white-space:normal">{e(support_text)}</td>'
-                f'<td style="max-width:220px;white-space:normal">{e(drivers)}</td>'
+                f'<td style="max-width:280px;white-space:normal">{context_details}</td>'
                 "</tr>"
             )
         if not rows:
@@ -1676,7 +1729,7 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
             f"<table>"
             f"<thead><tr>"
             f'<th class="r">#</th><th>Start</th><th>End</th><th class="r">Camp</th><th>Type</th>'
-            f'<th class="r">Duration</th><th>Evidence</th><th>Legacy Context</th><th>Exact Support</th><th>Context Drivers</th>'
+            f'<th class="r">Duration</th><th>Evidence</th><th>Context Tags</th><th>Exact Support</th><th>Context Evidence</th>'
             f"</tr></thead>"
             f"<tbody>{''.join(rows)}</tbody>"
             f"</table>"
@@ -1861,8 +1914,8 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
         "Segments follow documented camp-zone, sample-gap, large-jump, and micro-exit rules. "
         "Evidence labels distinguish neutral-death support, weaker interaction or dwell support, "
         "and transit-like touches without claiming player intent or a complete camp clear. "
-        "Legacy context labels remain secondary compatibility heuristics and are unavailable when "
-        "their required sampled inputs are missing."
+        "Independent context tags compare bounded presence, modeled point vision, lane towers, "
+        "objectives, and sampled territory. Missing inputs remain explicit and never become zero."
         "</p>"
         '<div style="margin:10px 0 14px 0">'
         '<label for="farm-player-select" style="font-size:12px;color:#8b949e;margin-right:8px">Hero</label>'

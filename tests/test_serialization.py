@@ -77,6 +77,13 @@ class TestSerializationHelpers:
         assert segment["end_reason"] == "log_end"
         assert segment["evidence_strength"] == "transit_like"
         assert segment["window_xp_delta"] is None
+        assert segment["camp_owner_team"] == 2
+        assert segment["camp_catalog_version"] == 2
+        assert segment["camp_map_patch"] == "7.40"
+        assert segment["camp_topology_patch"] == "7.41"
+        assert segment["context"]["camp_side"] == "own_side"
+        assert "own_side" in segment["context"]["tags"]
+        assert "incomplete_context" in segment["context"]["tags"]
 
     def test_positioning_analysis_preserves_enum_values_and_unknowns(self):
         players = [

@@ -14,9 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and fresh cumulative-resource support, explicit strength/gap records, public
   Python models, and flat route/segment/point DataFrame exports. Dense parsed
   players now preserve cumulative total-earned XP alongside level-local XP. The
-  Farming report consumes the same public records, leads with evidence strength,
-  preserves discontinuities while downsampling long routes, and marks unavailable
-  legacy context instead of inserting neutral values.
+  final context layer adds explicit camp topology, contiguous distance,
+  comparative local presence, modeled observer coverage, lane-tower state,
+  bounded objective/territory provenance, composable tags, a normalized tag
+  export, and a calibrated real-replay corpus. The Farming report consumes the
+  same public records, leads with evidence and tags, preserves discontinuities
+  while downsampling long routes, and exposes missing context instead of
+  inserting neutral values.
 
 - **Calibrated Roshan conversion evidence.** Add a reproducible real-replay
   corpus (including denied, stolen, expired, inferred-consumed, preexisting-

@@ -200,9 +200,14 @@ def test_farming_report_leads_with_evidence_and_preserves_missing_context() -> N
     html = build_farming(match, None)
 
     assert "Strong Farm Evidence" in html
-    assert "Context Unavailable" in html
-    assert "fresh XP endpoints unavailable" in html
+    assert "Incomplete Context" in html
+    assert "XP unavailable" in html
+    assert "Why these tags?" in html
+    assert "team_3_roster_unavailable" in html
     assert "1 neutral kill(s)" in html
+    assert "units travelled" in html
+    assert "Context Tags" in html
+    assert "Legacy Context</th>" not in html
     assert '"break_before": true' in html
     assert "S:0.50 P:0.50 V:0.50" not in html
     assert html.index("Strong Farm Evidence") < html.index("Legacy context heuristic reference")

@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "purpose": "Factual real-replay route, evidence-strength, topology, completeness, and context-tag sensitivity checks. Counts are calibration observations, not subjective farming-quality labels.",
+  "config": {
+    "lookback_ticks": 2700,
+    "territory_lookback_ticks": 3600,
+    "max_position_gap_ticks": 300,
+    "max_resource_age_ticks": 60,
+    "max_vision_position_age_ticks": 150,
+    "presence_radius": 1600.0,
+    "min_presence_coverage": 0.7,
+    "high_enemy_presence_seconds": 30.0,
+    "presence_advantage_seconds": 15.0,
+    "territorial_depth_delta": 0.1,
+    "territorial_coverage_delta_pct": 0.5
+  },
+  "coverage": {
+    "real_replay": [
+      "early, mid, and late segments",
+      "strong, weak, and transit-like evidence",
+      "own-side, enemy-side, border, and triangle segments",
+      "enemy-side and triangle segments",
+      "lane-to-jungle and river transitions",
+      "active enemy Aegis windows",
+      "short, medium, long, and feature-regression matches",
+      "all ten player routes per match"
+    ],
+    "targeted_synthetic_tests": [
+      "incomplete comparative inputs",
+      "stale resource samples",
+      "teleport and large-jump boundaries",
+      "position-sample gaps",
+      "micro-exit merging",
+      "overlapping camp geometry",
+      "territorial threshold boundaries",
+      "enemy Aegis lifecycle tagging"
+    ],
+    "not_observed_in_local_real_replays": [
+      "incomplete farming context on the seven committed summaries",
+      "authoritative support-role labels in replay output"
+    ],
+    "non_goals": [
+      "subjective route quality labels",
+      "player-intent ground truth",
+      "proof of a complete camp clear"
+    ]
+  },
+  "matches": [
+    {
+      "camp_area_counts": {"flooded": 29, "jungle": 173, "river": 31, "triangle": 76},
+      "context_gap_counts": {},
+      "context_status_counts": {"complete": 309},
+      "context_tag_counts": {"border": 31, "enemy_aegis_active": 33, "enemy_side": 123, "high_enemy_presence": 47, "own_side": 155, "territorial_advance": 89, "tower_disadvantage": 81, "vision_disadvantage": 32},
+      "evidence_strength_counts": {"strong_farm_evidence": 93, "transit_like": 138, "weak_farm_evidence": 78},
+      "game_end_tick": 102642,
+      "game_start_tick": 30206,
+      "lane_role_counts": {"1": 4, "2": 2, "3": 4},
+      "match_id": 8822520406,
+      "phase_counts": {"early": 72, "mid": 237},
+      "point_count": 14900,
+      "route_count": 10,
+      "segment_count": 309
+    },
+    {
+      "camp_area_counts": {"flooded": 83, "jungle": 297, "river": 78, "triangle": 151},
+      "context_gap_counts": {},
+      "context_status_counts": {"complete": 609},
+      "context_tag_counts": {"border": 78, "enemy_aegis_active": 43, "enemy_side": 179, "high_enemy_presence": 68, "own_side": 352, "territorial_advance": 97, "tower_disadvantage": 111, "vision_disadvantage": 57},
+      "evidence_strength_counts": {"strong_farm_evidence": 198, "transit_like": 281, "weak_farm_evidence": 130},
+      "game_end_tick": 134567,
+      "game_start_tick": 22509,
+      "lane_role_counts": {"1": 4, "2": 2, "3": 3, "5": 1},
+      "match_id": 8855188139,
+      "phase_counts": {"early": 88, "late": 279, "mid": 242},
+      "point_count": 27990,
+      "route_count": 10,
+      "segment_count": 609
+    },
+    {
+      "camp_area_counts": {"flooded": 191, "jungle": 587, "river": 152, "triangle": 328},
+      "context_gap_counts": {},
+      "context_status_counts": {"complete": 1258},
+      "context_tag_counts": {"border": 152, "enemy_aegis_active": 122, "enemy_side": 387, "high_enemy_presence": 119, "own_side": 719, "territorial_advance": 268, "tower_disadvantage": 374, "vision_disadvantage": 79},
+      "evidence_strength_counts": {"strong_farm_evidence": 375, "transit_like": 575, "weak_farm_evidence": 308},
+      "game_end_tick": 179209,
+      "game_start_tick": 24315,
+      "lane_role_counts": {"1": 4, "2": 2, "3": 3, "5": 1},
+      "match_id": 8855242704,
+      "phase_counts": {"early": 123, "late": 696, "mid": 439},
+      "point_count": 42390,
+      "route_count": 10,
+      "segment_count": 1258
+    },
+    {
+      "camp_area_counts": {"flooded": 219, "jungle": 920, "river": 264, "triangle": 346},
+      "context_gap_counts": {},
+      "context_status_counts": {"complete": 1749},
+      "context_tag_counts": {"border": 264, "enemy_aegis_active": 208, "enemy_side": 570, "high_enemy_presence": 162, "own_side": 915, "territorial_advance": 460, "tower_disadvantage": 438, "vision_disadvantage": 86},
+      "evidence_strength_counts": {"strong_farm_evidence": 598, "transit_like": 828, "weak_farm_evidence": 323},
+      "game_end_tick": 224720,
+      "game_start_tick": 24263,
+      "lane_role_counts": {"1": 4, "2": 2, "3": 3, "5": 1},
+      "match_id": 8856501050,
+      "phase_counts": {"early": 129, "late": 1221, "mid": 399},
+      "point_count": 57450,
+      "route_count": 10,
+      "segment_count": 1749
+    },
+    {
+      "camp_area_counts": {"flooded": 134, "jungle": 489, "river": 105, "triangle": 180},
+      "context_gap_counts": {},
+      "context_status_counts": {"complete": 908},
+      "context_tag_counts": {"border": 105, "enemy_aegis_active": 125, "enemy_side": 264, "high_enemy_presence": 99, "own_side": 539, "territorial_advance": 156, "tower_disadvantage": 247, "vision_disadvantage": 72},
+      "evidence_strength_counts": {"strong_farm_evidence": 320, "transit_like": 405, "weak_farm_evidence": 183},
+      "game_end_tick": 138878,
+      "game_start_tick": 20315,
+      "lane_role_counts": {"1": 4, "2": 2, "3": 3, "5": 1},
+      "match_id": 8860187335,
+      "phase_counts": {"early": 120, "late": 364, "mid": 424},
+      "point_count": 30030,
+      "route_count": 10,
+      "segment_count": 908
+    },
+    {
+      "camp_area_counts": {"flooded": 32, "jungle": 160, "river": 48, "triangle": 54},
+      "context_gap_counts": {},
+      "context_status_counts": {"complete": 294},
+      "context_tag_counts": {"border": 48, "enemy_side": 122, "high_enemy_presence": 50, "own_side": 124, "territorial_advance": 100, "tower_disadvantage": 69, "vision_disadvantage": 18},
+      "evidence_strength_counts": {"strong_farm_evidence": 54, "transit_like": 143, "weak_farm_evidence": 97},
+      "game_end_tick": 83903,
+      "game_start_tick": 21872,
+      "lane_role_counts": {"1": 4, "2": 2, "3": 4},
+      "match_id": 8868259993,
+      "phase_counts": {"early": 101, "mid": 193},
+      "point_count": 11430,
+      "route_count": 10,
+      "segment_count": 294
+    },
+    {
+      "camp_area_counts": {"flooded": 90, "jungle": 309, "river": 85, "triangle": 153},
+      "context_gap_counts": {},
+      "context_status_counts": {"complete": 637},
+      "context_tag_counts": {"border": 85, "enemy_aegis_active": 17, "enemy_side": 247, "high_enemy_presence": 92, "own_side": 305, "territorial_advance": 173, "tower_disadvantage": 186, "vision_disadvantage": 60},
+      "evidence_strength_counts": {"strong_farm_evidence": 194, "transit_like": 290, "weak_farm_evidence": 153},
+      "game_end_tick": 119749,
+      "game_start_tick": 23604,
+      "lane_role_counts": {"1": 3, "2": 2, "3": 3, "5": 2},
+      "match_id": 8974053011,
+      "phase_counts": {"early": 111, "late": 93, "mid": 433},
+      "point_count": 22760,
+      "route_count": 10,
+      "segment_count": 637
+    }
+  ]
+}
