@@ -150,6 +150,37 @@ def test_player_time_completeness_threshold_is_inclusive_at_seventy_percent() ->
     assert below_threshold.conversion_player_time_coverage == pytest.approx(2 / 3)
 
 
+def test_custom_completeness_uses_threshold_neutral_status_reasons() -> None:
+    players = [
+        _sampled_player(
+            player_id,
+            2 if player_id < 5 else 3,
+            (24000.0, 21000.0) if player_id < 5 else (8804.0, 11034.0),
+            end=3000,
+        )
+        for player_id in range(10)
+    ]
+    match = ParsedMatch(players=players)
+
+    assert build_territory_window(match, 2, 0, 3600).status == "complete"
+
+    window = build_territory_window(
+        match,
+        2,
+        0,
+        3600,
+        config=RoshTerritoryConfig(min_player_time_coverage=0.9),
+    )
+
+    assert window.status == "unavailable"
+    assert window.conversion_player_time_coverage == pytest.approx(5 / 6)
+    assert window.opponent_player_time_coverage == pytest.approx(5 / 6)
+    assert window.status_reasons == [
+        "conversion_team_position_coverage_below_threshold",
+        "opponent_position_coverage_below_threshold",
+    ]
+
+
 def test_cell_bucket_and_depth_settings_are_reproducible_for_sensitivity_checks() -> None:
     stationary = _paired_match((24000.0, 21000.0), (8804.0, 11034.0))
     default = build_territory_window(stationary, 2, 0, 3600)

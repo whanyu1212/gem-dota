@@ -396,9 +396,9 @@ def build_territory_window(
     opponent = _side_territory(match, opponent_team, start_tick, end_tick, config)
     reasons: list[str] = []
     if conversion.coverage_pct is None:
-        reasons.append("conversion_team_position_coverage_below_70pct")
+        reasons.append("conversion_team_position_coverage_below_threshold")
     if opponent.coverage_pct is None:
-        reasons.append("opponent_position_coverage_below_70pct")
+        reasons.append("opponent_position_coverage_below_threshold")
     if not reasons:
         status: Literal["complete", "partial", "unavailable"] = "complete"
     elif len(reasons) == 1:
