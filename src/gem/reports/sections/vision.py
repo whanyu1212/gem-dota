@@ -11,16 +11,17 @@ import math
 
 from gem.analysis import (
     ExactEventKind,
+    FarmingRoute,
     MapContextBucket,
     SmokeFightInsight,
     SmokeFightStatus,
     SmokeLifecycleStatus,
+    build_farming_routes,
     build_map_context_timeline,
     build_smoke_analysis,
     build_smoke_fight_insights,
     score_camp_visit_context,
 )
-from gem.analysis._shared import nearest_series_value
 from gem.catalog.map import load_camp_zones
 from gem.reports._formatting import (
     MAP_XMAX,
@@ -1043,60 +1044,6 @@ def _farm_world_to_px(wx: float, wy: float, size: int) -> tuple[float, float]:
     return px, py
 
 
-def _point_in_camp_zone(wx: float, wy: float, camp: dict) -> bool:
-    zone = camp.get("zone", {})
-    shape = zone.get("shape", "ellipse")
-    center = camp.get("center", {})
-    cx = float(center.get("x", 0.0))
-    cy = float(center.get("y", 0.0))
-
-    if shape == "ellipse":
-        rx = float(zone.get("rx", 0.0))
-        ry = float(zone.get("ry", 0.0))
-        if rx <= 0.0 or ry <= 0.0:
-            return False
-        angle = math.radians(float(zone.get("rotation_deg", 0.0)))
-        dx = wx - cx
-        dy = wy - cy
-        # Rotate query point into ellipse-local coordinates.
-        lx = dx * math.cos(angle) + dy * math.sin(angle)
-        ly = -dx * math.sin(angle) + dy * math.cos(angle)
-        return (lx * lx) / (rx * rx) + (ly * ly) / (ry * ry) <= 1.0
-
-    if shape == "polygon":
-        points = zone.get("points", [])
-        if not points:
-            return False
-        poly: list[tuple[float, float]] = []
-        for point in points:
-            if isinstance(point, dict):
-                poly.append((float(point.get("x", 0.0)), float(point.get("y", 0.0))))
-            else:
-                poly.append((float(point[0]), float(point[1])))
-        # Ray-casting point-in-polygon.
-        inside = False
-        j = len(poly) - 1
-        for i in range(len(poly)):
-            xi, yi = poly[i]
-            xj, yj = poly[j]
-            intersects = (yi > wy) != (yj > wy) and wx < (xj - xi) * (wy - yi) / (
-                (yj - yi) if (yj - yi) else 1e-9
-            ) + xi
-            if intersects:
-                inside = not inside
-            j = i
-        return inside
-
-    return False
-
-
-def _camp_for_point(wx: float, wy: float, camps: list[dict]) -> dict | None:
-    for camp in camps:
-        if _point_in_camp_zone(wx, wy, camp):
-            return camp
-    return None
-
-
 def _context_bucket_at(timeline: list[MapContextBucket], tick: int) -> MapContextBucket | None:
     if not timeline:
         return None
@@ -1112,7 +1059,7 @@ def _context_bucket_at(timeline: list[MapContextBucket], tick: int) -> MapContex
     return timeline[int(idx)]
 
 
-def _farm_smooth_path(points: list[dict]) -> str:
+def _farm_smooth_chunk(points: list[dict]) -> str:
     if not points:
         return ""
     if len(points) == 1:
@@ -1141,156 +1088,23 @@ def _farm_smooth_path(points: list[dict]) -> str:
     return " ".join(cmds)
 
 
-def _build_player_farm_visits(
-    match: ParsedMatch,
-    player: ParsedPlayer,
-    camps: list[dict],
-    team_context: list[MapContextBucket],
-    min_tick: int = 0,
-) -> list[dict]:
-    if not player.position_log:
-        return []
-
-    samples: list[dict] = []
-    for tick, wx, wy in player.position_log:
-        if tick < min_tick:
-            continue
-        camp: dict | None = _camp_for_point(wx, wy, camps)
-        samples.append(
-            {
-                "tick": tick,
-                "x": wx,
-                "y": wy,
-                "camp_id": int(camp["id"]) if camp else None,
-                "camp_type": str(camp["type"]) if camp else "",
-            }
-        )
-
-    segments: list[tuple[int, int, int, str, int]] = []
-    current_camp: int | None = None
-    current_type = ""
-    start_tick = 0
-    last_tick = 0
-    sample_count = 0
-    max_gap_ticks = 300
-
-    for sample in samples:
-        camp_id = sample["camp_id"]
-        camp_type = sample["camp_type"]
-        tick = int(sample["tick"])
-
-        if current_camp is None:
-            if camp_id is not None:
-                current_camp = camp_id
-                current_type = camp_type
-                start_tick = tick
-                last_tick = tick
-                sample_count = 1
-            continue
-
-        if camp_id == current_camp and tick - last_tick <= max_gap_ticks:
-            last_tick = tick
-            sample_count += 1
-            continue
-
-        segments.append((current_camp, start_tick, last_tick, current_type, sample_count))
-        current_camp = None
-        current_type = ""
-        sample_count = 0
-        if camp_id is not None:
-            current_camp = camp_id
-            current_type = camp_type
-            start_tick = tick
-            last_tick = tick
-            sample_count = 1
-
-    if current_camp is not None:
-        segments.append((current_camp, start_tick, last_tick, current_type, sample_count))
-
-    neutral_entries = [
-        entry
-        for entry in match.combat_log
-        if entry.attacker_name == player.hero_name
-        and entry.target_name.startswith("npc_dota_neutral")
-    ]
-    camps_by_id: dict[int, dict] = {int(c["id"]): c for c in camps}
-
-    visits: list[dict] = []
-    order = 1
-    for camp_id, seg_start, seg_end, camp_type, sample_count in segments:
-        camp = camps_by_id.get(camp_id)
-        if camp is None:
-            continue
-
-        neutral_kills = 0
-        neutral_damage = 0
-        for entry in neutral_entries:
-            if entry.tick < seg_start or entry.tick > seg_end:
-                continue
-            # CombatLogEntry does not currently guarantee location fields.
-            # When absent, fall back to the visit time window instead of
-            # rejecting the event outright.
-            ex = getattr(entry, "location_x", None)
-            ey = getattr(entry, "location_y", None)
-            if ex is not None and ey is not None and not _point_in_camp_zone(ex, ey, camp):
-                continue
-            if entry.log_type == "DEATH":
-                neutral_kills += 1
-            elif entry.log_type == "DAMAGE" and entry.value > 0:
-                neutral_damage += entry.value
-
-        xp_start = nearest_series_value(player.times, player.xp_t, seg_start)
-        xp_end = nearest_series_value(player.times, player.xp_t, seg_end)
-        xp_gain = max(0, xp_end - xp_start)
-        has_support = neutral_kills > 0 or neutral_damage > 0 or xp_gain > 0
-        if sample_count < 2 and not has_support:
-            continue
-
-        mid_tick = (seg_start + seg_end) // 2
-        bucket = _context_bucket_at(team_context, mid_tick)
-        if bucket is not None:
-            ctx = score_camp_visit_context(
-                team=player.team,
-                camp_id=camp_id,
-                camp_type=camp_type,
-                neutral_kills=neutral_kills,
-                neutral_damage=neutral_damage,
-                xp_gain=xp_gain,
-                bucket=bucket,
-            )
-            context_label = ctx.context_label
-            context_drivers = ctx.context_drivers
-            context_scores = f"S:{ctx.farm_safety_score:.2f} P:{ctx.pressure_score:.2f} V:{ctx.expected_value_score:.2f}"
-        else:
-            context_label = "pressured_home_farm"
-            context_drivers = []
-            context_scores = "S:0.50 P:0.50 V:0.50"
-
-        visits.append(
-            {
-                "order": order,
-                "camp_id": camp_id,
-                "camp_type": camp_type,
-                "start_tick": seg_start,
-                "end_tick": seg_end,
-                "duration_s": (seg_end - seg_start) / TICKS_PER_SEC,
-                "sample_count": sample_count,
-                "neutral_kills": neutral_kills,
-                "neutral_damage": neutral_damage,
-                "xp_gain": xp_gain,
-                "context_label": context_label,
-                "context_drivers": context_drivers,
-                "context_scores": context_scores,
-            }
-        )
-        order += 1
-
-    return visits
+def _farm_smooth_path(points: list[dict]) -> str:
+    chunks: list[list[dict]] = []
+    current: list[dict] = []
+    for point in points:
+        if point.get("break_before") and current:
+            chunks.append(current)
+            current = []
+        current.append(point)
+    if current:
+        chunks.append(current)
+    return " ".join(_farm_smooth_chunk(chunk) for chunk in chunks)
 
 
 def _build_farming_map_svg(
     *,
     player: ParsedPlayer,
+    route: FarmingRoute,
     camps: list[dict],
     visits: list[dict],
     map_b64: str | None,
@@ -1326,26 +1140,29 @@ def _build_farming_map_svg(
             f'stroke="{color}" stroke-opacity="{stroke_opacity}" stroke-width="{stroke_w}"/>'
         )
 
-    raw_points = [point for point in player.position_log if int(point[0]) >= start_tick]
+    raw_points = [point for point in route.points if point.tick >= start_tick]
     if not raw_points:
-        raw_points = list(player.position_log)
+        raw_points = list(route.points)
     step = max(1, math.ceil(len(raw_points) / 1400)) if raw_points else 1
     trail_points = raw_points[::step]
-    if raw_points and trail_points and trail_points[-1][0] != raw_points[-1][0]:
+    if raw_points and trail_points and trail_points[-1].tick != raw_points[-1].tick:
         trail_points.append(raw_points[-1])
 
     timeline_points: list[dict] = []
-    for tick, wx, wy in trail_points:
-        px, py = _farm_world_to_px(wx, wy, size)
-        point_camp: dict | None = _camp_for_point(wx, wy, camps)
+    for point in trail_points:
+        px, py = _farm_world_to_px(point.x, point.y, size)
         timeline_points.append(
             {
-                "tick": int(tick),
-                "time": fmt_tick(int(tick)),
+                "tick": point.tick,
+                "time": fmt_tick(point.tick),
                 "px": round(px, 1),
                 "py": round(py, 1),
-                "camp_id": int(point_camp["id"]) if point_camp else None,
-                "camp_type": str(point_camp["type"]) if point_camp else "",
+                "camp_id": point.camp_id,
+                "camp_type": point.camp_type or "",
+                "break_before": (
+                    point.boundary_before is not None
+                    and point.boundary_before.value in {"sample_gap", "large_jump"}
+                ),
             }
         )
     path_d = _farm_smooth_path(timeline_points)
@@ -1396,7 +1213,7 @@ def _build_farming_map_svg(
 
 
 def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
-    """Build the Farming tab: route map + camp visit timeline with context labels."""
+    """Build the Farming tab from evidence-first route segments."""
     context_label_display = {
         "safe_home_farm": "Safe Home Farm",
         "pressured_home_farm": "Cautious Home Farm",
@@ -1413,13 +1230,30 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
         "pressure_invade": "farm-tag-invade-mid",
         "high_risk_invade": "farm-tag-invade-risk",
     }
+    evidence_label_display = {
+        "strong_farm_evidence": "Strong Farm Evidence",
+        "weak_farm_evidence": "Weak Farm Evidence",
+        "transit_like": "Transit-Like",
+    }
+    evidence_label_class = {
+        "strong_farm_evidence": "farm-evidence-strong",
+        "weak_farm_evidence": "farm-evidence-weak",
+        "transit_like": "farm-evidence-transit",
+    }
 
     camps_obj = _load_camp_zones()
     camps = list(camps_obj.get("camps", []))
     if not camps:
         return ""
 
-    players = [player for player in match.players if player.hero_name and player.position_log]
+    routes_by_player = {route.player_id: route for route in build_farming_routes(match)}
+    players = [
+        player
+        for player in match.players
+        if player.hero_name
+        and routes_by_player.get(player.player_id) is not None
+        and routes_by_player[player.player_id].points
+    ]
     if not players:
         return ""
 
@@ -1582,7 +1416,8 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
         ]
     )
     context_guide_html = (
-        '<div class="farm-guide">'
+        '<details class="farm-guide" style="margin-top:16px">'
+        "<summary>Legacy context heuristic reference</summary>"
         '<div class="farm-guide-section">'
         '<div class="farm-guide-title">Score Formulas</div>'
         '<div class="farm-table-wrap"><table class="farm-guide-table">'
@@ -1607,7 +1442,7 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
         "<thead><tr><th>Driver</th><th>Trigger</th><th>Meaning</th></tr></thead>"
         f"<tbody>{driver_rows_html}</tbody></table></div>"
         "</div>"
-        "</div>"
+        "</details>"
     )
 
     # Prioritize likely farm cores in the selector (higher final net worth first).
@@ -1626,15 +1461,58 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
     panels: list[str] = []
     options: list[str] = []
     for idx, player in enumerate(players):
-        visits = _build_player_farm_visits(
-            match,
-            player,
-            camps,
-            team_context.get(player.team, []),
-            min_tick=match.game_start_tick or 0,
-        )
+        route = routes_by_player[player.player_id]
+        visits: list[dict] = []
+        for segment in route.segments:
+            midpoint = (segment.start_tick + segment.end_tick) // 2
+            bucket = _context_bucket_at(team_context.get(player.team, []), midpoint)
+            context = None
+            context_gap = None
+            if bucket is None:
+                context_gap = "map context bucket unavailable"
+            elif segment.window_xp_delta is None:
+                # The legacy scorer only accepts a numeric XP gain. Do not turn
+                # an unavailable resource delta into a synthetic zero.
+                context_gap = "fresh XP endpoints unavailable"
+            else:
+                context = score_camp_visit_context(
+                    team=player.team,
+                    camp_id=segment.camp_id,
+                    camp_type=segment.camp_type,
+                    neutral_kills=segment.neutral_kills,
+                    neutral_damage=segment.neutral_damage,
+                    xp_gain=segment.window_xp_delta,
+                    bucket=bucket,
+                )
+            visits.append(
+                {
+                    "order": segment.segment_index,
+                    "start_tick": segment.start_tick,
+                    "end_tick": segment.end_tick,
+                    "camp_id": segment.camp_id,
+                    "camp_type": segment.camp_type,
+                    "duration_s": segment.duration_seconds,
+                    "start_reason": segment.start_reason.value,
+                    "end_reason": segment.end_reason.value,
+                    "micro_exit_merged": segment.micro_exit_merged,
+                    "sample_count": segment.sample_count,
+                    "in_zone_sample_count": segment.in_zone_sample_count,
+                    "position_coverage": segment.position_coverage,
+                    "neutral_kills": segment.neutral_kills,
+                    "neutral_damage": segment.neutral_damage,
+                    "xp_gain": segment.window_xp_delta,
+                    "gold_gain": segment.window_total_earned_gold_delta,
+                    "evidence_strength": segment.evidence_strength.value,
+                    "evidence_reasons": segment.evidence_reasons,
+                    "evidence_gaps": segment.evidence_gaps,
+                    "context_label": context.context_label if context else None,
+                    "context_drivers": context.context_drivers if context else [],
+                    "context_gap": context_gap,
+                }
+            )
         map_svg, timeline_points = _build_farming_map_svg(
             player=player,
+            route=route,
             camps=camps,
             visits=visits,
             map_b64=map_b64,
@@ -1652,19 +1530,44 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
         rows: list[str] = []
         visit_payload: list[dict] = []
         for visit in visits:
-            drivers = ", ".join(visit["context_drivers"]) if visit["context_drivers"] else "—"
-            label_cls = context_label_class.get(str(visit["context_label"]), "farm-tag-pressured")
-            label_text = context_label_display.get(
-                str(visit["context_label"]), str(visit["context_label"])
-            )
+            context_label = visit["context_label"]
+            if context_label is None:
+                label_cls = "farm-tag-unavailable"
+                label_text = "Context Unavailable"
+                drivers = str(visit["context_gap"] or "required context unavailable")
+            else:
+                label_cls = context_label_class.get(str(context_label), "farm-tag-pressured")
+                label_text = context_label_display.get(str(context_label), str(context_label))
+                drivers = ", ".join(visit["context_drivers"]) or "—"
+
+            evidence_strength = str(visit["evidence_strength"])
+            evidence_text = evidence_label_display[evidence_strength]
+            evidence_cls = evidence_label_class[evidence_strength]
             support_parts: list[str] = []
             if int(visit["neutral_kills"]) > 0:
                 support_parts.append(f"{int(visit['neutral_kills'])} neutral kill(s)")
-            if int(visit["xp_gain"]) > 0:
-                support_parts.append(f"XP +{int(visit['xp_gain']):,}")
-            if int(visit.get("sample_count", 0)) > 0:
-                support_parts.append(f"{int(visit['sample_count'])} in-zone sample(s)")
-            support_text = ", ".join(support_parts) if support_parts else "Route touch only"
+            if int(visit["neutral_damage"]) > 0:
+                support_parts.append(f"{int(visit['neutral_damage']):,} neutral damage")
+            xp_gain = visit["xp_gain"]
+            gold_gain = visit["gold_gain"]
+            support_parts.append(
+                f"XP +{int(xp_gain):,}" if xp_gain is not None else "XP unavailable"
+            )
+            support_parts.append(
+                f"gold +{int(gold_gain):,}" if gold_gain is not None else "gold unavailable"
+            )
+            support_parts.append(
+                f"{int(visit['in_zone_sample_count'])}/{int(visit['sample_count'])} in-zone samples"
+            )
+            coverage = visit["position_coverage"]
+            if coverage is not None:
+                support_parts.append(f"{float(coverage):.0%} sampled-window coverage")
+            support_parts.append(f"{visit['start_reason']} → {visit['end_reason']}")
+            if bool(visit["micro_exit_merged"]):
+                support_parts.append("micro-exit merged")
+            if visit["evidence_gaps"]:
+                support_parts.append("gaps: " + ", ".join(visit["evidence_gaps"]))
+            support_text = ", ".join(support_parts)
             visit_payload.append(
                 {
                     "order": int(visit["order"]),
@@ -1673,6 +1576,7 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
                     "camp_id": int(visit["camp_id"]),
                     "camp_type": str(visit["camp_type"]),
                     "label_text": label_text,
+                    "evidence_text": evidence_text,
                 }
             )
             rows.append(
@@ -1684,13 +1588,16 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
                 f'<td class="r">{int(visit["camp_id"])}</td>'
                 f"<td>{e(str(visit['camp_type']))}</td>"
                 f'<td class="r">{visit["duration_s"]:.1f}s</td>'
+                f'<td><span class="farm-tag {evidence_cls}">{e(evidence_text)}</span></td>'
                 f'<td><span class="farm-tag {label_cls}">{e(label_text)}</span></td>'
                 f'<td style="max-width:180px;white-space:normal">{e(support_text)}</td>'
                 f'<td style="max-width:220px;white-space:normal">{e(drivers)}</td>'
                 "</tr>"
             )
         if not rows:
-            rows.append('<tr><td colspan="9" class="dim">No camp-path segments detected.</td></tr>')
+            rows.append(
+                '<tr><td colspan="10" class="dim">No camp-path segments detected.</td></tr>'
+            )
 
         display_style = "" if idx == 0 else "display:none"
         initial_point = timeline_points[0] if timeline_points else None
@@ -1707,6 +1614,7 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
                     initial_visit = visit_item
                     break
         initial_context = str(initial_visit["label_text"]) if initial_visit else "Transit"
+        initial_evidence = str(initial_visit["evidence_text"]) if initial_visit else "Transit"
         timeline_js = json.dumps(timeline_points)
         visits_js = json.dumps(visit_payload)
         panels.append(
@@ -1723,6 +1631,7 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
             f'<div class="farm-meta-chip"><span class="label">Time</span><span class="value" id="farm-time-{player.player_id}">{e(initial_time)}</span></div>'
             f'<div class="farm-meta-chip"><span class="label">Tick</span><span class="value" id="farm-tick-{player.player_id}">{e(initial_tick)}</span></div>'
             f'<div class="farm-meta-chip"><span class="label">Camp</span><span class="value" id="farm-camp-{player.player_id}">{e(initial_camp)}</span></div>'
+            f'<div class="farm-meta-chip"><span class="label">Evidence</span><span class="value" id="farm-evidence-{player.player_id}">{e(initial_evidence)}</span></div>'
             f'<div class="farm-meta-chip"><span class="label">Context</span><span class="value" id="farm-context-{player.player_id}">{e(initial_context)}</span></div>'
             f"</div>"
             f'<div class="farm-map-shell">'
@@ -1737,7 +1646,7 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
             f"<table>"
             f"<thead><tr>"
             f'<th class="r">#</th><th>Start</th><th>End</th><th class="r">Camp</th><th>Type</th>'
-            f'<th class="r">Duration</th><th>Context</th><th>Support Signals</th><th>Drivers</th>'
+            f'<th class="r">Duration</th><th>Evidence</th><th>Legacy Context</th><th>Exact Support</th><th>Context Drivers</th>'
             f"</tr></thead>"
             f"<tbody>{''.join(rows)}</tbody>"
             f"</table>"
@@ -1773,26 +1682,37 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
 
   function buildSmoothPath(points, index) {
     if (!points.length) return '';
-    if (index <= 0) {
-      return 'M ' + points[0].px + ' ' + points[0].py;
+    var chunks = [], current = [];
+    for (var pointIndex = 0; pointIndex <= index; pointIndex += 1) {
+      var point = points[pointIndex];
+      if (point.break_before && current.length) {
+        chunks.push(current);
+        current = [];
+      }
+      current.push(point);
     }
-    if (index === 1) {
-      return 'M ' + points[0].px + ' ' + points[0].py + ' L ' + points[1].px + ' ' + points[1].py;
-    }
-    var cmd = ['M ' + points[0].px + ' ' + points[0].py];
-    for (var i = 1; i < index; i += 1) {
-      var x1 = points[i].px;
-      var y1 = points[i].py;
-      var x2 = points[i + 1].px;
-      var y2 = points[i + 1].py;
-      var mx = (x1 + x2) / 2;
-      var my = (y1 + y2) / 2;
-      cmd.push('Q ' + x1 + ' ' + y1 + ' ' + mx + ' ' + my);
-    }
-    cmd.push(
-      'Q ' + points[index - 1].px + ' ' + points[index - 1].py + ' ' + points[index].px + ' ' + points[index].py
-    );
-    return cmd.join(' ');
+    if (current.length) chunks.push(current);
+    return chunks.map(function (chunk) {
+      if (chunk.length === 1) return 'M ' + chunk[0].px + ' ' + chunk[0].py;
+      if (chunk.length === 2) {
+        return 'M ' + chunk[0].px + ' ' + chunk[0].py + ' L ' + chunk[1].px + ' ' + chunk[1].py;
+      }
+      var cmd = ['M ' + chunk[0].px + ' ' + chunk[0].py];
+      for (var i = 1; i < chunk.length - 1; i += 1) {
+        var x1 = chunk[i].px;
+        var y1 = chunk[i].py;
+        var x2 = chunk[i + 1].px;
+        var y2 = chunk[i + 1].py;
+        var mx = (x1 + x2) / 2;
+        var my = (y1 + y2) / 2;
+        cmd.push('Q ' + x1 + ' ' + y1 + ' ' + mx + ' ' + my);
+      }
+      cmd.push(
+        'Q ' + chunk[chunk.length - 2].px + ' ' + chunk[chunk.length - 2].py + ' ' +
+        chunk[chunk.length - 1].px + ' ' + chunk[chunk.length - 1].py
+      );
+      return cmd.join(' ');
+    }).join(' ');
   }
 
   function renderPlayer(pid, idx) {
@@ -1815,6 +1735,7 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
     state.campEl.textContent = point.camp_id ? ('#' + point.camp_id + ' ' + (point.camp_type || '').split('_').join(' ')) : 'Transit';
 
     var visit = findVisit(state.visits, point.tick);
+    state.evidenceEl.textContent = visit ? visit.evidence_text : 'Transit';
     state.contextEl.textContent = visit ? visit.label_text : 'Transit';
     state.rows.forEach(function (row) {
       var active = visit && row.getAttribute('data-order') === String(visit.order);
@@ -1864,6 +1785,7 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
       timeEl: document.getElementById('farm-time-' + pid),
       tickEl: document.getElementById('farm-tick-' + pid),
       campEl: document.getElementById('farm-camp-' + pid),
+      evidenceEl: document.getElementById('farm-evidence-' + pid),
       contextEl: document.getElementById('farm-context-' + pid),
       rows: Array.prototype.slice.call(document.querySelectorAll('#farm-panel-' + pid + ' .farm-visit-row')),
       index: 0,
@@ -1906,17 +1828,18 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
         "<summary>Farming Patterns</summary>"
         '<div class="card-body">'
         '<p class="section-note">'
-        "Camp-path segments are inferred from time spent routing through camp zones. "
-        "Neutral interaction and XP are supporting signals, not requirements. "
-        "Short route touches can introduce some noise, so use playback to judge exact pathing. "
-        "Context labels are objective-aware heuristics, not true fog-of-war ground truth."
+        "Segments follow documented camp-zone, sample-gap, large-jump, and micro-exit rules. "
+        "Evidence labels distinguish neutral-death support, weaker interaction or dwell support, "
+        "and transit-like touches without claiming player intent or a complete camp clear. "
+        "Legacy context labels remain secondary compatibility heuristics and are unavailable when "
+        "their required sampled inputs are missing."
         "</p>"
-        f"{context_guide_html}"
         '<div style="margin:10px 0 14px 0">'
         '<label for="farm-player-select" style="font-size:12px;color:#8b949e;margin-right:8px">Hero</label>'
         f'<select id="farm-player-select" class="farm-select">{"".join(options)}</select>'
         "</div>"
         f"{''.join(panels)}"
+        f"{context_guide_html}"
         f"{script}"
         "</div>"
         "</details>"

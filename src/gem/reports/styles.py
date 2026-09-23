@@ -471,6 +471,22 @@ details[open].sub-accordion > summary::before {
     background: rgba(240, 98, 146, 0.2);
     border-color: rgba(240, 98, 146, 0.5);
 }
+.farm-tag-unavailable,
+.farm-evidence-transit {
+    color: #8b949e;
+    background: rgba(139, 148, 158, 0.12);
+    border-color: rgba(139, 148, 158, 0.35);
+}
+.farm-evidence-weak {
+    color: #d29922;
+    background: rgba(210, 153, 34, 0.13);
+    border-color: rgba(210, 153, 34, 0.4);
+}
+.farm-evidence-strong {
+    color: #3fb950;
+    background: rgba(63, 185, 80, 0.13);
+    border-color: rgba(63, 185, 80, 0.4);
+}
 @media (max-width: 980px) {
     .farm-map-wrap { min-width: 0; }
     .farm-toolbar { align-items: stretch; }

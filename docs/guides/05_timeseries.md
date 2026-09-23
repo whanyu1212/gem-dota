@@ -77,6 +77,9 @@ Available DataFrames:
 | `smoke_fight_insights` | Bounded smoke/fight association and outcome evidence |
 | `smoke_fight_members` | Flat member-level smoke/fight evidence |
 | `smoke_fight_followups` | Uniquely allocated bounded follow-up events |
+| `farming_routes` | Player-level farming-route availability and catalog metadata |
+| `farming_route_segments` | Evidence-first camp-local route segments and gaps |
+| `farming_route_points` | Sampled route points and deterministic camp membership |
 | `courier_snapshots` | Courier state over time |
 | `neutral_item_finds` | Neutral item find events from `DOTA_UM_FoundNeutralItem` |
 | `player_kills_log` | Per-player kill log rows |

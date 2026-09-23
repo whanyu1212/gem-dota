@@ -12,7 +12,7 @@ The package divides into two halves:
 
 - **Cheap lookups** (`spatial.py`, `combat.py`, `abilities.py`, `formatting.py`)
   — near-instant point queries over already-collected fact lists.
-- **Heavy, experimental builders** (`map_context.py`, `roshan.py`,
+- **Heavy, experimental builders** (`farming.py`, `map_context.py`, `roshan.py`,
   `smoke_fight.py`, `teamfight_positioning.py`) — multi-pass
   scans that synthesise new derived records (context buckets, Roshan-conversion
   summaries) from many fact sources at once.
@@ -37,10 +37,11 @@ ReplayParser  ──parse──▶  ParsedMatch
                   ┌────────────────┴─────────────────┐
                   │                                   │
           cheap point lookups               heavy derived builders
-   position_at_tick / heroes_near /     build_map_context_timeline /
-   net_worth_at / teamfight_at_tick /   build_rosh_conversions /
+   position_at_tick / heroes_near /     build_farming_routes /
+   net_worth_at / teamfight_at_tick /   build_map_context_timeline /
    group_ability_hits / ability_        build_teamfight_positioning /
-   level_at_tick / assess_point_vision  build_smoke_fight_insights
+   level_at_tick / assess_point_vision  build_rosh_conversions /
+                                         build_smoke_fight_insights
                                              │
                                                   ▼
                   │                     new dataclasses
@@ -146,11 +147,30 @@ that the results are heuristics with no terrain/high-ground modelling.
   coordinates. The docstring flags it as approximate: ~5 s sampling gaps, flat 2D
   radius (no terrain), and day-vision radius always used.
 
-## Heavy Builders — Experimental (`map_context.py`, `roshan.py`)
+## Heavy Builders — Experimental (`farming.py`, `map_context.py`, `roshan.py`)
 
 These are multi-pass scans that emit *new* derived dataclasses. They are the
 experimental, opinionated end of the package (scoring weights and thresholds are
 hand-tuned, not ground truth).
+
+### Farming routes (`farming.py`)
+
+- `build_farming_routes(match, config=DEFAULT_FARMING_ROUTE_CONFIG)` returns one
+  `FarmingRoute` per player. It assigns sampled positions to calibrated camp
+  zones with current-zone hysteresis, normalized-distance overlap resolution,
+  and camp-ID tie breaking.
+- Sample gaps over 300 ticks and implied speeds over 900 world units/second are
+  hard discontinuities. Same-camp exits of at most 150 ticks may merge, while
+  retaining their out-of-zone samples and `micro_exit_merged` provenance.
+- Segment evidence keeps neutral damage/deaths, fresh XP and total-earned-gold
+  endpoint deltas, sampled-window coverage, boundary reasons, and gaps. Missing
+  resource endpoints stay `None`.
+- `strong_farm_evidence`, `weak_farm_evidence`, and `transit_like` describe
+  support strength only; they do not assert player intent or a complete clear.
+  Resource changes remain visible but do not promote a brief touch by
+  themselves, because they may be passive or earned away from the camp.
+- The same public records feed `farming_routes`, `farming_route_segments`, and
+  `farming_route_points` DataFrames plus the Farming report tab.
 
 ### Map context (`map_context.py`)
 
@@ -307,6 +327,11 @@ fight, structure, resource, territory, ward, and Tormentor tags). Treat their
 labels/tags as opinionated heuristics, not derived constants, and expect them to
 change between ruleset revisions. Prefer Roshan's raw signed differentials over
 either the provisional tags or the deprecated 0–100 score.
+
+`build_farming_routes` also has inspectable thresholds, but its public strength
+labels are evidence categories rather than strategy grades. The older camp
+context labels remain compatibility heuristics and should be treated as
+secondary to route facts.
 
 ## When To Add Code Here
 

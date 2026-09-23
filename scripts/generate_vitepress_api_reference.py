@@ -34,6 +34,7 @@ TARGETS_BY_PAGE: dict[str, list[str]] = {
         "gem.analysis.abilities",
         "gem.analysis.vision",
         "gem.analysis.formatting",
+        "gem.analysis.farming",
         "gem.analysis.map_context",
         "gem.analysis.roshan",
         "gem.analysis.smoke",

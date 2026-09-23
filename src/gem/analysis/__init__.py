@@ -7,6 +7,17 @@ from gem.analysis.combat import (
     is_active_teamfight_participant,
     teamfight_at_tick,
 )
+from gem.analysis.farming import (
+    DEFAULT_FARMING_ROUTE_CONFIG,
+    FarmingBoundaryReason,
+    FarmingCampZone,
+    FarmingEvidenceStrength,
+    FarmingRoute,
+    FarmingRouteConfig,
+    FarmingRoutePoint,
+    FarmingRouteSegment,
+    build_farming_routes,
+)
 from gem.analysis.formatting import format_npc_name
 from gem.analysis.map_context import (
     CampVisitContext,
@@ -92,6 +103,7 @@ __all__ = [
     "AbilityCast",
     "AegisFateSource",
     "CampVisitContext",
+    "DEFAULT_FARMING_ROUTE_CONFIG",
     "DirectTargetRevealEvidence",
     "DEFAULT_ROSH_TAG_THRESHOLDS",
     "EngagementStartSource",
@@ -101,6 +113,13 @@ __all__ = [
     "FightCentroidSource",
     "FightOutcome",
     "FightPositionSnapshot",
+    "FarmingBoundaryReason",
+    "FarmingCampZone",
+    "FarmingEvidenceStrength",
+    "FarmingRoute",
+    "FarmingRouteConfig",
+    "FarmingRoutePoint",
+    "FarmingRouteSegment",
     "HeroPositionEvidence",
     "MapContextBucket",
     "FollowUpBoundary",
@@ -141,6 +160,7 @@ __all__ = [
     "ability_level_at_tick",
     "assess_point_vision",
     "build_map_context_timeline",
+    "build_farming_routes",
     "build_rosh_conversions",
     "build_smoke_analysis",
     "build_smoke_fight_insights",
