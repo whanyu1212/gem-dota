@@ -26,6 +26,7 @@ from gem.results.models import (
     SmokeEvent,
     VisibilityState,
 )
+from gem.state.game_clock import GameClock
 
 # ---------------------------------------------------------------------------
 # Helpers — minimal stubs
@@ -105,6 +106,8 @@ def _make_parser(
     p.match_metadata = match_metadata
     p.match_details = match_details
     p.duration_s = duration_s
+    p.post_game_tick = None
+    p.game_clock = GameClock(game_start_tick=game_start_tick)
     return p
 
 
@@ -2005,7 +2008,7 @@ class TestBuildPurchaseAggregates:
     def _build(self, entries):
         from gem.results.assembly import _build_purchase_aggregates
 
-        return _build_purchase_aggregates(entries, game_start_tick=0)
+        return _build_purchase_aggregates(entries, clock=GameClock(game_start_tick=0))
 
     def test_purchase_counts_and_translates_keys(self):
         aggs = self._build(
@@ -2122,7 +2125,7 @@ class TestWardReshape:
         from gem.results.assembly import _ward_left_entry
 
         w = _ward(player_id=1, killed_tick=600, killer="npc_dota_hero_queenofpain")
-        e = _ward_left_entry(w, game_start_tick=0)
+        e = _ward_left_entry(w, clock=GameClock(game_start_tick=0))
         assert e is not None
         assert e["entityleft"] is True
         assert e["type"] == "obs_left_log"
@@ -2138,19 +2141,19 @@ class TestWardReshape:
 
         # Dire player id 5 -> slot stays 5, player_slot becomes 128 (OpenDota).
         w = _ward(player_id=5, team=3, killed_tick=600, killer="npc_dota_hero_axe")
-        e = _ward_left_entry(w, game_start_tick=0)
+        e = _ward_left_entry(w, clock=GameClock(game_start_tick=0))
         assert e is not None
         assert e["slot"] == 5
         assert e["player_slot"] == 128
         # Dire player id 9 -> player_slot 132.
         w9 = _ward(player_id=9, team=3, expires_tick=900)
-        assert _ward_left_entry(w9, game_start_tick=0)["player_slot"] == 132
+        assert _ward_left_entry(w9, clock=GameClock(game_start_tick=0))["player_slot"] == 132
 
     def test_left_entry_natural_expiry_no_killer(self):
         from gem.results.assembly import _ward_left_entry
 
         w = _ward(ward_type="sentry", expires_tick=900)
-        e = _ward_left_entry(w, game_start_tick=0)
+        e = _ward_left_entry(w, clock=GameClock(game_start_tick=0))
         assert e is not None and e["type"] == "sen_left_log"
         assert e["attackername"] == ""
         assert e["time"] == 30
@@ -2159,7 +2162,7 @@ class TestWardReshape:
         from gem.results.assembly import _ward_left_entry
 
         w = _ward(killed_tick=None, expires_tick=None)
-        assert _ward_left_entry(w, game_start_tick=0) is None
+        assert _ward_left_entry(w, clock=GameClock(game_start_tick=0)) is None
 
     def test_assembly_populates_left_logs_and_nested_maps(self):
         snaps = [_FakePlayerSnapshot(player_id=1, tick=1, npc_name="npc_dota_hero_lina", team=2)]
@@ -2231,7 +2234,9 @@ class TestBuildObjectives:
             tick=6300, team=3, killer="npc_dota_hero_axe", tower_name="npc_dota_badguys_tower1_mid"
         )
         agg = self._agg_with_heroes({"npc_dota_hero_axe": 0})
-        objs = _build_objectives(_make_obj_ext(towers=[tk]), agg, None, {0: 2}, game_start_tick=0)
+        objs = _build_objectives(
+            _make_obj_ext(towers=[tk]), agg, None, {0: 2}, clock=GameClock(game_start_tick=0)
+        )
         assert len(objs) == 1
         e = objs[0]
         assert e["type"] == "building_kill"
@@ -2251,7 +2256,9 @@ class TestBuildObjectives:
             tower_name="npc_dota_badguys_tower1_top",
         )
         agg = self._agg_with_heroes({})  # siege not a hero -> None
-        e = _build_objectives(_make_obj_ext(towers=[tk]), agg, None, {}, game_start_tick=0)[0]
+        e = _build_objectives(
+            _make_obj_ext(towers=[tk]), agg, None, {}, clock=GameClock(game_start_tick=0)
+        )[0]
         assert "slot" not in e and "player_slot" not in e
 
     def test_building_kill_by_summon_credits_owner(self):
@@ -2267,7 +2274,9 @@ class TestBuildObjectives:
             tower_name="npc_dota_badguys_tower1_top",
         )
         agg = self._agg_with_heroes({}, summons={"npc_dota_beastmaster_boar": 2})
-        e = _build_objectives(_make_obj_ext(towers=[tk]), agg, None, {2: 2}, game_start_tick=0)[0]
+        e = _build_objectives(
+            _make_obj_ext(towers=[tk]), agg, None, {2: 2}, clock=GameClock(game_start_tick=0)
+        )[0]
         assert e["slot"] == 2 and e["player_slot"] == 2
 
     def test_building_kill_by_projectile_uses_source(self):
@@ -2284,7 +2293,9 @@ class TestBuildObjectives:
             killer_source="npc_dota_hero_clinkz",
         )
         agg = self._agg_with_heroes({"npc_dota_hero_clinkz": 4})
-        e = _build_objectives(_make_obj_ext(towers=[tk]), agg, None, {4: 2}, game_start_tick=0)[0]
+        e = _build_objectives(
+            _make_obj_ext(towers=[tk]), agg, None, {4: 2}, clock=GameClock(game_start_tick=0)
+        )[0]
         assert e["slot"] == 4 and e["player_slot"] == 4
         assert e["unit"] == "npc_dota_hero_clinkz"  # source hero, not the projectile
 
@@ -2303,7 +2314,9 @@ class TestBuildObjectives:
             target_is_hero=True,
         )
         agg = self._agg_with_heroes({"npc_dota_hero_lone_druid": 0, "npc_dota_hero_axe": 5})
-        objs = _build_objectives(_make_obj_ext(), agg, fb, {0: 2, 5: 3}, game_start_tick=0)
+        objs = _build_objectives(
+            _make_obj_ext(), agg, fb, {0: 2, 5: 3}, clock=GameClock(game_start_tick=0)
+        )
         e = next(o for o in objs if o["type"] == "CHAT_MESSAGE_FIRSTBLOOD")
         assert e["slot"] == 0 and e["player_slot"] == 0  # owner, not the bear
         assert e["key"] == "5"  # victim slot
@@ -2320,7 +2333,9 @@ class TestBuildObjectives:
             target_is_hero=True,
         )
         agg = self._agg_with_heroes({"npc_dota_hero_pudge": 1, "npc_dota_hero_lina": 6})
-        objs = _build_objectives(_make_obj_ext(), agg, fb, {1: 2, 6: 3}, game_start_tick=0)
+        objs = _build_objectives(
+            _make_obj_ext(), agg, fb, {1: 2, 6: 3}, clock=GameClock(game_start_tick=0)
+        )
         e = next(o for o in objs if o["type"] == "CHAT_MESSAGE_FIRSTBLOOD")
         assert e["slot"] == 1 and e["player_slot"] == 1
         assert e["key"] == "6"
@@ -2333,7 +2348,11 @@ class TestBuildObjectives:
         cd = CourierDeath(tick=1500, killer="npc_dota_hero_lina")
         agg = self._agg_with_heroes({"npc_dota_hero_lina": 5})
         objs = _build_objectives(
-            _make_obj_ext(courier_deaths=[cd]), agg, None, {5: 3}, game_start_tick=0
+            _make_obj_ext(courier_deaths=[cd]),
+            agg,
+            None,
+            {5: 3},
+            clock=GameClock(game_start_tick=0),
         )
         e = objs[0]
         assert e["type"] == "CHAT_MESSAGE_COURIER_LOST"
@@ -2350,7 +2369,11 @@ class TestBuildObjectives:
         rk = RoshanKill(tick=3000, killer="npc_dota_hero_axe", kill_number=1, drops=[])
         agg = self._agg_with_heroes({"npc_dota_hero_axe": 0})
         objs = _build_objectives(
-            _make_obj_ext(towers=[tk], roshan=[rk]), agg, None, {0: 2}, game_start_tick=0
+            _make_obj_ext(towers=[tk], roshan=[rk]),
+            agg,
+            None,
+            {0: 2},
+            clock=GameClock(game_start_tick=0),
         )
         assert [o["time"] for o in objs] == [100, 300]  # roshan (3000//30) before tower
 

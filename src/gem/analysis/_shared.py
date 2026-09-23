@@ -79,8 +79,10 @@ def _load_map_geometry() -> tuple[
 def infer_match_end_tick(match: ParsedMatch) -> int:
     """Return the match end tick, falling back to the last observed sample.
 
-    Prefers ``match.game_end_tick`` when set; otherwise uses the latest tick
-    seen across player time-series and position logs.
+    Prefers ``match.post_game_tick`` (the Ancient destroyed), then
+    ``match.game_end_tick`` (the end of the recording, which can run long past
+    the match), and otherwise the latest tick seen across player time-series and
+    position logs.
 
     Args:
         match: The parsed match.
@@ -88,6 +90,8 @@ def infer_match_end_tick(match: ParsedMatch) -> int:
     Returns:
         The end tick (``0`` if no data is available).
     """
+    if match.post_game_tick is not None and match.post_game_tick > 0:
+        return match.post_game_tick
     if match.game_end_tick > 0:
         return match.game_end_tick
 

@@ -10,11 +10,12 @@
       "denied Aegis",
       "holder-death consumption inference",
       "nominal expiry",
+      "Aegis still held when the game ends",
       "consecutive bounded Roshan windows",
       "fight already underway at acquisition",
       "counter-conversion tag observation",
-      "no-tag/non-converting observation",
-      "complete and partial economy/territory evidence"
+      "game-closing window",
+      "complete and partial economy evidence"
     ],
     "targeted_synthetic_tests": [
       "missing pickup event",
@@ -27,7 +28,8 @@
     ],
     "not_observed_in_local_real_replays": [
       "authoritative Aegis transfer or drop signal",
-      "real structure deny with protocol team retained"
+      "real structure deny with protocol team retained",
+      "no-tag/non-converting window"
     ]
   },
   "matches": [
@@ -81,13 +83,11 @@
           "roshan_team": 2,
           "conversion_team": 3,
           "aegis_event_type": "stolen",
-          "aegis_fate": "expired",
-          "aegis_fate_source": "nominal_expiry",
-          "analysis_status": "partial",
-          "analysis_status_reasons": [
-            "during_territory_unavailable"
-          ],
-          "next_roshan_boundary_tick": 138878
+          "aegis_fate": "game_end",
+          "aegis_fate_source": "game_end_boundary",
+          "analysis_status": "complete",
+          "next_roshan_boundary_tick": 111131,
+          "analysis_status_reasons": []
         }
       ],
       "calibration_observations": [
@@ -103,7 +103,8 @@
           "tags": [
             "fight_advantage",
             "objective_gain",
-            "resource_gain"
+            "resource_gain",
+            "game_closing"
           ]
         }
       ]
@@ -122,12 +123,8 @@
           "rosh_tick": 103651,
           "aegis_fate": "consumed",
           "aegis_fate_source": "holder_death_inference",
-          "analysis_status": "partial",
-          "analysis_status_reasons": [
-            "net_worth_series_unavailable",
-            "xp_series_unavailable",
-            "during_territory_unavailable"
-          ]
+          "analysis_status": "complete",
+          "analysis_status_reasons": []
         }
       ],
       "calibration_observations": [
@@ -135,7 +132,9 @@
           "rosh_number": 3,
           "tags": [
             "fight_advantage",
-            "objective_gain"
+            "objective_gain",
+            "resource_gain",
+            "game_closing"
           ]
         }
       ]
@@ -166,24 +165,26 @@
         {
           "rosh_number": 7,
           "rosh_tick": 194557,
-          "aegis_fate": "expired",
+          "aegis_fate": "game_end",
           "analysis_status": "partial",
           "analysis_status_reasons": [
             "net_worth_series_unavailable",
-            "xp_series_unavailable",
-            "during_territory_unavailable"
+            "xp_series_unavailable"
           ]
         }
       ],
       "calibration_observations": [
         {
           "rosh_number": 6,
-          "tags": []
+          "tags": [
+            "counter_conversion"
+          ]
         },
         {
           "rosh_number": 7,
           "tags": [
-            "objective_gain"
+            "objective_gain",
+            "game_closing"
           ]
         }
       ]
@@ -200,7 +201,7 @@
         {
           "rosh_number": 3,
           "rosh_tick": 109480,
-          "aegis_fate": "expired",
+          "aegis_fate": "game_end",
           "fight_indexes": [
             33
           ],
@@ -210,15 +211,16 @@
           "analysis_status": "partial",
           "analysis_status_reasons": [
             "net_worth_series_unavailable",
-            "xp_series_unavailable",
-            "during_territory_unavailable"
+            "xp_series_unavailable"
           ]
         }
       ],
       "calibration_observations": [
         {
           "rosh_number": 3,
-          "tags": []
+          "tags": [
+            "game_closing"
+          ]
         }
       ]
     },

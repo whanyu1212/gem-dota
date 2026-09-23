@@ -76,6 +76,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   prototype. The harness rejects dirty parser sources or fixture manifests and
   incompatible public output hashes before saving measurements. No parser
   behavior or runtime requirement changes.
+- **Pause-aware game clock and match end.** Record in-game pauses from the
+  game-rules entity (`m_bGamePaused`, `m_nPauseStartTick`,
+  `m_nTotalPausedTicks`) and expose them as `ParsedMatch.game_clock`
+  (`gem.GameClock` / `gem.GamePause`) with `game_time_at`, `game_seconds_at`,
+  `tick_at`, and `format_tick`. Add `ParsedMatch.post_game_tick`, the tick the
+  Ancient fell, since `game_end_tick` is the end of the recording and can run
+  many minutes later. The match DataFrame gains a `post_game_tick` column.
 
 ### Changed
 
@@ -108,6 +115,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **In-game times after pauses.** OpenDota-compatible objective times, ward
+  expiry (`obs_left_log` / `sen_left_log`) times, the lane-position window, and
+  OpenDota teamfight `xp_start` / `xp_end` sample points no longer count paused
+  ticks as game time. On TI2026 match 8860187335 (one 22-second pause) objective
+  times were up to 21 s late; building kills now match OpenDota exactly.
+- **Match reports show the in-game clock.** The header shows the match duration
+  instead of the recording length (65:52 → 50:05 on match 8860187335), every
+  report time and the ward-map playback label are pause-aware, Roshan respawn
+  windows account for pauses, and Movement tab frame labels are measured from
+  the horn instead of from the first replay tick.
+- **Analysis windows end when the Ancient falls.** Roshan conversion, smoke
+  follow-up, smoke lifecycle, and ward vision-impact windows are bounded by
+  `post_game_tick` instead of the end of the recording. An Aegis still held when
+  the game ends now reports `aegis_fate="game_end"` instead of `expired`,
+  `game_closing` can fire on real replays, and final windows no longer report
+  territory or economy evidence as unavailable merely because they ran into the
+  post-game recording. Roshan net-worth and XP differentials now map minute
+  samples to ticks through the pause-aware clock. The calibration corpus and
+  tag-frequency audit are updated accordingly (`game_closing` 0 → 5,
+  `counter_conversion` 3 → 7 of 31 conversions).
 - **Pause-aware smoke lifecycle matching.** Associate modifier removals using
   reported elapsed duration or pause-aware game time before falling back to raw
   replay ticks, so a long pause cannot leave a legitimate removal unobserved.

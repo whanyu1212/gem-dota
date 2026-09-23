@@ -30,7 +30,7 @@ from gem.analysis import build_rosh_conversions, build_smoke_fight_insights
 from gem.reports._formatting import (
     GAME_MODES,
     fmt_tick as _fmt_tick,
-    set_game_start_tick,
+    set_game_clock,
 )
 from gem.reports._sections import (
     build_buybacks as _ext_build_buybacks,
@@ -62,6 +62,7 @@ from gem.reports.assets import (
 )
 from gem.reports.styles import REPORT_CSS as _CSS
 from gem.results.models import ParsedMatch
+from gem.state.game_clock import game_clock_for
 
 logger = logging.getLogger(__name__)
 
@@ -244,7 +245,7 @@ def build_html_report(
     if map_b64 is None:
         map_b64 = load_map_base64(assets.map_image)
 
-    set_game_start_tick(match.game_start_tick or 0)
+    set_game_clock(game_clock_for(match))
 
     # Pre-load icons for canvas ward/smoke markers and purchase timeline
     _canvas_icons = ["ward_observer", "ward_sentry", "smoke_of_deceit"]

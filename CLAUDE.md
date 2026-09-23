@@ -286,6 +286,15 @@ freshness bound are unavailable, not silently carried forward. Observer ward
 lifetimes are half-open at the observed kill/expiry tick; sentries remain
 distinct because true sight does not grant standard map vision.
 
+### Replay ticks vs the in-game clock
+
+Ticks are the canonical join key, but they keep running during pauses, and
+`game_end_tick` is the end of the recording (often minutes after the Ancient
+falls). For displayed or OpenDota-compatible seconds use `match.game_clock`
+(`state/game_clock.py`: `game_seconds_at`, `tick_at`, `format_tick`); for "end of
+the match" use `match.post_game_tick` (or `analysis._shared.infer_match_end_tick`).
+Never compute seconds as `(tick - game_start_tick) // 30`.
+
 ### Gold / XP field sources — critical distinction
 
 Three different gold/XP fields exist; using the wrong one silently produces wrong curves.

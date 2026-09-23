@@ -203,6 +203,7 @@ from gem.results.models import (
     VisionModifierSemantic,
     VisionModifierTeamSource,
 )
+from gem.state.game_clock import GameClock, GamePause
 
 try:
     __version__ = _pkg_version("gem-dota")
@@ -447,6 +448,8 @@ __all__ = [
     "NeutralItemFoundEvent",
     "BuybackEvent",
     "BannerPlant",
+    "GameClock",
+    "GamePause",
     "SmokeEvent",
     "SmokeParticipant",
     "find_player",

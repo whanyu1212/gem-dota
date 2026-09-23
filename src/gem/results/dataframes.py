@@ -360,6 +360,7 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                 "radiant_win": match.radiant_win,
                 "game_start_tick": match.game_start_tick,
                 "game_end_tick": match.game_end_tick,
+                "post_game_tick": match.post_game_tick,
                 "tower_status_radiant": match.tower_status_radiant,
                 "tower_status_dire": match.tower_status_dire,
                 "barracks_status_radiant": match.barracks_status_radiant,

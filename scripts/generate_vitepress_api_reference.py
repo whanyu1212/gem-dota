@@ -82,7 +82,7 @@ TARGETS_BY_PAGE: dict[str, list[str]] = {
         "gem.state.game_events.GameEventSchema",
     ],
     "assembly.md": ["gem.results.assembly"],
-    "models.md": ["gem.results.models"],
+    "models.md": ["gem.results.models", "gem.state.game_clock"],
     "parser.md": ["gem.parser.ReplayParser"],
     "reader.md": ["gem.binary.reader.BitReader"],
     "sendtable.md": [

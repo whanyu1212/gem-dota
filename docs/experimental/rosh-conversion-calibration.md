@@ -29,16 +29,16 @@ Roshan. The committed check selects representative facts from six matches:
 | Match | Factual role |
 | --- | --- |
 | `8868259993` | Short game with no Roshan |
-| `8860187335` | Three bounded windows; natural expiry, inferred consumption, stolen pickup, and partial territory evidence |
-| `8855188139` | Multiple inferred consumptions and late missing economy/territory evidence |
-| `8856501050` | Seven Roshans, including an expired window with no associated fight and a complete no-tag window |
-| `8822593932` | A fight already underway at acquisition and partial late evidence |
+| `8860187335` | Three bounded windows and one in-game pause; natural expiry, inferred consumption, and a stolen pickup still held when the Ancient fell |
+| `8855188139` | Multiple inferred consumptions and a late window that closes the game |
+| `8856501050` | Seven Roshans across three pauses, including an expired window with no associated fight and a final window cut short by the game ending |
+| `8822593932` | A fight already underway at acquisition and a final window without economy series |
 | `8974053011` | Observed Aegis denial followed by a later normal pickup and inferred consumption |
 
 The local replay set did not contain every rare failure mode. Missing pickup,
 unresolved killers, unknown structure/Tormentor attribution, allied structure
-denies, summon/source fallback, game-closing boundaries, and threshold edges
-therefore have targeted deterministic unit tests. This distinction is explicit
+denies, summon/source fallback, and threshold edges therefore have targeted
+deterministic unit tests. This distinction is explicit
 in the corpus metadata rather than representing synthetic cases as real-match
 facts.
 
@@ -49,7 +49,8 @@ facts.
   older or incomplete data.
 - The real denial fixture produces `aegis_fate_source="denial_event"`; its later
   holder death produces `holder_death_inference`. Natural five-minute endings
-  produce `nominal_expiry`.
+  produce `nominal_expiry`; an Aegis still held when the Ancient falls produces
+  `game_end_boundary`.
 - Item-entity deletion cannot reliably distinguish pickup, consumption, expiry,
   transfer/drop, and cleanup. It is not used to overrule the bounded death
   inference.
@@ -66,20 +67,29 @@ The 31 audited conversions produced these default-tag frequencies:
 | --- | ---: |
 | `fight_advantage` | 8 |
 | `objective_gain` | 21 |
-| `resource_gain` | 22 |
+| `resource_gain` | 20 |
 | `territorial_expansion` | 0 |
 | `vision_expansion` | 15 |
 | `tormentor_secured` | 6 |
-| `game_closing` | 0 |
-| `counter_conversion` | 3 |
-| no tag | 2 |
+| `game_closing` | 5 |
+| `counter_conversion` | 7 |
+| no tag | 0 |
+
+These counts were re-audited after the game-clock correction. The first audit
+ended every window at the last recorded tick, which can run many minutes past the
+Ancient falling, so `game_closing` could never fire on a real replay (0 hits) and
+final windows reported missing late evidence. It also mapped minute-level net
+worth/XP samples to ticks without subtracting pauses, which shifted resource
+windows after any pause. Correcting both moved `game_closing` from 0 to 5,
+`counter_conversion` from 3 to 7, `resource_gain` from 22 to 20, and no-tag
+windows from 2 to 0. The thresholds themselves are unchanged.
 
 These are sensitivity observations, not precision/recall labels. There is no
 defensible subjective ground truth in the fixture, so the audit cannot claim a
 false-positive rate by treating analyst opinion as fact. The defaults are
 therefore unchanged and remain explicitly `provisional-v1`. In particular, the
-zero hits for territorial expansion and game closing are recorded for future
-review rather than “fixed” by lowering thresholds against this small sample.
+zero hits for territorial expansion are recorded for future review rather than
+“fixed” by lowering thresholds against this small sample.
 
 `RoshTagThresholds` makes every boundary inspectable. Unit tests exercise exact
 threshold transitions and counter-conversion's two-dimension minimum. Raw

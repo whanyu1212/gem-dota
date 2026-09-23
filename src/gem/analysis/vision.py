@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING, Literal
 
+from gem.analysis._shared import infer_match_end_tick
 from gem.analysis.spatial import position_sample_at_tick
 from gem.results.models import (
     VisibilityState,
@@ -706,7 +707,7 @@ def ward_vision_impact(ward: object, match: ParsedMatch) -> int:
     end_tick: int = (
         getattr(ward, "killed_tick", None)
         or getattr(ward, "expires_tick", None)
-        or match.game_end_tick
+        or infer_match_end_tick(match)
         or 0
     )
     enemy_team = 3 if getattr(ward, "team", 0) == 2 else 2

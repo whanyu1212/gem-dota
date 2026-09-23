@@ -55,7 +55,7 @@ class VisibilityState(str, Enum)
 
 A team's authoritative visibility state for one hero entity.
 
-Source: [src/gem/results/models.py:33](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L33)
+Source: [src/gem/results/models.py:34](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L34)
 
 ### `HeroVisibilityEvent`
 
@@ -65,7 +65,7 @@ class HeroVisibilityEvent
 
 A visibility-state transition for one canonical player hero identity.
 
-Source: [src/gem/results/models.py:50](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L50)
+Source: [src/gem/results/models.py:51](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L51)
 
 #### Dataclass fields
 
@@ -87,7 +87,7 @@ class EntityVisibilityEvent
 
 Packet-boundary visibility evidence for one networked Dota NPC entity.
 
-Source: [src/gem/results/models.py:73](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L73)
+Source: [src/gem/results/models.py:74](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L74)
 
 #### Dataclass fields
 
@@ -111,7 +111,7 @@ class VisionModifierSemantic(str, Enum)
 
 How a tracked modifier contributes vision evidence.
 
-Source: [src/gem/results/models.py:104](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L104)
+Source: [src/gem/results/models.py:105](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L105)
 
 ### `VisionModifierLifecycleStatus`
 
@@ -121,7 +121,7 @@ class VisionModifierLifecycleStatus(str, Enum)
 
 Best-supported lifecycle state for a modifier application.
 
-Source: [src/gem/results/models.py:115](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L115)
+Source: [src/gem/results/models.py:116](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L116)
 
 ### `VisionModifierCloseEvidence`
 
@@ -131,7 +131,7 @@ class VisionModifierCloseEvidence(str, Enum)
 
 Evidence supporting the lifecycle close classification.
 
-Source: [src/gem/results/models.py:126](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L126)
+Source: [src/gem/results/models.py:127](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L127)
 
 ### `VisionModifierPairingStatus`
 
@@ -141,7 +141,7 @@ class VisionModifierPairingStatus(str, Enum)
 
 Confidence with which a removal was paired to an application.
 
-Source: [src/gem/results/models.py:137](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L137)
+Source: [src/gem/results/models.py:138](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L138)
 
 ### `VisionModifierTeamSource`
 
@@ -151,7 +151,7 @@ class VisionModifierTeamSource(str, Enum)
 
 Evidence source used to attribute a modifier participant's team.
 
-Source: [src/gem/results/models.py:148](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L148)
+Source: [src/gem/results/models.py:149](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L149)
 
 ### `VisionModifierEvent`
 
@@ -161,7 +161,7 @@ class VisionModifierEvent
 
 One tracked vision-relevant modifier application and its evidence.
 
-Source: [src/gem/results/models.py:159](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L159)
+Source: [src/gem/results/models.py:160](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L160)
 
 #### Dataclass fields
 
@@ -219,7 +219,7 @@ class VisionModifierPairingIssue
 
 Removal evidence that could not be paired to one application safely.
 
-Source: [src/gem/results/models.py:259](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L259)
+Source: [src/gem/results/models.py:260](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L260)
 
 #### Dataclass fields
 
@@ -253,7 +253,7 @@ class SmokeParticipant
 
 One hero's observed Smoke of Deceit modifier lifecycle.
 
-Source: [src/gem/results/models.py:303](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L303)
+Source: [src/gem/results/models.py:304](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L304)
 
 #### Dataclass fields
 
@@ -280,7 +280,7 @@ class SmokeEvent
 
 One Smoke of Deceit activation.
 
-Source: [src/gem/results/models.py:342](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L342)
+Source: [src/gem/results/models.py:343](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L343)
 
 #### Dataclass fields
 
@@ -305,7 +305,7 @@ class BuybackEvent
 
 One buyback, with its estimated gold cost.
 
-Source: [src/gem/results/models.py:377](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L377)
+Source: [src/gem/results/models.py:378](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L378)
 
 #### Dataclass fields
 
@@ -324,7 +324,7 @@ class ChatEntry
 
 A single chat message from the match.
 
-Source: [src/gem/results/models.py:405](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L405)
+Source: [src/gem/results/models.py:406](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L406)
 
 #### Dataclass fields
 
@@ -343,7 +343,7 @@ class NeutralItemFoundEvent
 
 A neutral item found event emitted by DOTA_UM_FoundNeutralItem.
 
-Source: [src/gem/results/models.py:422](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L422)
+Source: [src/gem/results/models.py:423](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L423)
 
 #### Dataclass fields
 
@@ -368,7 +368,7 @@ class ParsedPlayer
 
 Aggregated statistics for one player over a full match.
 
-Source: [src/gem/results/models.py:456](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L456)
+Source: [src/gem/results/models.py:457](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L457)
 
 #### Dataclass fields
 
@@ -499,7 +499,7 @@ class ParsedMatch
 
 Top-level parsed output for a single Dota 2 replay.
 
-Source: [src/gem/results/models.py:855](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L855)
+Source: [src/gem/results/models.py:856](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L856)
 
 #### Dataclass fields
 
@@ -517,6 +517,8 @@ Source: [src/gem/results/models.py:855](https://github.com/whanyu1212/gem-dota/b
 | `dire_team_tag` | `str` | `''` |
 | `game_start_tick` | `int \| None` | `None` |
 | `game_end_tick` | `int` | `0` |
+| `post_game_tick` | `int \| None` | `None` |
+| `game_clock` | `GameClock \| None` | `None` |
 | `duration` | `int` | `0` |
 | `radiant_score` | `int` | `0` |
 | `dire_score` | `int` | `0` |
@@ -561,7 +563,7 @@ Signature: `def ParsedMatch.duration_seconds(self) -> float`
 
 Game duration in seconds, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:1004](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1004)
+Source: [src/gem/results/models.py:1014](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1014)
 
 ##### `duration_minutes`
 
@@ -569,4 +571,112 @@ Signature: `def ParsedMatch.duration_minutes(self) -> float`
 
 Game duration in minutes, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:1010](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1010)
+Source: [src/gem/results/models.py:1020](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1020)
+
+## Module `gem.state.game_clock`
+
+Pause-aware conversion between replay ticks and the in-game clock.
+
+Source: [src/gem/state/game_clock.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L1)
+
+### Top-level functions
+
+### `game_clock_for`
+
+```python
+def game_clock_for(match: object) -> GameClock
+```
+
+Return a match's game clock, or a tick-only fallback for older matches.
+
+Source: [src/gem/state/game_clock.py:174](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L174)
+
+### Top-level classes
+
+### `GamePause`
+
+```python
+class GamePause
+```
+
+One interval during which the in-game clock was stopped.
+
+Source: [src/gem/state/game_clock.py:28](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L28)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `start_tick` | `int` | `-` |
+| `end_tick` | `int \| None` | `-` |
+
+#### Properties
+
+##### `duration_ticks`
+
+Signature: `def GamePause.duration_ticks(self) -> int | None`
+
+Paused length in ticks, or ``None`` for a pause that never ended.
+
+Source: [src/gem/state/game_clock.py:41](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L41)
+
+### `GameClock`
+
+```python
+class GameClock
+```
+
+Maps replay ticks to pause-aware in-game time and back.
+
+Source: [src/gem/state/game_clock.py:49](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L49)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `game_start_tick` | `int \| None` | `None` |
+| `pauses` | `list[GamePause]` | `field(...)` |
+| `game_start_time_s` | `float \| None` | `None` |
+| `net_tick_offset` | `int` | `0` |
+
+#### Methods
+
+##### `paused_ticks_before`
+
+Signature: `def GameClock.paused_ticks_before(self, tick: int) -> int`
+
+Return how many ticks of pause elapsed before ``tick``.
+
+Source: [src/gem/state/game_clock.py:72](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L72)
+
+##### `game_time_at`
+
+Signature: `def GameClock.game_time_at(self, tick: int) -> float | None`
+
+Return the exact in-game clock reading at a replay tick.
+
+Source: [src/gem/state/game_clock.py:97](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L97)
+
+##### `game_seconds_at`
+
+Signature: `def GameClock.game_seconds_at(self, tick: int) -> int | None`
+
+Return whole in-game seconds at a replay tick, as OpenDota reports them.
+
+Source: [src/gem/state/game_clock.py:112](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L112)
+
+##### `tick_at`
+
+Signature: `def GameClock.tick_at(self, game_time_s: float) -> int | None`
+
+Return the first replay tick at which the in-game clock reads a time.
+
+Source: [src/gem/state/game_clock.py:134](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L134)
+
+##### `format_tick`
+
+Signature: `def GameClock.format_tick(self, tick: int) -> str`
+
+Format a replay tick as the in-game clock (``MM:SS``, ``-MM:SS`` pre-horn).
+
+Source: [src/gem/state/game_clock.py:157](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L157)

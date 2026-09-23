@@ -181,6 +181,8 @@ class TestBuildWardsDataTag:
         match.smoke_events = []
         match.game_start_tick = 900
         match.game_end_tick = 3000
+        match.post_game_tick = None
+        match.game_clock = None
         match.players = []
         return match
 

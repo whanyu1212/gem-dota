@@ -6,6 +6,7 @@ import html
 
 from gem.catalog import hero_short
 from gem.reports.assets import has_hero_icon, hero_icon_src
+from gem.state.game_clock import GameClock
 
 TICKS_PER_SEC = 30
 TICKS_PER_MIN = TICKS_PER_SEC * 60
@@ -66,23 +67,84 @@ GAME_MODES: dict[int, str] = {
     24: "Mutation",
 }
 
-# Set at report-build time so fmt_tick() produces game-relative times
-_GAME_START_TICK: int = 0
+# Set at report-build time so fmt_tick() produces pause-aware in-game times
+_GAME_CLOCK: GameClock = GameClock(game_start_tick=0)
+
+
+def set_game_clock(clock: GameClock) -> None:
+    """Set the pause-aware game clock used by fmt_tick()."""
+    global _GAME_CLOCK
+    _GAME_CLOCK = clock
 
 
 def set_game_start_tick(tick: int) -> None:
-    """Set the game start tick used by fmt_tick()."""
-    global _GAME_START_TICK
-    _GAME_START_TICK = tick
+    """Set a pause-free clock anchored at ``tick`` (legacy; prefer set_game_clock)."""
+    set_game_clock(GameClock(game_start_tick=tick))
+
+
+def game_clock() -> GameClock:
+    """Return the game clock configured for the report being built."""
+    return _GAME_CLOCK
 
 
 def fmt_tick(tick: int) -> str:
-    """Format a game tick as MM:SS relative to game start."""
-    rel = tick - _GAME_START_TICK
-    neg = rel < 0
-    secs = abs(rel) // TICKS_PER_SEC
-    s = f"{secs // 60:02d}:{secs % 60:02d}"
-    return f"-{s}" if neg else s
+    """Format a replay tick as the in-game clock (MM:SS, pause-aware)."""
+    return _GAME_CLOCK.format_tick(tick)
+
+
+def tick_after_game_seconds(tick: int, seconds: float) -> int:
+    """Return the replay tick ``seconds`` of in-game time after ``tick``.
+
+    In-game timers such as Roshan's respawn stop during pauses, so the offset is
+    applied on the pause-aware clock rather than on raw replay ticks.
+    """
+    start = _GAME_CLOCK.game_time_at(tick)
+    later = _GAME_CLOCK.tick_at(start + seconds) if start is not None else None
+    return later if later is not None else tick + round(seconds * TICKS_PER_SEC)
+
+
+def game_clock_js_config(clock: GameClock) -> dict[str, object]:
+    """Serialize a game clock for the report's client-side ``gemGameSeconds``."""
+    return {
+        "gameStartTick": clock.game_start_tick,
+        "gameStartTimeS": clock.game_start_time_s,
+        "netTickOffset": clock.net_tick_offset,
+        "pauses": [[pause.start_tick, pause.end_tick] for pause in clock.pauses],
+    }
+
+
+# Client-side mirror of ``GameClock.game_seconds_at`` for playback labels.
+GAME_CLOCK_JS = """
+function gemGameSeconds(clock, tick) {
+  var paused = 0;
+  for (var i = 0; i < clock.pauses.length; i++) {
+    var start = clock.pauses[i][0], end = clock.pauses[i][1];
+    if (tick <= start) break;
+    paused += (end === null ? tick : Math.min(tick, end)) - start;
+  }
+  if (clock.gameStartTimeS !== null && clock.gameStartTimeS !== undefined) {
+    var unpaused = tick + clock.netTickOffset - paused;
+    return Math.floor(unpaused / 30 + 0.5) - Math.floor(clock.gameStartTimeS + 0.5);
+  }
+  if (clock.gameStartTick === null || clock.gameStartTick === undefined) return null;
+  var base = clock.gameStartTick;
+  for (var j = 0; j < clock.pauses.length; j++) {
+    var ps = clock.pauses[j][0], pe = clock.pauses[j][1];
+    if (clock.gameStartTick <= ps) break;
+    base -= (pe === null ? clock.gameStartTick : Math.min(clock.gameStartTick, pe)) - ps;
+  }
+  return Math.floor((tick - paused - base) / 30);
+}
+function gemFormatClock(clock, tick) {
+  var secs = gemGameSeconds(clock, tick);
+  if (secs === null) return '--:--';
+  var neg = secs < 0;
+  secs = Math.abs(secs);
+  var m = Math.floor(secs / 60), s = secs % 60;
+  var t = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  return neg ? '-' + t : t;
+}
+"""
 
 
 def hero(npc_name: str) -> str:

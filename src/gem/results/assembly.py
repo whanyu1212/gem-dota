@@ -38,11 +38,12 @@ if TYPE_CHECKING:
         VisionModifierEvent,
         VisionModifierPairingIssue,
     )
+    from gem.state.game_clock import GameClock
 
 # Lane position grid resolution in world units (7d)
 _LANE_GRID = 64
 # First 10 game-minutes in ticks (600s × 30 ticks/s)
-_LANE_WINDOW = 600 * 30
+_LANE_WINDOW_S = 600
 
 
 def _player_slot_to_player_id(player_slot: int) -> int | None:
@@ -121,31 +122,30 @@ def _apply_match_details_scalars(match: ParsedMatch, details: CMsgDOTAMatch | No
                 player._match_details_fields.add("total_xp")
 
 
-def _tick_game_seconds(tick: int, game_start_tick: int | None) -> int:
-    """Return an absolute tick's game-relative time in seconds.
+def _tick_game_seconds(tick: int, clock: GameClock) -> int:
+    """Return an absolute tick's pause-aware game-relative time in seconds.
 
     Args:
         tick: Absolute parser tick.
-        game_start_tick: Absolute tick of the game clock start, or ``None``.
+        clock: Pause-aware game clock for the match.
 
     Returns:
         Game-relative seconds (negative pre-horn), or ``0`` with no clock ref.
     """
-    if game_start_tick is None:
-        return 0
-    return (tick - game_start_tick) // 30
+    seconds = clock.game_seconds_at(tick)
+    return 0 if seconds is None else seconds
 
 
-def _entry_game_seconds(entry: CombatLogEntry, game_start_tick: int | None) -> int:
+def _entry_game_seconds(entry: CombatLogEntry, clock: GameClock) -> int:
     """Return a combat-log entry's game-relative time in seconds.
 
     Prefers the OpenDota-aligned ``game_time_s`` when present, falling back to the
-    tick offset from ``game_start_tick`` (30 ticks/second). Pre-horn events keep
-    their negative offset, matching OpenDota.
+    pause-aware game clock at the entry's tick. Pre-horn events keep their
+    negative offset, matching OpenDota.
 
     Args:
         entry: The combat log entry.
-        game_start_tick: Absolute tick of the game clock start, or ``None``.
+        clock: Pause-aware game clock for the match.
 
     Returns:
         Game-relative seconds (may be negative for pre-horn events), or ``0``
@@ -153,11 +153,11 @@ def _entry_game_seconds(entry: CombatLogEntry, game_start_tick: int | None) -> i
     """
     if entry.game_time_s is not None:
         return int(entry.game_time_s)
-    return _tick_game_seconds(entry.tick, game_start_tick)
+    return _tick_game_seconds(entry.tick, clock)
 
 
 def _build_purchase_aggregates(
-    purchase_log: list[CombatLogEntry], game_start_tick: int | None
+    purchase_log: list[CombatLogEntry], clock: GameClock
 ) -> dict[str, Any]:
     """Derive OpenDota purchase-timeline aggregates from a player's purchase log.
 
@@ -168,7 +168,7 @@ def _build_purchase_aggregates(
 
     Args:
         purchase_log: The player's deduped PURCHASE ``CombatLogEntry`` list.
-        game_start_tick: Absolute tick of the game clock start, or ``None``.
+        clock: Pause-aware game clock for the match.
 
     Returns:
         Dict with ``purchase``, ``purchase_time``, ``first_purchase_time`` (maps)
@@ -185,7 +185,7 @@ def _build_purchase_aggregates(
         purchase[key] = purchase.get(key, 0) + 1  # recipes included (OD parity)
         if key.startswith("recipe_"):
             continue
-        seconds = _entry_game_seconds(entry, game_start_tick)
+        seconds = _entry_game_seconds(entry, clock)
         if key not in first_purchase_time:
             first_purchase_time[key] = seconds
         # OpenDota's purchase_time is the SUM of every purchase time for the item
@@ -237,7 +237,7 @@ def _ward_coord_key(x: float | None, y: float | None) -> str | None:
     return f"[{round(cx)},{round(cy)}]"
 
 
-def _ward_left_entry(ward: WardEvent, game_start_tick: int | None) -> dict[str, Any] | None:
+def _ward_left_entry(ward: WardEvent, clock: GameClock) -> dict[str, Any] | None:
     """Build an OpenDota ``*_left_log`` expiry entry from a WardEvent, or None.
 
     A ward that left the map (killed or expired naturally) yields one expiry
@@ -246,7 +246,7 @@ def _ward_left_entry(ward: WardEvent, game_start_tick: int | None) -> dict[str, 
 
     Args:
         ward: The ward placement record.
-        game_start_tick: Absolute tick of the game clock start, or ``None``.
+        clock: Pause-aware game clock for the match.
 
     Returns:
         The OpenDota-shaped expiry dict, or ``None`` if the ward never left.
@@ -254,7 +254,7 @@ def _ward_left_entry(ward: WardEvent, game_start_tick: int | None) -> dict[str, 
     left_tick = ward.killed_tick if ward.killed_tick is not None else ward.expires_tick
     if left_tick is None:
         return None
-    seconds = (left_tick - game_start_tick) // 30 if game_start_tick is not None else 0
+    seconds = _tick_game_seconds(left_tick, clock)
     return {
         "time": seconds,
         "type": "obs_left_log" if ward.ward_type == "observer" else "sen_left_log",
@@ -273,7 +273,7 @@ def _build_objectives(
     combat_agg: _CombatAggregator,
     first_blood_entry: CombatLogEntry | None,
     pid_to_team: dict[int, int],
-    game_start_tick: int | None,
+    clock: GameClock,
 ) -> list[dict[str, Any]]:
     """Merge gem's per-type objective events into OpenDota's unified timeline.
 
@@ -287,7 +287,7 @@ def _build_objectives(
         combat_agg: Combat aggregator, for killer-hero → player id resolution.
         first_blood_entry: The first real hero-death entry, or ``None``.
         pid_to_team: Map of player id (0-9) → team (2/3), for courier ownership.
-        game_start_tick: Absolute tick of the game clock start, or ``None``.
+        clock: Pause-aware game clock for the match.
 
     Returns:
         Chronologically-sorted list of OpenDota-shaped objective dicts.
@@ -295,7 +295,7 @@ def _build_objectives(
     objectives: list[dict[str, Any]] = []
 
     def secs(tick: int) -> int:
-        return _tick_game_seconds(tick, game_start_tick)
+        return _tick_game_seconds(tick, clock)
 
     def slot_fields(player_id: int | None) -> dict[str, Any]:
         if not isinstance(player_id, int) or not (0 <= player_id < 10):
@@ -372,7 +372,7 @@ def _build_objectives(
         )
         victim_pid = combat_agg._hero_to_pid(first_blood_entry.target_name)
         entry = {
-            "time": _entry_game_seconds(first_blood_entry, game_start_tick),
+            "time": _entry_game_seconds(first_blood_entry, clock),
             "type": "CHAT_MESSAGE_FIRSTBLOOD",
             **slot_fields(killer_pid),
         }
@@ -604,7 +604,7 @@ def _populate_player_series(
     combat_agg: _CombatAggregator,
     interval_ext: IntervalExtractor | None,
     interval_min_series: dict[int, IntervalTimeSeries],
-    game_start_tick: int | None,
+    clock: GameClock,
     radiant_win: bool | None,
 ) -> None:
     """Populate per-player time series and combat-log aggregates in place.
@@ -624,7 +624,7 @@ def _populate_player_series(
         combat_agg: Per-player combat-log aggregates.
         interval_ext: OpenDota-style interval extractor (team counters, scalars).
         interval_min_series: Complete interval minute arrays by player id.
-        game_start_tick: Horn tick used for the lane-window time filter.
+        clock: Pause-aware game clock for purchase times and the lane window.
         radiant_win: Resolved match winner, or ``None`` if unknown.
     """
     for player_id in range(10):
@@ -722,7 +722,7 @@ def _populate_player_series(
             # Aggregates are derived from the FULL log (with recipes): the `purchase`
             # count map includes recipes, while purchase_time/first_purchase_time
             # exclude them. _build_purchase_aggregates handles that split internally.
-            purchase_aggs = _build_purchase_aggregates(sorted_purchases, game_start_tick)
+            purchase_aggs = _build_purchase_aggregates(sorted_purchases, clock)
             pp.purchase = purchase_aggs["purchase"]
             pp.purchase_time = purchase_aggs["purchase_time"]
             pp.first_purchase_time = purchase_aggs["first_purchase_time"]
@@ -778,9 +778,8 @@ def _populate_player_series(
         for snap in player_ext.snapshots:
             if snap.player_id != player_id or snap.x is None or snap.y is None:
                 continue
-            if game_start_tick is not None and (
-                snap.tick < game_start_tick or snap.tick > game_start_tick + _LANE_WINDOW
-            ):
+            snap_seconds = clock.game_seconds_at(snap.tick)
+            if snap_seconds is not None and not 0 <= snap_seconds <= _LANE_WINDOW_S:
                 continue
             lane_pos[f"{int(snap.x) // _LANE_GRID}_{int(snap.y) // _LANE_GRID}"] += 1
         pp.lane_pos = lane_pos
@@ -973,8 +972,11 @@ def build_parsed_match(
         draft=draft_ext.draft_events,
         game_start_tick=parser.game_start_tick,
         game_end_tick=parser.tick,
+        post_game_tick=parser.post_game_tick,
+        game_clock=parser.game_clock,
         duration=duration,
     )
+    clock = parser.game_clock
 
     # Post-process buybacks (7b).
     # For BUYBACK entries, entry.value = player slot (0-9).
@@ -986,7 +988,7 @@ def build_parsed_match(
         if 0 <= pid < 10:
             combat_agg._agg(pid).buyback_log.append(entry)
 
-    # Capture game_start_tick once — used for lane_pos time filter below
+    # Capture game_start_tick once — used for the first-blood fallback below
     game_start_tick = parser.game_start_tick
     interval_min_series = _interval_series_by_player(interval_ext)
 
@@ -1010,7 +1012,7 @@ def build_parsed_match(
         if first_blood_entry.game_time_s is not None:
             match.first_blood_time = int(first_blood_entry.game_time_s)
         elif game_start_tick is not None:
-            match.first_blood_time = max(0, (first_blood_entry.tick - game_start_tick) // 30)
+            match.first_blood_time = max(0, _tick_game_seconds(first_blood_entry.tick, clock))
 
     # NOTE: pre_game_duration (horn → creep-spawn span, ~90s) is intentionally
     # left at its default 0 here. It requires the GAME_IN_PROGRESS state-transition
@@ -1025,7 +1027,7 @@ def build_parsed_match(
         combat_agg=combat_agg,
         interval_ext=interval_ext,
         interval_min_series=interval_min_series,
-        game_start_tick=game_start_tick,
+        clock=clock,
         radiant_win=radiant_win,
     )
 
@@ -1114,7 +1116,7 @@ def build_parsed_match(
         if not (0 <= ward.player_id < 10):
             continue
         pp = match.players[ward.player_id]
-        left_entry = _ward_left_entry(ward, game_start_tick)
+        left_entry = _ward_left_entry(ward, clock)
         if ward.ward_type == "observer":
             pp.obs_log.append(ward)
             if left_entry is not None:
@@ -1137,9 +1139,7 @@ def build_parsed_match(
 
     # OpenDota-shaped unified objectives timeline + building-status bitmasks.
     pid_to_team = {pp.player_id: pp.team for pp in match.players if pp.team}
-    match.objectives = _build_objectives(
-        obj_ext, combat_agg, first_blood_entry, pid_to_team, game_start_tick
-    )
+    match.objectives = _build_objectives(obj_ext, combat_agg, first_blood_entry, pid_to_team, clock)
     match.courier_deaths = obj_ext.courier_deaths
     bitmasks = building_status(obj_ext.tower_kills, obj_ext.barracks_kills)
     match.tower_status_radiant = bitmasks["tower_status_radiant"]
@@ -1189,6 +1189,7 @@ def build_parsed_match(
         player_snapshots=player_snaps,
         game_start_tick=match.game_start_tick,
         duration_s=match.duration or None,
+        game_clock=clock,
     )
 
     # teamfight_participation: read the authoritative game-computed value from

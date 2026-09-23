@@ -28,6 +28,7 @@ from gem.extractors.objectives import (
 )
 from gem.extractors.teamfights import OpenDotaTeamfight, Teamfight
 from gem.extractors.wards import WardEvent
+from gem.state.game_clock import GameClock
 
 
 class VisibilityState(str, Enum):
@@ -918,7 +919,14 @@ class ParsedMatch:
             not arbitrary-point geometry sources.
         game_start_tick: Absolute tick when the game clock started (creeps spawn).
             ``None`` if the transition was not observed.
-        game_end_tick: Absolute tick of the final parser tick.
+        game_end_tick: Absolute tick of the final parser tick. Replays can keep
+            recording long after the Ancient falls, so this is the end of the
+            recording, not the end of the match; see ``post_game_tick``.
+        post_game_tick: Absolute tick at which the match entered post-game
+            (GAME_STATE==6, the Ancient destroyed). ``None`` if not observed.
+        game_clock: Pause-aware conversion between replay ticks and the in-game
+            clock (see :class:`gem.GameClock`). ``None`` for matches assembled
+            without parser clock state.
         duration: OpenDota-style match duration in seconds. Complete replays use
             the exact value from the embedded ``CMsgDOTAMatch`` postgame summary;
             otherwise this falls back to horn-anchored combat-log time at
@@ -950,6 +958,8 @@ class ParsedMatch:
     dire_team_tag: str = ""
     game_start_tick: int | None = None
     game_end_tick: int = 0
+    post_game_tick: int | None = None
+    game_clock: GameClock | None = None
     duration: int = 0
     radiant_score: int = 0
     dire_score: int = 0

@@ -22,20 +22,42 @@ extractors. A typical 45-minute replay takes 2–4 seconds.
 
 ```python
 match.match_id             # int: Valve match ID
-match.duration_seconds     # float: game duration in seconds
-match.duration_minutes     # float: convenience property
+match.duration             # int: in-game match length in seconds (as OpenDota reports it)
+match.duration_seconds     # float: raw recording span from the horn, incl. pauses and post-game
+match.duration_minutes     # float: convenience property over duration_seconds
 match.radiant_win          # bool | None
 match.game_mode            # int: game mode enum
 match.leagueid             # int: league ID (0 for non-league)
 
 match.game_start_tick      # int | None: tick when creeps spawned
-match.game_end_tick        # int: last tick observed by the parser
+match.game_end_tick        # int: last tick observed by the parser (end of the recording)
+match.post_game_tick       # int | None: tick the Ancient fell (the match actually ended)
+match.game_clock           # GameClock | None: pause-aware tick <-> in-game time conversion
 
 match.radiant_gold_adv     # list[int]: per-minute Radiant gold advantage
 match.radiant_xp_adv       # list[int]: per-minute Radiant XP advantage
 match.hero_visibility_events  # list[HeroVisibilityEvent]: change-only hero visibility
 match.entity_visibility_events  # list[EntityVisibilityEvent]: networked Dota NPC visibility
 ```
+
+### In-game time vs replay ticks
+
+Replay ticks (30 per second) are gem's canonical join key, but they keep running
+while a match is paused, and many replays keep recording for minutes after the
+Ancient falls. Use `match.game_clock` whenever you present or export a time the
+way the in-game clock shows it:
+
+```python
+clock = match.game_clock
+clock.pauses                          # [GamePause(start_tick=58418, end_tick=59072)]
+clock.game_seconds_at(tick)           # whole in-game seconds, as OpenDota reports them
+clock.game_time_at(tick)              # exact seconds, frozen during pauses
+clock.format_tick(tick)               # "47:46"
+clock.tick_at(600)                    # first replay tick at 10:00 on the in-game clock
+```
+
+`match.post_game_tick` marks the end of the match; `match.game_end_tick` is the
+end of the recording, which can be much later.
 
 ### Hero visibility
 
