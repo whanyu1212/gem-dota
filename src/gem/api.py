@@ -44,6 +44,9 @@ Public API
 ``score_camp_visit_context(...)``
     Score a camp visit as safe/contested/defensive/invade with drivers.
 
+``build_farming_routes(match, ...)``
+    Build sampled camp-route segments with explicit evidence provenance.
+
 ``build_rosh_conversions(match)``
     Summarize how each Roshan translated into fights, objectives, and map pressure.
 
@@ -76,6 +79,7 @@ import gem.catalog as catalog  # re-export so `gem.catalog.hero_display()` works
 import gem.constants as constants  # re-export so `gem.constants.hero_display()` works
 import gem.reports as reports  # re-export so `gem.reports.build_html_report()` works
 from gem.analysis import (
+    DEFAULT_FARMING_ROUTE_CONFIG,
     DEFAULT_ROSH_TAG_THRESHOLDS,
     AbilityCast,
     AegisFateSource,
@@ -85,6 +89,13 @@ from gem.analysis import (
     EvidenceCompleteness,
     ExactEventEvidence,
     ExactEventKind,
+    FarmingBoundaryReason,
+    FarmingCampZone,
+    FarmingEvidenceStrength,
+    FarmingRoute,
+    FarmingRouteConfig,
+    FarmingRoutePoint,
+    FarmingRouteSegment,
     FightCentroidSource,
     FightOutcome,
     FightPositionSnapshot,
@@ -126,6 +137,7 @@ from gem.analysis import (
     VisionSource,
     ability_level_at_tick,
     assess_point_vision,
+    build_farming_routes,
     build_map_context_timeline,
     build_rosh_conversions,
     build_smoke_analysis,
@@ -361,6 +373,8 @@ def parse_to_dataframe(path: str | Path) -> dict[str, pd.DataFrame]:
         - ``"draft"``, ``"teamfights"``, ``"teamfight_positioning"``,
           ``"smoke_events"``, ``"smoke_fight_insights"``,
           ``"smoke_fight_members"``, ``"smoke_fight_followups"``,
+          ``"farming_routes"``, ``"farming_route_segments"``,
+          ``"farming_route_points"``,
           ``"courier_snapshots"``
         - per-player event logs (kills/purchases/runes/buybacks)
     """
@@ -485,6 +499,15 @@ __all__ = [
     "format_npc_name",
     "MapContextBucket",
     "CampVisitContext",
+    "DEFAULT_FARMING_ROUTE_CONFIG",
+    "FarmingBoundaryReason",
+    "FarmingCampZone",
+    "FarmingEvidenceStrength",
+    "FarmingRoute",
+    "FarmingRouteConfig",
+    "FarmingRoutePoint",
+    "FarmingRouteSegment",
+    "build_farming_routes",
     "build_map_context_timeline",
     "score_camp_visit_context",
     "RoshTimelineEvent",

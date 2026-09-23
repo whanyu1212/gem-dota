@@ -639,6 +639,7 @@ def _populate_player_series(
         pp.lh_t = ts.lh_t
         pp.dn_t = ts.dn_t
         pp.xp_t = ts.xp_t
+        pp.total_earned_xp_t = ts.total_earned_xp_t
         interval_ts = interval_min_series.get(player_id)
         if interval_ts is not None:
             # OpenDota interval records use cumulative earned gold/XP for

@@ -7,6 +7,7 @@ from collections import defaultdict
 
 import gem
 import gem.api
+from gem.analysis.farming import build_farming_routes
 from gem.analysis.roshan import build_rosh_conversions
 from gem.analysis.smoke_fight import build_smoke_fight_insights
 from gem.analysis.teamfight_positioning import build_teamfight_positioning
@@ -31,6 +32,7 @@ class TestSerializationHelpers:
             hero_name="npc_dota_hero_axe",
             team=2,
             times=[30],
+            total_earned_xp_t=[725],
             position_log=[(30, 100.5, -50.25)],
         )
         pp.lane_pos = defaultdict(int, {"100_200": 3})
@@ -48,6 +50,7 @@ class TestSerializationHelpers:
         assert data["players"][0]["lane_pos"]["100_200"] == 3
         assert isinstance(data["players"][0]["position_log"], list)
         assert data["players"][0]["position_log"][0] == [30, 100.5, -50.25]
+        assert data["players"][0]["total_earned_xp_t"] == [725]
 
     def test_to_json_returns_valid_json(self):
         match = ParsedMatch(match_id=7)
@@ -56,6 +59,24 @@ class TestSerializationHelpers:
         decoded = json.loads(payload)
         assert decoded["match_id"] == 7
         assert "players" in decoded
+
+    def test_farming_routes_serialize_enum_and_missing_evidence_values(self):
+        player = ParsedPlayer(
+            player_id=0,
+            hero_name="npc_dota_hero_axe",
+            team=2,
+            position_log=[(0, 8647.0, 15564.0), (30, 8650.0, 15564.0)],
+        )
+
+        decoded = json.loads(
+            json.dumps(gem.to_dict(build_farming_routes(ParsedMatch(players=[player]))))
+        )
+        segment = decoded[0]["segments"][0]
+
+        assert segment["start_reason"] == "zone_entry"
+        assert segment["end_reason"] == "log_end"
+        assert segment["evidence_strength"] == "transit_like"
+        assert segment["window_xp_delta"] is None
 
     def test_positioning_analysis_preserves_enum_values_and_unknowns(self):
         players = [

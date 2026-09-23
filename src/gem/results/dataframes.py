@@ -22,15 +22,16 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
 
     Returns:
         Dictionary with tabular projections of match-level, player-level,
-        and event-level data. Existing keys are preserved:
-        ``players``, ``positions``, ``combat_log``, ``wards``,
-        ``objectives``, and ``chat``.
+        event-level, and post-parse analysis data. Existing keys are preserved;
+        farming analysis adds ``farming_routes``,
+        ``farming_route_segments``, and ``farming_route_points``.
     """
     from dataclasses import asdict, fields
     from enum import Enum
 
     import pandas as pd
 
+    from gem.analysis.farming import build_farming_routes
     from gem.analysis.roshan import build_rosh_conversions
     from gem.analysis.smoke_fight import build_smoke_fight_insights
     from gem.analysis.teamfight_positioning import build_teamfight_positioning
@@ -78,6 +79,9 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                     "gold": pp.gold_t[i] if i < len(pp.gold_t) else 0,
                     "total_earned_gold": (
                         pp.total_earned_gold_t[i] if i < len(pp.total_earned_gold_t) else 0
+                    ),
+                    "total_earned_xp": (
+                        pp.total_earned_xp_t[i] if i < len(pp.total_earned_xp_t) else 0
                     ),
                     "net_worth": pp.net_worth_t[i] if i < len(pp.net_worth_t) else 0,
                     "lh": pp.lh_t[i] if i < len(pp.lh_t) else 0,
@@ -958,6 +962,132 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         columns=follow_up_columns,
     )
 
+    # --- evidence-first farming routes ---
+    farming_route_columns = [
+        "player_id",
+        "hero_name",
+        "team",
+        "camp_catalog_version",
+        "camp_map_patch",
+        "status",
+        "status_reasons",
+        "segment_count",
+        "point_count",
+    ]
+    farming_segment_columns = [
+        "player_id",
+        "hero_name",
+        "team",
+        "segment_index",
+        "camp_id",
+        "camp_type",
+        "start_tick",
+        "end_tick",
+        "duration_seconds",
+        "start_reason",
+        "end_reason",
+        "sample_count",
+        "in_zone_sample_count",
+        "position_coverage",
+        "max_sample_gap_ticks",
+        "micro_exit_merged",
+        "neutral_kills",
+        "neutral_damage",
+        "window_xp_delta",
+        "window_total_earned_gold_delta",
+        "resource_start_sample_tick",
+        "resource_end_sample_tick",
+        "evidence_strength",
+        "evidence_reasons",
+        "evidence_gaps",
+    ]
+    farming_point_columns = [
+        "player_id",
+        "hero_name",
+        "team",
+        "segment_index",
+        "tick",
+        "x",
+        "y",
+        "camp_id",
+        "camp_type",
+        "inside_base_zone",
+        "boundary_before",
+    ]
+    farming_route_rows: list[dict[str, Any]] = []
+    farming_segment_rows: list[dict[str, Any]] = []
+    farming_point_rows: list[dict[str, Any]] = []
+    for route in build_farming_routes(match):
+        farming_route_rows.append(
+            {
+                "player_id": route.player_id,
+                "hero_name": route.hero_name,
+                "team": route.team,
+                "camp_catalog_version": route.camp_catalog_version,
+                "camp_map_patch": route.camp_map_patch,
+                "status": route.status,
+                "status_reasons": ";".join(route.status_reasons),
+                "segment_count": len(route.segments),
+                "point_count": len(route.points),
+            }
+        )
+        segment_by_point = {
+            id(point): segment.segment_index
+            for segment in route.segments
+            for point in segment.points
+        }
+        for segment in route.segments:
+            farming_segment_rows.append(
+                {
+                    "player_id": segment.player_id,
+                    "hero_name": segment.hero_name,
+                    "team": segment.team,
+                    "segment_index": segment.segment_index,
+                    "camp_id": segment.camp_id,
+                    "camp_type": segment.camp_type,
+                    "start_tick": segment.start_tick,
+                    "end_tick": segment.end_tick,
+                    "duration_seconds": segment.duration_seconds,
+                    "start_reason": segment.start_reason.value,
+                    "end_reason": segment.end_reason.value,
+                    "sample_count": segment.sample_count,
+                    "in_zone_sample_count": segment.in_zone_sample_count,
+                    "position_coverage": segment.position_coverage,
+                    "max_sample_gap_ticks": segment.max_sample_gap_ticks,
+                    "micro_exit_merged": segment.micro_exit_merged,
+                    "neutral_kills": segment.neutral_kills,
+                    "neutral_damage": segment.neutral_damage,
+                    "window_xp_delta": segment.window_xp_delta,
+                    "window_total_earned_gold_delta": (segment.window_total_earned_gold_delta),
+                    "resource_start_sample_tick": segment.resource_start_sample_tick,
+                    "resource_end_sample_tick": segment.resource_end_sample_tick,
+                    "evidence_strength": segment.evidence_strength.value,
+                    "evidence_reasons": ";".join(segment.evidence_reasons),
+                    "evidence_gaps": ";".join(segment.evidence_gaps),
+                }
+            )
+        for point in route.points:
+            farming_point_rows.append(
+                {
+                    "player_id": route.player_id,
+                    "hero_name": route.hero_name,
+                    "team": route.team,
+                    "segment_index": segment_by_point.get(id(point)),
+                    "tick": point.tick,
+                    "x": point.x,
+                    "y": point.y,
+                    "camp_id": point.camp_id,
+                    "camp_type": point.camp_type,
+                    "inside_base_zone": point.inside_base_zone,
+                    "boundary_before": (
+                        point.boundary_before.value if point.boundary_before else None
+                    ),
+                }
+            )
+    farming_routes_df = pd.DataFrame(farming_route_rows, columns=farming_route_columns)
+    farming_route_segments_df = pd.DataFrame(farming_segment_rows, columns=farming_segment_columns)
+    farming_route_points_df = pd.DataFrame(farming_point_rows, columns=farming_point_columns)
+
     return {
         "players": players_df,
         "players_minute": players_min_df,
@@ -980,6 +1110,9 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         "smoke_fight_insights": smoke_fight_insights_df,
         "smoke_fight_members": smoke_fight_members_df,
         "smoke_fight_followups": smoke_fight_followups_df,
+        "farming_routes": farming_routes_df,
+        "farming_route_segments": farming_route_segments_df,
+        "farming_route_points": farming_route_points_df,
         "courier_snapshots": courier_df,
         "neutral_item_finds": neutral_item_finds_df,
         "hero_visibility_events": hero_visibility_df,

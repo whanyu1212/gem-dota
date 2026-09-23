@@ -63,7 +63,7 @@ module's docstring names its slice:
 | `sections/match.py` | `build_header`, `build_scoreboard`, `build_objectives`, `build_rosh_conversion`, `build_draft`, `build_chat` |
 | `sections/economy.py` | `build_hero_timeseries_chart`, `build_gold_xp_chart`, `build_damage`, `build_purchases`, `build_buybacks`, `build_runes` |
 | `sections/combat.py` | `build_combat_timeseries_chart`, `build_kill_feed`, `build_teamfights` |
-| `sections/vision.py` | `build_wards`, `build_laning`, `build_farming` |
+| `sections/vision.py` | `build_wards`, `build_laning`, `build_farming` (renders public evidence-first farming routes) |
 | `sections/_shared.py` | helpers used by more than one section module (e.g. `_ward_enemies_seen`, Radiant/Dire color palettes) |
 
 `sections/__init__.py` re-exports all 18 `build_*` functions, so the package is

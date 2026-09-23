@@ -8,6 +8,19 @@ This page is a curated narrative summary of the parser, validation, and report c
 
 It is intentionally short-range. The full per-release SemVer history lives in the canonical [CHANGELOG.md](https://github.com/whanyu1212/gem-dota/blob/main/CHANGELOG.md).
 
+## September 2026 — Farming route evidence
+
+Farming Patterns now reconstructs camp-local routes with explicit zone,
+sample-gap, movement-discontinuity, and micro-exit rules. Public route, segment,
+and point records preserve neutral interaction, fresh cumulative XP/gold deltas,
+sampled coverage, strength, and missing-evidence reasons; three flat DataFrames
+expose the same facts. Dense player records retain total-earned XP separately
+from level-local XP, and report downsampling preserves route discontinuities.
+The report leads with these evidence categories and keeps the older
+safety/pressure labels as a secondary compatibility view.
+
+See [Farming Patterns](./experimental/farming-patterns.md).
+
 ## September 2026 — Roshan evidence calibration
 
 Roshan conversion now records protocol/fallback team provenance, explicit Aegis

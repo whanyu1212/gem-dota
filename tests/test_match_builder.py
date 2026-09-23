@@ -1114,6 +1114,7 @@ class TestBuildParsedMatchGoldXpAdv:
         assert m.radiant_gold_adv[1] == 1000
         assert m.radiant_xp_adv == [300, 600]
         assert m.game_times_min == [0, 60]
+        assert m.players[0].total_earned_xp_t == [500, 1000]
 
     def test_dire_ahead(self):
         ts = {

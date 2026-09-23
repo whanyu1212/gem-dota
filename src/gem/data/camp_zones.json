@@ -1,5 +1,6 @@
 {
   "version": 1,
+  "dota_patch": "7.40",
   "source_image": "assets/maps/camp_annotated.png",
   "world_bounds": {
     "xmin": 7563,

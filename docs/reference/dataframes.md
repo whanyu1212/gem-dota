@@ -29,6 +29,9 @@ pip install pyarrow
 | `"smoke_fight_insights"` | One row per bounded smoke/fight candidate, including association, exact-event, visibility, and formation summaries |
 | `"smoke_fight_members"` | Per-candidate smoked-member participation, visibility, sampled position, and evidence-gap details |
 | `"smoke_fight_followups"` | Uniquely allocated objective and observer-placement evidence inside bounded post-fight windows |
+| `"farming_routes"` | One row per player with route availability, camp-catalog metadata, and segment/point counts |
+| `"farming_route_segments"` | Camp-local route windows with boundary provenance, sampled coverage, neutral/resource support, evidence strength, and gaps |
+| `"farming_route_points"` | Sampled path points with deterministic camp membership, discontinuity provenance, and optional segment membership |
 | `"hero_visibility_events"` | Change-only Radiant/Dire visibility state for canonical player heroes |
 | `"entity_visibility"` | Change-only packet-boundary visibility and lifecycle for networked Dota NPC entities |
 | `"vision_modifiers"` | Flat vision-relevant modifier application lifecycles and evidence |

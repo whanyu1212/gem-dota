@@ -3,6 +3,9 @@ from __future__ import annotations
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
+
+from gem.analysis import FarmingBoundaryReason, FarmingRoutePoint
 from gem.combat.log import CombatLogEntry, CombatLogType
 from gem.extractors.teamfights import Teamfight, TeamfightPlayer
 from gem.reports import (
@@ -13,7 +16,11 @@ from gem.reports import (
     write_html_report,
 )
 from gem.reports.sections.combat import _fight_reveals_html, build_kill_feed, build_teamfights
-from gem.reports.sections.vision import _insight_delta
+from gem.reports.sections.vision import (
+    _downsample_farming_route_points,
+    _insight_delta,
+    build_farming,
+)
 from gem.results.models import (
     HeroVisibilityEvent,
     ParsedMatch,
@@ -159,6 +166,73 @@ def test_build_html_report_smoke_without_assets() -> None:
     assert "<title>Smoke Report</title>" in html
     assert "Match ID" in html
     assert "123456789" in html
+
+
+def test_farming_report_leads_with_evidence_and_preserves_missing_context() -> None:
+    hero_name = "npc_dota_hero_axe"
+    match = ParsedMatch(
+        game_start_tick=0,
+        game_end_tick=600,
+        players=[
+            ParsedPlayer(
+                player_id=0,
+                hero_name=hero_name,
+                team=2,
+                position_log=[
+                    (0, 8_647.0, 15_564.0),
+                    (150, 8_650.0, 15_560.0),
+                    (500, 8_647.0, 15_564.0),
+                ],
+            )
+        ],
+        combat_log=[
+            CombatLogEntry(
+                tick=90,
+                log_type=CombatLogType.DEATH,
+                attacker_name=hero_name,
+                target_name="npc_dota_neutral_centaur_khan",
+                location_x=8_647.0,
+                location_y=15_564.0,
+            )
+        ],
+    )
+
+    html = build_farming(match, None)
+
+    assert "Strong Farm Evidence" in html
+    assert "Context Unavailable" in html
+    assert "fresh XP endpoints unavailable" in html
+    assert "1 neutral kill(s)" in html
+    assert '"break_before": true' in html
+    assert "S:0.50 P:0.50 V:0.50" not in html
+    assert html.index("Strong Farm Evidence") < html.index("Legacy context heuristic reference")
+
+
+@pytest.mark.parametrize(
+    "boundary",
+    [FarmingBoundaryReason.SAMPLE_GAP, FarmingBoundaryReason.LARGE_JUMP],
+)
+def test_farming_route_downsampling_preserves_discontinuities(
+    boundary: FarmingBoundaryReason,
+) -> None:
+    points = [
+        FarmingRoutePoint(
+            tick=index * 30,
+            x=float(index),
+            y=0.0,
+            camp_id=None,
+            camp_type=None,
+            inside_base_zone=False,
+            boundary_before=(boundary if index == 701 else None),
+        )
+        for index in range(1405)
+    ]
+
+    sampled = _downsample_farming_route_points(points)
+
+    assert points[700] in sampled
+    assert points[701] in sampled
+    assert sampled[-1] is points[-1]
 
 
 def test_teamfight_report_renders_four_evidence_snapshots_on_one_map() -> None:

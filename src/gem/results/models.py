@@ -472,7 +472,10 @@ class ParsedPlayer:
         net_worth_t: Net worth (gold + item value) at each sample tick.
         lh_t: Last-hit count at each sample tick.
         dn_t: Deny count at each sample tick.
-        xp_t: Cumulative XP at each sample tick.
+        xp_t: Current progress toward the next hero level at each sample tick
+            (``m_iCurrentXP``); this resets on level-up.
+        total_earned_xp_t: Cumulative total earned XP at each sample tick
+            (``m_iTotalEarnedXP``).
         times_min: Tick values at each game-minute boundary (OpenDota-aligned).
         game_times_min: Game-relative seconds parallel to ``times_min`` and all
             ``*_t_min`` arrays. Values are exact non-negative minute boundaries
@@ -823,6 +826,7 @@ class ParsedPlayer:
     aghanims_scepter: int | None = None
     aghanims_shard: int | None = None
     moonshard: int | None = None
+    total_earned_xp_t: list[int] = field(default_factory=list)
     # Internal provenance for values copied from CMsgDOTAMatch. The serializer
     # omits this implementation detail from the public ParsedPlayer shape.
     _match_details_fields: set[str] = field(

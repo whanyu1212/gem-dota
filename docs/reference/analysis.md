@@ -920,6 +920,179 @@ Convert an NPC name to a human-readable label.
 
 Source: [src/gem/analysis/formatting.py:6](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/formatting.py#L6)
 
+## Module `gem.analysis.farming`
+
+Evidence-first neutral-camp route reconstruction.
+
+Source: [src/gem/analysis/farming.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L1)
+
+### Top-level functions
+
+### `build_farming_routes`
+
+```python
+def build_farming_routes(match: ParsedMatch, *, config: FarmingRouteConfig = DEFAULT_FARMING_ROUTE_CONFIG) -> list[FarmingRoute]
+```
+
+Build deterministic camp-local route evidence for every parsed player.
+
+Source: [src/gem/analysis/farming.py:574](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L574)
+
+### Top-level classes
+
+### `FarmingEvidenceStrength`
+
+```python
+class FarmingEvidenceStrength(str, Enum)
+```
+
+Conservative support level for a camp-local route segment.
+
+Source: [src/gem/analysis/farming.py:23](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L23)
+
+### `FarmingBoundaryReason`
+
+```python
+class FarmingBoundaryReason(str, Enum)
+```
+
+Observed reason a route segment started or ended.
+
+Source: [src/gem/analysis/farming.py:31](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L31)
+
+### `FarmingRouteConfig`
+
+```python
+class FarmingRouteConfig
+```
+
+Inspectable thresholds for farming-route reconstruction.
+
+Source: [src/gem/analysis/farming.py:43](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L43)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `max_sample_gap_ticks` | `int` | `10 * _TICKS_PER_SECOND` |
+| `max_contiguous_speed` | `float` | `900.0` |
+| `merge_gap_ticks` | `int` | `5 * _TICKS_PER_SECOND` |
+| `min_weak_dwell_ticks` | `int` | `5 * _TICKS_PER_SECOND` |
+| `resource_max_age_ticks` | `int` | `2 * _TICKS_PER_SECOND` |
+
+### `FarmingCampZone`
+
+```python
+class FarmingCampZone
+```
+
+One calibrated neutral-camp zone from the bundled catalog.
+
+Source: [src/gem/analysis/farming.py:69](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L69)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `camp_id` | `int` | `-` |
+| `camp_type` | `str` | `-` |
+| `center_x` | `float` | `-` |
+| `center_y` | `float` | `-` |
+| `shape` | `str` | `-` |
+| `radius_x` | `float` | `-` |
+| `radius_y` | `float` | `-` |
+| `rotation_degrees` | `float` | `-` |
+| `polygon_points` | `tuple[tuple[float, float], ...]` | `()` |
+| `enter_margin` | `float` | `0.0` |
+| `exit_margin` | `float` | `0.0` |
+
+### `FarmingRoutePoint`
+
+```python
+class FarmingRoutePoint
+```
+
+One sampled route point and its selected camp membership.
+
+Source: [src/gem/analysis/farming.py:86](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L86)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `tick` | `int` | `-` |
+| `x` | `float` | `-` |
+| `y` | `float` | `-` |
+| `camp_id` | `int \| None` | `-` |
+| `camp_type` | `str \| None` | `-` |
+| `inside_base_zone` | `bool` | `-` |
+| `boundary_before` | `FarmingBoundaryReason \| None` | `None` |
+
+### `FarmingRouteSegment`
+
+```python
+class FarmingRouteSegment
+```
+
+One camp-local sampled route segment with factual support evidence.
+
+Source: [src/gem/analysis/farming.py:99](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L99)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `segment_index` | `int` | `-` |
+| `player_id` | `int` | `-` |
+| `hero_name` | `str` | `-` |
+| `team` | `int` | `-` |
+| `camp_id` | `int` | `-` |
+| `camp_type` | `str` | `-` |
+| `start_tick` | `int` | `-` |
+| `end_tick` | `int` | `-` |
+| `duration_seconds` | `float` | `-` |
+| `start_reason` | `FarmingBoundaryReason` | `-` |
+| `end_reason` | `FarmingBoundaryReason` | `-` |
+| `sample_count` | `int` | `-` |
+| `in_zone_sample_count` | `int` | `-` |
+| `position_coverage` | `float \| None` | `-` |
+| `max_sample_gap_ticks` | `int \| None` | `-` |
+| `micro_exit_merged` | `bool` | `-` |
+| `neutral_kills` | `int` | `-` |
+| `neutral_damage` | `int` | `-` |
+| `window_xp_delta` | `int \| None` | `-` |
+| `window_total_earned_gold_delta` | `int \| None` | `-` |
+| `resource_start_sample_tick` | `int \| None` | `-` |
+| `resource_end_sample_tick` | `int \| None` | `-` |
+| `evidence_strength` | `FarmingEvidenceStrength` | `-` |
+| `evidence_reasons` | `list[str]` | `field(...)` |
+| `evidence_gaps` | `list[str]` | `field(...)` |
+| `points` | `list[FarmingRoutePoint]` | `field(...)` |
+
+### `FarmingRoute`
+
+```python
+class FarmingRoute
+```
+
+Evidence-first farming route for one parsed player.
+
+Source: [src/gem/analysis/farming.py:131](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L131)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `player_id` | `int` | `-` |
+| `hero_name` | `str` | `-` |
+| `team` | `int` | `-` |
+| `camp_catalog_version` | `int \| None` | `-` |
+| `camp_map_patch` | `str \| None` | `-` |
+| `status` | `Literal['complete', 'partial', 'unavailable']` | `-` |
+| `status_reasons` | `list[str]` | `field(...)` |
+| `points` | `list[FarmingRoutePoint]` | `field(...)` |
+| `segments` | `list[FarmingRouteSegment]` | `field(...)` |
+
 ## Module `gem.analysis.map_context`
 
 Objective-aware map-context helpers for farming-pattern analysis.

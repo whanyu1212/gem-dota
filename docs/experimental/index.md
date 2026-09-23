@@ -22,7 +22,7 @@ An experimental feature usually has at least one of these properties:
 
 | Feature | What it tries to answer |
 |---|---|
-| [Farming Patterns](./farming-patterns.md) | Where a hero is routing on the map, how safe or forced those routes look, and what objective state may be shaping those choices |
+| [Farming Patterns](./farming-patterns.md) | Which camp-local routes were observed and whether neutral interaction, resource deltas, or dwell support farming rather than transit |
 | [Roshan Conversion](./rosh-conversion.md) | Whether a team actually translated Roshan into fights, structures, territorial squeeze, or a game-closing sequence |
 | [Roshan Conversion Calibration](./rosh-conversion-calibration.md) | Which real-replay facts, threshold observations, and territory sensitivity checks support the provisional Roshan ruleset |
 | [Smoke Analysis](./smoke-analysis.md) | When each smoked hero gained and lost the modifier, what the enemy could see, and what happened next |

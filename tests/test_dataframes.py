@@ -33,6 +33,7 @@ class TestBuildDataframes:
             times=[30],
             gold_t=[500],
             total_earned_gold_t=[900],
+            total_earned_xp_t=[1200],
             lh_t=[10],
             dn_t=[2],
             xp_t=[600],
@@ -58,6 +59,7 @@ class TestBuildDataframes:
         row = players_df.iloc[0]
         assert row["gold"] == 500
         assert row["total_earned_gold"] == 900
+        assert row["total_earned_xp"] == 1200
         assert row["damage_physical"] == 1200
         assert row["damage_magical"] == 300
         assert row["damage_pure"] == 50
@@ -130,6 +132,9 @@ class TestBuildDataframes:
         assert "smoke_fight_insights" in dfs
         assert "smoke_fight_members" in dfs
         assert "smoke_fight_followups" in dfs
+        assert "farming_routes" in dfs
+        assert "farming_route_segments" in dfs
+        assert "farming_route_points" in dfs
         assert "courier_snapshots" in dfs
         assert "neutral_item_finds" in dfs
         assert "vision_modifiers" in dfs
@@ -144,6 +149,16 @@ class TestBuildDataframes:
         assert dfs["teamfight_positioning"].empty
         assert dfs["roshan_conversions"].empty
         assert dfs["roshan_conversion_fights"].empty
+        assert dfs["farming_route_segments"].empty
+        assert dfs["farming_route_points"].empty
+        assert list(dfs["farming_route_segments"].columns[:6]) == [
+            "player_id",
+            "hero_name",
+            "team",
+            "segment_index",
+            "camp_id",
+            "camp_type",
+        ]
         assert list(dfs["roshan_conversions"].columns[:6]) == [
             "rosh_number",
             "rosh_tick",
@@ -460,6 +475,31 @@ class TestBuildDataframes:
         assert member["player_id"] == 0
         assert member["authoritative_visibility"] == "unknown"
         assert dfs["smoke_fight_followups"].empty
+
+    def test_farming_route_tables_preserve_segments_points_and_missing_evidence(self):
+        player = ParsedPlayer(
+            player_id=0,
+            hero_name="npc_dota_hero_axe",
+            team=2,
+            position_log=[(0, 8647.0, 15564.0), (150, 8650.0, 15564.0)],
+        )
+        match = ParsedMatch(players=[player])
+
+        dfs = build_dataframes(match)
+        route = dfs["farming_routes"].iloc[0]
+        segment = dfs["farming_route_segments"].iloc[0]
+        points = dfs["farming_route_points"]
+
+        assert route["camp_catalog_version"] == 1
+        assert route["camp_map_patch"] == "7.40"
+        assert route["status"] == "partial"
+        assert route["segment_count"] == 1
+        assert segment["camp_id"] == 1
+        assert segment["evidence_strength"] == "weak_farm_evidence"
+        assert segment["window_xp_delta"] is None
+        assert segment["window_total_earned_gold_delta"] is None
+        assert list(points["segment_index"]) == [1, 1]
+        assert list(points["inside_base_zone"]) == [True, True]
 
     def test_minute_tables_include_authoritative_game_time_axis(self):
         pp = ParsedPlayer(
