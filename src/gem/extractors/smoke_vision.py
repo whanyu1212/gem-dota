@@ -667,7 +667,12 @@ class SmokeExtractor:
 
     def _on_entry(self, entry: CombatLogEntry) -> None:
         if entry.log_type == "ITEM" and entry.inflictor_name == _SMOKE_ITEM:
-            ev = SmokeEvent(tick=entry.tick, activator=entry.attacker_name, team=0)
+            ev = SmokeEvent(
+                tick=entry.tick,
+                activator=entry.attacker_name,
+                team=0,
+                activation_game_time_s=self._entry_game_time_s(entry),
+            )
             self.events.append(ev)
             self._open_activations.append(ev)
         elif (
@@ -688,9 +693,10 @@ class SmokeExtractor:
                         applied_tick=entry.tick,
                         modifier_duration_s=entry.modifier_duration_s,
                         modifier_elapsed_duration_s=entry.modifier_elapsed_duration_s,
+                        applied_game_time_s=self._entry_game_time_s(entry),
                     )
                     activation.participants.append(new_participant)
-                    applied_game_time_s = self._entry_game_time_s(entry)
+                    applied_game_time_s = new_participant.applied_game_time_s
                     if applied_game_time_s is not None:
                         self._participant_applied_game_time_s[id(new_participant)] = (
                             applied_game_time_s
@@ -701,6 +707,7 @@ class SmokeExtractor:
                     # canonical earliest add tick without duplicating the hero.
                     existing.applied_tick = entry.tick
                     applied_game_time_s = self._entry_game_time_s(entry)
+                    existing.applied_game_time_s = applied_game_time_s
                     if applied_game_time_s is not None:
                         self._participant_applied_game_time_s[id(existing)] = applied_game_time_s
                     if entry.modifier_duration_s is not None:
@@ -720,6 +727,7 @@ class SmokeExtractor:
             participant = self._participant_for_remove(entry)
             if participant is not None:
                 participant.removed_tick = entry.tick
+                participant.removed_game_time_s = self._entry_game_time_s(entry)
                 if entry.modifier_duration_s is not None:
                     participant.modifier_duration_s = entry.modifier_duration_s
                 if entry.modifier_elapsed_duration_s is not None:

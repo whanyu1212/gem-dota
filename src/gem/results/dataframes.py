@@ -387,6 +387,7 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
     smoke_member_columns = [
         "smoke_event_index",
         "activation_tick",
+        "activation_game_time_s",
         "activator",
         "team",
         "hero_name",
@@ -399,11 +400,14 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         "applied_y",
         "removed_x",
         "removed_y",
+        "applied_game_time_s",
+        "removed_game_time_s",
     ]
     smoke_member_rows = [
         {
             "smoke_event_index": event_index,
             "activation_tick": smoke.tick,
+            "activation_game_time_s": smoke.activation_game_time_s,
             "activator": smoke.activator,
             "team": smoke.team,
             **asdict(participant),

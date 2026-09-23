@@ -318,6 +318,10 @@ class SmokeParticipant:
         applied_y: Sampled world y coordinate at ``applied_tick``, or ``None``.
         removed_x: Sampled world x coordinate at ``removed_tick``, or ``None``.
         removed_y: Sampled world y coordinate at ``removed_tick``, or ``None``.
+        applied_game_time_s: Pause-aware game time when the modifier was added,
+            or ``None`` when unavailable.
+        removed_game_time_s: Pause-aware game time when the modifier was
+            removed, or ``None`` when unavailable.
     """
 
     hero_name: str
@@ -330,6 +334,8 @@ class SmokeParticipant:
     applied_y: float | None = None
     removed_x: float | None = None
     removed_y: float | None = None
+    applied_game_time_s: int | None = None
+    removed_game_time_s: int | None = None
 
 
 @dataclass
@@ -351,6 +357,8 @@ class SmokeEvent:
         activation_y: Activating hero's sampled world y coordinate at the exact
             item-use tick, or ``None`` when unavailable.
         participants: Per-hero modifier lifecycles in observed application order.
+        activation_game_time_s: Pause-aware game time when the item was used,
+            or ``None`` when unavailable.
     """
 
     tick: int
@@ -362,6 +370,7 @@ class SmokeEvent:
     activation_x: float | None = None
     activation_y: float | None = None
     participants: list[SmokeParticipant] = field(default_factory=list)
+    activation_game_time_s: int | None = None
 
 
 @dataclass

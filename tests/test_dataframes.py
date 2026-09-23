@@ -145,6 +145,7 @@ class TestBuildDataframes:
         assert list(dfs["smoke_members"].columns) == [
             "smoke_event_index",
             "activation_tick",
+            "activation_game_time_s",
             "activator",
             "team",
             "hero_name",
@@ -157,6 +158,8 @@ class TestBuildDataframes:
             "applied_y",
             "removed_x",
             "removed_y",
+            "applied_game_time_s",
+            "removed_game_time_s",
         ]
         assert dfs["vision_modifiers"].empty
         assert dfs["vision_modifier_pairing_issues"].empty
@@ -262,6 +265,7 @@ class TestBuildDataframes:
                     tick=1_000,
                     activator="npc_dota_hero_axe",
                     team=2,
+                    activation_game_time_s=10,
                     participants=[
                         SmokeParticipant(
                             hero_name="npc_dota_hero_axe",
@@ -274,6 +278,8 @@ class TestBuildDataframes:
                             applied_y=200.0,
                             removed_x=300.0,
                             removed_y=400.0,
+                            applied_game_time_s=11,
+                            removed_game_time_s=26,
                         )
                     ],
                 )
@@ -284,10 +290,13 @@ class TestBuildDataframes:
 
         assert row["smoke_event_index"] == 0
         assert row["activation_tick"] == 1_000
+        assert row["activation_game_time_s"] == 10
         assert row["activator"] == "npc_dota_hero_axe"
         assert row["applied_tick"] == 1_001
         assert row["removed_tick"] == 1_448
         assert row["modifier_elapsed_duration_s"] == 14.9
+        assert row["applied_game_time_s"] == 11
+        assert row["removed_game_time_s"] == 26
 
     def test_minute_tables_include_authoritative_game_time_axis(self):
         pp = ParsedPlayer(
