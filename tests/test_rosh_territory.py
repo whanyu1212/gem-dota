@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from gem.analysis._territory import build_territory_window
+from gem.analysis._territory import RoshTerritoryConfig, build_territory_window
 from gem.results.models import ParsedMatch, ParsedPlayer
 
 
@@ -123,3 +123,112 @@ def test_complete_sampling_without_forward_presence_has_zero_depth() -> None:
     assert window.conversion_depth_p90 == 0.0
     assert window.opponent_depth_p90 == 0.0
     assert window.depth_differential == 0.0
+
+
+def test_player_time_completeness_threshold_is_inclusive_at_seventy_percent() -> None:
+    def _truncated(end: int) -> ParsedMatch:
+        players: list[ParsedPlayer] = []
+        for player_id in range(10):
+            point = (24000.0, 21000.0) if player_id < 5 else (8804.0, 11034.0)
+            player = _sampled_player(
+                player_id,
+                2 if player_id < 5 else 3,
+                point,
+                end=end,
+            )
+            if player.position_log[-1][0] != end:
+                player.position_log.append((end, *point))
+            players.append(player)
+        return ParsedMatch(players=players)
+
+    at_threshold = build_territory_window(_truncated(2520), 2, 0, 3600)
+    below_threshold = build_territory_window(_truncated(2400), 2, 0, 3600)
+
+    assert at_threshold.status == "complete"
+    assert at_threshold.conversion_player_time_coverage == pytest.approx(0.70)
+    assert below_threshold.status == "unavailable"
+    assert below_threshold.conversion_player_time_coverage == pytest.approx(2 / 3)
+
+
+def test_custom_completeness_uses_threshold_neutral_status_reasons() -> None:
+    players = [
+        _sampled_player(
+            player_id,
+            2 if player_id < 5 else 3,
+            (24000.0, 21000.0) if player_id < 5 else (8804.0, 11034.0),
+            end=3000,
+        )
+        for player_id in range(10)
+    ]
+    match = ParsedMatch(players=players)
+
+    assert build_territory_window(match, 2, 0, 3600).status == "complete"
+
+    window = build_territory_window(
+        match,
+        2,
+        0,
+        3600,
+        config=RoshTerritoryConfig(min_player_time_coverage=0.9),
+    )
+
+    assert window.status == "unavailable"
+    assert window.conversion_player_time_coverage == pytest.approx(5 / 6)
+    assert window.opponent_player_time_coverage == pytest.approx(5 / 6)
+    assert window.status_reasons == [
+        "conversion_team_position_coverage_below_threshold",
+        "opponent_position_coverage_below_threshold",
+    ]
+
+
+def test_cell_bucket_and_depth_settings_are_reproducible_for_sensitivity_checks() -> None:
+    stationary = _paired_match((24000.0, 21000.0), (8804.0, 11034.0))
+    default = build_territory_window(stationary, 2, 0, 3600)
+    larger_cells = build_territory_window(
+        stationary,
+        2,
+        0,
+        3600,
+        config=RoshTerritoryConfig(cell_size=1200.0),
+    )
+    wider_buckets = build_territory_window(
+        stationary,
+        2,
+        0,
+        3600,
+        config=RoshTerritoryConfig(bucket_ticks=60 * 30),
+    )
+
+    assert larger_cells.conversion_coverage_pct != pytest.approx(default.conversion_coverage_pct)
+    assert wider_buckets.conversion_coverage_pct == pytest.approx(default.conversion_coverage_pct)
+
+    players = [_sampled_player(player_id, 2, (20500.0, 18500.0)) for player_id in range(5)]
+    players[0].position_log[-2:] = [
+        (3300, 25000.0, 22000.0),
+        (3600, 25000.0, 22000.0),
+    ]
+    players.extend(_sampled_player(player_id, 3, (8804.0, 11034.0)) for player_id in range(5, 10))
+    depth_match = ParsedMatch(players=players)
+    p90 = build_territory_window(depth_match, 2, 0, 3600)
+    maximum = build_territory_window(
+        depth_match,
+        2,
+        0,
+        3600,
+        config=RoshTerritoryConfig(depth_percentile=1.0),
+    )
+    assert maximum.conversion_depth_p90 > p90.conversion_depth_p90
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "message"),
+    [
+        ({"cell_size": 0.0}, "cell_size"),
+        ({"bucket_ticks": 0}, "bucket_ticks"),
+        ({"min_player_time_coverage": 1.1}, "min_player_time_coverage"),
+        ({"depth_percentile": 0.0}, "depth_percentile"),
+    ],
+)
+def test_territory_config_rejects_invalid_values(kwargs: dict, message: str) -> None:
+    with pytest.raises(ValueError, match=message):
+        RoshTerritoryConfig(**kwargs)

@@ -11,6 +11,7 @@ import json
 from gem.analysis import (
     EngagementStartSource,
     HeroPositionEvidence,
+    RoshConversion,
     SmokeFightInsight,
     TeamfightPositioning,
     build_smoke_fight_insights,
@@ -822,6 +823,7 @@ def build_teamfights(
     match: ParsedMatch,
     map_b64: str | None,
     insights: list[SmokeFightInsight] | None = None,
+    rosh_conversions: list[RoshConversion] | None = None,
 ) -> str:
     """Build the Teamfights tab content (filters + fight cards)."""
     fights = match.teamfights or []
@@ -849,6 +851,14 @@ def build_teamfights(
     for insight in insights:
         if insight.fight_index is not None:
             insights_by_fight.setdefault(insight.fight_index, []).append(insight)
+    if rosh_conversions is None:
+        rosh_conversions = []
+    rosh_by_fight: dict[int, list[tuple[RoshConversion, str]]] = {}
+    for conversion in rosh_conversions:
+        for evidence in conversion.fight_evidence:
+            rosh_by_fight.setdefault(evidence.fight_index, []).append(
+                (conversion, evidence.relation.value)
+            )
 
     max_deaths = max((tf.deaths for tf in fights), default=1)
     max_participants = max(
@@ -883,6 +893,13 @@ def build_teamfights(
             f"Smoke #{insight.smoke_index + 1} · {e(insight.status.value.replace('_', ' '))}</a>"
             for insight in insights_by_fight.get(i - 1, [])
         )
+        rosh_links = "".join(
+            f'<a class="fight-rosh-link relation-{e(relation)}" '
+            f'href="#roshan-conversion-{conversion.rosh_number}" '
+            f'data-report-target="roshan-conversion-{conversion.rosh_number}">'
+            f"Roshan #{conversion.rosh_number} · {e(relation.replace('_', ' '))}</a>"
+            for conversion, relation in rosh_by_fight.get(i - 1, [])
+        )
         tf_by_slot = {p.player_id: p for p in tf.players}
         active_slots = [p.player_id for p in tf.players if is_active_teamfight_participant(p)]
         died_slots = {p.player_id for p in tf.players if p.deaths > 0}
@@ -912,7 +929,7 @@ def build_teamfights(
             f'<span class="tf-fight-index">Fight #{i}</span>'
             f'<span class="tf-fight-time">{e(fmt_tick(tf.start_tick))} → {e(fmt_tick(tf.end_tick))}</span>'
             f'<span class="tf-fight-meta">☠ {tf.deaths} · 👤 {n_participants}</span>'
-            f'<span class="fight-smoke-links">{smoke_links}</span>'
+            f'<span class="fight-smoke-links">{smoke_links}{rosh_links}</span>'
             f"</div>"
             f'<div class="tf-fight-body">'
             f'<div class="tf-fight-map" data-fight="{i}">'

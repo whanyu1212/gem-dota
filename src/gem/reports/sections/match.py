@@ -366,15 +366,6 @@ def build_objectives(match: ParsedMatch, fmt_tick_fn: Callable[[int], str]) -> s
     return "\n".join(parts)
 
 
-_ROSH_LABEL_DISPLAY: dict[str, str] = {
-    "low_conversion": "Low Conversion",
-    "fight_conversion": "Fight Conversion",
-    "objective_conversion": "Objective Conversion",
-    "map_squeeze": "Map Squeeze",
-    "game_closing_rosh": "Game-Closing Rosh",
-}
-
-
 _ROSH_FATE_DISPLAY: dict[str, str] = {
     "consumed": "Consumed",
     "expired": "Expired",
@@ -565,12 +556,26 @@ def _balance_panel(conversion: RoshConversion) -> str:
         _balance_row("Forward-ward differential", profile.forward_ward_delta, "ward"),
         _balance_row("Tormentor differential", profile.tormentor_delta, "tormentor"),
     ]
+    unknown_parts: list[str] = []
+    if profile.unattributed_towers:
+        unknown_parts.append(f"{profile.unattributed_towers} tower(s)")
+    if profile.unattributed_barracks:
+        unknown_parts.append(f"{profile.unattributed_barracks} barracks")
+    if profile.unattributed_tormentors:
+        unknown_parts.append(f"{profile.unattributed_tormentors} Tormentor(s)")
+    unknown_note = (
+        '<p class="rosh-panel-note rosh-unattributed">Not credited to either side: '
+        + e(", ".join(unknown_parts))
+        + ".</p>"
+        if unknown_parts
+        else ""
+    )
     return (
         '<section class="rosh-panel rosh-balance-panel" '
         'aria-label="Signed conversion balance">'
         "<h4>Signed conversion balance</h4>"
         '<p class="rosh-panel-note">Positive values favor the conversion team; each row uses '
-        "its own visual scale.</p>" + "".join(rows) + "</section>"
+        "its own visual scale.</p>" + "".join(rows) + unknown_note + "</section>"
     )
 
 
@@ -827,11 +832,19 @@ def _timeline_html(conversion: RoshConversion) -> str:
                 character if character.isalnum() or character in "-_" else "-"
                 for character in event.kind
             )
+            link_attributes = (
+                f' href="#fight-{event.fight_index + 1}" '
+                f'data-report-target="fight-{event.fight_index + 1}"'
+                if event.fight_index is not None
+                else ""
+            )
+            content_tag = "a" if event.fight_index is not None else "div"
             rendered.append(
                 f'<li class="rosh-timeline-event {side} rosh-event-{e(kind_class)}" '
-                f'data-tick="{event.tick}"><div class="rosh-timeline-content">'
+                f'data-tick="{event.tick}"><{content_tag} class="rosh-timeline-content"'
+                f"{link_attributes}>"
                 f"<time>{e(fmt_tick(event.tick))}</time><span>{e(event.label)}</span>"
-                "</div></li>"
+                f"</{content_tag}></li>"
             )
         event_html = "".join(rendered)
     return (
@@ -847,19 +860,25 @@ def _summary_metric(value: int | float | None, *, decimals: int = 0, suffix: str
     return e(_format_signed(value, decimals=decimals, suffix=suffix))
 
 
-def build_rosh_conversion(match: ParsedMatch, map_b64: str | None = None) -> str:
+def build_rosh_conversion(
+    match: ParsedMatch,
+    map_b64: str | None = None,
+    conversions: list[RoshConversion] | None = None,
+) -> str:
     """Build the evidence-first Roshan conversion section.
 
     Args:
         match: Parsed match carrying Roshan and downstream replay evidence.
         map_b64: Optional pre-encoded map background. The full report patches the
             shared source into ``image.gem-map-bg`` elements after load.
+        conversions: Optional precomputed records shared with the Fights tab.
 
     Returns:
         Self-contained HTML for the Roshan conversion tab, or an empty string
         when the match has no Roshan kills.
     """
-    conversions = build_rosh_conversions(match)
+    if conversions is None:
+        conversions = build_rosh_conversions(match)
     if not conversions:
         return ""
 
@@ -893,8 +912,6 @@ def build_rosh_conversion(match: ParsedMatch, map_b64: str | None = None) -> str
             team_name(conversion.roshan_team) if conversion.roshan_team in (2, 3) else "Unknown"
         )
         holder_label = hero(conversion.holder_name) if conversion.holder_name else "Unknown"
-        label_key = conversion.conversion_label
-        label_display = _ROSH_LABEL_DISPLAY.get(label_key, _display_token(label_key))
         fate_display = _ROSH_FATE_DISPLAY.get(
             conversion.aegis_fate, _display_token(conversion.aegis_fate)
         )
@@ -907,6 +924,13 @@ def build_rosh_conversion(match: ParsedMatch, map_b64: str | None = None) -> str
             if conversion.aegis_fate_inferred
             else ""
         )
+        fate_source_display = _display_token(conversion.aegis_fate_source.value)
+        roshan_source_display = _display_token(conversion.roshan_team_source.value).replace(
+            " Id", " ID"
+        )
+        conversion_source_display = _display_token(conversion.conversion_team_source.value).replace(
+            " Id", " ID"
+        )
         drops_display = _rosh_drops_display(conversion.drops)
         hv_badge = (
             '<span class="rosh-hv-badge">High value</span>'
@@ -914,7 +938,7 @@ def build_rosh_conversion(match: ParsedMatch, map_b64: str | None = None) -> str
             else ""
         )
         parts.append(
-            '<article class="rosh-card">'
+            f'<article class="rosh-card" id="roshan-conversion-{conversion.rosh_number}">'
             '<header class="rosh-card-head">'
             '<div class="rosh-head-evidence">'
             f'<div class="rosh-kicker">Roshan #{conversion.rosh_number} · '
@@ -922,15 +946,16 @@ def build_rosh_conversion(match: ParsedMatch, map_b64: str | None = None) -> str
             f'<h3 class="rosh-title"><span style="color:{team_color}">{e(team_label)}</span>'
             f" conversion · {e(holder_label)}</h3>"
             f'<p class="rosh-meta">Roshan secured by {e(roshan_team_label)} · '
-            f"Analysis window ends {e(fmt_tick(conversion.differential_profile.window_end_tick)) if conversion.differential_profile.window_end_tick is not None else 'Unavailable'}</p>"
+            f"Analysis window ends {e(fmt_tick(conversion.differential_profile.window_end_tick)) if conversion.differential_profile.window_end_tick is not None else 'Unavailable'} · "
+            f"team evidence {e(roshan_source_display)} / {e(conversion_source_display)}</p>"
             f'<div class="rosh-drops">Drops: {e(drops_display)}{hv_badge}</div>'
             f"{_rosh_banner_line(conversion)}</div>"
             '<div class="rosh-head-right">'
             f'<span class="rosh-outcome-badge rosh-outcome-{e(conversion.aegis_outcome)}">'
             f"Aegis: {e(outcome_display)} {inferred_badge}</span>"
-            f'<span class="rosh-fate">Lifecycle: {e(fate_display)}</span>'
+            f'<span class="rosh-fate">Lifecycle: {e(fate_display)} · '
+            f"{e(fate_source_display)}</span>"
             f"{_analysis_status_html(conversion)}"
-            f'<span class="rosh-legacy-context">Context: {e(label_display)}</span>'
             "</div></header>"
             '<div class="rosh-tags" aria-label="Non-exclusive conversion tags">'
             f"{_tag_chips(conversion.conversion_tags)}</div>"

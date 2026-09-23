@@ -8,6 +8,18 @@ This page is a curated narrative summary of the parser, validation, and report c
 
 It is intentionally short-range. The full per-release SemVer history lives in the canonical [CHANGELOG.md](https://github.com/whanyu1212/gem-dota/blob/main/CHANGELOG.md).
 
+## September 2026 — Roshan evidence calibration
+
+Roshan conversion now records protocol/fallback team provenance, explicit Aegis
+fate sources, and engagement-aware fight associations. Unknown structures and
+Tormentors remain visible and uncredited. The report cross-links Roshan windows
+with fight positioning and no longer renders the deprecated aggregate score or
+exclusive label. Flat DataFrame exports and a reproducible real-replay corpus
+support downstream analysis; the tag ruleset remains explicitly provisional.
+
+See [Roshan Conversion](./experimental/rosh-conversion.md) and the
+[calibration record](./experimental/rosh-conversion-calibration.md).
+
 ## June 2026 — v0.4.x
 
 The 0.4 line is an **OpenDota match-API parity** effort plus report asset-cache

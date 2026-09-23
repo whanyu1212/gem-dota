@@ -65,6 +65,10 @@ export default defineConfig({
           { text: "Overview", link: "/experimental/" },
           { text: "Farming Patterns", link: "/experimental/farming-patterns" },
           { text: "Roshan Conversion", link: "/experimental/rosh-conversion" },
+          {
+            text: "Roshan Calibration",
+            link: "/experimental/rosh-conversion-calibration",
+          },
           { text: "Smoke Analysis", link: "/experimental/smoke-analysis" },
           { text: "Teamfight Positioning", link: "/experimental/teamfight-positioning" },
           { text: "Smoke/Fight Insights", link: "/experimental/smoke-fight-insights" },

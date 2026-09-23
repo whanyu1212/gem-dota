@@ -553,6 +553,7 @@ details[open].sub-accordion > summary::before {
     flex-wrap: wrap;
 }
 .fight-smoke-link,
+.fight-rosh-link,
 .smoke-fight-link {
     display: inline-block;
     color: #58a6ff;
@@ -563,6 +564,7 @@ details[open].sub-accordion > summary::before {
     text-decoration: none;
 }
 .fight-smoke-link:hover,
+.fight-rosh-link:hover,
 .smoke-fight-link:hover { border-color: #58a6ff; }
 .smoke-fight-insight + .smoke-fight-insight {
     margin-top: 8px;
@@ -942,8 +944,7 @@ details[open].sub-accordion > summary::before {
 .rosh-card { min-width: 0; overflow: hidden; }
 .rosh-head-evidence { min-width: 0; }
 .rosh-head-right { max-width: 360px; }
-.rosh-fate,
-.rosh-legacy-context {
+.rosh-fate {
     color: #8b949e;
     font-size: 11px;
 }
@@ -1230,6 +1231,11 @@ details[open].sub-accordion > summary::before {
     background: #161b22;
     font-size: 11px;
 }
+a.rosh-timeline-content {
+    color: inherit;
+    text-decoration: none;
+}
+a.rosh-timeline-content:hover { border-color: #58a6ff; }
 .rosh-timeline-content time {
     display: block;
     margin-bottom: 2px;

@@ -193,6 +193,29 @@
       "dem_size_bytes": 89720955,
       "dem_sha256": "a0560e349ccd30d7f58a97747d33e3d2a6033c11d54a848fe3918a044650a622",
       "note": "TI2026 North America regional qualifier: short 19-minute canonical integration and OpenDota parity fixture"
+    },
+    {
+      "match_id": 8974053011,
+      "name": "roshan-aegis-denial-calibration",
+      "dem": "8974053011.dem",
+      "opendota_json": "8974053011.opendota.json",
+      "status": "active",
+      "tier": "regression",
+      "capabilities": [
+        "aegis-denial",
+        "roshan-conversion-calibration"
+      ],
+      "replaced_by": null,
+      "fetched_at": "2026-09-23T07:06:41Z",
+      "duration": 2279,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 60,
+      "replay_url": "http://replay272.valve.net/570/8974053011_1931905916.dem.bz2",
+      "artifact_url": null,
+      "dem_size_bytes": 128411224,
+      "dem_sha256": "8e17a913425908be62aa85d0fd501a3527c54f8a76d896120f3943249886b1da",
+      "note": "Roshan conversion calibration fixture with a denied Aegis followed by a later normal pickup"
     }
   ]
 }

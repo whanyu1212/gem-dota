@@ -9,6 +9,7 @@ fights, objectives, map expansion, or a game-closing sequence?
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import TYPE_CHECKING, Literal
 
 from gem.analysis._shared import (
@@ -18,9 +19,17 @@ from gem.analysis._shared import (
     region_of,
 )
 from gem.analysis._territory import (
+    DEFAULT_ROSH_TERRITORY_CONFIG,
     RoshCoverageCell as RoshCoverageCell,
+    RoshTerritoryConfig as RoshTerritoryConfig,
     RoshTerritoryWindow,
     build_territory_window,
+)
+from gem.analysis.combat import is_active_teamfight_participant
+from gem.analysis.teamfight_positioning import (
+    EngagementStartSource,
+    TeamfightPositioning,
+    build_teamfight_positioning,
 )
 
 if TYPE_CHECKING:
@@ -51,6 +60,96 @@ _NET_WORTH_SWING_THRESHOLD = 2_000
 _XP_SWING_THRESHOLD = 1_500
 _TERRITORY_SWING_THRESHOLD_PCT = 8.0
 _WARD_DELTA_THRESHOLD = 2
+
+
+class AegisFateSource(str, Enum):
+    """Evidence or boundary used to classify an Aegis lifecycle."""
+
+    __str__ = str.__str__
+
+    DENIAL_EVENT = "denial_event"
+    HOLDER_DEATH_INFERENCE = "holder_death_inference"
+    NOMINAL_EXPIRY = "nominal_expiry"
+    GAME_END_BOUNDARY = "game_end_boundary"
+    NEXT_ROSHAN_BOUNDARY = "next_roshan_boundary"
+    MISSING_EVENT = "missing_event"
+
+
+class RoshTeamAttributionSource(str, Enum):
+    """Provenance of a team attribution used by Roshan analysis."""
+
+    __str__ = str.__str__
+
+    PROTOCOL = "protocol"
+    PLAYER_ID = "player_id"
+    DAMAGE_SOURCE = "damage_source"
+    ATTACKER = "attacker"
+    UNKNOWN = "unknown"
+
+
+class RoshFightRelation(str, Enum):
+    """Temporal relationship between a fight and the conversion window."""
+
+    __str__ = str.__str__
+
+    PREEXISTING = "preexisting"
+    IN_WINDOW = "in_window"
+
+
+@dataclass(frozen=True, slots=True)
+class RoshTagThresholds:
+    """Inspectably configured thresholds for non-exclusive conversion tags."""
+
+    fight_advantage: int = _FIGHT_ADVANTAGE_THRESHOLD
+    objective_gain: int = _OBJECTIVE_GAIN_THRESHOLD
+    net_worth_swing: int = _NET_WORTH_SWING_THRESHOLD
+    xp_swing: int = _XP_SWING_THRESHOLD
+    territory_swing_pct: float = _TERRITORY_SWING_THRESHOLD_PCT
+    ward_delta: int = _WARD_DELTA_THRESHOLD
+    counter_min_dimensions: int = 2
+    ruleset: str = "provisional-v1"
+
+    def __post_init__(self) -> None:
+        numeric = (
+            self.fight_advantage,
+            self.objective_gain,
+            self.net_worth_swing,
+            self.xp_swing,
+            self.territory_swing_pct,
+            self.ward_delta,
+            self.counter_min_dimensions,
+        )
+        if any(value < 0 for value in numeric):
+            raise ValueError("Roshan tag thresholds must be nonnegative")
+        if not self.ruleset:
+            raise ValueError("Roshan tag threshold ruleset must not be empty")
+
+
+DEFAULT_ROSH_TAG_THRESHOLDS = RoshTagThresholds()
+
+
+@dataclass(frozen=True, slots=True)
+class RoshFightEvidence:
+    """Engagement-aware evidence for one fight associated with a Roshan window."""
+
+    fight_index: int
+    relation: RoshFightRelation
+    engagement_start_tick: int
+    engagement_start_source: EngagementStartSource
+    first_death_tick: int
+    end_tick: int
+    winner: str
+    deaths: int
+    conversion_participant_ids: tuple[int, ...]
+    opponent_participant_ids: tuple[int, ...]
+    unknown_participant_ids: tuple[int, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class _TeamAttribution:
+    team: int | None
+    source: RoshTeamAttributionSource
+
 
 # Roshan drops worth flagging beyond the always-present Aegis. Cheese (burst
 # heal/mana), the Refresher Shard (a free ultimate reset), and Roshan's Banner
@@ -96,8 +195,10 @@ class RoshTimelineEvent:
         "fight_draw",
         "tower",
         "tower_lost",
+        "tower_unknown",
         "barracks",
         "barracks_lost",
+        "barracks_unknown",
         "buyback",
         "own_buyback",
         "tormentor",
@@ -109,6 +210,7 @@ class RoshTimelineEvent:
         "game_end",
     ]
     label: str
+    fight_index: int | None = None
 
 
 @dataclass
@@ -179,6 +281,8 @@ class RoshDifferentialProfile:
     opponent_towers: int | None = None
     conversion_barracks: int | None = None
     opponent_barracks: int | None = None
+    unattributed_towers: int = 0
+    unattributed_barracks: int = 0
     conversion_structure_value: int | None = None
     opponent_structure_value: int | None = None
     structure_delta: int | None = None
@@ -203,8 +307,10 @@ class RoshDifferentialProfile:
     forward_ward_delta: int | None = None
     conversion_tormentors: int | None = None
     opponent_tormentors: int | None = None
+    unattributed_tormentors: int = 0
     tormentor_delta: int | None = None
     tags: list[str] = field(default_factory=list)
+    tag_ruleset: str = DEFAULT_ROSH_TAG_THRESHOLDS.ruleset
     status: Literal["complete", "partial", "unavailable"] = "unavailable"
     status_reasons: list[str] = field(default_factory=list)
 
@@ -218,6 +324,12 @@ class RoshConversion:
     beyond the Aegis itself.
 
     Attributes:
+        conversion_score: Deprecated aggregate compatibility field. Prefer raw
+            ``differential_profile`` values; retained through the 0.9 line and
+            not scheduled for removal before 1.0.
+        conversion_label: Deprecated exclusive compatibility field. Prefer
+            non-exclusive ``conversion_tags``; retained through the 0.9 line
+            and not scheduled for removal before 1.0.
         drops: Short drop names captured from entity state at the kill tick (e.g.
             ``["aegis", "cheese", "banner"]``). Mirrors ``RoshanKill.drops`` and
             always includes ``"aegis"``. Empty only if drop tracking found nothing.
@@ -240,8 +352,13 @@ class RoshConversion:
             ultimately claimed the Aegis.
         conversion_team: Aegis holder team for pickup/stolen events, otherwise
             the attributable Roshan-killer team for denied/missing Aegis.
+        roshan_team_source: Provenance of ``roshan_team``.
+        conversion_team_source: Provenance of ``conversion_team``.
+        aegis_fate_source: Event, inference, or boundary used for lifecycle fate.
         aegis_fate_inferred: Whether ``consumed`` was inferred from the holder's
             death inside the validated ownership horizon.
+        first_engagement_tick: Earliest engagement-aware start in the window.
+        fight_evidence: Per-fight temporal, participant, and provenance records.
         conversion_tags: Non-exclusive evidence tags mirrored from the
             differential profile.
         analysis_status: ``complete``, ``partial``, or ``unavailable`` evidence.
@@ -304,7 +421,12 @@ class RoshConversion:
     banner_rax_lane: str | None = None
     roshan_team: int | None = None
     conversion_team: int | None = None
+    roshan_team_source: RoshTeamAttributionSource = RoshTeamAttributionSource.UNKNOWN
+    conversion_team_source: RoshTeamAttributionSource = RoshTeamAttributionSource.UNKNOWN
+    aegis_fate_source: AegisFateSource = AegisFateSource.MISSING_EVENT
     aegis_fate_inferred: bool = False
+    first_engagement_tick: int | None = None
+    fight_evidence: list[RoshFightEvidence] = field(default_factory=list)
     conversion_tags: list[str] = field(default_factory=list)
     analysis_status: Literal["complete", "partial", "unavailable"] = "unavailable"
     analysis_status_reasons: list[str] = field(default_factory=list)
@@ -339,6 +461,54 @@ def _window_teamfights(match: ParsedMatch, start_tick: int, end_tick: int) -> li
         for fight in match.teamfights
         if _window_overlaps(start_tick, end_tick, fight.start_tick, fight.end_tick)
     ]
+
+
+def _fight_evidence(
+    match: ParsedMatch,
+    conversion_team: int | None,
+    positioning: TeamfightPositioning,
+    window_start_tick: int,
+) -> RoshFightEvidence:
+    fight = match.teamfights[positioning.fight_index]
+    teams_by_player = {
+        player.player_id: player.team
+        for player in match.players
+        if player.team in (_TEAM_RADIANT, _TEAM_DIRE)
+    }
+    active_ids = tuple(
+        stats.player_id for stats in fight.players if is_active_teamfight_participant(stats)
+    )
+    opponent_team = _enemy_team(conversion_team) if conversion_team is not None else None
+    conversion_ids = tuple(
+        player_id for player_id in active_ids if teams_by_player.get(player_id) == conversion_team
+    )
+    opponent_ids = tuple(
+        player_id for player_id in active_ids if teams_by_player.get(player_id) == opponent_team
+    )
+    known = set(conversion_ids) | set(opponent_ids)
+    unknown_ids = tuple(player_id for player_id in active_ids if player_id not in known)
+    first_death_tick = (
+        fight.first_death_tick
+        if fight.start_tick <= fight.first_death_tick <= fight.end_tick
+        else positioning.first_death_tick
+    )
+    return RoshFightEvidence(
+        fight_index=positioning.fight_index,
+        relation=(
+            RoshFightRelation.PREEXISTING
+            if positioning.engagement_start_tick < window_start_tick
+            else RoshFightRelation.IN_WINDOW
+        ),
+        engagement_start_tick=positioning.engagement_start_tick,
+        engagement_start_source=positioning.engagement_start_source,
+        first_death_tick=first_death_tick,
+        end_tick=fight.end_tick,
+        winner=fight.winner,
+        deaths=fight.deaths,
+        conversion_participant_ids=conversion_ids,
+        opponent_participant_ids=opponent_ids,
+        unknown_participant_ids=unknown_ids,
+    )
 
 
 def _enemy_team(team: int) -> int:
@@ -460,13 +630,22 @@ def _count_objectives(
         1
         for tower in match.towers
         if start_tick <= tower.tick <= end_tick
-        and _structure_destroyer_team(match, tower.team, tower.killer, tower.killer_source) == team
+        and _structure_destroyer_team(
+            match, tower.team, tower.killer, tower.killer_source, tower.killer_team
+        )
+        == team
     )
     barracks_taken = sum(
         1
         for barracks in match.barracks
         if start_tick <= barracks.tick <= end_tick
-        and _structure_destroyer_team(match, barracks.team, barracks.killer, barracks.killer_source)
+        and _structure_destroyer_team(
+            match,
+            barracks.team,
+            barracks.killer,
+            barracks.killer_source,
+            barracks.killer_team,
+        )
         == team
     )
     return towers_taken, barracks_taken
@@ -506,7 +685,13 @@ def _banner_rax_signal(
         (barracks.tick, _rax_lane(barracks.barracks_name))
         for barracks in match.barracks
         if earliest_plant_tick <= barracks.tick <= end_tick
-        and _structure_destroyer_team(match, barracks.team, barracks.killer, barracks.killer_source)
+        and _structure_destroyer_team(
+            match,
+            barracks.team,
+            barracks.killer,
+            barracks.killer_source,
+            barracks.killer_team,
+        )
         == team
     ]
     if not converted_lanes:
@@ -524,13 +709,22 @@ def _first_objective_tick(
         tower.tick
         for tower in match.towers
         if start_tick <= tower.tick <= end_tick
-        and _structure_destroyer_team(match, tower.team, tower.killer, tower.killer_source) == team
+        and _structure_destroyer_team(
+            match, tower.team, tower.killer, tower.killer_source, tower.killer_team
+        )
+        == team
     ]
     candidates.extend(
         barracks.tick
         for barracks in match.barracks
         if start_tick <= barracks.tick <= end_tick
-        and _structure_destroyer_team(match, barracks.team, barracks.killer, barracks.killer_source)
+        and _structure_destroyer_team(
+            match,
+            barracks.team,
+            barracks.killer,
+            barracks.killer_source,
+            barracks.killer_team,
+        )
         == team
     )
     return min(candidates) if candidates else None
@@ -628,14 +822,37 @@ def _conversion_score(
     return max(0, min(100, raw))
 
 
-def _team_for_roshan_killer(match: ParsedMatch, killer: str, killer_source: str) -> int | None:
-    for name in (killer_source, killer):
+def _team_attribution(
+    match: ParsedMatch,
+    *,
+    killer: str,
+    killer_source: str = "",
+    protocol_team: int | None = None,
+    player_id: int | None = None,
+) -> _TeamAttribution:
+    if protocol_team in (_TEAM_RADIANT, _TEAM_DIRE):
+        return _TeamAttribution(protocol_team, RoshTeamAttributionSource.PROTOCOL)
+    player_team = _team_for_player(match, player_id)
+    if player_team is not None:
+        return _TeamAttribution(player_team, RoshTeamAttributionSource.PLAYER_ID)
+    for name, source in (
+        (killer_source, RoshTeamAttributionSource.DAMAGE_SOURCE),
+        (killer, RoshTeamAttributionSource.ATTACKER),
+    ):
         if not name:
             continue
-        for player in match.players:
-            if player.hero_name == name and player.team in (_TEAM_RADIANT, _TEAM_DIRE):
-                return player.team
-    return None
+        candidates = {
+            player.team
+            for player in match.players
+            if player.hero_name == name and player.team in (_TEAM_RADIANT, _TEAM_DIRE)
+        }
+        if len(candidates) == 1:
+            return _TeamAttribution(candidates.pop(), source)
+    if killer.startswith(("npc_dota_goodguys_", "npc_dota_creep_goodguys_")):
+        return _TeamAttribution(_TEAM_RADIANT, RoshTeamAttributionSource.ATTACKER)
+    if killer.startswith(("npc_dota_badguys_", "npc_dota_creep_badguys_")):
+        return _TeamAttribution(_TEAM_DIRE, RoshTeamAttributionSource.ATTACKER)
+    return _TeamAttribution(None, RoshTeamAttributionSource.UNKNOWN)
 
 
 def _structure_destroyer_team(
@@ -643,19 +860,31 @@ def _structure_destroyer_team(
     owner_team: int,
     killer: str,
     killer_source: str,
+    killer_team: int | None = None,
 ) -> int | None:
-    killer_team = _team_for_roshan_killer(match, killer, killer_source)
-    if killer_team == owner_team:
+    attribution = _team_attribution(
+        match,
+        killer=killer,
+        killer_source=killer_source,
+        protocol_team=killer_team,
+    )
+    if attribution.team == owner_team:
         return None
-    if killer_team in (_TEAM_RADIANT, _TEAM_DIRE):
-        return killer_team
-    if owner_team in (_TEAM_RADIANT, _TEAM_DIRE):
-        return _enemy_team(owner_team)
-    return None
+    return attribution.team
 
 
-def _team_for_tormentor_kill(match: ParsedMatch, killer_player_id: int, killer: str) -> int | None:
-    return _team_for_player(match, killer_player_id) or _team_for_roshan_killer(match, killer, "")
+def _team_for_tormentor_kill(
+    match: ParsedMatch,
+    killer_player_id: int,
+    killer: str,
+    killer_team: int | None = None,
+) -> int | None:
+    return _team_attribution(
+        match,
+        killer=killer,
+        protocol_team=killer_team,
+        player_id=killer_player_id,
+    ).team
 
 
 def _tower_value(tower_name: str) -> int:
@@ -667,36 +896,49 @@ def _tower_value(tower_name: str) -> int:
 
 def _structure_values(
     match: ParsedMatch, conversion_team: int, start_tick: int, end_tick: int
-) -> tuple[int, int, int, int, int, int]:
+) -> tuple[int, int, int, int, int, int, int, int]:
     opponent_team = _enemy_team(conversion_team)
-    conversion_towers = [
-        tower
-        for tower in match.towers
-        if start_tick <= tower.tick <= end_tick
-        and _structure_destroyer_team(match, tower.team, tower.killer, tower.killer_source)
-        == conversion_team
-    ]
-    opponent_towers = [
-        tower
-        for tower in match.towers
-        if start_tick <= tower.tick <= end_tick
-        and _structure_destroyer_team(match, tower.team, tower.killer, tower.killer_source)
-        == opponent_team
-    ]
-    conversion_barracks = [
-        barracks
-        for barracks in match.barracks
-        if start_tick <= barracks.tick <= end_tick
-        and _structure_destroyer_team(match, barracks.team, barracks.killer, barracks.killer_source)
-        == conversion_team
-    ]
-    opponent_barracks = [
-        barracks
-        for barracks in match.barracks
-        if start_tick <= barracks.tick <= end_tick
-        and _structure_destroyer_team(match, barracks.team, barracks.killer, barracks.killer_source)
-        == opponent_team
-    ]
+    conversion_towers = []
+    opponent_towers = []
+    unattributed_towers = 0
+    for tower in match.towers:
+        if not start_tick <= tower.tick <= end_tick:
+            continue
+        attribution = _team_attribution(
+            match,
+            killer=tower.killer,
+            killer_source=tower.killer_source,
+            protocol_team=tower.killer_team,
+        )
+        if attribution.team == tower.team:
+            continue
+        if attribution.team == conversion_team:
+            conversion_towers.append(tower)
+        elif attribution.team == opponent_team:
+            opponent_towers.append(tower)
+        else:
+            unattributed_towers += 1
+
+    conversion_barracks = []
+    opponent_barracks = []
+    unattributed_barracks = 0
+    for barracks in match.barracks:
+        if not start_tick <= barracks.tick <= end_tick:
+            continue
+        attribution = _team_attribution(
+            match,
+            killer=barracks.killer,
+            killer_source=barracks.killer_source,
+            protocol_team=barracks.killer_team,
+        )
+        if attribution.team == barracks.team:
+            continue
+        if attribution.team == conversion_team:
+            conversion_barracks.append(barracks)
+        elif attribution.team == opponent_team:
+            opponent_barracks.append(barracks)
+        else:
+            unattributed_barracks += 1
     conversion_value = sum(_tower_value(tower.tower_name) for tower in conversion_towers)
     conversion_value += 4 * len(conversion_barracks)
     opponent_value = sum(_tower_value(tower.tower_name) for tower in opponent_towers)
@@ -706,6 +948,8 @@ def _structure_values(
         len(opponent_towers),
         len(conversion_barracks),
         len(opponent_barracks),
+        unattributed_towers,
+        unattributed_barracks,
         conversion_value,
         opponent_value,
     )
@@ -767,22 +1011,25 @@ def _territory_swing(
 
 def _tormentor_counts(
     match: ParsedMatch, conversion_team: int, start_tick: int, end_tick: int
-) -> tuple[int | None, int | None]:
+) -> tuple[int, int, int]:
     conversion_count = opponent_count = 0
-    attribution_missing = False
+    unattributed_count = 0
     for tormentor in match.tormentors:
         if not start_tick <= tormentor.tick <= end_tick:
             continue
-        team = _team_for_tormentor_kill(match, tormentor.killer_player_id, tormentor.killer)
+        team = _team_for_tormentor_kill(
+            match,
+            tormentor.killer_player_id,
+            tormentor.killer,
+            tormentor.killer_team,
+        )
         if team == conversion_team:
             conversion_count += 1
         elif team == _enemy_team(conversion_team):
             opponent_count += 1
         else:
-            attribution_missing = True
-    if attribution_missing:
-        return None, None
-    return conversion_count, opponent_count
+            unattributed_count += 1
+    return conversion_count, opponent_count, unattributed_count
 
 
 def _forward_ward_count(
@@ -802,27 +1049,31 @@ def _forward_ward_count(
     return count
 
 
-def _profile_tags(profile: RoshDifferentialProfile, game_closed: bool) -> list[str]:
+def _profile_tags(
+    profile: RoshDifferentialProfile,
+    game_closed: bool,
+    thresholds: RoshTagThresholds,
+) -> list[str]:
     tags: list[str] = []
     if (
         profile.fight_differential is not None
-        and profile.fight_differential >= _FIGHT_ADVANTAGE_THRESHOLD
+        and profile.fight_differential >= thresholds.fight_advantage
     ):
         tags.append(ROSH_TAG_FIGHT_ADVANTAGE)
-    if profile.structure_delta is not None and profile.structure_delta >= _OBJECTIVE_GAIN_THRESHOLD:
+    if profile.structure_delta is not None and profile.structure_delta >= thresholds.objective_gain:
         tags.append(ROSH_TAG_OBJECTIVE_GAIN)
     if (
         profile.net_worth_swing is not None
-        and profile.net_worth_swing >= _NET_WORTH_SWING_THRESHOLD
-    ) or (profile.xp_swing is not None and profile.xp_swing >= _XP_SWING_THRESHOLD):
+        and profile.net_worth_swing >= thresholds.net_worth_swing
+    ) or (profile.xp_swing is not None and profile.xp_swing >= thresholds.xp_swing):
         tags.append(ROSH_TAG_RESOURCE_GAIN)
     if (
         profile.coverage_swing_pct is not None
-        and profile.coverage_swing_pct >= _TERRITORY_SWING_THRESHOLD_PCT
+        and profile.coverage_swing_pct >= thresholds.territory_swing_pct
     ):
         tags.append(ROSH_TAG_TERRITORIAL_EXPANSION)
     if profile.forward_ward_delta is not None and (
-        profile.forward_ward_delta >= _WARD_DELTA_THRESHOLD
+        profile.forward_ward_delta >= thresholds.ward_delta
         or (
             profile.forward_ward_delta >= 1
             and profile.coverage_swing_pct is not None
@@ -837,29 +1088,39 @@ def _profile_tags(profile: RoshDifferentialProfile, game_closed: bool) -> list[s
 
     positive = sum(
         (
-            profile.fight_differential is not None and profile.fight_differential >= 2,
-            profile.structure_delta is not None and profile.structure_delta >= 2,
-            profile.net_worth_swing is not None and profile.net_worth_swing >= 2_000,
-            profile.xp_swing is not None and profile.xp_swing >= 1_500,
-            profile.coverage_swing_pct is not None and profile.coverage_swing_pct >= 8.0,
-            profile.forward_ward_delta is not None and profile.forward_ward_delta >= 2,
+            profile.fight_differential is not None
+            and profile.fight_differential >= thresholds.fight_advantage,
+            profile.structure_delta is not None
+            and profile.structure_delta >= thresholds.objective_gain,
+            profile.net_worth_swing is not None
+            and profile.net_worth_swing >= thresholds.net_worth_swing,
+            profile.xp_swing is not None and profile.xp_swing >= thresholds.xp_swing,
+            profile.coverage_swing_pct is not None
+            and profile.coverage_swing_pct >= thresholds.territory_swing_pct,
+            profile.forward_ward_delta is not None
+            and profile.forward_ward_delta >= thresholds.ward_delta,
             profile.tormentor_delta is not None and profile.tormentor_delta > 0,
         )
     )
     opponent_positive = sum(
         (
-            profile.fight_differential is not None and profile.fight_differential <= -2,
-            profile.structure_delta is not None and profile.structure_delta <= -2,
-            profile.net_worth_swing is not None and profile.net_worth_swing <= -2_000,
-            profile.xp_swing is not None and profile.xp_swing <= -1_500,
-            profile.coverage_swing_pct is not None and profile.coverage_swing_pct <= -8.0,
-            profile.forward_ward_delta is not None and profile.forward_ward_delta <= -2,
+            profile.fight_differential is not None
+            and profile.fight_differential <= -thresholds.fight_advantage,
+            profile.structure_delta is not None
+            and profile.structure_delta <= -thresholds.objective_gain,
+            profile.net_worth_swing is not None
+            and profile.net_worth_swing <= -thresholds.net_worth_swing,
+            profile.xp_swing is not None and profile.xp_swing <= -thresholds.xp_swing,
+            profile.coverage_swing_pct is not None
+            and profile.coverage_swing_pct <= -thresholds.territory_swing_pct,
+            profile.forward_ward_delta is not None
+            and profile.forward_ward_delta <= -thresholds.ward_delta,
             profile.tormentor_delta is not None and profile.tormentor_delta < 0,
         )
     )
     # "Dominates" requires at least two meaningful opponent-positive dimensions,
     # avoiding a counter-conversion label from one noisy signal.
-    if opponent_positive >= 2 and opponent_positive > positive:
+    if opponent_positive >= thresholds.counter_min_dimensions and opponent_positive > positive:
         tags.append(ROSH_TAG_COUNTER_CONVERSION)
     return tags
 
@@ -874,12 +1135,15 @@ def _differential_profile(
     *,
     partial_aegis_evidence: bool,
     game_closed: bool,
+    tag_thresholds: RoshTagThresholds,
+    territory_config: RoshTerritoryConfig,
 ) -> RoshDifferentialProfile:
     profile = RoshDifferentialProfile(
         conversion_team=conversion_team,
         opponent_team=_enemy_team(conversion_team) if conversion_team is not None else None,
         window_start_tick=window_start,
         window_end_tick=window_end,
+        tag_ruleset=tag_thresholds.ruleset,
     )
     if conversion_team is None:
         profile.status_reasons.append("conversion_team_unavailable")
@@ -898,6 +1162,8 @@ def _differential_profile(
         profile.opponent_towers,
         profile.conversion_barracks,
         profile.opponent_barracks,
+        profile.unattributed_towers,
+        profile.unattributed_barracks,
         profile.conversion_structure_value,
         profile.opponent_structure_value,
     ) = _structure_values(match, conversion_team, window_start, window_end)
@@ -931,10 +1197,18 @@ def _differential_profile(
     before_start = max(match.game_start_tick or 0, rosh_tick - _IMMEDIATE_WINDOW_TICKS)
     before_end = max(before_start, rosh_tick - 1)
     profile.before_territory = build_territory_window(
-        match, conversion_team, before_start, before_end
+        match,
+        conversion_team,
+        before_start,
+        before_end,
+        config=territory_config,
     )
     profile.during_territory = build_territory_window(
-        match, conversion_team, window_start, window_end
+        match,
+        conversion_team,
+        window_start,
+        window_end,
+        config=territory_config,
     )
     (
         profile.conversion_coverage_swing_pct,
@@ -968,9 +1242,11 @@ def _differential_profile(
         profile.forward_ward_delta = (
             profile.conversion_forward_wards - profile.opponent_forward_wards
         )
-    profile.conversion_tormentors, profile.opponent_tormentors = _tormentor_counts(
-        match, conversion_team, window_start, window_end
-    )
+    (
+        profile.conversion_tormentors,
+        profile.opponent_tormentors,
+        profile.unattributed_tormentors,
+    ) = _tormentor_counts(match, conversion_team, window_start, window_end)
     if profile.conversion_tormentors is not None and profile.opponent_tormentors is not None:
         profile.tormentor_delta = profile.conversion_tormentors - profile.opponent_tormentors
 
@@ -987,22 +1263,31 @@ def _differential_profile(
         reasons.append("during_territory_unavailable")
     if profile.forward_ward_delta is None:
         reasons.append("forward_ward_positions_unavailable")
-    if profile.tormentor_delta is None:
+    if profile.unattributed_tormentors:
         reasons.append("tormentor_attribution_unavailable")
+    if profile.unattributed_towers or profile.unattributed_barracks:
+        reasons.append("structure_attribution_unavailable")
     if profile.fight_differential is None:
         reasons.append("fight_winner_unavailable")
     profile.status_reasons = reasons
     profile.status = "partial" if reasons else "complete"
-    profile.tags = _profile_tags(profile, game_closed)
+    profile.tags = _profile_tags(profile, game_closed, tag_thresholds)
     return profile
 
 
-def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]:
+def build_rosh_conversions(
+    match: ParsedMatch,
+    *,
+    tag_thresholds: RoshTagThresholds = DEFAULT_ROSH_TAG_THRESHOLDS,
+    territory_config: RoshTerritoryConfig = DEFAULT_ROSH_TERRITORY_CONFIG,
+) -> list[RoshConversion]:
     """Summarise each Roshan with legacy fields and differential evidence.
 
     Args:
         match: Parsed match containing objective, combat, economy, vision, and
             movement timelines.
+        tag_thresholds: Inspectable threshold rules for non-exclusive tags.
+        territory_config: Inspectable sampling and coverage calibration inputs.
 
     Returns:
         One conversion record per Roshan kill, in chronological order.
@@ -1013,6 +1298,9 @@ def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]:
     game_end_tick = _analysis_match_end_tick(match)
     conversions: list[RoshConversion] = []
     claimed_fights: set[int] = set()
+    positioning_by_index = {
+        positioning.fight_index: positioning for positioning in build_teamfight_positioning(match)
+    }
 
     for index, roshan in enumerate(match.roshans, start=1):
         next_rosh_tick = match.roshans[index].tick if index < len(match.roshans) else None
@@ -1021,11 +1309,13 @@ def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]:
             next_rosh_tick - 1 if next_rosh_tick is not None else game_end_tick,
         )
         immediate_end_tick = min(roshan.tick + _IMMEDIATE_WINDOW_TICKS, boundary)
-        roshan_team = _team_for_roshan_killer(
+        roshan_attribution = _team_attribution(
             match,
-            roshan.killer,
-            getattr(roshan, "killer_source", ""),
+            killer=roshan.killer,
+            killer_source=getattr(roshan, "killer_source", ""),
+            protocol_team=getattr(roshan, "killer_team", None),
         )
+        roshan_team = roshan_attribution.team
         aegis_event = _find_associated_aegis_event(match, roshan.tick, next_rosh_tick)
 
         holder_player_id: int | None = None
@@ -1034,8 +1324,10 @@ def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]:
         aegis_pickup_tick: int | None = None
         aegis_fate: Literal["consumed", "expired", "denied", "game_end", "unknown"]
         aegis_fate = "unknown"
+        aegis_fate_source = AegisFateSource.MISSING_EVENT
         aegis_fate_inferred = False
         conversion_team: int | None = None
+        conversion_team_source = RoshTeamAttributionSource.UNKNOWN
         analysis_start = roshan.tick
         analysis_end = immediate_end_tick
         aegis_end_tick = immediate_end_tick
@@ -1051,7 +1343,9 @@ def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]:
             aegis_pickup_tick = aegis_event.tick
             aegis_end_tick = aegis_event.tick
             aegis_fate = "denied"
+            aegis_fate_source = AegisFateSource.DENIAL_EVENT
             conversion_team = roshan_team
+            conversion_team_source = roshan_attribution.source
             timeline_events.append(
                 RoshTimelineEvent(
                     tick=aegis_event.tick,
@@ -1064,6 +1358,11 @@ def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]:
             holder_team = _team_for_player(match, holder_player_id)
             holder_name = _hero_for_player(match, holder_player_id)
             conversion_team = holder_team
+            conversion_team_source = (
+                RoshTeamAttributionSource.PLAYER_ID
+                if holder_team is not None
+                else RoshTeamAttributionSource.UNKNOWN
+            )
             aegis_pickup_tick = aegis_event.tick
             analysis_start = aegis_event.tick
             timeline_events.append(
@@ -1083,16 +1382,20 @@ def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]:
             if consume_tick is not None:
                 aegis_end_tick = consume_tick
                 aegis_fate = "consumed"
+                aegis_fate_source = AegisFateSource.HOLDER_DEATH_INFERENCE
                 aegis_fate_inferred = True
             elif nominal_expiry <= boundary:
                 aegis_end_tick = nominal_expiry
                 aegis_fate = "expired"
+                aegis_fate_source = AegisFateSource.NOMINAL_EXPIRY
             elif boundary == game_end_tick:
                 aegis_end_tick = game_end_tick
                 aegis_fate = "game_end"
+                aegis_fate_source = AegisFateSource.GAME_END_BOUNDARY
             else:
                 aegis_end_tick = boundary
                 aegis_fate = "unknown"
+                aegis_fate_source = AegisFateSource.NEXT_ROSHAN_BOUNDARY
             analysis_end = min(aegis_end_tick + _POST_AEGIS_ANALYSIS_TICKS, boundary)
             if aegis_fate == "consumed":
                 overlapping = _window_teamfights(match, aegis_end_tick, aegis_end_tick)
@@ -1103,17 +1406,26 @@ def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]:
                     )
         else:
             conversion_team = roshan_team
+            conversion_team_source = roshan_attribution.source
 
-        fights: list[Teamfight] = []
+        fight_records: list[tuple[int, Teamfight]] = []
         for fight_index, fight in enumerate(match.teamfights):
             if fight_index in claimed_fights:
                 continue
+            positioning = positioning_by_index[fight_index]
             if (
-                _window_overlaps(analysis_start, analysis_end, fight.start_tick, fight.end_tick)
-                and fight.first_death_tick <= analysis_end
+                positioning.engagement_start_tick <= analysis_end
+                and fight.end_tick >= analysis_start
             ):
-                fights.append(fight)
+                fight_records.append((fight_index, fight))
                 claimed_fights.add(fight_index)
+        fights = [fight for _, fight in fight_records]
+        fight_evidence = [
+            _fight_evidence(
+                match, conversion_team, positioning_by_index[fight_index], analysis_start
+            )
+            for fight_index, _ in fight_records
+        ]
 
         if conversion_team is None:
             fights_won = fights_lost = 0
@@ -1185,6 +1497,8 @@ def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]:
                 aegis_event is None or aegis_event.event_type == "denied" or conversion_team is None
             ),
             game_closed=game_closed,
+            tag_thresholds=tag_thresholds,
+            territory_config=territory_config,
         )
 
         label = _conversion_label(
@@ -1251,8 +1565,12 @@ def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]:
             (max(fight.first_death_tick, analysis_start) for fight in fights),
             default=None,
         )
-        for fight in fights:
-            fight_tick = max(fight.first_death_tick, analysis_start)
+        first_engagement_tick = min(
+            (evidence.engagement_start_tick for evidence in fight_evidence),
+            default=None,
+        )
+        for (fight_index, fight), evidence in zip(fight_records, fight_evidence, strict=True):
+            fight_tick = max(evidence.engagement_start_tick, analysis_start)
             if conversion_team is None or fight.winner not in ("radiant", "dire"):
                 kind: Literal["fight_win", "fight_loss", "fight_draw"] = "fight_draw"
                 label_text = f"Fight ({fight.deaths} deaths)"
@@ -1264,17 +1582,30 @@ def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]:
             else:
                 kind = "fight_loss"
                 label_text = f"Fight lost ({fight.deaths} deaths)"
-            if fight.first_death_tick < analysis_start:
+            if evidence.relation is RoshFightRelation.PREEXISTING:
                 label_text = "Fight already underway, " + label_text.removeprefix("Fight ")
-            timeline_events.append(RoshTimelineEvent(tick=fight_tick, kind=kind, label=label_text))
+            timeline_events.append(
+                RoshTimelineEvent(
+                    tick=fight_tick,
+                    kind=kind,
+                    label=label_text,
+                    fight_index=fight_index,
+                )
+            )
 
         if conversion_team is not None:
             enemy_team = _enemy_team(conversion_team)
             for tower in match.towers:
                 if not analysis_start <= tower.tick <= analysis_end:
                     continue
-                destroyer_team = _structure_destroyer_team(
-                    match, tower.team, tower.killer, tower.killer_source
+                killer_attribution = _team_attribution(
+                    match,
+                    killer=tower.killer,
+                    killer_source=tower.killer_source,
+                    protocol_team=tower.killer_team,
+                )
+                destroyer_team = (
+                    None if killer_attribution.team == tower.team else killer_attribution.team
                 )
                 if destroyer_team == conversion_team:
                     timeline_events.append(
@@ -1288,11 +1619,25 @@ def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]:
                             label="Tower lost",
                         )
                     )
+                elif killer_attribution.team is None:
+                    timeline_events.append(
+                        RoshTimelineEvent(
+                            tick=tower.tick,
+                            kind="tower_unknown",
+                            label="Tower destroyed (team unavailable)",
+                        )
+                    )
             for barracks in match.barracks:
                 if not analysis_start <= barracks.tick <= analysis_end:
                     continue
-                destroyer_team = _structure_destroyer_team(
-                    match, barracks.team, barracks.killer, barracks.killer_source
+                killer_attribution = _team_attribution(
+                    match,
+                    killer=barracks.killer,
+                    killer_source=barracks.killer_source,
+                    protocol_team=barracks.killer_team,
+                )
+                destroyer_team = (
+                    None if killer_attribution.team == barracks.team else killer_attribution.team
                 )
                 if destroyer_team == conversion_team:
                     timeline_events.append(
@@ -1308,6 +1653,14 @@ def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]:
                             tick=barracks.tick,
                             kind="barracks_lost",
                             label="Barracks lost",
+                        )
+                    )
+                elif killer_attribution.team is None:
+                    timeline_events.append(
+                        RoshTimelineEvent(
+                            tick=barracks.tick,
+                            kind="barracks_unknown",
+                            label="Barracks destroyed (team unavailable)",
                         )
                     )
             for player in match.players:
@@ -1330,7 +1683,10 @@ def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]:
                 if not analysis_start <= tormentor.tick <= analysis_end:
                     continue
                 killer_team = _team_for_tormentor_kill(
-                    match, tormentor.killer_player_id, tormentor.killer
+                    match,
+                    tormentor.killer_player_id,
+                    tormentor.killer,
+                    tormentor.killer_team,
                 )
                 if killer_team in (conversion_team, enemy_team):
                     label_text = (
@@ -1440,7 +1796,12 @@ def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]:
                 banner_rax_lane=banner_rax_lane,
                 roshan_team=roshan_team,
                 conversion_team=conversion_team,
+                roshan_team_source=roshan_attribution.source,
+                conversion_team_source=conversion_team_source,
+                aegis_fate_source=aegis_fate_source,
                 aegis_fate_inferred=aegis_fate_inferred,
+                first_engagement_tick=first_engagement_tick,
+                fight_evidence=fight_evidence,
                 conversion_tags=list(profile.tags),
                 analysis_status=profile.status,
                 analysis_status_reasons=list(profile.status_reasons),

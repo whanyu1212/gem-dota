@@ -11,6 +11,9 @@ signed raw values, paired before/during occupancy maps, and a chronological
 event timeline; see
 [Experimental Features → Roshan Conversion](../experimental/rosh-conversion.md)
 for the exact windows, formulas, and missing-data rules.
+Roshan fight events and fight cards link to one another. Lifecycle and team
+attribution provenance are shown explicitly; deprecated conversion scores and
+exclusive labels are no longer rendered.
 
 The `Fights` tab includes one evidence-first positioning map per fight with
 pre-engagement, engagement-start, first-death, and fight-end controls. Marker

@@ -236,7 +236,9 @@ fractions via the `MAP_X/Y` bounds shared from `_formatting.py`.
 - **Compute analytical facts** — net worth at a tick, vision estimates,
   ability-hit grouping, Roshan conversions, camp-context timelines, and
   position-at-tick all come from `gem.analysis` (imported by the section
-  modules); reports just lay them out.
+  modules); reports just lay them out. The builder computes Roshan conversions
+  once and shares them with the Roshan and Fights tabs so their links and
+  evidence stay identical.
 - **Define the data model** — `ParsedMatch`, `ParsedPlayer`,
   `VisionModifierEvent`, etc. live in `gem.results.models`. DataFrame/JSON/
   Parquet export lives in `results`/`api`, not here.

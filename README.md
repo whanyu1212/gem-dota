@@ -177,7 +177,9 @@ apples-to-oranges win over Go or Java parsers.
 
 Some outputs are necessarily reconstructed:
 
-- Vision estimation, farming-pattern analysis, and Roshan-conversion scoring are experimental heuristics.
+- Vision estimation, farming-pattern analysis, and Roshan conversion are
+  experimental evidence layers. Prefer Roshan's raw signed profile and status;
+  the legacy aggregate score and exclusive label are deprecated.
 - Incomplete replays can return partial output, and some exact postgame fields require embedded match details.
 - Reliable versus unreliable gold and Healing Lotus pickups are not available from the replay event stream.
 - Hero/item icons and map imagery are optional assets and are not shipped in the wheel.
@@ -199,9 +201,9 @@ uv run mypy src/gem/
 ```
 
 Contributions are welcome. Read [CONTRIBUTING.md](https://github.com/whanyu1212/gem-dota/blob/main/CONTRIBUTING.md) for the workflow and
-PR checklist. Parser changes should be checked against the reference implementations in
-`refs/` and accompanied by focused regression tests. Tooling and coding-agent guidance
-lives in [CLAUDE.md](https://github.com/whanyu1212/gem-dota/blob/main/CLAUDE.md) and
+PR checklist. Parser changes should be checked against the pinned upstream reference
+revisions listed in [CLAUDE.md](https://github.com/whanyu1212/gem-dota/blob/main/CLAUDE.md)
+and accompanied by focused regression tests. Additional tool guidance is available in
 [AGENTS.md](https://github.com/whanyu1212/gem-dota/blob/main/AGENTS.md).
 
 ## Acknowledgements

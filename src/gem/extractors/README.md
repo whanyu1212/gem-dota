@@ -125,7 +125,8 @@ hero entity via the controller's `m_hAssignedHero` handle when possible.
 Listens to `on_combat_log_entry` for `DEATH` events and classifies the target
 NPC name into `TowerKill`, `RoshanKill`, `BarracksKill`, or `TormentorKill`
 (target `npc_dota_miniboss`). Tower/barracks ownership is resolved by NPC-name
-prefix (`npc_dota_goodguys_*` = Radiant, `npc_dota_badguys_*` = Dire). It also
+prefix (`npc_dota_goodguys_*` = Radiant, `npc_dota_badguys_*` = Dire), while
+the optional protocol `attacker_team` is retained as killer attribution. It also
 hooks `on_entity` to snapshot which Roshan drop item entities
 (`CDOTA_Item_Aegis`, `CDOTA_Item_Cheese`, `CDOTA_Item_RefresherOrb_Shard`,
 `CDOTA_Item_Roshans_Banner`) are alive at the kill tick, and `on_chat_event`
@@ -334,12 +335,13 @@ index, detecting transitions rather than filtering on `EntityOp.CREATED`. A slot
 that emits `UPDATED` (not `CREATED`) still carries a valid placement; do not
 filter to `CREATED`-only.
 
-### Roshan drop entities are alive only between spawn and pickup
+### Roshan drop entities support drop snapshots, not Aegis fate
 
 `ObjectivesExtractor` snapshots `self._roshan_items` (items currently alive) at
-the `DEATH` tick. Items are created when Roshan spawns and deleted when picked
-up, so the alive set at kill time is exactly the drop list. It clears entries on
-`EntityOp.DELETED_LEFT`.
+the `DEATH` tick and filters them by creation time to prevent an earlier held
+drop leaking into the next Roshan. Item deletion can happen at pickup or later
+removal and does not reliably distinguish Aegis consumption, expiry, transfer,
+or cleanup. It is therefore not used as Aegis-fate evidence.
 
 ## When To Add Code Here
 

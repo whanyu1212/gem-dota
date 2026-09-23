@@ -68,9 +68,15 @@ Available DataFrames:
 | `radiant_advantage` | Radiant gold/XP advantage per minute, with `game_time_s` / `minute` join keys |
 | `draft` | Pick and ban events |
 | `teamfights` | Gem teamfight windows with participant stats |
+| `teamfight_positioning` | Flat engagement-aware fight snapshots and per-hero evidence |
+| `roshan_conversions` | Flat attribution, lifecycle, raw differential, tag, and evidence-status rows |
+| `roshan_conversion_fights` | Flat Roshan-to-fight relations, provenance, and participant IDs |
 | `opendota_teamfights` | OpenDota-compatible 3+ death temporal teamfight windows |
 | `smoke_events` | Smoke activations with exact per-hero modifier lifecycles |
 | `smoke_members` | Flat per-hero smoke application/removal timing and sampled positions |
+| `smoke_fight_insights` | Bounded smoke/fight association and outcome evidence |
+| `smoke_fight_members` | Flat member-level smoke/fight evidence |
+| `smoke_fight_followups` | Uniquely allocated bounded follow-up events |
 | `courier_snapshots` | Courier state over time |
 | `neutral_item_finds` | Neutral item find events from `DOTA_UM_FoundNeutralItem` |
 | `player_kills_log` | Per-player kill log rows |

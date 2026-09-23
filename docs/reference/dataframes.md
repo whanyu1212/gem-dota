@@ -22,6 +22,8 @@ pip install pyarrow
 | `"objectives"` | Tower kills, barracks, Roshan kills |
 | `"teamfights"` | Detected fight windows with participant stats |
 | `"teamfight_positioning"` | Flat per-fight, per-snapshot, per-hero positioning evidence with freshness, geometry, and visibility |
+| `"roshan_conversions"` | One flat row per Roshan with attribution/lifecycle provenance, raw differential evidence, availability, tags/ruleset, and prefixed legacy fields |
+| `"roshan_conversion_fights"` | One row per Roshan-associated fight with engagement provenance, preexisting/in-window relation, winner, and participant IDs by side |
 | `"smoke_events"` | Smoke activations, grouped heroes, centroid, and nested member lifecycles |
 | `"smoke_members"` | Flat per-hero smoke application/removal ticks, durations, and sampled positions |
 | `"smoke_fight_insights"` | One row per bounded smoke/fight candidate, including association, exact-event, visibility, and formation summaries |

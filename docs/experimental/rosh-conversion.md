@@ -36,7 +36,14 @@ earliest of:
 For a pickup or steal, the conversion team is the holder's team. The ownership
 horizon runs from pickup until the earliest of five minutes, the next Roshan,
 or game end. A holder death inside that horizon is treated as an inferred Aegis
-consume; the replay does not expose an authoritative “Aegis popped” event.
+consume. `aegis_fate_source` distinguishes that inference from a denial event,
+nominal expiry, game-end boundary, next-Roshan boundary, or missing event.
+
+Item-entity deletion was investigated but is not a stronger lifecycle signal:
+the entity can disappear on pickup or later removal and does not reliably
+separate consumption, natural expiry, transfer/drop, and game-end cleanup. gem
+therefore retains the bounded holder-death inference and states its provenance
+instead of presenting it as observed fact.
 
 The analysis window may continue for up to 120 seconds after Aegis ends so that
 the immediate aftermath remains visible. If the inferred consume occurs inside
@@ -49,6 +56,15 @@ three-minute post-Roshan window and marks the profile `partial` or
 `unavailable`. If the Roshan killer's team can be resolved, that team remains
 the comparison side; otherwise team-dependent values are unavailable rather
 than reported as zero.
+
+Team attribution prefers the Source 2 protocol `attacker_team`, then player ID,
+then a unique damage-source hero, then a unique attacker hero, then an explicit
+`npc_dota_goodguys_*` / `npc_dota_badguys_*` attacker allegiance for lane
+creeps. The selected source is exposed as `roshan_team_source` or
+`conversion_team_source`. Unknown structure and Tormentor killers remain
+unattributed; they are counted in the profile and never silently credited to
+the conversion team. A structure killed by its owning team is treated as a deny
+and credited to neither side.
 
 ## Differential profile
 
@@ -69,6 +85,13 @@ fights won by conversion team - fights won by opponent
 
 Drawn or unknown-winner fights are reported separately and do not change the
 differential.
+
+Fight association uses the engagement-start evidence from teamfight
+positioning, rather than the padded detector window alone. `fight_evidence`
+records the fight index, whether the engagement was already underway at the
+Roshan boundary, engagement-start source, first-death/end ticks, winner, and
+active participant IDs split by side. The report links in both directions
+between Roshan timeline events and the corresponding fight card.
 
 ### Structures
 
@@ -175,6 +198,11 @@ calibration points, not universal Dota truths:
 | `game_closing` | the conversion team wins and the game ends inside this analysis window |
 | `counter_conversion` | the opponent owns the material signed evidence in the window |
 
+The defaults live in the immutable `RoshTagThresholds` record and every profile
+stores its `tag_ruleset`. Callers can pass an alternate threshold record to
+`build_rosh_conversions(...)` for reproducible sensitivity analysis without
+changing raw values.
+
 The report does not show a radar chart or aggregate score. Independent metrics
 have different units and meanings; keeping raw signed values visible is more
 honest than making them look directly additive.
@@ -193,28 +221,37 @@ did not occur. **Unavailable** means the evidence was absent or insufficient.
 
 ## Compatibility
 
-`RoshConversion` still exposes the earlier `conversion_label`,
-`conversion_score`, Aegis outcome, and legacy presence fields for API
-compatibility. New consumers should prefer `differential_profile` and
-`conversion_tags`. The report treats the old exclusive label as secondary
-context and never presents the legacy score.
+`conversion_label` and `conversion_score` are formally deprecated. They remain
+available through the 0.9 release line for source compatibility and will not be
+removed before 1.0; 1.0 may either remove them or designate them permanent
+compatibility fields after downstream usage is reviewed. New consumers should
+use `differential_profile`, raw values, `analysis_status`, and
+`conversion_tags`. The report no longer renders either legacy field.
 
-No Roshan conversion table is added to the default DataFrame, JSON, or Parquet
-exports in this iteration.
+`build_dataframes(...)` now exports:
+
+- `roshan_conversions`: one flat row per Roshan, including provenance, raw
+  differentials, evidence status, ruleset, and clearly prefixed legacy fields
+- `roshan_conversion_fights`: one flat row per associated fight with engagement
+  provenance, relation, and participant IDs
+
+Direct `gem.to_dict(build_rosh_conversions(match))` serialization preserves the
+nested public records and enum values as strings.
 
 ## Current limits
 
-- Aegis consume remains inferred from the holder's first hero death inside the
-  ownership horizon.
-- Teamfight detection is death-window based, so it captures meaningful
-  engagements better than exact combat start times.
+- Aegis consumption remains inferred from the holder's first hero death inside
+  the ownership horizon; transfer/drop is not independently observable.
+- Engagement start is evidence-aware but still falls back to first death when
+  earlier damage evidence is unavailable.
 - Forward territory is only as complete as the replay's sampled position logs.
 - Map halves and depth use calibrated geometry, not lane topology or fog state.
-- The tag thresholds need continued review against real matches.
+- Tag thresholds remain `provisional-v1`; see the calibration record below.
 
 ## Related pages
 
 1. [Reports](../reports/index.md)
-2. [Farming Patterns](./farming-patterns.md)
-3. [Estimate Vision](./estimate-vision.md)
-4. [Vision Modifiers](./vision-modifiers.md)
+2. [Roshan Conversion Calibration](./rosh-conversion-calibration.md)
+3. [Farming Patterns](./farming-patterns.md)
+4. [Estimate Vision](./estimate-vision.md)
+5. [Vision Modifiers](./vision-modifiers.md)

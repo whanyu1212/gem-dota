@@ -7,9 +7,11 @@ from collections import defaultdict
 
 import gem
 import gem.api
+from gem.analysis.roshan import build_rosh_conversions
 from gem.analysis.smoke_fight import build_smoke_fight_insights
 from gem.analysis.teamfight_positioning import build_teamfight_positioning
 from gem.combat.log import CombatLogSource
+from gem.extractors.objectives import AegisEvent, RoshanKill
 from gem.extractors.teamfights import OpenDotaTeamfight, Teamfight, TeamfightPlayer
 from gem.results.models import (
     ParsedMatch,
@@ -172,6 +174,56 @@ class TestSerializationHelpers:
         assert decoded[0]["activation"]["tick"] == 1_000
         assert decoded[0]["activation"]["game_time_s"] == 10
         assert decoded[0]["members"][0]["authoritative_visibility"] == "unknown"
+
+    def test_to_dict_serializes_roshan_provenance_and_nested_fight_evidence(self):
+        players = [
+            ParsedPlayer(
+                player_id=player_id,
+                hero_name=f"npc_dota_hero_hero_{player_id}",
+                team=2 if player_id < 5 else 3,
+            )
+            for player_id in range(10)
+        ]
+        fight_players = [TeamfightPlayer(player_id=player_id) for player_id in range(10)]
+        fight_players[0].damage_dealt = 250
+        fight_players[5].deaths = 1
+        match = ParsedMatch(
+            game_start_tick=0,
+            game_end_tick=20000,
+            players=players,
+            roshans=[
+                RoshanKill(
+                    1000,
+                    "npc_dota_hero_hero_0",
+                    1,
+                    killer_team=2,
+                )
+            ],
+            aegis_events=[AegisEvent(1010, 0, "pickup")],
+            teamfights=[
+                Teamfight(
+                    start_tick=1100,
+                    end_tick=1400,
+                    first_death_tick=1300,
+                    last_death_tick=1300,
+                    deaths=1,
+                    winner="radiant",
+                    players=fight_players,
+                )
+            ],
+        )
+
+        decoded = json.loads(json.dumps(gem.to_dict(build_rosh_conversions(match))))
+        conversion = decoded[0]
+
+        assert conversion["roshan_team_source"] == "protocol"
+        assert conversion["conversion_team_source"] == "player_id"
+        assert conversion["aegis_fate_source"] == "nominal_expiry"
+        assert conversion["fight_evidence"][0]["relation"] == "in_window"
+        assert conversion["fight_evidence"][0]["engagement_start_source"] in {
+            "first_damage",
+            "first_death_fallback",
+        }
 
     def test_to_dict_omits_internal_match_details_provenance(self):
         match = ParsedMatch(match_id=7)

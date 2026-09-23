@@ -3,7 +3,8 @@
 Listens to combat log DEATH events and emits structured records for tower
 kills, Roshan kills, and barracks destructions.
 
-Reference: refs/parser/src/main/java/opendota/Parse.java
+Reference: pinned OpenDota parser revision documented in ``CLAUDE.md``
+(``src/main/java/opendota/Parse.java``).
 """
 
 from __future__ import annotations
@@ -98,6 +99,8 @@ class TowerKill:
         killer_source: The ``damage_source_name`` (the owning hero for a summon /
             projectile kill), used for source-first killer attribution. Empty for
             an auto-attack where source == attacker.
+        killer_team: Protocol attacker team (2=Radiant, 3=Dire), or ``None``
+            when the combat-log source did not provide a valid team.
     """
 
     tick: int
@@ -105,6 +108,7 @@ class TowerKill:
     killer: str
     tower_name: str
     killer_source: str = ""
+    killer_team: int | None = None
 
 
 @dataclass
@@ -120,6 +124,8 @@ class RoshanKill:
             always includes ``"aegis"`` when Roshan is killed.
         killer_source: The ``damage_source_name`` (owning hero for a summon /
             projectile kill), for source-first killer attribution.
+        killer_team: Protocol attacker team (2=Radiant, 3=Dire), or ``None``
+            when unavailable.
     """
 
     tick: int
@@ -127,6 +133,7 @@ class RoshanKill:
     kill_number: int
     drops: list[str] = field(default_factory=list)
     killer_source: str = ""
+    killer_team: int | None = None
 
 
 @dataclass
@@ -140,6 +147,8 @@ class BarracksKill:
         barracks_name: Internal NPC name of the destroyed barracks.
         killer_source: The ``damage_source_name`` (owning hero for a summon /
             projectile kill), for source-first killer attribution.
+        killer_team: Protocol attacker team (2=Radiant, 3=Dire), or ``None``
+            when unavailable.
     """
 
     tick: int
@@ -147,6 +156,7 @@ class BarracksKill:
     killer: str
     barracks_name: str
     killer_source: str = ""
+    killer_team: int | None = None
 
 
 @dataclass
@@ -160,12 +170,15 @@ class TormentorKill:
         killer_player_id: Player slot (0–9) of the killing player from the
             ``CHAT_MESSAGE_MINIBOSS_KILL`` event, or ``-1`` if unavailable.
         kill_number: Sequential kill number (1-indexed) for this game.
+        killer_team: Protocol attacker team (2=Radiant, 3=Dire), or ``None``
+            when unavailable.
     """
 
     tick: int
     killer: str
     killer_player_id: int
     kill_number: int
+    killer_team: int | None = None
 
 
 @dataclass
@@ -417,10 +430,12 @@ class ObjectivesExtractor:
         target = entry.target_name
         if target == "npc_dota_roshan":
             # Snapshot alive Roshan item entities as this Roshan's drops. An
-            # item entity is created when Roshan spawns and deleted when picked
-            # up *and consumed*; a held-but-unused drop from an earlier Roshan
-            # is still alive here, so restrict the snapshot to items created
-            # after the previous Roshan's death — those belong to this Roshan.
+            # item entity is created when Roshan spawns and may disappear on
+            # pickup or later removal.  That deletion path is not strong enough
+            # to classify Aegis consumption versus expiry.  A held-but-unused
+            # drop from an earlier Roshan can still be alive here, so restrict
+            # the snapshot to items created after the previous Roshan's death —
+            # those belong to this Roshan.
             drops = sorted(
                 token
                 for created_tick, token in self._roshan_items.values()
@@ -434,6 +449,7 @@ class ObjectivesExtractor:
                     kill_number=len(self.roshan_kills) + 1,
                     drops=drops,
                     killer_source=entry.damage_source_name,
+                    killer_team=entry.attacker_team if entry.attacker_team in (2, 3) else None,
                 )
             )
         elif target == "npc_dota_miniboss":
@@ -443,6 +459,7 @@ class ObjectivesExtractor:
                     killer=entry.attacker_name,
                     killer_player_id=-1,  # resolved from chat event if available
                     kill_number=len(self.tormentor_kills) + 1,
+                    killer_team=entry.attacker_team if entry.attacker_team in (2, 3) else None,
                 )
             )
         elif target.startswith("npc_dota_goodguys_tower") or target.startswith(
@@ -455,6 +472,7 @@ class ObjectivesExtractor:
                     killer=entry.attacker_name,
                     tower_name=target,
                     killer_source=entry.damage_source_name,
+                    killer_team=entry.attacker_team if entry.attacker_team in (2, 3) else None,
                 )
             )
         elif (
@@ -470,6 +488,7 @@ class ObjectivesExtractor:
                     killer=entry.attacker_name,
                     barracks_name=target,
                     killer_source=entry.damage_source_name,
+                    killer_team=entry.attacker_team if entry.attacker_team in (2, 3) else None,
                 )
             )
         elif target.startswith("npc_dota_courier"):
