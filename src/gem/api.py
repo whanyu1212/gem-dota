@@ -50,6 +50,9 @@ Public API
 ``build_smoke_analysis(match)``
     Summarize exact smoke modifier lifecycles and supporting evidence.
 
+``build_smoke_fight_insights(match)``
+    Build bounded smoke/fight observations from exact and sampled evidence.
+
 ``build_teamfight_positioning(match)``
     Build bounded spatial and visibility snapshots for detected teamfights.
 
@@ -78,9 +81,19 @@ from gem.analysis import (
     DirectTargetRevealEvidence,
     EngagementStartSource,
     EvidenceCompleteness,
+    ExactEventEvidence,
+    ExactEventKind,
+    FightCentroidSource,
+    FightOutcome,
     FightPositionSnapshot,
+    FollowUpBoundary,
+    FollowUpEvent,
+    FollowUpKind,
+    FollowUpWindow,
+    FormationEvidence,
     HeroPositionEvidence,
     MapContextBucket,
+    MemberPositionEvidence,
     PointVisionAssessment,
     PointVisionGap,
     PointVisionSource,
@@ -90,20 +103,26 @@ from gem.analysis import (
     RoshDifferentialProfile,
     RoshTerritoryWindow,
     RoshTimelineEvent,
+    SampledNearFightEvidence,
     SampledPosition,
     SmokeAnalysis,
+    SmokeFightInsight,
+    SmokeFightMemberInsight,
+    SmokeFightStatus,
     SmokeGroupStatus,
     SmokeLifecycleStatus,
     SmokeMemberAnalysis,
     SnapshotKind,
     TeamfightPositioning,
     TeamPositionSummary,
+    TeamRelation,
     VisionSource,
     ability_level_at_tick,
     assess_point_vision,
     build_map_context_timeline,
     build_rosh_conversions,
     build_smoke_analysis,
+    build_smoke_fight_insights,
     build_teamfight_positioning,
     entity_visibility_at,
     estimate_vision,
@@ -333,7 +352,9 @@ def parse_to_dataframe(path: str | Path) -> dict[str, pd.DataFrame]:
         - ``"positions"``, ``"combat_log"``, ``"wards"``, ``"objectives"``, ``"chat"``
         - ``"match"``, ``"radiant_advantage"``
         - ``"draft"``, ``"teamfights"``, ``"teamfight_positioning"``,
-          ``"smoke_events"``, ``"courier_snapshots"``
+          ``"smoke_events"``, ``"smoke_fight_insights"``,
+          ``"smoke_fight_members"``, ``"smoke_fight_followups"``,
+          ``"courier_snapshots"``
         - per-player event logs (kills/purchases/runes/buybacks)
     """
     from gem.results.dataframes import build_dataframes
@@ -422,9 +443,19 @@ __all__ = [
     "DirectTargetRevealEvidence",
     "EngagementStartSource",
     "EvidenceCompleteness",
+    "ExactEventEvidence",
+    "ExactEventKind",
+    "FightCentroidSource",
+    "FightOutcome",
     "FightPositionSnapshot",
+    "FollowUpBoundary",
+    "FollowUpEvent",
+    "FollowUpKind",
+    "FollowUpWindow",
+    "FormationEvidence",
     "HeroPositionEvidence",
     "PointVisionAssessment",
+    "MemberPositionEvidence",
     "VisionModifierEvent",
     "VisionModifierPairingIssue",
     "VisionModifierSemantic",
@@ -449,18 +480,24 @@ __all__ = [
     "score_camp_visit_context",
     "RoshTimelineEvent",
     "SmokeAnalysis",
+    "SampledNearFightEvidence",
+    "SmokeFightInsight",
+    "SmokeFightMemberInsight",
+    "SmokeFightStatus",
     "SmokeGroupStatus",
     "SmokeLifecycleStatus",
     "SmokeMemberAnalysis",
     "SnapshotKind",
     "TeamPositionSummary",
     "TeamfightPositioning",
+    "TeamRelation",
     "RoshConversion",
     "RoshCoverageCell",
     "RoshDifferentialProfile",
     "RoshTerritoryWindow",
     "build_rosh_conversions",
     "build_smoke_analysis",
+    "build_smoke_fight_insights",
     "build_teamfight_positioning",
     "resolve_pick_team",
     "catalog",

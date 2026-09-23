@@ -122,29 +122,41 @@ extractors/visibility.py    ← authoritative per-team visibility transitions fo
 extractors/_snapshots.py    ← shared snapshot dataclasses/sampling helpers
 ```
 
-### Reference implementations (cloned at `refs/`)
+### Reference implementations (upstream)
 
-| Directory | Language | Role |
-|---|---|---|
-| `refs/manta/` | Go | Primary translation reference for all binary parsing logic |
-| `refs/clarity/` | Java | Correctness authority for edge cases; combat log two-path handling |
-| `refs/parser/` | Java | Output schema authority (`Entry.java`, `CreateParsedDataBlob.java`) |
+The former local `refs/` clones are no longer part of the workspace. Consult
+the pinned upstream sources directly so reviews use stable reference revisions:
+
+| Repository | Revision | Language | Role |
+|---|---|---|---|
+| [dotabuff/manta](https://github.com/dotabuff/manta/tree/096933cf157ace54902463ff0599ea46a6673f98) | `096933cf` | Go | Primary reference for binary parsing logic |
+| [skadistats/clarity](https://github.com/skadistats/clarity/tree/7fb3f1d07564a12efa99194d45cfbf5762ba5910) | `7fb3f1d0` | Java | Correctness authority for edge cases and combat-log ingestion |
+| [odota/parser](https://github.com/odota/parser/tree/e58a668f72866531b9a4e0293387163e8a927f5b) | `e58a668f` | Java | Output-schema authority (`Entry.java`, `CreateParsedDataBlob.java`) |
 
 When translating from Manta, the Go file maps closely to the Python module:
 `manta/reader.go` → `binary/reader.py`, `manta/field_reader.go` →
 `schema/field_reader.py`, `manta/entity.go` → `state/entities.py`, etc.
 
-### MANDATORY: Check refs before implementing
+### MANDATORY: Check upstream references before implementing
 
-**Do not write any implementation code before reading the relevant reference files.** This is a hard rule, not a suggestion.
+**Do not write parser, extractor, or protocol implementation code before reading
+the relevant pinned upstream sources.** This is a hard rule, not a suggestion.
 
-Before implementing any feature or fixing any bug:
-1. Read the relevant file(s) in `refs/manta/` (Go — primary)
-2. Cross-check with `refs/clarity/` (Java — edge cases) and `refs/parser/` (Java — output schema)
-3. Verify field names, enum values, message types, and data flow against the refs
+Before implementing a parser/extractor feature or fixing protocol behavior:
+1. Read the relevant file(s) in pinned Manta (Go — primary)
+2. Cross-check with pinned Clarity (Java — edge cases) and OpenDota parser
+   (Java — output schema)
+3. Verify field names, enum values, message types, and data flow against those
+   revisions
 4. Only then write code
 
-Rushing to implement without checking refs leads to wrong enum mappings, wrong message types, wrong field attributions, and hours of debugging. When in doubt, grep all three ref dirs before touching any source file.
+Purely post-parse analysis, reporting, or documentation changes do not require
+unrelated binary-parser inspection. They still require checking the pinned
+upstream source that defines any event or output semantics they consume.
+
+Rushing to implement without checking references leads to wrong enum mappings,
+wrong message types, wrong field attributions, and hours of debugging. When in
+doubt, search all three pinned upstream repositories before touching source.
 
 ### Public API — how the library is used
 
@@ -202,7 +214,9 @@ The `instancebaseline` string table holds default field values per class — app
 - **S1 (older replays)**: arrives as `dota_combatlog` game event via `CMsgSource1LegacyGameEvent`. Names are integer indices resolved via the `CombatLogNames` string table.
 - **S2 (newer replays)**: arrives as `CMsgDOTACombatLogEntry` user message with names already resolved.
 
-Both paths must produce the same `CombatLogEntry` output. See `refs/clarity/src/main/java/skadistats/clarity/processor/gameevents/CombatLog.java`.
+Both paths must produce the same `CombatLogEntry` output. See pinned
+`skadistats/clarity`
+`src/main/java/skadistats/clarity/processor/gameevents/CombatLog.java`.
 
 ### Ward coordinates — how to get 100% coverage
 
@@ -214,7 +228,7 @@ The combat log `ITEM` event (`item_ward_observer`, `item_ward_dispenser`, `item_
 
 Correct approach: for each combat log placement event, find the entity event with the smallest tick delta within ±60 ticks, allowing reuse. This gives 100% exact coordinates.
 
-Reference: `refs/parser/src/main/java/opendota/processors/warding/Wards.java` — uses `m_lifeState==0` transitions instead of op type. Either works; what matters is accepting all non-DELETED events and not consuming entity records globally in the matcher.
+Reference: pinned `odota/parser` `src/main/java/opendota/processors/warding/Wards.java` — uses `m_lifeState==0` transitions instead of op type. Either works; what matters is accepting all non-DELETED events and not consuming entity records globally in the matcher.
 
 ### Smoke of Deceit lifecycle extraction
 
@@ -283,7 +297,7 @@ Three different gold/XP fields exist; using the wrong one silently produces wron
 Using `m_iGold` for advantage curves is wrong because spendable gold drops on every
 purchase. Client replays name the data class `CDOTA_DataRadiant`/`CDOTA_DataDire`
 (with underscore); HLTV uses `CDOTADataRadiant`/`CDOTADataDire` — both are handled.
-Reference: `refs/parser/Parse.java` (`m_vecDataTeam.%i.m_iTotalEarnedGold/XP`).
+Reference: pinned `odota/parser` `Parse.java` (`m_vecDataTeam.%i.m_iTotalEarnedGold/XP`).
 
 ### Neutral item found events
 
@@ -384,7 +398,8 @@ formula estimate; the events themselves are independently confirmed correct.
           ValueError: When x is negative.
       """
   ```
-- Module-level docstrings must cite the reference file, e.g. `Reference: manta/reader.go`
+- Module-level docstrings must cite the upstream repository and file, e.g.
+  `Reference: dotabuff/manta reader.go (pinned revision in CLAUDE.md)`.
 - Private methods (`_foo`) and test helpers do not require docstrings
 
 ## Commit & PR guidelines
@@ -410,8 +425,9 @@ formula estimate; the events themselves are independently confirmed correct.
 
 - Keep secrets out of the repo — `STEAM_API_KEY` via environment variables only.
 - Do not commit large replay artifacts unless explicitly required for a test fixture.
-- For parser-logic changes, verify against `refs/manta/` first, then cross-check
-  `refs/clarity/` and `refs/parser/` (see "Check refs before implementing" above).
+- For parser-logic changes, verify against pinned Manta first, then cross-check
+  pinned Clarity and OpenDota parser (see "Check upstream references before
+  implementing" above).
 
 ## Protobuf
 

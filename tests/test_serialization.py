@@ -7,6 +7,7 @@ from collections import defaultdict
 
 import gem
 import gem.api
+from gem.analysis.smoke_fight import build_smoke_fight_insights
 from gem.analysis.teamfight_positioning import build_teamfight_positioning
 from gem.combat.log import CombatLogSource
 from gem.extractors.teamfights import OpenDotaTeamfight, Teamfight, TeamfightPlayer
@@ -108,6 +109,7 @@ class TestSerializationHelpers:
                     tick=1_000,
                     activator="npc_dota_hero_axe",
                     team=2,
+                    activation_game_time_s=10,
                     participants=[
                         SmokeParticipant(
                             hero_name="npc_dota_hero_axe",
@@ -116,6 +118,8 @@ class TestSerializationHelpers:
                             removed_tick=1_452,
                             modifier_duration_s=45.0,
                             modifier_elapsed_duration_s=15.0,
+                            applied_game_time_s=11,
+                            removed_game_time_s=26,
                         )
                     ],
                 )
@@ -126,9 +130,48 @@ class TestSerializationHelpers:
 
         smoke = data["smoke_events"][0]
         assert smoke["tick"] == 1_000
+        assert smoke["activation_game_time_s"] == 10
         assert smoke["participants"][0]["applied_tick"] == 1_002
         assert smoke["participants"][0]["removed_tick"] == 1_452
         assert smoke["participants"][0]["modifier_elapsed_duration_s"] == 15.0
+        assert smoke["participants"][0]["applied_game_time_s"] == 11
+        assert smoke["participants"][0]["removed_game_time_s"] == 26
+
+    def test_to_dict_serializes_public_smoke_fight_records(self):
+        match = ParsedMatch(
+            players=[
+                ParsedPlayer(
+                    player_id=0,
+                    hero_name="npc_dota_hero_axe",
+                    team=2,
+                )
+            ],
+            smoke_events=[
+                SmokeEvent(
+                    tick=1_000,
+                    activator="npc_dota_hero_axe",
+                    team=2,
+                    activation_game_time_s=10,
+                    participants=[
+                        SmokeParticipant(
+                            hero_name="npc_dota_hero_axe",
+                            player_id=0,
+                            applied_tick=1_001,
+                        )
+                    ],
+                )
+            ],
+        )
+
+        payload = gem.to_dict(build_smoke_fight_insights(match))
+        decoded = json.loads(json.dumps(payload))
+
+        assert decoded[0]["smoke_index"] == 0
+        assert decoded[0]["fight_index"] is None
+        assert decoded[0]["status"] == "no_candidate"
+        assert decoded[0]["activation"]["tick"] == 1_000
+        assert decoded[0]["activation"]["game_time_s"] == 10
+        assert decoded[0]["members"][0]["authoritative_visibility"] == "unknown"
 
     def test_to_dict_omits_internal_match_details_provenance(self):
         match = ParsedMatch(match_id=7)

@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Vision-aware smoke and fight insights.** Add reusable, bounded smoke-to-fight
+  observations with exact event evidence, sampled formation context,
+  authoritative visibility, ambiguity-safe association, and objective or ward
+  follow-up. Public records, flat DataFrame exports, and cross-linked report
+  views preserve incomplete evidence without assigning a success score or
+  claiming why smoke ended.
 - **Evidence-first teamfight positioning.** Add deterministic pre-engagement,
   engagement-start, first-death, and fight-end snapshots with bounded sampled
   positions, derived team geometry, authoritative opposing-team visibility,

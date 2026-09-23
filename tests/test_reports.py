@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from types import SimpleNamespace
 
 from gem.combat.log import CombatLogEntry, CombatLogType
 from gem.extractors.teamfights import Teamfight, TeamfightPlayer
@@ -12,10 +13,13 @@ from gem.reports import (
     write_html_report,
 )
 from gem.reports.sections.combat import _fight_reveals_html, build_kill_feed, build_teamfights
+from gem.reports.sections.vision import _insight_delta
 from gem.results.models import (
     HeroVisibilityEvent,
     ParsedMatch,
     ParsedPlayer,
+    SmokeEvent,
+    SmokeParticipant,
     VisibilityState,
     VisionModifierEvent,
     VisionModifierLifecycleStatus,
@@ -102,6 +106,49 @@ def _positioning_match(*, missing_position: bool = False) -> ParsedMatch:
     )
 
 
+def _linked_smoke_match(*, multiple_fights: bool = False) -> ParsedMatch:
+    match = _positioning_match()
+    match.smoke_events = [
+        SmokeEvent(
+            tick=900,
+            activator="npc_dota_hero_axe",
+            team=2,
+            activation_game_time_s=30,
+            participants=[
+                SmokeParticipant(
+                    hero_name="npc_dota_hero_axe",
+                    player_id=0,
+                    applied_tick=901,
+                    removed_tick=1_100,
+                    modifier_duration_s=45.0,
+                    modifier_elapsed_duration_s=7.0,
+                    applied_game_time_s=30,
+                    removed_game_time_s=37,
+                )
+            ],
+        )
+    ]
+    if multiple_fights:
+        fight_players = [TeamfightPlayer(player_id=i) for i in range(10)]
+        fight_players[0].damage_dealt = 50
+        fight_players[5].damage_taken = 50
+        match.teamfights.append(
+            Teamfight(
+                start_tick=1_300,
+                end_tick=1_600,
+                first_death_tick=1_400,
+                last_death_tick=1_400,
+                deaths=1,
+                players=fight_players,
+            )
+        )
+        match.game_end_tick = 1_700
+        match.players[0].position_log.append((1_400, 12_000.0, 12_000.0))
+        match.players[1].position_log.append((1_400, 12_100.0, 12_100.0))
+        match.players[2].position_log.append((1_400, 12_400.0, 12_000.0))
+    return match
+
+
 def test_build_html_report_smoke_without_assets() -> None:
     html = build_html_report(
         _minimal_match(),
@@ -179,6 +226,43 @@ def test_full_report_wires_teamfight_snapshot_controls() -> None:
 
     assert "document.querySelectorAll('.tf-snapshot-btn')" in html
     assert "tf-position-layer, .tf-position-note" in html
+
+
+def test_smoke_insight_delta_formats_preexisting_events_as_negative() -> None:
+    assert _insight_delta(SimpleNamespace(game_time_delta_s=-3, tick_delta=-90)) == "-3s"
+    assert "-3.0s*" in _insight_delta(SimpleNamespace(game_time_delta_s=None, tick_delta=-90))
+
+
+def test_full_report_cross_links_smoke_and_unique_fight_evidence() -> None:
+    html = build_html_report(
+        _linked_smoke_match(),
+        options=ReportOptions(include_movement=False),
+    )
+
+    assert 'id="smoke-operation-1"' in html
+    assert 'id="fight-1"' in html
+    assert 'data-report-target="fight-1"' in html
+    assert 'data-report-snapshot="engagement_start"' in html
+    assert 'data-report-target="smoke-operation-1"' in html
+    assert "Linked" in html
+    assert "Visible 1 · Hidden 0 · Unknown 0" in html
+    assert "document.querySelectorAll('[data-report-target]')" in html
+    smoke_sequence = html[html.index('class="smoke-fight-sequence"') :]
+    assert smoke_sequence.index("First death") < smoke_sequence.index("Removal")
+    assert "successful smoke" not in html.lower()
+    assert "ward broke the smoke" not in html.lower()
+
+
+def test_smoke_report_keeps_multiple_fight_links_distinct() -> None:
+    html = build_html_report(
+        _linked_smoke_match(multiple_fights=True),
+        options=ReportOptions(include_movement=False),
+    )
+
+    assert html.count("View Fight #") == 2
+    assert 'data-report-target="fight-1"' in html
+    assert 'data-report-target="fight-2"' in html
+    assert html.count('data-report-target="smoke-operation-1"') == 2
 
 
 def test_player_name_display_gate_rejects_binary_looking_text() -> None:

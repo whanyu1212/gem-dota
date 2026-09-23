@@ -26,6 +26,7 @@ import logging
 from dataclasses import dataclass
 from pathlib import Path
 
+from gem.analysis import build_smoke_fight_insights
 from gem.reports._formatting import (
     GAME_MODES,
     fmt_tick as _fmt_tick,
@@ -260,6 +261,7 @@ def build_html_report(
 
     # Build each tab's content
     header_html = _ext_build_header(match, _fmt_tick, GAME_MODES)
+    smoke_fight_insights = build_smoke_fight_insights(match)
 
     tabs: list[tuple[str, str]] = [
         (
@@ -290,7 +292,7 @@ def build_html_report(
         ),
         ("Laning", _ext_build_laning(match, map_b64)),
         ("Farming", _ext_build_farming(match, map_b64)),
-        ("Fights", _ext_build_teamfights(match, map_b64)),
+        ("Fights", _ext_build_teamfights(match, map_b64, smoke_fight_insights)),
         ("Roshan Conversion", _ext_build_rosh_conversion(match, map_b64)),
         (
             "Vision",
@@ -298,7 +300,7 @@ def build_html_report(
                 filter(
                     None,
                     [
-                        _ext_build_smokes(match, map_b64),
+                        _ext_build_smokes(match, map_b64, smoke_fight_insights),
                         _ext_build_wards(match, map_b64),
                     ],
                 )
@@ -347,10 +349,14 @@ def build_html_report(
     for i, (label, content) in enumerate(tabs):
         tid = f"tab{i}"
         checked = " checked" if i == 0 else ""
-        tab_inputs.append(f'<input type="radio" name="gemtab" id="{tid}"{checked}>')
+        safe_label = html.escape(label, quote=True)
+        tab_inputs.append(
+            f'<input type="radio" name="gemtab" id="{tid}" data-tab-label="{safe_label}"{checked}>'
+        )
         tab_labels.append(f'<label for="{tid}">{html.escape(label)}</label>')
         tab_pages.append(
-            f'<div class="tab-page{" active" if i == 0 else ""}" id="page-{tid}">\n{content}\n</div>'
+            f'<div class="tab-page{" active" if i == 0 else ""}" id="page-{tid}" '
+            f'data-tab-label="{safe_label}">\n{content}\n</div>'
         )
 
     tab_bar = (
@@ -427,6 +433,37 @@ def build_html_report(
       });
       map.querySelectorAll('.tf-position-layer, .tf-position-note').forEach(function(item) {
         item.style.display = item.getAttribute('data-snapshot') === snapshot ? '' : 'none';
+      });
+    });
+  });
+
+  document.querySelectorAll('[data-report-target]').forEach(function(link) {
+    link.addEventListener('click', function(event) {
+      event.preventDefault();
+      var target = document.getElementById(link.getAttribute('data-report-target') || '');
+      if (!target) return;
+      var page = target.closest('.tab-page');
+      if (page) {
+        var radio = document.getElementById(page.id.replace(/^page-/, ''));
+        if (radio && !radio.checked) {
+          radio.checked = true;
+          radio.dispatchEvent(new Event('change'));
+        }
+      }
+      if (target.classList.contains('tf-fight-card') && target.classList.contains('hidden')) {
+        if (tfDeaths) tfDeaths.value = '1';
+        if (tfParts) tfParts.value = '1';
+        applyTeamfightFilters();
+      }
+      var snapshot = link.getAttribute('data-report-snapshot');
+      if (snapshot) {
+        var snapshotButton = target.querySelector(
+          '.tf-snapshot-btn[data-snapshot="' + snapshot + '"]'
+        );
+        if (snapshotButton) snapshotButton.click();
+      }
+      window.requestAnimationFrame(function() {
+        target.scrollIntoView({behavior: 'smooth', block: 'start'});
       });
     });
   });

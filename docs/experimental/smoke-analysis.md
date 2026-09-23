@@ -34,7 +34,9 @@ for smoke in gem.build_smoke_analysis(match):
 ```
 
 Ticks are the canonical timing values. Convert them to display seconds only at
-the presentation boundary; gem assumes 30 replay ticks per second.
+the presentation boundary. Raw smoke and member records also retain optional
+pause-aware `*_game_time_s` values when the replay exposes them; otherwise gem
+uses the exact replay tick and does not invent a game-time value.
 
 ## Lifecycle status
 
@@ -75,9 +77,12 @@ The parse result retains the underlying records in `match.smoke_events`:
 
 ```python
 event.tick                    # item activation tick
+event.activation_game_time_s # pause-aware time when available
 event.activation_x            # sampled activator position
 event.participants[0].applied_tick
 event.participants[0].removed_tick
+event.participants[0].applied_game_time_s
+event.participants[0].removed_game_time_s
 event.participants[0].modifier_duration_s
 event.participants[0].modifier_elapsed_duration_s
 ```
@@ -88,6 +93,9 @@ activator's item-use position.
 
 DataFrame exports include both `smoke_events` and a flat `smoke_members` table.
 The HTML report presents the same evidence in the **Smoke Operations** card.
+For bounded smoke-to-fight composition, participant overlap, formation context,
+and follow-up evidence, use
+[Smoke/Fight Insights](./smoke-fight-insights.md).
 
 ## Known limitations
 

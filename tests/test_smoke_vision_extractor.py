@@ -882,7 +882,14 @@ class TestSmokeExtractor:
         ext = SmokeExtractor(_fake_player_ext())
         parser = FakeParser()
         ext.attach(parser)
-        parser.fire(_entry(tick=100, log_type="ITEM", inflictor_name="item_smoke_of_deceit"))
+        parser.fire(
+            _entry(
+                tick=100,
+                game_time_s=9,
+                log_type="ITEM",
+                inflictor_name="item_smoke_of_deceit",
+            )
+        )
         parser.fire(
             _entry(
                 tick=101,
@@ -902,7 +909,12 @@ class TestSmokeExtractor:
             )
         )
 
-        assert ext.finalize()[0].participants[0].removed_tick == 500
+        event = ext.finalize()[0]
+        participant = event.participants[0]
+        assert event.activation_game_time_s == 9
+        assert participant.applied_game_time_s == 10
+        assert participant.removed_tick == 500
+        assert participant.removed_game_time_s == 11
 
     def test_parser_game_clock_is_pause_aware_fallback_for_source_one(self):
         ext = SmokeExtractor(_fake_player_ext())

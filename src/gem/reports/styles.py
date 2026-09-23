@@ -547,6 +547,49 @@ details[open].sub-accordion > summary::before {
     color: #8b949e;
     font-size: 12px;
 }
+.fight-smoke-links {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.fight-smoke-link,
+.smoke-fight-link {
+    display: inline-block;
+    color: #58a6ff;
+    border: 1px solid #30363d;
+    border-radius: 999px;
+    padding: 2px 7px;
+    font-size: 11px;
+    text-decoration: none;
+}
+.fight-smoke-link:hover,
+.smoke-fight-link:hover { border-color: #58a6ff; }
+.smoke-fight-insight + .smoke-fight-insight {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #30363d;
+}
+.smoke-fight-status {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+.smoke-fight-status.status-linked { color: #3fb950; }
+.smoke-fight-status.status-ambiguous,
+.smoke-fight-status.status-temporal_only,
+.smoke-fight-status.status-preexisting { color: #d29922; }
+.smoke-fight-status.status-no_candidate { color: #8b949e; }
+.smoke-fight-visibility,
+.smoke-fight-sequence,
+.smoke-fight-gaps {
+    margin-top: 4px;
+    color: #8b949e;
+    font-size: 11px;
+    line-height: 1.4;
+}
+.smoke-fight-gaps { color: #d29922; }
+.smoke-fight-link { margin-top: 6px; }
 .tf-fight-body { display: flex; gap: 0; }
 .tf-fight-map {
     padding: 10px;

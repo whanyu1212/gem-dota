@@ -10,10 +10,14 @@ import json
 import math
 
 from gem.analysis import (
+    ExactEventKind,
     MapContextBucket,
+    SmokeFightInsight,
+    SmokeFightStatus,
     SmokeLifecycleStatus,
     build_map_context_timeline,
     build_smoke_analysis,
+    build_smoke_fight_insights,
     score_camp_visit_context,
 )
 from gem.analysis._shared import nearest_series_value
@@ -96,11 +100,99 @@ def _visibility_badge(state: VisibilityState) -> str:
     return '<span style="color:#8b949e">Visibility unknown</span>'
 
 
-def build_smokes(match: ParsedMatch, map_b64: str | None) -> str:
+def _insight_delta(event: object) -> str:
+    """Format an activation-relative exact event without hiding time provenance."""
+    game_time_delta_s = getattr(event, "game_time_delta_s", None)
+    if game_time_delta_s is not None:
+        return f"{game_time_delta_s:+d}s"
+    tick_delta = getattr(event, "tick_delta", 0)
+    return (
+        f'<span title="Tick-derived from {tick_delta:+d} replay ticks">'
+        f"{tick_delta / TICKS_PER_SEC:+.1f}s*</span>"
+    )
+
+
+def _smoke_fight_html(insights: list[SmokeFightInsight]) -> str:
+    """Render composed smoke/fight records without recomputing association rules."""
+    if not insights:
+        return "—"
+
+    status_labels = {
+        SmokeFightStatus.LINKED: "Linked",
+        SmokeFightStatus.TEMPORAL_ONLY: "Temporal only",
+        SmokeFightStatus.AMBIGUOUS: "Ambiguous",
+        SmokeFightStatus.PREEXISTING: "Pre-existing",
+        SmokeFightStatus.NO_CANDIDATE: "No candidate",
+    }
+    event_labels = {
+        ExactEventKind.MEMBER_REMOVAL: "Removal",
+        ExactEventKind.AUTHORITATIVE_VISIBLE: "Visible",
+        ExactEventKind.DIRECT_REVEAL: "Direct reveal",
+        ExactEventKind.MEMBER_ACTION: "Action",
+        ExactEventKind.FIRST_DEATH: "First death",
+        ExactEventKind.FIGHT_END: "Fight end",
+    }
+    blocks: list[str] = []
+    for insight in insights:
+        visible = sum(
+            member.authoritative_visibility is VisibilityState.VISIBLE for member in insight.members
+        )
+        hidden = sum(
+            member.authoritative_visibility is VisibilityState.HIDDEN for member in insight.members
+        )
+        unknown = len(insight.members) - visible - hidden
+        sequence = " · ".join(
+            f"{event_labels[event.kind]} {_insight_delta(event)}"
+            for event in insight.exact_events
+            if event.kind is not ExactEventKind.ACTIVATION
+        )
+        if not sequence:
+            sequence = "No later exact event observed"
+
+        link = ""
+        if insight.fight_index is not None:
+            fight_number = insight.fight_index + 1
+            link = (
+                f'<a class="smoke-fight-link" href="#fight-{fight_number}" '
+                f'data-report-target="fight-{fight_number}" '
+                'data-report-snapshot="engagement_start">'
+                f"View Fight #{fight_number}</a>"
+            )
+        gap_html = ""
+        if insight.evidence_gaps:
+            gap_html = (
+                f'<div class="smoke-fight-gaps">Incomplete evidence: '
+                f"{e(', '.join(insight.evidence_gaps))}</div>"
+            )
+        active_count = len(insight.active_smoked_player_ids)
+        blocks.append(
+            '<div class="smoke-fight-insight">'
+            f'<div><span class="smoke-fight-status status-{insight.status.value}">'
+            f"{status_labels[insight.status]}</span>"
+            f'<span class="dim"> · {active_count} active smoked member'
+            f"{'' if active_count == 1 else 's'}</span></div>"
+            f'<div class="smoke-fight-visibility">Visible {visible} · Hidden {hidden} · '
+            f"Unknown {unknown}</div>"
+            f'<div class="smoke-fight-sequence">{sequence}</div>'
+            f"{link}{gap_html}</div>"
+        )
+    return "".join(blocks)
+
+
+def build_smokes(
+    match: ParsedMatch,
+    map_b64: str | None,
+    insights: list[SmokeFightInsight] | None = None,
+) -> str:
     """Build evidence-first Smoke of Deceit lifecycle analysis."""
     analyses = build_smoke_analysis(match)
     if not analyses:
         return ""
+    if insights is None:
+        insights = build_smoke_fight_insights(match)
+    insights_by_smoke: dict[int, list[SmokeFightInsight]] = {}
+    for insight in insights:
+        insights_by_smoke.setdefault(insight.smoke_index, []).append(insight)
 
     map_events: list[dict[str, object]] = []
     rows: list[str] = []
@@ -155,19 +247,10 @@ def build_smokes(match: ParsedMatch, map_b64: str | None) -> str:
             f'<span style="color:{team_color}">{e(team_name(analysis.team))}</span><br>'
             f'<span class="dim">{e(hero(analysis.activator))}</span>'
         )
-        fight = analysis.first_teamfight
-        if fight is None:
-            fight_html = "—"
-        else:
-            delta_s = (fight.first_death_tick - analysis.activation_tick) / TICKS_PER_SEC
-            fight_html = (
-                f'<span title="First death tick {fight.first_death_tick}">+{delta_s:.1f}s</span><br>'
-                f'<span class="dim">{e(fight.winner.title())}, '
-                f"{fight.radiant_kills}–{fight.dire_kills}</span>"
-            )
+        fight_html = _smoke_fight_html(insights_by_smoke.get(index - 1, []))
 
         rows.append(
-            "<tr>"
+            f'<tr id="smoke-operation-{index}">'
             f'<td class="r"><strong>#{index}</strong><br><span title="Replay tick '
             f'{analysis.activation_tick}">{e(fmt_tick(analysis.activation_tick))}</span></td>'
             f"<td>{team_html}</td>"
@@ -314,11 +397,11 @@ def build_smokes(match: ParsedMatch, map_b64: str | None) -> str:
 
     return (
         '<div class="card"><details open><summary>Smoke Operations</summary><div class="card-body">'
-        '<p class="dim">Modifier removal, authoritative enemy visibility, sampled proximity, and follow-up fights are reported as separate evidence. Early removal does not by itself prove the hero was seen.</p>'
+        '<p class="dim">Modifier removal, authoritative enemy visibility, sampled proximity, and bounded fight links are reported as separate evidence. Early removal does not by itself prove the hero was seen. * marks tick-derived elapsed time.</p>'
         + map_html
         + '<div style="overflow-x:auto"><table><thead><tr><th class="r">Activation</th><th>Team / activator</th>'
         "<th>Members</th><th>Lifecycle</th><th>First early removal</th>"
-        "<th>Enemy state</th><th>Nearest enemy</th><th>Follow-up fight</th>"
+        "<th>Enemy state</th><th>Nearest enemy</th><th>Bounded fight evidence</th>"
         f"</tr></thead><tbody>{''.join(rows)}</tbody></table></div>{''.join(member_details)}"
         "</div></details></div>"
     )

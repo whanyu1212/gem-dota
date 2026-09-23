@@ -31,6 +31,7 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
 
     import pandas as pd
 
+    from gem.analysis.smoke_fight import build_smoke_fight_insights
     from gem.analysis.teamfight_positioning import build_teamfight_positioning
     from gem.results.models import (
         EntityVisibilityEvent,
@@ -387,6 +388,7 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
     smoke_member_columns = [
         "smoke_event_index",
         "activation_tick",
+        "activation_game_time_s",
         "activator",
         "team",
         "hero_name",
@@ -399,11 +401,14 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         "applied_y",
         "removed_x",
         "removed_y",
+        "applied_game_time_s",
+        "removed_game_time_s",
     ]
     smoke_member_rows = [
         {
             "smoke_event_index": event_index,
             "activation_tick": smoke.tick,
+            "activation_game_time_s": smoke.activation_game_time_s,
             "activator": smoke.activator,
             "team": smoke.team,
             **asdict(participant),
@@ -533,6 +538,247 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                 )
     teamfight_positioning_df = pd.DataFrame(positioning_rows, columns=positioning_columns)
 
+    # --- bounded smoke/fight insights ---
+    insight_columns = [
+        "smoke_index",
+        "fight_index",
+        "status",
+        "evidence_completeness",
+        "smoke_team",
+        "activator",
+        "smoke_lifecycle_status",
+        "activation_tick",
+        "activation_game_time_s",
+        "first_member_removal_tick",
+        "first_authoritative_visible_tick",
+        "first_direct_reveal_tick",
+        "first_member_action_tick",
+        "first_death_tick",
+        "fight_end_tick",
+        "active_smoked_member_count",
+        "active_smoked_player_ids",
+        "pre_engagement_expected_count",
+        "pre_engagement_positioned_count",
+        "pre_engagement_completeness",
+        "pre_engagement_centroid_x",
+        "pre_engagement_centroid_y",
+        "pre_engagement_rms_spread",
+        "pre_engagement_max_pairwise_distance",
+        "engagement_expected_count",
+        "engagement_positioned_count",
+        "engagement_completeness",
+        "engagement_centroid_x",
+        "engagement_centroid_y",
+        "engagement_rms_spread",
+        "engagement_max_pairwise_distance",
+        "sampled_near_fight_spread_ticks",
+        "near_fight_centroid_source",
+        "fight_deaths",
+        "fight_radiant_kills",
+        "fight_dire_kills",
+        "fight_winner",
+        "follow_up_start_tick",
+        "follow_up_end_tick",
+        "follow_up_end_reasons",
+        "evidence_gaps",
+    ]
+    member_columns = [
+        "smoke_index",
+        "fight_index",
+        "status",
+        "participant_index",
+        "player_id",
+        "hero_name",
+        "resolved",
+        "active_participant",
+        "authoritative_visibility",
+        "point_vision_status",
+        "pre_engagement_x",
+        "pre_engagement_y",
+        "pre_engagement_sample_tick",
+        "pre_engagement_sample_age_ticks",
+        "engagement_x",
+        "engagement_y",
+        "engagement_sample_tick",
+        "engagement_sample_age_ticks",
+        "sampled_near_fight_tick",
+        "sampled_near_fight_x",
+        "sampled_near_fight_y",
+        "sampled_near_fight_distance",
+        "evidence_gaps",
+    ]
+    follow_up_columns = [
+        "smoke_index",
+        "fight_index",
+        "kind",
+        "source_index",
+        "tick",
+        "game_time_s",
+        "tick_delta",
+        "game_time_delta_s",
+        "actor_name",
+        "actor_player_id",
+        "actor_team",
+        "relation",
+        "subject_name",
+        "window_start_tick",
+        "window_end_tick",
+    ]
+
+    smoke_fight_insight_rows: list[dict[str, Any]] = []
+    smoke_fight_member_rows: list[dict[str, Any]] = []
+    smoke_fight_follow_up_rows: list[dict[str, Any]] = []
+    for insight in build_smoke_fight_insights(match):
+        pre = insight.pre_engagement_formation
+        engagement = insight.engagement_formation
+        outcome = insight.outcome
+        window = insight.follow_up_window
+        smoke_fight_insight_rows.append(
+            {
+                "smoke_index": insight.smoke_index,
+                "fight_index": insight.fight_index,
+                "status": insight.status.value,
+                "evidence_completeness": insight.evidence_completeness.value,
+                "smoke_team": insight.smoke_team,
+                "activator": insight.activator,
+                "smoke_lifecycle_status": insight.smoke_lifecycle_status.value,
+                "activation_tick": insight.activation.tick,
+                "activation_game_time_s": insight.activation.game_time_s,
+                "first_member_removal_tick": (
+                    insight.first_member_removal.tick if insight.first_member_removal else None
+                ),
+                "first_authoritative_visible_tick": (
+                    insight.first_authoritative_visible.tick
+                    if insight.first_authoritative_visible
+                    else None
+                ),
+                "first_direct_reveal_tick": (
+                    insight.first_direct_reveal.tick if insight.first_direct_reveal else None
+                ),
+                "first_member_action_tick": (
+                    insight.first_member_action.tick if insight.first_member_action else None
+                ),
+                "first_death_tick": insight.first_death.tick if insight.first_death else None,
+                "fight_end_tick": insight.fight_end.tick if insight.fight_end else None,
+                "active_smoked_member_count": len(insight.active_smoked_player_ids),
+                "active_smoked_player_ids": ",".join(
+                    str(player_id) for player_id in insight.active_smoked_player_ids
+                ),
+                "pre_engagement_expected_count": pre.expected_count if pre else None,
+                "pre_engagement_positioned_count": pre.positioned_count if pre else None,
+                "pre_engagement_completeness": pre.completeness.value if pre else None,
+                "pre_engagement_centroid_x": pre.centroid_x if pre else None,
+                "pre_engagement_centroid_y": pre.centroid_y if pre else None,
+                "pre_engagement_rms_spread": pre.rms_spread if pre else None,
+                "pre_engagement_max_pairwise_distance": (
+                    pre.max_pairwise_distance if pre else None
+                ),
+                "engagement_expected_count": engagement.expected_count if engagement else None,
+                "engagement_positioned_count": (
+                    engagement.positioned_count if engagement else None
+                ),
+                "engagement_completeness": (engagement.completeness.value if engagement else None),
+                "engagement_centroid_x": engagement.centroid_x if engagement else None,
+                "engagement_centroid_y": engagement.centroid_y if engagement else None,
+                "engagement_rms_spread": engagement.rms_spread if engagement else None,
+                "engagement_max_pairwise_distance": (
+                    engagement.max_pairwise_distance if engagement else None
+                ),
+                "sampled_near_fight_spread_ticks": insight.sampled_near_fight_spread_ticks,
+                "near_fight_centroid_source": (
+                    insight.near_fight_centroid_source.value
+                    if insight.near_fight_centroid_source
+                    else None
+                ),
+                "fight_deaths": outcome.deaths if outcome else None,
+                "fight_radiant_kills": outcome.radiant_kills if outcome else None,
+                "fight_dire_kills": outcome.dire_kills if outcome else None,
+                "fight_winner": outcome.winner if outcome else None,
+                "follow_up_start_tick": window.start_tick if window else None,
+                "follow_up_end_tick": window.end_tick if window else None,
+                "follow_up_end_reasons": (
+                    ",".join(reason.value for reason in window.end_reasons) if window else ""
+                ),
+                "evidence_gaps": ";".join(insight.evidence_gaps),
+            }
+        )
+
+        for member in insight.members:
+            pre_position = member.pre_engagement_position
+            engagement_position = member.engagement_position
+            near = member.sampled_near_fight
+            smoke_fight_member_rows.append(
+                {
+                    "smoke_index": insight.smoke_index,
+                    "fight_index": insight.fight_index,
+                    "status": insight.status.value,
+                    "participant_index": member.participant_index,
+                    "player_id": member.player_id,
+                    "hero_name": member.hero_name,
+                    "resolved": member.resolved,
+                    "active_participant": member.active_participant,
+                    "authoritative_visibility": member.authoritative_visibility.value,
+                    "point_vision_status": (
+                        member.point_vision.status.value if member.point_vision else None
+                    ),
+                    "pre_engagement_x": pre_position.x if pre_position else None,
+                    "pre_engagement_y": pre_position.y if pre_position else None,
+                    "pre_engagement_sample_tick": (
+                        pre_position.sample_tick if pre_position else None
+                    ),
+                    "pre_engagement_sample_age_ticks": (
+                        pre_position.sample_age_ticks if pre_position else None
+                    ),
+                    "engagement_x": engagement_position.x if engagement_position else None,
+                    "engagement_y": engagement_position.y if engagement_position else None,
+                    "engagement_sample_tick": (
+                        engagement_position.sample_tick if engagement_position else None
+                    ),
+                    "engagement_sample_age_ticks": (
+                        engagement_position.sample_age_ticks if engagement_position else None
+                    ),
+                    "sampled_near_fight_tick": near.tick if near else None,
+                    "sampled_near_fight_x": near.x if near else None,
+                    "sampled_near_fight_y": near.y if near else None,
+                    "sampled_near_fight_distance": near.distance if near else None,
+                    "evidence_gaps": ";".join(member.evidence_gaps),
+                }
+            )
+
+        for follow_up in insight.follow_ups:
+            smoke_fight_follow_up_rows.append(
+                {
+                    "smoke_index": insight.smoke_index,
+                    "fight_index": insight.fight_index,
+                    "kind": follow_up.kind.value,
+                    "source_index": follow_up.source_index,
+                    "tick": follow_up.tick,
+                    "game_time_s": follow_up.game_time_s,
+                    "tick_delta": follow_up.tick_delta,
+                    "game_time_delta_s": follow_up.game_time_delta_s,
+                    "actor_name": follow_up.actor_name,
+                    "actor_player_id": follow_up.actor_player_id,
+                    "actor_team": follow_up.actor_team,
+                    "relation": follow_up.relation.value,
+                    "subject_name": follow_up.subject_name,
+                    "window_start_tick": window.start_tick if window else None,
+                    "window_end_tick": window.end_tick if window else None,
+                }
+            )
+
+    smoke_fight_insights_df = pd.DataFrame(
+        smoke_fight_insight_rows,
+        columns=insight_columns,
+    )
+    smoke_fight_members_df = pd.DataFrame(
+        smoke_fight_member_rows,
+        columns=member_columns,
+    )
+    smoke_fight_followups_df = pd.DataFrame(
+        smoke_fight_follow_up_rows,
+        columns=follow_up_columns,
+    )
+
     return {
         "players": players_df,
         "players_minute": players_min_df,
@@ -550,6 +796,9 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         "opendota_teamfights": opendota_teamfights_df,
         "smoke_events": smoke_df,
         "smoke_members": smoke_members_df,
+        "smoke_fight_insights": smoke_fight_insights_df,
+        "smoke_fight_members": smoke_fight_members_df,
+        "smoke_fight_followups": smoke_fight_followups_df,
         "courier_snapshots": courier_df,
         "neutral_item_finds": neutral_item_finds_df,
         "hero_visibility_events": hero_visibility_df,
