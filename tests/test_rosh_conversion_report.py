@@ -5,15 +5,22 @@ from typing import Literal
 
 from gem.analysis._territory import RoshCoverageCell, RoshTerritoryWindow
 from gem.analysis.roshan import (
+    AegisFateSource,
     RoshConversion,
     RoshDifferentialProfile,
+    RoshFightEvidence,
+    RoshFightRelation,
+    RoshTeamAttributionSource,
     RoshTimelineEvent,
 )
+from gem.analysis.teamfight_positioning import EngagementStartSource
+from gem.extractors.teamfights import Teamfight, TeamfightPlayer
 from gem.extractors.wards import WardEvent
 from gem.reports import ReportOptions, build_html_report, builder as report_builder
 from gem.reports._formatting import set_game_start_tick
 from gem.reports.assets import ReportAssets
 from gem.reports.sections import match as match_section
+from gem.reports.sections.combat import build_teamfights
 from gem.results.models import ParsedMatch
 
 
@@ -156,7 +163,7 @@ def _conversion(*, maps_available: bool = True) -> RoshConversion:
             RoshTimelineEvent(1400, "tormentor", "Tormentor secured"),
             RoshTimelineEvent(1000, "roshan", "Roshan #1 killed"),
             RoshTimelineEvent(1300, "buyback", "Bane buyback"),
-            RoshTimelineEvent(1200, "fight_loss", "Fight lost"),
+            RoshTimelineEvent(1200, "fight_loss", "Fight lost", fight_index=0),
             RoshTimelineEvent(1350, "own_buyback", "Axe buyback"),
         ],
         drops=["aegis", "banner"],
@@ -166,7 +173,26 @@ def _conversion(*, maps_available: bool = True) -> RoshConversion:
         banner_rax_lane="mid",
         roshan_team=2,
         conversion_team=2,
+        roshan_team_source=RoshTeamAttributionSource.PROTOCOL,
+        conversion_team_source=RoshTeamAttributionSource.PLAYER_ID,
+        aegis_fate_source=AegisFateSource.HOLDER_DEATH_INFERENCE,
         aegis_fate_inferred=True,
+        first_engagement_tick=1100,
+        fight_evidence=[
+            RoshFightEvidence(
+                fight_index=0,
+                relation=RoshFightRelation.IN_WINDOW,
+                engagement_start_tick=1100,
+                engagement_start_source=EngagementStartSource.FIRST_DEATH_FALLBACK,
+                first_death_tick=1200,
+                end_tick=1300,
+                winner="dire",
+                deaths=2,
+                conversion_participant_ids=(0,),
+                opponent_participant_ids=(5,),
+                unknown_participant_ids=(),
+            )
+        ],
         conversion_tags=["fight_advantage", "territorial_expansion"],
         analysis_status="partial",
         analysis_status_reasons=["xp_series_unavailable"],
@@ -218,7 +244,10 @@ def test_report_renders_raw_signed_balance_resources_tags_and_status(monkeypatch
     assert "Territorial expansion" in html
     assert "Evidence: Partial" in html
     assert "XP Series Unavailable" in html
-    assert "Context: Objective Conversion" in html
+    assert "Holder Death Inference" in html
+    assert "team evidence Protocol / Player ID" in html
+    assert "Context: Objective Conversion" not in html
+    assert 'id="roshan-conversion-1"' in html
     assert "conversion_score" not in html
     assert "radar" not in html.lower()
 
@@ -234,10 +263,50 @@ def test_report_timeline_is_semantic_two_sided_and_chronological(monkeypatch) ->
     assert "rosh-event-buyback" in html
     assert "rosh-event-own_buyback" in html
     assert "rosh-event-tormentor" in html
+    assert 'href="#fight-1"' in html
+    assert 'data-report-target="fight-1"' in html
     assert html.index('data-tick="1000"') < html.index('data-tick="1200"')
     assert html.index('data-tick="1200"') < html.index('data-tick="1300"')
     assert html.index('data-tick="1300"') < html.index('data-tick="1350"')
     assert html.index('data-tick="1350"') < html.index('data-tick="1400"')
+
+
+def test_report_surfaces_unattributed_objectives_without_credit(monkeypatch) -> None:
+    conversion = _conversion()
+    conversion.differential_profile.unattributed_towers = 1
+    conversion.differential_profile.unattributed_barracks = 2
+    conversion.differential_profile.unattributed_tormentors = 1
+
+    html = _render(monkeypatch, conversion)
+
+    assert "Not credited to either side" in html
+    assert "1 tower(s), 2 barracks, 1 Tormentor(s)" in html
+
+
+def test_fight_card_links_back_to_associated_roshan_conversion() -> None:
+    fight_players = [TeamfightPlayer(player_id=player_id) for player_id in range(10)]
+    fight_players[0].deaths = 1
+    match = ParsedMatch(
+        game_start_tick=0,
+        players=[],
+        teamfights=[
+            Teamfight(
+                start_tick=1000,
+                end_tick=1300,
+                first_death_tick=1200,
+                last_death_tick=1200,
+                deaths=1,
+                winner="dire",
+                players=fight_players,
+            )
+        ],
+    )
+
+    html = build_teamfights(match, None, rosh_conversions=[_conversion()])
+
+    assert 'href="#roshan-conversion-1"' in html
+    assert 'data-report-target="roshan-conversion-1"' in html
+    assert "Roshan #1 · in window" in html
 
 
 def test_report_renders_accessible_paired_maps_with_shared_background(monkeypatch) -> None:
@@ -270,7 +339,11 @@ def test_report_maps_have_dark_fallback_and_explicit_unavailable_state(monkeypat
 def test_full_report_passes_map_background_to_roshan_builder(monkeypatch) -> None:
     seen: list[str | None] = []
 
-    def _fake_roshan(_match: ParsedMatch, map_b64: str | None = None) -> str:
+    def _fake_roshan(
+        _match: ParsedMatch,
+        map_b64: str | None = None,
+        _conversions: list[RoshConversion] | None = None,
+    ) -> str:
         seen.append(map_b64)
         return '<div class="rosh-map-probe"></div>'
 
@@ -291,7 +364,7 @@ def test_full_report_escapes_public_map_string_inside_script(monkeypatch) -> Non
     monkeypatch.setattr(
         report_builder,
         "_ext_build_rosh_conversion",
-        lambda _match, _map_b64=None: "",
+        lambda _match, _map_b64=None, _conversions=None: "",
     )
     hostile = 'QUJD";window.pwned=1;//</script><script>'
     html = build_html_report(

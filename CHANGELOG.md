@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Calibrated Roshan conversion evidence.** Add a reproducible real-replay
+  corpus (including denied, stolen, expired, inferred-consumed, preexisting-
+  fight, late, partial, and no-tag cases), inspectable tag and territory
+  configuration, engagement-aware fight evidence, lifecycle/team provenance,
+  bidirectional report links, and flat conversion/fight DataFrame exports.
+
 - **Vision-aware smoke and fight insights.** Add reusable, bounded smoke-to-fight
   observations with exact event evidence, sampled formation context,
   authoritative visibility, ambiguity-safe association, and objective or ward
@@ -59,6 +65,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   behavior or runtime requirement changes.
 
 ### Changed
+
+- **Roshan compatibility migration.** Formally deprecate the aggregate
+  `conversion_score` and exclusive `conversion_label`, retain them through the
+  0.9 line, remove them from reports, and prefer raw differential evidence,
+  status, and non-exclusive tags. Unknown structure or Tormentor attribution is
+  now counted and never silently credited.
 
 - **Patch 7.41 report map.** Replace the default patch 7.40 report background
   with Liquipedia's patch 7.41 map, normalized to the existing 8,878 × 8,356

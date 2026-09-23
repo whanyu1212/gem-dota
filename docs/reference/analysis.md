@@ -41,7 +41,15 @@ sources = gem.estimate_vision(match, team=2, tick=tick, x=x, y=y)
 vision  = gem.assess_point_vision(match, team=2, tick=tick, x=x, y=y)
 smokes  = gem.build_smoke_analysis(match)
 fights  = gem.build_teamfight_positioning(match)
+rosh    = gem.build_rosh_conversions(match)
 ```
+
+Roshan conversions expose `roshan_team_source`, `conversion_team_source`,
+`aegis_fate_source`, engagement-aware `fight_evidence`, the signed
+`differential_profile`, and non-exclusive `conversion_tags`. Threshold and
+territory settings are immutable public configuration records. See
+[Roshan Conversion](../experimental/rosh-conversion.md) and its
+[calibration record](../experimental/rosh-conversion-calibration.md).
 
 ---
 
@@ -1013,14 +1021,93 @@ Source: [src/gem/analysis/roshan.py](https://github.com/whanyu1212/gem-dota/blob
 ### `build_rosh_conversions`
 
 ```python
-def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]
+def build_rosh_conversions(match: ParsedMatch, *, tag_thresholds: RoshTagThresholds = DEFAULT_ROSH_TAG_THRESHOLDS, territory_config: RoshTerritoryConfig = DEFAULT_ROSH_TERRITORY_CONFIG) -> list[RoshConversion]
 ```
 
 Summarise each Roshan with legacy fields and differential evidence.
 
-Source: [src/gem/analysis/roshan.py:1000](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L1000)
+Source: [src/gem/analysis/roshan.py:1278](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L1278)
 
 ### Top-level classes
+
+### `AegisFateSource`
+
+```python
+class AegisFateSource(str, Enum)
+```
+
+Evidence or boundary used to classify an Aegis lifecycle.
+
+Source: [src/gem/analysis/roshan.py:65](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L65)
+
+### `RoshTeamAttributionSource`
+
+```python
+class RoshTeamAttributionSource(str, Enum)
+```
+
+Provenance of a team attribution used by Roshan analysis.
+
+Source: [src/gem/analysis/roshan.py:78](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L78)
+
+### `RoshFightRelation`
+
+```python
+class RoshFightRelation(str, Enum)
+```
+
+Temporal relationship between a fight and the conversion window.
+
+Source: [src/gem/analysis/roshan.py:90](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L90)
+
+### `RoshTagThresholds`
+
+```python
+class RoshTagThresholds
+```
+
+Inspectably configured thresholds for non-exclusive conversion tags.
+
+Source: [src/gem/analysis/roshan.py:100](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L100)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `fight_advantage` | `int` | `_FIGHT_ADVANTAGE_THRESHOLD` |
+| `objective_gain` | `int` | `_OBJECTIVE_GAIN_THRESHOLD` |
+| `net_worth_swing` | `int` | `_NET_WORTH_SWING_THRESHOLD` |
+| `xp_swing` | `int` | `_XP_SWING_THRESHOLD` |
+| `territory_swing_pct` | `float` | `_TERRITORY_SWING_THRESHOLD_PCT` |
+| `ward_delta` | `int` | `_WARD_DELTA_THRESHOLD` |
+| `counter_min_dimensions` | `int` | `2` |
+| `ruleset` | `str` | `'provisional-v1'` |
+
+### `RoshFightEvidence`
+
+```python
+class RoshFightEvidence
+```
+
+Engagement-aware evidence for one fight associated with a Roshan window.
+
+Source: [src/gem/analysis/roshan.py:132](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L132)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `fight_index` | `int` | `-` |
+| `relation` | `RoshFightRelation` | `-` |
+| `engagement_start_tick` | `int` | `-` |
+| `engagement_start_source` | `EngagementStartSource` | `-` |
+| `first_death_tick` | `int` | `-` |
+| `end_tick` | `int` | `-` |
+| `winner` | `str` | `-` |
+| `deaths` | `int` | `-` |
+| `conversion_participant_ids` | `tuple[int, ...]` | `-` |
+| `opponent_participant_ids` | `tuple[int, ...]` | `-` |
+| `unknown_participant_ids` | `tuple[int, ...]` | `-` |
 
 ### `RoshTimelineEvent`
 
@@ -1030,15 +1117,16 @@ class RoshTimelineEvent
 
 One notable event inside a Roshan conversion sequence.
 
-Source: [src/gem/analysis/roshan.py:86](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L86)
+Source: [src/gem/analysis/roshan.py:185](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L185)
 
 #### Dataclass fields
 
 | Name | Type | Default |
 |---|---|---|
 | `tick` | `int` | `-` |
-| `kind` | `Literal['roshan', 'aegis_pickup', 'aegis_denied', 'fight_win', 'fight_loss', 'fight_draw', 'tower', 'tower_lost', 'barracks', 'barracks_lost', 'buyback', 'own_buyback', 'tormentor', 'opponent_tormentor', 'tormentor_unknown', 'banner', 'opponent_banner', 'aegis_end', 'game_end']` | `-` |
+| `kind` | `Literal['roshan', 'aegis_pickup', 'aegis_denied', 'fight_win', 'fight_loss', 'fight_draw', 'tower', 'tower_lost', 'tower_unknown', 'barracks', 'barracks_lost', 'barracks_unknown', 'buyback', 'own_buyback', 'tormentor', 'opponent_tormentor', 'tormentor_unknown', 'banner', 'opponent_banner', 'aegis_end', 'game_end']` | `-` |
 | `label` | `str` | `-` |
+| `fight_index` | `int \| None` | `None` |
 
 ### `RoshDifferentialProfile`
 
@@ -1048,7 +1136,7 @@ class RoshDifferentialProfile
 
 Evidence-first conversion-team profile over one hardened Rosh window.
 
-Source: [src/gem/analysis/roshan.py:115](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L115)
+Source: [src/gem/analysis/roshan.py:217](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L217)
 
 #### Dataclass fields
 
@@ -1066,6 +1154,8 @@ Source: [src/gem/analysis/roshan.py:115](https://github.com/whanyu1212/gem-dota/
 | `opponent_towers` | `int \| None` | `None` |
 | `conversion_barracks` | `int \| None` | `None` |
 | `opponent_barracks` | `int \| None` | `None` |
+| `unattributed_towers` | `int` | `0` |
+| `unattributed_barracks` | `int` | `0` |
 | `conversion_structure_value` | `int \| None` | `None` |
 | `opponent_structure_value` | `int \| None` | `None` |
 | `structure_delta` | `int \| None` | `None` |
@@ -1090,8 +1180,10 @@ Source: [src/gem/analysis/roshan.py:115](https://github.com/whanyu1212/gem-dota/
 | `forward_ward_delta` | `int \| None` | `None` |
 | `conversion_tormentors` | `int \| None` | `None` |
 | `opponent_tormentors` | `int \| None` | `None` |
+| `unattributed_tormentors` | `int` | `0` |
 | `tormentor_delta` | `int \| None` | `None` |
 | `tags` | `list[str]` | `field(...)` |
+| `tag_ruleset` | `str` | `DEFAULT_ROSH_TAG_THRESHOLDS.ruleset` |
 | `status` | `Literal['complete', 'partial', 'unavailable']` | `'unavailable'` |
 | `status_reasons` | `list[str]` | `field(...)` |
 
@@ -1103,7 +1195,7 @@ class RoshConversion
 
 Derived summary for one Roshan kill and the advantage window that followed.
 
-Source: [src/gem/analysis/roshan.py:213](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L213)
+Source: [src/gem/analysis/roshan.py:319](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L319)
 
 #### Dataclass fields
 
@@ -1146,7 +1238,12 @@ Source: [src/gem/analysis/roshan.py:213](https://github.com/whanyu1212/gem-dota/
 | `banner_rax_lane` | `str \| None` | `None` |
 | `roshan_team` | `int \| None` | `None` |
 | `conversion_team` | `int \| None` | `None` |
+| `roshan_team_source` | `RoshTeamAttributionSource` | `RoshTeamAttributionSource.UNKNOWN` |
+| `conversion_team_source` | `RoshTeamAttributionSource` | `RoshTeamAttributionSource.UNKNOWN` |
+| `aegis_fate_source` | `AegisFateSource` | `AegisFateSource.MISSING_EVENT` |
 | `aegis_fate_inferred` | `bool` | `False` |
+| `first_engagement_tick` | `int \| None` | `None` |
+| `fight_evidence` | `list[RoshFightEvidence]` | `field(...)` |
 | `conversion_tags` | `list[str]` | `field(...)` |
 | `analysis_status` | `Literal['complete', 'partial', 'unavailable']` | `'unavailable'` |
 | `analysis_status_reasons` | `list[str]` | `field(...)` |

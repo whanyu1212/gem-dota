@@ -4,7 +4,13 @@ from __future__ import annotations
 
 import gem.results.models as model_module
 from gem.combat.log import CombatLogEntry, CombatLogSource, CombatLogType
-from gem.extractors.objectives import AegisEvent, ShrineKill, TormentorKill
+from gem.extractors.objectives import (
+    AegisEvent,
+    RoshanKill,
+    ShrineKill,
+    TormentorKill,
+    TowerKill,
+)
 from gem.extractors.teamfights import Teamfight, TeamfightPlayer
 from gem.results.dataframes import build_dataframes
 from gem.results.models import (
@@ -116,6 +122,8 @@ class TestBuildDataframes:
         assert "draft" in dfs
         assert "teamfights" in dfs
         assert "teamfight_positioning" in dfs
+        assert "roshan_conversions" in dfs
+        assert "roshan_conversion_fights" in dfs
         assert "opendota_teamfights" in dfs
         assert "smoke_events" in dfs
         assert "smoke_members" in dfs
@@ -134,6 +142,23 @@ class TestBuildDataframes:
         assert dfs["neutral_item_finds"].empty
         assert dfs["opendota_teamfights"].empty
         assert dfs["teamfight_positioning"].empty
+        assert dfs["roshan_conversions"].empty
+        assert dfs["roshan_conversion_fights"].empty
+        assert list(dfs["roshan_conversions"].columns[:6]) == [
+            "rosh_number",
+            "rosh_tick",
+            "killer_name",
+            "roshan_team",
+            "roshan_team_source",
+            "conversion_team",
+        ]
+        assert list(dfs["roshan_conversion_fights"].columns[:5]) == [
+            "rosh_number",
+            "fight_index",
+            "relation",
+            "engagement_start_tick",
+            "engagement_start_source",
+        ]
         assert list(dfs["teamfight_positioning"].columns[:8]) == [
             "fight_index",
             "fight_start_tick",
@@ -209,6 +234,75 @@ class TestBuildDataframes:
             "target_name",
             "source",
         ]
+
+    def test_roshan_conversion_tables_flatten_provenance_and_fight_evidence(self):
+        players = [
+            ParsedPlayer(
+                player_id=player_id,
+                hero_name=f"npc_dota_hero_hero_{player_id}",
+                team=2 if player_id < 5 else 3,
+            )
+            for player_id in range(10)
+        ]
+        fight_players = [TeamfightPlayer(player_id=player_id) for player_id in range(10)]
+        fight_players[0].damage_dealt = 500
+        fight_players[5].deaths = 1
+        match = ParsedMatch(
+            game_start_tick=0,
+            game_end_tick=20000,
+            players=players,
+            roshans=[
+                RoshanKill(
+                    1000,
+                    "npc_dota_hero_hero_0",
+                    1,
+                    drops=["aegis"],
+                    killer_team=2,
+                )
+            ],
+            aegis_events=[AegisEvent(1010, 0, "pickup")],
+            towers=[
+                TowerKill(
+                    1500,
+                    3,
+                    "",
+                    "npc_dota_badguys_tower1_mid",
+                    killer_team=2,
+                )
+            ],
+            teamfights=[
+                Teamfight(
+                    start_tick=1100,
+                    end_tick=1400,
+                    first_death_tick=1300,
+                    last_death_tick=1300,
+                    deaths=1,
+                    winner="radiant",
+                    players=fight_players,
+                )
+            ],
+        )
+
+        frames = build_dataframes(match)
+        conversion = frames["roshan_conversions"].iloc[0]
+        fight = frames["roshan_conversion_fights"].iloc[0]
+        objective_rows = frames["objectives"].set_index("type")
+
+        assert objective_rows.loc["roshan", "killer_team"] == 2
+        assert objective_rows.loc["tower", "killer_team"] == 2
+        assert conversion["roshan_team_source"] == "protocol"
+        assert conversion["conversion_team_source"] == "player_id"
+        assert conversion["aegis_fate_source"] == "nominal_expiry"
+        assert conversion["legacy_conversion_label"] == "fight_conversion"
+        assert conversion["unattributed_towers"] == 0
+        assert fight["fight_index"] == 0
+        assert fight["relation"] == "in_window"
+        assert fight["engagement_start_source"] in {
+            "first_damage",
+            "first_death_fallback",
+        }
+        assert fight["conversion_participant_ids"] == "0"
+        assert fight["opponent_participant_ids"] == "5"
 
     def test_teamfight_positioning_table_is_flat_and_preserves_missing_values(self):
         radiant = ParsedPlayer(

@@ -123,7 +123,10 @@ class TestObjectivesExtractor:
         ext, parser = self._make()
         parser.fire_combat_log(
             _make_combat_log_entry(
-                tick=500, target_name="npc_dota_roshan", attacker_name="npc_dota_hero_axe"
+                tick=500,
+                target_name="npc_dota_roshan",
+                attacker_name="npc_dota_hero_axe",
+                attacker_team=2,
             )
         )
         assert len(ext.roshan_kills) == 1
@@ -131,6 +134,7 @@ class TestObjectivesExtractor:
         assert kill.tick == 500
         assert kill.killer == "npc_dota_hero_axe"
         assert kill.kill_number == 1
+        assert kill.killer_team == 2
 
     def test_roshan_kill_number_increments(self):
         ext, parser = self._make()
@@ -145,12 +149,14 @@ class TestObjectivesExtractor:
                 tick=300,
                 target_name="npc_dota_goodguys_tower1_top",
                 attacker_name="npc_dota_hero_axe",
+                attacker_team=3,
             )
         )
         assert len(ext.tower_kills) == 1
         tk = ext.tower_kills[0]
         assert tk.team == 2
         assert tk.tower_name == "npc_dota_goodguys_tower1_top"
+        assert tk.killer_team == 3
 
     def test_tower_kill_dire_detected(self):
         ext, parser = self._make()
@@ -171,12 +177,14 @@ class TestObjectivesExtractor:
                 tick=700,
                 target_name="npc_dota_goodguys_melee_rax_top",
                 attacker_name="npc_dota_hero_axe",
+                attacker_team=3,
             )
         )
         assert len(ext.barracks_kills) == 1
         bk = ext.barracks_kills[0]
         assert bk.team == 2
         assert bk.killer == "npc_dota_hero_axe"
+        assert bk.killer_team == 3
 
     def test_non_death_entry_ignored(self):
         ext, parser = self._make()
@@ -323,7 +331,10 @@ class TestTormentorKills:
         ext, parser = self._make()
         parser.fire_combat_log(
             _make_combat_log_entry(
-                tick=1800, target_name="npc_dota_miniboss", attacker_name="npc_dota_hero_axe"
+                tick=1800,
+                target_name="npc_dota_miniboss",
+                attacker_name="npc_dota_hero_axe",
+                attacker_team=2,
             )
         )
         assert len(ext.tormentor_kills) == 1
@@ -332,6 +343,7 @@ class TestTormentorKills:
         assert tk.killer == "npc_dota_hero_axe"
         assert tk.kill_number == 1
         assert tk.killer_player_id == -1  # no chat event yet
+        assert tk.killer_team == 2
 
     def test_kill_number_increments(self):
         ext, parser = self._make()

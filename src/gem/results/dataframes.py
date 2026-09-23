@@ -31,6 +31,7 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
 
     import pandas as pd
 
+    from gem.analysis.roshan import build_rosh_conversions
     from gem.analysis.smoke_fight import build_smoke_fight_insights
     from gem.analysis.teamfight_positioning import build_teamfight_positioning
     from gem.results.models import (
@@ -226,6 +227,8 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                 "team": t.team,
                 "name": t.tower_name,
                 "killer": t.killer,
+                "killer_source": t.killer_source,
+                "killer_team": t.killer_team,
             }
         )
     for b in match.barracks:
@@ -236,6 +239,8 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                 "team": b.team,
                 "name": b.barracks_name,
                 "killer": b.killer,
+                "killer_source": b.killer_source,
+                "killer_team": b.killer_team,
             }
         )
     for r in match.roshans:
@@ -246,6 +251,8 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                 "team": 0,
                 "name": "roshan",
                 "killer": r.killer,
+                "killer_source": r.killer_source,
+                "killer_team": r.killer_team,
                 "kill_number": r.kill_number,
                 # Comma-joined raw drop tokens (e.g. "aegis,cheese,banner"). A
                 # string keeps the cell filterable (df.drops.str.contains(...))
@@ -261,6 +268,7 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                 "team": 0,
                 "name": "npc_dota_miniboss",
                 "killer": tm.killer,
+                "killer_team": tm.killer_team,
                 "killer_player_id": tm.killer_player_id,
                 "kill_number": tm.kill_number,
             }
@@ -538,6 +546,177 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                 )
     teamfight_positioning_df = pd.DataFrame(positioning_rows, columns=positioning_columns)
 
+    # --- evidence-first Roshan conversions ---
+    roshan_conversion_columns = [
+        "rosh_number",
+        "rosh_tick",
+        "killer_name",
+        "roshan_team",
+        "roshan_team_source",
+        "conversion_team",
+        "conversion_team_source",
+        "holder_player_id",
+        "holder_name",
+        "aegis_pickup_tick",
+        "aegis_end_tick",
+        "aegis_eval_end_tick",
+        "aegis_fate",
+        "aegis_fate_source",
+        "aegis_fate_inferred",
+        "aegis_outcome",
+        "first_engagement_tick",
+        "first_fight_tick",
+        "first_objective_tick",
+        "fight_count",
+        "fight_differential",
+        "conversion_towers",
+        "opponent_towers",
+        "unattributed_towers",
+        "conversion_barracks",
+        "opponent_barracks",
+        "unattributed_barracks",
+        "conversion_structure_value",
+        "opponent_structure_value",
+        "structure_delta",
+        "net_worth_advantage_start",
+        "net_worth_advantage_end",
+        "net_worth_swing",
+        "net_worth_swing_per_minute",
+        "xp_advantage_start",
+        "xp_advantage_end",
+        "xp_swing",
+        "xp_swing_per_minute",
+        "before_conversion_coverage_pct",
+        "before_opponent_coverage_pct",
+        "during_conversion_coverage_pct",
+        "during_opponent_coverage_pct",
+        "coverage_swing_pct",
+        "depth_swing",
+        "conversion_forward_wards",
+        "opponent_forward_wards",
+        "forward_ward_delta",
+        "conversion_tormentors",
+        "opponent_tormentors",
+        "unattributed_tormentors",
+        "tormentor_delta",
+        "conversion_tags",
+        "tag_ruleset",
+        "analysis_status",
+        "analysis_status_reasons",
+        "drops",
+        "legacy_conversion_score",
+        "legacy_conversion_label",
+    ]
+    roshan_fight_columns = [
+        "rosh_number",
+        "fight_index",
+        "relation",
+        "engagement_start_tick",
+        "engagement_start_source",
+        "first_death_tick",
+        "fight_end_tick",
+        "winner",
+        "deaths",
+        "conversion_participant_ids",
+        "opponent_participant_ids",
+        "unknown_participant_ids",
+    ]
+    roshan_conversion_rows: list[dict[str, Any]] = []
+    roshan_fight_rows: list[dict[str, Any]] = []
+    for conversion in build_rosh_conversions(match):
+        profile = conversion.differential_profile
+        roshan_conversion_rows.append(
+            {
+                "rosh_number": conversion.rosh_number,
+                "rosh_tick": conversion.rosh_tick,
+                "killer_name": conversion.killer_name,
+                "roshan_team": conversion.roshan_team,
+                "roshan_team_source": conversion.roshan_team_source.value,
+                "conversion_team": conversion.conversion_team,
+                "conversion_team_source": conversion.conversion_team_source.value,
+                "holder_player_id": conversion.holder_player_id,
+                "holder_name": conversion.holder_name,
+                "aegis_pickup_tick": conversion.aegis_pickup_tick,
+                "aegis_end_tick": conversion.aegis_end_tick,
+                "aegis_eval_end_tick": conversion.aegis_eval_end_tick,
+                "aegis_fate": conversion.aegis_fate,
+                "aegis_fate_source": conversion.aegis_fate_source.value,
+                "aegis_fate_inferred": conversion.aegis_fate_inferred,
+                "aegis_outcome": conversion.aegis_outcome,
+                "first_engagement_tick": conversion.first_engagement_tick,
+                "first_fight_tick": conversion.first_fight_tick,
+                "first_objective_tick": conversion.first_objective_tick,
+                "fight_count": conversion.fight_count,
+                "fight_differential": profile.fight_differential,
+                "conversion_towers": profile.conversion_towers,
+                "opponent_towers": profile.opponent_towers,
+                "unattributed_towers": profile.unattributed_towers,
+                "conversion_barracks": profile.conversion_barracks,
+                "opponent_barracks": profile.opponent_barracks,
+                "unattributed_barracks": profile.unattributed_barracks,
+                "conversion_structure_value": profile.conversion_structure_value,
+                "opponent_structure_value": profile.opponent_structure_value,
+                "structure_delta": profile.structure_delta,
+                "net_worth_advantage_start": profile.net_worth_advantage_start,
+                "net_worth_advantage_end": profile.net_worth_advantage_end,
+                "net_worth_swing": profile.net_worth_swing,
+                "net_worth_swing_per_minute": profile.net_worth_swing_per_minute,
+                "xp_advantage_start": profile.xp_advantage_start,
+                "xp_advantage_end": profile.xp_advantage_end,
+                "xp_swing": profile.xp_swing,
+                "xp_swing_per_minute": profile.xp_swing_per_minute,
+                "before_conversion_coverage_pct": (
+                    profile.before_territory.conversion_coverage_pct
+                ),
+                "before_opponent_coverage_pct": (profile.before_territory.opponent_coverage_pct),
+                "during_conversion_coverage_pct": (
+                    profile.during_territory.conversion_coverage_pct
+                ),
+                "during_opponent_coverage_pct": (profile.during_territory.opponent_coverage_pct),
+                "coverage_swing_pct": profile.coverage_swing_pct,
+                "depth_swing": profile.depth_swing,
+                "conversion_forward_wards": profile.conversion_forward_wards,
+                "opponent_forward_wards": profile.opponent_forward_wards,
+                "forward_ward_delta": profile.forward_ward_delta,
+                "conversion_tormentors": profile.conversion_tormentors,
+                "opponent_tormentors": profile.opponent_tormentors,
+                "unattributed_tormentors": profile.unattributed_tormentors,
+                "tormentor_delta": profile.tormentor_delta,
+                "conversion_tags": ",".join(conversion.conversion_tags),
+                "tag_ruleset": profile.tag_ruleset,
+                "analysis_status": conversion.analysis_status,
+                "analysis_status_reasons": ";".join(conversion.analysis_status_reasons),
+                "drops": ",".join(conversion.drops),
+                "legacy_conversion_score": conversion.conversion_score,
+                "legacy_conversion_label": conversion.conversion_label,
+            }
+        )
+        for evidence in conversion.fight_evidence:
+            roshan_fight_rows.append(
+                {
+                    "rosh_number": conversion.rosh_number,
+                    "fight_index": evidence.fight_index,
+                    "relation": evidence.relation.value,
+                    "engagement_start_tick": evidence.engagement_start_tick,
+                    "engagement_start_source": evidence.engagement_start_source.value,
+                    "first_death_tick": evidence.first_death_tick,
+                    "fight_end_tick": evidence.end_tick,
+                    "winner": evidence.winner,
+                    "deaths": evidence.deaths,
+                    "conversion_participant_ids": ",".join(
+                        str(player_id) for player_id in evidence.conversion_participant_ids
+                    ),
+                    "opponent_participant_ids": ",".join(
+                        str(player_id) for player_id in evidence.opponent_participant_ids
+                    ),
+                    "unknown_participant_ids": ",".join(
+                        str(player_id) for player_id in evidence.unknown_participant_ids
+                    ),
+                }
+            )
+    roshan_conversions_df = pd.DataFrame(roshan_conversion_rows, columns=roshan_conversion_columns)
+    roshan_conversion_fights_df = pd.DataFrame(roshan_fight_rows, columns=roshan_fight_columns)
+
     # --- bounded smoke/fight insights ---
     insight_columns = [
         "smoke_index",
@@ -793,6 +972,8 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         "draft": draft_df,
         "teamfights": teamfights_df,
         "teamfight_positioning": teamfight_positioning_df,
+        "roshan_conversions": roshan_conversions_df,
+        "roshan_conversion_fights": roshan_conversion_fights_df,
         "opendota_teamfights": opendota_teamfights_df,
         "smoke_events": smoke_df,
         "smoke_members": smoke_members_df,

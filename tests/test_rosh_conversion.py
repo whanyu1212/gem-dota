@@ -2,7 +2,15 @@ from __future__ import annotations
 
 import pytest
 
-from gem.analysis.roshan import RoshConversion, _rax_lane, build_rosh_conversions
+from gem.analysis.roshan import (
+    AegisFateSource,
+    RoshConversion,
+    RoshFightRelation,
+    RoshTagThresholds,
+    RoshTeamAttributionSource,
+    _rax_lane,
+    build_rosh_conversions,
+)
 from gem.combat.log import CombatLogEntry
 from gem.extractors.objectives import (
     AegisEvent,
@@ -173,6 +181,9 @@ def test_build_rosh_conversions_uses_first_death_for_fight_timing() -> None:
     assert fight_events
     assert fight_events[0].tick == 1010
     assert "already underway" in fight_events[0].label.lower()
+    assert fight_events[0].fight_index == 0
+    assert conversion.first_engagement_tick is not None
+    assert conversion.fight_evidence[0].relation is RoshFightRelation.PREEXISTING
 
 
 def test_holder_window_clamped_to_next_roshan_no_double_count() -> None:
@@ -516,11 +527,17 @@ def test_differential_counts_both_sides_and_tormentor_timeline() -> None:
             _make_fight(2000, 2200, "dire"),
         ],
         towers=[
-            TowerKill(2400, 3, "", "npc_dota_badguys_tower2_mid"),
-            TowerKill(2500, 2, "", "npc_dota_goodguys_tower1_mid"),
+            TowerKill(2400, 3, "", "npc_dota_badguys_tower2_mid", killer_team=2),
+            TowerKill(2500, 2, "", "npc_dota_goodguys_tower1_mid", killer_team=3),
         ],
         barracks=[
-            BarracksKill(2600, 3, "", "npc_dota_badguys_melee_rax_mid"),
+            BarracksKill(
+                2600,
+                3,
+                "",
+                "npc_dota_badguys_melee_rax_mid",
+                killer_team=2,
+            ),
         ],
         wards=[
             WardEvent(2700, 0, "", "observer", 2, 24000.0, 21000.0, None, None, ""),
@@ -644,6 +661,7 @@ def test_consumed_aegis_is_inferred_only_inside_ownership_horizon() -> None:
     conversion = build_rosh_conversions(inside)[0]
     assert conversion.aegis_fate == "consumed"
     assert conversion.aegis_fate_inferred is True
+    assert conversion.aegis_fate_source is AegisFateSource.HOLDER_DEATH_INFERENCE
 
     outside = ParsedMatch(
         game_start_tick=0,
@@ -663,6 +681,7 @@ def test_consumed_aegis_is_inferred_only_inside_ownership_horizon() -> None:
     conversion = build_rosh_conversions(outside)[0]
     assert conversion.aegis_fate == "expired"
     assert conversion.aegis_fate_inferred is False
+    assert conversion.aegis_fate_source is AegisFateSource.NOMINAL_EXPIRY
 
 
 def test_conversion_team_attribution_for_stolen_denied_missing_and_unknown() -> None:
@@ -725,7 +744,15 @@ def test_game_closing_uses_hardened_window_and_multiple_tags_are_nonexclusive() 
             _make_fight(1200, 1400, "radiant"),
             _make_fight(1600, 1800, "radiant"),
         ],
-        "towers": [TowerKill(2000, 3, "", "npc_dota_badguys_tower3_mid")],
+        "towers": [
+            TowerKill(
+                2000,
+                3,
+                "",
+                "npc_dota_badguys_tower3_mid",
+                killer_team=2,
+            )
+        ],
         "wards": [
             WardEvent(2100, 0, "", "observer", 2, 24000.0, 21000.0, None, None, ""),
             WardEvent(2200, 1, "", "observer", 2, 24000.0, 21000.0, None, None, ""),
@@ -760,7 +787,15 @@ def test_counter_conversion_requires_dominant_opponent_evidence() -> None:
             _make_fight(1200, 1400, "dire"),
             _make_fight(1600, 1800, "dire"),
         ],
-        towers=[TowerKill(2000, 2, "", "npc_dota_goodguys_tower3_mid")],
+        towers=[
+            TowerKill(
+                2000,
+                2,
+                "",
+                "npc_dota_goodguys_tower3_mid",
+                killer_team=3,
+            )
+        ],
         game_times_min=[0, 60, 120, 180, 240, 300, 360, 420],
         radiant_gold_adv=[0, 2000, 1500, 500, -1000, -2500, -4000, -5000],
         radiant_xp_adv=[0, 1000, 500, 0, -500, -1500, -2500, -3000],
@@ -769,3 +804,208 @@ def test_counter_conversion_requires_dominant_opponent_evidence() -> None:
     assert conversion.differential_profile.fight_differential == -2
     assert conversion.differential_profile.structure_delta == -3
     assert "counter_conversion" in conversion.conversion_tags
+
+
+def test_protocol_team_is_preferred_and_unknown_objectives_are_not_credited() -> None:
+    match = ParsedMatch(
+        game_start_tick=0,
+        game_end_tick=10000,
+        players=_make_players(),
+        roshans=[
+            RoshanKill(
+                tick=1000,
+                killer="npc_dota_neutral_centaur_khan",
+                kill_number=1,
+                killer_team=2,
+            )
+        ],
+        towers=[
+            TowerKill(1500, 3, "", "npc_dota_badguys_tower2_mid"),
+            TowerKill(
+                1550,
+                2,
+                "",
+                "npc_dota_goodguys_tower2_mid",
+                killer_team=2,
+            ),
+        ],
+        barracks=[BarracksKill(1600, 3, "", "npc_dota_badguys_melee_rax_mid")],
+        tormentors=[TormentorKill(1700, "", -1, 1)],
+    )
+
+    conversion = build_rosh_conversions(match)[0]
+    profile = conversion.differential_profile
+    assert conversion.roshan_team == 2
+    assert conversion.roshan_team_source is RoshTeamAttributionSource.PROTOCOL
+    assert conversion.conversion_team_source is RoshTeamAttributionSource.PROTOCOL
+    assert profile.conversion_towers == 0
+    assert profile.opponent_towers == 0
+    assert profile.unattributed_towers == 1
+    assert profile.unattributed_barracks == 1
+    assert profile.unattributed_tormentors == 1
+    assert "structure_attribution_unavailable" in profile.status_reasons
+    assert "tormentor_attribution_unavailable" in profile.status_reasons
+    kinds = {event.kind for event in conversion.timeline_events}
+    assert {"tower_unknown", "barracks_unknown", "tormentor_unknown"} <= kinds
+
+
+def test_creep_and_summon_structure_kills_use_explicit_name_evidence() -> None:
+    match = ParsedMatch(
+        game_start_tick=0,
+        game_end_tick=10000,
+        players=_make_players(),
+        roshans=[RoshanKill(1000, "npc_dota_hero_hero_0", 1, killer_team=2)],
+        towers=[
+            TowerKill(
+                1500,
+                3,
+                "npc_dota_creep_goodguys_melee",
+                "npc_dota_badguys_tower1_mid",
+            ),
+            TowerKill(
+                1600,
+                3,
+                "npc_dota_beastmaster_boar_4",
+                "npc_dota_badguys_tower1_top",
+                killer_source="npc_dota_hero_hero_0",
+            ),
+            TowerKill(
+                1700,
+                2,
+                "npc_dota_creep_goodguys_ranged",
+                "npc_dota_goodguys_tower3_mid",
+            ),
+        ],
+    )
+
+    conversion = build_rosh_conversions(match)[0]
+    profile = conversion.differential_profile
+    assert profile.conversion_towers == 2
+    assert profile.opponent_towers == 0
+    assert profile.unattributed_towers == 0
+    assert conversion.towers_taken == 2
+
+
+def test_tag_thresholds_are_configurable_at_the_boundary() -> None:
+    match = ParsedMatch(
+        game_start_tick=0,
+        game_end_tick=10000,
+        players=_make_players(),
+        roshans=[
+            RoshanKill(
+                tick=1000,
+                killer="npc_dota_hero_hero_0",
+                kill_number=1,
+                killer_team=2,
+            )
+        ],
+        aegis_events=[AegisEvent(tick=1010, player_id=0, event_type="pickup")],
+        teamfights=[_make_fight(1200, 1400, "radiant")],
+        towers=[
+            TowerKill(
+                1500,
+                3,
+                "",
+                "npc_dota_badguys_tower1_mid",
+                killer_team=2,
+            )
+        ],
+    )
+
+    default = build_rosh_conversions(match)[0]
+    calibrated = build_rosh_conversions(
+        match,
+        tag_thresholds=RoshTagThresholds(
+            fight_advantage=1,
+            objective_gain=1,
+            ruleset="boundary-test",
+        ),
+    )[0]
+
+    assert "fight_advantage" not in default.conversion_tags
+    assert "objective_gain" not in default.conversion_tags
+    assert {"fight_advantage", "objective_gain"} <= set(calibrated.conversion_tags)
+    assert calibrated.differential_profile.tag_ruleset == "boundary-test"
+
+
+def test_tag_thresholds_reject_invalid_configuration() -> None:
+    with pytest.raises(ValueError, match="nonnegative"):
+        RoshTagThresholds(fight_advantage=-1)
+    with pytest.raises(ValueError, match="must not be empty"):
+        RoshTagThresholds(ruleset="")
+
+
+def test_fight_spanning_next_roshan_is_never_double_counted() -> None:
+    match = ParsedMatch(
+        game_start_tick=0,
+        game_end_tick=10000,
+        players=_make_players(),
+        roshans=[
+            RoshanKill(1000, "npc_dota_hero_hero_0", 1, killer_team=2),
+            RoshanKill(1500, "npc_dota_hero_hero_1", 2, killer_team=2),
+        ],
+        aegis_events=[
+            AegisEvent(1010, 0, "pickup"),
+            AegisEvent(1510, 1, "pickup"),
+        ],
+        teamfights=[_make_fight(1400, 1600, "radiant")],
+    )
+
+    conversions = build_rosh_conversions(match)
+
+    assert sum(conversion.fight_count for conversion in conversions) == 1
+    assert sum(len(conversion.fight_evidence) for conversion in conversions) == 1
+
+
+def test_aegis_association_window_is_inclusive_at_thirty_seconds() -> None:
+    exact = ParsedMatch(
+        game_start_tick=0,
+        game_end_tick=20000,
+        players=_make_players(),
+        roshans=[RoshanKill(1000, "npc_dota_hero_hero_0", 1, killer_team=2)],
+        aegis_events=[AegisEvent(1900, 0, "pickup")],
+    )
+    late = ParsedMatch(
+        game_start_tick=0,
+        game_end_tick=20000,
+        players=_make_players(),
+        roshans=[RoshanKill(1000, "npc_dota_hero_hero_0", 1, killer_team=2)],
+        aegis_events=[AegisEvent(1901, 0, "pickup")],
+    )
+
+    exact_conversion = build_rosh_conversions(exact)[0]
+    late_conversion = build_rosh_conversions(late)[0]
+
+    assert exact_conversion.aegis_pickup_tick == 1900
+    assert exact_conversion.aegis_fate_source is AegisFateSource.NOMINAL_EXPIRY
+    assert late_conversion.aegis_pickup_tick is None
+    assert late_conversion.aegis_fate == "unknown"
+    assert late_conversion.aegis_fate_source is AegisFateSource.MISSING_EVENT
+
+
+def test_aegis_lifecycle_boundary_sources_are_explicit() -> None:
+    game_end = ParsedMatch(
+        game_start_tick=0,
+        game_end_tick=5000,
+        players=_make_players(),
+        roshans=[RoshanKill(1000, "npc_dota_hero_hero_0", 1, killer_team=2)],
+        aegis_events=[AegisEvent(1010, 0, "pickup")],
+    )
+    next_roshan = ParsedMatch(
+        game_start_tick=0,
+        game_end_tick=20000,
+        players=_make_players(),
+        roshans=[
+            RoshanKill(1000, "npc_dota_hero_hero_0", 1, killer_team=2),
+            RoshanKill(5000, "npc_dota_hero_hero_1", 2, killer_team=2),
+        ],
+        aegis_events=[AegisEvent(1010, 0, "pickup")],
+    )
+
+    ended = build_rosh_conversions(game_end)[0]
+    bounded = build_rosh_conversions(next_roshan)[0]
+
+    assert ended.aegis_fate == "game_end"
+    assert ended.aegis_fate_source is AegisFateSource.GAME_END_BOUNDARY
+    assert bounded.aegis_fate == "unknown"
+    assert bounded.aegis_fate_source is AegisFateSource.NEXT_ROSHAN_BOUNDARY

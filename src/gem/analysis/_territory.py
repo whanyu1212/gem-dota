@@ -4,7 +4,8 @@ Positions are the replay's observed hero samples.  Intervals longer than ten
 seconds are deliberately not filled, so disconnects, missing snapshots, and
 teleports cannot create synthetic map control.
 
-Reference: refs/parser/src/main/java/opendota/Parse.java (hero coordinates).
+Reference: pinned OpenDota parser revision documented in ``CLAUDE.md``
+(``src/main/java/opendota/Parse.java``; hero coordinates).
 """
 
 from __future__ import annotations
@@ -36,6 +37,38 @@ _MAX_SAMPLE_GAP_TICKS = 10 * _TICKS_PER_SECOND
 _MIN_HERO_SECONDS = 10.0
 _MIN_DISTINCT_HEROES = 2
 _MIN_PLAYER_TIME_COVERAGE = 0.70
+
+
+@dataclass(frozen=True, slots=True)
+class RoshTerritoryConfig:
+    """Inspectable calibration inputs for sampled territory evidence."""
+
+    cell_size: float = _CELL_SIZE
+    bucket_ticks: int = _BUCKET_TICKS
+    max_sample_gap_ticks: int = _MAX_SAMPLE_GAP_TICKS
+    min_hero_seconds: float = _MIN_HERO_SECONDS
+    min_distinct_heroes: int = _MIN_DISTINCT_HEROES
+    min_player_time_coverage: float = _MIN_PLAYER_TIME_COVERAGE
+    depth_percentile: float = 0.90
+
+    def __post_init__(self) -> None:
+        if self.cell_size <= 0:
+            raise ValueError("cell_size must be positive")
+        if self.bucket_ticks <= 0:
+            raise ValueError("bucket_ticks must be positive")
+        if self.max_sample_gap_ticks <= 0:
+            raise ValueError("max_sample_gap_ticks must be positive")
+        if self.min_hero_seconds < 0:
+            raise ValueError("min_hero_seconds must be nonnegative")
+        if self.min_distinct_heroes < 1:
+            raise ValueError("min_distinct_heroes must be positive")
+        if not 0.0 <= self.min_player_time_coverage <= 1.0:
+            raise ValueError("min_player_time_coverage must be between 0 and 1")
+        if not 0.0 < self.depth_percentile <= 1.0:
+            raise ValueError("depth_percentile must be greater than 0 and at most 1")
+
+
+DEFAULT_ROSH_TERRITORY_CONFIG = RoshTerritoryConfig()
 
 
 @dataclass
@@ -129,50 +162,52 @@ def _enemy_region(team: int) -> str:
     return "dire_half" if team == _TEAM_RADIANT else "radiant_half"
 
 
-def _grid_shape() -> tuple[int, int]:
+def _grid_shape(config: RoshTerritoryConfig) -> tuple[int, int]:
     return (
-        math.ceil((_MAP_XMAX - _MAP_XMIN) / _CELL_SIZE),
-        math.ceil((_MAP_YMAX - _MAP_YMIN) / _CELL_SIZE),
+        math.ceil((_MAP_XMAX - _MAP_XMIN) / config.cell_size),
+        math.ceil((_MAP_YMAX - _MAP_YMIN) / config.cell_size),
     )
 
 
-def _cell_index(x: float, y: float) -> tuple[int, int] | None:
+def _cell_index(x: float, y: float, config: RoshTerritoryConfig) -> tuple[int, int] | None:
     if not (_MAP_XMIN <= x <= _MAP_XMAX and _MAP_YMIN <= y <= _MAP_YMAX):
         return None
-    nx, ny = _grid_shape()
-    gx = min(int((x - _MAP_XMIN) // _CELL_SIZE), nx - 1)
-    gy = min(int((y - _MAP_YMIN) // _CELL_SIZE), ny - 1)
+    nx, ny = _grid_shape(config)
+    gx = min(int((x - _MAP_XMIN) // config.cell_size), nx - 1)
+    gy = min(int((y - _MAP_YMIN) // config.cell_size), ny - 1)
     return gx, gy
 
 
-def _cell_bounds(cell: tuple[int, int]) -> tuple[float, float, float, float]:
+def _cell_bounds(
+    cell: tuple[int, int], config: RoshTerritoryConfig
+) -> tuple[float, float, float, float]:
     gx, gy = cell
-    x_min = _MAP_XMIN + gx * _CELL_SIZE
-    y_min = _MAP_YMIN + gy * _CELL_SIZE
+    x_min = _MAP_XMIN + gx * config.cell_size
+    y_min = _MAP_YMIN + gy * config.cell_size
     return (
         x_min,
-        min(x_min + _CELL_SIZE, _MAP_XMAX),
+        min(x_min + config.cell_size, _MAP_XMAX),
         y_min,
-        min(y_min + _CELL_SIZE, _MAP_YMAX),
+        min(y_min + config.cell_size, _MAP_YMAX),
     )
 
 
-def _cell_area(cell: tuple[int, int]) -> float:
-    x_min, x_max, y_min, y_max = _cell_bounds(cell)
+def _cell_area(cell: tuple[int, int], config: RoshTerritoryConfig) -> float:
+    x_min, x_max, y_min, y_max = _cell_bounds(cell, config)
     return (x_max - x_min) * (y_max - y_min)
 
 
-def _enemy_cells(team: int) -> dict[tuple[int, int], float]:
+def _enemy_cells(team: int, config: RoshTerritoryConfig) -> dict[tuple[int, int], float]:
     wanted_region = _enemy_region(team)
-    nx, ny = _grid_shape()
+    nx, ny = _grid_shape(config)
     cells: dict[tuple[int, int], float] = {}
     for gx in range(nx):
         for gy in range(ny):
-            bounds = _cell_bounds((gx, gy))
+            bounds = _cell_bounds((gx, gy), config)
             center_x = (bounds[0] + bounds[1]) / 2
             center_y = (bounds[2] + bounds[3]) / 2
             if region_of(center_x, center_y) == wanted_region:
-                cells[(gx, gy)] = _cell_area((gx, gy))
+                cells[(gx, gy)] = _cell_area((gx, gy), config)
     return cells
 
 
@@ -206,14 +241,17 @@ def _weighted_percentile(values: list[tuple[float, float]], quantile: float) -> 
 
 
 def _sample_intervals(
-    player: ParsedPlayer, start_tick: int, end_tick: int
+    player: ParsedPlayer,
+    start_tick: int,
+    end_tick: int,
+    config: RoshTerritoryConfig,
 ) -> list[tuple[int, int, float, float]]:
     samples = sorted(player.position_log)
     intervals: list[tuple[int, int, float, float]] = []
     for current, following in zip(samples, samples[1:], strict=False):
         tick, x, y = current
         next_tick = following[0]
-        if next_tick <= tick or next_tick - tick > _MAX_SAMPLE_GAP_TICKS:
+        if next_tick <= tick or next_tick - tick > config.max_sample_gap_ticks:
             continue
         interval_start = max(tick, start_tick)
         interval_end = min(next_tick, end_tick)
@@ -223,13 +261,16 @@ def _sample_intervals(
 
 
 def _split_bucket_intervals(
-    interval_start: int, interval_end: int, window_start: int
+    interval_start: int,
+    interval_end: int,
+    window_start: int,
+    config: RoshTerritoryConfig,
 ) -> list[tuple[int, int]]:
     pieces: list[tuple[int, int]] = []
     cursor = interval_start
     while cursor < interval_end:
-        bucket = (cursor - window_start) // _BUCKET_TICKS
-        boundary = window_start + (bucket + 1) * _BUCKET_TICKS
+        bucket = (cursor - window_start) // config.bucket_ticks
+        boundary = window_start + (bucket + 1) * config.bucket_ticks
         piece_end = min(interval_end, boundary)
         pieces.append((int(bucket), piece_end - cursor))
         cursor = piece_end
@@ -237,7 +278,11 @@ def _split_bucket_intervals(
 
 
 def _side_territory(
-    match: ParsedMatch, team: int, start_tick: int, end_tick: int
+    match: ParsedMatch,
+    team: int,
+    start_tick: int,
+    end_tick: int,
+    config: RoshTerritoryConfig,
 ) -> _SideTerritory:
     players = [player for player in match.players if player.team == team]
     duration_ticks = max(end_tick - start_tick, 0)
@@ -246,7 +291,7 @@ def _side_territory(
 
     expected_ticks = duration_ticks * len(players)
     observed_ticks = 0
-    enemy_cells = _enemy_cells(team)
+    enemy_cells = _enemy_cells(team, config)
     enemy_area = sum(enemy_cells.values())
     bucket_cell_seconds: defaultdict[tuple[int, tuple[int, int]], float] = defaultdict(float)
     bucket_cell_heroes: defaultdict[tuple[int, tuple[int, int]], set[int]] = defaultdict(set)
@@ -255,10 +300,12 @@ def _side_territory(
     depth_values: list[tuple[float, float]] = []
 
     for player in players:
-        for interval_start, interval_end, x, y in _sample_intervals(player, start_tick, end_tick):
+        for interval_start, interval_end, x, y in _sample_intervals(
+            player, start_tick, end_tick, config
+        ):
             interval_ticks = interval_end - interval_start
             observed_ticks += interval_ticks
-            cell = _cell_index(x, y)
+            cell = _cell_index(x, y, config)
             if cell is None or cell not in enemy_cells:
                 continue
             seconds = interval_ticks / _TICKS_PER_SECOND
@@ -266,30 +313,30 @@ def _side_territory(
             cell_heroes[cell].add(player.player_id)
             depth_values.append((_depth(team, x, y), seconds))
             for bucket, piece_ticks in _split_bucket_intervals(
-                interval_start, interval_end, start_tick
+                interval_start, interval_end, start_tick, config
             ):
                 key = (bucket, cell)
                 bucket_cell_seconds[key] += piece_ticks / _TICKS_PER_SECOND
                 bucket_cell_heroes[key].add(player.player_id)
 
     evidence_fraction = observed_ticks / expected_ticks if expected_ticks else None
-    if evidence_fraction is None or evidence_fraction < _MIN_PLAYER_TIME_COVERAGE:
+    if evidence_fraction is None or evidence_fraction < config.min_player_time_coverage:
         return _SideTerritory(None, None, evidence_fraction, [])
 
-    bucket_count = math.ceil(duration_ticks / _BUCKET_TICKS)
+    bucket_count = math.ceil(duration_ticks / config.bucket_ticks)
     occupied_by_bucket: defaultdict[int, set[tuple[int, int]]] = defaultdict(set)
     cell_occupied_buckets: defaultdict[tuple[int, int], set[int]] = defaultdict(set)
     for (bucket, cell), hero_seconds in bucket_cell_seconds.items():
         heroes = bucket_cell_heroes[(bucket, cell)]
-        if hero_seconds >= _MIN_HERO_SECONDS or len(heroes) >= _MIN_DISTINCT_HEROES:
+        if hero_seconds >= config.min_hero_seconds or len(heroes) >= config.min_distinct_heroes:
             occupied_by_bucket[bucket].add(cell)
             cell_occupied_buckets[cell].add(bucket)
 
     coverage_weighted_sum = 0.0
     total_bucket_seconds = 0.0
     for bucket in range(bucket_count):
-        bucket_start = start_tick + bucket * _BUCKET_TICKS
-        bucket_end = min(end_tick, bucket_start + _BUCKET_TICKS)
+        bucket_start = start_tick + bucket * config.bucket_ticks
+        bucket_end = min(end_tick, bucket_start + config.bucket_ticks)
         bucket_seconds = max(bucket_end - bucket_start, 0) / _TICKS_PER_SECOND
         occupied_area = sum(enemy_cells[cell] for cell in occupied_by_bucket[bucket])
         coverage = (occupied_area / enemy_area * 100.0) if enemy_area else 0.0
@@ -298,7 +345,7 @@ def _side_territory(
 
     cells: list[RoshCoverageCell] = []
     for cell in sorted(cell_occupied_buckets):
-        x_min, x_max, y_min, y_max = _cell_bounds(cell)
+        x_min, x_max, y_min, y_max = _cell_bounds(cell, config)
         occupied = len(cell_occupied_buckets[cell])
         cells.append(
             RoshCoverageCell(
@@ -317,7 +364,7 @@ def _side_territory(
         )
 
     coverage_pct = coverage_weighted_sum / total_bucket_seconds if total_bucket_seconds else None
-    depth_p90 = _weighted_percentile(depth_values, 0.90)
+    depth_p90 = _weighted_percentile(depth_values, config.depth_percentile)
     # With sufficient player-time, no enemy-side samples is observed evidence
     # of zero forward depth, not missing telemetry.
     if depth_p90 is None:
@@ -335,11 +382,18 @@ def build_territory_window(
     conversion_team: int,
     start_tick: int,
     end_tick: int,
+    *,
+    config: RoshTerritoryConfig = DEFAULT_ROSH_TERRITORY_CONFIG,
 ) -> RoshTerritoryWindow:
-    """Build paired conversion/opponent territory evidence for one window."""
+    """Build paired conversion/opponent territory evidence for one window.
+
+    ``config`` is public so calibration and sensitivity checks can reproduce
+    alternate cell, bucket, completeness, and percentile settings without
+    mutating module globals.
+    """
     opponent_team = _TEAM_DIRE if conversion_team == _TEAM_RADIANT else _TEAM_RADIANT
-    conversion = _side_territory(match, conversion_team, start_tick, end_tick)
-    opponent = _side_territory(match, opponent_team, start_tick, end_tick)
+    conversion = _side_territory(match, conversion_team, start_tick, end_tick, config)
+    opponent = _side_territory(match, opponent_team, start_tick, end_tick, config)
     reasons: list[str] = []
     if conversion.coverage_pct is None:
         reasons.append("conversion_team_position_coverage_below_70pct")

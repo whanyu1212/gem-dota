@@ -82,4 +82,4 @@ def write_html_report(match: ParsedMatch, output_path: str | Path, *, assets: Re
 
 Write a self-contained HTML report and return the written path.
 
-Source: [src/gem/reports/builder.py:526](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/reports/builder.py#L526)
+Source: [src/gem/reports/builder.py:538](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/reports/builder.py#L538)

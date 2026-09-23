@@ -182,6 +182,10 @@ hand-tuned, not ground truth).
   consume only from a holder death inside the bounded five-minute ownership
   horizon. The main analysis may include up to two minutes of aftermath, plus
   the rest of a fight containing an inferred consume.
+- Team and Aegis lifecycle fields expose their attribution/inference source.
+  `fight_evidence` uses engagement-aware starts, labels fights already underway,
+  and retains participant IDs. Unknown structures and Tormentors remain counted
+  but uncredited.
 - `RoshDifferentialProfile` compares the attributed conversion team with its
   opponent over one hardened window. It exposes signed fight, weighted
   structure, net-worth, XP, forward-ward, sustained-territory, and Tormentor
@@ -192,10 +196,10 @@ hand-tuned, not ground truth).
   occupancy threshold, no interpolation across gaps longer than 10 seconds,
   and a 70% expected player-time requirement. Coverage and time-weighted p90
   depth are compared against the three minutes before Roshan.
-- `conversion_tags` are non-exclusive summaries of the raw profile; they are
-  calibration heuristics rather than a composite score. The old
-  `conversion_score`, `conversion_label`, and legacy enemy-half presence fields
-  remain available for constructor and API compatibility.
+- `RoshTagThresholds` and `RoshTerritoryConfig` make calibration settings
+  reproducible. `conversion_tags` remain non-exclusive heuristics. The old
+  `conversion_score` and `conversion_label` are deprecated, retained through
+  the 0.9 line, and not scheduled for removal before 1.0.
 - Buybacks remain context/timeline annotations. Tormentor is a separate signed
   secondary-objective dimension and is not folded into the structure value.
 
@@ -301,8 +305,8 @@ diagonal, so the effective perpendicular half-width is `1200 / sqrt(2) ≈ 849`.
 `build_rosh_conversions` encode hand-picked thresholds (for example, Roshan's
 fight, structure, resource, territory, ward, and Tormentor tags). Treat their
 labels/tags as opinionated heuristics, not derived constants, and expect them to
-change between releases. Prefer Roshan's raw signed differentials over either
-the new tags or the legacy 0–100 score.
+change between ruleset revisions. Prefer Roshan's raw signed differentials over
+either the provisional tags or the deprecated 0–100 score.
 
 ## When To Add Code Here
 
