@@ -119,6 +119,9 @@ class TestBuildDataframes:
         assert "opendota_teamfights" in dfs
         assert "smoke_events" in dfs
         assert "smoke_members" in dfs
+        assert "smoke_fight_insights" in dfs
+        assert "smoke_fight_members" in dfs
+        assert "smoke_fight_followups" in dfs
         assert "courier_snapshots" in dfs
         assert "neutral_item_finds" in dfs
         assert "vision_modifiers" in dfs
@@ -160,6 +163,33 @@ class TestBuildDataframes:
             "removed_y",
             "applied_game_time_s",
             "removed_game_time_s",
+        ]
+        assert dfs["smoke_fight_insights"].empty
+        assert list(dfs["smoke_fight_insights"].columns[:7]) == [
+            "smoke_index",
+            "fight_index",
+            "status",
+            "evidence_completeness",
+            "smoke_team",
+            "activator",
+            "smoke_lifecycle_status",
+        ]
+        assert dfs["smoke_fight_members"].empty
+        assert list(dfs["smoke_fight_members"].columns[:6]) == [
+            "smoke_index",
+            "fight_index",
+            "status",
+            "participant_index",
+            "player_id",
+            "hero_name",
+        ]
+        assert dfs["smoke_fight_followups"].empty
+        assert list(dfs["smoke_fight_followups"].columns[:5]) == [
+            "smoke_index",
+            "fight_index",
+            "kind",
+            "source_index",
+            "tick",
         ]
         assert dfs["vision_modifiers"].empty
         assert dfs["vision_modifier_pairing_issues"].empty
@@ -297,6 +327,45 @@ class TestBuildDataframes:
         assert row["modifier_elapsed_duration_s"] == 14.9
         assert row["applied_game_time_s"] == 11
         assert row["removed_game_time_s"] == 26
+
+    def test_smoke_fight_tables_preserve_no_candidate_and_member_rows(self):
+        match = ParsedMatch(
+            players=[
+                ParsedPlayer(
+                    player_id=0,
+                    hero_name="npc_dota_hero_axe",
+                    team=2,
+                )
+            ],
+            smoke_events=[
+                SmokeEvent(
+                    tick=1_000,
+                    activator="npc_dota_hero_axe",
+                    team=2,
+                    activation_game_time_s=10,
+                    participants=[
+                        SmokeParticipant(
+                            hero_name="npc_dota_hero_axe",
+                            player_id=0,
+                            applied_tick=1_001,
+                        )
+                    ],
+                )
+            ],
+        )
+
+        dfs = build_dataframes(match)
+        insight = dfs["smoke_fight_insights"].iloc[0]
+        member = dfs["smoke_fight_members"].iloc[0]
+
+        assert insight["smoke_index"] == 0
+        assert insight["status"] == "no_candidate"
+        assert insight["activation_tick"] == 1_000
+        assert insight["activation_game_time_s"] == 10
+        assert member["status"] == "no_candidate"
+        assert member["player_id"] == 0
+        assert member["authoritative_visibility"] == "unknown"
+        assert dfs["smoke_fight_followups"].empty
 
     def test_minute_tables_include_authoritative_game_time_axis(self):
         pp = ParsedPlayer(

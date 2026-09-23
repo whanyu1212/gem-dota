@@ -8,6 +8,7 @@ from unittest.mock import MagicMock
 import gem
 import gem.analysis as analysis
 import gem.analysis.combat as analysis_combat
+import gem.analysis.smoke_fight as analysis_smoke_fight
 import gem.analysis.spatial as analysis_spatial
 import gem.analysis.teamfight_positioning as analysis_teamfight_positioning
 from gem.analysis import group_ability_hits, position_at_tick, position_sample_at_tick
@@ -25,6 +26,8 @@ def test_analysis_package_reexports_public_helpers() -> None:
         is analysis_teamfight_positioning.build_teamfight_positioning
     )
     assert gem.build_teamfight_positioning is analysis.build_teamfight_positioning
+    assert analysis.build_smoke_fight_insights is analysis_smoke_fight.build_smoke_fight_insights
+    assert gem.build_smoke_fight_insights is analysis.build_smoke_fight_insights
 
 
 # ---------------------------------------------------------------------------

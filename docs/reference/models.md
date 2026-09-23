@@ -269,6 +269,8 @@ Source: [src/gem/results/models.py:303](https://github.com/whanyu1212/gem-dota/b
 | `applied_y` | `float \| None` | `None` |
 | `removed_x` | `float \| None` | `None` |
 | `removed_y` | `float \| None` | `None` |
+| `applied_game_time_s` | `int \| None` | `None` |
+| `removed_game_time_s` | `int \| None` | `None` |
 
 ### `SmokeEvent`
 
@@ -278,7 +280,7 @@ class SmokeEvent
 
 One Smoke of Deceit activation.
 
-Source: [src/gem/results/models.py:336](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L336)
+Source: [src/gem/results/models.py:342](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L342)
 
 #### Dataclass fields
 
@@ -293,6 +295,7 @@ Source: [src/gem/results/models.py:336](https://github.com/whanyu1212/gem-dota/b
 | `activation_x` | `float \| None` | `None` |
 | `activation_y` | `float \| None` | `None` |
 | `participants` | `list[SmokeParticipant]` | `field(...)` |
+| `activation_game_time_s` | `int \| None` | `None` |
 
 ### `BuybackEvent`
 
@@ -302,7 +305,7 @@ class BuybackEvent
 
 One buyback, with its estimated gold cost.
 
-Source: [src/gem/results/models.py:368](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L368)
+Source: [src/gem/results/models.py:377](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L377)
 
 #### Dataclass fields
 
@@ -321,7 +324,7 @@ class ChatEntry
 
 A single chat message from the match.
 
-Source: [src/gem/results/models.py:396](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L396)
+Source: [src/gem/results/models.py:405](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L405)
 
 #### Dataclass fields
 
@@ -340,7 +343,7 @@ class NeutralItemFoundEvent
 
 A neutral item found event emitted by DOTA_UM_FoundNeutralItem.
 
-Source: [src/gem/results/models.py:413](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L413)
+Source: [src/gem/results/models.py:422](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L422)
 
 #### Dataclass fields
 
@@ -365,7 +368,7 @@ class ParsedPlayer
 
 Aggregated statistics for one player over a full match.
 
-Source: [src/gem/results/models.py:447](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L447)
+Source: [src/gem/results/models.py:456](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L456)
 
 #### Dataclass fields
 
@@ -495,7 +498,7 @@ class ParsedMatch
 
 Top-level parsed output for a single Dota 2 replay.
 
-Source: [src/gem/results/models.py:842](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L842)
+Source: [src/gem/results/models.py:851](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L851)
 
 #### Dataclass fields
 
@@ -557,7 +560,7 @@ Signature: `def ParsedMatch.duration_seconds(self) -> float`
 
 Game duration in seconds, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:991](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L991)
+Source: [src/gem/results/models.py:1000](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1000)
 
 ##### `duration_minutes`
 
@@ -565,4 +568,4 @@ Signature: `def ParsedMatch.duration_minutes(self) -> float`
 
 Game duration in minutes, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:997](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L997)
+Source: [src/gem/results/models.py:1006](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1006)

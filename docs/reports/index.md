@@ -18,6 +18,12 @@ visibility, position freshness, missing samples, and the current conservative
 engagement-start fallback are documented in
 [Experimental Features → Teamfight Positioning](../experimental/teamfight-positioning.md).
 
+The **Smoke Operations** view summarizes bounded smoke/fight evidence and links
+unique associations directly to the matching fight snapshot. Exact lifecycle,
+action, visibility, and death ticks remain distinct from sampled formation
+context. See
+[Experimental Features → Smoke/Fight Insights](../experimental/smoke-fight-insights.md).
+
 ## Hosted samples
 
 Sample reports are not bundled into this VitePress site. They are large,

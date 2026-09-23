@@ -106,6 +106,26 @@ authoritative canonical-hero state and is never replaced by a geometric guess.
 See [Teamfight Positioning](../experimental/teamfight-positioning.md) for the
 moment definitions, geometry formulas, smoke/reveal boundaries, and report UI.
 
+## Linking smoke operations to fights
+
+Use `gem.build_smoke_fight_insights(match)` when the question begins with a
+Smoke of Deceit activation rather than a fight window:
+
+```python
+for insight in gem.build_smoke_fight_insights(match):
+    print(
+        insight.smoke_index,
+        insight.fight_index,
+        insight.status.value,
+        len(insight.active_smoked_player_ids),
+    )
+```
+
+The association window is bounded, active-member overlap is required for a
+supported link, and multiple supported smokes remain explicitly ambiguous.
+See [Smoke/Fight Insights](../experimental/smoke-fight-insights.md) for exact
+event, sampled formation, visibility, and follow-up semantics.
+
 ## OpenDota-compatible teamfights
 
 OpenDota opens a fight at `first_death_time - 15`, extends it while hero deaths continue

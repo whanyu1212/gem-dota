@@ -1247,6 +1247,320 @@ Source: [src/gem/analysis/smoke.py:113](https://github.com/whanyu1212/gem-dota/b
 | `first_teamfight` | `Teamfight \| None` | `None` |
 | `evidence_gaps` | `list[str]` | `field(...)` |
 
+## Module `gem.analysis.smoke_fight`
+
+Conservative post-parse associations between smoke activations and fights.
+
+Source: [src/gem/analysis/smoke_fight.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L1)
+
+### Top-level functions
+
+### `build_smoke_fight_insights`
+
+```python
+def build_smoke_fight_insights(match: ParsedMatch, *, fight_window_ticks: int = 1800, follow_up_ticks: int = 1800, nearby_radius: float = 3000.0, max_position_age_ticks: int = 60) -> list[SmokeFightInsight]
+```
+
+Build deterministic smoke-to-fight observations from parsed records.
+
+Source: [src/gem/analysis/smoke_fight.py:307](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L307)
+
+### Top-level classes
+
+### `SmokeFightStatus`
+
+```python
+class SmokeFightStatus(str, Enum)
+```
+
+Deterministic association state for one smoke/fight observation.
+
+Source: [src/gem/analysis/smoke_fight.py:42](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L42)
+
+### `ExactEventKind`
+
+```python
+class ExactEventKind(str, Enum)
+```
+
+Kinds of exact events retained in an insight sequence.
+
+Source: [src/gem/analysis/smoke_fight.py:54](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L54)
+
+### `FightCentroidSource`
+
+```python
+class FightCentroidSource(str, Enum)
+```
+
+Provenance of the center used for sampled near-fight arrival evidence.
+
+Source: [src/gem/analysis/smoke_fight.py:68](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L68)
+
+### `FollowUpKind`
+
+```python
+class FollowUpKind(str, Enum)
+```
+
+Kinds of bounded post-fight events.
+
+Source: [src/gem/analysis/smoke_fight.py:77](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L77)
+
+### `TeamRelation`
+
+```python
+class TeamRelation(str, Enum)
+```
+
+Actor-team relation to the smoke team.
+
+Source: [src/gem/analysis/smoke_fight.py:89](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L89)
+
+### `FollowUpBoundary`
+
+```python
+class FollowUpBoundary(str, Enum)
+```
+
+Evidence that bounded a post-fight follow-up window.
+
+Source: [src/gem/analysis/smoke_fight.py:99](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L99)
+
+### `ExactEventEvidence`
+
+```python
+class ExactEventEvidence
+```
+
+One exact source event with activation-relative timing.
+
+Source: [src/gem/analysis/smoke_fight.py:110](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L110)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `kind` | `ExactEventKind` | `-` |
+| `tick` | `int` | `-` |
+| `game_time_s` | `int \| None` | `-` |
+| `tick_delta` | `int` | `-` |
+| `game_time_delta_s` | `int \| None` | `-` |
+| `provenance` | `str` | `-` |
+| `source_index` | `int \| None` | `None` |
+| `player_id` | `int \| None` | `None` |
+| `hero_name` | `str` | `''` |
+| `source_name` | `str` | `''` |
+| `target_name` | `str` | `''` |
+
+### `MemberPositionEvidence`
+
+```python
+class MemberPositionEvidence
+```
+
+One smoke member's positioning-snapshot provenance.
+
+Source: [src/gem/analysis/smoke_fight.py:142](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L142)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `player_id` | `int \| None` | `-` |
+| `hero_name` | `str` | `-` |
+| `active_participant` | `bool` | `-` |
+| `x` | `float \| None` | `-` |
+| `y` | `float \| None` | `-` |
+| `sample_tick` | `int \| None` | `-` |
+| `sample_age_ticks` | `int \| None` | `-` |
+| `evidence_gaps` | `tuple[str, ...]` | `-` |
+
+### `FormationEvidence`
+
+```python
+class FormationEvidence
+```
+
+Filtered smoke-member geometry at one existing fight snapshot.
+
+Source: [src/gem/analysis/smoke_fight.py:156](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L156)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `kind` | `SnapshotKind` | `-` |
+| `tick` | `int` | `-` |
+| `expected_count` | `int` | `-` |
+| `positioned_count` | `int` | `-` |
+| `completeness` | `EvidenceCompleteness` | `-` |
+| `centroid_x` | `float \| None` | `-` |
+| `centroid_y` | `float \| None` | `-` |
+| `rms_spread` | `float \| None` | `-` |
+| `max_pairwise_distance` | `float \| None` | `-` |
+| `members` | `tuple[MemberPositionEvidence, ...]` | `-` |
+
+### `SampledNearFightEvidence`
+
+```python
+class SampledNearFightEvidence
+```
+
+Earliest raw member-position sample observed near the fight center.
+
+Source: [src/gem/analysis/smoke_fight.py:172](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L172)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `player_id` | `int` | `-` |
+| `hero_name` | `str` | `-` |
+| `tick` | `int` | `-` |
+| `x` | `float` | `-` |
+| `y` | `float` | `-` |
+| `distance` | `float` | `-` |
+| `centroid_source` | `FightCentroidSource` | `-` |
+
+### `SmokeFightMemberInsight`
+
+```python
+class SmokeFightMemberInsight
+```
+
+Per-smoke-member fight participation, visibility, and spatial evidence.
+
+Source: [src/gem/analysis/smoke_fight.py:185](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L185)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `participant_index` | `int` | `-` |
+| `player_id` | `int \| None` | `-` |
+| `hero_name` | `str` | `-` |
+| `resolved` | `bool` | `-` |
+| `active_participant` | `bool` | `-` |
+| `authoritative_visibility` | `VisibilityState` | `-` |
+| `point_vision` | `PointVisionAssessment \| None` | `-` |
+| `pre_engagement_position` | `MemberPositionEvidence \| None` | `-` |
+| `engagement_position` | `MemberPositionEvidence \| None` | `-` |
+| `sampled_near_fight` | `SampledNearFightEvidence \| None` | `-` |
+| `evidence_gaps` | `tuple[str, ...]` | `-` |
+
+### `FightOutcome`
+
+```python
+class FightOutcome
+```
+
+Factual source fight result, credited only to a unique link.
+
+Source: [src/gem/analysis/smoke_fight.py:202](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L202)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `deaths` | `int` | `-` |
+| `radiant_kills` | `int` | `-` |
+| `dire_kills` | `int` | `-` |
+| `winner` | `str` | `-` |
+
+### `FollowUpWindow`
+
+```python
+class FollowUpWindow
+```
+
+Half-open window used to associate post-fight raw events.
+
+Source: [src/gem/analysis/smoke_fight.py:212](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L212)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `start_tick` | `int` | `-` |
+| `end_tick` | `int` | `-` |
+| `end_reasons` | `tuple[FollowUpBoundary, ...]` | `-` |
+
+### `FollowUpEvent`
+
+```python
+class FollowUpEvent
+```
+
+One raw objective or observer placement allocated to a unique link.
+
+Source: [src/gem/analysis/smoke_fight.py:221](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L221)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `kind` | `FollowUpKind` | `-` |
+| `source_index` | `int` | `-` |
+| `tick` | `int` | `-` |
+| `game_time_s` | `int \| None` | `-` |
+| `tick_delta` | `int` | `-` |
+| `game_time_delta_s` | `int \| None` | `-` |
+| `actor_name` | `str` | `-` |
+| `actor_player_id` | `int \| None` | `-` |
+| `actor_team` | `int \| None` | `-` |
+| `relation` | `TeamRelation` | `-` |
+| `subject_name` | `str` | `-` |
+
+### `SmokeFightInsight`
+
+```python
+class SmokeFightInsight
+```
+
+Evidence-first observation for one smoke and zero or one source fight.
+
+Source: [src/gem/analysis/smoke_fight.py:238](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L238)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `smoke_index` | `int` | `-` |
+| `fight_index` | `int \| None` | `-` |
+| `status` | `SmokeFightStatus` | `-` |
+| `evidence_completeness` | `EvidenceCompleteness` | `-` |
+| `smoke_team` | `int` | `-` |
+| `activator` | `str` | `-` |
+| `smoke_lifecycle_status` | `SmokeGroupStatus` | `-` |
+| `activation` | `ExactEventEvidence` | `-` |
+| `first_member_removal` | `ExactEventEvidence \| None` | `-` |
+| `first_authoritative_visible` | `ExactEventEvidence \| None` | `-` |
+| `first_direct_reveal` | `ExactEventEvidence \| None` | `-` |
+| `first_member_action` | `ExactEventEvidence \| None` | `-` |
+| `first_death` | `ExactEventEvidence \| None` | `-` |
+| `fight_end` | `ExactEventEvidence \| None` | `-` |
+| `active_smoked_player_ids` | `tuple[int, ...]` | `-` |
+| `members` | `tuple[SmokeFightMemberInsight, ...]` | `-` |
+| `pre_engagement_formation` | `FormationEvidence \| None` | `-` |
+| `engagement_formation` | `FormationEvidence \| None` | `-` |
+| `sampled_near_fight_spread_ticks` | `int \| None` | `-` |
+| `near_fight_centroid_source` | `FightCentroidSource \| None` | `-` |
+| `outcome` | `FightOutcome \| None` | `-` |
+| `follow_up_window` | `FollowUpWindow \| None` | `-` |
+| `follow_ups` | `tuple[FollowUpEvent, ...]` | `-` |
+| `evidence_gaps` | `tuple[str, ...]` | `-` |
+
+#### Properties
+
+##### `exact_events`
+
+Signature: `def SmokeFightInsight.exact_events(self) -> tuple[ExactEventEvidence, ...]`
+
+Return present exact events in chronological, deterministic order.
+
+Source: [src/gem/analysis/smoke_fight.py:267](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L267)
+
 ## Module `gem.analysis.teamfight_positioning`
 
 Evidence-aware positioning snapshots for detected teamfights.

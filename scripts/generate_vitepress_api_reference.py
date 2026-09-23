@@ -37,6 +37,7 @@ TARGETS_BY_PAGE: dict[str, list[str]] = {
         "gem.analysis.map_context",
         "gem.analysis.roshan",
         "gem.analysis.smoke",
+        "gem.analysis.smoke_fight",
         "gem.analysis.teamfight_positioning",
     ],
     "batch.md": ["gem.replays.batch"],

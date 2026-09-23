@@ -24,6 +24,9 @@ pip install pyarrow
 | `"teamfight_positioning"` | Flat per-fight, per-snapshot, per-hero positioning evidence with freshness, geometry, and visibility |
 | `"smoke_events"` | Smoke activations, grouped heroes, centroid, and nested member lifecycles |
 | `"smoke_members"` | Flat per-hero smoke application/removal ticks, durations, and sampled positions |
+| `"smoke_fight_insights"` | One row per bounded smoke/fight candidate, including association, exact-event, visibility, and formation summaries |
+| `"smoke_fight_members"` | Per-candidate smoked-member participation, visibility, sampled position, and evidence-gap details |
+| `"smoke_fight_followups"` | Uniquely allocated objective and observer-placement evidence inside bounded post-fight windows |
 | `"hero_visibility_events"` | Change-only Radiant/Dire visibility state for canonical player heroes |
 | `"entity_visibility"` | Change-only packet-boundary visibility and lifecycle for networked Dota NPC entities |
 | `"vision_modifiers"` | Flat vision-relevant modifier application lifecycles and evidence |

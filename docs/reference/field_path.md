@@ -22,7 +22,7 @@ def read_field_paths(r: BitReader) -> list[FieldPath]
 
 Decode field paths into independent mutable compatibility objects.
 
-Source: [src/gem/schema/field_path/path_sequence.py:99](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/field_path/path_sequence.py#L99)
+Source: [src/gem/schema/field_path/path_sequence.py:102](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/field_path/path_sequence.py#L102)
 
 ## `gem.schema.field_path.FieldPath`
 

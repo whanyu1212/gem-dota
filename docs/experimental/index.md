@@ -26,6 +26,7 @@ An experimental feature usually has at least one of these properties:
 | [Roshan Conversion](./rosh-conversion.md) | Whether a team actually translated Roshan into fights, structures, territorial squeeze, or a game-closing sequence |
 | [Smoke Analysis](./smoke-analysis.md) | When each smoked hero gained and lost the modifier, what the enemy could see, and what happened next |
 | [Teamfight Positioning](./teamfight-positioning.md) | How both teams were arranged at four bounded fight moments, with position freshness and opposing-team visibility kept explicit |
+| [Smoke/Fight Insights](./smoke-fight-insights.md) | Which bounded fights overlap active smoked members, what exact events and sampled formation evidence were observed, and what followed |
 | [Point-Vision Evidence](./estimate-vision.md) | Bounded hero/observer geometry with explicit support, incompleteness, provenance, and separate target evidence |
 | [Vision Modifiers](./vision-modifiers.md) | Which reveal-style modifier windows gem tracks, how they are derived from combat-log events, and how they feed later vision analysis |
 
@@ -38,7 +39,8 @@ An experimental feature usually has at least one of these properties:
 5. [Roshan Conversion](./rosh-conversion.md)
 6. [Smoke Analysis](./smoke-analysis.md)
 7. [Teamfight Positioning](./teamfight-positioning.md)
-8. [Point-Vision Evidence](./estimate-vision.md)
-9. [Vision Modifiers](./vision-modifiers.md)
+8. [Smoke/Fight Insights](./smoke-fight-insights.md)
+9. [Point-Vision Evidence](./estimate-vision.md)
+10. [Vision Modifiers](./vision-modifiers.md)
 
 The first three tell you where the underlying replay data comes from. The Experimental Features pages explain how gem turns that raw data into analyst-facing interpretations.

@@ -123,6 +123,11 @@ The HTML report presents the same four moments on one map. Team colour,
 active/nonparticipant emphasis, visibility styling, short fresh-sample trails,
 and an evidence note are descriptive only.
 
+[Smoke/Fight Insights](./smoke-fight-insights.md) composes these snapshots with
+smoke lifecycles and bounded exact events. The composed layer preserves each
+position sample's tick and freshness rather than replacing exact action,
+removal, or death ticks with sampled spatial times.
+
 ## Limitations
 
 - Engagement start currently falls back to first death because the existing

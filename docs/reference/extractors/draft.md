@@ -73,4 +73,4 @@ Signature: `def DraftExtractor.finalize(self) -> None`
 
 Re-resolve all hero names using the fully-populated live map.
 
-Source: [src/gem/extractors/draft.py:291](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/draft.py#L291)
+Source: [src/gem/extractors/draft.py:299](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/draft.py#L299)
