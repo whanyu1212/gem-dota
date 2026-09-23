@@ -1334,7 +1334,12 @@ def _actor(
         if len(candidates) == 1:
             player = candidates[0]
             return (player.player_id, name, player.team)
-    return (None, next((name for name in names if name), ""), None)
+    actor_team = None
+    if raw.kind is FollowUpKind.OBSERVER_WARD:
+        event_team = getattr(raw.event, "team", None)
+        if isinstance(event_team, int) and event_team in (2, 3):
+            actor_team = event_team
+    return (None, next((name for name in names if name), ""), actor_team)
 
 
 def _subject_name(raw: _RawFollowUp) -> str:

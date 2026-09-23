@@ -533,6 +533,38 @@ def test_followups_are_half_open_truncated_at_next_smoke_and_allocated_once() ->
     assert all(event.tick != 1_550 for event in all_allocated)
 
 
+def test_unresolved_observer_owner_preserves_entity_team_attribution() -> None:
+    match = ParsedMatch(
+        players=[_player(0)],
+        smoke_events=[_smoke()],
+        teamfights=[_fight(1_100, end_tick=1_200, active_ids=(0,))],
+        wards=[
+            WardEvent(
+                tick=1_250,
+                player_id=-1,
+                placer="npc_dota_hero_unresolved",
+                ward_type="observer",
+                team=2,
+                x=0.0,
+                y=0.0,
+                expires_tick=None,
+                killed_tick=None,
+                killer="",
+            )
+        ],
+    )
+
+    insight = build_smoke_fight_insights(match)[0]
+
+    assert insight.status is SmokeFightStatus.LINKED
+    assert len(insight.follow_ups) == 1
+    observer = insight.follow_ups[0]
+    assert observer.actor_name == "npc_dota_hero_unresolved"
+    assert observer.actor_player_id is None
+    assert observer.actor_team == 2
+    assert observer.relation is TeamRelation.SMOKE_TEAM
+
+
 def test_follow_up_window_clamps_earlier_external_bounds_to_fight_end() -> None:
     match = ParsedMatch(
         game_end_tick=1_150,
