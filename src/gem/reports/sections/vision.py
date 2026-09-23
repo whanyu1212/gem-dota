@@ -23,6 +23,7 @@ from gem.analysis import (
 )
 from gem.catalog.map import load_camp_zones
 from gem.reports._formatting import (
+    GAME_CLOCK_JS,
     MAP_XMAX,
     MAP_XMIN,
     MAP_YMAX,
@@ -31,6 +32,8 @@ from gem.reports._formatting import (
     TICKS_PER_SEC,
     e,
     fmt_tick,
+    game_clock,
+    game_clock_js_config,
     hero,
     team_name,
 )
@@ -434,7 +437,9 @@ def build_wards(match: ParsedMatch, map_b64: str | None) -> str:
         (w.killed_tick or w.expires_tick or w.tick for w in match.wards),
         default=0,
     )
-    slider_max = max(max_tick, match.game_end_tick or max_tick)
+    # Playback ends when the Ancient falls; wards can nominally expire later, in
+    # the post-game recording.
+    slider_max = match.post_game_tick or max(max_tick, match.game_end_tick or max_tick)
     _PREGAME_TICKS = 90 * TICKS_PER_SEC
     slider_min = (match.game_start_tick or 0) - _PREGAME_TICKS
 
@@ -475,6 +480,7 @@ def build_wards(match: ParsedMatch, map_b64: str | None) -> str:
     ward_config = {
         "wards": ward_data,
         "gameStartTick": match.game_start_tick or 0,
+        "gameClock": game_clock_js_config(game_clock()),
         "sliderMin": slider_min,
         "sliderMax": slider_max,
         "worldWidth": _XMAX - _XMIN,
@@ -532,9 +538,13 @@ def build_wards(match: ParsedMatch, map_b64: str | None) -> str:
 <script type="application/json" id="ward-data">{ward_config_js}</script>
 """
 
-    ward_script = """
+    ward_script = (
+        """
 <script>
 (function() {
+"""
+        + GAME_CLOCK_JS
+        + """
   var cfg = JSON.parse(document.getElementById('ward-data').textContent || '{}');
   var wards = cfg.wards || [];
   var imgSrc = cfg.hasMap ? (window._GEM_MAP_SRC || '') : '';
@@ -570,13 +580,11 @@ var speedSel = document.getElementById('wardSpeed');
   var iconObs = _makeIcon(iconObsSrc);
   var iconSen = _makeIcon(iconSenSrc);
 
+  var gameClock = cfg.gameClock || {
+    gameStartTick: gameStartTick, gameStartTimeS: null, netTickOffset: 0, pauses: []
+  };
   function fmtTick(tick) {
-    var rel = tick - gameStartTick;
-    var neg = rel < 0;
-    var secs = Math.floor(Math.abs(rel) / 30);
-    var m = Math.floor(secs / 60), s = secs % 60;
-    var t = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
-    return neg ? '-' + t : t;
+    return gemFormatClock(gameClock, tick);
   }
 
   function draw(tick) {
@@ -728,6 +736,7 @@ var speedSel = document.getElementById('wardSpeed');
   });
 })();
 </script>"""
+    )
 
     parts.append(canvas_html)
     parts.append(ward_script)

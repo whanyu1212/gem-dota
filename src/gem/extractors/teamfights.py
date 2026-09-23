@@ -36,6 +36,7 @@ from itertools import pairwise
 from typing import TYPE_CHECKING
 
 from gem.combat.log import CombatLogEntry, opendota_translate
+from gem.state.game_clock import GameClock
 
 if TYPE_CHECKING:
     from gem.extractors.players import PlayerStateSnapshot
@@ -434,6 +435,7 @@ def detect_opendota_teamfights(
     *,
     game_start_tick: int | None = None,
     duration_s: int | None = None,
+    game_clock: GameClock | None = None,
 ) -> list[OpenDotaTeamfight]:
     """Project combat log entries into OpenDota-compatible teamfight output.
 
@@ -441,13 +443,25 @@ def detect_opendota_teamfights(
     Gem's spatial clustering and returns all skirmishes. The compatibility
     output follows OpenDota's temporal-only death-window semantics and filters
     to fights with at least three hero deaths.
+
+    Args:
+        combat_log: Combat log entries to project.
+        hero_to_slot: Hero NPC name to player slot mapping.
+        player_snapshots: Per-player state snapshots used for XP bounds.
+        game_start_tick: Horn tick, used when ``game_clock`` is not supplied.
+        duration_s: OpenDota match duration used to clamp the final fight.
+        game_clock: Pause-aware clock that maps fight seconds back to ticks.
+
+    Returns:
+        OpenDota-compatible teamfights with at least three hero deaths.
     """
+    clock = game_clock or GameClock(game_start_tick=game_start_tick)
     h2s = hero_to_slot or {}
     entries = sorted(
         combat_log,
         key=lambda e: (
-            _combat_time_s(e, game_start_tick=game_start_tick)
-            if _combat_time_s(e, game_start_tick=game_start_tick) is not None
+            _combat_time_s(e, clock=clock)
+            if _combat_time_s(e, clock=clock) is not None
             else float("inf"),
             e.tick,
         ),
@@ -459,7 +473,7 @@ def detect_opendota_teamfights(
     for entry in entries:
         if not _is_counted_opendota_death(entry):
             continue
-        death_time_s = _combat_time_s(entry, game_start_tick=game_start_tick)
+        death_time_s = _combat_time_s(entry, clock=clock)
         if death_time_s is None:
             continue
 
@@ -485,11 +499,11 @@ def detect_opendota_teamfights(
         _populate_opendota_xp_bounds(
             fight,
             snapshot_lookups,
-            game_start_tick=game_start_tick,
+            clock=clock,
         )
 
     for entry in entries:
-        event_time_s = _combat_time_s(entry, game_start_tick=game_start_tick)
+        event_time_s = _combat_time_s(entry, clock=clock)
         if event_time_s is None:
             continue
         for fight in fights:
@@ -524,12 +538,10 @@ def _append_closed_opendota_fight(
     fights.append(fight)
 
 
-def _combat_time_s(entry: CombatLogEntry, *, game_start_tick: int | None) -> int | None:
+def _combat_time_s(entry: CombatLogEntry, *, clock: GameClock) -> int | None:
     if entry.game_time_s is not None:
         return int(entry.game_time_s)
-    if game_start_tick is None:
-        return None
-    return int(round((entry.tick - game_start_tick) / 30))
+    return clock.game_seconds_at(entry.tick)
 
 
 def _is_counted_opendota_death(entry: CombatLogEntry) -> bool:
@@ -545,12 +557,14 @@ def _populate_opendota_xp_bounds(
     fight: OpenDotaTeamfight,
     player_snapshots: Mapping[int, list[PlayerStateSnapshot] | _SnapshotLookup] | None,
     *,
-    game_start_tick: int | None,
+    clock: GameClock,
 ) -> None:
-    if player_snapshots is None or game_start_tick is None:
+    if player_snapshots is None:
         return
-    start_tick = game_start_tick + fight.start * 30
-    end_tick = game_start_tick + fight.end * 30
+    start_tick = clock.tick_at(fight.start)
+    end_tick = clock.tick_at(fight.end)
+    if start_tick is None or end_tick is None:
+        return
     for player_id, snaps in player_snapshots.items():
         if player_id >= len(fight.players):
             continue

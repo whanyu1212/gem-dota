@@ -98,8 +98,9 @@ entry point. In order, it:
    `ReportOptions()`), calls `configure_assets(assets)` to point the icon
    loaders at the right directories and clear stale icon caches, and loads the
    map image to base64 via `load_map_base64` unless a `map_b64` was passed.
-2. Calls `set_game_start_tick(match.game_start_tick or 0)` so the module-level
-   `fmt_tick` in `_formatting.py` renders game-relative `MM:SS` times.
+2. Calls `set_game_clock(game_clock_for(match))` so the module-level
+   `fmt_tick` in `_formatting.py` renders pause-aware in-game `MM:SS` times
+   (the same clock OpenDota reports), not raw tick offsets.
 3. **Preloads icons** by name: canvas marker icons (`ward_observer`,
    `ward_sentry`, `smoke_of_deceit`), every purchased item across all players'
    `purchase_log` (via `value_name` with the `item_` prefix removed), and every
@@ -151,8 +152,9 @@ in `sections/combat.py`; only the filter *handler* lives in `builder.py`.
 - `ReportAssets` is a frozen dataclass of three optional paths: `map_image`,
   `hero_icon_dir`, `item_icon_dir`. `gem` does **not** ship map images or icon
   caches in the wheel. `ReportAssets.auto()` checks the configured user cache
-  first, then uses the source-checkout icon directories as a development
-  fallback when no explicit cache root is passed.
+  first, then an explicit `fallback_map`, then the source-checkout icon
+  directories and `assets/maps/<map_name>` as a development fallback when no
+  explicit cache root is passed.
 - The report asset cache root is `GEM_REPORT_ASSET_DIR` when set, otherwise the
   platform user cache (`~/Library/Caches/gem-dota/reports` on macOS,
   `%LOCALAPPDATA%/gem-dota/reports` on Windows, or
@@ -214,9 +216,12 @@ fractions via the `MAP_X/Y` bounds shared from `_formatting.py`.
 
 - `_formatting.py` holds the shared constants and HTML helpers: `TICKS_PER_SEC`
   (30), the `MAP_X/Y` world-coordinate bounds, team colors/names, rune and
-  game-mode label tables, `set_game_start_tick` / `fmt_tick` (game-relative
-  `MM:SS`), `e` (HTML escape), `team_badge`, and `hero_cell` (icon + name cell).
-  `fmt_tick` reads a module-global game-start tick set once per build.
+  game-mode label tables, `set_game_clock` / `fmt_tick` (pause-aware in-game
+  `MM:SS`), `tick_after_game_seconds` (in-game timers such as Roshan respawn),
+  `GAME_CLOCK_JS` (the client-side mirror used by ward playback), `e` (HTML
+  escape), `team_badge`, and `hero_cell` (icon + name cell). `fmt_tick` reads a
+  module-global `GameClock` set once per build; `set_game_start_tick` remains as
+  a pause-free legacy setter.
 - `styles.py` is a single `REPORT_CSS` string (the dark GitHub-style theme,
   card/table/tab/teamfight-card rules) inlined verbatim into `<head>`.
 
@@ -257,7 +262,7 @@ mis-escaped HTML, a missing icon, or a tab that should/shouldn't appear.
 ### Section builders are stateful through module globals
 
 `build_*` functions look pure but read three pieces of build-time global state:
-the `_GAME_START_TICK` in `_formatting.py` (set by `set_game_start_tick`) and
+the `GameClock` in `_formatting.py` (set by `set_game_clock`) and
 the `ITEM_ICON_B64` / `HERO_ICON_B64` caches in `assets.py` (filled by
 `configure_assets` + the preloaders). Call a section builder outside
 `build_html_report` and you'll get unconfigured times (`fmt_tick` relative to

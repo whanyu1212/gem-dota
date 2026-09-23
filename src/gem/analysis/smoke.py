@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING
 
+from gem.analysis._shared import infer_match_end_tick
 from gem.combat.log import CombatLogEntry
 
 if TYPE_CHECKING:
@@ -320,7 +321,7 @@ def _first_visible_tick(
             participant.modifier_duration_s * _TICKS_PER_SECOND
         )
     if end_tick is None:
-        end_tick = match.game_end_tick
+        end_tick = infer_match_end_tick(match)
     if end_tick < participant.applied_tick:
         return None
 

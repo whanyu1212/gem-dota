@@ -31,6 +31,7 @@ from gem.analysis.teamfight_positioning import (
     TeamfightPositioning,
     build_teamfight_positioning,
 )
+from gem.state.game_clock import game_clock_for
 
 if TYPE_CHECKING:
     from gem.extractors.objectives import AegisEvent, BannerPlant
@@ -516,8 +517,8 @@ def _enemy_team(team: int) -> int:
 
 
 def _analysis_match_end_tick(match: ParsedMatch) -> int:
-    if match.game_end_tick > 0:
-        return match.game_end_tick
+    if (match.post_game_tick or 0) > 0 or match.game_end_tick > 0:
+        return infer_match_end_tick(match)
     observed = [infer_match_end_tick(match)]
     for events in (
         match.roshans,
@@ -965,22 +966,26 @@ def _resource_dimension(
     count = min(len(match.game_times_min), len(values))
     if count < 2:
         return None, None, None, None
-    game_start_tick = match.game_start_tick or 0
-    samples = [
-        (game_start_tick + match.game_times_min[index] * _TICKS_PER_SEC, values[index])
-        for index in range(count)
-    ]
+    # Minute samples are keyed by pause-aware game seconds; map them back to
+    # replay ticks through the game clock so pauses do not shift the window.
+    clock = game_clock_for(match)
+    samples = []
+    for index in range(count):
+        game_seconds = match.game_times_min[index]
+        sample_tick = clock.tick_at(game_seconds)
+        if sample_tick is not None:
+            samples.append((sample_tick, game_seconds, values[index]))
     # Strictly after pickup/Roshan excludes the direct bounty from the baseline.
-    eligible = [(tick, value) for tick, value in samples if start_tick < tick <= end_tick]
+    eligible = [sample for sample in samples if start_tick < sample[0] <= end_tick]
     if len(eligible) < 2:
         return None, None, None, None
     sign = 1 if conversion_team == _TEAM_RADIANT else -1
-    first_tick, first_value = eligible[0]
-    last_tick, last_value = eligible[-1]
+    _, first_seconds, first_value = eligible[0]
+    _, last_seconds, last_value = eligible[-1]
     start_value = first_value * sign
     end_value = last_value * sign
     swing = end_value - start_value
-    elapsed_minutes = (last_tick - first_tick) / (_TICKS_PER_SEC * 60)
+    elapsed_minutes = (last_seconds - first_seconds) / 60
     rate = swing / elapsed_minutes if elapsed_minutes > 0 else None
     return start_value, end_value, swing, rate
 
@@ -1296,6 +1301,13 @@ def build_rosh_conversions(
         return []
 
     game_end_tick = _analysis_match_end_tick(match)
+    # Observed end of the match (Ancient destroyed), or 0 when unknown. Unlike
+    # ``game_end_tick`` this never falls back to inferred sample ticks.
+    match_end_tick = (
+        infer_match_end_tick(match)
+        if (match.post_game_tick or 0) > 0 or match.game_end_tick > 0
+        else 0
+    )
     conversions: list[RoshConversion] = []
     claimed_fights: set[int] = set()
     positioning_by_index = {
@@ -1483,8 +1495,8 @@ def build_rosh_conversions(
                 (conversion_team == _TEAM_RADIANT and match.radiant_win)
                 or (conversion_team == _TEAM_DIRE and not match.radiant_win)
             )
-            and match.game_end_tick > 0
-            and analysis_start <= match.game_end_tick <= analysis_end
+            and match_end_tick > 0
+            and analysis_start <= match_end_tick <= analysis_end
         )
         profile = _differential_profile(
             match,
@@ -1749,7 +1761,7 @@ def build_rosh_conversions(
         if game_closed:
             timeline_events.append(
                 RoshTimelineEvent(
-                    tick=match.game_end_tick,
+                    tick=match_end_tick,
                     kind="game_end",
                     label="Game ended",
                 )

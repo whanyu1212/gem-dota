@@ -694,7 +694,7 @@ def is_daytime(game_start_tick: int | None, tick: int) -> bool
 
 Return True if it is daytime at the given absolute tick.
 
-Source: [src/gem/analysis/vision.py:208](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L208)
+Source: [src/gem/analysis/vision.py:209](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L209)
 
 ### `hero_visibility_at`
 
@@ -704,7 +704,7 @@ def hero_visibility_at(match: ParsedMatch, *, player_id: int, observing_team: in
 
 Return authoritative hero-entity visibility at or before ``tick``.
 
-Source: [src/gem/analysis/vision.py:235](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L235)
+Source: [src/gem/analysis/vision.py:236](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L236)
 
 ### `entity_visibility_at`
 
@@ -714,7 +714,7 @@ def entity_visibility_at(match: ParsedMatch, *, entity_index: int, entity_serial
 
 Return authoritative NPC-entity visibility at or before ``tick``.
 
-Source: [src/gem/analysis/vision.py:277](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L277)
+Source: [src/gem/analysis/vision.py:278](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L278)
 
 ### `assess_point_vision`
 
@@ -724,7 +724,7 @@ def assess_point_vision(match: ParsedMatch, team: int, tick: int, x: float, y: f
 
 Assess bounded modeled evidence for team vision of one map point.
 
-Source: [src/gem/analysis/vision.py:323](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L323)
+Source: [src/gem/analysis/vision.py:324](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L324)
 
 ### `estimate_vision`
 
@@ -734,7 +734,7 @@ def estimate_vision(match: ParsedMatch, team: int, tick: int, x: float, y: float
 
 Return bounded modeled hero and observer sources covering a map point.
 
-Source: [src/gem/analysis/vision.py:600](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L600)
+Source: [src/gem/analysis/vision.py:601](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L601)
 
 ### `ward_vision_impact`
 
@@ -744,7 +744,7 @@ def ward_vision_impact(ward: object, match: ParsedMatch) -> int
 
 Count distinct enemy heroes spotted by an observer ward during its lifetime.
 
-Source: [src/gem/analysis/vision.py:660](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L660)
+Source: [src/gem/analysis/vision.py:661](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L661)
 
 ### Top-level classes
 
@@ -756,7 +756,7 @@ class VisionSource
 
 One modeled geometry source covering a map point at a given tick.
 
-Source: [src/gem/analysis/vision.py:45](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L45)
+Source: [src/gem/analysis/vision.py:46](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L46)
 
 #### Dataclass fields
 
@@ -781,7 +781,7 @@ class PointVisionStatus(str, Enum)
 
 Modeled support state for an arbitrary map point.
 
-Source: [src/gem/analysis/vision.py:78](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L78)
+Source: [src/gem/analysis/vision.py:79](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L79)
 
 ### `PointVisionSource`
 
@@ -791,7 +791,7 @@ class PointVisionSource
 
 One bounded geometry source supporting point coverage.
 
-Source: [src/gem/analysis/vision.py:89](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L89)
+Source: [src/gem/analysis/vision.py:90](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L90)
 
 #### Dataclass fields
 
@@ -816,7 +816,7 @@ Signature: `def PointVisionSource.identity(self) -> str`
 
 Return the source name as its stable identity.
 
-Source: [src/gem/analysis/vision.py:117](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L117)
+Source: [src/gem/analysis/vision.py:118](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L118)
 
 ##### `radius`
 
@@ -824,7 +824,7 @@ Signature: `def PointVisionSource.radius(self) -> int`
 
 Return the modeled circular vision radius.
 
-Source: [src/gem/analysis/vision.py:122](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L122)
+Source: [src/gem/analysis/vision.py:123](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L123)
 
 ### `PointVisionGap`
 
@@ -834,7 +834,7 @@ class PointVisionGap
 
 One material omission or ambiguity in a point-vision assessment.
 
-Source: [src/gem/analysis/vision.py:128](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L128)
+Source: [src/gem/analysis/vision.py:129](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L129)
 
 #### Dataclass fields
 
@@ -851,7 +851,7 @@ class DirectTargetRevealEvidence
 
 Bounded direct-reveal evidence for the requested canonical hero.
 
-Source: [src/gem/analysis/vision.py:141](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L141)
+Source: [src/gem/analysis/vision.py:142](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L142)
 
 #### Dataclass fields
 
@@ -873,7 +873,7 @@ Signature: `def DirectTargetRevealEvidence.tick(self) -> int`
 
 Return the interval start using modifier-event terminology.
 
-Source: [src/gem/analysis/vision.py:166](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L166)
+Source: [src/gem/analysis/vision.py:167](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L167)
 
 ### `PointVisionAssessment`
 
@@ -883,7 +883,7 @@ class PointVisionAssessment
 
 Evidence-aware modeled coverage assessment for one arbitrary point.
 
-Source: [src/gem/analysis/vision.py:172](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L172)
+Source: [src/gem/analysis/vision.py:173](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L173)
 
 #### Dataclass fields
 
@@ -1298,7 +1298,7 @@ def build_rosh_conversions(match: ParsedMatch, *, tag_thresholds: RoshTagThresho
 
 Summarise each Roshan with legacy fields and differential evidence.
 
-Source: [src/gem/analysis/roshan.py:1278](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L1278)
+Source: [src/gem/analysis/roshan.py:1283](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L1283)
 
 ### Top-level classes
 
@@ -1310,7 +1310,7 @@ class AegisFateSource(str, Enum)
 
 Evidence or boundary used to classify an Aegis lifecycle.
 
-Source: [src/gem/analysis/roshan.py:65](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L65)
+Source: [src/gem/analysis/roshan.py:66](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L66)
 
 ### `RoshTeamAttributionSource`
 
@@ -1320,7 +1320,7 @@ class RoshTeamAttributionSource(str, Enum)
 
 Provenance of a team attribution used by Roshan analysis.
 
-Source: [src/gem/analysis/roshan.py:78](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L78)
+Source: [src/gem/analysis/roshan.py:79](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L79)
 
 ### `RoshFightRelation`
 
@@ -1330,7 +1330,7 @@ class RoshFightRelation(str, Enum)
 
 Temporal relationship between a fight and the conversion window.
 
-Source: [src/gem/analysis/roshan.py:90](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L90)
+Source: [src/gem/analysis/roshan.py:91](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L91)
 
 ### `RoshTagThresholds`
 
@@ -1340,7 +1340,7 @@ class RoshTagThresholds
 
 Inspectably configured thresholds for non-exclusive conversion tags.
 
-Source: [src/gem/analysis/roshan.py:100](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L100)
+Source: [src/gem/analysis/roshan.py:101](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L101)
 
 #### Dataclass fields
 
@@ -1363,7 +1363,7 @@ class RoshFightEvidence
 
 Engagement-aware evidence for one fight associated with a Roshan window.
 
-Source: [src/gem/analysis/roshan.py:132](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L132)
+Source: [src/gem/analysis/roshan.py:133](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L133)
 
 #### Dataclass fields
 
@@ -1389,7 +1389,7 @@ class RoshTimelineEvent
 
 One notable event inside a Roshan conversion sequence.
 
-Source: [src/gem/analysis/roshan.py:185](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L185)
+Source: [src/gem/analysis/roshan.py:186](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L186)
 
 #### Dataclass fields
 
@@ -1408,7 +1408,7 @@ class RoshDifferentialProfile
 
 Evidence-first conversion-team profile over one hardened Rosh window.
 
-Source: [src/gem/analysis/roshan.py:217](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L217)
+Source: [src/gem/analysis/roshan.py:218](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L218)
 
 #### Dataclass fields
 
@@ -1467,7 +1467,7 @@ class RoshConversion
 
 Derived summary for one Roshan kill and the advantage window that followed.
 
-Source: [src/gem/analysis/roshan.py:319](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L319)
+Source: [src/gem/analysis/roshan.py:320](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L320)
 
 #### Dataclass fields
 
@@ -1537,7 +1537,7 @@ def build_smoke_analysis(match: ParsedMatch) -> list[SmokeAnalysis]
 
 Build factual lifecycle summaries for every smoke item use.
 
-Source: [src/gem/analysis/smoke.py:146](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L146)
+Source: [src/gem/analysis/smoke.py:147](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L147)
 
 ### Top-level classes
 
@@ -1549,7 +1549,7 @@ class SmokeLifecycleStatus(str, Enum)
 
 Observed lifecycle classification for one smoke participant.
 
-Source: [src/gem/analysis/smoke.py:33](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L33)
+Source: [src/gem/analysis/smoke.py:34](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L34)
 
 ### `SmokeGroupStatus`
 
@@ -1559,7 +1559,7 @@ class SmokeGroupStatus(str, Enum)
 
 Evidence-based aggregate state for one smoke activation.
 
-Source: [src/gem/analysis/smoke.py:50](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L50)
+Source: [src/gem/analysis/smoke.py:51](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L51)
 
 ### `SmokeMemberAnalysis`
 
@@ -1569,7 +1569,7 @@ class SmokeMemberAnalysis
 
 Evidence summary for one hero in a smoke activation.
 
-Source: [src/gem/analysis/smoke.py:70](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L70)
+Source: [src/gem/analysis/smoke.py:71](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L71)
 
 #### Dataclass fields
 
@@ -1598,7 +1598,7 @@ class SmokeAnalysis
 
 Evidence summary for one Smoke of Deceit item use.
 
-Source: [src/gem/analysis/smoke.py:113](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L113)
+Source: [src/gem/analysis/smoke.py:114](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L114)
 
 #### Dataclass fields
 
@@ -1632,7 +1632,7 @@ def build_smoke_fight_insights(match: ParsedMatch, *, fight_window_ticks: int = 
 
 Build deterministic smoke-to-fight observations from parsed records.
 
-Source: [src/gem/analysis/smoke_fight.py:307](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L307)
+Source: [src/gem/analysis/smoke_fight.py:308](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L308)
 
 ### Top-level classes
 
@@ -1644,7 +1644,7 @@ class SmokeFightStatus(str, Enum)
 
 Deterministic association state for one smoke/fight observation.
 
-Source: [src/gem/analysis/smoke_fight.py:42](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L42)
+Source: [src/gem/analysis/smoke_fight.py:43](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L43)
 
 ### `ExactEventKind`
 
@@ -1654,7 +1654,7 @@ class ExactEventKind(str, Enum)
 
 Kinds of exact events retained in an insight sequence.
 
-Source: [src/gem/analysis/smoke_fight.py:54](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L54)
+Source: [src/gem/analysis/smoke_fight.py:55](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L55)
 
 ### `FightCentroidSource`
 
@@ -1664,7 +1664,7 @@ class FightCentroidSource(str, Enum)
 
 Provenance of the center used for sampled near-fight arrival evidence.
 
-Source: [src/gem/analysis/smoke_fight.py:68](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L68)
+Source: [src/gem/analysis/smoke_fight.py:69](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L69)
 
 ### `FollowUpKind`
 
@@ -1674,7 +1674,7 @@ class FollowUpKind(str, Enum)
 
 Kinds of bounded post-fight events.
 
-Source: [src/gem/analysis/smoke_fight.py:77](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L77)
+Source: [src/gem/analysis/smoke_fight.py:78](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L78)
 
 ### `TeamRelation`
 
@@ -1684,7 +1684,7 @@ class TeamRelation(str, Enum)
 
 Actor-team relation to the smoke team.
 
-Source: [src/gem/analysis/smoke_fight.py:89](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L89)
+Source: [src/gem/analysis/smoke_fight.py:90](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L90)
 
 ### `FollowUpBoundary`
 
@@ -1694,7 +1694,7 @@ class FollowUpBoundary(str, Enum)
 
 Evidence that bounded a post-fight follow-up window.
 
-Source: [src/gem/analysis/smoke_fight.py:99](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L99)
+Source: [src/gem/analysis/smoke_fight.py:100](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L100)
 
 ### `ExactEventEvidence`
 
@@ -1704,7 +1704,7 @@ class ExactEventEvidence
 
 One exact source event with activation-relative timing.
 
-Source: [src/gem/analysis/smoke_fight.py:110](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L110)
+Source: [src/gem/analysis/smoke_fight.py:111](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L111)
 
 #### Dataclass fields
 
@@ -1730,7 +1730,7 @@ class MemberPositionEvidence
 
 One smoke member's positioning-snapshot provenance.
 
-Source: [src/gem/analysis/smoke_fight.py:142](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L142)
+Source: [src/gem/analysis/smoke_fight.py:143](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L143)
 
 #### Dataclass fields
 
@@ -1753,7 +1753,7 @@ class FormationEvidence
 
 Filtered smoke-member geometry at one existing fight snapshot.
 
-Source: [src/gem/analysis/smoke_fight.py:156](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L156)
+Source: [src/gem/analysis/smoke_fight.py:157](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L157)
 
 #### Dataclass fields
 
@@ -1778,7 +1778,7 @@ class SampledNearFightEvidence
 
 Earliest raw member-position sample observed near the fight center.
 
-Source: [src/gem/analysis/smoke_fight.py:172](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L172)
+Source: [src/gem/analysis/smoke_fight.py:173](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L173)
 
 #### Dataclass fields
 
@@ -1800,7 +1800,7 @@ class SmokeFightMemberInsight
 
 Per-smoke-member fight participation, visibility, and spatial evidence.
 
-Source: [src/gem/analysis/smoke_fight.py:185](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L185)
+Source: [src/gem/analysis/smoke_fight.py:186](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L186)
 
 #### Dataclass fields
 
@@ -1826,7 +1826,7 @@ class FightOutcome
 
 Factual source fight result, credited only to a unique link.
 
-Source: [src/gem/analysis/smoke_fight.py:202](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L202)
+Source: [src/gem/analysis/smoke_fight.py:203](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L203)
 
 #### Dataclass fields
 
@@ -1845,7 +1845,7 @@ class FollowUpWindow
 
 Half-open window used to associate post-fight raw events.
 
-Source: [src/gem/analysis/smoke_fight.py:212](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L212)
+Source: [src/gem/analysis/smoke_fight.py:213](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L213)
 
 #### Dataclass fields
 
@@ -1863,7 +1863,7 @@ class FollowUpEvent
 
 One raw objective or observer placement allocated to a unique link.
 
-Source: [src/gem/analysis/smoke_fight.py:221](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L221)
+Source: [src/gem/analysis/smoke_fight.py:222](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L222)
 
 #### Dataclass fields
 
@@ -1889,7 +1889,7 @@ class SmokeFightInsight
 
 Evidence-first observation for one smoke and zero or one source fight.
 
-Source: [src/gem/analysis/smoke_fight.py:238](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L238)
+Source: [src/gem/analysis/smoke_fight.py:239](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L239)
 
 #### Dataclass fields
 
@@ -1928,7 +1928,7 @@ Signature: `def SmokeFightInsight.exact_events(self) -> tuple[ExactEventEvidence
 
 Return present exact events in chronological, deterministic order.
 
-Source: [src/gem/analysis/smoke_fight.py:267](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L267)
+Source: [src/gem/analysis/smoke_fight.py:268](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L268)
 
 ## Module `gem.analysis.teamfight_positioning`
 

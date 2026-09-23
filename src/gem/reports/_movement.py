@@ -9,9 +9,17 @@ from pathlib import Path
 import plotly.graph_objects as go
 
 from gem.catalog import ability_display, hero_display, item_display, league_name
-from gem.reports._formatting import MAP_XMAX, MAP_XMIN, MAP_YMAX, MAP_YMIN
+from gem.reports._formatting import (
+    MAP_XMAX,
+    MAP_XMIN,
+    MAP_YMAX,
+    MAP_YMIN,
+    fmt_tick,
+    set_game_clock,
+)
 from gem.reports.player_names import display_player_name
 from gem.results.models import ParsedMatch, ParsedPlayer
+from gem.state.game_clock import game_clock_for
 
 # ---------------------------------------------------------------------------
 # Dota 2 map coordinate system
@@ -63,8 +71,8 @@ def _world_to_frac(wx: float, wy: float) -> tuple[float, float]:
 
 
 def _fmt_tick(tick: int) -> str:
-    secs = tick // _TICKS_PER_SEC
-    return f"{secs // 60:02d}:{secs % 60:02d}"
+    # Absolute replay tick -> pause-aware in-game clock (set by the builder).
+    return fmt_tick(tick)
 
 
 def _match_title(match: ParsedMatch, dem_stem: str) -> str:
@@ -207,6 +215,8 @@ def build_figure(
 ) -> go.Figure:
     """Build the Plotly figure with map background and animated hero traces."""
     import io as _io
+
+    set_game_clock(game_clock_for(match))
 
     try:
         from PIL import Image as _Image

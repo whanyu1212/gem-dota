@@ -91,6 +91,7 @@ from gem.results.models import ChatEntry, NeutralItemFoundEvent
 from gem.schema.sendtable import parse_send_tables
 from gem.schema.sendtable.models import FieldAccessPlan
 from gem.state.entities import Entity, EntityManager, EntityOp
+from gem.state.game_clock import GameClock, GamePause
 from gem.state.game_events import GameEventHandler, GameEventManager
 from gem.state.string_table import StringTables, handle_create, handle_update
 
@@ -213,6 +214,8 @@ class ReplayParser:
         tick: Current game tick.
         net_tick: Current net tick (from net_Tick inner messages).
         game_time_s: Rounded game-relative clock refreshed at network tick start.
+        game_clock: Pause-aware tick/game-time anchors and observed pauses.
+        post_game_tick: Tick of the GAME_STATE==6 (postGame) marker, when seen.
         game_build: Build number extracted from CSVCMsg_ServerInfo.
         string_tables: All string tables created so far.
         entity_manager: Live entity table.
@@ -248,6 +251,10 @@ class ReplayParser:
         self.radiant_win: bool | None = None
         self.game_start_tick: int | None = None
         self.game_time_s: int | None = None
+        self.game_clock = GameClock()
+        self.post_game_tick: int | None = None
+        # Open pause as ``(start_tick, total_paused_ticks_at_start)``.
+        self._open_pause: tuple[int, int] | None = None
         # Horn-anchored timestamp of the latest combat-log entry. This is an
         # event clock, not a continuously advancing sampling clock; interval
         # consumers use ``game_time_s`` refreshed at CNETMsg_Tick start instead.
@@ -391,6 +398,8 @@ class ReplayParser:
             return
         self._grp_game_start_seen = True
         self.game_start_tick = self.tick
+        self.game_clock.game_start_tick = self.tick
+        self.game_clock.net_tick_offset = self._net_tick_offset()
         for cb in self._game_start_callbacks:
             cb(self.tick)
 
@@ -403,9 +412,17 @@ class ReplayParser:
         separate metadata so public raw-tick fields remain unchanged.
         """
         fields = entity._resolve_fields(_GAMERULES_FIELDS)
+        paused_now = entity._get_bool_resolved(fields[2])
+        if paused_now is not None:
+            self._track_pause(
+                paused_now,
+                entity._get_int32_resolved(fields[3]),
+                entity._get_int32_resolved(fields[4]),
+            )
         start = entity._get_float32_resolved(fields[0])
         if start is not None and start != 0.0:
             self._game_start_time_s = _round_positive_seconds(start)
+            self.game_clock.game_start_time_s = start
 
         if self._game_start_time_s is None:
             return
@@ -422,6 +439,37 @@ class ReplayParser:
             raw_time_s = _round_positive_seconds((time_tick - total_paused_ticks) / 30.0)
 
         self.game_time_s = raw_time_s - self._game_start_time_s
+
+    def _net_tick_offset(self) -> int:
+        return self.net_tick - self.tick if self._net_tick_seen else 0
+
+    def _track_pause(
+        self, paused: bool, pause_start_net_tick: int | None, total_paused_ticks: int | None
+    ) -> None:
+        """Record pause intervals from ``m_bGamePaused`` transitions.
+
+        The pause start comes from ``m_nPauseStartTick`` and the length from the
+        growth of ``m_nTotalPausedTicks``; both count network ticks, so they are
+        shifted onto the replay-tick axis. The observed transition tick is the
+        fallback when either field is missing.
+        """
+        if paused == (self._open_pause is not None):
+            return
+        if paused:
+            start = (
+                pause_start_net_tick - self._net_tick_offset()
+                if pause_start_net_tick
+                else self.tick
+            )
+            self._open_pause = (start, total_paused_ticks or 0)
+            return
+        assert self._open_pause is not None
+        start, total_before = self._open_pause
+        self._open_pause = None
+        paused_ticks = (total_paused_ticks or 0) - total_before
+        end = start + paused_ticks if paused_ticks > 0 else self.tick
+        if end > start:
+            self.game_clock.pauses.append(GamePause(start_tick=start, end_tick=end))
 
     def on_game_event(self, name: str, handler: GameEventHandler) -> None:
         """Register a handler for the named game event.
@@ -505,6 +553,7 @@ class ReplayParser:
         if self._game_ended:
             return
         self._game_ended = True
+        self.post_game_tick = tick
         self._pending_game_end_tick = tick
 
     def _flush_game_end(self) -> None:
@@ -553,6 +602,11 @@ class ReplayParser:
             self.parse_error = exc
             self.truncated_at_tick = self.tick
             logger.warning("Replay stream ended early at tick %d: %r", self.tick, exc)
+
+        if self._open_pause is not None:
+            # The replay ended mid-pause; keep the interval open-ended.
+            self.game_clock.pauses.append(GamePause(start_tick=self._open_pause[0], end_tick=None))
+            self._open_pause = None
 
         # Read match metadata from CDOTAGamerulesProxy entity if DEM_FileInfo
         # didn't populate them (e.g. truncated replays or early stop).

@@ -25,6 +25,7 @@ from gem.reports._formatting import (
     hero,
     hero_cell,
     team_name,
+    tick_after_game_seconds,
 )
 from gem.reports.assets import (
     has_hero_icon,
@@ -65,10 +66,15 @@ def build_header(
     match: ParsedMatch, fmt_tick: Callable[[int], str], game_modes: dict[int, str]
 ) -> str:
     """Build the report header section."""
-    last_tick = match.game_end_tick or max(
-        (max(p.times) for p in match.players if p.times), default=0
-    )
-    duration = fmt_tick(last_tick)
+    if match.duration > 0:
+        duration = f"{match.duration // 60:02d}:{match.duration % 60:02d}"
+    else:
+        last_tick = (
+            match.post_game_tick
+            or match.game_end_tick
+            or max((max(p.times) for p in match.players if p.times), default=0)
+        )
+        duration = fmt_tick(last_tick)
     if match.radiant_win is True:
         winner_color = "#4caf50"
         winner_text = "Radiant"
@@ -302,8 +308,8 @@ def build_objectives(match: ParsedMatch, fmt_tick_fn: Callable[[int], str]) -> s
 
     for n, r in enumerate(match.roshans, 1):
         killer = _killer_label(r.killer)
-        respawn_min = fmt_tick_fn(r.tick + 8 * 30 * 60)
-        respawn_max = fmt_tick_fn(r.tick + 11 * 30 * 60)
+        respawn_min = fmt_tick_fn(tick_after_game_seconds(r.tick, 8 * 60))
+        respawn_max = fmt_tick_fn(tick_after_game_seconds(r.tick, 11 * 60))
         drops_str = (", ".join(r.drops).replace("_", " ")) if r.drops else "none"
         desc = (
             f'<span style="color:#ffb74d">Roshan #{n}</span> killed by {e(killer)} '

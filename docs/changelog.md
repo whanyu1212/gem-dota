@@ -8,6 +8,21 @@ This page is a curated narrative summary of the parser, validation, and report c
 
 It is intentionally short-range. The full per-release SemVer history lives in the canonical [CHANGELOG.md](https://github.com/whanyu1212/gem-dota/blob/main/CHANGELOG.md).
 
+## September 2026 — In-game clock and match end
+
+Replay ticks keep running while a match is paused, and many replays keep
+recording for minutes after the Ancient falls. `ParsedMatch.game_clock` now
+records observed pauses and converts ticks to the in-game clock exactly as
+OpenDota reports it, and `ParsedMatch.post_game_tick` marks when the match ended.
+OpenDota-compatible objective, ward-expiry, lane-window, and teamfight-XP times
+are pause-aware; reports show the in-game clock and the real match duration; and
+Roshan, smoke, and ward-impact windows end with the match. This let
+`game_closing` fire on real replays for the first time, so the Roshan
+calibration corpus and tag frequencies were re-audited.
+
+See [Match data](./guides/04_match_data.md) and the Roshan
+[calibration record](./experimental/rosh-conversion-calibration.md).
+
 ## September 2026 — Farming route evidence
 
 Farming Patterns now reconstructs camp-local routes with explicit zone,

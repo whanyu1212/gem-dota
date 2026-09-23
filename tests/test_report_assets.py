@@ -53,6 +53,34 @@ def test_report_assets_auto_prefers_cached_map(tmp_path: Path) -> None:
     assert assets.map_image == cached_map
 
 
+def test_report_assets_auto_falls_back_to_checkout_map(tmp_path: Path, monkeypatch: Any) -> None:
+    empty_cache = tmp_path / "cache"
+    monkeypatch.setattr(asset_cache, "default_report_asset_dir", lambda: empty_cache)
+    source_maps = tmp_path / "assets" / "maps"
+    source_maps.mkdir(parents=True)
+    checkout_map = source_maps / "Game_map_7.41.jpg"
+    checkout_map.write_bytes(b"map")
+    (source_maps / "camp_annotated.png").write_bytes(_PNG_BYTES)
+    monkeypatch.setattr(asset_cache, "SOURCE_MAP_DIR", source_maps)
+
+    assert ReportAssets.auto().map_image == checkout_map
+
+    explicit = tmp_path / "explicit.jpg"
+    explicit.write_bytes(b"explicit")
+    assert ReportAssets.auto(fallback_map=explicit).map_image == explicit
+
+    # An explicit cache root opts out of checkout fallbacks, as for icons.
+    assert ReportAssets.auto(root=empty_cache).map_image is None
+    # Only the named patch map is used, never another image in the folder.
+    checkout_map.unlink()
+    assert ReportAssets.auto().map_image is None
+
+
+def test_checkout_map_dir_points_at_repository_assets() -> None:
+    assert Path(__file__).resolve().parents[1] / "assets" / "maps" == asset_cache.SOURCE_MAP_DIR
+    assert (asset_cache.SOURCE_MAP_DIR / asset_cache.DEFAULT_MAP_NAME).exists()
+
+
 def test_report_asset_status_reports_missing_assets(tmp_path: Path) -> None:
     root = tmp_path / "cache"
     hero_dir = root / "hero_icons"

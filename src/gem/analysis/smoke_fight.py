@@ -14,6 +14,7 @@ from dataclasses import dataclass, replace
 from enum import Enum
 from typing import TYPE_CHECKING
 
+from gem.analysis._shared import infer_match_end_tick
 from gem.analysis.combat import is_active_teamfight_participant
 from gem.analysis.smoke import SmokeAnalysis, SmokeGroupStatus, build_smoke_analysis
 from gem.analysis.teamfight_positioning import (
@@ -1194,8 +1195,9 @@ def _follow_up_window(
 ) -> FollowUpWindow:
     smoke = match.smoke_events[smoke_index]
     bounds = [(fight_end_tick + follow_up_ticks, FollowUpBoundary.CONFIGURED_LIMIT)]
-    if match.game_end_tick > 0:
-        bounds.append((match.game_end_tick, FollowUpBoundary.GAME_END))
+    match_end_tick = infer_match_end_tick(match)
+    if match_end_tick > 0:
+        bounds.append((match_end_tick, FollowUpBoundary.GAME_END))
     next_smoke_ticks = [
         other.tick
         for index, other in enumerate(match.smoke_events)
