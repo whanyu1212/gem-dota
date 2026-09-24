@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-09-24
+
 Slims the tabular export to flat core tables. DataFrame and Parquet output no
 longer repeats every per-player statistic on every sampled row, and the
 post-parse analysis tables are now opt-in. On a 40-minute replay
@@ -20,6 +22,15 @@ JSON becomes the full-fidelity format and can now be loaded back:
 instead of re-parsing the replay (about 60 s on the same fixture), and
 `gem.analyze()` bundles every post-parse analysis so it can be embedded in the
 JSON.
+
+Upgrading from 0.9: read `frames["player_summary"]` and
+`frames["player_timeseries"]` instead of `frames["players"]`; pass
+`include=["analysis"]` (or `--include analysis`) for the farming, smoke-fight,
+Roshan-conversion, and teamfight-positioning tables; and replace
+`parse_many_to_dataframe` / `gem batch --format dataframe` with
+`parse_many_to_parquet` plus `read_parquet_table`. `ParsedMatch`, the existing
+JSON fields, and the other public APIs are unchanged, and Python 3.10+ support
+is preserved.
 
 ### Added
 
@@ -962,7 +973,8 @@ combat-log layers. The supported top-level API (`gem.parse`, `gem.ParsedMatch`,
 - CLI and example scripts, including HTML match report.
 - Validation, fuzzing, and parser robustness foundations.
 
-[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/whanyu1212/gem-dota/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/whanyu1212/gem-dota/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/whanyu1212/gem-dota/compare/v0.7.1...v0.8.0
 [0.7.1]: https://github.com/whanyu1212/gem-dota/compare/v0.7.0...v0.7.1
