@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **DataFrame columns use pandas nullable dtypes** (`Int64`, `Float64`,
+  `boolean`, `string`). Dtypes come from the source dataclass type hints
+  (`CombatLogEntry`, `SmokeParticipant`, `VisionModifierEvent`, `ParsedPlayer`,
+  ...) or from explicit per-table schemas for the hand-built tables. Missing
+  values are `pd.NA` rather than `None`/`NaN`. Integer columns with gaps stay
+  integers instead of becoming floats. `teamfight_positioning` now joins
+  `active_reveal_modifiers` and `evidence_gaps` with `";"` (they were tuples),
+  and `opendota_teamfights.players` is a JSON string (it was a list of dicts
+  keyed by hero, ability, and item names).
+
+### Fixed
+
+- **Parquet schemas no longer depend on match content.** Before this fix, the
+  same table could get a different Parquet schema in different replays, so
+  `read_parquet_table` and other multi-file readers could not combine them.
+  Every table in `CORE_TABLES` and `OPTIONAL_GROUPS` now has the same columns
+  and types for every match, including an empty one. Examples of the old
+  drift: all-`None` columns were written as the Arrow `null` type (for example
+  `vision_modifiers.remove_modifier_duration_s`); `player_summary.lane_gold_adv`
+  and `smoke_members.player_id` switched between `int64` and `double`;
+  `player_buyback_log` had no columns when a match had no buybacks; and
+  `objectives.x`/`y`/`killer_player_id` only existed when banner-plant or
+  Tormentor rows did.
+
 ## [0.10.0] - 2026-09-24
 
 Slims the tabular export to flat core tables. DataFrame and Parquet output no

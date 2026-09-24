@@ -13,8 +13,10 @@ pip install pyarrow
 ## Available tables
 
 Every table starts with a `match_id` column (`0` when the replay has no match ID).
-Core tables hold only primitive cells, so they write to Parquet with a stable schema
-and concatenate across replays.
+Tables hold only primitive cells, and every column has a fixed pandas nullable
+dtype (`Int64`, `Float64`, `boolean`, or `string`). Missing values are `pd.NA`.
+A table has the same columns and Parquet schema in every match, even when the
+match has no rows for it, so per-replay files concatenate cleanly.
 
 ### Core tables (always returned)
 
@@ -61,7 +63,7 @@ Pass `include=["analysis"]` and/or `include=["opendota"]` to add these tables.
 | `analysis` | `"farming_route_points"` | Sampled path points with deterministic camp membership and optional segment membership |
 | `analysis` | `"farming_context_tags"` | One row per farming segment/context tag and its reasons |
 | `opendota` | `"opendota_objectives"` | OpenDota-shaped unified objective timeline |
-| `opendota` | `"opendota_teamfights"` | OpenDota-compatible 3+ death temporal teamfight windows |
+| `opendota` | `"opendota_teamfights"` | OpenDota-compatible 3+ death temporal teamfight windows; the per-player breakdown is a JSON string in `players` |
 
 ---
 
@@ -83,4 +85,4 @@ def build_dataframes(match: ParsedMatch, *, include: Iterable[str] = ()) -> dict
 
 Convert a :class:`ParsedMatch` into a dict of flat pandas DataFrames.
 
-Source: [src/gem/results/dataframes.py:167](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/dataframes.py#L167)
+Source: [src/gem/results/dataframes.py:178](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/dataframes.py#L178)
