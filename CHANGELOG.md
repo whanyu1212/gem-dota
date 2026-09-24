@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-09-24
+
+Adds evidence-first match analysis built on authoritative replay visibility:
+per-team hero and NPC visibility timelines, hardened smoke and vision-modifier
+lifecycles, point-vision assessment with explicit evidence gaps, teamfight
+positioning, smoke-to-fight insights, calibrated Roshan conversion evidence, and
+farming routes with comparative context. It also adds a pause-aware in-game
+clock (`ParsedMatch.game_clock`) and `ParsedMatch.post_game_tick`.
+
+Some outputs change relative to 0.8.0. In matches with pauses,
+OpenDota-compatible objective and ward-expiry times now follow the in-game
+clock (building kills match OpenDota exactly). Roshan, smoke, and ward-impact
+windows now end when the Ancient falls rather than at the end of the recording,
+which changes some Roshan Aegis fates and tags. Reports show in-game times and
+the real match duration. Roshan `conversion_score` / `conversion_label` are
+deprecated and remain available through the 0.9 line. Existing constructor
+positions, public APIs, and Python 3.10+ support are preserved.
+
 ### Added
 
 - **Evidence-first farming routes.** Add deterministic camp-zone assignment,
@@ -850,7 +868,8 @@ combat-log layers. The supported top-level API (`gem.parse`, `gem.ParsedMatch`,
 - CLI and example scripts, including HTML match report.
 - Validation, fuzzing, and parser robustness foundations.
 
-[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/whanyu1212/gem-dota/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/whanyu1212/gem-dota/compare/v0.7.1...v0.8.0
 [0.7.1]: https://github.com/whanyu1212/gem-dota/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/whanyu1212/gem-dota/compare/v0.6.0...v0.7.0
