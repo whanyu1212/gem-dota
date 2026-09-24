@@ -342,6 +342,38 @@ class TestReadParquetTable:
 
         assert "opendota_teamfights" in {path.stem for path in written}
 
+    @_needs_pyarrow
+    def test_one_shot_include_iterable_applies_to_every_replay(self, tmp_path):
+        replay_dir = tmp_path / "replays"
+        replay_dir.mkdir()
+        for name in ("123", "456"):
+            (replay_dir / f"{name}.dem").touch()
+
+        with (
+            patch("gem.replays.batch.ProcessPoolExecutor", _SyncExecutor),
+            patch("gem.replays.batch._parse_one", side_effect=_ok),
+        ):
+            written = gem.parse_many_to_parquet(
+                replay_dir,
+                tmp_path / "out",
+                progress=False,
+                include=(group for group in ["opendota"]),
+            )
+
+        replays_with_group = {p.parent.name for p in written if p.stem == "opendota_teamfights"}
+        assert replays_with_group == {"123", "456"}
+
+    def test_unknown_include_group_fails_before_parsing(self, tmp_path):
+        (tmp_path / "123.dem").touch()
+
+        with (
+            patch("gem.replays.batch._parse_one") as parse_one,
+            pytest.raises(ValueError, match="Unknown DataFrame group"),
+        ):
+            gem.parse_many_to_parquet(tmp_path, tmp_path / "out", include=["nope"])
+
+        parse_one.assert_not_called()
+
     def test_missing_table_raises(self, tmp_path):
         with pytest.raises(FileNotFoundError, match="combat_log"):
             gem.read_parquet_table(tmp_path, "combat_log")

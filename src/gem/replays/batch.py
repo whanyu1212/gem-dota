@@ -311,6 +311,11 @@ def parse_many_to_parquet(
     )
 
     from gem import to_parquet
+    from gem.results.dataframes import _resolve_include
+
+    # Resolve once: a one-shot iterable would otherwise be exhausted by the
+    # first export, and an unknown group should fail before any parsing.
+    include = tuple(sorted(_resolve_include(include)))
 
     paths = _collect_paths(source, recursive=recursive)
     deadline = None if timeout is None else monotonic() + timeout
