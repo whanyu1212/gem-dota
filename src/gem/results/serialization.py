@@ -15,6 +15,7 @@ from __future__ import annotations
 import json
 import types
 import typing
+from collections import defaultdict
 from collections.abc import Mapping
 from dataclasses import fields, is_dataclass
 from enum import Enum
@@ -184,9 +185,13 @@ def _decode(value: Any, tp: Any) -> Any:
         if len(args) == 2 and args[1] is Ellipsis:
             return tuple(_decode(item, args[0]) for item in value)
         return tuple(_decode(item, item_type) for item, item_type in zip(value, args, strict=True))
-    if origin is dict:
+    if origin is dict or origin is defaultdict:
         key_type, value_type = typing.get_args(tp)
-        return {_decode(key, key_type): _decode(item, value_type) for key, item in value.items()}
+        decoded = {_decode(key, key_type): _decode(item, value_type) for key, item in value.items()}
+        if origin is defaultdict:
+            # e.g. ``defaultdict[str, int]`` -> ``defaultdict(int, ...)``
+            return defaultdict(typing.get_origin(value_type) or value_type, decoded)
+        return decoded
     if isinstance(tp, type):
         if is_dataclass(tp):
             return _decode_dataclass(tp, value)

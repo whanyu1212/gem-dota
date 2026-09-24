@@ -412,6 +412,10 @@ class TestJsonRoundTrip:
         assert isinstance(player.position_log[0], tuple)
         assert isinstance(player._ability_snapshots[0], tuple)
         assert player.final_items == {0: "item_blink", 5: "item_black_king_bar"}
+        assert isinstance(player.lane_pos, defaultdict)
+        assert player.lane_pos.default_factory is int
+        player.lane_pos["128_128"] += 1  # unseen cells still start at zero
+        assert player.lane_pos["128_128"] == 1
         assert player.kills_log[0].log_type is CombatLogType.DEATH
         assert loaded.combat_log[0].source is CombatLogSource.S2_BULK
         assert loaded.hero_visibility_events[0].dire_state is VisibilityState.HIDDEN
