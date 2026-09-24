@@ -2079,3 +2079,43 @@ Source: [src/gem/analysis/teamfight_positioning.py:180](https://github.com/whany
 | `end_tick` | `int` | `-` |
 | `engagement_start_source` | `EngagementStartSource` | `-` |
 | `snapshots` | `tuple[FightPositionSnapshot, ...]` | `-` |
+
+## Module `gem.analysis.bundle`
+
+One-call bundle of gem's evidence-first post-parse analyses.
+
+Source: [src/gem/analysis/bundle.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/bundle.py#L1)
+
+### Top-level functions
+
+### `analyze`
+
+```python
+def analyze(match: ParsedMatch) -> MatchAnalysis
+```
+
+Run every default post-parse analysis on a parsed match.
+
+Source: [src/gem/analysis/bundle.py:54](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/bundle.py#L54)
+
+### Top-level classes
+
+### `MatchAnalysis`
+
+```python
+class MatchAnalysis
+```
+
+Results of every default post-parse analysis for one match.
+
+Source: [src/gem/analysis/bundle.py:32](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/bundle.py#L32)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `smoke` | `list[SmokeAnalysis]` | `field(...)` |
+| `smoke_fights` | `list[SmokeFightInsight]` | `field(...)` |
+| `roshan_conversions` | `list[RoshConversion]` | `field(...)` |
+| `farming_routes` | `list[FarmingRoute]` | `field(...)` |
+| `teamfight_positioning` | `list[TeamfightPositioning]` | `field(...)` |

@@ -4,6 +4,9 @@ from __future__ import annotations
 
 import json
 from collections import defaultdict
+from dataclasses import fields
+
+import pytest
 
 import gem
 import gem.api
@@ -11,18 +14,23 @@ from gem.analysis.farming import build_farming_routes
 from gem.analysis.roshan import build_rosh_conversions
 from gem.analysis.smoke_fight import build_smoke_fight_insights
 from gem.analysis.teamfight_positioning import build_teamfight_positioning
-from gem.combat.log import CombatLogSource
+from gem.combat.log import CombatLogEntry, CombatLogSource, CombatLogType
 from gem.extractors.objectives import AegisEvent, RoshanKill
 from gem.extractors.teamfights import OpenDotaTeamfight, Teamfight, TeamfightPlayer
 from gem.results.models import (
+    EntityVisibilityEvent,
+    HeroVisibilityEvent,
     ParsedMatch,
     ParsedPlayer,
     SmokeEvent,
     SmokeParticipant,
+    VisibilityState,
     VisionModifierEvent,
     VisionModifierPairingIssue,
     VisionModifierSemantic,
 )
+from gem.results.serialization import SCHEMA_VERSION
+from gem.state.game_clock import GameClock, GamePause
 
 
 class TestSerializationHelpers:
@@ -59,6 +67,9 @@ class TestSerializationHelpers:
         decoded = json.loads(payload)
         assert decoded["match_id"] == 7
         assert "players" in decoded
+        assert decoded["schema_version"] == SCHEMA_VERSION
+        assert isinstance(decoded["gem_version"], str)
+        assert "analysis" not in decoded
 
     def test_farming_routes_serialize_enum_and_missing_evidence_values(self):
         player = ParsedPlayer(
@@ -316,3 +327,211 @@ class TestSerializationHelpers:
         decoded = json.loads(payload)
 
         assert decoded["match_id"] == 999
+
+
+def _awkward_match() -> ParsedMatch:
+    """A match populating every type the JSON decoder has to restore."""
+    player = ParsedPlayer(
+        player_id=0,
+        hero_name="npc_dota_hero_axe",
+        team=2,
+        times=[30, 60],
+        gold_t=[500, 650],
+        position_log=[(30, 100.5, -50.25), (60, 101.0, -49.0)],
+        final_items={0: "item_blink", 5: "item_black_king_bar"},
+        kills_log=[CombatLogEntry(tick=40, log_type=CombatLogType.DEATH)],
+        damage_targets={"axe_counter_helix": {"npc_dota_hero_lina": 600}},
+        max_hero_hit={"inflictor": "axe_culling_blade", "key": "x", "value": 700, "time": 912},
+        _ability_snapshots=[(27_516, {"axe_berserkers_call": 1})],
+    )
+    player.lane_pos = defaultdict(int, {"64_64": 3})
+    return ParsedMatch(
+        match_id=8822520406,
+        players=[player] + [ParsedPlayer(player_id=i) for i in range(1, 10)],
+        combat_log=[
+            CombatLogEntry(
+                tick=10,
+                log_type=CombatLogType.DAMAGE,
+                value=5,
+                source=CombatLogSource.S2_BULK,
+            )
+        ],
+        objectives=[{"type": "building_kill", "time": 600, "key": "npc_dota_badguys_tower1_mid"}],
+        hero_visibility_events=[
+            HeroVisibilityEvent(
+                tick=100,
+                player_id=0,
+                hero_name="npc_dota_hero_axe",
+                entity_index=5,
+                entity_serial=1,
+                radiant_state=VisibilityState.VISIBLE,
+                dire_state=VisibilityState.HIDDEN,
+            )
+        ],
+        entity_visibility_events=[
+            EntityVisibilityEvent(
+                tick=120,
+                entity_index=300,
+                entity_serial=2,
+                class_name="CDOTA_BaseNPC_Creep_Neutral",
+                npc_name="npc_dota_neutral_kobold",
+                team=None,
+                active=True,
+                radiant_state=VisibilityState.VISIBLE,
+                dire_state=VisibilityState.UNKNOWN,
+            )
+        ],
+        teamfights=[
+            Teamfight(
+                start_tick=1,
+                end_tick=2,
+                first_death_tick=1,
+                last_death_tick=1,
+                deaths=1,
+                players=[TeamfightPlayer(player_id=0, item_uses={"item_blink": 1})],
+            )
+        ],
+        game_clock=GameClock(
+            game_start_tick=30_206,
+            pauses=[GamePause(start_tick=31_143, end_tick=33_920), GamePause(40_000, None)],
+            game_start_time_s=1019.3,
+            net_tick_offset=374,
+        ),
+    )
+
+
+class TestJsonRoundTrip:
+    def test_from_dict_restores_every_field_type(self):
+        match = _awkward_match()
+
+        loaded = gem.from_dict(json.loads(gem.to_json(match)))
+
+        assert loaded == match
+        player = loaded.players[0]
+        assert player.position_log[0] == (30, 100.5, -50.25)
+        assert isinstance(player.position_log[0], tuple)
+        assert isinstance(player._ability_snapshots[0], tuple)
+        assert player.final_items == {0: "item_blink", 5: "item_black_king_bar"}
+        assert isinstance(player.lane_pos, defaultdict)
+        assert player.lane_pos.default_factory is int
+        player.lane_pos["128_128"] += 1  # unseen cells still start at zero
+        assert player.lane_pos["128_128"] == 1
+        assert player.kills_log[0].log_type is CombatLogType.DEATH
+        assert loaded.combat_log[0].source is CombatLogSource.S2_BULK
+        assert loaded.hero_visibility_events[0].dire_state is VisibilityState.HIDDEN
+        assert loaded.game_clock is not None
+        assert loaded.game_clock.pauses[1] == GamePause(40_000, None)
+        assert loaded.teamfights[0].players[0].item_uses == {"item_blink": 1}
+
+    def test_from_dict_accepts_bare_to_dict_payload(self):
+        match = _awkward_match()
+
+        assert gem.from_dict(json.loads(json.dumps(gem.to_dict(match)))) == match
+
+    def test_from_dict_ignores_unknown_keys_and_defaults_missing_ones(self):
+        data = {"match_id": 7, "field_from_a_future_version": [1, 2]}
+
+        loaded = gem.from_dict(data)
+
+        assert loaded.match_id == 7
+        assert loaded.combat_log == []
+
+    def test_from_dict_rejects_newer_schema_version(self):
+        with pytest.raises(ValueError, match="newer gem"):
+            gem.from_dict({"schema_version": SCHEMA_VERSION + 1, "match_id": 7})
+
+    def test_load_json_reads_file(self, tmp_path):
+        match = _awkward_match()
+        path = tmp_path / "match.json"
+        path.write_text(gem.to_json(match), encoding="utf-8")
+
+        assert gem.load_json(path) == match
+
+    def test_analysis_section_is_embedded_on_request_and_ignored_on_load(self):
+        match = _awkward_match()
+
+        decoded = json.loads(gem.to_json(match, analysis=gem.analyze(match)))
+
+        assert set(decoded["analysis"]) == {
+            "smoke",
+            "smoke_fights",
+            "roshan_conversions",
+            "farming_routes",
+            "teamfight_positioning",
+        }
+        assert gem.from_dict(decoded) == match
+
+    def test_to_json_rejects_nan(self):
+        match = ParsedMatch()
+        match.players[0].lane_efficiency_pct = float("nan")
+
+        with pytest.raises(ValueError):
+            gem.to_json(match)
+
+    def test_metadata_keys_do_not_collide_with_match_fields(self):
+        names = {f.name for f in fields(ParsedMatch)}
+
+        assert not names & {"schema_version", "gem_version", "analysis"}
+
+    def test_parse_to_json_embeds_analysis_when_requested(self, monkeypatch):
+        monkeypatch.setattr(gem.api, "parse", lambda path: ParsedMatch(match_id=999))
+
+        decoded = json.loads(gem.parse_to_json("dummy.dem", analyze=True))
+
+        assert decoded["match_id"] == 999
+        assert decoded["analysis"]["smoke"] == []
+
+
+class TestAnalyze:
+    def test_analyze_matches_individual_builders(self):
+        players = [
+            ParsedPlayer(
+                player_id=player_id,
+                hero_name=f"npc_dota_hero_hero_{player_id}",
+                team=2 if player_id < 5 else 3,
+                position_log=[(1_000, 100.0 * player_id, 200.0)],
+            )
+            for player_id in range(10)
+        ]
+        match = ParsedMatch(
+            game_start_tick=0,
+            game_end_tick=20_000,
+            players=players,
+            roshans=[RoshanKill(1000, "npc_dota_hero_hero_0", 1, killer_team=2)],
+            aegis_events=[AegisEvent(1010, 0, "pickup")],
+            teamfights=[
+                Teamfight(
+                    start_tick=1_100,
+                    end_tick=1_400,
+                    first_death_tick=1_300,
+                    last_death_tick=1_300,
+                    deaths=1,
+                    players=[TeamfightPlayer(player_id=i) for i in range(10)],
+                )
+            ],
+        )
+
+        analysis = gem.analyze(match)
+
+        assert isinstance(analysis, gem.MatchAnalysis)
+        assert gem.to_dict(analysis.roshan_conversions) == gem.to_dict(
+            build_rosh_conversions(match)
+        )
+        assert gem.to_dict(analysis.teamfight_positioning) == gem.to_dict(
+            build_teamfight_positioning(match)
+        )
+        assert gem.to_dict(analysis.farming_routes) == gem.to_dict(build_farming_routes(match))
+        assert gem.to_dict(analysis.smoke_fights) == gem.to_dict(build_smoke_fight_insights(match))
+        assert gem.to_dict(analysis.smoke) == gem.to_dict(gem.build_smoke_analysis(match))
+
+
+@pytest.mark.integration
+@pytest.mark.slow
+def test_full_replay_json_round_trip(canonical_parsed_match, tmp_path):
+    path = tmp_path / "match.json"
+    path.write_text(gem.to_json(canonical_parsed_match), encoding="utf-8")
+
+    loaded = gem.load_json(path)
+
+    assert loaded == canonical_parsed_match
+    assert gem.to_dict(gem.analyze(loaded)) == gem.to_dict(gem.analyze(canonical_parsed_match))

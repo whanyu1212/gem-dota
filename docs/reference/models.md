@@ -680,3 +680,51 @@ Signature: `def GameClock.format_tick(self, tick: int) -> str`
 Format a replay tick as the in-game clock (``MM:SS``, ``-MM:SS`` pre-horn).
 
 Source: [src/gem/state/game_clock.py:157](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L157)
+
+## Module `gem.results.serialization`
+
+JSON serialization and deserialization for :class:`ParsedMatch`.
+
+Source: [src/gem/results/serialization.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/serialization.py#L1)
+
+### Top-level functions
+
+### `to_dict`
+
+```python
+def to_dict(value: Any) -> Any
+```
+
+Convert a supported dataclass or nested value to JSON-compatible data.
+
+Source: [src/gem/results/serialization.py:54](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/serialization.py#L54)
+
+### `to_json`
+
+```python
+def to_json(match: ParsedMatch, *, analysis: MatchAnalysis | None = None, indent: int | None = None, sort_keys: bool = False) -> str
+```
+
+Serialize a :class:`ParsedMatch` to a JSON string.
+
+Source: [src/gem/results/serialization.py:73](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/serialization.py#L73)
+
+### `from_dict`
+
+```python
+def from_dict(data: Mapping[str, Any]) -> ParsedMatch
+```
+
+Rebuild a :class:`ParsedMatch` from :func:`to_json` or :func:`to_dict` data.
+
+Source: [src/gem/results/serialization.py:108](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/serialization.py#L108)
+
+### `load_json`
+
+```python
+def load_json(path: str | Path) -> ParsedMatch
+```
+
+Load a :class:`ParsedMatch` from a JSON file written by :func:`to_json`.
+
+Source: [src/gem/results/serialization.py:137](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/serialization.py#L137)

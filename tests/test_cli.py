@@ -46,7 +46,9 @@ class TestCli:
         import gem.cli as cli
 
         monkeypatch.setattr("sys.argv", ["gem", "fake.dem", "--format", "json"])
-        monkeypatch.setattr(cli, "parse_to_json", lambda path, indent=2: '{"match_id": 321}')
+        monkeypatch.setattr(
+            cli, "parse_to_json", lambda path, analyze=False, indent=2: '{"match_id": 321}'
+        )
 
         main()
 
@@ -61,12 +63,40 @@ class TestCli:
             "sys.argv",
             ["gem", "fake.dem", "--format", "json", "--output", str(out_file)],
         )
-        monkeypatch.setattr(cli, "parse_to_json", lambda path, indent=2: '{"match_id": 321}')
+        monkeypatch.setattr(
+            cli, "parse_to_json", lambda path, analyze=False, indent=2: '{"match_id": 321}'
+        )
 
         main()
 
         assert out_file.exists()
         assert out_file.read_text(encoding="utf-8") == '{"match_id": 321}'
+
+    def test_json_analysis_flag_reaches_parse_to_json(self, monkeypatch, capsys):
+        import gem.cli as cli
+
+        called: dict[str, object] = {}
+
+        def _fake_parse_to_json(path, *, analyze, indent):
+            called["analyze"] = analyze
+            return '{"match_id": 321, "analysis": {}}'
+
+        monkeypatch.setattr("sys.argv", ["gem", "fake.dem", "--format", "json", "--analysis"])
+        monkeypatch.setattr(cli, "parse_to_json", _fake_parse_to_json)
+
+        main()
+
+        assert called["analyze"] is True
+        assert '"analysis"' in capsys.readouterr().out
+
+    def test_analysis_flag_requires_json_format(self, monkeypatch, capsys):
+        monkeypatch.setattr("sys.argv", ["gem", "fake.dem", "--analysis"])
+
+        with pytest.raises(SystemExit) as exc:
+            main()
+
+        assert exc.value.code == 2
+        assert "--analysis requires --format json" in capsys.readouterr().err
 
     def test_parquet_requires_output(self, monkeypatch, capsys):
         monkeypatch.setattr("sys.argv", ["gem", "fake.dem", "--format", "parquet"])
@@ -214,7 +244,9 @@ class TestCli:
         import gem.cli as cli
 
         monkeypatch.setattr("sys.argv", ["gem", "fake.dem", "--format", "json", "--timings"])
-        monkeypatch.setattr(cli, "parse_to_json", lambda path, indent=2: '{"match_id": 321}')
+        monkeypatch.setattr(
+            cli, "parse_to_json", lambda path, analyze=False, indent=2: '{"match_id": 321}'
+        )
 
         main()
 

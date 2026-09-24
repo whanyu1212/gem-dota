@@ -62,6 +62,12 @@ Public API
 ``build_teamfight_positioning(match)``
     Build bounded spatial and visibility snapshots for detected teamfights.
 
+``analyze(match)``
+    Run every default post-parse analysis and return a ``MatchAnalysis``.
+
+``to_json(match, analysis=...)`` / ``load_json(path)`` / ``from_dict(data)``
+    Write versioned JSON (optionally with analysis) and load it back.
+
 ``resolve_pick_team(event, players)``
     Resolve the team (Radiant/Dire) for a draft pick/ban event.
 
@@ -71,12 +77,10 @@ Public API
 
 from __future__ import annotations
 
-import json
-from collections.abc import Iterable, Mapping
-from dataclasses import fields, is_dataclass
+from collections.abc import Iterable
 from importlib.metadata import PackageNotFoundError, version as _pkg_version
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import gem.catalog as catalog  # re-export so `gem.catalog.hero_display()` works
 import gem.constants as constants  # re-export so `gem.constants.hero_display()` works
@@ -113,6 +117,7 @@ from gem.analysis import (
     FormationEvidence,
     HeroPositionEvidence,
     MapContextBucket,
+    MatchAnalysis,
     MemberPositionEvidence,
     PointVisionAssessment,
     PointVisionGap,
@@ -143,6 +148,7 @@ from gem.analysis import (
     TeamRelation,
     VisionSource,
     ability_level_at_tick,
+    analyze,
     assess_point_vision,
     build_farming_routes,
     build_map_context_timeline,
@@ -150,6 +156,7 @@ from gem.analysis import (
     build_smoke_analysis,
     build_smoke_fight_insights,
     build_teamfight_positioning,
+    bundle as _bundle,
     entity_visibility_at,
     estimate_vision,
     format_npc_name,
@@ -206,6 +213,13 @@ from gem.results.models import (
     VisionModifierPairingStatus,
     VisionModifierSemantic,
     VisionModifierTeamSource,
+)
+from gem.results.serialization import (
+    SCHEMA_VERSION,
+    from_dict,
+    load_json,
+    to_dict,
+    to_json,
 )
 from gem.state.game_clock import GameClock, GamePause
 
@@ -328,41 +342,28 @@ def find_player(match: ParsedMatch, hero: str) -> ParsedPlayer | None:
     return next((p for p in match.players if p.hero_name == npc), None)
 
 
-def _to_json_compatible(value: Any) -> Any:
-    """Recursively convert values to JSON-compatible Python types."""
-    if is_dataclass(value):
-        return {
-            f.name: _to_json_compatible(getattr(value, f.name))
-            for f in fields(value)
-            if f.metadata.get("serialize", True)
-        }
-    if isinstance(value, Mapping):
-        return {str(k): _to_json_compatible(v) for k, v in value.items()}
-    if isinstance(value, (list, tuple, set)):
-        return [_to_json_compatible(v) for v in value]
-    return value
-
-
-def to_dict(value: Any) -> Any:
-    """Convert a supported dataclass or nested value to JSON-compatible data.
+def parse_to_json(
+    path: str | Path,
+    *,
+    analyze: bool = False,
+    indent: int | None = None,
+    sort_keys: bool = False,
+) -> str:
+    """Parse a replay and return the result as JSON.
 
     Args:
-        value: Parsed match, analysis assessment, or another supported nested value.
+        path: Path to the ``.dem`` replay file.
+        analyze: Also run :func:`gem.analyze` and embed its results under the
+            top-level ``analysis`` key.
+        indent: Indentation passed to :func:`json.dumps`.
+        sort_keys: Whether to sort object keys.
 
     Returns:
-        A recursively converted JSON-compatible value.
+        JSON string in the :func:`to_json` layout.
     """
-    return _to_json_compatible(value)
-
-
-def to_json(match: ParsedMatch, *, indent: int | None = None, sort_keys: bool = False) -> str:
-    """Serialize a :class:`ParsedMatch` to a JSON string."""
-    return json.dumps(to_dict(match), indent=indent, sort_keys=sort_keys)
-
-
-def parse_to_json(path: str | Path, *, indent: int | None = None, sort_keys: bool = False) -> str:
-    """Parse a replay and return the result as JSON."""
-    return to_json(parse(path), indent=indent, sort_keys=sort_keys)
+    match = parse(path)
+    analysis = _bundle.analyze(match) if analyze else None
+    return to_json(match, analysis=analysis, indent=indent, sort_keys=sort_keys)
 
 
 def parse_to_dataframe(path: str | Path, *, include: Iterable[str] = ()) -> dict[str, pd.DataFrame]:
@@ -459,6 +460,9 @@ __all__ = [
     "parse",
     "to_dict",
     "to_json",
+    "from_dict",
+    "load_json",
+    "SCHEMA_VERSION",
     "parse_to_json",
     "parse_to_dataframe",
     "to_parquet",
@@ -575,6 +579,8 @@ __all__ = [
     "build_smoke_analysis",
     "build_smoke_fight_insights",
     "build_teamfight_positioning",
+    "MatchAnalysis",
+    "analyze",
     "resolve_pick_team",
     "catalog",
     "constants",

@@ -78,7 +78,7 @@ def read_parquet_table(output_dir: str | Path, table: str) -> pd.DataFrame
 
 Load one table across every replay written by :func:`parse_many_to_parquet`.
 
-Source: [src/gem/replays/batch.py:400](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L400)
+Source: [src/gem/replays/batch.py:405](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L405)
 
 ### Top-level classes
 

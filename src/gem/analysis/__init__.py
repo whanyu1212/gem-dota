@@ -1,6 +1,7 @@
 """Post-parse analysis helpers for gem replay data."""
 
 from gem.analysis.abilities import ability_level_at_tick
+from gem.analysis.bundle import MatchAnalysis, analyze
 from gem.analysis.combat import (
     AbilityCast,
     group_ability_hits,
@@ -173,6 +174,8 @@ __all__ = [
     "build_smoke_analysis",
     "build_smoke_fight_insights",
     "build_teamfight_positioning",
+    "MatchAnalysis",
+    "analyze",
     "estimate_vision",
     "entity_visibility_at",
     "hero_visibility_at",
