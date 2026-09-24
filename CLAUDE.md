@@ -181,6 +181,8 @@ Headline exports (see `__all__` for the full list):
   `parse_many`, `parse_many_to_parquet`, `read_parquet_table`,
   `to_dict`/`to_json`/`to_parquet`, `ParseResult` (`parse_many_to_dataframe`
   is deprecated)
+- **Load:** `load_json` / `from_dict` rebuild a `ParsedMatch` from `to_json`
+  output (versioned by `SCHEMA_VERSION`; the `analysis` section is not decoded)
 - **Models:** `ParsedMatch`, `ParsedPlayer`, `ChatEntry`, `NeutralItemFoundEvent`
 - **Analysis helpers (post-parse):** `find_player`, `position_at_tick`,
   `net_worth_at`, `teamfight_at_tick`, `heroes_near`, `ability_level_at_tick`,
@@ -188,7 +190,8 @@ Headline exports (see `__all__` for the full list):
 - **Experimental:** `build_farming_routes`, `FarmingRoute`,
   `FarmingSegmentContext`, `build_map_context_timeline` (legacy compatibility),
   `score_camp_visit_context` (legacy compatibility), `build_rosh_conversions`,
-  `RoshConversion`, `build_smoke_analysis`, `SmokeAnalysis`
+  `RoshConversion`, `build_smoke_analysis`, `SmokeAnalysis`; `analyze` runs
+  them all and returns a `MatchAnalysis`
 - **Replay fetch:** `fetch_replay`, `fetch_replay_url`, `download_and_decompress`
 - **Catalog/constants:** `catalog` (grouped lookup modules) and `constants`
   (compatibility namespace of hero/item/ability lookups)

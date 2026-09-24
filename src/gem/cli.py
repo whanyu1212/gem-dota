@@ -50,6 +50,7 @@ def _build_parser() -> argparse.ArgumentParser:
             "Examples:\n"
             "  python -m gem match.dem\n"
             "  python -m gem match.dem --format json\n"
+            "  python -m gem match.dem --format json --analysis --output match.json\n"
             "  python -m gem parse match.dem --format parquet --output ./out\n"
             "  python -m gem batch replays/ --format parquet --output ./out\n"
             "  python -m gem batch replays/ --output ./out --include analysis\n"
@@ -83,6 +84,11 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Output file (json) or directory (parquet). Omit for json to print to stdout.",
     )
     _add_include_flag(parse_cmd)
+    parse_cmd.add_argument(
+        "--analysis",
+        action="store_true",
+        help="With --format json, embed gem.analyze() results under an 'analysis' key.",
+    )
     _add_common_flags(parse_cmd)
 
     # ── batch subcommand ────────────────────────────────────────────────────
@@ -464,6 +470,10 @@ def _run_parse(args: argparse.Namespace, console: Console) -> None:
         console=Console(stderr=True) if json_to_stdout else console,
     )
 
+    if args.analysis and args.format != "json":
+        Console(stderr=True).print("[red]Error:[/red] --analysis requires --format json.")
+        sys.exit(2)
+
     try:
         if args.format == "summary":
             tracker.start("parse")
@@ -475,7 +485,7 @@ def _run_parse(args: argparse.Namespace, console: Console) -> None:
 
         elif args.format == "json":
             tracker.start("parse_serialize_json")
-            payload = parse_to_json(args.path, indent=2)
+            payload = parse_to_json(args.path, analyze=args.analysis, indent=2)
             tracker.end("parse_serialize_json")
 
             if args.output is None:

@@ -15,7 +15,29 @@ post-parse analysis tables are now opt-in. On a 40-minute replay
 11.0 s to 3.3 s. **Breaking for DataFrame/Parquet consumers:** the `players`
 table is replaced, and the analysis and OpenDota tables need `include=`.
 
+JSON becomes the full-fidelity format and can now be loaded back:
+`gem.load_json()` rebuilds a `ParsedMatch` from `to_json` output in about 3 s,
+instead of re-parsing the replay (about 60 s on the same fixture), and
+`gem.analyze()` bundles every post-parse analysis so it can be embedded in the
+JSON.
+
 ### Added
+
+- **`gem.load_json(path)` and `gem.from_dict(data)`.** Rebuild a `ParsedMatch`
+  from `to_json` output, or from a bare `to_dict` payload written by older
+  versions. Enums, tuples such as `position_log`, integer keys such as
+  `final_items`, and `game_clock` come back with their original types, so the
+  loaded match equals the parsed one and every analysis helper works on it.
+  Unknown keys are ignored, missing keys use field defaults, and a newer
+  `schema_version` raises `ValueError`. The `analysis` section is not decoded;
+  call `gem.analyze()` on the loaded match.
+- **`gem.analyze(match)` and `gem.MatchAnalysis`.** Run the smoke, smoke-fight,
+  Roshan-conversion, farming-route, and teamfight-positioning analyses with
+  their defaults in one call.
+- **Analysis in JSON.** `to_json(match, analysis=...)`,
+  `parse_to_json(path, analyze=True)`, and
+  `gem parse --format json --analysis` embed the analysis results under a
+  top-level `analysis` key.
 
 - **`player_summary`, `player_timeseries`, and `player_breakdowns` tables.**
   `player_summary` has one row per player with every end-of-game scalar,
@@ -40,6 +62,14 @@ table is replaced, and the analysis and OpenDota tables need `include=`.
   locally instead of being skipped.
 
 ### Changed
+
+- **`to_json` output carries `schema_version` and `gem_version`.** Both keys
+  sit at the top level beside the unchanged `ParsedMatch` fields, so existing
+  readers keep working. `gem.SCHEMA_VERSION` is the current layout version.
+  `to_dict(match)` still returns the bare match fields.
+- **`to_json` writes strict JSON.** A `NaN` or infinite float now raises
+  `ValueError` instead of producing a non-standard `NaN`/`Infinity` literal.
+  None occur in current parser output.
 
 - **`players` DataFrame removed.** It is replaced by `player_summary`,
   `player_timeseries`, and `player_breakdowns`. The old table repeated about 70

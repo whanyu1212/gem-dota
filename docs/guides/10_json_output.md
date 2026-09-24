@@ -1,8 +1,9 @@
 # JSON Output Shape
 
 `gem.to_json()` and `gem.parse_to_json()` serialize the same `ParsedMatch` object returned
-by `gem.parse()`. The JSON is useful when you want the full nested match structure for an
-API response, a saved artifact, or a downstream system that does not use pandas.
+by `gem.parse()`. JSON is gem's full-fidelity export: it keeps every nested record, and
+`gem.load_json()` reads it back into a `ParsedMatch`. Use it for saved artifacts, API
+responses, and downstream systems that do not use pandas.
 
 ```python
 import gem
@@ -11,21 +12,80 @@ json_str = gem.parse_to_json("my_replay.dem", indent=2)
 
 match = gem.parse("my_replay.dem")
 json_str = gem.to_json(match, indent=2)
-data = gem.to_dict(match)
+data = gem.to_dict(match)  # the same match fields as a plain dict, without metadata
 ```
 
 From the CLI:
 
 ```bash
 python -m gem my_replay.dem --format json > match.json
+python -m gem my_replay.dem --format json --analysis --output match.json
 ```
+
+## Saving and loading
+
+Save a parsed match once and load it back later instead of re-parsing the replay.
+Loading a 40-minute replay's ~57 MB JSON takes a few seconds; parsing the `.dem` again
+takes about a minute.
+
+```python
+from pathlib import Path
+
+import gem
+
+match = gem.parse("my_replay.dem")
+Path("match.json").write_text(gem.to_json(match), encoding="utf-8")
+
+loaded = gem.load_json("match.json")
+assert loaded == match
+
+hero = gem.find_player(loaded, "Axe")  # every analysis helper works on a loaded match
+```
+
+`gem.load_json()` restores the original Python types: enums such as `log_type`, tuples such
+as `position_log`, and integer keys such as `final_items` slots. `gem.from_dict()` does the
+same for an already-decoded JSON object.
+
+## Including analysis results
+
+`gem.analyze(match)` runs every default post-parse analysis (smoke lifecycles, smoke/fight
+insights, Roshan conversions, farming routes, and teamfight positioning) and returns a
+`MatchAnalysis`. Pass it to `to_json()` to embed the results under an `analysis` key:
+
+```python
+analysis = gem.analyze(match)
+json_str = gem.to_json(match, analysis=analysis)
+
+# One call from a replay path:
+json_str = gem.parse_to_json("my_replay.dem", analyze=True)
+```
+
+The `analysis` section is for JSON consumers such as web tools and other languages. It is
+not decoded by `gem.load_json()`; in Python, call `gem.analyze(loaded)` again, which gives
+the same results.
+
+## Versioning and compatibility
+
+Every `to_json()` payload carries `schema_version` (currently `1`) and `gem_version`
+beside the match fields:
+
+- Files from older gem versions, including ones written before `schema_version` existed,
+  still load. Fields they do not contain fall back to their defaults.
+- Keys the running gem does not know are ignored.
+- A file with a `schema_version` newer than the running gem supports raises `ValueError`;
+  upgrade `gem-dota` to read it.
+- Output is strict JSON: `NaN` and infinite floats raise `ValueError` instead of being
+  written as non-standard literals.
 
 ## Top-level shape
 
-The top-level object mirrors `ParsedMatch`:
+The top-level object mirrors `ParsedMatch`, plus the version keys and the optional
+`analysis` section:
 
 ```json
 {
+  "schema_version": 1,
+  "gem_version": "0.10.0",
   "match_id": 8461735141,
   "game_mode": 2,
   "leagueid": 18324,
@@ -43,7 +103,8 @@ The top-level object mirrors `ParsedMatch`:
   "smoke_events": [],
   "neutral_item_finds": [],
   "radiant_gold_adv": [],
-  "radiant_xp_adv": []
+  "radiant_xp_adv": [],
+  "analysis": {}
 }
 ```
 

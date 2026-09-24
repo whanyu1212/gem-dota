@@ -40,6 +40,7 @@ TARGETS_BY_PAGE: dict[str, list[str]] = {
         "gem.analysis.smoke",
         "gem.analysis.smoke_fight",
         "gem.analysis.teamfight_positioning",
+        "gem.analysis.bundle",
     ],
     "batch.md": ["gem.replays.batch"],
     "catalog.md": [
@@ -82,7 +83,11 @@ TARGETS_BY_PAGE: dict[str, list[str]] = {
         "gem.state.game_events.GameEventSchema",
     ],
     "assembly.md": ["gem.results.assembly"],
-    "models.md": ["gem.results.models", "gem.state.game_clock"],
+    "models.md": [
+        "gem.results.models",
+        "gem.state.game_clock",
+        "gem.results.serialization",
+    ],
     "parser.md": ["gem.parser.ReplayParser"],
     "reader.md": ["gem.binary.reader.BitReader"],
     "sendtable.md": [

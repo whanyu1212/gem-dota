@@ -48,6 +48,7 @@ The `parse` keyword is optional. `python -m gem match.dem` is identical to
 | `--format` | `summary`, `json`, `parquet` | `summary` | Output format |
 | `--output` | file or directory | stdout / cwd | Output destination. Required for `parquet`; optional for `json` |
 | `--include` | `analysis`, `opendota` (repeatable) | none | Add optional Parquet table groups |
+| `--analysis` | flag | off | With `--format json`, embed `gem.analyze()` results under an `analysis` key |
 | `--progress` | flag | off | Show a live phase-by-phase progress bar |
 | `--timings` | flag | off | Print a timing breakdown after parsing |
 | `--quiet`, `-q` | flag | off | Suppress banner and non-essential output |
