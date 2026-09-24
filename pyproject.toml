@@ -58,6 +58,7 @@ dev = [
     "jinja2>=3.1.6",
     "mypy>=1.19.1",
     "pre-commit>=4.5.1",
+    "pyarrow>=25.0.1",
     "pymdown-extensions>=10.21",
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
