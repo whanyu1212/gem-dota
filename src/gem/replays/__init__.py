@@ -5,6 +5,7 @@ from gem.replays.batch import (
     parse_many,
     parse_many_to_dataframe,
     parse_many_to_parquet,
+    read_parquet_table,
 )
 from gem.replays.fetch import (
     apply_api_rates,
@@ -26,4 +27,5 @@ __all__ = [
     "parse_many",
     "parse_many_to_dataframe",
     "parse_many_to_parquet",
+    "read_parquet_table",
 ]

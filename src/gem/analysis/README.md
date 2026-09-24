@@ -175,9 +175,10 @@ hand-tuned, not ground truth).
   hardened Aegis/Roshan/Tormentor provenance, and paired territory evidence.
   Independent `FarmingContextTag` values never replace the underlying facts;
   incomplete dimensions stay `None` and add stable gap codes.
-- The same public records feed `farming_routes`, `farming_route_segments`, and
-  `farming_route_points` DataFrames, the normalized `farming_context_tags`
-  table, and the Farming report tab.
+- The same public records feed the opt-in (`include=["analysis"]`)
+  `farming_routes`, `farming_route_segments`, and `farming_route_points`
+  DataFrames, the normalized `farming_context_tags` table, and the Farming
+  report tab.
 
 ### Map context (`map_context.py`)
 

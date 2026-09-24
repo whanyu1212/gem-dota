@@ -91,7 +91,7 @@ constants.py              ← backwards-compatible facade over catalog lookups
 api.py                    ← high-level parse/export helpers exposed by the public package API
 results/models.py         ← ParsedMatch, ParsedPlayer, ChatEntry, NeutralItemFoundEvent dataclasses
 results/assembly.py       ← wires extractor outputs into ParsedMatch
-results/dataframes.py     ← converts ParsedMatch to pandas DataFrames
+results/dataframes.py     ← flat DataFrame projections (core tables + opt-in include= groups)
 reports/                  ← self-contained HTML report generation from ParsedMatch
 analysis/spatial.py       ← position, nearby-hero, and net-worth lookup helpers
 analysis/combat.py        ← ability-hit grouping and teamfight lookup helpers
@@ -170,7 +170,7 @@ touch the parser directly; they call `gem.parse()` and work with `ParsedMatch`:
 import gem
 
 match = gem.parse("replay.dem")          # -> ParsedMatch
-df = gem.parse_to_dataframe("replay.dem") # -> pandas DataFrame
+dfs = gem.parse_to_dataframe("replay.dem") # -> dict[str, DataFrame]
 gem.parse_to_json("replay.dem", "out.json")
 gem.parse_to_parquet("replay.dem", "out.parquet")
 matches = gem.parse_many([...])           # bulk, parallel workers
@@ -178,7 +178,9 @@ matches = gem.parse_many([...])           # bulk, parallel workers
 
 Headline exports (see `__all__` for the full list):
 - **Parse:** `parse`, `parse_to_dataframe`, `parse_to_json`, `parse_to_parquet`,
-  `parse_many*`, `to_dict`/`to_json`/`to_parquet`, `ParseResult`
+  `parse_many`, `parse_many_to_parquet`, `read_parquet_table`,
+  `to_dict`/`to_json`/`to_parquet`, `ParseResult` (`parse_many_to_dataframe`
+  is deprecated)
 - **Models:** `ParsedMatch`, `ParsedPlayer`, `ChatEntry`, `NeutralItemFoundEvent`
 - **Analysis helpers (post-parse):** `find_player`, `position_at_tick`,
   `net_worth_at`, `teamfight_at_tick`, `heroes_near`, `ability_level_at_tick`,

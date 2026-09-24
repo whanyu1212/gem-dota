@@ -5,8 +5,9 @@ Each worker process parses one replay independently, so performance scales with 
 
 ::: info Memory
 `parse_many_to_parquet` writes and discards each replay immediately, keeping memory
-usage flat regardless of batch size. `parse_many_to_dataframe` holds all results in
-memory until concatenation — prefer `parse_many_to_parquet` for large batches.
+bounded by the worker count regardless of batch size. Load one table back across
+replays with `read_parquet_table`. `parse_many_to_dataframe` is deprecated: it holds
+every parsed match and every table in memory until concatenation.
 :::
 
 ::: tip Parquet dependency
@@ -22,8 +23,9 @@ pip install pyarrow
       members:
         - ParseResult
         - parse_many
-        - parse_many_to_dataframe
         - parse_many_to_parquet
+        - read_parquet_table
+        - parse_many_to_dataframe
       show_source: true
 
 ---
@@ -46,7 +48,7 @@ def parse_many(source: str | Path | Sequence[str | Path], *, workers: int | None
 
 Parse multiple replays in parallel and return a result per replay.
 
-Source: [src/gem/replays/batch.py:124](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L124)
+Source: [src/gem/replays/batch.py:127](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L127)
 
 ### `parse_many_to_dataframe`
 
@@ -56,17 +58,27 @@ def parse_many_to_dataframe(source: str | Path | Sequence[str | Path], *, worker
 
 Parse multiple replays and concatenate results into per-table DataFrames.
 
-Source: [src/gem/replays/batch.py:197](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L197)
+Source: [src/gem/replays/batch.py:200](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L200)
 
 ### `parse_many_to_parquet`
 
 ```python
-def parse_many_to_parquet(source: str | Path | Sequence[str | Path], output_dir: str | Path, *, workers: int | None = None, recursive: bool = False, progress: bool = True, timeout: float | None = None, index: bool = False) -> list[Path]
+def parse_many_to_parquet(source: str | Path | Sequence[str | Path], output_dir: str | Path, *, workers: int | None = None, recursive: bool = False, progress: bool = True, timeout: float | None = None, include: Iterable[str] = (), index: bool = False) -> list[Path]
 ```
 
 Parse multiple replays and write each to its own parquet subdirectory.
 
-Source: [src/gem/replays/batch.py:243](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L243)
+Source: [src/gem/replays/batch.py:257](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L257)
+
+### `read_parquet_table`
+
+```python
+def read_parquet_table(output_dir: str | Path, table: str) -> pd.DataFrame
+```
+
+Load one table across every replay written by :func:`parse_many_to_parquet`.
+
+Source: [src/gem/replays/batch.py:400](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L400)
 
 ### Top-level classes
 
@@ -78,7 +90,7 @@ class ParseResult
 
 Outcome of parsing a single replay.
 
-Source: [src/gem/replays/batch.py:47](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L47)
+Source: [src/gem/replays/batch.py:50](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L50)
 
 #### Dataclass fields
 
@@ -96,4 +108,4 @@ Signature: `def ParseResult.ok(self) -> bool`
 
 Return ``True`` when parsing succeeded.
 
-Source: [src/gem/replays/batch.py:61](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L61)
+Source: [src/gem/replays/batch.py:64](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L64)

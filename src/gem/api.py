@@ -11,11 +11,14 @@ Public API
 ``parse_many(source)``
     Parse multiple replays in parallel; return ``list[ParseResult]``.
 
-``parse_many_to_dataframe(source)``
-    Parse multiple replays and concatenate into per-table DataFrames.
-
 ``parse_many_to_parquet(source, output_dir)``
     Parse multiple replays and write each to its own parquet subdirectory.
+
+``read_parquet_table(output_dir, table)``
+    Load one table across every replay written by ``parse_many_to_parquet``.
+
+``parse_many_to_dataframe(source)``
+    Deprecated. Parse multiple replays and concatenate into per-table DataFrames.
 
 ``fetch_replay(match_id, out_dir)``
     Download and decompress a replay from OpenDota in one call.
@@ -69,7 +72,7 @@ Public API
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import fields, is_dataclass
 from importlib.metadata import PackageNotFoundError, version as _pkg_version
 from pathlib import Path
@@ -174,6 +177,7 @@ from gem.replays.batch import (
     parse_many,
     parse_many_to_dataframe,
     parse_many_to_parquet,
+    read_parquet_table,
 )
 from gem.replays.fetch import (
     apply_api_rates,
@@ -361,34 +365,48 @@ def parse_to_json(path: str | Path, *, indent: int | None = None, sort_keys: boo
     return to_json(parse(path), indent=indent, sort_keys=sort_keys)
 
 
-def parse_to_dataframe(path: str | Path) -> dict[str, pd.DataFrame]:
-    """Parse a replay and return tabular projections as pandas DataFrames.
+def parse_to_dataframe(path: str | Path, *, include: Iterable[str] = ()) -> dict[str, pd.DataFrame]:
+    """Parse a replay and return flat tabular projections as pandas DataFrames.
 
-    Convenience wrapper around :func:`parse` that converts the structured
-    output into analysis-ready tables.
+    Convenience wrapper around :func:`parse` and
+    :func:`gem.results.dataframes.build_dataframes`.
 
     Args:
         path: Path to the ``.dem`` replay file.
+        include: Optional table groups to add: ``"analysis"`` (farming,
+            smoke-fight, Roshan-conversion, and teamfight-positioning tables)
+            and/or ``"opendota"`` (OpenDota-shaped objective/teamfight views).
 
     Returns:
-        Dictionary of DataFrames including (at minimum):
-        - ``"players"``, ``"players_minute"``
-        - ``"positions"``, ``"combat_log"``, ``"wards"``, ``"objectives"``, ``"chat"``
-        - ``"match"``, ``"radiant_advantage"``
-        - ``"draft"``, ``"teamfights"``, ``"teamfight_positioning"``,
-          ``"smoke_events"``, ``"smoke_fight_insights"``,
-          ``"smoke_fight_members"``, ``"smoke_fight_followups"``,
-          ``"farming_routes"``, ``"farming_route_segments"``,
-          ``"farming_route_points"``,
-          ``"courier_snapshots"``
+        Dictionary of DataFrames, each led by a ``match_id`` column. The core
+        tables are always present:
+
+        - ``"match"``, ``"player_summary"`` (one row per player),
+          ``"player_timeseries"`` (player x sample tick), ``"players_minute"``,
+          ``"player_breakdowns"`` (long-form per-player dict stats)
+        - ``"positions"``, ``"radiant_advantage"``, ``"combat_log"``,
+          ``"wards"``, ``"objectives"``, ``"chat"``, ``"draft"``
+        - ``"teamfights"``, ``"teamfight_players"``, ``"smoke_events"``,
+          ``"smoke_members"``, ``"courier_snapshots"``, ``"neutral_item_finds"``
+        - ``"hero_visibility_events"``, ``"entity_visibility"``,
+          ``"vision_modifiers"``, ``"vision_modifier_pairing_issues"``
         - per-player event logs (kills/purchases/runes/buybacks)
+
+    Raises:
+        ValueError: If ``include`` names an unknown group.
     """
     from gem.results.dataframes import build_dataframes
 
-    return build_dataframes(parse(path))
+    return build_dataframes(parse(path), include=include)
 
 
-def to_parquet(match: ParsedMatch, output_dir: str | Path, *, index: bool = False) -> list[Path]:
+def to_parquet(
+    match: ParsedMatch,
+    output_dir: str | Path,
+    *,
+    include: Iterable[str] = (),
+    index: bool = False,
+) -> list[Path]:
     """Export DataFrame projections for a parsed match to parquet files.
 
     One parquet file is written per DataFrame key as ``<key>.parquet``.
@@ -396,10 +414,15 @@ def to_parquet(match: ParsedMatch, output_dir: str | Path, *, index: bool = Fals
     Args:
         match: Parsed replay output.
         output_dir: Directory to write parquet files into.
+        include: Optional table groups to add (see :func:`parse_to_dataframe`).
         index: Whether to include the DataFrame index in parquet output.
 
     Returns:
         List of parquet file paths written.
+
+    Raises:
+        ImportError: If no parquet engine (``pyarrow``/``fastparquet``) is installed.
+        ValueError: If ``include`` names an unknown group.
     """
     from gem.results.dataframes import build_dataframes
 
@@ -407,7 +430,7 @@ def to_parquet(match: ParsedMatch, output_dir: str | Path, *, index: bool = Fals
     out.mkdir(parents=True, exist_ok=True)
 
     written: list[Path] = []
-    for key, df in build_dataframes(match).items():
+    for key, df in build_dataframes(match, include=include).items():
         file_path = out / f"{key}.parquet"
         try:
             df.to_parquet(file_path, index=index)
@@ -420,10 +443,14 @@ def to_parquet(match: ParsedMatch, output_dir: str | Path, *, index: bool = Fals
 
 
 def parse_to_parquet(
-    path: str | Path, output_dir: str | Path, *, index: bool = False
+    path: str | Path,
+    output_dir: str | Path,
+    *,
+    include: Iterable[str] = (),
+    index: bool = False,
 ) -> list[Path]:
     """Parse a replay and export DataFrame projections to parquet files."""
-    return to_parquet(parse(path), output_dir, index=index)
+    return to_parquet(parse(path), output_dir, include=include, index=index)
 
 
 # Re-export for convenience
@@ -440,6 +467,7 @@ __all__ = [
     "parse_many",
     "parse_many_to_dataframe",
     "parse_many_to_parquet",
+    "read_parquet_table",
     "ParsedMatch",
     "ParsedPlayer",
     "OpenDotaTeamfight",

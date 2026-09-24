@@ -89,4 +89,5 @@ reported as direct target reveals.
 
 For tabular workflows, `build_dataframes(...)` always provides the flat
 `vision_modifiers` and `vision_modifier_pairing_issues` tables, with declared
-columns even when empty.
+columns even when empty. List fields (`evidence_gaps`, `candidate_add_ticks`) are
+exported as `";"`-joined strings.

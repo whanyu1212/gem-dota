@@ -1,24 +1,27 @@
 """Bulk replay parsing — process many ``.dem`` files in parallel.
 
-Provides three public functions:
+Public functions:
 
 - :func:`parse_many` — parse a list/folder of replays, return
   ``list[ParseResult]``.
-- :func:`parse_many_to_dataframe` — same, but concatenate all successful
-  results into a ``dict[str, DataFrame]`` (one row-set per table, with a
-  ``match_path`` column added for provenance).
 - :func:`parse_many_to_parquet` — parse-and-write each replay into its own
   subdirectory under ``output_dir``, one ``.parquet`` file per table.
   Outstanding replays are bounded by the worker count and exported serially.
+- :func:`read_parquet_table` — load one table across every replay written by
+  :func:`parse_many_to_parquet`.
+- :func:`parse_many_to_dataframe` — **deprecated**; holds every parsed match
+  and every table in memory at once. Use :func:`parse_many_to_parquet` plus
+  :func:`read_parquet_table` instead.
 
-All three functions use ``ProcessPoolExecutor`` for true parallelism (CPU-bound
+The parsing functions use ``ProcessPoolExecutor`` for true parallelism (CPU-bound
 work) and display a Rich progress bar by default.
 """
 
 from __future__ import annotations
 
 import os
-from collections.abc import Sequence
+import warnings
+from collections.abc import Iterable, Sequence
 from concurrent.futures import (
     FIRST_COMPLETED,
     Future,
@@ -204,6 +207,11 @@ def parse_many_to_dataframe(
 ) -> dict[str, pd.DataFrame]:
     """Parse multiple replays and concatenate results into per-table DataFrames.
 
+    .. deprecated:: 0.10.0
+        Every parsed match and every table is held in memory until the batch
+        finishes, and failed replays are dropped without a report. Use
+        :func:`parse_many_to_parquet` and :func:`read_parquet_table` instead.
+
     Each DataFrame gets a ``match_path`` column added so rows can be traced
     back to their source replay.
 
@@ -219,6 +227,12 @@ def parse_many_to_dataframe(
         :func:`~gem.parse_to_dataframe`, containing rows from all successful
         replays concatenated together.
     """
+    warnings.warn(
+        "parse_many_to_dataframe is deprecated and will be removed in a future release; "
+        "use parse_many_to_parquet(...) and read_parquet_table(...) instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     import pandas as pd
 
     from gem.results.dataframes import build_dataframes
@@ -248,6 +262,7 @@ def parse_many_to_parquet(
     recursive: bool = False,
     progress: bool = True,
     timeout: float | None = None,
+    include: Iterable[str] = (),
     index: bool = False,
 ) -> list[Path]:
     """Parse multiple replays and write each to its own parquet subdirectory.
@@ -274,6 +289,7 @@ def parse_many_to_parquet(
             writing after path collection. Running parses and synchronous writes
             are not interrupted, so shutdown can exceed the deadline. ``None``
             means no limit.
+        include: Optional table groups to add (see :func:`gem.parse_to_dataframe`).
         index: Whether to include the DataFrame index in parquet output.
 
     Returns:
@@ -348,7 +364,14 @@ def parse_many_to_parquet(
                                 rich_progress.advance(task_id)
                             if error is None and match is not None:
                                 remaining()
-                                written.extend(to_parquet(match, out_root / path.stem, index=index))
+                                written.extend(
+                                    to_parquet(
+                                        match,
+                                        out_root / path.stem,
+                                        include=include,
+                                        index=index,
+                                    )
+                                )
                             remaining()
                         finally:
                             del match, error
@@ -372,3 +395,44 @@ def parse_many_to_parquet(
     else:
         execute()
     return written
+
+
+def read_parquet_table(output_dir: str | Path, table: str) -> pd.DataFrame:
+    """Load one table across every replay written by :func:`parse_many_to_parquet`.
+
+    Reads ``<output_dir>/*/<table>.parquet`` and concatenates the files, so
+    memory scales with the one requested table rather than with every table of
+    every match.
+
+    Args:
+        output_dir: Root directory previously passed to
+            :func:`parse_many_to_parquet`.
+        table: Table name, e.g. ``"combat_log"`` or ``"player_summary"``.
+
+    Returns:
+        Concatenated DataFrame with a leading ``replay`` column holding each
+        file's per-replay directory name (``match_id`` can be ``0`` when a
+        replay carries no match ID, so it is not a unique key on its own).
+
+    Raises:
+        FileNotFoundError: If no ``<table>.parquet`` file exists under
+            ``output_dir``.
+        ImportError: If no parquet engine (``pyarrow``/``fastparquet``) is installed.
+    """
+    import pandas as pd
+
+    files = sorted(Path(output_dir).glob(f"*/{table}.parquet"))
+    if not files:
+        raise FileNotFoundError(f"No '{table}.parquet' files found under {output_dir}")
+
+    frames = []
+    for file_path in files:
+        try:
+            df = pd.read_parquet(file_path)
+        except ImportError as exc:
+            raise ImportError(
+                "Parquet import requires an optional engine. Install 'pyarrow' or 'fastparquet'."
+            ) from exc
+        df.insert(0, "replay", file_path.parent.name)
+        frames.append(df)
+    return pd.concat(frames, ignore_index=True)

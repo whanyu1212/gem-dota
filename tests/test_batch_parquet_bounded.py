@@ -70,7 +70,7 @@ def test_slow_writer_bounds_work_and_releases_results(monkeypatch, tmp_path, sch
         completed = pool.complete(path)
         return {completed}, set(futures) - {completed}
 
-    def export(match, output, *, index):
+    def export(match, output, *, include, index):
         pool = scheduler[0]
         assert index
         assert len(pool.submitted) - len(exported) == 2 or len(pool.submitted) == len(paths)
@@ -128,7 +128,7 @@ def test_failures_and_cleanup(monkeypatch, tmp_path, scheduler, failure):
             pool.on_submit = fail
         return {future}, set()
 
-    def export(match, output, *, index):
+    def export(match, output, *, include, index):
         marker.write_text("partial")
         exported.append(match.match_id)
         if failure == "export":
@@ -173,7 +173,7 @@ def test_cooperative_deadline(monkeypatch, tmp_path, scheduler, where):
         pool = scheduler[0]
         return {pool.complete(next(iter(pool.jobs)))}, set()
 
-    def export(match, output, *, index):
+    def export(match, output, *, include, index):
         marker.write_text("complete")
         clock[0] = 11.0
         return [marker]
@@ -266,7 +266,7 @@ def test_failure_traceback_releases_other_results(monkeypatch, tmp_path, schedul
         refs.append(weakref.ref(second.result()[1]))
         return {first}, {second}
 
-    def export(match, output, *, index):
+    def export(match, output, *, include, index):
         raise OSError("write failed")
 
     monkeypatch.setattr(batch, "wait", wait)
@@ -286,7 +286,7 @@ def test_duplicate_stems_still_write_serially(monkeypatch, tmp_path, scheduler):
         pool = scheduler[0]
         return {pool.complete(next(iter(pool.jobs)))}, set()
 
-    def export(match, output, *, index):
+    def export(match, output, *, include, index):
         outputs.append(output)
         return [output / "one.parquet", output / "two.parquet"]
 

@@ -23,7 +23,7 @@ def parse(path: str | Path) -> ParsedMatch
 
 Parse a Dota 2 replay file and return structured match data.
 
-Source: [src/gem/api.py:217](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L217)
+Source: [src/gem/api.py:221](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L221)
 
 ### `find_player`
 
@@ -33,7 +33,7 @@ def find_player(match: ParsedMatch, hero: str) -> ParsedPlayer | None
 
 Look up a player by hero name.
 
-Source: [src/gem/api.py:307](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L307)
+Source: [src/gem/api.py:311](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L311)
 
 ### `to_dict`
 
@@ -43,7 +43,7 @@ def to_dict(value: Any) -> Any
 
 Convert a supported dataclass or nested value to JSON-compatible data.
 
-Source: [src/gem/api.py:342](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L342)
+Source: [src/gem/api.py:346](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L346)
 
 ### `to_json`
 
@@ -53,7 +53,7 @@ def to_json(match: ParsedMatch, *, indent: int | None = None, sort_keys: bool = 
 
 Serialize a :class:`ParsedMatch` to a JSON string.
 
-Source: [src/gem/api.py:354](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L354)
+Source: [src/gem/api.py:358](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L358)
 
 ### `parse_to_json`
 
@@ -63,34 +63,34 @@ def parse_to_json(path: str | Path, *, indent: int | None = None, sort_keys: boo
 
 Parse a replay and return the result as JSON.
 
-Source: [src/gem/api.py:359](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L359)
+Source: [src/gem/api.py:363](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L363)
 
 ### `parse_to_dataframe`
 
 ```python
-def parse_to_dataframe(path: str | Path) -> dict[str, pd.DataFrame]
+def parse_to_dataframe(path: str | Path, *, include: Iterable[str] = ()) -> dict[str, pd.DataFrame]
 ```
 
-Parse a replay and return tabular projections as pandas DataFrames.
+Parse a replay and return flat tabular projections as pandas DataFrames.
 
-Source: [src/gem/api.py:364](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L364)
+Source: [src/gem/api.py:368](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L368)
 
 ### `to_parquet`
 
 ```python
-def to_parquet(match: ParsedMatch, output_dir: str | Path, *, index: bool = False) -> list[Path]
+def to_parquet(match: ParsedMatch, output_dir: str | Path, *, include: Iterable[str] = (), index: bool = False) -> list[Path]
 ```
 
 Export DataFrame projections for a parsed match to parquet files.
 
-Source: [src/gem/api.py:391](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L391)
+Source: [src/gem/api.py:403](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L403)
 
 ### `parse_to_parquet`
 
 ```python
-def parse_to_parquet(path: str | Path, output_dir: str | Path, *, index: bool = False) -> list[Path]
+def parse_to_parquet(path: str | Path, output_dir: str | Path, *, include: Iterable[str] = (), index: bool = False) -> list[Path]
 ```
 
 Parse a replay and export DataFrame projections to parquet files.
 
-Source: [src/gem/api.py:422](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L422)
+Source: [src/gem/api.py:445](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/api.py#L445)

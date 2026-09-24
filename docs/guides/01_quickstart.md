@@ -84,14 +84,16 @@ Use JSON when you want the full nested `ParsedMatch` shape.
 frames = gem.parse_to_dataframe("my_replay.dem")
 
 print(sorted(frames))
-print(frames["players"].head())
+print(frames["player_summary"].head())
 print(frames["combat_log"].head())
 ```
 
-Use DataFrames for pandas, notebooks, and ML pipelines. Common tables include
-`players`, `players_minute`, `positions`, `combat_log`, `wards`, `objectives`,
-`opendota_objectives`, `teamfights`, `opendota_teamfights`, `neutral_item_finds`, and
-per-player event logs.
+Use DataFrames for pandas, notebooks, and ML pipelines. Every table is flat and starts
+with a `match_id` column. Common tables include `player_summary` (one row per player),
+`player_timeseries`, `players_minute`, `positions`, `combat_log`, `wards`,
+`objectives`, `teamfights`, `neutral_item_finds`, and per-player event logs. Pass
+`include=["analysis"]` or `include=["opendota"]` for the optional post-parse analysis
+and OpenDota-shaped tables; see [Time-Series & DataFrames](05_timeseries.md).
 
 ### Parquet
 

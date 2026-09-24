@@ -123,13 +123,14 @@ Common `log_type` values include `DAMAGE`, `DEATH`, `HEAL`, `ITEM`, `PURCHASE`,
 
 ## JSON vs DataFrames
 
-Use JSON when you need the complete nested match object. Use
-`gem.parse_to_dataframe()` when you want analysis-ready tables with stable row shapes.
+Use JSON when you need the complete nested match object, including per-player dicts,
+teamfight player breakdowns, and evidence lists. Use `gem.parse_to_dataframe()` when you
+want flat, analysis-ready tables with a fixed schema that concatenate across replays.
 
 ```python
-frames = gem.parse_to_dataframe("my_replay.dem")
+frames = gem.parse_to_dataframe("my_replay.dem", include=["opendota"])
 
-players = frames["players"]
+summary = frames["player_summary"]
 combat = frames["combat_log"]
 teamfights = frames["opendota_teamfights"]
 ```

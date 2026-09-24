@@ -75,7 +75,7 @@ frames["combat_log"].head()
     <span class="gem-feature-icon" aria-hidden="true">◷</span>
     <span class="gem-feature-kicker">Analyze</span>
     <strong>DataFrames and time series</strong>
-    <span>Export player snapshots, positions, combat rows, advantages, and OpenDota-shaped tables.</span>
+    <span>Export flat player summaries, time series, positions, combat rows, and advantage curves.</span>
   </a>
   <a class="gem-feature-card" href="guides/09_cli">
     <span class="gem-feature-icon" aria-hidden="true">⎇</span>

@@ -84,14 +84,24 @@ class TestCli:
         out_dir = tmp_path / "pq"
         called: dict[str, Path | str] = {}
 
-        def _fake_parse_to_parquet(path, output_dir):
+        def _fake_parse_to_parquet(path, output_dir, *, include):
             called["path"] = path
             called["output_dir"] = output_dir
-            return [Path(output_dir) / "players.parquet"]
+            called["include"] = include
+            return [Path(output_dir) / "player_summary.parquet"]
 
         monkeypatch.setattr(
             "sys.argv",
-            ["gem", "fake.dem", "--format", "parquet", "--output", str(out_dir)],
+            [
+                "gem",
+                "fake.dem",
+                "--format",
+                "parquet",
+                "--output",
+                str(out_dir),
+                "--include",
+                "analysis",
+            ],
         )
         monkeypatch.setattr(cli, "parse_to_parquet", _fake_parse_to_parquet)
 
@@ -99,8 +109,53 @@ class TestCli:
 
         assert called["path"] == "fake.dem"
         assert Path(called["output_dir"]) == out_dir
+        assert called["include"] == ["analysis"]
         out = capsys.readouterr().out
         assert "Wrote 1 parquet file(s)" in out
+
+    def test_batch_passes_include_groups_to_parquet_export(self, monkeypatch, tmp_path, capsys):
+        import gem.replays.batch as batch
+
+        called: dict[str, object] = {}
+
+        def _fake_parse_many_to_parquet(source, output_dir, **kwargs):
+            called["source"] = source
+            called["include"] = kwargs["include"]
+            return [Path(output_dir) / "a" / "combat_log.parquet"]
+
+        monkeypatch.setattr(batch, "parse_many_to_parquet", _fake_parse_many_to_parquet)
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "gem",
+                "batch",
+                str(tmp_path),
+                "--output",
+                str(tmp_path / "out"),
+                "--include",
+                "analysis",
+                "--include",
+                "opendota",
+            ],
+        )
+
+        main()
+
+        assert called["source"] == tmp_path
+        assert called["include"] == ["analysis", "opendota"]
+        assert "Wrote 1 parquet file(s)" in capsys.readouterr().out
+
+    def test_batch_rejects_removed_dataframe_format(self, monkeypatch, tmp_path, capsys):
+        monkeypatch.setattr(
+            "sys.argv",
+            ["gem", "batch", str(tmp_path), "--format", "dataframe", "--output", str(tmp_path)],
+        )
+
+        with pytest.raises(SystemExit) as exc:
+            main()
+
+        assert exc.value.code == 2
+        assert "invalid choice: 'dataframe'" in capsys.readouterr().err
 
     def test_quiet_suppresses_banner_and_parsing_line(self, monkeypatch, capsys):
         import gem.cli as cli

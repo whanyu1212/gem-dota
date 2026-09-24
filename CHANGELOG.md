@@ -7,6 +7,70 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Slims the tabular export to flat core tables. DataFrame and Parquet output no
+longer repeats every per-player statistic on every sampled row, and the
+post-parse analysis tables are now opt-in. On a 40-minute replay
+(`8822520406`), peak memory while building DataFrames drops from 832 MB to
+296 MB, total table size from 497 MB to 54 MB, and `build_dataframes` time from
+11.0 s to 3.3 s. **Breaking for DataFrame/Parquet consumers:** the `players`
+table is replaced, and the analysis and OpenDota tables need `include=`.
+
+### Added
+
+- **`player_summary`, `player_timeseries`, and `player_breakdowns` tables.**
+  `player_summary` has one row per player with every end-of-game scalar,
+  including the damage-type split and the largest hero hit
+  (`max_hero_hit_value`/`_inflictor`/`_target`/`_time`). `player_timeseries`
+  holds the sampled `gold`, `total_earned_gold`, `total_earned_xp`,
+  `net_worth`, `lh`, `dn`, and `xp` by tick. `player_breakdowns` exports the
+  per-player dict statistics (`damage`, `damage_targets`, `ability_uses`,
+  `purchase`, `gold_reasons`, `lane_pos`, `killed`, and more) in long form as
+  `(player_id, stat, key, subkey, value)`.
+- **`teamfight_players` table.** One row per fight and player, holding the
+  scalar `TeamfightPlayer` stats and joined to `teamfights` by `fight_index`.
+- **`include=` table groups.** `build_dataframes`, `parse_to_dataframe`,
+  `to_parquet`, `parse_to_parquet`, and `parse_many_to_parquet` accept
+  `include=["analysis"]` and/or `include=["opendota"]`. The CLI takes a
+  repeatable `--include GROUP` flag on `gem parse --format parquet` and on
+  `gem batch`. `gem.results.dataframes.CORE_TABLES` and `OPTIONAL_GROUPS` list
+  the table names.
+- **`gem.read_parquet_table(output_dir, table)`.** Loads one table across every
+  replay directory written by `parse_many_to_parquet`, adding a `replay` column.
+- `pyarrow` is now in the `dev` dependency group, so the Parquet tests run
+  locally instead of being skipped.
+
+### Changed
+
+- **`players` DataFrame removed.** It is replaced by `player_summary`,
+  `player_timeseries`, and `player_breakdowns`. The old table repeated about 70
+  constant columns, including 17 dict-valued columns, on every sampled row. Its
+  `final_net_worth`/`final_last_hits`/`final_denies` columns are
+  `net_worth`/`last_hits`/`denies` in `player_summary`.
+- **Analysis and OpenDota tables are opt-in.** Pass `include=["analysis"]` for
+  `teamfight_positioning`, `roshan_conversions`, `roshan_conversion_fights`,
+  `smoke_fight_*`, and `farming_*`, which runs those analyses only when asked.
+  Pass `include=["opendota"]` for `opendota_objectives` and
+  `opendota_teamfights`.
+- **Every DataFrame/Parquet table starts with a `match_id` column** (`0` when
+  the replay carries no match ID).
+- **Core tables hold only primitive cells.** `teamfights` drops its nested
+  `players` column (see `teamfight_players`), and adds `fight_index`.
+  `smoke_events` drops `participants` (already in `smoke_members`) and joins
+  `smoked` with `";"`. `vision_modifiers.evidence_gaps` and
+  `vision_modifier_pairing_issues.candidate_add_ticks` are joined with `";"`.
+
+### Deprecated
+
+- **`parse_many_to_dataframe`.** It emits a `DeprecationWarning`: it keeps
+  every parsed match and every table in memory until the batch finishes, and
+  it drops failed replays without a report. Use `parse_many_to_parquet` plus
+  `read_parquet_table` instead.
+
+### Removed
+
+- **`gem batch --format dataframe`.** Use the default per-replay Parquet
+  layout and `gem.read_parquet_table()`.
+
 ## [0.9.0] - 2026-09-24
 
 Adds evidence-first match analysis built on authoritative replay visibility:
