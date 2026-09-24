@@ -2,28 +2,63 @@
 
 from __future__ import annotations
 
+from typing import Any
+
+import pandas as pd
 import pytest
 
 import gem.results.models as model_module
 from gem.combat.log import CombatLogEntry, CombatLogSource, CombatLogType
+from gem.extractors.courier import CourierSnapshot
+from gem.extractors.draft import DraftEvent
 from gem.extractors.objectives import (
     AegisEvent,
+    BannerPlant,
+    BarracksKill,
+    CourierDeath,
     RoshanKill,
     ShrineKill,
     TormentorKill,
     TowerKill,
 )
-from gem.extractors.teamfights import Teamfight, TeamfightPlayer
+from gem.extractors.teamfights import (
+    OpenDotaTeamfight,
+    OpenDotaTeamfightPlayer,
+    Teamfight,
+    TeamfightPlayer,
+)
+from gem.extractors.wards import WardEvent
 from gem.results.dataframes import CORE_TABLES, OPTIONAL_GROUPS, build_dataframes
 from gem.results.models import (
+    BuybackEvent,
+    ChatEntry,
+    EntityVisibilityEvent,
+    HeroVisibilityEvent,
+    NeutralItemFoundEvent,
     ParsedMatch,
     ParsedPlayer,
     SmokeEvent,
     SmokeParticipant,
+    VisibilityState,
     VisionModifierEvent,
     VisionModifierPairingIssue,
     VisionModifierSemantic,
 )
+
+
+def arrow_schemas(dfs: dict[str, pd.DataFrame]) -> dict[str, Any]:
+    pa = pytest.importorskip("pyarrow")
+    return {
+        name: pa.Schema.from_pandas(df, preserve_index=False).remove_metadata()
+        for name, df in dfs.items()
+    }
+
+
+def assert_schemas_match_empty_match(dfs: dict[str, pd.DataFrame]) -> None:
+    """Assert every table has the Parquet schema an empty match produces."""
+    expected = arrow_schemas(build_dataframes(ParsedMatch(), include=list(OPTIONAL_GROUPS)))
+    for name, schema in arrow_schemas(dfs).items():
+        assert schema == expected[name], f"{name}: {schema} != {expected[name]}"
 
 
 class TestBuildDataframes:
@@ -330,6 +365,7 @@ class TestBuildDataframes:
         )
 
         frames = build_dataframes(match, include="analysis")
+        assert_schemas_match_empty_match(frames)
         conversion = frames["roshan_conversions"].iloc[0]
         fight = frames["roshan_conversion_fights"].iloc[0]
         objective_rows = frames["objectives"].set_index("type")
@@ -379,7 +415,9 @@ class TestBuildDataframes:
             ],
         )
 
-        frame = build_dataframes(match, include="analysis")["teamfight_positioning"]
+        frames = build_dataframes(match, include="analysis")
+        assert_schemas_match_empty_match(frames)
+        frame = frames["teamfight_positioning"]
 
         assert len(frame) == 8  # four logical snapshots × two canonical heroes
         assert set(frame["snapshot_kind"]) == {
@@ -495,6 +533,7 @@ class TestBuildDataframes:
         )
 
         dfs = build_dataframes(match, include="analysis")
+        assert_schemas_match_empty_match(dfs)
         insight = dfs["smoke_fight_insights"].iloc[0]
         member = dfs["smoke_fight_members"].iloc[0]
 
@@ -517,6 +556,7 @@ class TestBuildDataframes:
         match = ParsedMatch(players=[player])
 
         dfs = build_dataframes(match, include="analysis")
+        assert_schemas_match_empty_match(dfs)
         route = dfs["farming_routes"].iloc[0]
         segment = dfs["farming_route_segments"].iloc[0]
         points = dfs["farming_route_points"]
@@ -528,8 +568,8 @@ class TestBuildDataframes:
         assert route["segment_count"] == 1
         assert segment["camp_id"] == 1
         assert segment["evidence_strength"] == "weak_farm_evidence"
-        assert segment["window_xp_delta"] is None
-        assert segment["window_total_earned_gold_delta"] is None
+        assert pd.isna(segment["window_xp_delta"])
+        assert pd.isna(segment["window_total_earned_gold_delta"])
         assert segment["camp_owner_team"] == 2
         assert segment["camp_lane"] == "top"
         assert segment["camp_catalog_version"] == 2
@@ -655,7 +695,10 @@ class TestBuildDataframes:
             "subkey",
             "value",
         ]
-        rows = {(row.stat, row.key, row.subkey): row.value for row in breakdowns.itertuples()}
+        rows = {
+            (row.stat, row.key, None if pd.isna(row.subkey) else row.subkey): row.value
+            for row in breakdowns.itertuples()
+        }
         assert rows == {
             ("damage", "npc_dota_hero_lina", None): 900,
             ("damage_targets", "axe_counter_helix", "npc_dota_hero_lina"): 600,
@@ -766,3 +809,159 @@ class TestBuildDataframes:
             for column in df.columns:
                 nested = [v for v in df[column] if isinstance(v, (dict, list, tuple, set))]
                 assert not nested, f"{name}.{column} holds nested cells: {nested[:1]}"
+
+
+def _populated_match() -> ParsedMatch:
+    """A synthetic match with rows in every core and OpenDota table.
+
+    Values deliberately mix present and missing optionals (e.g. one player
+    with lane advantages, one without) and include all-``None`` columns, which
+    is what made inferred dtypes differ between real replays.
+    """
+    visible, hidden = VisibilityState.VISIBLE, VisibilityState.HIDDEN
+    laner = ParsedPlayer(
+        player_id=0,
+        hero_name="npc_dota_hero_axe",
+        team=2,
+        times=[30, 60],
+        gold_t=[500, 600],
+        times_min=[1800],
+        game_times_min=[60],
+        gold_t_min=[600],
+        position_log=[(30, 1.0, 2.0)],
+        lane_gold_adv=120,
+        lane_xp_adv=-40,
+        aghanims_scepter=1,
+    )
+    laner.damage = {"npc_dota_hero_lina": 900}
+    laner.damage_targets = {"axe_counter_helix": {"npc_dota_hero_lina": 600}}
+    laner.max_hero_hit = {"inflictor": "axe_culling_blade", "key": "x", "value": 700, "time": 9}
+    laner.kills_log = [CombatLogEntry(tick=10, log_type=CombatLogType.DEATH)]
+    laner.purchase_log = [CombatLogEntry(tick=11, log_type=CombatLogType.PURCHASE)]
+    laner.runes_log = [CombatLogEntry(tick=12, log_type=CombatLogType.PICKUP_RUNE)]
+    laner.buyback_log = [CombatLogEntry(tick=13, log_type=CombatLogType.BUYBACK)]
+    laner.buybacks = [BuybackEvent(tick=13, player_slot=0, cost=400, net_worth=2600)]
+    # No lane advantages, no max hit, and a buyback without a BuybackEvent.
+    roamer = ParsedPlayer(player_id=1, hero_name="npc_dota_hero_lina", team=3)
+    roamer.buyback_log = [CombatLogEntry(tick=14, log_type=CombatLogType.BUYBACK)]
+
+    return ParsedMatch(
+        match_id=7,
+        radiant_win=True,
+        game_start_tick=100,
+        post_game_tick=None,
+        players=[laner, roamer],
+        towers=[TowerKill(tick=1, team=3, killer="npc_dota_hero_axe", tower_name="t1")],
+        barracks=[BarracksKill(tick=2, team=3, killer="npc_dota_hero_axe", barracks_name="rax")],
+        roshans=[RoshanKill(tick=3, killer="npc_dota_hero_axe", kill_number=1, drops=["aegis"])],
+        aegis_events=[AegisEvent(tick=4, player_id=0, event_type="pickup")],
+        tormentors=[TormentorKill(tick=5, killer="x", killer_player_id=0, kill_number=1)],
+        shrines=[ShrineKill(tick=6, team=2)],
+        courier_deaths=[CourierDeath(tick=7, killer="npc_dota_hero_lina")],
+        banner_plants=[BannerPlant(tick=8, team=2, player_id=0, x=None, y=None)],
+        objectives=[
+            {"time": 1, "type": "building_kill", "key": "t1", "unit": "axe", "slot": 0},
+            {"time": 2, "type": "CHAT_MESSAGE_COURIER_LOST", "team": 3, "killer": 128},
+        ],
+        wards=[WardEvent(10, 0, "axe", "observer", 2, 1.0, 2.0, None, None, "")],
+        radiant_gold_adv=[0, 150],
+        radiant_xp_adv=[0, -20],
+        game_times_min=[0, 60],
+        combat_log=[
+            CombatLogEntry(tick=10, log_type=CombatLogType.DAMAGE, value=5),
+            CombatLogEntry(tick=11, log_type=CombatLogType.MODIFIER_ADD, modifier_duration_s=4),
+        ],
+        chat=[ChatEntry(tick=1, player_slot=0, channel="all", text="gg")],
+        courier_snapshots=[CourierSnapshot(1, 2, 0, True, None, None)],
+        neutral_item_finds=[NeutralItemFoundEvent(tick=1, player_id=0, item_ability_id=2)],
+        smoke_events=[
+            SmokeEvent(
+                tick=1,
+                activator="npc_dota_hero_axe",
+                team=2,
+                smoked=["npc_dota_hero_axe"],
+                participants=[
+                    SmokeParticipant("npc_dota_hero_axe", 0, 1),
+                    SmokeParticipant("npc_dota_hero_lina", None, 1),
+                ],
+            )
+        ],
+        draft=[DraftEvent(tick=1, slot_index=0, hero_id=2, hero_name="axe", is_pick=True)],
+        teamfights=[
+            Teamfight(
+                start_tick=1,
+                end_tick=2,
+                first_death_tick=1,
+                last_death_tick=1,
+                deaths=1,
+                players=[TeamfightPlayer(player_id=0)],
+            )
+        ],
+        opendota_teamfights=[
+            OpenDotaTeamfight(
+                start=1,
+                end=2,
+                last_death=1,
+                deaths=1,
+                players=[OpenDotaTeamfightPlayer(killed={"npc_dota_hero_lina": 1})],
+            )
+        ],
+        vision_modifiers=[VisionModifierEvent(1, None, "m", "t", "c", 2, evidence_gaps=["g"])],
+        vision_modifier_pairing_issues=[
+            VisionModifierPairingIssue(
+                tick=3,
+                reason="unmatched",
+                modifier_name="m",
+                caster_name="",
+                target_name="t",
+                source=CombatLogSource.S2_BULK,
+                candidate_add_ticks=[1, 2],
+            )
+        ],
+        hero_visibility_events=[HeroVisibilityEvent(1, 0, "axe", 5, 6, visible, hidden)],
+        entity_visibility_events=[
+            EntityVisibilityEvent(1, 5, 6, "CDOTA_Unit", "npc", None, True, visible, hidden)
+        ],
+    )
+
+
+class TestStableSchemas:
+    def test_populated_match_matches_empty_match_schema_for_every_table(self):
+        dfs = build_dataframes(_populated_match(), include=list(OPTIONAL_GROUPS))
+
+        populated = {*CORE_TABLES, *OPTIONAL_GROUPS["opendota"]}
+        assert [name for name in populated if dfs[name].empty] == []
+        assert_schemas_match_empty_match(dfs)
+
+    def test_columns_use_nullable_dtypes_and_missing_values_are_na(self):
+        dfs = build_dataframes(_populated_match(), include=list(OPTIONAL_GROUPS))
+
+        allowed = {"Int64", "Float64", "boolean", "string"}
+        for name, df in dfs.items():
+            odd = {column: str(dtype) for column, dtype in df.dtypes.items()}
+            odd = {column: dtype for column, dtype in odd.items() if dtype not in allowed}
+            assert not odd, f"{name} has non-nullable dtypes: {odd}"
+
+        summary = dfs["player_summary"].set_index("player_id")
+        assert summary.loc[0, "lane_gold_adv"] == 120
+        assert pd.isna(summary.loc[1, "lane_gold_adv"])
+        buybacks = dfs["player_buyback_log"].set_index("player_id")
+        assert buybacks.loc[0, "cost"] == 400
+        assert pd.isna(buybacks.loc[1, "cost"])
+        members = dfs["smoke_members"]
+        assert members["player_id"].tolist()[0] == 0
+        assert pd.isna(members["player_id"].tolist()[1])
+        assert dfs["vision_modifiers"]["remove_modifier_duration_s"].isna().all()
+
+    def test_parquet_schema_is_identical_for_empty_and_populated_matches(self, tmp_path):
+        pq = pytest.importorskip("pyarrow.parquet")
+        from gem.api import to_parquet
+
+        groups = list(OPTIONAL_GROUPS)
+        to_parquet(ParsedMatch(), tmp_path / "empty", include=groups)
+        to_parquet(_populated_match(), tmp_path / "full", include=groups)
+
+        for path in sorted((tmp_path / "empty").glob("*.parquet")):
+            empty = pq.read_schema(path).remove_metadata()
+            full = pq.read_schema(tmp_path / "full" / path.name).remove_metadata()
+            assert empty == full, path.stem
