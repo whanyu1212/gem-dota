@@ -8,8 +8,8 @@ questions the core parser leaves open:
    `.dem` from the OpenDota / Valve CDN given a match ID, and optionally enrich a
    parsed match with Game-Coordinator scalars from the OpenDota API.
 2. **How do I parse many at once?** (`batch.py`) — run `gem.parse()` across a
-   directory of replays using a process pool, returning per-replay results or one
-   concatenated set of DataFrames.
+   directory of replays using a process pool, returning per-replay results or
+   writing one Parquet directory per replay.
 
 Everything here is exposed through the public API (`gem.fetch_replay`,
 `gem.parse_many`, …); most callers never import `gem.replays` directly.
@@ -30,8 +30,10 @@ parse_many([paths]) ──── ProcessPoolExecutor ─────┘   (one w
   in their embedded `CMsgDOTAMatch` postgame summary.
 - **`batch.py`** is CPU parallelism: each replay is parsed in its own process
   (`_parse_one`), so a failed replay yields a `ParseResult` with the exception
-  rather than aborting the whole run. `parse_many_to_dataframe` /
-  `parse_many_to_parquet` add the concat/export step on top.
+  rather than aborting the whole run. `parse_many_to_parquet`
+  adds a bounded per-replay export step on top, and `read_parquet_table` loads one
+  table back across replays. `parse_many_to_dataframe` is deprecated because it
+  keeps every match and table in memory.
 
 ## What this layer does NOT do
 

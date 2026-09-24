@@ -40,7 +40,7 @@ level XP:
 
 ## DataFrame export
 
-`gem.parse_to_dataframe()` returns a dict of pandas DataFrames:
+`gem.parse_to_dataframe()` returns a dict of flat pandas DataFrames:
 
 ```python
 import gem
@@ -48,57 +48,86 @@ import gem
 frames = gem.parse_to_dataframe("my_replay.dem")
 
 print(sorted(frames))
-players = frames["players"]
+summary = frames["player_summary"]
 combat = frames["combat_log"]
 ```
 
-Available DataFrames:
+Every table starts with a `match_id` column (`0` when the replay carries no
+match ID), so tables from different replays can be concatenated and joined.
+Core tables hold only primitive cells: list-valued fields are joined with `";"`,
+and per-player dict statistics are exported in long form. Nested records keep
+their full structure in the dataclass and [JSON](10_json_output.md) output.
+
+Core tables (always returned):
 
 | Key | Contents |
 |---|---|
-| `players` | Per-player sampled state with terminal scalar stats repeated on each row |
+| `match` | Single-row match metadata and final status bitmasks |
+| `player_summary` | One row per player: identity, K/D/A, final net worth/LH/DN, GPM/XPM, damage/healing totals, lane stats, damage-type split, largest hero hit, consumed Aghanim's/Moon Shard flags |
+| `player_timeseries` | Per-player sampled state: `tick`, `gold`, `total_earned_gold`, `total_earned_xp`, `net_worth`, `lh`, `dn`, `xp` |
 | `players_minute` | Per-player series resampled to one row per game minute, with `game_time_s` / `minute` join keys |
+| `player_breakdowns` | Long-form per-player dict stats: `(player_id, stat, key, subkey, value)` |
 | `positions` | Per-player world `(x, y)` positions over time |
+| `radiant_advantage` | Radiant gold/XP advantage per minute, with `game_time_s` / `minute` join keys |
 | `combat_log` | Raw normalized combat log entries |
 | `wards` | Ward placement events with coordinates |
 | `objectives` | Typed Gem objective rows such as towers, barracks, Roshan, tormentors, couriers |
-| `opendota_objectives` | OpenDota-shaped unified objective timeline |
 | `chat` | Chat messages |
-| `match` | Single-row match metadata and final status bitmasks |
-| `radiant_advantage` | Radiant gold/XP advantage per minute, with `game_time_s` / `minute` join keys |
 | `draft` | Pick and ban events |
-| `teamfights` | Gem teamfight windows with participant stats |
-| `teamfight_positioning` | Flat engagement-aware fight snapshots and per-hero evidence |
-| `roshan_conversions` | Flat attribution, lifecycle, raw differential, tag, and evidence-status rows |
-| `roshan_conversion_fights` | Flat Roshan-to-fight relations, provenance, and participant IDs |
-| `opendota_teamfights` | OpenDota-compatible 3+ death temporal teamfight windows |
-| `smoke_events` | Smoke activations with exact per-hero modifier lifecycles |
+| `teamfights` | Gem teamfight windows, one row per fight with a `fight_index` |
+| `teamfight_players` | Per-fight, per-player stats (deaths, damage, healing, gold/XP delta) |
+| `smoke_events` | Smoke activations; `smoked` is a `";"`-joined hero list |
 | `smoke_members` | Flat per-hero smoke application/removal timing and sampled positions |
-| `smoke_fight_insights` | Bounded smoke/fight association and outcome evidence |
-| `smoke_fight_members` | Flat member-level smoke/fight evidence |
-| `smoke_fight_followups` | Uniquely allocated bounded follow-up events |
-| `farming_routes` | Player-level farming-route availability and catalog metadata |
-| `farming_route_segments` | Evidence-first camp-local segments, comparative context, tags, and gaps |
-| `farming_route_points` | Sampled route points and deterministic camp membership |
-| `farming_context_tags` | One row per farming segment/context tag and its factual reasons |
 | `courier_snapshots` | Courier state over time |
 | `neutral_item_finds` | Neutral item find events from `DOTA_UM_FoundNeutralItem` |
+| `hero_visibility_events` | Authoritative per-team hero visibility transitions |
+| `entity_visibility` | Per-team visibility transitions for tracked NPCs |
+| `vision_modifiers` | Vision-granting modifier lifecycles; `evidence_gaps` is `";"`-joined |
+| `vision_modifier_pairing_issues` | Modifier add/remove pairing diagnostics |
 | `player_kills_log` | Per-player kill log rows |
 | `player_purchase_log` | Per-player purchase log rows |
 | `player_runes_log` | Per-player rune pickup log rows |
 | `player_buyback_log` | Per-player buyback log rows |
 
-### Players table
+Optional groups (pass `include=[...]`):
+
+| Group | Tables |
+|---|---|
+| `"analysis"` | `teamfight_positioning`, `roshan_conversions`, `roshan_conversion_fights`, `smoke_fight_insights`, `smoke_fight_members`, `smoke_fight_followups`, `farming_routes`, `farming_route_segments`, `farming_route_points`, `farming_context_tags` |
+| `"opendota"` | `opendota_objectives`, `opendota_teamfights` |
 
 ```python
-df = frames["players"]
-
-print(df[["player_id", "hero_name", "tick", "gold", "net_worth", "lh", "dn"]].head())
+frames = gem.parse_to_dataframe("my_replay.dem", include=["analysis"])
+segments = frames["farming_route_segments"]
 ```
 
-The `players` table contains sampled state rows. End-of-game scalars such as
-`final_net_worth`, `final_last_hits`, `kills`, `deaths`, `assists`, `hero_damage`, and
-`lane_role` are repeated on each sampled row for convenient grouping.
+The analysis group runs the post-parse farming, smoke-fight, Roshan-conversion,
+and teamfight-positioning analyses, so it adds several seconds per replay. Leave it
+out when you only need the core tables.
+
+### Player tables
+
+```python
+summary = frames["player_summary"]
+series = frames["player_timeseries"]
+
+print(summary[["player_id", "hero_name", "kills", "deaths", "assists", "net_worth"]])
+
+# Join end-of-game scalars onto the sampled series when you need both.
+joined = series.merge(summary[["match_id", "player_id", "lane_role"]], on=["match_id", "player_id"])
+```
+
+`player_breakdowns` holds the per-player dict statistics (`damage`,
+`damage_targets`, `ability_uses`, `item_uses`, `purchase`, `gold_reasons`,
+`lane_pos`, and so on) in long form. `stat` is the `ParsedPlayer` field name;
+`subkey` is set only for two-level fields such as `damage_targets`
+(`inflictor -> target -> damage`):
+
+```python
+breakdowns = frames["player_breakdowns"]
+axe_targets = breakdowns[(breakdowns["player_id"] == 0) & (breakdowns["stat"] == "damage_targets")]
+by_target = axe_targets.groupby("subkey")["value"].sum()
+```
 
 ### Positions table
 
@@ -110,7 +139,21 @@ print(axe_positions[["tick", "x", "y"]].head())
 ```
 
 Positions are split into a dedicated table so movement-heavy analysis does not bloat the
-main player-state table.
+player-state tables.
+
+### Many replays
+
+Use `gem.parse_many_to_parquet()` to write one Parquet directory per replay, then
+load a single table across all of them with `gem.read_parquet_table()`:
+
+```python
+gem.parse_many_to_parquet("replays/", "./out", workers=4)
+combat = gem.read_parquet_table("./out", "combat_log")  # adds a `replay` column
+```
+
+Memory stays bounded by the worker count while parsing, and loading scales with the
+one table you read. `gem.parse_many_to_dataframe()` is deprecated: it keeps every
+parsed match and every table in memory until the batch finishes.
 
 ## Plot gold advantage
 

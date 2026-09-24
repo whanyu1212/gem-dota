@@ -190,7 +190,18 @@ class TestParseMany:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.filterwarnings("ignore:parse_many_to_dataframe is deprecated:DeprecationWarning")
 class TestParseManyToDataframe:
+    def test_emits_deprecation_warning(self, tmp_path):
+        (tmp_path / "0.dem").touch()
+
+        with (
+            patch("gem.replays.batch.ProcessPoolExecutor", _SyncExecutor),
+            patch("gem.replays.batch._parse_one", side_effect=_ok),
+            pytest.warns(DeprecationWarning, match="parse_many_to_parquet"),
+        ):
+            gem.parse_many_to_dataframe(tmp_path, progress=False)
+
     def test_returns_dict_with_match_path_column(self, tmp_path):
         for i in range(2):
             (tmp_path / f"{i}.dem").touch()
@@ -202,8 +213,8 @@ class TestParseManyToDataframe:
             dfs = gem.parse_many_to_dataframe(tmp_path, progress=False)
 
         assert isinstance(dfs, dict)
-        assert "players" in dfs
-        assert "match_path" in dfs["players"].columns
+        assert "player_summary" in dfs
+        assert "match_path" in dfs["player_summary"].columns
 
     def test_skips_failed_replays(self, tmp_path):
         good, bad = tmp_path / "good.dem", tmp_path / "bad.dem"
@@ -283,3 +294,86 @@ class TestParseManyToParquet:
             written = gem.parse_many_to_parquet([p], tmp_path / "out", progress=False)
 
         assert written == []
+
+
+# ---------------------------------------------------------------------------
+# read_parquet_table
+# ---------------------------------------------------------------------------
+
+
+_needs_pyarrow = pytest.mark.skipif(
+    not __import__("importlib").util.find_spec("pyarrow"),
+    reason="pyarrow not installed",
+)
+
+
+class TestReadParquetTable:
+    @_needs_pyarrow
+    def test_concatenates_one_table_across_replays(self, tmp_path):
+        replay_dir = tmp_path / "replays"
+        replay_dir.mkdir()
+        out_dir = tmp_path / "out"
+        for name in ("123", "456"):
+            (replay_dir / f"{name}.dem").touch()
+
+        with (
+            patch("gem.replays.batch.ProcessPoolExecutor", _SyncExecutor),
+            patch("gem.replays.batch._parse_one", side_effect=_ok),
+        ):
+            gem.parse_many_to_parquet(replay_dir, out_dir, progress=False)
+
+        match_df = gem.read_parquet_table(out_dir, "match")
+
+        assert list(match_df.columns[:2]) == ["replay", "match_id"]
+        assert sorted(match_df["replay"]) == ["123", "456"]
+
+    @_needs_pyarrow
+    def test_include_groups_are_written(self, tmp_path):
+        p = tmp_path / "123.dem"
+        p.touch()
+
+        with (
+            patch("gem.replays.batch.ProcessPoolExecutor", _SyncExecutor),
+            patch("gem.replays.batch._parse_one", side_effect=_ok),
+        ):
+            written = gem.parse_many_to_parquet(
+                [p], tmp_path / "out", progress=False, include=["opendota"]
+            )
+
+        assert "opendota_teamfights" in {path.stem for path in written}
+
+    @_needs_pyarrow
+    def test_one_shot_include_iterable_applies_to_every_replay(self, tmp_path):
+        replay_dir = tmp_path / "replays"
+        replay_dir.mkdir()
+        for name in ("123", "456"):
+            (replay_dir / f"{name}.dem").touch()
+
+        with (
+            patch("gem.replays.batch.ProcessPoolExecutor", _SyncExecutor),
+            patch("gem.replays.batch._parse_one", side_effect=_ok),
+        ):
+            written = gem.parse_many_to_parquet(
+                replay_dir,
+                tmp_path / "out",
+                progress=False,
+                include=(group for group in ["opendota"]),
+            )
+
+        replays_with_group = {p.parent.name for p in written if p.stem == "opendota_teamfights"}
+        assert replays_with_group == {"123", "456"}
+
+    def test_unknown_include_group_fails_before_parsing(self, tmp_path):
+        (tmp_path / "123.dem").touch()
+
+        with (
+            patch("gem.replays.batch._parse_one") as parse_one,
+            pytest.raises(ValueError, match="Unknown DataFrame group"),
+        ):
+            gem.parse_many_to_parquet(tmp_path, tmp_path / "out", include=["nope"])
+
+        parse_one.assert_not_called()
+
+    def test_missing_table_raises(self, tmp_path):
+        with pytest.raises(FileNotFoundError, match="combat_log"):
+            gem.read_parquet_table(tmp_path, "combat_log")

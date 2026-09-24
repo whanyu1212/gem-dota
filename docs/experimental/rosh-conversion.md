@@ -228,7 +228,7 @@ compatibility fields after downstream usage is reviewed. New consumers should
 use `differential_profile`, raw values, `analysis_status`, and
 `conversion_tags`. The report no longer renders either legacy field.
 
-`build_dataframes(...)` now exports:
+`build_dataframes(match, include=["analysis"])` exports:
 
 - `roshan_conversions`: one flat row per Roshan, including provenance, raw
   differentials, evidence status, ruleset, and clearly prefixed legacy fields

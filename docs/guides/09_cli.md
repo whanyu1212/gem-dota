@@ -23,8 +23,8 @@ python -m gem parse my_replay.dem --format parquet --output ./out
 # Parse a folder in parallel
 python -m gem batch replays/ --format parquet --output ./out --workers 4
 
-# Concatenate all replays into one set of DataFrames
-python -m gem batch replays/ --format dataframe --output ./out
+# Add the optional post-parse analysis tables
+python -m gem batch replays/ --output ./out --include analysis
 
 # Inspect report asset-cache paths and completeness
 python -m gem reports assets path
@@ -47,6 +47,7 @@ The `parse` keyword is optional. `python -m gem match.dem` is identical to
 | `<path>` | path to `.dem` | - | Replay file to parse |
 | `--format` | `summary`, `json`, `parquet` | `summary` | Output format |
 | `--output` | file or directory | stdout / cwd | Output destination. Required for `parquet`; optional for `json` |
+| `--include` | `analysis`, `opendota` (repeatable) | none | Add optional Parquet table groups |
 | `--progress` | flag | off | Show a live phase-by-phase progress bar |
 | `--timings` | flag | off | Print a timing breakdown after parsing |
 | `--quiet`, `-q` | flag | off | Suppress banner and non-essential output |
@@ -87,11 +88,16 @@ python -m gem my_replay.dem --format json --timings > match.json
 python -m gem parse my_replay.dem --format parquet --output ./out
 
 # Example files:
-# out/players.parquet
+# out/player_summary.parquet
+# out/player_timeseries.parquet
 # out/combat_log.parquet
 # out/teamfights.parquet
-# out/opendota_teamfights.parquet
 ```
+
+Every table starts with a `match_id` column. Add `--include analysis` for the
+farming, smoke-fight, Roshan-conversion, and teamfight-positioning tables, or
+`--include opendota` for the OpenDota-shaped objective and teamfight views. See
+[Time-Series & DataFrames](05_timeseries.md) for the table list.
 
 ::: info Parquet dependency
 Requires `pyarrow` or `fastparquet`.
@@ -108,10 +114,11 @@ python -m gem batch <source> [options]
 | Option | Values | Default | Description |
 |---|---|---|---|
 | `<source>` | directory or file list | - | Replay(s) to parse |
-| `--format` | `parquet`, `dataframe` | `parquet` | Output format |
+| `--format` | `parquet` | `parquet` | Output format |
 | `--output` | directory | - | Required root output directory |
 | `--workers` | integer | `os.cpu_count()` | Number of parallel worker processes |
 | `--recursive` | flag | off | Scan source directories recursively |
+| `--include` | `analysis`, `opendota` (repeatable) | none | Add optional Parquet table groups |
 | `--progress` | flag | off | Show a Rich progress bar |
 | `--timings` | flag | off | Print timing breakdown after all replays |
 | `--quiet`, `-q` | flag | off | Suppress all non-essential output |
@@ -124,7 +131,7 @@ python -m gem batch replays/ --format parquet --output ./out
 # Output layout:
 # out/
 #   match_6789/
-#     players.parquet
+#     player_summary.parquet
 #     combat_log.parquet
 #     ...
 #   match_6790/
@@ -146,22 +153,23 @@ errors, and timeouts propagate. Files already written, including partial exports
 remain on disk after failure. Duplicate replay stems retain the existing serial
 overwrite behavior.
 
-### Concatenated DataFrames
+### Loading one table across replays
 
-`--format dataframe` concatenates each table across all parsed replays and writes one
-flat set of `.parquet` files under `--output`. Each row includes a `match_path` column
-for provenance.
+Load a single table from every replay directory with `gem.read_parquet_table()`. It
+adds a `replay` column holding the per-replay directory name:
 
-```bash
-python -m gem batch replays/ --format dataframe --output ./out
+```python
+import gem
 
-# Output layout:
-# out/
-#   players.parquet
-#   combat_log.parquet
-#   match.parquet
-#   ...
+combat = gem.read_parquet_table("./out", "combat_log")
+summaries = gem.read_parquet_table("./out", "player_summary")
 ```
+
+::: info Removed in 0.10.0
+`batch --format dataframe` has been removed. It held every parsed match and every
+table in memory before writing. Use the default Parquet layout plus
+`gem.read_parquet_table()` instead.
+:::
 
 ::: warning Exit codes
 The `batch` command exits with code `0` even when some replays fail. It prints a summary
@@ -220,9 +228,8 @@ gem.parse_to_parquet("my_replay.dem", output_dir="./out")
 
 results = gem.parse_many("replays/", workers=4)
 
-dfs = gem.parse_many_to_dataframe("replays/", workers=4)
-
 gem.parse_many_to_parquet("replays/", output_dir="./out", workers=4)
+combat = gem.read_parquet_table("./out", "combat_log")
 ```
 
 See the [API Reference](../reference/index.md) for full parameter documentation.

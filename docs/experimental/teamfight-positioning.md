@@ -115,8 +115,9 @@ lifecycles become evidence-gap codes instead of active claims.
 
 ## DataFrames and reports
 
-`gem.parse_to_dataframe(...)` and `gem.results.dataframes.build_dataframes(...)`
-include a `teamfight_positioning` table with one row per fight, snapshot, and
+`gem.parse_to_dataframe(..., include=["analysis"])` and
+`gem.results.dataframes.build_dataframes(..., include=["analysis"])` include a
+`teamfight_positioning` table with one row per fight, snapshot, and
 canonical hero. Nullable values preserve unavailable geometry.
 
 The HTML report presents the same four moments on one map. Team colour,

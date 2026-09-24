@@ -58,7 +58,8 @@ Need tables instead?
 
 ```python
 frames = gem.parse_to_dataframe("match.dem")
-players = frames["players"]
+players = frames["player_summary"]     # one row per player
+series = frames["player_timeseries"]   # sampled gold/XP/net worth
 positions = frames["positions"]
 combat = frames["combat_log"]
 ```

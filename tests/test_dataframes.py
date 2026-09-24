@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 import gem.results.models as model_module
 from gem.combat.log import CombatLogEntry, CombatLogSource, CombatLogType
 from gem.extractors.objectives import (
@@ -12,7 +14,7 @@ from gem.extractors.objectives import (
     TowerKill,
 )
 from gem.extractors.teamfights import Teamfight, TeamfightPlayer
-from gem.results.dataframes import build_dataframes
+from gem.results.dataframes import CORE_TABLES, OPTIONAL_GROUPS, build_dataframes
 from gem.results.models import (
     ParsedMatch,
     ParsedPlayer,
@@ -25,7 +27,7 @@ from gem.results.models import (
 
 
 class TestBuildDataframes:
-    def test_players_dataframe_includes_damage_type_columns(self):
+    def test_player_tables_split_summary_and_timeseries(self):
         pp = ParsedPlayer(
             player_id=0,
             hero_name="npc_dota_hero_axe",
@@ -47,19 +49,20 @@ class TestBuildDataframes:
         match = ParsedMatch(players=[pp] + [ParsedPlayer(player_id=i) for i in range(1, 10)])
 
         dfs = build_dataframes(match)
-        players_df = dfs["players"]
+        assert "players" not in dfs
 
-        assert "damage_physical" in players_df.columns
-        assert "damage_magical" in players_df.columns
-        assert "damage_pure" in players_df.columns
-        assert "damage_taken_physical" in players_df.columns
-        assert "damage_taken_magical" in players_df.columns
-        assert "damage_taken_pure" in players_df.columns
+        summary_df = dfs["player_summary"]
+        assert len(summary_df) == 10
+        assert summary_df["player_id"].is_unique
 
-        row = players_df.iloc[0]
-        assert row["gold"] == 500
-        assert row["total_earned_gold"] == 900
-        assert row["total_earned_xp"] == 1200
+        series = dfs["player_timeseries"].iloc[0]
+        assert series["tick"] == 30
+        assert series["gold"] == 500
+        assert series["total_earned_gold"] == 900
+        assert series["total_earned_xp"] == 1200
+        assert "kills" not in dfs["player_timeseries"].columns
+
+        row = summary_df.iloc[0]
         assert row["damage_physical"] == 1200
         assert row["damage_magical"] == 300
         assert row["damage_pure"] == 50
@@ -107,11 +110,37 @@ class TestBuildDataframes:
         assert list(dfs["player_runes_log"]["log_type"]) == ["PICKUP_RUNE"]
         assert list(dfs["player_buyback_log"]["log_type"]) == ["BUYBACK"]
 
+    def test_default_tables_are_core_and_groups_are_opt_in(self):
+        match = ParsedMatch()
+
+        dfs = build_dataframes(match)
+        assert tuple(dfs) == CORE_TABLES
+        for group_tables in OPTIONAL_GROUPS.values():
+            assert not set(group_tables) & set(dfs)
+
+        analysis_only = build_dataframes(match, include="analysis")
+        assert set(analysis_only) == set(CORE_TABLES) | set(OPTIONAL_GROUPS["analysis"])
+
+    def test_unknown_include_group_raises(self):
+        with pytest.raises(ValueError, match="Unknown DataFrame group"):
+            build_dataframes(ParsedMatch(), include=["players_legacy"])
+
+    def test_every_table_leads_with_match_id(self):
+        match = ParsedMatch(match_id=8822520406, players=[ParsedPlayer(player_id=0, times=[1])])
+
+        dfs = build_dataframes(match, include=list(OPTIONAL_GROUPS))
+
+        for name, df in dfs.items():
+            assert df.columns[0] == "match_id", name
+            assert (df["match_id"] == 8822520406).all(), name
+
     def test_build_dataframes_returns_extended_parity_keys(self):
         match = ParsedMatch()
-        dfs = build_dataframes(match)
+        dfs = build_dataframes(match, include=["analysis", "opendota"])
 
-        assert "players" in dfs
+        assert "player_summary" in dfs
+        assert "player_timeseries" in dfs
+        assert "player_breakdowns" in dfs
         assert "positions" in dfs
         assert "combat_log" in dfs
         assert "wards" in dfs
@@ -152,7 +181,7 @@ class TestBuildDataframes:
         assert dfs["roshan_conversion_fights"].empty
         assert dfs["farming_route_segments"].empty
         assert dfs["farming_route_points"].empty
-        assert list(dfs["farming_route_segments"].columns[:6]) == [
+        assert list(dfs["farming_route_segments"].columns[1:7]) == [
             "player_id",
             "hero_name",
             "team",
@@ -160,7 +189,7 @@ class TestBuildDataframes:
             "camp_id",
             "camp_type",
         ]
-        assert list(dfs["roshan_conversions"].columns[:6]) == [
+        assert list(dfs["roshan_conversions"].columns[1:7]) == [
             "rosh_number",
             "rosh_tick",
             "killer_name",
@@ -168,14 +197,14 @@ class TestBuildDataframes:
             "roshan_team_source",
             "conversion_team",
         ]
-        assert list(dfs["roshan_conversion_fights"].columns[:5]) == [
+        assert list(dfs["roshan_conversion_fights"].columns[1:6]) == [
             "rosh_number",
             "fight_index",
             "relation",
             "engagement_start_tick",
             "engagement_start_source",
         ]
-        assert list(dfs["teamfight_positioning"].columns[:8]) == [
+        assert list(dfs["teamfight_positioning"].columns[1:9]) == [
             "fight_index",
             "fight_start_tick",
             "engagement_start_tick",
@@ -187,6 +216,7 @@ class TestBuildDataframes:
         ]
         assert dfs["smoke_members"].empty
         assert list(dfs["smoke_members"].columns) == [
+            "match_id",
             "smoke_event_index",
             "activation_tick",
             "activation_game_time_s",
@@ -206,7 +236,7 @@ class TestBuildDataframes:
             "removed_game_time_s",
         ]
         assert dfs["smoke_fight_insights"].empty
-        assert list(dfs["smoke_fight_insights"].columns[:7]) == [
+        assert list(dfs["smoke_fight_insights"].columns[1:8]) == [
             "smoke_index",
             "fight_index",
             "status",
@@ -216,7 +246,7 @@ class TestBuildDataframes:
             "smoke_lifecycle_status",
         ]
         assert dfs["smoke_fight_members"].empty
-        assert list(dfs["smoke_fight_members"].columns[:6]) == [
+        assert list(dfs["smoke_fight_members"].columns[1:7]) == [
             "smoke_index",
             "fight_index",
             "status",
@@ -225,7 +255,7 @@ class TestBuildDataframes:
             "hero_name",
         ]
         assert dfs["smoke_fight_followups"].empty
-        assert list(dfs["smoke_fight_followups"].columns[:5]) == [
+        assert list(dfs["smoke_fight_followups"].columns[1:6]) == [
             "smoke_index",
             "fight_index",
             "kind",
@@ -234,7 +264,7 @@ class TestBuildDataframes:
         ]
         assert dfs["vision_modifiers"].empty
         assert dfs["vision_modifier_pairing_issues"].empty
-        assert list(dfs["vision_modifiers"].columns[:6]) == [
+        assert list(dfs["vision_modifiers"].columns[1:7]) == [
             "tick",
             "end_tick",
             "modifier_name",
@@ -242,7 +272,7 @@ class TestBuildDataframes:
             "caster_name",
             "caster_team",
         ]
-        assert list(dfs["vision_modifier_pairing_issues"].columns[:6]) == [
+        assert list(dfs["vision_modifier_pairing_issues"].columns[1:7]) == [
             "tick",
             "reason",
             "modifier_name",
@@ -299,7 +329,7 @@ class TestBuildDataframes:
             ],
         )
 
-        frames = build_dataframes(match)
+        frames = build_dataframes(match, include="analysis")
         conversion = frames["roshan_conversions"].iloc[0]
         fight = frames["roshan_conversion_fights"].iloc[0]
         objective_rows = frames["objectives"].set_index("type")
@@ -349,7 +379,7 @@ class TestBuildDataframes:
             ],
         )
 
-        frame = build_dataframes(match)["teamfight_positioning"]
+        frame = build_dataframes(match, include="analysis")["teamfight_positioning"]
 
         assert len(frame) == 8  # four logical snapshots × two canonical heroes
         assert set(frame["snapshot_kind"]) == {
@@ -396,7 +426,7 @@ class TestBuildDataframes:
 
         assert dfs["vision_modifiers"].iloc[0]["semantic"] == "direct_target_reveal"
         assert dfs["vision_modifier_pairing_issues"].iloc[0]["source"] == "s2_bulk"
-        assert dfs["vision_modifier_pairing_issues"].iloc[0]["candidate_add_ticks"] == []
+        assert dfs["vision_modifier_pairing_issues"].iloc[0]["candidate_add_ticks"] == ""
 
     def test_smoke_members_dataframe_is_flat_and_preserves_exact_ticks(self):
         match = ParsedMatch(
@@ -464,7 +494,7 @@ class TestBuildDataframes:
             ],
         )
 
-        dfs = build_dataframes(match)
+        dfs = build_dataframes(match, include="analysis")
         insight = dfs["smoke_fight_insights"].iloc[0]
         member = dfs["smoke_fight_members"].iloc[0]
 
@@ -486,7 +516,7 @@ class TestBuildDataframes:
         )
         match = ParsedMatch(players=[player])
 
-        dfs = build_dataframes(match)
+        dfs = build_dataframes(match, include="analysis")
         route = dfs["farming_routes"].iloc[0]
         segment = dfs["farming_route_segments"].iloc[0]
         points = dfs["farming_route_points"]
@@ -599,3 +629,140 @@ class TestBuildDataframes:
         assert "tormentor" in objective_types
         assert "shrine" in objective_types
         assert "aegis" in objective_types
+
+    def test_player_breakdowns_is_long_form_of_player_dicts(self):
+        pp = ParsedPlayer(player_id=3)
+        pp.damage = {"npc_dota_hero_lina": 900}
+        pp.damage_targets = {
+            "axe_counter_helix": {"npc_dota_hero_lina": 600, "npc_dota_hero_bane": 40}
+        }
+        pp.gold_reasons = {"12": 350}
+        pp.max_hero_hit = {
+            "inflictor": "axe_culling_blade",
+            "key": "npc_dota_hero_lina",
+            "value": 700,
+            "time": 912,
+        }
+
+        dfs = build_dataframes(ParsedMatch(players=[pp]))
+        breakdowns = dfs["player_breakdowns"]
+
+        assert list(breakdowns.columns) == [
+            "match_id",
+            "player_id",
+            "stat",
+            "key",
+            "subkey",
+            "value",
+        ]
+        rows = {(row.stat, row.key, row.subkey): row.value for row in breakdowns.itertuples()}
+        assert rows == {
+            ("damage", "npc_dota_hero_lina", None): 900,
+            ("damage_targets", "axe_counter_helix", "npc_dota_hero_lina"): 600,
+            ("damage_targets", "axe_counter_helix", "npc_dota_hero_bane"): 40,
+            ("gold_reasons", "12", None): 350,
+        }
+        summary = dfs["player_summary"].iloc[0]
+        assert summary["max_hero_hit_value"] == 700
+        assert summary["max_hero_hit_inflictor"] == "axe_culling_blade"
+        assert summary["max_hero_hit_target"] == "npc_dota_hero_lina"
+        assert summary["max_hero_hit_time"] == 912
+
+    def test_teamfights_export_players_as_their_own_table(self):
+        fight_players = [TeamfightPlayer(player_id=i) for i in range(10)]
+        fight_players[2].damage_dealt = 450
+        fight_players[2].ability_uses = {"axe_berserkers_call": 1}
+        match = ParsedMatch(
+            teamfights=[
+                Teamfight(
+                    start_tick=100,
+                    end_tick=900,
+                    first_death_tick=500,
+                    last_death_tick=600,
+                    deaths=2,
+                    players=fight_players,
+                )
+            ]
+        )
+
+        dfs = build_dataframes(match)
+
+        assert "players" not in dfs["teamfights"].columns
+        assert dfs["teamfights"].iloc[0]["fight_index"] == 0
+        fight_rows = dfs["teamfight_players"]
+        assert len(fight_rows) == 10
+        assert "ability_uses" not in fight_rows.columns
+        assert fight_rows.set_index("player_id").loc[2, "damage_dealt"] == 450
+
+    def test_smoke_events_join_smoked_and_drop_participants(self):
+        match = ParsedMatch(
+            smoke_events=[
+                SmokeEvent(
+                    tick=1_000,
+                    activator="npc_dota_hero_axe",
+                    team=2,
+                    smoked=["npc_dota_hero_axe", "npc_dota_hero_lina"],
+                    participants=[
+                        SmokeParticipant(
+                            hero_name="npc_dota_hero_axe", player_id=0, applied_tick=1_001
+                        )
+                    ],
+                )
+            ]
+        )
+
+        row = build_dataframes(match)["smoke_events"].iloc[0]
+
+        assert "participants" not in row.index
+        assert row["smoked"] == "npc_dota_hero_axe;npc_dota_hero_lina"
+
+    def test_core_tables_hold_only_primitive_cells(self):
+        pp = ParsedPlayer(
+            player_id=0,
+            hero_name="npc_dota_hero_axe",
+            team=2,
+            times=[30, 60],
+            gold_t=[500, 600],
+            times_min=[30],
+            gold_t_min=[500],
+            position_log=[(30, 1.0, 2.0)],
+        )
+        pp.damage = {"npc_dota_hero_lina": 900}
+        pp.damage_targets = {"axe_counter_helix": {"npc_dota_hero_lina": 600}}
+        pp.lane_pos = {"64_64": 3}
+        pp.max_hero_hit = {"inflictor": "axe_culling_blade", "key": "x", "value": 1, "time": 2}
+        pp.kills_log = [CombatLogEntry(tick=10, log_type=CombatLogType.DEATH)]
+        match = ParsedMatch(
+            players=[pp],
+            combat_log=[CombatLogEntry(tick=10, log_type=CombatLogType.DAMAGE, value=5)],
+            teamfights=[
+                Teamfight(
+                    start_tick=1,
+                    end_tick=2,
+                    first_death_tick=1,
+                    last_death_tick=1,
+                    deaths=1,
+                    players=[TeamfightPlayer(player_id=0, item_uses={"blink": 1})],
+                )
+            ],
+            smoke_events=[SmokeEvent(tick=1, activator="a", team=2, smoked=["a"])],
+            vision_modifiers=[VisionModifierEvent(1, 2, "m", "t", "c", 2, evidence_gaps=["gap"])],
+            vision_modifier_pairing_issues=[
+                VisionModifierPairingIssue(
+                    tick=3,
+                    reason="unmatched",
+                    modifier_name="m",
+                    caster_name="",
+                    target_name="t",
+                    source=CombatLogSource.S2_BULK,
+                    candidate_add_ticks=[1, 2],
+                )
+            ],
+        )
+
+        dfs = build_dataframes(match)
+
+        for name, df in dfs.items():
+            for column in df.columns:
+                nested = [v for v in df[column] if isinstance(v, (dict, list, tuple, set))]
+                assert not nested, f"{name}.{column} holds nested cells: {nested[:1]}"

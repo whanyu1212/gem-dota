@@ -215,7 +215,8 @@ separate so the metadata does not imply that the legacy geometry was redrawn.
 
 ## DataFrames
 
-`gem.to_dataframe(match)` adds four stable flat tables:
+`gem.results.dataframes.build_dataframes(match, include=["analysis"])` (or
+`gem.parse_to_dataframe(path, include=["analysis"])`) adds four stable flat tables:
 
 - `farming_routes`: player-level availability, catalog metadata, and counts;
 - `farming_route_segments`: boundaries, support facts, strength, comparative

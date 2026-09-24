@@ -86,8 +86,8 @@ latest fight-end tick; equal starts use stable smoke/fight source order.
 ## Exports and report UI
 
 `gem.to_dict(...)` serializes the public dataclasses and enum values. DataFrame
-exports provide flat insight, member, and follow-up tables with stable empty
-schemas.
+exports with `include=["analysis"]` provide flat insight, member, and follow-up
+tables with stable empty schemas.
 
 The HTML report renders concise evidence in **Smoke Operations** and links a
 unique association to the matching **Fights** positioning card. The jump opens

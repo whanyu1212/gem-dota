@@ -1,65 +1,296 @@
 """DataFrame conversion for :class:`ParsedMatch` output.
 
-Converts the structured output of :func:`gem.parse` into pandas DataFrames
-suitable for tabular analysis.
+Converts the structured output of :func:`gem.parse` into flat pandas
+DataFrames for tabular and cross-match analysis. The default (core) tables
+hold only primitive cells and carry a leading ``match_id`` column so they can
+be concatenated across replays. Nested post-parse analysis records are
+available as opt-in groups; their full-fidelity form is the dataclass/JSON
+output.
+
+Reference: odota/parser CreateParsedDataBlob.java (pinned revision in
+CLAUDE.md) for the OpenDota-compatible per-player field names.
 """
 
 from __future__ import annotations
 
+from collections.abc import Iterable
+from dataclasses import asdict, fields
+from enum import Enum
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     import pandas as pd
 
-    from gem.results.models import ParsedMatch
+    from gem.results.models import ParsedMatch, ParsedPlayer
+
+#: Tables returned by :func:`build_dataframes` by default.
+CORE_TABLES: tuple[str, ...] = (
+    "match",
+    "player_summary",
+    "player_timeseries",
+    "players_minute",
+    "player_breakdowns",
+    "positions",
+    "radiant_advantage",
+    "combat_log",
+    "wards",
+    "objectives",
+    "chat",
+    "draft",
+    "teamfights",
+    "teamfight_players",
+    "smoke_events",
+    "smoke_members",
+    "courier_snapshots",
+    "neutral_item_finds",
+    "hero_visibility_events",
+    "entity_visibility",
+    "vision_modifiers",
+    "vision_modifier_pairing_issues",
+    "player_kills_log",
+    "player_purchase_log",
+    "player_runes_log",
+    "player_buyback_log",
+)
+
+#: Opt-in table groups, selected with ``build_dataframes(match, include=[...])``.
+OPTIONAL_GROUPS: dict[str, tuple[str, ...]] = {
+    "analysis": (
+        "teamfight_positioning",
+        "roshan_conversions",
+        "roshan_conversion_fights",
+        "smoke_fight_insights",
+        "smoke_fight_members",
+        "smoke_fight_followups",
+        "farming_routes",
+        "farming_route_segments",
+        "farming_route_points",
+        "farming_context_tags",
+    ),
+    "opendota": (
+        "opendota_objectives",
+        "opendota_teamfights",
+    ),
+}
+
+# Per-player scalar fields exported once per player in ``player_summary``.
+_PLAYER_SUMMARY_FIELDS: tuple[str, ...] = (
+    "player_id",
+    "player_name",
+    "hero_name",
+    "hero_id",
+    "steam_id",
+    "account_id",
+    "team",
+    "is_radiant",
+    "win",
+    "level",
+    "kills",
+    "deaths",
+    "assists",
+    "kda",
+    "kills_per_min",
+    "last_hits",
+    "denies",
+    "net_worth",
+    "gold_per_min",
+    "xp_per_min",
+    "total_gold",
+    "total_xp",
+    "gold_spent",
+    "hero_damage",
+    "tower_damage",
+    "hero_healing",
+    "stuns_dealt",
+    "teamfight_participation",
+    "firstblood_claimed",
+    "lane_role",
+    "lane_last_hits",
+    "lane_denies",
+    "lane_total_gold",
+    "lane_total_xp",
+    "lane_efficiency_pct",
+    "lane_gold_adv",
+    "lane_xp_adv",
+    "camps_stacked",
+    "creeps_stacked",
+    "obs_placed",
+    "sen_placed",
+    "observers_placed",
+    "observer_uses",
+    "sentry_uses",
+    "purchase_tpscroll",
+    "purchase_ward_observer",
+    "purchase_ward_sentry",
+    "rune_pickups",
+    "tower_kills",
+    "roshan_kills",
+    "ancient_kills",
+    "neutral_kills",
+    "lane_kills",
+    "courier_kills",
+    "observer_kills",
+    "sentry_kills",
+    "buyback_count",
+    "life_state_dead",
+    "aghanims_scepter",
+    "aghanims_shard",
+    "moonshard",
+)
+
+# Per-player dict fields exported in long form in ``player_breakdowns``.
+# Two-level ``outer -> {inner: value}`` dicts fill the ``subkey`` column.
+_PLAYER_BREAKDOWN_FIELDS: tuple[str, ...] = (
+    "damage",
+    "damage_taken",
+    "damage_inflictor",
+    "damage_inflictor_received",
+    "damage_targets",
+    "ability_targets",
+    "hero_hits",
+    "healing",
+    "killed",
+    "ability_uses",
+    "item_uses",
+    "purchase",
+    "purchase_time",
+    "first_purchase_time",
+    "gold_reasons",
+    "xp_reasons",
+    "lane_pos",
+)
+
+# ``TeamfightPlayer`` dict fields left out of ``teamfight_players``.
+_TEAMFIGHT_PLAYER_DICTS: frozenset[str] = frozenset({"ability_uses", "item_uses"})
 
 
-def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
-    """Convert a :class:`ParsedMatch` into a dict of pandas DataFrames.
+def build_dataframes(match: ParsedMatch, *, include: Iterable[str] = ()) -> dict[str, pd.DataFrame]:
+    """Convert a :class:`ParsedMatch` into a dict of flat pandas DataFrames.
+
+    Every table starts with a ``match_id`` column (``0`` when the replay does
+    not carry one). Core tables contain only primitive cells: list-valued
+    fields are joined with ``";"`` and per-player dict fields are exported in
+    long form in ``player_breakdowns``.
 
     Args:
         match: Fully populated :class:`ParsedMatch`.
+        include: Optional table groups to add (see :data:`OPTIONAL_GROUPS`).
+            ``"analysis"`` runs the post-parse farming, smoke-fight, Roshan
+            conversion, and teamfight-positioning analyses and flattens them;
+            ``"opendota"`` adds the OpenDota-shaped objective and teamfight
+            views. A single group name may be passed as a plain string.
 
     Returns:
-        Dictionary with tabular projections of match-level, player-level,
-        event-level, and post-parse analysis data. Existing keys are preserved;
-        farming analysis adds ``farming_routes``,
-        ``farming_route_segments``, ``farming_route_points``, and
-        ``farming_context_tags``.
-    """
-    from dataclasses import asdict, fields
-    from enum import Enum
+        Dictionary mapping table name to DataFrame: every name in
+        :data:`CORE_TABLES`, plus the tables of each requested group.
 
+    Raises:
+        ValueError: If ``include`` names an unknown group.
+    """
+    groups = _resolve_include(include)
+
+    tables = _build_core_tables(match)
+    if "analysis" in groups:
+        tables.update(_build_analysis_tables(match))
+    if "opendota" in groups:
+        tables.update(_build_opendota_tables(match))
+
+    for df in tables.values():
+        if "match_id" not in df.columns:
+            df.insert(0, "match_id", match.match_id)
+    return tables
+
+
+def _resolve_include(include: Iterable[str]) -> set[str]:
+    groups = {include} if isinstance(include, str) else set(include)
+    unknown = groups - OPTIONAL_GROUPS.keys()
+    if unknown:
+        raise ValueError(
+            f"Unknown DataFrame group(s) {sorted(unknown)}; "
+            f"expected any of {sorted(OPTIONAL_GROUPS)}"
+        )
+    return groups
+
+
+def _plain_row(item: Any) -> dict:
+    """``asdict`` an item, demoting Enum field values to their raw value.
+
+    Keeps DataFrame cells as primitives (e.g. ``"DAMAGE"`` rather than a
+    ``CombatLogType`` member) so the exported schema stays backward
+    compatible regardless of how internal fields are typed.
+    """
+    row = asdict(item)
+    for key, value in row.items():
+        if isinstance(value, Enum):
+            row[key] = value.value
+    return row
+
+
+def _plain_rows(items: list) -> list[dict]:
+    """``asdict`` each item with Enum field values demoted to primitives."""
+    return [_plain_row(it) for it in items]
+
+
+def _join(values: Iterable[Any]) -> str:
+    """Join a list-valued field into one ``";"``-separated string cell."""
+    return ";".join(str(value) for value in values)
+
+
+def _player_summary_row(pp: ParsedPlayer) -> dict[str, Any]:
+    row: dict[str, Any] = {name: getattr(pp, name) for name in _PLAYER_SUMMARY_FIELDS}
+    for kind in ("physical", "magical", "pure"):
+        row[f"damage_{kind}"] = pp.damage_by_type.get(kind, 0)
+        row[f"damage_taken_{kind}"] = pp.damage_taken_by_type.get(kind, 0)
+    hit = pp.max_hero_hit or {}
+    row["max_hero_hit_value"] = hit.get("value")
+    row["max_hero_hit_inflictor"] = hit.get("inflictor")
+    row["max_hero_hit_target"] = hit.get("key")
+    row["max_hero_hit_time"] = hit.get("time")
+    return row
+
+
+def _player_breakdown_rows(pp: ParsedPlayer) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for stat in _PLAYER_BREAKDOWN_FIELDS:
+        for key, value in getattr(pp, stat).items():
+            if isinstance(value, dict):
+                for subkey, inner in value.items():
+                    rows.append(
+                        {
+                            "player_id": pp.player_id,
+                            "stat": stat,
+                            "key": str(key),
+                            "subkey": str(subkey),
+                            "value": inner,
+                        }
+                    )
+            else:
+                rows.append(
+                    {
+                        "player_id": pp.player_id,
+                        "stat": stat,
+                        "key": str(key),
+                        "subkey": None,
+                        "value": value,
+                    }
+                )
+    return rows
+
+
+def _build_core_tables(match: ParsedMatch) -> dict[str, pd.DataFrame]:
     import pandas as pd
 
-    from gem.analysis.farming import build_farming_routes
-    from gem.analysis.roshan import build_rosh_conversions
-    from gem.analysis.smoke_fight import build_smoke_fight_insights
-    from gem.analysis.teamfight_positioning import build_teamfight_positioning
+    from gem.extractors.teamfights import Teamfight, TeamfightPlayer
     from gem.results.models import (
         EntityVisibilityEvent,
+        SmokeEvent,
         VisionModifierEvent,
         VisionModifierPairingIssue,
     )
 
-    def _plain_row(item: Any) -> dict:
-        """``asdict`` an item, demoting Enum field values to their raw value.
-
-        Keeps DataFrame cells as primitives (e.g. ``"DAMAGE"`` rather than a
-        ``CombatLogType`` member) so the exported schema stays backward
-        compatible regardless of how internal fields are typed.
-        """
-        row = asdict(item)
-        for key, value in row.items():
-            if isinstance(value, Enum):
-                row[key] = value.value
-        return row
-
-    def _plain_rows(items: list) -> list[dict]:
-        """``asdict`` each item with Enum field values demoted to primitives."""
-        return [_plain_row(it) for it in items]
-
-    # --- players (per sample tick) ---
+    # --- players: one summary row, per-tick samples, long-form breakdowns ---
+    summary_rows: list[dict] = []
+    breakdown_rows: list[dict] = []
     player_rows: list[dict] = []
     player_min_rows: list[dict] = []
     player_kills_rows: list[dict] = []
@@ -68,6 +299,9 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
     player_buyback_rows: list[dict] = []
 
     for pp in match.players:
+        summary_rows.append(_player_summary_row(pp))
+        breakdown_rows.extend(_player_breakdown_rows(pp))
+
         n = len(pp.times)
         for i in range(n):
             player_rows.append(
@@ -88,74 +322,6 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                     "lh": pp.lh_t[i] if i < len(pp.lh_t) else 0,
                     "dn": pp.dn_t[i] if i < len(pp.dn_t) else 0,
                     "xp": pp.xp_t[i] if i < len(pp.xp_t) else 0,
-                    "kills": pp.kills,
-                    "deaths": pp.deaths,
-                    "assists": pp.assists,
-                    "stuns_dealt": pp.stuns_dealt,
-                    "lane_role": pp.lane_role,
-                    "lane_last_hits": pp.lane_last_hits,
-                    "lane_denies": pp.lane_denies,
-                    "lane_total_gold": pp.lane_total_gold,
-                    "lane_total_xp": pp.lane_total_xp,
-                    "lane_efficiency_pct": pp.lane_efficiency_pct,
-                    "lane_gold_adv": pp.lane_gold_adv,
-                    "lane_xp_adv": pp.lane_xp_adv,
-                    # Per-player end-of-game terminal scalars (constant across the
-                    # player's rows). Named ``final_*`` to avoid shadowing the
-                    # per-tick ``net_worth``/``lh``/``dn`` columns above.
-                    "final_net_worth": pp.net_worth,
-                    "final_last_hits": pp.last_hits,
-                    "final_denies": pp.denies,
-                    "camps_stacked": pp.camps_stacked,
-                    "creeps_stacked": pp.creeps_stacked,
-                    "obs_placed": pp.obs_placed,
-                    "sen_placed": pp.sen_placed,
-                    "rune_pickups": pp.rune_pickups,
-                    "tower_kills": pp.tower_kills,
-                    "kda": pp.kda,
-                    "buyback_count": pp.buyback_count,
-                    "is_radiant": pp.is_radiant,
-                    "win": pp.win,
-                    "kills_per_min": pp.kills_per_min,
-                    "gold_per_min": pp.gold_per_min,
-                    "xp_per_min": pp.xp_per_min,
-                    "total_gold": pp.total_gold,
-                    "total_xp": pp.total_xp,
-                    "hero_damage": pp.hero_damage,
-                    "tower_damage": pp.tower_damage,
-                    "hero_healing": pp.hero_healing,
-                    "aghanims_scepter": pp.aghanims_scepter,
-                    "aghanims_shard": pp.aghanims_shard,
-                    "moonshard": pp.moonshard,
-                    "damage_physical": pp.damage_by_type.get("physical", 0),
-                    "damage_magical": pp.damage_by_type.get("magical", 0),
-                    "damage_pure": pp.damage_by_type.get("pure", 0),
-                    "damage_taken_physical": pp.damage_taken_by_type.get("physical", 0),
-                    "damage_taken_magical": pp.damage_taken_by_type.get("magical", 0),
-                    "damage_taken_pure": pp.damage_taken_by_type.get("pure", 0),
-                    "damage": dict(pp.damage),
-                    "damage_taken": dict(pp.damage_taken),
-                    "damage_inflictor": dict(pp.damage_inflictor),
-                    "damage_inflictor_received": dict(pp.damage_inflictor_received),
-                    "damage_targets": {k: dict(v) for k, v in pp.damage_targets.items()},
-                    "ability_targets": {k: dict(v) for k, v in pp.ability_targets.items()},
-                    "hero_hits": dict(pp.hero_hits),
-                    "max_hero_hit": pp.max_hero_hit,
-                    "healing": dict(pp.healing),
-                    "ability_uses": dict(pp.ability_uses),
-                    "item_uses": dict(pp.item_uses),
-                    "purchase": dict(pp.purchase),
-                    "purchase_time": dict(pp.purchase_time),
-                    "first_purchase_time": dict(pp.first_purchase_time),
-                    "purchase_tpscroll": pp.purchase_tpscroll,
-                    "purchase_ward_observer": pp.purchase_ward_observer,
-                    "purchase_ward_sentry": pp.purchase_ward_sentry,
-                    "observer_uses": pp.observer_uses,
-                    "sentry_uses": pp.sentry_uses,
-                    "observers_placed": pp.observers_placed,
-                    "gold_reasons": dict(pp.gold_reasons),
-                    "xp_reasons": dict(pp.xp_reasons),
-                    "lane_pos": dict(pp.lane_pos),
                 }
             )
 
@@ -213,7 +379,36 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
             row["net_worth"] = bb.net_worth if bb is not None else None
             player_buyback_rows.append(row)
 
-    players_df = pd.DataFrame(player_rows)
+    summary_columns = [
+        *_PLAYER_SUMMARY_FIELDS,
+        *(f"damage_{kind}" for kind in ("physical", "magical", "pure")),
+        *(f"damage_taken_{kind}" for kind in ("physical", "magical", "pure")),
+        "max_hero_hit_value",
+        "max_hero_hit_inflictor",
+        "max_hero_hit_target",
+        "max_hero_hit_time",
+    ]
+    player_summary_df = pd.DataFrame(summary_rows, columns=summary_columns)
+    player_timeseries_df = pd.DataFrame(
+        player_rows,
+        columns=[
+            "player_id",
+            "player_name",
+            "hero_name",
+            "team",
+            "tick",
+            "gold",
+            "total_earned_gold",
+            "total_earned_xp",
+            "net_worth",
+            "lh",
+            "dn",
+            "xp",
+        ],
+    )
+    player_breakdowns_df = pd.DataFrame(
+        breakdown_rows, columns=["player_id", "stat", "key", "subkey", "value"]
+    )
     players_min_df = pd.DataFrame(player_min_rows)
 
     # --- combat_log ---
@@ -327,10 +522,6 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         )
     objectives_df = pd.DataFrame(obj_rows)
 
-    # OpenDota-shaped unified objectives timeline (separate from the native
-    # per-type objectives_df above).
-    opendota_objectives_df = pd.DataFrame(match.objectives) if match.objectives else pd.DataFrame()
-
     # --- positions ---
     pos_rows: list[dict] = []
     for pp in match.players:
@@ -384,20 +575,39 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
 
     # --- list-based domains ---
     draft_df = pd.DataFrame([asdict(d) for d in match.draft]) if match.draft else pd.DataFrame()
-    teamfights_df = (
-        pd.DataFrame([asdict(tf) for tf in match.teamfights])
-        if match.teamfights
-        else pd.DataFrame()
-    )
-    opendota_teamfights_df = (
-        pd.DataFrame([asdict(tf) for tf in match.opendota_teamfights])
-        if match.opendota_teamfights
-        else pd.DataFrame()
-    )
-    smoke_df = (
-        pd.DataFrame([asdict(se) for se in match.smoke_events])
-        if match.smoke_events
-        else pd.DataFrame()
+    # Teamfights: one row per fight, with the per-player breakdown in its own
+    # long table. The per-player ability/item use dicts stay in the JSON output.
+    teamfight_columns = [
+        "fight_index",
+        *(f.name for f in fields(Teamfight) if f.name != "players"),
+    ]
+    teamfight_player_columns = [
+        "fight_index",
+        *(f.name for f in fields(TeamfightPlayer) if f.name not in _TEAMFIGHT_PLAYER_DICTS),
+    ]
+    teamfight_rows: list[dict[str, Any]] = []
+    teamfight_player_rows: list[dict[str, Any]] = []
+    for fight_index, fight in enumerate(match.teamfights):
+        teamfight_rows.append(
+            {"fight_index": fight_index}
+            | {name: getattr(fight, name) for name in teamfight_columns[1:]}
+        )
+        for fight_player in fight.players:
+            teamfight_player_rows.append(
+                {"fight_index": fight_index}
+                | {name: getattr(fight_player, name) for name in teamfight_player_columns[1:]}
+            )
+    teamfights_df = pd.DataFrame(teamfight_rows, columns=teamfight_columns)
+    teamfight_players_df = pd.DataFrame(teamfight_player_rows, columns=teamfight_player_columns)
+
+    # Smoke events: participants are exported in ``smoke_members``.
+    smoke_columns = [f.name for f in fields(SmokeEvent) if f.name != "participants"]
+    smoke_df = pd.DataFrame(
+        [
+            {name: getattr(smoke, name) for name in smoke_columns} | {"smoked": _join(smoke.smoked)}
+            for smoke in match.smoke_events
+        ],
+        columns=smoke_columns,
     )
     smoke_member_columns = [
         "smoke_event_index",
@@ -448,13 +658,74 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
     )
     vision_modifier_columns = [item.name for item in fields(VisionModifierEvent)]
     vision_modifiers_df = pd.DataFrame(
-        _plain_rows(match.vision_modifiers), columns=vision_modifier_columns
+        [
+            row | {"evidence_gaps": _join(row["evidence_gaps"])}
+            for row in _plain_rows(match.vision_modifiers)
+        ],
+        columns=vision_modifier_columns,
     )
     vision_pairing_issue_columns = [item.name for item in fields(VisionModifierPairingIssue)]
     vision_modifier_pairing_issues_df = pd.DataFrame(
-        _plain_rows(match.vision_modifier_pairing_issues),
+        [
+            row | {"candidate_add_ticks": _join(row["candidate_add_ticks"])}
+            for row in _plain_rows(match.vision_modifier_pairing_issues)
+        ],
         columns=vision_pairing_issue_columns,
     )
+
+    return {
+        "match": match_df,
+        "player_summary": player_summary_df,
+        "player_timeseries": player_timeseries_df,
+        "players_minute": players_min_df,
+        "player_breakdowns": player_breakdowns_df,
+        "positions": positions_df,
+        "radiant_advantage": advantage_df,
+        "combat_log": combat_df,
+        "wards": wards_df,
+        "objectives": objectives_df,
+        "chat": chat_df,
+        "draft": draft_df,
+        "teamfights": teamfights_df,
+        "teamfight_players": teamfight_players_df,
+        "smoke_events": smoke_df,
+        "smoke_members": smoke_members_df,
+        "courier_snapshots": courier_df,
+        "neutral_item_finds": neutral_item_finds_df,
+        "hero_visibility_events": hero_visibility_df,
+        "entity_visibility": entity_visibility_df,
+        "vision_modifiers": vision_modifiers_df,
+        "vision_modifier_pairing_issues": vision_modifier_pairing_issues_df,
+        "player_kills_log": pd.DataFrame(player_kills_rows),
+        "player_purchase_log": pd.DataFrame(player_purchase_rows),
+        "player_runes_log": pd.DataFrame(player_runes_rows),
+        "player_buyback_log": pd.DataFrame(player_buyback_rows),
+    }
+
+
+def _build_opendota_tables(match: ParsedMatch) -> dict[str, pd.DataFrame]:
+    import pandas as pd
+
+    # OpenDota-shaped views, kept verbatim for OpenDota-compatible consumers.
+    return {
+        "opendota_objectives": (
+            pd.DataFrame(match.objectives) if match.objectives else pd.DataFrame()
+        ),
+        "opendota_teamfights": (
+            pd.DataFrame([asdict(tf) for tf in match.opendota_teamfights])
+            if match.opendota_teamfights
+            else pd.DataFrame()
+        ),
+    }
+
+
+def _build_analysis_tables(match: ParsedMatch) -> dict[str, pd.DataFrame]:
+    import pandas as pd
+
+    from gem.analysis.farming import build_farming_routes
+    from gem.analysis.roshan import build_rosh_conversions
+    from gem.analysis.smoke_fight import build_smoke_fight_insights
+    from gem.analysis.teamfight_positioning import build_teamfight_positioning
 
     positioning_columns = [
         "fight_index",
@@ -1240,24 +1511,9 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
     )
 
     return {
-        "players": players_df,
-        "players_minute": players_min_df,
-        "positions": positions_df,
-        "combat_log": combat_df,
-        "wards": wards_df,
-        "objectives": objectives_df,
-        "opendota_objectives": opendota_objectives_df,
-        "chat": chat_df,
-        "match": match_df,
-        "radiant_advantage": advantage_df,
-        "draft": draft_df,
-        "teamfights": teamfights_df,
         "teamfight_positioning": teamfight_positioning_df,
         "roshan_conversions": roshan_conversions_df,
         "roshan_conversion_fights": roshan_conversion_fights_df,
-        "opendota_teamfights": opendota_teamfights_df,
-        "smoke_events": smoke_df,
-        "smoke_members": smoke_members_df,
         "smoke_fight_insights": smoke_fight_insights_df,
         "smoke_fight_members": smoke_fight_members_df,
         "smoke_fight_followups": smoke_fight_followups_df,
@@ -1265,14 +1521,4 @@ def build_dataframes(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         "farming_route_segments": farming_route_segments_df,
         "farming_route_points": farming_route_points_df,
         "farming_context_tags": farming_context_tags_df,
-        "courier_snapshots": courier_df,
-        "neutral_item_finds": neutral_item_finds_df,
-        "hero_visibility_events": hero_visibility_df,
-        "entity_visibility": entity_visibility_df,
-        "vision_modifiers": vision_modifiers_df,
-        "vision_modifier_pairing_issues": vision_modifier_pairing_issues_df,
-        "player_kills_log": pd.DataFrame(player_kills_rows),
-        "player_purchase_log": pd.DataFrame(player_purchase_rows),
-        "player_runes_log": pd.DataFrame(player_runes_rows),
-        "player_buyback_log": pd.DataFrame(player_buyback_rows),
     }

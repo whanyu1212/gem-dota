@@ -91,7 +91,8 @@ The legacy `event.smoked`, `event.x`, and `event.y` fields remain available.
 `x/y` are the member centroid captured around modifier application, not the
 activator's item-use position.
 
-DataFrame exports include both `smoke_events` and a flat `smoke_members` table.
+DataFrame exports include both `smoke_events` (with `smoked` as a `";"`-joined
+hero list) and a flat `smoke_members` table.
 The HTML report presents the same evidence in the **Smoke Operations** card.
 For bounded smoke-to-fight composition, participant overlap, formation context,
 and follow-up evidence, use

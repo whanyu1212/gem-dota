@@ -52,7 +52,7 @@ def _build_parser() -> argparse.ArgumentParser:
             "  python -m gem match.dem --format json\n"
             "  python -m gem parse match.dem --format parquet --output ./out\n"
             "  python -m gem batch replays/ --format parquet --output ./out\n"
-            "  python -m gem batch replays/ --format dataframe --output ./out\n"
+            "  python -m gem batch replays/ --output ./out --include analysis\n"
             "  python -m gem batch replays/ --workers 4 --recursive\n"
             "  python -m gem parse match.dem --progress --timings\n"
             "  python -m gem reports assets status\n"
@@ -82,6 +82,7 @@ def _build_parser() -> argparse.ArgumentParser:
         type=Path,
         help="Output file (json) or directory (parquet). Omit for json to print to stdout.",
     )
+    _add_include_flag(parse_cmd)
     _add_common_flags(parse_cmd)
 
     # ── batch subcommand ────────────────────────────────────────────────────
@@ -98,9 +99,12 @@ def _build_parser() -> argparse.ArgumentParser:
     batch_cmd.add_argument(
         "--format",
         dest="format",
-        choices=("parquet", "dataframe"),
+        choices=("parquet",),
         default="parquet",
-        help="Output format: parquet (one subdir per replay) or dataframe (concatenated, requires --output). Default: parquet",
+        help=(
+            "Output format: parquet (one subdir per replay; load one table across "
+            "replays with gem.read_parquet_table). Default: parquet"
+        ),
     )
     batch_cmd.add_argument(
         "--output",
@@ -119,6 +123,7 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Scan source directory recursively for .dem files.",
     )
+    _add_include_flag(batch_cmd)
     _add_common_flags(batch_cmd)
 
     # ── reports subcommand ──────────────────────────────────────────────────
@@ -199,6 +204,22 @@ def _build_parser() -> argparse.ArgumentParser:
     )
 
     return parser
+
+
+def _add_include_flag(p: argparse.ArgumentParser) -> None:
+    from gem.results.dataframes import OPTIONAL_GROUPS
+
+    p.add_argument(
+        "--include",
+        action="append",
+        choices=sorted(OPTIONAL_GROUPS),
+        default=[],
+        metavar="GROUP",
+        help=(
+            "Add an optional parquet table group (repeatable): "
+            f"{', '.join(sorted(OPTIONAL_GROUPS))}."
+        ),
+    )
 
 
 def _add_common_flags(p: argparse.ArgumentParser) -> None:
@@ -477,7 +498,7 @@ def _run_parse(args: argparse.Namespace, console: Console) -> None:
                 sys.exit(2)
 
             tracker.start("parse_export_parquet")
-            written = parse_to_parquet(args.path, args.output)
+            written = parse_to_parquet(args.path, args.output, include=args.include)
             tracker.end("parse_export_parquet")
 
             if not args.quiet:
@@ -495,7 +516,7 @@ def _run_parse(args: argparse.Namespace, console: Console) -> None:
 
 
 def _run_batch(args: argparse.Namespace, console: Console) -> None:
-    from gem.replays.batch import parse_many_to_dataframe, parse_many_to_parquet
+    from gem.replays.batch import parse_many_to_parquet
 
     # source is a list (nargs="+") — unwrap to single path if it's a directory
     source: list[Path] | Path = (
@@ -509,57 +530,24 @@ def _run_batch(args: argparse.Namespace, console: Console) -> None:
     )
 
     try:
-        if args.format == "parquet":
-            tracker.start("batch_parquet")
-            # batch already shows its own Rich progress bar; suppress tracker's
-            # bar to avoid two overlapping bars when --progress is set
-            results = parse_many_to_parquet(
-                source,
-                args.output,
-                workers=args.workers,
-                recursive=args.recursive,
-                progress=not args.quiet,
+        tracker.start("batch_parquet")
+        # batch already shows its own Rich progress bar; suppress tracker's
+        # bar to avoid two overlapping bars when --progress is set
+        results = parse_many_to_parquet(
+            source,
+            args.output,
+            workers=args.workers,
+            recursive=args.recursive,
+            progress=not args.quiet,
+            include=args.include,
+        )
+        tracker.end("batch_parquet")
+
+        if not args.quiet:
+            console.print(
+                f"[green]✓[/green] Wrote [bold]{len(results)}[/bold] "
+                f"parquet file(s) to [bold]{args.output}[/bold]"
             )
-            tracker.end("batch_parquet")
-
-            # parse_many_to_parquet returns file paths; recover ParseResults for summary
-            # by re-running parse_many (already done internally) — instead, call parse_many
-            # directly so we can show the failure table.  For the simple case just report counts.
-            if not args.quiet:
-                console.print(
-                    f"[green]✓[/green] Wrote [bold]{len(results)}[/bold] "
-                    f"parquet file(s) to [bold]{args.output}[/bold]"
-                )
-
-        else:  # dataframe
-            tracker.start("batch_dataframe")
-            dfs = parse_many_to_dataframe(
-                source,
-                workers=args.workers,
-                recursive=args.recursive,
-                progress=not args.quiet,
-            )
-            tracker.end("batch_dataframe")
-
-            tracker.start("write_dataframe")
-            args.output.mkdir(parents=True, exist_ok=True)
-            written = []
-            for key, df in dfs.items():
-                p = args.output / f"{key}.parquet"
-                try:
-                    df.to_parquet(p, index=False)
-                except ImportError as exc:
-                    raise ImportError(
-                        "Parquet export requires 'pyarrow' or 'fastparquet'."
-                    ) from exc
-                written.append(p)
-            tracker.end("write_dataframe")
-
-            if not args.quiet:
-                console.print(
-                    f"[green]✓[/green] Wrote [bold]{len(written)}[/bold] "
-                    f"concatenated parquet file(s) to [bold]{args.output}[/bold]"
-                )
     finally:
         tracker.report()
 
