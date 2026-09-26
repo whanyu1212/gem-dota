@@ -3,7 +3,7 @@
 Polls hero entity state at configurable tick intervals and accumulates
 snapshots for time-series analysis.
 
-Reference: examples/extraction_demo.py, refs/parser/src/main/java/opendota/Parse.java
+Reference: examples/extraction_demo.py, odota/parser src/main/java/opendota/Parse.java
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ if TYPE_CHECKING:
 # ---------------------------------------------------------------------------
 
 # Slots 0-5 = main inventory, 6-8 = backpack, 9-16 = stash
-# Reference: refs/parser/src/main/java/opendota/Parse.java getHeroItem() comment
+# Reference: odota/parser src/main/java/opendota/Parse.java getHeroItem() comment
 _ITEM_SLOTS = 17  # total slots to scan (0-16) for ongoing inventory snapshots
 # Starting-inventory synthesis scans only slots 0-7 (6 inventory + backpack 6-7),
 # matching OpenDota's getHeroInventory (`for i < 8`, Parse.java:818). Stash 9-16
@@ -224,7 +224,7 @@ class PlayerExtractor:
         self._game_end_tick = tick
         self._sample(tick, minute=False)
         # Read authoritative kills/deaths/assists from the server scoreboard.
-        # Reference: refs/parser/src/main/java/opendota/Parse.java lines 666-668
+        # Reference: odota/parser src/main/java/opendota/Parse.java lines 666-668
         # m_vecPlayerTeamData.%04d.m_iKills/Deaths/Assists on CDOTA_PlayerResource.
         pr = self._player_resource
         if pr is not None:
@@ -498,7 +498,7 @@ class PlayerExtractor:
 
         ending = class_name[len(_HERO_CLASS_PREFIX) :]
         # Register two name forms to cover inconsistent combat log names.
-        # Reference: refs/parser/src/main/java/opendota/Parse.java
+        # Reference: odota/parser src/main/java/opendota/Parse.java
         aliases = (
             "npc_dota_hero_" + ending.lower(),
             "npc_dota_hero" + re.sub(r"([A-Z])", r"_\1", ending.replace("_", "")).lower(),
@@ -525,7 +525,7 @@ class PlayerExtractor:
         Dire (a coach has team 1/14 and is skipped), then uses the scan order as
         logical slot ``0..9``. The resource array index is not always the logical
         slot, so all PlayerResource reads go through ``_resource_index_by_id``.
-        Reference: refs/parser/.../opendota/Parse.java (validIndices).
+        Reference: odota/parser Parse.java (validIndices).
         """
         pr = self._player_resource
         if pr is None:
@@ -681,7 +681,7 @@ class PlayerExtractor:
             #     whole game. Use this for radiant_xp_adv, NOT m_iCurrentXP from
             #     the hero entity which resets to 0 on each level-up.
             #
-            # Reference: refs/parser/Parse.java — getEntityProperty(dataTeam,
+            # Reference: odota/parser Parse.java — getEntityProperty(dataTeam,
             #   "m_vecDataTeam.%i.m_iTotalEarnedGold/XP", teamSlot)
             data_entity = self._data_radiant if snap.team == TEAM_RADIANT else self._data_dire
             if data_entity is not None:
@@ -854,7 +854,7 @@ class PlayerExtractor:
         if player_id not in self._inventory_initialized:
             # First snapshot — emit all current items as starting inventory.
             # Subsequent purchases are covered by DOTA_COMBATLOG_PURCHASE events.
-            # Reference: refs/parser/Parse.java isPlayerStartingItemsWritten pattern
+            # Reference: odota/parser Parse.java isPlayerStartingItemsWritten pattern
             self._inventory_initialized.add(player_id)
             self.first_snapshot_tick[player_id] = tick
             # Only slots 0-7 count as starting inventory (OpenDota getHeroInventory

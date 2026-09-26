@@ -41,7 +41,7 @@ class CombatLogType(str, Enum):
     Members emitted only from derived paths (not decoded from a wire type) use
     ``proto_id = _NO_PROTO_ID`` and are excluded from the int→label mapping.
 
-    Reference: refs/manta/dota/dota_shared_enums.proto ``DOTA_COMBATLOG_TYPES``.
+    Reference: dota_shared_enums.proto ``DOTA_COMBATLOG_TYPES``.
     Note: proto types 7 (LOCATION) and 9 (GAME_STATE) are intentionally not
     surfaced.
     """
@@ -71,9 +71,9 @@ class CombatLogType(str, Enum):
     BUYBACK = ("BUYBACK", 12)
     NEUTRAL_CAMP_STACK = ("NEUTRAL_CAMP_STACK", 20)
     PICKUP_RUNE = ("PICKUP_RUNE", 21)
-    # Surfaced label without a wire type we decode: KILLSTREAK is reported by
-    # OpenDota but our pipeline never maps proto type 16, so it stays out of the
-    # int→label table (preserving the historical decode behaviour).
+    # Never produced: wire types MULTIKILL (15) and KILLSTREAK (16) are not mapped,
+    # so they decode as UNKNOWN and this member has no proto_id. OpenDota turns
+    # them into per-player multi_kills / kill_streaks, which gem does not output.
     KILLSTREAK = ("KILLSTREAK", _NO_PROTO_ID)
     # Sentinel for proto types we do not model. Unmapped wire types are labelled
     # UNKNOWN (never DAMAGE) so the aggregator's match statement falls through to
@@ -102,7 +102,7 @@ COMBAT_LOG_TYPES: frozenset[str] = frozenset(t.value for t in CombatLogType)
 
 # Mapping from DOTA_COMBATLOG_TYPES int → enum member, derived from the enum.
 # Excludes members with no decoded wire type; unmapped proto types fall back to
-# DAMAGE at the call site (preserving the original behaviour).
+# UNKNOWN at the call site.
 _LOG_TYPE_NAMES: dict[int, CombatLogType] = {
     t.proto_id: t for t in CombatLogType if t.proto_id != _NO_PROTO_ID
 }
@@ -291,7 +291,7 @@ def opendota_translate(name: str) -> str | None:
         The translated name, or ``None`` when the name should be omitted
         (``dota_unknown``).
 
-    Reference: refs/parser CreateParsedDataBlob.translate.
+    Reference: odota/parser CreateParsedDataBlob.translate.
     """
     if name == "dota_unknown":
         return None
@@ -518,7 +518,7 @@ class CombatLogProcessor:
         timestamp_s = float(msg.timestamp) if msg.HasField("timestamp") else None
         # will_reincarnate marks a DEATH that is a reincarnation/aegis *trigger*,
         # not a final death — the hero comes back, so it must not be counted as a
-        # death. Reference: refs/clarity S2CombatLogEntry.isWillReincarnate (proto
+        # death. Reference: skadistats/clarity S2CombatLogEntry.isWillReincarnate (proto
         # field 78). S1 has no equivalent field.
         will_reincarnate = bool(msg.will_reincarnate) if msg.HasField("will_reincarnate") else False
         visible_radiant = (

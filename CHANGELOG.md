@@ -29,6 +29,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Chat channel labels match the documented contract.** `ChatEntry.channel`
+  was `"team"` for every channel except all-chat, so guild, spectator, coach, and
+  broadcast chat were reported as team chat. It is now `"all"` for all-chat,
+  `"team"` for team chat (`DOTAChannelType_GameAllies`), and the raw channel number
+  as a string for anything else (for example `"13"` for spectator chat), as
+  OpenDota does. The HTML report shows those as `CH 13`.
 - **Parquet schemas no longer depend on match content.** Before this fix, the
   same table could get a different Parquet schema in different replays, so
   `read_parquet_table` and other multi-file readers could not combine them.

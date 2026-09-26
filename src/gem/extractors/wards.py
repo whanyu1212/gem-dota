@@ -9,8 +9,8 @@ Ward death/expiry is detected on the transition to ``m_lifeState == 1``
 (dying).  The killer is read from the combat log ``DEATH`` queue that was
 populated for the matching ward class.
 
-Reference: refs/parser/src/main/java/opendota/processors/warding/Wards.java
-           refs/parser/src/main/java/opendota/Parse.java  (buildWardEntry)
+Reference: odota/parser src/main/java/opendota/processors/warding/Wards.java
+           odota/parser src/main/java/opendota/Parse.java  (buildWardEntry)
 """
 
 from __future__ import annotations

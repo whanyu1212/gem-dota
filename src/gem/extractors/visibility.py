@@ -1,8 +1,8 @@
 """Authoritative per-team NPC visibility extraction from team entity bitsets.
 
-Reference: refs/parser/src/main/java/opendota/Parse.java (team-data and
+Reference: odota/parser src/main/java/opendota/Parse.java (team-data and
 ``EntityNames`` access), the ``CDOTA_DataNonSpectator`` replay send-table
-schema, and the entity lifecycle in refs/manta/entity.go.
+schema, and the entity lifecycle in dotabuff/manta entity.go.
 """
 
 from __future__ import annotations

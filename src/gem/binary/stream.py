@@ -22,7 +22,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 _MAGIC_S2 = b"PBDEMS2\x00"
-_METADATA_SKIP = 8  # two int32s after magic — file size info, unused
+# Two little-endian int32s after the magic: byte offsets of the DEM_FileInfo and
+# DEM_SpawnGroups envelopes near the end of the file. Unused (Manta skips them too).
+_METADATA_SKIP = 8
 _DEM_IS_COMPRESSED = 64  # EDemoCommands.DEM_IsCompressed = 0x40
 _PREGAME_TICK = 0xFFFFFFFF
 
@@ -75,7 +77,7 @@ class DemoStream:
 
         self._pos = 0
         self._validate_magic()
-        self._pos += _METADATA_SKIP  # skip file-size metadata
+        self._pos += _METADATA_SKIP  # skip the two end-of-file offsets
 
     def close(self) -> None:
         """Release memory-map and file descriptor resources, if any."""

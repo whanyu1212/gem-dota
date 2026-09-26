@@ -50,34 +50,52 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
-# Proto side-effect import order is critical
-from google.protobuf import descriptor_pb2  # noqa: F401
-
 from gem.binary.reader import BitReader
 from gem.binary.stream import DemoStream
 from gem.catalog import item_key_by_id
 from gem.combat.log import CombatLogHandler, CombatLogProcessor, CombatLogSource
-from gem.proto import (
-    dota_commonmessages_pb2,  # noqa: F401
-    dota_shared_enums_pb2,  # noqa: F401
-    network_connection_pb2,  # noqa: F401
-    networkbasetypes_pb2,  # noqa: F401
+from gem.proto.demo_pb2 import (
+    CDemoClassInfo,
+    CDemoFileInfo,
+    CDemoFullPacket,
+    CDemoPacket,
+    DEM_ClassInfo,
+    DEM_FileInfo,
+    DEM_FullPacket,
+    DEM_Packet,
+    DEM_SendTables,
+    DEM_SignonPacket,
 )
-from gem.proto.demo_pb2 import CDemoClassInfo, CDemoFileInfo, CDemoFullPacket, CDemoPacket
 from gem.proto.dota_gcmessages_common_pb2 import CMsgDOTAMatch
 from gem.proto.dota_match_metadata_pb2 import CDOTAMatchMetadataFile
-from gem.proto.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
+from gem.proto.dota_shared_enums_pb2 import (
+    DOTA_COMBATLOG_GAME_STATE,
+    DOTA_GAMERULES_STATE_GAME_IN_PROGRESS,
+    DOTA_GAMERULES_STATE_POST_GAME,
+    CMsgDOTACombatLogEntry,
+    DOTAChannelType_GameAll,
+    DOTAChannelType_GameAllies,
+)
 from gem.proto.dota_usermessages_pb2 import (
+    CHAT_MESSAGE_RUNE_PICKUP,
     CDOTAUserMsg_ChatEvent,
     CDOTAUserMsg_ChatMessage,
     CDOTAUserMsg_CombatLogBulkData,
     CDOTAUserMsg_FoundNeutralItem,
+    DOTA_UM_ChatEvent,
+    DOTA_UM_ChatMessage,
+    DOTA_UM_CombatLogBulkData,
+    DOTA_UM_CombatLogData,
+    DOTA_UM_CombatLogDataHLTV,
+    DOTA_UM_FoundNeutralItem,
     DOTA_UM_MatchDetails,
     DOTA_UM_MatchMetadata,
 )
 from gem.proto.gameevents_pb2 import (
     CMsgSource1LegacyGameEvent,
     CMsgSource1LegacyGameEventList,
+    GE_Source1LegacyGameEvent,
+    GE_Source1LegacyGameEventList,
 )
 from gem.proto.netmessages_pb2 import (
     CSVCMsg_CreateStringTable,
@@ -85,14 +103,19 @@ from gem.proto.netmessages_pb2 import (
     CSVCMsg_ServerInfo,
     CSVCMsg_UpdateStringTable,
     CSVCMsg_UserMessage,
+    svc_CreateStringTable,
+    svc_PacketEntities,
+    svc_ServerInfo,
+    svc_UpdateStringTable,
+    svc_UserMessage,
 )
-from gem.proto.networkbasetypes_pb2 import CNETMsg_Tick
+from gem.proto.networkbasetypes_pb2 import CNETMsg_Tick, net_Tick
 from gem.results.models import ChatEntry, NeutralItemFoundEvent
 from gem.schema.sendtable import parse_send_tables
 from gem.schema.sendtable.models import FieldAccessPlan
 from gem.state.entities import Entity, EntityManager, EntityOp
 from gem.state.game_clock import GameClock, GamePause
-from gem.state.game_events import GameEventHandler, GameEventManager
+from gem.state.game_events import GameEvent, GameEventHandler, GameEventManager
 from gem.state.string_table import StringTables, handle_create, handle_update
 
 logger = logging.getLogger(__name__)
@@ -114,36 +137,64 @@ _GAMERULES_FIELDS = FieldAccessPlan(
 # ---------------------------------------------------------------------------
 # Outer EDemoCommands IDs (stripped of DEM_IsCompressed = 0x40)
 # ---------------------------------------------------------------------------
-_DEM_FILE_INFO = 2
-_DEM_SEND_TABLES = 4
-_DEM_CLASS_INFO = 5
-_DEM_PACKET = 7
-_DEM_SIGNON_PACKET = 8
-_DEM_FULL_PACKET = 13
+_DEM_FILE_INFO = DEM_FileInfo
+_DEM_SEND_TABLES = DEM_SendTables
+_DEM_CLASS_INFO = DEM_ClassInfo
+_DEM_PACKET = DEM_Packet
+_DEM_SIGNON_PACKET = DEM_SignonPacket
+_DEM_FULL_PACKET = DEM_FullPacket
 
-# Inner SVC/NET/Game-event message IDs
-_NET_TICK = 4
-_SVC_SERVER_INFO = 40
-_SVC_CREATE_STRING_TABLE = 44
-_SVC_UPDATE_STRING_TABLE = 45
-_SVC_PACKET_ENTITIES = 55
-_SVC_USER_MESSAGE = 72
-_GE_GAME_EVENT_LIST = 205
-_GE_GAME_EVENT = 207
+# Inner NET/SVC/game-event message IDs
+_NET_TICK = net_Tick
+_SVC_SERVER_INFO = svc_ServerInfo
+_SVC_CREATE_STRING_TABLE = svc_CreateStringTable
+_SVC_UPDATE_STRING_TABLE = svc_UpdateStringTable
+_SVC_PACKET_ENTITIES = svc_PacketEntities
+_SVC_USER_MESSAGE = svc_UserMessage
+_GE_GAME_EVENT_LIST = GE_Source1LegacyGameEventList
+_GE_GAME_EVENT = GE_Source1LegacyGameEvent
 
-# DOTA user-message sub-type IDs (inside CSVCMsg_UserMessage.msg_type)
-_DOTA_UM_COMBAT_LOG_DATA = 468  # CDOTAUserMsg_CombatLogBulkData (S2)
-_DOTA_UM_COMBAT_LOG_BULK_DATA = 470  # CDOTAUserMsg_CombatLogBulkData (alternate)
+# Combat-log IDs accepted inside CSVCMsg_UserMessage.msg_type. Both carry a
+# CDOTAUserMsg_CombatLogBulkData. Unverified: no replay we have contains these, and
+# Clarity doesn't parse them either (skadistats/clarity CombatLog.java logs a warning
+# asking for such a replay, issue #58). Current replays send one
+# DOTA_UM_CombatLogDataHLTV per combat-log line instead.
+_DOTA_UM_COMBAT_LOG_DATA = DOTA_UM_CombatLogData
+_DOTA_UM_COMBAT_LOG_BULK_DATA = DOTA_UM_CombatLogBulkData
 
-# Direct inner message types (not wrapped in svc_UserMessage)
-_DOTA_UM_COMBAT_LOG_HLTV = 554  # CMsgDOTACombatLogEntry (direct, one entry per message)
-_DOTA_UM_CHAT_EVENT = 466  # CDOTAUserMsg_ChatEvent (direct)
-_DOTA_UM_MATCH_METADATA = DOTA_UM_MatchMetadata  # CDOTAMatchMetadataFile (direct)
-_DOTA_UM_MATCH_DETAILS = DOTA_UM_MatchDetails  # CMsgDOTAMatch postgame summary (direct)
-_DOTA_UM_FOUND_NEUTRAL_ITEM = 593  # CDOTAUserMsg_FoundNeutralItem (direct)
-_DOTA_UM_CHAT_MESSAGE = 612  # CDOTAUserMsg_ChatMessage (direct)
+# Dota user messages sent directly as inner messages (not wrapped in svc_UserMessage)
+_DOTA_UM_COMBAT_LOG_HLTV = DOTA_UM_CombatLogDataHLTV  # CMsgDOTACombatLogEntry, one per message
+_DOTA_UM_CHAT_EVENT = DOTA_UM_ChatEvent  # CDOTAUserMsg_ChatEvent
+_DOTA_UM_MATCH_METADATA = DOTA_UM_MatchMetadata  # CDOTAMatchMetadataFile
+_DOTA_UM_MATCH_DETAILS = DOTA_UM_MatchDetails  # CMsgDOTAMatch postgame summary
+_DOTA_UM_FOUND_NEUTRAL_ITEM = DOTA_UM_FoundNeutralItem  # CDOTAUserMsg_FoundNeutralItem
+_DOTA_UM_CHAT_MESSAGE = DOTA_UM_ChatMessage  # CDOTAUserMsg_ChatMessage
 
-_CHAT_MSG_RUNE_PICKUP = 22  # DOTA_CHAT_MESSAGE.CHAT_MESSAGE_RUNE_PICKUP
+_CHAT_MSG_RUNE_PICKUP = CHAT_MESSAGE_RUNE_PICKUP
+
+
+def _chat_channel_label(channel_type: int) -> str:
+    """Return the ``ChatEntry.channel`` label for a ``DOTAChatChannelType_t`` value.
+
+    All-chat and team chat get names. Every other channel (spectator, coach,
+    broadcast, ...) keeps its raw number as a string, as OpenDota does
+    (odota/parser ``Parse.java`` ``onAllChatMessage``).
+    """
+    if channel_type == DOTAChannelType_GameAll:
+        return "all"
+    if channel_type == DOTAChannelType_GameAllies:
+        return "team"
+    return str(channel_type)
+
+
+def _is_game_state(log_type: int, value: int, state: int) -> bool:
+    """Return whether a combat-log entry is a ``DOTA_COMBATLOG_GAME_STATE`` change to ``state``.
+
+    OpenDota anchors game time on the ``GAME_IN_PROGRESS`` entry and marks the end of
+    the match on ``POST_GAME`` (odota/parser ``Parse.java``, pinned in CLAUDE.md).
+    """
+    return log_type == DOTA_COMBATLOG_GAME_STATE and value == state
+
 
 # CombatLogNames string table name
 _COMBAT_LOG_NAMES_TABLE = "CombatLogNames"
@@ -528,8 +579,9 @@ class ReplayParser:
         """Register a handler called once when the ancient is destroyed.
 
         The callback receives the final game tick as its only argument.
-        Fires when ``DOTA_COMBATLOG_GAME_STATE == 6`` is seen in the
-        combat log, matching OpenDota's ``postGame`` sentinel.
+        Fires when a ``DOTA_COMBATLOG_GAME_STATE`` entry with value
+        ``DOTA_GAMERULES_STATE_POST_GAME`` is seen in the combat log, matching
+        OpenDota's ``postGame`` sentinel.
 
         Args:
             callback: ``(tick: int) -> None``.
@@ -610,7 +662,7 @@ class ReplayParser:
 
         # Read match metadata from CDOTAGamerulesProxy entity if DEM_FileInfo
         # didn't populate them (e.g. truncated replays or early stop).
-        # Reference: refs/parser/src/main/java/opendota/Parse.java — uses
+        # Reference: odota/parser src/main/java/opendota/Parse.java — uses
         # CDOTAGamerulesProxy.m_pGameRules.m_unMatchID64 / m_iGameMode
         if self.entity_manager is not None:
             grp = self.entity_manager.find_by_class_name("CDOTAGamerulesProxy")
@@ -631,7 +683,7 @@ class ReplayParser:
                 # Fallback for radiant_win when CDemoFileInfo.game_winner == 0
                 # (common in tournament/HLTV replays). Uses EMatchOutcome:
                 # 2 = RadVictory, 3 = DireVictory.
-                # Reference: refs/manta/dota/dota_shared_enums.proto
+                # Reference: dota_shared_enums.proto
                 if self.radiant_win is None:
                     v = grp._get_int32_resolved(fields[8])
                     if v == 2:
@@ -673,7 +725,8 @@ class ReplayParser:
         elif msg_type == _DEM_FULL_PACKET:
             full_msg = CDemoFullPacket()
             full_msg.ParseFromString(data)
-            # String tables snapshot first, then inner packet
+            # The string_table snapshot is skipped, as in Manta: the string tables are
+            # already current from the svc_*StringTable messages.
             if full_msg.HasField("packet"):
                 self._dispatch_inner_packet(full_msg.packet.data)
 
@@ -781,9 +834,7 @@ class ReplayParser:
                 self.combat_log.process_s2_entry(
                     entry_msg, name_table, tick=self.tick, game_time_s=game_time_s
                 )
-            # DOTA_COMBATLOG_GAME_STATE == 6 → ancient destroyed (postGame)
-            # Reference: refs/parser/src/main/java/opendota/Parse.java line 373
-            if entry_msg.type == 9 and entry_msg.value == 6:
+            if _is_game_state(entry_msg.type, entry_msg.value, DOTA_GAMERULES_STATE_POST_GAME):
                 self._mark_game_end(self.tick)
 
         elif type_id == _DOTA_UM_CHAT_EVENT:
@@ -847,7 +898,6 @@ class ReplayParser:
     def _on_class_info(self, msg: CDemoClassInfo) -> None:
         if self.entity_manager is not None:
             self.entity_manager.on_class_info(msg)
-            self.entity_manager.on_baseline_updated()
 
     def _on_game_event_list(self, msg: CMsgSource1LegacyGameEventList) -> None:
         for descriptor in msg.descriptors:
@@ -861,19 +911,18 @@ class ReplayParser:
     def _on_game_event(self, msg: CMsgSource1LegacyGameEvent) -> None:
         self.game_event_manager.dispatch(msg)
 
-        # S1 combat log path: dota_combatlog game event
+        # S1 combat log path: dota_combatlog game events, used by older replays (current
+        # replays declare the event but send DOTA_UM_CombatLogDataHLTV instead). Clarity
+        # handles the same path (skadistats/clarity CombatLog.java).
         schema = self.game_event_manager.get_schema(msg.eventid)
         if schema is not None and schema.name == "dota_combatlog":
             name_table = self.string_tables.get_by_name(_COMBAT_LOG_NAMES_TABLE)
             if name_table is not None:
-                from gem.state.game_events import GameEvent
-
                 event = GameEvent(schema=schema, msg=msg)
                 self.combat_log.process_s1_event(event, name_table, tick=self.tick)
-                # DOTA_COMBATLOG_GAME_STATE == 6 → ancient destroyed (postGame)
                 type_val, _ = event.get_int32("type")
                 value_val, _ = event.get_int32("value")
-                if type_val == 9 and value_val == 6:
+                if _is_game_state(type_val, value_val, DOTA_GAMERULES_STATE_POST_GAME):
                     self._mark_game_end(self.tick)
 
     def _on_user_message(self, msg: CSVCMsg_UserMessage) -> None:
@@ -891,7 +940,9 @@ class ReplayParser:
                         game_time_s=game_time_s,
                         source=CombatLogSource.S2_BULK,
                     )
-                    if entry_msg.type == 9 and entry_msg.value == 6:
+                    if _is_game_state(
+                        entry_msg.type, entry_msg.value, DOTA_GAMERULES_STATE_POST_GAME
+                    ):
                         self._mark_game_end(self.tick)
         elif msg.msg_type == _DOTA_UM_MATCH_METADATA:
             self._on_match_metadata(msg.msg_data)
@@ -915,18 +966,21 @@ class ReplayParser:
         timestamp = msg.timestamp
 
         raw_time_s = _round_positive_seconds(timestamp)
-        if msg.type == 9 and msg.value == 5 and self._combat_log_game_start_time_s is None:
+        if self._combat_log_game_start_time_s is None and _is_game_state(
+            msg.type, msg.value, DOTA_GAMERULES_STATE_GAME_IN_PROGRESS
+        ):
             self._combat_log_game_start_time_s = raw_time_s
 
         if self._combat_log_game_start_time_s is None:
             return None
         game_time_s = raw_time_s - self._combat_log_game_start_time_s
         self.combat_log_time_s = game_time_s
-        # The GAME_STATE==6 (ancient destroyed / postGame) timestamp on the
-        # horn-anchored combat-log axis is OpenDota's match ``duration``. Capture
-        # it once, before the game-end callbacks fire. Reference:
-        # refs/parser/src/main/java/opendota/Parse.java postGame handling.
-        if msg.type == 9 and msg.value == 6 and self.duration_s is None:
+        # The POST_GAME timestamp (the Ancient falls) on the horn-anchored
+        # combat-log axis is OpenDota's match ``duration``. Capture it once,
+        # before the game-end callbacks fire (odota/parser Parse.java postGame).
+        if self.duration_s is None and _is_game_state(
+            msg.type, msg.value, DOTA_GAMERULES_STATE_POST_GAME
+        ):
             self.duration_s = game_time_s
         return game_time_s
 
@@ -948,8 +1002,7 @@ class ReplayParser:
             return
         chat_msg = CDOTAUserMsg_ChatMessage()
         chat_msg.ParseFromString(payload)
-        # channel_type 11 = all-chat; anything else treated as team-chat
-        channel = "all" if chat_msg.channel_type == 11 else "team"
+        channel = _chat_channel_label(chat_msg.channel_type)
         entry = ChatEntry(
             tick=self.tick,
             player_slot=chat_msg.source_player_id,

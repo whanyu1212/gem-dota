@@ -11,15 +11,9 @@ Reference: manta/sendtable.go, manta/field.go
 
 from __future__ import annotations
 
-# Proto imports: the descriptor dependency chain must be resolved first.
-from google.protobuf import descriptor_pb2  # noqa: F401 - must load first
 from google.protobuf.message import DecodeError
 
 from gem.binary.reader import BitReader
-from gem.proto import (
-    network_connection_pb2,  # noqa: F401 - side-effect import
-    networkbasetypes_pb2,  # noqa: F401
-)
 from gem.proto.demo_pb2 import CDemoSendTables
 from gem.proto.netmessages_pb2 import (
     CSVCMsg_FlattenedSerializer,

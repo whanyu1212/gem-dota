@@ -6,7 +6,7 @@ and the specialty kill scalars OpenDota exposes per player. They add no new
 parsing — the underlying DEATH events are produced by the combat-log aggregator
 (which credits summon kills to the owning hero); this module only reshapes them.
 
-Reference: refs/parser/src/main/java/opendota/CreateParsedDataBlob.java and
+Reference: odota/parser src/main/java/opendota/CreateParsedDataBlob.java and
 odota/core per-player kill categorization.
 """
 

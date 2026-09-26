@@ -1,7 +1,7 @@
 """Evidence-aware visibility helpers for parsed matches.
 
 Ward type and lifetime semantics follow
-``refs/parser/src/main/java/opendota/processors/warding/Wards.java``. Arbitrary
+``odota/parser src/main/java/opendota/processors/warding/Wards.java``. Arbitrary
 point geometry is gem-specific and deliberately separate from authoritative
 canonical-hero visibility.
 """

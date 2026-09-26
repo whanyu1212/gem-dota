@@ -1,7 +1,7 @@
 """Game event schema registration and typed dispatch.
 
-Handles ``CSVCMsg_GameEventList`` (schema registration) and
-``CSVCMsg_GameEvent`` (dispatch) messages.
+Handles ``CMsgSource1LegacyGameEventList`` (schema registration) and
+``CMsgSource1LegacyGameEvent`` (dispatch) messages.
 
 Reference: manta/game_event.go
 """

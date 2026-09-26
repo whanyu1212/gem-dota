@@ -1,7 +1,7 @@
 """Manta-compatible field-path operation table.
 
 The operation order and weights must stay byte-for-byte compatible with
-``refs/manta/field_path.go`` because Huffman symbol values are table indices.
+``dotabuff/manta field_path.go`` because Huffman symbol values are table indices.
 """
 
 from __future__ import annotations

@@ -1,8 +1,8 @@
 """Evidence-first post-parse Smoke of Deceit lifecycle analysis.
 
 Reference: ``CMsgDOTACombatLogEntry`` in
-``refs/manta/dota/dota_shared_enums.proto`` and Clarity's S1/S2 combat-log
-adapters in ``refs/clarity``.
+``dota_shared_enums.proto`` and Clarity's S1/S2 combat-log
+adapters in skadistats/clarity.
 """
 
 from __future__ import annotations

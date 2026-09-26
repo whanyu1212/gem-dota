@@ -14,6 +14,13 @@ from typing import TYPE_CHECKING, Any
 
 from gem.combat.log import CombatLogEntry
 from gem.extractors._snapshots import _player_id_from_entity, _pos
+from gem.proto.dota_usermessages_pb2 import (
+    CHAT_MESSAGE_AEGIS,
+    CHAT_MESSAGE_AEGIS_STOLEN,
+    CHAT_MESSAGE_DENIED_AEGIS,
+    CHAT_MESSAGE_MINIBOSS_KILL,
+    CHAT_MESSAGE_SHRINE_KILLED,
+)
 from gem.schema.sendtable.models import FieldAccessPlan
 from gem.state.entities import EntityOp
 
@@ -29,11 +36,11 @@ _TEAM_RADIANT = 2
 _TEAM_DIRE = 3
 
 # CDOTAUserMsg_ChatEvent type constants
-_CHAT_MSG_AEGIS = 8
-_CHAT_MSG_AEGIS_STOLEN = 53
-_CHAT_MSG_DENIED_AEGIS = 51
-_CHAT_MSG_SHRINE_KILLED = 101
-_CHAT_MSG_MINIBOSS_KILL = 117  # Tormentor kill
+_CHAT_MSG_AEGIS = CHAT_MESSAGE_AEGIS
+_CHAT_MSG_AEGIS_STOLEN = CHAT_MESSAGE_AEGIS_STOLEN
+_CHAT_MSG_DENIED_AEGIS = CHAT_MESSAGE_DENIED_AEGIS
+_CHAT_MSG_SHRINE_KILLED = CHAT_MESSAGE_SHRINE_KILLED
+_CHAT_MSG_MINIBOSS_KILL = CHAT_MESSAGE_MINIBOSS_KILL  # Tormentor kill
 
 # Roshan item entity class name → short drop name
 _ROSHAN_ITEM_DROPS: dict[str, str] = {

@@ -4,13 +4,13 @@ Polls ``CDOTAGamerulesProxy`` entity for hero bans and picks during the draft
 phase and emits ``DraftEvent`` records in order of assignment.
 
 Hero name resolution follows the reference implementation
-(refs/parser/src/main/java/opendota/Parse.java lines 509-574, 736-739):
+(odota/parser src/main/java/opendota/Parse.java lines 509-574, 736-739):
 for picks, the NPC name is derived from the hero entity class name obtained by
 resolving the player's ``m_hSelectedHero`` handle.  The static ``heroes.json``
 mapping is used as a fallback for heroes whose entities do not yet exist (bans
 or draft-phase picks before the entity spawns).
 
-Reference: refs/parser/src/main/java/opendota/Parse.java lines 509-574
+Reference: odota/parser src/main/java/opendota/Parse.java lines 509-574
 """
 
 from __future__ import annotations

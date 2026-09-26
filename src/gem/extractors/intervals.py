@@ -13,8 +13,8 @@ separate so match-level advantage curves can use the same authoritative fields
 without overloading ``PlayerExtractor`` with another responsibility.
 
 Reference:
-    ``refs/parser/src/main/java/opendota/Parse.java`` interval block and
-    ``refs/parser/src/main/java/opendota/CreateParsedDataBlob.java``
+    ``odota/parser src/main/java/opendota/Parse.java`` interval block and
+    ``odota/parser src/main/java/opendota/CreateParsedDataBlob.java``
     ``handleInterval``.
 """
 
@@ -255,7 +255,7 @@ class IntervalExtractor:
         for the terminal recovery path because postGame is itself a combat-log
         event. It is also retained for parsers without tick-start callbacks.
 
-        Reference: refs/parser/src/main/java/opendota/Parse.java —
+        Reference: odota/parser src/main/java/opendota/Parse.java —
         ``@OnTickStart`` for intervals and combat-log GAME_STATE 6 for postGame.
         """
         if self._parser is None:
@@ -615,7 +615,7 @@ class IntervalExtractor:
         index. The parser mutates the entity in place, so the retained reference
         holds the terminal values once parsing completes.
 
-        Reference: refs/parser/src/main/java/opendota/Parse.java (reads
+        Reference: odota/parser src/main/java/opendota/Parse.java (reads
         ``m_vecPlayerTeamData.%i.m_flTeamFightParticipation`` /
         ``m_iFirstBloodClaimed``).
 
