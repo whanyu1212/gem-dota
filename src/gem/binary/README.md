@@ -43,7 +43,8 @@ At the start of a supported replay, the stream expects:
 
 ```text
 8 bytes  magic: PBDEMS2\0
-8 bytes  file-size metadata, currently skipped
+4 bytes  int32 byte offset of the DEM_FileInfo envelope (end of file), skipped
+4 bytes  int32 byte offset of the DEM_SpawnGroups envelope (end of file), skipped
 ```
 
 After that, the file is a sequence of outer demo messages:
@@ -188,7 +189,8 @@ r.read_varint64()
 ```
 
 The unsigned form uses the usual 7-bit continuation-byte scheme. The signed
-form uses zigzag decoding.
+form uses zigzag decoding. The 32-bit forms read at most 5 bytes and keep only
+the low 32 bits, matching Valve's `bf_read::ReadVarInt32` and Manta.
 
 These methods are useful both around protobuf payloads and inside Valve's
 custom packed sections. For example, outer message sizes and inner payload
@@ -221,7 +223,6 @@ r.read_angle(bits)
 r.read_normal()
 r.read_3bit_normal()
 r.read_string()
-r.read_string_n(size)
 ```
 
 These are not generic Python serialization helpers. They match Source network

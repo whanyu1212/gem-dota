@@ -114,6 +114,42 @@ Examples:
 | `128` | `80 01` |
 | `300` | `ac 02` |
 
+A 32-bit varuint takes at most 5 bytes. The 5th byte only carries the top 4 bits
+(bits 28–31), so gem, like Valve's reader and Manta, stops after 5 bytes and keeps
+the low 32 bits.
+
+## ubit_var: Valve's own variable-width integer
+
+Inside packed bitstreams, Valve uses a second variable-width format that works
+in **bits** rather than bytes. `binary/reader.py` reads it with
+`BitReader.read_ubit_var()`. It is used for inner-message type IDs, entity index
+gaps, and string-table sizes.
+
+Read 6 bits first. The low 4 bits are the start of the value, and the top 2 bits
+say how many more bits follow:
+
+| Top 2 bits | Extra bits | Value |
+|---|---|---|
+| `00` | 0 | low 4 bits |
+| `01` | 4 | low 4 bits + (4 extra bits << 4) |
+| `10` | 8 | low 4 bits + (8 extra bits << 4) |
+| `11` | 28 | low 4 bits + (28 extra bits << 4) |
+
+Small numbers cost 6 bits, and large ones grow as needed.
+
+A real example: the first `svc_PacketEntities` message in match `8855242704`
+starts 6 bits into a byte. Its type ID is read like this:
+
+```text
+first 6 bits:  01 0111   top "01" -> read 4 more bits; low 4 bits = 0111 = 7
+next 4 bits:   0011      = 3
+type_id = (3 << 4) | 7 = 55   -> svc_PacketEntities
+```
+
+Because it starts mid-byte, the payload that follows (5,516 bytes) is not
+byte-aligned either. That is why `BitReader.read_bytes` has a path for unaligned
+reads.
+
 ## A tiny synthetic replay fragment
 
 Suppose we write one outer message:

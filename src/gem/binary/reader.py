@@ -286,7 +286,10 @@ class BitReader:
 
         Uses a continuation-bit scheme: the low 7 bits of each byte
         contribute to the value; the high bit signals more bytes follow.
-        Mirrors Manta by stopping after at most 5 bytes.
+        Stops after at most 5 bytes and keeps only the low 32 bits, like
+        Valve's ``bf_read::ReadVarInt32`` (Source SDK ``tier1/bitbuf.cpp``) and
+        Manta's ``readVarUint32``. Valve's writer never sets bits above 31, so
+        the truncation only matters for malformed input.
 
         Returns:
             int: The decoded unsigned 32-bit integer.
@@ -302,7 +305,7 @@ class BitReader:
             s += 7
             if (b & 0x80) == 0 or s == 35:
                 break
-        return x
+        return x & 0xFFFFFFFF
 
     def read_varint32(self) -> int:
         """Read a signed 32-bit protobuf-style varint using zigzag decoding.
@@ -310,14 +313,15 @@ class BitReader:
         Zigzag maps signed values onto unsigned varints:
         0 -> 0, -1 -> 1, 1 -> 2, -2 -> 3, 2 -> 4, ...
 
+        Decodes the 32-bit unsigned value first, as Valve's
+        ``bf_read::ReadSignedVarInt32`` does, so the result is always in the
+        int32 range.
+
         Returns:
             int: The decoded signed 32-bit integer.
         """
         ux = self.read_varuint32()
-        x = ux >> 1
-        if ux & 1:
-            x = ~x
-        return x & 0xFFFFFFFF if x >= 0 else x | ~0xFFFFFFFF
+        return ~(ux >> 1) if ux & 1 else ux >> 1
 
     def read_varuint64(self) -> int:
         """Read an unsigned 64-bit protobuf-style varint.
@@ -503,17 +507,6 @@ class BitReader:
             buf.append(b)
         return buf.decode("utf-8", errors="replace")
 
-    def read_string_n(self, n: int) -> str:
-        """Read exactly ``n`` bytes and return them as a Latin-1 string.
-
-        Args:
-            n: Number of bytes to read.
-
-        Returns:
-            str: The decoded string, which may contain null bytes.
-        """
-        return self.read_bytes(n).decode("latin-1")
-
     # ------------------------------------------------------------------
     # State inspection
     # ------------------------------------------------------------------
@@ -524,6 +517,10 @@ class BitReader:
         This may read ahead from the backing buffer to refill the internal
         cache, but it does not remove bits from that cache. A subsequent
         ``skip_bits(n)`` or ``read_bits(n)`` consumes the same value.
+
+        The field-path decoder (``schema/field_path/path_sequence.py``) inlines
+        this and ``skip_bits`` against the private cache for speed; these
+        methods are the tested reference for that hot path.
 
         Args:
             n: Number of bits to peek. Current callers use values in the

@@ -37,8 +37,26 @@ def _pack_varint32_zigzag(value: int) -> bytes:
     return _pack_varuint32(ux & 0xFFFFFFFF)
 
 
+def _valve_read_varint32(data: bytes) -> tuple[int, int]:
+    """Port of Valve's bf_read::ReadVarInt32 / ReadSignedVarInt32 (Source SDK bitbuf.cpp).
+
+    Returns the (unsigned, signed) pair, accumulating in a uint32 and applying
+    ZigZagDecode32 to that truncated value.
+    """
+    result = 0
+    for count in range(5):
+        b = data[count]
+        result = (result | ((b & 0x7F) << (7 * count))) & 0xFFFFFFFF
+        if not b & 0x80:
+            break
+    signed = (result >> 1) ^ (-(result & 1) & 0xFFFFFFFF)
+    if signed >= 1 << 31:
+        signed -= 1 << 32
+    return result, signed
+
+
 # ---------------------------------------------------------------------------
-# Import under test — will fail until Phase 1 is implemented
+# Reader under test
 # ---------------------------------------------------------------------------
 
 
@@ -131,6 +149,24 @@ class TestReadVarUint32:
         r = reader_cls(_pack_varuint32(0xFFFFFFFF))
         assert r.read_varuint32() == 0xFFFFFFFF
 
+    @pytest.mark.parametrize(
+        ("data", "expected"),
+        [
+            (b"\xff\xff\xff\xff\x7f", 0xFFFFFFFF),
+            (b"\xfe\xff\xff\xff\x7f", 0xFFFFFFFE),
+            (b"\x80\x80\x80\x80\x10", 0),
+        ],
+    )
+    def test_overlong_fifth_byte_wraps_to_32_bits(self, reader_cls, data, expected):
+        # Valve's writer never sets bits above 31, but its reader (and Manta's)
+        # truncates to uint32 rather than returning a 35-bit value.
+        assert reader_cls(data).read_varuint32() == expected
+
+    def test_stops_after_five_bytes(self, reader_cls):
+        r = reader_cls(b"\xff\xff\xff\xff\xff\x2a")
+        assert r.read_varuint32() == 0xFFFFFFFF
+        assert r.read_bits(8) == 0x2A
+
 
 # ---------------------------------------------------------------------------
 # read_varint32 (zigzag)
@@ -143,6 +179,26 @@ class TestReadVarInt32:
         data = _pack_varint32_zigzag(value)
         r = reader_cls(data)
         assert r.read_varint32() == value
+
+    @pytest.mark.parametrize(
+        ("data", "expected"),
+        [
+            (b"\xff\xff\xff\xff\x7f", -2147483648),
+            (b"\xfe\xff\xff\xff\x7f", 2147483647),
+            (b"\x80\x80\x80\x80\x10", 0),
+        ],
+    )
+    def test_overlong_fifth_byte_stays_in_int32_range(self, reader_cls, data, expected):
+        assert reader_cls(data).read_varint32() == expected
+
+
+@pytest.mark.parametrize("prefix", [b"\x80\x80\x80\x80", b"\xff\xff\xff\xff", b"\xfe\xff\xff\xff"])
+def test_32_bit_varints_match_valve_for_every_fifth_byte(reader_cls, prefix):
+    for last in range(256):
+        data = prefix + bytes((last,))
+        unsigned, signed = _valve_read_varint32(data)
+        assert reader_cls(data).read_varuint32() == unsigned, data.hex()
+        assert reader_cls(data).read_varint32() == signed, data.hex()
 
 
 # ---------------------------------------------------------------------------
@@ -214,7 +270,7 @@ class TestReadFloat:
 
 
 # ---------------------------------------------------------------------------
-# read_string / read_string_n
+# read_string
 # ---------------------------------------------------------------------------
 
 
@@ -226,10 +282,6 @@ class TestReadString:
     def test_empty_string(self, reader_cls):
         r = reader_cls(b"\x00")
         assert r.read_string() == ""
-
-    def test_read_string_n(self, reader_cls):
-        r = reader_cls(b"PBDEMS2\x00")
-        assert r.read_string_n(8) == "PBDEMS2\x00"
 
 
 # ---------------------------------------------------------------------------
