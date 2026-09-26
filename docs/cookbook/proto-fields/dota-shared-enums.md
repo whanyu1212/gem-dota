@@ -1,11 +1,15 @@
 # dota_shared_enums.proto
 
+**Used by gem**: gem decodes messages from this file. See [The Proto Files gem Uses](../proto-files.md) for what it reads and why.
+
 - Module: `dota_shared_enums_pb2`
-- Syntax: `unknown`
-- Package: `(none)`
-- Imports: **0**
+- Imports: **1**
 - Messages: **14** (top-level: 8)
 - Enums: **53** (top-level: 53)
+
+## Imports
+
+- `events.proto`
 
 ## Messages
 

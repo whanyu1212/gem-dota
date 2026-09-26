@@ -2,6 +2,15 @@
 
 This parser reads source .proto files directly (not generated Python descriptors),
 then writes readable docs with collapsible message/enum sections.
+
+Each page is also marked with how gem uses the file:
+
+- used: gem source imports classes or constants from the generated module
+- loaded: a used file imports it, directly or transitively, so it loads anyway
+- unused: not needed for replays
+
+Both sets are derived from source (gem's ``from gem.proto.X_pb2 import`` lines and
+the ``.proto`` import graph), so the generator does not need gem installed.
 """
 
 from __future__ import annotations
@@ -13,6 +22,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PROTO_SRC_DIR = REPO_ROOT / "proto_definitions" / "dota2"
+GEM_SRC_DIR = REPO_ROOT / "src" / "gem"
 OUT_DIR = REPO_ROOT / "docs" / "cookbook" / "proto-fields"
 
 
@@ -64,7 +74,7 @@ class ProtoDoc:
 _BLOCK_COMMENT_RE = re.compile(r"/\*.*?\*/", re.DOTALL)
 _SYNTAX_RE = re.compile(r'^syntax\s*=\s*"([^"]+)"\s*;')
 _PACKAGE_RE = re.compile(r"^package\s+([A-Za-z0-9_.]+)\s*;")
-_IMPORT_RE = re.compile(r'^import\s+"([^"]+)"\s*;')
+_IMPORT_RE = re.compile(r'^import\s+(?:public\s+|weak\s+)?"([^"]+)"\s*;')
 _DECL_RE = re.compile(r"^(message|enum|oneof)\s+([A-Za-z_][A-Za-z0-9_]*)\b")
 _FIELD_RE = re.compile(
     r"^(?:(optional|required|repeated)\s+)?([A-Za-z0-9_.]+(?:\s*<[^>]+>)?)\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(-?\d+)"
@@ -117,6 +127,51 @@ def _flatten_enums(top_enums: list[ProtoEnum], messages: list[ProtoMessage]) -> 
         out.extend(msg.nested_enums)
         out.extend(_flatten_enums([], msg.nested_messages))
     return out
+
+
+_GEM_PROTO_IMPORT_RE = re.compile(r"^\s*from\s+gem\.proto\.([\w.]+)_pb2\s+import\b", re.MULTILINE)
+
+
+def used_proto_files(gem_src_dir: Path = GEM_SRC_DIR) -> set[str]:
+    """Return the ``.proto`` files whose generated modules gem imports names from.
+
+    Bare module imports kept only for side effects (``from gem.proto import x_pb2``)
+    do not count: they appear in the loaded set anyway.
+    """
+    proto_pkg = gem_src_dir / "proto"
+    used: set[str] = set()
+    for path in gem_src_dir.rglob("*.py"):
+        if proto_pkg in path.parents:
+            continue
+        text = path.read_text(encoding="utf-8")
+        used.update(f"{module}.proto" for module in _GEM_PROTO_IMPORT_RE.findall(text))
+    return used
+
+
+def loaded_proto_files(used: set[str], imports: dict[str, list[str]]) -> dict[str, list[str]]:
+    """Return files loaded only through imports, mapped to the loaded files importing them.
+
+    Args:
+        used: File names from :func:`used_proto_files`.
+        imports: Each proto file name mapped to the proto files it imports.
+
+    Returns:
+        Each loaded-but-unused file name mapped to the sorted names of the used or
+        loaded files that import it directly.
+    """
+    reachable: set[str] = set()
+    queue = sorted(used)
+    while queue:
+        name = queue.pop()
+        for dep in imports.get(name, []):
+            if dep in imports and dep not in reachable and dep not in used:
+                reachable.add(dep)
+                queue.append(dep)
+    loaded_or_used = reachable | used
+    return {
+        name: sorted(src for src in loaded_or_used if name in imports.get(src, []))
+        for name in sorted(reachable)
+    }
 
 
 def parse_proto(text: str, file_name: str) -> ProtoDoc:
@@ -305,24 +360,53 @@ def parse_proto(text: str, file_name: str) -> ProtoDoc:
 
     return ProtoDoc(
         file_name=file_name,
-        syntax=syntax or "unknown",
-        package=package or "(none)",
+        syntax=syntax,
+        package=package,
         imports=imports,
         messages=top_messages,
         enums=top_enums,
     )
 
 
-def render_proto_page(doc: ProtoDoc, out_path: Path) -> tuple[int, int]:
+def _usage_line(file_name: str, used: set[str], loaded: dict[str, list[str]]) -> str:
+    if file_name in used:
+        return (
+            "**Used by gem**: gem decodes messages from this file. See "
+            "[The Proto Files gem Uses](../proto-files.md) for what it reads and why."
+        )
+    if file_name in loaded:
+        importers = ", ".join(f"`{name}`" for name in loaded[file_name])
+        return (
+            f"**Loaded, not used**: gem doesn't use this file, but it is imported by "
+            f"{importers}, so Python loads it anyway."
+        )
+    return (
+        "**Not used by gem**: nothing in this file is needed to parse a replay. See "
+        "[the map of all 84 files](../proto-files.md#the-map-all-84-files) for what it "
+        "belongs to."
+    )
+
+
+def render_proto_page(
+    doc: ProtoDoc,
+    out_path: Path,
+    used: set[str] | None = None,
+    loaded: dict[str, list[str]] | None = None,
+) -> tuple[int, int]:
     messages = _flatten_messages(doc.messages)
     enums = _flatten_enums(doc.enums, doc.messages)
 
     lines: list[str] = []
     lines.append(f"# {doc.file_name}")
     lines.append("")
+    if used is not None and loaded is not None:
+        lines.append(_usage_line(doc.file_name, used, loaded))
+        lines.append("")
     lines.append(f"- Module: `{_module_leaf(doc.file_name)}`")
-    lines.append(f"- Syntax: `{doc.syntax}`")
-    lines.append(f"- Package: `{doc.package}`")
+    if doc.syntax:
+        lines.append(f"- Syntax: `{doc.syntax}`")
+    if doc.package:
+        lines.append(f"- Package: `{doc.package}`")
     lines.append(f"- Imports: **{len(doc.imports)}**")
     lines.append(f"- Messages: **{len(messages)}** (top-level: {len(doc.messages)})")
     lines.append(f"- Enums: **{len(enums)}** (top-level: {len(doc.enums)})")
@@ -415,32 +499,60 @@ def main() -> None:
     if not proto_files:
         raise RuntimeError(f"No proto files found under {PROTO_SRC_DIR}")
 
-    index_lines: list[str] = []
-    index_lines.append("# Proto Field Atlas")
-    index_lines.append("")
-    index_lines.append(
-        "Field-level catalog for every Dota 2 proto file. Each file page contains collapsible"
-    )
-    index_lines.append("message and enum sections with declaration details.")
-    index_lines.append("")
-    index_lines.append(f"- Source proto files: **{len(proto_files)}**")
-    index_lines.append("")
-    index_lines.append("## Files")
-    index_lines.append("")
+    docs = {
+        path.name: parse_proto(path.read_text(encoding="utf-8", errors="replace"), path.name)
+        for path in proto_files
+    }
+    used = used_proto_files() & docs.keys()
+    loaded = loaded_proto_files(used, {name: doc.imports for name, doc in docs.items()})
 
-    written = 0
+    entries: dict[str, list[str]] = {"used": [], "loaded": [], "unused": []}
     for proto_path in proto_files:
-        proto_text = proto_path.read_text(encoding="utf-8", errors="replace")
-        proto_doc = parse_proto(proto_text, proto_path.name)
+        doc = docs[proto_path.name]
         page_name = f"{_slug(proto_path.stem)}.md"
-        msg_count, enum_count = render_proto_page(proto_doc, OUT_DIR / page_name)
-        index_lines.append(
+        msg_count, enum_count = render_proto_page(doc, OUT_DIR / page_name, used, loaded)
+        group = (
+            "used" if doc.file_name in used else "loaded" if doc.file_name in loaded else "unused"
+        )
+        entries[group].append(
             f"- [{proto_path.name}]({page_name}) — messages: {msg_count}, enums: {enum_count}"
         )
-        written += 1
 
+    index_lines = [
+        "# Proto Field Atlas",
+        "",
+        f"Every message and enum in all {len(proto_files)} Dota 2 proto files, with each "
+        "field's tag, type, and label. Each file has its own page with collapsible sections.",
+        "",
+        "Only a few of these files matter for replays. For what they carry and how gem uses "
+        "them, read [The Proto Files gem Uses](../proto-files.md) first.",
+        "",
+        "These pages are generated by `scripts/generate_proto_field_docs.py`. Don't edit "
+        "them by hand.",
+        "",
+        f"## Used by gem ({len(entries['used'])})",
+        "",
+        "gem decodes messages from these files.",
+        "",
+        *entries["used"],
+        "",
+        f"## Loaded, not used ({len(entries['loaded'])})",
+        "",
+        "gem doesn't use these files, but the files above import them, so Python loads them.",
+        "",
+        *entries["loaded"],
+        "",
+        f"## Not used ({len(entries['unused'])})",
+        "",
+        "Not needed to parse a replay: mostly Valve's backend and Steam platform messages.",
+        "",
+        *entries["unused"],
+    ]
     (OUT_DIR / "index.md").write_text("\n".join(index_lines).rstrip() + "\n", encoding="utf-8")
-    print(f"Generated {written} proto field pages in {OUT_DIR}")
+    print(
+        f"Generated {len(proto_files)} proto field pages in {OUT_DIR} "
+        f"({len(used)} used, {len(loaded)} loaded, {len(entries['unused'])} unused)"
+    )
 
 
 if __name__ == "__main__":

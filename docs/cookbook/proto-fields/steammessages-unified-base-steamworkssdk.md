@@ -1,8 +1,8 @@
 # steammessages_unified_base.steamworkssdk.proto
 
+**Loaded, not used**: gem doesn't use this file, but it is imported by `steammessages_steamlearn.steamworkssdk.proto`, so Python loads it anyway.
+
 - Module: `steammessages_unified_base.steamworkssdk_pb2`
-- Syntax: `unknown`
-- Package: `(none)`
 - Imports: **1**
 - Messages: **0** (top-level: 0)
 - Enums: **1** (top-level: 1)

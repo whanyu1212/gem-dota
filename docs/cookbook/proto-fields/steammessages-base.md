@@ -1,8 +1,8 @@
 # steammessages_base.proto
 
+**Not used by gem**: nothing in this file is needed to parse a replay. See [the map of all 84 files](../proto-files.md#the-map-all-84-files) for what it belongs to.
+
 - Module: `steammessages_base_pb2`
-- Syntax: `unknown`
-- Package: `(none)`
 - Imports: **1**
 - Messages: **18** (top-level: 18)
 - Enums: **3** (top-level: 3)

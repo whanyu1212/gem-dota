@@ -1,8 +1,8 @@
 # dota_gcmessages_common_battle_report.proto
 
+**Not used by gem**: nothing in this file is needed to parse a replay. See [the map of all 84 files](../proto-files.md#the-map-all-84-files) for what it belongs to.
+
 - Module: `dota_gcmessages_common_battle_report_pb2`
-- Syntax: `unknown`
-- Package: `(none)`
 - Imports: **7**
 - Messages: **23** (top-level: 18)
 - Enums: **13** (top-level: 8)

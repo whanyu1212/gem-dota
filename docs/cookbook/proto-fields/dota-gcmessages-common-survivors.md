@@ -1,8 +1,8 @@
 # dota_gcmessages_common_survivors.proto
 
+**Loaded, not used**: gem doesn't use this file, but it is imported by `dota_gcmessages_common_overworld.proto`, so Python loads it anyway.
+
 - Module: `dota_gcmessages_common_survivors_pb2`
-- Syntax: `unknown`
-- Package: `(none)`
 - Imports: **4**
 - Messages: **5** (top-level: 4)
 - Enums: **1** (top-level: 0)

@@ -1,8 +1,8 @@
 # source2_steam_stats.proto
 
+**Loaded, not used**: gem doesn't use this file, but it is imported by `netmessages.proto`, so Python loads it anyway.
+
 - Module: `source2_steam_stats_pb2`
-- Syntax: `unknown`
-- Package: `(none)`
 - Imports: **0**
 - Messages: **16** (top-level: 11)
 - Enums: **1** (top-level: 1)

@@ -1,8 +1,8 @@
 # gcsdk_gcmessages.proto
 
+**Loaded, not used**: gem doesn't use this file, but it is imported by `base_gcmessages.proto`, `dota_gcmessages_common.proto`, `dota_gcmessages_common_craftworks.proto`, `dota_gcmessages_common_lobby.proto`, `dota_gcmessages_common_match_management.proto`, `dota_gcmessages_common_monster_hunter.proto`, `dota_gcmessages_common_overworld.proto`, `dota_gcmessages_common_survivors.proto`, `dota_match_metadata.proto`, so Python loads it anyway.
+
 - Module: `gcsdk_gcmessages_pb2`
-- Syntax: `unknown`
-- Package: `(none)`
 - Imports: **3**
 - Messages: **74** (top-level: 57)
 - Enums: **3** (top-level: 3)

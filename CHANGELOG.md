@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Rewrote the Proto Cookbook docs for newcomers. "How Proto Parsing Works" now
+  explains what protobuf is and walks through each layer of a replay with counts
+  from a real match, ending with a traced first-blood packet. A new page, "The
+  Proto Files gem Uses", explains where the 84 `.proto` files come from, maps all
+  of them by family, and describes the 8 files gem reads, message by message.
+- The Proto Field Atlas now marks every file as used by gem, loaded only as a
+  dependency, or not used, and lists the used files first. The overlapping
+  single-page "Full Proto Dota2 Catalog" and its generator were removed.
+
+### Fixed
+
+- Docs: `DEM_FileInfo` was described as arriving early; it is the last envelope
+  in the file. Header bytes 8–15 are the `DEM_FileInfo` and `DEM_SpawnGroups`
+  offsets, not unspecified metadata. S2 combat-log names are string-table
+  indexes, not pre-resolved names (`CLAUDE.md`).
+- The atlas generator missed `import public` lines (such as
+  `dota_shared_enums.proto` → `events.proto`) and printed placeholder
+  `Syntax`/`Package` values.
+
 ## [0.10.0] - 2026-09-24
 
 Slims the tabular export to flat core tables. DataFrame and Parquet output no

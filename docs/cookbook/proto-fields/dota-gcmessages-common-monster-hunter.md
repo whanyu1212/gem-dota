@@ -1,8 +1,8 @@
 # dota_gcmessages_common_monster_hunter.proto
 
+**Loaded, not used**: gem doesn't use this file, but it is imported by `dota_match_metadata.proto`, so Python loads it anyway.
+
 - Module: `dota_gcmessages_common_monster_hunter_pb2`
-- Syntax: `unknown`
-- Package: `(none)`
 - Imports: **4**
 - Messages: **36** (top-level: 33)
 - Enums: **16** (top-level: 2)

@@ -1,8 +1,8 @@
 # events.proto
 
+**Loaded, not used**: gem doesn't use this file, but it is imported by `dota_shared_enums.proto`, so Python loads it anyway.
+
 - Module: `events_pb2`
-- Syntax: `unknown`
-- Package: `(none)`
 - Imports: **0**
 - Messages: **0** (top-level: 0)
 - Enums: **1** (top-level: 1)

@@ -1,8 +1,8 @@
 # gameevents.proto
 
+**Used by gem**: gem decodes messages from this file. See [The Proto Files gem Uses](../proto-files.md) for what it reads and why.
+
 - Module: `gameevents_pb2`
-- Syntax: `unknown`
-- Package: `(none)`
 - Imports: **1**
 - Messages: **18** (top-level: 15)
 - Enums: **1** (top-level: 1)

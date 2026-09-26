@@ -1,8 +1,8 @@
 # base_gcmessages.proto
 
+**Loaded, not used**: gem doesn't use this file, but it is imported by `dota_match_metadata.proto`, so Python loads it anyway.
+
 - Module: `base_gcmessages_pb2`
-- Syntax: `unknown`
-- Package: `(none)`
 - Imports: **3**
 - Messages: **62** (top-level: 58)
 - Enums: **6** (top-level: 2)

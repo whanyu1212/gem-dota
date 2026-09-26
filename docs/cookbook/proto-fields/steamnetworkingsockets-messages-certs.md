@@ -1,8 +1,8 @@
 # steamnetworkingsockets_messages_certs.proto
 
+**Not used by gem**: nothing in this file is needed to parse a replay. See [the map of all 84 files](../proto-files.md#the-map-all-84-files) for what it belongs to.
+
 - Module: `steamnetworkingsockets_messages_certs_pb2`
-- Syntax: `unknown`
-- Package: `(none)`
 - Imports: **0**
 - Messages: **4** (top-level: 4)
 - Enums: **1** (top-level: 0)

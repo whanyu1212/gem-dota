@@ -1,8 +1,8 @@
 # steamdatagram_messages_sdr.proto
 
+**Not used by gem**: nothing in this file is needed to parse a replay. See [the map of all 84 files](../proto-files.md#the-map-all-84-files) for what it belongs to.
+
 - Module: `steamdatagram_messages_sdr_pb2`
-- Syntax: `unknown`
-- Package: `(none)`
 - Imports: **2**
 - Messages: **42** (top-level: 33)
 - Enums: **10** (top-level: 1)
