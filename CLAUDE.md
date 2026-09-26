@@ -449,7 +449,9 @@ formula estimate; the events themselves are independently confirmed correct.
 ## Protobuf
 
 Generated protobuf classes live in `src/gem/proto/`. Do not hand-edit them.
-`.proto` sources live in `proto_definitions/`. To regenerate:
+`.proto` sources are downloaded into `proto_definitions/`, which is gitignored
+(`scripts/download_protos.sh`; pass the lock file's commit as `PROTO_UPSTREAM_REF`
+for the pinned snapshot). To regenerate:
 
 ```bash
 uv run python scripts/compile_protos.py

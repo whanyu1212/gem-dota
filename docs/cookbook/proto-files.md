@@ -12,12 +12,14 @@ layered. For every field of every message in all 84 files, see the
 
 Valve does not publish its `.proto` files. The community project
 [SteamTracking/Protobufs](https://github.com/SteamTracking/Protobufs) extracts them
-from the game files after every Dota 2 update. gem keeps a copy and turns it into
-Python:
+from the game files after every Dota 2 update. gem pins one snapshot of them and
+commits only the Python generated from it:
 
-1. **`proto_definitions/dota2/`** holds the 84 `.proto` files, copied unchanged.
-   `proto-upstream.lock.json` records the exact upstream commit and folder they came
-   from.
+1. **`proto-upstream.lock.json`** records the exact upstream commit and folder of
+   the snapshot. **`scripts/download_protos.sh`** downloads its 84 `.proto` files,
+   unchanged, into `proto_definitions/dota2/`. That folder is gitignored: a fresh
+   clone doesn't have it, and you only need it to regenerate the Python modules or
+   the [Proto Field Atlas](proto-fields/index.md).
 2. **`scripts/compile_protos.py`** runs `protoc` on every file and writes the
    generated Python classes (`*_pb2.py`) and type stubs (`*_pb2.pyi`) to
    `src/gem/proto/`. A dotted file name becomes a subpackage:
@@ -29,7 +31,10 @@ Python:
    the generated reference pages, imports every module, runs the fast test suite,
    updates the lock file, and opens (or updates) a single draft pull request.
 
-To refresh by hand to an exact upstream commit:
+To download the `.proto` files locally, pass the `commit` from
+`proto-upstream.lock.json` (without `PROTO_UPSTREAM_REF`, the script downloads
+upstream's latest `master` instead). Add the second command to regenerate the Python
+modules from them:
 
 ```bash
 PROTO_UPSTREAM_REF=<40-character-SHA> FORCE=1 bash scripts/download_protos.sh

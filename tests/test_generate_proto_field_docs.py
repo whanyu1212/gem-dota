@@ -1,23 +1,46 @@
 from __future__ import annotations
 
+import ast
 import json
 import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+from google.protobuf import descriptor_pb2
+
 from scripts import generate_proto_field_docs as gen
 
+_PROTO_PKG = Path(__file__).resolve().parents[1] / "src" / "gem" / "proto"
 
-def _proto_imports() -> dict[str, list[str]]:
-    return {
-        path.name: gen.parse_proto(path.read_text(encoding="utf-8"), path.name).imports
-        for path in sorted(gen.PROTO_SRC_DIR.glob("*.proto"))
-    }
+
+def _generated_imports() -> dict[str, list[str]]:
+    """Map each committed generated module's .proto name to the .proto files it imports.
+
+    ``proto_definitions/`` is gitignored, so CI only has the generated modules. Each
+    embeds its serialized ``FileDescriptorProto``, which records the same imports as
+    the ``.proto`` source. The descriptors are read from the module source rather than
+    imported, because some Steam modules define clashing symbols and cannot all be
+    loaded into one descriptor pool.
+    """
+    graph: dict[str, list[str]] = {}
+    for path in sorted(_PROTO_PKG.rglob("*_pb2.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        call = next(
+            node
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr == "AddSerializedFile"
+        )
+        proto = descriptor_pb2.FileDescriptorProto.FromString(ast.literal_eval(call.args[0]))
+        graph[proto.name] = [dep for dep in proto.dependency if not dep.startswith("google/")]
+    return graph
 
 
 def test_used_and_loaded_sets_match_runtime_imports() -> None:
     """The atlas's used/loaded labels must match what Python actually loads."""
-    imports = _proto_imports()
+    imports = _generated_imports()
     used = gen.used_proto_files() & imports.keys()
     loaded = gen.loaded_proto_files(used, imports)
 
@@ -37,6 +60,21 @@ def test_used_and_loaded_sets_match_runtime_imports() -> None:
 
     assert used, "expected gem to import at least one generated proto module"
     assert runtime == used | loaded.keys()
+
+
+def test_source_imports_match_generated_modules() -> None:
+    """The generator's .proto parser must see the same imports protoc compiled."""
+    sources = sorted(gen.PROTO_SRC_DIR.glob("*.proto"))
+    if not sources:
+        pytest.skip("proto_definitions/ not downloaded (run scripts/download_protos.sh)")
+    parsed = {
+        path.name: gen.parse_proto(path.read_text(encoding="utf-8"), path.name).imports
+        for path in sources
+    }
+    generated = _generated_imports()
+    assert parsed.keys() == generated.keys()
+    for name, deps in parsed.items():
+        assert [d for d in deps if not d.startswith("google/")] == generated[name], name
 
 
 def test_parse_proto_reads_public_imports() -> None:
