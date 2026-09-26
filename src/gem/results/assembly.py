@@ -206,7 +206,7 @@ def _build_purchase_aggregates(
 # Source 2 world coordinates are ``cell * 128 + vec``; OpenDota reports ward
 # positions in cell units (``(cell*128 + vec) / 128``). gem's WardEvent keeps the
 # raw world coordinate for its own spatial helpers, so OD-shaped ward outputs
-# divide by this to match. Reference: refs/parser/Parse.java getPreciseLocation.
+# divide by this to match. Reference: odota/parser Parse.java getPreciseLocation.
 _WORLD_UNITS_PER_CELL = 128.0
 
 
@@ -980,7 +980,7 @@ def build_parsed_match(
 
     # Post-process buybacks (7b).
     # For BUYBACK entries, entry.value = player slot (0-9).
-    # Reference: refs/parser/src/main/java/opendota/CreateParsedDataBlob.java handleBuyback()
+    # Reference: odota/parser src/main/java/opendota/CreateParsedDataBlob.java handleBuyback()
     for entry in all_entries:
         if entry.log_type != "BUYBACK":
             continue
@@ -1074,7 +1074,7 @@ def build_parsed_match(
     # Extract player names and Steam IDs from CDOTA_PlayerResource entity.
     # Two field path variants: newer replays use m_vecPlayerData.{slot}.m_iszPlayerName,
     # older replays use m_iszPlayerNames.{slot}.
-    # Reference: refs/manta/manta_test.go line ~703, refs/parser/Parse.java line ~602
+    # Reference: dotabuff/manta manta_test.go line ~703, odota/parser Parse.java line ~602
     _STEAM_ID_BASE = 76561197960265728
     if parser.entity_manager is not None:
         pr = parser.entity_manager.find_by_class_name("CDOTA_PlayerResource")
@@ -1154,7 +1154,7 @@ def build_parsed_match(
     # read the team-data entity, and xp_t/gold_t are the minute-boundary
     # downsamples of those entries — combat-log XP only feeds the xp_reasons
     # histogram, not the advantage curves.
-    # Reference: refs/parser/src/main/java/opendota/Parse.java interval block
+    # Reference: odota/parser src/main/java/opendota/Parse.java interval block
     #   (m_vecDataTeam.%i.m_iTotalEarnedGold/XP) and CreateParsedDataBlob.java
     #   addIntervalData("xp_t"/"gold_t", ...).
     interval_adv = _radiant_adv_from_intervals(interval_ext)

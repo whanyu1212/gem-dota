@@ -109,7 +109,7 @@ def _player_id_from_entity(entity: Entity | None, *, allow_owner: bool = False) 
     so they never need the owner fallback.
 
     Mirrors ``getPlayerSlotFromEntity`` in
-    ``refs/parser/src/main/java/opendota/Parse.java``.
+    ``odota/parser src/main/java/opendota/Parse.java``.
 
     Args:
         entity: The entity to read from, or ``None``.
@@ -233,7 +233,7 @@ def scan_player_resource(player_resource: Entity) -> PlayerResourceScan:
     not Radiant/Dire or whose team slot is missing/negative (coaches, empty rows),
     and assigns the surviving rows logical slots ``0..9`` in scan order.
 
-    Reference: refs/parser/src/main/java/opendota/Parse.java (validIndices).
+    Reference: odota/parser src/main/java/opendota/Parse.java (validIndices).
 
     Args:
         player_resource: The live ``CDOTA_PlayerResource`` entity.

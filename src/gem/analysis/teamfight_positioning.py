@@ -1,6 +1,6 @@
 """Evidence-aware positioning snapshots for detected teamfights.
 
-Reference: ``refs/parser/src/main/java/opendota/CreateParsedDataBlob.java``
+Reference: ``odota/parser src/main/java/opendota/CreateParsedDataBlob.java``
 for the teamfight windows consumed by this post-parse analysis. Position,
 visibility, smoke, and modifier evidence comes from Gem's parsed timelines.
 """

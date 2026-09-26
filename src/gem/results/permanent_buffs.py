@@ -1,6 +1,6 @@
 """OpenDota-compatible flags derived from Game Coordinator permanent buffs.
 
-Reference: ``refs/dotaconstants/json/permanent_buffs.json`` for buff IDs and
+Reference: odota/dotaconstants ``json/permanent_buffs.json`` for buff IDs and
 OpenDota ``svc/util/compute.ts`` lines 465-468 for the public player flags.
 """
 

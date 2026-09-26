@@ -1332,7 +1332,9 @@ class TestOnClassInfo:
 
         p._on_class_info(ci)
         em.on_class_info.assert_called_once_with(ci)
-        em.on_baseline_updated.assert_called_once()
+        # on_class_info rebuilds the baselines itself (see
+        # test_entities::test_baseline_applied_after_class_info).
+        em.on_baseline_updated.assert_not_called()
 
     def test_on_class_info_noop_when_no_entity_manager(self):
         p = ReplayParser(b"")

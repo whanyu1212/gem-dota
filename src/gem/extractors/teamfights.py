@@ -22,7 +22,7 @@ Algorithm extends the reference implementation with spatial clustering:
 No minimum-death filter is applied — all detected fights are returned so that
 callers can threshold on ``Teamfight.deaths`` or participation count.
 
-Reference: refs/parser/src/main/java/opendota/CreateParsedDataBlob.java
+Reference: odota/parser src/main/java/opendota/CreateParsedDataBlob.java
            processTeamfights() lines 1224–1353
 """
 

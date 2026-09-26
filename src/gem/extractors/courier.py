@@ -3,7 +3,7 @@
 Tracks ``CDOTA_Unit_Courier`` entities and snapshots their position and state
 at configurable tick intervals.
 
-Reference: refs/parser/src/main/java/opendota/Parse.java (entity polling pattern)
+Reference: odota/parser src/main/java/opendota/Parse.java (entity polling pattern)
 """
 
 from __future__ import annotations

@@ -13,7 +13,7 @@ by assets/maps/Game_map_7.41.jpg on the legacy report canvas:
   - Dire fountain: (23120, 22350) — top-right
   - Map X range: 7563–25900, Y range: 7800–25600
 
-No reference implementation exists in refs/; OpenDota performs lane
+No reference implementation exists in the pinned parsers; OpenDota performs lane
 classification server-side as a post-processing step on the lane_pos heatmap.
 """
 

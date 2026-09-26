@@ -1,6 +1,6 @@
 """Spatial and time-series helpers for parsed match analysis.
 
-Reference: ``refs/parser/src/main/java/opendota/Parse.java`` for the sampled
+Reference: ``odota/parser src/main/java/opendota/Parse.java`` for the sampled
 player-position data consumed by these post-parse helpers.
 """
 
