@@ -3,7 +3,7 @@
 Defines ``ParsedPlayer`` and ``ParsedMatch`` dataclasses that aggregate all
 extracted information into a structured, ML-friendly output.
 
-Reference: refs/parser/src/main/java/opendota/CreateParsedDataBlob.java
+Reference: odota/parser src/main/java/opendota/CreateParsedDataBlob.java
 """
 
 from __future__ import annotations
@@ -409,7 +409,9 @@ class ChatEntry:
     Attributes:
         tick: Game tick when the message was sent.
         player_slot: Source player slot (0–9).
-        channel: ``"all"`` for all-chat, ``"team"`` for team-chat, or raw channel type string.
+        channel: ``"all"`` for all-chat, ``"team"`` for team chat, or the raw
+            ``DOTAChatChannelType_t`` number as a string for any other channel
+            (for example ``"13"`` for spectator chat).
         text: Message text.
     """
 

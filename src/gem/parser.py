@@ -74,6 +74,7 @@ from gem.proto.dota_shared_enums_pb2 import (
     DOTA_GAMERULES_STATE_POST_GAME,
     CMsgDOTACombatLogEntry,
     DOTAChannelType_GameAll,
+    DOTAChannelType_GameAllies,
 )
 from gem.proto.dota_usermessages_pb2 import (
     CHAT_MESSAGE_RUNE_PICKUP,
@@ -170,6 +171,20 @@ _DOTA_UM_FOUND_NEUTRAL_ITEM = DOTA_UM_FoundNeutralItem  # CDOTAUserMsg_FoundNeut
 _DOTA_UM_CHAT_MESSAGE = DOTA_UM_ChatMessage  # CDOTAUserMsg_ChatMessage
 
 _CHAT_MSG_RUNE_PICKUP = CHAT_MESSAGE_RUNE_PICKUP
+
+
+def _chat_channel_label(channel_type: int) -> str:
+    """Return the ``ChatEntry.channel`` label for a ``DOTAChatChannelType_t`` value.
+
+    All-chat and team chat get names. Every other channel (spectator, coach,
+    broadcast, ...) keeps its raw number as a string, as OpenDota does
+    (odota/parser ``Parse.java`` ``onAllChatMessage``).
+    """
+    if channel_type == DOTAChannelType_GameAll:
+        return "all"
+    if channel_type == DOTAChannelType_GameAllies:
+        return "team"
+    return str(channel_type)
 
 
 def _is_game_state(log_type: int, value: int, state: int) -> bool:
@@ -987,8 +1002,7 @@ class ReplayParser:
             return
         chat_msg = CDOTAUserMsg_ChatMessage()
         chat_msg.ParseFromString(payload)
-        # DOTAChannelType_GameAll is all-chat; anything else is treated as team chat.
-        channel = "all" if chat_msg.channel_type == DOTAChannelType_GameAll else "team"
+        channel = _chat_channel_label(chat_msg.channel_type)
         entry = ChatEntry(
             tick=self.tick,
             player_slot=chat_msg.source_player_id,

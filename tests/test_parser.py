@@ -1023,7 +1023,15 @@ class TestEmitChatMessage:
         assert entry.channel == "all"
         assert entry.text == "wp"
 
-    def test_team_chat_channel_label(self):
+    @pytest.mark.parametrize(
+        ("channel_type", "expected"),
+        [
+            (12, "team"),  # DOTAChannelType_GameAllies
+            (13, "13"),  # DOTAChannelType_GameSpectator keeps its raw number
+            (5, "5"),  # DOTAChannelType_Guild keeps its raw number
+        ],
+    )
+    def test_non_all_chat_channel_labels(self, channel_type, expected):
         from gem.proto.dota_usermessages_pb2 import CDOTAUserMsg_ChatMessage
 
         p = ReplayParser(b"")
@@ -1031,12 +1039,12 @@ class TestEmitChatMessage:
         p.on_chat_message(received.append)
 
         msg = CDOTAUserMsg_ChatMessage()
-        msg.channel_type = 5  # non-all → team
+        msg.channel_type = channel_type
         msg.source_player_id = 1
         msg.message_text = "push"
         p._dispatch_inner(_DOTA_UM_CHAT_MESSAGE, msg.SerializeToString())
 
-        assert received[0].channel == "team"
+        assert received[0].channel == expected
 
     def test_multiple_chat_callbacks_all_receive_entry(self):
         from gem.proto.dota_usermessages_pb2 import CDOTAUserMsg_ChatMessage

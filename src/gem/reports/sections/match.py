@@ -1159,7 +1159,7 @@ def build_chat(match: ParsedMatch) -> str:
         for msg in match.chat:
             hero_name, team = slot_to_hero.get(msg.player_slot, ("?", 0))
             team_color = TEAM_COLOR_CSS.get(team, "#8b949e")
-            channel_label = "ALL" if msg.channel == "all" else "TEAM"
+            channel_label = {"all": "ALL", "team": "TEAM"}.get(msg.channel, f"CH {msg.channel}")
             channel_color = "#ffb74d" if msg.channel == "all" else team_color
             parts.append(
                 f"<tr>"
