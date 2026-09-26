@@ -1,8 +1,8 @@
 # dota_commonmessages.proto
 
+**Loaded, not used**: gem doesn't use this file, but it is imported by `dota_usermessages.proto`, so Python loads it anyway.
+
 - Module: `dota_commonmessages_pb2`
-- Syntax: `unknown`
-- Package: `(none)`
 - Imports: **1**
 - Messages: **13** (top-level: 12)
 - Enums: **4** (top-level: 4)

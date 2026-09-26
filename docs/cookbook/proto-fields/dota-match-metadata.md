@@ -1,8 +1,8 @@
 # dota_match_metadata.proto
 
+**Used by gem**: gem decodes messages from this file. See [The Proto Files gem Uses](../proto-files.md) for what it reads and why.
+
 - Module: `dota_match_metadata_pb2`
-- Syntax: `unknown`
-- Package: `(none)`
 - Imports: **10**
 - Messages: **46** (top-level: 3)
 - Enums: **2** (top-level: 1)

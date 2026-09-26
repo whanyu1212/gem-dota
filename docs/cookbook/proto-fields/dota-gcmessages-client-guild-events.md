@@ -1,8 +1,8 @@
 # dota_gcmessages_client_guild_events.proto
 
+**Not used by gem**: nothing in this file is needed to parse a replay. See [the map of all 84 files](../proto-files.md#the-map-all-84-files) for what it belongs to.
+
 - Module: `dota_gcmessages_client_guild_events_pb2`
-- Syntax: `unknown`
-- Package: `(none)`
 - Imports: **1**
 - Messages: **22** (top-level: 22)
 - Enums: **7** (top-level: 1)

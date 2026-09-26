@@ -1,8 +1,8 @@
 # steammessages.proto
 
+**Loaded, not used**: gem doesn't use this file, but it is imported by `base_gcmessages.proto`, `dota_gcmessages_common.proto`, `dota_gcmessages_common_craftworks.proto`, `dota_gcmessages_common_lobby.proto`, `dota_gcmessages_common_match_management.proto`, `dota_gcmessages_common_monster_hunter.proto`, `dota_gcmessages_common_overworld.proto`, `dota_gcmessages_common_survivors.proto`, `gcsdk_gcmessages.proto`, so Python loads it anyway.
+
 - Module: `steammessages_pb2`
-- Syntax: `unknown`
-- Package: `(none)`
 - Imports: **1**
 - Messages: **5** (top-level: 5)
 - Enums: **2** (top-level: 2)

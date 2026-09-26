@@ -1,8 +1,8 @@
 # netmessages.proto
 
+**Used by gem**: gem decodes messages from this file. See [The Proto Files gem Uses](../proto-files.md) for what it reads and why.
+
 - Module: `netmessages_pb2`
-- Syntax: `unknown`
-- Package: `(none)`
 - Imports: **2**
 - Messages: **74** (top-level: 63)
 - Enums: **12** (top-level: 11)

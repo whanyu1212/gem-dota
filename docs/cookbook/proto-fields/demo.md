@@ -1,8 +1,8 @@
 # demo.proto
 
+**Used by gem**: gem decodes messages from this file. See [The Proto Files gem Uses](../proto-files.md) for what it reads and why.
+
 - Module: `demo_pb2`
-- Syntax: `unknown`
-- Package: `(none)`
 - Imports: **0**
 - Messages: **28** (top-level: 20)
 - Enums: **1** (top-level: 1)

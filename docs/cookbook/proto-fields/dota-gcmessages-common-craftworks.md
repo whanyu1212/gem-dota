@@ -1,8 +1,8 @@
 # dota_gcmessages_common_craftworks.proto
 
+**Loaded, not used**: gem doesn't use this file, but it is imported by `dota_match_metadata.proto`, so Python loads it anyway.
+
 - Module: `dota_gcmessages_common_craftworks_pb2`
-- Syntax: `unknown`
-- Package: `(none)`
 - Imports: **3**
 - Messages: **3** (top-level: 2)
 - Enums: **1** (top-level: 1)

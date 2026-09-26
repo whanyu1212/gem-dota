@@ -1,8 +1,8 @@
 # valveextensions.proto
 
+**Loaded, not used**: gem doesn't use this file, but it is imported by `gcsdk_gcmessages.proto`, `networkbasetypes.proto`, so Python loads it anyway.
+
 - Module: `valveextensions_pb2`
-- Syntax: `unknown`
-- Package: `(none)`
 - Imports: **1**
 - Messages: **0** (top-level: 0)
 - Enums: **1** (top-level: 1)

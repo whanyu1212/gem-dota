@@ -1,8 +1,8 @@
 # dota_usermessages.proto
 
+**Used by gem**: gem decodes messages from this file. See [The Proto Files gem Uses](../proto-files.md) for what it reads and why.
+
 - Module: `dota_usermessages_pb2`
-- Syntax: `unknown`
-- Package: `(none)`
 - Imports: **3**
 - Messages: **191** (top-level: 173)
 - Enums: **20** (top-level: 14)

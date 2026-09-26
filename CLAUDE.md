@@ -220,7 +220,7 @@ The `instancebaseline` string table holds default field values per class — app
 ### Combat log — two ingestion paths
 
 - **S1 (older replays)**: arrives as `dota_combatlog` game event via `CMsgSource1LegacyGameEvent`. Names are integer indices resolved via the `CombatLogNames` string table.
-- **S2 (newer replays)**: arrives as `CMsgDOTACombatLogEntry` user message with names already resolved.
+- **S2 (newer replays)**: arrives as `CMsgDOTACombatLogEntry`, one entry per direct inner message `DOTA_UM_CombatLogDataHLTV` (554). Names are also integer indices into the `CombatLogNames` string table (the mapping differs per replay), resolved in `CombatLogProcessor.process_s2_entry`.
 
 Both paths must produce the same `CombatLogEntry` output. See pinned
 `skadistats/clarity`
@@ -449,7 +449,9 @@ formula estimate; the events themselves are independently confirmed correct.
 ## Protobuf
 
 Generated protobuf classes live in `src/gem/proto/`. Do not hand-edit them.
-`.proto` sources live in `proto_definitions/`. To regenerate:
+`.proto` sources are downloaded into `proto_definitions/`, which is gitignored
+(`scripts/download_protos.sh`; pass the lock file's commit as `PROTO_UPSTREAM_REF`
+for the pinned snapshot). To regenerate:
 
 ```bash
 uv run python scripts/compile_protos.py

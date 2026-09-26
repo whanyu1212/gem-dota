@@ -28,7 +28,7 @@ export default defineConfig({
         items: [
           { text: "Overview", link: "/cookbook/" },
           { text: "How Proto Parsing Works", link: "/cookbook/proto-parsing-pipeline" },
-          { text: "Full Proto Dota2 Catalog", link: "/cookbook/proto-dota2-catalog" },
+          { text: "The Proto Files gem Uses", link: "/cookbook/proto-files" },
           { text: "Proto Field Atlas", link: "/cookbook/proto-fields/" },
         ],
       },

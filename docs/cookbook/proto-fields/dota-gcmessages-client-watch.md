@@ -1,8 +1,8 @@
 # dota_gcmessages_client_watch.proto
 
+**Not used by gem**: nothing in this file is needed to parse a replay. See [the map of all 84 files](../proto-files.md#the-map-all-84-files) for what it belongs to.
+
 - Module: `dota_gcmessages_client_watch_pb2`
-- Syntax: `unknown`
-- Package: `(none)`
 - Imports: **1**
 - Messages: **23** (top-level: 19)
 - Enums: **2** (top-level: 0)

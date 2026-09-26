@@ -1,8 +1,8 @@
 # econ_gcmessages.proto
 
+**Not used by gem**: nothing in this file is needed to parse a replay. See [the map of all 84 files](../proto-files.md#the-map-all-84-files) for what it belongs to.
+
 - Module: `econ_gcmessages_pb2`
-- Syntax: `unknown`
-- Package: `(none)`
 - Imports: **4**
 - Messages: **143** (top-level: 121)
 - Enums: **16** (top-level: 2)

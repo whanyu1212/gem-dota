@@ -1,8 +1,8 @@
 # networkbasetypes.proto
 
+**Used by gem**: gem decodes messages from this file. See [The Proto Files gem Uses](../proto-files.md) for what it reads and why.
+
 - Module: `networkbasetypes_pb2`
-- Syntax: `unknown`
-- Package: `(none)`
 - Imports: **3**
 - Messages: **27** (top-level: 24)
 - Enums: **3** (top-level: 3)

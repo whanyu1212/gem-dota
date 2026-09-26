@@ -107,7 +107,6 @@ jobs:
           find src/gem/proto -type f \( -name '*_pb2.py' -o -name '*_pb2.pyi' \) -delete
           find docs/cookbook/proto-fields -type f -name '*.md' -delete
           uv run python scripts/compile_protos.py --force
-          uv run python scripts/generate_proto_catalog_docs.py
           uv run python scripts/generate_proto_field_docs.py
 
       - name: Import every generated binding
@@ -143,7 +142,6 @@ jobs:
           git switch -C "$BRANCH_NAME"
           git add -A -- \
             src/gem/proto \
-            docs/cookbook/proto-dota2-catalog.md \
             docs/cookbook/proto-fields \
             proto-upstream.lock.json
           if git diff --cached --quiet; then

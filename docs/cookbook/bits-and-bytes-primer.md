@@ -38,38 +38,42 @@ print(b.hex(" "))     # 50 42 44 45
 `binary/stream.py` expects this at the start:
 
 1. 8-byte magic: `PBDEMS2\x00`
-2. 8 metadata bytes (skipped by parser)
+2. Two 4-byte offsets (skipped by the parser)
 
 Exact byte layout:
 
 ```text
 offset 0..7   : magic (8 bytes)
-offset 8..11  : metadata uint32 #1 (little-endian)
-offset 12..15 : metadata uint32 #2 (little-endian)
+offset 8..11  : int32, little-endian: byte offset of the DEM_FileInfo envelope
+offset 12..15 : int32, little-endian: byte offset of the DEM_SpawnGroups envelope
 offset 16..   : first outer message record
 ```
 
 Header hex shape:
 
 ```text
-50 42 44 45 4d 53 32 00   00 00 00 00 00 00 00 00
-|------ magic ---------|   |------ metadata ------|
+50 42 44 45 4d 53 32 00   xx xx xx xx   yy yy yy yy
+|------ magic ---------|   |- FileInfo -| |SpawnGroups|
 ```
 
 What these mean:
 
-- `PBDEMS2\x00` is the file signature for Source 2 protobuf demo format.
-- The next 8 bytes are engine metadata hints (two little-endian `uint32` values).
-- Parser logic does not need these hints for correctness because each outer message is self-framed (`command`, `tick`, `size`, `payload`).
+- `PBDEMS2\x00` is the file signature for the Source 2 protobuf demo format.
+- The two numbers point forward to envelopes that are written at the very end of
+  the recording: the `DEM_FileInfo` match summary and `DEM_SpawnGroups`. A reader
+  can jump straight to the summary without reading the whole file (Clarity does
+  this).
 
-Why parser skips metadata:
+Why the parser skips them:
 
-1. They are not required to decode message boundaries.
-2. They can be stale in truncated files.
+1. Every outer message carries its own size (`command`, `tick`, `size`,
+   `payload`), so the parser doesn't need the offsets to find message boundaries.
+2. In a truncated file they point past the end.
 
 Example from the committed truncated fixture:
 
-- `ti14_finals_g3_xg_vs_falcons_truncated.dem` metadata: `278882831`, `278882714`
+- `ti14_finals_g3_xg_vs_falcons_truncated.dem` offsets: `278882831` and
+  `278882714`. The file is 5 MiB, so both point at envelopes that were cut off.
 - Full replay fixtures are intentionally kept as ignored local files under
   `tests/fixtures/opendota/`. Synchronize the canonical TI2026 replay with
   `uv run python scripts/sync_opendota_fixtures.py`.
@@ -178,5 +182,6 @@ That is why replay parsing is “layers of framing”, not a single protobuf dec
 ## Next pages
 
 1. [How Proto Parsing Works](proto-parsing-pipeline.md)
-2. [Parser Internals](../deep-dives/index.md)
-3. [Architecture](../architecture.md)
+2. [The Proto Files gem Uses](proto-files.md)
+3. [Parser Internals](../deep-dives/index.md)
+4. [Architecture](../architecture.md)

@@ -1,8 +1,8 @@
 # dota_hud_types.proto
 
+**Not used by gem**: nothing in this file is needed to parse a replay. See [the map of all 84 files](../proto-files.md#the-map-all-84-files) for what it belongs to.
+
 - Module: `dota_hud_types_pb2`
-- Syntax: `unknown`
-- Package: `(none)`
 - Imports: **1**
 - Messages: **0** (top-level: 0)
 - Enums: **1** (top-level: 1)
