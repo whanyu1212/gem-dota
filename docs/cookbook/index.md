@@ -13,6 +13,7 @@ Proto Cookbook pages focus on practical mental models:
 
 | Recipe | What you will learn |
 |---|---|
-| [How Proto Parsing Works](proto-parsing-pipeline.md) | End-to-end parse flow, inner/outer protobuf boundaries, and what each outer message contains |
+| [How Proto Parsing Works](proto-parsing-pipeline.md) | What protobuf is, and how a replay is layered: outer envelopes, inner messages, and where protobuf stops |
+| [The Proto Files gem Uses](proto-files.md) | Where the `.proto` files come from, and what each of the 8 files gem reads carries |
 | [Full Proto Dota2 Catalog](proto-dota2-catalog.md) | Exhaustive inventory of every `proto_definitions/dota2/*.proto` file and all `message`/`enum` declarations |
 | [Proto Field Atlas](proto-fields/index.md) | One page per proto file with collapsible message/enum sections and per-field breakdown (tag, type, label, oneof, notes) |

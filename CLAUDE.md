@@ -220,7 +220,7 @@ The `instancebaseline` string table holds default field values per class — app
 ### Combat log — two ingestion paths
 
 - **S1 (older replays)**: arrives as `dota_combatlog` game event via `CMsgSource1LegacyGameEvent`. Names are integer indices resolved via the `CombatLogNames` string table.
-- **S2 (newer replays)**: arrives as `CMsgDOTACombatLogEntry` user message with names already resolved.
+- **S2 (newer replays)**: arrives as `CMsgDOTACombatLogEntry`, one entry per direct inner message `DOTA_UM_CombatLogDataHLTV` (554). Names are also integer indices into the `CombatLogNames` string table (the mapping differs per replay), resolved in `CombatLogProcessor.process_s2_entry`.
 
 Both paths must produce the same `CombatLogEntry` output. See pinned
 `skadistats/clarity`

@@ -120,7 +120,7 @@ python -m gem batch replays/ --format parquet --output ./out --workers 4
   <a class="gem-start-card" href="cookbook/proto-parsing-pipeline">
     <span>Understand it</span>
     <strong>Proto Parsing Pipeline</strong>
-    <small>Learn how outer demo frames, inner net messages, and protobuf payloads fit together.</small>
+    <small>Learn what protobuf is, how a replay is layered, and which proto files gem reads.</small>
   </a>
   <a class="gem-start-card" href="reference/">
     <span>Integrate it</span>
