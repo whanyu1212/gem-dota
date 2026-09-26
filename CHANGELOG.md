@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Removed the unused `BitReader.read_string_n`. It decoded Latin-1 while
+  `read_string` decodes UTF-8.
 - **DataFrame columns use pandas nullable dtypes** (`Int64`, `Float64`,
   `boolean`, `string`). Dtypes come from the source dataclass type hints
   (`CombatLogEntry`, `SmokeParticipant`, `VisionModifierEvent`, `ParsedPlayer`,
@@ -29,6 +31,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **32-bit varints wrap like Valve's reader.** `BitReader.read_varuint32`
+  could return values up to 35 bits, and `read_varint32` values outside the
+  int32 range, when a 5-byte varint's last byte was above `0x0F`. Both now keep
+  the low 32 bits before zigzag decoding, as Valve's `bf_read::ReadVarInt32` and
+  Manta do. Valve's writer never produces such bytes, so real replays parse the
+  same; only malformed input is affected.
 - **Chat channel labels match the documented contract.** `ChatEntry.channel`
   was `"team"` for every channel except all-chat, so guild, spectator, coach, and
   broadcast chat were reported as team chat. It is now `"all"` for all-chat,
