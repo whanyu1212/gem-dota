@@ -119,6 +119,7 @@ lifecycles become evidence-gap codes instead of active claims.
 `gem.results.dataframes.build_dataframes(..., include=["analysis"])` include a
 `teamfight_positioning` table with one row per fight, snapshot, and
 canonical hero. Nullable values preserve unavailable geometry.
+`active_reveal_modifiers` and `evidence_gaps` are `";"`-joined strings.
 
 The HTML report presents the same four moments on one map. Team colour,
 active/nonparticipant emphasis, visibility styling, short fresh-sample trails,
