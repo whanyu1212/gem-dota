@@ -359,8 +359,9 @@ pickups, Roshan kills, Tormentor kills (`CHAT_MESSAGE_MINIBOSS_KILL`), glyphs,
 pauses, and disconnects.
 
 **Typed chat** is `CDOTAUserMsg_ChatMessage`: the player, the channel, and the
-text. gem labels channel `11` (`DOTAChannelType_GameAll`) as `"all"` and every
-other channel as `"team"`.
+text. gem labels channel `11` (`DOTAChannelType_GameAll`) as `"all"` and channel
+`12` (`DOTAChannelType_GameAllies`) as `"team"`. Any other channel keeps its raw
+number as a string, for example `"13"` for spectator chat, as OpenDota does.
 
 **Neutral items**: `CDOTAUserMsg_FoundNeutralItem` gives the player, the item's
 ability ID, its tier, and any enhancement. gem looks up the item name
