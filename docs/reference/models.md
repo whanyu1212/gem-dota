@@ -343,7 +343,7 @@ class NeutralItemFoundEvent
 
 A neutral item found event emitted by DOTA_UM_FoundNeutralItem.
 
-Source: [src/gem/results/models.py:423](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L423)
+Source: [src/gem/results/models.py:425](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L425)
 
 #### Dataclass fields
 
@@ -368,7 +368,7 @@ class ParsedPlayer
 
 Aggregated statistics for one player over a full match.
 
-Source: [src/gem/results/models.py:457](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L457)
+Source: [src/gem/results/models.py:459](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L459)
 
 #### Dataclass fields
 
@@ -499,7 +499,7 @@ class ParsedMatch
 
 Top-level parsed output for a single Dota 2 replay.
 
-Source: [src/gem/results/models.py:856](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L856)
+Source: [src/gem/results/models.py:858](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L858)
 
 #### Dataclass fields
 
@@ -563,7 +563,7 @@ Signature: `def ParsedMatch.duration_seconds(self) -> float`
 
 Game duration in seconds, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:1014](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1014)
+Source: [src/gem/results/models.py:1016](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1016)
 
 ##### `duration_minutes`
 
@@ -571,7 +571,7 @@ Signature: `def ParsedMatch.duration_minutes(self) -> float`
 
 Game duration in minutes, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:1020](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1020)
+Source: [src/gem/results/models.py:1022](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1022)
 
 ## Module `gem.state.game_clock`
 
@@ -697,7 +697,7 @@ def to_dict(value: Any) -> Any
 
 Convert a supported dataclass or nested value to JSON-compatible data.
 
-Source: [src/gem/results/serialization.py:54](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/serialization.py#L54)
+Source: [src/gem/results/serialization.py:55](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/serialization.py#L55)
 
 ### `to_json`
 
@@ -707,7 +707,7 @@ def to_json(match: ParsedMatch, *, analysis: MatchAnalysis | None = None, indent
 
 Serialize a :class:`ParsedMatch` to a JSON string.
 
-Source: [src/gem/results/serialization.py:73](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/serialization.py#L73)
+Source: [src/gem/results/serialization.py:74](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/serialization.py#L74)
 
 ### `from_dict`
 
@@ -717,7 +717,7 @@ def from_dict(data: Mapping[str, Any]) -> ParsedMatch
 
 Rebuild a :class:`ParsedMatch` from :func:`to_json` or :func:`to_dict` data.
 
-Source: [src/gem/results/serialization.py:108](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/serialization.py#L108)
+Source: [src/gem/results/serialization.py:109](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/serialization.py#L109)
 
 ### `load_json`
 
@@ -727,4 +727,4 @@ def load_json(path: str | Path) -> ParsedMatch
 
 Load a :class:`ParsedMatch` from a JSON file written by :func:`to_json`.
 
-Source: [src/gem/results/serialization.py:137](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/serialization.py#L137)
+Source: [src/gem/results/serialization.py:138](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/serialization.py#L138)
