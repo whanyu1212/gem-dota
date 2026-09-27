@@ -11,6 +11,7 @@ python examples/match_report.py path/to/your.dem          # comprehensive HTML r
 python examples/extraction_demo.py                        # uses bundled fixture
 python examples/extraction_demo.py path/to/your.dem       # or supply your own
 python examples/steam_match_info.py <match_id>            # Steam API integration
+python examples/bits_and_bytes_exercises.py               # graded low-level practice (no replay needed)
 ```
 
 ## Scripts
@@ -22,6 +23,7 @@ python examples/steam_match_info.py <match_id>            # Steam API integratio
 | `match_report.py` | Thin wrapper around `gem.reports.write_html_report()` for a comprehensive HTML replay dashboard |
 | `extraction_demo.py` | Developer-oriented baseline: low-level `ReplayParser` + entity polling, with combat log summary and periodic entity snapshots |
 | `steam_match_info.py` | Fetches and displays match metadata from the Steam Web API (`STEAM_API_KEY` required) |
+| `bits_and_bytes_exercises.py` | 12 graded exercises that build a tiny bit reader, checked against real replay bytes and gem's `BitReader`. Companion to the [Bits & Bytes crash course](../docs/cookbook/bits-and-bytes-primer.md); solutions in `bits_and_bytes_solutions.py` |
 
 ## Replay fixtures (`opendota_parity.py` no-arg default)
 

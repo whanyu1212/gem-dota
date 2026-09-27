@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Rewrote the Bits & Bytes Primer as a crash course for Python programmers:
+  binary and hex, bit operations, byte order, LSB-first bitstreams, signed
+  integers and zigzag, varints and `ubit_var`, quantized floats, prefix codes,
+  and a decode-it-yourself exercise on real replay bytes, with "Try it"
+  questions at the end of each section. Every snippet runs against the current
+  code. The replay-layout material it duplicated now links to "How Proto Parsing
+  Works". New `examples/bits_and_bytes_exercises.py`: 12 graded exercises that
+  build a tiny bit reader, checked against real replay bytes and gem's
+  `BitReader` (solutions in `examples/bits_and_bytes_solutions.py`).
 - Removed the unused `BitReader.read_string_n`. It decoded Latin-1 while
   `read_string` decodes UTF-8.
 - **DataFrame columns use pandas nullable dtypes** (`Int64`, `Float64`,
