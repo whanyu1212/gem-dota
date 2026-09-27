@@ -2,12 +2,14 @@
 
 Handles ``CSVCMsg_PacketEntities``, ``CDemoClassInfo``, and
 ``CSVCMsg_ServerInfo`` to maintain a live table of game entities.
-Each entity is an instance of a serializer class; its field values are
-stored in a flat dict keyed by field name and can be retrieved by name
-or with typed accessors.
+Each entity is an instance of a serializer class; its field values live in a
+``FieldState`` tree and are read by dotted field name, directly or with typed
+accessors.
 
-Reference: manta/entity.go, manta/field_reader.go, manta/field_state.go,
-           manta/class.go
+References:
+    dotabuff/manta entity.go, class.go (pinned revision in CLAUDE.md)
+    skadistats/clarity processor/entities/Entities.java (pinned revision in
+    CLAUDE.md): per-entity apply-then-notify order within a packet
 """
 
 from __future__ import annotations
@@ -24,6 +26,11 @@ from gem.schema.field_path.models import CompactFieldPath
 from gem.schema.field_reader import read_fields
 from gem.schema.field_state import FieldState
 from gem.schema.sendtable import (
+    FIELD_MODEL_FIXED_ARRAY,
+    FIELD_MODEL_FIXED_TABLE,
+    FIELD_MODEL_SIMPLE,
+    FIELD_MODEL_VARIABLE_ARRAY,
+    FIELD_MODEL_VARIABLE_TABLE,
     Serializer,
 )
 from gem.schema.sendtable.models import FieldAccessPlan, ResolvedField
@@ -55,7 +62,6 @@ def game_build_from_game_dir(game_dir: str) -> int:
     return int(m.group(1)) if m else 0
 
 
-_MISSING = object()
 _ENTITY_NAME_FIELDS = FieldAccessPlan(("m_pEntity.m_nameStringableIndex",))
 
 
@@ -121,10 +127,9 @@ class ClassInfo:
 class Entity:
     """A live game entity with decoded field state.
 
-    The entity state is stored in ``_state`` (a FieldState tree for decoded
-    replay fields) and optionally in a plain dict overlay for direct key-value
-    access. The ``get()`` method queries the flat ``_state`` dict first (which
-    tests may set directly), then falls back to FieldState path resolution.
+    Field values live in a ``FieldState`` tree. ``get()`` and the typed getters
+    turn a dotted field name into a path through the class's serializer, then
+    read the tree.
 
     Attributes:
         index: Entity slot index.
@@ -140,7 +145,6 @@ class Entity:
         "active",
         "_field_state",
         "_player_id_cache",
-        "_state",
     )
 
     def __init__(self, index: int, serial: int, cls: Any) -> None:
@@ -150,8 +154,6 @@ class Entity:
         self.active = True
         self._field_state = FieldState()
         self._player_id_cache: Any = None
-        # Flat dict for direct key-value access (tests may write here directly)
-        self._state: dict[str, Any] = {}
 
     # ------------------------------------------------------------------
     # Field access
@@ -160,9 +162,6 @@ class Entity:
     def get(self, name: str) -> Any:
         """Return the current value of *name*, or None if absent.
 
-        Checks the flat ``_state`` dict first, then resolves through the
-        FieldState tree using the serializer's field schema.
-
         Args:
             name: Dotted field name, e.g. ``"m_iHealth"``.
 
@@ -170,10 +169,6 @@ class Entity:
             The decoded value, or None. The name of a variable-length array or
             table (e.g. ``"m_vecPlayerTeamData"``) returns its current length.
         """
-        # Fast path: direct dict (set by tests or flat lookups)
-        if name in self._state:
-            return self._state[name]
-
         # Resolve once per shared serializer, rather than once per entity.
         serializer = getattr(self.cls, "serializer", None)
         if serializer is None:
@@ -191,60 +186,45 @@ class Entity:
         return serializer._resolve_plan(plan)
 
     def _get_resolved(self, field: ResolvedField) -> Any:
-        """Read a pre-resolved field while preserving flat-overlay precedence."""
-        value = self._state.get(field.name, _MISSING)
-        if value is not _MISSING:
-            return value
+        """Read a pre-resolved field."""
         if field.path is None:
             return None
         return self._field_state._get_compact(field.path)
 
     def _get_int32_resolved(self, field: ResolvedField) -> int | None:
-        value = self._state.get(field.name, _MISSING)
-        if value is _MISSING:
-            if field.path is None:
-                return None
-            value = self._field_state._get_compact(field.path)
+        if field.path is None:
+            return None
+        value = self._field_state._get_compact(field.path)
         return value if isinstance(value, int) else None
 
     def _get_uint32_resolved(self, field: ResolvedField) -> int | None:
-        value = self._state.get(field.name, _MISSING)
-        if value is _MISSING:
-            if field.path is None:
-                return None
-            value = self._field_state._get_compact(field.path)
+        if field.path is None:
+            return None
+        value = self._field_state._get_compact(field.path)
         return (value & 0xFFFFFFFF) if isinstance(value, int) else None
 
     def _get_uint64_resolved(self, field: ResolvedField) -> int | None:
-        value = self._state.get(field.name, _MISSING)
-        if value is _MISSING:
-            if field.path is None:
-                return None
-            value = self._field_state._get_compact(field.path)
+        if field.path is None:
+            return None
+        value = self._field_state._get_compact(field.path)
         return value if isinstance(value, int) else None
 
     def _get_float32_resolved(self, field: ResolvedField) -> float | None:
-        value = self._state.get(field.name, _MISSING)
-        if value is _MISSING:
-            if field.path is None:
-                return None
-            value = self._field_state._get_compact(field.path)
+        if field.path is None:
+            return None
+        value = self._field_state._get_compact(field.path)
         return float(value) if isinstance(value, (int, float)) else None
 
     def _get_string_resolved(self, field: ResolvedField) -> str | None:
-        value = self._state.get(field.name, _MISSING)
-        if value is _MISSING:
-            if field.path is None:
-                return None
-            value = self._field_state._get_compact(field.path)
+        if field.path is None:
+            return None
+        value = self._field_state._get_compact(field.path)
         return value if isinstance(value, str) else None
 
     def _get_bool_resolved(self, field: ResolvedField) -> bool | None:
-        value = self._state.get(field.name, _MISSING)
-        if value is _MISSING:
-            if field.path is None:
-                return None
-            value = self._field_state._get_compact(field.path)
+        if field.path is None:
+            return None
+        value = self._field_state._get_compact(field.path)
         return bool(value) if isinstance(value, (bool, int)) else None
 
     def exists(self, name: str) -> bool:
@@ -330,12 +310,23 @@ class Entity:
         return bool(v) if isinstance(v, (bool, int)) else None
 
     def to_map(self) -> dict[str, Any]:
-        """Return a snapshot of the flat _state dict.
+        """Return every stored field value by name.
+
+        Names are the ones ``get()`` accepts (dots between levels, four-digit
+        array and table indexes). Like Manta's ``Entity.Map()``, only values are
+        listed: a table's presence flag and an array's length are left out. Unlike
+        Manta, fields that were never sent are left out rather than listed as None,
+        and when a class declares a name twice only the first field (the one
+        ``get()`` reads) is listed.
 
         Returns:
             Dict of field name → value.
         """
-        return dict(self._state)
+        values: dict[str, Any] = {}
+        serializer = getattr(self.cls, "serializer", None)
+        if serializer is not None:
+            _collect_values(serializer, self._field_state, "", values)
+        return values
 
     def get_class_name(self) -> str:
         """Return the entity class name."""
@@ -355,6 +346,47 @@ class Entity:
 
     def __repr__(self) -> str:
         return f"Entity({self.index}, {self.cls.name!r})"
+
+
+def _slot(node: FieldState, index: int) -> Any:
+    """Read one slot the way ``FieldState`` reads do (one spare slot required)."""
+    state = node._state
+    return state[index] if len(state) >= index + 2 else None
+
+
+def _collect_values(
+    serializer: Serializer, node: FieldState, prefix: str, out: dict[str, Any]
+) -> None:
+    """Add every stored value under *node* to *out*, named like ``Entity.get``.
+
+    Mirrors Manta's ``serializer.getFieldPaths`` / ``field.getFieldPaths``. A few
+    classes declare two fields with the same name (``DataTeamPlayer_t`` has two
+    ``m_nPlayerID``); a name only reaches the first, so later ones are skipped.
+    """
+    seen: set[str] = set()
+    for i, field in enumerate(serializer.fields):
+        if field.var_name in seen:
+            continue
+        seen.add(field.var_name)
+        name = prefix + field.var_name
+        value = _slot(node, i)
+        model = field.model
+        if model == FIELD_MODEL_SIMPLE:
+            if value is not None:
+                out[name] = value
+        elif not isinstance(value, FieldState):
+            continue  # a presence flag or length with nothing stored below it
+        elif model in (FIELD_MODEL_FIXED_ARRAY, FIELD_MODEL_VARIABLE_ARRAY):
+            for k, element in enumerate(value._state):
+                if element is not None and not isinstance(element, FieldState):
+                    out[f"{name}.{k:04d}"] = element
+        elif field.serializer is not None:
+            if model == FIELD_MODEL_FIXED_TABLE:
+                _collect_values(field.serializer, value, f"{name}.", out)
+            elif model == FIELD_MODEL_VARIABLE_TABLE:
+                for k, row in enumerate(value._state):
+                    if isinstance(row, FieldState):
+                        _collect_values(field.serializer, row, f"{name}.{k:04d}.", out)
 
 
 # ---------------------------------------------------------------------------
@@ -502,24 +534,38 @@ class EntityTracker:
                     handlers = self._handlers_by_class_id[class_id]
                     self._handlers_by_class_id[class_id] = (*handlers, registration.handler)
 
-    def _compile_class_handlers(self, cls: ClassInfo) -> None:
-        """Compile one class, preserving registration order when gating is needed."""
+    def _build_handlers(
+        self, cls: ClassInfo
+    ) -> tuple[tuple[EntityHandler, ...], tuple[EntityHandler | _FieldEntityHandler, ...] | None]:
+        """Return *cls*'s plain handlers, and its gated handlers in registration order.
+
+        The second tuple is None unless a matching registration gates on fields;
+        dispatch then runs it instead of the plain tuple.
+        """
         matching = [
             registration for registration in self._registrations if registration.matches(cls)
         ]
         ordinary = tuple(
             registration.handler for registration in matching if not registration.required_fields
         )
+        if not any(registration.required_fields for registration in matching):
+            return ordinary, None
+        ordered = tuple(
+            registration.compile_field_handler(cls)
+            if registration.required_fields
+            else registration.handler
+            for registration in matching
+        )
+        return ordinary, ordered
+
+    def _compile_class_handlers(self, cls: ClassInfo) -> None:
+        """Compile one class, preserving registration order when gating is needed."""
+        ordinary, ordered = self._build_handlers(cls)
         self._handlers_by_class_id[cls.class_id] = ordinary
-        if any(registration.required_fields for registration in matching):
-            self._ordered_handlers_by_class_id[cls.class_id] = tuple(
-                registration.compile_field_handler(cls)
-                if registration.required_fields
-                else registration.handler
-                for registration in matching
-            )
-        else:
+        if ordered is None:
             self._ordered_handlers_by_class_id.pop(cls.class_id, None)
+        else:
+            self._ordered_handlers_by_class_id[cls.class_id] = ordered
 
     def _on_class_info(self, classes: Iterable[ClassInfo]) -> None:
         """Compile ordered handler tuples for the supplied entity classes."""
@@ -539,36 +585,23 @@ class EntityTracker:
         """
         class_id = entity.cls.class_id
         ordered_handlers = self._ordered_handlers_by_class_id.get(class_id)
-        if ordered_handlers is not None:
-            for handler in ordered_handlers:
-                if isinstance(handler, _FieldEntityHandler):
-                    if handler.accepts(entity, op):
-                        handler.handler(entity, op)
-                else:
+        if ordered_handlers is None:
+            handlers = self._handlers_by_class_id.get(class_id)
+            if handlers is None:
+                # Only direct dispatch of a class the tracker hasn't compiled
+                # (tests, custom in-memory entities) gets here; a real replay
+                # compiles every class from CDemoClassInfo first.
+                handlers, ordered_handlers = self._build_handlers(entity.cls)
+            if ordered_handlers is None:
+                for handler in handlers:
                     handler(entity, op)
-            return
-
-        handlers = self._handlers_by_class_id.get(class_id)
-        if handlers is None:
-            # EntityManager cannot dispatch an unknown class in a real replay,
-            # but preserve direct/synthetic tracker behavior before class info.
-            matching = [
-                registration
-                for registration in self._registrations
-                if registration.matches(entity.cls)
-            ]
-            if any(registration.required_fields for registration in matching):
-                for registration in matching:
-                    if registration.required_fields:
-                        field_handler = registration.compile_field_handler(entity.cls)
-                        if field_handler.accepts(entity, op):
-                            field_handler.handler(entity, op)
-                    else:
-                        registration.handler(entity, op)
                 return
-            handlers = tuple(registration.handler for registration in matching)
-        for handler in handlers:
-            handler(entity, op)
+        for entry in ordered_handlers:
+            if isinstance(entry, _FieldEntityHandler):
+                if entry.accepts(entity, op):
+                    entry.handler(entity, op)
+            else:
+                entry(entity, op)
 
 
 # ---------------------------------------------------------------------------

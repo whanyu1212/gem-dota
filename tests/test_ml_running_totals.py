@@ -14,6 +14,8 @@ from __future__ import annotations
 
 import pytest
 
+from tests._entities import set_fields
+
 # ---------------------------------------------------------------------------
 # Shared fakes
 # ---------------------------------------------------------------------------
@@ -31,7 +33,7 @@ def _make_entity(class_name: str, state: dict | None = None):
 
     e = Entity(index=0, serial=0, cls=FakeClass(class_name))
     if state:
-        e._state.update(state)
+        set_fields(e, state)
     return e
 
 

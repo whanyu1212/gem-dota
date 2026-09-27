@@ -19,6 +19,7 @@ from gem.results.models import (
     VisibilityState,
 )
 from gem.state.entities import Entity, EntityOp
+from tests._entities import set_fields
 
 
 class _Class:
@@ -47,7 +48,7 @@ def _entity(
     entity = Entity(index=index, serial=serial, cls=_Class(class_name, class_id))
     if npc:
         state.setdefault("m_iDayTimeVisionRange", 1800)
-    entity._state.update(state)
+    set_fields(entity, state)
     return entity
 
 
@@ -257,10 +258,10 @@ def test_dedupes_unchanged_states_and_coalesces_same_tick_to_final_state() -> No
     parser.packet_end(11)
     assert len(extractor.events) == 1
 
-    radiant._state["m_bNPCVisibleState.0000"] = 0
+    set_fields(radiant, {"m_bNPCVisibleState.0000": 0})
     parser.entity(radiant)
     parser.packet_end(20)
-    radiant._state["m_bNPCVisibleState.0000"] = 1 << 2
+    set_fields(radiant, {"m_bNPCVisibleState.0000": 1 << 2})
     parser.entity(radiant)
     parser.packet_end(20)
 
@@ -569,10 +570,10 @@ def test_entity_visibility_changes_coalesce_to_final_same_tick_state() -> None:
     parser.entity(npc, EntityOp.CREATED_ENTERED)
     parser.packet_end(10)
 
-    team._state["m_bNPCVisibleState.0000"] = 1 << 2
+    set_fields(team, {"m_bNPCVisibleState.0000": 1 << 2})
     parser.entity(team)
     parser.packet_end(20)
-    team._state["m_bNPCVisibleState.0000"] = 0
+    set_fields(team, {"m_bNPCVisibleState.0000": 0})
     parser.entity(team)
     parser.packet_end(20)
 
@@ -609,10 +610,10 @@ def test_visibility_words_are_read_once_per_team_and_occupied_word() -> None:
     extractor, _players, parser = _attached()
     radiant = _CountingEntity("CDOTADataRadiant")
     dire = _CountingEntity("CDOTADataDire")
-    radiant._state.update(
-        {"m_bNPCVisibleState.0000": (1 << 1) | (1 << 2), "m_bNPCVisibleState.0001": 1}
+    set_fields(
+        radiant, {"m_bNPCVisibleState.0000": (1 << 1) | (1 << 2), "m_bNPCVisibleState.0001": 1}
     )
-    dire._state.update({"m_bNPCVisibleState.0000": 0, "m_bNPCVisibleState.0001": 0})
+    set_fields(dire, {"m_bNPCVisibleState.0000": 0, "m_bNPCVisibleState.0001": 0})
     parser.entity(radiant)
     parser.entity(dire)
     for index in (1, 2, 64):
@@ -626,14 +627,14 @@ def test_visibility_words_are_read_once_per_team_and_occupied_word() -> None:
 def test_ordinary_npc_updates_do_not_resample_unchanged_visibility() -> None:
     extractor, _players, parser = _attached()
     radiant = _CountingEntity("CDOTADataRadiant")
-    radiant._state["m_bNPCVisibleState.0000"] = 1 << 2
+    set_fields(radiant, {"m_bNPCVisibleState.0000": 1 << 2})
     npc = _entity("NPC", index=2, npc=True, m_iTeamNum=2)
     parser.entity(radiant)
     parser.entity(npc, EntityOp.CREATED_ENTERED)
     parser.packet_end(10)
     radiant.reads.clear()
 
-    npc._state["m_iHealth"] = 500
+    set_fields(npc, {"m_iHealth": 500})
     parser.entity(npc, EntityOp.UPDATED)
     parser.packet_end(20)
 
@@ -670,7 +671,7 @@ def test_entity_metadata_changes_emit_transition_without_visibility_change() -> 
     parser.entity(npc, EntityOp.CREATED_ENTERED)
     parser.packet_end(10)
 
-    npc._state["m_iTeamNum"] = 3
+    set_fields(npc, {"m_iTeamNum": 3})
     parser.entity(npc, EntityOp.UPDATED)
     parser.packet_end(20)
 

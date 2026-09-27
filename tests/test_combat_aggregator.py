@@ -15,6 +15,7 @@ import pytest
 from gem.combat.aggregator import _CombatAggregator, _ParsedPlayerAgg
 from gem.combat.log import CombatLogEntry, CombatLogType
 from gem.state.entities import Entity
+from tests._entities import set_fields
 
 # ---------------------------------------------------------------------------
 # _ParsedPlayerAgg
@@ -77,7 +78,7 @@ def _hero_entity(player_id_raw: int) -> Entity:
         serial=0,
         cls=SimpleNamespace(name="CDOTA_Unit_Hero", class_id=0, serializer=None),
     )
-    entity._state["m_nPlayerID"] = player_id_raw
+    set_fields(entity, {"m_nPlayerID": player_id_raw})
     return entity
 
 

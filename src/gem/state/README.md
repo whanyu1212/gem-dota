@@ -111,31 +111,25 @@ The `instancebaseline` table is the one entity decoding depends on; others
 (`CombatLogNames`, `EntityNames`, `ActiveModifiers`, …) are consumed elsewhere
 in the parser.
 
-## Field Access — Why Entities Have Two Storage Modes
+## Field Access
 
-`Entity` stores field values in **two places**, and `Entity.get(name)` checks
-them in order:
-
-```text
-_state        a plain dict overlay. Checked FIRST. Tests (and any flat lookup)
-              can write here directly to bypass schema resolution.
-_field_state  the FieldState tree that replay decoding actually writes into,
-              addressed internally by compact active-index tuples. The real
-              source of decoded values.
-```
-
-`get("m_iHealth")` returns `_state["m_iHealth"]` if present, otherwise it
-resolves the name to a compact field path through the serializer and reads
-`_field_state`. Positive and negative resolutions are cached on the shared
-serializer, so every entity using that schema reuses the same lookup result.
-Entity-delta decoder selection is cached on that same parse-scoped serializer.
-Built-in hot loops can resolve immutable field plans once and read those paths
-directly while retaining the same overlay precedence. The public mutable
+An `Entity` keeps its values in one place: `_field_state`, the `FieldState` tree
+that replay decoding writes into. `get("m_iHealth")` resolves the name to a
+compact field path through the class's serializer, then reads the tree. Both
+positive and negative resolutions are cached on the shared serializer, so every
+entity using that schema reuses the same lookup. Entity-delta decoder selection
+is cached on the same parse-scoped serializer. Built-in hot loops resolve
+immutable field plans once and read those paths directly. The public mutable
 `FieldPath` model remains available for schema-level callers and diagnostics.
 
 Typed accessors (`get_int32`, `get_float32`, `get_string`, …) wrap `get()` and
-coerce. This dual-storage design is why test code can construct an `Entity` and
-set `_state` directly without building a full schema.
+check the value's type. `to_map()` lists every stored value by the same names
+(see [How Entities Are Decoded, Part 4](../../../docs/deep-dives/entity-field-state.md)).
+
+Tests build synthetic entities with `tests/_entities.py`: `set_fields(entity,
+{"m_iHealth": 500, "m_hItems.0003": 7})` adds any missing fields to the entity's
+serializer and writes real field state, so reads go through the same resolution
+as a real replay.
 
 ## Game Events
 

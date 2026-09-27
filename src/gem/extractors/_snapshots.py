@@ -143,9 +143,7 @@ def _resolve_player_id(entity: Entity, mode: int) -> int | None:
     # Modes: direct, owner fallback, snapshot. Unlike general attribution,
     # snapshots reject a negative primary ID instead of trying the secondary.
     cache = entity._player_id_cache
-    if entity._state:
-        entity._player_id_cache = cache = None
-    elif cache is not None:
+    if cache is not None:
         entry = cache.get(mode)
         if entry is not None:
             if (
@@ -177,9 +175,7 @@ def _resolve_player_id(entity: Entity, mode: int) -> int | None:
                 return None
             continue
         player_id = val // 2
-        if not entity._state and all(
-            field.path is None or len(field.path) == 1 for field in fields[:field_count]
-        ):
+        if all(field.path is None or len(field.path) == 1 for field in fields[:field_count]):
             state = entity._field_state._state
             dependencies = tuple(
                 (field.path[0], state[field.path[0]] if len(state) >= field.path[0] + 2 else None)
