@@ -41,6 +41,7 @@ export default defineConfig({
           { text: "Entity Decoding 3: Field Decoders", link: "/deep-dives/entity-field-decoders" },
           { text: "Entity Decoding 4: Field State", link: "/deep-dives/entity-field-state" },
           { text: "Entity Decoding 5: Entity Lifecycle", link: "/deep-dives/entity-lifecycle" },
+          { text: "String Tables", link: "/deep-dives/string-tables" },
           { text: "Parser Performance", link: "/deep-dives/parser-performance" },
           { text: "Rust Kernel Plan", link: "/deep-dives/rust-kernel-plan" },
           { text: "Replay Edge Cases", link: "/deep-dives/replay-edge-cases" },
