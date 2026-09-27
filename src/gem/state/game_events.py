@@ -3,7 +3,10 @@
 Handles ``CMsgSource1LegacyGameEventList`` (schema registration) and
 ``CMsgSource1LegacyGameEvent`` (dispatch) messages.
 
-Reference: manta/game_event.go
+References:
+    dotabuff/manta game_event.go (pinned revision in CLAUDE.md)
+    skadistats/clarity processor/gameevents/GameEvents.java (pinned revision in
+    CLAUDE.md): key types 8 and 9 are read as a long and a short
 """
 
 from __future__ import annotations
@@ -20,6 +23,26 @@ _TYPE_SHORT = 4
 _TYPE_BYTE = 5
 _TYPE_BOOL = 6
 _TYPE_UINT64 = 7
+# Player identifiers (e.g. ``userid``, ``userid_pawn``). Clarity reads type 8 from
+# ``val_long`` and type 9 from ``val_short``.
+_TYPE_PLAYER_LONG = 8
+_TYPE_PLAYER_SHORT = 9
+
+# Where each key type keeps its value in ``CMsgSource1LegacyGameEvent.key_t``.
+_VALUE_ATTRIBUTES = {
+    _TYPE_STRING: "val_string",
+    _TYPE_FLOAT: "val_float",
+    _TYPE_LONG: "val_long",
+    _TYPE_SHORT: "val_short",
+    _TYPE_BYTE: "val_byte",
+    _TYPE_BOOL: "val_bool",
+    _TYPE_UINT64: "val_uint64",
+    _TYPE_PLAYER_LONG: "val_long",
+    _TYPE_PLAYER_SHORT: "val_short",
+}
+_INTEGER_TYPES = frozenset(
+    (_TYPE_LONG, _TYPE_SHORT, _TYPE_BYTE, _TYPE_PLAYER_LONG, _TYPE_PLAYER_SHORT)
+)
 
 
 @dataclass
@@ -40,17 +63,58 @@ class GameEventSchema:
 class GameEvent:
     """A decoded game event instance.
 
-    Wraps a raw ``CSVCMsg_GameEvent`` message and its schema to provide
-    typed field accessors.
+    Wraps a raw ``CMsgSource1LegacyGameEvent`` message and its schema. Read a
+    field by name with ``event.get("value")``, ``event["value"]``, or
+    ``event.to_dict()``. The older ``get_*`` methods return a
+    ``(value, error)`` pair instead.
 
     Attributes:
         schema: The GameEventSchema for this event type.
-        msg: The raw protobuf message.
     """
 
     def __init__(self, schema: GameEventSchema, msg: Any) -> None:
         self.schema = schema
         self._keys = list(msg.keys)
+
+    @property
+    def name(self) -> str:
+        """The event's name, e.g. ``"dota_combatlog"``."""
+        return self.schema.name
+
+    def get(self, name: str, default: Any = None) -> Any:
+        """Return the value of field *name*, or *default* if it is missing.
+
+        Args:
+            name: Field name.
+            default: Value returned when the event has no such field.
+
+        Returns:
+            The field's value (``str``, ``float``, ``int``, or ``bool``).
+        """
+        try:
+            return self[name]
+        except KeyError:
+            return default
+
+    def __getitem__(self, name: str) -> Any:
+        """Return the value of field *name*.
+
+        Raises:
+            KeyError: If the schema has no such field, or the event omits it.
+        """
+        entry = self.schema.fields.get(name)
+        if entry is None or entry[0] >= len(self._keys):
+            raise KeyError(name)
+        key_idx, type_id = entry
+        return _key_value(self._keys[key_idx], type_id)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return every field present in this event, by name."""
+        return {
+            name: _key_value(self._keys[key_idx], type_id)
+            for name, (key_idx, type_id) in self.schema.fields.items()
+            if key_idx < len(self._keys)
+        }
 
     def _get_key(self, name: str) -> tuple[Any, str | None]:
         """Return (key_obj, error_str) for the named field."""
@@ -92,9 +156,10 @@ class GameEvent:
         return key.val_float, None
 
     def get_int32(self, name: str) -> tuple[int, str | None]:
-        """Return (value, None) as int32 (long/short/byte), or (0, error).
+        """Return (value, None) as an integer, or (0, error).
 
-        Accepts long (3), short (4), or byte (5) type IDs.
+        Accepts long (3), short (4), and byte (5) keys, and the player
+        identifier types 8 and 9.
 
         Args:
             name: Field name.
@@ -103,12 +168,8 @@ class GameEvent:
         if err:
             return 0, err
         _, type_id = self.schema.fields[name]
-        if type_id == _TYPE_LONG:
-            return key.val_long, None
-        if type_id == _TYPE_SHORT:
-            return key.val_short, None
-        if type_id == _TYPE_BYTE:
-            return key.val_byte, None
+        if type_id in _INTEGER_TYPES:
+            return _key_value(key, type_id), None
         return 0, f"field {name!r} is type {type_id}, not an integer type"
 
     def get_bool(self, name: str) -> tuple[bool, str | None]:
@@ -138,6 +199,14 @@ class GameEvent:
         if type_id != _TYPE_UINT64:
             return 0, f"field {name!r} is type {type_id}, not uint64"
         return key.val_uint64, None
+
+
+def _key_value(key: Any, type_id: int) -> Any:
+    """Read a key's value from the attribute its type uses."""
+    attribute = _VALUE_ATTRIBUTES.get(type_id)
+    if attribute is None:
+        raise ValueError(f"unsupported game event key type {type_id}")
+    return getattr(key, attribute)
 
 
 GameEventHandler = Callable[[GameEvent], None]

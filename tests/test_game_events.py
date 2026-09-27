@@ -26,6 +26,11 @@ class FakeKey:
         self.val_byte = value if type_id == 5 else 0
         self.val_bool = value if type_id == 6 else False
         self.val_uint64 = value if type_id == 7 else 0
+        # Player identifier types: 8 lives in val_long, 9 in val_short (Clarity).
+        if type_id == 8:
+            self.val_long = value
+        if type_id == 9:
+            self.val_short = value
 
 
 class FakeRawEvent:
@@ -330,3 +335,95 @@ class TestGameEventManagerFromProtoShape:
         assert schema.fields["kills"] == (0, 3)
         assert schema.fields["victim"] == (1, 1)
         assert schema.fields["multikill"] == (2, 6)
+
+
+# ---------------------------------------------------------------------------
+# GameEvent — Pythonic access
+# ---------------------------------------------------------------------------
+
+
+class TestGameEventPythonicAccess:
+    FIELDS = {"type": (0, 5), "attackername": (1, 3), "value": (2, 3), "name": (3, 1)}
+    KEYS = [(5, 4), (3, 12), (3, 250), (1, "npc_dota_hero_axe")]
+
+    def test_name(self):
+        assert make_event(self.FIELDS, self.KEYS).name == "test_event"
+
+    def test_get_and_getitem_return_values(self):
+        event = make_event(self.FIELDS, self.KEYS)
+        assert event.get("value") == 250
+        assert event["name"] == "npc_dota_hero_axe"
+
+    def test_get_returns_default_for_missing_field(self):
+        event = make_event(self.FIELDS, self.KEYS)
+        assert event.get("nope") is None
+        assert event.get("nope", -1) == -1
+
+    def test_getitem_raises_key_error_for_missing_field(self):
+        import pytest
+
+        with pytest.raises(KeyError):
+            make_event(self.FIELDS, self.KEYS)["nope"]
+
+    def test_field_the_event_omits_counts_as_missing(self):
+        event = make_event(self.FIELDS, self.KEYS[:2])
+        assert event.get("value") is None
+        assert "value" not in event.to_dict()
+
+    def test_to_dict(self):
+        assert make_event(self.FIELDS, self.KEYS).to_dict() == {
+            "type": 4,
+            "attackername": 12,
+            "value": 250,
+            "name": "npc_dota_hero_axe",
+        }
+
+    def test_unsupported_key_type_raises(self):
+        import pytest
+
+        event = make_event({"odd": (0, 42)}, [(3, 1)])
+        with pytest.raises(ValueError, match="unsupported game event key type 42"):
+            event["odd"]
+
+
+class TestPlayerIdentifierTypes:
+    """Key types 8 and 9 (userid, userid_pawn) are integers, as in Clarity."""
+
+    def test_type_8_reads_val_long(self):
+        event = make_event({"userid_pawn": (0, 8)}, [(8, 123456)])
+        assert event.get_int32("userid_pawn") == (123456, None)
+        assert event["userid_pawn"] == 123456
+
+    def test_type_9_reads_val_short(self):
+        event = make_event({"userid": (0, 9)}, [(9, 7)])
+        assert event.get_int32("userid") == (7, None)
+        assert event["userid"] == 7
+
+
+def test_pythonic_access_on_a_real_protobuf_event():
+    from gem.proto.gameevents_pb2 import CMsgSource1LegacyGameEvent
+
+    msg = CMsgSource1LegacyGameEvent(eventid=99)
+    for type_id, attribute, value in (
+        (1, "val_string", "axe"),
+        (2, "val_float", 1.5),
+        (5, "val_byte", 4),
+        (6, "val_bool", True),
+        (7, "val_uint64", 2**40),
+        (8, "val_long", 99),
+        (9, "val_short", 3),
+    ):
+        key = msg.keys.add(type=type_id)
+        setattr(key, attribute, value)
+    fields = {f"k{i}": (i, t) for i, t in enumerate((1, 2, 5, 6, 7, 8, 9))}
+    event = GameEvent(GameEventSchema(event_id=99, name="real", fields=fields), msg)
+
+    assert event.to_dict() == {
+        "k0": "axe",
+        "k1": 1.5,
+        "k2": 4,
+        "k3": True,
+        "k4": 2**40,
+        "k5": 99,
+        "k6": 3,
+    }
