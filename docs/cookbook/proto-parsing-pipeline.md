@@ -212,8 +212,9 @@ The messages in one packet all belong to the same moment, but some depend on
 others. For example, a combat-log line names a hero by string-table index, so the
 string table must be up to date first. Before dispatching, gem sorts each packet:
 
-1. First: `net_Tick`, `svc_ServerInfo`, `svc_CreateStringTable`,
-   `svc_UpdateStringTable`. These give context.
+1. First: `net_Tick`, `svc_ServerInfo`, `svc_ClearAllStringTables`,
+   `svc_CreateStringTable`, `svc_UpdateStringTable`. These give context, and keep
+   their order in the packet.
 2. Then everything not listed here.
 3. Then `svc_PacketEntities`. Entity changes are applied with that context.
 4. Last: `GE_Source1LegacyGameEvent` and `DOTA_UM_CombatLogDataHLTV`. Events are
