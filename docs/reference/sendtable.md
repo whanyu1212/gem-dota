@@ -2,14 +2,9 @@
 
 Parses flattened serializers into the schema tree used to decode packet entities and their fields.
 
-See also: [Proto Parsing Pipeline](../cookbook/proto-parsing-pipeline.md)
-
-
----
-
-
----
-
+See also: [How Entities Are Decoded, Part 1: The Schema](../deep-dives/entity-schema.md)
+for an explanation with real data, and
+[Proto Parsing Pipeline](../cookbook/proto-parsing-pipeline.md).
 
 ---
 

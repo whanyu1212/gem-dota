@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- New deep dive, "How Entities Are Decoded, Part 1: The Schema": what the
+  send-table schema is, how the flattened symbols, fields, and serializers
+  become gem's `Serializer`/`Field` tree, the five field models with real
+  examples, nesting and naming, versions, and build patches. All figures and
+  snippets use the committed TI14 fixture.
 - Rewrote the Bits & Bytes Primer as a crash course for Python programmers:
   binary and hex, bit operations, byte order, LSB-first bitstreams, signed
   integers and zigzag, varints and `ubit_var`, quantized floats, prefix codes,
