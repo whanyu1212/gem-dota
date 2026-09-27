@@ -10,7 +10,6 @@ import pytest
 from gem.schema.field_path import FieldPath
 from gem.schema.field_reader import (
     _resolve_cached_decoder,
-    _resolve_compact_decoder,
     _resolve_decoder,
     _resolve_field_decoder,
     read_fields,
@@ -92,13 +91,13 @@ class TestGetDecoderSimple:
             return 42
 
         f = _make_field(FIELD_MODEL_SIMPLE, decoder=dec)
-        fp = _make_fp(0)
-        assert _resolve_field_decoder(f, fp, 1) is dec
+        path = (0,)
+        assert _resolve_field_decoder(f, path, 1) is dec
 
     def test_returns_none_when_no_decoder(self):
         f = _make_field(FIELD_MODEL_SIMPLE, decoder=None)
-        fp = _make_fp(0)
-        assert _resolve_field_decoder(f, fp, 1) is None
+        path = (0,)
+        assert _resolve_field_decoder(f, path, 1) is None
 
 
 # ---------------------------------------------------------------------------
@@ -112,13 +111,13 @@ class TestGetDecoderFixedArray:
             return 99
 
         f = _make_field(FIELD_MODEL_FIXED_ARRAY, decoder=dec)
-        fp = _make_fp(0, 3)
-        assert _resolve_field_decoder(f, fp, 1) is dec
+        path = (0, 3)
+        assert _resolve_field_decoder(f, path, 1) is dec
 
     def test_returns_none_when_decoder_absent(self):
         f = _make_field(FIELD_MODEL_FIXED_ARRAY, decoder=None)
-        fp = _make_fp(0, 3)
-        assert _resolve_field_decoder(f, fp, 1) is None
+        path = (0, 3)
+        assert _resolve_field_decoder(f, path, 1) is None
 
 
 # ---------------------------------------------------------------------------
@@ -132,9 +131,9 @@ class TestGetDecoderFixedTable:
             return True
 
         f = _make_field(FIELD_MODEL_FIXED_TABLE, base_decoder=base_dec)
-        # fp.last == pos - 1  →  fp.last=0, pos=1
-        fp = _make_fp(0)
-        result = _resolve_field_decoder(f, fp, 1)
+        # last == pos - 1  →  last=0, pos=1
+        path = (0,)
+        result = _resolve_field_decoder(f, path, 1)
         assert result is base_dec
 
     def test_recurses_into_serializer_when_deeper(self):
@@ -148,9 +147,9 @@ class TestGetDecoderFixedTable:
             return True
 
         f = _make_field(FIELD_MODEL_FIXED_TABLE, base_decoder=base_dec, serializer=inner_ser)
-        # path: [0, 0], fp.last=1 → at pos=1 the recursion starts with inner_ser
-        fp = _make_fp(0, 0)
-        result = _resolve_field_decoder(f, fp, 1)
+        # path: [0, 0], last=1 → at pos=1 the recursion starts with inner_ser
+        path = (0, 0)
+        result = _resolve_field_decoder(f, path, 1)
         assert result is inner_dec
 
     def test_missing_serializer_for_deep_path_raises_value_error(self):
@@ -158,10 +157,10 @@ class TestGetDecoderFixedTable:
             return True
 
         f = _make_field(FIELD_MODEL_FIXED_TABLE, base_decoder=base_dec, serializer=None)
-        fp = _make_fp(0, 0)
+        path = (0, 0)
 
         with pytest.raises(ValueError, match="fixed-table field 'test' needs a serializer"):
-            _resolve_field_decoder(f, fp, 1)
+            _resolve_field_decoder(f, path, 1)
 
 
 # ---------------------------------------------------------------------------
@@ -175,9 +174,9 @@ class TestGetDecoderVariableArray:
             return "elem"
 
         f = _make_field(FIELD_MODEL_VARIABLE_ARRAY, child_decoder=child_dec)
-        # fp.last == pos  → fp.last=1, pos=1
-        fp = _make_fp(0, 5)
-        result = _resolve_field_decoder(f, fp, 1)
+        # last == pos  → last=1, pos=1
+        path = (0, 5)
+        result = _resolve_field_decoder(f, path, 1)
         assert result is child_dec
 
     def test_returns_base_decoder_at_length_slot(self):
@@ -188,9 +187,9 @@ class TestGetDecoderVariableArray:
             return "elem"
 
         f = _make_field(FIELD_MODEL_VARIABLE_ARRAY, base_decoder=base_dec, child_decoder=child_dec)
-        # fp.last < pos  → fp.last=0, pos=1
-        fp = _make_fp(0)
-        result = _resolve_field_decoder(f, fp, 1)
+        # last < pos  → last=0, pos=1
+        path = (0,)
+        result = _resolve_field_decoder(f, path, 1)
         assert result is base_dec
 
 
@@ -205,9 +204,9 @@ class TestGetDecoderVariableTable:
             return 2
 
         f = _make_field(FIELD_MODEL_VARIABLE_TABLE, base_decoder=base_dec)
-        # fp.last < pos+1  → fp.last=0, pos=1  → 0 < 2 → base
-        fp = _make_fp(0)
-        result = _resolve_field_decoder(f, fp, 1)
+        # last < pos+1  → last=0, pos=1  → 0 < 2 → base
+        path = (0,)
+        result = _resolve_field_decoder(f, path, 1)
         assert result is base_dec
 
     def test_returns_base_decoder_at_boundary(self):
@@ -215,9 +214,9 @@ class TestGetDecoderVariableTable:
             return 1
 
         f = _make_field(FIELD_MODEL_VARIABLE_TABLE, base_decoder=base_dec)
-        # fp.last=1, pos=1  → fp.last >= pos+1 is 1>=2 → False → base
-        fp = _make_fp(0, 3)
-        result = _resolve_field_decoder(f, fp, 1)
+        # last=1, pos=1  → last >= pos+1 is 1>=2 → False → base
+        path = (0, 3)
+        result = _resolve_field_decoder(f, path, 1)
         assert result is base_dec
 
     def test_recurses_into_serializer_for_deep_paths(self):
@@ -231,9 +230,9 @@ class TestGetDecoderVariableTable:
             return 0
 
         f = _make_field(FIELD_MODEL_VARIABLE_TABLE, base_decoder=base_dec, serializer=inner_ser)
-        # path [0, idx, 0], fp.last=2, pos=1  → fp.last >= pos+1 is 2>=2 → True → recurse
-        fp = _make_fp(0, 3, 0)
-        result = _resolve_field_decoder(f, fp, 1)
+        # path [0, idx, 0], last=2, pos=1  → last >= pos+1 is 2>=2 → True → recurse
+        path = (0, 3, 0)
+        result = _resolve_field_decoder(f, path, 1)
         assert result is inner_dec
 
     def test_missing_serializer_for_deep_path_raises_value_error(self):
@@ -241,10 +240,10 @@ class TestGetDecoderVariableTable:
             return 0
 
         f = _make_field(FIELD_MODEL_VARIABLE_TABLE, base_decoder=base_dec, serializer=None)
-        fp = _make_fp(0, 3, 0)
+        path = (0, 3, 0)
 
         with pytest.raises(ValueError, match="variable-table field 'test' needs a serializer"):
-            _resolve_field_decoder(f, fp, 1)
+            _resolve_field_decoder(f, path, 1)
 
 
 # ---------------------------------------------------------------------------
@@ -258,8 +257,8 @@ class TestGetDecoderUnknownModel:
             return 0
 
         f = _make_field(99, decoder=dec)  # 99 is not a known model constant
-        fp = _make_fp(0)
-        result = _resolve_field_decoder(f, fp, 1)
+        path = (0,)
+        result = _resolve_field_decoder(f, path, 1)
         assert result is dec
 
 
@@ -276,8 +275,8 @@ class TestGetDecoder:
         f0 = _make_field(FIELD_MODEL_SIMPLE, decoder=dec)
         f1 = _make_field(FIELD_MODEL_SIMPLE, decoder=lambda r: 6)
         ser = _make_serializer(f0, f1)
-        fp = _make_fp(0)
-        assert _resolve_decoder(ser, fp, 0) is dec
+        path = (0,)
+        assert _resolve_decoder(ser, path, 0) is dec
 
     def test_dispatches_to_second_field(self):
         def dec(r):
@@ -286,8 +285,8 @@ class TestGetDecoder:
         f0 = _make_field(FIELD_MODEL_SIMPLE, decoder=lambda r: 5)
         f1 = _make_field(FIELD_MODEL_SIMPLE, decoder=dec)
         ser = _make_serializer(f0, f1)
-        fp = _make_fp(1)
-        assert _resolve_decoder(ser, fp, 0) is dec
+        path = (1,)
+        assert _resolve_decoder(ser, path, 0) is dec
 
     def test_nested_path_recurses_via_fixed_table(self):
         def inner_dec(r):
@@ -304,18 +303,18 @@ class TestGetDecoder:
         )
         outer_ser = _make_serializer(outer_field, name="Outer")
 
-        # path: [0, 0], fp.last=1 — goes into inner serializer
-        fp = _make_fp(0, 0)
-        assert _resolve_decoder(outer_ser, fp, 0) is inner_dec
+        # path: [0, 0], last=1 — goes into inner serializer
+        path = (0, 0)
+        assert _resolve_decoder(outer_ser, path, 0) is inner_dec
 
 
 # ---------------------------------------------------------------------------
-# compact decoder resolution and serializer cache
+# decoder resolution by model and serializer cache
 # ---------------------------------------------------------------------------
 
 
-class TestCompactDecoderResolution:
-    def test_simple_and_fixed_array_match_mutable_resolution(self):
+class TestDecoderResolutionByModel:
+    def test_simple_and_fixed_array(self):
         for model, path in (
             (FIELD_MODEL_SIMPLE, (0,)),
             (FIELD_MODEL_FIXED_ARRAY, (0, 3)),
@@ -323,10 +322,9 @@ class TestCompactDecoderResolution:
             decoder = _constant_decoder(5)
             serializer = _make_serializer(_make_field(model, decoder=decoder))
 
-            assert _resolve_compact_decoder(serializer, path, 0) is decoder
-            assert _resolve_decoder(serializer, _make_fp(*path), 0) is decoder
+            assert _resolve_decoder(serializer, path, 0) is decoder
 
-    def test_fixed_table_base_and_deep_paths_match_mutable_resolution(self):
+    def test_fixed_table_base_and_deep_paths(self):
         base_decoder = _constant_decoder(True)
         child_decoder = _constant_decoder(7)
         child = _make_serializer(
@@ -342,10 +340,9 @@ class TestCompactDecoderResolution:
         )
 
         for path, expected in (((0,), base_decoder), ((0, 0), child_decoder)):
-            assert _resolve_compact_decoder(serializer, path, 0) is expected
-            assert _resolve_decoder(serializer, _make_fp(*path), 0) is expected
+            assert _resolve_decoder(serializer, path, 0) is expected
 
-    def test_variable_array_base_and_child_paths_match_mutable_resolution(self):
+    def test_variable_array_base_and_child_paths(self):
         base_decoder = _constant_decoder(3)
         child_decoder = _constant_decoder("element")
         serializer = _make_serializer(
@@ -357,10 +354,9 @@ class TestCompactDecoderResolution:
         )
 
         for path, expected in (((0,), base_decoder), ((0, 4), child_decoder)):
-            assert _resolve_compact_decoder(serializer, path, 0) is expected
-            assert _resolve_decoder(serializer, _make_fp(*path), 0) is expected
+            assert _resolve_decoder(serializer, path, 0) is expected
 
-    def test_variable_table_boundaries_and_deep_path_match_mutable_resolution(self):
+    def test_variable_table_boundaries_and_deep_path(self):
         base_decoder = _constant_decoder(2)
         child_decoder = _constant_decoder("deep")
         child = _make_serializer(
@@ -380,8 +376,7 @@ class TestCompactDecoderResolution:
             ((0, 3), base_decoder),
             ((0, 3, 0), child_decoder),
         ):
-            assert _resolve_compact_decoder(serializer, path, 0) is expected
-            assert _resolve_decoder(serializer, _make_fp(*path), 0) is expected
+            assert _resolve_decoder(serializer, path, 0) is expected
 
     def test_missing_nested_serializer_preserves_error(self):
         serializer = _make_serializer(
@@ -392,13 +387,13 @@ class TestCompactDecoderResolution:
             ValueError,
             match="fixed-table field 'test' needs a serializer.*'0/0'.*position 1",
         ):
-            _resolve_compact_decoder(serializer, (0, 0), 0)
+            _resolve_decoder(serializer, (0, 0), 0)
 
     def test_invalid_top_level_index_preserves_index_error(self):
         serializer = _make_serializer(_make_field(FIELD_MODEL_SIMPLE, decoder=lambda r: 0))
 
         with pytest.raises(IndexError):
-            _resolve_compact_decoder(serializer, (5,), 0)
+            _resolve_decoder(serializer, (5,), 0)
 
 
 class TestDecoderCache:
@@ -407,7 +402,7 @@ class TestDecoderCache:
 
         decoder = _constant_decoder(5)
         serializer = _make_serializer(_make_field(FIELD_MODEL_SIMPLE, decoder=decoder))
-        original = field_reader._resolve_compact_decoder
+        original = field_reader._resolve_decoder
         calls = 0
 
         def counting_resolver(serializer, path, pos):
@@ -415,7 +410,7 @@ class TestDecoderCache:
             calls += 1
             return original(serializer, path, pos)
 
-        monkeypatch.setattr(field_reader, "_resolve_compact_decoder", counting_resolver)
+        monkeypatch.setattr(field_reader, "_resolve_decoder", counting_resolver)
 
         assert _resolve_cached_decoder(serializer, (0,)) is decoder
         assert _resolve_cached_decoder(serializer, (0,)) is decoder
@@ -425,7 +420,7 @@ class TestDecoderCache:
         import gem.schema.field_reader as field_reader
 
         serializer = _make_serializer(_make_field(FIELD_MODEL_SIMPLE, decoder=None))
-        original = field_reader._resolve_compact_decoder
+        original = field_reader._resolve_decoder
         calls = 0
 
         def counting_resolver(serializer, path, pos):
@@ -433,7 +428,7 @@ class TestDecoderCache:
             calls += 1
             return original(serializer, path, pos)
 
-        monkeypatch.setattr(field_reader, "_resolve_compact_decoder", counting_resolver)
+        monkeypatch.setattr(field_reader, "_resolve_decoder", counting_resolver)
 
         assert _resolve_cached_decoder(serializer, (0,)) is None
         assert _resolve_cached_decoder(serializer, (0,)) is None

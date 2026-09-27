@@ -50,7 +50,7 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
-from gem.binary.reader import BitReader
+from gem.binary.packet import read_inner_messages
 from gem.binary.stream import DemoStream
 from gem.catalog import item_key_by_id
 from gem.combat.log import CombatLogHandler, CombatLogProcessor, CombatLogSource
@@ -227,27 +227,6 @@ class _EntityCallbackRegistration:
     def filtered(self) -> bool:
         """Return whether this registration has a class filter."""
         return bool(self.class_names or self.class_prefixes or self.required_fields)
-
-
-def _read_inner_messages(data: bytes) -> list[tuple[int, bytes]]:
-    """Unpack the inner message sequence from a CDemoPacket.data blob.
-
-    Format: repeated { ubit_var type_id, varuint32 size, bytes payload }.
-
-    Args:
-        data: The raw bytes from CDemoPacket.data.
-
-    Returns:
-        List of (type_id, payload_bytes) pairs.
-    """
-    r = BitReader(data)
-    messages: list[tuple[int, bytes]] = []
-    while r.rem_bits() >= 8:
-        type_id = r.read_ubit_var()
-        size = r.read_varuint32()
-        payload = r.read_bytes(size)
-        messages.append((type_id, payload))
-    return messages
 
 
 class ReplayParser:
@@ -736,7 +715,7 @@ class ReplayParser:
 
     def _dispatch_inner_packet(self, data: bytes) -> None:
         # Collect and sort: string table updates before packet entities
-        messages = _read_inner_messages(data)
+        messages = read_inner_messages(data)
 
         def _priority(type_id: int) -> int:
             if type_id in (

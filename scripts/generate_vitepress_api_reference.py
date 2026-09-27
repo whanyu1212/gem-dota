@@ -96,7 +96,11 @@ TARGETS_BY_PAGE: dict[str, list[str]] = {
         "gem.schema.sendtable.Field",
         "gem.schema.sendtable.FieldType",
     ],
-    "stream.md": ["gem.binary.stream.DemoStream", "gem.binary.stream.OuterMessage"],
+    "stream.md": [
+        "gem.binary.stream.DemoStream",
+        "gem.binary.stream.OuterMessage",
+        "gem.binary.packet.read_inner_messages",
+    ],
     "string_table.md": [
         "gem.state.string_table.StringTables",
         "gem.state.string_table.StringTable",

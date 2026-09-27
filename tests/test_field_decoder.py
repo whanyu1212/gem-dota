@@ -13,14 +13,7 @@ import pytest
 
 from gem.binary.reader import BitReader
 from gem.schema.field_decoder import (
-    _QFF_ENCODE_INTEGERS,
-    _QFF_ENCODE_ZERO,
-    _QFF_ROUNDDOWN,
-    _QFF_ROUNDUP,
     QuantizedFloatDecoder,
-    _qangle_factory,
-    _unsigned64_factory,
-    _vector_factory,
     boolean_decoder,
     component_decoder,
     find_decoder,
@@ -35,6 +28,14 @@ from gem.schema.field_decoder import (
     unsigned64_decoder,
     unsigned_decoder,
 )
+from gem.schema.field_decoder.composite_codecs import _qangle_factory
+from gem.schema.field_decoder.quantized_float import (
+    _QFF_ENCODE_INTEGERS,
+    _QFF_ENCODE_ZERO,
+    _QFF_ROUNDDOWN,
+    _QFF_ROUNDUP,
+)
+from gem.schema.field_decoder.type_resolver import _unsigned64_factory, _vector_factory
 
 
 def _bits_to_bytes(bit_str: str) -> bytes:

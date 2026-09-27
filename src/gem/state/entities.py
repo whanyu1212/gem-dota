@@ -20,7 +20,6 @@ from dataclasses import dataclass
 from typing import Any
 
 from gem.binary.reader import BitReader
-from gem.schema.field_path import FieldPath
 from gem.schema.field_path.models import CompactFieldPath
 from gem.schema.field_reader import read_fields
 from gem.schema.field_state import FieldState
@@ -355,16 +354,6 @@ class Entity:
 
     def __repr__(self) -> str:
         return f"Entity({self.index}, {self.cls.name!r})"
-
-
-# ---------------------------------------------------------------------------
-# Field-path name resolver — mirrors manta/serializer.go + field.go
-# ---------------------------------------------------------------------------
-
-
-def _find_field_path(serializer: Serializer, name: str) -> FieldPath | None:
-    path = serializer._resolve_field(name).path
-    return FieldPath._from_tuple(path) if path is not None else None
 
 
 # ---------------------------------------------------------------------------

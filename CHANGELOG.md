@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Cleaned up the entity-decode layer. Parse output is byte-identical and speed is
+  unchanged.
+  - Inner-message unpacking moved from `gem.parser` into the new
+    `gem.binary.packet` module. It is now public as
+    `gem.binary.read_inner_messages()`.
+  - `FieldState.get()` and `set()` now reuse the internal fast paths instead
+    of duplicating them.
+  - Removed dead and test-only helpers: the `FieldPath` decoder-resolver
+    wrappers and their aliases, `FieldState._ensure()`, `_has_slot()` and
+    `_is_child()`, and `state.entities._find_field_path()`.
+  - `gem.schema.sendtable`, `gem.schema.field_path`, and
+    `gem.schema.field_decoder` no longer re-export underscore-prefixed
+    internals. Import those from their defining submodules. Public names
+    (`__all__`) are unchanged.
 - New deep dive, "How Entities Are Decoded, Part 3: Field Decoders": how each
   field's decoder is chosen, every decoder family with real fields (including how
   positions split into a cell and an offset), quantized-float flags and why their

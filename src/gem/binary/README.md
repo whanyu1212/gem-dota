@@ -8,10 +8,11 @@ for Valve's custom packed streams inside those protobuf messages.
 This package is intentionally small:
 
 - `stream.py` reads the outer `.dem` message stream.
+- `packet.py` splits a `CDemoPacket.data` blob into inner net messages.
 - `reader.py` reads bits, bytes, varints, packed values, and Source 2-specific
   integer encodings.
 - `__init__.py` re-exports the small public surface: `DemoStream`,
-  `OuterMessage`, `BitReader`, and `BufferReadError`.
+  `OuterMessage`, `read_inner_messages`, `BitReader`, and `BufferReadError`.
 
 It is not the generated protobuf layer. The generated protobuf classes live in
 `gem.proto`. This package exists because replay files are not stored as one
@@ -100,7 +101,7 @@ varuint32 payload_size
 bytes     payload
 ```
 
-`parser.py` uses `BitReader` to unpack that sequence:
+`read_inner_messages()` in `packet.py` uses `BitReader` to unpack that sequence:
 
 ```python
 r = BitReader(data)
@@ -173,8 +174,8 @@ fast read_bytes(data, offset, n)
 ```
 
 The tests check this across offsets, sizes, data patterns, reader position,
-remaining-bit counts, and the entire remaining bitstream after the read. Parser
-tests also decode the same synthetic inner-message blob once through the fast
+remaining-bit counts, and the entire remaining bitstream after the read. Packet
+tests (`tests/binary/test_packet.py`) also decode the same synthetic inner-message blob once through the fast
 path and once with `read_bytes` monkeypatched to `_read_bytes_slow`.
 
 ### Protobuf-Style Varints
@@ -243,7 +244,7 @@ Important examples:
 
 - `DEM_FileInfo` payloads are parsed directly as `CDemoFileInfo`.
 - `DEM_Packet` payloads are parsed as `CDemoPacket`, then `CDemoPacket.data` is
-  unpacked with `BitReader` into inner net messages.
+  unpacked by `read_inner_messages()` into inner net messages.
 - `svc_ServerInfo`, `svc_CreateStringTable`, and `svc_PacketEntities` inner
   payloads are parsed with generated protobuf classes.
 - `CSVCMsg_PacketEntities.entity_data` is then decoded with `BitReader` because

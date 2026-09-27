@@ -1,7 +1,6 @@
 """Tests for gem.parser — ReplayParser unit tests.
 
 Covers:
-- _read_inner_messages (pure function)
 - ReplayParser initial state
 - Callback registration (on_entity, on_combat_log_entry, on_game_event, etc.)
 - stop_after_tick
@@ -29,7 +28,6 @@ import pytest
 
 import gem.parser as parser_module
 import gem.results.models as model_module
-from gem.binary.reader import BitReader
 from gem.parser import (
     _DEM_FILE_INFO,
     _DOTA_UM_CHAT_EVENT,
@@ -44,131 +42,10 @@ from gem.parser import (
     _SVC_UPDATE_STRING_TABLE,
     _SVC_USER_MESSAGE,
     ReplayParser,
-    _read_inner_messages,
 )
 from gem.proto.networkbasetypes_pb2 import CNETMsg_Tick
 from gem.state.entities import Entity
-
-# ---------------------------------------------------------------------------
-# Helpers — build synthetic inner message blobs
-# ---------------------------------------------------------------------------
-
-
-class _BitWriter:
-    """Write values into a LSB-first bit stream, matching BitReader's encoding."""
-
-    def __init__(self) -> None:
-        self._bits: list[int] = []
-
-    def write_bits(self, value: int, n: int) -> None:
-        for i in range(n):
-            self._bits.append((value >> i) & 1)
-
-    def write_ubit_var(self, value: int) -> None:
-        """Encode matching BitReader.read_ubit_var (6-bit group, 2-bit selector)."""
-        if value < 16:
-            self.write_bits(value & 0x0F, 4)
-            self.write_bits(0, 2)  # selector 00
-        elif value < 256:
-            self.write_bits(value & 0x0F, 4)
-            self.write_bits(1, 2)  # selector 01
-            self.write_bits((value >> 4) & 0x0F, 4)
-        elif value < 4096:
-            self.write_bits(value & 0x0F, 4)
-            self.write_bits(2, 2)  # selector 10
-            self.write_bits((value >> 4) & 0xFF, 8)
-        else:
-            self.write_bits(value & 0x0F, 4)
-            self.write_bits(3, 2)  # selector 11
-            self.write_bits((value >> 4) & 0x0FFFFFFF, 28)
-
-    def write_varuint32(self, value: int) -> None:
-        while True:
-            b = value & 0x7F
-            value >>= 7
-            if value:
-                self.write_bits(b | 0x80, 8)
-            else:
-                self.write_bits(b, 8)
-                break
-
-    def write_bytes(self, data: bytes) -> None:
-        for b in data:
-            self.write_bits(b, 8)
-
-    def to_bytes(self) -> bytes:
-        bits = self._bits + [0] * (-len(self._bits) % 8)
-        out = []
-        for i in range(0, len(bits), 8):
-            byte = 0
-            for j in range(8):
-                byte |= bits[i + j] << j
-            out.append(byte)
-        return bytes(out)
-
-
-def _make_inner_blob(messages: list[tuple[int, bytes]]) -> bytes:
-    """Build a CDemoPacket.data bit-stream from (type_id, payload) pairs."""
-    bw = _BitWriter()
-    for type_id, payload in messages:
-        bw.write_ubit_var(type_id)
-        bw.write_varuint32(len(payload))
-        bw.write_bytes(payload)
-    return bw.to_bytes()
-
-
-# ---------------------------------------------------------------------------
-# _read_inner_messages
-# ---------------------------------------------------------------------------
-
-
-class TestReadInnerMessages:
-    def test_empty_data_returns_empty_list(self):
-        assert _read_inner_messages(b"") == []
-
-    def test_single_message(self):
-        payload = b"\x01\x02\x03"
-        blob = _make_inner_blob([(4, payload)])
-        result = _read_inner_messages(blob)
-        assert len(result) == 1
-        assert result[0] == (4, payload)
-
-    def test_multiple_messages_in_order(self):
-        msgs = [(4, b"tick"), (44, b"create"), (55, b"entities")]
-        blob = _make_inner_blob(msgs)
-        result = _read_inner_messages(blob)
-        assert len(result) == 3
-        assert result[0][0] == 4
-        assert result[1][0] == 44
-        assert result[2][0] == 55
-
-    def test_payload_content_preserved(self):
-        payload = bytes(range(20))
-        blob = _make_inner_blob([(99, payload)])
-        result = _read_inner_messages(blob)
-        assert result[0][1] == payload
-
-    def test_empty_payload(self):
-        blob = _make_inner_blob([(4, b"")])
-        result = _read_inner_messages(blob)
-        assert len(result) == 1
-        assert result[0] == (4, b"")
-
-    def test_fast_read_bytes_matches_slow_fallback_for_inner_messages(self):
-        msgs = [
-            (4, b"tick"),
-            (44, bytes(range(64))),
-            (55, bytes((i * 13 + 7) & 0xFF for i in range(300))),
-            (554, b"combat-log-entry"),
-        ]
-        blob = _make_inner_blob(msgs)
-
-        fast_result = _read_inner_messages(blob)
-        with patch.object(BitReader, "read_bytes", BitReader._read_bytes_slow):
-            slow_result = _read_inner_messages(blob)
-
-        assert fast_result == slow_result == msgs
-
+from tests._bitstream import make_inner_blob
 
 # ---------------------------------------------------------------------------
 # ReplayParser init state
@@ -1159,7 +1036,7 @@ class TestInnerPacketPriority:
         p._pending_game_end_tick = 77
         p._on_packet_end(lambda tick: events.append(("packet_end", tick)))
         p.on_game_end(lambda tick: events.append(("game_end", tick)))
-        blob = _make_inner_blob(
+        blob = make_inner_blob(
             [
                 (_SVC_PACKET_ENTITIES, b""),
                 (_SVC_CREATE_STRING_TABLE, b""),
@@ -1199,7 +1076,7 @@ class TestInnerPacketPriority:
         call_order = []
 
         # Build blob with PacketEntities first, then CreateStringTable
-        blob = _make_inner_blob(
+        blob = make_inner_blob(
             [
                 (_SVC_PACKET_ENTITIES, b""),
                 (_SVC_CREATE_STRING_TABLE, b""),
@@ -1218,7 +1095,7 @@ class TestInnerPacketPriority:
         p = ReplayParser(b"")
         call_order = []
 
-        blob = _make_inner_blob(
+        blob = make_inner_blob(
             [
                 (_SVC_PACKET_ENTITIES, b""),
                 (_SVC_UPDATE_STRING_TABLE, b""),
@@ -1237,7 +1114,7 @@ class TestInnerPacketPriority:
         p = ReplayParser(b"")
         call_order = []
 
-        blob = _make_inner_blob(
+        blob = make_inner_blob(
             [
                 (_SVC_PACKET_ENTITIES, b""),
                 (_NET_TICK, b""),
@@ -1283,7 +1160,7 @@ class TestInnerPacketPriority:
         um.msg_data = bulk.SerializeToString()
 
         # The user message comes FIRST in the blob (lower priority); entities last.
-        blob = _make_inner_blob(
+        blob = make_inner_blob(
             [
                 (_SVC_USER_MESSAGE, um.SerializeToString()),
                 (_SVC_PACKET_ENTITIES, b"\x00" * 4),

@@ -9,6 +9,7 @@ from __future__ import annotations
 import pytest
 
 from gem.schema.field_path import FieldPath
+from gem.schema.sendtable.models import _find_field_path
 from gem.state.entities import (
     ClassInfo,
     Entity,
@@ -16,7 +17,6 @@ from gem.state.entities import (
     EntityOp,
     EntityTracker,
     FieldState,
-    _find_field_path,
 )
 from gem.state.string_table import StringTable, StringTables
 
@@ -396,7 +396,7 @@ class TestEntityTypedGetters:
 
 
 # ---------------------------------------------------------------------------
-# Entity.get() via FieldState + _find_field_path
+# Entity.get() via FieldState + serializer name resolution
 # ---------------------------------------------------------------------------
 
 
@@ -572,16 +572,11 @@ class TestFindFieldPath:
 
     def test_simple_field_found(self):
         ser = self._ser_with_fields("m_iHealth", "m_flSpeed")
-        fp = _find_field_path(ser, "m_iHealth")
-        assert fp is not None
-        assert fp.path[0] == 0
-        assert fp.last == 0
+        assert _find_field_path(ser, "m_iHealth") == (0,)
 
     def test_second_field_found(self):
         ser = self._ser_with_fields("m_iHealth", "m_flSpeed")
-        fp = _find_field_path(ser, "m_flSpeed")
-        assert fp is not None
-        assert fp.path[0] == 1
+        assert _find_field_path(ser, "m_flSpeed") == (1,)
 
     def test_unknown_field_returns_none(self):
         ser = self._ser_with_fields("m_iHealth")
@@ -603,11 +598,7 @@ class TestFindFieldPath:
         ser = Serializer(name="S", version=0)
         ser.fields = [f]
 
-        fp = _find_field_path(ser, "m_nested.m_x")
-        assert fp is not None
-        assert fp.path[0] == 0
-        assert fp.path[1] == 0
-        assert fp.last == 1
+        assert _find_field_path(ser, "m_nested.m_x") == (0, 0)
 
     def test_fixed_array_index(self):
         from gem.schema.sendtable import FIELD_MODEL_FIXED_ARRAY, Field, Serializer
@@ -623,11 +614,7 @@ class TestFindFieldPath:
         ser = Serializer(name="S", version=0)
         ser.fields = [f]
 
-        fp = _find_field_path(ser, "m_Items.0002")
-        assert fp is not None
-        assert fp.path[0] == 0
-        assert fp.path[1] == 2
-        assert fp.last == 1
+        assert _find_field_path(ser, "m_Items.0002") == (0, 2)
 
     def test_variable_array_index(self):
         from gem.schema.sendtable import FIELD_MODEL_VARIABLE_ARRAY, Field, Serializer
@@ -643,9 +630,7 @@ class TestFindFieldPath:
         ser = Serializer(name="S", version=0)
         ser.fields = [f]
 
-        fp = _find_field_path(ser, "m_Vec.0007")
-        assert fp is not None
-        assert fp.path[1] == 7
+        assert _find_field_path(ser, "m_Vec.0007") == (0, 7)
 
     def test_variable_table_nested(self):
         from gem.schema.sendtable import FIELD_MODEL_VARIABLE_TABLE, Field, Serializer
@@ -663,12 +648,7 @@ class TestFindFieldPath:
         ser = Serializer(name="S", version=0)
         ser.fields = [f]
 
-        fp = _find_field_path(ser, "m_tbl.0001.m_val")
-        assert fp is not None
-        assert fp.path[0] == 0
-        assert fp.path[1] == 1
-        assert fp.path[2] == 0
-        assert fp.last == 2
+        assert _find_field_path(ser, "m_tbl.0001.m_val") == (0, 1, 0)
 
 
 # ---------------------------------------------------------------------------
