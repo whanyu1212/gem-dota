@@ -11,6 +11,10 @@ If you are new to the binary format, start with
 For benchmark methodology, completed optimization work, and remaining hot paths,
 see [Parser Performance](parser-performance.md).
 
+To follow an entity update from raw bits to Python values, read the
+"How Entities Are Decoded" series, starting with
+[Part 1: The Schema](entity-schema.md).
+
 ## Pipeline
 
 ```text
@@ -31,7 +35,7 @@ see [Parser Performance](parser-performance.md).
 |---|---|---|
 | Stream | Validates `PBDEMS2`, reads outer records, strips compression flags, decompresses payloads | [DemoStream](../reference/stream.md) |
 | Parser | Decodes `CDemo*` envelopes, unpacks inner messages, orders state updates, routes callbacks | [ReplayParser](../reference/parser.md) |
-| Send tables | Builds serializer schemas and field models used for entity delta decoding | [Send Tables](../reference/sendtable.md) |
+| Send tables | Builds serializer schemas and field models used for entity delta decoding | [The Schema](entity-schema.md), [Send Tables](../reference/sendtable.md) |
 | State | Maintains string tables, instance baselines, entity lifecycle, handles, and field access | [Entities](../reference/entities.md) |
 | Events | Normalizes Source 1 events, Source 2 combat entries, chat, match metadata, and neutral item messages | [Combat Log](../reference/combatlog.md) |
 | Extractors | Converts entity/event streams into players, objectives, wards, couriers, draft, intervals, and derived fight/lane records | [Extractors](../reference/extractors/) |
