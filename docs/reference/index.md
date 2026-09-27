@@ -18,6 +18,7 @@ Use the canonical grouped modules documented below.
 | [Send Tables](sendtable.md) | Serializer tree — `parse_send_tables`, `Serializer`, `Field` |
 | [Field Decoders](field_decoder.md) | Type → decoder dispatch, `QuantizedFloatDecoder` |
 | [Field Paths](field_path.md) | Huffman field path decoder, `FieldPath` |
+| [Field State](field_state.md) | `read_fields` and the `FieldState` value tree |
 | [String Tables](string_table.md) | Table creation, updates, key-history decoder |
 | [Entities](entities.md) | Entity lifecycle, `EntityOp`, typed field accessors |
 | [Game Events](game_events.md) | Game event schema registration and typed dispatch |

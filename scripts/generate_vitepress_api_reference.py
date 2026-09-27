@@ -72,6 +72,10 @@ TARGETS_BY_PAGE: dict[str, list[str]] = {
         "gem.schema.field_decoder.find_decoder_by_base_type",
         "gem.schema.field_decoder.QuantizedFloatDecoder",
     ],
+    "field_state.md": [
+        "gem.schema.field_reader.read_fields",
+        "gem.schema.field_state.FieldState",
+    ],
     "field_path.md": [
         "gem.schema.field_path.read_field_paths",
         "gem.schema.field_path.FieldPath",
