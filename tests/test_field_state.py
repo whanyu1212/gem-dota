@@ -46,40 +46,30 @@ class TestFieldStateInit:
 
 
 # ---------------------------------------------------------------------------
-# _ensure growth
+# Growth rule: a write at index i grows a node to max(i + 2, 2 * len)
 # ---------------------------------------------------------------------------
 
 
-class TestFieldStateEnsure:
+class TestFieldStateGrowth:
     def test_no_growth_when_already_large_enough(self):
         fs = FieldState()
-        original_len = len(fs._state)
-        fs._ensure(5)  # needs idx+2 = 7, already have 8
-        assert len(fs._state) == original_len
-
-    def test_grows_when_index_exceeds_capacity(self):
-        fs = FieldState()
-        fs._ensure(7)  # needs idx+2 = 9, currently 8
-        assert len(fs._state) >= 9
+        fs._set_compact((5,), "x")  # needs idx+2 = 7, already have 8
+        assert len(fs._state) == 8
 
     def test_growth_doubles_when_small(self):
         fs = FieldState()
-        # Ensure idx=7 → needs 9, doubles from 8 → 16
-        fs._ensure(7)
+        fs._set_compact((7,), "x")  # needs 9 → max(9, 16) = 16
         assert len(fs._state) == 16
 
     def test_growth_jumps_to_idx_plus_2_when_large_index(self):
         fs = FieldState()
-        # Ensure idx=100 → needs 102; doubling 8→16→32→…→128 would be overkill,
-        # max(102, 16) = 102 … actually max(idx+2, len*2)=max(102,16)=102
-        fs._ensure(100)
-        assert len(fs._state) >= 102
+        fs._set_compact((100,), "x")  # needs 102 → max(102, 16) = 102
+        assert len(fs._state) == 102
 
     def test_new_slots_are_none(self):
         fs = FieldState()
-        fs._ensure(10)
-        for v in fs._state:
-            assert v is None
+        fs._set_compact((10,), "x")
+        assert [v for i, v in enumerate(fs._state) if i != 10] == [None] * (len(fs._state) - 1)
 
 
 # ---------------------------------------------------------------------------
@@ -292,18 +282,13 @@ class TestFieldStateSetDepth2:
 
 
 class TestFieldStateTraversal:
-    def test_get_and_set_do_not_dispatch_through_helpers(self, monkeypatch):
-        def fail(*_args):
-            pytest.fail("hot traversal dispatched through a helper")
-
-        monkeypatch.setattr(FieldState, "_has_slot", fail)
-        monkeypatch.setattr(FieldState, "_ensure", fail)
-        monkeypatch.setattr(FieldState, "_is_child", staticmethod(fail))
-
-        fs = FieldState()
-        fp = _make_fp(7, 100)
-        fs.set(fp, "value")
-        assert fs.get(fp) == "value"
+    def test_get_and_set_match_compact_paths_at_every_depth(self):
+        for indices in ((7,), (7, 100), (1, 2, 3), (0, 1, 2, 3, 4, 5, 6)):
+            public, compact = FieldState(), FieldState()
+            public.set(_make_fp(*indices), "value")
+            compact._set_compact(indices, "value")
+            assert _state_tree(public) == _state_tree(compact)
+            assert public.get(_make_fp(*indices)) == compact._get_compact(indices) == "value"
 
     def test_sparse_nested_write_uses_exact_growth_rule(self):
         fs = FieldState()
@@ -504,7 +489,7 @@ class TestFieldStateBoundary:
     def test_path_index_at_last_slot(self):
         """Index == len(state) - 1 requires growth (needs idx+2 = len+1)."""
         fs = FieldState()
-        # index=7, len=8 → needs 9 → _ensure grows; but get() checks before set()
+        # index=7, len=8 → a write would grow the node, but get() never grows it
         fp = _make_fp(7)
         assert fs.get(fp) is None  # no growth in get(), returns None
 
@@ -687,7 +672,7 @@ class TestShallowCompactEquivalence:
         def fail(*args):
             pytest.fail("compact path dispatched through a helper")
 
-        for name in ("get", "set", "_ensure", "_has_slot", "_is_child"):
+        for name in ("get", "set"):
             monkeypatch.setattr(FieldState, name, fail)
         state = FieldState()
         for path in ((100,), (100, 100), (100, 100, 100)):

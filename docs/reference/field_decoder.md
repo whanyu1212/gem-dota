@@ -32,7 +32,7 @@ def find_decoder_by_base_type(base_type: str) -> FieldDecoder
 
 Return a decoder for a base type string without field context.
 
-Source: [src/gem/schema/field_decoder/type_resolver.py:156](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/field_decoder/type_resolver.py#L156)
+Source: [src/gem/schema/field_decoder/type_resolver.py:155](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/field_decoder/type_resolver.py#L155)
 
 ## `gem.schema.field_decoder.QuantizedFloatDecoder`
 

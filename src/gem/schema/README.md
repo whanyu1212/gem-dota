@@ -106,16 +106,11 @@ Each nested package exposes a **facade** `__init__.py`: callers import from
 `gem.schema.sendtable`, `gem.schema.field_path`, and `gem.schema.field_decoder`
 (or the top-level `gem.schema`), never from the implementation submodules.
 
-`__all__` in each facade lists only the **stable public surface**. Several
-underscore-prefixed names are *also* re-exported (e.g. `_parse_field_type`,
-`_FIELD_PATCHES`, the `_*_factory` decoder factories, `_QFF_*` flag constants,
-the `_FIELD_*` dispatch tables). These are **shared internals** — used by sibling
-modules and by tests — and are importable by name, but they are deliberately
-kept out of `__all__` so they do not appear as public API. The redundant
-`import X as X` aliases on those lines mark them as intentional re-exports.
-
-So when reading a facade: **names without a leading underscore are the contract;
-underscore-prefixed re-exports are wiring.**
+`__all__` in each facade lists the **stable public surface**, and the facade
+re-exports nothing else. Internal helpers (`_parse_field_type`, `_FIELD_PATCHES`,
+the `_*_factory` decoder factories, the `_QFF_*` flag constants, the `_FIELD_*`
+dispatch tables) live in their defining submodules, and sibling modules and tests
+import them from there.
 
 ## What This Package Does Not Do
 

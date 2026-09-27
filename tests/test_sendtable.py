@@ -31,7 +31,7 @@ def _wrap_flattened_serializer(flattened: object) -> bytes:
 class TestFieldTypeParsing:
     @pytest.fixture
     def parse(self):
-        from gem.schema.sendtable import _parse_field_type
+        from gem.schema.sendtable.models import _parse_field_type
 
         return _parse_field_type
 
@@ -232,7 +232,7 @@ class TestFieldModel:
 class TestFieldPatches:
     @pytest.fixture
     def patch_list(self):
-        from gem.schema.sendtable import _FIELD_PATCHES
+        from gem.schema.sendtable.patches import _FIELD_PATCHES
 
         return _FIELD_PATCHES
 

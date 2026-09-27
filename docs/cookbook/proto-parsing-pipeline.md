@@ -175,7 +175,7 @@ back to back:
 ```
 
 `type_id` is a `ubit_var` (a variable-length bit field) and `size` is a varuint32.
-`parser.py` (`_read_inner_messages`) splits the bundle into `(type_id, payload)`
+`read_inner_messages()` in `gem/binary/packet.py` splits the bundle into `(type_id, payload)`
 pairs.
 
 Each inner message is what the game server sent to spectators at that moment. A

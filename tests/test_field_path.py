@@ -302,7 +302,8 @@ class TestDecodeTableCrossValidation:
 def _original_decode(r, table):
     import struct
 
-    from gem.schema.field_path import _HUFF_TABLE_BITS, FIELD_PATH_OPS, HUFF_TREE, FieldPath
+    from gem.schema.field_path import FIELD_PATH_OPS, HUFF_TREE, FieldPath
+    from gem.schema.field_path.huffman import _HUFF_TABLE_BITS
 
     fp = FieldPath()
     paths = []
@@ -366,7 +367,8 @@ def _original_decode(r, table):
 
 @pytest.fixture(scope="module")
 def original_table():
-    from gem.schema.field_path import _HUFF_TABLE_BITS, HUFF_TREE
+    from gem.schema.field_path import HUFF_TREE
+    from gem.schema.field_path.huffman import _HUFF_TABLE_BITS
 
     table = [(0, 0)] * (1 << _HUFF_TABLE_BITS)
     stack = [(HUFF_TREE, 0, 0)]
@@ -420,8 +422,8 @@ def _codes():
 
 class TestPackedHuffman:
     def test_every_entry_matches_original_and_tree(self, original_table):
-        from gem.schema.field_path import _HUFF_TABLE_BITS, FIELD_PATH_OPS, HUFF_TREE
-        from gem.schema.field_path.huffman import _HUFF_BITS, _HUFF_OPS
+        from gem.schema.field_path import FIELD_PATH_OPS, HUFF_TREE
+        from gem.schema.field_path.huffman import _HUFF_BITS, _HUFF_OPS, _HUFF_TABLE_BITS
 
         assert type(_HUFF_OPS) is bytes and type(_HUFF_BITS) is bytes
         assert len(_HUFF_OPS) == len(_HUFF_BITS) == 1 << _HUFF_TABLE_BITS == 131072

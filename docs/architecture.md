@@ -77,6 +77,7 @@ assembly.
     <span class="arch-layer-label">Binary decoding</span>
     <div class="arch-layer-modules">
       <span class="arch-badge">binary/stream.py</span>
+      <span class="arch-badge">binary/packet.py</span>
       <span class="arch-badge">binary/reader.py</span>
     </div>
   </div>

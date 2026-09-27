@@ -143,9 +143,8 @@ def find_decoder(field: _FieldLike) -> FieldDecoder:
     if base_type in _FIELD_TYPE_FACTORIES:
         return _FIELD_TYPE_FACTORIES[base_type](field)
 
-    var_name = getattr(field, "var_name", "")
-    if var_name in _FIELD_NAME_DECODERS:
-        return _FIELD_NAME_DECODERS[var_name]
+    if field.var_name in _FIELD_NAME_DECODERS:
+        return _FIELD_NAME_DECODERS[field.var_name]
 
     if base_type in _FIELD_TYPE_DECODERS:
         return _FIELD_TYPE_DECODERS[base_type]

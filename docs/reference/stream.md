@@ -50,3 +50,15 @@ Source: [src/gem/binary/stream.py:33](https://github.com/whanyu1212/gem-dota/blo
 | `tick` | `int` | `-` |
 | `msg_type` | `int` | `-` |
 | `data` | `bytes` | `-` |
+
+## `gem.binary.packet.read_inner_messages`
+
+### `read_inner_messages`
+
+```python
+def read_inner_messages(data: bytes) -> list[tuple[int, bytes]]
+```
+
+Split a ``CDemoPacket.data`` blob into its inner messages.
+
+Source: [src/gem/binary/packet.py:24](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/packet.py#L24)

@@ -1,16 +1,12 @@
 """Public field-path decoding API.
 
-The implementation is split into models, operations, Huffman, and sequence
-modules, but callers should continue to import from ``gem.schema.field_path``.
-``__all__`` lists the stable public surface. The underscore-prefixed name
-``_HUFF_TABLE_BITS`` re-exported below is an internal Huffman-table detail
-shared with tests — importable by name, but not part of the public contract.
+The implementation is split into ``models``, ``operations``, ``huffman``, and
+``path_sequence`` modules; callers import from ``gem.schema.field_path``.
+``__all__`` lists the stable public surface. Internal helpers stay in their
+defining modules.
 """
 
-from gem.schema.field_path.huffman import (
-    _HUFF_TABLE_BITS as _HUFF_TABLE_BITS,
-    HUFF_TREE,
-)
+from gem.schema.field_path.huffman import HUFF_TREE
 from gem.schema.field_path.models import FieldPath
 from gem.schema.field_path.operations import FIELD_PATH_OPS, FieldPathOp
 from gem.schema.field_path.path_sequence import read_field_paths
