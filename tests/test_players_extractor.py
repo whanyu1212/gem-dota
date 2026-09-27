@@ -26,6 +26,7 @@ from gem.extractors.players import (
     _snapshot_hero,
 )
 from gem.state.entities import Entity, EntityOp
+from tests._entities import set_fields
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -41,7 +42,7 @@ class FakeClass:
 
 def _ent(class_name: str = "Test", index: int = 0, serial: int = 0, **state) -> Entity:
     e = Entity(index=index, serial=serial, cls=FakeClass(class_name))
-    e._state.update(state)
+    set_fields(e, state)
     return e
 
 
@@ -1688,18 +1689,14 @@ class TestGuardedPlayerIds:
         assert _resolve_id_mode(entity, 0) == 500
         assert entity._player_id_cache[0] is not entry
 
-    def test_overlay_added_changed_cleared(self):
+    def test_cache_follows_changed_field_values(self):
         entity = _decoded_id_entity((6, 8, 10))
         for mode in range(3):
             _resolve_id_mode(entity, mode)
-        for value in [0, None, -1, "invalid"]:
-            entity._state["m_nPlayerID"] = value
+        for value in [0, None, -1, "invalid", 6]:
+            set_fields(entity, {"m_nPlayerID": value})
             for mode in range(3):
                 assert _resolve_id_mode(entity, mode) == _linear_player_id(entity, mode)
-                assert entity._player_id_cache is None
-        entity._state.clear()
-        assert _resolve_id_mode(entity, 0) == 3
-        assert entity._player_id_cache is not None
 
     @pytest.mark.parametrize("mode", range(3))
     def test_nested_paths_are_uncached(self, mode):
@@ -1851,10 +1848,10 @@ def test_decoded_cache_and_canonical_handles_remain_parser_local():
         ext._sample(1)
         assert entity._player_id_cache[2].player_id == raw // 2
         assert replacement._player_id_cache is None
-        controller._state["m_hAssignedHero"] = 200
+        set_fields(controller, {"m_hAssignedHero": 200})
         ext._sample(2)
         assert replacement._player_id_cache[2].player_id == raw // 2
-        controller._state["m_hAssignedHero"] = 999
+        set_fields(controller, {"m_hAssignedHero": 999})
         ext._sample(3)
         assert [s.player_id for s in ext.snapshots] == [raw // 2, raw // 2]
         extractors.append(ext)

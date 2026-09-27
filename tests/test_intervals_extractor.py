@@ -7,6 +7,7 @@ import pytest
 from gem.extractors.intervals import IntervalExtractor
 from gem.state.entities import Entity, EntityOp
 from gem.state.string_table import StringTable, StringTables
+from tests._entities import set_fields
 
 
 class FakeClass:
@@ -18,7 +19,7 @@ class FakeClass:
 
 def _ent(class_name: str = "Test", index: int = 0, serial: int = 0, **state) -> Entity:
     entity = Entity(index=index, serial=serial, cls=FakeClass(class_name))
-    entity._state.update(state)
+    set_fields(entity, state)
     return entity
 
 
@@ -889,9 +890,9 @@ def test_later_tick_boundaries_read_latest_complete_team_values(radiant_name, di
     parser.tick = 1800
     parser.game_time_s = 60
     parser.fire_tick_start(1800)
-    radiant._state.update(_radiant_data_with(1200, 900, 24, 4, 1800)._state)
+    set_fields(radiant, _radiant_data_with(1200, 900, 24, 4, 1800).to_map())
     ext._on_entity(radiant, EntityOp.UPDATED)
-    radiant._state.update(_radiant_data_with(1500, 1100, 30, 5, 2200)._state)
+    set_fields(radiant, _radiant_data_with(1500, 1100, 30, 5, 2200).to_map())
     ext._on_entity(radiant, EntityOp.UPDATED)
     parser.fire_tick_start(1800)
     assert len(ext.snapshots) == 2
@@ -902,7 +903,7 @@ def test_later_tick_boundaries_read_latest_complete_team_values(radiant_name, di
         IntervalSnapshot(1801, 60, 1, 132, 3, 4, gold=600, xp=450, lh=16, dn=1, net_worth=1200),
     ]
     # The subsequent tick's deltas must not change the already emitted batch.
-    radiant._state["m_vecDataTeam.0001.m_iTotalEarnedGold"] = 9999
+    set_fields(radiant, {"m_vecDataTeam.0001.m_iTotalEarnedGold": 9999})
     ext._on_entity(radiant, EntityOp.UPDATED)
     parser.fire_tick_start(1801)
     assert len(ext.snapshots) == 4
@@ -931,16 +932,16 @@ def test_counter_last_valid_history_survives_frame_optimization(invalid, tick_dr
     ext._on_entity(_player_resource(), EntityOp.UPDATED)
     radiant, dire = _radiant_data(), _dire_data()
     key = "m_vecDataTeam.0001.m_iCampsStacked"
-    radiant._state[key] = 9
+    set_fields(radiant, {key: 9})
     ext._on_entity(radiant, EntityOp.UPDATED)
     ext._on_entity(dire, EntityOp.UPDATED)
     if tick_driven:
         parser.fire_tick_start(0)
     assert ext.snapshots
-    radiant._state[key] = invalid
+    set_fields(radiant, {key: invalid})
     ext._on_entity(radiant, EntityOp.UPDATED)
     assert ext.team_counters(0)["camps_stacked"] == 9
-    radiant._state.pop(key)
+    set_fields(radiant, {key: None})
     ext._on_entity(radiant, EntityOp.UPDATED)
     ext._on_entity(radiant, EntityOp.DELETED)
     assert ext.team_counters(0)["camps_stacked"] == 9
@@ -948,7 +949,7 @@ def test_counter_last_valid_history_survives_frame_optimization(invalid, tick_dr
     ext._on_entity(replacement, EntityOp.CREATED)
     assert ext.team_counters(0)["camps_stacked"] == 9
     ext._on_game_end(parser.tick)
-    replacement._state[key] = 0
+    set_fields(replacement, {key: 0})
     ext._on_entity(replacement, EntityOp.UPDATED)
     assert ext.team_counters(0)["camps_stacked"] == 0
 
@@ -972,7 +973,7 @@ def test_tick_driven_terminal_recovery_uses_final_live_values(end_time, expected
     parser.combat_log_time_s = end_time
     # Game end is deferred until all packet entity deltas have been applied.
     parser._pending_game_end_tick = parser.tick
-    radiant._state.update(_radiant_data_with(5000, 4000, 80, 7, 7000)._state)
+    set_fields(radiant, _radiant_data_with(5000, 4000, 80, 7, 7000).to_map())
     ext._on_entity(radiant, EntityOp.UPDATED)
     parser._flush_game_end()
     parser._flush_game_end()

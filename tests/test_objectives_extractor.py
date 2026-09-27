@@ -11,6 +11,7 @@ from unittest.mock import MagicMock
 
 from gem.combat.log import CombatLogEntry
 from gem.state.entities import Entity
+from tests._entities import set_fields
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -91,7 +92,7 @@ class _FakeBannerEntity(Entity):
 
     def __init__(self, idx, life_state, team=2) -> None:
         super().__init__(idx, serial=0, cls=_FakeClass("CDOTA_Unit_Roshans_Banner"))
-        self._state.update({"m_lifeState": life_state, "m_iTeamNum": team})
+        set_fields(self, {"m_lifeState": life_state, "m_iTeamNum": team})
 
 
 class _FakeItemEntity(Entity):

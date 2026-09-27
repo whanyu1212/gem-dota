@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `Entity` no longer has the private `_state` dict. Only tests wrote to it, yet
+  every field read checked it first. Entity values now live only in the
+  `FieldState` tree. Tests build synthetic entities with `tests/_entities.py`
+  (`set_fields`, `clear_fields`), so their reads go through the same schema
+  resolution as a real replay. Parse output is byte-identical.
 - New deep dive, "How Entities Are Decoded, Part 4: Field State". It covers:
   - how `read_fields()` decodes one update, including the class baseline applied
     on creation;
@@ -80,6 +85,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`Entity.to_map()` now returns the entity's values.** It returned a copy of a
+  dict that only tests wrote to, so on a real replay it was always empty. It now
+  lists every stored value by the names `get()` accepts, like Manta's
+  `Entity.Map()`. Array lengths and table presence flags are left out. When a
+  class declares the same field name twice, as `DataTeamPlayer_t` does with
+  `m_nPlayerID`, only the first field is listed, the one `get()` reads.
 - **Variable-length entity arrays now shrink.** When a variable-length array or
   table got a new length after it had elements, gem ignored the length, as Manta
   does. Elements past the new length stayed readable, and the length itself

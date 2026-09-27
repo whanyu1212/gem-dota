@@ -46,6 +46,7 @@ from gem.parser import (
 from gem.proto.networkbasetypes_pb2 import CNETMsg_Tick
 from gem.state.entities import Entity
 from tests._bitstream import make_inner_blob
+from tests._entities import set_fields
 
 # ---------------------------------------------------------------------------
 # ReplayParser init state
@@ -188,11 +189,12 @@ class TestReplayParserGameClock:
             serial=0,
             cls=SimpleNamespace(name="CDOTAGamerulesProxy", class_id=1, serializer=None),
         )
-        entity._state.update(
+        set_fields(
+            entity,
             {
                 "m_pGameRules.m_flGameStartTime": 100.0,
                 "m_pGameRules.m_fGameTime": 165.2,
-            }
+            },
         )
 
         p._on_entity_game_start(entity, MagicMock())
@@ -236,14 +238,15 @@ class TestReplayParserGameClock:
             serial=0,
             cls=SimpleNamespace(name="CDOTAGamerulesProxy", class_id=1, serializer=None),
         )
-        entity._state.update(
+        set_fields(
+            entity,
             {
                 "m_pGameRules.m_flGameStartTime": 100.0,
                 "m_pGameRules.m_fGameTime": None,
                 "m_pGameRules.m_bGamePaused": False,
                 "m_pGameRules.m_nPauseStartTick": 0,
                 "m_pGameRules.m_nTotalPausedTicks": 0,
-            }
+            },
         )
 
         p._update_game_clock(entity)

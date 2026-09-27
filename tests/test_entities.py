@@ -19,6 +19,7 @@ from gem.state.entities import (
     FieldState,
 )
 from gem.state.string_table import StringTable, StringTables
+from tests._entities import set_fields
 
 
 @pytest.fixture
@@ -106,12 +107,12 @@ class TestEntityState:
 
     def test_set_and_get(self, entity_cls):
         e = self._make_entity(entity_cls)
-        e._state["m_iHealth"] = 500
+        set_fields(e, {"m_iHealth": 500})
         assert e.get("m_iHealth") == 500
 
     def test_exists_true(self, entity_cls):
         e = self._make_entity(entity_cls)
-        e._state["m_iHealth"] = 500
+        set_fields(e, {"m_iHealth": 500})
         assert e.exists("m_iHealth") is True
 
     def test_exists_false(self, entity_cls):
@@ -120,7 +121,7 @@ class TestEntityState:
 
     def test_get_int32(self, entity_cls):
         e = self._make_entity(entity_cls)
-        e._state["m_iHealth"] = 200
+        set_fields(e, {"m_iHealth": 200})
         val = e.get_int32("m_iHealth")
         assert val == 200
 
@@ -131,35 +132,66 @@ class TestEntityState:
 
     def test_get_float32(self, entity_cls):
         e = self._make_entity(entity_cls)
-        e._state["m_flMoveSpeed"] = 300.0
+        set_fields(e, {"m_flMoveSpeed": 300.0})
         val = e.get_float32("m_flMoveSpeed")
         assert val == pytest.approx(300.0)
 
     def test_get_string(self, entity_cls):
         e = self._make_entity(entity_cls)
-        e._state["m_iName"] = "npc_dota_hero_axe"
+        set_fields(e, {"m_iName": "npc_dota_hero_axe"})
         val = e.get_string("m_iName")
         assert val == "npc_dota_hero_axe"
 
     def test_get_bool(self, entity_cls):
         e = self._make_entity(entity_cls)
-        e._state["m_bIsWaitingForChampionSelect"] = True
+        set_fields(e, {"m_bIsWaitingForChampionSelect": True})
         val = e.get_bool("m_bIsWaitingForChampionSelect")
         assert val is True
 
     def test_get_uint32_from_uint64(self, entity_cls):
         e = self._make_entity(entity_cls)
-        e._state["m_nHandle"] = 0xDEADBEEF
+        set_fields(e, {"m_nHandle": 0xDEADBEEF})
         val = e.get_uint32("m_nHandle")
         assert val == 0xDEADBEEF
 
     def test_map_returns_all_fields(self, entity_cls):
         e = self._make_entity(entity_cls)
-        e._state["a"] = 1
-        e._state["b"] = 2
+        set_fields(e, {"a": 1})
+        set_fields(e, {"b": 2})
         m = e.to_map()
         assert m["a"] == 1
         assert m["b"] == 2
+
+    def test_map_names_nested_values_like_get(self, entity_cls):
+        e = self._make_entity(entity_cls)
+        set_fields(
+            e,
+            {
+                "m_iHealth": 500,
+                "m_pGameRules.m_nHeroPickState": 12,
+                "m_hItems.0003": 77,
+                "m_vecPlayerTeamData.0001.m_iKills": 4,
+                "m_iNeverSent": None,
+            },
+        )
+        m = e.to_map()
+        assert m == {
+            "m_iHealth": 500,
+            "m_pGameRules.m_nHeroPickState": 12,
+            "m_hItems.0003": 77,
+            "m_vecPlayerTeamData.0001.m_iKills": 4,
+        }
+        assert all(e.get(name) == value for name, value in m.items())
+
+    def test_map_leaves_out_presence_flags_and_lengths(self, entity_cls):
+        e = self._make_entity(entity_cls)
+        set_fields(e, {"m_hItems.0000": 5})
+        e._field_state._set_compact((0,), 1)  # the array's length
+        assert e.get("m_hItems") == 1
+        assert e.to_map() == {"m_hItems.0000": 5}
+
+    def test_map_without_serializer_is_empty(self, entity_cls):
+        assert self._make_entity(entity_cls).to_map() == {}
 
     def test_get_class_name(self, entity_cls):
         e = self._make_entity(entity_cls, class_name="CDOTAGamerulesProxy")
@@ -333,49 +365,49 @@ class TestFieldState:
 class TestEntityTypedGetters:
     def test_get_int32_from_float_returns_none(self):
         e = _entity()
-        e._state["x"] = 1.5
+        set_fields(e, {"x": 1.5})
         val = e.get_int32("x")
         assert val is None
 
     def test_get_float32_from_int_succeeds(self):
         e = _entity()
-        e._state["x"] = 5
+        set_fields(e, {"x": 5})
         val = e.get_float32("x")
         assert val == pytest.approx(5.0)
 
     def test_get_string_from_int_returns_none(self):
         e = _entity()
-        e._state["x"] = 42
+        set_fields(e, {"x": 42})
         val = e.get_string("x")
         assert val is None
 
     def test_get_bool_from_zero_is_false(self):
         e = _entity()
-        e._state["x"] = 0
+        set_fields(e, {"x": 0})
         val = e.get_bool("x")
         assert val is False
 
     def test_get_bool_from_nonzero_is_true(self):
         e = _entity()
-        e._state["x"] = 1
+        set_fields(e, {"x": 1})
         val = e.get_bool("x")
         assert val is True
 
     def test_get_bool_from_string_returns_none(self):
         e = _entity()
-        e._state["x"] = "yes"
+        set_fields(e, {"x": "yes"})
         val = e.get_bool("x")
         assert val is None
 
     def test_get_uint32_truncates_high_bits(self):
         e = _entity()
-        e._state["h"] = 0x1_DEAD_BEEF
+        set_fields(e, {"h": 0x1_DEAD_BEEF})
         val = e.get_uint32("h")
         assert val == 0xDEAD_BEEF
 
     def test_get_uint64_returns_full_value(self):
         e = _entity()
-        e._state["h"] = 0xDEAD_BEEF_CAFE_1234
+        set_fields(e, {"h": 0xDEAD_BEEF_CAFE_1234})
         val = e.get_uint64("h")
         assert val == 0xDEAD_BEEF_CAFE_1234
 
@@ -496,7 +528,7 @@ class TestEntityGetViaFieldState:
         assert first_hit is not second_hit
         assert first_ser._resolved_fields is not second_ser._resolved_fields
 
-    def test_resolved_access_preserves_overlay_precedence(self):
+    def test_resolved_access_reads_field_state(self):
         from gem.schema.sendtable.models import FieldAccessPlan
 
         ser = self._make_simple_serializer()
@@ -508,10 +540,9 @@ class TestEntityGetViaFieldState:
         health, missing = e._resolve_fields(plan)
 
         assert e._get_int32_resolved(health) == 99
-        e._state["m_iHealth"] = None
-        e._state["missing"] = 42
+        assert e._get_int32_resolved(missing) is None
+        e._field_state.set(_fp(0), None)
         assert e._get_int32_resolved(health) is None
-        assert e._get_int32_resolved(missing) == 42
 
     def test_field_plan_tuple_is_reused_by_serializer(self):
         from gem.schema.sendtable.models import FieldAccessPlan
@@ -1433,3 +1464,53 @@ def test_game_build_from_game_dir(game_dir, expected):
     from gem.state.entities import game_build_from_game_dir
 
     assert game_build_from_game_dir(game_dir) == expected
+
+
+# ---------------------------------------------------------------------------
+# Entity.to_map() on a real replay
+# ---------------------------------------------------------------------------
+
+
+def test_to_map_round_trips_through_get_on_the_committed_fixture():
+    from pathlib import Path
+
+    from gem.parser import ReplayParser
+
+    replay = Path(__file__).parent / "fixtures" / "ti14_finals_g3_xg_vs_falcons_truncated.dem"
+    parser = ReplayParser(str(replay))
+    parser.parse()
+
+    total = 0
+    for entity in parser.entity_manager.all_active():
+        values = entity.to_map()
+        total += len(values)
+        for name, value in values.items():
+            assert entity.get(name) is value, (entity.cls.name, name)
+
+    rules = parser.entity_manager.find_by_class_name("CDOTAGamerulesProxy")
+    assert rules.to_map()["m_pGameRules.m_nHeroPickState"] == 12
+    # The trees hold 33,029 values: these 32,503, plus 516 array lengths and
+    # table presence flags, plus 10 values of a second, same-named field
+    # (DataTeamPlayer_t declares m_nPlayerID twice; names reach the first).
+    assert total == 32_503
+
+
+def test_to_map_lists_only_the_first_of_two_same_named_fields():
+    from gem.schema.sendtable import FIELD_MODEL_SIMPLE, Field, Serializer
+    from gem.state.entities import ClassInfo
+
+    def simple(name):
+        f = Field.__new__(Field)
+        f.var_name = name
+        f.model = FIELD_MODEL_SIMPLE
+        f.serializer = None
+        return f
+
+    ser = Serializer(name="S", version=0)
+    ser.fields = [simple("m_nPlayerID"), simple("m_nPlayerID")]
+    e = Entity(index=0, serial=0, cls=ClassInfo(0, "S", ser))
+    e._field_state._set_compact((0,), 4)
+    e._field_state._set_compact((1,), 6)
+
+    assert e.get("m_nPlayerID") == 4
+    assert e.to_map() == {"m_nPlayerID": 4}

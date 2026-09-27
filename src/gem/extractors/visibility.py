@@ -154,9 +154,7 @@ class VisibilityExtractor:
                     if field.path is not None
                 )
         else:
-            # Serializer-less entities only occur in lightweight unit fixtures;
-            # their flat state remains faithful evidence of field existence.
-            is_npc = _NPC_SCHEMA_FIELD in entity._state
+            is_npc = False
         self._npc_classes[class_id] = is_npc
         return is_npc
 

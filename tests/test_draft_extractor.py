@@ -16,6 +16,7 @@ from gem.extractors.draft import (
     _class_to_npc,
     _class_to_npc_names,
 )
+from tests._entities import set_fields
 
 # ---------------------------------------------------------------------------
 # Shared fake helpers
@@ -34,7 +35,7 @@ def _make_entity(class_name: str, state: dict | None = None):
 
     e = Entity(index=0, serial=0, cls=FakeClass(class_name))
     if state:
-        e._state.update(state)
+        set_fields(e, state)
     return e
 
 
@@ -640,8 +641,8 @@ class TestDraftPollingCutoff:
         dispatch(entity, EntityOp.CREATED_ENTERED)
         dispatch(entity, EntityOp.UPDATED)
         parser.tick = 20
-        entity._state["m_pGameRules.m_SelectedHeroes.0000"] = 4
-        entity._state["m_pGameRules.m_iActiveTeam"] = 3
+        set_fields(entity, {"m_pGameRules.m_SelectedHeroes.0000": 4})
+        set_fields(entity, {"m_pGameRules.m_iActiveTeam": 3})
         dispatch(entity, EntityOp.UPDATED)
         assert ext.draft_events == [
             DraftEvent(10, 0, 4, "npc_dota_hero_axe", False, 2),
@@ -667,20 +668,20 @@ class TestDraftPollingCutoff:
         )
         dispatch(entity, EntityOp.CREATED_ENTERED)
         assert parser.game_start_tick == 0
-        entity._state["m_pGameRules.m_SelectedHeroes.0000"] = 28
+        set_fields(entity, {"m_pGameRules.m_SelectedHeroes.0000": 28})
         dispatch(entity, EntityOp.UPDATED)
         assert scan.call_count == 2
         expected = list(ext.draft_events)
         assert [(e.hero_id, e.is_pick, e.tick) for e in expected] == [(4, False, 0), (28, True, 0)]
         parser.tick = 1
-        entity._state["m_pGameRules.m_SelectedHeroes.0000"] = 4
-        entity._state["m_pGameRules.m_BannedHeroes.0001"] = 28
+        set_fields(entity, {"m_pGameRules.m_SelectedHeroes.0000": 4})
+        set_fields(entity, {"m_pGameRules.m_BannedHeroes.0001": 28})
         dispatch(entity, EntityOp.UPDATED)
         assert scan.call_count == 2
         assert ext.draft_events == expected
         dispatch(entity, EntityOp.DELETED_LEFT)
         assert ext._grp is None
-        replacement = _make_entity("CDOTAGamerulesProxy", dict(entity._state))
+        replacement = _make_entity("CDOTAGamerulesProxy", entity.to_map())
         dispatch(replacement, EntityOp.CREATED_ENTERED)
         dispatch(replacement, EntityOp.UPDATED_ENTERED)
         assert ext._grp is replacement
@@ -693,7 +694,7 @@ class TestDraftPollingCutoff:
         entity = _make_entity("CDOTAGamerulesProxy")
         for tick, hero in ((0, 4), (100_000, 28)):
             parser.tick = tick
-            entity._state["m_pGameRules.m_SelectedHeroes.0000"] = hero
+            set_fields(entity, {"m_pGameRules.m_SelectedHeroes.0000": hero})
             dispatch(entity, EntityOp.UPDATED)
         assert parser.game_start_tick is None
         assert [e.tick for e in ext.draft_events] == [0, 100_000]
@@ -755,7 +756,7 @@ class TestDraftPollingCutoff:
             raise EOFError("truncated test stream")
 
         def update(_kind, state):
-            entity._state.update(state)
+            set_fields(entity, state)
             dispatch(entity, EntityOp.UPDATED)
 
         monkeypatch.setattr("gem.parser.DemoStream", lambda _source: nullcontext(stream()))

@@ -15,6 +15,7 @@ from gem.extractors.wards import (
     WardsExtractor,
 )
 from gem.state.entities import Entity, EntityOp
+from tests._entities import set_fields
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -30,7 +31,7 @@ class FakeClass:
 
 def _ent(class_name: str, index: int = 0, **state) -> Entity:
     e = Entity(index=index, serial=0, cls=FakeClass(class_name))
-    e._state.update(state)
+    set_fields(e, state)
     return e
 
 
