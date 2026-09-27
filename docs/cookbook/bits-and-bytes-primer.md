@@ -10,6 +10,15 @@ This page teaches them from scratch, one at a time. Each section has a small
 snippet you can paste into a Python prompt, and a **Where gem uses this** note. The
 examples use real bytes from match `8855242704`.
 
+Each section ends with a few **Try it** questions. For hands-on practice, the repo
+also has a small exercise file: you build your own mini bit reader, one function
+at a time, and a grader checks it against real replay bytes and gem's own
+`BitReader`:
+
+```bash
+uv run python examples/bits_and_bytes_exercises.py
+```
+
 If you want to know how a replay is laid out (headers, envelopes, inner
 messages), read [How Proto Parsing Works](proto-parsing-pipeline.md). This page
 explains the tools used to read that layout.
@@ -45,6 +54,24 @@ print(format(0xB7, "08b"))      # 10110111  (8 digits, zero-padded)
 
 **Where gem uses this:** everywhere. Error messages, tests, and this documentation
 show bytes in hex.
+
+### Try it
+
+1. What is `0xB7` in binary, and which bit positions hold a 1?
+2. Why is every byte exactly two hex digits?
+
+<details>
+<summary>Answers</summary>
+
+```python
+print(format(0xB7, "08b"))                       # 10110111
+print([i for i in range(8) if 0xB7 >> i & 1])    # [0, 1, 2, 4, 5, 7]
+```
+
+One hex digit covers exactly 4 bits (16 values), and a byte is 8 bits, so it
+always takes two.
+
+</details>
 
 ## 2. Bit operations: the six operators
 
@@ -86,6 +113,23 @@ the rightmost `1` and bit 7 is the leftmost `1`.
 means "compressed", and the rest is the envelope kind:
 `compressed = command & 0x40` and `msg_type = command & ~0x40`.
 
+### Try it
+
+1. Using only `>>` and `&`, get bits 4 to 6 of `0b1011_0111`.
+2. An envelope's command is `0x44`. Is it compressed, and what kind is it?
+
+<details>
+<summary>Answers</summary>
+
+```python
+print(bin((0b1011_0111 >> 4) & 0b111))   # 0b11
+print(bool(0x44 & 0x40), 0x44 & ~0x40)   # True 4
+```
+
+Bits 4 to 6 are `011`. Command `0x44` is a compressed `DEM_SendTables` (kind 4).
+
+</details>
+
 ## 3. Byte order: little-endian
 
 A number bigger than 255 needs several bytes, so something has to decide which
@@ -109,6 +153,25 @@ Reading it in the wrong order gives a number that means nothing.
 
 **Where gem uses this:** `struct.unpack("<I", ...)` in `binary/reader.py` loads
 4 bytes at a time, and `read_float` decodes floats little-endian.
+
+### Try it
+
+1. Header bytes 12 to 15 of the same replay are `6b 85 e7 11`. What number is
+   that?
+2. Write 1,000 as 4 little-endian bytes.
+
+<details>
+<summary>Answers</summary>
+
+```python
+print(int.from_bytes(bytes.fromhex("6b 85 e7 11"), "little"))   # 300385643
+print((1000).to_bytes(4, "little").hex(" "))                     # e8 03 00 00
+```
+
+300,385,643 is the position of the `DEM_SpawnGroups` envelope, 117 bytes before
+the match summary.
+
+</details>
 
 ## 4. Bitstreams: reading bits that don't line up with bytes
 
@@ -154,6 +217,31 @@ print(bin(value), bin(cache))    # 0b1111 0b111100000000
 **Where gem uses this:** `BitReader.read_bits` in `binary/reader.py` is those two
 lines plus refilling the cache 4 bytes at a time. Entity updates, string tables,
 and the inner-message bundles are all read this way.
+
+### Try it
+
+1. `BitReader(bytes([0b1010_1010]))`: what do three `read_bits(1)` calls return,
+   and then `read_bits(5)`?
+2. A 2-byte buffer has had 3 bits read. How many bits are left?
+
+<details>
+<summary>Answers</summary>
+
+```python
+r = BitReader(bytes([0b1010_1010]))
+print(r.read_bits(1), r.read_bits(1), r.read_bits(1))   # 0 1 0
+print(bin(r.read_bits(5)))                               # 0b10101
+
+r = BitReader(b"\x00\x00")
+r.read_bits(3)
+print(r.rem_bits())   # 13
+```
+
+The first bit read is the rightmost bit of `1010_1010`, which is 0. The last 5
+bits are `10101` read from bit 3 upward, and the first of them becomes the lowest
+bit of the result.
+
+</details>
 
 ## 5. Signed numbers, and why Python needs masks
 
@@ -202,6 +290,29 @@ print([zigzag_decode(n) for n in range(6)])   # [0, -1, 1, -2, 2, -3]
 
 **Where gem uses this:** `read_varint32` and `read_varint64` in `binary/reader.py`
 decode zigzag, and `read_varuint32` masks to 32 bits.
+
+### Try it
+
+1. What is −2 as a 32-bit two's-complement pattern, in hex?
+2. Zigzag-encode −3 and 3. (Encoding is `(n << 1) ^ (n >> 31)` for 32-bit values.)
+3. Why does `~5` print `-6` in Python?
+
+<details>
+<summary>Answers</summary>
+
+```python
+print(hex(-2 & 0xFFFFFFFF))   # 0xfffffffe
+
+def zigzag_encode(n):
+    return (n << 1) ^ (n >> 31)
+
+print(zigzag_encode(-3), zigzag_encode(3))   # 5 6
+```
+
+`~x` flips every bit of a number with infinitely many leading zeros, which gives
+−(x + 1). To flip only 8 bits, use `5 ^ 0xFF` (250).
+
+</details>
 
 ## 6. Variable-length integers
 
@@ -293,6 +404,29 @@ type_id = (3 << 4) | 7 = 55   -> svc_PacketEntities
 **Where gem uses this:** varints are payload sizes, ticks, and many entity fields.
 `ubit_var` is inner-message type IDs, entity index gaps, and string-table sizes.
 
+### Try it
+
+1. Encode 1,000 as a varint by hand, then check it with `read_varint`.
+2. The file-header payload continues with the tag `1a`. Which field number and
+   wire type is that?
+3. For the number 5, which is smaller: a varint or a `ubit_var`?
+
+<details>
+<summary>Answers</summary>
+
+1,000 is `0b111_1101000`. The low 7 bits (`1101000` = `0x68`) come first, with the
+continuation bit set (`0xe8`), then the rest (`0b111` = `0x07`):
+
+```python
+print(read_varint(bytes.fromhex("e8 07")))   # (1000, 2)
+print(0x1A >> 3, 0x1A & 0b111)               # 3 2
+```
+
+Tag `1a` is field 3, length-delimited: `server_name` in `CDemoFileHeader`.
+For 5, a varint takes 8 bits and a `ubit_var` takes 6.
+
+</details>
+
 ## 7. Floats, and how to store them in fewer bits
 
 A normal `float` in Python takes 64 bits. Replays use two cheaper ways to store
@@ -336,6 +470,26 @@ So mana costs 20 bits instead of 32. Angles work the same way:
 `schema/field_decoder/quantized_float.py`, which also handles rounding flags and
 special cases. That module has its own walkthrough.
 
+### Try it
+
+1. `m_flHealthThinkRegen` is stored in 18 bits over −100 to 1,000. How big is one
+   step, and what does a stored 0 mean?
+2. What does `read_angle(8)` return for the stored value 64?
+
+<details>
+<summary>Answers</summary>
+
+```python
+step = (1000.0 - -100.0) / ((1 << 18) - 1)
+print(round(step, 6))                                # 0.004196
+print(BitReader(bytes([64])).read_angle(8))          # 90.0
+```
+
+A stored 0 means −100, the bottom of the range. For angles, 64 steps of
+360 / 256 degrees is a quarter turn.
+
+</details>
+
 ## 8. Prefix codes: short codes for common things
 
 Suppose you have to send a long list of instructions, and one instruction is far
@@ -360,6 +514,24 @@ in each entity update. The instructions are 40 *field-path operations*. The most
 common, "move to the next field" (`PlusOne`), is the single bit `0`. "Finished"
 (`FieldPathEncodeFinish`) is `10`, and the rarest operations take 17 bits. That
 module has its own walkthrough.
+
+### Try it
+
+1. With the codes A = `0`, B = `10`, C = `11`, decode `1101000`.
+2. Why can't `1` and `10` both be codes?
+3. There are 40 field-path operations. How many bits would each take with a
+   fixed-width code?
+
+<details>
+<summary>Answers</summary>
+
+1. `11 0 10 0 0`: C, A, B, A, A.
+2. `1` is the start of `10`. After reading a `1`, the reader couldn't tell
+   whether the code had ended.
+3. 6 bits (2⁶ = 64 ≥ 40). With the prefix code, the most common operation costs
+   1 bit.
+
+</details>
 
 ## 9. Decode it yourself
 
@@ -439,7 +611,9 @@ is why `BitReader.read_bytes` needs a path for unaligned reads.
 
 ## Next pages
 
-1. [How Proto Parsing Works](proto-parsing-pipeline.md): how a replay is layered,
+1. Practice: `examples/bits_and_bytes_exercises.py` (12 graded exercises;
+   solutions in `examples/bits_and_bytes_solutions.py`).
+2. [How Proto Parsing Works](proto-parsing-pipeline.md): how a replay is layered,
    using these tools.
-2. [The Proto Files gem Uses](proto-files.md): the protobuf messages inside it.
-3. `src/gem/binary/reader.py`: `BitReader`, which you can now read line by line.
+3. [The Proto Files gem Uses](proto-files.md): the protobuf messages inside it.
+4. `src/gem/binary/reader.py`: `BitReader`, which you can now read line by line.
