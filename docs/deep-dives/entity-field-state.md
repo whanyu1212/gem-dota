@@ -106,8 +106,9 @@ node when the first field or element is written. Two rules follow:
   shrink: in the 99-minute replay, `m_vecKnownClearCamps` drops to zero hundreds
   of times, and `CDOTATeam.m_aPlayers` goes from 14 players to 13.
 
-Reading the field's own name gives that value back: an array or variable table
-returns its length, and a table returns `True`.
+Reading the field's own name gives that value back. An array or variable table
+returns its length. A fixed table returns its presence flag as sent, which is
+`True` once the table has fields, and can be `False` for a table that has none.
 
 ## Reading a value by name
 
