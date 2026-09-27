@@ -103,6 +103,7 @@ from gem.proto.netmessages_pb2 import (
     CSVCMsg_ServerInfo,
     CSVCMsg_UpdateStringTable,
     CSVCMsg_UserMessage,
+    svc_ClearAllStringTables,
     svc_CreateStringTable,
     svc_PacketEntities,
     svc_ServerInfo,
@@ -147,6 +148,7 @@ _DEM_FULL_PACKET = DEM_FullPacket
 # Inner NET/SVC/game-event message IDs
 _NET_TICK = net_Tick
 _SVC_SERVER_INFO = svc_ServerInfo
+_SVC_CLEAR_ALL_STRING_TABLES = svc_ClearAllStringTables
 _SVC_CREATE_STRING_TABLE = svc_CreateStringTable
 _SVC_UPDATE_STRING_TABLE = svc_UpdateStringTable
 _SVC_PACKET_ENTITIES = svc_PacketEntities
@@ -718,9 +720,11 @@ class ReplayParser:
         messages = read_inner_messages(data)
 
         def _priority(type_id: int) -> int:
+            # The sort is stable, so string-table messages keep their stream order.
             if type_id in (
                 _NET_TICK,
                 _SVC_SERVER_INFO,
+                _SVC_CLEAR_ALL_STRING_TABLES,
                 _SVC_CREATE_STRING_TABLE,
                 _SVC_UPDATE_STRING_TABLE,
             ):
@@ -765,6 +769,11 @@ class ReplayParser:
             m = CSVCMsg_ServerInfo()
             m.ParseFromString(payload)
             self._on_server_info(m)
+
+        elif type_id == _SVC_CLEAR_ALL_STRING_TABLES:
+            # Replays send this once, alone, before any table exists (Clarity
+            # handles it the same way: S2StringTableEmitter.clearAllStringTables).
+            self.string_tables.clear()
 
         elif type_id == _SVC_CREATE_STRING_TABLE:
             create_msg = CSVCMsg_CreateStringTable()

@@ -108,6 +108,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **String tables now decode index jumps, key history, and empty updates like
+  Clarity.** gem followed Manta, which gets three rules wrong:
+  - An entry that jumps ahead moves relative to the previous one
+    (`index += varint + 2`); gem set it absolutely (`varint + 1`).
+  - Names can reuse the start of one of the last 32 entries' names, counting
+    every entry; gem counted only entries that sent a name.
+  - An update without a value clears the old one; gem kept it.
+
+  `ActiveModifiers` names each entry by its index, so a replay shows the correct
+  rule. On a 99-minute replay, Clarity's rules put all 279 jumped-to entries at
+  the index their name says, and gem's put none there. gem's copy of that table
+  was wrong from about ten minutes in: at the end, 42 of 1,774 modifiers were in
+  place. The tables gem reads (`CombatLogNames`, `instancebaseline`,
+  `EntityNames`) never jump in the replays checked, so parse output is unchanged.
+  gem now also handles `svc_ClearAllStringTables`, and string-table errors name
+  the table.
 - **`Entity.to_map()` now returns the entity's values.** It returned a copy of a
   dict that only tests wrote to, so on a real replay it was always empty. It now
   lists every stored value by the names `get()` accepts, like Manta's

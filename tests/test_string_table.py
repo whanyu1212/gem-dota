@@ -287,7 +287,7 @@ def _append_string(bits: list[int], s: str) -> None:
 def _build_entry_bits(
     *,
     incr: bool,
-    abs_index: int | None = None,
+    jump: int | None = None,
     key: str | None = None,
     history_pos: int | None = None,
     history_size: int | None = None,
@@ -300,9 +300,10 @@ def _build_entry_bits(
     """Build the raw bit list for a single string table entry.
 
     Args:
-        incr: True → sequential (increment index).  False → absolute index.
-        abs_index: When incr=False, the absolute index to encode (stored as
-            abs_index - 1 as a varuint32 — the parser adds +1 back).
+        incr: True → the next index.  False → a jump forward.
+        jump: When incr=False, the varuint32 to encode. The index advances by
+            ``jump + 2`` (Clarity's rule), so from the start (-1) it lands on
+            ``jump + 1``.
         key: Plain string key (no history).  None → has_key=False.
         history_pos: When set, emit a history-prefix key using this ring-buffer
             position and *history_size* prefix length, with *history_suffix*.
@@ -319,8 +320,7 @@ def _build_entry_bits(
     # Index
     bits.append(1 if incr else 0)
     if not incr:
-        # encode (abs_index - 1) as varuint32; parser does: index = read_varuint32() + 1
-        _append_varuint32(bits, abs_index - 1)  # type: ignore[arg-type]
+        _append_varuint32(bits, jump)  # type: ignore[arg-type]
 
     # Key
     if key is not None or history_pos is not None:
@@ -371,64 +371,39 @@ def _build_entry_bits(
 # ---------------------------------------------------------------------------
 
 
-class TestAbsoluteIndex:
-    """Non-sequential (absolute) index reads — incr=False branch."""
+def _parse(bits: list[int], count: int, existing=None):
+    from gem.state.string_table import parse_string_table
 
-    def test_single_absolute_index(self, parse_string_table):
-        # Emit one entry with incr=False targeting index 5.
-        bits = _build_entry_bits(incr=False, abs_index=5, key="abs_key", value=b"\xab")
-        data = _pack_bits(bits)
-        items = parse_string_table(
-            buf=data,
-            num_updates=1,
-            name="test",
-            user_data_fixed_size=False,
-            user_data_size_bits=0,
-            flags=0,
-            varint_bit_counts=False,
-        )
-        assert len(items) == 1
+    return parse_string_table(
+        buf=_pack_bits(bits),
+        num_updates=count,
+        name="test",
+        user_data_fixed_size=False,
+        user_data_size_bits=0,
+        flags=0,
+        varint_bit_counts=False,
+        existing=existing,
+    )
+
+
+class TestIndexJumps:
+    """Index jumps are relative: index += varint + 2 (Clarity), not varint + 1."""
+
+    def test_first_entry_jump_lands_on_jump_plus_one(self):
+        items = _parse(_build_entry_bits(incr=False, jump=4, key="k", value=b"\xab"), 1)
         assert items[0].index == 5
-        assert items[0].key == "abs_key"
         assert items[0].value == b"\xab"
 
-    def test_absolute_index_zero(self, parse_string_table):
-        # abs_index=0 encodes varuint32(-1) which wraps to 0xFFFFFFFF; parser adds 1 → 0.
-        # Actually: index = read_varuint32() + 1, so to get index=0 we need varuint32 = -1?
-        # No — varuint32 is unsigned, minimum is 0 → index = 0+1 = 1.
-        # The lowest absolute index expressible this way is 1 (varuint32=0 → index=1).
-        bits = _build_entry_bits(incr=False, abs_index=1, key="zero_abs", value=None)
-        data = _pack_bits(bits)
-        items = parse_string_table(
-            buf=data,
-            num_updates=1,
-            name="test",
-            user_data_fixed_size=False,
-            user_data_size_bits=0,
-            flags=0,
-            varint_bit_counts=False,
-        )
-        assert items[0].index == 1
+    def test_smallest_first_jump_lands_on_one(self):
+        assert _parse(_build_entry_bits(incr=False, jump=0, key="k"), 1)[0].index == 1
 
-    def test_mixed_sequential_and_absolute(self, parse_string_table):
-        # Entry 0: incr=True → index=0
-        # Entry 1: incr=False, abs_index=10 → index=10
-        all_bits = _build_entry_bits(incr=True, key="seq", value=None)
-        all_bits += _build_entry_bits(incr=False, abs_index=10, key="jump", value=b"\x01")
-        data = _pack_bits(all_bits)
-        items = parse_string_table(
-            buf=data,
-            num_updates=2,
-            name="test",
-            user_data_fixed_size=False,
-            user_data_size_bits=0,
-            flags=0,
-            varint_bit_counts=False,
-        )
-        assert items[0].index == 0
-        assert items[0].key == "seq"
-        assert items[1].index == 10
-        assert items[1].key == "jump"
+    def test_later_jumps_are_relative_to_the_previous_index(self):
+        bits = _build_entry_bits(incr=True, key="a")  # 0
+        bits += _build_entry_bits(incr=False, jump=2, key="b")  # 0 + 2 + 2 = 4
+        bits += _build_entry_bits(incr=False, jump=0, key="c")  # 4 + 0 + 2 = 6
+        bits += _build_entry_bits(incr=True, key="d")  # 7
+        bits += _build_entry_bits(incr=False, jump=10, key="e")  # 7 + 10 + 2 = 19
+        assert [item.index for item in _parse(bits, 5)] == [0, 4, 6, 7, 19]
 
 
 # ---------------------------------------------------------------------------
@@ -551,6 +526,46 @@ class TestKeyHistoryCompression:
             varint_bit_counts=False,
         )
         assert items[1].key == "hello"
+
+
+class TestKeyHistoryNames:
+    """The history holds every entry's name, not only the keys sent (Clarity)."""
+
+    def test_entry_without_key_contributes_its_existing_name(self):
+        bits = _build_entry_bits(incr=True, value=b"\x01")  # index 0, no key
+        bits += _build_entry_bits(incr=True, history_pos=0, history_size=3, history_suffix="X")
+        items = _parse(bits, 2, existing={0: ("alpha", b"")})
+        assert items[1].key == "alpX"
+
+    def test_existing_entry_contributes_its_name_not_the_key_sent(self):
+        bits = _build_entry_bits(incr=True, key="other")  # index 0 already exists
+        bits += _build_entry_bits(incr=True, history_pos=0, history_size=5, history_suffix="!")
+        items = _parse(bits, 2, existing={0: ("alpha", b"")})
+        assert items[1].key == "alpha!"
+
+    def test_entry_without_key_or_name_still_takes_a_history_position(self):
+        bits = _build_entry_bits(incr=True)  # index 0: no key, not existing -> ""
+        bits += _build_entry_bits(incr=True, key="beta")  # index 1
+        bits += _build_entry_bits(incr=True, history_pos=1, history_size=2, history_suffix="-")
+        assert _parse(bits, 3)[2].key == "be-"
+
+
+class TestParseErrors:
+    def test_truncated_data_names_the_table(self):
+        from gem.binary.reader import BufferReadError
+        from gem.state.string_table import parse_string_table
+
+        with pytest.raises(BufferReadError, match="string table 'ActiveModifiers'"):
+            parse_string_table(b"\x01", 5, "ActiveModifiers", False, 0, 0, False)
+
+    def test_corrupt_compressed_value_names_the_table(self):
+        from gem.state.string_table import parse_string_table
+
+        bits = _build_entry_bits(
+            incr=True, key="k", value=b"\xff\xff\xff", flags=1, compressed=True
+        )
+        with pytest.raises(ValueError, match="string table 'userinfo': cannot decompress entry 0"):
+            parse_string_table(_pack_bits(bits), 1, "userinfo", False, 0, 1, False)
 
 
 # ---------------------------------------------------------------------------
@@ -977,18 +992,29 @@ class TestHandleUpdate:
         assert key == "oldkey"
         assert val == b"\x02"
 
-    def test_update_blank_value_preserves_existing_value(self, string_tables_cls, string_table_cls):
+    def test_update_without_value_clears_it(self, string_tables_cls, string_table_cls):
         from gem.state.string_table import handle_update
 
+        # Clarity (and Valve's SetStringUserData) store the missing value as empty.
         st, tbl = self._create_table_with_items(
             string_tables_cls, string_table_cls, "test", {0: ("mykey", b"\xde\xad")}
         )
         bits = _build_entry_bits(incr=True, key="mykey", value=None)
         msg = self._make_update_msg(0, _pack_bits(bits), 1)
         handle_update(msg, st)
-        key, val = tbl.items[0]
-        assert key == "mykey"
-        assert val == b"\xde\xad"
+        assert tbl.items[0] == ("mykey", b"")
+
+    def test_update_key_does_not_rename_an_existing_entry(
+        self, string_tables_cls, string_table_cls
+    ):
+        from gem.state.string_table import handle_update
+
+        st, tbl = self._create_table_with_items(
+            string_tables_cls, string_table_cls, "test", {0: ("original", b"\x01")}
+        )
+        bits = _build_entry_bits(incr=True, key="renamed", value=b"\x02")
+        handle_update(self._make_update_msg(0, _pack_bits(bits), 1), st)
+        assert tbl.items[0] == ("original", b"\x02")
 
     def test_update_inserts_new_entry(self, string_tables_cls, string_table_cls):
         from gem.state.string_table import handle_update
@@ -1025,13 +1051,25 @@ class TestHandleUpdate:
         with pytest.raises(KeyError):
             handle_update(msg, st)
 
-    def test_update_absolute_index_into_existing_table(self, string_tables_cls, string_table_cls):
+    def test_update_jump_into_existing_table(self, string_tables_cls, string_table_cls):
         from gem.state.string_table import handle_update
 
-        # Pre-populate entries 0..4; update jumps to absolute index 3.
+        # Pre-populate entries 0..4; the update's first entry jumps to 0 + 2 + 1 = 3.
         items = {i: (f"k{i}", bytes([i])) for i in range(5)}
         st, tbl = self._create_table_with_items(string_tables_cls, string_table_cls, "test", items)
-        bits = _build_entry_bits(incr=False, abs_index=3, key="k3", value=b"\xff")
+        bits = _build_entry_bits(incr=False, jump=2, key="k3", value=b"\xff")
         msg = self._make_update_msg(0, _pack_bits(bits), 1)
         handle_update(msg, st)
         assert tbl.items[3] == ("k3", b"\xff")
+
+
+class TestClearAllStringTables:
+    def test_clear_removes_tables_and_restarts_numbering(self, string_tables_cls):
+        from gem.state.string_table import handle_create
+
+        st = string_tables_cls()
+        for name in ("a", "b"):
+            handle_create(TestHandleCreate()._make_create_msg(name=name), st)
+        st.clear()
+        assert st.tables == {} and st.name_index == {}
+        assert handle_create(TestHandleCreate()._make_create_msg(name="c"), st).index == 0

@@ -95,21 +95,30 @@ enforces this ordering (string-table messages are prioritized ahead of
 `StringTables` is a container of named `StringTable` objects; each table is an
 incremental `dict[int, (key, value)]` updated across the replay.
 
-- `parse_string_table(...)` — decodes a table's entries from the bit stream,
-  including the **key-history** ring buffer (recent keys are referenced by a
-  small back-index instead of being respelled — `_KEY_HISTORY_SIZE = 32`).
+- `parse_string_table(...)` — decodes a table's entries from the bit stream.
+  An entry either takes the next index or jumps forward (`index += varint + 2`).
+  A key can reuse the start of one of the last 32 entries' names
+  (`_KEY_HISTORY_SIZE`); every entry counts, and one sent without a key
+  contributes its existing name.
 - `handle_create(msg, tables)` — handles `CSVCMsg_CreateStringTable` (a new
   table; string data may be Snappy-compressed).
 - `handle_update(msg, tables)` — handles `CSVCMsg_UpdateStringTable` (deltas to
-  an existing table).
+  an existing table). An existing entry keeps its name and takes the new value;
+  an update sent without a value clears it.
+- `StringTables.clear()` — handles `svc_ClearAllStringTables`.
+
+These rules follow Clarity (`S2StringTableEmitter.decodeEntries`), not Manta.
+`ActiveModifiers` names each entry by its index, which shows Clarity's index and
+key-history rules are the right ones; Manta's put those entries at the wrong
+index once a match is about ten minutes in.
 
 Despite the names, `handle_create`/`handle_update` are not generic event
 callbacks — they are the proto-message → `StringTable` converters for those two
 specific message types.
 
-The `instancebaseline` table is the one entity decoding depends on; others
-(`CombatLogNames`, `EntityNames`, `ActiveModifiers`, …) are consumed elsewhere
-in the parser.
+The `instancebaseline` table is the one entity decoding depends on. gem also
+reads `CombatLogNames` (combat-log names) and `EntityNames` (unit names); the
+other tables, such as `ActiveModifiers` and `userinfo`, are kept but not read.
 
 ## Field Access
 

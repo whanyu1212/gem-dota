@@ -1297,3 +1297,32 @@ class TestStopAfterTick:
 
         # Only tick=50 should have been dispatched; tick=150 > 100 → break
         assert len(dispatch_calls) == 1
+
+
+# ---------------------------------------------------------------------------
+# svc_ClearAllStringTables
+# ---------------------------------------------------------------------------
+
+
+class TestClearAllStringTables:
+    @staticmethod
+    def _create(name: str) -> bytes:
+        from gem.proto.netmessages_pb2 import CSVCMsg_CreateStringTable
+
+        return CSVCMsg_CreateStringTable(name=name, num_entries=0).SerializeToString()
+
+    def test_clear_keeps_stream_order_with_creates_in_the_same_packet(self):
+        from gem.parser import _SVC_CLEAR_ALL_STRING_TABLES
+
+        parser = ReplayParser("unused.dem")
+        blob = make_inner_blob(
+            [
+                (_SVC_CREATE_STRING_TABLE, self._create("before")),
+                (_SVC_CLEAR_ALL_STRING_TABLES, b""),
+                (_SVC_CREATE_STRING_TABLE, self._create("after")),
+            ]
+        )
+        parser._dispatch_inner_packet(blob)
+
+        assert [(t.index, t.name) for t in parser.string_tables.tables.values()] == [(0, "after")]
+        assert parser.string_tables.get_by_name("before") is None

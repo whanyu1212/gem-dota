@@ -172,11 +172,12 @@ of type IDs:
   requests. A replay contains none, because spectators don't send anything.
 - `Bidirectional_Messages` (`bi_*`): both directions. Also absent from replays.
 
-gem reads five of its messages:
+gem reads six of its messages:
 
 | Message | Arrives | What gem reads | Why |
 |---|---|---|---|
 | `CSVCMsg_ServerInfo` | Once, at the start | `max_classes`, `game_dir` | `max_classes` sets how many bits a class ID takes in entity data. `game_dir` contains the game build (e.g. `dota_v6808`). |
+| `CSVCMsg_ClearAllStringTables` | Once, alone, before any table exists | Nothing (it has no fields gem needs) | Removes every string table |
 | `CSVCMsg_CreateStringTable` | About 20 times, in the signon packets before the game starts | The whole table | Creates a string table (see below) |
 | `CSVCMsg_UpdateStringTable` | Tens of thousands of times | Changed rows | Keeps string tables current |
 | `CSVCMsg_PacketEntities` | Once per packet | `entity_data`, `updated_entries`, `legacy_is_delta` | Entity create/update/delete. See below. |
@@ -213,8 +214,7 @@ Current replays send every Dota message directly as its own inner type (for exam
 554 for combat-log lines), so the wrapper path is kept only for replays that use it.
 
 Everything else in this file is skipped, including `svc_VoiceData`, `svc_ClassInfo`
-(gem uses the outer `DEM_ClassInfo` instead), `svc_HLTVStatus`, and
-`svc_ClearAllStringTables`.
+(gem uses the outer `DEM_ClassInfo` instead), and `svc_HLTVStatus`.
 
 ## `networkbasetypes.proto`: the clock and shared building blocks
 

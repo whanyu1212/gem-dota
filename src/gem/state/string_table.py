@@ -6,15 +6,28 @@ tables that are updated throughout the replay.  The most important table
 for entity decoding is ``instancebaseline``, which holds per-class
 baseline field values.
 
-Reference: manta/string_table.go
+The entry encoding follows Clarity rather than Manta in three places: an index
+jump is relative (``index += varint + 2``), the key history holds the names of
+the last 32 entries (an entry without a key contributes its existing name), and
+an update without a value clears the old one. Replays confirm the first two:
+``ActiveModifiers`` names each entry by its index, and only Clarity's rules put
+those entries where their names say.
+
+References:
+    skadistats/clarity processor/stringtables/S2StringTableEmitter.java
+    (pinned revision in CLAUDE.md): entry decoding and update semantics
+    dotabuff/manta string_table.go (pinned revision in CLAUDE.md): message
+    handling and table bookkeeping
 """
 
+from collections import deque
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from typing import NamedTuple
 
 import snappy
 
-from gem.binary.reader import BitReader
+from gem.binary.reader import BitReader, BufferReadError
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -71,6 +84,15 @@ class StringTables:
         self.name_index: dict[str, int] = {}
         self._next_index: int = 0
 
+    def clear(self) -> None:
+        """Remove every table, as ``svc_ClearAllStringTables`` requests.
+
+        Tables created afterwards are numbered from 0 again.
+        """
+        self.tables.clear()
+        self.name_index.clear()
+        self._next_index = 0
+
     def add(self, table: StringTable) -> None:
         """Register a StringTable in the container.
 
@@ -119,25 +141,33 @@ def parse_string_table(
     user_data_size_bits: int,
     flags: int,
     varint_bit_counts: bool,
+    existing: Mapping[int, tuple[str, bytes]] | None = None,
 ) -> list[StringTableItem]:
     """Parse a string table data blob into a list of item updates.
 
-    Each update contains an index, an optional key, and an optional value.
-    Keys may reference a 32-entry history ring buffer for prefix compression.
-    Values may be Snappy-compressed when ``flags & 0x1`` and the compression
-    bit is set.
+    Each update contains an index, an optional key, and an optional value. The
+    index either advances by one or jumps forward. A key may reuse the start of
+    one of the last 32 entries' names. Values may be Snappy-compressed when
+    ``flags & 0x1`` and the entry's compression bit is set.
 
     Args:
         buf: Raw bytes from the string table message's ``string_data`` field.
         num_updates: Number of entries to read.
-        name: Table name (used only for error messages).
+        name: Table name, used in error messages.
         user_data_fixed_size: If True, values have a fixed bit width.
         user_data_size_bits: Fixed value width in bits (when user_data_fixed_size).
         flags: Table flags; bit 0 enables per-entry compression.
         varint_bit_counts: If True, value byte sizes are encoded as ubit_var.
+        existing: The table's current items (index → ``(key, value)``). An entry
+            sent without a key contributes its existing name to the key history.
 
     Returns:
-        List of StringTableItem updates in parse order.
+        List of StringTableItem updates in parse order. An item's key is the
+        key sent (``""`` if none), and its value is ``b""`` if none was sent.
+
+    Raises:
+        BufferReadError: If the blob ends before *num_updates* entries.
+        ValueError: If a compressed value cannot be decompressed.
     """
     if not buf:
         return []
@@ -145,55 +175,79 @@ def parse_string_table(
     items: list[StringTableItem] = []
     r = BitReader(buf)
     index = -1
-    keys: list[str] = []
+    # Names of the last 32 entries, oldest first. Keys reference them by position.
+    history: deque[str] = deque(maxlen=_KEY_HISTORY_SIZE)
 
-    for _ in range(num_updates):
-        key = ""
-        value = b""
+    try:
+        for _ in range(num_updates):
+            key = ""
+            value = b""
 
-        # Index: increment or absolute
-        if r.read_boolean():
-            index += 1
-        else:
-            index = r.read_varuint32() + 1
-
-        # Key
-        if r.read_boolean():
+            # Index: the next entry, or a jump forward (Clarity: index += varint + 2).
             if r.read_boolean():
-                # History prefix reference
-                pos = r.read_bits(5)
-                size = r.read_bits(5)
-                suffix = r.read_string()
-                if pos < len(keys):
-                    s = keys[pos]
-                    key = (s[:size] if size <= len(s) else s) + suffix
+                index += 1
+            else:
+                index += r.read_varuint32() + 2
+
+            # Key
+            if r.read_boolean():
+                if r.read_boolean():
+                    # Reuse the start of a recent entry's name
+                    pos = r.read_bits(5)
+                    size = r.read_bits(5)
+                    suffix = r.read_string()
+                    if pos < len(history):
+                        s = history[pos]
+                        key = (s[:size] if size <= len(s) else s) + suffix
+                    else:
+                        key = suffix
                 else:
-                    key = suffix
-            else:
-                key = r.read_string()
+                    key = r.read_string()
 
-            # Maintain ring buffer of last _KEY_HISTORY_SIZE keys
-            if len(keys) >= _KEY_HISTORY_SIZE:
-                keys.pop(0)
-            keys.append(key)
+            # The history records each entry's name: an existing entry keeps its
+            # name, and a new entry takes the key it was sent. Jumps only move
+            # forward, so an entry can't be named earlier in the same blob.
+            current = existing.get(index) if existing is not None else None
+            history.append(current[0] if current is not None else key)
 
-        # Value
-        if r.read_boolean():
-            is_compressed = False
-            if user_data_fixed_size:
-                bit_size = user_data_size_bits
-            else:
-                if flags & 0x1:
-                    is_compressed = r.read_boolean()
-                bit_size = r.read_ubit_var() * 8 if varint_bit_counts else r.read_bits(17) * 8
+            # Value
+            if r.read_boolean():
+                is_compressed = False
+                if user_data_fixed_size:
+                    bit_size = user_data_size_bits
+                else:
+                    if flags & 0x1:
+                        is_compressed = r.read_boolean()
+                    bit_size = r.read_ubit_var() * 8 if varint_bit_counts else r.read_bits(17) * 8
 
-            value = r.read_bits_as_bytes(bit_size)
-            if is_compressed:
-                value = snappy.decompress(value)
+                value = r.read_bits_as_bytes(bit_size)
+                if is_compressed:
+                    try:
+                        value = snappy.decompress(value)
+                    except snappy.UncompressError as exc:
+                        raise ValueError(
+                            f"string table {name!r}: cannot decompress entry {index}"
+                        ) from exc
 
-        items.append(StringTableItem(index=index, key=key, value=value))
+            items.append(StringTableItem(index=index, key=key, value=value))
+    except BufferReadError as exc:
+        raise BufferReadError(
+            f"string table {name!r}: data ended after {len(items)} of {num_updates} entries"
+        ) from exc
 
     return items
+
+
+def _apply_items(table: StringTable, items: Iterable[StringTableItem]) -> None:
+    """Merge parsed items into *table*, as Clarity does.
+
+    An existing entry keeps its name and takes the new value; an update sent
+    without a value clears it. A new entry takes the key and value it was sent.
+    """
+    entries = table.items
+    for item in items:
+        current = entries.get(item.index)
+        entries[item.index] = (current[0] if current is not None else item.key, item.value)
 
 
 # ---------------------------------------------------------------------------
@@ -247,11 +301,8 @@ def handle_create(msg: object, string_tables: StringTables) -> StringTable:
         flags_val,
         varint_bit_counts,
     )
-    for item in parsed:
-        table.items[item.index] = (item.key, item.value)
-
-    string_tables.tables[table.index] = table
-    string_tables.name_index[name] = table.index
+    _apply_items(table, parsed)
+    string_tables.add(table)
     string_tables._next_index += 1
 
     return table
@@ -260,8 +311,8 @@ def handle_create(msg: object, string_tables: StringTables) -> StringTable:
 def handle_update(msg: object, string_tables: StringTables) -> StringTable:
     """Process a CSVCMsg_UpdateStringTable message.
 
-    Merges updated items into the existing table.  Key and value updates
-    are applied independently: a blank key leaves the existing key intact.
+    Merges updated items into the existing table. An existing entry keeps its
+    name and takes the new value, which is empty when the update sent none.
 
     Args:
         msg: A ``CSVCMsg_UpdateStringTable`` protobuf message object.
@@ -289,16 +340,7 @@ def handle_update(msg: object, string_tables: StringTables) -> StringTable:
         table.user_data_size_bits,
         table.flags,
         table.varint_bit_counts,
+        existing=table.items,
     )
-
-    for item in parsed:
-        idx = item.index
-        if idx in table.items:
-            existing_key, existing_value = table.items[idx]
-            new_key = item.key if item.key else existing_key
-            new_value = item.value if item.value else existing_value
-            table.items[idx] = (new_key, new_value)
-        else:
-            table.items[idx] = (item.key, item.value)
-
+    _apply_items(table, parsed)
     return table
