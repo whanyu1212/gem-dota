@@ -375,7 +375,8 @@ class TestFieldStateCompactTraversal:
 
         assert _state_tree(compact_state) == _state_tree(mutable_state)
         assert compact_state._get_compact((0, 2)) == "nested"
-        assert compact_state._get_compact((0,)) is compact_state._state[0]
+        # A node without a recorded length reads as present.
+        assert compact_state._get_compact((0,)) is True
         assert compact_state._get_compact((1,)) is None
 
     def test_missing_read_does_not_mutate_state(self):
@@ -658,14 +659,14 @@ class TestShallowCompactEquivalence:
         assert state._state is root_storage and len(root_storage) == 16
         assert state._state[7] is child and child._state is child_storage
         assert len(child_storage) == 102 and state._get_compact((7, 100)) is value
-        for replacement in (None, 0, object(), FieldState()):
+        # Only an int length acts on an existing node; other leaves never replace it.
+        for replacement in (None, True, False, object(), FieldState()):
             state._set_compact((7,), replacement)
-            assert state._get_compact((7,)) is child
+            assert state._state[7] is child and state._get_compact((7,)) is True
         state._set_compact((7, 100, 0), value)
-        terminal = state._get_compact((7, 100))
-        for replacement in (None, 0, object(), FieldState()):
+        for replacement in (None, True, False, object(), FieldState()):
             state._set_compact((7, 100), replacement)
-            assert state._get_compact((7, 100)) is terminal
+            assert isinstance(state._state[7]._state[100], FieldState)
         assert state._get_compact((7, 100, 0)) is value
 
     def test_compact_paths_bypass_helpers(self, monkeypatch):
@@ -678,3 +679,107 @@ class TestShallowCompactEquivalence:
         for path in ((100,), (100, 100), (100, 100, 100)):
             state._set_compact(path, 42)
             assert state._get_compact(path) == 42
+
+
+# ---------------------------------------------------------------------------
+# Variable-length arrays and tables (Clarity VectorField semantics)
+# ---------------------------------------------------------------------------
+
+# One prefix per _set_compact/_get_compact code path: depth 1, depth 2, general.
+_ARRAY_PREFIXES = [(), (3,), (3, 1)]
+
+
+class TestVariableLengthNodes:
+    @pytest.mark.parametrize("prefix", _ARRAY_PREFIXES)
+    def test_length_written_before_elements_is_kept(self, prefix):
+        fs = FieldState()
+        fs._set_compact((*prefix, 5), 2)
+        fs._set_compact((*prefix, 5, 0), "a")
+        fs._set_compact((*prefix, 5, 1), "b")
+
+        assert fs._get_compact((*prefix, 5)) == 2
+        assert fs._get_compact((*prefix, 5, 1)) == "b"
+
+    @pytest.mark.parametrize("prefix", _ARRAY_PREFIXES)
+    def test_shrinking_length_drops_elements_past_it(self, prefix):
+        fs = FieldState()
+        fs._set_compact((*prefix, 5), 3)
+        for i, value in enumerate("abc"):
+            fs._set_compact((*prefix, 5, i), value)
+
+        fs._set_compact((*prefix, 5), 1)
+
+        assert fs._get_compact((*prefix, 5)) == 1
+        assert fs._get_compact((*prefix, 5, 0)) == "a"
+        assert fs._get_compact((*prefix, 5, 1)) is None
+        assert fs._get_compact((*prefix, 5, 2)) is None
+
+    @pytest.mark.parametrize("prefix", _ARRAY_PREFIXES)
+    def test_shrink_to_zero_then_regrow_has_no_stale_elements(self, prefix):
+        fs = FieldState()
+        fs._set_compact((*prefix, 5), 2)
+        fs._set_compact((*prefix, 5, 0), "old0")
+        fs._set_compact((*prefix, 5, 1), "old1")
+
+        fs._set_compact((*prefix, 5), 0)
+        fs._set_compact((*prefix, 5), 2)
+        fs._set_compact((*prefix, 5, 0), "new0")
+
+        assert fs._get_compact((*prefix, 5)) == 2
+        assert fs._get_compact((*prefix, 5, 0)) == "new0"
+        assert fs._get_compact((*prefix, 5, 1)) is None
+
+    def test_growing_length_keeps_elements(self):
+        fs = FieldState()
+        fs._set_compact((5,), 1)
+        fs._set_compact((5, 0), "a")
+        fs._set_compact((5,), 3)
+
+        assert fs._get_compact((5,)) == 3
+        assert fs._get_compact((5, 0)) == "a"
+
+    def test_shrinking_a_table_drops_element_subtrees(self):
+        fs = FieldState()
+        fs._set_compact((5,), 2)
+        fs._set_compact((5, 0, 0), "row0")
+        fs._set_compact((5, 1, 0), "row1")
+
+        fs._set_compact((5,), 1)
+
+        assert fs._get_compact((5, 0, 0)) == "row0"
+        assert fs._get_compact((5, 1)) is None
+        assert fs._get_compact((5, 1, 0)) is None
+
+    def test_shrink_keeps_node_identity_and_capacity(self):
+        fs = FieldState()
+        fs._set_compact((5,), 20)
+        fs._set_compact((5, 19), "last")
+        node = fs._state[5]
+        storage = node._state
+        capacity = len(storage)
+
+        fs._set_compact((5,), 0)
+
+        assert fs._state[5] is node and node._state is storage
+        assert len(storage) == capacity and storage == [None] * capacity
+
+    def test_table_presence_flag_never_clears_children(self):
+        # Fixed tables write a bool presence flag. Manta ignores it once the table
+        # has fields; no full replay was observed to clear a populated table.
+        fs = FieldState()
+        fs._set_compact((0,), True)
+        fs._set_compact((0, 1), "field")
+
+        fs._set_compact((0,), False)
+
+        assert fs._get_compact((0,)) is True
+        assert fs._get_compact((0, 1)) == "field"
+
+    def test_public_get_and_set_follow_the_same_rules(self):
+        fs = FieldState()
+        fs.set(_make_fp(5), 2)
+        fs.set(_make_fp(5, 1), "b")
+        fs.set(_make_fp(5), 1)
+
+        assert fs.get(_make_fp(5)) == 1
+        assert fs.get(_make_fp(5, 1)) is None

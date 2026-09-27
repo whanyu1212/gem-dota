@@ -304,13 +304,12 @@ class TestFieldState:
         fs.set(_fp(15), 99)
         assert fs.get(_fp(15)) == 99
 
-    def test_get_path_too_short_returns_none(self):
-        # Set a value at depth 2; reading at depth 1 finds a FieldState child, not a value
+    def test_get_of_a_node_path_returns_presence_not_the_node(self):
+        # Set a value at depth 2; the depth-1 slot now holds a child node, and
+        # reading it reports presence instead of exposing the node.
         fs = FieldState()
         fs.set(_fp(0, 0), 7)
-        # depth-1 path: the slot holds a FieldState, not 7
-        result = fs.get(_fp(0))
-        assert result is None or isinstance(result, FieldState)
+        assert fs.get(_fp(0)) is True
 
     def test_get_beyond_array_length_returns_none(self):
         fs = FieldState()
@@ -544,6 +543,33 @@ class TestEntityGetViaFieldState:
         # Array element at path [0][3]
         e._field_state.set(_fp(0, 3), 55)
         assert e.get("m_Arr.0003") == 55
+
+    def test_get_variable_array_returns_length_and_drops_shrunk_elements(self):
+        from gem.schema.sendtable import FIELD_MODEL_VARIABLE_ARRAY, Field, Serializer
+
+        f = Field.__new__(Field)
+        f.var_name = "m_vecItems"
+        f.model = FIELD_MODEL_VARIABLE_ARRAY
+        f.decoder = None
+        f.base_decoder = lambda r: 0
+        f.child_decoder = lambda r: 0
+        f.serializer = None
+        ser = Serializer(name="VecSer", version=0)
+        ser.fields = [f]
+        cls = FakeClass("T")
+        cls.serializer = ser
+        e = Entity(index=0, serial=0, cls=cls)
+
+        e._field_state._set_compact((0,), 2)
+        e._field_state._set_compact((0, 0), 10)
+        e._field_state._set_compact((0, 1), 11)
+        assert e.get("m_vecItems") == 2
+        assert e.get_uint32("m_vecItems") == 2
+
+        e._field_state._set_compact((0,), 1)
+        assert e.get("m_vecItems") == 1
+        assert e.get("m_vecItems.0000") == 10
+        assert e.get("m_vecItems.0001") is None
 
 
 # ---------------------------------------------------------------------------

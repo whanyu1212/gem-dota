@@ -153,6 +153,11 @@ shows up as values landing in the wrong field, not as a decode error.
 tree; a field that was never sent simply is not present. Code reading entity
 state must tolerate missing fields rather than assume a dense structure.
 
+Variable-length arrays and tables follow Clarity rather than Manta: a new length
+drops the elements past it, and reading the array's own path (for example
+`entity.get("m_vecPlayerTeamData")`) returns its length. Reading a fixed table's
+own path returns `True` while it has fields.
+
 ### Quantized floats need their flags
 
 `QuantizedFloatDecoder` depends on bit count, low/high bounds, and the `_QFF_*`

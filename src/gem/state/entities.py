@@ -167,7 +167,8 @@ class Entity:
             name: Dotted field name, e.g. ``"m_iHealth"``.
 
         Returns:
-            The decoded value, or None.
+            The decoded value, or None. The name of a variable-length array or
+            table (e.g. ``"m_vecPlayerTeamData"``) returns its current length.
         """
         # Fast path: direct dict (set by tests or flat lookups)
         if name in self._state:

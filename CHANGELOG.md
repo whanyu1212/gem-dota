@@ -69,6 +69,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Variable-length entity arrays now shrink.** When a variable-length array or
+  table got a new length after it had elements, gem ignored the length, as Manta
+  does. Elements past the new length stayed readable, and the length itself
+  could not be read: `entity.get("m_vecPlayerTeamData")` returned an internal
+  `FieldState` object. gem now follows Clarity. A new length drops the elements
+  past it, and reading the array's own name returns its length. Reading a fixed
+  table's own name returns `True`.
+
+  A 99-minute replay had 1,159 such shrinks, for example
+  `m_vecKnownClearCamps` dropping to 0 while 28 old camps stayed, and
+  `CDOTATeam.m_aPlayers` going from 14 to 13. Nothing in `ParsedMatch` reads
+  these arrays, so parse output is unchanged. Raw entity access through
+  `on_entity` sees the corrected values.
 - **Quantized-float flags now match Manta and Clarity.** Whether a quantized
   float keeps its round-up/round-down/encode-zero flags, and so how many bits
   each value uses, depends on exact float comparisons that gem did in 64-bit
