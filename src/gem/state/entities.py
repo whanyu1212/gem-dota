@@ -764,7 +764,7 @@ class EntityManager:
                     # Create entity
                     class_id = r.read_bits(self.class_id_size)
                     serial = r.read_bits(17)
-                    r.read_varuint32()  # unknown / padding
+                    r.read_varuint32()  # spawn-group handle (Clarity); unused here
 
                     ci = self.classes_by_id.get(class_id)
                     if ci is None:

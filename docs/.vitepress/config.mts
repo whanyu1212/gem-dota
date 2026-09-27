@@ -40,6 +40,7 @@ export default defineConfig({
           { text: "Entity Decoding 2: Field Paths", link: "/deep-dives/entity-field-paths" },
           { text: "Entity Decoding 3: Field Decoders", link: "/deep-dives/entity-field-decoders" },
           { text: "Entity Decoding 4: Field State", link: "/deep-dives/entity-field-state" },
+          { text: "Entity Decoding 5: Entity Lifecycle", link: "/deep-dives/entity-lifecycle" },
           { text: "Parser Performance", link: "/deep-dives/parser-performance" },
           { text: "Replay Edge Cases", link: "/deep-dives/replay-edge-cases" },
         ],
