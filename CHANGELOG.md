@@ -50,6 +50,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Quantized-float flags now match Manta and Clarity.** Whether a quantized
+  float keeps its round-up/round-down/encode-zero flags, and so how many bits
+  each value uses, depends on exact float comparisons that gem did in 64-bit
+  arithmetic while the reference parsers use 32-bit. For `m_flSpriteFramerate`
+  on `CSprite`/`CSpriteOriented`, gem dropped the round-up flag and would have
+  read one bit too few per value, misreading the rest of the packet. No replay
+  checked contains a sprite entity, so no output changes; decoded values keep
+  their 64-bit precision.
 - **Hero mana was 1/8 of its real value.** The send-table schema was parsed
   before the game build was known, so it was treated as build 0 and the
   pre-955 patch shrank `m_flMana` / `m_flMaxMana`'s range from the replay's own
