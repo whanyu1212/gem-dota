@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- New deep dive, "How Entities Are Decoded, Part 2: Field Paths": how an entity
+  update says which fields changed, the 40 field-path operations, the Huffman
+  code and gem's 17-bit lookup table, and a real update traced step by step
+  from the committed TI14 fixture. Tests now pin all 40 Huffman codes to the
+  ones Manta's `huffman.go` produces.
 - New deep dive, "How Entities Are Decoded, Part 1: The Schema": what the
   send-table schema is, how the flattened symbols, fields, and serializers
   become gem's `Serializer`/`Field` tree, the five field models with real

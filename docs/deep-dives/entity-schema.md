@@ -251,6 +251,8 @@ the per-update decoding loop that dominates parse time, and any future native
 
 ## Where to go next
 
+- [Part 2: Field Paths](entity-field-paths.md): how an update says which fields
+  changed.
 - [How Proto Parsing Works](../cookbook/proto-parsing-pipeline.md), Stage 6: where
   entity updates sit in a replay.
 - [Send Tables reference](../reference/sendtable.md): `parse_send_tables`,

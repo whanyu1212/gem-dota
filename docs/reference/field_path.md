@@ -2,11 +2,9 @@
 
 Decodes Huffman-coded field path operations used to address properties inside entity deltas.
 
-See also: [How Proto Parsing Works](../cookbook/proto-parsing-pipeline.md)
-
-
----
-
+See also: [How Entities Are Decoded, Part 2: Field Paths](../deep-dives/entity-field-paths.md)
+for an explanation with a real example, and
+[How Proto Parsing Works](../cookbook/proto-parsing-pipeline.md).
 
 ---
 
