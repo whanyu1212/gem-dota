@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- New deep dive, "How Entities Are Decoded, Part 4: Field State". It covers:
+  - how `read_fields()` decodes one update, including the class baseline applied
+    on creation;
+  - how a field path finds its decoder through the five field models, and the
+    per-class decoder cache (99.76% hits on a 99-minute replay);
+  - `FieldState` as a sparse tree of lists, and its growth rule;
+  - how tables and arrays live in the tree, and how arrays shrink;
+  - reading values back by name, and the "which fields changed" signal;
+  - where the decode loop's time goes.
+
+  A new Field State reference page covers `read_fields` and `FieldState`.
 - Cleaned up the entity-decode layer. Parse output is byte-identical and speed is
   unchanged.
   - Inner-message unpacking moved from `gem.parser` into the new

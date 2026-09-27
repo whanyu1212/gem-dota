@@ -194,6 +194,8 @@ print(cell_x, offset_x, cell_x * 128 + offset_x)   # 130 69.1875 16709.1875
 
 ## Where to go next
 
+- [Part 4: Field State](entity-field-state.md): where decoded values are stored,
+  and how you read them back.
 - [Part 2: Field Paths](entity-field-paths.md): how an update names its changed fields.
 - [Field Decoders reference](../reference/field_decoder.md): the decoder functions
   and `QuantizedFloatDecoder`.
