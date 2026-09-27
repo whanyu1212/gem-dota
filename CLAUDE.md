@@ -498,9 +498,12 @@ Shard flags from the embedded Game Coordinator postgame summary. `gem-dota` is
 published to PyPI.
 
 In flight / deferred:
-- **Rust extension** (PyO3 + maturin). Implementation deferred; the final
-  v0.8.0 profile selects an entity-field decode/apply boundary. See
-  `docs/deep-dives/parser-profile-2026-09.md`. No end-to-end speedup is promised.
+- **Rust extension** (PyO3 + maturin). Implementation deferred. The plan is
+  `docs/deep-dives/rust-kernel-plan.md`: an optional kernel with a pure-Python
+  fallback, stage 1 `read_fields()` (the boundary chosen by the v0.8.0 profile,
+  `docs/deep-dives/parser-profile-2026-09.md`), stage 2 the per-entity packet
+  loop. It lists the exact-behaviour rules a kernel must keep. No end-to-end
+  speedup is promised.
 - **Buyback cost breakdown** (reliable/unreliable gold) — see the deferred
   section above and issue #119.
 

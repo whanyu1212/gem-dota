@@ -9,7 +9,9 @@ If you are new to the binary format, start with
 [How Proto Parsing Works](../cookbook/proto-parsing-pipeline.md).
 
 For benchmark methodology, completed optimization work, and remaining hot paths,
-see [Parser Performance](parser-performance.md).
+see [Parser Performance](parser-performance.md). For the plan to move the entity
+decoding loop into an optional Rust extension, see the
+[Rust Kernel Plan](rust-kernel-plan.md).
 
 To follow an entity update from raw bits to Python values, read the
 "How Entities Are Decoded" series, starting with
