@@ -4,7 +4,9 @@ Entities are the game objects inside a replay: heroes, towers, creeps, the game 
 object, runes, wards. Their state changes every tick. This guide shows how to subscribe
 to entity events and read field values.
 
-For a conceptual explanation of how entity parsing fits into the overall pipeline, see
+For how entities are created, updated, and removed, and when your handler is called,
+see [How Entities Are Decoded, Part 5: Entity Lifecycle](../deep-dives/entity-lifecycle.md).
+For where entity parsing fits into the overall pipeline, see
 [How Proto Parsing Works](../cookbook/proto-parsing-pipeline.md).
 
 ---
@@ -44,6 +46,9 @@ if op & EntityOp.ENTERED:
     ...  # entity became active (accompanies CREATED or a re-activation)
 ```
 
+A deleted entity arrives with `LEFT | DELETED`. Entities in the replays gem was
+checked against never leave without being deleted.
+
 `EntityOp.has(other)` is equivalent to `bool(op & other)`.
 
 ---
@@ -51,14 +56,14 @@ if op & EntityOp.ENTERED:
 ## Reading field values
 
 Every entity exposes typed getter methods. Field names come from the entity class schema
-(e.g. `m_iHealth`, `m_flMana`, `m_iGold`).
+(e.g. `m_iHealth`, `m_flMana`, `m_iCurrentLevel`).
 
 ```python
 hp    = entity.get_int32("m_iHealth")
 mana  = entity.get_float32("m_flMana")
-gold  = entity.get_uint32("m_iGold")
-alive = entity.get_bool("m_bIsAlive")
-name  = entity.get_string("m_iszUnitName")
+level = entity.get_int32("m_iCurrentLevel")
+life  = entity.get_int32("m_lifeState")   # 0 = alive
+team  = entity.get_int32("m_iTeamNum")    # 2 = Radiant, 3 = Dire
 ```
 
 All typed getters return the value, or `None` if the field does not exist or the value
@@ -79,6 +84,9 @@ if entity.exists("m_iHealth"):
     ...
 ```
 
+To see everything an entity holds, `entity.to_map()` returns every stored value by
+the same names.
+
 ---
 
 ## Filtering by class name
@@ -98,25 +106,28 @@ Common class name patterns:
 
 | Pattern | Matches |
 |---|---|
-| `"Hero" in name` | All hero entities |
-| `name.startswith("CDOTA_Unit_Hero_")` | Exact hero entity check |
-| `name == "CDOTAGamerulesProxy"` | Game rules (time, score, state) |
-| `name.startswith("CDOTAPlayerController")` | Per-player state (gold, XP, LH) |
-| `"tower" in name.lower()` | Tower entities |
-| `name == "CDOTA_Item_Observer_Ward"` | Observer ward entities |
-| `name == "CDOTA_Item_Sentry_Ward"` | Sentry ward entities |
+| `name.startswith("CDOTA_Unit_Hero_")` | Hero units |
+| `name == "CDOTAPlayerController"` | One per connected player (casters too): owns the player's hero |
+| `name == "CDOTA_PlayerResource"` | Per-player kills, deaths, assists, level |
+| `name in ("CDOTA_DataRadiant", "CDOTA_DataDire")` | Per-player gold, XP, net worth, last hits |
+| `name == "CDOTAGamerulesProxy"` | Game rules: game state, draft, start time |
+| `name == "CDOTA_BaseNPC_Tower"` | Towers |
+| `name == "CDOTA_NPC_Observer_Ward"` | Placed observer wards |
+| `name == "CDOTA_NPC_Observer_Ward_TrueSight"` | Placed sentry wards |
 
 ---
 
 ## Hero position example
 
-Hero map position combines two fields: the **cell** (coarse grid in 512-unit cells)
-and the **vector** (fine offset in 0–512 unit range within that cell):
+A unit's map position is split into a **cell**, one of a grid of 128-unit squares,
+and an **offset** inside that cell, from 0 to 256 (see
+[Part 3: Field Decoders](../deep-dives/entity-field-decoders.md#positions-a-cell-plus-an-offset)).
+gem's extractors combine them as `cell × 128 + offset`:
 
 ```python
-def world_coord(cell: int, vec: float) -> float:
-    """Convert cell + vec to world coordinate."""
-    return cell * 128.0 + vec - 16384.0
+def world_coord(cell: int, offset: float) -> float:
+    """Combine a cell and its offset into one coordinate, as gem does."""
+    return cell * 128.0 + offset
 
 def on_entity(entity, op):
     if not entity.get_class_name().startswith("CDOTA_Unit_Hero_"):
@@ -144,7 +155,7 @@ the entity manager afterwards:
 from gem.parser import ReplayParser
 
 parser = ReplayParser("my_replay.dem")
-parser.stop_after_tick(6000)   # ~3 minutes into the game
+parser.stop_after_tick(6000)   # 200 s into the recording, not the game clock
 parser.parse()
 
 for entity in parser.entity_manager.all_active():
@@ -157,38 +168,58 @@ for entity in parser.entity_manager.all_active():
 
 ## Useful entity classes and fields
 
+These names are checked against a full replay from game build 6808.
+
 ### Hero entity (`CDOTA_Unit_Hero_*`)
 
-| Field | Type | Meaning |
-|---|---|---|
-| `m_iHealth` | int32 | Current HP |
-| `m_iMaxHealth` | int32 | Maximum HP |
-| `m_flMana` | float32 | Current mana |
-| `m_flMaxMana` | float32 | Maximum mana |
-| `m_iCurrentLevel` | int32 | Hero level |
-| `CBodyComponent.m_cellX` | uint32 | Map cell X (coarse) |
-| `CBodyComponent.m_cellY` | uint32 | Map cell Y (coarse) |
-| `CBodyComponent.m_vecX` | float32 | Map position X (fine) |
-| `CBodyComponent.m_vecY` | float32 | Map position Y (fine) |
-| `m_hOwnerEntity` | uint32 | Handle to the owning PlayerController |
+| Field | Meaning |
+|---|---|
+| `m_iHealth`, `m_iMaxHealth` | Current and maximum HP |
+| `m_flMana`, `m_flMaxMana` | Current and maximum mana |
+| `m_iCurrentLevel` | Hero level |
+| `m_iCurrentXP` | XP towards the next level (resets at each level-up) |
+| `m_lifeState` | 0 while alive |
+| `m_iTeamNum` | 2 = Radiant, 3 = Dire |
+| `CBodyComponent.m_cellX`, `m_cellY` | Map cell (coarse) |
+| `CBodyComponent.m_vecX`, `m_vecY` | Offset inside the cell (fine) |
+| `m_hOwnerEntity` | Handle to the owning `CDOTAPlayerController` |
 
-### PlayerController entity (`CDOTAPlayerController`)
+### Player controller (`CDOTAPlayerController`)
 
-| Field | Type | Meaning |
-|---|---|---|
-| `m_iGold` | uint32 | Current spendable gold |
-| `m_iLastHitCount` | uint32 | Last hit count |
-| `m_iDenyCount` | uint32 | Deny count |
-| `m_iCurrentLevel` | int32 | Player level |
+| Field | Meaning |
+|---|---|
+| `m_nPlayerID` | Player ID, stored doubled (10 is player 5) |
+| `m_hAssignedHero` | Handle to the player's hero; the invalid handle 16,777,215 before a hero is assigned |
+
+### Team data (`CDOTA_DataRadiant`, `CDOTA_DataDire`)
+
+One row per player, `m_vecDataTeam.0000` to `.0004`:
+
+| Field | Meaning |
+|---|---|
+| `m_vecDataTeam.0000.m_iNetWorth` | Net worth |
+| `m_vecDataTeam.0000.m_iTotalEarnedGold` | Gold earned so far (only goes up) |
+| `m_vecDataTeam.0000.m_iReliableGold`, `…m_iUnreliableGold` | Spendable gold, in two parts |
+| `m_vecDataTeam.0000.m_iLastHitCount`, `…m_iDenyCount` | Last hits and denies |
+
+### Player resource (`CDOTA_PlayerResource`)
+
+| Field | Meaning |
+|---|---|
+| `m_vecPlayerTeamData.0000.m_iKills`, `…m_iDeaths`, `…m_iAssists` | K/D/A |
+| `m_vecPlayerTeamData.0000.m_iLevel` | Hero level |
+| `m_vecPlayerTeamData.0000.m_hSelectedHero` | Handle to the selected hero |
 
 ### Game rules (`CDOTAGamerulesProxy`)
 
-| Field | Type | Meaning |
-|---|---|---|
-| `CDOTAGamerules.m_fGameTime` | float32 | Current game time in seconds |
-| `CDOTAGamerules.m_nGameState` | uint32 | Game state enum |
-| `CDOTAGamerules.m_iRadiantScore` | uint32 | Radiant kills |
-| `CDOTAGamerules.m_iDireScore` | uint32 | Dire kills |
+| Field | Meaning |
+|---|---|
+| `m_pGameRules.m_nGameState` | Game state enum |
+| `m_pGameRules.m_flGameStartTime` | Engine time the game clock started (0 before) |
+| `m_pGameRules.m_nTotalPausedTicks` | Ticks spent paused so far |
+
+For the in-game clock, use `match.game_clock` (or `parser.game_time_s` during a parse)
+rather than computing it from ticks: ticks keep running during pauses.
 
 ---
 

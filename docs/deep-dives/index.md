@@ -14,8 +14,9 @@ see [Parser Performance](parser-performance.md).
 To follow an entity update from raw bits to Python values, read the
 "How Entities Are Decoded" series, starting with
 [Part 1: The Schema](entity-schema.md), then [Part 2: Field Paths](entity-field-paths.md),
-[Part 3: Field Decoders](entity-field-decoders.md), and
-[Part 4: Field State](entity-field-state.md).
+[Part 3: Field Decoders](entity-field-decoders.md),
+[Part 4: Field State](entity-field-state.md), and
+[Part 5: Entity Lifecycle](entity-lifecycle.md).
 
 ## Pipeline
 

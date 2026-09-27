@@ -2,11 +2,9 @@
 
 Manages packet entity lifecycle (create/update/delete) and typed access to live networked field state.
 
-See also: [Entity State](../guides/02_entity_state.md), [How Proto Parsing Works](../cookbook/proto-parsing-pipeline.md)
-
-
----
-
+See also: [How Entities Are Decoded, Part 5: Entity Lifecycle](../deep-dives/entity-lifecycle.md),
+[Entity State](../guides/02_entity_state.md), and
+[How Proto Parsing Works](../cookbook/proto-parsing-pipeline.md).
 
 ---
 

@@ -194,6 +194,8 @@ print(resource.get("m_vecPlayerTeamData.0003.m_iKills"))     # 0
 
 ## Where to go next
 
+- [Part 5: Entity Lifecycle](entity-lifecycle.md): how entities are created,
+  updated, and removed, and how handlers hear about it.
 - [Part 3: Field Decoders](entity-field-decoders.md): how each value is read.
 - [Part 1: The Schema](entity-schema.md): the field models and names used here.
 - [Field State reference](../reference/field_state.md): `read_fields` and

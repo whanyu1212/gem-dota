@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- New deep dive, "How Entities Are Decoded, Part 5: Entity Lifecycle". It covers:
+  - the entity packet: slot gaps and the 2-bit create/update/leave/delete command;
+  - how an entity is created, from its class ID, serial, and class baseline;
+  - `EntityOp` flags, and why full packets after the first are skipped;
+  - slots, serials, and handles, including the invalid handle;
+  - when handlers run within a packet, compared with Manta and Clarity;
+  - the edge cases Clarity handles that never occurred in three full replays;
+  - where the entity loop's time goes.
+- Corrected the "Reading Entity State" guide. Most of its example field names
+  don't exist in current replays (`m_iGold`, `m_iLastHitCount`, `m_bIsAlive`,
+  `CDOTAGamerules.m_fGameTime`, the score fields), and its position formula
+  disagreed with gem's (`cell × 128 + offset`). The tables now list names checked
+  against a full replay, with team data, player resource, and game-rules paths.
 - `Entity` no longer has the private `_state` dict. Only tests wrote to it, yet
   every field read checked it first. Entity values now live only in the
   `FieldState` tree. Tests build synthetic entities with `tests/_entities.py`
