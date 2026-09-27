@@ -18,7 +18,8 @@ To follow an entity update from raw bits to Python values, read the
 [Part 1: The Schema](entity-schema.md), then [Part 2: Field Paths](entity-field-paths.md),
 [Part 3: Field Decoders](entity-field-decoders.md),
 [Part 4: Field State](entity-field-state.md), and
-[Part 5: Entity Lifecycle](entity-lifecycle.md).
+[Part 5: Entity Lifecycle](entity-lifecycle.md). [String Tables](string-tables.md)
+covers the name tables and entity baselines those parts rely on.
 
 ## Pipeline
 

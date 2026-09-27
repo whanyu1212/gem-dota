@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- New deep dive, "String Tables". It covers:
+  - what the tables hold, and the three gem reads;
+  - the create, update, and clear messages;
+  - the bit-level entry format, and name compression, with a real example;
+  - how `ActiveModifiers` entry names show which decoding rules are correct.
+
+  The String Tables reference page lost its stray separators.
 - New page, "Rust Kernel Plan". It collects the performance findings from the
   "How Entities Are Decoded" series:
   - where parse time goes, layer by layer;
