@@ -113,7 +113,7 @@ from gem.proto.networkbasetypes_pb2 import CNETMsg_Tick, net_Tick
 from gem.results.models import ChatEntry, NeutralItemFoundEvent
 from gem.schema.sendtable import parse_send_tables
 from gem.schema.sendtable.models import FieldAccessPlan
-from gem.state.entities import Entity, EntityManager, EntityOp
+from gem.state.entities import Entity, EntityManager, EntityOp, game_build_from_game_dir
 from gem.state.game_clock import GameClock, GamePause
 from gem.state.game_events import GameEvent, GameEventHandler, GameEventManager
 from gem.state.string_table import StringTables, handle_create, handle_update
@@ -888,6 +888,11 @@ class ReplayParser:
             self._pending_server_info = None
 
     def _on_server_info(self, msg: CSVCMsg_ServerInfo) -> None:
+        # Record the build now, as Manta does: DEM_SendTables arrives after
+        # ServerInfo, and its build-specific field patches depend on it.
+        build = game_build_from_game_dir(msg.game_dir)
+        if build:
+            self.game_build = build
         if self.entity_manager is None:
             # Entity manager not built yet — cache and apply after send tables
             self._pending_server_info = msg

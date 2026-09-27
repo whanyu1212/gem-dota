@@ -21,6 +21,7 @@ Reference: manta/parser.go, manta/demo_packet.go
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -672,18 +673,50 @@ class TestDispatchOuterFileInfo:
 
 class TestOnServerInfo:
     def test_server_info_before_entity_manager_is_cached(self):
+        from gem.proto.netmessages_pb2 import CSVCMsg_ServerInfo
+
         p = ReplayParser(b"")
         assert p.entity_manager is None
-        msg = MagicMock()
+        msg = CSVCMsg_ServerInfo(game_dir="/opt/srcds/dota/dota_v6808/dota")
         p._on_server_info(msg)
         assert p._pending_server_info is msg
+        # The build is known immediately, before DEM_SendTables selects its
+        # build-specific field patches (HY-53).
+        assert p.game_build == 6808
+
+    def test_send_tables_use_the_build_from_earlier_server_info(self):
+        """Regression (HY-53): with build 0 the pre-955 patch shrank mana's
+        range from 0..65536 to 0..8192, so every mana value was 1/8 too small."""
+        replay = Path(__file__).parent / "fixtures" / "ti14_finals_g3_xg_vs_falcons_truncated.dem"
+        seen: list[int] = []
+        real_parse = parser_module.parse_send_tables
+
+        def spy(data, game_build=0):
+            seen.append(game_build)
+            return real_parse(data, game_build)
+
+        with patch("gem.parser.parse_send_tables", side_effect=spy):
+            p = ReplayParser(str(replay))
+            p._stop_at_tick = 0
+            p.parse()
+
+        assert seen and seen[0] > 990, seen
+        hero = p.entity_manager.serializers["CDOTA_Unit_Hero_Axe"]
+        mana = {
+            f.var_name: f.high_value
+            for f in hero.fields
+            if f.var_name in ("m_flMana", "m_flMaxMana")
+        }
+        assert mana == {"m_flMana": 65536.0, "m_flMaxMana": 65536.0}
 
     def test_server_info_after_entity_manager_delegates_directly(self):
         p = ReplayParser(b"")
         em = MagicMock()
         em.game_build = 1234
         p.entity_manager = em
-        msg = MagicMock()
+        from gem.proto.netmessages_pb2 import CSVCMsg_ServerInfo
+
+        msg = CSVCMsg_ServerInfo()
         p._on_server_info(msg)
         em.on_server_info.assert_called_once_with(msg)
         assert p.game_build == 1234
@@ -691,8 +724,10 @@ class TestOnServerInfo:
     def test_pending_server_info_applied_when_send_tables_processed(self):
         """If server_info arrived before send_tables, applying send_tables
         must consume _pending_server_info and pass it to the entity manager."""
+        from gem.proto.netmessages_pb2 import CSVCMsg_ServerInfo
+
         p = ReplayParser(b"")
-        msg = MagicMock()
+        msg = CSVCMsg_ServerInfo()
         p._pending_server_info = msg
 
         em = MagicMock()

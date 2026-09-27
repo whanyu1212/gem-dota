@@ -40,6 +40,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Hero mana was 1/8 of its real value.** The send-table schema was parsed
+  before the game build was known, so it was treated as build 0 and the
+  pre-955 patch shrank `m_flMana` / `m_flMaxMana`'s range from the replay's own
+  0–65,536 to 0–8,192. `ReplayParser` now records the build as soon as
+  `svc_ServerInfo` arrives, as Manta does. This fixes `Entity.get_float32("m_flMana")`,
+  `PlayerStateSnapshot.mana` / `max_mana`, and `PlayerTimeSeries.mana_t` (e.g.
+  Queen of Pain's level-7 max mana: 91.5 → 732.3). `ParsedMatch` output is
+  unchanged: it doesn't include mana.
 - **32-bit varints wrap like Valve's reader.** `BitReader.read_varuint32`
   could return values up to 35 bits, and `read_varint32` values outside the
   int32 range, when a 5-byte varint's last byte was above `0x0F`. Both now keep
