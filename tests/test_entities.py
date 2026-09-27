@@ -1407,3 +1407,23 @@ class TestEntityManagerPacketEntities:
 
         with pytest.raises(RuntimeError, match="baseline"):
             em.on_packet_entities(Msg())
+
+
+# ---------------------------------------------------------------------------
+# game_build_from_game_dir
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("game_dir", "expected"),
+    [
+        ("/opt/srcds/dota/dota_v6808/dota", 6808),
+        ("dota/dota_v990/dota", 990),
+        ("/opt/srcds/dota", 0),
+        ("", 0),
+    ],
+)
+def test_game_build_from_game_dir(game_dir, expected):
+    from gem.state.entities import game_build_from_game_dir
+
+    assert game_build_from_game_dir(game_dir) == expected

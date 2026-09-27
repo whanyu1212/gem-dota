@@ -37,6 +37,25 @@ from gem.state.string_table import StringTables
 _INDEX_BITS: int = 14
 _HANDLE_MASK: int = (1 << _INDEX_BITS) - 1
 _GAME_BUILD_RE = re.compile(r"/dota_v(\d+)/")
+
+
+def game_build_from_game_dir(game_dir: str) -> int:
+    """Return the game build number from a ``CSVCMsg_ServerInfo.game_dir`` path.
+
+    The build is the number in the ``/dota_v<build>/`` path component, as in
+    Manta's ``onCSVCMsg_ServerInfo`` (dotabuff/manta ``class.go``).
+
+    Args:
+        game_dir: The server's game directory, e.g.
+            ``"/opt/srcds/dota/dota_v6808/dota"``.
+
+    Returns:
+        The build number, or 0 if ``game_dir`` doesn't contain one.
+    """
+    m = _GAME_BUILD_RE.search(game_dir)
+    return int(m.group(1)) if m else 0
+
+
 _MISSING = object()
 _ENTITY_NAME_FIELDS = FieldAccessPlan(("m_pEntity.m_nameStringableIndex",))
 
@@ -652,10 +671,9 @@ class EntityManager:
         # is assigned in on_packet_entities.
         self.entities = [None] * (1 << 14)
 
-        game_dir: str = msg.game_dir  # type: ignore[attr-defined]
-        m = _GAME_BUILD_RE.search(game_dir)
-        if m:
-            self.game_build = int(m.group(1))
+        build = game_build_from_game_dir(msg.game_dir)  # type: ignore[attr-defined]
+        if build:
+            self.game_build = build
 
     def on_class_info(self, msg: object) -> None:
         """Build class maps from CDemoClassInfo.
