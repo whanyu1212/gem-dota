@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- New page, "Rust Kernel Plan". It collects the performance findings from the
+  "How Entities Are Decoded" series:
+  - where parse time goes, layer by layer;
+  - what not to port;
+  - a two-stage optional Rust kernel (`read_fields()`, then the per-entity packet
+    loop), with illustrative upper bounds;
+  - the exact-behaviour rules a kernel must keep;
+  - packaging, adoption checks, and the Python-only wins available without Rust.
+
+  It is a plan; nothing is implemented, and no speedup is promised.
 - New deep dive, "How Entities Are Decoded, Part 5: Entity Lifecycle". It covers:
   - the entity packet: slot gaps and the 2-bit create/update/leave/delete command;
   - how an entity is created, from its class ID, serial, and class baseline;

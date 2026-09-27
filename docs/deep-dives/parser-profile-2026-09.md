@@ -11,7 +11,8 @@ retained, and no timing runs were repeated.
 
 This completes the final profiling and native-boundary decision for the Python
 optimization roadmap. A Rust implementation remains future work, with adoption
-dependent on measured public-API benefit and compatibility checks.
+dependent on measured public-API benefit and compatibility checks. The
+[Rust Kernel Plan](rust-kernel-plan.md) builds on this study.
 
 ## Method and scope
 
