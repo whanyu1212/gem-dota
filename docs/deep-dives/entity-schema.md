@@ -90,9 +90,11 @@ raw metadata (`var_name`, `var_type`, `encoder`, `bit_count`, `low_value`,
 | `field_type` | The type string parsed into parts (see below) |
 | `serializer` | For a field that is itself an object, the `Serializer` it contains |
 | `model` | Which of five shapes the field has (see below) |
-| `decoder` | The function that reads this field's value from the bitstream |
+| `decoder` | For **simple** and **fixed-array** fields: the function that reads the value (or each element) from the bitstream |
+| `base_decoder` | For the other three models: reads the field's own entry. For a **fixed-table** that is a presence flag (a boolean); for a **variable-array** or **variable-table** it is the length (an unsigned integer) |
+| `child_decoder` | For a **variable-array** only: reads each element, chosen from the array's element type |
 
-The decoder is chosen **once, while the schema is built**, not for every update.
+Decoders are chosen **once, while the schema is built**, not for every update. (Fields inside a table are read with their own class's `Field` decoders.)
 Deciding "20-bit quantized float, 0 to 65,536" happens once per field per replay,
 and the result is reused for every one of the millions of updates that follow.
 
