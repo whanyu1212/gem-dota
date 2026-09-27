@@ -749,3 +749,31 @@ def test_sprite_framerate_keeps_roundup_like_manta():
     r = BitReader(bytes([0b0000_0000, 0x00]))
     assert q.decode(r) == q.low
     assert r.rem_bits() == 7
+
+
+# Synthetic setups that pin two details of Manta's float32 arithmetic
+# (quantizedfloat.go, pinned in CLAUDE.md), as (bit_count, flags, low, high) ->
+# (bit_count, surviving flags):
+# - assignMultipliers compares the float32 product with both float32(High) and
+#   the exact integer float64(High). For 25+ bits (1 << n) - 1 is not a float32
+#   value, and dropping the exact comparison would clear ROUNDUP here.
+# - Every operation rounds to float32 separately. Go may fuse
+#   Low + Range*(i*DecMul) into one FMA instruction on arm64, which changes the
+#   ENCODE_ZERO cases below; expected values are Manta's code with that fusion
+#   prevented, matching Java (Clarity) and amd64 Go.
+_MANTA_UNFUSED_SYNTHETIC_SETUPS = [
+    ((2, 5, -1.0, 1.0), (2, 0)),
+    ((7, 6, -1.0, 1.0), (7, 0)),
+    ((25, 2, None, 1.0), (25, 2)),
+    ((25, 2, 0.0, 1.0), (25, 2)),
+    ((25, 2, None, 60.0), (25, 2)),
+    ((31, 1, -100.0, 1000.0), (31, 0)),
+]
+
+
+@pytest.mark.parametrize(("setup", "expected"), _MANTA_UNFUSED_SYNTHETIC_SETUPS)
+def test_quantized_flag_edge_cases_match_manta(setup, expected):
+    from gem.schema.field_decoder import QuantizedFloatDecoder
+
+    q = QuantizedFloatDecoder(*setup)
+    assert (q.bitcount, q.flags) == expected
