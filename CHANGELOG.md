@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- New deep dive, "How Entities Are Decoded, Part 3: Field Decoders": how each
+  field's decoder is chosen, every decoder family with real fields (including how
+  positions split into a cell and an offset), quantized-float flags and why their
+  setup follows float32 while values stay float64, and the part-2 update's
+  decoded values.
 - New deep dive, "How Entities Are Decoded, Part 2: Field Paths": how an entity
   update says which fields changed, the 40 field-path operations, the Huffman
   code and gem's 17-bit lookup table, and a real update traced step by step
