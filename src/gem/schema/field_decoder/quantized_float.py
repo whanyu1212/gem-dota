@@ -1,4 +1,8 @@
-"""Quantized float decoder for Source 2 networked fields."""
+"""Quantized float decoder for Source 2 networked fields.
+
+Reference: dotabuff/manta quantizedfloat.go and skadistats/clarity
+FloatQuantizedDecoder.java (pinned revisions in CLAUDE.md).
+"""
 
 from __future__ import annotations
 
@@ -14,6 +18,81 @@ _QFF_ROUNDDOWN = 1 << 0
 _QFF_ROUNDUP = 1 << 1
 _QFF_ENCODE_ZERO = 1 << 2
 _QFF_ENCODE_INTEGERS = 1 << 3
+
+_PRECISION_MULTIPLIERS = (0.9999, 0.99, 0.9, 0.8, 0.7)
+
+
+def _f32(x: float) -> float:
+    """Round ``x`` to the nearest IEEE 754 single-precision value."""
+    return struct.unpack("<f", struct.pack("<f", x))[0]
+
+
+def _float32_flags(bit_count: int, flags: int, low: float, high: float) -> int:
+    """Return the flags Manta and Clarity keep, computed in float32 as they do.
+
+    Whether ROUNDDOWN, ROUNDUP, and ENCODE_ZERO survive depends on exact
+    floating-point equality tests (``quantize(low) == low`` and so on), which
+    can come out differently in float32 and float64. Each surviving flag costs a
+    bit per value, so this must match the encoder exactly. Every operation below
+    rounds to float32 in the same order as ``newQuantizedFloatDecoder``,
+    ``assignMultipliers``, and ``quantize`` in dotabuff/manta quantizedfloat.go.
+
+    Args:
+        bit_count: Encoded width in bits (1..31).
+        flags: ``QFF_*`` bitmask, already validated.
+        low: Lower bound before round-down/round-up adjustment.
+        high: Upper bound before adjustment.
+
+    Returns:
+        The surviving flags, as an unsigned 32-bit mask.
+    """
+    flags &= 0xFFFFFFFF
+    low, high = _f32(low), _f32(high)
+    steps = 1 << bit_count
+
+    if flags & _QFF_ROUNDDOWN:
+        high = _f32(high - _f32(_f32(high - low) / _f32(steps)))
+    elif flags & _QFF_ROUNDUP:
+        low = _f32(low + _f32(_f32(high - low) / _f32(steps)))
+
+    if flags & _QFF_ENCODE_INTEGERS:
+        delta = max(_f32(high - low), 1.0)
+        range2 = 1 << int(math.ceil(math.log2(delta)))
+        bc = bit_count
+        while (1 << bc) <= range2:
+            bc += 1
+        if bc > bit_count:
+            bit_count = bc
+            steps = 1 << bit_count
+        offset = _f32(_f32(range2) / _f32(steps))
+        high = _f32(_f32(low + _f32(range2)) - offset)
+
+    range_ = _f32(high - low)
+    high_int = (1 << bit_count) - 1
+    high_int_f = _f32(high_int)
+    mul = high_int_f if abs(range_) <= 0.0 else _f32(high_int_f / range_)
+    if _f32(mul * range_) > high_int_f or _f32(mul * range_) > high_int:
+        for m in _PRECISION_MULTIPLIERS:
+            mul = _f32(_f32(high_int_f / range_) * _f32(m))
+            if not (_f32(mul * range_) > high_int_f or _f32(mul * range_) > high_int):
+                break
+    dec_mul = _f32(1.0 / _f32(steps - 1))
+
+    def quantize(val: float) -> float:
+        if val < low:
+            return low
+        if val > high:
+            return high
+        i = int(_f32(_f32(val - low) * mul))
+        return _f32(low + _f32(_f32(high - low) * _f32(_f32(i) * dec_mul)))
+
+    if flags & _QFF_ROUNDDOWN and quantize(low) == low:
+        flags &= ~_QFF_ROUNDDOWN
+    if flags & _QFF_ROUNDUP and quantize(high) == high:
+        flags &= ~_QFF_ROUNDUP
+    if flags & _QFF_ENCODE_ZERO and quantize(0.0) == 0.0:
+        flags &= ~_QFF_ENCODE_ZERO
+    return flags & 0xFFFFFFFF
 
 
 class QuantizedFloatDecoder:
@@ -63,6 +142,7 @@ class QuantizedFloatDecoder:
         self.flags = flags if flags is not None else 0
 
         self._validate_flags()
+        validated_flags = self.flags
 
         steps = 1 << self.bitcount
         range_ = self.high - self.low
@@ -87,12 +167,14 @@ class QuantizedFloatDecoder:
 
         self._assign_multipliers(steps)
 
-        if self.flags & _QFF_ROUNDDOWN and self._quantize(self.low) == self.low:
-            self.flags &= ~_QFF_ROUNDDOWN
-        if self.flags & _QFF_ROUNDUP and self._quantize(self.high) == self.high:
-            self.flags &= ~_QFF_ROUNDUP
-        if self.flags & _QFF_ENCODE_ZERO and self._quantize(0.0) == 0.0:
-            self.flags &= ~_QFF_ENCODE_ZERO
+        # Which flags survive decides how many bits each value uses, so it must
+        # match the reference parsers' float32 arithmetic exactly. The float64
+        # bounds and multipliers above are kept for decoding values, which are
+        # at most ~1e-4 more precise than float32 results.
+        kept = _float32_flags(
+            bc, validated_flags, low_value or 0.0, 1.0 if high_value is None else high_value
+        )
+        self.flags = kept - (1 << 32) if kept >= 1 << 31 else kept
 
     def _validate_flags(self) -> None:
         if not self.flags:
