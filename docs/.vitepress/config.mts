@@ -38,6 +38,7 @@ export default defineConfig({
           { text: "Parser Internals", link: "/deep-dives/" },
           { text: "Entity Decoding 1: The Schema", link: "/deep-dives/entity-schema" },
           { text: "Entity Decoding 2: Field Paths", link: "/deep-dives/entity-field-paths" },
+          { text: "Entity Decoding 3: Field Decoders", link: "/deep-dives/entity-field-decoders" },
           { text: "Parser Performance", link: "/deep-dives/parser-performance" },
           { text: "Replay Edge Cases", link: "/deep-dives/replay-edge-cases" },
         ],

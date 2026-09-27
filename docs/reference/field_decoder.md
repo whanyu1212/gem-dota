@@ -2,11 +2,9 @@
 
 Dispatches field types to concrete decoders, including quantized float handling and packed value decoding.
 
-See also: [How Proto Parsing Works](../cookbook/proto-parsing-pipeline.md)
-
-
----
-
+See also: [How Entities Are Decoded, Part 3: Field Decoders](../deep-dives/entity-field-decoders.md)
+for an explanation with real values, and
+[How Proto Parsing Works](../cookbook/proto-parsing-pipeline.md).
 
 ---
 
@@ -46,7 +44,7 @@ class QuantizedFloatDecoder
 
 Decoder for Source 2 quantized floats (CNetworkedQuantizedFloat).
 
-Source: [src/gem/schema/field_decoder/quantized_float.py:19](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/field_decoder/quantized_float.py#L19)
+Source: [src/gem/schema/field_decoder/quantized_float.py:98](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/field_decoder/quantized_float.py#L98)
 
 #### Methods
 
@@ -56,4 +54,4 @@ Signature: `def QuantizedFloatDecoder.decode(self, r: BitReader) -> float`
 
 Read and decode one quantized float from r.
 
-Source: [src/gem/schema/field_decoder/quantized_float.py:131](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/field_decoder/quantized_float.py#L131)
+Source: [src/gem/schema/field_decoder/quantized_float.py:213](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/field_decoder/quantized_float.py#L213)

@@ -171,6 +171,8 @@ for speeding up the parser, which the last part of this series will cover.
 
 ## Where to go next
 
+- [Part 3: Field Decoders](entity-field-decoders.md): how each changed field's new
+  value is read.
 - [Part 1: The Schema](entity-schema.md): the tree these paths point into.
 - [Field Paths reference](../reference/field_path.md): `read_field_paths`,
   `FieldPath`, `FieldPathOp`.
