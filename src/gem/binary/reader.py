@@ -15,8 +15,10 @@ from __future__ import annotations
 import math
 import struct
 
+from gem.errors import ReplayDataError
 
-class BufferReadError(EOFError):
+
+class BufferReadError(ReplayDataError, EOFError):
     """Raised when a reader operation runs past the available buffer."""
 
 

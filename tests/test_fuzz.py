@@ -4,12 +4,15 @@ Verifies that malformed, truncated, or garbage input completes without
 hanging or crashing with an unhandled exception at the public API level.
 
 Key design contract (from parser.py):
-- ``ReplayParser.parse()`` catches all stream-level exceptions internally
-  and returns whatever partial state was accumulated. This means bad inputs
-  silently return an empty ``ParsedMatch`` rather than raising — by design,
-  to support truncated replay analysis.
-- ``DemoStream`` raises ``ValueError`` on wrong magic when used directly.
-- ``BitReader`` raises ``IndexError`` / similar on reads past end-of-buffer.
+- ``ReplayParser.parse()`` stops early on a problem in the replay data
+  (``gem.errors.ReplayDataError``, protobuf ``DecodeError``, Snappy
+  ``UncompressError``) and keeps whatever it read. Bad or truncated input
+  returns a ``ParsedMatch`` whose ``parse_error`` says why it stopped.
+- Anything that is not replay data propagates: a missing file raises
+  ``FileNotFoundError``, and a bug in a callback raises its own exception.
+- ``DemoStream`` raises ``ReplayDataError`` (a ``ValueError``) on an empty file
+  or wrong magic when used directly.
+- ``BitReader`` raises ``BufferReadError`` on reads past end-of-buffer.
 
 These tests verify:
 1. ``DemoStream`` raises the right exceptions when used directly.
@@ -137,10 +140,10 @@ class TestDemoStreamFuzz:
 
 
 class TestParseFuzz:
-    """gem.parse() resilience: parser.py swallows stream exceptions internally.
+    """gem.parse() resilience: bad replay data ends the parse early.
 
-    Bad/empty/truncated files return an empty (or partial) ParsedMatch rather
-    than raising. The public contract is "no hang, no unhandled crash".
+    Bad/empty/truncated files return an empty (or partial) ParsedMatch whose
+    ``parse_error`` records why, rather than raising. A missing file raises.
     """
 
     def test_empty_file(self, tmp_path: Path) -> None:
@@ -152,6 +155,7 @@ class TestParseFuzz:
         f.write_bytes(b"")
         result = gem.parse(str(f))
         assert isinstance(result, ParsedMatch)
+        assert "empty replay file" in result.parse_error
 
     def test_wrong_magic_file(self, tmp_path: Path) -> None:
         """Wrong magic → parser catches ValueError and returns empty ParsedMatch."""
@@ -162,14 +166,14 @@ class TestParseFuzz:
         f.write_bytes(b"NOTVALID" + b"\x00" * 8 + b"\xff" * 64)
         result = gem.parse(str(f))
         assert isinstance(result, ParsedMatch)
+        assert "unexpected magic" in result.parse_error
 
     def test_nonexistent_file(self, tmp_path: Path) -> None:
-        """Nonexistent file → parser catches FileNotFoundError, returns empty ParsedMatch."""
+        """A missing file is not replay data: it raises FileNotFoundError."""
         import gem
-        from gem.results.models import ParsedMatch
 
-        result = gem.parse(str(tmp_path / "does_not_exist.dem"))
-        assert isinstance(result, ParsedMatch)
+        with pytest.raises(FileNotFoundError):
+            gem.parse(str(tmp_path / "does_not_exist.dem"))
 
     def test_header_only_file(self, tmp_path: Path) -> None:
         """Valid header with no messages → empty ParsedMatch, no hang."""
@@ -180,6 +184,7 @@ class TestParseFuzz:
         f.write_bytes(_make_dem_header())
         result = gem.parse(str(f))
         assert isinstance(result, ParsedMatch)
+        assert result.parse_error is None
 
     def test_garbage_content_file(self, tmp_path: Path) -> None:
         """Valid header + garbage payload → empty ParsedMatch, no hang."""
@@ -190,6 +195,7 @@ class TestParseFuzz:
         f.write_bytes(_make_dem_header() + b"\xff" * 1024)
         result = gem.parse(str(f))
         assert isinstance(result, ParsedMatch)
+        assert result.parse_error is not None
 
     def test_truncated_fixture(self, truncated_parsed_match) -> None:
         """Pre-built truncated fixture parses without hanging."""
@@ -199,6 +205,8 @@ class TestParseFuzz:
         assert isinstance(result, ParsedMatch)
         # Truncated replay should still extract some partial data
         assert result.match_id >= 0
+        assert result.parse_error.startswith("TruncatedReplayError(")
+        assert result.truncated_at_tick == 2375
 
     def test_truncated_fixture_has_partial_data(self, truncated_parsed_match) -> None:
         """Truncated fixture returns partial (non-empty) data, not a completely blank match."""

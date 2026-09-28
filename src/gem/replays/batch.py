@@ -65,6 +65,15 @@ class ParseResult:
         """Return ``True`` when parsing succeeded."""
         return self.error is None
 
+    @property
+    def complete(self) -> bool:
+        """Return ``True`` when parsing succeeded and read the whole replay.
+
+        A truncated or corrupt replay still parses (``ok`` is ``True``), but its
+        match records why it stopped in ``parse_error``.
+        """
+        return self.match is not None and self.error is None and self.match.parse_error is None
+
 
 # ---------------------------------------------------------------------------
 # Internal helpers

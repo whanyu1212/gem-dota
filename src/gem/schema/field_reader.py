@@ -7,6 +7,7 @@ Mirrors ``manta/field_reader.go`` and the decoder-lookup logic in
 from __future__ import annotations
 
 from gem.binary.reader import BitReader
+from gem.errors import ReplayDataError
 from gem.schema.field_decoder import FieldDecoder
 from gem.schema.field_path.models import CompactFieldPath
 from gem.schema.field_path.path_sequence import _read_compact_field_paths
@@ -72,7 +73,7 @@ def _resolve_field_decoder(
 def _require_serializer(f: Field, path: CompactFieldPath, pos: int) -> Serializer:
     if f.serializer is None:
         path_string = "/".join(str(index) for index in path)
-        raise ValueError(
+        raise ReplayDataError(
             f"{f.model_name()} field {f.var_name!r} needs a serializer "
             f"to resolve field path {path_string!r} at position {pos}"
         )

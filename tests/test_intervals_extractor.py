@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 
+from gem.errors import TruncatedReplayError
 from gem.extractors.intervals import IntervalExtractor
 from gem.state.entities import Entity, EntityOp
 from gem.state.string_table import StringTable, StringTables
@@ -1007,7 +1008,7 @@ def test_truncated_tick_driven_stream_retains_initial_or_completed_state(
 
     def stream():
         yield 0, 0, b""
-        raise EOFError("truncated interval test")
+        raise TruncatedReplayError("truncated interval test")
 
     def update(_kind, _data):
         if sample_before_truncation:
@@ -1017,6 +1018,6 @@ def test_truncated_tick_driven_stream_retains_initial_or_completed_state(
     monkeypatch.setattr("gem.parser.DemoStream", lambda _source: nullcontext(stream()))
     monkeypatch.setattr(parser, "_dispatch_outer", update)
     parser.parse()
-    assert isinstance(parser.parse_error, EOFError)
+    assert isinstance(parser.parse_error, TruncatedReplayError)
     assert len(ext.snapshots) == (2 if sample_before_truncation else 0)
     assert bool(ext._cur_data_radiant) is not sample_before_truncation

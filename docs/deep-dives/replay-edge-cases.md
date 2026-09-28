@@ -110,9 +110,17 @@ gem intentionally falls back to live game-rule entities when possible, for examp
 2. winner from `m_nGameWinner`
 3. late-game scoreboard values from authoritative player-resource fields
 
-This is why "missing metadata" does not always mean "parse failed". When parsing ends
-early, `ReplayParser` also records `parse_error` and `truncated_at_tick` so callers can
-distinguish complete output from useful partial output.
+This is why "missing metadata" does not always mean "parse failed".
+
+When the replay data itself is truncated or corrupt, gem stops reading, keeps what it
+has, and records why. The reason is on the result as `ParsedMatch.parse_error` (and on
+`ReplayParser`), with the last tick read in `truncated_at_tick`; both are `None` for a
+complete parse. `parse_many()` results expose this as `ParseResult.complete`.
+
+Only problems in the replay data are handled this way: a
+`gem.ReplayDataError` (including `gem.TruncatedReplayError`), a protobuf decode error,
+or a Snappy decompression error. Anything else, such as a missing file or a bug in a
+callback you registered, raises as usual rather than silently cutting the parse short.
 
 ## Build-specific field and schema differences
 

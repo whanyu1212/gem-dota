@@ -136,6 +136,8 @@ class TestParsedMatchFieldOrder:
         "entity_visibility_events",
         "post_game_tick",
         "game_clock",
+        "parse_error",
+        "truncated_at_tick",
     ]
 
     def test_positional_order_is_append_only(self):

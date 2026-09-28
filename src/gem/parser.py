@@ -50,10 +50,14 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
+import snappy
+from google.protobuf.message import DecodeError
+
 from gem.binary.packet import read_inner_messages
 from gem.binary.stream import DemoStream
 from gem.catalog import item_key_by_id
 from gem.combat.log import CombatLogHandler, CombatLogProcessor, CombatLogSource
+from gem.errors import ReplayDataError
 from gem.proto.demo_pb2 import (
     CDemoClassInfo,
     CDemoFileInfo,
@@ -200,6 +204,10 @@ def _is_game_state(log_type: int, value: int, state: int) -> bool:
 
 # CombatLogNames string table name
 _COMBAT_LOG_NAMES_TABLE = "CombatLogNames"
+
+# Problems in the replay's bytes. ``parse()`` stops early on these and keeps what
+# it read; every other exception (e.g. from a callback) propagates.
+_REPLAY_DATA_ERRORS = (ReplayDataError, DecodeError, snappy.UncompressError)
 
 
 def _round_positive_seconds(value: float) -> int:
@@ -616,6 +624,15 @@ class ReplayParser:
         Processes every outer message in order, decoding inner net messages
         from DEM_Packet / DEM_SignonPacket / DEM_FullPacket, and routing
         each to the appropriate subsystem handler.
+
+        A problem in the replay data (a truncated file, a corrupt frame, protobuf,
+        or bitstream) ends the parse early: the reason is stored in
+        :attr:`parse_error` and :attr:`truncated_at_tick`, a warning is logged,
+        and everything read so far is kept. Any other exception, such as a bug in
+        a registered callback, propagates.
+
+        Raises:
+            Exception: Whatever a registered callback or extractor raised.
         """
         try:
             with DemoStream(self._source) as stream:
@@ -624,14 +641,9 @@ class ReplayParser:
                     if self._stop_at_tick is not None and tick > self._stop_at_tick:
                         break
                     self._dispatch_outer(msg_type, data)
-        except Exception as exc:
-            # Truncated files raise on the final corrupt snappy block — that is
-            # expected for partial replays, so parsing continues with whatever was
-            # read. Log at warning level: a genuine mid-stream decoder/extractor
-            # bug is indistinguishable here from an expected truncated tail, so
-            # surface it rather than letting silent partial output look complete.
-            # Record it on the parser too, so consumers can detect a partial
-            # parse programmatically instead of scraping logs.
+        except _REPLAY_DATA_ERRORS as exc:
+            # Truncated or corrupt replays keep what was read. Record the reason,
+            # so consumers can tell a partial parse from a complete one.
             self.parse_error = exc
             self.truncated_at_tick = self.tick
             logger.warning("Replay stream ended early at tick %d: %r", self.tick, exc)

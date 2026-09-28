@@ -15,6 +15,8 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
+from gem.errors import ReplayDataError
+
 # Key type IDs matching Source 2 protobuf encoding
 _TYPE_STRING = 1
 _TYPE_FLOAT = 2
@@ -205,7 +207,7 @@ def _key_value(key: Any, type_id: int) -> Any:
     """Read a key's value from the attribute its type uses."""
     attribute = _VALUE_ATTRIBUTES.get(type_id)
     if attribute is None:
-        raise ValueError(f"unsupported game event key type {type_id}")
+        raise ReplayDataError(f"unsupported game event key type {type_id}")
     return getattr(key, attribute)
 
 

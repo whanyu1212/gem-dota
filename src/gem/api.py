@@ -173,6 +173,7 @@ from gem.analysis import (
 )
 from gem.catalog import hero_npc_name
 from gem.combat.log import CombatLogSource
+from gem.errors import ReplayDataError, TruncatedReplayError
 from gem.extractors.draft import resolve_pick_team
 from gem.extractors.teamfights import (
     OpenDotaTeamfight,
@@ -468,6 +469,8 @@ __all__ = [
     "to_parquet",
     "parse_to_parquet",
     "ParseResult",
+    "ReplayDataError",
+    "TruncatedReplayError",
     "parse_many",
     "parse_many_to_dataframe",
     "parse_many_to_parquet",

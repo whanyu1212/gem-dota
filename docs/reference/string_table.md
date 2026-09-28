@@ -19,7 +19,7 @@ class StringTables
 
 Container for all string tables registered during a replay.
 
-Source: [src/gem/state/string_table.py:74](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L74)
+Source: [src/gem/state/string_table.py:75](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L75)
 
 #### Methods
 
@@ -29,7 +29,7 @@ Signature: `def StringTables.clear(self) -> None`
 
 Remove every table, as ``svc_ClearAllStringTables`` requests.
 
-Source: [src/gem/state/string_table.py:87](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L87)
+Source: [src/gem/state/string_table.py:88](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L88)
 
 ##### `add`
 
@@ -37,7 +37,7 @@ Signature: `def StringTables.add(self, table: StringTable) -> None`
 
 Register a StringTable in the container.
 
-Source: [src/gem/state/string_table.py:96](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L96)
+Source: [src/gem/state/string_table.py:97](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L97)
 
 ##### `get_by_name`
 
@@ -45,7 +45,7 @@ Signature: `def StringTables.get_by_name(self, name: str) -> StringTable | None`
 
 Return the table with the given name, or None if not found.
 
-Source: [src/gem/state/string_table.py:105](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L105)
+Source: [src/gem/state/string_table.py:106](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L106)
 
 ##### `get_by_id`
 
@@ -53,7 +53,7 @@ Signature: `def StringTables.get_by_id(self, table_id: int) -> StringTable | Non
 
 Return the table with the given index, or None if not found.
 
-Source: [src/gem/state/string_table.py:119](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L119)
+Source: [src/gem/state/string_table.py:120](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L120)
 
 ## `gem.state.string_table.StringTable`
 
@@ -65,7 +65,7 @@ class StringTable
 
 A named string table with its metadata and current items.
 
-Source: [src/gem/state/string_table.py:52](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L52)
+Source: [src/gem/state/string_table.py:53](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L53)
 
 #### Dataclass fields
 
@@ -89,7 +89,7 @@ class StringTableItem(NamedTuple)
 
 No docstring available.
 
-Source: [src/gem/state/string_table.py:45](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L45)
+Source: [src/gem/state/string_table.py:46](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L46)
 
 ## `gem.state.string_table.parse_string_table`
 
@@ -101,7 +101,7 @@ def parse_string_table(buf: bytes, num_updates: int, name: str, user_data_fixed_
 
 Parse a string table data blob into a list of item updates.
 
-Source: [src/gem/state/string_table.py:136](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L136)
+Source: [src/gem/state/string_table.py:137](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L137)
 
 ## `gem.state.string_table.handle_create`
 
@@ -113,7 +113,7 @@ def handle_create(msg: object, string_tables: StringTables) -> StringTable
 
 Process a CSVCMsg_CreateStringTable message.
 
-Source: [src/gem/state/string_table.py:258](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L258)
+Source: [src/gem/state/string_table.py:259](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L259)
 
 ## `gem.state.string_table.handle_update`
 
@@ -125,4 +125,4 @@ def handle_update(msg: object, string_tables: StringTables) -> StringTable
 
 Process a CSVCMsg_UpdateStringTable message.
 
-Source: [src/gem/state/string_table.py:311](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L311)
+Source: [src/gem/state/string_table.py:312](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L312)

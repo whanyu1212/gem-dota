@@ -21,6 +21,8 @@ from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
+from gem.errors import ReplayDataError, TruncatedReplayError
+
 _MAGIC_S2 = b"PBDEMS2\x00"
 # Two little-endian int32s after the magic: byte offsets of the DEM_FileInfo and
 # DEM_SpawnGroups envelopes near the end of the file. Unused (Manta skips them too).
@@ -60,23 +62,29 @@ class DemoStream:
         source: A bytes buffer or a ``str``/``Path`` pointing to a ``.dem`` file.
 
     Raises:
-        ValueError: If the magic bytes do not match ``PBDEMS2\\x00``.
+        ReplayDataError: If the file is empty or the magic bytes do not match
+            ``PBDEMS2\\x00``.
     """
 
     def __init__(self, source: bytes | str | Path) -> None:
         self._mmap: mmap.mmap | None = None
         self._fd: int | None = None
 
-        if isinstance(source, (str, Path)):
-            path = Path(source)
-            self._fd = os.open(path, os.O_RDONLY)
-            self._mmap = mmap.mmap(self._fd, 0, access=mmap.ACCESS_READ)
-            self._buf: bytes | mmap.mmap = self._mmap
-        else:
-            self._buf = source
+        try:
+            if isinstance(source, (str, Path)):
+                self._fd = os.open(Path(source), os.O_RDONLY)
+                if os.fstat(self._fd).st_size == 0:
+                    raise ReplayDataError(f"empty replay file: {source}")
+                self._mmap = mmap.mmap(self._fd, 0, access=mmap.ACCESS_READ)
+                self._buf: bytes | mmap.mmap = self._mmap
+            else:
+                self._buf = source
 
-        self._pos = 0
-        self._validate_magic()
+            self._pos = 0
+            self._validate_magic()
+        except BaseException:
+            self.close()
+            raise
         self._pos += _METADATA_SKIP  # skip the two end-of-file offsets
 
     def close(self) -> None:
@@ -98,12 +106,12 @@ class DemoStream:
         """Read and validate the 8-byte Source 2 magic header.
 
         Raises:
-            ValueError: If the header does not match ``PBDEMS2\\x00``.
+            ReplayDataError: If the header does not match ``PBDEMS2\\x00``.
         """
         magic = self._buf[self._pos : self._pos + 8]
         self._pos += 8
         if magic != _MAGIC_S2:
-            raise ValueError(f"unexpected magic: expected {_MAGIC_S2!r}, got {magic!r}")
+            raise ReplayDataError(f"unexpected magic: expected {_MAGIC_S2!r}, got {magic!r}")
 
     def _read_varuint32(self) -> int:
         """Read an unsigned 32-bit varint from the outer stream.
@@ -134,19 +142,34 @@ class DemoStream:
 
         Returns:
             OuterMessage if a frame was read, or None at end of stream.
+
+        Raises:
+            TruncatedReplayError: If the file ends inside the frame.
         """
-        if self._pos >= len(self._buf):
+        end = len(self._buf)
+        if self._pos >= end:
             return None
 
-        command = self._read_varuint32()
+        start = self._pos
+        try:
+            command = self._read_varuint32()
+            tick = self._read_varuint32()
+            size = self._read_varuint32()
+        except IndexError:
+            raise TruncatedReplayError(
+                f"replay ends inside a frame header at byte {start} of {end}"
+            ) from None
+        if self._pos + size > end:
+            raise TruncatedReplayError(
+                f"replay ends inside a frame at byte {start}: "
+                f"{size} payload bytes needed, {end - self._pos} left"
+            )
+
         msg_type = command & ~_DEM_IS_COMPRESSED
         compressed = bool(command & _DEM_IS_COMPRESSED)
-
-        tick = self._read_varuint32()
         if tick == _PREGAME_TICK:
             tick = 0
 
-        size = self._read_varuint32()
         payload = self._buf[self._pos : self._pos + size]
         self._pos += size
 

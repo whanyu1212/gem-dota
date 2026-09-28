@@ -19,7 +19,7 @@ class DemoStream
 
 Iterate outer demo-message frames from a Source 2 ``.dem`` source.
 
-Source: [src/gem/binary/stream.py:48](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/stream.py#L48)
+Source: [src/gem/binary/stream.py:50](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/stream.py#L50)
 
 #### Methods
 
@@ -29,7 +29,7 @@ Signature: `def DemoStream.close(self) -> None`
 
 Release memory-map and file descriptor resources, if any.
 
-Source: [src/gem/binary/stream.py:82](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/stream.py#L82)
+Source: [src/gem/binary/stream.py:90](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/stream.py#L90)
 
 ## `gem.binary.stream.OuterMessage`
 
@@ -41,7 +41,7 @@ class OuterMessage
 
 A single top-level demo message frame.
 
-Source: [src/gem/binary/stream.py:33](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/stream.py#L33)
+Source: [src/gem/binary/stream.py:35](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/stream.py#L35)
 
 #### Dataclass fields
 

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import pytest
 
+from gem.errors import TruncatedReplayError
 from gem.extractors.draft import (
     _HERO_ID_TO_NPC,
     DraftEvent,
@@ -753,7 +754,7 @@ class TestDraftPollingCutoff:
                     },
                 )
                 yield 21, 0, {"m_pGameRules.m_SelectedHeroes.0000": 4}
-            raise EOFError("truncated test stream")
+            raise TruncatedReplayError("truncated test stream")
 
         def update(_kind, state):
             set_fields(entity, state)

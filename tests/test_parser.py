@@ -1326,3 +1326,41 @@ class TestClearAllStringTables:
 
         assert [(t.index, t.name) for t in parser.string_tables.tables.values()] == [(0, "after")]
         assert parser.string_tables.get_by_name("before") is None
+
+
+# ---------------------------------------------------------------------------
+# Error handling: replay-data problems end the parse; callback bugs propagate
+# ---------------------------------------------------------------------------
+
+
+_FIXTURE_TRUNCATED = (
+    Path(__file__).parent / "fixtures" / "ti14_finals_g3_xg_vs_falcons_truncated.dem"
+)
+
+
+class TestParseErrorHandling:
+    def test_truncated_replay_is_recorded_not_raised(self):
+        from gem.errors import TruncatedReplayError
+
+        parser = ReplayParser(str(_FIXTURE_TRUNCATED))
+        parser.parse()
+        assert isinstance(parser.parse_error, TruncatedReplayError)
+        assert parser.truncated_at_tick == 2375
+
+    def test_callback_exception_propagates(self):
+        parser = ReplayParser(str(_FIXTURE_TRUNCATED))
+
+        def broken(entity, op):
+            raise AttributeError("bug in a callback")
+
+        parser.on_entity(broken)
+        with pytest.raises(AttributeError, match="bug in a callback"):
+            parser.parse()
+        assert parser.parse_error is None
+
+    def test_gem_parse_surfaces_partial_parse_on_the_match(self):
+        import gem
+
+        match = gem.parse(str(_FIXTURE_TRUNCATED))
+        assert match.parse_error.startswith("TruncatedReplayError(")
+        assert match.truncated_at_tick == 2375

@@ -975,6 +975,8 @@ def build_parsed_match(
         post_game_tick=parser.post_game_tick,
         game_clock=parser.game_clock,
         duration=duration,
+        parse_error=repr(parser.parse_error) if parser.parse_error is not None else None,
+        truncated_at_tick=parser.truncated_at_tick,
     )
     clock = parser.game_clock
 

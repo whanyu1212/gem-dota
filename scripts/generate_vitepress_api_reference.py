@@ -92,7 +92,7 @@ TARGETS_BY_PAGE: dict[str, list[str]] = {
         "gem.state.game_clock",
         "gem.results.serialization",
     ],
-    "parser.md": ["gem.parser.ReplayParser"],
+    "parser.md": ["gem.parser.ReplayParser", "gem.errors"],
     "reader.md": ["gem.binary.reader.BitReader"],
     "sendtable.md": [
         "gem.schema.sendtable.parse_send_tables",
