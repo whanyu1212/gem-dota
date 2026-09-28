@@ -1326,3 +1326,64 @@ class TestClearAllStringTables:
 
         assert [(t.index, t.name) for t in parser.string_tables.tables.values()] == [(0, "after")]
         assert parser.string_tables.get_by_name("before") is None
+
+
+# ---------------------------------------------------------------------------
+# Error handling: replay-data problems end the parse; callback bugs propagate
+# ---------------------------------------------------------------------------
+
+
+_FIXTURE_TRUNCATED = (
+    Path(__file__).parent / "fixtures" / "ti14_finals_g3_xg_vs_falcons_truncated.dem"
+)
+
+
+class TestParseErrorHandling:
+    def test_truncated_replay_is_recorded_not_raised(self):
+        from gem.errors import TruncatedReplayError
+
+        parser = ReplayParser(str(_FIXTURE_TRUNCATED))
+        parser.parse()
+        assert isinstance(parser.parse_error, TruncatedReplayError)
+        assert parser.truncated_at_tick == 2375
+
+    def test_callback_exception_propagates(self):
+        parser = ReplayParser(str(_FIXTURE_TRUNCATED))
+
+        def broken(entity, op):
+            raise AttributeError("bug in a callback")
+
+        parser.on_entity(broken)
+        with pytest.raises(AttributeError, match="bug in a callback"):
+            parser.parse()
+        assert parser.parse_error is None
+
+    def test_gem_parse_surfaces_partial_parse_on_the_match(self):
+        import gem
+
+        match = gem.parse(str(_FIXTURE_TRUNCATED))
+        assert match.parse_error.startswith("TruncatedReplayError(")
+        assert match.truncated_at_tick == 2375
+
+
+class TestDecodeErrorsFromCallbacks:
+    def test_protobuf_error_raised_by_a_callback_propagates(self):
+        from google.protobuf.message import DecodeError
+
+        parser = ReplayParser(str(_FIXTURE_TRUNCATED))
+
+        def decodes_badly(entity, op):
+            raise DecodeError("callback's own protobuf problem")
+
+        parser.on_entity(decodes_badly)
+        with pytest.raises(DecodeError, match="callback's own"):
+            parser.parse()
+        assert parser.parse_error is None
+
+    def test_gem_protobuf_decode_errors_become_replay_data_errors(self):
+        from gem.errors import ReplayDataError
+        from gem.parser import _parse_proto
+        from gem.proto.networkbasetypes_pb2 import CNETMsg_Tick
+
+        with pytest.raises(ReplayDataError, match="invalid CNETMsg_Tick payload"):
+            _parse_proto(CNETMsg_Tick(), b"\xff\xff\xff")

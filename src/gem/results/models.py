@@ -931,6 +931,11 @@ class ParsedMatch:
         game_clock: Pause-aware conversion between replay ticks and the in-game
             clock (see :class:`gem.GameClock`). ``None`` for matches assembled
             without parser clock state.
+        parse_error: Why the parse ended early, when the replay data was
+            truncated or corrupt (e.g. ``"TruncatedReplayError(...)"``). ``None``
+            for a complete parse. Everything read before that point is kept.
+        truncated_at_tick: The last tick read when the parse ended early, or
+            ``None`` for a complete parse.
         duration: OpenDota-style match duration in seconds. Complete replays use
             the exact value from the embedded ``CMsgDOTAMatch`` postgame summary;
             otherwise this falls back to horn-anchored combat-log time at
@@ -1005,6 +1010,8 @@ class ParsedMatch:
     entity_visibility_events: list[EntityVisibilityEvent] = field(default_factory=list)
     post_game_tick: int | None = None
     game_clock: GameClock | None = None
+    parse_error: str | None = None
+    truncated_at_tick: int | None = None
     # Internal provenance for match-level values copied from CMsgDOTAMatch.
     _match_details_fields: set[str] = field(
         default_factory=set,

@@ -28,6 +28,7 @@ from typing import NamedTuple
 import snappy
 
 from gem.binary.reader import BitReader, BufferReadError
+from gem.errors import ReplayDataError, UnknownStringTableError, UnsupportedReplayError
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -225,7 +226,7 @@ def parse_string_table(
                     try:
                         value = snappy.decompress(value)
                     except snappy.UncompressError as exc:
-                        raise ValueError(
+                        raise ReplayDataError(
                             f"string table {name!r}: cannot decompress entry {index}"
                         ) from exc
 
@@ -280,8 +281,11 @@ def handle_create(msg: object, string_tables: StringTables) -> StringTable:
     # Decompress the entire data blob if flagged
     if data_compressed:
         if buf[:4] == b"LZSS":
-            raise NotImplementedError("LZSS decompression not supported (old replay)")
-        buf = snappy.decompress(buf)
+            raise UnsupportedReplayError("LZSS decompression not supported (old replay)")
+        try:
+            buf = snappy.decompress(buf)
+        except snappy.UncompressError as exc:
+            raise ReplayDataError(f"string table {name!r}: corrupt compressed data") from exc
 
     table = StringTable(
         index=string_tables._next_index,
@@ -330,7 +334,7 @@ def handle_update(msg: object, string_tables: StringTables) -> StringTable:
 
     table = string_tables.get_by_id(table_id)
     if table is None:
-        raise KeyError(f"string table {table_id} not found")
+        raise UnknownStringTableError(f"string table {table_id} not found")
 
     parsed = parse_string_table(
         buf,

@@ -125,6 +125,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A bug in a callback no longer silently cuts a parse short, and partial
+  parses are visible.** `ReplayParser.parse()` caught every exception, so any error
+  in gem's extractors or in your own handlers became the warning "Replay stream
+  ended early" and a partial result. That error was also never passed on to the
+  result, so `gem.parse()` and `parse_many()` reported partial parses as success.
+  - Only problems in the replay data end a parse early now: a
+    `gem.ReplayDataError`. gem reports its own protobuf, Snappy, and bitstream
+    decoding failures that way. Everything else propagates, including errors your
+    callbacks raise.
+  - The stream detects a truncated file itself and raises
+    `gem.TruncatedReplayError`, a `ReplayDataError` that is also an `EOFError`.
+  - `ParsedMatch.parse_error` and `truncated_at_tick` record why and where a
+    partial parse stopped. `ParseResult.complete` is `False` for one.
+  - Existing data errors now subclass `ReplayDataError` but keep their old types,
+    so `except` clauses written for them still match: `BufferReadError` is an
+    `EOFError`, an unknown string table a `KeyError`, LZSS tables
+    `NotImplementedError`, entity-table inconsistencies a `RuntimeError`, and a
+    varint overflow an `OverflowError`.
+  - Behavior change: `gem.parse()` on a missing file now raises
+    `FileNotFoundError` instead of returning an empty match.
 - **Combat-log entries by non-hero units are credited like OpenDota.** When an
   entry's attacker wasn't a hero, gem searched for a unit with that name and
   credited its owner. That search never matched on current replays, because the

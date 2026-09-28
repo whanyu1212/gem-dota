@@ -14,6 +14,7 @@ from __future__ import annotations
 from google.protobuf.message import DecodeError
 
 from gem.binary.reader import BitReader
+from gem.errors import ReplayDataError
 from gem.proto.demo_pb2 import CDemoSendTables
 from gem.proto.netmessages_pb2 import (
     CSVCMsg_FlattenedSerializer,
@@ -41,7 +42,7 @@ def _parse_flattened_serializer(data: bytes) -> CSVCMsg_FlattenedSerializer:
     try:
         outer.ParseFromString(data)
     except DecodeError as exc:
-        raise ValueError("invalid CDemoSendTables payload") from exc
+        raise ReplayDataError("invalid CDemoSendTables payload") from exc
 
     r = BitReader(outer.data)
     size = r.read_varuint32()
@@ -51,7 +52,7 @@ def _parse_flattened_serializer(data: bytes) -> CSVCMsg_FlattenedSerializer:
     try:
         msg.ParseFromString(inner_payload)
     except DecodeError as exc:
-        raise ValueError("invalid CSVCMsg_FlattenedSerializer payload") from exc
+        raise ReplayDataError("invalid CSVCMsg_FlattenedSerializer payload") from exc
 
     return msg
 
@@ -61,7 +62,7 @@ def _symbol(symbols: list[str], idx: int | None, context: str) -> str:
     if idx is None:
         return ""
     if idx < 0 or idx >= len(symbols):
-        raise ValueError(f"invalid symbol index {idx} for {context}; symbols={len(symbols)}")
+        raise ReplayDataError(f"invalid symbol index {idx} for {context}; symbols={len(symbols)}")
     return symbols[idx]
 
 
@@ -148,7 +149,7 @@ def _resolve_serializer_reference(
     if fallback is not None:
         return fallback
 
-    raise ValueError(
+    raise ReplayDataError(
         f"unresolved serializer reference {serializer_name!r} "
         f"(version {serializer_version}) for {owner_name}.{field_name}"
     )
@@ -175,7 +176,7 @@ def _get_or_build_field(
     if idx in field_cache:
         return field_cache[idx]
     if idx < 0 or idx >= len(msg.fields):
-        raise ValueError(f"invalid field index {idx} for serializer {owner_name!r}")
+        raise ReplayDataError(f"invalid field index {idx} for serializer {owner_name!r}")
 
     f = _build_field(msg.fields[idx], symbols, owner_name, game_build)
 

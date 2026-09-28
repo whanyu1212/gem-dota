@@ -13,6 +13,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
+from gem.errors import ReplayDataError
 from gem.schema.field_decoder import FieldDecoder, find_decoder, find_decoder_by_base_type
 from gem.schema.field_path import FieldPath
 from gem.schema.field_path.models import CompactFieldPath
@@ -81,7 +82,7 @@ def _parse_field_type(name: str) -> FieldType:
     """Parse a Source 2 field type string into structured type metadata."""
     m = _FIELD_TYPE_RE.match(name)
     if not m:
-        raise ValueError(f"Cannot parse field type: {name!r}")
+        raise ReplayDataError(f"Cannot parse field type: {name!r}")
 
     base = m.group(1).strip()
     generic_str = m.group(3)
@@ -151,7 +152,7 @@ class Field:
             self.base_decoder = boolean_decoder
         elif model == FIELD_MODEL_VARIABLE_ARRAY:
             if self.field_type.generic_type is None:
-                raise ValueError(
+                raise ReplayDataError(
                     f"variable-array field {self.var_name!r} has no generic type "
                     f"(var_type={self.var_type!r})"
                 )

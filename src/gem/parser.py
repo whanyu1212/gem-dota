@@ -50,10 +50,13 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
+from google.protobuf.message import DecodeError, Message
+
 from gem.binary.packet import read_inner_messages
 from gem.binary.stream import DemoStream
 from gem.catalog import item_key_by_id
 from gem.combat.log import CombatLogHandler, CombatLogProcessor, CombatLogSource
+from gem.errors import ReplayDataError
 from gem.proto.demo_pb2 import (
     CDemoClassInfo,
     CDemoFileInfo,
@@ -200,6 +203,18 @@ def _is_game_state(log_type: int, value: int, state: int) -> bool:
 
 # CombatLogNames string table name
 _COMBAT_LOG_NAMES_TABLE = "CombatLogNames"
+
+
+def _parse_proto(message: Message, payload: bytes) -> None:
+    """Decode *payload* into *message*, reporting bad bytes as replay-data errors.
+
+    Only gem's own decoding goes through here, so a ``DecodeError`` raised inside
+    a callback is not mistaken for corrupt replay data.
+    """
+    try:
+        message.ParseFromString(payload)
+    except DecodeError as exc:
+        raise ReplayDataError(f"invalid {type(message).__name__} payload") from exc
 
 
 def _round_positive_seconds(value: float) -> int:
@@ -616,6 +631,15 @@ class ReplayParser:
         Processes every outer message in order, decoding inner net messages
         from DEM_Packet / DEM_SignonPacket / DEM_FullPacket, and routing
         each to the appropriate subsystem handler.
+
+        A problem in the replay data (a :class:`gem.ReplayDataError`: a truncated
+        file, or a corrupt frame, protobuf, or bitstream) ends the parse early: the reason is stored in
+        :attr:`parse_error` and :attr:`truncated_at_tick`, a warning is logged,
+        and everything read so far is kept. Any other exception, such as a bug in
+        a registered callback, propagates.
+
+        Raises:
+            Exception: Whatever a registered callback or extractor raised.
         """
         try:
             with DemoStream(self._source) as stream:
@@ -624,14 +648,9 @@ class ReplayParser:
                     if self._stop_at_tick is not None and tick > self._stop_at_tick:
                         break
                     self._dispatch_outer(msg_type, data)
-        except Exception as exc:
-            # Truncated files raise on the final corrupt snappy block — that is
-            # expected for partial replays, so parsing continues with whatever was
-            # read. Log at warning level: a genuine mid-stream decoder/extractor
-            # bug is indistinguishable here from an expected truncated tail, so
-            # surface it rather than letting silent partial output look complete.
-            # Record it on the parser too, so consumers can detect a partial
-            # parse programmatically instead of scraping logs.
+        except ReplayDataError as exc:
+            # Truncated or corrupt replays keep what was read. Record the reason,
+            # so consumers can tell a partial parse from a complete one.
             self.parse_error = exc
             self.truncated_at_tick = self.tick
             logger.warning("Replay stream ended early at tick %d: %r", self.tick, exc)
@@ -679,7 +698,7 @@ class ReplayParser:
     def _dispatch_outer(self, msg_type: int, data: bytes) -> None:
         if msg_type == _DEM_FILE_INFO:
             fi = CDemoFileInfo()
-            fi.ParseFromString(data)
+            _parse_proto(fi, data)
             dota = fi.game_info.dota
             self.match_id = dota.match_id
             self.game_mode = dota.game_mode
@@ -695,17 +714,17 @@ class ReplayParser:
 
         elif msg_type == _DEM_CLASS_INFO:
             ci_msg = CDemoClassInfo()
-            ci_msg.ParseFromString(data)
+            _parse_proto(ci_msg, data)
             self._on_class_info(ci_msg)
 
         elif msg_type in (_DEM_PACKET, _DEM_SIGNON_PACKET):
             pkt_msg = CDemoPacket()
-            pkt_msg.ParseFromString(data)
+            _parse_proto(pkt_msg, data)
             self._dispatch_inner_packet(pkt_msg.data)
 
         elif msg_type == _DEM_FULL_PACKET:
             full_msg = CDemoFullPacket()
-            full_msg.ParseFromString(data)
+            _parse_proto(full_msg, data)
             # The string_table snapshot is skipped, as in Manta: the string tables are
             # already current from the svc_*StringTable messages.
             if full_msg.HasField("packet"):
@@ -751,7 +770,7 @@ class ReplayParser:
     def _dispatch_inner(self, type_id: int, payload: bytes) -> None:
         if type_id == _NET_TICK:
             tick_msg = CNETMsg_Tick()
-            tick_msg.ParseFromString(payload)
+            _parse_proto(tick_msg, payload)
             self.net_tick = tick_msg.tick
             self._net_tick_seen = True
 
@@ -767,7 +786,7 @@ class ReplayParser:
 
         elif type_id == _SVC_SERVER_INFO:
             m = CSVCMsg_ServerInfo()
-            m.ParseFromString(payload)
+            _parse_proto(m, payload)
             self._on_server_info(m)
 
         elif type_id == _SVC_CLEAR_ALL_STRING_TABLES:
@@ -777,14 +796,14 @@ class ReplayParser:
 
         elif type_id == _SVC_CREATE_STRING_TABLE:
             create_msg = CSVCMsg_CreateStringTable()
-            create_msg.ParseFromString(payload)
+            _parse_proto(create_msg, payload)
             table = handle_create(create_msg, self.string_tables)
             if self.entity_manager is not None and table.name == "instancebaseline":
                 self.entity_manager.on_baseline_updated()
 
         elif type_id == _SVC_UPDATE_STRING_TABLE:
             update_msg = CSVCMsg_UpdateStringTable()
-            update_msg.ParseFromString(payload)
+            _parse_proto(update_msg, payload)
             table = handle_update(update_msg, self.string_tables)
             if self.entity_manager is not None and table.name == "instancebaseline":
                 self.entity_manager.on_baseline_updated()
@@ -795,27 +814,27 @@ class ReplayParser:
             and self.entity_manager.class_id_size > 0
         ):
             pe_msg = CSVCMsg_PacketEntities()
-            pe_msg.ParseFromString(payload)
+            _parse_proto(pe_msg, payload)
             self.entity_manager._on_packet_entities(pe_msg)
 
         elif type_id == _SVC_USER_MESSAGE:
             um_msg = CSVCMsg_UserMessage()
-            um_msg.ParseFromString(payload)
+            _parse_proto(um_msg, payload)
             self._on_user_message(um_msg)
 
         elif type_id == _GE_GAME_EVENT_LIST:
             gel_msg = CMsgSource1LegacyGameEventList()
-            gel_msg.ParseFromString(payload)
+            _parse_proto(gel_msg, payload)
             self._on_game_event_list(gel_msg)
 
         elif type_id == _GE_GAME_EVENT:
             ge_msg = CMsgSource1LegacyGameEvent()
-            ge_msg.ParseFromString(payload)
+            _parse_proto(ge_msg, payload)
             self._on_game_event(ge_msg)
 
         elif type_id == _DOTA_UM_COMBAT_LOG_HLTV:
             entry_msg = CMsgDOTACombatLogEntry()
-            entry_msg.ParseFromString(payload)
+            _parse_proto(entry_msg, payload)
             game_time_s = self._combat_log_game_time_s(entry_msg)
             name_table = self.string_tables.get_by_name(_COMBAT_LOG_NAMES_TABLE)
             if name_table is not None:
@@ -827,7 +846,7 @@ class ReplayParser:
 
         elif type_id == _DOTA_UM_CHAT_EVENT:
             chat_event = CDOTAUserMsg_ChatEvent()
-            chat_event.ParseFromString(payload)
+            _parse_proto(chat_event, payload)
             if chat_event.type == _CHAT_MSG_RUNE_PICKUP:
                 self.combat_log.process_rune_pickup(
                     chat_event.playerid_1, chat_event.value, tick=self.tick
@@ -921,7 +940,7 @@ class ReplayParser:
     def _on_user_message(self, msg: CSVCMsg_UserMessage) -> None:
         if msg.msg_type in (_DOTA_UM_COMBAT_LOG_DATA, _DOTA_UM_COMBAT_LOG_BULK_DATA):
             bulk_msg = CDOTAUserMsg_CombatLogBulkData()
-            bulk_msg.ParseFromString(msg.msg_data)
+            _parse_proto(bulk_msg, msg.msg_data)
             name_table = self.string_tables.get_by_name(_COMBAT_LOG_NAMES_TABLE)
             if name_table is not None:
                 for entry_msg in bulk_msg.combat_entries:
@@ -979,13 +998,13 @@ class ReplayParser:
 
     def _on_match_metadata(self, payload: bytes) -> None:
         metadata = CDOTAMatchMetadataFile()
-        metadata.ParseFromString(payload)
+        _parse_proto(metadata, payload)
         self.match_metadata = metadata
 
     def _on_match_details(self, payload: bytes) -> None:
         """Store the embedded Game Coordinator postgame match summary."""
         details = CMsgDOTAMatch()
-        details.ParseFromString(payload)
+        _parse_proto(details, payload)
         self.match_details = details
         if not self.match_id and details.HasField("match_id"):
             self.match_id = int(details.match_id)
@@ -994,7 +1013,7 @@ class ReplayParser:
         if not self._chat_callbacks:
             return
         chat_msg = CDOTAUserMsg_ChatMessage()
-        chat_msg.ParseFromString(payload)
+        _parse_proto(chat_msg, payload)
         channel = _chat_channel_label(chat_msg.channel_type)
         entry = ChatEntry(
             tick=self.tick,
@@ -1009,7 +1028,7 @@ class ReplayParser:
         if not self._neutral_item_found_callbacks:
             return
         msg = CDOTAUserMsg_FoundNeutralItem()
-        msg.ParseFromString(payload)
+        _parse_proto(msg, payload)
         event = NeutralItemFoundEvent(
             tick=self.tick,
             player_id=msg.player_id,

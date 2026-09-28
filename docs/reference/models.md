@@ -554,6 +554,8 @@ Source: [src/gem/results/models.py:860](https://github.com/whanyu1212/gem-dota/b
 | `entity_visibility_events` | `list[EntityVisibilityEvent]` | `field(...)` |
 | `post_game_tick` | `int \| None` | `None` |
 | `game_clock` | `GameClock \| None` | `None` |
+| `parse_error` | `str \| None` | `None` |
+| `truncated_at_tick` | `int \| None` | `None` |
 
 #### Properties
 
@@ -563,7 +565,7 @@ Signature: `def ParsedMatch.duration_seconds(self) -> float`
 
 Game duration in seconds, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:1018](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1018)
+Source: [src/gem/results/models.py:1025](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1025)
 
 ##### `duration_minutes`
 
@@ -571,7 +573,7 @@ Signature: `def ParsedMatch.duration_minutes(self) -> float`
 
 Game duration in minutes, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:1024](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1024)
+Source: [src/gem/results/models.py:1031](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1031)
 
 ## Module `gem.state.game_clock`
 

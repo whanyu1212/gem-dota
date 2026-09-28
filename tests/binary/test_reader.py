@@ -911,3 +911,13 @@ class TestPosition:
     def test_initial_position(self):
         r = BitReader(b"\x00")
         assert r.position() == "0"
+
+
+def test_varuint64_overflow_is_a_replay_data_error_and_an_overflow_error():
+    from gem.binary.reader import BitReader
+    from gem.errors import ReplayDataError, VarintOverflowError
+
+    with pytest.raises(VarintOverflowError) as info:
+        BitReader(b"\xff" * 11).read_varuint64()
+    assert isinstance(info.value, ReplayDataError)
+    assert isinstance(info.value, OverflowError)

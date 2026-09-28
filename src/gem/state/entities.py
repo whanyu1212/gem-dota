@@ -22,6 +22,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from gem.binary.reader import BitReader
+from gem.errors import EntityStateError
 from gem.schema.field_path.models import CompactFieldPath
 from gem.schema.field_reader import read_fields
 from gem.schema.field_state import FieldState
@@ -772,7 +773,7 @@ class EntityManager:
 
                     ci = self.classes_by_id.get(class_id)
                     if ci is None:
-                        raise RuntimeError(f"unknown class id {class_id}")
+                        raise EntityStateError(f"unknown class id {class_id}")
 
                     entity = Entity(index=index, serial=serial, cls=ci)
                     self.entities[index] = entity
@@ -785,7 +786,7 @@ class EntityManager:
                     # constructing an entity with default (None) field values.
                     baseline = self.class_baselines.get(class_id)
                     if baseline is None:
-                        raise RuntimeError(
+                        raise EntityStateError(
                             f"unable to find baseline for class id {class_id} "
                             f"({ci.name}) creating entity {index}"
                         )
@@ -798,7 +799,7 @@ class EntityManager:
                     # Update entity
                     _e = self.entities[index]
                     if _e is None:
-                        raise RuntimeError(f"update on missing entity {index}")
+                        raise EntityStateError(f"update on missing entity {index}")
                     entity = _e
                     op = EntityOp.UPDATED
                     if not entity.active:
@@ -810,13 +811,13 @@ class EntityManager:
                 # Leave / delete
                 _e = self.entities[index]
                 if _e is None:
-                    raise RuntimeError(f"leave on missing entity {index}")
+                    raise EntityStateError(f"leave on missing entity {index}")
                 entity = _e
                 # A LEAVE for an already-inactive entity is a stream-corruption
                 # invariant violation (manta panics: "ordered to leave, already
                 # inactive"). Surface it rather than silently re-dispatching LEFT.
                 if not entity.active:
-                    raise RuntimeError(
+                    raise EntityStateError(
                         f"entity {index} ({entity.cls.name}) ordered to leave, already inactive"
                     )
                 op = EntityOp.LEFT
