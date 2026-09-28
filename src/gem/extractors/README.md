@@ -118,6 +118,12 @@ the starting inventory (`_diff_inventory`) by calling
 kills/deaths/assists scoreboard from `CDOTA_PlayerResource`
 (`m_vecPlayerTeamData.{i:04d}.m_iKills/Deaths/Assists`).
 
+Combat-log hero names resolve to players through a sticky name → player map
+(`_hero_to_pid`, OpenDota's `name_to_slot`). Only the player's own hero entity
+may claim its names, so enemy-hero illusions such as Dark Seer's Wall of Replica
+(which carry the caster's player ID) cannot redirect the real hero's entries.
+The combat aggregator resolves names through the same map.
+
 `hero_pos(npc_name)` exposes a live position lookup, resolving the canonical
 hero entity via the controller's `m_hAssignedHero` handle when possible.
 

@@ -74,6 +74,20 @@ Two hero-like entities can share the same player slot. That is enough to corrupt
 3. farming route visualizations
 4. any nearest-position lookup done from the wrong hero entity
 
+### Combat-log names need the same rule
+
+The combat log names heroes (`npc_dota_hero_life_stealer`), not entities, so
+gem maps each name to a player. Some illusions are of *enemy* heroes: Dark
+Seer's Wall of Replica, Shadow Demon's Disruption and Morphling's Replicate
+create a `CDOTA_Unit_Hero_<Target>` entity that carries the **caster's** player
+ID. If the name map follows whichever hero-class entity updated last, the
+target's gold, damage and kills go to the caster while the illusion lives.
+
+gem therefore lets only the player's own hero (the selected-hero handle above)
+claim that player's names, and never removes a name once mapped. OpenDota's
+`name_to_slot` works the same way. Replay 8974053011, a Dark Seer game, is the
+regression fixture.
+
 ::: tip
 If a movement path looks wrong, inspect for duplicate same-tick positions before changing the renderer.
 :::

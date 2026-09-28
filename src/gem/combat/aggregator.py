@@ -19,7 +19,6 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 from gem.combat.log import CombatLogType, opendota_translate
-from gem.extractors._snapshots import _player_id_from_entity
 
 if TYPE_CHECKING:
     from gem.combat.log import CombatLogEntry
@@ -162,8 +161,7 @@ class _CombatAggregator:
         return self.players[player_id]
 
     def _hero_to_pid(self, npc_name: str) -> int | None:
-        entity = self._player_ext._heroes_by_npc.get(npc_name.lower())
-        return _player_id_from_entity(entity)
+        return self._player_ext._hero_to_pid(npc_name)
 
     def resolve_kill_pid(self, source_name: str, attacker_name: str) -> int | None:
         """Resolve the crediting player for a DEATH, source-first.
