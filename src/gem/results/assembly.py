@@ -103,7 +103,7 @@ def _apply_match_details_scalars(match: ParsedMatch, details: CMsgDOTAMatch | No
             setattr(player, field_name, value)
             player._match_details_fields.add(field_name)
 
-        for field_name in ("hero_damage", "tower_damage", "hero_healing"):
+        for field_name in ("hero_damage", "tower_damage", "hero_healing", "gold_spent"):
             if source.HasField(field_name):
                 setattr(player, field_name, int(getattr(source, field_name)))
                 player._match_details_fields.add(field_name)
@@ -663,7 +663,8 @@ def _populate_player_series(
             if len(minute_game_times) != len(pp.times_min):
                 minute_game_times = [i * 60 for i in range(len(pp.times_min))]
             pp.game_times_min = minute_game_times
-            pp.gold_t_min = mts.gold_t
+            # OpenDota's gold_t is cumulative earned gold, not cash on hand.
+            pp.gold_t_min = mts.total_earned_gold_t
             pp.total_earned_gold_t_min = mts.total_earned_gold_t
             pp.total_earned_xp_t_min = mts.total_earned_xp_t
             pp.net_worth_t_min = mts.net_worth_t
@@ -826,10 +827,6 @@ def _populate_player_series(
         # avoids the draft pick-order trap). 0 if the hero is absent from the
         # bundled heroes.json snapshot.
         pp.hero_id = hero_id(pp.hero_name) if pp.hero_name else 0
-
-        # gold_spent = total earned gold − current spendable gold (OpenDota parity).
-        if pp.total_earned_gold_t and pp.gold_t:
-            pp.gold_spent = max(0, pp.total_earned_gold_t[-1] - pp.gold_t[-1])
 
         # life_state_dead: seconds spent dead. OpenDota samples life_state once per
         # game-second and sums the non-alive samples (states 1 + 2). We mirror that

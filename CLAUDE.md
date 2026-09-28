@@ -304,17 +304,23 @@ Never compute seconds as `(tick - game_start_tick) // 30`.
 
 ### Gold / XP field sources — critical distinction
 
-Three different gold/XP fields exist; using the wrong one silently produces wrong curves.
+Several gold/XP fields exist; using the wrong one silently produces wrong curves.
+The team-data fields live at `m_vecDataTeam.NNNN.*` (`team_data_field(slot, ...)`).
 
 | Field | Entity | Behaviour | Use for |
 |---|---|---|---|
-| `m_iGold` | `CDOTAPlayerController` | Spendable cash — goes up *and down* | `gold_t` (current cash) |
-| `m_iTotalEarnedGold` | `CDOTA_DataRadiant/Dire` | Monotonically increasing | `radiant_gold_adv`, `total_earned_gold_t` |
+| `m_iReliableGold` + `m_iUnreliableGold` | `CDOTA_DataRadiant/Dire` | Spendable cash — goes up *and down* | `gold_t` (current cash) |
+| `m_iTotalEarnedGold` | `CDOTA_DataRadiant/Dire` | Monotonically increasing | `radiant_gold_adv`, `total_earned_gold_t`, `gold_t_min` |
 | `m_iCurrentXP` | hero entity (`CDOTA_Unit_Hero_*`) | Resets to 0 on each level-up | per-level XP display |
 | `m_iTotalEarnedXP` | `CDOTA_DataRadiant/Dire` | Monotonically increasing | `radiant_xp_adv` |
 
-Using `m_iGold` for advantage curves is wrong because spendable gold drops on every
-purchase. Client replays name the data class `CDOTA_DataRadiant`/`CDOTA_DataDire`
+Using current gold for advantage curves is wrong because spendable gold drops on
+every purchase. OpenDota's per-minute `gold_t` is *earned* gold, so gem's
+`gold_t_min` is too, while gem's dense `gold_t` is cash on hand.
+`CDOTAPlayerController` has no `m_iGold`/`m_iNetWorth` in current replays. The
+terminal `gold_spent` is not derivable from the entity stream (earned − current ≠
+spent); it comes from the embedded `CMsgDOTAMatch` postgame summary, which matches
+OpenDota exactly. Client replays name the data class `CDOTA_DataRadiant`/`CDOTA_DataDire`
 (with underscore); HLTV uses `CDOTADataRadiant`/`CDOTADataDire` — both are handled.
 Reference: pinned `odota/parser` `Parse.java` (`m_vecDataTeam.%i.m_iTotalEarnedGold/XP`).
 

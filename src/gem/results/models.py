@@ -469,7 +469,9 @@ class ParsedPlayer:
         team: Team number (2=Radiant, 3=Dire).
         times: Sample tick values (parallel to gold_t / lh_t / …).
             Default sampling is every 30 ticks (1 game-second).
-        gold_t: Current unspent gold at each sample tick.
+        gold_t: Current unspent gold at each sample tick (team data
+            ``m_iReliableGold + m_iUnreliableGold``). Cash on hand: it drops
+            on every purchase, so use ``total_earned_gold_t`` for curves.
         total_earned_gold_t: Cumulative total earned gold at each sample tick
             (``m_iTotalEarnedGold``).
         net_worth_t: Net worth (gold + item value) at each sample tick.
@@ -483,9 +485,10 @@ class ParsedPlayer:
         game_times_min: Game-relative seconds parallel to ``times_min`` and all
             ``*_t_min`` arrays. Values are exact non-negative minute boundaries
             (``0, 60, 120, ...``) and are the authoritative join key.
-        gold_t_min: OpenDota-compatible cumulative earned gold at each
-            game-minute boundary when interval data is available; legacy
-            current-unspent-gold fallback on replays without complete intervals.
+        gold_t_min: Cumulative earned gold at each game-minute boundary,
+            matching OpenDota's ``gold_t`` (which is earned gold, not cash on
+            hand). Read from interval data when complete, otherwise from the
+            per-minute ``m_iTotalEarnedGold`` samples.
         total_earned_gold_t_min: Cumulative total earned gold at each game-minute boundary
             (``m_iTotalEarnedGold``). Used for ``radiant_gold_adv`` computation.
         total_earned_xp_t_min: Cumulative total earned XP at each game-minute boundary
@@ -635,8 +638,11 @@ class ParsedPlayer:
             OpenDota's ``hero_id``. ``0`` if unresolved.
         level: Terminal hero level, the last dense snapshot's level. Mirrors
             OpenDota's ``level``.
-        gold_spent: Total gold spent over the game (``total earned gold − current
-            gold``), mirroring OpenDota's ``gold_spent``.
+        gold_spent: Total gold spent over the game, from the replay-embedded
+            ``CMsgDOTAMatch`` postgame summary; matches OpenDota's
+            ``gold_spent``. ``0`` when the summary or field is absent (e.g. a
+            truncated replay): it can't be derived from earned minus current
+            gold.
         life_state_dead: Seconds spent dead, sampled from the hero's life state.
             Mirrors OpenDota's ``life_state_dead``.
         firstblood_claimed: ``1`` if this player dealt the game's first-blood kill,

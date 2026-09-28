@@ -134,6 +134,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Per-player current gold and gold spent are correct.** `ParsedPlayer.gold_t`
+  was all zeros on current replays. It read `CDOTAPlayerController.m_iGold`, a
+  field those replays don't have.
+  - `gold_t` is now current unspent gold from the team data entity
+    (`m_iReliableGold + m_iUnreliableGold`). At game end it matches OpenDota's
+    `gold` to within a gold or two. The DataFrame `gold` column, the CLI's final
+    gold, and the HTML movement view read it and are fixed too.
+  - `gold_spent` was total earned gold minus that zero, so it equalled total
+    earned gold. It now comes from the replay's embedded postgame summary
+    (`CMsgDOTAMatch`) and matches OpenDota exactly. It is `0` when the summary
+    is missing, as `gold_per_min` is, because earned minus current gold is not
+    gold spent.
+  - On replays without complete interval data, `gold_t_min` fell back to current
+    gold. It now uses cumulative earned gold, as OpenDota's `gold_t` and the
+    interval path do.
 - **A bug in a callback no longer silently cuts a parse short, and partial
   parses are visible.** `ReplayParser.parse()` caught every exception, so any error
   in gem's extractors or in your own handlers became the warning "Replay stream

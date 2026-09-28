@@ -742,6 +742,7 @@ class TestBuildParsedMatchMatchDetails:
         radiant.tower_damage = 2345
         radiant.gold_per_min = 612
         radiant.xp_per_min = 701
+        radiant.gold_spent = 27160
         radiant.permanent_buffs.add(permanent_buff=12, grant_time=1200)
         radiant.permanent_buffs.add(permanent_buff=23, stack_count=4)
 
@@ -766,9 +767,16 @@ class TestBuildParsedMatchMatchDetails:
         combat_agg = MagicMock()
         combat_agg.players = {0: radiant_agg, 5: dire_agg}
 
+        # Earned-minus-current gold is not gold spent (32575 - 6069 != 27160 on
+        # fixture 8855188139), so these series must not produce a gold_spent.
+        player_ext = _make_player_ext()
+        player_ext.time_series.return_value = _FakeTimeSeries(
+            ticks=[100], gold_t=[1000], total_earned_gold_t=[5000]
+        )
+
         match = build_parsed_match(
             _make_parser(match_details=details, duration_s=3350),
-            _make_player_ext(),
+            player_ext,
             _make_obj_ext(),
             _make_ward_ext(),
             _make_courier_ext(),
@@ -799,6 +807,15 @@ class TestBuildParsedMatchMatchDetails:
         assert {"hero_damage", "tower_damage", "hero_healing"}.issubset(
             match.players[5]._match_details_fields
         )
+
+    def test_gold_spent_comes_only_from_embedded_summary(self):
+        match = self._build()
+
+        assert match.players[0].gold_spent == 27160
+        assert "gold_spent" in match.players[0]._match_details_fields
+        # No summary value: unknown, not a reconstruction from the gold series.
+        assert match.players[5].gold_spent == 0
+        assert "gold_spent" not in match.players[5]._match_details_fields
 
     def test_embedded_rates_derive_opendota_totals(self):
         match = self._build()
@@ -1370,7 +1387,9 @@ class TestBuildParsedMatchGoldXpAdv:
         p0 = m.players[0]
         assert p0.times_min == [1800]
         assert p0.game_times_min == [0]
-        assert p0.gold_t_min == [100]
+        # OpenDota's gold_t is cumulative earned gold, so the fallback uses the
+        # earned series, not current gold (which the stub sets to gold // 10).
+        assert p0.gold_t_min == [1000]
         assert p0.total_earned_gold_t_min == [1000]
         assert p0.xp_t_min == [500]
         assert p0.total_earned_xp_t_min == [500]

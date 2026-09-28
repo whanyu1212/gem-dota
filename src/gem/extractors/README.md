@@ -100,13 +100,14 @@ it calls `_maybe_sample()`, which gates on two cadences:
   game start.
 
 Each sample (`_sample`) builds a `PlayerStateSnapshot` per player from
-`_snapshot_hero`, then overlays the *authoritative* fields: current unspent gold
-and net worth from the controller (`m_iGold`, `m_iNetWorth`), and cumulative
-totals from the team data entity (`m_iTotalEarnedGold`, `m_iTotalEarnedXP`,
-`m_iNetWorth`, `m_iLastHitCount`, `m_iDenyCount`) addressed by
-`m_vecDataTeam.{team_slot:04d}.*`. This field-source distinction is critical:
-advantage curves must use the monotonic `m_iTotalEarnedGold`/`m_iTotalEarnedXP`,
-never the spendable `m_iGold` or the resets-on-level-up `m_iCurrentXP`.
+`_snapshot_hero`, then overlays the *authoritative* fields from the team data
+entity, addressed by `m_vecDataTeam.{team_slot:04d}.*`: cumulative totals
+(`m_iTotalEarnedGold`, `m_iTotalEarnedXP`), `m_iNetWorth`, `m_iLastHitCount`,
+`m_iDenyCount`, and current unspent gold as `m_iReliableGold +
+m_iUnreliableGold`. (`CDOTAPlayerController` has no gold or net-worth field in
+current replays.) This field-source distinction is critical: advantage curves
+must use the monotonic `m_iTotalEarnedGold`/`m_iTotalEarnedXP`, never current
+gold or the resets-on-level-up `m_iCurrentXP`.
 
 `PlayerExtractor` also subscribes to `on_combat_log_entry` to keep running,
 monotonic per-player totals (`_total_hero_damage`, `_total_hero_healing`,
@@ -294,12 +295,12 @@ for doubled-ID picks.
 
 ### Using the wrong gold/XP field
 
-`m_iGold` (controller) is spendable cash and drops on every purchase;
-`m_iCurrentXP` (hero) resets to 0 each level-up. For advantage curves use the
-monotonic `m_iTotalEarnedGold`/`m_iTotalEarnedXP` on
+Current gold (`m_iReliableGold + m_iUnreliableGold`) is spendable cash and
+drops on every purchase; `m_iCurrentXP` (hero) resets to 0 each level-up. For
+advantage curves use the monotonic `m_iTotalEarnedGold`/`m_iTotalEarnedXP` on
 `CDOTADataRadiant`/`CDOTADataDire` (`m_vecDataTeam.{slot}.*`). `PlayerExtractor`
-and `IntervalExtractor` both encode this; do not "simplify" by reading the hero
-or controller gold.
+and `IntervalExtractor` both encode this; do not "simplify" by reading current
+gold for the curves.
 
 ### Passing `allow_owner=True` to a hero-name lookup
 
