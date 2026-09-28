@@ -701,6 +701,34 @@ def test_minute_zero_survives_a_start_seen_after_the_clock_passes_zero():
     assert [snap.time_s for snap in ext.snapshots] == [0, 0, 60, 60]
 
 
+def test_partial_player_map_candidate_is_not_emitted_as_minute_zero():
+    # A candidate read before PlayerResource lists every player would be a
+    # partial batch that assembly discards, losing minute zero for everyone.
+    ext = IntervalExtractor()
+    parser = TickStartFakeParser(tick=1790, game_time_s=None)
+    parser.raw_game_time_s = 825
+    ext.attach(parser)  # type: ignore[arg-type]
+    radiant_only = _ent(
+        "CDOTA_PlayerResource",
+        **{
+            "m_vecPlayerData.0002.m_iPlayerTeam": 2,
+            "m_vecPlayerTeamData.0002.m_iTeamSlot": 1,
+        },
+    )
+    ext._on_entity(radiant_only, EntityOp.UPDATED)
+    ext._on_entity(_zero_radiant_data(), EntityOp.UPDATED)
+    parser.fire_tick_start(5990)
+    ext._on_entity(_player_resource(), EntityOp.UPDATED)
+    ext._on_entity(_zero_dire_data(), EntityOp.UPDATED)
+
+    parser.tick, parser.game_time_s = 1800, 0
+    parser.fire_tick_start(6000)
+
+    assert sorted(snap.player_id for snap in ext.snapshots if snap.time_s == 0) == sorted(
+        ext._player_index_by_id
+    )
+
+
 def test_mid_game_recording_does_not_invent_minute_zero():
     ext = IntervalExtractor()
     parser = TickStartFakeParser(tick=1798, game_time_s=None)

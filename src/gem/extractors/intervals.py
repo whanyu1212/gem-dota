@@ -353,7 +353,10 @@ class IntervalExtractor:
         if raw_time_s is None:
             return
         batch = self._minute_zero_candidates.get(raw_time_s - game_time_s)
-        if not batch:
+        # A candidate read while PlayerResource was still filling in would be a
+        # partial batch, which assembly drops as incomplete; fall back to the
+        # regular minute-zero read with the current player map instead.
+        if not batch or {snap.player_id for snap in batch} != set(self._player_index_by_id):
             return
         self.snapshots.extend(batch)
         self._last_queued_time_s = 0
