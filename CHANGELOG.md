@@ -134,6 +134,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Illusions of enemy heroes no longer steal combat-log credit.** gem mapped a
+  combat-log hero name to whichever entity of that hero class had updated last.
+  Dark Seer's Wall of Replica, Shadow Demon's Disruption and Morphling's Replicate
+  create illusions of *enemy* heroes that carry the caster's player ID, so while
+  one existed the real hero's entries went to the caster. When it disappeared,
+  the name was dropped and the real hero's entries were lost until its next
+  update. A name now maps only to the player's own hero (the controller's
+  `m_hAssignedHero`, else PlayerResource's `m_hSelectedHero`), and the mapping is
+  never removed, as OpenDota's `name_to_slot` works.
+  - On replay 8974053011 (a Dark Seer game), `gold_reasons`, `xp_reasons`,
+    `damage`, `damage_taken`, `damage_inflictor`, `damage_inflictor_received`,
+    `damage_targets`, `healing`, `ability_uses` and `hero_hits` now match OpenDota
+    for 10 of 10 players instead of 4. `killed`, `ability_targets`, lane and
+    neutral kills, purchases, `kills_log` and the per-minute running totals are
+    corrected too.
+  - On 8868259993 (an Ember Spirit game), an Ember Spirit tower kill and a
+    courier kill were credited to a Radiant player; they now match OpenDota.
+    The other 7 local OpenDota fixtures parse byte-identically.
 - **Per-player current gold and gold spent are correct.** `ParsedPlayer.gold_t`
   was all zeros on current replays. It read `CDOTAPlayerController.m_iGold`, a
   field those replays don't have.

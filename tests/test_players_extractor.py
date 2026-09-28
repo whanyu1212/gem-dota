@@ -412,7 +412,7 @@ class TestOnEntityHero:
         e = _hero("Axe", index=5)
         ext._on_entity(e, EntityOp.CREATED)
         assert 5 in ext._heroes
-        assert "npc_dota_hero_axe" in ext._heroes_by_npc
+        assert ext._hero_to_pid("npc_dota_hero_axe") == 0
 
     def test_hero_removed_on_deleted(self):
         ext = PlayerExtractor()
@@ -450,8 +450,19 @@ class TestOnEntityHero:
         ext._on_entity(old, EntityOp.DELETED)
 
         assert ext._heroes[5] is replacement
-        assert "npc_dota_hero_axe" not in ext._heroes_by_npc
-        assert ext._heroes_by_npc["npc_dota_hero_pudge"] is replacement
+        assert ext._hero_to_pid("npc_dota_hero_pudge") == 0
+
+    def test_hero_names_survive_entity_deletion(self):
+        # OpenDota never clears name_to_slot; late combat-log entries naming a
+        # deleted hero entity must still resolve.
+        ext = PlayerExtractor()
+        ext.attach(FakeParser())
+        axe = _hero("Axe", player_id=3, index=5)
+
+        ext._on_entity(axe, EntityOp.CREATED)
+        ext._on_entity(axe, EntityOp.DELETED)
+
+        assert ext._hero_to_pid("npc_dota_hero_axe") == 3
 
     def test_controller_registered(self):
         ext = PlayerExtractor()
@@ -543,6 +554,101 @@ class TestOnEntityHero:
 # ---------------------------------------------------------------------------
 
 
+class TestHeroNameOwnership:
+    """Combat-log hero names belong to the player's own hero (OpenDota name_to_slot).
+
+    Dark Seer's Wall of Replica spawns ``CDOTA_Unit_Hero_<Target>`` illusions
+    that carry Dark Seer's player ID (seen on replay 8974053011).
+    """
+
+    _LIFE_STEALER = "npc_dota_hero_life_stealer"
+
+    def _ext_with_selected_heroes(self):
+        ext = PlayerExtractor()
+        parser = FakeParser()
+        life_stealer = _hero("Life_Stealer", player_id=4, index=11)
+        dark_seer = _hero("DarkSeer", player_id=7, index=12)
+        parser.entity_manager = FakeEntityManager({101: life_stealer, 202: dark_seer})
+        ext.attach(parser)
+        ext._player_resource = _ent(
+            "CDOTA_PlayerResource",
+            **{
+                "m_vecPlayerTeamData.0004.m_hSelectedHero": 101,
+                "m_vecPlayerTeamData.0007.m_hSelectedHero": 202,
+            },
+        )
+        ext._register_hero_names(life_stealer, life_stealer.get_class_name())
+        ext._register_hero_names(dark_seer, dark_seer.get_class_name())
+        return ext
+
+    def test_enemy_illusion_does_not_steal_the_name(self):
+        ext = self._ext_with_selected_heroes()
+        wall_illusion = _hero("Life_Stealer", player_id=7, index=30)
+
+        ext._register_hero_names(wall_illusion, wall_illusion.get_class_name())
+
+        assert ext._hero_to_pid(self._LIFE_STEALER) == 4
+
+    def test_deleted_illusion_does_not_orphan_the_name(self):
+        ext = self._ext_with_selected_heroes()
+        wall_illusion = _hero("Life_Stealer", player_id=7, index=30)
+        ext._heroes[30] = wall_illusion
+
+        ext._register_hero_names(wall_illusion, wall_illusion.get_class_name())
+        ext._on_entity(wall_illusion, EntityOp.DELETED)
+
+        assert ext._hero_to_pid(self._LIFE_STEALER) == 4
+
+    def test_first_claim_holds_until_the_hero_handle_is_known(self):
+        ext = PlayerExtractor()
+        ext.attach(FakeParser())
+        real = _hero("Life_Stealer", player_id=4, index=11)
+        illusion = _hero("Life_Stealer", player_id=7, index=30)
+
+        ext._register_hero_names(real, real.get_class_name())
+        ext._register_hero_names(illusion, illusion.get_class_name())
+
+        assert ext._hero_to_pid(self._LIFE_STEALER) == 4
+
+    def test_own_hero_replaces_an_earlier_provisional_claim(self):
+        ext = PlayerExtractor()
+        parser = FakeParser()
+        real = _hero("Life_Stealer", player_id=4, index=11)
+        illusion = _hero("Life_Stealer", player_id=7, index=30)
+        parser.entity_manager = FakeEntityManager({101: real})
+        ext.attach(parser)
+
+        ext._register_hero_names(illusion, illusion.get_class_name())
+        ext._player_resource = _ent(
+            "CDOTA_PlayerResource", **{"m_vecPlayerTeamData.0004.m_hSelectedHero": 101}
+        )
+        ext._register_hero_names(real, real.get_class_name())
+
+        assert ext._hero_to_pid(self._LIFE_STEALER) == 4
+
+    def test_gold_goes_to_the_real_hero_while_an_illusion_exists(self):
+        from gem.combat.aggregator import _CombatAggregator
+        from gem.combat.log import CombatLogEntry
+
+        ext = self._ext_with_selected_heroes()
+        wall_illusion = _hero("Life_Stealer", player_id=7, index=30)
+        ext._register_hero_names(wall_illusion, wall_illusion.get_class_name())
+        agg = _CombatAggregator(ext)
+
+        agg.on_entry(
+            CombatLogEntry(
+                tick=100,
+                log_type="GOLD",
+                target_name=self._LIFE_STEALER,
+                value=300,
+                gold_reason=12,
+            )
+        )
+
+        assert agg.players[4].gold_reasons == {"12": 300}
+        assert 7 not in agg.players
+
+
 class TestHeroPos:
     def test_returns_position_when_tracked(self):
         ext = PlayerExtractor()
@@ -595,10 +701,11 @@ class TestHeroPos:
         )
         parser.entity_manager = FakeEntityManager({123: real})
         ext.attach(parser)
-        ext._heroes_by_npc["npc_dota_hero_sven"] = illusion
         ext._player_resource = _ent(
             "CDOTA_PlayerResource", **{"m_vecPlayerTeamData.0000.m_hSelectedHero": 123}
         )
+        ext._register_hero_names(real, real.get_class_name())
+        ext._register_hero_names(illusion, illusion.get_class_name())
         assert ext.hero_pos("npc_dota_hero_sven") == (5 * 128 + 1.0, 6 * 128 + 2.0)
 
 
@@ -1524,8 +1631,7 @@ class TestDeathCountReincarnation:
         from gem.extractors.players import PlayerExtractor
 
         ext = PlayerExtractor()
-        hero = _hero("SkeletonKing", player_id=0)  # npc_dota_hero_skeleton_king
-        ext._heroes_by_npc["npc_dota_hero_skeleton_king"] = hero
+        ext._player_id_by_npc["npc_dota_hero_skeleton_king"] = 0
         return ext
 
     def test_normal_death_counted(self):

@@ -82,6 +82,11 @@ def _hero_entity(player_id_raw: int) -> Entity:
     return entity
 
 
+def _resolver(heroes: dict[str, int]):
+    """Stand in for ``PlayerExtractor._hero_to_pid`` with a name -> slot map."""
+    return lambda npc_name: heroes.get(npc_name.lower())
+
+
 def _make_agg(player_id_raw: int = 0) -> tuple[_CombatAggregator, Entity]:
     """Return a _CombatAggregator wired to a single fake hero entity."""
     player_ext = MagicMock()
@@ -90,7 +95,7 @@ def _make_agg(player_id_raw: int = 0) -> tuple[_CombatAggregator, Entity]:
     # auto-generated MagicMock attributes.
     player_ext._parser = None
     hero_entity = _hero_entity(player_id_raw)
-    player_ext._heroes_by_npc = {"npc_dota_hero_axe": hero_entity}
+    player_ext._hero_to_pid = _resolver({"npc_dota_hero_axe": player_id_raw // 2})
     return _CombatAggregator(player_ext), hero_entity
 
 
@@ -150,12 +155,7 @@ class TestCombatAggregatorDamage:
     def test_damage_taken_on_target(self):
         player_ext = MagicMock()
         # attacker = axe (pid 0), target = mirana (pid 1)
-        axe_entity = _hero_entity(0)
-        mirana_entity = _hero_entity(2)  # slot 1
-        player_ext._heroes_by_npc = {
-            "npc_dota_hero_axe": axe_entity,
-            "npc_dota_hero_mirana": mirana_entity,
-        }
+        player_ext._hero_to_pid = _resolver({"npc_dota_hero_axe": 0, "npc_dota_hero_mirana": 1})
         agg = _CombatAggregator(player_ext)
         e = _entry(attacker_is_hero=True, target_is_hero=True, value=100)
         agg.on_entry(e)
@@ -171,12 +171,7 @@ class TestCombatAggregatorDamage:
 
     def test_damage_taken_by_type_accumulates_for_target(self):
         player_ext = MagicMock()
-        axe_entity = _hero_entity(0)
-        mirana_entity = _hero_entity(2)  # slot 1
-        player_ext._heroes_by_npc = {
-            "npc_dota_hero_axe": axe_entity,
-            "npc_dota_hero_mirana": mirana_entity,
-        }
+        player_ext._hero_to_pid = _resolver({"npc_dota_hero_axe": 0, "npc_dota_hero_mirana": 1})
         agg = _CombatAggregator(player_ext)
         agg.on_entry(
             _entry(
@@ -300,12 +295,7 @@ class TestCombatAggregatorSourceAttribution:
     def test_damage_taken_keyed_by_source(self):
         player_ext = MagicMock()
         player_ext._parser = None
-        axe_entity = _hero_entity(0)
-        mirana_entity = _hero_entity(2)  # slot 1
-        player_ext._heroes_by_npc = {
-            "npc_dota_hero_axe": axe_entity,
-            "npc_dota_hero_mirana": mirana_entity,
-        }
+        player_ext._hero_to_pid = _resolver({"npc_dota_hero_axe": 0, "npc_dota_hero_mirana": 1})
         agg = _CombatAggregator(player_ext)
         agg.on_entry(
             _entry(
@@ -439,12 +429,7 @@ class TestDamageTypeConsistency:
 
     def test_damage_taken_by_type_sums_to_total_taken(self):
         player_ext = MagicMock()
-        axe_entity = _hero_entity(0)
-        mirana_entity = _hero_entity(2)  # slot 1
-        player_ext._heroes_by_npc = {
-            "npc_dota_hero_axe": axe_entity,
-            "npc_dota_hero_mirana": mirana_entity,
-        }
+        player_ext._hero_to_pid = _resolver({"npc_dota_hero_axe": 0, "npc_dota_hero_mirana": 1})
         agg = _CombatAggregator(player_ext)
         for dmg_type, val in [("physical", 200), ("magical", 150), ("pure", 50)]:
             agg.on_entry(
@@ -542,12 +527,7 @@ def _two_hero_agg() -> _CombatAggregator:
     """Aggregator with axe (pid 0) and mirana (pid 1) as resolvable heroes."""
     player_ext = MagicMock()
     player_ext._parser = None
-    axe = _hero_entity(0)  # raw // 2 -> slot 0
-    mirana = _hero_entity(2)  # raw // 2 -> slot 1
-    player_ext._heroes_by_npc = {
-        "npc_dota_hero_axe": axe,
-        "npc_dota_hero_mirana": mirana,
-    }
+    player_ext._hero_to_pid = _resolver({"npc_dota_hero_axe": 0, "npc_dota_hero_mirana": 1})
     return _CombatAggregator(player_ext)
 
 
@@ -692,7 +672,7 @@ def owned_unit(request):
     em.find_by_handle.return_value = owner
     player_ext = SimpleNamespace(
         _parser=SimpleNamespace(entity_manager=em),
-        _heroes_by_npc={_OWNER: owner, _SOURCE: _hero_entity(2), _TARGET: _hero_entity(4)},
+        _hero_to_pid=_resolver({_OWNER: 0, _SOURCE: 1, _TARGET: 2}),
     )
     return _CombatAggregator(player_ext), em, request.param
 

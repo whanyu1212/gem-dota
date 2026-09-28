@@ -146,8 +146,15 @@ class PlayerExtractor:
         self._last_sample_check_tick: int | None = None
         # entity index → Entity (mutable reference; entity is updated in place)
         self._heroes: dict[int, Entity] = {}
-        # npc_name → Entity (for external position lookups)
-        self._heroes_by_npc: dict[str, Entity] = {}
+        # Combat-log hero name → player slot (OpenDota's name_to_slot). Only a
+        # player's own hero entity may claim its names, and entries are never
+        # removed: enemy-hero illusions share the real hero's class but carry the
+        # caster's player ID, so the most recently updated hero-class entity is
+        # not a safe owner. See _register_hero_names.
+        self._player_id_by_npc: dict[str, int] = {}
+        # player slot → the hero entity that claimed its names (position fallback
+        # when the player's hero handle cannot be resolved).
+        self._named_heroes: dict[int, Entity] = {}
         # Hero class name → combat-log NPC aliases.
         self._hero_aliases_by_class: dict[str, tuple[str, str]] = {}
         # player_id → Entity (CDOTAPlayerController)
@@ -306,7 +313,7 @@ class PlayerExtractor:
         Returns:
             Player slot 0-9, or ``None`` if the hero is not tracked.
         """
-        return _player_id_from_entity(self._heroes_by_npc.get(npc_name.lower()))
+        return self._player_id_by_npc.get(npc_name.lower())
 
     def _source_to_pid(self, entry: CombatLogEntry) -> int | None:
         """Resolve the damage/heal *source* hero of a combat log entry to a slot.
@@ -335,15 +342,11 @@ class PlayerExtractor:
         Returns:
             ``(x, y)`` world coordinates, or ``None`` if the hero is not tracked.
         """
-        entity = self._heroes_by_npc.get(npc_name.lower())
-        if entity is None:
+        pid = self._player_id_by_npc.get(npc_name.lower())
+        if pid is None:
             return None
-        pid = _player_id_from_entity(entity)
-        if pid is not None:
-            canonical = self._canonical_hero_entity(pid)
-            if canonical is not None:
-                return _pos(canonical)
-        return _pos(entity)
+        entity = self._canonical_hero_entity(pid) or self._named_heroes.get(pid)
+        return _pos(entity) if entity is not None else None
 
     def time_series(self, player_id: int) -> PlayerTimeSeries:
         """Aggregate snapshots for one player into time-series lists.
@@ -454,10 +457,8 @@ class PlayerExtractor:
                 previous = self._heroes.get(idx)
                 if previous is not None and previous.get_serial() != entity.get_serial():
                     self._remove_hero(previous)
-                npc1, npc2 = self._hero_aliases(cls)
                 self._heroes[idx] = entity
-                self._heroes_by_npc[npc1] = entity
-                self._heroes_by_npc[npc2] = entity
+                self._register_hero_names(entity, cls)
                 should_sample = True
 
         elif cls == "CDOTAPlayerController":
@@ -509,17 +510,53 @@ class PlayerExtractor:
         self._hero_aliases_by_class[class_name] = aliases
         return aliases
 
+    def _register_hero_names(self, entity: Entity, class_name: str) -> None:
+        """Map a hero entity's combat-log names to its player, if it owns them.
+
+        Mirrors OpenDota's ``name_to_slot``, which is filled only from each
+        player's selected-hero handle and never cleared. Enemy-hero illusions
+        (Dark Seer's Wall of Replica, Shadow Demon's Disruption, Morphling's
+        Replicate) are ``CDOTA_Unit_Hero_<Target>`` entities carrying the
+        *caster's* player ID, so accepting any hero-class entity would hand the
+        target hero's combat-log entries to the caster. Once the player's hero
+        handle is known, only that entity may claim names; before then, an
+        entity may claim only names nobody holds yet.
+
+        Reference: odota/parser src/main/java/opendota/Parse.java
+        (``name_to_slot`` from ``m_hSelectedHero``).
+        """
+        player_id = _player_id_from_entity(entity)
+        if player_id is None:
+            return
+        npc1, npc2 = self._hero_aliases(class_name)
+        already_named = self._player_id_by_npc.get(npc1) == player_id
+        if already_named and self._named_heroes.get(player_id) is entity:
+            return
+
+        handle = self._hero_handle_for_player(player_id)
+        if handle is not None:
+            em = self._parser.entity_manager if self._parser is not None else None
+            if em is None or em.find_by_handle(handle) is not entity:
+                return
+        elif npc1 in self._player_id_by_npc or npc2 in self._player_id_by_npc:
+            return
+
+        self._player_id_by_npc[npc1] = player_id
+        self._player_id_by_npc[npc2] = player_id
+        self._named_heroes[player_id] = entity
+
     def _remove_hero(self, entity: Entity) -> None:
-        """Remove hero mappings only when they still belong to this identity."""
+        """Forget a hero entity only when the slot still holds this identity.
+
+        Combat-log names stay mapped: OpenDota never removes ``name_to_slot``
+        entries, and a deleted illusion must not orphan the real hero's name.
+        """
         idx = entity.get_index()
         current = self._heroes.get(idx)
         if current is None or current.get_serial() != entity.get_serial():
             return
 
         self._heroes.pop(idx, None)
-        for npc_name in self._hero_aliases(current.get_class_name()):
-            if self._heroes_by_npc.get(npc_name) is current:
-                self._heroes_by_npc.pop(npc_name, None)
 
     def _refresh_team_slots(self) -> None:
         """Build the logical→resource remap and read m_iTeamSlot per player.

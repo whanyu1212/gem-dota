@@ -203,6 +203,7 @@
       "tier": "regression",
       "capabilities": [
         "aegis-denial",
+        "enemy-hero-illusions",
         "roshan-conversion-calibration"
       ],
       "replaced_by": null,
