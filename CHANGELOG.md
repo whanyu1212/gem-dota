@@ -131,8 +131,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ended early" and a partial result. That error was also never passed on to the
   result, so `gem.parse()` and `parse_many()` reported partial parses as success.
   - Only problems in the replay data end a parse early now: a
-    `gem.ReplayDataError`, a protobuf decode error, or a Snappy error. Everything
-    else propagates.
+    `gem.ReplayDataError`. gem reports its own protobuf, Snappy, and bitstream
+    decoding failures that way. Everything else propagates, including errors your
+    callbacks raise.
   - The stream detects a truncated file itself and raises
     `gem.TruncatedReplayError`, a `ReplayDataError` that is also an `EOFError`.
   - `ParsedMatch.parse_error` and `truncated_at_tick` record why and where a
@@ -140,7 +141,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Existing data errors now subclass `ReplayDataError` but keep their old types,
     so `except` clauses written for them still match: `BufferReadError` is an
     `EOFError`, an unknown string table a `KeyError`, LZSS tables
-    `NotImplementedError`, and entity-table inconsistencies a `RuntimeError`.
+    `NotImplementedError`, entity-table inconsistencies a `RuntimeError`, and a
+    varint overflow an `OverflowError`.
   - Behavior change: `gem.parse()` on a missing file now raises
     `FileNotFoundError` instead of returning an empty match.
 - **Combat-log entries by non-hero units are credited like OpenDota.** When an

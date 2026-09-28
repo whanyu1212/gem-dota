@@ -215,4 +215,7 @@ def _snappy_decompress(data: bytes) -> bytes:
             "Snappy-compressed messages require 'python-snappy'. "
             "Install it with: uv add python-snappy"
         ) from exc
-    return snappy.decompress(data)
+    try:
+        return snappy.decompress(data)
+    except snappy.UncompressError as exc:
+        raise ReplayDataError("corrupt Snappy-compressed frame") from exc

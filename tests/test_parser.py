@@ -1364,3 +1364,26 @@ class TestParseErrorHandling:
         match = gem.parse(str(_FIXTURE_TRUNCATED))
         assert match.parse_error.startswith("TruncatedReplayError(")
         assert match.truncated_at_tick == 2375
+
+
+class TestDecodeErrorsFromCallbacks:
+    def test_protobuf_error_raised_by_a_callback_propagates(self):
+        from google.protobuf.message import DecodeError
+
+        parser = ReplayParser(str(_FIXTURE_TRUNCATED))
+
+        def decodes_badly(entity, op):
+            raise DecodeError("callback's own protobuf problem")
+
+        parser.on_entity(decodes_badly)
+        with pytest.raises(DecodeError, match="callback's own"):
+            parser.parse()
+        assert parser.parse_error is None
+
+    def test_gem_protobuf_decode_errors_become_replay_data_errors(self):
+        from gem.errors import ReplayDataError
+        from gem.parser import _parse_proto
+        from gem.proto.networkbasetypes_pb2 import CNETMsg_Tick
+
+        with pytest.raises(ReplayDataError, match="invalid CNETMsg_Tick payload"):
+            _parse_proto(CNETMsg_Tick(), b"\xff\xff\xff")

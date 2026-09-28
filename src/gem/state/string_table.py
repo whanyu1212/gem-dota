@@ -282,7 +282,10 @@ def handle_create(msg: object, string_tables: StringTables) -> StringTable:
     if data_compressed:
         if buf[:4] == b"LZSS":
             raise UnsupportedReplayError("LZSS decompression not supported (old replay)")
-        buf = snappy.decompress(buf)
+        try:
+            buf = snappy.decompress(buf)
+        except snappy.UncompressError as exc:
+            raise ReplayDataError(f"string table {name!r}: corrupt compressed data") from exc
 
     table = StringTable(
         index=string_tables._next_index,

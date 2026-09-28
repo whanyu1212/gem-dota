@@ -15,7 +15,7 @@ from __future__ import annotations
 import math
 import struct
 
-from gem.errors import ReplayDataError
+from gem.errors import ReplayDataError, VarintOverflowError
 
 
 class BufferReadError(ReplayDataError, EOFError):
@@ -333,7 +333,8 @@ class BitReader:
 
         Raises:
             BufferReadError: If the buffer is exhausted mid-varint.
-            OverflowError: If the encoded value exceeds uint64 range.
+            VarintOverflowError: If the encoded value exceeds uint64 range (an
+                ``OverflowError`` and a ``ReplayDataError``).
         """
         x = 0
         s = 0
@@ -341,11 +342,11 @@ class BitReader:
             b = self._read_byte()
             if b < 0x80:
                 if i == 9 and b > 1:
-                    raise OverflowError("varuint64 overflows uint64")
+                    raise VarintOverflowError("varuint64 overflows uint64")
                 return x | (b << s)
             x |= (b & 0x7F) << s
             s += 7
-        raise OverflowError("varuint64 overflows uint64")
+        raise VarintOverflowError("varuint64 overflows uint64")
 
     def read_varint64(self) -> int:
         """Read a signed 64-bit protobuf-style varint using zigzag decoding.

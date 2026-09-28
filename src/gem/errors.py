@@ -23,6 +23,10 @@ class TruncatedReplayError(ReplayDataError, EOFError):
     """The replay file ends in the middle of a message."""
 
 
+class VarintOverflowError(ReplayDataError, OverflowError):
+    """A varint in the replay encodes a value too large for its type."""
+
+
 class UnsupportedReplayError(ReplayDataError, NotImplementedError):
     """The replay uses a format gem doesn't support (e.g. LZSS string tables)."""
 

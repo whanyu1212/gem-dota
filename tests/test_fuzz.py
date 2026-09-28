@@ -5,8 +5,8 @@ hanging or crashing with an unhandled exception at the public API level.
 
 Key design contract (from parser.py):
 - ``ReplayParser.parse()`` stops early on a problem in the replay data
-  (``gem.errors.ReplayDataError``, protobuf ``DecodeError``, Snappy
-  ``UncompressError``) and keeps whatever it read. Bad or truncated input
+  (``gem.errors.ReplayDataError``; gem reports its own protobuf, Snappy, and
+  bitstream failures that way) and keeps whatever it read. Bad or truncated input
   returns a ``ParsedMatch`` whose ``parse_error`` says why it stopped.
 - Anything that is not replay data propagates: a missing file raises
   ``FileNotFoundError``, and a bug in a callback raises its own exception.

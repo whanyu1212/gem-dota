@@ -117,10 +117,11 @@ has, and records why. The reason is on the result as `ParsedMatch.parse_error` (
 `ReplayParser`), with the last tick read in `truncated_at_tick`; both are `None` for a
 complete parse. `parse_many()` results expose this as `ParseResult.complete`.
 
-Only problems in the replay data are handled this way: a
-`gem.ReplayDataError` (including `gem.TruncatedReplayError`), a protobuf decode error,
-or a Snappy decompression error. Anything else, such as a missing file or a bug in a
-callback you registered, raises as usual rather than silently cutting the parse short.
+Only problems in the replay data are handled this way: a `gem.ReplayDataError`,
+including `gem.TruncatedReplayError`. gem reports its own protobuf, Snappy, and
+bitstream decoding failures as `ReplayDataError`. Anything else, such as a missing
+file or a bug in a callback you registered (even one that raises a protobuf error of
+its own), raises as usual rather than silently cutting the parse short.
 
 ## Build-specific field and schema differences
 
