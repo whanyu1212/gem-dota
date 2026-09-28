@@ -182,6 +182,8 @@ player.stuns_dealt     # float: total stun seconds dealt to enemy heroes
 
 # End-of-game scalars (simplest values; read these unless you need the curve)
 player.net_worth       # int: net worth at game end
+player.gold            # int: unspent gold at game end
+player.gold_spent      # int: gold spent on items and consumables
 player.last_hits       # int: last-hit count at game end
 player.denies          # int: deny count at game end
 
@@ -216,9 +218,15 @@ inventory.
 ### Time-series logs
 
 ```python
-player.purchase_log    # list[{"tick": int, "key": str}]: item purchases in order
-player.buyback_log     # list[{"tick": int, "cost": int}]: buyback events
-player.runes_log       # list[{"tick": int, "type": int}]: rune pickups
+player.purchase_log    # list[CombatLogEntry]: item purchases in order (value_name = item)
+player.runes_log       # list[CombatLogEntry]: rune pickups (rune_type = rune)
+player.buyback_log     # list[CombatLogEntry]: raw BUYBACK entries
+player.buybacks        # list[BuybackEvent]: one per buyback, with its gold cost
+
+for bb in player.buybacks:
+    # cost is exact when cost_exact, else estimated as 200 + net_worth // 13.
+    # reliable_gold / unreliable_gold estimate how it was paid (or None).
+    print(bb.tick, bb.cost, bb.cost_exact, bb.reliable_gold, bb.unreliable_gold)
 
 player.lane_pos        # dict[str, int]: grid cell → visit count (first 10 minutes)
 
@@ -231,6 +239,35 @@ player.lane_efficiency_pct # int: floor(lane_total_gold / 4948 × 100); can exce
 player.lane_gold_adv       # int | None: gold vs lane opponents at 10 min (None for jungle/roaming)
 player.lane_xp_adv         # int | None: XP vs lane opponents at 10 min (None for jungle/roaming)
 ```
+
+### Gold ledger
+
+`player.gold_ledger` breaks a player's gold down into where it came from and where it
+went. It reads the running totals the game keeps per player: gold earned by source
+(hero kills, creeps, neutrals, passive income, Roshan, buildings, bounty runes, …),
+gold spent by category (items, consumables, support items, buybacks), and gold lost on
+death. `final` is read at the game-end tick; `per_minute` is parallel to
+`player.game_times_min`. It is `None` when the replay's team data has no complete
+ledger.
+
+```python
+ledger = player.gold_ledger
+if ledger is not None and ledger.final is not None:
+    final = ledger.final
+    print(final.hero_kill_gold, final.creep_kill_gold, final.income_gold)
+    print(final.spent_on_items + final.spent_on_consumables)  # == player.gold_spent
+    print(final.spent_on_buybacks, final.lost_to_death)
+
+    # Gold from hero kills by minute
+    for snap in ledger.per_minute:
+        print(snap.game_time_s, snap.hero_kill_gold)
+```
+
+The earned sources sum to the player's total earned gold, except for a gold source
+a newer patch adds before the replay schema has a field for it. `shared_gold` is
+already counted in them, and `spent_on_support` is already part of items and
+consumables. In DataFrames, pass `include="gold_ledger"` for the
+`player_gold_ledger` and `player_gold_ledger_minutes` tables.
 
 `lane_pos` is restricted to the first 10 game-minutes (OpenDota convention). `lane_role` is
 inferred by aggregating `lane_pos` into coarse lane zones — see

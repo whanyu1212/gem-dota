@@ -94,6 +94,7 @@ Optional groups (pass `include=[...]`):
 | Group | Tables |
 |---|---|
 | `"analysis"` | `teamfight_positioning`, `roshan_conversions`, `roshan_conversion_fights`, `smoke_fight_insights`, `smoke_fight_members`, `smoke_fight_followups`, `farming_routes`, `farming_route_segments`, `farming_route_points`, `farming_context_tags` |
+| `"gold_ledger"` | `player_gold_ledger` (one row per player, at game end), `player_gold_ledger_minutes` (one row per player-minute) |
 | `"opendota"` | `opendota_objectives`, `opendota_teamfights` |
 
 ```python

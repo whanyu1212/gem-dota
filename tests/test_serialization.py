@@ -18,7 +18,10 @@ from gem.combat.log import CombatLogEntry, CombatLogSource, CombatLogType
 from gem.extractors.objectives import AegisEvent, RoshanKill
 from gem.extractors.teamfights import OpenDotaTeamfight, Teamfight, TeamfightPlayer
 from gem.results.models import (
+    BuybackEvent,
     EntityVisibilityEvent,
+    GoldLedger,
+    GoldLedgerSnapshot,
     HeroVisibilityEvent,
     ParsedMatch,
     ParsedPlayer,
@@ -435,6 +438,39 @@ class TestJsonRoundTrip:
 
         assert loaded.match_id == 7
         assert loaded.combat_log == []
+
+    def test_gold_ledger_and_exact_buybacks_round_trip(self):
+        player = ParsedPlayer(player_id=0, gold=6069)
+        player.buybacks = [
+            BuybackEvent(
+                tick=13,
+                player_slot=0,
+                cost=1836,
+                net_worth=21278,
+                cost_exact=True,
+                reliable_gold=1625,
+                unreliable_gold=211,
+            )
+        ]
+        player.gold_ledger = GoldLedger(
+            final=GoldLedgerSnapshot(tick=90, game_time_s=62, spent_on_buybacks=1836),
+            per_minute=[GoldLedgerSnapshot(tick=30, game_time_s=0)],
+        )
+        match = ParsedMatch(players=[player])
+
+        assert gem.from_dict(json.loads(gem.to_json(match))) == match
+
+    def test_older_json_without_gold_ledger_fields_loads_with_defaults(self):
+        payload = json.loads(gem.to_json(ParsedMatch(players=[ParsedPlayer(player_id=0)])))
+        player = payload["players"][0]
+        del player["gold"], player["gold_ledger"]
+        player["buybacks"] = [{"tick": 1, "player_slot": 0, "cost": 500, "net_worth": 3900}]
+
+        loaded = gem.from_dict(payload).players[0]
+
+        assert (loaded.gold, loaded.gold_ledger) == (0, None)
+        assert loaded.buybacks == [BuybackEvent(tick=1, player_slot=0, cost=500, net_worth=3900)]
+        assert loaded.buybacks[0].cost_exact is False
 
     def test_from_dict_rejects_newer_schema_version(self):
         with pytest.raises(ValueError, match="newer gem"):

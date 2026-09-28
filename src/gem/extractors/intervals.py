@@ -32,7 +32,7 @@ from gem.extractors._snapshots import (
     scan_player_resource,
     team_data_prefix,
 )
-from gem.schema.sendtable.models import FieldAccessPlan
+from gem.schema.sendtable.models import FieldAccessPlan, ResolvedField
 from gem.state.entities import Entity, EntityOp
 
 if TYPE_CHECKING:
@@ -40,8 +40,36 @@ if TYPE_CHECKING:
 
 _FINAL_INTERVAL_GRACE_S = 15
 
-# One observed team-data frame for a slot: (observed_tick, (gold, xp, lh, dn, nw)).
-_TeamDataFrame = tuple[int, tuple[int, int, int, int, int]]
+# The per-player gold ledger in ``m_vecDataTeam``, as (GoldLedgerSnapshot attribute,
+# entity field). Every value is a running total. None of the pinned upstream
+# parsers reads these; see ``GoldLedgerSnapshot`` for how they were validated.
+LEDGER_FIELDS: tuple[tuple[str, str], ...] = (
+    ("hero_kill_gold", "m_iHeroKillGold"),
+    ("creep_kill_gold", "m_iCreepKillGold"),
+    ("neutral_kill_gold", "m_iNeutralKillGold"),
+    ("income_gold", "m_iIncomeGold"),
+    ("building_gold", "m_iBuildingGold"),
+    ("roshan_gold", "m_iRoshanGold"),
+    ("bounty_gold", "m_iBountyGold"),
+    ("ward_kill_gold", "m_iWardKillGold"),
+    ("courier_gold", "m_iCourierGold"),
+    ("ability_gold", "m_iAbilityGold"),
+    ("comeback_gold", "m_iComebackGold"),
+    ("creep_deny_gold", "m_iCreepDenyGold"),
+    ("other_gold", "m_iOtherGold"),
+    ("shared_gold", "m_iSharedGold"),
+    ("spent_on_items", "m_iGoldSpentOnItems"),
+    ("spent_on_consumables", "m_iGoldSpentOnConsumables"),
+    ("spent_on_support", "m_iGoldSpentOnSupport"),
+    ("spent_on_buybacks", "m_iGoldSpentOnBuybacks"),
+    ("lost_to_death", "m_iGoldLostToDeath"),
+)
+
+# One slot's values at a boundary: (gold, xp, lh, dn, net_worth, ledger), where
+# ledger follows LEDGER_FIELDS and is None unless every ledger field is present.
+_SlotValues = tuple[int, int, int, int, int, tuple[int, ...] | None]
+# One observed team-data frame for a slot: (observed_tick, slot values).
+_TeamDataFrame = tuple[int, _SlotValues]
 
 # Terminal counters read from the same ``m_vecDataTeam`` entry as gold/xp. These
 # are monotonic totals consumed only as end-of-game scalars (not curves), so the
@@ -66,7 +94,10 @@ _TEAM_DATA_FIELD_NAMES = (
     "m_iDenyCount",
     "m_iNetWorth",
     *_TEAM_COUNTER_FIELDS.values(),
+    *(field_name for _, field_name in LEDGER_FIELDS),
 )
+_COUNTER_OFFSET = 5
+_LEDGER_OFFSET = _COUNTER_OFFSET + len(_TEAM_COUNTER_FIELDS)
 _TEAM_DATA_FIELDS = FieldAccessPlan(
     tuple(
         f"{team_data_prefix(team_slot)}.{field_name}"
@@ -108,6 +139,8 @@ class IntervalSnapshot:
     lh: int = 0
     dn: int = 0
     net_worth: int = 0
+    # Gold ledger values in LEDGER_FIELDS order, or None when incomplete.
+    ledger: tuple[int, ...] | None = None
 
 
 @dataclass(slots=True)
@@ -122,6 +155,8 @@ class IntervalTimeSeries:
     lh_t: list[int] = field(default_factory=list)
     dn_t: list[int] = field(default_factory=list)
     net_worth_t: list[int] = field(default_factory=list)
+    # Gold ledger per sample in LEDGER_FIELDS order, None where incomplete.
+    ledger: list[tuple[int, ...] | None] = field(default_factory=list)
 
 
 class IntervalExtractor:
@@ -202,6 +237,9 @@ class IntervalExtractor:
         self._last_raw_time_s: int | None = None
         self._ended = False
         self.snapshots = []
+        # player id -> (tick, game_time_s, ledger in LEDGER_FIELDS order), read at
+        # the game-end tick. Players without a complete ledger are absent.
+        self.final_ledgers: dict[int, tuple[int, int, tuple[int, ...]]] = {}
 
     def attach(self, parser: ReplayParser) -> None:
         """Register parser callbacks."""
@@ -251,6 +289,7 @@ class IntervalExtractor:
             ts.lh_t.append(snap.lh)
             ts.dn_t.append(snap.dn)
             ts.net_worth_t.append(snap.net_worth)
+            ts.ledger.append(snap.ledger)
         return ts
 
     def _clock(self) -> int | None:
@@ -274,7 +313,37 @@ class IntervalExtractor:
 
     def _on_game_end(self, tick: int) -> None:
         self._emit_final_boundary(tick)
+        self._read_final_ledgers(tick)
         self._ended = True
+
+    def _read_final_ledgers(self, tick: int) -> None:
+        """Read every mapped player's gold ledger at the game-end tick."""
+        game_time_s = getattr(self._parser, "game_time_s", None)
+        for player_id in sorted(self._player_index_by_id):
+            team = self._player_team.get(player_id, 0)
+            team_slot = self._player_team_slot.get(player_id)
+            data_entity = self._data_radiant if team == TEAM_RADIANT else self._data_dire
+            if team_slot is None or data_entity is None:
+                continue
+            fields = data_entity._resolve_fields(_TEAM_DATA_FIELDS)
+            ledger = _read_slot(data_entity, fields, team_slot * len(_TEAM_DATA_FIELD_NAMES))[5]
+            if ledger is not None:
+                self.final_ledgers[player_id] = (tick, game_time_s or 0, ledger)
+
+    def player_for_team_slot(self, team: int, team_slot: int) -> int | None:
+        """Return the logical player (0-9) on a team's data-entity slot.
+
+        Args:
+            team: ``TEAM_RADIANT`` or ``TEAM_DIRE``.
+            team_slot: The ``m_vecDataTeam`` row, 0-4.
+
+        Returns:
+            The OpenDota logical player slot, or ``None`` if unmapped.
+        """
+        for player_id, slot in self._player_team_slot.items():
+            if slot == team_slot and self._player_team.get(player_id) == team:
+                return player_id
+        return None
 
     def _on_tick_start(self, net_tick: int) -> None:
         """Sample minute zero immediately; defer later crossings one tick.
@@ -610,17 +679,7 @@ class IntervalExtractor:
             existing = cur.get(team_slot)
             if existing is not None and existing[0] != tick:
                 prev[team_slot] = existing
-            offset = team_slot * width
-            cur[team_slot] = (
-                tick,
-                (
-                    _int_or_zero(entity._get_int32_resolved(fields[offset])),
-                    _int_or_zero(entity._get_int32_resolved(fields[offset + 1])),
-                    _int_or_zero(entity._get_int32_resolved(fields[offset + 2])),
-                    _int_or_zero(entity._get_int32_resolved(fields[offset + 3])),
-                    _int_or_zero(entity._get_int32_resolved(fields[offset + 4])),
-                ),
-            )
+            cur[team_slot] = (tick, _read_slot(entity, fields, team_slot * width))
 
     def _record_team_counters(self, entity: Entity, team: int) -> None:
         """Record the latest monotonic terminal counters for one team's slots.
@@ -636,9 +695,8 @@ class IntervalExtractor:
         """
         fields = entity._resolve_fields(_TEAM_DATA_FIELDS)
         width = len(_TEAM_DATA_FIELD_NAMES)
-        counter_offset = 5
         for team_slot in range(5):
-            offset = team_slot * width + counter_offset
+            offset = team_slot * width + _COUNTER_OFFSET
             counters = self._team_counters.setdefault((team, team_slot), {})
             for field_index, attr in enumerate(_TEAM_COUNTER_FIELDS):
                 value = entity._get_int32_resolved(fields[offset + field_index])
@@ -709,7 +767,7 @@ class IntervalExtractor:
         *,
         use_live: bool = False,
         prefer_previous: bool = False,
-    ) -> tuple[int, int, int, int, int]:
+    ) -> _SlotValues:
         """Return the team-data values for an interval boundary.
 
         Compatibility boundaries use the latest recorded frame strictly before the
@@ -729,7 +787,7 @@ class IntervalExtractor:
             prefer_previous: Select the prior observed frame when available.
 
         Returns:
-            ``(gold, xp, lh, dn, net_worth)`` for the boundary frame.
+            ``(gold, xp, lh, dn, net_worth, ledger)`` for the boundary frame.
         """
         if not self._tick_start_driven or self._last_emitted_time_s is None:
             cur = self._cur_data_radiant if team == TEAM_RADIANT else self._cur_data_dire
@@ -748,14 +806,7 @@ class IntervalExtractor:
             if prev_frame is not None and prev_frame[0] < emit_tick:
                 return prev_frame[1]
         fields = data_entity._resolve_fields(_TEAM_DATA_FIELDS)
-        offset = team_slot * len(_TEAM_DATA_FIELD_NAMES)
-        return (
-            _int_or_zero(data_entity._get_int32_resolved(fields[offset])),
-            _int_or_zero(data_entity._get_int32_resolved(fields[offset + 1])),
-            _int_or_zero(data_entity._get_int32_resolved(fields[offset + 2])),
-            _int_or_zero(data_entity._get_int32_resolved(fields[offset + 3])),
-            _int_or_zero(data_entity._get_int32_resolved(fields[offset + 4])),
-        )
+        return _read_slot(data_entity, fields, team_slot * len(_TEAM_DATA_FIELD_NAMES))
 
     def _emit(
         self,
@@ -788,7 +839,7 @@ class IntervalExtractor:
             if data_entity is None:
                 continue
 
-            gold, xp, lh, dn, net_worth = self._team_data_values(
+            gold, xp, lh, dn, net_worth, ledger = self._team_data_values(
                 team,
                 team_slot,
                 data_entity,
@@ -811,6 +862,7 @@ class IntervalExtractor:
                     lh=lh,
                     dn=dn,
                     net_worth=net_worth,
+                    ledger=ledger,
                 )
             )
 
@@ -850,3 +902,19 @@ class IntervalExtractor:
 
 def _int_or_zero(value: int | None) -> int:
     return value if value is not None else 0
+
+
+def _read_slot(entity: Entity, fields: tuple[ResolvedField, ...], offset: int) -> _SlotValues:
+    """Read one team slot's series values and gold ledger from a data entity."""
+    ledger_start = offset + _LEDGER_OFFSET
+    raw = [entity._get_int32_resolved(fields[ledger_start + i]) for i in range(len(LEDGER_FIELDS))]
+    ledger = tuple(value for value in raw if value is not None)
+    return (
+        _int_or_zero(entity._get_int32_resolved(fields[offset])),
+        _int_or_zero(entity._get_int32_resolved(fields[offset + 1])),
+        _int_or_zero(entity._get_int32_resolved(fields[offset + 2])),
+        _int_or_zero(entity._get_int32_resolved(fields[offset + 3])),
+        _int_or_zero(entity._get_int32_resolved(fields[offset + 4])),
+        # A ledger with any field missing is unavailable, never zero-filled.
+        ledger if len(ledger) == len(LEDGER_FIELDS) else None,
+    )

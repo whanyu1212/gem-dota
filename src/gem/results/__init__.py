@@ -5,6 +5,8 @@ from gem.results.dataframes import build_dataframes
 from gem.results.models import (
     ChatEntry,
     EntityVisibilityEvent,
+    GoldLedger,
+    GoldLedgerSnapshot,
     HeroVisibilityEvent,
     NeutralItemFoundEvent,
     ParsedMatch,
@@ -24,6 +26,8 @@ from gem.results.models import (
 __all__ = [
     "ChatEntry",
     "EntityVisibilityEvent",
+    "GoldLedger",
+    "GoldLedgerSnapshot",
     "HeroVisibilityEvent",
     "NeutralItemFoundEvent",
     "ParsedMatch",

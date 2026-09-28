@@ -12,9 +12,10 @@ from typing import TYPE_CHECKING, Any
 from gem.analysis import net_worth_at
 from gem.catalog import hero_id
 from gem.combat.log import opendota_translate
+from gem.extractors.intervals import LEDGER_FIELDS
 from gem.extractors.lane import classify_lane
 from gem.results.derived import building_status, buyback_cost, categorize_kills, killed_counts
-from gem.results.models import BuybackEvent, ParsedMatch
+from gem.results.models import BuybackEvent, GoldLedger, GoldLedgerSnapshot, ParsedMatch
 from gem.results.permanent_buffs import permanent_buff_flags
 
 if TYPE_CHECKING:
@@ -22,6 +23,7 @@ if TYPE_CHECKING:
     from gem.combat.log import CombatLogEntry
     from gem.extractors.courier import CourierExtractor
     from gem.extractors.draft import DraftExtractor
+    from gem.extractors.gold_ledger import BuybackSpend
     from gem.extractors.intervals import IntervalExtractor, IntervalSnapshot, IntervalTimeSeries
     from gem.extractors.objectives import ObjectivesExtractor
     from gem.extractors.players import PlayerExtractor
@@ -103,7 +105,14 @@ def _apply_match_details_scalars(match: ParsedMatch, details: CMsgDOTAMatch | No
             setattr(player, field_name, value)
             player._match_details_fields.add(field_name)
 
-        for field_name in ("hero_damage", "tower_damage", "hero_healing", "gold_spent"):
+        for field_name in (
+            "hero_damage",
+            "tower_damage",
+            "hero_healing",
+            "gold_spent",
+            "gold",
+            "net_worth",
+        ):
             if source.HasField(field_name):
                 setattr(player, field_name, int(getattr(source, field_name)))
                 player._match_details_fields.add(field_name)
@@ -593,8 +602,82 @@ def _interval_series_by_player(
             ts.lh_t.append(snap.lh)
             ts.dn_t.append(snap.dn)
             ts.net_worth_t.append(snap.net_worth)
+            ts.ledger.append(snap.ledger)
 
     return series
+
+
+# A buyback's gold-spent rise lands on the BUYBACK entry's own tick; allow a
+# couple of ticks for an update delivered in the neighbouring packet.
+_BUYBACK_SPEND_WINDOW_TICKS = 2
+
+
+def _buyback_event(
+    tick: int, player_id: int, net_worth: int, spends: list[BuybackSpend]
+) -> BuybackEvent:
+    """Build a buyback, taking its exact cost from the nearest unused spend."""
+    nearest = min(
+        (spend for spend in spends if abs(spend.tick - tick) <= _BUYBACK_SPEND_WINDOW_TICKS),
+        key=lambda spend: abs(spend.tick - tick),
+        default=None,
+    )
+    if nearest is None:
+        return BuybackEvent(
+            tick=tick, player_slot=player_id, cost=buyback_cost(net_worth), net_worth=net_worth
+        )
+    spends.remove(nearest)
+    return BuybackEvent(
+        tick=tick,
+        player_slot=player_id,
+        cost=nearest.cost,
+        net_worth=net_worth,
+        cost_exact=True,
+        reliable_gold=nearest.reliable_gold,
+        unreliable_gold=nearest.unreliable_gold,
+    )
+
+
+def _ledger_snapshot(tick: int, game_time_s: int, values: tuple[int, ...]) -> GoldLedgerSnapshot:
+    attrs = {attr: value for (attr, _), value in zip(LEDGER_FIELDS, values, strict=True)}
+    return GoldLedgerSnapshot(tick=tick, game_time_s=game_time_s, **attrs)
+
+
+def _gold_ledger(
+    interval_ts: IntervalTimeSeries | None,
+    final: tuple[int, int, tuple[int, ...]] | None,
+) -> GoldLedger | None:
+    """Build a player's gold ledger from interval samples and the game-end read.
+
+    ``per_minute`` stays parallel to ``game_times_min``: it is filled only when
+    every interval sample carries a complete ledger, and left empty otherwise.
+    """
+    per_minute: list[GoldLedgerSnapshot] = []
+    if interval_ts is not None and interval_ts.ledger and None not in interval_ts.ledger:
+        per_minute = [
+            _ledger_snapshot(tick, time_s, values)
+            for tick, time_s, values in zip(
+                interval_ts.ticks, interval_ts.times, interval_ts.ledger, strict=True
+            )
+            if values is not None
+        ]
+    final_snapshot = _ledger_snapshot(*final) if final is not None else None
+    if final_snapshot is None and not per_minute:
+        return None
+    return GoldLedger(final=final_snapshot, per_minute=per_minute)
+
+
+def _buyback_spends_by_player(
+    spends: list[BuybackSpend] | None, interval_ext: IntervalExtractor | None
+) -> dict[int, list[BuybackSpend]]:
+    """Group observed buyback spends by logical player id."""
+    by_player: dict[int, list[BuybackSpend]] = defaultdict(list)
+    if not spends or interval_ext is None:
+        return by_player
+    for spend in spends:
+        player_id = interval_ext.player_for_team_slot(spend.team, spend.team_slot)
+        if player_id is not None:
+            by_player[player_id].append(spend)
+    return by_player
 
 
 def _populate_player_series(
@@ -606,6 +689,7 @@ def _populate_player_series(
     interval_min_series: dict[int, IntervalTimeSeries],
     clock: GameClock,
     radiant_win: bool | None,
+    buyback_spends: dict[int, list[BuybackSpend]] | None = None,
 ) -> None:
     """Populate per-player time series and combat-log aggregates in place.
 
@@ -626,6 +710,7 @@ def _populate_player_series(
         interval_min_series: Complete interval minute arrays by player id.
         clock: Pause-aware game clock for purchase times and the lane window.
         radiant_win: Resolved match winner, or ``None`` if unknown.
+        buyback_spends: Observed rises in gold spent on buybacks, by player id.
     """
     for player_id in range(10):
         ts = player_ext.time_series(player_id)
@@ -735,22 +820,15 @@ def _populate_player_series(
             pp.sentry_uses = agg.item_uses.get("item_ward_sentry", 0)
             pp.runes_log = agg.runes_log
             pp.buyback_log = agg.buyback_log
-            # Structured buybacks with an estimated cost. The per-buyback cost is
-            # not in the replay stream, so it is derived from net worth at the
-            # buyback tick (200 + net_worth // 13); net_worth_t is already
-            # populated above, so net_worth_at() resolves the nearest sample.
-            buybacks: list[BuybackEvent] = []
-            for entry in agg.buyback_log:
-                nw = net_worth_at(pp, entry.tick)
-                buybacks.append(
-                    BuybackEvent(
-                        tick=entry.tick,
-                        player_slot=player_id,
-                        net_worth=nw,
-                        cost=buyback_cost(nw),
-                    )
-                )
-            pp.buybacks = buybacks
+            # Structured buybacks. The cost is exact when the team data's gold
+            # spent on buybacks rose with this entry; otherwise it falls back to
+            # 200 + net_worth // 13 at the buyback tick (net_worth_t is populated
+            # above, so net_worth_at() resolves the nearest sample).
+            spends = list((buyback_spends or {}).get(player_id, ()))
+            pp.buybacks = [
+                _buyback_event(entry.tick, player_id, net_worth_at(pp, entry.tick), spends)
+                for entry in agg.buyback_log
+            ]
             pp.stuns_dealt = agg.stuns_dealt
             # Best-effort combat-log fallbacks. The embedded postgame summary is
             # applied after this loop when available.
@@ -803,6 +881,18 @@ def _populate_player_series(
         # active "[30t]" checks in scripts/validate_opendota.py.
         if pp.net_worth_t:
             pp.net_worth = pp.net_worth_t[-1]
+        if pp.gold_t:
+            pp.gold = pp.gold_t[-1]
+        final_ledgers = getattr(interval_ext, "final_ledgers", None)
+        pp.gold_ledger = _gold_ledger(
+            interval_ts,
+            final_ledgers.get(player_id) if isinstance(final_ledgers, dict) else None,
+        )
+        final_ledger = pp.gold_ledger.final if pp.gold_ledger is not None else None
+        if final_ledger is not None:
+            # The postgame summary's gold_spent overrides this when present
+            # (_apply_match_details_scalars); the two are equal when both exist.
+            pp.gold_spent = final_ledger.spent_on_items + final_ledger.spent_on_consumables
         if pp.lh_t:
             pp.last_hits = pp.lh_t[-1]
         if pp.dn_t:
@@ -900,6 +990,7 @@ def build_parsed_match(
     hero_visibility_events: list[HeroVisibilityEvent] | None = None,
     vision_modifier_pairing_issues: list[VisionModifierPairingIssue] | None = None,
     entity_visibility_events: list[EntityVisibilityEvent] | None = None,
+    buyback_spends: list[BuybackSpend] | None = None,
 ) -> ParsedMatch:
     """Assemble a :class:`ParsedMatch` from extractor state after a completed parse.
 
@@ -925,6 +1016,8 @@ def build_parsed_match(
         hero_visibility_events: Authoritative hero visibility transitions.
         vision_modifier_pairing_issues: Ambiguous or unmatched modifier removals.
         entity_visibility_events: Authoritative networked Dota NPC visibility transitions.
+        buyback_spends: Observed rises in the team data's gold spent on buybacks
+            (``BuybackSpendTracker.spends``), giving exact buyback costs.
 
     Returns:
         Fully populated :class:`ParsedMatch`.
@@ -1028,6 +1121,7 @@ def build_parsed_match(
         interval_min_series=interval_min_series,
         clock=clock,
         radiant_win=radiant_win,
+        buyback_spends=_buyback_spends_by_player(buyback_spends, interval_ext),
     )
 
     # Complete replays carry an embedded CMsgDOTAMatch postgame summary. Its

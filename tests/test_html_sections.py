@@ -112,6 +112,32 @@ class TestBuybackReport:
     def test_gold_spent_column_header_present(self):
         assert "Gold Spent" in self._cost_in_html(5000)
 
+    def _html_for(self, **buyback) -> str:
+        from gem.combat.log import CombatLogEntry
+        from gem.results.models import BuybackEvent
+
+        pp = _make_player()
+        pp.buyback_log = [CombatLogEntry(tick=500, log_type="BUYBACK", value=0)]
+        pp.buybacks = [BuybackEvent(tick=500, player_slot=0, net_worth=0, **buyback)]
+        match = MagicMock()
+        match.players = [pp]
+        return _sections.build_buybacks(match)
+
+    def test_exact_cost_with_estimated_split(self):
+        html = self._html_for(cost=1836, cost_exact=True, reliable_gold=1625, unreliable_gold=211)
+        assert "1,836g" in html and "~1,836g" not in html
+        assert "211 unreliable · 1,625 reliable" in html
+
+    def test_exact_cost_without_split(self):
+        html = self._html_for(cost=1140, cost_exact=True)
+        assert "1,140g" in html and "~1,140g" not in html
+        assert "unreliable ·" not in html
+
+    def test_estimated_cost_is_marked(self):
+        html = self._html_for(cost=1200)
+        assert "~1,200g" in html
+        assert "unreliable ·" not in html
+
     def test_no_buybacks_shows_no_table(self):
         pp = _make_player()
         pp.buyback_log = []

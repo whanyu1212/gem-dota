@@ -67,6 +67,7 @@ def test_parse_collects_neutral_item_found_events(monkeypatch):
             self.shrine_kills = []
             self.ward_events = []
             self.draft_events = []
+            self.spends = []
 
         def attach(self, _parser):
             return None
@@ -102,6 +103,7 @@ def test_parse_collects_neutral_item_found_events(monkeypatch):
     monkeypatch.setattr(gem.extractors.courier, "CourierExtractor", FakeExtractor)
     monkeypatch.setattr(gem.extractors.draft, "DraftExtractor", FakeExtractor)
     monkeypatch.setattr(gem.extractors.intervals, "IntervalExtractor", FakeExtractor)
+    monkeypatch.setattr(gem.extractors.gold_ledger, "BuybackSpendTracker", FakeExtractor)
     monkeypatch.setattr(gem.extractors.visibility, "VisibilityExtractor", FakeVisibilityExtractor)
     monkeypatch.setattr(gem.combat.aggregator, "_CombatAggregator", FakeCombatAggregator)
     monkeypatch.setattr(gem.results.assembly, "build_parsed_match", fake_build_parsed_match)

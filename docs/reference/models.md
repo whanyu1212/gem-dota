@@ -303,7 +303,7 @@ Source: [src/gem/results/models.py:343](https://github.com/whanyu1212/gem-dota/b
 class BuybackEvent
 ```
 
-One buyback, with its estimated gold cost.
+One buyback and its gold cost.
 
 Source: [src/gem/results/models.py:378](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L378)
 
@@ -315,6 +315,62 @@ Source: [src/gem/results/models.py:378](https://github.com/whanyu1212/gem-dota/b
 | `player_slot` | `int` | `-` |
 | `cost` | `int` | `-` |
 | `net_worth` | `int` | `-` |
+| `cost_exact` | `bool` | `False` |
+| `reliable_gold` | `int \| None` | `None` |
+| `unreliable_gold` | `int \| None` | `None` |
+
+### `GoldLedgerSnapshot`
+
+```python
+class GoldLedgerSnapshot
+```
+
+One reading of a player's gold ledger from the team data entity.
+
+Source: [src/gem/results/models.py:423](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L423)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `tick` | `int` | `-` |
+| `game_time_s` | `int` | `-` |
+| `hero_kill_gold` | `int` | `0` |
+| `creep_kill_gold` | `int` | `0` |
+| `neutral_kill_gold` | `int` | `0` |
+| `income_gold` | `int` | `0` |
+| `building_gold` | `int` | `0` |
+| `roshan_gold` | `int` | `0` |
+| `bounty_gold` | `int` | `0` |
+| `ward_kill_gold` | `int` | `0` |
+| `courier_gold` | `int` | `0` |
+| `ability_gold` | `int` | `0` |
+| `comeback_gold` | `int` | `0` |
+| `creep_deny_gold` | `int` | `0` |
+| `other_gold` | `int` | `0` |
+| `shared_gold` | `int` | `0` |
+| `spent_on_items` | `int` | `0` |
+| `spent_on_consumables` | `int` | `0` |
+| `spent_on_support` | `int` | `0` |
+| `spent_on_buybacks` | `int` | `0` |
+| `lost_to_death` | `int` | `0` |
+
+### `GoldLedger`
+
+```python
+class GoldLedger
+```
+
+A player's gold ledger at game end and at every game minute.
+
+Source: [src/gem/results/models.py:493](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L493)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `final` | `GoldLedgerSnapshot \| None` | `None` |
+| `per_minute` | `list[GoldLedgerSnapshot]` | `field(...)` |
 
 ### `ChatEntry`
 
@@ -324,7 +380,7 @@ class ChatEntry
 
 A single chat message from the match.
 
-Source: [src/gem/results/models.py:406](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L406)
+Source: [src/gem/results/models.py:509](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L509)
 
 #### Dataclass fields
 
@@ -343,7 +399,7 @@ class NeutralItemFoundEvent
 
 A neutral item found event emitted by DOTA_UM_FoundNeutralItem.
 
-Source: [src/gem/results/models.py:425](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L425)
+Source: [src/gem/results/models.py:528](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L528)
 
 #### Dataclass fields
 
@@ -368,7 +424,7 @@ class ParsedPlayer
 
 Aggregated statistics for one player over a full match.
 
-Source: [src/gem/results/models.py:459](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L459)
+Source: [src/gem/results/models.py:562](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L562)
 
 #### Dataclass fields
 
@@ -490,6 +546,8 @@ Source: [src/gem/results/models.py:459](https://github.com/whanyu1212/gem-dota/b
 | `aghanims_shard` | `int \| None` | `None` |
 | `moonshard` | `int \| None` | `None` |
 | `total_earned_xp_t` | `list[int]` | `field(...)` |
+| `gold` | `int` | `0` |
+| `gold_ledger` | `GoldLedger \| None` | `None` |
 
 ### `ParsedMatch`
 
@@ -499,7 +557,7 @@ class ParsedMatch
 
 Top-level parsed output for a single Dota 2 replay.
 
-Source: [src/gem/results/models.py:866](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L866)
+Source: [src/gem/results/models.py:980](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L980)
 
 #### Dataclass fields
 
@@ -565,7 +623,7 @@ Signature: `def ParsedMatch.duration_seconds(self) -> float`
 
 Game duration in seconds, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:1031](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1031)
+Source: [src/gem/results/models.py:1145](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1145)
 
 ##### `duration_minutes`
 
@@ -573,7 +631,7 @@ Signature: `def ParsedMatch.duration_minutes(self) -> float`
 
 Game duration in minutes, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:1037](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1037)
+Source: [src/gem/results/models.py:1151](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1151)
 
 ## Module `gem.state.game_clock`
 
@@ -701,7 +759,7 @@ Signature: `def GameClockTracker.on_net_tick(self, net_tick: int) -> None`
 
 Record a ``CNETMsg_Tick``.
 
-Source: [src/gem/state/game_clock.py:257](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L257)
+Source: [src/gem/state/game_clock.py:261](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L261)
 
 ##### `net_tick_offset`
 
@@ -709,7 +767,7 @@ Signature: `def GameClockTracker.net_tick_offset(self, tick: int) -> int`
 
 Return ``net_tick - tick``, or 0 before any network tick.
 
-Source: [src/gem/state/game_clock.py:262](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L262)
+Source: [src/gem/state/game_clock.py:266](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L266)
 
 ##### `update`
 
@@ -717,7 +775,7 @@ Signature: `def GameClockTracker.update(self, entity: Entity, tick: int) -> None
 
 Refresh the clock from the ``CDOTAGamerulesProxy`` entity.
 
-Source: [src/gem/state/game_clock.py:266](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L266)
+Source: [src/gem/state/game_clock.py:270](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L270)
 
 ##### `observe_game_start`
 
@@ -725,7 +783,7 @@ Signature: `def GameClockTracker.observe_game_start(self, entity: Entity, tick: 
 
 Refresh the clock, and report whether the game has just started.
 
-Source: [src/gem/state/game_clock.py:307](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L307)
+Source: [src/gem/state/game_clock.py:310](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L310)
 
 ##### `track_pause`
 
@@ -733,7 +791,7 @@ Signature: `def GameClockTracker.track_pause(self, paused: bool, pause_start_net
 
 Record pause intervals from ``m_bGamePaused`` transitions.
 
-Source: [src/gem/state/game_clock.py:332](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L332)
+Source: [src/gem/state/game_clock.py:335](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L335)
 
 ##### `combat_log_time`
 
@@ -741,7 +799,7 @@ Signature: `def GameClockTracker.combat_log_time(self, timestamp: float | None, 
 
 Return OpenDota-style game-relative time for a combat-log entry.
 
-Source: [src/gem/state/game_clock.py:368](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L368)
+Source: [src/gem/state/game_clock.py:371](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L371)
 
 ##### `finish`
 
@@ -749,7 +807,7 @@ Signature: `def GameClockTracker.finish(self) -> None`
 
 Close a pause still open when the replay ends.
 
-Source: [src/gem/state/game_clock.py:396](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L396)
+Source: [src/gem/state/game_clock.py:399](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L399)
 
 ## Module `gem.results.serialization`
 

@@ -376,15 +376,23 @@ class SmokeEvent:
 
 @dataclass
 class BuybackEvent:
-    """One buyback, with its estimated gold cost.
+    """One buyback and its gold cost.
 
-    The per-buyback cost is not stored in the replay stream, so ``cost`` is an
-    estimate from the Dota 2 formula ``200 + net_worth // 13`` evaluated at the
-    buyback tick (see :func:`gem.results.derived.buyback_cost`). The exact
-    reliable/unreliable gold split is *not* recoverable offline — the entity
-    gold-pool fields (``m_iReliableGold`` / ``m_iUnreliableGold``) reflect gold
-    after the deduction, so they show no usable before/after delta at the buyback
-    tick — and is therefore not provided.
+    The team data entity counts each player's gold spent on buybacks
+    (``m_vecDataTeam.NNNN.m_iGoldSpentOnBuybacks``). It rises on the same tick as
+    the BUYBACK combat-log entry, by exactly the cost, so ``cost`` is exact when
+    that rise was observed (``cost_exact``). Otherwise ``cost`` falls back to the
+    Dota 2 formula ``200 + net_worth // 13`` at the buyback tick (see
+    :func:`gem.results.derived.buyback_cost`).
+
+    ``reliable_gold`` / ``unreliable_gold`` estimate how the cost was paid. Dota
+    spends unreliable gold first, so the estimate is ``min(cost, unreliable gold
+    before the buyback)`` from the unreliable pool and the rest from the reliable
+    pool. It is dropped when a pool fell by more than the estimate says was paid
+    from it on that update (something else, such as a purchase, spent gold too).
+    Income arriving in the same update before the buyback can still shift the
+    true split by that income. ``None`` when the cost is not exact or the check
+    fails.
 
     The raw combat-log entries remain on ``ParsedPlayer.buyback_log``; this is the
     structured, cost-bearing view alongside it.
@@ -392,14 +400,109 @@ class BuybackEvent:
     Attributes:
         tick: Game tick when the buyback fired.
         player_slot: The player's slot (0-9).
-        cost: Estimated buyback cost in gold (``200 + net_worth // 13``).
-        net_worth: Net worth at the buyback tick used to compute ``cost``.
+        cost: Buyback cost in gold: exact when ``cost_exact``, else the formula
+            estimate.
+        net_worth: Net worth at the buyback tick.
+        cost_exact: Whether ``cost`` is the observed rise in gold spent on buybacks.
+        reliable_gold: Estimated part of ``cost`` paid from reliable gold, or
+            ``None``.
+        unreliable_gold: Estimated part of ``cost`` paid from unreliable gold, or
+            ``None``.
     """
 
     tick: int
     player_slot: int
     cost: int
     net_worth: int
+    cost_exact: bool = False
+    reliable_gold: int | None = None
+    unreliable_gold: int | None = None
+
+
+@dataclass
+class GoldLedgerSnapshot:
+    """One reading of a player's gold ledger from the team data entity.
+
+    Every value is a running total since the start of the game, read from
+    ``CDOTA_DataRadiant``/``CDOTA_DataDire`` ``m_vecDataTeam.NNNN.*``. None of the
+    pinned upstream parsers reads these fields; their meaning is established
+    against the replay's embedded postgame summary (``CMsgDOTAMatch``):
+
+    - ``spent_on_items + spent_on_consumables`` equals the summary's
+      ``gold_spent`` (and OpenDota's).
+    - ``lost_to_death`` equals the summary's ``gold_lost_to_death``.
+    - The earned sources (``hero_kill_gold`` through ``other_gold``) sum to the
+      team data's ``m_iTotalEarnedGold``. ``shared_gold`` overlaps them and is
+      not part of that sum. A gold source the game adds before the replay
+      schema has a field for it is missing from the sum (seen once, on a newer
+      patch).
+    - ``spent_on_support`` is part of ``spent_on_items + spent_on_consumables``,
+      not a separate category.
+
+    Attributes:
+        tick: Replay tick the values were read at.
+        game_time_s: Game-relative seconds of that reading.
+        hero_kill_gold: Gold from hero kills and assists (``m_iHeroKillGold``).
+        creep_kill_gold: Gold from lane creep kills (``m_iCreepKillGold``).
+        neutral_kill_gold: Gold from neutral creep kills (``m_iNeutralKillGold``).
+        income_gold: Passive gold income (``m_iIncomeGold``).
+        building_gold: Gold from buildings (``m_iBuildingGold``).
+        roshan_gold: Gold from Roshan (``m_iRoshanGold``).
+        bounty_gold: Gold from bounty runes (``m_iBountyGold``).
+        ward_kill_gold: Gold from killing wards (``m_iWardKillGold``).
+        courier_gold: Gold from killing couriers (``m_iCourierGold``).
+        ability_gold: Gold granted by abilities (``m_iAbilityGold``).
+        comeback_gold: Comeback gold (``m_iComebackGold``).
+        creep_deny_gold: Gold from denies (``m_iCreepDenyGold``).
+        other_gold: Other gold (``m_iOtherGold``).
+        shared_gold: Gold shared from allies' kills (``m_iSharedGold``); already
+            counted in the sources above.
+        spent_on_items: Gold spent on items (``m_iGoldSpentOnItems``).
+        spent_on_consumables: Gold spent on consumables
+            (``m_iGoldSpentOnConsumables``).
+        spent_on_support: Gold spent on support items (``m_iGoldSpentOnSupport``);
+            a subset of the two above.
+        spent_on_buybacks: Gold spent on buybacks (``m_iGoldSpentOnBuybacks``).
+        lost_to_death: Gold lost on death (``m_iGoldLostToDeath``).
+    """
+
+    tick: int
+    game_time_s: int
+    hero_kill_gold: int = 0
+    creep_kill_gold: int = 0
+    neutral_kill_gold: int = 0
+    income_gold: int = 0
+    building_gold: int = 0
+    roshan_gold: int = 0
+    bounty_gold: int = 0
+    ward_kill_gold: int = 0
+    courier_gold: int = 0
+    ability_gold: int = 0
+    comeback_gold: int = 0
+    creep_deny_gold: int = 0
+    other_gold: int = 0
+    shared_gold: int = 0
+    spent_on_items: int = 0
+    spent_on_consumables: int = 0
+    spent_on_support: int = 0
+    spent_on_buybacks: int = 0
+    lost_to_death: int = 0
+
+
+@dataclass
+class GoldLedger:
+    """A player's gold ledger at game end and at every game minute.
+
+    Attributes:
+        final: The ledger read at the game-end tick, or ``None`` when the game
+            end was not reached (e.g. a truncated replay).
+        per_minute: One snapshot per game minute, parallel to
+            ``ParsedPlayer.game_times_min``. Empty when the replay had no
+            complete per-minute interval data.
+    """
+
+    final: GoldLedgerSnapshot | None = None
+    per_minute: list[GoldLedgerSnapshot] = field(default_factory=list)
 
 
 @dataclass
@@ -573,8 +676,10 @@ class ParsedPlayer:
             replay's chat events. ``rune_type`` holds the rune; ``value`` is the
             player slot.
         buyback_log: BUYBACK combat log entries for this player.
-        buybacks: Structured :class:`BuybackEvent` records with an estimated gold
-            cost per buyback (``200 + net_worth // 13``), alongside ``buyback_log``.
+        buybacks: Structured :class:`BuybackEvent` records, one per ``buyback_log``
+            entry, with each buyback's gold cost: exact from the team data's
+            gold-spent-on-buybacks counter when observed, else the formula
+            estimate ``200 + net_worth // 13``.
         lane_pos: Dwell-tick counts keyed by ``"x_y"`` grid cell (64-unit resolution).
         position_log: Time-ordered ``(tick, x, y)`` tuples sampled at the
             extractor's interval. Useful for movement time-series and
@@ -603,10 +708,10 @@ class ParsedPlayer:
         lane_xp_adv: Tier-2 laning metric. XP advantage at 10 minutes versus
             lane opponents on the opposing team. Same pairing logic as
             ``lane_gold_adv``.
-        net_worth: End-of-game net worth (gold + item value), the last dense
-            sample (``net_worth_t[-1]``). Matches OpenDota's terminal
-            ``net_worth`` scalar. Convenience accessor so callers need not index
-            the series; ``0`` if no samples were collected.
+        net_worth: End-of-game net worth (gold + item value). From the
+            replay-embedded ``CMsgDOTAMatch`` postgame summary when present,
+            matching OpenDota's ``net_worth``; otherwise the last dense sample
+            (``net_worth_t[-1]``). ``0`` if neither is available.
         last_hits: End-of-game last-hit count, the last dense sample
             (``lh_t[-1]``). Matches OpenDota's terminal ``last_hits`` scalar.
         denies: End-of-game deny count, the last dense sample (``dn_t[-1]``).
@@ -638,11 +743,12 @@ class ParsedPlayer:
             OpenDota's ``hero_id``. ``0`` if unresolved.
         level: Terminal hero level, the last dense snapshot's level. Mirrors
             OpenDota's ``level``.
-        gold_spent: Total gold spent over the game, from the replay-embedded
-            ``CMsgDOTAMatch`` postgame summary; matches OpenDota's
-            ``gold_spent``. ``0`` when the summary or field is absent (e.g. a
-            truncated replay): it can't be derived from earned minus current
-            gold.
+        gold_spent: Total gold spent on items and consumables over the game,
+            from the replay-embedded ``CMsgDOTAMatch`` postgame summary; matches
+            OpenDota's ``gold_spent``. Without the summary, the game-end gold
+            ledger's ``spent_on_items + spent_on_consumables`` (the same value);
+            ``0`` when neither is available. Earned minus current gold is not
+            gold spent.
         life_state_dead: Seconds spent dead, sampled from the hero's life state.
             Mirrors OpenDota's ``life_state_dead``.
         firstblood_claimed: ``1`` if this player dealt the game's first-blood kill,
@@ -714,6 +820,12 @@ class ParsedPlayer:
             semantics as ``aghanims_scepter``.
         moonshard: OpenDota-compatible consumed Moon Shard flag using permanent
             buff ID 1, with the same ``1`` / ``0`` / ``None`` semantics.
+        gold: End-of-game unspent gold (reliable + unreliable). From the
+            replay-embedded postgame summary when present, matching OpenDota's
+            ``gold``; otherwise the last dense sample (``gold_t[-1]``).
+        gold_ledger: The player's :class:`GoldLedger`: gold earned by source,
+            spent by category, and lost to death, at game end and per minute.
+            ``None`` when the replay's team data has no complete ledger.
     """
 
     player_id: int
@@ -838,6 +950,8 @@ class ParsedPlayer:
     aghanims_shard: int | None = None
     moonshard: int | None = None
     total_earned_xp_t: list[int] = field(default_factory=list)
+    gold: int = 0
+    gold_ledger: GoldLedger | None = None
     # Internal provenance for values copied from CMsgDOTAMatch. The serializer
     # omits this implementation detail from the public ParsedPlayer shape.
     _match_details_fields: set[str] = field(

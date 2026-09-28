@@ -313,14 +313,16 @@ The team-data fields live at `m_vecDataTeam.NNNN.*` (`team_data_field(slot, ...)
 | `m_iTotalEarnedGold` | `CDOTA_DataRadiant/Dire` | Monotonically increasing | `radiant_gold_adv`, `total_earned_gold_t`, `gold_t_min` |
 | `m_iCurrentXP` | hero entity (`CDOTA_Unit_Hero_*`) | Resets to 0 on each level-up | per-level XP display |
 | `m_iTotalEarnedXP` | `CDOTA_DataRadiant/Dire` | Monotonically increasing | `radiant_xp_adv` |
+| `m_iGoldSpentOn*`, `m_iGoldLostToDeath`, `m_i*Gold` sources | `CDOTA_DataRadiant/Dire` | Monotonic running totals | `gold_ledger`, exact buyback cost (see below) |
 
 Using current gold for advantage curves is wrong because spendable gold drops on
 every purchase. OpenDota's per-minute `gold_t` is *earned* gold, so gem's
 `gold_t_min` is too, while gem's dense `gold_t` is cash on hand.
-`CDOTAPlayerController` has no `m_iGold`/`m_iNetWorth` in current replays. The
-terminal `gold_spent` is not derivable from the entity stream (earned − current ≠
-spent); it comes from the embedded `CMsgDOTAMatch` postgame summary, which matches
-OpenDota exactly. Client replays name the data class `CDOTA_DataRadiant`/`CDOTA_DataDire`
+`CDOTAPlayerController` has no `m_iGold`/`m_iNetWorth` in current replays. Earned −
+current ≠ spent. Terminal `gold_spent` (and `gold`, `net_worth`) come from the
+embedded `CMsgDOTAMatch` postgame summary, which matches OpenDota exactly. Without
+the summary, `gold_spent` is the ledger's `m_iGoldSpentOnItems + m_iGoldSpentOnConsumables`,
+which equals it on every fixture. Client replays name the data class `CDOTA_DataRadiant`/`CDOTA_DataDire`
 (with underscore); HLTV uses `CDOTADataRadiant`/`CDOTADataDire` — both are handled.
 Reference: pinned `odota/parser` `Parse.java` (`m_vecDataTeam.%i.m_iTotalEarnedGold/XP`).
 
@@ -360,43 +362,65 @@ immediate-outcome window 180 s, event-association window 30 s. It reads only
 - Kills by summoned units (Warlock Golem, Undying zombie, Pugna Nether Ward, etc.) should be credited to the owning hero's kill count.
 - Deaths count all causes (hero, tower, creep, neutral, summon) — not just hero-dealt deaths.
 
-## Buyback cost (issue #119, implemented)
+## Buyback cost and the gold ledger (issue #119)
 
-Each player exposes `ParsedPlayer.buybacks: list[BuybackEvent]` (alongside the raw
-`buyback_log`). `BuybackEvent` carries `tick`, `player_slot`, `net_worth` (at the
-buyback tick), and an estimated `cost`. The cost formula lives in one place,
-`results/derived.py::buyback_cost(net_worth)` = **`200 + net_worth // 13`**
-(Dota 2's formula; reduced from `/12` in an earlier patch — ref
-https://liquipedia.net/dota2/Gold). `results/assembly.py` builds the events from
-net worth at the buyback tick; `reports/sections/economy.py::build_buybacks` reads
-`BuybackEvent.cost` instead of recomputing, and `results/dataframes.py` adds
-`cost`/`net_worth` columns to the `player_buyback_log` table.
+Each player exposes `ParsedPlayer.buybacks: list[BuybackEvent]` (one per raw
+`buyback_log` entry) and `ParsedPlayer.gold_ledger: GoldLedger | None`.
 
-**The exact per-buyback cost is not recoverable from the replay — confirmed
-against all three major parsers.** The `cost` is a deliberate gem-original
-*estimate* from the published formula, not a measured deduction:
+**The team data entity carries a per-player gold ledger.** Each
+`m_vecDataTeam.NNNN` row of `CDOTA_DataRadiant`/`CDOTA_DataDire` holds running
+totals:
 
-- **gem's entity stream:** `m_iReliableGold` / `m_iUnreliableGold` on `CDOTA_Data*`
-  (read via `team_data_field(slot, ...)`) are readable but reflect gold **after**
-  the deduction — the before/after delta at the BUYBACK tick is **zero** (verified
-  on fixture `8855188139`). The BUYBACK combat-log entry carries only the player
-  slot (`entry.value`), `gold_reason=0`, no gold amount.
-- **OpenDota:** records no per-buyback cost (`handleBuyback` stores only time/slot).
-- **STRATZ:** its GraphQL `BuyBackDetailType` *has* a `cost` field, but it is
-  **0 for every buyback** sampled (24 events across 3 matches: `8855188139`,
-  `8855242704`, `8822593932`) — i.e. even STRATZ (Clarity parser) does not surface
-  a real cost. `CDOTAUserMsg_SendFinalGold` is end-of-game only;
-  `CMsgDotaScenario_Hero.GoldSpentOnBuybacks` is a cumulative per-hero scenario
-  field (not per event, not parsed).
+- earned by source (`m_iHeroKillGold`, `m_iCreepKillGold`, `m_iNeutralKillGold`,
+  `m_iIncomeGold`, `m_iBuildingGold`, `m_iRoshanGold`, `m_iBountyGold`, …, plus
+  `m_iSharedGold`);
+- spent (`m_iGoldSpentOnItems`, `…OnConsumables`, `…OnSupport`, `…OnBuybacks`);
+- lost (`m_iGoldLostToDeath`).
 
-Consequently the **reliable/unreliable split is also not provided** — it would
-require a per-event source that does not exist.
+None of the pinned parsers reads these fields, so their meaning comes from the
+embedded `CMsgDOTAMatch` postgame summary, checked on all 9 local fixtures (90
+players):
 
-**What IS validated:** buyback *detection* (event timing + hero attribution) is
-cross-validated against STRATZ — the buyback **times** and **hero IDs** match gem
-exactly on every event across those 3 matches (e.g. fixture `8855188139`: Ember
-@2385s, Keeper of the Light @2391s). Only the cost *value* is an unverifiable
-formula estimate; the events themselves are independently confirmed correct.
+- items + consumables == summary `gold_spent`, 90/90;
+- the earned sources minus shared gold == `m_iTotalEarnedGold`. This failed only
+  on 8974053011, where the combat log has a new gold reason 22 that has no ledger
+  field;
+- support spend is a subset of items + consumables.
+
+**Exact buyback cost.** `m_iGoldSpentOnBuybacks` rises on the same tick as the
+BUYBACK combat-log entry, by exactly the cost:
+
+- `extractors/gold_ledger.py::BuybackSpendTracker` records each rise with a
+  field-gated handler;
+- assembly matches rises to BUYBACK entries (same tick, ±2);
+- all 98 buybacks on the fixtures are exact (`cost_exact=True`);
+- the formula `results/derived.py::buyback_cost` (**`200 + net_worth // 13`**)
+  remains the fallback, and was off by up to ~8%.
+
+**Reliable/unreliable split** (`reliable_gold` / `unreliable_gold`). It is an
+*estimate*: Dota spends unreliable gold first, so
+`unreliable = min(cost, unreliable pool before the update)`.
+
+- It is kept only if neither pool fell by more than the estimate says was paid
+  from it (a purchase on the same update does that); otherwise both are `None`.
+- Income arriving on the same update can shift the true split by that income.
+- On the fixtures the unreliable part matched the observed pool drop exactly on
+  every buyback. The reliable part was off by 1 gold of same-update passive
+  income on 8 of 50 checked.
+
+An older note in this file claimed the pool delta at the BUYBACK tick was zero.
+That was wrong: the pools do drop, on the BUYBACK tick itself.
+
+`ParsedPlayer.gold` / `net_worth` / `gold_spent` come from the postgame summary
+when present, matching OpenDota exactly. Without the summary, `gold_spent` falls
+back to the ledger's items + consumables. The report marks estimated costs `~`
+and labels the split as an estimate. DataFrames have an opt-in
+`include="gold_ledger"` group (`player_gold_ledger`,
+`player_gold_ledger_minutes`).
+
+Buyback *detection* (timing + hero) was cross-validated against STRATZ on
+8855188139, 8855242704 and 8822593932. STRATZ's own buyback `cost` is 0 for
+every event there, and OpenDota stores no cost.
 
 ## Code Style
 
@@ -511,8 +535,6 @@ In flight / deferred:
   `docs/deep-dives/parser-profile-2026-09.md`), stage 2 the per-entity packet
   loop. It lists the exact-behaviour rules a kernel must keep. No end-to-end
   speedup is promised.
-- **Buyback cost breakdown** (reliable/unreliable gold) — see the deferred
-  section above and issue #119.
 
 `CHANGELOG.md` is the per-release record; consult it before assuming a feature's
 state rather than trusting a static table here.
