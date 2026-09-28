@@ -946,3 +946,31 @@ class TestCombatLogModifierMetadata:
         assert entry.modifier_elapsed_duration_s is None
         assert entry.attacker_team is None
         assert entry.target_team is None
+
+
+# ---------------------------------------------------------------------------
+# Rune type
+# ---------------------------------------------------------------------------
+
+
+class TestRuneType:
+    def _capture(self):
+        processor = CombatLogProcessor()
+        entries = []
+        processor.on_combat_log_entry(entries.append)
+        return processor, entries
+
+    def test_rune_pickup_sets_rune_type_and_keeps_gold_reason(self):
+        processor, entries = self._capture()
+        processor.process_rune_pickup(player_slot=3, rune_type=8, tick=900)
+        (entry,) = entries
+        assert (entry.log_type, entry.value, entry.rune_type) == ("PICKUP_RUNE", 3, 8)
+        assert entry.gold_reason == 8  # kept for compatibility
+
+    def test_s2_rune_type_field_is_copied_when_present(self):
+        from gem.proto.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
+
+        processor, entries = self._capture()
+        processor.process_s2_entry(CMsgDOTACombatLogEntry(type=21, rune_type=5), FakeNameTable({}))
+        processor.process_s2_entry(CMsgDOTACombatLogEntry(type=0), FakeNameTable({}))
+        assert [entry.rune_type for entry in entries] == [5, None]

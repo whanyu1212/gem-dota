@@ -469,28 +469,7 @@ class TestCombatAggregatorRunes:
 
 
 class TestSummonKillAttribution:
-    """DEATH kills by summons credit the owner; ward self-expiry does not."""
-
-    def _agg_with_summon_owner(self, summon_name: str, owner_slot_raw: int = 0):
-        """Wire an aggregator whose entity manager resolves ``summon_name`` to an
-        owner hero at player slot ``owner_slot_raw // 2``.
-        """
-        player_ext = MagicMock()
-        parser = MagicMock()
-        em = MagicMock()
-        summon_entity = MagicMock()
-        summon_entity.get_uint32.return_value = 12345  # owner handle
-        owner_entity = _hero_entity(owner_slot_raw)
-
-        def _find_by_npc_name(name):
-            return summon_entity if name == summon_name else None
-
-        em.find_by_npc_name.side_effect = _find_by_npc_name
-        em.find_by_handle.return_value = owner_entity
-        parser.entity_manager = em
-        player_ext._parser = parser
-        player_ext._heroes_by_npc = {}
-        return _CombatAggregator(player_ext)
+    """Summon kills credit the owner through the damage source, as in OpenDota."""
 
     def _death(self, attacker, target):
         return _entry(
@@ -503,11 +482,13 @@ class TestSummonKillAttribution:
             value=0,
         )
 
-    def test_summon_kill_credited_to_owner(self):
-        agg = self._agg_with_summon_owner("npc_dota_lone_druid_bear", owner_slot_raw=0)
+    def test_summon_kill_without_a_hero_source_credits_no_one(self):
+        # OpenDota only credits heroes (CreateParsedDataBlob.expand looks the unit
+        # up in hero_to_slot). In real replays a summon's kills name the owning
+        # hero as the damage source, which the next test covers.
+        agg, _ = _make_agg(player_id_raw=0)
         agg.on_entry(self._death("npc_dota_lone_druid_bear", "npc_dota_creep_badguys_melee"))
-        assert len(agg.players[0].kills_log) == 1
-        assert agg.players[0].kills_log[0].target_name == "npc_dota_creep_badguys_melee"
+        assert agg.players == {}
 
     def test_summon_death_prefers_damage_source_hero(self):
         agg, _ = _make_agg(player_id_raw=0)
@@ -545,13 +526,11 @@ class TestSummonKillAttribution:
 
         assert agg.players.get(0) is None
 
-    def test_ward_self_expiry_not_credited_to_placer(self):
-        # A ward expiring is a DEATH whose attacker is the ward itself. Even if the
-        # ward would resolve to a placer, it must NOT be appended to kills_log.
-        agg = self._agg_with_summon_owner("npc_dota_observer_wards", owner_slot_raw=0)
+    def test_ward_self_expiry_not_credited(self):
+        # A ward expiring is a DEATH whose attacker is the ward itself.
+        agg, _ = _make_agg(player_id_raw=0)
         agg.on_entry(self._death("npc_dota_observer_wards", "npc_dota_observer_wards"))
-        # The expiry was not attributed to any player, so no agg/kills_log exists.
-        assert agg.players.get(0) is None or agg.players[0].kills_log == []
+        assert agg.players.get(0) is None
 
 
 # ---------------------------------------------------------------------------
@@ -761,107 +740,53 @@ def _expected_summon_damage(source, credited_pid):
     return expected
 
 
-class TestSummonOwnershipScans:
-    @pytest.mark.parametrize("source_kind", ["hero", "summon", "unresolved"])
+class TestNonHeroAttackers:
+    """Non-hero attackers credit no player unless a hero is their damage source.
+
+    OpenDota credits entries through ``hero_to_slot`` only, so a summon's own
+    ability and item uses, stuns, and unsourced damage count for no one.
+    """
+
     @pytest.mark.parametrize("stun_duration", [0.0, 1.5])
-    def test_sourced_damage(self, owned_unit, source_kind, stun_duration):
+    def test_sourced_damage_credits_the_source_hero(self, owned_unit, stun_duration):
         agg, em, attacker = owned_unit
-        source = {"hero": _SOURCE, "summon": attacker, "unresolved": "unknown_source"}[source_kind]
-        entry = _summon_entry(attacker, damage_source_name=source, stun_duration=stun_duration)
-        agg.on_entry(entry)
-        expected = _expected_summon_damage(source, 1 if source_kind == "hero" else None)
-        if stun_duration:
-            expected[0] = _ParsedPlayerAgg(stuns_dealt=stun_duration)
-            em.find_by_npc_name.assert_called_once_with(attacker)
-            em.find_by_handle.assert_called_once_with(12345)
-        else:
-            em.find_by_npc_name.assert_not_called()
-            em.find_by_handle.assert_not_called()
-        assert agg.players == expected
-
-    @pytest.mark.parametrize("source", ["", None, "missing"])
-    def test_missing_source_damage_uses_owner(self, owned_unit, source):
-        agg, em, attacker = owned_unit
-        entry = _summon_entry(attacker, damage_source_name=source)
-        if source == "missing":
-            values = vars(entry).copy()
-            del values["damage_source_name"]
-            entry = SimpleNamespace(**values)
-        agg.on_entry(entry)
-        em.find_by_npc_name.assert_called_once_with(attacker)
-        em.find_by_handle.assert_called_once_with(12345)
-        assert agg.players == _expected_summon_damage(attacker, 0)
-
-    @pytest.mark.parametrize("source", ["", _SOURCE, "unknown_source"])
-    @pytest.mark.parametrize("kind", [CombatLogType.ABILITY, CombatLogType.ITEM])
-    def test_uses_remain_credited_to_owner(self, owned_unit, source, kind):
-        agg, em, attacker = owned_unit
-        entry = _summon_entry(attacker, log_type=kind, damage_source_name=source)
-        agg.on_entry(entry)
-        em.find_by_npc_name.assert_called_once_with(attacker)
-        em.find_by_handle.assert_called_once_with(12345)
-        expected = _ParsedPlayerAgg()
-        if kind == CombatLogType.ABILITY:
-            expected.ability_uses["item_radiance"] = 1
-            expected.ability_targets["radiance"][_TARGET] = 1
-        else:
-            expected.item_uses["item_radiance"] = 1
-        assert agg.players == {0: expected}
-
-    @pytest.mark.parametrize("source", [_SOURCE, "", "unknown_source"])
-    def test_death_source_first_then_owner(self, owned_unit, source):
-        agg, em, attacker = owned_unit
-        entry = _summon_entry(attacker, log_type=CombatLogType.DEATH, damage_source_name=source)
-        agg.on_entry(entry)
-        if source == _SOURCE:
-            em.find_by_npc_name.assert_not_called()
-            em.find_by_handle.assert_not_called()
-            pid = 1
-        else:
-            em.find_by_npc_name.assert_called_once_with(attacker)
-            em.find_by_handle.assert_called_once_with(12345)
-            pid = 0
-        assert agg.players == {pid: _ParsedPlayerAgg(kills_log=[entry])}
-
-    def test_self_death_does_not_resolve_owner(self, owned_unit):
-        agg, em, attacker = owned_unit
-        agg.on_entry(_summon_entry(attacker, log_type=CombatLogType.DEATH, target_name=attacker))
+        agg.on_entry(_summon_entry(attacker, stun_duration=stun_duration))
         em.find_by_npc_name.assert_not_called()
-        em.find_by_handle.assert_not_called()
+        assert agg.players == _expected_summon_damage(_SOURCE, 1)
+
+    @pytest.mark.parametrize("source", ["", "unknown_source"])
+    def test_unsourced_damage_credits_no_dealer(self, owned_unit, source):
+        agg, em, attacker = owned_unit
+        agg.on_entry(_summon_entry(attacker, damage_source_name=source))
+        em.find_by_npc_name.assert_not_called()
+        assert agg.players == _expected_summon_damage(source or attacker, None)
+
+    @pytest.mark.parametrize("kind", [CombatLogType.ABILITY, CombatLogType.ITEM])
+    def test_uses_credit_no_one(self, owned_unit, kind):
+        agg, em, attacker = owned_unit
+        agg.on_entry(_summon_entry(attacker, log_type=kind, damage_source_name=""))
+        em.find_by_npc_name.assert_not_called()
         assert agg.players == {}
 
-    @pytest.mark.parametrize("attacker,is_hero", [(_SOURCE, True), ("unknown", True), ("", False)])
-    def test_ineligible_attackers_do_not_scan(self, owned_unit, attacker, is_hero):
-        agg, em, _ = owned_unit
-        agg.on_entry(_summon_entry(attacker, attacker_is_hero=is_hero, stun_duration=1.5))
-        expected = _expected_summon_damage(_SOURCE, 1)
-        if attacker == _SOURCE:
-            expected[1].stuns_dealt = 1.5
-        em.find_by_npc_name.assert_not_called()
-        em.find_by_handle.assert_not_called()
-        assert agg.players == expected
-
-    @pytest.mark.parametrize(
-        "attacker",
-        ["npc_dota_creep_goodguys_melee", "npc_dota_neutral_kobold", "npc_dota_badguys_tower1_mid"],
-    )
-    @pytest.mark.parametrize("source", ["", _SOURCE])
-    def test_unowned_units(self, owned_unit, attacker, source):
-        agg, em, _ = owned_unit
-        em.find_by_npc_name.side_effect = None
-        em.find_by_npc_name.return_value = None
-        agg.on_entry(_summon_entry(attacker, damage_source_name=source))
-        if source:
-            em.find_by_npc_name.assert_not_called()
-        else:
-            em.find_by_npc_name.assert_called_once_with(attacker)
-        em.find_by_handle.assert_not_called()
-        assert agg.players == _expected_summon_damage(source or attacker, 1 if source else None)
-
-    def test_unresolved_owner_preserves_source_damage(self, owned_unit):
+    def test_death_with_hero_source_credits_the_hero(self, owned_unit):
         agg, em, attacker = owned_unit
-        em.find_by_handle.return_value = None
-        agg.on_entry(_summon_entry(attacker, stun_duration=1.5))
-        em.find_by_npc_name.assert_called_once_with(attacker)
-        em.find_by_handle.assert_called_once_with(12345)
-        assert agg.players == _expected_summon_damage(_SOURCE, 1)
+        entry = _summon_entry(attacker, log_type=CombatLogType.DEATH)
+        agg.on_entry(entry)
+        em.find_by_npc_name.assert_not_called()
+        assert agg.players == {1: _ParsedPlayerAgg(kills_log=[entry])}
+
+    @pytest.mark.parametrize("source", ["", "unknown_source"])
+    def test_death_without_hero_source_credits_no_one(self, owned_unit, source):
+        agg, em, attacker = owned_unit
+        agg.on_entry(
+            _summon_entry(attacker, log_type=CombatLogType.DEATH, damage_source_name=source)
+        )
+        em.find_by_npc_name.assert_not_called()
+        assert agg.players == {}
+
+    def test_resolve_kill_pid_has_no_owner_step(self, owned_unit):
+        agg, em, attacker = owned_unit
+        assert agg.resolve_kill_pid(_SOURCE, attacker) == 1
+        assert agg.resolve_kill_pid("", _SOURCE) == 1
+        assert agg.resolve_kill_pid("", attacker) is None
+        em.find_by_npc_name.assert_not_called()

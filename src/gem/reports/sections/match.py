@@ -339,7 +339,7 @@ def build_objectives(match: ParsedMatch, fmt_tick_fn: Callable[[int], str]) -> s
         team_color = TEAM_COLOR_CSS.get(pp.team, "#888")
         h = hero(pp.hero_name) if pp.hero_name else f"Player {pp.player_id}"
         for entry in pp.runes_log:
-            if entry.gold_reason == 8:  # Wisdom rune
+            if entry.rune_type == 8:  # Wisdom rune
                 desc = f'<span style="color:{team_color}">{e(h)}</span> picked up Wisdom Rune'
                 events.append((entry.tick, "Wisdom Rune", "#80cbc4", desc))
 

@@ -1,14 +1,21 @@
 """Combat log ingestion for Dota 2 Source 2 replays.
 
-Handles two ingestion paths:
-- S1 (legacy): ``dota_combatlog`` game event via ``CMsgSource1LegacyGameEvent``.
-  Names are integer indices resolved via the ``CombatLogNames`` string table.
-- S2 (modern): ``CDOTAUserMsg_CombatLogBulkData`` user message with name
-  indices also resolved via ``CombatLogNames``.
+Handles two formats, both naming units by index into the ``CombatLogNames``
+string table:
 
-Both paths produce the same ``CombatLogEntry`` output.
+- S2 (current): ``CMsgDOTACombatLogEntry``. Current replays send one per inner
+  message ``DOTA_UM_CombatLogDataHLTV`` (554); the parser also accepts the
+  ``CDOTAUserMsg_CombatLogBulkData`` wrapper, which no replay checked uses.
+- S1 (legacy): the ``dota_combatlog`` game event (``CMsgSource1LegacyGameEvent``).
+  No replay checked uses it either (builds 6559 to 6918).
 
-Reference: clarity/CombatLog.java, odota/Parse.java
+Both produce the same ``CombatLogEntry``. Rune pickups arrive as a chat event
+instead, and become ``PICKUP_RUNE`` entries.
+
+References:
+    skadistats/clarity processor/gameevents/CombatLog.java (pinned revision in
+    CLAUDE.md)
+    odota/parser Parse.java (pinned revision in CLAUDE.md)
 """
 
 from __future__ import annotations
@@ -161,13 +168,15 @@ class CombatLogEntry:
             ``parser/Parse.java`` (``sourcename = cle.getDamageSourceName()``).
         target_name: Name of the target unit/hero.
         inflictor_name: Ability or item that caused the event.
-        value: Numeric value (damage, heal amount, gold, xp, etc.).
+        value: Numeric value (damage, heal amount, gold, xp, etc.). For
+            PICKUP_RUNE entries, the player slot (0-9) that picked up the rune.
         attacker_is_hero: True if the attacker is a hero.
         target_is_hero: True if the target is a hero.
         attacker_is_illusion: True if the attacker is an illusion.
         target_is_illusion: True if the target is an illusion.
         ability_level: Ability level (for ability/item events).
-        gold_reason: Gold reason code (for GOLD events).
+        gold_reason: Gold reason code (for GOLD events). PICKUP_RUNE entries
+            also store the rune type here, for compatibility; prefer ``rune_type``.
         xp_reason: XP reason code (for XP events).
         value_name: Resolved name for the value field (PURCHASE events: item name).
         damage_type: Damage type label for DAMAGE events ("physical", "magical", "pure").
@@ -199,6 +208,8 @@ class CombatLogEntry:
         aura_modifier: S2 aura-modifier flag, preserving absent versus false.
         modifier_purged: S2 purge flag, preserving absent versus false.
         modifier_purged_duration_s: S2 purged-duration evidence in seconds.
+        rune_type: The replay's rune code for PICKUP_RUNE entries, or the S2
+            ``rune_type`` field when present; ``None`` otherwise.
         attacker_is_hero_present: Whether the wire event explicitly supplied
             ``attacker_is_hero``.
         target_is_hero_present: Whether the wire event explicitly supplied
@@ -243,6 +254,7 @@ class CombatLogEntry:
     aura_modifier: bool | None = None
     modifier_purged: bool | None = None
     modifier_purged_duration_s: float | None = None
+    rune_type: int | None = None
     attacker_is_hero_present: bool = False
     target_is_hero_present: bool = False
     attacker_is_illusion_present: bool = False
@@ -359,6 +371,7 @@ class CombatLogProcessor:
             log_type=CombatLogType.PICKUP_RUNE,
             value=player_slot,
             gold_reason=rune_type,
+            rune_type=rune_type,
             source=CombatLogSource.UNKNOWN,
         )
         self._emit(entry)
@@ -474,8 +487,7 @@ class CombatLogProcessor:
             msg: A ``CMsgDOTACombatLogEntry``-like protobuf message with
                 integer name indices and flag attributes.
             name_table: An object with an ``items`` dict mapping int index →
-                ``(key_str, value_bytes)`` for name resolution, OR a legacy
-                object with a ``get(index, default='')`` method.
+                ``(key_str, value_bytes)`` for name resolution.
             tick: Current game tick.
             game_time_s: Optional game-relative timestamp computed by
                 ``ReplayParser`` from the combat-log ``GAME_STATE`` marker.
@@ -483,26 +495,16 @@ class CombatLogProcessor:
         """
         log_type = _LOG_TYPE_NAMES.get(msg.type, CombatLogType.UNKNOWN)
 
-        # Support both StringTable.items dict and legacy dict-like name_table
-        if hasattr(name_table, "items") and isinstance(name_table.items, dict):
-            attacker_name = _resolve_name(name_table, msg.attacker_name)
-            damage_source_name = _resolve_name(name_table, msg.damage_source_name)
-            target_name = _resolve_name(name_table, msg.target_name)
-            inflictor_name = _resolve_name(name_table, msg.inflictor_name)
-        else:
-            attacker_name = name_table.get(msg.attacker_name, "")
-            damage_source_name = name_table.get(msg.damage_source_name, "")
-            target_name = name_table.get(msg.target_name, "")
-            inflictor_name = name_table.get(msg.inflictor_name, "")
+        attacker_name = _resolve_name(name_table, msg.attacker_name)
+        damage_source_name = _resolve_name(name_table, msg.damage_source_name)
+        target_name = _resolve_name(name_table, msg.target_name)
+        inflictor_name = _resolve_name(name_table, msg.inflictor_name)
 
         # For PURCHASE events, msg.value is a CombatLogNames index for the item name.
         # Reference: odota/Parse.java cle.getValueName() for DOTA_COMBATLOG_PURCHASE
         value_name = ""
         if log_type == "PURCHASE":
-            if hasattr(name_table, "items") and isinstance(name_table.items, dict):
-                value_name = _resolve_name(name_table, msg.value)
-            elif hasattr(name_table, "get"):
-                value_name = name_table.get(msg.value, "")
+            value_name = _resolve_name(name_table, msg.value)
 
         # msg.value is proto uint32 but Dota encodes signed values (e.g. gold lost)
         # as two's complement. Reinterpret as signed int32.
@@ -542,6 +544,7 @@ class CombatLogProcessor:
             if msg.HasField("modifier_purged_duration")
             else None
         )
+        rune_type = int(msg.rune_type) if msg.HasField("rune_type") else None
         damage_type = ""
         if log_type == "DAMAGE" and hasattr(msg, "damage_type"):
             damage_type = _DAMAGE_TYPE_NAMES.get(msg.damage_type, "")
@@ -580,6 +583,7 @@ class CombatLogProcessor:
             aura_modifier=aura_modifier,
             modifier_purged=modifier_purged,
             modifier_purged_duration_s=modifier_purged_duration_s,
+            rune_type=rune_type,
             attacker_is_hero_present=msg.HasField("is_attacker_hero"),
             target_is_hero_present=msg.HasField("is_target_hero"),
             attacker_is_illusion_present=msg.HasField("is_attacker_illusion"),

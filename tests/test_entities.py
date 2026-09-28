@@ -1514,3 +1514,43 @@ def test_to_map_lists_only_the_first_of_two_same_named_fields():
 
     assert e.get("m_nPlayerID") == 4
     assert e.to_map() == {"m_nPlayerID": 4}
+
+
+# ---------------------------------------------------------------------------
+# EntityManager.find_by_npc_name
+# ---------------------------------------------------------------------------
+
+
+class TestFindByNpcName:
+    @staticmethod
+    def _manager(*entities):
+        em = EntityManager({}, StringTables())
+        table = StringTable(index=0, name="EntityNames")
+        table.items = {0: ("npc_dota_courier", b""), 1: ("npc_dota_lone_druid_bear", b"")}
+        em.string_tables.add(table)
+        em.entities = list(entities)
+        return em
+
+    @pytest.mark.parametrize(
+        "field", ["m_pEntity.m_nameStringTableIndex", "m_pEntity.m_nameStringableIndex"]
+    )
+    def test_finds_units_under_either_field_spelling(self, field):
+        bear = Entity(index=5, serial=1, cls=FakeClass("CDOTA_Unit_SpiritBear", class_id=2))
+        set_fields(bear, {field: 1})
+        assert self._manager(None, bear).find_by_npc_name("npc_dota_lone_druid_bear") is bear
+
+    def test_shared_names_return_the_first_unit(self):
+        couriers = []
+        for index in (3, 4):
+            courier = Entity(index=index, serial=1, cls=FakeClass("CDOTA_Unit_Courier", class_id=3))
+            set_fields(courier, {"m_pEntity.m_nameStringTableIndex": 0})
+            couriers.append(courier)
+        assert self._manager(*couriers).find_by_npc_name("npc_dota_courier") is couriers[0]
+
+    def test_inactive_and_unknown_units_are_skipped(self):
+        bear = Entity(index=5, serial=1, cls=FakeClass("CDOTA_Unit_SpiritBear", class_id=2))
+        set_fields(bear, {"m_pEntity.m_nameStringTableIndex": 1})
+        bear.active = False
+        em = self._manager(bear)
+        assert em.find_by_npc_name("npc_dota_lone_druid_bear") is None
+        assert em.find_by_npc_name("npc_dota_nothing") is None

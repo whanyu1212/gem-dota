@@ -99,38 +99,27 @@ Use `attacker_is_hero and target_is_hero` for hero-vs-hero only.
 
 ---
 
-## Kill count with summon attribution
+## Crediting kills by summons
 
-Summoned units (Warlock Golem, Undying Zombie, Pugna Nether Ward) show up as the
-`attacker_name` on `DEATH` events, not the player hero. gem's `CombatAggregator`
-handles this automatically when you use `gem.parse()`. For manual tracking:
+A summoned unit's kill names the unit as `attacker_name`, but Valve puts the owning
+hero in `damage_source_name`. In the replays checked, every kill by a Beastmaster
+boar or hawk, a Brewmaster spirit, or a Warlock golem named its owner there. So credit
+a kill to the source hero first, then to the attacker:
 
 ```python
 from collections import defaultdict
 
-from gem.state.entities import EntityOp
-
-# Map summoned unit name → owning hero name (built from entity stream)
-summon_owner: dict[str, str] = {}
-
-def on_entity(entity, op):
-    if not (op & EntityOp.CREATED):
-        return
-    name = entity.get_class_name()
-    if "Warlock_Golem" in name or "Zombie" in name:
-        # resolve owner via entity handle...
-        pass
-
 kill_count: dict[str, int] = defaultdict(int)
 
 def on_entry(entry):
-    if entry.log_type == "DEATH" and entry.target_is_hero:
-        attacker = summon_owner.get(entry.attacker_name, entry.attacker_name)
-        kill_count[attacker] += 1
+    if entry.log_type == "DEATH" and entry.target_is_hero and not entry.target_is_illusion:
+        killer = entry.damage_source_name or entry.attacker_name
+        kill_count[killer] += 1
 ```
 
-When using `gem.parse()`, kills credited to summons are attributed to the owning hero
-automatically in `player.kills`.
+`gem.parse()` credits kills the same way, as OpenDota does. An entry counts for a
+player only through that player's hero, so kills by creeps and towers, and a summon's
+own ability uses, count for no one.
 
 ---
 

@@ -18,7 +18,7 @@ class CombatLogProcessor
 
 Parses and dispatches combat log entries.
 
-Source: [src/gem/combat/log.py:331](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combat/log.py#L331)
+Source: [src/gem/combat/log.py:343](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combat/log.py#L343)
 
 #### Methods
 
@@ -28,7 +28,7 @@ Signature: `def CombatLogProcessor.on_combat_log_entry(self, handler: CombatLogH
 
 Register a handler to receive decoded CombatLogEntry objects.
 
-Source: [src/gem/combat/log.py:341](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combat/log.py#L341)
+Source: [src/gem/combat/log.py:353](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combat/log.py#L353)
 
 ##### `process_rune_pickup`
 
@@ -36,7 +36,7 @@ Signature: `def CombatLogProcessor.process_rune_pickup(self, player_slot: int, r
 
 Emit a PICKUP_RUNE CombatLogEntry from a CDOTAUserMsg_ChatEvent.
 
-Source: [src/gem/combat/log.py:349](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combat/log.py#L349)
+Source: [src/gem/combat/log.py:361](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combat/log.py#L361)
 
 ##### `process_s1_event`
 
@@ -44,7 +44,7 @@ Signature: `def CombatLogProcessor.process_s1_event(self, game_event: Any, name_
 
 Parse a ``dota_combatlog`` S1 game event and emit a CombatLogEntry.
 
-Source: [src/gem/combat/log.py:375](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combat/log.py#L375)
+Source: [src/gem/combat/log.py:388](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combat/log.py#L388)
 
 ##### `process_s2_bulk`
 
@@ -52,7 +52,7 @@ Signature: `def CombatLogProcessor.process_s2_bulk(self, msg: Any, name_table: A
 
 Parse a CDOTAUserMsg_CombatLogBulkData and emit CombatLogEntry per entry.
 
-Source: [src/gem/combat/log.py:446](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combat/log.py#L446)
+Source: [src/gem/combat/log.py:459](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combat/log.py#L459)
 
 ##### `process_s2_entry`
 
@@ -60,7 +60,7 @@ Signature: `def CombatLogProcessor.process_s2_entry(self, msg: Any, name_table: 
 
 Parse a CMsgDOTACombatLogEntry and emit a CombatLogEntry.
 
-Source: [src/gem/combat/log.py:463](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combat/log.py#L463)
+Source: [src/gem/combat/log.py:476](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combat/log.py#L476)
 
 ## `gem.combat.log.CombatLogEntry`
 
@@ -72,7 +72,7 @@ class CombatLogEntry
 
 One decoded combat log entry.
 
-Source: [src/gem/combat/log.py:145](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combat/log.py#L145)
+Source: [src/gem/combat/log.py:152](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combat/log.py#L152)
 
 #### Dataclass fields
 
@@ -112,6 +112,7 @@ Source: [src/gem/combat/log.py:145](https://github.com/whanyu1212/gem-dota/blob/
 | `aura_modifier` | `bool \| None` | `None` |
 | `modifier_purged` | `bool \| None` | `None` |
 | `modifier_purged_duration_s` | `float \| None` | `None` |
+| `rune_type` | `int \| None` | `None` |
 | `attacker_is_hero_present` | `bool` | `False` |
 | `target_is_hero_present` | `bool` | `False` |
 | `attacker_is_illusion_present` | `bool` | `False` |
@@ -125,4 +126,4 @@ Signature: `def CombatLogEntry.visible_to(self, team: int) -> bool | None`
 
 Return this event's S2 visibility flag for a playing team.
 
-Source: [src/gem/combat/log.py:251](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combat/log.py#L251)
+Source: [src/gem/combat/log.py:263](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/combat/log.py#L263)
