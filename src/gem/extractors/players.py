@@ -45,7 +45,7 @@ _STARTING_ITEM_SLOTS = 8
 _ABILITY_SLOTS = 32  # m_hAbilities.0000-0031 per hero entity
 _NULL_HANDLE = 0xFFFFFF  # empty slot sentinel
 
-_CONTROLLER_FIELDS = FieldAccessPlan(("m_hAssignedHero", "m_iGold", "m_iNetWorth"))
+_CONTROLLER_FIELDS = FieldAccessPlan(("m_hAssignedHero",))
 _ENTITY_NAME_FIELDS = FieldAccessPlan(
     ("m_pEntity.m_nameStringTableIndex", "m_pEntity.m_nameStringableIndex")
 )
@@ -76,9 +76,12 @@ _TEAM_DATA_FIELDS = FieldAccessPlan(
             "m_iTotalEarnedXP",
             "m_iLastHitCount",
             "m_iDenyCount",
+            "m_iReliableGold",
+            "m_iUnreliableGold",
         )
     )
 )
+_TEAM_DATA_STRIDE = 7  # fields per team slot in _TEAM_DATA_FIELDS
 _ABILITY_HANDLE_FIELDS = FieldAccessPlan(
     tuple(
         field_name
@@ -657,25 +660,15 @@ class PlayerExtractor:
                     item = entity_names.items.get(name_idx)
                     if item is not None:
                         snap.npc_name = item[0]
-            # Overlay current unspent gold + net_worth from CDOTAPlayerController.
-            # m_iGold = current cash on hand (goes up/down as player earns/spends).
-            # m_iNetWorth = gold + item value (also on controller for convenience).
-            ctrl = self._controllers.get(snap.player_id)
-            if ctrl is not None:
-                controller_fields = ctrl._resolve_fields(_CONTROLLER_FIELDS)
-                gold = ctrl._get_int32_resolved(controller_fields[1])
-                nw = ctrl._get_int32_resolved(controller_fields[2])
-                if gold is not None:
-                    snap.gold = gold
-                if nw is not None:
-                    snap.net_worth = nw
-            # Overlay authoritative cumulative stats from CDOTA_DataRadiant/Dire.
-            # These are the canonical sources for advantage curves — they differ
-            # from the hero/controller fields in important ways:
+            # Overlay per-player economy stats from CDOTA_DataRadiant/Dire. Mind
+            # which gold is which:
             #
             #   m_iTotalEarnedGold — monotonically increasing gold earned across
-            #     the whole game. Use this for radiant_gold_adv, NOT m_iGold
-            #     (spendable cash) which resets when items are purchased.
+            #     the whole game. Use this for radiant_gold_adv, NOT current
+            #     gold, which drops on every purchase.
+            #
+            #   m_iReliableGold + m_iUnreliableGold — current unspent gold. The
+            #     sum matches the postgame summary's per-player gold.
             #
             #   m_iTotalEarnedXP — monotonically increasing XP earned across the
             #     whole game. Use this for radiant_xp_adv, NOT m_iCurrentXP from
@@ -688,7 +681,7 @@ class PlayerExtractor:
                 # Prefer authoritative team slot; fall back to pid % 5
                 team_slot = self._player_team_slot.get(snap.player_id, snap.player_id % 5)
                 data_fields = data_entity._resolve_fields(_TEAM_DATA_FIELDS)
-                offset = team_slot * 5
+                offset = team_slot * _TEAM_DATA_STRIDE
                 nw = data_entity._get_int32_resolved(data_fields[offset])
                 if nw is not None and nw > 0:
                     snap.net_worth = nw
@@ -704,6 +697,10 @@ class PlayerExtractor:
                 dn = data_entity._get_int32_resolved(data_fields[offset + 4])
                 if dn is not None and dn > 0:
                     snap.dn = dn
+                reliable = data_entity._get_int32_resolved(data_fields[offset + 5])
+                unreliable = data_entity._get_int32_resolved(data_fields[offset + 6])
+                if reliable is not None or unreliable is not None:
+                    snap.gold = (reliable or 0) + (unreliable or 0)
             # Overlay authoritative hero level from CDOTA_PlayerResource
             # (m_vecPlayerTeamData.%i.m_iLevel) — the hero entity's
             # m_nCurrentLevel reads 0 in some replays. Mirrors OpenDota's

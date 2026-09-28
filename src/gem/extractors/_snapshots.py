@@ -345,7 +345,7 @@ def _build_hero_snapshot(entity: Entity, tick: int, player_id: int) -> PlayerSta
         team=team,
         level=level,
         xp=xp,
-        gold=0,  # current unspent gold — set by extractor from CDOTAPlayerController
+        gold=0,  # current unspent gold — set by extractor from m_iReliableGold + m_iUnreliableGold
         total_earned_gold=0,  # cumulative — set by extractor from m_iTotalEarnedGold
         net_worth=0,
         lh=lh,

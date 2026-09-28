@@ -715,18 +715,51 @@ class TestMaybeSample:
         assert len(ext.snapshots) == 1
         assert ext.snapshots[0].tick == 250
 
-    def test_controller_gold_overlay(self):
+    def test_current_gold_is_reliable_plus_unreliable(self):
+        # Current replays have no m_iGold on CDOTAPlayerController; current
+        # gold lives in the team data entity as reliable + unreliable gold.
         ext = PlayerExtractor(sample_interval=0)
         parser = FakeParser(tick=100)
         ext.attach(parser)
         hero = _hero("Axe", player_id=0)
-        ctrl = _ent("CDOTAPlayerController", **{"m_iGold": 500, "m_iNetWorth": 1500})
+        data = _ent(
+            "CDOTA_DataRadiant",
+            **{
+                "m_vecDataTeam.0000.m_iTotalEarnedGold": 3000,
+                "m_vecDataTeam.0000.m_iReliableGold": 400,
+                "m_vecDataTeam.0000.m_iUnreliableGold": 100,
+                # Another slot's gold must not leak into slot 0.
+                "m_vecDataTeam.0001.m_iReliableGold": 9999,
+            },
+        )
         ext._heroes[0] = hero
-        ext._controllers[0] = ctrl
+        ext._data_radiant = data
+        ext._player_team_slot[0] = 0
         ext._last_sample = -999
         ext._sample(100)
-        assert ext.snapshots[0].gold == 500
-        assert ext.snapshots[0].net_worth == 1500
+        snap = ext.snapshots[0]
+        assert snap.gold == 500
+        assert snap.total_earned_gold == 3000
+
+    def test_current_gold_uses_team_slot_offset(self):
+        ext = PlayerExtractor(sample_interval=0)
+        parser = FakeParser(tick=100)
+        ext.attach(parser)
+        ext._heroes[0] = _hero("Axe", player_id=0)
+        ext._data_radiant = _ent(
+            "CDOTA_DataRadiant",
+            **{
+                "m_vecDataTeam.0003.m_iReliableGold": 0,
+                "m_vecDataTeam.0003.m_iUnreliableGold": 250,
+                "m_vecDataTeam.0003.m_iDenyCount": 7,
+            },
+        )
+        ext._player_team_slot[0] = 3
+        ext._last_sample = -999
+        ext._sample(100)
+        snap = ext.snapshots[0]
+        assert snap.gold == 250
+        assert snap.dn == 7
 
     def test_data_radiant_overlay(self):
         ext = PlayerExtractor(sample_interval=0)
