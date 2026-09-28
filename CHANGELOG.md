@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   S2 combat log's own `rune_type` field when present). Rune pickups used to carry
   it only in `gold_reason`, which still holds it for compatibility. The
   `player_runes_log` DataFrame gains a `rune_type` column, and the HTML report
-  reads it.
+  reads it, falling back to `gold_reason` for matches loaded from older JSON.
 - `GameEvent` has Pythonic field access: `event.get(name, default=None)`,
   `event[name]` (raises `KeyError`), `event.to_dict()`, and `event.name`. The
   `get_*` methods, which return a `(value, error)` pair, are unchanged.

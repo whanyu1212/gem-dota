@@ -200,3 +200,19 @@ class TestReportClock:
         html = build_header(match, fmt_tick, {})
         assert expected in html
         assert "65:52" not in html
+
+
+def test_objectives_timeline_reads_rune_type_and_legacy_gold_reason():
+    from gem.combat.log import CombatLogEntry, CombatLogType
+    from gem.reports.sections.match import build_objectives
+    from gem.results.models import ParsedMatch, ParsedPlayer
+
+    new = CombatLogEntry(tick=100, log_type=CombatLogType.PICKUP_RUNE, value=0, rune_type=8)
+    # JSON written before rune_type existed loads with rune_type=None.
+    legacy = CombatLogEntry(tick=200, log_type=CombatLogType.PICKUP_RUNE, value=0, gold_reason=8)
+    other = CombatLogEntry(tick=300, log_type=CombatLogType.PICKUP_RUNE, value=0, rune_type=5)
+    player = ParsedPlayer(player_id=0, hero_name="npc_dota_hero_axe", team=2)
+    player.runes_log = [new, legacy, other]
+    html = build_objectives(ParsedMatch(players=[player]), lambda tick: f"t{tick}")
+
+    assert html.count("picked up Wisdom Rune") == 2
