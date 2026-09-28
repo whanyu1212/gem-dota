@@ -100,7 +100,7 @@ Signature: `def BitReader.read_varint64(self) -> int`
 
 Read a signed 64-bit protobuf-style varint using zigzag decoding.
 
-Source: [src/gem/binary/reader.py:350](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/reader.py#L350)
+Source: [src/gem/binary/reader.py:351](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/reader.py#L351)
 
 ##### `read_ubit_var`
 
@@ -108,7 +108,7 @@ Signature: `def BitReader.read_ubit_var(self) -> int`
 
 Read Source 2's ``UBitVar`` unsigned integer encoding.
 
-Source: [src/gem/binary/reader.py:366](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/reader.py#L366)
+Source: [src/gem/binary/reader.py:367](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/reader.py#L367)
 
 ##### `read_ubit_var_fp`
 
@@ -116,7 +116,7 @@ Signature: `def BitReader.read_ubit_var_fp(self) -> int`
 
 Read Source 2's field-path variable-width integer encoding.
 
-Source: [src/gem/binary/reader.py:390](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/reader.py#L390)
+Source: [src/gem/binary/reader.py:391](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/reader.py#L391)
 
 ##### `read_float`
 
@@ -124,7 +124,7 @@ Signature: `def BitReader.read_float(self) -> float`
 
 Read a little-endian IEEE 754 single-precision float.
 
-Source: [src/gem/binary/reader.py:414](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/reader.py#L414)
+Source: [src/gem/binary/reader.py:415](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/reader.py#L415)
 
 ##### `read_coord`
 
@@ -132,7 +132,7 @@ Signature: `def BitReader.read_coord(self) -> float`
 
 Read a Source network coordinate.
 
-Source: [src/gem/binary/reader.py:422](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/reader.py#L422)
+Source: [src/gem/binary/reader.py:423](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/reader.py#L423)
 
 ##### `read_angle`
 
@@ -140,7 +140,7 @@ Signature: `def BitReader.read_angle(self, n: int) -> float`
 
 Read an angle encoded in ``n`` bits, mapped to [0, 360) degrees.
 
-Source: [src/gem/binary/reader.py:446](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/reader.py#L446)
+Source: [src/gem/binary/reader.py:447](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/reader.py#L447)
 
 ##### `read_normal`
 
@@ -148,7 +148,7 @@ Signature: `def BitReader.read_normal(self) -> float`
 
 Read a normalized float in the range [-1, 1].
 
-Source: [src/gem/binary/reader.py:457](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/reader.py#L457)
+Source: [src/gem/binary/reader.py:458](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/reader.py#L458)
 
 ##### `read_3bit_normal`
 
@@ -156,7 +156,7 @@ Signature: `def BitReader.read_3bit_normal(self) -> list[float]`
 
 Read a compressed three-component unit normal vector.
 
-Source: [src/gem/binary/reader.py:470](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/reader.py#L470)
+Source: [src/gem/binary/reader.py:471](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/reader.py#L471)
 
 ##### `read_string`
 
@@ -164,7 +164,7 @@ Signature: `def BitReader.read_string(self) -> str`
 
 Read a null-terminated UTF-8 string.
 
-Source: [src/gem/binary/reader.py:498](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/reader.py#L498)
+Source: [src/gem/binary/reader.py:499](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/reader.py#L499)
 
 ##### `peek_bits`
 
@@ -172,7 +172,7 @@ Signature: `def BitReader.peek_bits(self, n: int) -> int`
 
 Return the next ``n`` bits without consuming logical bits.
 
-Source: [src/gem/binary/reader.py:516](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/reader.py#L516)
+Source: [src/gem/binary/reader.py:517](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/reader.py#L517)
 
 ##### `skip_bits`
 
@@ -180,7 +180,7 @@ Signature: `def BitReader.skip_bits(self, n: int) -> None`
 
 Discard ``n`` bits that are already loaded in the bit cache.
 
-Source: [src/gem/binary/reader.py:554](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/reader.py#L554)
+Source: [src/gem/binary/reader.py:555](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/reader.py#L555)
 
 ##### `rem_bits`
 
@@ -188,7 +188,7 @@ Signature: `def BitReader.rem_bits(self) -> int`
 
 Return the number of logical unread bits remaining.
 
-Source: [src/gem/binary/reader.py:567](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/reader.py#L567)
+Source: [src/gem/binary/reader.py:568](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/reader.py#L568)
 
 ##### `position`
 
@@ -196,4 +196,4 @@ Signature: `def BitReader.position(self) -> str`
 
 Return a reader position string for debugging.
 
-Source: [src/gem/binary/reader.py:575](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/reader.py#L575)
+Source: [src/gem/binary/reader.py:576](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/binary/reader.py#L576)

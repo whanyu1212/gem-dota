@@ -7,6 +7,8 @@ frozen at ``m_nPauseStartTick`` while paused, and shifted by
 ``m_flGameStartTime``. :class:`GameClock` records the anchors and pause
 intervals needed to reproduce that clock for any replay tick after parsing.
 
+:class:`GameClockTracker` builds that clock while a replay is parsed.
+
 Reference: odota/parser src/main/java/opendota/Parse.java (game-time and pause
 tracking in ``onTickStart``; pinned revision in CLAUDE.md).
 """
@@ -15,6 +17,16 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
+
+from gem.proto.dota_shared_enums_pb2 import (
+    DOTA_GAMERULES_STATE_GAME_IN_PROGRESS,
+    DOTA_GAMERULES_STATE_POST_GAME,
+)
+from gem.schema.sendtable.models import FieldAccessPlan
+
+if TYPE_CHECKING:
+    from gem.state.entities import Entity
 
 TICKS_PER_SECOND = 30
 
@@ -186,3 +198,203 @@ def game_clock_for(match: object) -> GameClock:
     if isinstance(clock, GameClock):
         return clock
     return GameClock(game_start_tick=getattr(match, "game_start_tick", None))
+
+
+# ---------------------------------------------------------------------------
+# Live tracking during a parse
+# ---------------------------------------------------------------------------
+
+_CLOCK_FIELDS = FieldAccessPlan(
+    (
+        "m_pGameRules.m_flGameStartTime",
+        "m_pGameRules.m_fGameTime",
+        "m_pGameRules.m_bGamePaused",
+        "m_pGameRules.m_nPauseStartTick",
+        "m_pGameRules.m_nTotalPausedTicks",
+    )
+)
+
+
+def _round_positive_seconds(value: float) -> int:
+    """Round positive replay seconds the same way Java ``Math.round`` does."""
+    return int(value + 0.5)
+
+
+class GameClockTracker:
+    """Builds the in-game clock while a replay is parsed.
+
+    ``ReplayParser`` feeds it network ticks, game-rules entity updates, and
+    combat-log timestamps; it keeps the live clock readings OpenDota uses and
+    records the :class:`GameClock` anchors and pauses for after the parse.
+
+    Attributes:
+        clock: The anchors and pauses observed so far.
+        net_tick: Latest ``CNETMsg_Tick`` value.
+        net_tick_seen: Whether any ``CNETMsg_Tick`` has arrived.
+        game_time_s: OpenDota-style game time from the game-rules entity, or
+            ``None`` before the game start time is known.
+        game_start_tick: Replay tick at which the game start was first seen.
+        combat_log_time_s: Horn-anchored time of the latest timed combat-log
+            entry, or ``None`` before the ``GAME_IN_PROGRESS`` marker.
+        duration_s: Combat-log time of the ``POST_GAME`` marker (OpenDota's
+            ``duration``), or ``None`` until it arrives.
+    """
+
+    def __init__(self) -> None:
+        self.clock = GameClock()
+        self.net_tick = 0
+        self.net_tick_seen = False
+        self.game_time_s: int | None = None
+        self.game_start_tick: int | None = None
+        self.combat_log_time_s: int | None = None
+        self.duration_s: int | None = None
+        self._game_start_seen = False
+        self._game_start_time_s: int | None = None
+        self._combat_log_start_s: int | None = None
+        # Open pause as ``(start_tick, total_paused_ticks_at_start)``.
+        self._open_pause: tuple[int, int] | None = None
+
+    def on_net_tick(self, net_tick: int) -> None:
+        """Record a ``CNETMsg_Tick``."""
+        self.net_tick = net_tick
+        self.net_tick_seen = True
+
+    def net_tick_offset(self, tick: int) -> int:
+        """Return ``net_tick - tick``, or 0 before any network tick."""
+        return self.net_tick - tick if self.net_tick_seen else 0
+
+    def update(self, entity: Entity, tick: int) -> None:
+        """Refresh the clock from the ``CDOTAGamerulesProxy`` entity.
+
+        OpenDota timestamps interval records by reading ``m_fGameTime`` when
+        available, or falling back to ``(tick - paused_ticks) / 30``. The stored
+        output time is then shifted by ``m_flGameStartTime``.
+
+        Args:
+            entity: The game-rules entity.
+            tick: Current replay tick.
+        """
+        fields = entity._resolve_fields(_CLOCK_FIELDS)
+        paused_now = entity._get_bool_resolved(fields[2])
+        if paused_now is not None:
+            self.track_pause(
+                paused_now,
+                entity._get_int32_resolved(fields[3]),
+                entity._get_int32_resolved(fields[4]),
+                tick,
+            )
+        start = entity._get_float32_resolved(fields[0])
+        if start is not None and start != 0.0:
+            self._game_start_time_s = _round_positive_seconds(start)
+            self.clock.game_start_time_s = start
+
+        if self._game_start_time_s is None:
+            return
+
+        game_time = entity._get_float32_resolved(fields[1])
+        if game_time is not None:
+            raw_time_s = _round_positive_seconds(game_time)
+        else:
+            paused = entity._get_bool_resolved(fields[2]) or False
+            pause_start_tick = entity._get_int32_resolved(fields[3])
+            total_paused_ticks = entity._get_int32_resolved(fields[4]) or 0
+            parser_tick = self.net_tick if self.net_tick_seen else tick
+            time_tick = pause_start_tick if paused and pause_start_tick is not None else parser_tick
+            raw_time_s = _round_positive_seconds((time_tick - total_paused_ticks) / 30.0)
+
+        self.game_time_s = raw_time_s - self._game_start_time_s
+
+    def observe_game_start(self, entity: Entity, tick: int) -> bool:
+        """Refresh the clock, and report whether the game has just started.
+
+        The game starts when ``m_pGameRules.m_flGameStartTime`` first becomes
+        non-zero.
+
+        Args:
+            entity: The game-rules entity.
+            tick: Current replay tick.
+
+        Returns:
+            ``True`` exactly once: on the update where the start is first seen.
+        """
+        self.update(entity, tick)
+        if self._game_start_seen:
+            return False
+        start = entity._get_float32_resolved(entity._resolve_fields(_CLOCK_FIELDS)[0])
+        if start is None or start == 0.0:
+            return False
+        self._game_start_seen = True
+        self.game_start_tick = tick
+        self.clock.game_start_tick = tick
+        self.clock.net_tick_offset = self.net_tick_offset(tick)
+        return True
+
+    def track_pause(
+        self,
+        paused: bool,
+        pause_start_net_tick: int | None,
+        total_paused_ticks: int | None,
+        tick: int,
+    ) -> None:
+        """Record pause intervals from ``m_bGamePaused`` transitions.
+
+        The pause start comes from ``m_nPauseStartTick`` and the length from the
+        growth of ``m_nTotalPausedTicks``; both count network ticks, so they are
+        shifted onto the replay-tick axis. The observed transition tick is the
+        fallback when either field is missing.
+
+        Args:
+            paused: Current ``m_bGamePaused``.
+            pause_start_net_tick: Current ``m_nPauseStartTick``.
+            total_paused_ticks: Current ``m_nTotalPausedTicks``.
+            tick: Current replay tick.
+        """
+        if paused == (self._open_pause is not None):
+            return
+        if paused:
+            start = (
+                pause_start_net_tick - self.net_tick_offset(tick) if pause_start_net_tick else tick
+            )
+            self._open_pause = (start, total_paused_ticks or 0)
+            return
+        assert self._open_pause is not None
+        start, total_before = self._open_pause
+        self._open_pause = None
+        paused_ticks = (total_paused_ticks or 0) - total_before
+        end = start + paused_ticks if paused_ticks > 0 else tick
+        if end > start:
+            self.clock.pauses.append(GamePause(start_tick=start, end_tick=end))
+
+    def combat_log_time(self, timestamp: float | None, game_state: int | None) -> int | None:
+        """Return OpenDota-style game-relative time for a combat-log entry.
+
+        OpenDota anchors combat-log time at the ``GAME_IN_PROGRESS`` entry's
+        timestamp, then subtracts that rounded timestamp from later ones. This
+        also refreshes :attr:`combat_log_time_s`, and captures
+        :attr:`duration_s` at the ``POST_GAME`` entry (odota/parser Parse.java).
+
+        Args:
+            timestamp: The entry's ``timestamp``, or ``None`` if absent.
+            game_state: The new game state for a ``GAME_STATE`` entry, else ``None``.
+
+        Returns:
+            Seconds since the horn, or ``None`` before the anchor is seen.
+        """
+        if timestamp is None:
+            return None
+        raw_time_s = _round_positive_seconds(timestamp)
+        if self._combat_log_start_s is None and game_state == DOTA_GAMERULES_STATE_GAME_IN_PROGRESS:
+            self._combat_log_start_s = raw_time_s
+        if self._combat_log_start_s is None:
+            return None
+        game_time_s = raw_time_s - self._combat_log_start_s
+        self.combat_log_time_s = game_time_s
+        if self.duration_s is None and game_state == DOTA_GAMERULES_STATE_POST_GAME:
+            self.duration_s = game_time_s
+        return game_time_s
+
+    def finish(self) -> None:
+        """Close a pause still open when the replay ends."""
+        if self._open_pause is not None:
+            self.clock.pauses.append(GamePause(start_tick=self._open_pause[0], end_tick=None))
+            self._open_pause = None

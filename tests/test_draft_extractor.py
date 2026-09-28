@@ -612,14 +612,8 @@ def _attached_draft():
     from gem.state.entities import EntityManager
 
     parser = ReplayParser(b"")
-    parser.entity_manager = EntityManager({}, parser.string_tables)
-    # ReplayParser transfers these registrations when send tables are decoded.
-    for registration in parser._entity_callbacks:
-        parser.entity_manager._on_entity_filtered(
-            registration.callback,
-            class_names=registration.class_names,
-            class_prefixes=registration.class_prefixes,
-        )
+    # ReplayParser hands its tracker to the entity manager when send tables arrive.
+    parser.entity_manager = EntityManager({}, parser.string_tables, tracker=parser._entity_tracker)
     extractor = DraftExtractor()
     extractor.attach(parser)
     return parser, extractor, parser.entity_manager.tracker._dispatch

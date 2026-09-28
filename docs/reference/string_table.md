@@ -125,4 +125,4 @@ def handle_update(msg: object, string_tables: StringTables) -> StringTable
 
 Process a CSVCMsg_UpdateStringTable message.
 
-Source: [src/gem/state/string_table.py:312](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L312)
+Source: [src/gem/state/string_table.py:315](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/string_table.py#L315)

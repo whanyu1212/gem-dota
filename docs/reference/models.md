@@ -591,7 +591,7 @@ def game_clock_for(match: object) -> GameClock
 
 Return a match's game clock, or a tick-only fallback for older matches.
 
-Source: [src/gem/state/game_clock.py:174](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L174)
+Source: [src/gem/state/game_clock.py:186](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L186)
 
 ### Top-level classes
 
@@ -603,7 +603,7 @@ class GamePause
 
 One interval during which the in-game clock was stopped.
 
-Source: [src/gem/state/game_clock.py:28](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L28)
+Source: [src/gem/state/game_clock.py:40](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L40)
 
 #### Dataclass fields
 
@@ -620,7 +620,7 @@ Signature: `def GamePause.duration_ticks(self) -> int | None`
 
 Paused length in ticks, or ``None`` for a pause that never ended.
 
-Source: [src/gem/state/game_clock.py:41](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L41)
+Source: [src/gem/state/game_clock.py:53](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L53)
 
 ### `GameClock`
 
@@ -630,7 +630,7 @@ class GameClock
 
 Maps replay ticks to pause-aware in-game time and back.
 
-Source: [src/gem/state/game_clock.py:49](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L49)
+Source: [src/gem/state/game_clock.py:61](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L61)
 
 #### Dataclass fields
 
@@ -649,7 +649,7 @@ Signature: `def GameClock.paused_ticks_before(self, tick: int) -> int`
 
 Return how many ticks of pause elapsed before ``tick``.
 
-Source: [src/gem/state/game_clock.py:72](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L72)
+Source: [src/gem/state/game_clock.py:84](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L84)
 
 ##### `game_time_at`
 
@@ -657,7 +657,7 @@ Signature: `def GameClock.game_time_at(self, tick: int) -> float | None`
 
 Return the exact in-game clock reading at a replay tick.
 
-Source: [src/gem/state/game_clock.py:97](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L97)
+Source: [src/gem/state/game_clock.py:109](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L109)
 
 ##### `game_seconds_at`
 
@@ -665,7 +665,7 @@ Signature: `def GameClock.game_seconds_at(self, tick: int) -> int | None`
 
 Return whole in-game seconds at a replay tick, as OpenDota reports them.
 
-Source: [src/gem/state/game_clock.py:112](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L112)
+Source: [src/gem/state/game_clock.py:124](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L124)
 
 ##### `tick_at`
 
@@ -673,7 +673,7 @@ Signature: `def GameClock.tick_at(self, game_time_s: float) -> int | None`
 
 Return the first replay tick at which the in-game clock reads a time.
 
-Source: [src/gem/state/game_clock.py:134](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L134)
+Source: [src/gem/state/game_clock.py:146](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L146)
 
 ##### `format_tick`
 
@@ -681,7 +681,75 @@ Signature: `def GameClock.format_tick(self, tick: int) -> str`
 
 Format a replay tick as the in-game clock (``MM:SS``, ``-MM:SS`` pre-horn).
 
-Source: [src/gem/state/game_clock.py:157](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L157)
+Source: [src/gem/state/game_clock.py:169](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L169)
+
+### `GameClockTracker`
+
+```python
+class GameClockTracker
+```
+
+Builds the in-game clock while a replay is parsed.
+
+Source: [src/gem/state/game_clock.py:223](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L223)
+
+#### Methods
+
+##### `on_net_tick`
+
+Signature: `def GameClockTracker.on_net_tick(self, net_tick: int) -> None`
+
+Record a ``CNETMsg_Tick``.
+
+Source: [src/gem/state/game_clock.py:257](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L257)
+
+##### `net_tick_offset`
+
+Signature: `def GameClockTracker.net_tick_offset(self, tick: int) -> int`
+
+Return ``net_tick - tick``, or 0 before any network tick.
+
+Source: [src/gem/state/game_clock.py:262](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L262)
+
+##### `update`
+
+Signature: `def GameClockTracker.update(self, entity: Entity, tick: int) -> None`
+
+Refresh the clock from the ``CDOTAGamerulesProxy`` entity.
+
+Source: [src/gem/state/game_clock.py:266](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L266)
+
+##### `observe_game_start`
+
+Signature: `def GameClockTracker.observe_game_start(self, entity: Entity, tick: int) -> bool`
+
+Refresh the clock, and report whether the game has just started.
+
+Source: [src/gem/state/game_clock.py:307](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L307)
+
+##### `track_pause`
+
+Signature: `def GameClockTracker.track_pause(self, paused: bool, pause_start_net_tick: int | None, total_paused_ticks: int | None, tick: int) -> None`
+
+Record pause intervals from ``m_bGamePaused`` transitions.
+
+Source: [src/gem/state/game_clock.py:332](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L332)
+
+##### `combat_log_time`
+
+Signature: `def GameClockTracker.combat_log_time(self, timestamp: float | None, game_state: int | None) -> int | None`
+
+Return OpenDota-style game-relative time for a combat-log entry.
+
+Source: [src/gem/state/game_clock.py:368](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L368)
+
+##### `finish`
+
+Signature: `def GameClockTracker.finish(self) -> None`
+
+Close a pause still open when the replay ends.
+
+Source: [src/gem/state/game_clock.py:396](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L396)
 
 ## Module `gem.results.serialization`
 

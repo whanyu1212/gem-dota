@@ -47,7 +47,6 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable, Iterable
-from dataclasses import dataclass
 from pathlib import Path
 
 from google.protobuf.message import DecodeError, Message
@@ -73,7 +72,6 @@ from gem.proto.dota_gcmessages_common_pb2 import CMsgDOTAMatch
 from gem.proto.dota_match_metadata_pb2 import CDOTAMatchMetadataFile
 from gem.proto.dota_shared_enums_pb2 import (
     DOTA_COMBATLOG_GAME_STATE,
-    DOTA_GAMERULES_STATE_GAME_IN_PROGRESS,
     DOTA_GAMERULES_STATE_POST_GAME,
     CMsgDOTACombatLogEntry,
     DOTAChannelType_GameAll,
@@ -117,20 +115,22 @@ from gem.proto.networkbasetypes_pb2 import CNETMsg_Tick, net_Tick
 from gem.results.models import ChatEntry, NeutralItemFoundEvent
 from gem.schema.sendtable import parse_send_tables
 from gem.schema.sendtable.models import FieldAccessPlan
-from gem.state.entities import Entity, EntityManager, EntityOp, game_build_from_game_dir
-from gem.state.game_clock import GameClock, GamePause
+from gem.state.entities import (
+    Entity,
+    EntityManager,
+    EntityOp,
+    EntityTracker,
+    game_build_from_game_dir,
+)
+from gem.state.game_clock import GameClock, GameClockTracker
 from gem.state.game_events import GameEvent, GameEventHandler, GameEventManager
 from gem.state.string_table import StringTables, handle_create, handle_update
 
 logger = logging.getLogger(__name__)
 
-_GAMERULES_FIELDS = FieldAccessPlan(
+# Match metadata read from the game-rules entity when DEM_FileInfo lacks it.
+_MATCH_FIELDS = FieldAccessPlan(
     (
-        "m_pGameRules.m_flGameStartTime",
-        "m_pGameRules.m_fGameTime",
-        "m_pGameRules.m_bGamePaused",
-        "m_pGameRules.m_nPauseStartTick",
-        "m_pGameRules.m_nTotalPausedTicks",
         "m_pGameRules.m_unMatchID64",
         "m_pGameRules.m_iGameMode",
         "m_pGameRules.m_unLeagueID",
@@ -217,33 +217,12 @@ def _parse_proto(message: Message, payload: bytes) -> None:
         raise ReplayDataError(f"invalid {type(message).__name__} payload") from exc
 
 
-def _round_positive_seconds(value: float) -> int:
-    """Round positive replay seconds the same way Java ``Math.round`` does."""
-    return int(value + 0.5)
-
-
 EntityCallback = Callable[[Entity, EntityOp], None]
 TickStartCallback = Callable[[int], None]
 PacketEndCallback = Callable[[int], None]
 ChatCallback = Callable[["ChatEntry"], None]
 ChatEventCallback = Callable[["CDOTAUserMsg_ChatEvent", int], None]
 NeutralItemFoundCallback = Callable[["NeutralItemFoundEvent"], None]
-
-
-@dataclass(frozen=True, slots=True)
-class _EntityCallbackRegistration:
-    """A pending catch-all or internally filtered entity callback."""
-
-    callback: EntityCallback
-    class_names: frozenset[str] = frozenset()
-    class_prefixes: tuple[str, ...] = ()
-    required_fields: tuple[str, ...] = ()
-    changed_fields: tuple[str, ...] = ()
-
-    @property
-    def filtered(self) -> bool:
-        """Return whether this registration has a class filter."""
-        return bool(self.class_names or self.class_prefixes or self.required_fields)
 
 
 class ReplayParser:
@@ -253,7 +232,6 @@ class ReplayParser:
 
         parser = ReplayParser("game.dem")
         parser.on_entity(lambda e, op: print(e, op))
-        parser.on_game_event("dota_combatlog", lambda e: print(e))
         parser.on_combat_log_entry(lambda e: print(e))
         parser.parse()
 
@@ -274,21 +252,21 @@ class ReplayParser:
     def __init__(self, source: str | Path | bytes) -> None:
         self._source = source
         self.tick: int = 0
-        self.net_tick: int = 0
-        self._net_tick_seen: bool = False
+        self._clock = GameClockTracker()
         self.game_build: int = 0
         self.string_tables = StringTables()
         self.entity_manager: EntityManager | None = None
         self.game_event_manager = GameEventManager()
         self.combat_log = CombatLogProcessor()
-        self._entity_callbacks: list[_EntityCallbackRegistration] = []
+        # Handlers can be registered before the schema arrives, so the parser
+        # owns the tracker and hands it to the entity manager once it exists.
+        self._entity_tracker = EntityTracker()
         self._tick_start_callbacks: list[TickStartCallback] = []
         self._packet_end_callbacks: list[PacketEndCallback] = []
         self._chat_callbacks: list[ChatCallback] = []
         self._chat_event_callbacks: list[ChatEventCallback] = []
         self._neutral_item_found_callbacks: list[NeutralItemFoundCallback] = []
         self._stop_at_tick: int | None = None
-        self._grp_game_start_seen: bool = False
         self._pending_server_info: CSVCMsg_ServerInfo | None = None
         self.match_id: int = 0
         self.game_mode: int = 0
@@ -296,19 +274,7 @@ class ReplayParser:
         self.match_metadata: CDOTAMatchMetadataFile | None = None
         self.match_details: CMsgDOTAMatch | None = None
         self.radiant_win: bool | None = None
-        self.game_start_tick: int | None = None
-        self.game_time_s: int | None = None
-        self.game_clock = GameClock()
         self.post_game_tick: int | None = None
-        # Open pause as ``(start_tick, total_paused_ticks_at_start)``.
-        self._open_pause: tuple[int, int] | None = None
-        # Horn-anchored timestamp of the latest combat-log entry. This is an
-        # event clock, not a continuously advancing sampling clock; interval
-        # consumers use ``game_time_s`` refreshed at CNETMsg_Tick start instead.
-        self.combat_log_time_s: int | None = None
-        # OpenDota-style match duration in seconds: the horn-anchored combat-log
-        # time at GAME_STATE==6 (ancient destroyed). None until that state is seen.
-        self.duration_s: int | None = None
         # Set when the stream loop terminates on an exception rather than running
         # to completion. ``parse_error`` is the exception, ``truncated_at_tick``
         # the last tick reached. Both stay None on a clean parse. This is the
@@ -327,12 +293,72 @@ class ReplayParser:
         # higher priority than the wrapped svc_UserMessage combat-log path) are
         # applied before terminal consumers (e.g. IntervalExtractor) flush.
         self._pending_game_end_tick: int | None = None
-        self._game_start_time_s: int | None = None
-        self._combat_log_game_start_time_s: int | None = None
         self._on_entity_filtered(
             self._on_entity_game_start,
             class_names=("CDOTAGamerulesProxy",),
         )
+
+    # ------------------------------------------------------------------
+    # Clock readings (kept by GameClockTracker)
+    # ------------------------------------------------------------------
+
+    @property
+    def net_tick(self) -> int:
+        """Current net tick (from ``net_Tick`` inner messages)."""
+        return self._clock.net_tick
+
+    @net_tick.setter
+    def net_tick(self, value: int) -> None:
+        self._clock.net_tick = value
+
+    @property
+    def game_time_s(self) -> int | None:
+        """Rounded game-relative clock, refreshed at network-tick start."""
+        return self._clock.game_time_s
+
+    @game_time_s.setter
+    def game_time_s(self, value: int | None) -> None:
+        self._clock.game_time_s = value
+
+    @property
+    def game_clock(self) -> GameClock:
+        """Pause-aware tick/game-time anchors and observed pauses."""
+        return self._clock.clock
+
+    @game_clock.setter
+    def game_clock(self, value: GameClock) -> None:
+        self._clock.clock = value
+
+    @property
+    def game_start_tick(self) -> int | None:
+        """Replay tick at which the game start (horn) was first seen."""
+        return self._clock.game_start_tick
+
+    @game_start_tick.setter
+    def game_start_tick(self, value: int | None) -> None:
+        self._clock.game_start_tick = value
+
+    @property
+    def combat_log_time_s(self) -> int | None:
+        """Horn-anchored time of the latest timed combat-log entry.
+
+        This is an event clock, not a continuously advancing sampling clock;
+        interval consumers use ``game_time_s`` instead.
+        """
+        return self._clock.combat_log_time_s
+
+    @combat_log_time_s.setter
+    def combat_log_time_s(self, value: int | None) -> None:
+        self._clock.combat_log_time_s = value
+
+    @property
+    def duration_s(self) -> int | None:
+        """OpenDota-style match duration: combat-log time at ``POST_GAME``."""
+        return self._clock.duration_s
+
+    @duration_s.setter
+    def duration_s(self, value: int | None) -> None:
+        self._clock.duration_s = value
 
     # ------------------------------------------------------------------
     # Public callback registration
@@ -344,7 +370,7 @@ class ReplayParser:
         Args:
             callback: ``(Entity, EntityOp) -> None``.
         """
-        self._register_entity_callback(_EntityCallbackRegistration(callback=callback))
+        self._entity_tracker.on_entity(callback)
 
     def _on_entity_filtered(
         self,
@@ -354,18 +380,8 @@ class ReplayParser:
         class_prefixes: Iterable[str] = (),
     ) -> None:
         """Register an internal callback for selected entity classes."""
-        names = frozenset(class_names)
-        prefixes = tuple(dict.fromkeys(class_prefixes))
-        if not names and not prefixes:
-            raise ValueError("filtered entity callbacks require a class name or prefix")
-        if any(not value for value in names) or any(not value for value in prefixes):
-            raise ValueError("entity class names and prefixes must be non-empty")
-        self._register_entity_callback(
-            _EntityCallbackRegistration(
-                callback=callback,
-                class_names=names,
-                class_prefixes=prefixes,
-            )
+        self._entity_tracker._on_entity_filtered(
+            callback, class_names=class_names, class_prefixes=class_prefixes
         )
 
     def _on_entity_fields(
@@ -376,39 +392,9 @@ class ReplayParser:
         changed_fields: Iterable[str] = (),
     ) -> None:
         """Register an internal callback for schema and decoded-path changes."""
-        required = tuple(dict.fromkeys(required_fields))
-        changed = tuple(dict.fromkeys(changed_fields))
-        if not required:
-            raise ValueError("schema-filtered entity callbacks require a field")
-        if any(not value for value in (*required, *changed)):
-            raise ValueError("schema field names must be non-empty")
-        self._register_entity_callback(
-            _EntityCallbackRegistration(
-                callback=callback,
-                required_fields=required,
-                changed_fields=changed,
-            )
+        self._entity_tracker._on_entity_fields(
+            callback, required_fields=required_fields, changed_fields=changed_fields
         )
-
-    def _register_entity_callback(self, registration: _EntityCallbackRegistration) -> None:
-        self._entity_callbacks.append(registration)
-        if self.entity_manager is None:
-            return
-        if registration.filtered:
-            if registration.required_fields:
-                self.entity_manager._on_entity_fields(
-                    registration.callback,
-                    required_fields=registration.required_fields,
-                    changed_fields=registration.changed_fields,
-                )
-            else:
-                self.entity_manager._on_entity_filtered(
-                    registration.callback,
-                    class_names=registration.class_names,
-                    class_prefixes=registration.class_prefixes,
-                )
-        else:
-            self.entity_manager.on_entity(registration.callback)
 
     def on_tick_start(self, callback: TickStartCallback) -> None:
         """Register a handler called before the current tick's entity deltas.
@@ -436,87 +422,9 @@ class ReplayParser:
     def _on_entity_game_start(self, entity: Entity, op: EntityOp) -> None:
         if entity.get_class_name() != "CDOTAGamerulesProxy":
             return
-        self._update_game_clock(entity)
-        if self._grp_game_start_seen:
-            return
-        game_start = entity._resolve_fields(_GAMERULES_FIELDS)[0]
-        v = entity._get_float32_resolved(game_start)
-        if v is None or v == 0.0:
-            return
-        self._grp_game_start_seen = True
-        self.game_start_tick = self.tick
-        self.game_clock.game_start_tick = self.tick
-        self.game_clock.net_tick_offset = self._net_tick_offset()
-        for cb in self._game_start_callbacks:
-            cb(self.tick)
-
-    def _update_game_clock(self, entity: Entity) -> None:
-        """Track OpenDota-style game time from ``CDOTAGamerulesProxy``.
-
-        OpenDota timestamps interval records by reading ``m_fGameTime`` when
-        available, or falling back to ``(tick - paused_ticks) / 30``. The stored
-        output time is then shifted by ``m_flGameStartTime``. Keep this as
-        separate metadata so public raw-tick fields remain unchanged.
-        """
-        fields = entity._resolve_fields(_GAMERULES_FIELDS)
-        paused_now = entity._get_bool_resolved(fields[2])
-        if paused_now is not None:
-            self._track_pause(
-                paused_now,
-                entity._get_int32_resolved(fields[3]),
-                entity._get_int32_resolved(fields[4]),
-            )
-        start = entity._get_float32_resolved(fields[0])
-        if start is not None and start != 0.0:
-            self._game_start_time_s = _round_positive_seconds(start)
-            self.game_clock.game_start_time_s = start
-
-        if self._game_start_time_s is None:
-            return
-
-        game_time = entity._get_float32_resolved(fields[1])
-        if game_time is not None:
-            raw_time_s = _round_positive_seconds(game_time)
-        else:
-            paused = entity._get_bool_resolved(fields[2]) or False
-            pause_start_tick = entity._get_int32_resolved(fields[3])
-            total_paused_ticks = entity._get_int32_resolved(fields[4]) or 0
-            parser_tick = self.net_tick if self._net_tick_seen else self.tick
-            time_tick = pause_start_tick if paused and pause_start_tick is not None else parser_tick
-            raw_time_s = _round_positive_seconds((time_tick - total_paused_ticks) / 30.0)
-
-        self.game_time_s = raw_time_s - self._game_start_time_s
-
-    def _net_tick_offset(self) -> int:
-        return self.net_tick - self.tick if self._net_tick_seen else 0
-
-    def _track_pause(
-        self, paused: bool, pause_start_net_tick: int | None, total_paused_ticks: int | None
-    ) -> None:
-        """Record pause intervals from ``m_bGamePaused`` transitions.
-
-        The pause start comes from ``m_nPauseStartTick`` and the length from the
-        growth of ``m_nTotalPausedTicks``; both count network ticks, so they are
-        shifted onto the replay-tick axis. The observed transition tick is the
-        fallback when either field is missing.
-        """
-        if paused == (self._open_pause is not None):
-            return
-        if paused:
-            start = (
-                pause_start_net_tick - self._net_tick_offset()
-                if pause_start_net_tick
-                else self.tick
-            )
-            self._open_pause = (start, total_paused_ticks or 0)
-            return
-        assert self._open_pause is not None
-        start, total_before = self._open_pause
-        self._open_pause = None
-        paused_ticks = (total_paused_ticks or 0) - total_before
-        end = start + paused_ticks if paused_ticks > 0 else self.tick
-        if end > start:
-            self.game_clock.pauses.append(GamePause(start_tick=start, end_tick=end))
+        if self._clock.observe_game_start(entity, self.tick):
+            for cb in self._game_start_callbacks:
+                cb(self.tick)
 
     def on_game_event(self, name: str, handler: GameEventHandler) -> None:
         """Register a handler for the named game event.
@@ -655,10 +563,8 @@ class ReplayParser:
             self.truncated_at_tick = self.tick
             logger.warning("Replay stream ended early at tick %d: %r", self.tick, exc)
 
-        if self._open_pause is not None:
-            # The replay ended mid-pause; keep the interval open-ended.
-            self.game_clock.pauses.append(GamePause(start_tick=self._open_pause[0], end_tick=None))
-            self._open_pause = None
+        # A replay that ended mid-pause keeps the pause open-ended.
+        self._clock.finish()
 
         # Read match metadata from CDOTAGamerulesProxy entity if DEM_FileInfo
         # didn't populate them (e.g. truncated replays or early stop).
@@ -667,17 +573,17 @@ class ReplayParser:
         if self.entity_manager is not None:
             grp = self.entity_manager.find_by_class_name("CDOTAGamerulesProxy")
             if grp is not None:
-                fields = grp._resolve_fields(_GAMERULES_FIELDS)
+                fields = grp._resolve_fields(_MATCH_FIELDS)
                 if not self.match_id:
-                    v = grp._get_uint32_resolved(fields[5])
+                    v = grp._get_uint32_resolved(fields[0])
                     if v:
                         self.match_id = v
                 if not self.game_mode:
-                    v = grp._get_int32_resolved(fields[6])
+                    v = grp._get_int32_resolved(fields[1])
                     if v:
                         self.game_mode = v
                 if not self.leagueid:
-                    v = grp._get_uint32_resolved(fields[7])
+                    v = grp._get_uint32_resolved(fields[2])
                     if v:
                         self.leagueid = v
                 # Fallback for radiant_win when CDemoFileInfo.game_winner == 0
@@ -685,7 +591,7 @@ class ReplayParser:
                 # 2 = RadVictory, 3 = DireVictory.
                 # Reference: dota_shared_enums.proto
                 if self.radiant_win is None:
-                    v = grp._get_int32_resolved(fields[8])
+                    v = grp._get_int32_resolved(fields[3])
                     if v == 2:
                         self.radiant_win = True
                     elif v == 3:
@@ -771,8 +677,7 @@ class ReplayParser:
         if type_id == _NET_TICK:
             tick_msg = CNETMsg_Tick()
             _parse_proto(tick_msg, payload)
-            self.net_tick = tick_msg.tick
-            self._net_tick_seen = True
+            self._clock.on_net_tick(tick_msg.tick)
 
             # Match OpenDota/Clarity's @OnTickStart ordering: compute the clock
             # and notify samplers from the entity table reconstructed through
@@ -780,7 +685,7 @@ class ReplayParser:
             if self.entity_manager is not None:
                 grp = self.entity_manager.find_by_class_name("CDOTAGamerulesProxy")
                 if grp is not None:
-                    self._update_game_clock(grp)
+                    self._clock.update(grp, self.tick)
             for callback in self._tick_start_callbacks:
                 callback(self.net_tick)
 
@@ -835,7 +740,7 @@ class ReplayParser:
         elif type_id == _DOTA_UM_COMBAT_LOG_HLTV:
             entry_msg = CMsgDOTACombatLogEntry()
             _parse_proto(entry_msg, payload)
-            game_time_s = self._combat_log_game_time_s(entry_msg)
+            game_time_s = self._combat_log_time(entry_msg)
             name_table = self.string_tables.get_by_name(_COMBAT_LOG_NAMES_TABLE)
             if name_table is not None:
                 self.combat_log.process_s2_entry(
@@ -872,23 +777,9 @@ class ReplayParser:
 
     def _on_send_tables(self, data: bytes) -> None:
         serializers = parse_send_tables(data, self.game_build)
-        self.entity_manager = EntityManager(serializers, self.string_tables)
-        for registration in self._entity_callbacks:
-            if registration.filtered:
-                if registration.required_fields:
-                    self.entity_manager._on_entity_fields(
-                        registration.callback,
-                        required_fields=registration.required_fields,
-                        changed_fields=registration.changed_fields,
-                    )
-                else:
-                    self.entity_manager._on_entity_filtered(
-                        registration.callback,
-                        class_names=registration.class_names,
-                        class_prefixes=registration.class_prefixes,
-                    )
-            else:
-                self.entity_manager.on_entity(registration.callback)
+        self.entity_manager = EntityManager(
+            serializers, self.string_tables, tracker=self._entity_tracker
+        )
         # Apply ServerInfo if it arrived before the send tables
         if self._pending_server_info is not None:
             self._on_server_info(self._pending_server_info)
@@ -944,7 +835,7 @@ class ReplayParser:
             name_table = self.string_tables.get_by_name(_COMBAT_LOG_NAMES_TABLE)
             if name_table is not None:
                 for entry_msg in bulk_msg.combat_entries:
-                    game_time_s = self._combat_log_game_time_s(entry_msg)
+                    game_time_s = self._combat_log_time(entry_msg)
                     self.combat_log.process_s2_entry(
                         entry_msg,
                         name_table,
@@ -961,40 +852,11 @@ class ReplayParser:
         elif msg.msg_type == _DOTA_UM_MATCH_DETAILS:
             self._on_match_details(msg.msg_data)
 
-    def _combat_log_game_time_s(self, msg: CMsgDOTACombatLogEntry) -> int | None:
-        """Return OpenDota-style game-relative combat-log time for an S2 entry.
-
-        OpenDota anchors combat-log time at the GAME_STATE==5 timestamp, then
-        subtracts that rounded timestamp from subsequent combat-log timestamps.
-        Keep this separate from raw ticks so public replay timing remains tick-
-        based while parity checks can use the OpenDota clock.
-
-        Side effect: refreshes :attr:`combat_log_time_s`, the running combat-log
-        axis clock, so entity-driven consumers (e.g. the interval extractor) can
-        sample minute boundaries on the same axis OpenDota uses.
-        """
-        if not msg.HasField("timestamp"):
-            return None
-        timestamp = msg.timestamp
-
-        raw_time_s = _round_positive_seconds(timestamp)
-        if self._combat_log_game_start_time_s is None and _is_game_state(
-            msg.type, msg.value, DOTA_GAMERULES_STATE_GAME_IN_PROGRESS
-        ):
-            self._combat_log_game_start_time_s = raw_time_s
-
-        if self._combat_log_game_start_time_s is None:
-            return None
-        game_time_s = raw_time_s - self._combat_log_game_start_time_s
-        self.combat_log_time_s = game_time_s
-        # The POST_GAME timestamp (the Ancient falls) on the horn-anchored
-        # combat-log axis is OpenDota's match ``duration``. Capture it once,
-        # before the game-end callbacks fire (odota/parser Parse.java postGame).
-        if self.duration_s is None and _is_game_state(
-            msg.type, msg.value, DOTA_GAMERULES_STATE_POST_GAME
-        ):
-            self.duration_s = game_time_s
-        return game_time_s
+    def _combat_log_time(self, msg: CMsgDOTACombatLogEntry) -> int | None:
+        """Return OpenDota-style game-relative time for an S2 combat-log entry."""
+        timestamp = msg.timestamp if msg.HasField("timestamp") else None
+        game_state = msg.value if msg.type == DOTA_COMBATLOG_GAME_STATE else None
+        return self._clock.combat_log_time(timestamp, game_state)
 
     def _on_match_metadata(self, payload: bytes) -> None:
         metadata = CDOTAMatchMetadataFile()

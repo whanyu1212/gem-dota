@@ -83,6 +83,7 @@ schema/field_reader.py    ← field decoder dispatch + entity field reading (mir
 state/string_table.py           ← incremental key-history string tables
 state/entities.py               ← entity create/update/delete lifecycle + state
 state/game_events.py            ← game event schema + typed dispatch
+state/game_clock.py             ← pause-aware GameClock + live GameClockTracker (fed by the parser)
 combat/log.py              ← S1 (game event) + S2 (user message) combat log
 combat/aggregator.py      ← per-player combat log accumulation → damage/heal/kill/purchase tallies
 parser.py                 ← top-level orchestrator wiring everything together

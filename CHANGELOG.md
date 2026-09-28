@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `ReplayParser` is smaller and simpler, with no behavior change:
+  - It owns the `EntityTracker` from the start and hands it to the
+    `EntityManager`, which gains an optional `tracker` argument. Before,
+    registrations were forwarded through three layers, and the forwarding code
+    existed twice.
+  - The live game-clock and pause tracking moved to `GameClockTracker` in
+    `gem.state.game_clock`, next to the `GameClock` it builds. The parser's clock
+    attributes (`net_tick`, `game_time_s`, `game_clock`, `game_start_tick`,
+    `combat_log_time_s`, `duration_s`) read from it.
 - `CombatLogEntry.rune_type` holds the rune type of a `PICKUP_RUNE` entry (and the
   S2 combat log's own `rune_type` field when present). Rune pickups used to carry
   it only in `gold_reason`, which still holds it for compatibility. The

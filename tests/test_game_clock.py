@@ -16,7 +16,7 @@ from gem.reports._formatting import (
 from gem.reports.sections.match import build_header
 from gem.results.assembly import _tick_game_seconds, _ward_left_entry
 from gem.results.models import ParsedMatch
-from gem.state.game_clock import GameClock, GamePause, game_clock_for
+from gem.state.game_clock import GameClock, GameClockTracker, GamePause, game_clock_for
 
 # One 600-tick (20 s) pause starting 60 s after a horn at tick 1000.
 _PAUSED = GameClock(
@@ -96,39 +96,46 @@ class TestGameClock:
         assert game_clock_for(match) is _PAUSED
 
 
-class TestParserPauseTracking:
-    def _parser(self, *, tick: int, net_tick: int) -> ReplayParser:
-        parser = ReplayParser(b"")
-        parser.tick = tick
-        parser.net_tick = net_tick
-        parser._net_tick_seen = True
-        return parser
+class TestPauseTracking:
+    def _tracker(self, *, net_tick: int) -> GameClockTracker:
+        tracker = GameClockTracker()
+        tracker.on_net_tick(net_tick)
+        return tracker
 
     def test_pause_is_shifted_from_network_ticks_to_replay_ticks(self) -> None:
-        parser = self._parser(tick=58419, net_tick=58814)
-        parser._track_pause(True, 58813, 0)
-        parser.tick, parser.net_tick = 59073, 59468
-        parser._track_pause(False, 0, 654)
-        assert parser.game_clock.pauses == [GamePause(start_tick=58418, end_tick=59072)]
+        tracker = self._tracker(net_tick=58814)
+        tracker.track_pause(True, 58813, 0, tick=58419)
+        tracker.on_net_tick(59468)
+        tracker.track_pause(False, 0, 654, tick=59073)
+        assert tracker.clock.pauses == [GamePause(start_tick=58418, end_tick=59072)]
 
     def test_repeated_state_is_ignored(self) -> None:
-        parser = self._parser(tick=100, net_tick=100)
-        parser._track_pause(False, 0, 0)
-        parser._track_pause(True, 100, 0)
-        parser._track_pause(True, 100, 0)
-        parser.tick = parser.net_tick = 250
-        parser._track_pause(False, 0, 150)
-        assert parser.game_clock.pauses == [GamePause(100, 250)]
+        tracker = self._tracker(net_tick=100)
+        tracker.track_pause(False, 0, 0, tick=100)
+        tracker.track_pause(True, 100, 0, tick=100)
+        tracker.track_pause(True, 100, 0, tick=100)
+        tracker.on_net_tick(250)
+        tracker.track_pause(False, 0, 150, tick=250)
+        assert tracker.clock.pauses == [GamePause(100, 250)]
 
     def test_missing_pause_fields_fall_back_to_observed_ticks(self) -> None:
-        parser = self._parser(tick=100, net_tick=100)
-        parser._track_pause(True, None, None)
-        parser.tick = parser.net_tick = 190
-        parser._track_pause(False, None, None)
-        assert parser.game_clock.pauses == [GamePause(100, 190)]
+        tracker = self._tracker(net_tick=100)
+        tracker.track_pause(True, None, None, tick=100)
+        tracker.on_net_tick(190)
+        tracker.track_pause(False, None, None, tick=190)
+        assert tracker.clock.pauses == [GamePause(100, 190)]
 
+    def test_pause_open_at_the_end_is_kept_open_ended(self) -> None:
+        tracker = self._tracker(net_tick=100)
+        tracker.track_pause(True, 100, 0, tick=100)
+        tracker.finish()
+        assert tracker.clock.pauses == [GamePause(100, None)]
+
+
+class TestParserGameEnd:
     def test_post_game_marker_records_tick(self) -> None:
-        parser = self._parser(tick=5000, net_tick=5000)
+        parser = ReplayParser(b"")
+        parser.tick = 5000
         parser._mark_game_end(5000)
         parser._mark_game_end(6000)
         assert parser.post_game_tick == 5000
