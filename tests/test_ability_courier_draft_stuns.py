@@ -328,8 +328,7 @@ class TestStunDuration:
                 return name == "stun_duration"
 
         class FakeTable:
-            def get(self, idx, default=""):
-                return {1: "npc_dota_hero_axe", 2: "npc_dota_hero_lina"}.get(idx, default)
+            items = {1: ("npc_dota_hero_axe", b""), 2: ("npc_dota_hero_lina", b"")}
 
         FakeMsg.attacker_name = 1
         FakeMsg.target_name = 2
@@ -365,8 +364,7 @@ class TestStunDuration:
                 return False
 
         class FakeTable:
-            def get(self, idx, default=""):
-                return default
+            items: dict = {}
 
         proc = CombatLogProcessor()
         collected = []

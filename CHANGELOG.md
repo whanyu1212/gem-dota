@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `CombatLogEntry.rune_type` holds the rune type of a `PICKUP_RUNE` entry (and the
+  S2 combat log's own `rune_type` field when present). Rune pickups used to carry
+  it only in `gold_reason`, which still holds it for compatibility. The
+  `player_runes_log` DataFrame gains a `rune_type` column, and the HTML report
+  reads it, falling back to `gold_reason` for matches loaded from older JSON.
 - `GameEvent` has Pythonic field access: `event.get(name, default=None)`,
   `event[name]` (raises `KeyError`), `event.to_dict()`, and `event.name`. The
   `get_*` methods, which return a `(value, error)` pair, are unchanged.
@@ -120,6 +125,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Combat-log entries by non-hero units are credited like OpenDota.** When an
+  entry's attacker wasn't a hero, gem searched for a unit with that name and
+  credited its owner. That search never matched on current replays, because the
+  name field was renamed. When it did match, it picked whichever unit came first,
+  so all 10 couriers' ability uses would go to one player. gem now credits only
+  heroes, as OpenDota's `CreateParsedDataBlob` does. Kills by summons still reach
+  their owner: in the replays checked, every kill by a boar, hawk, Brewmaster
+  spirit, or Warlock golem names the owning hero as its damage source. Output on
+  current replays is unchanged, and `gem.parse()` no longer scans every entity
+  slot about 2,500 times per match (about 5 s faster on a 99-minute replay).
+- `EntityManager.find_by_npc_name()` works on current replays, which name the
+  field `m_nameStringTableIndex`. It reads the old spelling as well.
 - **String tables now decode index jumps, key history, and empty updates like
   Clarity.** gem followed Manta, which gets three rules wrong:
   - An entry that jumps ahead moves relative to the previous one

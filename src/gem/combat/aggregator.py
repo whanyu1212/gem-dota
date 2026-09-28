@@ -3,6 +3,13 @@
 Accumulates combat log entries into per-player buckets during a parse,
 producing the damage, healing, ability use, gold/XP reason, kill, purchase,
 rune, and buyback tallies that populate ``ParsedPlayer``.
+
+Entries are credited only to heroes, as OpenDota does: a unit name counts for a
+player only if it is that player's hero (``CreateParsedDataBlob.expand`` looks
+the unit up in ``hero_to_slot``). Kills by summons still reach the owner,
+because Valve names the owning hero as the damage source of a summon's kill.
+
+Reference: odota/parser CreateParsedDataBlob.java (pinned revision in CLAUDE.md)
 """
 
 from __future__ import annotations
@@ -158,46 +165,6 @@ class _CombatAggregator:
         entity = self._player_ext._heroes_by_npc.get(npc_name.lower())
         return _player_id_from_entity(entity)
 
-    def _summon_to_pid(self, npc_name: str) -> int | None:
-        """Resolve a summoned unit's NPC name to its owner's player slot.
-
-        Looks up the unit entity by class name in the entity manager, reads
-        ``m_hOwnerEntity``, resolves that handle to the owning hero entity,
-        and extracts the player slot via :func:`_player_id_from_entity`.
-
-        Returns ``None`` if the unit is not found, has no owner, or the owner
-        is not a tracked hero.
-
-        Args:
-            npc_name: The NPC class name as it appears in the combat log,
-                e.g. ``"npc_dota_unit_warlock_golem"``.
-
-        Returns:
-            Player slot 0-9, or ``None`` if unresolvable.
-        """
-        parser = self._player_ext._parser
-        if parser is None:
-            return None
-        em = parser.entity_manager
-        if em is None:
-            return None
-
-        # Find the summon entity by iterating current entities for this class.
-        # Combat log names are lowercase; entity class names are CamelCase with
-        # a "C" prefix, e.g. "npc_dota_unit_warlock_golem" → not directly
-        # searchable by class name. Instead resolve via the entity manager's
-        # find_by_class_name if available, else fall back to a cache lookup.
-        unit = em.find_by_npc_name(npc_name)
-        if unit is None:
-            return None
-
-        owner_handle = unit.get_uint32("m_hOwnerEntity")
-        if owner_handle is None:
-            return None
-
-        owner = em.find_by_handle(owner_handle)
-        return _player_id_from_entity(owner)
-
     def resolve_kill_pid(self, source_name: str, attacker_name: str) -> int | None:
         """Resolve the crediting player for a DEATH, source-first.
 
@@ -205,7 +172,7 @@ class _CombatAggregator:
         objective kills (towers, Roshan, courier) attribute the same way: the
         ``damage_source_name`` hero is preferred (a summon or projectile carries
         the owning hero there even when ``attacker_name`` is the non-hero unit),
-        then the attacker hero, then the attacker's summon owner.
+        then the attacker hero. A kill by any other unit credits no player.
 
         Args:
             source_name: The combat-log ``damage_source_name`` (may be empty).
@@ -219,10 +186,7 @@ class _CombatAggregator:
             if pid is not None:
                 return pid
         if attacker_name:
-            pid = self._hero_to_pid(attacker_name)
-            if pid is not None:
-                return pid
-            return self._summon_to_pid(attacker_name)
+            return self._hero_to_pid(attacker_name)
         return None
 
     def _accumulate_hero_tower_damage(self, source_pid: int, entry: Any) -> None:
@@ -327,20 +291,6 @@ class _CombatAggregator:
         """
         attacker_pid = self._hero_to_pid(entry.attacker_name) if entry.attacker_is_hero else None
         source_name = getattr(entry, "damage_source_name", "") or ""
-        # Resolve summon ownership for ability/item uses, positive stuns, and
-        # damage without a source name. Sourced damage does not otherwise use
-        # the owner slot, even when the source is not a hero. DEATH has separate
-        # source-first attribution below.
-        if (
-            attacker_pid is None
-            and not entry.attacker_is_hero
-            and entry.attacker_name
-            and entry.log_type in ("DAMAGE", "ABILITY", "ITEM")
-            and (
-                entry.log_type != CombatLogType.DAMAGE or not source_name or entry.stun_duration > 0
-            )
-        ):
-            attacker_pid = self._summon_to_pid(entry.attacker_name)
 
         # OpenDota attributes the per-target damage/healing dicts and the
         # hero_damage/tower_damage scalars, plus the killed/kills_log streams, to
@@ -437,8 +387,6 @@ class _CombatAggregator:
                 if self._is_self_death(entry):
                     return
                 death_pid = source_pid if source_pid is not None else attacker_pid
-                if death_pid is None and not entry.attacker_is_hero and entry.attacker_name:
-                    death_pid = self._summon_to_pid(entry.attacker_name)
                 if death_pid is not None:
                     self._agg(death_pid).kills_log.append(entry)
             case CombatLogType.PURCHASE:

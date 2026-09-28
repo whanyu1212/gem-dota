@@ -566,7 +566,9 @@ class ParsedPlayer:
         purchase_log: Chronological PURCHASE combat log entries for this player,
             excluding recipes (matching OpenDota's ``purchase_log``; recipes are
             still counted in the ``purchase`` map).
-        runes_log: ITEM combat log entries for rune pickups.
+        runes_log: PICKUP_RUNE entries for this player's rune pickups, from the
+            replay's chat events. ``rune_type`` holds the rune; ``value`` is the
+            player slot.
         buyback_log: BUYBACK combat log entries for this player.
         buybacks: Structured :class:`BuybackEvent` records with an estimated gold
             cost per buyback (``200 + net_worth // 13``), alongside ``buyback_log``.

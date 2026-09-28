@@ -40,6 +40,7 @@ from gem.results.models import (
 
 if TYPE_CHECKING:
     from gem.analysis.roshan import RoshConversion, RoshTerritoryWindow
+    from gem.combat.log import CombatLogEntry
 
 
 def _draft_portrait(npc_name: str, alt: str, noicon_cls: str) -> str:
@@ -277,6 +278,15 @@ def _killer_label(killer: str) -> str:
     return _clean_npc(killer) if killer else "unknown"
 
 
+def _rune_type(entry: CombatLogEntry) -> int:
+    """Return a PICKUP_RUNE entry's rune code.
+
+    Matches loaded from JSON written before ``rune_type`` existed keep the code
+    only in ``gold_reason``.
+    """
+    return entry.rune_type if entry.rune_type is not None else entry.gold_reason
+
+
 def build_objectives(match: ParsedMatch, fmt_tick_fn: Callable[[int], str]) -> str:
     """Build the objectives timeline section."""
     # Build hero_name lookup: player_id → hero display name
@@ -339,7 +349,7 @@ def build_objectives(match: ParsedMatch, fmt_tick_fn: Callable[[int], str]) -> s
         team_color = TEAM_COLOR_CSS.get(pp.team, "#888")
         h = hero(pp.hero_name) if pp.hero_name else f"Player {pp.player_id}"
         for entry in pp.runes_log:
-            if entry.gold_reason == 8:  # Wisdom rune
+            if _rune_type(entry) == 8:  # Wisdom rune
                 desc = f'<span style="color:{team_color}">{e(h)}</span> picked up Wisdom Rune'
                 events.append((entry.tick, "Wisdom Rune", "#80cbc4", desc))
 

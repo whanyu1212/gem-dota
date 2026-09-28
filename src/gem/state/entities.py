@@ -62,7 +62,11 @@ def game_build_from_game_dir(game_dir: str) -> int:
     return int(m.group(1)) if m else 0
 
 
-_ENTITY_NAME_FIELDS = FieldAccessPlan(("m_pEntity.m_nameStringableIndex",))
+# Current replays (build 6792 on) name the field ``m_nameStringTableIndex``; older
+# ones spell it ``m_nameStringableIndex``.
+_ENTITY_NAME_FIELDS = FieldAccessPlan(
+    ("m_pEntity.m_nameStringTableIndex", "m_pEntity.m_nameStringableIndex")
+)
 
 
 # ---------------------------------------------------------------------------
@@ -897,11 +901,12 @@ class EntityManager:
 
         NPC names (e.g. ``"npc_dota_unit_warlock_golem"``) are stored in the
         ``EntityNames`` string table and referenced via
-        ``m_pEntity.m_nameStringableIndex`` on each entity.
+        ``m_pEntity.m_nameStringTableIndex`` (``m_nameStringableIndex`` in older
+        replays) on each entity.
 
-        This is an O(N) scan over all active entities and is intended for
-        infrequent lookups (e.g. resolving summon ownership at combat log
-        processing time).
+        Several units can share a name (every courier is ``npc_dota_courier``),
+        so this returns whichever comes first. It is an O(N) scan over all
+        entity slots, meant for occasional lookups.
 
         Args:
             npc_name: NPC name as it appears in the combat log (lowercase),
@@ -916,8 +921,11 @@ class EntityManager:
         for e in self.entities:
             if e is None or not e.active:
                 continue
-            name_field = e._resolve_fields(_ENTITY_NAME_FIELDS)[0]
-            idx = e._get_int32_resolved(name_field)
+            idx = None
+            for name_field in e._resolve_fields(_ENTITY_NAME_FIELDS):
+                idx = e._get_int32_resolved(name_field)
+                if idx is not None:
+                    break
             if idx is None:
                 continue
             item = names_table.items.get(idx)
