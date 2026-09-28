@@ -1,12 +1,11 @@
 # Game Events
 
-Handles Source 1 style game events (schema + payload decoding) used for objectives, runes, chat, and related signals.
+Handles Source 1 style game events: the event schema, and named field access for each
+event. Current replays send only broadcast camera hints and version info this way; the
+combat log arrives separately.
 
-See also: [How Proto Parsing Works](../cookbook/proto-parsing-pipeline.md)
-
-
----
-
+See also: [`gameevents.proto`](../cookbook/proto-files.md#gameevents-proto-named-game-events-and-the-old-combat-log)
+and [How Proto Parsing Works](../cookbook/proto-parsing-pipeline.md).
 
 ---
 
@@ -22,7 +21,7 @@ class GameEventManager
 
 Manages game event schema registration and handler dispatch.
 
-Source: [src/gem/state/game_events.py:146](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L146)
+Source: [src/gem/state/game_events.py:215](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L215)
 
 #### Methods
 
@@ -32,7 +31,7 @@ Signature: `def GameEventManager.register_schema(self, schema_dict: dict[str, An
 
 Register an event schema from a dict (e.g. from CSVCMsg_GameEventList).
 
-Source: [src/gem/state/game_events.py:160](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L160)
+Source: [src/gem/state/game_events.py:229](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L229)
 
 ##### `has_event`
 
@@ -40,7 +39,7 @@ Signature: `def GameEventManager.has_event(self, name: str) -> bool`
 
 Return True if an event schema with the given name is registered.
 
-Source: [src/gem/state/game_events.py:178](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L178)
+Source: [src/gem/state/game_events.py:247](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L247)
 
 ##### `get_schema`
 
@@ -48,7 +47,7 @@ Signature: `def GameEventManager.get_schema(self, event_id: int) -> GameEventSch
 
 Return the registered schema for an event id, or ``None``.
 
-Source: [src/gem/state/game_events.py:186](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L186)
+Source: [src/gem/state/game_events.py:255](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L255)
 
 ##### `on_game_event`
 
@@ -56,7 +55,7 @@ Signature: `def GameEventManager.on_game_event(self, name: str, handler: GameEve
 
 Register a handler for the named event.
 
-Source: [src/gem/state/game_events.py:197](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L197)
+Source: [src/gem/state/game_events.py:266](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L266)
 
 ##### `dispatch`
 
@@ -64,7 +63,7 @@ Signature: `def GameEventManager.dispatch(self, raw_event: Any) -> None`
 
 Dispatch a raw CMsgSource1LegacyGameEvent message to registered handlers.
 
-Source: [src/gem/state/game_events.py:206](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L206)
+Source: [src/gem/state/game_events.py:275](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L275)
 
 ## `gem.state.game_events.GameEvent`
 
@@ -76,9 +75,35 @@ class GameEvent
 
 A decoded game event instance.
 
-Source: [src/gem/state/game_events.py:40](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L40)
+Source: [src/gem/state/game_events.py:63](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L63)
+
+#### Properties
+
+##### `name`
+
+Signature: `def GameEvent.name(self) -> str`
+
+The event's name, e.g. ``"dota_combatlog"``.
+
+Source: [src/gem/state/game_events.py:80](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L80)
 
 #### Methods
+
+##### `get`
+
+Signature: `def GameEvent.get(self, name: str, default: Any = None) -> Any`
+
+Return the value of field *name*, or *default* if it is missing.
+
+Source: [src/gem/state/game_events.py:84](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L84)
+
+##### `to_dict`
+
+Signature: `def GameEvent.to_dict(self) -> dict[str, Any]`
+
+Return every field present in this event, by name.
+
+Source: [src/gem/state/game_events.py:111](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L111)
 
 ##### `get_string`
 
@@ -86,7 +111,7 @@ Signature: `def GameEvent.get_string(self, name: str) -> tuple[str, str | None]`
 
 Return (value, None) as str, or ('', error) on failure.
 
-Source: [src/gem/state/game_events.py:65](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L65)
+Source: [src/gem/state/game_events.py:129](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L129)
 
 ##### `get_float`
 
@@ -94,15 +119,15 @@ Signature: `def GameEvent.get_float(self, name: str) -> tuple[float, str | None]
 
 Return (value, None) as float, or (0.0, error) on failure.
 
-Source: [src/gem/state/game_events.py:80](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L80)
+Source: [src/gem/state/game_events.py:144](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L144)
 
 ##### `get_int32`
 
 Signature: `def GameEvent.get_int32(self, name: str) -> tuple[int, str | None]`
 
-Return (value, None) as int32 (long/short/byte), or (0, error).
+Return (value, None) as an integer, or (0, error).
 
-Source: [src/gem/state/game_events.py:94](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L94)
+Source: [src/gem/state/game_events.py:158](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L158)
 
 ##### `get_bool`
 
@@ -110,7 +135,7 @@ Signature: `def GameEvent.get_bool(self, name: str) -> tuple[bool, str | None]`
 
 Return (value, None) as bool, or (False, error) on failure.
 
-Source: [src/gem/state/game_events.py:114](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L114)
+Source: [src/gem/state/game_events.py:175](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L175)
 
 ##### `get_uint64`
 
@@ -118,7 +143,7 @@ Signature: `def GameEvent.get_uint64(self, name: str) -> tuple[int, str | None]`
 
 Return (value, None) as uint64, or (0, error) on failure.
 
-Source: [src/gem/state/game_events.py:128](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L128)
+Source: [src/gem/state/game_events.py:189](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L189)
 
 ## `gem.state.game_events.GameEventSchema`
 
@@ -130,7 +155,7 @@ class GameEventSchema
 
 Schema for a single game event type.
 
-Source: [src/gem/state/game_events.py:26](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L26)
+Source: [src/gem/state/game_events.py:49](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_events.py#L49)
 
 #### Dataclass fields
 

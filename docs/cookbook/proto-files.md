@@ -263,13 +263,16 @@ the names are sent once and each event refers to them by number:
    It carries only the event ID and the key values, in schema order.
 
 `state/game_events.py` stores the schema and turns each event back into named
-fields (`GameEvent.get_int32("value")`, and so on). You can subscribe to events by
-name with `ReplayParser.on_game_event`.
+fields: `event.get("value")`, `event["value"]`, or `event.to_dict()`. You can
+subscribe to events by name with `ReplayParser.on_game_event`. Key types 8 and 9
+are player identifiers (`userid`, `userid_pawn`, in events such as `player_team`);
+gem reads them as integers, as Clarity does.
 
 **The old combat log lives here.** Older replays send every combat-log line as a
 `dota_combatlog` game event, with names given as indexes into the `CombatLogNames`
 string table. gem converts these to the same `CombatLogEntry` as the current path
-(the "S1" path in `combat/log.py`).
+(the "S1" path in `combat/log.py`). No replay gem has been checked against uses it
+(builds 6559 to 6918), so only unit tests cover that path.
 
 Current replays no longer use it. In match `8855242704` the schema declares 363
 event types, including `dota_combatlog`, but only three were actually sent:

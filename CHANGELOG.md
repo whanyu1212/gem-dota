@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `GameEvent` has Pythonic field access: `event.get(name, default=None)`,
+  `event[name]` (raises `KeyError`), `event.to_dict()`, and `event.name`. The
+  `get_*` methods, which return a `(value, error)` pair, are unchanged.
+  `get_int32` now also reads key types 8 and 9, the player identifiers
+  (`userid`, `userid_pawn`) in events such as `player_team`, as Clarity does.
 - New deep dive, "String Tables". It covers:
   - what the tables hold, and the three gem reads;
   - the create, update, and clear messages;
