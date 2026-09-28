@@ -647,6 +647,104 @@ def test_tick_start_preserves_nonzero_minute_zero_gold():
     assert radiant.xp == 40
 
 
+def _pregame_extractor() -> tuple[IntervalExtractor, TickStartFakeParser]:
+    """Tick-driven extractor in pregame: all counters zero, start not yet known."""
+    ext = IntervalExtractor()
+    parser = TickStartFakeParser(tick=1790, game_time_s=None)
+    parser.raw_game_time_s = 824
+    ext.attach(parser)  # type: ignore[arg-type]
+    ext._on_entity(_player_resource(), EntityOp.UPDATED)
+    ext._on_entity(_zero_radiant_data(), EntityOp.UPDATED)
+    ext._on_entity(_zero_dire_data(), EntityOp.UPDATED)
+    parser.fire_tick_start(5990)
+    return ext, parser
+
+
+def test_minute_zero_is_read_when_the_raw_clock_reaches_the_game_start():
+    # Replay 8974053011: a last hit lands after the raw clock reaches the
+    # rounded game start but before the start is visible. OpenDota's t=0 read
+    # precedes it.
+    ext, parser = _pregame_extractor()
+    parser.tick, parser.raw_game_time_s = 1792, 825
+    parser.fire_tick_start(5992)
+    parser.tick = 1793
+    ext._on_entity(_radiant_data_with(0, 0, 1, 0, 600), EntityOp.UPDATED)
+
+    parser.tick, parser.game_time_s = 1800, 0
+    parser.fire_tick_start(6000)
+
+    assert [snap.time_s for snap in ext.snapshots] == [0, 0]
+    assert [snap.lh for snap in ext.snapshots] == [0, 0]
+    assert {snap.tick for snap in ext.snapshots} == {1792}
+
+
+def test_minute_zero_survives_a_start_seen_after_the_clock_passes_zero():
+    # Replay 8855242704: the start (825.4) is visible only once the rounded
+    # game clock already reads 1, so the clock never reads 0 at a tick start.
+    ext, parser = _pregame_extractor()
+    parser.tick, parser.raw_game_time_s = 1792, 825
+    parser.fire_tick_start(5992)
+    parser.tick = 1799
+    ext._on_entity(_radiant_data_with(1, 2, 3, 4, 605), EntityOp.UPDATED)
+
+    parser.tick, parser.raw_game_time_s, parser.game_time_s = 1800, 826, 1
+    parser.fire_tick_start(6000)
+
+    assert [snap.time_s for snap in ext.snapshots] == [0, 0]
+    assert [snap.gold for snap in ext.snapshots] == [0, 0]
+
+    # Later boundaries keep their normal one-tick deferral.
+    parser.tick, parser.raw_game_time_s, parser.game_time_s = 3600, 885, 60
+    parser.fire_tick_start(7800)
+    parser.tick = 3601
+    parser.fire_tick_start(7801)
+    assert [snap.time_s for snap in ext.snapshots] == [0, 0, 60, 60]
+
+
+def test_partial_player_map_candidate_is_not_emitted_as_minute_zero():
+    # A candidate read before PlayerResource lists every player would be a
+    # partial batch that assembly discards, losing minute zero for everyone.
+    ext = IntervalExtractor()
+    parser = TickStartFakeParser(tick=1790, game_time_s=None)
+    parser.raw_game_time_s = 825
+    ext.attach(parser)  # type: ignore[arg-type]
+    radiant_only = _ent(
+        "CDOTA_PlayerResource",
+        **{
+            "m_vecPlayerData.0002.m_iPlayerTeam": 2,
+            "m_vecPlayerTeamData.0002.m_iTeamSlot": 1,
+        },
+    )
+    ext._on_entity(radiant_only, EntityOp.UPDATED)
+    ext._on_entity(_zero_radiant_data(), EntityOp.UPDATED)
+    parser.fire_tick_start(5990)
+    ext._on_entity(_player_resource(), EntityOp.UPDATED)
+    ext._on_entity(_zero_dire_data(), EntityOp.UPDATED)
+
+    parser.tick, parser.game_time_s = 1800, 0
+    parser.fire_tick_start(6000)
+
+    assert sorted(snap.player_id for snap in ext.snapshots if snap.time_s == 0) == sorted(
+        ext._player_index_by_id
+    )
+
+
+def test_mid_game_recording_does_not_invent_minute_zero():
+    ext = IntervalExtractor()
+    parser = TickStartFakeParser(tick=1798, game_time_s=None)
+    ext.attach(parser)  # type: ignore[arg-type]
+    ext._on_entity(_player_resource(), EntityOp.UPDATED)
+    ext._on_entity(_radiant_data(), EntityOp.UPDATED)
+    ext._on_entity(_dire_data(), EntityOp.UPDATED)
+
+    parser.tick, parser.raw_game_time_s, parser.game_time_s = 1800, 900, 35
+    parser.fire_tick_start(6000)
+    parser.tick = 1801
+    parser.fire_tick_start(6001)
+
+    assert ext.snapshots == []
+
+
 def test_nudge_reads_previous_data_frame_not_boundary_frame():
     """The boundary emit reads the team-data frame *before* the crossing tick.
 

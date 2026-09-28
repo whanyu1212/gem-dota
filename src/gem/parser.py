@@ -321,6 +321,11 @@ class ReplayParser:
         self._clock.game_time_s = value
 
     @property
+    def raw_game_time_s(self) -> int | None:
+        """Rounded server game time before the game-start shift, from pregame on."""
+        return self._clock.raw_time_s
+
+    @property
     def game_clock(self) -> GameClock:
         """Pause-aware tick/game-time anchors and observed pauses."""
         return self._clock.clock

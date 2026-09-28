@@ -1,10 +1,12 @@
 """Integration lock-in for OpenDota's tick-start interval boundary.
 
 OpenDota reads interval entities from Clarity's ``@OnTickStart`` callback. Gem
-decodes ``CNETMsg_Tick``, samples minute zero immediately, and queues later
-rounded-minute crossings for the following tick start to reproduce Clarity's
-effective phase. This fixture locks in point-level parity against the published
-arrays.
+decodes ``CNETMsg_Tick`` and queues rounded-minute crossings for the following
+tick start to reproduce Clarity's effective phase. Minute zero is the batch read when the raw clock reached the
+rounded game start, which can precede the tick where the start becomes visible
+(8855242704: start seen only after the rounded clock passed 0; 8974053011: a last
+hit between the two). These fixtures lock in exact parity, length included,
+against the published arrays.
 
 Marked ``slow`` + ``integration`` — needs a real ``.dem`` plus its ``.opendota.json``.
 """
@@ -20,8 +22,8 @@ from gem.extractors.intervals import IntervalExtractor
 from gem.parser import ReplayParser
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures" / "opendota"
-# Smallest full fixture with a committed OpenDota ground-truth JSON.
-_MATCH_ID = 8822520406
+# The smallest full fixture, plus the two minute-zero edge cases above.
+_MATCH_IDS = (8822520406, 8855242704, 8974053011)
 _METRICS = ("gold_t", "xp_t", "lh_t", "dn_t")
 
 
@@ -30,30 +32,29 @@ def _od_slot_to_logical(slot: int) -> int:
     return slot if slot < 128 else (slot - 128) + 5
 
 
-def _residuals(series_fn, od_by_logical: dict[int, dict]) -> dict[str, int]:
-    """Sum element-wise absolute error by metric vs OpenDota."""
-    totals = dict.fromkeys(_METRICS, 0)
+def _mismatches(series_fn, od_by_logical: dict[int, dict]) -> dict[str, list[int]]:
+    """Return, per metric, the players whose full array differs from OpenDota."""
+    bad: dict[str, list[int]] = {metric: [] for metric in _METRICS}
     for pid, ref in od_by_logical.items():
         ts = series_fn(pid)
         gem = {"gold_t": ts.gold_t, "xp_t": ts.xp_t, "lh_t": ts.lh_t, "dn_t": ts.dn_t}
         for metric in _METRICS:
-            g, r = gem[metric], ref[metric]
-            # Compare the overlapping prefix; arrays may differ in trailing length.
-            for a, b in zip(g, r, strict=False):
-                totals[metric] += abs(a - b)
-    return totals
+            if gem[metric] != ref[metric]:
+                bad[metric].append(pid)
+    return bad
 
 
 @pytest.mark.slow
 @pytest.mark.integration
 class TestIntervalAxisLockIn:
-    @pytest.fixture(scope="class")
-    def residuals(self):
-        """Parse once and return per-metric residuals against OpenDota."""
-        dem = FIXTURES_DIR / f"{_MATCH_ID}.dem"
-        od_path = FIXTURES_DIR / f"{_MATCH_ID}.opendota.json"
+    @pytest.fixture(scope="class", params=_MATCH_IDS)
+    def mismatches(self, request):
+        """Parse once per fixture and return players differing from OpenDota."""
+        match_id = request.param
+        dem = FIXTURES_DIR / f"{match_id}.dem"
+        od_path = FIXTURES_DIR / f"{match_id}.opendota.json"
         if not dem.exists() or not od_path.exists():
-            pytest.skip(f"OpenDota fixture {_MATCH_ID} (.dem + .opendota.json) not available")
+            pytest.skip(f"OpenDota fixture {match_id} (.dem + .opendota.json) not available")
 
         parser = ReplayParser(str(dem))
 
@@ -73,12 +74,12 @@ class TestIntervalAxisLockIn:
                 "dn_t": player.get("dn_t") or [],
             }
 
-        return _residuals(interval_ext.series, od_by_logical)
+        return _mismatches(interval_ext.series, od_by_logical)
 
-    def test_tick_start_xp_lh_and_denies_are_exact(self, residuals):
-        assert residuals["xp_t"] == 0
-        assert residuals["lh_t"] == 0
-        assert residuals["dn_t"] == 0
+    def test_tick_start_xp_lh_and_denies_are_exact(self, mismatches):
+        assert mismatches["xp_t"] == []
+        assert mismatches["lh_t"] == []
+        assert mismatches["dn_t"] == []
 
-    def test_tick_start_gold_is_exact(self, residuals):
-        assert residuals["gold_t"] == 0
+    def test_tick_start_gold_is_exact(self, mismatches):
+        assert mismatches["gold_t"] == []
