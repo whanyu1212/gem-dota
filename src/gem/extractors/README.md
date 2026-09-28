@@ -196,12 +196,21 @@ Three subtle behaviours distinguish it from the dense player sampler:
 - **Network-tick clock**: `ReplayParser` decodes `CNETMsg_Tick` and refreshes
   `game_time_s` from that server tick (including pause ticks), rather than the
   unrelated outer demo tick or the latest, possibly stale combat-log event.
-- **Clarity phase** (`_on_tick_start`): minute zero is sampled immediately from
-  the preceding observed team-data frame, preventing transient initialization
-  values and same-tick bounty payouts from leaking backward. Later rounded-minute
-  crossings are sampled at the following network tick start, including the
-  crossing tick's entity deltas but preceding the next tick's. Parsers without
-  the callback retain the two-frame entity fallback.
+- **Minute zero** (`_on_tick_start`): OpenDota emits an interval every raw clock
+  second from pregame and shifts them by the rounded game start once it is known,
+  so its t=0 entry is the one read when the raw clock reached that start second.
+  Gem does the same: until minute zero is emitted it keeps a candidate batch read
+  at the tick start where each raw second (`parser.raw_game_time_s`) begins, and
+  emits the start second's candidate once the start is visible. The start can
+  appear up to a second after the raw clock reached it: after the rounded game
+  clock already reads 1 (8855242704), or after a last hit that OpenDota's t=0
+  excludes (8974053011). Minute zero's tick can therefore precede
+  `game_start_tick` by under a second. When no candidate exists (a mid-game
+  recording), the preceding observed team-data frame is used at the first 0 read.
+- **Clarity phase** (`_on_tick_start`): later rounded-minute crossings are
+  sampled at the following network tick start, including the crossing tick's
+  entity deltas but preceding the next tick's. Parsers without the callback
+  retain the two-frame entity fallback.
 - **Raw minute-zero counters**: no blanket zeroing or numeric compensation is
   applied, so legitimate pre-horn earnings remain intact.
   `_emit_final_boundary` remains a live terminal read.

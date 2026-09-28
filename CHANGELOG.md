@@ -149,6 +149,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - On replays without complete interval data, `gold_t_min` fell back to current
     gold. It now uses cumulative earned gold, as OpenDota's `gold_t` and the
     interval path do.
+- **Minute zero of the per-minute curves is sampled when OpenDota samples it.**
+  OpenDota reads an interval every raw clock second from pregame and labels the
+  one at the rounded game start as t=0. gem waited until the game start was
+  visible, which can be up to a second later.
+  - On replay 8855242704 the start appeared only after gem's rounded clock
+    already read 1, so minute 0 was skipped. `gold_t_min`, `xp_t_min`,
+    `lh_t_min`, `dn_t_min`, `net_worth_t_min`, `times_min`/`game_times_min`,
+    `radiant_gold_adv` and `radiant_xp_adv` had 69 entries and were shifted one
+    minute early. So were the laning stats (`lane_efficiency_pct`,
+    `lane_total_gold`, …) that read minute 10. The per-minute running totals
+    (`total_hero_damage_t_min`, …) still had 70, so indices disagreed between
+    fields.
+  - On 8974053011 a last hit landed in that gap and showed up in `lh_t_min[0]`.
+  - All per-minute arrays now match OpenDota on every local fixture. On the
+    other fixtures only the minute-0 tick stamp (`times_min[0]`) moves, to the
+    tick OpenDota samples, which can precede `game_start_tick` by under a
+    second. `ReplayParser.raw_game_time_s` exposes the raw clock this uses.
 - **A bug in a callback no longer silently cuts a parse short, and partial
   parses are visible.** `ReplayParser.parse()` caught every exception, so any error
   in gem's extractors or in your own handlers became the warning "Replay stream

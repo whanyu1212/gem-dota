@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 import pytest
 
 from gem.analysis._shared import infer_match_end_tick
@@ -16,7 +18,9 @@ from gem.reports._formatting import (
 from gem.reports.sections.match import build_header
 from gem.results.assembly import _tick_game_seconds, _ward_left_entry
 from gem.results.models import ParsedMatch
+from gem.state.entities import Entity
 from gem.state.game_clock import GameClock, GameClockTracker, GamePause, game_clock_for
+from tests._entities import set_fields
 
 # One 600-tick (20 s) pause starting 60 s after a horn at tick 1000.
 _PAUSED = GameClock(
@@ -130,6 +134,39 @@ class TestPauseTracking:
         tracker.track_pause(True, 100, 0, tick=100)
         tracker.finish()
         assert tracker.clock.pauses == [GamePause(100, None)]
+
+
+class TestRawClock:
+    """The raw (unshifted) clock is readable in pregame, as OpenDota's ``time``."""
+
+    @staticmethod
+    def _rules(start: float) -> Entity:
+        entity = Entity(
+            index=0, serial=0, cls=SimpleNamespace(name="CDOTAGamerulesProxy", serializer=None)
+        )
+        set_fields(
+            entity,
+            {
+                "m_pGameRules.m_flGameStartTime": start,
+                "m_pGameRules.m_bGamePaused": False,
+                "m_pGameRules.m_nTotalPausedTicks": 30,
+            },
+        )
+        return entity
+
+    def test_raw_clock_is_set_before_the_game_start(self) -> None:
+        tracker = GameClockTracker()
+        tracker.on_net_tick(24_761)
+        tracker.update(self._rules(0.0), tick=24_313)
+        assert tracker.raw_time_s == 824  # (24761 - 30) / 30 = 824.37
+        assert tracker.game_time_s is None
+
+    def test_game_time_is_the_raw_clock_minus_the_rounded_start(self) -> None:
+        tracker = GameClockTracker()
+        tracker.on_net_tick(24_798)
+        tracker.update(self._rules(825.4), tick=24_350)
+        assert tracker.raw_time_s == 826  # (24798 - 30) / 30 = 825.6
+        assert tracker.game_time_s == 1  # the start rounds to 825
 
 
 class TestParserGameEnd:

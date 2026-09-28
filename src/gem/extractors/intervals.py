@@ -193,6 +193,13 @@ class IntervalExtractor:
         self._last_emitted_time_s: int | None = None
         self._last_emitted_tick: int | None = None
         self._initial_boundary_pending = False
+        # Minute-zero candidates: one batch read at the tick start where each raw
+        # (unshifted) clock second begins, kept until minute zero is emitted.
+        # OpenDota's t=0 interval is the one read when the raw clock first
+        # reaches the rounded game start, which can precede the tick where the
+        # start itself becomes visible. See _on_tick_start.
+        self._minute_zero_candidates: dict[int, list[IntervalSnapshot]] = {}
+        self._last_raw_time_s: int | None = None
         self._ended = False
         self.snapshots = []
 
@@ -286,6 +293,10 @@ class IntervalExtractor:
         if self._parser is None or self._ended:
             return
         game_time_s = getattr(self._parser, "game_time_s", None)
+        if self._last_emitted_time_s is None:
+            self._record_minute_zero_candidate()
+            if game_time_s is not None and game_time_s >= 0:
+                self._emit_minute_zero_candidate(game_time_s)
         if (
             self._pending_tick_start_boundary is None
             and game_time_s is not None
@@ -312,6 +323,42 @@ class IntervalExtractor:
         )
         if self._last_emitted_time_s == boundary_time_s:
             self._pending_tick_start_boundary = None
+
+    def _record_minute_zero_candidate(self) -> None:
+        """Read a candidate minute-zero batch when a new raw clock second begins."""
+        raw_time_s = getattr(self._parser, "raw_game_time_s", None)
+        if raw_time_s is None or raw_time_s == self._last_raw_time_s:
+            return
+        self._last_raw_time_s = raw_time_s
+        if not self._ready_for_batch():
+            return
+        # Tick start precedes this tick's entity deltas, so the live frame is
+        # what OpenDota's @OnTickStart interval read sees.
+        batch = self._build_batch(0, use_live=True)
+        if batch:
+            self._minute_zero_candidates[raw_time_s] = batch
+        for stale in [key for key in self._minute_zero_candidates if key < raw_time_s - 2]:
+            del self._minute_zero_candidates[stale]
+
+    def _emit_minute_zero_candidate(self, game_time_s: int) -> None:
+        """Emit the candidate read when the raw clock reached the game start.
+
+        OpenDota emits an interval every raw second from pregame and shifts it by
+        the rounded game start once that is known (odota/parser Parse.java
+        ``output``/``flushLogBuffer``), so its t=0 entry is the one read at the
+        game-start second. The start can become visible up to a second later,
+        after the rounded game clock has already passed 0 (replay 8855242704).
+        """
+        raw_time_s = getattr(self._parser, "raw_game_time_s", None)
+        if raw_time_s is None:
+            return
+        batch = self._minute_zero_candidates.get(raw_time_s - game_time_s)
+        if not batch:
+            return
+        self.snapshots.extend(batch)
+        self._last_queued_time_s = 0
+        self._initial_boundary_pending = False
+        self._mark_emitted(0, batch[0].tick)
 
     def _on_entity(self, entity: Entity, op: EntityOp) -> None:
         cls = entity.get_class_name()
@@ -448,12 +495,7 @@ class IntervalExtractor:
         if game_time_s == 0 and self._last_emitted_time_s is None:
             self._initial_boundary_pending = True
 
-        if self._player_resource is None or not self._player_index_by_id:
-            return
-        teams = set(self._player_team.values())
-        if TEAM_RADIANT in teams and self._data_radiant is None:
-            return
-        if TEAM_DIRE in teams and self._data_dire is None:
+        if not self._ready_for_batch():
             return
 
         initial_boundary = self._initial_boundary_pending and self._last_emitted_time_s is None
@@ -484,15 +526,29 @@ class IntervalExtractor:
         if emitted:
             if initial_boundary:
                 self._initial_boundary_pending = False
-            if self._tick_start_driven and self._last_emitted_time_s is None:
-                # Only the initial sample needs previous-frame selection.
-                self._cur_data_radiant.clear()
-                self._prev_data_radiant.clear()
-                self._cur_data_dire.clear()
-                self._prev_data_dire.clear()
-            self._last_emitted_time_s = boundary_time_s
-            self._last_emitted_tick = self._parser.tick
-            self._next_interval_s = boundary_time_s + self._interval_s
+            self._mark_emitted(boundary_time_s, self._parser.tick)
+
+    def _mark_emitted(self, boundary_time_s: int, tick: int) -> None:
+        """Record a successfully emitted boundary and schedule the next one."""
+        if self._tick_start_driven and self._last_emitted_time_s is None:
+            # Only the initial sample needs previous-frame selection.
+            self._cur_data_radiant.clear()
+            self._prev_data_radiant.clear()
+            self._cur_data_dire.clear()
+            self._prev_data_dire.clear()
+            self._minute_zero_candidates.clear()
+        self._last_emitted_time_s = boundary_time_s
+        self._last_emitted_tick = tick
+        self._next_interval_s = boundary_time_s + self._interval_s
+
+    def _ready_for_batch(self) -> bool:
+        """Return whether player mappings and both teams' data are available."""
+        if self._player_resource is None or not self._player_index_by_id:
+            return False
+        teams = set(self._player_team.values())
+        if TEAM_RADIANT in teams and self._data_radiant is None:
+            return False
+        return not (TEAM_DIRE in teams and self._data_dire is None)
 
     def _emit_final_boundary(self, tick: int) -> None:
         """Recover a recently elapsed interval boundary at game end.
@@ -705,7 +761,19 @@ class IntervalExtractor:
         use_live: bool = False,
         prefer_previous: bool = False,
     ) -> bool:
-        emitted = False
+        batch = self._build_batch(game_time_s, use_live=use_live, prefer_previous=prefer_previous)
+        self.snapshots.extend(batch)
+        return bool(batch)
+
+    def _build_batch(
+        self,
+        game_time_s: int,
+        *,
+        use_live: bool = False,
+        prefer_previous: bool = False,
+    ) -> list[IntervalSnapshot]:
+        """Build one interval snapshot per mapped player from current state."""
+        batch: list[IntervalSnapshot] = []
         tick = self._parser.tick if self._parser is not None else 0
 
         for player_id in sorted(self._player_index_by_id):
@@ -726,7 +794,7 @@ class IntervalExtractor:
                 prefer_previous=prefer_previous,
             )
             player_slot = team_slot if team == TEAM_RADIANT else 128 + team_slot
-            self.snapshots.append(
+            batch.append(
                 IntervalSnapshot(
                     tick=tick,
                     time_s=game_time_s,
@@ -742,9 +810,8 @@ class IntervalExtractor:
                     net_worth=net_worth,
                 )
             )
-            emitted = True
 
-        return emitted
+        return batch
 
     def _hero_name(self, entity: Entity) -> tuple[str, bool]:
         """Return a hero NPC name and whether its table identity is stable."""

@@ -231,6 +231,9 @@ class GameClockTracker:
         clock: The anchors and pauses observed so far.
         net_tick: Latest ``CNETMsg_Tick`` value.
         net_tick_seen: Whether any ``CNETMsg_Tick`` has arrived.
+        raw_time_s: OpenDota's uncorrected clock (``time`` in ``Parse.java``):
+            the rounded server game time, before subtracting the game start.
+            Available in pregame, before :attr:`game_time_s`.
         game_time_s: OpenDota-style game time from the game-rules entity, or
             ``None`` before the game start time is known.
         game_start_tick: Replay tick at which the game start was first seen.
@@ -244,6 +247,7 @@ class GameClockTracker:
         self.clock = GameClock()
         self.net_tick = 0
         self.net_tick_seen = False
+        self.raw_time_s: int | None = None
         self.game_time_s: int | None = None
         self.game_start_tick: int | None = None
         self.combat_log_time_s: int | None = None
@@ -288,9 +292,6 @@ class GameClockTracker:
             self._game_start_time_s = _round_positive_seconds(start)
             self.clock.game_start_time_s = start
 
-        if self._game_start_time_s is None:
-            return
-
         game_time = entity._get_float32_resolved(fields[1])
         if game_time is not None:
             raw_time_s = _round_positive_seconds(game_time)
@@ -301,8 +302,10 @@ class GameClockTracker:
             parser_tick = self.net_tick if self.net_tick_seen else tick
             time_tick = pause_start_tick if paused and pause_start_tick is not None else parser_tick
             raw_time_s = _round_positive_seconds((time_tick - total_paused_ticks) / 30.0)
+        self.raw_time_s = raw_time_s
 
-        self.game_time_s = raw_time_s - self._game_start_time_s
+        if self._game_start_time_s is not None:
+            self.game_time_s = raw_time_s - self._game_start_time_s
 
     def observe_game_start(self, entity: Entity, tick: int) -> bool:
         """Refresh the clock, and report whether the game has just started.
