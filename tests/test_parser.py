@@ -120,9 +120,9 @@ class TestReplayParserInit:
         p = ReplayParser(b"")
         assert p._stop_at_tick is None
 
-    def test_grp_game_start_not_seen(self):
+    def test_game_start_not_seen(self):
         p = ReplayParser(b"")
-        assert p._grp_game_start_seen is False
+        assert p.game_start_tick is None
 
     def test_game_ended_false(self):
         p = ReplayParser(b"")
@@ -216,8 +216,8 @@ class TestReplayParserGameClock:
         death.type = 4
         death.timestamp = 130.4
 
-        assert p._combat_log_game_time_s(start) == 0
-        assert p._combat_log_game_time_s(death) == 30
+        assert p._combat_log_time(start) == 0
+        assert p._combat_log_time(death) == 30
 
     def test_combat_log_game_time_ignores_absent_timestamp(self):
         from gem.proto.dota_shared_enums_pb2 import CMsgDOTACombatLogEntry
@@ -225,14 +225,13 @@ class TestReplayParserGameClock:
         p = ReplayParser(b"")
         entry = CMsgDOTACombatLogEntry(type=9, value=5)
 
-        assert p._combat_log_game_time_s(entry) is None
-        assert p._combat_log_game_start_time_s is None
+        assert p._combat_log_time(entry) is None
+        assert p._clock._combat_log_start_s is None
 
     def test_fallback_clock_uses_decoded_net_tick(self):
         p = ReplayParser(b"")
         p.tick = 9999
-        p.net_tick = 6000
-        p._net_tick_seen = True
+        p._clock.on_net_tick(6000)
         entity = Entity(
             index=0,
             serial=0,
@@ -249,7 +248,7 @@ class TestReplayParserGameClock:
             },
         )
 
-        p._update_game_clock(entity)
+        p._clock.update(entity, p.tick)
 
         assert p.game_time_s == 100
 
@@ -267,19 +266,25 @@ class TestCallbackRegistration:
             return None
 
         p.on_entity(cb)
-        assert p._entity_callbacks[-1].callback is cb
-        assert p._entity_callbacks[-1].filtered is False
+        registration = p._entity_tracker._registrations[-1]
+        assert registration.handler is cb
+        assert not (registration.class_names or registration.class_prefixes)
 
-    def test_on_entity_also_registers_with_entity_manager_when_present(self):
+    def test_entity_manager_shares_the_parsers_tracker(self):
+        from gem.state.entities import EntityManager
+
         p = ReplayParser(b"")
-        em = MagicMock()
-        p.entity_manager = em
 
         def cb(e, op):
             return None
 
         p.on_entity(cb)
-        em.on_entity.assert_called_once_with(cb)
+        # _on_send_tables hands the parser's tracker to the new entity manager, so
+        # handlers registered before or after the schema arrives all reach it.
+        p.entity_manager = EntityManager({}, p.string_tables, tracker=p._entity_tracker)
+        p.on_entity(cb)
+        handlers = [r.handler for r in p.entity_manager.tracker._registrations]
+        assert handlers.count(cb) == 2
 
     def test_on_entity_multiple_callbacks(self):
         p = ReplayParser(b"")
@@ -293,25 +298,23 @@ class TestCallbackRegistration:
         p.on_entity(cb1)
         p.on_entity(cb2)
         user_callbacks = [
-            registration.callback
-            for registration in p._entity_callbacks
-            if registration.callback in {cb1, cb2}
+            registration.handler
+            for registration in p._entity_tracker._registrations
+            if registration.handler in {cb1, cb2}
         ]
         assert user_callbacks == [cb1, cb2]
 
     def test_internal_game_start_callback_is_gamerules_filtered(self):
         p = ReplayParser(b"")
 
-        registration = p._entity_callbacks[0]
+        registration = p._entity_tracker._registrations[0]
 
-        assert registration.callback == p._on_entity_game_start
+        assert registration.handler == p._on_entity_game_start
         assert registration.class_names == frozenset({"CDOTAGamerulesProxy"})
         assert registration.class_prefixes == ()
 
-    def test_filtered_callback_registers_with_existing_entity_manager(self):
+    def test_filtered_callback_is_registered_with_its_filter(self):
         p = ReplayParser(b"")
-        em = MagicMock()
-        p.entity_manager = em
 
         def cb(e, op):
             return None
@@ -322,11 +325,10 @@ class TestCallbackRegistration:
             class_prefixes=("Prefix_",),
         )
 
-        em._on_entity_filtered.assert_called_once_with(
-            cb,
-            class_names=frozenset({"ExactClass"}),
-            class_prefixes=("Prefix_",),
-        )
+        registration = p._entity_tracker._registrations[-1]
+        assert registration.handler is cb
+        assert registration.class_names == frozenset({"ExactClass"})
+        assert registration.class_prefixes == ("Prefix_",)
 
     def test_filtered_callback_requires_a_nonempty_filter(self):
         p = ReplayParser(b"")
@@ -397,8 +399,8 @@ class TestCallbackRegistration:
             extractor.attach(p)
             registration = next(
                 registration
-                for registration in reversed(p._entity_callbacks)
-                if registration.callback == extractor._on_entity
+                for registration in reversed(p._entity_tracker._registrations)
+                if registration.handler == extractor._on_entity
             )
             assert registration.class_names == frozenset(class_names)
             assert registration.class_prefixes == class_prefixes
@@ -640,12 +642,12 @@ class TestDispatchInnerRouting:
         message = CNETMsg_Tick(tick=4321)
 
         with patch.object(
-            p, "_update_game_clock", side_effect=lambda entity: order.append(("clock", entity))
+            p._clock, "update", side_effect=lambda entity, tick: order.append(("clock", entity))
         ):
             p._dispatch_inner(_NET_TICK, message.SerializeToString())
 
         assert p.net_tick == 4321
-        assert p._net_tick_seen is True
+        assert p._clock.net_tick_seen is True
         assert order == [("clock", grp), ("callback", 4321)]
 
     def test_svc_packet_entities_skipped_when_no_entity_manager(self):

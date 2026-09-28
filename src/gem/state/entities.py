@@ -632,7 +632,12 @@ class EntityManager:
         class_id_size: Number of bits used to encode class IDs.
     """
 
-    def __init__(self, serializers: dict[str, Serializer], string_tables: StringTables) -> None:
+    def __init__(
+        self,
+        serializers: dict[str, Serializer],
+        string_tables: StringTables,
+        tracker: EntityTracker | None = None,
+    ) -> None:
         self.serializers = serializers
         self.string_tables = string_tables
         self.entities: list[Entity | None] = []
@@ -643,7 +648,9 @@ class EntityManager:
         self.class_id_size: int = 0
         self._class_info_ready: bool = False
         self._full_packets: int = 0
-        self.tracker = EntityTracker()
+        # A caller that registers handlers before the schema arrives passes
+        # its own tracker.
+        self.tracker = tracker if tracker is not None else EntityTracker()
 
     def on_entity(self, handler: EntityHandler) -> None:
         """Register an entity event handler.
