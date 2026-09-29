@@ -1062,17 +1062,19 @@ class ParsedMatch:
             GAME_STATE==6 (ancient destroyed). ``0`` if neither is available.
             Distinct from the tick-derived ``duration_seconds`` property, which
             spans the raw parser ticks and includes pre/post-game time.
-        radiant_score: Radiant's final kill score (sum of Radiant players'
-            kills), mirroring OpenDota's ``radiant_score``.
-        dire_score: Dire's final kill score (sum of Dire players' kills),
-            mirroring OpenDota's ``dire_score``.
-        first_blood_time: Game-relative time in seconds of the first hero death,
-            mirroring OpenDota's ``first_blood_time``. ``0`` if no hero death was
-            observed.
-        pre_game_duration: Seconds between the horn and creep spawn, mirroring
-            OpenDota's ``pre_game_duration``. Currently always ``0`` — deriving it
-            needs the GAME_IN_PROGRESS state-transition timestamp the parser does
-            not yet expose; reserved for a follow-up.
+        radiant_score: Radiant's final kill score. From the replay-embedded
+            ``CMsgDOTAMatch`` postgame summary when present, matching OpenDota's
+            ``radiant_score``; otherwise the sum of Radiant players' kills.
+        dire_score: Dire's final kill score, from the postgame summary when
+            present (OpenDota's ``dire_score``); otherwise the sum of Dire
+            players' kills.
+        first_blood_time: Game-relative time in seconds of first blood. From the
+            postgame summary when present, matching OpenDota's
+            ``first_blood_time``; otherwise the combat-log time of the first real
+            hero death. ``0`` if neither is available.
+        pre_game_duration: The pre-game length in seconds, OpenDota's
+            ``pre_game_duration`` (90 in current matches). Only the postgame
+            summary carries it; ``0`` when that is absent.
     """
 
     match_id: int = 0

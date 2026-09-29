@@ -131,6 +131,31 @@ def _apply_match_details_scalars(match: ParsedMatch, details: CMsgDOTAMatch | No
                 player._match_details_fields.add("total_xp")
 
 
+# (CMsgDOTAMatch field, ParsedMatch attribute) for match-level summary scalars.
+_MATCH_DETAILS_MATCH_SCALARS = (
+    ("first_blood_time", "first_blood_time"),
+    ("pre_game_duration", "pre_game_duration"),
+    ("radiant_team_score", "radiant_score"),
+    ("dire_team_score", "dire_score"),
+)
+
+
+def _apply_match_details_match_scalars(match: ParsedMatch, details: CMsgDOTAMatch | None) -> None:
+    """Overlay the postgame summary's first blood, pre-game and score values.
+
+    These are the Game Coordinator values OpenDota reports as
+    ``first_blood_time``, ``pre_game_duration``, ``radiant_score`` and
+    ``dire_score`` (equal on every local fixture). A present field, including an
+    explicit zero, replaces the replay reconstruction; an absent one keeps it.
+    """
+    if details is None:
+        return
+    for source_field, attr in _MATCH_DETAILS_MATCH_SCALARS:
+        if details.HasField(source_field):
+            setattr(match, attr, int(getattr(details, source_field)))
+            match._match_details_fields.add(attr)
+
+
 def _tick_game_seconds(tick: int, clock: GameClock) -> int:
     """Return an absolute tick's pause-aware game-relative time in seconds.
 
@@ -1106,11 +1131,8 @@ def build_parsed_match(
         elif game_start_tick is not None:
             match.first_blood_time = max(0, _tick_game_seconds(first_blood_entry.tick, clock))
 
-    # NOTE: pre_game_duration (horn → creep-spawn span, ~90s) is intentionally
-    # left at its default 0 here. It requires the GAME_IN_PROGRESS state-transition
-    # timestamp, which the parser does not yet expose separately from the clock
-    # anchor (m_flGameStartTime is the engine clock zero, not the pre-game span).
-    # Tracked as a follow-up rather than shipping a wrong value.
+    # pre_game_duration has no replay-stream reconstruction; it comes only from
+    # the postgame summary (_apply_match_details_match_scalars below).
 
     # Build per-player time series and overlay combat log aggregates.
     _populate_player_series(
@@ -1296,9 +1318,11 @@ def build_parsed_match(
                 scalars["teamfight_participation"], 7
             )
 
-    # Team kill scores = sum of each side's player kills (OpenDota parity).
+    # Team kill scores = sum of each side's player kills; the postgame summary's
+    # scores (and first blood / pre-game duration) take precedence when present.
     match.radiant_score = sum(pp.kills for pp in match.players if pp.team == 2)
     match.dire_score = sum(pp.kills for pp in match.players if pp.team == 3)
+    _apply_match_details_match_scalars(match, match_details)
 
     # Build per-player ability level snapshots for ability_level_at_tick().
     # Collect (tick, ability_levels) pairs from minute-boundary snapshots,

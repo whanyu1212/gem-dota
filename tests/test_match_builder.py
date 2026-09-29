@@ -832,6 +832,48 @@ class TestBuildParsedMatchMatchDetails:
         assert match.players[1].gold == 1000
         assert "gold" not in match.players[1]._match_details_fields
 
+    def _build_with_summary(self, **fields):
+        from gem.combat.aggregator import _ParsedPlayerAgg
+        from gem.proto.dota_gcmessages_common_pb2 import CMsgDOTAMatch
+
+        details = CMsgDOTAMatch(**fields)
+        combat_agg = MagicMock()
+        combat_agg.players = {0: _ParsedPlayerAgg()}
+        player_ext = _make_player_ext(
+            snapshots=[_FakePlayerSnapshot(0, 100, "npc_dota_hero_axe", 2)],
+            scoreboard={0: (7, 1, 3)},
+        )
+        return build_parsed_match(
+            _make_parser(match_details=details),
+            player_ext,
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            combat_agg,
+            [],
+            [],
+        )
+
+    def test_summary_match_scalars_are_authoritative(self):
+        match = self._build_with_summary(
+            first_blood_time=182, pre_game_duration=90, radiant_team_score=26, dire_team_score=0
+        )
+
+        assert (match.first_blood_time, match.pre_game_duration) == (182, 90)
+        # The summary's scores win over the kill sum; an explicit zero counts.
+        assert (match.radiant_score, match.dire_score) == (26, 0)
+        assert {"first_blood_time", "pre_game_duration", "radiant_score", "dire_score"} <= (
+            match._match_details_fields
+        )
+
+    def test_absent_summary_match_scalars_keep_the_reconstruction(self):
+        match = self._build_with_summary(duration=1800)
+
+        assert match.radiant_score == 7  # the kill sum
+        assert match.pre_game_duration == 0
+        assert "radiant_score" not in match._match_details_fields
+
     def test_embedded_rates_derive_opendota_totals(self):
         match = self._build()
 
