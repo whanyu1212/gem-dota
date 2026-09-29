@@ -266,11 +266,12 @@ class PlayerExtractor:
         tables = self._parser.string_tables
         entity_names = tables.get_by_name("EntityNames") if tables is not None else None
         tick = self._parser.tick
-        for player_id in range(10):
+        # Key each hero by its own player ID, as the dense snapshots do. Until the
+        # roster remap resolves, the PlayerResource fallback reads row
+        # `player_id`, which a coach or an empty row can shift onto another
+        # player's hero; keying by the hero keeps that from claiming this slot.
+        for player_id, hero in sorted(self._select_heroes().items()):
             if player_id in self._inventory_initialized:
-                continue
-            hero = self._canonical_hero_entity(player_id)
-            if hero is None:
                 continue
             npc_name = (
                 _hero_npc_name(hero, entity_names) or self._hero_aliases(hero.get_class_name())[0]
@@ -725,12 +726,13 @@ class PlayerExtractor:
             return None
         return entity
 
-    def _sample(self, tick: int, minute: bool = False) -> None:
-        entity_names = (
-            self._parser.string_tables.get_by_name("EntityNames")
-            if self._parser is not None and self._parser.string_tables is not None
-            else None
-        )
+    def _select_heroes(self) -> dict[int, Entity]:
+        """Return each player's hero entity, keyed by the hero's own player ID.
+
+        Canonical heroes (controller or PlayerResource handle) come first; the
+        last one to claim an ID wins. Tracked hero entities fill in players no
+        canonical hero claimed, first by entity index.
+        """
         selected: dict[int, Entity] = {}
         for player_id in range(10):
             entity = self._canonical_hero_entity(player_id)
@@ -743,9 +745,17 @@ class PlayerExtractor:
             resolved_id = _snapshot_player_id(entity)
             if resolved_id is not None and resolved_id not in selected:
                 selected[resolved_id] = entity
+        return selected
 
+    def _sample(self, tick: int, minute: bool = False) -> None:
+        entity_names = (
+            self._parser.string_tables.get_by_name("EntityNames")
+            if self._parser is not None and self._parser.string_tables is not None
+            else None
+        )
         # Finish selection before constructing full snapshots, preserving the
         # last canonical / first fallback winner and staging before overlays.
+        selected = self._select_heroes()
         snaps_by_player: dict[int, tuple[Entity, PlayerStateSnapshot]] = {}
         for player_id, entity in selected.items():
             snap = _build_hero_snapshot(entity, tick, player_id)

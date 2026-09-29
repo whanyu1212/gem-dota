@@ -1539,6 +1539,24 @@ class TestStartingInventoryAtTickStart:
         assert [e.game_time_s for e in parser.combat_log.emitted] == [-89, -89]
         assert ext.first_snapshot_tick == {0: 100}
 
+    def test_shifted_resource_row_does_not_claim_another_slot(self, monkeypatch):
+        # Before the roster remap resolves, a coach row can shift PlayerResource
+        # so slot 6's row holds player 5's hero. That hero must be recorded for
+        # player 5 only, and slot 6 must stay open for its own hero.
+        heroes: dict[int, Entity] = {6: _hero("Axe", player_id=5)}
+        ext, parser = self._setup(monkeypatch, heroes)
+        parser.opendota_start_s = 1000
+        parser.start_tick(100, 911)
+        assert ext.first_snapshot_tick == {5: 100}
+        assert {e.target_name for e in parser.combat_log.emitted} == {"npc_dota_hero_axe"}
+
+        # Once resolved, each slot reads its own hero; player 5 is not repeated.
+        heroes.clear()
+        heroes.update({5: _hero("Axe", player_id=5), 6: _hero("Lina", player_id=6)})
+        parser.start_tick(130, 912)
+        assert ext.first_snapshot_tick == {5: 100, 6: 130}
+        assert [e.target_name for e in parser.combat_log.emitted].count("npc_dota_hero_axe") == 2
+
     def test_times_entries_once_game_start_is_known(self, monkeypatch):
         ext, parser = self._setup(monkeypatch, {0: _hero("Axe")})
         parser.start_tick(100, 911)
