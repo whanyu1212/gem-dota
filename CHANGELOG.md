@@ -194,6 +194,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     at its own first per-second snapshot, so starting items were a second early or
     late. Sometimes an observer and a sentry had also merged into a dispenser in
     between. Starting items now come from OpenDota's read and carry `game_time_s`.
+    Like OpenDota, the read only waits for the player resource entity, not for
+    all ten players, so starting items are still recorded in a truncated replay
+    or a custom match with fewer players.
   - **Ward dispensers.** The combat log records a `ward_dispenser` purchase
     whenever an observer and a sentry ward merge. OpenDota leaves these out of
     `purchase_log`, `purchase_time` and `first_purchase_time`, as it does recipes,
