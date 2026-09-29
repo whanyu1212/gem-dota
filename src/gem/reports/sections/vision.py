@@ -366,8 +366,12 @@ def build_smokes(
   function draw() {{
     var W = canvas.width, H = canvas.height;
     ctx.clearRect(0, 0, W, H);
-    if (mapImg.complete && mapImg.naturalWidth > 0) ctx.drawImage(mapImg, 0, 0, W, H);
-    else {{ ctx.fillStyle = '#111820'; ctx.fillRect(0, 0, W, H); }}
+    if (mapImg.complete && mapImg.naturalWidth > 0) {{
+      // Centred square of the map, as the SVG maps' "slice" shows (see MAP_XMIN).
+      var side = Math.min(mapImg.naturalWidth, mapImg.naturalHeight);
+      ctx.drawImage(mapImg, (mapImg.naturalWidth - side) / 2, (mapImg.naturalHeight - side) / 2,
+                    side, side, 0, 0, W, H);
+    }} else {{ ctx.fillStyle = '#111820'; ctx.fillRect(0, 0, W, H); }}
     (cfg.events || []).forEach(function(ev) {{
       var color = ev.team === 2 ? '#3fb950' : ev.team === 3 ? '#f85149' : '#8b949e';
       if (ev.route && ev.route.length) {{
@@ -592,7 +596,10 @@ var speedSel = document.getElementById('wardSpeed');
     ctx.clearRect(0, 0, W, H);
 
     if (mapImg.complete && mapImg.naturalWidth > 0) {
-      ctx.drawImage(mapImg, 0, 0, W, H);
+      // Centred square of the map, as the SVG maps' "slice" shows (see MAP_XMIN).
+      var side = Math.min(mapImg.naturalWidth, mapImg.naturalHeight);
+      ctx.drawImage(mapImg, (mapImg.naturalWidth - side) / 2, (mapImg.naturalHeight - side) / 2,
+                    side, side, 0, 0, W, H);
     } else {
       ctx.fillStyle = '#1a2a1a';
       ctx.fillRect(0, 0, W, H);

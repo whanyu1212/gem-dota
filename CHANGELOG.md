@@ -58,8 +58,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     empty, because the old grid cannot be converted to cells.
 - **Report maps line up with the 7.41 map image.** The HTML report placed positions up to
   about 290 world units (130 px) off, most visibly towards the Dire side. Its y scale was
-  3% short, and the movement animation stretched the image instead of cropping it like
-  the other maps. The window is now calibrated against building positions read from a
+  3% short, and the movement animation and the smoke and ward canvases stretched the
+  image instead of cropping it like the other maps. The window is now calibrated against building positions read from a
   replay. Towers, outposts, ancients, fountains, lotus pools and the Tormentor land on
   their structures, within about 60 world units. The laning minimap marks roaming
   players with a dashed ring.
