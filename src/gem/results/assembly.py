@@ -309,7 +309,7 @@ def _build_objectives(
     first_blood_entry: CombatLogEntry | None,
     pid_to_team: dict[int, int],
     clock: GameClock,
-    chat_event_times: list[ChatEventTime] | None = None,
+    chat_event_times: list[_ChatEventTime] | None = None,
     opendota_start_s: int | None = None,
 ) -> list[dict[str, Any]]:
     """Merge gem's per-type objective events into OpenDota's unified timeline.
@@ -450,7 +450,7 @@ _CHAT_MATCH_WINDOW_TICKS = 90
 
 
 @dataclass(frozen=True, slots=True)
-class ChatEventTime:
+class _ChatEventTime:
     """One ``CDOTAUserMsg_ChatEvent`` with OpenDota's clock at its tick.
 
     Attributes:
@@ -469,7 +469,7 @@ class ChatEventTime:
     raw_s: int | None
 
 
-def align_ticks(first: list[int], second: list[int], window: int) -> list[tuple[int, int]]:
+def _align_ticks(first: list[int], second: list[int], window: int) -> list[tuple[int, int]]:
     """Pair two tick sequences one-to-one, preserving order.
 
     Among order-preserving pairings whose ticks differ by at most ``window``, it
@@ -514,7 +514,7 @@ def align_ticks(first: list[int], second: list[int], window: int) -> list[tuple[
 
 def _retime_chat_objectives(
     chat_objectives: dict[str, list[tuple[int, dict[str, Any]]]],
-    chat_event_times: list[ChatEventTime],
+    chat_event_times: list[_ChatEventTime],
     start_s: int,
 ) -> None:
     """Give each chat-message objective the time OpenDota stamps its chat event with.
@@ -522,12 +522,12 @@ def _retime_chat_objectives(
     OpenDota builds these objectives from ``CDOTAUserMsg_ChatEvent`` entries
     timed with its tick-start clock (odota/parser Parse.java ``onChatEvent``).
     gem rebuilds them from combat-log deaths or entity changes, so each is paired
-    with the same-type chat event by :func:`align_ticks`. Unpaired objectives,
+    with the same-type chat event by :func:`_align_ticks`. Unpaired objectives,
     and pairs whose clock is unavailable, keep their existing time.
     """
     from gem.proto.dota_usermessages_pb2 import DOTA_CHAT_MESSAGE
 
-    by_type: defaultdict[str, list[ChatEventTime]] = defaultdict(list)
+    by_type: defaultdict[str, list[_ChatEventTime]] = defaultdict(list)
     for event in chat_event_times:
         try:
             by_type[DOTA_CHAT_MESSAGE.Name(event.type)].append(event)
@@ -536,7 +536,7 @@ def _retime_chat_objectives(
     for chat_type, entries in chat_objectives.items():
         events = sorted(by_type.get(chat_type, ()), key=lambda e: e.tick)
         entries = sorted(entries, key=lambda item: item[0])
-        pairs = align_ticks(
+        pairs = _align_ticks(
             [tick for tick, _ in entries], [e.tick for e in events], _CHAT_MATCH_WINDOW_TICKS
         )
         for entry_index, event_index in pairs:
@@ -546,7 +546,7 @@ def _retime_chat_objectives(
 
 
 def _retime_rune_pickups(
-    entries: list[CombatLogEntry], chat_event_times: list[ChatEventTime], start_s: int
+    entries: list[CombatLogEntry], chat_event_times: list[_ChatEventTime], start_s: int
 ) -> None:
     """Set each rune pickup's ``game_time_s`` to OpenDota's time for its chat event.
 
@@ -1158,7 +1158,7 @@ def build_parsed_match(
     vision_modifier_pairing_issues: list[VisionModifierPairingIssue] | None = None,
     entity_visibility_events: list[EntityVisibilityEvent] | None = None,
     buyback_spends: list[BuybackSpend] | None = None,
-    chat_event_times: list[ChatEventTime] | None = None,
+    chat_event_times: list[_ChatEventTime] | None = None,
 ) -> ParsedMatch:
     """Assemble a :class:`ParsedMatch` from extractor state after a completed parse.
 

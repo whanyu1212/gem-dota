@@ -260,7 +260,7 @@ def parse(path: str | Path) -> ParsedMatch:
     from gem.extractors.visibility import VisibilityExtractor
     from gem.extractors.wards import WardsExtractor
     from gem.parser import ReplayParser
-    from gem.results.assembly import ChatEventTime, build_parsed_match
+    from gem.results.assembly import _ChatEventTime, build_parsed_match
 
     p = ReplayParser(path)
     player_ext = PlayerExtractor()
@@ -295,10 +295,10 @@ def parse(path: str | Path) -> ParsedMatch:
 
     # OpenDota stamps chat events with its tick-start clock; keep the raw value
     # and normalize after the parse, once the game-start anchor is known.
-    chat_event_times: list[ChatEventTime] = []
+    chat_event_times: list[_ChatEventTime] = []
     p.on_chat_event(
         lambda event, tick: chat_event_times.append(
-            ChatEventTime(
+            _ChatEventTime(
                 event.type, event.playerid_1, event.value, tick, p.opendota_tick_start_raw_s
             )
         )

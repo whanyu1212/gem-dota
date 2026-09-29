@@ -311,7 +311,7 @@ once per outer tick (`parser.opendota_tick_start_raw_s`, anchored by
 `parser.opendota_start_s`), which matches every OpenDota rune time on the
 fixtures (473/473). `api.parse()` records chat events with that raw clock. Assembly
 normalizes them, sets `game_time_s` on `PICKUP_RUNE` entries, and times chat-type
-objectives by pairing each with its chat event (`assembly.align_ticks`).
+objectives by pairing each with its chat event (`assembly._align_ticks`).
 
 ### Gold / XP field sources — critical distinction
 

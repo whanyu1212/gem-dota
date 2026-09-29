@@ -674,7 +674,8 @@ class ParsedPlayer:
             still counted in the ``purchase`` map).
         runes_log: PICKUP_RUNE entries for this player's rune pickups, from the
             replay's chat events. ``rune_type`` holds the rune; ``value`` is the
-            player slot.
+            player slot; ``game_time_s`` is the time OpenDota gives the pickup
+            (its tick-start clock), matching OpenDota's ``runes_log``.
         buyback_log: BUYBACK combat log entries for this player.
         buybacks: Structured :class:`BuybackEvent` records, one per ``buyback_log``
             entry, with each buyback's gold cost: exact from the team data's

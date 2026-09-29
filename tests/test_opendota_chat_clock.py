@@ -17,10 +17,10 @@ from gem.proto.dota_usermessages_pb2 import (
     CHAT_MESSAGE_RUNE_PICKUP,
 )
 from gem.results.assembly import (
-    ChatEventTime,
+    _align_ticks,
+    _ChatEventTime,
     _retime_chat_objectives,
     _retime_rune_pickups,
-    align_ticks,
 )
 from gem.state.entities import Entity
 from gem.state.game_clock import GameClockTracker
@@ -121,24 +121,24 @@ class TestParserHook:
 class TestAlignTicks:
     def test_prefers_exact_pairs_over_an_earlier_candidate(self):
         # Greedy matching would pair 80 with 0 and 100 with 80.
-        assert align_ticks([80, 100], [0, 80, 100], 90) == [(0, 1), (1, 2)]
+        assert _align_ticks([80, 100], [0, 80, 100], 90) == [(0, 1), (1, 2)]
 
     def test_keeps_both_pairs_when_each_is_in_window(self):
-        assert align_ticks([80, 100], [0, 90], 90) == [(0, 0), (1, 1)]
+        assert _align_ticks([80, 100], [0, 90], 90) == [(0, 0), (1, 1)]
 
     def test_missing_event_leaves_the_right_objective_unpaired(self):
-        assert align_ticks([80, 100], [100], 90) == [(1, 0)]
+        assert _align_ticks([80, 100], [100], 90) == [(1, 0)]
 
     def test_nothing_pairs_outside_the_window(self):
-        assert align_ticks([10], [500], 90) == []
+        assert _align_ticks([10], [500], 90) == []
 
     @pytest.mark.parametrize("first,second", [([], [1]), ([1], [])])
     def test_empty_sequences(self, first, second):
-        assert align_ticks(first, second, 90) == []
+        assert _align_ticks(first, second, 90) == []
 
 
 def _event(type_: int, tick: int, raw_s: int | None, player: int = 0, value: int = 0):
-    return ChatEventTime(type_, player, value, tick, raw_s)
+    return _ChatEventTime(type_, player, value, tick, raw_s)
 
 
 class TestRetiming:
