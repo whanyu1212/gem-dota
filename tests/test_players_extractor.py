@@ -1466,6 +1466,97 @@ class TestDiffInventory:
         assert ext.first_snapshot_tick[0] == 100
 
 
+class TickStartParser(FakeParser):
+    """FakeParser with the tick-start hook and OpenDota's chat-event clock."""
+
+    def __init__(self, tick: int = 300):
+        super().__init__(tick=tick)
+        self.opendota_tick_start_raw_s: int | None = None
+        self.opendota_start_s: int | None = None
+        self.tick_start_callbacks = []
+
+    def on_tick_start(self, callback):
+        self.tick_start_callbacks.append(callback)
+
+    def start_tick(self, tick: int, raw_s: int | None) -> None:
+        self.tick = tick
+        self.opendota_tick_start_raw_s = raw_s
+        for callback in self.tick_start_callbacks:
+            callback(tick)
+
+
+class TestStartingInventoryAtTickStart:
+    """Starting items follow OpenDota's once-a-second @OnTickStart interval."""
+
+    def _setup(self, monkeypatch, heroes: dict[int, Entity]):
+        ext = PlayerExtractor()
+        parser = TickStartParser()
+        ext.attach(parser)
+        ext._resource_index_by_id = {pid: pid for pid in range(10)}
+        monkeypatch.setattr(ext, "_canonical_hero_entity", lambda pid: heroes.get(pid))
+        monkeypatch.setattr(
+            ext, "_read_inventory", lambda hero: {0: "item_tango", 1: "item_branches"}
+        )
+        return ext, parser
+
+    def test_emits_once_at_first_interval_with_hero(self, monkeypatch):
+        heroes: dict[int, Entity] = {}
+        ext, parser = self._setup(monkeypatch, heroes)
+        parser.opendota_start_s = 1000
+        parser.start_tick(100, 910)  # interval fires, no hero yet
+        heroes[0] = _hero("Axe")
+        parser.start_tick(110, 910)  # same second: interval does not fire again
+        assert parser.combat_log.emitted == []
+        parser.start_tick(130, 911)
+        emitted = parser.combat_log.emitted
+        assert [e.value_name for e in emitted] == ["item_tango", "item_branches"]
+        assert all(e.tick == 130 and e.game_time_s == -89 for e in emitted)
+        assert all(e.target_name == "npc_dota_hero_axe" for e in emitted)
+        assert ext.first_snapshot_tick == {0: 130}
+        parser.start_tick(160, 912)
+        assert len(parser.combat_log.emitted) == 2
+
+    def test_waits_for_player_resource(self, monkeypatch):
+        ext, parser = self._setup(monkeypatch, {0: _hero("Axe")})
+        ext._resource_index_by_id = {}
+        parser.opendota_start_s = 1000
+        parser.start_tick(100, 910)
+        assert parser.combat_log.emitted == []
+        # The interval then catches up one second per tick start, as OpenDota's
+        # nextInterval does, so the next tick start fires.
+        ext._resource_index_by_id = {pid: pid for pid in range(10)}
+        parser.start_tick(101, 910)
+        assert [e.game_time_s for e in parser.combat_log.emitted] == [-90, -90]
+
+    def test_times_entries_once_game_start_is_known(self, monkeypatch):
+        ext, parser = self._setup(monkeypatch, {0: _hero("Axe")})
+        parser.start_tick(100, 911)
+        emitted = parser.combat_log.emitted
+        assert len(emitted) == 2 and all(e.game_time_s is None for e in emitted)
+        parser.opendota_start_s = 1000
+        parser.start_tick(130, 912)
+        assert all(e.game_time_s == -89 for e in emitted)
+
+    def test_dense_snapshot_defers_to_tick_start(self, monkeypatch):
+        ext, parser = self._setup(monkeypatch, {})
+        calls = []
+        monkeypatch.setattr(ext, "_diff_inventory", lambda *args: calls.append(args))
+        monkeypatch.setattr(ext, "_read_abilities", lambda e: {})
+        ext._heroes = {1: _hero("Axe")}
+        parser.opendota_tick_start_raw_s = 911
+        ext._sample(300)
+        assert calls == []
+        # Without OpenDota's clock, the first dense snapshot emits as before.
+        parser.opendota_tick_start_raw_s = None
+        ext._sample(330)
+        assert len(calls) == 1
+
+    def test_parser_without_tick_start_uses_dense_snapshot(self):
+        ext = PlayerExtractor()
+        ext.attach(FakeParser())
+        assert ext._tick_start_inventory is False
+
+
 # ---------------------------------------------------------------------------
 # PlayerExtractor._refresh_team_slots
 # ---------------------------------------------------------------------------

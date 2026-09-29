@@ -670,8 +670,12 @@ class ParsedPlayer:
         xp_reasons: XP received per reason code.
         kills_log: Combat log DEATH entries where this player was the attacker.
         purchase_log: Chronological PURCHASE combat log entries for this player,
-            excluding recipes (matching OpenDota's ``purchase_log``; recipes are
-            still counted in the ``purchase`` map).
+            excluding recipes and ``ward_dispenser`` (the combat log records one
+            whenever an observer and a sentry ward merge), matching OpenDota's
+            ``purchase_log``; both are still counted in the ``purchase`` map.
+            Starting items are synthesized from the inventory OpenDota reads
+            (slots 0-7 at its first once-a-second interval with the hero
+            present), with ``game_time_s`` set to OpenDota's time for them.
         runes_log: PICKUP_RUNE entries for this player's rune pickups, from the
             replay's chat events. ``rune_type`` holds the rune; ``value`` is the
             player slot; ``game_time_s`` is the time OpenDota gives the pickup
@@ -759,13 +763,15 @@ class ParsedPlayer:
             death, buyback, damage, healing, or ability/item use in the window.
             Mirrors OpenDota's ``teamfight_participation``.
         purchase: Count of each item purchased, keyed by translated item name
-            (``item_`` stripped); recipes included. Mirrors OpenDota's
-            ``purchase``.
-        purchase_time: Game-seconds of the player's *last* purchase of each item
-            (recipes excluded), keyed by translated name. Mirrors OpenDota's
-            ``purchase_time``.
+            (``item_`` stripped); recipes and ``ward_dispenser`` included.
+            Mirrors OpenDota's ``purchase``.
+        purchase_time: *Sum* of the game-seconds of every purchase of each item
+            (recipes and ``ward_dispenser`` excluded), keyed by translated name.
+            Mirrors OpenDota's ``purchase_time``, which adds the times up.
         first_purchase_time: Game-seconds of the player's *first* purchase of each
-            item (recipes excluded). Mirrors OpenDota's ``first_purchase_time``.
+            item (recipes and ``ward_dispenser`` excluded). Mirrors OpenDota's
+            ``first_purchase_time``, including its quirk that a purchase at
+            exactly 0 is replaced by the item's next purchase.
         purchase_tpscroll: Number of TP scrolls purchased. Mirrors OpenDota's
             ``purchase_tpscroll``.
         purchase_ward_observer: Number of observer wards purchased. Mirrors

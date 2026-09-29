@@ -30,6 +30,7 @@ from gem.state.entities import Entity, EntityOp
 
 if TYPE_CHECKING:
     from gem.parser import ReplayParser
+    from gem.state.string_table import StringTable
 
 # ---------------------------------------------------------------------------
 # Inventory constants
@@ -178,9 +179,16 @@ class PlayerExtractor:
         self.scoreboard: dict[int, tuple[int, int, int]] = {}
         # set of player_ids whose starting inventory has been emitted
         self._inventory_initialized: set[int] = set()
-        # player_id → tick of first inventory snapshot (used to suppress
-        # duplicate combat log PURCHASE events for the same window)
+        # player_id → tick the starting inventory was read at
         self.first_snapshot_tick: dict[int, int] = {}
+        # Starting inventory follows OpenDota's once-a-second interval when the
+        # parser has tick-start callbacks; see _on_tick_start. Otherwise (and
+        # while OpenDota's clock is unknown) the first dense snapshot emits it.
+        self._tick_start_inventory = False
+        self._next_interval_raw_s: int | None = None
+        # Starting-item entries awaiting OpenDota's game-start anchor, with the
+        # raw clock second they were read at.
+        self._untimed_starting_items: list[tuple[CombatLogEntry, int]] = []
         # Running combat log totals per player — stamped into each snapshot.
         # These are monotonically increasing so diffs give per-window rates.
         self._total_hero_damage: dict[int, int] = {}
@@ -212,6 +220,63 @@ class PlayerExtractor:
         if self._minute_snapshots:
             parser.on_game_start(self._on_game_start)
         parser.on_game_end(self._on_game_end)
+        on_tick_start = getattr(parser, "on_tick_start", None)
+        if callable(on_tick_start):
+            self._tick_start_inventory = True
+            on_tick_start(self._on_tick_start)
+
+    def _on_tick_start(self, net_tick: int) -> None:
+        """Emit starting inventories at OpenDota's once-a-second interval.
+
+        OpenDota writes each player's starting items (slots 0-7) once, at the
+        first ``@OnTickStart`` interval where the player's hero resolves, and
+        stamps them with that tick-start clock. Its interval fires when the clock
+        reaches ``nextInterval``, which starts at the first clock reading and
+        advances one second per firing. Reading at tick start sees the entity
+        table before this tick's deltas, which can differ from a later read: a
+        support's observer and sentry wards merge into a dispenser.
+
+        Reference: odota/parser src/main/java/opendota/Parse.java
+        (``nextInterval``, ``isPlayerStartingItemsWritten``).
+
+        Args:
+            net_tick: Decoded ``CNETMsg_Tick.tick`` value (unused).
+        """
+        if self._parser is None or (
+            len(self._inventory_initialized) >= 10 and not self._untimed_starting_items
+        ):
+            return
+        start_s = getattr(self._parser, "opendota_start_s", None)
+        if self._untimed_starting_items and isinstance(start_s, int):
+            for entry, read_s in self._untimed_starting_items:
+                entry.game_time_s = read_s - start_s
+            self._untimed_starting_items.clear()
+        raw_s = getattr(self._parser, "opendota_tick_start_raw_s", None)
+        if not isinstance(raw_s, int) or self._game_end_tick is not None:
+            return
+        if self._next_interval_raw_s is None:
+            self._next_interval_raw_s = raw_s
+        # OpenDota's interval waits for PlayerResource to list all ten players.
+        if raw_s < self._next_interval_raw_s or not self._resource_index_by_id:
+            return
+        self._next_interval_raw_s += 1
+        tables = self._parser.string_tables
+        entity_names = tables.get_by_name("EntityNames") if tables is not None else None
+        tick = self._parser.tick
+        for player_id in range(10):
+            if player_id in self._inventory_initialized:
+                continue
+            hero = self._canonical_hero_entity(player_id)
+            if hero is None:
+                continue
+            npc_name = (
+                _hero_npc_name(hero, entity_names) or self._hero_aliases(hero.get_class_name())[0]
+            )
+            for entry in self._diff_inventory(hero, player_id, npc_name, tick):
+                if isinstance(start_s, int):
+                    entry.game_time_s = raw_s - start_s
+                else:
+                    self._untimed_starting_items.append((entry, raw_s))
 
     def _on_game_start(self, game_start_tick: int) -> None:
         self._game_start_tick = game_start_tick
@@ -690,18 +755,9 @@ class PlayerExtractor:
             # "npc_dota_hero_queenofpain" rather than "npc_dota_hero_queen_of_pain".
             # The camelCase→snake_case conversion in _snapshot_hero inserts word
             # boundaries at every capital letter, which is wrong for compound names.
-            if entity_names is not None:
-                # Current replays use m_nameStringTableIndex; older ones
-                # m_nameStringableIndex. Reference: odota/parser Parse.java
-                # getAbilityEntityStringTableIndex (same order).
-                name_fields = entity._resolve_fields(_ENTITY_NAME_FIELDS)
-                name_idx = entity._get_int32_resolved(name_fields[0])
-                if name_idx is None:
-                    name_idx = entity._get_int32_resolved(name_fields[1])
-                if name_idx is not None and name_idx >= 0:
-                    item = entity_names.items.get(name_idx)
-                    if item is not None:
-                        snap.npc_name = item[0]
+            npc_name = _hero_npc_name(entity, entity_names)
+            if npc_name is not None:
+                snap.npc_name = npc_name
             # Overlay per-player economy stats from CDOTA_DataRadiant/Dire. Mind
             # which gold is which:
             #
@@ -767,7 +823,10 @@ class PlayerExtractor:
                 # sample yields end-of-game inventory (read in assembly.py).
                 snap.items = self._read_inventory(entity)
                 self.snapshots.append(snap)
-                self._diff_inventory(entity, snap.player_id, snap.npc_name, tick)
+                if not self._tick_start_inventory or (
+                    getattr(self._parser, "opendota_tick_start_raw_s", None) is None
+                ):
+                    self._diff_inventory(entity, snap.player_id, snap.npc_name, tick)
 
     def _read_abilities(self, hero: Entity) -> dict[str, int]:
         """Read current ability names and levels from a hero entity.
@@ -873,41 +932,76 @@ class PlayerExtractor:
                 result[slot] = name
         return result
 
-    def _diff_inventory(self, hero: Entity, player_id: int, npc_name: str, tick: int) -> None:
+    def _diff_inventory(
+        self, hero: Entity, player_id: int, npc_name: str, tick: int
+    ) -> list[CombatLogEntry]:
         """Emit synthetic PURCHASE entries for a player's starting inventory.
 
-        Called on the first snapshot per player. Reads all occupied item slots
-        and emits a ``PURCHASE`` ``CombatLogEntry`` for each, filling the gap
-        before the combat log stream begins recording.
+        Called once per player, when its starting inventory is read. Emits a
+        ``PURCHASE`` ``CombatLogEntry`` for each occupied item slot, filling the
+        gap before the combat log stream begins recording.
 
         Args:
             hero: The hero entity.
             player_id: Player slot (0-9).
             npc_name: Hero NPC name for the combat log entry.
             tick: Current game tick.
+
+        Returns:
+            The emitted entries; empty if the inventory was already emitted.
         """
         if self._parser is None or player_id in self._inventory_initialized:
-            return
+            return []
         current = self._read_inventory(hero)
 
-        if player_id not in self._inventory_initialized:
-            # First snapshot — emit all current items as starting inventory.
-            # Subsequent purchases are covered by DOTA_COMBATLOG_PURCHASE events.
-            # Reference: odota/parser Parse.java isPlayerStartingItemsWritten pattern
-            self._inventory_initialized.add(player_id)
-            self.first_snapshot_tick[player_id] = tick
-            # Only slots 0-7 count as starting inventory (OpenDota getHeroInventory
-            # scans `i < 8`); stash 9-16 and backpack slot 8 are excluded so they
-            # are not miscounted as starting purchases. One entry per occupied slot
-            # preserves per-unit copies (e.g. 2x branches), which OpenDota keeps.
-            for slot, item_name in current.items():
-                if slot >= _STARTING_ITEM_SLOTS:
-                    continue
-                if item_name and not item_name.startswith("item_recipe"):
-                    entry = CombatLogEntry(
-                        tick=tick,
-                        log_type=CombatLogType.PURCHASE,
-                        target_name=npc_name,
-                        value_name=item_name,
-                    )
-                    self._parser.combat_log._emit(entry)
+        # Emit all current items as starting inventory. Later purchases are
+        # covered by DOTA_COMBATLOG_PURCHASE events.
+        # Reference: odota/parser Parse.java isPlayerStartingItemsWritten pattern
+        self._inventory_initialized.add(player_id)
+        self.first_snapshot_tick[player_id] = tick
+        # Only slots 0-7 count as starting inventory (OpenDota getHeroInventory
+        # scans `i < 8`); stash 9-16 and backpack slot 8 are excluded so they
+        # are not miscounted as starting purchases. One entry per occupied slot
+        # preserves per-unit copies (e.g. 2x branches), which OpenDota keeps.
+        emitted: list[CombatLogEntry] = []
+        for slot, item_name in current.items():
+            if slot >= _STARTING_ITEM_SLOTS:
+                continue
+            if item_name and not item_name.startswith("item_recipe"):
+                entry = CombatLogEntry(
+                    tick=tick,
+                    log_type=CombatLogType.PURCHASE,
+                    target_name=npc_name,
+                    value_name=item_name,
+                )
+                self._parser.combat_log._emit(entry)
+                emitted.append(entry)
+        return emitted
+
+
+def _hero_npc_name(hero: Entity, entity_names: StringTable | None) -> str | None:
+    """Return a hero entity's NPC name from the ``EntityNames`` string table.
+
+    Class names are ambiguous for compound heroes: ``CDOTA_Unit_Hero_QueenOfPain``
+    is ``npc_dota_hero_queenofpain``, not ``npc_dota_hero_queen_of_pain``.
+    Current replays use ``m_nameStringTableIndex``; older ones
+    ``m_nameStringableIndex``. Reference: odota/parser Parse.java
+    ``getAbilityEntityStringTableIndex`` (same order).
+
+    Args:
+        hero: The hero entity.
+        entity_names: The ``EntityNames`` string table, if loaded.
+
+    Returns:
+        The NPC name, or ``None`` when it cannot be resolved.
+    """
+    if entity_names is None:
+        return None
+    name_fields = hero._resolve_fields(_ENTITY_NAME_FIELDS)
+    name_idx = hero._get_int32_resolved(name_fields[0])
+    if name_idx is None:
+        name_idx = hero._get_int32_resolved(name_fields[1])
+    if name_idx is None or name_idx < 0:
+        return None
+    item = entity_names.items.get(name_idx)
+    return item[0] if item is not None else None

@@ -723,6 +723,43 @@ class TestBuildParsedMatchPlayerCombatFields:
         assert pp.ability_uses == agg3.ability_uses
         assert pp.stuns_dealt == pytest.approx(2.5)
 
+    def test_purchase_log_drops_recipes_and_ward_dispensers(self):
+        # OpenDota (odota/core compute.ts) drops recipes and ward_dispenser from
+        # purchase_log but still counts both in `purchase`.
+        from gem.combat.aggregator import _ParsedPlayerAgg
+
+        agg = _ParsedPlayerAgg()
+        agg.purchase_log = [
+            _purchase("item_ward_observer", tick=300, game_time_s=10),
+            _purchase("item_ward_dispenser", tick=300, game_time_s=10),
+            _purchase("item_recipe_basher", tick=600, game_time_s=20),
+            _purchase("item_basher", tick=600, game_time_s=20),
+        ]
+        combat_agg = MagicMock()
+        combat_agg.players = {3: agg}
+        combat_agg._agg.side_effect = lambda pid: {3: agg}[pid]
+
+        m = build_parsed_match(
+            _make_parser(),
+            _make_player_ext(first_snapshot_tick={3: 0}),
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            combat_agg,
+            [],
+            [],
+        )
+
+        pp = m.players[3]
+        assert [e.value_name for e in pp.purchase_log] == ["item_ward_observer", "item_basher"]
+        assert pp.purchase == {
+            "ward_observer": 1,
+            "ward_dispenser": 1,
+            "recipe_basher": 1,
+            "basher": 1,
+        }
+
 
 # ---------------------------------------------------------------------------
 # Embedded postgame match details
@@ -2127,6 +2164,30 @@ class TestBuildPurchaseAggregates:
         assert aggs["purchase"]["recipe_basher"] == 1
         assert "recipe_basher" not in aggs["purchase_time"]
         assert "recipe_basher" not in aggs["first_purchase_time"]
+
+    def test_ward_dispensers_counted_but_excluded_from_timing(self):
+        # The combat log records a dispenser purchase when an observer and a
+        # sentry merge; OpenDota counts it but leaves it out of the timing maps.
+        aggs = self._build([_purchase("item_ward_dispenser", tick=1500, game_time_s=50)])
+        assert aggs["purchase"]["ward_dispenser"] == 1
+        assert "ward_dispenser" not in aggs["purchase_time"]
+        assert "ward_dispenser" not in aggs["first_purchase_time"]
+
+    def test_first_purchase_at_zero_is_replaced_by_next(self):
+        # OpenDota's `!first_purchase_time[k]` treats 0 as unset, so the next
+        # purchase replaces a first purchase at exactly 0:00.
+        aggs = self._build(
+            [
+                _purchase("item_tango", tick=0, game_time_s=0),
+                _purchase("item_tango", tick=2700, game_time_s=90),
+            ]
+        )
+        assert aggs["first_purchase_time"]["tango"] == 90
+        assert aggs["purchase_time"]["tango"] == 90
+
+    def test_first_purchase_at_zero_kept_without_later_purchase(self):
+        aggs = self._build([_purchase("item_tango", tick=0, game_time_s=0)])
+        assert aggs["first_purchase_time"]["tango"] == 0
 
     def test_ward_and_tpscroll_scalars(self):
         aggs = self._build(
