@@ -177,6 +177,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The daily protobuf watch can open its update PR again.** It had failed every
+  run since the upstream Dota 2 protos last changed. The failure was in its own
+  check, which imported every generated module into one process. Upstream's
+  `steammessages.proto` and `steammessages_base.proto` declare the same custom
+  options, so that check could never pass. The new
+  `scripts/check_proto_imports.py` imports each module in its own interpreter;
+  the one known conflict, `steammessages_base_pb2`, which nothing imports, must
+  fail with exactly that error. No generated binding or runtime behavior changes.
 - **Illusions of enemy heroes no longer steal combat-log credit.** gem mapped a
   combat-log hero name to whichever entity of that hero class had updated last.
   Dark Seer's Wall of Replica, Shadow Demon's Disruption and Morphling's Replicate

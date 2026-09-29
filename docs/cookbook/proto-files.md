@@ -28,8 +28,12 @@ commits only the Python generated from it:
    by hand. Regenerate them instead.
 3. **`.github/workflows/proto-watch.yml`** checks upstream every day. When the Dota 2
    folder changes, it downloads the new snapshot, regenerates the Python modules and
-   the generated reference pages, imports every module, runs the fast test suite,
-   updates the lock file, and opens (or updates) a single draft pull request.
+   the generated reference pages, imports each module in its own interpreter
+   (`scripts/check_proto_imports.py`), runs the fast test suite, updates the lock
+   file, and opens (or updates) a single draft pull request. Upstream's
+   `steammessages.proto` and `steammessages_base.proto` declare the same custom
+   options, so the two cannot load in one process. Nothing imports
+   `steammessages_base`, and the check expects exactly that conflict from it.
 
 To download the `.proto` files locally, pass the `commit` from
 `proto-upstream.lock.json` (without `PROTO_UPSTREAM_REF`, the script downloads

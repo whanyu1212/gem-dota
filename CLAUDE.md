@@ -498,9 +498,15 @@ pinned refresh, run:
 ```bash
 PROTO_UPSTREAM_REF=<40-character-SHA> FORCE=1 bash scripts/download_protos.sh
 uv run python scripts/compile_protos.py --force
+uv run python scripts/check_proto_imports.py
 ```
 
 Advance the lock only after the generated bindings pass validation.
+`check_proto_imports.py` imports each module in its own interpreter. Upstream's
+`steammessages.proto` and `steammessages_base.proto` declare the same custom
+options (`msgpool_soft_limit`, …), so importing every module into one process
+always fails with `duplicate symbol`. Nothing imports `steammessages_base_pb2`, and
+it can't load once `gem` is imported; it is the check's one known conflict.
 
 Key message classes used throughout the parser:
 - `demo_pb2` — `CDemoSendTables`, `CDemoClassInfo`, `CDemoFullPacket`
