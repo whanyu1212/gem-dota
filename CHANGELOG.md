@@ -183,6 +183,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Rune pickups and chat-based objectives are timed the way OpenDota times
+  them.** OpenDota stamps chat events with its clock at the start of each tick,
+  which reads the network tick the previous tick left behind. gem timed rune
+  pickups from the replay tick, and rebuilt objectives such as courier kills from
+  combat-log deaths, so about one in four players' rune times and some objectives
+  were a second off.
+  - `PICKUP_RUNE` entries now carry `game_time_s`, and `runes_log` matches
+    OpenDota for 80 of 80 players (473 of 473 pickups).
+  - Courier, Roshan, Aegis and first-blood objectives take their time from the
+    matching chat event; the 10 that were a second off now match.
+  - `ReplayParser.opendota_tick_start_raw_s` and `opendota_start_s` expose that
+    clock.
 - **Hero names come from the replay's own name table on current replays.**
   `PlayerExtractor` read the entity name index only from the older
   `m_nameStringableIndex` field, so on current replays (which carry

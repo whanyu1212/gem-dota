@@ -10,8 +10,9 @@ The mapping keeps only value differences:
 
 - Per-minute arrays use gem's ``*_min`` fields and ``game_times_min``; gem's
   ``gold_t``/``xp_t``/``lh_t``/``dn_t``/``times`` are dense samples.
-- Log entries become OpenDota's ``(key, time)`` pairs, with times from the
-  match's pause-aware game clock.
+- Log entries become OpenDota's ``(key, time)`` pairs. The time is the entry's
+  own ``game_time_s`` when it has one (as gem's OpenDota-shaped outputs use),
+  else the match's pause-aware game clock at its tick.
 - ``item_uses`` keys drop the ``item_`` prefix; ``max_hero_hit`` drops
   OpenDota's ``slot``/``player_slot`` keys.
 - Ward placement logs compare counts; ward-left logs compare
@@ -95,11 +96,17 @@ def _always(_entry: Any) -> bool:
     return True
 
 
+def _entry_seconds(entry: Any, seconds: Seconds) -> int | None:
+    """Return an entry's time the way gem's OpenDota-shaped outputs derive it."""
+    game_time_s = getattr(entry, "game_time_s", None)
+    return int(game_time_s) if game_time_s is not None else seconds(entry.tick)
+
+
 def _log_check(
     log_attr: str, key: Callable[[Any], Any], keep: Callable[[Any], bool] = _always
 ) -> PlayerCheck:
     def check(p: ParsedPlayer, o: dict[str, Any], seconds: Seconds) -> tuple[Any, Any]:
-        gem = [(key(e), seconds(e.tick)) for e in getattr(p, log_attr) if keep(e)]
+        gem = [(key(e), _entry_seconds(e, seconds)) for e in getattr(p, log_attr) if keep(e)]
         od = [(e["key"], e["time"]) for e in o[log_attr]]
         return gem, od
 
@@ -119,7 +126,7 @@ PLAYER_CHECKS: dict[str, PlayerCheck] = {
         keep=lambda e: e.target_is_hero and not e.target_is_illusion,
     ),
     "buyback_log": lambda p, o, t: (
-        [t(e.tick) for e in p.buyback_log],
+        [_entry_seconds(e, t) for e in p.buyback_log],
         [e["time"] for e in o["buyback_log"]],
     ),
     "item_uses": lambda p, o, t: (

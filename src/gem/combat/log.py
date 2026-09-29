@@ -187,7 +187,10 @@ class CombatLogEntry:
         location_y: Raw combat-log event y coordinate, or ``None`` if absent.
         timestamp_s: Raw S2 combat-log timestamp in seconds, or ``None`` for S1/derived events.
         game_time_s: OpenDota-style game-relative combat-log time in seconds, or ``None`` when
-            the game-start combat-log marker has not been observed.
+            the game-start combat-log marker has not been observed. ``PICKUP_RUNE``
+            entries come from chat events and are ``None`` when emitted; assembly
+            later sets them to OpenDota's chat-event (tick-start) time, so only
+            entries in a finished ``ParsedMatch`` carry it.
         will_reincarnate: True if this DEATH is a reincarnation/aegis *trigger*
             (the hero will return), not a final death (S2 only; always False for
             S1). Consumers counting deaths should skip entries where this is True.

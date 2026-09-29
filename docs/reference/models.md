@@ -557,7 +557,7 @@ class ParsedMatch
 
 Top-level parsed output for a single Dota 2 replay.
 
-Source: [src/gem/results/models.py:980](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L980)
+Source: [src/gem/results/models.py:981](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L981)
 
 #### Dataclass fields
 
@@ -623,7 +623,7 @@ Signature: `def ParsedMatch.duration_seconds(self) -> float`
 
 Game duration in seconds, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:1145](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1145)
+Source: [src/gem/results/models.py:1148](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1148)
 
 ##### `duration_minutes`
 
@@ -631,7 +631,7 @@ Signature: `def ParsedMatch.duration_minutes(self) -> float`
 
 Game duration in minutes, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:1151](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1151)
+Source: [src/gem/results/models.py:1154](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1154)
 
 ## Module `gem.state.game_clock`
 
@@ -749,7 +749,7 @@ class GameClockTracker
 
 Builds the in-game clock while a replay is parsed.
 
-Source: [src/gem/state/game_clock.py:223](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L223)
+Source: [src/gem/state/game_clock.py:239](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L239)
 
 #### Methods
 
@@ -759,7 +759,7 @@ Signature: `def GameClockTracker.on_net_tick(self, net_tick: int) -> None`
 
 Record a ``CNETMsg_Tick``.
 
-Source: [src/gem/state/game_clock.py:261](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L261)
+Source: [src/gem/state/game_clock.py:288](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L288)
 
 ##### `net_tick_offset`
 
@@ -767,7 +767,7 @@ Signature: `def GameClockTracker.net_tick_offset(self, tick: int) -> int`
 
 Return ``net_tick - tick``, or 0 before any network tick.
 
-Source: [src/gem/state/game_clock.py:266](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L266)
+Source: [src/gem/state/game_clock.py:293](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L293)
 
 ##### `update`
 
@@ -775,7 +775,15 @@ Signature: `def GameClockTracker.update(self, entity: Entity, tick: int) -> None
 
 Refresh the clock from the ``CDOTAGamerulesProxy`` entity.
 
-Source: [src/gem/state/game_clock.py:270](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L270)
+Source: [src/gem/state/game_clock.py:297](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L297)
+
+##### `snapshot_tick_start`
+
+Signature: `def GameClockTracker.snapshot_tick_start(self, entity: Entity | None) -> None`
+
+Record OpenDota's running clock at the start of an outer replay tick.
+
+Source: [src/gem/state/game_clock.py:328](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L328)
 
 ##### `observe_game_start`
 
@@ -783,7 +791,7 @@ Signature: `def GameClockTracker.observe_game_start(self, entity: Entity, tick: 
 
 Refresh the clock, and report whether the game has just started.
 
-Source: [src/gem/state/game_clock.py:310](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L310)
+Source: [src/gem/state/game_clock.py:352](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L352)
 
 ##### `track_pause`
 
@@ -791,7 +799,7 @@ Signature: `def GameClockTracker.track_pause(self, paused: bool, pause_start_net
 
 Record pause intervals from ``m_bGamePaused`` transitions.
 
-Source: [src/gem/state/game_clock.py:335](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L335)
+Source: [src/gem/state/game_clock.py:377](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L377)
 
 ##### `combat_log_time`
 
@@ -799,7 +807,7 @@ Signature: `def GameClockTracker.combat_log_time(self, timestamp: float | None, 
 
 Return OpenDota-style game-relative time for a combat-log entry.
 
-Source: [src/gem/state/game_clock.py:371](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L371)
+Source: [src/gem/state/game_clock.py:413](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L413)
 
 ##### `finish`
 
@@ -807,7 +815,7 @@ Signature: `def GameClockTracker.finish(self) -> None`
 
 Close a pause still open when the replay ends.
 
-Source: [src/gem/state/game_clock.py:399](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L399)
+Source: [src/gem/state/game_clock.py:443](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L443)
 
 ## Module `gem.results.serialization`
 

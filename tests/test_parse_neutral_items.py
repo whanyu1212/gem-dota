@@ -49,6 +49,9 @@ def test_parse_collects_neutral_item_found_events(monkeypatch):
         def on_chat_message(self, _handler):
             return None
 
+        def on_chat_event(self, _handler):
+            return None
+
         def on_neutral_item_found(self, handler):
             self.neutral_item_found_callbacks.append(handler)
 
