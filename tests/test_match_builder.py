@@ -743,6 +743,8 @@ class TestBuildParsedMatchMatchDetails:
         radiant.gold_per_min = 612
         radiant.xp_per_min = 701
         radiant.gold_spent = 27160
+        radiant.gold = 6069
+        radiant.net_worth = 30869
         radiant.permanent_buffs.add(permanent_buff=12, grant_time=1200)
         radiant.permanent_buffs.add(permanent_buff=23, stack_count=4)
 
@@ -752,6 +754,7 @@ class TestBuildParsedMatchMatchDetails:
         dire.hero_healing = 456
         dire.gold_per_min = 0
         dire.xp_per_min = 589
+        dire.gold = 0
         dire.permanent_buffs.add(permanent_buff=1, grant_time=1800)
         dire.permanent_buffs.add(permanent_buff=2, grant_time=2000)
 
@@ -816,6 +819,18 @@ class TestBuildParsedMatchMatchDetails:
         # No summary value: unknown, not a reconstruction from the gold series.
         assert match.players[5].gold_spent == 0
         assert "gold_spent" not in match.players[5]._match_details_fields
+
+    def test_gold_and_net_worth_come_from_embedded_summary(self):
+        match = self._build()
+
+        assert (match.players[0].gold, match.players[0].net_worth) == (6069, 30869)
+        assert {"gold", "net_worth"}.issubset(match.players[0]._match_details_fields)
+        # An explicit zero is authoritative.
+        assert match.players[5].gold == 0
+        assert "gold" in match.players[5]._match_details_fields
+        # An absent field keeps the last dense sample.
+        assert match.players[1].gold == 1000
+        assert "gold" not in match.players[1]._match_details_fields
 
     def test_embedded_rates_derive_opendota_totals(self):
         match = self._build()
@@ -2591,3 +2606,104 @@ class TestRadiantAdvFromMinuteSeries:
 
         players = [self._player(0, 2, [], [])]
         assert _radiant_adv_from_minute_series(players) is None
+
+
+# ---------------------------------------------------------------------------
+# Gold ledger and exact buyback costs
+# ---------------------------------------------------------------------------
+
+
+class TestGoldLedgerAssembly:
+    @staticmethod
+    def _spend(tick: int, cost: int, reliable: int | None = None, unreliable: int | None = None):
+        from gem.extractors.gold_ledger import BuybackSpend
+
+        return BuybackSpend(tick, 2, 0, cost, reliable, unreliable)
+
+    def test_buyback_takes_the_exact_cost_from_the_same_tick(self):
+        from gem.results.assembly import _buyback_event
+
+        spends = [self._spend(5000, 1836, 1625, 211)]
+        event = _buyback_event(5000, 3, 21278, spends)
+
+        assert (event.cost, event.cost_exact) == (1836, True)
+        assert (event.reliable_gold, event.unreliable_gold) == (1625, 211)
+        assert spends == []
+
+    def test_each_spend_is_used_by_one_buyback_only(self):
+        from gem.results.assembly import _buyback_event
+
+        spends = [self._spend(5001, 1000), self._spend(9000, 2000)]
+        first = _buyback_event(5000, 0, 10000, spends)
+        second = _buyback_event(5000, 0, 10000, spends)
+
+        assert (first.cost, first.cost_exact) == (1000, True)
+        assert second.cost_exact is False
+        assert second.reliable_gold is None
+
+    def test_buyback_without_a_nearby_spend_keeps_the_formula_estimate(self):
+        from gem.results.assembly import _buyback_event
+        from gem.results.derived import buyback_cost
+
+        event = _buyback_event(5000, 0, 13000, [self._spend(5003, 999)])
+
+        assert event.cost == buyback_cost(13000)
+        assert event.cost_exact is False
+
+    def test_per_minute_ledger_is_parallel_to_the_minutes_or_empty(self):
+        from gem.extractors.intervals import LEDGER_FIELDS, IntervalTimeSeries
+        from gem.results.assembly import _gold_ledger
+
+        values = tuple(range(len(LEDGER_FIELDS)))
+        complete = IntervalTimeSeries(player_id=0, ticks=[10, 20], times=[0, 60])
+        complete.ledger = [values, values]
+        ledger = _gold_ledger(complete, (30, 90, values))
+        assert ledger is not None
+        assert [snap.game_time_s for snap in ledger.per_minute] == [0, 60]
+        assert ledger.final is not None
+        assert (ledger.final.tick, ledger.final.hero_kill_gold) == (30, 0)
+        assert ledger.final.lost_to_death == len(LEDGER_FIELDS) - 1
+
+        partial = IntervalTimeSeries(player_id=0, ticks=[10, 20], times=[0, 60])
+        partial.ledger = [values, None]
+        ledger = _gold_ledger(partial, (30, 90, values))
+        assert ledger is not None and ledger.per_minute == []
+
+        assert _gold_ledger(None, None) is None
+
+    def test_build_takes_exact_buybacks_and_gold_spent_from_the_ledger(self):
+        from gem.combat.aggregator import _ParsedPlayerAgg
+        from gem.extractors.intervals import LEDGER_FIELDS
+
+        agg = _ParsedPlayerAgg()
+        agg.buyback_log = [_buyback(pid=0, tick=5000)]
+        combat_agg = MagicMock()
+        combat_agg.players = {0: agg}
+        interval_ext = MagicMock()
+        interval_ext.all_snapshots = []
+        ledger = dict.fromkeys((attr for attr, _ in LEDGER_FIELDS), 0)
+        ledger.update(spent_on_items=26175, spent_on_consumables=985, spent_on_buybacks=1836)
+        interval_ext.final_ledgers = {0: (7000, 2400, tuple(ledger.values()))}
+        interval_ext.player_for_team_slot.side_effect = lambda team, slot: 0
+
+        match = build_parsed_match(
+            _make_parser(),
+            _make_player_ext(),
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            combat_agg,
+            [],
+            [],
+            interval_ext=interval_ext,
+            buyback_spends=[self._spend(5000, 1836, 1625, 211)],
+        )
+
+        player = match.players[0]
+        assert [(bb.cost, bb.cost_exact) for bb in player.buybacks] == [(1836, True)]
+        # No postgame summary: gold spent comes from the ledger.
+        assert player.gold_spent == 26175 + 985
+        assert player.gold_ledger is not None
+        assert player.gold_ledger.final is not None
+        assert player.gold_ledger.final.spent_on_buybacks == 1836

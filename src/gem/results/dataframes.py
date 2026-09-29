@@ -82,6 +82,10 @@ OPTIONAL_GROUPS: dict[str, tuple[str, ...]] = {
         "opendota_objectives",
         "opendota_teamfights",
     ),
+    "gold_ledger": (
+        "player_gold_ledger",
+        "player_gold_ledger_minutes",
+    ),
 }
 
 # Per-player scalar fields exported once per player in ``player_summary``.
@@ -147,6 +151,7 @@ _PLAYER_SUMMARY_FIELDS: tuple[str, ...] = (
     "aghanims_scepter",
     "aghanims_shard",
     "moonshard",
+    "gold",
 )
 
 # Per-player dict fields exported in long form in ``player_breakdowns``.
@@ -193,7 +198,9 @@ def build_dataframes(match: ParsedMatch, *, include: Iterable[str] = ()) -> dict
             ``"analysis"`` runs the post-parse farming, smoke-fight, Roshan
             conversion, and teamfight-positioning analyses and flattens them;
             ``"opendota"`` adds the OpenDota-shaped objective and teamfight
-            views. A single group name may be passed as a plain string.
+            views; ``"gold_ledger"`` adds each player's gold ledger at game
+            end and per minute. A single group name may be passed as a plain
+            string.
 
     Returns:
         Dictionary mapping table name to DataFrame: every name in
@@ -209,6 +216,8 @@ def build_dataframes(match: ParsedMatch, *, include: Iterable[str] = ()) -> dict
         tables.update(_build_analysis_tables(match))
     if "opendota" in groups:
         tables.update(_build_opendota_tables(match))
+    if "gold_ledger" in groups:
+        tables.update(_build_gold_ledger_tables(match))
 
     import pandas as pd
 
@@ -473,6 +482,9 @@ def _build_core_tables(match: ParsedMatch) -> dict[str, pd.DataFrame]:
             bb = pp.buybacks[i] if i < len(pp.buybacks) else None
             row["cost"] = bb.cost if bb is not None else None
             row["net_worth"] = bb.net_worth if bb is not None else None
+            row["cost_exact"] = bb.cost_exact if bb is not None else None
+            row["reliable_gold"] = bb.reliable_gold if bb is not None else None
+            row["unreliable_gold"] = bb.unreliable_gold if bb is not None else None
             player_buyback_rows.append(row)
 
     summary_schema = {
@@ -775,7 +787,9 @@ def _build_core_tables(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         _field_dtypes(VisionModifierPairingIssue),
     )
     player_log_schema = {**combat_log_schema, "player_id": _INT}
-    buyback_dtypes = _field_dtypes(BuybackEvent, ("cost", "net_worth"))
+    buyback_dtypes = _field_dtypes(
+        BuybackEvent, ("cost", "net_worth", "cost_exact", "reliable_gold", "unreliable_gold")
+    )
 
     return {
         "match": match_df,
@@ -806,6 +820,28 @@ def _build_core_tables(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         "player_buyback_log": _typed_frame(
             player_buyback_rows, {**player_log_schema, **buyback_dtypes}
         ),
+    }
+
+
+def _build_gold_ledger_tables(match: ParsedMatch) -> dict[str, pd.DataFrame]:
+    from gem.results.models import GoldLedgerSnapshot
+
+    # One row per player for the game-end ledger, and one per player-minute.
+    schema = {"player_id": _INT, **_field_dtypes(GoldLedgerSnapshot)}
+    final_rows: list[dict[str, Any]] = []
+    minute_rows: list[dict[str, Any]] = []
+    for pp in match.players:
+        ledger = pp.gold_ledger
+        if ledger is None:
+            continue
+        if ledger.final is not None:
+            final_rows.append({"player_id": pp.player_id, **asdict(ledger.final)})
+        minute_rows.extend(
+            {"player_id": pp.player_id, **asdict(snap)} for snap in ledger.per_minute
+        )
+    return {
+        "player_gold_ledger": _typed_frame(final_rows, schema),
+        "player_gold_ledger_minutes": _typed_frame(minute_rows, schema),
     }
 
 

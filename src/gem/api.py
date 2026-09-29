@@ -200,6 +200,8 @@ from gem.results.models import (
     BuybackEvent,
     ChatEntry,
     EntityVisibilityEvent,
+    GoldLedger,
+    GoldLedgerSnapshot,
     HeroVisibilityEvent,
     NeutralItemFoundEvent,
     ParsedMatch,
@@ -250,6 +252,7 @@ def parse(path: str | Path) -> ParsedMatch:
     from gem.combat.log import CombatLogEntry
     from gem.extractors.courier import CourierExtractor
     from gem.extractors.draft import DraftExtractor
+    from gem.extractors.gold_ledger import BuybackSpendTracker
     from gem.extractors.intervals import IntervalExtractor
     from gem.extractors.objectives import ObjectivesExtractor
     from gem.extractors.players import PlayerExtractor
@@ -267,6 +270,7 @@ def parse(path: str | Path) -> ParsedMatch:
     draft_ext = DraftExtractor()
     interval_ext = IntervalExtractor()
     visibility_ext = VisibilityExtractor(player_ext)
+    buyback_tracker = BuybackSpendTracker()
 
     player_ext.attach(p)
     visibility_ext.attach(p)
@@ -275,6 +279,7 @@ def parse(path: str | Path) -> ParsedMatch:
     ward_ext.attach(p)
     courier_ext.attach(p)
     draft_ext.attach(p)
+    buyback_tracker.attach(p)
 
     combat_agg = _CombatAggregator(player_ext)
     p.on_combat_log_entry(combat_agg.on_entry)
@@ -320,6 +325,7 @@ def parse(path: str | Path) -> ParsedMatch:
         interval_ext=interval_ext,
         hero_visibility_events=visibility_ext.events,
         entity_visibility_events=visibility_ext.entity_events,
+        buyback_spends=buyback_tracker.spends,
     )
 
 
@@ -482,6 +488,8 @@ __all__ = [
     "ChatEntry",
     "NeutralItemFoundEvent",
     "BuybackEvent",
+    "GoldLedger",
+    "GoldLedgerSnapshot",
     "BannerPlant",
     "GameClock",
     "GamePause",

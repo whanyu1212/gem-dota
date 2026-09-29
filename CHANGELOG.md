@@ -7,7 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Per-player gold ledger.** `ParsedPlayer.gold_ledger` (`gem.GoldLedger`) breaks
+  each player's gold down using the running totals the replay's team data keeps per
+  player:
+  - earned by source: hero kills, lane creeps, neutrals, passive income, buildings,
+    Roshan, bounty runes, wards, couriers, abilities, comeback, denies, other, plus
+    shared gold;
+  - spent on items, consumables, support items and buybacks;
+  - lost on death.
+
+  `final` (a `gem.GoldLedgerSnapshot`) is read at the game-end tick, and
+  `per_minute` runs parallel to `game_times_min`. A ledger with any field missing is
+  `None`, never zero-filled.
+
+  The values agree with the replay's postgame summary on all 9 local OpenDota
+  fixtures: items + consumables equals `gold_spent` for 90 of 90 players, and the
+  earned sources sum to total earned gold. DataFrames gain an opt-in
+  `include="gold_ledger"` group (`player_gold_ledger`,
+  `player_gold_ledger_minutes`).
+- `ParsedPlayer.gold`: unspent gold at game end, OpenDota's `gold`. It comes from
+  the postgame summary when present, else the last dense sample. `player_summary`
+  gains a `gold` column.
+
 ### Changed
+
+- **Buyback costs are exact.** The replay's team data counts each player's gold
+  spent on buybacks. The counter rises on the BUYBACK entry's tick, by exactly the
+  cost. `BuybackEvent.cost` now comes from that rise (`cost_exact=True`) on all 98
+  buybacks across the local fixtures; the old estimate `200 + net_worth // 13` was
+  off by up to ~8% and remains the fallback.
+  - The new `BuybackEvent.reliable_gold` / `unreliable_gold` estimate how the
+    buyback was paid. Dota spends unreliable gold first. The estimate is dropped
+    (`None`) when a pool fell by more than it says was paid from that pool, e.g.
+    after a purchase on the same update.
+  - `player_buyback_log` gains `cost_exact`, `reliable_gold` and `unreliable_gold`
+    columns. The HTML report marks estimated costs with `~` and shows the split
+    as an estimate.
+  - This corrects the documented claim that the cost and its split can't be
+    recovered from a replay (issue #119).
+- `ParsedPlayer.net_worth` comes from the postgame summary when present. It
+  matches OpenDota exactly; the last dense sample was 1 gold off for one player
+  on 8855188139. Without the summary, `gold_spent` falls back to the ledger's
+  items + consumables instead of `0`.
 
 - `ReplayParser` is smaller and simpler, with no behavior change:
   - It owns the `EntityTracker` from the start and hands it to the

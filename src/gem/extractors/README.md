@@ -225,6 +225,32 @@ It also carries terminal scalar counters (`team_counters`) read from the same
 `m_vecDataTeam` entry (camps/creeps stacked, wards placed, rune pickups, tower
 kills) and emits OpenDota's observed t=0 baseline.
 
+Each interval snapshot also carries the player's **gold ledger** (`ledger`, in
+`LEDGER_FIELDS` order): the `m_vecDataTeam` running totals for gold earned by
+source, spent by category, and lost to death. It is read with the same frame
+selection as the gold/XP values, so the per-minute ledger lines up with
+`gold_t_min`. It is `None` unless every ledger field is present; a missing field
+is never read as zero. `_on_game_end` also reads every player's ledger into
+`final_ledgers`. Assembly turns both into `ParsedPlayer.gold_ledger`, and uses
+`player_for_team_slot` to map a data-entity row to a player.
+
+### BuybackSpendTracker (gold_ledger.py) — INTERNAL
+
+Records each rise in `m_vecDataTeam.NNNN.m_iGoldSpentOnBuybacks`. The rise lands
+on the BUYBACK combat-log entry's own tick and equals the buyback's cost, so
+assembly uses it as the exact `BuybackEvent.cost`. The formula
+`200 + net_worth // 13` is only the fallback.
+
+- **Registration:** a field-gated handler (`_on_entity_fields`) on the buyback
+  counter *and* both gold pools. The pools must stay current between buybacks,
+  because the reliable/unreliable estimate uses each pool as it was just before
+  the buyback.
+- **Split:** unreliable gold is spent first. The estimate is dropped when a pool
+  fell by more than it says was paid from that pool, e.g. a purchase on the same
+  update.
+- **Lifecycle:** entity creation/entry re-baselines, deletion forgets the pools,
+  and a counter drop re-baselines.
+
 ### teamfights.py — `detect_teamfights` (post-parse function)
 
 Not an extractor with `attach()` — a pure function called from

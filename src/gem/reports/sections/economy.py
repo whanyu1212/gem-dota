@@ -644,32 +644,56 @@ def build_buybacks(match: ParsedMatch) -> str:
     else:
         parts.append("<table>")
         parts.append(
-            "<thead><tr><th>Time</th><th>Hero</th><th>Team</th><th>Gold Spent</th></tr></thead>"
+            "<thead><tr><th>Time</th><th>Hero</th><th>Team</th><th>Gold Spent</th>"
+            "<th>Paid From (est.)</th></tr></thead>"
         )
         parts.append("<tbody>")
         # Iterate buyback_log (source of truth) and take cost from the aligned
         # BuybackEvent when present; otherwise fall back to the formula so the row
         # is still shown with a sensible cost.
-        entries: list[tuple[int, str, int, int]] = []
+        entries: list[tuple[int, str, int, int, bool, int | None, int | None]] = []
         for pp in match.players:
             for i, entry in enumerate(pp.buyback_log):
                 if i < len(pp.buybacks):
-                    cost = pp.buybacks[i].cost
+                    bb = pp.buybacks[i]
+                    entries.append(
+                        (
+                            entry.tick,
+                            pp.hero_name,
+                            pp.team,
+                            bb.cost,
+                            bb.cost_exact,
+                            bb.reliable_gold,
+                            bb.unreliable_gold,
+                        )
+                    )
                 else:
                     cost = buyback_cost(_net_worth_at(pp, entry.tick))
-                entries.append((entry.tick, pp.hero_name, pp.team, cost))
+                    entries.append((entry.tick, pp.hero_name, pp.team, cost, False, None, None))
         entries.sort(key=lambda x: x[0])
-        for tick, hero_name, team, cost in entries:
+        for tick, hero_name, team, cost, exact, reliable, unreliable in entries:
             team_color = TEAM_COLOR_CSS.get(team, "#888")
+            cost_cell = f"{cost:,}g" if exact else f"~{cost:,}g"
+            split_cell = (
+                f"{unreliable:,} unreliable · {reliable:,} reliable"
+                if reliable is not None and unreliable is not None
+                else "—"
+            )
             parts.append(
                 f"<tr>"
                 f"<td>{e(fmt_tick(tick))}</td>"
                 f"<td>{e(hero(hero_name))}</td>"
                 f'<td><span style="color:{team_color}">{e(team_name(team))}</span></td>'
-                f'<td class="r">{cost:,}g</td>'
+                f'<td class="r">{e(cost_cell)}</td>'
+                f'<td class="r">{e(split_cell)}</td>'
                 f"</tr>"
             )
         parts.append("</tbody></table>")
+        parts.append(
+            '<p class="section-note">Costs are exact from the replay\'s gold-spent-on-buybacks '
+            "counter; ~ marks a cost estimated from net worth. The reliable/unreliable split is "
+            "an estimate: unreliable gold is spent first.</p>"
+        )
         parts.append(f'<p class="section-note">Total buybacks: {total}</p>')
 
     parts += ["</div>", "</details>", "</div>"]

@@ -33,6 +33,8 @@ from gem.results.models import (
     BuybackEvent,
     ChatEntry,
     EntityVisibilityEvent,
+    GoldLedger,
+    GoldLedgerSnapshot,
     HeroVisibilityEvent,
     NeutralItemFoundEvent,
     ParsedMatch,
@@ -840,7 +842,24 @@ def _populated_match() -> ParsedMatch:
     laner.purchase_log = [CombatLogEntry(tick=11, log_type=CombatLogType.PURCHASE)]
     laner.runes_log = [CombatLogEntry(tick=12, log_type=CombatLogType.PICKUP_RUNE)]
     laner.buyback_log = [CombatLogEntry(tick=13, log_type=CombatLogType.BUYBACK)]
-    laner.buybacks = [BuybackEvent(tick=13, player_slot=0, cost=400, net_worth=2600)]
+    laner.buybacks = [
+        BuybackEvent(
+            tick=13,
+            player_slot=0,
+            cost=400,
+            net_worth=2600,
+            cost_exact=True,
+            reliable_gold=150,
+            unreliable_gold=250,
+        )
+    ]
+    laner.gold = 321
+    laner.gold_ledger = GoldLedger(
+        final=GoldLedgerSnapshot(
+            tick=90, game_time_s=62, hero_kill_gold=300, spent_on_buybacks=400
+        ),
+        per_minute=[GoldLedgerSnapshot(tick=1800, game_time_s=60, hero_kill_gold=300)],
+    )
     # No lane advantages, no max hit, and a buyback without a BuybackEvent.
     roamer = ParsedPlayer(player_id=1, hero_name="npc_dota_hero_lina", team=3)
     roamer.buyback_log = [CombatLogEntry(tick=14, log_type=CombatLogType.BUYBACK)]
@@ -929,7 +948,7 @@ class TestStableSchemas:
     def test_populated_match_matches_empty_match_schema_for_every_table(self):
         dfs = build_dataframes(_populated_match(), include=list(OPTIONAL_GROUPS))
 
-        populated = {*CORE_TABLES, *OPTIONAL_GROUPS["opendota"]}
+        populated = {*CORE_TABLES, *OPTIONAL_GROUPS["opendota"], *OPTIONAL_GROUPS["gold_ledger"]}
         assert [name for name in populated if dfs[name].empty] == []
         assert_schemas_match_empty_match(dfs)
 
@@ -945,9 +964,19 @@ class TestStableSchemas:
         summary = dfs["player_summary"].set_index("player_id")
         assert summary.loc[0, "lane_gold_adv"] == 120
         assert pd.isna(summary.loc[1, "lane_gold_adv"])
+        assert summary.loc[0, "gold"] == 321
         buybacks = dfs["player_buyback_log"].set_index("player_id")
         assert buybacks.loc[0, "cost"] == 400
+        assert bool(buybacks.loc[0, "cost_exact"]) is True
+        assert (buybacks.loc[0, "reliable_gold"], buybacks.loc[0, "unreliable_gold"]) == (150, 250)
         assert pd.isna(buybacks.loc[1, "cost"])
+        assert pd.isna(buybacks.loc[1, "reliable_gold"])
+        ledger = dfs["player_gold_ledger"]
+        assert ledger[
+            ["player_id", "tick", "hero_kill_gold", "spent_on_buybacks"]
+        ].values.tolist() == [[0, 90, 300, 400]]
+        minutes = dfs["player_gold_ledger_minutes"]
+        assert minutes[["player_id", "game_time_s"]].values.tolist() == [[0, 60]]
         members = dfs["smoke_members"]
         assert members["player_id"].tolist()[0] == 0
         assert pd.isna(members["player_id"].tolist()[1])

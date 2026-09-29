@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from gem.errors import TruncatedReplayError
-from gem.extractors.intervals import IntervalExtractor
+from gem.extractors.intervals import LEDGER_FIELDS, IntervalExtractor
 from gem.state.entities import Entity, EntityOp
 from gem.state.string_table import StringTable, StringTables
 from tests._entities import set_fields
@@ -1119,3 +1119,69 @@ def test_truncated_tick_driven_stream_retains_initial_or_completed_state(
     assert isinstance(parser.parse_error, TruncatedReplayError)
     assert len(ext.snapshots) == (2 if sample_before_truncation else 0)
     assert bool(ext._cur_data_radiant) is not sample_before_truncation
+
+
+# ---------------------------------------------------------------------------
+# Gold ledger
+# ---------------------------------------------------------------------------
+
+
+def _with_ledger(entity: Entity, team_slot: int, base: int) -> Entity:
+    """Give one team slot a complete gold ledger: field i holds ``base + i``."""
+    set_fields(
+        entity,
+        {
+            f"m_vecDataTeam.{team_slot:04d}.{field_name}": base + i
+            for i, (_, field_name) in enumerate(LEDGER_FIELDS)
+        },
+    )
+    return entity
+
+
+def test_interval_batch_carries_the_gold_ledger():
+    ext = IntervalExtractor()
+    parser = FakeParser(game_time_s=60)
+    ext.attach(parser)  # type: ignore[arg-type]
+    ext._on_entity(_player_resource(), EntityOp.UPDATED)
+    ext._on_entity(_with_ledger(_radiant_data(), 1, 100), EntityOp.UPDATED)
+    ext._on_entity(_dire_data(), EntityOp.UPDATED)
+    ext._on_entity(_ent("CDOTAGamerulesProxy"), EntityOp.UPDATED)
+
+    radiant = next(s for s in ext.snapshots if s.team == 2)
+    dire = next(s for s in ext.snapshots if s.team == 3)
+    assert radiant.ledger == tuple(100 + i for i in range(len(LEDGER_FIELDS)))
+    # Dire's slot has no ledger fields: unavailable, never zero-filled.
+    assert dire.ledger is None
+
+
+def test_ledger_with_one_missing_field_is_unavailable():
+    radiant = _with_ledger(_radiant_data(), 1, 0)
+    set_fields(radiant, {f"m_vecDataTeam.0001.{LEDGER_FIELDS[-1][1]}": None})
+    ext = IntervalExtractor()
+    ext.attach(FakeParser(game_time_s=60))  # type: ignore[arg-type]
+    ext._on_entity(_player_resource(), EntityOp.UPDATED)
+    ext._on_entity(radiant, EntityOp.UPDATED)
+    ext._on_entity(_dire_data(), EntityOp.UPDATED)
+    ext._on_entity(_ent("CDOTAGamerulesProxy"), EntityOp.UPDATED)
+
+    assert all(snap.ledger is None for snap in ext.snapshots)
+
+
+def test_game_end_reads_each_players_final_ledger():
+    ext = IntervalExtractor()
+    parser = FakeParser(tick=1800, game_time_s=60)
+    ext.attach(parser)  # type: ignore[arg-type]
+    ext._on_entity(_player_resource(), EntityOp.UPDATED)
+    ext._on_entity(_with_ledger(_radiant_data(), 1, 10), EntityOp.UPDATED)
+    ext._on_entity(_with_ledger(_dire_data(), 4, 20), EntityOp.UPDATED)
+
+    parser.tick, parser.game_time_s = 3560, 118
+    ext._on_game_end(parser.tick)
+
+    radiant_id = ext.player_for_team_slot(2, 1)
+    dire_id = ext.player_for_team_slot(3, 4)
+    assert radiant_id is not None and dire_id is not None
+    assert ext.final_ledgers[radiant_id][:2] == (3560, 118)
+    assert ext.final_ledgers[radiant_id][2][0] == 10
+    assert ext.final_ledgers[dire_id][2][0] == 20
+    assert ext.player_for_team_slot(2, 0) is None
