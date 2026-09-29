@@ -208,6 +208,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Neutral camp zones sit on the camps.** The 28 zone centres in `camp_zones.json`
+  were hand-placed 125–700 world units (mean 322) from where the camps are. Each is
+  now the position of its camp's `CDOTA_NeutralSpawner` entity. That position is the
+  same in all 9 local 7.41 fixtures, and the neutral creeps spawn within about 100
+  units of it. Ids, types, topology and radii are unchanged, and every observed
+  spawn falls well inside its zone. The legacy `neutral_camps.json` centres (used by
+  `map_context`) move with them; no camp changes map half.
+  - The catalog is now `version` 3 with `dota_patch` "7.41", so `FarmingRoute` /
+    segment `camp_catalog_version` and `camp_map_patch` read `3` and `"7.41"`.
+  - On the 9 fixtures, farming routes find 8,391 camp segments instead of 8,269,
+    with 8,525 neutral kills inside them instead of 8,342. 2,901 segments have
+    strong farm evidence, up from 2,706, and 3,622 are transit-like, down from
+    3,775. About 6.5% of the neutral deaths the camp audit assigns change camp.
+    The largest moves are at camps 4 (+241 segments), 6 (−153), 9 (+116) and
+    19 (−96). The farming-context corpus is regenerated.
+  - Camp 10 stays annotated `large`, but its spawner reports a medium camp; it is
+    flagged for review.
+
 - **Ward cells round the way OpenDota rounds them.** gem rounded ward positions with
   Python's `round()`, which rounds half to even, and skipped OpenDota's first rounding
   to one decimal. That put some wards one cell off, e.g. `[91,156]` for `[92,156]`.

@@ -102,9 +102,10 @@ its counts. A threshold change should update the configuration, boundary tests,
 corpus summaries, and this page in the same pull request. Counts alone are not
 a reason to tune a threshold toward a preferred story.
 
-Camp ownership, lane affinity, and area are explicit 7.41 topology annotations
-on the existing 7.40 geometry baseline. Geometry and topology versions stay
-separate so the catalog does not imply that the legacy polygons were redrawn.
+Camp ownership, lane affinity, and area are explicit 7.41 topology annotations.
+The zone centres are the 7.41 replays' camp spawner positions (catalog version
+3); the per-type radii are unchanged from the hand-drawn catalog. Geometry and
+topology versions stay separate fields.
 
 Future calibration should add real fixtures when they expose a new factual
 boundary or missing-data condition. Human-reviewed strategy labels may be

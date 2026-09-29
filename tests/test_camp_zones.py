@@ -8,8 +8,8 @@ def test_camp_zones_reflect_confirmed_741_type_updates() -> None:
     zones = json.loads(Path("src/gem/data/camp_zones.json").read_text(encoding="utf-8"))
     camp_types = {int(camp["id"]): camp["type"] for camp in zones["camps"]}
 
-    assert zones["version"] == 2
-    assert zones["dota_patch"] == "7.40"  # geometry baseline; types below include 7.41 updates
+    assert zones["version"] == 3
+    assert zones["dota_patch"] == "7.41"  # centres are the 7.41 replays' camp spawners
     assert zones["topology_patch"] == "7.41"
     assert len(zones["camps"]) == 28
     assert all(
