@@ -256,8 +256,11 @@ class PlayerExtractor:
             return
         if self._next_interval_raw_s is None:
             self._next_interval_raw_s = raw_s
-        # OpenDota's interval waits for PlayerResource to list all ten players.
-        if raw_s < self._next_interval_raw_s or not self._resource_index_by_id:
+        # OpenDota's interval waits only for PlayerResource (its `init`), not for
+        # ten mapped players: a truncated replay or a custom match with fewer
+        # players never maps all ten. Its other `init` condition, no player
+        # waiting to be drafted, holds long before heroes exist.
+        if raw_s < self._next_interval_raw_s or self._player_resource is None:
             return
         self._next_interval_raw_s += 1
         tables = self._parser.string_tables

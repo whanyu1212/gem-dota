@@ -1492,7 +1492,7 @@ class TestStartingInventoryAtTickStart:
         ext = PlayerExtractor()
         parser = TickStartParser()
         ext.attach(parser)
-        ext._resource_index_by_id = {pid: pid for pid in range(10)}
+        ext._player_resource = _ent("CDOTA_PlayerResource")
         monkeypatch.setattr(ext, "_canonical_hero_entity", lambda pid: heroes.get(pid))
         monkeypatch.setattr(
             ext, "_read_inventory", lambda hero: {0: "item_tango", 1: "item_branches"}
@@ -1518,15 +1518,26 @@ class TestStartingInventoryAtTickStart:
 
     def test_waits_for_player_resource(self, monkeypatch):
         ext, parser = self._setup(monkeypatch, {0: _hero("Axe")})
-        ext._resource_index_by_id = {}
+        player_resource = ext._player_resource
+        ext._player_resource = None
         parser.opendota_start_s = 1000
         parser.start_tick(100, 910)
         assert parser.combat_log.emitted == []
         # The interval then catches up one second per tick start, as OpenDota's
         # nextInterval does, so the next tick start fires.
-        ext._resource_index_by_id = {pid: pid for pid in range(10)}
+        ext._player_resource = player_resource
         parser.start_tick(101, 910)
         assert [e.game_time_s for e in parser.combat_log.emitted] == [-90, -90]
+
+    def test_partial_roster_still_emits(self, monkeypatch):
+        # A truncated replay or a custom match with fewer than ten players never
+        # resolves the full roster remap; OpenDota's init does not require it.
+        ext, parser = self._setup(monkeypatch, {0: _hero("Axe")})
+        assert ext._resource_index_by_id == {}
+        parser.opendota_start_s = 1000
+        parser.start_tick(100, 911)
+        assert [e.game_time_s for e in parser.combat_log.emitted] == [-89, -89]
+        assert ext.first_snapshot_tick == {0: 100}
 
     def test_times_entries_once_game_start_is_known(self, monkeypatch):
         ext, parser = self._setup(monkeypatch, {0: _hero("Axe")})
