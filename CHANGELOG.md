@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `scripts/audit_opendota_parity.py`: an offline, field-by-field comparison of
+  gem's output with OpenDota's parsed match JSON on the local replay fixtures. It
+  maps gem's format onto OpenDota's (per-minute arrays, log entries as
+  `(key, time)`, the `item_` prefix, …), compares every other shared field as-is,
+  and can cache parses and compare against a previous run. It found the gaps
+  fixed in this release and those still open.
 - **Per-player gold ledger.** `ParsedPlayer.gold_ledger` (`gem.GoldLedger`) breaks
   each player's gold down using the running totals the replay's team data keeps per
   player:

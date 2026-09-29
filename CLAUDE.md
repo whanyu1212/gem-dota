@@ -578,6 +578,11 @@ scripts (`test_audit_camp_annotations.py`, `test_audit_opendota_fixture_constant
   every PR. Run relevant offline integration for parser changes. Use broader
   parity matrices and performance benchmarks for releases or changes that warrant
   them; they are not required for every small edit.
+- For changes to OpenDota-compatible output, run
+  `scripts/audit_opendota_parity.py` before and after (`--json-out`, then
+  `--compare`). It normalizes gem's format onto OpenDota's and reports every
+  shared field's match rate on the local fixtures; Linear HY-72 tracks the
+  remaining gaps. `--save-gem-json` / `--gem-json-dir` cache parses.
 - Shared parsed-match fixtures in `tests/conftest.py` are lazy and read-only by
   convention. Tests that mutate output or configure different extractors must use
   isolated setup. Reference JSON is a separate dependency from replay parsing.

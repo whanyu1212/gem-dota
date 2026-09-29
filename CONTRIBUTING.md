@@ -211,6 +211,21 @@ skips. Synchronize fixtures explicitly before required integration validation.
 Run focused tests during iteration and fast tests plus lint/type checks for every
 PR. Parser changes also need relevant offline integration. Broader parity matrices
 and performance benchmarks belong to releases or changes that warrant them.
+
+For changes that affect OpenDota-compatible output, run the offline parity audit
+before and after and compare the two:
+
+```bash
+uv run python scripts/audit_opendota_parity.py --save-gem-json tmp/gem-json-before --json-out tmp/before.json
+# ...make the change...
+uv run python scripts/audit_opendota_parity.py --save-gem-json tmp/gem-json-after \
+    --json-out tmp/after.json --compare tmp/before.json --examples
+```
+
+It maps gem's output format onto OpenDota's and reports every shared field's match
+rate on the local fixtures OpenDota parsed. `--compare` lists what improved or got
+worse, and exits non-zero if any field got worse. `--gem-json-dir` re-audits cached
+output in seconds instead of re-parsing.
 The live draft smoke still supports `GEM_DRAFT_INTEGRATION_FULL=1` for its broader
 five-replay sample.
 
