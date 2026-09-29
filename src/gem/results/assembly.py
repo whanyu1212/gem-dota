@@ -7,6 +7,7 @@ populated :class:`ParsedMatch` returned by :func:`gem.parse`.
 from __future__ import annotations
 
 from collections import defaultdict
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from gem.analysis import net_worth_at
@@ -308,6 +309,8 @@ def _build_objectives(
     first_blood_entry: CombatLogEntry | None,
     pid_to_team: dict[int, int],
     clock: GameClock,
+    chat_event_times: list[ChatEventTime] | None = None,
+    opendota_start_s: int | None = None,
 ) -> list[dict[str, Any]]:
     """Merge gem's per-type objective events into OpenDota's unified timeline.
 
@@ -322,11 +325,20 @@ def _build_objectives(
         first_blood_entry: The first real hero-death entry, or ``None``.
         pid_to_team: Map of player id (0-9) → team (2/3), for courier ownership.
         clock: Pause-aware game clock for the match.
+        chat_event_times: The replay's chat events with OpenDota's tick-start
+            clock; ``CHAT_MESSAGE_*`` objectives take their time from them.
+        opendota_start_s: OpenDota's game-start anchor for those clock values.
 
     Returns:
         Chronologically-sorted list of OpenDota-shaped objective dicts.
     """
     objectives: list[dict[str, Any]] = []
+    # Chat-message objectives with the tick of the event they were built from.
+    chat_objectives: defaultdict[str, list[tuple[int, dict[str, Any]]]] = defaultdict(list)
+
+    def add_chat_objective(tick: int, entry: dict[str, Any]) -> None:
+        objectives.append(entry)
+        chat_objectives[entry["type"]].append((tick, entry))
 
     def secs(tick: int) -> int:
         return _tick_game_seconds(tick, clock)
@@ -369,7 +381,7 @@ def _build_objectives(
         entry: dict[str, Any] = {"time": secs(rk.tick), "type": "CHAT_MESSAGE_ROSHAN_KILL"}
         if team is not None:
             entry["team"] = team
-        objectives.append(entry)
+        add_chat_objective(rk.tick, entry)
 
     # CHAT_MESSAGE_AEGIS / _AEGIS_STOLEN / _DENIED_AEGIS.
     _aegis_type = {
@@ -379,12 +391,13 @@ def _build_objectives(
     }
     for ae in obj_ext.aegis_events:
         pid = ae.player_id if 0 <= ae.player_id < 10 else None
-        objectives.append(
+        add_chat_objective(
+            ae.tick,
             {
                 "time": secs(ae.tick),
                 "type": _aegis_type.get(ae.event_type, "CHAT_MESSAGE_AEGIS"),
                 **slot_fields(pid),
-            }
+            },
         )
 
     # CHAT_MESSAGE_MINIBOSS_KILL — Tormentor, by killing player + their team.
@@ -394,7 +407,7 @@ def _build_objectives(
         team = pid_to_team.get(pid) if pid is not None else None
         if team is not None:
             entry["team"] = team
-        objectives.append(entry)
+        add_chat_objective(tm.tick, entry)
 
     # CHAT_MESSAGE_FIRSTBLOOD — the first real hero death; key is the victim slot.
     if first_blood_entry is not None:
@@ -412,7 +425,7 @@ def _build_objectives(
         }
         if victim_pid is not None:
             entry["key"] = str(victim_pid)
-        objectives.append(entry)
+        add_chat_objective(first_blood_entry.tick, entry)
 
     # CHAT_MESSAGE_COURIER_LOST — team is the courier's owner (killer's opposite).
     for cd in obj_ext.courier_deaths:
@@ -423,10 +436,139 @@ def _build_objectives(
             entry["team"] = 3 if killer_team == 2 else 2  # owner = opposite of killer
         if killer_pid is not None:
             entry["killer"] = _player_id_to_player_slot(killer_pid)
-        objectives.append(entry)
+        add_chat_objective(cd.tick, entry)
 
+    if chat_event_times and opendota_start_s is not None:
+        _retime_chat_objectives(chat_objectives, chat_event_times, opendota_start_s)
     objectives.sort(key=lambda o: o["time"])
     return objectives
+
+
+# A chat message lands within a couple of seconds of the event gem rebuilds an
+# objective from (a combat-log death or an entity change).
+_CHAT_MATCH_WINDOW_TICKS = 90
+
+
+@dataclass(frozen=True, slots=True)
+class ChatEventTime:
+    """One ``CDOTAUserMsg_ChatEvent`` with OpenDota's clock at its tick.
+
+    Attributes:
+        type: The ``DOTA_CHAT_MESSAGE`` value.
+        player_id: ``playerid_1`` (the rune picker for rune pickups).
+        value: The event's ``value`` (the rune type for rune pickups).
+        tick: Replay tick the event arrived at.
+        raw_s: OpenDota's running clock at that tick's start, before the
+            game-start shift, or ``None`` when unavailable.
+    """
+
+    type: int
+    player_id: int
+    value: int
+    tick: int
+    raw_s: int | None
+
+
+def align_ticks(first: list[int], second: list[int], window: int) -> list[tuple[int, int]]:
+    """Pair two tick sequences one-to-one, preserving order.
+
+    Among order-preserving pairings whose ticks differ by at most ``window``, it
+    picks the one with the most pairs, then the smallest total tick distance.
+    So an extra or missing event on either side cannot shift the pairs after it.
+
+    Args:
+        first: Ticks in ascending order.
+        second: Ticks in ascending order.
+        window: Largest allowed tick difference for a pair.
+
+    Returns:
+        ``(index in first, index in second)`` pairs, in order.
+    """
+    n, m = len(first), len(second)
+    # best[i][j]: (pairs, -distance) for first[i:] and second[j:].
+    best = [[(0, 0)] * (m + 1) for _ in range(n + 1)]
+    for i in range(n - 1, -1, -1):
+        for j in range(m - 1, -1, -1):
+            options = [best[i + 1][j], best[i][j + 1]]
+            gap = abs(first[i] - second[j])
+            if gap <= window:
+                pairs, neg_distance = best[i + 1][j + 1]
+                options.append((pairs + 1, neg_distance - gap))
+            best[i][j] = max(options)
+    pairs_out: list[tuple[int, int]] = []
+    i = j = 0
+    while i < n and j < m:
+        gap = abs(first[i] - second[j])
+        if gap <= window:
+            pairs, neg_distance = best[i + 1][j + 1]
+            if best[i][j] == (pairs + 1, neg_distance - gap):
+                pairs_out.append((i, j))
+                i, j = i + 1, j + 1
+                continue
+        if best[i][j] == best[i + 1][j]:
+            i += 1
+        else:
+            j += 1
+    return pairs_out
+
+
+def _retime_chat_objectives(
+    chat_objectives: dict[str, list[tuple[int, dict[str, Any]]]],
+    chat_event_times: list[ChatEventTime],
+    start_s: int,
+) -> None:
+    """Give each chat-message objective the time OpenDota stamps its chat event with.
+
+    OpenDota builds these objectives from ``CDOTAUserMsg_ChatEvent`` entries
+    timed with its tick-start clock (odota/parser Parse.java ``onChatEvent``).
+    gem rebuilds them from combat-log deaths or entity changes, so each is paired
+    with the same-type chat event by :func:`align_ticks`. Unpaired objectives,
+    and pairs whose clock is unavailable, keep their existing time.
+    """
+    from gem.proto.dota_usermessages_pb2 import DOTA_CHAT_MESSAGE
+
+    by_type: defaultdict[str, list[ChatEventTime]] = defaultdict(list)
+    for event in chat_event_times:
+        try:
+            by_type[DOTA_CHAT_MESSAGE.Name(event.type)].append(event)
+        except ValueError:
+            continue
+    for chat_type, entries in chat_objectives.items():
+        events = sorted(by_type.get(chat_type, ()), key=lambda e: e.tick)
+        entries = sorted(entries, key=lambda item: item[0])
+        pairs = align_ticks(
+            [tick for tick, _ in entries], [e.tick for e in events], _CHAT_MATCH_WINDOW_TICKS
+        )
+        for entry_index, event_index in pairs:
+            raw_s = events[event_index].raw_s
+            if raw_s is not None:
+                entries[entry_index][1]["time"] = raw_s - start_s
+
+
+def _retime_rune_pickups(
+    entries: list[CombatLogEntry], chat_event_times: list[ChatEventTime], start_s: int
+) -> None:
+    """Set each rune pickup's ``game_time_s`` to OpenDota's time for its chat event.
+
+    Rune pickups come from ``CHAT_MESSAGE_RUNE_PICKUP`` chat events, which
+    OpenDota times with its tick-start clock (odota/parser Parse.java
+    ``onChatEvent``). Each ``PICKUP_RUNE`` entry is paired with the chat event of
+    the same tick, player and rune type.
+    """
+    from gem.proto.dota_usermessages_pb2 import CHAT_MESSAGE_RUNE_PICKUP
+
+    raw_by_key: defaultdict[tuple[int, int, int], list[int | None]] = defaultdict(list)
+    for event in chat_event_times:
+        if event.type == CHAT_MESSAGE_RUNE_PICKUP:
+            raw_by_key[(event.tick, event.player_id, event.value)].append(event.raw_s)
+    for entry in entries:
+        if entry.log_type != "PICKUP_RUNE":
+            continue
+        queue = raw_by_key.get((entry.tick, entry.value, entry.rune_type or 0))
+        if queue:
+            raw_s = queue.pop(0)
+            if raw_s is not None:
+                entry.game_time_s = raw_s - start_s
 
 
 def _radiant_win_from_ancient(combat_log: list[CombatLogEntry]) -> bool | None:
@@ -1016,6 +1158,7 @@ def build_parsed_match(
     vision_modifier_pairing_issues: list[VisionModifierPairingIssue] | None = None,
     entity_visibility_events: list[EntityVisibilityEvent] | None = None,
     buyback_spends: list[BuybackSpend] | None = None,
+    chat_event_times: list[ChatEventTime] | None = None,
 ) -> ParsedMatch:
     """Assemble a :class:`ParsedMatch` from extractor state after a completed parse.
 
@@ -1043,6 +1186,8 @@ def build_parsed_match(
         entity_visibility_events: Authoritative networked Dota NPC visibility transitions.
         buyback_spends: Observed rises in the team data's gold spent on buybacks
             (``BuybackSpendTracker.spends``), giving exact buyback costs.
+        chat_event_times: The replay's chat events with OpenDota's tick-start
+            clock, which time rune pickups and chat-message objectives.
 
     Returns:
         Fully populated :class:`ParsedMatch`.
@@ -1254,7 +1399,20 @@ def build_parsed_match(
 
     # OpenDota-shaped unified objectives timeline + building-status bitmasks.
     pid_to_team = {pp.player_id: pp.team for pp in match.players if pp.team}
-    match.objectives = _build_objectives(obj_ext, combat_agg, first_blood_entry, pid_to_team, clock)
+    opendota_start_s = getattr(parser, "opendota_start_s", None)
+    if chat_event_times and isinstance(opendota_start_s, int):
+        _retime_rune_pickups(all_entries, chat_event_times, opendota_start_s)
+    else:
+        opendota_start_s = None
+    match.objectives = _build_objectives(
+        obj_ext,
+        combat_agg,
+        first_blood_entry,
+        pid_to_team,
+        clock,
+        chat_event_times=chat_event_times,
+        opendota_start_s=opendota_start_s,
+    )
     match.courier_deaths = obj_ext.courier_deaths
     bitmasks = building_status(obj_ext.tower_kills, obj_ext.barracks_kills)
     match.tower_status_radiant = bitmasks["tower_status_radiant"]

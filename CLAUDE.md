@@ -302,6 +302,17 @@ falls). For displayed or OpenDota-compatible seconds use `match.game_clock`
 the match" use `match.post_game_tick` (or `analysis._shared.infer_match_end_tick`).
 Never compute seconds as `(tick - game_start_tick) // 30`.
 
+OpenDota stamps *chat events* (rune pickups, and the `CHAT_MESSAGE_*` objectives:
+first blood, courier and Roshan kills, Aegis, Tormentor) with its running clock
+from `@OnTickStart`. Clarity fires that before a tick's messages, so the clock
+reads the network tick the previous tick left behind. It also defers combat-log
+entries to `@OnTickEnd`. `GameClockTracker.snapshot_tick_start()` reproduces this
+once per outer tick (`parser.opendota_tick_start_raw_s`, anchored by
+`parser.opendota_start_s`), which matches every OpenDota rune time on the
+fixtures (473/473). `api.parse()` records chat events with that raw clock. Assembly
+normalizes them, sets `game_time_s` on `PICKUP_RUNE` entries, and times chat-type
+objectives by pairing each with its chat event (`assembly.align_ticks`).
+
 ### Gold / XP field sources — critical distinction
 
 Several gold/XP fields exist; using the wrong one silently produces wrong curves.

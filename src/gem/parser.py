@@ -170,6 +170,7 @@ _DOTA_UM_COMBAT_LOG_BULK_DATA = DOTA_UM_CombatLogBulkData
 # Dota user messages sent directly as inner messages (not wrapped in svc_UserMessage)
 _DOTA_UM_COMBAT_LOG_HLTV = DOTA_UM_CombatLogDataHLTV  # CMsgDOTACombatLogEntry, one per message
 _DOTA_UM_CHAT_EVENT = DOTA_UM_ChatEvent  # CDOTAUserMsg_ChatEvent
+_GAME_RULES_CLASS = "CDOTAGamerulesProxy"
 _DOTA_UM_MATCH_METADATA = DOTA_UM_MatchMetadata  # CDOTAMatchMetadataFile
 _DOTA_UM_MATCH_DETAILS = DOTA_UM_MatchDetails  # CMsgDOTAMatch postgame summary
 _DOTA_UM_FOUND_NEUTRAL_ITEM = DOTA_UM_FoundNeutralItem  # CDOTAUserMsg_FoundNeutralItem
@@ -265,6 +266,7 @@ class ReplayParser:
         self._packet_end_callbacks: list[PacketEndCallback] = []
         self._chat_callbacks: list[ChatCallback] = []
         self._chat_event_callbacks: list[ChatEventCallback] = []
+        self._game_rules: Entity | None = None
         self._neutral_item_found_callbacks: list[NeutralItemFoundCallback] = []
         self._stop_at_tick: int | None = None
         self._pending_server_info: CSVCMsg_ServerInfo | None = None
@@ -324,6 +326,30 @@ class ReplayParser:
     def raw_game_time_s(self) -> int | None:
         """Rounded server game time before the game-start shift, from pregame on."""
         return self._clock.raw_time_s
+
+    @property
+    def opendota_tick_start_raw_s(self) -> int | None:
+        """OpenDota's running clock at this outer tick's start, before the game-start shift.
+
+        OpenDota stamps chat events (rune pickups, first blood, courier and
+        Roshan kills, Aegis) with this value; subtract :attr:`opendota_start_s`.
+        """
+        return self._clock.tick_start_raw_s
+
+    @property
+    def opendota_start_s(self) -> int | None:
+        """OpenDota's rounded game-start anchor, latched when first seen."""
+        return self._clock.opendota_start_s
+
+    def _game_rules_entity(self) -> Entity | None:
+        """Return the live ``CDOTAGamerulesProxy``, caching the lookup."""
+        cached = self._game_rules
+        if cached is not None and cached.active and cached.get_class_name() == _GAME_RULES_CLASS:
+            return cached
+        if self.entity_manager is None:
+            return None
+        self._game_rules = self.entity_manager.find_by_class_name(_GAME_RULES_CLASS)
+        return self._game_rules
 
     @property
     def game_clock(self) -> GameClock:
@@ -556,10 +582,16 @@ class ReplayParser:
         """
         try:
             with DemoStream(self._source) as stream:
+                outer_tick = None
                 for tick, msg_type, data in stream:
                     self.tick = tick
                     if self._stop_at_tick is not None and tick > self._stop_at_tick:
                         break
+                    if tick != outer_tick:
+                        # OpenDota's @OnTickStart clock: before this tick's
+                        # messages, so the network tick has not advanced yet.
+                        outer_tick = tick
+                        self._clock.snapshot_tick_start(self._game_rules_entity())
                     self._dispatch_outer(msg_type, data)
         except ReplayDataError as exc:
             # Truncated or corrupt replays keep what was read. Record the reason,
@@ -687,10 +719,9 @@ class ReplayParser:
             # Match OpenDota/Clarity's @OnTickStart ordering: compute the clock
             # and notify samplers from the entity table reconstructed through
             # the previous tick, before this packet's entity deltas are applied.
-            if self.entity_manager is not None:
-                grp = self.entity_manager.find_by_class_name("CDOTAGamerulesProxy")
-                if grp is not None:
-                    self._clock.update(grp, self.tick)
+            grp = self._game_rules_entity()
+            if grp is not None:
+                self._clock.update(grp, self.tick)
             for callback in self._tick_start_callbacks:
                 callback(self.net_tick)
 

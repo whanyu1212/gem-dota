@@ -260,7 +260,7 @@ def parse(path: str | Path) -> ParsedMatch:
     from gem.extractors.visibility import VisibilityExtractor
     from gem.extractors.wards import WardsExtractor
     from gem.parser import ReplayParser
-    from gem.results.assembly import build_parsed_match
+    from gem.results.assembly import ChatEventTime, build_parsed_match
 
     p = ReplayParser(path)
     player_ext = PlayerExtractor()
@@ -292,6 +292,17 @@ def parse(path: str | Path) -> ParsedMatch:
 
     neutral_item_finds: list[NeutralItemFoundEvent] = []
     p.on_neutral_item_found(neutral_item_finds.append)
+
+    # OpenDota stamps chat events with its tick-start clock; keep the raw value
+    # and normalize after the parse, once the game-start anchor is known.
+    chat_event_times: list[ChatEventTime] = []
+    p.on_chat_event(
+        lambda event, tick: chat_event_times.append(
+            ChatEventTime(
+                event.type, event.playerid_1, event.value, tick, p.opendota_tick_start_raw_s
+            )
+        )
+    )
 
     # Smoke of Deceit and vision-granting modifiers are collected by dedicated
     # extractors (positions captured live at MODIFIER_ADD time; teams/centroids
@@ -326,6 +337,7 @@ def parse(path: str | Path) -> ParsedMatch:
         hero_visibility_events=visibility_ext.events,
         entity_visibility_events=visibility_ext.entity_events,
         buyback_spends=buyback_tracker.spends,
+        chat_event_times=chat_event_times,
     )
 
 

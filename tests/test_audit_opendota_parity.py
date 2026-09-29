@@ -104,6 +104,29 @@ class TestAuditMatch:
         assert "player.gold_ledger" not in results
         assert "match.game_clock" not in results
 
+    def test_log_times_prefer_the_entrys_own_game_time(self):
+        match = _match()
+        player = match.players[0]
+        base = {"log_type": CombatLogType.PICKUP_RUNE, "value": 6, "rune_type": 5}
+        player.runes_log = [
+            CombatLogEntry(tick=_START + 30 * 10, game_time_s=9, **base),  # own time wins
+            CombatLogEntry(tick=_START + 30 * 20, game_time_s=0, **base),  # zero is a time
+            CombatLogEntry(tick=_START - 30 * 5, game_time_s=-6, **base),  # so is a negative
+            CombatLogEntry(tick=_START + 30 * 40, **base),  # none: the tick clock
+        ]
+        od = _opendota()
+        od["players"][0]["runes_log"] = [
+            {"key": "5", "time": 9},
+            {"key": "5", "time": 0},
+            {"key": "5", "time": -6},
+            {"key": "5", "time": 40},
+        ]
+        results: dict[str, audit.FieldResult] = {}
+
+        audit.audit_match("1", match, od, results)
+
+        assert results["player.runes_log"].matched == 1
+
     def test_player_slots_map_to_opendota(self):
         assert [audit.od_player_slot(i) for i in (0, 4, 5, 9)] == [0, 4, 128, 132]
 

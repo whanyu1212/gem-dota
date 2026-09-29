@@ -23,7 +23,7 @@ from gem.proto.dota_shared_enums_pb2 import (
     DOTA_GAMERULES_STATE_GAME_IN_PROGRESS,
     DOTA_GAMERULES_STATE_POST_GAME,
 )
-from gem.schema.sendtable.models import FieldAccessPlan
+from gem.schema.sendtable.models import FieldAccessPlan, ResolvedField
 
 if TYPE_CHECKING:
     from gem.state.entities import Entity
@@ -220,6 +220,22 @@ def _round_positive_seconds(value: float) -> int:
     return int(value + 0.5)
 
 
+def _raw_time_s(entity: Entity, fields: tuple[ResolvedField, ...], net_tick: int) -> int:
+    """Return OpenDota's uncorrected clock from the game rules at ``net_tick``.
+
+    ``round(m_fGameTime)`` when present; otherwise the unpaused network-tick
+    count in seconds, frozen at the pause start while paused (Parse.java).
+    """
+    game_time = entity._get_float32_resolved(fields[1])
+    if game_time is not None:
+        return _round_positive_seconds(game_time)
+    paused = entity._get_bool_resolved(fields[2]) or False
+    pause_start_tick = entity._get_int32_resolved(fields[3])
+    total_paused_ticks = entity._get_int32_resolved(fields[4]) or 0
+    time_tick = pause_start_tick if paused and pause_start_tick is not None else net_tick
+    return _round_positive_seconds((time_tick - total_paused_ticks) / 30.0)
+
+
 class GameClockTracker:
     """Builds the in-game clock while a replay is parsed.
 
@@ -231,6 +247,13 @@ class GameClockTracker:
         clock: The anchors and pauses observed so far.
         net_tick: Latest ``CNETMsg_Tick`` value.
         net_tick_seen: Whether any ``CNETMsg_Tick`` has arrived.
+        tick_start_raw_s: OpenDota's running ``time`` at the start of the current
+            outer tick, which it stamps chat events with; see
+            :meth:`snapshot_tick_start`. ``None`` before the game rules and a
+            network tick exist.
+        opendota_start_s: OpenDota's game-start anchor: the first of the rounded
+            ``GAME_IN_PROGRESS`` combat-log timestamp and the rounded
+            ``m_flGameStartTime``. Never changes once set.
         raw_time_s: OpenDota's uncorrected clock (``time`` in ``Parse.java``):
             the rounded server game time, before subtracting the game start.
             Available in pregame, before :attr:`game_time_s`.
@@ -257,6 +280,10 @@ class GameClockTracker:
         self._combat_log_start_s: int | None = None
         # Open pause as ``(start_tick, total_paused_ticks_at_start)``.
         self._open_pause: tuple[int, int] | None = None
+        # OpenDota's running ``time`` at the current outer tick's start, and its
+        # game-start anchor (first seen, never changed). See snapshot_tick_start.
+        self.tick_start_raw_s: int | None = None
+        self.opendota_start_s: int | None = None
 
     def on_net_tick(self, net_tick: int) -> None:
         """Record a ``CNETMsg_Tick``."""
@@ -292,20 +319,35 @@ class GameClockTracker:
             self._game_start_time_s = _round_positive_seconds(start)
             self.clock.game_start_time_s = start
 
-        game_time = entity._get_float32_resolved(fields[1])
-        if game_time is not None:
-            raw_time_s = _round_positive_seconds(game_time)
-        else:
-            paused = entity._get_bool_resolved(fields[2]) or False
-            pause_start_tick = entity._get_int32_resolved(fields[3])
-            total_paused_ticks = entity._get_int32_resolved(fields[4]) or 0
-            parser_tick = self.net_tick if self.net_tick_seen else tick
-            time_tick = pause_start_tick if paused and pause_start_tick is not None else parser_tick
-            raw_time_s = _round_positive_seconds((time_tick - total_paused_ticks) / 30.0)
+        raw_time_s = _raw_time_s(entity, fields, self.net_tick if self.net_tick_seen else tick)
         self.raw_time_s = raw_time_s
 
         if self._game_start_time_s is not None:
             self.game_time_s = raw_time_s - self._game_start_time_s
+
+    def snapshot_tick_start(self, entity: Entity | None) -> None:
+        """Record OpenDota's running clock at the start of an outer replay tick.
+
+        odota/parser (Parse.java ``@OnTickStart``) sets its ``time`` from the
+        game rules before a tick's messages are processed, so it reads the
+        network tick the *previous* tick left behind; Clarity also holds
+        combat-log entries back until ``@OnTickEnd``. Chat events inside the tick
+        are therefore stamped with this value. The parser calls this once per
+        outer-tick change, before the tick's inner messages, when
+        :attr:`net_tick` has not yet advanced. It also latches the game start
+        (:attr:`opendota_start_s`) the first time the entity carries it.
+
+        Args:
+            entity: The game-rules entity as of the previous tick, or ``None``.
+        """
+        if entity is None or not self.net_tick_seen:
+            self.tick_start_raw_s = None
+            return
+        fields = entity._resolve_fields(_CLOCK_FIELDS)
+        start = entity._get_float32_resolved(fields[0])
+        if self.opendota_start_s is None and start is not None and start != 0.0:
+            self.opendota_start_s = _round_positive_seconds(start)
+        self.tick_start_raw_s = _raw_time_s(entity, fields, self.net_tick)
 
     def observe_game_start(self, entity: Entity, tick: int) -> bool:
         """Refresh the clock, and report whether the game has just started.
@@ -388,6 +430,8 @@ class GameClockTracker:
         raw_time_s = _round_positive_seconds(timestamp)
         if self._combat_log_start_s is None and game_state == DOTA_GAMERULES_STATE_GAME_IN_PROGRESS:
             self._combat_log_start_s = raw_time_s
+            if self.opendota_start_s is None:
+                self.opendota_start_s = raw_time_s
         if self._combat_log_start_s is None:
             return None
         game_time_s = raw_time_s - self._combat_log_start_s
