@@ -200,5 +200,26 @@ class TestCommandLine:
 
         assert code == 1
 
+    def test_compare_fails_when_a_baseline_field_disappears(self, tmp_path, capsys):
+        fixtures, cache = self._fixtures(tmp_path)
+        baseline = tmp_path / "baseline.json"
+        baseline.write_text(json.dumps({"player.renamed_away": {"matched": 1, "total": 1}}))
+
+        code = audit.main(
+            [
+                "--fixtures-dir",
+                str(fixtures),
+                "--gem-json-dir",
+                str(cache),
+                "--workers",
+                "1",
+                "--compare",
+                str(baseline),
+            ]
+        )
+
+        assert code == 1
+        assert "player.renamed_away" in capsys.readouterr().out
+
     def test_no_parsed_fixtures_is_an_error(self, tmp_path):
         assert audit.main(["--fixtures-dir", str(tmp_path)]) == 1

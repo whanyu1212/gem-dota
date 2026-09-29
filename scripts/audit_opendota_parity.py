@@ -376,8 +376,26 @@ def format_report(
     lines.append("")
     lines.append(f"{len(exact)} of {len(results)} fields match exactly: {', '.join(exact)}")
     if baseline is not None:
+        for name in missing_fields(results, baseline):
+            tally["worse"] += 1
+            lines.append(
+                f"{name:36s} no longer audited (was {baseline[name]['matched']}/{baseline[name]['total']})"
+            )
         lines.append(f"Against the baseline: {tally['improved']} improved, {tally['worse']} worse.")
     return "\n".join(lines)
+
+
+def missing_fields(results: dict[str, FieldResult], baseline: dict[str, Any]) -> list[str]:
+    """Return baseline fields absent from ``results``, e.g. a removed or renamed field."""
+    return sorted(baseline.keys() - results.keys())
+
+
+def regressed(results: dict[str, FieldResult], baseline: dict[str, Any]) -> bool:
+    """Return whether any field matches less often than in ``baseline`` or vanished."""
+    worse = any(
+        name in baseline and r.matched < baseline[name]["matched"] for name, r in results.items()
+    )
+    return worse or bool(missing_fields(results, baseline))
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -387,8 +405,8 @@ def main(argv: list[str] | None = None) -> int:
         argv: Command-line arguments (defaults to ``sys.argv[1:]``).
 
     Returns:
-        ``0`` on success, ``1`` when no fixtures were found or a field got worse
-        against ``--compare``.
+        ``0`` on success, ``1`` when no fixtures were found, or when a field got
+        worse or disappeared against ``--compare``.
     """
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--fixtures-dir", type=Path, default=DEFAULT_FIXTURES_DIR)
@@ -398,7 +416,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--workers", type=int, default=4, help="Parallel worker processes.")
     parser.add_argument("--examples", action="store_true", help="Show each field's first mismatch.")
     parser.add_argument("--json-out", type=Path, help="Write the summary as JSON.")
-    parser.add_argument("--compare", type=Path, help="A previous --json-out to compare against.")
+    parser.add_argument(
+        "--compare",
+        type=Path,
+        help="A previous --json-out over the same matches to compare against.",
+    )
     args = parser.parse_args(argv)
 
     match_ids = args.match or fixture_ids(args.fixtures_dir)
@@ -417,9 +439,7 @@ def main(argv: list[str] | None = None) -> int:
     print(format_report(results, baseline=baseline, examples=args.examples))
     if args.json_out is not None:
         args.json_out.write_text(json.dumps(results_to_json(results), indent=2, sort_keys=True))
-    if baseline is not None and any(
-        name in baseline and r.matched < baseline[name]["matched"] for name, r in results.items()
-    ):
+    if baseline is not None and regressed(results, baseline):
         return 1
     return 0
 
