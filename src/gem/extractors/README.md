@@ -55,7 +55,7 @@ The package splits into two tiers:
   `DraftExtractor`, plus their record dataclasses.
 - **Internal helpers** (not in `__all__`): `IntervalExtractor` (intervals.py),
   `VisibilityExtractor` (visibility.py), `detect_teamfights` (teamfights.py),
-  `classify_lane` (lane.py), and the shared `_snapshots.py` helpers. These are
+  `assign_lane` (lane.py), and the shared `_snapshots.py` helpers. These are
   wired up by `gem.api.parse` and `gem.results.assembly`, not imported by end
   users.
 
@@ -260,13 +260,16 @@ spatial centroid (`_FIGHT_RADIUS`) using `PlayerStateSnapshot` positions, then
 aggregates per-player stats into `Teamfight`/`TeamfightPlayer`. No
 minimum-death filter is applied.
 
-### lane.py — `classify_lane` (post-parse utility)
+### lane.py — `assign_lane` (post-parse utility)
 
 A stateless function, no `Extractor` class. Given a player's `lane_pos` heatmap
-(64-unit grid cells) and team, it maps cells to coarse zones (`_cell_zone`),
-finds the dominant zone, and returns an OpenDota lane role
-(1=safe, 2=mid, 3=off, 4=jungle, 5=roaming, 0=unknown). Called from
-`gem.results.assembly`.
+(OpenDota map cells, `{x: {y: count}}`) and team, it ports OpenDota's
+`getLaneFromPosData`: each cell maps to a lane (`lane_for_cell`), the most common
+lane wins, and the result is a `LaneAssignment` of `lane`, `lane_role`
+(1=safe, 2=mid, 3=off, 4=jungle, 0=unknown) and `is_roaming`. Called from
+`gem.results.assembly`. `PlayerExtractor` records the position samples at
+OpenDota's once-a-second interval, and `_cells.py` rounds them to cells as
+OpenDota's parser does.
 
 ### _snapshots.py — shared helpers
 
@@ -309,7 +312,7 @@ not re-derive them:
   display strings.
 - **It does not assemble the final output model.** `ParsedMatch`/`ParsedPlayer`
   construction is `gem.results` (`models.py`, `assembly.py`), which is where
-  `detect_teamfights` and `classify_lane` are actually invoked.
+  `detect_teamfights` and `assign_lane` are actually invoked.
 - **It does not do post-parse analysis on `ParsedMatch`.** Position/net-worth
   lookups, ability-hit grouping, vision geometry, map-context buckets, and Roshan
   conversion records are `gem.analysis`. The boundary: if it needs the live
@@ -361,10 +364,10 @@ the canonical name from the `EntityNames` string table when available
 (`_sample` in players.py). Dropping either form breaks resolution for some
 heroes.
 
-### Treating `IntervalExtractor`, `detect_teamfights`, or `classify_lane` as public
+### Treating `IntervalExtractor`, `detect_teamfights`, or `assign_lane` as public
 
 They are not in `gem.extractors.__all__`. `IntervalExtractor` is internal
-plumbing for OpenDota parity; `detect_teamfights` and `classify_lane` are
+plumbing for OpenDota parity; `detect_teamfights` and `assign_lane` are
 post-parse functions invoked by `gem.results.assembly`, not attach-style
 extractors. Import them from their submodules only if you are extending the
 pipeline.

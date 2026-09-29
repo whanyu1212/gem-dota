@@ -31,7 +31,10 @@ if TYPE_CHECKING:
 
 #: Version of the JSON layout written by :func:`to_json`. Bump it when a change
 #: would make older gem versions misread new files.
-SCHEMA_VERSION = 1
+#:
+#: - 2: ``ParsedPlayer.lane_pos`` is OpenDota's nested ``{x: {y: count}}`` cell map
+#:   (it was a flat ``{"x_y": count}`` map on a 64-unit world grid).
+SCHEMA_VERSION = 2
 
 # Top-level keys added by ``to_json`` beside the ``ParsedMatch`` fields.
 _METADATA_KEYS = frozenset({"schema_version", "gem_version", "analysis"})
@@ -132,7 +135,29 @@ def from_dict(data: Mapping[str, Any]) -> ParsedMatch:
             f"(this version reads up to {SCHEMA_VERSION}); upgrade gem-dota."
         )
     match_data = {key: value for key, value in data.items() if key not in _METADATA_KEYS}
+    if not isinstance(schema_version, int) or schema_version < 2:
+        match_data = _drop_flat_lane_pos(match_data)
     return _decode_dataclass(ParsedMatch, match_data)
+
+
+def _drop_flat_lane_pos(match_data: dict[str, Any]) -> dict[str, Any]:
+    """Drop schema-1 ``lane_pos`` maps, which used a different grid and samples.
+
+    Schema 1 counted dense snapshots on a 64-unit world grid, which cannot be
+    converted to OpenDota's cell map; the loaded ``lane_pos`` is left empty.
+    """
+    players = match_data.get("players")
+    if not isinstance(players, list):
+        return match_data
+    upgraded = []
+    for player in players:
+        lane_pos = player.get("lane_pos") if isinstance(player, Mapping) else None
+        if isinstance(lane_pos, Mapping) and any(
+            not isinstance(value, Mapping) for value in lane_pos.values()
+        ):
+            player = {key: value for key, value in player.items() if key != "lane_pos"}
+        upgraded.append(player)
+    return {**match_data, "players": upgraded}
 
 
 def load_json(path: str | Path) -> ParsedMatch:

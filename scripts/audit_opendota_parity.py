@@ -16,8 +16,7 @@ The mapping keeps only value differences:
 - ``item_uses`` keys drop the ``item_`` prefix; ``max_hero_hit`` drops
   OpenDota's ``slot``/``player_slot`` keys.
 - Ward placement logs compare counts; ward-left logs compare
-  ``(time, key, attackername)``; ``lane_pos`` compares total samples (the two
-  use different grids).
+  ``(time, key, attackername)``.
 - Chat compares ``(text, player slot)`` of ``all``/``team`` messages;
   teamfights compare the count only.
 - Every other field name both sides share is compared as-is.
@@ -73,13 +72,6 @@ def _strip_item(key: str | None) -> str | None:
 
 def _left_log(entries: Iterable[dict[str, Any]]) -> list[tuple[Any, Any, Any]]:
     return [(e.get("time"), e.get("key"), e.get("attackername")) for e in entries]
-
-
-def _lane_pos_total(lane_pos: dict[str, Any]) -> int:
-    total = 0
-    for value in lane_pos.values():
-        total += sum(value.values()) if isinstance(value, dict) else value
-    return total
 
 
 def _max_hero_hit(hit: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -138,7 +130,6 @@ PLAYER_CHECKS: dict[str, PlayerCheck] = {
     "sen_log": lambda p, o, t: (len(p.sen_log), len(o["sen_log"])),
     "obs_left_log": lambda p, o, t: (_left_log(p.obs_left_log), _left_log(o["obs_left_log"])),
     "sen_left_log": lambda p, o, t: (_left_log(p.sen_left_log), _left_log(o["sen_left_log"])),
-    "lane_pos": lambda p, o, t: (_lane_pos_total(p.lane_pos), _lane_pos_total(o["lane_pos"])),
 }
 
 #: Match fields compared after mapping; every other shared field is compared as-is.

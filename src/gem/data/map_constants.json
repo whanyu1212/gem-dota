@@ -10,5 +10,5 @@
     "dire": {"x": 23120, "y": 22350}
   },
   "river_strip": 1200,
-  "notes": "Displayed against assets/maps/Game_map_7.41.jpg, normalized to the legacy report canvas while retaining the established fountain-anchor projection. World coords are Source 2 units. river_strip is the |x - y| threshold for the diagonal river (perpendicular half-width = river_strip / sqrt(2))."
+  "notes": "Analysis constants: world_bounds bound the territory grid and in-map checks, and fountains are distance anchors, not the fountain entities (those sit at about (8928, 9446) and (23792, 23232)). HTML reports do not use these to place points on assets/maps/Game_map_7.41.jpg; gem.reports._formatting holds that calibrated window. World coords are Source 2 units. river_strip is the |x - y| threshold for the diagonal river (perpendicular half-width = river_strip / sqrt(2))."
 }

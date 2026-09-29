@@ -43,6 +43,9 @@ _ITEM_SLOTS = 17  # total slots to scan (0-16) for ongoing inventory snapshots
 # matching OpenDota's getHeroInventory (`for i < 8`, Parse.java:818). Stash 9-16
 # and backpack slot 8 are NOT counted as starting purchases.
 _STARTING_ITEM_SLOTS = 8
+
+#: Last game second OpenDota samples into ``lane_pos`` (``e.time <= 600``).
+LANE_WINDOW_S = 600
 _ABILITY_SLOTS = 32  # m_hAbilities.0000-0031 per hero entity
 _NULL_HANDLE = 0xFFFFFF  # empty slot sentinel
 
@@ -189,6 +192,13 @@ class PlayerExtractor:
         # Starting-item entries awaiting OpenDota's game-start anchor, with the
         # raw clock second they were read at.
         self._untimed_starting_items: list[tuple[CombatLogEntry, int]] = []
+        # Hero positions at each OpenDota interval up to game time
+        # LANE_WINDOW_S, as (player_id, game_time_s, world_x, world_y). OpenDota
+        # builds lane_pos from these; see _on_tick_start.
+        self.lane_samples: list[tuple[int, int, float, float]] = []
+        # Samples read before OpenDota's game-start anchor, with raw seconds.
+        self._untimed_lane_samples: list[tuple[int, int, float, float]] = []
+        self._lane_window_closed = False
         # Running combat log totals per player — stamped into each snapshot.
         # These are monotonically increasing so diffs give per-window rates.
         self._total_hero_damage: dict[int, int] = {}
@@ -226,31 +236,36 @@ class PlayerExtractor:
             on_tick_start(self._on_tick_start)
 
     def _on_tick_start(self, net_tick: int) -> None:
-        """Emit starting inventories at OpenDota's once-a-second interval.
+        """Follow OpenDota's once-a-second interval for inventories and lanes.
 
-        OpenDota writes each player's starting items (slots 0-7) once, at the
-        first ``@OnTickStart`` interval where the player's hero resolves, and
-        stamps them with that tick-start clock. Its interval fires when the clock
-        reaches ``nextInterval``, which starts at the first clock reading and
-        advances one second per firing. Reading at tick start sees the entity
-        table before this tick's deltas, which can differ from a later read: a
-        support's observer and sentry wards merge into a dispenser.
+        OpenDota's ``@OnTickStart`` interval fires when its clock reaches
+        ``nextInterval``, which starts at the first clock reading and advances
+        one second per firing. At each firing it reads every hero from the
+        entity table as it stood before this tick's deltas:
+
+        - Starting items (slots 0-7) are written once per player, at the first
+          firing where the hero resolves, stamped with the tick-start clock. A
+          later read can differ: a support's observer and sentry wards merge
+          into a dispenser.
+        - The hero's position becomes a ``lane_pos`` sample while game time is at
+          most :data:`LANE_WINDOW_S`, pre-horn seconds included.
 
         Reference: odota/parser src/main/java/opendota/Parse.java
-        (``nextInterval``, ``isPlayerStartingItemsWritten``).
+        (``nextInterval``, ``isPlayerStartingItemsWritten``) and
+        src/main/java/opendota/CreateParsedDataBlob.java ``handleInterval``.
 
         Args:
             net_tick: Decoded ``CNETMsg_Tick.tick`` value (unused).
         """
         if self._parser is None or (
-            len(self._inventory_initialized) >= 10 and not self._untimed_starting_items
+            self._lane_window_closed
+            and len(self._inventory_initialized) >= 10
+            and not self._untimed_starting_items
         ):
             return
         start_s = getattr(self._parser, "opendota_start_s", None)
-        if self._untimed_starting_items and isinstance(start_s, int):
-            for entry, read_s in self._untimed_starting_items:
-                entry.game_time_s = read_s - start_s
-            self._untimed_starting_items.clear()
+        if isinstance(start_s, int):
+            self._time_buffered_reads(start_s)
         raw_s = getattr(self._parser, "opendota_tick_start_raw_s", None)
         if not isinstance(raw_s, int) or self._game_end_tick is not None:
             return
@@ -263,6 +278,9 @@ class PlayerExtractor:
         if raw_s < self._next_interval_raw_s or self._player_resource is None:
             return
         self._next_interval_raw_s += 1
+        game_s = raw_s - start_s if isinstance(start_s, int) else None
+        if game_s is not None and game_s > LANE_WINDOW_S:
+            self._lane_window_closed = True
         tables = self._parser.string_tables
         entity_names = tables.get_by_name("EntityNames") if tables is not None else None
         tick = self._parser.tick
@@ -271,16 +289,36 @@ class PlayerExtractor:
         # `player_id`, which a coach or an empty row can shift onto another
         # player's hero; keying by the hero keeps that from claiming this slot.
         for player_id, hero in sorted(self._select_heroes().items()):
+            if not self._lane_window_closed:
+                pos = _pos(hero)
+                if pos is not None:
+                    if game_s is not None:
+                        self.lane_samples.append((player_id, game_s, pos[0], pos[1]))
+                    else:
+                        self._untimed_lane_samples.append((player_id, raw_s, pos[0], pos[1]))
             if player_id in self._inventory_initialized:
                 continue
             npc_name = (
                 _hero_npc_name(hero, entity_names) or self._hero_aliases(hero.get_class_name())[0]
             )
             for entry in self._diff_inventory(hero, player_id, npc_name, tick):
-                if isinstance(start_s, int):
-                    entry.game_time_s = raw_s - start_s
+                if game_s is not None:
+                    entry.game_time_s = game_s
                 else:
                     self._untimed_starting_items.append((entry, raw_s))
+
+    def _time_buffered_reads(self, start_s: int) -> None:
+        """Shift reads taken before OpenDota's game-start anchor onto game time."""
+        for entry, read_s in self._untimed_starting_items:
+            entry.game_time_s = read_s - start_s
+        self._untimed_starting_items.clear()
+        if self._untimed_lane_samples:
+            buffered = [
+                (player_id, read_s - start_s, x, y)
+                for player_id, read_s, x, y in self._untimed_lane_samples
+            ]
+            self.lane_samples[:0] = buffered
+            self._untimed_lane_samples.clear()
 
     def _on_game_start(self, game_start_tick: int) -> None:
         self._game_start_tick = game_start_tick

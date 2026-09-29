@@ -1557,6 +1557,43 @@ class TestStartingInventoryAtTickStart:
         assert ext.first_snapshot_tick == {5: 100, 6: 130}
         assert [e.target_name for e in parser.combat_log.emitted].count("npc_dota_hero_axe") == 2
 
+    def test_records_lane_samples_through_game_time_600(self, monkeypatch):
+        hero = _hero(
+            "Axe",
+            **{
+                "CBodyComponent.m_cellX": 100,
+                "CBodyComponent.m_vecX": 64.0,
+                "CBodyComponent.m_cellY": 70,
+                "CBodyComponent.m_vecY": 0.0,
+            },
+        )
+        ext, parser = self._setup(monkeypatch, {0: hero})
+        parser.opendota_start_s = 1000
+        parser.start_tick(100, 911)  # game time -89
+        parser.start_tick(130, 1600)  # game time 600: still sampled
+        parser.start_tick(160, 1601)  # game time 601: window closed
+        assert ext.lane_samples == [
+            (0, -89, 100 * 128 + 64.0, 70 * 128.0),
+            (0, 600, 100 * 128 + 64.0, 70 * 128.0),
+        ]
+
+    def test_lane_samples_before_game_start_are_timed_later(self, monkeypatch):
+        hero = _hero(
+            "Axe",
+            **{
+                "CBodyComponent.m_cellX": 100,
+                "CBodyComponent.m_vecX": 0.0,
+                "CBodyComponent.m_cellY": 70,
+                "CBodyComponent.m_vecY": 0.0,
+            },
+        )
+        ext, parser = self._setup(monkeypatch, {0: hero})
+        parser.start_tick(100, 911)
+        assert ext.lane_samples == []
+        parser.opendota_start_s = 1000
+        parser.start_tick(130, 912)
+        assert [(pid, t) for pid, t, _, _ in ext.lane_samples] == [(0, -89), (0, -88)]
+
     def test_times_entries_once_game_start_is_known(self, monkeypatch):
         ext, parser = self._setup(monkeypatch, {0: _hero("Axe")})
         parser.start_tick(100, 911)

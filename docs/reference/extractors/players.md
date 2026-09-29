@@ -22,7 +22,7 @@ class PlayerExtractor
 
 Polls hero entity state each tick and accumulates player snapshots.
 
-Source: [src/gem/extractors/players.py:103](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/players.py#L103)
+Source: [src/gem/extractors/players.py:106](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/players.py#L106)
 
 #### Methods
 
@@ -32,7 +32,7 @@ Signature: `def PlayerExtractor.attach(self, parser: ReplayParser) -> None`
 
 Register callbacks with the parser.
 
-Source: [src/gem/extractors/players.py:199](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/players.py#L199)
+Source: [src/gem/extractors/players.py:209](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/players.py#L209)
 
 ##### `hero_pos`
 
@@ -40,7 +40,7 @@ Signature: `def PlayerExtractor.hero_pos(self, npc_name: str) -> tuple[float, fl
 
 Return the current world position of a hero by NPC name.
 
-Source: [src/gem/extractors/players.py:401](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/players.py#L401)
+Source: [src/gem/extractors/players.py:443](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/players.py#L443)
 
 ##### `time_series`
 
@@ -48,7 +48,7 @@ Signature: `def PlayerExtractor.time_series(self, player_id: int) -> PlayerTimeS
 
 Aggregate snapshots for one player into time-series lists.
 
-Source: [src/gem/extractors/players.py:416](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/players.py#L416)
+Source: [src/gem/extractors/players.py:458](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/players.py#L458)
 
 ##### `minute_time_series`
 
@@ -56,4 +56,4 @@ Signature: `def PlayerExtractor.minute_time_series(self, player_id: int) -> Play
 
 Aggregate per-minute snapshots for one player into time-series lists.
 
-Source: [src/gem/extractors/players.py:447](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/players.py#L447)
+Source: [src/gem/extractors/players.py:489](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/players.py#L489)

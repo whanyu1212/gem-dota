@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from collections import defaultdict
 from dataclasses import fields
 
 import pytest
@@ -46,7 +45,7 @@ class TestSerializationHelpers:
             total_earned_xp_t=[725],
             position_log=[(30, 100.5, -50.25)],
         )
-        pp.lane_pos = defaultdict(int, {"100_200": 3})
+        pp.lane_pos = {"100": {"200": 3}}
 
         match = ParsedMatch(
             match_id=42,
@@ -58,7 +57,7 @@ class TestSerializationHelpers:
         assert isinstance(data, dict)
         assert data["match_id"] == 42
         assert isinstance(data["players"][0]["lane_pos"], dict)
-        assert data["players"][0]["lane_pos"]["100_200"] == 3
+        assert data["players"][0]["lane_pos"] == {"100": {"200": 3}}
         assert isinstance(data["players"][0]["position_log"], list)
         assert data["players"][0]["position_log"][0] == [30, 100.5, -50.25]
         assert data["players"][0]["total_earned_xp_t"] == [725]
@@ -347,7 +346,7 @@ def _awkward_match() -> ParsedMatch:
         max_hero_hit={"inflictor": "axe_culling_blade", "key": "x", "value": 700, "time": 912},
         _ability_snapshots=[(27_516, {"axe_berserkers_call": 1})],
     )
-    player.lane_pos = defaultdict(int, {"64_64": 3})
+    player.lane_pos = {"100": {"70": 3}}
     return ParsedMatch(
         match_id=8822520406,
         players=[player] + [ParsedPlayer(player_id=i) for i in range(1, 10)],
@@ -415,10 +414,7 @@ class TestJsonRoundTrip:
         assert isinstance(player.position_log[0], tuple)
         assert isinstance(player._ability_snapshots[0], tuple)
         assert player.final_items == {0: "item_blink", 5: "item_black_king_bar"}
-        assert isinstance(player.lane_pos, defaultdict)
-        assert player.lane_pos.default_factory is int
-        player.lane_pos["128_128"] += 1  # unseen cells still start at zero
-        assert player.lane_pos["128_128"] == 1
+        assert player.lane_pos == {"100": {"70": 3}}
         assert player.kills_log[0].log_type is CombatLogType.DEATH
         assert loaded.combat_log[0].source is CombatLogSource.S2_BULK
         assert loaded.hero_visibility_events[0].dire_state is VisibilityState.HIDDEN
@@ -471,6 +467,22 @@ class TestJsonRoundTrip:
         assert (loaded.gold, loaded.gold_ledger) == (0, None)
         assert loaded.buybacks == [BuybackEvent(tick=1, player_slot=0, cost=500, net_worth=3900)]
         assert loaded.buybacks[0].cost_exact is False
+
+    def test_schema_1_flat_lane_pos_is_dropped(self):
+        # Schema 1 counted a 64-unit world grid as {"x_y": n}; it cannot be
+        # converted to OpenDota's cell map, so it loads empty.
+        data = gem.to_dict(_awkward_match())
+        data["schema_version"] = 1
+        data["players"][0]["lane_pos"] = {"64_64": 3}
+        loaded = gem.from_dict(data)
+        assert loaded.players[0].lane_pos == {}
+        assert loaded.players[0].hero_name == _awkward_match().players[0].hero_name
+
+    def test_schema_1_without_version_key_is_upgraded(self):
+        data = gem.to_dict(_awkward_match())
+        data.pop("schema_version", None)
+        data["players"][0]["lane_pos"] = {"64_64": 3}
+        assert gem.from_dict(data).players[0].lane_pos == {}
 
     def test_from_dict_rejects_newer_schema_version(self):
         with pytest.raises(ValueError, match="newer gem"):

@@ -2,28 +2,21 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
-
 from gem.results.models import ParsedMatch, ParsedPlayer
 
 
 class TestParsedPlayerLanePos:
-    def test_lane_pos_is_defaultdict(self):
-        assert isinstance(ParsedPlayer(player_id=0).lane_pos, defaultdict)
-
-    def test_missing_key_returns_zero(self):
-        assert ParsedPlayer(player_id=0).lane_pos["100_200"] == 0
-
-    def test_accumulates(self):
-        pp = ParsedPlayer(player_id=0)
-        pp.lane_pos["50_60"] += 1
-        pp.lane_pos["50_60"] += 1
-        assert pp.lane_pos["50_60"] == 2
+    def test_lane_pos_defaults_to_empty_nested_map(self):
+        assert ParsedPlayer(player_id=0).lane_pos == {}
 
     def test_independent_players(self):
         p1, p2 = ParsedPlayer(player_id=0), ParsedPlayer(player_id=1)
-        p1.lane_pos["10_20"] += 5
-        assert p2.lane_pos["10_20"] == 0
+        p1.lane_pos.setdefault("100", {})["70"] = 5
+        assert p2.lane_pos == {}
+
+    def test_lane_defaults(self):
+        pp = ParsedPlayer(player_id=0)
+        assert (pp.lane, pp.lane_role, pp.is_roaming) == (0, 0, False)
 
 
 class TestParsedPlayerRepr:

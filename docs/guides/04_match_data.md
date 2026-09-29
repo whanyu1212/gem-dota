@@ -228,16 +228,18 @@ for bb in player.buybacks:
     # reliable_gold / unreliable_gold estimate how it was paid (or None).
     print(bb.tick, bb.cost, bb.cost_exact, bb.reliable_gold, bb.unreliable_gold)
 
-player.lane_pos        # dict[str, int]: grid cell → visit count (first 10 minutes)
+player.lane_pos        # dict[str, dict[str, int]]: {cell x: {cell y: samples}} up to 10:00
 
-player.lane_role           # int: 1=safe, 2=mid, 3=off, 4=jungle, 5=roaming, 0=unknown
+player.lane                # int: 1=bot, 2=mid, 3=top, 4=Radiant jungle, 5=Dire jungle, 0=unknown
+player.lane_role           # int: 1=safe, 2=mid, 3=off, 4=jungle, 0=unknown
+player.is_roaming          # bool: most common lane holds under 45% of lane_pos samples
 player.lane_last_hits      # int: last-hit count at the 10-minute mark
 player.lane_denies         # int: deny count at the 10-minute mark
 player.lane_total_gold     # int: cumulative total earned gold at the 10-minute mark
 player.lane_total_xp       # int: cumulative total earned XP at the 10-minute mark
 player.lane_efficiency_pct # int: floor(lane_total_gold / 4948 × 100); can exceed 100
-player.lane_gold_adv       # int | None: gold vs lane opponents at 10 min (None for jungle/roaming)
-player.lane_xp_adv         # int | None: XP vs lane opponents at 10 min (None for jungle/roaming)
+player.lane_gold_adv       # int | None: gold vs lane opponents at 10 min (None for jungle)
+player.lane_xp_adv         # int | None: XP vs lane opponents at 10 min (None for jungle)
 ```
 
 ### Gold ledger
@@ -269,29 +271,29 @@ already counted in them, and `spent_on_support` is already part of items and
 consumables. In DataFrames, pass `include="gold_ledger"` for the
 `player_gold_ledger` and `player_gold_ledger_minutes` tables.
 
-`lane_pos` is restricted to the first 10 game-minutes (OpenDota convention). `lane_role` is
-inferred by aggregating `lane_pos` into coarse lane zones — see
+`lane_pos` counts one position sample per second up to game time 600 s, pre-horn
+included, in OpenDota map cells (world units / 128). `lane`, `lane_role` and `is_roaming`
+are computed from it as OpenDota computes them — see
 [Lane Classification](#lane-classification) below.
 
 ---
 
 ## Lane classification
 
-`lane_role` is inferred from each hero's position heatmap over the first 10 game-minutes.
-gem aggregates the `lane_pos` heatmap into coarse lane zones and assigns the role of
-whichever zone dominated the hero's time.
+`lane_role` comes from each hero's `lane_pos` heatmap, as OpenDota computes it: each map
+cell belongs to a lane, and the most common lane wins. Roaming is a separate flag,
+`is_roaming`, not a role. See the [Laning guide](08_laning.md) for the details.
 
 | `lane_role` | Label | Description |
 |---|---|---|
 | 1 | Safe lane | Radiant bottom / Dire top |
-| 2 | Mid lane | Diagonal corridor |
+| 2 | Mid lane | Diagonal and central band |
 | 3 | Off lane | Radiant top / Dire bottom |
-| 4 | Jungle | Interior camps, off lane corridors |
-| 5 | Roaming | No dominant zone (spread across map) |
-| 0 | Unknown | Insufficient position data |
+| 4 | Jungle | Either jungle |
+| 0 | Unknown | No position sample on the lane grid |
 
 ```python
-LANE_NAMES = {1: "Safe", 2: "Mid", 3: "Off", 4: "Jungle", 5: "Roaming", 0: "Unknown"}
+LANE_NAMES = {1: "Safe", 2: "Mid", 3: "Off", 4: "Jungle", 0: "Unknown"}
 
 for player in match.players:
     from gem.constants import hero_display
@@ -305,8 +307,7 @@ for player in match.players:
 
 The safe/off assignment is team-aware: Radiant safe lane is the bottom-right of the map,
 Dire safe lane is the top-left.  See [Laning Analysis](08_laning.md) for a full explanation
-of the zone-aggregation algorithm, the lane efficiency formula, and gold/XP advantage
-computation.
+of the lane grid, the lane efficiency formula, and gold/XP advantage computation.
 
 ---
 

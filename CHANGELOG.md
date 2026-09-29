@@ -39,6 +39,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Lanes are computed the way OpenDota computes them.** `lane_pos`, `lane_role`, and
+  the new `lane` and `is_roaming` fields match OpenDota for 80 of 80 players on the local
+  fixtures. Before, `lane_pos` never matched and `lane_role` matched for 71 of 80.
+  - `ParsedPlayer.lane_pos` is now OpenDota's `{x: {y: count}}` map over map cells
+    (world units / 128). It counts one position sample per second, read when OpenDota
+    reads them, up to game time 600 s with the pre-game included. It used to be a flat
+    `{"x_y": count}` map on a 64-unit grid. To get world coordinates, multiply a cell
+    by 128.
+  - `lane_role` no longer has a roaming value (5). Roaming is the new
+    `ParsedPlayer.is_roaming` flag: the most common lane holds under 45% of the
+    samples. `ParsedPlayer.lane` is OpenDota's lane: 1 bot, 2 mid, 3 top,
+    4 Radiant jungle, 5 Dire jungle.
+  - `classify_lane` is replaced by `gem.extractors.lane.assign_lane`, a port of
+    OpenDota's lane grid.
+  - `player_summary` gains `lane` and `is_roaming` columns.
+  - The JSON `schema_version` is now 2. Loading an older file leaves its `lane_pos`
+    empty, because the old grid cannot be converted to cells.
+- **Report maps line up with the 7.41 map image.** The HTML report placed positions up to
+  about 290 world units (130 px) off, most visibly towards the Dire side. Its y scale was
+  3% short, and the movement animation stretched the image instead of cropping it like
+  the other maps. The window is now calibrated against building positions read from a
+  replay. Towers, outposts, ancients, fountains, lotus pools and the Tormentor land on
+  their structures, within about 60 world units. The laning minimap marks roaming
+  players with a dashed ring.
+
 - **Buyback costs are exact.** The replay's team data counts each player's gold
   spent on buybacks. The counter rises on the BUYBACK entry's tick, by exactly the
   cost. `BuybackEvent.cost` now comes from that rise (`cost_exact=True`) on all 98
@@ -182,6 +207,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   single-page "Full Proto Dota2 Catalog" and its generator were removed.
 
 ### Fixed
+
+- **Ward cells round the way OpenDota rounds them.** gem rounded ward positions with
+  Python's `round()`, which rounds half to even, and skipped OpenDota's first rounding
+  to one decimal. That put some wards one cell off, e.g. `[91,156]` for `[92,156]`.
+  `obs` and `sen` now match OpenDota for 80 of 80 players, up from 64 and 56. The
+  `obs_left_log` / `sen_left_log` keys use the same rounding.
 
 - **The purchase timeline matches OpenDota.** `purchase_log`, `purchase_time`,
   `first_purchase_time`, `purchase` and the ward-purchase counts now match

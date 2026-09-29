@@ -8,7 +8,6 @@ Reference: odota/parser src/main/java/opendota/CreateParsedDataBlob.java
 
 from __future__ import annotations
 
-from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
@@ -616,9 +615,9 @@ class ParsedPlayer:
             (it also logs natural expiries OpenDota sometimes omits).
         sen_left_log: OpenDota-shaped sentry-ward departure events, as
             ``obs_left_log`` but for sentries; mirrors OpenDota's ``sen_left_log``.
-        obs: Observer-ward placement coordinate histogram, nested
-            ``{x: {y: count}}`` over rounded world coordinates. Mirrors
-            OpenDota's ``obs``.
+        obs: Observer-ward placement histogram, nested ``{x: {y: count}}`` over
+            OpenDota map cells (world units / 128, rounded as OpenDota rounds).
+            Mirrors OpenDota's ``obs``.
         sen: Sentry-ward placement coordinate histogram, mirroring OpenDota's
             ``sen``.
         damage: Total damage dealt, keyed by target NPC name, credited to the
@@ -685,7 +684,10 @@ class ParsedPlayer:
             entry, with each buyback's gold cost: exact from the team data's
             gold-spent-on-buybacks counter when observed, else the formula
             estimate ``200 + net_worth // 13``.
-        lane_pos: Dwell-tick counts keyed by ``"x_y"`` grid cell (64-unit resolution).
+        lane_pos: Position samples up to game time 600 s, pre-horn included, as
+            ``{x: {y: count}}`` over OpenDota map cells (world units / 128,
+            rounded as OpenDota rounds). One sample per once-a-second interval.
+            Mirrors OpenDota's ``lane_pos``.
         position_log: Time-ordered ``(tick, x, y)`` tuples sampled at the
             extractor's interval. Useful for movement time-series and
             animated visualisations.
@@ -694,8 +696,12 @@ class ParsedPlayer:
             for reincarnation, summon kills, and all edge cases.
         deaths: Death count from server scoreboard (``m_iDeaths``).
         assists: Assist count from server scoreboard (``m_iAssists``).
-        lane_role: Lane role inferred from the first-10-minute position heatmap.
-            1=safe lane, 2=mid, 3=off lane, 4=jungle, 5=roaming, 0=unknown.
+        lane: Most common lane in ``lane_pos``: 1 bot, 2 mid, 3 top, 4 Radiant
+            jungle, 5 Dire jungle, 0 unknown. Mirrors OpenDota's ``lane``.
+        lane_role: Lane role from ``lane``: 1 safe lane, 2 mid, 3 off lane,
+            4 jungle, 0 unknown. Mirrors OpenDota's ``lane_role``.
+        is_roaming: Whether ``lane`` holds under 45% of the ``lane_pos`` samples.
+            Mirrors OpenDota's ``is_roaming``; roaming is a flag, not a role.
         lane_last_hits: Last-hit count at the 10-minute mark (``lh_t_min[10]``).
         lane_denies: Deny count at the 10-minute mark (``dn_t_min[10]``).
         lane_total_gold: Cumulative total earned gold at the 10-minute mark
@@ -888,13 +894,15 @@ class ParsedPlayer:
     runes_log: list[CombatLogEntry] = field(default_factory=list)
     buyback_log: list[CombatLogEntry] = field(default_factory=list)
     buybacks: list[BuybackEvent] = field(default_factory=list)
-    lane_pos: defaultdict[str, int] = field(default_factory=lambda: defaultdict(int))
+    lane_pos: dict[str, dict[str, int]] = field(default_factory=dict)
     position_log: list[tuple[int, float, float]] = field(default_factory=list)
     stuns_dealt: float = 0.0
     kills: int = 0
     deaths: int = 0
     assists: int = 0
+    lane: int = 0
     lane_role: int = 0
+    is_roaming: bool = False
     lane_last_hits: int = 0
     lane_denies: int = 0
     lane_total_gold: int = 0

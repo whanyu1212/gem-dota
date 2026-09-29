@@ -22,6 +22,7 @@ from gem.analysis import (
     build_smoke_fight_insights,
 )
 from gem.catalog.map import load_camp_zones
+from gem.extractors._cells import WORLD_UNITS_PER_CELL
 from gem.reports._formatting import (
     GAME_CLOCK_JS,
     MAP_XMAX,
@@ -795,7 +796,6 @@ _LANE_ROLE_NAMES: dict[int, str] = {
     2: "Mid",
     3: "Off",
     4: "Jungle",
-    5: "Roaming",
     0: "—",
 }
 
@@ -805,8 +805,13 @@ _LANE_COLORS: dict[int, str] = {
     2: "#58a6ff",
     3: "#f44336",
     4: "#ff9800",
-    5: "#ab47bc",
 }
+
+
+def _lane_label(pp: ParsedPlayer) -> str:
+    """Return a player's lane role name, marked when they roamed."""
+    name = _LANE_ROLE_NAMES.get(pp.lane_role, "—")
+    return f"{name} · roaming" if pp.is_roaming and pp.lane_role else name
 
 
 _SLOT_COLORS_LANE: list[str] = [
@@ -831,7 +836,8 @@ def _laning_minimap_svg(
     """Render a minimap SVG with each hero's dwell-weighted 10-min centroid."""
     _XMIN, _XMAX = MAP_XMIN, MAP_XMAX
     _YMIN, _YMAX = MAP_YMIN, MAP_YMAX
-    _GRID = 64
+    # lane_pos is keyed by OpenDota map cell: world units / 128.
+    _CELL = WORLD_UNITS_PER_CELL
 
     def _world_to_px(wx: float, wy: float) -> tuple[float, float]:
         px = (wx - _XMIN) / (_XMAX - _XMIN) * size
@@ -851,21 +857,22 @@ def _laning_minimap_svg(
     for pp in match.players:
         if not pp.lane_pos or not pp.hero_name:
             continue
-        total = sum(pp.lane_pos.values())
+        total = sum(sum(column.values()) for column in pp.lane_pos.values())
         if not total:
             continue
         wx_sum = wy_sum = 0.0
-        for key, cnt in pp.lane_pos.items():
-            gx_s, gy_s = key.split("_", 1)
-            wx_sum += (int(gx_s) * _GRID + _GRID // 2) * cnt
-            wy_sum += (int(gy_s) * _GRID + _GRID // 2) * cnt
+        for cx_s, column in pp.lane_pos.items():
+            for cy_s, cnt in column.items():
+                wx_sum += int(cx_s) * _CELL * cnt
+                wy_sum += int(cy_s) * _CELL * cnt
         cx, cy = _world_to_px(wx_sum / total, wy_sum / total)
 
         slot = pp.player_id
         ring_color = _LANE_COLORS.get(pp.lane_role, "#8b949e")
         clip_id = f"lane_clip_{slot}"
         src = hero_icon_src(pp.hero_name)
-        role_label = _LANE_ROLE_NAMES.get(pp.lane_role, "—")
+        role_label = _lane_label(pp)
+        dash = ' stroke-dasharray="4 3"' if pp.is_roaming else ""
 
         elements.append(
             f'<defs><clipPath id="{clip_id}">'
@@ -875,7 +882,7 @@ def _laning_minimap_svg(
             f'width="{icon_r * 2}" height="{icon_r * 2}" '
             f'clip-path="url(#{clip_id})" preserveAspectRatio="xMidYMid slice"/>'
             f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{icon_r}" fill="none" '
-            f'stroke="{ring_color}" stroke-width="2.5"/>'
+            f'stroke="{ring_color}" stroke-width="2.5"{dash}/>'
             f"<title>{e(hero(pp.hero_name))} ({role_label})</title>"
         )
 
@@ -926,7 +933,8 @@ def build_laning(match: ParsedMatch, map_b64: str | None = None) -> str:
         f"{svg}"
         f"<div>"
         f'<p style="font-size:12px;color:#8b949e;margin-bottom:8px">'
-        f"Ring colour = inferred lane role (centroid of first-10-min heatmap)"
+        f"Ring colour = lane role, at the centre of the first-10-min heatmap; "
+        f"a dashed ring marks a roaming player (under 45% of samples in one lane)"
         f"</p>"
         f'<div class="lane-legend">{legend_items}</div>'
         f"</div>"
@@ -952,9 +960,9 @@ def build_laning(match: ParsedMatch, map_b64: str | None = None) -> str:
         '<th class="r" title="Lane Efficiency % — gold@10 ÷ 4948 baseline (OpenDota). '
         'Values above 100 occur when the hero has kills.">Eff%</th>'
         '<th class="r" title="Gold advantage vs lane opponents at 10 min. '
-        'N/A for jungle/roaming.">Gold Adv</th>'
+        'N/A for jungle.">Gold Adv</th>'
         '<th class="r" title="XP advantage vs lane opponents at 10 min. '
-        'N/A for jungle/roaming.">XP Adv</th>'
+        'N/A for jungle.">XP Adv</th>'
         "<th>Eff Bar</th>"
         "</tr></thead>"
     )
@@ -963,7 +971,7 @@ def build_laning(match: ParsedMatch, map_b64: str | None = None) -> str:
     for pp in players:
         team_color = TEAM_COLOR_CSS.get(pp.team, "#888")
         row_cls = "row-radiant" if pp.team == 2 else "row-dire"
-        role_name = _LANE_ROLE_NAMES.get(pp.lane_role, "—")
+        role_name = _lane_label(pp)
         role_color = _LANE_COLORS.get(pp.lane_role, "#8b949e")
 
         def _adv_cell(val: int | None) -> str:
