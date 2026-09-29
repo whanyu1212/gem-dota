@@ -110,20 +110,10 @@ jobs:
           uv run python scripts/generate_proto_field_docs.py
 
       - name: Import every generated binding
-        run: |
-          uv run python - <<'PY'
-          import importlib
-          from pathlib import Path
-
-          root = Path("src/gem/proto")
-          modules = []
-          for path in root.rglob("*_pb2.py"):
-              relative = path.relative_to("src").with_suffix("")
-              modules.append(".".join(relative.parts))
-          for module in sorted(modules):
-              importlib.import_module(module)
-          print(f"Imported {len(modules)} generated protobuf modules.")
-          PY
+        # Each module in its own interpreter: steammessages.proto and
+        # steammessages_base.proto declare the same custom options, so one
+        # process cannot hold both (see the script's docstring).
+        run: uv run python scripts/check_proto_imports.py
 
       - name: Run the full fast test suite
         run: uv run pytest tests/ -m "not slow and not integration and not network" -q
