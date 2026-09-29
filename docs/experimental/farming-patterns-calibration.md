@@ -80,7 +80,7 @@ camp clears.
 | `vision_disadvantage` | 404 |
 | `tower_disadvantage` | 1,506 |
 | `enemy_aegis_active` | 548 |
-| `territorial_advance` | 1,343 |
+| `territorial_advance` | 1,314 |
 
 Tags are independent, so their totals intentionally exceed the segment count.
 For example, an enemy-side segment can also overlap active enemy Aegis,

@@ -238,7 +238,8 @@ previously duplicated between `roshan.py`, `map_context.py`, and
 `reports/_sections.py`:
 
 - `_TEAM_RADIANT = 2`, `_TEAM_DIRE = 3` and the calibrated map bounds
-  (`_MAP_XMIN/XMAX/YMIN/YMAX`), fountain positions, and `_RIVER_STRIP`.
+  (`_MAP_XMIN/XMAX/YMIN/YMAX`), the fountain positions (the `CDOTA_Unit_Fountain`
+  entities, also the ends of the territory-depth axis), and `_RIVER_STRIP`.
 - `region_of(x, y)` classifies a point as `"river"` (when `|x - y| <=
   _RIVER_STRIP`) or, otherwise, the half of whichever fountain is nearer
   (`"radiant_half"` / `"dire_half"`).

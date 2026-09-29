@@ -208,6 +208,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The fountain anchors are the fountains.** `map_constants.json` put the fountains
+  at (9684, 9684) and (23120, 22350), values left over from an old report canvas. The
+  replay's fountain entities (`CDOTA_Unit_Fountain`) sit at (8928, 9446) and
+  (23792, 23232) on every local fixture, 793 and 1,109 world units away. The anchors
+  (and `catalog.load_map_constants()["fountains"]`) now use the entity positions.
+  - `region_of` splits the halves at the perpendicular bisector of the two fountains.
+    Their midpoint is 51 units from the map centre (16384, 16384); the old anchors'
+    midpoint was 367 units off.
+  - Territory depth now reaches 1.0 at the enemy fountain, as documented. It used
+    to reach 1.0 at the old anchor, 800 to 1,100 units short of it.
+  - On the 9 local fixtures, no Roshan conversion tag or status changes. Territory
+    coverage and depth values shift, 9 of 31 conversion scores move (8 by 1 or 2
+    points, one by 6), and one ward-count driver changes. `territorial_advance`
+    changes on 89 of 8,269 farming segments (1,343 to 1,314 on the calibration
+    corpus). `map_context` enemy presence by half changes in 326 of 1,952 buckets.
+
 - **Ward cells round the way OpenDota rounds them.** gem rounded ward positions with
   Python's `round()`, which rounds half to even, and skipped OpenDota's first rounding
   to one decimal. That put some wards one cell off, e.g. `[91,156]` for `[92,156]`.
