@@ -183,6 +183,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Hero names come from the replay's own name table on current replays.**
+  `PlayerExtractor` read the entity name index only from the older
+  `m_nameStringableIndex` field, so on current replays (which carry
+  `m_nameStringTableIndex`) every hero kept a name guessed from its entity class.
+  That guess is wrong for compound names: Queen of Pain became
+  `npc_dota_hero_queen_of_pain` instead of `npc_dota_hero_queenofpain`, so her
+  `hero_id` was `0`. Because teamfight detection matches combat-log names to
+  `hero_name`, none of her kills, damage or ability uses counted in any teamfight
+  either. On replay 8855242704 `hero_id` now matches OpenDota (80 of 80 players
+  across the fixtures), and her teamfight rows are filled in. The other fixtures
+  are unchanged.
 - **The daily protobuf watch can open its update PR again.** It had failed every
   run since the upstream Dota 2 protos last changed. The failure was in its own
   check, which imported every generated module into one process. Upstream's
