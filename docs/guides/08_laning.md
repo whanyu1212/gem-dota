@@ -3,94 +3,94 @@
 The laning phase covers roughly the first ten minutes of a Dota 2 match — the period before
 heroes rotate and teamfights begin.  gem extracts two things from this window:
 
-1. **Lane role** — which lane each hero was in (safe, mid, off, jungle, roaming)
+1. **Lane assignment** — which lane each hero was in (safe, mid, off, jungle), and whether
+   they roamed
 2. **Lane metrics** — how well each hero performed during those ten minutes
+
+Lane assignment matches OpenDota's `lane_pos`, `lane`, `lane_role` and `is_roaming`
+exactly on the local parity fixtures.
 
 ---
 
-## How lane roles are assigned
+## How lanes are assigned
 
 ### Position heatmap (`lane_pos`)
 
-During parsing, gem samples each hero's world coordinates at regular intervals.  Samples
-taken inside the first 10 game-minutes (600 seconds × 30 ticks/s = 18 000 ticks) are
-binned into a 64 × 64 world-unit grid and accumulated per cell:
+gem reads each hero's position once a second, at the same moments OpenDota's parser
+does, from the hero's spawn until game time 600 s. The pre-game seconds before the horn
+count too. Each sample is counted in an OpenDota **map cell**: world units divided by
+128, rounded as OpenDota rounds. `lane_pos` nests the counts as `{x: {y: count}}`:
 
 ```python
 match = gem.parse("my_replay.dem")
 
 hero = match.players[1]  # pick any player
 print(hero.lane_pos)
-# {"250_154": 38, "251_154": 22, "250_155": 17, ...}
-#  ^ grid key "gx_gy"   ^ dwell count (number of samples in that cell)
+# {"101": {"102": 1}, "103": {"104": 1}, "166": {"78": 41, "79": 12}, ...}
+#   ^ cell x   ^ cell y   ^ samples in that cell
 ```
 
-Each key encodes the grid cell `(gx, gy)`.  To recover world coordinates:
+To recover world coordinates, multiply a cell by 128:
 
 ```python
-GRID = 64
-for key, count in hero.lane_pos.items():
-    gx, gy = map(int, key.split("_"))
-    wx = gx * GRID + 32   # cell centre X
-    wy = gy * GRID + 32   # cell centre Y
+for cx, column in hero.lane_pos.items():
+    for cy, count in column.items():
+        wx, wy = int(cx) * 128, int(cy) * 128   # cell centre in world units
 ```
 
-`lane_pos` is intentionally limited to the laning window.  `position_log` (full-game
-movement trail) is a separate, unfiltered list.
+`lane_pos` is limited to the laning window. `position_log` (the full-game movement trail)
+is a separate, unfiltered list.
 
-### Zone aggregation
+### Cell → lane
 
-gem does **not** use the raw centroid to decide a lane role, because a hero moving along a
-lane corridor spreads across many adjacent 64-unit cells — no single cell would account for
-more than ~6 % of samples even for a hero that never left mid lane.
+OpenDota maps every cell from 64 to 191 on each axis to one of five lanes:
 
-Instead, gem aggregates cells into five coarse **lane zones** using fixed world-coordinate
-boundaries, then finds the dominant zone:
-
-| Zone | World-coordinate rule |
+| `lane` | Area |
 |---|---|
-| **Mid** | `\|wx − wy\| < 2000` and `10500 < wx < 22000` — the diagonal corridor |
-| **Safe-R** | `wy < 12500` (bottom strip) or (`wx > 20000` and `wy < 16000`) (bottom-right corner) |
-| **Off-R** | `wx < 12500` and `wy > 19000` (top-left corner) |
-| **Jungle** | Interior region: `12500 ≤ wx ≤ 20000` and `12500 ≤ wy ≤ 19000` |
-| **Other** | Everything else |
+| 1 | Bottom lane: the bottom and right edges |
+| 2 | Mid lane: the diagonal, plus the central band between the jungles |
+| 3 | Top lane: the left and top edges |
+| 4 | Radiant jungle |
+| 5 | Dire jungle |
 
-Zones are named from the **Radiant perspective**.  For Dire players the safe/off assignment
-is flipped: Dire's safe lane is the top-left (Safe-R = Dire off), and Dire's off lane is
-the bottom-right (Off-R = Dire safe).
+Samples outside that grid (under 1% on the fixtures, mostly map borders) are skipped.
+The most common lane wins. On a tie, the lane that first reaches the highest count wins,
+reading cells in ascending x and then ascending y.
 
-### Dominant zone → lane role
+### Lane → role, and roaming
 
-Once cells are aggregated, gem picks the zone with the most dwell ticks and checks whether
-it clears the dominance threshold (45 %):
+`lane_role` depends on the team:
 
-```
-dominant_zone_count / total_ticks ≥ 0.45  →  assign that zone's role
-dominant_zone_count / total_ticks < 0.45  →  roaming (role 5)
-```
-
-The 45 % threshold mirrors OpenDota's approach — a hero whose time is split too evenly
-across zones (supports rotating between lanes, roaming cores, etc.) is classified as
-roaming rather than forced into a lane that doesn't describe their game.
-
-### Role numbers
-
-| `lane_role` | Label | Dota equivalent |
+| `lane_role` | Label | Lane |
 |---|---|---|
 | 1 | Safe lane | Radiant bottom / Dire top |
-| 2 | Mid lane | Diagonal corridor |
+| 2 | Mid lane | Mid |
 | 3 | Off lane | Radiant top / Dire bottom |
-| 4 | Jungle | Interior camps, not on a lane |
-| 5 | Roaming | No dominant zone — spreading across the map |
-| 0 | Unknown | Insufficient position data |
+| 4 | Jungle | Either jungle |
+| 0 | Unknown | No sample on the grid |
+
+**Roaming is a flag, not a role.** `is_roaming` is `True` when the most common lane holds
+under 45% of the counted samples. A roaming support still has a `lane_role`: the lane it
+spent the most time in.
 
 ```python
-LANE_NAMES = {1: "Safe", 2: "Mid", 3: "Off", 4: "Jungle", 5: "Roaming", 0: "Unknown"}
+LANE_NAMES = {1: "Safe", 2: "Mid", 3: "Off", 4: "Jungle", 0: "Unknown"}
 
 for p in match.players:
     from gem.constants import hero_display
-    print(f"{hero_display(p.hero_name):<22}  {LANE_NAMES[p.lane_role]}")
+    roaming = " (roaming)" if p.is_roaming else ""
+    print(f"{hero_display(p.hero_name):<22}  {LANE_NAMES[p.lane_role]}{roaming}")
 ```
+
+### Placing cells on the map image
+
+The report draws lanes over `assets/maps/Game_map_7.41.jpg`. A cell's world position is
+`cell * 128`. The report maps world coordinates onto the image through a window
+calibrated against building positions from a replay (`MAP_XMIN` … in
+`gem.reports._formatting`). All six T1 towers, the outposts, both ancients and fountains,
+the twin gates, the Tormentor and the Roshan pit land on their structures, within about
+60 world units. OpenDota's lane grid also fits the 7.41 map: all 18 lane towers fall in
+their own lane.
 
 ---
 
@@ -164,7 +164,7 @@ mirrors (one's gain is the other's loss).  In a 2v2 safe lane each player is com
 against the combined gold of both opponents, so both players can end up negative if the
 opposing duo outfarmed them.
 
-Jungle (4) and roaming (5) players have `lane_gold_adv = None` and `lane_xp_adv = None`
+Jungle (4) and unknown (0) players have `lane_gold_adv = None` and `lane_xp_adv = None`
 because they have no defined lane opponent.
 
 ```python
@@ -189,7 +189,7 @@ from gem.constants import hero_display
 
 match = gem.parse("my_replay.dem")
 
-LANE_NAMES = {1: "Safe", 2: "Mid", 3: "Off", 4: "Jungle", 5: "Roaming", 0: "?"}
+LANE_NAMES = {1: "Safe", 2: "Mid", 3: "Off", 4: "Jungle", 0: "?"}
 
 print(f"{'Hero':<22} {'Team':<5} {'Lane':<8} {'LH':>4} {'DN':>4} "
       f"{'Gold@10':>8} {'XP@10':>7} {'Eff%':>5} {'GoldAdv':>8} {'XPAdv':>7}")
@@ -228,21 +228,17 @@ Ringmaster             Dire    Off         3   0    1,768   3,468   35%  ...
 
 ---
 
-## Calling `classify_lane` directly
+## Calling `assign_lane` directly
 
-If you have a custom `lane_pos` dict (e.g. from a subset of ticks), you can classify it
+If you have a custom `lane_pos` map (e.g. from a subset of samples), you can assign it
 directly:
 
 ```python
-from gem.extractors.lane import classify_lane
+from gem.extractors.lane import assign_lane
 
-# Synthetic example: hero dwelling at world coordinates (16000, 16000) — mid lane
-GRID = 64
-wx, wy, count = 16000, 16000, 150
-lane_pos = {f"{wx // GRID}_{wy // GRID}": count}
-
-role = classify_lane(lane_pos, team=2)  # 2 = Radiant
-print(role)  # 2 (mid)
+# 150 samples in cell (128, 128): the mid diagonal
+result = assign_lane({"128": {"128": 150}}, team=2)  # 2 = Radiant
+print(result)  # LaneAssignment(lane=2, lane_role=2, is_roaming=False)
 ```
 
 See the [Lane Classifier API reference](../reference/extractors/lane.md) for the full

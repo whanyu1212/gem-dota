@@ -774,7 +774,7 @@ class TestBuildDataframes:
         )
         pp.damage = {"npc_dota_hero_lina": 900}
         pp.damage_targets = {"axe_counter_helix": {"npc_dota_hero_lina": 600}}
-        pp.lane_pos = {"64_64": 3}
+        pp.lane_pos = {"100": {"70": 3}}
         pp.max_hero_hit = {"inflictor": "axe_culling_blade", "key": "x", "value": 1, "time": 2}
         pp.kills_log = [CombatLogEntry(tick=10, log_type=CombatLogType.DEATH)]
         match = ParsedMatch(

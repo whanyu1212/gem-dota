@@ -10,6 +10,8 @@ import plotly.graph_objects as go
 
 from gem.catalog import ability_display, hero_display, item_display, league_name
 from gem.reports._formatting import (
+    MAP_IMAGE_HEIGHT,
+    MAP_IMAGE_WIDTH,
     MAP_XMAX,
     MAP_XMIN,
     MAP_YMAX,
@@ -23,8 +25,8 @@ from gem.state.game_clock import game_clock_for
 
 # ---------------------------------------------------------------------------
 # Dota 2 map coordinate system
-# The 7.41 background retains the 7.40 canvas and fountain-anchor projection.
-# Radiant fountain: (9684, 9684)  Dire fountain: (23120, 22350)
+# The report maps project world coordinates onto the 7.41 image through the
+# calibrated window in gem.reports._formatting (MAP_XMIN ...).
 # ---------------------------------------------------------------------------
 
 _TICKS_PER_SEC = 30
@@ -237,14 +239,17 @@ def build_figure(
 
     fig = go.Figure()
 
+    # The [0, 1] axes are the square map window (see MAP_XMIN); the wider image
+    # overhangs it by the same margin on each side, as in the SVG maps' "slice".
+    overhang = (MAP_IMAGE_WIDTH - MAP_IMAGE_HEIGHT) / 2 / MAP_IMAGE_HEIGHT
     fig.add_layout_image(
         {
             "source": img_src,
             "xref": "x",
             "yref": "y",
-            "x": 0,
+            "x": -overhang,
             "y": 1,
-            "sizex": 1,
+            "sizex": MAP_IMAGE_WIDTH / MAP_IMAGE_HEIGHT,
             "sizey": 1,
             "sizing": "stretch",
             "layer": "below",

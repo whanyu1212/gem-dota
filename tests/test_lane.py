@@ -1,4 +1,4 @@
-"""Tests for lane role classification and lane efficiency stats.
+"""Tests for lane assignment, OpenDota cell rounding and lane efficiency stats.
 
 Unit tests use synthetic lane_pos dicts and ParsedPlayer instances.
 Integration tests parse a real .dem fixture and verify plausible output.
@@ -6,215 +6,114 @@ Integration tests parse a real .dem fixture and verify plausible output.
 
 from __future__ import annotations
 
-from collections import defaultdict
-
 import pytest
 
-from gem.extractors.lane import classify_lane
+from gem.extractors._cells import od_cell, od_cell_index, od_one_decimal
+from gem.extractors.lane import (
+    LANE_BOT,
+    LANE_DIRE_JUNGLE,
+    LANE_MID,
+    LANE_RADIANT_JUNGLE,
+    LANE_TOP,
+    LaneAssignment,
+    assign_lane,
+    lane_for_cell,
+)
 from gem.results.models import ParsedPlayer
 
-_GRID = 64  # must match extractors/lane._GRID and match_builder._LANE_GRID
-_LANE_WINDOW = 600 * 30  # 18000 ticks
-
-
-def _cell(wx: float, wy: float, count: int = 100) -> dict[str, int]:
-    """Build a single-cell lane_pos dict at the given world coordinates."""
-    gx = int(wx) // _GRID
-    gy = int(wy) // _GRID
-    return {f"{gx}_{gy}": count}
-
-
 # ---------------------------------------------------------------------------
-# classify_lane — empty / unknown
+# OpenDota cell rounding
 # ---------------------------------------------------------------------------
 
 
-class TestClassifyLaneEmpty:
-    def test_empty_returns_unknown(self):
-        assert classify_lane({}, team=2) == 0
+class TestCellRounding:
+    def test_cell_is_world_over_128(self):
+        assert od_cell(11776.0) == 92.0
 
-    def test_zero_counts_returns_unknown(self):
-        assert classify_lane({"200_200": 0}, team=2) == 0
+    def test_half_rounds_up_like_java(self):
+        # Python's round() gives 92 (half to even) for 92.5; Java's Math.round 93.
+        assert od_cell_index(92.5 * 128, expanded=False) == 93
+        assert od_cell_index(91.5 * 128, expanded=False) == 92
 
-    def test_unknown_team_does_not_crash(self):
-        result = classify_lane(_cell(21500, 10000), team=0)
-        assert result in (0, 1, 2, 3, 4, 5)
+    def test_one_decimal_then_round_is_rounded_twice(self):
+        # 91.46 -> 91.5 -> 92 when expand() rounded it first; 91 when it did not.
+        world = 91.46 * 128
+        assert od_cell_index(world) == 92
+        assert od_cell_index(world, expanded=False) == 91
 
-
-# ---------------------------------------------------------------------------
-# classify_lane — Radiant (team=2) lane zones
-# ---------------------------------------------------------------------------
-
-
-class TestClassifyLaneRadiant:
-    def test_safe_lane_bottom_strip(self):
-        # Deep bottom, clearly Radiant safe lane
-        assert classify_lane(_cell(16000, 9500), team=2) == 1
-
-    def test_safe_lane_bottom_right_corner(self):
-        # Far right, low Y — Radiant safe
-        assert classify_lane(_cell(21500, 10000), team=2) == 1
-
-    def test_mid_lane_centre(self):
-        # Map centre, on the diagonal
-        assert classify_lane(_cell(16000, 16000), team=2) == 2
-
-    def test_mid_lane_radiant_side(self):
-        # Mid lane closer to Radiant fountain, still on diagonal
-        assert classify_lane(_cell(12000, 12000), team=2) == 2
-
-    def test_mid_lane_dire_side(self):
-        # Mid lane closer to Dire fountain
-        assert classify_lane(_cell(20000, 20000), team=2) == 2
-
-    def test_off_lane_top_left(self):
-        # Top-left — Radiant off lane
-        assert classify_lane(_cell(10000, 21000), team=2) == 3
-
-    def test_jungle_interior(self):
-        # Interior Radiant jungle: far enough from diagonal, above safe-lane Y floor
-        assert classify_lane(_cell(17000, 13500), team=2) == 4
+    def test_one_decimal_uses_float32(self):
+        assert od_one_decimal(91.46) == pytest.approx(91.5, abs=1e-5)
 
 
 # ---------------------------------------------------------------------------
-# classify_lane — Dire (team=3) — safe/off mirrored
+# laneMappings port
 # ---------------------------------------------------------------------------
 
 
-class TestClassifyLaneDire:
-    def test_safe_lane_top_left(self):
-        # Top-left is Dire safe lane
-        assert classify_lane(_cell(10000, 21000), team=3) == 1
+class TestLaneForCell:
+    def test_mid_diagonal(self):
+        assert lane_for_cell(128, 128) == LANE_MID
 
-    def test_off_lane_bottom_right(self):
-        # Bottom-right is Dire off lane
-        assert classify_lane(_cell(21500, 10000), team=3) == 3
+    def test_lanes_and_jungles(self):
+        assert lane_for_cell(70, 150) == LANE_TOP  # Radiant top lane, left strip
+        assert lane_for_cell(130, 185) == LANE_TOP  # top strip
+        assert lane_for_cell(185, 100) == LANE_BOT  # right strip
+        assert lane_for_cell(100, 70) == LANE_BOT  # bottom strip
+        assert lane_for_cell(110, 150) == LANE_DIRE_JUNGLE
+        assert lane_for_cell(150, 100) == LANE_RADIANT_JUNGLE
 
-    def test_mid_is_same_for_both_teams(self):
-        # Mid doesn't flip
-        assert classify_lane(_cell(16000, 16000), team=3) == 2
-
-    def test_jungle_interior_dire(self):
-        # Dire jungle: right-side interior, off the diagonal and not safe/off
-        assert classify_lane(_cell(20000, 17000), team=3) == 4
+    def test_off_grid_cells_are_skipped(self):
+        assert lane_for_cell(63, 128) is None
+        assert lane_for_cell(192, 128) is None
+        assert lane_for_cell(128, 64) is None  # row 128 is past the grid
+        assert lane_for_cell(128, 193) is None
 
 
 # ---------------------------------------------------------------------------
-# classify_lane — roaming detection
+# assign_lane — OpenDota getLaneFromPosData
 # ---------------------------------------------------------------------------
 
 
-class TestClassifyLaneRoaming:
-    def test_widely_spread_across_zones_is_roaming(self):
-        # Equal dwell spread evenly across all five zones — no dominant zone
-        # Zone mapping (wx, wy):
-        #   safe_r: (16000, 9500)  — wy < 12500
-        #   mid:    (16000, 16000) — on diagonal
-        #   off_r:  (10000, 21000) — wx<12500, wy>19000
-        #   jungle: (17000, 13500) — interior
-        #   other:  (9000, 17000)  — none of the above
-        # 5 zones × 20 ticks = 100 total; each zone = 20% < 45% → roaming
-        cells = {}
-        for wx, wy in [
-            (16000, 9500),  # safe_r
-            (16000, 16000),  # mid
-            (10000, 21000),  # off_r
-            (17000, 13500),  # jungle
-            (9000, 17000),  # other
-        ]:
-            gx = int(wx) // _GRID
-            gy = int(wy) // _GRID
-            cells[f"{gx}_{gy}"] = 20
-        assert classify_lane(cells, team=2) == 5
+class TestAssignLane:
+    def test_empty_is_unknown(self):
+        assert assign_lane({}, team=2) == LaneAssignment()
 
-    def test_split_between_two_zones_is_roaming(self):
-        # 40% safe_r, 40% off_r, 20% other — no zone dominates at ≥ 45%
-        cells = {
-            # safe_r cells (40 ticks each zone)
-            f"{16000 // _GRID}_{9500 // _GRID}": 20,
-            f"{21500 // _GRID}_{10000 // _GRID}": 20,
-            # off_r cells
-            f"{10000 // _GRID}_{21000 // _GRID}": 20,
-            f"{11000 // _GRID}_{20000 // _GRID}": 20,
-            # other cell
-            f"{9000 // _GRID}_{17000 // _GRID}": 20,
-        }
-        assert classify_lane(cells, team=2) == 5
+    def test_only_off_grid_samples_is_unknown(self):
+        assert assign_lane({"10": {"10": 50}}, team=2) == LaneAssignment()
+
+    def test_radiant_roles(self):
+        assert assign_lane({"100": {"70": 5}}, team=2).lane_role == 1  # bot = safe
+        assert assign_lane({"70": {"150": 5}}, team=2).lane_role == 3  # top = off
+        assert assign_lane({"128": {"128": 5}}, team=2).lane_role == 2
+        assert assign_lane({"150": {"100": 5}}, team=2).lane_role == 4
+
+    def test_dire_roles_are_mirrored(self):
+        assert assign_lane({"70": {"150": 5}}, team=3).lane_role == 1  # top = safe
+        assert assign_lane({"100": {"70": 5}}, team=3).lane_role == 3  # bot = off
+        assert assign_lane({"110": {"150": 5}}, team=3).lane_role == 4
+
+    def test_roaming_is_a_flag_beside_the_role(self):
+        # Four lanes at 25% each: the first lane read wins, and it holds < 45%.
+        lane_pos = {"70": {"150": 5}, "100": {"70": 5}, "128": {"128": 5}, "150": {"100": 5}}
+        result = assign_lane(lane_pos, team=2)
+        assert result == LaneAssignment(lane=LANE_TOP, lane_role=3, is_roaming=True)
 
     def test_concentrated_is_not_roaming(self):
-        # 90% of dwell in safe-lane cells — dominant zone well above 45%
-        safe_cells = {
-            f"{16000 // _GRID}_{9500 // _GRID}": 450,
-            f"{14000 // _GRID}_{10000 // _GRID}": 450,
-        }
-        spread_cells = {
-            f"{16000 // _GRID}_{16000 // _GRID}": 50,  # mid
-            f"{10000 // _GRID}_{21000 // _GRID}": 50,  # off_r
-        }
-        cells = {**safe_cells, **spread_cells}
-        assert classify_lane(cells, team=2) != 5
+        result = assign_lane({"100": {"70": 9}, "128": {"128": 1}}, team=2)
+        assert result.lane == LANE_BOT
+        assert not result.is_roaming
 
+    def test_tie_goes_to_first_lane_read_x_then_y_numerically(self):
+        # Equal counts: x "70" sorts before "100" numerically (not as strings),
+        # so top reaches the count first and keeps it.
+        result = assign_lane({"100": {"70": 3}, "70": {"150": 3}}, team=2)
+        assert result.lane == LANE_TOP
 
-# ---------------------------------------------------------------------------
-# lane_pos time filter — logic tests (without a full parser)
-# ---------------------------------------------------------------------------
-
-
-class TestLanePosTimeFilter:
-    """Test the time-filter logic used in match_builder to populate lane_pos."""
-
-    def _apply_filter(
-        self,
-        snaps: list[tuple[int, float, float]],  # (tick, x, y)
-        game_start_tick: int | None,
-    ) -> dict[str, int]:
-        """Replicate the match_builder lane_pos accumulation logic."""
-        lane_pos: dict[str, int] = defaultdict(int)
-        lane_window = _LANE_WINDOW
-        for tick, x, y in snaps:
-            if game_start_tick is not None and (
-                tick < game_start_tick or tick > game_start_tick + lane_window
-            ):
-                continue
-            lane_pos[f"{int(x) // _GRID}_{int(y) // _GRID}"] += 1
-        return dict(lane_pos)
-
-    def test_snaps_at_start_included(self):
-        gst = 1000
-        result = self._apply_filter([(gst, 10000, 10000)], gst)
-        assert len(result) == 1
-
-    def test_snaps_at_end_of_window_included(self):
-        gst = 1000
-        result = self._apply_filter([(gst + _LANE_WINDOW, 10000, 10000)], gst)
-        assert len(result) == 1
-
-    def test_snaps_after_window_excluded(self):
-        gst = 1000
-        result = self._apply_filter([(gst + _LANE_WINDOW + 1, 10000, 10000)], gst)
-        assert len(result) == 0
-
-    def test_snaps_before_game_start_excluded(self):
-        gst = 1000
-        result = self._apply_filter([(gst - 1, 10000, 10000)], gst)
-        assert len(result) == 0
-
-    def test_no_game_start_tick_includes_all(self):
-        snaps = [(0, 10000, 10000), (99999, 20000, 20000)]
-        result = self._apply_filter(snaps, game_start_tick=None)
-        assert len(result) == 2
-
-    def test_position_log_is_independent(self):
-        # position_log is built without any time filter — verify the contract
-        gst = 1000
-        snaps = [
-            (gst - 500, 9000.0, 9000.0),  # before game start
-            (gst + 100, 10000.0, 10000.0),  # in window
-            (gst + 99999, 20000.0, 20000.0),  # far past window
-        ]
-        # position_log never filters by tick — all snaps should appear
-        position_log = [(tick, x, y) for tick, x, y in snaps]
-        assert len(position_log) == 3
+    def test_off_grid_samples_leave_the_roaming_share(self):
+        # 5 bot samples and 20 off-grid: bot holds 100% of the counted samples.
+        result = assign_lane({"100": {"70": 5}, "10": {"10": 20}}, team=2)
+        assert result.lane == LANE_BOT
+        assert not result.is_roaming
 
 
 # ---------------------------------------------------------------------------
@@ -388,12 +287,6 @@ class TestLaneAdvantage:
         assert jungler.lane_gold_adv is None
         assert jungler.lane_xp_adv is None
 
-    def test_roaming_excluded_from_adv(self):
-        roamer = self._make(0, 2, 5, gold=2000, xp=2500)
-        opponent = self._make(5, 3, 5, gold=1500, xp=2000)
-        self._apply_adv([roamer, opponent])
-        assert roamer.lane_gold_adv is None
-
     def test_dual_lane_rank_pairing(self):
         # 2v2 safe lane: rank by gold desc, pair high vs high, low vs low.
         # Radiant: Sven=3000g, Bane=1200g  — Dire: Gyro=2500g, Pugna=900g
@@ -439,7 +332,7 @@ class TestLaneIntegration:
 
     def test_all_players_have_valid_lane_role(self, match):
         for pp in match.players:
-            assert pp.lane_role in (0, 1, 2, 3, 4, 5), (
+            assert pp.lane_role in (0, 1, 2, 3, 4), (
                 f"player {pp.player_id} ({pp.hero_name}) has invalid lane_role={pp.lane_role}"
             )
 
@@ -475,9 +368,9 @@ class TestLaneIntegration:
         above_zero = [pp for pp in match.players if pp.lane_efficiency_pct > 0]
         assert len(above_zero) >= 5
 
-    def test_lane_adv_none_for_jungle_and_roaming(self, match):
+    def test_lane_adv_none_for_jungle(self, match):
         for pp in match.players:
-            if pp.lane_role in (4, 5):
+            if pp.lane_role == 4:
                 assert pp.lane_gold_adv is None
                 assert pp.lane_xp_adv is None
 

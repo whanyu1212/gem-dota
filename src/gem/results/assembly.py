@@ -13,8 +13,10 @@ from typing import TYPE_CHECKING, Any
 from gem.analysis import net_worth_at
 from gem.catalog import hero_id
 from gem.combat.log import opendota_translate
+from gem.extractors._cells import WORLD_UNITS_PER_CELL, od_cell_index
 from gem.extractors.intervals import LEDGER_FIELDS
-from gem.extractors.lane import classify_lane
+from gem.extractors.lane import assign_lane
+from gem.extractors.players import LANE_WINDOW_S
 from gem.results.derived import building_status, buyback_cost, categorize_kills, killed_counts
 from gem.results.models import BuybackEvent, GoldLedger, GoldLedgerSnapshot, ParsedMatch
 from gem.results.permanent_buffs import permanent_buff_flags
@@ -42,11 +44,6 @@ if TYPE_CHECKING:
         VisionModifierPairingIssue,
     )
     from gem.state.game_clock import GameClock
-
-# Lane position grid resolution in world units (7d)
-_LANE_GRID = 64
-# First 10 game-minutes in ticks (600s × 30 ticks/s)
-_LANE_WINDOW_S = 600
 
 
 def _player_slot_to_player_id(player_slot: int) -> int | None:
@@ -266,34 +263,53 @@ def _build_purchase_aggregates(
 # positions in cell units (``(cell*128 + vec) / 128``). gem's WardEvent keeps the
 # raw world coordinate for its own spatial helpers, so OD-shaped ward outputs
 # divide by this to match. Reference: odota/parser Parse.java getPreciseLocation.
-_WORLD_UNITS_PER_CELL = 128.0
 
 
 def _to_od_cell(world: float | None) -> float | None:
     """Convert a raw world coordinate to OpenDota's cell-unit coordinate."""
     if world is None:
         return None
-    return world / _WORLD_UNITS_PER_CELL
+    return world / WORLD_UNITS_PER_CELL
 
 
 def _ward_coord_key(x: float | None, y: float | None) -> str | None:
     """Return OpenDota's ``"[x,y]"`` cell-rounded coordinate key for a ward.
 
-    World coordinates are converted to OpenDota cell units and rounded to the
-    nearest integer, matching OpenDota's ``key`` and the nested ``obs``/``sen``
-    map keys (which keep the float coordinate separately).
+    Rounds as OpenDota does: to one decimal, then half up (see
+    :mod:`gem.extractors._cells`). This key also indexes the nested
+    ``obs``/``sen`` maps.
 
     Args:
         x: Raw world x coordinate, or ``None``.
         y: Raw world y coordinate, or ``None``.
 
     Returns:
-        ``"[<round(cell_x)>,<round(cell_y)>]"``, or ``None`` if a coord is missing.
+        ``"[<cell_x>,<cell_y>]"``, or ``None`` if a coord is missing.
     """
-    cx, cy = _to_od_cell(x), _to_od_cell(y)
-    if cx is None or cy is None:
+    if x is None or y is None:
         return None
-    return f"[{round(cx)},{round(cy)}]"
+    return f"[{od_cell_index(x)},{od_cell_index(y)}]"
+
+
+def _lane_pos(samples: list[tuple[int, float, float]]) -> dict[str, dict[str, int]]:
+    """Count lane samples per OpenDota map cell as ``{x: {y: count}}``.
+
+    OpenDota rounds in-game samples to one decimal before keying them and
+    pre-horn samples only once (see :mod:`gem.extractors._cells`).
+
+    Args:
+        samples: ``(game_time_s, world_x, world_y)`` per interval read.
+
+    Returns:
+        The nested cell histogram with cell-number string keys.
+    """
+    lane_pos: dict[str, dict[str, int]] = {}
+    for seconds, x, y in samples:
+        expanded = seconds >= 0
+        column = lane_pos.setdefault(str(od_cell_index(x, expanded=expanded)), {})
+        key = str(od_cell_index(y, expanded=expanded))
+        column[key] = column.get(key, 0) + 1
+    return lane_pos
 
 
 def _ward_left_entry(ward: WardEvent, clock: GameClock) -> dict[str, Any] | None:
@@ -903,6 +919,9 @@ def _populate_player_series(
         radiant_win: Resolved match winner, or ``None`` if unknown.
         buyback_spends: Observed rises in gold spent on buybacks, by player id.
     """
+    lane_samples = getattr(player_ext, "lane_samples", None)
+    if not isinstance(lane_samples, list):
+        lane_samples = []
     for player_id in range(10):
         ts = player_ext.time_series(player_id)
         mts = player_ext.minute_time_series(player_id)
@@ -1043,20 +1062,27 @@ def _populate_player_series(
         if kda is not None:
             pp.kills, pp.deaths, pp.assists = kda
 
-        # Lane position heatmap — restricted to first 10 game-minutes (OpenDota: t<=600s).
-        # position_log above is left unfiltered; this loop is separate and independent.
-        lane_pos: defaultdict[str, int] = defaultdict(int)
-        for snap in player_ext.snapshots:
-            if snap.player_id != player_id or snap.x is None or snap.y is None:
-                continue
-            snap_seconds = clock.game_seconds_at(snap.tick)
-            if snap_seconds is not None and not 0 <= snap_seconds <= _LANE_WINDOW_S:
-                continue
-            lane_pos[f"{int(snap.x) // _LANE_GRID}_{int(snap.y) // _LANE_GRID}"] += 1
-        pp.lane_pos = lane_pos
+        # Lane heatmap over game time <= 600 s, pre-horn included, from OpenDota's
+        # once-a-second interval reads. Replays read without tick-start callbacks
+        # fall back to the dense snapshots.
+        if lane_samples:
+            player_lane_samples = [
+                (seconds, x, y) for pid, seconds, x, y in lane_samples if pid == player_id
+            ]
+        else:
+            player_lane_samples = [
+                (seconds, snap.x, snap.y)
+                for snap in player_ext.snapshots
+                if snap.player_id == player_id and snap.x is not None and snap.y is not None
+                if (seconds := clock.game_seconds_at(snap.tick)) is not None
+                and seconds <= LANE_WINDOW_S
+            ]
+        pp.lane_pos = _lane_pos(player_lane_samples)
 
-        # Lane role and 10-minute raw stats
-        pp.lane_role = classify_lane(pp.lane_pos, pp.team)
+        # Lane assignment and 10-minute raw stats
+        # OpenDota picks the side from the player slot; use it when the team is unknown.
+        lane = assign_lane(pp.lane_pos, pp.team if pp.team in (2, 3) else 2 + (player_id >= 5))
+        pp.lane, pp.lane_role, pp.is_roaming = lane.lane, lane.lane_role, lane.is_roaming
         _LM = 10  # minute-series index for the 10-minute mark
         if len(pp.lh_t_min) > _LM:
             pp.lane_last_hits = pp.lh_t_min[_LM]
@@ -1337,7 +1363,7 @@ def build_parsed_match(
     # group, then matched by rank: richest vs richest, poorest vs poorest.
     # This fairly pairs carries against carries and supports against supports
     # without requiring an explicit position field.
-    # Jungle (4) and roaming (5) are excluded — no direct lane opponent.
+    # Jungle (4) and unknown (0) are excluded — no direct lane opponent.
     _LANE_ROLES_WITH_OPPONENTS = {1, 2, 3}
     for role in _LANE_ROLES_WITH_OPPONENTS:
         radiant = sorted(
@@ -1412,10 +1438,10 @@ def build_parsed_match(
             if left_entry is not None:
                 pp.sen_left_log.append(left_entry)
             coord_map = pp.sen
-        cx, cy = _to_od_cell(ward.x), _to_od_cell(ward.y)
-        if cx is not None and cy is not None:
-            xk, yk = str(round(cx)), str(round(cy))
-            coord_map.setdefault(xk, {})[yk] = coord_map.setdefault(xk, {}).get(yk, 0) + 1
+        if ward.x is not None and ward.y is not None:
+            column = coord_map.setdefault(str(od_cell_index(ward.x)), {})
+            yk = str(od_cell_index(ward.y))
+            column[yk] = column.get(yk, 0) + 1
 
     # observers_placed: OpenDota's purchase/log-derived observer count, distinct
     # from the entity-counter obs_placed. Use the per-player obs_log length.

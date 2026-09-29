@@ -1,181 +1,124 @@
-"""Lane role classification from a 10-minute position heatmap.
+"""Lane assignment from a player's first-10-minute ``lane_pos`` heatmap.
 
-Classifies a player's lane role (safe, mid, off, jungle, roaming) by
-aggregating their ``lane_pos`` heatmap into coarse lane zones and finding
-the dominant zone.  This matches OpenDota's approach: each grid cell is
-mapped to one of five zones; the hero is classified by whichever zone
-accumulates the most dwell ticks; if the dominant zone covers less than
-``_ZONE_DOMINANCE_FRAC`` of total ticks the hero is classified as roaming.
+Ports OpenDota's server-side lane computation. ``lane_pos`` counts one sample per
+once-a-second interval, keyed by OpenDota map cell (world units / 128, see
+:mod:`gem.extractors._cells`). Each cell maps to one of five lanes through a
+128 x 128 grid over cells 64-191. The most common lane wins, and a player whose
+most common lane holds under 45% of the samples is flagged as roaming. Roaming
+is a flag beside the lane role, not a role of its own.
 
-The coordinate system and map bounds use the fountain-anchor projection retained
-by assets/maps/Game_map_7.41.jpg on the legacy report canvas:
-  - Radiant fountain: (9684, 9684) — bottom-left
-  - Dire fountain: (23120, 22350) — top-right
-  - Map X range: 7563–25900, Y range: 7800–25600
-
-No reference implementation exists in the pinned parsers; OpenDota performs lane
-classification server-side as a post-processing step on the lane_pos heatmap.
+Reference: odota/core svc/util/compute.ts ``getLaneFromPosData``,
+svc/util/laneMappings.ts and svc/util/utility.ts ``modeWithCount``, read at
+7b4256f (odota/core is not one of the pinned parsers; it computes these fields
+from the parser's ``lane_pos``). The parity fixtures' OpenDota JSON confirms the
+results.
 """
 
 from __future__ import annotations
 
-# Grid cell size must match match_builder._LANE_GRID
-_GRID = 64
-_HALF_GRID = _GRID // 2
+from dataclasses import dataclass
 
-# ---------------------------------------------------------------------------
-# Zone boundary constants (world units)
-# ---------------------------------------------------------------------------
+#: OpenDota lane ids (``lane``).
+LANE_BOT = 1
+LANE_MID = 2
+LANE_TOP = 3
+LANE_RADIANT_JUNGLE = 4
+LANE_DIRE_JUNGLE = 5
 
-# Mid lane: the diagonal corridor where Y ≈ X
-_MID_BAND = 2000  # max |wx - wy| to be considered mid
-_MID_X_MIN = 10500
-_MID_X_MAX = 22000
+#: OpenDota lane roles (``lane_role``); ``0`` means no lane could be assigned.
+ROLE_SAFE = 1
+ROLE_MID = 2
+ROLE_OFF = 3
+ROLE_JUNGLE = 4
 
-# Radiant safe lane: bottom strip and bottom-right corner
-_SAFE_R_Y_MAX = 12500  # below this Y is always safe-lane territory
-_SAFE_R_X_MIN = 20000  # far right, even if Y is higher
-_SAFE_R_Y_MID = 16000  # upper bound for the far-right safe check
+#: Below this share of samples in the most common lane, a player is roaming.
+_ROAMING_SHARE = 0.45
 
-# Radiant off lane: top-left corner
-_OFF_R_X_MAX = 12500  # left of this X
-_OFF_R_Y_MIN = 19000  # above this Y
-
-# Roaming threshold: if the dominant zone covers less than this fraction
-# of all dwell ticks, the hero is classified as roaming.
-_ZONE_DOMINANCE_FRAC = 0.45
+# laneMappings covers cells 64-191 on each axis: 128 rows, indexed from the top.
+_GRID_ORIGIN = 64
+_GRID_SIZE = 128
 
 
-# Zone label constants used internally
-_ZONE_MID = "mid"
-_ZONE_SAFE_R = "safe_r"  # Radiant safe / Dire off
-_ZONE_OFF_R = "off_r"  # Radiant off / Dire safe
-_ZONE_JUNGLE = "jungle"
-_ZONE_OTHER = "other"
-
-
-def _cell_zone(wx: float, wy: float) -> str:
-    """Map a world-coordinate position to a coarse lane zone label.
+def lane_for_cell(x: int, y: int) -> int | None:
+    """Return OpenDota's lane for a map cell.
 
     Args:
-        wx: World X coordinate (centre of a 64-unit grid cell).
-        wy: World Y coordinate (centre of a 64-unit grid cell).
+        x: Cell x (world x / 128, rounded).
+        y: Cell y (world y / 128, rounded).
 
     Returns:
-        One of ``"mid"``, ``"safe_r"``, ``"off_r"``, ``"jungle"``,
-        or ``"other"``.
+        A lane id (``LANE_BOT`` ... ``LANE_DIRE_JUNGLE``), or ``None`` for a cell
+        outside the grid, which OpenDota skips.
     """
-    if abs(wx - wy) < _MID_BAND and _MID_X_MIN < wx < _MID_X_MAX:
-        return _ZONE_MID
-
-    is_safe_r = (wy < _SAFE_R_Y_MAX) or (wx > _SAFE_R_X_MIN and wy < _SAFE_R_Y_MID)
-    is_off_r = (wx < _OFF_R_X_MAX) and (wy > _OFF_R_Y_MIN)
-
-    if is_safe_r:
-        return _ZONE_SAFE_R
-    if is_off_r:
-        return _ZONE_OFF_R
-    if _OFF_R_X_MAX <= wx <= _SAFE_R_X_MIN and _SAFE_R_Y_MAX <= wy <= _OFF_R_Y_MIN:
-        return _ZONE_JUNGLE
-
-    return _ZONE_OTHER
-
-
-def _zone_counts(lane_pos: dict[str, int]) -> dict[str, int]:
-    """Aggregate cell dwell counts into coarse lane zones.
-
-    Args:
-        lane_pos: Dwell-tick counts keyed by ``"gx_gy"`` grid cell strings.
-
-    Returns:
-        Dict mapping zone label → total dwell ticks in that zone.
-    """
-    counts: dict[str, int] = {}
-    for key, count in lane_pos.items():
-        gx_s, gy_s = key.split("_", 1)
-        wx = int(gx_s) * _GRID + _HALF_GRID
-        wy = int(gy_s) * _GRID + _HALF_GRID
-        zone = _cell_zone(wx, wy)
-        counts[zone] = counts.get(zone, 0) + count
-    return counts
-
-
-def _centroid(lane_pos: dict[str, int]) -> tuple[float, float] | None:
-    """Compute the dwell-weighted world-coordinate centroid of lane_pos.
-
-    Args:
-        lane_pos: Dwell-tick counts keyed by ``"gx_gy"`` grid cell strings.
-
-    Returns:
-        ``(wx, wy)`` weighted centroid in world units, or ``None`` if empty.
-    """
-    total = 0
-    wx_sum = 0.0
-    wy_sum = 0.0
-    for key, count in lane_pos.items():
-        gx_s, gy_s = key.split("_", 1)
-        wx = int(gx_s) * _GRID + _HALF_GRID
-        wy = int(gy_s) * _GRID + _HALF_GRID
-        wx_sum += wx * count
-        wy_sum += wy * count
-        total += count
-    if total == 0:
+    col = x - _GRID_ORIGIN
+    row = _GRID_SIZE - (y - _GRID_ORIGIN)
+    if not (0 <= row < _GRID_SIZE and 0 <= col < _GRID_SIZE):
         return None
-    return wx_sum / total, wy_sum / total
+    if abs(row - (_GRID_SIZE - 1 - col)) < 8:
+        return LANE_MID
+    if col < 27 or row < 27:
+        return LANE_TOP
+    if col >= 100 or row >= 100:
+        return LANE_BOT
+    if row < 50:
+        return LANE_DIRE_JUNGLE
+    if row >= 77:
+        return LANE_RADIANT_JUNGLE
+    return LANE_MID
 
 
-def classify_lane(lane_pos: dict[str, int], team: int) -> int:
-    """Classify a player's lane role from their 10-minute position heatmap.
+@dataclass(frozen=True, slots=True)
+class LaneAssignment:
+    """A player's lane, lane role and roaming flag.
 
-    Aggregates the ``lane_pos`` heatmap into coarse lane zones and finds the
-    dominant zone.  If the dominant zone covers less than
-    ``_ZONE_DOMINANCE_FRAC`` (45 %) of total dwell ticks the hero is
-    classified as roaming (role 5).
+    Attributes:
+        lane: Most common lane: 1 bot, 2 mid, 3 top, 4 Radiant jungle,
+            5 Dire jungle; ``0`` when no sample fell on the grid.
+        lane_role: 1 safe lane, 2 mid, 3 off lane, 4 jungle; ``0`` when unknown.
+        is_roaming: Whether the most common lane holds under 45% of samples.
+    """
 
-    Lane roles mirror OpenDota's convention:
-      1 = safe lane, 2 = mid, 3 = off lane, 4 = jungle, 5 = roaming, 0 = unknown.
+    lane: int = 0
+    lane_role: int = 0
+    is_roaming: bool = False
 
-    The Dire safe lane is the Radiant off-lane side (top-left) and vice versa.
+
+def assign_lane(lane_pos: dict[str, dict[str, int]], team: int) -> LaneAssignment:
+    """Assign a lane from a ``lane_pos`` heatmap, as OpenDota does.
+
+    Ties go to the lane that first reaches a strictly higher count while cells
+    are read in OpenDota's order: x ascending, then y ascending (JavaScript
+    orders integer object keys numerically), each cell counted ``count`` times.
 
     Args:
-        lane_pos: Dwell-tick counts keyed by ``"gx_gy"`` (64-unit grid cells),
-            restricted to the first 10 game-minutes.
-        team: Team number (2=Radiant, 3=Dire).
+        lane_pos: Sample counts as ``{x: {y: count}}`` with cell-number keys.
+        team: Team number (2 = Radiant, 3 = Dire).
 
     Returns:
-        Lane role integer: 1=safe, 2=mid, 3=off, 4=jungle, 5=roaming, 0=unknown.
+        The player's :class:`LaneAssignment`.
     """
-    if not lane_pos:
-        return 0
-
-    zones = _zone_counts(lane_pos)
-    total = sum(zones.values())
+    counts: dict[int, int] = {}
+    total = 0
+    mode, mode_count = 0, 0
+    for x in sorted(lane_pos, key=int):
+        column = lane_pos[x]
+        for y in sorted(column, key=int):
+            lane = lane_for_cell(int(x), int(y))
+            if lane is None:
+                continue
+            for _ in range(column[y]):
+                total += 1
+                counts[lane] = counts.get(lane, 0) + 1
+                if counts[lane] > mode_count:
+                    mode, mode_count = lane, counts[lane]
     if total == 0:
-        return 0
-
-    dominant_zone = max(zones, key=lambda z: zones[z])
-    dominant_count = zones[dominant_zone]
-
-    # Roaming: no single lane zone accounts for enough of the hero's time
-    if dominant_count / total < _ZONE_DOMINANCE_FRAC:
-        return 5
-
-    # Map dominant zone to role number (team-dependent for safe/off)
-    if dominant_zone == _ZONE_MID:
-        return 2
-
-    if team == 2:  # Radiant
-        if dominant_zone == _ZONE_SAFE_R:
-            return 1
-        if dominant_zone == _ZONE_OFF_R:
-            return 3
-    else:  # Dire: zones are mirrored
-        if dominant_zone == _ZONE_OFF_R:
-            return 1
-        if dominant_zone == _ZONE_SAFE_R:
-            return 3
-
-    if dominant_zone == _ZONE_JUNGLE:
-        return 4
-
-    return 0
+        return LaneAssignment()
+    radiant = team == 2
+    role = {
+        LANE_BOT: ROLE_SAFE if radiant else ROLE_OFF,
+        LANE_MID: ROLE_MID,
+        LANE_TOP: ROLE_OFF if radiant else ROLE_SAFE,
+        LANE_RADIANT_JUNGLE: ROLE_JUNGLE,
+        LANE_DIRE_JUNGLE: ROLE_JUNGLE,
+    }[mode]
+    return LaneAssignment(lane=mode, lane_role=role, is_roaming=mode_count / total < _ROAMING_SHARE)

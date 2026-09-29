@@ -1609,15 +1609,12 @@ class TestBuildParsedMatchFinalItems:
 
 
 class TestBuildParsedMatchLanePos:
-    def test_lane_pos_counts_within_window(self):
-        # game_start_tick=6000, window = 6000 + 600*30 = 24000
-        snaps = [
-            _FakePlayerSnapshot(player_id=0, tick=6000, npc_name="n", team=2, x=128.0, y=256.0),
-            _FakePlayerSnapshot(player_id=0, tick=12000, npc_name="n", team=2, x=128.0, y=256.0),
-        ]
-        parser = _make_parser(game_start_tick=6000)
-        player_ext = _make_player_ext(snapshots=snaps)
-        m = build_parsed_match(
+    def _build(self, *, snaps=(), lane_samples=None, game_start_tick=6000):
+        parser = _make_parser(game_start_tick=game_start_tick)
+        player_ext = _make_player_ext(snapshots=list(snaps))
+        if lane_samples is not None:
+            player_ext.lane_samples = lane_samples
+        return build_parsed_match(
             parser,
             player_ext,
             _make_obj_ext(),
@@ -1629,70 +1626,39 @@ class TestBuildParsedMatchLanePos:
             [],
         )
 
-        # 128//64 = 2, 256//64 = 4 → cell "2_4"
-        lane_pos = m.players[0].lane_pos
-        assert lane_pos.get("2_4", 0) == 2
+    def test_interval_samples_become_opendota_cells(self):
+        # World / 128, keyed {x: {y: count}} like OpenDota's lane_pos.
+        samples = [(0, 10, 100 * 128.0, 70 * 128.0), (0, 11, 100 * 128.0, 70 * 128.0)]
+        m = self._build(lane_samples=samples)
+        assert m.players[0].lane_pos == {"100": {"70": 2}}
+        assert (m.players[0].lane, m.players[0].lane_role) == (1, 1)
+        assert m.players[0].is_roaming is False
 
-    def test_lane_pos_excludes_ticks_before_game_start(self):
+    def test_pre_horn_samples_round_once_in_game_samples_twice(self):
+        # 91.46 cells: OpenDota's expand() rounds in-game samples to 91.5 first.
+        world = 91.46 * 128
+        m = self._build(lane_samples=[(0, -30, world, world), (0, 30, world, world)])
+        assert m.players[0].lane_pos == {"91": {"91": 1}, "92": {"92": 1}}
+
+    def test_samples_are_per_player(self):
+        m = self._build(lane_samples=[(3, 5, 128 * 128.0, 128 * 128.0)])
+        assert m.players[0].lane_pos == {}
+        assert m.players[3].lane_pos == {"128": {"128": 1}}
+
+    def test_dense_snapshot_fallback_includes_pre_horn(self):
+        # Without interval samples, dense snapshots up to game time 600 s count,
+        # pre-horn included (OpenDota has no lower bound).
         snaps = [
-            _FakePlayerSnapshot(player_id=0, tick=100, npc_name="n", team=2, x=0.0, y=0.0),
+            _FakePlayerSnapshot(player_id=0, tick=100, npc_name="n", team=2, x=12800.0, y=8960.0),
+            _FakePlayerSnapshot(player_id=0, tick=12000, npc_name="n", team=2, x=12800.0, y=8960.0),
         ]
-        parser = _make_parser(game_start_tick=6000)
-        player_ext = _make_player_ext(snapshots=snaps)
-        m = build_parsed_match(
-            parser,
-            player_ext,
-            _make_obj_ext(),
-            _make_ward_ext(),
-            _make_courier_ext(),
-            _make_draft_ext(),
-            _make_combat_agg(),
-            [],
-            [],
-        )
+        m = self._build(snaps=snaps)
+        assert m.players[0].lane_pos == {"100": {"70": 2}}
 
-        assert sum(m.players[0].lane_pos.values()) == 0
-
-    def test_lane_pos_excludes_ticks_after_window(self):
-        # game_start_tick=0, window end = 600*30=18000
-        snaps = [
-            _FakePlayerSnapshot(player_id=0, tick=99999, npc_name="n", team=2, x=0.0, y=0.0),
-        ]
-        parser = _make_parser(game_start_tick=0)
-        player_ext = _make_player_ext(snapshots=snaps)
-        m = build_parsed_match(
-            parser,
-            player_ext,
-            _make_obj_ext(),
-            _make_ward_ext(),
-            _make_courier_ext(),
-            _make_draft_ext(),
-            _make_combat_agg(),
-            [],
-            [],
-        )
-
-        assert sum(m.players[0].lane_pos.values()) == 0
-
-    def test_lane_pos_not_filtered_when_game_start_tick_is_none(self):
-        snaps = [
-            _FakePlayerSnapshot(player_id=0, tick=9999, npc_name="n", team=2, x=0.0, y=0.0),
-        ]
-        parser = _make_parser(game_start_tick=None)
-        player_ext = _make_player_ext(snapshots=snaps)
-        m = build_parsed_match(
-            parser,
-            player_ext,
-            _make_obj_ext(),
-            _make_ward_ext(),
-            _make_courier_ext(),
-            _make_draft_ext(),
-            _make_combat_agg(),
-            [],
-            [],
-        )
-
-        assert sum(m.players[0].lane_pos.values()) == 1
+    def test_dense_snapshot_fallback_excludes_after_window(self):
+        snaps = [_FakePlayerSnapshot(player_id=0, tick=99999, npc_name="n", team=2, x=0.0, y=0.0)]
+        m = self._build(snaps=snaps, game_start_tick=0)
+        assert m.players[0].lane_pos == {}
 
 
 # ---------------------------------------------------------------------------
@@ -2257,6 +2223,14 @@ class TestWardReshape:
         assert _ward_coord_key(16128.0, 15232.0) == "[126,119]"
         assert _ward_coord_key(16184.0, 15205.0) == "[126,119]"  # rounds to nearest cell
         assert _ward_coord_key(None, 5.0) is None
+
+    def test_coord_key_rounds_like_opendota(self):
+        # OpenDota rounds to one decimal, then half up: 91.46 -> 91.5 -> 92.
+        # Python's round() gave 91 here, and 92 for 92.5 where Java gives 93.
+        from gem.results.assembly import _ward_coord_key
+
+        assert _ward_coord_key(91.46 * 128, 156 * 128.0) == "[92,156]"
+        assert _ward_coord_key(92.5 * 128, 156 * 128.0) == "[93,156]"
 
     def test_left_entry_for_killed_ward(self):
         from gem.results.assembly import _ward_left_entry

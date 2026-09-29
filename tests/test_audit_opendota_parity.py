@@ -23,7 +23,7 @@ def _match() -> ParsedMatch:
         gold_t=[600, 610, 650],  # dense samples; OpenDota's gold_t is per minute
         item_uses={"item_tango": 2},
         max_hero_hit={"key": "npc_dota_hero_axe", "value": 300},
-        lane_pos={"130_248": 3, "131_248": 1},
+        lane_pos={"100": {"160": 3, "161": 1}},
     )
     player.purchase_log = [
         CombatLogEntry(

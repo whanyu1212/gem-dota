@@ -14,10 +14,18 @@ TICKS_PER_MIN = TICKS_PER_SEC * 60
 TEAM_COLOR_CSS: dict[int, str] = {2: "#4caf50", 3: "#f44336"}
 TEAM_NAMES: dict[int, str] = {2: "Radiant", 3: "Dire"}
 
-# World-coordinate bounds used with assets/maps/Game_map_7.41.jpg. The 7.41
-# image is normalized to the legacy canvas so the established projection stays stable.
-MAP_XMIN, MAP_XMAX = 7563, 25900
-MAP_YMIN, MAP_YMAX = 7800, 25600
+# World-coordinate window shown by the report maps over
+# assets/maps/Game_map_7.41.jpg (8878 x 8356). The maps are square viewports that
+# draw the image with ``preserveAspectRatio="xMidYMid slice"``, so they show its
+# middle 8356 x 8356 pixels. The image is drawn at one scale on both axes,
+# 0.456071 px per world unit, so the window spans 18322 world units on each axis.
+# Calibrated by a least-squares fit of nine landmark positions read from replay
+# 8974053011 (fountain, ancients, lotus pools, wisdom shrines, outposts) against
+# their pixel centres in the image: 9 px RMS, at most 29 px (about 60 world units).
+MAP_XMIN, MAP_XMAX = 7487, 25809
+MAP_YMIN, MAP_YMAX = 7693, 26015
+# Map image size, for views that place the full image themselves (Plotly).
+MAP_IMAGE_WIDTH, MAP_IMAGE_HEIGHT = 8878, 8356
 
 # Rune type → display name.
 # Reference: DOTA_RUNE_TYPE enum in dota_shared_enums.proto

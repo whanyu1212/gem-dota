@@ -165,6 +165,14 @@ class TestBuybackReport:
         assert "1,200g" in html
 
 
+def _assert_map_background_cropped(html: str) -> None:
+    # Canvas maps must draw the image's centred square, as the SVG maps' "slice"
+    # does; the calibrated MAP_* window assumes it. Stretching the whole image
+    # into the square canvas shifts every marker sideways.
+    assert "drawImage(mapImg, 0, 0, W, H)" not in html
+    assert "drawImage(mapImg, (mapImg.naturalWidth - side) / 2" in html
+
+
 # ---------------------------------------------------------------------------
 # build_wards: data crosses the Python -> JS boundary via an inert
 # <script type="application/json"> tag (the build_farming pattern), so the
@@ -228,6 +236,7 @@ class TestBuildWardsDataTag:
         html = _sections.build_wards(self._make_match(), None)
         cfg = self._data_tag_payload(html)
         assert len(cfg["wards"]) == 2
+        _assert_map_background_cropped(html)
         assert "smokes" not in cfg
         assert cfg["gameStartTick"] == 900
         assert cfg["sliderMin"] is not None
@@ -339,6 +348,7 @@ class TestBuildSmokes:
         html = _sections.build_smokes(match, None)
 
         assert "Smoke Operations" in html
+        _assert_map_background_cropped(html)
         assert "Early removal" in html
         assert "+15.07s" in html
         assert "Hidden from enemy" in html
