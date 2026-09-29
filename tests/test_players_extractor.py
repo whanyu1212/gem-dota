@@ -1970,6 +1970,45 @@ def test_cached_fallback_does_not_freeze_entity_names():
     ]
 
 
+def _names_parser(**items: str):
+    from gem.state.string_table import StringTable, StringTables
+
+    table = StringTable(0, "EntityNames")
+    for index, name in items.items():
+        table.items[int(index.removeprefix("i"))] = (name, b"")
+    tables = StringTables()
+    tables.add(table)
+    parser = FakeParser()
+    parser.string_tables = tables
+    return parser
+
+
+def test_hero_name_resolves_from_the_current_string_table_field():
+    # Current replays carry m_nameStringTableIndex only (replay 8855242704);
+    # reading just the older field left Queen of Pain as queen_of_pain, whose
+    # hero_id lookup fails.
+    ext = PlayerExtractor()
+    ext.attach(_names_parser(i7="npc_dota_hero_queenofpain"))
+    ext._heroes[0] = _hero("QueenOfPain", **{"m_pEntity.m_nameStringTableIndex": 7})
+
+    ext._sample(1)
+
+    assert [s.npc_name for s in ext.snapshots] == ["npc_dota_hero_queenofpain"]
+
+
+def test_hero_name_prefers_the_current_field_over_the_older_one():
+    ext = PlayerExtractor()
+    ext.attach(_names_parser(i7="npc_dota_hero_queenofpain", i8="stale_name"))
+    ext._heroes[0] = _hero(
+        "QueenOfPain",
+        **{"m_pEntity.m_nameStringTableIndex": 7, "m_pEntity.m_nameStringableIndex": 8},
+    )
+
+    ext._sample(1)
+
+    assert ext.snapshots[0].npc_name == "npc_dota_hero_queenofpain"
+
+
 def test_decoded_cache_and_canonical_handles_remain_parser_local():
     from gem.state.string_table import StringTables
 

@@ -691,8 +691,13 @@ class PlayerExtractor:
             # The camelCase→snake_case conversion in _snapshot_hero inserts word
             # boundaries at every capital letter, which is wrong for compound names.
             if entity_names is not None:
+                # Current replays use m_nameStringTableIndex; older ones
+                # m_nameStringableIndex. Reference: odota/parser Parse.java
+                # getAbilityEntityStringTableIndex (same order).
                 name_fields = entity._resolve_fields(_ENTITY_NAME_FIELDS)
-                name_idx = entity._get_int32_resolved(name_fields[1])
+                name_idx = entity._get_int32_resolved(name_fields[0])
+                if name_idx is None:
+                    name_idx = entity._get_int32_resolved(name_fields[1])
                 if name_idx is not None and name_idx >= 0:
                     item = entity_names.items.get(name_idx)
                     if item is not None:
