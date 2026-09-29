@@ -313,9 +313,11 @@ class PlayerExtractor:
             entry.game_time_s = read_s - start_s
         self._untimed_starting_items.clear()
         if self._untimed_lane_samples:
+            # OpenDota applies `time <= 600` after shifting, like live samples.
             buffered = [
                 (player_id, read_s - start_s, x, y)
                 for player_id, read_s, x, y in self._untimed_lane_samples
+                if read_s - start_s <= LANE_WINDOW_S
             ]
             self.lane_samples[:0] = buffered
             self._untimed_lane_samples.clear()

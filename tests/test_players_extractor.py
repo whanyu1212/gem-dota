@@ -1594,6 +1594,22 @@ class TestStartingInventoryAtTickStart:
         parser.start_tick(130, 912)
         assert [(pid, t) for pid, t, _, _ in ext.lane_samples] == [(0, -89), (0, -88)]
 
+    def test_buffered_lane_samples_past_window_are_dropped(self, monkeypatch):
+        hero = _hero(
+            "Axe",
+            **{
+                "CBodyComponent.m_cellX": 100,
+                "CBodyComponent.m_vecX": 0.0,
+                "CBodyComponent.m_cellY": 70,
+                "CBodyComponent.m_vecY": 0.0,
+            },
+        )
+        ext, parser = self._setup(monkeypatch, {0: hero})
+        parser.start_tick(100, 1601)  # the anchor is only learned afterwards
+        parser.opendota_start_s = 1000
+        parser.start_tick(130, 1602)
+        assert ext.lane_samples == []
+
     def test_times_entries_once_game_start_is_known(self, monkeypatch):
         ext, parser = self._setup(monkeypatch, {0: _hero("Axe")})
         parser.start_tick(100, 911)

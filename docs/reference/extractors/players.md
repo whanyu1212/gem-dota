@@ -40,7 +40,7 @@ Signature: `def PlayerExtractor.hero_pos(self, npc_name: str) -> tuple[float, fl
 
 Return the current world position of a hero by NPC name.
 
-Source: [src/gem/extractors/players.py:443](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/players.py#L443)
+Source: [src/gem/extractors/players.py:445](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/players.py#L445)
 
 ##### `time_series`
 
@@ -48,7 +48,7 @@ Signature: `def PlayerExtractor.time_series(self, player_id: int) -> PlayerTimeS
 
 Aggregate snapshots for one player into time-series lists.
 
-Source: [src/gem/extractors/players.py:458](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/players.py#L458)
+Source: [src/gem/extractors/players.py:460](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/players.py#L460)
 
 ##### `minute_time_series`
 
@@ -56,4 +56,4 @@ Signature: `def PlayerExtractor.minute_time_series(self, player_id: int) -> Play
 
 Aggregate per-minute snapshots for one player into time-series lists.
 
-Source: [src/gem/extractors/players.py:489](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/players.py#L489)
+Source: [src/gem/extractors/players.py:491](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/players.py#L491)
