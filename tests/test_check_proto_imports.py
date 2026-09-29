@@ -39,15 +39,21 @@ def test_reports_modules_that_fail_to_import(tmp_path):
     assert check_proto_imports.check(proto_root) == {"pkg.proto.bad_pb2": "ValueError: boom"}
 
 
-def test_known_conflict_passes_only_with_its_expected_error(tmp_path, monkeypatch):
+_EXPECTED = "TypeError: Couldn't build proto file into descriptor pool: duplicate symbol 'x'"
+
+
+@pytest.fixture
+def known_conflict(monkeypatch):
+    monkeypatch.setattr(
+        check_proto_imports, "KNOWN_CONFLICTS", {"pkg.proto.conflict_pb2": _EXPECTED}
+    )
+
+
+@pytest.mark.usefixtures("known_conflict")
+def test_known_conflict_passes_only_with_its_expected_error(tmp_path):
     proto_root = _package(
         tmp_path,
         {"conflict_pb2": f"raise {_CONFLICT}\n", "other_pb2": f"raise {_CONFLICT}\n"},
-    )
-    monkeypatch.setattr(
-        check_proto_imports,
-        "KNOWN_CONFLICTS",
-        {"pkg.proto.conflict_pb2": "Couldn't build proto file into descriptor pool: duplicate"},
     )
 
     failures = check_proto_imports.check(proto_root)
@@ -55,16 +61,24 @@ def test_known_conflict_passes_only_with_its_expected_error(tmp_path, monkeypatc
     assert list(failures) == ["pkg.proto.other_pb2"]
 
 
-def test_known_conflict_with_a_different_error_still_fails(tmp_path, monkeypatch):
-    proto_root = _package(tmp_path, {"conflict_pb2": "raise ImportError('missing dep')\n"})
-    monkeypatch.setattr(
-        check_proto_imports,
-        "KNOWN_CONFLICTS",
-        {"pkg.proto.conflict_pb2": "Couldn't build proto file into descriptor pool: duplicate"},
+@pytest.mark.usefixtures("known_conflict")
+def test_known_conflict_with_a_different_error_still_fails(tmp_path):
+    other_duplicate = (
+        "TypeError(\"Couldn't build proto file into descriptor pool: duplicate symbol 'y'\")"
     )
+    proto_root = _package(tmp_path, {"conflict_pb2": f"raise {other_duplicate}\n"})
+
+    (error,) = check_proto_imports.check(proto_root).values()
+
+    assert "duplicate symbol 'y'" in error
+
+
+@pytest.mark.usefixtures("known_conflict")
+def test_known_conflict_that_imports_cleanly_is_stale(tmp_path):
+    proto_root = _package(tmp_path, {"conflict_pb2": ""})
 
     assert check_proto_imports.check(proto_root) == {
-        "pkg.proto.conflict_pb2": "ImportError: missing dep"
+        "pkg.proto.conflict_pb2": "imported cleanly; remove it from KNOWN_CONFLICTS"
     }
 
 

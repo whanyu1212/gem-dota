@@ -10,8 +10,9 @@ checks what matters: every binding gem can use loads.
 ``steammessages_base_pb2`` is the one exception. Nothing imports it, and it
 cannot load wherever gem is loaded, because importing ``gem`` already loads
 ``steammessages_pb2``. It is listed in ``KNOWN_CONFLICTS`` and must fail with
-exactly that duplicate-descriptor error; any other error, or a conflict in any
-other module, fails the check.
+exactly its expected error line. Importing cleanly fails the check too (the
+exemption is stale and should be removed), as does any other error, or a
+conflict in any other module.
 
 Usage:
     uv run python scripts/check_proto_imports.py
@@ -28,9 +29,11 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_PROTO_ROOT = REPO_ROOT / "src" / "gem" / "proto"
 # Variant headers that cannot load alongside the headers gem uses, mapped to
-# the error they are expected to raise.
+# the exact last stderr line their import must end with.
 KNOWN_CONFLICTS: dict[str, str] = {
-    "gem.proto.steammessages_base_pb2": "Couldn't build proto file into descriptor pool: duplicate",
+    "gem.proto.steammessages_base_pb2": (
+        "TypeError: Couldn't build proto file into descriptor pool: duplicate extension entry"
+    ),
 }
 
 
@@ -82,8 +85,8 @@ def check(proto_root: Path, *, workers: int = 8) -> dict[str, str]:
         workers: How many interpreters to run at once.
 
     Returns:
-        Failing module name -> error line. Empty when every module imports,
-        except known conflicts that fail with their expected error.
+        Failing module name -> error line. Empty when every module imports and
+        every known conflict fails with exactly its expected error.
     """
     source_root = proto_root.parent.parent
     modules = discover_modules(proto_root)
@@ -91,10 +94,14 @@ def check(proto_root: Path, *, workers: int = 8) -> dict[str, str]:
         errors = list(pool.map(lambda module: import_failure(module, source_root), modules))
     failures = {}
     for module, error in zip(modules, errors, strict=True):
-        expected = KNOWN_CONFLICTS.get(module)
-        if error is None or (expected is not None and expected in error):
-            continue
-        failures[module] = error
+        if module in KNOWN_CONFLICTS:
+            expected = KNOWN_CONFLICTS[module]
+            if error is None:
+                failures[module] = "imported cleanly; remove it from KNOWN_CONFLICTS"
+            elif error != expected:
+                failures[module] = f"expected {expected!r}, got {error!r}"
+        elif error is not None:
+            failures[module] = error
     return failures
 
 
