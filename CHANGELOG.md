@@ -209,7 +209,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **The fountain anchors are the fountains.** `map_constants.json` put the fountains
-  at (9684, 9684) and (23120, 22350), values left over from an old report canvas. The
+  at (9684, 9684) and (23120, 22350), fitted to the 7.40 report map image. The
   replay's fountain entities (`CDOTA_Unit_Fountain`) sit at (8928, 9446) and
   (23792, 23232) on every local fixture, 793 and 1,109 world units away. The anchors
   (and `catalog.load_map_constants()["fountains"]`) now use the entity positions.
