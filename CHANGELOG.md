@@ -183,6 +183,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`first_blood_time`, `pre_game_duration`, `radiant_score` and `dire_score`
+  come from the postgame summary.** The replay's embedded `CMsgDOTAMatch` carries
+  all four, and they equal OpenDota's on every local fixture. gem had reconstructed
+  first blood from the first hero death (1 s off on 5 of 8 fixtures), summed team
+  scores from player kills (off on 2 of 8, e.g. 31 vs 33), and left
+  `pre_game_duration` at `0` (it is 90). Without the summary, the reconstructions
+  remain.
 - **The daily protobuf watch can open its update PR again.** It had failed every
   run since the upstream Dota 2 protos last changed. The failure was in its own
   check, which imported every generated module into one process. Upstream's
