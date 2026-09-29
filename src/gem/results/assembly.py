@@ -191,15 +191,36 @@ def _entry_game_seconds(entry: CombatLogEntry, clock: GameClock) -> int:
     return _tick_game_seconds(entry.tick, clock)
 
 
+def _count_only_purchase(key: str) -> bool:
+    """Return whether a purchase counts in ``purchase`` but stays out of the log.
+
+    OpenDota removes recipes and ``ward_dispenser`` from ``purchase_log`` before
+    deriving ``purchase_time`` / ``first_purchase_time``, and keeps both in the
+    ``purchase`` count map. The combat log emits a ``ward_dispenser`` purchase
+    whenever an observer and a sentry ward merge, so it is not a real purchase.
+
+    Reference: odota/core svc/util/compute.ts ``computeMatchData`` (read at
+    7b4256f; odota/core is not one of the pinned parsers). The parity fixtures'
+    OpenDota JSON confirms both halves.
+
+    Args:
+        key: OpenDota item key (``item_`` stripped).
+
+    Returns:
+        True for recipes and ``ward_dispenser``.
+    """
+    return key.startswith("recipe_") or key == "ward_dispenser"
+
+
 def _build_purchase_aggregates(
     purchase_log: list[CombatLogEntry], clock: GameClock
 ) -> dict[str, Any]:
     """Derive OpenDota purchase-timeline aggregates from a player's purchase log.
 
-    Mirrors OpenDota's ``handlePurchase`` semantics: the ``purchase`` count map
-    includes recipes; ``purchase_time`` / ``first_purchase_time`` (and the
-    per-item scalars) exclude ``recipe_`` items. Item names are translated
-    (``item_`` stripped); times are game-seconds.
+    Mirrors OpenDota's semantics: the ``purchase`` count map includes recipes
+    and ``ward_dispenser``; ``purchase_time`` / ``first_purchase_time`` (and the
+    per-item scalars) exclude them (see :func:`_count_only_purchase`). Item
+    names are translated (``item_`` stripped); times are game-seconds.
 
     Args:
         purchase_log: The player's deduped PURCHASE ``CombatLogEntry`` list.
@@ -217,11 +238,14 @@ def _build_purchase_aggregates(
         key = opendota_translate(entry.value_name)
         if not key:
             continue
-        purchase[key] = purchase.get(key, 0) + 1  # recipes included (OD parity)
-        if key.startswith("recipe_"):
+        purchase[key] = purchase.get(key, 0) + 1  # recipes, dispensers included
+        if _count_only_purchase(key):
             continue
         seconds = _entry_game_seconds(entry, clock)
-        if key not in first_purchase_time:
+        # OpenDota tests `!first_purchase_time[k]`, and 0 is falsy in JavaScript,
+        # so a purchase at exactly 0:00 is replaced by the item's next purchase.
+        # Reference: odota/core svc/util/compute.ts computeMatchData (7b4256f).
+        if not first_purchase_time.get(key):
             first_purchase_time[key] = seconds
         # OpenDota's purchase_time is the SUM of every purchase time for the item
         # (a quirk of its additive map handler), not the latest buy. Match it for
@@ -961,20 +985,21 @@ def _populate_player_series(
             pp.xp_reasons = agg.xp_reasons
             pp.kills_log = agg.kills_log
             # Chronological order, keeping every per-unit entry but EXCLUDING
-            # recipes — matching OpenDota's purchase_log (CreateParsedDataBlob
-            # filters key.startsWith("recipe_") out of the log while still counting
-            # recipes in the `purchase` map). OpenDota does NOT dedup starting items
+            # recipes and ward dispensers — matching OpenDota's purchase_log,
+            # which still counts both in the `purchase` map (see
+            # _count_only_purchase). OpenDota does NOT dedup starting items
             # (its log genuinely lists e.g. 2x faerie_fire), so collapsing
             # same-(tick, item) entries here under-counted starting consumables.
             sorted_purchases = sorted(agg.purchase_log, key=lambda e: e.tick)
             pp.purchase_log = [
                 entry
                 for entry in sorted_purchases
-                if not (opendota_translate(entry.value_name) or "").startswith("recipe_")
+                if not _count_only_purchase(opendota_translate(entry.value_name) or "")
             ]
-            # Aggregates are derived from the FULL log (with recipes): the `purchase`
-            # count map includes recipes, while purchase_time/first_purchase_time
-            # exclude them. _build_purchase_aggregates handles that split internally.
+            # Aggregates are derived from the FULL log: the `purchase` count map
+            # includes recipes and dispensers, while purchase_time and
+            # first_purchase_time exclude them. _build_purchase_aggregates handles
+            # that split internally.
             purchase_aggs = _build_purchase_aggregates(sorted_purchases, clock)
             pp.purchase = purchase_aggs["purchase"]
             pp.purchase_time = purchase_aggs["purchase_time"]

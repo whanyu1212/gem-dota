@@ -183,6 +183,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The purchase timeline matches OpenDota.** `purchase_log`, `purchase_time`,
+  `first_purchase_time`, `purchase` and the ward-purchase counts now match
+  OpenDota for 80 of 80 players on the local fixtures. Before, `purchase_log` and
+  `purchase_time` matched for 24, `purchase` for 76, and the observer and sentry
+  counts for 46 of 49 and 39 of 43. There were three causes:
+  - **When starting items are read.** OpenDota reads each player's starting
+    inventory at the first once-a-second interval where the hero exists, at the
+    start of a tick, and times it with the same clock as rune pickups. gem read it
+    at its own first per-second snapshot, so starting items were a second early or
+    late. Sometimes an observer and a sentry had also merged into a dispenser in
+    between. Starting items now come from OpenDota's read and carry `game_time_s`.
+  - **Ward dispensers.** The combat log records a `ward_dispenser` purchase
+    whenever an observer and a sentry ward merge. OpenDota leaves these out of
+    `purchase_log`, `purchase_time` and `first_purchase_time`, as it does recipes,
+    and still counts them in `purchase`. gem now does the same.
+  - **Purchases at exactly 0:00.** OpenDota replaces a `first_purchase_time` of 0
+    with the item's next purchase time, and gem now does the same.
 - **Rune pickups and chat-based objectives are timed the way OpenDota times
   them.** OpenDota stamps chat events with its clock at the start of each tick,
   which reads the network tick the previous tick left behind. gem timed rune

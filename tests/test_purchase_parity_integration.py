@@ -10,10 +10,11 @@ purchases (under-counting multi-copy consumables) and used last-purchase-wins
 for ``purchase_time``. After aligning to OpenDota — starting scan limited to
 slots 0-7, no dedup, ``purchase_time`` summed — these match exactly.
 
-Assertions avoid two known OpenDota quirks the values must NOT be pinned to:
-- pre-horn (negative) timestamps differ by ±1s (boundary quantization), so we
-  assert on positive-time items like ``black_king_bar`` instead.
-- ``first_purchase_time[tango]`` can skip a time-0 log entry on some players.
+HY-80 closed the remaining gaps: starting items are read at OpenDota's first
+once-a-second interval and timed by its tick-start clock, ``ward_dispenser`` is
+left out of the log and timing maps, and ``first_purchase_time`` keeps
+OpenDota's rule that a purchase at exactly 0 is replaced by the next one. The
+whole purchase timeline now matches, including pre-horn times.
 
 Marked ``slow`` + ``integration`` — needs a real ``.dem`` plus its
 ``.opendota.json``.
@@ -118,6 +119,24 @@ class TestPurchaseParityMatchesOpenDota:
         assert sf.purchase.get("recipe_black_king_bar") == 1
         assert "recipe_black_king_bar" not in sf.purchase_time
         assert "recipe_black_king_bar" not in sf.first_purchase_time
+
+    def test_purchase_timeline_matches_opendota(self, paired, feature_parity_match):
+        # purchase_log (key, time), purchase_time and first_purchase_time match
+        # OpenDota for every player, starting items and ward dispensers included.
+        from gem.state.game_clock import game_clock_for
+
+        clock = game_clock_for(feature_parity_match)
+
+        def seconds(entry):
+            if entry.game_time_s is not None:
+                return entry.game_time_s
+            return clock.game_seconds_at(entry.tick)
+
+        for hero_id, (player, od_player) in paired.items():
+            log = [(e.value_name.removeprefix("item_"), seconds(e)) for e in player.purchase_log]
+            assert log == [(e["key"], e["time"]) for e in od_player["purchase_log"]], hero_id
+            assert player.purchase_time == od_player["purchase_time"], hero_id
+            assert player.first_purchase_time == od_player["first_purchase_time"], hero_id
 
     def test_purchase_log_has_no_recipes(self, paired):
         # purchase_log (chronological) excludes recipe_ entries, like OpenDota.
