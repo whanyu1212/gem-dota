@@ -118,6 +118,37 @@ class TestParserHook:
         assert snapshots == [(10, 18), (12, 20)]
 
 
+class TestGameRulesCache:
+    def _manager(self, *entities):
+        manager = SimpleNamespace(entities=list(entities))
+        manager.find_by_class_name = lambda name: next(
+            (e for e in manager.entities if e is not None and e.get_class_name() == name), None
+        )
+        return manager
+
+    def test_deleted_and_recreated_game_rules_are_looked_up_again(self):
+        parser = ReplayParser(b"")
+        old = _rules(825.4)
+        parser.entity_manager = self._manager(old)
+        assert parser._game_rules_entity() is old
+
+        # Delete removes the entity from the table but leaves ``active`` set.
+        new = _rules(900.0)
+        parser.entity_manager.entities[0] = new
+
+        assert parser._game_rules_entity() is new
+
+    def test_live_cached_entity_is_reused(self):
+        parser = ReplayParser(b"")
+        rules = _rules()
+        manager = self._manager(rules)
+        parser.entity_manager = manager
+        parser._game_rules_entity()
+        manager.find_by_class_name = lambda name: pytest.fail("cache not reused")
+
+        assert parser._game_rules_entity() is rules
+
+
 class TestAlignTicks:
     def test_prefers_exact_pairs_over_an_earlier_candidate(self):
         # Greedy matching would pair 80 with 0 and 100 with 80.

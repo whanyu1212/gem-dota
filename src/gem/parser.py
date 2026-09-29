@@ -343,12 +343,20 @@ class ReplayParser:
 
     def _game_rules_entity(self) -> Entity | None:
         """Return the live ``CDOTAGamerulesProxy``, caching the lookup."""
-        cached = self._game_rules
-        if cached is not None and cached.active and cached.get_class_name() == _GAME_RULES_CLASS:
-            return cached
-        if self.entity_manager is None:
+        em = self.entity_manager
+        if em is None:
             return None
-        self._game_rules = self.entity_manager.find_by_class_name(_GAME_RULES_CLASS)
+        cached = self._game_rules
+        # A deleted entity leaves the manager's table but keeps ``active``, so
+        # trust the cache only while it is still the live entity at its index.
+        if (
+            cached is not None
+            and cached.active
+            and 0 <= cached.get_index() < len(em.entities)
+            and em.entities[cached.get_index()] is cached
+        ):
+            return cached
+        self._game_rules = em.find_by_class_name(_GAME_RULES_CLASS)
         return self._game_rules
 
     @property
