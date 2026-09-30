@@ -32,27 +32,28 @@ objective, resource, or vision evidence.
 
 The September 2026 audit parsed seven active fixtures: one short performance
 baseline, three feature-regression matches, and short, medium, and long TI2026
-matches. It covered 70 player routes, 5,764 camp-local segments, and 206,950
-sampled route points.
+matches. With the version 3 camp catalog (zones centred on the camp spawners)
+it covers 70 player routes, 5,848 camp-local segments, and 206,950 sampled
+route points.
 
 | Match | Segments | Phases | Calibration role |
 | --- | ---: | --- | --- |
-| `8822520406` | 309 | early, mid | Short performance baseline |
-| `8855188139` | 609 | early, mid, late | Roshan, purchases, and inventory regression |
-| `8855242704` | 1,258 | early, mid, late | Long final-interval and XP regression |
-| `8856501050` | 1,749 | early, mid, late | 93-minute stress fixture |
-| `8860187335` | 908 | early, mid, late | Medium extended fixture with multiple Aegis windows |
-| `8868259993` | 294 | early, mid | Canonical short integration fixture |
-| `8974053011` | 637 | early, mid, late | Aegis-denial lifecycle regression |
+| `8822520406` | 352 | early, mid | Short performance baseline |
+| `8855188139` | 659 | early, mid, late | Roshan, purchases, and inventory regression |
+| `8855242704` | 1,275 | early, mid, late | Long final-interval and XP regression |
+| `8856501050` | 1,671 | early, mid, late | 93-minute stress fixture |
+| `8860187335` | 912 | early, mid, late | Medium extended fixture with multiple Aegis windows |
+| `8868259993` | 317 | early, mid | Canonical short integration fixture |
+| `8974053011` | 662 | early, mid, late | Aegis-denial lifecycle regression |
 
 Every player route is included rather than selecting only high-farm heroes.
 That captures the different movement patterns of professional carries, mids,
 offlaners, and supports without pretending the replay's coarse `lane_role`
 number is an authoritative strategic-role label.
 
-All four topology areas were exercised: 2,935 jungle, 1,288 triangle, 763
-river, and 778 flooded-area segments. The phase split was 744 early, 2,367
-mid, and 2,653 late segments. Lane-to-jungle movement and brief crossings are
+All four topology areas were exercised: 3,046 jungle, 1,207 triangle, 767
+river, and 828 flooded-area segments. The phase split was 913 early, 2,425
+mid, and 2,510 late segments. Lane-to-jungle movement and brief crossings are
 therefore present in the factual segment totals rather than hand-picked as
 subjective examples.
 
@@ -60,9 +61,9 @@ subjective examples.
 
 | Evidence strength | Observed segments |
 | --- | ---: |
-| `strong_farm_evidence` | 1,832 |
-| `weak_farm_evidence` | 1,272 |
-| `transit_like` | 2,660 |
+| `strong_farm_evidence` | 2,023 |
+| `weak_farm_evidence` | 1,326 |
+| `transit_like` | 2,499 |
 
 These counts demonstrate that the reconstruction does not promote every camp
 touch to farming. They are sensitivity observations, not precision or recall:
@@ -73,14 +74,14 @@ camp clears.
 
 | Context tag | Observed segments |
 | --- | ---: |
-| `own_side` | 3,109 |
-| `enemy_side` | 1,892 |
-| `border` | 763 |
-| `high_enemy_presence` | 637 |
-| `vision_disadvantage` | 404 |
-| `tower_disadvantage` | 1,506 |
-| `enemy_aegis_active` | 548 |
-| `territorial_advance` | 1,343 |
+| `own_side` | 3,145 |
+| `enemy_side` | 1,936 |
+| `border` | 767 |
+| `high_enemy_presence` | 621 |
+| `vision_disadvantage` | 375 |
+| `tower_disadvantage` | 1,460 |
+| `enemy_aegis_active` | 527 |
+| `territorial_advance` | 1,307 |
 
 Tags are independent, so their totals intentionally exceed the segment count.
 For example, an enemy-side segment can also overlap active enemy Aegis,
@@ -88,7 +89,7 @@ modeled observer disadvantage, and sustained territorial advance. Observer
 coverage is only a modeled source at the camp point; it is not proof that a
 hero was hidden or visible.
 
-All 5,764 real-replay contexts were complete under the recorded defaults. That
+All 5,848 real-replay contexts were complete under the recorded defaults. That
 does not imply completeness is guaranteed. Targeted tests cover absent rosters,
 stale economy samples, insufficient position coverage, point-vision gaps,
 sample discontinuities, overlapping zones, and exact tag thresholds; those
@@ -102,9 +103,10 @@ its counts. A threshold change should update the configuration, boundary tests,
 corpus summaries, and this page in the same pull request. Counts alone are not
 a reason to tune a threshold toward a preferred story.
 
-Camp ownership, lane affinity, and area are explicit 7.41 topology annotations
-on the existing 7.40 geometry baseline. Geometry and topology versions stay
-separate so the catalog does not imply that the legacy polygons were redrawn.
+Camp ownership, lane affinity, and area are explicit 7.41 topology annotations.
+The zone centres are the 7.41 replays' camp spawner positions (catalog version
+3); the per-type radii are unchanged from the hand-drawn catalog. Geometry and
+topology versions stay separate fields.
 
 Future calibration should add real fixtures when they expose a new factual
 boundary or missing-data condition. Human-reviewed strategy labels may be

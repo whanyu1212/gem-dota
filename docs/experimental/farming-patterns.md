@@ -209,9 +209,11 @@ Each `FarmingRoute` has one of three statuses:
 - `unavailable`: camp geometry or player position samples are unavailable.
 
 The corresponding `status_reasons` and per-segment `evidence_gaps` are public.
-The bundled catalog reports version `2`, a 7.40 map-geometry baseline, and 7.41
-camp-family/topology annotations. Geometry and topology provenance remain
-separate so the metadata does not imply that the legacy geometry was redrawn.
+The bundled catalog reports version `3`, 7.41 map geometry, and 7.41
+camp-family/topology annotations. Each zone is centred on its camp's
+`CDOTA_NeutralSpawner` entity, which sits at the same position in every 7.41
+fixture replay; neutral creeps spawn within about 100 units of it. Geometry and
+topology provenance remain separate fields.
 
 ## DataFrames
 
