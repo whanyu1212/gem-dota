@@ -299,7 +299,12 @@ def parse(path: str | Path) -> ParsedMatch:
     p.on_chat_event(
         lambda event, tick: chat_event_times.append(
             _ChatEventTime(
-                event.type, event.playerid_1, event.value, tick, p.opendota_tick_start_raw_s
+                event.type,
+                event.playerid_1,
+                event.value,
+                tick,
+                p.opendota_tick_start_raw_s,
+                player_id_2=event.playerid_2,
             )
         )
     )

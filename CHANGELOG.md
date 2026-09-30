@@ -208,6 +208,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`objectives` matches OpenDota.** `ParsedMatch.objectives` now equals OpenDota's
+  on all 8 local fixtures, up from none. There were five causes:
+  - **Tormentor kills credited the next kill's player.** The
+    `CHAT_MESSAGE_MINIBOSS_KILL` chat event arrives just before its combat-log
+    death, so it was pinned to the previous Tormentor kill, and the last kill had no
+    player. `TormentorKill.killer_player_id` (and so `match.tormentors`) now pairs
+    each chat event with its own death. The objective's `slot` and `team` come from
+    the chat event, as OpenDota's do, so a kill by no player reads `slot` `-1`.
+    On the 8 local fixtures, 11 of 13 Tormentor kills change player. Roshan
+    conversions and farming context are unchanged, since they use the killer's
+    team, which was already right. One smoke-fight follow-up changes its
+    actor (8974053011).
+  - **The Ancient was missing.** `building_kill` objectives now come from every
+    combat-log building death OpenDota counts (towers, barracks, shrines and the
+    Ancient). They are timed like the combat-log entry, which fixes two tower kills
+    that were a second late. A kill with no killer name reads `unit`
+    `"dota_unknown"`, as OpenDota prints it.
+  - **Courier kills lacked `value`**, the bounty the chat event carries. `team` and
+    `killer` also come from the chat event now.
+  - **First blood could be the wrong death.** gem took the first hero death, but a
+    hero killed by neutrals is not first blood. The objective now takes its killer
+    and victim from the `CHAT_MESSAGE_FIRSTBLOOD` chat event, and adds OpenDota's
+    `victim_player_slot`. Without the postgame summary, `first_blood_time` uses
+    the death at that chat event too. On 8855188139 it was 240 s; it is now 344 s,
+    as in OpenDota.
+  - **Objectives in the same second follow replay order**, not building kills
+    first.
+
+  The `opendota_objectives` DataFrame gains `value` and `victim_player_slot`
+  columns.
 - **The fountain anchors are the fountains.** `map_constants.json` put the fountains
   at (9684, 9684) and (23120, 22350), fitted to the 7.40 report map image. The
   replay's fountain entities (`CDOTA_Unit_Fountain`) sit at (8928, 9446) and

@@ -19,6 +19,8 @@ The mapping keeps only value differences:
   ``(time, key, attackername)``.
 - Chat compares ``(text, player slot)`` of ``all``/``team`` messages;
   teamfights compare the count only.
+- Objectives get odota/core's read-time ``victim_player_slot`` on first blood
+  when the reference JSON predates it (see :func:`_annotated_objectives`).
 - Every other field name both sides share is compared as-is.
 
 Reference: odota/parser src/main/java/opendota/CreateParsedDataBlob.java
@@ -132,6 +134,25 @@ PLAYER_CHECKS: dict[str, PlayerCheck] = {
     "sen_left_log": lambda p, o, t: (_left_log(p.sen_left_log), _left_log(o["sen_left_log"])),
 }
 
+
+def _annotated_objectives(od: dict[str, Any]) -> list[dict[str, Any]]:
+    """Return OpenDota's objectives with first blood's ``victim_player_slot``.
+
+    odota/core adds it when serving a match (svc/util/compute.ts
+    ``annotateFirstbloodVictim``, read at 7b4256f), so reference JSON fetched
+    before that change lacks it. It is the player_slot of ``players[key]``.
+    """
+    players = od.get("players") or []
+    objectives = [dict(o) for o in od.get("objectives") or []]
+    for objective in objectives:
+        if objective.get("type") != "CHAT_MESSAGE_FIRSTBLOOD" or "victim_player_slot" in objective:
+            continue
+        key = str(objective.get("key", ""))
+        if key.isdigit() and int(key) < len(players):
+            objective["victim_player_slot"] = players[int(key)]["player_slot"]
+    return objectives
+
+
 #: Match fields compared after mapping; every other shared field is compared as-is.
 MATCH_CHECKS: dict[str, MatchCheck] = {
     "chat": lambda m, od: (
@@ -139,6 +160,7 @@ MATCH_CHECKS: dict[str, MatchCheck] = {
         [(c["key"], c.get("slot")) for c in od.get("chat") or [] if c.get("type") == "chat"],
     ),
     "teamfights": lambda m, od: (len(m.teamfights), len(od.get("teamfights") or [])),
+    "objectives": lambda m, od: (_plain(m.objectives), _annotated_objectives(od)),
 }
 
 

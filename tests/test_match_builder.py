@@ -2337,16 +2337,24 @@ class TestBuildObjectives:
         agg.resolve_kill_pid.side_effect = _resolve
         return agg
 
+    @staticmethod
+    def _building_death(target, attacker="", source="", tick=6300, game_time_s=None):
+        return CombatLogEntry(
+            tick=tick,
+            log_type="DEATH",
+            attacker_name=attacker,
+            damage_source_name=source,
+            target_name=target,
+            game_time_s=game_time_s,
+        )
+
     def test_building_kill_shape_and_slot(self):
-        from gem.extractors.objectives import TowerKill
         from gem.results.assembly import _build_objectives
 
-        tk = TowerKill(
-            tick=6300, team=3, killer="npc_dota_hero_axe", tower_name="npc_dota_badguys_tower1_mid"
-        )
+        death = self._building_death("npc_dota_badguys_tower1_mid", "npc_dota_hero_axe")
         agg = self._agg_with_heroes({"npc_dota_hero_axe": 0})
         objs = _build_objectives(
-            _make_obj_ext(towers=[tk]), agg, None, {0: 2}, clock=GameClock(game_start_tick=0)
+            _make_obj_ext(), agg, None, {0: 2}, GameClock(game_start_tick=0), combat_log=[death]
         )
         assert len(objs) == 1
         e = objs[0]
@@ -2356,56 +2364,110 @@ class TestBuildObjectives:
         assert e["slot"] == 0 and e["player_slot"] == 0
         assert e["time"] == 210  # 6300 // 30
 
-    def test_building_kill_by_creep_has_no_slot(self):
-        from gem.extractors.objectives import TowerKill
+    def test_building_kill_takes_the_entry_game_time(self):
+        # OpenDota times building kills like the combat-log entry, which can be
+        # a second off the tick clock.
         from gem.results.assembly import _build_objectives
 
-        tk = TowerKill(
-            tick=300,
-            team=3,
-            killer="npc_dota_goodguys_siege",
-            tower_name="npc_dota_badguys_tower1_top",
+        death = self._building_death(
+            "npc_dota_goodguys_tower4", "npc_dota_creep_badguys_melee_upgraded", game_time_s=209
         )
+        e = _build_objectives(
+            _make_obj_ext(),
+            self._agg_with_heroes({}),
+            None,
+            {},
+            GameClock(game_start_tick=0),
+            combat_log=[death],
+        )[0]
+        assert e["time"] == 209
+
+    @pytest.mark.parametrize(
+        "target",
+        [
+            "npc_dota_goodguys_fort",
+            "npc_dota_badguys_melee_rax_bot",
+            "npc_dota_goodguys_healers",
+        ],
+    )
+    def test_ancient_barracks_and_shrines_are_building_kills(self, target):
+        from gem.results.assembly import _build_objectives
+
+        objs = _build_objectives(
+            _make_obj_ext(),
+            self._agg_with_heroes({}),
+            None,
+            {},
+            GameClock(game_start_tick=0),
+            combat_log=[self._building_death(target)],
+        )
+        assert [o["key"] for o in objs] == [target]
+
+    def test_building_kill_without_a_killer_name_is_dota_unknown(self):
+        # CombatLogNames index 0 resolves to "" in gem; OpenDota prints its
+        # name, dota_unknown (the Ancient usually dies this way).
+        from gem.results.assembly import _build_objectives
+
+        e = _build_objectives(
+            _make_obj_ext(),
+            self._agg_with_heroes({}),
+            None,
+            {},
+            GameClock(game_start_tick=0),
+            combat_log=[self._building_death("npc_dota_badguys_fort")],
+        )[0]
+        assert e["unit"] == "dota_unknown"
+        assert "slot" not in e
+
+    def test_non_building_deaths_are_not_building_kills(self):
+        from gem.results.assembly import _build_objectives
+
+        objs = _build_objectives(
+            _make_obj_ext(),
+            self._agg_with_heroes({}),
+            None,
+            {},
+            GameClock(game_start_tick=0),
+            combat_log=[
+                self._building_death("npc_dota_hero_axe"),
+                self._building_death("npc_dota_creep_goodguys_melee"),
+            ],
+        )
+        assert objs == []
+
+    def test_building_kill_by_creep_has_no_slot(self):
+        from gem.results.assembly import _build_objectives
+
+        death = self._building_death("npc_dota_badguys_tower1_top", "npc_dota_goodguys_siege")
         agg = self._agg_with_heroes({})  # siege not a hero -> None
         e = _build_objectives(
-            _make_obj_ext(towers=[tk]), agg, None, {}, clock=GameClock(game_start_tick=0)
+            _make_obj_ext(), agg, None, {}, GameClock(game_start_tick=0), combat_log=[death]
         )[0]
         assert "slot" not in e and "player_slot" not in e
 
     def test_building_kill_by_summon_credits_owner(self):
         # A Beastmaster boar kills a tower: attacker is the boar (no source),
         # resolved to its owner via the summon chain. (P2 regression.)
-        from gem.extractors.objectives import TowerKill
         from gem.results.assembly import _build_objectives
 
-        tk = TowerKill(
-            tick=6000,
-            team=3,
-            killer="npc_dota_beastmaster_boar",
-            tower_name="npc_dota_badguys_tower1_top",
-        )
+        death = self._building_death("npc_dota_badguys_tower1_top", "npc_dota_beastmaster_boar")
         agg = self._agg_with_heroes({}, summons={"npc_dota_beastmaster_boar": 2})
         e = _build_objectives(
-            _make_obj_ext(towers=[tk]), agg, None, {2: 2}, clock=GameClock(game_start_tick=0)
+            _make_obj_ext(), agg, None, {2: 2}, GameClock(game_start_tick=0), combat_log=[death]
         )[0]
         assert e["slot"] == 2 and e["player_slot"] == 2
 
     def test_building_kill_by_projectile_uses_source(self):
         # A projectile lands the kill: attacker is the projectile, but
-        # killer_source carries the owning hero. (P2 regression.)
-        from gem.extractors.objectives import TowerKill
+        # damage_source_name carries the owning hero. (P2 regression.)
         from gem.results.assembly import _build_objectives
 
-        tk = TowerKill(
-            tick=6000,
-            team=3,
-            killer="dota_unknown",
-            tower_name="npc_dota_badguys_tower2_mid",
-            killer_source="npc_dota_hero_clinkz",
+        death = self._building_death(
+            "npc_dota_badguys_tower2_mid", "dota_unknown", source="npc_dota_hero_clinkz"
         )
         agg = self._agg_with_heroes({"npc_dota_hero_clinkz": 4})
         e = _build_objectives(
-            _make_obj_ext(towers=[tk]), agg, None, {4: 2}, clock=GameClock(game_start_tick=0)
+            _make_obj_ext(), agg, None, {4: 2}, GameClock(game_start_tick=0), combat_log=[death]
         )[0]
         assert e["slot"] == 4 and e["player_slot"] == 4
         assert e["unit"] == "npc_dota_hero_clinkz"  # source hero, not the projectile
@@ -2431,6 +2493,8 @@ class TestBuildObjectives:
         e = next(o for o in objs if o["type"] == "CHAT_MESSAGE_FIRSTBLOOD")
         assert e["slot"] == 0 and e["player_slot"] == 0  # owner, not the bear
         assert e["key"] == "5"  # victim slot
+        # odota/core compute.ts annotateFirstbloodVictim: key -> player_slot.
+        assert e["victim_player_slot"] == 128
 
     def test_firstblood_direct_hero_kill_still_resolves(self):
         # A plain hero-vs-hero first blood (empty source) still credits the killer.
@@ -2471,22 +2535,55 @@ class TestBuildObjectives:
         assert e["killer"] == 128  # Dire pid 5 -> player_slot 128
 
     def test_sorted_chronologically(self):
-        from gem.extractors.objectives import RoshanKill, TowerKill
+        from gem.extractors.objectives import RoshanKill
         from gem.results.assembly import _build_objectives
 
-        tk = TowerKill(
-            tick=9000, team=3, killer="npc_dota_hero_axe", tower_name="npc_dota_badguys_tower1_mid"
-        )
+        tower = self._building_death("npc_dota_badguys_tower1_mid", "npc_dota_hero_axe", tick=9000)
         rk = RoshanKill(tick=3000, killer="npc_dota_hero_axe", kill_number=1, drops=[])
         agg = self._agg_with_heroes({"npc_dota_hero_axe": 0})
         objs = _build_objectives(
-            _make_obj_ext(towers=[tk], roshan=[rk]),
+            _make_obj_ext(roshan=[rk]),
             agg,
             None,
             {0: 2},
             clock=GameClock(game_start_tick=0),
+            combat_log=[tower],
         )
         assert [o["time"] for o in objs] == [100, 300]  # roshan (3000//30) before tower
+
+    def test_objectives_in_the_same_second_keep_replay_order(self):
+        # 8822593932: Roshan died 8 ticks before the Ancient, in the same second.
+        from gem.extractors.objectives import RoshanKill
+        from gem.results.assembly import _build_objectives
+
+        ancient = self._building_death("npc_dota_goodguys_fort", tick=3008, game_time_s=100)
+        rk = RoshanKill(tick=3000, killer="npc_dota_hero_axe", kill_number=1, drops=[])
+        objs = _build_objectives(
+            _make_obj_ext(roshan=[rk]),
+            self._agg_with_heroes({"npc_dota_hero_axe": 0}),
+            None,
+            {0: 2},
+            clock=GameClock(game_start_tick=0),
+            combat_log=[ancient],
+        )
+        assert [o["type"] for o in objs] == ["CHAT_MESSAGE_ROSHAN_KILL", "building_kill"]
+
+    def test_building_kills_sort_after_chat_objectives_on_the_same_tick(self):
+        # Clarity defers combat-log entries to the end of the tick.
+        from gem.extractors.objectives import RoshanKill
+        from gem.results.assembly import _build_objectives
+
+        ancient = self._building_death("npc_dota_goodguys_fort", tick=3000)
+        rk = RoshanKill(tick=3000, killer="npc_dota_hero_axe", kill_number=1, drops=[])
+        objs = _build_objectives(
+            _make_obj_ext(roshan=[rk]),
+            self._agg_with_heroes({"npc_dota_hero_axe": 0}),
+            None,
+            {0: 2},
+            clock=GameClock(game_start_tick=0),
+            combat_log=[ancient],
+        )
+        assert [o["type"] for o in objs] == ["CHAT_MESSAGE_ROSHAN_KILL", "building_kill"]
 
 
 # ---------------------------------------------------------------------------

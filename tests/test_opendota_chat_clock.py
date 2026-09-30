@@ -14,12 +14,14 @@ from gem.proto.dota_shared_enums_pb2 import DOTA_GAMERULES_STATE_GAME_IN_PROGRES
 from gem.proto.dota_usermessages_pb2 import (
     CHAT_MESSAGE_COURIER_LOST,
     CHAT_MESSAGE_FIRSTBLOOD,
+    CHAT_MESSAGE_MINIBOSS_KILL,
     CHAT_MESSAGE_RUNE_PICKUP,
 )
 from gem.results.assembly import (
     _align_ticks,
+    _apply_chat_events,
     _ChatEventTime,
-    _retime_chat_objectives,
+    _first_blood_death,
     _retime_rune_pickups,
 )
 from gem.state.entities import Entity
@@ -168,14 +170,21 @@ class TestAlignTicks:
         assert _align_ticks(first, second, 90) == []
 
 
-def _event(type_: int, tick: int, raw_s: int | None, player: int = 0, value: int = 0):
-    return _ChatEventTime(type_, player, value, tick, raw_s)
+def _event(
+    type_: int,
+    tick: int,
+    raw_s: int | None,
+    player: int = 0,
+    value: int = 0,
+    player2: int = -1,
+):
+    return _ChatEventTime(type_, player, value, tick, raw_s, player_id_2=player2)
 
 
 class TestRetiming:
     def test_chat_objectives_take_their_chat_event_time(self):
         courier = {"time": 101, "type": "CHAT_MESSAGE_COURIER_LOST"}
-        _retime_chat_objectives(
+        _apply_chat_events(
             {"CHAT_MESSAGE_COURIER_LOST": [(3000, courier)]},
             [_event(CHAT_MESSAGE_COURIER_LOST, 3003, 925)],
             825,
@@ -185,7 +194,7 @@ class TestRetiming:
     def test_unmatched_or_clockless_objectives_keep_their_time(self):
         first_blood = {"time": 183, "type": "CHAT_MESSAGE_FIRSTBLOOD"}
         courier = {"time": 101, "type": "CHAT_MESSAGE_COURIER_LOST"}
-        _retime_chat_objectives(
+        _apply_chat_events(
             {
                 "CHAT_MESSAGE_FIRSTBLOOD": [(5000, first_blood)],
                 "CHAT_MESSAGE_COURIER_LOST": [(3000, courier)],
@@ -197,6 +206,67 @@ class TestRetiming:
             825,
         )
         assert (first_blood["time"], courier["time"]) == (183, 101)
+
+    def test_courier_lost_takes_team_killer_and_value_from_its_event(self):
+        # Reference: odota/parser CreateParsedDataBlob.java handleCourierLost.
+        courier = {"time": 101, "type": "CHAT_MESSAGE_COURIER_LOST", "team": 3, "killer": 3}
+        _apply_chat_events(
+            {"CHAT_MESSAGE_COURIER_LOST": [(3000, courier)]},
+            [_event(CHAT_MESSAGE_COURIER_LOST, 3000, 925, player=5, value=85, player2=2)],
+            825,
+        )
+        assert courier == {
+            "time": 100,
+            "type": "CHAT_MESSAGE_COURIER_LOST",
+            "team": 2,
+            "killer": 128,
+            "value": 85,
+        }
+
+    def test_courier_lost_to_a_non_player_has_killer_minus_one(self):
+        courier = {"time": 101, "type": "CHAT_MESSAGE_COURIER_LOST", "team": 2}
+        _apply_chat_events(
+            {"CHAT_MESSAGE_COURIER_LOST": [(3000, courier)]},
+            [_event(CHAT_MESSAGE_COURIER_LOST, 3000, None, player=-1, value=30, player2=2)],
+            825,
+        )
+        assert (courier["killer"], courier["team"], courier["value"]) == (-1, 2, 30)
+
+    def test_miniboss_kill_takes_killer_and_team_from_its_event(self):
+        # Reference: handleMinibossKill: slot = playerid_1, team = value.
+        kill = {"time": 1223, "type": "CHAT_MESSAGE_MINIBOSS_KILL", "slot": 6, "team": 3}
+        _apply_chat_events(
+            {"CHAT_MESSAGE_MINIBOSS_KILL": [(37000, kill)]},
+            [_event(CHAT_MESSAGE_MINIBOSS_KILL, 37000, None, player=8, value=3)],
+            825,
+        )
+        assert kill == {
+            "time": 1223,
+            "type": "CHAT_MESSAGE_MINIBOSS_KILL",
+            "slot": 8,
+            "player_slot": 131,
+            "team": 3,
+        }
+
+    def test_miniboss_kill_without_a_player_keeps_slot_minus_one(self):
+        # OpenDota prints slot -1 and no player_slot.
+        kill = {"time": 2090, "type": "CHAT_MESSAGE_MINIBOSS_KILL"}
+        _apply_chat_events(
+            {"CHAT_MESSAGE_MINIBOSS_KILL": [(60000, kill)]},
+            [_event(CHAT_MESSAGE_MINIBOSS_KILL, 60000, None, player=-1, value=3)],
+            825,
+        )
+        assert kill == {"time": 2090, "type": "CHAT_MESSAGE_MINIBOSS_KILL", "slot": -1, "team": 3}
+
+    def test_first_blood_takes_killer_and_victim_from_its_event(self):
+        # Reference: handleFirstblood: slot = playerid_1, key = playerid_2.
+        first_blood = {"time": 344, "type": "CHAT_MESSAGE_FIRSTBLOOD", "slot": 2, "key": "4"}
+        _apply_chat_events(
+            {"CHAT_MESSAGE_FIRSTBLOOD": [(32849, first_blood)]},
+            [_event(CHAT_MESSAGE_FIRSTBLOOD, 32849, None, player=0, player2=8)],
+            825,
+        )
+        assert (first_blood["slot"], first_blood["player_slot"], first_blood["key"]) == (0, 0, "8")
 
     def test_rune_pickups_get_their_chat_event_time_even_before_the_anchor(self):
         base = {"log_type": CombatLogType.PICKUP_RUNE, "value": 3, "rune_type": 5}
@@ -215,3 +285,29 @@ class TestRetiming:
         rune = CombatLogEntry(tick=100, log_type=CombatLogType.PICKUP_RUNE, value=3, rune_type=5)
         _retime_rune_pickups([rune], [_event(CHAT_MESSAGE_RUNE_PICKUP, 100, 900, 4, 5)], 825)
         assert rune.game_time_s is None
+
+
+def _hero_death(tick: int, **kwargs) -> CombatLogEntry:
+    return CombatLogEntry(tick=tick, log_type=CombatLogType.DEATH, target_is_hero=True, **kwargs)
+
+
+class TestFirstBloodDeath:
+    def test_a_death_to_neutrals_before_first_blood_is_skipped(self):
+        # 8855188139: Bane died to a neutral at tick 29725; first blood was
+        # Shadow Fiend on Keeper of the Light at 32849.
+        neutral = _hero_death(29725, target_name="npc_dota_hero_bane")
+        first_blood = _hero_death(32849, target_name="npc_dota_hero_keeper_of_the_light")
+        events = [_event(CHAT_MESSAGE_FIRSTBLOOD, 32849, None, player=0, player2=8)]
+        assert _first_blood_death([neutral, first_blood], events) is first_blood
+
+    def test_without_the_chat_event_the_first_real_hero_death_is_used(self):
+        illusion = _hero_death(10, target_is_illusion=True)
+        reincarnation = _hero_death(20, will_reincarnate=True)
+        death = _hero_death(30)
+        assert _first_blood_death([illusion, reincarnation, death], None) is death
+        assert _first_blood_death([illusion], []) is None
+
+    def test_a_chat_event_with_no_death_nearby_falls_back(self):
+        death = _hero_death(30)
+        events = [_event(CHAT_MESSAGE_FIRSTBLOOD, 9000, None)]
+        assert _first_blood_death([death], events) is death

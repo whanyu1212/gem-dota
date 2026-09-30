@@ -880,7 +880,21 @@ def _populated_match() -> ParsedMatch:
         banner_plants=[BannerPlant(tick=8, team=2, player_id=0, x=None, y=None)],
         objectives=[
             {"time": 1, "type": "building_kill", "key": "t1", "unit": "axe", "slot": 0},
-            {"time": 2, "type": "CHAT_MESSAGE_COURIER_LOST", "team": 3, "killer": 128},
+            {
+                "time": 2,
+                "type": "CHAT_MESSAGE_COURIER_LOST",
+                "team": 3,
+                "killer": 128,
+                "value": 85,
+            },
+            {
+                "time": 3,
+                "type": "CHAT_MESSAGE_FIRSTBLOOD",
+                "key": "8",
+                "slot": 0,
+                "player_slot": 0,
+                "victim_player_slot": 131,
+            },
         ],
         wards=[WardEvent(10, 0, "axe", "observer", 2, 1.0, 2.0, None, None, "")],
         radiant_gold_adv=[0, 150],
@@ -960,6 +974,11 @@ class TestStableSchemas:
             odd = {column: str(dtype) for column, dtype in df.dtypes.items()}
             odd = {column: dtype for column, dtype in odd.items() if dtype not in allowed}
             assert not odd, f"{name} has non-nullable dtypes: {odd}"
+
+        objectives = dfs["opendota_objectives"].set_index("type")
+        assert objectives.loc["CHAT_MESSAGE_COURIER_LOST", "value"] == 85
+        assert objectives.loc["CHAT_MESSAGE_FIRSTBLOOD", "victim_player_slot"] == 131
+        assert pd.isna(objectives.loc["building_kill", "value"])
 
         summary = dfs["player_summary"].set_index("player_id")
         assert summary.loc[0, "lane_gold_adv"] == 120
