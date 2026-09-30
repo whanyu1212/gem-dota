@@ -10,9 +10,12 @@ Reference: no upstream parser defines these names; they are gem's public API.
 
 from __future__ import annotations
 
+import functools
 import warnings
 from collections.abc import Callable, Mapping
-from typing import Any
+from typing import Any, TypeVar
+
+_T = TypeVar("_T", bound=type)
 
 
 def warn_renamed(old: str, new: str, *, stacklevel: int = 3) -> None:
@@ -52,6 +55,37 @@ def renamed_attribute(old: str, new: str) -> property:
         setattr(self, new, value)
 
     return property(getter, setter, doc=f"Deprecated alias of ``{new}``.")
+
+
+def renamed_init_kwargs(renames: Mapping[str, str]) -> Callable[[_T], _T]:
+    """Class decorator: accept renamed ``__init__`` keywords with a warning.
+
+    Apply it above ``@dataclass`` so it wraps the generated ``__init__``.
+
+    Args:
+        renames: Deprecated keyword -> current keyword.
+
+    Returns:
+        The decorator.
+    """
+
+    def decorate(cls: _T) -> _T:
+        init = cls.__init__  # type: ignore[misc]
+
+        @functools.wraps(init)
+        def __init__(self: Any, *args: Any, **kwargs: Any) -> None:
+            for old, new in renames.items():
+                if old in kwargs:
+                    if new in kwargs:
+                        raise TypeError(f"{cls.__name__}() got both {old!r} and {new!r}")
+                    warn_renamed(f"{cls.__name__}({old}=...)", f"{cls.__name__}({new}=...)")
+                    kwargs[new] = kwargs.pop(old)
+            init(self, *args, **kwargs)
+
+        cls.__init__ = __init__  # type: ignore[misc]
+        return cls
+
+    return decorate
 
 
 def renamed_module_attrs(

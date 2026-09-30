@@ -138,3 +138,41 @@ def test_json_uses_fights_and_reads_the_old_key(recwarn):
     match = from_dict(old)
     assert [f.deaths for f in match.fights] == [1]
     assert not [w for w in recwarn if issubclass(w.category, DeprecationWarning)]
+
+
+def test_old_constructor_keywords_warn_and_map_to_the_new_field():
+    new_fights = [_fight()]
+    with pytest.warns(DeprecationWarning, match=r"ParsedMatch\(teamfights=...\)"):
+        match = ParsedMatch(match_id=1, teamfights=new_fights)
+    assert match.fights is new_fights
+
+    with pytest.warns(DeprecationWarning, match=r"MatchAnalysis\(teamfight_positioning=...\)"):
+        analysis = MatchAnalysis(teamfight_positioning=[])
+    assert analysis.fight_positioning == []
+
+    with pytest.warns(DeprecationWarning, match=r"SmokeAnalysis\(first_teamfight=...\)"):
+        smoke = SmokeAnalysis(
+            activation_tick=0,
+            activator="npc_dota_hero_axe",
+            team=2,
+            status=SmokeGroupStatus.NO_MEMBERS_OBSERVED,
+            activation_x=None,
+            activation_y=None,
+            member_centroid_x=None,
+            member_centroid_y=None,
+            first_teamfight=new_fights[0],
+        )
+    assert smoke.first_fight is new_fights[0]
+
+
+def test_old_and_new_constructor_keywords_together_are_an_error():
+    with pytest.raises(TypeError, match="both 'teamfights' and 'fights'"):
+        ParsedMatch(match_id=1, teamfights=[], fights=[])
+
+
+def test_table_get_resolves_old_names_like_indexing():
+    tables = build_dataframes(ParsedMatch(match_id=1, fights=[_fight()]))
+    with pytest.warns(DeprecationWarning, match="'teamfights' is deprecated"):
+        assert tables.get("teamfights") is tables["fights"]
+    assert tables.get("no_such_table") is None
+    assert tables.get("no_such_table", 0) == 0

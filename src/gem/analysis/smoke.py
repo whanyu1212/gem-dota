@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING
 
-from gem._deprecation import renamed_attribute
+from gem._deprecation import renamed_attribute, renamed_init_kwargs
 from gem.analysis._shared import infer_match_end_tick
 from gem.combat.log import CombatLogEntry
 
@@ -111,6 +111,7 @@ class SmokeMemberAnalysis:
     evidence_gaps: list[str] = field(default_factory=list)
 
 
+@renamed_init_kwargs({"first_teamfight": "first_fight"})
 @dataclass
 class SmokeAnalysis:
     """Evidence summary for one Smoke of Deceit item use.

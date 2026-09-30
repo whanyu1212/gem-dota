@@ -15,7 +15,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from gem._deprecation import renamed_attribute
+from gem._deprecation import renamed_attribute, renamed_init_kwargs
 from gem.analysis.farming import FarmingRoute, build_farming_routes
 from gem.analysis.fight_positioning import (
     FightPositioning,
@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     from gem.results.models import ParsedMatch
 
 
+@renamed_init_kwargs({"teamfight_positioning": "fight_positioning"})
 @dataclass
 class MatchAnalysis:
     """Results of every default post-parse analysis for one match.

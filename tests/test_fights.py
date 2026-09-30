@@ -946,6 +946,24 @@ class TestAdjustableGrouping:
         fights = detect_fights(entries, hero_to_slot=self.H2S, player_snapshots=snaps, radius=8000)
         assert [f.deaths for f in fights] == [2]
 
+    def test_the_radius_is_inclusive(self):
+        # Co-located deaths share a fight even with radius=0, and a death exactly
+        # at the radius joins, as _near_fight's inclusive check has it.
+        same_spot = {
+            **_make_snaps("npc_dota_hero_axe", 0, 1000, 100.0, 100.0),
+            **_make_snaps("npc_dota_hero_pudge", 1, 1200, 100.0, 100.0),
+        }
+        entries = [_death(1000, "npc_dota_hero_axe"), _death(1200, "npc_dota_hero_pudge")]
+        fights = detect_fights(entries, hero_to_slot=self.H2S, player_snapshots=same_spot, radius=0)
+        assert [f.deaths for f in fights] == [2]
+
+        at_radius = {
+            **_make_snaps("npc_dota_hero_axe", 0, 1000, 0.0, 0.0),
+            **_make_snaps("npc_dota_hero_pudge", 1, 1200, 3000.0, 0.0),
+        }
+        fights = detect_fights(entries, hero_to_slot=self.H2S, player_snapshots=at_radius)
+        assert [f.deaths for f in fights] == [2]
+
     def test_a_shorter_window_splits_and_pads_less(self):
         entries = [_death(1000), _death(1200)]  # ~6.7 s apart
         (fight,) = detect_fights(entries)

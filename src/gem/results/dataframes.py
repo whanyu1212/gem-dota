@@ -253,6 +253,12 @@ class _Tables(dict[str, "pd.DataFrame"]):
         warn_renamed(f"DataFrame table {key!r}", repr(new))
         return self[new]
 
+    def get(self, key: str, default: Any = None) -> Any:
+        """Return a table, resolving renamed table names like ``tables[key]``."""
+        if key in self or (key in RENAMED_TABLES and RENAMED_TABLES[key] in self):
+            return self[key]
+        return default
+
 
 def _resolve_include(include: Iterable[str]) -> set[str]:
     groups = {include} if isinstance(include, str) else set(include)

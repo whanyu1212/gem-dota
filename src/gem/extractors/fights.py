@@ -275,15 +275,16 @@ def detect_fights(
         target_fight: Fight | None = None
         if active:
             if death_pos is not None and radius is not None:
-                # Spatial mode: pick the closest fight centroid within radius.
+                # Spatial mode: pick the closest fight centroid within radius
+                # (inclusive, like _near_fight; the first fight wins a tie).
                 # Fights without a centroid (position unavailable for all their
                 # deaths so far) are treated as infinitely far — never absorb
                 # into them when we have position data for the current death.
-                best_dist = radius
+                best_dist = math.inf
                 for f in active:
                     if f.centroid_x is not None and f.centroid_y is not None:
                         d = math.dist(death_pos, (f.centroid_x, f.centroid_y))
-                        if d < best_dist:
+                        if d <= radius and d < best_dist:
                             best_dist = d
                             target_fight = f
             else:

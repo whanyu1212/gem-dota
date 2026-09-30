@@ -17,7 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   time only, as OpenDota does. With the defaults it returns exactly `match.fights`
   (checked on all 8 fixtures, including matches loaded from JSON).
   `detect_fights` takes the same `window_s` and `radius` keyword arguments, and
-  `FIGHT_WINDOW_S` / `FIGHT_RADIUS` are the defaults.
+  `FIGHT_WINDOW_S` / `FIGHT_RADIUS` are the defaults. The radius is inclusive: a
+  death exactly `radius` from a fight's centre joins it (before, it had to be
+  strictly closer, which no real replay hit).
 - `scripts/audit_opendota_parity.py`: an offline, field-by-field comparison of
   gem's output with OpenDota's parsed match JSON on the local replay fixtures. It
   maps gem's format onto OpenDota's (per-minute arrays, log entries as
@@ -72,10 +74,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   The old names still work and emit a `DeprecationWarning`; they will be removed in
   a future release. That covers the module attributes, both old modules, the
-  `ParsedMatch` / `MatchAnalysis` / `SmokeAnalysis` attributes, the DataFrame dict
-  and `read_parquet_table`. Not covered: constructing `ParsedMatch(teamfights=...)`
-  (use `fights=`), Parquet file names (`parse_many_to_parquet` now writes
-  `fights.parquet`), the `analysis` section of `to_json` output
+  `ParsedMatch` / `MatchAnalysis` / `SmokeAnalysis` attributes and constructor
+  keywords (e.g. `ParsedMatch(teamfights=...)`), the DataFrame dict (indexing and
+  `.get`) and `read_parquet_table`. Not covered: Parquet file names
+  (`parse_many_to_parquet` now writes `fights.parquet`), the `analysis` section of
+  `to_json` output
   (`fight_positioning`), and the internal report builder
   `gem.reports.sections.build_teamfights` (now `build_fights`).
   - The JSON `schema_version` is now 3 and the top-level key is `fights`.

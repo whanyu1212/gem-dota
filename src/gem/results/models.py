@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-from gem._deprecation import renamed_attribute
+from gem._deprecation import renamed_attribute, renamed_init_kwargs
 from gem.combat.log import CombatLogEntry, CombatLogSource
 from gem.extractors.courier import CourierSnapshot
 from gem.extractors.draft import DraftEvent
@@ -992,6 +992,7 @@ class ParsedPlayer:
 # ---------------------------------------------------------------------------
 
 
+@renamed_init_kwargs({"teamfights": "fights"})
 @dataclass
 class ParsedMatch:
     """Top-level parsed output for a single Dota 2 replay.
