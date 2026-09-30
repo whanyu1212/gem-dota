@@ -96,7 +96,7 @@ results/assembly.py       ← wires extractor outputs into ParsedMatch
 results/dataframes.py     ← flat DataFrame projections (core tables + opt-in include= groups)
 reports/                  ← self-contained HTML report generation from ParsedMatch
 analysis/spatial.py       ← position, nearby-hero, and net-worth lookup helpers
-analysis/combat.py        ← ability-hit grouping and teamfight lookup helpers
+analysis/combat.py        ← ability-hit grouping, fight lookup and regrouping (find_fights)
 analysis/abilities.py     ← ability-level lookup helpers
 analysis/vision.py        ← geometry-based vision approximation helpers
 analysis/farming.py       ← evidence-first camp-route reconstruction + public context records
@@ -120,7 +120,7 @@ extractors/wards.py         ← ward placements + entity-stream coordinate match
 extractors/lane.py          ← lane-position heatmaps
 extractors/courier.py       ← courier state
 extractors/draft.py         ← pick/ban resolution (three-tier hero-ID resolution)
-extractors/teamfights.py    ← teamfight window detection + per-fight stat attribution
+extractors/fights.py      ← gem's fights (all sizes) + OpenDota-exact teamfights
 extractors/smoke_vision.py  ← Smoke of Deceit + vision-granting modifier events
 extractors/visibility.py    ← authoritative per-team visibility transitions for player heroes
 extractors/_snapshots.py    ← shared snapshot dataclasses/sampling helpers
@@ -187,8 +187,13 @@ Headline exports (see `__all__` for the full list):
   output (versioned by `SCHEMA_VERSION`; the `analysis` section is not decoded)
 - **Models:** `ParsedMatch`, `ParsedPlayer`, `ChatEntry`, `NeutralItemFoundEvent`
 - **Analysis helpers (post-parse):** `find_player`, `position_at_tick`,
-  `net_worth_at`, `teamfight_at_tick`, `heroes_near`, `ability_level_at_tick`,
-  `is_active_teamfight_participant`, `estimate_vision`, `ward_vision_impact`
+  `net_worth_at`, `fight_at_tick`, `find_fights`, `heroes_near`,
+  `ability_level_at_tick`, `is_active_fight_participant`, `estimate_vision`,
+  `ward_vision_impact`
+- **Fights vs teamfights:** `ParsedMatch.fights` is gem's own list of every
+  fight (users filter or regroup it); "teamfight" names are reserved for
+  OpenDota's definition (`opendota_teamfights`, `teamfight_participation`).
+  The gem 0.10 `teamfights` names are deprecated aliases (`gem/_deprecation.py`).
 - **Experimental:** `build_farming_routes`, `FarmingRoute`,
   `FarmingSegmentContext`, `build_map_context_timeline` (legacy compatibility),
   `score_camp_visit_context` (legacy compatibility), `build_rosh_conversions`,
@@ -359,7 +364,7 @@ Audit tooling: `scripts/audit_camp_annotations.py`.
 ### Roshan conversion analysis
 
 `analysis/roshan.py` (`build_rosh_conversions(match)`) is a **post-parse** helper
-that turns existing facts (Roshan kills, aegis events, teamfights, wards,
+that turns existing facts (Roshan kills, aegis events, fights, wards,
 objectives, buybacks, movement) into per-Roshan `RoshConversion` records answering
 "did this Roshan convert into fights / objectives / map control / a closing
 sequence?" Key time windows (all in ticks at 30/sec): aegis duration 5 min,
@@ -604,7 +609,7 @@ scripts (`test_audit_camp_annotations.py`, `test_audit_opendota_fixture_constant
 | Script | Description |
 |---|---|
 | `examples/quickstart.py` | Minimal: parse a replay, print per-minute gold/XP |
-| `examples/match_report.py` | Full HTML match dashboard (Draft, Combat, Vision, Teamfights, Economy, Roshan Conversion) |
+| `examples/match_report.py` | Full HTML match dashboard (Draft, Combat, Vision, Fights, Economy, Roshan Conversion) |
 | `examples/extraction_demo.py` | Developer guide for combat-log extraction and entity polling |
 | `examples/steam_match_info.py` | Fetch match info from the Steam API, display with Rich tables |
 

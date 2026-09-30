@@ -119,7 +119,7 @@ class TestParsedMatchFieldOrder:
         "neutral_item_finds",
         "smoke_events",
         "draft",
-        "teamfights",
+        "fights",
         "opendota_teamfights",
         "vision_modifiers",
         "banner_plants",

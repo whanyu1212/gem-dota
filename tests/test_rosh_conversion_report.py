@@ -4,6 +4,7 @@ import json
 from typing import Literal
 
 from gem.analysis._territory import RoshCoverageCell, RoshTerritoryWindow
+from gem.analysis.fight_positioning import EngagementStartSource
 from gem.analysis.roshan import (
     AegisFateSource,
     RoshConversion,
@@ -13,14 +14,13 @@ from gem.analysis.roshan import (
     RoshTeamAttributionSource,
     RoshTimelineEvent,
 )
-from gem.analysis.teamfight_positioning import EngagementStartSource
-from gem.extractors.teamfights import Teamfight, TeamfightPlayer
+from gem.extractors.fights import Fight, FightPlayer
 from gem.extractors.wards import WardEvent
 from gem.reports import ReportOptions, build_html_report, builder as report_builder
 from gem.reports._formatting import set_game_start_tick
 from gem.reports.assets import ReportAssets
 from gem.reports.sections import match as match_section
-from gem.reports.sections.combat import build_teamfights
+from gem.reports.sections.combat import build_fights
 from gem.results.models import ParsedMatch
 
 
@@ -284,13 +284,13 @@ def test_report_surfaces_unattributed_objectives_without_credit(monkeypatch) -> 
 
 
 def test_fight_card_links_back_to_associated_roshan_conversion() -> None:
-    fight_players = [TeamfightPlayer(player_id=player_id) for player_id in range(10)]
+    fight_players = [FightPlayer(player_id=player_id) for player_id in range(10)]
     fight_players[0].deaths = 1
     match = ParsedMatch(
         game_start_tick=0,
         players=[],
-        teamfights=[
-            Teamfight(
+        fights=[
+            Fight(
                 start_tick=1000,
                 end_tick=1300,
                 first_death_tick=1200,
@@ -302,7 +302,7 @@ def test_fight_card_links_back_to_associated_roshan_conversion() -> None:
         ],
     )
 
-    html = build_teamfights(match, None, rosh_conversions=[_conversion()])
+    html = build_fights(match, None, rosh_conversions=[_conversion()])
 
     assert 'href="#roshan-conversion-1"' in html
     assert 'data-report-target="roshan-conversion-1"' in html

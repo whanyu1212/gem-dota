@@ -58,13 +58,11 @@ def test_canonical_replay_preserves_smoke_lifecycles(
     assert first_link.fight_index == 0
     assert first_link.activation.tick == match.smoke_events[0].tick == 19_204
     assert first_link.first_death is not None
-    assert first_link.first_death.tick == match.teamfights[0].first_death_tick == 21_002
+    assert first_link.first_death.tick == match.fights[0].first_death_tick == 21_002
     assert len(first_link.active_smoked_player_ids) == 5
     assert len(first_link.follow_ups) == 1
 
     for insight in insights:
         assert insight.activation.tick == match.smoke_events[insight.smoke_index].tick
         if insight.fight_index is not None and insight.first_death is not None:
-            assert (
-                insight.first_death.tick == match.teamfights[insight.fight_index].first_death_tick
-            )
+            assert insight.first_death.tick == match.fights[insight.fight_index].first_death_tick

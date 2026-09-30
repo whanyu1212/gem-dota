@@ -11,6 +11,12 @@ import gem.results.models as model_module
 from gem.combat.log import CombatLogEntry, CombatLogSource, CombatLogType
 from gem.extractors.courier import CourierSnapshot
 from gem.extractors.draft import DraftEvent
+from gem.extractors.fights import (
+    Fight,
+    FightPlayer,
+    OpenDotaTeamfight,
+    OpenDotaTeamfightPlayer,
+)
 from gem.extractors.objectives import (
     AegisEvent,
     BannerPlant,
@@ -20,12 +26,6 @@ from gem.extractors.objectives import (
     ShrineKill,
     TormentorKill,
     TowerKill,
-)
-from gem.extractors.teamfights import (
-    OpenDotaTeamfight,
-    OpenDotaTeamfightPlayer,
-    Teamfight,
-    TeamfightPlayer,
 )
 from gem.extractors.wards import WardEvent
 from gem.results.dataframes import CORE_TABLES, OPTIONAL_GROUPS, build_dataframes
@@ -188,8 +188,8 @@ class TestBuildDataframes:
         assert "match" in dfs
         assert "radiant_advantage" in dfs
         assert "draft" in dfs
-        assert "teamfights" in dfs
-        assert "teamfight_positioning" in dfs
+        assert "fights" in dfs
+        assert "fight_positioning" in dfs
         assert "roshan_conversions" in dfs
         assert "roshan_conversion_fights" in dfs
         assert "opendota_teamfights" in dfs
@@ -213,7 +213,7 @@ class TestBuildDataframes:
 
         assert dfs["neutral_item_finds"].empty
         assert dfs["opendota_teamfights"].empty
-        assert dfs["teamfight_positioning"].empty
+        assert dfs["fight_positioning"].empty
         assert dfs["roshan_conversions"].empty
         assert dfs["roshan_conversion_fights"].empty
         assert dfs["farming_route_segments"].empty
@@ -241,7 +241,7 @@ class TestBuildDataframes:
             "engagement_start_tick",
             "engagement_start_source",
         ]
-        assert list(dfs["teamfight_positioning"].columns[1:9]) == [
+        assert list(dfs["fight_positioning"].columns[1:9]) == [
             "fight_index",
             "fight_start_tick",
             "engagement_start_tick",
@@ -327,7 +327,7 @@ class TestBuildDataframes:
             )
             for player_id in range(10)
         ]
-        fight_players = [TeamfightPlayer(player_id=player_id) for player_id in range(10)]
+        fight_players = [FightPlayer(player_id=player_id) for player_id in range(10)]
         fight_players[0].damage_dealt = 500
         fight_players[5].deaths = 1
         match = ParsedMatch(
@@ -353,8 +353,8 @@ class TestBuildDataframes:
                     killer_team=2,
                 )
             ],
-            teamfights=[
-                Teamfight(
+            fights=[
+                Fight(
                     start_tick=1100,
                     end_tick=1400,
                     first_death_tick=1300,
@@ -388,7 +388,7 @@ class TestBuildDataframes:
         assert fight["conversion_participant_ids"] == "0"
         assert fight["opponent_participant_ids"] == "5"
 
-    def test_teamfight_positioning_table_is_flat_and_preserves_missing_values(self):
+    def test_fight_positioning_table_is_flat_and_preserves_missing_values(self):
         radiant = ParsedPlayer(
             player_id=0,
             hero_name="npc_dota_hero_axe",
@@ -401,12 +401,12 @@ class TestBuildDataframes:
             team=3,
             position_log=[],
         )
-        fight_players = [TeamfightPlayer(player_id=i) for i in range(10)]
+        fight_players = [FightPlayer(player_id=i) for i in range(10)]
         fight_players[0].damage_dealt = 50
         match = ParsedMatch(
             players=[radiant, dire],
-            teamfights=[
-                Teamfight(
+            fights=[
+                Fight(
                     start_tick=550,
                     end_tick=1_450,
                     first_death_tick=1_000,
@@ -419,7 +419,7 @@ class TestBuildDataframes:
 
         frames = build_dataframes(match, include="analysis")
         assert_schemas_match_empty_match(frames)
-        frame = frames["teamfight_positioning"]
+        frame = frames["fight_positioning"]
 
         assert len(frame) == 8  # four logical snapshots × two canonical heroes
         assert set(frame["snapshot_kind"]) == {
@@ -713,13 +713,13 @@ class TestBuildDataframes:
         assert summary["max_hero_hit_target"] == "npc_dota_hero_lina"
         assert summary["max_hero_hit_time"] == 912
 
-    def test_teamfights_export_players_as_their_own_table(self):
-        fight_players = [TeamfightPlayer(player_id=i) for i in range(10)]
+    def test_fights_export_players_as_their_own_table(self):
+        fight_players = [FightPlayer(player_id=i) for i in range(10)]
         fight_players[2].damage_dealt = 450
         fight_players[2].ability_uses = {"axe_berserkers_call": 1}
         match = ParsedMatch(
-            teamfights=[
-                Teamfight(
+            fights=[
+                Fight(
                     start_tick=100,
                     end_tick=900,
                     first_death_tick=500,
@@ -732,9 +732,9 @@ class TestBuildDataframes:
 
         dfs = build_dataframes(match)
 
-        assert "players" not in dfs["teamfights"].columns
-        assert dfs["teamfights"].iloc[0]["fight_index"] == 0
-        fight_rows = dfs["teamfight_players"]
+        assert "players" not in dfs["fights"].columns
+        assert dfs["fights"].iloc[0]["fight_index"] == 0
+        fight_rows = dfs["fight_players"]
         assert len(fight_rows) == 10
         assert "ability_uses" not in fight_rows.columns
         assert fight_rows.set_index("player_id").loc[2, "damage_dealt"] == 450
@@ -780,14 +780,14 @@ class TestBuildDataframes:
         match = ParsedMatch(
             players=[pp],
             combat_log=[CombatLogEntry(tick=10, log_type=CombatLogType.DAMAGE, value=5)],
-            teamfights=[
-                Teamfight(
+            fights=[
+                Fight(
                     start_tick=1,
                     end_tick=2,
                     first_death_tick=1,
                     last_death_tick=1,
                     deaths=1,
-                    players=[TeamfightPlayer(player_id=0, item_uses={"blink": 1})],
+                    players=[FightPlayer(player_id=0, item_uses={"blink": 1})],
                 )
             ],
             smoke_events=[SmokeEvent(tick=1, activator="a", team=2, smoked=["a"])],
@@ -920,14 +920,14 @@ def _populated_match() -> ParsedMatch:
             )
         ],
         draft=[DraftEvent(tick=1, slot_index=0, hero_id=2, hero_name="axe", is_pick=True)],
-        teamfights=[
-            Teamfight(
+        fights=[
+            Fight(
                 start_tick=1,
                 end_tick=2,
                 first_death_tick=1,
                 last_death_tick=1,
                 deaths=1,
-                players=[TeamfightPlayer(player_id=0)],
+                players=[FightPlayer(player_id=0)],
             )
         ],
         opendota_teamfights=[

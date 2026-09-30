@@ -1312,7 +1312,7 @@ def build_parsed_match(
 
     Handles radiant_win resolution (three-tier), per-player time series wiring,
     player name extraction, ward-to-player assignment, gold/XP advantage curves,
-    and teamfight detection.
+    and fight detection.
 
     Args:
         parser: Completed :class:`ReplayParser` instance.
@@ -1340,7 +1340,7 @@ def build_parsed_match(
     Returns:
         Fully populated :class:`ParsedMatch`.
     """
-    from gem.extractors.teamfights import detect_opendota_teamfights, detect_teamfights
+    from gem.extractors.fights import detect_fights, detect_opendota_teamfights
 
     # radiant_win resolution — three tiers in priority order:
     #   1. CDemoFileInfo.game_winner (set during parse, empty for HLTV replays)
@@ -1582,13 +1582,13 @@ def build_parsed_match(
         if minute_adv is not None:
             match.game_times_min, match.radiant_gold_adv, match.radiant_xp_adv = minute_adv
 
-    # Detect teamfights (Phase 9)
+    # Detect fights (Phase 9)
     hero_to_slot = {pp.hero_name: pp.player_id for pp in match.players if pp.hero_name}
     slot_to_team = {pp.player_id: pp.team for pp in match.players if pp.team}
     player_snaps: dict[int, Any] = {
         pid: [s for s in player_ext.snapshots if s.player_id == pid] for pid in range(10)
     }
-    match.teamfights = detect_teamfights(
+    match.fights = detect_fights(
         all_entries,
         hero_to_slot=hero_to_slot,
         player_snapshots=player_snaps,

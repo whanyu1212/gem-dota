@@ -12,9 +12,11 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
+from gem._deprecation import renamed_attribute
 from gem.combat.log import CombatLogEntry, CombatLogSource
 from gem.extractors.courier import CourierSnapshot
 from gem.extractors.draft import DraftEvent
+from gem.extractors.fights import Fight, OpenDotaTeamfight
 from gem.extractors.objectives import (
     AegisEvent,
     BannerPlant,
@@ -25,7 +27,6 @@ from gem.extractors.objectives import (
     TormentorKill,
     TowerKill,
 )
-from gem.extractors.teamfights import OpenDotaTeamfight, Teamfight
 from gem.extractors.wards import WardEvent
 from gem.state.game_clock import GameClock
 
@@ -1047,10 +1048,13 @@ class ParsedMatch:
         smoke_events: All Smoke of Deceit activations with grouped heroes and
             approximate activating-hero position.
         draft: Hero pick and ban events from the draft phase.
-        teamfights: All detected teamfight windows with per-player breakdowns.
-        opendota_teamfights: OpenDota-compatible temporal teamfight windows.
-            These use OpenDota's 15-second death-window grouping and 3+ death
-            filter, while ``teamfights`` keeps Gem's richer spatial detector.
+        fights: Every fight gem detects, from single pickoffs up, with
+            per-player breakdowns. Deaths are grouped by a 15-second window and
+            a 3,000-unit radius; filter on ``deaths`` or active participants to
+            choose what counts as a teamfight, or regroup with
+            :func:`gem.find_fights`. Named ``teamfights`` in gem 0.10 and earlier.
+        opendota_teamfights: OpenDota's teamfights, exactly: its 15-second
+            death-window grouping, no location split, and 3+ deaths.
         vision_modifiers: Vision-granting modifier events (Slardar Corrosive Haze,
             Bounty Hunter Track, Dust of Appearance, Gem of True Sight, etc.).
             Target-specific reveal evidence is exposed by
@@ -1133,7 +1137,7 @@ class ParsedMatch:
     neutral_item_finds: list[NeutralItemFoundEvent] = field(default_factory=list)
     smoke_events: list[SmokeEvent] = field(default_factory=list)
     draft: list[DraftEvent] = field(default_factory=list)
-    teamfights: list[Teamfight] = field(default_factory=list)
+    fights: list[Fight] = field(default_factory=list)
     opendota_teamfights: list[OpenDotaTeamfight] = field(default_factory=list)
     vision_modifiers: list[VisionModifierEvent] = field(default_factory=list)
     # Append-only: ParsedMatch is a public dataclass and supports positional
@@ -1157,6 +1161,8 @@ class ParsedMatch:
         compare=False,
         metadata={"serialize": False},
     )
+
+    teamfights = renamed_attribute("teamfights", "fights")
 
     @property
     def duration_seconds(self) -> float:

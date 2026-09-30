@@ -48,7 +48,7 @@ for player in match.players:
 
 `gem.parse()` returns a `ParsedMatch`. Most consumers can stay at this level and work
 with fields such as `match.players`, `match.combat_log`, `match.wards`,
-`match.teamfights`, `match.opendota_teamfights`, `match.draft`, and
+`match.fights`, `match.opendota_teamfights`, `match.draft`, and
 `match.radiant_gold_adv`.
 
 ## Find one player
@@ -91,7 +91,7 @@ print(frames["combat_log"].head())
 Use DataFrames for pandas, notebooks, and ML pipelines. Every table is flat and starts
 with a `match_id` column. Common tables include `player_summary` (one row per player),
 `player_timeseries`, `players_minute`, `positions`, `combat_log`, `wards`,
-`objectives`, `teamfights`, `neutral_item_finds`, and per-player event logs. Pass
+`objectives`, `fights`, `neutral_item_finds`, and per-player event logs. Pass
 `include=["analysis"]` or `include=["opendota"]` for the optional post-parse analysis
 and OpenDota-shaped tables; see [Time-Series & DataFrames](05_timeseries.md).
 
@@ -132,6 +132,6 @@ commands used by HTML report generation.
 | Inspect every `ParsedMatch` field | [Full Match Data](04_match_data.md) |
 | Work with pandas tables and time series | [Time-Series & DataFrames](05_timeseries.md) |
 | Analyze combat log events | [Combat Log](03_combat_log.md) |
-| Work with teamfight windows | [Teamfight Detection](06_teamfights.md) |
+| Work with fight windows | [Fight Detection](06_fights.md) |
 | Build custom parser callbacks | [Custom Extractors](07_custom_extractors.md) |
 | Understand parser internals | [Parser Internals](../deep-dives/index.md) |

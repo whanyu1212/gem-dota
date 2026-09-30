@@ -74,8 +74,8 @@ Core tables (always returned):
 | `objectives` | Typed Gem objective rows such as towers, barracks, Roshan, tormentors, couriers |
 | `chat` | Chat messages |
 | `draft` | Pick and ban events |
-| `teamfights` | Gem teamfight windows, one row per fight with a `fight_index` |
-| `teamfight_players` | Per-fight, per-player stats (deaths, damage, healing, gold/XP delta) |
+| `fights` | Gem fight windows, one row per fight with a `fight_index` |
+| `fight_players` | Per-fight, per-player stats (deaths, damage, healing, gold/XP delta) |
 | `smoke_events` | Smoke activations; `smoked` is a `";"`-joined hero list |
 | `smoke_members` | Flat per-hero smoke application/removal timing and sampled positions |
 | `courier_snapshots` | Courier state over time |
@@ -93,7 +93,7 @@ Optional groups (pass `include=[...]`):
 
 | Group | Tables |
 |---|---|
-| `"analysis"` | `teamfight_positioning`, `roshan_conversions`, `roshan_conversion_fights`, `smoke_fight_insights`, `smoke_fight_members`, `smoke_fight_followups`, `farming_routes`, `farming_route_segments`, `farming_route_points`, `farming_context_tags` |
+| `"analysis"` | `fight_positioning`, `roshan_conversions`, `roshan_conversion_fights`, `smoke_fight_insights`, `smoke_fight_members`, `smoke_fight_followups`, `farming_routes`, `farming_route_segments`, `farming_route_points`, `farming_context_tags` |
 | `"gold_ledger"` | `player_gold_ledger` (one row per player, at game end), `player_gold_ledger_minutes` (one row per player-minute) |
 | `"opendota"` | `opendota_objectives`, `opendota_teamfights` |
 
@@ -103,7 +103,7 @@ segments = frames["farming_route_segments"]
 ```
 
 The analysis group runs the post-parse farming, smoke-fight, Roshan-conversion,
-and teamfight-positioning analyses, so it adds several seconds per replay. Leave it
+and fight-positioning analyses, so it adds several seconds per replay. Leave it
 out when you only need the core tables.
 
 ### Player tables

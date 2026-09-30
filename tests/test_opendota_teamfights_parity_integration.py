@@ -33,6 +33,6 @@ class TestOpenDotaTeamfightsMatchOpenDota:
         clock = feature_parity_match.game_clock
         assert any(
             clock.game_seconds_at(fight.first_death_tick) > last_opendota_end
-            for fight in feature_parity_match.teamfights
+            for fight in feature_parity_match.fights
             if fight.deaths >= 3
         )

@@ -1,12 +1,14 @@
 """Post-parse analysis helpers for gem replay data."""
 
+from gem._deprecation import renamed_module_attrs
 from gem.analysis.abilities import ability_level_at_tick
 from gem.analysis.bundle import MatchAnalysis, analyze
 from gem.analysis.combat import (
     AbilityCast,
+    fight_at_tick,
+    find_fights,
     group_ability_hits,
-    is_active_teamfight_participant,
-    teamfight_at_tick,
+    is_active_fight_participant,
 )
 from gem.analysis.farming import (
     DEFAULT_FARMING_CONTEXT_CONFIG,
@@ -22,6 +24,16 @@ from gem.analysis.farming import (
     FarmingRouteSegment,
     FarmingSegmentContext,
     build_farming_routes,
+)
+from gem.analysis.fight_positioning import (
+    EngagementStartSource,
+    EvidenceCompleteness,
+    FightPositioning,
+    FightPositionSnapshot,
+    HeroPositionEvidence,
+    SnapshotKind,
+    TeamPositionSummary,
+    build_fight_positioning,
 )
 from gem.analysis.formatting import format_npc_name
 from gem.analysis.map_context import (
@@ -77,16 +89,6 @@ from gem.analysis.spatial import (
     net_worth_at,
     position_at_tick,
     position_sample_at_tick,
-)
-from gem.analysis.teamfight_positioning import (
-    EngagementStartSource,
-    EvidenceCompleteness,
-    FightPositionSnapshot,
-    HeroPositionEvidence,
-    SnapshotKind,
-    TeamfightPositioning,
-    TeamPositionSummary,
-    build_teamfight_positioning,
 )
 from gem.analysis.vision import (
     DirectTargetRevealEvidence,
@@ -162,7 +164,7 @@ __all__ = [
     "SnapshotKind",
     "TeamPositionSummary",
     "TeamRelation",
-    "TeamfightPositioning",
+    "FightPositioning",
     "SampledPosition",
     "VisionSource",
     "_is_daytime",
@@ -173,7 +175,7 @@ __all__ = [
     "build_rosh_conversions",
     "build_smoke_analysis",
     "build_smoke_fight_insights",
-    "build_teamfight_positioning",
+    "build_fight_positioning",
     "MatchAnalysis",
     "analyze",
     "estimate_vision",
@@ -182,13 +184,24 @@ __all__ = [
     "format_npc_name",
     "group_ability_hits",
     "heroes_near",
-    "is_active_teamfight_participant",
+    "is_active_fight_participant",
     "is_daytime",
     "net_worth_at",
     "position_at_tick",
     "position_sample_at_tick",
     "score_camp_visit_context",
-    "teamfight_at_tick",
+    "fight_at_tick",
+    "find_fights",
     "ward_vision_impact",
     "world_in_bounds",
 ]
+
+#: Names gem 0.10 and earlier used for gem's own fights.
+RENAMED_FIGHT_NAMES = {
+    "TeamfightPositioning": "FightPositioning",
+    "build_teamfight_positioning": "build_fight_positioning",
+    "is_active_teamfight_participant": "is_active_fight_participant",
+    "teamfight_at_tick": "fight_at_tick",
+}
+
+__getattr__ = renamed_module_attrs(__name__, RENAMED_FIGHT_NAMES, globals())

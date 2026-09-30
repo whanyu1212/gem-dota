@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from gem.reports.sections.combat import (
     build_combat_timeseries_chart,
+    build_fights,
     build_kill_feed,
-    build_teamfights,
 )
 from gem.reports.sections.economy import (
     build_buybacks,
@@ -52,6 +52,6 @@ __all__ = [
     "build_runes",
     "build_scoreboard",
     "build_smokes",
-    "build_teamfights",
+    "build_fights",
     "build_wards",
 ]

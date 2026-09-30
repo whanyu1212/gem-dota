@@ -13,7 +13,7 @@ The package divides into two halves:
 - **Cheap lookups** (`spatial.py`, `combat.py`, `abilities.py`, `formatting.py`)
   — near-instant point queries over already-collected fact lists.
 - **Heavy, experimental builders** (`farming.py`, `map_context.py`, `roshan.py`,
-  `smoke_fight.py`, `teamfight_positioning.py`) — multi-pass
+  `smoke_fight.py`, `fight_positioning.py`) — multi-pass
   scans that synthesise new derived records (context buckets, Roshan-conversion
   summaries) from many fact sources at once.
 
@@ -28,7 +28,7 @@ re-parse.**
 ```text
 ReplayParser  ──parse──▶  ParsedMatch
                             (players, wards, towers, barracks, roshans,
-                             tormentors, aegis_events, teamfights,
+                             tormentors, aegis_events, fights,
                              combat_log, vision_modifiers, ...)
                                    │
                                    │  read-only
@@ -38,8 +38,8 @@ ReplayParser  ──parse──▶  ParsedMatch
                   │                                   │
           cheap point lookups               heavy derived builders
    position_at_tick / heroes_near /     build_farming_routes /
-   net_worth_at / teamfight_at_tick /   build_map_context_timeline /
-   group_ability_hits / ability_        build_teamfight_positioning /
+   net_worth_at / fight_at_tick /   build_map_context_timeline /
+   group_ability_hits / ability_        build_fight_positioning /
    level_at_tick / assess_point_vision  build_rosh_conversions /
                                          build_smoke_fight_insights
                                              │
@@ -91,10 +91,10 @@ These are O(log N) or single-pass helpers over a sorted/parallel fact list.
   updated as more hits join) merge into the same cast. Default `5` (~1/6 s at
   30 ticks/s) suits AoE spells; the docstring suggests `10`–`15` for channelled
   abilities.
-- `teamfight_at_tick(match, tick)` binary-searches `match.teamfights` (assumed
-  non-overlapping and sorted by `start_tick`) and returns the `Teamfight` whose
+- `fight_at_tick(match, tick)` binary-searches `match.fights` (assumed
+  non-overlapping and sorted by `start_tick`) and returns the `Fight` whose
   `[start_tick, end_tick]` window contains `tick`, else `None`.
-- `is_active_teamfight_participant(player_stats)` returns `True` when a
+- `is_active_fight_participant(player_stats)` returns `True` when a
   per-fight stats object has any of `deaths`, `damage_dealt`, `damage_taken`, or
   `healing` greater than 0 (read via `getattr(..., 0)`, so missing attributes
   count as 0). This encodes the "direct hero-vs-hero combat" definition shared
@@ -254,12 +254,12 @@ previously duplicated between `roshan.py`, `map_context.py`, and
 - Everything is read-only against `ParsedMatch`/`ParsedPlayer`. No function in
   this package mutates the match or calls back into the parser.
 - The boundary with `extractors/` is **types only**: `combat.py` and `roshan.py`
-  import `Teamfight` / `AegisEvent` (and `combat.py`'s `CombatLogEntry`,
+  import `Fight` / `AegisEvent` (and `combat.py`'s `CombatLogEntry`,
   `roshan.py`/`map_context.py`'s `ParsedMatch`) under `if TYPE_CHECKING:`, so
   there is no runtime dependency on the extractor or results packages. The one
   real runtime import outside `analysis` is
   `map_context.py` → `gem.catalog.map.load_neutral_camp_centers`.
-- `is_active_teamfight_participant` and `ward_vision_impact` deliberately accept
+- `is_active_fight_participant` and `ward_vision_impact` deliberately accept
   `object` / duck-typed args (read via `getattr`) so they work with any
   stats/ward shape, not just the concrete extractor dataclass.
 
@@ -271,7 +271,7 @@ previously duplicated between `roshan.py`, `map_context.py`, and
 - **Ingest the combat log.** Producing `CombatLogEntry` objects (S1 + S2 paths)
   is `combat`; this package only *reads* the finished `match.combat_log`.
 - **Collect facts during a parse.** Sampling player snapshots, ward placements,
-  teamfight windows, draft, objectives, etc. is `extractors`. Analysis only
+  fight windows, draft, objectives, etc. is `extractors`. Analysis only
   imports extractor result *types* (under `TYPE_CHECKING`).
 - **Assemble `ParsedMatch` / export DataFrames/JSON/Parquet.** That is `results`
   (`assembly.py`, `dataframes.py`, `models.py`).
@@ -282,7 +282,7 @@ previously duplicated between `roshan.py`, `map_context.py`, and
   centres; `format_npc_name` is only string munging, not a catalog lookup.
 
 If a value looks wrong here, the bug is usually upstream: a missing
-`position_log` sample, an empty `teamfights` list, or a mis-extracted ward — fix
+`position_log` sample, an empty `fights` list, or a mis-extracted ward — fix
 it in the extractor that produced the field, not in the lookup that reads it.
 
 ## Common Pitfalls
@@ -300,7 +300,7 @@ Corrosive Haze, Dust, or a carrier/aura record into general map coverage.
 
 ### `net_worth_at` scans linearly; `position_at_tick` bisects
 `net_worth_at` uses an O(N) `min()` over `player.times`, while `position_at_tick`
-and `teamfight_at_tick` use `bisect`. Don't assume all "at_tick" helpers share
+and `fight_at_tick` use `bisect`. Don't assume all "at_tick" helpers share
 the same cost or that the arrays are interchangeable.
 
 ### `ability_level_at_tick` reads a private attribute
@@ -318,9 +318,9 @@ extending the same cast indefinitely. Two genuinely separate casts of the same
 ability within `window_ticks` will merge; widen or narrow `window_ticks` per
 ability type (channelled spells need a larger window).
 
-### `teamfight_at_tick` assumes non-overlapping, sorted fights
+### `fight_at_tick` assumes non-overlapping, sorted fights
 It binary-searches on `start_tick` and checks a single candidate window. If the
-`teamfights` list is unsorted or windows overlap, it can miss a containing fight.
+`fights` list is unsorted or windows overlap, it can miss a containing fight.
 
 ### `region_of` is geometric, not lane-aware
 The river is just the diagonal strip `|x - y| <= 1200`; halves are

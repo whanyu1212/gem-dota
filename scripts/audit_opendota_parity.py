@@ -231,7 +231,8 @@ def audit_match(
         return clock.game_seconds_at(tick)
 
     match_fields = {f.name for f in fields(match) if not f.name.startswith("_")}
-    for name in sorted((match_fields & od.keys()) - {"players"}):
+    compared = (match_fields | MATCH_CHECKS.keys()) & od.keys()
+    for name in sorted(compared - {"players"}):
         check = MATCH_CHECKS.get(name)
         gem, ref = check(match, od) if check else (_plain(getattr(match, name)), od[name])
         results.setdefault(f"match.{name}", FieldResult()).record(match_id, gem, ref)

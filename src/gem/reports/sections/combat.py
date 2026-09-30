@@ -1,4 +1,4 @@
-"""Combat report sections (kill feed, teamfights, combat time-series).
+"""Combat report sections (kill feed, fights, combat time-series).
 
 Split out of the former monolithic ``_sections.py`` (see that module's
 shim for backward-compatible re-exports).
@@ -10,15 +10,15 @@ import json
 
 from gem.analysis import (
     EngagementStartSource,
+    FightPositioning,
     HeroPositionEvidence,
     RoshConversion,
     SmokeFightInsight,
-    TeamfightPositioning,
+    build_fight_positioning,
     build_smoke_fight_insights,
-    build_teamfight_positioning,
     group_ability_hits,
     hero_visibility_at,
-    is_active_teamfight_participant,
+    is_active_fight_participant,
 )
 from gem.catalog import (
     ability_display,
@@ -312,8 +312,8 @@ def build_kill_feed(match: ParsedMatch) -> str:
     return "\n".join(parts)
 
 
-def _top_abilities_teamfight(ability_uses: dict[str, int], n: int = 3) -> str:
-    """Format top abilities used in one teamfight row."""
+def _top_abilities_fight(ability_uses: dict[str, int], n: int = 3) -> str:
+    """Format top abilities used in one fight row."""
     if not ability_uses:
         return '<span class="dim">—</span>'
     top = sorted(ability_uses.items(), key=lambda x: x[1], reverse=True)[:n]
@@ -328,7 +328,7 @@ def _fight_combat_log_html(
     h2s: dict[str, int],
     active_slots: list[int],
 ) -> str:
-    """Build a chronological combat log for one teamfight window.
+    """Build a chronological combat log for one fight window.
 
     Only includes events where at least one of the attacker or target is an
     active participant in this fight (as determined by ``active_slots``).
@@ -538,9 +538,9 @@ _SNAPSHOT_LABELS = {
 }
 
 
-def _teamfight_positioning_svg(
+def _fight_positioning_svg(
     fight_idx: int,
-    analysis: TeamfightPositioning,
+    analysis: FightPositioning,
     map_b64: str | None,
     size: int = 320,
 ) -> str:
@@ -650,9 +650,9 @@ def _teamfight_positioning_svg(
     )
 
 
-def _teamfight_positioning_controls(
+def _fight_positioning_controls(
     fight_idx: int,
-    analysis: TeamfightPositioning,
+    analysis: FightPositioning,
 ) -> str:
     """Return snapshot controls and evidence notes for one fight map."""
     buttons: list[str] = []
@@ -819,14 +819,14 @@ def _fight_reveals_html(
     )
 
 
-def build_teamfights(
+def build_fights(
     match: ParsedMatch,
     map_b64: str | None,
     insights: list[SmokeFightInsight] | None = None,
     rosh_conversions: list[RoshConversion] | None = None,
 ) -> str:
-    """Build the Teamfights tab content (filters + fight cards)."""
-    fights = match.teamfights or []
+    """Build the Fights tab content (filters + fight cards)."""
+    fights = match.fights or []
     if not fights:
         return (
             '<div class="card"><details open><summary>Fights</summary>'
@@ -843,7 +843,7 @@ def build_teamfights(
     }
     load_hero_icons([pp.hero_name for pp in slot_to_player.values() if pp.hero_name])
     positioning_by_index = {
-        analysis.fight_index: analysis for analysis in build_teamfight_positioning(match)
+        analysis.fight_index: analysis for analysis in build_fight_positioning(match)
     }
     if insights is None:
         insights = build_smoke_fight_insights(match)
@@ -862,7 +862,7 @@ def build_teamfights(
 
     max_deaths = max((tf.deaths for tf in fights), default=1)
     max_participants = max(
-        (sum(1 for p in tf.players if is_active_teamfight_participant(p)) for tf in fights),
+        (sum(1 for p in tf.players if is_active_fight_participant(p)) for tf in fights),
         default=1,
     )
 
@@ -901,7 +901,7 @@ def build_teamfights(
             for conversion, relation in rosh_by_fight.get(i - 1, [])
         )
         tf_by_slot = {p.player_id: p for p in tf.players}
-        active_slots = [p.player_id for p in tf.players if is_active_teamfight_participant(p)]
+        active_slots = [p.player_id for p in tf.players if is_active_fight_participant(p)]
         died_slots = {p.player_id for p in tf.players if p.deaths > 0}
 
         radiant_slots = sorted(
@@ -933,8 +933,8 @@ def build_teamfights(
             f"</div>"
             f'<div class="tf-fight-body">'
             f'<div class="tf-fight-map" data-fight="{i}">'
-            f"{_teamfight_positioning_svg(i, positioning, map_b64)}"
-            f"{_teamfight_positioning_controls(i, positioning)}</div>"
+            f"{_fight_positioning_svg(i, positioning, map_b64)}"
+            f"{_fight_positioning_controls(i, positioning)}</div>"
             f'<div class="tf-fight-right">'
         )
 
@@ -984,7 +984,7 @@ def build_teamfights(
                     f'<td class="r">{getattr(tfp, "buybacks", 0):,}</td>'
                     f'<td class="r">{getattr(tfp, "healing", 0):,}</td>'
                     f'<td class="r">{getattr(tfp, "xp_delta", 0):,}</td>'
-                    f"<td>{_top_abilities_teamfight(getattr(tfp, 'ability_uses', {}))}</td>"
+                    f"<td>{_top_abilities_fight(getattr(tfp, 'ability_uses', {}))}</td>"
                     f"</tr>"
                 )
             parts.append("</tbody></table></div>")

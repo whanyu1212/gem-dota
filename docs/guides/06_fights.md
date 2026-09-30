@@ -1,31 +1,49 @@
-# Teamfight Detection
+# Fight Detection
 
-gem exposes two teamfight views:
+gem exposes two fight views:
 
-- `match.teamfights` - Gem's richer fight windows, including spatial separation for
-  simultaneous fights when position data is available.
-- `match.opendota_teamfights` - OpenDota-compatible temporal windows with the 3+ death
-  filter already applied.
+- `match.fights` - every fight gem detects, from a single pickoff up, with spatial
+  separation for simultaneous fights when position data is available. What counts as a
+  *teamfight* is up to you: filter on deaths or participants, or regroup with
+  `gem.find_fights`.
+- `match.opendota_teamfights` - OpenDota's teamfights exactly: temporal windows with
+  OpenDota's 3+ death filter already applied.
 
-Use `match.teamfights` for exploratory analysis and report UI. Use
+Use `match.fights` for exploratory analysis and report UI. Use
 `match.opendota_teamfights` when you want OpenDota-shaped output.
 
-## Gem teamfights
+`match.fights` was called `match.teamfights` in gem 0.10 and earlier. The old names
+(`match.teamfights`, `Teamfight`, `teamfight_at_tick`, the `teamfights` DataFrame
+table, …) still work for now and emit a `DeprecationWarning`.
+
+## Gem fights
 
 Gem detects a fight by:
 
 1. Scanning hero death events in the combat log.
 2. Opening a 15-second window around each death.
 3. Merging windows that share deaths or continuing combat.
-4. Splitting simultaneous skirmishes in different map areas when position data is
-   available.
+4. Splitting simultaneous skirmishes more than 3,000 world units apart when position
+   data is available.
+
+No minimum is applied, so most fights have one or two deaths. Keep the ones you
+consider teamfights:
+
+```python
+teamfights = [
+    fight
+    for fight in match.fights
+    if fight.deaths >= 3
+    and sum(gem.is_active_fight_participant(p) for p in fight.players) >= 6
+]
+```
 
 ```python
 import gem
 
 match = gem.parse("my_replay.dem")
 
-for fight in match.teamfights:
+for fight in match.fights:
     duration = (fight.end_tick - fight.start_tick) / 30
     print(
         f"Fight at tick {fight.start_tick:,}-{fight.end_tick:,} "
@@ -36,7 +54,7 @@ for fight in match.teamfights:
     )
 ```
 
-### Teamfight fields
+### Fight fields
 
 ```python
 fight.start_tick       # int: padded window open tick
@@ -49,8 +67,28 @@ fight.dire_kills       # int: hero kills scored by Dire
 fight.winner           # "radiant", "dire", "draw", or "unknown"
 fight.centroid_x       # float | None: mean X of positioned deaths
 fight.centroid_y       # float | None: mean Y of positioned deaths
-fight.players          # list[TeamfightPlayer], one per slot
+fight.players          # list[FightPlayer], one per slot
 ```
+
+### Regrouping fights
+
+Filtering can only drop fights; it cannot merge two fights the default grouping split.
+`gem.find_fights` regroups a parsed (or `gem.load_json`-loaded) match with your own
+window and radius, without parsing the replay again:
+
+```python
+# Group by time only, as OpenDota does: simultaneous fights anywhere become one.
+by_time = gem.find_fights(match, radius=None)
+
+# Wider areas, a shorter cooldown.
+wide = gem.find_fights(match, window_s=10, radius=5000)
+```
+
+`window_s` is how long after a fight's last death a new death still joins it (it also
+pads the fight's start and end); `radius` is the largest distance between a death and
+the fight's centre. The radius also decides whose damage, healing, gold and ability uses
+count for a fight. With the defaults (`window_s=15`, `radius=3000`), `find_fights`
+returns exactly `match.fights`.
 
 ### Participant stats
 
@@ -75,11 +113,11 @@ combat participation.
 
 ## Evidence-first positioning snapshots
 
-Use `gem.build_teamfight_positioning(match)` to obtain four deterministic
-spatial views for every Gem teamfight:
+Use `gem.build_fight_positioning(match)` to obtain four deterministic
+spatial views for every Gem fight:
 
 ```python
-for positioning in gem.build_teamfight_positioning(match):
+for positioning in gem.build_fight_positioning(match):
     for snapshot in positioning.snapshots:
         print(snapshot.kind.value, snapshot.tick)
         print(snapshot.radiant.completeness.value)
@@ -103,7 +141,7 @@ although its sample tick and age remain in the result. Team spread is RMS
 distance from the fresh-position centroid. Opposing-team visibility is the
 authoritative canonical-hero state and is never replaced by a geometric guess.
 
-See [Teamfight Positioning](../experimental/teamfight-positioning.md) for the
+See [Fight Positioning](../experimental/fight-positioning.md) for the
 moment definitions, geometry formulas, smoke/reveal boundaries, and report UI.
 
 ## Linking smoke operations to fights
@@ -135,7 +173,7 @@ OpenDota's `teamfights` on every local fixture. That includes OpenDota's quirks:
 
 - A fight closes at OpenDota's first once-a-second interval 15 s or more after its last
   death. A fight still open when the recording ends never closes, so the game's final
-  fight is usually missing. `match.teamfights` keeps it.
+  fight is usually missing. `match.fights` keeps it.
 - The Aegis holder's next death is skipped. OpenDota forgets the holder only when
   `modifier_aegis_regen` (the buff an unused Aegis gives as it expires) appears, so a
   holder whose Aegis ran out without it loses their next real death too.
@@ -158,11 +196,11 @@ OpenDota's `teamfights[].players[]` shape with fields such as `deaths`, `buyback
 
 ## Finding fight context
 
-Use `gem.teamfight_at_tick()` when you have another event, such as a combat log entry,
-and want to know whether it happened inside a Gem teamfight window:
+Use `gem.fight_at_tick()` when you have another event, such as a combat log entry,
+and want to know whether it happened inside a Gem fight window:
 
 ```python
-fight = gem.teamfight_at_tick(match, entry.tick)
+fight = gem.fight_at_tick(match, entry.tick)
 
 if fight:
     print(f"Event happened during a {fight.deaths}-death fight")
@@ -186,13 +224,14 @@ if fight and fight.centroid_x is not None and fight.centroid_y is not None:
 
 ## Reports
 
-The HTML report builder uses the teamfight data for minimaps, timelines, participant
+The HTML report builder uses the fight data for minimaps, timelines, participant
 tables, and combat-log drilldowns. See [Match Reports](../reports/index.md) for report
 generation and asset-cache setup.
 
 ## Implementation
 
-Source: `src/gem/extractors/teamfights.py`
+Source: `src/gem/extractors/fights.py`
 
-- `detect_teamfights(...)` builds Gem's richer fight windows.
+- `detect_fights(...)` builds Gem's fight windows (`window_s`, `radius`);
+  `gem.find_fights(match, ...)` calls it on a parsed match.
 - `detect_opendota_teamfights(...)` builds the OpenDota-compatible projection.

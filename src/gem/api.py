@@ -35,8 +35,11 @@ Public API
 ``ward_vision_impact(ward, match)``
     Count distinct enemy heroes spotted by an observer ward.
 
-``is_active_teamfight_participant(player_stats)``
-    Check if a player actively participated in a teamfight.
+``is_active_fight_participant(player_stats)``
+    Check if a player actively participated in a fight.
+
+``find_fights(match, window_s=15, radius=3000.0)``
+    Regroup a parsed match's hero deaths into fights with your own settings.
 
 ``format_npc_name(name)``
     Convert an NPC entity name to a human-readable label.
@@ -59,8 +62,8 @@ Public API
 ``build_smoke_fight_insights(match)``
     Build bounded smoke/fight observations from exact and sampled evidence.
 
-``build_teamfight_positioning(match)``
-    Build bounded spatial and visibility snapshots for detected teamfights.
+``build_fight_positioning(match)``
+    Build bounded spatial and visibility snapshots for detected fights.
 
 ``analyze(match)``
     Run every default post-parse analysis and return a ``MatchAnalysis``.
@@ -85,10 +88,12 @@ from typing import TYPE_CHECKING
 import gem.catalog as catalog  # re-export so `gem.catalog.hero_display()` works
 import gem.constants as constants  # re-export so `gem.constants.hero_display()` works
 import gem.reports as reports  # re-export so `gem.reports.build_html_report()` works
+from gem._deprecation import renamed_module_attrs
 from gem.analysis import (
     DEFAULT_FARMING_CONTEXT_CONFIG,
     DEFAULT_FARMING_ROUTE_CONFIG,
     DEFAULT_ROSH_TAG_THRESHOLDS,
+    RENAMED_FIGHT_NAMES as _RENAMED_ANALYSIS_NAMES,
     AbilityCast,
     AegisFateSource,
     CampVisitContext,
@@ -109,6 +114,7 @@ from gem.analysis import (
     FarmingSegmentContext,
     FightCentroidSource,
     FightOutcome,
+    FightPositioning,
     FightPositionSnapshot,
     FollowUpBoundary,
     FollowUpEvent,
@@ -143,7 +149,6 @@ from gem.analysis import (
     SmokeLifecycleStatus,
     SmokeMemberAnalysis,
     SnapshotKind,
-    TeamfightPositioning,
     TeamPositionSummary,
     TeamRelation,
     VisionSource,
@@ -151,31 +156,34 @@ from gem.analysis import (
     analyze,
     assess_point_vision,
     build_farming_routes,
+    build_fight_positioning,
     build_map_context_timeline,
     build_rosh_conversions,
     build_smoke_analysis,
     build_smoke_fight_insights,
-    build_teamfight_positioning,
     bundle as _bundle,
     entity_visibility_at,
     estimate_vision,
+    fight_at_tick,
+    find_fights,
     format_npc_name,
     group_ability_hits,
     hero_visibility_at,
     heroes_near,
-    is_active_teamfight_participant,
+    is_active_fight_participant,
     net_worth_at,
     position_at_tick,
     position_sample_at_tick,
     score_camp_visit_context,
-    teamfight_at_tick,
     ward_vision_impact,
 )
 from gem.catalog import hero_npc_name
 from gem.combat.log import CombatLogSource
 from gem.errors import ReplayDataError, TruncatedReplayError
 from gem.extractors.draft import resolve_pick_team
-from gem.extractors.teamfights import (
+from gem.extractors.fights import (
+    Fight,
+    FightPlayer,
     OpenDotaTeamfight,
     OpenDotaTeamfightPlayer,
     detect_opendota_teamfights,
@@ -399,7 +407,7 @@ def parse_to_dataframe(path: str | Path, *, include: Iterable[str] = ()) -> dict
     Args:
         path: Path to the ``.dem`` replay file.
         include: Optional table groups to add: ``"analysis"`` (farming,
-            smoke-fight, Roshan-conversion, and teamfight-positioning tables)
+            smoke-fight, Roshan-conversion, and fight-positioning tables)
             and/or ``"opendota"`` (OpenDota-shaped objective/teamfight views).
 
     Returns:
@@ -411,7 +419,7 @@ def parse_to_dataframe(path: str | Path, *, include: Iterable[str] = ()) -> dict
           ``"player_breakdowns"`` (long-form per-player dict stats)
         - ``"positions"``, ``"radiant_advantage"``, ``"combat_log"``,
           ``"wards"``, ``"objectives"``, ``"chat"``, ``"draft"``
-        - ``"teamfights"``, ``"teamfight_players"``, ``"smoke_events"``,
+        - ``"fights"``, ``"fight_players"``, ``"smoke_events"``,
           ``"smoke_members"``, ``"courier_snapshots"``, ``"neutral_item_finds"``
         - ``"hero_visibility_events"``, ``"entity_visibility"``,
           ``"vision_modifiers"``, ``"vision_modifier_pairing_issues"``
@@ -521,7 +529,10 @@ __all__ = [
     "AbilityCast",
     "AegisFateSource",
     "DEFAULT_ROSH_TAG_THRESHOLDS",
-    "teamfight_at_tick",
+    "fight_at_tick",
+    "find_fights",
+    "Fight",
+    "FightPlayer",
     "heroes_near",
     "ability_level_at_tick",
     "estimate_vision",
@@ -561,7 +572,7 @@ __all__ = [
     "entity_visibility_at",
     "net_worth_at",
     "ward_vision_impact",
-    "is_active_teamfight_participant",
+    "is_active_fight_participant",
     "detect_opendota_teamfights",
     "format_npc_name",
     "MapContextBucket",
@@ -592,7 +603,7 @@ __all__ = [
     "SmokeMemberAnalysis",
     "SnapshotKind",
     "TeamPositionSummary",
-    "TeamfightPositioning",
+    "FightPositioning",
     "TeamRelation",
     "RoshConversion",
     "RoshCoverageCell",
@@ -606,7 +617,7 @@ __all__ = [
     "build_rosh_conversions",
     "build_smoke_analysis",
     "build_smoke_fight_insights",
-    "build_teamfight_positioning",
+    "build_fight_positioning",
     "MatchAnalysis",
     "analyze",
     "resolve_pick_team",
@@ -620,3 +631,8 @@ __all__ = [
     "apply_api_rates",
     "enrich_with_api_rates",
 ]
+
+#: Names gem 0.10 and earlier used for gem's own fights, served with a warning.
+RENAMED_NAMES = dict(_RENAMED_ANALYSIS_NAMES)
+
+__getattr__ = renamed_module_attrs(__name__, RENAMED_NAMES, globals())

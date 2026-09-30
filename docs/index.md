@@ -69,7 +69,7 @@ frames["combat_log"].head()
     <span class="gem-feature-icon" aria-hidden="true">◵</span>
     <span class="gem-feature-kicker">Parse</span>
     <strong>Typed match data</strong>
-    <span>Players, draft, combat log, wards, objectives, teamfights, couriers, smoke, Aegis, and chat.</span>
+    <span>Players, draft, combat log, wards, objectives, fights, couriers, smoke, Aegis, and chat.</span>
   </a>
   <a class="gem-feature-card" href="guides/05_timeseries">
     <span class="gem-feature-icon" aria-hidden="true">◷</span>
@@ -87,7 +87,7 @@ frames["combat_log"].head()
     <span class="gem-feature-icon" aria-hidden="true">◳</span>
     <span class="gem-feature-kicker">Report</span>
     <strong>HTML match reports</strong>
-    <span>Generate portable replay reports with movement, combat, teamfight, vision, and farming views.</span>
+    <span>Generate portable replay reports with movement, combat, fight, vision, and farming views.</span>
   </a>
 </div>
 

@@ -14,7 +14,7 @@ The replay does not contain a native `rosh_conversion` field. This analysis
 joins already-parsed facts:
 
 - Roshan kills and Aegis pickup, steal, or deny events
-- teamfight windows
+- fight windows
 - towers and barracks destroyed
 - team gold and XP advantage curves
 - sampled hero positions and observer-ward placements
@@ -86,7 +86,7 @@ fights won by conversion team - fights won by opponent
 Drawn or unknown-winner fights are reported separately and do not change the
 differential.
 
-Fight association uses the engagement-start evidence from teamfight
+Fight association uses the engagement-start evidence from fight
 positioning, rather than the padded detector window alone. `fight_evidence`
 records the fight index, whether the engagement was already underway at the
 Roshan boundary, engagement-start source, first-death/end ticks, winner, and

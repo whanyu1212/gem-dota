@@ -19,7 +19,7 @@ The `Fights` tab includes one evidence-first positioning map per fight with
 pre-engagement, engagement-start, first-death, and fight-end controls. Marker
 visibility, position freshness, missing samples, and the current conservative
 engagement-start fallback are documented in
-[Experimental Features → Teamfight Positioning](../experimental/teamfight-positioning.md).
+[Experimental Features → Fight Positioning](../experimental/fight-positioning.md).
 
 The **Smoke Operations** view summarizes bounded smoke/fight evidence and links
 unique associations directly to the matching fight snapshot. Exact lifecycle,

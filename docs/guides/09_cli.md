@@ -92,11 +92,11 @@ python -m gem parse my_replay.dem --format parquet --output ./out
 # out/player_summary.parquet
 # out/player_timeseries.parquet
 # out/combat_log.parquet
-# out/teamfights.parquet
+# out/fights.parquet
 ```
 
 Every table starts with a `match_id` column. Add `--include analysis` for the
-farming, smoke-fight, Roshan-conversion, and teamfight-positioning tables, or
+farming, smoke-fight, Roshan-conversion, and fight-positioning tables, or
 `--include opendota` for the OpenDota-shaped objective and teamfight views. See
 [Time-Series & DataFrames](05_timeseries.md) for the table list.
 

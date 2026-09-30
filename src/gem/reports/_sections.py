@@ -18,6 +18,7 @@ from gem.reports.sections import (
     build_damage,
     build_draft,
     build_farming,
+    build_fights,
     build_gold_xp_chart,
     build_header,
     build_hero_timeseries_chart,
@@ -29,7 +30,6 @@ from gem.reports.sections import (
     build_runes,
     build_scoreboard,
     build_smokes,
-    build_teamfights,
     build_wards,
 )
 
@@ -51,6 +51,6 @@ __all__ = [
     "build_runes",
     "build_scoreboard",
     "build_smokes",
-    "build_teamfights",
+    "build_fights",
     "build_wards",
 ]

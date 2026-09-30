@@ -49,7 +49,7 @@ same for an already-decoded JSON object.
 ## Including analysis results
 
 `gem.analyze(match)` runs every default post-parse analysis (smoke lifecycles, smoke/fight
-insights, Roshan conversions, farming routes, and teamfight positioning) and returns a
+insights, Roshan conversions, farming routes, and fight positioning) and returns a
 `MatchAnalysis`. Pass it to `to_json()` to embed the results under an `analysis` key:
 
 ```python
@@ -98,7 +98,7 @@ The top-level object mirrors `ParsedMatch`, plus the version keys and the option
   "combat_log": [],
   "wards": [],
   "objectives": [],
-  "teamfights": [],
+  "fights": [],
   "opendota_teamfights": [],
   "smoke_events": [],
   "neutral_item_finds": [],
@@ -152,7 +152,7 @@ Most match events are arrays of records:
 | `wards` | Observer and sentry placements with coordinates |
 | `objectives` | OpenDota-shaped objective timeline |
 | `towers`, `barracks`, `roshans`, `tormentors`, `shrines` | Typed Gem objective lists |
-| `teamfights` | Gem teamfight windows with richer participant stats |
+| `fights` | Gem fight windows with richer participant stats |
 | `opendota_teamfights` | OpenDota-compatible teamfight windows |
 | `smoke_events` | Smoke activations with grouped heroes and exact per-member modifier lifecycles |
 | `neutral_item_finds` | Neutral item find user messages |
@@ -185,7 +185,7 @@ Common `log_type` values include `DAMAGE`, `DEATH`, `HEAL`, `ITEM`, `PURCHASE`,
 ## JSON vs DataFrames
 
 Use JSON when you need the complete nested match object, including per-player dicts,
-teamfight player breakdowns, and evidence lists. Use `gem.parse_to_dataframe()` when you
+fight player breakdowns, and evidence lists. Use `gem.parse_to_dataframe()` when you
 want flat, analysis-ready tables with a fixed schema that concatenate across replays.
 
 ```python
