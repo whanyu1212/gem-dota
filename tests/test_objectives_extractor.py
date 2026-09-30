@@ -363,12 +363,43 @@ class TestTormentorKills:
         ext._on_chat_event(MagicMock(type=_CHAT_MSG_MINIBOSS_KILL, playerid_1=4), tick=1800)
         assert ext.tormentor_kills[0].killer_player_id == 4
 
-    def test_chat_event_without_prior_death_is_ignored(self):
+    def test_chat_event_without_a_death_records_no_kill(self):
         from gem.extractors.objectives import _CHAT_MSG_MINIBOSS_KILL, ObjectivesExtractor
 
         ext = ObjectivesExtractor()
         ext._on_chat_event(MagicMock(type=_CHAT_MSG_MINIBOSS_KILL, playerid_1=2), tick=1800)
         assert ext.tormentor_kills == []
+
+    def test_chat_event_before_its_death_credits_that_kill(self):
+        # Replays send the chat event first, on the death's tick. It must not
+        # patch the previous Tormentor kill (8855188139: muerta killed both,
+        # as players 9 then 8).
+        from gem.extractors.objectives import _CHAT_MSG_MINIBOSS_KILL, ObjectivesExtractor
+
+        ext = ObjectivesExtractor()
+        for tick, killer in ((75601, 9), (94994, 8)):
+            ext._on_chat_event(MagicMock(type=_CHAT_MSG_MINIBOSS_KILL, playerid_1=killer), tick)
+            ext._on_combat_log(_make_combat_log_entry(tick=tick, target_name="npc_dota_miniboss"))
+        assert [k.killer_player_id for k in ext.tormentor_kills] == [9, 8]
+
+    def test_stale_chat_event_is_not_paired_with_a_later_death(self):
+        from gem.extractors.objectives import _CHAT_MSG_MINIBOSS_KILL, ObjectivesExtractor
+
+        ext = ObjectivesExtractor()
+        ext._on_chat_event(MagicMock(type=_CHAT_MSG_MINIBOSS_KILL, playerid_1=2), tick=1800)
+        ext._on_combat_log(_make_combat_log_entry(tick=20000, target_name="npc_dota_miniboss"))
+        assert ext.tormentor_kills[0].killer_player_id == -1
+
+    def test_chat_event_pairs_with_each_death_once(self):
+        # Two Tormentors dying on the same tick each take one chat event.
+        from gem.extractors.objectives import _CHAT_MSG_MINIBOSS_KILL, ObjectivesExtractor
+
+        ext = ObjectivesExtractor()
+        for _ in range(2):
+            ext._on_combat_log(_make_combat_log_entry(tick=1800, target_name="npc_dota_miniboss"))
+        for killer in (3, 7):
+            ext._on_chat_event(MagicMock(type=_CHAT_MSG_MINIBOSS_KILL, playerid_1=killer), 1800)
+        assert sorted(k.killer_player_id for k in ext.tormentor_kills) == [3, 7]
 
     def test_non_miniboss_death_not_captured(self):
         ext, parser = self._make()

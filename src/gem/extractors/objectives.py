@@ -42,6 +42,11 @@ _CHAT_MSG_DENIED_AEGIS = CHAT_MESSAGE_DENIED_AEGIS
 _CHAT_MSG_SHRINE_KILLED = CHAT_MESSAGE_SHRINE_KILLED
 _CHAT_MSG_MINIBOSS_KILL = CHAT_MESSAGE_MINIBOSS_KILL  # Tormentor kill
 
+# Largest tick gap between a Tormentor's DEATH entry and its
+# CHAT_MESSAGE_MINIBOSS_KILL event. They share a tick in practice, with the
+# chat event first.
+_MINIBOSS_CHAT_WINDOW_TICKS = 90
+
 # Roshan item entity class name → short drop name
 _ROSHAN_ITEM_DROPS: dict[str, str] = {
     "CDOTA_Item_Aegis": "aegis",
@@ -323,6 +328,10 @@ class ObjectivesExtractor:
         # Belt-and-suspenders against a transition re-emitted at the same tick:
         # one (index, spawn_tick) pair yields at most one BannerPlant.
         self._banner_seen: set[tuple[int, int]] = set()
+        # CHAT_MESSAGE_MINIBOSS_KILL (tick, playerid_1) not yet paired with a
+        # Tormentor death, and the kill numbers already paired with one.
+        self._pending_miniboss_chats: list[tuple[int, int]] = []
+        self._chat_paired_tormentors: set[int] = set()
         self._parser: ReplayParser | None = None
 
     def attach(self, parser: ReplayParser) -> None:
@@ -425,11 +434,18 @@ class ObjectivesExtractor:
         elif msg.type == _CHAT_MSG_SHRINE_KILLED:
             # value = team that owned the shrine (2=Radiant, 3=Dire)
             self.shrine_kills.append(ShrineKill(tick=tick, team=msg.value or 0))
-        elif msg.type == _CHAT_MSG_MINIBOSS_KILL and self.tormentor_kills:
-            # playerid_1 = player slot of the killer. Patch the most recently
-            # recorded tormentor kill (from the DEATH combat log event) with
-            # the player slot attribution from this chat event.
-            self.tormentor_kills[-1].killer_player_id = msg.playerid_1
+        elif msg.type == _CHAT_MSG_MINIBOSS_KILL:
+            # playerid_1 = player slot of the killer. The event usually arrives
+            # just before its DEATH entry, so it waits for that death unless a
+            # recent unpaired one is already recorded.
+            for kill in reversed(self.tormentor_kills):
+                if tick - kill.tick > _MINIBOSS_CHAT_WINDOW_TICKS:
+                    break
+                if kill.kill_number not in self._chat_paired_tormentors:
+                    kill.killer_player_id = msg.playerid_1
+                    self._chat_paired_tormentors.add(kill.kill_number)
+                    return
+            self._pending_miniboss_chats.append((tick, msg.playerid_1))
 
     def _on_combat_log(self, entry: CombatLogEntry) -> None:
         if entry.log_type != "DEATH":
@@ -460,15 +476,20 @@ class ObjectivesExtractor:
                 )
             )
         elif target == "npc_dota_miniboss":
-            self.tormentor_kills.append(
-                TormentorKill(
-                    tick=entry.tick,
-                    killer=entry.attacker_name,
-                    killer_player_id=-1,  # resolved from chat event if available
-                    kill_number=len(self.tormentor_kills) + 1,
-                    killer_team=entry.attacker_team if entry.attacker_team in (2, 3) else None,
-                )
+            kill = TormentorKill(
+                tick=entry.tick,
+                killer=entry.attacker_name,
+                killer_player_id=-1,  # resolved from the chat event if available
+                kill_number=len(self.tormentor_kills) + 1,
+                killer_team=entry.attacker_team if entry.attacker_team in (2, 3) else None,
             )
+            self.tormentor_kills.append(kill)
+            pending = self._pending_miniboss_chats
+            while pending and entry.tick - pending[0][0] > _MINIBOSS_CHAT_WINDOW_TICKS:
+                pending.pop(0)  # a chat event whose death never arrived
+            if pending:
+                kill.killer_player_id = pending.pop(0)[1]
+                self._chat_paired_tormentors.add(kill.kill_number)
         elif target.startswith("npc_dota_goodguys_tower") or target.startswith(
             "npc_dota_badguys_tower"
         ):

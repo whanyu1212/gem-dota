@@ -90,6 +90,22 @@ class TestAuditMatch:
         ):
             assert (results[name].matched, results[name].total) == (1, 1), name
 
+    def test_first_blood_victim_slot_is_added_to_older_reference_json(self):
+        # odota/core adds victim_player_slot when serving a match; reference
+        # JSON fetched before that lacks it.
+        od = {
+            "players": [{"player_slot": s} for s in (0, 1, 2, 3, 4, 128, 129, 130, 131, 132)],
+            "objectives": [
+                {"type": "CHAT_MESSAGE_FIRSTBLOOD", "key": "6", "slot": 2},
+                {"type": "building_kill", "key": "npc_dota_badguys_fort"},
+            ],
+        }
+        objectives = audit._annotated_objectives(od)
+
+        assert objectives[0]["victim_player_slot"] == 129
+        assert "victim_player_slot" not in objectives[1]
+        assert "victim_player_slot" not in od["objectives"][0]  # input left alone
+
     def test_value_differences_are_recorded_with_an_example(self):
         deaths = _audit()["player.deaths"]
 

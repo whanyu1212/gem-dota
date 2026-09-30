@@ -7,6 +7,7 @@ populated :class:`ParsedMatch` returned by :func:`gem.parse`.
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
@@ -343,6 +344,12 @@ def _ward_left_entry(ward: WardEvent, clock: GameClock) -> dict[str, Any] | None
     }
 
 
+#: Target-name fragments OpenDota turns into a ``building_kill`` objective:
+#: towers, barracks, shrines and the Ancient.
+#: Reference: odota/parser CreateParsedDataBlob.java ``handleDeathCombat``.
+_BUILDING_NAME_PARTS = ("_tower", "_rax_", "_healers", "_fort")
+
+
 def _build_objectives(
     obj_ext: ObjectivesExtractor,
     combat_agg: _CombatAggregator,
@@ -351,33 +358,42 @@ def _build_objectives(
     clock: GameClock,
     chat_event_times: list[_ChatEventTime] | None = None,
     opendota_start_s: int | None = None,
+    combat_log: Iterable[CombatLogEntry] = (),
 ) -> list[dict[str, Any]]:
     """Merge gem's per-type objective events into OpenDota's unified timeline.
 
     Produces the ``objectives`` list OpenDota exposes: ``building_kill`` plus the
     ``CHAT_MESSAGE_*`` events, each ``{time, type, ...}`` with type-specific
     fields, sorted chronologically. Killer heroes are resolved to OpenDota
-    ``slot``/``player_slot`` via the combat aggregator's name→id map.
+    ``slot``/``player_slot`` via the combat aggregator's name→id map. When a
+    chat-message objective pairs with its ``CDOTAUserMsg_ChatEvent``, the
+    event's fields replace gem's reconstruction, as OpenDota builds these
+    objectives from the chat events alone.
 
     Args:
-        obj_ext: The objectives extractor (towers, roshans, aegis, etc.).
+        obj_ext: The objectives extractor (roshans, aegis, Tormentors, couriers).
         combat_agg: Combat aggregator, for killer-hero → player id resolution.
-        first_blood_entry: The first real hero-death entry, or ``None``.
+        first_blood_entry: The first-blood hero-death entry, or ``None``.
         pid_to_team: Map of player id (0-9) → team (2/3), for courier ownership.
         clock: Pause-aware game clock for the match.
         chat_event_times: The replay's chat events with OpenDota's tick-start
-            clock; ``CHAT_MESSAGE_*`` objectives take their time from them.
+            clock; ``CHAT_MESSAGE_*`` objectives take their time and fields
+            from them.
         opendota_start_s: OpenDota's game-start anchor for those clock values.
+        combat_log: The match's combat log; building deaths in it become
+            ``building_kill`` objectives.
 
     Returns:
         Chronologically-sorted list of OpenDota-shaped objective dicts.
     """
-    objectives: list[dict[str, Any]] = []
-    # Chat-message objectives with the tick of the event they were built from.
+    # Every objective with the tick of the event it was built from, which
+    # orders objectives that share a second.
+    objectives: list[tuple[int, dict[str, Any]]] = []
+    # Chat-message objectives, by type.
     chat_objectives: defaultdict[str, list[tuple[int, dict[str, Any]]]] = defaultdict(list)
 
     def add_chat_objective(tick: int, entry: dict[str, Any]) -> None:
-        objectives.append(entry)
+        objectives.append((tick, entry))
         chat_objectives[entry["type"]].append((tick, entry))
 
     def secs(tick: int) -> int:
@@ -388,30 +404,27 @@ def _build_objectives(
             return {}
         return {"slot": player_id, "player_slot": _player_id_to_player_slot(player_id)}
 
-    # building_kill — towers and barracks, attributed source-first (a summon /
-    # projectile killer carries the owning hero in killer_source). unit is the
-    # crediting source unit when present, mirroring OpenDota.
-    for tk in obj_ext.tower_kills:
-        pid = combat_agg.resolve_kill_pid(tk.killer_source, tk.killer)
+    # building_kill — every building death OpenDota counts (towers, barracks,
+    # shrines, the Ancient), timed like the combat-log entry. Attributed
+    # source-first: a summon / projectile killer carries the owning hero in
+    # damage_source_name. unit is the crediting source unit when present; an
+    # empty name is CombatLogNames index 0, which OpenDota prints as dota_unknown.
+    for death in combat_log:
+        target = death.target_name
+        if death.log_type != "DEATH" or not any(p in target for p in _BUILDING_NAME_PARTS):
+            continue
+        pid = combat_agg.resolve_kill_pid(death.damage_source_name, death.attacker_name)
         objectives.append(
-            {
-                "time": secs(tk.tick),
-                "type": "building_kill",
-                "key": tk.tower_name,
-                "unit": tk.killer_source or tk.killer,
-                **slot_fields(pid),
-            }
-        )
-    for bk in obj_ext.barracks_kills:
-        pid = combat_agg.resolve_kill_pid(bk.killer_source, bk.killer)
-        objectives.append(
-            {
-                "time": secs(bk.tick),
-                "type": "building_kill",
-                "key": bk.barracks_name,
-                "unit": bk.killer_source or bk.killer,
-                **slot_fields(pid),
-            }
+            (
+                death.tick,
+                {
+                    "time": _entry_game_seconds(death, clock),
+                    "type": "building_kill",
+                    "key": target,
+                    "unit": death.damage_source_name or death.attacker_name or "dota_unknown",
+                    **slot_fields(pid),
+                },
+            )
         )
 
     # CHAT_MESSAGE_ROSHAN_KILL — team that killed Roshan (killer's team).
@@ -478,10 +491,18 @@ def _build_objectives(
             entry["killer"] = _player_id_to_player_slot(killer_pid)
         add_chat_objective(cd.tick, entry)
 
-    if chat_event_times and opendota_start_s is not None:
-        _retime_chat_objectives(chat_objectives, chat_event_times, opendota_start_s)
-    objectives.sort(key=lambda o: o["time"])
-    return objectives
+    if chat_event_times:
+        _apply_chat_events(chat_objectives, chat_event_times, opendota_start_s)
+    # odota/core resolves the first-blood victim's 0-9 index in ``key`` to a
+    # player_slot when it serves the match (compute.ts annotateFirstbloodVictim).
+    for _, entry in chat_objectives.get("CHAT_MESSAGE_FIRSTBLOOD", ()):
+        victim = entry.get("key")
+        if victim is not None and victim.isdigit() and int(victim) < 10:
+            entry["victim_player_slot"] = _player_id_to_player_slot(int(victim))
+    # Within one tick OpenDota emits chat events before combat-log entries,
+    # which Clarity defers to the tick's end, so building kills sort last.
+    objectives.sort(key=lambda item: (item[1]["time"], item[0], item[1]["type"] == "building_kill"))
+    return [entry for _, entry in objectives]
 
 
 # A chat message lands within a couple of seconds of the event gem rebuilds an
@@ -500,6 +521,8 @@ class _ChatEventTime:
         tick: Replay tick the event arrived at.
         raw_s: OpenDota's running clock at that tick's start, before the
             game-start shift, or ``None`` when unavailable.
+        player_id_2: ``playerid_2`` (the first-blood victim, the team that
+            lost a courier), ``-1`` when unset.
     """
 
     type: int
@@ -507,6 +530,7 @@ class _ChatEventTime:
     value: int
     tick: int
     raw_s: int | None
+    player_id_2: int = -1
 
 
 def _align_ticks(first: list[int], second: list[int], window: int) -> list[tuple[int, int]]:
@@ -552,18 +576,86 @@ def _align_ticks(first: list[int], second: list[int], window: int) -> list[tuple
     return pairs_out
 
 
-def _retime_chat_objectives(
+def _first_blood_death(
+    combat_log: list[CombatLogEntry], chat_event_times: list[_ChatEventTime] | None
+) -> CombatLogEntry | None:
+    """Return the combat-log hero death that drew first blood.
+
+    Only real hero deaths count: illusion deaths and reincarnation triggers are
+    excluded (``target_is_hero`` stays true for an illusion). Not every such
+    death is first blood (a hero killed by neutrals is not), so when the replay
+    has a ``CHAT_MESSAGE_FIRSTBLOOD`` chat event, the death nearest its tick
+    wins. Without one, the earliest real hero death is used.
+
+    Args:
+        combat_log: The match's combat log, in order.
+        chat_event_times: The replay's chat events, or ``None``.
+
+    Returns:
+        The first-blood death entry, or ``None`` when there is none.
+    """
+    from gem.proto.dota_usermessages_pb2 import CHAT_MESSAGE_FIRSTBLOOD
+
+    deaths = [
+        e
+        for e in combat_log
+        if e.log_type == "DEATH"
+        and e.target_is_hero
+        and not e.target_is_illusion
+        and not e.will_reincarnate
+    ]
+    event = next((e for e in chat_event_times or () if e.type == CHAT_MESSAGE_FIRSTBLOOD), None)
+    if event is not None:
+        near = [d for d in deaths if abs(d.tick - event.tick) <= _CHAT_MATCH_WINDOW_TICKS]
+        if near:
+            return min(near, key=lambda d: abs(d.tick - event.tick))
+    return deaths[0] if deaths else None
+
+
+def _od_slot_fields(player_id: int) -> dict[str, Any]:
+    """Return OpenDota's ``slot``/``player_slot`` for a chat event's player id.
+
+    OpenDota copies the id into ``slot`` as is, ``-1`` included, and adds
+    ``player_slot`` only for a real player.
+    """
+    fields: dict[str, Any] = {"slot": player_id}
+    if 0 <= player_id < 10:
+        fields["player_slot"] = _player_id_to_player_slot(player_id)
+    return fields
+
+
+def _chat_event_fields(chat_type: str, event: _ChatEventTime) -> dict[str, Any] | None:
+    """Return the objective fields OpenDota derives from a chat event.
+
+    Reference: odota/parser CreateParsedDataBlob.java ``handleFirstblood``,
+    ``handleMinibossKill`` and ``handleCourierLost``. Other chat types keep
+    gem's reconstruction, which already matches, and return ``None``.
+    """
+    match chat_type:
+        case "CHAT_MESSAGE_FIRSTBLOOD":
+            return {**_od_slot_fields(event.player_id), "key": str(event.player_id_2)}
+        case "CHAT_MESSAGE_MINIBOSS_KILL":
+            return {**_od_slot_fields(event.player_id), "team": event.value}
+        case "CHAT_MESSAGE_COURIER_LOST":
+            player = event.player_id
+            killer = _player_id_to_player_slot(player) if 0 <= player < 10 else -1
+            return {"team": event.player_id_2, "killer": killer, "value": event.value}
+    return None
+
+
+def _apply_chat_events(
     chat_objectives: dict[str, list[tuple[int, dict[str, Any]]]],
     chat_event_times: list[_ChatEventTime],
-    start_s: int,
+    start_s: int | None,
 ) -> None:
-    """Give each chat-message objective the time OpenDota stamps its chat event with.
+    """Give each chat-message objective the time and fields of its chat event.
 
     OpenDota builds these objectives from ``CDOTAUserMsg_ChatEvent`` entries
     timed with its tick-start clock (odota/parser Parse.java ``onChatEvent``).
     gem rebuilds them from combat-log deaths or entity changes, so each is paired
-    with the same-type chat event by :func:`_align_ticks`. Unpaired objectives,
-    and pairs whose clock is unavailable, keep their existing time.
+    with the same-type chat event by :func:`_align_ticks`. A paired objective
+    takes the event's fields (:func:`_chat_event_fields`) and, when the clock
+    and ``start_s`` are known, its time. Unpaired objectives keep gem's values.
     """
     from gem.proto.dota_usermessages_pb2 import DOTA_CHAT_MESSAGE
 
@@ -580,9 +672,14 @@ def _retime_chat_objectives(
             [tick for tick, _ in entries], [e.tick for e in events], _CHAT_MATCH_WINDOW_TICKS
         )
         for entry_index, event_index in pairs:
-            raw_s = events[event_index].raw_s
-            if raw_s is not None:
-                entries[entry_index][1]["time"] = raw_s - start_s
+            entry, event = entries[entry_index][1], events[event_index]
+            fields = _chat_event_fields(chat_type, event)
+            if fields is not None:
+                for key in ("slot", "player_slot", "team", "killer"):
+                    entry.pop(key, None)
+                entry.update(fields)
+            if event.raw_s is not None and start_s is not None:
+                entry["time"] = event.raw_s - start_s
 
 
 def _retime_rune_pickups(
@@ -1305,22 +1402,11 @@ def build_parsed_match(
     game_start_tick = parser.game_start_tick
     interval_min_series = _interval_series_by_player(interval_ext)
 
-    # first_blood_time: game-clock time of the earliest real hero DEATH. Illusion
-    # deaths and reincarnation triggers are excluded (target_is_hero stays true for
-    # an illusion, so the explicit not-illusion filter is required). The per-player
-    # firstblood_claimed flag is read separately from the authoritative
-    # CDOTA_PlayerResource field below, not reconstructed from this entry.
-    first_blood_entry = next(
-        (
-            e
-            for e in all_entries
-            if e.log_type == "DEATH"
-            and e.target_is_hero
-            and not e.target_is_illusion
-            and not e.will_reincarnate
-        ),
-        None,
-    )
+    # first_blood_time: game-clock time of the first-blood hero DEATH. The
+    # per-player firstblood_claimed flag is read separately from the
+    # authoritative CDOTA_PlayerResource field below, not reconstructed from
+    # this entry.
+    first_blood_entry = _first_blood_death(all_entries, chat_event_times)
     if first_blood_entry is not None:
         if first_blood_entry.game_time_s is not None:
             match.first_blood_time = int(first_blood_entry.game_time_s)
@@ -1463,6 +1549,7 @@ def build_parsed_match(
         clock,
         chat_event_times=chat_event_times,
         opendota_start_s=opendota_start_s,
+        combat_log=all_entries,
     )
     match.courier_deaths = obj_ext.courier_deaths
     bitmasks = building_status(obj_ext.tower_kills, obj_ext.barracks_kills)

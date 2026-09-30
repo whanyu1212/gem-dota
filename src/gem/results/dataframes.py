@@ -863,6 +863,8 @@ def _build_opendota_tables(match: ParsedMatch) -> dict[str, pd.DataFrame]:
             "player_slot": _INT,
             "team": _INT,
             "killer": _INT,
+            "value": _INT,
+            "victim_player_slot": _INT,
         },
     )
     # The nested per-player breakdown is keyed by hero/ability/item names, so it
