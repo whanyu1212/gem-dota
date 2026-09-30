@@ -1262,6 +1262,14 @@ class TestOpenDotaAegisRule:
         deaths = [_od_death(100), _od_death(100), _od_death(130)]
         assert self._counted(deaths, [self._pickup(50)]) == [130]
 
+    def test_a_new_pickup_keeps_the_earlier_death_second_as_opendota_does(self):
+        # OpenDota's processExpand sets only aegisHolder on a pickup, so a
+        # remembered death second from an earlier Aegis survives it. The new
+        # holder's first death (a different second) clears the state and
+        # counts. Deliberately not "fixed": this view reproduces OpenDota.
+        deaths = [_od_death(100, will_reincarnate=True), _od_death(300, will_reincarnate=True)]
+        assert self._counted(deaths, [self._pickup(50), self._pickup(200)]) == [300]
+
     def test_aegis_regen_clears_the_holder(self):
         regen = CombatLogEntry(
             tick=90 * 30, log_type="MODIFIER_ADD", inflictor_name="modifier_aegis_regen"
