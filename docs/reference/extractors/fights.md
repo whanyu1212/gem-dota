@@ -32,7 +32,7 @@ def detect_opendota_teamfights(combat_log: list[CombatLogEntry], hero_to_slot: d
 
 Project combat log entries into OpenDota-compatible teamfight output.
 
-Source: [src/gem/extractors/fights.py:455](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/fights.py#L455)
+Source: [src/gem/extractors/fights.py:456](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/fights.py#L456)
 
 ### Top-level classes
 

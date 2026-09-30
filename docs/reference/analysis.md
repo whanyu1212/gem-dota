@@ -613,7 +613,7 @@ def group_ability_hits(combat_log: list[CombatLogEntry], window_ticks: int = 5) 
 
 Group DAMAGE combat log entries into per-cast ``AbilityCast`` records.
 
-Source: [src/gem/analysis/combat.py:50](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L50)
+Source: [src/gem/analysis/combat.py:51](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L51)
 
 ### `find_fights`
 
@@ -623,7 +623,7 @@ def find_fights(match: ParsedMatch, *, window_s: float = FIGHT_WINDOW_S, radius:
 
 Group a parsed match's hero deaths into fights with your own settings.
 
-Source: [src/gem/analysis/combat.py:124](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L124)
+Source: [src/gem/analysis/combat.py:125](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L125)
 
 ### `fight_at_tick`
 
@@ -633,7 +633,7 @@ def fight_at_tick(match: ParsedMatch, tick: int) -> Fight | None
 
 Return the fight window that contains the given tick, or ``None``.
 
-Source: [src/gem/analysis/combat.py:196](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L196)
+Source: [src/gem/analysis/combat.py:197](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L197)
 
 ### `is_active_fight_participant`
 
@@ -643,7 +643,7 @@ def is_active_fight_participant(player_stats: object) -> bool
 
 Return True if a player was an active participant in a fight.
 
-Source: [src/gem/analysis/combat.py:229](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L229)
+Source: [src/gem/analysis/combat.py:230](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L230)
 
 ### Top-level classes
 
@@ -655,7 +655,7 @@ class AbilityCast
 
 A single ability (or item) cast with all targets it hit.
 
-Source: [src/gem/analysis/combat.py:25](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L25)
+Source: [src/gem/analysis/combat.py:26](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L26)
 
 #### Dataclass fields
 
@@ -1547,7 +1547,7 @@ def build_smoke_analysis(match: ParsedMatch) -> list[SmokeAnalysis]
 
 Build factual lifecycle summaries for every smoke item use.
 
-Source: [src/gem/analysis/smoke.py:150](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L150)
+Source: [src/gem/analysis/smoke.py:151](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L151)
 
 ### Top-level classes
 
@@ -1608,7 +1608,7 @@ class SmokeAnalysis
 
 Evidence summary for one Smoke of Deceit item use.
 
-Source: [src/gem/analysis/smoke.py:115](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L115)
+Source: [src/gem/analysis/smoke.py:116](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L116)
 
 #### Dataclass fields
 
@@ -2106,7 +2106,7 @@ def analyze(match: ParsedMatch) -> MatchAnalysis
 
 Run every default post-parse analysis on a parsed match.
 
-Source: [src/gem/analysis/bundle.py:57](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/bundle.py#L57)
+Source: [src/gem/analysis/bundle.py:58](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/bundle.py#L58)
 
 ### Top-level classes
 
@@ -2118,7 +2118,7 @@ class MatchAnalysis
 
 Results of every default post-parse analysis for one match.
 
-Source: [src/gem/analysis/bundle.py:33](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/bundle.py#L33)
+Source: [src/gem/analysis/bundle.py:34](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/bundle.py#L34)
 
 #### Dataclass fields
 

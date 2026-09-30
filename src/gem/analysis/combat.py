@@ -12,6 +12,7 @@ import bisect
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from gem._deprecation import renamed_module_attrs
 from gem.extractors.fights import FIGHT_RADIUS, FIGHT_WINDOW_S, detect_fights
 
 if TYPE_CHECKING:
@@ -257,3 +258,13 @@ def is_active_fight_participant(player_stats: object) -> bool:
         or getattr(player_stats, "damage_taken", 0) > 0
         or getattr(player_stats, "healing", 0) > 0
     )
+
+
+__getattr__ = renamed_module_attrs(
+    __name__,
+    {
+        "teamfight_at_tick": "fight_at_tick",
+        "is_active_teamfight_participant": "is_active_fight_participant",
+    },
+    globals(),
+)

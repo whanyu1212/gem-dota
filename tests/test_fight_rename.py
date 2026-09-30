@@ -10,6 +10,7 @@ import pytest
 
 import gem
 import gem.analysis
+import gem.analysis.combat
 from gem.analysis.bundle import MatchAnalysis
 from gem.analysis.smoke import SmokeAnalysis, SmokeGroupStatus
 from gem.extractors import fights
@@ -31,6 +32,8 @@ def _fight() -> fights.Fight:
         (gem, "build_teamfight_positioning", "build_fight_positioning"),
         (gem.analysis, "teamfight_at_tick", "fight_at_tick"),
         (gem.analysis, "TeamfightPositioning", "FightPositioning"),
+        (gem.analysis.combat, "teamfight_at_tick", "fight_at_tick"),
+        (gem.analysis.combat, "is_active_teamfight_participant", "is_active_fight_participant"),
         (fights, "Teamfight", "Fight"),
         (fights, "TeamfightPlayer", "FightPlayer"),
         (fights, "detect_teamfights", "detect_fights"),
