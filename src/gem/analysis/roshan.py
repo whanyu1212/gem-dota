@@ -1,6 +1,6 @@
 """Post-parse Roshan conversion analysis.
 
-Turns existing replay facts (Roshan kills, Aegis events, teamfights, wards,
+Turns existing replay facts (Roshan kills, Aegis events, fights, wards,
 objectives, buybacks, and movement samples) into per-Roshan conversion records.
 The goal is to answer a practical question: did the team translate Roshan into
 fights, objectives, map expansion, or a game-closing sequence?
@@ -25,17 +25,17 @@ from gem.analysis._territory import (
     RoshTerritoryWindow,
     build_territory_window,
 )
-from gem.analysis.combat import is_active_teamfight_participant
-from gem.analysis.teamfight_positioning import (
+from gem.analysis.combat import is_active_fight_participant
+from gem.analysis.fight_positioning import (
     EngagementStartSource,
-    TeamfightPositioning,
-    build_teamfight_positioning,
+    FightPositioning,
+    build_fight_positioning,
 )
 from gem.state.game_clock import game_clock_for
 
 if TYPE_CHECKING:
+    from gem.extractors.fights import Fight
     from gem.extractors.objectives import AegisEvent, BannerPlant
-    from gem.extractors.teamfights import Teamfight
     from gem.results.models import ParsedMatch
 
 _TICKS_PER_SEC = 30
@@ -456,10 +456,10 @@ def _window_overlaps(start_tick: int, end_tick: int, other_start: int, other_end
     return start_tick <= other_end and other_start <= end_tick
 
 
-def _window_teamfights(match: ParsedMatch, start_tick: int, end_tick: int) -> list[Teamfight]:
+def _window_fights(match: ParsedMatch, start_tick: int, end_tick: int) -> list[Fight]:
     return [
         fight
-        for fight in match.teamfights
+        for fight in match.fights
         if _window_overlaps(start_tick, end_tick, fight.start_tick, fight.end_tick)
     ]
 
@@ -467,17 +467,17 @@ def _window_teamfights(match: ParsedMatch, start_tick: int, end_tick: int) -> li
 def _fight_evidence(
     match: ParsedMatch,
     conversion_team: int | None,
-    positioning: TeamfightPositioning,
+    positioning: FightPositioning,
     window_start_tick: int,
 ) -> RoshFightEvidence:
-    fight = match.teamfights[positioning.fight_index]
+    fight = match.fights[positioning.fight_index]
     teams_by_player = {
         player.player_id: player.team
         for player in match.players
         if player.team in (_TEAM_RADIANT, _TEAM_DIRE)
     }
     active_ids = tuple(
-        stats.player_id for stats in fight.players if is_active_teamfight_participant(stats)
+        stats.player_id for stats in fight.players if is_active_fight_participant(stats)
     )
     opponent_team = _enemy_team(conversion_team) if conversion_team is not None else None
     conversion_ids = tuple(
@@ -531,7 +531,7 @@ def _analysis_match_end_tick(match: ParsedMatch) -> int:
         match.banner_plants,
     ):
         observed.extend(event.tick for event in events)
-    observed.extend(fight.end_tick for fight in match.teamfights)
+    observed.extend(fight.end_tick for fight in match.fights)
     return max(observed, default=0)
 
 
@@ -1136,7 +1136,7 @@ def _differential_profile(
     rosh_tick: int,
     window_start: int,
     window_end: int,
-    fights: list[Teamfight],
+    fights: list[Fight],
     *,
     partial_aegis_evidence: bool,
     game_closed: bool,
@@ -1311,7 +1311,7 @@ def build_rosh_conversions(
     conversions: list[RoshConversion] = []
     claimed_fights: set[int] = set()
     positioning_by_index = {
-        positioning.fight_index: positioning for positioning in build_teamfight_positioning(match)
+        positioning.fight_index: positioning for positioning in build_fight_positioning(match)
     }
 
     for index, roshan in enumerate(match.roshans, start=1):
@@ -1410,7 +1410,7 @@ def build_rosh_conversions(
                 aegis_fate_source = AegisFateSource.NEXT_ROSHAN_BOUNDARY
             analysis_end = min(aegis_end_tick + _POST_AEGIS_ANALYSIS_TICKS, boundary)
             if aegis_fate == "consumed":
-                overlapping = _window_teamfights(match, aegis_end_tick, aegis_end_tick)
+                overlapping = _window_fights(match, aegis_end_tick, aegis_end_tick)
                 if overlapping:
                     analysis_end = min(
                         boundary,
@@ -1420,8 +1420,8 @@ def build_rosh_conversions(
             conversion_team = roshan_team
             conversion_team_source = roshan_attribution.source
 
-        fight_records: list[tuple[int, Teamfight]] = []
-        for fight_index, fight in enumerate(match.teamfights):
+        fight_records: list[tuple[int, Fight]] = []
+        for fight_index, fight in enumerate(match.fights):
             if fight_index in claimed_fights:
                 continue
             positioning = positioning_by_index[fight_index]

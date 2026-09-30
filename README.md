@@ -77,7 +77,7 @@ python -m gem batch replays/ --format parquet --output out/ --workers 4
 | | |
 |---|---|
 | **🐍 Python-native**<br>Typed match objects plug directly into notebooks, pandas, ML pipelines, and ordinary Python code. | **🔎 Replay-first**<br>Analyze local replays without depending on third-party match-history availability. |
-| **⚔️ Full-match context**<br>Draft, combat, economy, vision, movement, objectives, items, chat, and teamfights in one model. | **📦 Flexible outputs**<br>Work with dataclasses, DataFrames, JSON, Parquet, batch exports, or a self-contained HTML report. |
+| **⚔️ Full-match context**<br>Draft, combat, economy, vision, movement, objectives, items, chat, and fights in one model. | **📦 Flexible outputs**<br>Work with dataclasses, DataFrames, JSON, Parquet, batch exports, or a self-contained HTML report. |
 
 Gem is named after the **Gem of True Sight**: it reveals the structured match state
 hidden inside dense replay bytes. The parser is an independent Python implementation,
@@ -87,7 +87,7 @@ fixtures.
 ## Match reports
 
 Gem can turn a parsed replay into a self-contained interactive report with overview,
-combat, laning, farming, teamfight, vision, economy, draft, and movement views.
+combat, laning, farming, fight, vision, economy, draft, and movement views.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/whanyu1212/gem-dota/main/assets/readme-report-overview.png" alt="Gem interactive Dota 2 match report overview" width="100%">
@@ -109,7 +109,7 @@ combat, laning, farming, teamfight, vision, economy, draft, and movement views.
         <img src="https://raw.githubusercontent.com/whanyu1212/gem-dota/main/assets/readme-report-teamfight.png" alt="Gem teamfight breakdown with map and combat statistics" width="100%">
       </a>
       <br>
-      <sub><strong>Teamfights</strong> — inspect positions, damage, abilities, and reveals.</sub>
+      <sub><strong>Fights</strong> — inspect positions, damage, abilities, and reveals.</sub>
     </td>
   </tr>
 </table>
@@ -131,7 +131,7 @@ for customization.
 |---|---|
 | Match and players | Scores, winner, duration, teams, K/D/A, level, GPM/XPM, final net worth |
 | Draft and objectives | Picks/bans, towers, barracks, Roshan, Aegis, Tormentor, building status |
-| Combat | Normalized combat log, damage/healing, kills, ability and item usage, teamfights |
+| Combat | Normalized combat log, damage/healing, kills, ability and item usage, fights |
 | Economy | Gold, XP, net-worth and minute-aligned advantage curves, purchases, buybacks |
 | Map state | Player positions, lane heatmaps, wards, smoke groups, courier snapshots |
 | Items | Final inventories, neutral-item finds, consumed upgrades, Roshan drops and banner plants |
@@ -143,7 +143,7 @@ Useful entry points include:
 - `gem.parse()` → `ParsedMatch`
 - `gem.parse_to_dataframe()` / `gem.to_json()` / `gem.to_parquet()`
 - `gem.parse_many*()` for parallel replay batches
-- `gem.find_player()`, `gem.position_at_tick()`, and `gem.teamfight_at_tick()`
+- `gem.find_player()`, `gem.position_at_tick()`, and `gem.fight_at_tick()`
 - `gem.fetch_replay()` for OpenDota/Valve replay download and decompression
 
 For current complete replays, Gem's minute curves are validated against OpenDota's

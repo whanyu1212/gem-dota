@@ -10,7 +10,7 @@ from gem.analysis.smoke import (
     build_smoke_analysis,
 )
 from gem.combat.log import CombatLogEntry
-from gem.extractors.teamfights import Teamfight
+from gem.extractors.fights import Fight
 from gem.results.models import (
     HeroVisibilityEvent,
     ParsedMatch,
@@ -175,14 +175,14 @@ def test_removal_evidence_and_followup_teamfight_remain_factual() -> None:
         log_type="ABILITY",
         attacker_name="npc_dota_hero_axe",
     )
-    first_fight = Teamfight(
+    first_fight = Fight(
         start_tick=1_700,
         end_tick=2_000,
         last_death_tick=1_950,
         deaths=3,
         first_death_tick=1_900,
     )
-    out_of_window_fight = Teamfight(
+    out_of_window_fight = Fight(
         start_tick=2_000,
         end_tick=2_300,
         last_death_tick=2_200,
@@ -219,7 +219,7 @@ def test_removal_evidence_and_followup_teamfight_remain_factual() -> None:
             )
         ],
         combat_log=[ability, death, later_action],
-        teamfights=[out_of_window_fight, first_fight],
+        fights=[out_of_window_fight, first_fight],
     )
 
     analysis = build_smoke_analysis(match)[0]
@@ -233,11 +233,11 @@ def test_removal_evidence_and_followup_teamfight_remain_factual() -> None:
     assert member.nearest_enemy_distance == pytest.approx(5.0)
     assert member.same_tick_actions == [ability]
     assert member.same_tick_deaths == [death]
-    assert analysis.first_teamfight is first_fight
+    assert analysis.first_fight is first_fight
 
 
 def test_teamfight_window_includes_exact_sixty_second_boundary() -> None:
-    boundary_fight = Teamfight(
+    boundary_fight = Fight(
         start_tick=1_600,
         end_tick=2_000,
         last_death_tick=1_950,
@@ -246,7 +246,7 @@ def test_teamfight_window_includes_exact_sixty_second_boundary() -> None:
     )
     match = ParsedMatch(
         smoke_events=[SmokeEvent(tick=100, activator="hero", team=2)],
-        teamfights=[boundary_fight],
+        fights=[boundary_fight],
     )
 
-    assert build_smoke_analysis(match)[0].first_teamfight is boundary_fight
+    assert build_smoke_analysis(match)[0].first_fight is boundary_fight

@@ -1,4 +1,10 @@
-"""Combat-log and teamfight analysis helpers."""
+"""Combat-log and fight analysis helpers.
+
+Reference: fight windows follow odota/parser
+src/main/java/opendota/CreateParsedDataBlob.java ``processTeamfights`` (pinned
+in CLAUDE.md), extended with gem's spatial split in
+:mod:`gem.extractors.fights`.
+"""
 
 from __future__ import annotations
 
@@ -6,10 +12,14 @@ import bisect
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from gem._deprecation import renamed_module_attrs
+from gem.extractors.fights import FIGHT_RADIUS, FIGHT_WINDOW_S, detect_fights
+
 if TYPE_CHECKING:
     from gem.combat.log import CombatLogEntry
-    from gem.extractors.teamfights import Teamfight
-    from gem.results.models import ParsedMatch
+    from gem.extractors.fights import Fight
+    from gem.extractors.players import PlayerStateSnapshot
+    from gem.results.models import ParsedMatch, ParsedPlayer
 
 
 @dataclass
@@ -112,26 +122,98 @@ def group_ability_hits(
     return casts
 
 
-def teamfight_at_tick(match: ParsedMatch, tick: int) -> Teamfight | None:
-    """Return the teamfight window that contains the given tick, or ``None``.
+def find_fights(
+    match: ParsedMatch,
+    *,
+    window_s: float = FIGHT_WINDOW_S,
+    radius: float | None = FIGHT_RADIUS,
+) -> list[Fight]:
+    """Group a parsed match's hero deaths into fights with your own settings.
+
+    ``match.fights`` uses the defaults. Filtering it can only drop fights; this
+    regroups them instead, without parsing the replay again (a loaded
+    :func:`gem.load_json` match works too). With the defaults it returns the
+    same fights as ``match.fights``.
+
+    Args:
+        match: A parsed or loaded match.
+        window_s: Seconds after a fight's last death that a new death still
+            joins it.
+        radius: Largest distance, in world units, between a death and a
+            fight's centroid for the death to join that fight. ``None`` groups
+            by time only, as OpenDota does, so simultaneous fights in different
+            places become one.
+
+    Returns:
+        The fights, in chronological order, with per-player breakdowns.
+
+    Example:
+        >>> by_time = gem.find_fights(match, radius=None)
+        >>> teamfights = [f for f in by_time if f.deaths >= 3]
+    """
+    return detect_fights(
+        match.combat_log,
+        hero_to_slot={pp.hero_name: pp.player_id for pp in match.players if pp.hero_name},
+        player_snapshots={pp.player_id: _fight_samples(pp) for pp in match.players},
+        slot_to_team={pp.player_id: pp.team for pp in match.players if pp.team},
+        window_s=window_s,
+        radius=radius,
+    )
+
+
+def _fight_samples(player: ParsedPlayer) -> list[PlayerStateSnapshot]:
+    """Rebuild the snapshot positions and XP that fight detection reads."""
+    from gem.extractors.players import PlayerStateSnapshot
+
+    positions = {tick: (x, y) for tick, x, y in reversed(player.position_log)}
+    samples = []
+    for index, tick in enumerate(player.times):
+        x, y = positions.get(tick, (None, None))
+        xp = player.total_earned_xp_t[index] if index < len(player.total_earned_xp_t) else 0
+        samples.append(
+            PlayerStateSnapshot(
+                tick=tick,
+                player_id=player.player_id,
+                npc_name=player.hero_name,
+                team=player.team,
+                level=0,
+                xp=0,
+                gold=0,
+                net_worth=0,
+                lh=0,
+                dn=0,
+                hp=0,
+                max_hp=0,
+                mana=0.0,
+                max_mana=0.0,
+                x=x,
+                y=y,
+                total_earned_xp=xp,
+            )
+        )
+    return samples
+
+
+def fight_at_tick(match: ParsedMatch, tick: int) -> Fight | None:
+    """Return the fight window that contains the given tick, or ``None``.
 
     Fights are non-overlapping and sorted by ``start_tick``.  Uses binary
     search on ``start_tick`` values for O(log N) lookup.
 
     Args:
-        match: A parsed replay with ``match.teamfights`` populated.
+        match: A parsed replay with ``match.fights`` populated.
         tick: Game tick to query.
 
     Returns:
-        The ``Teamfight`` whose ``[start_tick, end_tick]`` window contains
+        The ``Fight`` whose ``[start_tick, end_tick]`` window contains
         ``tick``, or ``None`` if no fight contains it.
 
     Example:
-        >>> fight = teamfight_at_tick(match, entry.tick)
+        >>> fight = fight_at_tick(match, entry.tick)
         >>> if fight:
         ...     print(f"Event occurred during a fight with {fight.deaths} deaths")
     """
-    fights = match.teamfights
+    fights = match.fights
     if not fights:
         return None
 
@@ -145,8 +227,8 @@ def teamfight_at_tick(match: ParsedMatch, tick: int) -> Teamfight | None:
     return None
 
 
-def is_active_teamfight_participant(player_stats: object) -> bool:
-    """Return True if a player was an active participant in a teamfight.
+def is_active_fight_participant(player_stats: object) -> bool:
+    """Return True if a player was an active participant in a fight.
 
     A player is considered active if they had any direct hero-vs-hero combat
     during the fight window: a death, dealing damage to an enemy hero, taking
@@ -154,10 +236,10 @@ def is_active_teamfight_participant(player_stats: object) -> bool:
 
     Passive presence (e.g. farming nearby, casting only on creeps) does not
     count. This mirrors the definition used by the HTML match report and the
-    teamfight detection logic documented in MEMORY.md.
+    fight detection logic documented in MEMORY.md.
 
     Args:
-        player_stats: A teamfight player stats object with optional numeric
+        player_stats: A fight player stats object with optional numeric
             attributes: ``deaths``, ``damage_dealt``, ``damage_taken``,
             ``healing``. Missing attributes are treated as 0.
 
@@ -166,8 +248,8 @@ def is_active_teamfight_participant(player_stats: object) -> bool:
         otherwise.
 
     Example:
-        >>> fight = match.teamfights[0]
-        >>> active = [p for p in fight.players if is_active_teamfight_participant(p)]
+        >>> fight = match.fights[0]
+        >>> active = [p for p in fight.players if is_active_fight_participant(p)]
         >>> print(f"{len(active)} active participants in fight")
     """
     return (
@@ -176,3 +258,13 @@ def is_active_teamfight_participant(player_stats: object) -> bool:
         or getattr(player_stats, "damage_taken", 0) > 0
         or getattr(player_stats, "healing", 0) > 0
     )
+
+
+__getattr__ = renamed_module_attrs(
+    __name__,
+    {
+        "teamfight_at_tick": "fight_at_tick",
+        "is_active_teamfight_participant": "is_active_fight_participant",
+    },
+    globals(),
+)

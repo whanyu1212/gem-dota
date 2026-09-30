@@ -6,13 +6,13 @@ import math
 
 import pytest
 
-from gem.analysis.teamfight_positioning import (
+from gem.analysis.fight_positioning import (
     EngagementStartSource,
     EvidenceCompleteness,
     SnapshotKind,
-    build_teamfight_positioning,
+    build_fight_positioning,
 )
-from gem.extractors.teamfights import Teamfight, TeamfightPlayer
+from gem.extractors.fights import Fight, FightPlayer
 from gem.results.models import (
     HeroVisibilityEvent,
     ParsedMatch,
@@ -50,11 +50,11 @@ def _fight(
     start_tick: int = 550,
     end_tick: int = 1_450,
     active_ids: tuple[int, ...] = (),
-) -> Teamfight:
-    stats = [TeamfightPlayer(player_id=player_id) for player_id in range(10)]
+) -> Fight:
+    stats = [FightPlayer(player_id=player_id) for player_id in range(10)]
     for player_id in active_ids:
         stats[player_id].damage_dealt = 1
-    return Teamfight(
+    return Fight(
         start_tick=start_tick,
         end_tick=end_tick,
         last_death_tick=first_death_tick,
@@ -114,7 +114,7 @@ def _reveal(
 
 
 def _at_engagement(match: ParsedMatch, **kwargs: object):
-    result = build_teamfight_positioning(match, **kwargs)
+    result = build_fight_positioning(match, **kwargs)
     return result[0].snapshots[1]
 
 
@@ -122,10 +122,10 @@ def test_four_logical_moments_preserved_with_clamping_and_provenance() -> None:
     match = ParsedMatch(
         game_start_tick=900,
         players=[_player(0, positions=[(1_000, 0.0, 0.0)])],
-        teamfights=[_fight(first_death_tick=1_000, end_tick=1_000)],
+        fights=[_fight(first_death_tick=1_000, end_tick=1_000)],
     )
 
-    result = build_teamfight_positioning(match)[0]
+    result = build_fight_positioning(match)[0]
 
     assert result.fight_index == 0
     assert result.engagement_start_tick == 1_000
@@ -139,28 +139,28 @@ def test_pre_engagement_clamps_to_zero_without_usable_game_start() -> None:
     match = ParsedMatch(
         game_start_tick=2_000,
         players=[_player(0, positions=[(100, 0.0, 0.0)])],
-        teamfights=[_fight(first_death_tick=100, start_tick=0, end_tick=550)],
+        fights=[_fight(first_death_tick=100, start_tick=0, end_tick=550)],
     )
 
-    result = build_teamfight_positioning(match, pre_engagement_ticks=300)[0]
+    result = build_fight_positioning(match, pre_engagement_ticks=300)[0]
 
     assert result.snapshots[0].tick == 0
 
 
 def test_default_first_death_tick_uses_observed_last_death_with_provenance() -> None:
-    fight = Teamfight(
+    fight = Fight(
         start_tick=550,
         end_tick=1_450,
         last_death_tick=1_000,
         deaths=1,
-        players=[TeamfightPlayer(player_id=i) for i in range(10)],
+        players=[FightPlayer(player_id=i) for i in range(10)],
     )
     match = ParsedMatch(
         players=[_player(0, positions=[(700, 1.0, 2.0), (1_000, 3.0, 4.0)])],
-        teamfights=[fight],
+        fights=[fight],
     )
 
-    result = build_teamfight_positioning(match)[0]
+    result = build_fight_positioning(match)[0]
 
     assert result.engagement_start_tick == 1_000
     assert result.first_death_tick == 1_000
@@ -169,7 +169,7 @@ def test_default_first_death_tick_uses_observed_last_death_with_provenance() -> 
 
 
 def test_invalid_death_ticks_fall_back_to_nonnegative_fight_window_start() -> None:
-    fight = Teamfight(
+    fight = Fight(
         start_tick=550,
         end_tick=1_450,
         first_death_tick=100,
@@ -177,7 +177,7 @@ def test_invalid_death_ticks_fall_back_to_nonnegative_fight_window_start() -> No
         deaths=1,
     )
 
-    result = build_teamfight_positioning(ParsedMatch(teamfights=[fight]))[0]
+    result = build_fight_positioning(ParsedMatch(fights=[fight]))[0]
 
     assert result.engagement_start_tick == 550
     assert result.engagement_start_source is EngagementStartSource.FIGHT_WINDOW_START_FALLBACK
@@ -191,7 +191,7 @@ def test_fresh_stale_and_missing_positions_keep_sample_provenance() -> None:
             _player(1, positions=[(939, 3.0, 4.0)]),
             _player(5),
         ],
-        teamfights=[_fight()],
+        fights=[_fight()],
     )
 
     heroes = {hero.player_id: hero for hero in _at_engagement(match).heroes}
@@ -216,7 +216,7 @@ def test_centroids_rms_spread_and_nearest_distances_use_only_fresh_positions() -
             _player(1, positions=[(1_000, 6.0, 8.0)]),
             _player(5, positions=[(1_000, 10.0, 0.0)]),
         ],
-        teamfights=[_fight()],
+        fights=[_fight()],
     )
 
     snapshot = _at_engagement(match)
@@ -247,7 +247,7 @@ def test_complete_partial_and_unavailable_team_evidence() -> None:
             _player(5),
             _player(6),
         ],
-        teamfights=[_fight()],
+        fights=[_fight()],
     )
 
     snapshot = _at_engagement(match)
@@ -271,7 +271,7 @@ def test_active_participants_and_nearby_nonparticipants_are_separate() -> None:
             _player(2, positions=[(1_000, 6.0, 0.0)]),
             _player(5),
         ],
-        teamfights=[_fight(active_ids=(0,))],
+        fights=[_fight(active_ids=(0,))],
     )
 
     snapshot = _at_engagement(match, nearby_radius=5.0)
@@ -295,7 +295,7 @@ def test_authoritative_opponent_visibility_preserves_tri_state() -> None:
             _player(1, positions=[(1_000, 1.0, 0.0)]),
             _player(5, positions=[(1_000, 2.0, 0.0)]),
         ],
-        teamfights=[_fight()],
+        fights=[_fight()],
         hero_visibility_events=[
             _visibility(0, tick=900, dire=VisibilityState.HIDDEN),
             _visibility(1, tick=900, dire=VisibilityState.VISIBLE),
@@ -320,7 +320,7 @@ def test_canonical_roster_deduplicates_slots_and_rejects_invalid_entries() -> No
             _player(10, team=2, positions=[(1_000, 3.0, 3.0)]),
             _player(5, team=0, positions=[(1_000, 4.0, 4.0)]),
         ],
-        teamfights=[_fight()],
+        fights=[_fight()],
     )
 
     heroes = _at_engagement(match).heroes
@@ -339,7 +339,7 @@ def test_smoke_context_requires_observed_half_open_participant_interval() -> Non
     ]
     match = ParsedMatch(
         players=players,
-        teamfights=[_fight()],
+        fights=[_fight()],
         smoke_events=[
             SmokeEvent(
                 tick=850,
@@ -387,7 +387,7 @@ def test_direct_reveals_require_bounded_authoritative_lifecycle_evidence() -> No
     ]
     match = ParsedMatch(
         players=players,
-        teamfights=[_fight()],
+        fights=[_fight()],
         vision_modifiers=[
             _reveal(target_name=players[0].hero_name),
             _reveal(
@@ -436,7 +436,7 @@ def test_duplicate_hero_names_do_not_resolve_direct_reveals() -> None:
             _player(0, hero_name=duplicated_name, positions=[(1_000, 0.0, 0.0)]),
             _player(1, hero_name=duplicated_name, positions=[(1_000, 1.0, 0.0)]),
         ],
-        teamfights=[_fight()],
+        fights=[_fight()],
         vision_modifiers=[_reveal(target_name=duplicated_name)],
     )
 
@@ -451,10 +451,10 @@ def test_overlapping_fights_remain_distinct_and_source_ordered() -> None:
     second = _fight(first_death_tick=1_100, start_tick=650, end_tick=1_550)
     match = ParsedMatch(
         players=[_player(0, positions=[(1_000, 0.0, 0.0), (1_100, 1.0, 0.0)])],
-        teamfights=[second, first],
+        fights=[second, first],
     )
 
-    results = build_teamfight_positioning(match)
+    results = build_fight_positioning(match)
 
     assert [result.fight_index for result in results] == [0, 1]
     assert [result.first_death_tick for result in results] == [1_100, 1_000]
@@ -472,7 +472,7 @@ def test_overlapping_fights_remain_distinct_and_source_ordered() -> None:
 )
 def test_argument_validation(kwargs: dict[str, object], message: str) -> None:
     with pytest.raises(ValueError, match=message):
-        build_teamfight_positioning(ParsedMatch(), **kwargs)  # type: ignore[arg-type]
+        build_fight_positioning(ParsedMatch(), **kwargs)  # type: ignore[arg-type]
 
 
 @pytest.mark.integration
@@ -480,8 +480,8 @@ def test_argument_validation(kwargs: dict[str, object], message: str) -> None:
 def test_real_replay_positioning_is_deterministic_and_provenance_bounded(
     canonical_parsed_match: ParsedMatch,
 ) -> None:
-    first = build_teamfight_positioning(canonical_parsed_match)
-    second = build_teamfight_positioning(canonical_parsed_match)
+    first = build_fight_positioning(canonical_parsed_match)
+    second = build_fight_positioning(canonical_parsed_match)
 
     assert first == second
     assert first

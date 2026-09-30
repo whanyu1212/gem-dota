@@ -502,7 +502,7 @@ details[open].sub-accordion > summary::before {
 .dire    { color: #f44336; }
 .section-note { color: #8b949e; font-size: 12px; margin-top: 8px; }
 
-/* ---- Teamfights ---- */
+/* ---- Fights ---- */
 .tf-summary {
     margin-bottom: 10px;
     color: #8b949e;

@@ -406,9 +406,9 @@ def _opendota_teamfights_from_combat_log(combat_log: list[Any]) -> list[dict[str
     OpenDota's parser builds teamfights from combat-log game seconds, opens a
     window at ``first_death_time - 15``, closes once 15 seconds pass without a
     new hero death, then filters to windows with at least three deaths. This is
-    intentionally separate from gem's richer spatial teamfight detector.
+    intentionally separate from gem's own spatial fight detector.
     """
-    from gem.extractors.teamfights import detect_opendota_teamfights
+    from gem.extractors.fights import detect_opendota_teamfights
 
     return [
         {
@@ -731,7 +731,7 @@ def validate_match(
 
     if mode in {"parsed", "full"}:
         # Teamfight detection — compare against an OpenDota-compatible projection
-        # built from combat-log game time. gem's public teamfight objects keep
+        # built from combat-log game time. gem's own fights (``match.fights``) keep
         # raw ticks and include extra spatial clustering, so they are not the
         # right comparison surface for OpenDota's filtered parser output.
         od_teamfights = od.get("teamfights") or []

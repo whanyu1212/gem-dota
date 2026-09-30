@@ -34,8 +34,8 @@ match has no rows for it, so per-replay files concatenate cleanly.
 | `"objectives"` | Tower, barracks, Roshan, Tormentor, shrine, Aegis, courier, and banner rows |
 | `"chat"` | All-chat and team-chat messages |
 | `"draft"` | Pick and ban events in order |
-| `"teamfights"` | Detected fight windows, one row per fight with a `fight_index` |
-| `"teamfight_players"` | Per-fight, per-player deaths, buybacks, damage, healing, gold/XP delta |
+| `"fights"` | Detected fight windows, one row per fight with a `fight_index` |
+| `"fight_players"` | Per-fight, per-player deaths, buybacks, damage, healing, gold/XP delta |
 | `"smoke_events"` | Smoke activations, `";"`-joined smoked heroes, and centroids |
 | `"smoke_members"` | Flat per-hero smoke application/removal ticks, durations, and sampled positions |
 | `"courier_snapshots"` | Courier state samples |
@@ -52,7 +52,7 @@ Pass `include=["analysis"]` and/or `include=["opendota"]` to add these tables.
 
 | Group | Key | Contents |
 |---|---|---|
-| `analysis` | `"teamfight_positioning"` | Flat per-fight, per-snapshot, per-hero positioning evidence with freshness, geometry, and visibility |
+| `analysis` | `"fight_positioning"` | Flat per-fight, per-snapshot, per-hero positioning evidence with freshness, geometry, and visibility |
 | `analysis` | `"roshan_conversions"` | One flat row per Roshan with attribution/lifecycle provenance, raw differential evidence, availability, tags/ruleset, and prefixed legacy fields |
 | `analysis` | `"roshan_conversion_fights"` | One row per Roshan-associated fight with engagement provenance, relation, winner, and participant IDs by side |
 | `analysis` | `"smoke_fight_insights"` | One row per bounded smoke/fight candidate, including association, exact-event, visibility, and formation summaries |
@@ -85,4 +85,4 @@ def build_dataframes(match: ParsedMatch, *, include: Iterable[str] = ()) -> dict
 
 Convert a :class:`ParsedMatch` into a dict of flat pandas DataFrames.
 
-Source: [src/gem/results/dataframes.py:185](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/dataframes.py#L185)
+Source: [src/gem/results/dataframes.py:187](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/dataframes.py#L187)

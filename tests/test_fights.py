@@ -6,6 +6,7 @@ Integration tests parse a real .dem fixture and verify plausible output.
 
 from __future__ import annotations
 
+import json
 import math
 from itertools import combinations_with_replacement
 from types import SimpleNamespace
@@ -13,16 +14,16 @@ from types import SimpleNamespace
 import pytest
 
 from gem.combat.log import CombatLogEntry
-from gem.extractors.teamfights import (
-    Teamfight,
+from gem.extractors.fights import (
+    Fight,
     _near_fight,
     _nearest_pos,
     _nearest_snapshot,
     _nearest_xp,
     _SnapshotLookup,
     _update_centroid,
+    detect_fights,
     detect_opendota_teamfights,
-    detect_teamfights,
 )
 
 _COOLDOWN = 15 * 30  # 450 ticks
@@ -71,28 +72,28 @@ def _ability(tick: int, attacker: str, ability: str) -> CombatLogEntry:
 
 
 # ---------------------------------------------------------------------------
-# Unit tests — detect_teamfights
+# Unit tests — detect_fights
 # ---------------------------------------------------------------------------
 
 
 class TestDetectTeamfights:
     def test_empty_log_returns_empty(self):
-        assert detect_teamfights([]) == []
+        assert detect_fights([]) == []
 
     def test_no_hero_deaths_returns_empty(self):
         entries = [CombatLogEntry(tick=100, log_type="DAMAGE", value=50)]
-        assert detect_teamfights(entries) == []
+        assert detect_fights(entries) == []
 
     def test_illusion_death_ignored(self):
         entries = [_death(100, illusion=True)]
-        assert detect_teamfights(entries) == []
+        assert detect_fights(entries) == []
 
     def test_single_death_creates_one_fight(self):
-        fights = detect_teamfights([_death(1000)])
+        fights = detect_fights([_death(1000)])
         assert len(fights) == 1
 
     def test_fight_window_start_end(self):
-        fights = detect_teamfights([_death(1000)])
+        fights = detect_fights([_death(1000)])
         tf = fights[0]
         assert tf.start_tick == 1000 - _COOLDOWN
         assert tf.end_tick == 1000 + _COOLDOWN
@@ -100,23 +101,23 @@ class TestDetectTeamfights:
 
     def test_deaths_within_cooldown_merged(self):
         entries = [_death(1000), _death(1200), _death(1400)]
-        fights = detect_teamfights(entries)
+        fights = detect_fights(entries)
         assert len(fights) == 1
         assert fights[0].deaths == 3
 
     def test_deaths_beyond_cooldown_split_into_two(self):
         entries = [_death(1000), _death(1000 + _COOLDOWN + 1)]
-        fights = detect_teamfights(entries)
+        fights = detect_fights(entries)
         assert len(fights) == 2
 
     def test_deaths_count_correct(self):
         entries = [_death(1000, "npc_dota_hero_axe"), _death(1100, "npc_dota_hero_pudge")]
-        fights = detect_teamfights(entries)
+        fights = detect_fights(entries)
         assert fights[0].deaths == 2
 
     def test_reincarnation_trigger_not_counted_as_death(self):
         # A reincarnation/aegis trigger (will_reincarnate=True) must not count
-        # toward Teamfight.deaths or attribute a per-player death — the hero
+        # toward Fight.deaths or attribute a per-player death — the hero
         # returns. Only the subsequent true death counts. Regression for Codex P2:
         # keeps teamfight/Roshan summaries consistent with the death curve.
         h2s = {"npc_dota_hero_axe": 0}
@@ -124,22 +125,22 @@ class TestDetectTeamfights:
             _death(1000, "npc_dota_hero_axe", will_reincarnate=True),  # trigger
             _death(1060, "npc_dota_hero_axe"),  # true death
         ]
-        fights = detect_teamfights(entries, hero_to_slot=h2s)
+        fights = detect_fights(entries, hero_to_slot=h2s)
         assert len(fights) == 1
         assert fights[0].deaths == 1
         assert fights[0].players[0].deaths == 1
 
     def test_lone_reincarnation_trigger_opens_no_fight(self):
         # A solitary trigger death with no real death must not open a fight at all.
-        fights = detect_teamfights([_death(1000, will_reincarnate=True)])
+        fights = detect_fights([_death(1000, will_reincarnate=True)])
         assert fights == []
 
     def test_players_list_always_10(self):
-        fights = detect_teamfights([_death(1000)])
+        fights = detect_fights([_death(1000)])
         assert len(fights[0].players) == 10
 
     def test_start_tick_clamped_to_zero(self):
-        fights = detect_teamfights([_death(10)])  # 10 < cooldown
+        fights = detect_fights([_death(10)])  # 10 < cooldown
         assert fights[0].start_tick == 0
 
     def test_damage_attributed_to_attacker_and_target(self):
@@ -148,7 +149,7 @@ class TestDetectTeamfights:
             _death(1000, "npc_dota_hero_pudge"),
             _damage(1050, "npc_dota_hero_axe", "npc_dota_hero_pudge", value=300),
         ]
-        fights = detect_teamfights(entries, hero_to_slot=h2s)
+        fights = detect_fights(entries, hero_to_slot=h2s)
         assert fights[0].players[0].damage_dealt == 300
         assert fights[0].players[1].damage_taken == 300
 
@@ -158,13 +159,13 @@ class TestDetectTeamfights:
             _death(1000, "npc_dota_hero_pudge"),
             _damage(1000 + _COOLDOWN + 100, "npc_dota_hero_axe", "npc_dota_hero_pudge", value=500),
         ]
-        fights = detect_teamfights(entries, hero_to_slot=h2s)
+        fights = detect_fights(entries, hero_to_slot=h2s)
         assert fights[0].players[0].damage_dealt == 0
 
     def test_death_increments_target_player_deaths(self):
         h2s = {"npc_dota_hero_axe": 0}
         entries = [_death(1000, "npc_dota_hero_axe")]
-        fights = detect_teamfights(entries, hero_to_slot=h2s)
+        fights = detect_fights(entries, hero_to_slot=h2s)
         assert fights[0].players[0].deaths == 1
 
     def test_buyback_attributed_to_slot(self):
@@ -172,7 +173,7 @@ class TestDetectTeamfights:
             _death(1000),
             CombatLogEntry(tick=1050, log_type="BUYBACK", value=2),
         ]
-        fights = detect_teamfights(entries)
+        fights = detect_fights(entries)
         assert fights[0].players[2].buybacks == 1
 
     def test_ability_use_recorded(self):
@@ -181,7 +182,7 @@ class TestDetectTeamfights:
             _death(1000),
             _ability(1050, "npc_dota_hero_axe", "axe_berserkers_call"),
         ]
-        fights = detect_teamfights(entries, hero_to_slot=h2s)
+        fights = detect_fights(entries, hero_to_slot=h2s)
         assert fights[0].players[0].ability_uses.get("axe_berserkers_call") == 1
 
     def test_no_hero_to_slot_damage_not_attributed(self):
@@ -190,7 +191,7 @@ class TestDetectTeamfights:
             _death(1000),
             _damage(1050, "npc_dota_hero_axe", "npc_dota_hero_pudge"),
         ]
-        fights = detect_teamfights(entries)
+        fights = detect_fights(entries)
         assert all(p.damage_dealt == 0 for p in fights[0].players)
 
     def test_heal_attributed_to_attacker(self):
@@ -206,7 +207,7 @@ class TestDetectTeamfights:
             value=250,
         )
         entries = [_death(1000, "npc_dota_hero_axe"), heal_entry]
-        fights = detect_teamfights(entries, hero_to_slot=h2s)
+        fights = detect_fights(entries, hero_to_slot=h2s)
         assert fights[0].players[0].healing == 250
 
     def test_self_heal_not_counted(self):
@@ -222,7 +223,7 @@ class TestDetectTeamfights:
             value=200,
         )
         entries = [_death(1000, "npc_dota_hero_axe"), self_heal]
-        fights = detect_teamfights(entries, hero_to_slot=h2s)
+        fights = detect_fights(entries, hero_to_slot=h2s)
         assert fights[0].players[0].healing == 0
 
     def test_gold_delta_attributed_to_recipient(self):
@@ -237,7 +238,7 @@ class TestDetectTeamfights:
             gold_reason=1,
         )
         entries = [_death(1000), gold_entry]
-        fights = detect_teamfights(entries, hero_to_slot=h2s)
+        fights = detect_fights(entries, hero_to_slot=h2s)
         assert fights[0].players[0].gold_delta == 200
 
     def test_gold_not_attributed_to_attacker(self):
@@ -252,7 +253,7 @@ class TestDetectTeamfights:
             gold_reason=1,
         )
         entries = [_death(1000), gold_entry]
-        fights = detect_teamfights(entries, hero_to_slot=h2s)
+        fights = detect_fights(entries, hero_to_slot=h2s)
         assert fights[0].players[0].gold_delta == 200  # axe (recipient)
         assert fights[0].players[1].gold_delta == 0  # lina (killed unit)
 
@@ -267,7 +268,7 @@ class TestDetectTeamfights:
             attacker_is_illusion=False,
         )
         entries = [_death(1000), item_entry]
-        fights = detect_teamfights(entries, hero_to_slot=h2s)
+        fights = detect_fights(entries, hero_to_slot=h2s)
         assert fights[0].players[0].item_uses.get("item_blink") == 1
 
 
@@ -495,7 +496,7 @@ class TestXpDelta:
             ]
         }
         entries = [_death(1000, "npc_dota_hero_axe")]
-        fights = detect_teamfights(entries, hero_to_slot=h2s, player_snapshots=snaps)
+        fights = detect_fights(entries, hero_to_slot=h2s, player_snapshots=snaps)
         assert fights[0].players[0].xp_delta == 500
 
     def test_xp_delta_survives_levelup(self):
@@ -510,7 +511,7 @@ class TestXpDelta:
             ]
         }
         entries = [_death(1000, "npc_dota_hero_axe")]
-        fights = detect_teamfights(entries, hero_to_slot=h2s, player_snapshots=snaps)
+        fights = detect_fights(entries, hero_to_slot=h2s, player_snapshots=snaps)
         assert fights[0].players[0].xp_delta == 700  # not 0
 
 
@@ -582,7 +583,7 @@ class TestCentroidPositionedDivisor:
             _death(1010, "npc_dota_hero_h1"),
             _death(1020, "npc_dota_hero_h2"),
         ]
-        fights = detect_teamfights(entries, hero_to_slot=h2s, player_snapshots=snaps)
+        fights = detect_fights(entries, hero_to_slot=h2s, player_snapshots=snaps)
         assert len(fights) == 1
         assert fights[0].deaths == 3
         assert fights[0].centroid_n == 2  # only the two positioned deaths
@@ -634,7 +635,7 @@ class TestRoamingFightAttribution:
             i: [self._snap(i, 1000 + i * 30, i * step, 0.0, team=slot_to_team[i])] for i in range(n)
         }
         entries = [_death(1000 + i * 30, f"npc_dota_hero_h{i}") for i in range(n)]
-        fights = detect_teamfights(
+        fights = detect_fights(
             entries, hero_to_slot=h2s, slot_to_team=slot_to_team, player_snapshots=snaps
         )
         # The fight may or may not split; the invariant holds regardless.
@@ -661,7 +662,7 @@ class TestRoamingFightAttribution:
             _death(1000, "npc_dota_hero_h1"),
             CombatLogEntry(tick=1100, log_type="BUYBACK", value=0),  # slot 0 buys back
         ]
-        fights = detect_teamfights(entries, hero_to_slot=h2s, player_snapshots=snaps)
+        fights = detect_fights(entries, hero_to_slot=h2s, player_snapshots=snaps)
         assert len(fights) == 1
         assert fights[0].players[0].buybacks == 1
 
@@ -762,7 +763,7 @@ class TestNearestXp:
 
 class TestNearFight:
     def test_no_snapshots_returns_true(self):
-        fight = Teamfight(
+        fight = Fight(
             start_tick=0,
             end_tick=1000,
             last_death_tick=500,
@@ -773,7 +774,7 @@ class TestNearFight:
         assert _near_fight(0, 500, fight, player_snapshots=None) is True
 
     def test_no_centroid_returns_true(self):
-        fight = Teamfight(
+        fight = Fight(
             start_tick=0,
             end_tick=1000,
             last_death_tick=500,
@@ -806,7 +807,7 @@ class TestNearFight:
             x=100.0,
             y=100.0,
         )
-        fight = Teamfight(
+        fight = Fight(
             start_tick=0,
             end_tick=1000,
             last_death_tick=500,
@@ -839,7 +840,7 @@ class TestNearFight:
             x=0.0,
             y=0.0,
         )
-        fight = Teamfight(
+        fight = Fight(
             start_tick=0,
             end_tick=1000,
             last_death_tick=500,
@@ -894,7 +895,7 @@ class TestSpatialSplit:
             _death(1000, "npc_dota_hero_axe"),
             _death(1200, "npc_dota_hero_pudge"),
         ]
-        fights = detect_teamfights(entries, hero_to_slot=h2s, player_snapshots=snaps)
+        fights = detect_fights(entries, hero_to_slot=h2s, player_snapshots=snaps)
         assert len(fights) == 1
         assert fights[0].deaths == 2
 
@@ -909,7 +910,7 @@ class TestSpatialSplit:
             _death(1000, "npc_dota_hero_axe"),
             _death(1200, "npc_dota_hero_pudge"),
         ]
-        fights = detect_teamfights(entries, hero_to_slot=h2s, player_snapshots=snaps)
+        fights = detect_fights(entries, hero_to_slot=h2s, player_snapshots=snaps)
         assert len(fights) == 2
         assert fights[0].deaths == 1
         assert fights[1].deaths == 1
@@ -917,9 +918,122 @@ class TestSpatialSplit:
     def test_no_snapshots_falls_back_to_temporal_only(self):
         """Without position data spatial split is skipped; temporal logic still works."""
         entries = [_death(1000), _death(1200)]
-        fights = detect_teamfights(entries)
+        fights = detect_fights(entries)
         assert len(fights) == 1
         assert fights[0].deaths == 2
+
+
+class TestAdjustableGrouping:
+    """``window_s`` and ``radius`` choose how deaths are grouped into fights."""
+
+    H2S = {"npc_dota_hero_axe": 0, "npc_dota_hero_pudge": 1}
+
+    def _far_apart(self):
+        snaps = {
+            **_make_snaps("npc_dota_hero_axe", 0, 1000, 0.0, 0.0),
+            **_make_snaps("npc_dota_hero_pudge", 1, 1200, 5000.0, 5000.0),
+        }
+        entries = [_death(1000, "npc_dota_hero_axe"), _death(1200, "npc_dota_hero_pudge")]
+        return entries, snaps
+
+    def test_no_radius_groups_by_time_only(self):
+        entries, snaps = self._far_apart()
+        fights = detect_fights(entries, hero_to_slot=self.H2S, player_snapshots=snaps, radius=None)
+        assert [f.deaths for f in fights] == [2]
+
+    def test_a_larger_radius_merges_what_the_default_splits(self):
+        entries, snaps = self._far_apart()
+        fights = detect_fights(entries, hero_to_slot=self.H2S, player_snapshots=snaps, radius=8000)
+        assert [f.deaths for f in fights] == [2]
+
+    def test_the_radius_is_inclusive(self):
+        # Co-located deaths share a fight even with radius=0, and a death exactly
+        # at the radius joins, as _near_fight's inclusive check has it.
+        same_spot = {
+            **_make_snaps("npc_dota_hero_axe", 0, 1000, 100.0, 100.0),
+            **_make_snaps("npc_dota_hero_pudge", 1, 1200, 100.0, 100.0),
+        }
+        entries = [_death(1000, "npc_dota_hero_axe"), _death(1200, "npc_dota_hero_pudge")]
+        fights = detect_fights(entries, hero_to_slot=self.H2S, player_snapshots=same_spot, radius=0)
+        assert [f.deaths for f in fights] == [2]
+
+        at_radius = {
+            **_make_snaps("npc_dota_hero_axe", 0, 1000, 0.0, 0.0),
+            **_make_snaps("npc_dota_hero_pudge", 1, 1200, 3000.0, 0.0),
+        }
+        fights = detect_fights(entries, hero_to_slot=self.H2S, player_snapshots=at_radius)
+        assert [f.deaths for f in fights] == [2]
+
+    def test_a_shorter_window_splits_and_pads_less(self):
+        entries = [_death(1000), _death(1200)]  # ~6.7 s apart
+        (fight,) = detect_fights(entries)
+        assert (fight.start_tick, fight.end_tick) == (1000 - _COOLDOWN, 1200 + _COOLDOWN)
+        fights = detect_fights(entries, window_s=5)
+        assert [(f.start_tick, f.end_tick) for f in fights] == [(850, 1150), (1050, 1350)]
+
+    def test_no_radius_counts_every_player_in_the_window(self):
+        fight = Fight(
+            start_tick=0,
+            end_tick=900,
+            last_death_tick=450,
+            deaths=1,
+            centroid_x=0.0,
+            centroid_y=0.0,
+        )
+        snaps = _make_snaps("npc_dota_hero_pudge", 1, 450, 9000.0, 9000.0)
+        assert not _near_fight(1, 450, fight, snaps)
+        assert _near_fight(1, 450, fight, snaps, radius=None)
+
+
+class TestFindFights:
+    """``gem.find_fights`` regroups a parsed match without re-parsing."""
+
+    @staticmethod
+    def _match():
+        from gem.results.models import ParsedMatch, ParsedPlayer
+
+        axe = ParsedPlayer(
+            player_id=0,
+            hero_name="npc_dota_hero_axe",
+            team=2,
+            times=[900, 1000, 1100],
+            total_earned_xp_t=[100, 200, 300],
+            position_log=[(1000, 0.0, 0.0)],  # the 900 and 1100 samples have no position
+        )
+        pudge = ParsedPlayer(
+            player_id=5,
+            hero_name="npc_dota_hero_pudge",
+            team=3,
+            times=[1200],
+            total_earned_xp_t=[400],
+            position_log=[(1200, 5000.0, 5000.0)],
+        )
+        deaths = [_death(1000, "npc_dota_hero_axe"), _death(1200, "npc_dota_hero_pudge")]
+        return ParsedMatch(match_id=1, players=[axe, pudge], combat_log=deaths)
+
+    def test_defaults_split_distant_deaths(self):
+        from gem.analysis.combat import find_fights
+
+        assert [f.deaths for f in find_fights(self._match())] == [1, 1]
+
+    def test_no_radius_regroups_them_into_one_fight(self):
+        from gem.analysis.combat import find_fights
+
+        (fight,) = find_fights(self._match(), radius=None)
+        assert fight.deaths == 2
+        assert (fight.radiant_kills, fight.dire_kills) == (1, 1)
+
+    def test_samples_keep_ticks_without_a_position(self):
+        # Nearest-sample lookups must see position-less snapshots too, as the
+        # parser's own detection does.
+        from gem.analysis.combat import _fight_samples
+
+        samples = _fight_samples(self._match().players[0])
+        assert [(s.tick, s.x, s.total_earned_xp) for s in samples] == [
+            (900, None, 100),
+            (1000, 0.0, 200),
+            (1100, None, 300),
+        ]
 
 
 # ---------------------------------------------------------------------------
@@ -929,41 +1043,54 @@ class TestSpatialSplit:
 
 @pytest.mark.slow
 @pytest.mark.integration
-class TestTeamfightsIntegration:
+class TestFightsIntegration:
     @pytest.fixture(scope="class")
     def match(self, canonical_parsed_match):
         return canonical_parsed_match
 
-    def test_teamfights_detected(self, match):
-        assert len(match.teamfights) > 0, "Expected at least one teamfight in replay fixture"
+    def test_fights_detected(self, match):
+        assert len(match.fights) > 0, "Expected at least one fight in replay fixture"
 
     def test_fight_windows_valid(self, match):
-        for tf in match.teamfights:
+        for tf in match.fights:
             assert tf.start_tick < tf.end_tick
             assert tf.start_tick <= tf.last_death_tick <= tf.end_tick
 
     def test_deaths_positive(self, match):
-        for tf in match.teamfights:
+        for tf in match.fights:
             assert tf.deaths >= 1
 
     def test_players_count(self, match):
-        for tf in match.teamfights:
+        for tf in match.fights:
             assert len(tf.players) == 10
 
     def test_damage_non_negative(self, match):
-        for tf in match.teamfights:
+        for tf in match.fights:
             for p in tf.players:
                 assert p.damage_dealt >= 0
                 assert p.damage_taken >= 0
 
     def test_some_fights_have_multiple_deaths(self, match):
-        multi = [tf for tf in match.teamfights if tf.deaths >= 2]
+        multi = [tf for tf in match.fights if tf.deaths >= 2]
         assert len(multi) > 0, "Expected some fights with 2+ deaths"
 
     def test_xp_delta_non_negative(self, match):
-        for tf in match.teamfights:
+        for tf in match.fights:
             for p in tf.players:
                 assert p.xp_delta >= 0
+
+    def test_find_fights_reproduces_the_parsed_fights(self, match):
+        # Regrouping from the ParsedMatch alone (no parser state) with the
+        # default settings must give exactly the fights the parse produced,
+        # before and after a JSON round trip.
+        from dataclasses import asdict
+
+        import gem
+
+        expected = [asdict(f) for f in match.fights]
+        assert [asdict(f) for f in gem.find_fights(match)] == expected
+        loaded = gem.from_dict(json.loads(gem.to_json(match)))
+        assert [asdict(f) for f in gem.find_fights(loaded)] == expected
 
 
 def _lookup_snap(tick, marker=0, **overrides):
@@ -1068,12 +1195,12 @@ class TestSnapshotLookup:
             assert counted.probes > 0
             assert counted.probes <= 2 * math.ceil(math.log2(len(ticks) + 1)) + 6
 
-    @pytest.mark.parametrize("detector", [detect_teamfights, detect_opendota_teamfights])
+    @pytest.mark.parametrize("detector", [detect_fights, detect_opendota_teamfights])
     @pytest.mark.parametrize("unordered", [False, True])
     def test_detectors_reuse_preparation_and_match_linear_results(
         self, monkeypatch, detector, unordered
     ):
-        import gem.extractors.teamfights as tf
+        import gem.extractors.fights as tf
 
         heroes = ["npc_dota_hero_axe", "npc_dota_hero_pudge", "npc_dota_hero_lina"]
         snaps = {
@@ -1242,7 +1369,7 @@ class TestOpenDotaAegisRule:
 
     @staticmethod
     def _counted(entries, aegis_events):
-        from gem.extractors.teamfights import _opendota_killed_deaths
+        from gem.extractors.fights import _opendota_killed_deaths
         from gem.state.game_clock import GameClock
 
         deaths = _opendota_killed_deaths(entries, _H2S, GameClock(game_start_tick=0), aegis_events)

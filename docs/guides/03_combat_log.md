@@ -262,4 +262,4 @@ name.
 
 - [`gem.group_ability_hits()`](../reference/analysis.md) — collapse multi-target DAMAGE entries into per-cast `AbilityCast` records (Ravage, Black Hole, RP, etc.)
 - [`gem.ability_level_at_tick()`](../reference/analysis.md) — look up what level an ability was when it was cast
-- [`gem.teamfight_at_tick()`](../reference/analysis.md) — find the teamfight window containing any combat log event
+- [`gem.fight_at_tick()`](../reference/analysis.md) — find the fight window containing any combat log event

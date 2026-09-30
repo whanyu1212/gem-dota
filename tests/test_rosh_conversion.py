@@ -12,6 +12,7 @@ from gem.analysis.roshan import (
     build_rosh_conversions,
 )
 from gem.combat.log import CombatLogEntry
+from gem.extractors.fights import Fight, FightPlayer
 from gem.extractors.objectives import (
     AegisEvent,
     BannerPlant,
@@ -20,7 +21,6 @@ from gem.extractors.objectives import (
     TormentorKill,
     TowerKill,
 )
-from gem.extractors.teamfights import Teamfight, TeamfightPlayer
 from gem.extractors.wards import WardEvent
 from gem.reports._sections import build_rosh_conversion
 from gem.results.models import ParsedMatch, ParsedPlayer
@@ -40,14 +40,14 @@ def _make_players() -> list[ParsedPlayer]:
     return players
 
 
-def _make_fight(start: int, end: int, winner: str, deaths: int = 2) -> Teamfight:
-    return Teamfight(
+def _make_fight(start: int, end: int, winner: str, deaths: int = 2) -> Fight:
+    return Fight(
         start_tick=start,
         end_tick=end,
         last_death_tick=end - 60,
         deaths=deaths,
         winner=winner,
-        players=[TeamfightPlayer(player_id=i) for i in range(10)],
+        players=[FightPlayer(player_id=i) for i in range(10)],
     )
 
 
@@ -100,7 +100,7 @@ def test_build_rosh_conversions_objective_conversion() -> None:
                 killer="",
             )
         ],
-        teamfights=[_make_fight(1200, 1450, "radiant")],
+        fights=[_make_fight(1200, 1450, "radiant")],
         combat_log=[],
     )
 
@@ -128,7 +128,7 @@ def test_build_rosh_conversions_failed_aegis_on_lost_fight() -> None:
         players=players,
         roshans=[RoshanKill(tick=2000, killer="npc_dota_hero_hero_5", kill_number=1)],
         aegis_events=[AegisEvent(tick=2010, player_id=5, event_type="pickup")],
-        teamfights=[_make_fight(2200, 2600, "radiant")],
+        fights=[_make_fight(2200, 2600, "radiant")],
         combat_log=[
             CombatLogEntry(
                 tick=2300,
@@ -154,14 +154,14 @@ def test_build_rosh_conversions_failed_aegis_on_lost_fight() -> None:
 
 def test_build_rosh_conversions_uses_first_death_for_fight_timing() -> None:
     players = _make_players()
-    fight = Teamfight(
+    fight = Fight(
         start_tick=500,
         end_tick=1300,
         last_death_tick=850,
         deaths=2,
         first_death_tick=950,
         winner="radiant",
-        players=[TeamfightPlayer(player_id=i) for i in range(10)],
+        players=[FightPlayer(player_id=i) for i in range(10)],
     )
     match = ParsedMatch(
         game_start_tick=0,
@@ -170,7 +170,7 @@ def test_build_rosh_conversions_uses_first_death_for_fight_timing() -> None:
         players=players,
         roshans=[RoshanKill(tick=1000, killer="npc_dota_hero_hero_0", kill_number=1)],
         aegis_events=[AegisEvent(tick=1010, player_id=0, event_type="pickup")],
-        teamfights=[fight],
+        fights=[fight],
     )
 
     conversion = build_rosh_conversions(match)[0]
@@ -521,7 +521,7 @@ def test_differential_counts_both_sides_and_tormentor_timeline() -> None:
         players=players,
         roshans=[RoshanKill(tick=1000, killer="npc_dota_hero_hero_0", kill_number=1)],
         aegis_events=[AegisEvent(tick=1010, player_id=0, event_type="pickup")],
-        teamfights=[
+        fights=[
             _make_fight(1200, 1400, "radiant"),
             _make_fight(1600, 1800, "radiant"),
             _make_fight(2000, 2200, "dire"),
@@ -740,7 +740,7 @@ def test_game_closing_uses_hardened_window_and_multiple_tags_are_nonexclusive() 
         "players": players,
         "roshans": [RoshanKill(tick=1000, killer="npc_dota_hero_hero_0", kill_number=1)],
         "aegis_events": [AegisEvent(tick=1010, player_id=0, event_type="pickup")],
-        "teamfights": [
+        "fights": [
             _make_fight(1200, 1400, "radiant"),
             _make_fight(1600, 1800, "radiant"),
         ],
@@ -783,7 +783,7 @@ def test_counter_conversion_requires_dominant_opponent_evidence() -> None:
         players=_make_players(),
         roshans=[RoshanKill(tick=1000, killer="npc_dota_hero_hero_0", kill_number=1)],
         aegis_events=[AegisEvent(tick=1010, player_id=0, event_type="pickup")],
-        teamfights=[
+        fights=[
             _make_fight(1200, 1400, "dire"),
             _make_fight(1600, 1800, "dire"),
         ],
@@ -900,7 +900,7 @@ def test_tag_thresholds_are_configurable_at_the_boundary() -> None:
             )
         ],
         aegis_events=[AegisEvent(tick=1010, player_id=0, event_type="pickup")],
-        teamfights=[_make_fight(1200, 1400, "radiant")],
+        fights=[_make_fight(1200, 1400, "radiant")],
         towers=[
             TowerKill(
                 1500,
@@ -948,7 +948,7 @@ def test_fight_spanning_next_roshan_is_never_double_counted() -> None:
             AegisEvent(1010, 0, "pickup"),
             AegisEvent(1510, 1, "pickup"),
         ],
-        teamfights=[_make_fight(1400, 1600, "radiant")],
+        fights=[_make_fight(1400, 1600, "radiant")],
     )
 
     conversions = build_rosh_conversions(match)

@@ -54,7 +54,7 @@ The package splits into two tiers:
   `PlayerExtractor`, `ObjectivesExtractor`, `WardsExtractor`, `CourierExtractor`,
   `DraftExtractor`, plus their record dataclasses.
 - **Internal helpers** (not in `__all__`): `IntervalExtractor` (intervals.py),
-  `VisibilityExtractor` (visibility.py), `detect_teamfights` (teamfights.py),
+  `VisibilityExtractor` (visibility.py), `detect_fights` (fights.py),
   `assign_lane` (lane.py), and the shared `_snapshots.py` helpers. These are
   wired up by `gem.api.parse` and `gem.results.assembly`, not imported by end
   users.
@@ -251,13 +251,13 @@ assembly uses it as the exact `BuybackEvent.cost`. The formula
 - **Lifecycle:** entity creation/entry re-baselines, deletion forgets the pools,
   and a counter drop re-baselines.
 
-### teamfights.py — `detect_teamfights` (post-parse function)
+### fights.py — `detect_fights` (post-parse function)
 
 Not an extractor with `attach()` — a pure function called from
 `gem.results.assembly` on the finished combat log. It merges hero deaths within
-a 15-second cooldown (`_COOLDOWN_TICKS`), optionally splits concurrent fights by
-spatial centroid (`_FIGHT_RADIUS`) using `PlayerStateSnapshot` positions, then
-aggregates per-player stats into `Teamfight`/`TeamfightPlayer`. No
+a 15-second window (`window_s`, default `FIGHT_WINDOW_S`), optionally splits concurrent fights by
+spatial centroid (`radius`, default `FIGHT_RADIUS`) using `PlayerStateSnapshot` positions, then
+aggregates per-player stats into `Fight`/`FightPlayer`. No
 minimum-death filter is applied.
 
 ### lane.py — `assign_lane` (post-parse utility)
@@ -280,7 +280,7 @@ not re-derive them:
   `players.py` and `gem.extractors`).
 - `_pos(entity)` — world `(x, y)` from `CBodyComponent.m_cellX/m_cellY` (×128)
   plus `m_vecX/m_vecY`. Called directly by players, wards, courier, and
-  `_snapshot_hero`. (teamfights does not call `_pos`; it reads positions off the
+  `_snapshot_hero`. (fights does not call `_pos`; it reads positions off the
   already-built snapshot `.x`/`.y` via its own `_nearest_pos`.)
 - `_player_id_from_entity(entity, *, allow_owner=False)` — resolves an entity to
   a player slot 0-9 by reading `m_nPlayerID`/`m_iPlayerID` and halving the
@@ -312,7 +312,7 @@ not re-derive them:
   display strings.
 - **It does not assemble the final output model.** `ParsedMatch`/`ParsedPlayer`
   construction is `gem.results` (`models.py`, `assembly.py`), which is where
-  `detect_teamfights` and `assign_lane` are actually invoked.
+  `detect_fights` and `assign_lane` are actually invoked.
 - **It does not do post-parse analysis on `ParsedMatch`.** Position/net-worth
   lookups, ability-hit grouping, vision geometry, map-context buckets, and Roshan
   conversion records are `gem.analysis`. The boundary: if it needs the live
@@ -364,10 +364,10 @@ the canonical name from the `EntityNames` string table when available
 (`_sample` in players.py). Dropping either form breaks resolution for some
 heroes.
 
-### Treating `IntervalExtractor`, `detect_teamfights`, or `assign_lane` as public
+### Treating `IntervalExtractor`, `detect_fights`, or `assign_lane` as public
 
 They are not in `gem.extractors.__all__`. `IntervalExtractor` is internal
-plumbing for OpenDota parity; `detect_teamfights` and `assign_lane` are
+plumbing for OpenDota parity; `detect_fights` and `assign_lane` are
 post-parse functions invoked by `gem.results.assembly`, not attach-style
 extractors. Import them from their submodules only if you are extending the
 pipeline.

@@ -39,6 +39,7 @@ from gem.reports._sections import (
     build_damage as _ext_build_damage,
     build_draft as _ext_build_draft,
     build_farming as _ext_build_farming,
+    build_fights as _ext_build_fights,
     build_gold_xp_chart as _ext_build_gold_xp_chart,
     build_header as _ext_build_header,
     build_hero_timeseries_chart as _ext_build_hero_timeseries_chart,
@@ -50,7 +51,6 @@ from gem.reports._sections import (
     build_runes as _ext_build_runes,
     build_scoreboard as _ext_build_scoreboard,
     build_smokes as _ext_build_smokes,
-    build_teamfights as _ext_build_teamfights,
     build_wards as _ext_build_wards,
 )
 from gem.reports.assets import (
@@ -296,7 +296,7 @@ def build_html_report(
         ("Farming", _ext_build_farming(match, map_b64)),
         (
             "Fights",
-            _ext_build_teamfights(
+            _ext_build_fights(
                 match,
                 map_b64,
                 smoke_fight_insights,
@@ -384,7 +384,7 @@ def build_html_report(
     tab_js = """
 <script>
 (function() {
-  function applyTeamfightFilters() {
+  function applyFightFilters() {
     var deathsEl = document.getElementById('tf-deaths');
     var partsEl = document.getElementById('tf-participants');
     if (!deathsEl || !partsEl) return;
@@ -425,14 +425,14 @@ def build_html_report(
       if (window.Chart) {
         Object.values(Chart.instances).forEach(function(c) { c.resize(); });
       }
-      applyTeamfightFilters();
+      applyFightFilters();
     });
   });
 
   var tfDeaths = document.getElementById('tf-deaths');
   var tfParts = document.getElementById('tf-participants');
-  if (tfDeaths) tfDeaths.addEventListener('input', applyTeamfightFilters);
-  if (tfParts) tfParts.addEventListener('input', applyTeamfightFilters);
+  if (tfDeaths) tfDeaths.addEventListener('input', applyFightFilters);
+  if (tfParts) tfParts.addEventListener('input', applyFightFilters);
 
   document.querySelectorAll('.tf-snapshot-btn').forEach(function(button) {
     button.addEventListener('click', function() {
@@ -466,7 +466,7 @@ def build_html_report(
       if (target.classList.contains('tf-fight-card') && target.classList.contains('hidden')) {
         if (tfDeaths) tfDeaths.value = '1';
         if (tfParts) tfParts.value = '1';
-        applyTeamfightFilters();
+        applyFightFilters();
       }
       var snapshot = link.getAttribute('data-report-snapshot');
       if (snapshot) {
@@ -480,7 +480,7 @@ def build_html_report(
       });
     });
   });
-  applyTeamfightFilters();
+  applyFightFilters();
 })();
 </script>"""
 

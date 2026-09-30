@@ -12,11 +12,12 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING
 
+from gem._deprecation import renamed_attribute, renamed_init_kwargs
 from gem.analysis._shared import infer_match_end_tick
 from gem.combat.log import CombatLogEntry
 
 if TYPE_CHECKING:
-    from gem.extractors.teamfights import Teamfight
+    from gem.extractors.fights import Fight
     from gem.results.models import (
         ParsedMatch,
         ParsedPlayer,
@@ -110,6 +111,7 @@ class SmokeMemberAnalysis:
     evidence_gaps: list[str] = field(default_factory=list)
 
 
+@renamed_init_kwargs({"first_teamfight": "first_fight"})
 @dataclass
 class SmokeAnalysis:
     """Evidence summary for one Smoke of Deceit item use.
@@ -125,7 +127,7 @@ class SmokeAnalysis:
             individual modifier-add ticks.
         member_centroid_y: Legacy member-centroid y coordinate.
         members: Per-participant lifecycle and factual evidence.
-        first_teamfight: First detected teamfight whose first death occurs from
+        first_fight: First detected fight whose first death occurs from
             activation through 60 seconds afterward, or ``None``.
         evidence_gaps: Machine-readable reasons group-level evidence was
             unavailable. These do not assign a cause or success score.
@@ -140,8 +142,10 @@ class SmokeAnalysis:
     member_centroid_x: float | None
     member_centroid_y: float | None
     members: list[SmokeMemberAnalysis] = field(default_factory=list)
-    first_teamfight: Teamfight | None = None
+    first_fight: Fight | None = None
     evidence_gaps: list[str] = field(default_factory=list)
+
+    first_teamfight = renamed_attribute("first_teamfight", "first_fight")
 
 
 def build_smoke_analysis(match: ParsedMatch) -> list[SmokeAnalysis]:
@@ -150,7 +154,7 @@ def build_smoke_analysis(match: ParsedMatch) -> list[SmokeAnalysis]:
     The helper preserves combat-log ticks exactly. It uses modifier duration
     metadata only to distinguish observed expiry from observed early removal;
     visibility, sampled proximity, same-tick actions/deaths, and later
-    teamfights remain separate factual signals and are never treated as causes.
+    fights remain separate factual signals and are never treated as causes.
 
     Args:
         match: Parsed match containing smoke events and supporting timelines.
@@ -184,7 +188,7 @@ def build_smoke_analysis(match: ParsedMatch) -> list[SmokeAnalysis]:
                 member_centroid_x=smoke.x,
                 member_centroid_y=smoke.y,
                 members=members,
-                first_teamfight=_first_teamfight(match, smoke.tick),
+                first_fight=_first_fight(match, smoke.tick),
                 evidence_gaps=evidence_gaps,
             )
         )
@@ -406,10 +410,10 @@ def _same_tick_evidence(
     return (actions, deaths)
 
 
-def _first_teamfight(match: ParsedMatch, activation_tick: int) -> Teamfight | None:
+def _first_fight(match: ParsedMatch, activation_tick: int) -> Fight | None:
     eligible = [
         fight
-        for fight in match.teamfights
+        for fight in match.fights
         if activation_tick <= fight.first_death_tick <= activation_tick + _TEAMFIGHT_WINDOW_TICKS
     ]
     return min(eligible, key=lambda fight: fight.first_death_tick, default=None)

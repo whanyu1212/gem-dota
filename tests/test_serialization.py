@@ -10,12 +10,12 @@ import pytest
 import gem
 import gem.api
 from gem.analysis.farming import build_farming_routes
+from gem.analysis.fight_positioning import build_fight_positioning
 from gem.analysis.roshan import build_rosh_conversions
 from gem.analysis.smoke_fight import build_smoke_fight_insights
-from gem.analysis.teamfight_positioning import build_teamfight_positioning
 from gem.combat.log import CombatLogEntry, CombatLogSource, CombatLogType
+from gem.extractors.fights import Fight, FightPlayer, OpenDotaTeamfight
 from gem.extractors.objectives import AegisEvent, RoshanKill
-from gem.extractors.teamfights import OpenDotaTeamfight, Teamfight, TeamfightPlayer
 from gem.results.models import (
     BuybackEvent,
     EntityVisibilityEvent,
@@ -108,11 +108,11 @@ class TestSerializationHelpers:
             ),
             ParsedPlayer(player_id=5, hero_name="npc_dota_hero_bane", team=3),
         ]
-        fight_players = [TeamfightPlayer(player_id=i) for i in range(10)]
+        fight_players = [FightPlayer(player_id=i) for i in range(10)]
         match = ParsedMatch(
             players=players,
-            teamfights=[
-                Teamfight(
+            fights=[
+                Fight(
                     start_tick=550,
                     end_tick=1_450,
                     first_death_tick=1_000,
@@ -123,7 +123,7 @@ class TestSerializationHelpers:
             ],
         )
 
-        payload = gem.to_dict(build_teamfight_positioning(match))
+        payload = gem.to_dict(build_fight_positioning(match))
         decoded = json.loads(json.dumps(payload))
 
         assert decoded[0]["engagement_start_source"] == "first_death_fallback"
@@ -225,7 +225,7 @@ class TestSerializationHelpers:
             )
             for player_id in range(10)
         ]
-        fight_players = [TeamfightPlayer(player_id=player_id) for player_id in range(10)]
+        fight_players = [FightPlayer(player_id=player_id) for player_id in range(10)]
         fight_players[0].damage_dealt = 250
         fight_players[5].deaths = 1
         match = ParsedMatch(
@@ -241,8 +241,8 @@ class TestSerializationHelpers:
                 )
             ],
             aegis_events=[AegisEvent(1010, 0, "pickup")],
-            teamfights=[
-                Teamfight(
+            fights=[
+                Fight(
                     start_tick=1100,
                     end_tick=1400,
                     first_death_tick=1300,
@@ -383,14 +383,14 @@ def _awkward_match() -> ParsedMatch:
                 dire_state=VisibilityState.UNKNOWN,
             )
         ],
-        teamfights=[
-            Teamfight(
+        fights=[
+            Fight(
                 start_tick=1,
                 end_tick=2,
                 first_death_tick=1,
                 last_death_tick=1,
                 deaths=1,
-                players=[TeamfightPlayer(player_id=0, item_uses={"item_blink": 1})],
+                players=[FightPlayer(player_id=0, item_uses={"item_blink": 1})],
             )
         ],
         game_clock=GameClock(
@@ -420,7 +420,7 @@ class TestJsonRoundTrip:
         assert loaded.hero_visibility_events[0].dire_state is VisibilityState.HIDDEN
         assert loaded.game_clock is not None
         assert loaded.game_clock.pauses[1] == GamePause(40_000, None)
-        assert loaded.teamfights[0].players[0].item_uses == {"item_blink": 1}
+        assert loaded.fights[0].players[0].item_uses == {"item_blink": 1}
 
     def test_from_dict_accepts_bare_to_dict_payload(self):
         match = _awkward_match()
@@ -505,7 +505,7 @@ class TestJsonRoundTrip:
             "smoke_fights",
             "roshan_conversions",
             "farming_routes",
-            "teamfight_positioning",
+            "fight_positioning",
         }
         assert gem.from_dict(decoded) == match
 
@@ -547,14 +547,14 @@ class TestAnalyze:
             players=players,
             roshans=[RoshanKill(1000, "npc_dota_hero_hero_0", 1, killer_team=2)],
             aegis_events=[AegisEvent(1010, 0, "pickup")],
-            teamfights=[
-                Teamfight(
+            fights=[
+                Fight(
                     start_tick=1_100,
                     end_tick=1_400,
                     first_death_tick=1_300,
                     last_death_tick=1_300,
                     deaths=1,
-                    players=[TeamfightPlayer(player_id=i) for i in range(10)],
+                    players=[FightPlayer(player_id=i) for i in range(10)],
                 )
             ],
         )
@@ -565,8 +565,8 @@ class TestAnalyze:
         assert gem.to_dict(analysis.roshan_conversions) == gem.to_dict(
             build_rosh_conversions(match)
         )
-        assert gem.to_dict(analysis.teamfight_positioning) == gem.to_dict(
-            build_teamfight_positioning(match)
+        assert gem.to_dict(analysis.fight_positioning) == gem.to_dict(
+            build_fight_positioning(match)
         )
         assert gem.to_dict(analysis.farming_routes) == gem.to_dict(build_farming_routes(match))
         assert gem.to_dict(analysis.smoke_fights) == gem.to_dict(build_smoke_fight_insights(match))

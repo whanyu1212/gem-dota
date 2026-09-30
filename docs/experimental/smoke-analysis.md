@@ -8,7 +8,7 @@ set of per-hero modifier lifecycles. It keeps the observed replay facts separate
 - natural expiry versus an earlier removal
 - authoritative enemy visibility at those ticks
 - sampled enemy proximity and same-tick combat evidence
-- the first teamfight whose first death follows the activation within 60 seconds
+- the first fight whose first death follows the activation within 60 seconds
 
 The helper does **not** produce a smoke success score or claim why the modifier
 ended. A hero can lose smoke while still hidden from the opposing team, and a

@@ -21,6 +21,8 @@ from dataclasses import asdict, fields
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Literal, Union, get_args, get_origin, get_type_hints
 
+from gem._deprecation import warn_renamed
+
 if TYPE_CHECKING:
     import pandas as pd
 
@@ -48,8 +50,8 @@ CORE_TABLES: tuple[str, ...] = (
     "objectives",
     "chat",
     "draft",
-    "teamfights",
-    "teamfight_players",
+    "fights",
+    "fight_players",
     "smoke_events",
     "smoke_members",
     "courier_snapshots",
@@ -67,7 +69,7 @@ CORE_TABLES: tuple[str, ...] = (
 #: Opt-in table groups, selected with ``build_dataframes(match, include=[...])``.
 OPTIONAL_GROUPS: dict[str, tuple[str, ...]] = {
     "analysis": (
-        "teamfight_positioning",
+        "fight_positioning",
         "roshan_conversions",
         "roshan_conversion_fights",
         "smoke_fight_insights",
@@ -178,8 +180,8 @@ _PLAYER_BREAKDOWN_FIELDS: tuple[str, ...] = (
     "lane_pos",
 )
 
-# ``TeamfightPlayer`` dict fields left out of ``teamfight_players``.
-_TEAMFIGHT_PLAYER_DICTS: frozenset[str] = frozenset({"ability_uses", "item_uses"})
+# ``FightPlayer`` dict fields left out of ``fight_players``.
+_FIGHT_PLAYER_DICTS: frozenset[str] = frozenset({"ability_uses", "item_uses"})
 
 
 def build_dataframes(match: ParsedMatch, *, include: Iterable[str] = ()) -> dict[str, pd.DataFrame]:
@@ -198,7 +200,7 @@ def build_dataframes(match: ParsedMatch, *, include: Iterable[str] = ()) -> dict
         match: Fully populated :class:`ParsedMatch`.
         include: Optional table groups to add (see :data:`OPTIONAL_GROUPS`).
             ``"analysis"`` runs the post-parse farming, smoke-fight, Roshan
-            conversion, and teamfight-positioning analyses and flattens them;
+            conversion, and fight-positioning analyses and flattens them;
             ``"opendota"`` adds the OpenDota-shaped objective and teamfight
             views; ``"gold_ledger"`` adds each player's gold ledger at game
             end and per minute. A single group name may be passed as a plain
@@ -226,7 +228,36 @@ def build_dataframes(match: ParsedMatch, *, include: Iterable[str] = ()) -> dict
     for df in tables.values():
         if "match_id" not in df.columns:
             df.insert(0, "match_id", pd.Series(match.match_id, index=df.index, dtype=_INT))
-    return tables
+    return _Tables(tables)
+
+
+#: Table names gem 0.10 and earlier used for gem's own fights.
+RENAMED_TABLES = {
+    "teamfights": "fights",
+    "teamfight_players": "fight_players",
+    "teamfight_positioning": "fight_positioning",
+}
+
+
+class _Tables(dict[str, "pd.DataFrame"]):
+    """Table dict that still serves renamed table names, with a warning.
+
+    Only the current names are keys, so iterating (and writing Parquet) sees
+    each table once.
+    """
+
+    def __missing__(self, key: str) -> pd.DataFrame:
+        new = RENAMED_TABLES.get(key)
+        if new is None or new not in self:
+            raise KeyError(key)
+        warn_renamed(f"DataFrame table {key!r}", repr(new))
+        return self[new]
+
+    def get(self, key: str, default: Any = None) -> Any:
+        """Return a table, resolving renamed table names like ``tables[key]``."""
+        if key in self or (key in RENAMED_TABLES and RENAMED_TABLES[key] in self):
+            return self[key]
+        return default
 
 
 def _resolve_include(include: Iterable[str]) -> set[str]:
@@ -373,7 +404,7 @@ def _build_core_tables(match: ParsedMatch) -> dict[str, pd.DataFrame]:
     from gem.combat.log import CombatLogEntry
     from gem.extractors.courier import CourierSnapshot
     from gem.extractors.draft import DraftEvent
-    from gem.extractors.teamfights import Teamfight, TeamfightPlayer
+    from gem.extractors.fights import Fight, FightPlayer
     from gem.extractors.wards import WardEvent
     from gem.results.models import (
         BuybackEvent,
@@ -706,27 +737,27 @@ def _build_core_tables(match: ParsedMatch) -> dict[str, pd.DataFrame]:
 
     # --- list-based domains ---
     draft_df = _typed_frame([asdict(d) for d in match.draft], _field_dtypes(DraftEvent))
-    # Teamfights: one row per fight, with the per-player breakdown in its own
+    # Fights: one row per fight, with the per-player breakdown in its own
     # long table. The per-player ability/item use dicts stay in the JSON output.
-    teamfight_schema = {"fight_index": _INT, **_field_dtypes(Teamfight, exclude=("players",))}
-    teamfight_player_schema = {
+    fight_schema = {"fight_index": _INT, **_field_dtypes(Fight, exclude=("players",))}
+    fight_player_schema = {
         "fight_index": _INT,
-        **_field_dtypes(TeamfightPlayer, exclude=_TEAMFIGHT_PLAYER_DICTS),
+        **_field_dtypes(FightPlayer, exclude=_FIGHT_PLAYER_DICTS),
     }
-    teamfight_rows: list[dict[str, Any]] = []
-    teamfight_player_rows: list[dict[str, Any]] = []
-    for fight_index, fight in enumerate(match.teamfights):
-        teamfight_rows.append(
+    fight_rows: list[dict[str, Any]] = []
+    fight_player_rows: list[dict[str, Any]] = []
+    for fight_index, fight in enumerate(match.fights):
+        fight_rows.append(
             {"fight_index": fight_index}
-            | {name: getattr(fight, name) for name in list(teamfight_schema)[1:]}
+            | {name: getattr(fight, name) for name in list(fight_schema)[1:]}
         )
         for fight_player in fight.players:
-            teamfight_player_rows.append(
+            fight_player_rows.append(
                 {"fight_index": fight_index}
-                | {name: getattr(fight_player, name) for name in list(teamfight_player_schema)[1:]}
+                | {name: getattr(fight_player, name) for name in list(fight_player_schema)[1:]}
             )
-    teamfights_df = _typed_frame(teamfight_rows, teamfight_schema)
-    teamfight_players_df = _typed_frame(teamfight_player_rows, teamfight_player_schema)
+    fights_df = _typed_frame(fight_rows, fight_schema)
+    fight_players_df = _typed_frame(fight_player_rows, fight_player_schema)
 
     # Smoke events: participants are exported in ``smoke_members``.
     smoke_schema = _field_dtypes(SmokeEvent, exclude=("participants",))
@@ -806,8 +837,8 @@ def _build_core_tables(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         "objectives": objectives_df,
         "chat": chat_df,
         "draft": draft_df,
-        "teamfights": teamfights_df,
-        "teamfight_players": teamfight_players_df,
+        "fights": fights_df,
+        "fight_players": fight_players_df,
         "smoke_events": smoke_df,
         "smoke_members": smoke_members_df,
         "courier_snapshots": courier_df,
@@ -848,7 +879,7 @@ def _build_gold_ledger_tables(match: ParsedMatch) -> dict[str, pd.DataFrame]:
 
 
 def _build_opendota_tables(match: ParsedMatch) -> dict[str, pd.DataFrame]:
-    from gem.extractors.teamfights import OpenDotaTeamfight
+    from gem.extractors.fights import OpenDotaTeamfight
 
     # OpenDota-shaped views for OpenDota-compatible consumers. Objective rows
     # carry type-specific keys, so the table holds the union of them.
@@ -879,9 +910,9 @@ def _build_opendota_tables(match: ParsedMatch) -> dict[str, pd.DataFrame]:
 
 def _build_analysis_tables(match: ParsedMatch) -> dict[str, pd.DataFrame]:
     from gem.analysis.farming import build_farming_routes
+    from gem.analysis.fight_positioning import build_fight_positioning
     from gem.analysis.roshan import build_rosh_conversions
     from gem.analysis.smoke_fight import build_smoke_fight_insights
-    from gem.analysis.teamfight_positioning import build_teamfight_positioning
 
     positioning_schema = {
         "fight_index": _INT,
@@ -928,7 +959,7 @@ def _build_analysis_tables(match: ParsedMatch) -> dict[str, pd.DataFrame]:
         "active_participant_centroid_y": _FLOAT,
     }
     positioning_rows: list[dict[str, Any]] = []
-    for fight in build_teamfight_positioning(match):
+    for fight in build_fight_positioning(match):
         for snapshot in fight.snapshots:
             for hero in snapshot.heroes:
                 positioning_rows.append(
@@ -977,7 +1008,7 @@ def _build_analysis_tables(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                         "active_participant_centroid_y": (snapshot.active_participant_centroid_y),
                     }
                 )
-    teamfight_positioning_df = _typed_frame(positioning_rows, positioning_schema)
+    fight_positioning_df = _typed_frame(positioning_rows, positioning_schema)
 
     # --- evidence-first Roshan conversions ---
     roshan_conversion_schema = {
@@ -1667,7 +1698,7 @@ def _build_analysis_tables(match: ParsedMatch) -> dict[str, pd.DataFrame]:
     )
 
     return {
-        "teamfight_positioning": teamfight_positioning_df,
+        "fight_positioning": fight_positioning_df,
         "roshan_conversions": roshan_conversions_df,
         "roshan_conversion_fights": roshan_conversion_fights_df,
         "smoke_fight_insights": smoke_fight_insights_df,

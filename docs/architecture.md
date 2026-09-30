@@ -39,7 +39,7 @@ assembly.
     </div>
     <div class="arch-flow-node arch-flow--extract">
       <span class="arch-flow-title">Extractors</span>
-      <span class="arch-flow-desc">Players, objectives, wards, visibility, courier, draft, teamfights</span>
+      <span class="arch-flow-desc">Players, objectives, wards, visibility, courier, draft, fights</span>
     </div>
   </div>
 
@@ -110,7 +110,7 @@ assembly.
       <span class="arch-badge">extractors/visibility.py</span>
       <span class="arch-badge">extractors/courier.py</span>
       <span class="arch-badge">extractors/draft.py</span>
-      <span class="arch-badge">extractors/teamfights.py</span>
+      <span class="arch-badge">extractors/fights.py</span>
     </div>
   </div>
 
@@ -182,8 +182,8 @@ a list of typed dataclasses — no raw dicts, no untyped payloads.
       <td>Ward placements with exact map coordinates</td>
     </tr>
     <tr>
-      <td><code>teamfights</code></td>
-      <td><code>list[Teamfight]</code></td>
+      <td><code>fights</code></td>
+      <td><code>list[Fight]</code></td>
       <td>Detected fight windows with per-player damage, kills, and healing</td>
     </tr>
     <tr>

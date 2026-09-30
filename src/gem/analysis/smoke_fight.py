@@ -1,7 +1,7 @@
 """Conservative post-parse associations between smoke activations and fights.
 
 Combat-log event semantics follow Clarity's ``CombatLog.java`` at pinned
-revision ``7fb3f1d0``; teamfight window semantics follow OpenDota's
+revision ``7fb3f1d0``; fight window semantics follow OpenDota's
 ``CreateParsedDataBlob.java`` at pinned revision ``e58a668f`` (see
 ``CLAUDE.md``). Exact replay events and sampled spatial evidence deliberately
 remain separate.
@@ -15,20 +15,20 @@ from enum import Enum
 from typing import TYPE_CHECKING
 
 from gem.analysis._shared import infer_match_end_tick
-from gem.analysis.combat import is_active_teamfight_participant
-from gem.analysis.smoke import SmokeAnalysis, SmokeGroupStatus, build_smoke_analysis
-from gem.analysis.teamfight_positioning import (
+from gem.analysis.combat import is_active_fight_participant
+from gem.analysis.fight_positioning import (
     EvidenceCompleteness,
+    FightPositioning,
     FightPositionSnapshot,
     SnapshotKind,
-    TeamfightPositioning,
-    build_teamfight_positioning,
+    build_fight_positioning,
 )
+from gem.analysis.smoke import SmokeAnalysis, SmokeGroupStatus, build_smoke_analysis
 
 if TYPE_CHECKING:
     from gem.analysis.vision import PointVisionAssessment
     from gem.combat.log import CombatLogEntry
-    from gem.extractors.teamfights import Teamfight
+    from gem.extractors.fights import Fight
     from gem.results.models import (
         ParsedMatch,
         SmokeEvent,
@@ -293,7 +293,7 @@ class SmokeFightInsight:
 class _Association:
     smoke_index: int
     fight_index: int | None
-    positioning: TeamfightPositioning | None
+    positioning: FightPositioning | None
     active_member_ids: tuple[int, ...]
     provisional: SmokeFightStatus
 
@@ -349,7 +349,7 @@ def build_smoke_fight_insights(
         raise ValueError("max_position_age_ticks must be nonnegative")
 
     smoke_analyses = build_smoke_analysis(match)
-    positionings = build_teamfight_positioning(
+    positionings = build_fight_positioning(
         match,
         nearby_radius=nearby_radius,
         max_position_age_ticks=max_position_age_ticks,
@@ -389,7 +389,7 @@ def build_smoke_fight_insights(
 
 def _associate(
     match: ParsedMatch,
-    positionings: list[TeamfightPositioning],
+    positionings: list[FightPositioning],
     fight_window_ticks: int,
 ) -> list[_Association]:
     associations: list[_Association] = []
@@ -403,7 +403,7 @@ def _associate(
             )
         )
         for positioning in positionings:
-            fight = match.teamfights[positioning.fight_index]
+            fight = match.fights[positioning.fight_index]
             engagement_tick = positioning.engagement_start_tick
             active_ids = _active_smoked_members(fight, resolved_member_ids)
             if engagement_tick <= smoke.tick <= fight.end_tick:
@@ -446,14 +446,14 @@ def _associate(
 
 
 def _active_smoked_members(
-    fight: Teamfight,
+    fight: Fight,
     member_ids: tuple[int, ...],
 ) -> tuple[int, ...]:
     active: set[int] = set()
     member_set = set(member_ids)
     for stats in fight.players:
         player_id = getattr(stats, "player_id", None)
-        if player_id in member_set and is_active_teamfight_participant(stats):
+        if player_id in member_set and is_active_fight_participant(stats):
             active.add(player_id)
     return tuple(player_id for player_id in member_ids if player_id in active)
 
@@ -525,7 +525,7 @@ def _build_insight(
         )
 
     fight_index = association.fight_index
-    fight = match.teamfights[fight_index]
+    fight = match.fights[fight_index]
     positioning = association.positioning
     pre_snapshot = _snapshot(positioning, SnapshotKind.PRE_ENGAGEMENT)
     engagement_snapshot = _snapshot(positioning, SnapshotKind.ENGAGEMENT_START)
@@ -572,7 +572,7 @@ def _build_insight(
         None,
         smoke.tick,
         activation_time,
-        provenance="teamfights",
+        provenance="fights",
         source_index=fight_index,
     )
 
@@ -642,7 +642,7 @@ def _build_insight(
 
 
 def _snapshot(
-    positioning: TeamfightPositioning,
+    positioning: FightPositioning,
     kind: SnapshotKind,
 ) -> FightPositionSnapshot:
     return next(snapshot for snapshot in positioning.snapshots if snapshot.kind is kind)
@@ -729,7 +729,7 @@ def _completeness(expected: int, observed: int) -> EvidenceCompleteness:
 
 def _fight_center(
     engagement: FightPositionSnapshot,
-    fight: Teamfight,
+    fight: Fight,
 ) -> tuple[tuple[float, float] | None, FightCentroidSource | None]:
     if (
         engagement.active_participant_centroid_x is not None
@@ -798,7 +798,7 @@ def _near_fight_samples(
 def _member_insights(
     match: ParsedMatch,
     smoke: SmokeEvent,
-    fight: Teamfight,
+    fight: Fight,
     pre_formation: FormationEvidence,
     engagement_formation: FormationEvidence,
     near_samples: dict[int, SampledNearFightEvidence],
@@ -850,7 +850,7 @@ def _member_insights(
             gaps.append("engagement_point_vision_unavailable")
 
         stats = fight_stats.get(player_id)
-        active = stats is not None and is_active_teamfight_participant(stats)
+        active = stats is not None and is_active_fight_participant(stats)
         member = SmokeFightMemberInsight(
             participant_index=index,
             player_id=player_id,
@@ -969,7 +969,7 @@ def _first_visible(
 def _first_direct_reveal(
     match: ParsedMatch,
     smoke: SmokeEvent,
-    fight: Teamfight,
+    fight: Fight,
     activation_time: int | None,
 ) -> tuple[ExactEventEvidence | None, list[str]]:
     from gem.results.models import VisionModifierSemantic
@@ -1045,7 +1045,7 @@ def _first_direct_reveal(
 def _first_member_action(
     match: ParsedMatch,
     smoke: SmokeEvent,
-    fight: Teamfight,
+    fight: Fight,
     activation_time: int | None,
 ) -> ExactEventEvidence | None:
     players = {player.player_id: player for player in match.players}
@@ -1093,7 +1093,7 @@ def _first_member_action(
     )
 
 
-def _valid_first_death_tick(fight: Teamfight) -> int | None:
+def _valid_first_death_tick(fight: Fight) -> int | None:
     tick = fight.first_death_tick
     if tick > 0 and fight.start_tick <= tick <= fight.end_tick:
         return tick
@@ -1102,7 +1102,7 @@ def _valid_first_death_tick(fight: Teamfight) -> int | None:
 
 def _first_death(
     match: ParsedMatch,
-    fight: Teamfight,
+    fight: Fight,
     fight_index: int,
     activation_tick: int,
     activation_time: int | None,
@@ -1143,7 +1143,7 @@ def _first_death(
             source.game_time_s if source is not None else None,
             activation_tick,
             activation_time,
-            provenance="teamfights",
+            provenance="fights",
             source_index=fight_index,
             hero_name=source.target_name if source is not None else "",
             source_name=(source.damage_source_name or source.attacker_name) if source else "",

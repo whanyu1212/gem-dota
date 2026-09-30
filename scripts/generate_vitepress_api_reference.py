@@ -39,7 +39,7 @@ TARGETS_BY_PAGE: dict[str, list[str]] = {
         "gem.analysis.roshan",
         "gem.analysis.smoke",
         "gem.analysis.smoke_fight",
-        "gem.analysis.teamfight_positioning",
+        "gem.analysis.fight_positioning",
         "gem.analysis.bundle",
     ],
     "batch.md": ["gem.replays.batch"],
@@ -118,7 +118,7 @@ TARGETS_BY_PAGE: dict[str, list[str]] = {
     "extractors/lane.md": ["gem.extractors.lane"],
     "extractors/objectives.md": ["gem.extractors.objectives"],
     "extractors/players.md": ["gem.extractors.players"],
-    "extractors/teamfights.md": ["gem.extractors.teamfights"],
+    "extractors/fights.md": ["gem.extractors.fights"],
     "extractors/wards.md": ["gem.extractors.wards"],
 }
 

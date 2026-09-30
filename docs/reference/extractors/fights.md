@@ -1,50 +1,50 @@
-# Teamfights Extractor
+# Fights Extractor
 
-Teamfight window detection and per-participant statistics.
+Fight detection (every fight, adjustable grouping), OpenDota-exact teamfights, and per-participant statistics.
 
 ---
 
 ## Generated API
 
-## Module `gem.extractors.teamfights`
+## Module `gem.extractors.fights`
 
-Teamfight detection from combat log entries.
+Fight detection from combat log entries.
 
-Source: [src/gem/extractors/teamfights.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/teamfights.py#L1)
+Source: [src/gem/extractors/fights.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/fights.py#L1)
 
 ### Top-level functions
 
-### `detect_teamfights`
+### `detect_fights`
 
 ```python
-def detect_teamfights(combat_log: list[CombatLogEntry], hero_to_slot: dict[str, int] | None = None, player_snapshots: dict[int, list[PlayerStateSnapshot]] | None = None, slot_to_team: dict[int, int] | None = None) -> list[Teamfight]
+def detect_fights(combat_log: list[CombatLogEntry], hero_to_slot: dict[str, int] | None = None, player_snapshots: dict[int, list[PlayerStateSnapshot]] | None = None, slot_to_team: dict[int, int] | None = None, *, window_s: float = FIGHT_WINDOW_S, radius: float | None = FIGHT_RADIUS) -> list[Fight]
 ```
 
-Detect teamfights from a match combat log.
+Detect fights from a match combat log.
 
-Source: [src/gem/extractors/teamfights.py:171](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/teamfights.py#L171)
+Source: [src/gem/extractors/fights.py:184](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/fights.py#L184)
 
 ### `detect_opendota_teamfights`
 
 ```python
-def detect_opendota_teamfights(combat_log: list[CombatLogEntry], hero_to_slot: dict[str, int] | None = None, player_snapshots: dict[int, list[PlayerStateSnapshot]] | None = None, *, game_start_tick: int | None = None, duration_s: int | None = None, game_clock: GameClock | None = None) -> list[OpenDotaTeamfight]
+def detect_opendota_teamfights(combat_log: list[CombatLogEntry], hero_to_slot: dict[str, int] | None = None, player_snapshots: dict[int, list[PlayerStateSnapshot]] | None = None, *, game_start_tick: int | None = None, duration_s: int | None = None, game_clock: GameClock | None = None, interval_samples: Sequence[IntervalSample] | None = None, aegis_events: Iterable[AegisEvent] = ()) -> list[OpenDotaTeamfight]
 ```
 
 Project combat log entries into OpenDota-compatible teamfight output.
 
-Source: [src/gem/extractors/teamfights.py:431](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/teamfights.py#L431)
+Source: [src/gem/extractors/fights.py:456](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/fights.py#L456)
 
 ### Top-level classes
 
-### `TeamfightPlayer`
+### `FightPlayer`
 
 ```python
-class TeamfightPlayer
+class FightPlayer
 ```
 
-Per-player stats accumulated within one teamfight window.
+Per-player stats accumulated within one fight window.
 
-Source: [src/gem/extractors/teamfights.py:55](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/teamfights.py#L55)
+Source: [src/gem/extractors/fights.py:68](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/fights.py#L68)
 
 #### Dataclass fields
 
@@ -61,15 +61,15 @@ Source: [src/gem/extractors/teamfights.py:55](https://github.com/whanyu1212/gem-
 | `ability_uses` | `dict[str, int]` | `field(...)` |
 | `item_uses` | `dict[str, int]` | `field(...)` |
 
-### `Teamfight`
+### `Fight`
 
 ```python
-class Teamfight
+class Fight
 ```
 
-A detected teamfight window with per-player breakdowns.
+A detected fight window with per-player breakdowns.
 
-Source: [src/gem/extractors/teamfights.py:84](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/teamfights.py#L84)
+Source: [src/gem/extractors/fights.py:97](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/fights.py#L97)
 
 #### Dataclass fields
 
@@ -86,7 +86,7 @@ Source: [src/gem/extractors/teamfights.py:84](https://github.com/whanyu1212/gem-
 | `centroid_x` | `float \| None` | `None` |
 | `centroid_y` | `float \| None` | `None` |
 | `centroid_n` | `int` | `0` |
-| `players` | `list[TeamfightPlayer]` | `field(...)` |
+| `players` | `list[FightPlayer]` | `field(...)` |
 
 ### `OpenDotaTeamfightPlayer`
 
@@ -96,7 +96,7 @@ class OpenDotaTeamfightPlayer
 
 OpenDota-compatible per-player teamfight row.
 
-Source: [src/gem/extractors/teamfights.py:124](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/teamfights.py#L124)
+Source: [src/gem/extractors/fights.py:137](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/fights.py#L137)
 
 #### Dataclass fields
 
@@ -124,7 +124,7 @@ class OpenDotaTeamfight
 
 OpenDota-compatible temporal teamfight window.
 
-Source: [src/gem/extractors/teamfights.py:154](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/teamfights.py#L154)
+Source: [src/gem/extractors/fights.py:167](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/fights.py#L167)
 
 #### Dataclass fields
 

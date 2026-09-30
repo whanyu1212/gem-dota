@@ -16,13 +16,13 @@ data into higher-level structures for agentic and analytical use.
 Canonical implementation modules are split by responsibility:
 
 - `gem.analysis.spatial` — position, nearby-hero, and net-worth lookup helpers
-- `gem.analysis.combat` — ability-hit grouping and teamfight helpers
+- `gem.analysis.combat` — ability-hit grouping and fight helpers
 - `gem.analysis.abilities` — ability-level lookup helpers
 - `gem.analysis.vision` — geometry-based vision approximation helpers
 - `gem.analysis.map_context` — objective-aware farming context helpers
 - `gem.analysis.roshan` — Roshan conversion summaries
 - `gem.analysis.smoke` — evidence-first Smoke of Deceit lifecycle analysis
-- `gem.analysis.teamfight_positioning` — bounded fight-moment spatial evidence
+- `gem.analysis.fight_positioning` — bounded fight-moment spatial evidence
 
 `gem.analysis` re-exports the public helpers below. Use the implementation
 modules directly only when module-level imports are useful.
@@ -34,13 +34,13 @@ import gem
 
 pos     = gem.position_at_tick(player, tick)
 casts   = gem.group_ability_hits(match.combat_log)
-fight   = gem.teamfight_at_tick(match, tick)
+fight   = gem.fight_at_tick(match, tick)
 near    = gem.heroes_near(match, tick, x, y, radius=2000)
 lvl     = gem.ability_level_at_tick(player, "axe_berserkers_call", tick)
 sources = gem.estimate_vision(match, team=2, tick=tick, x=x, y=y)
 vision  = gem.assess_point_vision(match, team=2, tick=tick, x=x, y=y)
 smokes  = gem.build_smoke_analysis(match)
-fights  = gem.build_teamfight_positioning(match)
+fights  = gem.build_fight_positioning(match)
 rosh    = gem.build_rosh_conversions(match)
 ```
 
@@ -119,22 +119,22 @@ for cast in big_hits:
 
 ---
 
-## `teamfight_at_tick`
+## `fight_at_tick`
 
 ```python
-gem.teamfight_at_tick(match: ParsedMatch, tick: int) -> Teamfight | None
+gem.fight_at_tick(match: ParsedMatch, tick: int) -> Fight | None
 ```
 
-Return the `Teamfight` whose `[start_tick, end_tick]` window contains `tick`, or `None`.
+Return the `Fight` whose `[start_tick, end_tick]` window contains `tick`, or `None`.
 
 Uses binary search — O(log N). Fights are assumed non-overlapping and sorted by
-`start_tick` (as produced by `detect_teamfights`).
+`start_tick` (as produced by `detect_fights`).
 
 **Example:**
 
 ```python
 for entry in match.combat_log:
-    fight = gem.teamfight_at_tick(match, entry.tick)
+    fight = gem.fight_at_tick(match, entry.tick)
     if fight:
         print(f"Event at tick {entry.tick} during fight won by {fight.winner}")
 ```
@@ -389,7 +389,7 @@ the smallest tick distance. Returns `0` if no data is available.
 **Example:**
 
 ```python
-for fight in match.teamfights:
+for fight in match.fights:
     for p in fight.players:
         player = match.players[p.player_id]
         nw = gem.net_worth_at(player, fight.start_tick)
@@ -426,13 +426,13 @@ for ward in match.wards:
 
 ---
 
-## `is_active_teamfight_participant`
+## `is_active_fight_participant`
 
 ```python
-gem.is_active_teamfight_participant(player_stats) -> bool
+gem.is_active_fight_participant(player_stats) -> bool
 ```
 
-Return `True` if a player was an active participant in a teamfight — i.e. they had
+Return `True` if a player was an active participant in a fight — i.e. they had
 direct hero-vs-hero combat: a death, damage dealt, damage taken, or healing.
 
 Passive presence (farming nearby, casting only on creeps) does not count.
@@ -440,8 +440,8 @@ Passive presence (farming nearby, casting only on creeps) does not count.
 **Example:**
 
 ```python
-fight = match.teamfights[0]
-active = [p for p in fight.players if gem.is_active_teamfight_participant(p)]
+fight = match.fights[0]
+active = [p for p in fight.players if gem.is_active_fight_participant(p)]
 print(f"{len(active)} active participants in fight")
 ```
 
@@ -599,7 +599,7 @@ Source: [src/gem/analysis/spatial.py:19](https://github.com/whanyu1212/gem-dota/
 
 ## Module `gem.analysis.combat`
 
-Combat-log and teamfight analysis helpers.
+Combat-log and fight analysis helpers.
 
 Source: [src/gem/analysis/combat.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L1)
 
@@ -613,27 +613,37 @@ def group_ability_hits(combat_log: list[CombatLogEntry], window_ticks: int = 5) 
 
 Group DAMAGE combat log entries into per-cast ``AbilityCast`` records.
 
-Source: [src/gem/analysis/combat.py:41](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L41)
+Source: [src/gem/analysis/combat.py:51](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L51)
 
-### `teamfight_at_tick`
-
-```python
-def teamfight_at_tick(match: ParsedMatch, tick: int) -> Teamfight | None
-```
-
-Return the teamfight window that contains the given tick, or ``None``.
-
-Source: [src/gem/analysis/combat.py:115](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L115)
-
-### `is_active_teamfight_participant`
+### `find_fights`
 
 ```python
-def is_active_teamfight_participant(player_stats: object) -> bool
+def find_fights(match: ParsedMatch, *, window_s: float = FIGHT_WINDOW_S, radius: float | None = FIGHT_RADIUS) -> list[Fight]
 ```
 
-Return True if a player was an active participant in a teamfight.
+Group a parsed match's hero deaths into fights with your own settings.
 
-Source: [src/gem/analysis/combat.py:148](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L148)
+Source: [src/gem/analysis/combat.py:125](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L125)
+
+### `fight_at_tick`
+
+```python
+def fight_at_tick(match: ParsedMatch, tick: int) -> Fight | None
+```
+
+Return the fight window that contains the given tick, or ``None``.
+
+Source: [src/gem/analysis/combat.py:197](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L197)
+
+### `is_active_fight_participant`
+
+```python
+def is_active_fight_participant(player_stats: object) -> bool
+```
+
+Return True if a player was an active participant in a fight.
+
+Source: [src/gem/analysis/combat.py:230](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L230)
 
 ### Top-level classes
 
@@ -645,7 +655,7 @@ class AbilityCast
 
 A single ability (or item) cast with all targets it hit.
 
-Source: [src/gem/analysis/combat.py:16](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L16)
+Source: [src/gem/analysis/combat.py:26](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L26)
 
 #### Dataclass fields
 
@@ -1537,7 +1547,7 @@ def build_smoke_analysis(match: ParsedMatch) -> list[SmokeAnalysis]
 
 Build factual lifecycle summaries for every smoke item use.
 
-Source: [src/gem/analysis/smoke.py:147](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L147)
+Source: [src/gem/analysis/smoke.py:151](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L151)
 
 ### Top-level classes
 
@@ -1549,7 +1559,7 @@ class SmokeLifecycleStatus(str, Enum)
 
 Observed lifecycle classification for one smoke participant.
 
-Source: [src/gem/analysis/smoke.py:34](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L34)
+Source: [src/gem/analysis/smoke.py:35](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L35)
 
 ### `SmokeGroupStatus`
 
@@ -1559,7 +1569,7 @@ class SmokeGroupStatus(str, Enum)
 
 Evidence-based aggregate state for one smoke activation.
 
-Source: [src/gem/analysis/smoke.py:51](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L51)
+Source: [src/gem/analysis/smoke.py:52](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L52)
 
 ### `SmokeMemberAnalysis`
 
@@ -1569,7 +1579,7 @@ class SmokeMemberAnalysis
 
 Evidence summary for one hero in a smoke activation.
 
-Source: [src/gem/analysis/smoke.py:71](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L71)
+Source: [src/gem/analysis/smoke.py:72](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L72)
 
 #### Dataclass fields
 
@@ -1598,7 +1608,7 @@ class SmokeAnalysis
 
 Evidence summary for one Smoke of Deceit item use.
 
-Source: [src/gem/analysis/smoke.py:114](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L114)
+Source: [src/gem/analysis/smoke.py:116](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L116)
 
 #### Dataclass fields
 
@@ -1613,7 +1623,7 @@ Source: [src/gem/analysis/smoke.py:114](https://github.com/whanyu1212/gem-dota/b
 | `member_centroid_x` | `float \| None` | `-` |
 | `member_centroid_y` | `float \| None` | `-` |
 | `members` | `list[SmokeMemberAnalysis]` | `field(...)` |
-| `first_teamfight` | `Teamfight \| None` | `None` |
+| `first_fight` | `Fight \| None` | `None` |
 | `evidence_gaps` | `list[str]` | `field(...)` |
 
 ## Module `gem.analysis.smoke_fight`
@@ -1930,23 +1940,23 @@ Return present exact events in chronological, deterministic order.
 
 Source: [src/gem/analysis/smoke_fight.py:268](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L268)
 
-## Module `gem.analysis.teamfight_positioning`
+## Module `gem.analysis.fight_positioning`
 
-Evidence-aware positioning snapshots for detected teamfights.
+Evidence-aware positioning snapshots for detected fights.
 
-Source: [src/gem/analysis/teamfight_positioning.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L1)
+Source: [src/gem/analysis/fight_positioning.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/fight_positioning.py#L1)
 
 ### Top-level functions
 
-### `build_teamfight_positioning`
+### `build_fight_positioning`
 
 ```python
-def build_teamfight_positioning(match: ParsedMatch, *, pre_engagement_ticks: int = 300, max_position_age_ticks: int = 60, nearby_radius: float = 3000.0) -> list[TeamfightPositioning]
+def build_fight_positioning(match: ParsedMatch, *, pre_engagement_ticks: int = 300, max_position_age_ticks: int = 60, nearby_radius: float = 3000.0) -> list[FightPositioning]
 ```
 
-Build evidence-aware positioning records for detected teamfights.
+Build evidence-aware positioning records for detected fights.
 
-Source: [src/gem/analysis/teamfight_positioning.py:218](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L218)
+Source: [src/gem/analysis/fight_positioning.py:218](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/fight_positioning.py#L218)
 
 ### Top-level classes
 
@@ -1958,7 +1968,7 @@ class SnapshotKind(str, Enum)
 
 Logical moment represented by a positioning snapshot.
 
-Source: [src/gem/analysis/teamfight_positioning.py:23](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L23)
+Source: [src/gem/analysis/fight_positioning.py:23](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/fight_positioning.py#L23)
 
 ### `EngagementStartSource`
 
@@ -1968,7 +1978,7 @@ class EngagementStartSource(str, Enum)
 
 Provenance for the engagement-start tick.
 
-Source: [src/gem/analysis/teamfight_positioning.py:43](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L43)
+Source: [src/gem/analysis/fight_positioning.py:43](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/fight_positioning.py#L43)
 
 ### `EvidenceCompleteness`
 
@@ -1978,7 +1988,7 @@ class EvidenceCompleteness(str, Enum)
 
 Position-evidence completeness for one team at one snapshot.
 
-Source: [src/gem/analysis/teamfight_positioning.py:62](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L62)
+Source: [src/gem/analysis/fight_positioning.py:62](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/fight_positioning.py#L62)
 
 ### `HeroPositionEvidence`
 
@@ -1988,7 +1998,7 @@ class HeroPositionEvidence
 
 Position and contextual evidence for one canonical player hero.
 
-Source: [src/gem/analysis/teamfight_positioning.py:79](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L79)
+Source: [src/gem/analysis/fight_positioning.py:79](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/fight_positioning.py#L79)
 
 #### Dataclass fields
 
@@ -2020,7 +2030,7 @@ class TeamPositionSummary
 
 Fresh-position geometry and completeness for one team.
 
-Source: [src/gem/analysis/teamfight_positioning.py:127](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L127)
+Source: [src/gem/analysis/fight_positioning.py:127](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/fight_positioning.py#L127)
 
 #### Dataclass fields
 
@@ -2041,9 +2051,9 @@ Source: [src/gem/analysis/teamfight_positioning.py:127](https://github.com/whany
 class FightPositionSnapshot
 ```
 
-All canonical hero evidence at one logical teamfight moment.
+All canonical hero evidence at one logical fight moment.
 
-Source: [src/gem/analysis/teamfight_positioning.py:153](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L153)
+Source: [src/gem/analysis/fight_positioning.py:153](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/fight_positioning.py#L153)
 
 #### Dataclass fields
 
@@ -2058,15 +2068,15 @@ Source: [src/gem/analysis/teamfight_positioning.py:153](https://github.com/whany
 | `active_participant_centroid_x` | `float \| None` | `-` |
 | `active_participant_centroid_y` | `float \| None` | `-` |
 
-### `TeamfightPositioning`
+### `FightPositioning`
 
 ```python
-class TeamfightPositioning
+class FightPositioning
 ```
 
-Four evidence-aware positioning snapshots for one detected teamfight.
+Four evidence-aware positioning snapshots for one detected fight.
 
-Source: [src/gem/analysis/teamfight_positioning.py:180](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/teamfight_positioning.py#L180)
+Source: [src/gem/analysis/fight_positioning.py:180](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/fight_positioning.py#L180)
 
 #### Dataclass fields
 
@@ -2096,7 +2106,7 @@ def analyze(match: ParsedMatch) -> MatchAnalysis
 
 Run every default post-parse analysis on a parsed match.
 
-Source: [src/gem/analysis/bundle.py:54](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/bundle.py#L54)
+Source: [src/gem/analysis/bundle.py:58](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/bundle.py#L58)
 
 ### Top-level classes
 
@@ -2108,7 +2118,7 @@ class MatchAnalysis
 
 Results of every default post-parse analysis for one match.
 
-Source: [src/gem/analysis/bundle.py:32](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/bundle.py#L32)
+Source: [src/gem/analysis/bundle.py:34](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/bundle.py#L34)
 
 #### Dataclass fields
 
@@ -2118,4 +2128,4 @@ Source: [src/gem/analysis/bundle.py:32](https://github.com/whanyu1212/gem-dota/b
 | `smoke_fights` | `list[SmokeFightInsight]` | `field(...)` |
 | `roshan_conversions` | `list[RoshConversion]` | `field(...)` |
 | `farming_routes` | `list[FarmingRoute]` | `field(...)` |
-| `teamfight_positioning` | `list[TeamfightPositioning]` | `field(...)` |
+| `fight_positioning` | `list[FightPositioning]` | `field(...)` |
