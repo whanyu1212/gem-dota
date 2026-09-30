@@ -23,10 +23,11 @@ _TEAM_DIRE = 3
 # exposes. The literals below are a calibrated fallback used only if the JSON is
 # missing or malformed (they must mirror the JSON). These are analysis constants
 # (territory grid, in-map checks, fountain anchors), not the report's image
-# projection, which gem.reports._formatting calibrates separately.
+# projection, which gem.reports._formatting calibrates separately. The fountains
+# are the CDOTA_Unit_Fountain entity positions, identical on every local fixture.
 _FALLBACK_MAP_BOUNDS = (7563.0, 25900.0, 7800.0, 25600.0)  # xmin, xmax, ymin, ymax
-_FALLBACK_RADIANT_FOUNTAIN = (9684.0, 9684.0)
-_FALLBACK_DIRE_FOUNTAIN = (23120.0, 22350.0)
+_FALLBACK_RADIANT_FOUNTAIN = (8928.0, 9446.0)
+_FALLBACK_DIRE_FOUNTAIN = (23792.0, 23232.0)
 _FALLBACK_RIVER_STRIP = 1200.0
 
 

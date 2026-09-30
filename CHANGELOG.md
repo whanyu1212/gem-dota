@@ -208,6 +208,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The fountain anchors are the fountains.** `map_constants.json` put the fountains
+  at (9684, 9684) and (23120, 22350), fitted to the 7.40 report map image. The
+  replay's fountain entities (`CDOTA_Unit_Fountain`) sit at (8928, 9446) and
+  (23792, 23232) on every local fixture, 793 and 1,109 world units away. The anchors
+  (and `catalog.load_map_constants()["fountains"]`) now use the entity positions.
+  - `region_of` splits the halves at the perpendicular bisector of the two fountains.
+    Their midpoint is 51 units from the map centre (16384, 16384); the old anchors'
+    midpoint was 367 units off.
+  - Territory depth now reaches 1.0 at the enemy fountain, as documented. It used
+    to reach 1.0 at the old anchor, 800 to 1,100 units short of it.
+  - On the 9 local fixtures, no Roshan conversion tag or status changes. Territory
+    coverage and depth values shift, 9 of 31 conversion scores move (8 by 1 or 2
+    points, one by 6), and one ward-count driver changes. `territorial_advance`
+    changes on 94 of 8,391 farming segments (1,307 to 1,281 on the calibration
+    corpus). `map_context` enemy presence by half changes in 326 of 1,952 buckets.
+    No neutral camp changes map half.
+
 - **Neutral camp zones sit on the camps.** The 28 zone centres in `camp_zones.json`
   were hand-placed 125–700 world units (mean 322) from where the camps are. Each is
   now the position of its camp's `CDOTA_NeutralSpawner` entity. That position is the

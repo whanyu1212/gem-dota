@@ -6,9 +6,9 @@
     "ymax": 25600
   },
   "fountains": {
-    "radiant": {"x": 9684, "y": 9684},
-    "dire": {"x": 23120, "y": 22350}
+    "radiant": {"x": 8928, "y": 9446},
+    "dire": {"x": 23792, "y": 23232}
   },
   "river_strip": 1200,
-  "notes": "Analysis constants: world_bounds bound the territory grid and in-map checks, and fountains are distance anchors, not the fountain entities (those sit at about (8928, 9446) and (23792, 23232)). HTML reports do not use these to place points on assets/maps/Game_map_7.41.jpg; gem.reports._formatting holds that calibrated window. World coords are Source 2 units. river_strip is the |x - y| threshold for the diagonal river (perpendicular half-width = river_strip / sqrt(2))."
+  "notes": "Analysis constants: world_bounds bound the territory grid and in-map checks. fountains are the ent_dota_fountain_good / ent_dota_fountain_bad entity positions (CDOTA_Unit_Fountain), identical on every local fixture replay; region_of splits the halves at their perpendicular bisector, and territory depth runs from that bisector (0) to the enemy fountain (1). HTML reports do not use these to place points on assets/maps/Game_map_7.41.jpg; gem.reports._formatting holds that calibrated window. World coords are Source 2 units. river_strip is the |x - y| threshold for the diagonal river (perpendicular half-width = river_strip / sqrt(2))."
 }
