@@ -1594,6 +1594,7 @@ def build_parsed_match(
         player_snapshots=player_snaps,
         slot_to_team=slot_to_team,
     )
+    interval_samples = getattr(player_ext, "interval_samples", None)
     match.opendota_teamfights = detect_opendota_teamfights(
         all_entries,
         hero_to_slot=hero_to_slot,
@@ -1601,6 +1602,8 @@ def build_parsed_match(
         game_start_tick=match.game_start_tick,
         duration_s=match.duration or None,
         game_clock=clock,
+        interval_samples=interval_samples if isinstance(interval_samples, list) else None,
+        aegis_events=obj_ext.aegis_events,
     )
 
     # teamfight_participation: read the authoritative game-computed value from

@@ -208,6 +208,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`opendota_teamfights` matches OpenDota exactly.** It now equals OpenDota's
+  `teamfights` on all 8 local fixtures, up from none. `match.teamfights`, gem's own
+  list of every fight, is unchanged. There were four differences:
+  - **The game's final fight.** OpenDota closes a fight at its first once-a-second
+    interval 15 s or more after the last death. The recording ends before that
+    for the final fight, so OpenDota leaves it out. gem kept it, with its end clamped
+    to the match duration (7 of 8 fixtures). It is now left out too.
+  - **Deaths the hero comes back from.** gem skipped every reincarnation death.
+    OpenDota only skips the Aegis holder's next death, and forgets the holder when
+    `modifier_aegis_regen` appears. 8855188139 was missing OpenDota's fight at
+    1847 s, whose three deaths include Ember Spirit's reincarnation.
+  - **`deaths_pos`** is now in OpenDota's map cells (world units / 128), read
+    from the victim's interval position in the death's second. It was in world
+    coordinates. As in OpenDota, a death without an interval read in that second
+    adds to neither `deaths` nor `deaths_pos`.
+  - **`xp_start` / `xp_end`** are now the interval XP at exactly the fight's
+    first and last second, not the nearest snapshot's.
+
+  `PlayerExtractor` now reads OpenDota's once-a-second interval for the whole
+  game, not just the first 600 s. `detect_opendota_teamfights` takes the new
+  `interval_samples` and `aegis_events` arguments; without them it keeps the
+  old approximation. `scripts/audit_opendota_parity.py` now compares
+  `opendota_teamfights` with OpenDota's `teamfights` instead of comparing the
+  number of gem's own fights.
 - **`objectives` matches OpenDota.** `ParsedMatch.objectives` now equals OpenDota's
   on all 8 local fixtures, up from none. There were five causes:
   - **Tormentor kills credited the next kill's player.** The

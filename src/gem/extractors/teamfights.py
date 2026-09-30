@@ -30,16 +30,23 @@ from __future__ import annotations
 
 import math
 from bisect import bisect_left
-from collections.abc import Mapping
+from collections import defaultdict
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from itertools import pairwise
 from typing import TYPE_CHECKING
 
 from gem.combat.log import CombatLogEntry, opendota_translate
+from gem.extractors._cells import od_cell_index
 from gem.state.game_clock import GameClock
 
 if TYPE_CHECKING:
+    from gem.extractors.objectives import AegisEvent
     from gem.extractors.players import PlayerStateSnapshot
+
+#: One OpenDota interval read for a player:
+#: ``(tick, game_time_s, player_id, world_x, world_y, total_earned_xp)``.
+IntervalSample = tuple[int, int, int, float | None, float | None, int | None]
 
 # 15 seconds × 30 ticks/second  (reference uses 15s cooldown)
 _TEAMFIGHT_COOLDOWN_S: int = 15
@@ -436,6 +443,8 @@ def detect_opendota_teamfights(
     game_start_tick: int | None = None,
     duration_s: int | None = None,
     game_clock: GameClock | None = None,
+    interval_samples: Sequence[IntervalSample] | None = None,
+    aegis_events: Iterable[AegisEvent] = (),
 ) -> list[OpenDotaTeamfight]:
     """Project combat log entries into OpenDota-compatible teamfight output.
 
@@ -444,19 +453,41 @@ def detect_opendota_teamfights(
     output follows OpenDota's temporal-only death-window semantics and filters
     to fights with at least three hero deaths.
 
+    With ``interval_samples`` (what :func:`gem.parse` passes) the output is
+    OpenDota's exactly. A fight closes at the first once-a-second interval
+    15 s or more after its last death, so a fight still open when the
+    recording ends is dropped. Deaths follow OpenDota's Aegis rule (see
+    :func:`_opendota_killed_deaths`). XP bounds and death positions come from
+    the intervals. Without samples, fights close at ``last_death + 15`` (the
+    last one clamped to ``duration_s``) and use the nearest snapshots, which
+    only approximates OpenDota.
+
     Args:
         combat_log: Combat log entries to project.
         hero_to_slot: Hero NPC name to player slot mapping.
-        player_snapshots: Per-player state snapshots used for XP bounds.
+        player_snapshots: Per-player state snapshots, used for XP bounds and
+            death positions when ``interval_samples`` is not given.
         game_start_tick: Horn tick, used when ``game_clock`` is not supplied.
-        duration_s: OpenDota match duration used to clamp the final fight.
+        duration_s: OpenDota match duration used to clamp the final fight
+            when ``interval_samples`` is not given.
         game_clock: Pause-aware clock that maps fight seconds back to ticks.
+        interval_samples: OpenDota's interval reads from game time 0
+            (``PlayerExtractor.interval_samples``).
+        aegis_events: Aegis pickups, steals and denies, for OpenDota's rule
+            on the Aegis holder's death.
 
     Returns:
         OpenDota-compatible teamfights with at least three hero deaths.
+
+    Reference: odota/parser src/main/java/opendota/CreateParsedDataBlob.java
+    ``processTeamfights`` and ``handleDeathCombat`` (pinned in CLAUDE.md).
     """
     clock = game_clock or GameClock(game_start_tick=game_start_tick)
     h2s = hero_to_slot or {}
+    if interval_samples is not None:
+        return _opendota_teamfights_from_intervals(
+            combat_log, h2s, clock, interval_samples, aegis_events
+        )
     entries = sorted(
         combat_log,
         key=lambda e: (
@@ -517,6 +548,165 @@ def detect_opendota_teamfights(
             )
 
     return fights
+
+
+def _opendota_teamfights_from_intervals(
+    combat_log: list[CombatLogEntry],
+    hero_to_slot: dict[str, int],
+    clock: GameClock,
+    interval_samples: Sequence[IntervalSample],
+    aegis_events: Iterable[AegisEvent],
+) -> list[OpenDotaTeamfight]:
+    """Build OpenDota's teamfights exactly, from its interval reads."""
+    deaths = _opendota_killed_deaths(combat_log, hero_to_slot, clock, aegis_events)
+
+    # Interval state: game second -> player id -> sample (a later read of the
+    # same second replaces an earlier one, as OpenDota's map put does).
+    state: dict[int, dict[int, IntervalSample]] = defaultdict(dict)
+    interval_ticks: dict[int, int] = {}
+    for sample in interval_samples:
+        tick, time_s, player_id = sample[0], sample[1], sample[2]
+        state[time_s][player_id] = sample
+        interval_ticks.setdefault(time_s, tick)
+
+    # Replay deaths and intervals in stream order. An interval is read at the
+    # start of its tick, before that tick's combat log.
+    stream: list[tuple[int, int, int]] = [(tick, 0, t) for t, tick in interval_ticks.items()]
+    stream += [(death.tick, 1, index) for index, (death, _) in enumerate(deaths)]
+    stream.sort()
+
+    fights: list[OpenDotaTeamfight] = []
+    current: OpenDotaTeamfight | None = None
+    for _, kind, value in stream:
+        if kind == 1:
+            death_s = deaths[value][1]
+            if current is None:
+                current = OpenDotaTeamfight(
+                    start=death_s - _TEAMFIGHT_COOLDOWN_S, end=0, last_death=death_s, deaths=0
+                )
+            current.last_death = death_s
+            current.deaths += 1
+        elif current is not None and value - current.last_death >= _TEAMFIGHT_COOLDOWN_S:
+            current.end = value
+            fights.append(current)
+            current = None
+    fights = [fight for fight in fights if fight.deaths >= 3]
+    if not fights:
+        return []
+
+    for fight in fights:
+        at_start, at_end = state.get(fight.start, {}), state.get(fight.end, {})
+        for player_id, player in enumerate(fight.players):
+            if player_id in at_start and player_id in at_end:
+                player.xp_start = at_start[player_id][5]
+                player.xp_end = at_end[player_id][5]
+
+    counted = {id(death) for death, _ in deaths}
+    for entry in combat_log:
+        event_time_s = _combat_time_s(entry, clock=clock)
+        if event_time_s is None:
+            continue
+        for fight in fights:
+            if not fight.start <= event_time_s <= fight.end:
+                continue
+            if entry.log_type == "DEATH":
+                if id(entry) in counted:
+                    _populate_interval_death(fight, entry, event_time_s, hero_to_slot, state)
+            else:
+                _populate_opendota_teamfight_event(fight, entry, hero_to_slot, None)
+    return fights
+
+
+def _opendota_killed_deaths(
+    combat_log: list[CombatLogEntry],
+    hero_to_slot: dict[str, int],
+    clock: GameClock,
+    aegis_events: Iterable[AegisEvent],
+) -> list[tuple[CombatLogEntry, int]]:
+    """Return the hero deaths OpenDota turns into ``killed`` entries, with their second.
+
+    OpenDota's ``processExpand`` tracks an Aegis holder: set by an Aegis
+    pickup or steal, cleared by ``modifier_aegis_regen`` (the buff an unused
+    Aegis gives as it expires). The holder's next death is skipped and its
+    second remembered; another death in that second is skipped too, and a death
+    in a later second clears the state and counts. When an Aegis runs out with
+    no ``modifier_aegis_regen`` entry, the holder stays set, so their next real
+    death is skipped as well. Self-kills never count, nor do illusions.
+
+    Reference: odota/parser CreateParsedDataBlob.java ``processExpand`` and
+    ``handleDeathCombat``.
+    """
+    # Chat events arrive before a tick's combat log, which Clarity defers to
+    # the tick's end.
+    stream: list[tuple[int, int, int, AegisEvent | CombatLogEntry]] = [
+        (event.tick, 0, index, event)
+        for index, event in enumerate(aegis_events)
+        if event.event_type in ("pickup", "stolen")
+    ]
+    stream += [(entry.tick, 1, index, entry) for index, entry in enumerate(combat_log)]
+    stream.sort(key=lambda item: item[:3])
+
+    holder: int | None = None
+    holder_death_s: int | None = None
+    deaths: list[tuple[CombatLogEntry, int]] = []
+    for _, _, _, entry in stream:
+        if not isinstance(entry, CombatLogEntry):
+            # OpenDota sets only the holder here and keeps any earlier holder's
+            # death second. The new holder's first death in a different second
+            # then clears the state and counts. Kept on purpose: this view must
+            # equal OpenDota's (e.g. 8855242704, Shadow Fiend at 3908 s).
+            holder = entry.player_id
+            continue
+        if entry.log_type == "MODIFIER_ADD" and entry.inflictor_name == "modifier_aegis_regen":
+            holder = None
+            continue
+        if entry.log_type != "DEATH":
+            continue
+        time_s = _combat_time_s(entry, clock=clock)
+        if time_s is None:
+            continue
+        key_slot = None if entry.target_is_illusion else hero_to_slot.get(entry.target_name)
+        if key_slot is not None and key_slot == holder:
+            if holder_death_s is None:
+                holder_death_s = time_s
+                continue
+            if holder_death_s != time_s:
+                holder_death_s = holder = None
+            else:
+                continue
+        if entry.target_is_illusion or entry.attacker_name == entry.target_name:
+            continue
+        if entry.target_is_hero:
+            deaths.append((entry, time_s))
+    return deaths
+
+
+def _populate_interval_death(
+    fight: OpenDotaTeamfight,
+    entry: CombatLogEntry,
+    time_s: int,
+    hero_to_slot: dict[str, int],
+    state: Mapping[int, Mapping[int, IntervalSample]],
+) -> None:
+    """Add one counted death to a fight the way OpenDota's ``processTeamfights`` does."""
+    killer_slot = hero_to_slot.get(entry.damage_source_name)
+    if killer_slot is not None and 0 <= killer_slot < len(fight.players):
+        killed = fight.players[killer_slot].killed
+        killed[entry.target_name] = killed.get(entry.target_name, 0) + 1
+
+    # OpenDota counts the death, and its position, only when the victim has an
+    # interval read in the death's second.
+    victim_slot = hero_to_slot.get(entry.target_name)
+    if victim_slot is None or not 0 <= victim_slot < len(fight.players):
+        return
+    sample = state.get(time_s, {}).get(victim_slot)
+    if sample is None or sample[3] is None or sample[4] is None:
+        return
+    victim = fight.players[victim_slot]
+    x, y = str(od_cell_index(sample[3])), str(od_cell_index(sample[4]))
+    y_counts = victim.deaths_pos.setdefault(x, {})
+    y_counts[y] = y_counts.get(y, 0) + 1
+    victim.deaths += 1
 
 
 def _append_closed_opendota_fight(
