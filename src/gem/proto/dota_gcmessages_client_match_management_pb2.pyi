@@ -378,10 +378,12 @@ class CMsgPracticeLobbyLeave(_message.Message):
     def __init__(self) -> None: ...
 
 class CMsgPracticeLobbyLaunch(_message.Message):
-    __slots__ = ("client_version",)
+    __slots__ = ("client_version", "nonce")
     CLIENT_VERSION_FIELD_NUMBER: _ClassVar[int]
+    NONCE_FIELD_NUMBER: _ClassVar[int]
     client_version: int
-    def __init__(self, client_version: _Optional[int] = ...) -> None: ...
+    nonce: int
+    def __init__(self, client_version: _Optional[int] = ..., nonce: _Optional[int] = ...) -> None: ...
 
 class CMsgApplyTeamToPracticeLobby(_message.Message):
     __slots__ = ("team_id",)

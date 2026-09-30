@@ -129,7 +129,7 @@ class CMsgSource2VProfLiteReport(_message.Message):
     def __init__(self, total: _Optional[_Union[CMsgSource2VProfLiteReportItem, _Mapping]] = ..., items: _Optional[_Iterable[_Union[CMsgSource2VProfLiteReportItem, _Mapping]]] = ..., discarded_frames: _Optional[int] = ...) -> None: ...
 
 class CMsgSource2NetworkFlowQuality(_message.Message):
-    __slots__ = ("duration", "bytes_total", "bytes_total_reliable", "bytes_total_voice", "bytes_sec_p95", "bytes_sec_p99", "enginemsgs_total", "enginemsgs_sec_p95", "enginemsgs_sec_p99", "netframes_total", "netframes_dropped", "netframes_outoforder", "netframes_size_exceeds_mtu", "netframes_size_p95", "netframes_size_p99", "ticks_total", "ticks_good", "ticks_good_almost_late", "ticks_fixed_dropped", "ticks_fixed_late", "ticks_bad_dropped", "ticks_bad_late", "ticks_bad_other", "tick_missrate_samples_total", "tick_missrate_samples_perfect", "tick_missrate_samples_perfectnet", "tick_missratenet_p75_x10", "tick_missratenet_p95_x10", "tick_missratenet_p99_x10", "recvmargin_p1", "recvmargin_p5", "recvmargin_p25", "recvmargin_p50", "recvmargin_p75", "recvmargin_p95", "netframe_jitter_p50", "netframe_jitter_p99", "interval_peakjitter_p50", "interval_peakjitter_p95", "packet_misdelivery_rate_p50_x4", "packet_misdelivery_rate_p95_x4", "net_ping_p5", "net_ping_p50", "net_ping_p95")
+    __slots__ = ("duration", "bytes_total", "bytes_total_reliable", "bytes_total_voice", "bytes_sec_p95", "bytes_sec_p99", "enginemsgs_total", "enginemsgs_sec_p95", "enginemsgs_sec_p99", "netframes_total", "netframes_dropped", "netframes_outoforder", "netframes_size_exceeds_mtu", "netframes_size_p95", "netframes_size_p99", "netframes_size_uncompressed_p50", "netframes_size_uncompressed_p95", "netframes_size_uncompressed_p99", "netframes_size_uncompressed_max", "netframes_msgs_p50", "netframes_msgs_p95", "netframes_msgs_p99", "netframes_msgs_max", "ticks_total", "ticks_good", "ticks_good_almost_late", "ticks_fixed_dropped", "ticks_fixed_late", "ticks_bad_dropped", "ticks_bad_late", "ticks_bad_other", "tick_missrate_samples_total", "tick_missrate_samples_perfect", "tick_missrate_samples_perfectnet", "tick_missratenet_p75_x10", "tick_missratenet_p95_x10", "tick_missratenet_p99_x10", "recvmargin_p1", "recvmargin_p5", "recvmargin_p25", "recvmargin_p50", "recvmargin_p75", "recvmargin_p95", "netframe_jitter_p50", "netframe_jitter_p99", "interval_peakjitter_p50", "interval_peakjitter_p95", "packet_misdelivery_rate_p50_x4", "packet_misdelivery_rate_p95_x4", "net_ping_p5", "net_ping_p50", "net_ping_p95", "msgproc_usec_p50", "msgproc_usec_p95", "msgproc_usec_p99", "msgproc_usec_max", "msgproc_usec_avg_p50", "msgproc_usec_avg_p95", "msgproc_usec_avg_p99", "msgproc_usec_avg_max", "queuedmsgs_p50", "queuedmsgs_p95", "queuedmsgs_p99", "queuedmsgs_max")
     DURATION_FIELD_NUMBER: _ClassVar[int]
     BYTES_TOTAL_FIELD_NUMBER: _ClassVar[int]
     BYTES_TOTAL_RELIABLE_FIELD_NUMBER: _ClassVar[int]
@@ -145,6 +145,14 @@ class CMsgSource2NetworkFlowQuality(_message.Message):
     NETFRAMES_SIZE_EXCEEDS_MTU_FIELD_NUMBER: _ClassVar[int]
     NETFRAMES_SIZE_P95_FIELD_NUMBER: _ClassVar[int]
     NETFRAMES_SIZE_P99_FIELD_NUMBER: _ClassVar[int]
+    NETFRAMES_SIZE_UNCOMPRESSED_P50_FIELD_NUMBER: _ClassVar[int]
+    NETFRAMES_SIZE_UNCOMPRESSED_P95_FIELD_NUMBER: _ClassVar[int]
+    NETFRAMES_SIZE_UNCOMPRESSED_P99_FIELD_NUMBER: _ClassVar[int]
+    NETFRAMES_SIZE_UNCOMPRESSED_MAX_FIELD_NUMBER: _ClassVar[int]
+    NETFRAMES_MSGS_P50_FIELD_NUMBER: _ClassVar[int]
+    NETFRAMES_MSGS_P95_FIELD_NUMBER: _ClassVar[int]
+    NETFRAMES_MSGS_P99_FIELD_NUMBER: _ClassVar[int]
+    NETFRAMES_MSGS_MAX_FIELD_NUMBER: _ClassVar[int]
     TICKS_TOTAL_FIELD_NUMBER: _ClassVar[int]
     TICKS_GOOD_FIELD_NUMBER: _ClassVar[int]
     TICKS_GOOD_ALMOST_LATE_FIELD_NUMBER: _ClassVar[int]
@@ -174,6 +182,18 @@ class CMsgSource2NetworkFlowQuality(_message.Message):
     NET_PING_P5_FIELD_NUMBER: _ClassVar[int]
     NET_PING_P50_FIELD_NUMBER: _ClassVar[int]
     NET_PING_P95_FIELD_NUMBER: _ClassVar[int]
+    MSGPROC_USEC_P50_FIELD_NUMBER: _ClassVar[int]
+    MSGPROC_USEC_P95_FIELD_NUMBER: _ClassVar[int]
+    MSGPROC_USEC_P99_FIELD_NUMBER: _ClassVar[int]
+    MSGPROC_USEC_MAX_FIELD_NUMBER: _ClassVar[int]
+    MSGPROC_USEC_AVG_P50_FIELD_NUMBER: _ClassVar[int]
+    MSGPROC_USEC_AVG_P95_FIELD_NUMBER: _ClassVar[int]
+    MSGPROC_USEC_AVG_P99_FIELD_NUMBER: _ClassVar[int]
+    MSGPROC_USEC_AVG_MAX_FIELD_NUMBER: _ClassVar[int]
+    QUEUEDMSGS_P50_FIELD_NUMBER: _ClassVar[int]
+    QUEUEDMSGS_P95_FIELD_NUMBER: _ClassVar[int]
+    QUEUEDMSGS_P99_FIELD_NUMBER: _ClassVar[int]
+    QUEUEDMSGS_MAX_FIELD_NUMBER: _ClassVar[int]
     duration: int
     bytes_total: int
     bytes_total_reliable: int
@@ -189,6 +209,14 @@ class CMsgSource2NetworkFlowQuality(_message.Message):
     netframes_size_exceeds_mtu: int
     netframes_size_p95: int
     netframes_size_p99: int
+    netframes_size_uncompressed_p50: int
+    netframes_size_uncompressed_p95: int
+    netframes_size_uncompressed_p99: int
+    netframes_size_uncompressed_max: int
+    netframes_msgs_p50: int
+    netframes_msgs_p95: int
+    netframes_msgs_p99: int
+    netframes_msgs_max: int
     ticks_total: int
     ticks_good: int
     ticks_good_almost_late: int
@@ -218,7 +246,19 @@ class CMsgSource2NetworkFlowQuality(_message.Message):
     net_ping_p5: int
     net_ping_p50: int
     net_ping_p95: int
-    def __init__(self, duration: _Optional[int] = ..., bytes_total: _Optional[int] = ..., bytes_total_reliable: _Optional[int] = ..., bytes_total_voice: _Optional[int] = ..., bytes_sec_p95: _Optional[int] = ..., bytes_sec_p99: _Optional[int] = ..., enginemsgs_total: _Optional[int] = ..., enginemsgs_sec_p95: _Optional[int] = ..., enginemsgs_sec_p99: _Optional[int] = ..., netframes_total: _Optional[int] = ..., netframes_dropped: _Optional[int] = ..., netframes_outoforder: _Optional[int] = ..., netframes_size_exceeds_mtu: _Optional[int] = ..., netframes_size_p95: _Optional[int] = ..., netframes_size_p99: _Optional[int] = ..., ticks_total: _Optional[int] = ..., ticks_good: _Optional[int] = ..., ticks_good_almost_late: _Optional[int] = ..., ticks_fixed_dropped: _Optional[int] = ..., ticks_fixed_late: _Optional[int] = ..., ticks_bad_dropped: _Optional[int] = ..., ticks_bad_late: _Optional[int] = ..., ticks_bad_other: _Optional[int] = ..., tick_missrate_samples_total: _Optional[int] = ..., tick_missrate_samples_perfect: _Optional[int] = ..., tick_missrate_samples_perfectnet: _Optional[int] = ..., tick_missratenet_p75_x10: _Optional[int] = ..., tick_missratenet_p95_x10: _Optional[int] = ..., tick_missratenet_p99_x10: _Optional[int] = ..., recvmargin_p1: _Optional[int] = ..., recvmargin_p5: _Optional[int] = ..., recvmargin_p25: _Optional[int] = ..., recvmargin_p50: _Optional[int] = ..., recvmargin_p75: _Optional[int] = ..., recvmargin_p95: _Optional[int] = ..., netframe_jitter_p50: _Optional[int] = ..., netframe_jitter_p99: _Optional[int] = ..., interval_peakjitter_p50: _Optional[int] = ..., interval_peakjitter_p95: _Optional[int] = ..., packet_misdelivery_rate_p50_x4: _Optional[int] = ..., packet_misdelivery_rate_p95_x4: _Optional[int] = ..., net_ping_p5: _Optional[int] = ..., net_ping_p50: _Optional[int] = ..., net_ping_p95: _Optional[int] = ...) -> None: ...
+    msgproc_usec_p50: int
+    msgproc_usec_p95: int
+    msgproc_usec_p99: int
+    msgproc_usec_max: int
+    msgproc_usec_avg_p50: int
+    msgproc_usec_avg_p95: int
+    msgproc_usec_avg_p99: int
+    msgproc_usec_avg_max: int
+    queuedmsgs_p50: int
+    queuedmsgs_p95: int
+    queuedmsgs_p99: int
+    queuedmsgs_max: int
+    def __init__(self, duration: _Optional[int] = ..., bytes_total: _Optional[int] = ..., bytes_total_reliable: _Optional[int] = ..., bytes_total_voice: _Optional[int] = ..., bytes_sec_p95: _Optional[int] = ..., bytes_sec_p99: _Optional[int] = ..., enginemsgs_total: _Optional[int] = ..., enginemsgs_sec_p95: _Optional[int] = ..., enginemsgs_sec_p99: _Optional[int] = ..., netframes_total: _Optional[int] = ..., netframes_dropped: _Optional[int] = ..., netframes_outoforder: _Optional[int] = ..., netframes_size_exceeds_mtu: _Optional[int] = ..., netframes_size_p95: _Optional[int] = ..., netframes_size_p99: _Optional[int] = ..., netframes_size_uncompressed_p50: _Optional[int] = ..., netframes_size_uncompressed_p95: _Optional[int] = ..., netframes_size_uncompressed_p99: _Optional[int] = ..., netframes_size_uncompressed_max: _Optional[int] = ..., netframes_msgs_p50: _Optional[int] = ..., netframes_msgs_p95: _Optional[int] = ..., netframes_msgs_p99: _Optional[int] = ..., netframes_msgs_max: _Optional[int] = ..., ticks_total: _Optional[int] = ..., ticks_good: _Optional[int] = ..., ticks_good_almost_late: _Optional[int] = ..., ticks_fixed_dropped: _Optional[int] = ..., ticks_fixed_late: _Optional[int] = ..., ticks_bad_dropped: _Optional[int] = ..., ticks_bad_late: _Optional[int] = ..., ticks_bad_other: _Optional[int] = ..., tick_missrate_samples_total: _Optional[int] = ..., tick_missrate_samples_perfect: _Optional[int] = ..., tick_missrate_samples_perfectnet: _Optional[int] = ..., tick_missratenet_p75_x10: _Optional[int] = ..., tick_missratenet_p95_x10: _Optional[int] = ..., tick_missratenet_p99_x10: _Optional[int] = ..., recvmargin_p1: _Optional[int] = ..., recvmargin_p5: _Optional[int] = ..., recvmargin_p25: _Optional[int] = ..., recvmargin_p50: _Optional[int] = ..., recvmargin_p75: _Optional[int] = ..., recvmargin_p95: _Optional[int] = ..., netframe_jitter_p50: _Optional[int] = ..., netframe_jitter_p99: _Optional[int] = ..., interval_peakjitter_p50: _Optional[int] = ..., interval_peakjitter_p95: _Optional[int] = ..., packet_misdelivery_rate_p50_x4: _Optional[int] = ..., packet_misdelivery_rate_p95_x4: _Optional[int] = ..., net_ping_p5: _Optional[int] = ..., net_ping_p50: _Optional[int] = ..., net_ping_p95: _Optional[int] = ..., msgproc_usec_p50: _Optional[int] = ..., msgproc_usec_p95: _Optional[int] = ..., msgproc_usec_p99: _Optional[int] = ..., msgproc_usec_max: _Optional[int] = ..., msgproc_usec_avg_p50: _Optional[int] = ..., msgproc_usec_avg_p95: _Optional[int] = ..., msgproc_usec_avg_p99: _Optional[int] = ..., msgproc_usec_avg_max: _Optional[int] = ..., queuedmsgs_p50: _Optional[int] = ..., queuedmsgs_p95: _Optional[int] = ..., queuedmsgs_p99: _Optional[int] = ..., queuedmsgs_max: _Optional[int] = ...) -> None: ...
 
 class CMsgSource2PerfIntervalSample(_message.Message):
     __slots__ = ("frame_time_max_ms", "frame_time_avg_ms", "frame_time_min_ms", "frame_count", "frame_time_total_ms", "tags")

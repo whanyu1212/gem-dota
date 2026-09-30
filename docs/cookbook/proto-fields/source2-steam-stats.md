@@ -80,7 +80,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgSource2NetworkFlowQuality</code> — fields: 44; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgSource2NetworkFlowQuality</code> — fields: 64; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -93,6 +93,14 @@ Expand any message to inspect all fields.
 | 7 | `bytes_total_voice` | `uint64` | `optional` |  |  |
 | 10 | `bytes_sec_p95` | `uint32` | `optional` |  |  |
 | 11 | `bytes_sec_p99` | `uint32` | `optional` |  |  |
+| 12 | `netframes_size_uncompressed_p50` | `uint32` | `optional` |  |  |
+| 13 | `netframes_size_uncompressed_p95` | `uint32` | `optional` |  |  |
+| 14 | `netframes_size_uncompressed_p99` | `uint32` | `optional` |  |  |
+| 15 | `netframes_size_uncompressed_max` | `uint32` | `optional` |  |  |
+| 16 | `netframes_msgs_p50` | `uint32` | `optional` |  |  |
+| 17 | `netframes_msgs_p95` | `uint32` | `optional` |  |  |
+| 18 | `netframes_msgs_p99` | `uint32` | `optional` |  |  |
+| 19 | `netframes_msgs_max` | `uint32` | `optional` |  |  |
 | 20 | `enginemsgs_total` | `uint32` | `optional` |  |  |
 | 21 | `enginemsgs_sec_p95` | `uint32` | `optional` |  |  |
 | 22 | `enginemsgs_sec_p99` | `uint32` | `optional` |  |  |
@@ -131,6 +139,18 @@ Expand any message to inspect all fields.
 | 80 | `net_ping_p5` | `uint32` | `optional` |  |  |
 | 81 | `net_ping_p50` | `uint32` | `optional` |  |  |
 | 82 | `net_ping_p95` | `uint32` | `optional` |  |  |
+| 90 | `msgproc_usec_p50` | `uint32` | `optional` |  |  |
+| 91 | `msgproc_usec_p95` | `uint32` | `optional` |  |  |
+| 92 | `msgproc_usec_p99` | `uint32` | `optional` |  |  |
+| 93 | `msgproc_usec_max` | `uint32` | `optional` |  |  |
+| 94 | `msgproc_usec_avg_p50` | `uint32` | `optional` |  |  |
+| 95 | `msgproc_usec_avg_p95` | `uint32` | `optional` |  |  |
+| 96 | `msgproc_usec_avg_p99` | `uint32` | `optional` |  |  |
+| 97 | `msgproc_usec_avg_max` | `uint32` | `optional` |  |  |
+| 100 | `queuedmsgs_p50` | `uint32` | `optional` |  |  |
+| 101 | `queuedmsgs_p95` | `uint32` | `optional` |  |  |
+| 102 | `queuedmsgs_p99` | `uint32` | `optional` |  |  |
+| 103 | `queuedmsgs_max` | `uint32` | `optional` |  |  |
 
 </details>
 

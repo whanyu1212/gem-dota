@@ -334,7 +334,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgPracticeLobbyLaunch</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgPracticeLobbyLaunch</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -342,6 +342,7 @@ Expand any message to inspect all fields.
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
 | 5 | `client_version` | `uint32` | `optional` |  |  |
+| 6 | `nonce` | `fixed64` | `optional` |  |  |
 
 </details>
 

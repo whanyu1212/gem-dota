@@ -1458,7 +1458,7 @@ class CMsgClientToGCCreateStaticRecipeResponse(_message.Message):
     def __init__(self, response: _Optional[_Union[CMsgClientToGCCreateStaticRecipeResponse.EResponse, str]] = ..., output_items: _Optional[_Iterable[_Union[CMsgClientToGCCreateStaticRecipeResponse.OutputItem, _Mapping]]] = ..., input_errors: _Optional[_Iterable[_Union[CMsgClientToGCCreateStaticRecipeResponse.InputError, _Mapping]]] = ..., additional_outputs: _Optional[_Iterable[_Union[CMsgClientToGCCreateStaticRecipeResponse.AdditionalOutput, _Mapping]]] = ...) -> None: ...
 
 class CMsgProcessTransactionOrder(_message.Message):
-    __slots__ = ("txn_id", "steam_txn_id", "partner_txn_id", "steam_id", "time_stamp", "watermark", "purchase_report_status", "currency", "items")
+    __slots__ = ("txn_id", "steam_txn_id", "steam_id", "time_stamp", "watermark", "purchase_report_status", "currency", "items")
     class Item(_message.Message):
         __slots__ = ("item_def_index", "item_price", "quantity", "category_desc", "store_purchase_type", "source_reference_id", "parent_stack_index", "default_price", "is_user_facing", "price_index")
         ITEM_DEF_INDEX_FIELD_NUMBER: _ClassVar[int]
@@ -1484,7 +1484,6 @@ class CMsgProcessTransactionOrder(_message.Message):
         def __init__(self, item_def_index: _Optional[int] = ..., item_price: _Optional[int] = ..., quantity: _Optional[int] = ..., category_desc: _Optional[str] = ..., store_purchase_type: _Optional[int] = ..., source_reference_id: _Optional[int] = ..., parent_stack_index: _Optional[int] = ..., default_price: bool = ..., is_user_facing: bool = ..., price_index: _Optional[int] = ...) -> None: ...
     TXN_ID_FIELD_NUMBER: _ClassVar[int]
     STEAM_TXN_ID_FIELD_NUMBER: _ClassVar[int]
-    PARTNER_TXN_ID_FIELD_NUMBER: _ClassVar[int]
     STEAM_ID_FIELD_NUMBER: _ClassVar[int]
     TIME_STAMP_FIELD_NUMBER: _ClassVar[int]
     WATERMARK_FIELD_NUMBER: _ClassVar[int]
@@ -1493,14 +1492,13 @@ class CMsgProcessTransactionOrder(_message.Message):
     ITEMS_FIELD_NUMBER: _ClassVar[int]
     txn_id: int
     steam_txn_id: int
-    partner_txn_id: int
     steam_id: int
     time_stamp: int
     watermark: int
     purchase_report_status: int
     currency: int
     items: _containers.RepeatedCompositeFieldContainer[CMsgProcessTransactionOrder.Item]
-    def __init__(self, txn_id: _Optional[int] = ..., steam_txn_id: _Optional[int] = ..., partner_txn_id: _Optional[int] = ..., steam_id: _Optional[int] = ..., time_stamp: _Optional[int] = ..., watermark: _Optional[int] = ..., purchase_report_status: _Optional[int] = ..., currency: _Optional[int] = ..., items: _Optional[_Iterable[_Union[CMsgProcessTransactionOrder.Item, _Mapping]]] = ...) -> None: ...
+    def __init__(self, txn_id: _Optional[int] = ..., steam_txn_id: _Optional[int] = ..., steam_id: _Optional[int] = ..., time_stamp: _Optional[int] = ..., watermark: _Optional[int] = ..., purchase_report_status: _Optional[int] = ..., currency: _Optional[int] = ..., items: _Optional[_Iterable[_Union[CMsgProcessTransactionOrder.Item, _Mapping]]] = ...) -> None: ...
 
 class CMsgGCToGCStoreProcessCDKeyTransaction(_message.Message):
     __slots__ = ("order", "reason_code", "partner")
