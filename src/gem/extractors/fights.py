@@ -668,6 +668,10 @@ def _opendota_killed_deaths(
     deaths: list[tuple[CombatLogEntry, int]] = []
     for _, _, _, entry in stream:
         if not isinstance(entry, CombatLogEntry):
+            # OpenDota sets only the holder here and keeps any earlier holder's
+            # death second. The new holder's first death in a different second
+            # then clears the state and counts. Kept on purpose: this view must
+            # equal OpenDota's (e.g. 8855242704, Shadow Fiend at 3908 s).
             holder = entry.player_id
             continue
         if entry.log_type == "MODIFIER_ADD" and entry.inflictor_name == "modifier_aegis_regen":
