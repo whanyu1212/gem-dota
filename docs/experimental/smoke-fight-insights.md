@@ -96,7 +96,7 @@ the relevant tab and snapshot; both views consume the same analysis records.
 ## Limits
 
 - Fight windows and engagement-start evidence inherit the documented
-  teamfight detector fallbacks.
+  fight detector fallbacks.
 - Hero positions are sampled and can be partial, stale, or missing.
 - Authoritative visibility can remain unknown when the replay has no usable
   observation.

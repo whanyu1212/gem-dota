@@ -82,7 +82,7 @@ Built-in extraction covers:
 - courier state snapshots
 - draft picks and bans
 - smoke events, evidence-preserving vision modifier lifecycles, neutral item finds, and chat
-- native teamfight windows plus OpenDota-compatible teamfight windows
+- native fight windows plus OpenDota-compatible teamfight windows
 
 The public output shape is documented in [Full Match Data](../guides/04_match_data.md),
 [Time-Series and DataFrames](../guides/05_timeseries.md), and the

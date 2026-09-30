@@ -51,7 +51,7 @@ Use the canonical grouped modules documented below.
 | [Courier](extractors/courier.md) | Courier state per tick |
 | [Draft](extractors/draft.md) | Pick and ban events |
 | [Lane](extractors/lane.md) | Lane role from the 10-minute position heatmap |
-| [Teamfights](extractors/teamfights.md) | Teamfight window detection |
+| [Fights](extractors/fights.md) | Fight window detection |
 
 ## Reference data
 

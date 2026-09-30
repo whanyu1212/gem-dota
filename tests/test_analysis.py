@@ -11,9 +11,9 @@ import pytest
 import gem
 import gem.analysis as analysis
 import gem.analysis.combat as analysis_combat
+import gem.analysis.fight_positioning as analysis_teamfight_positioning
 import gem.analysis.smoke_fight as analysis_smoke_fight
 import gem.analysis.spatial as analysis_spatial
-import gem.analysis.teamfight_positioning as analysis_teamfight_positioning
 from gem.analysis import group_ability_hits, position_at_tick, position_sample_at_tick
 from gem.combat.log import CombatLogEntry
 
@@ -25,10 +25,9 @@ def test_analysis_package_reexports_public_helpers() -> None:
     assert analysis.group_ability_hits is analysis_combat.group_ability_hits
     assert analysis.AbilityCast is analysis_combat.AbilityCast
     assert (
-        analysis.build_teamfight_positioning
-        is analysis_teamfight_positioning.build_teamfight_positioning
+        analysis.build_fight_positioning is analysis_teamfight_positioning.build_fight_positioning
     )
-    assert gem.build_teamfight_positioning is analysis.build_teamfight_positioning
+    assert gem.build_fight_positioning is analysis.build_fight_positioning
     assert analysis.build_smoke_fight_insights is analysis_smoke_fight.build_smoke_fight_insights
     assert gem.build_smoke_fight_insights is analysis.build_smoke_fight_insights
 

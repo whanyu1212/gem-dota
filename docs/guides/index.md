@@ -19,7 +19,7 @@ client under **Watch -> Recent Games**.
 | Guide | Use it when you want to |
 |---|---|
 | [Combat Log](03_combat_log.md) | Filter damage, healing, kills, item uses, and modifiers |
-| [Teamfight Detection](06_teamfights.md) | Use Gem and OpenDota-compatible fight windows |
+| [Fight Detection](06_fights.md) | Use Gem and OpenDota-compatible fight windows |
 | [Laning Analysis](08_laning.md) | Read lane roles, lane efficiency, and 10-minute advantages |
 | [Entity State](02_entity_state.md) | Subscribe to raw entity lifecycle and field updates |
 

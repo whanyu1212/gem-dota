@@ -7,7 +7,7 @@ import pytest
 
 from gem.analysis import FarmingBoundaryReason, FarmingRoutePoint
 from gem.combat.log import CombatLogEntry, CombatLogType
-from gem.extractors.teamfights import Teamfight, TeamfightPlayer
+from gem.extractors.fights import Fight, FightPlayer
 from gem.reports import (
     ReportOptions,
     apply_opendota_player_names,
@@ -15,7 +15,7 @@ from gem.reports import (
     is_displayable_player_name,
     write_html_report,
 )
-from gem.reports.sections.combat import _fight_reveals_html, build_kill_feed, build_teamfights
+from gem.reports.sections.combat import _fight_reveals_html, build_fights, build_kill_feed
 from gem.reports.sections.vision import (
     _downsample_farming_route_points,
     _insight_delta,
@@ -75,10 +75,10 @@ def _positioning_match(*, missing_position: bool = False) -> ParsedMatch:
             position_log=[(700, 10_100.0, 10_100.0), (1_000, 11_100.0, 11_100.0)],
         ),
     ]
-    fight_players = [TeamfightPlayer(player_id=i) for i in range(10)]
+    fight_players = [FightPlayer(player_id=i) for i in range(10)]
     fight_players[0].damage_dealt = 100
     fight_players[5].damage_taken = 100
-    fight = Teamfight(
+    fight = Fight(
         start_tick=550,
         end_tick=1_450,
         first_death_tick=1_000,
@@ -89,7 +89,7 @@ def _positioning_match(*, missing_position: bool = False) -> ParsedMatch:
     return ParsedMatch(
         game_end_tick=1_500,
         players=players,
-        teamfights=[fight],
+        fights=[fight],
         hero_visibility_events=[
             HeroVisibilityEvent(
                 tick=700,
@@ -136,11 +136,11 @@ def _linked_smoke_match(*, multiple_fights: bool = False) -> ParsedMatch:
         )
     ]
     if multiple_fights:
-        fight_players = [TeamfightPlayer(player_id=i) for i in range(10)]
+        fight_players = [FightPlayer(player_id=i) for i in range(10)]
         fight_players[0].damage_dealt = 50
         fight_players[5].damage_taken = 50
-        match.teamfights.append(
-            Teamfight(
+        match.fights.append(
+            Fight(
                 start_tick=1_300,
                 end_tick=1_600,
                 first_death_tick=1_400,
@@ -241,7 +241,7 @@ def test_farming_route_downsampling_preserves_discontinuities(
 
 
 def test_teamfight_report_renders_four_evidence_snapshots_on_one_map() -> None:
-    html = build_teamfights(_positioning_match(), "ZmFrZQ==")
+    html = build_fights(_positioning_match(), "ZmFrZQ==")
 
     assert html.count('class="tf-snapshot-btn') == 4
     assert html.count('class="tf-position-layer"') == 4
@@ -259,7 +259,7 @@ def test_teamfight_report_renders_four_evidence_snapshots_on_one_map() -> None:
 
 
 def test_teamfight_report_surfaces_partial_position_evidence() -> None:
-    html = build_teamfights(_positioning_match(missing_position=True), None)
+    html = build_fights(_positioning_match(missing_position=True), None)
 
     assert "fresh positions" in html
     assert "missing" in html
@@ -278,7 +278,7 @@ def test_teamfight_report_uses_first_player_for_duplicate_slots() -> None:
         )
     )
 
-    html = build_teamfights(match, None)
+    html = build_fights(match, None)
 
     assert "Radiant One" in html
     assert "Axe" in html
@@ -288,9 +288,9 @@ def test_teamfight_report_uses_first_player_for_duplicate_slots() -> None:
 
 def test_teamfight_report_discloses_missing_first_death_tick_fallback() -> None:
     match = _positioning_match()
-    match.teamfights[0].first_death_tick = 0
+    match.fights[0].first_death_tick = 0
 
-    html = build_teamfights(match, None)
+    html = build_fights(match, None)
 
     assert "Death fallback" in html
     assert "use the observed last-death tick" in html

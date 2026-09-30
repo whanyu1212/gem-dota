@@ -1,6 +1,6 @@
-# Teamfight Positioning
+# Fight Positioning
 
-`build_teamfight_positioning(match)` reconstructs how the two canonical hero
+`build_fight_positioning(match)` reconstructs how the two canonical hero
 rosters were arranged at four moments around each detected fight:
 
 - ten seconds before the best available engagement-start tick
@@ -18,7 +18,7 @@ import gem
 
 match = gem.parse("match.dem")
 
-for fight in gem.build_teamfight_positioning(match):
+for fight in gem.build_fight_positioning(match):
     print(fight.fight_index, fight.engagement_start_source.value)
     for snapshot in fight.snapshots:
         print(snapshot.kind.value, snapshot.tick, snapshot.centroid_distance)
@@ -32,7 +32,7 @@ for fight in gem.build_teamfight_positioning(match):
             )
 ```
 
-The builder is post-parse and deterministic. It reads existing teamfight,
+The builder is post-parse and deterministic. It reads existing fight,
 position, visibility, smoke, and reveal timelines; it does not run another
 extractor or modify the parsed match.
 
@@ -117,7 +117,7 @@ lifecycles become evidence-gap codes instead of active claims.
 
 `gem.parse_to_dataframe(..., include=["analysis"])` and
 `gem.results.dataframes.build_dataframes(..., include=["analysis"])` include a
-`teamfight_positioning` table with one row per fight, snapshot, and
+`fight_positioning` table with one row per fight, snapshot, and
 canonical hero. Nullable values preserve unavailable geometry.
 `active_reveal_modifiers` and `evidence_gaps` are `";"`-joined strings.
 

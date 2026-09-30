@@ -413,13 +413,13 @@ match.chat   # list[ChatEntry]
 
 ---
 
-## Teamfights
+## Fights
 
 ```python
-match.teamfights   # list[Teamfight]
+match.fights   # list[Fight]
 ```
 
-See [Teamfight Detection](06_teamfights.md) for a full walkthrough.
+See [Fight Detection](06_fights.md) for a full walkthrough.
 
 ---
 

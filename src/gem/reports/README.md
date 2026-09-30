@@ -50,7 +50,7 @@ those out so empty tabs disappear.
 
 The **builder** (`builder.py`) owns everything *between* sections: tab layout,
 the global `<head>`, the Chart.js CDN include, the JS that switches tabs and
-drives the teamfight filter sliders, the one-time map-image global, base64
+drives the fight filter sliders, the one-time map-image global, base64
 deduplication, and the optional Plotly Movement tab.
 
 ## Section Builders And The `sections/` Package
@@ -62,7 +62,7 @@ module's docstring names its slice:
 |---|---|
 | `sections/match.py` | `build_header`, `build_scoreboard`, `build_objectives`, `build_rosh_conversion`, `build_draft`, `build_chat` |
 | `sections/economy.py` | `build_hero_timeseries_chart`, `build_gold_xp_chart`, `build_damage`, `build_purchases`, `build_buybacks`, `build_runes` |
-| `sections/combat.py` | `build_combat_timeseries_chart`, `build_kill_feed`, `build_teamfights` |
+| `sections/combat.py` | `build_combat_timeseries_chart`, `build_kill_feed`, `build_fights` |
 | `sections/vision.py` | `build_wards`, `build_laning`, `build_farming` (renders public evidence-first routes and comparative context tags) |
 | `sections/_shared.py` | helpers used by more than one section module (e.g. `_ward_enemies_seen`, Radiant/Dire color palettes) |
 
@@ -114,7 +114,7 @@ entry point. In order, it:
    `options.include_movement` is set and it returns non-empty.
 6. Drops any tab whose joined content is whitespace-only, then renders the
    radio-input `.tab-bar` and `.tab-page` divs (first tab `checked`/`active`).
-7. Emits the tab-switching + teamfight-filter JS, the one-time map-image global
+7. Emits the tab-switching + fight-filter JS, the one-time map-image global
    JS, runs `_deduplicate_data_uris` over the body, and wraps everything in the
    final `<!DOCTYPE html>` document with `REPORT_CSS` inlined and the Chart.js
    CDN `<script>` in `<head>`.
@@ -139,9 +139,9 @@ Tab switching is **JavaScript**, not a CSS `:checked` sibling selector. The CSS
 listens for radio `change` events and toggles the `.active` class on the
 matching `#page-tabN` div. The same handler resizes any visible Chart.js
 instances (charts mis-measure when laid out while `display:none`) and re-applies
-the teamfight slider filters (`tf-deaths` / `tf-participants` → show/hide
+the fight slider filters (`tf-deaths` / `tf-participants` → show/hide
 `.tf-fight-card` elements by their `data-deaths` / `data-participants`). The
-slider/card markup those filters operate on is emitted by the teamfight section
+slider/card markup those filters operate on is emitted by the fight section
 in `sections/combat.py`; only the filter *handler* lives in `builder.py`.
 
 ## Assets: Base64 Icons And Map Images
@@ -223,7 +223,7 @@ fractions via the `MAP_X/Y` bounds shared from `_formatting.py`.
   module-global `GameClock` set once per build; `set_game_start_tick` remains as
   a pause-free legacy setter.
 - `styles.py` is a single `REPORT_CSS` string (the dark GitHub-style theme,
-  card/table/tab/teamfight-card rules) inlined verbatim into `<head>`.
+  card/table/tab/fight-card rules) inlined verbatim into `<head>`.
 
 ## What This Package Does Not Do
 
@@ -233,7 +233,7 @@ fractions via the `MAP_X/Y` bounds shared from `_formatting.py`.
   the top-level `parser.py`, and `combat`. (`reports` imports none of those
   packages.)
 - **Extract per-tick state** (gold/XP/position time series, ward events,
-  teamfight windows, draft pick/ban events) — that is `extractors`, whose output
+  fight windows, draft pick/ban events) — that is `extractors`, whose output
   is baked into `ParsedMatch`/`ParsedPlayer`. (The one exception: `build_draft`
   lazily imports `DraftEvent` / `resolve_pick_team` from `gem.extractors.draft`
   to map already-parsed draft events to a team at render time; it does not

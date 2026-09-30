@@ -27,7 +27,7 @@ def killed_counts(kills_log: list[CombatLogEntry]) -> dict[str, int]:
 
     Reincarnation/aegis *trigger* deaths (``will_reincarnate``) are skipped — the
     combat log fires two DEATH events for such a death and only the second is the
-    true kill, matching how teamfight attribution and OpenDota count them.
+    true kill, matching how fight attribution and OpenDota count them.
 
     Args:
         kills_log: The player's DEATH entries where they were the attacker

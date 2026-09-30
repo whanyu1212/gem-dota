@@ -17,8 +17,8 @@ from gem.analysis.smoke_fight import (
 )
 from gem.analysis.vision import PointVisionStatus
 from gem.combat.log import CombatLogEntry, CombatLogType
+from gem.extractors.fights import Fight, FightPlayer
 from gem.extractors.objectives import BarracksKill, RoshanKill, TormentorKill, TowerKill
-from gem.extractors.teamfights import Teamfight, TeamfightPlayer
 from gem.extractors.wards import WardEvent
 from gem.results.models import (
     HeroVisibilityEvent,
@@ -98,11 +98,11 @@ def _fight(
     active_ids: tuple[int, ...] = (0,),
     first_death_tick: int | None = None,
     centroid: tuple[float, float] | None = None,
-) -> Teamfight:
-    stats = [TeamfightPlayer(player_id=player_id) for player_id in range(10)]
+) -> Fight:
+    stats = [FightPlayer(player_id=player_id) for player_id in range(10)]
     for player_id in active_ids:
         stats[player_id].damage_dealt = 1
-    return Teamfight(
+    return Fight(
         start_tick=start_tick if start_tick is not None else engagement_tick - 100,
         end_tick=end_tick if end_tick is not None else engagement_tick + 100,
         first_death_tick=(engagement_tick if first_death_tick is None else first_death_tick),
@@ -169,7 +169,7 @@ def test_association_boundaries_preexisting_and_multiple_links_are_stable() -> N
     match = ParsedMatch(
         players=[_player(0, positions=[(1_001, 0.0, 0.0), (2_800, 0.0, 0.0)])],
         smoke_events=[smoke],
-        teamfights=fights,
+        fights=fights,
     )
 
     insights = build_smoke_fight_insights(match)
@@ -195,7 +195,7 @@ def test_parallel_same_tick_fights_keep_first_death_metadata_separate() -> None:
             _player(5, hero="npc_dota_hero_lina", positions=[(1_100, 5_000.0, 0.0)]),
         ],
         smoke_events=[smoke],
-        teamfights=[first, second],
+        fights=[first, second],
         combat_log=[
             _combat(1_100, CombatLogType.DEATH, target="npc_dota_hero_axe"),
             _combat(1_100, CombatLogType.DEATH, target="npc_dota_hero_lina"),
@@ -217,7 +217,7 @@ def test_temporal_candidate_requires_active_member_not_proximity() -> None:
             _player(5, positions=[(1_100, 0.0, 0.0)]),
         ],
         smoke_events=[_smoke()],
-        teamfights=[_fight(1_100, active_ids=(5,), centroid=(0.0, 0.0))],
+        fights=[_fight(1_100, active_ids=(5,), centroid=(0.0, 0.0))],
     )
 
     insight = build_smoke_fight_insights(match)[0]
@@ -238,7 +238,7 @@ def test_supported_smokes_contending_for_one_fight_are_ambiguous() -> None:
             _smoke(participants=[_participant(0)]),
             _smoke(tick=1_010, participants=[_participant(1, applied_tick=1_010)]),
         ],
-        teamfights=[_fight(1_100, active_ids=(0, 1))],
+        fights=[_fight(1_100, active_ids=(0, 1))],
     )
 
     insights = build_smoke_fight_insights(match)
@@ -344,7 +344,7 @@ def test_exact_sequence_spatial_evidence_and_point_vision_stay_separate() -> Non
             _player(5, positions=[(1_050, 100.0, 0.0)]),
         ],
         smoke_events=[smoke],
-        teamfights=[_fight(1_050, active_ids=(0, 5))],
+        fights=[_fight(1_050, active_ids=(0, 5))],
         hero_visibility_events=[
             _visibility(0, 1_000, dire=VisibilityState.HIDDEN),
             _visibility(0, 1_020, dire=VisibilityState.VISIBLE),
@@ -412,7 +412,7 @@ def test_invalid_source_first_death_is_not_replaced_by_positioning_fallback() ->
     match = ParsedMatch(
         players=[_player(0, positions=[(1_100, 0.0, 0.0)])],
         smoke_events=[_smoke()],
-        teamfights=[fight],
+        fights=[fight],
     )
 
     insight = build_smoke_fight_insights(match)[0]
@@ -428,7 +428,7 @@ def test_near_fight_falls_back_to_death_centroid_with_explicit_provenance() -> N
     match = ParsedMatch(
         players=[_player(0, positions=[(1_010, 10.0, 0.0)])],
         smoke_events=[_smoke()],
-        teamfights=[_fight(1_100, active_ids=(0,), centroid=(0.0, 0.0))],
+        fights=[_fight(1_100, active_ids=(0,), centroid=(0.0, 0.0))],
     )
 
     insight = build_smoke_fight_insights(match, max_position_age_ticks=10)[0]
@@ -451,7 +451,7 @@ def test_followups_are_half_open_truncated_at_next_smoke_and_allocated_once() ->
             _player(5, hero=hero5, positions=[(1_100, 10.0, 0.0), (1_400, 10.0, 0.0)]),
         ],
         smoke_events=[smoke, next_smoke],
-        teamfights=[
+        fights=[
             _fight(1_100, end_tick=1_200, active_ids=(0, 5)),
             _fight(1_400, end_tick=1_500, active_ids=(0, 5)),
         ],
@@ -537,7 +537,7 @@ def test_unresolved_observer_owner_preserves_entity_team_attribution() -> None:
     match = ParsedMatch(
         players=[_player(0)],
         smoke_events=[_smoke()],
-        teamfights=[_fight(1_100, end_tick=1_200, active_ids=(0,))],
+        fights=[_fight(1_100, end_tick=1_200, active_ids=(0,))],
         wards=[
             WardEvent(
                 tick=1_250,
@@ -573,7 +573,7 @@ def test_follow_up_window_clamps_earlier_external_bounds_to_fight_end() -> None:
             _smoke(tick=1_000, participants=[_participant(0)]),
             _smoke(tick=1_150, participants=[_participant(1, applied_tick=1_150)]),
         ],
-        teamfights=[
+        fights=[
             _fight(
                 1_200,
                 start_tick=1_150,

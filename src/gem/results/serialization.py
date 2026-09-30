@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 #:
 #: - 2: ``ParsedPlayer.lane_pos`` is OpenDota's nested ``{x: {y: count}}`` cell map
 #:   (it was a flat ``{"x_y": count}`` map on a 64-unit world grid).
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 # Top-level keys added by ``to_json`` beside the ``ParsedMatch`` fields.
 _METADATA_KEYS = frozenset({"schema_version", "gem_version", "analysis"})
@@ -137,6 +137,9 @@ def from_dict(data: Mapping[str, Any]) -> ParsedMatch:
     match_data = {key: value for key, value in data.items() if key not in _METADATA_KEYS}
     if not isinstance(schema_version, int) or schema_version < 2:
         match_data = _drop_flat_lane_pos(match_data)
+    if "teamfights" in match_data and "fights" not in match_data:
+        # Schema 2 and earlier named gem's fight list ``teamfights``.
+        match_data["fights"] = match_data.pop("teamfights")
     return _decode_dataclass(ParsedMatch, match_data)
 
 

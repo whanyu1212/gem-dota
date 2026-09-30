@@ -1,22 +1,22 @@
 """Tests for the four agentic helper functions.
 
 Covers:
-    teamfight_at_tick  — tick → Teamfight lookup
+    fight_at_tick  — tick → Fight lookup
     heroes_near        — spatial hero query
     ability_level_at_tick — ability level at cast time
-    Teamfight.winner / radiant_kills / dire_kills — fight outcome fields
+    Fight.winner / radiant_kills / dire_kills — fight outcome fields
 """
 
 from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from gem.analysis import ability_level_at_tick, heroes_near, teamfight_at_tick
+from gem.analysis import ability_level_at_tick, fight_at_tick, heroes_near
 from gem.combat.log import CombatLogEntry
-from gem.extractors.teamfights import (
-    Teamfight,
-    TeamfightPlayer,
-    detect_teamfights,
+from gem.extractors.fights import (
+    Fight,
+    FightPlayer,
+    detect_fights,
 )
 
 # ---------------------------------------------------------------------------
@@ -24,19 +24,19 @@ from gem.extractors.teamfights import (
 # ---------------------------------------------------------------------------
 
 
-def _fight(start: int, end: int, last_death: int | None = None, deaths: int = 1) -> Teamfight:
-    return Teamfight(
+def _fight(start: int, end: int, last_death: int | None = None, deaths: int = 1) -> Fight:
+    return Fight(
         start_tick=start,
         end_tick=end,
         last_death_tick=last_death if last_death is not None else end,
         deaths=deaths,
-        players=[TeamfightPlayer(player_id=i) for i in range(10)],
+        players=[FightPlayer(player_id=i) for i in range(10)],
     )
 
 
-def _match(fights: list[Teamfight], players=None) -> MagicMock:
+def _match(fights: list[Fight], players=None) -> MagicMock:
     m = MagicMock()
-    m.teamfights = fights
+    m.fights = fights
     m.players = players or []
     return m
 
@@ -70,57 +70,57 @@ def _death_entry(**kwargs) -> CombatLogEntry:
 
 
 # ---------------------------------------------------------------------------
-# teamfight_at_tick
+# fight_at_tick
 # ---------------------------------------------------------------------------
 
 
-class TestTeamfightAtTick:
+class TestFightAtTick:
     def test_empty_fights_returns_none(self) -> None:
         match = _match([])
-        assert teamfight_at_tick(match, 500) is None
+        assert fight_at_tick(match, 500) is None
 
     def test_tick_inside_fight_returns_fight(self) -> None:
         f = _fight(100, 300)
         match = _match([f])
-        assert teamfight_at_tick(match, 200) is f
+        assert fight_at_tick(match, 200) is f
 
     def test_tick_at_start_boundary(self) -> None:
         f = _fight(100, 300)
         match = _match([f])
-        assert teamfight_at_tick(match, 100) is f
+        assert fight_at_tick(match, 100) is f
 
     def test_tick_at_end_boundary(self) -> None:
         f = _fight(100, 300)
         match = _match([f])
-        assert teamfight_at_tick(match, 300) is f
+        assert fight_at_tick(match, 300) is f
 
     def test_tick_before_all_fights(self) -> None:
         f = _fight(100, 300)
         match = _match([f])
-        assert teamfight_at_tick(match, 50) is None
+        assert fight_at_tick(match, 50) is None
 
     def test_tick_after_all_fights(self) -> None:
         f = _fight(100, 300)
         match = _match([f])
-        assert teamfight_at_tick(match, 400) is None
+        assert fight_at_tick(match, 400) is None
 
     def test_tick_in_gap_between_fights(self) -> None:
         f1 = _fight(100, 200)
         f2 = _fight(400, 600)
         match = _match([f1, f2])
-        assert teamfight_at_tick(match, 300) is None
+        assert fight_at_tick(match, 300) is None
 
     def test_selects_correct_fight_among_multiple(self) -> None:
         f1 = _fight(100, 300)
         f2 = _fight(500, 700)
         f3 = _fight(900, 1100)
         match = _match([f1, f2, f3])
-        assert teamfight_at_tick(match, 600) is f2
+        assert fight_at_tick(match, 600) is f2
 
     def test_returns_none_when_tick_just_after_fight_end(self) -> None:
         f = _fight(100, 300)
         match = _match([f])
-        assert teamfight_at_tick(match, 301) is None
+        assert fight_at_tick(match, 301) is None
 
 
 # ---------------------------------------------------------------------------
@@ -232,11 +232,11 @@ class TestAbilityLevelAtTick:
 
 
 # ---------------------------------------------------------------------------
-# Teamfight.winner / radiant_kills / dire_kills
+# Fight.winner / radiant_kills / dire_kills
 # ---------------------------------------------------------------------------
 
 
-class TestTeamfightOutcome:
+class TestFightOutcome:
     def _make_entries(self, deaths: list[tuple[int, str, str]]) -> list[CombatLogEntry]:
         """deaths = list of (tick, attacker_npc, target_npc)."""
         return [_death_entry(tick=t, attacker_name=atk, target_name=tgt) for t, atk, tgt in deaths]
@@ -255,7 +255,7 @@ class TestTeamfightOutcome:
             "npc_dota_hero_invoker": 6,
         }
         s2t = {0: 2, 5: 3, 6: 3}  # slot → team
-        fights = detect_teamfights(entries, hero_to_slot=h2s, slot_to_team=s2t)
+        fights = detect_fights(entries, hero_to_slot=h2s, slot_to_team=s2t)
         assert len(fights) == 1
         f = fights[0]
         assert f.radiant_kills == 2
@@ -270,7 +270,7 @@ class TestTeamfightOutcome:
         )
         h2s = {"npc_dota_hero_axe": 0, "npc_dota_hero_antimage": 5}
         s2t = {0: 2, 5: 3}
-        fights = detect_teamfights(entries, hero_to_slot=h2s, slot_to_team=s2t)
+        fights = detect_fights(entries, hero_to_slot=h2s, slot_to_team=s2t)
         assert fights[0].winner == "dire"
         assert fights[0].dire_kills == 1
         assert fights[0].radiant_kills == 0
@@ -284,7 +284,7 @@ class TestTeamfightOutcome:
         )
         h2s = {"npc_dota_hero_axe": 0, "npc_dota_hero_antimage": 5}
         s2t = {0: 2, 5: 3}
-        fights = detect_teamfights(entries, hero_to_slot=h2s, slot_to_team=s2t)
+        fights = detect_fights(entries, hero_to_slot=h2s, slot_to_team=s2t)
         assert fights[0].winner == "draw"
         assert fights[0].radiant_kills == 1
         assert fights[0].dire_kills == 1
@@ -296,7 +296,7 @@ class TestTeamfightOutcome:
             ]
         )
         h2s = {"npc_dota_hero_axe": 0, "npc_dota_hero_antimage": 5}
-        fights = detect_teamfights(entries, hero_to_slot=h2s)
+        fights = detect_fights(entries, hero_to_slot=h2s)
         assert fights[0].winner == "unknown"
         assert fights[0].radiant_kills == 0
         assert fights[0].dire_kills == 0
@@ -312,6 +312,6 @@ class TestTeamfightOutcome:
         ]
         h2s = {"npc_dota_hero_axe": 0, "npc_dota_hero_antimage": 5}
         s2t = {0: 2, 5: 3}
-        fights = detect_teamfights(entries, hero_to_slot=h2s, slot_to_team=s2t)
+        fights = detect_fights(entries, hero_to_slot=h2s, slot_to_team=s2t)
         # Illusion deaths don't open a fight window
         assert fights == []

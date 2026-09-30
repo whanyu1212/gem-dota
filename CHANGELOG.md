@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`gem.find_fights(match, window_s=15, radius=3000.0)`** regroups a parsed or
+  loaded match's hero deaths into fights with your own settings, without parsing
+  again. Filtering `match.fights` can only drop fights; on the 8 local OpenDota
+  fixtures the default 3,000-unit radius splits 13 of OpenDota's 37 teamfights into
+  smaller pieces, which a filter cannot put back together. `radius=None` groups by
+  time only, as OpenDota does. With the defaults it returns exactly `match.fights`
+  (checked on all 8 fixtures, including matches loaded from JSON).
+  `detect_fights` takes the same `window_s` and `radius` keyword arguments, and
+  `FIGHT_WINDOW_S` / `FIGHT_RADIUS` are the defaults. The radius is inclusive: a
+  death exactly `radius` from a fight's centre joins it (before, it had to be
+  strictly closer, which no real replay hit).
 - `scripts/audit_opendota_parity.py`: an offline, field-by-field comparison of
   gem's output with OpenDota's parsed match JSON on the local replay fixtures. It
   maps gem's format onto OpenDota's (per-minute arrays, log entries as
@@ -38,6 +49,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   gains a `gold` column.
 
 ### Changed
+
+- **gem's own fight list is `fights`, not `teamfights`.** It holds every fight gem
+  detects, and 70% of them (173 of 246 on the local fixtures) are single pickoffs,
+  so "teamfight" promised something the list is not. What counts as a teamfight is
+  the user's filter (deaths, active participants) or `find_fights` grouping.
+  "Teamfight" names now mean OpenDota's definition only: `opendota_teamfights`,
+  `OpenDotaTeamfight`, `detect_opendota_teamfights` and `teamfight_participation`
+  are unchanged.
+
+  | Old name | New name |
+  | --- | --- |
+  | `ParsedMatch.teamfights` | `ParsedMatch.fights` |
+  | `Teamfight`, `TeamfightPlayer` | `Fight`, `FightPlayer` (now exported from `gem`) |
+  | `detect_teamfights` | `detect_fights` |
+  | `teamfight_at_tick` | `fight_at_tick` |
+  | `is_active_teamfight_participant` | `is_active_fight_participant` |
+  | `TeamfightPositioning`, `build_teamfight_positioning` | `FightPositioning`, `build_fight_positioning` |
+  | `MatchAnalysis.teamfight_positioning` | `MatchAnalysis.fight_positioning` |
+  | `SmokeAnalysis.first_teamfight` | `SmokeAnalysis.first_fight` |
+  | `gem.extractors.teamfights` | `gem.extractors.fights` |
+  | `gem.analysis.teamfight_positioning` | `gem.analysis.fight_positioning` |
+  | DataFrame tables `teamfights`, `teamfight_players`, `teamfight_positioning` | `fights`, `fight_players`, `fight_positioning` |
+
+  The old names still work and emit a `DeprecationWarning`; they will be removed in
+  a future release. That covers the module attributes, both old modules, the
+  `ParsedMatch` / `MatchAnalysis` / `SmokeAnalysis` attributes and constructor
+  keywords (e.g. `ParsedMatch(teamfights=...)`), the DataFrame dict (indexing and
+  `.get`) and `read_parquet_table`. Not covered: Parquet file names
+  (`parse_many_to_parquet` now writes `fights.parquet`), the `analysis` section of
+  `to_json` output
+  (`fight_positioning`), and the internal report builder
+  `gem.reports.sections.build_teamfights` (now `build_fights`).
+  - The JSON `schema_version` is now 3 and the top-level key is `fights`.
+    `load_json` / `from_dict` still read the `teamfights` key of older files.
+  - The guide moved to `guides/06_fights` and the positioning page to
+    `experimental/fight-positioning`.
 
 - **Lanes are computed the way OpenDota computes them.** `lane_pos`, `lane_role`, and
   the new `lane` and `is_roaming` fields match OpenDota for 80 of 80 players on the local
@@ -193,7 +240,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`CombatLogEntry`, `SmokeParticipant`, `VisionModifierEvent`, `ParsedPlayer`,
   ...) or from explicit per-table schemas for the hand-built tables. Missing
   values are `pd.NA` rather than `None`/`NaN`. Integer columns with gaps stay
-  integers instead of becoming floats. `teamfight_positioning` now joins
+  integers instead of becoming floats. `fight_positioning` (then `teamfight_positioning`) now joins
   `active_reveal_modifiers` and `evidence_gaps` with `";"` (they were tuples),
   and `opendota_teamfights.players` is a JSON string (it was a list of dicts
   keyed by hero, ability, and item names).
@@ -209,8 +256,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **`opendota_teamfights` matches OpenDota exactly.** It now equals OpenDota's
-  `teamfights` on all 8 local fixtures, up from none. `match.teamfights`, gem's own
-  list of every fight, is unchanged. There were four differences:
+  `teamfights` on all 8 local fixtures, up from none. `match.fights` (previously
+  `match.teamfights`), gem's own list of every fight, is unchanged. There were four differences:
   - **The game's final fight.** OpenDota closes a fight at its first once-a-second
     interval 15 s or more after the last death. The recording ends before that
     for the final fight, so OpenDota leaves it out. gem kept it, with its end clamped

@@ -27,7 +27,7 @@ An experimental feature usually has at least one of these properties:
 | [Roshan Conversion](./rosh-conversion.md) | Whether a team actually translated Roshan into fights, structures, territorial squeeze, or a game-closing sequence |
 | [Roshan Conversion Calibration](./rosh-conversion-calibration.md) | Which real-replay facts, threshold observations, and territory sensitivity checks support the provisional Roshan ruleset |
 | [Smoke Analysis](./smoke-analysis.md) | When each smoked hero gained and lost the modifier, what the enemy could see, and what happened next |
-| [Teamfight Positioning](./teamfight-positioning.md) | How both teams were arranged at four bounded fight moments, with position freshness and opposing-team visibility kept explicit |
+| [Fight Positioning](./fight-positioning.md) | How both teams were arranged at four bounded fight moments, with position freshness and opposing-team visibility kept explicit |
 | [Smoke/Fight Insights](./smoke-fight-insights.md) | Which bounded fights overlap active smoked members, what exact events and sampled formation evidence were observed, and what followed |
 | [Point-Vision Evidence](./estimate-vision.md) | Bounded hero/observer geometry with explicit support, incompleteness, provenance, and separate target evidence |
 | [Vision Modifiers](./vision-modifiers.md) | Which reveal-style modifier windows gem tracks, how they are derived from combat-log events, and how they feed later vision analysis |
@@ -42,7 +42,7 @@ An experimental feature usually has at least one of these properties:
 6. [Roshan Conversion](./rosh-conversion.md)
 7. [Roshan Conversion Calibration](./rosh-conversion-calibration.md)
 8. [Smoke Analysis](./smoke-analysis.md)
-9. [Teamfight Positioning](./teamfight-positioning.md)
+9. [Fight Positioning](./fight-positioning.md)
 10. [Smoke/Fight Insights](./smoke-fight-insights.md)
 11. [Point-Vision Evidence](./estimate-vision.md)
 12. [Vision Modifiers](./vision-modifiers.md)
