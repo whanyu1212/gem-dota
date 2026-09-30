@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from gem.analysis._shared import _DIRE_FOUNTAIN, _RADIANT_FOUNTAIN
 from gem.analysis._territory import RoshTerritoryConfig, build_territory_window
 from gem.results.models import ParsedMatch, ParsedPlayer
 
@@ -81,7 +82,9 @@ def test_gap_is_not_interpolated_and_fails_evidence_floor() -> None:
 def test_depth_is_symmetric_and_uses_weighted_p90_not_max() -> None:
     # The two points are reflections across the midpoint between fountains, so
     # the normalized forward depth is identical for opposite teams.
-    symmetric = _paired_match((24000.0, 21000.0), (8804.0, 11034.0))
+    mid_x = (_RADIANT_FOUNTAIN[0] + _DIRE_FOUNTAIN[0]) / 2
+    mid_y = (_RADIANT_FOUNTAIN[1] + _DIRE_FOUNTAIN[1]) / 2
+    symmetric = _paired_match((24000.0, 21000.0), (2 * mid_x - 24000.0, 2 * mid_y - 21000.0))
     window = build_territory_window(symmetric, 2, 0, 3600)
     assert window.conversion_depth_p90 == pytest.approx(window.opponent_depth_p90)
 

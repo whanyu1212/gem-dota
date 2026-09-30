@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock
+
+import pytest
 
 import gem
 import gem.analysis as analysis
@@ -255,4 +258,50 @@ class TestMapGeometrySingleSource:
             float(wb["ymin"]),
             float(wb["ymax"]),
         ) == _shared._FALLBACK_MAP_BOUNDS
+        fr = data["fountains"]["radiant"]
+        fd = data["fountains"]["dire"]
+        assert (float(fr["x"]), float(fr["y"])) == _shared._FALLBACK_RADIANT_FOUNTAIN
+        assert (float(fd["x"]), float(fd["y"])) == _shared._FALLBACK_DIRE_FOUNTAIN
         assert float(data["river_strip"]) == _shared._FALLBACK_RIVER_STRIP
+
+
+# The CDOTA_Unit_Fountain positions, read from every local fixture replay
+# (8821954344 through 8974053011); all nine agree exactly.
+_RADIANT_FOUNTAIN_ENTITY = (8928.0, 9446.0)
+_DIRE_FOUNTAIN_ENTITY = (23792.0, 23232.0)
+
+
+class TestFountainAnchorsAreFountainEntities:
+    """The fountain anchors are the replay's fountain entities, not report-canvas guesses."""
+
+    def test_anchors_pin_entity_positions(self) -> None:
+        from gem.analysis import _shared
+
+        assert _shared._RADIANT_FOUNTAIN == _RADIANT_FOUNTAIN_ENTITY
+        assert _shared._DIRE_FOUNTAIN == _DIRE_FOUNTAIN_ENTITY
+
+    @pytest.mark.slow
+    @pytest.mark.integration
+    def test_anchors_match_replay_fountain_entities(self, full_replay_path: Path) -> None:
+        from gem.analysis import _shared
+        from gem.extractors._snapshots import _pos
+        from gem.parser import ReplayParser
+
+        fountains: dict[int, set[tuple[float, float] | None]] = {}
+
+        parser = ReplayParser(str(full_replay_path))
+
+        def on_entity(entity: Any, op: Any) -> None:
+            if entity.get_class_name() == "CDOTA_Unit_Fountain":
+                fountains.setdefault(entity.get("m_iTeamNum"), set()).add(_pos(entity))
+                if len(fountains) == 2:
+                    # Both are created in the signon packet; the rest of the replay is not needed.
+                    parser.stop_after_tick(parser.tick)
+
+        parser.on_entity(on_entity)
+        parser.parse()
+
+        assert fountains == {
+            2: {_shared._RADIANT_FOUNTAIN},
+            3: {_shared._DIRE_FOUNTAIN},
+        }
