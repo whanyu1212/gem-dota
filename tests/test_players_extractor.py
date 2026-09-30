@@ -1577,6 +1577,39 @@ class TestStartingInventoryAtTickStart:
             (0, 600, 100 * 128 + 64.0, 70 * 128.0),
         ]
 
+    def test_records_interval_samples_from_game_time_0_past_the_lane_window(self, monkeypatch):
+        # OpenDota's teamfights read every interval from game time 0: position
+        # and total earned XP from the team data entity.
+        hero = _hero(
+            "Axe",
+            **{
+                "m_iTeamNum": 2,
+                "CBodyComponent.m_cellX": 100,
+                "CBodyComponent.m_vecX": 64.0,
+                "CBodyComponent.m_cellY": 70,
+                "CBodyComponent.m_vecY": 0.0,
+            },
+        )
+        ext, parser = self._setup(monkeypatch, {0: hero})
+        ext._data_radiant = _ent(
+            "CDOTA_DataRadiant", **{team_data_field(0, "m_iTotalEarnedXP"): 4321}
+        )
+        parser.opendota_start_s = 1000
+        parser.start_tick(100, 999)  # game time -1: not an expanded interval
+        parser.start_tick(130, 1000)  # game time 0
+        parser.start_tick(160, 1700)  # game time 700, past the lane window
+        assert ext.interval_samples == [
+            (130, 0, 0, 100 * 128 + 64.0, 70 * 128.0, 4321),
+            (160, 700, 0, 100 * 128 + 64.0, 70 * 128.0, 4321),
+        ]
+
+    def test_interval_samples_before_the_anchor_are_timed_later(self, monkeypatch):
+        ext, parser = self._setup(monkeypatch, {0: _hero("Axe")})
+        parser.start_tick(100, 1000)  # game time 0, but the anchor is not known yet
+        parser.opendota_start_s = 1000
+        parser.start_tick(130, 1001)
+        assert [(tick, t) for tick, t, *_ in ext.interval_samples] == [(100, 0), (130, 1)]
+
     def test_lane_samples_before_game_start_are_timed_later(self, monkeypatch):
         hero = _hero(
             "Axe",

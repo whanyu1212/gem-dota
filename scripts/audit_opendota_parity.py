@@ -17,8 +17,9 @@ The mapping keeps only value differences:
   OpenDota's ``slot``/``player_slot`` keys.
 - Ward placement logs compare counts; ward-left logs compare
   ``(time, key, attackername)``.
-- Chat compares ``(text, player slot)`` of ``all``/``team`` messages;
-  teamfights compare the count only.
+- Chat compares ``(text, player slot)`` of ``all``/``team`` messages.
+- Teamfights compare gem's OpenDota-shaped ``opendota_teamfights``; gem's own
+  fight list deliberately keeps every fight.
 - Objectives get odota/core's read-time ``victim_player_slot`` on first blood
   when the reference JSON predates it (see :func:`_annotated_objectives`).
 - Every other field name both sides share is compared as-is.
@@ -159,7 +160,7 @@ MATCH_CHECKS: dict[str, MatchCheck] = {
         [(c.text, c.player_slot) for c in m.chat if c.channel in ("all", "team")],
         [(c["key"], c.get("slot")) for c in od.get("chat") or [] if c.get("type") == "chat"],
     ),
-    "teamfights": lambda m, od: (len(m.teamfights), len(od.get("teamfights") or [])),
+    "teamfights": lambda m, od: (_plain(m.opendota_teamfights), od.get("teamfights") or []),
     "objectives": lambda m, od: (_plain(m.objectives), _annotated_objectives(od)),
 }
 

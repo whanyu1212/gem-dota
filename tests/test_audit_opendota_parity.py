@@ -106,6 +106,18 @@ class TestAuditMatch:
         assert "victim_player_slot" not in objectives[1]
         assert "victim_player_slot" not in od["objectives"][0]  # input left alone
 
+    def test_teamfights_compare_the_opendota_shaped_view(self):
+        from gem.extractors.teamfights import OpenDotaTeamfight
+
+        fight = OpenDotaTeamfight(start=85, end=125, last_death=110, deaths=3)
+        match = ParsedMatch(match_id=1, opendota_teamfights=[fight])
+        match.teamfights = [object()] * 5  # gem's own fights are not compared
+        od = {"players": [], "teamfights": [audit._plain(fight)]}
+        results: dict[str, audit.FieldResult] = {}
+        audit.audit_match("1", match, od, results)
+
+        assert (results["match.teamfights"].matched, results["match.teamfights"].total) == (1, 1)
+
     def test_value_differences_are_recorded_with_an_example(self):
         deaths = _audit()["player.deaths"]
 

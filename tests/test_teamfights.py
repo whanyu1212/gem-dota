@@ -1140,3 +1140,152 @@ class TestSnapshotLookup:
 
         monkeypatch.setattr(_SnapshotLookup, "__init__", unexpected)
         assert detect_opendota_teamfights([], player_snapshots={0: [_lookup_snap(0)]}) == []
+
+
+# ---------------------------------------------------------------------------
+# OpenDota's exact teamfights, from interval reads
+# ---------------------------------------------------------------------------
+
+_H2S = {"npc_dota_hero_axe": 0, "npc_dota_hero_lina": 5, "npc_dota_hero_pudge": 6}
+
+
+def _od_death(
+    time_s: int,
+    target: str = "npc_dota_hero_lina",
+    source: str = "npc_dota_hero_axe",
+    **kwargs,
+) -> CombatLogEntry:
+    # Deaths land mid-second, after that second's interval read.
+    return CombatLogEntry(
+        tick=time_s * 30 + 5,
+        game_time_s=time_s,
+        log_type="DEATH",
+        target_name=target,
+        attacker_name=source,
+        damage_source_name=source,
+        target_is_hero=True,
+        **kwargs,
+    )
+
+
+def _intervals(times, players=(0, 5, 6), xp=None, pos=(12800.0, 6400.0)):
+    """One read per player per second: (tick, time, pid, x, y, xp)."""
+    return [
+        (t * 30, t, pid, pos[0], pos[1], (xp or {}).get((t, pid), t * 10))
+        for t in times
+        for pid in players
+    ]
+
+
+def _od_fights(entries, samples, aegis_events=()):
+    from gem.state.game_clock import GameClock
+
+    return detect_opendota_teamfights(
+        entries,
+        hero_to_slot=_H2S,
+        game_clock=GameClock(game_start_tick=0),
+        interval_samples=samples,
+        aegis_events=aegis_events,
+    )
+
+
+class TestOpenDotaTeamfightsFromIntervals:
+    def test_fight_closes_at_the_first_interval_15s_after_the_last_death(self):
+        deaths = [_od_death(100), _od_death(105), _od_death(110)]
+        (fight,) = _od_fights(deaths, _intervals(range(0, 200)))
+        assert (fight.start, fight.end, fight.last_death, fight.deaths) == (85, 125, 110, 3)
+
+    def test_fight_still_open_when_intervals_stop_is_dropped(self):
+        # The recording ends (no more intervals) before the cooldown passes.
+        deaths = [_od_death(100), _od_death(105), _od_death(110)]
+        assert _od_fights(deaths, _intervals(range(0, 120))) == []
+
+    def test_fewer_than_three_deaths_is_not_a_teamfight(self):
+        assert _od_fights([_od_death(100), _od_death(105)], _intervals(range(0, 200))) == []
+
+    def test_a_death_on_the_closing_tick_starts_a_new_fight(self):
+        # The interval is read at the start of the tick, before its combat log.
+        deaths = [_od_death(t) for t in (100, 101, 102, 117, 118, 119)]
+        fights = _od_fights(deaths, _intervals(range(0, 200)))
+        assert [(f.start, f.end, f.deaths) for f in fights] == [(85, 117, 3), (102, 134, 3)]
+
+    def test_xp_bounds_need_reads_at_both_ends(self):
+        deaths = [_od_death(100), _od_death(105), _od_death(110)]
+        samples = [s for s in _intervals(range(0, 200)) if not (s[1] == 125 and s[2] == 6)]
+        (fight,) = _od_fights(deaths, samples)
+        assert (fight.players[0].xp_start, fight.players[0].xp_end) == (850, 1250)
+        assert (fight.players[6].xp_start, fight.players[6].xp_end) == (None, None)
+
+    def test_death_positions_are_cells_and_need_a_read_in_the_death_second(self):
+        deaths = [_od_death(100), _od_death(105), _od_death(110)]
+        samples = [s for s in _intervals(range(0, 200)) if not (s[1] == 110 and s[2] == 5)]
+        (fight,) = _od_fights(deaths, samples)
+        lina = fight.players[5]
+        # (12800, 6400) world units are cells (100, 50).
+        assert lina.deaths_pos == {"100": {"50": 2}}
+        assert lina.deaths == 2  # the death without a read is not counted
+        assert fight.players[0].killed == {"npc_dota_hero_lina": 3}
+
+    def test_killer_is_the_damage_source(self):
+        deaths = [
+            _od_death(100, source=""),
+            _od_death(105, source="npc_dota_hero_pudge"),
+            _od_death(110),
+        ]
+        (fight,) = _od_fights(deaths, _intervals(range(0, 200)))
+        assert fight.players[6].killed == {"npc_dota_hero_lina": 1}
+        assert fight.players[0].killed == {"npc_dota_hero_lina": 1}
+
+
+class TestOpenDotaAegisRule:
+    """OpenDota's processExpand skips the Aegis holder's death."""
+
+    @staticmethod
+    def _counted(entries, aegis_events):
+        from gem.extractors.teamfights import _opendota_killed_deaths
+        from gem.state.game_clock import GameClock
+
+        deaths = _opendota_killed_deaths(entries, _H2S, GameClock(game_start_tick=0), aegis_events)
+        return [time_s for _, time_s in deaths]
+
+    @staticmethod
+    def _pickup(time_s, player_id=5, event_type="pickup"):
+        from gem.extractors.objectives import AegisEvent
+
+        return AegisEvent(tick=time_s * 30, player_id=player_id, event_type=event_type)
+
+    def test_the_holders_death_is_skipped_and_a_later_one_counts(self):
+        deaths = [_od_death(100, will_reincarnate=True), _od_death(130)]
+        assert self._counted(deaths, [self._pickup(50)]) == [130]
+
+    def test_a_second_death_in_the_same_second_is_skipped_too(self):
+        deaths = [_od_death(100), _od_death(100), _od_death(130)]
+        assert self._counted(deaths, [self._pickup(50)]) == [130]
+
+    def test_aegis_regen_clears_the_holder(self):
+        regen = CombatLogEntry(
+            tick=90 * 30, log_type="MODIFIER_ADD", inflictor_name="modifier_aegis_regen"
+        )
+        assert self._counted([regen, _od_death(100)], [self._pickup(50)]) == [100]
+
+    def test_a_denied_aegis_sets_no_holder(self):
+        assert self._counted([_od_death(100)], [self._pickup(50, event_type="denied")]) == [100]
+
+    def test_a_pickup_on_the_death_tick_comes_first(self):
+        # Chat events arrive before a tick's combat log.
+        death = CombatLogEntry(
+            tick=3000,
+            game_time_s=100,
+            log_type="DEATH",
+            target_name="npc_dota_hero_lina",
+            target_is_hero=True,
+        )
+        assert self._counted([death], [self._pickup(100)]) == []
+
+    def test_self_kills_and_illusions_do_not_count(self):
+        deaths = [
+            _od_death(100, source="npc_dota_hero_lina"),  # Lina kills herself
+            _od_death(110, target_is_illusion=True),
+            _od_death(120),
+        ]
+        assert self._counted(deaths, []) == [120]

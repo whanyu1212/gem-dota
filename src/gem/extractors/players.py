@@ -94,6 +94,7 @@ _ABILITY_HANDLE_FIELDS = FieldAccessPlan(
     )
 )
 _ITEM_HANDLE_FIELDS = FieldAccessPlan(tuple(f"m_hItems.{slot:04d}" for slot in range(_ITEM_SLOTS)))
+_HERO_TEAM_FIELDS = FieldAccessPlan(("m_iTeamNum",))
 
 __all__ = ["PlayerExtractor", "PlayerStateSnapshot", "PlayerTimeSeries"]
 
@@ -198,6 +199,16 @@ class PlayerExtractor:
         self.lane_samples: list[tuple[int, int, float, float]] = []
         # Samples read before OpenDota's game-start anchor, with raw seconds.
         self._untimed_lane_samples: list[tuple[int, int, float, float]] = []
+        # Every OpenDota interval from game time 0 until the game ends, as
+        # (tick, game_time_s, player_id, world_x, world_y, total_earned_xp);
+        # position and XP are None when unreadable. OpenDota's teamfights read
+        # these; see _on_tick_start.
+        self.interval_samples: list[
+            tuple[int, int, int, float | None, float | None, int | None]
+        ] = []
+        self._untimed_interval_samples: list[
+            tuple[int, int, int, float | None, float | None, int | None]
+        ] = []
         self._lane_window_closed = False
         # Running combat log totals per player — stamped into each snapshot.
         # These are monotonically increasing so diffs give per-window rates.
@@ -249,6 +260,8 @@ class PlayerExtractor:
           into a dispenser.
         - The hero's position becomes a ``lane_pos`` sample while game time is at
           most :data:`LANE_WINDOW_S`, pre-horn seconds included.
+        - From game time 0, the hero's position and total earned XP become an
+          :attr:`interval_samples` entry; OpenDota's teamfights read them.
 
         Reference: odota/parser src/main/java/opendota/Parse.java
         (``nextInterval``, ``isPlayerStartingItemsWritten``) and
@@ -257,11 +270,7 @@ class PlayerExtractor:
         Args:
             net_tick: Decoded ``CNETMsg_Tick.tick`` value (unused).
         """
-        if self._parser is None or (
-            self._lane_window_closed
-            and len(self._inventory_initialized) >= 10
-            and not self._untimed_starting_items
-        ):
+        if self._parser is None:
             return
         start_s = getattr(self._parser, "opendota_start_s", None)
         if isinstance(start_s, int):
@@ -289,13 +298,24 @@ class PlayerExtractor:
         # `player_id`, which a coach or an empty row can shift onto another
         # player's hero; keying by the hero keeps that from claiming this slot.
         for player_id, hero in sorted(self._select_heroes().items()):
-            if not self._lane_window_closed:
-                pos = _pos(hero)
-                if pos is not None:
-                    if game_s is not None:
-                        self.lane_samples.append((player_id, game_s, pos[0], pos[1]))
-                    else:
-                        self._untimed_lane_samples.append((player_id, raw_s, pos[0], pos[1]))
+            pos = _pos(hero)
+            sample = (
+                tick,
+                game_s if game_s is not None else raw_s,
+                player_id,
+                pos[0] if pos is not None else None,
+                pos[1] if pos is not None else None,
+                self._total_earned_xp(player_id, hero),
+            )
+            if game_s is None:
+                self._untimed_interval_samples.append(sample)
+            elif game_s >= 0:
+                self.interval_samples.append(sample)
+            if not self._lane_window_closed and pos is not None:
+                if game_s is not None:
+                    self.lane_samples.append((player_id, game_s, pos[0], pos[1]))
+                else:
+                    self._untimed_lane_samples.append((player_id, raw_s, pos[0], pos[1]))
             if player_id in self._inventory_initialized:
                 continue
             npc_name = (
@@ -321,6 +341,25 @@ class PlayerExtractor:
             ]
             self.lane_samples[:0] = buffered
             self._untimed_lane_samples.clear()
+        if self._untimed_interval_samples:
+            # OpenDota only expands intervals from game time 0.
+            timed = [
+                (tick, read_s - start_s, player_id, x, y, xp)
+                for tick, read_s, player_id, x, y, xp in self._untimed_interval_samples
+                if read_s - start_s >= 0
+            ]
+            self.interval_samples[:0] = timed
+            self._untimed_interval_samples.clear()
+
+    def _total_earned_xp(self, player_id: int, hero: Entity) -> int | None:
+        """Read a player's ``m_iTotalEarnedXP`` from their team's data entity."""
+        team = hero._get_int32_resolved(hero._resolve_fields(_HERO_TEAM_FIELDS)[0])
+        data_entity = self._data_radiant if team == TEAM_RADIANT else self._data_dire
+        if data_entity is None:
+            return None
+        team_slot = self._player_team_slot.get(player_id, player_id % 5)
+        fields = data_entity._resolve_fields(_TEAM_DATA_FIELDS)
+        return data_entity._get_int32_resolved(fields[team_slot * _TEAM_DATA_STRIDE + 2])
 
     def _on_game_start(self, game_start_tick: int) -> None:
         self._game_start_tick = game_start_tick
