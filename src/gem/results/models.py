@@ -669,7 +669,11 @@ class ParsedPlayer:
             item IDs rather than names).
         gold_reasons: Gold received per reason code.
         xp_reasons: XP received per reason code.
-        kills_log: Combat log DEATH entries where this player was the attacker.
+        kills_log: Combat log DEATH entries where this player was the attacker,
+            summons' kills included. Deaths the target came back from (the game's
+            ``will_reincarnate`` flag: Aegis, Reincarnation) are left out, so the
+            hero entries equal the scoreboard ``kills``. OpenDota approximates this
+            with an Aegis-holder rule that sometimes keeps such a death.
         purchase_log: Chronological PURCHASE combat log entries for this player,
             excluding recipes and ``ward_dispenser`` (the combat log records one
             whenever an observer and a sentry ward merge), matching OpenDota's

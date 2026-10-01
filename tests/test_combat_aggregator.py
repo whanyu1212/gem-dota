@@ -117,6 +117,7 @@ def _entry(**kwargs) -> MagicMock:
         "xp_reason": 0,
         "damage_type": "",
         "stun_duration": 0.0,
+        "will_reincarnate": False,
     }
     defaults.update(kwargs)
     return MagicMock(**defaults)
@@ -494,6 +495,24 @@ class TestSummonKillAttribution:
 
         assert len(agg.players[0].kills_log) == 1
         assert agg.players[0].kills_log[0].target_name == "npc_dota_creep_badguys_melee"
+
+    def test_death_the_hero_comes_back_from_is_not_a_kill(self):
+        # Aegis / Reincarnation: the game flags the death will_reincarnate and
+        # leaves it off the scoreboard, so kills_log leaves it out too.
+        agg, _ = _make_agg(player_id_raw=0)
+        agg.on_entry(
+            _entry(
+                log_type="DEATH",
+                target_name="npc_dota_hero_mirana",
+                target_is_hero=True,
+                will_reincarnate=True,
+            )
+        )
+        agg.on_entry(
+            _entry(log_type="DEATH", target_name="npc_dota_hero_mirana", target_is_hero=True)
+        )
+        assert len(agg.players[0].kills_log) == 1
+        assert not agg.players[0].kills_log[0].will_reincarnate
 
     def test_self_death_with_source_hero_not_credited(self):
         agg, _ = _make_agg(player_id_raw=0)

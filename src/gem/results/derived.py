@@ -28,9 +28,9 @@ if TYPE_CHECKING:
 def killed_counts(kills_log: list[CombatLogEntry]) -> dict[str, int]:
     """Count kills per target unit name, matching OpenDota's ``killed`` map.
 
-    Reincarnation/aegis *trigger* deaths (``will_reincarnate``) are skipped — the
-    combat log fires two DEATH events for such a death and only the second is the
-    true kill, matching how fight attribution and OpenDota count them.
+    Deaths the target came back from (``will_reincarnate``) are skipped; current
+    ``kills_log`` already leaves them out, and the check keeps older loaded
+    data consistent.
 
     Args:
         kills_log: The player's DEATH entries where they were the attacker
