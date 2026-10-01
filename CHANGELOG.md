@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`ParsedPlayer.multi_kills`, `kill_streaks` and `killed_by`**, OpenDota's
+  per-player fields of the same names.
+  - `multi_kills` (`{kills in the chain: count}`) and `kill_streaks` (`{streak
+    length: count}`) come from the combat log's own MULTIKILL and KILLSTREAK
+    entries (wire types 15 and 16), which gem now decodes as
+    `CombatLogType.MULTIKILL` / `KILLSTREAK` instead of `UNKNOWN`. They match
+    OpenDota for 80 of 80 players on the local fixtures.
+  - `killed_by` (`{unit: count}`) names what killed the player's hero, keyed on
+    the combat log's damage source (the owning hero for a summon's kill). Like
+    `kills_log`, it leaves out deaths the hero came back from, so it differs from
+    OpenDota on the same 3 of 80 players, where OpenDota counts one such death.
+  - The `player_breakdown` DataFrame gains rows for all three. The audit now
+    compares 108 fields, 105 exactly.
 - **`gem.find_fights(match, window_s=15, radius=3000.0)`** regroups a parsed or
   loaded match's hero deaths into fights with your own settings, without parsing
   again. Filtering `match.fights` can only drop fights; on the 8 local OpenDota

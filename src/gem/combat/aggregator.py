@@ -124,6 +124,11 @@ class _ParsedPlayerAgg:
     gold_reasons: defaultdict[str, int] = field(default_factory=_int_counter)
     xp_reasons: defaultdict[str, int] = field(default_factory=_int_counter)
     kills_log: list[CombatLogEntry] = field(default_factory=list)
+    # OpenDota multi_kills / kill_streaks ({size or length: count}) and killed_by
+    # ({killing unit: count}, deaths the target came back from excluded).
+    multi_kills: defaultdict[str, int] = field(default_factory=_int_counter)
+    kill_streaks: defaultdict[str, int] = field(default_factory=_int_counter)
+    killed_by: defaultdict[str, int] = field(default_factory=_int_counter)
     purchase_log: list[CombatLogEntry] = field(default_factory=list)
     runes_log: list[CombatLogEntry] = field(default_factory=list)
     buyback_log: list[CombatLogEntry] = field(default_factory=list)
@@ -394,9 +399,25 @@ class _CombatAggregator:
                 # sometimes keeps such a death as a kill.
                 if entry.will_reincarnate:
                     return
+                # killed_by: OpenDota keys the victim's map on the raw damage
+                # source; CombatLogNames index 0 ("") prints as dota_unknown.
+                if target_pid is not None and not entry.target_is_illusion:
+                    self._agg(target_pid).killed_by[source_name or "dota_unknown"] += 1
                 death_pid = source_pid if source_pid is not None else attacker_pid
                 if death_pid is not None:
                     self._agg(death_pid).kills_log.append(entry)
+            case CombatLogType.MULTIKILL | CombatLogType.KILLSTREAK:
+                # OpenDota credits these by the attacker's name (handleMultikill /
+                # handleKillstreak), keyed on the chain size or streak length.
+                pid = self._hero_to_pid(entry.attacker_name)
+                if pid is not None:
+                    agg = self._agg(pid)
+                    counts = (
+                        agg.multi_kills
+                        if entry.log_type == CombatLogType.MULTIKILL
+                        else agg.kill_streaks
+                    )
+                    counts[str(entry.value)] += 1
             case CombatLogType.PURCHASE:
                 pid = attacker_pid if attacker_pid is not None else target_pid
                 if pid is not None:
