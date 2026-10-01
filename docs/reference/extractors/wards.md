@@ -22,7 +22,7 @@ class WardEvent
 
 A complete ward placement record with coordinates.
 
-Source: [src/gem/extractors/wards.py:83](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/wards.py#L83)
+Source: [src/gem/extractors/wards.py:87](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/wards.py#L87)
 
 #### Dataclass fields
 
@@ -38,6 +38,8 @@ Source: [src/gem/extractors/wards.py:83](https://github.com/whanyu1212/gem-dota/
 | `expires_tick` | `int \| None` | `-` |
 | `killed_tick` | `int \| None` | `-` |
 | `killer` | `str` | `-` |
+| `left_attacker` | `str \| None` | `None` |
+| `left_player_id` | `int \| None` | `None` |
 
 ### `WardsExtractor`
 
@@ -47,7 +49,7 @@ class WardsExtractor
 
 Extracts ward placement, expiry, and kill events from the entity stream.
 
-Source: [src/gem/extractors/wards.py:117](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/wards.py#L117)
+Source: [src/gem/extractors/wards.py:131](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/wards.py#L131)
 
 #### Properties
 
@@ -57,7 +59,7 @@ Signature: `def WardsExtractor._tick(self) -> int`
 
 No docstring available.
 
-Source: [src/gem/extractors/wards.py:165](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/wards.py#L165)
+Source: [src/gem/extractors/wards.py:186](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/wards.py#L186)
 
 #### Methods
 
@@ -67,7 +69,7 @@ Signature: `def WardsExtractor.attach(self, parser: ReplayParser) -> None`
 
 Register callbacks with the parser.
 
-Source: [src/gem/extractors/wards.py:150](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/wards.py#L150)
+Source: [src/gem/extractors/wards.py:171](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/wards.py#L171)
 
 ##### `finalize`
 
@@ -75,4 +77,4 @@ Signature: `def WardsExtractor.finalize(self) -> list[WardEvent]`
 
 Back-fill placer names and return ward events.
 
-Source: [src/gem/extractors/wards.py:168](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/wards.py#L168)
+Source: [src/gem/extractors/wards.py:189](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/wards.py#L189)

@@ -66,11 +66,14 @@ the same results.
 
 ## Versioning and compatibility
 
-Every `to_json()` payload carries `schema_version` (currently `1`) and `gem_version`
+Every `to_json()` payload carries `schema_version` (currently `3`) and `gem_version`
 beside the match fields:
 
 - Files from older gem versions, including ones written before `schema_version` existed,
   still load. Fields they do not contain fall back to their defaults.
+- Schema 2 and earlier named gem's fight list `teamfights`; it loads as `fights`.
+- Schema 1 (gem 0.10 and earlier) stored `lane_pos` on a different grid, which cannot
+  be converted; it loads empty.
 - Keys the running gem does not know are ignored.
 - A file with a `schema_version` newer than the running gem supports raises `ValueError`;
   upgrade `gem-dota` to read it.
@@ -84,8 +87,8 @@ The top-level object mirrors `ParsedMatch`, plus the version keys and the option
 
 ```json
 {
-  "schema_version": 1,
-  "gem_version": "0.10.0",
+  "schema_version": 3,
+  "gem_version": "0.11.0",
   "match_id": 8461735141,
   "game_mode": 2,
   "leagueid": 18324,
