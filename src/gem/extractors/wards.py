@@ -6,8 +6,11 @@ to ``m_lifeState == 0`` (alive) the entity already carries exact coordinates and
 ``m_hOwnerEntity``, so no coordinate-matching window is needed.
 
 Ward death/expiry is detected on the transition to ``m_lifeState == 1``
-(dying).  The killer is read from the combat log ``DEATH`` queue that was
-populated for the matching ward class.
+(dying).  Like OpenDota, the transition is handled once its tick is over, after
+that tick's combat log: each ward ``DEATH`` entry queues its attacker and damage
+source for its ward class, and the leaving ward takes the oldest one. A ward
+that expires logs a ``DEATH`` whose attacker is the ward itself and whose damage
+source is the owner's hero.
 
 Reference: odota/parser src/main/java/opendota/processors/warding/Wards.java
            odota/parser src/main/java/opendota/Parse.java  (buildWardEntry)
@@ -72,6 +75,7 @@ class _SlotState:
     y: float
     player_id: int
     placer_npc: str  # resolved NPC name, e.g. "npc_dota_hero_shadow_demon"
+    event: WardEvent | None = None  # this placement's record
 
 
 # ---------------------------------------------------------------------------
@@ -95,6 +99,14 @@ class WardEvent:
         killed_tick: Tick when the ward was killed by an enemy, or ``None``.
         killer: NPC name of the unit that killed the ward, or ``""`` if not
             applicable.
+        left_attacker: Damage source of the combat-log ``DEATH`` paired with the
+            ward leaving, as OpenDota's ``attackername`` (the owner's hero for an
+            expiry; ``"dota_unknown"`` for an unnamed source), or ``None`` if no
+            ``DEATH`` was paired or the ward has not left.
+        left_player_id: Player slot of the ward's owner when it left, read from
+            ``m_hOwnerEntity`` then, as OpenDota does; ``-1`` if that owner no
+            longer resolves (OpenDota then logs the leave for no player), or
+            ``None`` if not recorded.
     """
 
     tick: int
@@ -107,6 +119,8 @@ class WardEvent:
     expires_tick: int | None
     killed_tick: int | None
     killer: str
+    left_attacker: str | None = None
+    left_player_id: int | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -140,8 +154,15 @@ class WardsExtractor:
         self._prev_lifestate: dict[int, int] = {}
         # Live state per entity index (set on spawn, cleared on delete)
         self._active: dict[int, _SlotState] = {}
-        # Killer queues per ward target name (matches Wards.java logic)
-        self._killer_queue: dict[str, list[str]] = {target: [] for target in _WARD_TARGET_NAMES}
+        # (attacker, damage source) of ward DEATH entries per ward target name,
+        # oldest first (Wards.java wardKillersByWardClass)
+        self._killer_queue: dict[str, list[tuple[str, str]]] = {
+            target: [] for target in _WARD_TARGET_NAMES
+        }
+        # Wards that left during a tick, handled once that tick is over
+        # (Wards.java defers lifestate changes to the tick end):
+        # (tick, entity class, slot state, owner player id at leave time)
+        self._pending_left: list[tuple[int, str, _SlotState, int]] = []
         # Hero NPC name by player_id — populated from entity stream
         self._hero_by_player_id: dict[int, str] = {}
         # Completed placement records
@@ -175,6 +196,7 @@ class WardsExtractor:
         Returns:
             List of ``WardEvent`` objects in chronological order.
         """
+        self._flush_pending_left(before_tick=None)
         for ev in self.ward_events:
             if ev.placer == "" and ev.player_id >= 0:
                 npc = self._hero_by_player_id.get(ev.player_id, "")
@@ -186,36 +208,12 @@ class WardsExtractor:
     # ------------------------------------------------------------------
 
     def _on_combat_log(self, entry: CombatLogEntry) -> None:
+        self._flush_pending_left(before_tick=entry.tick)
         if entry.log_type != "DEATH" or entry.target_name not in _WARD_TARGET_NAMES:
             return
-        killer = entry.attacker_name
-        if not killer:
-            return
-        # First try to back-fill any ward event that was marked killed at this
-        # exact tick but whose killer queue was empty at lifestate-transition
-        # time (same-tick ordering: entity callback fires before combat log).
-        back_filled = False
-        for ev in reversed(self.ward_events):
-            if (
-                ev.killed_tick == entry.tick
-                and not ev.killer
-                and _CLASS_TO_TARGET.get(
-                    "CDOTA_NPC_Observer_Ward_TrueSight"
-                    if ev.ward_type == "sentry"
-                    else "CDOTA_NPC_Observer_Ward",
-                    "",
-                )
-                == entry.target_name
-            ):
-                if killer in _WARD_TARGET_NAMES:
-                    ev.killed_tick = None
-                    ev.expires_tick = entry.tick
-                else:
-                    ev.killer = killer
-                back_filled = True
-                break
-        if not back_filled:
-            self._killer_queue[entry.target_name].append(killer)
+        # CombatLogNames index 0 resolves to ""; OpenDota prints it as dota_unknown.
+        source = entry.damage_source_name or "dota_unknown"
+        self._killer_queue[entry.target_name].append((entry.attacker_name, source))
 
     # ------------------------------------------------------------------
     # Entity stream — primary placement/death signal
@@ -237,6 +235,7 @@ class WardsExtractor:
 
         idx = entity.get_index()
         tick = self._tick
+        self._flush_pending_left(before_tick=tick)
 
         if op.has(EntityOp.DELETED):
             self._prev_lifestate.pop(idx, None)
@@ -257,7 +256,7 @@ class WardsExtractor:
 
         # ---- Transition to dying (1): ward killed or expired ----
         elif life_state == 1 and prev_ls == 0:
-            self._on_ward_left(cls, idx, tick)
+            self._on_ward_left(entity, cls, idx, tick)
 
     def _on_ward_placed(
         self,
@@ -300,30 +299,55 @@ class WardsExtractor:
         )
         self._active[idx] = state
 
-        self.ward_events.append(
-            WardEvent(
-                tick=tick,
-                player_id=player_id,
-                placer=placer_npc,
-                ward_type=ward_type,
-                team=team,
-                x=pos[0] if pos else None,
-                y=pos[1] if pos else None,
-                expires_tick=None,
-                killed_tick=None,
-                killer="",
-            )
+        state.event = WardEvent(
+            tick=tick,
+            player_id=player_id,
+            placer=placer_npc,
+            ward_type=ward_type,
+            team=team,
+            x=pos[0] if pos else None,
+            y=pos[1] if pos else None,
+            expires_tick=None,
+            killed_tick=None,
+            killer="",
         )
+        self.ward_events.append(state.event)
 
-    def _on_ward_left(self, cls: str, idx: int, tick: int) -> None:
+    def _on_ward_left(self, entity: Entity, cls: str, idx: int, tick: int) -> None:
         state = self._active.pop(idx, None)
         if state is None:
             return
+        # OpenDota reads the owner's slot when the ward leaves, not at placement.
+        owner_id = -1
+        owner_handle = entity._get_uint32_resolved(entity._resolve_fields(_WARD_FIELDS)[2])
+        if owner_handle is not None and self._parser is not None:
+            em = self._parser.entity_manager
+            if em is not None:
+                resolved = _player_id_from_entity(em.find_by_handle(owner_handle), allow_owner=True)
+                owner_id = resolved if resolved is not None else -1
+        self._pending_left.append((tick, cls, state, owner_id))
 
-        # Find the matching WardEvent in the list (last one for this slot)
-        event = self._find_ward_event(state)
+    def _flush_pending_left(self, before_tick: int | None) -> None:
+        """Handle wards that left in ticks before ``before_tick`` (all if ``None``).
+
+        By then every ``DEATH`` entry of their tick is queued, so a ward that
+        left takes its own entry rather than a later ward's.
+        """
+        if not self._pending_left:
+            return
+        ready: list[tuple[int, str, _SlotState, int]] = []
+        waiting: list[tuple[int, str, _SlotState, int]] = []
+        for pending in self._pending_left:
+            (ready if before_tick is None or pending[0] < before_tick else waiting).append(pending)
+        self._pending_left = waiting
+        for tick, cls, state, owner_id in ready:
+            self._resolve_left(tick, cls, state, owner_id)
+
+    def _resolve_left(self, tick: int, cls: str, state: _SlotState, owner_id: int) -> None:
+        event = state.event if state.event is not None else self._find_ward_event(state)
         if event is None:
             return
+        event.left_player_id = owner_id
 
         target_name = _CLASS_TO_TARGET.get(cls, "")
         killer_queue = self._killer_queue.get(target_name, [])
@@ -333,7 +357,8 @@ class WardsExtractor:
         )
 
         if killer_queue:
-            killer = killer_queue.pop(0)
+            killer, source = killer_queue.pop(0)
+            event.left_attacker = source
             # Ward killing itself = natural expiry reported via combat log
             if killer in _WARD_TARGET_NAMES:
                 event.expires_tick = tick
@@ -343,7 +368,7 @@ class WardsExtractor:
         elif tick >= state.spawn_tick + natural_ticks - _EXPIRY_TOLERANCE_TICKS:
             event.expires_tick = tick
         else:
-            # Killed but no combat log killer arrived yet — mark as killed
+            # Killed but no combat log killer was logged — mark as killed
             event.killed_tick = tick
 
     def _find_ward_event(self, state: _SlotState) -> WardEvent | None:

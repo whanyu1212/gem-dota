@@ -324,8 +324,12 @@ def _ward_left_entry(ward: WardEvent, clock: GameClock) -> dict[str, Any] | None
     """Build an OpenDota ``*_left_log`` expiry entry from a WardEvent, or None.
 
     A ward that left the map (killed or expired naturally) yields one expiry
-    record; wards still alive at game end yield ``None``. ``attackername`` is the
-    killer for a destroyed ward and empty for a natural expiry.
+    record; wards still alive at game end yield ``None``. As in OpenDota,
+    ``attackername`` is the damage source of the combat-log ``DEATH`` paired
+    with the ward leaving, so a natural expiry names the owner's hero.
+
+    Reference: odota/parser processors/warding/Wards.java and Parse.java
+    ``onWardKilled`` / ``buildWardEntry`` (pinned in CLAUDE.md).
 
     Args:
         ward: The ward placement record.
@@ -334,21 +338,40 @@ def _ward_left_entry(ward: WardEvent, clock: GameClock) -> dict[str, Any] | None
     Returns:
         The OpenDota-shaped expiry dict, or ``None`` if the ward never left.
     """
-    left_tick = ward.killed_tick if ward.killed_tick is not None else ward.expires_tick
+    left_tick = _ward_left_tick(ward)
     if left_tick is None:
         return None
     seconds = _tick_game_seconds(left_tick, clock)
-    return {
+    player_id = _ward_left_player_id(ward)
+    entry: dict[str, Any] = {
         "time": seconds,
         "type": "obs_left_log" if ward.ward_type == "observer" else "sen_left_log",
         "key": _ward_coord_key(ward.x, ward.y),
-        "slot": ward.player_id,
-        "player_slot": _player_id_to_player_slot(ward.player_id),
+        "slot": player_id,
+        "player_slot": _player_id_to_player_slot(player_id),
         "x": _to_od_cell(ward.x),
         "y": _to_od_cell(ward.y),
         "entityleft": True,
-        "attackername": ward.killer or "",
     }
+    attacker = ward.left_attacker if ward.left_attacker is not None else ward.killer
+    if attacker:
+        entry["attackername"] = attacker
+    return entry
+
+
+def _ward_left_tick(ward: WardEvent) -> int | None:
+    """Return the tick a ward was killed or expired, or ``None`` if it never left."""
+    return ward.killed_tick if ward.killed_tick is not None else ward.expires_tick
+
+
+def _ward_left_player_id(ward: WardEvent) -> int:
+    """Return the player a ward's leave is logged for.
+
+    OpenDota reads the owner when the ward leaves; ``-1`` when that owner no
+    longer resolves, so the leave belongs to no player. Wards without that
+    record fall back to the placer.
+    """
+    return ward.left_player_id if ward.left_player_id is not None else ward.player_id
 
 
 #: Target-name fragments OpenDota turns into a ``building_kill`` objective:
@@ -1522,20 +1545,28 @@ def build_parsed_match(
     # Attach ward logs per player. obs_log/sen_log keep gem's native WardEvent
     # records; the OpenDota-shaped expiry logs (obs_left_log/sen_left_log) and the
     # nested placement coordinate maps (obs/sen) are derived alongside.
+    # Left logs are in the order wards left, as OpenDota logs them; a ward's
+    # leave belongs to its owner at that time (see _ward_left_player_id).
+    left_ticks = [(_ward_left_tick(ward), index) for index, ward in enumerate(match.wards)]
+    for _, index in sorted((tick, i) for tick, i in left_ticks if tick is not None):
+        ward = match.wards[index]
+        left_entry = _ward_left_entry(ward, clock)
+        left_id = _ward_left_player_id(ward)
+        if left_entry is not None and 0 <= left_id < 10:
+            left_player = match.players[left_id]
+            if ward.ward_type == "observer":
+                left_player.obs_left_log.append(left_entry)
+            else:
+                left_player.sen_left_log.append(left_entry)
     for ward in match.wards:
         if not (0 <= ward.player_id < 10):
             continue
         pp = match.players[ward.player_id]
-        left_entry = _ward_left_entry(ward, clock)
         if ward.ward_type == "observer":
             pp.obs_log.append(ward)
-            if left_entry is not None:
-                pp.obs_left_log.append(left_entry)
             coord_map = pp.obs
         else:
             pp.sen_log.append(ward)
-            if left_entry is not None:
-                pp.sen_left_log.append(left_entry)
             coord_map = pp.sen
         if ward.x is not None and ward.y is not None:
             column = coord_map.setdefault(str(od_cell_index(ward.x)), {})

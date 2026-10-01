@@ -2228,6 +2228,8 @@ def _ward(
     expires_tick=None,
     killer="",
     team=2,
+    left_attacker=None,
+    left_player_id=None,
 ):
     from gem.extractors.wards import WardEvent
 
@@ -2242,6 +2244,8 @@ def _ward(
         expires_tick=expires_tick,
         killed_tick=killed_tick,
         killer=killer,
+        left_attacker=left_attacker,
+        left_player_id=left_player_id,
     )
 
 
@@ -2296,14 +2300,47 @@ class TestWardReshape:
         w9 = _ward(player_id=9, team=3, expires_tick=900)
         assert _ward_left_entry(w9, clock=GameClock(game_start_tick=0))["player_slot"] == 132
 
-    def test_left_entry_natural_expiry_no_killer(self):
+    def test_left_entry_natural_expiry_without_a_death_has_no_attacker(self):
         from gem.results.assembly import _ward_left_entry
 
         w = _ward(ward_type="sentry", expires_tick=900)
         e = _ward_left_entry(w, clock=GameClock(game_start_tick=0))
         assert e is not None and e["type"] == "sen_left_log"
-        assert e["attackername"] == ""
+        assert "attackername" not in e  # OpenDota omits a null attackername
         assert e["time"] == 30
+
+    def test_left_entry_names_the_death_source_like_opendota(self):
+        # An expiry's DEATH names the owner's hero as its damage source, and
+        # OpenDota logs that as attackername.
+        from gem.results.assembly import _ward_left_entry
+
+        w = _ward(expires_tick=900, left_attacker="npc_dota_hero_lina")
+        e = _ward_left_entry(w, clock=GameClock(game_start_tick=0))
+        assert e["attackername"] == "npc_dota_hero_lina"
+
+    def test_left_logs_follow_the_owner_at_leave_time_in_leave_order(self):
+        snaps = [_FakePlayerSnapshot(player_id=1, tick=1, npc_name="npc_dota_hero_lina", team=2)]
+        wards = [
+            _ward(player_id=1, x=16128.0, expires_tick=900, left_player_id=1),
+            _ward(player_id=1, x=16896.0, killed_tick=600, left_player_id=1),
+            # Owner gone when it left: OpenDota logs the leave for no player.
+            _ward(player_id=1, x=17000.0, expires_tick=700, left_player_id=-1),
+        ]
+        m = build_parsed_match(
+            _make_parser(radiant_win=True),
+            _make_player_ext(snapshots=snaps),
+            _make_obj_ext(),
+            _make_ward_ext(ward_events=wards),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            _make_combat_agg(),
+            [],
+            [],
+        )
+        p = m.players[1]
+        assert len(p.obs_log) == 3
+        # Leave order (tick 600, then 900; game start 6000), the ownerless one dropped.
+        assert [e["time"] for e in p.obs_left_log] == [-180, -170]
 
     def test_no_left_entry_when_ward_survives(self):
         from gem.results.assembly import _ward_left_entry

@@ -7,6 +7,8 @@ Covers WardsExtractor._on_combat_log (killer queues), _on_entity
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 from gem.combat.log import CombatLogEntry
 from gem.extractors.wards import (
     _EXPIRY_TOLERANCE_TICKS,
@@ -116,7 +118,10 @@ class TestOnCombatLogKillerQueue:
             attacker_name="npc_dota_hero_lina",
         )
         ext._on_combat_log(entry)
-        assert ext._killer_queue["npc_dota_observer_wards"] == ["npc_dota_hero_lina"]
+        # (attacker, damage source); an unnamed source is OpenDota's dota_unknown.
+        assert ext._killer_queue["npc_dota_observer_wards"] == [
+            ("npc_dota_hero_lina", "dota_unknown")
+        ]
 
     def test_sentry_death_uses_sentry_queue(self):
         ext, _ = _ward_extractor()
@@ -125,9 +130,12 @@ class TestOnCombatLogKillerQueue:
             log_type="DEATH",
             target_name="npc_dota_sentry_wards",
             attacker_name="npc_dota_hero_axe",
+            damage_source_name="npc_dota_hero_axe",
         )
         ext._on_combat_log(entry)
-        assert ext._killer_queue["npc_dota_sentry_wards"] == ["npc_dota_hero_axe"]
+        assert ext._killer_queue["npc_dota_sentry_wards"] == [
+            ("npc_dota_hero_axe", "npc_dota_hero_axe")
+        ]
 
     def test_non_ward_death_ignored(self):
         ext, _ = _ward_extractor()
@@ -141,16 +149,18 @@ class TestOnCombatLogKillerQueue:
         assert ext._killer_queue["npc_dota_observer_wards"] == []
         assert ext._killer_queue["npc_dota_sentry_wards"] == []
 
-    def test_empty_killer_not_queued(self):
+    def test_unnamed_attacker_is_still_queued(self):
+        # OpenDota queues every ward DEATH, keyed on its damage source.
         ext, _ = _ward_extractor()
         entry = CombatLogEntry(
             tick=500,
             log_type="DEATH",
             target_name="npc_dota_observer_wards",
             attacker_name="",
+            damage_source_name="npc_dota_hero_lina",
         )
         ext._on_combat_log(entry)
-        assert ext._killer_queue["npc_dota_observer_wards"] == []
+        assert ext._killer_queue["npc_dota_observer_wards"] == [("", "npc_dota_hero_lina")]
 
     def test_item_events_ignored(self):
         ext, _ = _ward_extractor()
@@ -276,7 +286,7 @@ class TestOnEntityWardDeath:
         e_dying = _observer_entity(index=0, life_state=1)
         ext._on_entity(e_dying, EntityOp.UPDATED)
 
-        ev = ext.ward_events[0]
+        ev = ext.finalize()[0]
         assert ev.killed_tick == 200
         assert ev.killer == "npc_dota_hero_lina"
         assert ev.expires_tick is None
@@ -292,7 +302,7 @@ class TestOnEntityWardDeath:
         e_dying = _observer_entity(index=0, life_state=1)
         ext._on_entity(e_dying, EntityOp.UPDATED)
 
-        ev = ext.ward_events[0]
+        ev = ext.finalize()[0]
         assert ev.expires_tick == natural_death_tick
         assert ev.killed_tick is None
 
@@ -306,10 +316,11 @@ class TestOnEntityWardDeath:
         e_dying = _observer_entity(index=0, life_state=1)
         ext._on_entity(e_dying, EntityOp.UPDATED)
 
-        ev = ext.ward_events[0]
+        ev = ext.finalize()[0]
         assert ev.killed_tick == 150
         assert ev.expires_tick is None
         assert ev.killer == ""
+        assert ev.left_attacker is None
 
     def test_slot_reuse_second_spawn_independent(self):
         """Same entity slot used twice — two separate WardEvents."""
@@ -421,121 +432,104 @@ class TestWardsExtractorAttach:
 # ---------------------------------------------------------------------------
 
 
-class TestSameTickOrderingFix:
-    """Regression tests for the same-tick killer attribution bug.
+class TestTickEndPairing:
+    """A ward that leaves is paired with a DEATH once its tick is over.
 
-    When a ward is killed, the entity m_lifeState→1 callback fires before
-    the combat log DEATH callback at the same tick.  Without the back-fill
-    logic, _on_ward_left would see an empty killer queue and mark the ward
-    as killed with killer="" (displayed as "?").
-
-    After the fix, _on_combat_log checks for ward_events with killed_tick==
-    entry.tick and back-fills the killer directly.
+    OpenDota's Wards.java handles lifestate changes at the tick end, after the
+    tick's combat log, so the entity callback and the DEATH entry of the same
+    tick may arrive in either order.
     """
 
-    def test_sentry_killer_backfilled_when_combat_log_arrives_after_lifestate(self):
-        """Entity callback fires first (tick=500), then combat log arrives — back-fill."""
+    def test_death_logged_after_the_lifestate_change_still_pairs(self):
         ext, parser = _ward_extractor(tick=400)
-        # Place sentry at tick 400
-        e = _sentry_entity(index=1, x=3840.0, y=5120.0, life_state=0, team=3)
-        ext._on_entity(e, EntityOp.CREATED)
-        assert len(ext.ward_events) == 1
+        ext._on_entity(_sentry_entity(index=1, life_state=0), EntityOp.CREATED)
 
-        # Entity dies at tick 500 (lifestate→1 callback fires first)
         parser.tick = 500
-        e_dying = _sentry_entity(index=1, life_state=1)
-        ext._on_entity(e_dying, EntityOp.UPDATED)
-
-        # Ward marked as killed but no killer yet
-        ev = ext.ward_events[0]
-        assert ev.killed_tick == 500
-        assert ev.killer == ""
-
-        # Combat log DEATH arrives at same tick 500 (fires after entity callback)
-        death_entry = CombatLogEntry(
-            tick=500,
-            log_type="DEATH",
-            target_name="npc_dota_sentry_wards",
-            attacker_name="npc_dota_hero_bane",
+        ext._on_entity(_sentry_entity(index=1, life_state=1), EntityOp.UPDATED)
+        ext._on_combat_log(
+            CombatLogEntry(
+                tick=500,
+                log_type="DEATH",
+                target_name="npc_dota_sentry_wards",
+                attacker_name="npc_dota_hero_bane",
+                damage_source_name="npc_dota_hero_bane",
+            )
         )
-        ext._on_combat_log(death_entry)
-
-        # Back-fill: killer is now set
-        assert ev.killed_tick == 500
-        assert ev.killer == "npc_dota_hero_bane"
-        # Queue should remain empty (back-fill consumed it)
+        ev = ext.finalize()[0]
+        assert (ev.killed_tick, ev.killer, ev.left_attacker) == (
+            500,
+            "npc_dota_hero_bane",
+            "npc_dota_hero_bane",
+        )
         assert ext._killer_queue["npc_dota_sentry_wards"] == []
 
-    def test_observer_killer_backfilled_same_tick(self):
-        """Same-tick back-fill works for observer wards too."""
+    def test_an_expiry_does_not_leave_its_death_for_the_next_ward(self):
+        # Regression: the expiry's DEATH (attacker = the ward, source = its
+        # owner) arrived after the lifestate change and was left queued, so the
+        # next ward of that class took it. Ward fates and killers shifted by one.
         ext, parser = _ward_extractor(tick=100)
-        e = _observer_entity(index=0, x=1280.0, y=2560.0, life_state=0, team=2)
-        ext._on_entity(e, EntityOp.CREATED)
+        ext._on_entity(_observer_entity(index=0, life_state=0), EntityOp.CREATED)
+        ext._on_entity(_observer_entity(index=2, life_state=0), EntityOp.CREATED)
 
-        parser.tick = 300
-        e_dying = _observer_entity(index=0, life_state=1)
-        ext._on_entity(e_dying, EntityOp.UPDATED)
-
-        death_entry = CombatLogEntry(
-            tick=300,
-            log_type="DEATH",
-            target_name="npc_dota_observer_wards",
-            attacker_name="npc_dota_hero_axe",
+        expiry_tick = 100 + _OBSERVER_LIFESPAN_TICKS
+        parser.tick = expiry_tick
+        ext._on_entity(_observer_entity(index=0, life_state=1), EntityOp.UPDATED)
+        ext._on_combat_log(
+            CombatLogEntry(
+                tick=expiry_tick,
+                log_type="DEATH",
+                target_name="npc_dota_observer_wards",
+                attacker_name="npc_dota_observer_wards",
+                damage_source_name="npc_dota_hero_rubick",
+            )
         )
-        ext._on_combat_log(death_entry)
+        parser.tick = expiry_tick + 200
+        ext._on_entity(_observer_entity(index=2, life_state=1), EntityOp.UPDATED)
+        ext._on_combat_log(
+            CombatLogEntry(
+                tick=expiry_tick + 200,
+                log_type="DEATH",
+                target_name="npc_dota_observer_wards",
+                attacker_name="npc_dota_hero_lina",
+                damage_source_name="npc_dota_hero_lina",
+            )
+        )
+        expired, killed = ext.finalize()
+        assert (expired.expires_tick, expired.killer) == (expiry_tick, "")
+        assert expired.left_attacker == "npc_dota_hero_rubick"  # OpenDota names the owner
+        assert (killed.killed_tick, killed.killer) == (expiry_tick + 200, "npc_dota_hero_lina")
 
-        ev = ext.ward_events[0]
-        assert ev.killer == "npc_dota_hero_axe"
-        assert ext._killer_queue["npc_dota_observer_wards"] == []
-
-    def test_different_tick_still_uses_queue(self):
-        """If combat log arrives at a different tick, it goes to the queue as normal."""
+    def test_death_from_a_later_tick_is_not_taken(self):
         ext, parser = _ward_extractor(tick=100)
-        e = _observer_entity(index=0, life_state=0)
-        ext._on_entity(e, EntityOp.CREATED)
-
-        # Combat log arrives at tick 250, before the lifestate transition
-        death_entry = CombatLogEntry(
-            tick=250,
-            log_type="DEATH",
-            target_name="npc_dota_observer_wards",
-            attacker_name="npc_dota_hero_lina",
+        ext._on_entity(_observer_entity(index=0, life_state=0), EntityOp.CREATED)
+        parser.tick = 150
+        ext._on_entity(_observer_entity(index=0, life_state=1), EntityOp.UPDATED)
+        ext._on_combat_log(
+            CombatLogEntry(
+                tick=152,
+                log_type="DEATH",
+                target_name="npc_dota_observer_wards",
+                attacker_name="npc_dota_hero_lina",
+            )
         )
-        ext._on_combat_log(death_entry)
-        assert ext._killer_queue["npc_dota_observer_wards"] == ["npc_dota_hero_lina"]
+        ev = ext.finalize()[0]
+        assert (ev.killed_tick, ev.killer, ev.left_attacker) == (150, "", None)
 
-        # Ward dies at tick 300 — consumes from queue
-        parser.tick = 300
-        e_dying = _observer_entity(index=0, life_state=1)
-        ext._on_entity(e_dying, EntityOp.UPDATED)
-
-        ev = ext.ward_events[0]
-        assert ev.killed_tick == 300
-        assert ev.killer == "npc_dota_hero_lina"
-
-    def test_same_tick_natural_expiry_via_combat_log(self):
-        """If the 'killer' in the combat log is the ward itself, it's natural expiry."""
+    def test_owner_is_read_when_the_ward_leaves(self):
+        # OpenDota resolves the owner's slot at leave time; an owner that no
+        # longer resolves leaves the leave with no player (-1).
         ext, parser = _ward_extractor(tick=100)
-        e = _sentry_entity(index=1, life_state=0)
-        ext._on_entity(e, EntityOp.CREATED)
+        owners = {7: _ent("CDOTAPlayerController", index=50, m_nPlayerID=6)}
+        parser.entity_manager = SimpleNamespace(find_by_handle=lambda handle: owners.get(handle))
+        placed = _observer_entity(index=0, life_state=0)
+        set_fields(placed, {"m_hOwnerEntity": 7})
+        ext._on_entity(placed, EntityOp.CREATED)
+        assert ext.ward_events[0].player_id == 3
 
-        # Lifestate→1 fires first, marks as killed with no killer
-        parser.tick = 300
-        e_dying = _sentry_entity(index=1, life_state=1)
-        ext._on_entity(e_dying, EntityOp.UPDATED)
-        ev = ext.ward_events[0]
-        assert ev.killed_tick == 300
-
-        # Combat log arrives with ward killing itself (natural expiry)
-        death_entry = CombatLogEntry(
-            tick=300,
-            log_type="DEATH",
-            target_name="npc_dota_sentry_wards",
-            attacker_name="npc_dota_sentry_wards",  # ward killing itself
-        )
-        ext._on_combat_log(death_entry)
-
-        # Should be reclassified as natural expiry
-        assert ev.killed_tick is None
-        assert ev.expires_tick == 300
-        assert ev.killer == ""
+        parser.tick = 150
+        owners.clear()  # the owner entity is gone by now
+        dying = _observer_entity(index=0, life_state=1)
+        set_fields(dying, {"m_hOwnerEntity": 7})
+        ext._on_entity(dying, EntityOp.UPDATED)
+        ev = ext.finalize()[0]
+        assert (ev.player_id, ev.left_player_id) == (3, -1)
