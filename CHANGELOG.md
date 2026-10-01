@@ -255,6 +255,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Ward kills and expiries are attributed correctly, and the ward-left logs match
+  OpenDota.** `obs_left_log` and `sen_left_log` now match OpenDota for 80 of 80
+  players on the local fixtures, up from 29 and 39; the audit is at 103 of 105
+  fields.
+  - **Killed vs expired.** A ward that expires logs a combat-log `DEATH` whose
+    attacker is the ward itself. gem decided the ward's fate when its
+    `m_lifeState` changed, which comes before that `DEATH` in the same tick, so
+    the `DEATH` was left queued and the *next* ward of that class took it. On the
+    8 audited fixtures this swapped killed and expired on 372 of 944 wards and gave
+    99 more the wrong killer (e.g. 158 "killed" wards had lasted their full
+    lifespan; now 1). As OpenDota does, a ward that leaves is now resolved once
+    its tick is over, after that tick's combat log. Leave ticks are unchanged, so
+    vision and map-context analysis are unaffected; the report's killed/expired
+    labels and killer names change.
+  - **`attackername`** is the `DEATH`'s damage source, as OpenDota logs it: the
+    owner's hero for an expiry, the owning hero for a summon's kill. It is left
+    out when no `DEATH` was paired. `WardEvent.left_attacker` holds it.
+  - **Owner at leave time.** OpenDota reads the ward's owner when it leaves; when
+    that owner entity is gone, the leave is logged for no player.
+    `WardEvent.left_player_id` holds that slot (`-1` when unresolved), and the
+    left logs use it.
+  - The left logs are in the order wards left, not the order they were placed.
+
 - **`life_state_dead`, `kda`, `teamfight_participation` and `max_hero_hit` match
   OpenDota** for 80 of 80 players on the local fixtures, up from 28, 78, 50 and 63.
   The audit is at 101 of 105 fields.
