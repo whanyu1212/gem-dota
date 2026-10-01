@@ -255,6 +255,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`kills_log` leaves out deaths the target came back from.** A hero with the
+  Aegis or Wraith King's Reincarnation dies and comes straight back; the game flags
+  that death `will_reincarnate` and leaves it off the scoreboard. gem listed it as
+  a kill, so only 70 of 80 players' `kills_log` had as many hero kills as their
+  scoreboard `kills`; now 80 of 80. `killed` already left these deaths out.
+  - `kills_log` now matches OpenDota for 77 of 80 players, up from 73.
+  - **Known difference from OpenDota.** OpenDota approximates this with an
+    Aegis-holder rule (odota/parser `handleDeathCombat`) that loses track of the
+    holder, so on 3 of the 80 players it counts one death the hero came back from
+    as a kill (8855188139 Ember Spirit at 1865 s; Shadow Fiend at 3172 s on
+    8855242704 and 4740 s on 8856501050). Its list is then one longer than the
+    scoreboard; gem's matches the scoreboard. `killed` differs from OpenDota on the
+    same 3 players for the same reason.
+
 - **Ward kills and expiries are attributed correctly, and the ward-left logs match
   OpenDota.** `obs_left_log` and `sen_left_log` now match OpenDota for 80 of 80
   players on the local fixtures, up from 29 and 39; the audit is at 103 of 105

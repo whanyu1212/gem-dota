@@ -388,6 +388,12 @@ class _CombatAggregator:
                 # attacker, while damage_source_name is the owning hero.
                 if self._is_self_death(entry):
                     return
+                # A death the hero comes back from (Aegis, Wraith King's
+                # Reincarnation) is not a kill: the game flags it and leaves it out
+                # of the scoreboard. OpenDota's Aegis-holder approximation of this
+                # sometimes keeps such a death as a kill.
+                if entry.will_reincarnate:
+                    return
                 death_pid = source_pid if source_pid is not None else attacker_pid
                 if death_pid is not None:
                     self._agg(death_pid).kills_log.append(entry)
