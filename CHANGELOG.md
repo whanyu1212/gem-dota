@@ -255,6 +255,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`life_state_dead`, `kda`, `teamfight_participation` and `max_hero_hit` match
+  OpenDota** for 80 of 80 players on the local fixtures, up from 28, 78, 50 and 63.
+  The audit is at 101 of 105 fields.
+  - `life_state_dead` counts OpenDota's once-a-second interval reads (from game
+    time 0 until post-game) where the hero is dying or dead. gem counted distinct
+    dead seconds of its denser snapshots, which sample at different moments; that
+    remains the fallback without interval reads. The interval reads now carry the
+    hero's `m_lifeState`.
+  - `kda` rounds an exact half up, as odota/core's JavaScript `toFixed(2)` does:
+    (6 + 11) / 8 = 2.125 is now 2.13, not 2.12.
+  - `teamfight_participation` is the game's float32 value as OpenDota's JSON holds
+    it (0.65384614); gem had rounded it to 7 decimals (0.6538461).
+  - `max_hero_hit` leaves out `inflictor` for an auto-attack, as OpenDota does,
+    instead of the string `"null"`. The `player_summary` DataFrame's
+    `max_hero_hit_inflictor` is now missing (NA) there.
+
 - **`opendota_teamfights` matches OpenDota exactly.** It now equals OpenDota's
   `teamfights` on all 8 local fixtures, up from none. `match.fights` (previously
   `match.teamfights`), gem's own list of every fight, is unchanged. There were four differences:

@@ -74,6 +74,13 @@ _HERO_SNAPSHOT_FIELDS = FieldAccessPlan(
 # ---------------------------------------------------------------------------
 
 
+#: One OpenDota interval read for a player, from game time 0:
+#: ``(tick, game_time_s, player_id, world_x, world_y, total_earned_xp, life_state)``.
+#: Position, XP and life state are ``None`` when unreadable. OpenDota's
+#: teamfights and ``life_state_dead`` read these.
+IntervalSample = tuple[int, int, int, float | None, float | None, int | None, int | None]
+
+
 def _pos(entity: Entity) -> tuple[float, float] | None:
     """Return world (x, y) from cell+vec encoding on the entity.
 

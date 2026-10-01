@@ -597,6 +597,15 @@ class TestInflictorDicts:
         assert mhh["key"] == "npc_dota_hero_mirana"
         assert mhh["time"] == 20
 
+    def test_auto_attack_max_hero_hit_has_no_inflictor(self):
+        # OpenDota's max_hero_hit holds a null inflictor for an auto-attack, which
+        # its JSON leaves out; "null" is only used as a dict key.
+        agg = _two_hero_agg()
+        agg.on_entry(_hero_dmg(inflictor_name="", value=189, game_time_s=977))
+        mhh = agg.players[0].max_hero_hit
+        assert mhh is not None and mhh["value"] == 189
+        assert "inflictor" not in mhh
+
     def test_non_hero_target_excluded(self):
         # Damage to a creep must NOT populate the inflictor breakdowns.
         agg = _two_hero_agg()

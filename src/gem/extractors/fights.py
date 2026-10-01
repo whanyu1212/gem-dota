@@ -42,15 +42,13 @@ from typing import TYPE_CHECKING
 from gem._deprecation import renamed_module_attrs
 from gem.combat.log import CombatLogEntry, opendota_translate
 from gem.extractors._cells import od_cell_index
+from gem.extractors._snapshots import IntervalSample
 from gem.state.game_clock import GameClock
 
 if TYPE_CHECKING:
     from gem.extractors.objectives import AegisEvent
     from gem.extractors.players import PlayerStateSnapshot
 
-#: One OpenDota interval read for a player:
-#: ``(tick, game_time_s, player_id, world_x, world_y, total_earned_xp)``.
-IntervalSample = tuple[int, int, int, float | None, float | None, int | None]
 
 _TICKS_PER_SECOND = 30
 

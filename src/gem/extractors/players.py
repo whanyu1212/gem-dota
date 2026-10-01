@@ -15,6 +15,7 @@ from gem.combat.log import CombatLogEntry, CombatLogType
 from gem.extractors._snapshots import (
     _HERO_CLASS_PREFIX,
     TEAM_RADIANT,
+    IntervalSample,
     PlayerStateSnapshot,
     PlayerTimeSeries,
     _build_hero_snapshot,
@@ -94,7 +95,7 @@ _ABILITY_HANDLE_FIELDS = FieldAccessPlan(
     )
 )
 _ITEM_HANDLE_FIELDS = FieldAccessPlan(tuple(f"m_hItems.{slot:04d}" for slot in range(_ITEM_SLOTS)))
-_HERO_TEAM_FIELDS = FieldAccessPlan(("m_iTeamNum",))
+_HERO_INTERVAL_FIELDS = FieldAccessPlan(("m_iTeamNum", "m_lifeState"))
 
 __all__ = ["PlayerExtractor", "PlayerStateSnapshot", "PlayerTimeSeries"]
 
@@ -199,16 +200,11 @@ class PlayerExtractor:
         self.lane_samples: list[tuple[int, int, float, float]] = []
         # Samples read before OpenDota's game-start anchor, with raw seconds.
         self._untimed_lane_samples: list[tuple[int, int, float, float]] = []
-        # Every OpenDota interval from game time 0 until the game ends, as
-        # (tick, game_time_s, player_id, world_x, world_y, total_earned_xp);
-        # position and XP are None when unreadable. OpenDota's teamfights read
-        # these; see _on_tick_start.
-        self.interval_samples: list[
-            tuple[int, int, int, float | None, float | None, int | None]
-        ] = []
-        self._untimed_interval_samples: list[
-            tuple[int, int, int, float | None, float | None, int | None]
-        ] = []
+        # Every OpenDota interval from game time 0 until the game ends (see
+        # IntervalSample); OpenDota's teamfights and life_state_dead read
+        # these. See _on_tick_start.
+        self.interval_samples: list[IntervalSample] = []
+        self._untimed_interval_samples: list[IntervalSample] = []
         self._lane_window_closed = False
         # Running combat log totals per player — stamped into each snapshot.
         # These are monotonically increasing so diffs give per-window rates.
@@ -261,7 +257,8 @@ class PlayerExtractor:
         - The hero's position becomes a ``lane_pos`` sample while game time is at
           most :data:`LANE_WINDOW_S`, pre-horn seconds included.
         - From game time 0, the hero's position and total earned XP become an
-          :attr:`interval_samples` entry; OpenDota's teamfights read them.
+          :attr:`interval_samples` entry with its life state; OpenDota's
+          teamfights and ``life_state_dead`` read them.
 
         Reference: odota/parser src/main/java/opendota/Parse.java
         (``nextInterval``, ``isPlayerStartingItemsWritten``) and
@@ -299,13 +296,15 @@ class PlayerExtractor:
         # player's hero; keying by the hero keeps that from claiming this slot.
         for player_id, hero in sorted(self._select_heroes().items()):
             pos = _pos(hero)
+            hero_fields = hero._resolve_fields(_HERO_INTERVAL_FIELDS)
             sample = (
                 tick,
                 game_s if game_s is not None else raw_s,
                 player_id,
                 pos[0] if pos is not None else None,
                 pos[1] if pos is not None else None,
-                self._total_earned_xp(player_id, hero),
+                self._total_earned_xp(player_id, hero._get_int32_resolved(hero_fields[0])),
+                hero._get_int32_resolved(hero_fields[1]),
             )
             if game_s is None:
                 self._untimed_interval_samples.append(sample)
@@ -344,16 +343,15 @@ class PlayerExtractor:
         if self._untimed_interval_samples:
             # OpenDota only expands intervals from game time 0.
             timed = [
-                (tick, read_s - start_s, player_id, x, y, xp)
-                for tick, read_s, player_id, x, y, xp in self._untimed_interval_samples
+                (tick, read_s - start_s, player_id, x, y, xp, life_state)
+                for tick, read_s, player_id, x, y, xp, life_state in self._untimed_interval_samples
                 if read_s - start_s >= 0
             ]
             self.interval_samples[:0] = timed
             self._untimed_interval_samples.clear()
 
-    def _total_earned_xp(self, player_id: int, hero: Entity) -> int | None:
+    def _total_earned_xp(self, player_id: int, team: int | None) -> int | None:
         """Read a player's ``m_iTotalEarnedXP`` from their team's data entity."""
-        team = hero._get_int32_resolved(hero._resolve_fields(_HERO_TEAM_FIELDS)[0])
         data_entity = self._data_radiant if team == TEAM_RADIANT else self._data_dire
         if data_entity is None:
             return None
