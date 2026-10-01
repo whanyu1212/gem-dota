@@ -848,6 +848,17 @@ class ParsedPlayer:
         gold_ledger: The player's :class:`GoldLedger`: gold earned by source,
             spent by category, and lost to death, at game end and per minute.
             ``None`` when the replay's team data has no complete ledger.
+        multi_kills: The game's multi-kill announcements as ``{kills in the
+            chain: count}``, e.g. ``{"2": 3, "3": 1}`` for three double kills and
+            a triple kill. Mirrors OpenDota's ``multi_kills``.
+        kill_streaks: The game's kill-streak announcements as ``{streak length:
+            count}`` (lengths from 3); one streak of 5 gives ``{"3": 1, "4": 1,
+            "5": 1}``. Mirrors OpenDota's ``kill_streaks``.
+        killed_by: Units that killed this player's hero, as ``{unit name:
+            count}`` keyed on the combat log's damage source (the owning hero for
+            a summon's kill; ``"dota_unknown"`` when unnamed). Deaths the hero came
+            back from are left out, as in ``kills_log``. Mirrors OpenDota's
+            ``killed_by``.
     """
 
     player_id: int
@@ -976,6 +987,9 @@ class ParsedPlayer:
     total_earned_xp_t: list[int] = field(default_factory=list)
     gold: int = 0
     gold_ledger: GoldLedger | None = None
+    multi_kills: dict[str, int] = field(default_factory=dict)
+    kill_streaks: dict[str, int] = field(default_factory=dict)
+    killed_by: dict[str, int] = field(default_factory=dict)
     # Internal provenance for values copied from CMsgDOTAMatch. The serializer
     # omits this implementation detail from the public ParsedPlayer shape.
     _match_details_fields: set[str] = field(

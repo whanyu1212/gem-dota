@@ -1133,6 +1133,9 @@ def _populate_player_series(
             pp.gold_reasons = agg.gold_reasons
             pp.xp_reasons = agg.xp_reasons
             pp.kills_log = agg.kills_log
+            pp.multi_kills = dict(agg.multi_kills)
+            pp.kill_streaks = dict(agg.kill_streaks)
+            pp.killed_by = dict(agg.killed_by)
             # Chronological order, keeping every per-unit entry but EXCLUDING
             # recipes and ward dispensers — matching OpenDota's purchase_log,
             # which still counts both in the `purchase` map (see

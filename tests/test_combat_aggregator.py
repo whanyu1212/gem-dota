@@ -781,7 +781,10 @@ class TestNonHeroAttackers:
         entry = _summon_entry(attacker, log_type=CombatLogType.DEATH)
         agg.on_entry(entry)
         em.find_by_npc_name.assert_not_called()
-        assert agg.players == {1: _ParsedPlayerAgg(kills_log=[entry])}
+        assert agg.players == {
+            1: _ParsedPlayerAgg(kills_log=[entry]),
+            2: _ParsedPlayerAgg(killed_by={_SOURCE: 1}),  # the victim's side
+        }
 
     @pytest.mark.parametrize("source", ["", "unknown_source"])
     def test_death_without_hero_source_credits_no_one(self, owned_unit, source):
@@ -790,7 +793,8 @@ class TestNonHeroAttackers:
             _summon_entry(attacker, log_type=CombatLogType.DEATH, damage_source_name=source)
         )
         em.find_by_npc_name.assert_not_called()
-        assert agg.players == {}
+        # No one is credited the kill; the victim still records its killer.
+        assert agg.players == {2: _ParsedPlayerAgg(killed_by={source or "dota_unknown": 1})}
 
     def test_resolve_kill_pid_has_no_owner_step(self, owned_unit):
         agg, em, attacker = owned_unit
@@ -798,3 +802,59 @@ class TestNonHeroAttackers:
         assert agg.resolve_kill_pid("", _SOURCE) == 1
         assert agg.resolve_kill_pid("", attacker) is None
         em.find_by_npc_name.assert_not_called()
+
+
+class TestMultiKillsStreaksAndKilledBy:
+    """OpenDota's multi_kills, kill_streaks and killed_by per player."""
+
+    def test_multikill_and_killstreak_count_by_size_and_length(self):
+        # handleMultikill / handleKillstreak: unit = attackername, key = value.
+        agg = _two_hero_agg()
+        for log_type, value in (
+            (CombatLogType.MULTIKILL, 2),
+            (CombatLogType.MULTIKILL, 2),
+            (CombatLogType.MULTIKILL, 3),
+            (CombatLogType.KILLSTREAK, 3),
+            (CombatLogType.KILLSTREAK, 4),
+        ):
+            # These entries need not flag the attacker as a hero.
+            agg.on_entry(_entry(log_type=log_type, value=value, attacker_is_hero=False))
+        axe = agg.players[0]
+        assert axe.multi_kills == {"2": 2, "3": 1}
+        assert axe.kill_streaks == {"3": 1, "4": 1}
+
+    def test_killed_by_is_keyed_on_the_damage_source(self):
+        agg = _two_hero_agg()
+        agg.on_entry(
+            _entry(
+                log_type="DEATH",
+                attacker_name="npc_dota_lone_druid_bear1",
+                attacker_is_hero=False,
+                damage_source_name="npc_dota_hero_axe",
+                target_is_hero=True,
+            )
+        )
+        agg.on_entry(
+            _entry(
+                log_type="DEATH",
+                attacker_name="npc_dota_goodguys_tower1_mid",
+                attacker_is_hero=False,
+                damage_source_name="",
+                target_is_hero=True,
+            )
+        )
+        assert agg.players[1].killed_by == {"npc_dota_hero_axe": 1, "dota_unknown": 1}
+
+    def test_killed_by_skips_illusions_reincarnations_and_self_kills(self):
+        agg = _two_hero_agg()
+        hero_death = {"log_type": "DEATH", "target_is_hero": True}
+        agg.on_entry(_entry(**hero_death, target_is_illusion=True))
+        agg.on_entry(_entry(**hero_death, will_reincarnate=True))
+        agg.on_entry(
+            _entry(
+                **hero_death,
+                attacker_name="npc_dota_hero_mirana",
+                damage_source_name="npc_dota_hero_mirana",
+            )
+        )
+        assert 1 not in agg.players or not agg.players[1].killed_by

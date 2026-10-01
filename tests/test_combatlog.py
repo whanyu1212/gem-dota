@@ -215,14 +215,14 @@ class TestCombatLogTypeEnum:
 
     def test_proto_id_maps_only_decoded_wire_types(self):
         # _LOG_TYPE_NAMES must mirror the historical hand-written int→label dict.
-        assert set(_LOG_TYPE_NAMES) == {0, 1, 2, 3, 4, 5, 6, 8, 10, 11, 12, 20, 21}
+        assert set(_LOG_TYPE_NAMES) == {0, 1, 2, 3, 4, 5, 6, 8, 10, 11, 12, 15, 16, 20, 21}
         assert _LOG_TYPE_NAMES[0] is CombatLogType.DAMAGE
 
-    def test_killstreak_excluded_from_int_mapping(self):
-        # KILLSTREAK is a surfaced label with no decoded wire type (proto 16 is
-        # never mapped) — it stays out of the int→label table.
-        assert "KILLSTREAK" in COMBAT_LOG_TYPES
-        assert CombatLogType.KILLSTREAK.proto_id not in _LOG_TYPE_NAMES
+    def test_multikill_and_killstreak_decode_from_their_wire_types(self):
+        # DOTA_COMBATLOG_MULTIKILL = 15, DOTA_COMBATLOG_KILLSTREAK = 16; OpenDota
+        # turns them into per-player multi_kills / kill_streaks.
+        assert _LOG_TYPE_NAMES[15] is CombatLogType.MULTIKILL
+        assert _LOG_TYPE_NAMES[16] is CombatLogType.KILLSTREAK
 
 
 # ---------------------------------------------------------------------------

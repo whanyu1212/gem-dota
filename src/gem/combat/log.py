@@ -78,10 +78,10 @@ class CombatLogType(str, Enum):
     BUYBACK = ("BUYBACK", 12)
     NEUTRAL_CAMP_STACK = ("NEUTRAL_CAMP_STACK", 20)
     PICKUP_RUNE = ("PICKUP_RUNE", 21)
-    # Never produced: wire types MULTIKILL (15) and KILLSTREAK (16) are not mapped,
-    # so they decode as UNKNOWN and this member has no proto_id. OpenDota turns
-    # them into per-player multi_kills / kill_streaks, which gem does not output.
-    KILLSTREAK = ("KILLSTREAK", _NO_PROTO_ID)
+    # The game's own multi-kill (value = kills in the chain, 2+) and kill-streak
+    # (value = streak length, 3+) announcements; attacker_name is the hero.
+    MULTIKILL = ("MULTIKILL", 15)
+    KILLSTREAK = ("KILLSTREAK", 16)
     # Sentinel for proto types we do not model. Unmapped wire types are labelled
     # UNKNOWN (never DAMAGE) so the aggregator's match statement falls through to
     # a no-op instead of counting them as hero damage. Mirrors OpenDota's
