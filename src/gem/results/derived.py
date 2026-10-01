@@ -14,7 +14,10 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass
+from decimal import ROUND_HALF_UP, Decimal
 from typing import TYPE_CHECKING
+
+import numpy as np
 
 from gem.catalog import units
 
@@ -243,3 +246,41 @@ def buyback_cost(net_worth: int) -> int:
     """
     nw = max(0, net_worth)
     return _BUYBACK_BASE_COST + nw // _BUYBACK_NET_WORTH_DIVISOR
+
+
+def kda(kills: int, deaths: int, assists: int) -> float:
+    """Return OpenDota's KDA: ``(kills + assists) / (deaths + 1)`` to 2 decimals.
+
+    odota/core rounds with JavaScript's ``toFixed(2)``, which rounds the exact
+    value of the double half up: 17/8 = 2.125 gives 2.13, where Python's
+    ``round`` gives 2.12.
+
+    Reference: odota/core svc/util/compute.ts ``computeMatchData`` (read at
+    7b4256f; odota/core is not one of the pinned parsers).
+
+    Args:
+        kills: Kill count.
+        deaths: Death count.
+        assists: Assist count.
+
+    Returns:
+        The KDA, rounded as OpenDota rounds it.
+    """
+    value = Decimal((kills + assists) / (deaths + 1))
+    return float(value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
+
+
+def float32_json(value: float) -> float:
+    """Return a float32 value as OpenDota's JSON carries it.
+
+    OpenDota keeps some fields as Java ``Float``; serialized, they hold the
+    shortest decimal that identifies the float32 (0.65384614, not the float64
+    widening 0.6538461446762085).
+
+    Args:
+        value: The value, read at float32 precision.
+
+    Returns:
+        That shortest decimal as a Python float.
+    """
+    return float(str(np.float32(float(value))))

@@ -270,6 +270,10 @@ class _CombatAggregator:
                 "key": target_key,
                 "value": entry.value,
             }
+            # An auto-attack has no inflictor: OpenDota's entry holds a null
+            # inflictor, which its JSON leaves out ("null" is only a dict key).
+            if inflictor == "null":
+                del src.max_hero_hit["inflictor"]
         # damage_inflictor_received is keyed on the victim and recorded only when an
         # enemy hero dealt the damage (OpenDota: source contains "npc_dota_hero_").
         if target_pid is not None and "npc_dota_hero_" in source_unit:

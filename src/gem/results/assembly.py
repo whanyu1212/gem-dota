@@ -18,7 +18,14 @@ from gem.extractors._cells import WORLD_UNITS_PER_CELL, od_cell_index
 from gem.extractors.intervals import LEDGER_FIELDS
 from gem.extractors.lane import assign_lane
 from gem.extractors.players import LANE_WINDOW_S
-from gem.results.derived import building_status, buyback_cost, categorize_kills, killed_counts
+from gem.results.derived import (
+    building_status,
+    buyback_cost,
+    categorize_kills,
+    float32_json,
+    kda,
+    killed_counts,
+)
 from gem.results.models import BuybackEvent, GoldLedger, GoldLedgerSnapshot, ParsedMatch
 from gem.results.permanent_buffs import permanent_buff_flags
 
@@ -1019,6 +1026,9 @@ def _populate_player_series(
     lane_samples = getattr(player_ext, "lane_samples", None)
     if not isinstance(lane_samples, list):
         lane_samples = []
+    interval_samples = getattr(player_ext, "interval_samples", None)
+    if not isinstance(interval_samples, list):
+        interval_samples = []
     for player_id in range(10):
         ts = player_ext.time_series(player_id)
         mts = player_ext.minute_time_series(player_id)
@@ -1155,9 +1165,9 @@ def _populate_player_series(
         pp.sentry_kills = kill_cats.sentry_kills
         pp.roshan_kills = kill_cats.roshan_kills
 
-        kda = player_ext.scoreboard.get(player_id)
-        if kda is not None:
-            pp.kills, pp.deaths, pp.assists = kda
+        scoreboard = player_ext.scoreboard.get(player_id)
+        if scoreboard is not None:
+            pp.kills, pp.deaths, pp.assists = scoreboard
 
         # Lane heatmap over game time <= 600 s, pre-horn included, from OpenDota's
         # once-a-second interval reads. Replays read without tick-start callbacks
@@ -1233,18 +1243,22 @@ def _populate_player_series(
         # bundled heroes.json snapshot.
         pp.hero_id = hero_id(pp.hero_name) if pp.hero_name else 0
 
-        # life_state_dead: seconds spent dead. OpenDota samples life_state once per
-        # game-second and sums the non-alive samples (states 1 + 2). We mirror that
-        # by counting DISTINCT dead game-seconds, which is robust to gem's snapshot
-        # cadence (multiple dense samples can fall in one second). Falls back to the
-        # tick second when game_time_s is unavailable (S1/early frames).
-        dead_seconds: set[int] = set()
-        for snap in player_ext.snapshots:
-            if snap.player_id != player_id or snap.life_state == 0:
-                continue
-            sec = snap.game_time_s if snap.game_time_s is not None else snap.tick // 30
-            dead_seconds.add(sec)
-        pp.life_state_dead = len(dead_seconds)
+        # life_state_dead: OpenDota counts its once-a-second interval reads, from
+        # game time 0 until post-game, where the hero's m_lifeState is 1 or 2
+        # (odota/core compute.ts: life_state[1] + life_state[2]). Without
+        # interval reads, count distinct dead game-seconds of the dense snapshots.
+        if interval_samples:
+            pp.life_state_dead = sum(
+                1 for sample in interval_samples if sample[2] == player_id and sample[6] in (1, 2)
+            )
+        else:
+            dead_seconds: set[int] = set()
+            for snap in player_ext.snapshots:
+                if snap.player_id != player_id or snap.life_state == 0:
+                    continue
+                sec = snap.game_time_s if snap.game_time_s is not None else snap.tick // 30
+                dead_seconds.add(sec)
+            pp.life_state_dead = len(dead_seconds)
 
         # Terminal team-data counters (camps/creeps stacked, wards placed, rune
         # pickups, tower kills) read from the same m_vecDataTeam entry as gold/xp.
@@ -1268,8 +1282,7 @@ def _populate_player_series(
             )
 
         # OpenDota-style computed convenience fields (no duration dependency).
-        # kda uses a +1 denominator and 2-decimal rounding, matching OpenDota.
-        pp.kda = round((pp.kills + pp.assists) / (pp.deaths + 1), 2)
+        pp.kda = kda(pp.kills, pp.deaths, pp.assists)
         pp.buyback_count = len(pp.buyback_log)
         pp.is_radiant = pp.team == 2  # 2 = Radiant
         # win is 0 when the winner is unknown (radiant_win is None).
@@ -1613,8 +1626,8 @@ def build_parsed_match(
     if interval_ext is not None:
         for player_id in range(10):
             scalars = interval_ext.player_resource_scalars(player_id)
-            match.players[player_id].teamfight_participation = round(
-                scalars["teamfight_participation"], 7
+            match.players[player_id].teamfight_participation = float32_json(
+                scalars["teamfight_participation"]
             )
 
     # Team kill scores = sum of each side's player kills; the postgame summary's

@@ -1578,12 +1578,13 @@ class TestStartingInventoryAtTickStart:
         ]
 
     def test_records_interval_samples_from_game_time_0_past_the_lane_window(self, monkeypatch):
-        # OpenDota's teamfights read every interval from game time 0: position
-        # and total earned XP from the team data entity.
+        # OpenDota's teamfights and life_state_dead read every interval from
+        # game time 0: position, total earned XP (team data) and m_lifeState.
         hero = _hero(
             "Axe",
             **{
                 "m_iTeamNum": 2,
+                "m_lifeState": 0,
                 "CBodyComponent.m_cellX": 100,
                 "CBodyComponent.m_vecX": 64.0,
                 "CBodyComponent.m_cellY": 70,
@@ -1597,10 +1598,11 @@ class TestStartingInventoryAtTickStart:
         parser.opendota_start_s = 1000
         parser.start_tick(100, 999)  # game time -1: not an expanded interval
         parser.start_tick(130, 1000)  # game time 0
+        set_fields(hero, {"m_lifeState": 2})  # dead
         parser.start_tick(160, 1700)  # game time 700, past the lane window
         assert ext.interval_samples == [
-            (130, 0, 0, 100 * 128 + 64.0, 70 * 128.0, 4321),
-            (160, 700, 0, 100 * 128 + 64.0, 70 * 128.0, 4321),
+            (130, 0, 0, 100 * 128 + 64.0, 70 * 128.0, 4321, 0),
+            (160, 700, 0, 100 * 128 + 64.0, 70 * 128.0, 4321, 2),
         ]
 
     def test_interval_samples_before_the_anchor_are_timed_later(self, monkeypatch):

@@ -1910,9 +1910,19 @@ class TestBuildParsedMatchComputedFields:
 class TestBuildParsedMatchOpenDotaScalars:
     """OpenDota-parity terminal / derived scalars added to ParsedPlayer/ParsedMatch."""
 
-    def _build(self, *, scoreboard=None, snaps=None, all_entries=None, radiant_win=True):
+    def _build(
+        self,
+        *,
+        scoreboard=None,
+        snaps=None,
+        all_entries=None,
+        radiant_win=True,
+        interval_samples=None,
+    ):
         parser = _make_parser(radiant_win=radiant_win)
         ext = _make_player_ext(scoreboard=scoreboard or {}, snapshots=snaps or [])
+        if interval_samples is not None:
+            ext.interval_samples = interval_samples
         return build_parsed_match(
             parser,
             ext,
@@ -1965,6 +1975,32 @@ class TestBuildParsedMatchOpenDotaScalars:
         ]
         m = self._build(snaps=snaps)
         assert m.players[0].life_state_dead == 2  # seconds 10 and 11
+
+    def test_life_state_dead_counts_dead_interval_reads(self):
+        # With OpenDota's interval reads, count those where the hero is dying (1)
+        # or dead (2), one per read (odota/core: life_state[1] + life_state[2]).
+        # The dense snapshots are not used then.
+        snaps = [
+            _FakePlayerSnapshot(
+                player_id=0, tick=300, npc_name="n", team=2, life_state=2, game_time_s=10
+            ),
+        ]
+        reads = [
+            (300, 10, 0, 0.0, 0.0, 100, 1),
+            (330, 11, 0, 0.0, 0.0, 100, 2),
+            (360, 12, 0, 0.0, 0.0, 100, 2),
+            (390, 13, 0, 0.0, 0.0, 100, 0),
+            (390, 13, 1, 0.0, 0.0, 100, 2),  # another player
+            (420, 14, 0, 0.0, 0.0, 100, None),  # unreadable
+        ]
+        m = self._build(snaps=snaps, interval_samples=reads)
+        assert m.players[0].life_state_dead == 3
+        assert m.players[1].life_state_dead == 1
+
+    def test_kda_rounds_half_up_like_opendota(self):
+        # (6 + 11) / (7 + 1) = 2.125: toFixed(2) gives 2.13, Python's round 2.12.
+        m = self._build(scoreboard={0: (6, 7, 11)})
+        assert m.players[0].kda == 2.13
 
     def test_team_scores_sum_kills(self):
         snaps = [

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 from gem.catalog import units
 from gem.combat.log import CombatLogEntry
 from gem.results.derived import categorize_kills, killed_counts
@@ -221,3 +223,28 @@ class TestBuybackCost:
         # Guard against the historical /12 formula regressing.
         # nw=12 → //13 gives 0 (200); //12 would give 1 (201).
         assert buyback_cost(12) == 200
+
+
+from gem.results.derived import float32_json, kda  # noqa: E402
+
+
+class TestKda:
+    @pytest.mark.parametrize(
+        ("kills", "deaths", "assists", "expected"),
+        [
+            (6, 7, 11, 2.13),  # 2.125: an exact half rounds up, as toFixed does
+            (2, 7, 3, 0.63),  # 0.625
+            (1, 2, 0, 0.33),
+            (10, 0, 5, 15.0),
+            (0, 0, 0, 0.0),
+        ],
+    )
+    def test_matches_javascript_to_fixed(self, kills, deaths, assists, expected):
+        assert kda(kills, deaths, assists) == expected
+
+
+def test_float32_json_gives_the_shortest_float32_decimal():
+    # OpenDota keeps teamfight_participation as a Java Float: 0.65384614 in its
+    # JSON, not the float64 widening 0.6538461446762085.
+    assert float32_json(0.6538461446762085) == 0.65384614
+    assert float32_json(0.5) == 0.5

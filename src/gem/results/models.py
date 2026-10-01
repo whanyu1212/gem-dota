@@ -652,7 +652,8 @@ class ParsedPlayer:
             inflictor, mirroring OpenDota's ``hero_hits``.
         max_hero_hit: The single largest hit landed on an enemy hero as
             ``{time, type, unit, key, inflictor, value, max}``, or ``None`` if the
-            player dealt no hero damage; mirrors OpenDota's ``max_hero_hit``.
+            player dealt no hero damage; mirrors OpenDota's ``max_hero_hit``. An
+            auto-attack has no ``inflictor`` key, as in OpenDota.
         healing: Total healing dealt, credited to the heal *source*, keyed by
             target NPC name (illusion targets keyed ``illusion_<npc>``).
         ability_uses: Ability usage counts, keyed by ability name.
@@ -761,13 +762,15 @@ class ParsedPlayer:
             ledger's ``spent_on_items + spent_on_consumables`` (the same value);
             ``0`` when neither is available. Earned minus current gold is not
             gold spent.
-        life_state_dead: Seconds spent dead, sampled from the hero's life state.
-            Mirrors OpenDota's ``life_state_dead``.
+        life_state_dead: Seconds spent dead: OpenDota's once-a-second interval
+            reads, from game time 0 until post-game, where the hero's
+            ``m_lifeState`` is dying (1) or dead (2). Mirrors OpenDota's
+            ``life_state_dead``.
         firstblood_claimed: ``1`` if this player dealt the game's first-blood kill,
             else ``0``. Mirrors OpenDota's ``firstblood_claimed``.
-        teamfight_participation: Fraction of OpenDota-compatible teamfights
-            (``opendota_teamfights``) the player was involved in (0.0–1.0) — any
-            death, buyback, damage, healing, or ability/item use in the window.
+        teamfight_participation: The game's own teamfight-participation share
+            (``CDOTA_PlayerResource.m_flTeamFightParticipation``, 0.0–1.0), at
+            float32 precision as OpenDota's JSON carries it (0.65384614).
             Mirrors OpenDota's ``teamfight_participation``.
         purchase: Count of each item purchased, keyed by translated item name
             (``item_`` stripped); recipes and ``ward_dispenser`` included.
@@ -792,9 +795,10 @@ class ParsedPlayer:
         observers_placed: Observer wards placed, derived from ``obs_log`` length.
             Mirrors OpenDota's ``observers_placed`` (a purchase/use-log-derived
             alias distinct from the entity-counter ``obs_placed``).
-        kda: OpenDota KDA ratio, ``round((kills + assists) / (deaths + 1), 2)``.
-            Note the ``+1`` denominator (not ``max(deaths, 1)``) and 2-decimal
-            rounding; matches OpenDota's ``kda`` exactly.
+        kda: OpenDota KDA ratio, ``(kills + assists) / (deaths + 1)`` to two
+            decimals. Note the ``+1`` denominator (not ``max(deaths, 1)``); an
+            exact half rounds up (2.125 -> 2.13), as JavaScript's ``toFixed``
+            does. Matches OpenDota's ``kda`` exactly.
         buyback_count: Number of buybacks used (``len(buyback_log)``). Matches
             OpenDota's ``buyback_count``.
         is_radiant: True if the player is on Radiant (team 2). Matches OpenDota's
