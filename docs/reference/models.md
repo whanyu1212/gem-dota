@@ -550,6 +550,9 @@ Source: [src/gem/results/models.py:562](https://github.com/whanyu1212/gem-dota/b
 | `total_earned_xp_t` | `list[int]` | `field(...)` |
 | `gold` | `int` | `0` |
 | `gold_ledger` | `GoldLedger \| None` | `None` |
+| `multi_kills` | `dict[str, int]` | `field(...)` |
+| `kill_streaks` | `dict[str, int]` | `field(...)` |
+| `killed_by` | `dict[str, int]` | `field(...)` |
 
 ### `ParsedMatch`
 
@@ -559,7 +562,7 @@ class ParsedMatch
 
 Top-level parsed output for a single Dota 2 replay.
 
-Source: [src/gem/results/models.py:997](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L997)
+Source: [src/gem/results/models.py:1019](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1019)
 
 #### Dataclass fields
 
@@ -625,7 +628,7 @@ Signature: `def ParsedMatch.duration_seconds(self) -> float`
 
 Game duration in seconds, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:1169](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1169)
+Source: [src/gem/results/models.py:1191](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1191)
 
 ##### `duration_minutes`
 
@@ -633,7 +636,7 @@ Signature: `def ParsedMatch.duration_minutes(self) -> float`
 
 Game duration in minutes, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:1175](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1175)
+Source: [src/gem/results/models.py:1197](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1197)
 
 ## Module `gem.state.game_clock`
 

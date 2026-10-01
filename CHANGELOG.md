@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-10-02
+
+Brings gem's OpenDota-compatible output to parity, and fixes the ward and kill
+attribution underneath it. On the 8 local OpenDota fixtures (80 players), 105 of
+the 108 fields both parsers produce now match exactly; the other 3 (`kills_log`,
+`killed`, `killed_by`) differ only where OpenDota counts a death the hero came
+back from as a kill. gem's own fight list is renamed `fights` and can be
+regrouped after parsing with `gem.find_fights`; `opendota_teamfights` now equals
+OpenDota's teamfights. Players gain a gold ledger with exact buyback costs, and
+`multi_kills`, `kill_streaks` and `killed_by`.
+
+Upgrading from 0.10: `match.teamfights` is now `match.fights`, and the other
+"teamfight" names for gem's own fights are renamed too (see Changed). The old
+names keep working with a `DeprecationWarning` for this release, except Parquet
+file names (`fights.parquet`) and the keys of the `to_json` `analysis` section.
+JSON output is `schema_version` 3; files from 0.10 still load, with an empty
+`lane_pos`, which is now OpenDota's `{x: {y: count}}` cell map. `lane_role` has
+no roaming value (5); use `is_roaming`. `kills_log` no longer lists deaths the
+target came back from, ward kills and expiries are reattributed, and DataFrame
+columns use pandas nullable dtypes. Python 3.10+ support is preserved.
+
 ### Added
 
 - **`ParsedPlayer.multi_kills`, `kill_streaks` and `killed_by`**, OpenDota's
@@ -114,7 +135,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `classify_lane` is replaced by `gem.extractors.lane.assign_lane`, a port of
     OpenDota's lane grid.
   - `player_summary` gains `lane` and `is_roaming` columns.
-  - The JSON `schema_version` is now 2. Loading an older file leaves its `lane_pos`
+  - Loading a JSON file from gem 0.10 or earlier (schema 1) leaves its `lane_pos`
     empty, because the old grid cannot be converted to cells.
 - **Report maps line up with the 7.41 map image.** The HTML report placed positions up to
   about 290 world units (130 px) off, most visibly towards the Dire side. Its y scale was
@@ -454,10 +475,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `m_nameStringTableIndex`) every hero kept a name guessed from its entity class.
   That guess is wrong for compound names: Queen of Pain became
   `npc_dota_hero_queen_of_pain` instead of `npc_dota_hero_queenofpain`, so her
-  `hero_id` was `0`. Because teamfight detection matches combat-log names to
-  `hero_name`, none of her kills, damage or ability uses counted in any teamfight
+  `hero_id` was `0`. Because fight detection matches combat-log names to
+  `hero_name`, none of her kills, damage or ability uses counted in any fight
   either. On replay 8855242704 `hero_id` now matches OpenDota (80 of 80 players
-  across the fixtures), and her teamfight rows are filled in. The other fixtures
+  across the fixtures), and her fight rows are filled in. The other fixtures
   are unchanged.
 - **`first_blood_time`, `pre_game_duration`, `radiant_score` and `dire_score`
   come from the postgame summary.** The replay's embedded `CMsgDOTAMatch` carries
@@ -1605,7 +1626,8 @@ combat-log layers. The supported top-level API (`gem.parse`, `gem.ParsedMatch`,
 - CLI and example scripts, including HTML match report.
 - Validation, fuzzing, and parser robustness foundations.
 
-[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/whanyu1212/gem-dota/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/whanyu1212/gem-dota/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/whanyu1212/gem-dota/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/whanyu1212/gem-dota/compare/v0.7.1...v0.8.0
