@@ -9,16 +9,19 @@ from __future__ import annotations
 import json
 import math
 
+from gem._deprecation import read_quietly
 from gem.analysis import (
-    ExactEventKind,
     FarmingBoundaryReason,
     FarmingRoute,
     FarmingRoutePoint,
-    SmokeFightInsight,
-    SmokeFightStatus,
     SmokeLifecycleStatus,
     build_farming_routes,
     build_smoke_analysis,
+)
+from gem.analysis.smoke_fight import (
+    ExactEventKind,
+    SmokeFightInsight,
+    SmokeFightStatus,
     build_smoke_fight_insights,
 )
 from gem.catalog.map import load_camp_zones
@@ -1602,7 +1605,7 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
         route = routes_by_player[player.player_id]
         visits: list[dict] = []
         for segment in route.segments:
-            context = segment.context
+            context = read_quietly(segment, "context")
             visits.append(
                 {
                     "order": segment.segment_index,

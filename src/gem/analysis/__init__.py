@@ -1,6 +1,6 @@
 """Post-parse analysis helpers for gem replay data."""
 
-from gem._deprecation import deprecated_module_attrs, renamed_module_attrs
+from gem._deprecation import deprecated, deprecated_module_attrs, renamed_module_attrs
 from gem.analysis.abilities import ability_level_at_tick
 from gem.analysis.bundle import MatchAnalysis, analyze
 from gem.analysis.combat import (
@@ -11,18 +11,18 @@ from gem.analysis.combat import (
     is_active_fight_participant,
 )
 from gem.analysis.farming import (
-    DEFAULT_FARMING_CONTEXT_CONFIG,
+    DEFAULT_FARMING_CONTEXT_CONFIG as _DEFAULT_FARMING_CONTEXT_CONFIG,
     DEFAULT_FARMING_ROUTE_CONFIG,
     FarmingBoundaryReason,
     FarmingCampZone,
-    FarmingContextConfig,
-    FarmingContextTag,
+    FarmingContextConfig as _FarmingContextConfig,
+    FarmingContextTag as _FarmingContextTag,
     FarmingEvidenceStrength,
     FarmingRoute,
     FarmingRouteConfig,
     FarmingRoutePoint,
     FarmingRouteSegment,
-    FarmingSegmentContext,
+    FarmingSegmentContext as _FarmingSegmentContext,
     build_farming_routes,
 )
 from gem.analysis.fight_positioning import (
@@ -67,22 +67,22 @@ from gem.analysis.smoke import (
     build_smoke_analysis,
 )
 from gem.analysis.smoke_fight import (
-    ExactEventEvidence,
-    ExactEventKind,
-    FightCentroidSource,
-    FightOutcome,
-    FollowUpBoundary,
-    FollowUpEvent,
-    FollowUpKind,
-    FollowUpWindow,
-    FormationEvidence,
-    MemberPositionEvidence,
-    SampledNearFightEvidence,
-    SmokeFightInsight,
-    SmokeFightMemberInsight,
-    SmokeFightStatus,
-    TeamRelation,
-    build_smoke_fight_insights,
+    ExactEventEvidence as _ExactEventEvidence,
+    ExactEventKind as _ExactEventKind,
+    FightCentroidSource as _FightCentroidSource,
+    FightOutcome as _FightOutcome,
+    FollowUpBoundary as _FollowUpBoundary,
+    FollowUpEvent as _FollowUpEvent,
+    FollowUpKind as _FollowUpKind,
+    FollowUpWindow as _FollowUpWindow,
+    FormationEvidence as _FormationEvidence,
+    MemberPositionEvidence as _MemberPositionEvidence,
+    SampledNearFightEvidence as _SampledNearFightEvidence,
+    SmokeFightInsight as _SmokeFightInsight,
+    SmokeFightMemberInsight as _SmokeFightMemberInsight,
+    SmokeFightStatus as _SmokeFightStatus,
+    TeamRelation as _TeamRelation,
+    build_smoke_fight_insights as _build_smoke_fight_insights,
 )
 from gem.analysis.spatial import (
     SampledPosition,
@@ -111,34 +111,20 @@ __all__ = [
     "MAP_REGIONS",
     "AbilityCast",
     "AegisFateSource",
-    "DEFAULT_FARMING_CONTEXT_CONFIG",
     "DEFAULT_FARMING_ROUTE_CONFIG",
     "DirectTargetRevealEvidence",
     "DEFAULT_ROSH_TAG_THRESHOLDS",
     "EngagementStartSource",
     "EvidenceCompleteness",
-    "ExactEventEvidence",
-    "ExactEventKind",
-    "FightCentroidSource",
-    "FightOutcome",
     "FightPositionSnapshot",
     "FarmingBoundaryReason",
     "FarmingCampZone",
-    "FarmingContextConfig",
-    "FarmingContextTag",
     "FarmingEvidenceStrength",
     "FarmingRoute",
     "FarmingRouteConfig",
     "FarmingRoutePoint",
     "FarmingRouteSegment",
-    "FarmingSegmentContext",
     "HeroPositionEvidence",
-    "FollowUpBoundary",
-    "FollowUpEvent",
-    "FollowUpKind",
-    "FollowUpWindow",
-    "FormationEvidence",
-    "MemberPositionEvidence",
     "PointVisionAssessment",
     "PointVisionGap",
     "PointVisionSource",
@@ -154,16 +140,11 @@ __all__ = [
     "RoshTerritoryWindow",
     "RoshTimelineEvent",
     "SmokeAnalysis",
-    "SampledNearFightEvidence",
-    "SmokeFightInsight",
-    "SmokeFightMemberInsight",
-    "SmokeFightStatus",
     "SmokeGroupStatus",
     "SmokeLifecycleStatus",
     "SmokeMemberAnalysis",
     "SnapshotKind",
     "TeamPositionSummary",
-    "TeamRelation",
     "FightPositioning",
     "SampledPosition",
     "VisionSource",
@@ -173,7 +154,6 @@ __all__ = [
     "build_farming_routes",
     "build_rosh_conversions",
     "build_smoke_analysis",
-    "build_smoke_fight_insights",
     "build_fight_positioning",
     "MatchAnalysis",
     "analyze",
@@ -201,6 +181,10 @@ RENAMED_FIGHT_NAMES = {
     "teamfight_at_tick": "fight_at_tick",
 }
 
+_FARMING_CONTEXT_ALTERNATIVE = (
+    "FarmingRouteSegment's camp facts and gem's position, ward, tower and economy data"
+)
+_SMOKE_FIGHT_ALTERNATIVE = "SmokeAnalysis.first_fight from gem.build_smoke_analysis"
 _MAP_CONTEXT_ALTERNATIVE = "gem.region_of and the match's wards, towers and position data"
 
 #: Names deprecated in 0.12 and removed in 0.13 (HY-96), served with a warning:
@@ -212,6 +196,36 @@ DEPRECATED_ANALYSIS_NAMES = {
     "score_camp_visit_context": (_score_camp_visit_context, None, False),
     "world_in_bounds": (_world_in_bounds, None, False),
     "estimate_vision": (_estimate_vision, None, False),
+    "FarmingSegmentContext": (_FarmingSegmentContext, _FARMING_CONTEXT_ALTERNATIVE, True),
+    "FarmingContextTag": (_FarmingContextTag, _FARMING_CONTEXT_ALTERNATIVE, True),
+    "FarmingContextConfig": (_FarmingContextConfig, _FARMING_CONTEXT_ALTERNATIVE, True),
+    "DEFAULT_FARMING_CONTEXT_CONFIG": (
+        _DEFAULT_FARMING_CONTEXT_CONFIG,
+        _FARMING_CONTEXT_ALTERNATIVE,
+        True,
+    ),
+    "build_smoke_fight_insights": (
+        deprecated("gem.build_smoke_fight_insights", alternative=_SMOKE_FIGHT_ALTERNATIVE)(
+            _build_smoke_fight_insights
+        ),
+        None,
+        False,
+    ),
+    "SmokeFightInsight": (_SmokeFightInsight, _SMOKE_FIGHT_ALTERNATIVE, True),
+    "SmokeFightMemberInsight": (_SmokeFightMemberInsight, _SMOKE_FIGHT_ALTERNATIVE, True),
+    "SmokeFightStatus": (_SmokeFightStatus, _SMOKE_FIGHT_ALTERNATIVE, True),
+    "ExactEventEvidence": (_ExactEventEvidence, _SMOKE_FIGHT_ALTERNATIVE, True),
+    "ExactEventKind": (_ExactEventKind, _SMOKE_FIGHT_ALTERNATIVE, True),
+    "FightCentroidSource": (_FightCentroidSource, _SMOKE_FIGHT_ALTERNATIVE, True),
+    "FightOutcome": (_FightOutcome, _SMOKE_FIGHT_ALTERNATIVE, True),
+    "FollowUpBoundary": (_FollowUpBoundary, _SMOKE_FIGHT_ALTERNATIVE, True),
+    "FollowUpEvent": (_FollowUpEvent, _SMOKE_FIGHT_ALTERNATIVE, True),
+    "FollowUpKind": (_FollowUpKind, _SMOKE_FIGHT_ALTERNATIVE, True),
+    "FollowUpWindow": (_FollowUpWindow, _SMOKE_FIGHT_ALTERNATIVE, True),
+    "FormationEvidence": (_FormationEvidence, _SMOKE_FIGHT_ALTERNATIVE, True),
+    "MemberPositionEvidence": (_MemberPositionEvidence, _SMOKE_FIGHT_ALTERNATIVE, True),
+    "SampledNearFightEvidence": (_SampledNearFightEvidence, _SMOKE_FIGHT_ALTERNATIVE, True),
+    "TeamRelation": (_TeamRelation, _SMOKE_FIGHT_ALTERNATIVE, True),
 }
 
 __getattr__ = deprecated_module_attrs(

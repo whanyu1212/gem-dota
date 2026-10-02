@@ -21,7 +21,7 @@ from dataclasses import asdict, fields
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Literal, Union, get_args, get_origin, get_type_hints
 
-from gem._deprecation import warn_renamed
+from gem._deprecation import read_quietly, warn_renamed
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -1543,7 +1543,7 @@ def _build_analysis_tables(match: ParsedMatch) -> dict[str, pd.DataFrame]:
             for point in segment.points
         }
         for segment in route.segments:
-            context = segment.context
+            context = read_quietly(segment, "context")
             farming_segment_rows.append(
                 {
                     "player_id": segment.player_id,

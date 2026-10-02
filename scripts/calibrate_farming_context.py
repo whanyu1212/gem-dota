@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any
 
 import gem
+from gem._deprecation import read_quietly
 from gem.analysis import build_farming_routes
 
 TICKS_PER_MINUTE = 60 * 30
@@ -35,7 +36,10 @@ def summarize_match(match: Any) -> dict[str, Any]:
     """Return deterministic factual farming-context counts for one parsed match."""
     routes = build_farming_routes(match)
     segments = [segment for route in routes for segment in route.segments]
-    contexts = [segment.context for segment in segments if segment.context is not None]
+    # read_quietly: the segment context is deprecated (HY-100), but this corpus still records it.
+    contexts = [
+        context for segment in segments if (context := read_quietly(segment, "context")) is not None
+    ]
     return {
         "match_id": int(match.match_id),
         "game_start_tick": match.game_start_tick,

@@ -146,11 +146,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 gem presents replay facts; the interpretation layer (tags, scores, verdicts) is
 leaving the library (HY-96). Deprecated names still work in 0.12, warn with a
 `DeprecationWarning` when used, are no longer in `__all__`, and are removed in 0.13.
+Deprecated fields (`FarmingRouteSegment.context`, `MatchAnalysis.smoke_fights`)
+warn when read. Printing, comparing or serializing an object does not warn, and
+gem's own `analyze()`, report, JSON and DataFrame output stay silent.
 
 - **`map_context` API:** `build_map_context_timeline`, `score_camp_visit_context`,
   `MapContextBucket`, `CampVisitContext` and `gem.analysis.world_in_bounds`.
   Nothing in gem uses them. The facts they combine (wards, towers, positions,
   `gem.region_of`) stay on `ParsedMatch`.
+- **Farming segment context:** `FarmingRouteSegment.context`,
+  `FarmingSegmentContext`, `FarmingContextTag`, `FarmingContextConfig`,
+  `DEFAULT_FARMING_CONTEXT_CONFIG`, and `build_farming_routes(context_config=...)`,
+  which warns when passed. Their DataFrame table `farming_context_tags` and the
+  context columns of `farming_route_segments` go with them. The segments stay:
+  camp, owner, lane, area, ticks, neutral kills and damage, XP and gold deltas,
+  and evidence strength.
+- **Smoke-fight insights:** `build_smoke_fight_insights` and its 15 types
+  (`SmokeFightInsight`, `SmokeFightStatus`, `FollowUpWindow`, …),
+  `MatchAnalysis.smoke_fights`, and the DataFrame tables `smoke_fight_insights`,
+  `smoke_fight_members` and `smoke_fight_followups`. Use
+  `SmokeAnalysis.first_fight` instead. The Smoke Analysis docs show how to get
+  the delay and which smoked heroes fought.
 - **`estimate_vision`:** the same coordinate query is
   `gem.assess_point_vision(...).sources`. For what a team could actually see, use
   `gem.hero_visibility_at` / `gem.entity_visibility_at`.

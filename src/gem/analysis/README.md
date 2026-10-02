@@ -149,6 +149,11 @@ that the results are heuristics with no terrain/high-ground modelling.
 
 ## Heavy Builders — Experimental (`farming.py`, `farming_context.py`, `map_context.py`, `roshan.py`)
 
+Deprecated in 0.12, removed in 0.13 (HY-96): the farming segment context
+(`farming_context.py`, `FarmingSegmentContext` and its tags), `map_context.py`,
+and `smoke_fight.py` (use `SmokeAnalysis.first_fight`). gem's own callers import
+them from the defining submodules, so `analyze()` and the report stay silent.
+
 These are multi-pass scans that emit *new* derived dataclasses. They are the
 experimental, opinionated end of the package (scoring weights and thresholds are
 hand-tuned, not ground truth).

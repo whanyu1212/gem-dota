@@ -1,5 +1,12 @@
 """Conservative post-parse associations between smoke activations and fights.
 
+Deprecated: every public name here is deprecated and will be removed in gem
+0.13 (HY-96). The factual link is ``SmokeAnalysis.first_fight`` from
+``gem.build_smoke_analysis``: the delay is ``first_fight.first_death_tick -
+activation_tick``, and ``gem.is_active_fight_participant`` tells which smoked
+members took part. gem's own report and ``gem.analyze`` keep using this module
+until 0.13 without warning.
+
 Combat-log event semantics follow Clarity's ``CombatLog.java`` at pinned
 revision ``7fb3f1d0``; fight window semantics follow OpenDota's
 ``CreateParsedDataBlob.java`` at pinned revision ``e58a668f`` (see
@@ -314,6 +321,9 @@ def build_smoke_fight_insights(
     max_position_age_ticks: int = 60,
 ) -> list[SmokeFightInsight]:
     """Build deterministic smoke-to-fight observations from parsed records.
+
+    Deprecated; removed in gem 0.13. Use ``SmokeAnalysis.first_fight`` from
+    :func:`gem.build_smoke_analysis` (see the module docstring).
 
     A fight whose bounded engagement tick has already been reached at activation
     is emitted as ``preexisting`` and is never credited. Post-activation

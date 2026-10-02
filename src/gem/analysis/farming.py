@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Literal, cast
 
+from gem._deprecation import deprecated_field, warn_deprecated
 from gem.catalog.map import load_camp_zones
 
 if TYPE_CHECKING:
@@ -40,7 +41,10 @@ class FarmingBoundaryReason(str, Enum):
 
 
 class FarmingContextTag(str, Enum):
-    """Independent evidence-aware context tags for one farming segment."""
+    """Independent evidence-aware context tags for one farming segment.
+
+    Deprecated; removed in gem 0.13 with the segment context (HY-96).
+    """
 
     OWN_SIDE = "own_side"
     ENEMY_SIDE = "enemy_side"
@@ -81,7 +85,10 @@ DEFAULT_FARMING_ROUTE_CONFIG = FarmingRouteConfig()
 
 @dataclass(frozen=True, slots=True)
 class FarmingContextConfig:
-    """Inspectable thresholds for comparative farming context."""
+    """Inspectable thresholds for comparative farming context.
+
+    Deprecated; removed in gem 0.13 with the segment context (HY-96).
+    """
 
     lookback_ticks: int = 90 * _TICKS_PER_SECOND
     territory_lookback_ticks: int = 120 * _TICKS_PER_SECOND
@@ -125,7 +132,12 @@ DEFAULT_FARMING_CONTEXT_CONFIG = FarmingContextConfig()
 
 @dataclass(slots=True)
 class FarmingSegmentContext:
-    """Comparative, provenance-preserving context for one farming segment."""
+    """Comparative, provenance-preserving context for one farming segment.
+
+    Deprecated; removed in gem 0.13 (HY-96). gem presents facts: the joins and
+    tags here are interpretation. The segment's camp facts stay on
+    :class:`FarmingRouteSegment`.
+    """
 
     midpoint_tick: int
     lookback_start_tick: int
@@ -198,7 +210,8 @@ class FarmingRoutePoint:
     boundary_before: FarmingBoundaryReason | None = None
 
 
-@dataclass(slots=True)
+# Not slotted: the deprecated ``context`` field needs an instance ``__dict__``.
+@dataclass
 class FarmingRouteSegment:
     """One camp-local sampled route segment with factual support evidence."""
 
@@ -232,7 +245,18 @@ class FarmingRouteSegment:
     camp_owner_team: int | None = None
     camp_lane: str = "unknown"
     camp_area: str = "unknown"
-    context: FarmingSegmentContext | None = None
+    context: FarmingSegmentContext | None = field(
+        default=cast(
+            Any,
+            deprecated_field(
+                "context",
+                "gem.FarmingRouteSegment.context",
+                alternative="the segment's camp facts and gem's position, ward, tower and economy data",
+            ),
+        ),
+        repr=False,
+        compare=False,
+    )
     camp_catalog_version: int | None = None
     camp_map_patch: str | None = None
     camp_topology_patch: str | None = None
@@ -705,14 +729,21 @@ def build_farming_routes(
     match: ParsedMatch,
     *,
     config: FarmingRouteConfig = DEFAULT_FARMING_ROUTE_CONFIG,
-    context_config: FarmingContextConfig = DEFAULT_FARMING_CONTEXT_CONFIG,
+    context_config: FarmingContextConfig | None = None,
 ) -> list[FarmingRoute]:
     """Build deterministic camp-local route evidence for every parsed player.
 
     The builder keeps sampled movement and resource provenance explicit. Route
     tags describe evidence strength only; they do not infer farming intent or
     a complete camp clear.
+
+    Each segment's ``context`` (:class:`FarmingSegmentContext`) is deprecated and
+    removed in gem 0.13 (HY-96), as is ``context_config``, which warns when
+    passed. The segments themselves (camp, ticks, neutral kills and damage, XP
+    and gold deltas, evidence strength) stay.
     """
+    if context_config is not None:
+        warn_deprecated("gem.build_farming_routes(context_config=...)")
     try:
         payload = load_camp_zones()
         zones = _parse_zones(payload)
@@ -787,7 +818,9 @@ def build_farming_routes(
     if zones:
         from gem.analysis.farming_context import attach_farming_contexts
 
-        attach_farming_contexts(match, routes, zones, context_config)
+        attach_farming_contexts(
+            match, routes, zones, context_config or DEFAULT_FARMING_CONTEXT_CONFIG
+        )
     return routes
 
 

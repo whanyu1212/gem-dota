@@ -26,7 +26,8 @@ import logging
 from dataclasses import dataclass
 from pathlib import Path
 
-from gem.analysis import build_rosh_conversions, build_smoke_fight_insights
+from gem.analysis import build_rosh_conversions
+from gem.analysis.smoke_fight import build_smoke_fight_insights
 from gem.reports._formatting import (
     GAME_MODES,
     fmt_tick as _fmt_tick,

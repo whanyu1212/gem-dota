@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from gem.analysis import DEFAULT_FARMING_CONTEXT_CONFIG
+from gem.analysis.farming import DEFAULT_FARMING_CONTEXT_CONFIG
 from scripts.calibrate_farming_context import summarize_match
 
 CORPUS_PATH = Path(__file__).parent / "fixtures" / "opendota" / "farming_context_corpus.json"
