@@ -584,6 +584,13 @@ class TestSpreadMarkers:
         points = [(50.0, 50.0), (200.0, 200.0)]
         assert _spread_markers(points, 28, 320) == points
 
+    def test_markers_clamped_onto_one_corner_are_still_spread(self) -> None:
+        # Far apart, but both outside the map past the same corner.
+        spread = _spread_markers([(-500.0, -500.0), (-500.0, -100.0)], 28, 320)
+        (x1, y1), (x2, y2) = spread
+        assert ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5 >= 28 - 1e-6
+        assert all(14 <= v <= 306 for v in (x1, y1, x2, y2))
+
     def test_markers_stay_inside_the_map(self) -> None:
         spread = _spread_markers([(1.0, 1.0), (1.0, 1.0)], 28, 320)
         assert all(14 <= x <= 306 and 14 <= y <= 306 for x, y in spread)

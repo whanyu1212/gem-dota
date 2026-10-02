@@ -893,8 +893,13 @@ def _spread_markers(
     Returns:
         The adjusted centres, in the input order.
     """
-    pos = [[x, y] for x, y in points]
     low, high = min_dist / 2, size - min_dist / 2
+
+    def clamp(value: float) -> float:
+        return min(max(value, low), high)
+
+    # Clamp first: anchors outside the map that start apart can clamp onto one spot.
+    pos = [[clamp(x), clamp(y)] for x, y in points]
     for _ in range(iterations):
         moved = False
         for i in range(len(pos)):
@@ -914,8 +919,11 @@ def _spread_markers(
                 pos[j][1] += uy * push
                 moved = True
         for p in pos:
-            p[0] = min(max(p[0], low), high)
-            p[1] = min(max(p[1], low), high)
+            clamped = [clamp(p[0]), clamp(p[1])]
+            if clamped != p:
+                # A clamp can undo a push, so the overlaps need another pass.
+                p[:] = clamped
+                moved = True
         if not moved:
             break
     return [(x, y) for x, y in pos]
