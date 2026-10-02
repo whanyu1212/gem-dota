@@ -3,8 +3,8 @@
 Deprecated: every public name here is deprecated and will be removed in gem
 0.13. gem presents replay facts; this module turns them into heuristic buckets
 and camp-visit scores, which nothing in gem uses (HY-96). For the underlying
-facts use ``match.wards``, ``match.towers`` and the players' position and
-economy series.
+facts use ``gem.region_of``, ``match.wards``, ``match.towers`` and the
+players' position and economy series.
 
 These utilities turn match-level objective/vision telemetry into coarse
 time buckets that can be joined with camp visits to reduce context blindness.
@@ -24,11 +24,10 @@ from gem.analysis._shared import (
     _MAP_YMIN,
     _TEAM_DIRE,
     _TEAM_RADIANT,
-    MAP_REGIONS,
     infer_match_end_tick,
     nearest_series_value,
-    region_of,
 )
+from gem.analysis.regions import MAP_REGIONS, region_of
 from gem.catalog.map import load_neutral_camp_centers
 
 if TYPE_CHECKING:
@@ -154,7 +153,7 @@ def _team_resource_advantage(match: ParsedMatch, team: int, tick: int) -> tuple[
 
 @deprecated(
     "gem.build_map_context_timeline",
-    alternative="the match's wards, towers and position data",
+    alternative="gem.region_of and the match's wards, towers and position data",
 )
 def build_map_context_timeline(
     match: ParsedMatch,

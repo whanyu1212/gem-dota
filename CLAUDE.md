@@ -96,6 +96,7 @@ results/assembly.py       ← wires extractor outputs into ParsedMatch
 results/dataframes.py     ← flat DataFrame projections (core tables + opt-in include= groups)
 reports/                  ← self-contained HTML report generation from ParsedMatch
 analysis/spatial.py       ← position, nearby-hero, and net-worth lookup helpers
+analysis/regions.py       ← map regions: region_of / MAP_REGIONS (river, halves, lotus areas)
 analysis/combat.py        ← ability-hit grouping, fight lookup and regrouping (find_fights)
 analysis/abilities.py     ← ability-level lookup helpers
 analysis/vision.py        ← geometry-based vision approximation helpers
@@ -188,8 +189,8 @@ Headline exports (see `__all__` for the full list):
 - **Models:** `ParsedMatch`, `ParsedPlayer`, `ChatEntry`, `NeutralItemFoundEvent`
 - **Analysis helpers (post-parse):** `find_player`, `position_at_tick`,
   `net_worth_at`, `fight_at_tick`, `find_fights`, `heroes_near`,
-  `ability_level_at_tick`, `is_active_fight_participant`, `ward_vision_impact`
-  (`estimate_vision` is deprecated)
+  `ability_level_at_tick`, `is_active_fight_participant`, `ward_vision_impact`,
+  `region_of` / `MAP_REGIONS` (map regions); `estimate_vision` is deprecated
 - **Fights vs teamfights:** `ParsedMatch.fights` is gem's own list of every
   fight (users filter or regroup it); "teamfight" names are reserved for
   OpenDota's definition (`opendota_teamfights`, `teamfight_participation`).

@@ -597,6 +597,24 @@ Source: [src/gem/analysis/spatial.py:19](https://github.com/whanyu1212/gem-dota/
 | `sample_tick` | `int` | `-` |
 | `age_ticks` | `int` | `-` |
 
+## Module `gem.analysis.regions`
+
+Map regions: which named area of the 7.41 map a world position is in.
+
+Source: [src/gem/analysis/regions.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/regions.py#L1)
+
+### Top-level functions
+
+### `region_of`
+
+```python
+def region_of(x: float, y: float) -> str
+```
+
+Classify a world position into a map region.
+
+Source: [src/gem/analysis/regions.py:84](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/regions.py#L84)
+
 ## Module `gem.analysis.combat`
 
 Combat-log and fight analysis helpers.
@@ -744,7 +762,7 @@ def estimate_vision(match: ParsedMatch, team: int, tick: int, x: float, y: float
 
 Return bounded modeled hero and observer sources covering a map point.
 
-Source: [src/gem/analysis/vision.py:606](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L606)
+Source: [src/gem/analysis/vision.py:609](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L609)
 
 ### `ward_vision_impact`
 
@@ -754,7 +772,7 @@ def ward_vision_impact(ward: object, match: ParsedMatch) -> int
 
 Count distinct enemy heroes spotted by an observer ward during its lifetime.
 
-Source: [src/gem/analysis/vision.py:669](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L669)
+Source: [src/gem/analysis/vision.py:673](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L673)
 
 ### Top-level classes
 
@@ -1218,7 +1236,7 @@ def build_map_context_timeline(match: ParsedMatch, team: int, bucket_ticks: int 
 
 Build objective-aware context buckets for one team's perspective.
 
-Source: [src/gem/analysis/map_context.py:159](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L159)
+Source: [src/gem/analysis/map_context.py:158](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L158)
 
 ### `score_camp_visit_context`
 
@@ -1228,7 +1246,7 @@ def score_camp_visit_context(*, team: int, camp_id: int, camp_type: str, neutral
 
 Score one camp visit against a context bucket.
 
-Source: [src/gem/analysis/map_context.py:298](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L298)
+Source: [src/gem/analysis/map_context.py:297](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L297)
 
 ### `world_in_bounds`
 
@@ -1238,7 +1256,7 @@ def world_in_bounds(x: float, y: float) -> bool
 
 Return True when world coordinates are within calibrated map bounds.
 
-Source: [src/gem/analysis/map_context.py:453](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L453)
+Source: [src/gem/analysis/map_context.py:452](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L452)
 
 ### Top-level classes
 
@@ -1250,7 +1268,7 @@ class MapContextBucket
 
 Objective- and vision-aware map-state summary for one time bucket.
 
-Source: [src/gem/analysis/map_context.py:48](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L48)
+Source: [src/gem/analysis/map_context.py:47](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L47)
 
 #### Dataclass fields
 
@@ -1280,7 +1298,7 @@ class CampVisitContext
 
 Context scores and explainability labels for one camp visit.
 
-Source: [src/gem/analysis/map_context.py:72](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L72)
+Source: [src/gem/analysis/map_context.py:71](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L71)
 
 #### Dataclass fields
 

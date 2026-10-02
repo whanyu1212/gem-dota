@@ -244,7 +244,7 @@ previously duplicated between `roshan.py`, `map_context.py`, and
   (`_MAP_XMIN/XMAX/YMIN/YMAX`), the fountain positions (the `CDOTA_Unit_Fountain`
   entities, also the ends of the territory-depth axis), and the region geometry
   from `map_constants.json` (`regions`).
-- `region_of(x, y)` returns one of `MAP_REGIONS`: `"top_lotus"` /
+- `region_of(x, y)` lives in `regions.py` (public as `gem.region_of`) and returns one of `MAP_REGIONS` (public as `gem.MAP_REGIONS`): `"top_lotus"` /
   `"bottom_lotus"` within `lotus_radius` (700) of a lotus pool, `"river"` inside
   the river outline, otherwise `"radiant_half"` / `"dire_half"` by the side of
   the half line.

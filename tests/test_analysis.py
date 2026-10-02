@@ -14,7 +14,7 @@ import gem.analysis.combat as analysis_combat
 import gem.analysis.fight_positioning as analysis_teamfight_positioning
 import gem.analysis.smoke_fight as analysis_smoke_fight
 import gem.analysis.spatial as analysis_spatial
-from gem.analysis import group_ability_hits, position_at_tick, position_sample_at_tick
+from gem.analysis import group_ability_hits, position_at_tick, position_sample_at_tick, regions
 from gem.combat.log import CombatLogEntry
 
 
@@ -243,21 +243,20 @@ class TestMapGeometrySingleSource:
         assert (float(fd["x"]), float(fd["y"])) == _shared._DIRE_FOUNTAIN
 
     def test_region_geometry_matches_json(self) -> None:
-        from gem.analysis import _shared
         from gem.catalog.map import load_map_constants
 
-        regions = load_map_constants()["regions"]
-        geometry = _shared._REGIONS
+        data = load_map_constants()["regions"]
+        geometry = regions._REGIONS
         assert geometry is not None
         assert geometry.river_outline == tuple(
-            (float(x), float(y)) for x, y in regions["river_outline"]
+            (float(x), float(y)) for x, y in data["river_outline"]
         )
-        half_line = tuple((float(x), float(y)) for x, y in regions["half_line"])
+        half_line = tuple((float(x), float(y)) for x, y in data["half_line"])
         assert geometry.radiant_half[: len(half_line)] == half_line
         assert dict(geometry.lotus_pools) == {
-            name: (float(pos["x"]), float(pos["y"])) for name, pos in regions["lotus_pools"].items()
+            name: (float(pos["x"]), float(pos["y"])) for name, pos in data["lotus_pools"].items()
         }
-        assert geometry.lotus_radius == float(regions["lotus_radius"])
+        assert geometry.lotus_radius == float(data["lotus_radius"])
 
     def test_fallback_literals_mirror_json(self) -> None:
         # The graceful-fallback literals must stay in sync with the JSON so a
@@ -347,9 +346,17 @@ _REGION_LANDMARKS = {
 class TestRegionOf:
     """region_of follows the river traced on the 7.41 map, not the x = y diagonal."""
 
+    def test_is_public(self) -> None:
+
+        assert gem.region_of is regions.region_of
+        assert gem.analysis.region_of is regions.region_of
+        assert gem.MAP_REGIONS == regions.MAP_REGIONS
+        assert {"region_of", "MAP_REGIONS"} <= set(gem.__all__)
+        assert {"region_of", "MAP_REGIONS"} <= set(gem.analysis.__all__)
+
     @pytest.mark.parametrize("name", list(_REGION_LANDMARKS))
     def test_landmarks(self, name: str) -> None:
-        from gem.analysis._shared import region_of
+        from gem.analysis.regions import region_of
 
         (x, y), expected = _REGION_LANDMARKS[name]
         assert region_of(x, y) == expected
@@ -371,21 +378,20 @@ class TestRegionOf:
     def test_river_ends_at_the_lane_crossings(
         self, point: tuple[float, float], expected: str
     ) -> None:
-        from gem.analysis._shared import region_of
+        from gem.analysis.regions import region_of
 
         assert region_of(*point) == expected
 
     def test_lotus_area_radius(self) -> None:
-        from gem.analysis import _shared
 
-        geometry = _shared._REGIONS
+        geometry = regions._REGIONS
         assert geometry is not None
         for name, (cx, cy) in geometry.lotus_pools:
-            assert _shared.region_of(cx + geometry.lotus_radius - 1, cy) == name
-            assert _shared.region_of(cx + geometry.lotus_radius + 1, cy) != name
+            assert regions.region_of(cx + geometry.lotus_radius - 1, cy) == name
+            assert regions.region_of(cx + geometry.lotus_radius + 1, cy) != name
 
     def test_owned_camps_sit_in_their_owners_half(self) -> None:
-        from gem.analysis._shared import region_of
+        from gem.analysis.regions import region_of
         from gem.catalog.map import load_camp_zones
 
         halves = {2: "radiant_half", 3: "dire_half"}
@@ -402,25 +408,24 @@ class TestRegionOf:
         from gem.analysis import _shared
 
         labels = {
-            _shared.region_of(x, y)
+            regions.region_of(x, y)
             for x in range(int(_shared._MAP_XMIN), int(_shared._MAP_XMAX), 250)
             for y in range(int(_shared._MAP_YMIN), int(_shared._MAP_YMAX), 250)
         }
-        assert labels == set(_shared.MAP_REGIONS)
+        assert labels == set(regions.MAP_REGIONS)
 
     def test_falls_back_to_fountain_bisector_without_geometry(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        from gem.analysis import _shared
 
-        monkeypatch.setattr(_shared, "_REGIONS", None)
-        assert _shared.region_of(14744, 17496) == "radiant_half"
-        assert _shared.region_of(17564, 15168) == "dire_half"
+        monkeypatch.setattr(regions, "_REGIONS", None)
+        assert regions.region_of(14744, 17496) == "radiant_half"
+        assert regions.region_of(17564, 15168) == "dire_half"
 
     @pytest.mark.slow
     @pytest.mark.integration
     def test_replay_lotus_pools_runes_and_roshan(self, full_replay_path: Path) -> None:
-        from gem.analysis._shared import region_of
+        from gem.analysis.regions import region_of
         from gem.extractors._snapshots import _pos
         from gem.parser import ReplayParser
 

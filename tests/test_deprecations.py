@@ -85,13 +85,11 @@ def test_deprecated_functions_warn_once_per_call() -> None:
 
 def test_alternatives_name_public_api() -> None:
     # Every replacement a warning recommends must exist (Codex review on #265).
-    assert callable(gem.assess_point_vision)
-    assert callable(gem.hero_visibility_at)
-    for messages in (
-        _warnings(lambda: gem.MapContextBucket),
-        _warnings(lambda: gem.build_map_context_timeline(ParsedMatch(), 2)),
-    ):
-        assert all("region_of" not in message for message in messages)
+    for name in ("assess_point_vision", "hero_visibility_at", "region_of"):
+        assert name in gem.__all__
+        assert callable(getattr(gem, name))
+    messages = _warnings(lambda: gem.MapContextBucket)
+    assert "gem.region_of" in messages[0]
 
 
 def test_world_in_bounds_is_not_added_to_the_top_level() -> None:

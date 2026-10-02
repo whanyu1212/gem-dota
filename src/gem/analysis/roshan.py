@@ -16,7 +16,6 @@ from gem.analysis._shared import (
     _TEAM_DIRE,
     _TEAM_RADIANT,
     infer_match_end_tick,
-    region_of,
 )
 from gem.analysis._territory import (
     DEFAULT_ROSH_TERRITORY_CONFIG,
@@ -31,6 +30,7 @@ from gem.analysis.fight_positioning import (
     FightPositioning,
     build_fight_positioning,
 )
+from gem.analysis.regions import region_of
 from gem.state.game_clock import game_clock_for
 
 if TYPE_CHECKING:

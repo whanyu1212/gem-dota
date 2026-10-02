@@ -94,6 +94,7 @@ from gem.analysis import (
     DEFAULT_FARMING_ROUTE_CONFIG,
     DEFAULT_ROSH_TAG_THRESHOLDS,
     DEPRECATED_ANALYSIS_NAMES as _DEPRECATED_ANALYSIS_NAMES,
+    MAP_REGIONS,
     RENAMED_FIGHT_NAMES as _RENAMED_ANALYSIS_NAMES,
     AbilityCast,
     AegisFateSource,
@@ -171,6 +172,7 @@ from gem.analysis import (
     net_worth_at,
     position_at_tick,
     position_sample_at_tick,
+    region_of,
     ward_vision_impact,
 )
 from gem.catalog import hero_npc_name
@@ -530,6 +532,8 @@ __all__ = [
     "Fight",
     "FightPlayer",
     "heroes_near",
+    "region_of",
+    "MAP_REGIONS",
     "ability_level_at_tick",
     "assess_point_vision",
     "VisionSource",
