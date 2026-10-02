@@ -241,7 +241,23 @@ class TestMapGeometrySingleSource:
         fd = data["fountains"]["dire"]
         assert (float(fr["x"]), float(fr["y"])) == _shared._RADIANT_FOUNTAIN
         assert (float(fd["x"]), float(fd["y"])) == _shared._DIRE_FOUNTAIN
-        assert float(data["river_strip"]) == _shared._RIVER_STRIP
+
+    def test_region_geometry_matches_json(self) -> None:
+        from gem.analysis import _shared
+        from gem.catalog.map import load_map_constants
+
+        regions = load_map_constants()["regions"]
+        geometry = _shared._REGIONS
+        assert geometry is not None
+        assert geometry.river_outline == tuple(
+            (float(x), float(y)) for x, y in regions["river_outline"]
+        )
+        half_line = tuple((float(x), float(y)) for x, y in regions["half_line"])
+        assert geometry.radiant_half[: len(half_line)] == half_line
+        assert dict(geometry.lotus_pools) == {
+            name: (float(pos["x"]), float(pos["y"])) for name, pos in regions["lotus_pools"].items()
+        }
+        assert geometry.lotus_radius == float(regions["lotus_radius"])
 
     def test_fallback_literals_mirror_json(self) -> None:
         # The graceful-fallback literals must stay in sync with the JSON so a
@@ -261,7 +277,6 @@ class TestMapGeometrySingleSource:
         fd = data["fountains"]["dire"]
         assert (float(fr["x"]), float(fr["y"])) == _shared._FALLBACK_RADIANT_FOUNTAIN
         assert (float(fd["x"]), float(fd["y"])) == _shared._FALLBACK_DIRE_FOUNTAIN
-        assert float(data["river_strip"]) == _shared._FALLBACK_RIVER_STRIP
 
 
 # The CDOTA_Unit_Fountain positions, read from every local fixture replay
@@ -304,3 +319,137 @@ class TestFountainAnchorsAreFountainEntities:
             2: {_shared._RADIANT_FOUNTAIN},
             3: {_shared._DIRE_FOUNTAIN},
         }
+
+
+# Entity positions from replay 8974053011: fountains and ancients (CDOTA_Unit_Fountain,
+# CDOTA_BaseNPC_Fort), mid T1 towers, the power-rune spawners, the Roshan pits, the
+# lotus pools (CDOTA_BaseNPC_LotusPool), the wisdom shrines and the outposts.
+_REGION_LANDMARKS = {
+    "radiant fountain": ((8928, 9446), "radiant_half"),
+    "dire fountain": ((23792, 23232), "dire_half"),
+    "radiant ancient": ((10464, 11032), "radiant_half"),
+    "dire ancient": ((21912, 21384), "dire_half"),
+    "radiant mid T1": ((14840, 14976), "radiant_half"),
+    "dire mid T1": ((16908, 17036), "dire_half"),
+    "top power rune": ((14744, 17496), "river"),
+    "bottom power rune": ((17564, 15168), "river"),
+    "top Roshan pit": ((13190, 18779), "river"),
+    "bottom Roshan pit": ((19214, 13644), "river"),
+    "dire lotus pool": ((8836, 20593), "top_lotus"),
+    "radiant lotus pool": ((23888, 11979), "bottom_lotus"),
+    "west wisdom shrine": ((8296, 17152), "radiant_half"),
+    "east wisdom shrine": ((24551, 15242), "dire_half"),
+    "radiant outpost": ((12288, 15936), "radiant_half"),
+    "dire outpost": ((19776, 15936), "dire_half"),
+}
+
+# Camps whose annotated owner_team disagrees with the terrain they sit in: camp 4 is in
+# Dire jungle but annotated Radiant, camp 25 the reverse. HY-85 fixes the annotations.
+_MISANNOTATED_CAMPS = {4, 25}
+
+
+class TestRegionOf:
+    """region_of follows the river traced on the 7.41 map, not the x = y diagonal."""
+
+    @pytest.mark.parametrize("name", list(_REGION_LANDMARKS))
+    def test_landmarks(self, name: str) -> None:
+        from gem.analysis._shared import region_of
+
+        (x, y), expected = _REGION_LANDMARKS[name]
+        assert region_of(x, y) == expected
+
+    @pytest.mark.parametrize(
+        ("point", "expected"),
+        [
+            # North edge of Roshan pit 1's pool and south edge of pit 2's pool.
+            ((12971, 19797), "river"),
+            ((19568, 12497), "river"),
+            # The top-lane stone plaza and the bottom-lane ford, either side of the
+            # river's ends, are lane, not river.
+            ((10375, 19094), "radiant_half"),
+            ((10159, 19526), "dire_half"),
+            ((22596, 13578), "dire_half"),
+            ((22596, 12900), "radiant_half"),
+        ],
+    )
+    def test_river_ends_at_the_lane_crossings(
+        self, point: tuple[float, float], expected: str
+    ) -> None:
+        from gem.analysis._shared import region_of
+
+        assert region_of(*point) == expected
+
+    def test_lotus_area_radius(self) -> None:
+        from gem.analysis import _shared
+
+        geometry = _shared._REGIONS
+        assert geometry is not None
+        for name, (cx, cy) in geometry.lotus_pools:
+            assert _shared.region_of(cx + geometry.lotus_radius - 1, cy) == name
+            assert _shared.region_of(cx + geometry.lotus_radius + 1, cy) != name
+
+    def test_owned_camps_sit_in_their_owners_half(self) -> None:
+        from gem.analysis._shared import region_of
+        from gem.catalog.map import load_camp_zones
+
+        halves = {2: "radiant_half", 3: "dire_half"}
+        wrong = {}
+        for camp in load_camp_zones()["camps"]:
+            owner = camp["topology"]["owner_team"]
+            if owner not in halves or camp["id"] in _MISANNOTATED_CAMPS:
+                continue
+            region = region_of(camp["center"]["x"], camp["center"]["y"])
+            if region != halves[owner]:
+                wrong[camp["id"]] = region
+        assert wrong == {}
+
+    def test_every_label_is_a_map_region(self) -> None:
+        from gem.analysis import _shared
+
+        labels = {
+            _shared.region_of(x, y)
+            for x in range(int(_shared._MAP_XMIN), int(_shared._MAP_XMAX), 250)
+            for y in range(int(_shared._MAP_YMIN), int(_shared._MAP_YMAX), 250)
+        }
+        assert labels == set(_shared.MAP_REGIONS)
+
+    def test_falls_back_to_fountain_bisector_without_geometry(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from gem.analysis import _shared
+
+        monkeypatch.setattr(_shared, "_REGIONS", None)
+        assert _shared.region_of(14744, 17496) == "radiant_half"
+        assert _shared.region_of(17564, 15168) == "dire_half"
+
+    @pytest.mark.slow
+    @pytest.mark.integration
+    def test_replay_lotus_pools_runes_and_roshan(self, full_replay_path: Path) -> None:
+        from gem.analysis._shared import region_of
+        from gem.extractors._snapshots import _pos
+        from gem.parser import ReplayParser
+
+        positions: dict[str, set[tuple[float, float]]] = {}
+        wanted = {
+            "CDOTA_BaseNPC_LotusPool": 2,
+            "CDOTA_Item_RuneSpawner_Powerup": 2,
+            "CDOTA_RoshanSpawner": 1,
+        }
+        parser = ReplayParser(str(full_replay_path))
+
+        def on_entity(entity: Any, op: Any) -> None:
+            name = entity.get_class_name()
+            pos = _pos(entity)
+            if name in wanted and pos is not None:
+                positions.setdefault(name, set()).add(pos)
+                if all(len(positions.get(n, ())) >= k for n, k in wanted.items()):
+                    # All are created in the signon packet.
+                    parser.stop_after_tick(parser.tick)
+
+        parser.on_entity(on_entity)
+        parser.parse()
+
+        lotus = sorted(region_of(*p) for p in positions["CDOTA_BaseNPC_LotusPool"])
+        assert lotus == ["bottom_lotus", "top_lotus"]
+        for name in ("CDOTA_Item_RuneSpawner_Powerup", "CDOTA_RoshanSpawner"):
+            assert {region_of(*p) for p in positions[name]} == {"river"}

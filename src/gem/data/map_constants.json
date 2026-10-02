@@ -9,6 +9,36 @@
     "radiant": {"x": 8928, "y": 9446},
     "dire": {"x": 23792, "y": 23232}
   },
-  "river_strip": 1200,
-  "notes": "Analysis constants: world_bounds bound the territory grid and in-map checks. fountains are the ent_dota_fountain_good / ent_dota_fountain_bad entity positions (CDOTA_Unit_Fountain), identical on every local fixture replay; region_of splits the halves at their perpendicular bisector, and territory depth runs from that bisector (0) to the enemy fountain (1). HTML reports do not use these to place points on assets/maps/Game_map_7.41.jpg; gem.reports._formatting holds that calibrated window. World coords are Source 2 units. river_strip is the |x - y| threshold for the diagonal river (perpendicular half-width = river_strip / sqrt(2))."
+  "regions": {
+    "river_outline": [
+      [11262, 19471], [11273, 18877], [11575, 18812], [12484, 18044], [12430, 17806], [12787, 17708],
+      [12906, 17557], [13187, 17557], [13555, 17157], [13836, 17157], [14009, 16822], [14701, 16886],
+      [14777, 16724], [15004, 16648], [15274, 16108], [15858, 15870], [16031, 15524], [16324, 15329],
+      [17005, 15178], [17081, 14950], [17373, 14691], [17351, 14377], [17438, 14074], [17611, 13977],
+      [17600, 13739], [17827, 13717], [18865, 12538], [19406, 12484], [19655, 12268], [20077, 12744],
+      [20304, 12852], [20520, 12755], [20726, 13339], [21061, 13404], [21277, 13252], [21493, 13382],
+      [21472, 13728], [21115, 13826], [21104, 13999], [20953, 14107], [21028, 14345], [20877, 14507],
+      [20780, 14496], [20877, 14258], [20563, 14009], [20488, 14431], [20109, 14366], [19958, 14626],
+      [19471, 14572], [18995, 14648], [18865, 15210], [18660, 14994], [18422, 15156], [18108, 15091],
+      [18032, 15297], [18130, 15426], [17924, 15664], [17448, 15816], [17243, 15610], [17005, 15653],
+      [16832, 16000], [16432, 16010], [16053, 16411], [15718, 16400], [15620, 16670], [15902, 16951],
+      [15577, 17005], [15512, 17460], [15231, 17752], [14972, 17763], [14690, 18130], [14809, 18779],
+      [14647, 19136], [14236, 19017], [14063, 19612], [13090, 20023], [12679, 20023], [12332, 19774],
+      [12300, 19515], [11824, 19526], [11727, 19277], [11456, 19504]
+    ],
+    "half_line": [
+      [6914, 19147], [8536, 19201], [10159, 19255], [11370, 19201], [11857, 19066], [12343, 18958],
+      [12830, 18833], [13317, 18649], [13803, 18411], [14290, 17952], [14777, 17827], [15264, 16908],
+      [15750, 16465], [16237, 15826], [16724, 15616], [17210, 15221], [17697, 14767], [18184, 14150],
+      [18671, 13863], [19157, 13550], [19644, 13447], [20131, 13566], [20617, 13571], [21104, 13696],
+      [22056, 13231], [23678, 13252], [26382, 13252]
+    ],
+    "lotus_pools": {
+      "top_lotus": {"x": 8836, "y": 20593},
+      "bottom_lotus": {"x": 23888, "y": 11979}
+    },
+    "lotus_radius": 700,
+    "notes": "river_outline is the river's water between the top-lane and bottom-lane crossings, traced from assets/maps/Game_map_7.41.jpg (water colour mask, both Roshan pools included) and projected to world units through the gem.reports._formatting window. half_line runs along the river's middle and, past its ends, flat to beyond the map edges; points below it (towards the Radiant fountain) are radiant_half. lotus_pools are the lotus pool entity positions from replay 8974053011; a point within lotus_radius of one is that lotus area, which belongs to neither half. Region precedence: lotus, river, then the halves."
+  },
+  "notes": "Analysis constants: world_bounds bound the territory grid and in-map checks. fountains are the ent_dota_fountain_good / ent_dota_fountain_bad entity positions (CDOTA_Unit_Fountain), identical on every local fixture replay; territory depth runs from the fountains' perpendicular bisector (0) to the enemy fountain (1). regions drive gem.analysis region_of. HTML reports do not use these to place points on assets/maps/Game_map_7.41.jpg; gem.reports._formatting holds that calibrated window. World coords are Source 2 units."
 }

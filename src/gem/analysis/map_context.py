@@ -17,6 +17,7 @@ from gem.analysis._shared import (
     _MAP_YMIN,
     _TEAM_DIRE,
     _TEAM_RADIANT,
+    MAP_REGIONS,
     infer_match_end_tick,
     nearest_series_value,
     region_of,
@@ -99,7 +100,7 @@ def _enemy_presence_by_region(
     start_tick: int,
     end_tick: int,
 ) -> dict[str, float]:
-    enemy_regions: dict[str, float] = {"river": 0.0, "radiant_half": 0.0, "dire_half": 0.0}
+    enemy_regions: dict[str, float] = dict.fromkeys(MAP_REGIONS, 0.0)
     enemy_team = _TEAM_DIRE if team == _TEAM_RADIANT else _TEAM_RADIANT
 
     for player in match.players:
