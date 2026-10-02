@@ -1218,7 +1218,7 @@ def build_map_context_timeline(match: ParsedMatch, team: int, bucket_ticks: int 
 
 Build objective-aware context buckets for one team's perspective.
 
-Source: [src/gem/analysis/map_context.py:141](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L141)
+Source: [src/gem/analysis/map_context.py:142](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L142)
 
 ### `score_camp_visit_context`
 
@@ -1228,7 +1228,7 @@ def score_camp_visit_context(*, team: int, camp_id: int, camp_type: str, neutral
 
 Score one camp visit against a context bucket.
 
-Source: [src/gem/analysis/map_context.py:279](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L279)
+Source: [src/gem/analysis/map_context.py:280](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L280)
 
 ### `world_in_bounds`
 
@@ -1238,7 +1238,7 @@ def world_in_bounds(x: float, y: float) -> bool
 
 Return True when world coordinates are within calibrated map bounds.
 
-Source: [src/gem/analysis/map_context.py:433](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L433)
+Source: [src/gem/analysis/map_context.py:434](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L434)
 
 ### Top-level classes
 
@@ -1250,7 +1250,7 @@ class MapContextBucket
 
 Objective- and vision-aware map-state summary for one time bucket.
 
-Source: [src/gem/analysis/map_context.py:40](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L40)
+Source: [src/gem/analysis/map_context.py:41](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L41)
 
 #### Dataclass fields
 
@@ -1280,7 +1280,7 @@ class CampVisitContext
 
 Context scores and explainability labels for one camp visit.
 
-Source: [src/gem/analysis/map_context.py:61](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L61)
+Source: [src/gem/analysis/map_context.py:62](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L62)
 
 #### Dataclass fields
 
