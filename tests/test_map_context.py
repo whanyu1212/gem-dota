@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 from gem.analysis.map_context import (
     MapContextBucket,
     build_map_context_timeline,
@@ -10,6 +12,11 @@ from gem.analysis.map_context import (
 from gem.extractors.objectives import AegisEvent, RoshanKill, TowerKill
 from gem.extractors.wards import WardEvent
 from gem.results.models import ParsedMatch
+
+# map_context is deprecated (HY-98); these tests keep its behaviour pinned until 0.13.
+pytestmark = pytest.mark.filterwarnings(
+    "ignore:gem.(build_map_context_timeline|score_camp_visit_context) is deprecated:DeprecationWarning"
+)
 
 
 def _make_match() -> ParsedMatch:

@@ -102,7 +102,7 @@ analysis/abilities.py     ← ability-level lookup helpers
 analysis/vision.py        ← geometry-based vision approximation helpers
 analysis/farming.py       ← evidence-first camp-route reconstruction + public context records
 analysis/farming_context.py ← comparative presence/vision/topology/objective context tags
-analysis/map_context.py   ← legacy objective-aware farming-context compatibility API
+analysis/map_context.py   ← deprecated (0.12, removed 0.13): legacy farming-context API
 analysis/roshan.py        ← post-parse Roshan conversion records (did a Rosh convert to a win?)
 analysis/smoke.py         ← evidence-first Smoke of Deceit lifecycle analysis
 replays/batch.py          ← bulk replay parsing (parse_many, parallel workers)
@@ -189,17 +189,22 @@ Headline exports (see `__all__` for the full list):
 - **Models:** `ParsedMatch`, `ParsedPlayer`, `ChatEntry`, `NeutralItemFoundEvent`
 - **Analysis helpers (post-parse):** `find_player`, `position_at_tick`,
   `net_worth_at`, `fight_at_tick`, `find_fights`, `heroes_near`,
-  `ability_level_at_tick`, `is_active_fight_participant`, `estimate_vision`,
-  `ward_vision_impact`, `region_of` / `MAP_REGIONS` (map regions)
+  `ability_level_at_tick`, `is_active_fight_participant`, `ward_vision_impact`,
+  `region_of` / `MAP_REGIONS` (map regions); `estimate_vision` is deprecated
 - **Fights vs teamfights:** `ParsedMatch.fights` is gem's own list of every
   fight (users filter or regroup it); "teamfight" names are reserved for
   OpenDota's definition (`opendota_teamfights`, `teamfight_participation`).
   The gem 0.10 `teamfights` names are deprecated aliases (`gem/_deprecation.py`).
 - **Experimental:** `build_farming_routes`, `FarmingRoute`,
-  `FarmingSegmentContext`, `build_map_context_timeline` (legacy compatibility),
-  `score_camp_visit_context` (legacy compatibility), `build_rosh_conversions`,
+  `FarmingSegmentContext`, `build_rosh_conversions`,
   `RoshConversion`, `build_smoke_analysis`, `SmokeAnalysis`; `analyze` runs
   them all and returns a `MatchAnalysis`
+- **Deprecations (HY-96):** gem presents facts; interpretation is leaving the
+  library. Names deprecated in 0.12 are removed in 0.13. They warn through
+  `gem/_deprecation.py` (`deprecated` for functions, `deprecated_module_attrs`
+  for module names, `warn_deprecated`), and are served from `gem` and
+  `gem.analysis` but are no longer in `__all__`. So far: the `map_context` API
+  and `estimate_vision`. Don't add new tags, scores or verdicts.
 - **Replay fetch:** `fetch_replay`, `fetch_replay_url`, `download_and_decompress`
 - **Catalog/constants:** `catalog` (grouped lookup modules) and `constants`
   (compatibility namespace of hero/item/ability lookups)

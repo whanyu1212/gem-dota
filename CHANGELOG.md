@@ -141,6 +141,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `camp_zones.json` drops `world_bounds` and `source_image`, which only this
   script read.
 
+### Deprecated
+
+gem presents replay facts; the interpretation layer (tags, scores, verdicts) is
+leaving the library (HY-96). Deprecated names still work in 0.12, warn with a
+`DeprecationWarning` when used, are no longer in `__all__`, and are removed in 0.13.
+
+- **`map_context` API:** `build_map_context_timeline`, `score_camp_visit_context`,
+  `MapContextBucket`, `CampVisitContext` and `gem.analysis.world_in_bounds`.
+  Nothing in gem uses them. The facts they combine (wards, towers, positions,
+  `gem.region_of`) stay on `ParsedMatch`.
+- **`estimate_vision`:** the same coordinate query is
+  `gem.assess_point_vision(...).sources`. For what a team could actually see, use
+  `gem.hero_visibility_at` / `gem.entity_visibility_at`.
+
 ## [0.11.0] - 2026-10-02
 
 Brings gem's OpenDota-compatible output to parity, and fixes the ward and kill

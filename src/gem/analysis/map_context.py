@@ -1,5 +1,11 @@
 """Objective-aware map-context helpers for farming-pattern analysis.
 
+Deprecated: every public name here is deprecated and will be removed in gem
+0.13. gem presents replay facts; this module turns them into heuristic buckets
+and camp-visit scores, which nothing in gem uses (HY-96). For the underlying
+facts use ``gem.region_of``, ``match.wards``, ``match.towers`` and the
+players' position and economy series.
+
 These utilities turn match-level objective/vision telemetry into coarse
 time buckets that can be joined with camp visits to reduce context blindness.
 """
@@ -10,6 +16,7 @@ import math
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal
 
+from gem._deprecation import deprecated
 from gem.analysis._shared import (
     _MAP_XMAX,
     _MAP_XMIN,
@@ -38,7 +45,10 @@ _PRESENCE_TAU_TICKS = 900.0  # exponential decay ~30 seconds
 
 @dataclass
 class MapContextBucket:
-    """Objective- and vision-aware map-state summary for one time bucket."""
+    """Objective- and vision-aware map-state summary for one time bucket.
+
+    Deprecated; removed in gem 0.13 with :func:`build_map_context_timeline`.
+    """
 
     start_tick: int
     end_tick: int
@@ -59,7 +69,10 @@ class MapContextBucket:
 
 @dataclass
 class CampVisitContext:
-    """Context scores and explainability labels for one camp visit."""
+    """Context scores and explainability labels for one camp visit.
+
+    Deprecated; removed in gem 0.13 with :func:`score_camp_visit_context`.
+    """
 
     farm_safety_score: float
     pressure_score: float
@@ -138,6 +151,10 @@ def _team_resource_advantage(match: ParsedMatch, team: int, tick: int) -> tuple[
     return own_net_worth - enemy_net_worth, own_xp - enemy_xp
 
 
+@deprecated(
+    "gem.build_map_context_timeline",
+    alternative="gem.region_of and the match's wards, towers and position data",
+)
 def build_map_context_timeline(
     match: ParsedMatch,
     team: int,
@@ -276,6 +293,7 @@ def _camp_half(camp_id: int) -> str:
     return region_of(pos[0], pos[1])
 
 
+@deprecated("gem.score_camp_visit_context")
 def score_camp_visit_context(
     *,
     team: int,
@@ -430,6 +448,7 @@ def score_camp_visit_context(
     )
 
 
+@deprecated("gem.analysis.world_in_bounds")
 def world_in_bounds(x: float, y: float) -> bool:
     """Return True when world coordinates are within calibrated map bounds."""
     return _MAP_XMIN <= x <= _MAP_XMAX and _MAP_YMIN <= y <= _MAP_YMAX

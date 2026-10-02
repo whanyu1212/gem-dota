@@ -45,10 +45,10 @@ Public API
     Convert an NPC entity name to a human-readable label.
 
 ``build_map_context_timeline(match, team, ...)``
-    Build objective-aware map-control context buckets for farming analysis.
+    Deprecated; removed in 0.13. Objective-aware map-control context buckets.
 
 ``score_camp_visit_context(...)``
-    Score a camp visit as safe/contested/defensive/invade with drivers.
+    Deprecated; removed in 0.13. Scores a camp visit with drivers.
 
 ``build_farming_routes(match, ...)``
     Build sampled camp-route segments with explicit evidence provenance.
@@ -88,16 +88,16 @@ from typing import TYPE_CHECKING
 import gem.catalog as catalog  # re-export so `gem.catalog.hero_display()` works
 import gem.constants as constants  # re-export so `gem.constants.hero_display()` works
 import gem.reports as reports  # re-export so `gem.reports.build_html_report()` works
-from gem._deprecation import renamed_module_attrs
+from gem._deprecation import deprecated_module_attrs, renamed_module_attrs
 from gem.analysis import (
     DEFAULT_FARMING_CONTEXT_CONFIG,
     DEFAULT_FARMING_ROUTE_CONFIG,
     DEFAULT_ROSH_TAG_THRESHOLDS,
+    DEPRECATED_ANALYSIS_NAMES as _DEPRECATED_ANALYSIS_NAMES,
     MAP_REGIONS,
     RENAMED_FIGHT_NAMES as _RENAMED_ANALYSIS_NAMES,
     AbilityCast,
     AegisFateSource,
-    CampVisitContext,
     DirectTargetRevealEvidence,
     EngagementStartSource,
     EvidenceCompleteness,
@@ -123,7 +123,6 @@ from gem.analysis import (
     FollowUpWindow,
     FormationEvidence,
     HeroPositionEvidence,
-    MapContextBucket,
     MatchAnalysis,
     MemberPositionEvidence,
     PointVisionAssessment,
@@ -158,13 +157,11 @@ from gem.analysis import (
     assess_point_vision,
     build_farming_routes,
     build_fight_positioning,
-    build_map_context_timeline,
     build_rosh_conversions,
     build_smoke_analysis,
     build_smoke_fight_insights,
     bundle as _bundle,
     entity_visibility_at,
-    estimate_vision,
     fight_at_tick,
     find_fights,
     format_npc_name,
@@ -176,7 +173,6 @@ from gem.analysis import (
     position_at_tick,
     position_sample_at_tick,
     region_of,
-    score_camp_visit_context,
     ward_vision_impact,
 )
 from gem.catalog import hero_npc_name
@@ -539,7 +535,6 @@ __all__ = [
     "region_of",
     "MAP_REGIONS",
     "ability_level_at_tick",
-    "estimate_vision",
     "assess_point_vision",
     "VisionSource",
     "PointVisionStatus",
@@ -579,8 +574,6 @@ __all__ = [
     "is_active_fight_participant",
     "detect_opendota_teamfights",
     "format_npc_name",
-    "MapContextBucket",
-    "CampVisitContext",
     "DEFAULT_FARMING_CONTEXT_CONFIG",
     "DEFAULT_FARMING_ROUTE_CONFIG",
     "FarmingBoundaryReason",
@@ -594,8 +587,6 @@ __all__ = [
     "FarmingRouteSegment",
     "FarmingSegmentContext",
     "build_farming_routes",
-    "build_map_context_timeline",
-    "score_camp_visit_context",
     "RoshTimelineEvent",
     "SmokeAnalysis",
     "SampledNearFightEvidence",
@@ -639,4 +630,11 @@ __all__ = [
 #: Names gem 0.10 and earlier used for gem's own fights, served with a warning.
 RENAMED_NAMES = dict(_RENAMED_ANALYSIS_NAMES)
 
-__getattr__ = renamed_module_attrs(__name__, RENAMED_NAMES, globals())
+#: Names deprecated in 0.12 and removed in 0.13 (HY-96), served with a warning.
+DEPRECATED_NAMES = {
+    name: entry for name, entry in _DEPRECATED_ANALYSIS_NAMES.items() if name != "world_in_bounds"
+}
+
+__getattr__ = deprecated_module_attrs(
+    __name__, DEPRECATED_NAMES, renamed_module_attrs(__name__, RENAMED_NAMES, globals())
+)
