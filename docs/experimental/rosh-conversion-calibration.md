@@ -69,7 +69,7 @@ The 31 audited conversions produced these default-tag frequencies:
 | `objective_gain` | 21 |
 | `resource_gain` | 20 |
 | `territorial_expansion` | 0 |
-| `vision_expansion` | 15 |
+| `vision_expansion` | 18 |
 | `tormentor_secured` | 6 |
 | `game_closing` | 5 |
 | `counter_conversion` | 7 |
@@ -83,6 +83,12 @@ worth/XP samples to ticks without subtracting pauses, which shifted resource
 windows after any pause. Correcting both moved `game_closing` from 0 to 5,
 `counter_conversion` from 3 to 7, `resource_gain` from 22 to 20, and no-tag
 windows from 2 to 0. The thresholds themselves are unchanged.
+
+The halves were re-audited when `region_of` moved from a band along the `x = y`
+diagonal (which was really the mid lane) to the river traced on the 7.41 map.
+Mid-lane wards and positions now count towards a half, and the river and Roshan
+pits towards neither. That moved `vision_expansion` from 15 to 18; every other
+tag count, including the zero for `territorial_expansion`, is unchanged.
 
 These are sensitivity observations, not precision/recall labels. There is no
 defensible subjective ground truth in the fixture, so the audit cannot claim a

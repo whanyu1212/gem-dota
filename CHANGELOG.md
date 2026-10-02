@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **The analysis "river" region is now the river.** It used to be a band along
+  the `x = y` diagonal. That band was really the mid lane: it held both mid T1
+  towers, while the power runes and Roshan pits fell into a team half.
+  - **River.** The region is now the river traced from the 7.41 map image. It
+    runs from the top-lane crossing to the bottom-lane crossing, and includes
+    both Roshan pools.
+  - **Halves.** They are split by a line along the river's middle, which
+    continues straight out to the map edges past the river's ends.
+  - **Lotus pools.** A new `top_lotus` / `bottom_lotus` area covers 700 units
+    round each lotus pool. Both teams contest it, so it belongs to neither half.
+  - **Effect on analysis.** The change reaches Roshan territory coverage, the
+    enemy-half ward and farm checks, farming `territorial_advance`, and map
+    context `enemy_presence_by_region`. That dict now also has `top_lotus` and
+    `bottom_lotus` keys. `score_camp_visit_context` reads only the halves and
+    `"river"` from it, so enemy heroes in a lotus area no longer count towards
+    its safety or pressure.
+  - **Measured on the 9 local fixtures:**
+    - `territorial_advance` goes from 1,812 to 1,924 of 8,391 farming segments
+      (202 gained, 90 lost).
+    - Roshan `vision_expansion` goes from 15 to 18 of 31 conversions; no other
+      Roshan tag changes.
+    - Roshan `enemy_half_observer_delta` changes on 12 of 31 conversions, and
+      the enemy-half farm shares and territory values on all 31.
+    - 18 deprecated `conversion_score`s move. Two deprecated
+      `conversion_label`s flip: 8855188139 Roshan 1 goes from `map_squeeze` to
+      `low_conversion`, and 8855242704 Roshan 1 from `low_conversion` to
+      `map_squeeze`.
+    - Smoke, smoke-fight and fight-positioning output does not change.
+
+### Added
+
+- **`scripts/trace_river_region.py`** regenerates the river outline and half
+  line from the map image. `--check` compares the trace with
+  `map_constants.json`, `--write` updates it, and `--overlay` saves a preview.
+  It needs OpenCV, which is not a project dependency:
+  `uv run --with opencv-python-headless python scripts/trace_river_region.py --check`.
+
+### Changed
+
+- **`map_constants.json`** (`gem.catalog.load_map_constants()`): `river_strip`
+  is replaced by `regions`, which holds `river_outline`, `half_line`,
+  `lotus_pools` and `lotus_radius`.
+
 ## [0.11.0] - 2026-10-02
 
 Brings gem's OpenDota-compatible output to parity, and fixes the ward and kill

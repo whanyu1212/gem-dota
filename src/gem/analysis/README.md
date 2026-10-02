@@ -239,10 +239,12 @@ previously duplicated between `roshan.py`, `map_context.py`, and
 
 - `_TEAM_RADIANT = 2`, `_TEAM_DIRE = 3` and the calibrated map bounds
   (`_MAP_XMIN/XMAX/YMIN/YMAX`), the fountain positions (the `CDOTA_Unit_Fountain`
-  entities, also the ends of the territory-depth axis), and `_RIVER_STRIP`.
-- `region_of(x, y)` classifies a point as `"river"` (when `|x - y| <=
-  _RIVER_STRIP`) or, otherwise, the half of whichever fountain is nearer
-  (`"radiant_half"` / `"dire_half"`).
+  entities, also the ends of the territory-depth axis), and the region geometry
+  from `map_constants.json` (`regions`).
+- `region_of(x, y)` returns one of `MAP_REGIONS`: `"top_lotus"` /
+  `"bottom_lotus"` within `lotus_radius` (700) of a lotus pool, `"river"` inside
+  the river outline, otherwise `"radiant_half"` / `"dire_half"` by the side of
+  the half line.
 - `nearest_series_value(times, values, tick)` is the `bisect`-based parallel-array
   lookup used by `map_context.py` (the `spatial.py` and `roshan.py` helpers
   inline their own near-identical scans rather than calling it).
@@ -322,12 +324,21 @@ ability type (channelled spells need a larger window).
 It binary-searches on `start_tick` and checks a single candidate window. If the
 `fights` list is unsorted or windows overlap, it can miss a containing fight.
 
-### `region_of` is geometric, not lane-aware
-The river is just the diagonal strip `|x - y| <= 1200`; halves are
-nearest-fountain. It does not know lanes, ramps, or the actual river polygon.
-Camp/ward "enemy half" attribution inherits this coarseness. Note the threshold
-is on `|x - y|`, not perpendicular world units — the river follows the `x = y`
-diagonal, so the effective perpendicular half-width is `1200 / sqrt(2) ≈ 849`.
+### `region_of` is traced from one map image
+The river outline was traced from the water in `assets/maps/Game_map_7.41.jpg`
+(both Roshan pools included) and runs only between the top-lane and bottom-lane
+crossings; the lanes are not river. The half line follows the river's middle and,
+past its ends, runs straight out to the map edges. Lotus areas are 700-unit
+circles round the `CDOTA_BaseNPC_LotusPool` entities and belong to neither half.
+`scripts/trace_river_region.py` regenerates the outline and half line from the
+image (`--check`, `--write`, `--overlay`); a map patch that moves the river needs
+a new image and a re-run. Two camps' annotated owners
+disagree with the terrain they sit in (camps 4 and 25); `region_of` follows the
+terrain.
+
+Territory depth (`_territory._depth`) still projects onto the fountain axis, so
+its 0.5 mark is the fountains' perpendicular bisector, not the half line. A cell
+just inside the enemy half can have a depth slightly under 0.5.
 
 ### The heavy builders are experimental and weight-tuned
 `score_camp_visit_context`, `build_map_context_timeline`, and

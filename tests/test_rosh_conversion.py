@@ -119,7 +119,8 @@ def test_build_rosh_conversions_objective_conversion() -> None:
 
 def test_build_rosh_conversions_failed_aegis_on_lost_fight() -> None:
     players = _make_players()
-    players[5].position_log = [(1800, 23000.0, 22000.0), (2250, 15000.0, 15000.0)]
+    # The holder stays out of the enemy half: base, then the top power-rune spot in the river.
+    players[5].position_log = [(1800, 23000.0, 22000.0), (2250, 14744.0, 17496.0)]
 
     match = ParsedMatch(
         game_start_tick=0,

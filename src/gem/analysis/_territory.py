@@ -10,8 +10,10 @@ Reference: pinned OpenDota parser revision documented in ``CLAUDE.md``
 
 from __future__ import annotations
 
+import functools
 import math
 from collections import defaultdict
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal
 
@@ -197,7 +199,10 @@ def _cell_area(cell: tuple[int, int], config: RoshTerritoryConfig) -> float:
     return (x_max - x_min) * (y_max - y_min)
 
 
-def _enemy_cells(team: int, config: RoshTerritoryConfig) -> dict[tuple[int, int], float]:
+# Cached: the grid depends only on the team and config, and farming contexts ask for
+# it once per route segment. Callers must not mutate the result.
+@functools.lru_cache(maxsize=16)
+def _enemy_cells(team: int, config: RoshTerritoryConfig) -> Mapping[tuple[int, int], float]:
     wanted_region = _enemy_region(team)
     nx, ny = _grid_shape(config)
     cells: dict[tuple[int, int], float] = {}

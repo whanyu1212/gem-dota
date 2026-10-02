@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import bisect
 import math
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -28,19 +29,21 @@ _TEAM_DIRE = 3
 _FALLBACK_MAP_BOUNDS = (7563.0, 25900.0, 7800.0, 25600.0)  # xmin, xmax, ymin, ymax
 _FALLBACK_RADIANT_FOUNTAIN = (8928.0, 9446.0)
 _FALLBACK_DIRE_FOUNTAIN = (23792.0, 23232.0)
-_FALLBACK_RIVER_STRIP = 1200.0
+
+#: Every label ``region_of`` can return.
+MAP_REGIONS = ("river", "radiant_half", "dire_half", "top_lotus", "bottom_lotus")
+
+Point = tuple[float, float]
 
 
-def _load_map_geometry() -> tuple[
-    float, float, float, float, tuple[float, float], tuple[float, float], float
-]:
-    """Load map bounds/fountains/river-strip from ``map_constants.json``.
+def _load_map_geometry() -> tuple[float, float, float, float, Point, Point]:
+    """Load map bounds and fountains from ``map_constants.json``.
 
     Falls back to the calibrated literals if the JSON is unavailable or missing
     keys, so importing the analysis package never fails on a data problem.
 
     Returns:
-        ``(xmin, xmax, ymin, ymax, radiant_fountain, dire_fountain, river_strip)``.
+        ``(xmin, xmax, ymin, ymax, radiant_fountain, dire_fountain)``.
     """
     try:
         from gem.catalog.map import load_map_constants
@@ -56,15 +59,9 @@ def _load_map_geometry() -> tuple[
             float(wb["ymax"]),
             (float(fr["x"]), float(fr["y"])),
             (float(fd["x"]), float(fd["y"])),
-            float(data.get("river_strip", _FALLBACK_RIVER_STRIP)),
         )
     except (OSError, ValueError, KeyError, TypeError):
-        return (
-            *_FALLBACK_MAP_BOUNDS,
-            _FALLBACK_RADIANT_FOUNTAIN,
-            _FALLBACK_DIRE_FOUNTAIN,
-            _FALLBACK_RIVER_STRIP,
-        )
+        return (*_FALLBACK_MAP_BOUNDS, _FALLBACK_RADIANT_FOUNTAIN, _FALLBACK_DIRE_FOUNTAIN)
 
 
 (
@@ -74,8 +71,64 @@ def _load_map_geometry() -> tuple[
     _MAP_YMAX,
     _RADIANT_FOUNTAIN,
     _DIRE_FOUNTAIN,
-    _RIVER_STRIP,
 ) = _load_map_geometry()
+
+
+@dataclass(frozen=True)
+class _RegionGeometry:
+    river_outline: tuple[Point, ...]
+    radiant_half: tuple[Point, ...]
+    lotus_pools: tuple[tuple[str, Point], ...]
+    lotus_radius: float
+
+
+# Far enough past the map that closing the Radiant half there never cuts it.
+_FAR = 1.0e7
+
+
+def _load_region_geometry() -> _RegionGeometry | None:
+    """Load the river outline, half line and lotus pools from ``map_constants.json``.
+
+    The Radiant half is the half line closed around the Radiant corner: its ends
+    run on flat to ``_FAR`` and down to ``-_FAR``.
+
+    Returns:
+        The region geometry, or ``None`` if the JSON is unavailable or malformed.
+        ``region_of`` then falls back to the fountains' bisector with no river or
+        lotus areas. The outline is too long to mirror as a literal.
+    """
+    try:
+        from gem.catalog.map import load_map_constants
+
+        regions = load_map_constants()["regions"]
+        outline = tuple((float(x), float(y)) for x, y in regions["river_outline"])
+        line = [(float(x), float(y)) for x, y in regions["half_line"]]
+        lotus = tuple(
+            (str(name), (float(pos["x"]), float(pos["y"])))
+            for name, pos in regions["lotus_pools"].items()
+        )
+        radius = float(regions["lotus_radius"])
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+    if len(outline) < 3 or len(line) < 2:
+        return None
+    first_y, last_y = line[0][1], line[-1][1]
+    radiant_half = (*line, (_FAR, last_y), (_FAR, -_FAR), (-_FAR, -_FAR), (-_FAR, first_y))
+    return _RegionGeometry(outline, radiant_half, lotus, radius)
+
+
+_REGIONS = _load_region_geometry()
+
+
+def _in_polygon(x: float, y: float, polygon: tuple[Point, ...]) -> bool:
+    # Even-odd ray cast towards +x.
+    inside = False
+    x1, y1 = polygon[-1]
+    for x2, y2 in polygon:
+        if (y1 > y) != (y2 > y) and x < x1 + (y - y1) * (x2 - x1) / (y2 - y1):
+            inside = not inside
+        x1, y1 = x2, y2
+    return inside
 
 
 def infer_match_end_tick(match: ParsedMatch) -> int:
@@ -107,26 +160,38 @@ def infer_match_end_tick(match: ParsedMatch) -> int:
 
 
 def region_of(x: float, y: float) -> str:
-    """Classify a world position into ``river``, ``radiant_half`` or ``dire_half``.
+    """Classify a world position into a map region.
 
-    Points within the diagonal river strip (``|x - y| <= _RIVER_STRIP``) are the
-    river; otherwise the position is assigned to whichever fountain is nearer.
-    The threshold is on the ``|x - y|`` difference (the river follows the
-    ``x = y`` diagonal), which corresponds to a perpendicular half-width of
-    ``_RIVER_STRIP / sqrt(2)`` world units — see the constant's note.
+    The regions come from ``map_constants.json`` (``regions``), traced on the
+    7.41 map:
+
+    - ``"top_lotus"`` / ``"bottom_lotus"``: within ``lotus_radius`` of a lotus
+      pool. Both teams contest these from their lanes, so they belong to neither
+      half.
+    - ``"river"``: inside the river's outline, which runs from the top-lane
+      crossing to the bottom-lane crossing and includes both Roshan pools. The
+      lanes themselves are not river.
+    - ``"radiant_half"`` / ``"dire_half"``: the side of the half line, which runs
+      along the river's middle and, past its ends, straight out to the map edges.
 
     Args:
         x: World x coordinate.
         y: World y coordinate.
 
     Returns:
-        One of ``"river"``, ``"radiant_half"``, ``"dire_half"``.
+        One of :data:`MAP_REGIONS`.
     """
-    if abs(x - y) <= _RIVER_STRIP:
+    geometry = _REGIONS
+    if geometry is None:
+        dr = math.dist((x, y), _RADIANT_FOUNTAIN)
+        dd = math.dist((x, y), _DIRE_FOUNTAIN)
+        return "radiant_half" if dr <= dd else "dire_half"
+    for name, centre in geometry.lotus_pools:
+        if math.dist((x, y), centre) <= geometry.lotus_radius:
+            return name
+    if _in_polygon(x, y, geometry.river_outline):
         return "river"
-    dr = math.dist((x, y), _RADIANT_FOUNTAIN)
-    dd = math.dist((x, y), _DIRE_FOUNTAIN)
-    return "radiant_half" if dr <= dd else "dire_half"
+    return "radiant_half" if _in_polygon(x, y, geometry.radiant_half) else "dire_half"
 
 
 def nearest_series_value(times: list[int], values: list[int], tick: int) -> int:
