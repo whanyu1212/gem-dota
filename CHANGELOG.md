@@ -87,6 +87,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **New logo and README banner.** The logo is a flat-faceted green gem that
+  stays legible down to favicon size, and it is now the docs site's favicon too.
+  The banner pairs it with the wordmark, tagline and a map panel drawn from gem's
+  own region and camp data. It is about 100 KB, down from 1.5 MB. The text is set
+  in Inter and converted to outlines, and the source is
+  `docs/public/gem-banner.svg`.
 - **`map_constants.json`** (`gem.catalog.load_map_constants()`): `river_strip`
   is replaced by `regions`, which holds `river_outline`, `half_line`,
   `lotus_pools` and `lotus_radius`.
