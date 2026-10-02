@@ -27,18 +27,13 @@ from __future__ import annotations
 
 import json
 import os
-import ssl
 import tempfile
 import urllib.request
 from pathlib import Path
 
 import pytest
 
-from gem.replays.fetch import download_and_decompress, fetch_replay_url
-
-SSL_CONTEXT = ssl.create_default_context()
-SSL_CONTEXT.check_hostname = False
-SSL_CONTEXT.verify_mode = ssl.CERT_NONE
+from gem.replays.fetch import _SSL_CONTEXT as SSL_CONTEXT, download_and_decompress, fetch_replay_url
 
 OPENDOTA_API = "https://api.opendota.com/api/matches"
 
