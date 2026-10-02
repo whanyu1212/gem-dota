@@ -203,7 +203,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgLANServerAvailable</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgLANServerAvailable</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -211,6 +211,7 @@ Expand any message to inspect all fields.
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
 | 1 | `lobby_id` | `fixed64` | `optional` |  |  |
+| 2 | `nonce` | `fixed64` | `optional` |  |  |
 
 </details>
 

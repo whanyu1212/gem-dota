@@ -1445,7 +1445,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgProcessTransactionOrder</code> — fields: 9; oneofs: 0; nested messages: 1; nested enums: 0</summary>
+<summary><code>CMsgProcessTransactionOrder</code> — fields: 8; oneofs: 0; nested messages: 1; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -1454,7 +1454,6 @@ Expand any message to inspect all fields.
 |---:|---|---|---|---|---|
 | 1 | `txn_id` | `uint64` | `optional` |  |  |
 | 2 | `steam_txn_id` | `uint64` | `optional` |  |  |
-| 3 | `partner_txn_id` | `uint64` | `optional` |  |  |
 | 4 | `steam_id` | `fixed64` | `optional` |  |  |
 | 5 | `time_stamp` | `uint32` | `optional` |  |  |
 | 6 | `watermark` | `uint64` | `optional` |  |  |
