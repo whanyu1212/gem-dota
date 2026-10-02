@@ -8,6 +8,7 @@ import platform
 import shutil
 import ssl
 import time
+import urllib.error
 import urllib.request
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
@@ -37,12 +38,12 @@ SOURCE_MAP_DIR = Path(__file__).resolve().parents[3] / "assets" / MAP_SUBDIR
 _IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
 _HERO_CDN_URLS = (
     "https://steamcdn-a.akamaihd.net/apps/dota2/images/heroes/{short}_icon.png",
-    "https://cdn.dota2.com/apps/dota2/images/heroes/{short}_icon.png",
+    "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/heroes/{short}_icon.png",
     "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/{short}.png",
     "https://cdn.stratz.com/images/dota2/heroes/{short}_icon.png",
 )
 _ITEM_CDN_URLS = (
-    "https://cdn.dota2.com/apps/dota2/images/dota_react/items/{short}.png",
+    "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/items/{short}.png",
     "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/items/{short}_lg.png",
 )
 _PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
@@ -323,6 +324,7 @@ def download_hero_icons(
 
     icon_dir = _download_dir(out_dir, HERO_ICON_SUBDIR)
     ctx = _cdn_ssl_context()
+    cert_failures: list[str] = []
     downloaded = failed = skipped = 0
 
     shorts = hero_icon_shorts(heroes_path) if only is None else tuple(only)
@@ -334,7 +336,7 @@ def download_hero_icons(
 
         cdn_short = _HERO_CDN_OVERRIDES.get(short, short)
         urls = [url.format(short=cdn_short) for url in _HERO_CDN_URLS]
-        if _download_first(urls, out_path, ctx):
+        if _download_first(urls, out_path, ctx, cert_failures):
             downloaded += 1
             _emit(reporter, f"  OK  {short}")
             time.sleep(0.05)
@@ -342,6 +344,8 @@ def download_hero_icons(
             failed += 1
             _emit(error_reporter, f"  FAIL {short}")
 
+    if failed:
+        _emit_cert_hint(error_reporter, cert_failures)
     return IconDownloadResult(
         label="hero icons",
         out_dir=icon_dir,
@@ -368,6 +372,7 @@ def download_item_icons(
 
     icon_dir = _download_dir(out_dir, ITEM_ICON_SUBDIR)
     ctx = _cdn_ssl_context()
+    cert_failures: list[str] = []
     downloaded = failed = skipped = 0
 
     shorts = (
@@ -382,7 +387,7 @@ def download_item_icons(
             continue
 
         urls = [url.format(short=short) for url in _ITEM_CDN_URLS]
-        if _download_first(urls, out_path, ctx):
+        if _download_first(urls, out_path, ctx, cert_failures):
             downloaded += 1
             _emit(reporter, f"  OK  {short}")
             time.sleep(0.05)
@@ -390,6 +395,8 @@ def download_item_icons(
             failed += 1
             _emit(error_reporter, f"  FAIL {short}")
 
+    if failed:
+        _emit_cert_hint(error_reporter, cert_failures)
     return IconDownloadResult(
         label="item icons",
         out_dir=icon_dir,
@@ -503,13 +510,24 @@ def _download_dir(out_dir: str | Path | None, subdir: str) -> Path:
 
 
 def _cdn_ssl_context() -> ssl.SSLContext:
+    # Verify certificates and hostnames. python.org macOS builds ship without a
+    # CA bundle, so certifi's roots are added on top of the system store when
+    # certifi is installed; without either, downloads fail with a hint.
     ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
+    try:
+        import certifi
+    except ImportError:
+        return ctx
+    ctx.load_verify_locations(cafile=certifi.where())
     return ctx
 
 
-def _download_first(urls: list[str], out_path: Path, ctx: ssl.SSLContext) -> bool:
+def _download_first(
+    urls: list[str],
+    out_path: Path,
+    ctx: ssl.SSLContext,
+    cert_failures: list[str] | None = None,
+) -> bool:
     for url in urls:
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
@@ -519,9 +537,27 @@ def _download_first(urls: list[str], out_path: Path, ctx: ssl.SSLContext) -> boo
                 continue
             out_path.write_bytes(data)
             return True
-        except Exception:
+        except Exception as exc:
+            if cert_failures is not None and _is_cert_verification_error(exc):
+                cert_failures.append(url)
             continue
     return False
+
+
+def _is_cert_verification_error(exc: BaseException) -> bool:
+    # urlopen wraps TLS handshake failures in URLError(reason=...).
+    reason = exc.reason if isinstance(exc, urllib.error.URLError) else exc
+    return isinstance(reason, ssl.SSLCertVerificationError)
+
+
+def _emit_cert_hint(error_reporter: Callable[[str], None] | None, failures: list[str]) -> None:
+    if failures:
+        _emit(
+            error_reporter,
+            f"  {len(failures)} CDN request(s) failed TLS certificate verification. "
+            "If this Python has no CA bundle (common with python.org macOS installs), "
+            "run its 'Install Certificates.command' or `pip install certifi`.",
+        )
 
 
 def _emit(reporter: Callable[[str], None] | None, message: str) -> None:

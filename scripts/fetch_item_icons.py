@@ -5,7 +5,7 @@ item name (e.g. ``blink.png``, ``ward_observer.png``).
 
 CDN URL pattern::
 
-    https://cdn.dota2.com/apps/dota2/images/dota_react/items/{short}.png
+    https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/items/{short}.png
 
 where ``{short}`` is derived from the item key by stripping ``item_``.
 
