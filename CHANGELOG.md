@@ -100,6 +100,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`gem.region_of(x, y)` and `gem.MAP_REGIONS` are public.** `region_of` maps
+  a world position to `river`, `radiant_half`, `dire_half`, `top_lotus` or
+  `bottom_lotus`. It is a fixed lookup, checked against replay entities, so it
+  belongs with gem's facts. It moves from the private `gem.analysis._shared` to
+  the new module `gem.analysis.regions`, which the API reference documents.
 - **`scripts/trace_river_region.py`** regenerates the river outline and half
   line from the map image. `--check` compares the trace with
   `map_constants.json`, `--write` updates it, and `--overlay` saves a preview.

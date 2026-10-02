@@ -13,7 +13,7 @@ and outposts) to within about 60 world units.
 
 ## Regions
 
-`gem.analysis._shared.region_of(x, y)` returns one of five labels:
+`gem.region_of(x, y)` returns one of five labels (`gem.MAP_REGIONS` lists them):
 
 | Region | Where |
 | --- | --- |
@@ -27,6 +27,19 @@ The river outline is traced from the water in the map image
 positions: both fountains and ancients and both mid tier-one towers are in their
 own half, and both power-rune spawners, both Roshan pits and the Roshan spawner
 are in the river.
+
+For example, the share of each hero's sampled positions spent in the river:
+
+```python
+from collections import Counter
+
+import gem
+
+match = gem.parse("replay.dem")
+for player in match.players:
+    regions = Counter(gem.region_of(x, y) for _, x, y in player.position_log)
+    print(player.hero_name, regions["river"] / max(regions.total(), 1))
+```
 
 ## Neutral camps
 

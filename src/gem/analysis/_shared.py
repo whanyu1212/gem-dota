@@ -8,8 +8,6 @@ previously duplicated across :mod:`gem.analysis.roshan`,
 from __future__ import annotations
 
 import bisect
-import math
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -30,13 +28,10 @@ _FALLBACK_MAP_BOUNDS = (7563.0, 25900.0, 7800.0, 25600.0)  # xmin, xmax, ymin, y
 _FALLBACK_RADIANT_FOUNTAIN = (8928.0, 9446.0)
 _FALLBACK_DIRE_FOUNTAIN = (23792.0, 23232.0)
 
-#: Every label ``region_of`` can return.
-MAP_REGIONS = ("river", "radiant_half", "dire_half", "top_lotus", "bottom_lotus")
 
-Point = tuple[float, float]
-
-
-def _load_map_geometry() -> tuple[float, float, float, float, Point, Point]:
+def _load_map_geometry() -> tuple[
+    float, float, float, float, tuple[float, float], tuple[float, float]
+]:
     """Load map bounds and fountains from ``map_constants.json``.
 
     Falls back to the calibrated literals if the JSON is unavailable or missing
@@ -74,63 +69,6 @@ def _load_map_geometry() -> tuple[float, float, float, float, Point, Point]:
 ) = _load_map_geometry()
 
 
-@dataclass(frozen=True)
-class _RegionGeometry:
-    river_outline: tuple[Point, ...]
-    radiant_half: tuple[Point, ...]
-    lotus_pools: tuple[tuple[str, Point], ...]
-    lotus_radius: float
-
-
-# Far enough past the map that closing the Radiant half there never cuts it.
-_FAR = 1.0e7
-
-
-def _load_region_geometry() -> _RegionGeometry | None:
-    """Load the river outline, half line and lotus pools from ``map_constants.json``.
-
-    The Radiant half is the half line closed around the Radiant corner: its ends
-    run on flat to ``_FAR`` and down to ``-_FAR``.
-
-    Returns:
-        The region geometry, or ``None`` if the JSON is unavailable or malformed.
-        ``region_of`` then falls back to the fountains' bisector with no river or
-        lotus areas. The outline is too long to mirror as a literal.
-    """
-    try:
-        from gem.catalog.map import load_map_constants
-
-        regions = load_map_constants()["regions"]
-        outline = tuple((float(x), float(y)) for x, y in regions["river_outline"])
-        line = [(float(x), float(y)) for x, y in regions["half_line"]]
-        lotus = tuple(
-            (str(name), (float(pos["x"]), float(pos["y"])))
-            for name, pos in regions["lotus_pools"].items()
-        )
-        radius = float(regions["lotus_radius"])
-    except (OSError, ValueError, KeyError, TypeError):
-        return None
-    if len(outline) < 3 or len(line) < 2:
-        return None
-    first_y, last_y = line[0][1], line[-1][1]
-    radiant_half = (*line, (_FAR, last_y), (_FAR, -_FAR), (-_FAR, -_FAR), (-_FAR, first_y))
-    return _RegionGeometry(outline, radiant_half, lotus, radius)
-
-
-_REGIONS = _load_region_geometry()
-
-
-def _in_polygon(x: float, y: float, polygon: tuple[Point, ...]) -> bool:
-    # Even-odd ray cast towards +x.
-    inside = False
-    x1, y1 = polygon[-1]
-    for x2, y2 in polygon:
-        if (y1 > y) != (y2 > y) and x < x1 + (y - y1) * (x2 - x1) / (y2 - y1):
-            inside = not inside
-        x1, y1 = x2, y2
-    return inside
-
-
 def infer_match_end_tick(match: ParsedMatch) -> int:
     """Return the match end tick, falling back to the last observed sample.
 
@@ -157,41 +95,6 @@ def infer_match_end_tick(match: ParsedMatch) -> int:
         if player.position_log:
             max_tick = max(max_tick, player.position_log[-1][0])
     return max_tick
-
-
-def region_of(x: float, y: float) -> str:
-    """Classify a world position into a map region.
-
-    The regions come from ``map_constants.json`` (``regions``), traced on the
-    7.41 map:
-
-    - ``"top_lotus"`` / ``"bottom_lotus"``: within ``lotus_radius`` of a lotus
-      pool. Both teams contest these from their lanes, so they belong to neither
-      half.
-    - ``"river"``: inside the river's outline, which runs from the top-lane
-      crossing to the bottom-lane crossing and includes both Roshan pools. The
-      lanes themselves are not river.
-    - ``"radiant_half"`` / ``"dire_half"``: the side of the half line, which runs
-      along the river's middle and, past its ends, straight out to the map edges.
-
-    Args:
-        x: World x coordinate.
-        y: World y coordinate.
-
-    Returns:
-        One of :data:`MAP_REGIONS`.
-    """
-    geometry = _REGIONS
-    if geometry is None:
-        dr = math.dist((x, y), _RADIANT_FOUNTAIN)
-        dd = math.dist((x, y), _DIRE_FOUNTAIN)
-        return "radiant_half" if dr <= dd else "dire_half"
-    for name, centre in geometry.lotus_pools:
-        if math.dist((x, y), centre) <= geometry.lotus_radius:
-            return name
-    if _in_polygon(x, y, geometry.river_outline):
-        return "river"
-    return "radiant_half" if _in_polygon(x, y, geometry.radiant_half) else "dire_half"
 
 
 def nearest_series_value(times: list[int], values: list[int], tick: int) -> int:

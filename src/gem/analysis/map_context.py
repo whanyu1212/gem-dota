@@ -17,11 +17,10 @@ from gem.analysis._shared import (
     _MAP_YMIN,
     _TEAM_DIRE,
     _TEAM_RADIANT,
-    MAP_REGIONS,
     infer_match_end_tick,
     nearest_series_value,
-    region_of,
 )
+from gem.analysis.regions import MAP_REGIONS, region_of
 from gem.catalog.map import load_neutral_camp_centers
 
 if TYPE_CHECKING:

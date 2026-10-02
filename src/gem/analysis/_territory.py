@@ -26,8 +26,8 @@ from gem.analysis._shared import (
     _RADIANT_FOUNTAIN,
     _TEAM_DIRE,
     _TEAM_RADIANT,
-    region_of,
 )
+from gem.analysis.regions import region_of
 
 if TYPE_CHECKING:
     from gem.results.models import ParsedMatch, ParsedPlayer
