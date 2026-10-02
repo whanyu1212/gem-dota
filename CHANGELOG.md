@@ -24,6 +24,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     protect the replay bytes themselves. Only `https` URLs are verified.
   - **Tests.** The draft integration test now uses the same verifying context.
 
+- **Report icon downloads now verify TLS certificates.** The hero and item icon
+  downloader (`python -m gem reports assets download`, `scripts/fetch_*_icons.py`)
+  used to turn off certificate and hostname checks, to cope with python.org macOS
+  builds that ship without a CA bundle. That left the downloads open to tampering.
+  - **Verification.** It now uses the system trust store, plus `certifi`'s roots
+    when `certifi` is installed. `certifi` is not a new dependency.
+  - **No CA bundle.** If no icon can be verified, the run still reports `FAIL` per
+    icon, then prints one hint: run Python's `Install Certificates.command` or
+    `pip install certifi`.
+  - **CDN host.** `cdn.dota2.com` serves a certificate that does not cover its own
+    name, so it only worked with checks off. Item icons (where it was the first
+    URL) and the hero fallback now come from `cdn.cloudflare.steamstatic.com`. The
+    files are byte-identical, and every hero and item icon still downloads.
+
 - **The analysis "river" region is now the river.** It used to be a band along
   the `x = y` diagonal. That band was really the mid lane: it held both mid T1
   towers, while the power runes and Roshan pits fell into a team half.
