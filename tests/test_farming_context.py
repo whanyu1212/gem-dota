@@ -16,6 +16,11 @@ from gem.extractors.objectives import AegisEvent, RoshanKill, TowerKill
 from gem.extractors.wards import WardEvent
 from gem.results.models import ParsedMatch, ParsedPlayer
 
+# The segment context is deprecated (HY-100); these tests pin its behaviour until 0.13.
+pytestmark = pytest.mark.filterwarnings(
+    "ignore:gem.FarmingRouteSegment.context is deprecated:DeprecationWarning"
+)
+
 
 def _catalog() -> dict:
     return {

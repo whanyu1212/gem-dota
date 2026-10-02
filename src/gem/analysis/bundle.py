@@ -13,9 +13,9 @@ event semantics each builder consumes.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
-from gem._deprecation import renamed_attribute, renamed_init_kwargs
+from gem._deprecation import deprecated_field, renamed_attribute, renamed_init_kwargs
 from gem.analysis.farming import FarmingRoute, build_farming_routes
 from gem.analysis.fight_positioning import (
     FightPositioning,
@@ -47,7 +47,19 @@ class MatchAnalysis:
     """
 
     smoke: list[SmokeAnalysis] = field(default_factory=list)
-    smoke_fights: list[SmokeFightInsight] = field(default_factory=list)
+    smoke_fights: list[SmokeFightInsight] = field(
+        default=cast(
+            Any,
+            deprecated_field(
+                "smoke_fights",
+                "gem.MatchAnalysis.smoke_fights",
+                alternative="analysis.smoke[i].first_fight",
+                default_factory=list,
+            ),
+        ),
+        repr=False,
+        compare=False,
+    )
     roshan_conversions: list[RoshConversion] = field(default_factory=list)
     farming_routes: list[FarmingRoute] = field(default_factory=list)
     fight_positioning: list[FightPositioning] = field(default_factory=list)

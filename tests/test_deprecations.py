@@ -2,13 +2,20 @@
 
 from __future__ import annotations
 
+import dataclasses
 import warnings
 
 import pytest
 
 import gem
 import gem.analysis
-from gem._deprecation import deprecated, deprecated_module_attrs, warn_deprecated
+from gem._deprecation import (
+    deprecated,
+    deprecated_field,
+    deprecated_module_attrs,
+    read_quietly,
+    warn_deprecated,
+)
 from gem.results.models import ParsedMatch
 
 _FARMING_CONTEXT = (
@@ -134,6 +141,48 @@ def test_gem_internals_use_the_deprecated_builders_silently() -> None:
 
     match = ParsedMatch(players=[ParsedPlayer(player_id=0, team=2, hero_name="npc_dota_hero_axe")])
     assert _warnings(lambda: gem.analyze(match)) == []
+
+
+def test_deprecated_fields_warn_on_read_only() -> None:
+    from gem.analysis.bundle import MatchAnalysis
+    from gem.analysis.farming import FarmingRouteSegment
+
+    analysis = MatchAnalysis(smoke_fights=[])
+    # Printing, comparing and serializing stay silent.
+    assert (
+        _warnings(lambda: (repr(analysis), analysis == MatchAnalysis(), gem.to_dict(analysis)))
+        == []
+    )
+    messages = _warnings(lambda: analysis.smoke_fights)
+    assert len(messages) == 1
+    assert "gem.MatchAnalysis.smoke_fights is deprecated" in messages[0]
+    # Each instance gets its own default list.
+    first, second = MatchAnalysis(), MatchAnalysis()
+    assert read_quietly(first, "smoke_fights") is not read_quietly(second, "smoke_fights")
+
+    # The field keeps its name, so serialized output and DataFrames are unchanged.
+    assert "context" in {f.name for f in dataclasses.fields(FarmingRouteSegment)}
+    assert isinstance(vars(FarmingRouteSegment)["context"], deprecated_field)
+
+
+def test_read_quietly_skips_the_warning() -> None:
+    from gem.analysis.bundle import MatchAnalysis
+
+    analysis = MatchAnalysis(smoke_fights=[1])
+    assert _warnings(lambda: read_quietly(analysis, "smoke_fights")) == []
+    assert read_quietly(analysis, "smoke_fights") == [1]
+    assert read_quietly(analysis, "smoke") == []
+
+
+def test_context_config_warns_even_without_a_camp_catalog(monkeypatch: pytest.MonkeyPatch) -> None:
+    from gem.analysis import farming
+
+    def missing() -> dict:
+        raise OSError("no catalog")
+
+    monkeypatch.setattr(farming, "load_camp_zones", missing)
+    with pytest.warns(DeprecationWarning, match=r"context_config"):
+        farming.build_farming_routes(ParsedMatch(), context_config=farming.FarmingContextConfig())
 
 
 def test_world_in_bounds_is_not_added_to_the_top_level() -> None:

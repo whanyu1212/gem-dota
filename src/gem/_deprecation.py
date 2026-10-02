@@ -202,3 +202,87 @@ def deprecated_module_attrs(
         return obj
 
     return __getattr__
+
+
+class deprecated_field:  # noqa: N801 - used like ``field``/``property``
+    """Dataclass field default that warns when the deprecated field is read.
+
+    Use it as the field's default, keeping it out of ``repr`` and ``==`` so that
+    printing or comparing an object does not warn::
+
+        context: Context | None = field(
+            default=cast(Any, deprecated_field("context", "gem.Segment.context")),
+            repr=False,
+            compare=False,
+        )
+
+    Setting the field (including in ``__init__``) is silent; reading it through
+    the instance warns. gem's own code reads it with :func:`read_quietly`. The
+    class must not use ``slots``: the value lives in the instance ``__dict__``.
+
+    Args:
+        attr: The field's attribute name.
+        name: The public name for the warning (e.g. ``gem.MatchAnalysis.smoke_fights``).
+        alternative: What to use instead, if anything.
+        removal: The release that removes it.
+        default: The value when none is given.
+        default_factory: Called for the value when none is given (wins over ``default``).
+    """
+
+    def __init__(
+        self,
+        attr: str,
+        name: str,
+        *,
+        alternative: str | None = None,
+        removal: str = REMOVAL_VERSION,
+        default: Any = None,
+        default_factory: Callable[[], Any] | None = None,
+    ) -> None:
+        self._slot = f"_deprecated_{attr}"
+        self._name = name
+        self._alternative = alternative
+        self._removal = removal
+        self._default = default
+        self._default_factory = default_factory
+
+    def _make_default(self) -> Any:
+        return self._default_factory() if self._default_factory is not None else self._default
+
+    def read(self, obj: Any) -> Any:
+        """Return the stored value without warning."""
+        if self._slot not in obj.__dict__:
+            obj.__dict__[self._slot] = self._make_default()
+        return obj.__dict__[self._slot]
+
+    def __get__(self, obj: Any, objtype: type | None = None) -> Any:
+        if obj is None:
+            return self
+        warn_deprecated(self._name, alternative=self._alternative, removal=self._removal)
+        return self.read(obj)
+
+    def __set__(self, obj: Any, value: Any) -> None:
+        # dataclass passes the default (this descriptor) when no value is given.
+        obj.__dict__[self._slot] = self._make_default() if value is self else value
+
+
+def read_quietly(obj: Any, attr: str) -> Any:
+    """Read an attribute, without the warning if it is a :class:`deprecated_field`.
+
+    gem's own serializers and report code use this so producing output that still
+    includes a deprecated field does not warn the user.
+
+    Args:
+        obj: The instance.
+        attr: The attribute name.
+
+    Returns:
+        The attribute's value.
+    """
+    for klass in type(obj).__mro__:
+        if attr in vars(klass):
+            descriptor = vars(klass)[attr]
+            if isinstance(descriptor, deprecated_field):
+                return descriptor.read(obj)
+            break
+    return getattr(obj, attr)

@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import math
 
+from gem._deprecation import read_quietly
 from gem.analysis import (
     FarmingBoundaryReason,
     FarmingRoute,
@@ -1604,7 +1605,7 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
         route = routes_by_player[player.player_id]
         visits: list[dict] = []
         for segment in route.segments:
-            context = segment.context
+            context = read_quietly(segment, "context")
             visits.append(
                 {
                     "order": segment.segment_index,

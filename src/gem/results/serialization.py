@@ -24,6 +24,7 @@ from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from gem._deprecation import read_quietly
 from gem.results.models import ParsedMatch
 
 if TYPE_CHECKING:
@@ -44,7 +45,7 @@ def _to_json_compatible(value: Any) -> Any:
     """Recursively convert values to JSON-compatible Python types."""
     if is_dataclass(value):
         return {
-            f.name: _to_json_compatible(getattr(value, f.name))
+            f.name: _to_json_compatible(read_quietly(value, f.name))
             for f in fields(value)
             if f.metadata.get("serialize", True)
         }

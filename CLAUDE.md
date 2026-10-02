@@ -208,7 +208,9 @@ Headline exports (see `__all__` for the full list):
   `FarmingContextTag`, `FarmingContextConfig`, `context_config=`), and
   `build_smoke_fight_insights` with its types (use `SmokeAnalysis.first_fight`).
   gem's own `analyze()`, report and DataFrames keep using them silently until
-  0.13 by importing from the defining submodules. Don't add new tags, scores or
+  0.13 by importing from the defining submodules. Deprecated dataclass fields
+  use `deprecated_field` (warns on read; keep it out of `repr`/`==`), and gem's
+  own code reads them with `read_quietly`. Don't add new tags, scores or
   verdicts.
 - **Replay fetch:** `fetch_replay`, `fetch_replay_url`, `download_and_decompress`
 - **Catalog/constants:** `catalog` (grouped lookup modules) and `constants`

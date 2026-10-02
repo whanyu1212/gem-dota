@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Literal, cast
 
-from gem._deprecation import warn_deprecated
+from gem._deprecation import deprecated_field, warn_deprecated
 from gem.catalog.map import load_camp_zones
 
 if TYPE_CHECKING:
@@ -210,7 +210,8 @@ class FarmingRoutePoint:
     boundary_before: FarmingBoundaryReason | None = None
 
 
-@dataclass(slots=True)
+# Not slotted: the deprecated ``context`` field needs an instance ``__dict__``.
+@dataclass
 class FarmingRouteSegment:
     """One camp-local sampled route segment with factual support evidence."""
 
@@ -244,7 +245,18 @@ class FarmingRouteSegment:
     camp_owner_team: int | None = None
     camp_lane: str = "unknown"
     camp_area: str = "unknown"
-    context: FarmingSegmentContext | None = None
+    context: FarmingSegmentContext | None = field(
+        default=cast(
+            Any,
+            deprecated_field(
+                "context",
+                "gem.FarmingRouteSegment.context",
+                alternative="the segment's camp facts and gem's position, ward, tower and economy data",
+            ),
+        ),
+        repr=False,
+        compare=False,
+    )
     camp_catalog_version: int | None = None
     camp_map_patch: str | None = None
     camp_topology_patch: str | None = None
@@ -730,6 +742,8 @@ def build_farming_routes(
     passed. The segments themselves (camp, ticks, neutral kills and damage, XP
     and gold deltas, evidence strength) stay.
     """
+    if context_config is not None:
+        warn_deprecated("gem.build_farming_routes(context_config=...)")
     try:
         payload = load_camp_zones()
         zones = _parse_zones(payload)
@@ -804,8 +818,6 @@ def build_farming_routes(
     if zones:
         from gem.analysis.farming_context import attach_farming_contexts
 
-        if context_config is not None:
-            warn_deprecated("gem.build_farming_routes(context_config=...)")
         attach_farming_contexts(
             match, routes, zones, context_config or DEFAULT_FARMING_CONTEXT_CONFIG
         )

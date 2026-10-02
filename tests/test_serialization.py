@@ -569,7 +569,9 @@ class TestAnalyze:
             build_fight_positioning(match)
         )
         assert gem.to_dict(analysis.farming_routes) == gem.to_dict(build_farming_routes(match))
-        assert gem.to_dict(analysis.smoke_fights) == gem.to_dict(build_smoke_fight_insights(match))
+        with pytest.warns(DeprecationWarning, match="MatchAnalysis.smoke_fights"):
+            smoke_fights = analysis.smoke_fights
+        assert gem.to_dict(smoke_fights) == gem.to_dict(build_smoke_fight_insights(match))
         assert gem.to_dict(analysis.smoke) == gem.to_dict(gem.build_smoke_analysis(match))
 
 

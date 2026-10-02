@@ -146,6 +146,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 gem presents replay facts; the interpretation layer (tags, scores, verdicts) is
 leaving the library (HY-96). Deprecated names still work in 0.12, warn with a
 `DeprecationWarning` when used, are no longer in `__all__`, and are removed in 0.13.
+Deprecated fields (`FarmingRouteSegment.context`, `MatchAnalysis.smoke_fights`)
+warn when read. Printing, comparing or serializing an object does not warn, and
+gem's own `analyze()`, report, JSON and DataFrame output stay silent.
 
 - **`map_context` API:** `build_map_context_timeline`, `score_camp_visit_context`,
   `MapContextBucket`, `CampVisitContext` and `gem.analysis.world_in_bounds`.
