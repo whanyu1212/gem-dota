@@ -19,9 +19,17 @@ from gem.analysis.smoke import (
     SmokeLifecycleStatus,
     SmokeMemberAnalysis,
 )
+from gem.extractors.lane import lane_for_cell
 from gem.reports import _sections
 from gem.reports.sections.economy import _net_worth_at
-from gem.results.models import SmokeEvent, SmokeParticipant, VisibilityState
+from gem.reports.sections.vision import _lane_anchor, _laning_minimap_svg, _spread_markers
+from gem.results.models import (
+    ParsedMatch,
+    ParsedPlayer,
+    SmokeEvent,
+    SmokeParticipant,
+    VisibilityState,
+)
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -515,3 +523,83 @@ class TestBuildSmokes:
         assert html.count("10.00s") == 1
         assert html.count("20.00s") == 1
         assert html.index("10.00s") < html.index("20.00s")
+
+
+# ---------------------------------------------------------------------------
+# Laning minimap placement
+# ---------------------------------------------------------------------------
+
+
+def _lane_player(player_id: int, lane: int, cells: dict[tuple[int, int], int]) -> ParsedPlayer:
+    lane_pos: dict[str, dict[str, int]] = {}
+    for (cx, cy), count in cells.items():
+        lane_pos.setdefault(str(cx), {})[str(cy)] = count
+    return ParsedPlayer(
+        player_id=player_id,
+        hero_name="npc_dota_hero_axe",
+        team=2,
+        lane=lane,
+        lane_role=1,
+        lane_pos=lane_pos,
+    )
+
+
+class TestLaneAnchor:
+    def test_anchor_is_the_busiest_spot_in_the_assigned_lane(self) -> None:
+        # Bot-lane cells (col >= 100) plus a longer stay in base (lane 4 cells).
+        laning = {(150, 80): 30, (151, 80): 30, (150, 81): 20}
+        base = {(70, 70): 200}
+        player = _lane_player(0, lane=1, cells={**laning, **base})
+        assert lane_for_cell(150, 80) == 1
+        assert lane_for_cell(70, 70) != 1
+
+        x, y = _lane_anchor(player)
+
+        # The base stay outweighs the lane, but the anchor stays in the bot lane.
+        assert 150 * 128 <= x <= 151 * 128
+        assert 80 * 128 <= y <= 81 * 128
+
+    def test_anchor_ignores_a_far_cluster_of_the_same_lane(self) -> None:
+        # Two spots in the bot lane: a long stay and a brief visit far away.
+        player = _lane_player(0, lane=1, cells={(150, 80): 50, (180, 140): 10})
+        x, y = _lane_anchor(player)
+        assert (x, y) == (150 * 128, 80 * 128)
+
+    def test_anchor_falls_back_to_all_cells_outside_the_lane(self) -> None:
+        player = _lane_player(0, lane=1, cells={(70, 70): 5})
+        assert _lane_anchor(player) == (70 * 128, 70 * 128)
+
+    def test_anchor_needs_samples(self) -> None:
+        assert _lane_anchor(_lane_player(0, lane=1, cells={})) is None
+
+
+class TestSpreadMarkers:
+    def test_stacked_markers_end_at_least_min_dist_apart(self) -> None:
+        spread = _spread_markers([(100.0, 100.0)] * 4, 28, 320)
+        for i, (x1, y1) in enumerate(spread):
+            for x2, y2 in spread[i + 1 :]:
+                assert ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5 >= 28 - 1e-6
+
+    def test_markers_already_apart_do_not_move(self) -> None:
+        points = [(50.0, 50.0), (200.0, 200.0)]
+        assert _spread_markers(points, 28, 320) == points
+
+    def test_markers_clamped_onto_one_corner_are_still_spread(self) -> None:
+        # Far apart, but both outside the map past the same corner.
+        spread = _spread_markers([(-500.0, -500.0), (-500.0, -100.0)], 28, 320)
+        (x1, y1), (x2, y2) = spread
+        assert ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5 >= 28 - 1e-6
+        assert all(14 <= v <= 306 for v in (x1, y1, x2, y2))
+
+    def test_markers_stay_inside_the_map(self) -> None:
+        spread = _spread_markers([(1.0, 1.0), (1.0, 1.0)], 28, 320)
+        assert all(14 <= x <= 306 and 14 <= y <= 306 for x, y in spread)
+
+    def test_minimap_draws_a_leader_to_each_moved_icon(self) -> None:
+        cells = {(150, 80): 30}
+        match = ParsedMatch(
+            players=[_lane_player(0, 1, cells), _lane_player(1, 1, cells)],
+        )
+        svg = _laning_minimap_svg(match, None)
+        assert svg.count("<image ") == 2
+        assert svg.count("<line ") == 2

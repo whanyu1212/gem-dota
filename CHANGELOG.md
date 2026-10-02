@@ -57,6 +57,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
       smaller.
 - **`scripts/audit_camp_annotations.py`** no longer reports a flooded camp as an
   ancient camp when it evolves into ancient frogs (camp 16).
+- **The report's Laning map puts each hero on its lane.** It used to place a hero
+  at the average of all its first-10-minute positions. Time in base, rotations
+  and the L-shaped side lanes pulled that average into the river or jungle.
+  - **Placement:** each hero now sits at its busiest spot inside its assigned
+    lane.
+  - **Overlaps:** lane partners' icons are spread apart, and a dot with a short
+    line marks each hero's true spot.
 
 ### Added
 
