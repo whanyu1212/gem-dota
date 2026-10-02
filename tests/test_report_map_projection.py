@@ -18,6 +18,8 @@ from gem.reports._formatting import (
     MAP_XMIN,
     MAP_YMAX,
     MAP_YMIN,
+    map_image_to_world,
+    world_to_map_image,
 )
 
 # name: (world x, world y, image x, image y)
@@ -39,10 +41,7 @@ _TOLERANCE_PX = 30
 
 def _image_px(wx: float, wy: float) -> tuple[float, float]:
     """Project like the report's square SVG maps, then undo the "slice" crop."""
-    side = MAP_IMAGE_HEIGHT
-    fx = (wx - MAP_XMIN) / (MAP_XMAX - MAP_XMIN)
-    fy = 1.0 - (wy - MAP_YMIN) / (MAP_YMAX - MAP_YMIN)
-    return (MAP_IMAGE_WIDTH - side) / 2 + fx * side, fy * side
+    return world_to_map_image(wx, wy, MAP_IMAGE_WIDTH, MAP_IMAGE_HEIGHT)
 
 
 def test_window_is_square() -> None:
@@ -55,3 +54,10 @@ def test_landmark_lands_on_its_structure(name: str) -> None:
     wx, wy, ix, iy = _LANDMARKS[name]
     px, py = _image_px(wx, wy)
     assert math.hypot(px - ix, py - iy) <= _TOLERANCE_PX
+
+
+def test_image_to_world_inverts_the_projection() -> None:
+    for wx, wy, _, _ in _LANDMARKS.values():
+        x, y = map_image_to_world(*_image_px(wx, wy))
+        assert x == pytest.approx(wx)
+        assert y == pytest.approx(wy)

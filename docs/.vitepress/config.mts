@@ -70,6 +70,7 @@ export default defineConfig({
         text: "Experimental Features",
         items: [
           { text: "Overview", link: "/experimental/" },
+          { text: "Map Regions and Camps", link: "/experimental/map-annotations" },
           { text: "Farming Patterns", link: "/experimental/farming-patterns" },
           { text: "Roshan Conversion", link: "/experimental/rosh-conversion" },
           {

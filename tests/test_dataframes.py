@@ -563,7 +563,7 @@ class TestBuildDataframes:
         segment = dfs["farming_route_segments"].iloc[0]
         points = dfs["farming_route_points"]
 
-        assert route["camp_catalog_version"] == 3
+        assert route["camp_catalog_version"] == 4
         assert route["camp_map_patch"] == "7.41"
         assert route["camp_topology_patch"] == "7.41"
         assert route["status"] == "partial"
@@ -574,7 +574,7 @@ class TestBuildDataframes:
         assert pd.isna(segment["window_total_earned_gold_delta"])
         assert segment["camp_owner_team"] == 2
         assert segment["camp_lane"] == "top"
-        assert segment["camp_catalog_version"] == 3
+        assert segment["camp_catalog_version"] == 4
         assert segment["camp_map_patch"] == "7.41"
         assert segment["camp_topology_patch"] == "7.41"
         assert segment["context_camp_side"] == "own_side"

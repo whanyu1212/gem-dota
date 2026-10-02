@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from gem.combat.log import CombatLogEntry
 from gem.results.models import ParsedMatch, ParsedPlayer
 from scripts.audit_camp_annotations import (
@@ -12,6 +14,7 @@ from scripts.audit_camp_annotations import (
     nearest_position,
     point_in_zone,
     summarize_camps,
+    unit_type_hint,
 )
 
 
@@ -77,7 +80,7 @@ def test_collect_neutral_observations_assigns_deaths_to_camp_and_nearby_gold() -
                 tick=100,
                 log_type="DEATH",
                 attacker_name="npc_dota_hero_axe",
-                target_name="npc_dota_neutral_ancient_frog",
+                target_name="npc_dota_neutral_black_dragon",
                 neutral_camp_type=4,
                 neutral_camp_team=2,
             ),
@@ -104,7 +107,7 @@ def test_collect_neutral_observations_assigns_deaths_to_camp_and_nearby_gold() -
     assert observations[0].match_id == 123
     assert observations[0].camp_id == 1
     assert observations[0].annotated_type == "large"
-    assert observations[0].neutral_name == "npc_dota_neutral_ancient_frog"
+    assert observations[0].neutral_name == "npc_dota_neutral_black_dragon"
     assert observations[0].nearby_gold == 88
     assert observations[0].unit_type_hint == "ancient"
     assert observations[0].neutral_camp_type == 4
@@ -126,7 +129,7 @@ def test_collect_neutral_observations_ignores_unscoped_nearby_gold() -> None:
                 tick=100,
                 log_type="DEATH",
                 attacker_name="npc_dota_hero_axe",
-                target_name="npc_dota_neutral_ancient_frog",
+                target_name="npc_dota_neutral_black_dragon",
             ),
             CombatLogEntry(tick=101, log_type="GOLD", value=999),
             CombatLogEntry(
@@ -171,7 +174,7 @@ def test_collect_neutral_observations_prefers_combat_log_location() -> None:
                 tick=100,
                 log_type="DEATH",
                 attacker_name="npc_dota_hero_axe",
-                target_name="npc_dota_neutral_ancient_frog",
+                target_name="npc_dota_neutral_black_dragon",
                 location_x=500.0,
                 location_y=500.0,
             ),
@@ -202,13 +205,13 @@ def test_summarize_camps_flags_inferred_type_mismatch() -> None:
                 tick=100,
                 log_type="DEATH",
                 attacker_name="npc_dota_hero_axe",
-                target_name="npc_dota_neutral_ancient_frog",
+                target_name="npc_dota_neutral_black_dragon",
             ),
             CombatLogEntry(
                 tick=130,
                 log_type="DEATH",
                 attacker_name="npc_dota_hero_axe",
-                target_name="npc_dota_neutral_ancient_frog_mage",
+                target_name="npc_dota_neutral_black_drake",
             ),
         ],
     )
@@ -221,6 +224,28 @@ def test_summarize_camps_flags_inferred_type_mismatch() -> None:
     assert summaries[0].status == "mismatch"
     assert summaries[0].observed_deaths == 2
     assert summaries[0].neutral_counts == {
-        "npc_dota_neutral_ancient_frog": 1,
-        "npc_dota_neutral_ancient_frog_mage": 1,
+        "npc_dota_neutral_black_dragon": 1,
+        "npc_dota_neutral_black_drake": 1,
     }
+
+
+@pytest.mark.parametrize(
+    "unit",
+    [
+        "npc_dota_neutral_tadpole",
+        "npc_dota_neutral_froglet",
+        "npc_dota_neutral_froglet_mage",
+        "npc_dota_neutral_grown_frog",
+        "npc_dota_neutral_grown_frog_mage",
+        "npc_dota_neutral_ancient_frog",
+        "npc_dota_neutral_ancient_frog_mage",
+    ],
+)
+def test_every_frog_tier_hints_flooded(unit: str) -> None:
+    # Flooded camps evolve, and since 7.41 two of them reach ancient frogs.
+    assert unit_type_hint(unit) == "flooded"
+
+
+def test_dry_ancients_still_hint_ancient() -> None:
+    assert unit_type_hint("npc_dota_neutral_black_dragon") == "ancient"
+    assert unit_type_hint("npc_dota_neutral_prowler_shaman") == "ancient"

@@ -37,6 +37,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
       `low_conversion`, and 8855242704 Roshan 1 from `low_conversion` to
       `map_squeeze`.
     - Smoke, smoke-fight and fight-positioning output does not change.
+- **The neutral camp catalog now matches the replays** (`camp_zones.json`
+  version 4). Each camp's type was checked against its spawner and the creeps
+  that spawn there, using the camp compositions on Liquipedia's Neutral Creeps
+  page. Each owner was checked against the combat log's `neutral_camp_team`.
+  - **Camp 10 is a medium camp,** not large. Its zone shrinks to the medium
+    ellipse.
+  - **Owners.** Camps 4 and 25 had their owners swapped: 4 is Dire's and 25 is
+    Radiant's. Camps 12 and 17 had no owner; they are Radiant's and Dire's. Each
+    side now owns 14 camps with the same mix of types.
+  - **`gem.catalog.load_neutral_camps()`** returned out-of-date types for 7
+    camps (2, 5, 6, 20, 22, 26, 28). It is now built from `camp_zones.json`, and
+    `neutral_camps.json` is removed.
+  - **Effect on farming routes, measured on the 7 corpus matches:**
+    - `border` segments go from 767 to 0;
+    - `own_side` goes from 3,145 to 3,532, and `enemy_side` from 1,936 to 2,282;
+    - `territorial_advance` goes from 1,378 to 1,607, mostly at camps 12 and 17;
+    - the segment total goes from 5,848 to 5,814, because camp 10's zone is
+      smaller.
+- **`scripts/audit_camp_annotations.py`** no longer reports a flooded camp as an
+  ancient camp when it evolves into ancient frogs (camp 16).
 
 ### Added
 
@@ -45,12 +65,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `map_constants.json`, `--write` updates it, and `--overlay` saves a preview.
   It needs OpenCV, which is not a project dependency:
   `uv run --with opencv-python-headless python scripts/trace_river_region.py --check`.
+- **Docs: Map Regions and Camps.** The page shows gem's regions and neutral
+  camps on the 7.41 map, and explains how each was checked against the replays.
 
 ### Changed
 
 - **`map_constants.json`** (`gem.catalog.load_map_constants()`): `river_strip`
   is replaced by `regions`, which holds `river_outline`, `half_line`,
   `lotus_pools` and `lotus_radius`.
+- **`scripts/render_camp_zones_overlay.py`** places camps with the report
+  maps' calibrated projection, on `assets/maps/Game_map_7.41.jpg` by default.
+  It used to stretch the map over `camp_zones.json`'s `world_bounds`, which
+  drew camps up to 115 px from where they are. New options:
+  - `--regions` also draws the halves, river and lotus areas;
+  - camp IDs sit on chips coloured by owner;
+  - `--width` and `--margin` size the output.
+
+  `camp_zones.json` drops `world_bounds` and `source_image`, which only this
+  script read.
 
 ## [0.11.0] - 2026-10-02
 

@@ -351,10 +351,21 @@ constants; new tiers/IDs are covered by `test_audit_opendota_fixture_constants.p
 
 ### Camp zones & nearby-gold attribution
 
-Neutral-camp analysis lives in `analysis/map_context.py` plus the bundled data assets
-`src/gem/data/camp_zones.json`, `neutral_camps.json`, and `map_constants.json`.
-`camp_zones.json` carries world bounds and per-type ellipse geometry; neutral
-deaths are grouped into camp zones by world position.
+Neutral-camp analysis lives in `analysis/map_context.py` and `analysis/farming.py` plus
+the bundled data assets `src/gem/data/camp_zones.json` and `map_constants.json`.
+`camp_zones.json` is the one camp catalog (`load_neutral_camps()` is a flat view of
+it): each camp's centre (its `CDOTA_NeutralSpawner`), type, owner team and ellipse
+geometry; neutral deaths are grouped into camp zones by world position.
+
+Camp types and owners are checked against the replays, not a wiki:
+
+- **Type:** the spawner's `m_Type` at creation (0 small … 3 ancient; flooded camps
+  report their base tier and change it as they evolve), and the creeps that spawn
+  there. Liquipedia's Neutral Creeps page still lists the pre-7.40 counts; its
+  changelog has the 7.40/7.41 demotions the catalog follows.
+- **Owner:** the combat log's `neutral_camp_team` on the camp's deaths, and the
+  terrain half. Camp 22 is the one disagreement: the game tags it Radiant though it
+  sits in Dire jungle; the catalog follows the terrain (14 camps a side).
 
 **Nearby-gold attribution fix (0.2.8):** when attributing `GOLD` combat-log events
 to a camp, ignore unscoped `GOLD` events whose attacker *and* target names are both

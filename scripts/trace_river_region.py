@@ -47,7 +47,12 @@ from PIL import Image, ImageDraw, ImageFilter
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
-from gem.reports._formatting import MAP_XMAX, MAP_XMIN, MAP_YMAX, MAP_YMIN  # noqa: E402
+from gem.reports._formatting import (  # noqa: E402
+    MAP_XMAX,
+    MAP_XMIN,
+    map_image_to_world,
+    world_to_map_image,
+)
 
 DEFAULT_IMAGE = REPO_ROOT / "assets" / "maps" / "Game_map_7.41.jpg"
 DEFAULT_CONSTANTS = REPO_ROOT / "src" / "gem" / "data" / "map_constants.json"
@@ -112,9 +117,6 @@ def trace_size(image_size: tuple[int, int]) -> tuple[int, int]:
 def image_to_world(px: float, py: float, width: int, height: int) -> tuple[float, float]:
     """Project a tracing-copy pixel to world units.
 
-    The report maps show the image's centred square, ``height`` pixels a side,
-    as the world window in ``gem.reports._formatting``.
-
     Args:
         px: Pixel column.
         py: Pixel row.
@@ -122,12 +124,9 @@ def image_to_world(px: float, py: float, width: int, height: int) -> tuple[float
         height: Tracing-copy height.
 
     Returns:
-        World ``(x, y)``.
+        World ``(x, y)``, through ``gem.reports._formatting.map_image_to_world``.
     """
-    side = height
-    x = MAP_XMIN + (px - (width - side) / 2) / side * (MAP_XMAX - MAP_XMIN)
-    y = MAP_YMIN + (1 - py / side) * (MAP_YMAX - MAP_YMIN)
-    return x, y
+    return map_image_to_world(px, py, width, height)
 
 
 def world_to_image(x: float, y: float, width: int, height: int) -> tuple[float, float]:
@@ -140,12 +139,9 @@ def world_to_image(x: float, y: float, width: int, height: int) -> tuple[float, 
         height: Image height.
 
     Returns:
-        Pixel ``(column, row)``.
+        Pixel ``(column, row)``, through ``gem.reports._formatting.world_to_map_image``.
     """
-    side = height
-    px = (width - side) / 2 + (x - MAP_XMIN) / (MAP_XMAX - MAP_XMIN) * side
-    py = (1 - (y - MAP_YMIN) / (MAP_YMAX - MAP_YMIN)) * side
-    return px, py
+    return world_to_map_image(x, y, width, height)
 
 
 def water_mask(image: Image.Image) -> np.ndarray:

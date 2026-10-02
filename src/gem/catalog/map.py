@@ -29,12 +29,23 @@ def load_map_constants() -> dict[str, Any]:
 
 
 def load_neutral_camps() -> list[dict[str, Any]]:
-    """Load static neutral-camp center data.
+    """Load each neutral camp's ID, centre and type.
+
+    A flat view of ``camp_zones.json``, the one camp catalog, so the two can't
+    drift apart.
 
     Returns:
-        Decoded ``neutral_camps.json`` payload.
+        One ``{"id", "x", "y", "type"}`` dict per camp, in catalog order.
     """
-    return load_data_json("neutral_camps.json")
+    return [
+        {
+            "id": camp["id"],
+            "x": camp["center"]["x"],
+            "y": camp["center"]["y"],
+            "type": camp["type"],
+        }
+        for camp in load_camp_zones()["camps"]
+    ]
 
 
 def load_neutral_camp_centers() -> dict[int, tuple[float, float]]:

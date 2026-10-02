@@ -5,11 +5,22 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
+from gem.reports._formatting import (
+    MAP_IMAGE_HEIGHT,
+    MAP_IMAGE_WIDTH,
+    MAP_XMAX,
+    MAP_XMIN,
+    MAP_YMAX,
+    MAP_YMIN,
+    world_to_map_image,
+)
 from scripts.render_camp_zones_overlay import (
+    DEFAULT_CONSTANTS,
     _camp_marker_kind,
     _camp_zone_color,
     _draw_camp_marker,
     _marker_scale,
+    camp_pixel,
     render_overlay,
 )
 
@@ -44,27 +55,40 @@ def test_camp_marker_keeps_ring_without_filled_dot() -> None:
     assert image.getpixel((63, 42))[3] == 0
 
 
+# The centre of the report map window: the middle of any image with the 7.41 map's
+# aspect ratio.
+_WINDOW_CENTRE = ((MAP_XMIN + MAP_XMAX) / 2, (MAP_YMIN + MAP_YMAX) / 2)
+
+
+def _write_zones(path: Path, camps: list[dict]) -> None:
+    path.write_text(json.dumps({"camps": camps}), encoding="utf-8")
+
+
+def test_camp_pixel_uses_the_report_projection() -> None:
+    camp = {"center": {"x": 8928, "y": 9446}}
+    assert camp_pixel(camp, MAP_IMAGE_WIDTH, MAP_IMAGE_HEIGHT) == world_to_map_image(
+        8928, 9446, MAP_IMAGE_WIDTH, MAP_IMAGE_HEIGHT
+    )
+
+
 def test_render_overlay_draws_camp_marker(tmp_path: Path) -> None:
     image_path = tmp_path / "map.jpg"
     zones_path = tmp_path / "zones.json"
     output_path = tmp_path / "annotated.png"
 
     Image.new("RGB", (120, 120), (255, 255, 255)).save(image_path)
-    zones_path.write_text(
-        json.dumps(
+    cx, cy = _WINDOW_CENTRE
+    _write_zones(
+        zones_path,
+        [
             {
-                "world_bounds": {"xmin": 0, "xmax": 120, "ymin": 0, "ymax": 120},
-                "camps": [
-                    {
-                        "id": 1,
-                        "type": "medium",
-                        "center": {"x": 60, "y": 60},
-                        "zone": {"shape": "ellipse", "rx": 20, "ry": 20, "rotation_deg": 0},
-                    }
-                ],
+                "id": 1,
+                "type": "medium",
+                "center": {"x": cx, "y": cy},
+                "topology": {"owner_team": 2},
+                "zone": {"shape": "ellipse", "rx": 2000, "ry": 2000, "rotation_deg": 0},
             }
-        ),
-        encoding="utf-8",
+        ],
     )
 
     render_overlay(image_path, zones_path, output_path)
@@ -80,18 +104,35 @@ def test_render_overlay_draws_top_right_legend(tmp_path: Path) -> None:
     output_path = tmp_path / "annotated.png"
 
     Image.new("RGB", (360, 260), (255, 255, 255)).save(image_path)
-    zones_path.write_text(
-        json.dumps(
-            {
-                "world_bounds": {"xmin": 0, "xmax": 360, "ymin": 0, "ymax": 260},
-                "camps": [],
-            }
-        ),
-        encoding="utf-8",
-    )
+    _write_zones(zones_path, [])
 
     render_overlay(image_path, zones_path, output_path)
 
     rendered = Image.open(output_path).convert("RGBA")
     top_right_pixels = [rendered.getpixel((x, y)) for x in range(220, 350) for y in range(10, 150)]
     assert any(pixel[:3] != (255, 255, 255) for pixel in top_right_pixels)
+
+
+def test_render_overlay_draws_regions_inside_the_margin(tmp_path: Path) -> None:
+    image_path = tmp_path / "map.jpg"
+    zones_path = tmp_path / "zones.json"
+    output_path = tmp_path / "annotated.png"
+
+    Image.new("RGB", (400, 377), (255, 255, 255)).save(image_path)
+    _write_zones(zones_path, [])
+
+    render_overlay(image_path, zones_path, output_path, constants_path=DEFAULT_CONSTANTS, margin=20)
+
+    rendered = Image.open(output_path).convert("RGB")
+    assert rendered.size == (440, 417)
+    # The margin keeps its background; the tints stop at the map's edge.
+    assert rendered.getpixel((5, 400)) == (12, 14, 16)
+    # Bottom-left of the map is the Radiant half (green tint), top-left the Dire half.
+    r, g, b = rendered.getpixel((30, 380))
+    assert g > r and g > b
+    r, g, b = rendered.getpixel((30, 30))
+    assert r > g and r > b
+    # The top power rune is in the river (blue).
+    x, y = world_to_map_image(14744, 17496, 400, 377)
+    r, g, b = rendered.getpixel((round(x) + 20, round(y) + 20))
+    assert b > r and b > g

@@ -237,3 +237,25 @@ def test_enemy_side_territory_threshold_adds_independent_tag(
 def test_context_config_rejects_invalid_values(kwargs: dict, message: str) -> None:
     with pytest.raises(ValueError, match=message):
         FarmingContextConfig(**kwargs)
+
+
+def test_unowned_camp_is_border_and_never_territorial(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Every 7.41 catalog camp has an owner, so real replays no longer produce border
+    # segments; a catalog camp without one must still be handled.
+    def unowned() -> dict:
+        catalog = _catalog()
+        catalog["camps"][0]["topology"]["owner_team"] = None
+        return catalog
+
+    monkeypatch.setattr(farming, "load_camp_zones", unowned)
+
+    context = build_farming_routes(_complete_match())[0].segments[0].context
+
+    assert context is not None
+    assert context.camp_side == "border"
+    assert FarmingContextTag.BORDER in context.tags
+    assert FarmingContextTag.OWN_SIDE not in context.tags
+    assert FarmingContextTag.ENEMY_SIDE not in context.tags
+    assert FarmingContextTag.TERRITORIAL_ADVANCE not in context.tags

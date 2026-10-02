@@ -1,14 +1,7 @@
 {
-  "version": 3,
+  "version": 4,
   "dota_patch": "7.41",
   "topology_patch": "7.41",
-  "source_image": "assets/maps/camp_annotated.png",
-  "world_bounds": {
-    "xmin": 7563,
-    "xmax": 25900,
-    "ymin": 7800,
-    "ymax": 25600
-  },
   "defaults_by_type": {
     "small": {
       "shape": "ellipse",
@@ -112,7 +105,7 @@
         "x": 11560,
         "y": 20299
       },
-      "topology": {"owner_team": 2, "lane": "top", "area": "jungle"},
+      "topology": {"owner_team": 3, "lane": "top", "area": "jungle"},
       "zone": {
         "shape": "ellipse",
         "rx": 760,
@@ -221,7 +214,7 @@
     },
     {
       "id": 10,
-      "type": "large",
+      "type": "medium",
       "center": {
         "x": 13969,
         "y": 7982
@@ -229,8 +222,8 @@
       "topology": {"owner_team": 2, "lane": "bot", "area": "jungle"},
       "zone": {
         "shape": "ellipse",
-        "rx": 760,
-        "ry": 660,
+        "rx": 640,
+        "ry": 560,
         "rotation_deg": 0
       },
       "hysteresis": {
@@ -264,7 +257,7 @@
         "x": 14930,
         "y": 13028
       },
-      "topology": {"owner_team": null, "lane": "mid", "area": "river"},
+      "topology": {"owner_team": 2, "lane": "mid", "area": "river"},
       "zone": {
         "shape": "ellipse",
         "rx": 760,
@@ -359,7 +352,7 @@
         "x": 17448,
         "y": 18964
       },
-      "topology": {"owner_team": null, "lane": "mid", "area": "river"},
+      "topology": {"owner_team": 3, "lane": "mid", "area": "river"},
       "zone": {
         "shape": "ellipse",
         "rx": 760,
@@ -511,7 +504,7 @@
         "x": 21033,
         "y": 12685
       },
-      "topology": {"owner_team": 3, "lane": "bot", "area": "jungle"},
+      "topology": {"owner_team": 2, "lane": "bot", "area": "jungle"},
       "zone": {
         "shape": "ellipse",
         "rx": 760,

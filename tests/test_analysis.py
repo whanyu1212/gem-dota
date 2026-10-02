@@ -343,10 +343,6 @@ _REGION_LANDMARKS = {
     "dire outpost": ((19776, 15936), "dire_half"),
 }
 
-# Camps whose annotated owner_team disagrees with the terrain they sit in: camp 4 is in
-# Dire jungle but annotated Radiant, camp 25 the reverse. HY-85 fixes the annotations.
-_MISANNOTATED_CAMPS = {4, 25}
-
 
 class TestRegionOf:
     """region_of follows the river traced on the 7.41 map, not the x = y diagonal."""
@@ -396,8 +392,7 @@ class TestRegionOf:
         wrong = {}
         for camp in load_camp_zones()["camps"]:
             owner = camp["topology"]["owner_team"]
-            if owner not in halves or camp["id"] in _MISANNOTATED_CAMPS:
-                continue
+            assert owner in halves, camp["id"]
             region = region_of(camp["center"]["x"], camp["center"]["y"])
             if region != halves[owner]:
                 wrong[camp["id"]] = region
