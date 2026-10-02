@@ -1,21 +1,14 @@
 from __future__ import annotations
 
 import json
-from typing import Literal
 
-from gem.analysis._territory import RoshCoverageCell, RoshTerritoryWindow
-from gem.analysis.fight_positioning import EngagementStartSource
 from gem.analysis.roshan import (
     AegisFateSource,
     RoshConversion,
-    RoshDifferentialProfile,
-    RoshFightEvidence,
-    RoshFightRelation,
     RoshTeamAttributionSource,
-    RoshTimelineEvent,
 )
 from gem.extractors.fights import Fight, FightPlayer
-from gem.extractors.wards import WardEvent
+from gem.extractors.objectives import BarracksKill, TowerKill
 from gem.reports import ReportOptions, build_html_report, builder as report_builder
 from gem.reports._formatting import set_game_start_tick
 from gem.reports.assets import ReportAssets
@@ -24,347 +17,147 @@ from gem.reports.sections.combat import build_fights
 from gem.results.models import ParsedMatch
 
 
-def _coverage_window(
-    *,
-    start_tick: int,
-    end_tick: int,
-    status: Literal["complete", "partial", "unavailable"] = "complete",
-) -> RoshTerritoryWindow:
-    conversion_cell = RoshCoverageCell(
-        grid_x=12,
-        grid_y=13,
-        x_min=14763.0,
-        x_max=15363.0,
-        y_min=15600.0,
-        y_max=16200.0,
-        hero_seconds=64.0,
-        distinct_heroes=2,
-        occupied_buckets=2,
-        bucket_count=3,
-        occupancy_share=2 / 3,
-    )
-    opponent_cell = RoshCoverageCell(
-        grid_x=12,
-        grid_y=13,
-        x_min=14763.0,
-        x_max=15363.0,
-        y_min=15600.0,
-        y_max=16200.0,
-        hero_seconds=42.0,
-        distinct_heroes=2,
-        occupied_buckets=1,
-        bucket_count=3,
-        occupancy_share=1 / 3,
-    )
-    return RoshTerritoryWindow(
+def _conversion(**overrides: object) -> RoshConversion:
+    fields: dict[str, object] = {
+        "rosh_number": 1,
+        "rosh_tick": 1000,
+        "killer_name": "npc_dota_hero_axe",
+        "holder_team": 2,
+        "holder_player_id": 0,
+        "holder_name": "npc_dota_hero_axe",
+        "aegis_pickup_tick": 1010,
+        "immediate_end_tick": 1600,
+        "aegis_end_tick": 1500,
+        "aegis_eval_end_tick": 1600,
+        "extended_end_tick": 4000,
+        "aegis_fate": "consumed",
+        "first_fight_tick": 1100,
+        "first_objective_tick": 1250,
+        "fight_count": 1,
+        "fights_won": 0,
+        "fights_lost": 1,
+        "fights_drawn": 0,
+        "towers_taken": 1,
+        "barracks_taken": 0,
+        "enemy_buybacks_forced": 0,
+        "enemy_half_observer_delta": 0,
+        "enemy_half_farm_share_before": 0.0,
+        "enemy_half_farm_share_during": 0.0,
+        "enemy_half_farm_share_delta": 0.0,
+        "conversion_score": 99,
+        "conversion_label": "objective_conversion",
+        "aegis_outcome": "consumed_in_fight",
+        "drops": ["aegis", "banner"],
+        "roshan_team": 2,
+        "conversion_team": 2,
+        "roshan_team_source": RoshTeamAttributionSource.PROTOCOL,
+        "conversion_team_source": RoshTeamAttributionSource.PLAYER_ID,
+        "aegis_fate_source": AegisFateSource.HOLDER_DEATH_INFERENCE,
+        "aegis_fate_inferred": True,
+        "conversion_tags": ["fight_advantage", "territorial_expansion"],
+        "analysis_status": "partial",
+    }
+    fields.update(overrides)
+    return RoshConversion(**fields)  # type: ignore[arg-type]
+
+
+def _fight(start_tick: int, end_tick: int, winner: str) -> Fight:
+    players = [FightPlayer(player_id=player_id) for player_id in range(10)]
+    players[0].deaths = 1
+    return Fight(
         start_tick=start_tick,
         end_tick=end_tick,
-        conversion_coverage_pct=12.5 if status != "unavailable" else None,
-        opponent_coverage_pct=8.0 if status != "unavailable" else None,
-        coverage_differential_pct=4.5 if status != "unavailable" else None,
-        conversion_depth_p90=0.65 if status != "unavailable" else None,
-        opponent_depth_p90=0.42 if status != "unavailable" else None,
-        depth_differential=0.23 if status != "unavailable" else None,
-        conversion_player_time_coverage=0.92 if status != "unavailable" else None,
-        opponent_player_time_coverage=0.88 if status != "unavailable" else None,
-        conversion_cells=[conversion_cell] if status != "unavailable" else [],
-        opponent_cells=[opponent_cell] if status != "unavailable" else [],
-        status=status,
-        status_reasons=["position_samples_unavailable"] if status == "unavailable" else [],
+        first_death_tick=start_tick + 100,
+        last_death_tick=start_tick + 100,
+        deaths=1,
+        winner=winner,
+        players=players,
     )
 
 
-def _profile(*, maps_available: bool = True) -> RoshDifferentialProfile:
-    map_status: Literal["complete", "unavailable"] = "complete" if maps_available else "unavailable"
-    return RoshDifferentialProfile(
-        conversion_team=2,
-        opponent_team=3,
-        window_start_tick=1000,
-        window_end_tick=1600,
-        conversion_fights_won=1,
-        opponent_fights_won=3,
-        fights_drawn=0,
-        fight_differential=-2,
-        conversion_towers=1,
-        opponent_towers=2,
-        conversion_barracks=0,
-        opponent_barracks=1,
-        conversion_structure_value=2,
-        opponent_structure_value=7,
-        structure_delta=-5,
-        net_worth_advantage_start=-1000,
-        net_worth_advantage_end=1500,
-        net_worth_swing=2500,
-        net_worth_swing_per_minute=1250.0,
-        xp_advantage_start=None,
-        xp_advantage_end=None,
-        xp_swing=None,
-        xp_swing_per_minute=None,
-        before_territory=_coverage_window(
-            start_tick=700,
-            end_tick=999,
-            status=map_status,
-        ),
-        during_territory=_coverage_window(
-            start_tick=1000,
-            end_tick=1600,
-            status=map_status,
-        ),
-        conversion_coverage_swing_pct=8.0,
-        opponent_coverage_swing_pct=0.5,
-        coverage_swing_pct=7.5,
-        conversion_depth_swing=0.10,
-        opponent_depth_swing=0.225,
-        depth_swing=-0.125,
-        conversion_forward_wards=1,
-        opponent_forward_wards=3,
-        forward_ward_delta=-2,
-        conversion_tormentors=1,
-        opponent_tormentors=0,
-        tormentor_delta=1,
-        tags=["fight_advantage", "territorial_expansion"],
-        status="partial",
-        status_reasons=["xp_series_unavailable"],
-    )
-
-
-def _conversion(*, maps_available: bool = True) -> RoshConversion:
-    profile = _profile(maps_available=maps_available)
-    return RoshConversion(
-        rosh_number=1,
-        rosh_tick=1000,
-        killer_name="npc_dota_hero_axe",
-        holder_team=2,
-        holder_player_id=0,
-        holder_name="npc_dota_hero_axe",
-        aegis_pickup_tick=1010,
-        immediate_end_tick=1600,
-        aegis_end_tick=1500,
-        aegis_eval_end_tick=1600,
-        extended_end_tick=4000,
-        aegis_fate="consumed",
-        first_fight_tick=1100,
-        first_objective_tick=1250,
-        fight_count=4,
-        fights_won=1,
-        fights_lost=3,
-        fights_drawn=0,
-        towers_taken=1,
-        barracks_taken=0,
-        enemy_buybacks_forced=1,
-        enemy_half_observer_delta=-2,
-        enemy_half_farm_share_before=0.15,
-        enemy_half_farm_share_during=0.23,
-        enemy_half_farm_share_delta=0.08,
-        conversion_score=99,
-        conversion_label="objective_conversion",
-        aegis_outcome="consumed_in_fight",
-        timeline_events=[
-            RoshTimelineEvent(1400, "tormentor", "Tormentor secured"),
-            RoshTimelineEvent(1000, "roshan", "Roshan #1 killed"),
-            RoshTimelineEvent(1300, "buyback", "Bane buyback"),
-            RoshTimelineEvent(1200, "fight_loss", "Fight lost", fight_index=0),
-            RoshTimelineEvent(1350, "own_buyback", "Axe buyback"),
+def _match() -> ParsedMatch:
+    return ParsedMatch(
+        game_start_tick=0,
+        fights=[_fight(1100, 1300, "dire"), _fight(3000, 3200, "radiant")],
+        towers=[
+            TowerKill(tick=1200, team=3, killer="", tower_name="npc_dota_badguys_tower1_mid"),
+            TowerKill(tick=1250, team=2, killer="", tower_name="npc_dota_goodguys_tower1_bot"),
+            TowerKill(tick=3100, team=3, killer="", tower_name="npc_dota_badguys_tower2_mid"),
         ],
-        drops=["aegis", "banner"],
-        had_high_value_drop=True,
-        banner_planted=True,
-        banner_rax_conversion=True,
-        banner_rax_lane="mid",
-        roshan_team=2,
-        conversion_team=2,
-        roshan_team_source=RoshTeamAttributionSource.PROTOCOL,
-        conversion_team_source=RoshTeamAttributionSource.PLAYER_ID,
-        aegis_fate_source=AegisFateSource.HOLDER_DEATH_INFERENCE,
-        aegis_fate_inferred=True,
-        first_engagement_tick=1100,
-        fight_evidence=[
-            RoshFightEvidence(
-                fight_index=0,
-                relation=RoshFightRelation.IN_WINDOW,
-                engagement_start_tick=1100,
-                engagement_start_source=EngagementStartSource.FIRST_DEATH_FALLBACK,
-                first_death_tick=1200,
-                end_tick=1300,
-                winner="dire",
-                deaths=2,
-                conversion_participant_ids=(0,),
-                opponent_participant_ids=(5,),
-                unknown_participant_ids=(),
-            )
+        barracks=[
+            BarracksKill(
+                tick=1400, team=3, killer="", barracks_name="npc_dota_badguys_melee_rax_mid"
+            ),
         ],
-        conversion_tags=["fight_advantage", "territorial_expansion"],
-        analysis_status="partial",
-        analysis_status_reasons=["xp_series_unavailable"],
-        differential_profile=profile,
     )
 
 
-def _render(monkeypatch, conversion: RoshConversion, *, map_b64: str | None = None) -> str:
+def _render(conversion: RoshConversion) -> str:
     set_game_start_tick(0)
-    monkeypatch.setattr(
-        match_section,
-        "build_rosh_conversions",
-        lambda _match: [conversion],
-    )
-    match = ParsedMatch(
-        game_start_tick=0,
-        wards=[
-            WardEvent(
-                tick=1100,
-                player_id=0,
-                placer="npc_dota_hero_axe",
-                ward_type="observer",
-                team=2,
-                x=15000.0,
-                y=15900.0,
-                expires_tick=None,
-                killed_tick=None,
-                killer="",
-            )
-        ],
-    )
-    return match_section.build_rosh_conversion(match, map_b64)
+    return match_section.build_rosh_conversion(_match(), [conversion])
 
 
-def test_report_renders_raw_signed_balance_resources_tags_and_status(monkeypatch) -> None:
-    html = _render(monkeypatch, _conversion())
+def test_roshan_tab_lists_kill_and_aegis_facts() -> None:
+    html = _render(_conversion())
 
-    assert "Fight differential: -2" in html
-    assert "Weighted structure differential: -5" in html
-    assert "Net worth swing: +2,500" in html
-    assert "Coverage swing: +7.5 pp" in html
-    assert "Depth swing: -0.125" in html
-    assert "Forward-ward differential: -2" in html
-    assert "Tormentor differential: +1" in html
-    assert "Unavailable" in html
-    assert "Insufficient samples" in html
-    assert "-1,000" in html and "+1,500" in html and "+1,250.0" in html
-    assert "Fight advantage" in html
-    assert "Territorial expansion" in html
-    assert "Evidence: Partial" in html
-    assert "XP Series Unavailable" in html
-    assert "Holder Death Inference" in html
-    assert "team evidence Protocol / Player ID" in html
-    assert "Context: Objective Conversion" not in html
-    assert 'id="roshan-conversion-1"' in html
-    assert "conversion_score" not in html
-    assert "radar" not in html.lower()
-
-
-def test_report_timeline_is_semantic_two_sided_and_chronological(monkeypatch) -> None:
-    html = _render(monkeypatch, _conversion())
-
-    assert '<ol class="rosh-timeline-list">' in html
-    assert 'aria-label="Chronological conversion evidence"' in html
-    assert "Bane buyback" in html
-    assert "Axe buyback" in html
-    assert "Tormentor secured" in html
-    assert "rosh-event-buyback" in html
-    assert "rosh-event-own_buyback" in html
-    assert "rosh-event-tormentor" in html
+    assert "<summary>Roshan</summary>" in html
+    assert 'id="roshan-1"' in html
+    assert "Aegis, Banner" in html
+    assert "picked up" in html
+    assert "Consumed*" in html
+    assert "* Consumed is inferred" in html
+    # Only the fight overlapping the hold, and only enemy buildings in it.
     assert 'href="#fight-1"' in html
-    assert 'data-report-target="fight-1"' in html
-    assert html.index('data-tick="1000"') < html.index('data-tick="1200"')
-    assert html.index('data-tick="1200"') < html.index('data-tick="1300"')
-    assert html.index('data-tick="1300"') < html.index('data-tick="1350"')
-    assert html.index('data-tick="1350"') < html.index('data-tick="1400"')
+    assert 'href="#fight-2"' not in html
+    assert "Dire won" in html
+    assert "1 tower, 1 barracks" in html
 
 
-def test_report_surfaces_unattributed_objectives_without_credit(monkeypatch) -> None:
-    conversion = _conversion()
-    conversion.differential_profile.unattributed_towers = 1
-    conversion.differential_profile.unattributed_barracks = 2
-    conversion.differential_profile.unattributed_tormentors = 1
+def test_roshan_tab_drops_interpretation() -> None:
+    html = _render(_conversion())
 
-    html = _render(monkeypatch, conversion)
+    for removed in (
+        "Fight advantage",
+        "Territorial expansion",
+        "Consumed In Fight",
+        "rosh-coverage-map",
+        "Evidence: Partial",
+        "conversion",
+    ):
+        assert removed not in html.replace("rosh-section", "")
 
-    assert "Not credited to either side" in html
-    assert "1 tower(s), 2 barracks, 1 Tormentor(s)" in html
+
+def test_roshan_tab_denied_aegis_is_never_held() -> None:
+    conversion = _conversion(aegis_fate="denied", aegis_fate_inferred=False, holder_name="")
+    html = _render(conversion)
+
+    assert '<td class="dim">Denied</td>' in html
+    assert 'href="#fight-' not in html
+    assert "during Aegis" not in build_fights(_match(), None, rosh_conversions=[conversion])
 
 
-def test_fight_card_links_back_to_associated_roshan_conversion() -> None:
-    fight_players = [FightPlayer(player_id=player_id) for player_id in range(10)]
-    fight_players[0].deaths = 1
-    match = ParsedMatch(
-        game_start_tick=0,
-        players=[],
-        fights=[
-            Fight(
-                start_tick=1000,
-                end_tick=1300,
-                first_death_tick=1200,
-                last_death_tick=1200,
-                deaths=1,
-                winner="dire",
-                players=fight_players,
-            )
-        ],
+def test_roshan_tab_without_pickup_shows_no_hold() -> None:
+    html = _render(
+        _conversion(aegis_pickup_tick=None, aegis_fate="unknown", aegis_fate_inferred=False)
     )
 
-    html = build_fights(match, None, rosh_conversions=[_conversion()])
-
-    assert 'href="#roshan-conversion-1"' in html
-    assert 'data-report-target="roshan-conversion-1"' in html
-    assert "Roshan #1 · in window" in html
+    assert "Not picked up" in html
+    assert 'href="#fight-' not in html
 
 
-def test_report_renders_accessible_paired_maps_with_shared_background(monkeypatch) -> None:
-    html = _render(monkeypatch, _conversion(), map_b64="QUJD")
+def test_fight_card_links_to_the_aegis_it_overlaps() -> None:
+    html = build_fights(_match(), None, rosh_conversions=[_conversion()])
 
-    assert html.count('class="rosh-coverage-map"') == 2
-    assert html.count('class="gem-map-bg"') == 2
-    assert html.count('role="img"') >= 2
-    assert "aria-labelledby=" in html
-    assert "Before sampled territory occupancy" in html
-    assert "During sampled territory occupancy" in html
-    assert "Conversion team occupancy" in html
-    assert "Opponent occupancy" in html
-    assert "Contested cell" in html
-    assert "rosh-coverage-cell contested" in html
-    assert "rosh-ward-marker conversion observer" in html
-    assert "sampled/sustained occupancy, not true control" in html
-
-
-def test_report_maps_have_dark_fallback_and_explicit_unavailable_state(monkeypatch) -> None:
-    complete_html = _render(monkeypatch, _conversion(), map_b64=None)
-    unavailable_html = _render(monkeypatch, _conversion(maps_available=False), map_b64=None)
-
-    assert complete_html.count('class="rosh-map-fallback"') == 2
-    assert "gem-map-bg" not in complete_html
-    assert unavailable_html.count("Coverage unavailable") >= 2
-    assert "Position Samples Unavailable" in unavailable_html
-
-
-def test_full_report_passes_map_background_to_roshan_builder(monkeypatch) -> None:
-    seen: list[str | None] = []
-
-    def _fake_roshan(
-        _match: ParsedMatch,
-        map_b64: str | None = None,
-        _conversions: list[RoshConversion] | None = None,
-    ) -> str:
-        seen.append(map_b64)
-        return '<div class="rosh-map-probe"></div>'
-
-    monkeypatch.setattr(report_builder, "_ext_build_rosh_conversion", _fake_roshan)
-    html = build_html_report(
-        ParsedMatch(game_start_tick=0, game_end_tick=30),
-        assets=ReportAssets(),
-        options=ReportOptions(include_movement=False),
-        map_b64="QUJD",
-    )
-
-    assert seen == ["QUJD"]
-    assert "rosh-map-probe" in html
-    assert 'window._GEM_MAP_SRC="data:image/jpeg;base64,QUJD"' in html
+    assert 'href="#roshan-1"' in html
+    assert 'data-report-target="roshan-1"' in html
+    assert html.count("during Aegis #1") == 1
 
 
 def test_full_report_escapes_public_map_string_inside_script(monkeypatch) -> None:
     monkeypatch.setattr(
         report_builder,
         "_ext_build_rosh_conversion",
-        lambda _match, _map_b64=None, _conversions=None: "",
+        lambda _match, _conversions=None: "",
     )
     hostile = 'QUJD";window.pwned=1;//</script><script>'
     html = build_html_report(

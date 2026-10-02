@@ -90,8 +90,7 @@ Fight association uses the engagement-start evidence from fight
 positioning, rather than the padded detector window alone. `fight_evidence`
 records the fight index, whether the engagement was already underway at the
 Roshan boundary, engagement-start source, first-death/end ticks, winner, and
-active participant IDs split by side. The report links in both directions
-between Roshan timeline events and the corresponding fight card.
+active participant IDs split by side.
 
 ### Structures
 
@@ -203,9 +202,10 @@ stores its `tag_ruleset`. Callers can pass an alternate threshold record to
 `build_rosh_conversions(...)` for reproducible sensitivity analysis without
 changing raw values.
 
-The report does not show a radar chart or aggregate score. Independent metrics
-have different units and meanings; keeping raw signed values visible is more
-honest than making them look directly additive.
+The HTML report's `Roshan` tab shows only the kill and Aegis lifecycle facts
+from these records (see [Match Reports](../reports/index.md)). The differential
+profile, tags and territory windows are available in Python and the DataFrame
+exports but are not rendered.
 
 ## Status and missing data
 

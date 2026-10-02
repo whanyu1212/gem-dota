@@ -140,6 +140,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   `camp_zones.json` drops `world_bounds` and `source_image`, which only this
   script read.
+- **The HTML report shows facts and leaves interpretation to the reader**
+  (HY-105). The analysis it no longer renders stays available in Python and the
+  DataFrame exports.
+  - **Farming** shows each team's cores only. For each team and lane role
+    (safe lane → carry, mid → mid, off lane → offlaner), the core is the player
+    with the most last hits at 10:00. Each camp visit shows its duration, the
+    hero's neutral kills in the camp zone, and the gold and XP earned during the
+    visit. The evidence, context-tag and context-evidence columns, the "Why
+    these tags?" details and the legacy heuristic reference are gone.
+  - **Roshan** (was "Roshan Conversion") is one table:
+    - each kill's time, killing team and hero, and drops;
+    - the Aegis holder and pickup time;
+    - when and how the Aegis ended, with `*` when consumption is inferred;
+    - the fights and enemy buildings during the hold.
+
+    A denied Aegis counts as never held. The tags, balance and resource panels,
+    occupancy maps, timeline and differential summary table are gone.
+  - **Smoke Operations** shows each smoke's time, team, members, when it broke,
+    and its first fight (number, in-game delay, winner). These come from
+    `SmokeAnalysis.first_fight` rather than the deprecated smoke-fight insights.
+    The visibility, nearest-enemy, member-timing and bounded-fight evidence
+    columns are gone.
+  - **Fight cards** are badged "after Smoke #N" and "during Aegis #N" instead
+    of the smoke-fight status and Roshan window-relation labels.
+  - The **ward table** drops "Enemies seen".
+  - **Map image:** the embedded image is downscaled to 4096 px wide
+    (`gem.reports.assets.REPORT_MAP_MAX_WIDTH`). On a TI replay the map drops
+    from 12.4 MB to 5.4 MB of the report. The image file is not modified.
+  - `build_smokes(..., analyses=)` and `build_fights(..., smokes=)` take
+    `SmokeAnalysis` lists in place of `SmokeFightInsight` lists.
+    `build_rosh_conversion(match, conversions)` drops its `map_b64` argument.
 
 ### Deprecated
 

@@ -26,8 +26,7 @@ import logging
 from dataclasses import dataclass
 from pathlib import Path
 
-from gem.analysis import build_rosh_conversions
-from gem.analysis.smoke_fight import build_smoke_fight_insights
+from gem.analysis import build_rosh_conversions, build_smoke_analysis
 from gem.reports._formatting import (
     GAME_MODES,
     fmt_tick as _fmt_tick,
@@ -294,7 +293,7 @@ def build_html_report(
 
     # Build each tab's content
     header_html = _ext_build_header(match, _fmt_tick, GAME_MODES)
-    smoke_fight_insights = build_smoke_fight_insights(match)
+    smoke_analyses = build_smoke_analysis(match)
     rosh_conversions = build_rosh_conversions(match)
 
     tabs: list[tuple[str, str]] = [
@@ -331,21 +330,18 @@ def build_html_report(
             _ext_build_fights(
                 match,
                 map_b64,
-                smoke_fight_insights,
+                smoke_analyses,
                 rosh_conversions,
             ),
         ),
-        (
-            "Roshan Conversion",
-            _ext_build_rosh_conversion(match, map_b64, rosh_conversions),
-        ),
+        ("Roshan", _ext_build_rosh_conversion(match, rosh_conversions)),
         (
             "Vision",
             "\n".join(
                 filter(
                     None,
                     [
-                        _ext_build_smokes(match, map_b64, smoke_fight_insights),
+                        _ext_build_smokes(match, map_b64, smoke_analyses),
                         _ext_build_wards(match, map_b64),
                     ],
                 )

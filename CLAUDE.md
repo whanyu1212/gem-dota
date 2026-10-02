@@ -633,7 +633,7 @@ scripts (`test_audit_camp_annotations.py`, `test_audit_opendota_fixture_constant
 | Script | Description |
 |---|---|
 | `examples/quickstart.py` | Minimal: parse a replay, print per-minute gold/XP |
-| `examples/match_report.py` | Full HTML match dashboard (Draft, Combat, Vision, Fights, Economy, Roshan Conversion) |
+| `examples/match_report.py` | Full HTML match dashboard (Draft, Combat, Laning, Farming, Fights, Roshan, Vision, Economy) |
 | `examples/extraction_demo.py` | Developer guide for combat-log extraction and entity polling |
 | `examples/steam_match_info.py` | Fetch match info from the Steam API, display with Rich tables |
 

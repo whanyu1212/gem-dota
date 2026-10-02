@@ -838,7 +838,7 @@ def to_dict(value: Any) -> Any
 
 Convert a supported dataclass or nested value to JSON-compatible data.
 
-Source: [src/gem/results/serialization.py:58](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/serialization.py#L58)
+Source: [src/gem/results/serialization.py:59](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/serialization.py#L59)
 
 ### `to_json`
 
@@ -848,7 +848,7 @@ def to_json(match: ParsedMatch, *, analysis: MatchAnalysis | None = None, indent
 
 Serialize a :class:`ParsedMatch` to a JSON string.
 
-Source: [src/gem/results/serialization.py:77](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/serialization.py#L77)
+Source: [src/gem/results/serialization.py:78](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/serialization.py#L78)
 
 ### `from_dict`
 
@@ -858,7 +858,7 @@ def from_dict(data: Mapping[str, Any]) -> ParsedMatch
 
 Rebuild a :class:`ParsedMatch` from :func:`to_json` or :func:`to_dict` data.
 
-Source: [src/gem/results/serialization.py:112](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/serialization.py#L112)
+Source: [src/gem/results/serialization.py:113](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/serialization.py#L113)
 
 ### `load_json`
 
@@ -868,4 +868,4 @@ def load_json(path: str | Path) -> ParsedMatch
 
 Load a :class:`ParsedMatch` from a JSON file written by :func:`to_json`.
 
-Source: [src/gem/results/serialization.py:166](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/serialization.py#L166)
+Source: [src/gem/results/serialization.py:167](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/serialization.py#L167)

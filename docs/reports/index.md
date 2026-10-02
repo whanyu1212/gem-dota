@@ -2,30 +2,38 @@
 
 gem can generate self-contained HTML reports from real `.dem` replay files.
 
-The `Farming` tab in the HTML report is documented in
+The report shows facts from the replay. It leaves interpretation, such as
+whether a Roshan "converted" or a farming pattern was safe, to you.
+
+The `Farming` tab shows the camp-by-camp route of each team's cores. For each
+team and lane role (safe lane → carry, mid → mid, off lane → offlaner), the
+core is the player with the most last hits at 10:00. Each camp visit lists its
+duration, the hero's neutral kills inside the camp zone, and the gold and XP the
+hero earned during the visit. The route builder is documented in
 [Experimental Features → Farming Patterns](../experimental/farming-patterns.md).
 
-The `Roshan Conversion` tab compares both teams across fights, structures,
-resources, sustained forward territory, wards, and Tormentor kills. It uses
-signed raw values, paired before/during occupancy maps, and a chronological
-event timeline; see
-[Experimental Features → Roshan Conversion](../experimental/rosh-conversion.md)
-for the exact windows, formulas, and missing-data rules.
-Roshan fight events and fight cards link to one another. Lifecycle and team
-attribution provenance are shown explicitly; deprecated conversion scores and
-exclusive labels are no longer rendered.
+The `Roshan` tab lists each Roshan kill: who killed it, what it dropped, who
+picked up the Aegis, and when and how the Aegis ended. While the Aegis was held
+it also lists the fights that overlapped the hold and the enemy towers and
+barracks destroyed. A consumed Aegis that the replay infers from the holder's
+death is marked `*`.
 
-The `Fights` tab includes one evidence-first positioning map per fight with
-pre-engagement, engagement-start, first-death, and fight-end controls. Marker
-visibility, position freshness, missing samples, and the current conservative
+The `Fights` tab includes one positioning map per fight with pre-engagement,
+engagement-start, first-death, and fight-end controls. Marker visibility,
+position freshness, missing samples, and the current conservative
 engagement-start fallback are documented in
 [Experimental Features → Fight Positioning](../experimental/fight-positioning.md).
+A fight card is badged "after Smoke #N" when it was that smoke's first fight,
+and "during Aegis #N" when it overlapped an Aegis hold.
 
-The **Smoke Operations** view summarizes bounded smoke/fight evidence and links
-unique associations directly to the matching fight snapshot. Exact lifecycle,
-action, visibility, and death ticks remain distinct from sampled formation
-context. See
-[Experimental Features → Smoke/Fight Insights](../experimental/smoke-fight-insights.md).
+The **Smoke Operations** view in the `Vision` tab lists each smoke's time, team
+and members, when it broke (the first member to lose it early, and how many
+in-game seconds after activation), and its first fight: the first fight whose
+first death came within 60 seconds. See
+[Experimental Features → Smoke Analysis](../experimental/smoke-analysis.md).
+
+The report embeds the map image at up to 4096 px wide. A wider image is
+downscaled when the report is written; the file on disk is not changed.
 
 ## Hosted samples
 

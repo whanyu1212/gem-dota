@@ -117,10 +117,8 @@ activator's item-use position.
 
 DataFrame exports include both `smoke_events` (with `smoked` as a `";"`-joined
 hero list) and a flat `smoke_members` table.
-The HTML report presents the same evidence in the **Smoke Operations** card.
-For bounded smoke-to-fight composition, participant overlap, formation context,
-and follow-up evidence, use
-[Smoke/Fight Insights](./smoke-fight-insights.md).
+The HTML report's **Smoke Operations** card shows each smoke's time, team and
+members, when it broke, and its `first_fight`.
 
 ## Known limitations
 

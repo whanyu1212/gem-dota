@@ -9,20 +9,15 @@ from __future__ import annotations
 import json
 import math
 
-from gem._deprecation import read_quietly
 from gem.analysis import (
     FarmingBoundaryReason,
     FarmingRoute,
     FarmingRoutePoint,
+    SmokeAnalysis,
     SmokeLifecycleStatus,
+    SmokeMemberAnalysis,
     build_farming_routes,
     build_smoke_analysis,
-)
-from gem.analysis.smoke_fight import (
-    ExactEventKind,
-    SmokeFightInsight,
-    SmokeFightStatus,
-    build_smoke_fight_insights,
 )
 from gem.catalog.map import load_camp_zones
 from gem.extractors._cells import WORLD_UNITS_PER_CELL
@@ -49,11 +44,10 @@ from gem.reports.assets import (
     item_icon_tag,
     load_hero_icons,
 )
-from gem.reports.sections._shared import _ward_enemies_seen
+from gem.reports.sections._shared import fight_numbers, fight_outcome, game_seconds_between
 from gem.results.models import (
     ParsedMatch,
     ParsedPlayer,
-    VisibilityState,
 )
 
 
@@ -99,124 +93,69 @@ def _smoke_route(match: ParsedMatch, smoke: object) -> list[dict[str, float | in
     return route
 
 
-def _visibility_badge(state: VisibilityState) -> str:
-    """Render authoritative enemy visibility without collapsing unknown state."""
-    if state is VisibilityState.VISIBLE:
-        return '<span style="color:#ff7b72">Visible to enemy</span>'
-    if state is VisibilityState.HIDDEN:
-        return '<span style="color:#bc8cff">Hidden from enemy</span>'
-    return '<span style="color:#8b949e">Visibility unknown</span>'
+_SMOKE_STATUS_LABELS: dict[str, str] = {
+    "no_members_observed": "No members observed",
+    "early_removal": "Broken early",
+    "expired": "Expired",
+    "incomplete": "Incomplete",
+}
 
 
-def _insight_delta(event: object) -> str:
-    """Format an activation-relative exact event without hiding time provenance."""
-    game_time_delta_s = getattr(event, "game_time_delta_s", None)
-    if game_time_delta_s is not None:
-        return f"{game_time_delta_s:+d}s"
-    tick_delta = getattr(event, "tick_delta", 0)
+def _smoke_broke_html(analysis: SmokeAnalysis, first_early: SmokeMemberAnalysis | None) -> str:
+    """Render when a smoke first broke, or how it ended when nobody broke it."""
+    if first_early is None or first_early.removed_tick is None:
+        label = _SMOKE_STATUS_LABELS.get(analysis.status.value, analysis.status.value)
+        return f'<span class="dim">{e(label)}</span>'
+    removed_tick = first_early.removed_tick
     return (
-        f'<span title="Tick-derived from {tick_delta:+d} replay ticks">'
-        f"{tick_delta / TICKS_PER_SEC:+.1f}s*</span>"
+        f'<span title="Replay tick {removed_tick}">{e(fmt_tick(removed_tick))}</span> '
+        f'<span class="dim">({game_seconds_between(analysis.activation_tick, removed_tick)} · '
+        f"{e(hero(first_early.hero_name))})</span>"
     )
 
 
-def _smoke_fight_html(insights: list[SmokeFightInsight]) -> str:
-    """Render composed smoke/fight records without recomputing association rules."""
-    if not insights:
-        return "—"
-
-    status_labels = {
-        SmokeFightStatus.LINKED: "Linked",
-        SmokeFightStatus.TEMPORAL_ONLY: "Temporal only",
-        SmokeFightStatus.AMBIGUOUS: "Ambiguous",
-        SmokeFightStatus.PREEXISTING: "Pre-existing",
-        SmokeFightStatus.NO_CANDIDATE: "No candidate",
-    }
-    event_labels = {
-        ExactEventKind.MEMBER_REMOVAL: "Removal",
-        ExactEventKind.AUTHORITATIVE_VISIBLE: "Visible",
-        ExactEventKind.DIRECT_REVEAL: "Direct reveal",
-        ExactEventKind.MEMBER_ACTION: "Action",
-        ExactEventKind.FIRST_DEATH: "First death",
-        ExactEventKind.FIGHT_END: "Fight end",
-    }
-    blocks: list[str] = []
-    for insight in insights:
-        visible = sum(
-            member.authoritative_visibility is VisibilityState.VISIBLE for member in insight.members
-        )
-        hidden = sum(
-            member.authoritative_visibility is VisibilityState.HIDDEN for member in insight.members
-        )
-        unknown = len(insight.members) - visible - hidden
-        sequence = " · ".join(
-            f"{event_labels[event.kind]} {_insight_delta(event)}"
-            for event in insight.exact_events
-            if event.kind is not ExactEventKind.ACTIVATION
-        )
-        if not sequence:
-            sequence = "No later exact event observed"
-
-        link = ""
-        if insight.fight_index is not None:
-            fight_number = insight.fight_index + 1
-            link = (
-                f'<a class="smoke-fight-link" href="#fight-{fight_number}" '
-                f'data-report-target="fight-{fight_number}" '
-                'data-report-snapshot="engagement_start">'
-                f"View Fight #{fight_number}</a>"
-            )
-        gap_html = ""
-        if insight.evidence_gaps:
-            gap_html = (
-                f'<div class="smoke-fight-gaps">Incomplete evidence: '
-                f"{e(', '.join(insight.evidence_gaps))}</div>"
-            )
-        active_count = len(insight.active_smoked_player_ids)
-        blocks.append(
-            '<div class="smoke-fight-insight">'
-            f'<div><span class="smoke-fight-status status-{insight.status.value}">'
-            f"{status_labels[insight.status]}</span>"
-            f'<span class="dim"> · {active_count} active smoked member'
-            f"{'' if active_count == 1 else 's'}</span></div>"
-            f'<div class="smoke-fight-visibility">Visible {visible} · Hidden {hidden} · '
-            f"Unknown {unknown}</div>"
-            f'<div class="smoke-fight-sequence">{sequence}</div>'
-            f"{link}{gap_html}</div>"
-        )
-    return "".join(blocks)
+def _smoke_first_fight_html(analysis: SmokeAnalysis, numbers: dict[int, int]) -> str:
+    """Render the first fight after a smoke: number, delay and winner."""
+    fight = analysis.first_fight
+    if fight is None or id(fight) not in numbers:
+        return '<span class="dim">None within 60s</span>'
+    number = numbers[id(fight)]
+    return (
+        f'<a class="smoke-fight-link" href="#fight-{number}" '
+        f'data-report-target="fight-{number}" data-report-snapshot="engagement_start">'
+        f"Fight #{number}</a> "
+        f'<span class="dim">{game_seconds_between(analysis.activation_tick, fight.first_death_tick)}'
+        f" · {fight_outcome(fight.winner)}</span>"
+    )
 
 
 def build_smokes(
     match: ParsedMatch,
     map_b64: str | None,
-    insights: list[SmokeFightInsight] | None = None,
+    analyses: list[SmokeAnalysis] | None = None,
 ) -> str:
-    """Build evidence-first Smoke of Deceit lifecycle analysis."""
-    analyses = build_smoke_analysis(match)
+    """Build the Smoke Operations section: when each smoke started, broke and led to a fight.
+
+    Args:
+        match: Parsed match carrying smoke events and fights.
+        map_b64: Optional pre-encoded map background.
+        analyses: Optional precomputed :func:`gem.build_smoke_analysis` output,
+            shared with the Fights tab.
+
+    Returns:
+        Self-contained HTML, or an empty string when nobody used a smoke.
+    """
+    if analyses is None:
+        analyses = build_smoke_analysis(match)
     if not analyses:
         return ""
-    if insights is None:
-        insights = build_smoke_fight_insights(match)
-    insights_by_smoke: dict[int, list[SmokeFightInsight]] = {}
-    for insight in insights:
-        insights_by_smoke.setdefault(insight.smoke_index, []).append(insight)
+    numbers = fight_numbers(match)
 
     map_events: list[dict[str, object]] = []
     rows: list[str] = []
-    member_details: list[str] = []
-
-    status_labels = {
-        "no_members_observed": ("No members observed", "#8b949e"),
-        "early_removal": ("Early removal", "#d29922"),
-        "expired": ("Expired", "#3fb950"),
-        "incomplete": ("Incomplete", "#8b949e"),
-    }
 
     for index, analysis in enumerate(analyses, start=1):
         raw = match.smoke_events[index - 1] if index <= len(match.smoke_events) else None
-        status_value = analysis.status.value
-        status_label, status_color = status_labels[status_value]
         early_members = sorted(
             (
                 member
@@ -228,90 +167,18 @@ def build_smokes(
         )
         first_early = early_members[0] if early_members else None
 
-        if first_early is None:
-            early_html = "—"
-            visibility_html = "—"
-            nearest_html = "—"
-        else:
-            removed_tick = first_early.removed_tick or analysis.activation_tick
-            elapsed_s = (removed_tick - analysis.activation_tick) / TICKS_PER_SEC
-            early_html = (
-                f'{e(hero(first_early.hero_name))}<br><span class="dim" '
-                f'title="Replay tick {removed_tick}">{e(fmt_tick(removed_tick))} '
-                f"(+{elapsed_s:.2f}s)</span>"
-            )
-            visibility_html = _visibility_badge(first_early.visibility_at_remove)
-            if first_early.nearest_enemy_hero and first_early.nearest_enemy_distance is not None:
-                nearest_html = (
-                    f"{e(hero(first_early.nearest_enemy_hero))}<br>"
-                    f'<span class="dim">{first_early.nearest_enemy_distance:,.0f}u sampled</span>'
-                )
-            else:
-                nearest_html = '<span class="dim">Unavailable</span>'
-
         members_html = ", ".join(e(hero(member.hero_name)) for member in analysis.members) or "—"
         team_color = TEAM_COLOR_CSS.get(analysis.team, "#8b949e")
-        team_html = (
-            f'<span style="color:{team_color}">{e(team_name(analysis.team))}</span><br>'
-            f'<span class="dim">{e(hero(analysis.activator))}</span>'
-        )
-        fight_html = _smoke_fight_html(insights_by_smoke.get(index - 1, []))
-
         rows.append(
             f'<tr id="smoke-operation-{index}">'
-            f'<td class="r"><strong>#{index}</strong><br><span title="Replay tick '
-            f'{analysis.activation_tick}">{e(fmt_tick(analysis.activation_tick))}</span></td>'
-            f"<td>{team_html}</td>"
+            f'<td class="r"><strong>#{index}</strong></td>'
+            f'<td title="Replay tick {analysis.activation_tick}">'
+            f"{e(fmt_tick(analysis.activation_tick))}</td>"
+            f'<td><span style="color:{team_color}">{e(team_name(analysis.team))}</span></td>'
             f"<td>{members_html}</td>"
-            f'<td><span style="color:{status_color}">{status_label}</span></td>'
-            f"<td>{early_html}</td><td>{visibility_html}</td>"
-            f"<td>{nearest_html}</td><td>{fight_html}</td>"
+            f"<td>{_smoke_broke_html(analysis, first_early)}</td>"
+            f"<td>{_smoke_first_fight_html(analysis, numbers)}</td>"
             "</tr>"
-        )
-
-        detail_rows = []
-        raw_participants = {
-            (participant.hero_name, participant.applied_tick): participant
-            for participant in getattr(raw, "participants", [])
-        }
-        for member in analysis.members:
-            participant = raw_participants.get((member.hero_name, member.applied_tick))
-            end_html = "Unobserved"
-            if member.removed_tick is not None:
-                elapsed_s = (member.removed_tick - member.applied_tick) / TICKS_PER_SEC
-                end_html = (
-                    f'<span title="Replay tick {member.removed_tick}">'
-                    f"{e(fmt_tick(member.removed_tick))} (+{elapsed_s:.2f}s)</span>"
-                )
-            duration_html = "—"
-            if participant is not None and participant.modifier_duration_s is not None:
-                duration_html = f"{participant.modifier_duration_s:.2f}s"
-            evidence = []
-            if member.same_tick_actions:
-                evidence.append("action at same tick")
-            if member.same_tick_deaths:
-                evidence.append("death at same tick")
-            evidence_html = ", ".join(evidence) or "—"
-            detail_rows.append(
-                "<tr>"
-                f"<td>{e(hero(member.hero_name))}</td>"
-                f'<td title="Replay tick {member.applied_tick}">{e(fmt_tick(member.applied_tick))}</td>'
-                f"<td>{end_html}</td><td>{duration_html}</td>"
-                f"<td>{_visibility_badge(member.visibility_at_apply)}</td>"
-                f"<td>{_visibility_badge(member.visibility_at_remove)}</td>"
-                f"<td>{evidence_html}</td>"
-                "</tr>"
-            )
-        if not detail_rows:
-            detail_rows.append(
-                '<tr><td colspan="7" class="dim">No smoke members observed.</td></tr>'
-            )
-        member_details.append(
-            f'<details style="margin-top:8px"><summary>#{index} member timing</summary>'
-            '<table style="margin-top:8px"><thead><tr><th>Hero</th><th>Applied</th>'
-            "<th>Removed</th><th>Expected duration</th><th>At apply</th>"
-            f"<th>At removal</th><th>Same-tick evidence</th></tr></thead><tbody>{''.join(detail_rows)}"
-            "</tbody></table></details>"
         )
 
         activation_x = analysis.activation_x
@@ -409,12 +276,13 @@ def build_smokes(
 
     return (
         '<div class="card"><details open><summary>Smoke Operations</summary><div class="card-body">'
-        '<p class="dim">Modifier removal, authoritative enemy visibility, sampled proximity, and bounded fight links are reported as separate evidence. Early removal does not by itself prove the hero was seen. * marks tick-derived elapsed time.</p>'
+        '<p class="dim">Broke = the first member to lose the smoke before it ran out, '
+        "with the in-game time since activation. First fight = the first fight whose first "
+        "death came within 60 seconds of activation.</p>"
         + map_html
-        + '<div style="overflow-x:auto"><table><thead><tr><th class="r">Activation</th><th>Team / activator</th>'
-        "<th>Members</th><th>Lifecycle</th><th>First early removal</th>"
-        "<th>Enemy state</th><th>Nearest enemy</th><th>Bounded fight evidence</th>"
-        f"</tr></thead><tbody>{''.join(rows)}</tbody></table></div>{''.join(member_details)}"
+        + '<div style="overflow-x:auto"><table><thead><tr><th class="r">#</th><th>Time</th>'
+        "<th>Team</th><th>Members</th><th>Broke</th><th>First fight</th>"
+        f"</tr></thead><tbody>{''.join(rows)}</tbody></table></div>"
         "</div></details></div>"
     )
 
@@ -760,7 +628,7 @@ var speedSel = document.getElementById('wardSpeed');
     parts.append(
         "<thead><tr>"
         "<th>Time</th><th>Type</th><th>Hero</th><th>Team</th>"
-        '<th>Coords</th><th>Fate</th><th class="r">Enemies seen</th>'
+        "<th>Coords</th><th>Fate</th>"
         "</tr></thead>"
     )
     parts.append("<tbody>")
@@ -780,11 +648,6 @@ var speedSel = document.getElementById('wardSpeed');
         else:
             fate = '<span style="color:#ffb74d">Active / unknown</span>'
         team_color = TEAM_COLOR_CSS.get(w.team, "#888")
-        if w.ward_type == "observer":
-            enemies_seen = _ward_enemies_seen(w, match)
-            seen_cell = f'<td class="r">{enemies_seen}</td>'
-        else:
-            seen_cell = '<td class="r" style="color:#6e7681">—</td>'
         parts.append(
             f"<tr>"
             f"<td>{_e(_fmt_tick(w.tick))}</td>"
@@ -793,7 +656,6 @@ var speedSel = document.getElementById('wardSpeed');
             f'<td><span style="color:{team_color}">{_e(_team_name(w.team))}</span></td>'
             f'<td style="font-variant-numeric:tabular-nums">{_e(coords)}</td>'
             f"<td>{fate}</td>"
-            f"{seen_cell}"
             f"</tr>"
         )
     parts.append("</tbody></table></details>")
@@ -1352,463 +1214,96 @@ def _build_farming_map_svg(
     return svg, timeline_points
 
 
-def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
-    """Build the Farming tab from evidence-first route segments."""
-    context_tag_display = {
-        "own_side": "Own Side",
-        "enemy_side": "Enemy Side",
-        "border": "Border",
-        "high_enemy_presence": "High Enemy Presence",
-        "vision_disadvantage": "Modeled Vision Disadvantage",
-        "tower_disadvantage": "Lane Tower Disadvantage",
-        "enemy_aegis_active": "Enemy Aegis Active",
-        "territorial_advance": "Territorial Advance",
-        "incomplete_context": "Incomplete Context",
-    }
-    context_tag_class = {
-        "own_side": "farm-tag-safe",
-        "enemy_side": "farm-tag-invade-mid",
-        "border": "farm-tag-pressured",
-        "high_enemy_presence": "farm-tag-invade-risk",
-        "vision_disadvantage": "farm-tag-invade-risk",
-        "tower_disadvantage": "farm-tag-defensive",
-        "enemy_aegis_active": "farm-tag-invade-risk",
-        "territorial_advance": "farm-tag-invade-safe",
-        "incomplete_context": "farm-tag-unavailable",
-    }
-    evidence_label_display = {
-        "strong_farm_evidence": "Strong Farm Evidence",
-        "weak_farm_evidence": "Weak Farm Evidence",
-        "transit_like": "Transit-Like",
-    }
-    evidence_label_class = {
-        "strong_farm_evidence": "farm-evidence-strong",
-        "weak_farm_evidence": "farm-evidence-weak",
-        "transit_like": "farm-evidence-transit",
-    }
+_FARM_CORE_ROLES: dict[int, str] = {1: "Carry", 2: "Mid", 3: "Offlane"}
 
+
+def _core_players(match: ParsedMatch) -> list[tuple[ParsedPlayer, str]]:
+    """Return each team's carry, mid and offlaner, Radiant first.
+
+    For each team and lane role (1 safe lane, 2 mid, 3 off lane) the core is the
+    player with the most last hits at 10:00 (``lane_last_hits``); ties go to the
+    lower player slot. A lane role with no player gives no core.
+    """
+    cores: list[tuple[ParsedPlayer, str]] = []
+    for team in (2, 3):
+        for lane_role, role_name in _FARM_CORE_ROLES.items():
+            laners = [
+                player
+                for player in match.players
+                if player.team == team and player.lane_role == lane_role and player.hero_name
+            ]
+            if laners:
+                core = max(laners, key=lambda player: (player.lane_last_hits, -player.player_id))
+                cores.append((core, role_name))
+    return cores
+
+
+def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
+    """Build the Farming tab: camp-by-camp routes for each team's cores."""
     camps_obj = _load_camp_zones()
     camps = list(camps_obj.get("camps", []))
     if not camps:
         return ""
 
     routes_by_player = {route.player_id: route for route in build_farming_routes(match)}
-    players = [
-        player
-        for player in match.players
-        if player.hero_name
-        and routes_by_player.get(player.player_id) is not None
+    cores = [
+        (player, role_name)
+        for player, role_name in _core_players(match)
+        if routes_by_player.get(player.player_id) is not None
         and routes_by_player[player.player_id].points
     ]
-    if not players:
+    if not cores:
         return ""
-
-    category_rows = [
-        (
-            "Safe Home Farm",
-            "Own-side farm with good cover and low contest risk.",
-            "home side and safety >= 0.68 and pressure <= 0.40 and not losing",
-        ),
-        (
-            "Cautious Home Farm",
-            "Own-side farm with contest risk, but the team is not clearly being forced inward.",
-            "fallback non-invade label when the visit is not safe and not forced",
-        ),
-        (
-            "Forced Home Farm",
-            "Own-side farm because the map state is pushing the team inward.",
-            "(losing and pressure >= 0.52) or (pressure >= 0.70 and not winning) or "
-            "(enemy Aegis and pressure >= 0.55 and not winning) or "
-            "(structural deficit and pressure >= 0.45 and not winning)",
-        ),
-        (
-            "Safe Invade",
-            "Enemy-side farm while ahead enough to own the area.",
-            "invading and safety >= 0.52 and pressure <= 0.48 and tower_diff >= -0.05 "
-            "and ward_diff >= -0.10 and no enemy Aegis and winning",
-        ),
-        (
-            "Contested Invade",
-            "Enemy-side farm with contest risk, but not the most punishable invade state.",
-            "fallback invade label when the visit is not safe invade and not high-risk invade",
-        ),
-        (
-            "High-Risk Invade",
-            "Enemy-side farm that looks highly punishable.",
-            "invading and (pressure >= 0.70 or "
-            "(enemy Aegis and (enemy presence in enemy half >= 0.35 or losing)))",
-        ),
-    ]
-    category_rows_html = "".join(
-        (f"<tr><td>{e(label)}</td><td>{e(explanation)}</td><td><code>{e(rule)}</code></td></tr>")
-        for label, explanation, rule in category_rows
-    )
-    score_rows_html = "".join(
-        (f"<tr><td>{e(label)}</td><td><code>{e(formula)}</code></td><td>{e(explanation)}</td></tr>")
-        for label, formula, explanation in [
-            (
-                "Safety",
-                "clamp(0.55 + 0.25*tower_diff + 0.20*ward_diff - 0.45*enemy_own_half "
-                "- 0.20*enemy_aegis - 0.15*invading - 0.08*border_zone)",
-                "Higher means the camp looks easier to hold from your team's perspective.",
-            ),
-            (
-                "Pressure",
-                "clamp(0.30 + 0.40*enemy_own_half + 0.20*enemy_river + "
-                "0.20*max(0,-tower_diff) + 0.20*enemy_aegis + invade_bonus + 0.08*border_zone)",
-                "Higher means the area looks more contestable or punishable.",
-            ),
-            (
-                "Invade Bonus",
-                "0.15 + 0.15*enemy_enemy_half when invading",
-                "Extra pressure added only when the camp is in enemy territory.",
-            ),
-            (
-                "Value",
-                "clamp(0.5*camp_value + 0.5*evidence)",
-                "Higher means the camp is more economically valuable or better supported by neutral/XP evidence.",
-            ),
-        ]
-    )
-    derived_rows_html = "".join(
-        (f"<tr><td>{e(label)}</td><td><code>{e(formula)}</code></td><td>{e(explanation)}</td></tr>")
-        for label, formula, explanation in [
-            (
-                "tower_diff",
-                "(own_towers - enemy_towers) / 11",
-                "Positive means your team still owns more towers.",
-            ),
-            (
-                "ward_diff",
-                "(own_observers - enemy_observers) / 6",
-                "Positive means your team has better observer coverage.",
-            ),
-            (
-                "winning",
-                "NW adv >= 3500 or XP adv >= 4500",
-                "Match-state shortcut for clearly ahead.",
-            ),
-            (
-                "losing",
-                "NW adv <= -3500 or XP adv <= -4500",
-                "Match-state shortcut for clearly behind.",
-            ),
-            (
-                "structural_deficit",
-                "tower_diff < -0.25 or (lost mid T1 and ward_diff < -0.20)",
-                "The map has opened up enough that own-side farm starts to look forced.",
-            ),
-            (
-                "border_zone",
-                "camp center in the diagonal strip abs(x - y) <= 1200",
-                "Border camps are treated as slightly less safe and slightly more pressured, but they do not get a separate label.",
-            ),
-        ]
-    )
-    driver_rows_html = "".join(
-        (
-            "<tr>"
-            f"<td><code>{e(driver)}</code></td>"
-            f"<td><code>{e(trigger)}</code></td>"
-            f"<td>{e(explanation)}</td>"
-            "</tr>"
-        )
-        for driver, trigger, explanation in [
-            (
-                "lost_t1_mid",
-                "own mid T1 is dead",
-                "Your mid entrance is more open than a normal own-side farm state.",
-            ),
-            (
-                "enemy_aegis_active",
-                "Aegis active and holder team is enemy",
-                "Temporary objective pressure that makes punish windows wider.",
-            ),
-            (
-                "enemy_presence_high_own_half",
-                "enemy_own_half >= 0.45",
-                "Recent enemy movement density on your side of the map is high.",
-            ),
-            (
-                "enemy_presence_high_river",
-                "enemy_river >= 0.45",
-                "Recent enemy movement density around the central border zone is high.",
-            ),
-            (
-                "vision_deficit",
-                "ward_diff < -0.15",
-                "The enemy currently has better observer coverage than your team.",
-            ),
-            (
-                "map_control_deficit",
-                "tower_diff < -0.15",
-                "Your team has lost enough towers that map ownership is materially worse.",
-            ),
-            (
-                "border_zone_farm",
-                "camp center falls in the diagonal border strip",
-                "The camp is near the central boundary where ownership is naturally less stable.",
-            ),
-            (
-                "invading_enemy_half",
-                "camp is on enemy half",
-                "The visit is happening in enemy-side territory.",
-            ),
-            (
-                "high_farm_value",
-                "value >= 0.70",
-                "The camp is inherently valuable or strongly supported by neutral/XP evidence.",
-            ),
-        ]
-    )
-    context_guide_html = (
-        '<details class="farm-guide" style="margin-top:16px">'
-        "<summary>Legacy context heuristic reference</summary>"
-        '<div class="farm-guide-section">'
-        '<div class="farm-guide-title">Score Formulas</div>'
-        '<div class="farm-table-wrap"><table class="farm-guide-table">'
-        "<thead><tr><th>Score</th><th>Formula</th><th>Meaning</th></tr></thead>"
-        f"<tbody>{score_rows_html}</tbody></table></div>"
-        "</div>"
-        '<div class="farm-guide-section">'
-        '<div class="farm-guide-title">Derived Terms</div>'
-        '<div class="farm-table-wrap"><table class="farm-guide-table">'
-        "<thead><tr><th>Term</th><th>Formula</th><th>Meaning</th></tr></thead>"
-        f"<tbody>{derived_rows_html}</tbody></table></div>"
-        "</div>"
-        '<div class="farm-guide-section">'
-        '<div class="farm-guide-title">Category Rules</div>'
-        '<div class="farm-table-wrap"><table class="farm-guide-table">'
-        "<thead><tr><th>Category</th><th>Meaning</th><th>Rule</th></tr></thead>"
-        f"<tbody>{category_rows_html}</tbody></table></div>"
-        "</div>"
-        '<div class="farm-guide-section">'
-        '<div class="farm-guide-title">Driver Triggers</div>'
-        '<div class="farm-table-wrap"><table class="farm-guide-table">'
-        "<thead><tr><th>Driver</th><th>Trigger</th><th>Meaning</th></tr></thead>"
-        f"<tbody>{driver_rows_html}</tbody></table></div>"
-        "</div>"
-        "</details>"
-    )
-
-    # Prioritize likely farm cores in the selector (higher final net worth first).
-    players = sorted(
-        players,
-        key=lambda player: player.net_worth_t[-1] if player.net_worth_t else 0,
-        reverse=True,
-    )
-    load_hero_icons([player.hero_name for player in players])
+    load_hero_icons([player.hero_name for player, _ in cores])
 
     panels: list[str] = []
     options: list[str] = []
-    for idx, player in enumerate(players):
+    for idx, (player, role_name) in enumerate(cores):
         route = routes_by_player[player.player_id]
-        visits: list[dict] = []
-        for segment in route.segments:
-            context = read_quietly(segment, "context")
-            visits.append(
-                {
-                    "order": segment.segment_index,
-                    "start_tick": segment.start_tick,
-                    "end_tick": segment.end_tick,
-                    "camp_id": segment.camp_id,
-                    "camp_type": segment.camp_type,
-                    "duration_s": segment.duration_seconds,
-                    "start_reason": segment.start_reason.value,
-                    "end_reason": segment.end_reason.value,
-                    "micro_exit_merged": segment.micro_exit_merged,
-                    "sample_count": segment.sample_count,
-                    "in_zone_sample_count": segment.in_zone_sample_count,
-                    "position_coverage": segment.position_coverage,
-                    "neutral_kills": segment.neutral_kills,
-                    "neutral_damage": segment.neutral_damage,
-                    "xp_gain": segment.window_xp_delta,
-                    "gold_gain": segment.window_total_earned_gold_delta,
-                    "evidence_strength": segment.evidence_strength.value,
-                    "evidence_reasons": segment.evidence_reasons,
-                    "evidence_gaps": segment.evidence_gaps,
-                    "distance_travelled": segment.distance_travelled,
-                    "camp_lane": segment.camp_lane,
-                    "camp_area": segment.camp_area,
-                    "camp_side": context.camp_side if context else "unknown",
-                    "camp_catalog_version": segment.camp_catalog_version,
-                    "camp_map_patch": segment.camp_map_patch,
-                    "camp_topology_patch": segment.camp_topology_patch,
-                    "context_status": context.status if context else "unavailable",
-                    "context_tags": (
-                        [tag.value for tag in context.tags] if context else ["incomplete_context"]
-                    ),
-                    "context_tag_reasons": context.tag_reasons if context else {},
-                    "context_gaps": (
-                        context.status_reasons if context else ["segment_context_unavailable"]
-                    ),
-                    "own_presence": context.own_presence_hero_seconds if context else None,
-                    "enemy_presence": context.enemy_presence_hero_seconds if context else None,
-                    "own_presence_coverage": (
-                        context.own_presence_position_coverage if context else None
-                    ),
-                    "enemy_presence_coverage": (
-                        context.enemy_presence_position_coverage if context else None
-                    ),
-                    "own_vision": context.own_point_vision_status if context else None,
-                    "enemy_vision": context.enemy_point_vision_status if context else None,
-                    "own_towers": context.own_relevant_towers_alive if context else None,
-                    "enemy_towers": context.enemy_relevant_towers_alive if context else None,
-                    "net_worth_advantage": context.net_worth_advantage if context else None,
-                    "total_xp_advantage": (context.total_earned_xp_advantage if context else None),
-                    "aegis_holder_team": context.aegis_holder_team if context else None,
-                    "aegis_source": context.aegis_source if context else None,
-                    "last_roshan_tick": context.last_roshan_tick if context else None,
-                    "last_roshan_team": context.last_roshan_team if context else None,
-                    "roshan_team_source": context.roshan_team_source if context else None,
-                    "last_tormentor_tick": context.last_tormentor_tick if context else None,
-                    "last_tormentor_team": context.last_tormentor_team if context else None,
-                    "tormentor_team_source": (context.tormentor_team_source if context else None),
-                    "territory_coverage_delta": (
-                        context.territory_coverage_differential_pct if context else None
-                    ),
-                    "territory_depth_delta": (
-                        context.territory_depth_differential if context else None
-                    ),
-                }
-            )
+        segments = route.segments
         map_svg, timeline_points = _build_farming_map_svg(
             player=player,
             route=route,
             camps=camps,
-            visits=visits,
+            visits=[{"camp_id": segment.camp_id} for segment in segments],
             map_b64=map_b64,
             start_tick=match.game_start_tick or 0,
         )
 
-        option_label = (
-            f"{hero(player.hero_name)} "
-            f"({team_name(player.team)}, NW {(player.net_worth_t[-1] if player.net_worth_t else 0):,})"
-        )
+        option_label = f"{hero(player.hero_name)} ({team_name(player.team)}, {role_name})"
         options.append(
             f'<option value="{player.player_id}"{" selected" if idx == 0 else ""}>{e(option_label)}</option>'
         )
 
+        def gain(value: int | None) -> str:
+            return "—" if value is None else f"+{value:,}"
+
         rows: list[str] = []
-        visit_payload: list[dict] = []
-        for visit in visits:
-            context_tags = [str(tag) for tag in visit["context_tags"]]
-            context_tags_html = " ".join(
-                f'<span class="farm-tag {context_tag_class.get(tag, "farm-tag-pressured")}">'
-                f"{e(context_tag_display.get(tag, tag.replace('_', ' ').title()))}</span>"
-                for tag in context_tags
-            )
-            context_text = ", ".join(
-                context_tag_display.get(tag, tag.replace("_", " ").title()) for tag in context_tags
-            )
-
-            def metric(value: object, *, suffix: str = "") -> str:
-                if value is None:
-                    return "unavailable"
-                if isinstance(value, float):
-                    return f"{value:.2f}{suffix}"
-                return f"{value}{suffix}"
-
-            context_parts = [
-                f"topology: {visit['camp_side']}, {visit['camp_area']}/{visit['camp_lane']}",
-                f"catalog: v{metric(visit['camp_catalog_version'])}, geometry "
-                f"{metric(visit['camp_map_patch'])}, topology "
-                f"{metric(visit['camp_topology_patch'])}",
-                "local hero-seconds: "
-                f"own {metric(visit['own_presence'])}, enemy {metric(visit['enemy_presence'])}",
-                "position coverage: "
-                f"own {metric(visit['own_presence_coverage'])}, "
-                f"enemy {metric(visit['enemy_presence_coverage'])}",
-                f"modeled point vision: own {metric(visit['own_vision'])}, "
-                f"enemy {metric(visit['enemy_vision'])}",
-                f"lane T1/T2 alive: own {metric(visit['own_towers'])}, "
-                f"enemy {metric(visit['enemy_towers'])}",
-                f"team advantage: NW {metric(visit['net_worth_advantage'])}, "
-                f"total XP {metric(visit['total_xp_advantage'])}",
-                f"Aegis: holder {metric(visit['aegis_holder_team'])}, "
-                f"source {metric(visit['aegis_source'])}",
-                f"last Roshan: tick {metric(visit['last_roshan_tick'])}, "
-                f"team {metric(visit['last_roshan_team'])}, "
-                f"source {metric(visit['roshan_team_source'])}",
-                f"last Tormentor: tick {metric(visit['last_tormentor_tick'])}, "
-                f"team {metric(visit['last_tormentor_team'])}, "
-                f"source {metric(visit['tormentor_team_source'])}",
-                f"territory delta: coverage {metric(visit['territory_coverage_delta'])}, "
-                f"depth {metric(visit['territory_depth_delta'])}",
-            ]
-            tag_reason_map = visit["context_tag_reasons"]
-            for tag in context_tags:
-                reasons = tag_reason_map.get(tag, [])
-                if reasons:
-                    context_parts.append(f"{tag}: " + "; ".join(reasons))
-            if visit["context_gaps"]:
-                context_parts.append("gaps: " + ", ".join(visit["context_gaps"]))
-            context_details = (
-                '<details class="farm-context-details"><summary>Why these tags?</summary>'
-                f"<div>{e(' · '.join(context_parts))}</div></details>"
-            )
-
-            evidence_strength = str(visit["evidence_strength"])
-            evidence_text = evidence_label_display[evidence_strength]
-            evidence_cls = evidence_label_class[evidence_strength]
-            support_parts: list[str] = []
-            if int(visit["neutral_kills"]) > 0:
-                support_parts.append(f"{int(visit['neutral_kills'])} neutral kill(s)")
-            if int(visit["neutral_damage"]) > 0:
-                support_parts.append(f"{int(visit['neutral_damage']):,} neutral damage")
-            xp_gain = visit["xp_gain"]
-            gold_gain = visit["gold_gain"]
-            support_parts.append(
-                f"XP +{int(xp_gain):,}" if xp_gain is not None else "XP unavailable"
-            )
-            support_parts.append(
-                f"gold +{int(gold_gain):,}" if gold_gain is not None else "gold unavailable"
-            )
-            support_parts.append(
-                f"{int(visit['in_zone_sample_count'])}/{int(visit['sample_count'])} in-zone samples"
-            )
-            coverage = visit["position_coverage"]
-            if coverage is not None:
-                support_parts.append(f"{float(coverage):.0%} sampled-window coverage")
-            distance_travelled = visit["distance_travelled"]
-            if distance_travelled is not None:
-                support_parts.append(f"{float(distance_travelled):,.0f} units travelled")
-            support_parts.append(f"{visit['start_reason']} → {visit['end_reason']}")
-            if bool(visit["micro_exit_merged"]):
-                support_parts.append("micro-exit merged")
-            if visit["evidence_gaps"]:
-                support_parts.append("gaps: " + ", ".join(visit["evidence_gaps"]))
-            support_text = ", ".join(support_parts)
-            visit_payload.append(
-                {
-                    "order": int(visit["order"]),
-                    "start_tick": int(visit["start_tick"]),
-                    "end_tick": int(visit["end_tick"]),
-                    "camp_id": int(visit["camp_id"]),
-                    "camp_type": str(visit["camp_type"]),
-                    "label_text": context_text,
-                    "evidence_text": evidence_text,
-                }
-            )
+        visit_payload = [
+            {
+                "order": segment.segment_index,
+                "start_tick": segment.start_tick,
+                "end_tick": segment.end_tick,
+            }
+            for segment in segments
+        ]
+        for segment in segments:
             rows.append(
-                f'<tr class="farm-visit-row" data-order="{int(visit["order"])}" '
-                f'data-start-tick="{int(visit["start_tick"])}" data-end-tick="{int(visit["end_tick"])}">'
-                f'<td class="r">{visit["order"]}</td>'
-                f"<td>{e(fmt_tick(int(visit['start_tick'])))}</td>"
-                f"<td>{e(fmt_tick(int(visit['end_tick'])))}</td>"
-                f'<td class="r">{int(visit["camp_id"])}</td>'
-                f"<td>{e(str(visit['camp_type']))}</td>"
-                f'<td class="r">{visit["duration_s"]:.1f}s</td>'
-                f'<td><span class="farm-tag {evidence_cls}">{e(evidence_text)}</span></td>'
-                f'<td style="max-width:240px;white-space:normal">{context_tags_html}</td>'
-                f'<td style="max-width:180px;white-space:normal">{e(support_text)}</td>'
-                f'<td style="max-width:280px;white-space:normal">{context_details}</td>'
+                f'<tr class="farm-visit-row" data-order="{segment.segment_index}" '
+                f'data-start-tick="{segment.start_tick}" data-end-tick="{segment.end_tick}">'
+                f'<td class="r">{segment.segment_index}</td>'
+                f"<td>{e(fmt_tick(segment.start_tick))}</td>"
+                f"<td>{e(fmt_tick(segment.end_tick))}</td>"
+                f'<td class="r">{segment.camp_id}</td>'
+                f"<td>{e(segment.camp_type)}</td>"
+                f'<td class="r">{segment.duration_seconds:.1f}s</td>'
+                f'<td class="r">{segment.neutral_kills}</td>'
+                f'<td class="r">{gain(segment.window_total_earned_gold_delta)}</td>'
+                f'<td class="r">{gain(segment.window_xp_delta)}</td>'
                 "</tr>"
             )
         if not rows:
-            rows.append(
-                '<tr><td colspan="10" class="dim">No camp-path segments detected.</td></tr>'
-            )
+            rows.append('<tr><td colspan="9" class="dim">No camp visits detected.</td></tr>')
 
         display_style = "" if idx == 0 else "display:none"
         initial_point = timeline_points[0] if timeline_points else None
@@ -1818,14 +1313,6 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
             initial_camp = f"#{int(initial_point['camp_id'])} {str(initial_point.get('camp_type') or '').replace('_', ' ')}"
         else:
             initial_camp = "Transit"
-        initial_visit = None
-        if initial_point is not None:
-            for visit_item in visit_payload:
-                if visit_item["start_tick"] <= int(initial_point["tick"]) <= visit_item["end_tick"]:
-                    initial_visit = visit_item
-                    break
-        initial_context = str(initial_visit["label_text"]) if initial_visit else "Transit"
-        initial_evidence = str(initial_visit["evidence_text"]) if initial_visit else "Transit"
         timeline_js = json.dumps(timeline_points)
         visits_js = json.dumps(visit_payload)
         panels.append(
@@ -1842,8 +1329,6 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
             f'<div class="farm-meta-chip"><span class="label">Time</span><span class="value" id="farm-time-{player.player_id}">{e(initial_time)}</span></div>'
             f'<div class="farm-meta-chip"><span class="label">Tick</span><span class="value" id="farm-tick-{player.player_id}">{e(initial_tick)}</span></div>'
             f'<div class="farm-meta-chip"><span class="label">Camp</span><span class="value" id="farm-camp-{player.player_id}">{e(initial_camp)}</span></div>'
-            f'<div class="farm-meta-chip"><span class="label">Evidence</span><span class="value" id="farm-evidence-{player.player_id}">{e(initial_evidence)}</span></div>'
-            f'<div class="farm-meta-chip"><span class="label">Context</span><span class="value" id="farm-context-{player.player_id}">{e(initial_context)}</span></div>'
             f"</div>"
             f'<div class="farm-map-shell">'
             f"{map_svg}"
@@ -1857,7 +1342,8 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
             f"<table>"
             f"<thead><tr>"
             f'<th class="r">#</th><th>Start</th><th>End</th><th class="r">Camp</th><th>Type</th>'
-            f'<th class="r">Duration</th><th>Evidence</th><th>Context Tags</th><th>Exact Support</th><th>Context Evidence</th>'
+            f'<th class="r">Duration</th><th class="r">Neutral kills</th>'
+            f'<th class="r">Gold</th><th class="r">XP</th>'
             f"</tr></thead>"
             f"<tbody>{''.join(rows)}</tbody>"
             f"</table>"
@@ -1946,8 +1432,6 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
     state.campEl.textContent = point.camp_id ? ('#' + point.camp_id + ' ' + (point.camp_type || '').split('_').join(' ')) : 'Transit';
 
     var visit = findVisit(state.visits, point.tick);
-    state.evidenceEl.textContent = visit ? visit.evidence_text : 'Transit';
-    state.contextEl.textContent = visit ? visit.label_text : 'Transit';
     state.rows.forEach(function (row) {
       var active = visit && row.getAttribute('data-order') === String(visit.order);
       row.classList.toggle('farm-visit-active', !!active);
@@ -1996,8 +1480,6 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
       timeEl: document.getElementById('farm-time-' + pid),
       tickEl: document.getElementById('farm-tick-' + pid),
       campEl: document.getElementById('farm-camp-' + pid),
-      evidenceEl: document.getElementById('farm-evidence-' + pid),
-      contextEl: document.getElementById('farm-context-' + pid),
       rows: Array.prototype.slice.call(document.querySelectorAll('#farm-panel-' + pid + ' .farm-visit-row')),
       index: 0,
       timer: null
@@ -2039,18 +1521,17 @@ def build_farming(match: ParsedMatch, map_b64: str | None) -> str:
         "<summary>Farming Patterns</summary>"
         '<div class="card-body">'
         '<p class="section-note">'
-        "Segments follow documented camp-zone, sample-gap, large-jump, and micro-exit rules. "
-        "Evidence labels distinguish neutral-death support, weaker interaction or dwell support, "
-        "and transit-like touches without claiming player intent or a complete camp clear. "
-        "Independent context tags compare bounded presence, modeled point vision, lane towers, "
-        "objectives, and sampled territory. Missing inputs remain explicit and never become zero."
+        "Camp-by-camp routes for each team's cores. For each team and lane role "
+        "(safe lane → carry, mid → mid, off lane → offlaner), the core is the player "
+        "with the most last hits at 10:00. A visit is time spent inside a camp zone. "
+        "Neutral kills are the hero's kills inside that zone; gold and XP are everything "
+        "the hero earned during the visit, from any source."
         "</p>"
         '<div style="margin:10px 0 14px 0">'
         '<label for="farm-player-select" style="font-size:12px;color:#8b949e;margin-right:8px">Hero</label>'
         f'<select id="farm-player-select" class="farm-select">{"".join(options)}</select>'
         "</div>"
         f"{''.join(panels)}"
-        f"{context_guide_html}"
         f"{script}"
         "</div>"
         "</details>"

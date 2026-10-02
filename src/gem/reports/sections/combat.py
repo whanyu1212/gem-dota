@@ -13,12 +13,13 @@ from gem.analysis import (
     FightPositioning,
     HeroPositionEvidence,
     RoshConversion,
+    SmokeAnalysis,
     build_fight_positioning,
+    build_smoke_analysis,
     group_ability_hits,
     hero_visibility_at,
     is_active_fight_participant,
 )
-from gem.analysis.smoke_fight import SmokeFightInsight, build_smoke_fight_insights
 from gem.catalog import (
     ability_display,
     item_display,
@@ -821,10 +822,22 @@ def _fight_reveals_html(
 def build_fights(
     match: ParsedMatch,
     map_b64: str | None,
-    insights: list[SmokeFightInsight] | None = None,
+    smokes: list[SmokeAnalysis] | None = None,
     rosh_conversions: list[RoshConversion] | None = None,
 ) -> str:
-    """Build the Fights tab content (filters + fight cards)."""
+    """Build the Fights tab content (filters + fight cards).
+
+    Args:
+        match: Parsed match carrying the fights.
+        map_b64: Optional pre-encoded map background.
+        smokes: Optional precomputed :func:`gem.build_smoke_analysis` output;
+            a fight that was a smoke's first fight gets an "after Smoke #N" badge.
+        rosh_conversions: Optional precomputed Roshan records; a fight that
+            overlaps an Aegis hold gets a "during Aegis #N" badge.
+
+    Returns:
+        Self-contained HTML for the Fights tab.
+    """
     fights = match.fights or []
     if not fights:
         return (
@@ -844,20 +857,12 @@ def build_fights(
     positioning_by_index = {
         analysis.fight_index: analysis for analysis in build_fight_positioning(match)
     }
-    if insights is None:
-        insights = build_smoke_fight_insights(match)
-    insights_by_fight: dict[int, list[SmokeFightInsight]] = {}
-    for insight in insights:
-        if insight.fight_index is not None:
-            insights_by_fight.setdefault(insight.fight_index, []).append(insight)
-    if rosh_conversions is None:
-        rosh_conversions = []
-    rosh_by_fight: dict[int, list[tuple[RoshConversion, str]]] = {}
-    for conversion in rosh_conversions:
-        for evidence in conversion.fight_evidence:
-            rosh_by_fight.setdefault(evidence.fight_index, []).append(
-                (conversion, evidence.relation.value)
-            )
+    if smokes is None:
+        smokes = build_smoke_analysis(match)
+    smokes_by_fight: dict[int, list[int]] = {}
+    for smoke_number, smoke in enumerate(smokes, start=1):
+        if smoke.first_fight is not None:
+            smokes_by_fight.setdefault(id(smoke.first_fight), []).append(smoke_number)
 
     max_deaths = max((tf.deaths for tf in fights), default=1)
     max_participants = max(
@@ -886,18 +891,19 @@ def build_fights(
     for i, tf in enumerate(fights, start=1):
         positioning = positioning_by_index[i - 1]
         smoke_links = "".join(
-            f'<a class="fight-smoke-link status-{insight.status.value}" '
-            f'href="#smoke-operation-{insight.smoke_index + 1}" '
-            f'data-report-target="smoke-operation-{insight.smoke_index + 1}">'
-            f"Smoke #{insight.smoke_index + 1} · {e(insight.status.value.replace('_', ' '))}</a>"
-            for insight in insights_by_fight.get(i - 1, [])
+            f'<a class="fight-smoke-link" href="#smoke-operation-{number}" '
+            f'data-report-target="smoke-operation-{number}">after Smoke #{number}</a>'
+            for number in smokes_by_fight.get(id(tf), [])
         )
         rosh_links = "".join(
-            f'<a class="fight-rosh-link relation-{e(relation)}" '
-            f'href="#roshan-conversion-{conversion.rosh_number}" '
-            f'data-report-target="roshan-conversion-{conversion.rosh_number}">'
-            f"Roshan #{conversion.rosh_number} · {e(relation.replace('_', ' '))}</a>"
-            for conversion, relation in rosh_by_fight.get(i - 1, [])
+            f'<a class="fight-rosh-link" href="#roshan-{conversion.rosh_number}" '
+            f'data-report-target="roshan-{conversion.rosh_number}">'
+            f"during Aegis #{conversion.rosh_number}</a>"
+            for conversion in rosh_conversions or []
+            if conversion.aegis_pickup_tick is not None
+            and conversion.aegis_fate != "denied"
+            and conversion.aegis_pickup_tick <= tf.end_tick
+            and tf.start_tick <= conversion.aegis_end_tick
         )
         tf_by_slot = {p.player_id: p for p in tf.players}
         active_slots = [p.player_id for p in tf.players if is_active_fight_participant(p)]
