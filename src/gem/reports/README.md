@@ -166,6 +166,14 @@ in `sections/combat.py`; only the filter *handler* lives in `builder.py`.
   `python -m gem reports assets add-map assets/maps/Game_map_7.41.jpg`.
   The older `scripts/fetch_*_icons.py` entry points are compatibility wrappers
   around the same package functions.
+- `fetch_match_icons(match, assets)` downloads only the icons one match needs
+  (`match_icon_shorts`: drafted and played heroes, purchases, item inflictors and
+  the ward/smoke markers) into the directories the report will read, and returns
+  the assets to render with. `examples/match_report.py` calls it unless
+  `--offline` is passed. The library never downloads on its own.
+- The loaders record names with no cached icon in `MISSING_HERO_ICONS` /
+  `MISSING_ITEM_ICONS`; `build_html_report` logs one warning naming the
+  downloadable ones, so a stale cache (a new hero, say) is not silent.
 - Module-global dicts `ITEM_ICON_B64` and `HERO_ICON_B64` map short names to
   `"data:image/png;base64,..."` URIs. `configure_assets` resets them on every
   build so a second report with different asset dirs can't inherit stale icons.

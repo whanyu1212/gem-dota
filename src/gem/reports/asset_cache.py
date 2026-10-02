@@ -9,11 +9,15 @@ import shutil
 import ssl
 import time
 import urllib.request
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from gem.reports.assets import ReportAssets
+
+if TYPE_CHECKING:
+    from gem.results.models import ParsedMatch
 
 REPORT_ASSET_ENV = "GEM_REPORT_ASSET_DIR"
 DEFAULT_MAP_NAME = "Game_map_7.41.jpg"
@@ -308,16 +312,21 @@ def download_hero_icons(
     force: bool = False,
     heroes_path: str | Path = HEROES_JSON,
     out_dir: str | Path | None = None,
+    only: Iterable[str] | None = None,
     reporter: Callable[[str], None] | None = None,
     error_reporter: Callable[[str], None] | None = None,
 ) -> IconDownloadResult:
-    """Download missing hero icons into the report asset cache."""
+    """Download missing hero icons into the report asset cache.
+
+    ``only`` limits the download to these short names (e.g. one match's heroes).
+    """
 
     icon_dir = _download_dir(out_dir, HERO_ICON_SUBDIR)
     ctx = _cdn_ssl_context()
     downloaded = failed = skipped = 0
 
-    for short in hero_icon_shorts(heroes_path):
+    shorts = hero_icon_shorts(heroes_path) if only is None else tuple(only)
+    for short in shorts:
         out_path = icon_dir / f"{short}.png"
         if _is_png_file(out_path) and not force:
             skipped += 1
@@ -348,16 +357,25 @@ def download_item_icons(
     items_path: str | Path = ITEMS_JSON,
     out_dir: str | Path | None = None,
     include_recipes: bool = False,
+    only: Iterable[str] | None = None,
     reporter: Callable[[str], None] | None = None,
     error_reporter: Callable[[str], None] | None = None,
 ) -> IconDownloadResult:
-    """Download missing item icons into the report asset cache."""
+    """Download missing item icons into the report asset cache.
+
+    ``only`` limits the download to these short names (e.g. one match's items).
+    """
 
     icon_dir = _download_dir(out_dir, ITEM_ICON_SUBDIR)
     ctx = _cdn_ssl_context()
     downloaded = failed = skipped = 0
 
-    for short in item_icon_shorts(items_path, include_recipes=include_recipes):
+    shorts = (
+        item_icon_shorts(items_path, include_recipes=include_recipes)
+        if only is None
+        else tuple(only)
+    )
+    for short in shorts:
         out_path = icon_dir / f"{short}.png"
         if _is_png_file(out_path) and not force:
             skipped += 1
@@ -379,6 +397,91 @@ def download_item_icons(
         skipped=skipped,
         failed=failed,
     )
+
+
+# Item icons every report draws (ward and smoke markers), whatever was bought.
+_REPORT_ITEM_ICONS = ("ward_observer", "ward_sentry", "smoke_of_deceit")
+
+
+def match_icon_shorts(match: ParsedMatch) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    """Return the hero and item icons a report of ``match`` can show.
+
+    Heroes come from the draft and the players; items from the report's markers,
+    every purchase and every item that dealt or caused a combat-log event. Only
+    icons the downloader can fetch are listed (heroes in ``heroes.json``, items in
+    ``items.json``), so the result is a superset of what one report renders.
+
+    Args:
+        match: A parsed match.
+
+    Returns:
+        ``(hero_shorts, item_shorts)``, each sorted.
+    """
+    heroes = {entry.hero_name for entry in match.draft if entry.hero_name}
+    heroes |= {player.hero_name for player in match.players if player.hero_name}
+    items = set(_REPORT_ITEM_ICONS)
+    items |= {
+        _item_short(entry.value_name)
+        for player in match.players
+        for entry in player.purchase_log
+        if entry.value_name
+    }
+    items |= {
+        _item_short(entry.inflictor_name)
+        for entry in match.combat_log
+        if entry.inflictor_name and entry.inflictor_name.startswith("item_")
+    }
+    known_heroes = set(hero_icon_shorts())
+    known_items = set(item_icon_shorts())
+    return (
+        tuple(sorted(short for short in map(_hero_short, heroes) if short in known_heroes)),
+        tuple(sorted(short for short in items if short in known_items)),
+    )
+
+
+def fetch_match_icons(
+    match: ParsedMatch,
+    assets: ReportAssets | None = None,
+    *,
+    root: str | Path | None = None,
+    reporter: Callable[[str], None] | None = None,
+    error_reporter: Callable[[str], None] | None = None,
+) -> ReportAssets:
+    """Download the hero and item icons a report of ``match`` needs, then return assets.
+
+    Icons already cached are skipped, so this only touches the network when the
+    cache is missing some (a new hero, say). Icons go into the directories the
+    report will read: ``assets``' icon directories when set, otherwise the report
+    asset cache. The map image is passed through unchanged.
+
+    The icons are Valve's artwork, so gem downloads them from the Dota 2 CDN on
+    the user's machine instead of shipping them.
+
+    Args:
+        match: A parsed match.
+        assets: The assets the report will use; ``ReportAssets.auto(root=root)`` if
+            omitted.
+        root: Report asset cache root (default: ``GEM_REPORT_ASSET_DIR`` or the user
+            cache).
+        reporter: Called with a line per downloaded icon.
+        error_reporter: Called with a line per icon that could not be downloaded.
+
+    Returns:
+        ``assets`` with both icon directories set.
+    """
+    if assets is None:
+        assets = auto_report_assets(root=root)
+    paths = report_asset_paths(root)
+    hero_dir = Path(assets.hero_icon_dir) if assets.hero_icon_dir else paths.hero_icon_dir
+    item_dir = Path(assets.item_icon_dir) if assets.item_icon_dir else paths.item_icon_dir
+    heroes, items = match_icon_shorts(match)
+    download_hero_icons(
+        out_dir=hero_dir, only=heroes, reporter=reporter, error_reporter=error_reporter
+    )
+    download_item_icons(
+        out_dir=item_dir, only=items, reporter=reporter, error_reporter=error_reporter
+    )
+    return ReportAssets(map_image=assets.map_image, hero_icon_dir=hero_dir, item_icon_dir=item_dir)
 
 
 def _hero_short(npc_name: str) -> str:

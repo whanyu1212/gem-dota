@@ -54,6 +54,8 @@ from gem.reports._sections import (
     build_wards as _ext_build_wards,
 )
 from gem.reports.assets import (
+    MISSING_HERO_ICONS,
+    MISSING_ITEM_ICONS,
     ReportAssets,
     configure_assets,
     load_hero_icons as _load_hero_icons,
@@ -219,6 +221,35 @@ def _build_movement_tab(match: ParsedMatch, map_b64: str | None) -> str:
         # degrade gracefully by omitting the tab, but log for diagnosis.
         logger.debug("Movement tab rendering failed; omitting it", exc_info=True)
         return ""
+
+
+def _warn_missing_icons(limit: int = 8) -> None:
+    """Log which downloadable hero/item icons the report showed as names instead.
+
+    Only icons the downloader can fetch are named, so the advice always helps.
+    """
+    from gem.reports.asset_cache import hero_icon_shorts, item_icon_shorts
+
+    heroes = sorted(MISSING_HERO_ICONS & set(hero_icon_shorts()))
+    items = sorted(MISSING_ITEM_ICONS & set(item_icon_shorts()))
+    if not heroes and not items:
+        return
+
+    def listed(names: list[str]) -> str:
+        more = f" and {len(names) - limit} more" if len(names) > limit else ""
+        return ", ".join(names[:limit]) + more
+
+    missing = "; ".join(
+        f"{len(names)} {label}: {listed(names)}"
+        for label, names in (("hero(es)", heroes), ("item(s)", items))
+        if names
+    )
+    logger.warning(
+        "No cached icon for %s. They are shown as names. Fetch them with "
+        "gem.reports.fetch_match_icons(match) before rendering, or "
+        "`python -m gem reports assets download --icons`.",
+        missing,
+    )
 
 
 def build_html_report(
@@ -506,6 +537,7 @@ def build_html_report(
 
     body_parts = [map_js, header_html, tab_bar, pages_html, tab_js]
     body = "\n".join(p for p in body_parts if p)
+    _warn_missing_icons()
     body = _deduplicate_data_uris(body)
 
     return "\n".join(
