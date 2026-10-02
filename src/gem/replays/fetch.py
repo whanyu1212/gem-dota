@@ -5,6 +5,10 @@ from the Valve CDN, decompressing them to ``.dem`` files ready for parsing.
 Valve serves both bzip2 and Zstandard archives under the ``.bz2`` extension,
 so the format is detected from the payload's magic bytes rather than the name.
 
+HTTPS requests verify certificates and hostnames. OpenDota's ``replay_url`` is
+plain ``http://replayNNN.valve.net/...``: Valve's replay hosts do not offer TLS,
+so the replay download itself cannot be protected by certificate checks.
+
 Example::
 
     from gem.replays.fetch import fetch_replay
@@ -19,6 +23,7 @@ import bz2
 import io
 import json
 import ssl
+import urllib.error
 import urllib.request
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -30,10 +35,38 @@ if TYPE_CHECKING:
 
 OPENDOTA_API = "https://api.opendota.com/api/matches"
 
-# Relax SSL verification for CDN hosts that occasionally present cert issues.
-_SSL_CONTEXT = ssl.create_default_context()
-_SSL_CONTEXT.check_hostname = False
-_SSL_CONTEXT.verify_mode = ssl.CERT_NONE
+_CERT_HINT = (
+    "TLS certificate verification failed. If this Python has no CA bundle "
+    "(common with python.org macOS installs), run its 'Install Certificates.command' "
+    "or `pip install certifi`."
+)
+
+
+def _ssl_context() -> ssl.SSLContext:
+    # Verify certificates and hostnames. python.org macOS builds ship without a
+    # CA bundle, so certifi's roots are added on top of the system store when
+    # certifi is installed; without either, requests fail with a hint.
+    ctx = ssl.create_default_context()
+    try:
+        import certifi
+    except ImportError:
+        return ctx
+    ctx.load_verify_locations(cafile=certifi.where())
+    return ctx
+
+
+_SSL_CONTEXT = _ssl_context()
+
+
+def _read_url(req: urllib.request.Request, timeout: int) -> bytes:
+    try:
+        with urllib.request.urlopen(req, context=_SSL_CONTEXT, timeout=timeout) as resp:
+            return resp.read()
+    except urllib.error.URLError as exc:
+        # urlopen wraps TLS handshake failures in URLError(reason=...).
+        if isinstance(exc.reason, ssl.SSLCertVerificationError):
+            raise urllib.error.URLError(f"{exc.reason}. {_CERT_HINT}") from exc
+        raise
 
 
 def fetch_replay_url(match_id: int) -> str:
@@ -51,8 +84,7 @@ def fetch_replay_url(match_id: int) -> str:
     """
     url = f"{OPENDOTA_API}/{match_id}"
     req = urllib.request.Request(url, headers={"User-Agent": "gem/1.0"})
-    with urllib.request.urlopen(req, context=_SSL_CONTEXT, timeout=20) as resp:
-        raw = resp.read()
+    raw = _read_url(req, timeout=20)
     try:
         data = json.loads(raw)
     except json.JSONDecodeError as exc:
@@ -120,6 +152,11 @@ def download_and_decompress(match_id: int, replay_url: str, out_dir: Path | str 
 
     Returns:
         Path to the decompressed ``.dem`` file.
+
+    Raises:
+        urllib.error.URLError: If the download fails, including TLS certificate
+            verification failures for ``https`` URLs. OpenDota's replay URLs are
+            plain ``http``, which TLS does not cover.
     """
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -129,8 +166,7 @@ def download_and_decompress(match_id: int, replay_url: str, out_dir: Path | str 
 
     req = urllib.request.Request(replay_url, headers={"User-Agent": "Mozilla/5.0"})
     # Larger timeout than the JSON API calls: a full replay is 100-300 MB.
-    with urllib.request.urlopen(req, context=_SSL_CONTEXT, timeout=120) as resp:
-        bz2_path.write_bytes(resp.read())
+    bz2_path.write_bytes(_read_url(req, timeout=120))
 
     dem_path.write_bytes(_decompress_replay(bz2_path.read_bytes()))
     bz2_path.unlink()
@@ -251,8 +287,7 @@ def fetch_opendota_match(match_id: int) -> dict:
     """
     url = f"{OPENDOTA_API}/{match_id}"
     req = urllib.request.Request(url, headers={"User-Agent": "gem/1.0"})
-    with urllib.request.urlopen(req, context=_SSL_CONTEXT, timeout=20) as resp:
-        raw = resp.read()
+    raw = _read_url(req, timeout=20)
     try:
         return json.loads(raw)
     except json.JSONDecodeError as exc:

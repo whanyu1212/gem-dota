@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Replay fetching now verifies TLS certificates.** `gem.replays.fetch`
+  (`fetch_replay`, `fetch_replay_url`, `download_and_decompress`,
+  `fetch_opendota_match`, `enrich_with_api_rates`) used to turn off certificate
+  and hostname checks for every request. That left the OpenDota API calls open
+  to tampering.
+  - **Verification.** Requests now use the system trust store, plus `certifi`'s
+    roots when `certifi` is installed. `certifi` is not a new dependency.
+  - **No CA bundle.** A certificate failure raises `urllib.error.URLError` with a
+    hint: run Python's `Install Certificates.command` or `pip install certifi`.
+  - **Replay downloads are still plain HTTP.** OpenDota's `replay_url` points at
+    `http://replayNNN.valve.net/...`, and those Valve hosts do not accept TLS
+    connections. No HTTPS host for the same files was found, so TLS cannot
+    protect the replay bytes themselves. Only `https` URLs are verified.
+  - **Tests.** The draft integration test now uses the same verifying context.
+
 - **Report icon downloads now verify TLS certificates.** The hero and item icon
   downloader (`python -m gem reports assets download`, `scripts/fetch_*_icons.py`)
   used to turn off certificate and hostname checks, to cope with python.org macOS
