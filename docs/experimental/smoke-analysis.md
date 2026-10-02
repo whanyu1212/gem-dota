@@ -38,6 +38,30 @@ the presentation boundary. Raw smoke and member records also retain optional
 pause-aware `*_game_time_s` values when the replay exposes them; otherwise gem
 uses the exact replay tick and does not invent a game-time value.
 
+## Smoke to fight
+
+`smoke.first_fight` is the first detected fight whose first death falls within
+60 seconds after the activation, or `None`. The rest are plain facts you can read
+from it:
+
+```python
+for smoke in gem.build_smoke_analysis(match):
+    fight = smoke.first_fight
+    if fight is None:
+        continue
+    delay_s = (fight.first_death_tick - smoke.activation_tick) / 30  # replay ticks
+    smoked = {member.player_id for member in smoke.members}
+    fought = sorted(
+        player.player_id
+        for player in fight.players
+        if player.player_id in smoked and gem.is_active_fight_participant(player)
+    )
+    print(smoke.activation_tick, delay_s, fight.winner, fought)
+```
+
+This replaces the deprecated `build_smoke_fight_insights`. Ticks keep running
+during pauses; use `match.game_clock` when you need game seconds.
+
 ## Lifecycle status
 
 For each member, `lifecycle_status` is:

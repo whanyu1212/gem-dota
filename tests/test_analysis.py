@@ -28,7 +28,11 @@ def test_analysis_package_reexports_public_helpers() -> None:
         analysis.build_fight_positioning is analysis_teamfight_positioning.build_fight_positioning
     )
     assert gem.build_fight_positioning is analysis.build_fight_positioning
-    assert analysis.build_smoke_fight_insights is analysis_smoke_fight.build_smoke_fight_insights
+    # Deprecated (HY-101): the public names wrap the module's function with a warning.
+    assert (
+        analysis.build_smoke_fight_insights.__wrapped__
+        is analysis_smoke_fight.build_smoke_fight_insights
+    )
     assert gem.build_smoke_fight_insights is analysis.build_smoke_fight_insights
 
 

@@ -13,13 +13,12 @@ from gem.analysis import (
     FightPositioning,
     HeroPositionEvidence,
     RoshConversion,
-    SmokeFightInsight,
     build_fight_positioning,
-    build_smoke_fight_insights,
     group_ability_hits,
     hero_visibility_at,
     is_active_fight_participant,
 )
+from gem.analysis.smoke_fight import SmokeFightInsight, build_smoke_fight_insights
 from gem.catalog import (
     ability_display,
     item_display,

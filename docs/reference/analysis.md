@@ -959,12 +959,12 @@ Source: [src/gem/analysis/farming.py](https://github.com/whanyu1212/gem-dota/blo
 ### `build_farming_routes`
 
 ```python
-def build_farming_routes(match: ParsedMatch, *, config: FarmingRouteConfig = DEFAULT_FARMING_ROUTE_CONFIG, context_config: FarmingContextConfig = DEFAULT_FARMING_CONTEXT_CONFIG) -> list[FarmingRoute]
+def build_farming_routes(match: ParsedMatch, *, config: FarmingRouteConfig = DEFAULT_FARMING_ROUTE_CONFIG, context_config: FarmingContextConfig | None = None) -> list[FarmingRoute]
 ```
 
 Build deterministic camp-local route evidence for every parsed player.
 
-Source: [src/gem/analysis/farming.py:704](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L704)
+Source: [src/gem/analysis/farming.py:716](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L716)
 
 ### Top-level classes
 
@@ -976,7 +976,7 @@ class FarmingEvidenceStrength(str, Enum)
 
 Conservative support level for a camp-local route segment.
 
-Source: [src/gem/analysis/farming.py:23](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L23)
+Source: [src/gem/analysis/farming.py:24](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L24)
 
 ### `FarmingBoundaryReason`
 
@@ -986,7 +986,7 @@ class FarmingBoundaryReason(str, Enum)
 
 Observed reason a route segment started or ended.
 
-Source: [src/gem/analysis/farming.py:31](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L31)
+Source: [src/gem/analysis/farming.py:32](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L32)
 
 ### `FarmingContextTag`
 
@@ -996,7 +996,7 @@ class FarmingContextTag(str, Enum)
 
 Independent evidence-aware context tags for one farming segment.
 
-Source: [src/gem/analysis/farming.py:42](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L42)
+Source: [src/gem/analysis/farming.py:43](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L43)
 
 ### `FarmingRouteConfig`
 
@@ -1006,7 +1006,7 @@ class FarmingRouteConfig
 
 Inspectable thresholds for farming-route reconstruction.
 
-Source: [src/gem/analysis/farming.py:57](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L57)
+Source: [src/gem/analysis/farming.py:61](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L61)
 
 #### Dataclass fields
 
@@ -1026,7 +1026,7 @@ class FarmingContextConfig
 
 Inspectable thresholds for comparative farming context.
 
-Source: [src/gem/analysis/farming.py:83](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L83)
+Source: [src/gem/analysis/farming.py:87](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L87)
 
 #### Dataclass fields
 
@@ -1052,7 +1052,7 @@ class FarmingSegmentContext
 
 Comparative, provenance-preserving context for one farming segment.
 
-Source: [src/gem/analysis/farming.py:127](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L127)
+Source: [src/gem/analysis/farming.py:134](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L134)
 
 #### Dataclass fields
 
@@ -1103,7 +1103,7 @@ class FarmingCampZone
 
 One calibrated neutral-camp zone from the bundled catalog.
 
-Source: [src/gem/analysis/farming.py:169](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L169)
+Source: [src/gem/analysis/farming.py:181](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L181)
 
 #### Dataclass fields
 
@@ -1132,7 +1132,7 @@ class FarmingRoutePoint
 
 One sampled route point and its selected camp membership.
 
-Source: [src/gem/analysis/farming.py:189](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L189)
+Source: [src/gem/analysis/farming.py:201](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L201)
 
 #### Dataclass fields
 
@@ -1154,7 +1154,7 @@ class FarmingRouteSegment
 
 One camp-local sampled route segment with factual support evidence.
 
-Source: [src/gem/analysis/farming.py:202](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L202)
+Source: [src/gem/analysis/farming.py:214](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L214)
 
 #### Dataclass fields
 
@@ -1203,7 +1203,7 @@ class FarmingRoute
 
 Evidence-first farming route for one parsed player.
 
-Source: [src/gem/analysis/farming.py:242](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L242)
+Source: [src/gem/analysis/farming.py:254](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L254)
 
 #### Dataclass fields
 
@@ -1660,7 +1660,7 @@ def build_smoke_fight_insights(match: ParsedMatch, *, fight_window_ticks: int = 
 
 Build deterministic smoke-to-fight observations from parsed records.
 
-Source: [src/gem/analysis/smoke_fight.py:308](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L308)
+Source: [src/gem/analysis/smoke_fight.py:315](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L315)
 
 ### Top-level classes
 
@@ -1672,7 +1672,7 @@ class SmokeFightStatus(str, Enum)
 
 Deterministic association state for one smoke/fight observation.
 
-Source: [src/gem/analysis/smoke_fight.py:43](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L43)
+Source: [src/gem/analysis/smoke_fight.py:50](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L50)
 
 ### `ExactEventKind`
 
@@ -1682,7 +1682,7 @@ class ExactEventKind(str, Enum)
 
 Kinds of exact events retained in an insight sequence.
 
-Source: [src/gem/analysis/smoke_fight.py:55](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L55)
+Source: [src/gem/analysis/smoke_fight.py:62](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L62)
 
 ### `FightCentroidSource`
 
@@ -1692,7 +1692,7 @@ class FightCentroidSource(str, Enum)
 
 Provenance of the center used for sampled near-fight arrival evidence.
 
-Source: [src/gem/analysis/smoke_fight.py:69](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L69)
+Source: [src/gem/analysis/smoke_fight.py:76](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L76)
 
 ### `FollowUpKind`
 
@@ -1702,7 +1702,7 @@ class FollowUpKind(str, Enum)
 
 Kinds of bounded post-fight events.
 
-Source: [src/gem/analysis/smoke_fight.py:78](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L78)
+Source: [src/gem/analysis/smoke_fight.py:85](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L85)
 
 ### `TeamRelation`
 
@@ -1712,7 +1712,7 @@ class TeamRelation(str, Enum)
 
 Actor-team relation to the smoke team.
 
-Source: [src/gem/analysis/smoke_fight.py:90](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L90)
+Source: [src/gem/analysis/smoke_fight.py:97](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L97)
 
 ### `FollowUpBoundary`
 
@@ -1722,7 +1722,7 @@ class FollowUpBoundary(str, Enum)
 
 Evidence that bounded a post-fight follow-up window.
 
-Source: [src/gem/analysis/smoke_fight.py:100](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L100)
+Source: [src/gem/analysis/smoke_fight.py:107](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L107)
 
 ### `ExactEventEvidence`
 
@@ -1732,7 +1732,7 @@ class ExactEventEvidence
 
 One exact source event with activation-relative timing.
 
-Source: [src/gem/analysis/smoke_fight.py:111](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L111)
+Source: [src/gem/analysis/smoke_fight.py:118](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L118)
 
 #### Dataclass fields
 
@@ -1758,7 +1758,7 @@ class MemberPositionEvidence
 
 One smoke member's positioning-snapshot provenance.
 
-Source: [src/gem/analysis/smoke_fight.py:143](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L143)
+Source: [src/gem/analysis/smoke_fight.py:150](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L150)
 
 #### Dataclass fields
 
@@ -1781,7 +1781,7 @@ class FormationEvidence
 
 Filtered smoke-member geometry at one existing fight snapshot.
 
-Source: [src/gem/analysis/smoke_fight.py:157](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L157)
+Source: [src/gem/analysis/smoke_fight.py:164](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L164)
 
 #### Dataclass fields
 
@@ -1806,7 +1806,7 @@ class SampledNearFightEvidence
 
 Earliest raw member-position sample observed near the fight center.
 
-Source: [src/gem/analysis/smoke_fight.py:173](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L173)
+Source: [src/gem/analysis/smoke_fight.py:180](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L180)
 
 #### Dataclass fields
 
@@ -1828,7 +1828,7 @@ class SmokeFightMemberInsight
 
 Per-smoke-member fight participation, visibility, and spatial evidence.
 
-Source: [src/gem/analysis/smoke_fight.py:186](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L186)
+Source: [src/gem/analysis/smoke_fight.py:193](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L193)
 
 #### Dataclass fields
 
@@ -1854,7 +1854,7 @@ class FightOutcome
 
 Factual source fight result, credited only to a unique link.
 
-Source: [src/gem/analysis/smoke_fight.py:203](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L203)
+Source: [src/gem/analysis/smoke_fight.py:210](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L210)
 
 #### Dataclass fields
 
@@ -1873,7 +1873,7 @@ class FollowUpWindow
 
 Half-open window used to associate post-fight raw events.
 
-Source: [src/gem/analysis/smoke_fight.py:213](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L213)
+Source: [src/gem/analysis/smoke_fight.py:220](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L220)
 
 #### Dataclass fields
 
@@ -1891,7 +1891,7 @@ class FollowUpEvent
 
 One raw objective or observer placement allocated to a unique link.
 
-Source: [src/gem/analysis/smoke_fight.py:222](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L222)
+Source: [src/gem/analysis/smoke_fight.py:229](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L229)
 
 #### Dataclass fields
 
@@ -1917,7 +1917,7 @@ class SmokeFightInsight
 
 Evidence-first observation for one smoke and zero or one source fight.
 
-Source: [src/gem/analysis/smoke_fight.py:239](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L239)
+Source: [src/gem/analysis/smoke_fight.py:246](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L246)
 
 #### Dataclass fields
 
@@ -1956,7 +1956,7 @@ Signature: `def SmokeFightInsight.exact_events(self) -> tuple[ExactEventEvidence
 
 Return present exact events in chronological, deterministic order.
 
-Source: [src/gem/analysis/smoke_fight.py:268](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L268)
+Source: [src/gem/analysis/smoke_fight.py:275](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L275)
 
 ## Module `gem.analysis.fight_positioning`
 

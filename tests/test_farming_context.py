@@ -63,9 +63,18 @@ def _complete_match() -> ParsedMatch:
     return ParsedMatch(game_start_tick=0, game_end_tick=2700, players=players)
 
 
-def test_context_is_public() -> None:
-    assert gem.FarmingContextConfig is FarmingContextConfig
-    assert gem.FarmingContextTag is FarmingContextTag
+def test_context_names_are_deprecated_aliases() -> None:
+    # Deprecated in 0.12, removed in 0.13 (HY-100); they still resolve with a warning.
+    with pytest.warns(DeprecationWarning, match="gem.FarmingContextConfig"):
+        assert gem.FarmingContextConfig is FarmingContextConfig
+    with pytest.warns(DeprecationWarning, match="gem.FarmingContextTag"):
+        assert gem.FarmingContextTag is FarmingContextTag
+
+
+def test_passing_context_config_warns(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(farming, "load_camp_zones", _catalog)
+    with pytest.warns(DeprecationWarning, match=r"build_farming_routes\(context_config=\.\.\.\)"):
+        build_farming_routes(_complete_match(), context_config=FarmingContextConfig())
 
 
 def test_context_tags_are_composable_and_comparative(

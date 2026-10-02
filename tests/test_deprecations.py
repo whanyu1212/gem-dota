@@ -11,12 +11,38 @@ import gem.analysis
 from gem._deprecation import deprecated, deprecated_module_attrs, warn_deprecated
 from gem.results.models import ParsedMatch
 
+_FARMING_CONTEXT = (
+    "FarmingSegmentContext",
+    "FarmingContextTag",
+    "FarmingContextConfig",
+    "DEFAULT_FARMING_CONTEXT_CONFIG",
+)
+_SMOKE_FIGHT_TYPES = (
+    "SmokeFightInsight",
+    "SmokeFightMemberInsight",
+    "SmokeFightStatus",
+    "ExactEventEvidence",
+    "ExactEventKind",
+    "FightCentroidSource",
+    "FightOutcome",
+    "FollowUpBoundary",
+    "FollowUpEvent",
+    "FollowUpKind",
+    "FollowUpWindow",
+    "FormationEvidence",
+    "MemberPositionEvidence",
+    "SampledNearFightEvidence",
+    "TeamRelation",
+)
 _DEPRECATED = (
     "CampVisitContext",
     "MapContextBucket",
     "build_map_context_timeline",
     "score_camp_visit_context",
     "estimate_vision",
+    "build_smoke_fight_insights",
+    *_FARMING_CONTEXT,
+    *_SMOKE_FIGHT_TYPES,
 )
 
 
@@ -64,7 +90,9 @@ def test_deprecated_names_leave_all_but_still_resolve(name: str) -> None:
 
 
 @pytest.mark.parametrize("module", [gem, gem.analysis])
-@pytest.mark.parametrize("name", ["CampVisitContext", "MapContextBucket"])
+@pytest.mark.parametrize(
+    "name", ["CampVisitContext", "MapContextBucket", *_FARMING_CONTEXT, *_SMOKE_FIGHT_TYPES]
+)
 def test_deprecated_classes_warn_on_access(module: object, name: str) -> None:
     messages = _warnings(lambda: getattr(module, name))
     assert len(messages) == 1
@@ -90,6 +118,22 @@ def test_alternatives_name_public_api() -> None:
         assert callable(getattr(gem, name))
     messages = _warnings(lambda: gem.MapContextBucket)
     assert "gem.region_of" in messages[0]
+
+
+def test_smoke_fight_insights_warn_once_per_call_and_point_at_first_fight() -> None:
+    messages = _warnings(lambda: gem.build_smoke_fight_insights(ParsedMatch()))
+    assert messages == [
+        "gem.build_smoke_fight_insights is deprecated and will be removed in gem 0.13; "
+        "use SmokeAnalysis.first_fight from gem.build_smoke_analysis instead."
+    ]
+
+
+def test_gem_internals_use_the_deprecated_builders_silently() -> None:
+    # analyze() and the report keep producing these outputs until 0.13 without warning.
+    from gem.results.models import ParsedPlayer
+
+    match = ParsedMatch(players=[ParsedPlayer(player_id=0, team=2, hero_name="npc_dota_hero_axe")])
+    assert _warnings(lambda: gem.analyze(match)) == []
 
 
 def test_world_in_bounds_is_not_added_to_the_top_level() -> None:

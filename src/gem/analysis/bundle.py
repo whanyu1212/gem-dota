@@ -36,8 +36,8 @@ class MatchAnalysis:
 
     Attributes:
         smoke: Smoke of Deceit lifecycle summaries (:func:`gem.build_smoke_analysis`).
-        smoke_fights: Bounded smoke-to-fight insights
-            (:func:`gem.build_smoke_fight_insights`).
+        smoke_fights: Bounded smoke-to-fight insights. Deprecated; removed in
+            gem 0.13. Use ``smoke[i].first_fight``.
         roshan_conversions: Per-Roshan conversion evidence
             (:func:`gem.build_rosh_conversions`).
         farming_routes: Per-player camp-route reconstructions

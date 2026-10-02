@@ -1,5 +1,10 @@
 # Farming Context Calibration
 
+> [!WARNING]
+> The farming segment context and its tags are deprecated in gem 0.12 and
+> removed in 0.13. The context-tag observations below record that feature until
+> then. The route, evidence and topology counts stay.
+
 This page records the reproducible validation behind the default comparative
 farming-context thresholds. It keeps replay facts separate from strategic
 judgment: the corpus asserts route, evidence, topology, completeness, and tag

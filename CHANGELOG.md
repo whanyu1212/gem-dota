@@ -151,6 +151,19 @@ leaving the library (HY-96). Deprecated names still work in 0.12, warn with a
   `MapContextBucket`, `CampVisitContext` and `gem.analysis.world_in_bounds`.
   Nothing in gem uses them. The facts they combine (wards, towers, positions,
   `gem.region_of`) stay on `ParsedMatch`.
+- **Farming segment context:** `FarmingRouteSegment.context`,
+  `FarmingSegmentContext`, `FarmingContextTag`, `FarmingContextConfig`,
+  `DEFAULT_FARMING_CONTEXT_CONFIG`, and `build_farming_routes(context_config=...)`,
+  which warns when passed. Their DataFrame table `farming_context_tags` and the
+  context columns of `farming_route_segments` go with them. The segments stay:
+  camp, owner, lane, area, ticks, neutral kills and damage, XP and gold deltas,
+  and evidence strength.
+- **Smoke-fight insights:** `build_smoke_fight_insights` and its 15 types
+  (`SmokeFightInsight`, `SmokeFightStatus`, `FollowUpWindow`, …),
+  `MatchAnalysis.smoke_fights`, and the DataFrame tables `smoke_fight_insights`,
+  `smoke_fight_members` and `smoke_fight_followups`. Use
+  `SmokeAnalysis.first_fight` instead. The Smoke Analysis docs show how to get
+  the delay and which smoked heroes fought.
 - **`estimate_vision`:** the same coordinate query is
   `gem.assess_point_vision(...).sources`. For what a team could actually see, use
   `gem.hero_visibility_at` / `gem.entity_visibility_at`.

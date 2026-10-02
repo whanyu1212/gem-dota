@@ -161,6 +161,13 @@ off-zone resources changed.
 
 ## Comparative context
 
+> [!WARNING]
+> The segment context (`segment.context`, `FarmingSegmentContext`,
+> `FarmingContextTag`, `FarmingContextConfig`, `context_config=`) is deprecated
+> in gem 0.12 and removed in 0.13. gem presents facts; these joins and tags are
+> interpretation. The segments themselves stay: camp, owner, lane, area, ticks,
+> neutral kills and damage, XP and gold deltas, and evidence strength.
+
 Each segment exposes its camp owner, lane affinity, area, catalog/geometry/
 topology versions, contiguous distance travelled, and a nested
 `FarmingSegmentContext`. Context is evaluated at the segment midpoint with
@@ -246,11 +253,9 @@ HTML behavior aligned.
 
 ## Compatibility and next work
 
-The existing `build_map_context_timeline(...)`,
-`score_camp_visit_context(...)`, and `CampVisitContext` API remain available
-with their existing meanings. The report retains only a collapsed formula
-reference for that legacy heuristic; new code should use segment context and
-tags.
+The older `build_map_context_timeline(...)`, `score_camp_visit_context(...)`
+and `CampVisitContext` API, and the segment context and tags, are deprecated in
+gem 0.12 and removed in 0.13. They still work and warn when used.
 
 There is deliberately no one-to-one label migration:
 

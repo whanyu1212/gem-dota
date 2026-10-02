@@ -1,5 +1,11 @@
 # Smoke/Fight Insights
 
+> [!WARNING]
+> `build_smoke_fight_insights` and its types are deprecated in gem 0.12 and
+> removed in 0.13. gem presents facts. The smoke→fight link is
+> `SmokeAnalysis.first_fight`; see
+> [Smoke Analysis → Smoke to fight](./smoke-analysis.md#smoke-to-fight).
+
 `build_smoke_fight_insights(match)` composes smoke lifecycles, detected fights,
 sampled positioning, authoritative hero visibility, and bounded reveal evidence
 into reusable observations. It is a post-parse analysis: it reads a completed
