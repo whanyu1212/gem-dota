@@ -37,3 +37,9 @@ To generate your own report:
 ```bash
 python examples/match_report.py path/to/replay.dem --output ./my_match_report.html
 ```
+
+Hero and item icons are Valve's artwork, so gem does not ship them. The script
+downloads the icons the match needs into the report asset cache before rendering
+(`--offline` skips this). From Python, call `gem.reports.fetch_match_icons(match)`
+before `write_html_report`; any icon still missing is shown as a name, and the
+report logs a warning listing them.

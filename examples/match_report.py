@@ -1,7 +1,11 @@
 """Generate a self-contained HTML match report from a Dota 2 replay.
 
+Before rendering, any hero and item icons the match needs that are not cached yet
+are downloaded from the Dota 2 CDN (pass ``--offline`` to skip that; missing icons
+are then shown as names and listed in a warning).
+
 Usage:
-    python examples/match_report.py path/to/replay.dem [--output report.html]
+    python examples/match_report.py path/to/replay.dem [--output report.html] [--offline]
 """
 
 from __future__ import annotations
@@ -14,7 +18,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 import gem
-from gem.reports import ReportAssets, apply_opendota_player_names_from_path, write_html_report
+from gem.reports import (
+    ReportAssets,
+    apply_opendota_player_names_from_path,
+    fetch_match_icons,
+    write_html_report,
+)
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DEM = REPO_ROOT / "tests" / "fixtures" / "opendota" / "8868259993.dem"
@@ -47,6 +56,11 @@ def main() -> None:
         default=None,
         help="Report asset cache root (default: GEM_REPORT_ASSET_DIR or the user cache)",
     )
+    parser.add_argument(
+        "--offline",
+        action="store_true",
+        help="Do not download missing hero/item icons for this match",
+    )
     args = parser.parse_args()
 
     dem_path = Path(args.dem) if args.dem else DEFAULT_DEM
@@ -74,11 +88,20 @@ def main() -> None:
         print(f"Map image loaded: {assets.map_image}")
     else:
         print(f"Map image not found at {map_path}; map-backed sections will render without it.")
-    if not assets.hero_icon_dir or not assets.item_icon_dir:
-        print(
-            "Icon cache is incomplete; the report will use hero/item names instead. "
-            "For icon visuals, run `python -m gem reports assets download --icons`."
+    if not args.offline:
+        fetched: list[str] = []
+        failed: list[str] = []
+        assets = fetch_match_icons(
+            match,
+            assets,
+            root=Path(args.asset_dir) if args.asset_dir else None,
+            reporter=fetched.append,
+            error_reporter=failed.append,
         )
+        if fetched:
+            print(f"Downloaded {len(fetched)} missing icon(s) for this match.")
+        if failed:
+            print(f"Could not download {len(failed)} icon(s); they will be shown as names.")
 
     written = write_html_report(match, output_path, assets=assets)
     print(f"Report written to: {written}")

@@ -43,6 +43,10 @@ class ReportAssets:
 # Global caches: short_name → "data:image/png;base64,..." (populated at build time)
 ITEM_ICON_B64: dict[str, str] = {}
 HERO_ICON_B64: dict[str, str] = {}
+# Short names a section asked for that had no cached icon (cleared per report), so
+# the builder can say which icons fell back to names.
+MISSING_ITEM_ICONS: set[str] = set()
+MISSING_HERO_ICONS: set[str] = set()
 _CURRENT_ASSETS = ReportAssets()
 
 # Placeholder icon (1×1 grey PNG) used when a hero icon file is missing
@@ -64,6 +68,8 @@ def configure_assets(assets: ReportAssets | None = None) -> None:
     _CURRENT_ASSETS = assets or ReportAssets()
     ITEM_ICON_B64.clear()
     HERO_ICON_B64.clear()
+    MISSING_ITEM_ICONS.clear()
+    MISSING_HERO_ICONS.clear()
 
 
 def _path(value: str | Path | None) -> Path | None:
@@ -85,18 +91,21 @@ def load_map_base64(map_image: str | Path | None) -> str | None:
 
 
 def load_item_icons(short_names: list[str], assets: ReportAssets | None = None) -> None:
-    """Load item icons from disk into ``ITEM_ICON_B64``."""
+    """Load item icons from disk into ``ITEM_ICON_B64``.
+
+    Names with no cached icon are recorded in ``MISSING_ITEM_ICONS``.
+    """
     icon_dir = _path((assets or _CURRENT_ASSETS).item_icon_dir)
-    if icon_dir is None:
-        return
     for short in short_names:
         if short in ITEM_ICON_B64:
             continue
-        path = icon_dir / f"{short}.png"
-        if _is_png_file(path):
+        path = icon_dir / f"{short}.png" if icon_dir is not None else None
+        if path is not None and _is_png_file(path):
             ITEM_ICON_B64[short] = (
                 "data:image/png;base64," + base64.b64encode(path.read_bytes()).decode()
             )
+        else:
+            MISSING_ITEM_ICONS.add(short)
 
 
 def item_icon_tag(item_key: str, size: int = 24) -> str:
@@ -119,19 +128,22 @@ def item_icon_tag(item_key: str, size: int = 24) -> str:
 
 
 def load_hero_icons(npc_names: list[str], assets: ReportAssets | None = None) -> None:
-    """Load hero portrait icons from disk into ``HERO_ICON_B64``."""
+    """Load hero portrait icons from disk into ``HERO_ICON_B64``.
+
+    Heroes with no cached icon are recorded in ``MISSING_HERO_ICONS``.
+    """
     icon_dir = _path((assets or _CURRENT_ASSETS).hero_icon_dir)
-    if icon_dir is None:
-        return
     for npc in npc_names:
         short = npc.removeprefix("npc_dota_hero_")
         if short in HERO_ICON_B64:
             continue
-        path = icon_dir / f"{short}.png"
-        if _is_png_file(path):
+        path = icon_dir / f"{short}.png" if icon_dir is not None else None
+        if path is not None and _is_png_file(path):
             HERO_ICON_B64[short] = (
                 "data:image/png;base64," + base64.b64encode(path.read_bytes()).decode()
             )
+        else:
+            MISSING_HERO_ICONS.add(short)
 
 
 def hero_icon_src(npc_name: str) -> str:

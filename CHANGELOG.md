@@ -57,6 +57,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
       smaller.
 - **`scripts/audit_camp_annotations.py`** no longer reports a flooded camp as an
   ancient camp when it evolves into ancient frogs (camp 16).
+- **Reports say which icons are missing.** A stale icon cache used to show
+  some heroes and items as names with no notice (Kez, Largo, Muerta, Primal
+  Beast and Ringmaster for a cache older than them). `build_html_report` now
+  logs one warning naming the missing icons that can be downloaded.
 
 ### Added
 
@@ -65,6 +69,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `map_constants.json`, `--write` updates it, and `--overlay` saves a preview.
   It needs OpenCV, which is not a project dependency:
   `uv run --with opencv-python-headless python scripts/trace_river_region.py --check`.
+- **`gem.reports.fetch_match_icons(match, assets)`** downloads the hero and
+  item icons one match needs into the report asset cache, skipping any already
+  there, and returns the assets to render with. `gem.reports.match_icon_shorts`
+  lists those icons. `examples/match_report.py` now fetches them before
+  rendering; pass `--offline` to skip it. Icons are Valve's artwork, so gem
+  still downloads them on the user's machine instead of shipping them.
 - **Docs: Map Regions and Camps.** The page shows gem's regions and neutral
   camps on the 7.41 map, and explains how each was checked against the replays.
 
