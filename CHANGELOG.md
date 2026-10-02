@@ -38,6 +38,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
       `map_squeeze`.
     - Smoke, smoke-fight and fight-positioning output does not change.
 
+### Added
+
+- **`scripts/trace_river_region.py`** regenerates the river outline and half
+  line from the map image. `--check` compares the trace with
+  `map_constants.json`, `--write` updates it, and `--overlay` saves a preview.
+  It needs OpenCV, which is not a project dependency:
+  `uv run --with opencv-python-headless python scripts/trace_river_region.py --check`.
+
 ### Changed
 
 - **`map_constants.json`** (`gem.catalog.load_map_constants()`): `river_strip`

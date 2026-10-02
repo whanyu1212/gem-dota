@@ -330,7 +330,9 @@ The river outline was traced from the water in `assets/maps/Game_map_7.41.jpg`
 crossings; the lanes are not river. The half line follows the river's middle and,
 past its ends, runs straight out to the map edges. Lotus areas are 700-unit
 circles round the `CDOTA_BaseNPC_LotusPool` entities and belong to neither half.
-A map patch that moves the river needs a new trace. Two camps' annotated owners
+`scripts/trace_river_region.py` regenerates the outline and half line from the
+image (`--check`, `--write`, `--overlay`); a map patch that moves the river needs
+a new image and a re-run. Two camps' annotated owners
 disagree with the terrain they sit in (camps 4 and 25); `region_of` follows the
 terrain.
 
