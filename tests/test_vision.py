@@ -25,6 +25,11 @@ from gem.results.models import (
     VisionModifierSemantic,
 )
 
+# estimate_vision is deprecated (HY-98); these tests keep its behaviour pinned until 0.13.
+pytestmark = pytest.mark.filterwarnings(
+    "ignore:gem.estimate_vision is deprecated:DeprecationWarning"
+)
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -58,6 +63,7 @@ def _ward(
     expires_tick: int | None = None,
     ward_type: Literal["observer", "sentry"] = "observer",
 ) -> WardEvent:
+
     return WardEvent(
         tick=tick,
         player_id=0,

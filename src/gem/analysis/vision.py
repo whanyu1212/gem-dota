@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING, Literal
 
+from gem._deprecation import deprecated
 from gem.analysis._shared import infer_match_end_tick
 from gem.analysis.spatial import position_sample_at_tick
 from gem.results.models import (
@@ -598,6 +599,10 @@ def assess_point_vision(
     )
 
 
+@deprecated(
+    "gem.estimate_vision",
+    alternative="gem.hero_visibility_at / gem.entity_visibility_at for replay visibility",
+)
 def estimate_vision(
     match: ParsedMatch,
     team: int,
@@ -608,6 +613,9 @@ def estimate_vision(
     max_position_age_ticks: int = 150,
 ) -> list[VisionSource]:
     """Return bounded modeled hero and observer sources covering a map point.
+
+    Deprecated; removed in gem 0.13. For replay visibility use
+    :func:`hero_visibility_at` / :func:`entity_visibility_at`.
 
     This compatibility helper retains its list return shape. It now applies the
     same sample freshness and ward lifetime rules as :func:`assess_point_vision`

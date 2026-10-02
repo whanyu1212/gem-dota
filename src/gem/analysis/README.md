@@ -135,7 +135,7 @@ that the results are heuristics with no terrain/high-ground modelling.
   canonical-target visibility plus bounded direct-target reveals as separate
   evidence. Hero radius is day/night-adjusted (`_DAY_VISION = 1800` /
   `_NIGHT_VISION = 800`); observer wards use `_WARD_VISION = 1600`.
-- `estimate_vision(match, team, tick, x, y)` is the compatibility list view over
+- `estimate_vision(match, team, tick, x, y)` (deprecated in 0.12, removed in 0.13) is the compatibility list view over
   the same bounded hero/observer geometry. Its empty list cannot distinguish
   unsupported from incomplete evidence, so negative conclusions should use the
   assessment API. Direct-target modifiers are target evidence, not arbitrary
@@ -181,6 +181,9 @@ hand-tuned, not ground truth).
   report tab.
 
 ### Map context (`map_context.py`)
+
+Deprecated in 0.12 and removed in 0.13 (HY-96): every public name warns. Nothing
+in gem uses it; the facts it combines stay available on `ParsedMatch`.
 
 - `build_map_context_timeline(match, team, bucket_ticks=900, presence_window_ticks=2700)`
   sweeps the game in fixed-width buckets (default 30 s) and, for each, emits a

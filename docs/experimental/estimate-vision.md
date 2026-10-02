@@ -21,7 +21,7 @@ possible sources, but it cannot prove Valve's terrain-aware fog-of-war state.
 |---|---|---|
 | Could Radiant see player 7's canonical hero? | `hero_visibility_at(...)` | `visible`, `hidden`, or `unknown` |
 | What modelled sources could cover `(x, y)`? | `assess_point_vision(...)` | Evidence-rich `PointVisionAssessment` |
-| Which modelled geometry sources covered `(x, y)`? | `estimate_vision(...)` | Compatibility list of `VisionSource` |
+| Which modelled geometry sources covered `(x, y)`? | `estimate_vision(...)` (deprecated, removed in 0.13) | Compatibility list of `VisionSource` |
 
 Prefer the authoritative query whenever the subject is a canonical player
 hero. Use the point assessment for empty map coordinates, source explanations,
@@ -159,6 +159,11 @@ Authoritative `visible`, `hidden`, and `unknown` values are never blended with
 the modelled point status. `unknown` does not mean hidden.
 
 ## Compatibility helper
+
+> [!WARNING]
+> `estimate_vision` is deprecated in gem 0.12 and will be removed in 0.13 (it
+> warns when called). gem presents replay facts: for what a team could actually
+> see, use `gem.hero_visibility_at` / `gem.entity_visibility_at`.
 
 `estimate_vision(...)` remains available for callers that need a simple,
 distance-sorted `list[VisionSource]`:

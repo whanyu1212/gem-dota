@@ -1,6 +1,6 @@
 """Post-parse analysis helpers for gem replay data."""
 
-from gem._deprecation import renamed_module_attrs
+from gem._deprecation import deprecated_module_attrs, renamed_module_attrs
 from gem.analysis.abilities import ability_level_at_tick
 from gem.analysis.bundle import MatchAnalysis, analyze
 from gem.analysis.combat import (
@@ -37,11 +37,11 @@ from gem.analysis.fight_positioning import (
 )
 from gem.analysis.formatting import format_npc_name
 from gem.analysis.map_context import (
-    CampVisitContext,
-    MapContextBucket,
-    build_map_context_timeline,
-    score_camp_visit_context,
-    world_in_bounds,
+    CampVisitContext as _CampVisitContext,
+    MapContextBucket as _MapContextBucket,
+    build_map_context_timeline as _build_map_context_timeline,
+    score_camp_visit_context as _score_camp_visit_context,
+    world_in_bounds as _world_in_bounds,
 )
 from gem.analysis.roshan import (
     DEFAULT_ROSH_TAG_THRESHOLDS,
@@ -100,7 +100,7 @@ from gem.analysis.vision import (
     _is_daytime,
     assess_point_vision,
     entity_visibility_at,
-    estimate_vision,
+    estimate_vision as _estimate_vision,
     hero_visibility_at,
     is_daytime,
     ward_vision_impact,
@@ -109,7 +109,6 @@ from gem.analysis.vision import (
 __all__ = [
     "AbilityCast",
     "AegisFateSource",
-    "CampVisitContext",
     "DEFAULT_FARMING_CONTEXT_CONFIG",
     "DEFAULT_FARMING_ROUTE_CONFIG",
     "DirectTargetRevealEvidence",
@@ -132,7 +131,6 @@ __all__ = [
     "FarmingRouteSegment",
     "FarmingSegmentContext",
     "HeroPositionEvidence",
-    "MapContextBucket",
     "FollowUpBoundary",
     "FollowUpEvent",
     "FollowUpKind",
@@ -170,7 +168,6 @@ __all__ = [
     "_is_daytime",
     "ability_level_at_tick",
     "assess_point_vision",
-    "build_map_context_timeline",
     "build_farming_routes",
     "build_rosh_conversions",
     "build_smoke_analysis",
@@ -178,7 +175,6 @@ __all__ = [
     "build_fight_positioning",
     "MatchAnalysis",
     "analyze",
-    "estimate_vision",
     "entity_visibility_at",
     "hero_visibility_at",
     "format_npc_name",
@@ -189,11 +185,9 @@ __all__ = [
     "net_worth_at",
     "position_at_tick",
     "position_sample_at_tick",
-    "score_camp_visit_context",
     "fight_at_tick",
     "find_fights",
     "ward_vision_impact",
-    "world_in_bounds",
 ]
 
 #: Names gem 0.10 and earlier used for gem's own fights.
@@ -204,4 +198,21 @@ RENAMED_FIGHT_NAMES = {
     "teamfight_at_tick": "fight_at_tick",
 }
 
-__getattr__ = renamed_module_attrs(__name__, RENAMED_FIGHT_NAMES, globals())
+_MAP_CONTEXT_ALTERNATIVE = "gem.region_of and the match's ward, tower and position facts"
+
+#: Names deprecated in 0.12 and removed in 0.13 (HY-96), served with a warning:
+#: name -> (object, alternative, warn on access). Functions warn when called.
+DEPRECATED_ANALYSIS_NAMES = {
+    "CampVisitContext": (_CampVisitContext, None, True),
+    "MapContextBucket": (_MapContextBucket, _MAP_CONTEXT_ALTERNATIVE, True),
+    "build_map_context_timeline": (_build_map_context_timeline, None, False),
+    "score_camp_visit_context": (_score_camp_visit_context, None, False),
+    "world_in_bounds": (_world_in_bounds, None, False),
+    "estimate_vision": (_estimate_vision, None, False),
+}
+
+__getattr__ = deprecated_module_attrs(
+    __name__,
+    DEPRECATED_ANALYSIS_NAMES,
+    renamed_module_attrs(__name__, RENAMED_FIGHT_NAMES, globals()),
+)
