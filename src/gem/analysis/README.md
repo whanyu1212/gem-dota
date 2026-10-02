@@ -334,6 +334,10 @@ A map patch that moves the river needs a new trace. Two camps' annotated owners
 disagree with the terrain they sit in (camps 4 and 25); `region_of` follows the
 terrain.
 
+Territory depth (`_territory._depth`) still projects onto the fountain axis, so
+its 0.5 mark is the fountains' perpendicular bisector, not the half line. A cell
+just inside the enemy half can have a depth slightly under 0.5.
+
 ### The heavy builders are experimental and weight-tuned
 `score_camp_visit_context`, `build_map_context_timeline`, and
 `build_rosh_conversions` encode hand-picked thresholds (for example, Roshan's

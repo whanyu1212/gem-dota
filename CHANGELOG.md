@@ -22,13 +22,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Effect on analysis.** The change reaches Roshan territory coverage, the
     enemy-half ward and farm checks, farming `territorial_advance`, and map
     context `enemy_presence_by_region`. That dict now also has `top_lotus` and
-    `bottom_lotus` keys.
+    `bottom_lotus` keys. `score_camp_visit_context` reads only the halves and
+    `"river"` from it, so enemy heroes in a lotus area no longer count towards
+    its safety or pressure.
   - **Measured on the 9 local fixtures:**
     - `territorial_advance` goes from 1,812 to 1,924 of 8,391 farming segments
       (202 gained, 90 lost).
     - Roshan `vision_expansion` goes from 15 to 18 of 31 conversions; no other
       Roshan tag changes.
-    - 18 deprecated `conversion_score`s move.
+    - Roshan `enemy_half_observer_delta` changes on 12 of 31 conversions, and
+      the enemy-half farm shares and territory values on all 31.
+    - 18 deprecated `conversion_score`s move. Two deprecated
+      `conversion_label`s flip: 8855188139 Roshan 1 goes from `map_squeeze` to
+      `low_conversion`, and 8855242704 Roshan 1 from `low_conversion` to
+      `map_squeeze`.
+    - Smoke, smoke-fight and fight-positioning output does not change.
 
 ### Changed
 
