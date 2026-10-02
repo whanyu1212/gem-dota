@@ -190,7 +190,7 @@ def trace_river(water: np.ndarray) -> tuple[np.ndarray, list[tuple[float, float]
         The filled river mask, and its simplified outline in tracing-copy pixels.
 
     Raises:
-        SystemExit: If OpenCV is not installed.
+        SystemExit: If OpenCV is not installed, or :data:`SEED_POOL` is not water.
     """
     try:
         import cv2
@@ -209,7 +209,14 @@ def trace_river(water: np.ndarray) -> tuple[np.ndarray, list[tuple[float, float]
     mask = (water & near_seed & between_crossings).astype(np.uint8)
     mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, disc(CLOSE_RADIUS))
     _, labels = cv2.connectedComponents(mask)
-    mask = (labels == labels[SEED_POOL]).astype(np.uint8)
+    seed_label = labels[SEED_POOL]
+    if seed_label == 0:
+        # Label 0 is the background: on a new map image the seed is not water.
+        raise SystemExit(
+            f"SEED_POOL {SEED_POOL} (row, column) is not water in this image; "
+            "move it into Roshan pit 1's pool"
+        )
+    mask = (labels == seed_label).astype(np.uint8)
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     mask = cv2.drawContours(np.zeros_like(mask), contours, -1, 1, thickness=-1)
     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, disc(OPEN_RADIUS))

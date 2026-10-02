@@ -4,12 +4,14 @@ import json
 import shutil
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 from scripts.trace_river_region import (
     DEFAULT_CONSTANTS,
     image_to_world,
     trace_regions,
+    trace_river,
     trace_size,
     world_to_image,
     write_regions,
@@ -59,6 +61,13 @@ def test_write_regions_replaces_the_arrays(tmp_path: Path) -> None:
     regions = json.loads(target.read_text(encoding="utf-8"))["regions"]
     assert regions["river_outline"] == outline
     assert regions["half_line"] == _committed_regions()["half_line"]
+
+
+def test_trace_rejects_a_seed_outside_the_water() -> None:
+    pytest.importorskip("cv2", reason="run with: uv run --with opencv-python-headless pytest")
+    no_water = np.zeros(trace_size(_IMAGE_SIZE)[::-1], dtype=bool)
+    with pytest.raises(SystemExit, match="SEED_POOL"):
+        trace_river(no_water)
 
 
 def test_trace_reproduces_the_committed_regions() -> None:
