@@ -8,7 +8,7 @@ projection (``gem.reports._formatting.world_to_map_image``), so the picture
 shows exactly where gem puts things.
 
     uv run python scripts/render_camp_zones_overlay.py --regions --width 1800 \
-        --output docs/public/map-annotations.jpg
+        --margin 40 --legend-panel 420 --output docs/public/map-annotations.jpg
 """
 
 from __future__ import annotations
@@ -40,7 +40,7 @@ REGION_COLORS: dict[str, tuple[int, int, int, int]] = {
     "radiant_half": (40, 200, 70, 46),
     "dire_half": (220, 50, 50, 46),
     "river": (60, 140, 255, 120),
-    "lotus": (255, 200, 0, 120),
+    "lotus": (186, 85, 255, 130),
 }
 
 
@@ -211,44 +211,43 @@ def _draw_camp_marker(
         )
 
 
-def _draw_camp_legend(
-    draw: ImageDraw.ImageDraw,
-    width: int,
-    marker_scale: float,
-) -> None:
-    legend_scale = max(0.85, marker_scale * 0.62)
-    margin = 16 * marker_scale
-    padding_x = 13 * legend_scale
-    padding_y = 11 * legend_scale
-    row_gap = 30 * legend_scale
-    panel_width = 174 * legend_scale
-    panel_height = 218 * legend_scale
-    x0 = width - margin - panel_width
-    y0 = margin
-    x1 = width - margin
-    y1 = y0 + panel_height
+# Both legend boxes are this many legend units wide, so they stack as one column.
+_LEGEND_UNITS = 250
 
+
+def _legend_box(
+    draw: ImageDraw.ImageDraw, right: float, top: float, rows: int, scale: float, title: str
+) -> tuple[float, float, ImageFont.FreeTypeFont | ImageFont.ImageFont]:
+    """Draw a legend box; return its left edge, first row's y and the label font."""
+    padding = 14 * scale
+    height = padding * 2 + 34 * scale + 30 * scale * rows
+    left = right - _LEGEND_UNITS * scale
     draw.rounded_rectangle(
-        (x0, y0, x1, y1),
-        radius=max(4, round(4 * legend_scale)),
-        fill=(4, 9, 12, 205),
-        outline=(255, 255, 255, 135),
-        width=max(1, round(legend_scale)),
+        (left, top, right, top + height),
+        radius=max(4, round(5 * scale)),
+        fill=(4, 9, 12, 220),
+        outline=(255, 255, 255, 150),
+        width=max(1, round(scale)),
     )
-
-    title_font = ImageFont.load_default(size=round(15 * legend_scale))
-    label_font = ImageFont.load_default(size=round(13 * legend_scale))
-    title_x = x0 + padding_x
-    title_y = y0 + padding_y
     draw.text(
-        (title_x, title_y),
-        "Camp types",
-        fill=(255, 255, 255, 245),
-        font=title_font,
-        stroke_width=max(1, round(legend_scale * 0.6)),
-        stroke_fill=(0, 0, 0, 255),
+        (left + padding, top + padding),
+        title,
+        fill=(255, 255, 255, 250),
+        font=ImageFont.load_default(size=round(18 * scale)),
+    )
+    return (
+        left + padding,
+        top + padding + 40 * scale,
+        ImageFont.load_default(size=round(16 * scale)),
     )
 
+
+def _draw_camp_legend(draw: ImageDraw.ImageDraw, right: float, top: float, scale: float) -> float:
+    """Draw the camp-type legend with its top-right corner at ``(right, top)``.
+
+    Returns:
+        The legend's bottom edge.
+    """
     items = [
         ("Small", "small"),
         ("Medium", "medium"),
@@ -257,22 +256,38 @@ def _draw_camp_legend(
         ("Flooded small", "flooded_small"),
         ("Flooded medium", "flooded_medium"),
     ]
-    row_y = y0 + padding_y + 34 * legend_scale
-    icon_x = x0 + padding_x + 15 * legend_scale
-    label_x = x0 + padding_x + 43 * legend_scale
+    x, y, font = _legend_box(draw, right, top, len(items), scale, "Camp types")
     for label, camp_type in items:
-        _draw_camp_marker(
-            draw, icon_x, row_y + 7 * legend_scale, camp_type, scale=legend_scale * 0.58
-        )
-        draw.text(
-            (label_x, row_y - 4 * legend_scale),
-            label,
-            fill=(255, 255, 255, 240),
-            font=label_font,
-            stroke_width=max(1, round(legend_scale * 0.45)),
-            stroke_fill=(0, 0, 0, 255),
-        )
-        row_y += row_gap
+        _draw_camp_marker(draw, x + 13 * scale, y + 9 * scale, camp_type, scale=scale * 0.6)
+        draw.text((x + 40 * scale, y), label, fill=(255, 255, 255, 245), font=font)
+        y += 30 * scale
+    return top + 14 * scale * 2 + 34 * scale + 30 * scale * len(items)
+
+
+def _draw_region_legend(draw: ImageDraw.ImageDraw, right: float, top: float, scale: float) -> float:
+    """Draw the region and owner legend with its top-right corner at ``(right, top)``.
+
+    Returns:
+        The legend's bottom edge.
+    """
+    rows = [
+        ("radiant_half", REGION_COLORS["radiant_half"][:3], "rect"),
+        ("dire_half", REGION_COLORS["dire_half"][:3], "rect"),
+        ("river", REGION_COLORS["river"][:3], "rect"),
+        ("top_lotus / bottom_lotus", REGION_COLORS["lotus"][:3], "rect"),
+        ("Radiant camp", TEAM_CHIP_COLORS[2], "chip"),
+        ("Dire camp", TEAM_CHIP_COLORS[3], "chip"),
+    ]
+    x, y, font = _legend_box(draw, right, top, len(rows), scale, "Regions and owners")
+    for label, rgb, kind in rows:
+        box = (x, y + 2 * scale, x + 26 * scale, y + 18 * scale)
+        if kind == "rect":
+            draw.rectangle(box, fill=(*rgb, 235), outline=(0, 0, 0, 255))
+        else:
+            draw.rounded_rectangle(box, radius=max(2, round(4 * scale)), fill=(*rgb, 255))
+        draw.text((x + 40 * scale, y), label, fill=(255, 255, 255, 245), font=font)
+        y += 30 * scale
+    return top + 14 * scale * 2 + 34 * scale + 30 * scale * len(rows)
 
 
 def _draw_regions(
@@ -299,54 +314,6 @@ def _draw_regions(
     draw.line(line, fill=(255, 255, 255, 220), width=max(2, round(2 * marker_scale)))
 
 
-def _draw_region_legend(draw: ImageDraw.ImageDraw, width: int, marker_scale: float) -> None:
-    legend_scale = max(0.85, marker_scale * 0.62)
-    margin = 16 * marker_scale
-    padding = 12 * legend_scale
-    row_gap = 26 * legend_scale
-    rows = [
-        ("radiant_half", (40, 200, 70), "rect"),
-        ("dire_half", (220, 50, 50), "rect"),
-        ("river", (60, 140, 255), "rect"),
-        ("top_lotus / bottom_lotus", (255, 200, 0), "rect"),
-        ("Radiant camp", TEAM_CHIP_COLORS[2], "chip"),
-        ("Dire camp", TEAM_CHIP_COLORS[3], "chip"),
-    ]
-    panel_width = 236 * legend_scale
-    panel_height = padding * 2 + 30 * legend_scale + row_gap * len(rows)
-    x0 = width - margin - panel_width
-    y0 = margin + 218 * legend_scale + 10 * marker_scale
-    draw.rounded_rectangle(
-        (x0, y0, x0 + panel_width, y0 + panel_height),
-        radius=max(4, round(4 * legend_scale)),
-        fill=(4, 9, 12, 205),
-        outline=(255, 255, 255, 135),
-        width=max(1, round(legend_scale)),
-    )
-    title_font = ImageFont.load_default(size=round(15 * legend_scale))
-    label_font = ImageFont.load_default(size=round(13 * legend_scale))
-    draw.text(
-        (x0 + padding, y0 + padding),
-        "Regions and owners",
-        fill=(255, 255, 255, 245),
-        font=title_font,
-    )
-    y = y0 + padding + 30 * legend_scale
-    for label, rgb, kind in rows:
-        box = (x0 + padding, y, x0 + padding + 22 * legend_scale, y + 14 * legend_scale)
-        if kind == "rect":
-            draw.rectangle(box, fill=(*rgb, 230), outline=(0, 0, 0, 255))
-        else:
-            draw.rounded_rectangle(box, radius=max(2, round(4 * legend_scale)), fill=(*rgb, 255))
-        draw.text(
-            (x0 + padding + 32 * legend_scale, y - 1 * legend_scale),
-            label,
-            fill=(255, 255, 255, 240),
-            font=label_font,
-        )
-        y += row_gap
-
-
 def camp_pixel(camp: dict, width: int, height: int) -> tuple[float, float]:
     """Return a camp centre's pixel on a ``width`` x ``height`` copy of the map image.
 
@@ -369,6 +336,7 @@ def render_overlay(
     constants_path: Path | None = None,
     width: int | None = None,
     margin: int = 0,
+    legend_panel: int = 0,
 ) -> None:
     """Draw the camp zones, and optionally the regions, on the map image.
 
@@ -380,15 +348,20 @@ def render_overlay(
         width: Resize the image to this width first (keeps the aspect ratio).
         margin: Pad the picture by this many pixels on every side, so markers on
             the map's edge are not cut off.
+        legend_panel: Put the legends in a panel this many pixels wide to the
+            right of the map, at a size that fills it. With 0 they sit small in
+            the map's top-right corner.
     """
     zones = _load_json(zones_path)
     img = Image.open(image_path).convert("RGBA")
     if width is not None and width != img.width:
         img = img.resize((width, round(img.height * width / img.width)), Image.LANCZOS)
     map_width, map_height = img.size
-    if margin:
+    if margin or legend_panel:
         canvas = Image.new(
-            "RGBA", (map_width + 2 * margin, map_height + 2 * margin), (12, 14, 16, 255)
+            "RGBA",
+            (map_width + 2 * margin + legend_panel, map_height + 2 * margin),
+            (12, 14, 16, 255),
         )
         canvas.paste(img, (margin, margin))
         img = canvas
@@ -442,9 +415,16 @@ def render_overlay(
         )
         draw.text(label_xy, str(camp_id), fill=(255, 255, 255, 255), font=font)
 
-    _draw_camp_legend(draw, width, marker_scale)
+    if legend_panel:
+        gap = 24
+        scale = (legend_panel - margin - gap) / _LEGEND_UNITS
+        right, top = width - margin, margin + gap
+    else:
+        scale = max(0.85, marker_scale * 0.62)
+        right, top = width - 16 * marker_scale, 16 * marker_scale
+    bottom = _draw_camp_legend(draw, right, top, scale)
     if constants_path is not None:
-        _draw_region_legend(draw, width, marker_scale)
+        _draw_region_legend(draw, right, bottom + 16 * scale, scale)
 
     composed = Image.alpha_composite(img, overlay)
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -491,6 +471,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--margin", type=int, default=0, help="Pad the picture by this many pixels per side"
     )
+    parser.add_argument(
+        "--legend-panel",
+        type=int,
+        default=0,
+        help="Width of a legend panel to the right of the map (0: legends on the map)",
+    )
     return parser.parse_args()
 
 
@@ -503,6 +489,7 @@ def main() -> None:
         constants_path=args.constants if args.regions else None,
         width=args.width,
         margin=args.margin,
+        legend_panel=args.legend_panel,
     )
     print(f"Overlay written to: {args.output}")
 

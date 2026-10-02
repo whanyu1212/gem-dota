@@ -193,7 +193,7 @@ Source: [src/gem/catalog/map.py:22](https://github.com/whanyu1212/gem-dota/blob/
 def load_neutral_camps() -> list[dict[str, Any]]
 ```
 
-Load static neutral-camp center data.
+Load each neutral camp's ID, centre and type.
 
 Source: [src/gem/catalog/map.py:31](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L31)
 
@@ -205,7 +205,7 @@ def load_neutral_camp_centers() -> dict[int, tuple[float, float]]
 
 Load neutral camp IDs mapped to world-coordinate centers.
 
-Source: [src/gem/catalog/map.py:40](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L40)
+Source: [src/gem/catalog/map.py:51](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L51)
 
 ## Module `gem.catalog.resources`
 

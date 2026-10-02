@@ -22,6 +22,7 @@ An experimental feature usually has at least one of these properties:
 
 | Feature | What it tries to answer |
 |---|---|
+| [Map Regions and Camps](./map-annotations.md) | Where gem's map regions and neutral camps are, and how their positions, types and owners were checked against the replays |
 | [Farming Patterns](./farming-patterns.md) | Which camp-local routes were observed, what supports farming rather than transit, and what comparative context was available |
 | [Farming Context Calibration](./farming-patterns-calibration.md) | Which real-replay facts and targeted boundaries support the provisional farming-context rules |
 | [Roshan Conversion](./rosh-conversion.md) | Whether a team actually translated Roshan into fights, structures, territorial squeeze, or a game-closing sequence |
