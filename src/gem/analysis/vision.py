@@ -601,7 +601,10 @@ def assess_point_vision(
 
 @deprecated(
     "gem.estimate_vision",
-    alternative="gem.hero_visibility_at / gem.entity_visibility_at for replay visibility",
+    alternative=(
+        "gem.assess_point_vision(...).sources for modelled coverage of a point, "
+        "or gem.hero_visibility_at for replay visibility"
+    ),
 )
 def estimate_vision(
     match: ParsedMatch,
@@ -614,8 +617,9 @@ def estimate_vision(
 ) -> list[VisionSource]:
     """Return bounded modeled hero and observer sources covering a map point.
 
-    Deprecated; removed in gem 0.13. For replay visibility use
-    :func:`hero_visibility_at` / :func:`entity_visibility_at`.
+    Deprecated; removed in gem 0.13. The same query, with the reasons an answer
+    is missing, is ``assess_point_vision(...).sources``; for what a team could
+    actually see, use :func:`hero_visibility_at` / :func:`entity_visibility_at`.
 
     This compatibility helper retains its list return shape. It now applies the
     same sample freshness and ward lifetime rules as :func:`assess_point_vision`

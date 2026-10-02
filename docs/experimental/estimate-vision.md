@@ -162,8 +162,10 @@ the modelled point status. `unknown` does not mean hidden.
 
 > [!WARNING]
 > `estimate_vision` is deprecated in gem 0.12 and will be removed in 0.13 (it
-> warns when called). gem presents replay facts: for what a team could actually
-> see, use `gem.hero_visibility_at` / `gem.entity_visibility_at`.
+> warns when called). The same coordinate query is
+> `gem.assess_point_vision(...).sources`, which also says why evidence is
+> missing; for what a team could actually see, use `gem.hero_visibility_at` /
+> `gem.entity_visibility_at`.
 
 `estimate_vision(...)` remains available for callers that need a simple,
 distance-sorted `list[VisionSource]`:

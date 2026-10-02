@@ -198,7 +198,7 @@ RENAMED_FIGHT_NAMES = {
     "teamfight_at_tick": "fight_at_tick",
 }
 
-_MAP_CONTEXT_ALTERNATIVE = "gem.region_of and the match's ward, tower and position facts"
+_MAP_CONTEXT_ALTERNATIVE = "the match's wards, towers and position data"
 
 #: Names deprecated in 0.12 and removed in 0.13 (HY-96), served with a warning:
 #: name -> (object, alternative, warn on access). Functions warn when called.

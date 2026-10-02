@@ -76,10 +76,22 @@ def test_deprecated_functions_warn_once_per_call() -> None:
     messages = _warnings(lambda: gem.estimate_vision(match, 2, 0, 0.0, 0.0))
     assert messages == [
         "gem.estimate_vision is deprecated and will be removed in gem 0.13; use "
-        "gem.hero_visibility_at / gem.entity_visibility_at for replay visibility instead."
+        "gem.assess_point_vision(...).sources for modelled coverage of a point, "
+        "or gem.hero_visibility_at for replay visibility instead."
     ]
     assert len(_warnings(lambda: gem.build_map_context_timeline(match, 2))) == 1
     assert len(_warnings(lambda: gem.analysis.world_in_bounds(0.0, 0.0))) == 1
+
+
+def test_alternatives_name_public_api() -> None:
+    # Every replacement a warning recommends must exist (Codex review on #265).
+    assert callable(gem.assess_point_vision)
+    assert callable(gem.hero_visibility_at)
+    for messages in (
+        _warnings(lambda: gem.MapContextBucket),
+        _warnings(lambda: gem.build_map_context_timeline(ParsedMatch(), 2)),
+    ):
+        assert all("region_of" not in message for message in messages)
 
 
 def test_world_in_bounds_is_not_added_to_the_top_level() -> None:

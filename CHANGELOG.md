@@ -146,8 +146,9 @@ leaving the library (HY-96). Deprecated names still work in 0.12, warn with a
   `MapContextBucket`, `CampVisitContext` and `gem.analysis.world_in_bounds`.
   Nothing in gem uses them. The facts they combine (wards, towers, positions,
   `gem.region_of`) stay on `ParsedMatch`.
-- **`estimate_vision`:** use `gem.hero_visibility_at` / `gem.entity_visibility_at`
-  for what a team could actually see.
+- **`estimate_vision`:** the same coordinate query is
+  `gem.assess_point_vision(...).sources`. For what a team could actually see, use
+  `gem.hero_visibility_at` / `gem.entity_visibility_at`.
 
 ## [0.11.0] - 2026-10-02
 
