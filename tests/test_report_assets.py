@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import ssl
 import sys
 import types
@@ -10,7 +11,12 @@ from typing import Any
 from PIL import Image
 
 import gem.reports.asset_cache as asset_cache
+import gem.reports.assets as report_assets
+import gem.reports.builder as builder
+from gem.combat.log import CombatLogEntry
+from gem.extractors.draft import DraftEvent
 from gem.reports import ReportAssets, add_map_image, report_asset_status
+from gem.results.models import ParsedMatch, ParsedPlayer
 
 _PNG_BYTES = b"\x89PNG\r\n\x1a\nfake-png"
 
@@ -341,3 +347,142 @@ def test_download_does_not_report_certificate_hint_for_other_errors(
 
     assert result.failed == 1
     assert errors == ["  FAIL blink"]
+
+
+# ---------------------------------------------------------------------------
+# Missing icons: tracking, warning, and fetching one match's icons (HY-94)
+# ---------------------------------------------------------------------------
+
+
+def _icon_match() -> ParsedMatch:
+    return ParsedMatch(
+        players=[
+            ParsedPlayer(
+                player_id=0,
+                hero_name="npc_dota_hero_kez",
+                purchase_log=[
+                    CombatLogEntry(tick=1, log_type="PURCHASE", value_name="item_blink"),
+                    CombatLogEntry(tick=2, log_type="PURCHASE", value_name="item_not_an_item"),
+                ],
+            )
+        ],
+        draft=[
+            DraftEvent(
+                tick=0, slot_index=0, hero_id=1, hero_name="npc_dota_hero_axe", is_pick=False
+            )
+        ],
+        combat_log=[
+            CombatLogEntry(tick=3, log_type="DAMAGE", inflictor_name="item_dagon_5"),
+            CombatLogEntry(tick=4, log_type="DAMAGE", inflictor_name="lina_laguna_blade"),
+        ],
+    )
+
+
+def test_match_icon_shorts_lists_the_matchs_downloadable_icons() -> None:
+    heroes, items = asset_cache.match_icon_shorts(_icon_match())
+
+    # Draft bans and players; unknown names are dropped.
+    assert heroes == ("axe", "kez")
+    assert set(items) == {"blink", "dagon_5", "ward_observer", "ward_sentry", "smoke_of_deceit"}
+
+
+def test_icon_loaders_record_missing_icons(tmp_path: Path) -> None:
+    hero_dir = tmp_path / "hero_icons"
+    hero_dir.mkdir()
+    (hero_dir / "axe.png").write_bytes(_PNG_BYTES)
+    assets = ReportAssets(hero_icon_dir=hero_dir, item_icon_dir=None)
+    report_assets.configure_assets(assets)
+
+    report_assets.load_hero_icons(["npc_dota_hero_axe", "npc_dota_hero_kez"])
+    report_assets.load_item_icons(["blink"])
+
+    missing_heroes = report_assets.MISSING_HERO_ICONS
+    missing_items = report_assets.MISSING_ITEM_ICONS
+    assert missing_heroes == {"kez"}
+    assert missing_items == {"blink"}
+    report_assets.configure_assets(assets)
+    assert not report_assets.MISSING_HERO_ICONS
+    assert not report_assets.MISSING_ITEM_ICONS
+
+
+def test_report_warns_with_the_missing_downloadable_icons(caplog: Any) -> None:
+    report_assets.configure_assets(ReportAssets())
+    report_assets.MISSING_HERO_ICONS.update({"kez", "not_a_hero"})
+    report_assets.MISSING_ITEM_ICONS.update({"rune_haste"})  # no download source
+
+    with caplog.at_level(logging.WARNING, logger="gem.reports.builder"):
+        builder._warn_missing_icons()
+
+    assert len(caplog.records) == 1
+    message = caplog.records[0].getMessage()
+    assert "1 hero(es): kez" in message
+    assert "not_a_hero" not in message
+    assert "rune_haste" not in message
+    assert "fetch_match_icons" in message
+    report_assets.configure_assets(ReportAssets())
+
+
+def test_report_is_quiet_when_every_icon_is_cached(caplog: Any) -> None:
+    report_assets.configure_assets(ReportAssets())
+    with caplog.at_level(logging.WARNING, logger="gem.reports.builder"):
+        builder._warn_missing_icons()
+    assert not caplog.records
+
+
+def test_fetch_match_icons_downloads_only_the_matchs_missing_icons(
+    tmp_path: Path, monkeypatch: Any
+) -> None:
+    hero_dir = tmp_path / "hero_icons"
+    item_dir = tmp_path / "item_icons"
+    hero_dir.mkdir()
+    item_dir.mkdir()
+    (hero_dir / "axe.png").write_bytes(_PNG_BYTES)  # already cached
+    requested: list[str] = []
+
+    def fake_download(
+        urls: list[str], out_path: Path, ctx: object, cert_failures: object = None
+    ) -> bool:
+        requested.append(out_path.name)
+        out_path.write_bytes(_PNG_BYTES)
+        return True
+
+    monkeypatch.setattr(asset_cache, "_download_first", fake_download)
+    monkeypatch.setattr(asset_cache.time, "sleep", lambda _seconds: None)
+    assets = ReportAssets(
+        map_image=tmp_path / "map.jpg", hero_icon_dir=hero_dir, item_icon_dir=item_dir
+    )
+
+    fetched = asset_cache.fetch_match_icons(_icon_match(), assets)
+
+    assert sorted(requested) == sorted(
+        [
+            "kez.png",
+            "blink.png",
+            "dagon_5.png",
+            "ward_observer.png",
+            "ward_sentry.png",
+            "smoke_of_deceit.png",
+        ]
+    )
+    assert fetched == assets
+    assert (hero_dir / "kez.png").exists()
+
+
+def test_fetch_match_icons_fills_the_cache_when_no_icon_dir_is_set(
+    tmp_path: Path, monkeypatch: Any
+) -> None:
+    def fake_download(
+        urls: list[str], out_path: Path, ctx: object, cert_failures: object = None
+    ) -> bool:
+        out_path.write_bytes(_PNG_BYTES)
+        return True
+
+    monkeypatch.setattr(asset_cache, "_download_first", fake_download)
+    monkeypatch.setattr(asset_cache.time, "sleep", lambda _seconds: None)
+    root = tmp_path / "cache"
+
+    fetched = asset_cache.fetch_match_icons(_icon_match(), ReportAssets(), root=root)
+
+    assert fetched.hero_icon_dir == root / "hero_icons"
+    assert fetched.item_icon_dir == root / "item_icons"
+    assert (root / "hero_icons" / "kez.png").exists()

@@ -6,6 +6,8 @@ from gem.reports.asset_cache import (
     add_map_image,
     default_report_asset_dir,
     ensure_report_asset_dirs,
+    fetch_match_icons,
+    match_icon_shorts,
     report_asset_paths,
     report_asset_status,
 )
@@ -31,7 +33,9 @@ __all__ = [
     "default_report_asset_dir",
     "display_player_name",
     "ensure_report_asset_dirs",
+    "fetch_match_icons",
     "is_displayable_player_name",
+    "match_icon_shorts",
     "report_asset_paths",
     "report_asset_status",
     "write_html_report",

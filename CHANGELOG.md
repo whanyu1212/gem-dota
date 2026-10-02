@@ -78,6 +78,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     lane.
   - **Overlaps:** lane partners' icons are spread apart, and a dot with a short
     line marks each hero's true spot.
+- **Reports say which icons are missing.** A stale icon cache used to show
+  some heroes and items as names with no notice (Kez, Largo, Muerta, Primal
+  Beast and Ringmaster for a cache older than them). `build_html_report` now
+  logs one warning naming the missing icons that can be downloaded.
 
 ### Added
 
@@ -86,11 +90,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `map_constants.json`, `--write` updates it, and `--overlay` saves a preview.
   It needs OpenCV, which is not a project dependency:
   `uv run --with opencv-python-headless python scripts/trace_river_region.py --check`.
+- **`gem.reports.fetch_match_icons(match, assets)`** downloads the hero and
+  item icons one match needs into the report asset cache, skipping any already
+  there, and returns the assets to render with. `gem.reports.match_icon_shorts`
+  lists those icons. `examples/match_report.py` now fetches them before
+  rendering; pass `--offline` to skip it. Icons are Valve's artwork, so gem
+  still downloads them on the user's machine instead of shipping them.
 - **Docs: Map Regions and Camps.** The page shows gem's regions and neutral
   camps on the 7.41 map, and explains how each was checked against the replays.
 
 ### Changed
 
+- **New logo and README banner.** The logo is a flat-faceted green gem that
+  stays legible down to favicon size, and it is now the docs site's favicon too.
+  The banner pairs it with the wordmark, tagline and a map panel drawn from gem's
+  own region and camp data. It is about 100 KB, down from 1.5 MB. The text is set
+  in Inter and converted to outlines, and the source is
+  `docs/public/gem-banner.svg`.
 - **`map_constants.json`** (`gem.catalog.load_map_constants()`): `river_strip`
   is replaced by `regions`, which holds `river_outline`, `half_line`,
   `lotus_pools` and `lotus_radius`.
