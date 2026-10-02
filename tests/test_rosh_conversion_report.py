@@ -80,13 +80,31 @@ def _match() -> ParsedMatch:
         game_start_tick=0,
         fights=[_fight(1100, 1300, "dire"), _fight(3000, 3200, "radiant")],
         towers=[
-            TowerKill(tick=1200, team=3, killer="", tower_name="npc_dota_badguys_tower1_mid"),
+            TowerKill(
+                tick=1200,
+                team=3,
+                killer="npc_dota_hero_axe",
+                tower_name="npc_dota_badguys_tower1_mid",
+                killer_team=2,
+            ),
+            # Denied by its owner during the hold: not taken by the holder's team.
+            TowerKill(
+                tick=1300,
+                team=3,
+                killer="npc_dota_hero_razor",
+                tower_name="npc_dota_badguys_tower1_top",
+                killer_team=3,
+            ),
             TowerKill(tick=1250, team=2, killer="", tower_name="npc_dota_goodguys_tower1_bot"),
             TowerKill(tick=3100, team=3, killer="", tower_name="npc_dota_badguys_tower2_mid"),
         ],
         barracks=[
             BarracksKill(
-                tick=1400, team=3, killer="", barracks_name="npc_dota_badguys_melee_rax_mid"
+                tick=1400,
+                team=3,
+                killer="npc_dota_hero_axe",
+                barracks_name="npc_dota_badguys_melee_rax_mid",
+                killer_team=2,
             ),
         ],
     )

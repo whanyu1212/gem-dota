@@ -13,6 +13,7 @@ from gem.analysis import (
     build_rosh_conversions,
     format_npc_name,
 )
+from gem.analysis.roshan import _count_objectives
 from gem.catalog import hero_display
 from gem.reports._formatting import (
     TEAM_COLOR_CSS,
@@ -452,9 +453,12 @@ def _aegis_cells(match: ParsedMatch, conversion: RoshConversion, numbers: dict[i
         )
     fights_html = "<br>".join(fight_links) or '<span class="dim">None</span>'
 
-    enemy = {2: 3, 3: 2}.get(conversion.holder_team or 0)
-    towers = sum(start <= tower.tick <= end and tower.team == enemy for tower in match.towers)
-    barracks = sum(start <= rax.tick <= end and rax.team == enemy for rax in match.barracks)
+    # Attributed to the holder's team, as the Roshan analysis does; denies don't count.
+    towers, barracks = (
+        _count_objectives(match, conversion.holder_team, start, end)
+        if conversion.holder_team in (2, 3)
+        else (0, 0)
+    )
     buildings = [
         f"{count} {singular if count == 1 else plural}"
         for count, singular, plural in (
@@ -517,7 +521,8 @@ def build_rosh_conversion(
             '<p class="section-note">While held = from the Aegis pickup until it was '
             "consumed, expired or the game ended, or, when its end was not observed "
             "(Unknown), the next Roshan kill. Fights are those overlapping that time; "
-            "buildings are the enemy's towers and barracks destroyed in it. "
+            "buildings are the enemy towers and barracks the holder's team destroyed "
+            "in it (denies excluded). "
             "* Consumed is inferred from the holder dying while holding the Aegis.</p>",
             '<div class="rosh-table-wrap"><table class="rosh-summary-table">',
             '<thead><tr><th class="r">#</th><th>Time</th><th>Killed by</th><th>Drops</th>'

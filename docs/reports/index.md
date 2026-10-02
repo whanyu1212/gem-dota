@@ -15,7 +15,7 @@ hero earned during the visit. The route builder is documented in
 The `Roshan` tab lists each Roshan kill: who killed it, what it dropped, who
 picked up the Aegis, and when and how the Aegis ended. While the Aegis was held
 it also lists the fights that overlapped the hold and the enemy towers and
-barracks destroyed. A consumed Aegis that the replay infers from the holder's
+barracks the holder's team destroyed (denies excluded). A consumed Aegis that the replay infers from the holder's
 death is marked `*`.
 
 The `Fights` tab includes one positioning map per fight with pre-engagement,
@@ -29,7 +29,7 @@ and "during Aegis #N" when it overlapped an Aegis hold.
 The **Smoke Operations** view in the `Vision` tab lists each smoke's time, team
 and members, when it broke (the first member to lose it early, and how many
 in-game seconds after activation), and its first fight: the first fight whose
-first death came within 60 seconds. See
+first death came within 60 in-game seconds (pauses excluded). See
 [Experimental Features → Smoke Analysis](../experimental/smoke-analysis.md).
 
 The report embeds the map image at up to 4096 px wide. A wider image is

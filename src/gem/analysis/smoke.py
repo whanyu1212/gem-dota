@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING
 from gem._deprecation import renamed_attribute, renamed_init_kwargs
 from gem.analysis._shared import infer_match_end_tick
 from gem.combat.log import CombatLogEntry
+from gem.state.game_clock import game_clock_for
 
 if TYPE_CHECKING:
     from gem.extractors.fights import Fight
@@ -128,7 +129,8 @@ class SmokeAnalysis:
         member_centroid_y: Legacy member-centroid y coordinate.
         members: Per-participant lifecycle and factual evidence.
         first_fight: First detected fight whose first death occurs from
-            activation through 60 seconds afterward, or ``None``.
+            activation through 60 in-game seconds afterward (pauses excluded),
+            or ``None``.
         evidence_gaps: Machine-readable reasons group-level evidence was
             unavailable. These do not assign a cause or success score.
     """
@@ -411,9 +413,20 @@ def _same_tick_evidence(
 
 
 def _first_fight(match: ParsedMatch, activation_tick: int) -> Fight | None:
+    # The 60 s window is in-game time: pauses stop the clock but not replay ticks.
+    clock = game_clock_for(match)
+
+    def unpaused_ticks_after_activation(tick: int) -> int:
+        return (
+            tick
+            - clock.paused_ticks_before(tick)
+            - (activation_tick - clock.paused_ticks_before(activation_tick))
+        )
+
     eligible = [
         fight
         for fight in match.fights
-        if activation_tick <= fight.first_death_tick <= activation_tick + _TEAMFIGHT_WINDOW_TICKS
+        if fight.first_death_tick >= activation_tick
+        and unpaused_ticks_after_activation(fight.first_death_tick) <= _TEAMFIGHT_WINDOW_TICKS
     ]
     return min(eligible, key=lambda fight: fight.first_death_tick, default=None)

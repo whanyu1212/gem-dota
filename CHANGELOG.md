@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`SmokeAnalysis.first_fight` measures its 60-second window in in-game time.**
+  It used 1,800 replay ticks. Pauses stop the game clock but not the ticks, so a
+  fight 50 in-game seconds after a smoke could be missed when a pause fell in
+  between.
 - **Replay fetching now verifies TLS certificates.** `gem.replays.fetch`
   (`fetch_replay`, `fetch_replay_url`, `download_and_decompress`,
   `fetch_opendota_match`, `enrich_with_api_rates`) used to turn off certificate
@@ -153,7 +157,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - each kill's time, killing team and hero, and drops;
     - the Aegis holder and pickup time;
     - when and how the Aegis ended, with `*` when consumption is inferred;
-    - the fights and enemy buildings during the hold.
+    - the fights during the hold, and the enemy buildings the holder's team
+      destroyed in it (denies excluded).
 
     A denied Aegis counts as never held. The tags, balance and resource panels,
     occupancy maps, timeline and differential summary table are gone.

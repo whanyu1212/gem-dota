@@ -250,3 +250,25 @@ def test_teamfight_window_includes_exact_sixty_second_boundary() -> None:
     )
 
     assert build_smoke_analysis(match)[0].first_fight is boundary_fight
+
+
+def test_first_fight_window_excludes_paused_time() -> None:
+    from gem.state.game_clock import GameClock, GamePause
+
+    # 50 in-game seconds after activation, but a 30 s pause pushes the tick gap to 80 s.
+    fight = Fight(
+        start_tick=2_500,
+        end_tick=2_700,
+        last_death_tick=2_600,
+        deaths=3,
+        first_death_tick=2_500,
+    )
+    match = ParsedMatch(
+        smoke_events=[SmokeEvent(tick=100, activator="hero", team=2)],
+        fights=[fight],
+        game_clock=GameClock(game_start_tick=0, pauses=[GamePause(start_tick=500, end_tick=1_400)]),
+    )
+
+    assert build_smoke_analysis(match)[0].first_fight is fight
+    match.game_clock = GameClock(game_start_tick=0)
+    assert build_smoke_analysis(match)[0].first_fight is None
