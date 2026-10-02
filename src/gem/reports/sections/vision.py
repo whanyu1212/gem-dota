@@ -23,6 +23,7 @@ from gem.analysis import (
 )
 from gem.catalog.map import load_camp_zones
 from gem.extractors._cells import WORLD_UNITS_PER_CELL
+from gem.extractors.lane import lane_for_cell
 from gem.reports._formatting import (
     GAME_CLOCK_JS,
     MAP_XMAX,
@@ -835,16 +836,103 @@ _SLOT_COLORS_LANE: list[str] = [
 ]
 
 
+# A hero's lane anchor is the busiest spot within this many cells (512 world units).
+_LANE_ANCHOR_RADIUS_CELLS = 4
+
+
+def _lane_anchor(pp: ParsedPlayer) -> tuple[float, float] | None:
+    """Return the world position where a hero spent most of its laning time.
+
+    Uses the first-10-minute ``lane_pos`` cells inside the player's assigned
+    OpenDota lane (all cells when none are): the cell with the most samples within
+    ``_LANE_ANCHOR_RADIUS_CELLS``, refined to the sample-weighted centre of that
+    neighbourhood. A plain mean of every cell is pulled off the lane by time in
+    base, rotations and the L-shaped side lanes.
+    """
+    cells = {
+        (int(cx), int(cy)): count
+        for cx, column in pp.lane_pos.items()
+        for cy, count in column.items()
+        if count > 0
+    }
+    if not cells:
+        return None
+    cells = {c: n for c, n in cells.items() if lane_for_cell(*c) == pp.lane} or cells
+    radius_sq = _LANE_ANCHOR_RADIUS_CELLS**2
+
+    def neighbourhood(centre: tuple[int, int]) -> list[tuple[tuple[int, int], int]]:
+        return [
+            (cell, n)
+            for cell, n in cells.items()
+            if (cell[0] - centre[0]) ** 2 + (cell[1] - centre[1]) ** 2 <= radius_sq
+        ]
+
+    busiest = max(cells, key=lambda c: (sum(n for _, n in neighbourhood(c)), cells[c], c))
+    near = neighbourhood(busiest)
+    total = sum(n for _, n in near)
+    x = sum(cell[0] * n for cell, n in near) / total * WORLD_UNITS_PER_CELL
+    y = sum(cell[1] * n for cell, n in near) / total * WORLD_UNITS_PER_CELL
+    return x, y
+
+
+def _spread_markers(
+    points: list[tuple[float, float]], min_dist: float, size: float, iterations: int = 80
+) -> list[tuple[float, float]]:
+    """Push markers apart until no two are closer than ``min_dist``, inside the map.
+
+    Lane partners share an anchor, so their icons would stack. Each overlapping
+    pair is pushed apart along the line between them (markers on the same spot
+    fan out at fixed angles, so the result is deterministic).
+
+    Args:
+        points: Marker centres in SVG pixels.
+        min_dist: Smallest allowed distance between two centres.
+        size: The square map's side, to keep markers inside it.
+        iterations: Most relaxation passes.
+
+    Returns:
+        The adjusted centres, in the input order.
+    """
+    pos = [[x, y] for x, y in points]
+    low, high = min_dist / 2, size - min_dist / 2
+    for _ in range(iterations):
+        moved = False
+        for i in range(len(pos)):
+            for j in range(i + 1, len(pos)):
+                dx, dy = pos[j][0] - pos[i][0], pos[j][1] - pos[i][1]
+                dist = math.hypot(dx, dy)
+                if dist >= min_dist:
+                    continue
+                if dist < 1e-6:
+                    angle = 2.399963 * (i + j)  # golden angle: distinct fan-out per pair
+                    dx, dy, dist = math.cos(angle), math.sin(angle), 1.0
+                push = (min_dist - dist) / 2
+                ux, uy = dx / dist, dy / dist
+                pos[i][0] -= ux * push
+                pos[i][1] -= uy * push
+                pos[j][0] += ux * push
+                pos[j][1] += uy * push
+                moved = True
+        for p in pos:
+            p[0] = min(max(p[0], low), high)
+            p[1] = min(max(p[1], low), high)
+        if not moved:
+            break
+    return [(x, y) for x, y in pos]
+
+
 def _laning_minimap_svg(
     match: ParsedMatch,
     map_b64: str | None,
     size: int = 320,
 ) -> str:
-    """Render a minimap SVG with each hero's dwell-weighted 10-min centroid."""
+    """Render a minimap SVG with each hero at the busiest spot of its laning lane.
+
+    Icons that would overlap (lane partners) are spread apart; a dot and a short
+    line mark the hero's true spot when its icon had to move.
+    """
     _XMIN, _XMAX = MAP_XMIN, MAP_XMAX
     _YMIN, _YMAX = MAP_YMIN, MAP_YMAX
-    # lane_pos is keyed by OpenDota map cell: world units / 128.
-    _CELL = WORLD_UNITS_PER_CELL
 
     def _world_to_px(wx: float, wy: float) -> tuple[float, float]:
         px = (wx - _XMIN) / (_XMAX - _XMIN) * size
@@ -858,30 +946,33 @@ def _laning_minimap_svg(
         else f'<rect width="{size}" height="{size}" fill="#0d1117"/>'
     )
 
-    elements: list[str] = [bg_img]
     icon_r = 13
-
+    placed: list[tuple[ParsedPlayer, tuple[float, float]]] = []
     for pp in match.players:
         if not pp.lane_pos or not pp.hero_name:
             continue
-        total = sum(sum(column.values()) for column in pp.lane_pos.values())
-        if not total:
-            continue
-        wx_sum = wy_sum = 0.0
-        for cx_s, column in pp.lane_pos.items():
-            for cy_s, cnt in column.items():
-                wx_sum += int(cx_s) * _CELL * cnt
-                wy_sum += int(cy_s) * _CELL * cnt
-        cx, cy = _world_to_px(wx_sum / total, wy_sum / total)
+        anchor = _lane_anchor(pp)
+        if anchor is not None:
+            placed.append((pp, _world_to_px(*anchor)))
+    centres = _spread_markers([xy for _, xy in placed], 2 * icon_r + 2, size)
 
-        slot = pp.player_id
+    leaders: list[str] = []
+    icons: list[str] = []
+    for (pp, (ax, ay)), (cx, cy) in zip(placed, centres, strict=True):
         ring_color = _LANE_COLORS.get(pp.lane_role, "#8b949e")
+        if math.hypot(cx - ax, cy - ay) > 2:
+            leaders.append(
+                f'<line x1="{ax:.1f}" y1="{ay:.1f}" x2="{cx:.1f}" y2="{cy:.1f}" '
+                f'stroke="{ring_color}" stroke-width="1.5" stroke-opacity="0.85"/>'
+                f'<circle cx="{ax:.1f}" cy="{ay:.1f}" r="2.5" fill="{ring_color}" '
+                f'stroke="#0d1117" stroke-width="1"/>'
+            )
+        slot = pp.player_id
         clip_id = f"lane_clip_{slot}"
         src = hero_icon_src(pp.hero_name)
         role_label = _lane_label(pp)
         dash = ' stroke-dasharray="4 3"' if pp.is_roaming else ""
-
-        elements.append(
+        icons.append(
             f'<defs><clipPath id="{clip_id}">'
             f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{icon_r}"/>'
             f"</clipPath></defs>"
@@ -897,7 +988,9 @@ def _laning_minimap_svg(
         f'<svg class="lane-map-svg" width="{size}" height="{size}" '
         f'xmlns="http://www.w3.org/2000/svg" '
         f'style="border-radius:8px;overflow:hidden;border:1px solid #30363d">'
-        + "".join(elements)
+        + bg_img
+        + "".join(leaders)
+        + "".join(icons)
         + "</svg>"
     )
 
