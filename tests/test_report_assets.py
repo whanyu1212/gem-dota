@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import ssl
+import sys
+import types
+import urllib.error
 from pathlib import Path
 from typing import Any
 
@@ -143,7 +147,7 @@ def test_item_download_uses_legacy_lg_fallback_for_missing_react_icon(
     assert result.downloaded == 1
     assert result.failed == 0
     assert calls == [
-        "https://cdn.dota2.com/apps/dota2/images/dota_react/items/eternal_shroud.png",
+        "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/items/eternal_shroud.png",
         "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/items/eternal_shroud_lg.png",
     ]
     assert (out_dir / "eternal_shroud.png").read_bytes() == _PNG_BYTES
@@ -265,3 +269,75 @@ def test_invalid_existing_icon_is_redownloaded_without_force(
     assert result.skipped == 0
     assert result.failed == 0
     assert out_path.read_bytes() == _PNG_BYTES
+
+
+def test_cdn_ssl_context_verifies_certificates_and_hostnames() -> None:
+    ctx = asset_cache._cdn_ssl_context()
+
+    assert ctx.verify_mode == ssl.CERT_REQUIRED
+    assert ctx.check_hostname is True
+
+
+def test_cdn_ssl_context_adds_certifi_roots_when_installed(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    cafile = tmp_path / "cacert.pem"
+    cafile.write_text("", encoding="utf-8")
+    loaded: list[object] = []
+    monkeypatch.setitem(sys.modules, "certifi", types.SimpleNamespace(where=lambda: str(cafile)))
+    monkeypatch.setattr(
+        ssl.SSLContext,
+        "load_verify_locations",
+        lambda self, cafile=None, capath=None, cadata=None: loaded.append(cafile),
+    )
+
+    ctx = asset_cache._cdn_ssl_context()
+
+    assert loaded == [str(cafile)]
+    assert ctx.verify_mode == ssl.CERT_REQUIRED
+    assert ctx.check_hostname is True
+
+
+def test_download_reports_certificate_failures_once(tmp_path: Path, monkeypatch) -> None:
+    heroes_path = tmp_path / "heroes.json"
+    heroes_path.write_text(
+        '{"npc_dota_hero_axe": {"id": 1}, "npc_dota_hero_lina": {"id": 2}}', encoding="utf-8"
+    )
+
+    def fake_urlopen(request: Any, *, timeout: int, context: object) -> None:
+        raise urllib.error.URLError(ssl.SSLCertVerificationError(1, "unable to get issuer"))
+
+    monkeypatch.setattr(asset_cache.urllib.request, "urlopen", fake_urlopen)
+    errors: list[str] = []
+
+    result = asset_cache.download_hero_icons(
+        heroes_path=heroes_path, out_dir=tmp_path / "hero_icons", error_reporter=errors.append
+    )
+
+    assert result.failed == 2
+    assert errors[:2] == ["  FAIL axe", "  FAIL lina"]
+    assert len(errors) == 3
+    assert "certificate verification" in errors[2]
+    assert "certifi" in errors[2]
+
+
+def test_download_does_not_report_certificate_hint_for_other_errors(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    items_path = tmp_path / "items.json"
+    items_path.write_text('{"blink": {"id": 1}}', encoding="utf-8")
+
+    def fake_urlopen(request: Any, *, timeout: int, context: object) -> None:
+        raise urllib.error.URLError(OSError("connection refused"))
+
+    monkeypatch.setattr(asset_cache.urllib.request, "urlopen", fake_urlopen)
+    errors: list[str] = []
+
+    result = asset_cache.download_item_icons(
+        items_path=items_path, out_dir=tmp_path / "item_icons", error_reporter=errors.append
+    )
+
+    assert result.failed == 1
+    assert errors == ["  FAIL blink"]

@@ -5,7 +5,7 @@ hero name (e.g. ``axe.png``, ``anti_mage.png``).
 
 CDN URL pattern::
 
-    https://cdn.dota2.com/apps/dota2/images/heroes/{short}_icon.png
+    https://steamcdn-a.akamaihd.net/apps/dota2/images/heroes/{short}_icon.png
 
 where ``{short}`` is derived from the NPC name by stripping ``npc_dota_hero_``.
 
