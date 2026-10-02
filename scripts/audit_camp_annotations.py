@@ -41,13 +41,16 @@ ANCIENT_NEUTRALS: frozenset[str] = frozenset(
         "npc_dota_neutral_small_thunder_lizard",
         "npc_dota_neutral_black_drake",
         "npc_dota_neutral_black_dragon",
-        "npc_dota_neutral_ancient_frog",
-        "npc_dota_neutral_ancient_frog_mage",
     }
 )
+# Every tier of the flooded (frog) camps. They evolve as the game goes on, and since
+# 7.41 the flooded camps by the bounty runes reach ancient frogs, so those units must
+# count as flooded, not ancient (the camp 16 false alarm in HY-85).
 FLOODED_NEUTRAL_MARKERS: tuple[str, ...] = (
+    "npc_dota_neutral_tadpole",
     "npc_dota_neutral_froglet",
     "npc_dota_neutral_grown_frog",
+    "npc_dota_neutral_ancient_frog",
 )
 
 

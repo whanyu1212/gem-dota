@@ -27,6 +27,51 @@ MAP_YMIN, MAP_YMAX = 7693, 26015
 # Map image size, for views that place the full image themselves (Plotly).
 MAP_IMAGE_WIDTH, MAP_IMAGE_HEIGHT = 8878, 8356
 
+
+def world_to_map_image(
+    x: float, y: float, width: float = MAP_IMAGE_WIDTH, height: float = MAP_IMAGE_HEIGHT
+) -> tuple[float, float]:
+    """Project world coordinates onto the 7.41 map image.
+
+    The report maps show the image's centred square, ``height`` pixels a side, as
+    the ``MAP_XMIN``…``MAP_YMAX`` window. ``width`` and ``height`` may describe a
+    resized copy of the image, as long as it keeps the original aspect ratio.
+
+    Args:
+        x: World x.
+        y: World y.
+        width: Image width in pixels.
+        height: Image height in pixels.
+
+    Returns:
+        Pixel ``(column, row)``.
+    """
+    side = height
+    fx = (x - MAP_XMIN) / (MAP_XMAX - MAP_XMIN)
+    fy = 1.0 - (y - MAP_YMIN) / (MAP_YMAX - MAP_YMIN)
+    return (width - side) / 2 + fx * side, fy * side
+
+
+def map_image_to_world(
+    px: float, py: float, width: float = MAP_IMAGE_WIDTH, height: float = MAP_IMAGE_HEIGHT
+) -> tuple[float, float]:
+    """Project a 7.41 map image pixel to world coordinates (inverse of :func:`world_to_map_image`).
+
+    Args:
+        px: Pixel column.
+        py: Pixel row.
+        width: Image width in pixels.
+        height: Image height in pixels.
+
+    Returns:
+        World ``(x, y)``.
+    """
+    side = height
+    x = MAP_XMIN + (px - (width - side) / 2) / side * (MAP_XMAX - MAP_XMIN)
+    y = MAP_YMIN + (1 - py / side) * (MAP_YMAX - MAP_YMIN)
+    return x, y
+
+
 # Rune type → display name.
 # Reference: DOTA_RUNE_TYPE enum in dota_shared_enums.proto
 RUNE_NAMES: dict[int, str] = {
