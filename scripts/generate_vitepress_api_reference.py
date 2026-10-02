@@ -30,6 +30,7 @@ TARGETS_BY_PAGE: dict[str, list[str]] = {
     "api.md": ["gem.api"],
     "analysis.md": [
         "gem.analysis.spatial",
+        "gem.analysis.regions",
         "gem.analysis.combat",
         "gem.analysis.abilities",
         "gem.analysis.vision",

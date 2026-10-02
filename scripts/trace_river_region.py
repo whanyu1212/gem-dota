@@ -1,6 +1,6 @@
 """Trace the river outline and half line for ``region_of`` from the map image.
 
-``gem.analysis._shared.region_of`` reads ``regions.river_outline`` and
+``gem.region_of`` (``gem.analysis.regions``) reads ``regions.river_outline`` and
 ``regions.half_line`` from ``src/gem/data/map_constants.json``. This script
 derives both from ``assets/maps/Game_map_7.41.jpg``:
 

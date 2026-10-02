@@ -43,6 +43,7 @@ from gem.analysis.map_context import (
     score_camp_visit_context,
     world_in_bounds,
 )
+from gem.analysis.regions import MAP_REGIONS, region_of
 from gem.analysis.roshan import (
     DEFAULT_ROSH_TAG_THRESHOLDS,
     AegisFateSource,
@@ -107,6 +108,7 @@ from gem.analysis.vision import (
 )
 
 __all__ = [
+    "MAP_REGIONS",
     "AbilityCast",
     "AegisFateSource",
     "CampVisitContext",
@@ -189,6 +191,7 @@ __all__ = [
     "net_worth_at",
     "position_at_tick",
     "position_sample_at_tick",
+    "region_of",
     "score_camp_visit_context",
     "fight_at_tick",
     "find_fights",
