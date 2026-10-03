@@ -1,0 +1,17 @@
+---
+// Every page except a folder's index.md, e.g. docs/guides/01_quickstart.md.
+import type { GetStaticPaths } from "astro";
+import Placeholder from "../layouts/Placeholder.astro";
+import { getDocs, isIndexPage } from "../lib/docs";
+
+export const getStaticPaths = (async () => {
+  const docs = await getDocs();
+  return docs
+    .filter((entry) => !isIndexPage(entry))
+    .map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}) satisfies GetStaticPaths;
+
+const { entry } = Astro.props;
+---
+
+<Placeholder entry={entry} />

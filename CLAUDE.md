@@ -662,6 +662,13 @@ npm run docs:build    # production build -> docs/.vitepress/dist
 Key pages: `docs/index.md`, `docs/architecture.md`, `docs/guides/`,
 `docs/deep-dives/`, `docs/cookbook/`, `docs/experimental/`.
 
+**Migration in progress (HY-110):** the site is moving to pure Astro (no
+Starlight) in `site/`, with the Editorial design and a "Night paper" dark theme.
+Until the switch-over (HY-118) `site/` reads the Markdown from `docs/`, and
+VitePress stays the live site. Keep editing pages in `docs/`. Every URL in
+`site/url-manifest.txt` must keep building (`cd site && npm run build && npm run
+check-urls`).
+
 ## Related docs in repo root
 
 This file (`CLAUDE.md`) is the single source of truth for working in this repo;

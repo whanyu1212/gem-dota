@@ -39,9 +39,6 @@ tmp/
 # Downloaded proto source files
 proto_definitions/
 
-# Docs build output
-site/
-
 # Reference repos (cloned locally, not part of the project)
 refs/
 
