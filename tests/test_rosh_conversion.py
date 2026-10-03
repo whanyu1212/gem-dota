@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from gem._deprecation import read_quietly
 from gem.analysis.roshan import (
     AegisFateSource,
     RoshConversion,
@@ -107,13 +108,13 @@ def test_build_rosh_conversions_objective_conversion() -> None:
     conversions = build_rosh_conversions(match)
     assert len(conversions) == 1
     conversion = conversions[0]
-    assert conversion.conversion_label == "objective_conversion"
+    assert read_quietly(conversion, "conversion_label") == "objective_conversion"
     assert conversion.fights_won == 1
     assert conversion.towers_taken == 2
     assert conversion.barracks_taken == 1
     assert conversion.enemy_buybacks_forced == 1
     assert conversion.enemy_half_observer_delta == 1
-    assert conversion.enemy_half_farm_share_delta > 0.0
+    assert read_quietly(conversion, "enemy_half_farm_share_delta") > 0.0
     assert any(event.kind == "barracks" for event in conversion.timeline_events)
 
 
@@ -145,8 +146,8 @@ def test_build_rosh_conversions_failed_aegis_on_lost_fight() -> None:
     assert len(conversions) == 1
     conversion = conversions[0]
     assert conversion.aegis_fate == "consumed"
-    assert conversion.conversion_label == "low_conversion"
-    assert conversion.aegis_outcome == "window_lost"
+    assert read_quietly(conversion, "conversion_label") == "low_conversion"
+    assert read_quietly(conversion, "aegis_outcome") == "window_lost"
     assert conversion.fights_lost == 1
     assert conversion.towers_taken == 0
     assert conversion.barracks_taken == 0
@@ -284,7 +285,7 @@ def test_rosh_conversion_legacy_constructor_keeps_working() -> None:
     assert conversion.roshan_team is None
     assert conversion.conversion_team is None
     assert conversion.aegis_fate_inferred is False
-    assert conversion.conversion_tags == []
+    assert read_quietly(conversion, "conversion_tags") == []
     assert conversion.analysis_status == "unavailable"
     assert conversion.differential_profile.conversion_team is None
 
@@ -323,7 +324,7 @@ def test_banner_rax_conversion_links_plant_to_barracks() -> None:
     assert conversion.banner_planted is True
     assert conversion.banner_rax_conversion is True
     assert conversion.banner_rax_lane == "mid"
-    assert any("Banner" in driver for driver in conversion.drivers)
+    assert any("Banner" in driver for driver in read_quietly(conversion, "drivers"))
 
 
 def test_banner_planted_without_rax_is_not_a_conversion() -> None:
@@ -720,10 +721,10 @@ def test_game_closing_uses_hardened_window_and_multiple_tags_are_nonexclusive() 
         "vision_expansion",
         "tormentor_secured",
         "game_closing",
-    } <= set(closing.conversion_tags)
+    } <= set(read_quietly(closing, "conversion_tags"))
 
     late = build_rosh_conversions(ParsedMatch(game_end_tick=20000, **common))[0]
-    assert "game_closing" not in late.conversion_tags
+    assert "game_closing" not in read_quietly(late, "conversion_tags")
 
 
 def test_counter_conversion_requires_dominant_opponent_evidence() -> None:
@@ -753,7 +754,7 @@ def test_counter_conversion_requires_dominant_opponent_evidence() -> None:
     conversion = build_rosh_conversions(match)[0]
     assert conversion.differential_profile.fight_differential == -2
     assert conversion.differential_profile.structure_delta == -3
-    assert "counter_conversion" in conversion.conversion_tags
+    assert "counter_conversion" in read_quietly(conversion, "conversion_tags")
 
 
 def test_protocol_team_is_preferred_and_unknown_objectives_are_not_credited() -> None:
@@ -863,19 +864,20 @@ def test_tag_thresholds_are_configurable_at_the_boundary() -> None:
     )
 
     default = build_rosh_conversions(match)[0]
-    calibrated = build_rosh_conversions(
-        match,
-        tag_thresholds=RoshTagThresholds(
-            fight_advantage=1,
-            objective_gain=1,
-            ruleset="boundary-test",
-        ),
-    )[0]
+    with pytest.warns(DeprecationWarning, match="tag_thresholds"):
+        calibrated = build_rosh_conversions(
+            match,
+            tag_thresholds=RoshTagThresholds(
+                fight_advantage=1,
+                objective_gain=1,
+                ruleset="boundary-test",
+            ),
+        )[0]
 
-    assert "fight_advantage" not in default.conversion_tags
-    assert "objective_gain" not in default.conversion_tags
-    assert {"fight_advantage", "objective_gain"} <= set(calibrated.conversion_tags)
-    assert calibrated.differential_profile.tag_ruleset == "boundary-test"
+    assert "fight_advantage" not in read_quietly(default, "conversion_tags")
+    assert "objective_gain" not in read_quietly(default, "conversion_tags")
+    assert {"fight_advantage", "objective_gain"} <= set(read_quietly(calibrated, "conversion_tags"))
+    assert read_quietly(calibrated.differential_profile, "tag_ruleset") == "boundary-test"
 
 
 def test_tag_thresholds_reject_invalid_configuration() -> None:

@@ -182,8 +182,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 gem presents replay facts; the interpretation layer (tags, scores, verdicts) is
 leaving the library (HY-96). Deprecated names still work in 0.12, warn with a
 `DeprecationWarning` when used, are no longer in `__all__`, and are removed in 0.13.
-Deprecated fields (`FarmingRouteSegment.context`, `MatchAnalysis.smoke_fights`)
-warn when read. Printing, comparing or serializing an object does not warn, and
+Deprecated fields (such as `FarmingRouteSegment.context`,
+`MatchAnalysis.smoke_fights` and `RoshConversion.conversion_tags`) warn when read. Printing, comparing or serializing an object does not warn, and
 gem's own `analyze()`, report, JSON and DataFrame output stay silent.
 
 - **`map_context` API:** `build_map_context_timeline`, `score_camp_visit_context`,
@@ -203,6 +203,25 @@ gem's own `analyze()`, report, JSON and DataFrame output stay silent.
   `smoke_fight_members` and `smoke_fight_followups`. Use
   `SmokeAnalysis.first_fight` instead. The Smoke Analysis docs show how to get
   the delay and which smoked heroes fought.
+- **Roshan conversion interpretation** (HY-99). On `RoshConversion`:
+  `conversion_tags`, `conversion_score`, `conversion_label`, `aegis_outcome`,
+  `drivers` and `enemy_half_farm_share_before` / `_during` / `_delta`. On
+  `RoshDifferentialProfile`: `tags`, `tag_ruleset`, `before_territory`,
+  `during_territory` and the coverage and depth swings. Also `RoshTagThresholds`,
+  `DEFAULT_ROSH_TAG_THRESHOLDS`, `RoshTerritoryConfig`, `RoshTerritoryWindow`,
+  `RoshCoverageCell`, and `build_rosh_conversions(tag_thresholds=...,
+  territory_config=...)`, which warn when passed.
+  - The fields warn when read. `conversion_score` and `conversion_label`, which
+    were deprecated in 0.9 without a date, now warn too.
+  - The deprecated constructor arguments are optional now, and still accepted.
+  - The `roshan_conversions` DataFrame columns `aegis_outcome`, the four
+    `*_coverage_pct` columns, `coverage_swing_pct`, `depth_swing`,
+    `conversion_tags`, `tag_ruleset` and `legacy_conversion_score` /
+    `_label` go with them.
+  - The facts stay: kill and attribution, Aegis lifecycle (`aegis_fate`,
+    `aegis_fate_source`), window ticks, fights, structures, economy swings,
+    forward wards, Tormentors, buybacks, drops, banner plants and
+    `timeline_events`. `enemy_half_observer_delta`, a ward count, stays too.
 - **`estimate_vision`:** the same coordinate query is
   `gem.assess_point_vision(...).sources`. For what a team could actually see, use
   `gem.hero_visibility_at` / `gem.entity_visibility_at`.

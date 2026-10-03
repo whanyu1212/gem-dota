@@ -1092,6 +1092,9 @@ def _build_analysis_tables(match: ParsedMatch) -> dict[str, pd.DataFrame]:
     roshan_fight_rows: list[dict[str, Any]] = []
     for conversion in build_rosh_conversions(match):
         profile = conversion.differential_profile
+        # Deprecated in 0.12 (HY-99): the columns stay until 0.13, read without warning.
+        before_territory = read_quietly(profile, "before_territory")
+        during_territory = read_quietly(profile, "during_territory")
         roshan_conversion_rows.append(
             {
                 "rosh_number": conversion.rosh_number,
@@ -1109,7 +1112,7 @@ def _build_analysis_tables(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                 "aegis_fate": conversion.aegis_fate,
                 "aegis_fate_source": conversion.aegis_fate_source.value,
                 "aegis_fate_inferred": conversion.aegis_fate_inferred,
-                "aegis_outcome": conversion.aegis_outcome,
+                "aegis_outcome": read_quietly(conversion, "aegis_outcome"),
                 "first_engagement_tick": conversion.first_engagement_tick,
                 "first_fight_tick": conversion.first_fight_tick,
                 "first_objective_tick": conversion.first_objective_tick,
@@ -1132,16 +1135,12 @@ def _build_analysis_tables(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                 "xp_advantage_end": profile.xp_advantage_end,
                 "xp_swing": profile.xp_swing,
                 "xp_swing_per_minute": profile.xp_swing_per_minute,
-                "before_conversion_coverage_pct": (
-                    profile.before_territory.conversion_coverage_pct
-                ),
-                "before_opponent_coverage_pct": (profile.before_territory.opponent_coverage_pct),
-                "during_conversion_coverage_pct": (
-                    profile.during_territory.conversion_coverage_pct
-                ),
-                "during_opponent_coverage_pct": (profile.during_territory.opponent_coverage_pct),
-                "coverage_swing_pct": profile.coverage_swing_pct,
-                "depth_swing": profile.depth_swing,
+                "before_conversion_coverage_pct": (before_territory.conversion_coverage_pct),
+                "before_opponent_coverage_pct": (before_territory.opponent_coverage_pct),
+                "during_conversion_coverage_pct": (during_territory.conversion_coverage_pct),
+                "during_opponent_coverage_pct": (during_territory.opponent_coverage_pct),
+                "coverage_swing_pct": read_quietly(profile, "coverage_swing_pct"),
+                "depth_swing": read_quietly(profile, "depth_swing"),
                 "conversion_forward_wards": profile.conversion_forward_wards,
                 "opponent_forward_wards": profile.opponent_forward_wards,
                 "forward_ward_delta": profile.forward_ward_delta,
@@ -1149,13 +1148,13 @@ def _build_analysis_tables(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                 "opponent_tormentors": profile.opponent_tormentors,
                 "unattributed_tormentors": profile.unattributed_tormentors,
                 "tormentor_delta": profile.tormentor_delta,
-                "conversion_tags": ",".join(conversion.conversion_tags),
-                "tag_ruleset": profile.tag_ruleset,
+                "conversion_tags": ",".join(read_quietly(conversion, "conversion_tags")),
+                "tag_ruleset": read_quietly(profile, "tag_ruleset"),
                 "analysis_status": conversion.analysis_status,
                 "analysis_status_reasons": ";".join(conversion.analysis_status_reasons),
                 "drops": ",".join(conversion.drops),
-                "legacy_conversion_score": conversion.conversion_score,
-                "legacy_conversion_label": conversion.conversion_label,
+                "legacy_conversion_score": read_quietly(conversion, "conversion_score"),
+                "legacy_conversion_label": read_quietly(conversion, "conversion_label"),
             }
         )
         for evidence in conversion.fight_evidence:

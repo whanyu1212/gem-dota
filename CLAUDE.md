@@ -206,7 +206,10 @@ Headline exports (see `__all__` for the full list):
   `gem.analysis` but are no longer in `__all__`. So far: the `map_context` API,
   `estimate_vision`, the farming segment context (`FarmingSegmentContext`,
   `FarmingContextTag`, `FarmingContextConfig`, `context_config=`), and
-  `build_smoke_fight_insights` with its types (use `SmokeAnalysis.first_fight`).
+  `build_smoke_fight_insights` with its types (use `SmokeAnalysis.first_fight`),
+  and the Roshan conversion tags, verdicts (`aegis_outcome`, `drivers`,
+  `conversion_score` / `_label`) and territory (`RoshTagThresholds`,
+  `RoshTerritory*`, `tag_thresholds=` / `territory_config=`).
   gem's own `analyze()`, report and DataFrames keep using them silently until
   0.13 by importing from the defining submodules. Deprecated dataclass fields
   use `deprecated_field` (warns on read; keep it out of `repr`/`==`), and gem's
@@ -389,9 +392,9 @@ Audit tooling: `scripts/audit_camp_annotations.py`.
 
 `analysis/roshan.py` (`build_rosh_conversions(match)`) is a **post-parse** helper
 that turns existing facts (Roshan kills, aegis events, fights, wards,
-objectives, buybacks, movement) into per-Roshan `RoshConversion` records answering
-"did this Roshan convert into fights / objectives / map control / a closing
-sequence?" Key time windows (all in ticks at 30/sec): aegis duration 5 min,
+objectives, buybacks, movement) into per-Roshan `RoshConversion` records: the
+Aegis lifecycle and what happened in the window that followed. Its tags, verdicts
+and territory fields are deprecated in 0.12 (HY-99) and removed in 0.13. Key time windows (all in ticks at 30/sec): aegis duration 5 min,
 immediate-outcome window 180 s, event-association window 30 s. It reads only
 `ParsedMatch`, so it needs no parser changes to extend.
 

@@ -4,9 +4,30 @@
 after each Roshan kill.
 
 Instead of forcing every Roshan into one exclusive category, gem compares the
-two teams across fights, structures, resources, territory, vision, and the
-Tormentor. The HTML report keeps the underlying signed values visible and adds
-non-exclusive tags only as a quick summary.
+two teams across fights, structures, resources, vision, and the Tormentor, and
+keeps the underlying signed values visible.
+
+::: warning Deprecated in 0.12, removed in 0.13
+gem presents facts and leaves interpretation to you (HY-96). The tags, verdicts
+and territory parts of these records warn when read and are removed in 0.13:
+
+- `conversion_tags`, `differential_profile.tags` and `tag_ruleset`, with
+  `RoshTagThresholds`, `DEFAULT_ROSH_TAG_THRESHOLDS` and
+  `build_rosh_conversions(tag_thresholds=...)`;
+- `conversion_score` and `conversion_label`;
+- `aegis_outcome` (use `aegis_fate`, `aegis_fate_source` and the fights in the
+  window) and `drivers` (use `timeline_events`);
+- territory: `before_territory`, `during_territory`, the coverage and depth
+  swings, `RoshTerritoryConfig`, `RoshTerritoryWindow`, `RoshCoverageCell` and
+  `build_rosh_conversions(territory_config=...)`;
+- `enemy_half_farm_share_before` / `_during` / `_delta`, which are position
+  shares rather than farm.
+
+For where a team was, use `gem.region_of` with the players' `position_log`.
+Everything else on the records stays: the kill and its attribution, the Aegis
+lifecycle, the window ticks, fights, structures, economy swings, forward wards,
+Tormentors, buybacks, drops, banner plants and the timeline.
+:::
 
 ## Why this is experimental
 
@@ -124,7 +145,9 @@ For each resource the profile reports:
 Missing or incomplete curves produce `None` / **Unavailable**, never a
 fabricated zero.
 
-### Sustained territory
+### Sustained territory (deprecated)
+
+Deprecated in 0.12 and removed in 0.13; see the note at the top of this page.
 
 Territory measures sustained forward presence, not distance travelled and not
 true map control.
@@ -181,7 +204,9 @@ are excluded rather than guessed.
 Buybacks remain timeline context. They can help explain the cost of a push or
 fight, but they are not a headline differential and do not affect any tag.
 
-## Non-exclusive tags
+## Non-exclusive tags (deprecated)
+
+Deprecated in 0.12 and removed in 0.13; see the note at the top of this page.
 
 Several tags can describe the same Roshan. The initial thresholds are explicit
 calibration points, not universal Dota truths:
@@ -221,17 +246,16 @@ did not occur. **Unavailable** means the evidence was absent or insufficient.
 
 ## Compatibility
 
-`conversion_label` and `conversion_score` are formally deprecated. They remain
-available through the 0.9 release line for source compatibility and will not be
-removed before 1.0; 1.0 may either remove them or designate them permanent
-compatibility fields after downstream usage is reviewed. New consumers should
-use `differential_profile`, raw values, `analysis_status`, and
-`conversion_tags`. The report no longer renders either legacy field.
+`conversion_label` and `conversion_score`, deprecated since 0.9, now warn when
+read and are removed in 0.13 with the tags. Use the raw `differential_profile`
+values and `analysis_status`.
 
 `build_dataframes(match, include=["analysis"])` exports:
 
 - `roshan_conversions`: one flat row per Roshan, including provenance, raw
-  differentials, evidence status, ruleset, and clearly prefixed legacy fields
+  differentials, evidence status, ruleset, and clearly prefixed legacy fields.
+  The `aegis_outcome`, coverage, depth-swing, `conversion_tags`,
+  `tag_ruleset` and `legacy_conversion_*` columns are removed in 0.13
 - `roshan_conversion_fights`: one flat row per associated fight with engagement
   provenance, relation, and participant IDs
 
@@ -246,7 +270,7 @@ nested public records and enum values as strings.
   earlier damage evidence is unavailable.
 - Forward territory is only as complete as the replay's sampled position logs.
 - Map halves and depth use calibrated geometry, not lane topology or fog state.
-- Tag thresholds remain `provisional-v1`; see the calibration record below.
+- Tag thresholds stay `provisional-v1` until the tags are removed in 0.13.
 
 ## Related pages
 

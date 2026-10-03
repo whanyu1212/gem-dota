@@ -41,6 +41,35 @@ _SMOKE_FIGHT_TYPES = (
     "SampledNearFightEvidence",
     "TeamRelation",
 )
+_ROSH_TYPES = (
+    "RoshTagThresholds",
+    "DEFAULT_ROSH_TAG_THRESHOLDS",
+    "RoshTerritoryConfig",
+    "RoshTerritoryWindow",
+    "RoshCoverageCell",
+)
+_ROSH_CONVERSION_FIELDS = (
+    "conversion_score",
+    "conversion_label",
+    "aegis_outcome",
+    "drivers",
+    "conversion_tags",
+    "enemy_half_farm_share_before",
+    "enemy_half_farm_share_during",
+    "enemy_half_farm_share_delta",
+)
+_ROSH_PROFILE_FIELDS = (
+    "before_territory",
+    "during_territory",
+    "conversion_coverage_swing_pct",
+    "opponent_coverage_swing_pct",
+    "coverage_swing_pct",
+    "conversion_depth_swing",
+    "opponent_depth_swing",
+    "depth_swing",
+    "tags",
+    "tag_ruleset",
+)
 _DEPRECATED = (
     "CampVisitContext",
     "MapContextBucket",
@@ -50,6 +79,7 @@ _DEPRECATED = (
     "build_smoke_fight_insights",
     *_FARMING_CONTEXT,
     *_SMOKE_FIGHT_TYPES,
+    *_ROSH_TYPES,
 )
 
 
@@ -98,7 +128,8 @@ def test_deprecated_names_leave_all_but_still_resolve(name: str) -> None:
 
 @pytest.mark.parametrize("module", [gem, gem.analysis])
 @pytest.mark.parametrize(
-    "name", ["CampVisitContext", "MapContextBucket", *_FARMING_CONTEXT, *_SMOKE_FIGHT_TYPES]
+    "name",
+    ["CampVisitContext", "MapContextBucket", *_FARMING_CONTEXT, *_SMOKE_FIGHT_TYPES, *_ROSH_TYPES],
 )
 def test_deprecated_classes_warn_on_access(module: object, name: str) -> None:
     messages = _warnings(lambda: getattr(module, name))
@@ -188,3 +219,82 @@ def test_context_config_warns_even_without_a_camp_catalog(monkeypatch: pytest.Mo
 def test_world_in_bounds_is_not_added_to_the_top_level() -> None:
     with pytest.raises(AttributeError):
         gem.world_in_bounds  # noqa: B018
+
+
+def _roshan_match() -> ParsedMatch:
+    from gem.extractors.objectives import AegisEvent, RoshanKill
+    from gem.results.models import ParsedPlayer
+
+    return ParsedMatch(
+        game_start_tick=0,
+        game_end_tick=20_000,
+        players=[ParsedPlayer(player_id=0, team=2, hero_name="npc_dota_hero_axe")],
+        roshans=[RoshanKill(tick=1_000, killer="npc_dota_hero_axe", kill_number=1)],
+        aegis_events=[AegisEvent(tick=1_010, player_id=0, event_type="pickup")],
+    )
+
+
+def test_roshan_interpretation_fields_warn_on_read_and_facts_do_not() -> None:
+    from gem.results.dataframes import build_dataframes
+
+    match = _roshan_match()
+    conversions: list = []
+    # Building, printing, serializing and exporting stay silent.
+    assert _warnings(lambda: conversions.extend(gem.build_rosh_conversions(match))) == []
+    conversion = conversions[0]
+    profile = conversion.differential_profile
+    assert (
+        _warnings(
+            lambda: (
+                repr(conversion),
+                conversion == conversion,
+                gem.to_dict(conversion),
+                build_dataframes(match, include=["analysis"]),
+            )
+        )
+        == []
+    )
+    for record, owner, names in (
+        (conversion, "RoshConversion", _ROSH_CONVERSION_FIELDS),
+        (profile, "RoshDifferentialProfile", _ROSH_PROFILE_FIELDS),
+    ):
+        for name in names:
+            messages = _warnings(lambda record=record, name=name: getattr(record, name))
+            assert len(messages) == 1, name
+            assert f"gem.{owner}.{name} is deprecated" in messages[0]
+    # The facts the report shows read without a warning.
+    facts = (
+        "holder_name",
+        "aegis_fate",
+        "aegis_end_tick",
+        "towers_taken",
+        "drops",
+        "timeline_events",
+        "enemy_half_observer_delta",
+    )
+    assert _warnings(lambda: [getattr(conversion, name) for name in facts]) == []
+    assert conversion.holder_name == "npc_dota_hero_axe"
+
+
+def test_roshan_tag_and_territory_parameters_warn() -> None:
+    from gem.analysis.roshan import DEFAULT_ROSH_TAG_THRESHOLDS, RoshTerritoryConfig
+
+    match = _roshan_match()
+    with pytest.warns(DeprecationWarning, match=r"tag_thresholds"):
+        gem.build_rosh_conversions(match, tag_thresholds=DEFAULT_ROSH_TAG_THRESHOLDS)
+    with pytest.warns(DeprecationWarning, match=r"territory_config"):
+        gem.build_rosh_conversions(match, territory_config=RoshTerritoryConfig())
+
+
+def test_roshan_constructor_keeps_accepting_the_deprecated_fields() -> None:
+    from gem.analysis.roshan import RoshConversion
+
+    conversion = RoshConversion(
+        **{
+            **{f.name: None for f in dataclasses.fields(RoshConversion) if f.init},
+            "conversion_label": "map_squeeze",
+            "aegis_outcome": "denied",
+        }
+    )
+    assert read_quietly(conversion, "conversion_label") == "map_squeeze"
+    assert read_quietly(conversion, "aegis_outcome") == "denied"

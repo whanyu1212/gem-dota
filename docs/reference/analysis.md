@@ -1321,12 +1321,12 @@ Source: [src/gem/analysis/roshan.py](https://github.com/whanyu1212/gem-dota/blob
 ### `build_rosh_conversions`
 
 ```python
-def build_rosh_conversions(match: ParsedMatch, *, tag_thresholds: RoshTagThresholds = DEFAULT_ROSH_TAG_THRESHOLDS, territory_config: RoshTerritoryConfig = DEFAULT_ROSH_TERRITORY_CONFIG) -> list[RoshConversion]
+def build_rosh_conversions(match: ParsedMatch, *, tag_thresholds: RoshTagThresholds | None = None, territory_config: RoshTerritoryConfig | None = None) -> list[RoshConversion]
 ```
 
-Summarise each Roshan with legacy fields and differential evidence.
+Summarise each Roshan kill, its Aegis lifecycle and the window that followed.
 
-Source: [src/gem/analysis/roshan.py:1283](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L1283)
+Source: [src/gem/analysis/roshan.py:1366](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L1366)
 
 ### Top-level classes
 
@@ -1338,7 +1338,7 @@ class AegisFateSource(str, Enum)
 
 Evidence or boundary used to classify an Aegis lifecycle.
 
-Source: [src/gem/analysis/roshan.py:66](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L66)
+Source: [src/gem/analysis/roshan.py:101](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L101)
 
 ### `RoshTeamAttributionSource`
 
@@ -1348,7 +1348,7 @@ class RoshTeamAttributionSource(str, Enum)
 
 Provenance of a team attribution used by Roshan analysis.
 
-Source: [src/gem/analysis/roshan.py:79](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L79)
+Source: [src/gem/analysis/roshan.py:114](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L114)
 
 ### `RoshFightRelation`
 
@@ -1358,7 +1358,7 @@ class RoshFightRelation(str, Enum)
 
 Temporal relationship between a fight and the conversion window.
 
-Source: [src/gem/analysis/roshan.py:91](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L91)
+Source: [src/gem/analysis/roshan.py:126](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L126)
 
 ### `RoshTagThresholds`
 
@@ -1368,7 +1368,7 @@ class RoshTagThresholds
 
 Inspectably configured thresholds for non-exclusive conversion tags.
 
-Source: [src/gem/analysis/roshan.py:101](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L101)
+Source: [src/gem/analysis/roshan.py:136](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L136)
 
 #### Dataclass fields
 
@@ -1391,7 +1391,7 @@ class RoshFightEvidence
 
 Engagement-aware evidence for one fight associated with a Roshan window.
 
-Source: [src/gem/analysis/roshan.py:133](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L133)
+Source: [src/gem/analysis/roshan.py:168](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L168)
 
 #### Dataclass fields
 
@@ -1417,7 +1417,7 @@ class RoshTimelineEvent
 
 One notable event inside a Roshan conversion sequence.
 
-Source: [src/gem/analysis/roshan.py:186](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L186)
+Source: [src/gem/analysis/roshan.py:221](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L221)
 
 #### Dataclass fields
 
@@ -1436,7 +1436,7 @@ class RoshDifferentialProfile
 
 Evidence-first conversion-team profile over one hardened Rosh window.
 
-Source: [src/gem/analysis/roshan.py:218](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L218)
+Source: [src/gem/analysis/roshan.py:253](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L253)
 
 #### Dataclass fields
 
@@ -1467,14 +1467,14 @@ Source: [src/gem/analysis/roshan.py:218](https://github.com/whanyu1212/gem-dota/
 | `xp_advantage_end` | `int \| None` | `None` |
 | `xp_swing` | `int \| None` | `None` |
 | `xp_swing_per_minute` | `float \| None` | `None` |
-| `before_territory` | `RoshTerritoryWindow` | `field(...)` |
-| `during_territory` | `RoshTerritoryWindow` | `field(...)` |
-| `conversion_coverage_swing_pct` | `float \| None` | `None` |
-| `opponent_coverage_swing_pct` | `float \| None` | `None` |
-| `coverage_swing_pct` | `float \| None` | `None` |
-| `conversion_depth_swing` | `float \| None` | `None` |
-| `opponent_depth_swing` | `float \| None` | `None` |
-| `depth_swing` | `float \| None` | `None` |
+| `before_territory` | `RoshTerritoryWindow` | `_deprecated('RoshDifferentialProfile', 'before_territory', _TERRITORY_ALTERNA...` |
+| `during_territory` | `RoshTerritoryWindow` | `_deprecated('RoshDifferentialProfile', 'during_territory', _TERRITORY_ALTERNA...` |
+| `conversion_coverage_swing_pct` | `float \| None` | `_deprecated('RoshDifferentialProfile', 'conversion_coverage_swing_pct', _TERR...` |
+| `opponent_coverage_swing_pct` | `float \| None` | `_deprecated('RoshDifferentialProfile', 'opponent_coverage_swing_pct', _TERRIT...` |
+| `coverage_swing_pct` | `float \| None` | `_deprecated('RoshDifferentialProfile', 'coverage_swing_pct', _TERRITORY_ALTER...` |
+| `conversion_depth_swing` | `float \| None` | `_deprecated('RoshDifferentialProfile', 'conversion_depth_swing', _TERRITORY_A...` |
+| `opponent_depth_swing` | `float \| None` | `_deprecated('RoshDifferentialProfile', 'opponent_depth_swing', _TERRITORY_ALT...` |
+| `depth_swing` | `float \| None` | `_deprecated('RoshDifferentialProfile', 'depth_swing', _TERRITORY_ALTERNATIVE)` |
 | `conversion_forward_wards` | `int \| None` | `None` |
 | `opponent_forward_wards` | `int \| None` | `None` |
 | `forward_ward_delta` | `int \| None` | `None` |
@@ -1482,8 +1482,8 @@ Source: [src/gem/analysis/roshan.py:218](https://github.com/whanyu1212/gem-dota/
 | `opponent_tormentors` | `int \| None` | `None` |
 | `unattributed_tormentors` | `int` | `0` |
 | `tormentor_delta` | `int \| None` | `None` |
-| `tags` | `list[str]` | `field(...)` |
-| `tag_ruleset` | `str` | `DEFAULT_ROSH_TAG_THRESHOLDS.ruleset` |
+| `tags` | `list[str]` | `_deprecated('RoshDifferentialProfile', 'tags', _TAG_ALTERNATIVE, default_fact...` |
+| `tag_ruleset` | `str` | `_deprecated('RoshDifferentialProfile', 'tag_ruleset', _TAG_ALTERNATIVE, defau...` |
 | `status` | `Literal['complete', 'partial', 'unavailable']` | `'unavailable'` |
 | `status_reasons` | `list[str]` | `field(...)` |
 
@@ -1495,7 +1495,7 @@ class RoshConversion
 
 Derived summary for one Roshan kill and the advantage window that followed.
 
-Source: [src/gem/analysis/roshan.py:320](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L320)
+Source: [src/gem/analysis/roshan.py:384](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L384)
 
 #### Dataclass fields
 
@@ -1523,13 +1523,13 @@ Source: [src/gem/analysis/roshan.py:320](https://github.com/whanyu1212/gem-dota/
 | `barracks_taken` | `int` | `-` |
 | `enemy_buybacks_forced` | `int` | `-` |
 | `enemy_half_observer_delta` | `int` | `-` |
-| `enemy_half_farm_share_before` | `float` | `-` |
-| `enemy_half_farm_share_during` | `float` | `-` |
-| `enemy_half_farm_share_delta` | `float` | `-` |
-| `conversion_score` | `int` | `-` |
-| `conversion_label` | `Literal['low_conversion', 'fight_conversion', 'objective_conversion', 'map_squeeze', 'game_closing_rosh']` | `-` |
-| `aegis_outcome` | `Literal['consumed_in_fight', 'expired_after_use', 'expired_unused', 'denied', 'window_lost', 'game_ended', 'unknown']` | `-` |
-| `drivers` | `list[str]` | `field(...)` |
+| `enemy_half_farm_share_before` | `float` | `_deprecated('RoshConversion', 'enemy_half_farm_share_before', _TERRITORY_ALTE...` |
+| `enemy_half_farm_share_during` | `float` | `_deprecated('RoshConversion', 'enemy_half_farm_share_during', _TERRITORY_ALTE...` |
+| `enemy_half_farm_share_delta` | `float` | `_deprecated('RoshConversion', 'enemy_half_farm_share_delta', _TERRITORY_ALTER...` |
+| `conversion_score` | `int` | `_deprecated('RoshConversion', 'conversion_score', _TAG_ALTERNATIVE, default=0)` |
+| `conversion_label` | `Literal['low_conversion', 'fight_conversion', 'objective_conversion', 'map_squeeze', 'game_closing_rosh']` | `_deprecated('RoshConversion', 'conversion_label', _TAG_ALTERNATIVE, default='...` |
+| `aegis_outcome` | `Literal['consumed_in_fight', 'expired_after_use', 'expired_unused', 'denied', 'window_lost', 'game_ended', 'unknown']` | `_deprecated('RoshConversion', 'aegis_outcome', 'aegis_fate, aegis_fate_source...` |
+| `drivers` | `list[str]` | `_deprecated('RoshConversion', 'drivers', 'timeline_events', default_factory=l...` |
 | `timeline_events` | `list[RoshTimelineEvent]` | `field(...)` |
 | `drops` | `list[str]` | `field(...)` |
 | `had_high_value_drop` | `bool` | `False` |
@@ -1544,7 +1544,7 @@ Source: [src/gem/analysis/roshan.py:320](https://github.com/whanyu1212/gem-dota/
 | `aegis_fate_inferred` | `bool` | `False` |
 | `first_engagement_tick` | `int \| None` | `None` |
 | `fight_evidence` | `list[RoshFightEvidence]` | `field(...)` |
-| `conversion_tags` | `list[str]` | `field(...)` |
+| `conversion_tags` | `list[str]` | `_deprecated('RoshConversion', 'conversion_tags', _TAG_ALTERNATIVE, default_fa...` |
 | `analysis_status` | `Literal['complete', 'partial', 'unavailable']` | `'unavailable'` |
 | `analysis_status_reasons` | `list[str]` | `field(...)` |
 | `differential_profile` | `RoshDifferentialProfile` | `field(...)` |
@@ -1565,7 +1565,7 @@ def build_smoke_analysis(match: ParsedMatch) -> list[SmokeAnalysis]
 
 Build factual lifecycle summaries for every smoke item use.
 
-Source: [src/gem/analysis/smoke.py:151](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L151)
+Source: [src/gem/analysis/smoke.py:153](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L153)
 
 ### Top-level classes
 
@@ -1577,7 +1577,7 @@ class SmokeLifecycleStatus(str, Enum)
 
 Observed lifecycle classification for one smoke participant.
 
-Source: [src/gem/analysis/smoke.py:35](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L35)
+Source: [src/gem/analysis/smoke.py:36](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L36)
 
 ### `SmokeGroupStatus`
 
@@ -1587,7 +1587,7 @@ class SmokeGroupStatus(str, Enum)
 
 Evidence-based aggregate state for one smoke activation.
 
-Source: [src/gem/analysis/smoke.py:52](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L52)
+Source: [src/gem/analysis/smoke.py:53](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L53)
 
 ### `SmokeMemberAnalysis`
 
@@ -1597,7 +1597,7 @@ class SmokeMemberAnalysis
 
 Evidence summary for one hero in a smoke activation.
 
-Source: [src/gem/analysis/smoke.py:72](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L72)
+Source: [src/gem/analysis/smoke.py:73](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L73)
 
 #### Dataclass fields
 
@@ -1626,7 +1626,7 @@ class SmokeAnalysis
 
 Evidence summary for one Smoke of Deceit item use.
 
-Source: [src/gem/analysis/smoke.py:116](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L116)
+Source: [src/gem/analysis/smoke.py:117](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L117)
 
 #### Dataclass fields
 

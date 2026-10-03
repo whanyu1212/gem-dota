@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any
 
 import gem
+from gem._deprecation import read_quietly
 from gem.analysis import build_rosh_conversions
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -69,8 +70,8 @@ def snapshot_replay(path: Path) -> dict[str, Any]:
                 "unattributed_tormentors": (
                     conversion.differential_profile.unattributed_tormentors
                 ),
-                "conversion_tags_observed": conversion.conversion_tags,
-                "tag_ruleset": conversion.differential_profile.tag_ruleset,
+                "conversion_tags_observed": read_quietly(conversion, "conversion_tags"),
+                "tag_ruleset": read_quietly(conversion.differential_profile, "tag_ruleset"),
             }
             for conversion in conversions
         ],
