@@ -1326,7 +1326,7 @@ def build_rosh_conversions(match: ParsedMatch, *, tag_thresholds: RoshTagThresho
 
 Summarise each Roshan kill, its Aegis lifecycle and the window that followed.
 
-Source: [src/gem/analysis/roshan.py:1366](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L1366)
+Source: [src/gem/analysis/roshan.py:1373](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L1373)
 
 ### Top-level classes
 
@@ -1495,7 +1495,7 @@ class RoshConversion
 
 Derived summary for one Roshan kill and the advantage window that followed.
 
-Source: [src/gem/analysis/roshan.py:384](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L384)
+Source: [src/gem/analysis/roshan.py:388](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L388)
 
 #### Dataclass fields
 
