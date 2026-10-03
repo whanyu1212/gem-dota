@@ -4,6 +4,8 @@ The new docs site, replacing the VitePress site in `docs/` (HY-110). Until the
 switch-over (HY-118) the pages are read from `../docs`, and the live site is
 still the VitePress build.
 
+Needs Node 22.12 or newer (Astro 7; see `engines` in `package.json` and `.nvmrc`).
+
 ```bash
 cd site
 npm install
