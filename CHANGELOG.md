@@ -71,6 +71,21 @@ of answering questions from them, see the Recipes docs.
   - the `roshan_conversions` columns `aegis_outcome`, the four `*_coverage_pct`
     columns, `coverage_swing_pct`, `depth_swing`, `conversion_tags`,
     `tag_ruleset` and `legacy_conversion_score` / `_label`.
+- **The 0.10 `teamfights` names**, renamed to `fights` in 0.11:
+  - `ParsedMatch.teamfights` and the `teamfights=` keyword;
+  - `MatchAnalysis.teamfight_positioning` and `SmokeAnalysis.first_teamfight`,
+    attributes and keywords;
+  - `Teamfight`, `TeamfightPlayer`, `detect_teamfights`, `teamfight_at_tick`,
+    `is_active_teamfight_participant`, `TeamfightPositioning` and
+    `build_teamfight_positioning`;
+  - the `gem.extractors.teamfights` and `gem.analysis.teamfight_positioning`
+    modules;
+  - the `teamfights`, `teamfight_players` and `teamfight_positioning` table
+    names in `build_dataframes` and `read_parquet_table`;
+  - the rename helpers in `gem._deprecation`.
+
+  JSON files with the old `teamfights` key still load as `fights`. OpenDota's
+  `opendota_teamfights` and `teamfight_participation` are unchanged.
 - **Calibration tooling for the removed heuristics.**
   - `scripts/calibrate_farming_context.py` is now `scripts/audit_farming_routes.py`,
     and its corpus is `tests/fixtures/opendota/farming_routes_corpus.json`. Both

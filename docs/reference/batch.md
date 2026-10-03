@@ -48,7 +48,7 @@ def parse_many(source: str | Path | Sequence[str | Path], *, workers: int | None
 
 Parse multiple replays in parallel and return a result per replay.
 
-Source: [src/gem/replays/batch.py:138](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L138)
+Source: [src/gem/replays/batch.py:136](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L136)
 
 ### `parse_many_to_dataframe`
 
@@ -58,7 +58,7 @@ def parse_many_to_dataframe(source: str | Path | Sequence[str | Path], *, worker
 
 Parse multiple replays and concatenate results into per-table DataFrames.
 
-Source: [src/gem/replays/batch.py:211](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L211)
+Source: [src/gem/replays/batch.py:209](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L209)
 
 ### `parse_many_to_parquet`
 
@@ -68,7 +68,7 @@ def parse_many_to_parquet(source: str | Path | Sequence[str | Path], output_dir:
 
 Parse multiple replays and write each to its own parquet subdirectory.
 
-Source: [src/gem/replays/batch.py:268](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L268)
+Source: [src/gem/replays/batch.py:266](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L266)
 
 ### `read_parquet_table`
 
@@ -78,7 +78,7 @@ def read_parquet_table(output_dir: str | Path, table: str) -> pd.DataFrame
 
 Load one table across every replay written by :func:`parse_many_to_parquet`.
 
-Source: [src/gem/replays/batch.py:416](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L416)
+Source: [src/gem/replays/batch.py:414](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L414)
 
 ### Top-level classes
 
@@ -90,7 +90,7 @@ class ParseResult
 
 Outcome of parsing a single replay.
 
-Source: [src/gem/replays/batch.py:52](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L52)
+Source: [src/gem/replays/batch.py:50](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L50)
 
 #### Dataclass fields
 
@@ -108,7 +108,7 @@ Signature: `def ParseResult.ok(self) -> bool`
 
 Return ``True`` when parsing succeeded.
 
-Source: [src/gem/replays/batch.py:66](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L66)
+Source: [src/gem/replays/batch.py:64](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L64)
 
 ##### `complete`
 
@@ -116,4 +116,4 @@ Signature: `def ParseResult.complete(self) -> bool`
 
 Return ``True`` when parsing succeeded and read the whole replay.
 
-Source: [src/gem/replays/batch.py:71](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L71)
+Source: [src/gem/replays/batch.py:69](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/replays/batch.py#L69)

@@ -22,7 +22,7 @@ def detect_fights(combat_log: list[CombatLogEntry], hero_to_slot: dict[str, int]
 
 Detect fights from a match combat log.
 
-Source: [src/gem/extractors/fights.py:182](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/fights.py#L182)
+Source: [src/gem/extractors/fights.py:181](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/fights.py#L181)
 
 ### `detect_opendota_teamfights`
 
@@ -32,7 +32,7 @@ def detect_opendota_teamfights(combat_log: list[CombatLogEntry], hero_to_slot: d
 
 Project combat log entries into OpenDota-compatible teamfight output.
 
-Source: [src/gem/extractors/fights.py:454](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/fights.py#L454)
+Source: [src/gem/extractors/fights.py:453](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/fights.py#L453)
 
 ### Top-level classes
 
@@ -44,7 +44,7 @@ class FightPlayer
 
 Per-player stats accumulated within one fight window.
 
-Source: [src/gem/extractors/fights.py:66](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/fights.py#L66)
+Source: [src/gem/extractors/fights.py:65](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/fights.py#L65)
 
 #### Dataclass fields
 
@@ -69,7 +69,7 @@ class Fight
 
 A detected fight window with per-player breakdowns.
 
-Source: [src/gem/extractors/fights.py:95](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/fights.py#L95)
+Source: [src/gem/extractors/fights.py:94](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/fights.py#L94)
 
 #### Dataclass fields
 
@@ -96,7 +96,7 @@ class OpenDotaTeamfightPlayer
 
 OpenDota-compatible per-player teamfight row.
 
-Source: [src/gem/extractors/fights.py:135](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/fights.py#L135)
+Source: [src/gem/extractors/fights.py:134](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/fights.py#L134)
 
 #### Dataclass fields
 
@@ -124,7 +124,7 @@ class OpenDotaTeamfight
 
 OpenDota-compatible temporal teamfight window.
 
-Source: [src/gem/extractors/fights.py:165](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/fights.py#L165)
+Source: [src/gem/extractors/fights.py:164](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/fights.py#L164)
 
 #### Dataclass fields
 

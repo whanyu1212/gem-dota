@@ -35,8 +35,6 @@ from pathlib import Path
 from time import monotonic
 from typing import TYPE_CHECKING
 
-from gem._deprecation import warn_renamed
-
 if TYPE_CHECKING:
     import pandas as pd
 
@@ -437,11 +435,6 @@ def read_parquet_table(output_dir: str | Path, table: str) -> pd.DataFrame:
     """
     import pandas as pd
 
-    from gem.results.dataframes import RENAMED_TABLES
-
-    if table in RENAMED_TABLES:
-        warn_renamed(f"DataFrame table {table!r}", repr(RENAMED_TABLES[table]))
-        table = RENAMED_TABLES[table]
     files = sorted(Path(output_dir).glob(f"*/{table}.parquet"))
     if not files:
         raise FileNotFoundError(f"No '{table}.parquet' files found under {output_dir}")

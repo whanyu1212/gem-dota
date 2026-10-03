@@ -39,7 +39,6 @@ from dataclasses import dataclass, field
 from itertools import pairwise
 from typing import TYPE_CHECKING
 
-from gem._deprecation import renamed_module_attrs
 from gem.combat.log import CombatLogEntry, opendota_translate
 from gem.extractors._cells import od_cell_index
 from gem.extractors._snapshots import IntervalSample
@@ -993,10 +992,3 @@ def _update_centroid(
     # Incremental mean: new_mean = old_mean + (new_val - old_mean) / n
     n = new_death_count
     return (cx + (pos[0] - cx) / n, cy + (pos[1] - cy) / n)
-
-
-__getattr__ = renamed_module_attrs(
-    __name__,
-    {"Teamfight": "Fight", "TeamfightPlayer": "FightPlayer", "detect_teamfights": "detect_fights"},
-    globals(),
-)
