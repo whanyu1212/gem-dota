@@ -25,6 +25,15 @@ export default defineConfig({
         ],
       },
       {
+        text: "Recipes",
+        items: [
+          { text: "Answering Questions from the Facts", link: "/cookbook/questions" },
+          { text: "Roshan and the Next Fight", link: "/cookbook/roshan-next-fight" },
+          { text: "Core Farm, 10 to 20 Minutes", link: "/cookbook/core-farm" },
+          { text: "Smokes and Kills", link: "/cookbook/smoke-to-kill" },
+        ],
+      },
+      {
         text: "Proto Cookbook",
         items: [
           { text: "Overview", link: "/cookbook/" },

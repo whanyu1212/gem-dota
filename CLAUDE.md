@@ -639,6 +639,7 @@ scripts (`test_audit_camp_annotations.py`, `test_audit_opendota_fixture_constant
 | `examples/match_report.py` | Full HTML match dashboard (Draft, Combat, Laning, Farming, Fights, Roshan, Vision, Economy) |
 | `examples/extraction_demo.py` | Developer guide for combat-log extraction and entity polling |
 | `examples/steam_match_info.py` | Fetch match info from the Steam API, display with Rich tables |
+| `examples/cookbook/*.py` | Recipes answering one question each from facts (docs: `docs/cookbook/questions.md`); tested in `tests/test_cookbook.py` |
 
 Report generation lives in `src/gem/reports/`; `examples/match_report.py` is a
 thin wrapper around `gem.reports.write_html_report()`.

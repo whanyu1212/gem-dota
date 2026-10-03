@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Docs: Recipes** (HY-102). Three pages that each answer one question from
+  gem's facts and pandas, with no tags, scores or deprecated APIs: whether the
+  team that killed Roshan won the next fight, how fast each core farmed from 10
+  to 20 minutes and where, and how often a smoke led to a kill. The code lives
+  in `examples/cookbook/`, runs on one replay or many, and is tested.
+
 ## [0.12.0] - 2026-10-03
 
 gem now presents replay facts and leaves interpretation to you. The tags, scores
