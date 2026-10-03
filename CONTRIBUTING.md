@@ -66,21 +66,22 @@ Thank you for your interest in contributing! This document covers everything you
 
 ### Docs toolchain (maintainers)
 
-Documentation is a [VitePress](https://vitepress.dev/) site under `docs/` (Node-based).
-The API reference is generated from source docstrings by
-`scripts/generate_api_reference.py` (run automatically before the dev/build steps).
-The new Astro site in `site/` runs the same generator (`npm run gen`); see `site/README.md`.
+Documentation is an [Astro](https://astro.build/) site in `site/` (Node 22.12+).
+The pages are Markdown in `docs/` until they move into `site/` (HY-118). The API
+reference is generated from source docstrings by `scripts/generate_api_reference.py`,
+which `npm run dev` and `npm run build` run first. See `site/README.md`.
 
 ```bash
-cd docs
+cd site
 npm install
-npm run docs:dev      # local dev server (regenerates the API reference first)
-npm run docs:build    # production build -> docs/.vitepress/dist
+npm run dev           # local dev server
+npm run build         # production build -> site/dist, with the search index
+npm run check-urls && npm run check-links && npm test && npm run check
 ```
 
-CI builds the site via `.github/workflows/docs.yml`. If you upgrade docs tooling,
-open a dedicated PR with the updated `docs/package.json` / lockfile and a successful
-`npm run docs:build`.
+CI builds and checks the site on pull requests and deploys it from `main` via
+`.github/workflows/docs.yml`. If you upgrade docs tooling, open a dedicated PR with
+the updated `site/package.json` / lockfile and a passing build.
 
 ### Cutting a release (maintainers)
 
@@ -141,7 +142,7 @@ Open a GitHub issue with:
 
 - Formatted and linted by `ruff` (runs automatically via pre-commit)
 - Type-annotated: all public functions and methods must have full annotations
-- Google-style docstrings on all public classes and functions (the VitePress API reference is generated from them)
+- Google-style docstrings on all public classes and functions (the docs site's API reference is generated from them)
 - No direct translation from Go/Java reference parsers — write idiomatic Python
 
 ### Docstring format

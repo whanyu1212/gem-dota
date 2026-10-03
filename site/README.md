@@ -1,8 +1,8 @@
 # gem docs site (Astro)
 
-The new docs site, replacing the VitePress site in `docs/` (HY-110). Until the
-switch-over (HY-118) the pages are read from `../docs`, and the live site is
-still the VitePress build.
+The docs site, deployed to <https://whanyu1212.github.io/gem-dota/> by
+`.github/workflows/docs.yml` (pull requests build and check it without
+deploying). Until HY-118 moves them here, the pages are read from `../docs`.
 
 Needs Node 22.12 or newer (Astro 7; see `engines` in `package.json` and `.nvmrc`).
 
