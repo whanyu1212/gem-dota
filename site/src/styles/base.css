@@ -179,10 +179,9 @@ button {
   color: var(--ink);
 }
 
+/* Only reachable on narrow screens, where it opens the menu (see below). */
 .menu-toggle {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
+  display: none;
 }
 .menu-button {
   display: none;
@@ -406,6 +405,19 @@ button {
   }
   .menu-button {
     display: grid;
+  }
+  .menu-toggle {
+    display: block;
+    position: absolute;
+    top: 0;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .menu-toggle:focus-visible ~ .topbar .menu-button {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
   .shell,
   .shell--wide,

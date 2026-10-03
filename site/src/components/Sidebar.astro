@@ -12,7 +12,7 @@ const groups = section?.groups ?? [];
 const active = activeLink(path, groups);
 ---
 
-<nav class="sidebar" aria-label="Pages in this section">
+<nav class="sidebar" id="site-menu" aria-label="Pages in this section">
   <div class="sidebar-tabs">
     {SECTIONS.map((s) => (
       <a href={`${base}${s.link}`} aria-current={s.key === section?.key ? "true" : undefined}>{s.text}</a>

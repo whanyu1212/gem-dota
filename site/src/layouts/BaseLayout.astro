@@ -44,7 +44,9 @@ const extraHead = head.filter(([tag]) => tag === "meta" || tag === "link");
   </head>
   <body>
     <a class="skip-link" href="#content">Skip to content</a>
-    <input type="checkbox" id="menu-toggle" class="menu-toggle" aria-hidden="true" tabindex="-1" />
+    <!-- The menu on narrow screens: this checkbox is the keyboard control (Space opens it),
+         and the label in the top bar is what pointer users see. No JavaScript needed. -->
+    <input type="checkbox" id="menu-toggle" class="menu-toggle" aria-label="Menu" aria-controls="site-menu" />
     <TopBar section={section} />
     <slot />
     <footer class="site-footer">
