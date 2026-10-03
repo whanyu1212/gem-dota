@@ -3,7 +3,7 @@
 Post-parse utilities in `gem.analysis` that transform raw `ParsedMatch` / `ParsedPlayer`
 data into higher-level structures for agentic and analytical use.
 
-> **Note:** `assess_point_vision`, `estimate_vision`, and
+> **Note:** `assess_point_vision` and
 > `match.vision_modifiers` are **experimental**. Point calculations use
 > straight-line geometry only — high-ground penalties, terrain line-of-sight
 > (trees/cliffs), and per-hero vision range modifiers are not modelled. Treat
@@ -19,8 +19,8 @@ Canonical implementation modules are split by responsibility:
 - `gem.analysis.combat` — ability-hit grouping and fight helpers
 - `gem.analysis.abilities` — ability-level lookup helpers
 - `gem.analysis.vision` — geometry-based vision approximation helpers
-- `gem.analysis.map_context` — objective-aware farming context helpers
-- `gem.analysis.roshan` — Roshan conversion summaries
+- `gem.analysis.farming` — camp-by-camp farming routes
+- `gem.analysis.roshan` — Roshan kills, Aegis lifecycles and the window that followed
 - `gem.analysis.smoke` — evidence-first Smoke of Deceit lifecycle analysis
 - `gem.analysis.fight_positioning` — bounded fight-moment spatial evidence
 
@@ -37,17 +37,16 @@ casts   = gem.group_ability_hits(match.combat_log)
 fight   = gem.fight_at_tick(match, tick)
 near    = gem.heroes_near(match, tick, x, y, radius=2000)
 lvl     = gem.ability_level_at_tick(player, "axe_berserkers_call", tick)
-sources = gem.estimate_vision(match, team=2, tick=tick, x=x, y=y)
 vision  = gem.assess_point_vision(match, team=2, tick=tick, x=x, y=y)
 smokes  = gem.build_smoke_analysis(match)
 fights  = gem.build_fight_positioning(match)
 rosh    = gem.build_rosh_conversions(match)
 ```
 
-Roshan conversions expose `roshan_team_source`, `conversion_team_source`,
-`aegis_fate_source`, engagement-aware `fight_evidence`, the signed
-`differential_profile`, and non-exclusive `conversion_tags`. Threshold and
-territory settings are immutable public configuration records. See
+Roshan records expose `roshan_team_source`, `conversion_team_source`,
+`aegis_fate_source`, engagement-aware `fight_evidence` and the signed
+`differential_profile`. gem 0.13 removed the tags, verdicts and territory
+fields. See
 [Roshan Conversion](../experimental/rosh-conversion.md) and its
 [calibration record](../experimental/rosh-conversion-calibration.md).
 
@@ -301,27 +300,14 @@ elif assessment.status is gem.PointVisionStatus.INCOMPLETE:
 
 ---
 
-## `estimate_vision` compatibility helper *(experimental)*
+## Point-source limits *(experimental)*
 
-```python
-gem.estimate_vision(
-    match: ParsedMatch,
-    team: int,
-    tick: int,
-    x: float,
-    y: float,
-) -> list[VisionSource]
-```
+`assess_point_vision(...).sources` is the distance-sorted modelled geometry
+(gem 0.13 removed the old `estimate_vision` list view). Direct-target modifiers
+are not arbitrary-point sources; query them for a specific canonical target
+through `assess_point_vision(..., target_player_id=...)`.
 
-Return only the distance-sorted modelled geometry sources. It uses the same
-freshness and ward-lifetime rules as `assess_point_vision(...)`, but its list
-shape cannot preserve evidence gaps. An empty list is therefore ambiguous.
-
-Direct-target modifiers are no longer arbitrary-point sources. Query them for a
-specific canonical target through `assess_point_vision(...,
-target_player_id=...)`.
-
-Both point APIs remain geometry approximations:
+The point geometry is an approximation:
 
 - No high-ground vision penalties
 - No summon/creep vision (only heroes and observer wards)

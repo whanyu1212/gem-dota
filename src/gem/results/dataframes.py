@@ -196,8 +196,8 @@ def build_dataframes(match: ParsedMatch, *, include: Iterable[str] = ()) -> dict
     Args:
         match: Fully populated :class:`ParsedMatch`.
         include: Optional table groups to add (see :data:`OPTIONAL_GROUPS`).
-            ``"analysis"`` runs the post-parse farming, smoke-fight, Roshan
-            conversion, and fight-positioning analyses and flattens them;
+            ``"analysis"`` runs the post-parse farming, Roshan and
+            fight-positioning analyses and flattens them;
             ``"opendota"`` adds the OpenDota-shaped objective and teamfight
             views; ``"gold_ledger"`` adds each player's gold ledger at game
             end and per minute. A single group name may be passed as a plain

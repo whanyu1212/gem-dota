@@ -369,7 +369,7 @@ def parse_to_dataframe(path: str | Path, *, include: Iterable[str] = ()) -> dict
     Args:
         path: Path to the ``.dem`` replay file.
         include: Optional table groups to add: ``"analysis"`` (farming,
-            smoke-fight, Roshan-conversion, and fight-positioning tables)
+            Roshan and fight-positioning tables)
             and/or ``"opendota"`` (OpenDota-shaped objective/teamfight views).
 
     Returns:
