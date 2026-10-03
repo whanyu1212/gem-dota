@@ -1,28 +1,30 @@
 # Experimental Features
 
-Features in this section are intentionally ambitious and still being tuned.
+The records in this section join several replay facts into one record per
+route, Roshan, smoke, fight or point. They hold no tags, scores or verdicts: gem
+reports what the replay shows, and answering questions from it is left to you
+(see the [Recipes](../cookbook/questions.md)).
 
-They are useful today, but they are not presented as exact replay ground truth. The goal is to expose higher-level interpretations that sit on top of gem's parsed replay data and make analytical workflows easier.
+## What makes them experimental
 
-## What belongs here
-
-An experimental feature usually has at least one of these properties:
-
-- it combines multiple replay signals into a heuristic interpretation
-- it answers a question the replay does not provide directly
-- it makes useful tradeoffs between readability and precision
-- its thresholds or labels will likely be refined over time
+- They join facts that the replay records separately, such as a camp catalog
+  and sampled positions, or a Roshan kill and the fights that followed.
+- Some of their choices are analytical rather than read from the replay: window
+  lengths, segment boundaries, and evidence categories such as
+  `strong_farm_evidence`.
+- Those choices, and the record fields, may still change between releases.
 
 > [!IMPORTANT]
-> Experimental does **not** mean random.
-> 
-> It means the feature is implemented carefully, with explicit formulas, inputs, thresholds, and caveats, but gem is honest that the output is still an interpretation layer.
+> Experimental does **not** mean guessed.
+>
+> Each page states its inputs, windows and boundaries, and every field is either
+> a replay fact or a documented derivation of one. Where the replay lacks
+> evidence, the record says so instead of filling the gap.
 
 ## Available experimental features
 
 | Feature | What it tries to answer |
 |---|---|
-| [Map Regions and Camps](./map-annotations.md) | Where gem's map regions and neutral camps are, and how their positions, types and owners were checked against the replays |
 | [Farming Patterns](./farming-patterns.md) | Which camp-local routes were observed, and what supports farming rather than transit |
 | [Farming Route Calibration](./farming-patterns-calibration.md) | Which real-replay facts and targeted boundaries the farming-route corpus guards |
 | [Roshan Conversion](./rosh-conversion.md) | What happened after each Roshan kill: the Aegis lifecycle, and the fights, structures, economy, wards and Tormentors in the window |
@@ -46,4 +48,7 @@ An experimental feature usually has at least one of these properties:
 10. [Point-Vision Evidence](./estimate-vision.md)
 11. [Vision Modifiers](./vision-modifiers.md)
 
-The first three tell you where the underlying replay data comes from. The Experimental Features pages explain how gem turns that raw data into analyst-facing interpretations.
+The first three tell you where the underlying replay data comes from. The pages
+in this section explain how gem joins that data into each record, and what the
+record does and does not establish. The map regions and camp catalog these
+records use are on [Map Regions and Camps](./map-annotations.md).

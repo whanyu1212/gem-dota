@@ -17,7 +17,7 @@ not about this Roshan.
 
 ## The recipe
 
-<<< @/../examples/cookbook/roshan_next_fight.py{python}
+<<< @/examples/cookbook/roshan_next_fight.py{python}
 
 ## On one match
 

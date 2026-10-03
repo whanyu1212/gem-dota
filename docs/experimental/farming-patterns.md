@@ -1,8 +1,7 @@
 # Farming Patterns
 
 `Farming Patterns` is an experimental, evidence-first view of sampled hero
-routes through calibrated neutral-camp zones. It answers a narrower and more
-defensible question than the original report:
+routes through calibrated neutral-camp zones. It answers one question:
 
 > Which camp-local route segments were observed, and how much replay evidence
 > supports treating each segment as farming rather than transit?
@@ -29,11 +28,9 @@ It does not change replay parsing or add extractor state.
 Samples before `ParsedMatch.game_start_tick` are excluded, so pre-horn movement
 does not become a farming segment.
 
-gem 0.12 also attached a comparative "context" to each segment (nearby heroes,
-modelled vision, towers, Aegis, territory) with tags such as `own_side` or
-`territorial_advance`. That was interpretation, and gem 0.13 removed it. Join
-the facts you need yourself: `gem.region_of`, the wards, towers and Aegis events
-on `ParsedMatch`, and the players' positions.
+gem 0.13 removed the comparative "context" and tags that 0.12 attached to each
+segment. Join the facts you need yourself: `gem.region_of`, the wards, towers and
+Aegis events on `ParsedMatch`, and the players' positions.
 
 ## Public API
 
@@ -113,7 +110,7 @@ out-of-zone point. `in_zone_sample_count` therefore remains distinct from
 Each segment retains:
 
 - exact start/end ticks and duration;
-- camp ID and family;
+- camp ID and `camp_type`;
 - every sampled route point;
 - total and in-zone sample counts;
 - sampled-window coverage and largest supported gap;
@@ -146,7 +143,7 @@ Evidence strength is deliberately small and composable:
 
 The labels do not assert that the hero cleared the camp, earned every resource
 from that camp, or intended to farm. Fresh XP/gold deltas remain visible as
-window context, but a brief touch is not promoted solely because passive or
+window facts, but a brief touch is not promoted solely because passive or
 off-zone resources changed.
 
 ## Camp facts on each segment
@@ -180,7 +177,7 @@ topology provenance remain separate fields.
 - `farming_route_segments`: boundaries, support facts, strength, camp facts,
   provenance, and gaps;
 - `farming_route_points`: sampled path, selected camp, base-zone membership,
-  discontinuity reason, and segment membership where applicable.
+  `boundary_before`, and segment membership where applicable.
 
 String enums are exported as their raw values. Lists of reasons/gaps use
 semicolon-delimited strings, matching the other flat analysis exports.

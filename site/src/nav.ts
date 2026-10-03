@@ -63,6 +63,7 @@ export const SECTIONS: Section[] = [
           { text: "Laning Analysis", link: "/guides/08_laning" },
           { text: "CLI Reference", link: "/guides/09_cli" },
           { text: "JSON Output Shape", link: "/guides/10_json_output" },
+          { text: "Map Regions and Camps", link: "/experimental/map-annotations" },
         ],
       },
       {
@@ -73,11 +74,10 @@ export const SECTIONS: Section[] = [
         text: "Experimental",
         items: [
           { text: "Overview", link: "/experimental/" },
-          { text: "Map Regions and Camps", link: "/experimental/map-annotations" },
           { text: "Farming Patterns", link: "/experimental/farming-patterns" },
           { text: "Farming Route Calibration", link: "/experimental/farming-patterns-calibration" },
           { text: "Roshan Conversion", link: "/experimental/rosh-conversion" },
-          { text: "Roshan Calibration", link: "/experimental/rosh-conversion-calibration" },
+          { text: "Roshan Conversion Calibration", link: "/experimental/rosh-conversion-calibration" },
           { text: "Smoke Analysis", link: "/experimental/smoke-analysis" },
           { text: "Fight Positioning", link: "/experimental/fight-positioning" },
           { text: "Point-Vision Evidence", link: "/experimental/estimate-vision" },

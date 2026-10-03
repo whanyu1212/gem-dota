@@ -48,8 +48,8 @@ same for an already-decoded JSON object.
 
 ## Including analysis results
 
-`gem.analyze(match)` runs every default post-parse analysis (smoke lifecycles, smoke/fight
-insights, Roshan conversions, farming routes, and fight positioning) and returns a
+`gem.analyze(match)` runs every default post-parse analysis (smoke lifecycles, Roshan
+conversions, farming routes, and fight positioning) and returns a
 `MatchAnalysis`. Pass it to `to_json()` to embed the results under an `analysis` key:
 
 ```python

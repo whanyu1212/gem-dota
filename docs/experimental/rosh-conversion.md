@@ -78,8 +78,8 @@ Every differential is signed from the conversion team's perspective:
 conversion team value - opponent value
 ```
 
-A positive value favors the conversion team; a negative value shows a
-counter-conversion by the opponent.
+A positive value means the conversion team had more; a negative value means the
+opponent had more.
 
 ### Fights
 
@@ -131,8 +131,8 @@ fabricated zero.
 ### Forward wards
 
 ```text
-conversion observer wards in enemy territory
-- opponent observer wards in conversion territory
+conversion observer wards in the enemy half
+- opponent observer wards in the conversion team's half
 ```
 
 Only observer wards with known coordinates inside the analysis window count.
@@ -149,8 +149,7 @@ are excluded rather than guessed.
 
 ### Buybacks
 
-Buybacks remain timeline context. They can help explain the cost of a push or
-fight, but they are not a headline differential.
+Buybacks are listed on the timeline. They are not a differential.
 
 The HTML report's `Roshan` tab shows only the kill and Aegis lifecycle facts
 from these records (see [Match Reports](../reports/index.md)). The differential

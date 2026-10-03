@@ -4,10 +4,12 @@
  *
  * - `::: info [title]` … `:::` callouts (also tip, warning, danger, important,
  *   details) become `<aside class="callout callout--info">` blocks.
+ * - GitHub alerts (`> [!NOTE]`, `> [!TIP]`, `> [!IMPORTANT]`, `> [!WARNING]`,
+ *   `> [!CAUTION]` followed by `>` lines) become the same callouts.
  * - `::: code-group` around code blocks labelled ```` ```bash [pip] ```` becomes
  *   radio-button tabs that work without JavaScript.
  * - `<<< @/path/to/file.py{python}` is replaced by the file's contents in a code
- *   block. `@` is the content root (docs/ for now).
+ *   block. `@` is the repository root, e.g. `<<< @/examples/cookbook/x.py{python}`.
  *
  * Fenced code is left alone, so a `:::` or `<<<` line inside a code block stays
  * as written. Blank lines around the inserted HTML make CommonMark parse the
@@ -17,8 +19,8 @@ import { readFileSync } from "node:fs";
 import { extname, resolve } from "node:path";
 
 export interface PreprocessOptions {
-  /** Absolute path that `@` stands for in `<<< @/…` imports. */
-  contentRoot: string;
+  /** Absolute path that `@` stands for in `<<< @/…` imports: the repository root. */
+  importRoot: string;
 }
 
 const FENCE_OPEN = /^ {0,3}(`{3,}|~{3,})(.*)$/;
@@ -26,6 +28,17 @@ const CONTAINER_OPEN = /^ {0,3}:::\s*([\w-]+)\s*(.*?)\s*$/;
 const CONTAINER_CLOSE = /^ {0,3}:::\s*$/;
 const IMPORT = /^ {0,3}<<<\s+(\S+?)(?:\{([^}]*)\})?\s*$/;
 const LABELLED_FENCE = /^( {0,3})(`{3,}|~{3,})(\S*)(.*?)\s*\[([^\]]+)\]\s*$/;
+const ALERT_OPEN = /^ {0,3}>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$/i;
+const QUOTE_LINE = /^ {0,3}>(.*)$/;
+
+/** GitHub alert kinds as callout kinds, with VitePress's titles. */
+const ALERTS: Record<string, { kind: string; title: string }> = {
+  NOTE: { kind: "info", title: "NOTE" },
+  TIP: { kind: "tip", title: "TIP" },
+  IMPORTANT: { kind: "important", title: "IMPORTANT" },
+  WARNING: { kind: "warning", title: "WARNING" },
+  CAUTION: { kind: "danger", title: "CAUTION" },
+};
 
 const CALLOUT_KINDS = new Set(["info", "tip", "warning", "danger", "important", "details"]);
 const DEFAULT_TITLES: Record<string, string> = {
@@ -70,7 +83,9 @@ export function preprocess(source: string, options: PreprocessOptions): string {
   let fence: { char: string; length: number } | undefined;
   let codeGroups = 0;
 
-  for (const line of source.split("\n")) {
+  const lines = source.split("\n");
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index];
     if (fence) {
       out.push(line);
       const close = new RegExp(`^ {0,3}${fence.char === "`" ? "`" : "~"}{${fence.length},}\\s*$`);
@@ -92,6 +107,19 @@ export function preprocess(source: string, options: PreprocessOptions): string {
     if (opened) {
       fence = { char: opened[1][0], length: opened[1].length };
       out.push(line);
+      continue;
+    }
+
+    const alert = ALERT_OPEN.exec(line);
+    if (alert) {
+      const { kind, title } = ALERTS[alert[1].toUpperCase()];
+      const body: string[] = [];
+      while (index + 1 < lines.length && QUOTE_LINE.test(lines[index + 1])) {
+        body.push(QUOTE_LINE.exec(lines[++index])![1].replace(/^ /, ""));
+      }
+      out.push("", `<aside class="callout callout--${kind}"><p class="callout-title">${title}</p>`, "");
+      out.push(...preprocess(body.join("\n"), options).split("\n"));
+      out.push("", "</aside>", "");
       continue;
     }
 
@@ -153,9 +181,9 @@ function codeGroupTabs(index: number, labels: string[]): string[] {
 
 function importFile(path: string, braces: string | undefined, options: PreprocessOptions): string[] {
   if (!path.startsWith("@/")) {
-    throw new Error(`<<< imports must start with @/ (the content root): ${path}`);
+    throw new Error(`<<< imports must start with @/ (the repository root): ${path}`);
   }
-  const file = resolve(options.contentRoot, path.slice(2));
+  const file = resolve(options.importRoot, path.slice(2));
   let code: string;
   try {
     code = readFileSync(file, "utf8").replace(/\n$/, "");
