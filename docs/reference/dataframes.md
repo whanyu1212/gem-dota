@@ -85,4 +85,4 @@ def build_dataframes(match: ParsedMatch, *, include: Iterable[str] = ()) -> dict
 
 Convert a :class:`ParsedMatch` into a dict of flat pandas DataFrames.
 
-Source: [src/gem/results/dataframes.py:190](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/dataframes.py#L190)
+Source: [src/gem/results/dataframes.py:186](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/dataframes.py#L186)

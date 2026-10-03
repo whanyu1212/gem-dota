@@ -47,7 +47,6 @@ _CANONICAL_IMPORTS = [
     ("gem.results.dataframes", "build_dataframes"),
     ("gem.replays.fetch", "fetch_replay"),
     ("gem.results.models", "ParsedMatch"),
-    ("gem.analysis.map_context", "MapContextBucket"),
     ("gem.analysis.roshan", "RoshConversion"),
 ]
 

@@ -41,12 +41,6 @@ def _conversion(**overrides: object) -> RoshConversion:
         "barracks_taken": 0,
         "enemy_buybacks_forced": 0,
         "enemy_half_observer_delta": 0,
-        "enemy_half_farm_share_before": 0.0,
-        "enemy_half_farm_share_during": 0.0,
-        "enemy_half_farm_share_delta": 0.0,
-        "conversion_score": 99,
-        "conversion_label": "objective_conversion",
-        "aegis_outcome": "consumed_in_fight",
         "drops": ["aegis", "banner"],
         "roshan_team": 2,
         "conversion_team": 2,
@@ -54,7 +48,6 @@ def _conversion(**overrides: object) -> RoshConversion:
         "conversion_team_source": RoshTeamAttributionSource.PLAYER_ID,
         "aegis_fate_source": AegisFateSource.HOLDER_DEATH_INFERENCE,
         "aegis_fate_inferred": True,
-        "conversion_tags": ["fight_advantage", "territorial_expansion"],
         "analysis_status": "partial",
     }
     fields.update(overrides)

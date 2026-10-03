@@ -19,7 +19,6 @@ from pathlib import Path
 from typing import Any
 
 import gem
-from gem._deprecation import read_quietly
 from gem.analysis import build_rosh_conversions
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -36,11 +35,15 @@ def _aegis_event_type(match: gem.ParsedMatch, tick: int | None) -> str | None:
 
 
 def snapshot_replay(path: Path) -> dict[str, Any]:
-    """Parse one replay and return factual Roshan calibration evidence."""
-    match = gem.parse(path)
+    """Parse one replay and return its factual Roshan evidence."""
+    return snapshot_match(gem.parse(path), int(path.stem))
+
+
+def snapshot_match(match: Any, match_id: int | None = None) -> dict[str, Any]:
+    """Return factual Roshan evidence for one parsed match."""
     conversions = build_rosh_conversions(match)
     return {
-        "match_id": match.match_id or int(path.stem),
+        "match_id": match.match_id or match_id,
         "game_end_tick": match.game_end_tick,
         "roshan_count": len(conversions),
         "conversions": [
@@ -70,8 +73,6 @@ def snapshot_replay(path: Path) -> dict[str, Any]:
                 "unattributed_tormentors": (
                     conversion.differential_profile.unattributed_tormentors
                 ),
-                "conversion_tags_observed": read_quietly(conversion, "conversion_tags"),
-                "tag_ruleset": read_quietly(conversion.differential_profile, "tag_ruleset"),
             }
             for conversion in conversions
         ],

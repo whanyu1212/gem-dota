@@ -44,23 +44,14 @@ Public API
 ``format_npc_name(name)``
     Convert an NPC entity name to a human-readable label.
 
-``build_map_context_timeline(match, team, ...)``
-    Deprecated; removed in 0.13. Objective-aware map-control context buckets.
-
-``score_camp_visit_context(...)``
-    Deprecated; removed in 0.13. Scores a camp visit with drivers.
-
 ``build_farming_routes(match, ...)``
     Build sampled camp-route segments with explicit evidence provenance.
 
 ``build_rosh_conversions(match)``
-    Summarize how each Roshan translated into fights, objectives, and map pressure.
+    Summarize each Roshan kill, its Aegis lifecycle, and the window that followed.
 
 ``build_smoke_analysis(match)``
     Summarize exact smoke modifier lifecycles and supporting evidence.
-
-``build_smoke_fight_insights(match)``
-    Build bounded smoke/fight observations from exact and sampled evidence.
 
 ``build_fight_positioning(match)``
     Build bounded spatial and visibility snapshots for detected fights.
@@ -88,10 +79,9 @@ from typing import TYPE_CHECKING
 import gem.catalog as catalog  # re-export so `gem.catalog.hero_display()` works
 import gem.constants as constants  # re-export so `gem.constants.hero_display()` works
 import gem.reports as reports  # re-export so `gem.reports.build_html_report()` works
-from gem._deprecation import deprecated_module_attrs, renamed_module_attrs
+from gem._deprecation import renamed_module_attrs
 from gem.analysis import (
     DEFAULT_FARMING_ROUTE_CONFIG,
-    DEPRECATED_ANALYSIS_NAMES as _DEPRECATED_ANALYSIS_NAMES,
     MAP_REGIONS,
     RENAMED_FIGHT_NAMES as _RENAMED_ANALYSIS_NAMES,
     AbilityCast,
@@ -580,11 +570,4 @@ __all__ = [
 #: Names gem 0.10 and earlier used for gem's own fights, served with a warning.
 RENAMED_NAMES = dict(_RENAMED_ANALYSIS_NAMES)
 
-#: Names deprecated in 0.12 and removed in 0.13 (HY-96), served with a warning.
-DEPRECATED_NAMES = {
-    name: entry for name, entry in _DEPRECATED_ANALYSIS_NAMES.items() if name != "world_in_bounds"
-}
-
-__getattr__ = deprecated_module_attrs(
-    __name__, DEPRECATED_NAMES, renamed_module_attrs(__name__, RENAMED_NAMES, globals())
-)
+__getattr__ = renamed_module_attrs(__name__, RENAMED_NAMES, globals())

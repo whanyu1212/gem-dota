@@ -133,7 +133,7 @@ def test_read_parquet_table_accepts_the_old_name(tmp_path):
 def test_json_uses_fights_and_reads_the_old_key(recwarn):
     data = to_dict(ParsedMatch(match_id=1, fights=[_fight()]))
     assert "fights" in data and "teamfights" not in data
-    assert SCHEMA_VERSION == 3
+    assert SCHEMA_VERSION >= 3  # fights was renamed in schema 3
 
     old = json.loads(json.dumps(data))
     old["teamfights"] = old.pop("fights")

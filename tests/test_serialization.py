@@ -12,7 +12,6 @@ import gem.api
 from gem.analysis.farming import build_farming_routes
 from gem.analysis.fight_positioning import build_fight_positioning
 from gem.analysis.roshan import build_rosh_conversions
-from gem.analysis.smoke_fight import build_smoke_fight_insights
 from gem.combat.log import CombatLogEntry, CombatLogSource, CombatLogType
 from gem.extractors.fights import Fight, FightPlayer, OpenDotaTeamfight
 from gem.extractors.objectives import AegisEvent, RoshanKill
@@ -94,9 +93,7 @@ class TestSerializationHelpers:
         assert segment["camp_catalog_version"] == 4
         assert segment["camp_map_patch"] == "7.41"
         assert segment["camp_topology_patch"] == "7.41"
-        assert segment["context"]["camp_side"] == "own_side"
-        assert "own_side" in segment["context"]["tags"]
-        assert "incomplete_context" in segment["context"]["tags"]
+        assert "context" not in segment  # removed in 0.13
 
     def test_positioning_analysis_preserves_enum_values_and_unknowns(self):
         players = [
@@ -179,42 +176,6 @@ class TestSerializationHelpers:
         assert smoke["participants"][0]["modifier_elapsed_duration_s"] == 15.0
         assert smoke["participants"][0]["applied_game_time_s"] == 11
         assert smoke["participants"][0]["removed_game_time_s"] == 26
-
-    def test_to_dict_serializes_public_smoke_fight_records(self):
-        match = ParsedMatch(
-            players=[
-                ParsedPlayer(
-                    player_id=0,
-                    hero_name="npc_dota_hero_axe",
-                    team=2,
-                )
-            ],
-            smoke_events=[
-                SmokeEvent(
-                    tick=1_000,
-                    activator="npc_dota_hero_axe",
-                    team=2,
-                    activation_game_time_s=10,
-                    participants=[
-                        SmokeParticipant(
-                            hero_name="npc_dota_hero_axe",
-                            player_id=0,
-                            applied_tick=1_001,
-                        )
-                    ],
-                )
-            ],
-        )
-
-        payload = gem.to_dict(build_smoke_fight_insights(match))
-        decoded = json.loads(json.dumps(payload))
-
-        assert decoded[0]["smoke_index"] == 0
-        assert decoded[0]["fight_index"] is None
-        assert decoded[0]["status"] == "no_candidate"
-        assert decoded[0]["activation"]["tick"] == 1_000
-        assert decoded[0]["activation"]["game_time_s"] == 10
-        assert decoded[0]["members"][0]["authoritative_visibility"] == "unknown"
 
     def test_to_dict_serializes_roshan_provenance_and_nested_fight_evidence(self):
         players = [
@@ -502,7 +463,6 @@ class TestJsonRoundTrip:
 
         assert set(decoded["analysis"]) == {
             "smoke",
-            "smoke_fights",
             "roshan_conversions",
             "farming_routes",
             "fight_positioning",
@@ -569,9 +529,6 @@ class TestAnalyze:
             build_fight_positioning(match)
         )
         assert gem.to_dict(analysis.farming_routes) == gem.to_dict(build_farming_routes(match))
-        with pytest.warns(DeprecationWarning, match="MatchAnalysis.smoke_fights"):
-            smoke_fights = analysis.smoke_fights
-        assert gem.to_dict(smoke_fights) == gem.to_dict(build_smoke_fight_insights(match))
         assert gem.to_dict(analysis.smoke) == gem.to_dict(gem.build_smoke_analysis(match))
 
 

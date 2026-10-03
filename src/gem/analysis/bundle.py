@@ -5,17 +5,17 @@ configuration and returns the results as one :class:`MatchAnalysis`, which
 :func:`gem.to_json` can embed alongside the match.
 
 Reference: gem-original composition over ``analysis/smoke.py``,
-``analysis/smoke_fight.py``, ``analysis/roshan.py``, ``analysis/farming.py``,
-and ``analysis/fight_positioning.py``; see those modules for the upstream
+``analysis/roshan.py``, ``analysis/farming.py`` and
+``analysis/fight_positioning.py``; see those modules for the upstream
 event semantics each builder consumes.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING
 
-from gem._deprecation import deprecated_field, renamed_attribute, renamed_init_kwargs
+from gem._deprecation import renamed_attribute, renamed_init_kwargs
 from gem.analysis.farming import FarmingRoute, build_farming_routes
 from gem.analysis.fight_positioning import (
     FightPositioning,
@@ -23,7 +23,6 @@ from gem.analysis.fight_positioning import (
 )
 from gem.analysis.roshan import RoshConversion, build_rosh_conversions
 from gem.analysis.smoke import SmokeAnalysis, build_smoke_analysis
-from gem.analysis.smoke_fight import SmokeFightInsight, build_smoke_fight_insights
 
 if TYPE_CHECKING:
     from gem.results.models import ParsedMatch
@@ -36,9 +35,8 @@ class MatchAnalysis:
 
     Attributes:
         smoke: Smoke of Deceit lifecycle summaries (:func:`gem.build_smoke_analysis`).
-        smoke_fights: Bounded smoke-to-fight insights. Deprecated; removed in
-            gem 0.13. Use ``smoke[i].first_fight``.
-        roshan_conversions: Per-Roshan conversion evidence
+        roshan_conversions: Per-Roshan records: the kill, the Aegis lifecycle and
+            the window that followed
             (:func:`gem.build_rosh_conversions`).
         farming_routes: Per-player camp-route reconstructions
             (:func:`gem.build_farming_routes`).
@@ -47,19 +45,6 @@ class MatchAnalysis:
     """
 
     smoke: list[SmokeAnalysis] = field(default_factory=list)
-    smoke_fights: list[SmokeFightInsight] = field(
-        default=cast(
-            Any,
-            deprecated_field(
-                "smoke_fights",
-                "gem.MatchAnalysis.smoke_fights",
-                alternative="analysis.smoke[i].first_fight",
-                default_factory=list,
-            ),
-        ),
-        repr=False,
-        compare=False,
-    )
     roshan_conversions: list[RoshConversion] = field(default_factory=list)
     farming_routes: list[FarmingRoute] = field(default_factory=list)
     fight_positioning: list[FightPositioning] = field(default_factory=list)
@@ -82,7 +67,6 @@ def analyze(match: ParsedMatch) -> MatchAnalysis:
     """
     return MatchAnalysis(
         smoke=build_smoke_analysis(match),
-        smoke_fights=build_smoke_fight_insights(match),
         roshan_conversions=build_rosh_conversions(match),
         farming_routes=build_farming_routes(match),
         fight_positioning=build_fight_positioning(match),

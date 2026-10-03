@@ -12,7 +12,6 @@ import gem
 import gem.analysis as analysis
 import gem.analysis.combat as analysis_combat
 import gem.analysis.fight_positioning as analysis_teamfight_positioning
-import gem.analysis.smoke_fight as analysis_smoke_fight
 import gem.analysis.spatial as analysis_spatial
 from gem.analysis import group_ability_hits, position_at_tick, position_sample_at_tick, regions
 from gem.combat.log import CombatLogEntry
@@ -28,12 +27,6 @@ def test_analysis_package_reexports_public_helpers() -> None:
         analysis.build_fight_positioning is analysis_teamfight_positioning.build_fight_positioning
     )
     assert gem.build_fight_positioning is analysis.build_fight_positioning
-    # Deprecated (HY-101): the public names wrap the module's function with a warning.
-    assert (
-        analysis.build_smoke_fight_insights.__wrapped__
-        is analysis_smoke_fight.build_smoke_fight_insights
-    )
-    assert gem.build_smoke_fight_insights is analysis.build_smoke_fight_insights
 
 
 # ---------------------------------------------------------------------------
@@ -236,11 +229,6 @@ class TestMapGeometrySingleSource:
         from gem.catalog.map import load_map_constants
 
         data = load_map_constants()
-        wb = data["world_bounds"]
-        assert float(wb["xmin"]) == _shared._MAP_XMIN
-        assert float(wb["xmax"]) == _shared._MAP_XMAX
-        assert float(wb["ymin"]) == _shared._MAP_YMIN
-        assert float(wb["ymax"]) == _shared._MAP_YMAX
         fr = data["fountains"]["radiant"]
         fd = data["fountains"]["dire"]
         assert (float(fr["x"]), float(fr["y"])) == _shared._RADIANT_FOUNTAIN
@@ -269,13 +257,6 @@ class TestMapGeometrySingleSource:
         from gem.catalog.map import load_map_constants
 
         data = load_map_constants()
-        wb = data["world_bounds"]
-        assert (
-            float(wb["xmin"]),
-            float(wb["xmax"]),
-            float(wb["ymin"]),
-            float(wb["ymax"]),
-        ) == _shared._FALLBACK_MAP_BOUNDS
         fr = data["fountains"]["radiant"]
         fd = data["fountains"]["dire"]
         assert (float(fr["x"]), float(fr["y"])) == _shared._FALLBACK_RADIANT_FOUNTAIN
@@ -409,12 +390,13 @@ class TestRegionOf:
         assert wrong == {}
 
     def test_every_label_is_a_map_region(self) -> None:
-        from gem.analysis import _shared
+        from gem.catalog.map import load_map_constants
 
+        bounds = load_map_constants()["world_bounds"]
         labels = {
             regions.region_of(x, y)
-            for x in range(int(_shared._MAP_XMIN), int(_shared._MAP_XMAX), 250)
-            for y in range(int(_shared._MAP_YMIN), int(_shared._MAP_YMAX), 250)
+            for x in range(int(bounds["xmin"]), int(bounds["xmax"]), 250)
+            for y in range(int(bounds["ymin"]), int(bounds["ymax"]), 250)
         }
         assert labels == set(regions.MAP_REGIONS)
 

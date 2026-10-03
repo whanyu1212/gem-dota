@@ -1,8 +1,7 @@
 """Shared constants and helpers for the analysis package.
 
-Centralises the map-geometry constants and the small lookup helpers that were
-previously duplicated across :mod:`gem.analysis.roshan`,
-:mod:`gem.analysis.map_context`, and :mod:`gem.reports._sections`.
+Holds the team constants, the fountain positions ``region_of`` falls back on,
+and the small lookup helpers several analysis modules share.
 """
 
 from __future__ import annotations
@@ -17,56 +16,34 @@ if TYPE_CHECKING:
 _TEAM_RADIANT = 2
 _TEAM_DIRE = 3
 
-# Map geometry is sourced from the bundled ``map_constants.json`` so there is a
-# single source of truth — the same file the public ``catalog.load_map_constants``
-# exposes. The literals below are a calibrated fallback used only if the JSON is
-# missing or malformed (they must mirror the JSON). These are analysis constants
-# (territory grid, in-map checks, fountain anchors), not the report's image
-# projection, which gem.reports._formatting calibrates separately. The fountains
-# are the CDOTA_Unit_Fountain entity positions, identical on every local fixture.
-_FALLBACK_MAP_BOUNDS = (7563.0, 25900.0, 7800.0, 25600.0)  # xmin, xmax, ymin, ymax
+# The fountains come from the bundled ``map_constants.json`` (the same file
+# ``catalog.load_map_constants`` exposes); the literals are a fallback used only
+# if the JSON is missing or malformed, and must mirror it. They are the
+# CDOTA_Unit_Fountain entity positions, identical on every local fixture.
 _FALLBACK_RADIANT_FOUNTAIN = (8928.0, 9446.0)
 _FALLBACK_DIRE_FOUNTAIN = (23792.0, 23232.0)
 
 
-def _load_map_geometry() -> tuple[
-    float, float, float, float, tuple[float, float], tuple[float, float]
-]:
-    """Load map bounds and fountains from ``map_constants.json``.
+def _load_fountains() -> tuple[tuple[float, float], tuple[float, float]]:
+    """Load the fountain positions from ``map_constants.json``.
 
-    Falls back to the calibrated literals if the JSON is unavailable or missing
+    Falls back to the literals above if the JSON is unavailable or missing
     keys, so importing the analysis package never fails on a data problem.
 
     Returns:
-        ``(xmin, xmax, ymin, ymax, radiant_fountain, dire_fountain)``.
+        ``(radiant_fountain, dire_fountain)``.
     """
     try:
         from gem.catalog.map import load_map_constants
 
-        data = load_map_constants()
-        wb = data["world_bounds"]
-        fr = data["fountains"]["radiant"]
-        fd = data["fountains"]["dire"]
-        return (
-            float(wb["xmin"]),
-            float(wb["xmax"]),
-            float(wb["ymin"]),
-            float(wb["ymax"]),
-            (float(fr["x"]), float(fr["y"])),
-            (float(fd["x"]), float(fd["y"])),
-        )
+        fountains = load_map_constants()["fountains"]
+        radiant, dire = fountains["radiant"], fountains["dire"]
+        return (float(radiant["x"]), float(radiant["y"])), (float(dire["x"]), float(dire["y"]))
     except (OSError, ValueError, KeyError, TypeError):
-        return (*_FALLBACK_MAP_BOUNDS, _FALLBACK_RADIANT_FOUNTAIN, _FALLBACK_DIRE_FOUNTAIN)
+        return _FALLBACK_RADIANT_FOUNTAIN, _FALLBACK_DIRE_FOUNTAIN
 
 
-(
-    _MAP_XMIN,
-    _MAP_XMAX,
-    _MAP_YMIN,
-    _MAP_YMAX,
-    _RADIANT_FOUNTAIN,
-    _DIRE_FOUNTAIN,
-) = _load_map_geometry()
+_RADIANT_FOUNTAIN, _DIRE_FOUNTAIN = _load_fountains()
 
 
 def infer_match_end_tick(match: ParsedMatch) -> int:

@@ -130,7 +130,7 @@ def warn_deprecated(
     """Emit the standard warning for a deprecated name.
 
     Args:
-        name: The deprecated name, as users write it (e.g. ``gem.estimate_vision``).
+        name: The deprecated name, as users write it (e.g. ``gem.old_helper``).
         alternative: What to use instead, if anything.
         removal: The release that removes it.
         stacklevel: Passed to :func:`warnings.warn`, so the warning points at
@@ -150,7 +150,7 @@ def deprecated(
     """Function decorator: warn on every call.
 
     Args:
-        name: The public name to show in the warning (e.g. ``gem.estimate_vision``).
+        name: The public name to show in the warning (e.g. ``gem.old_helper``).
         alternative: What to use instead, if anything.
         removal: The release that removes it.
 
@@ -222,7 +222,7 @@ class deprecated_field:  # noqa: N801 - used like ``field``/``property``
 
     Args:
         attr: The field's attribute name.
-        name: The public name for the warning (e.g. ``gem.MatchAnalysis.smoke_fights``).
+        name: The public name for the warning (e.g. ``gem.MatchAnalysis.old_field``).
         alternative: What to use instead, if anything.
         removal: The release that removes it.
         default: The value when none is given.

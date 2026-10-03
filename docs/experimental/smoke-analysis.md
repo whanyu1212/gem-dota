@@ -59,8 +59,9 @@ for smoke in gem.build_smoke_analysis(match):
     print(smoke.activation_tick, delay_s, fight.winner, fought)
 ```
 
-This replaces the deprecated `build_smoke_fight_insights`. Ticks keep running
-during pauses; use `match.game_clock` when you need game seconds.
+Ticks keep running during pauses; use `match.game_clock` when you need game
+seconds. The [smoke recipe](../cookbook/smoke-to-kill.md) turns this into "how
+often did a smoke lead to a kill".
 
 ## Lifecycle status
 

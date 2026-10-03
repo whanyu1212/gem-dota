@@ -13,7 +13,6 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING, Literal
 
-from gem._deprecation import deprecated
 from gem.analysis._shared import infer_match_end_tick
 from gem.analysis.spatial import position_sample_at_tick
 from gem.results.models import (
@@ -597,74 +596,6 @@ def assess_point_vision(
         authoritative_visibility=authoritative_visibility,
         max_position_age_ticks=max_position_age_ticks,
     )
-
-
-@deprecated(
-    "gem.estimate_vision",
-    alternative=(
-        "gem.assess_point_vision(...).sources for modelled coverage of a point, "
-        "or gem.hero_visibility_at for replay visibility"
-    ),
-)
-def estimate_vision(
-    match: ParsedMatch,
-    team: int,
-    tick: int,
-    x: float,
-    y: float,
-    *,
-    max_position_age_ticks: int = 150,
-) -> list[VisionSource]:
-    """Return bounded modeled hero and observer sources covering a map point.
-
-    Deprecated; removed in gem 0.13. The same query, with the reasons an answer
-    is missing, is ``assess_point_vision(...).sources``; for what a team could
-    actually see, use :func:`hero_visibility_at` / :func:`entity_visibility_at`.
-
-    This compatibility helper retains its list return shape. It now applies the
-    same sample freshness and ward lifetime rules as :func:`assess_point_vision`
-    and no longer treats target-specific modifier reveals as arbitrary-point
-    geometry. Use the structured API when unsupported and incomplete evidence
-    must be distinguished.
-
-    Args:
-        match: A parsed replay.
-        team: Team number to assess (2=Radiant, 3=Dire).
-        tick: Replay tick to query.
-        x: Queried world x coordinate.
-        y: Queried world y coordinate.
-        max_position_age_ticks: Maximum allowed absolute hero sample age.
-
-    Returns:
-        Compatible source records sorted by ascending distance. An empty list
-        is not proof that the point was hidden in-game.
-
-    Raises:
-        ValueError: If ``team`` is invalid or the age bound is negative.
-    """
-    assessment = assess_point_vision(
-        match,
-        team,
-        tick,
-        x,
-        y,
-        max_position_age_ticks=max_position_age_ticks,
-    )
-    return [
-        VisionSource(
-            kind="ward" if source.kind == "observer_ward" else "hero",
-            name=source.name,
-            distance=source.distance,
-            vision_radius=source.vision_radius,
-            x=source.x,
-            y=source.y,
-            position_tick=source.position_tick,
-            position_age_ticks=source.position_age_ticks,
-            player_id=source.player_id,
-            position_provenance=source.position_provenance,
-        )
-        for source in assessment.sources
-    ]
 
 
 _WARD_VISION_RADIUS_SQ: int = _WARD_VISION * _WARD_VISION

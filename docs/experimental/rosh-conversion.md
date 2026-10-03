@@ -1,33 +1,16 @@
 # Roshan Conversion
 
-`Roshan Conversion` is an experimental, evidence-first analysis of what changed
-after each Roshan kill.
+`gem.build_rosh_conversions(match)` returns one record per Roshan kill: who
+killed it, what happened to the Aegis, and what happened in the window that
+followed. It compares the two teams across fights, structures, resources,
+forward wards, the Tormentor and buybacks, and keeps the signed values visible.
 
-Instead of forcing every Roshan into one exclusive category, gem compares the
-two teams across fights, structures, resources, vision, and the Tormentor, and
-keeps the underlying signed values visible.
-
-::: warning Deprecated in 0.12, removed in 0.13
-gem presents facts and leaves interpretation to you (HY-96). The tags, verdicts
-and territory parts of these records warn when read and are removed in 0.13:
-
-- `conversion_tags`, `differential_profile.tags` and `tag_ruleset`, with
-  `RoshTagThresholds`, `DEFAULT_ROSH_TAG_THRESHOLDS` and
-  `build_rosh_conversions(tag_thresholds=...)`;
-- `conversion_score` and `conversion_label`;
-- `aegis_outcome` (use `aegis_fate`, `aegis_fate_source` and the fights in the
-  window) and `drivers` (use `timeline_events`);
-- territory: `before_territory`, `during_territory`, the coverage and depth
-  swings, `RoshTerritoryConfig`, `RoshTerritoryWindow`, `RoshCoverageCell` and
-  `build_rosh_conversions(territory_config=...)`;
-- `enemy_half_farm_share_before` / `_during` / `_delta`, which are position
-  shares rather than farm.
-
-For where a team was, use `gem.region_of` with the players' `position_log`.
-Everything else on the records stays: the kill and its attribution, the Aegis
-lifecycle, the window ticks, fights, structures, economy swings, forward wards,
-Tormentors, buybacks, drops, banner plants and the timeline.
-:::
+It reports what happened, not whether the Roshan "converted". gem 0.12's tags
+(`conversion_tags`, `RoshTagThresholds`), verdicts (`conversion_score`,
+`conversion_label`, `aegis_outcome`, `drivers`), territory windows and
+`enemy_half_farm_share_*` were removed in 0.13. For where a team was, use
+`gem.region_of` with the players' `position_log`; for an example of answering a
+question from these facts, see the [Roshan recipe](../cookbook/roshan-next-fight.md).
 
 ## Why this is experimental
 
@@ -41,9 +24,9 @@ joins already-parsed facts:
 - sampled hero positions and observer-ward placements
 - Tormentor kills and buybacks
 
-The facts are observed replay data, but their association with one Roshan and
-the thresholds used for summary tags are analytical choices. Treat the output
-as an explainable comparison, not proof that Roshan caused every later event.
+The facts are observed replay data, but their association with one Roshan (the
+window boundaries) is an analytical choice. Treat the output as an explainable
+comparison, not proof that Roshan caused every later event.
 
 ## Attribution and windows
 
@@ -145,41 +128,6 @@ For each resource the profile reports:
 Missing or incomplete curves produce `None` / **Unavailable**, never a
 fabricated zero.
 
-### Sustained territory (deprecated)
-
-Deprecated in 0.12 and removed in 0.13; see the note at the top of this page.
-
-Territory measures sustained forward presence, not distance travelled and not
-true map control.
-
-Hero positions are accumulated into roughly 600 × 600 world-unit cells and
-30-second buckets. A cell counts as occupied in a bucket when it contains at
-least 10 hero-seconds or at least two distinct allied heroes. Samples are not
-interpolated across gaps longer than 10 seconds, which prevents teleports and
-missing telemetry from drawing imaginary paths.
-
-Two forward-presence measures are computed for each side:
-
-- **coverage:** average occupied enemy-side area per bucket
-- **depth:** time-weighted 90th-percentile progress toward the enemy fountain
-
-With complete sampling, a team that never enters the enemy side has observed
-depth `0.0`; unavailable depth is reserved for insufficient position evidence.
-
-The report compares a three-minute pre-Roshan baseline with the hardened
-analysis window:
-
-```text
-coverage swing =
-  (conversion coverage - opponent coverage) during
-  - (conversion coverage - opponent coverage) before
-```
-
-Depth swing uses the same double-differential shape. A territory window needs at
-least 70% of the expected player-time for both sides; insufficient sampling is
-reported as unavailable. The paired maps show sampled occupied cells, not fog,
-vision, or continuous paths.
-
 ### Forward wards
 
 ```text
@@ -204,33 +152,9 @@ are excluded rather than guessed.
 Buybacks remain timeline context. They can help explain the cost of a push or
 fight, but they are not a headline differential and do not affect any tag.
 
-## Non-exclusive tags (deprecated)
-
-Deprecated in 0.12 and removed in 0.13; see the note at the top of this page.
-
-Several tags can describe the same Roshan. The initial thresholds are explicit
-calibration points, not universal Dota truths:
-
-| Tag | Initial rule |
-| --- | --- |
-| `fight_advantage` | fight differential ≥ 2 |
-| `objective_gain` | weighted structure differential ≥ 2 |
-| `resource_gain` | net-worth swing ≥ 2,000 or XP swing ≥ 1,500 |
-| `territorial_expansion` | coverage double-differential ≥ 8 percentage points |
-| `vision_expansion` | ward differential ≥ 2, or ≥ 1 with positive coverage swing |
-| `tormentor_secured` | Tormentor differential > 0 |
-| `game_closing` | the conversion team wins and the game ends inside this analysis window |
-| `counter_conversion` | the opponent owns the material signed evidence in the window |
-
-The defaults live in the immutable `RoshTagThresholds` record and every profile
-stores its `tag_ruleset`. Callers can pass an alternate threshold record to
-`build_rosh_conversions(...)` for reproducible sensitivity analysis without
-changing raw values.
-
 The HTML report's `Roshan` tab shows only the kill and Aegis lifecycle facts
 from these records (see [Match Reports](../reports/index.md)). The differential
-profile, tags and territory windows are available in Python and the DataFrame
-exports but are not rendered.
+profile is available in Python and the DataFrame exports.
 
 ## Status and missing data
 
@@ -244,18 +168,12 @@ Each profile carries a status and concrete reasons:
 A genuine zero means the replay contained the relevant evidence and the event
 did not occur. **Unavailable** means the evidence was absent or insufficient.
 
-## Compatibility
-
-`conversion_label` and `conversion_score`, deprecated since 0.9, now warn when
-read and are removed in 0.13 with the tags. Use the raw `differential_profile`
-values and `analysis_status`.
+## Exports
 
 `build_dataframes(match, include=["analysis"])` exports:
 
 - `roshan_conversions`: one flat row per Roshan, including provenance, raw
-  differentials, evidence status, ruleset, and clearly prefixed legacy fields.
-  The `aegis_outcome`, coverage, depth-swing, `conversion_tags`,
-  `tag_ruleset` and `legacy_conversion_*` columns are removed in 0.13
+  differentials and evidence status
 - `roshan_conversion_fights`: one flat row per associated fight with engagement
   provenance, relation, and participant IDs
 
@@ -268,14 +186,13 @@ nested public records and enum values as strings.
   the ownership horizon; transfer/drop is not independently observable.
 - Engagement start is evidence-aware but still falls back to first death when
   earlier damage evidence is unavailable.
-- Forward territory is only as complete as the replay's sampled position logs.
-- Map halves and depth use calibrated geometry, not lane topology or fog state.
-- Tag thresholds stay `provisional-v1` until the tags are removed in 0.13.
+- Forward wards are counted by map half (`gem.region_of`), not by lane topology
+  or fog state.
 
 ## Related pages
 
 1. [Reports](../reports/index.md)
 2. [Roshan Conversion Calibration](./rosh-conversion-calibration.md)
 3. [Farming Patterns](./farming-patterns.md)
-4. [Estimate Vision](./estimate-vision.md)
+4. [Point-Vision Evidence](./estimate-vision.md)
 5. [Vision Modifiers](./vision-modifiers.md)

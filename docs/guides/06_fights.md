@@ -146,23 +146,19 @@ moment definitions, geometry formulas, smoke/reveal boundaries, and report UI.
 
 ## Linking smoke operations to fights
 
-Use `gem.build_smoke_fight_insights(match)` when the question begins with a
-Smoke of Deceit activation rather than a fight window:
+When the question begins with a Smoke of Deceit activation rather than a fight
+window, each `SmokeAnalysis` from `gem.build_smoke_analysis(match)` names its
+`first_fight`: the first fight whose first death came within 60 in-game seconds
+of the smoke.
 
 ```python
-for insight in gem.build_smoke_fight_insights(match):
-    print(
-        insight.smoke_index,
-        insight.fight_index,
-        insight.status.value,
-        len(insight.active_smoked_player_ids),
-    )
+for smoke in gem.build_smoke_analysis(match):
+    if smoke.first_fight is not None:
+        print(smoke.activation_tick, match.fights.index(smoke.first_fight), smoke.first_fight.winner)
 ```
 
-The association window is bounded, active-member overlap is required for a
-supported link, and multiple supported smokes remain explicitly ambiguous.
-See [Smoke/Fight Insights](../experimental/smoke-fight-insights.md) for exact
-event, sampled formation, visibility, and follow-up semantics.
+See [Smoke Analysis](../experimental/smoke-analysis.md) and the
+[smoke recipe](../cookbook/smoke-to-kill.md).
 
 ## OpenDota-compatible teamfights
 

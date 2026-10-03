@@ -93,7 +93,7 @@ Optional groups (pass `include=[...]`):
 
 | Group | Tables |
 |---|---|
-| `"analysis"` | `fight_positioning`, `roshan_conversions`, `roshan_conversion_fights`, `smoke_fight_insights`, `smoke_fight_members`, `smoke_fight_followups`, `farming_routes`, `farming_route_segments`, `farming_route_points`, `farming_context_tags` |
+| `"analysis"` | `fight_positioning`, `roshan_conversions`, `roshan_conversion_fights`, `farming_routes`, `farming_route_segments`, `farming_route_points` |
 | `"gold_ledger"` | `player_gold_ledger` (one row per player, at game end), `player_gold_ledger_minutes` (one row per player-minute) |
 | `"opendota"` | `opendota_objectives`, `opendota_teamfights` |
 
@@ -102,8 +102,8 @@ frames = gem.parse_to_dataframe("my_replay.dem", include=["analysis"])
 segments = frames["farming_route_segments"]
 ```
 
-The analysis group runs the post-parse farming, smoke-fight, Roshan-conversion,
-and fight-positioning analyses, so it adds several seconds per replay. Leave it
+The analysis group runs the post-parse farming, Roshan and fight-positioning
+analyses, so it adds several seconds per replay. Leave it
 out when you only need the core tables.
 
 ### Player tables

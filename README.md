@@ -190,8 +190,8 @@ apples-to-oranges win over Go or Java parsers.
 Some outputs are necessarily reconstructed:
 
 - Farming routes, smoke analysis, fight positioning and Roshan records are experimental:
-  they join replay facts with documented, inspectable rules. Their tags, scores and
-  territory estimates are deprecated in 0.12 and removed in 0.13.
+  they join replay facts with documented, inspectable rules. gem 0.13 removed the
+  tags, scores and territory estimates that used to sit on top of them.
 - Incomplete replays can return partial output, and some exact postgame fields require embedded match details.
 - Healing Lotus pickups are not available from the replay event stream.
 - Hero/item icons and the report map image are not shipped in the wheel; call
