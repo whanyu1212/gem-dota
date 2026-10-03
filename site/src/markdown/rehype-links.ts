@@ -20,7 +20,7 @@ import type { VFile } from "vfile";
 export interface LinkOptions {
   /** The site's base path, e.g. "/gem-dota". */
   base: string;
-  /** Absolute path of the folder the pages are read from. */
+  /** Absolute path of the folder the pages are read from (src/content/docs). */
   contentRoot: string;
   /** Absolute path of the folder served at the site root (public assets). */
   publicDir: string;

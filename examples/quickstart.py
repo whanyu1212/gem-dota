@@ -1,4 +1,4 @@
-"""Quickstart examples — mirrors docs/guides/01_quickstart.md.
+"""Quickstart examples — mirrors site/src/content/docs/guides/01_quickstart.md.
 
 Usage:
     python examples/quickstart.py path/to/replay.dem

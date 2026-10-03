@@ -105,7 +105,7 @@ jobs:
       - name: Regenerate bindings and documentation
         run: |
           find src/gem/proto -type f \( -name '*_pb2.py' -o -name '*_pb2.pyi' \) -delete
-          find docs/cookbook/proto-fields -type f -name '*.md' -delete
+          find site/src/content/docs/cookbook/proto-fields -type f -name '*.md' -delete
           uv run python scripts/compile_protos.py --force
           uv run python scripts/generate_proto_field_docs.py
 
@@ -132,7 +132,7 @@ jobs:
           git switch -C "$BRANCH_NAME"
           git add -A -- \
             src/gem/proto \
-            docs/cookbook/proto-fields \
+            site/src/content/docs/cookbook/proto-fields \
             proto-upstream.lock.json
           if git diff --cached --quiet; then
             echo "No generated changes were produced."

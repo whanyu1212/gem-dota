@@ -16,7 +16,7 @@ The ``.proto`` sources come from ``scripts/download_protos.sh`` (gitignored).
 
 Usage::
 
-    python scripts/generate_proto_field_docs.py [--out-dir docs/cookbook/proto-fields]
+    python scripts/generate_proto_field_docs.py [--out-dir site/src/content/docs/cookbook/proto-fields]
 """
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PROTO_SRC_DIR = REPO_ROOT / "proto_definitions" / "dota2"
 GEM_SRC_DIR = REPO_ROOT / "src" / "gem"
-DEFAULT_OUT_DIR = REPO_ROOT / "docs" / "cookbook" / "proto-fields"
+DEFAULT_OUT_DIR = REPO_ROOT / "site" / "src" / "content" / "docs" / "cookbook" / "proto-fields"
 
 
 @dataclass
@@ -503,7 +503,7 @@ def main(argv: list[str] | None = None) -> None:
         "--out-dir",
         type=Path,
         default=DEFAULT_OUT_DIR,
-        help="folder to replace with the generated pages (default: docs/cookbook/proto-fields)",
+        help="folder to replace with the generated pages (default: site/src/content/docs/cookbook/proto-fields)",
     )
     out_dir: Path = parser.parse_args(argv).out_dir
 

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/whanyu1212/gem-dota/main/docs/public/gem-readme-banner-wordmark-subtitle-spaced.png" alt="gem: a Dota 2 replay parser for Python" width="860">
+  <img src="https://raw.githubusercontent.com/whanyu1212/gem-dota/main/site/public/gem-readme-banner-wordmark-subtitle-spaced.png" alt="gem: a Dota 2 replay parser for Python" width="860">
 </p>
 
 <p align="center">

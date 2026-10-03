@@ -135,7 +135,9 @@ def test_parser_provenance_fails_when_git_is_unavailable(tmp_path, monkeypatch) 
 
 
 def test_recorded_public_hashes_match_enforced_baselines() -> None:
-    records = Path(__file__).resolve().parents[1] / "docs/benchmarks/2026-09-08-parser"
+    records = (
+        Path(__file__).resolve().parents[1] / "site/src/content/docs/benchmarks/2026-09-08-parser"
+    )
     paths = list(records.glob("*-public-*.json"))
     assert len(paths) == 11
     for path in paths:

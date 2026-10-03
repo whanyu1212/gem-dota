@@ -5,18 +5,19 @@ wordmark, with gem's own annotation on top: the two halves, the river, the lotus
 pools and every neutral camp coloured by type. The overlay comes from
 ``map_constants.json`` and ``camp_zones.json`` and is placed with the report
 maps' calibrated window (``MAP_XMIN``…``MAP_YMAX``), so it shows exactly where
-gem puts things. The logo is read from ``docs/public/logo.svg``.
+gem puts things. The logo is read from ``site/public/logo.svg``.
 
-Text is set in Inter (SIL OFL, the font VitePress ships) and converted to paths,
-so the output does not depend on installed fonts. Run ``npm install`` in
-``docs/`` first for the font, then:
+Text is set in Inter (SIL OFL, the docs site's text font, from its Fontsource
+package) and converted to paths, so the output does not depend on installed
+fonts. Run ``npm install`` in ``site/`` first for the font, then:
 
     uv run --with cairosvg --with uharfbuzz --with fonttools --with brotli \
         python scripts/render_readme_banner.py
 
 On macOS with Homebrew's cairo, prefix ``DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib``.
-The README and the PyPI pages of released versions link to the PNG by name, so
-keep the default output path.
+The README links to the PNG by its path on ``main``, so keep the default output
+path. (It moved from ``docs/public/`` to ``site/public/`` in HY-118; releases
+before that link the old path.)
 """
 
 from __future__ import annotations
@@ -35,13 +36,12 @@ sys.path.insert(0, str(REPO_ROOT / "src"))
 from gem.catalog.map import load_camp_zones, load_map_constants  # noqa: E402
 from gem.reports._formatting import MAP_XMAX, MAP_XMIN, MAP_YMAX, MAP_YMIN  # noqa: E402
 
-DEFAULT_OUTPUT = REPO_ROOT / "docs" / "public" / "gem-readme-banner-wordmark-subtitle-spaced.png"
+DEFAULT_OUTPUT = REPO_ROOT / "site" / "public" / "gem-readme-banner-wordmark-subtitle-spaced.png"
 DEFAULT_MAP = REPO_ROOT / "assets" / "maps" / "Game_map_7.41.jpg"
 DEFAULT_FONT = (
-    REPO_ROOT
-    / "docs/node_modules/vitepress/dist/client/theme-default/fonts/inter-roman-latin.woff2"
+    REPO_ROOT / "site/node_modules/@fontsource-variable/inter/files/inter-latin-opsz-normal.woff2"
 )
-LOGO = REPO_ROOT / "docs" / "public" / "logo.svg"
+LOGO = REPO_ROOT / "site" / "public" / "logo.svg"
 
 WIDTH, HEIGHT = 1600, 500
 BACKGROUND = "#0d1117"
@@ -253,7 +253,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if not args.font.exists():
-        parser.error(f"{args.font} not found; run `npm install` in docs/ or pass --font")
+        parser.error(f"{args.font} not found; run `npm install` in site/ or pass --font")
     import cairosvg
     from PIL import Image
 

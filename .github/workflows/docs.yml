@@ -1,8 +1,8 @@
 name: Deploy Docs
 
-# Builds the Astro docs site in site/ (pages read from docs/ until HY-118 moves
-# them). Every run builds and checks the site; only runs on main (a push, or a
-# manual run with main selected) deploy it to GitHub Pages.
+# Builds the Astro docs site in site/. Every run builds and checks the site;
+# only runs on main (a push, or a manual run with main selected) deploy it to
+# GitHub Pages.
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
   pull_request:
     paths:
       - "site/**"
-      - "docs/**"
+      - "examples/cookbook/**"
       - "src/gem/**"
       - "scripts/generate_api_reference.py"
       - "pyproject.toml"

@@ -58,7 +58,7 @@ cd site && npm install && npm run dev
 
 > **Note:** `STRATEGY.md` (the original implementation plan referenced in older
 > versions of this file) has been removed. The living architecture references are
-> now `docs/architecture.md`, `docs/replay-parser.md`, and the `docs/deep-dives/`
+> now `site/src/content/docs/architecture.md` and the `site/src/content/docs/deep-dives/`
 > pages. `CHANGELOG.md` is the authoritative record of what shipped in each release.
 
 **gem** parses Dota 2 Source 2 `.dem` replay files for DS/ML use. It is published
@@ -195,8 +195,9 @@ Headline exports (see `__all__` for the full list):
   The gem 0.10 `teamfights` names were removed in 0.13; JSON files with the old
   `teamfights` key still load (`results/serialization.py`).
 - **Experimental:** `build_farming_routes`, `FarmingRoute`, `build_rosh_conversions`,
-  `RoshConversion`, `build_smoke_analysis`, `SmokeAnalysis`; `analyze` runs
-  them all and returns a `MatchAnalysis`
+  `RoshConversion`, `build_smoke_analysis`, `SmokeAnalysis`,
+  `build_fight_positioning`, `FightPositioning`; `analyze` runs them all and
+  returns a `MatchAnalysis`
 - **Facts, not interpretation (HY-96):** gem presents facts. 0.12 deprecated the
   interpretation layer and 0.13 removed it: the `map_context` API,
   `estimate_vision`, the farming segment context, the smoke-fight insights
@@ -572,9 +573,9 @@ published to PyPI.
 
 In flight / deferred:
 - **Rust extension** (PyO3 + maturin). Implementation deferred. The plan is
-  `docs/deep-dives/rust-kernel-plan.md`: an optional kernel with a pure-Python
+  `site/src/content/docs/deep-dives/rust-kernel-plan.md`: an optional kernel with a pure-Python
   fallback, stage 1 `read_fields()` (the boundary chosen by the v0.8.0 profile,
-  `docs/deep-dives/parser-profile-2026-09.md`), stage 2 the per-entity packet
+  `site/src/content/docs/deep-dives/parser-profile-2026-09.md`), stage 2 the per-entity packet
   loop. It lists the exact-behaviour rules a kernel must keep. No end-to-end
   speedup is promised.
 
@@ -632,7 +633,7 @@ scripts (`test_audit_camp_annotations.py`, `test_audit_opendota_fixture_constant
 | `examples/match_report.py` | Full HTML match dashboard (Draft, Combat, Laning, Farming, Fights, Roshan, Vision, Economy) |
 | `examples/extraction_demo.py` | Developer guide for combat-log extraction and entity polling |
 | `examples/steam_match_info.py` | Fetch match info from the Steam API, display with Rich tables |
-| `examples/cookbook/*.py` | Recipes answering one question each from facts (docs: `docs/cookbook/questions.md`); tested in `tests/test_cookbook.py` |
+| `examples/cookbook/*.py` | Recipes answering one question each from facts (docs: `site/src/content/docs/cookbook/questions.md`); tested in `tests/test_cookbook.py` |
 
 Report generation lives in `src/gem/reports/`; `examples/match_report.py` is a
 thin wrapper around `gem.reports.write_html_report()`.
@@ -645,16 +646,15 @@ uv run python scripts/fetch_hero_icons.py   # -> src/gem/data/hero_icons/
 uv run python scripts/fetch_item_icons.py   # -> src/gem/data/item_icons/
 ```
 
-A sample HTML report lives in `docs/reports/` (`ti14_finals_g3_xg_vs_falcons_report.html`).
+The reports page is `site/src/content/docs/reports/index.md`; no sample HTML report is committed.
 
 ## Docs
 
 Documentation is a pure **Astro** site (no Starlight) in `site/`, with the
 Editorial design and a "Night paper" dark theme. CI builds, checks and deploys it
 via `.github/workflows/docs.yml` (pull requests build and check only). The
-Markdown pages still live in `docs/` until HY-118 moves them into `site/`; the
-old VitePress config in `docs/.vitepress/` is no longer built or deployed. The
-API reference is generated from docstrings.
+Markdown pages live in `site/src/content/docs/`, public assets (logo, favicon, README banner,
+map figure) in `site/public/`. The API reference is generated from docstrings.
 
 ```bash
 cd site
@@ -664,14 +664,15 @@ npm run build         # API reference, site -> site/dist, Pagefind search index
 npm run check-urls && npm run check-links && npm test && npm run check
 ```
 
-Key pages: `docs/architecture.md`, `docs/guides/`, `docs/deep-dives/`,
-`docs/cookbook/`, `docs/experimental/`; the home page is `site/src/pages/index.astro`.
+Key pages (under `site/src/content/docs/`): `architecture.md`, `guides/`, `deep-dives/`,
+`cookbook/`, `experimental/`, `reference/`; the home page is `site/src/pages/index.astro`.
 
-**Site rules (HY-110):** keep editing pages in `docs/` until HY-118. Every URL in
+**Site rules (HY-110):** every URL in
 `site/url-manifest.txt` must keep building, and every internal link must resolve
 (`cd site && npm run build && npm run check-urls && npm run check-links`). The
-VitePress Markdown extras (`:::` callouts, code groups, `<<<` imports, heading
-IDs, `.md` links) are handled by the plugins in `site/src/markdown/`. Navigation
+Markdown extras the pages use (`:::` callouts, GitHub `> [!NOTE]` alerts, code
+groups, `<<< @/examples/...` imports from the repository root, VitePress-style
+heading IDs, `.md` links) are handled by the plugins in `site/src/markdown/`. Navigation
 lives in `site/src/nav.ts`; every colour is a token in `site/src/styles/tokens.css`
 (`npm test` checks WCAG AA contrast for both themes). The home page
 (`site/src/pages/index.astro`) reads a committed snapshot written by
