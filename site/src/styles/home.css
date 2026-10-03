@@ -1,0 +1,491 @@
+/* The home page: hero, numbered chapters, Table 1 and Figures 1 and 2. */
+
+.home .wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 48px;
+}
+
+.home code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+}
+.home :not(pre) > code {
+  padding: 0.1em 0.34em;
+  border-radius: 4px;
+  background: var(--inline-code-bg);
+  color: var(--ink);
+}
+
+/* Hero */
+
+.home-hero .hero-grid {
+  display: grid;
+  grid-template-columns: 1.25fr 0.75fr;
+  gap: 64px;
+  align-items: end;
+  padding-top: 96px;
+  padding-bottom: 80px;
+}
+.kicker,
+.chapter-label {
+  margin: 0;
+  color: var(--accent);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.home h1 {
+  margin: 20px 0 28px;
+  color: var(--ink);
+  font-family: var(--font-serif);
+  font-size: 76px;
+  font-weight: 450;
+  font-variation-settings: "opsz" 60;
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+}
+.home h1 i {
+  color: var(--accent);
+  font-weight: 450;
+}
+.lede {
+  max-width: 600px;
+  margin: 0;
+  color: var(--body);
+  font-size: 20px;
+  line-height: 1.6;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin-top: 36px;
+}
+.button {
+  display: inline-flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 22px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.button--primary {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--bg);
+}
+.button:hover {
+  border-color: var(--accent);
+}
+.home .install {
+  margin-left: 6px;
+  padding: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.facts {
+  margin: 0;
+  padding-left: 32px;
+  border-left: 1px solid var(--line);
+}
+.facts div {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+}
+.facts dt {
+  color: var(--ink);
+  font-family: var(--font-serif);
+  font-size: 34px;
+  line-height: 1.15;
+}
+.facts dd {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* Chapters */
+
+.chapter {
+  padding: 80px 0;
+  border-top: 1px solid var(--line);
+}
+.chapter-grid {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 48px;
+}
+.chapter-label {
+  padding-top: 14px;
+  font-size: 13px;
+}
+.home h2 {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-serif);
+  font-size: 42px;
+  font-weight: 450;
+  font-variation-settings: "opsz" 48;
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+}
+.chapter-intro {
+  max-width: 680px;
+  margin: 16px 0 0;
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+/* Chapter 1: the example and Table 1 */
+
+.pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  gap: 32px;
+  align-items: start;
+  margin-top: 32px;
+}
+.home-code {
+  margin: 0;
+  padding: 22px;
+  overflow-x: auto;
+  border: 1px solid var(--code-border);
+  border-radius: 6px;
+  background-color: var(--code-bg) !important;
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+.table-figure {
+  margin: 0;
+}
+.table-figure table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.table-figure th {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--rule);
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-align: left;
+  text-transform: uppercase;
+}
+.table-figure td {
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+}
+.table-figure .num {
+  padding-left: 12px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.home figcaption {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+.home figcaption b {
+  color: var(--ink);
+}
+
+/* Chapter 2: Figures 1 and 2, a matched pair of squares */
+
+.figures {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  align-items: start;
+  margin-top: 32px;
+}
+.fig {
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+.fig svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 2px;
+}
+
+.map image {
+  filter: var(--image-filter);
+}
+.map-dire {
+  fill: var(--map-dire);
+  fill-opacity: 0.14;
+}
+.map-radiant {
+  fill: var(--map-radiant);
+  fill-opacity: 0.14;
+}
+.map-river {
+  fill: var(--map-river);
+  fill-opacity: 0.38;
+  stroke: var(--map-river-edge);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+.map-half {
+  fill: none;
+  stroke: var(--map-line);
+  stroke-opacity: 0.55;
+  stroke-width: 2;
+  stroke-dasharray: 12 9;
+}
+.map-lotus {
+  fill: var(--map-lotus);
+  fill-opacity: 0.45;
+}
+.camp {
+  --camp: var(--camp-small);
+}
+.camp--medium {
+  --camp: var(--camp-medium);
+}
+.camp--large {
+  --camp: var(--camp-large);
+}
+.camp--ancient {
+  --camp: var(--camp-ancient);
+}
+.camp--flooded_small {
+  --camp: var(--camp-flooded-small);
+}
+.camp--flooded_medium {
+  --camp: var(--camp-flooded-medium);
+}
+.camp circle {
+  fill: var(--camp);
+  stroke: var(--camp-ring);
+  stroke-width: 3;
+}
+.camp .camp-halo {
+  fill-opacity: 0.25;
+  stroke: none;
+}
+.legend {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-top: 8px;
+}
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: capitalize;
+}
+.legend-item i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--camp, var(--camp-small));
+}
+
+.chart text {
+  fill: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 15px;
+}
+.chart .tick line {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.chart .tick line.zero {
+  stroke: var(--rule);
+}
+.chart .area--radiant {
+  fill: var(--tip);
+  fill-opacity: 0.2;
+}
+.chart .area--dire {
+  fill: var(--danger);
+  fill-opacity: 0.16;
+}
+.chart .line {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.chart .side {
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.chart .side--radiant {
+  fill: var(--tip);
+}
+.chart .side--dire {
+  fill: var(--danger);
+}
+.chart .marker {
+  fill: var(--danger);
+}
+.chart .marker-label {
+  fill: var(--ink);
+  font-size: 14px;
+}
+
+/* Chapter 3: recipes */
+
+.recipes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 32px;
+  border-top: 1px solid var(--rule);
+}
+.recipe {
+  display: block;
+  padding: 24px 24px 8px 0;
+  color: inherit;
+  text-decoration: none;
+}
+.recipe + .recipe {
+  padding-left: 24px;
+  border-left: 1px solid var(--line);
+}
+.recipe .question {
+  display: block;
+  color: var(--ink);
+  font-family: var(--font-serif);
+  font-size: 22px;
+  line-height: 1.3;
+}
+.recipe:hover .question {
+  color: var(--accent);
+}
+.recipe .answer {
+  display: block;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 14.5px;
+  line-height: 1.55;
+}
+.recipe .answer b {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Chapter 4: where to start */
+
+.starts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.starts a {
+  display: block;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--paper);
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+  text-decoration: none;
+}
+.starts a:hover {
+  border-color: var(--accent);
+}
+.starts span {
+  display: block;
+  color: var(--accent);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.starts b {
+  display: block;
+  margin: 6px 0 4px;
+  color: var(--ink);
+  font-family: var(--font-serif);
+  font-size: 21px;
+  font-weight: 500;
+}
+.status {
+  max-width: 680px;
+  margin: 28px 0 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.65;
+}
+.status a {
+  color: var(--accent);
+}
+
+/* Narrow screens */
+
+@media (max-width: 1000px) {
+  .home-hero .hero-grid,
+  .chapter-grid,
+  .pair,
+  .figures {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .home-hero .hero-grid {
+    gap: 40px;
+    padding-top: 64px;
+    padding-bottom: 56px;
+  }
+  .chapter-grid {
+    gap: 12px;
+  }
+  .chapter-label {
+    padding-top: 0;
+  }
+  .facts {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .home .wrap {
+    padding: 0 16px;
+  }
+  .home h1 {
+    font-size: 50px;
+  }
+  .home h2 {
+    font-size: 32px;
+  }
+  .chapter {
+    padding: 56px 0;
+  }
+  .recipes,
+  .starts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .recipe,
+  .recipe + .recipe {
+    padding: 20px 0;
+    border-left: 0;
+    border-bottom: 1px solid var(--line);
+  }
+}

@@ -1,0 +1,150 @@
+---
+// The home page. Every number on it comes from the committed snapshot
+// (src/data/home.json, written by scripts/export_site_home_data.py) or is quoted
+// from a recipe page (src/data/recipes.ts, checked by tests/home.test.ts).
+// docs/index.md is the VitePress home and is not used here.
+import { Code } from "astro:components";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import MapFigure from "../components/home/MapFigure.astro";
+import GoldChart from "../components/home/GoldChart.astro";
+import { gemCodeTheme } from "../markdown/shiki-theme";
+import home from "../data/home.json";
+import { RECIPE_CARDS } from "../data/recipes";
+import "../styles/prose.css";
+import "../styles/home.css";
+
+const base = import.meta.env.BASE_URL;
+const { match } = home;
+const team = match.radiant_win ? "radiant" : "dire";
+const teamName = match.radiant_win ? match.radiant_team : match.dire_team;
+const players = match.players.filter((p) => p.team === team);
+
+// The example prints the team Table 1 shows: players 0-4 are Radiant, 5-9 Dire.
+const slice = team === "radiant" ? "[:5]" : "[5:]";
+const example = `import gem
+from gem.constants import hero_display
+
+match = gem.parse("${match.match_id}.dem")
+for p in match.players${slice}:
+    print(hero_display(p.hero_name),
+          p.kills, p.deaths, p.assists,
+          p.net_worth, p.gold_per_min)
+
+frames = gem.parse_to_dataframe("${match.match_id}.dem")`;
+---
+
+<BaseLayout title="gem" description="gem reads Dota 2 replays into typed Python objects, DataFrames and interactive reports.">
+  <main id="content" class="home">
+    <header class="home-hero">
+      <div class="wrap hero-grid">
+        <div>
+          <p class="kicker">A Dota 2 replay parser for Python</p>
+          <h1>The replay, <i>read</i> back as facts.</h1>
+          <p class="lede">
+            gem turns Source 2 <code>.dem</code> files into typed Python objects, DataFrames and interactive
+            reports. It reports what happened; the interpretation is yours.
+          </p>
+          <div class="actions">
+            <a class="button button--primary" href={`${base}/guides/01_quickstart`}>Read the guide</a>
+            <a class="button" href={`${base}/reports/`}>See a report</a>
+            <code class="install">pip install gem-dota</code>
+          </div>
+        </div>
+        <dl class="facts">
+          <div><dt>Offline</dt><dd>No servers, no API keys</dd></div>
+          <div><dt>Old and new</dt><dd>Both combat-log formats, one schema</dd></div>
+          <div><dt>Pure Python</dt><dd>3.10 and newer, MIT licensed</dd></div>
+        </dl>
+      </div>
+    </header>
+
+    <section class="chapter">
+      <div class="wrap chapter-grid">
+        <p class="chapter-label">01 · Parsing</p>
+        <div class="chapter-body">
+          <h2>From replay bytes to a table.</h2>
+          <p class="chapter-intro">
+            A replay is a stream of protobuf messages and entity updates. gem decodes it into a
+            <code>ParsedMatch</code>: players, fights, wards, objectives and the full combat log.
+          </p>
+          <div class="pair">
+            <Code code={example} lang="python" theme={gemCodeTheme} class="home-code" />
+            <figure class="table-figure">
+              <table>
+                <thead><tr><th>Hero</th><th class="num">K / D / A</th><th class="num">Net worth</th><th class="num">GPM</th></tr></thead>
+                <tbody>
+                  {players.map((p) => (
+                    <tr>
+                      <td>{p.hero}</td>
+                      <td class="num">{p.kills} / {p.deaths} / {p.assists}</td>
+                      <td class="num">{p.net_worth.toLocaleString("en-US")}</td>
+                      <td class="num">{p.gold_per_min}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <figcaption>
+                <b>Table 1.</b> {teamName}, who won match {match.match_id}, straight from <code>match.players</code>.
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="chapter">
+      <div class="wrap chapter-grid">
+        <p class="chapter-label">02 · The map</p>
+        <div class="chapter-body">
+          <h2>A map model you can check.</h2>
+          <p class="chapter-intro">
+            Regions and camps are traced on the 7.41 map and checked against the replays' own neutral spawners
+            and combat log. <code>gem.region_of(x, y)</code> tells you where any position is.
+          </p>
+          <div class="figures">
+            <MapFigure />
+            <GoldChart />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="chapter">
+      <div class="wrap chapter-grid">
+        <p class="chapter-label">03 · Recipes</p>
+        <div class="chapter-body">
+          <h2>Questions, answered from the facts.</h2>
+          <div class="recipes">
+            {RECIPE_CARDS.map((card) => {
+              const [before, after] = card.answer.split(card.figure);
+              return (
+                <a class="recipe" href={`${base}${card.link}`}>
+                  <span class="question">{card.question}</span>
+                  <span class="answer">{before}<b>{card.figure}</b>{after}</span>
+                </a>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="chapter">
+      <div class="wrap chapter-grid">
+        <p class="chapter-label">04 · Where to start</p>
+        <div class="chapter-body">
+          <div class="starts">
+            <a href={`${base}/guides/01_quickstart`}><span>Use it</span><b>Quickstart</b>Install gem, parse a replay and export data.</a>
+            <a href={`${base}/cookbook/proto-parsing-pipeline`}><span>Understand it</span><b>How proto parsing works</b>What a replay is made of and how gem reads it.</a>
+            <a href={`${base}/reference/`}><span>Integrate it</span><b>API reference</b>Every public class and function, from the docstrings.</a>
+          </div>
+          <p class="status">
+            gem is a pure-Python parser. The Go (<a href="https://github.com/dotabuff/manta">Manta</a>) and Java
+            (<a href="https://github.com/skadistats/clarity">Clarity</a>) parsers are faster; gem aims for
+            Python-native data and an implementation you can read end to end.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
