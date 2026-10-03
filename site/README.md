@@ -9,8 +9,10 @@ Needs Node 22.12 or newer (Astro 7; see `engines` in `package.json` and `.nvmrc`
 ```bash
 cd site
 npm install
-npm run dev          # http://localhost:4321/gem-dota/
-npm run build        # -> site/dist, then the Pagefind search index in dist/pagefind
+npm run dev          # http://localhost:4321/gem-dota/ (regenerates the API reference first)
+npm run build        # API reference, then site/dist, then the Pagefind index in dist/pagefind
+npm run gen          # regenerate the API reference pages only
+npm run gen-all      # also the proto-field pages (needs scripts/download_protos.sh first)
 npm run check-urls   # every URL in url-manifest.txt must be built
 npm run check-links  # every internal link and #anchor in dist/ must resolve
 npm run check        # type-check the Astro code
@@ -77,3 +79,15 @@ generated proto-field pages are weighted down. `src/components/Search.astro` is
 the dialog (⌘K, Ctrl+K or `/`): results are grouped by section, best match
 first. Search needs the built index, so it works in `npm run preview`, not
 `npm run dev`, and the button stays hidden without JavaScript.
+
+## Generated pages
+
+Two scripts write Markdown into the content folder; both take the folder as an
+argument, so moving the content (HY-118) only changes their defaults:
+
+- `scripts/generate_api_reference.py [--reference-dir docs/reference]` keeps
+  each reference page's text above `## Generated API` and regenerates the rest
+  from the docstrings. `npm run build` and `npm run dev` run it.
+- `scripts/generate_proto_field_docs.py [--out-dir docs/cookbook/proto-fields]`
+  rewrites the proto-field pages from `proto_definitions/` (gitignored; fetch it
+  with `scripts/download_protos.sh`). Run it by hand after a proto refresh.

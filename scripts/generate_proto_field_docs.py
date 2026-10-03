@@ -1,4 +1,4 @@
-"""Generate field-level VitePress docs for all Dota 2 proto files.
+"""Generate the docs site's field-level pages for every Dota 2 proto file.
 
 This parser reads source .proto files directly (not generated Python descriptors),
 then writes readable docs with collapsible message/enum sections.
@@ -11,10 +11,17 @@ Each page is also marked with how gem uses the file:
 
 Both sets are derived from source (gem's ``from gem.proto.X_pb2 import`` lines and
 the ``.proto`` import graph), so the generator does not need gem installed.
+
+The ``.proto`` sources come from ``scripts/download_protos.sh`` (gitignored).
+
+Usage::
+
+    python scripts/generate_proto_field_docs.py [--out-dir docs/cookbook/proto-fields]
 """
 
 from __future__ import annotations
 
+import argparse
 import re
 import shutil
 from dataclasses import dataclass, field
@@ -23,7 +30,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PROTO_SRC_DIR = REPO_ROOT / "proto_definitions" / "dota2"
 GEM_SRC_DIR = REPO_ROOT / "src" / "gem"
-OUT_DIR = REPO_ROOT / "docs" / "cookbook" / "proto-fields"
+DEFAULT_OUT_DIR = REPO_ROOT / "docs" / "cookbook" / "proto-fields"
 
 
 @dataclass
@@ -490,10 +497,19 @@ def render_proto_page(
     return len(messages), len(enums)
 
 
-def main() -> None:
-    if OUT_DIR.exists():
-        shutil.rmtree(OUT_DIR)
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument(
+        "--out-dir",
+        type=Path,
+        default=DEFAULT_OUT_DIR,
+        help="folder to replace with the generated pages (default: docs/cookbook/proto-fields)",
+    )
+    out_dir: Path = parser.parse_args(argv).out_dir
+
+    if out_dir.exists():
+        shutil.rmtree(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
 
     proto_files = sorted(PROTO_SRC_DIR.glob("*.proto"))
     if not proto_files:
@@ -510,7 +526,7 @@ def main() -> None:
     for proto_path in proto_files:
         doc = docs[proto_path.name]
         page_name = f"{_slug(proto_path.stem)}.md"
-        msg_count, enum_count = render_proto_page(doc, OUT_DIR / page_name, used, loaded)
+        msg_count, enum_count = render_proto_page(doc, out_dir / page_name, used, loaded)
         group = (
             "used" if doc.file_name in used else "loaded" if doc.file_name in loaded else "unused"
         )
@@ -548,9 +564,9 @@ def main() -> None:
         "",
         *entries["unused"],
     ]
-    (OUT_DIR / "index.md").write_text("\n".join(index_lines).rstrip() + "\n", encoding="utf-8")
+    (out_dir / "index.md").write_text("\n".join(index_lines).rstrip() + "\n", encoding="utf-8")
     print(
-        f"Generated {len(proto_files)} proto field pages in {OUT_DIR} "
+        f"Generated {len(proto_files)} proto field pages in {out_dir} "
         f"({len(used)} used, {len(loaded)} loaded, {len(entries['unused'])} unused)"
     )
 
