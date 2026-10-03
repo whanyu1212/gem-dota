@@ -1,0 +1,24 @@
+---
+import type { MarkdownHeading } from "astro";
+
+interface Props {
+  headings: MarkdownHeading[];
+}
+
+// h2 and h3; on very long pages (the changelog) only h2.
+const all = Astro.props.headings.filter((h) => h.depth === 2 || h.depth === 3);
+const headings = all.length > 40 ? all.filter((h) => h.depth === 2) : all;
+---
+
+{headings.length > 1 && (
+  <aside class="outline" aria-label="On this page">
+    <h2>On this page</h2>
+    <ul>
+      {headings.map((h) => (
+        <li class={`depth-${h.depth}`}>
+          <a href={`#${h.slug}`}>{h.text}</a>
+        </li>
+      ))}
+    </ul>
+  </aside>
+)}

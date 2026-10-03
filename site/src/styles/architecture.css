@@ -1,0 +1,118 @@
+/* The pipeline diagram and layer table on the Architecture page (docs/architecture.md).
+   Each layer keeps one colour in both diagrams. */
+
+.arch-flow--io,
+.arch-layer--io {
+  --stage: var(--important);
+}
+.arch-flow--parse,
+.arch-layer--parse {
+  --stage: var(--note);
+}
+.arch-flow--extract,
+.arch-layer--extract {
+  --stage: var(--tip);
+}
+.arch-flow--assemble,
+.arch-layer--assemble {
+  --stage: var(--warning);
+}
+.arch-flow--output,
+.arch-layer--output {
+  --stage: var(--danger);
+}
+
+.arch-flow {
+  display: flex;
+  flex-direction: column;
+  margin: 24px 0;
+}
+.arch-flow-node {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--stage);
+  border-radius: 4px;
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+.arch-flow-title {
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.arch-flow-desc {
+  color: var(--body);
+  font-size: 14.5px;
+  line-height: 1.5;
+}
+.arch-flow-arrow {
+  align-self: center;
+  padding: 2px 0;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1;
+}
+.arch-flow-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.arch-layers {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 24px 0;
+}
+.arch-layer {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 16px;
+  border-left: 3px solid var(--stage);
+  background: color-mix(in srgb, var(--stage) 7%, var(--paper));
+  font-size: 14px;
+  line-height: 1.4;
+}
+.arch-layer-label {
+  min-width: 128px;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.arch-layer-modules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.arch-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--stage) 14%, var(--paper));
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+
+.prose table.output-table {
+  display: table;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .arch-layer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .arch-flow-split {
+    grid-template-columns: 1fr;
+  }
+}

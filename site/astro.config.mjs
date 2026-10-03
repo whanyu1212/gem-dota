@@ -3,6 +3,7 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "astro/config";
 import { docsMarkdown } from "./src/markdown/index.ts";
+import { gemCodeTheme } from "./src/markdown/shiki-theme.ts";
 
 const base = "/gem-dota";
 const path = (relative) => fileURLToPath(new URL(relative, import.meta.url));
@@ -16,7 +17,7 @@ export default defineConfig({
   // same files VitePress writes with cleanUrls.
   build: { format: "preserve" },
   markdown: {
-    shikiConfig: { theme: "github-dark" },
+    shikiConfig: { theme: gemCodeTheme },
     processor: docsMarkdown({
       base,
       contentRoot: path("../docs"),

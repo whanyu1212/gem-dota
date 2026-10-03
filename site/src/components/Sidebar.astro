@@ -1,0 +1,38 @@
+---
+import { SECTIONS, activeLink, type Section } from "../nav";
+
+interface Props {
+  path: string;
+  section?: Section;
+}
+
+const { path, section } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const groups = section?.groups ?? [];
+const active = activeLink(path, groups);
+---
+
+<nav class="sidebar" aria-label="Pages in this section">
+  <div class="sidebar-tabs">
+    {SECTIONS.map((s) => (
+      <a href={`${base}${s.link}`} aria-current={s.key === section?.key ? "true" : undefined}>{s.text}</a>
+    ))}
+  </div>
+  {groups.map((group) => (
+    <div class="sidebar-group">
+      <h2>{group.text}</h2>
+      <ul>
+        {group.items.map((item) => (
+          <li>
+            <a
+              href={`${base}${item.link}`}
+              aria-current={item.link === active ? (item.link === path ? "page" : "true") : undefined}
+            >
+              {item.text}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  ))}
+</nav>

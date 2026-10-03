@@ -1,0 +1,93 @@
+---
+// A docs page: sidebar for its section, the rendered Markdown, the outline and
+// the page footer.
+import { render } from "astro:content";
+import "../styles/prose.css";
+import "../styles/architecture.css";
+import BaseLayout from "./BaseLayout.astro";
+import Sidebar from "../components/Sidebar.astro";
+import Outline from "../components/Outline.astro";
+import PageFooter from "../components/PageFooter.astro";
+import { groupOf, prevNext } from "../nav";
+import {
+  REPO_URL,
+  getDocs,
+  lastUpdated,
+  pagePath,
+  pageTitle,
+  repoPath,
+  sectionFor,
+  type DocEntry,
+} from "../lib/docs";
+
+interface Props {
+  entry: DocEntry;
+}
+
+const { entry } = Astro.props;
+const { Content, headings } = await render(entry);
+const path = pagePath(entry);
+const section = sectionFor(path, await getDocs());
+const groups = section?.groups ?? [];
+const group = groupOf(path, groups);
+const { prev, next } = prevNext(path, groups);
+const reference = path.startsWith("/reference/") || path.startsWith("/cookbook/proto-fields/");
+const base = import.meta.env.BASE_URL;
+const data = entry.data as { head?: [string, Record<string, string>][]; pageClass?: string };
+
+const shellClass = ["shell", groups.length ? "" : "shell--no-sidebar", reference ? "shell--wide" : ""]
+  .filter(Boolean)
+  .join(" ");
+const proseClass = ["prose", reference ? "prose--reference" : "", data.pageClass ?? ""].filter(Boolean).join(" ");
+---
+
+<BaseLayout title={pageTitle(entry)} section={section?.key} head={data.head}>
+  <div class={shellClass}>
+    <Sidebar path={path} section={section} />
+    <main class="main" id="content">
+      {section && path !== section.link && (
+        <p class="breadcrumb">
+          <a href={`${base}${section.link}`}>{section.text}</a>
+          {group && group.text !== section.text && <> / {group.text}</>}
+        </p>
+      )}
+      <article class={proseClass}>
+        <Content />
+      </article>
+      <PageFooter
+        editUrl={`${REPO_URL}/edit/main/${repoPath(entry)}`}
+        updated={lastUpdated(entry)}
+        prev={prev}
+        next={next}
+      />
+    </main>
+    <Outline headings={headings} />
+  </div>
+  <script>
+    // Copy buttons on code blocks.
+    for (const pre of document.querySelectorAll<HTMLPreElement>(".prose pre")) {
+      const block = document.createElement("div");
+      block.className = "code-block";
+      pre.replaceWith(block);
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "copy-button";
+      button.textContent = "Copy";
+      button.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(pre.querySelector("code")?.innerText ?? pre.innerText);
+          button.textContent = "Copied";
+        } catch {
+          // No clipboard access: select the code so the reader can copy it.
+          const range = document.createRange();
+          range.selectNodeContents(pre);
+          getSelection()?.removeAllRanges();
+          getSelection()?.addRange(range);
+          button.textContent = "Selected";
+        }
+        setTimeout(() => (button.textContent = "Copy"), 1500);
+      });
+      block.append(pre, button);
+    }
+  </script>
+</BaseLayout>

@@ -1,7 +1,7 @@
 ---
 // Every page except a folder's index.md, e.g. docs/guides/01_quickstart.md.
 import type { GetStaticPaths } from "astro";
-import Placeholder from "../layouts/Placeholder.astro";
+import DocLayout from "../layouts/DocLayout.astro";
 import { getDocs, isIndexPage } from "../lib/docs";
 
 export const getStaticPaths = (async () => {
@@ -14,4 +14,4 @@ export const getStaticPaths = (async () => {
 const { entry } = Astro.props;
 ---
 
-<Placeholder entry={entry} />
+<DocLayout entry={entry} />

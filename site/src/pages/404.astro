@@ -1,0 +1,22 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import "../styles/prose.css";
+import { SECTIONS } from "../nav";
+
+const base = import.meta.env.BASE_URL;
+---
+
+<BaseLayout title="Page not found">
+  <div class="shell shell--no-sidebar">
+    <nav class="sidebar" aria-label="Sections"></nav>
+    <main class="main" id="content">
+      <article class="prose">
+        <h1>Page not found</h1>
+        <p>There's no page at this address. It may have moved when the docs were reorganised.</p>
+        <ul>
+          {SECTIONS.map((s) => <li><a href={`${base}${s.link}`}>{s.text}</a></li>)}
+        </ul>
+      </article>
+    </main>
+  </div>
+</BaseLayout>
