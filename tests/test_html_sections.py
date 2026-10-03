@@ -9,6 +9,7 @@ Covers:
 
 from __future__ import annotations
 
+import re
 from unittest.mock import MagicMock
 
 import pytest
@@ -283,7 +284,7 @@ class TestBuildWardsDataTag:
 
 
 class TestBuildSmokes:
-    """Smoke reporting keeps lifecycle, visibility, and spatial evidence separate."""
+    """Smoke reporting shows when each smoke started, broke and led to a fight."""
 
     @staticmethod
     def _smoke_config(html: str) -> dict:
@@ -298,7 +299,7 @@ class TestBuildSmokes:
         assert match is not None
         return json.loads(match.group(1))
 
-    def test_renders_exact_early_removal_without_guessing_detection(self, monkeypatch):
+    def test_renders_when_the_smoke_broke_and_by_whom(self, monkeypatch):
         participant = SmokeParticipant(
             hero_name="npc_dota_hero_axe",
             player_id=0,
@@ -357,13 +358,10 @@ class TestBuildSmokes:
 
         assert "Smoke Operations" in html
         _assert_map_background_cropped(html)
-        assert "Early removal" in html
-        assert "+15.07s" in html
-        assert "Hidden from enemy" in html
-        assert "1,046u sampled" in html
-        assert "action at same tick" in html
-        assert "Enemy had vision" not in html
-        assert "Undetected" not in html
+        assert re.search(r"\+15s\*? · Axe", html)  # * = tick fallback without a game clock
+        assert "None within 60s" in html
+        for removed in ("Hidden from enemy", "1,046u sampled", "action at same tick"):
+            assert removed not in html
 
     def test_empty_unlocated_smoke_renders_without_wards_or_map(self, monkeypatch):
         smoke = SmokeEvent(tick=2_000, activator="npc_dota_hero_riki", team=0)
@@ -386,7 +384,6 @@ class TestBuildSmokes:
 
         assert "Smoke Operations" in html
         assert "No members observed" in html
-        assert "No smoke members observed" in html
         assert "smokeCanvas" not in html
 
     def test_route_centroid_uses_only_each_members_observed_lifecycle(self):
@@ -470,59 +467,6 @@ class TestBuildSmokes:
 
         assert config["events"][0]["start"] is None
         assert config["events"][0]["route"]
-
-    def test_same_tick_same_activator_events_keep_their_own_raw_lifecycles(self, monkeypatch):
-        raw_events = []
-        analyses = []
-        for duration in (10.0, 20.0):
-            participant = SmokeParticipant(
-                hero_name="npc_dota_hero_axe",
-                player_id=0,
-                applied_tick=101,
-                removed_tick=130,
-                modifier_duration_s=duration,
-            )
-            raw_events.append(
-                SmokeEvent(
-                    tick=100,
-                    activator=participant.hero_name,
-                    team=2,
-                    participants=[participant],
-                )
-            )
-            analyses.append(
-                SmokeAnalysis(
-                    activation_tick=100,
-                    activator=participant.hero_name,
-                    team=2,
-                    status=SmokeGroupStatus.EARLY_REMOVAL,
-                    activation_x=None,
-                    activation_y=None,
-                    member_centroid_x=None,
-                    member_centroid_y=None,
-                    members=[
-                        SmokeMemberAnalysis(
-                            hero_name=participant.hero_name,
-                            player_id=0,
-                            applied_tick=101,
-                            removed_tick=130,
-                            lifecycle_status=SmokeLifecycleStatus.EARLY,
-                            visibility_at_apply=VisibilityState.UNKNOWN,
-                            visibility_at_remove=VisibilityState.UNKNOWN,
-                        )
-                    ],
-                )
-            )
-        match = MagicMock(smoke_events=raw_events, players=[])
-
-        from gem.reports.sections import vision as vision_section
-
-        monkeypatch.setattr(vision_section, "build_smoke_analysis", lambda _: analyses)
-        html = _sections.build_smokes(match, None)
-
-        assert html.count("10.00s") == 1
-        assert html.count("20.00s") == 1
-        assert html.index("10.00s") < html.index("20.00s")
 
 
 # ---------------------------------------------------------------------------

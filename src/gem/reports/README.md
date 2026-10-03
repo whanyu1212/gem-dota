@@ -63,8 +63,8 @@ module's docstring names its slice:
 | `sections/match.py` | `build_header`, `build_scoreboard`, `build_objectives`, `build_rosh_conversion`, `build_draft`, `build_chat` |
 | `sections/economy.py` | `build_hero_timeseries_chart`, `build_gold_xp_chart`, `build_damage`, `build_purchases`, `build_buybacks`, `build_runes` |
 | `sections/combat.py` | `build_combat_timeseries_chart`, `build_kill_feed`, `build_fights` |
-| `sections/vision.py` | `build_wards`, `build_laning`, `build_farming` (renders public evidence-first routes and comparative context tags) |
-| `sections/_shared.py` | helpers used by more than one section module (e.g. `_ward_enemies_seen`, Radiant/Dire color palettes) |
+| `sections/vision.py` | `build_wards`, `build_laning`, `build_farming` (camp-by-camp routes for each team's cores), `build_smokes` |
+| `sections/_shared.py` | helpers used by more than one section module (e.g. `fight_numbers`, `game_seconds_between`, Radiant/Dire color palettes) |
 
 `sections/__init__.py` re-exports all 18 `build_*` functions, so the package is
 the single import surface: `from gem.reports.sections import build_wards`.
@@ -247,11 +247,11 @@ fractions via the `MAP_X/Y` bounds shared from `_formatting.py`.
   to map already-parsed draft events to a team at render time; it does not
   re-extract anything.)
 - **Compute analytical facts** — net worth at a tick, vision estimates,
-  ability-hit grouping, Roshan conversions, camp-context timelines, and
-  position-at-tick all come from `gem.analysis` (imported by the section
+  ability-hit grouping, Roshan Aegis lifecycles, smoke analysis, farming routes,
+  and position-at-tick all come from `gem.analysis` (imported by the section
   modules); reports just lay them out. The builder computes Roshan conversions
-  once and shares them with the Roshan and Fights tabs so their links and
-  evidence stay identical.
+  and smoke analysis once and shares them with the Fights tab so its badges
+  match the Roshan and Smoke Operations tables.
 - **Define the data model** — `ParsedMatch`, `ParsedPlayer`,
   `VisionModifierEvent`, etc. live in `gem.results.models`. DataFrame/JSON/
   Parquet export lives in `results`/`api`, not here.

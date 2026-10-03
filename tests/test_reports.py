@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from types import SimpleNamespace
 
 import pytest
 
@@ -15,10 +14,11 @@ from gem.reports import (
     is_displayable_player_name,
     write_html_report,
 )
+from gem.reports.sections._shared import game_seconds_between
 from gem.reports.sections.combat import _fight_reveals_html, build_fights, build_kill_feed
 from gem.reports.sections.vision import (
+    _core_players,
     _downsample_farming_route_points,
-    _insight_delta,
     build_farming,
 )
 from gem.results.models import (
@@ -168,8 +168,9 @@ def test_build_html_report_smoke_without_assets() -> None:
     assert "123456789" in html
 
 
-def test_farming_report_leads_with_evidence_and_preserves_missing_context() -> None:
+def test_farming_report_shows_cores_with_camp_facts_only() -> None:
     hero_name = "npc_dota_hero_axe"
+    camp_log = [(0, 8_647.0, 15_564.0), (150, 8_650.0, 15_560.0), (500, 8_647.0, 15_564.0)]
     match = ParsedMatch(
         game_start_tick=0,
         game_end_tick=600,
@@ -178,12 +179,18 @@ def test_farming_report_leads_with_evidence_and_preserves_missing_context() -> N
                 player_id=0,
                 hero_name=hero_name,
                 team=2,
-                position_log=[
-                    (0, 8_647.0, 15_564.0),
-                    (150, 8_650.0, 15_560.0),
-                    (500, 8_647.0, 15_564.0),
-                ],
-            )
+                lane_role=1,
+                lane_last_hits=40,
+                position_log=camp_log,
+            ),
+            ParsedPlayer(
+                player_id=1,
+                hero_name="npc_dota_hero_crystal_maiden",
+                team=2,
+                lane_role=1,
+                lane_last_hits=4,
+                position_log=camp_log,
+            ),
         ],
         combat_log=[
             CombatLogEntry(
@@ -199,18 +206,45 @@ def test_farming_report_leads_with_evidence_and_preserves_missing_context() -> N
 
     html = build_farming(match, None)
 
-    assert "Strong Farm Evidence" in html
-    assert "Incomplete Context" in html
-    assert "XP unavailable" in html
-    assert "Why these tags?" in html
-    assert "team_3_roster_unavailable" in html
-    assert "1 neutral kill(s)" in html
-    assert "units travelled" in html
-    assert "Context Tags" in html
-    assert "Legacy Context</th>" not in html
+    assert "Axe (Radiant, Carry)" in html
+    assert "Crystal Maiden" not in html
+    assert '<th class="r">Neutral kills</th>' in html
+    assert '<td class="r">1</td>' in html
+    assert "most last hits at 10:00" in html
     assert '"break_before": true' in html
-    assert "S:0.50 P:0.50 V:0.50" not in html
-    assert html.index("Strong Farm Evidence") < html.index("Legacy context heuristic reference")
+    for removed in ("Context Tags", "Why these tags?", "Evidence", "Legacy context"):
+        assert removed not in html
+
+
+def test_core_players_pick_most_last_hits_per_team_and_lane_role() -> None:
+    players = [
+        ParsedPlayer(
+            player_id=0, hero_name="npc_dota_hero_axe", team=2, lane_role=3, lane_last_hits=30
+        ),
+        ParsedPlayer(
+            player_id=1, hero_name="npc_dota_hero_lion", team=2, lane_role=3, lane_last_hits=5
+        ),
+        ParsedPlayer(
+            player_id=2, hero_name="npc_dota_hero_sniper", team=2, lane_role=2, lane_last_hits=60
+        ),
+        ParsedPlayer(
+            player_id=3, hero_name="npc_dota_hero_enigma", team=2, lane_role=4, lane_last_hits=90
+        ),
+        ParsedPlayer(
+            player_id=5, hero_name="npc_dota_hero_luna", team=3, lane_role=1, lane_last_hits=50
+        ),
+        ParsedPlayer(
+            player_id=6, hero_name="npc_dota_hero_lich", team=3, lane_role=1, lane_last_hits=50
+        ),
+    ]
+
+    cores = _core_players(ParsedMatch(players=players))
+
+    assert [(player.player_id, role) for player, role in cores] == [
+        (2, "Mid"),
+        (0, "Offlane"),
+        (5, "Carry"),  # ties go to the lower slot
+    ]
 
 
 @pytest.mark.parametrize(
@@ -307,12 +341,11 @@ def test_full_report_wires_teamfight_snapshot_controls() -> None:
     assert "tf-position-layer, .tf-position-note" in html
 
 
-def test_smoke_insight_delta_formats_preexisting_events_as_negative() -> None:
-    assert _insight_delta(SimpleNamespace(game_time_delta_s=-3, tick_delta=-90)) == "-3s"
-    assert "-3.0s*" in _insight_delta(SimpleNamespace(game_time_delta_s=None, tick_delta=-90))
+def test_game_seconds_between_marks_tick_fallback_without_a_game_clock() -> None:
+    assert game_seconds_between(900, 1_200) == "+10s*"
 
 
-def test_full_report_cross_links_smoke_and_unique_fight_evidence() -> None:
+def test_full_report_cross_links_smoke_and_its_first_fight() -> None:
     html = build_html_report(
         _linked_smoke_match(),
         options=ReportOptions(include_movement=False),
@@ -323,25 +356,22 @@ def test_full_report_cross_links_smoke_and_unique_fight_evidence() -> None:
     assert 'data-report-target="fight-1"' in html
     assert 'data-report-snapshot="engagement_start"' in html
     assert 'data-report-target="smoke-operation-1"' in html
-    assert "Linked" in html
-    assert "Visible 1 · Hidden 0 · Unknown 0" in html
+    assert "after Smoke #1" in html
+    assert "<th>Broke</th><th>First fight</th>" in html
     assert "document.querySelectorAll('[data-report-target]')" in html
-    smoke_sequence = html[html.index('class="smoke-fight-sequence"') :]
-    assert smoke_sequence.index("First death") < smoke_sequence.index("Removal")
-    assert "successful smoke" not in html.lower()
-    assert "ward broke the smoke" not in html.lower()
+    for removed in ("smoke-fight-sequence", "Linked", "Nearest enemy", "member timing"):
+        assert removed not in html
 
 
-def test_smoke_report_keeps_multiple_fight_links_distinct() -> None:
+def test_smoke_report_links_only_the_first_fight() -> None:
     html = build_html_report(
         _linked_smoke_match(multiple_fights=True),
         options=ReportOptions(include_movement=False),
     )
 
-    assert html.count("View Fight #") == 2
     assert 'data-report-target="fight-1"' in html
-    assert 'data-report-target="fight-2"' in html
-    assert html.count('data-report-target="smoke-operation-1"') == 2
+    assert 'data-report-target="fight-2"' not in html
+    assert html.count("after Smoke #1") == 1
 
 
 def test_player_name_display_gate_rejects_binary_looking_text() -> None:
@@ -654,3 +684,37 @@ def test_kill_feed_does_not_apply_canonical_visibility_to_illusion_death() -> No
 
     assert "Bane" in html
     assert "👁 visible" not in html
+
+
+def test_load_map_base64_downscales_wide_maps_and_keeps_the_file(tmp_path: Path) -> None:
+    import base64
+    import io
+
+    from PIL import Image
+
+    from gem.reports.assets import REPORT_MAP_MAX_WIDTH, load_map_base64
+
+    wide = tmp_path / "wide.jpg"
+    Image.new("RGB", (REPORT_MAP_MAX_WIDTH + 904, 2_500), "green").save(wide)
+    small = tmp_path / "small.jpg"
+    Image.new("RGB", (512, 512), "green").save(small)
+    original = wide.read_bytes()
+
+    encoded = load_map_base64(wide)
+
+    assert encoded is not None
+    with Image.open(io.BytesIO(base64.b64decode(encoded))) as embedded:
+        assert embedded.size == (REPORT_MAP_MAX_WIDTH, 2_048)
+    assert wide.read_bytes() == original
+    assert load_map_base64(small) == base64.b64encode(small.read_bytes()).decode()
+    assert load_map_base64(tmp_path / "missing.jpg") is None
+
+
+@pytest.mark.parametrize(
+    ("winner", "label"),
+    [("radiant", "Radiant won"), ("dire", "Dire won"), ("draw", "Even"), ("unknown", "No winner")],
+)
+def test_fight_outcome_does_not_call_an_unknown_winner_even(winner: str, label: str) -> None:
+    from gem.reports.sections._shared import fight_outcome
+
+    assert fight_outcome(winner) == label

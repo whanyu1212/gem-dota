@@ -21,7 +21,7 @@ class ReportAssets
 
 Optional local assets used to enrich generated HTML reports.
 
-Source: [src/gem/reports/assets.py:12](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/reports/assets.py#L12)
+Source: [src/gem/reports/assets.py:16](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/reports/assets.py#L16)
 
 #### Dataclass fields
 
@@ -39,7 +39,7 @@ Signature: `def ReportAssets.auto(cls, *, root: str | Path | None = None, fallba
 
 Discover local report assets from the configured asset cache.
 
-Source: [src/gem/reports/assets.py:29](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/reports/assets.py#L29)
+Source: [src/gem/reports/assets.py:33](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/reports/assets.py#L33)
 
 ## `gem.reports.builder.ReportOptions`
 
@@ -51,7 +51,7 @@ class ReportOptions
 
 Rendering options for HTML match reports.
 
-Source: [src/gem/reports/builder.py:74](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/reports/builder.py#L74)
+Source: [src/gem/reports/builder.py:73](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/reports/builder.py#L73)
 
 #### Dataclass fields
 
@@ -70,7 +70,7 @@ def build_html_report(match: ParsedMatch, *, assets: ReportAssets | None = None,
 
 Assemble the complete self-contained multi-tab HTML report.
 
-Source: [src/gem/reports/builder.py:256](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/reports/builder.py#L256)
+Source: [src/gem/reports/builder.py:255](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/reports/builder.py#L255)
 
 ## `gem.reports.builder.write_html_report`
 
@@ -82,4 +82,4 @@ def write_html_report(match: ParsedMatch, output_path: str | Path, *, assets: Re
 
 Write a self-contained HTML report and return the written path.
 
-Source: [src/gem/reports/builder.py:572](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/reports/builder.py#L572)
+Source: [src/gem/reports/builder.py:568](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/reports/builder.py#L568)

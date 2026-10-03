@@ -240,12 +240,12 @@ semicolon-delimited strings, matching the other flat analysis exports.
 
 ## Report behavior
 
-The Farming tab leads with the route and timeline. Each segment row separates:
-
-- evidence strength;
-- exact support facts and missing evidence;
-- composable context tags;
-- an expandable explanation of comparative inputs, provenance, and gaps.
+The report's Farming tab shows the route and timeline for each team's cores
+(see [Match Reports](../reports/index.md)). Each segment row lists the camp,
+its type, the visit's duration, the hero's neutral kills inside the camp zone,
+and the gold and XP the hero earned during the visit. Evidence strength and the
+deprecated context tags stay available in Python and the DataFrame exports but
+are not rendered.
 
 The playback trail uses the route builder's point-to-camp assignments rather
 than recalculating geometry in the report. This keeps Python, DataFrame, and

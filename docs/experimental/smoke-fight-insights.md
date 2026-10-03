@@ -95,9 +95,8 @@ latest fight-end tick; equal starts use stable smoke/fight source order.
 exports with `include=["analysis"]` provide flat insight, member, and follow-up
 tables with stable empty schemas.
 
-The HTML report renders concise evidence in **Smoke Operations** and links a
-unique association to the matching **Fights** positioning card. The jump opens
-the relevant tab and snapshot; both views consume the same analysis records.
+The HTML report no longer renders these insights. Its **Smoke Operations**
+card and fight badges use `SmokeAnalysis.first_fight` instead.
 
 ## Limits
 

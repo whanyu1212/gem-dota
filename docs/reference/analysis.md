@@ -964,7 +964,7 @@ def build_farming_routes(match: ParsedMatch, *, config: FarmingRouteConfig = DEF
 
 Build deterministic camp-local route evidence for every parsed player.
 
-Source: [src/gem/analysis/farming.py:716](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L716)
+Source: [src/gem/analysis/farming.py:728](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L728)
 
 ### Top-level classes
 
@@ -1154,7 +1154,7 @@ class FarmingRouteSegment
 
 One camp-local sampled route segment with factual support evidence.
 
-Source: [src/gem/analysis/farming.py:214](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L214)
+Source: [src/gem/analysis/farming.py:215](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L215)
 
 #### Dataclass fields
 
@@ -1190,7 +1190,7 @@ Source: [src/gem/analysis/farming.py:214](https://github.com/whanyu1212/gem-dota
 | `camp_owner_team` | `int \| None` | `None` |
 | `camp_lane` | `str` | `'unknown'` |
 | `camp_area` | `str` | `'unknown'` |
-| `context` | `FarmingSegmentContext \| None` | `None` |
+| `context` | `FarmingSegmentContext \| None` | `field(...)` |
 | `camp_catalog_version` | `int \| None` | `None` |
 | `camp_map_patch` | `str \| None` | `None` |
 | `camp_topology_patch` | `str \| None` | `None` |
@@ -1203,7 +1203,7 @@ class FarmingRoute
 
 Evidence-first farming route for one parsed player.
 
-Source: [src/gem/analysis/farming.py:254](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L254)
+Source: [src/gem/analysis/farming.py:266](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L266)
 
 #### Dataclass fields
 
@@ -2124,7 +2124,7 @@ def analyze(match: ParsedMatch) -> MatchAnalysis
 
 Run every default post-parse analysis on a parsed match.
 
-Source: [src/gem/analysis/bundle.py:58](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/bundle.py#L58)
+Source: [src/gem/analysis/bundle.py:70](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/bundle.py#L70)
 
 ### Top-level classes
 

@@ -4,8 +4,12 @@ from __future__ import annotations
 
 import base64
 import html
+import io
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
+
+from PIL import Image
 
 
 @dataclass(frozen=True)
@@ -78,16 +82,46 @@ def _path(value: str | Path | None) -> Path | None:
     return Path(value).expanduser()
 
 
-def load_map_base64(map_image: str | Path | None) -> str | None:
-    """Load a local map image as a base64 string.
+REPORT_MAP_MAX_WIDTH = 4096
+"""Widest map image, in pixels, embedded in a report; wider images are downscaled."""
 
-    Returns ``None`` when no image is configured or the path does not exist.
+
+def load_map_base64(map_image: str | Path | None) -> str | None:
+    """Load a local map image as a base64 JPEG string for embedding in a report.
+
+    Images wider than :data:`REPORT_MAP_MAX_WIDTH` are downscaled to that width
+    and re-encoded as JPEG, which keeps the report a few MB smaller. The file on
+    disk is never modified.
+
+    Args:
+        map_image: Path to the map image, or ``None``.
+
+    Returns:
+        The base64-encoded image, or ``None`` when no image is configured or the
+        path does not exist.
     """
 
     path = _path(map_image)
     if path is None or not path.exists():
         return None
-    return base64.b64encode(path.read_bytes()).decode()
+    stat = path.stat()
+    return _encode_map(str(path.resolve()), stat.st_mtime_ns, stat.st_size)
+
+
+@lru_cache(maxsize=4)
+def _encode_map(path: str, mtime_ns: int, size: int) -> str:
+    # mtime and size are part of the cache key, so an edited file is re-encoded.
+    data = Path(path).read_bytes()
+    with Image.open(io.BytesIO(data)) as image:
+        if image.width > REPORT_MAP_MAX_WIDTH:
+            height = round(image.height * REPORT_MAP_MAX_WIDTH / image.width)
+            resized = image.convert("RGB").resize(
+                (REPORT_MAP_MAX_WIDTH, height), Image.Resampling.LANCZOS
+            )
+            buffer = io.BytesIO()
+            resized.save(buffer, format="JPEG", quality=85, optimize=True)
+            data = buffer.getvalue()
+    return base64.b64encode(data).decode()
 
 
 def load_item_icons(short_names: list[str], assets: ReportAssets | None = None) -> None:
