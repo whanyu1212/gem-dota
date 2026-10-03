@@ -342,3 +342,52 @@ def test_xp_delta_uses_cumulative_total_across_level_up(
 def test_route_config_rejects_invalid_values(kwargs: dict, message: str) -> None:
     with pytest.raises(ValueError, match=message):
         FarmingRouteConfig(**kwargs)
+
+
+@pytest.mark.parametrize(
+    ("tick", "expected"),
+    [
+        (100, (10, 100)),  # exact sample
+        (125, (10, 100)),  # tie between 100 and 150 goes to the earlier sample
+        (140, (20, 150)),  # nearer to 150; its first occurrence wins
+        (0, None),  # older than max_age before the first sample
+        (999, None),  # newer than max_age after the last sample
+    ],
+)
+def test_nearest_fresh_sample_bisects_with_the_original_tie_breaks(tick, expected) -> None:
+    times = [100, 150, 150, 200]
+    values = [10, 20, 21, 30]
+
+    assert farming._nearest_fresh_sample(times, values, tick, max_age_ticks=60) == expected
+
+
+def test_neutral_evidence_window_is_inclusive_and_per_hero() -> None:
+    def neutral(
+        tick: int, log_type: CombatLogType, attacker: str, value: int = 0
+    ) -> CombatLogEntry:
+        return CombatLogEntry(
+            tick=tick,
+            log_type=log_type,
+            attacker_name=attacker,
+            target_name="npc_dota_neutral_kobold",
+            value=value,
+        )
+
+    match = ParsedMatch(
+        combat_log=[
+            neutral(99, CombatLogType.DEATH, "npc_dota_hero_axe"),  # before the window
+            neutral(100, CombatLogType.DEATH, "npc_dota_hero_axe"),
+            neutral(150, CombatLogType.DAMAGE, "npc_dota_hero_axe", value=40),
+            neutral(150, CombatLogType.DEATH, "npc_dota_hero_lina"),  # another hero
+            neutral(200, CombatLogType.DEATH, "npc_dota_hero_axe"),
+            neutral(201, CombatLogType.DEATH, "npc_dota_hero_axe"),  # after the window
+        ]
+    )
+    zone = farming._parse_zones(farming.load_camp_zones())[0]
+    player = ParsedPlayer(player_id=0, hero_name="npc_dota_hero_axe")
+
+    kills, damage = farming._neutral_evidence(
+        farming._neutral_index(match), player, zone, start_tick=100, end_tick=200
+    )
+
+    assert (kills, damage) == (2, 40)

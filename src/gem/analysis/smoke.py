@@ -12,7 +12,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING
 
-from gem._deprecation import renamed_attribute, renamed_init_kwargs
 from gem.analysis._shared import infer_match_end_tick
 from gem.combat.log import CombatLogEntry
 from gem.state.game_clock import game_clock_for
@@ -112,7 +111,6 @@ class SmokeMemberAnalysis:
     evidence_gaps: list[str] = field(default_factory=list)
 
 
-@renamed_init_kwargs({"first_teamfight": "first_fight"})
 @dataclass
 class SmokeAnalysis:
     """Evidence summary for one Smoke of Deceit item use.
@@ -146,8 +144,6 @@ class SmokeAnalysis:
     members: list[SmokeMemberAnalysis] = field(default_factory=list)
     first_fight: Fight | None = None
     evidence_gaps: list[str] = field(default_factory=list)
-
-    first_teamfight = renamed_attribute("first_teamfight", "first_fight")
 
 
 def build_smoke_analysis(match: ParsedMatch) -> list[SmokeAnalysis]:

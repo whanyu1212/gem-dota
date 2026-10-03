@@ -21,8 +21,6 @@ from dataclasses import asdict, fields
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Literal, Union, get_args, get_origin, get_type_hints
 
-from gem._deprecation import warn_renamed
-
 if TYPE_CHECKING:
     import pandas as pd
 
@@ -227,36 +225,7 @@ def build_dataframes(match: ParsedMatch, *, include: Iterable[str] = ()) -> dict
     for df in tables.values():
         if "match_id" not in df.columns:
             df.insert(0, "match_id", pd.Series(match.match_id, index=df.index, dtype=_INT))
-    return _Tables(tables)
-
-
-#: Table names gem 0.10 and earlier used for gem's own fights.
-RENAMED_TABLES = {
-    "teamfights": "fights",
-    "teamfight_players": "fight_players",
-    "teamfight_positioning": "fight_positioning",
-}
-
-
-class _Tables(dict[str, "pd.DataFrame"]):
-    """Table dict that still serves renamed table names, with a warning.
-
-    Only the current names are keys, so iterating (and writing Parquet) sees
-    each table once.
-    """
-
-    def __missing__(self, key: str) -> pd.DataFrame:
-        new = RENAMED_TABLES.get(key)
-        if new is None or new not in self:
-            raise KeyError(key)
-        warn_renamed(f"DataFrame table {key!r}", repr(new))
-        return self[new]
-
-    def get(self, key: str, default: Any = None) -> Any:
-        """Return a table, resolving renamed table names like ``tables[key]``."""
-        if key in self or (key in RENAMED_TABLES and RENAMED_TABLES[key] in self):
-            return self[key]
-        return default
+    return tables
 
 
 def _resolve_include(include: Iterable[str]) -> set[str]:

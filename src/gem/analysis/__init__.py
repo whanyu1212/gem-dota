@@ -1,6 +1,6 @@
 """Post-parse analysis helpers for gem replay data."""
 
-from gem._deprecation import deprecated_module_attrs, renamed_module_attrs
+from gem._deprecation import deprecated_module_attrs
 from gem.analysis.abilities import ability_level_at_tick
 from gem.analysis.bundle import MatchAnalysis, analyze
 from gem.analysis.combat import (
@@ -132,14 +132,6 @@ __all__ = [
     "ward_vision_impact",
 ]
 
-#: Names gem 0.10 and earlier used for gem's own fights.
-RENAMED_FIGHT_NAMES = {
-    "TeamfightPositioning": "FightPositioning",
-    "build_teamfight_positioning": "build_fight_positioning",
-    "is_active_teamfight_participant": "is_active_fight_participant",
-    "teamfight_at_tick": "fight_at_tick",
-}
-
 #: Names deprecated in 0.13 and removed in 0.14, served with a warning:
 #: name -> (object, alternative, warn on access).
 DEPRECATED_ANALYSIS_NAMES = {
@@ -151,8 +143,4 @@ DEPRECATED_ANALYSIS_NAMES = {
     ),
 }
 
-__getattr__ = deprecated_module_attrs(
-    __name__,
-    DEPRECATED_ANALYSIS_NAMES,
-    renamed_module_attrs(__name__, RENAMED_FIGHT_NAMES, globals()),
-)
+__getattr__ = deprecated_module_attrs(__name__, DEPRECATED_ANALYSIS_NAMES)

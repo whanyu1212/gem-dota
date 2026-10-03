@@ -27,6 +27,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fixtures no record's status changed.
 - **`FarmingRouteSegment` uses `__slots__` again** (it gave them up in 0.12 for
   the deprecated `context` field).
+- **`gem.analyze` is about 20 times faster** (HY-7). Farming routes no longer
+  scan the whole combat log once per camp visit: neutral-creep deaths and damage
+  are indexed by hero once, and each visit looks up its own window. Resource
+  endpoints are found by binary search too. The routes are unchanged (identical
+  output on all 9 local fixtures). With the 0.12 interpretation removed as well:
+
+  | Fixture | 0.12.0 | Now |
+  |---|---:|---:|
+  | 8856501050 (92:56) | 164.0 s | 6.6 s |
+  | 8974053011 (38:00) | 27.5 s | 1.2 s |
 
 ### Removed
 
@@ -61,6 +71,21 @@ of answering questions from them, see the Recipes docs.
   - the `roshan_conversions` columns `aegis_outcome`, the four `*_coverage_pct`
     columns, `coverage_swing_pct`, `depth_swing`, `conversion_tags`,
     `tag_ruleset` and `legacy_conversion_score` / `_label`.
+- **The 0.10 `teamfights` names**, renamed to `fights` in 0.11:
+  - `ParsedMatch.teamfights` and the `teamfights=` keyword;
+  - `MatchAnalysis.teamfight_positioning` and `SmokeAnalysis.first_teamfight`,
+    attributes and keywords;
+  - `Teamfight`, `TeamfightPlayer`, `detect_teamfights`, `teamfight_at_tick`,
+    `is_active_teamfight_participant`, `TeamfightPositioning` and
+    `build_teamfight_positioning`;
+  - the `gem.extractors.teamfights` and `gem.analysis.teamfight_positioning`
+    modules;
+  - the `teamfights`, `teamfight_players` and `teamfight_positioning` table
+    names in `build_dataframes` and `read_parquet_table`;
+  - the rename helpers in `gem._deprecation`.
+
+  JSON files with the old `teamfights` key still load as `fights`. OpenDota's
+  `opendota_teamfights` and `teamfight_participation` are unchanged.
 - **Calibration tooling for the removed heuristics.**
   - `scripts/calibrate_farming_context.py` is now `scripts/audit_farming_routes.py`,
     and its corpus is `tests/fixtures/opendota/farming_routes_corpus.json`. Both

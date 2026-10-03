@@ -12,9 +12,10 @@ gem exposes two fight views:
 Use `match.fights` for exploratory analysis and report UI. Use
 `match.opendota_teamfights` when you want OpenDota-shaped output.
 
-`match.fights` was called `match.teamfights` in gem 0.10 and earlier. The old names
-(`match.teamfights`, `Teamfight`, `teamfight_at_tick`, the `teamfights` DataFrame
-table, …) still work for now and emit a `DeprecationWarning`.
+`match.fights` was called `match.teamfights` in gem 0.10 and earlier. gem 0.11
+renamed it and gem 0.13 removed the old names (`match.teamfights`, `Teamfight`,
+`teamfight_at_tick`, the `teamfights` DataFrame table, …). JSON files written
+with the old `teamfights` key still load.
 
 ## Gem fights
 

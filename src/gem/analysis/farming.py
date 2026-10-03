@@ -7,6 +7,7 @@ it does not infer player intent or claim that a camp was completely cleared.
 
 from __future__ import annotations
 
+import bisect
 import math
 from dataclasses import dataclass, field
 from enum import Enum
@@ -15,6 +16,7 @@ from typing import TYPE_CHECKING, Any, Literal, cast
 from gem.catalog.map import load_camp_zones
 
 if TYPE_CHECKING:
+    from gem.combat.log import CombatLogEntry
     from gem.results.models import ParsedMatch, ParsedPlayer
 
 _TICKS_PER_SECOND = 30
@@ -409,7 +411,15 @@ def _nearest_fresh_sample(
     length = min(len(times), len(values))
     if length == 0:
         return None
-    nearest_index = min(range(length), key=lambda index: (abs(times[index] - tick), times[index]))
+    # ``times`` is ascending, so only the samples either side of ``tick`` can be
+    # nearest. Ties go to the earlier sample, and to its first occurrence.
+    after = bisect.bisect_left(times, tick, 0, length)
+    candidates = []
+    if after < length:
+        candidates.append(after)
+    if after > 0:
+        candidates.append(bisect.bisect_left(times, times[after - 1], 0, length))
+    nearest_index = min(candidates, key=lambda index: (abs(times[index] - tick), times[index]))
     sample_tick = times[nearest_index]
     if abs(sample_tick - tick) > max_age_ticks:
         return None
@@ -468,8 +478,29 @@ def _resource_deltas(
     )
 
 
+#: hero name -> (ticks, entries): the neutral-creep DEATH and DAMAGE combat-log
+#: entries the hero dealt (as attacker or damage source), sorted by tick.
+_NeutralIndex = dict[str, tuple[list[int], list["CombatLogEntry"]]]
+
+
+def _neutral_index(match: ParsedMatch) -> _NeutralIndex:
+    entries_by_hero: dict[str, list[CombatLogEntry]] = {}
+    for entry in match.combat_log:
+        if entry.log_type not in ("DEATH", "DAMAGE"):
+            continue
+        if not entry.target_name.startswith("npc_dota_neutral"):
+            continue
+        for hero in {entry.attacker_name, entry.damage_source_name}:
+            entries_by_hero.setdefault(hero, []).append(entry)
+    index: _NeutralIndex = {}
+    for hero, entries in entries_by_hero.items():
+        entries.sort(key=lambda entry: entry.tick)
+        index[hero] = ([entry.tick for entry in entries], entries)
+    return index
+
+
 def _neutral_evidence(
-    match: ParsedMatch,
+    neutral_index: _NeutralIndex,
     player: ParsedPlayer,
     zone: FarmingCampZone,
     start_tick: int,
@@ -477,13 +508,10 @@ def _neutral_evidence(
 ) -> tuple[int, int]:
     kills = 0
     damage = 0
-    for entry in match.combat_log:
-        if entry.tick < start_tick or entry.tick > end_tick:
-            continue
-        if not entry.target_name.startswith("npc_dota_neutral"):
-            continue
-        if player.hero_name not in {entry.attacker_name, entry.damage_source_name}:
-            continue
+    ticks, entries = neutral_index.get(player.hero_name, ([], []))
+    first = bisect.bisect_left(ticks, start_tick)
+    last = bisect.bisect_right(ticks, end_tick)
+    for entry in entries[first:last]:
         if (
             entry.location_x is not None
             and entry.location_y is not None
@@ -518,7 +546,7 @@ def _position_metrics(
 
 
 def _build_segments(
-    match: ParsedMatch,
+    neutral_index: _NeutralIndex,
     player: ParsedPlayer,
     points: list[FarmingRoutePoint],
     zones: tuple[FarmingCampZone, ...],
@@ -531,7 +559,9 @@ def _build_segments(
         segment_points = points[candidate.start_index : candidate.end_index + 1]
         start_tick = segment_points[0].tick
         end_tick = segment_points[-1].tick
-        kills, damage = _neutral_evidence(match, player, candidate.zone, start_tick, end_tick)
+        kills, damage = _neutral_evidence(
+            neutral_index, player, candidate.zone, start_tick, end_tick
+        )
         xp_delta, gold_delta, resource_start, resource_end, evidence_gaps = _resource_deltas(
             player, start_tick, end_tick, config
         )
@@ -626,6 +656,8 @@ def build_farming_routes(
         topology_patch = None
 
     routes: list[FarmingRoute] = []
+    # One pass over the combat log, then each segment bisects its own window.
+    neutral_index = _neutral_index(match) if zones else {}
     for player in sorted(match.players, key=lambda item: item.player_id):
         reasons: list[str] = []
         if not zones:
@@ -662,7 +694,7 @@ def build_farming_routes(
                 )
             )
             continue
-        segments = _build_segments(match, player, points, zones, config)
+        segments = _build_segments(neutral_index, player, points, zones, config)
         for segment in segments:
             segment.camp_catalog_version = catalog_version
             segment.camp_map_patch = map_patch
