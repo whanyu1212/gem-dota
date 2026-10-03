@@ -1,8 +1,8 @@
 name: Deploy Docs
 
 # Builds the Astro docs site in site/ (pages read from docs/ until HY-118 moves
-# them). Pull requests build and check the site; pushes to main also deploy it
-# to GitHub Pages.
+# them). Every run builds and checks the site; only runs on main (a push, or a
+# manual run with main selected) deploy it to GitHub Pages.
 
 on:
   push:
@@ -72,17 +72,17 @@ jobs:
         run: npm run check-links
 
       - name: Setup Pages
-        if: github.event_name != 'pull_request'
+        if: github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v5
 
       - name: Upload Pages artifact
-        if: github.event_name != 'pull_request'
+        if: github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v3
         with:
           path: site/dist
 
   deploy:
-    if: github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     environment:
