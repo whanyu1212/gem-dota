@@ -1,5 +1,11 @@
 # Roshan Conversion Calibration
 
+::: warning Deprecated in 0.12, removed in 0.13
+The tags and territory windows this page calibrates are deprecated and removed
+in 0.13 (see [Roshan Conversion](./rosh-conversion.md)). The attribution,
+lifecycle and fight-association findings still describe the facts that stay.
+:::
+
 This page records the reproducible validation work behind the
 `provisional-v1` Roshan conversion ruleset. It separates replay facts from tag
 observations: the corpus asserts attribution, lifecycle, boundaries, fight

@@ -227,15 +227,17 @@ in gem uses it; the facts it combines stay available on `ParsedMatch`.
   structure, net-worth, XP, forward-ward, sustained-territory, and Tormentor
   differentials, together with both teams' raw values. Optional resource and
   territory values remain `None` when evidence is incomplete.
-- `RoshTerritoryWindow` and `RoshCoverageCell` describe sampled forward presence:
+- Deprecated in 0.12, removed in 0.13 (HY-99): the territory windows, the
+  tags and their thresholds, `conversion_score` / `conversion_label`,
+  `aegis_outcome`, `drivers` and `enemy_half_farm_share_*`. The fields warn when
+  read; gem's own output reads them with `read_quietly`.
+- `RoshTerritoryWindow` and `RoshCoverageCell` (deprecated) describe sampled forward presence:
   roughly 600-unit cells, 30-second buckets, a 10 hero-second / two-hero
   occupancy threshold, no interpolation across gaps longer than 10 seconds,
   and a 70% expected player-time requirement. Coverage and time-weighted p90
   depth are compared against the three minutes before Roshan.
-- `RoshTagThresholds` and `RoshTerritoryConfig` make calibration settings
-  reproducible. `conversion_tags` remain non-exclusive heuristics. The old
-  `conversion_score` and `conversion_label` are deprecated, retained through
-  the 0.9 line, and not scheduled for removal before 1.0.
+- `RoshTagThresholds` and `RoshTerritoryConfig` (deprecated) configure the
+  non-exclusive `conversion_tags` and the territory sampling.
 - Buybacks remain context/timeline annotations. Tormentor is a separate signed
   secondary-objective dimension and is not folded into the structure value.
 

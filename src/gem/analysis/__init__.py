@@ -45,17 +45,17 @@ from gem.analysis.map_context import (
 )
 from gem.analysis.regions import MAP_REGIONS, region_of
 from gem.analysis.roshan import (
-    DEFAULT_ROSH_TAG_THRESHOLDS,
+    DEFAULT_ROSH_TAG_THRESHOLDS as _DEFAULT_ROSH_TAG_THRESHOLDS,
     AegisFateSource,
     RoshConversion,
-    RoshCoverageCell,
+    RoshCoverageCell as _RoshCoverageCell,
     RoshDifferentialProfile,
     RoshFightEvidence,
     RoshFightRelation,
-    RoshTagThresholds,
+    RoshTagThresholds as _RoshTagThresholds,
     RoshTeamAttributionSource,
-    RoshTerritoryConfig,
-    RoshTerritoryWindow,
+    RoshTerritoryConfig as _RoshTerritoryConfig,
+    RoshTerritoryWindow as _RoshTerritoryWindow,
     RoshTimelineEvent,
     build_rosh_conversions,
 )
@@ -113,7 +113,6 @@ __all__ = [
     "AegisFateSource",
     "DEFAULT_FARMING_ROUTE_CONFIG",
     "DirectTargetRevealEvidence",
-    "DEFAULT_ROSH_TAG_THRESHOLDS",
     "EngagementStartSource",
     "EvidenceCompleteness",
     "FightPositionSnapshot",
@@ -130,14 +129,10 @@ __all__ = [
     "PointVisionSource",
     "PointVisionStatus",
     "RoshConversion",
-    "RoshCoverageCell",
     "RoshDifferentialProfile",
     "RoshFightEvidence",
     "RoshFightRelation",
-    "RoshTagThresholds",
     "RoshTeamAttributionSource",
-    "RoshTerritoryConfig",
-    "RoshTerritoryWindow",
     "RoshTimelineEvent",
     "SmokeAnalysis",
     "SmokeGroupStatus",
@@ -186,6 +181,8 @@ _FARMING_CONTEXT_ALTERNATIVE = (
 )
 _SMOKE_FIGHT_ALTERNATIVE = "SmokeAnalysis.first_fight from gem.build_smoke_analysis"
 _MAP_CONTEXT_ALTERNATIVE = "gem.region_of and the match's wards, towers and position data"
+_ROSH_TAG_ALTERNATIVE = "RoshConversion.differential_profile's raw counts and swings"
+_ROSH_TERRITORY_ALTERNATIVE = "gem.region_of with the players' position_log"
 
 #: Names deprecated in 0.12 and removed in 0.13 (HY-96), served with a warning:
 #: name -> (object, alternative, warn on access). Functions warn when called.
@@ -226,6 +223,11 @@ DEPRECATED_ANALYSIS_NAMES = {
     "MemberPositionEvidence": (_MemberPositionEvidence, _SMOKE_FIGHT_ALTERNATIVE, True),
     "SampledNearFightEvidence": (_SampledNearFightEvidence, _SMOKE_FIGHT_ALTERNATIVE, True),
     "TeamRelation": (_TeamRelation, _SMOKE_FIGHT_ALTERNATIVE, True),
+    "RoshTagThresholds": (_RoshTagThresholds, _ROSH_TAG_ALTERNATIVE, True),
+    "DEFAULT_ROSH_TAG_THRESHOLDS": (_DEFAULT_ROSH_TAG_THRESHOLDS, _ROSH_TAG_ALTERNATIVE, True),
+    "RoshTerritoryConfig": (_RoshTerritoryConfig, _ROSH_TERRITORY_ALTERNATIVE, True),
+    "RoshTerritoryWindow": (_RoshTerritoryWindow, _ROSH_TERRITORY_ALTERNATIVE, True),
+    "RoshCoverageCell": (_RoshCoverageCell, _ROSH_TERRITORY_ALTERNATIVE, True),
 }
 
 __getattr__ = deprecated_module_attrs(
