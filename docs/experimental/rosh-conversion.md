@@ -150,7 +150,7 @@ are excluded rather than guessed.
 ### Buybacks
 
 Buybacks remain timeline context. They can help explain the cost of a push or
-fight, but they are not a headline differential and do not affect any tag.
+fight, but they are not a headline differential.
 
 The HTML report's `Roshan` tab shows only the kill and Aegis lifecycle facts
 from these records (see [Match Reports](../reports/index.md)). The differential

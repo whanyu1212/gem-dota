@@ -11,6 +11,7 @@ import pytest
 import gem
 import gem.analysis
 from gem._deprecation import (
+    REMOVAL_VERSION,
     deprecated,
     deprecated_field,
     deprecated_module_attrs,
@@ -105,7 +106,9 @@ def _warnings(func) -> list[str]:
 
 
 def test_warn_deprecated_names_the_removal_and_the_alternative() -> None:
-    with pytest.warns(DeprecationWarning, match=r"gem\.x is deprecated .* gem 0\.13; use gem\.y"):
+    with pytest.warns(
+        DeprecationWarning, match=rf"gem\.x is deprecated .* gem {REMOVAL_VERSION}; use gem\.y"
+    ):
         warn_deprecated("gem.x", alternative="gem.y")
 
 
@@ -114,7 +117,9 @@ def test_deprecated_decorator_warns_on_every_call() -> None:
     def f(value: int) -> int:
         return value + 1
 
-    assert _warnings(lambda: f(1)) == ["gem.f is deprecated and will be removed in gem 0.13."]
+    assert _warnings(lambda: f(1)) == [
+        f"gem.f is deprecated and will be removed in gem {REMOVAL_VERSION}."
+    ]
     assert f.__name__ == "f"
 
 
@@ -150,7 +155,7 @@ def test_deprecated_fields_warn_on_read_only() -> None:
     assert _warnings(lambda: (repr(record), record == _Record(), gem.to_dict(record))) == []
     messages = _warnings(lambda: record.old)
     assert messages == [
-        "gem._Record.old is deprecated and will be removed in gem 0.13; use kept instead."
+        f"gem._Record.old is deprecated and will be removed in gem {REMOVAL_VERSION}; use kept instead."
     ]
     # Each instance gets its own default list.
     assert read_quietly(_Record(), "old") is not read_quietly(_Record(), "old")
@@ -231,3 +236,17 @@ def test_analyze_and_its_outputs_are_silent() -> None:
         )
         == []
     )
+
+
+@pytest.mark.parametrize("module", [gem, gem.analysis])
+def test_vision_source_is_deprecated_for_0_14(module: object) -> None:
+    from gem.analysis.vision import VisionSource
+
+    assert "VisionSource" not in module.__all__
+    messages = _warnings(lambda: module.VisionSource)
+    assert len(messages) == 1
+    assert "VisionSource is deprecated and will be removed in gem 0.14" in messages[0]
+    assert "PointVisionSource" in messages[0]
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        assert module.VisionSource is VisionSource

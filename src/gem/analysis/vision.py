@@ -46,6 +46,10 @@ _NIGHT_START_TICKS: int = 5 * 60 * 30  # 9000 ticks (night starts at 5:00)
 class VisionSource:
     """One modeled geometry source covering a map point at a given tick.
 
+    Deprecated in 0.13 and removed in 0.14: it was the return type of the
+    removed ``estimate_vision``. Use :class:`PointVisionSource`, from
+    ``assess_point_vision(...).sources``.
+
     Attributes:
         kind: ``"hero"`` if the source is an allied hero or ``"ward"`` if an
             observer ward. The historical ``"modifier"`` literal remains in

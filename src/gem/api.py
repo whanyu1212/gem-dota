@@ -79,9 +79,10 @@ from typing import TYPE_CHECKING
 import gem.catalog as catalog  # re-export so `gem.catalog.hero_display()` works
 import gem.constants as constants  # re-export so `gem.constants.hero_display()` works
 import gem.reports as reports  # re-export so `gem.reports.build_html_report()` works
-from gem._deprecation import renamed_module_attrs
+from gem._deprecation import deprecated_module_attrs, renamed_module_attrs
 from gem.analysis import (
     DEFAULT_FARMING_ROUTE_CONFIG,
+    DEPRECATED_ANALYSIS_NAMES as _DEPRECATED_ANALYSIS_NAMES,
     MAP_REGIONS,
     RENAMED_FIGHT_NAMES as _RENAMED_ANALYSIS_NAMES,
     AbilityCast,
@@ -117,7 +118,6 @@ from gem.analysis import (
     SmokeMemberAnalysis,
     SnapshotKind,
     TeamPositionSummary,
-    VisionSource,
     ability_level_at_tick,
     analyze,
     assess_point_vision,
@@ -500,7 +500,6 @@ __all__ = [
     "MAP_REGIONS",
     "ability_level_at_tick",
     "assess_point_vision",
-    "VisionSource",
     "PointVisionStatus",
     "PointVisionSource",
     "PointVisionGap",
@@ -570,4 +569,9 @@ __all__ = [
 #: Names gem 0.10 and earlier used for gem's own fights, served with a warning.
 RENAMED_NAMES = dict(_RENAMED_ANALYSIS_NAMES)
 
-__getattr__ = renamed_module_attrs(__name__, RENAMED_NAMES, globals())
+#: Names deprecated in 0.13 and removed in 0.14, served with a warning.
+DEPRECATED_NAMES = dict(_DEPRECATED_ANALYSIS_NAMES)
+
+__getattr__ = deprecated_module_attrs(
+    __name__, DEPRECATED_NAMES, renamed_module_attrs(__name__, RENAMED_NAMES, globals())
+)

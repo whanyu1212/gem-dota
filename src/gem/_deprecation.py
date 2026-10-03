@@ -23,7 +23,7 @@ _T = TypeVar("_T", bound=type)
 _F = TypeVar("_F", bound=Callable[..., Any])
 
 #: The release that removes the names deprecated in 0.12.
-REMOVAL_VERSION = "0.13"
+REMOVAL_VERSION = "0.14"
 
 
 def warn_renamed(old: str, new: str, *, stacklevel: int = 3) -> None:

@@ -69,6 +69,12 @@ of answering questions from them, see the Recipes docs.
   - The Smoke/Fight Insights docs page is gone, and the calibration pages keep
     only the fact findings.
 
+### Deprecated
+
+- **`VisionSource`**, the return type of the removed `estimate_vision`, warns
+  when imported from `gem` or `gem.analysis` and is removed in 0.14. Use
+  `PointVisionSource`, from `gem.assess_point_vision(...).sources`.
+
 ## [0.12.0] - 2026-10-03
 
 gem now presents replay facts and leaves interpretation to you. The tags, scores
