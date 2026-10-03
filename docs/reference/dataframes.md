@@ -53,15 +53,11 @@ Pass `include=["analysis"]` and/or `include=["opendota"]` to add these tables.
 | Group | Key | Contents |
 |---|---|---|
 | `analysis` | `"fight_positioning"` | Flat per-fight, per-snapshot, per-hero positioning evidence with freshness, geometry, and visibility |
-| `analysis` | `"roshan_conversions"` | One flat row per Roshan with attribution/lifecycle provenance, raw differential evidence, availability, tags/ruleset, and prefixed legacy fields |
+| `analysis` | `"roshan_conversions"` | One flat row per Roshan with attribution/lifecycle provenance, raw differential evidence and availability |
 | `analysis` | `"roshan_conversion_fights"` | One row per Roshan-associated fight with engagement provenance, relation, winner, and participant IDs by side |
-| `analysis` | `"smoke_fight_insights"` | One row per bounded smoke/fight candidate, including association, exact-event, visibility, and formation summaries |
-| `analysis` | `"smoke_fight_members"` | Per-candidate smoked-member participation, visibility, sampled position, and evidence-gap details |
-| `analysis` | `"smoke_fight_followups"` | Uniquely allocated objective and observer-placement evidence inside bounded post-fight windows |
 | `analysis` | `"farming_routes"` | One row per player with route availability, camp-catalog metadata, and segment/point counts |
 | `analysis` | `"farming_route_segments"` | Camp-local route windows with boundary provenance, sampled coverage, neutral/resource support, evidence strength, and gaps |
 | `analysis` | `"farming_route_points"` | Sampled path points with deterministic camp membership and optional segment membership |
-| `analysis` | `"farming_context_tags"` | One row per farming segment/context tag and its reasons |
 | `opendota` | `"opendota_objectives"` | OpenDota-shaped unified objective timeline |
 | `opendota` | `"opendota_teamfights"` | OpenDota-compatible 3+ death temporal teamfight windows; the per-player breakdown is a JSON string in `players` |
 
