@@ -120,14 +120,16 @@ combat, laning, farming, fight, Roshan, vision, economy, draft, and movement vie
 </table>
 
 ```python
-from gem.reports import write_html_report
+from gem.reports import fetch_match_icons, write_html_report
 
-write_html_report(match, "match-report.html")
+assets = fetch_match_icons(match)  # downloads the hero/item icons this match needs
+write_html_report(match, "match-report.html", assets=assets)
 ```
 
-Hero and item icons are Valve's artwork, so Gem doesn't ship them. The report downloads
-the icons a match needs into a local cache (`examples/match_report.py --offline` skips
-this; from Python, call `gem.reports.fetch_match_icons(match)`). See the
+Hero and item icons are Valve's artwork, so Gem doesn't ship them. `fetch_match_icons`
+downloads the ones a match needs into a local cache; `write_html_report` itself never
+downloads, and shows a hero's name where its icon is missing.
+`examples/match_report.py` fetches the icons for you (`--offline` skips this). See the
 [asset-cache guide](https://whanyu1212.github.io/gem-dota/guides/09_cli#reports-assets-report-asset-cache)
 and the [report API](https://whanyu1212.github.io/gem-dota/reference/reports) for details.
 
@@ -192,8 +194,8 @@ Some outputs are necessarily reconstructed:
   territory estimates are deprecated in 0.12 and removed in 0.13.
 - Incomplete replays can return partial output, and some exact postgame fields require embedded match details.
 - Healing Lotus pickups are not available from the replay event stream.
-- Hero/item icons and the report map image are not shipped in the wheel; the report
-  fetches the icons it needs.
+- Hero/item icons and the report map image are not shipped in the wheel; call
+  `gem.reports.fetch_match_icons(match)` to download the icons a report needs.
 
 See [Replay Edge Cases](https://whanyu1212.github.io/gem-dota/deep-dives/replay-edge-cases)
 and the experimental-feature guides for the detailed boundaries.
