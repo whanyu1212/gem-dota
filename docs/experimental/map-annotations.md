@@ -1,7 +1,7 @@
 # Map Regions and Camps
 
-gem's map analysis (farming context, Roshan territory, map context) labels
-positions with a **region** and farmed camps with a **camp** from its catalog.
+gem labels positions with a **region** (`gem.region_of`) and farmed camps with a
+**camp** from its catalog (farming routes use both).
 This page shows both on the 7.41 map, and how each was checked against the
 replays.
 

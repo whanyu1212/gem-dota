@@ -84,10 +84,15 @@ hidden inside dense replay bytes. The parser is an independent Python implementa
 cross-checked against Manta, Clarity, the OpenDota parser, and replay-derived validation
 fixtures.
 
+**Facts, not verdicts.** Gem reports what the replay records: who was where, what they
+did, what it cost and what happened next. It doesn't score plays or decide whether a
+Roshan was "converted"; that interpretation is yours to build on top. Gem 0.12
+deprecates the older helpers that did this, and 0.13 removes them.
+
 ## Match reports
 
 Gem can turn a parsed replay into a self-contained interactive report with overview,
-combat, laning, farming, fight, vision, economy, draft, and movement views.
+combat, laning, farming, fight, Roshan, vision, economy, draft, and movement views.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/whanyu1212/gem-dota/main/assets/readme-report-overview.png" alt="Gem interactive Dota 2 match report overview" width="100%">
@@ -106,24 +111,27 @@ combat, laning, farming, fight, vision, economy, draft, and movement views.
     </td>
     <td width="66%" valign="top" align="center">
       <a href="https://raw.githubusercontent.com/whanyu1212/gem-dota/main/assets/readme-report-teamfight.png">
-        <img src="https://raw.githubusercontent.com/whanyu1212/gem-dota/main/assets/readme-report-teamfight.png" alt="Gem teamfight breakdown with map and combat statistics" width="100%">
+        <img src="https://raw.githubusercontent.com/whanyu1212/gem-dota/main/assets/readme-report-teamfight.png" alt="Gem fight breakdown with positions, combat statistics and an Aegis badge" width="100%">
       </a>
       <br>
-      <sub><strong>Fights</strong> — inspect positions, damage, abilities, and reveals.</sub>
+      <sub><strong>Fights</strong> — step through positions, then inspect damage, abilities, and reveals.</sub>
     </td>
   </tr>
 </table>
 
 ```python
-from gem.reports import write_html_report
+from gem.reports import fetch_match_icons, write_html_report
 
-write_html_report(match, "match-report.html")
+assets = fetch_match_icons(match)  # downloads the hero/item icons this match needs
+write_html_report(match, "match-report.html", assets=assets)
 ```
 
-Hero and item icons are optional local assets. See the
+Hero and item icons are Valve's artwork, so Gem doesn't ship them. `fetch_match_icons`
+downloads the ones a match needs into a local cache; `write_html_report` itself never
+downloads, and shows a hero's name where its icon is missing.
+`examples/match_report.py` fetches the icons for you (`--offline` skips this). See the
 [asset-cache guide](https://whanyu1212.github.io/gem-dota/guides/09_cli#reports-assets-report-asset-cache)
-for setup and the [report API](https://whanyu1212.github.io/gem-dota/reference/reports)
-for customization.
+and the [report API](https://whanyu1212.github.io/gem-dota/reference/reports) for details.
 
 ## What you get
 
@@ -132,10 +140,10 @@ for customization.
 | Match and players | Scores, winner, duration, teams, K/D/A, level, GPM/XPM, final net worth |
 | Draft and objectives | Picks/bans, towers, barracks, Roshan, Aegis, Tormentor, building status |
 | Combat | Normalized combat log, damage/healing, kills, ability and item usage, fights |
-| Economy | Gold, XP, net-worth and minute-aligned advantage curves, purchases, buybacks |
-| Map state | Player positions, lane heatmaps, wards, smoke groups, courier snapshots |
+| Economy | Gold, XP, net-worth and minute-aligned advantage curves, purchases, per-player gold ledger, exact buyback costs |
+| Map state | Player positions, map regions (river, halves, lotus pools), neutral camps, lane heatmaps, wards, smoke groups, courier snapshots |
 | Items | Final inventories, neutral-item finds, consumed upgrades, Roshan drops and banner plants |
-| Analysis | Nearby heroes, point-in-time lookups, ability levels, smoke lifecycles, vision, Roshan conversion |
+| Lookups | Position, net worth and ability level at a tick, nearby heroes, the fight at a tick, hero visibility, smoke lifecycles and first fights, the Aegis lifecycle |
 | Exports | DataFrames, JSON, Parquet, multi-replay processing, interactive HTML reports |
 
 Useful entry points include:
@@ -144,6 +152,7 @@ Useful entry points include:
 - `gem.parse_to_dataframe()` / `gem.to_json()` / `gem.to_parquet()`
 - `gem.parse_many*()` for parallel replay batches
 - `gem.find_player()`, `gem.position_at_tick()`, and `gem.fight_at_tick()`
+- `gem.region_of()` to label a position as river, either half, or a lotus pool
 - `gem.fetch_replay()` for OpenDota/Valve replay download and decompression
 
 For current complete replays, Gem's minute curves are validated against OpenDota's
@@ -161,6 +170,8 @@ The hosted documentation covers both the public API and the replay format itself
 - [Parser internals](https://whanyu1212.github.io/gem-dota/deep-dives/)
 - [CLI reference](https://whanyu1212.github.io/gem-dota/guides/09_cli)
 - [Parser performance](https://whanyu1212.github.io/gem-dota/deep-dives/parser-performance)
+- [Map regions and camps](https://whanyu1212.github.io/gem-dota/experimental/map-annotations): how Gem's map annotation
+  was checked against the replays
 - [Experimental analysis](https://whanyu1212.github.io/gem-dota/experimental/)
 
 New to replay internals? Start with the
@@ -178,12 +189,13 @@ apples-to-oranges win over Go or Java parsers.
 
 Some outputs are necessarily reconstructed:
 
-- Vision estimation, farming-pattern analysis, and Roshan conversion are
-  experimental evidence layers. Prefer Roshan's raw signed profile and status;
-  the legacy aggregate score and exclusive label are deprecated.
+- Farming routes, smoke analysis, fight positioning and Roshan records are experimental:
+  they join replay facts with documented, inspectable rules. Their tags, scores and
+  territory estimates are deprecated in 0.12 and removed in 0.13.
 - Incomplete replays can return partial output, and some exact postgame fields require embedded match details.
-- Reliable versus unreliable gold and Healing Lotus pickups are not available from the replay event stream.
-- Hero/item icons and map imagery are optional assets and are not shipped in the wheel.
+- Healing Lotus pickups are not available from the replay event stream.
+- Hero/item icons and the report map image are not shipped in the wheel; call
+  `gem.reports.fetch_match_icons(match)` to download the icons a report needs.
 
 See [Replay Edge Cases](https://whanyu1212.github.io/gem-dota/deep-dives/replay-edge-cases)
 and the experimental-feature guides for the detailed boundaries.

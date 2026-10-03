@@ -1,13 +1,73 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="gem">
-  <title>gem</title>
-  <polygon points="32,4 53,17 43,22 32,15" fill="#9eeebf"/>
-  <polygon points="53,17 53,45 43,40 43,22" fill="#2fb366"/>
-  <polygon points="53,45 32,60 32,47 43,40" fill="#0f6436"/>
-  <polygon points="32,60 11,45 21,40 32,47" fill="#1c8a4a"/>
-  <polygon points="11,45 11,17 21,22 21,40" fill="#5fd48f"/>
-  <polygon points="11,17 32,4 32,15 21,22" fill="#d6fbe4"/>
-  <polygon points="32,15 43,22 43,40 32,47 21,40 21,22" fill="#5fd48f"/>
-  <polygon points="32,15 43,22 32,29 21,22" fill="#9eeebf" opacity="0.9"/>
-  <polygon points="32,4 53,17 53,45 32,60 11,45 11,17" fill="none" stroke="#0b4a28" stroke-width="2.4" stroke-linejoin="round"/>
-  <polygon points="26,17.2 27.6,20.4 30.8,22 27.6,23.6 26,26.8 24.4,23.6 21.2,22 24.4,20.4" fill="#ffffff" opacity="0.9"/>
+<title>gem</title>
+<defs>
+<linearGradient id="gem-f0" gradientUnits="userSpaceOnUse" x1="43.7" y1="11.8" x2="38.7" y2="19.0">
+<stop offset="0" stop-color="#7eefbf"/>
+<stop offset="1" stop-color="#17ba76"/>
+</linearGradient>
+<linearGradient id="gem-f1" gradientUnits="userSpaceOnUse" x1="55.4" y1="32.0" x2="45.4" y2="29.5">
+<stop offset="0" stop-color="#139961"/>
+<stop offset="1" stop-color="#073823"/>
+</linearGradient>
+<linearGradient id="gem-f2" gradientUnits="userSpaceOnUse" x1="43.7" y1="52.2" x2="38.7" y2="40.0">
+<stop offset="0" stop-color="#149f65"/>
+<stop offset="1" stop-color="#083d26"/>
+</linearGradient>
+<linearGradient id="gem-f3" gradientUnits="userSpaceOnUse" x1="20.3" y1="52.2" x2="25.3" y2="40.0">
+<stop offset="0" stop-color="#14a468"/>
+<stop offset="1" stop-color="#084029"/>
+</linearGradient>
+<linearGradient id="gem-f4" gradientUnits="userSpaceOnUse" x1="8.6" y1="32.0" x2="18.6" y2="29.5">
+<stop offset="0" stop-color="#8ef1c7"/>
+<stop offset="1" stop-color="#19c77e"/>
+</linearGradient>
+<linearGradient id="gem-f5" gradientUnits="userSpaceOnUse" x1="20.3" y1="11.7" x2="25.3" y2="19.0">
+<stop offset="0" stop-color="#7befbe"/>
+<stop offset="1" stop-color="#17b874"/>
+</linearGradient>
+<linearGradient id="gem-table" gradientUnits="userSpaceOnUse" x1="18.6" y1="22.5" x2="45.4" y2="36.5">
+<stop offset="0" stop-color="#6eedb8"/>
+<stop offset="0.55" stop-color="#18bf78"/>
+<stop offset="1" stop-color="#118856"/>
+</linearGradient>
+<clipPath id="gem-tclip">
+<polygon points="32.00,15.55 45.42,22.52 45.42,36.48 32.00,43.45 18.58,36.48 18.58,22.52"/>
+</clipPath>
+<linearGradient id="gem-sheen" gradientUnits="userSpaceOnUse" x1="10" y1="6" x2="36" y2="40">
+<stop offset="0" stop-color="#ffffff" stop-opacity="0.18"/>
+<stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+</linearGradient>
+<linearGradient id="gem-rimlight" gradientUnits="userSpaceOnUse" x1="8" y1="4" x2="52" y2="58">
+<stop offset="0" stop-color="#f2fff7" stop-opacity="0.9"/>
+<stop offset="0.5" stop-color="#f2fff7" stop-opacity="0.15"/>
+<stop offset="1" stop-color="#f2fff7" stop-opacity="0.05"/>
+</linearGradient>
+</defs>
+<polygon points="32.00,5.00 55.38,18.50 45.42,22.52 32.00,15.55" fill="url(#gem-f0)"/>
+<polygon points="55.38,18.50 55.38,45.50 45.42,36.48 45.42,22.52" fill="url(#gem-f1)"/>
+<polygon points="55.38,45.50 32.00,59.00 32.00,43.45 45.42,36.48" fill="url(#gem-f2)"/>
+<polygon points="32.00,59.00 8.62,45.50 18.58,36.48 32.00,43.45" fill="url(#gem-f3)"/>
+<polygon points="8.62,45.50 8.62,18.50 18.58,22.52 18.58,36.48" fill="url(#gem-f4)"/>
+<polygon points="8.62,18.50 32.00,5.00 32.00,15.55 18.58,22.52" fill="url(#gem-f5)"/>
+<polygon points="32.00,15.55 45.42,22.52 45.42,36.48 32.00,43.45 18.58,36.48 18.58,22.52" fill="url(#gem-table)"/>
+<g clip-path="url(#gem-tclip)">
+<polygon points="14.00,40.00 40.00,14.00 48.00,22.00 22.00,48.00" fill="#0a5234" fill-opacity="0.32"/>
+<polygon points="45.42,36.48 32.00,43.45 27.30,41.01 45.42,30.89" fill="#8ef1c7" fill-opacity="0.35"/>
+</g>
+<polygon points="32.00,5.00 55.38,18.50 55.38,45.50 32.00,59.00 8.62,45.50 8.62,18.50" fill="url(#gem-sheen)"/>
+<line x1="32.00" y1="5.00" x2="32.00" y2="15.55" stroke="#f2fff7" stroke-opacity="0.67" stroke-width="0.7" stroke-linecap="round"/>
+<line x1="55.38" y1="18.50" x2="45.42" y2="22.52" stroke="#f2fff7" stroke-opacity="0.41" stroke-width="0.7" stroke-linecap="round"/>
+<line x1="55.38" y1="45.50" x2="45.42" y2="36.48" stroke="#f2fff7" stroke-opacity="0.16" stroke-width="0.7" stroke-linecap="round"/>
+<line x1="32.00" y1="59.00" x2="32.00" y2="43.45" stroke="#f2fff7" stroke-opacity="0.17" stroke-width="0.7" stroke-linecap="round"/>
+<line x1="8.62" y1="45.50" x2="18.58" y2="36.48" stroke="#f2fff7" stroke-opacity="0.46" stroke-width="0.7" stroke-linecap="round"/>
+<line x1="8.62" y1="18.50" x2="18.58" y2="22.52" stroke="#f2fff7" stroke-opacity="0.69" stroke-width="0.7" stroke-linecap="round"/>
+<line x1="32.00" y1="15.55" x2="45.42" y2="22.52" stroke="#f2fff7" stroke-opacity="0.57" stroke-width="0.7" stroke-linecap="round"/>
+<line x1="45.42" y1="22.52" x2="45.42" y2="36.48" stroke="#f2fff7" stroke-opacity="0.30" stroke-width="0.7" stroke-linecap="round"/>
+<line x1="45.42" y1="36.48" x2="32.00" y2="43.45" stroke="#f2fff7" stroke-opacity="0.12" stroke-width="0.7" stroke-linecap="round"/>
+<line x1="32.00" y1="43.45" x2="18.58" y2="36.48" stroke="#f2fff7" stroke-opacity="0.34" stroke-width="0.7" stroke-linecap="round"/>
+<line x1="18.58" y1="36.48" x2="18.58" y2="22.52" stroke="#f2fff7" stroke-opacity="0.63" stroke-width="0.7" stroke-linecap="round"/>
+<line x1="18.58" y1="22.52" x2="32.00" y2="15.55" stroke="#f2fff7" stroke-opacity="0.72" stroke-width="0.7" stroke-linecap="round"/>
+<polygon points="32.00,5.80 54.69,18.90 54.69,45.10 32.00,58.20 9.31,45.10 9.31,18.90" fill="none" stroke="url(#gem-rimlight)" stroke-width="0.8" stroke-linejoin="miter"/>
+<line x1="16.53" y1="15.75" x2="22.38" y2="12.37" stroke="#ffffff" stroke-opacity="0.9" stroke-width="1.1" stroke-linecap="round"/>
+<polygon points="18.58,22.52 22.34,20.57 18.58,26.43" fill="#ffffff" fill-opacity="0.75"/>
 </svg>

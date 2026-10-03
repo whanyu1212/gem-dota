@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="gem">
+<title>gem</title>
+<defs>
+<linearGradient id="gem-f0" gradientUnits="userSpaceOnUse" x1="43.7" y1="11.8" x2="38.7" y2="19.0">
+<stop offset="0" stop-color="#8bf1c6"/>
+<stop offset="1" stop-color="#18c57c"/>
+</linearGradient>
+<linearGradient id="gem-f1" gradientUnits="userSpaceOnUse" x1="55.4" y1="32.0" x2="45.4" y2="29.5">
+<stop offset="0" stop-color="#118b58"/>
+<stop offset="1" stop-color="#062e1d"/>
+</linearGradient>
+<linearGradient id="gem-f2" gradientUnits="userSpaceOnUse" x1="43.7" y1="52.2" x2="38.7" y2="40.0">
+<stop offset="0" stop-color="#15ad6d"/>
+<stop offset="1" stop-color="#09472d"/>
+</linearGradient>
+<linearGradient id="gem-f3" gradientUnits="userSpaceOnUse" x1="20.3" y1="52.2" x2="25.3" y2="40.0">
+<stop offset="0" stop-color="#13965f"/>
+<stop offset="1" stop-color="#073622"/>
+</linearGradient>
+<linearGradient id="gem-f4" gradientUnits="userSpaceOnUse" x1="8.6" y1="32.0" x2="18.6" y2="29.5">
+<stop offset="0" stop-color="#9cf3ce"/>
+<stop offset="1" stop-color="#1ad184"/>
+</linearGradient>
+<linearGradient id="gem-f5" gradientUnits="userSpaceOnUse" x1="20.3" y1="11.7" x2="25.3" y2="19.0">
+<stop offset="0" stop-color="#6dedb7"/>
+<stop offset="1" stop-color="#15ae6e"/>
+</linearGradient>
+<linearGradient id="gem-table" gradientUnits="userSpaceOnUse" x1="18.6" y1="22.5" x2="45.4" y2="36.5">
+<stop offset="0" stop-color="#6eedb8"/>
+<stop offset="0.55" stop-color="#18bf78"/>
+<stop offset="1" stop-color="#118856"/>
+</linearGradient>
+<linearGradient id="gem-sheen" gradientUnits="userSpaceOnUse" x1="10" y1="6" x2="36" y2="40">
+<stop offset="0" stop-color="#ffffff" stop-opacity="0.25"/>
+<stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+</linearGradient>
+<linearGradient id="gem-rimlight" gradientUnits="userSpaceOnUse" x1="8" y1="4" x2="52" y2="58">
+<stop offset="0" stop-color="#f2fff7" stop-opacity="0.9"/>
+<stop offset="0.5" stop-color="#f2fff7" stop-opacity="0.15"/>
+<stop offset="1" stop-color="#f2fff7" stop-opacity="0.05"/>
+</linearGradient>
+</defs>
+<polygon points="32.00,5.00 55.38,18.50 45.42,22.52 32.00,15.55" fill="url(#gem-f0)"/>
+<polygon points="55.38,18.50 55.38,45.50 45.42,36.48 45.42,22.52" fill="url(#gem-f1)"/>
+<polygon points="55.38,45.50 32.00,59.00 32.00,43.45 45.42,36.48" fill="url(#gem-f2)"/>
+<polygon points="32.00,59.00 8.62,45.50 18.58,36.48 32.00,43.45" fill="url(#gem-f3)"/>
+<polygon points="8.62,45.50 8.62,18.50 18.58,22.52 18.58,36.48" fill="url(#gem-f4)"/>
+<polygon points="8.62,18.50 32.00,5.00 32.00,15.55 18.58,22.52" fill="url(#gem-f5)"/>
+<polygon points="32.00,15.55 45.42,22.52 45.42,36.48 32.00,43.45 18.58,36.48 18.58,22.52" fill="url(#gem-table)"/>
+<polygon points="32.00,5.00 55.38,18.50 55.38,45.50 32.00,59.00 8.62,45.50 8.62,18.50" fill="url(#gem-sheen)"/>
+<line x1="32.00" y1="5.00" x2="32.00" y2="15.55" stroke="#f2fff7" stroke-opacity="0.67" stroke-width="1.2" stroke-linecap="round"/>
+<line x1="55.38" y1="18.50" x2="45.42" y2="22.52" stroke="#f2fff7" stroke-opacity="0.41" stroke-width="1.2" stroke-linecap="round"/>
+<line x1="55.38" y1="45.50" x2="45.42" y2="36.48" stroke="#f2fff7" stroke-opacity="0.16" stroke-width="1.2" stroke-linecap="round"/>
+<line x1="32.00" y1="59.00" x2="32.00" y2="43.45" stroke="#f2fff7" stroke-opacity="0.17" stroke-width="1.2" stroke-linecap="round"/>
+<line x1="8.62" y1="45.50" x2="18.58" y2="36.48" stroke="#f2fff7" stroke-opacity="0.46" stroke-width="1.2" stroke-linecap="round"/>
+<line x1="8.62" y1="18.50" x2="18.58" y2="22.52" stroke="#f2fff7" stroke-opacity="0.69" stroke-width="1.2" stroke-linecap="round"/>
+<line x1="32.00" y1="15.55" x2="45.42" y2="22.52" stroke="#f2fff7" stroke-opacity="0.57" stroke-width="1.2" stroke-linecap="round"/>
+<line x1="45.42" y1="22.52" x2="45.42" y2="36.48" stroke="#f2fff7" stroke-opacity="0.30" stroke-width="1.2" stroke-linecap="round"/>
+<line x1="45.42" y1="36.48" x2="32.00" y2="43.45" stroke="#f2fff7" stroke-opacity="0.12" stroke-width="1.2" stroke-linecap="round"/>
+<line x1="32.00" y1="43.45" x2="18.58" y2="36.48" stroke="#f2fff7" stroke-opacity="0.34" stroke-width="1.2" stroke-linecap="round"/>
+<line x1="18.58" y1="36.48" x2="18.58" y2="22.52" stroke="#f2fff7" stroke-opacity="0.63" stroke-width="1.2" stroke-linecap="round"/>
+<line x1="18.58" y1="22.52" x2="32.00" y2="15.55" stroke="#f2fff7" stroke-opacity="0.72" stroke-width="1.2" stroke-linecap="round"/>
+<polygon points="32.00,5.00 55.38,18.50 55.38,45.50 32.00,59.00 8.62,45.50 8.62,18.50" fill="none" stroke="#073622" stroke-width="2.0" stroke-linejoin="miter"/>
+<polygon points="32.00,5.80 54.69,18.90 54.69,45.10 32.00,58.20 9.31,45.10 9.31,18.90" fill="none" stroke="url(#gem-rimlight)" stroke-width="1.2" stroke-linejoin="miter"/>
+</svg>

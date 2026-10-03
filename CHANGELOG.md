@@ -125,12 +125,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **New logo and README banner.** The logo is a flat-faceted green gem that
-  stays legible down to favicon size, and it is now the docs site's favicon too.
-  The banner pairs it with the wordmark, tagline and a map panel drawn from gem's
-  own region and camp data. It is about 100 KB, down from 1.5 MB. The text is set
-  in Inter and converted to outlines, and the source is
-  `docs/public/gem-banner.svg`.
+- **New logo and README banner.** The logo is a cut emerald rendered as glass:
+  shaded facets, a reflection in the table and lit edges
+  (`docs/public/logo.svg`). The docs site's favicon is a heavier version that
+  stays legible at 16 px (`docs/public/favicon.svg`).
+  The banner pairs it with the wordmark and tagline over the real 7.41 map,
+  annotated with gem's own river, halves, lotus pools and camps.
+  `scripts/render_readme_banner.py` renders it (text set in Inter and converted
+  to outlines). The README's report screenshots are retaken from the current
+  report, and its feature list now describes facts rather than the deprecated
+  interpretation.
 - **`map_constants.json`** (`gem.catalog.load_map_constants()`): `river_strip`
   is replaced by `regions`, which holds `river_outline`, `half_line`,
   `lotus_pools` and `lotus_radius`.

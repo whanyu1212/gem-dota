@@ -6,7 +6,7 @@ export default defineConfig({
   base: "/gem-dota/",
   cleanUrls: true,
   lastUpdated: true,
-  head: [["link", { rel: "icon", type: "image/svg+xml", href: "/gem-dota/logo.svg" }]],
+  head: [["link", { rel: "icon", type: "image/svg+xml", href: "/gem-dota/favicon.svg" }]],
   themeConfig: {
     logo: "/logo.svg",
     nav: [
