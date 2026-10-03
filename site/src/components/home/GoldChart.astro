@@ -1,0 +1,48 @@
+---
+// Figure 2: Radiant gold advantage by minute, from the committed snapshot.
+import home from "../../data/home.json";
+import { formatGold, lineChart } from "../../lib/chart";
+
+const { radiant_gold_adv: values, radiant_team, dire_team, radiant_win, match_id } = home.match;
+const box = { width: 560, height: 560, left: 52, right: 14, top: 18, bottom: 40 };
+const { x, y, line, area, zero, yTicks, xTicks } = lineChart(values, box);
+const worst = Math.min(...values);
+const worstMinute = values.indexOf(worst);
+const best = Math.max(...values);
+const winner = radiant_win ? `${radiant_team} (Radiant)` : `${dire_team} (Dire)`;
+const plotRight = box.width - box.right;
+const gold = (value: number) => Math.abs(value).toLocaleString("en-US");
+const lead = best > 0 ? `led by at most ${gold(best)} gold and ` : "";
+const summary = `Radiant (${radiant_team}) ${lead}fell ${gold(worst)} behind at minute ${worstMinute}. ${winner} won the game.`;
+---
+
+<figure class="fig">
+  <svg class="chart" viewBox={`0 0 ${box.width} ${box.height}`} role="img" aria-labelledby="chart-caption">
+    <defs>
+      <clipPath id="radiant-ahead"><rect x="0" y="0" width={box.width} height={zero}></rect></clipPath>
+      <clipPath id="dire-ahead"><rect x="0" y={zero} width={box.width} height={box.height - zero}></rect></clipPath>
+    </defs>
+    {yTicks.map((t) => (
+      <g class="tick">
+        <line x1={box.left} x2={plotRight} y1={y(t)} y2={y(t)} class={t === 0 ? "zero" : ""}></line>
+        <text x={box.left - 8} y={y(t)} dy="0.32em" text-anchor="end">{formatGold(t)}</text>
+      </g>
+    ))}
+    {xTicks.map((m) => (
+      <text class="tick" x={x(m)} y={box.height - box.bottom + 20} text-anchor="middle">{m}</text>
+    ))}
+    <text class="axis-title" x={plotRight} y={box.height - 4} text-anchor="end">minute</text>
+    <path class="area area--radiant" d={area} clip-path="url(#radiant-ahead)"></path>
+    <path class="area area--dire" d={area} clip-path="url(#dire-ahead)"></path>
+    <path class="line" d={line}></path>
+    <text class="side side--radiant" x={box.left + 10} y={box.top + 14}>Radiant ahead</text>
+    <text class="side side--dire" x={box.left + 10} y={box.height - box.bottom - 10}>Dire ahead</text>
+    <circle class="marker" cx={x(worstMinute)} cy={y(worst)} r="4.5"></circle>
+    <text class="marker-label" x={x(worstMinute) - 10} y={y(worst) + 4} text-anchor="end">
+      {worst.toLocaleString("en-US").replace("-", "−")} at minute {worstMinute}
+    </text>
+  </svg>
+  <figcaption id="chart-caption">
+    <b>Figure 2.</b> Radiant gold advantage by minute (<code>match.radiant_gold_adv</code>), match {match_id}. {summary}
+  </figcaption>
+</figure>

@@ -31,7 +31,7 @@ const TEXT_ON_SURFACE = [
   ["code-fg", "code-bg"], ["code-muted", "code-bg"],
 ];
 const CODE_COLOURS = [
-  ...new Set(gemCodeTheme.tokenColors.flatMap((t) => ("foreground" in t.settings ? [t.settings.foreground] : []))),
+  ...new Set((gemCodeTheme.tokenColors ?? []).flatMap((t) => (t.settings.foreground ? [t.settings.foreground] : []))),
 ];
 
 describe.each([

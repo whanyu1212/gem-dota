@@ -51,3 +51,19 @@ SmartyPants is off: VitePress doesn't curl quotes or turn `--` into dashes.
   themes.
 - Generated pages (`reference/`, `cookbook/proto-fields/`) use a wider column and
   sans-serif headings.
+
+## Home page
+
+`src/pages/index.astro` is the home page; `docs/index.md` is the VitePress home
+and is not used. Its figures come from a committed snapshot, so the build never
+parses a replay:
+
+```bash
+uv run python scripts/export_site_home_data.py [replay.dem]
+```
+
+writes `src/data/home.json` (the match, its players, `radiant_gold_adv` and
+gem's map overlay) and `src/assets/home-map.jpg`. The default replay is the
+TI2026 fixture 8856501050, the match the committed snapshot comes from. The recipe cards
+quote their recipe pages (`src/data/recipes.ts`), and `tests/home.test.ts`
+fails if a quoted sentence is no longer on its page.

@@ -1,5 +1,5 @@
 ---
-// A folder's index.md, e.g. docs/reference/index.md, and docs/index.md itself.
+// A folder's index.md, e.g. docs/reference/index.md.
 import type { GetStaticPaths } from "astro";
 import DocLayout from "../../layouts/DocLayout.astro";
 import { getDocs, indexFolder, isIndexPage } from "../../lib/docs";
@@ -7,8 +7,9 @@ import { getDocs, indexFolder, isIndexPage } from "../../lib/docs";
 export const getStaticPaths = (async () => {
   const docs = await getDocs();
   return docs
-    .filter(isIndexPage)
-    .map((entry) => ({ params: { dir: indexFolder(entry) || undefined }, props: { entry } }));
+    // docs/index.md is the VitePress home; the Astro home is src/pages/index.astro.
+    .filter((entry) => isIndexPage(entry) && entry.id !== "index")
+    .map((entry) => ({ params: { dir: indexFolder(entry) }, props: { entry } }));
 }) satisfies GetStaticPaths;
 
 const { entry } = Astro.props;

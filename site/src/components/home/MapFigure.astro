@@ -1,0 +1,40 @@
+---
+// Figure 1: gem's map model (halves, river, lotus pools, neutral camps) drawn
+// over the 7.41 map from the committed snapshot (scripts/export_site_home_data.py).
+import { getImage } from "astro:assets";
+import mapSource from "../../assets/home-map.jpg";
+import home from "../../data/home.json";
+
+const mapImage = await getImage({ src: mapSource, width: 1000, format: "webp", quality: 80 });
+const { size, half_line, river, lotus_radius, lotus_pools, camps } = home.map;
+const points = (list: number[][]) => list.map(([x, y]) => `${x},${y}`).join(" ");
+const margin = 50;
+const dire = points([...half_line, [size + margin, -margin], [-margin, -margin]]);
+const radiant = points([...half_line, [size + margin, size + margin], [-margin, size + margin]]);
+const campTypes = [...new Set(camps.map((c) => c.type))];
+const label = (type: string) => type.replace("_", " ");
+---
+
+<figure class="fig">
+  <svg class="map" viewBox={`0 0 ${size} ${size}`} role="img" aria-labelledby="map-caption">
+    <image href={mapImage.src} width={size} height={size} preserveAspectRatio="xMidYMid slice"></image>
+    <polygon class="map-dire" points={dire}></polygon>
+    <polygon class="map-radiant" points={radiant}></polygon>
+    <polygon class="map-river" points={points(river)}></polygon>
+    <polyline class="map-half" points={points(half_line)}></polyline>
+    {lotus_pools.map(([x, y]) => <circle class="map-lotus" cx={x} cy={y} r={lotus_radius}></circle>)}
+    {camps.map(({ type, at: [x, y] }) => (
+      <g class={`camp camp--${type}`}>
+        <circle cx={x} cy={y} r="17" class="camp-halo"></circle>
+        <circle cx={x} cy={y} r="8"></circle>
+      </g>
+    ))}
+  </svg>
+  <figcaption id="map-caption">
+    <b>Figure 1.</b> gem's map model on the 7.41 map: both halves, the river, the two lotus pools
+    and all {camps.length} neutral camps, coloured by type.
+    <ul class="legend" aria-label="Camp types">
+      {campTypes.map((type) => <li class={`legend-item camp--${type}`}><i aria-hidden="true"></i>{label(type)}</li>)}
+    </ul>
+  </figcaption>
+</figure>

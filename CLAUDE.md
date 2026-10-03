@@ -671,7 +671,10 @@ VitePress stays the live site. Keep editing pages in `docs/`. Every URL in
 VitePress Markdown extras (`:::` callouts, code groups, `<<<` imports, heading
 IDs, `.md` links) are handled by the plugins in `site/src/markdown/`. Navigation
 lives in `site/src/nav.ts`; every colour is a token in `site/src/styles/tokens.css`
-(`npm test` checks WCAG AA contrast for both themes).
+(`npm test` checks WCAG AA contrast for both themes). The home page
+(`site/src/pages/index.astro`) reads a committed snapshot written by
+`scripts/export_site_home_data.py`; every number on it comes from that snapshot
+or is quoted from a recipe page.
 
 ## Related docs in repo root
 

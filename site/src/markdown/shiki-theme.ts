@@ -3,7 +3,9 @@
  * covers both; the block background comes from the --code-bg token.
  * Colours follow the Editorial mockups: warm keywords, green functions, blue strings.
  */
-export const gemCodeTheme = {
+import type { ThemeRegistration } from "shiki";
+
+export const gemCodeTheme: ThemeRegistration = {
   name: "gem-editorial",
   type: "dark",
   colors: {

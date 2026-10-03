@@ -35,6 +35,22 @@
   --sun-display: none;
   --moon-display: block;
 
+  /* Figure colours drawn over the map image; the same in both themes. They
+     match scripts/render_camp_zones_overlay.py and the README banner. */
+  --map-radiant: #28c846;
+  --map-dire: #dc3232;
+  --map-river: #3c8cff;
+  --map-river-edge: #9cc8ff;
+  --map-lotus: #ba55ff;
+  --map-line: #ffffff;
+  --camp-small: #56aaff;
+  --camp-medium: #36d399;
+  --camp-large: #ff954f;
+  --camp-ancient: #ffd24d;
+  --camp-flooded-small: #16bac5;
+  --camp-flooded-medium: #2d7dff;
+  --camp-ring: #0d1117;
+
   --font-serif: "Source Serif 4 Variable", "Iowan Old Style", Georgia, serif;
   --font-sans: "Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", Menlo, monospace;
