@@ -1,12 +1,24 @@
-"""Generate VitePress API reference pages from src/gem.
+"""Generate the docs site's API reference pages from src/gem.
 
-The generator keeps each page's narrative markdown (in docs/reference/*.md),
-removes any previously generated API section, and appends a freshly generated
-API section from source AST/docstrings.
+The generator keeps each page's narrative Markdown (everything above
+``## Generated API`` in ``<reference dir>/*.md``), removes the previously
+generated section, and appends a fresh one from the source AST and docstrings.
+It reads no installed package, so plain ``python`` runs it.
+
+The output is site-neutral Markdown: docstring admonitions become ``::: kind``
+callouts, entries are headed by their name in code (``### `name` ``), and each
+links to its source on GitHub. The Astro site's Markdown plugins and reference
+layout (``site/src/markdown/``, ``site/src/styles/prose.css``) rely on those
+shapes.
+
+Usage::
+
+    python scripts/generate_api_reference.py [--reference-dir docs/reference]
 """
 
 from __future__ import annotations
 
+import argparse
 import ast
 import re
 from collections.abc import Iterable
@@ -14,8 +26,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-SRC_REF_ROOT = REPO_ROOT / "docs" / "reference"
-DST_REF_ROOT = REPO_ROOT / "docs" / "reference"
+DEFAULT_REFERENCE_DIR = REPO_ROOT / "docs" / "reference"
 SRC_CODE_ROOT = REPO_ROOT / "src" / "gem"
 GITHUB_SOURCE_PREFIX = "https://github.com/whanyu1212/gem-dota/blob/main/"
 
@@ -678,18 +689,24 @@ def _clean_source_markdown(md_text: str) -> tuple[str, list[str]]:
     return text, directives
 
 
-def _iter_reference_pages() -> Iterable[Path]:
-    yield from sorted(SRC_REF_ROOT.rglob("*.md"))
+def _iter_reference_pages(reference_dir: Path) -> Iterable[Path]:
+    yield from sorted(reference_dir.rglob("*.md"))
 
 
-def generate() -> None:
+def generate(reference_dir: Path = DEFAULT_REFERENCE_DIR) -> int:
+    """Regenerate the API section of every reference page in place.
+
+    Args:
+        reference_dir: Folder of reference pages (``docs/reference`` by default).
+
+    Returns:
+        The number of pages written.
+    """
     written = 0
-    for src_page in _iter_reference_pages():
-        rel = src_page.relative_to(SRC_REF_ROOT)
-        dst_page = DST_REF_ROOT / rel
-        dst_page.parent.mkdir(parents=True, exist_ok=True)
+    for page in _iter_reference_pages(reference_dir):
+        rel = page.relative_to(reference_dir)
 
-        source_md = src_page.read_text(encoding="utf-8")
+        source_md = page.read_text(encoding="utf-8")
         static_md, directives = _clean_source_markdown(source_md)
         rel_key = rel.as_posix()
         if not directives:
@@ -705,11 +722,25 @@ def generate() -> None:
                 out_lines.extend(_render_target(directive))
 
         text = "\n".join(line for line in out_lines).rstrip() + "\n"
-        dst_page.write_text(text, encoding="utf-8")
+        page.write_text(text, encoding="utf-8")
         written += 1
 
-    print(f"Generated {written} reference pages into {DST_REF_ROOT}")
+    return written
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument(
+        "--reference-dir",
+        type=Path,
+        default=DEFAULT_REFERENCE_DIR,
+        help="folder of reference pages to update in place (default: docs/reference)",
+    )
+    args = parser.parse_args(argv)
+    written = generate(args.reference_dir)
+    print(f"Generated {written} reference pages in {args.reference_dir}")
+    return 0
 
 
 if __name__ == "__main__":
-    generate()
+    raise SystemExit(main())

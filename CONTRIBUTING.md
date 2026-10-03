@@ -68,7 +68,8 @@ Thank you for your interest in contributing! This document covers everything you
 
 Documentation is a [VitePress](https://vitepress.dev/) site under `docs/` (Node-based).
 The API reference is generated from source docstrings by
-`scripts/generate_vitepress_api_reference.py` (run automatically before the dev/build steps).
+`scripts/generate_api_reference.py` (run automatically before the dev/build steps).
+The new Astro site in `site/` runs the same generator (`npm run gen`); see `site/README.md`.
 
 ```bash
 cd docs
