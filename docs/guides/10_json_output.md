@@ -66,11 +66,13 @@ the same results.
 
 ## Versioning and compatibility
 
-Every `to_json()` payload carries `schema_version` (currently `3`) and `gem_version`
+Every `to_json()` payload carries `schema_version` (currently `4`) and `gem_version`
 beside the match fields:
 
 - Files from older gem versions, including ones written before `schema_version` existed,
   still load. Fields they do not contain fall back to their defaults.
+- Schema 3 files still load: schema 4 only changed the `analysis` section, which
+  `load_json()` does not decode (gem 0.13 removed its interpretation fields).
 - Schema 2 and earlier named gem's fight list `teamfights`; it loads as `fights`.
 - Schema 1 (gem 0.10 and earlier) stored `lane_pos` on a different grid, which cannot
   be converted; it loads empty.
@@ -87,7 +89,7 @@ The top-level object mirrors `ParsedMatch`, plus the version keys and the option
 
 ```json
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "gem_version": "0.12.0",
   "match_id": 8461735141,
   "game_mode": 2,

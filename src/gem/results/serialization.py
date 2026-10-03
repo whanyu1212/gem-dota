@@ -35,7 +35,11 @@ if TYPE_CHECKING:
 #:
 #: - 2: ``ParsedPlayer.lane_pos`` is OpenDota's nested ``{x: {y: count}}`` cell map
 #:   (it was a flat ``{"x_y": count}`` map on a 64-unit world grid).
-SCHEMA_VERSION = 3
+#: - 3: gem's fight list is ``fights`` (it was ``teamfights``).
+#: - 4: the ``analysis`` section drops the interpretation removed in 0.13:
+#:   ``smoke_fights``, the farming segment ``context``, and the Roshan tags,
+#:   verdicts and territory fields.
+SCHEMA_VERSION = 4
 
 # Top-level keys added by ``to_json`` beside the ``ParsedMatch`` fields.
 _METADATA_KEYS = frozenset({"schema_version", "gem_version", "analysis"})

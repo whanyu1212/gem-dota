@@ -1,16 +1,10 @@
 # Roshan Conversion Calibration
 
-::: warning Deprecated in 0.12, removed in 0.13
-The tags and territory windows this page calibrates are deprecated and removed
-in 0.13 (see [Roshan Conversion](./rosh-conversion.md)). The attribution,
-lifecycle and fight-association findings still describe the facts that stay.
-:::
-
-This page records the reproducible validation work behind the
-`provisional-v1` Roshan conversion ruleset. It separates replay facts from tag
-observations: the corpus asserts attribution, lifecycle, boundaries, fight
-association, and missing-data state, but never declares a Roshan strategically
-“good” or “bad.”
+This page records the reproducible validation behind the Roshan records. The
+corpus asserts attribution, Aegis lifecycle, window boundaries, fight
+association and missing-data state, and never declares a Roshan strategically
+“good” or “bad.” gem 0.12's tags and territory windows, and their observations
+on this page, were removed in 0.13.
 
 ## Reproduce the corpus
 
@@ -65,73 +59,9 @@ facts.
 - Each conversion ends no later than one tick before the next Roshan. Claimed
   fight indexes are unique across consecutive windows.
 
-## Tag observations
-
-The 31 audited conversions produced these default-tag frequencies:
-
-| Tag | Observed count |
-| --- | ---: |
-| `fight_advantage` | 8 |
-| `objective_gain` | 21 |
-| `resource_gain` | 20 |
-| `territorial_expansion` | 0 |
-| `vision_expansion` | 18 |
-| `tormentor_secured` | 6 |
-| `game_closing` | 5 |
-| `counter_conversion` | 7 |
-| no tag | 0 |
-
-These counts were re-audited after the game-clock correction. The first audit
-ended every window at the last recorded tick, which can run many minutes past the
-Ancient falling, so `game_closing` could never fire on a real replay (0 hits) and
-final windows reported missing late evidence. It also mapped minute-level net
-worth/XP samples to ticks without subtracting pauses, which shifted resource
-windows after any pause. Correcting both moved `game_closing` from 0 to 5,
-`counter_conversion` from 3 to 7, `resource_gain` from 22 to 20, and no-tag
-windows from 2 to 0. The thresholds themselves are unchanged.
-
-The halves were re-audited when `region_of` moved from a band along the `x = y`
-diagonal (which was really the mid lane) to the river traced on the 7.41 map.
-Mid-lane wards and positions now count towards a half, and the river and Roshan
-pits towards neither. That moved `vision_expansion` from 15 to 18; every other
-tag count, including the zero for `territorial_expansion`, is unchanged.
-
-These are sensitivity observations, not precision/recall labels. There is no
-defensible subjective ground truth in the fixture, so the audit cannot claim a
-false-positive rate by treating analyst opinion as fact. The defaults are
-therefore unchanged and remain explicitly `provisional-v1`. In particular, the
-zero hits for territorial expansion are recorded for future review rather than
-“fixed” by lowering thresholds against this small sample.
-
-`RoshTagThresholds` makes every boundary inspectable. Unit tests exercise exact
-threshold transitions and counter-conversion's two-dimension minimum. Raw
-values remain the preferred interface regardless of which tags fire.
-
-## Territory sensitivity
-
-`RoshTerritoryConfig` makes cell size, bucket width, maximum sample gap,
-occupancy requirements, player-time completeness, and depth percentile
-reproducible inputs.
-
-The validation suite establishes:
-
-- 70% player-time completeness is inclusive; 69.99% remains unavailable.
-- stationary occupancy is invariant when the bucket width changes from 30 to
-  60 seconds.
-- changing cell size changes the absolute sampled area, as expected, which is
-  why coverage remains a raw geometric measure rather than “true control.”
-- weighted p90 depth ignores a small deep-position outlier that a maximum would
-  promote.
-- gaps longer than ten seconds are not interpolated.
-
-The default remains 600-unit cells, 30-second buckets, a ten-second maximum
-sample gap, 70% completeness, and weighted p90 depth. Lane or objective
-topology was not added because this corpus does not demonstrate that the added
-interpretation would be more reliable than the current transparent geometry.
-
 ## Review policy
 
-A future threshold change should update the ruleset name, the boundary tests,
-this page, and the corpus observations in the same pull request. A larger
-human-reviewed study may add strategic labels separately, but must not replace
-the factual replay expectations used for regression testing.
+A change to the attribution, lifecycle or window rules should update the
+boundary tests, this page and the corpus expectations in the same pull request.
+A human-reviewed study may add strategic labels outside gem, but must not
+replace the factual replay expectations used for regression testing.

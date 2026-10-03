@@ -12,7 +12,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Literal, cast
 
-from gem._deprecation import deprecated_field, warn_deprecated
 from gem.catalog.map import load_camp_zones
 
 if TYPE_CHECKING:
@@ -40,23 +39,6 @@ class FarmingBoundaryReason(str, Enum):
     LOG_END = "log_end"
 
 
-class FarmingContextTag(str, Enum):
-    """Independent evidence-aware context tags for one farming segment.
-
-    Deprecated; removed in gem 0.13 with the segment context (HY-96).
-    """
-
-    OWN_SIDE = "own_side"
-    ENEMY_SIDE = "enemy_side"
-    BORDER = "border"
-    HIGH_ENEMY_PRESENCE = "high_enemy_presence"
-    VISION_DISADVANTAGE = "vision_disadvantage"
-    TOWER_DISADVANTAGE = "tower_disadvantage"
-    ENEMY_AEGIS_ACTIVE = "enemy_aegis_active"
-    TERRITORIAL_ADVANCE = "territorial_advance"
-    INCOMPLETE_CONTEXT = "incomplete_context"
-
-
 @dataclass(frozen=True, slots=True)
 class FarmingRouteConfig:
     """Inspectable thresholds for farming-route reconstruction."""
@@ -81,100 +63,6 @@ class FarmingRouteConfig:
 
 
 DEFAULT_FARMING_ROUTE_CONFIG = FarmingRouteConfig()
-
-
-@dataclass(frozen=True, slots=True)
-class FarmingContextConfig:
-    """Inspectable thresholds for comparative farming context.
-
-    Deprecated; removed in gem 0.13 with the segment context (HY-96).
-    """
-
-    lookback_ticks: int = 90 * _TICKS_PER_SECOND
-    territory_lookback_ticks: int = 120 * _TICKS_PER_SECOND
-    max_position_gap_ticks: int = 10 * _TICKS_PER_SECOND
-    max_resource_age_ticks: int = 2 * _TICKS_PER_SECOND
-    max_vision_position_age_ticks: int = 5 * _TICKS_PER_SECOND
-    presence_radius: float = 1600.0
-    min_presence_coverage: float = 0.70
-    high_enemy_presence_seconds: float = 30.0
-    presence_advantage_seconds: float = 15.0
-    territorial_depth_delta: float = 0.10
-    territorial_coverage_delta_pct: float = 0.50
-
-    def __post_init__(self) -> None:
-        if self.lookback_ticks <= 0:
-            raise ValueError("lookback_ticks must be positive")
-        if self.territory_lookback_ticks <= 0:
-            raise ValueError("territory_lookback_ticks must be positive")
-        if self.max_position_gap_ticks <= 0:
-            raise ValueError("max_position_gap_ticks must be positive")
-        if self.max_resource_age_ticks < 0:
-            raise ValueError("max_resource_age_ticks must be nonnegative")
-        if self.max_vision_position_age_ticks < 0:
-            raise ValueError("max_vision_position_age_ticks must be nonnegative")
-        if self.presence_radius <= 0:
-            raise ValueError("presence_radius must be positive")
-        if not 0.0 <= self.min_presence_coverage <= 1.0:
-            raise ValueError("min_presence_coverage must be between 0 and 1")
-        if self.high_enemy_presence_seconds < 0:
-            raise ValueError("high_enemy_presence_seconds must be nonnegative")
-        if self.presence_advantage_seconds < 0:
-            raise ValueError("presence_advantage_seconds must be nonnegative")
-        if self.territorial_depth_delta < 0:
-            raise ValueError("territorial_depth_delta must be nonnegative")
-        if self.territorial_coverage_delta_pct < 0:
-            raise ValueError("territorial_coverage_delta_pct must be nonnegative")
-
-
-DEFAULT_FARMING_CONTEXT_CONFIG = FarmingContextConfig()
-
-
-@dataclass(slots=True)
-class FarmingSegmentContext:
-    """Comparative, provenance-preserving context for one farming segment.
-
-    Deprecated; removed in gem 0.13 (HY-96). gem presents facts: the joins and
-    tags here are interpretation. The segment's camp facts stay on
-    :class:`FarmingRouteSegment`.
-    """
-
-    midpoint_tick: int
-    lookback_start_tick: int
-    camp_side: Literal["own_side", "enemy_side", "border", "unknown"]
-    camp_lane: Literal["top", "mid", "bot", "none", "unknown"]
-    camp_area: str
-    own_presence_hero_seconds: float | None = None
-    enemy_presence_hero_seconds: float | None = None
-    own_presence_position_coverage: float | None = None
-    enemy_presence_position_coverage: float | None = None
-    own_point_vision_status: str | None = None
-    enemy_point_vision_status: str | None = None
-    own_point_vision_source_count: int | None = None
-    enemy_point_vision_source_count: int | None = None
-    own_observer_vision_source_count: int | None = None
-    enemy_observer_vision_source_count: int | None = None
-    own_point_vision_gaps: list[str] = field(default_factory=list)
-    enemy_point_vision_gaps: list[str] = field(default_factory=list)
-    own_relevant_towers_alive: int | None = None
-    enemy_relevant_towers_alive: int | None = None
-    net_worth_advantage: int | None = None
-    total_earned_xp_advantage: int | None = None
-    aegis_holder_team: int | None = None
-    aegis_active: bool | None = None
-    aegis_source: str | None = None
-    last_roshan_tick: int | None = None
-    last_roshan_team: int | None = None
-    roshan_team_source: str | None = None
-    last_tormentor_tick: int | None = None
-    last_tormentor_team: int | None = None
-    tormentor_team_source: str | None = None
-    territory_coverage_differential_pct: float | None = None
-    territory_depth_differential: float | None = None
-    tags: list[FarmingContextTag] = field(default_factory=list)
-    tag_reasons: dict[str, list[str]] = field(default_factory=dict)
-    status: Literal["complete", "partial", "unavailable"] = "unavailable"
-    status_reasons: list[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True, slots=True)
@@ -210,8 +98,7 @@ class FarmingRoutePoint:
     boundary_before: FarmingBoundaryReason | None = None
 
 
-# Not slotted: the deprecated ``context`` field needs an instance ``__dict__``.
-@dataclass
+@dataclass(slots=True)
 class FarmingRouteSegment:
     """One camp-local sampled route segment with factual support evidence."""
 
@@ -245,18 +132,6 @@ class FarmingRouteSegment:
     camp_owner_team: int | None = None
     camp_lane: str = "unknown"
     camp_area: str = "unknown"
-    context: FarmingSegmentContext | None = field(
-        default=cast(
-            Any,
-            deprecated_field(
-                "context",
-                "gem.FarmingRouteSegment.context",
-                alternative="the segment's camp facts and gem's position, ward, tower and economy data",
-            ),
-        ),
-        repr=False,
-        compare=False,
-    )
     camp_catalog_version: int | None = None
     camp_map_patch: str | None = None
     camp_topology_patch: str | None = None
@@ -729,21 +604,13 @@ def build_farming_routes(
     match: ParsedMatch,
     *,
     config: FarmingRouteConfig = DEFAULT_FARMING_ROUTE_CONFIG,
-    context_config: FarmingContextConfig | None = None,
 ) -> list[FarmingRoute]:
     """Build deterministic camp-local route evidence for every parsed player.
 
     The builder keeps sampled movement and resource provenance explicit. Route
     tags describe evidence strength only; they do not infer farming intent or
     a complete camp clear.
-
-    Each segment's ``context`` (:class:`FarmingSegmentContext`) is deprecated and
-    removed in gem 0.13 (HY-96), as is ``context_config``, which warns when
-    passed. The segments themselves (camp, ticks, neutral kills and damage, XP
-    and gold deltas, evidence strength) stay.
     """
-    if context_config is not None:
-        warn_deprecated("gem.build_farming_routes(context_config=...)")
     try:
         payload = load_camp_zones()
         zones = _parse_zones(payload)
@@ -815,27 +682,17 @@ def build_farming_routes(
                 camp_topology_patch=topology_patch,
             )
         )
-    if zones:
-        from gem.analysis.farming_context import attach_farming_contexts
-
-        attach_farming_contexts(
-            match, routes, zones, context_config or DEFAULT_FARMING_CONTEXT_CONFIG
-        )
     return routes
 
 
 __all__ = [
-    "DEFAULT_FARMING_CONTEXT_CONFIG",
     "DEFAULT_FARMING_ROUTE_CONFIG",
     "FarmingBoundaryReason",
     "FarmingCampZone",
-    "FarmingContextConfig",
-    "FarmingContextTag",
     "FarmingEvidenceStrength",
     "FarmingRoute",
     "FarmingRouteConfig",
     "FarmingRoutePoint",
     "FarmingRouteSegment",
-    "FarmingSegmentContext",
     "build_farming_routes",
 ]

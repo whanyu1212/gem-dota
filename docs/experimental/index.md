@@ -23,13 +23,12 @@ An experimental feature usually has at least one of these properties:
 | Feature | What it tries to answer |
 |---|---|
 | [Map Regions and Camps](./map-annotations.md) | Where gem's map regions and neutral camps are, and how their positions, types and owners were checked against the replays |
-| [Farming Patterns](./farming-patterns.md) | Which camp-local routes were observed, what supports farming rather than transit, and what comparative context was available |
-| [Farming Context Calibration](./farming-patterns-calibration.md) | Which real-replay facts and targeted boundaries support the provisional farming-context rules (the context is deprecated, removed in 0.13) |
-| [Roshan Conversion](./rosh-conversion.md) | Whether a team actually translated Roshan into fights, structures, territorial squeeze, or a game-closing sequence |
-| [Roshan Conversion Calibration](./rosh-conversion-calibration.md) | Which real-replay facts, threshold observations, and territory sensitivity checks support the provisional Roshan ruleset |
+| [Farming Patterns](./farming-patterns.md) | Which camp-local routes were observed, and what supports farming rather than transit |
+| [Farming Route Calibration](./farming-patterns-calibration.md) | Which real-replay facts and targeted boundaries the farming-route corpus guards |
+| [Roshan Conversion](./rosh-conversion.md) | What happened after each Roshan kill: the Aegis lifecycle, and the fights, structures, economy, wards and Tormentors in the window |
+| [Roshan Conversion Calibration](./rosh-conversion-calibration.md) | Which real-replay attribution, lifecycle and fight-association facts the Roshan corpus guards |
 | [Smoke Analysis](./smoke-analysis.md) | When each smoked hero gained and lost the modifier, what the enemy could see, and what happened next |
 | [Fight Positioning](./fight-positioning.md) | How both teams were arranged at four bounded fight moments, with position freshness and opposing-team visibility kept explicit |
-| [Smoke/Fight Insights](./smoke-fight-insights.md) | Deprecated, removed in 0.13: use `SmokeAnalysis.first_fight` |
 | [Point-Vision Evidence](./estimate-vision.md) | Bounded hero/observer geometry with explicit support, incompleteness, provenance, and separate target evidence |
 | [Vision Modifiers](./vision-modifiers.md) | Which reveal-style modifier windows gem tracks, how they are derived from combat-log events, and how they feed later vision analysis |
 
@@ -39,13 +38,12 @@ An experimental feature usually has at least one of these properties:
 2. [Parser Internals](../deep-dives/index.md)
 3. [Reports](../reports/index.md)
 4. [Farming Patterns](./farming-patterns.md)
-5. [Farming Context Calibration](./farming-patterns-calibration.md)
+5. [Farming Route Calibration](./farming-patterns-calibration.md)
 6. [Roshan Conversion](./rosh-conversion.md)
 7. [Roshan Conversion Calibration](./rosh-conversion-calibration.md)
 8. [Smoke Analysis](./smoke-analysis.md)
 9. [Fight Positioning](./fight-positioning.md)
-10. [Smoke/Fight Insights](./smoke-fight-insights.md)
-11. [Point-Vision Evidence](./estimate-vision.md)
-12. [Vision Modifiers](./vision-modifiers.md)
+10. [Point-Vision Evidence](./estimate-vision.md)
+11. [Vision Modifiers](./vision-modifiers.md)
 
 The first three tell you where the underlying replay data comes from. The Experimental Features pages explain how gem turns that raw data into analyst-facing interpretations.

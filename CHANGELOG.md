@@ -15,6 +15,66 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to 20 minutes and where, and how often a smoke led to a kill. The code lives
   in `examples/cookbook/`, runs on one replay or many, and is tested.
 
+### Changed
+
+- **JSON `schema_version` is 4.** The `analysis` section no longer has
+  `smoke_fights`, the farming segment `context`, or the Roshan tags, verdicts and
+  territory fields. `load_json()` does not decode that section, so schema 3 files
+  still load unchanged.
+- **Roshan `analysis_status`** no longer turns `partial` because a territory
+  window lacked position coverage (`before_territory_unavailable`,
+  `during_territory_unavailable`), since territory is gone. On the 9 local
+  fixtures no record's status changed.
+- **`FarmingRouteSegment` uses `__slots__` again** (it gave them up in 0.12 for
+  the deprecated `context` field).
+
+### Removed
+
+Everything deprecated in 0.12 (HY-96, HY-103). gem presents facts; for examples
+of answering questions from them, see the Recipes docs.
+
+- **Map context:** the `gem.analysis.map_context` module,
+  `build_map_context_timeline`, `score_camp_visit_context`, `MapContextBucket`,
+  `CampVisitContext` and `gem.analysis.world_in_bounds`.
+- **`estimate_vision`.** Use `gem.assess_point_vision(...).sources`.
+- **Farming segment context:** the `gem.analysis.farming_context` module,
+  `FarmingRouteSegment.context`, `FarmingSegmentContext`, `FarmingContextTag`,
+  `FarmingContextConfig`, `DEFAULT_FARMING_CONTEXT_CONFIG` and
+  `build_farming_routes(context_config=...)`. In the DataFrames, the
+  `farming_context_tags` table and the `context_*`, presence, point-vision,
+  tower, advantage, Aegis, Roshan, Tormentor and territory columns of
+  `farming_route_segments`.
+- **Smoke-fight insights:** the `gem.analysis.smoke_fight` module,
+  `build_smoke_fight_insights` and its 15 types, `MatchAnalysis.smoke_fights`,
+  and the `smoke_fight_insights`, `smoke_fight_members` and
+  `smoke_fight_followups` tables. Use `SmokeAnalysis.first_fight`.
+- **Roshan tags, verdicts and territory:**
+  - the `gem.analysis._territory` module;
+  - on `RoshConversion`: `conversion_tags`, `conversion_score`,
+    `conversion_label`, `aegis_outcome`, `drivers` and
+    `enemy_half_farm_share_before` / `_during` / `_delta`;
+  - on `RoshDifferentialProfile`: `tags`, `tag_ruleset`, `before_territory`,
+    `during_territory` and the six coverage and depth swings;
+  - `RoshTagThresholds`, `DEFAULT_ROSH_TAG_THRESHOLDS`, `RoshTerritoryConfig`,
+    `RoshTerritoryWindow`, `RoshCoverageCell`, the `ROSH_TAG_*` constants, and
+    `build_rosh_conversions(tag_thresholds=..., territory_config=...)`;
+  - the `roshan_conversions` columns `aegis_outcome`, the four `*_coverage_pct`
+    columns, `coverage_swing_pct`, `depth_swing`, `conversion_tags`,
+    `tag_ruleset` and `legacy_conversion_score` / `_label`.
+- **Calibration tooling for the removed heuristics.**
+  - `scripts/calibrate_farming_context.py` is now `scripts/audit_farming_routes.py`,
+    and its corpus is `tests/fixtures/opendota/farming_routes_corpus.json`. Both
+    keep only the route facts.
+  - The Roshan corpus drops its tag observations.
+  - The Smoke/Fight Insights docs page is gone, and the calibration pages keep
+    only the fact findings.
+
+### Deprecated
+
+- **`VisionSource`**, the return type of the removed `estimate_vision`, warns
+  when imported from `gem` or `gem.analysis` and is removed in 0.14. Use
+  `PointVisionSource`, from `gem.assess_point_vision(...).sources`.
+
 ## [0.12.0] - 2026-10-03
 
 gem now presents replay facts and leaves interpretation to you. The tags, scores

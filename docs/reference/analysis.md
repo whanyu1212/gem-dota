@@ -3,7 +3,7 @@
 Post-parse utilities in `gem.analysis` that transform raw `ParsedMatch` / `ParsedPlayer`
 data into higher-level structures for agentic and analytical use.
 
-> **Note:** `assess_point_vision`, `estimate_vision`, and
+> **Note:** `assess_point_vision` and
 > `match.vision_modifiers` are **experimental**. Point calculations use
 > straight-line geometry only — high-ground penalties, terrain line-of-sight
 > (trees/cliffs), and per-hero vision range modifiers are not modelled. Treat
@@ -19,8 +19,8 @@ Canonical implementation modules are split by responsibility:
 - `gem.analysis.combat` — ability-hit grouping and fight helpers
 - `gem.analysis.abilities` — ability-level lookup helpers
 - `gem.analysis.vision` — geometry-based vision approximation helpers
-- `gem.analysis.map_context` — objective-aware farming context helpers
-- `gem.analysis.roshan` — Roshan conversion summaries
+- `gem.analysis.farming` — camp-by-camp farming routes
+- `gem.analysis.roshan` — Roshan kills, Aegis lifecycles and the window that followed
 - `gem.analysis.smoke` — evidence-first Smoke of Deceit lifecycle analysis
 - `gem.analysis.fight_positioning` — bounded fight-moment spatial evidence
 
@@ -37,17 +37,16 @@ casts   = gem.group_ability_hits(match.combat_log)
 fight   = gem.fight_at_tick(match, tick)
 near    = gem.heroes_near(match, tick, x, y, radius=2000)
 lvl     = gem.ability_level_at_tick(player, "axe_berserkers_call", tick)
-sources = gem.estimate_vision(match, team=2, tick=tick, x=x, y=y)
 vision  = gem.assess_point_vision(match, team=2, tick=tick, x=x, y=y)
 smokes  = gem.build_smoke_analysis(match)
 fights  = gem.build_fight_positioning(match)
 rosh    = gem.build_rosh_conversions(match)
 ```
 
-Roshan conversions expose `roshan_team_source`, `conversion_team_source`,
-`aegis_fate_source`, engagement-aware `fight_evidence`, the signed
-`differential_profile`, and non-exclusive `conversion_tags`. Threshold and
-territory settings are immutable public configuration records. See
+Roshan records expose `roshan_team_source`, `conversion_team_source`,
+`aegis_fate_source`, engagement-aware `fight_evidence` and the signed
+`differential_profile`. gem 0.13 removed the tags, verdicts and territory
+fields. See
 [Roshan Conversion](../experimental/rosh-conversion.md) and its
 [calibration record](../experimental/rosh-conversion-calibration.md).
 
@@ -301,27 +300,14 @@ elif assessment.status is gem.PointVisionStatus.INCOMPLETE:
 
 ---
 
-## `estimate_vision` compatibility helper *(experimental)*
+## Point-source limits *(experimental)*
 
-```python
-gem.estimate_vision(
-    match: ParsedMatch,
-    team: int,
-    tick: int,
-    x: float,
-    y: float,
-) -> list[VisionSource]
-```
+`assess_point_vision(...).sources` is the distance-sorted modelled geometry
+(gem 0.13 removed the old `estimate_vision` list view). Direct-target modifiers
+are not arbitrary-point sources; query them for a specific canonical target
+through `assess_point_vision(..., target_player_id=...)`.
 
-Return only the distance-sorted modelled geometry sources. It uses the same
-freshness and ward-lifetime rules as `assess_point_vision(...)`, but its list
-shape cannot preserve evidence gaps. An empty list is therefore ambiguous.
-
-Direct-target modifiers are no longer arbitrary-point sources. Query them for a
-specific canonical target through `assess_point_vision(...,
-target_player_id=...)`.
-
-Both point APIs remain geometry approximations:
+The point geometry is an approximation:
 
 - No high-ground vision penalties
 - No summon/creep vision (only heroes and observer wards)
@@ -722,7 +708,7 @@ def is_daytime(game_start_tick: int | None, tick: int) -> bool
 
 Return True if it is daytime at the given absolute tick.
 
-Source: [src/gem/analysis/vision.py:210](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L210)
+Source: [src/gem/analysis/vision.py:213](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L213)
 
 ### `hero_visibility_at`
 
@@ -732,7 +718,7 @@ def hero_visibility_at(match: ParsedMatch, *, player_id: int, observing_team: in
 
 Return authoritative hero-entity visibility at or before ``tick``.
 
-Source: [src/gem/analysis/vision.py:237](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L237)
+Source: [src/gem/analysis/vision.py:240](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L240)
 
 ### `entity_visibility_at`
 
@@ -742,7 +728,7 @@ def entity_visibility_at(match: ParsedMatch, *, entity_index: int, entity_serial
 
 Return authoritative NPC-entity visibility at or before ``tick``.
 
-Source: [src/gem/analysis/vision.py:279](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L279)
+Source: [src/gem/analysis/vision.py:282](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L282)
 
 ### `assess_point_vision`
 
@@ -752,17 +738,7 @@ def assess_point_vision(match: ParsedMatch, team: int, tick: int, x: float, y: f
 
 Assess bounded modeled evidence for team vision of one map point.
 
-Source: [src/gem/analysis/vision.py:325](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L325)
-
-### `estimate_vision`
-
-```python
-def estimate_vision(match: ParsedMatch, team: int, tick: int, x: float, y: float, *, max_position_age_ticks: int = 150) -> list[VisionSource]
-```
-
-Return bounded modeled hero and observer sources covering a map point.
-
-Source: [src/gem/analysis/vision.py:609](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L609)
+Source: [src/gem/analysis/vision.py:328](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L328)
 
 ### `ward_vision_impact`
 
@@ -772,7 +748,7 @@ def ward_vision_impact(ward: object, match: ParsedMatch) -> int
 
 Count distinct enemy heroes spotted by an observer ward during its lifetime.
 
-Source: [src/gem/analysis/vision.py:673](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L673)
+Source: [src/gem/analysis/vision.py:608](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L608)
 
 ### Top-level classes
 
@@ -784,7 +760,7 @@ class VisionSource
 
 One modeled geometry source covering a map point at a given tick.
 
-Source: [src/gem/analysis/vision.py:47](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L47)
+Source: [src/gem/analysis/vision.py:46](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L46)
 
 #### Dataclass fields
 
@@ -809,7 +785,7 @@ class PointVisionStatus(str, Enum)
 
 Modeled support state for an arbitrary map point.
 
-Source: [src/gem/analysis/vision.py:80](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L80)
+Source: [src/gem/analysis/vision.py:83](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L83)
 
 ### `PointVisionSource`
 
@@ -819,7 +795,7 @@ class PointVisionSource
 
 One bounded geometry source supporting point coverage.
 
-Source: [src/gem/analysis/vision.py:91](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L91)
+Source: [src/gem/analysis/vision.py:94](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L94)
 
 #### Dataclass fields
 
@@ -844,7 +820,7 @@ Signature: `def PointVisionSource.identity(self) -> str`
 
 Return the source name as its stable identity.
 
-Source: [src/gem/analysis/vision.py:119](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L119)
+Source: [src/gem/analysis/vision.py:122](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L122)
 
 ##### `radius`
 
@@ -852,7 +828,7 @@ Signature: `def PointVisionSource.radius(self) -> int`
 
 Return the modeled circular vision radius.
 
-Source: [src/gem/analysis/vision.py:124](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L124)
+Source: [src/gem/analysis/vision.py:127](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L127)
 
 ### `PointVisionGap`
 
@@ -862,7 +838,7 @@ class PointVisionGap
 
 One material omission or ambiguity in a point-vision assessment.
 
-Source: [src/gem/analysis/vision.py:130](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L130)
+Source: [src/gem/analysis/vision.py:133](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L133)
 
 #### Dataclass fields
 
@@ -879,7 +855,7 @@ class DirectTargetRevealEvidence
 
 Bounded direct-reveal evidence for the requested canonical hero.
 
-Source: [src/gem/analysis/vision.py:143](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L143)
+Source: [src/gem/analysis/vision.py:146](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L146)
 
 #### Dataclass fields
 
@@ -901,7 +877,7 @@ Signature: `def DirectTargetRevealEvidence.tick(self) -> int`
 
 Return the interval start using modifier-event terminology.
 
-Source: [src/gem/analysis/vision.py:168](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L168)
+Source: [src/gem/analysis/vision.py:171](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L171)
 
 ### `PointVisionAssessment`
 
@@ -911,7 +887,7 @@ class PointVisionAssessment
 
 Evidence-aware modeled coverage assessment for one arbitrary point.
 
-Source: [src/gem/analysis/vision.py:174](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L174)
+Source: [src/gem/analysis/vision.py:177](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L177)
 
 #### Dataclass fields
 
@@ -959,12 +935,12 @@ Source: [src/gem/analysis/farming.py](https://github.com/whanyu1212/gem-dota/blo
 ### `build_farming_routes`
 
 ```python
-def build_farming_routes(match: ParsedMatch, *, config: FarmingRouteConfig = DEFAULT_FARMING_ROUTE_CONFIG, context_config: FarmingContextConfig | None = None) -> list[FarmingRoute]
+def build_farming_routes(match: ParsedMatch, *, config: FarmingRouteConfig = DEFAULT_FARMING_ROUTE_CONFIG) -> list[FarmingRoute]
 ```
 
 Build deterministic camp-local route evidence for every parsed player.
 
-Source: [src/gem/analysis/farming.py:728](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L728)
+Source: [src/gem/analysis/farming.py:603](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L603)
 
 ### Top-level classes
 
@@ -976,7 +952,7 @@ class FarmingEvidenceStrength(str, Enum)
 
 Conservative support level for a camp-local route segment.
 
-Source: [src/gem/analysis/farming.py:24](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L24)
+Source: [src/gem/analysis/farming.py:23](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L23)
 
 ### `FarmingBoundaryReason`
 
@@ -986,17 +962,7 @@ class FarmingBoundaryReason(str, Enum)
 
 Observed reason a route segment started or ended.
 
-Source: [src/gem/analysis/farming.py:32](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L32)
-
-### `FarmingContextTag`
-
-```python
-class FarmingContextTag(str, Enum)
-```
-
-Independent evidence-aware context tags for one farming segment.
-
-Source: [src/gem/analysis/farming.py:43](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L43)
+Source: [src/gem/analysis/farming.py:31](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L31)
 
 ### `FarmingRouteConfig`
 
@@ -1006,7 +972,7 @@ class FarmingRouteConfig
 
 Inspectable thresholds for farming-route reconstruction.
 
-Source: [src/gem/analysis/farming.py:61](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L61)
+Source: [src/gem/analysis/farming.py:43](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L43)
 
 #### Dataclass fields
 
@@ -1018,83 +984,6 @@ Source: [src/gem/analysis/farming.py:61](https://github.com/whanyu1212/gem-dota/
 | `min_weak_dwell_ticks` | `int` | `5 * _TICKS_PER_SECOND` |
 | `resource_max_age_ticks` | `int` | `2 * _TICKS_PER_SECOND` |
 
-### `FarmingContextConfig`
-
-```python
-class FarmingContextConfig
-```
-
-Inspectable thresholds for comparative farming context.
-
-Source: [src/gem/analysis/farming.py:87](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L87)
-
-#### Dataclass fields
-
-| Name | Type | Default |
-|---|---|---|
-| `lookback_ticks` | `int` | `90 * _TICKS_PER_SECOND` |
-| `territory_lookback_ticks` | `int` | `120 * _TICKS_PER_SECOND` |
-| `max_position_gap_ticks` | `int` | `10 * _TICKS_PER_SECOND` |
-| `max_resource_age_ticks` | `int` | `2 * _TICKS_PER_SECOND` |
-| `max_vision_position_age_ticks` | `int` | `5 * _TICKS_PER_SECOND` |
-| `presence_radius` | `float` | `1600.0` |
-| `min_presence_coverage` | `float` | `0.7` |
-| `high_enemy_presence_seconds` | `float` | `30.0` |
-| `presence_advantage_seconds` | `float` | `15.0` |
-| `territorial_depth_delta` | `float` | `0.1` |
-| `territorial_coverage_delta_pct` | `float` | `0.5` |
-
-### `FarmingSegmentContext`
-
-```python
-class FarmingSegmentContext
-```
-
-Comparative, provenance-preserving context for one farming segment.
-
-Source: [src/gem/analysis/farming.py:134](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L134)
-
-#### Dataclass fields
-
-| Name | Type | Default |
-|---|---|---|
-| `midpoint_tick` | `int` | `-` |
-| `lookback_start_tick` | `int` | `-` |
-| `camp_side` | `Literal['own_side', 'enemy_side', 'border', 'unknown']` | `-` |
-| `camp_lane` | `Literal['top', 'mid', 'bot', 'none', 'unknown']` | `-` |
-| `camp_area` | `str` | `-` |
-| `own_presence_hero_seconds` | `float \| None` | `None` |
-| `enemy_presence_hero_seconds` | `float \| None` | `None` |
-| `own_presence_position_coverage` | `float \| None` | `None` |
-| `enemy_presence_position_coverage` | `float \| None` | `None` |
-| `own_point_vision_status` | `str \| None` | `None` |
-| `enemy_point_vision_status` | `str \| None` | `None` |
-| `own_point_vision_source_count` | `int \| None` | `None` |
-| `enemy_point_vision_source_count` | `int \| None` | `None` |
-| `own_observer_vision_source_count` | `int \| None` | `None` |
-| `enemy_observer_vision_source_count` | `int \| None` | `None` |
-| `own_point_vision_gaps` | `list[str]` | `field(...)` |
-| `enemy_point_vision_gaps` | `list[str]` | `field(...)` |
-| `own_relevant_towers_alive` | `int \| None` | `None` |
-| `enemy_relevant_towers_alive` | `int \| None` | `None` |
-| `net_worth_advantage` | `int \| None` | `None` |
-| `total_earned_xp_advantage` | `int \| None` | `None` |
-| `aegis_holder_team` | `int \| None` | `None` |
-| `aegis_active` | `bool \| None` | `None` |
-| `aegis_source` | `str \| None` | `None` |
-| `last_roshan_tick` | `int \| None` | `None` |
-| `last_roshan_team` | `int \| None` | `None` |
-| `roshan_team_source` | `str \| None` | `None` |
-| `last_tormentor_tick` | `int \| None` | `None` |
-| `last_tormentor_team` | `int \| None` | `None` |
-| `tormentor_team_source` | `str \| None` | `None` |
-| `territory_coverage_differential_pct` | `float \| None` | `None` |
-| `territory_depth_differential` | `float \| None` | `None` |
-| `tags` | `list[FarmingContextTag]` | `field(...)` |
-| `tag_reasons` | `dict[str, list[str]]` | `field(...)` |
-| `status` | `Literal['complete', 'partial', 'unavailable']` | `'unavailable'` |
-| `status_reasons` | `list[str]` | `field(...)` |
-
 ### `FarmingCampZone`
 
 ```python
@@ -1103,7 +992,7 @@ class FarmingCampZone
 
 One calibrated neutral-camp zone from the bundled catalog.
 
-Source: [src/gem/analysis/farming.py:181](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L181)
+Source: [src/gem/analysis/farming.py:69](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L69)
 
 #### Dataclass fields
 
@@ -1132,7 +1021,7 @@ class FarmingRoutePoint
 
 One sampled route point and its selected camp membership.
 
-Source: [src/gem/analysis/farming.py:201](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L201)
+Source: [src/gem/analysis/farming.py:89](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L89)
 
 #### Dataclass fields
 
@@ -1154,7 +1043,7 @@ class FarmingRouteSegment
 
 One camp-local sampled route segment with factual support evidence.
 
-Source: [src/gem/analysis/farming.py:215](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L215)
+Source: [src/gem/analysis/farming.py:102](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L102)
 
 #### Dataclass fields
 
@@ -1190,7 +1079,6 @@ Source: [src/gem/analysis/farming.py:215](https://github.com/whanyu1212/gem-dota
 | `camp_owner_team` | `int \| None` | `None` |
 | `camp_lane` | `str` | `'unknown'` |
 | `camp_area` | `str` | `'unknown'` |
-| `context` | `FarmingSegmentContext \| None` | `field(...)` |
 | `camp_catalog_version` | `int \| None` | `None` |
 | `camp_map_patch` | `str \| None` | `None` |
 | `camp_topology_patch` | `str \| None` | `None` |
@@ -1203,7 +1091,7 @@ class FarmingRoute
 
 Evidence-first farming route for one parsed player.
 
-Source: [src/gem/analysis/farming.py:266](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L266)
+Source: [src/gem/analysis/farming.py:141](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L141)
 
 #### Dataclass fields
 
@@ -1220,99 +1108,9 @@ Source: [src/gem/analysis/farming.py:266](https://github.com/whanyu1212/gem-dota
 | `segments` | `list[FarmingRouteSegment]` | `field(...)` |
 | `camp_topology_patch` | `str \| None` | `None` |
 
-## Module `gem.analysis.map_context`
-
-Objective-aware map-context helpers for farming-pattern analysis.
-
-Source: [src/gem/analysis/map_context.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L1)
-
-### Top-level functions
-
-### `build_map_context_timeline`
-
-```python
-def build_map_context_timeline(match: ParsedMatch, team: int, bucket_ticks: int = _DEFAULT_BUCKET_TICKS, presence_window_ticks: int = _DEFAULT_PRESENCE_WINDOW_TICKS) -> list[MapContextBucket]
-```
-
-Build objective-aware context buckets for one team's perspective.
-
-Source: [src/gem/analysis/map_context.py:158](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L158)
-
-### `score_camp_visit_context`
-
-```python
-def score_camp_visit_context(*, team: int, camp_id: int, camp_type: str, neutral_kills: int, neutral_damage: int, xp_gain: int, bucket: MapContextBucket) -> CampVisitContext
-```
-
-Score one camp visit against a context bucket.
-
-Source: [src/gem/analysis/map_context.py:297](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L297)
-
-### `world_in_bounds`
-
-```python
-def world_in_bounds(x: float, y: float) -> bool
-```
-
-Return True when world coordinates are within calibrated map bounds.
-
-Source: [src/gem/analysis/map_context.py:452](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L452)
-
-### Top-level classes
-
-### `MapContextBucket`
-
-```python
-class MapContextBucket
-```
-
-Objective- and vision-aware map-state summary for one time bucket.
-
-Source: [src/gem/analysis/map_context.py:47](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L47)
-
-#### Dataclass fields
-
-| Name | Type | Default |
-|---|---|---|
-| `start_tick` | `int` | `-` |
-| `end_tick` | `int` | `-` |
-| `tower_alive_radiant` | `int` | `-` |
-| `tower_alive_dire` | `int` | `-` |
-| `t1_mid_alive_radiant` | `bool` | `-` |
-| `t1_mid_alive_dire` | `bool` | `-` |
-| `roshan_last_kill_tick` | `int \| None` | `-` |
-| `aegis_holder_team` | `int \| None` | `-` |
-| `aegis_active` | `bool` | `-` |
-| `tormentor_last_kill_tick` | `int \| None` | `-` |
-| `ward_count_radiant` | `int` | `-` |
-| `ward_count_dire` | `int` | `-` |
-| `net_worth_advantage` | `int` | `-` |
-| `xp_advantage` | `int` | `-` |
-| `enemy_presence_by_region` | `dict[str, float]` | `field(...)` |
-
-### `CampVisitContext`
-
-```python
-class CampVisitContext
-```
-
-Context scores and explainability labels for one camp visit.
-
-Source: [src/gem/analysis/map_context.py:71](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/map_context.py#L71)
-
-#### Dataclass fields
-
-| Name | Type | Default |
-|---|---|---|
-| `farm_safety_score` | `float` | `-` |
-| `pressure_score` | `float` | `-` |
-| `expected_value_score` | `float` | `-` |
-| `context_label` | `Literal['safe_home_farm', 'pressured_home_farm', 'defensive_home_farm', 'safe_invade', 'pressure_invade', 'high_risk_invade']` | `-` |
-| `context_drivers` | `list[str]` | `field(...)` |
-
 ## Module `gem.analysis.roshan`
 
-Post-parse Roshan conversion analysis.
+Post-parse Roshan records: each kill, its Aegis lifecycle and the window that followed.
 
 Source: [src/gem/analysis/roshan.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L1)
 
@@ -1321,12 +1119,12 @@ Source: [src/gem/analysis/roshan.py](https://github.com/whanyu1212/gem-dota/blob
 ### `build_rosh_conversions`
 
 ```python
-def build_rosh_conversions(match: ParsedMatch, *, tag_thresholds: RoshTagThresholds | None = None, territory_config: RoshTerritoryConfig | None = None) -> list[RoshConversion]
+def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]
 ```
 
 Summarise each Roshan kill, its Aegis lifecycle and the window that followed.
 
-Source: [src/gem/analysis/roshan.py:1373](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L1373)
+Source: [src/gem/analysis/roshan.py:916](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L916)
 
 ### Top-level classes
 
@@ -1338,7 +1136,7 @@ class AegisFateSource(str, Enum)
 
 Evidence or boundary used to classify an Aegis lifecycle.
 
-Source: [src/gem/analysis/roshan.py:101](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L101)
+Source: [src/gem/analysis/roshan.py:42](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L42)
 
 ### `RoshTeamAttributionSource`
 
@@ -1348,7 +1146,7 @@ class RoshTeamAttributionSource(str, Enum)
 
 Provenance of a team attribution used by Roshan analysis.
 
-Source: [src/gem/analysis/roshan.py:114](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L114)
+Source: [src/gem/analysis/roshan.py:55](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L55)
 
 ### `RoshFightRelation`
 
@@ -1358,30 +1156,7 @@ class RoshFightRelation(str, Enum)
 
 Temporal relationship between a fight and the conversion window.
 
-Source: [src/gem/analysis/roshan.py:126](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L126)
-
-### `RoshTagThresholds`
-
-```python
-class RoshTagThresholds
-```
-
-Inspectably configured thresholds for non-exclusive conversion tags.
-
-Source: [src/gem/analysis/roshan.py:136](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L136)
-
-#### Dataclass fields
-
-| Name | Type | Default |
-|---|---|---|
-| `fight_advantage` | `int` | `_FIGHT_ADVANTAGE_THRESHOLD` |
-| `objective_gain` | `int` | `_OBJECTIVE_GAIN_THRESHOLD` |
-| `net_worth_swing` | `int` | `_NET_WORTH_SWING_THRESHOLD` |
-| `xp_swing` | `int` | `_XP_SWING_THRESHOLD` |
-| `territory_swing_pct` | `float` | `_TERRITORY_SWING_THRESHOLD_PCT` |
-| `ward_delta` | `int` | `_WARD_DELTA_THRESHOLD` |
-| `counter_min_dimensions` | `int` | `2` |
-| `ruleset` | `str` | `'provisional-v1'` |
+Source: [src/gem/analysis/roshan.py:67](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L67)
 
 ### `RoshFightEvidence`
 
@@ -1391,7 +1166,7 @@ class RoshFightEvidence
 
 Engagement-aware evidence for one fight associated with a Roshan window.
 
-Source: [src/gem/analysis/roshan.py:168](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L168)
+Source: [src/gem/analysis/roshan.py:77](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L77)
 
 #### Dataclass fields
 
@@ -1417,7 +1192,7 @@ class RoshTimelineEvent
 
 One notable event inside a Roshan conversion sequence.
 
-Source: [src/gem/analysis/roshan.py:221](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L221)
+Source: [src/gem/analysis/roshan.py:128](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L128)
 
 #### Dataclass fields
 
@@ -1436,7 +1211,7 @@ class RoshDifferentialProfile
 
 Evidence-first conversion-team profile over one hardened Rosh window.
 
-Source: [src/gem/analysis/roshan.py:253](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L253)
+Source: [src/gem/analysis/roshan.py:160](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L160)
 
 #### Dataclass fields
 
@@ -1467,14 +1242,6 @@ Source: [src/gem/analysis/roshan.py:253](https://github.com/whanyu1212/gem-dota/
 | `xp_advantage_end` | `int \| None` | `None` |
 | `xp_swing` | `int \| None` | `None` |
 | `xp_swing_per_minute` | `float \| None` | `None` |
-| `before_territory` | `RoshTerritoryWindow` | `_deprecated('RoshDifferentialProfile', 'before_territory', _TERRITORY_ALTERNA...` |
-| `during_territory` | `RoshTerritoryWindow` | `_deprecated('RoshDifferentialProfile', 'during_territory', _TERRITORY_ALTERNA...` |
-| `conversion_coverage_swing_pct` | `float \| None` | `_deprecated('RoshDifferentialProfile', 'conversion_coverage_swing_pct', _TERR...` |
-| `opponent_coverage_swing_pct` | `float \| None` | `_deprecated('RoshDifferentialProfile', 'opponent_coverage_swing_pct', _TERRIT...` |
-| `coverage_swing_pct` | `float \| None` | `_deprecated('RoshDifferentialProfile', 'coverage_swing_pct', _TERRITORY_ALTER...` |
-| `conversion_depth_swing` | `float \| None` | `_deprecated('RoshDifferentialProfile', 'conversion_depth_swing', _TERRITORY_A...` |
-| `opponent_depth_swing` | `float \| None` | `_deprecated('RoshDifferentialProfile', 'opponent_depth_swing', _TERRITORY_ALT...` |
-| `depth_swing` | `float \| None` | `_deprecated('RoshDifferentialProfile', 'depth_swing', _TERRITORY_ALTERNATIVE)` |
 | `conversion_forward_wards` | `int \| None` | `None` |
 | `opponent_forward_wards` | `int \| None` | `None` |
 | `forward_ward_delta` | `int \| None` | `None` |
@@ -1482,8 +1249,6 @@ Source: [src/gem/analysis/roshan.py:253](https://github.com/whanyu1212/gem-dota/
 | `opponent_tormentors` | `int \| None` | `None` |
 | `unattributed_tormentors` | `int` | `0` |
 | `tormentor_delta` | `int \| None` | `None` |
-| `tags` | `list[str]` | `_deprecated('RoshDifferentialProfile', 'tags', _TAG_ALTERNATIVE, default_fact...` |
-| `tag_ruleset` | `str` | `_deprecated('RoshDifferentialProfile', 'tag_ruleset', _TAG_ALTERNATIVE, defau...` |
 | `status` | `Literal['complete', 'partial', 'unavailable']` | `'unavailable'` |
 | `status_reasons` | `list[str]` | `field(...)` |
 
@@ -1495,7 +1260,7 @@ class RoshConversion
 
 Derived summary for one Roshan kill and the advantage window that followed.
 
-Source: [src/gem/analysis/roshan.py:388](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L388)
+Source: [src/gem/analysis/roshan.py:242](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/roshan.py#L242)
 
 #### Dataclass fields
 
@@ -1523,13 +1288,6 @@ Source: [src/gem/analysis/roshan.py:388](https://github.com/whanyu1212/gem-dota/
 | `barracks_taken` | `int` | `-` |
 | `enemy_buybacks_forced` | `int` | `-` |
 | `enemy_half_observer_delta` | `int` | `-` |
-| `enemy_half_farm_share_before` | `float` | `_deprecated('RoshConversion', 'enemy_half_farm_share_before', _TERRITORY_ALTE...` |
-| `enemy_half_farm_share_during` | `float` | `_deprecated('RoshConversion', 'enemy_half_farm_share_during', _TERRITORY_ALTE...` |
-| `enemy_half_farm_share_delta` | `float` | `_deprecated('RoshConversion', 'enemy_half_farm_share_delta', _TERRITORY_ALTER...` |
-| `conversion_score` | `int` | `_deprecated('RoshConversion', 'conversion_score', _TAG_ALTERNATIVE, default=0)` |
-| `conversion_label` | `Literal['low_conversion', 'fight_conversion', 'objective_conversion', 'map_squeeze', 'game_closing_rosh']` | `_deprecated('RoshConversion', 'conversion_label', _TAG_ALTERNATIVE, default='...` |
-| `aegis_outcome` | `Literal['consumed_in_fight', 'expired_after_use', 'expired_unused', 'denied', 'window_lost', 'game_ended', 'unknown']` | `_deprecated('RoshConversion', 'aegis_outcome', 'aegis_fate, aegis_fate_source...` |
-| `drivers` | `list[str]` | `_deprecated('RoshConversion', 'drivers', 'timeline_events', default_factory=l...` |
 | `timeline_events` | `list[RoshTimelineEvent]` | `field(...)` |
 | `drops` | `list[str]` | `field(...)` |
 | `had_high_value_drop` | `bool` | `False` |
@@ -1544,7 +1302,6 @@ Source: [src/gem/analysis/roshan.py:388](https://github.com/whanyu1212/gem-dota/
 | `aegis_fate_inferred` | `bool` | `False` |
 | `first_engagement_tick` | `int \| None` | `None` |
 | `fight_evidence` | `list[RoshFightEvidence]` | `field(...)` |
-| `conversion_tags` | `list[str]` | `_deprecated('RoshConversion', 'conversion_tags', _TAG_ALTERNATIVE, default_fa...` |
 | `analysis_status` | `Literal['complete', 'partial', 'unavailable']` | `'unavailable'` |
 | `analysis_status_reasons` | `list[str]` | `field(...)` |
 | `differential_profile` | `RoshDifferentialProfile` | `field(...)` |
@@ -1643,320 +1400,6 @@ Source: [src/gem/analysis/smoke.py:117](https://github.com/whanyu1212/gem-dota/b
 | `members` | `list[SmokeMemberAnalysis]` | `field(...)` |
 | `first_fight` | `Fight \| None` | `None` |
 | `evidence_gaps` | `list[str]` | `field(...)` |
-
-## Module `gem.analysis.smoke_fight`
-
-Conservative post-parse associations between smoke activations and fights.
-
-Source: [src/gem/analysis/smoke_fight.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L1)
-
-### Top-level functions
-
-### `build_smoke_fight_insights`
-
-```python
-def build_smoke_fight_insights(match: ParsedMatch, *, fight_window_ticks: int = 1800, follow_up_ticks: int = 1800, nearby_radius: float = 3000.0, max_position_age_ticks: int = 60) -> list[SmokeFightInsight]
-```
-
-Build deterministic smoke-to-fight observations from parsed records.
-
-Source: [src/gem/analysis/smoke_fight.py:315](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L315)
-
-### Top-level classes
-
-### `SmokeFightStatus`
-
-```python
-class SmokeFightStatus(str, Enum)
-```
-
-Deterministic association state for one smoke/fight observation.
-
-Source: [src/gem/analysis/smoke_fight.py:50](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L50)
-
-### `ExactEventKind`
-
-```python
-class ExactEventKind(str, Enum)
-```
-
-Kinds of exact events retained in an insight sequence.
-
-Source: [src/gem/analysis/smoke_fight.py:62](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L62)
-
-### `FightCentroidSource`
-
-```python
-class FightCentroidSource(str, Enum)
-```
-
-Provenance of the center used for sampled near-fight arrival evidence.
-
-Source: [src/gem/analysis/smoke_fight.py:76](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L76)
-
-### `FollowUpKind`
-
-```python
-class FollowUpKind(str, Enum)
-```
-
-Kinds of bounded post-fight events.
-
-Source: [src/gem/analysis/smoke_fight.py:85](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L85)
-
-### `TeamRelation`
-
-```python
-class TeamRelation(str, Enum)
-```
-
-Actor-team relation to the smoke team.
-
-Source: [src/gem/analysis/smoke_fight.py:97](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L97)
-
-### `FollowUpBoundary`
-
-```python
-class FollowUpBoundary(str, Enum)
-```
-
-Evidence that bounded a post-fight follow-up window.
-
-Source: [src/gem/analysis/smoke_fight.py:107](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L107)
-
-### `ExactEventEvidence`
-
-```python
-class ExactEventEvidence
-```
-
-One exact source event with activation-relative timing.
-
-Source: [src/gem/analysis/smoke_fight.py:118](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L118)
-
-#### Dataclass fields
-
-| Name | Type | Default |
-|---|---|---|
-| `kind` | `ExactEventKind` | `-` |
-| `tick` | `int` | `-` |
-| `game_time_s` | `int \| None` | `-` |
-| `tick_delta` | `int` | `-` |
-| `game_time_delta_s` | `int \| None` | `-` |
-| `provenance` | `str` | `-` |
-| `source_index` | `int \| None` | `None` |
-| `player_id` | `int \| None` | `None` |
-| `hero_name` | `str` | `''` |
-| `source_name` | `str` | `''` |
-| `target_name` | `str` | `''` |
-
-### `MemberPositionEvidence`
-
-```python
-class MemberPositionEvidence
-```
-
-One smoke member's positioning-snapshot provenance.
-
-Source: [src/gem/analysis/smoke_fight.py:150](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L150)
-
-#### Dataclass fields
-
-| Name | Type | Default |
-|---|---|---|
-| `player_id` | `int \| None` | `-` |
-| `hero_name` | `str` | `-` |
-| `active_participant` | `bool` | `-` |
-| `x` | `float \| None` | `-` |
-| `y` | `float \| None` | `-` |
-| `sample_tick` | `int \| None` | `-` |
-| `sample_age_ticks` | `int \| None` | `-` |
-| `evidence_gaps` | `tuple[str, ...]` | `-` |
-
-### `FormationEvidence`
-
-```python
-class FormationEvidence
-```
-
-Filtered smoke-member geometry at one existing fight snapshot.
-
-Source: [src/gem/analysis/smoke_fight.py:164](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L164)
-
-#### Dataclass fields
-
-| Name | Type | Default |
-|---|---|---|
-| `kind` | `SnapshotKind` | `-` |
-| `tick` | `int` | `-` |
-| `expected_count` | `int` | `-` |
-| `positioned_count` | `int` | `-` |
-| `completeness` | `EvidenceCompleteness` | `-` |
-| `centroid_x` | `float \| None` | `-` |
-| `centroid_y` | `float \| None` | `-` |
-| `rms_spread` | `float \| None` | `-` |
-| `max_pairwise_distance` | `float \| None` | `-` |
-| `members` | `tuple[MemberPositionEvidence, ...]` | `-` |
-
-### `SampledNearFightEvidence`
-
-```python
-class SampledNearFightEvidence
-```
-
-Earliest raw member-position sample observed near the fight center.
-
-Source: [src/gem/analysis/smoke_fight.py:180](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L180)
-
-#### Dataclass fields
-
-| Name | Type | Default |
-|---|---|---|
-| `player_id` | `int` | `-` |
-| `hero_name` | `str` | `-` |
-| `tick` | `int` | `-` |
-| `x` | `float` | `-` |
-| `y` | `float` | `-` |
-| `distance` | `float` | `-` |
-| `centroid_source` | `FightCentroidSource` | `-` |
-
-### `SmokeFightMemberInsight`
-
-```python
-class SmokeFightMemberInsight
-```
-
-Per-smoke-member fight participation, visibility, and spatial evidence.
-
-Source: [src/gem/analysis/smoke_fight.py:193](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L193)
-
-#### Dataclass fields
-
-| Name | Type | Default |
-|---|---|---|
-| `participant_index` | `int` | `-` |
-| `player_id` | `int \| None` | `-` |
-| `hero_name` | `str` | `-` |
-| `resolved` | `bool` | `-` |
-| `active_participant` | `bool` | `-` |
-| `authoritative_visibility` | `VisibilityState` | `-` |
-| `point_vision` | `PointVisionAssessment \| None` | `-` |
-| `pre_engagement_position` | `MemberPositionEvidence \| None` | `-` |
-| `engagement_position` | `MemberPositionEvidence \| None` | `-` |
-| `sampled_near_fight` | `SampledNearFightEvidence \| None` | `-` |
-| `evidence_gaps` | `tuple[str, ...]` | `-` |
-
-### `FightOutcome`
-
-```python
-class FightOutcome
-```
-
-Factual source fight result, credited only to a unique link.
-
-Source: [src/gem/analysis/smoke_fight.py:210](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L210)
-
-#### Dataclass fields
-
-| Name | Type | Default |
-|---|---|---|
-| `deaths` | `int` | `-` |
-| `radiant_kills` | `int` | `-` |
-| `dire_kills` | `int` | `-` |
-| `winner` | `str` | `-` |
-
-### `FollowUpWindow`
-
-```python
-class FollowUpWindow
-```
-
-Half-open window used to associate post-fight raw events.
-
-Source: [src/gem/analysis/smoke_fight.py:220](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L220)
-
-#### Dataclass fields
-
-| Name | Type | Default |
-|---|---|---|
-| `start_tick` | `int` | `-` |
-| `end_tick` | `int` | `-` |
-| `end_reasons` | `tuple[FollowUpBoundary, ...]` | `-` |
-
-### `FollowUpEvent`
-
-```python
-class FollowUpEvent
-```
-
-One raw objective or observer placement allocated to a unique link.
-
-Source: [src/gem/analysis/smoke_fight.py:229](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L229)
-
-#### Dataclass fields
-
-| Name | Type | Default |
-|---|---|---|
-| `kind` | `FollowUpKind` | `-` |
-| `source_index` | `int` | `-` |
-| `tick` | `int` | `-` |
-| `game_time_s` | `int \| None` | `-` |
-| `tick_delta` | `int` | `-` |
-| `game_time_delta_s` | `int \| None` | `-` |
-| `actor_name` | `str` | `-` |
-| `actor_player_id` | `int \| None` | `-` |
-| `actor_team` | `int \| None` | `-` |
-| `relation` | `TeamRelation` | `-` |
-| `subject_name` | `str` | `-` |
-
-### `SmokeFightInsight`
-
-```python
-class SmokeFightInsight
-```
-
-Evidence-first observation for one smoke and zero or one source fight.
-
-Source: [src/gem/analysis/smoke_fight.py:246](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L246)
-
-#### Dataclass fields
-
-| Name | Type | Default |
-|---|---|---|
-| `smoke_index` | `int` | `-` |
-| `fight_index` | `int \| None` | `-` |
-| `status` | `SmokeFightStatus` | `-` |
-| `evidence_completeness` | `EvidenceCompleteness` | `-` |
-| `smoke_team` | `int` | `-` |
-| `activator` | `str` | `-` |
-| `smoke_lifecycle_status` | `SmokeGroupStatus` | `-` |
-| `activation` | `ExactEventEvidence` | `-` |
-| `first_member_removal` | `ExactEventEvidence \| None` | `-` |
-| `first_authoritative_visible` | `ExactEventEvidence \| None` | `-` |
-| `first_direct_reveal` | `ExactEventEvidence \| None` | `-` |
-| `first_member_action` | `ExactEventEvidence \| None` | `-` |
-| `first_death` | `ExactEventEvidence \| None` | `-` |
-| `fight_end` | `ExactEventEvidence \| None` | `-` |
-| `active_smoked_player_ids` | `tuple[int, ...]` | `-` |
-| `members` | `tuple[SmokeFightMemberInsight, ...]` | `-` |
-| `pre_engagement_formation` | `FormationEvidence \| None` | `-` |
-| `engagement_formation` | `FormationEvidence \| None` | `-` |
-| `sampled_near_fight_spread_ticks` | `int \| None` | `-` |
-| `near_fight_centroid_source` | `FightCentroidSource \| None` | `-` |
-| `outcome` | `FightOutcome \| None` | `-` |
-| `follow_up_window` | `FollowUpWindow \| None` | `-` |
-| `follow_ups` | `tuple[FollowUpEvent, ...]` | `-` |
-| `evidence_gaps` | `tuple[str, ...]` | `-` |
-
-#### Properties
-
-##### `exact_events`
-
-Signature: `def SmokeFightInsight.exact_events(self) -> tuple[ExactEventEvidence, ...]`
-
-Return present exact events in chronological, deterministic order.
-
-Source: [src/gem/analysis/smoke_fight.py:275](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke_fight.py#L275)
 
 ## Module `gem.analysis.fight_positioning`
 
@@ -2124,7 +1567,7 @@ def analyze(match: ParsedMatch) -> MatchAnalysis
 
 Run every default post-parse analysis on a parsed match.
 
-Source: [src/gem/analysis/bundle.py:70](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/bundle.py#L70)
+Source: [src/gem/analysis/bundle.py:55](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/bundle.py#L55)
 
 ### Top-level classes
 
@@ -2136,14 +1579,13 @@ class MatchAnalysis
 
 Results of every default post-parse analysis for one match.
 
-Source: [src/gem/analysis/bundle.py:34](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/bundle.py#L34)
+Source: [src/gem/analysis/bundle.py:33](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/bundle.py#L33)
 
 #### Dataclass fields
 
 | Name | Type | Default |
 |---|---|---|
 | `smoke` | `list[SmokeAnalysis]` | `field(...)` |
-| `smoke_fights` | `list[SmokeFightInsight]` | `field(...)` |
 | `roshan_conversions` | `list[RoshConversion]` | `field(...)` |
 | `farming_routes` | `list[FarmingRoute]` | `field(...)` |
 | `fight_positioning` | `list[FightPositioning]` | `field(...)` |

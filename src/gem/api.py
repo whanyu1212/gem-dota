@@ -44,23 +44,14 @@ Public API
 ``format_npc_name(name)``
     Convert an NPC entity name to a human-readable label.
 
-``build_map_context_timeline(match, team, ...)``
-    Deprecated; removed in 0.13. Objective-aware map-control context buckets.
-
-``score_camp_visit_context(...)``
-    Deprecated; removed in 0.13. Scores a camp visit with drivers.
-
 ``build_farming_routes(match, ...)``
     Build sampled camp-route segments with explicit evidence provenance.
 
 ``build_rosh_conversions(match)``
-    Summarize how each Roshan translated into fights, objectives, and map pressure.
+    Summarize each Roshan kill, its Aegis lifecycle, and the window that followed.
 
 ``build_smoke_analysis(match)``
     Summarize exact smoke modifier lifecycles and supporting evidence.
-
-``build_smoke_fight_insights(match)``
-    Build bounded smoke/fight observations from exact and sampled evidence.
 
 ``build_fight_positioning(match)``
     Build bounded spatial and visibility snapshots for detected fights.
@@ -127,7 +118,6 @@ from gem.analysis import (
     SmokeMemberAnalysis,
     SnapshotKind,
     TeamPositionSummary,
-    VisionSource,
     ability_level_at_tick,
     analyze,
     assess_point_vision,
@@ -380,7 +370,7 @@ def parse_to_dataframe(path: str | Path, *, include: Iterable[str] = ()) -> dict
     Args:
         path: Path to the ``.dem`` replay file.
         include: Optional table groups to add: ``"analysis"`` (farming,
-            smoke-fight, Roshan-conversion, and fight-positioning tables)
+            Roshan and fight-positioning tables)
             and/or ``"opendota"`` (OpenDota-shaped objective/teamfight views).
 
     Returns:
@@ -510,7 +500,6 @@ __all__ = [
     "MAP_REGIONS",
     "ability_level_at_tick",
     "assess_point_vision",
-    "VisionSource",
     "PointVisionStatus",
     "PointVisionSource",
     "PointVisionGap",
@@ -580,10 +569,8 @@ __all__ = [
 #: Names gem 0.10 and earlier used for gem's own fights, served with a warning.
 RENAMED_NAMES = dict(_RENAMED_ANALYSIS_NAMES)
 
-#: Names deprecated in 0.12 and removed in 0.13 (HY-96), served with a warning.
-DEPRECATED_NAMES = {
-    name: entry for name, entry in _DEPRECATED_ANALYSIS_NAMES.items() if name != "world_in_bounds"
-}
+#: Names deprecated in 0.13 and removed in 0.14, served with a warning.
+DEPRECATED_NAMES = dict(_DEPRECATED_ANALYSIS_NAMES)
 
 __getattr__ = deprecated_module_attrs(
     __name__, DEPRECATED_NAMES, renamed_module_attrs(__name__, RENAMED_NAMES, globals())

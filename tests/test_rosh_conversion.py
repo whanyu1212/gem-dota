@@ -2,12 +2,10 @@ from __future__ import annotations
 
 import pytest
 
-from gem._deprecation import read_quietly
 from gem.analysis.roshan import (
     AegisFateSource,
     RoshConversion,
     RoshFightRelation,
-    RoshTagThresholds,
     RoshTeamAttributionSource,
     _rax_lane,
     build_rosh_conversions,
@@ -108,13 +106,11 @@ def test_build_rosh_conversions_objective_conversion() -> None:
     conversions = build_rosh_conversions(match)
     assert len(conversions) == 1
     conversion = conversions[0]
-    assert read_quietly(conversion, "conversion_label") == "objective_conversion"
     assert conversion.fights_won == 1
     assert conversion.towers_taken == 2
     assert conversion.barracks_taken == 1
     assert conversion.enemy_buybacks_forced == 1
     assert conversion.enemy_half_observer_delta == 1
-    assert read_quietly(conversion, "enemy_half_farm_share_delta") > 0.0
     assert any(event.kind == "barracks" for event in conversion.timeline_events)
 
 
@@ -146,8 +142,6 @@ def test_build_rosh_conversions_failed_aegis_on_lost_fight() -> None:
     assert len(conversions) == 1
     conversion = conversions[0]
     assert conversion.aegis_fate == "consumed"
-    assert read_quietly(conversion, "conversion_label") == "low_conversion"
-    assert read_quietly(conversion, "aegis_outcome") == "window_lost"
     assert conversion.fights_lost == 1
     assert conversion.towers_taken == 0
     assert conversion.barracks_taken == 0
@@ -242,11 +236,9 @@ def test_holder_window_clamped_to_next_roshan_no_double_count() -> None:
     assert conversions[1].towers_taken == 1
 
 
-def test_rosh_conversion_legacy_constructor_keeps_working() -> None:
-    # RoshConversion is part of the public ``gem`` API, so the drops + banner→rax
-    # fields must stay optional: a caller using the pre-drops keyword set must
-    # still construct without a missing-argument TypeError, and the new fields
-    # must fall back to safe legacy defaults.
+def test_rosh_conversion_optional_fields_have_safe_defaults() -> None:
+    # RoshConversion is part of the public ``gem`` API: the drop, banner and
+    # attribution fields are optional and default to "nothing observed".
     conversion = RoshConversion(
         rosh_number=1,
         rosh_tick=1000,
@@ -270,12 +262,6 @@ def test_rosh_conversion_legacy_constructor_keeps_working() -> None:
         barracks_taken=0,
         enemy_buybacks_forced=0,
         enemy_half_observer_delta=0,
-        enemy_half_farm_share_before=0.0,
-        enemy_half_farm_share_during=0.0,
-        enemy_half_farm_share_delta=0.0,
-        conversion_score=25,
-        conversion_label="low_conversion",
-        aegis_outcome="expired_unused",
     )
     assert conversion.drops == []
     assert conversion.had_high_value_drop is False
@@ -285,7 +271,6 @@ def test_rosh_conversion_legacy_constructor_keeps_working() -> None:
     assert conversion.roshan_team is None
     assert conversion.conversion_team is None
     assert conversion.aegis_fate_inferred is False
-    assert read_quietly(conversion, "conversion_tags") == []
     assert conversion.analysis_status == "unavailable"
     assert conversion.differential_profile.conversion_team is None
 
@@ -324,7 +309,6 @@ def test_banner_rax_conversion_links_plant_to_barracks() -> None:
     assert conversion.banner_planted is True
     assert conversion.banner_rax_conversion is True
     assert conversion.banner_rax_lane == "mid"
-    assert any("Banner" in driver for driver in read_quietly(conversion, "drivers"))
 
 
 def test_banner_planted_without_rax_is_not_a_conversion() -> None:
@@ -683,7 +667,7 @@ def test_conversion_team_attribution_for_stolen_denied_missing_and_unknown() -> 
     assert conversion.differential_profile.fight_differential is None
 
 
-def test_game_closing_uses_hardened_window_and_multiple_tags_are_nonexclusive() -> None:
+def test_game_end_inside_the_window_is_a_timeline_event() -> None:
     players = _make_players()
     common = {
         "game_start_tick": 0,
@@ -714,20 +698,17 @@ def test_game_closing_uses_hardened_window_and_multiple_tags_are_nonexclusive() 
         "radiant_xp_adv": [0, 0, 400, 2000, 3000],
     }
     closing = build_rosh_conversions(ParsedMatch(game_end_tick=7000, **common))[0]
-    assert {
-        "fight_advantage",
-        "objective_gain",
-        "resource_gain",
-        "vision_expansion",
-        "tormentor_secured",
-        "game_closing",
-    } <= set(read_quietly(closing, "conversion_tags"))
+    assert "game_end" in [event.kind for event in closing.timeline_events]
+    profile = closing.differential_profile
+    assert profile.fight_differential == 2
+    assert profile.forward_ward_delta == 2
+    assert profile.tormentor_delta == 1
 
     late = build_rosh_conversions(ParsedMatch(game_end_tick=20000, **common))[0]
-    assert "game_closing" not in read_quietly(late, "conversion_tags")
+    assert "game_end" not in [event.kind for event in late.timeline_events]
 
 
-def test_counter_conversion_requires_dominant_opponent_evidence() -> None:
+def test_opponent_gains_show_as_negative_differentials() -> None:
     match = ParsedMatch(
         game_start_tick=0,
         game_end_tick=20000,
@@ -754,7 +735,6 @@ def test_counter_conversion_requires_dominant_opponent_evidence() -> None:
     conversion = build_rosh_conversions(match)[0]
     assert conversion.differential_profile.fight_differential == -2
     assert conversion.differential_profile.structure_delta == -3
-    assert "counter_conversion" in read_quietly(conversion, "conversion_tags")
 
 
 def test_protocol_team_is_preferred_and_unknown_objectives_are_not_credited() -> None:
@@ -835,56 +815,6 @@ def test_creep_and_summon_structure_kills_use_explicit_name_evidence() -> None:
     assert profile.opponent_towers == 0
     assert profile.unattributed_towers == 0
     assert conversion.towers_taken == 2
-
-
-def test_tag_thresholds_are_configurable_at_the_boundary() -> None:
-    match = ParsedMatch(
-        game_start_tick=0,
-        game_end_tick=10000,
-        players=_make_players(),
-        roshans=[
-            RoshanKill(
-                tick=1000,
-                killer="npc_dota_hero_hero_0",
-                kill_number=1,
-                killer_team=2,
-            )
-        ],
-        aegis_events=[AegisEvent(tick=1010, player_id=0, event_type="pickup")],
-        fights=[_make_fight(1200, 1400, "radiant")],
-        towers=[
-            TowerKill(
-                1500,
-                3,
-                "",
-                "npc_dota_badguys_tower1_mid",
-                killer_team=2,
-            )
-        ],
-    )
-
-    default = build_rosh_conversions(match)[0]
-    with pytest.warns(DeprecationWarning, match="tag_thresholds"):
-        calibrated = build_rosh_conversions(
-            match,
-            tag_thresholds=RoshTagThresholds(
-                fight_advantage=1,
-                objective_gain=1,
-                ruleset="boundary-test",
-            ),
-        )[0]
-
-    assert "fight_advantage" not in read_quietly(default, "conversion_tags")
-    assert "objective_gain" not in read_quietly(default, "conversion_tags")
-    assert {"fight_advantage", "objective_gain"} <= set(read_quietly(calibrated, "conversion_tags"))
-    assert read_quietly(calibrated.differential_profile, "tag_ruleset") == "boundary-test"
-
-
-def test_tag_thresholds_reject_invalid_configuration() -> None:
-    with pytest.raises(ValueError, match="nonnegative"):
-        RoshTagThresholds(fight_advantage=-1)
-    with pytest.raises(ValueError, match="must not be empty"):
-        RoshTagThresholds(ruleset="")
 
 
 def test_fight_spanning_next_roshan_is_never_double_counted() -> None:

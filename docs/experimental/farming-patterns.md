@@ -17,28 +17,23 @@ records feed the HTML report and the flat DataFrame exports.
 
 ## Current scope
 
-The analysis hardens route reconstruction and attaches comparative context
-without collapsing the evidence into a single safety or quality score. It uses
-facts already present on `ParsedMatch`:
+The analysis reconstructs camp-local routes without scoring them. It uses facts
+already present on `ParsedMatch`:
 
 - sampled positions from `ParsedPlayer.position_log`;
 - calibrated camp geometry from `camp_zones.json`;
 - neutral damage and deaths from the combat log;
-- sampled total XP and total-earned-gold endpoints;
-- bounded allied and enemy presence near each camp;
-- modeled point-vision sources and gaps;
-- lane-affiliated tower state;
-- Roshan, Aegis, and Tormentor provenance;
-- sustained comparative territory coverage and depth.
+- sampled total XP and total-earned-gold endpoints.
 
 It does not change replay parsing or add extractor state.
 Samples before `ParsedMatch.game_start_tick` are excluded, so pre-horn movement
 does not become a farming segment.
 
-The older objective-aware context scorer remains callable for compatibility,
-but its exclusive labels (`Safe Home Farm`, `Forced Home Farm`, and so on) are
-not the primary public interpretation. Context gaps remain explicit instead of
-becoming neutral values.
+gem 0.12 also attached a comparative "context" to each segment (nearby heroes,
+modelled vision, towers, Aegis, territory) with tags such as `own_side` or
+`territorial_advance`. That was interpretation, and gem 0.13 removed it. Join
+the facts you need yourself: `gem.region_of`, the wards, towers and Aegis events
+on `ParsedMatch`, and the players' positions.
 
 ## Public API
 
@@ -58,8 +53,6 @@ for route in routes:
             segment.evidence_strength.value,
             segment.evidence_reasons,
             segment.evidence_gaps,
-            [tag.value for tag in segment.context.tags],
-            segment.context.status_reasons,
         )
 ```
 
@@ -69,9 +62,6 @@ The public records are:
 - `FarmingRoutePoint`: one sampled position with deterministic camp membership;
 - `FarmingRouteSegment`: one camp-local window and its support evidence;
 - `FarmingRouteConfig`: the inspectable reconstruction thresholds;
-- `FarmingContextConfig`: comparative context windows and tag thresholds;
-- `FarmingSegmentContext`: raw comparative facts, provenance, tags, and gaps;
-- `FarmingContextTag`: independent stable string tags;
 - `FarmingCampZone`: normalized camp geometry;
 - `FarmingEvidenceStrength` and `FarmingBoundaryReason`: stable string enums.
 
@@ -159,51 +149,10 @@ from that camp, or intended to farm. Fresh XP/gold deltas remain visible as
 window context, but a brief touch is not promoted solely because passive or
 off-zone resources changed.
 
-## Comparative context
+## Camp facts on each segment
 
-> [!WARNING]
-> The segment context (`segment.context`, `FarmingSegmentContext`,
-> `FarmingContextTag`, `FarmingContextConfig`, `context_config=`) is deprecated
-> in gem 0.12 and removed in 0.13. gem presents facts; these joins and tags are
-> interpretation. The segments themselves stay: camp, owner, lane, area, ticks,
-> neutral kills and damage, XP and gold deltas, and evidence strength.
-
-Each segment exposes its camp owner, lane affinity, area, catalog/geometry/
-topology versions, contiguous distance travelled, and a nested
-`FarmingSegmentContext`. Context is evaluated at the segment midpoint with
-bounded lookback windows. The defaults are:
-
-| Setting | Default | Meaning |
-|---|---:|---|
-| `lookback_ticks` | `2700` | 90-second local-presence window |
-| `territory_lookback_ticks` | `3600` | Two-minute sustained territory window |
-| `max_position_gap_ticks` | `300` | Do not bridge position gaps over 10 seconds |
-| `max_resource_age_ticks` | `60` | Team economy/XP samples must be within two seconds |
-| `max_vision_position_age_ticks` | `150` | Hero sources for point vision must be within five seconds |
-| `presence_radius` | `1600` | Camp-local comparison radius in world units |
-| `min_presence_coverage` | `0.70` | Minimum player-time coverage for a presence comparison |
-| `high_enemy_presence_seconds` | `30.0` | Absolute enemy hero-seconds floor |
-| `presence_advantage_seconds` | `15.0` | Enemy-minus-allied hero-seconds floor |
-| `territorial_depth_delta` | `0.10` | Sustained normalized depth-advantage floor |
-| `territorial_coverage_delta_pct` | `0.50` | Sustained enemy-side coverage advantage in percentage points |
-
-The tags are independent and composable:
-
-- `own_side`, `enemy_side`, or `border` comes from explicit camp topology;
-- `high_enemy_presence` requires complete coverage plus both an absolute and a
-  comparative enemy hero-seconds threshold;
-- `vision_disadvantage` means the opponent has modeled observer coverage at
-  the camp while the player's team does not. It is not proof of fog state;
-- `tower_disadvantage` compares the remaining tier-one/tier-two towers in the
-  camp's affiliated lane;
-- `enemy_aegis_active` uses the bounded hardened Aegis lifecycle;
-- `territorial_advance` requires an enemy-side segment and sustained paired
-  coverage/depth advantage;
-- `incomplete_context` carries exact gap codes whenever any required dimension
-  is missing or stale.
-
-Observer wards are only one modeled source. Authoritative hero visibility is
-not generalized into arbitrary-point fog claims.
+Each segment carries its camp's owner team, lane affinity and area, the
+catalog, geometry and topology versions, and the contiguous distance travelled.
 
 ## Availability
 
@@ -216,7 +165,7 @@ Each `FarmingRoute` has one of three statuses:
 - `unavailable`: camp geometry or player position samples are unavailable.
 
 The corresponding `status_reasons` and per-segment `evidence_gaps` are public.
-The bundled catalog reports version `3`, 7.41 map geometry, and 7.41
+The bundled catalog reports version `4`, 7.41 map geometry, and 7.41
 camp-family/topology annotations. Each zone is centred on its camp's
 `CDOTA_NeutralSpawner` entity, which sits at the same position in every 7.41
 fixture replay; neutral creeps spawn within about 100 units of it. Geometry and
@@ -225,15 +174,13 @@ topology provenance remain separate fields.
 ## DataFrames
 
 `gem.results.dataframes.build_dataframes(match, include=["analysis"])` (or
-`gem.parse_to_dataframe(path, include=["analysis"])`) adds four stable flat tables:
+`gem.parse_to_dataframe(path, include=["analysis"])`) adds three stable flat tables:
 
 - `farming_routes`: player-level availability, catalog metadata, and counts;
-- `farming_route_segments`: boundaries, support facts, strength, comparative
-  context, provenance, and gaps;
+- `farming_route_segments`: boundaries, support facts, strength, camp facts,
+  provenance, and gaps;
 - `farming_route_points`: sampled path, selected camp, base-zone membership,
   discontinuity reason, and segment membership where applicable.
-- `farming_context_tags`: one row per segment/tag with its reasons and context
-  status.
 
 String enums are exported as their raw values. Lists of reasons/gaps use
 semicolon-delimited strings, matching the other flat analysis exports.
@@ -243,42 +190,24 @@ semicolon-delimited strings, matching the other flat analysis exports.
 The report's Farming tab shows the route and timeline for each team's cores
 (see [Match Reports](../reports/index.md)). Each segment row lists the camp,
 its type, the visit's duration, the hero's neutral kills inside the camp zone,
-and the gold and XP the hero earned during the visit. Evidence strength and the
-deprecated context tags stay available in Python and the DataFrame exports but
-are not rendered.
+and the gold and XP the hero earned during the visit. Evidence strength stays
+available in Python and the DataFrame exports but is not rendered.
 
 The playback trail uses the route builder's point-to-camp assignments rather
 than recalculating geometry in the report. This keeps Python, DataFrame, and
 HTML behavior aligned.
 
-## Compatibility and next work
+## Calibration
 
-The older `build_map_context_timeline(...)`, `score_camp_visit_context(...)`
-and `CampVisitContext` API, and the segment context and tags, are deprecated in
-gem 0.12 and removed in 0.13. They still work and warn when used.
-
-There is deliberately no one-to-one label migration:
-
-| Legacy label family | New evidence-first interpretation |
-|---|---|
-| `Safe Home Farm` | `own_side` plus separate route strength and raw context; no replacement tag claims safety |
-| `Cautious Home Farm` / `Forced Home Farm` | `own_side` may compose with `high_enemy_presence`, `vision_disadvantage`, `tower_disadvantage`, `enemy_aegis_active`, or `incomplete_context`; gem no longer infers that the player was forced |
-| `Safe Invade` | `enemy_side` may compose with `territorial_advance`; neither tag claims the route was safe or correct |
-| `Contested Invade` / `High-Risk Invade` | `enemy_side` plus whichever comparative disadvantage tags are actually supported; no aggregate risk grade is substituted |
-
-Consumers that still require the six exclusive labels must call the legacy
-scorer explicitly during its compatibility period. Existing legacy fields keep
-their old semantics; they are not silently populated with new tag values.
-
-Calibration records factual evidence distributions and threshold sensitivity,
-not subjective judgments about whether a route was strategically correct. See
-[Farming Context Calibration](./farming-patterns-calibration.md).
+The farming-route corpus records factual counts per fixture replay (segments,
+points, evidence strength, phase, camp area) so that a change to route
+reconstruction shows up as a difference. It makes no judgment about whether a
+route was strategically correct. See
+[Farming Route Calibration](./farming-patterns-calibration.md).
 
 ## Source map
 
 - `src/gem/analysis/farming.py`
-- `src/gem/analysis/farming_context.py`
-- `src/gem/analysis/map_context.py`
 - `src/gem/data/camp_zones.json`
 - `src/gem/results/dataframes.py`
 - `src/gem/reports/sections/vision.py`

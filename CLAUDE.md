@@ -100,10 +100,8 @@ analysis/regions.py       ← map regions: region_of / MAP_REGIONS (river, halve
 analysis/combat.py        ← ability-hit grouping, fight lookup and regrouping (find_fights)
 analysis/abilities.py     ← ability-level lookup helpers
 analysis/vision.py        ← geometry-based vision approximation helpers
-analysis/farming.py       ← evidence-first camp-route reconstruction + public context records
-analysis/farming_context.py ← comparative presence/vision/topology/objective context tags
-analysis/map_context.py   ← deprecated (0.12, removed 0.13): legacy farming-context API
-analysis/roshan.py        ← post-parse Roshan conversion records (did a Rosh convert to a win?)
+analysis/farming.py       ← evidence-first camp-route reconstruction (segments, camp facts)
+analysis/roshan.py        ← post-parse Roshan records: the kill, Aegis lifecycle and window facts
 analysis/smoke.py         ← evidence-first Smoke of Deceit lifecycle analysis
 replays/batch.py          ← bulk replay parsing (parse_many, parallel workers)
 replays/fetch.py          ← download + decompress replays from OpenDota/Valve CDN
@@ -190,31 +188,24 @@ Headline exports (see `__all__` for the full list):
 - **Analysis helpers (post-parse):** `find_player`, `position_at_tick`,
   `net_worth_at`, `fight_at_tick`, `find_fights`, `heroes_near`,
   `ability_level_at_tick`, `is_active_fight_participant`, `ward_vision_impact`,
-  `region_of` / `MAP_REGIONS` (map regions); `estimate_vision` is deprecated
+  `region_of` / `MAP_REGIONS` (map regions), `assess_point_vision`
 - **Fights vs teamfights:** `ParsedMatch.fights` is gem's own list of every
   fight (users filter or regroup it); "teamfight" names are reserved for
   OpenDota's definition (`opendota_teamfights`, `teamfight_participation`).
   The gem 0.10 `teamfights` names are deprecated aliases (`gem/_deprecation.py`).
-- **Experimental:** `build_farming_routes`, `FarmingRoute`,
-  `FarmingSegmentContext`, `build_rosh_conversions`,
+- **Experimental:** `build_farming_routes`, `FarmingRoute`, `build_rosh_conversions`,
   `RoshConversion`, `build_smoke_analysis`, `SmokeAnalysis`; `analyze` runs
   them all and returns a `MatchAnalysis`
-- **Deprecations (HY-96):** gem presents facts; interpretation is leaving the
-  library. Names deprecated in 0.12 are removed in 0.13. They warn through
-  `gem/_deprecation.py` (`deprecated` for functions, `deprecated_module_attrs`
-  for module names, `warn_deprecated`), and are served from `gem` and
-  `gem.analysis` but are no longer in `__all__`. So far: the `map_context` API,
-  `estimate_vision`, the farming segment context (`FarmingSegmentContext`,
-  `FarmingContextTag`, `FarmingContextConfig`, `context_config=`), and
-  `build_smoke_fight_insights` with its types (use `SmokeAnalysis.first_fight`),
-  and the Roshan conversion tags, verdicts (`aegis_outcome`, `drivers`,
-  `conversion_score` / `_label`) and territory (`RoshTagThresholds`,
-  `RoshTerritory*`, `tag_thresholds=` / `territory_config=`).
-  gem's own `analyze()`, report and DataFrames keep using them silently until
-  0.13 by importing from the defining submodules. Deprecated dataclass fields
-  use `deprecated_field` (warns on read; keep it out of `repr`/`==`), and gem's
-  own code reads them with `read_quietly`. Don't add new tags, scores or
-  verdicts.
+- **Facts, not interpretation (HY-96):** gem presents facts. 0.12 deprecated the
+  interpretation layer and 0.13 removed it: the `map_context` API,
+  `estimate_vision`, the farming segment context, the smoke-fight insights
+  (use `SmokeAnalysis.first_fight`), and the Roshan tags, verdicts and territory.
+  Don't add new tags, scores or verdicts; answer questions in the cookbook
+  recipes (`examples/cookbook/`) instead. `gem/_deprecation.py` keeps the helpers
+  for future deprecations: `deprecated` for functions, `deprecated_module_attrs`
+  for module names, `deprecated_field` for dataclass fields (warns on read; keep
+  it out of `repr`/`==`; gem's own code reads it with `read_quietly`), and
+  `warn_deprecated`.
 - **Replay fetch:** `fetch_replay`, `fetch_replay_url`, `download_and_decompress`
 - **Catalog/constants:** `catalog` (grouped lookup modules) and `constants`
   (compatibility namespace of hero/item/ability lookups)
@@ -303,8 +294,8 @@ Canonical hero visibility and arbitrary map-point coverage are different APIs.
 Use `hero_visibility_at(...)` for replay-authoritative visible/hidden/unknown
 state on a canonical player hero. Use `assess_point_vision(...)` for bounded
 hero/observer geometry with explicit supported/unsupported/incomplete status,
-sample provenance, and evidence gaps. `estimate_vision(...)` is the compatibility
-list view and cannot explain a negative result.
+sample provenance, and evidence gaps; its `.sources` list is the modelled
+geometry alone (gem 0.13 removed the old `estimate_vision` list view).
 
 Never present absent modelled point sources as proof of fog. Direct-target
 modifiers such as Track and Corrosive Haze apply to their target only; they are
@@ -367,7 +358,7 @@ constants; new tiers/IDs are covered by `test_audit_opendota_fixture_constants.p
 
 ### Camp zones & nearby-gold attribution
 
-Neutral-camp analysis lives in `analysis/map_context.py` and `analysis/farming.py` plus
+Neutral-camp analysis lives in `analysis/farming.py` plus
 the bundled data assets `src/gem/data/camp_zones.json` and `map_constants.json`.
 `camp_zones.json` is the one camp catalog (`load_neutral_camps()` is a flat view of
 it): each camp's centre (its `CDOTA_NeutralSpawner`), type, owner team and ellipse
@@ -392,9 +383,10 @@ Audit tooling: `scripts/audit_camp_annotations.py`.
 
 `analysis/roshan.py` (`build_rosh_conversions(match)`) is a **post-parse** helper
 that turns existing facts (Roshan kills, aegis events, fights, wards,
-objectives, buybacks, movement) into per-Roshan `RoshConversion` records: the
-Aegis lifecycle and what happened in the window that followed. Its tags, verdicts
-and territory fields are deprecated in 0.12 (HY-99) and removed in 0.13. Key time windows (all in ticks at 30/sec): aegis duration 5 min,
+objectives, buybacks) into per-Roshan `RoshConversion` records: the Aegis
+lifecycle and what happened in the window that followed. Its tags, verdicts and
+territory fields were removed in 0.13 (HY-99, HY-103). Key time windows (all in
+ticks at 30/sec): aegis duration 5 min,
 immediate-outcome window 180 s, event-association window 30 s. It reads only
 `ParsedMatch`, so it needs no parser changes to extend.
 
@@ -594,7 +586,7 @@ state rather than trusting a static table here.
 module or subsystem. Low-level binary tests are grouped under `tests/binary/`
 (e.g. `tests/binary/test_reader.py` → `binary/reader.py`), while broader
 subsystems stay flat when that is the established pattern (e.g.
-`test_wards_extractor.py` → `extractors/wards.py`). Newer additions cover `analysis/map_context.py`,
+`test_wards_extractor.py` → `extractors/wards.py`). Newer additions cover
 `analysis/roshan.py`, neutral-item parsing, camp zones, and the audit/fetch
 scripts (`test_audit_camp_annotations.py`, `test_audit_opendota_fixture_constants.py`,
 `test_fetch_opendota_fixture.py`, `test_fetch_icons.py`, `test_render_camp_zones_overlay.py`).

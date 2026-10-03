@@ -1,11 +1,14 @@
-"""Summarize evidence-first farming context across locally synced replays.
+"""Summarize farming routes across locally synced replays as a regression corpus.
 
-The command is intentionally descriptive: it records observed evidence,
-completeness, and tag sensitivity without assigning subjective strategy labels.
+Records factual route counts (segments, points, evidence strength, phase, camp
+area, lane roles) per replay, so a change to route reconstruction shows up as a
+corpus difference.
 
 Examples:
-    uv run python scripts/calibrate_farming_context.py tests/fixtures/opendota/8868259993.dem
-    uv run python scripts/calibrate_farming_context.py tests/fixtures/opendota/*.dem --pretty
+    uv run python scripts/audit_farming_routes.py tests/fixtures/opendota/8868259993.dem
+    uv run python scripts/audit_farming_routes.py tests/fixtures/opendota/*.dem --pretty
+    uv run python scripts/audit_farming_routes.py tests/fixtures/opendota/*.dem \
+        --check tests/fixtures/opendota/farming_routes_corpus.json
 """
 
 from __future__ import annotations
@@ -17,7 +20,6 @@ from pathlib import Path
 from typing import Any
 
 import gem
-from gem._deprecation import read_quietly
 from gem.analysis import build_farming_routes
 
 TICKS_PER_MINUTE = 60 * 30
@@ -33,13 +35,9 @@ def _phase(tick: int, game_start_tick: int | None) -> str:
 
 
 def summarize_match(match: Any) -> dict[str, Any]:
-    """Return deterministic factual farming-context counts for one parsed match."""
+    """Return deterministic factual farming-route counts for one parsed match."""
     routes = build_farming_routes(match)
     segments = [segment for route in routes for segment in route.segments]
-    # read_quietly: the segment context is deprecated (HY-100), but this corpus still records it.
-    contexts = [
-        context for segment in segments if (context := read_quietly(segment, "context")) is not None
-    ]
     return {
         "match_id": int(match.match_id),
         "game_start_tick": match.game_start_tick,
@@ -49,12 +47,6 @@ def summarize_match(match: Any) -> dict[str, Any]:
         "point_count": sum(len(route.points) for route in routes),
         "evidence_strength_counts": dict(
             sorted(Counter(segment.evidence_strength.value for segment in segments).items())
-        ),
-        "context_status_counts": dict(
-            sorted(Counter(context.status for context in contexts).items())
-        ),
-        "context_tag_counts": dict(
-            sorted(Counter(tag.value for context in contexts for tag in context.tags).items())
         ),
         "phase_counts": dict(
             sorted(
@@ -72,11 +64,6 @@ def summarize_match(match: Any) -> dict[str, Any]:
         ),
         "lane_role_counts": dict(
             sorted(Counter(str(player.lane_role) for player in match.players).items())
-        ),
-        "context_gap_counts": dict(
-            sorted(
-                Counter(reason for context in contexts for reason in context.status_reasons).items()
-            )
         ),
     }
 
@@ -106,8 +93,8 @@ def main() -> int:
     if args.check is not None:
         expected = json.loads(args.check.read_text(encoding="utf-8"))
         if expected.get("matches") != summaries:
-            raise SystemExit(f"farming-context corpus mismatch: {args.check}")
-        print(f"farming-context corpus matches {args.check}")
+            raise SystemExit(f"farming-route corpus mismatch: {args.check}")
+        print(f"farming-route corpus matches {args.check}")
         if args.output is None:
             return 0
     if args.output is not None:

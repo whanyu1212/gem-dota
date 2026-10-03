@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "purpose": "Factual real-replay Roshan attribution, lifecycle, boundary, fight-association, and evidence-availability checks. Tags are observations for calibration, not strategic ground truth.",
+  "purpose": "Factual real-replay Roshan attribution, lifecycle, boundary, fight-association, and evidence-availability checks.",
   "coverage": {
     "real_replay": [
       "no Roshan in a short match",
@@ -13,7 +13,6 @@
       "Aegis still held when the game ends",
       "consecutive bounded Roshan windows",
       "fight already underway at acquisition",
-      "counter-conversion tag observation",
       "game-closing window",
       "complete and partial economy evidence"
     ],
@@ -23,13 +22,11 @@
       "unknown structure and Tormentor killer",
       "allied tower and barracks denies",
       "summon/source-name attribution",
-      "game-closing window",
-      "threshold boundaries"
+      "game-closing window"
     ],
     "not_observed_in_local_real_replays": [
       "authoritative Aegis transfer or drop signal",
-      "real structure deny with protocol team retained",
-      "no-tag/non-converting window"
+      "real structure deny with protocol team retained"
     ]
   },
   "matches": [
@@ -40,8 +37,7 @@
         "match_id": 8868259993,
         "roshan_count": 0,
         "conversions": []
-      },
-      "calibration_observations": []
+      }
     },
     {
       "match_id": 8860187335,
@@ -89,24 +85,6 @@
           "next_roshan_boundary_tick": 111131,
           "analysis_status_reasons": []
         }
-      ],
-      "calibration_observations": [
-        {
-          "rosh_number": 1,
-          "tags": [
-            "tormentor_secured",
-            "counter_conversion"
-          ]
-        },
-        {
-          "rosh_number": 3,
-          "tags": [
-            "fight_advantage",
-            "objective_gain",
-            "resource_gain",
-            "game_closing"
-          ]
-        }
       ]
     },
     {
@@ -125,17 +103,6 @@
           "aegis_fate_source": "holder_death_inference",
           "analysis_status": "complete",
           "analysis_status_reasons": []
-        }
-      ],
-      "calibration_observations": [
-        {
-          "rosh_number": 3,
-          "tags": [
-            "fight_advantage",
-            "objective_gain",
-            "resource_gain",
-            "game_closing"
-          ]
         }
       ]
     },
@@ -172,21 +139,6 @@
             "xp_series_unavailable"
           ]
         }
-      ],
-      "calibration_observations": [
-        {
-          "rosh_number": 6,
-          "tags": [
-            "counter_conversion"
-          ]
-        },
-        {
-          "rosh_number": 7,
-          "tags": [
-            "objective_gain",
-            "game_closing"
-          ]
-        }
       ]
     },
     {
@@ -212,14 +164,6 @@
           "analysis_status_reasons": [
             "net_worth_series_unavailable",
             "xp_series_unavailable"
-          ]
-        }
-      ],
-      "calibration_observations": [
-        {
-          "rosh_number": 3,
-          "tags": [
-            "game_closing"
           ]
         }
       ]
@@ -261,17 +205,6 @@
           "aegis_fate_source": "holder_death_inference",
           "aegis_fate_inferred": true,
           "analysis_status": "complete"
-        }
-      ],
-      "calibration_observations": [
-        {
-          "rosh_number": 1,
-          "tags": [
-            "fight_advantage",
-            "objective_gain",
-            "resource_gain",
-            "vision_expansion"
-          ]
         }
       ]
     }

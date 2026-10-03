@@ -5,7 +5,6 @@ from __future__ import annotations
 import pytest
 
 from gem.analysis.smoke import SmokeLifecycleStatus, build_smoke_analysis
-from gem.analysis.smoke_fight import SmokeFightStatus, build_smoke_fight_insights
 from gem.results.models import ParsedMatch, VisibilityState
 
 
@@ -44,25 +43,13 @@ def test_canonical_replay_preserves_smoke_lifecycles(
     assert any(member.visibility_at_remove is VisibilityState.HIDDEN for member in early)
     assert any(member.visibility_at_remove is VisibilityState.VISIBLE for member in early)
 
-    insights = build_smoke_fight_insights(match)
-    assert [insight.status for insight in insights] == [
-        SmokeFightStatus.LINKED,
-        SmokeFightStatus.PREEXISTING,
-        SmokeFightStatus.LINKED,
-        SmokeFightStatus.TEMPORAL_ONLY,
-        SmokeFightStatus.LINKED,
-    ]
-
-    first_link = insights[0]
-    assert first_link.smoke_index == 0
-    assert first_link.fight_index == 0
-    assert first_link.activation.tick == match.smoke_events[0].tick == 19_204
-    assert first_link.first_death is not None
-    assert first_link.first_death.tick == match.fights[0].first_death_tick == 21_002
-    assert len(first_link.active_smoked_player_ids) == 5
-    assert len(first_link.follow_ups) == 1
-
-    for insight in insights:
-        assert insight.activation.tick == match.smoke_events[insight.smoke_index].tick
-        if insight.fight_index is not None and insight.first_death is not None:
-            assert insight.first_death.tick == match.fights[insight.fight_index].first_death_tick
+    # Each smoke's first fight: the first fight whose first death came within
+    # 60 in-game seconds of activation. Two Dire smokes share fight 8.
+    fight_numbers = {id(fight): index for index, fight in enumerate(match.fights)}
+    assert [
+        fight_numbers[id(analysis.first_fight)] if analysis.first_fight else None
+        for analysis in analyses
+    ] == [0, 8, 8, 10]
+    assert analyses[0].activation_tick == match.smoke_events[0].tick == 19_204
+    assert analyses[0].first_fight is match.fights[0]
+    assert match.fights[0].first_death_tick == 21_002

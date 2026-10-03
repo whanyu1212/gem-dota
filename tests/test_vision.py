@@ -9,9 +9,9 @@ import pytest
 
 import gem
 from gem.analysis import (
+    PointVisionSource,
     PointVisionStatus,
     assess_point_vision,
-    estimate_vision,
     is_daytime,
 )
 from gem.extractors.wards import WardEvent
@@ -25,10 +25,13 @@ from gem.results.models import (
     VisionModifierSemantic,
 )
 
-# estimate_vision is deprecated (HY-98); these tests keep its behaviour pinned until 0.13.
-pytestmark = pytest.mark.filterwarnings(
-    "ignore:gem.estimate_vision is deprecated:DeprecationWarning"
-)
+
+def point_sources(
+    match: object, team: int, tick: int, x: float, y: float, **kwargs: int
+) -> list[PointVisionSource]:
+    """The modelled sources covering a point (what ``estimate_vision`` returned before 0.13)."""
+    return assess_point_vision(match, team, tick, x, y, **kwargs).sources
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -186,19 +189,19 @@ class TestIsDaytime:
 
 
 # ---------------------------------------------------------------------------
-# estimate_vision — hero vision
+# point sources — hero vision
 # ---------------------------------------------------------------------------
 
 
-class TestEstimateVisionHero:
+class TestPointSourcesHero:
     def test_no_players_no_vision(self) -> None:
         match = _match([], [])
-        assert estimate_vision(match, 2, _DAY_TICK, 0.0, 0.0) == []
+        assert point_sources(match, 2, _DAY_TICK, 0.0, 0.0) == []
 
     def test_allied_hero_within_day_range(self) -> None:
         p = _player(2, [(_DAY_TICK, 0.0, 0.0)])
         match = _match([p], [])
-        result = estimate_vision(match, 2, _DAY_TICK, 1000.0, 0.0)
+        result = point_sources(match, 2, _DAY_TICK, 1000.0, 0.0)
         assert len(result) == 1
         assert result[0].kind == "hero"
         assert result[0].vision_radius == _DAY_VISION
@@ -209,7 +212,7 @@ class TestEstimateVisionHero:
     def test_allied_hero_outside_day_range(self) -> None:
         p = _player(2, [(_DAY_TICK, 0.0, 0.0)])
         match = _match([p], [])
-        result = estimate_vision(match, 2, _DAY_TICK, 2000.0, 0.0)
+        result = point_sources(match, 2, _DAY_TICK, 2000.0, 0.0)
         assert result == []
 
     def test_night_uses_reduced_radius(self) -> None:
@@ -217,131 +220,131 @@ class TestEstimateVisionHero:
         p = _player(2, [(_DAY_TICK, 0.0, 0.0), (_NIGHT_TICK, 0.0, 0.0)])
         match = _match([p], [], game_start_tick=0)
         # Day: 1000 < 1800 → vision
-        result_day = estimate_vision(match, 2, _DAY_TICK, 1000.0, 0.0)
+        result_day = point_sources(match, 2, _DAY_TICK, 1000.0, 0.0)
         assert len(result_day) == 1
         assert result_day[0].vision_radius == _DAY_VISION
         # Night: 1000 > 800 → no vision
-        result_night = estimate_vision(match, 2, _NIGHT_TICK, 1000.0, 0.0)
+        result_night = point_sources(match, 2, _NIGHT_TICK, 1000.0, 0.0)
         assert result_night == []
 
     def test_enemy_hero_not_counted(self) -> None:
         p = _player(3, [(_DAY_TICK, 0.0, 0.0)])  # team 3 = Dire
         match = _match([p], [])
-        result = estimate_vision(match, 2, _DAY_TICK, 0.0, 0.0)  # ask for Radiant vision
+        result = point_sources(match, 2, _DAY_TICK, 0.0, 0.0)  # ask for Radiant vision
         assert result == []
 
     def test_hero_exactly_at_range_boundary(self) -> None:
         p = _player(2, [(_DAY_TICK, 0.0, 0.0)])
         match = _match([p], [])
-        result = estimate_vision(match, 2, _DAY_TICK, float(_DAY_VISION), 0.0)
+        result = point_sources(match, 2, _DAY_TICK, float(_DAY_VISION), 0.0)
         assert len(result) == 1
 
     def test_hero_one_unit_beyond_range(self) -> None:
         p = _player(2, [(_DAY_TICK, 0.0, 0.0)])
         match = _match([p], [])
-        result = estimate_vision(match, 2, _DAY_TICK, float(_DAY_VISION + 1), 0.0)
+        result = point_sources(match, 2, _DAY_TICK, float(_DAY_VISION + 1), 0.0)
         assert result == []
 
     def test_multiple_heroes_sorted_by_distance(self) -> None:
         p_far = _player(2, [(_DAY_TICK, 1500.0, 0.0)])
         p_near = _player(2, [(_DAY_TICK, 100.0, 0.0)])
         match = _match([p_far, p_near], [])
-        result = estimate_vision(match, 2, _DAY_TICK, 0.0, 0.0)
+        result = point_sources(match, 2, _DAY_TICK, 0.0, 0.0)
         assert len(result) == 2
         assert result[0].distance < result[1].distance
 
     def test_hero_with_no_position_log_excluded(self) -> None:
         p = _player(2, [])
         match = _match([p], [])
-        result = estimate_vision(match, 2, _DAY_TICK, 0.0, 0.0)
+        result = point_sources(match, 2, _DAY_TICK, 0.0, 0.0)
         assert result == []
 
 
 # ---------------------------------------------------------------------------
-# estimate_vision — ward vision
+# point sources — ward vision
 # ---------------------------------------------------------------------------
 
 
-class TestEstimateVisionWard:
+class TestPointSourcesWard:
     def test_live_observer_ward_provides_vision(self) -> None:
         w = _ward(team=2, x=0.0, y=0.0, tick=0)
         match = _match([], [w])
-        result = estimate_vision(match, 2, _DAY_TICK, 1000.0, 0.0)
+        result = point_sources(match, 2, _DAY_TICK, 1000.0, 0.0)
         assert len(result) == 1
-        assert result[0].kind == "ward"
+        assert result[0].kind == "observer_ward"
         assert result[0].name == "observer_ward"
         assert result[0].vision_radius == _WARD_VISION
 
     def test_ward_not_yet_placed(self) -> None:
         w = _ward(team=2, x=0.0, y=0.0, tick=_DAY_TICK + 100)
         match = _match([], [w])
-        result = estimate_vision(match, 2, _DAY_TICK, 0.0, 0.0)
+        result = point_sources(match, 2, _DAY_TICK, 0.0, 0.0)
         assert result == []
 
     def test_ward_already_killed(self) -> None:
         w = _ward(team=2, x=0.0, y=0.0, tick=0, killed_tick=_DAY_TICK - 1)
         match = _match([], [w])
-        result = estimate_vision(match, 2, _DAY_TICK, 0.0, 0.0)
+        result = point_sources(match, 2, _DAY_TICK, 0.0, 0.0)
         assert result == []
 
     def test_ward_already_expired(self) -> None:
         w = _ward(team=2, x=0.0, y=0.0, tick=0, expires_tick=_DAY_TICK - 1)
         match = _match([], [w])
-        result = estimate_vision(match, 2, _DAY_TICK, 0.0, 0.0)
+        result = point_sources(match, 2, _DAY_TICK, 0.0, 0.0)
         assert result == []
 
     def test_sentry_ward_does_not_count(self) -> None:
         w = _ward(team=2, x=0.0, y=0.0, tick=0, ward_type="sentry")
         match = _match([], [w])
-        result = estimate_vision(match, 2, _DAY_TICK, 0.0, 0.0)
+        result = point_sources(match, 2, _DAY_TICK, 0.0, 0.0)
         assert result == []
 
     def test_enemy_ward_does_not_count(self) -> None:
         w = _ward(team=3, x=0.0, y=0.0, tick=0)
         match = _match([], [w])
-        result = estimate_vision(match, 2, _DAY_TICK, 0.0, 0.0)
+        result = point_sources(match, 2, _DAY_TICK, 0.0, 0.0)
         assert result == []
 
     def test_ward_outside_vision_radius(self) -> None:
         w = _ward(team=2, x=0.0, y=0.0, tick=0)
         match = _match([], [w])
-        result = estimate_vision(match, 2, _DAY_TICK, float(_WARD_VISION + 1), 0.0)
+        result = point_sources(match, 2, _DAY_TICK, float(_WARD_VISION + 1), 0.0)
         assert result == []
 
     def test_ward_with_no_coordinates_excluded(self) -> None:
         w = _ward(team=2, x=None, y=None, tick=0)
         match = _match([], [w])
-        result = estimate_vision(match, 2, _DAY_TICK, 0.0, 0.0)
+        result = point_sources(match, 2, _DAY_TICK, 0.0, 0.0)
         assert result == []
 
     def test_ward_still_alive_at_query_tick(self) -> None:
         # Killed tick is in the future — ward still alive
         w = _ward(team=2, x=0.0, y=0.0, tick=0, killed_tick=_DAY_TICK + 100)
         match = _match([], [w])
-        result = estimate_vision(match, 2, _DAY_TICK, 0.0, 0.0)
+        result = point_sources(match, 2, _DAY_TICK, 0.0, 0.0)
         assert len(result) == 1
 
 
 # ---------------------------------------------------------------------------
-# estimate_vision — combined hero + ward, result ordering
+# point sources — combined hero + ward, result ordering
 # ---------------------------------------------------------------------------
 
 
-class TestEstimateVisionCombined:
+class TestPointSourcesCombined:
     def test_hero_and_ward_both_returned(self) -> None:
         p = _player(2, [(_DAY_TICK, 500.0, 0.0)])
         w = _ward(team=2, x=200.0, y=0.0, tick=0)
         match = _match([p], [w])
-        result = estimate_vision(match, 2, _DAY_TICK, 0.0, 0.0)
+        result = point_sources(match, 2, _DAY_TICK, 0.0, 0.0)
         kinds = {s.kind for s in result}
         assert "hero" in kinds
-        assert "ward" in kinds
+        assert "observer_ward" in kinds
 
     def test_result_sorted_by_distance(self) -> None:
         p = _player(2, [(_DAY_TICK, 1000.0, 0.0)])
         w = _ward(team=2, x=300.0, y=0.0, tick=0)
         match = _match([p], [w])
-        result = estimate_vision(match, 2, _DAY_TICK, 0.0, 0.0)
+        result = point_sources(match, 2, _DAY_TICK, 0.0, 0.0)
         assert result[0].distance <= result[1].distance
 
     def test_empty_result_means_no_vision(self) -> None:
@@ -349,16 +352,16 @@ class TestEstimateVisionCombined:
         p = _player(2, [(_DAY_TICK, 9000.0, 0.0)])
         w = _ward(team=2, x=8000.0, y=0.0, tick=0)
         match = _match([p], [w])
-        result = estimate_vision(match, 2, _DAY_TICK, 0.0, 0.0)
+        result = point_sources(match, 2, _DAY_TICK, 0.0, 0.0)
         assert result == []
 
 
 # ---------------------------------------------------------------------------
-# Direct-target reveals stay separate from estimate_vision geometry
+# Direct-target reveals stay separate from point-source geometry
 # ---------------------------------------------------------------------------
 
 
-class TestEstimateVisionModifier:
+class TestPointSourcesModifier:
     def test_active_modifier_reveals_enemy_hero(self) -> None:
         # Slardar on Radiant (team=2) applied Corrosive Haze to Dire hero at (500, 0).
         # Query is at (500, 0) — the revealed hero's position.
@@ -371,7 +374,7 @@ class TestEstimateVisionModifier:
             tick=0,
         )
         match = _match([revealed], [], vision_modifiers=[mod])
-        assert estimate_vision(match, 2, _DAY_TICK, 500.0, 0.0) == []
+        assert point_sources(match, 2, _DAY_TICK, 500.0, 0.0) == []
 
         assessment = assess_point_vision(
             match,
@@ -397,7 +400,7 @@ class TestEstimateVisionModifier:
             tick=_DAY_TICK + 1,  # applied in the future
         )
         match = _match([revealed], [], vision_modifiers=[mod])
-        result = estimate_vision(match, 2, _DAY_TICK, 0.0, 0.0)
+        result = point_sources(match, 2, _DAY_TICK, 0.0, 0.0)
         assert result == []
 
     def test_modifier_already_removed(self) -> None:
@@ -411,7 +414,7 @@ class TestEstimateVisionModifier:
             end_tick=_DAY_TICK - 1,  # expired before query
         )
         match = _match([revealed], [], vision_modifiers=[mod])
-        result = estimate_vision(match, 2, _DAY_TICK, 0.0, 0.0)
+        result = point_sources(match, 2, _DAY_TICK, 0.0, 0.0)
         assert result == []
 
     def test_modifier_from_wrong_team_ignored(self) -> None:
@@ -424,7 +427,7 @@ class TestEstimateVisionModifier:
             caster_team=3,  # Dire caster
         )
         match = _match([revealed], [], vision_modifiers=[mod])
-        result = estimate_vision(match, 2, _DAY_TICK, 0.0, 0.0)
+        result = point_sources(match, 2, _DAY_TICK, 0.0, 0.0)
         # Radiant should not see a VisionSource from Dire's tracker
         assert not any(s.kind == "modifier" for s in result)
 
@@ -459,7 +462,7 @@ class TestEstimateVisionModifier:
             caster_team=2,
         )
         match = _match([], [], vision_modifiers=[mod])
-        result = estimate_vision(match, 2, _DAY_TICK, 0.0, 0.0)
+        result = point_sources(match, 2, _DAY_TICK, 0.0, 0.0)
         assert result == []
 
     def test_gem_carrier_is_not_treated_as_direct_reveal(self) -> None:
@@ -472,7 +475,7 @@ class TestEstimateVisionModifier:
             semantic=VisionModifierSemantic.AURA_CARRIER,
         )
         match = _match([revealed], [], vision_modifiers=[mod])
-        result = estimate_vision(match, 2, _DAY_TICK, 0.0, 0.0)
+        result = point_sources(match, 2, _DAY_TICK, 0.0, 0.0)
         assert result == []
 
     def test_unbounded_open_modifier_is_not_active_forever(self) -> None:
@@ -487,7 +490,7 @@ class TestEstimateVisionModifier:
         )
 
         assert (
-            estimate_vision(
+            point_sources(
                 _match([revealed], [], vision_modifiers=[mod]),
                 2,
                 _DAY_TICK,
@@ -514,7 +517,7 @@ class TestEstimateVisionModifier:
         illusion = _mod(**common, target_is_illusion=True)
 
         match = _match([revealed], [], vision_modifiers=[incomplete, nonhero, illusion])
-        assert estimate_vision(match, 2, _DAY_TICK, 0.0, 0.0) == []
+        assert point_sources(match, 2, _DAY_TICK, 0.0, 0.0) == []
 
 
 # ---------------------------------------------------------------------------

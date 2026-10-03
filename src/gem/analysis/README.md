@@ -3,7 +3,7 @@
 `gem.analysis` is the post-parse query layer of the replay parser. Every helper
 here takes a finished `ParsedMatch` (or one of its parts) and answers a question
 *about* a parsed game — "where was this hero at that tick?", "did the team have
-vision of the cliff?", "what did this Roshan convert into?" — without ever
+vision of the cliff?", "what happened in the window after this Roshan?" — without ever
 touching the binary stream, schema, or `ReplayParser`. It is the only package
 whose functions are designed to be called *after* parsing is complete, by a
 notebook, report, or downstream ML pipeline.
@@ -12,10 +12,11 @@ The package divides into two halves:
 
 - **Cheap lookups** (`spatial.py`, `combat.py`, `abilities.py`, `formatting.py`)
   — near-instant point queries over already-collected fact lists.
-- **Heavy, experimental builders** (`farming.py`, `map_context.py`, `roshan.py`,
-  `smoke_fight.py`, `fight_positioning.py`) — multi-pass
-  scans that synthesise new derived records (context buckets, Roshan-conversion
-  summaries) from many fact sources at once.
+- **Heavy, experimental builders** (`farming.py`, `roshan.py`, `smoke.py`,
+  `fight_positioning.py`) — multi-pass scans that join many fact sources into
+  new records (camp routes, Roshan windows, smoke lifecycles). They report facts;
+  gem 0.13 removed the tags, scores and territory estimates that used to sit on
+  top of them (HY-96).
 
 A vision sub-area (`vision.py`) sits between the two and is explicitly an
 **approximation**, not a replay-accurate measurement.
@@ -38,16 +39,14 @@ ReplayParser  ──parse──▶  ParsedMatch
                   │                                   │
           cheap point lookups               heavy derived builders
    position_at_tick / heroes_near /     build_farming_routes /
-   net_worth_at / fight_at_tick /   build_map_context_timeline /
-   group_ability_hits / ability_        build_fight_positioning /
-   level_at_tick / assess_point_vision  build_rosh_conversions /
-                                         build_smoke_fight_insights
-                                             │
-                                                  ▼
-                  │                     new dataclasses
-                  ▼                     (MapContextBucket,
-          tuples / lists /              CampVisitContext,
-          small dataclasses             RoshConversion, ...)
+   net_worth_at / fight_at_tick /       build_fight_positioning /
+   group_ability_hits / ability_        build_rosh_conversions /
+   level_at_tick / assess_point_vision  build_smoke_analysis
+                  │                                   │
+                  ▼                                   ▼
+          tuples / lists /              new dataclasses
+          small dataclasses             (FarmingRoute, RoshConversion,
+                                         SmokeAnalysis, ...)
 ```
 
 Because the input is already a plain Python object graph, these helpers need no
@@ -135,11 +134,6 @@ that the results are heuristics with no terrain/high-ground modelling.
   canonical-target visibility plus bounded direct-target reveals as separate
   evidence. Hero radius is day/night-adjusted (`_DAY_VISION = 1800` /
   `_NIGHT_VISION = 800`); observer wards use `_WARD_VISION = 1600`.
-- `estimate_vision(match, team, tick, x, y)` (deprecated in 0.12, removed in 0.13) is the compatibility list view over
-  the same bounded hero/observer geometry. Its empty list cannot distinguish
-  unsupported from incomplete evidence, so negative conclusions should use the
-  assessment API. Direct-target modifiers are target evidence, not arbitrary
-  point sources.
 - `ward_vision_impact(ward, match)` counts *distinct* enemy heroes whose
   `position_log` samples ever fell inside the ward's 1600-unit radius during its
   alive window (squared-distance check against `_WARD_VISION_RADIUS_SQ`, one
@@ -147,16 +141,11 @@ that the results are heuristics with no terrain/high-ground modelling.
   coordinates. The docstring flags it as approximate: ~5 s sampling gaps, flat 2D
   radius (no terrain), and day-vision radius always used.
 
-## Heavy Builders — Experimental (`farming.py`, `farming_context.py`, `map_context.py`, `roshan.py`)
+## Heavy Builders — Experimental (`farming.py`, `roshan.py`)
 
-Deprecated in 0.12, removed in 0.13 (HY-96): the farming segment context
-(`farming_context.py`, `FarmingSegmentContext` and its tags), `map_context.py`,
-and `smoke_fight.py` (use `SmokeAnalysis.first_fight`). gem's own callers import
-them from the defining submodules, so `analyze()` and the report stay silent.
-
-These are multi-pass scans that emit *new* derived dataclasses. They are the
-experimental, opinionated end of the package (scoring weights and thresholds are
-hand-tuned, not ground truth).
+These are multi-pass scans that emit *new* derived dataclasses. Their window
+boundaries and evidence categories are documented analytical choices, not
+ground truth.
 
 ### Farming routes (`farming.py`)
 
@@ -174,41 +163,11 @@ hand-tuned, not ground truth).
   support strength only; they do not assert player intent or a complete clear.
   Resource changes remain visible but do not promote a brief touch by
   themselves, because they may be passive or earned away from the camp.
-- Every segment also carries explicit camp topology, contiguous distance, and
-  a `FarmingSegmentContext`. The context compares bounded local hero-seconds,
-  modeled observer coverage, lane-affiliated tower state, fresh team economy,
-  hardened Aegis/Roshan/Tormentor provenance, and paired territory evidence.
-  Independent `FarmingContextTag` values never replace the underlying facts;
-  incomplete dimensions stay `None` and add stable gap codes.
+- Every segment also carries its camp's owner, lane and area, the catalog
+  versions, and the contiguous distance travelled.
 - The same public records feed the opt-in (`include=["analysis"]`)
   `farming_routes`, `farming_route_segments`, and `farming_route_points`
-  DataFrames, the normalized `farming_context_tags` table, and the Farming
-  report tab.
-
-### Map context (`map_context.py`)
-
-Deprecated in 0.12 and removed in 0.13 (HY-96): every public name warns. Nothing
-in gem uses it; the facts it combines stay available on `ParsedMatch`.
-
-- `build_map_context_timeline(match, team, bucket_ticks=900, presence_window_ticks=2700)`
-  sweeps the game in fixed-width buckets (default 30 s) and, for each, emits a
-  `MapContextBucket` with tower-alive counts, T1-mid state, last Roshan/Tormentor
-  kill ticks, aegis-holder state, per-team observer counts, net-worth/XP
-  advantage, and decayed enemy presence per region. It maintains running
-  counters (`towers_alive`, `t1_mid_alive`, aegis bookkeeping) across buckets and
-  validates `team ∈ {2, 3}` and positive bucket/window sizes (raises
-  `ValueError`).
-- `score_camp_visit_context(*, team, camp_id, camp_type, neutral_kills, neutral_damage, xp_gain, bucket)`
-  turns a single camp visit plus its overlapping bucket into a `CampVisitContext`
-  with three `0–1` scores (`farm_safety_score`, `pressure_score`,
-  `expected_value_score`), a categorical `context_label` (one of six values like
-  `safe_home_farm` … `high_risk_invade`), and a list of explainability
-  `context_drivers`. All scoring is a hand-weighted linear blend clamped via
-  `_clamp01`.
-- `world_in_bounds(x, y)` is a simple bounds check against the calibrated map
-  rectangle.
-- Camp geometry comes from `gem.catalog.map.load_neutral_camp_centers()`, loaded
-  once into module-level `_CAMP_CENTERS`.
+  DataFrames and the Farming report tab.
 
 ### Roshan conversion (`roshan.py`)
 
@@ -224,40 +183,26 @@ in gem uses it; the facts it combines stay available on `ParsedMatch`.
   but uncredited.
 - `RoshDifferentialProfile` compares the attributed conversion team with its
   opponent over one hardened window. It exposes signed fight, weighted
-  structure, net-worth, XP, forward-ward, sustained-territory, and Tormentor
-  differentials, together with both teams' raw values. Optional resource and
-  territory values remain `None` when evidence is incomplete.
-- Deprecated in 0.12, removed in 0.13 (HY-99): the territory windows, the
-  tags and their thresholds, `conversion_score` / `conversion_label`,
-  `aegis_outcome`, `drivers` and `enemy_half_farm_share_*`. The fields warn when
-  read; gem's own output reads them with `read_quietly`.
-- `RoshTerritoryWindow` and `RoshCoverageCell` (deprecated) describe sampled forward presence:
-  roughly 600-unit cells, 30-second buckets, a 10 hero-second / two-hero
-  occupancy threshold, no interpolation across gaps longer than 10 seconds,
-  and a 70% expected player-time requirement. Coverage and time-weighted p90
-  depth are compared against the three minutes before Roshan.
-- `RoshTagThresholds` and `RoshTerritoryConfig` (deprecated) configure the
-  non-exclusive `conversion_tags` and the territory sampling.
+  structure, net-worth, XP, forward-ward and Tormentor differentials, together
+  with both teams' raw values. Optional resource values remain `None` when
+  evidence is incomplete.
 - Buybacks remain context/timeline annotations. Tormentor is a separate signed
   secondary-objective dimension and is not folded into the structure value.
 
 ## Shared Internals (`_shared.py`)
 
-`_shared.py` holds map-geometry constants and the small lookups that were
-previously duplicated between `roshan.py`, `map_context.py`, and
-`reports/_sections.py`:
+`_shared.py` holds the team constants and the small lookups several modules share:
 
-- `_TEAM_RADIANT = 2`, `_TEAM_DIRE = 3` and the calibrated map bounds
-  (`_MAP_XMIN/XMAX/YMIN/YMAX`), the fountain positions (the `CDOTA_Unit_Fountain`
-  entities, also the ends of the territory-depth axis), and the region geometry
-  from `map_constants.json` (`regions`).
+- `_TEAM_RADIANT = 2`, `_TEAM_DIRE = 3` and the fountain positions (the
+  `CDOTA_Unit_Fountain` entities, loaded from `map_constants.json`), which
+  `region_of` falls back on when the region geometry is unavailable.
 - `region_of(x, y)` lives in `regions.py` (public as `gem.region_of`) and returns one of `MAP_REGIONS` (public as `gem.MAP_REGIONS`): `"top_lotus"` /
   `"bottom_lotus"` within `lotus_radius` (700) of a lotus pool, `"river"` inside
   the river outline, otherwise `"radiant_half"` / `"dire_half"` by the side of
   the half line.
-- `nearest_series_value(times, values, tick)` is the `bisect`-based parallel-array
-  lookup used by `map_context.py` (the `spatial.py` and `roshan.py` helpers
-  inline their own near-identical scans rather than calling it).
+- `nearest_series_value(times, values, tick)` is a `bisect`-based parallel-array
+  lookup (the `spatial.py` and `roshan.py` helpers inline their own
+  near-identical scans rather than calling it).
 - `infer_match_end_tick(match)` returns `match.game_end_tick` when set, else the
   latest tick observed across all players' `times` and `position_log`.
 
@@ -267,10 +212,10 @@ previously duplicated between `roshan.py`, `map_context.py`, and
   this package mutates the match or calls back into the parser.
 - The boundary with `extractors/` is **types only**: `combat.py` and `roshan.py`
   import `Fight` / `AegisEvent` (and `combat.py`'s `CombatLogEntry`,
-  `roshan.py`/`map_context.py`'s `ParsedMatch`) under `if TYPE_CHECKING:`, so
-  there is no runtime dependency on the extractor or results packages. The one
-  real runtime import outside `analysis` is
-  `map_context.py` → `gem.catalog.map.load_neutral_camp_centers`.
+  `roshan.py`'s `ParsedMatch`) under `if TYPE_CHECKING:`, so there is no runtime
+  dependency on the extractor or results packages. The runtime imports outside
+  `analysis` are the bundled map data: `gem.catalog.map` (camp zones, map
+  constants) and `gem.state.game_clock`.
 - `is_active_fight_participant` and `ward_vision_impact` deliberately accept
   `object` / duck-typed args (read via `getattr`) so they work with any
   stats/ward shape, not just the concrete extractor dataclass.
@@ -290,8 +235,8 @@ previously duplicated between `roshan.py`, `map_context.py`, and
 - **Render HTML reports.** That is `reports`; it *consumes* analysis output (and
   shares `_shared.py` constants), but the rendering lives there.
 - **Resolve hero/item/ability/map names from IDs.** That is `catalog` (and the
-  `constants` facade). `map_context.py` calls into `catalog.map` for camp
-  centres; `format_npc_name` is only string munging, not a catalog lookup.
+  `constants` facade). `farming.py` and `regions.py` read map data through
+  `catalog.map`; `format_npc_name` is only string munging, not a catalog lookup.
 
 If a value looks wrong here, the bug is usually upstream: a missing
 `position_log` sample, an empty `fights` list, or a mis-extracted ward — fix
@@ -346,23 +291,12 @@ a new image and a re-run. Two camps' annotated owners
 disagree with the terrain they sit in (camps 4 and 25); `region_of` follows the
 terrain.
 
-Territory depth (`_territory._depth`) still projects onto the fountain axis, so
-its 0.5 mark is the fountains' perpendicular bisector, not the half line. A cell
-just inside the enemy half can have a depth slightly under 0.5.
-
-### The heavy builders are experimental and weight-tuned
-`score_camp_visit_context`, `build_map_context_timeline`, and
-`build_rosh_conversions` encode hand-picked thresholds (for example, Roshan's
-fight, structure, resource, territory, ward, and Tormentor tags). Treat their
-labels/tags as opinionated heuristics, not derived constants, and expect them to
-change between ruleset revisions. Prefer Roshan's raw signed differentials over
-either the provisional tags or the deprecated 0–100 score.
-
-`build_farming_routes` has separate inspectable route and context thresholds.
-Its strength labels are evidence categories rather than strategy grades, and
-its context tags are independent factual heuristics rather than a universal
-quality score. The older exclusive camp-context labels remain compatibility
-APIs and are not used as the primary report interpretation.
+### The heavy builders encode documented choices
+`build_rosh_conversions` and `build_farming_routes` choose window boundaries,
+sample-gap limits and evidence categories. They are documented and inspectable,
+not ground truth; read the raw counts and swings rather than treating any
+category as a verdict. Interpretation (did this Roshan "convert"? was that farm
+safe?) belongs outside gem; see the recipes in `examples/cookbook/`.
 
 ## When To Add Code Here
 

@@ -1,29 +1,21 @@
-"""Post-parse Roshan conversion analysis.
+"""Post-parse Roshan records: each kill, its Aegis lifecycle and the window that followed.
 
-Turns existing replay facts (Roshan kills, Aegis events, fights, wards,
-objectives, buybacks, and movement samples) into per-Roshan conversion records.
-The goal is to answer a practical question: did the team translate Roshan into
-fights, objectives, map expansion, or a game-closing sequence?
+Joins existing replay facts (Roshan kills, Aegis events, fights, structures,
+the advantage curves, wards, Tormentors and buybacks) into one record per Roshan
+kill. The records report what happened; whether a Roshan "converted" is left to
+the reader (see the Recipes docs).
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Literal, cast
+from typing import TYPE_CHECKING, Literal
 
-from gem._deprecation import deprecated_field, read_quietly, warn_deprecated
 from gem.analysis._shared import (
     _TEAM_DIRE,
     _TEAM_RADIANT,
     infer_match_end_tick,
-)
-from gem.analysis._territory import (
-    DEFAULT_ROSH_TERRITORY_CONFIG,
-    RoshCoverageCell as RoshCoverageCell,
-    RoshTerritoryConfig as RoshTerritoryConfig,
-    RoshTerritoryWindow,
-    build_territory_window,
 )
 from gem.analysis.combat import is_active_fight_participant
 from gem.analysis.fight_positioning import (
@@ -41,61 +33,10 @@ if TYPE_CHECKING:
 
 _TICKS_PER_SEC = 30
 
-# Interpretation deprecated in 0.12 and removed in 0.13 (HY-96, HY-99).
-_TAG_ALTERNATIVE = (
-    "the raw differential_profile counts and swings (fight_differential, "
-    "structure_delta, net_worth_swing, xp_swing, forward_ward_delta, tormentor_delta)"
-)
-_TERRITORY_ALTERNATIVE = "gem.region_of with the players' position_log"
-
-
-def _deprecated(
-    owner: str,
-    attr: str,
-    alternative: str | None,
-    *,
-    default: Any = None,
-    default_factory: Any = None,
-) -> Any:
-    """Return a dataclass field that warns when read (see ``deprecated_field``)."""
-    return field(
-        default=cast(
-            Any,
-            deprecated_field(
-                attr,
-                f"gem.{owner}.{attr}",
-                alternative=alternative,
-                default=default,
-                default_factory=default_factory,
-            ),
-        ),
-        repr=False,
-        compare=False,
-    )
-
-
 _AEGIS_DURATION_TICKS = 5 * 60 * _TICKS_PER_SEC
 _IMMEDIATE_WINDOW_TICKS = 180 * _TICKS_PER_SEC
 _ASSOCIATION_WINDOW_TICKS = 30 * _TICKS_PER_SEC
 _POST_AEGIS_ANALYSIS_TICKS = 120 * _TICKS_PER_SEC
-
-# Non-exclusive evidence tags.  Thresholds are deliberately provisional and
-# named here so calibration can change without rewriting the analysis flow.
-ROSH_TAG_FIGHT_ADVANTAGE = "fight_advantage"
-ROSH_TAG_OBJECTIVE_GAIN = "objective_gain"
-ROSH_TAG_RESOURCE_GAIN = "resource_gain"
-ROSH_TAG_TERRITORIAL_EXPANSION = "territorial_expansion"
-ROSH_TAG_VISION_EXPANSION = "vision_expansion"
-ROSH_TAG_TORMENTOR_SECURED = "tormentor_secured"
-ROSH_TAG_GAME_CLOSING = "game_closing"
-ROSH_TAG_COUNTER_CONVERSION = "counter_conversion"
-
-_FIGHT_ADVANTAGE_THRESHOLD = 2
-_OBJECTIVE_GAIN_THRESHOLD = 2
-_NET_WORTH_SWING_THRESHOLD = 2_000
-_XP_SWING_THRESHOLD = 1_500
-_TERRITORY_SWING_THRESHOLD_PCT = 8.0
-_WARD_DELTA_THRESHOLD = 2
 
 
 class AegisFateSource(str, Enum):
@@ -133,38 +74,6 @@ class RoshFightRelation(str, Enum):
 
 
 @dataclass(frozen=True, slots=True)
-class RoshTagThresholds:
-    """Inspectably configured thresholds for non-exclusive conversion tags."""
-
-    fight_advantage: int = _FIGHT_ADVANTAGE_THRESHOLD
-    objective_gain: int = _OBJECTIVE_GAIN_THRESHOLD
-    net_worth_swing: int = _NET_WORTH_SWING_THRESHOLD
-    xp_swing: int = _XP_SWING_THRESHOLD
-    territory_swing_pct: float = _TERRITORY_SWING_THRESHOLD_PCT
-    ward_delta: int = _WARD_DELTA_THRESHOLD
-    counter_min_dimensions: int = 2
-    ruleset: str = "provisional-v1"
-
-    def __post_init__(self) -> None:
-        numeric = (
-            self.fight_advantage,
-            self.objective_gain,
-            self.net_worth_swing,
-            self.xp_swing,
-            self.territory_swing_pct,
-            self.ward_delta,
-            self.counter_min_dimensions,
-        )
-        if any(value < 0 for value in numeric):
-            raise ValueError("Roshan tag thresholds must be nonnegative")
-        if not self.ruleset:
-            raise ValueError("Roshan tag threshold ruleset must not be empty")
-
-
-DEFAULT_ROSH_TAG_THRESHOLDS = RoshTagThresholds()
-
-
-@dataclass(frozen=True, slots=True)
 class RoshFightEvidence:
     """Engagement-aware evidence for one fight associated with a Roshan window."""
 
@@ -189,9 +98,7 @@ class _TeamAttribution:
 
 # Roshan drops worth flagging beyond the always-present Aegis. Cheese (burst
 # heal/mana), the Refresher Shard (a free ultimate reset), and Roshan's Banner
-# (a pushing siege unit) all materially raise the stakes of the kill. Surfaced
-# descriptively only — they deliberately do not affect ``conversion_score`` or
-# ``conversion_label`` so downstream consumers can weight them themselves.
+# (a pushing siege unit) all materially raise the stakes of the kill.
 _HIGH_VALUE_DROPS = frozenset({"cheese", "refresher_shard", "banner"})
 
 # Lanes recognised in a barracks NPC name suffix (``..._rax_<lane>``).
@@ -258,10 +165,6 @@ class RoshDifferentialProfile:
     authoritative Radiant advantage curves, signed to ``conversion_team``.
     Unknown evidence is ``None`` rather than a fabricated zero.
 
-    Deprecated in 0.12 and removed in 0.13 (they warn when read): ``tags``,
-    ``tag_ruleset``, ``before_territory``, ``during_territory`` and the coverage
-    and depth swings.
-
     Attributes:
         conversion_team: Team being evaluated (2=Radiant, 3=Dire).
         opponent_team: Opposing team, or ``None`` when attribution failed.
@@ -289,22 +192,12 @@ class RoshDifferentialProfile:
         xp_advantage_end: Conversion-signed XP advantage at the final sample.
         xp_swing: End minus start XP advantage.
         xp_swing_per_minute: XP swing per sampled minute.
-        before_territory: Paired three-minute pre-Roshan territory evidence.
-        during_territory: Paired territory evidence during the analysis window.
-        conversion_coverage_swing_pct: Conversion team's during-minus-before
-            coverage.
-        opponent_coverage_swing_pct: Opponent's during-minus-before coverage.
-        coverage_swing_pct: Double differential of the two coverage changes.
-        conversion_depth_swing: Conversion team's during-minus-before depth p90.
-        opponent_depth_swing: Opponent's during-minus-before depth p90.
-        depth_swing: Double differential of the two depth changes.
         conversion_forward_wards: Conversion observer wards placed on enemy side.
         opponent_forward_wards: Opponent observer wards placed on enemy side.
         forward_ward_delta: Conversion minus opponent forward wards.
         conversion_tormentors: Tormentors attributed to the conversion team.
         opponent_tormentors: Tormentors attributed to the opponent.
         tormentor_delta: Conversion minus opponent Tormentors.
-        tags: Non-exclusive evidence tags meeting provisional thresholds.
         status: Overall evidence availability.
         status_reasons: Machine-readable missing/partial evidence explanations.
     """
@@ -334,36 +227,6 @@ class RoshDifferentialProfile:
     xp_advantage_end: int | None = None
     xp_swing: int | None = None
     xp_swing_per_minute: float | None = None
-    before_territory: RoshTerritoryWindow = _deprecated(
-        "RoshDifferentialProfile",
-        "before_territory",
-        _TERRITORY_ALTERNATIVE,
-        default_factory=RoshTerritoryWindow,
-    )
-    during_territory: RoshTerritoryWindow = _deprecated(
-        "RoshDifferentialProfile",
-        "during_territory",
-        _TERRITORY_ALTERNATIVE,
-        default_factory=RoshTerritoryWindow,
-    )
-    conversion_coverage_swing_pct: float | None = _deprecated(
-        "RoshDifferentialProfile", "conversion_coverage_swing_pct", _TERRITORY_ALTERNATIVE
-    )
-    opponent_coverage_swing_pct: float | None = _deprecated(
-        "RoshDifferentialProfile", "opponent_coverage_swing_pct", _TERRITORY_ALTERNATIVE
-    )
-    coverage_swing_pct: float | None = _deprecated(
-        "RoshDifferentialProfile", "coverage_swing_pct", _TERRITORY_ALTERNATIVE
-    )
-    conversion_depth_swing: float | None = _deprecated(
-        "RoshDifferentialProfile", "conversion_depth_swing", _TERRITORY_ALTERNATIVE
-    )
-    opponent_depth_swing: float | None = _deprecated(
-        "RoshDifferentialProfile", "opponent_depth_swing", _TERRITORY_ALTERNATIVE
-    )
-    depth_swing: float | None = _deprecated(
-        "RoshDifferentialProfile", "depth_swing", _TERRITORY_ALTERNATIVE
-    )
     conversion_forward_wards: int | None = None
     opponent_forward_wards: int | None = None
     forward_ward_delta: int | None = None
@@ -371,15 +234,6 @@ class RoshDifferentialProfile:
     opponent_tormentors: int | None = None
     unattributed_tormentors: int = 0
     tormentor_delta: int | None = None
-    tags: list[str] = _deprecated(
-        "RoshDifferentialProfile", "tags", _TAG_ALTERNATIVE, default_factory=list
-    )
-    tag_ruleset: str = _deprecated(
-        "RoshDifferentialProfile",
-        "tag_ruleset",
-        _TAG_ALTERNATIVE,
-        default=DEFAULT_ROSH_TAG_THRESHOLDS.ruleset,
-    )
     status: Literal["complete", "partial", "unavailable"] = "unavailable"
     status_reasons: list[str] = field(default_factory=list)
 
@@ -388,27 +242,16 @@ class RoshDifferentialProfile:
 class RoshConversion:
     """Derived summary for one Roshan kill and the advantage window that followed.
 
-    Most fields summarise the Aegis window (holder, fights, objectives, map
-    control). ``drops`` and ``had_high_value_drop`` describe what Roshan yielded
-    beyond the Aegis itself.
-
-    Deprecated in 0.12 and removed in 0.13 (they warn when read):
-    ``conversion_tags``, ``conversion_score``, ``conversion_label``,
-    ``aegis_outcome``, ``drivers`` and ``enemy_half_farm_share_before`` /
-    ``_during`` / ``_delta``.
+    Most fields describe the Aegis window: the holder, its fate, and the
+    fights, structures and buybacks inside it. ``drops`` and
+    ``had_high_value_drop`` describe what Roshan yielded beyond the Aegis itself.
 
     Attributes:
-        conversion_score: Deprecated aggregate; removed in 0.13. Use the raw
-            ``differential_profile`` values.
-        conversion_label: Deprecated exclusive label; removed in 0.13. Use the
-            raw ``differential_profile`` values.
         drops: Short drop names captured from entity state at the kill tick (e.g.
             ``["aegis", "cheese", "banner"]``). Mirrors ``RoshanKill.drops`` and
             always includes ``"aegis"``. Empty only if drop tracking found nothing.
         had_high_value_drop: ``True`` when a non-Aegis premium drop (cheese,
-            refresher shard, or banner) was present. Provided as a convenience
-            signal; it does not influence ``conversion_score`` or
-            ``conversion_label``.
+            refresher shard, or banner) was present.
         banner_planted: ``True`` when the Roshan holder's team planted a Roshan's
             Banner inside this conversion window. Independent of whether the
             ``"banner"`` drop was recorded — a banner from an *earlier* Roshan can
@@ -416,8 +259,7 @@ class RoshConversion:
         banner_rax_conversion: ``True`` when ``banner_planted`` and at least one
             enemy barracks fell *after* that plant within the window — an
             associative (lane + time) signal that the banner's siege push helped
-            break a rax, not a proven spatial link. Like the drop flags it does
-            not influence ``conversion_score`` or ``conversion_label``.
+            break a rax, not a proven spatial link.
         banner_rax_lane: Lane (``"top"``/``"mid"``/``"bot"``) of the earliest such
             converted barracks, or ``None`` when there is no banner→rax link.
         roshan_team: Attributable team that killed Roshan, independent of who
@@ -431,8 +273,6 @@ class RoshConversion:
             death inside the validated ownership horizon.
         first_engagement_tick: Earliest engagement-aware start in the window.
         fight_evidence: Per-fight temporal, participant, and provenance records.
-        conversion_tags: Non-exclusive evidence tags mirrored from the
-            differential profile.
         analysis_status: ``complete``, ``partial``, or ``unavailable`` evidence.
         analysis_status_reasons: Machine-readable explanations for incomplete
             evidence.
@@ -461,44 +301,6 @@ class RoshConversion:
     barracks_taken: int
     enemy_buybacks_forced: int
     enemy_half_observer_delta: int
-    enemy_half_farm_share_before: float = _deprecated(
-        "RoshConversion", "enemy_half_farm_share_before", _TERRITORY_ALTERNATIVE, default=0.0
-    )
-    enemy_half_farm_share_during: float = _deprecated(
-        "RoshConversion", "enemy_half_farm_share_during", _TERRITORY_ALTERNATIVE, default=0.0
-    )
-    enemy_half_farm_share_delta: float = _deprecated(
-        "RoshConversion", "enemy_half_farm_share_delta", _TERRITORY_ALTERNATIVE, default=0.0
-    )
-    conversion_score: int = _deprecated(
-        "RoshConversion", "conversion_score", _TAG_ALTERNATIVE, default=0
-    )
-    conversion_label: Literal[
-        "low_conversion",
-        "fight_conversion",
-        "objective_conversion",
-        "map_squeeze",
-        "game_closing_rosh",
-    ] = _deprecated(
-        "RoshConversion", "conversion_label", _TAG_ALTERNATIVE, default="low_conversion"
-    )
-    aegis_outcome: Literal[
-        "consumed_in_fight",
-        "expired_after_use",
-        "expired_unused",
-        "denied",
-        "window_lost",
-        "game_ended",
-        "unknown",
-    ] = _deprecated(
-        "RoshConversion",
-        "aegis_outcome",
-        "aegis_fate, aegis_fate_source and the fights in the window",
-        default="unknown",
-    )
-    drivers: list[str] = _deprecated(
-        "RoshConversion", "drivers", "timeline_events", default_factory=list
-    )
     timeline_events: list[RoshTimelineEvent] = field(default_factory=list)
     # Roshan drop + banner→rax fields carry safe legacy defaults and sit last so
     # the public constructor stays backward-compatible: existing callers that
@@ -516,9 +318,6 @@ class RoshConversion:
     aegis_fate_inferred: bool = False
     first_engagement_tick: int | None = None
     fight_evidence: list[RoshFightEvidence] = field(default_factory=list)
-    conversion_tags: list[str] = _deprecated(
-        "RoshConversion", "conversion_tags", _TAG_ALTERNATIVE, default_factory=list
-    )
     analysis_status: Literal["complete", "partial", "unavailable"] = "unavailable"
     analysis_status_reasons: list[str] = field(default_factory=list)
     differential_profile: RoshDifferentialProfile = field(default_factory=RoshDifferentialProfile)
@@ -684,24 +483,6 @@ def _enemy_half_observer_placements(
     return count
 
 
-def _enemy_half_farm_share(match: ParsedMatch, team: int, start_tick: int, end_tick: int) -> float:
-    region_name = _enemy_half_name(team)
-    total_samples = 0
-    enemy_half_samples = 0
-    for player in match.players:
-        if player.team != team:
-            continue
-        for tick, x, y in player.position_log:
-            if tick < start_tick or tick > end_tick:
-                continue
-            total_samples += 1
-            if region_of(x, y) == region_name:
-                enemy_half_samples += 1
-    if total_samples == 0:
-        return 0.0
-    return enemy_half_samples / total_samples
-
-
 def _count_enemy_buybacks(match: ParsedMatch, team: int, start_tick: int, end_tick: int) -> int:
     count = 0
     enemy_team = _enemy_team(team)
@@ -819,98 +600,6 @@ def _first_objective_tick(
         == team
     )
     return min(candidates) if candidates else None
-
-
-def _conversion_label(
-    *,
-    holder_team: int | None,
-    aegis_fate: str,
-    fights_won: int,
-    fights_lost: int,
-    towers_taken: int,
-    barracks_taken: int,
-    enemy_half_observer_delta: int,
-    enemy_half_farm_share_delta: float,
-    game_closed: bool,
-) -> Literal[
-    "low_conversion",
-    "fight_conversion",
-    "objective_conversion",
-    "map_squeeze",
-    "game_closing_rosh",
-]:
-    if game_closed and holder_team is not None:
-        return "game_closing_rosh"
-    if barracks_taken > 0 or towers_taken >= 2:
-        return "objective_conversion"
-    if fights_won > fights_lost and fights_won > 0:
-        return "fight_conversion"
-    if enemy_half_observer_delta > 0 or enemy_half_farm_share_delta >= 0.10:
-        return "map_squeeze"
-    return "low_conversion"
-
-
-def _aegis_outcome(
-    *,
-    holder_team: int | None,
-    aegis_fate: Literal["consumed", "expired", "denied", "game_end", "unknown"],
-    fights_won: int,
-    fights_lost: int,
-    towers_taken: int,
-    barracks_taken: int,
-) -> Literal[
-    "consumed_in_fight",
-    "expired_after_use",
-    "expired_unused",
-    "denied",
-    "window_lost",
-    "game_ended",
-    "unknown",
-]:
-    if aegis_fate == "denied":
-        return "denied"
-    if aegis_fate == "game_end":
-        return "game_ended"
-    if holder_team is None:
-        return "unknown"
-    if fights_lost > fights_won and towers_taken == 0 and barracks_taken == 0:
-        return "window_lost"
-    if aegis_fate == "consumed":
-        return "consumed_in_fight"
-    if aegis_fate == "expired":
-        if fights_won == 0 and towers_taken == 0 and barracks_taken == 0:
-            return "expired_unused"
-        return "expired_after_use"
-    return "unknown"
-
-
-def _conversion_score(
-    *,
-    fights_won: int,
-    fights_lost: int,
-    towers_taken: int,
-    barracks_taken: int,
-    enemy_buybacks_forced: int,
-    enemy_half_observer_delta: int,
-    enemy_half_farm_share_delta: float,
-    game_closed: bool,
-    aegis_fate: str,
-) -> int:
-    raw = 25
-    raw += fights_won * 12
-    raw -= fights_lost * 12
-    raw += towers_taken * 10
-    raw += barracks_taken * 22
-    raw += enemy_buybacks_forced * 7
-    raw += max(enemy_half_observer_delta, 0) * 6
-    raw += int(max(enemy_half_farm_share_delta, 0.0) * 40)
-    if game_closed:
-        raw += 30
-    if aegis_fate == "expired" and fights_won == 0 and towers_taken == 0 and barracks_taken == 0:
-        raw -= 14
-    if aegis_fate == "denied":
-        raw -= 18
-    return max(0, min(100, raw))
 
 
 def _team_attribution(
@@ -1080,30 +769,6 @@ def _resource_dimension(
     return start_value, end_value, swing, rate
 
 
-def _territory_swing(
-    before_conversion: float | None,
-    during_conversion: float | None,
-    before_opponent: float | None,
-    during_opponent: float | None,
-) -> tuple[float | None, float | None, float | None]:
-    conversion_swing = (
-        during_conversion - before_conversion
-        if during_conversion is not None and before_conversion is not None
-        else None
-    )
-    opponent_swing = (
-        during_opponent - before_opponent
-        if during_opponent is not None and before_opponent is not None
-        else None
-    )
-    double_differential = (
-        conversion_swing - opponent_swing
-        if conversion_swing is not None and opponent_swing is not None
-        else None
-    )
-    return conversion_swing, opponent_swing, double_differential
-
-
 def _tormentor_counts(
     match: ParsedMatch, conversion_team: int, start_tick: int, end_tick: int
 ) -> tuple[int, int, int]:
@@ -1144,79 +809,6 @@ def _forward_ward_count(
     return count
 
 
-def _profile_tags(
-    profile: RoshDifferentialProfile,
-    game_closed: bool,
-    thresholds: RoshTagThresholds,
-) -> list[str]:
-    coverage_swing_pct = read_quietly(profile, "coverage_swing_pct")
-    tags: list[str] = []
-    if (
-        profile.fight_differential is not None
-        and profile.fight_differential >= thresholds.fight_advantage
-    ):
-        tags.append(ROSH_TAG_FIGHT_ADVANTAGE)
-    if profile.structure_delta is not None and profile.structure_delta >= thresholds.objective_gain:
-        tags.append(ROSH_TAG_OBJECTIVE_GAIN)
-    if (
-        profile.net_worth_swing is not None
-        and profile.net_worth_swing >= thresholds.net_worth_swing
-    ) or (profile.xp_swing is not None and profile.xp_swing >= thresholds.xp_swing):
-        tags.append(ROSH_TAG_RESOURCE_GAIN)
-    if coverage_swing_pct is not None and coverage_swing_pct >= thresholds.territory_swing_pct:
-        tags.append(ROSH_TAG_TERRITORIAL_EXPANSION)
-    if profile.forward_ward_delta is not None and (
-        profile.forward_ward_delta >= thresholds.ward_delta
-        or (
-            profile.forward_ward_delta >= 1
-            and coverage_swing_pct is not None
-            and coverage_swing_pct > 0
-        )
-    ):
-        tags.append(ROSH_TAG_VISION_EXPANSION)
-    if profile.tormentor_delta is not None and profile.tormentor_delta > 0:
-        tags.append(ROSH_TAG_TORMENTOR_SECURED)
-    if game_closed:
-        tags.append(ROSH_TAG_GAME_CLOSING)
-
-    positive = sum(
-        (
-            profile.fight_differential is not None
-            and profile.fight_differential >= thresholds.fight_advantage,
-            profile.structure_delta is not None
-            and profile.structure_delta >= thresholds.objective_gain,
-            profile.net_worth_swing is not None
-            and profile.net_worth_swing >= thresholds.net_worth_swing,
-            profile.xp_swing is not None and profile.xp_swing >= thresholds.xp_swing,
-            coverage_swing_pct is not None and coverage_swing_pct >= thresholds.territory_swing_pct,
-            profile.forward_ward_delta is not None
-            and profile.forward_ward_delta >= thresholds.ward_delta,
-            profile.tormentor_delta is not None and profile.tormentor_delta > 0,
-        )
-    )
-    opponent_positive = sum(
-        (
-            profile.fight_differential is not None
-            and profile.fight_differential <= -thresholds.fight_advantage,
-            profile.structure_delta is not None
-            and profile.structure_delta <= -thresholds.objective_gain,
-            profile.net_worth_swing is not None
-            and profile.net_worth_swing <= -thresholds.net_worth_swing,
-            profile.xp_swing is not None and profile.xp_swing <= -thresholds.xp_swing,
-            coverage_swing_pct is not None
-            and coverage_swing_pct <= -thresholds.territory_swing_pct,
-            profile.forward_ward_delta is not None
-            and profile.forward_ward_delta <= -thresholds.ward_delta,
-            profile.tormentor_delta is not None and profile.tormentor_delta < 0,
-        )
-    )
-    # "Dominates" requires at least two meaningful opponent-positive dimensions,
-    # avoiding a counter-conversion label from one noisy signal.
-    if opponent_positive >= thresholds.counter_min_dimensions and opponent_positive > positive:
-        tags.append(ROSH_TAG_COUNTER_CONVERSION)
-    return tags
-
-
 def _differential_profile(
     match: ParsedMatch,
     conversion_team: int | None,
@@ -1226,16 +818,12 @@ def _differential_profile(
     fights: list[Fight],
     *,
     partial_aegis_evidence: bool,
-    game_closed: bool,
-    tag_thresholds: RoshTagThresholds,
-    territory_config: RoshTerritoryConfig,
 ) -> RoshDifferentialProfile:
     profile = RoshDifferentialProfile(
         conversion_team=conversion_team,
         opponent_team=_enemy_team(conversion_team) if conversion_team is not None else None,
         window_start_tick=window_start,
         window_end_tick=window_end,
-        tag_ruleset=tag_thresholds.ruleset,
     )
     if conversion_team is None:
         profile.status_reasons.append("conversion_team_unavailable")
@@ -1286,45 +874,6 @@ def _differential_profile(
         window_end,
     )
 
-    before_start = max(match.game_start_tick or 0, rosh_tick - _IMMEDIATE_WINDOW_TICKS)
-    before_end = max(before_start, rosh_tick - 1)
-    before_territory = build_territory_window(
-        match,
-        conversion_team,
-        before_start,
-        before_end,
-        config=territory_config,
-    )
-    during_territory = build_territory_window(
-        match,
-        conversion_team,
-        window_start,
-        window_end,
-        config=territory_config,
-    )
-    profile.before_territory = before_territory
-    profile.during_territory = during_territory
-    (
-        profile.conversion_coverage_swing_pct,
-        profile.opponent_coverage_swing_pct,
-        profile.coverage_swing_pct,
-    ) = _territory_swing(
-        before_territory.conversion_coverage_pct,
-        during_territory.conversion_coverage_pct,
-        before_territory.opponent_coverage_pct,
-        during_territory.opponent_coverage_pct,
-    )
-    (
-        profile.conversion_depth_swing,
-        profile.opponent_depth_swing,
-        profile.depth_swing,
-    ) = _territory_swing(
-        before_territory.conversion_depth_p90,
-        during_territory.conversion_depth_p90,
-        before_territory.opponent_depth_p90,
-        during_territory.opponent_depth_p90,
-    )
-
     opponent_team = _enemy_team(conversion_team)
     profile.conversion_forward_wards = _forward_ward_count(
         match, conversion_team, window_start, window_end
@@ -1351,10 +900,6 @@ def _differential_profile(
         reasons.append("net_worth_series_unavailable")
     if profile.xp_swing is None:
         reasons.append("xp_series_unavailable")
-    if before_territory.status != "complete":
-        reasons.append("before_territory_unavailable")
-    if during_territory.status != "complete":
-        reasons.append("during_territory_unavailable")
     if profile.forward_ward_delta is None:
         reasons.append("forward_ward_positions_unavailable")
     if profile.unattributed_tormentors:
@@ -1365,46 +910,19 @@ def _differential_profile(
         reasons.append("fight_winner_unavailable")
     profile.status_reasons = reasons
     profile.status = "partial" if reasons else "complete"
-    tags = _profile_tags(profile, game_closed, tag_thresholds)
-    profile.tags = tags
     return profile
 
 
-def build_rosh_conversions(
-    match: ParsedMatch,
-    *,
-    tag_thresholds: RoshTagThresholds | None = None,
-    territory_config: RoshTerritoryConfig | None = None,
-) -> list[RoshConversion]:
+def build_rosh_conversions(match: ParsedMatch) -> list[RoshConversion]:
     """Summarise each Roshan kill, its Aegis lifecycle and the window that followed.
 
-    The tags, verdicts and territory fields on the records are deprecated in gem
-    0.12 and removed in 0.13 (they warn when read); the kill, Aegis, fight,
-    structure, economy, ward, Tormentor and timeline facts stay.
-
     Args:
-        match: Parsed match containing objective, combat, economy, vision, and
-            movement timelines.
-        tag_thresholds: Deprecated; removed in gem 0.13 with the tags.
-        territory_config: Deprecated; removed in gem 0.13 with the territory
-            fields.
+        match: Parsed match containing objective, combat, economy and vision
+            timelines.
 
     Returns:
-        One conversion record per Roshan kill, in chronological order.
+        One record per Roshan kill, in chronological order.
     """
-    if tag_thresholds is not None:
-        warn_deprecated(
-            "gem.build_rosh_conversions(tag_thresholds=...)", alternative=_TAG_ALTERNATIVE
-        )
-    else:
-        tag_thresholds = DEFAULT_ROSH_TAG_THRESHOLDS
-    if territory_config is not None:
-        warn_deprecated(
-            "gem.build_rosh_conversions(territory_config=...)",
-            alternative=_TERRITORY_ALTERNATIVE,
-        )
-    else:
-        territory_config = DEFAULT_ROSH_TERRITORY_CONFIG
     if not match.roshans:
         return []
 
@@ -1553,9 +1071,6 @@ def build_rosh_conversions(
             towers_taken = barracks_taken = 0
             enemy_buybacks_forced = 0
             enemy_half_observer_delta = 0
-            enemy_half_farm_share_before = 0.0
-            enemy_half_farm_share_during = 0.0
-            enemy_half_farm_share_delta = 0.0
             first_objective_tick = None
             banner_planted = False
             banner_rax_conversion = False
@@ -1579,16 +1094,6 @@ def build_rosh_conversions(
                 match, _enemy_team(conversion_team), analysis_start, analysis_end
             )
             enemy_half_observer_delta = own_forward_wards - opponent_forward_wards
-            baseline_start = max(match.game_start_tick or 0, roshan.tick - _IMMEDIATE_WINDOW_TICKS)
-            enemy_half_farm_share_before = _enemy_half_farm_share(
-                match, conversion_team, baseline_start, roshan.tick - 1
-            )
-            enemy_half_farm_share_during = _enemy_half_farm_share(
-                match, conversion_team, roshan.tick, immediate_end_tick
-            )
-            enemy_half_farm_share_delta = (
-                enemy_half_farm_share_during - enemy_half_farm_share_before
-            )
             first_objective_tick = _first_objective_tick(
                 match, conversion_team, analysis_start, analysis_end
             )
@@ -1616,70 +1121,7 @@ def build_rosh_conversions(
             partial_aegis_evidence=(
                 aegis_event is None or aegis_event.event_type == "denied" or conversion_team is None
             ),
-            game_closed=game_closed,
-            tag_thresholds=tag_thresholds,
-            territory_config=territory_config,
         )
-
-        label = _conversion_label(
-            holder_team=conversion_team,
-            aegis_fate=aegis_fate,
-            fights_won=fights_won,
-            fights_lost=fights_lost,
-            towers_taken=towers_taken,
-            barracks_taken=barracks_taken,
-            enemy_half_observer_delta=enemy_half_observer_delta,
-            enemy_half_farm_share_delta=enemy_half_farm_share_delta,
-            game_closed=game_closed,
-        )
-        aegis_outcome = _aegis_outcome(
-            holder_team=conversion_team,
-            aegis_fate=aegis_fate,
-            fights_won=fights_won,
-            fights_lost=fights_lost,
-            towers_taken=towers_taken,
-            barracks_taken=barracks_taken,
-        )
-        score = _conversion_score(
-            fights_won=fights_won,
-            fights_lost=fights_lost,
-            towers_taken=towers_taken,
-            barracks_taken=barracks_taken,
-            enemy_buybacks_forced=enemy_buybacks_forced,
-            enemy_half_observer_delta=enemy_half_observer_delta,
-            enemy_half_farm_share_delta=enemy_half_farm_share_delta,
-            game_closed=game_closed,
-            aegis_fate=aegis_fate,
-        )
-
-        drivers: list[str] = []
-        if fights_won:
-            drivers.append(f"won {fights_won} fight(s) during the Aegis window")
-        if fights_lost:
-            drivers.append(f"lost {fights_lost} fight(s) during the Aegis window")
-        if towers_taken:
-            drivers.append(f"took {towers_taken} tower(s)")
-        if barracks_taken:
-            drivers.append(f"took {barracks_taken} barracks")
-        if banner_rax_conversion:
-            lane_text = f"{banner_rax_lane} " if banner_rax_lane else ""
-            drivers.append(f"planted Roshan's Banner ahead of a {lane_text}barracks push")
-        elif banner_planted:
-            drivers.append("planted Roshan's Banner during the window")
-        if enemy_buybacks_forced:
-            drivers.append(f"forced {enemy_buybacks_forced} enemy buyback(s)")
-        if enemy_half_observer_delta > 0:
-            drivers.append(
-                f"placed {enemy_half_observer_delta} more observer ward(s) in enemy territory than they conceded"
-            )
-        if aegis_outcome == "expired_unused":
-            drivers.append("Aegis expired before delivering a second life")
-        elif aegis_fate == "denied":
-            drivers.append("Aegis was denied, so the team never got the immortality window")
-        elif aegis_outcome == "window_lost":
-            drivers.append("The Aegis window was lost without offsetting structures")
-        elif aegis_fate == "consumed":
-            drivers.append("Aegis was popped during the conversion window")
 
         first_fight_tick = min(
             (max(fight.first_death_tick, analysis_start) for fight in fights),
@@ -1901,13 +1343,6 @@ def build_rosh_conversions(
                 barracks_taken=barracks_taken,
                 enemy_buybacks_forced=enemy_buybacks_forced,
                 enemy_half_observer_delta=enemy_half_observer_delta,
-                enemy_half_farm_share_before=enemy_half_farm_share_before,
-                enemy_half_farm_share_during=enemy_half_farm_share_during,
-                enemy_half_farm_share_delta=enemy_half_farm_share_delta,
-                conversion_score=score,
-                conversion_label=label,
-                aegis_outcome=aegis_outcome,
-                drivers=drivers,
                 timeline_events=timeline_events,
                 drops=drops,
                 had_high_value_drop=any(drop in _HIGH_VALUE_DROPS for drop in drops),
@@ -1922,7 +1357,6 @@ def build_rosh_conversions(
                 aegis_fate_inferred=aegis_fate_inferred,
                 first_engagement_tick=first_engagement_tick,
                 fight_evidence=fight_evidence,
-                conversion_tags=list(read_quietly(profile, "tags")),
                 analysis_status=profile.status,
                 analysis_status_reasons=list(profile.status_reasons),
                 differential_profile=profile,
