@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-10-03
+
+gem now presents replay facts and leaves interpretation to you. The tags, scores
+and verdicts layered on top of the facts are deprecated: the `map_context` API,
+the farming segment context, the smoke-fight insights, the Roshan conversion
+tags, verdicts and territory, and `estimate_vision`. They warn when used and are
+removed in 0.13. The map is corrected underneath: the "river" region is the real
+river (it was the mid lane), lotus pools are their own regions, and the neutral
+camp catalog's types and owners now match the replays. `gem.region_of` and
+`gem.MAP_REGIONS` are public. The HTML report is trimmed to facts, and replay and
+icon downloads verify TLS certificates.
+
+Upgrading from 0.11: deprecated names keep working with a `DeprecationWarning`
+and are out of `__all__`; deprecated dataclass fields warn when read, while gem's
+own JSON, DataFrame and report output stay silent and unchanged until 0.13.
+Region labels and camp types and owners change with the corrected map, which
+moves farming-route sides and Roshan territory numbers (see Fixed).
+`map_constants.json` replaces `river_strip` with `regions`, `neutral_camps.json`
+is removed (`load_neutral_camps()` reads `camp_zones.json`), and
+`SmokeAnalysis.first_fight` now uses a 60-second in-game window. The JSON schema
+is unchanged (`schema_version` 3). Python 3.10+ support is preserved.
+
 ### Fixed
 
 - **`SmokeAnalysis.first_fight` measures its 60-second window in in-game time.**
@@ -1849,7 +1871,8 @@ combat-log layers. The supported top-level API (`gem.parse`, `gem.ParsedMatch`,
 - CLI and example scripts, including HTML match report.
 - Validation, fuzzing, and parser robustness foundations.
 
-[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.11.0...HEAD
+[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.12.0...HEAD
+[0.12.0]: https://github.com/whanyu1212/gem-dota/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/whanyu1212/gem-dota/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/whanyu1212/gem-dota/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/whanyu1212/gem-dota/compare/v0.8.0...v0.9.0
