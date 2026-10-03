@@ -179,3 +179,42 @@ def test_recipes_run_on_a_replay_without_deprecation_warnings(canonical_parsed_m
     assert set(farm["role"]) <= {"carry", "mid", "offlane"}
     assert list(smokes.columns) == smoke_to_kill.COLUMNS
     assert len(smokes) > 0
+
+
+def test_recipes_fall_back_to_hero_teams_without_combat_log_teams() -> None:
+    # Source 1 replays record no attacker/target team on the combat log or Roshan kill.
+    axe = ParsedPlayer(player_id=0, team=2, hero_name="npc_dota_hero_axe")
+    lina = ParsedPlayer(player_id=5, team=3, hero_name="npc_dota_hero_lina")
+    match = ParsedMatch(
+        match_id=1,
+        game_start_tick=0,
+        game_clock=GameClock(game_start_tick=0),
+        players=[axe, lina],
+        roshans=[
+            RoshanKill(
+                tick=3_000,
+                killer="npc_dota_roshan_minion",
+                kill_number=1,
+                killer_source="npc_dota_hero_axe",
+            )
+        ],
+        fights=[_fight(4_000, "radiant")],
+        smoke_events=[SmokeEvent(tick=600, activator="npc_dota_hero_axe", team=2)],
+        combat_log=[
+            CombatLogEntry(
+                tick=1_200,
+                log_type=CombatLogType.DEATH,
+                attacker_name="npc_dota_axe_summon",
+                damage_source_name="npc_dota_hero_axe",
+                target_name="npc_dota_hero_lina",
+                target_is_hero=True,
+                game_time_s=40,
+            )
+        ],
+    )
+
+    rosh = roshan_next_fight.roshan_next_fight(match).iloc[0]
+    smoke = smoke_to_kill.smoke_to_kill(match).iloc[0]
+
+    assert (rosh["killed_by"], rosh["killer_team_won"]) == ("radiant", True)
+    assert smoke["first_kill_after_s"] == 20

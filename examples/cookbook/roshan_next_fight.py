@@ -39,6 +39,8 @@ def roshan_next_fight(match: gem.ParsedMatch) -> pd.DataFrame:
     if clock is None:
         return pd.DataFrame(columns=COLUMNS)
     players = {player.player_id: player for player in match.players}
+    # Older (Source 1) replays don't record the killing team; fall back to the killer's.
+    hero_team = {player.hero_name: player.team for player in match.players}
     # Fight numbers match the HTML report's Fights tab: the order of match.fights.
     fights = [
         (number, fight, clock.game_time_at(fight.first_death_tick))
@@ -66,7 +68,9 @@ def roshan_next_fight(match: gem.ParsedMatch) -> pd.DataFrame:
             (None, None, None),
         )
 
-        killer_team = TEAM_NAMES.get(kill.killer_team or 0)
+        killer_team = TEAM_NAMES.get(
+            kill.killer_team or hero_team.get(kill.killer_source) or hero_team.get(kill.killer) or 0
+        )
         rows.append(
             {
                 "match_id": match.match_id,

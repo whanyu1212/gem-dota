@@ -25,12 +25,17 @@ COLUMNS = [
 
 def hero_deaths(match: gem.ParsedMatch) -> pd.DataFrame:
     """Return every real hero death: its game time and the killing and dying teams."""
+    # Older (Source 1) combat logs have no team fields; fall back to the heroes' teams.
+    # A summon's kill names its owner as the damage source.
+    hero_team = {player.hero_name: player.team for player in match.players}
     return pd.DataFrame(
         [
             {
                 "game_time_s": entry.game_time_s,
-                "killer_team": entry.attacker_team,
-                "victim_team": entry.target_team,
+                "killer_team": entry.attacker_team
+                or hero_team.get(entry.damage_source_name)
+                or hero_team.get(entry.attacker_name),
+                "victim_team": entry.target_team or hero_team.get(entry.target_name),
             }
             for entry in match.combat_log
             if entry.log_type == "DEATH"
