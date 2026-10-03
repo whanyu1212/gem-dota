@@ -1,0 +1,333 @@
+/* Rendered Markdown: typography, code, tables, callouts, code groups. */
+
+.prose {
+  color: var(--body);
+  font-size: 16.5px;
+  line-height: 1.75;
+  overflow-wrap: break-word;
+}
+
+.prose > :first-child {
+  margin-top: 0;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+  color: var(--ink);
+  font-family: var(--font-serif);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+.prose h1 {
+  margin: 0 0 18px;
+  font-size: 46px;
+  font-variation-settings: "opsz" 60;
+}
+.prose h2 {
+  margin: 52px 0 14px;
+  font-size: 30px;
+  font-variation-settings: "opsz" 36;
+}
+.prose h3 {
+  margin: 36px 0 10px;
+  font-size: 22px;
+}
+.prose h4 {
+  margin: 28px 0 8px;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.prose h1 + p {
+  font-size: 19px;
+  line-height: 1.6;
+}
+
+.prose p,
+.prose ul,
+.prose ol,
+.prose blockquote,
+.prose table,
+.prose pre,
+.prose figure {
+  margin: 0 0 18px;
+}
+.prose ul,
+.prose ol {
+  padding-left: 1.4em;
+}
+.prose li + li {
+  margin-top: 4px;
+}
+.prose li > ul,
+.prose li > ol {
+  margin: 4px 0 0;
+}
+.prose strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.prose a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.prose a:hover {
+  text-decoration-thickness: 2px;
+}
+.prose :is(h1, h2, h3, h4) a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.prose blockquote {
+  padding: 2px 0 2px 18px;
+  border-left: 2px solid var(--rule);
+  color: var(--body);
+}
+
+.prose hr {
+  margin: 40px 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+.prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 3px;
+  filter: var(--image-filter);
+}
+
+/* Code */
+
+.prose code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+}
+.prose :not(pre) > code {
+  padding: 0.12em 0.36em;
+  border-radius: 4px;
+  background: var(--inline-code-bg);
+  color: var(--ink);
+}
+.prose a code {
+  color: inherit;
+}
+.prose :is(h1, h2, h3, h4) code {
+  padding: 0;
+  background: none;
+  color: inherit;
+  font-size: 0.85em;
+}
+
+.prose pre {
+  overflow-x: auto;
+  padding: 18px 20px;
+  border: 1px solid var(--code-border);
+  border-radius: 6px;
+  /* Shiki writes the theme's background inline; the token wins. */
+  background-color: var(--code-bg) !important;
+  color: var(--code-fg);
+  font-size: 14px;
+  line-height: 1.65;
+  tab-size: 4;
+}
+.prose pre code {
+  font-size: inherit;
+}
+
+.code-block {
+  position: relative;
+  margin: 0 0 18px;
+}
+.code-block > pre {
+  margin: 0;
+}
+.copy-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 3px 9px;
+  border: 1px solid var(--code-muted);
+  border-radius: 5px;
+  background: var(--code-bg);
+  color: var(--code-muted);
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.code-block:hover .copy-button,
+.copy-button:focus-visible {
+  opacity: 1;
+}
+.copy-button:hover {
+  color: var(--code-fg);
+  border-color: var(--code-fg);
+}
+
+/* Tables */
+
+.prose table {
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
+  border-collapse: collapse;
+  font-size: 14.5px;
+  line-height: 1.55;
+}
+.prose th {
+  padding: 8px 14px 8px 0;
+  border-bottom: 1px solid var(--rule);
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.prose td {
+  padding: 9px 14px 9px 0;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+.prose th:last-child,
+.prose td:last-child {
+  padding-right: 0;
+}
+
+/* Callouts: a coloured rule and a small label, no box. */
+
+.callout {
+  --callout: var(--note);
+  margin: 0 0 18px;
+  padding: 2px 0 2px 18px;
+  border-left: 3px solid var(--callout);
+}
+.callout--tip {
+  --callout: var(--tip);
+}
+.callout--warning {
+  --callout: var(--warning);
+}
+.callout--danger {
+  --callout: var(--danger);
+}
+.callout--important {
+  --callout: var(--important);
+}
+.callout > :last-child {
+  margin-bottom: 0;
+}
+.prose .callout-title,
+.prose .callout > summary {
+  margin: 0 0 6px;
+  color: var(--callout);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.callout--details > summary {
+  cursor: pointer;
+}
+
+/* Code groups: radio tabs, one panel shown at a time, no JavaScript. Panels
+   are matched by position, since the copy button wraps each <pre>. */
+
+.code-group {
+  margin: 0 0 18px;
+}
+.code-group > input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.code-group > label {
+  display: inline-block;
+  margin: 0 18px 8px 0;
+  padding-bottom: 2px;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.code-group > input:checked + label {
+  border-bottom-color: var(--accent);
+  color: var(--ink);
+}
+.code-group > input:focus-visible + label {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.code-group-panels > * {
+  display: none;
+}
+.code-group-panels pre {
+  margin: 0;
+}
+.code-group > input:nth-of-type(1):checked ~ .code-group-panels > :nth-child(1),
+.code-group > input:nth-of-type(2):checked ~ .code-group-panels > :nth-child(2),
+.code-group > input:nth-of-type(3):checked ~ .code-group-panels > :nth-child(3),
+.code-group > input:nth-of-type(4):checked ~ .code-group-panels > :nth-child(4),
+.code-group > input:nth-of-type(5):checked ~ .code-group-panels > :nth-child(5),
+.code-group > input:nth-of-type(6):checked ~ .code-group-panels > :nth-child(6) {
+  display: block;
+}
+
+/* Generated reference pages: sans headings and a wider column for signatures. */
+
+.prose--reference h1,
+.prose--reference h2,
+.prose--reference h3 {
+  font-family: var(--font-sans);
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+.prose--reference h1 {
+  font-size: 38px;
+}
+.prose--reference h2 {
+  font-size: 24px;
+}
+.prose--reference h3 {
+  font-size: 18px;
+}
+/* Generated entries are headed by their name in code alone, e.g. ### `build_dataframes`
+   (scripts/generate_vitepress_api_reference.py). Keep that shape if the generator changes. */
+.prose--reference h3:has(> code:only-child) {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.prose--reference h3 > code:only-child {
+  padding: 0;
+  background: none;
+  font-size: 17px;
+}
+.prose--reference pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media (max-width: 640px) {
+  .prose h1 {
+    font-size: 34px;
+  }
+  .prose h2 {
+    font-size: 25px;
+  }
+  .prose--reference h1 {
+    font-size: 30px;
+  }
+}

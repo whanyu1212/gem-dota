@@ -1,0 +1,471 @@
+/* The page shell: top bar, sidebar, content column, outline, page footer. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--topbar-height) + 16px);
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  margin: 0;
+  background: var(--bg);
+  color: var(--body);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  left: 16px;
+  top: -48px;
+  z-index: 20;
+  padding: 8px 12px;
+  background: var(--ink);
+  color: var(--bg);
+  border-radius: 6px;
+}
+.skip-link:focus {
+  top: 12px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Top bar */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: var(--topbar-height);
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+
+.topbar-inner {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  height: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+}
+.brand img {
+  width: 26px;
+  height: 26px;
+}
+
+.tabs {
+  display: flex;
+  gap: 26px;
+  font-size: 14.5px;
+}
+.tabs a {
+  color: var(--muted);
+  text-decoration: none;
+  padding: 4px 0;
+}
+.tabs a:hover {
+  color: var(--ink);
+}
+.tabs a[aria-current="true"] {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 8px;
+}
+
+.topbar-spacer {
+  flex: 1;
+}
+
+.topbar-tools {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.search-slot {
+  display: flex;
+  align-items: center;
+  width: 220px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.icon-button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: none;
+}
+.icon-button:hover {
+  color: var(--ink);
+  border-color: var(--rule);
+}
+.theme-toggle .sun {
+  display: var(--sun-display);
+}
+.theme-toggle .moon {
+  display: var(--moon-display);
+}
+
+.version {
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+}
+.version:hover {
+  color: var(--ink);
+}
+
+/* Only reachable on narrow screens, where it opens the menu (see below). */
+.menu-toggle {
+  display: none;
+}
+.menu-button {
+  display: none;
+}
+
+/* Shell */
+
+.shell {
+  flex: 1;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr) 200px;
+  gap: 56px;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+.shell--no-sidebar {
+  grid-template-columns: minmax(0, 1fr) 200px;
+  max-width: 1100px;
+}
+.shell--wide {
+  grid-template-columns: 240px minmax(0, 1fr) 200px;
+}
+
+.sidebar {
+  position: sticky;
+  top: var(--topbar-height);
+  align-self: start;
+  max-height: calc(100vh - var(--topbar-height));
+  overflow-y: auto;
+  padding: 36px 8px 48px 0;
+  font-size: 14.5px;
+}
+.sidebar-tabs {
+  display: none;
+}
+/* Pages without a sidebar still get the menu on narrow screens (below). */
+.shell--no-sidebar .sidebar {
+  display: none;
+}
+.sidebar-group + .sidebar-group {
+  margin-top: 22px;
+}
+.sidebar-group h2 {
+  margin: 0 0 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.sidebar ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.sidebar li a {
+  display: block;
+  padding: 4px 0;
+  color: var(--muted);
+  text-decoration: none;
+  line-height: 1.45;
+}
+.sidebar li a:hover {
+  color: var(--ink);
+}
+.sidebar li a[aria-current="page"],
+.sidebar li a[aria-current="true"] {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.main {
+  min-width: 0;
+  padding: 44px 0 96px;
+}
+.main > * {
+  max-width: 720px;
+}
+.shell--wide .main > * {
+  max-width: 1000px;
+}
+
+.breadcrumb {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.breadcrumb a {
+  text-decoration: none;
+}
+.breadcrumb a:hover {
+  color: var(--ink);
+}
+
+.outline {
+  position: sticky;
+  top: var(--topbar-height);
+  align-self: start;
+  max-height: calc(100vh - var(--topbar-height));
+  overflow-y: auto;
+  padding: 52px 0 48px;
+  font-size: 13.5px;
+}
+.outline h2 {
+  margin: 0 0 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.outline ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.outline a {
+  display: block;
+  padding: 4px 0;
+  color: var(--muted);
+  text-decoration: none;
+  line-height: 1.4;
+}
+.outline a:hover {
+  color: var(--ink);
+}
+.outline .depth-3 a {
+  padding-left: 12px;
+}
+
+/* Page footer */
+
+.page-footer {
+  margin-top: 64px;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+.page-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 24px;
+  padding-bottom: 20px;
+}
+.page-meta a {
+  color: var(--muted);
+}
+.page-meta a:hover {
+  color: var(--ink);
+}
+.pager {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  border-top: 1px solid var(--rule);
+}
+.pager a {
+  display: block;
+  padding: 18px 0 0;
+  text-decoration: none;
+}
+.pager a.next {
+  grid-column: 2;
+  text-align: right;
+}
+.pager .label {
+  display: block;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.pager .title {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-serif);
+  font-size: 19px;
+  color: var(--ink);
+}
+.pager a:hover .title {
+  color: var(--accent);
+}
+
+.site-footer {
+  border-top: 1px solid var(--line);
+  padding: 28px 32px 40px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.site-footer > div {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+/* Narrow screens: the outline goes first, then the sidebar becomes a menu. */
+
+@media (max-width: 1180px) {
+  .shell,
+  .shell--wide {
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 44px;
+  }
+  .shell--no-sidebar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .outline {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .topbar-inner {
+    gap: 14px;
+    padding: 0 16px;
+  }
+  .tabs,
+  .version,
+  .search-slot {
+    display: none;
+  }
+  .menu-button {
+    display: grid;
+  }
+  .menu-toggle {
+    display: block;
+    position: absolute;
+    top: 0;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .menu-toggle:focus-visible ~ .topbar .menu-button {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .shell,
+  .shell--wide,
+  .shell--no-sidebar {
+    display: block;
+    padding: 0 16px;
+  }
+  .sidebar {
+    display: none;
+    position: fixed;
+    inset: var(--topbar-height) 0 0 0;
+    z-index: 9;
+    /* Fixed boxes honour align-self now; start (from the desktop rule) would
+       stop the menu at its content height. */
+    align-self: stretch;
+    max-height: none;
+    padding: 20px 16px 48px;
+    background: var(--bg);
+  }
+  .menu-toggle:checked ~ .shell .sidebar {
+    display: block;
+  }
+  body:has(.menu-toggle:checked) {
+    overflow: hidden;
+  }
+  .sidebar-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .sidebar-tabs a {
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .sidebar-tabs a[aria-current="true"] {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .main {
+    padding-top: 28px;
+  }
+  .pager {
+    grid-template-columns: 1fr;
+  }
+  .pager a.next {
+    grid-column: 1;
+  }
+}

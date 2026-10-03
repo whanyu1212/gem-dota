@@ -1,0 +1,106 @@
+/*
+ * Design tokens for the Editorial theme: a warm paper light theme and the
+ * "Night paper" dark theme. Every colour on the site comes from here.
+ *
+ * Dark applies when the reader chose it (data-theme="dark"), or when they chose
+ * nothing and the system prefers dark.
+ */
+:root {
+  color-scheme: light;
+
+  --bg: #f7f5ef;
+  --paper: #fffdf8;
+  --ink: #14181c;
+  --body: #36414a;
+  --muted: #5f6b74;
+  --line: #e3ddcf;
+  --rule: #14181c;
+  --accent: #0b7a4b;
+  --accent-soft: rgba(11, 122, 75, 0.1);
+  --code-bg: #15191d;
+  --code-fg: #e8e6df;
+  --code-border: #15191d;
+  --code-muted: #9aa3ab;
+  --inline-code-bg: #efe9dc;
+  --shadow: 0 1px 2px rgba(20, 24, 28, 0.06);
+  --image-filter: none;
+
+  /* Callout and diagram colours, readable as text on --bg and --paper. */
+  --note: #345a80;
+  --tip: #0b7a4b;
+  --warning: #8a5a00;
+  --danger: #b42318;
+  --important: #6941c6;
+
+  --sun-display: none;
+  --moon-display: block;
+
+  --font-serif: "Source Serif 4 Variable", "Iowan Old Style", Georgia, serif;
+  --font-sans: "Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --topbar-height: 64px;
+}
+
+/* Night paper, chosen by the reader. The same values follow for the system preference. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #171513;
+  --paper: #1e1b18;
+  --ink: #ede7dc;
+  --body: #c9c1b4;
+  --muted: #9a9184;
+  --line: #2f2b26;
+  --rule: #3a352f;
+  --accent: #6fd3a0;
+  --accent-soft: rgba(111, 211, 160, 0.12);
+  --code-bg: #100f0d;
+  --code-fg: #e8e2d6;
+  --code-border: #2f2b26;
+  --code-muted: #8f877b;
+  --inline-code-bg: #2a2622;
+  --shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 18px 40px rgba(0, 0, 0, 0.35);
+  --image-filter: saturate(0.92) brightness(0.96);
+
+  --note: #8fb3d9;
+  --tip: #6fd3a0;
+  --warning: #e3b341;
+  --danger: #f97066;
+  --important: #b692f6;
+
+  --sun-display: block;
+  --moon-display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --bg: #171513;
+    --paper: #1e1b18;
+    --ink: #ede7dc;
+    --body: #c9c1b4;
+    --muted: #9a9184;
+    --line: #2f2b26;
+    --rule: #3a352f;
+    --accent: #6fd3a0;
+    --accent-soft: rgba(111, 211, 160, 0.12);
+    --code-bg: #100f0d;
+    --code-fg: #e8e2d6;
+    --code-border: #2f2b26;
+    --code-muted: #8f877b;
+    --inline-code-bg: #2a2622;
+    --shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 18px 40px rgba(0, 0, 0, 0.35);
+    --image-filter: saturate(0.92) brightness(0.96);
+
+    --note: #8fb3d9;
+    --tip: #6fd3a0;
+    --warning: #e3b341;
+    --danger: #f97066;
+    --important: #b692f6;
+
+    --sun-display: block;
+    --moon-display: none;
+  }
+}

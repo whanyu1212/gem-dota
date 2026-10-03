@@ -1,0 +1,69 @@
+---
+// Every page: <head>, the theme script, the top bar and the site footer.
+import "@fontsource-variable/source-serif-4/opsz.css";
+import "@fontsource-variable/source-serif-4/opsz-italic.css";
+import "@fontsource-variable/inter";
+import "@fontsource-variable/jetbrains-mono";
+import "../styles/tokens.css";
+import "../styles/base.css";
+import TopBar from "../components/TopBar.astro";
+import type { Section } from "../nav";
+
+/** A VitePress-style frontmatter `head` entry, e.g. ["meta", { "http-equiv": "refresh", content: "0; url=…" }]. */
+type HeadEntry = [string, Record<string, string>];
+
+interface Props {
+  title: string;
+  description?: string;
+  section?: Section["key"];
+  head?: HeadEntry[];
+}
+
+const { title, description = "gem, a Dota 2 replay parser for Python.", section, head = [] } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const extraHead = head.filter(([tag]) => tag === "meta" || tag === "link");
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title === "gem" ? "gem" : `${title} | gem`}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
+    {extraHead.map(([tag, attrs]) => (tag === "meta" ? <meta {...attrs} /> : <link {...attrs} />))}
+    <script is:inline>
+      // Apply a theme the reader chose before the page paints. With no choice,
+      // the CSS follows the system setting.
+      try {
+        const theme = localStorage.getItem("gem-theme");
+        if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme;
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <!-- The menu on narrow screens: this checkbox is the keyboard control (Space opens it),
+         and the label in the top bar is what pointer users see. No JavaScript needed. -->
+    <input type="checkbox" id="menu-toggle" class="menu-toggle" aria-label="Menu" aria-controls="site-menu" />
+    <TopBar section={section} />
+    <slot />
+    <footer class="site-footer">
+      <div>gem · MIT licensed · Not affiliated with Valve</div>
+    </footer>
+    <script is:inline>
+      document.querySelector(".theme-toggle")?.addEventListener("click", () => {
+        const root = document.documentElement;
+        const dark = root.dataset.theme
+          ? root.dataset.theme === "dark"
+          : matchMedia("(prefers-color-scheme: dark)").matches;
+        const next = dark ? "light" : "dark";
+        root.dataset.theme = next;
+        try {
+          localStorage.setItem("gem-theme", next);
+        } catch {}
+      });
+    </script>
+  </body>
+</html>

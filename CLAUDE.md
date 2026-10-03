@@ -669,7 +669,9 @@ VitePress stays the live site. Keep editing pages in `docs/`. Every URL in
 `site/url-manifest.txt` must keep building, and every internal link must resolve
 (`cd site && npm run build && npm run check-urls && npm run check-links`). The
 VitePress Markdown extras (`:::` callouts, code groups, `<<<` imports, heading
-IDs, `.md` links) are handled by the plugins in `site/src/markdown/`.
+IDs, `.md` links) are handled by the plugins in `site/src/markdown/`. Navigation
+lives in `site/src/nav.ts`; every colour is a token in `site/src/styles/tokens.css`
+(`npm test` checks WCAG AA contrast for both themes).
 
 ## Related docs in repo root
 

@@ -14,7 +14,7 @@ npm run build        # -> site/dist
 npm run check-urls   # every URL in url-manifest.txt must be built
 npm run check-links  # every internal link and #anchor in dist/ must resolve
 npm run check        # type-check the Astro code
-npm test             # Markdown plugin tests (vitest)
+npm test             # navigation, Markdown plugin and colour-contrast tests (vitest)
 ```
 
 `url-manifest.txt` lists the URLs the VitePress site publishes (written from
@@ -36,3 +36,18 @@ in `src/markdown/`, so Markdown written for VitePress renders the same way:
   to absolute paths, and points links to unpublished repository files at GitHub.
 
 SmartyPants is off: VitePress doesn't curl quotes or turn `--` into dashes.
+
+## Layout and theme
+
+- `src/nav.ts` defines the five sections (Guide, Recipes, Reference, Internals,
+  Changelog), their sidebars, and which pages belong to each. The Reference
+  sidebar is built from the reference pages (`src/lib/docs.ts`).
+- `src/styles/tokens.css` holds every colour: the light theme and Night paper
+  (dark). Dark follows the system setting until the reader picks one with the
+  toggle; the choice is kept in `localStorage` (`gem-theme`).
+- Fonts are self-hosted from Fontsource packages: Source Serif 4 (headings),
+  Inter (text), JetBrains Mono (code).
+- `src/markdown/shiki-theme.ts` is the code theme. Code blocks are dark in both
+  themes.
+- Generated pages (`reference/`, `cookbook/proto-fields/`) use a wider column and
+  sans-serif headings.

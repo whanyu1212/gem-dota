@@ -1,0 +1,39 @@
+---
+import type { NavItem } from "../nav";
+
+interface Props {
+  editUrl: string;
+  updated?: string;
+  prev?: NavItem;
+  next?: NavItem;
+}
+
+const { editUrl, updated, prev, next } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const date = updated
+  ? new Date(updated).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })
+  : undefined;
+---
+
+<footer class="page-footer">
+  <div class="page-meta">
+    <span>{date && <>Last updated <time datetime={updated}>{date}</time></>}</span>
+    <a href={editUrl}>Edit this page on GitHub</a>
+  </div>
+  {(prev || next) && (
+    <nav class="pager" aria-label="Previous and next pages">
+      {prev && (
+        <a class="prev" href={`${base}${prev.link}`}>
+          <span class="label">Previous</span>
+          <span class="title">{prev.text}</span>
+        </a>
+      )}
+      {next && (
+        <a class="next" href={`${base}${next.link}`}>
+          <span class="label">Next</span>
+          <span class="title">{next.text}</span>
+        </a>
+      )}
+    </nav>
+  )}
+</footer>
