@@ -940,7 +940,7 @@ def build_farming_routes(match: ParsedMatch, *, config: FarmingRouteConfig = DEF
 
 Build deterministic camp-local route evidence for every parsed player.
 
-Source: [src/gem/analysis/farming.py:603](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L603)
+Source: [src/gem/analysis/farming.py:633](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L633)
 
 ### Top-level classes
 
@@ -952,7 +952,7 @@ class FarmingEvidenceStrength(str, Enum)
 
 Conservative support level for a camp-local route segment.
 
-Source: [src/gem/analysis/farming.py:23](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L23)
+Source: [src/gem/analysis/farming.py:25](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L25)
 
 ### `FarmingBoundaryReason`
 
@@ -962,7 +962,7 @@ class FarmingBoundaryReason(str, Enum)
 
 Observed reason a route segment started or ended.
 
-Source: [src/gem/analysis/farming.py:31](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L31)
+Source: [src/gem/analysis/farming.py:33](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L33)
 
 ### `FarmingRouteConfig`
 
@@ -972,7 +972,7 @@ class FarmingRouteConfig
 
 Inspectable thresholds for farming-route reconstruction.
 
-Source: [src/gem/analysis/farming.py:43](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L43)
+Source: [src/gem/analysis/farming.py:45](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L45)
 
 #### Dataclass fields
 
@@ -992,7 +992,7 @@ class FarmingCampZone
 
 One calibrated neutral-camp zone from the bundled catalog.
 
-Source: [src/gem/analysis/farming.py:69](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L69)
+Source: [src/gem/analysis/farming.py:71](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L71)
 
 #### Dataclass fields
 
@@ -1021,7 +1021,7 @@ class FarmingRoutePoint
 
 One sampled route point and its selected camp membership.
 
-Source: [src/gem/analysis/farming.py:89](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L89)
+Source: [src/gem/analysis/farming.py:91](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L91)
 
 #### Dataclass fields
 
@@ -1043,7 +1043,7 @@ class FarmingRouteSegment
 
 One camp-local sampled route segment with factual support evidence.
 
-Source: [src/gem/analysis/farming.py:102](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L102)
+Source: [src/gem/analysis/farming.py:104](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L104)
 
 #### Dataclass fields
 
@@ -1091,7 +1091,7 @@ class FarmingRoute
 
 Evidence-first farming route for one parsed player.
 
-Source: [src/gem/analysis/farming.py:141](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L141)
+Source: [src/gem/analysis/farming.py:143](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L143)
 
 #### Dataclass fields
 
