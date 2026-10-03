@@ -631,7 +631,7 @@ def group_ability_hits(combat_log: list[CombatLogEntry], window_ticks: int = 5) 
 
 Group DAMAGE combat log entries into per-cast ``AbilityCast`` records.
 
-Source: [src/gem/analysis/combat.py:51](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L51)
+Source: [src/gem/analysis/combat.py:50](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L50)
 
 ### `find_fights`
 
@@ -641,7 +641,7 @@ def find_fights(match: ParsedMatch, *, window_s: float = FIGHT_WINDOW_S, radius:
 
 Group a parsed match's hero deaths into fights with your own settings.
 
-Source: [src/gem/analysis/combat.py:125](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L125)
+Source: [src/gem/analysis/combat.py:124](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L124)
 
 ### `fight_at_tick`
 
@@ -651,7 +651,7 @@ def fight_at_tick(match: ParsedMatch, tick: int) -> Fight | None
 
 Return the fight window that contains the given tick, or ``None``.
 
-Source: [src/gem/analysis/combat.py:197](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L197)
+Source: [src/gem/analysis/combat.py:196](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L196)
 
 ### `is_active_fight_participant`
 
@@ -661,7 +661,7 @@ def is_active_fight_participant(player_stats: object) -> bool
 
 Return True if a player was an active participant in a fight.
 
-Source: [src/gem/analysis/combat.py:230](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L230)
+Source: [src/gem/analysis/combat.py:229](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L229)
 
 ### Top-level classes
 
@@ -673,7 +673,7 @@ class AbilityCast
 
 A single ability (or item) cast with all targets it hit.
 
-Source: [src/gem/analysis/combat.py:26](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L26)
+Source: [src/gem/analysis/combat.py:25](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/combat.py#L25)
 
 #### Dataclass fields
 
@@ -954,7 +954,7 @@ def build_farming_routes(match: ParsedMatch, *, config: FarmingRouteConfig = DEF
 
 Build deterministic camp-local route evidence for every parsed player.
 
-Source: [src/gem/analysis/farming.py:603](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L603)
+Source: [src/gem/analysis/farming.py:633](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L633)
 
 ### Top-level classes
 
@@ -966,7 +966,7 @@ class FarmingEvidenceStrength(str, Enum)
 
 Conservative support level for a camp-local route segment.
 
-Source: [src/gem/analysis/farming.py:23](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L23)
+Source: [src/gem/analysis/farming.py:25](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L25)
 
 ### `FarmingBoundaryReason`
 
@@ -976,7 +976,7 @@ class FarmingBoundaryReason(str, Enum)
 
 Observed reason a route segment started or ended.
 
-Source: [src/gem/analysis/farming.py:31](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L31)
+Source: [src/gem/analysis/farming.py:33](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L33)
 
 ### `FarmingRouteConfig`
 
@@ -986,7 +986,7 @@ class FarmingRouteConfig
 
 Inspectable thresholds for farming-route reconstruction.
 
-Source: [src/gem/analysis/farming.py:43](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L43)
+Source: [src/gem/analysis/farming.py:45](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L45)
 
 #### Dataclass fields
 
@@ -1006,7 +1006,7 @@ class FarmingCampZone
 
 One calibrated neutral-camp zone from the bundled catalog.
 
-Source: [src/gem/analysis/farming.py:69](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L69)
+Source: [src/gem/analysis/farming.py:71](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L71)
 
 #### Dataclass fields
 
@@ -1035,7 +1035,7 @@ class FarmingRoutePoint
 
 One sampled route point and its selected camp membership.
 
-Source: [src/gem/analysis/farming.py:89](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L89)
+Source: [src/gem/analysis/farming.py:91](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L91)
 
 #### Dataclass fields
 
@@ -1057,7 +1057,7 @@ class FarmingRouteSegment
 
 One camp-local sampled route segment with factual support evidence.
 
-Source: [src/gem/analysis/farming.py:102](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L102)
+Source: [src/gem/analysis/farming.py:104](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L104)
 
 #### Dataclass fields
 
@@ -1105,7 +1105,7 @@ class FarmingRoute
 
 Evidence-first farming route for one parsed player.
 
-Source: [src/gem/analysis/farming.py:141](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L141)
+Source: [src/gem/analysis/farming.py:143](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L143)
 
 #### Dataclass fields
 
@@ -1336,7 +1336,7 @@ def build_smoke_analysis(match: ParsedMatch) -> list[SmokeAnalysis]
 
 Build factual lifecycle summaries for every smoke item use.
 
-Source: [src/gem/analysis/smoke.py:153](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L153)
+Source: [src/gem/analysis/smoke.py:149](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L149)
 
 ### Top-level classes
 
@@ -1348,7 +1348,7 @@ class SmokeLifecycleStatus(str, Enum)
 
 Observed lifecycle classification for one smoke participant.
 
-Source: [src/gem/analysis/smoke.py:36](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L36)
+Source: [src/gem/analysis/smoke.py:35](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L35)
 
 ### `SmokeGroupStatus`
 
@@ -1358,7 +1358,7 @@ class SmokeGroupStatus(str, Enum)
 
 Evidence-based aggregate state for one smoke activation.
 
-Source: [src/gem/analysis/smoke.py:53](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L53)
+Source: [src/gem/analysis/smoke.py:52](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L52)
 
 ### `SmokeMemberAnalysis`
 
@@ -1368,7 +1368,7 @@ class SmokeMemberAnalysis
 
 Evidence summary for one hero in a smoke activation.
 
-Source: [src/gem/analysis/smoke.py:73](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L73)
+Source: [src/gem/analysis/smoke.py:72](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L72)
 
 #### Dataclass fields
 
@@ -1397,7 +1397,7 @@ class SmokeAnalysis
 
 Evidence summary for one Smoke of Deceit item use.
 
-Source: [src/gem/analysis/smoke.py:117](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L117)
+Source: [src/gem/analysis/smoke.py:115](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/smoke.py#L115)
 
 #### Dataclass fields
 
@@ -1581,7 +1581,7 @@ def analyze(match: ParsedMatch) -> MatchAnalysis
 
 Run every default post-parse analysis on a parsed match.
 
-Source: [src/gem/analysis/bundle.py:55](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/bundle.py#L55)
+Source: [src/gem/analysis/bundle.py:51](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/bundle.py#L51)
 
 ### Top-level classes
 
@@ -1593,7 +1593,7 @@ class MatchAnalysis
 
 Results of every default post-parse analysis for one match.
 
-Source: [src/gem/analysis/bundle.py:33](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/bundle.py#L33)
+Source: [src/gem/analysis/bundle.py:31](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/bundle.py#L31)
 
 #### Dataclass fields
 

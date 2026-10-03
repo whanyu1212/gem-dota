@@ -192,7 +192,8 @@ Headline exports (see `__all__` for the full list):
 - **Fights vs teamfights:** `ParsedMatch.fights` is gem's own list of every
   fight (users filter or regroup it); "teamfight" names are reserved for
   OpenDota's definition (`opendota_teamfights`, `teamfight_participation`).
-  The gem 0.10 `teamfights` names are deprecated aliases (`gem/_deprecation.py`).
+  The gem 0.10 `teamfights` names were removed in 0.13; JSON files with the old
+  `teamfights` key still load (`results/serialization.py`).
 - **Experimental:** `build_farming_routes`, `FarmingRoute`, `build_rosh_conversions`,
   `RoshConversion`, `build_smoke_analysis`, `SmokeAnalysis`; `analyze` runs
   them all and returns a `MatchAnalysis`
