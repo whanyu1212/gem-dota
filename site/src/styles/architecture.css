@@ -1,4 +1,4 @@
-/* The pipeline diagram and layer table on the Architecture page (docs/architecture.md).
+/* The pipeline diagram and layer table on the Architecture page (src/content/docs/architecture.md).
    Each layer keeps one colour in both diagrams. */
 
 .arch-flow--io,
