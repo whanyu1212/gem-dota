@@ -27,6 +27,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fixtures no record's status changed.
 - **`FarmingRouteSegment` uses `__slots__` again** (it gave them up in 0.12 for
   the deprecated `context` field).
+- **`gem.analyze` is about 20 times faster** (HY-7). Farming routes no longer
+  scan the whole combat log once per camp visit: neutral-creep deaths and damage
+  are indexed by hero once, and each visit looks up its own window. Resource
+  endpoints are found by binary search too. The routes are unchanged (identical
+  output on all 9 local fixtures). With the 0.12 interpretation removed as well:
+
+  | Fixture | 0.12.0 | Now |
+  |---|---:|---:|
+  | 8856501050 (92:56) | 164.0 s | 6.6 s |
+  | 8974053011 (38:00) | 27.5 s | 1.2 s |
 
 ### Removed
 
