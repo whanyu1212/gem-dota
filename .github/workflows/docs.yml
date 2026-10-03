@@ -1,8 +1,20 @@
 name: Deploy Docs
 
+# Builds the Astro docs site in site/ (pages read from docs/ until HY-118 moves
+# them). Every run builds and checks the site; only runs on main (a push, or a
+# manual run with main selected) deploy it to GitHub Pages.
+
 on:
   push:
     branches: [main]
+  pull_request:
+    paths:
+      - "site/**"
+      - "docs/**"
+      - "src/gem/**"
+      - "scripts/generate_api_reference.py"
+      - "pyproject.toml"
+      - ".github/workflows/docs.yml"
   workflow_dispatch:
 
 permissions:
@@ -11,7 +23,8 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  # One deploy at a time; a newer push to a PR cancels that PR's older build.
+  group: ${{ github.event_name == 'pull_request' && format('docs-pr-{0}', github.event.pull_request.number) || 'pages' }}
   cancel-in-progress: true
 
 jobs:
@@ -19,15 +32,20 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: docs
+        working-directory: site
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Full history, so each page's "last updated" date comes from git.
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version-file: site/.nvmrc
+          cache: npm
+          cache-dependency-path: site/package-lock.json
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -35,20 +53,36 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Build docs
-        run: npm run docs:build
+      - name: Type-check
+        run: npm run check
+
+      - name: Test
+        run: npm test
+
+      # Regenerates the API reference, builds the site, then the search index.
+      - name: Build
+        run: npm run build
+
+      - name: Check every published URL still builds
+        run: npm run check-urls
+
+      - name: Check internal links and anchors
+        run: npm run check-links
 
       - name: Setup Pages
+        if: github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v5
 
       - name: Upload Pages artifact
+        if: github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/.vitepress/dist
+          path: site/dist
 
   deploy:
+    if: github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     environment:

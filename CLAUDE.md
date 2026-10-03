@@ -50,8 +50,8 @@ uv run mypy src/gem/
 # Regenerate protobuf modules after updating proto_definitions/
 uv run python scripts/compile_protos.py
 
-# Docs — VitePress lives in docs/ (Node-based, see "Docs" below)
-cd docs && npm install && npm run docs:dev
+# Docs — the Astro site lives in site/ (Node 22+, see "Docs" below)
+cd site && npm install && npm run dev
 ```
 
 ## Architecture
@@ -649,23 +649,25 @@ A sample HTML report lives in `docs/reports/` (`ti14_finals_g3_xg_vs_falcons_rep
 
 ## Docs
 
-Documentation is a **VitePress** site under `docs/` (CI builds it via
-`.github/workflows/docs.yml`). The API reference is generated from docstrings.
+Documentation is a pure **Astro** site (no Starlight) in `site/`, with the
+Editorial design and a "Night paper" dark theme. CI builds, checks and deploys it
+via `.github/workflows/docs.yml` (pull requests build and check only). The
+Markdown pages still live in `docs/` until HY-118 moves them into `site/`; the
+old VitePress config in `docs/.vitepress/` is no longer built or deployed. The
+API reference is generated from docstrings.
 
 ```bash
-cd docs
+cd site
 npm install
-npm run docs:dev      # local dev server (regenerates API reference first)
-npm run docs:build    # production build -> docs/.vitepress/dist
+npm run dev           # local dev server (regenerates the API reference first)
+npm run build         # API reference, site -> site/dist, Pagefind search index
+npm run check-urls && npm run check-links && npm test && npm run check
 ```
 
-Key pages: `docs/index.md`, `docs/architecture.md`, `docs/guides/`,
-`docs/deep-dives/`, `docs/cookbook/`, `docs/experimental/`.
+Key pages: `docs/architecture.md`, `docs/guides/`, `docs/deep-dives/`,
+`docs/cookbook/`, `docs/experimental/`; the home page is `site/src/pages/index.astro`.
 
-**Migration in progress (HY-110):** the site is moving to pure Astro (no
-Starlight) in `site/`, with the Editorial design and a "Night paper" dark theme.
-Until the switch-over (HY-118) `site/` reads the Markdown from `docs/`, and
-VitePress stays the live site. Keep editing pages in `docs/`. Every URL in
+**Site rules (HY-110):** keep editing pages in `docs/` until HY-118. Every URL in
 `site/url-manifest.txt` must keep building, and every internal link must resolve
 (`cd site && npm run build && npm run check-urls && npm run check-links`). The
 VitePress Markdown extras (`:::` callouts, code groups, `<<<` imports, heading

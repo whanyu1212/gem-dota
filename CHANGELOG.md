@@ -17,6 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Docs site** (HY-110). The documentation at
+  <https://whanyu1212.github.io/gem-dota/> is rebuilt in Astro with a new design:
+  a light theme and a dark one that follows your system setting (or the toggle),
+  site search, a home page with figures drawn from real replay data, and
+  sections for Guide, Recipes, Reference, Internals and the Changelog. Every
+  existing URL and `#anchor` still works.
+
 - **JSON `schema_version` is 4.** The `analysis` section no longer has
   `smoke_fights`, the farming segment `context`, or the Roshan tags, verdicts and
   territory fields. `load_json()` does not decode that section, so schema 3 files
