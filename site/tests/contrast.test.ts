@@ -30,7 +30,9 @@ const TEXT_ON_SURFACE = [
   ["note", "bg"], ["tip", "bg"], ["warning", "bg"], ["danger", "bg"], ["important", "bg"],
   ["code-fg", "code-bg"], ["code-muted", "code-bg"],
 ];
-const CODE_COLOURS = [...new Set(gemCodeTheme.tokenColors.map((t) => t.settings.foreground))];
+const CODE_COLOURS = [
+  ...new Set(gemCodeTheme.tokenColors.flatMap((t) => ("foreground" in t.settings ? [t.settings.foreground] : []))),
+];
 
 describe.each([
   ["light", light],

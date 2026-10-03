@@ -303,7 +303,8 @@
 .prose--reference h3 {
   font-size: 18px;
 }
-/* Generated entries are headed by their name in code, e.g. ### `build_dataframes`. */
+/* Generated entries are headed by their name in code alone, e.g. ### `build_dataframes`
+   (scripts/generate_vitepress_api_reference.py). Keep that shape if the generator changes. */
 .prose--reference h3:has(> code:only-child) {
   margin-top: 40px;
   padding-top: 20px;
