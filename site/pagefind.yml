@@ -1,0 +1,6 @@
+# Pagefind indexes the built site after `astro build` (npm run build).
+# Only <article data-pagefind-body> is indexed: the page content, not the
+# navigation, sidebar, outline or footer.
+site: dist
+# Keep identifiers whole: parse_to_dataframe, gem.parse, m_iTotalEarnedGold.
+include_characters: "_."

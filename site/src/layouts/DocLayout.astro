@@ -33,7 +33,22 @@ const group = groupOf(path, groups);
 const { prev, next } = prevNext(path, groups);
 const reference = path.startsWith("/reference/") || path.startsWith("/cookbook/proto-fields/");
 const base = import.meta.env.BASE_URL;
-const data = entry.data as { head?: [string, Record<string, string>][]; pageClass?: string };
+const data = entry.data as {
+  head?: [string, Record<string, string>][];
+  pageClass?: string;
+  search?: boolean;
+};
+// Search (Pagefind) indexes the article only. Pages marked `search: false` (the
+// moved-page redirects) stay out, and the 85 generated proto-field pages rank
+// below the hand-written pages that explain the same messages.
+const searchAttributes =
+  data.search === false
+    ? {}
+    : {
+        "data-pagefind-body": "",
+        "data-pagefind-meta": `section:${section?.text ?? "Guide"}`,
+        ...(path.startsWith("/cookbook/proto-fields/") ? { "data-pagefind-weight": "0.4" } : {}),
+      };
 
 const shellClass = ["shell", groups.length ? "" : "shell--no-sidebar", reference ? "shell--wide" : ""]
   .filter(Boolean)
@@ -51,7 +66,7 @@ const proseClass = ["prose", reference ? "prose--reference" : "", data.pageClass
           {group && group.text !== section.text && <> / {group.text}</>}
         </p>
       )}
-      <article class={proseClass}>
+      <article class={proseClass} {...searchAttributes}>
         <Content />
       </article>
       <PageFooter

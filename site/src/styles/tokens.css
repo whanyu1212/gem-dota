@@ -23,6 +23,7 @@
   --code-muted: #9aa3ab;
   --inline-code-bg: #efe9dc;
   --shadow: 0 1px 2px rgba(20, 24, 28, 0.06);
+  --overlay-shadow: 0 24px 60px rgba(20, 24, 28, 0.18);
   --image-filter: none;
 
   /* Callout and diagram colours, readable as text on --bg and --paper. */
@@ -77,6 +78,7 @@
   --code-muted: #8f877b;
   --inline-code-bg: #2a2622;
   --shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 18px 40px rgba(0, 0, 0, 0.35);
+  --overlay-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
   --image-filter: saturate(0.92) brightness(0.96);
 
   --note: #8fb3d9;
@@ -108,6 +110,7 @@
     --code-muted: #8f877b;
     --inline-code-bg: #2a2622;
     --shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 18px 40px rgba(0, 0, 0, 0.35);
+    --overlay-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
     --image-filter: saturate(0.92) brightness(0.96);
 
     --note: #8fb3d9;

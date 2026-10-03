@@ -10,7 +10,7 @@ Needs Node 22.12 or newer (Astro 7; see `engines` in `package.json` and `.nvmrc`
 cd site
 npm install
 npm run dev          # http://localhost:4321/gem-dota/
-npm run build        # -> site/dist
+npm run build        # -> site/dist, then the Pagefind search index in dist/pagefind
 npm run check-urls   # every URL in url-manifest.txt must be built
 npm run check-links  # every internal link and #anchor in dist/ must resolve
 npm run check        # type-check the Astro code
@@ -67,3 +67,13 @@ gem's map overlay) and `src/assets/home-map.jpg`. The default replay is the
 TI2026 fixture 8856501050, the match the committed snapshot comes from. The recipe cards
 quote their recipe pages (`src/data/recipes.ts`), and `tests/home.test.ts`
 fails if a quoted sentence is no longer on its page.
+
+## Search
+
+`npm run build` runs [Pagefind](https://pagefind.app) after Astro (`pagefind.yml`).
+It indexes each page's `<article data-pagefind-body>` only, tagged with its
+section; pages with `search: false` in their frontmatter are left out, and the
+generated proto-field pages are weighted down. `src/components/Search.astro` is
+the dialog (⌘K, Ctrl+K or `/`): results are grouped by section, best match
+first. Search needs the built index, so it works in `npm run preview`, not
+`npm run dev`, and the button stays hidden without JavaScript.
