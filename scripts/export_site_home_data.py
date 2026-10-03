@@ -120,7 +120,7 @@ def main(argv: list[str] | None = None) -> int:
     args.data.parent.mkdir(parents=True, exist_ok=True)
     args.data.write_text(json.dumps(data, indent=1) + "\n")
     write_map_image(args.map_image)
-    print(f"Wrote {args.data.relative_to(REPO_ROOT)} and {args.map_image.relative_to(REPO_ROOT)}")
+    print(f"Wrote {args.data} and {args.map_image}")
     return 0
 
 

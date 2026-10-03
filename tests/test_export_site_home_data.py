@@ -1,5 +1,11 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
+import pytest
+
+import scripts.export_site_home_data as export
 from gem.catalog.map import load_camp_zones
 from scripts.export_site_home_data import SIZE, map_overlay
 
@@ -32,3 +38,14 @@ def test_map_overlay_puts_radiant_camps_below_dire_camps() -> None:
         heights[camp["topology"]["owner_team"]].append(projected["at"][1])
     mean = {team: sum(ys) / len(ys) for team, ys in heights.items()}
     assert mean[2] > mean[3]
+
+
+def test_main_writes_to_paths_outside_the_repository(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(export, "match_snapshot", lambda replay: {"match_id": 1})
+    data, image = tmp_path / "home.json", tmp_path / "map.jpg"
+    assert export.main(["replay.dem", "--data", str(data), "--map-image", str(image)]) == 0
+    assert json.loads(data.read_text())["match"] == {"match_id": 1}
+    assert image.stat().st_size > 0
+    assert str(data) in capsys.readouterr().out
