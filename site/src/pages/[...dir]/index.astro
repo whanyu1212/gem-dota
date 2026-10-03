@@ -1,0 +1,17 @@
+---
+// A folder's index.md, e.g. docs/reference/index.md, and docs/index.md itself.
+import type { GetStaticPaths } from "astro";
+import Placeholder from "../../layouts/Placeholder.astro";
+import { getDocs, indexFolder, isIndexPage } from "../../lib/docs";
+
+export const getStaticPaths = (async () => {
+  const docs = await getDocs();
+  return docs
+    .filter(isIndexPage)
+    .map((entry) => ({ params: { dir: indexFolder(entry) || undefined }, props: { entry } }));
+}) satisfies GetStaticPaths;
+
+const { entry } = Astro.props;
+---
+
+<Placeholder entry={entry} />
