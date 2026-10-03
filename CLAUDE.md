@@ -666,8 +666,10 @@ Key pages: `docs/index.md`, `docs/architecture.md`, `docs/guides/`,
 Starlight) in `site/`, with the Editorial design and a "Night paper" dark theme.
 Until the switch-over (HY-118) `site/` reads the Markdown from `docs/`, and
 VitePress stays the live site. Keep editing pages in `docs/`. Every URL in
-`site/url-manifest.txt` must keep building (`cd site && npm run build && npm run
-check-urls`).
+`site/url-manifest.txt` must keep building, and every internal link must resolve
+(`cd site && npm run build && npm run check-urls && npm run check-links`). The
+VitePress Markdown extras (`:::` callouts, code groups, `<<<` imports, heading
+IDs, `.md` links) are handled by the plugins in `site/src/markdown/`.
 
 ## Related docs in repo root
 
