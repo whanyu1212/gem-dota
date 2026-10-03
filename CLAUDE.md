@@ -674,7 +674,8 @@ lives in `site/src/nav.ts`; every colour is a token in `site/src/styles/tokens.c
 (`npm test` checks WCAG AA contrast for both themes). The home page
 (`site/src/pages/index.astro`) reads a committed snapshot written by
 `scripts/export_site_home_data.py`; every number on it comes from that snapshot
-or is quoted from a recipe page.
+or is quoted from a recipe page. Search is Pagefind, built after Astro by
+`npm run build`; it indexes the article body only.
 
 ## Related docs in repo root
 

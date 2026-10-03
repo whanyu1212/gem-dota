@@ -1,0 +1,153 @@
+---
+// Site search: a button in the top bar opens a dialog that queries the Pagefind
+// index built after `astro build`. Results are grouped by section. Search needs
+// JavaScript, so the button stays hidden without it.
+const base = import.meta.env.BASE_URL;
+---
+
+<button class="search-button" type="button" hidden data-search-open aria-haspopup="dialog">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+  <span class="search-label">Search</span>
+  <kbd class="search-key" data-search-key>⌘K</kbd>
+</button>
+
+<dialog class="search-dialog" aria-label="Search the docs" data-search-dialog data-bundle={`${base}/pagefind/`}>
+  <div class="search-box">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+    <input type="search" placeholder="Search the docs" aria-label="Search the docs" autocomplete="off" spellcheck="false" data-search-input />
+    <button type="button" class="search-close" data-search-close aria-label="Close search">Esc</button>
+  </div>
+  <div class="search-results" data-search-results aria-live="polite"></div>
+</dialog>
+
+<script is:inline>
+  // Pagefind's bundle is built after Vite runs, so it is loaded at runtime with a
+  // plain import(). An inline script keeps Vite from rewriting that import.
+  window.gemLoadPagefind = (url) => import(url);
+</script>
+
+<script>
+  type SubResult = { title: string; url: string; excerpt: string };
+  type Result = { url: string; excerpt: string; meta: { title?: string; section?: string }; sub_results: SubResult[] };
+  type Pagefind = {
+    options(options: Record<string, unknown>): Promise<void>;
+    debouncedSearch(term: string, options?: object, ms?: number): Promise<{ results: { data(): Promise<Result> }[] } | null>;
+  };
+
+  const MAX_RESULTS = 24;
+
+  const dialog = document.querySelector<HTMLDialogElement>("[data-search-dialog]")!;
+  const input = dialog.querySelector<HTMLInputElement>("[data-search-input]")!;
+  const list = dialog.querySelector<HTMLElement>("[data-search-results]")!;
+  const openButton = document.querySelector<HTMLButtonElement>("[data-search-open]")!;
+  const bundle = dialog.dataset.bundle!;
+  const siteBase = bundle.replace(/pagefind\/$/, "");
+
+  if (!/Mac|iPhone|iPad/.test(navigator.platform)) {
+    document.querySelector("[data-search-key]")!.textContent = "Ctrl K";
+  }
+  openButton.hidden = false;
+
+  let pagefind: Promise<Pagefind> | undefined;
+  function loadPagefind(): Promise<Pagefind> {
+    const load = (window as unknown as { gemLoadPagefind(url: string): Promise<Pagefind> }).gemLoadPagefind;
+    pagefind ??= load(`${bundle}pagefind.js`).then(async (module) => {
+      await module.options({ baseUrl: siteBase, excerptLength: 22 });
+      return module;
+    });
+    return pagefind;
+  }
+
+  /** Pagefind returns file URLs (x/y.html); the site serves them without .html. */
+  const cleanUrl = (url: string) => url.replace(/\.html(?=#|$)/, "");
+
+  const escapeHtml = (text: string) =>
+    text.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+
+  function render(results: Result[], term: string) {
+    if (!term) {
+      list.innerHTML = "";
+      return;
+    }
+    if (!results.length) {
+      list.innerHTML = `<p class="search-empty">No pages match “${escapeHtml(term)}”.</p>`;
+      return;
+    }
+    const groups = new Map<string, Result[]>();
+    for (const result of results) {
+      const section = result.meta.section ?? "Guide";
+      groups.set(section, [...(groups.get(section) ?? []), result]);
+    }
+    // Groups keep Pagefind's ranking: the section with the best match comes first.
+    const sections = [...groups.keys()];
+    // Excerpts are Pagefind's: page text it has escaped, with <mark> around matches.
+    list.innerHTML = sections
+      .map(
+        (section) => `<section class="search-group">
+          <h2>${escapeHtml(section)}</h2>
+          <ul>${groups
+            .get(section)!
+            .map((result) => {
+              // The best-matching heading, unless it is just the page's own title.
+              const sub = result.sub_results.find(
+                (s) => cleanUrl(s.url) !== cleanUrl(result.url) && s.title !== result.meta.title,
+              );
+              const target = cleanUrl(sub?.url ?? result.url);
+              const heading = sub ? `<span class="search-heading">› ${escapeHtml(sub.title)}</span>` : "";
+              return `<li><a href="${escapeHtml(target)}">
+                <span class="search-title">${escapeHtml(result.meta.title ?? target)}${heading}</span>
+                <span class="search-excerpt">${sub?.excerpt ?? result.excerpt}</span>
+              </a></li>`;
+            })
+            .join("")}</ul>
+        </section>`,
+      )
+      .join("");
+  }
+
+  let latest = 0;
+  async function search() {
+    const term = input.value.trim();
+    const ticket = ++latest;
+    const found = await (await loadPagefind()).debouncedSearch(term, {}, 150);
+    if (found === null || ticket !== latest) return; // superseded by newer typing
+    const results = await Promise.all(found.results.slice(0, MAX_RESULTS).map((r) => r.data()));
+    if (ticket === latest) render(results, term);
+  }
+
+  function open() {
+    if (dialog.open) return;
+    dialog.showModal();
+    input.select();
+    void loadPagefind();
+  }
+
+  function moveFocus(step: number) {
+    const links = [...list.querySelectorAll<HTMLAnchorElement>("a")];
+    if (!links.length) return;
+    const index = links.indexOf(document.activeElement as HTMLAnchorElement);
+    const next = index === -1 ? (step > 0 ? 0 : links.length - 1) : (index + step + links.length) % links.length;
+    links[next].focus();
+  }
+
+  openButton.addEventListener("click", open);
+  dialog.querySelector("[data-search-close]")!.addEventListener("click", () => dialog.close());
+  dialog.addEventListener("click", (event) => {
+    if (event.target === dialog) dialog.close(); // a click on the backdrop
+  });
+  input.addEventListener("input", search);
+  dialog.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      moveFocus(event.key === "ArrowDown" ? 1 : -1);
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    const typing = event.target instanceof HTMLElement && event.target.closest("input, textarea, [contenteditable]");
+    if ((event.key === "k" && (event.metaKey || event.ctrlKey)) || (event.key === "/" && !typing)) {
+      event.preventDefault();
+      open();
+    }
+  });
+</script>

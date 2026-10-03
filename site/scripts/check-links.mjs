@@ -47,7 +47,8 @@ const decode = (text) => text.replace(/&amp;/g, "&").replace(/&quot;/g, '"').rep
 const broken = [];
 let checked = 0;
 for (const file of htmlFiles(dist)) {
-  const html = readFileSync(file, "utf8");
+  // Script bodies can hold href-like template strings; only markup counts.
+  const html = readFileSync(file, "utf8").replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "");
   const page = new URL(pageUrl(file), "http://site");
   for (const [, attribute, raw] of html.matchAll(/\s(href|src)="([^"]*)"/g)) {
     const value = decode(raw);
