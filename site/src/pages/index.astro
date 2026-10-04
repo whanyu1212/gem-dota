@@ -100,7 +100,7 @@ frames = gem.parse_to_dataframe("${match.match_id}.dem")`;
           <p class="chapter-intro">
             Regions and camps are traced on the 7.41 map and checked against the replays' own neutral spawners
             and combat log. <code>gem.region_of(x, y)</code> tells you where any position is. Wards carry exact
-            positions, heroes a sampled one each second: enough to replay a fight.
+            positions; gem samples heroes each second, and Figure 3 reads them on every replay packet.
           </p>
         </div>
         {/* The figures span the label column too, so Figure 3's playback has room and

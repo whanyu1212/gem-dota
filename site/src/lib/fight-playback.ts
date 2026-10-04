@@ -3,9 +3,10 @@
  * then, the feed's rows and the damage strip. It reads `src/data/fight.json`
  * (written by scripts/export_site_home_data.py from gem.build_fight_timeline).
  *
- * Positions, HP and mana are sampled about once a second and interpolated
- * between samples, for display only. Every `t` is seconds since the fight
- * window started.
+ * Positions, HP and mana are the replay's readings on every packet (every other
+ * tick), with the samples a straight line between their neighbours redraws left
+ * out; drawing interpolates between the rest. Every `t` is seconds since the
+ * playback started, to the hundredth, so each tick has its own.
  */
 
 /** A sample: t, map-square x and y, HP, max HP, mana, max mana. */
@@ -355,10 +356,46 @@ export function feedRows(data: FightData): Row[] {
   return rows.sort((a, b) => a.t - b.t);
 }
 
-/** Whether a row shows: a filter that covers its kind is on, and it involves the followed hero (if any). */
-export function rowShows(row: Row, on: Set<string>, follow: number | null): boolean {
+/** A stretch of the playback, [from, to] in seconds since its start. */
+export type TimeRange = [number, number];
+
+/** A death mark selects this long before the death, and after it. */
+export const DEATH_LEAD_S = 5;
+export const DEATH_TAIL_S = 1;
+/** A buyback mark selects this long either side of the buyback. */
+export const BUYBACK_SPAN_S = 3;
+/** A drag shorter than this is a click, not a range. */
+export const MIN_RANGE_S = 0.2;
+
+/** The range from `before` seconds before `t` to `after` seconds after it, kept inside the playback. */
+export function rangeAround(t: number, before: number, after: number, duration: number): TimeRange {
+  return [Math.max(0, t - before), Math.min(duration, t + after)];
+}
+
+/** Whether `t` falls in the range (inclusive at both ends); no range covers everything. */
+export function inRange(t: number, range: TimeRange | null): boolean {
+  return range === null || (range[0] <= t && t <= range[1]);
+}
+
+/** Where play starts: the range's start unless the playhead is already inside it; otherwise the top once at the end. */
+export function playFrom(t: number, range: TimeRange | null, duration: number): number {
+  if (range) return t < range[0] || t >= range[1] ? range[0] : t;
+  return t >= duration ? 0 : t;
+}
+
+/** The next playhead after `step` seconds, stopping at the range's end (or the playback's). */
+export function advance(t: number, step: number, range: TimeRange | null, duration: number): { t: number; atEnd: boolean } {
+  const end = range ? range[1] : duration;
+  return t + step >= end ? { t: end, atEnd: true } : { t: t + step, atEnd: false };
+}
+
+/**
+ * Whether a row shows: a filter that covers its kind is on, it involves the
+ * followed hero (if any), and it falls in the picked time range (if any).
+ */
+export function rowShows(row: Row, on: Set<string>, follow: number | null, range: TimeRange | null = null): boolean {
   const filter = FILTERS.find((f) => f.kinds.includes(row.kind));
-  return !!filter && on.has(filter.key) && (follow === null || row.heroes.includes(follow));
+  return !!filter && on.has(filter.key) && (follow === null || row.heroes.includes(follow)) && inRange(row.t, range);
 }
 
 /** The heroes a cast involves: its caster, recorded target and hits. */

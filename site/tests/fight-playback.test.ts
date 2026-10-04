@@ -1,17 +1,25 @@
-import { readdirSync, statSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
+import { gzipSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 import fight from "../src/data/fight.json";
 import home from "../src/data/home.json";
 import {
+  advance,
+  BUYBACK_SPAN_S,
   buybackAfter,
   isHidden,
   isSmoked,
   castText,
   clockAt,
   damagePerSecond,
+  DEATH_LEAD_S,
+  DEATH_TAIL_S,
   deathTimes,
   FILTERS,
   feedRows,
+  inRange,
+  playFrom,
+  rangeAround,
   rowShows,
   stateAt,
   type Cast,
@@ -188,6 +196,41 @@ describe("feed rows", () => {
   });
 });
 
+describe("time range", () => {
+  const rows = feedRows(data);
+  const on = new Set(FILTERS.map((f) => f.key));
+
+  it("picks the stretch around a death or buyback, inside the playback", () => {
+    expect(rangeAround(30, DEATH_LEAD_S, DEATH_TAIL_S, 74)).toEqual([25, 31]);
+    expect(rangeAround(3, DEATH_LEAD_S, DEATH_TAIL_S, 74)).toEqual([0, 4]);
+    expect(rangeAround(73, BUYBACK_SPAN_S, BUYBACK_SPAN_S, 74)).toEqual([70, 74]);
+  });
+
+  it("limits the feed to the range, ends included, alongside the other filters", () => {
+    expect(inRange(5, null)).toBe(true);
+    expect([2, 3, 4].map((t) => inRange(t, [2, 4]))).toEqual([true, true, true]);
+    expect([1.99, 4.01].map((t) => inRange(t, [2, 4]))).toEqual([false, false]);
+    const inside = rows.filter((r) => rowShows(r, on, null, [2.5, 3.5]));
+    expect(inside.length).toBeGreaterThan(0);
+    expect(inside.every((r) => r.t >= 2.5 && r.t <= 3.5)).toBe(true);
+    expect(rows.filter((r) => rowShows(r, on, null, null))).toHaveLength(rows.length);
+    // Following a hero narrows the range further.
+    const lion = rows.filter((r) => rowShows(r, on, 0, [0, 10]));
+    expect(lion.every((r) => r.heroes.includes(0))).toBe(true);
+  });
+
+  it("plays from the range's start and stops at its end, to loop", () => {
+    expect(playFrom(1, [2, 4], 10)).toBe(2); // before the range
+    expect(playFrom(3, [2, 4], 10)).toBe(3); // inside: carries on
+    expect(playFrom(4, [2, 4], 10)).toBe(2); // at its end: from the top
+    expect(playFrom(10, null, 10)).toBe(0);
+    expect(playFrom(6, null, 10)).toBe(6);
+    expect(advance(3, 0.5, [2, 4], 10)).toEqual({ t: 3.5, atEnd: false });
+    expect(advance(3.8, 0.5, [2, 4], 10)).toEqual({ t: 4, atEnd: true });
+    expect(advance(9.8, 0.5, null, 10)).toEqual({ t: 10, atEnd: true });
+  });
+});
+
 describe("smoke and visibility", () => {
   it("knows who was smoked and who the enemy couldn't see", () => {
     expect(isSmoked(data, 0, 1.9)).toBe(true);
@@ -292,6 +335,9 @@ describe("the committed fight playback", () => {
   });
 
   it("stays small, since the browser loads it", () => {
-    expect(statSync(new URL("../src/data/fight.json", import.meta.url)).size).toBeLessThan(200_000);
+    // Every hero on every replay packet, thinned; what crosses the wire is gzipped.
+    const raw = readFileSync(new URL("../src/data/fight.json", import.meta.url));
+    expect(raw.length).toBeLessThan(500_000);
+    expect(gzipSync(raw).length).toBeLessThan(100_000);
   });
 });
