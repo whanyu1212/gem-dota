@@ -16,9 +16,9 @@ import {
   deathTimes,
   FILTERS,
   feedRows,
+  activeModifier,
   isHidden,
   isSmoked,
-  MIN_STUN_S,
   QUIET_ITEMS,
   rowShows,
   stateAt,
@@ -173,8 +173,9 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
     svg("circle", { class: "smoke-cloud", r: badge * 1.9, filter: "url(#smoke-blur)" }, g);
     svg("circle", { class: "hidden-ring", r: badge + 4 * px, "stroke-width": 1.4 * px, "stroke-dasharray": `${3 * px} ${2.5 * px}` }, g);
     const buff = svg("circle", { class: "buff-ring", r: 17 * px, "stroke-width": 2.4 * px }, g);
-    const disable = svg("circle", { class: "disable-ring", r: 15.5 * px, "stroke-width": 1.6 * px, "stroke-dasharray": `${2 * px} ${2 * px}` }, g);
-    const disableArc = svg("circle", { class: "disable-arc", r: 15.5 * px, "stroke-width": 2.4 * px, transform: "rotate(-90)" }, g);
+    // Disabled: a solid arc that drains as the disable runs out, on a dark track.
+    const disable = svg("circle", { class: "disable-track", r: 15.5 * px, "stroke-width": 3 * px }, g);
+    const disableArc = svg("circle", { class: "disable-arc", r: 15.5 * px, "stroke-width": 3 * px, transform: "rotate(-90)" }, g);
     const flash = svg("circle", { class: "hit-flash", r: badge + 2.5 * px }, g);
     svg("circle", { class: "hero-ring", r: badge + 2 * px, "stroke-width": 1.2 * px }, g);
     svg("image", { class: "hero-badge", href: heroIcon(i), x: -badge, y: -badge, width: badge * 2, height: badge * 2, "clip-path": "url(#hero-badge)" }, g);
@@ -276,7 +277,7 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
   function tag(text: string) {
     return html("span", { class: "tag" }, text);
   }
-  function castBody(cast: Cast, lasted?: number) {
+  function castBody(cast: Cast) {
     const parts = castParts(cast, teams);
     const body = html("span", { class: "row-body", title: `${names[cast.by]}: ${castText(cast, names, teams)}` }, iconImg(cast.by));
     const itemSrc = cast.item ? view.icons.items[cast.item] : undefined;
@@ -298,12 +299,10 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
         const piece = html("span", { class: "hit" }, iconImg(hit.hero));
         if (hit.damage) piece.append(html("span", { class: "hit-damage" }, number(hit.damage)));
         if (hit.damage && !parts.sharedType) piece.append(typeTag(hit.type));
-        if (hit.stun >= MIN_STUN_S) piece.append(html("span", { class: "hit-stun" }, `${hit.stun}s`));
         body.append(piece);
       }
       if (parts.sharedType) body.append(typeTag(parts.sharedType));
     }
-    if (lasted) body.append(tag(`lasted ${lasted}s`));
     return body;
   }
   function deathBody(row: Row) {
@@ -358,20 +357,30 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
     switch (row.kind) {
       case "spell":
       case "item":
-        return castBody(row.cast!, row.lasted);
+        return castBody(row.cast!);
       case "death":
         return deathBody(row);
       case "buyback": {
         const [, hero, cost] = row.buyback!;
         return html("span", { class: "row-body" }, iconImg(hero), html("b", {}, "bought back"), "for", html("span", { class: "loss" }, number(cost)), "gold");
       }
-      case "disable": {
-        const [, target, source, name, seconds] = row.disable!;
-        return html("span", { class: "row-body" }, iconImg(target), html("b", {}, name), html("span", { class: "hit-stun" }, `${seconds}s`), ...(source !== null ? [tag("by"), iconImg(source)] : []));
-      }
+      case "disable":
+      case "debuff":
       case "buff": {
-        const [start, end, hero, kind] = row.buff!;
-        return html("span", { class: "row-body" }, iconImg(hero), html("b", {}, BUFF_LABELS[kind] ?? kind), tag(`${Math.round((end - start) * 10) / 10}s`));
+        // "Lion · Hex on Ember Spirit 3.2s"; a hero's own buff is "on self".
+        const { source, name, targets } = row.effect!;
+        const body = html("span", { class: "row-body" });
+        if (source !== null) body.append(iconImg(source));
+        body.append(html("span", { class: `effect-mark effect-mark--${row.kind}`, "aria-hidden": "true" }), html("b", {}, name));
+        const self = targets.length === 1 && targets[0].hero === source;
+        body.append(tag(self ? "on self" : "on"));
+        for (const { hero, seconds } of targets) {
+          const piece = html("span", { class: "hit" });
+          if (!self) piece.append(iconImg(hero));
+          piece.append(html("span", { class: `effect-seconds effect-seconds--${row.kind}` }, `${seconds}s`));
+          body.append(piece);
+        }
+        return body;
       }
       case "attack": {
         const attack = row.attack!;
@@ -415,11 +424,14 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
       el.bars.style.display = layers.has("hp") ? "" : "none";
       el.hp.setAttribute("width", String(Math.max(0, (26.8 * px * s.hp) / (s.maxHp || 1))));
       el.mana.setAttribute("width", String(Math.max(0, (26.8 * px * s.mana) / (s.maxMana || 1))));
-      const buff = layers.has("status") ? data.buffs.find(([b0, b1, hero]) => hero === i && b0 <= t && t < b1) : undefined;
-      el.buff.setAttribute("class", buff ? `buff-ring buff-ring--${buff[3]}` : "buff-ring");
-      const disable = layers.has("status") ? data.disables.filter(([d0, target, , , dur]) => target === i && d0 <= t && t < d0 + dur).at(-1) : undefined;
+      const ring = layers.has("status") ? activeModifier(data, i, t, (m) => m[6] !== null) : undefined;
+      el.buff.setAttribute("class", ring ? `buff-ring buff-ring--${ring[6]}` : "buff-ring");
+      const disable = layers.has("status") ? activeModifier(data, i, t, (m) => m[5] === "disable") : undefined;
       el.disable.style.display = el.disableArc.style.display = disable ? "" : "none";
-      if (disable) el.disableArc.setAttribute("stroke-dasharray", `${circumference * (1 - (t - disable[0]) / disable[4])} ${circumference}`);
+      if (disable) {
+        const left = (disable[1] - t) / (disable[1] - disable[0] || 1);
+        el.disableArc.setAttribute("stroke-dasharray", `${circumference * left} ${circumference}`);
+      }
       const took = layers.has("damage") && data.damage.some(([d0, , target, damage]) => target === i && d0 <= t && t - d0 < 0.3 && damage >= 120);
       el.flash.classList.toggle("is-on", took);
       // A cast's pop: its item icon, or (for the followed hero) the ability's
@@ -511,16 +523,16 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
       s.box.classList.toggle("is-dead", !state);
       s.hpFill.style.width = state ? `${(100 * state.hp) / (state.maxHp || 1)}%` : "0%";
       s.manaFill.style.width = state ? `${(100 * state.mana) / (state.maxMana || 1)}%` : "0%";
-      const disable = data.disables.filter(([d0, target, , , dur]) => target === s.i && d0 <= t && t < d0 + dur).at(-1);
-      const buff = data.buffs.find(([b0, b1, hero]) => hero === s.i && b0 <= t && t < b1);
+      const disable = activeModifier(data, s.i, t, (m) => m[5] === "disable");
+      const ring = activeModifier(data, s.i, t, (m) => m[6] !== null);
       s.text.textContent = !state
         ? "dead"
         : disable
-          ? `${disable[3]} ${(disable[0] + disable[4] - t).toFixed(1)}s`
+          ? `${disable[4]} ${(disable[1] - t).toFixed(1)}s`
           : isSmoked(data, s.i, t)
             ? "Smoked"
-            : buff
-              ? (BUFF_LABELS[buff[3]] ?? buff[3])
+            : ring
+              ? (BUFF_LABELS[ring[6]!] ?? ring[4])
               : isHidden(data, s.i, t)
                 ? "Hidden"
                 : `${number(state.hp)} HP`;

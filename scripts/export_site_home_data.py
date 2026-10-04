@@ -47,7 +47,11 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
 import gem  # noqa: E402
-from gem.analysis.fight_timeline import FightTimeline, build_fight_timeline  # noqa: E402
+from gem.analysis.fight_timeline import (  # noqa: E402
+    FightTimeline,
+    ModifierWindow,
+    build_fight_timeline,
+)
 from gem.catalog.abilities import ABILITIES, ability_display  # noqa: E402
 from gem.catalog.items import ITEMS, item_display  # noqa: E402
 from gem.catalog.map import (  # noqa: E402
@@ -110,13 +114,49 @@ BUFF_RINGS = {
 }
 #: How many damage sources a death's recap lists (its total covers them all).
 RECAP_ROWS = 6
-#: Names for disables whose modifier doesn't name its ability.
-DISABLE_NAMES = {
+#: Names for modifiers that don't name their ability.
+MODIFIER_NAMES = {
     "modifier_stunned": "Stun",
     "modifier_bashed": "Bash",
     "modifier_knockback": "Knockback",
     "modifier_ancientapparition_coldfeet_freeze": "Cold Feet",
 }
+#: Name fragments of disables that carry no stun time: hexes, silences, disarms,
+#: roots and the like (a modifier with a stun time is a disable anyway).
+DISABLE_FRAGMENTS = (
+    "voodoo",
+    "sheepstick",
+    "hex",
+    "silence",
+    "disarm",
+    "root",
+    "taunt",
+    "fear",
+    "sleep",
+    "cyclone",
+    "stunned",
+    "bashed",
+    "knockback",
+)
+#: A hero's own modifier shorter than this (a dash, a cast's short state) is left
+#: out of the feed: the cast row already says it.
+MIN_SELF_BUFF_S = 1.5
+#: Words dropped from a modifier name that names no ability or item.
+GENERIC_WORDS = {"modifier", "item", "debuff", "buff", "active", "effect", "super", "slow"}
+#: Name fragments of modifiers the feed leaves out: internal timers, cooldowns and
+#: bookkeeping, not effects a viewer would read as a buff or a debuff.
+NOISE_FRAGMENTS = (
+    "_timer",
+    "_internal_cd",
+    "cooldown",
+    "teleporting",
+    "regeneration",
+    "phase_boots",
+    "respawn",
+    "thinker",
+    "_counter",
+    "_charge",
+)
 
 
 def _project(x: float, y: float) -> list[float]:
@@ -405,18 +445,43 @@ def _source_name(source: str) -> str:
     return _ability_name(source) if source not in ("", "dota_unknown") else "Attack"
 
 
-def _disable_name(modifier: str) -> str:
-    """A display name for a disabling modifier, from the ability it names."""
-    if modifier in DISABLE_NAMES:
-        return DISABLE_NAMES[modifier]
-    name = modifier.removeprefix("modifier_")
-    for suffix in ("_stunned", "_stun", "_debuff", "_freeze", "_fear", "_slow"):
-        name = name.removesuffix(suffix)
-    if name in ITEMS:
-        return item_display(name)
-    if name in ABILITIES:
-        return ABILITIES[name]
-    return ability_display(name)
+def _modifier_name(modifier: str) -> str:
+    """A display name for a modifier, from the ability or item its name starts with.
+
+    ``modifier_lion_voodoo`` is Hex, ``modifier_item_shivas_guard_blast`` Shiva's
+    Guard: trailing words are dropped until the rest names an item or an ability.
+    """
+    if modifier in MODIFIER_NAMES:
+        return MODIFIER_NAMES[modifier]
+    words = modifier.removeprefix("modifier_").removeprefix("item_").split("_")
+    for n in range(len(words), 0, -1):
+        name = "_".join(words[:n])
+        if name in ITEMS:
+            return item_display(name)
+        if name in ABILITIES:
+            return ABILITIES[name]
+    # No ability or item by that name: tidy the words (dropping a hero prefix).
+    kept = [w for w in words if w not in GENERIC_WORDS] or words
+    return ability_display("_".join(kept))
+
+
+def _modifier_kind(window: ModifierWindow, team_of: dict[str, int]) -> str | None:
+    """``disable``, ``debuff`` or ``buff`` for the feed, or ``None`` to leave it out."""
+    name = window.modifier
+    if window.aura or window.start_tick is None or any(f in name for f in NOISE_FRAGMENTS):
+        return None
+    stun = window.stun_s > 0
+    if not stun and not window.duration_s:
+        return None  # passives and auras the log gives no duration for
+    enemy = team_of.get(window.source_hero or "") != team_of.get(window.target)
+    # A name fragment marks a disable only on an enemy (Eul's on yourself is a save).
+    if stun or (enemy and window.source_hero and any(f in name for f in DISABLE_FRAGMENTS)):
+        return "disable"
+    if window.source_hero is None:
+        return None
+    if window.source_hero == window.target and (window.duration_s or 0) < MIN_SELF_BUFF_S:
+        return None  # a dash or a cast's own short state: the cast row says it
+    return "buff" if team_of.get(window.source_hero) == team_of.get(window.target) else "debuff"
 
 
 def _hero_runs(
@@ -503,6 +568,7 @@ def fight_playback(match: ParsedMatch) -> dict | None:
         casts.append(row)
 
     team_of = {i: TEAMS.get(player.team, "unknown") for i, player in enumerate(players)}
+    hero_team = {player.hero_name: player.team for player in players}
     hidden = _hidden(match, players, start, end, since)
     deaths = []
     for death in timeline.deaths:
@@ -570,30 +636,25 @@ def fight_playback(match: ParsedMatch) -> dict | None:
             for burst in timeline.damage
             if burst.attacker_hero in index and burst.target in index
         ],
-        # [t, target, source hero or null, name, seconds]
-        "disables": [
-            [
-                since(window.start_tick),
-                index[window.target],
-                hero(window.source_hero),
-                _disable_name(window.modifier),
-                round(window.stun_s, 1),
-            ]
-            for window in timeline.disables
-            if window.start_tick is not None
-        ],
-        # [t, until, hero, kind]. A buff still on at the window's end runs to the
-        # end; one added before the window is left out, since when it started
-        # isn't in the window.
-        "buffs": [
+        # [t, until, target, source hero or null, name, kind, ring, seconds]:
+        # disables, debuffs and buffs on heroes. ``until`` is the removal (the
+        # playback's end when it outlasted it); ``ring`` names a buff drawn as a
+        # ring; ``seconds`` is the duration it was applied with (the stun time,
+        # or the log's duration), which a death or dispel can cut short.
+        "modifiers": [
             [
                 since(window.start_tick),
                 since(window.end_tick) if window.end_tick is not None else since(end),
                 index[window.target],
-                BUFF_RINGS[window.modifier],
+                hero(window.source_hero),
+                _modifier_name(window.modifier),
+                kind,
+                BUFF_RINGS.get(window.modifier),
+                round(window.stun_s if window.stun_s > 0 else window.duration_s or 0.0, 1),
             ]
             for window in timeline.modifiers
-            if window.modifier in BUFF_RINGS and window.start_tick is not None
+            if window.start_tick is not None
+            and (kind := _modifier_kind(window, hero_team)) is not None
         ],
         "deaths": deaths,
         # [t, hero, cost]

@@ -98,7 +98,7 @@ const view = { box: fight.box, px, icons };
       <li class="legend-item"><i class="swatch-line swatch-line--physical" aria-hidden="true"></i>Physical</li>
       <li class="legend-item"><i class="swatch-line swatch-line--magical" aria-hidden="true"></i>Magical</li>
       <li class="legend-item"><i class="swatch-line swatch-line--pure" aria-hidden="true"></i>Pure</li>
-      <li class="legend-item"><i class="swatch-ring swatch-ring--disable" aria-hidden="true"></i>Disabled</li>
+      <li class="legend-item"><i class="swatch-disable" aria-hidden="true"></i>Disabled (the arc is the time left)</li>
       <li class="legend-item"><i class="swatch-ring swatch-ring--bkb" aria-hidden="true"></i>Spell immune</li>
       <li class="legend-item"><i class="swatch-ring swatch-ring--hidden" aria-hidden="true"></i>Hidden from the enemy</li>
       <li class="legend-item"><i class="swatch-smoke" aria-hidden="true"></i>Smoked</li>
@@ -107,7 +107,8 @@ const view = { box: fight.box, px, icons };
       <b>Figure 3.</b> The match's biggest fight, {fight.start}–{fight.end}<span data-caption-static>: each hero,
       ringed in its team's colour, where it was at the last death, and ✕ where each hero died.</span><span
       data-caption-live hidden>, played back at 2×: HP and mana under each hero, casts and the heroes they hit,
-      damage lines by type, rings for disables (the arc is the time left) and buffs, and the gold at each death.
+      damage lines by type, a draining arc while a hero is disabled, rings for some buffs, and the gold at each
+      death. The feed lists every disable, debuff and buff a hero put on another (or on itself).
       A faded hero is hidden from the enemy team (the replay's own visibility), and a grey cloud marks a smoked
       hero; when a smoke led into the fight, the playback starts at it. Click a hero to follow it. Positions, HP and mana are sampled about once a second and interpolated for
       display; the rest is the combat log.</span>
