@@ -5,7 +5,8 @@
 import { Code } from "astro:components";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import MapFigure from "../components/home/MapFigure.astro";
-import GoldChart from "../components/home/GoldChart.astro";
+import WardFigure from "../components/home/WardFigure.astro";
+import FightFigure from "../components/home/FightFigure.astro";
 import { gemCodeTheme } from "../markdown/shiki-theme";
 import home from "../data/home.json";
 import { RECIPE_CARDS } from "../data/recipes";
@@ -98,12 +99,14 @@ frames = gem.parse_to_dataframe("${match.match_id}.dem")`;
           <h2>A map model you can check.</h2>
           <p class="chapter-intro">
             Regions and camps are traced on the 7.41 map and checked against the replays' own neutral spawners
-            and combat log. <code>gem.region_of(x, y)</code> tells you where any position is.
+            and combat log. <code>gem.region_of(x, y)</code> tells you where any position is. Wards carry exact
+            positions, heroes a sampled one each second: enough to replay a fight.
           </p>
           <div class="figures">
             <MapFigure />
-            <GoldChart />
+            <WardFigure />
           </div>
+          {home.fight && <FightFigure />}
         </div>
       </div>
     </section>

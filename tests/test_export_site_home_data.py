@@ -7,6 +7,8 @@ import pytest
 
 import scripts.export_site_home_data as export
 from gem.catalog.map import load_camp_zones
+from gem.extractors.wards import WardEvent
+from gem.results.models import ParsedMatch
 from scripts.export_site_home_data import SIZE, map_overlay
 
 
@@ -43,9 +45,52 @@ def test_map_overlay_puts_radiant_camps_below_dire_camps() -> None:
 def test_main_writes_to_paths_outside_the_repository(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    monkeypatch.setattr(export, "match_snapshot", lambda replay: {"match_id": 1})
+    monkeypatch.setattr(export, "load_match", lambda replay: ParsedMatch(match_id=1))
     data, image = tmp_path / "home.json", tmp_path / "map.jpg"
     assert export.main(["replay.dem", "--data", str(data), "--map-image", str(image)]) == 0
-    assert json.loads(data.read_text())["match"] == {"match_id": 1}
+    written = json.loads(data.read_text())
+    assert written["match"]["match_id"] == 1
+    # No fights: no fight figure, and no wards up.
+    assert written["fight"] is None
+    assert written["wards"]["up"] == []
     assert image.stat().st_size > 0
     assert str(data) in capsys.readouterr().out
+
+
+def _ward(
+    kind: str, team: int, placed: int, gone: int | None, *, killed: bool = False
+) -> WardEvent:
+    return WardEvent(
+        tick=placed,
+        player_id=0,
+        placer="npc_dota_hero_lion",
+        ward_type=kind,  # type: ignore[arg-type]
+        team=team,
+        x=0.0,
+        y=0.0,
+        expires_tick=None if killed else gone,
+        killed_tick=gone if killed else None,
+        killer="",
+    )
+
+
+def test_wards_up_are_those_placed_and_not_yet_gone() -> None:
+    match = ParsedMatch(
+        match_id=1,
+        wards=[
+            _ward("observer", 2, placed=100, gone=500),  # up
+            _ward("sentry", 3, placed=100, gone=200, killed=True),  # killed before
+            _ward("observer", 3, placed=300, gone=900),  # placed at the moment: up
+            _ward("sentry", 2, placed=301, gone=900),  # placed after
+            _ward("observer", 2, placed=100, gone=300),  # expired at the moment: gone
+        ],
+    )
+    snapshot = export.wards_snapshot(match, tick=300)
+    assert [(w["type"], w["team"]) for w in snapshot["up"]] == [
+        ("observer", "radiant"),
+        ("observer", "dire"),
+    ]
+    # Observers carry their vision circle; sentries give no map vision.
+    assert all("vision_radius" in w for w in snapshot["up"])
+    assert snapshot["totals"] == {"observer": 3, "sentry": 2}
+    assert export.wards_snapshot(match, tick=None)["up"] == []

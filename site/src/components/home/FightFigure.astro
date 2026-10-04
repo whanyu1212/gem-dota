@@ -1,0 +1,84 @@
+---
+// Figure 3: the match's biggest fight on the map, with its events alongside.
+// From the committed snapshot (scripts/export_site_home_data.py): hero paths and
+// death spots are sampled positions (about one a second); events are the combat log.
+import { getImage } from "astro:assets";
+import fightSource from "../../assets/home-fight.jpg";
+import home from "../../data/home.json";
+
+const fight = home.fight!;
+const fightImage = await getImage({ src: fightSource, width: 1000, format: "webp", quality: 80 });
+const [x, y, size] = fight.box;
+// Marks are sized in screen pixels (the map renders about 370 px wide), whatever the zoom.
+const px = size / 370;
+const points = (list: number[][]) => list.map(([px, py]) => `${px},${py}`).join(" ");
+
+// One label per hero, at the end of its last path segment inside the frame.
+const labels = new Map<string, { team: string; at: number[] }>();
+for (const path of fight.paths) {
+  const inside = path.points.filter(([px, py]) => px >= x && px <= x + size && py >= y && py <= y + size);
+  if (inside.length) labels.set(path.hero, { team: path.team, at: inside[inside.length - 1] });
+}
+// Place labels top to bottom, moving one down while it overlaps a label already
+// placed (label boxes estimated from the text length at 11 px).
+const placed: { x: number; y: number; w: number; h: number }[] = [];
+const labelAt = new Map<string, { x: number; y: number }>();
+for (const [hero, { at }] of [...labels].sort((a, b) => a[1].at[1] - b[1].at[1])) {
+  const box = { x: at[0] + 6 * px, y: at[1] - 14 * px, w: hero.length * 6.4 * px, h: 13 * px };
+  const overlaps = (o: typeof box) =>
+    box.x < o.x + o.w && o.x < box.x + box.w && box.y < o.y + o.h && o.y < box.y + box.h;
+  for (let i = 0; i < 12 && placed.some(overlaps); i++) box.y += 13 * px;
+  placed.push(box);
+  labelAt.set(hero, { x: box.x, y: box.y + 10 * px });
+}
+const gold = (n: number) => n.toLocaleString("en-US");
+const winner = fight.winner === "radiant" ? "Radiant" : fight.winner === "dire" ? "Dire" : null;
+const { radiant, dire } = fight.totals;
+const footer =
+  `${winner ? `${winner} had more kills.` : "Kills were even."} In the fight's window the heroes near it earned: ` +
+  `Radiant ${gold(radiant.gold)} gold and ${gold(radiant.xp)} XP, Dire ${gold(dire.gold)} gold and ${gold(dire.xp)} XP.`;
+---
+
+<div class="fight">
+  <figure class="fig">
+    <svg class="map" viewBox={`${x} ${y} ${size} ${size}`} role="img" aria-labelledby="fight-caption">
+      <image href={fightImage.src} x={x} y={y} width={size} height={size} preserveAspectRatio="xMidYMid slice"></image>
+      <rect class="map-dim" x={x} y={y} width={size} height={size}></rect>
+      {fight.paths.map((path) => (
+        <polyline class={`fight-path fight-path--${path.team}`} points={points(path.points)} stroke-width={1.6 * px}></polyline>
+      ))}
+      {fight.deaths_at.map((death) => (
+        <g class={`fight-death fight-death--${death.team}`} transform={`translate(${death.at[0]} ${death.at[1]}) scale(${px})`}>
+          <path class="halo" d="M-5,-5 L5,5 M5,-5 L-5,5"></path>
+          <path d="M-5,-5 L5,5 M5,-5 L-5,5"></path>
+        </g>
+      ))}
+      {[...labels].map(([hero, { team, at }]) => (
+        <g class={`fight-hero fight-hero--${team}`}>
+          <circle cx={at[0]} cy={at[1]} r={3.5 * px} stroke-width={1.2 * px}></circle>
+          <text x={labelAt.get(hero)!.x} y={labelAt.get(hero)!.y} font-size={11 * px} stroke-width={3 * px}>{hero}</text>
+        </g>
+      ))}
+    </svg>
+    <figcaption id="fight-caption">
+      <b>Figure 3.</b> The match's biggest fight, {fight.start}–{fight.end}: each hero's path up to the last death
+      (sampled about once a second, broken at teleports and respawns), where each hero ended (●), and where heroes
+      died (✕, in the victim's team colour).
+    </figcaption>
+  </figure>
+  <aside class="narration" aria-label="What happened in the fight">
+    <p class="narration-head">
+      <span>{fight.start}–{fight.end}</span>
+      <span>{fight.deaths} deaths · Radiant {fight.radiant_kills}, Dire {fight.dire_kills}</span>
+    </p>
+    <ol>
+      {fight.events.map((event) => (
+        <li class={`event event--${event.team}`}>
+          <time>{event.time}</time>
+          <span>{event.text}</span>
+        </li>
+      ))}
+    </ol>
+    <p class="narration-foot">{footer}</p>
+  </aside>
+</div>

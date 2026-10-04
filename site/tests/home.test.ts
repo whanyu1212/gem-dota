@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import home from "../src/data/home.json";
 import { RECIPE_CARDS } from "../src/data/recipes";
-import { formatGold, lineChart, ticks } from "../src/lib/chart";
 
 const docs = new URL("../src/content/docs/", import.meta.url);
 
@@ -18,9 +17,8 @@ describe("recipe cards", () => {
 describe("home snapshot", () => {
   const { match, map } = home;
 
-  it("has the match the figures need", () => {
+  it("has the match Table 1 needs", () => {
     expect(match.players).toHaveLength(10);
-    expect(match.radiant_gold_adv.length).toBeGreaterThan(1);
     expect(typeof match.radiant_win).toBe("boolean");
   });
 
@@ -42,23 +40,42 @@ describe("home snapshot", () => {
   });
 });
 
-describe("gold chart", () => {
-  it("picks round ticks that cover the data and zero", () => {
-    expect(ticks(-47262, 152)).toEqual([-50000, -40000, -30000, -20000, -10000, 0, 10000]);
-    expect(ticks(0, 16887)).toEqual([0, 5000, 10000, 15000, 20000]);
+describe("wards and the fight", () => {
+  const { wards, fight, map } = home;
+  const inSquare = ([x, y]: number[]) => x >= 0 && x <= map.size && y >= 0 && y <= map.size;
+
+  it("has the whole-match ward totals and the wards up at the fight", () => {
+    expect(wards.totals.observer).toBeGreaterThan(0);
+    expect(wards.totals.sentry).toBeGreaterThan(0);
+    expect(wards.up.length).toBeGreaterThan(0);
+    for (const ward of wards.up) {
+      expect(["observer", "sentry"]).toContain(ward.type);
+      expect(inSquare(ward.at)).toBe(true);
+      // Only observers give map vision.
+      expect("vision_radius" in ward).toBe(ward.type === "observer");
+    }
   });
 
-  it("labels gold with a sign and a real minus", () => {
-    expect(formatGold(10000)).toBe("+10k");
-    expect(formatGold(-2500)).toBe("−2.5k");
-    expect(formatGold(0)).toBe("0");
+  it("frames the fight inside the map, and narrates it in time order", () => {
+    expect(fight).not.toBeNull();
+    const [x, y, size] = fight!.box;
+    expect(x).toBeGreaterThanOrEqual(0);
+    expect(y).toBeGreaterThanOrEqual(0);
+    expect(x + size).toBeLessThanOrEqual(map.size);
+    expect(y + size).toBeLessThanOrEqual(map.size);
+    const times = fight!.events.map((e) => e.time.split(":").reduce((m, s) => Number(m) * 60 + Number(s), 0));
+    expect(times).toEqual([...times].sort((a, b) => a - b));
+    expect(fight!.events.filter((e) => e.text.includes(" killed "))).toHaveLength(fight!.deaths);
+    expect(fight!.radiant_kills + fight!.dire_kills).toBe(fight!.deaths);
   });
 
-  it("maps the first and last minute to the plot edges", () => {
-    const box = { width: 560, height: 560, left: 52, right: 14, top: 18, bottom: 40 };
-    const { x, xTicks } = lineChart([0, 100, -100], box);
-    expect(x(0)).toBe(52);
-    expect(x(2)).toBe(546);
-    expect(xTicks).toEqual([0]);
+  it("puts every death spot inside the fight's frame", () => {
+    const [x, y, size] = fight!.box;
+    for (const death of fight!.deaths_at) {
+      expect(death.at[0]).toBeGreaterThanOrEqual(x);
+      expect(death.at[0]).toBeLessThanOrEqual(x + size);
+      expect(death.at[1]).toBeGreaterThanOrEqual(y);
+      expect(death.at[1]).toBeLessThanOrEqual(y + size);
+    }
   });
 });

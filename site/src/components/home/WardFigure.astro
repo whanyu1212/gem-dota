@@ -1,0 +1,72 @@
+---
+// Figure 2: the wards up at the first death of Figure 3's fight, with each
+// observer's vision radius, and where that fight is. From the committed snapshot
+// (scripts/export_site_home_data.py); ward positions are exact.
+import { getImage } from "astro:assets";
+import mapSource from "../../assets/home-map.jpg";
+import observerIcon from "../../assets/icons/ward_observer.png";
+import sentryIcon from "../../assets/icons/ward_sentry.png";
+import home from "../../data/home.json";
+
+const mapImage = await getImage({ src: mapSource, width: 1000, format: "webp", quality: 80 });
+const icons = { observer: observerIcon.src, sentry: sentryIcon.src };
+const { size, half_line } = home.map;
+const { totals, by_region, up } = home.wards;
+const fight = home.fight;
+const points = (list: number[][]) => list.map(([x, y]) => `${x},${y}`).join(" ");
+
+// Ward badges: the item icon clipped to a circle, ringed in its team's colour.
+const BADGE = 26;
+const iconWidth = (BADGE * 2 * 88) / 64;
+
+const count = (team: string, type: string) => up.filter((w) => w.team === team && w.type === type).length;
+const describe = (team: string) => {
+  const parts = [
+    [count(team, "observer"), "observer"],
+    [count(team, "sentry"), "sentry"],
+  ]
+    .filter(([n]) => n)
+    .map(([n, kind]) => `${n} ${n === 1 ? kind : kind === "sentry" ? "sentries" : `${kind}s`}`);
+  return parts.length ? parts.join(" and ") : "no wards";
+};
+const observersInRadiantHalf = by_region.observer?.radiant_half ?? 0;
+const summary =
+  `Radiant had ${describe("radiant")} up, Dire ${describe("dire")}; circles are observer vision. ` +
+  `Over the whole match the teams placed ${totals.observer} observers, ${observersInRadiantHalf} of them in ` +
+  `the Radiant half, and ${totals.sentry} sentries.`;
+---
+
+<figure class="fig">
+  <svg class="map" viewBox={`0 0 ${size} ${size}`} role="img" aria-labelledby="ward-caption">
+    <defs>
+      <clipPath id="ward-badge" clipPathUnits="userSpaceOnUse"><circle r={BADGE}></circle></clipPath>
+    </defs>
+    <image href={mapImage.src} width={size} height={size} preserveAspectRatio="xMidYMid slice"></image>
+    <rect class="map-dim" width={size} height={size}></rect>
+    <polyline class="map-half" points={points(half_line)}></polyline>
+    {fight && (
+      <g class="fight-frame">
+        <rect x={fight.box[0]} y={fight.box[1]} width={fight.box[2]} height={fight.box[2]}></rect>
+        <text x={fight.box[0] + 10} y={fight.box[1] + 30}>Figure 3</text>
+      </g>
+    )}
+    {up.filter((w) => "vision_radius" in w).map((w) => (
+      <circle class={`ward-vision ward-vision--${w.team}`} cx={w.at[0]} cy={w.at[1]} r={(w as { vision_radius: number }).vision_radius}></circle>
+    ))}
+    {up.map((w) => (
+      <g class={`ward ward--${w.team}`} transform={`translate(${w.at[0]} ${w.at[1]})`}>
+        <circle class="ward-ring" r={BADGE + 4}></circle>
+        <image href={icons[w.type as "observer" | "sentry"]} x={-iconWidth / 2} y={-BADGE} width={iconWidth} height={BADGE * 2} clip-path="url(#ward-badge)"></image>
+      </g>
+    ))}
+  </svg>
+  <figcaption id="ward-caption">
+    <b>Figure 2.</b> The {up.length} wards up at {fight?.first_death}, the first death of Figure 3's fight. {summary}
+    <ul class="legend" aria-label="Legend">
+      <li class="legend-item"><img src={icons.observer} alt="" width="18" height="18" />Observer</li>
+      <li class="legend-item"><img src={icons.sentry} alt="" width="18" height="18" />Sentry</li>
+      <li class="legend-item team-radiant"><i aria-hidden="true"></i>Radiant</li>
+      <li class="legend-item team-dire"><i aria-hidden="true"></i>Dire</li>
+    </ul>
+  </figcaption>
+</figure>
