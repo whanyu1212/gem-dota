@@ -465,21 +465,31 @@ def _modifier_name(modifier: str) -> str:
     return ability_display("_".join(kept))
 
 
+def _applied_seconds(window: ModifierWindow) -> float:
+    """The duration a modifier was applied with: its stun time, or the log's duration.
+
+    ``0.0`` when the log gives none: a missing duration, or its ``-1`` sentinel.
+    """
+    if window.stun_s > 0:
+        return window.stun_s
+    return window.duration_s if window.duration_s is not None and window.duration_s > 0 else 0.0
+
+
 def _modifier_kind(window: ModifierWindow, team_of: dict[str, int]) -> str | None:
     """``disable``, ``debuff`` or ``buff`` for the feed, or ``None`` to leave it out."""
     name = window.modifier
     if window.aura or window.start_tick is None or any(f in name for f in NOISE_FRAGMENTS):
         return None
     stun = window.stun_s > 0
-    if not stun and not window.duration_s:
-        return None  # passives and auras the log gives no duration for
     enemy = team_of.get(window.source_hero or "") != team_of.get(window.target)
     # A name fragment marks a disable only on an enemy (Eul's on yourself is a save).
     if stun or (enemy and window.source_hero and any(f in name for f in DISABLE_FRAGMENTS)):
-        return "disable"
+        return "disable"  # kept even without a duration: the feed shows how long it lasted
+    if _applied_seconds(window) <= 0:
+        return None  # passives, auras and -1 ("no duration") the log gives no time for
     if window.source_hero is None:
         return None
-    if window.source_hero == window.target and (window.duration_s or 0) < MIN_SELF_BUFF_S:
+    if window.source_hero == window.target and _applied_seconds(window) < MIN_SELF_BUFF_S:
         return None  # a dash or a cast's own short state: the cast row says it
     return "buff" if team_of.get(window.source_hero) == team_of.get(window.target) else "debuff"
 
@@ -650,7 +660,7 @@ def fight_playback(match: ParsedMatch) -> dict | None:
                 _modifier_name(window.modifier),
                 kind,
                 BUFF_RINGS.get(window.modifier),
-                round(window.stun_s if window.stun_s > 0 else window.duration_s or 0.0, 1),
+                round(_applied_seconds(window), 1),
             ]
             for window in timeline.modifiers
             if window.start_tick is not None

@@ -583,3 +583,18 @@ def test_modifier_kinds() -> None:
     assert kind("modifier_tiny_tree_grab", tiny, tiny, duration_s=None) is None
     assert kind("modifier_pangolier_swashbuckle", tiny, tiny, duration_s=0.5) is None
     assert kind("modifier_creep_slow", None, lion) is None
+    # The log's -1 means "no duration": not a duration, unless it's a disable.
+    assert kind("modifier_tiny_toss", tiny, axe, duration_s=-1.0) is None
+    assert kind("modifier_lion_voodoo", lion, axe, duration_s=-1.0) == "disable"
+
+
+def test_applied_seconds_ignores_the_no_duration_sentinel() -> None:
+    from gem.analysis.fight_timeline import ModifierWindow
+
+    def window(duration: float | None, stun: float = 0.0) -> ModifierWindow:
+        return ModifierWindow("t", "m", "s", "s", 0, 30, duration_s=duration, stun_s=stun)
+
+    assert export._applied_seconds(window(3.0)) == 3.0
+    assert export._applied_seconds(window(-1.0)) == 0.0
+    assert export._applied_seconds(window(None)) == 0.0
+    assert export._applied_seconds(window(-1.0, stun=1.2)) == 1.2
