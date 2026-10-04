@@ -431,10 +431,12 @@ def _build_core_tables(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                     "lh": pp.lh_t[i] if i < len(pp.lh_t) else 0,
                     "dn": pp.dn_t[i] if i < len(pp.dn_t) else 0,
                     "xp": pp.xp_t[i] if i < len(pp.xp_t) else 0,
-                    "hp": pp.hp_t[i] if i < len(pp.hp_t) else 0,
-                    "max_hp": pp.max_hp_t[i] if i < len(pp.max_hp_t) else 0,
-                    "mana": pp.mana_t[i] if i < len(pp.mana_t) else 0.0,
-                    "max_mana": pp.max_mana_t[i] if i < len(pp.max_mana_t) else 0.0,
+                    # Missing, not 0, when the match has no hero state (JSON
+                    # written before these fields): 0 HP would read as dead.
+                    "hp": pp.hp_t[i] if i < len(pp.hp_t) else None,
+                    "max_hp": pp.max_hp_t[i] if i < len(pp.max_hp_t) else None,
+                    "mana": pp.mana_t[i] if i < len(pp.mana_t) else None,
+                    "max_mana": pp.max_mana_t[i] if i < len(pp.max_mana_t) else None,
                 }
             )
 

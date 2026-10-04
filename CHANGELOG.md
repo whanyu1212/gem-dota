@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   columns, and `PlayerTimeSeries` gains `max_hp_t` / `max_mana_t`. The values
   are read from the hero entity (`m_iHealth`, `m_iMaxHealth`, `m_flMana`,
   `m_flMaxMana`); JSON files written by older versions load with the lists
-  empty.
+  empty, and their DataFrame columns are missing values rather than 0.
 
 ### Changed
 

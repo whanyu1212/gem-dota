@@ -84,6 +84,16 @@ class TestBuildDataframes:
         assert str(series["mana"].dtype) == "Float64"
         assert "hp" not in build_dataframes(match)["players_minute"].columns
 
+    def test_player_timeseries_hero_state_is_missing_without_samples(self):
+        """A match without hero state (older JSON) reports missing, not a dead hero."""
+        pp = ParsedPlayer(player_id=0, times=[30, 60], gold_t=[500, 600])
+        match = ParsedMatch(players=[pp] + [ParsedPlayer(player_id=i) for i in range(1, 10)])
+
+        series = build_dataframes(match)["player_timeseries"]
+
+        assert series[["hp", "max_hp", "mana", "max_mana"]].isna().all().all()
+        assert series["gold"].tolist() == [500, 600]
+
     def test_player_tables_split_summary_and_timeseries(self):
         pp = ParsedPlayer(
             player_id=0,

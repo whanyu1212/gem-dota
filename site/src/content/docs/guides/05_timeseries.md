@@ -120,7 +120,8 @@ joined = series.merge(summary[["match_id", "player_id", "lane_role"]], on=["matc
 
 The `hp`, `max_hp`, `mana` and `max_mana` columns are the hero entity's own state at
 each sample (`ParsedPlayer.hp_t`, `max_hp_t`, `mana_t`, `max_mana_t`, parallel to
-`times`). HP is `0` while the hero is dead. Samples are about one a second, so a burst
+`times`). HP is `0` while the hero is dead. A match loaded from JSON written before
+these fields existed has no hero state, and the columns are missing values, not `0`. Samples are about one a second, so a burst
 of damage between two samples shows only as the drop between them.
 
 ```python

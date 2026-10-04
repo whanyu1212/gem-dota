@@ -477,9 +477,7 @@ class PlayerTimeSeries:
     dn_t: list[int] = field(default_factory=list)
     xp_t: list[int] = field(default_factory=list)
     hp_t: list[int] = field(default_factory=list)
-    max_hp_t: list[int] = field(default_factory=list)
     mana_t: list[float] = field(default_factory=list)
-    max_mana_t: list[float] = field(default_factory=list)
     x_t: list[float | None] = field(default_factory=list)
     y_t: list[float | None] = field(default_factory=list)
     total_hero_damage_t: list[int] = field(default_factory=list)
@@ -489,3 +487,5 @@ class PlayerTimeSeries:
     # Append-only: this internal dataclass is also constructed in downstream
     # integrations, so keep new defaulted fields at the end.
     game_times_s: list[int] = field(default_factory=list)
+    max_hp_t: list[int] = field(default_factory=list)
+    max_mana_t: list[float] = field(default_factory=list)
