@@ -64,7 +64,7 @@ Core tables (always returned):
 |---|---|
 | `match` | Single-row match metadata and final status bitmasks |
 | `player_summary` | One row per player: identity, K/D/A, final net worth/LH/DN, GPM/XPM, damage/healing totals, lane stats, damage-type split, largest hero hit, consumed Aghanim's/Moon Shard flags |
-| `player_timeseries` | Per-player sampled state: `tick`, `gold`, `total_earned_gold`, `total_earned_xp`, `net_worth`, `lh`, `dn`, `xp` |
+| `player_timeseries` | Per-player sampled state: `tick`, `gold`, `total_earned_gold`, `total_earned_xp`, `net_worth`, `lh`, `dn`, `xp`, and the hero's `hp`, `max_hp`, `mana`, `max_mana` |
 | `players_minute` | Per-player series resampled to one row per game minute, with `game_time_s` / `minute` join keys |
 | `player_breakdowns` | Long-form per-player dict stats: `(player_id, stat, key, subkey, value)` |
 | `positions` | Per-player world `(x, y)` positions over time |
@@ -116,6 +116,16 @@ print(summary[["player_id", "hero_name", "kills", "deaths", "assists", "net_wort
 
 # Join end-of-game scalars onto the sampled series when you need both.
 joined = series.merge(summary[["match_id", "player_id", "lane_role"]], on=["match_id", "player_id"])
+```
+
+The `hp`, `max_hp`, `mana` and `max_mana` columns are the hero entity's own state at
+each sample (`ParsedPlayer.hp_t`, `max_hp_t`, `mana_t`, `max_mana_t`, parallel to
+`times`). HP is `0` while the hero is dead. Samples are about one a second, so a burst
+of damage between two samples shows only as the drop between them.
+
+```python
+p = match.players[0]
+low = [tick for tick, hp, top in zip(p.times, p.hp_t, p.max_hp_t) if 0 < hp < 0.25 * top]
 ```
 
 `player_breakdowns` holds the per-player dict statistics (`damage`,
@@ -201,7 +211,7 @@ print(series.y_t[:5])
 
 `PlayerTimeSeries` fields include `player_id`, `ticks`, `gold_t`,
 `total_earned_gold_t`, `total_earned_xp_t`, `net_worth_t`, `lh_t`, `dn_t`, `xp_t`,
-`hp_t`, `mana_t`, `x_t`, `y_t`, `total_hero_damage_t`, `total_hero_healing_t`,
+`hp_t`, `max_hp_t`, `mana_t`, `max_mana_t`, `x_t`, `y_t`, `total_hero_damage_t`, `total_hero_healing_t`,
 `total_deaths_t`, and `total_stuns_t`. The object returned by
 `minute_time_series()` also populates `game_times_s` with its exact game-relative
 minute boundaries; the dense `time_series()` output leaves that axis empty.

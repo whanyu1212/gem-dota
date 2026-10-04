@@ -80,3 +80,43 @@ class TestExtractorsIntegration:
                 assert len(ts.ticks) == len(ts.xp_t) == len(ts.lh_t)
                 break
         assert found
+
+
+@pytest.mark.slow
+@pytest.mark.integration
+def test_hero_hp_and_mana_follow_the_hero(canonical_parsed_match):
+    """HP and mana are parallel to ``times``, bounded by their maxima, and 0 HP after a death."""
+    import bisect
+
+    match = canonical_parsed_match
+    for player in match.players:
+        n = len(player.times)
+        assert n > 0
+        assert len(player.hp_t) == len(player.max_hp_t) == n
+        assert len(player.mana_t) == len(player.max_mana_t) == n
+        assert all(0 <= hp <= top for hp, top in zip(player.hp_t, player.max_hp_t, strict=True))
+        assert all(
+            0 <= mana <= top + 1e-3
+            for mana, top in zip(player.mana_t, player.max_mana_t, strict=True)
+        )
+
+    by_hero = {player.hero_name: player for player in match.players}
+    checked = 0
+    for entry in match.combat_log:
+        if (
+            entry.log_type != "DEATH"
+            or entry.target_name not in by_hero
+            or entry.target_is_illusion
+            or entry.will_reincarnate
+        ):
+            continue
+        player = by_hero[entry.target_name]
+        if any(0 <= buyback.tick - entry.tick <= 60 for buyback in player.buybacks):
+            continue
+        # The sample on the death tick itself can still hold the last HP; the
+        # first one after it is the dead hero.
+        after = bisect.bisect_right(player.times, entry.tick)
+        if after < len(player.times):
+            assert player.hp_t[after] == 0, (entry.tick, player.hero_name)
+            checked += 1
+    assert checked > 0

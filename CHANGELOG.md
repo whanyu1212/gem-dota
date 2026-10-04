@@ -15,6 +15,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to 20 minutes and where, and how often a smoke led to a kill. The code lives
   in `examples/cookbook/`, runs on one replay or many, and is tested.
 
+- **Hero HP and mana over time** (HY-121). `ParsedPlayer.hp_t`, `max_hp_t`,
+  `mana_t` and `max_mana_t` hold the hero's own health and mana at each sample
+  (about one a second), parallel to `times`; HP is 0 while the hero is dead. The
+  `player_timeseries` DataFrame gains `hp`, `max_hp`, `mana` and `max_mana`
+  columns, and `PlayerTimeSeries` gains `max_hp_t` / `max_mana_t`. The values
+  are read from the hero entity (`m_iHealth`, `m_iMaxHealth`, `m_flMana`,
+  `m_flMaxMana`); JSON files written by older versions load with the lists
+  empty.
+
 ### Changed
 
 - **Docs site** (HY-110). The documentation at

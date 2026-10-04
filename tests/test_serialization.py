@@ -396,6 +396,33 @@ class TestJsonRoundTrip:
         assert loaded.match_id == 7
         assert loaded.combat_log == []
 
+    def test_hero_hp_and_mana_round_trip(self):
+        player = ParsedPlayer(
+            player_id=0,
+            times=[30, 60],
+            hp_t=[700, 0],
+            max_hp_t=[900, 900],
+            mana_t=[310.5, 0.0],
+            max_mana_t=[400.25, 400.25],
+        )
+        match = ParsedMatch(players=[player])
+
+        loaded = gem.from_dict(json.loads(gem.to_json(match))).players[0]
+
+        assert loaded.hp_t == [700, 0]
+        assert loaded.max_hp_t == [900, 900]
+        assert loaded.mana_t == [310.5, 0.0]
+        assert loaded.max_mana_t == [400.25, 400.25]
+
+    def test_json_without_hero_hp_and_mana_loads_them_empty(self):
+        data = json.loads(gem.to_json(ParsedMatch(players=[ParsedPlayer(player_id=0)])))
+        for key in ("hp_t", "max_hp_t", "mana_t", "max_mana_t"):
+            del data["players"][0][key]
+
+        loaded = gem.from_dict(data).players[0]
+
+        assert (loaded.hp_t, loaded.max_hp_t, loaded.mana_t, loaded.max_mana_t) == ([], [], [], [])
+
     def test_gold_ledger_and_exact_buybacks_round_trip(self):
         player = ParsedPlayer(player_id=0, gold=6069)
         player.buybacks = [

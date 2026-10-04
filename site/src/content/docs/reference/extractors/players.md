@@ -56,4 +56,4 @@ Signature: `def PlayerExtractor.minute_time_series(self, player_id: int) -> Play
 
 Aggregate per-minute snapshots for one player into time-series lists.
 
-Source: [src/gem/extractors/players.py:528](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/players.py#L528)
+Source: [src/gem/extractors/players.py:530](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/players.py#L530)
