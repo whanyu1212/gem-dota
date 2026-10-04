@@ -65,6 +65,13 @@ describe("wards and the fight", () => {
     expect(y + size).toBeLessThanOrEqual(map.size);
     const times = fight!.events.map((e) => e.time.split(":").reduce((m, s) => Number(m) * 60 + Number(s), 0));
     expect(times).toEqual([...times].sort((a, b) => a - b));
+    // The playback's clock (seconds since the window started) agrees with the shown times.
+    const offsets = fight!.events.map((e) => e.t);
+    expect(offsets).toEqual([...offsets].sort((a, b) => a - b));
+    for (const [i, event] of fight!.events.entries()) {
+      expect(Math.abs(times[i] - times[0] - (event.t - fight!.events[0].t))).toBeLessThanOrEqual(1);
+    }
+    for (const death of fight!.deaths_at) expect(death.t).toBeGreaterThanOrEqual(0);
     expect(fight!.events.filter((e) => e.text.includes(" killed "))).toHaveLength(fight!.deaths);
     expect(fight!.radiant_kills + fight!.dire_kills).toBe(fight!.deaths);
   });

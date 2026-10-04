@@ -234,7 +234,7 @@ def fight_snapshot(match: ParsedMatch) -> dict | None:
     ] or [centre]
 
     events: list[tuple[int, str, str]] = []  # (tick, team colour, text)
-    deaths = []
+    deaths: list[tuple[str, str, list[float], int]] = []  # (hero, team, at, tick)
     for smoke in gem.build_smoke_analysis(match):
         if smoke.first_fight is fight:
             count = len(smoke.members)
@@ -255,16 +255,16 @@ def fight_snapshot(match: ParsedMatch) -> dict | None:
             spot = gem.position_at_tick(victim, entry.tick)
             if spot is not None:
                 deaths.append(
-                    {
-                        "hero": hero_display(victim.hero_name),
-                        "team": side(victim),
-                        "at": _project(*spot),
-                    }
+                    (hero_display(victim.hero_name), side(victim), _project(*spot), entry.tick)
                 )
         elif kind == "BUYBACK" and entry.value in by_slot:
             buyer = by_slot[entry.value]
             events.append((entry.tick, side(buyer), f"{hero_display(buyer.hero_name)} bought back"))
     events.sort(key=lambda event: event[0])
+
+    def since(tick: int) -> float:
+        """Seconds since the fight window started (replay ticks), for the playback."""
+        return round((tick - fight.start_tick) / TICKS_PER_SECOND, 1)
 
     totals = {"radiant": {"gold": 0, "xp": 0}, "dire": {"gold": 0, "xp": 0}}
     for row in fight.players:
@@ -276,7 +276,7 @@ def fight_snapshot(match: ParsedMatch) -> dict | None:
     return {
         "first_death_tick": fight.first_death_tick,
         "first_death": _clock(match, fight.first_death_tick) if fight.first_death_tick else None,
-        "duration_s": round((last_death - fight.start_tick) / TICKS_PER_SECOND),
+        "duration_s": since(last_death),
         "start": _clock(match, fight.start_tick),
         "end": _clock(match, fight.end_tick),
         "deaths": fight.deaths,
@@ -289,17 +289,18 @@ def fight_snapshot(match: ParsedMatch) -> dict | None:
             {
                 "hero": hero_display(player.hero_name),
                 "team": side(player),
-                # [x, y, seconds since the window's start]: the figure fades older samples.
-                "points": [
-                    [*_project(x, y), round((tick - fight.start_tick) / TICKS_PER_SECOND)]
-                    for x, y, tick in run
-                ],
+                # [x, y, seconds since the window's start], for the fade and the playback.
+                "points": [[*_project(x, y), since(tick)] for x, y, tick in run],
             }
             for player, run in near
         ],
-        "deaths_at": deaths,
+        "deaths_at": [
+            {"hero": hero, "team": team, "at": at, "t": since(tick)}
+            for hero, team, at, tick in deaths
+        ],
         "events": [
-            {"time": _clock(match, tick), "team": team, "text": text} for tick, team, text in events
+            {"time": _clock(match, tick), "t": since(tick), "team": team, "text": text}
+            for tick, team, text in events
         ],
     }
 

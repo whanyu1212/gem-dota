@@ -49,3 +49,17 @@ export function fadedPieces(samples: Sample[], duration: number, levels = 6): Pa
 export function fadeOpacity(level: number, levels = 6): number {
   return Number((0.12 + 0.88 * ((level + 1) / levels) ** 1.6).toFixed(2));
 }
+
+/** One smooth path through all the samples (for the playback's trails). */
+export function smoothPath(samples: number[][]): string {
+  if (samples.length < 2) return "";
+  let d = `M${f(samples[0][0])},${f(samples[0][1])}`;
+  for (let i = 0; i + 1 < samples.length; i++) {
+    const p0 = samples[Math.max(0, i - 1)];
+    const p3 = samples[Math.min(samples.length - 1, i + 2)];
+    const [c1, c2] = catmullRom(p0, samples[i], samples[i + 1], p3);
+    const p2 = samples[i + 1];
+    d += `C${f(c1[0])},${f(c1[1])} ${f(c2[0])},${f(c2[1])} ${f(p2[0])},${f(p2[1])}`;
+  }
+  return d;
+}

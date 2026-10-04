@@ -421,6 +421,81 @@
   stroke: var(--map-halo);
 }
 
+/* Playback: the static figure until it plays (or is scrubbed), then the live
+   layer. Deaths appear as the clock reaches them. */
+.fight-live {
+  display: none;
+}
+.is-live .fight-live {
+  display: inline;
+}
+.is-live .fight-static {
+  display: none;
+}
+.is-live .fight-death {
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.is-live .fight-death.is-shown {
+  opacity: 1;
+}
+.live-hero path {
+  fill: none;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.playback {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+.playback[hidden] {
+  display: none;
+}
+.playback-button {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+}
+.playback-button:hover {
+  border-color: var(--accent);
+}
+.playback-button svg {
+  fill: currentColor;
+}
+.playback-button .icon-pause,
+.is-playing .playback-button .icon-play {
+  display: none;
+}
+.is-playing .playback-button .icon-pause {
+  display: block;
+}
+.playback input[type="range"] {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--accent);
+}
+.playback output {
+  min-width: 3.2em;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.playback-speed {
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .narration {
   display: flex;
   flex-direction: column;
@@ -446,6 +521,7 @@
   font-weight: 600;
 }
 .narration ol {
+  position: relative;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
@@ -489,6 +565,16 @@
 }
 .event span {
   grid-column: 3;
+}
+/* While the fight plays, events still to come are dimmed and the latest is marked. */
+.is-live .event {
+  transition: opacity 0.2s, background-color 0.2s;
+}
+.is-live .event:not(.is-past) {
+  opacity: 0.35;
+}
+.is-live .event.is-current {
+  background: var(--accent-soft);
 }
 .narration-foot {
   margin: 10px 0 0;

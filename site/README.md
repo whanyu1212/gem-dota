@@ -74,7 +74,13 @@ from. The snapshot holds:
   vision, and whole-match ward counts by region (Figure 2);
 - that fight's hero paths, death spots and events: smoke, kills, buybacks and
   team totals (Figure 3 and its narration), with `home-fight.jpg`, a sharp crop
-  of the map around it.
+  of the map around it. Every sample, death and event carries its seconds since
+  the fight window started, for the playback.
+
+Figure 3 plays the fight back (`src/lib/playback.ts`): at 4×, on a loop, while
+  it is on screen, with the narration following the clock. Positions between
+  samples are interpolated for display. With reduced motion it waits for the
+  play button; without JavaScript it stays the static figure.
 
 Ward positions are exact; hero paths and death spots are sampled positions.
 The ward icons in `src/assets/icons/` are copied from the item icons that
