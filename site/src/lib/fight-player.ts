@@ -16,6 +16,8 @@ import {
   deathTimes,
   FILTERS,
   feedRows,
+  isHidden,
+  isSmoked,
   MIN_STUN_S,
   QUIET_ITEMS,
   rowShows,
@@ -39,6 +41,7 @@ const HOLD_MS = 1800; // pause on the last frame before looping
 const CAST_POP_S = 1.4; // how long a cast's label and lines stay up
 const DAMAGE_LINE_S = 0.6;
 const GOLD_POP_S = 2.2;
+const SMOKE_PUFF_S = 0.9;
 const LAYERS = [
   { key: "hp", label: "HP & mana" },
   { key: "casts", label: "Casts" },
@@ -148,6 +151,9 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
   const gLinks = svg("g", {}, map);
   const gHeroes = svg("g", {}, map);
   const gPops = svg("g", {}, map);
+  // A soft blur for the smoke cloud behind a smoked hero.
+  const blur = svg("filter", { id: "smoke-blur", x: "-50%", y: "-50%", width: "200%", height: "200%" }, map.querySelector("defs")!);
+  svg("feGaussianBlur", { stdDeviation: 3 * px }, blur);
 
   const spotBefore = (hero: number, at: number): HeroState | null => stateAt(heroes[hero], [], at - 0.05);
   const deathMarks = data.deaths.map((death) => {
@@ -164,12 +170,14 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
     const g = svg("g", { class: `fight-hero fight-hero--${hero.team}` }, gHeroes);
     g.addEventListener("click", () => setFollow(i));
     svg("title", {}, g).textContent = hero.hero;
+    svg("circle", { class: "smoke-cloud", r: badge * 1.9, filter: "url(#smoke-blur)" }, g);
+    svg("circle", { class: "hidden-ring", r: badge + 4 * px, "stroke-width": 1.4 * px, "stroke-dasharray": `${3 * px} ${2.5 * px}` }, g);
     const buff = svg("circle", { class: "buff-ring", r: 17 * px, "stroke-width": 2.4 * px }, g);
     const disable = svg("circle", { class: "disable-ring", r: 15.5 * px, "stroke-width": 1.6 * px, "stroke-dasharray": `${2 * px} ${2 * px}` }, g);
     const disableArc = svg("circle", { class: "disable-arc", r: 15.5 * px, "stroke-width": 2.4 * px, transform: "rotate(-90)" }, g);
     const flash = svg("circle", { class: "hit-flash", r: badge + 2.5 * px }, g);
     svg("circle", { class: "hero-ring", r: badge + 2 * px, "stroke-width": 1.2 * px }, g);
-    svg("image", { href: heroIcon(i), x: -badge, y: -badge, width: badge * 2, height: badge * 2, "clip-path": "url(#hero-badge)" }, g);
+    svg("image", { class: "hero-badge", href: heroIcon(i), x: -badge, y: -badge, width: badge * 2, height: badge * 2, "clip-path": "url(#hero-badge)" }, g);
     const bars = svg("g", { class: "hero-bars" }, g);
     svg("rect", { class: "bar-bg", x: -14 * px, y: 15 * px, width: 28 * px, height: 6.4 * px, rx: 1 * px }, bars);
     const hp = svg("rect", { class: "bar-hp", x: -13.4 * px, y: 15.6 * px, height: 3 * px }, bars);
@@ -257,7 +265,7 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
   );
   const feed = $<HTMLOListElement>("[data-feed]");
   const rowEls = rows.map((row) => {
-    const li = html("li", { class: `feed-row feed-row--${row.kind}${row.death?.aegis ? " is-aegis" : ""}` }, html("time", {}, clockAt(data.start, row.t)), rowBody(row));
+    const li = html("li", { class: `feed-row feed-row--${row.kind}${row.death?.aegis ? " is-aegis" : ""}` }, html("time", {}, clockAt(data.start_s, row.t)), rowBody(row));
     feed.append(li);
     return { row, li };
   });
@@ -338,7 +346,7 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
       ),
     );
     const buyback = buybackAfter(data, death);
-    if (buyback) recap.append(html("p", { class: "gain" }, `Bought back at ${clockAt(data.start, buyback[0])} for ${number(buyback[2])} gold`));
+    if (buyback) recap.append(html("p", { class: "gain" }, `Bought back at ${clockAt(data.start_s, buyback[0])} for ${number(buyback[2])} gold`));
     toggle.addEventListener("click", () => {
       recap.hidden = !recap.hidden;
       toggle.setAttribute("aria-expanded", String(!recap.hidden));
@@ -369,6 +377,11 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
         const attack = row.attack!;
         return html("span", { class: "row-body" }, iconImg(attack.by), " → ", iconImg(attack.target), html("span", { class: "hit-damage" }, number(attack.damage)), typeTag(attack.type), tag("attacks"));
       }
+      case "smoke": {
+        const { hero, seen } = row.smokeBreak!;
+        const enemy = heroes[hero].team === "radiant" ? "Dire" : "Radiant";
+        return html("span", { class: "row-body" }, iconImg(hero), html("b", {}, "smoke broke"), ...(seen ? [tag(`seen by ${enemy}`)] : []));
+      }
     }
   }
 
@@ -397,6 +410,8 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
       if (!s) return;
       el.g.setAttribute("transform", `translate(${s.x} ${s.y})`);
       el.g.classList.toggle("is-dim", follow !== null && follow !== i);
+      el.g.classList.toggle("is-smoked", layers.has("status") && isSmoked(data, i, t));
+      el.g.classList.toggle("is-hidden", layers.has("status") && isHidden(data, i, t));
       el.bars.style.display = layers.has("hp") ? "" : "none";
       el.hp.setAttribute("width", String(Math.max(0, (26.8 * px * s.hp) / (s.maxHp || 1))));
       el.mana.setAttribute("width", String(Math.max(0, (26.8 * px * s.mana) / (s.maxMana || 1))));
@@ -457,6 +472,17 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
         }
       }
     }
+    // A puff where a smoke breaks.
+    if (layers.has("status")) {
+      for (const [, , members] of data.smokes) {
+        for (const [hero, , broke] of members) {
+          const at = states[hero];
+          if (broke === null || !at || broke > t || t - broke >= SMOKE_PUFF_S) continue;
+          const k = (t - broke) / SMOKE_PUFF_S;
+          svg("circle", { class: "smoke-puff", cx: at.x, cy: at.y, r: badge * (1.3 + 1.6 * k), "stroke-width": 2 * px, opacity: 1 - k }, gPops);
+        }
+      }
+    }
     for (const mark of deathMarks) {
       const shown = mark.death.t <= t && mark.spot;
       mark.g.style.display = shown ? "" : "none";
@@ -491,9 +517,13 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
         ? "dead"
         : disable
           ? `${disable[3]} ${(disable[0] + disable[4] - t).toFixed(1)}s`
-          : buff
-            ? (BUFF_LABELS[buff[3]] ?? buff[3])
-            : `${number(state.hp)} HP`;
+          : isSmoked(data, s.i, t)
+            ? "Smoked"
+            : buff
+              ? (BUFF_LABELS[buff[3]] ?? buff[3])
+              : isHidden(data, s.i, t)
+                ? "Hidden"
+                : `${number(state.hp)} HP`;
     }
 
     let current: HTMLLIElement | undefined;
@@ -512,7 +542,7 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
     cursor.setAttribute("x1", String(x));
     cursor.setAttribute("x2", String(x));
     scrub.value = String(t);
-    clock.value = clockAt(data.start, t);
+    clock.value = clockAt(data.start_s, t);
   }
 
   // --- Playing ---

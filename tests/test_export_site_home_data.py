@@ -366,3 +366,145 @@ def test_fight_playback_puts_same_tick_rewards_on_one_death() -> None:
     # The tick's bounty and XP appear once, on its first death.
     assert on_tick[0]["gold"] == [[1, 326]] and on_tick[0]["xp"] == [[1, 468]]
     assert on_tick[1]["gold"] == [] and on_tick[1]["xp"] == []
+
+
+def test_fight_playback_starts_at_its_smoke_and_marks_who_the_enemy_couldnt_see(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from types import SimpleNamespace
+
+    from gem.results.models import HeroVisibilityEvent, VisibilityState
+
+    match = _playback_match()
+    lion, tiny = match.players  # Lion Dire (slot 0), Tiny Radiant (slot 5)
+    fight = match.fights[0]
+    smoke = SimpleNamespace(
+        activation_tick=-300,  # 10 s before the window opens at tick 0
+        team=2,
+        first_fight=fight,
+        members=[SimpleNamespace(hero_name=tiny.hero_name, applied_tick=-300, removed_tick=60)],
+    )
+    monkeypatch.setattr(export.gem, "build_smoke_analysis", lambda m: [smoke])
+    tiny.position_log = [(t, 16100.0, 16000.0) for t in range(-300, 241, 30)] + [
+        (270, 21000.0, 16000.0)
+    ]
+
+    def seen(tick: int, dire: VisibilityState, slot: int = 5, name: str = tiny.hero_name):
+        return HeroVisibilityEvent(
+            tick=tick,
+            player_id=slot,
+            hero_name=name,
+            entity_index=1,
+            entity_serial=1,
+            radiant_state=VisibilityState.VISIBLE,
+            dire_state=dire,
+        )
+
+    match.hero_visibility_events = [
+        seen(-400, VisibilityState.HIDDEN),  # hidden from Dire when the playback starts
+        seen(75, VisibilityState.VISIBLE),  # seen half a second after the smoke breaks
+        seen(150, VisibilityState.HIDDEN),
+        seen(160, VisibilityState.VISIBLE),  # a third of a second: fog flicker, left out
+    ]
+
+    playback = export.fight_playback(match)
+    assert playback is not None
+    assert playback["start_s"] == -10.0 and playback["duration"] == 21.0
+    tiny_i = 1  # by player slot: Lion 0, Tiny 5
+    # Smoked from the start to the break at tick 60; Dire saw him 0.5 s later.
+    assert playback["smokes"] == [["radiant", 0.0, [[tiny_i, 0.0, 12.0, 12.5]]]]
+    assert playback["hidden"] == [[tiny_i, 0.0, 12.5]]
+    # Clocks line up with the narration's window: the first death (tick 120) is 14 s in.
+    assert [d["t"] for d in playback["deaths"]][:1] == [14.0]
+
+
+def _smoked_tiny(
+    monkeypatch: pytest.MonkeyPatch, *, activation: int = -300, removed: int | None = 60
+) -> ParsedMatch:
+    from types import SimpleNamespace
+
+    match = _playback_match()
+    tiny = match.players[1]
+    smoke = SimpleNamespace(
+        activation_tick=activation,
+        team=2,
+        first_fight=match.fights[0],
+        members=[
+            SimpleNamespace(hero_name=tiny.hero_name, applied_tick=activation, removed_tick=removed)
+        ],
+    )
+    monkeypatch.setattr(export.gem, "build_smoke_analysis", lambda m: [smoke])
+    tiny.position_log = [(t, 16100.0, 16000.0) for t in range(activation, 241, 30)]
+    return match
+
+
+def _visible_to_dire(tick: int, state: str, slot: int = 5) -> object:
+    from gem.results.models import HeroVisibilityEvent, VisibilityState
+
+    return HeroVisibilityEvent(
+        tick=tick,
+        player_id=slot,
+        hero_name="npc_dota_hero_tiny",
+        entity_index=1,
+        entity_serial=1,
+        radiant_state=VisibilityState.VISIBLE,
+        dire_state=VisibilityState(state),
+    )
+
+
+def test_fight_playback_keeps_a_break_after_the_end_as_still_smoked(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # The window ends at tick 330 (last death 270 + 2 s); the smoke breaks at 900.
+    match = _smoked_tiny(monkeypatch, removed=900)
+
+    playback = export.fight_playback(match)
+
+    assert playback is not None
+    assert playback["smokes"] == [["radiant", 0.0, [[1, 0.0, None, None]]]]
+
+
+def test_fight_playback_keeps_same_tick_visibility_in_the_extractors_order(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    match = _smoked_tiny(monkeypatch)
+    # A terminal "unknown" then the replacement's "hidden", on one tick: hidden wins.
+    match.hero_visibility_events = [
+        _visible_to_dire(-400, "unknown"),  # type: ignore[list-item]
+        _visible_to_dire(-400, "hidden"),  # type: ignore[list-item]
+        _visible_to_dire(75, "visible"),  # type: ignore[list-item]
+    ]
+
+    playback = export.fight_playback(match)
+
+    assert playback is not None
+    assert playback["hidden"] == [[1, 0.0, 12.5]]
+
+
+class _PauseBeforeTheFight:
+    """A clock frozen for 20 s (ticks -1500 to -900), between a smoke and its fight."""
+
+    def game_time_at(self, tick: int) -> float:
+        if tick <= -1500:
+            return tick / 30
+        if tick <= -900:
+            return -50.0
+        return (tick - 600) / 30
+
+    def format_tick(self, tick: int) -> str:
+        seconds = int(self.game_time_at(tick)) % 3600
+        return f"{seconds // 60}:{seconds % 60:02d}"
+
+
+def test_fight_playback_measures_the_smoke_lead_on_the_game_clock(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # 70 s of ticks before the window, but 50 s of game time: the smoke still counts.
+    match = _smoked_tiny(monkeypatch, activation=-2100, removed=60)
+    match.game_clock = _PauseBeforeTheFight()  # type: ignore[assignment]
+
+    playback = export.fight_playback(match)
+
+    assert playback is not None
+    assert playback["start_s"] == -70.0
+    assert playback["smokes"][0][1] == 0.0

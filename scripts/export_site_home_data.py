@@ -89,6 +89,14 @@ TEAMS = {2: "radiant", 3: "dire"}
 #: The playback runs on this long after the last death, for an instant buyback
 #: and the last death's gold.
 PLAYBACK_TAIL_TICKS = 2 * TICKS_PER_SECOND
+#: A smoked hero counts as seen when the enemy saw it within this long of the break.
+SEEN_AFTER_BREAK_S = 1.0
+#: Hidden spans shorter than this (fog flickering at the edge of vision) are left
+#: out, so the badges don't flicker.
+MIN_HIDDEN_S = 0.5
+#: A smoke that led into the fight starts the playback when it came at most this
+#: many game seconds before the fight window, so the playback shows the smoked walk-in.
+SMOKE_LEAD_S = 60.0
 #: Buffs the playback draws as a ring around the hero (the site's choice of what
 #: to show; every modifier is in the timeline).
 BUFF_RINGS = {
@@ -244,6 +252,13 @@ def _crop(points: list[Point]) -> list[float]:
 def biggest_fight(match: ParsedMatch) -> Fight | None:
     """The fight with the most deaths (the earliest of equals), or ``None``."""
     return max(match.fights, key=lambda f: (f.deaths, -f.start_tick), default=None)
+
+
+def _game_seconds(match: ParsedMatch, tick: int) -> float:
+    """The game clock at ``tick`` in seconds (pause-aware); raw ticks without a clock."""
+    clock = match.game_clock
+    now = clock.game_time_at(tick) if clock is not None else None
+    return round(now if now is not None else tick / TICKS_PER_SECOND, 1)
 
 
 def _seconds_since(match: ParsedMatch, start_tick: int) -> Callable[[int], float]:
@@ -438,12 +453,24 @@ def fight_playback(match: ParsedMatch) -> dict | None:
     """The biggest fight's playback: hero state and the fight's timeline.
 
     Heroes are referred to by their index in ``heroes``. Every ``t`` is seconds
-    since the fight window's start (the same origin as ``home.json``'s fight).
+    since the playback's ``start``: the fight window's start, or the smoke that
+    led into the fight when it came shortly before.
     """
     fight = biggest_fight(match)
     if fight is None:
         return None
-    start = fight.start_tick
+    smokes = gem.build_smoke_analysis(match)
+    start = min(
+        [fight.start_tick]
+        + [
+            smoke.activation_tick
+            for smoke in smokes
+            if smoke.first_fight is fight
+            # Game time, not ticks, so a pause between the two doesn't count.
+            and _game_seconds(match, fight.start_tick) - _game_seconds(match, smoke.activation_tick)
+            <= SMOKE_LEAD_S
+        ]
+    )
     end = (fight.last_death_tick or fight.end_tick) + PLAYBACK_TAIL_TICKS
     since = _seconds_since(match, start)
     timeline: FightTimeline = build_fight_timeline(match, start, end)
@@ -476,6 +503,7 @@ def fight_playback(match: ParsedMatch) -> dict | None:
         casts.append(row)
 
     team_of = {i: TEAMS.get(player.team, "unknown") for i, player in enumerate(players)}
+    hidden = _hidden(match, players, start, end, since)
     deaths = []
     for death in timeline.deaths:
         rewards = timeline.rewards_at(death.tick)
@@ -513,6 +541,9 @@ def fight_playback(match: ParsedMatch) -> dict | None:
         deaths.append(entry)
     return {
         "start": _clock(match, start),
+        # The start in game seconds, so the playback's clock adds offsets exactly
+        # (``start`` is whole seconds).
+        "start_s": _game_seconds(match, start),
         "duration": since(end),
         "heroes": [
             {
@@ -567,7 +598,98 @@ def fight_playback(match: ParsedMatch) -> dict | None:
         "deaths": deaths,
         # [t, hero, cost]
         "buybacks": [[since(b.tick), index[b.hero], b.cost] for b in timeline.buybacks],
+        # [team, t of the smoke's use or null before the window, members]; each
+        # member [hero, smoked from, smoke broke or null, seen by the enemy within
+        # a second of the break or null], clipped to the window.
+        "smokes": _smokes(smokes, start, end, index, since, hidden),
+        # [hero, from, to]: while the enemy team couldn't see the hero.
+        "hidden": hidden,
     }
+
+
+def _smokes(
+    smokes: list,
+    start: int,
+    end: int,
+    index: dict[str, int],
+    since: Callable[[int], float],
+    hidden: list[list[float]],
+) -> list:
+    """The smokes on any hero during [start, end], with each member's smoked span.
+
+    A member counts as seen by the enemy when its hidden span ends within a second
+    of the smoke breaking (the replay's visibility, not the smoke's own record).
+    """
+
+    def seen(hero: int, broke: float | None) -> float | None:
+        if broke is None:
+            return None
+        ends = [to for h, _, to in hidden if h == hero and 0 <= to - broke <= SEEN_AFTER_BREAK_S]
+        return min(ends, default=None)
+
+    out = []
+    for smoke in smokes:
+        members = [
+            [
+                index[member.hero_name],
+                since(max(member.applied_tick, start)),
+                # A break after the playback's end is "still smoked at the end".
+                broke := since(member.removed_tick)
+                if member.removed_tick is not None and member.removed_tick <= end
+                else None,
+                seen(index[member.hero_name], broke),
+            ]
+            for member in smoke.members
+            if member.hero_name in index
+            and member.applied_tick <= end
+            and (member.removed_tick is None or member.removed_tick >= start)
+        ]
+        if members:
+            used = since(smoke.activation_tick) if smoke.activation_tick >= start else None
+            out.append([TEAMS.get(smoke.team, "unknown"), used, members])
+    return out
+
+
+def _hidden(
+    match: ParsedMatch,
+    players: list[ParsedPlayer],
+    start: int,
+    end: int,
+    since: Callable[[int], float],
+) -> list[list[float]]:
+    """Spans of [start, end] when the enemy team couldn't see each hero.
+
+    From the replay's per-team hero visibility (``match.hero_visibility_events``);
+    only ``hidden`` counts, not ``unknown``.
+    """
+    out: list[list[float]] = []
+    for i, player in enumerate(players):
+        # What the enemy team saw: Dire's view of a Radiant hero, and the reverse.
+        seen_by_dire = player.team == 2
+        # By tick only: the sort is stable, so same-tick transitions keep the
+        # extractor's order (a terminal state, then the replacement's).
+        states = sorted(
+            (
+                (e.tick, str(e.dire_state if seen_by_dire else e.radiant_state))
+                for e in match.hero_visibility_events
+                if e.player_id == player.player_id
+            ),
+            key=lambda state: state[0],
+        )
+        before = [seen for tick, seen in states if tick <= start]
+        hidden_since = start if before and before[-1] == "hidden" else None
+        for tick, seen in states:
+            if not start < tick <= end:
+                continue
+            if seen == "hidden" and hidden_since is None:
+                hidden_since = tick
+            elif seen != "hidden" and hidden_since is not None:
+                if since(tick) - since(hidden_since) >= MIN_HIDDEN_S:
+                    out.append([i, since(hidden_since), since(tick)])
+                hidden_since = None
+        if hidden_since is not None:
+            out.append([i, since(hidden_since), since(end)])
+    return out
 
 
 def write_icons(icons_dir: Path, heroes: set[str], items: Iterable[str] = ()) -> None:

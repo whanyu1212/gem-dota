@@ -4,6 +4,8 @@ import fight from "../src/data/fight.json";
 import home from "../src/data/home.json";
 import {
   buybackAfter,
+  isHidden,
+  isSmoked,
   castText,
   clockAt,
   damagePerSecond,
@@ -22,6 +24,7 @@ const hero = (team: string, runs: number[][][]) => ({ hero: "", icon: "", team, 
 
 const data: FightData = {
   start: "42:34",
+  start_s: 2554,
   duration: 10,
   heroes: [
     // Lion walks right, dies at 3 s, buys back at the fountain at 6 s.
@@ -61,6 +64,13 @@ const data: FightData = {
     { t: 5, victim: 2, killer: 1, killer_name: "Tiny", aegis: true, gold_lost: 0, gold: [], xp: [], recent: [], recent_total: 0 },
   ],
   buybacks: [[6, 0, 831]],
+  // Radiant smoked Lion and Tiny; Lion's broke at 2 s and Dire saw him, Tiny's at 4 s unseen.
+  smokes: [["radiant", 0, [[0, 0, 2, 2], [1, 0, 4, null]]]],
+  hidden: [
+    [0, 0, 2],
+    [1, 0, 1.5],
+    [1, 5, 6],
+  ],
 };
 
 describe("hero state", () => {
@@ -143,12 +153,37 @@ describe("feed rows", () => {
 
   it("shows rows whose filter is on and that involve the followed hero", () => {
     const on = new Set(FILTERS.filter((f) => f.on).map((f) => f.key));
+    // Every filter is on by default, attacks included.
+    expect(FILTERS.every((f) => f.on)).toBe(true);
     const attack = rows.find((r) => r.kind === "attack")!;
-    expect(rowShows(attack, on, null)).toBe(false);
+    expect(rowShows(attack, on, null)).toBe(true);
+    expect(rowShows(attack, new Set([...on].filter((k) => k !== "attacks")), null)).toBe(false);
     const avalanche = rows.find((r) => r.cast?.what === "Avalanche")!;
     expect(rowShows(avalanche, on, null)).toBe(true);
     expect(rowShows(avalanche, on, 3)).toBe(true);
     expect(rowShows(avalanche, on, 0)).toBe(false);
+  });
+});
+
+describe("smoke and visibility", () => {
+  it("knows who was smoked and who the enemy couldn't see", () => {
+    expect(isSmoked(data, 0, 1.9)).toBe(true);
+    expect(isSmoked(data, 0, 2)).toBe(false);
+    expect(isSmoked(data, 2, 1)).toBe(false);
+    // Tiny stayed smoked to 4 s but Dire saw him from 1.5 s to 5 s: two separate facts.
+    expect(isSmoked(data, 1, 3)).toBe(true);
+    expect(isHidden(data, 1, 3)).toBe(false);
+    expect(isHidden(data, 1, 5.5)).toBe(true);
+  });
+
+  it("adds a feed row as each smoke breaks, saying whether the enemy saw the hero", () => {
+    const breaks = feedRows(data).filter((r) => r.kind === "smoke");
+    expect(breaks.map((r) => [r.t, r.smokeBreak])).toEqual([
+      [2, { hero: 0, seen: true }],
+      [4, { hero: 1, seen: false }],
+    ]);
+    const on = new Set(FILTERS.filter((f) => f.on).map((f) => f.key));
+    expect(breaks.every((r) => rowShows(r, on, null))).toBe(true);
   });
 });
 
@@ -185,10 +220,27 @@ describe("the committed fight playback", () => {
   const inWindow = (t: number) => t >= 0 && t <= playback.duration;
 
   it("is the home page's fight, on the same clock", () => {
-    expect(playback.start).toBe(home.fight!.start);
-    expect(playback.duration).toBeGreaterThanOrEqual(home.fight!.duration_s);
+    const seconds = (clock: string) => clock.split(":").reduce((m, s) => Number(m) * 60 + Number(s), 0);
+    // It may start earlier than the fight window, at the smoke that led into it.
+    expect(seconds(playback.start)).toBeLessThanOrEqual(seconds(home.fight!.start));
     expect(playback.heroes).toHaveLength(10);
-    expect(playback.deaths.filter((d) => !d.aegis)).toHaveLength(home.fight!.deaths);
+    const kills = playback.deaths.filter((d) => !d.aegis);
+    expect(kills).toHaveLength(home.fight!.deaths);
+    // Each kill falls at the narration's time for it.
+    const told = home.fight!.events.filter((e) => e.text.includes(" killed ")).map((e) => e.time);
+    expect(kills.map((d) => clockAt(playback.start_s, d.t))).toEqual(told);
+  });
+
+  it("starts at Radiant's smoke, and every smoked hero becomes visible to Dire as it breaks", () => {
+    expect(playback.start).toBe("42:19");
+    const [[team, used, members]] = playback.smokes;
+    expect([team, used, members.length]).toEqual(["radiant", 0, 5]);
+    for (const [hero, , broke, seen] of members) {
+      expect(broke).not.toBeNull();
+      expect(seen! - broke!).toBeGreaterThanOrEqual(0);
+      expect(seen! - broke!).toBeLessThanOrEqual(1);
+      expect(isHidden(playback, hero, broke! - 0.5)).toBe(true);
+    }
   });
 
   it("refers to heroes by valid index, and times every record inside the window", () => {
