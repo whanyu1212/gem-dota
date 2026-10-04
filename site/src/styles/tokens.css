@@ -32,6 +32,9 @@
   --warning: #8a5a00;
   --danger: #b42318;
   --important: #6941c6;
+  --dmg-physical-bg: #ebe4d3;
+  --dmg-magical-bg: #d9e7fb;
+  --dmg-pure-bg: #fbe8b0;
 
   --sun-display: none;
   --moon-display: block;
@@ -55,6 +58,23 @@
   --map-dire-mark: #ff6b5b;
   --map-label: #ffffff;
   --map-halo: #0d1117;
+  /* Figure 3's playback layers, drawn over the map. */
+  --map-dmg-physical: #f4efe2;
+  --map-dmg-magical: #7cb7ff;
+  --map-dmg-pure: #ffd24d;
+  --map-gold: #ffd24d;
+  --map-loss: #ff8a7a;
+  --map-hit: #ff3b3b;
+  --map-hp-radiant: #5ee08f;
+  --map-hp-dire: #ff7a66;
+  --map-mana: #5b9bff;
+  --map-disable: #ffffff;
+  --buff-bkb: #e0a800;
+  --buff-ghost: #9ad1ff;
+  --buff-blade-mail: #ef4444;
+  --buff-lotus: #2dd4bf;
+  --buff-satanic: #f97316;
+  --buff-aeon: #c084fc;
 
   --font-serif: "Source Serif 4 Variable", "Iowan Old Style", Georgia, serif;
   --font-sans: "Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -90,6 +110,9 @@
   --warning: #e3b341;
   --danger: #f97066;
   --important: #b692f6;
+  --dmg-physical-bg: #3a352c;
+  --dmg-magical-bg: #22344d;
+  --dmg-pure-bg: #4a3d14;
 
   --sun-display: block;
   --moon-display: none;
@@ -122,6 +145,9 @@
     --warning: #e3b341;
     --danger: #f97066;
     --important: #b692f6;
+    --dmg-physical-bg: #3a352c;
+    --dmg-magical-bg: #22344d;
+    --dmg-pure-bg: #4a3d14;
 
     --sun-display: block;
     --moon-display: none;

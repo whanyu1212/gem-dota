@@ -172,6 +172,24 @@ class TestCasts:
 
         assert cast.hits == (CastHit(AXE, 180, "magical"),)
 
+    def test_modifiers_are_credited_to_the_unit_that_applied_them(self):
+        # On modifier entries the log's damage source names an unrelated unit.
+        log = [
+            _cast(100, SF, "item_black_king_bar"),
+            _modifier("MODIFIER_ADD", 100, SF, SF, "modifier_black_king_bar_immune", source=TINY),
+            _cast(110, LION, "lion_voodoo"),
+            _modifier(
+                "MODIFIER_ADD", 112, LION, AXE, "modifier_lion_voodoo", source="modifier_x_aura"
+            ),
+        ]
+
+        timeline = build_fight_timeline(_match(log), 0, 1000)
+        bkb, hex_cast = timeline.casts
+
+        assert bkb.self_effect == CastHit(SF, modifiers=("modifier_black_king_bar_immune",))
+        assert hex_cast.hits == (CastHit(AXE, modifiers=("modifier_lion_voodoo",)),)
+        assert [w.source_hero for w in timeline.modifiers] == [SF, LION]
+
     def test_illusion_casts_are_left_out(self):
         log = [_cast(100, TINY, "tiny_avalanche", attacker_is_illusion=True)]
 
@@ -351,6 +369,7 @@ def test_fixture_fights_have_their_rewards_on_the_death_tick(canonical_parsed_ma
     match = canonical_parsed_match
     assert match.fights
     ticks = [entry.tick for entry in match.combat_log]
+    self_buffed = 0
     for fight in match.fights:
         timeline = build_fight_timeline(match, fight.start_tick, fight.end_tick)
         assert len(timeline.deaths) >= fight.deaths
@@ -362,6 +381,21 @@ def test_fixture_fights_have_their_rewards_on_the_death_tick(canonical_parsed_ma
                 assert death.gold_lost > 0, (death.tick, death.victim)
         for cast in timeline.casts:
             assert cast.caster not in {hit.hero for hit in cast.hits}
+        # An item whose own modifier lands on its caster on the cast's tick
+        # (Black King Bar, Blade Mail, ...) carries it as its self-effect.
+        for cast in timeline.casts:
+            same_tick = match.combat_log[
+                bisect.bisect_left(ticks, cast.tick) : bisect.bisect_right(ticks, cast.tick)
+            ]
+            if cast.is_item and any(
+                e.log_type == "MODIFIER_ADD"
+                and e.attacker_name == cast.caster
+                and e.target_name == cast.caster
+                and modifier_matches_ability(e.inflictor_name, cast.ability)
+                for e in same_tick
+            ):
+                assert cast.self_effect is not None, (cast.tick, cast.caster, cast.ability)
+                self_buffed += 1
         cast_damage = sum(cast.damage for cast in timeline.casts)
         assert cast_damage <= sum(burst.damage for burst in timeline.damage)
         # Every hero-kill bounty and XP in the window is paid on a death tick.
@@ -373,3 +407,6 @@ def test_fixture_fights_have_their_rewards_on_the_death_tick(canonical_parsed_ma
                 entry.log_type == "XP" and entry.xp_reason == 1
             ):
                 assert entry.tick in reward_ticks, (entry.tick, entry.target_name)
+    # Those modifiers are credited to the caster (attacker), not to the entry's
+    # damage source, which names unrelated units on modifier entries.
+    assert self_buffed > 0

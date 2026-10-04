@@ -122,7 +122,7 @@
 .chapter-grid {
   display: grid;
   grid-template-columns: 200px minmax(0, 1fr);
-  gap: 48px;
+  gap: 28px 48px;
 }
 .chapter-label {
   padding-top: 14px;
@@ -158,8 +158,12 @@
   align-items: stretch;
   margin-top: 32px;
 }
-.figures + .fight {
-  margin-top: 28px;
+/* The map chapter's figures are wide: both rows span the label column as well,
+   on the same two columns. */
+.chapter-grid > .figures,
+.chapter-grid > .fight {
+  grid-column: 1 / -1;
+  margin-top: 0;
 }
 
 /* Chapter 1: the example and Table 1 */
@@ -548,6 +552,492 @@
   line-height: 1.55;
 }
 
+/* Figure 3's live playback (src/lib/fight-player.ts). Hidden without JavaScript. */
+
+.chip {
+  padding: 2px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--body);
+  font: inherit;
+  font-size: 12.5px;
+  line-height: 1.6;
+  cursor: pointer;
+}
+.chip:hover {
+  border-color: var(--accent);
+}
+.chip[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+.fight-layers,
+.feed-filters,
+.playback-speeds {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.fight-layers {
+  margin-bottom: 10px;
+}
+.fight-layers[hidden],
+.feed-filters[hidden],
+.fight-strip[hidden],
+.fight-status[hidden] {
+  display: none;
+}
+.chip-label {
+  margin-right: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.playback-speeds {
+  margin-left: auto;
+}
+.fight-strip {
+  margin-top: 6px;
+}
+.fight-strip svg {
+  width: 100%;
+  height: 48px;
+  aspect-ratio: auto;
+}
+.fight-strip input[type="range"] {
+  display: block;
+  width: 100%;
+  margin: 2px 0 0;
+  accent-color: var(--accent);
+}
+.strip-radiant {
+  fill: var(--map-radiant-mark);
+}
+.strip-dire {
+  fill: var(--map-dire-mark);
+}
+.strip-axis {
+  stroke: var(--line);
+}
+.strip-death--radiant {
+  fill: var(--map-radiant-mark);
+}
+.strip-death--dire {
+  fill: var(--map-dire-mark);
+}
+.strip-death--aegis {
+  fill: var(--buff-bkb);
+}
+.strip-cursor {
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+.fight-legend {
+  margin: 6px 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.fight-legend[hidden] {
+  display: none;
+}
+.fight-legend .legend-item {
+  text-transform: none;
+}
+.fight-legend i.swatch-line {
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+  outline: 1px solid var(--map-halo);
+}
+.fight-legend i.swatch-line--physical {
+  background: var(--map-dmg-physical);
+}
+.fight-legend i.swatch-line--magical {
+  background: var(--map-dmg-magical);
+}
+.fight-legend i.swatch-line--pure {
+  background: var(--map-dmg-pure);
+}
+.fight-legend i.swatch-ring {
+  box-sizing: border-box;
+  border: 2px solid;
+  background: transparent;
+}
+.fight-legend i.swatch-ring--disable {
+  border-style: dashed;
+  border-color: var(--muted);
+}
+.fight-legend i.swatch-ring--bkb {
+  border-color: var(--buff-bkb);
+}
+
+/* The map's layers. Sizes are set in map units by the script. */
+.fight-hero {
+  cursor: pointer;
+}
+.is-dim {
+  opacity: 0.35;
+}
+.buff-ring,
+.disable-ring,
+.disable-arc {
+  fill: none;
+}
+.buff-ring--bkb {
+  stroke: var(--buff-bkb);
+}
+.buff-ring--ghost {
+  stroke: var(--buff-ghost);
+}
+.buff-ring--blade_mail {
+  stroke: var(--buff-blade-mail);
+}
+.buff-ring--lotus {
+  stroke: var(--buff-lotus);
+}
+.buff-ring--satanic {
+  stroke: var(--buff-satanic);
+}
+.buff-ring--aeon_disk {
+  stroke: var(--buff-aeon);
+}
+.disable-ring,
+.disable-arc {
+  stroke: var(--map-disable);
+}
+.hit-flash {
+  fill: var(--map-hit);
+  opacity: 0;
+}
+.hit-flash.is-on {
+  opacity: 0.55;
+}
+.bar-bg {
+  fill: var(--map-halo);
+}
+.fight-hero--radiant .bar-hp {
+  fill: var(--map-hp-radiant);
+}
+.fight-hero--dire .bar-hp {
+  fill: var(--map-hp-dire);
+}
+.bar-mana {
+  fill: var(--map-mana);
+}
+.pop-bg {
+  fill: var(--map-halo);
+  opacity: 0.85;
+}
+.pop-text {
+  fill: var(--map-label);
+  font-family: var(--font-sans);
+  font-weight: 600;
+}
+.cast-link {
+  fill: none;
+}
+.cast-link--radiant {
+  stroke: var(--map-radiant-mark);
+}
+.cast-link--dire {
+  stroke: var(--map-dire-mark);
+}
+.dmg-line {
+  stroke: var(--map-label);
+  stroke-linecap: round;
+}
+.dmg-line--physical {
+  stroke: var(--map-dmg-physical);
+}
+.dmg-line--magical {
+  stroke: var(--map-dmg-magical);
+}
+.dmg-line--pure {
+  stroke: var(--map-dmg-pure);
+}
+.gold-pop {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  stroke: var(--map-halo);
+  paint-order: stroke;
+}
+.gold-pop--gain {
+  fill: var(--map-gold);
+}
+.gold-pop--loss {
+  fill: var(--map-loss);
+}
+.fight-death--aegis path:not(.halo) {
+  stroke: var(--buff-bkb);
+}
+
+/* Each hero's status: a button that follows it. */
+.fight-status {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px 6px;
+  margin: 0 0 10px;
+}
+.fight-status-hero {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
+  align-items: center;
+  gap: 2px 5px;
+  min-width: 0;
+  padding: 4px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.fight-status-hero:hover,
+.fight-status-hero[aria-pressed="true"] {
+  border-color: var(--line);
+  background: var(--accent-soft);
+}
+.fight-status-hero .hero-icon {
+  grid-row: span 2;
+}
+.fight-status-bar {
+  position: relative;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--line);
+}
+.fight-status-mana {
+  height: 3px;
+}
+.fight-status-bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+}
+.fight-status-hero--radiant .fight-status-hp i {
+  background: var(--map-radiant-mark);
+}
+.fight-status-hero--dire .fight-status-hp i {
+  background: var(--map-dire-mark);
+}
+.fight-status-mana i {
+  background: var(--map-mana);
+}
+.fight-status-text {
+  grid-column: span 2;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fight-status-hero.is-dead {
+  opacity: 0.5;
+}
+.fight-status-hero.is-dead img {
+  filter: grayscale(1);
+}
+.hero-icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+.hero-icon--radiant {
+  border-color: var(--map-radiant-mark);
+}
+.hero-icon--dire {
+  border-color: var(--map-dire-mark);
+}
+
+/* The feed: every cast with what it hit, deaths with their recap, buybacks. */
+.feed-filters {
+  margin: 0 0 8px;
+}
+.follow-note {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12px;
+}
+.feed {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0 0 24px;
+  list-style: none;
+  mask-image: linear-gradient(to bottom, black calc(100% - 32px), transparent);
+}
+.feed[hidden] {
+  display: none;
+}
+.feed-row {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 6px;
+  padding: 4px 2px;
+  border-bottom: 1px solid var(--line);
+  color: var(--body);
+  font-size: 13px;
+  transition: opacity 0.2s, background-color 0.2s;
+}
+.feed-row[hidden] {
+  display: none;
+}
+.is-live .feed-row:not(.is-past) {
+  opacity: 0.4;
+}
+.is-live .feed-row.is-current {
+  background: var(--accent-soft);
+}
+.feed-row time {
+  padding-top: 2px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.row-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px 5px;
+  min-width: 0;
+}
+.row-body b {
+  color: var(--ink);
+  font-weight: 600;
+}
+.item-icon {
+  width: 22px;
+  height: 16px;
+  border-radius: 2px;
+}
+.spell-mark {
+  width: 7px;
+  height: 7px;
+  margin: 0 2px;
+  background: var(--note);
+  transform: rotate(45deg);
+}
+.tag {
+  padding: 0 6px;
+  border-radius: 3px;
+  background: var(--inline-code-bg);
+  color: var(--muted);
+  font-size: 11.5px;
+}
+.hit {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.hit-damage {
+  color: var(--ink);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.hit-stun {
+  color: var(--important);
+  font-size: 12px;
+  font-weight: 600;
+}
+.dmg {
+  padding: 0 5px;
+  border-radius: 3px;
+  color: var(--ink);
+  font-size: 11px;
+}
+.dmg--physical {
+  background: var(--dmg-physical-bg);
+}
+.dmg--magical {
+  background: var(--dmg-magical-bg);
+}
+.dmg--pure {
+  background: var(--dmg-pure-bg);
+}
+.gain {
+  color: var(--accent);
+  font-weight: 600;
+}
+.loss {
+  color: var(--danger);
+  font-weight: 600;
+}
+.death-mark {
+  color: var(--danger);
+  font-weight: 700;
+}
+.recap-toggle {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.recap-toggle:hover b {
+  text-decoration: underline;
+}
+.recap {
+  margin-top: 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--bg);
+  font-size: 12.5px;
+}
+.recap p {
+  margin: 2px 0;
+}
+.recap .recap-label {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.recap .recap-label:first-child {
+  margin-top: 0;
+}
+.recap-bar {
+  display: flex;
+  height: 6px;
+  margin: 2px 0 6px;
+  overflow: hidden;
+  border-radius: 2px;
+}
+.dmg-fill--physical {
+  background: var(--muted);
+}
+.dmg-fill--magical {
+  background: var(--note);
+}
+.dmg-fill--pure {
+  background: var(--warning);
+}
+.dmg-fill--others {
+  background: var(--line);
+}
+.recap-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 /* Chapter 3: recipes */
 
 .recipes {
@@ -649,7 +1139,8 @@
   .narration {
     contain: none;
   }
-  .narration ol {
+  .narration ol,
+  .feed {
     max-height: 420px;
   }
   .home-hero .hero-grid {

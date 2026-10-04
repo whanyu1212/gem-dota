@@ -164,8 +164,11 @@ class CombatLogEntry:
             summon or projectile. OpenDota attributes the per-target
             ``damage``/``healing`` dicts and the ``hero_damage``/``tower_damage``
             scalars to this field (``unit = e.sourcename``), not ``attacker_name``.
-            Empty when the source index is unset. Reference:
-            ``parser/Parse.java`` (``sourcename = cle.getDamageSourceName()``).
+            Empty when the source index is unset. On ``MODIFIER_ADD`` /
+            ``MODIFIER_REMOVE`` entries it does not name the applying unit (it
+            holds other heroes' or modifiers' names), so read ``attacker_name``
+            there. Reference: ``parser/Parse.java``
+            (``sourcename = cle.getDamageSourceName()``).
         target_name: Name of the target unit/hero.
         inflictor_name: Ability or item that caused the event.
         value: Numeric value (damage, heal amount, gold, xp, etc.). For

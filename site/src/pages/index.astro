@@ -102,12 +102,14 @@ frames = gem.parse_to_dataframe("${match.match_id}.dem")`;
             and combat log. <code>gem.region_of(x, y)</code> tells you where any position is. Wards carry exact
             positions, heroes a sampled one each second: enough to replay a fight.
           </p>
-          <div class="figures">
-            <MapFigure />
-            <WardFigure />
-          </div>
-          {home.fight && <FightFigure />}
         </div>
+        {/* The figures span the label column too, so Figure 3's playback has room and
+            both rows share the same two columns. */}
+        <div class="figures">
+          <MapFigure />
+          <WardFigure />
+        </div>
+        {home.fight && <FightFigure />}
       </div>
     </section>
 

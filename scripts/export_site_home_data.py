@@ -10,14 +10,19 @@ snapshot, so building the site never parses a replay:
   line, river, lotus pools, every neutral camp); the wards; and the fight's
   hero paths, deaths and events. Map positions are in the coordinates of a
   1000-unit square;
+- ``site/src/data/fight.json``: the fight's playback, loaded when Figure 3 comes
+  into view: each hero's sampled position, HP and mana, and the fight's casts
+  (with the heroes each hit and the damage it did), damage, disables, buffs,
+  deaths with their gold and XP, and buybacks, from ``gem.build_fight_timeline``;
 - ``site/src/assets/home-map.jpg``: the plain map square the overlays sit on;
 - ``site/src/assets/home-fight.jpg``: a sharper crop of the map around the fight;
-- ``site/src/assets/icons/``: the observer and sentry icons, and the fight's hero
-  icons (``heroes/<name>.png``), copied from the icons that
+- ``site/src/assets/icons/``: the observer and sentry icons, the fight's hero
+  icons (``heroes/<name>.png``) and the items used in it (``items/<name>.png``),
+  copied from the icons that
   ``scripts/fetch_item_icons.py`` and ``scripts/fetch_hero_icons.py`` download.
 
-Hero paths and death spots are sampled positions (about one per second); ward
-positions are exact.
+Hero paths, death spots, HP and mana are sampled (about one per second); ward
+positions and the combat log are exact.
 
 The overlay comes from ``map_constants.json`` and ``camp_zones.json`` and is
 placed with the report maps' calibrated window (``MAP_XMIN``…``MAP_YMAX``), the
@@ -35,14 +40,19 @@ import json
 import math
 import shutil
 import sys
+from collections.abc import Callable, Iterable
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
 import gem  # noqa: E402
+from gem.analysis.fight_timeline import FightTimeline, build_fight_timeline  # noqa: E402
+from gem.catalog.abilities import ABILITIES, ability_display  # noqa: E402
+from gem.catalog.items import ITEMS, item_display  # noqa: E402
 from gem.catalog.map import load_camp_zones, load_map_constants  # noqa: E402
 from gem.constants import hero_display  # noqa: E402
+from gem.extractors.fights import Fight  # noqa: E402
 from gem.extractors.wards import WardEvent  # noqa: E402
 from gem.reports._formatting import MAP_XMAX, MAP_XMIN, MAP_YMAX, MAP_YMIN  # noqa: E402
 from gem.results.models import ParsedMatch, ParsedPlayer  # noqa: E402
@@ -51,6 +61,7 @@ from gem.results.models import ParsedMatch, ParsedPlayer  # noqa: E402
 # The committed snapshot is this match.
 DEFAULT_REPLAY = REPO_ROOT / "tests" / "fixtures" / "opendota" / "8856501050.dem"
 DEFAULT_DATA = REPO_ROOT / "site" / "src" / "data" / "home.json"
+DEFAULT_FIGHT_DATA = REPO_ROOT / "site" / "src" / "data" / "fight.json"
 DEFAULT_MAP_IMAGE = REPO_ROOT / "site" / "src" / "assets" / "home-map.jpg"
 DEFAULT_FIGHT_IMAGE = REPO_ROOT / "site" / "src" / "assets" / "home-fight.jpg"
 DEFAULT_ICONS = REPO_ROOT / "site" / "src" / "assets" / "icons"
@@ -69,6 +80,29 @@ TICKS_PER_SECOND = 30
 #: Observer ward vision radius, as in gem's point-vision model (analysis/vision.py).
 OBSERVER_VISION = 1600
 TEAMS = {2: "radiant", 3: "dire"}
+#: The playback runs on this long after the last death, for an instant buyback
+#: and the last death's gold.
+PLAYBACK_TAIL_TICKS = 2 * TICKS_PER_SECOND
+#: Buffs the playback draws as a ring around the hero (the site's choice of what
+#: to show; every modifier is in the timeline).
+BUFF_RINGS = {
+    "modifier_black_king_bar_immune": "bkb",
+    "modifier_minotaur_horn_immune": "bkb",
+    "modifier_ghost_state": "ghost",
+    "modifier_item_blade_mail_reflect": "blade_mail",
+    "modifier_item_lotus_orb_active": "lotus",
+    "modifier_item_satanic_unholy": "satanic",
+    "modifier_item_aeon_disk_buff": "aeon_disk",
+}
+#: How many damage sources a death's recap lists (its total covers them all).
+RECAP_ROWS = 6
+#: Names for disables whose modifier doesn't name its ability.
+DISABLE_NAMES = {
+    "modifier_stunned": "Stun",
+    "modifier_bashed": "Bash",
+    "modifier_knockback": "Knockback",
+    "modifier_ancientapparition_coldfeet_freeze": "Cold Feet",
+}
 
 
 def _project(x: float, y: float) -> list[float]:
@@ -124,8 +158,9 @@ def _unit_name(npc_name: str) -> str:
     """A readable name for a hero, or a tidied NPC name for anything else."""
     if npc_name.startswith("npc_dota_hero_"):
         return hero_display(npc_name)
-    name = npc_name.removeprefix("npc_dota_").replace("_", " ").strip()
-    return name.capitalize() or "Unknown"
+    name = npc_name.removeprefix("npc_dota_")
+    name = name.replace("goodguys", "radiant").replace("badguys", "dire")
+    return name.replace("_", " ").strip().capitalize() or "Unknown"
 
 
 def _clock(match: ParsedMatch, tick: int) -> str:
@@ -200,11 +235,34 @@ def _crop(points: list[Point]) -> list[float]:
     return [round(left, 1), round(top, 1), round(size, 1)]
 
 
+def biggest_fight(match: ParsedMatch) -> Fight | None:
+    """The fight with the most deaths (the earliest of equals), or ``None``."""
+    return max(match.fights, key=lambda f: (f.deaths, -f.start_tick), default=None)
+
+
+def _seconds_since(match: ParsedMatch, start_tick: int) -> Callable[[int], float]:
+    """In-game seconds since ``start_tick``, for the playback.
+
+    Pause-aware, like the clock times the narration shows; raw replay ticks only
+    when the replay has no game clock.
+    """
+    clock = match.game_clock
+    start_s = clock.game_time_at(start_tick) if clock is not None else None
+
+    def since(tick: int) -> float:
+        now_s = clock.game_time_at(tick) if clock is not None else None
+        if now_s is not None and start_s is not None:
+            return round(now_s - start_s, 1)
+        return round((tick - start_tick) / TICKS_PER_SECOND, 1)
+
+    return since
+
+
 def fight_snapshot(match: ParsedMatch) -> dict | None:
     """The match's biggest fight: hero paths, death spots, events and team totals."""
-    if not match.fights:
+    fight = biggest_fight(match)
+    if fight is None:
         return None
-    fight = max(match.fights, key=lambda f: (f.deaths, -f.start_tick))
     by_slot = {player.player_id: player for player in match.players}
     by_hero = {player.hero_name: player for player in match.players}
 
@@ -274,19 +332,7 @@ def fight_snapshot(match: ParsedMatch) -> dict | None:
         if math.dist((x, y), centre) <= FIGHT_RADIUS
     ] + [spot for _, _, spot, _ in deaths] or [centre]
 
-    clock = match.game_clock
-    start_s = clock.game_time_at(fight.start_tick) if clock is not None else None
-
-    def since(tick: int) -> float:
-        """In-game seconds since the fight window started, for the playback.
-
-        Pause-aware, like the clock times the narration shows; raw replay ticks
-        only when the replay has no game clock.
-        """
-        now_s = clock.game_time_at(tick) if clock is not None else None
-        if now_s is not None and start_s is not None:
-            return round(now_s - start_s, 1)
-        return round((tick - fight.start_tick) / TICKS_PER_SECOND, 1)
+    since = _seconds_since(match, fight.start_tick)
 
     totals = {"radiant": {"gold": 0, "xp": 0}, "dire": {"gold": 0, "xp": 0}}
     for row in fight.players:
@@ -328,8 +374,201 @@ def fight_snapshot(match: ParsedMatch) -> dict | None:
     }
 
 
-def write_icons(icons_dir: Path, heroes: set[str]) -> None:
-    """Copy the ward icons and the given heroes' icons (``nevermore``, …) into the site.
+def _ability_name(name: str) -> str:
+    """The display name of an ability or item (``Avalanche``, ``Black King Bar``)."""
+    return item_display(name) if name.startswith("item_") else ability_display(name)
+
+
+def _source_name(source: str) -> str:
+    """A damage source's display name; ``"Attack"`` for a right-click."""
+    return _ability_name(source) if source not in ("", "dota_unknown") else "Attack"
+
+
+def _disable_name(modifier: str) -> str:
+    """A display name for a disabling modifier, from the ability it names."""
+    if modifier in DISABLE_NAMES:
+        return DISABLE_NAMES[modifier]
+    name = modifier.removeprefix("modifier_")
+    for suffix in ("_stunned", "_stun", "_debuff", "_freeze", "_fear", "_slow"):
+        name = name.removesuffix(suffix)
+    if name in ITEMS:
+        return item_display(name)
+    if name in ABILITIES:
+        return ABILITIES[name]
+    return ability_display(name)
+
+
+def _hero_runs(
+    player: ParsedPlayer, start: int, end: int, since: Callable[[int], float]
+) -> list[list[list[float]]]:
+    """The hero's samples in [start, end] as runs split at teleports and respawns.
+
+    Each sample is ``[t, x, y, hp, max_hp, mana, max_mana]``: seconds since the
+    window's start, the map-square position, and the hero's HP and mana at the
+    same tick.
+    """
+    state = {
+        tick: (hp, top, mana, top_mana)
+        for tick, hp, top, mana, top_mana in zip(
+            player.times,
+            player.hp_t,
+            player.max_hp_t,
+            player.mana_t,
+            player.max_mana_t,
+            strict=False,
+        )
+    }
+    runs = []
+    for run in _paths(player, start, end):
+        samples = []
+        for x, y, tick in run:
+            hp, top, mana, top_mana = state.get(tick, (0, 0, 0.0, 0.0))
+            samples.append([since(tick), *_project(x, y), hp, top, round(mana), round(top_mana)])
+        runs.append(samples)
+    return runs
+
+
+def fight_playback(match: ParsedMatch) -> dict | None:
+    """The biggest fight's playback: hero state and the fight's timeline.
+
+    Heroes are referred to by their index in ``heroes``. Every ``t`` is seconds
+    since the fight window's start (the same origin as ``home.json``'s fight).
+    """
+    fight = biggest_fight(match)
+    if fight is None:
+        return None
+    start = fight.start_tick
+    end = (fight.last_death_tick or fight.end_tick) + PLAYBACK_TAIL_TICKS
+    since = _seconds_since(match, start)
+    timeline: FightTimeline = build_fight_timeline(match, start, end)
+    players = sorted(match.players, key=lambda p: p.player_id)
+    index = {player.hero_name: i for i, player in enumerate(players)}
+
+    def hero(name: str | None) -> int | None:
+        return index.get(name) if name else None
+
+    casts = []
+    for cast in timeline.casts:
+        row: dict = {
+            "t": since(cast.tick),
+            "by": index[cast.caster],
+            "what": _ability_name(cast.ability),
+            "hits": [
+                [index[hit.hero], hit.damage, hit.damage_type, round(hit.stun_s, 1)]
+                for hit in cast.hits
+            ],
+        }
+        if cast.is_item:
+            row["item"] = cast.ability.removeprefix("item_")
+        if cast.target is not None and cast.target != cast.caster:
+            if cast.target_is_hero:
+                row["target"] = index[cast.target]
+            else:
+                row["unit"] = _unit_name(cast.target)
+        if cast.self_effect is not None or cast.target == cast.caster:
+            row["self"] = True
+        casts.append(row)
+
+    team_of = {i: TEAMS.get(player.team, "unknown") for i, player in enumerate(players)}
+    deaths = []
+    for death in timeline.deaths:
+        rewards = timeline.rewards_at(death.tick)
+        # The log can't say which of several same-tick deaths a bounty paid for, so
+        # the shared rewards go on the tick's first death only, and every death on
+        # the tick lists the tick's victims.
+        first_on_tick = rewards is None or rewards.victims[0] == death.victim
+        entry: dict = {
+            "t": since(death.tick),
+            "victim": index[death.victim],
+            "killer": hero(death.killer_hero),
+            "killer_name": _unit_name(death.killer),
+            "aegis": death.reincarnated,
+            "gold_lost": death.gold_lost,
+            "gold": [[index[h], g] for h, g in rewards.gold.items() if h in index]
+            if rewards and first_on_tick
+            else [],
+            "xp": [[index[h], x] for h, x in rewards.xp.items() if h in index]
+            if rewards and first_on_tick
+            else [],
+            # The largest sources (the recap's rows), and the total over all of them.
+            "recent": [
+                [
+                    _unit_name(taken.attacker_hero or taken.attacker),
+                    _source_name(taken.source),
+                    taken.damage_type,
+                    taken.damage,
+                ]
+                for taken in death.recent_damage[:RECAP_ROWS]
+            ],
+            "recent_total": sum(taken.damage for taken in death.recent_damage),
+        }
+        if rewards and len(rewards.victims) > 1:
+            entry["tick_victims"] = [index[v] for v in rewards.victims if v in index]
+        deaths.append(entry)
+    return {
+        "start": _clock(match, start),
+        "duration": since(end),
+        "heroes": [
+            {
+                "hero": hero_display(player.hero_name),
+                "icon": player.hero_name.removeprefix("npc_dota_hero_"),
+                "team": team_of[i],
+                "runs": _hero_runs(player, start, end, since),
+            }
+            for i, player in enumerate(players)
+        ],
+        "casts": casts,
+        # [t, attacker, target, damage, type, by the hero itself (not a summon or
+        # illusion), source ("Attack" for a right-click)]
+        "damage": [
+            [
+                since(burst.start_tick),
+                index[burst.attacker_hero],
+                index[burst.target],
+                burst.damage,
+                burst.damage_type,
+                int(burst.attacker == burst.attacker_hero and not burst.attacker_is_illusion),
+                _source_name(burst.source),
+            ]
+            for burst in timeline.damage
+            if burst.attacker_hero in index and burst.target in index
+        ],
+        # [t, target, source hero or null, name, seconds]
+        "disables": [
+            [
+                since(window.start_tick),
+                index[window.target],
+                hero(window.source_hero),
+                _disable_name(window.modifier),
+                round(window.stun_s, 1),
+            ]
+            for window in timeline.disables
+            if window.start_tick is not None
+        ],
+        # [t, until, hero, kind]. A buff still on at the window's end runs to the
+        # end; one added before the window is left out, since when it started
+        # isn't in the window.
+        "buffs": [
+            [
+                since(window.start_tick),
+                since(window.end_tick) if window.end_tick is not None else since(end),
+                index[window.target],
+                BUFF_RINGS[window.modifier],
+            ]
+            for window in timeline.modifiers
+            if window.modifier in BUFF_RINGS and window.start_tick is not None
+        ],
+        "deaths": deaths,
+        # [t, hero, cost]
+        "buybacks": [[since(b.tick), index[b.hero], b.cost] for b in timeline.buybacks],
+    }
+
+
+def write_icons(icons_dir: Path, heroes: set[str], items: Iterable[str] = ()) -> None:
+    """Copy the ward icons, and the given heroes' and items' icons, into the site.
+
+    Hero and ward icons are required. An item without a downloaded icon is
+    skipped: the playback shows its name instead.
 
     Raises:
         SystemExit: When an icon hasn't been downloaded yet.
@@ -348,8 +587,14 @@ def write_icons(icons_dir: Path, heroes: set[str]) -> None:
             "Missing icons; run scripts/fetch_item_icons.py and scripts/fetch_hero_icons.py first:\n  "
             + "\n  ".join(missing)
         )
-    if (icons_dir / "heroes").is_dir():
-        shutil.rmtree(icons_dir / "heroes")  # drop heroes from an earlier match
+    copies += [
+        (ITEM_ICONS / f"{item}.png", icons_dir / "items" / f"{item}.png")
+        for item in sorted(items)
+        if (ITEM_ICONS / f"{item}.png").is_file()
+    ]
+    for folder in ("heroes", "items"):
+        if (icons_dir / folder).is_dir():
+            shutil.rmtree(icons_dir / folder)  # drop icons from an earlier match
     for source, target in copies:
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source, target)
@@ -384,6 +629,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("replay", nargs="?", type=Path, default=DEFAULT_REPLAY)
     parser.add_argument("--data", type=Path, default=DEFAULT_DATA)
+    parser.add_argument("--fight-data", type=Path, default=DEFAULT_FIGHT_DATA)
     parser.add_argument("--map-image", type=Path, default=DEFAULT_MAP_IMAGE)
     parser.add_argument("--fight-image", type=Path, default=DEFAULT_FIGHT_IMAGE)
     parser.add_argument("--icons-dir", type=Path, default=DEFAULT_ICONS)
@@ -399,12 +645,18 @@ def main(argv: list[str] | None = None) -> int:
     }
     args.data.parent.mkdir(parents=True, exist_ok=True)
     args.data.write_text(json.dumps(data, indent=1) + "\n")
+    playback = fight_playback(match)
+    args.fight_data.parent.mkdir(parents=True, exist_ok=True)
+    # Compact: the playback is loaded by the browser, so every byte counts.
+    args.fight_data.write_text(json.dumps(playback, separators=(",", ":")) + "\n")
     write_map_image(args.map_image)
-    written = [args.data, args.map_image]
+    written = [args.data, args.fight_data, args.map_image]
     if fight is not None:
         write_map_image(args.fight_image, fight["box"])
         written.append(args.fight_image)
-    write_icons(args.icons_dir, {path["icon"] for path in fight["paths"]} if fight else set())
+    heroes = {hero["icon"] for hero in playback["heroes"]} if playback else set()
+    items = {cast["item"] for cast in playback["casts"] if "item" in cast} if playback else set()
+    write_icons(args.icons_dir, heroes, items)
     written.append(args.icons_dir)
     print("Wrote " + ", ".join(str(path) for path in written))
     return 0

@@ -38,6 +38,8 @@ GOLD_REASON_DEATH = 1
 GOLD_REASON_HERO_KILL = 12
 #: ``EDOTA_ModifyXP_Reason``: XP for a hero kill.
 XP_REASON_HERO_KILL = 1
+#: Entries whose ``damage_source_name`` is not the applying unit's owner.
+_MODIFIER_TYPES = ("MODIFIER_ADD", "MODIFIER_REMOVE")
 
 
 @dataclass(frozen=True, slots=True)
@@ -139,8 +141,9 @@ class ModifierWindow:
         target: The hero's NPC name.
         modifier: Modifier name as logged.
         source: The unit that applied it.
-        source_hero: The hero credited with it (``damage_source_name``), or
-            ``None``.
+        source_hero: The hero that applied it (``source`` when it is a hero), or
+            ``None``. Modifier entries' ``damage_source_name`` doesn't name the
+            applier, so a summon's modifier has no hero.
         start_tick: Tick it was added, or ``None`` when it was added before the
             timeline's window and only its removal is in it.
         end_tick: Tick it was removed, or ``None`` when it outlasted the window.
@@ -326,10 +329,10 @@ def build_fight_timeline(
 
     * **Heroes** are the match's player heroes; illusions are not heroes. Casts
       by illusions are left out; their damage is kept, credited to the owner.
-    * **Hits** (derived): a ``DAMAGE`` or ``MODIFIER_ADD`` entry credited to
-      the caster (``damage_source_name``, so it may come from a unit the hero
-      controls, but not from an illusion) on a hero belongs to the caster's
-      latest cast at most
+    * **Hits** (derived): a ``DAMAGE`` entry credited to the caster
+      (``damage_source_name``, so it may come from a unit the hero controls,
+      but not from an illusion), or a ``MODIFIER_ADD`` the caster applied, on a
+      hero belongs to the caster's latest cast at most
       ``hit_window_ticks`` earlier whose ability is the entry's inflictor (for
       a modifier, :func:`modifier_matches_ability`). Each entry goes to at most
       one cast, so no damage is counted twice. Damage that matches no cast
@@ -376,7 +379,10 @@ def build_fight_timeline(
         return name in player_ids and not illusion
 
     def credited(entry: CombatLogEntry) -> str | None:
-        if entry.damage_source_name in player_ids:
+        # ``damage_source_name`` is the owning hero on DAMAGE, DEATH and HEAL
+        # entries, but on modifier entries it holds unrelated names (another
+        # hero, a modifier), so a modifier is credited to the unit that applied it.
+        if entry.log_type not in _MODIFIER_TYPES and entry.damage_source_name in player_ids:
             return entry.damage_source_name
         if entry.attacker_name in player_ids:
             return entry.attacker_name
@@ -439,7 +445,7 @@ def _casts(
             continue
         is_damage = entry.log_type == "DAMAGE"
         # The credited hero, so a summon or other unit carrying the hero's
-        # ability (``damage_source_name``) still finds the hero's cast.
+        # ability's damage (``damage_source_name``) still finds the hero's cast.
         caster = credited(entry)
         for index in reversed(by_caster.get(caster, ()) if caster else ()):
             cast = casts[index]
