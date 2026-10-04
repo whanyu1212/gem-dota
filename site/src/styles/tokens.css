@@ -51,6 +51,10 @@
   --camp-flooded-small: #16bac5;
   --camp-flooded-medium: #2d7dff;
   --camp-ring: #0d1117;
+  --map-radiant-mark: #3ddc84;
+  --map-dire-mark: #ff6b5b;
+  --map-label: #ffffff;
+  --map-halo: #0d1117;
 
   --font-serif: "Source Serif 4 Variable", "Iowan Old Style", Georgia, serif;
   --font-sans: "Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif;

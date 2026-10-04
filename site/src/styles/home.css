@@ -145,15 +145,25 @@
   line-height: 1.7;
 }
 
-/* Chapter 1: the example and Table 1 */
+/* One grid for every paired diagram on the page: two equal columns with the
+   same gap, so the edges of the code block, Table 1 and Figures 1-3 line up
+   vertically, and each row's two items share their top and bottom. */
 
-.pair {
+.pair,
+.figures,
+.fight {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
-  gap: 32px;
-  align-items: start;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+  align-items: stretch;
   margin-top: 32px;
 }
+.figures + .fight {
+  margin-top: 28px;
+}
+
+/* Chapter 1: the example and Table 1 */
+
 .home-code {
   margin: 0;
   padding: 22px;
@@ -204,16 +214,12 @@
   color: var(--ink);
 }
 
-/* Chapter 2: Figures 1 and 2, a matched pair of squares */
+/* Chapter 2: Figures 1-3. Each card is a column (square map, then caption), so
+   paired cards keep their maps level and their captions start on one line. */
 
-.figures {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 28px;
-  align-items: start;
-  margin-top: 32px;
-}
 .fig {
+  display: flex;
+  flex-direction: column;
   margin: 0;
   padding: 16px;
   border: 1px solid var(--line);
@@ -225,6 +231,7 @@
   display: block;
   width: 100%;
   height: auto;
+  aspect-ratio: 1;
   border-radius: 2px;
 }
 
@@ -305,50 +312,240 @@
   background: var(--camp, var(--camp-small));
 }
 
-.chart text {
-  fill: var(--muted);
-  font-family: var(--font-sans);
-  font-size: 15px;
+.map-dim {
+  fill: var(--camp-ring);
+  fill-opacity: 0.22;
 }
-.chart .tick line {
-  stroke: var(--line);
-  stroke-width: 1;
+.map-dim--fight {
+  fill-opacity: 0.34;
 }
-.chart .tick line.zero {
-  stroke: var(--rule);
-}
-.chart .area--radiant {
-  fill: var(--tip);
-  fill-opacity: 0.2;
-}
-.chart .area--dire {
-  fill: var(--danger);
-  fill-opacity: 0.16;
-}
-.chart .line {
+
+/* Figure 2: wards */
+
+.fight-frame rect {
   fill: none;
-  stroke: var(--ink);
-  stroke-width: 2;
-  stroke-linejoin: round;
+  stroke: var(--map-label);
+  stroke-opacity: 0.8;
+  stroke-width: 2.5;
+  stroke-dasharray: 10 7;
 }
-.chart .side {
-  font-size: 12.5px;
+.fight-frame text {
+  fill: var(--map-label);
+  font-family: var(--font-sans);
+  font-size: 22px;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  paint-order: stroke;
+  stroke: var(--map-halo);
+  stroke-width: 5px;
 }
-.chart .side--radiant {
-  fill: var(--tip);
+.ward-vision {
+  stroke-width: 2;
+  fill-opacity: 0.14;
+  stroke-opacity: 0.85;
 }
-.chart .side--dire {
-  fill: var(--danger);
+.ward-vision--radiant {
+  fill: var(--map-radiant-mark);
+  stroke: var(--map-radiant-mark);
 }
-.chart .marker {
-  fill: var(--danger);
+.ward-vision--dire {
+  fill: var(--map-dire-mark);
+  stroke: var(--map-dire-mark);
 }
-.chart .marker-label {
-  fill: var(--ink);
+.ward-ring {
+  stroke: var(--map-halo);
+  stroke-width: 2;
+}
+.ward--radiant .ward-ring {
+  fill: var(--map-radiant-mark);
+}
+.ward--dire .ward-ring {
+  fill: var(--map-dire-mark);
+}
+.legend-item img {
+  border-radius: 50%;
+  object-fit: cover;
+}
+.team-radiant i {
+  background: var(--map-radiant-mark);
+}
+.team-dire i {
+  background: var(--map-dire-mark);
+}
+
+/* Figure 3: the fight, with its narration beside it */
+
+.fight-death path {
+  fill: none;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+}
+.fight-death .halo {
+  stroke: var(--map-halo);
+  stroke-width: 5;
+}
+.fight-death--radiant path:not(.halo) {
+  stroke: var(--map-radiant-mark);
+}
+.fight-death--dire path:not(.halo) {
+  stroke: var(--map-dire-mark);
+}
+
+/* Heroes: the minimap icon in a ring of its team's colour. */
+.hero-ring {
+  stroke: var(--map-halo);
+}
+.fight-hero--radiant .hero-ring {
+  fill: var(--map-radiant-mark);
+}
+.fight-hero--dire .hero-ring {
+  fill: var(--map-dire-mark);
+}
+
+/* Playback: deaths appear as the clock reaches them. */
+.is-live .fight-death {
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.is-live .fight-death.is-shown {
+  opacity: 1;
+}
+
+.playback {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+.playback[hidden] {
+  display: none;
+}
+.playback-button {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+}
+.playback-button:hover {
+  border-color: var(--accent);
+}
+.playback-button svg {
+  fill: currentColor;
+}
+.playback-button .icon-pause,
+.is-playing .playback-button .icon-play {
+  display: none;
+}
+.is-playing .playback-button .icon-pause {
+  display: block;
+}
+.playback input[type="range"] {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--accent);
+}
+.playback output {
+  min-width: 3.2em;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.playback-speed {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.narration {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  /* The narration takes its height from Figure 3's card and scrolls inside it. */
+  contain: size;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--paper);
+  box-shadow: var(--shadow);
   font-size: 14px;
+}
+.narration-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin: 0 0 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink);
+  font-weight: 600;
+}
+.narration ol {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0 0 24px;
+  list-style: none;
+  /* A soft edge where the list scrolls on. */
+  mask-image: linear-gradient(to bottom, black calc(100% - 32px), transparent);
+}
+.event {
+  display: grid;
+  grid-template-columns: 52px 10px 1fr;
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--body);
+}
+.event::before {
+  content: "";
+  grid-column: 2;
+  grid-row: 1;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+.event--radiant::before {
+  background: var(--map-radiant-mark);
+}
+.event--dire::before {
+  background: var(--map-dire-mark);
+}
+.event time {
+  grid-column: 1;
+  grid-row: 1;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.event span {
+  grid-column: 3;
+}
+/* While the fight plays, events still to come are dimmed and the latest is marked. */
+.is-live .event {
+  transition: opacity 0.2s, background-color 0.2s;
+}
+.is-live .event:not(.is-past) {
+  opacity: 0.35;
+}
+.is-live .event.is-current {
+  background: var(--accent-soft);
+}
+.narration-foot {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
 }
 
 /* Chapter 3: recipes */
@@ -445,8 +642,15 @@
   .home-hero .hero-grid,
   .chapter-grid,
   .pair,
-  .figures {
+  .figures,
+  .fight {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .narration {
+    contain: none;
+  }
+  .narration ol {
+    max-height: 420px;
   }
   .home-hero .hero-grid {
     gap: 40px;

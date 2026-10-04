@@ -57,18 +57,43 @@ SmartyPants is off: VitePress doesn't curl quotes or turn `--` into dashes.
 
 ## Home page
 
-`src/pages/index.astro` is the home page. Its figures come from a committed snapshot, so the build never
-parses a replay:
+`src/pages/index.astro` is the home page. Its figures come from a committed
+snapshot, so the build never parses a replay:
 
 ```bash
 uv run python scripts/export_site_home_data.py [replay.dem]
 ```
 
-writes `src/data/home.json` (the match, its players, `radiant_gold_adv` and
-gem's map overlay) and `src/assets/home-map.jpg`. The default replay is the
-TI2026 fixture 8856501050, the match the committed snapshot comes from. The recipe cards
-quote their recipe pages (`src/data/recipes.ts`), and `tests/home.test.ts`
-fails if a quoted sentence is no longer on its page.
+writes `src/data/home.json` and two map images in `src/assets/`. The default
+replay is the TI2026 fixture 8856501050, the match the committed snapshot comes
+from. The snapshot holds:
+
+- the match and its players (Table 1);
+- gem's map overlay: half line, river, lotus pools and camps (Figure 1);
+- the wards up at the first death of the match's biggest fight, with observer
+  vision, and whole-match ward counts by region (Figure 2);
+- that fight's hero paths, death spots and events: smoke, kills, buybacks and
+  team totals (Figure 3 and its narration), with `home-fight.jpg`, a sharp crop
+  of the map around it. Every sample, death and event carries its seconds since
+  the fight window started, for the playback.
+
+Figure 3 plays the fight back (`src/lib/playback.ts`): each hero's minimap icon,
+ringed in its team's colour, moves along its sampled path at 4×, on a loop,
+while the figure is on screen, and the narration follows the clock. Positions
+between samples are interpolated for display. Paused, with reduced motion
+(until play is pressed) or without JavaScript, it shows where everyone was at
+the last death.
+
+The export also copies the observer, sentry and fight heroes' icons into
+`src/assets/icons/` from the icons that `scripts/fetch_item_icons.py` and
+`scripts/fetch_hero_icons.py` download (run those first).
+
+Ward positions are exact; hero paths and death spots are sampled positions.
+Every paired diagram sits on one
+two-column grid (`.pair`, `.figures`, `.fight` in `src/styles/home.css`), so
+their edges line up. The recipe cards quote their recipe pages
+(`src/data/recipes.ts`), and `tests/home.test.ts` fails if a quoted sentence is
+no longer on its page.
 
 ## Search
 

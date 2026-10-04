@@ -20,9 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Docs site** (HY-110). The documentation at
   <https://whanyu1212.github.io/gem-dota/> is rebuilt in Astro with a new design:
   a light theme and a dark one that follows your system setting (or the toggle),
-  site search, a home page with figures drawn from real replay data, and
-  sections for Guide, Recipes, Reference, Internals and the Changelog. Every
-  existing URL and `#anchor` still works.
+  site search, and sections for Guide, Recipes, Reference, Internals and the
+  Changelog. Every existing URL and `#anchor` still works. The home page's
+  figures come from a real TI2026 replay: gem's map model, the wards up at the
+  match's biggest fight (with observer vision), and that fight played back with
+  each hero moving on the map beside a narration of its kills and buybacks
+  (HY-119).
 
 - **JSON `schema_version` is 4.** The `analysis` section no longer has
   `smoke_fights`, the farming segment `context`, or the Roshan tags, verdicts and
