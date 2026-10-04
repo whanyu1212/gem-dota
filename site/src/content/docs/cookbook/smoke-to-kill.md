@@ -18,7 +18,7 @@ the 60 seconds after the smoke; change `WINDOW_S` to widen it.
 
 ## The recipe
 
-<<< @/../examples/cookbook/smoke_to_kill.py{python}
+<<< @/examples/cookbook/smoke_to_kill.py{python}
 
 ## On one match
 

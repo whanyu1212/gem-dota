@@ -1,7 +1,7 @@
 """Bits & bytes practice: build a tiny replay reader, one function at a time.
 
 A companion to the Bits & Bytes crash course
-(docs/cookbook/bits-and-bytes-primer.md). Each function below is an exercise
+(site/src/content/docs/cookbook/bits-and-bytes-primer.md). Each function below is an exercise
 with a docstring saying what to do and which section of the course explains it.
 Replace each ``raise NotImplementedError`` with your answer, then run:
 

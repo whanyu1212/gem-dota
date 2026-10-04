@@ -1,8 +1,7 @@
 """Audit factual Roshan conversion evidence in local replay fixtures.
 
-The output intentionally records attribution, boundaries, lifecycle provenance,
-fight association, and evidence availability.  Tags are included as calibration
-observations, not as subjective fixture truth.
+The output records attribution, boundaries, lifecycle provenance, fight
+association, and evidence availability: facts only (gem 0.13 removed the tags).
 
 Examples:
     uv run python scripts/audit_roshan_conversion_corpus.py \

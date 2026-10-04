@@ -24,7 +24,7 @@ column shows how much of the farm came from the jungle.
 
 ## The recipe
 
-<<< @/../examples/cookbook/core_farm_10_to_20.py{python}
+<<< @/examples/cookbook/core_farm_10_to_20.py{python}
 
 ## On one match
 

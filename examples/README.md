@@ -24,8 +24,8 @@ python examples/cookbook/roshan_next_fight.py replays/*.dem   # recipes: one rep
 | `match_report.py` | Thin wrapper around `gem.reports.write_html_report()` for a comprehensive HTML replay dashboard |
 | `extraction_demo.py` | Developer-oriented baseline: low-level `ReplayParser` + entity polling, with combat log summary and periodic entity snapshots |
 | `steam_match_info.py` | Fetches and displays match metadata from the Steam Web API (`STEAM_API_KEY` required) |
-| `cookbook/` | Recipes that answer one question each from gem's facts and pandas: whether the Roshan team won the next fight (`roshan_next_fight.py`), how fast each core farmed from 10 to 20 minutes (`core_farm_10_to_20.py`), and how often a smoke led to a kill (`smoke_to_kill.py`). See the [Recipes](../docs/cookbook/questions.md) docs |
-| `bits_and_bytes_exercises.py` | 12 graded exercises that build a tiny bit reader, checked against real replay bytes and gem's `BitReader`. Companion to the [Bits & Bytes crash course](../docs/cookbook/bits-and-bytes-primer.md); solutions in `bits_and_bytes_solutions.py` |
+| `cookbook/` | Recipes that answer one question each from gem's facts and pandas: whether the Roshan team won the next fight (`roshan_next_fight.py`), how fast each core farmed from 10 to 20 minutes (`core_farm_10_to_20.py`), and how often a smoke led to a kill (`smoke_to_kill.py`). See the [Recipes](../site/src/content/docs/cookbook/questions.md) docs |
+| `bits_and_bytes_exercises.py` | 12 graded exercises that build a tiny bit reader, checked against real replay bytes and gem's `BitReader`. Companion to the [Bits & Bytes crash course](../site/src/content/docs/cookbook/bits-and-bytes-primer.md); solutions in `bits_and_bytes_solutions.py` |
 
 ## Replay fixtures (`opendota_parity.py` no-arg default)
 

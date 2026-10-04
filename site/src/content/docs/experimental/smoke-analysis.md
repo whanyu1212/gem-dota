@@ -8,7 +8,8 @@ set of per-hero modifier lifecycles. It keeps the observed replay facts separate
 - natural expiry versus an earlier removal
 - authoritative enemy visibility at those ticks
 - sampled enemy proximity and same-tick combat evidence
-- the first fight whose first death follows the activation within 60 seconds
+- the first fight whose first death follows the activation within 60 in-game
+  seconds (pauses excluded)
 
 The helper does **not** produce a smoke success score or claim why the modifier
 ended. A hero can lose smoke while still hidden from the opposing team, and a
@@ -41,15 +42,17 @@ uses the exact replay tick and does not invent a game-time value.
 ## Smoke to fight
 
 `smoke.first_fight` is the first detected fight whose first death falls within
-60 seconds after the activation, or `None`. The rest are plain facts you can read
+60 in-game seconds (pauses excluded) after the activation, or `None`. The rest are plain facts you can read
 from it:
 
 ```python
+clock = match.game_clock  # None when the replay has no game start
 for smoke in gem.build_smoke_analysis(match):
     fight = smoke.first_fight
-    if fight is None:
+    if fight is None or clock is None:
         continue
-    delay_s = (fight.first_death_tick - smoke.activation_tick) / 30  # replay ticks
+    start, death = clock.game_time_at(smoke.activation_tick), clock.game_time_at(fight.first_death_tick)
+    delay_s = None if start is None or death is None else death - start  # pauses excluded
     smoked = {member.player_id for member in smoke.members}
     fought = sorted(
         player.player_id
@@ -59,8 +62,8 @@ for smoke in gem.build_smoke_analysis(match):
     print(smoke.activation_tick, delay_s, fight.winner, fought)
 ```
 
-Ticks keep running during pauses; use `match.game_clock` when you need game
-seconds. The [smoke recipe](../cookbook/smoke-to-kill.md) turns this into "how
+Ticks keep running during pauses, so the delay uses the game clock, the same
+measure the builder uses for its 60-second window. The [smoke recipe](../cookbook/smoke-to-kill.md) turns this into "how
 often did a smoke lead to a kill".
 
 ## Lifecycle status

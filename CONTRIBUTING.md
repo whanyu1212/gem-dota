@@ -67,7 +67,7 @@ Thank you for your interest in contributing! This document covers everything you
 ### Docs toolchain (maintainers)
 
 Documentation is an [Astro](https://astro.build/) site in `site/` (Node 22.12+).
-The pages are Markdown in `docs/` until they move into `site/` (HY-118). The API
+The pages are Markdown in `site/src/content/docs/`. The API
 reference is generated from source docstrings by `scripts/generate_api_reference.py`,
 which `npm run dev` and `npm run build` run first. See `site/README.md`.
 

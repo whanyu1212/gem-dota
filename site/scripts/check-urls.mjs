@@ -3,8 +3,8 @@
 //   node scripts/check-urls.mjs                 compare dist/ with the manifest
 //   node scripts/check-urls.mjs --write <dir>   rewrite the manifest from a built site
 //
-// The manifest was written from the VitePress build (docs/.vitepress/dist), so
-// moving to Astro keeps every published URL. A missing URL fails; a new page is
+// The manifest was written from the old VitePress build, so the move to Astro
+// kept every published URL. A missing URL fails; a new page is
 // only listed.
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";

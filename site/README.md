@@ -2,7 +2,8 @@
 
 The docs site, deployed to <https://whanyu1212.github.io/gem-dota/> by
 `.github/workflows/docs.yml` (pull requests build and check it without
-deploying). Until HY-118 moves them here, the pages are read from `../docs`.
+deploying). The pages are Markdown in `src/content/docs/`; public assets (logo,
+favicon, README banner, map figure) are in `public/`.
 
 Needs Node 22.12 or newer (Astro 7; see `engines` in `package.json` and `.nvmrc`).
 
@@ -19,19 +20,19 @@ npm run check        # type-check the Astro code
 npm test             # navigation, Markdown plugin and colour-contrast tests (vitest)
 ```
 
-`url-manifest.txt` lists the URLs the VitePress site publishes (written from
-`docs/.vitepress/dist` with `node scripts/check-urls.mjs --write <dir>`). The
+`url-manifest.txt` lists the URLs the old VitePress site published (written from
+its build with `node scripts/check-urls.mjs --write <dir>`). The
 Astro build must keep all of them, so links to the docs keep working after the
 move.
 
 ## Markdown
 
 Pages are rendered with Astro's unified (remark/rehype) processor, configured
-in `src/markdown/`, so Markdown written for VitePress renders the same way:
+in `src/markdown/`, so the Markdown (first written for VitePress) renders the same way:
 
 - `preprocess.ts` rewrites `::: info|tip|warning|danger|important|details`
-  callouts, `::: code-group` tabs and `<<< @/path{lang}` file imports before
-  parsing (`@` is the content root);
+  callouts, GitHub `> [!NOTE]`-style alerts, `::: code-group` tabs and
+  `<<< @/path{lang}` file imports before parsing (`@` is the repository root);
 - `rehype-heading-ids.ts` gives headings VitePress's IDs, so `#anchor` links keep
   working;
 - `rehype-links.ts` turns `.md` links into page URLs, adds the `/gem-dota` base
@@ -56,8 +57,7 @@ SmartyPants is off: VitePress doesn't curl quotes or turn `--` into dashes.
 
 ## Home page
 
-`src/pages/index.astro` is the home page; `docs/index.md` is the VitePress home
-and is not used. Its figures come from a committed snapshot, so the build never
+`src/pages/index.astro` is the home page. Its figures come from a committed snapshot, so the build never
 parses a replay:
 
 ```bash
@@ -83,11 +83,11 @@ first. Search needs the built index, so it works in `npm run preview`, not
 ## Generated pages
 
 Two scripts write Markdown into the content folder; both take the folder as an
-argument, so moving the content (HY-118) only changes their defaults:
+argument (the defaults are below):
 
-- `scripts/generate_api_reference.py [--reference-dir docs/reference]` keeps
+- `scripts/generate_api_reference.py [--reference-dir src/content/docs/reference]` keeps
   each reference page's text above `## Generated API` and regenerates the rest
   from the docstrings. `npm run build` and `npm run dev` run it.
-- `scripts/generate_proto_field_docs.py [--out-dir docs/cookbook/proto-fields]`
+- `scripts/generate_proto_field_docs.py [--out-dir src/content/docs/cookbook/proto-fields]`
   rewrites the proto-field pages from `proto_definitions/` (gitignored; fetch it
   with `scripts/download_protos.sh`). Run it by hand after a proto refresh.

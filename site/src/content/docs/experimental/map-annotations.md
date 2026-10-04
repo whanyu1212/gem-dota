@@ -1,7 +1,8 @@
 # Map Regions and Camps
 
 gem labels positions with a **region** (`gem.region_of`) and farmed camps with a
-**camp** from its catalog (farming routes use both).
+**camp** from its catalog. Farming routes use the camp catalog, and the Roshan
+records use the regions to count forward wards.
 This page shows both on the 7.41 map, and how each was checked against the
 replays.
 

@@ -133,7 +133,7 @@ immutable field plans once and read those paths directly. The public mutable
 
 Typed accessors (`get_int32`, `get_float32`, `get_string`, …) wrap `get()` and
 check the value's type. `to_map()` lists every stored value by the same names
-(see [How Entities Are Decoded, Part 4](../../../docs/deep-dives/entity-field-state.md)).
+(see [How Entities Are Decoded, Part 4](../../../site/src/content/docs/deep-dives/entity-field-state.md)).
 
 Tests build synthetic entities with `tests/_entities.py`: `set_fields(entity,
 {"m_iHealth": 500, "m_hItems.0003": 7})` adds any missing fields to the entity's

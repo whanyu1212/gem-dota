@@ -8,7 +8,7 @@ projection (``gem.reports._formatting.world_to_map_image``), so the picture
 shows exactly where gem puts things.
 
     uv run python scripts/render_camp_zones_overlay.py --regions --width 1800 \
-        --margin 40 --legend-panel 420 --output docs/public/map-annotations.jpg
+        --margin 40 --legend-panel 420 --output site/public/map-annotations.jpg
 """
 
 from __future__ import annotations

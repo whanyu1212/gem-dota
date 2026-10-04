@@ -13,7 +13,7 @@ shapes.
 
 Usage::
 
-    python scripts/generate_api_reference.py [--reference-dir docs/reference]
+    python scripts/generate_api_reference.py [--reference-dir site/src/content/docs/reference]
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_REFERENCE_DIR = REPO_ROOT / "docs" / "reference"
+DEFAULT_REFERENCE_DIR = REPO_ROOT / "site" / "src" / "content" / "docs" / "reference"
 SRC_CODE_ROOT = REPO_ROOT / "src" / "gem"
 GITHUB_SOURCE_PREFIX = "https://github.com/whanyu1212/gem-dota/blob/main/"
 
@@ -36,7 +36,7 @@ GENERATED_API_HEADING_RE = re.compile(r"^## Generated API\s*$", re.MULTILINE)
 TARGET_HEADING_RE = re.compile(r"^##\s+`(gem\.[^`]+)`\s*$")
 MODULE_TARGET_HEADING_RE = re.compile(r"^##\s+Module\s+`(gem\.[^`]+)`\s*$")
 
-# Canonical API targets by reference page (relative to docs/reference).
+# Canonical API targets by reference page (relative to the reference folder).
 TARGETS_BY_PAGE: dict[str, list[str]] = {
     "api.md": ["gem.api"],
     "analysis.md": [
@@ -697,7 +697,7 @@ def generate(reference_dir: Path = DEFAULT_REFERENCE_DIR) -> int:
     """Regenerate the API section of every reference page in place.
 
     Args:
-        reference_dir: Folder of reference pages (``docs/reference`` by default).
+        reference_dir: Folder of reference pages (``site/src/content/docs/reference`` by default).
 
     Returns:
         The number of pages written.
@@ -734,7 +734,7 @@ def main(argv: list[str] | None = None) -> int:
         "--reference-dir",
         type=Path,
         default=DEFAULT_REFERENCE_DIR,
-        help="folder of reference pages to update in place (default: docs/reference)",
+        help="folder of reference pages to update in place (default: site/src/content/docs/reference)",
     )
     args = parser.parse_args(argv)
     written = generate(args.reference_dir)

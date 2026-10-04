@@ -14,6 +14,7 @@ const options = {
   repoBlobUrl: "https://github.com/o/r/blob/main",
 };
 const page = `${repo}docs/guides/01_start.md`;
+const pre = { importRoot: options.repoRoot };
 
 async function render(markdown: string) {
   const renderer = await docsMarkdown(options).createRenderer({ syntaxHighlight: false } as never);
@@ -41,22 +42,39 @@ describe("callouts", () => {
   });
 
   it("escapes HTML in the title", () => {
-    expect(preprocess("::: warning <b>x</b>\nA\n:::", options)).toContain(
+    expect(preprocess("::: warning <b>x</b>\nA\n:::", pre)).toContain(
       '<p class="callout-title">&lt;b&gt;x&lt;/b&gt;</p>',
     );
   });
 
   it("leaves ::: inside fenced code alone", () => {
     const source = "```md\n::: info\nnot a callout\n:::\n```";
-    expect(preprocess(source, options)).toBe(source);
+    expect(preprocess(source, pre)).toBe(source);
   });
 
   it("leaves unknown containers as text, like VitePress", () => {
-    expect(preprocess("::: v-pre\n:::", options)).toBe("::: v-pre\n:::");
+    expect(preprocess("::: v-pre\n:::", pre)).toBe("::: v-pre\n:::");
   });
 
   it("fails on an unclosed callout", () => {
-    expect(() => preprocess("::: info\nA", options)).toThrow("Unclosed ::: info");
+    expect(() => preprocess("::: info\nA", pre)).toThrow("Unclosed ::: info");
+  });
+});
+
+describe("GitHub alerts", () => {
+  it("renders > [!IMPORTANT] as a callout, with Markdown inside", async () => {
+    const { html } = await render("> [!IMPORTANT]\n> Experimental does **not** mean random.\n>\n> - a\n> - b\n\nAfter.\n");
+    expect(html).toContain('<aside class="callout callout--important"><p class="callout-title">IMPORTANT</p>');
+    expect(html).toContain("<strong>not</strong>");
+    expect(html).toContain("<li>a</li>");
+    expect(html).not.toContain("[!IMPORTANT]");
+    expect(html).toContain("<p>After.</p>");
+  });
+
+  it("maps NOTE to info and CAUTION to danger, and leaves plain quotes alone", () => {
+    expect(preprocess("> [!NOTE]\n> x", pre)).toContain("callout--info");
+    expect(preprocess("> [!CAUTION]\n> x", pre)).toContain("callout--danger");
+    expect(preprocess("> just a quote", pre)).toBe("> just a quote");
   });
 });
 
@@ -80,17 +98,17 @@ describe("code groups", () => {
 
 describe("file imports", () => {
   it("inlines the file with the language from the braces", () => {
-    expect(preprocess("<<< @/../examples/demo.py{python}", options)).toBe(
+    expect(preprocess("<<< @/examples/demo.py{python}", pre)).toBe(
       '````python\ndef main() -> str:\n    return "```"\n````',
     );
   });
 
   it("takes the language from the extension when the braces have none", () => {
-    expect(preprocess("<<< @/../examples/demo.py{1,2}", options)).toMatch(/^````python\n/);
+    expect(preprocess("<<< @/examples/demo.py{1,2}", pre)).toMatch(/^````python\n/);
   });
 
   it("fails the build when the file is missing", () => {
-    expect(() => preprocess("<<< @/../examples/missing.py{python}", options)).toThrow("<<< import not found");
+    expect(() => preprocess("<<< @/examples/missing.py{python}", pre)).toThrow("<<< import not found");
   });
 });
 

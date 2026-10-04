@@ -4,7 +4,7 @@ import home from "../src/data/home.json";
 import { RECIPE_CARDS } from "../src/data/recipes";
 import { formatGold, lineChart, ticks } from "../src/lib/chart";
 
-const docs = new URL("../../docs/", import.meta.url);
+const docs = new URL("../src/content/docs/", import.meta.url);
 
 describe("recipe cards", () => {
   it.each(RECIPE_CARDS.map((card) => [card.link, card]))("%s quotes its recipe page", (_, card) => {

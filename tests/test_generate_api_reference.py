@@ -5,7 +5,7 @@ from pathlib import Path
 
 from scripts import generate_api_reference as gen
 
-_REFERENCE = Path(__file__).resolve().parents[1] / "docs" / "reference"
+_REFERENCE = Path(__file__).resolve().parents[1] / "site" / "src" / "content" / "docs" / "reference"
 
 
 def test_regenerating_is_stable(tmp_path: Path) -> None:

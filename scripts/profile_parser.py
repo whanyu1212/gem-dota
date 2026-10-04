@@ -1,7 +1,7 @@
 """Reproduce full-replay timing, CPU sampling, and Python allocation profiles.
 
 Run each invocation in a fresh process, with no concurrent benchmarks. See
-docs/deep-dives/parser-performance.md for the measurement protocol. This harness
+site/src/content/docs/deep-dives/parser-performance.md for the measurement protocol. This harness
 does not change parsing logic (reference: manta/parser.go and field_reader.go).
 """
 
