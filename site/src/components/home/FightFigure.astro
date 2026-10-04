@@ -91,6 +91,11 @@ const view = { box: fight.box, px, icons };
       <span class="playback-speeds" data-speeds></span>
     </div>
     <div class="fight-strip" data-strip hidden>
+      <p class="strip-label">
+        Damage per second
+        <span><i class="strip-key strip-key--radiant" aria-hidden="true"></i>Radiant above</span>
+        <span><i class="strip-key strip-key--dire" aria-hidden="true"></i>Dire below</span>
+      </p>
       <svg viewBox="0 0 1000 64" preserveAspectRatio="none" aria-hidden="true"></svg>
       <input type="range" min="0" step="0.1" aria-label="Fight time" data-scrub />
     </div>

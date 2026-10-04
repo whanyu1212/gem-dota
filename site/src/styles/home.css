@@ -614,6 +614,27 @@
   margin: 2px 0 0;
   accent-color: var(--accent);
 }
+.strip-label {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0 0 2px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.strip-key {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 5px;
+  border-radius: 1px;
+}
+.strip-key--radiant {
+  background: var(--map-radiant-mark);
+}
+.strip-key--dire {
+  background: var(--map-dire-mark);
+}
 .strip-radiant {
   fill: var(--map-radiant-mark);
 }
