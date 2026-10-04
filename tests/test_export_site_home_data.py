@@ -10,7 +10,7 @@ from gem.catalog.map import load_camp_zones
 from gem.combat.log import CombatLogEntry
 from gem.extractors.fights import Fight, FightPlayer
 from gem.extractors.wards import WardEvent
-from gem.results.models import ParsedMatch, ParsedPlayer
+from gem.results.models import BuybackEvent, ParsedMatch, ParsedPlayer
 from scripts.export_site_home_data import SIZE, map_overlay
 
 
@@ -49,9 +49,11 @@ def test_main_writes_to_paths_outside_the_repository(
 ) -> None:
     monkeypatch.setattr(export, "load_match", lambda replay: ParsedMatch(match_id=1))
     # Icons are downloaded, not committed, so CI has none; copying them is tested below.
-    monkeypatch.setattr(export, "write_icons", lambda icons_dir, heroes: None)
-    data, image = tmp_path / "home.json", tmp_path / "map.jpg"
-    assert export.main(["replay.dem", "--data", str(data), "--map-image", str(image)]) == 0
+    monkeypatch.setattr(export, "write_icons", lambda *args: None)
+    data, playback, image = tmp_path / "home.json", tmp_path / "fight.json", tmp_path / "map.jpg"
+    args = ["replay.dem", "--data", str(data), "--fight-data", str(playback)]
+    assert export.main([*args, "--map-image", str(image)]) == 0
+    assert json.loads(playback.read_text()) is None
     written = json.loads(data.read_text())
     assert written["match"]["match_id"] == 1
     # No fights: no fight figure, and no wards up.
@@ -121,6 +123,34 @@ def test_write_icons_copies_wards_and_the_fight_heroes(
 
     with pytest.raises(SystemExit, match="fetch_hero_icons"):
         export.write_icons(out, {"nevermore"})
+
+
+def test_write_icons_copies_the_items_it_has_and_skips_the_rest(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    items, heroes = tmp_path / "items", tmp_path / "heroes"
+    items.mkdir()
+    heroes.mkdir()
+    for name in ("ward_observer", "ward_sentry", "black_king_bar"):
+        (items / f"{name}.png").write_bytes(b"png")
+    monkeypatch.setattr(export, "ITEM_ICONS", items)
+    monkeypatch.setattr(export, "HERO_ICONS", heroes)
+    out = tmp_path / "site-icons"
+    (out / "items").mkdir(parents=True)
+    (out / "items" / "stale.png").write_bytes(b"old match")
+
+    export.write_icons(out, set(), {"black_king_bar", "not_downloaded"})
+
+    assert [p.name for p in (out / "items").iterdir()] == ["black_king_bar.png"]
+
+
+def test_unit_and_disable_names() -> None:
+    assert export._unit_name("npc_dota_hero_nevermore") == "Shadow Fiend"
+    assert export._unit_name("npc_dota_creep_badguys_ranged") == "Creep dire ranged"
+    assert export._disable_name("modifier_lion_voodoo") == "Hex"
+    assert export._disable_name("modifier_tiny_avalanche_stun") == "Avalanche"
+    assert export._disable_name("modifier_sheepstick_debuff") == "Scythe of Vyse"
+    assert export._disable_name("modifier_bashed") == "Bash"
 
 
 def _fight_match(*, clock: object = None) -> ParsedMatch:
@@ -203,3 +233,109 @@ def test_fight_timing_skips_pauses() -> None:
     # The death at tick 180 is 6 s of ticks after the start but 4 s of game time.
     assert [event["t"] for event in fight["events"]] == [4.0, 7.0]
     assert fight["duration_s"] == 7.0
+
+
+def _playback_match() -> ParsedMatch:
+    """Tiny (Radiant) hits Lion (Dire) with Avalanche, Lion dies and buys back."""
+    match = _fight_match()
+    lion, tiny = match.players
+    lion.team, tiny.team = 3, 2
+    for player in (lion, tiny):
+        player.times = [t for t, _, _ in player.position_log]
+        player.hp_t = [500] * len(player.times)
+        player.max_hp_t = [600] * len(player.times)
+        player.mana_t = [100.4] * len(player.times)
+        player.max_mana_t = [300.0] * len(player.times)
+    lion.buybacks = [
+        BuybackEvent(tick=200, player_slot=0, cost=831, net_worth=8000, cost_exact=True)
+    ]
+    tiny_name, lion_name = tiny.hero_name, lion.hero_name
+
+    def entry(log_type: str, tick: int, **fields: object) -> CombatLogEntry:
+        return CombatLogEntry(tick=tick, log_type=log_type, **fields)  # type: ignore[arg-type]
+
+    match.combat_log = sorted(
+        [
+            *match.combat_log,
+            # Blade Mail's reflect was on before the window opened: no ring.
+            entry(
+                "MODIFIER_REMOVE",
+                30,
+                attacker_name=lion_name,
+                target_name=lion_name,
+                inflictor_name="modifier_item_blade_mail_reflect",
+            ),
+            entry("ITEM", 90, attacker_name=tiny_name, inflictor_name="item_black_king_bar"),
+            entry(
+                "MODIFIER_ADD",
+                91,
+                attacker_name=tiny_name,
+                damage_source_name=tiny_name,
+                target_name=tiny_name,
+                inflictor_name="modifier_black_king_bar_immune",
+            ),
+            entry("ABILITY", 150, attacker_name=tiny_name, inflictor_name="tiny_avalanche"),
+            entry(
+                "DAMAGE",
+                160,
+                attacker_name=tiny_name,
+                damage_source_name=tiny_name,
+                target_name=lion_name,
+                inflictor_name="tiny_avalanche",
+                damage_type="magical",
+                value=312,
+            ),
+            entry(
+                "MODIFIER_ADD",
+                160,
+                attacker_name=tiny_name,
+                damage_source_name=tiny_name,
+                target_name=lion_name,
+                inflictor_name="modifier_tiny_avalanche_stun",
+                stun_duration=1.2,
+            ),
+            entry("GOLD", 180, target_name=lion_name, value=-210, gold_reason=1),
+            entry("GOLD", 180, target_name=tiny_name, value=326, gold_reason=12),
+            entry("XP", 180, target_name=tiny_name, value=468, xp_reason=1),
+        ],
+        key=lambda e: e.tick,
+    )
+    return match
+
+
+def test_fight_playback_indexes_heroes_and_carries_the_timeline() -> None:
+    playback = export.fight_playback(_playback_match())
+    assert playback is not None
+    heroes = [hero["hero"] for hero in playback["heroes"]]
+    assert heroes == ["Lion", "Tiny"]  # by player slot
+    lion, tiny = 0, 1
+    # The playback runs to two seconds past the last death (tick 270).
+    assert playback["duration"] == 11.0
+    first = playback["heroes"][lion]["runs"][0][0]
+    assert first[0] == 0.0 and first[3:] == [500, 600, 100, 300]
+
+    bkb, avalanche = playback["casts"]
+    assert bkb == {
+        "t": 3.0,
+        "by": tiny,
+        "what": "Black King Bar",
+        "hits": [],
+        "item": "black_king_bar",
+        "self": True,
+    }
+    assert avalanche["what"] == "Avalanche"
+    assert avalanche["hits"] == [[lion, 312, "magical", 1.2]]
+    assert "item" not in avalanche and "self" not in avalanche
+
+    assert playback["damage"] == [[5.3, tiny, lion, 312, "magical", 1, "Avalanche"]]
+    assert playback["disables"] == [[5.3, lion, tiny, "Avalanche", 1.2]]
+    assert playback["buffs"] == [[3.0, 11.0, tiny, "bkb"]]
+    death = next(d for d in playback["deaths"] if d["victim"] == lion and not d["aegis"])
+    assert (death["t"], death["killer"], death["gold_lost"]) == (6.0, tiny, 210)
+    assert death["gold"] == [[tiny, 326]] and death["xp"] == [[tiny, 468]]
+    assert death["recent"][0] == ["Tiny", "Avalanche", "magical", 312]
+    assert playback["buybacks"] == [[6.7, lion, 831]]
+
+
+def test_fight_playback_is_none_without_fights() -> None:
+    assert export.fight_playback(ParsedMatch(match_id=1)) is None
