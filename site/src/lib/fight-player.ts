@@ -5,27 +5,37 @@
  * status, the feed, the damage strip and following a hero.
  *
  * Plays like a GIF while on screen (2×, looping), unless the reader paused it
- * or prefers reduced motion; then it waits on the final frame for play.
+ * or prefers reduced motion; then it waits on the final frame for play. A
+ * range picked on the strip (a drag, or a death or buyback mark) limits the
+ * feed to it and loops the playback inside it.
  */
 import {
+  advance,
+  BUYBACK_SPAN_S,
   buybackAfter,
   castParts,
   castText,
   clockAt,
   damagePerSecond,
+  DEATH_LEAD_S,
+  DEATH_TAIL_S,
   deathTimes,
   FILTERS,
   feedRows,
   activeModifier,
   isHidden,
   isSmoked,
+  MIN_RANGE_S,
+  playFrom,
   QUIET_ITEMS,
+  rangeAround,
   rowShows,
   stateAt,
   type Cast,
   type FightData,
   type HeroState,
   type Row,
+  type TimeRange,
 } from "./fight-playback";
 
 interface View {
@@ -38,6 +48,7 @@ interface View {
 const SPEEDS = [0.25, 0.5, 1, 2, 4];
 const DEFAULT_SPEED = 2;
 const HOLD_MS = 1800; // pause on the last frame before looping
+const RANGE_HOLD_MS = 600; // a shorter pause at a picked range's end
 const CAST_POP_S = 1.4; // how long a cast's label and lines stay up
 const DAMAGE_LINE_S = 0.6;
 const GOLD_POP_S = 2.2;
@@ -123,6 +134,7 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
   const layers = new Set<Layer>(LAYERS.map((l) => l.key));
   const filters = new Set(FILTERS.filter((f) => f.on).map((f) => f.key));
   let follow: number | null = null;
+  let range: TimeRange | null = null;
   let speed = DEFAULT_SPEED;
   let t = data.duration;
   let playing = false;
@@ -222,6 +234,8 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
   const perSecond = damagePerSecond(data);
   const peak = Math.max(1, ...perSecond.radiant, ...perSecond.dire);
   const width = 1000 / perSecond.radiant.length;
+  // The picked range, under the bars.
+  const rangeRect = svg("rect", { class: "strip-range", y: 0, height: 64, visibility: "hidden" }, strip);
   perSecond.radiant.forEach((v, i) => {
     svg("rect", { class: "strip-radiant", x: i * width + 0.5, y: 32 - (v / peak) * 28, width: width - 1, height: (v / peak) * 28 }, strip);
     svg("rect", { class: "strip-dire", x: i * width + 0.5, y: 32, width: width - 1, height: (perSecond.dire[i] / peak) * 28 }, strip);
@@ -242,25 +256,64 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
   strip.before(lanes.radiant.el);
   strip.after(lanes.dire.el);
   const at = (t: number) => `${(100 * t) / data.duration}%`;
+  // A mark is a button: it picks the stretch around its moment.
+  const markButton = (cls: string, left: number, title: string, label: string, pick: TimeRange) => {
+    const mark = html("button", { type: "button", class: `strip-mark ${cls}`, style: `left: ${at(left)}`, title, "aria-label": `${title}: show the stretch around it` }, label);
+    mark.addEventListener("click", () => setRange(pick, true));
+    return mark;
+  };
   for (const death of data.deaths) {
     const team = heroes[death.victim].team === "radiant" ? "radiant" : "dire";
-    const mark = html(
-      "span",
-      { class: `strip-mark strip-mark--${death.aegis ? "aegis" : team}`, style: `left: ${at(death.t)}`, title: `${names[death.victim]} ${death.aegis ? "died (Aegis)" : "died"} at ${clockAt(data.start_s, death.t)}` },
-      death.aegis ? "A" : "✕",
-    );
-    lanes[team].deathsRow.append(mark);
+    const title = `${names[death.victim]} ${death.aegis ? "died (Aegis)" : "died"} at ${clockAt(data.start_s, death.t)}`;
+    const pick = rangeAround(death.t, DEATH_LEAD_S, DEATH_TAIL_S, data.duration);
+    lanes[team].deathsRow.append(markButton(`strip-mark--${death.aegis ? "aegis" : team}`, death.t, title, death.aegis ? "A" : "✕", pick));
   }
   for (const [t, hero, cost] of data.buybacks) {
     const team = heroes[hero].team === "radiant" ? "radiant" : "dire";
-    const mark = html(
-      "span",
-      { class: "strip-mark strip-mark--buyback", style: `left: ${at(t)}`, title: `${names[hero]} bought back at ${clockAt(data.start_s, t)} for ${number(cost)} gold` },
-      `↺ ${number(cost)}`,
-    );
-    lanes[team].buybacksRow.append(mark);
+    const title = `${names[hero]} bought back at ${clockAt(data.start_s, t)} for ${number(cost)} gold`;
+    const pick = rangeAround(t, BUYBACK_SPAN_S, BUYBACK_SPAN_S, data.duration);
+    lanes[team].buybacksRow.append(markButton("strip-mark--buyback", t, title, `↺ ${number(cost)}`, pick));
   }
   const cursor = svg("line", { class: "strip-cursor", y1: 0, y2: 64 }, strip);
+  // Drag across the strip to pick a range; a click without a drag clears it and
+  // moves the playhead there.
+  const timeAt = (clientX: number) => {
+    const box = strip.getBoundingClientRect();
+    return Math.min(data.duration, Math.max(0, ((clientX - box.left) / (box.width || 1)) * data.duration));
+  };
+  let dragFrom: number | null = null;
+  strip.addEventListener("pointerdown", (event) => {
+    dragFrom = timeAt(event.clientX);
+    strip.setPointerCapture(event.pointerId);
+  });
+  strip.addEventListener("pointermove", (event) => {
+    if (dragFrom === null) return;
+    const to = timeAt(event.clientX);
+    if (Math.abs(to - dragFrom) >= MIN_RANGE_S) {
+      range = [Math.min(dragFrom, to), Math.max(dragFrom, to)];
+      render();
+    }
+  });
+  const endDrag = (event: PointerEvent) => {
+    if (dragFrom === null) return;
+    const to = timeAt(event.clientX);
+    const from = dragFrom;
+    dragFrom = null;
+    if (Math.abs(to - from) >= MIN_RANGE_S) {
+      setRange([Math.min(from, to), Math.max(from, to)], true);
+    } else {
+      pausedByReader = true;
+      pause();
+      holdUntil = 0;
+      t = to;
+      setRange(null, false);
+    }
+  };
+  strip.addEventListener("pointerup", endDrag);
+  strip.addEventListener("pointercancel", () => {
+    dragFrom = null;
+    applyFilters();
+  });
 
   // --- Status boxes ---
   const statusEl = $<HTMLElement>("[data-status]");
@@ -293,6 +346,10 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
     ),
     followNote,
   );
+  // The picked range as a pill beside the filters; clicking it clears the range.
+  const rangePill = html("button", { type: "button", class: "chip range-pill", "aria-pressed": "true", hidden: "" });
+  rangePill.addEventListener("click", () => setRange(null, false));
+  followNote.before(rangePill);
   const feed = $<HTMLOListElement>("[data-feed]");
   const rowEls = rows.map((row) => {
     const li = html("li", { class: `feed-row feed-row--${row.kind}${row.death?.aegis ? " is-aegis" : ""}` }, html("time", {}, clockAt(data.start_s, row.t)), rowBody(row));
@@ -423,8 +480,22 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
     }
   }
 
+  function setRange(next: TimeRange | null, jump: boolean) {
+    range = next;
+    if (range && jump) {
+      holdUntil = 0;
+      t = range[0];
+    }
+    applyFilters();
+  }
   function applyFilters() {
-    for (const { row, li } of rowEls) li.hidden = !rowShows(row, filters, follow);
+    for (const { row, li } of rowEls) li.hidden = !rowShows(row, filters, follow, range);
+    rangePill.hidden = range === null;
+    if (range) {
+      const label = `${clockAt(data.start_s, range[0])}–${clockAt(data.start_s, range[1])}`;
+      rangePill.textContent = `${label} ✕`;
+      rangePill.setAttribute("aria-label", `Clear the time range ${label}`);
+    }
     followNote.textContent = follow === null ? "" : `Following ${names[follow]}`;
     for (const s of statusEls) s.box.setAttribute("aria-pressed", String(s.i === follow));
     lastCurrent = undefined;
@@ -590,6 +661,11 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
       feed.scrollTo({ top: current.offsetTop - feed.clientHeight / 2, behavior: playing ? "smooth" : "auto" });
       lastCurrent = current;
     }
+    rangeRect.setAttribute("visibility", range ? "visible" : "hidden");
+    if (range) {
+      rangeRect.setAttribute("x", String((range[0] / data.duration) * 1000));
+      rangeRect.setAttribute("width", String(((range[1] - range[0]) / data.duration) * 1000));
+    }
     const x = (t / data.duration) * 1000;
     cursor.setAttribute("x1", String(x));
     cursor.setAttribute("x2", String(x));
@@ -606,21 +682,19 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
     }
     if (holdUntil) {
       holdUntil = 0;
-      t = 0;
+      t = range ? range[0] : 0;
     } else {
-      t += ((now - (last || now)) / 1000) * speed;
+      const next = advance(t, ((now - (last || now)) / 1000) * speed, range, data.duration);
+      t = next.t;
+      if (next.atEnd) holdUntil = now + (range ? RANGE_HOLD_MS : HOLD_MS);
     }
     last = now;
-    if (t >= data.duration) {
-      t = data.duration;
-      holdUntil = now + HOLD_MS;
-    }
     render();
     requestAnimationFrame(frame);
   }
   function play() {
     if (playing) return;
-    if (t >= data.duration) t = 0;
+    t = playFrom(t, range, data.duration);
     playing = true;
     last = 0;
     root.classList.add("is-live", "is-playing");

@@ -95,6 +95,7 @@ const view = { box: fight.box, px, icons };
         Damage per second
         <span><i class="strip-key strip-key--radiant" aria-hidden="true"></i>Radiant above</span>
         <span><i class="strip-key strip-key--dire" aria-hidden="true"></i>Dire below</span>
+        <span class="strip-hint">Drag, or click a ✕ or ↺, to pick a stretch</span>
       </p>
       <svg viewBox="0 0 1000 64" preserveAspectRatio="none" aria-hidden="true"></svg>
       <input type="range" min="0" step="0.1" aria-label="Fight time" data-scrub />
@@ -115,7 +116,8 @@ const view = { box: fight.box, px, icons };
       damage lines by type, a draining arc while a hero is disabled, rings for some buffs, and the gold at each
       death. The feed lists every disable, debuff and buff a hero put on another (or on itself).
       A faded hero is hidden from the enemy team (the replay's own visibility), and a grey cloud marks a smoked
-      hero; when a smoke led into the fight, the playback starts at it. Click a hero to follow it. Positions, HP and mana are read on every replay packet (15 a
+      hero; when a smoke led into the fight, the playback starts at it. Click a hero to follow it. Drag across the timeline, or click a death or buyback on it, to list just
+      that stretch in the feed and loop it. Positions, HP and mana are read on every replay packet (15 a
       second, the replay's own rate); the rest is the combat log, to the tick.</span>
     </figcaption>
   </figure>
