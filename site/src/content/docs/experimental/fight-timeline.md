@@ -66,8 +66,10 @@ it does only for some unit-targeted casts: 11% of hero casts in match
 8856501050. It need not be a hero, or the hero the cast damaged; `hits` says
 who took the damage.
 
-**Hits are the one derived field.** A `DAMAGE` or `MODIFIER_ADD` entry from the
-caster on a hero belongs to the caster's latest cast, at most three seconds
+**Hits are the one derived field.** A `DAMAGE` or `MODIFIER_ADD` entry on a
+hero that the log credits to the caster (its damage source, so it may come from
+a unit the hero controls, but not from an illusion) belongs to the caster's
+latest cast, at most three seconds
 earlier (`hit_window_ticks`), of the same ability. For damage, that means the
 entry's inflictor is the ability. For a modifier, it means the modifier's name
 contains the ability's (`modifier_lion_voodoo` for `lion_voodoo`,

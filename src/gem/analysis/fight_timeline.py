@@ -326,8 +326,10 @@ def build_fight_timeline(
 
     * **Heroes** are the match's player heroes; illusions are not heroes. Casts
       by illusions are left out; their damage is kept, credited to the owner.
-    * **Hits** (derived): a ``DAMAGE`` or ``MODIFIER_ADD`` entry from the
-      caster on a hero belongs to the caster's latest cast at most
+    * **Hits** (derived): a ``DAMAGE`` or ``MODIFIER_ADD`` entry credited to
+      the caster (``damage_source_name``, so it may come from a unit the hero
+      controls, but not from an illusion) on a hero belongs to the caster's
+      latest cast at most
       ``hit_window_ticks`` earlier whose ability is the entry's inflictor (for
       a modifier, :func:`modifier_matches_ability`). Each entry goes to at most
       one cast, so no damage is counted twice. Damage that matches no cast
@@ -380,7 +382,7 @@ def build_fight_timeline(
             return entry.attacker_name
         return None
 
-    casts = _casts(window, is_hero, hit_window_ticks)
+    casts = _casts(window, is_hero, credited, hit_window_ticks)
     deaths, rewards = _deaths(log, ticks, window, is_hero, credited, recap_ticks)
     buybacks = sorted(
         (
@@ -418,7 +420,7 @@ class _HitTally:
 
 
 def _casts(
-    window: Sequence[CombatLogEntry], is_hero: _IsHero, hit_window_ticks: int
+    window: Sequence[CombatLogEntry], is_hero: _IsHero, credited: _Credited, hit_window_ticks: int
 ) -> list[TimelineCast]:
     casts: list[CombatLogEntry] = []
     by_caster: dict[str, list[int]] = defaultdict(list)
@@ -436,7 +438,10 @@ def _casts(
         if entry.attacker_is_illusion or not is_hero(entry.target_name, entry.target_is_illusion):
             continue
         is_damage = entry.log_type == "DAMAGE"
-        for index in reversed(by_caster.get(entry.attacker_name, ())):
+        # The credited hero, so a summon or other unit carrying the hero's
+        # ability (``damage_source_name``) still finds the hero's cast.
+        caster = credited(entry)
+        for index in reversed(by_caster.get(caster, ()) if caster else ()):
             cast = casts[index]
             if cast.tick > entry.tick:
                 continue

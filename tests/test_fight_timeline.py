@@ -158,6 +158,20 @@ class TestCasts:
         assert timeline.casts[0].hits == (CastHit(TINY, 40, "magical"),)
         assert sum(burst.damage for burst in timeline.damage) == 80
 
+    def test_hits_from_a_unit_the_hero_controls_count_for_its_cast(self):
+        remnant = "npc_dota_ember_spirit_remnant"
+        log = [
+            _cast(100, SF, "ember_spirit_activate_fire_remnant"),
+            _damage(120, remnant, AXE, 180, "ember_spirit_activate_fire_remnant", source=SF),
+            _damage(
+                125, SF, TINY, 90, "ember_spirit_activate_fire_remnant", attacker_is_illusion=True
+            ),
+        ]
+
+        (cast,) = build_fight_timeline(_match(log), 0, 1000).casts
+
+        assert cast.hits == (CastHit(AXE, 180, "magical"),)
+
     def test_illusion_casts_are_left_out(self):
         log = [_cast(100, TINY, "tiny_avalanche", attacker_is_illusion=True)]
 
