@@ -1,4 +1,4 @@
-"""The report map window places replay positions on their structures in the 7.41 image.
+"""The map calibration places replay positions on their structures in the 7.41 image.
 
 World positions were read from replay 8974053011's entity stream. Pixel centres are the
 structures' centres in ``assets/maps/Game_map_7.41.jpg`` (8878 x 8356), read off
@@ -11,7 +11,7 @@ import math
 
 import pytest
 
-from gem.reports._formatting import (
+from gem.catalog.map import (
     MAP_IMAGE_HEIGHT,
     MAP_IMAGE_WIDTH,
     MAP_XMAX,

@@ -13,7 +13,7 @@ derives both from ``assets/maps/Game_map_7.41.jpg``:
 4. Build the half line from the middle of the traced water in each column, and
    continue it flat to past the map edges with the seed line's end points.
 5. Project the pixels to world units through the report map window
-   (``gem.reports._formatting``), which was fitted to replay landmarks.
+   (``gem.catalog.map``), which was fitted to replay landmarks.
 
 The lotus pools are not traced: they are ``CDOTA_BaseNPC_LotusPool`` entity
 positions, and this script leaves them alone. A map patch that moves the river
@@ -47,7 +47,7 @@ from PIL import Image, ImageDraw, ImageFilter
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
-from gem.reports._formatting import (  # noqa: E402
+from gem.catalog.map import (  # noqa: E402
     MAP_XMAX,
     MAP_XMIN,
     map_image_to_world,
@@ -124,7 +124,7 @@ def image_to_world(px: float, py: float, width: int, height: int) -> tuple[float
         height: Tracing-copy height.
 
     Returns:
-        World ``(x, y)``, through ``gem.reports._formatting.map_image_to_world``.
+        World ``(x, y)``, through ``gem.catalog.map.map_image_to_world``.
     """
     return map_image_to_world(px, py, width, height)
 
@@ -139,7 +139,7 @@ def world_to_image(x: float, y: float, width: int, height: int) -> tuple[float, 
         height: Image height.
 
     Returns:
-        Pixel ``(column, row)``, through ``gem.reports._formatting.world_to_map_image``.
+        Pixel ``(column, row)``, through ``gem.catalog.map.world_to_map_image``.
     """
     return world_to_map_image(x, y, width, height)
 

@@ -131,6 +131,14 @@ of answering questions from them, see the Recipes docs.
   when imported from `gem` or `gem.analysis` and is removed in 0.14. Use
   `PointVisionSource`, from `gem.assess_point_vision(...).sources`.
 
+- **The HTML report** (HY-136). `gem.reports`, `write_html_report`,
+  `build_html_report`, `python -m gem reports` and `examples/match_report.py`
+  warn and are removed in 0.14. The report's views move to the recipes on the
+  docs site, each a question answered from the match's facts (HY-124).
+  `import gem` no longer imports the report; `gem.reports` still works, and warns,
+  until 0.14. The map calibration (`MAP_XMIN`…`MAP_YMAX`, `world_to_map_image`,
+  `map_image_to_world`) moves to `gem.catalog.map`.
+
 ## [0.12.0] - 2026-10-03
 
 gem now presents replay facts and leaves interpretation to you. The tags, scores

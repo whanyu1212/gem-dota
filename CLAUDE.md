@@ -94,7 +94,7 @@ api.py                    ← high-level parse/export helpers exposed by the pub
 results/models.py         ← ParsedMatch, ParsedPlayer, ChatEntry, NeutralItemFoundEvent dataclasses
 results/assembly.py       ← wires extractor outputs into ParsedMatch
 results/dataframes.py     ← flat DataFrame projections (core tables + opt-in include= groups)
-reports/                  ← self-contained HTML report generation from ParsedMatch
+reports/                  ← HTML report generation (deprecated: removed in 0.14, HY-124)
 analysis/spatial.py       ← position, nearby-hero, and net-worth lookup helpers
 analysis/regions.py       ← map regions: region_of / MAP_REGIONS (river, halves, lotus areas)
 analysis/combat.py        ← ability-hit grouping, fight lookup and regrouping (find_fights)
@@ -630,13 +630,17 @@ scripts (`test_audit_camp_annotations.py`, `test_audit_opendota_fixture_constant
 | Script | Description |
 |---|---|
 | `examples/quickstart.py` | Minimal: parse a replay, print per-minute gold/XP |
-| `examples/match_report.py` | Full HTML match dashboard (Draft, Combat, Laning, Farming, Fights, Roshan, Vision, Economy) |
+| `examples/match_report.py` | Full HTML match dashboard (deprecated with `gem.reports`; removed in 0.14) |
 | `examples/extraction_demo.py` | Developer guide for combat-log extraction and entity polling |
 | `examples/steam_match_info.py` | Fetch match info from the Steam API, display with Rich tables |
 | `examples/cookbook/*.py` | Recipes answering one question each from facts (docs: `site/src/content/docs/cookbook/questions.md`); tested in `tests/test_cookbook.py` |
 
 Report generation lives in `src/gem/reports/`; `examples/match_report.py` is a
-thin wrapper around `gem.reports.write_html_report()`.
+thin wrapper around `gem.reports.write_html_report()`. Both are deprecated
+(HY-124/HY-136): importing `gem.reports` warns, `import gem` no longer imports it,
+and 0.14 removes it. The report's views move to docs-site recipes. Don't build new
+features on it; the map calibration it used lives in `gem.catalog.map`, and the
+icon download for the site export in `scripts/_icons.py`.
 
 Hero and item icons for reports are downloaded separately — not committed or
 shipped in the package (the fetch scripts skip unchanged assets):

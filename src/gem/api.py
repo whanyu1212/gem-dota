@@ -70,7 +70,8 @@ Public API
     Resolve the team (Radiant/Dire) for a draft pick/ban event.
 
 ``gem.reports.build_html_report(match)``
-    Build a self-contained HTML match report.
+    Build a self-contained HTML match report. Deprecated: removed in 0.14; the
+    report's views move to the recipes on the docs site.
 """
 
 from __future__ import annotations
@@ -82,7 +83,6 @@ from typing import TYPE_CHECKING
 
 import gem.catalog as catalog  # re-export so `gem.catalog.hero_display()` works
 import gem.constants as constants  # re-export so `gem.constants.hero_display()` works
-import gem.reports as reports  # re-export so `gem.reports.build_html_report()` works
 from gem._deprecation import deprecated_module_attrs
 from gem.analysis import (
     DEFAULT_FARMING_ROUTE_CONFIG,
@@ -564,7 +564,6 @@ __all__ = [
     "resolve_pick_team",
     "catalog",
     "constants",
-    "reports",
     "fetch_replay",
     "fetch_replay_url",
     "download_and_decompress",

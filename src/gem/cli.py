@@ -12,7 +12,8 @@ Subcommands
     Parse many replays in parallel — parquet or dataframe output.
 
 ``reports assets``
-    Inspect and populate the local asset cache used by HTML reports.
+    Inspect and populate the local asset cache used by HTML reports. Deprecated
+    with the HTML report: removed in gem 0.14.
 """
 
 from __future__ import annotations
@@ -135,7 +136,7 @@ def _build_parser() -> argparse.ArgumentParser:
     # ── reports subcommand ──────────────────────────────────────────────────
     reports_cmd = subparsers.add_parser(
         "reports",
-        help="Utilities for HTML report generation.",
+        help="Utilities for HTML report generation (deprecated: removed in gem 0.14).",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     _add_common_flags(reports_cmd)
@@ -568,6 +569,12 @@ def _run_batch(args: argparse.Namespace, console: Console) -> None:
 
 
 def _run_reports(args: argparse.Namespace, console: Console) -> None:
+    print(
+        "warning: `python -m gem reports` is deprecated with the HTML report and will be "
+        "removed in gem 0.14; the report's views move to the recipes on the docs site "
+        "(https://whanyu1212.github.io/gem-dota/cookbook/).",
+        file=sys.stderr,
+    )
     if args.reports_command == "assets":
         _run_report_assets(args, console)
 

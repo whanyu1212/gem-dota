@@ -6,7 +6,8 @@ It covers three workflows:
 
 - `parse` - parse one replay and print a summary, JSON, or Parquet output.
 - `batch` - parse many replays in parallel.
-- `reports assets` - inspect and populate the local asset cache used by HTML reports.
+- `reports assets` - inspect and populate the local asset cache used by HTML reports
+  (deprecated with the HTML report; removed in gem 0.14).
 
 ## Quick examples
 
@@ -179,6 +180,10 @@ complete.
 :::
 
 ## `reports assets` - report asset cache
+
+> [!WARNING]
+> Deprecated with the HTML report, which is removed in gem 0.14: the command prints a
+> warning until then. The report's views are moving to the [Recipes](../cookbook/questions.md).
 
 HTML reports can inline hero icons, item icons, and map images when those assets are
 available locally. gem does not bundle these assets in the wheel; the CLI manages a user

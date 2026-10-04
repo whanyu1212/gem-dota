@@ -33,8 +33,14 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
-from gem.catalog.map import load_camp_zones, load_map_constants  # noqa: E402
-from gem.reports._formatting import MAP_XMAX, MAP_XMIN, MAP_YMAX, MAP_YMIN  # noqa: E402
+from gem.catalog.map import (  # noqa: E402
+    MAP_XMAX,
+    MAP_XMIN,
+    MAP_YMAX,
+    MAP_YMIN,
+    load_camp_zones,
+    load_map_constants,
+)
 
 DEFAULT_OUTPUT = REPO_ROOT / "site" / "public" / "gem-readme-banner-wordmark-subtitle-spaced.png"
 DEFAULT_MAP = REPO_ROOT / "assets" / "maps" / "Game_map_7.41.jpg"

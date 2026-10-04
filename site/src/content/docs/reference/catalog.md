@@ -161,11 +161,31 @@ Source: [src/gem/catalog/leagues.py:14](https://github.com/whanyu1212/gem-dota/b
 
 ## Module `gem.catalog.map`
 
-Map catalog lookups for static map and neutral-camp data.
+Map catalog lookups for static map and neutral-camp data, and the map calibration.
 
 Source: [src/gem/catalog/map.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L1)
 
 ### Top-level functions
+
+### `world_to_map_image`
+
+```python
+def world_to_map_image(x: float, y: float, width: float = MAP_IMAGE_WIDTH, height: float = MAP_IMAGE_HEIGHT) -> tuple[float, float]
+```
+
+Project world coordinates onto the 7.41 map image.
+
+Source: [src/gem/catalog/map.py:30](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L30)
+
+### `map_image_to_world`
+
+```python
+def map_image_to_world(px: float, py: float, width: float = MAP_IMAGE_WIDTH, height: float = MAP_IMAGE_HEIGHT) -> tuple[float, float]
+```
+
+Project a 7.41 map image pixel to world coordinates (inverse of :func:`world_to_map_image`).
+
+Source: [src/gem/catalog/map.py:54](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L54)
 
 ### `load_camp_zones`
 
@@ -175,7 +195,7 @@ def load_camp_zones() -> dict[str, Any]
 
 Load calibrated neutral-camp zone geometry.
 
-Source: [src/gem/catalog/map.py:13](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L13)
+Source: [src/gem/catalog/map.py:74](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L74)
 
 ### `load_map_constants`
 
@@ -185,7 +205,7 @@ def load_map_constants() -> dict[str, Any]
 
 Load static map calibration constants.
 
-Source: [src/gem/catalog/map.py:22](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L22)
+Source: [src/gem/catalog/map.py:83](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L83)
 
 ### `load_neutral_camps`
 
@@ -195,7 +215,7 @@ def load_neutral_camps() -> list[dict[str, Any]]
 
 Load each neutral camp's ID, centre and type.
 
-Source: [src/gem/catalog/map.py:31](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L31)
+Source: [src/gem/catalog/map.py:92](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L92)
 
 ### `load_neutral_camp_centers`
 
@@ -205,7 +225,7 @@ def load_neutral_camp_centers() -> dict[int, tuple[float, float]]
 
 Load neutral camp IDs mapped to world-coordinate centers.
 
-Source: [src/gem/catalog/map.py:51](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L51)
+Source: [src/gem/catalog/map.py:112](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L112)
 
 ## Module `gem.catalog.resources`
 

@@ -1,5 +1,8 @@
 """Generate a self-contained HTML match report from a Dota 2 replay.
 
+Deprecated: the HTML report is removed in gem 0.14, and importing ``gem.reports``
+warns. Its views are moving to the recipes on the docs site (https://whanyu1212.github.io/gem-dota/cookbook/).
+
 Before rendering, any hero and item icons the match needs that are not cached yet
 are downloaded from the Dota 2 CDN (pass ``--offline`` to skip that; missing icons
 are then shown as names and listed in a warning).

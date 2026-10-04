@@ -91,6 +91,11 @@ deprecates the older helpers that did this, and 0.13 removes them.
 
 ## Match reports
 
+> [!WARNING]
+> The HTML report is deprecated and will be removed in gem 0.14. Its views are moving
+> to the [recipes on the docs site](https://whanyu1212.github.io/gem-dota/cookbook/), each answering a question from the match's
+> facts with the code to run on your own replays.
+
 Gem can turn a parsed replay into a self-contained interactive report with overview,
 combat, laning, farming, fight, Roshan, vision, economy, draft, and movement views.
 
@@ -195,7 +200,8 @@ Some outputs are necessarily reconstructed:
 - Incomplete replays can return partial output, and some exact postgame fields require embedded match details.
 - Healing Lotus pickups are not available from the replay event stream.
 - Hero/item icons and the report map image are not shipped in the wheel; call
-  `gem.reports.fetch_match_icons(match)` to download the icons a report needs.
+  `gem.reports.fetch_match_icons(match)` to download the icons a report needs. (The
+  report is deprecated and removed in 0.14.)
 
 See [Replay Edge Cases](https://whanyu1212.github.io/gem-dota/deep-dives/replay-edge-cases)
 and the experimental-feature guides for the detailed boundaries.

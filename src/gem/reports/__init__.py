@@ -1,5 +1,10 @@
-"""HTML report generation for parsed Dota 2 matches."""
+"""HTML report generation for parsed Dota 2 matches.
 
+Deprecated: the HTML report is retired and will be removed in gem 0.14. Its views
+move to the recipes on the docs site (https://whanyu1212.github.io/gem-dota/cookbook/), each a question answered from the match's facts (HY-124).
+"""
+
+from gem._deprecation import warn_deprecated as _warn_deprecated
 from gem.reports.asset_cache import (
     ReportAssetPaths,
     ReportAssetStatus,
@@ -40,3 +45,9 @@ __all__ = [
     "report_asset_status",
     "write_html_report",
 ]
+
+_warn_deprecated(
+    "gem.reports",
+    alternative="the recipes on the docs site (https://whanyu1212.github.io/gem-dota/cookbook/)",
+    stacklevel=2,
+)

@@ -74,6 +74,9 @@ addopts = [
     "-m",
     "not slow and not integration and not network",
 ]
+# The report's own tests still exercise the deprecated gem.reports until 0.14
+# removes it; tests/test_reports_deprecation.py checks the warning itself.
+filterwarnings = ["ignore:gem.reports is deprecated:DeprecationWarning"]
 markers = [
     "slow: marks expensive tests requiring full replay files",
     "integration: marks integration tests against full replays",

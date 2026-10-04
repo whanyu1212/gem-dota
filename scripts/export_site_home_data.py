@@ -25,7 +25,7 @@ Hero paths, death spots, HP and mana are sampled (about one per second); ward
 positions and the combat log are exact.
 
 The overlay comes from ``map_constants.json`` and ``camp_zones.json`` and is
-placed with the report maps' calibrated window (``MAP_XMIN``…``MAP_YMAX``), the
+placed with the map calibration (``gem.catalog.map``: ``MAP_XMIN``…``MAP_YMAX``), the
 same projection as ``scripts/render_readme_banner.py``.
 
 Usage (defaults to the TI2026 fixture 8856501050, the committed snapshot)::
@@ -50,11 +50,17 @@ import gem  # noqa: E402
 from gem.analysis.fight_timeline import FightTimeline, build_fight_timeline  # noqa: E402
 from gem.catalog.abilities import ABILITIES, ability_display  # noqa: E402
 from gem.catalog.items import ITEMS, item_display  # noqa: E402
-from gem.catalog.map import load_camp_zones, load_map_constants  # noqa: E402
+from gem.catalog.map import (  # noqa: E402
+    MAP_XMAX,
+    MAP_XMIN,
+    MAP_YMAX,
+    MAP_YMIN,
+    load_camp_zones,
+    load_map_constants,
+)
 from gem.constants import hero_display  # noqa: E402
 from gem.extractors.fights import Fight  # noqa: E402
 from gem.extractors.wards import WardEvent  # noqa: E402
-from gem.reports._formatting import MAP_XMAX, MAP_XMIN, MAP_YMAX, MAP_YMIN  # noqa: E402
 from gem.results.models import ParsedMatch, ParsedPlayer  # noqa: E402
 
 # TI2026 match 8856501050 (93 minutes, 221 wards, a 10-death fight at 42:34).
