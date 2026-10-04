@@ -42,9 +42,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   site search, and sections for Guide, Recipes, Reference, Internals and the
   Changelog. Every existing URL and `#anchor` still works. The home page's
   figures come from a real TI2026 replay: gem's map model, the wards up at the
-  match's biggest fight (with observer vision), and that fight played back with
-  each hero moving on the map beside a narration of its kills and buybacks
-  (HY-119).
+  match's biggest fight (with observer vision), and that fight played back
+  (HY-119, HY-123): each hero's HP and mana, every cast with the heroes it hit
+  and the damage it did, damage lines by type, disables, buffs and the gold at
+  each death on the map, beside each hero's status and a feed you can filter,
+  with a recap for each death. Click a hero to follow it.
 
 - **JSON `schema_version` is 4.** The `analysis` section no longer has
   `smoke_fights`, the farming segment `context`, or the Roshan tags, verdicts and

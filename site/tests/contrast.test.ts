@@ -29,6 +29,9 @@ const TEXT_ON_SURFACE = [
   ["ink", "inline-code-bg"],
   ["note", "bg"], ["tip", "bg"], ["warning", "bg"], ["danger", "bg"], ["important", "bg"],
   ["code-fg", "code-bg"], ["code-muted", "code-bg"],
+  // Figure 3's feed: damage-type tags, gold gained and lost, stun seconds.
+  ["ink", "dmg-physical-bg"], ["ink", "dmg-magical-bg"], ["ink", "dmg-pure-bg"],
+  ["danger", "paper"], ["important", "paper"],
 ];
 const CODE_COLOURS = [
   ...new Set((gemCodeTheme.tokenColors ?? []).flatMap((t) => (t.settings.foreground ? [t.settings.foreground] : []))),
