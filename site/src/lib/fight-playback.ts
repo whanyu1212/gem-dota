@@ -3,9 +3,10 @@
  * then, the feed's rows and the damage strip. It reads `src/data/fight.json`
  * (written by scripts/export_site_home_data.py from gem.build_fight_timeline).
  *
- * Positions, HP and mana are sampled about once a second and interpolated
- * between samples, for display only. Every `t` is seconds since the fight
- * window started.
+ * Positions, HP and mana are the replay's readings on every packet (every other
+ * tick), with the samples a straight line between their neighbours redraws left
+ * out; drawing interpolates between the rest. Every `t` is seconds since the
+ * playback started, to the hundredth, so each tick has its own.
  */
 
 /** A sample: t, map-square x and y, HP, max HP, mana, max mana. */

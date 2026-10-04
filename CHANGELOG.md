@@ -51,7 +51,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   visibility), starting from the smoke that led into the fight (HY-139), and
   every disable, debuff and buff a hero put on another, each with its duration,
   in the feed, with deaths and buybacks marked along the labelled damage-per-second
-  timeline and a 0.5× playback speed (HY-140).
+  timeline and a 0.5× playback speed (HY-140). The playback reads every hero on
+  each replay packet, so a Blink moves its hero and a hit drops HP on the tick of
+  the combat-log entry, and every time it shows is gem's own clock; it also plays
+  at 0.25× (HY-141).
 
 - **JSON `schema_version` is 4.** The `analysis` section no longer has
   `smoke_fights`, the farming segment `context`, or the Roshan tags, verdicts and

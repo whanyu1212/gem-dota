@@ -11,7 +11,7 @@ snapshot, so building the site never parses a replay:
   hero paths, deaths and events. Map positions are in the coordinates of a
   1000-unit square;
 - ``site/src/data/fight.json``: the fight's playback, loaded when Figure 3 comes
-  into view: each hero's sampled position, HP and mana, and the fight's casts
+  into view: each hero's position, HP and mana on every replay packet, and the fight's casts
   (with the heroes each hit and the damage it did), damage, disables, buffs,
   deaths with their gold and XP, and buybacks, from ``gem.build_fight_timeline``;
 - ``site/src/assets/home-map.jpg``: the plain map square the overlays sit on;
@@ -21,7 +21,10 @@ snapshot, so building the site never parses a replay:
   copied from the icons that
   ``scripts/fetch_item_icons.py`` and ``scripts/fetch_hero_icons.py`` download.
 
-Hero paths, death spots, HP and mana are sampled (about one per second); ward
+Figure 3's static hero paths and death spots are sampled (about one per second).
+The playback reads every hero again on each replay packet in its window (every
+other tick: the replay's own resolution), at the end of the packet, so a hit's
+HP drop and a Blink's move land on the tick of their combat-log entry. Ward
 positions and the combat log are exact.
 
 The overlay comes from ``map_constants.json`` and ``camp_zones.json`` and is
@@ -40,6 +43,7 @@ import json
 import math
 import shutil
 import sys
+from collections import defaultdict
 from collections.abc import Callable, Iterable
 from pathlib import Path
 
@@ -52,6 +56,7 @@ from gem.analysis.fight_timeline import (  # noqa: E402
     ModifierWindow,
     build_fight_timeline,
 )
+from gem.analysis.smoke import SmokeAnalysis  # noqa: E402
 from gem.catalog.abilities import ABILITIES, ability_display  # noqa: E402
 from gem.catalog.items import ITEMS, item_display  # noqa: E402
 from gem.catalog.map import (  # noqa: E402
@@ -86,6 +91,12 @@ IMAGE_PX = 1200
 FIGHT_RADIUS = 2600
 #: A sampled jump longer than this (world units) is a teleport or respawn, not a path.
 PATH_JUMP = 900
+#: Playback sample tolerances: a sample is dropped only when the straight line
+#: between its neighbours puts the hero within this of it (map-square units for
+#: the position, whole points for HP and mana), so the playback draws what the
+#: replay says to well under a pixel.
+POSITION_TOLERANCE = 0.1
+POINTS_TOLERANCE = 0.49
 TICKS_PER_SECOND = 30
 #: Observer ward vision radius, as in gem's point-vision model (analysis/vision.py).
 OBSERVER_VISION = 1600
@@ -208,6 +219,80 @@ def load_match(replay: Path) -> ParsedMatch:
     return gem.parse(replay)
 
 
+#: One hero reading: replay tick, world x and y, HP, max HP, mana, max mana and
+#: life state (0 alive, 1 dying, 2 dead).
+HeroState = tuple[int, float, float, int, int, float, float, int]
+
+
+def load_hero_states(replay: Path, start: int, end: int) -> dict[int, list[HeroState]]:
+    """Every hero's state at the end of each replay packet in [start, end], by player ID.
+
+    A second parse, stopped after ``end``. The replay sends entity updates once a
+    packet (every other tick); reading at the packet's end means the state
+    includes everything the packet's combat-log entries describe. Heroes are
+    resolved the way ``PlayerExtractor`` resolves them, so illusions are skipped.
+    Kept separate so tests can supply states.
+    """
+    from gem.extractors.players import PlayerExtractor, _build_hero_snapshot
+    from gem.parser import ReplayParser
+
+    parser = ReplayParser(replay)
+    # Only for its hero resolution: one sample at the first tick, no minute marks.
+    players = PlayerExtractor(sample_interval=sys.maxsize, minute_snapshots=False)
+    players.attach(parser)
+    states: dict[int, dict[int, HeroState]] = defaultdict(dict)
+
+    def read(tick: int) -> None:
+        if not start <= tick <= end:
+            return
+        for player_id, entity in players._select_heroes().items():
+            snap = _build_hero_snapshot(entity, tick, player_id)
+            if snap.x is None or snap.y is None:
+                continue
+            # A tick's later packet overwrites its earlier one.
+            states[player_id][tick] = (
+                tick,
+                snap.x,
+                snap.y,
+                snap.hp,
+                snap.max_hp,
+                snap.mana,
+                snap.max_mana,
+                snap.life_state,
+            )
+
+    # The completed-packet boundary: every delta and combat-log entry of the
+    # packet has been applied (the parser's internal hook for a stable view).
+    parser._on_packet_end(read)
+    parser.stop_after_tick(end)
+    parser.parse()
+    return {
+        player_id: [by_tick[t] for t in sorted(by_tick)] for player_id, by_tick in states.items()
+    }
+
+
+def match_hero_states(match: ParsedMatch) -> dict[int, list[HeroState]]:
+    """The match's own once-a-second hero samples, for a match without its replay."""
+    states: dict[int, list[HeroState]] = {}
+    for player in match.players:
+        series = {
+            tick: (hp, top, mana, top_mana)
+            for tick, hp, top, mana, top_mana in zip(
+                player.times,
+                player.hp_t,
+                player.max_hp_t,
+                player.mana_t,
+                player.max_mana_t,
+                strict=False,
+            )
+        }
+        states[player.player_id] = [
+            (tick, x, y, *series.get(tick, (0, 0, 0.0, 0.0)), 0)
+            for tick, x, y in player.position_log
+        ]
+    return states
+
+
 def _unit_name(npc_name: str) -> str:
     """A readable name for a hero, or a tidied NPC name for anything else."""
     if npc_name.startswith("npc_dota_hero_"):
@@ -301,11 +386,38 @@ def _game_seconds(match: ParsedMatch, tick: int) -> float:
     return round(now if now is not None else tick / TICKS_PER_SECOND, 1)
 
 
-def _seconds_since(match: ParsedMatch, start_tick: int) -> Callable[[int], float]:
-    """In-game seconds since ``start_tick``, for the playback.
+def _clock_base(match: ParsedMatch, start: int, end: int) -> float:
+    """The playback clock's reading at ``start``: ``floor(base + t)`` is gem's clock.
+
+    gem shows OpenDota's whole seconds (``game_seconds_at``), which round the raw
+    seconds and the game start separately, so a second doesn't turn over where the
+    exact game time crosses a whole number. The offset between the two is fixed
+    for a match: this finds it from every tick in the window, checks one offset
+    fits them all, and adds half a tick so rounding ``t`` to the hundredth can't
+    tip a second.
+    """
+    clock = match.game_clock
+    exact = clock.game_time_at(start) if clock is not None else None
+    if clock is None or exact is None:
+        return _game_seconds(match, start)
+    low, high = -math.inf, math.inf
+    for tick in range(start, end + 1):
+        now, shown = clock.game_time_at(tick), clock.game_seconds_at(tick)
+        if now is None or shown is None:
+            continue
+        low, high = max(low, shown - now), min(high, shown + 1 - now)
+    half_tick = 0.5 / TICKS_PER_SECOND
+    if not low + half_tick + 0.005 < high:
+        raise ValueError(f"no single clock offset fits ticks {start}-{end}")
+    return round(exact + low + half_tick, 4)
+
+
+def _seconds_since(match: ParsedMatch, start_tick: int, places: int = 1) -> Callable[[int], float]:
+    """In-game seconds since ``start_tick``, rounded to ``places`` decimals.
 
     Pause-aware, like the clock times the narration shows; raw replay ticks only
-    when the replay has no game clock.
+    when the replay has no game clock. Two places keep every tick distinct (a
+    tick is 1/30 s).
     """
     clock = match.game_clock
     start_s = clock.game_time_at(start_tick) if clock is not None else None
@@ -313,8 +425,8 @@ def _seconds_since(match: ParsedMatch, start_tick: int) -> Callable[[int], float
     def since(tick: int) -> float:
         now_s = clock.game_time_at(tick) if clock is not None else None
         if now_s is not None and start_s is not None:
-            return round(now_s - start_s, 1)
-        return round((tick - start_tick) / TICKS_PER_SECOND, 1)
+            return round(now_s - start_s, places)
+        return round((tick - start_tick) / TICKS_PER_SECOND, places)
 
     return since
 
@@ -495,46 +607,102 @@ def _modifier_kind(window: ModifierWindow, team_of: dict[str, int]) -> str | Non
 
 
 def _hero_runs(
-    player: ParsedPlayer, start: int, end: int, since: Callable[[int], float]
+    states: list[HeroState], start: int, end: int, since: Callable[[int], float]
 ) -> list[list[list[float]]]:
-    """The hero's samples in [start, end] as runs split at teleports and respawns.
+    """The hero's samples in [start, end] as runs split at teleports, deaths and respawns.
 
     Each sample is ``[t, x, y, hp, max_hp, mana, max_mana]``: seconds since the
     window's start, the map-square position, and the hero's HP and mana at the
-    same tick.
+    same tick. Only living heroes have samples. A lone jump longer than ``PATH_JUMP``
+    is a teleport (a Blink, a respawn), so the run breaks there; a run of long
+    jumps is fast movement (a dash) and stays one path. Samples the client's
+    straight-line interpolation already reproduces are dropped (``_thin``).
     """
-    state = {
-        tick: (hp, top, mana, top_mana)
-        for tick, hp, top, mana, top_mana in zip(
-            player.times,
-            player.hp_t,
-            player.max_hp_t,
-            player.mana_t,
-            player.max_mana_t,
-            strict=False,
+    alive: list[list[HeroState]] = [[]]
+    for state in states:
+        if not start <= state[0] <= end:
+            continue
+        # Dying or dead: the playback hides a hero from its death, and the next
+        # sample is a respawn, a buyback or an Aegis.
+        if state[7] != 0:
+            if alive[-1]:
+                alive.append([])
+            continue
+        alive[-1].append(state)
+    runs: list[list[HeroState]] = []
+    for stretch in alive:
+        jumps = [
+            math.dist(a[1:3], b[1:3]) > PATH_JUMP
+            for a, b in zip(stretch, stretch[1:], strict=False)
+        ]
+        run: list[HeroState] = []
+        for i, state in enumerate(stretch):
+            # jumps[i - 1] is the step into this sample; a teleport is one alone.
+            if (
+                i
+                and jumps[i - 1]
+                and not (i >= 2 and jumps[i - 2])
+                and not (i < len(jumps) and jumps[i])
+            ):
+                runs.append(run)
+                run = []
+            run.append(state)
+        if run:
+            runs.append(run)
+    return [
+        _thin(
+            [
+                [since(tick), *_project(x, y), hp, top, round(mana), round(top_mana)]
+                for tick, x, y, hp, top, mana, top_mana, _ in run
+            ]
         )
-    }
-    runs = []
-    for run in _paths(player, start, end):
-        samples = []
-        for x, y, tick in run:
-            hp, top, mana, top_mana = state.get(tick, (0, 0, 0.0, 0.0))
-            samples.append([since(tick), *_project(x, y), hp, top, round(mana), round(top_mana)])
-        runs.append(samples)
-    return runs
+        for run in runs
+    ]
 
 
-def fight_playback(match: ParsedMatch) -> dict | None:
-    """The biggest fight's playback: hero state and the fight's timeline.
+def _thin(samples: list[list[float]]) -> list[list[float]]:
+    """Drop the samples that straight lines between the kept ones reproduce.
 
-    Heroes are referred to by their index in ``heroes``. Every ``t`` is seconds
-    since the playback's ``start``: the fight window's start, or the smoke that
-    led into the fight when it came shortly before.
+    Greedy: from each kept sample, reach as far as a straight line still passes
+    within the tolerances of every sample it skips. Both ends of a flat stretch
+    stay, so a step in HP stays a one-packet step.
     """
-    fight = biggest_fight(match)
-    if fight is None:
-        return None
-    smokes = gem.build_smoke_analysis(match)
+    tolerances = (
+        0.0,
+        POSITION_TOLERANCE,
+        POSITION_TOLERANCE,
+        POINTS_TOLERANCE,
+        POINTS_TOLERANCE,
+        POINTS_TOLERANCE,
+        POINTS_TOLERANCE,
+    )
+
+    def reproduces(a: list[float], b: list[float], skipped: list[list[float]]) -> bool:
+        for sample in skipped:
+            k = (sample[0] - a[0]) / (b[0] - a[0])
+            for j in range(1, len(sample)):
+                if abs(a[j] + (b[j] - a[j]) * k - sample[j]) > tolerances[j]:
+                    return False
+        return True
+
+    if len(samples) <= 2:
+        return samples
+    kept = [samples[0]]
+    anchor = 0
+    for i in range(2, len(samples)):
+        if not reproduces(samples[anchor], samples[i], samples[anchor + 1 : i]):
+            anchor = i - 1
+            kept.append(samples[anchor])
+    kept.append(samples[-1])
+    return kept
+
+
+def playback_window(
+    match: ParsedMatch, fight: Fight, smokes: list[SmokeAnalysis] | None = None
+) -> tuple[int, int]:
+    """The playback's first and last tick: the fight, from the smoke that led into it."""
+    if smokes is None:
+        smokes = gem.build_smoke_analysis(match)
     start = min(
         [fight.start_tick]
         + [
@@ -546,8 +714,28 @@ def fight_playback(match: ParsedMatch) -> dict | None:
             <= SMOKE_LEAD_S
         ]
     )
-    end = (fight.last_death_tick or fight.end_tick) + PLAYBACK_TAIL_TICKS
-    since = _seconds_since(match, start)
+    return start, (fight.last_death_tick or fight.end_tick) + PLAYBACK_TAIL_TICKS
+
+
+def fight_playback(
+    match: ParsedMatch, states: dict[int, list[HeroState]] | None = None
+) -> dict | None:
+    """The biggest fight's playback: hero state and the fight's timeline.
+
+    Heroes are referred to by their index in ``heroes``. Every ``t`` is seconds
+    since the playback's ``start`` (the fight window's start, or the smoke that
+    led into the fight when it came shortly before), to the hundredth so every
+    tick is distinct. ``states`` are the heroes' readings by player ID
+    (``load_hero_states``); without them, the match's once-a-second samples.
+    """
+    fight = biggest_fight(match)
+    if fight is None:
+        return None
+    smokes = gem.build_smoke_analysis(match)
+    start, end = playback_window(match, fight, smokes)
+    if states is None:
+        states = match_hero_states(match)
+    since = _seconds_since(match, start, places=2)
     timeline: FightTimeline = build_fight_timeline(match, start, end)
     players = sorted(match.players, key=lambda p: p.player_id)
     index = {player.hero_name: i for i, player in enumerate(players)}
@@ -617,16 +805,16 @@ def fight_playback(match: ParsedMatch) -> dict | None:
         deaths.append(entry)
     return {
         "start": _clock(match, start),
-        # The start in game seconds, so the playback's clock adds offsets exactly
-        # (``start`` is whole seconds).
-        "start_s": _game_seconds(match, start),
+        # The clock at the start, in seconds: the playback shows floor(start_s + t),
+        # which is gem's clock at every tick (``start`` is whole seconds).
+        "start_s": _clock_base(match, start, end),
         "duration": since(end),
         "heroes": [
             {
                 "hero": hero_display(player.hero_name),
                 "icon": player.hero_name.removeprefix("npc_dota_hero_"),
                 "team": team_of[i],
-                "runs": _hero_runs(player, start, end, since),
+                "runs": _hero_runs(states.get(player.player_id, []), start, end, since),
             }
             for i, player in enumerate(players)
         ],
@@ -844,7 +1032,9 @@ def main(argv: list[str] | None = None) -> int:
     }
     args.data.parent.mkdir(parents=True, exist_ok=True)
     args.data.write_text(json.dumps(data, indent=1) + "\n")
-    playback = fight_playback(match)
+    fight_ = biggest_fight(match)
+    states = load_hero_states(args.replay, *playback_window(match, fight_)) if fight_ else None
+    playback = fight_playback(match, states)
     args.fight_data.parent.mkdir(parents=True, exist_ok=True)
     # Compact: the playback is loaded by the browser, so every byte counts.
     args.fight_data.write_text(json.dumps(playback, separators=(",", ":")) + "\n")

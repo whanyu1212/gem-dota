@@ -115,8 +115,8 @@ const view = { box: fight.box, px, icons };
       damage lines by type, a draining arc while a hero is disabled, rings for some buffs, and the gold at each
       death. The feed lists every disable, debuff and buff a hero put on another (or on itself).
       A faded hero is hidden from the enemy team (the replay's own visibility), and a grey cloud marks a smoked
-      hero; when a smoke led into the fight, the playback starts at it. Click a hero to follow it. Positions, HP and mana are sampled about once a second and interpolated for
-      display; the rest is the combat log.</span>
+      hero; when a smoke led into the fight, the playback starts at it. Click a hero to follow it. Positions, HP and mana are read on every replay packet (15 a
+      second, the replay's own rate); the rest is the combat log, to the tick.</span>
     </figcaption>
   </figure>
   <aside class="narration" aria-label="What happened in the fight">

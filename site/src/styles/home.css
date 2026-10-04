@@ -600,6 +600,18 @@
 .playback-speeds {
   margin-left: auto;
 }
+/* Five speeds on one line at phone width. */
+@media (max-width: 480px) {
+  .playback {
+    gap: 8px;
+  }
+  .playback-speeds {
+    gap: 4px;
+  }
+  .playback-speeds .chip {
+    padding: 2px 7px;
+  }
+}
 .fight-strip {
   margin-top: 6px;
 }

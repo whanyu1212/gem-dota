@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 
 import pytest
@@ -363,20 +364,85 @@ def test_fight_playback_indexes_heroes_and_carries_the_timeline() -> None:
     assert avalanche["hits"] == [[lion, 312, "magical", 1.2]]
     assert "item" not in avalanche and "self" not in avalanche
 
-    assert playback["damage"] == [[5.3, tiny, lion, 312, "magical", 1, "Avalanche"]]
+    assert playback["damage"] == [[5.33, tiny, lion, 312, "magical", 1, "Avalanche"]]
     # [t, until, target, source, name, kind, ring, seconds]; still on at the end
     # runs to 11.0.
     assert playback["modifiers"] == [
-        [3.0, 11.0, tiny, tiny, "Black King Bar", "buff", "bkb", 7.0],
-        [5.3, 11.0, lion, tiny, "Avalanche", "disable", None, 1.2],
-        [5.7, 6.7, lion, tiny, "Toss", "debuff", None, 1.0],
+        [3.03, 11.0, tiny, tiny, "Black King Bar", "buff", "bkb", 7.0],
+        [5.33, 11.0, lion, tiny, "Avalanche", "disable", None, 1.2],
+        [5.67, 6.67, lion, tiny, "Toss", "debuff", None, 1.0],
     ]
     death = next(d for d in playback["deaths"] if d["victim"] == lion and not d["aegis"])
     assert (death["t"], death["killer"], death["gold_lost"]) == (6.0, tiny, 210)
     assert death["gold"] == [[tiny, 326]] and death["xp"] == [[tiny, 468]]
     assert death["recent"][0] == ["Tiny", "Avalanche", "magical", 312]
     assert death["recent_total"] == 312 and "tick_victims" not in death
-    assert playback["buybacks"] == [[6.7, lion, 831]]
+    assert playback["buybacks"] == [[6.67, lion, 831]]
+
+
+def _state(tick: int, x: float, *, hp: int = 500, life: int = 0) -> export.HeroState:
+    return (tick, x, 16000.0, hp, 600, 100.0, 300.0, life)
+
+
+def _since(tick: int) -> float:
+    return round(tick / 30, 2)
+
+
+def test_hero_runs_break_at_a_blink_but_not_a_dash() -> None:
+    walk = [_state(t, 16000.0 + t) for t in range(0, 11, 2)]
+    blink = [_state(t, 17200.0 + t) for t in range(12, 17, 2)]  # one 1,200-unit jump
+    dash = [_state(t, 17216.0 + (t - 16) * 750) for t in range(18, 23, 2)]  # 1,500 a packet
+    runs = export._hero_runs(walk + blink + dash, 0, 100, _since)
+    # The run breaks on the Blink's own packet, not a second later.
+    assert [[sample[0] for sample in run][0] for run in runs] == [0.0, 0.4]
+    assert runs[0][-1][0] == _since(10)
+    assert runs[1][-1][0] == _since(22)  # the dash stays one path
+
+
+def test_hero_runs_leave_out_the_dead_and_restart_after() -> None:
+    states = [_state(0, 16000.0), _state(2, 16010.0, hp=0, life=1)]
+    states += [_state(t, 16010.0, hp=0, life=2) for t in range(4, 31, 2)]
+    states += [_state(32, 16020.0)]  # bought back where it died
+    runs = export._hero_runs(states, 0, 100, _since)
+    # Dying and dead have no samples: the hero is gone from the dying tick.
+    assert [[sample[0] for sample in run] for run in runs] == [[0.0], [1.07]]
+
+
+def test_hero_runs_restart_after_an_aegis() -> None:
+    states = [_state(0, 16000.0), _state(2, 16000.0, hp=0, life=1)]
+    states += [_state(t, 16000.0, hp=1200) for t in range(150, 155, 2)]  # reincarnated
+    runs = export._hero_runs(states, 0, 200, _since)
+    assert [run[0][0] for run in runs] == [0.0, 5.0]
+
+
+def test_thin_keeps_what_the_straight_lines_cannot_redraw() -> None:
+    samples = [[t / 10, 100.0 + t, 200.0, 500, 600, 50, 300] for t in range(10)]
+    # A straight walk is its two ends.
+    assert export._thin(samples) == [samples[0], samples[-1]]
+    hp = [500, 500, 500, 420, 420, 420, 431, 442, 453, 453]
+    stepped = [[t / 10, 100.0, 200.0, h, 600, 50, 300] for t, h in enumerate(hp)]
+    kept = export._thin(stepped)
+    # The step stays one sample wide; the regen ramp is its two ends.
+    assert [sample[0] for sample in kept] == [0.0, 0.2, 0.3, 0.5, 0.8, 0.9]
+    # Every dropped sample is what the client's interpolation draws.
+    for sample in stepped:
+        a = max((k for k in kept if k[0] <= sample[0]), key=lambda k: k[0])
+        b = min((k for k in kept if k[0] >= sample[0]), key=lambda k: k[0])
+        f = 0.0 if a is b else (sample[0] - a[0]) / (b[0] - a[0])
+        assert abs(a[3] + (b[3] - a[3]) * f - sample[3]) < 0.5
+
+
+def test_fight_playback_draws_the_heroes_from_the_states_it_is_given() -> None:
+    match = _playback_match()
+    states = {
+        0: [_state(t, 16000.0) for t in range(0, 61, 2)]
+        + [_state(t, 17500.0) for t in range(62, 331, 2)],
+    }
+    playback = export.fight_playback(match, states)
+    assert playback is not None
+    lion_runs = playback["heroes"][0]["runs"]
+    assert [run[0][0] for run in lion_runs] == [0.0, 2.07]
+    assert playback["heroes"][1]["runs"] == []  # no states for Tiny
 
 
 def test_fight_playback_is_none_without_fights() -> None:
@@ -532,6 +598,9 @@ class _PauseBeforeTheFight:
             return -50.0
         return (tick - 600) / 30
 
+    def game_seconds_at(self, tick: int) -> int:
+        return math.floor(self.game_time_at(tick))
+
     def format_tick(self, tick: int) -> str:
         seconds = int(self.game_time_at(tick)) % 3600
         return f"{seconds // 60}:{seconds % 60:02d}"
@@ -547,8 +616,35 @@ def test_fight_playback_measures_the_smoke_lead_on_the_game_clock(
     playback = export.fight_playback(match)
 
     assert playback is not None
-    assert playback["start_s"] == -70.0
+    # -70 s plus half a tick, so the floor the playback takes is safe from rounding.
+    assert playback["start_s"] == -69.9833
     assert playback["smokes"][0][1] == 0.0
+
+
+class _OpenDotaClock:
+    """Shows whole seconds the way OpenDota does: the raw seconds and the game
+    start (here 0.4 s into a second) are rounded separately."""
+
+    def game_time_at(self, tick: int) -> float:
+        return tick / 30
+
+    def game_seconds_at(self, tick: int) -> int:
+        return math.floor(tick / 30 + 0.4 + 0.5) - math.floor(0.4 + 0.5)
+
+
+def test_the_playback_clock_shows_gems_second_at_every_tick() -> None:
+    match = ParsedMatch(match_id=1)
+    clock = _OpenDotaClock()
+    match.game_clock = clock  # type: ignore[assignment]
+    start, end = 95, 400
+    base = export._clock_base(match, start, end)
+    since = export._seconds_since(match, start, places=2)
+    # floor(start_s + t), as the playback's clockAt takes it.
+    shown = [math.floor(base + since(tick) + 1e-6) for tick in range(start, end + 1)]
+    assert shown == [clock.game_seconds_at(tick) for tick in range(start, end + 1)]
+    # Here the second turns over at x.1 of the exact game time, not x.0.
+    assert clock.game_time_at(122) < 4.1 <= clock.game_time_at(123)
+    assert [math.floor(base + since(t) + 1e-6) for t in (122, 123)] == [4, 5]
 
 
 def test_modifier_kinds() -> None:

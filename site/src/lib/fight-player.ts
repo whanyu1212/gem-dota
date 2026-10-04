@@ -35,7 +35,7 @@ interface View {
   icons: { heroes: Record<string, string>; items: Record<string, string> };
 }
 
-const SPEEDS = [0.5, 1, 2, 4];
+const SPEEDS = [0.25, 0.5, 1, 2, 4];
 const DEFAULT_SPEED = 2;
 const HOLD_MS = 1800; // pause on the last frame before looping
 const CAST_POP_S = 1.4; // how long a cast's label and lines stay up

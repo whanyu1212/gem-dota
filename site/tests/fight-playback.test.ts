@@ -1,4 +1,5 @@
-import { readdirSync, statSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
+import { gzipSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 import fight from "../src/data/fight.json";
 import home from "../src/data/home.json";
@@ -292,6 +293,9 @@ describe("the committed fight playback", () => {
   });
 
   it("stays small, since the browser loads it", () => {
-    expect(statSync(new URL("../src/data/fight.json", import.meta.url)).size).toBeLessThan(200_000);
+    // Every hero on every replay packet, thinned; what crosses the wire is gzipped.
+    const raw = readFileSync(new URL("../src/data/fight.json", import.meta.url));
+    expect(raw.length).toBeLessThan(500_000);
+    expect(gzipSync(raw).length).toBeLessThan(100_000);
   });
 });
