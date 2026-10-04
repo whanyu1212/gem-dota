@@ -95,8 +95,8 @@ SEEN_AFTER_BREAK_S = 1.0
 #: out, so the badges don't flicker.
 MIN_HIDDEN_S = 0.5
 #: A smoke that led into the fight starts the playback when it came at most this
-#: long before the fight window, so the playback shows the smoked walk-in.
-SMOKE_LEAD_TICKS = 60 * TICKS_PER_SECOND
+#: many game seconds before the fight window, so the playback shows the smoked walk-in.
+SMOKE_LEAD_S = 60.0
 #: Buffs the playback draws as a ring around the hero (the site's choice of what
 #: to show; every modifier is in the timeline).
 BUFF_RINGS = {
@@ -466,7 +466,9 @@ def fight_playback(match: ParsedMatch) -> dict | None:
             smoke.activation_tick
             for smoke in smokes
             if smoke.first_fight is fight
-            and fight.start_tick - SMOKE_LEAD_TICKS <= smoke.activation_tick
+            # Game time, not ticks, so a pause between the two doesn't count.
+            and _game_seconds(match, fight.start_tick) - _game_seconds(match, smoke.activation_tick)
+            <= SMOKE_LEAD_S
         ]
     )
     end = (fight.last_death_tick or fight.end_tick) + PLAYBACK_TAIL_TICKS
@@ -631,7 +633,10 @@ def _smokes(
             [
                 index[member.hero_name],
                 since(max(member.applied_tick, start)),
-                broke := since(member.removed_tick) if member.removed_tick is not None else None,
+                # A break after the playback's end is "still smoked at the end".
+                broke := since(member.removed_tick)
+                if member.removed_tick is not None and member.removed_tick <= end
+                else None,
                 seen(index[member.hero_name], broke),
             ]
             for member in smoke.members
@@ -661,10 +666,15 @@ def _hidden(
     for i, player in enumerate(players):
         # What the enemy team saw: Dire's view of a Radiant hero, and the reverse.
         seen_by_dire = player.team == 2
+        # By tick only: the sort is stable, so same-tick transitions keep the
+        # extractor's order (a terminal state, then the replacement's).
         states = sorted(
-            (e.tick, str(e.dire_state if seen_by_dire else e.radiant_state))
-            for e in match.hero_visibility_events
-            if e.player_id == player.player_id
+            (
+                (e.tick, str(e.dire_state if seen_by_dire else e.radiant_state))
+                for e in match.hero_visibility_events
+                if e.player_id == player.player_id
+            ),
+            key=lambda state: state[0],
         )
         before = [seen for tick, seen in states if tick <= start]
         hidden_since = start if before and before[-1] == "hidden" else None
