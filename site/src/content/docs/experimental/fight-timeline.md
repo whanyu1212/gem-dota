@@ -66,10 +66,10 @@ it does only for some unit-targeted casts: 11% of hero casts in match
 8856501050. It need not be a hero, or the hero the cast damaged; `hits` says
 who took the damage.
 
-**Hits are the one derived field.** A `DAMAGE` or `MODIFIER_ADD` entry on a
-hero that the log credits to the caster (its damage source, so it may come from
-a unit the hero controls, but not from an illusion) belongs to the caster's
-latest cast, at most three seconds
+**Hits are the one derived field.** A `DAMAGE` entry on a hero that the log
+credits to the caster (its damage source, so it may come from a unit the hero
+controls, but not from an illusion), or a `MODIFIER_ADD` the caster applied,
+belongs to the caster's latest cast, at most three seconds
 earlier (`hit_window_ticks`), of the same ability. For damage, that means the
 entry's inflictor is the ability. For a modifier, it means the modifier's name
 contains the ability's (`modifier_lion_voodoo` for `lion_voodoo`,
@@ -89,7 +89,9 @@ summon or an illusion, the attacker itself for a hero, and `None` for creeps,
 towers and neutrals. A cast's hit damage is a subset of this list; the rest is
 right-click attacks, passives and damage no cast matched.
 
-**Modifiers.** Each `MODIFIER_ADD` on a hero is paired with the next
+**Modifiers.** A modifier's source is the unit that applied it: on modifier
+entries the log's damage-source field names unrelated units, so it is not
+read. Each `MODIFIER_ADD` on a hero is paired with the next
 `MODIFIER_REMOVE` of the same modifier on the same hero. `end_tick` is `None`
 when the modifier outlasted the window, and `start_tick` is `None` when it was
 added before the window.
