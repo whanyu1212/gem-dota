@@ -65,6 +65,10 @@ class _FakeTimeSeries:
     total_hero_healing_t: list[int] = field(default_factory=list)
     total_deaths_t: list[int] = field(default_factory=list)
     total_stuns_t: list[float] = field(default_factory=list)
+    hp_t: list[int] = field(default_factory=list)
+    max_hp_t: list[int] = field(default_factory=list)
+    mana_t: list[float] = field(default_factory=list)
+    max_mana_t: list[float] = field(default_factory=list)
 
 
 @dataclass
@@ -1181,6 +1185,10 @@ class TestBuildParsedMatchGoldXpAdv:
             ts.lh_t = list(range(len(gold)))
             ts.dn_t = [value + 1 for value in range(len(gold))]
             ts.xp_t = xp
+            ts.hp_t = [value // 2 for value in gold]
+            ts.max_hp_t = list(gold)
+            ts.mana_t = [value / 4 for value in gold]
+            ts.max_mana_t = [value / 2 for value in gold]
             return ts
 
         def ts_for(pid):
@@ -1229,6 +1237,16 @@ class TestBuildParsedMatchGoldXpAdv:
         assert m.radiant_xp_adv == [300, 600]
         assert m.game_times_min == [0, 60]
         assert m.players[0].total_earned_xp_t == [500, 1000]
+
+    def test_hero_state_series_follow_the_dense_samples(self):
+        """HP and mana come from the hero snapshots, parallel to ``times``."""
+        m = self._build_with_ts({0: ([1000, 2000], [500, 1000], 2)})
+        player = m.players[0]
+        assert player.times == [1800, 3600]
+        assert player.hp_t == [500, 1000]
+        assert player.max_hp_t == [1000, 2000]
+        assert player.mana_t == [250.0, 500.0]
+        assert player.max_mana_t == [500.0, 1000.0]
 
     def test_dire_ahead(self):
         ts = {

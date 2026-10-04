@@ -34,6 +34,9 @@ _FLOAT = "Float64"
 _BOOL = "boolean"
 _STR = "string"
 
+# Hero entity state in ``player_timeseries`` (the dense samples only).
+_HERO_STATE_SERIES = {"hp": _INT, "max_hp": _INT, "mana": _FLOAT, "max_mana": _FLOAT}
+
 #: Tables returned by :func:`build_dataframes` by default.
 CORE_TABLES: tuple[str, ...] = (
     "match",
@@ -428,6 +431,12 @@ def _build_core_tables(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                     "lh": pp.lh_t[i] if i < len(pp.lh_t) else 0,
                     "dn": pp.dn_t[i] if i < len(pp.dn_t) else 0,
                     "xp": pp.xp_t[i] if i < len(pp.xp_t) else 0,
+                    # Missing, not 0, when the match has no hero state (JSON
+                    # written before these fields): 0 HP would read as dead.
+                    "hp": pp.hp_t[i] if i < len(pp.hp_t) else None,
+                    "max_hp": pp.max_hp_t[i] if i < len(pp.max_hp_t) else None,
+                    "mana": pp.mana_t[i] if i < len(pp.mana_t) else None,
+                    "max_mana": pp.max_mana_t[i] if i < len(pp.max_mana_t) else None,
                 }
             )
 
@@ -500,7 +509,8 @@ def _build_core_tables(match: ParsedMatch) -> dict[str, pd.DataFrame]:
     }
     player_summary_df = _typed_frame(summary_rows, summary_schema)
     player_timeseries_df = _typed_frame(
-        player_rows, {**player_identity, "tick": _INT, **player_series}
+        player_rows,
+        {**player_identity, "tick": _INT, **player_series, **_HERO_STATE_SERIES},
     )
     player_breakdowns_df = _typed_frame(
         breakdown_rows,

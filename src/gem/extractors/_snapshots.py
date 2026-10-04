@@ -456,7 +456,9 @@ class PlayerTimeSeries:
         dn_t: Deny count at each sample tick.
         xp_t: Cumulative XP at each sample tick.
         hp_t: Current hit points at each sample tick.
+        max_hp_t: Maximum hit points at each sample tick.
         mana_t: Current mana at each sample tick.
+        max_mana_t: Maximum mana at each sample tick.
         x_t: World x coordinate at each sample tick (``None`` if unavailable).
         y_t: World y coordinate at each sample tick (``None`` if unavailable).
         total_hero_damage_t: Cumulative hero-vs-hero damage dealt at each sample tick.
@@ -485,3 +487,5 @@ class PlayerTimeSeries:
     # Append-only: this internal dataclass is also constructed in downstream
     # integrations, so keep new defaulted fields at the end.
     game_times_s: list[int] = field(default_factory=list)
+    max_hp_t: list[int] = field(default_factory=list)
+    max_mana_t: list[float] = field(default_factory=list)

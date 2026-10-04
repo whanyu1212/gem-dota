@@ -1058,7 +1058,9 @@ class TestTimeSeries:
         assert ts.dn_t == [3]
         assert ts.xp_t == [1000]
         assert ts.hp_t == [400]
+        assert ts.max_hp_t == [700]
         assert ts.mana_t == [200.0]
+        assert ts.max_mana_t == [400.0]
         assert ts.x_t == [1.0]
         assert ts.y_t == [2.0]
 

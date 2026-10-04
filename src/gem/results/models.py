@@ -858,6 +858,13 @@ class ParsedPlayer:
             a summon's kill; ``"dota_unknown"`` when unnamed). Deaths the hero came
             back from are left out, as in ``kills_log``. Mirrors OpenDota's
             ``killed_by``.
+        hp_t: The hero's current hit points at each sample tick (``m_iHealth``
+            on the hero entity), parallel to ``times``. ``0`` while the hero is
+            dead.
+        max_hp_t: The hero's maximum hit points at each sample tick
+            (``m_iMaxHealth``).
+        mana_t: The hero's current mana at each sample tick (``m_flMana``).
+        max_mana_t: The hero's maximum mana at each sample tick (``m_flMaxMana``).
     """
 
     player_id: int
@@ -989,6 +996,10 @@ class ParsedPlayer:
     multi_kills: dict[str, int] = field(default_factory=dict)
     kill_streaks: dict[str, int] = field(default_factory=dict)
     killed_by: dict[str, int] = field(default_factory=dict)
+    hp_t: list[int] = field(default_factory=list)
+    max_hp_t: list[int] = field(default_factory=list)
+    mana_t: list[float] = field(default_factory=list)
+    max_mana_t: list[float] = field(default_factory=list)
     # Internal provenance for values copied from CMsgDOTAMatch. The serializer
     # omits this implementation detail from the public ParsedPlayer shape.
     _match_details_fields: set[str] = field(

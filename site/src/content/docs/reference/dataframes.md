@@ -24,7 +24,7 @@ match has no rows for it, so per-replay files concatenate cleanly.
 |---|---|
 | `"match"` | Single-row match metadata (id, mode, winner, ticks, final status bitmasks) |
 | `"player_summary"` | One row per player: identity, K/D/A, final net worth/LH/DN, GPM/XPM, damage/healing totals, lane stats, damage-type split, largest hero hit, consumed Aghanim's/Moon Shard flags |
-| `"player_timeseries"` | Per-player sampled `gold`, `total_earned_gold`, `total_earned_xp`, `net_worth`, `lh`, `dn`, `xp` by tick |
+| `"player_timeseries"` | Per-player sampled `gold`, `total_earned_gold`, `total_earned_xp`, `net_worth`, `lh`, `dn`, `xp`, `hp`, `max_hp`, `mana`, `max_mana` by tick |
 | `"players_minute"` | Per-player series resampled to game minutes |
 | `"player_breakdowns"` | Long-form per-player dict stats as `(player_id, stat, key, subkey, value)` |
 | `"positions"` | Per-player sampled world `(x, y)` positions |
@@ -81,4 +81,4 @@ def build_dataframes(match: ParsedMatch, *, include: Iterable[str] = ()) -> dict
 
 Convert a :class:`ParsedMatch` into a dict of flat pandas DataFrames.
 
-Source: [src/gem/results/dataframes.py:184](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/dataframes.py#L184)
+Source: [src/gem/results/dataframes.py:187](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/dataframes.py#L187)
