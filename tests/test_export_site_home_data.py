@@ -144,13 +144,15 @@ def test_write_icons_copies_the_items_it_has_and_skips_the_rest(
     assert [p.name for p in (out / "items").iterdir()] == ["black_king_bar.png"]
 
 
-def test_unit_and_disable_names() -> None:
+def test_unit_and_modifier_names() -> None:
     assert export._unit_name("npc_dota_hero_nevermore") == "Shadow Fiend"
     assert export._unit_name("npc_dota_creep_badguys_ranged") == "Creep dire ranged"
-    assert export._disable_name("modifier_lion_voodoo") == "Hex"
-    assert export._disable_name("modifier_tiny_avalanche_stun") == "Avalanche"
-    assert export._disable_name("modifier_sheepstick_debuff") == "Scythe of Vyse"
-    assert export._disable_name("modifier_bashed") == "Bash"
+    assert export._modifier_name("modifier_lion_voodoo") == "Hex"
+    assert export._modifier_name("modifier_tiny_avalanche_stun") == "Avalanche"
+    assert export._modifier_name("modifier_sheepstick_debuff") == "Scythe of Vyse"
+    assert export._modifier_name("modifier_bashed") == "Bash"
+    assert export._modifier_name("modifier_item_shivas_guard_blast") == "Shiva's Guard"
+    assert export._modifier_name("modifier_nevermore_shadowraze_debuff") == "Shadowraze"
 
 
 def _fight_match(*, clock: object = None) -> ParsedMatch:
@@ -273,6 +275,40 @@ def _playback_match() -> ParsedMatch:
                 damage_source_name=tiny_name,
                 target_name=tiny_name,
                 inflictor_name="modifier_black_king_bar_immune",
+                modifier_duration_s=7.0,
+            ),
+            # Left out of the feed: an internal timer, and a short state of Tiny's own.
+            entry(
+                "MODIFIER_ADD",
+                95,
+                attacker_name=tiny_name,
+                target_name=tiny_name,
+                inflictor_name="modifier_tiny_avalanche_timer",
+                modifier_duration_s=30.0,
+            ),
+            entry(
+                "MODIFIER_ADD",
+                96,
+                attacker_name=tiny_name,
+                target_name=tiny_name,
+                inflictor_name="modifier_tiny_tree_grab",
+                modifier_duration_s=0.5,
+            ),
+            # A debuff on Lion, removed a second later.
+            entry(
+                "MODIFIER_ADD",
+                170,
+                attacker_name=tiny_name,
+                target_name=lion_name,
+                inflictor_name="modifier_tiny_toss",
+                modifier_duration_s=1.0,
+            ),
+            entry(
+                "MODIFIER_REMOVE",
+                200,
+                attacker_name=tiny_name,
+                target_name=lion_name,
+                inflictor_name="modifier_tiny_toss",
             ),
             entry("ABILITY", 150, attacker_name=tiny_name, inflictor_name="tiny_avalanche"),
             entry(
@@ -328,8 +364,13 @@ def test_fight_playback_indexes_heroes_and_carries_the_timeline() -> None:
     assert "item" not in avalanche and "self" not in avalanche
 
     assert playback["damage"] == [[5.3, tiny, lion, 312, "magical", 1, "Avalanche"]]
-    assert playback["disables"] == [[5.3, lion, tiny, "Avalanche", 1.2]]
-    assert playback["buffs"] == [[3.0, 11.0, tiny, "bkb"]]
+    # [t, until, target, source, name, kind, ring, seconds]; still on at the end
+    # runs to 11.0.
+    assert playback["modifiers"] == [
+        [3.0, 11.0, tiny, tiny, "Black King Bar", "buff", "bkb", 7.0],
+        [5.3, 11.0, lion, tiny, "Avalanche", "disable", None, 1.2],
+        [5.7, 6.7, lion, tiny, "Toss", "debuff", None, 1.0],
+    ]
     death = next(d for d in playback["deaths"] if d["victim"] == lion and not d["aegis"])
     assert (death["t"], death["killer"], death["gold_lost"]) == (6.0, tiny, 210)
     assert death["gold"] == [[tiny, 326]] and death["xp"] == [[tiny, 468]]
@@ -508,3 +549,52 @@ def test_fight_playback_measures_the_smoke_lead_on_the_game_clock(
     assert playback is not None
     assert playback["start_s"] == -70.0
     assert playback["smokes"][0][1] == 0.0
+
+
+def test_modifier_kinds() -> None:
+    from gem.analysis.fight_timeline import ModifierWindow
+
+    team = {"npc_dota_hero_lion": 2, "npc_dota_hero_tiny": 2, "npc_dota_hero_axe": 3}
+
+    def kind(name: str, source: str | None, target: str, **fields: object) -> str | None:
+        window = ModifierWindow(
+            target=target,
+            modifier=name,
+            source=source or "",
+            source_hero=source,
+            start_tick=0,
+            end_tick=30,
+            duration_s=fields.get("duration_s", 3.0),  # type: ignore[arg-type]
+            stun_s=fields.get("stun_s", 0.0),  # type: ignore[arg-type]
+            aura=fields.get("aura", False),  # type: ignore[arg-type]
+        )
+        return export._modifier_kind(window, team)
+
+    lion, tiny, axe = "npc_dota_hero_lion", "npc_dota_hero_tiny", "npc_dota_hero_axe"
+    assert kind("modifier_tiny_avalanche_stun", tiny, axe, stun_s=1.2) == "disable"
+    assert kind("modifier_lion_voodoo", lion, axe) == "disable"  # no stun time, still a hex
+    assert kind("modifier_eul_cyclone", axe, lion) == "disable"  # Eul's on an enemy
+    assert kind("modifier_eul_cyclone", lion, lion) == "buff"  # Eul's on yourself: a save
+    assert kind("modifier_sniper_headshot_slow", lion, axe) == "debuff"
+    assert kind("modifier_treant_living_armor", tiny, lion) == "buff"
+    # Left out: timers, auras, no duration, a short state of one's own, no hero source.
+    assert kind("modifier_ember_spirit_fire_remnant_timer", lion, lion) is None
+    assert kind("modifier_item_assault_positive", lion, tiny, aura=True) is None
+    assert kind("modifier_tiny_tree_grab", tiny, tiny, duration_s=None) is None
+    assert kind("modifier_pangolier_swashbuckle", tiny, tiny, duration_s=0.5) is None
+    assert kind("modifier_creep_slow", None, lion) is None
+    # The log's -1 means "no duration": not a duration, unless it's a disable.
+    assert kind("modifier_tiny_toss", tiny, axe, duration_s=-1.0) is None
+    assert kind("modifier_lion_voodoo", lion, axe, duration_s=-1.0) == "disable"
+
+
+def test_applied_seconds_ignores_the_no_duration_sentinel() -> None:
+    from gem.analysis.fight_timeline import ModifierWindow
+
+    def window(duration: float | None, stun: float = 0.0) -> ModifierWindow:
+        return ModifierWindow("t", "m", "s", "s", 0, 30, duration_s=duration, stun_s=stun)
+
+    assert export._applied_seconds(window(3.0)) == 3.0
+    assert export._applied_seconds(window(-1.0)) == 0.0
+    assert export._applied_seconds(window(None)) == 0.0
+    assert export._applied_seconds(window(-1.0, stun=1.2)) == 1.2

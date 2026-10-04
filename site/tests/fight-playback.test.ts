@@ -51,13 +51,19 @@ const data: FightData = {
     [2.6, 2, 0, 80, "physical", 1, "Attack"],
     [2.7, 3, 0, 50, "physical", 0, "Attack"],
   ],
-  disables: [
-    [1, 2, 1, "Avalanche", 1.2],
-    [2.9, 0, 3, "Bash", 0.8],
-  ],
-  buffs: [
-    [2, 9, 1, "bkb"],
-    [5, 8, 3, "blade_mail"],
+  // [t, until, target, source, name, kind, ring]
+  modifiers: [
+    // Avalanche stuns Ember and Pangolier at once: one row.
+    [1, 2.2, 2, 1, "Avalanche", "disable", null, 1.2],
+    [1.1, 2.3, 3, 1, "Avalanche", "disable", null, 1.2],
+    // Lion died 0.1 s into a 1.2 s bash: the row says 1.2 s, the map's arc ends at 3.
+    [2.9, 3, 0, 3, "Bash", "disable", null, 1.2],
+    [2, 9, 1, 1, "Black King Bar", "buff", "bkb", 7],
+    [5, 8, 3, 3, "Blade Mail", "buff", "blade_mail", 3],
+    // Pangolier's slow on Lion, refreshed by each attack: one row.
+    [1, 3, 0, 3, "Swashbuckle", "debuff", null, 2],
+    [2, 4, 0, 3, "Swashbuckle", "debuff", null, 2],
+    [6, 7, 1, 2, "Swashbuckle", "debuff", null, 1],
   ],
   deaths: [
     { t: 3, victim: 0, killer: 2, killer_name: "Ember Spirit", aegis: false, gold_lost: 210, gold: [[2, 326]], xp: [[2, 468]], recent: [], recent_total: 0 },
@@ -95,13 +101,8 @@ describe("hero state", () => {
 describe("cast text", () => {
   it("puts each hit's damage beside the hero, with a shared type once", () => {
     expect(castText(data.casts[0], names, teams)).toBe(
-      "Avalanche hit Ember Spirit 312 (1.2s stun) · Pangolier 298 (1.2s stun) magical",
+      "Avalanche hit Ember Spirit 312 · Pangolier 298 magical",
     );
-  });
-
-  it("leaves out ministuns", () => {
-    const cast: Cast = { t: 0, by: 1, what: "Avalanche", hits: [[2, 118, "magical", 0.1]] };
-    expect(castText(cast, names, teams)).toBe("Avalanche hit Ember Spirit 118 magical");
   });
 
   it("names the type per hit when the types differ", () => {
@@ -117,7 +118,8 @@ describe("cast text", () => {
   });
 
   it("shows a debuff-only hit, a self-cast, and a target that is not a hero", () => {
-    expect(castText(data.casts[4], names, teams)).toBe("Hex hit Ember Spirit (3.2s stun)");
+    // Its disable is a row of its own, so the cast says only who it hit.
+    expect(castText(data.casts[4], names, teams)).toBe("Hex hit Ember Spirit");
     expect(castText(data.casts[2], names, teams)).toBe("Black King Bar on self");
     expect(castText({ t: 0, by: 1, what: "Toss", unit: "Creep dire melee", hits: [] }, names, teams)).toBe(
       "Toss on Creep dire melee",
@@ -130,14 +132,35 @@ describe("feed rows", () => {
   const rows = feedRows(data);
   const kinds = rows.map((r) => r.kind);
 
-  it("leaves out quiet items, and folds a cast's buff and its hits' disables into its row", () => {
+  it("leaves out quiet items, and a self-buff cast its buff row already says", () => {
     expect(rows.some((r) => r.cast?.item === "power_treads")).toBe(false);
-    expect(rows.find((r) => r.cast?.item === "black_king_bar")?.lasted).toBe(7);
-    expect(rows.find((r) => r.cast?.item === "swift_blink")?.lasted).toBeUndefined();
-    // Avalanche's stun is in its row; the Bash no cast shows gets a row of its own.
-    expect(rows.filter((r) => r.kind === "disable").map((r) => r.disable![3])).toEqual(["Bash"]);
-    // Blade Mail came from no cast in the data: a row of its own.
-    expect(rows.filter((r) => r.kind === "buff").map((r) => r.buff![3])).toEqual(["blade_mail"]);
+    expect(rows.some((r) => r.cast?.item === "black_king_bar")).toBe(false);
+    expect(rows.some((r) => r.cast?.item === "swift_blink")).toBe(true);
+    // Shield Crash's buff lands a second after the leap: still the same cast.
+    const crash: FightData = {
+      ...data,
+      casts: [{ t: 3, by: 3, what: "Shield Crash", self: true, hits: [] }],
+      modifiers: [[4, 10, 3, 3, "Shield Crash", "buff", null, 6]],
+    };
+    expect(feedRows(crash).filter((r) => r.kind === "spell")).toHaveLength(0);
+  });
+
+  it("gives each disable, debuff and buff a row, one per source and moment", () => {
+    const effects = (kind: string) =>
+      rows.filter((r) => r.kind === kind).map((r) => [r.t, r.effect!.name, r.effect!.targets.map((x) => [x.hero, x.seconds])]);
+    expect(effects("disable")).toEqual([
+      [1, "Avalanche", [[2, 1.2], [3, 1.2]]],
+      [2.9, "Bash", [[0, 1.2]]],
+    ]);
+    expect(effects("buff")).toEqual([
+      [2, "Black King Bar", [[1, 7]]],
+      [5, "Blade Mail", [[3, 3]]],
+    ]);
+    // The slow refreshed while still on is one row; a later one on another hero is new.
+    expect(effects("debuff")).toEqual([
+      [1, "Swashbuckle", [[0, 2]]],
+      [6, "Swashbuckle", [[1, 1]]],
+    ]);
   });
 
   it("sums a hero's right-clicks on one target per second, and leaves out summons", () => {
@@ -249,7 +272,10 @@ describe("the committed fight playback", () => {
       expect([cast.by, cast.target ?? null, ...cast.hits.map(([h]) => h)].every(valid)).toBe(true);
     }
     for (const [t, by, target] of playback.damage) expect(inWindow(t) && valid(by) && valid(target)).toBe(true);
-    for (const [t, target, source] of playback.disables) expect(inWindow(t) && valid(target) && valid(source)).toBe(true);
+    for (const [t, until, target, source, , kind] of playback.modifiers) {
+      expect(inWindow(t) && until >= t && valid(target) && valid(source)).toBe(true);
+      expect(["disable", "debuff", "buff"]).toContain(kind);
+    }
     for (const death of playback.deaths) expect(inWindow(death.t) && valid(death.victim) && valid(death.killer)).toBe(true);
     for (const hero of playback.heroes) {
       for (const run of hero.runs) for (const [t, , , hp, maxHp] of run) expect(inWindow(t) && hp <= maxHp).toBe(true);

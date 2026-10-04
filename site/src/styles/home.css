@@ -614,6 +614,27 @@
   margin: 2px 0 0;
   accent-color: var(--accent);
 }
+.strip-label {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0 0 2px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.strip-key {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 5px;
+  border-radius: 1px;
+}
+.strip-key--radiant {
+  background: var(--map-radiant-mark);
+}
+.strip-key--dire {
+  background: var(--map-dire-mark);
+}
 .strip-radiant {
   fill: var(--map-radiant-mark);
 }
@@ -623,14 +644,36 @@
 .strip-axis {
   stroke: var(--line);
 }
-.strip-death--radiant {
-  fill: var(--map-radiant-mark);
+/* Deaths and buybacks beside the strip: Radiant's above, Dire's below. */
+.strip-row {
+  position: relative;
+  height: 16px;
 }
-.strip-death--dire {
-  fill: var(--map-dire-mark);
+.strip-mark {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: default;
 }
-.strip-death--aegis {
-  fill: var(--buff-bkb);
+.strip-mark--radiant {
+  color: var(--map-radiant-mark);
+}
+.strip-mark--dire {
+  color: var(--map-dire-mark);
+}
+.strip-mark--aegis {
+  color: var(--warning);
+}
+.strip-mark--buyback {
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--paper);
+  font-size: 10.5px;
 }
 .strip-cursor {
   stroke: var(--ink);
@@ -667,9 +710,11 @@
   border: 2px solid;
   background: transparent;
 }
-.fight-legend i.swatch-ring--disable {
-  border-style: dashed;
-  border-color: var(--muted);
+/* Disabled: a solid arc on a track, like the map's draining ring. */
+.fight-legend i.swatch-disable {
+  background: conic-gradient(var(--ink) 0 70%, var(--line) 70% 100%);
+  -webkit-mask: radial-gradient(circle, transparent 2.5px, #000 3px);
+  mask: radial-gradient(circle, transparent 2.5px, #000 3px);
 }
 .fight-legend i.swatch-ring--bkb {
   border-color: var(--buff-bkb);
@@ -693,7 +738,7 @@
   opacity: 0.35;
 }
 .buff-ring,
-.disable-ring,
+.disable-track,
 .disable-arc {
   fill: none;
 }
@@ -715,9 +760,13 @@
 .buff-ring--aeon_disk {
   stroke: var(--buff-aeon);
 }
-.disable-ring,
+.disable-track {
+  stroke: var(--map-halo);
+  opacity: 0.7;
+}
 .disable-arc {
   stroke: var(--map-disable);
+  stroke-linecap: round;
 }
 .hit-flash {
   fill: var(--map-hit);
@@ -780,6 +829,9 @@
 }
 .gold-pop--loss {
   fill: var(--map-loss);
+}
+.gold-pop--buyback {
+  fill: var(--map-buyback);
 }
 /* Smoked: a grey cloud behind the badge. Hidden from the enemy: a faded,
    desaturated badge with a dashed ring (unlike following, which dims others). */
@@ -985,10 +1037,39 @@
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
-.hit-stun {
-  color: var(--important);
+/* Disable, debuff and buff rows: a small mark before the name, and the seconds. */
+.effect-mark {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin: 0 2px;
+}
+.effect-mark--disable {
+  border-radius: 50%;
+  background: var(--important);
+}
+.effect-mark--debuff {
+  width: 0;
+  height: 0;
+  border: 4.5px solid transparent;
+  border-top: 7px solid var(--danger);
+  border-bottom: 0;
+}
+.effect-mark--buff {
+  width: 0;
+  height: 0;
+  border: 4.5px solid transparent;
+  border-bottom: 7px solid var(--accent);
+  border-top: 0;
+}
+.effect-seconds {
+  color: var(--muted);
   font-size: 12px;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.effect-seconds--disable {
+  color: var(--important);
 }
 .dmg {
   padding: 0 5px;
@@ -1012,6 +1093,13 @@
 .loss {
   color: var(--danger);
   font-weight: 600;
+}
+.feed-row--buyback {
+  background: var(--accent-soft);
+}
+.buyback-mark {
+  color: var(--accent);
+  font-weight: 700;
 }
 .death-mark {
   color: var(--danger);

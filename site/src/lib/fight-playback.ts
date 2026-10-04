@@ -57,6 +57,9 @@ export interface Death {
   tick_victims?: number[];
 }
 
+export type ModifierKind = "disable" | "debuff" | "buff";
+export type Modifier = [number, number, number, number | null, string, ModifierKind, string | null, number];
+
 export interface FightData {
   start: string;
   /** The start in game seconds (``start`` is whole seconds). */
@@ -66,10 +69,12 @@ export interface FightData {
   casts: Cast[];
   /** t, attacker, target, damage, type, 1 when dealt by the hero itself, source ("Attack" for a right-click). */
   damage: [number, number, number, number, string, number, string][];
-  /** t, target, source hero or null, name, seconds. */
-  disables: [number, number, number | null, string, number][];
-  /** t, until, hero, kind. */
-  buffs: [number, number, number, string][];
+  /**
+   * Modifiers on heroes: t, until (the removal, or the playback's end), target,
+   * source hero or null, name, kind, the ring a buff is drawn with (or null), and
+   * the duration it was applied with (a death or dispel can end it sooner).
+   */
+  modifiers: Modifier[];
   deaths: Death[];
   /** t, hero, cost. */
   buybacks: [number, number, number][];
@@ -81,6 +86,20 @@ export interface FightData {
   smokes: [string, number | null, [number, number, number | null, number | null][]][];
   /** hero, from, to: while the enemy team couldn't see the hero (replay visibility). */
   hidden: [number, number, number][];
+}
+
+/** The latest-started modifier of a kind on the hero at t (a disable, a ringed buff, …). */
+export function activeModifier(
+  data: FightData,
+  hero: number,
+  t: number,
+  match: (m: Modifier) => boolean,
+): Modifier | undefined {
+  let found: Modifier | undefined;
+  for (const m of data.modifiers) {
+    if (m[2] === hero && m[0] <= t && t < m[1] && match(m) && (!found || m[0] >= found[0])) found = m;
+  }
+  return found;
 }
 
 /** Whether the hero was smoked at t. */
@@ -97,9 +116,6 @@ export function isHidden(data: FightData, hero: number, t: number): boolean {
 
 /** Items whose use the feed and map leave out: toggles and sips, not plays. */
 export const QUIET_ITEMS = new Set(["power_treads", "phase_boots", "bottle", "magic_wand"]);
-
-/** Stuns shorter than this (a ministun, or one tick of a repeating stun) aren't shown. */
-export const MIN_STUN_S = 0.2;
 
 /** How long a hero stays at its last sample after a run ends (about one sample gap). */
 export const HOLD_S = 1.5;
@@ -197,7 +213,6 @@ export function castText(cast: Cast, names: string[], teams: string[]): string {
       let hit = names[h.hero];
       if (h.damage) hit += ` ${h.damage}`;
       if (h.damage && !parts.sharedType && h.type) hit += ` ${h.type}`;
-      if (h.stun >= MIN_STUN_S) hit += ` (${h.stun}s stun)`;
       return hit;
     });
     text += ` hit ${hits.join(" · ")}`;
@@ -228,7 +243,7 @@ export function damagePerSecond(data: FightData): { radiant: number[]; dire: num
 }
 
 /** The feed's row kinds. */
-export type RowKind = "death" | "buyback" | "spell" | "item" | "disable" | "buff" | "smoke" | "attack";
+export type RowKind = "death" | "buyback" | "spell" | "item" | "disable" | "debuff" | "buff" | "smoke" | "attack";
 
 /** The feed's filter chips, and the row kinds each shows. */
 export const FILTERS: { key: string; label: string; kinds: RowKind[]; on: boolean }[] = [
@@ -236,6 +251,7 @@ export const FILTERS: { key: string; label: string; kinds: RowKind[]; on: boolea
   { key: "spells", label: "Spells", kinds: ["spell"], on: true },
   { key: "items", label: "Items", kinds: ["item"], on: true },
   { key: "disables", label: "Disables", kinds: ["disable"], on: true },
+  { key: "debuffs", label: "Debuffs", kinds: ["debuff"], on: true },
   { key: "buffs", label: "Buffs & smoke", kinds: ["buff", "smoke"], on: true },
   { key: "attacks", label: "Attacks", kinds: ["attack"], on: true },
 ];
@@ -246,67 +262,77 @@ export interface Row {
   /** Heroes the row involves, for following a hero. */
   heroes: number[];
   cast?: Cast;
-  /** How long the buff a cast gave its caster lasted, in seconds. */
-  lasted?: number;
   death?: Death;
   buyback?: FightData["buybacks"][number];
-  disable?: FightData["disables"][number];
-  buff?: FightData["buffs"][number];
+  /** A disable, debuff or buff from one source on one or more heroes. */
+  effect?: { source: number | null; name: string; targets: { hero: number; seconds: number }[] };
   /** Right-click damage from one hero to another in one second. */
   attack?: { by: number; target: number; damage: number; type: string };
   /** A hero's smoke breaking, and whether the enemy saw it then. */
   smokeBreak?: { hero: number; seen: boolean };
 }
 
-/** The items that give each buff ring (export_site_home_data.BUFF_RINGS), so a buff folds into its own cast. */
-export const BUFF_ITEMS: Record<string, string[]> = {
-  bkb: ["black_king_bar", "minotaur_horn"],
-  ghost: ["ghost"],
-  blade_mail: ["blade_mail"],
-  lotus: ["lotus_orb"],
-  satanic: ["satanic"],
-};
-
-/** Seconds within which a disable or buff is the cast's own (it is folded into the cast's row). */
-const CAST_WINDOW_S = 3;
+/** Effects that start within this long of each other, from one source, share a row. */
+const EFFECT_GROUP_S = 0.5;
+/** A self-buff landing within this long after its cast (Shield Crash lands after the leap) says that cast. */
+const SELF_BUFF_FOLD_S = 1.5;
 
 /**
- * The feed's rows in time order. A disable a cast's hits already show, and a
- * buff a cast gave its caster, fold into the cast's row; right-click damage is
- * summed per attacker and target over each second.
+ * The feed's rows in time order. Disables, debuffs and buffs get rows of their
+ * own: one per source and effect at a moment, listing every hero it reached; a
+ * re-application while the same effect is still on (a slow refreshed by each
+ * attack) extends it rather than adding a row. Right-click damage is summed per
+ * attacker and target over each second.
  */
 export function feedRows(data: FightData): Row[] {
   const rows: Row[] = [];
-  const usedBuffs = new Set<number>();
-  for (const cast of data.casts) {
-    if (cast.item && QUIET_ITEMS.has(cast.item)) continue;
-    const row: Row = { t: cast.t, kind: cast.item ? "item" : "spell", heroes: castHeroes(cast), cast };
-    if (cast.self && cast.item) {
-      const item = cast.item;
-      const i = data.buffs.findIndex(
-        ([t, , hero, kind], j) =>
-          !usedBuffs.has(j) && hero === cast.by && BUFF_ITEMS[kind]?.includes(item) && Math.abs(t - cast.t) <= 0.5,
-      );
-      if (i >= 0) {
-        usedBuffs.add(i);
-        row.lasted = Math.round((data.buffs[i][1] - data.buffs[i][0]) * 10) / 10;
+  const effectRows: Row[] = [];
+  const on = new Map<string, number>(); // source|name|target -> until, for refreshes
+  const open = new Map<string, Row>(); // source|name|kind -> the row being filled
+  for (const [t, until, target, source, name, kind, , applied] of [...data.modifiers].sort((a, b) => a[0] - b[0])) {
+    const effect = `${source}|${name}|${target}`;
+    const still = on.get(effect);
+    on.set(effect, Math.max(until, still ?? until));
+    if (still !== undefined && t <= still + EFFECT_GROUP_S) continue;
+    const key = `${source}|${name}|${kind}`;
+    const row = open.get(key);
+    const seconds = applied > 0 ? applied : Math.round((until - t) * 10) / 10;
+    if (row && t - row.t <= EFFECT_GROUP_S) {
+      if (!row.effect!.targets.some((x) => x.hero === target)) {
+        row.effect!.targets.push({ hero: target, seconds });
+        row.heroes.push(target);
       }
+      continue;
     }
-    rows.push(row);
+    const next: Row = {
+      t,
+      kind,
+      heroes: source === null || source === target ? [target] : [source, target],
+      effect: { source, name, targets: [{ hero: target, seconds }] },
+    };
+    open.set(key, next);
+    effectRows.push(next);
   }
-  data.buffs.forEach((buff, i) => {
-    if (!usedBuffs.has(i)) rows.push({ t: buff[0], kind: "buff", heroes: [buff[2]], buff });
-  });
-  for (const disable of data.disables) {
-    const [t, target, source] = disable;
-    const shown = data.casts.some(
-      (cast) =>
-        cast.by === source &&
-        cast.t <= t &&
-        t - cast.t <= CAST_WINDOW_S &&
-        cast.hits.some(([hero, , , stun]) => hero === target && stun > 0),
+  rows.push(...effectRows);
+  // A cast that only buffed its caster (Black King Bar, Feast of Souls) is said by
+  // its buff row, which also has the duration.
+  const saidByBuff = (cast: Cast) =>
+    cast.self &&
+    !cast.hits.length &&
+    cast.target === undefined &&
+    effectRows.some(
+      (r) =>
+        r.kind === "buff" &&
+        r.effect!.source === cast.by &&
+        r.effect!.name === cast.what &&
+        r.effect!.targets.length === 1 &&
+        r.effect!.targets[0].hero === cast.by &&
+        r.t >= cast.t - EFFECT_GROUP_S &&
+        r.t - cast.t <= SELF_BUFF_FOLD_S,
     );
-    if (!shown) rows.push({ t, kind: "disable", heroes: source === null ? [target] : [target, source], disable });
+  for (const cast of data.casts) {
+    if ((cast.item && QUIET_ITEMS.has(cast.item)) || saidByBuff(cast)) continue;
+    rows.push({ t: cast.t, kind: cast.item ? "item" : "spell", heroes: castHeroes(cast), cast });
   }
   for (const death of data.deaths) {
     rows.push({ t: death.t, kind: "death", heroes: [death.victim, ...(death.killer === null ? [] : [death.killer])], death });
