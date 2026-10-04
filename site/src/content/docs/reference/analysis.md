@@ -1551,6 +1551,264 @@ Source: [src/gem/analysis/fight_positioning.py:180](https://github.com/whanyu121
 | `engagement_start_source` | `EngagementStartSource` | `-` |
 | `snapshots` | `tuple[FightPositionSnapshot, ...]` | `-` |
 
+## Module `gem.analysis.fight_timeline`
+
+A fight's combat log as typed records: casts and what they hit, damage, modifiers, deaths.
+
+Source: [src/gem/analysis/fight_timeline.py](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/fight_timeline.py#L1)
+
+### Top-level functions
+
+### `modifier_matches_ability`
+
+```python
+def modifier_matches_ability(modifier: str, ability: str) -> bool
+```
+
+Whether a modifier name looks like it came from an ability or item.
+
+Source: [src/gem/analysis/fight_timeline.py:287](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/fight_timeline.py#L287)
+
+### `build_fight_timeline`
+
+```python
+def build_fight_timeline(match: ParsedMatch, start_tick: int, end_tick: int, *, hit_window_ticks: int = 90, recap_ticks: int = 300, burst_ticks: int = 15) -> FightTimeline
+```
+
+Turn the combat log between two ticks into a fight's typed records.
+
+Source: [src/gem/analysis/fight_timeline.py:311](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/fight_timeline.py#L311)
+
+### Top-level classes
+
+### `CastHit`
+
+```python
+class CastHit
+```
+
+What one cast did to one hero.
+
+Source: [src/gem/analysis/fight_timeline.py:44](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/fight_timeline.py#L44)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `hero` | `str` | `-` |
+| `damage` | `int` | `0` |
+| `damage_type` | `str` | `''` |
+| `stun_s` | `float` | `0.0` |
+| `modifiers` | `tuple[str, ...]` | `()` |
+
+### `TimelineCast`
+
+```python
+class TimelineCast
+```
+
+One ability or item use by a hero, with the heroes it hit.
+
+Source: [src/gem/analysis/fight_timeline.py:65](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/fight_timeline.py#L65)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `tick` | `int` | `-` |
+| `caster` | `str` | `-` |
+| `ability` | `str` | `-` |
+| `is_item` | `bool` | `-` |
+| `level` | `int` | `0` |
+| `target` | `str \| None` | `None` |
+| `target_is_hero` | `bool` | `False` |
+| `hits` | `tuple[CastHit, ...]` | `()` |
+| `self_effect` | `CastHit \| None` | `None` |
+
+#### Properties
+
+##### `damage`
+
+Signature: `def TimelineCast.damage(self) -> int`
+
+Total damage the cast dealt to other heroes.
+
+Source: [src/gem/analysis/fight_timeline.py:97](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/fight_timeline.py#L97)
+
+### `DamageBurst`
+
+```python
+class DamageBurst
+```
+
+Damage from one unit to one hero, with one source and type, in a short burst.
+
+Source: [src/gem/analysis/fight_timeline.py:103](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/fight_timeline.py#L103)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `start_tick` | `int` | `-` |
+| `end_tick` | `int` | `-` |
+| `attacker` | `str` | `-` |
+| `attacker_is_illusion` | `bool` | `-` |
+| `attacker_hero` | `str \| None` | `-` |
+| `target` | `str` | `-` |
+| `source` | `str` | `-` |
+| `damage_type` | `str` | `-` |
+| `damage` | `int` | `-` |
+| `hits` | `int` | `-` |
+
+### `ModifierWindow`
+
+```python
+class ModifierWindow
+```
+
+A modifier on a hero, from ``MODIFIER_ADD`` to its ``MODIFIER_REMOVE``.
+
+Source: [src/gem/analysis/fight_timeline.py:135](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/fight_timeline.py#L135)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `target` | `str` | `-` |
+| `modifier` | `str` | `-` |
+| `source` | `str` | `-` |
+| `source_hero` | `str \| None` | `-` |
+| `start_tick` | `int \| None` | `-` |
+| `end_tick` | `int \| None` | `-` |
+| `duration_s` | `float \| None` | `None` |
+| `stun_s` | `float` | `0.0` |
+| `aura` | `bool \| None` | `None` |
+
+### `DamageTaken`
+
+```python
+class DamageTaken
+```
+
+Damage a hero took from one unit, source and type before dying.
+
+Source: [src/gem/analysis/fight_timeline.py:165](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/fight_timeline.py#L165)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `attacker` | `str` | `-` |
+| `attacker_is_illusion` | `bool` | `-` |
+| `attacker_hero` | `str \| None` | `-` |
+| `source` | `str` | `-` |
+| `damage_type` | `str` | `-` |
+| `damage` | `int` | `-` |
+
+### `TimelineDeath`
+
+```python
+class TimelineDeath
+```
+
+A hero death.
+
+Source: [src/gem/analysis/fight_timeline.py:186](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/fight_timeline.py#L186)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `tick` | `int` | `-` |
+| `victim` | `str` | `-` |
+| `killer` | `str` | `-` |
+| `killer_hero` | `str \| None` | `-` |
+| `reincarnated` | `bool` | `-` |
+| `gold_lost` | `int` | `0` |
+| `recent_damage` | `tuple[DamageTaken, ...]` | `()` |
+
+### `KillRewards`
+
+```python
+class KillRewards
+```
+
+The kill gold and XP paid on a tick with hero deaths.
+
+Source: [src/gem/analysis/fight_timeline.py:212](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/fight_timeline.py#L212)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `tick` | `int` | `-` |
+| `victims` | `tuple[str, ...]` | `-` |
+| `gold` | `dict[str, int]` | `field(...)` |
+| `xp` | `dict[str, int]` | `field(...)` |
+
+### `TimelineBuyback`
+
+```python
+class TimelineBuyback
+```
+
+A buyback.
+
+Source: [src/gem/analysis/fight_timeline.py:232](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/fight_timeline.py#L232)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `tick` | `int` | `-` |
+| `hero` | `str` | `-` |
+| `cost` | `int` | `-` |
+| `cost_exact` | `bool` | `-` |
+
+### `FightTimeline`
+
+```python
+class FightTimeline
+```
+
+A window's combat log as typed records, each list in tick order.
+
+Source: [src/gem/analysis/fight_timeline.py:250](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/fight_timeline.py#L250)
+
+#### Dataclass fields
+
+| Name | Type | Default |
+|---|---|---|
+| `start_tick` | `int` | `-` |
+| `end_tick` | `int` | `-` |
+| `player_ids` | `dict[str, int]` | `-` |
+| `casts` | `tuple[TimelineCast, ...]` | `()` |
+| `damage` | `tuple[DamageBurst, ...]` | `()` |
+| `modifiers` | `tuple[ModifierWindow, ...]` | `()` |
+| `deaths` | `tuple[TimelineDeath, ...]` | `()` |
+| `rewards` | `tuple[KillRewards, ...]` | `()` |
+| `buybacks` | `tuple[TimelineBuyback, ...]` | `()` |
+
+#### Properties
+
+##### `disables`
+
+Signature: `def FightTimeline.disables(self) -> tuple[ModifierWindow, ...]`
+
+The modifiers that stunned (``stun_s > 0``).
+
+Source: [src/gem/analysis/fight_timeline.py:278](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/fight_timeline.py#L278)
+
+#### Methods
+
+##### `rewards_at`
+
+Signature: `def FightTimeline.rewards_at(self, tick: int) -> KillRewards | None`
+
+The kill rewards paid on ``tick``, or ``None``.
+
+Source: [src/gem/analysis/fight_timeline.py:282](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/fight_timeline.py#L282)
+
 ## Module `gem.analysis.bundle`
 
 One-call bundle of gem's evidence-first post-parse analyses.

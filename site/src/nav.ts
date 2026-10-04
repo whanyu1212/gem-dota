@@ -80,6 +80,7 @@ export const SECTIONS: Section[] = [
           { text: "Roshan Conversion Calibration", link: "/experimental/rosh-conversion-calibration" },
           { text: "Smoke Analysis", link: "/experimental/smoke-analysis" },
           { text: "Fight Positioning", link: "/experimental/fight-positioning" },
+          { text: "Fight Timeline", link: "/experimental/fight-timeline" },
           { text: "Point-Vision Evidence", link: "/experimental/estimate-vision" },
           { text: "Vision Modifiers", link: "/experimental/vision-modifiers" },
         ],

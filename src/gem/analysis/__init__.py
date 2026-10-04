@@ -31,6 +31,19 @@ from gem.analysis.fight_positioning import (
     TeamPositionSummary,
     build_fight_positioning,
 )
+from gem.analysis.fight_timeline import (
+    CastHit,
+    DamageBurst,
+    DamageTaken,
+    FightTimeline,
+    KillRewards,
+    ModifierWindow,
+    TimelineBuyback,
+    TimelineCast,
+    TimelineDeath,
+    build_fight_timeline,
+    modifier_matches_ability,
+)
 from gem.analysis.formatting import format_npc_name
 from gem.analysis.regions import MAP_REGIONS, region_of
 from gem.analysis.roshan import (
@@ -114,6 +127,17 @@ __all__ = [
     "build_rosh_conversions",
     "build_smoke_analysis",
     "build_fight_positioning",
+    "CastHit",
+    "DamageBurst",
+    "DamageTaken",
+    "FightTimeline",
+    "KillRewards",
+    "ModifierWindow",
+    "TimelineBuyback",
+    "TimelineCast",
+    "TimelineDeath",
+    "build_fight_timeline",
+    "modifier_matches_ability",
     "MatchAnalysis",
     "analyze",
     "entity_visibility_at",

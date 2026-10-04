@@ -12,6 +12,7 @@ import gem
 import gem.analysis as analysis
 import gem.analysis.combat as analysis_combat
 import gem.analysis.fight_positioning as analysis_teamfight_positioning
+import gem.analysis.fight_timeline as analysis_fight_timeline
 import gem.analysis.spatial as analysis_spatial
 from gem.analysis import group_ability_hits, position_at_tick, position_sample_at_tick, regions
 from gem.combat.log import CombatLogEntry
@@ -27,6 +28,9 @@ def test_analysis_package_reexports_public_helpers() -> None:
         analysis.build_fight_positioning is analysis_teamfight_positioning.build_fight_positioning
     )
     assert gem.build_fight_positioning is analysis.build_fight_positioning
+    assert analysis.build_fight_timeline is analysis_fight_timeline.build_fight_timeline
+    assert gem.build_fight_timeline is analysis.build_fight_timeline
+    assert gem.FightTimeline is analysis_fight_timeline.FightTimeline
 
 
 # ---------------------------------------------------------------------------

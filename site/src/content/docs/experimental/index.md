@@ -31,6 +31,7 @@ reports what the replay shows, and answering questions from it is left to you
 | [Roshan Conversion Calibration](./rosh-conversion-calibration.md) | Which real-replay attribution, lifecycle and fight-association facts the Roshan corpus guards |
 | [Smoke Analysis](./smoke-analysis.md) | When each smoked hero gained and lost the modifier, what the enemy could see, and what happened next |
 | [Fight Positioning](./fight-positioning.md) | How both teams were arranged at four bounded fight moments, with position freshness and opposing-team visibility kept explicit |
+| [Fight Timeline](./fight-timeline.md) | What each hero cast in a fight, who it hit and for how much, what hit each hero before it died, and the gold and XP paid for each kill |
 | [Point-Vision Evidence](./estimate-vision.md) | Bounded hero/observer geometry with explicit support, incompleteness, provenance, and separate target evidence |
 | [Vision Modifiers](./vision-modifiers.md) | Which reveal-style modifier windows gem tracks, how they are derived from combat-log events, and how they feed later vision analysis |
 
@@ -45,8 +46,9 @@ reports what the replay shows, and answering questions from it is left to you
 7. [Roshan Conversion Calibration](./rosh-conversion-calibration.md)
 8. [Smoke Analysis](./smoke-analysis.md)
 9. [Fight Positioning](./fight-positioning.md)
-10. [Point-Vision Evidence](./estimate-vision.md)
-11. [Vision Modifiers](./vision-modifiers.md)
+10. [Fight Timeline](./fight-timeline.md)
+11. [Point-Vision Evidence](./estimate-vision.md)
+12. [Vision Modifiers](./vision-modifiers.md)
 
 The first three tell you where the underlying replay data comes from. The pages
 in this section explain how gem joins that data into each record, and what the
