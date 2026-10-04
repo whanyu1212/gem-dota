@@ -237,7 +237,7 @@ export const FILTERS: { key: string; label: string; kinds: RowKind[]; on: boolea
   { key: "items", label: "Items", kinds: ["item"], on: true },
   { key: "disables", label: "Disables", kinds: ["disable"], on: true },
   { key: "buffs", label: "Buffs & smoke", kinds: ["buff", "smoke"], on: true },
-  { key: "attacks", label: "Attacks", kinds: ["attack"], on: false },
+  { key: "attacks", label: "Attacks", kinds: ["attack"], on: true },
 ];
 
 export interface Row {

@@ -153,8 +153,11 @@ describe("feed rows", () => {
 
   it("shows rows whose filter is on and that involve the followed hero", () => {
     const on = new Set(FILTERS.filter((f) => f.on).map((f) => f.key));
+    // Every filter is on by default, attacks included.
+    expect(FILTERS.every((f) => f.on)).toBe(true);
     const attack = rows.find((r) => r.kind === "attack")!;
-    expect(rowShows(attack, on, null)).toBe(false);
+    expect(rowShows(attack, on, null)).toBe(true);
+    expect(rowShows(attack, new Set([...on].filter((k) => k !== "attacks")), null)).toBe(false);
     const avalanche = rows.find((r) => r.cast?.what === "Avalanche")!;
     expect(rowShows(avalanche, on, null)).toBe(true);
     expect(rowShows(avalanche, on, 3)).toBe(true);
