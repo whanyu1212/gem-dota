@@ -23,11 +23,12 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+# The scripts folder, for the shared icon download in scripts/_icons.py.
+sys.path.insert(0, str(Path(__file__).parent))
 
-from gem.reports.asset_cache import (  # noqa: E402
+from _icons import (  # noqa: E402
+    ITEM_ICON_DIR as _OUT_DIR,
     ITEMS_JSON as _ITEMS_JSON,
-    SOURCE_ITEM_ICON_DIR as _OUT_DIR,
     download_item_icons,
     item_icon_shorts,
     missing_item_icons,
