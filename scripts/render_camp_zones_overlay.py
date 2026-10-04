@@ -4,7 +4,7 @@ Reads ``camp_zones.json`` in world coordinates and draws each camp's zone, a
 type marker and its ID on a chip coloured by owner team. With ``--regions`` it
 also draws the analysis regions from ``map_constants.json``: the two halves, the
 river and the lotus areas. Points are placed with the report maps' calibrated
-projection (``gem.reports._formatting.world_to_map_image``), so the picture
+projection (``gem.catalog.map.world_to_map_image``), so the picture
 shows exactly where gem puts things.
 
     uv run python scripts/render_camp_zones_overlay.py --regions --width 1800 \
@@ -24,7 +24,7 @@ from PIL import Image, ImageDraw, ImageFont
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
-from gem.reports._formatting import MAP_XMAX, MAP_XMIN, world_to_map_image  # noqa: E402
+from gem.catalog.map import MAP_XMAX, MAP_XMIN, world_to_map_image  # noqa: E402
 
 DEFAULT_IMAGE = REPO_ROOT / "assets" / "maps" / "Game_map_7.41.jpg"
 DEFAULT_ZONES = REPO_ROOT / "src" / "gem" / "data" / "camp_zones.json"

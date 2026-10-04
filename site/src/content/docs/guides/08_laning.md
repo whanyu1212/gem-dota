@@ -84,10 +84,10 @@ for p in match.players:
 
 ### Placing cells on the map image
 
-The report draws lanes over `assets/maps/Game_map_7.41.jpg`. A cell's world position is
-`cell * 128`. The report maps world coordinates onto the image through a window
-calibrated against building positions from a replay (`MAP_XMIN` … in
-`gem.reports._formatting`). All six T1 towers, the outposts, both ancients and fountains,
+Lane cells can be drawn over `assets/maps/Game_map_7.41.jpg`. A cell's world position is
+`cell * 128`. `gem.catalog.map.world_to_map_image` maps world coordinates onto the image
+through a window calibrated against building positions from a replay (`MAP_XMIN` … in
+`gem.catalog.map`). All six T1 towers, the outposts, both ancients and fountains,
 the twin gates, the Tormentor and the Roshan pit land on their structures, within about
 60 world units. OpenDota's lane grid also fits the 7.41 map: all 18 lane towers fall in
 their own lane.

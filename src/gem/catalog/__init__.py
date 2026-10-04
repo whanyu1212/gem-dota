@@ -27,10 +27,18 @@ from gem.catalog.items import (
 )
 from gem.catalog.leagues import LEAGUES, league_name
 from gem.catalog.map import (
+    MAP_IMAGE_HEIGHT,
+    MAP_IMAGE_WIDTH,
+    MAP_XMAX,
+    MAP_XMIN,
+    MAP_YMAX,
+    MAP_YMIN,
     load_camp_zones,
     load_map_constants,
     load_neutral_camp_centers,
     load_neutral_camps,
+    map_image_to_world,
+    world_to_map_image,
 )
 from gem.catalog.resources import load_data_json, load_data_text
 from gem.catalog.xp import XP_LEVEL, xp_to_next_level
@@ -40,6 +48,12 @@ __all__ = [
     "HEROES",
     "ITEMS",
     "LEAGUES",
+    "MAP_IMAGE_HEIGHT",
+    "MAP_IMAGE_WIDTH",
+    "MAP_XMAX",
+    "MAP_XMIN",
+    "MAP_YMAX",
+    "MAP_YMIN",
     "PERMANENT_BUFFS",
     "XP_LEVEL",
     "ability_display",
@@ -57,6 +71,8 @@ __all__ = [
     "load_map_constants",
     "load_neutral_camp_centers",
     "load_neutral_camps",
+    "map_image_to_world",
     "permanent_buff_name",
+    "world_to_map_image",
     "xp_to_next_level",
 ]

@@ -5,7 +5,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-from gem.reports._formatting import (
+from gem.catalog.map import (
     MAP_IMAGE_HEIGHT,
     MAP_IMAGE_WIDTH,
     MAP_XMAX,
