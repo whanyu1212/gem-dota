@@ -50,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   heroes were smoked and which the enemy couldn't see (the replay's own
   visibility), starting from the smoke that led into the fight (HY-139), and
   every disable, debuff and buff a hero put on another, each with its duration,
-  in the feed (HY-140).
+  in the feed, with deaths and buybacks marked along the timeline (HY-140).
 
 - **JSON `schema_version` is 4.** The `analysis` section no longer has
   `smoke_fights`, the farming segment `context`, or the Roshan tags, verdicts and

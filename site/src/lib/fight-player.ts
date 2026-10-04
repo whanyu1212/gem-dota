@@ -227,9 +227,38 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
     svg("rect", { class: "strip-dire", x: i * width + 0.5, y: 32, width: width - 1, height: (perSecond.dire[i] / peak) * 28 }, strip);
   });
   svg("line", { class: "strip-axis", x1: 0, x2: 1000, y1: 32, y2: 32 }, strip);
+  // Deaths and buybacks as marks beside the strip: Radiant's above it, Dire's
+  // below, each in two rows (deaths next to the bars, buybacks outside them) so a
+  // death and its buyback a second later don't cover each other.
+  const lane = (team: string) => {
+    const el = html("div", { class: `strip-lane strip-lane--${team}` });
+    const deathsRow = html("div", { class: "strip-row" });
+    const buybacksRow = html("div", { class: "strip-row" });
+    if (team === "radiant") el.append(buybacksRow, deathsRow);
+    else el.append(deathsRow, buybacksRow);
+    return { el, deathsRow, buybacksRow };
+  };
+  const lanes = { radiant: lane("radiant"), dire: lane("dire") };
+  strip.before(lanes.radiant.el);
+  strip.after(lanes.dire.el);
+  const at = (t: number) => `${(100 * t) / data.duration}%`;
   for (const death of data.deaths) {
-    const radiant = heroes[death.victim].team === "radiant";
-    svg("rect", { class: `strip-death strip-death--${death.aegis ? "aegis" : heroes[death.victim].team}`, x: (death.t / data.duration) * 1000 - 1.5, y: radiant ? 0 : 60, width: 3, height: 4 }, strip);
+    const team = heroes[death.victim].team === "radiant" ? "radiant" : "dire";
+    const mark = html(
+      "span",
+      { class: `strip-mark strip-mark--${death.aegis ? "aegis" : team}`, style: `left: ${at(death.t)}`, title: `${names[death.victim]} ${death.aegis ? "died (Aegis)" : "died"} at ${clockAt(data.start_s, death.t)}` },
+      death.aegis ? "A" : "✕",
+    );
+    lanes[team].deathsRow.append(mark);
+  }
+  for (const [t, hero, cost] of data.buybacks) {
+    const team = heroes[hero].team === "radiant" ? "radiant" : "dire";
+    const mark = html(
+      "span",
+      { class: "strip-mark strip-mark--buyback", style: `left: ${at(t)}`, title: `${names[hero]} bought back at ${clockAt(data.start_s, t)} for ${number(cost)} gold` },
+      `↺ ${number(cost)}`,
+    );
+    lanes[team].buybacksRow.append(mark);
   }
   const cursor = svg("line", { class: "strip-cursor", y1: 0, y2: 64 }, strip);
 
@@ -362,7 +391,7 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
         return deathBody(row);
       case "buyback": {
         const [, hero, cost] = row.buyback!;
-        return html("span", { class: "row-body" }, iconImg(hero), html("b", {}, "bought back"), "for", html("span", { class: "loss" }, number(cost)), "gold");
+        return html("span", { class: "row-body" }, html("span", { class: "buyback-mark", "aria-hidden": "true" }, "↺"), iconImg(hero), html("b", {}, "bought back"), "for", html("span", { class: "loss" }, number(cost)), "gold");
       }
       case "disable":
       case "debuff":
@@ -493,6 +522,17 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
           const k = (t - broke) / SMOKE_PUFF_S;
           svg("circle", { class: "smoke-puff", cx: at.x, cy: at.y, r: badge * (1.3 + 1.6 * k), "stroke-width": 2 * px, opacity: 1 - k }, gPops);
         }
+      }
+    }
+    // A buyback pops where the hero died (it reappears at the fountain, off the map).
+    if (layers.has("gold")) {
+      for (const [b0, hero, cost] of data.buybacks) {
+        if (b0 > t || t - b0 >= GOLD_POP_S) continue;
+        const spot = deathMarks.filter((m) => m.death.victim === hero && !m.death.aegis && m.death.t <= b0 && m.spot).at(-1)?.spot;
+        if (!spot) continue;
+        const k = (t - b0) / GOLD_POP_S;
+        const label = svg("text", { class: "gold-pop gold-pop--buyback", x: spot.x, y: spot.y - (20 + k * 16) * px, "text-anchor": "middle", "font-size": 11 * px, "stroke-width": 3 * px, opacity: 1 - k * k }, gPops);
+        label.textContent = `↺ bought back · ${number(cost)}`;
       }
     }
     for (const mark of deathMarks) {

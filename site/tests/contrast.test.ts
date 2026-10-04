@@ -32,6 +32,8 @@ const TEXT_ON_SURFACE = [
   // Figure 3's feed: damage-type tags, gold gained and lost, stun seconds.
   ["ink", "dmg-physical-bg"], ["ink", "dmg-magical-bg"], ["ink", "dmg-pure-bg"],
   ["danger", "paper"], ["important", "paper"],
+  // The buyback pill on the strip: paper text on the accent.
+  ["paper", "accent"],
 ];
 const CODE_COLOURS = [
   ...new Set((gemCodeTheme.tokenColors ?? []).flatMap((t) => (t.settings.foreground ? [t.settings.foreground] : []))),
