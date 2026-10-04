@@ -211,6 +211,40 @@ def fight_snapshot(match: ParsedMatch) -> dict | None:
     def side(player: ParsedPlayer | None) -> str:
         return TEAMS.get(player.team, "unknown") if player else "unknown"
 
+    events: list[tuple[int, str, str]] = []  # (tick, team colour, text)
+    deaths: list[tuple[str, str, Point, int]] = []  # (hero, team, world spot, tick)
+    for smoke in gem.build_smoke_analysis(match):
+        if smoke.first_fight is fight:
+            count = len(smoke.members)
+            team = TEAMS.get(smoke.team, "unknown")
+            heroes = "hero" if count == 1 else "heroes"
+            events.append(
+                (smoke.activation_tick, team, f"{team.capitalize()} smoked {count} {heroes}")
+            )
+    for entry in match.combat_log:
+        if not fight.start_tick <= entry.tick <= fight.end_tick:
+            continue
+        kind = str(entry.log_type)
+        victim = by_hero.get(entry.target_name)
+        # Aegis and Reincarnation triggers are not deaths, as in detect_fights().
+        if (
+            kind == "DEATH"
+            and entry.target_is_hero
+            and not entry.target_is_illusion
+            and not entry.will_reincarnate
+            and victim
+        ):
+            killer = by_hero.get(entry.attacker_name)
+            text = f"{_unit_name(entry.attacker_name)} killed {hero_display(victim.hero_name)}"
+            events.append((entry.tick, side(killer), text))
+            spot = gem.position_at_tick(victim, entry.tick)
+            if spot is not None:
+                deaths.append((hero_display(victim.hero_name), side(victim), spot, entry.tick))
+        elif kind == "BUYBACK" and entry.value in by_slot:
+            buyer = by_slot[entry.value]
+            events.append((entry.tick, side(buyer), f"{hero_display(buyer.hero_name)} bought back"))
+    events.sort(key=lambda event: event[0])
+
     # Paths run from the window's start to the last death: the walk away afterwards
     # would only clutter the figure.
     last_death = fight.last_death_tick or fight.end_tick
@@ -238,39 +272,20 @@ def fight_snapshot(match: ParsedMatch) -> dict | None:
         for _, run in near
         for x, y, _tick in run
         if math.dist((x, y), centre) <= FIGHT_RADIUS
-    ] or [centre]
+    ] + [spot for _, _, spot, _ in deaths] or [centre]
 
-    events: list[tuple[int, str, str]] = []  # (tick, team colour, text)
-    deaths: list[tuple[str, str, list[float], int]] = []  # (hero, team, at, tick)
-    for smoke in gem.build_smoke_analysis(match):
-        if smoke.first_fight is fight:
-            count = len(smoke.members)
-            team = TEAMS.get(smoke.team, "unknown")
-            heroes = "hero" if count == 1 else "heroes"
-            events.append(
-                (smoke.activation_tick, team, f"{team.capitalize()} smoked {count} {heroes}")
-            )
-    for entry in match.combat_log:
-        if not fight.start_tick <= entry.tick <= fight.end_tick:
-            continue
-        kind = str(entry.log_type)
-        victim = by_hero.get(entry.target_name)
-        if kind == "DEATH" and entry.target_is_hero and not entry.target_is_illusion and victim:
-            killer = by_hero.get(entry.attacker_name)
-            text = f"{_unit_name(entry.attacker_name)} killed {hero_display(victim.hero_name)}"
-            events.append((entry.tick, side(killer), text))
-            spot = gem.position_at_tick(victim, entry.tick)
-            if spot is not None:
-                deaths.append(
-                    (hero_display(victim.hero_name), side(victim), _project(*spot), entry.tick)
-                )
-        elif kind == "BUYBACK" and entry.value in by_slot:
-            buyer = by_slot[entry.value]
-            events.append((entry.tick, side(buyer), f"{hero_display(buyer.hero_name)} bought back"))
-    events.sort(key=lambda event: event[0])
+    clock = match.game_clock
+    start_s = clock.game_time_at(fight.start_tick) if clock is not None else None
 
     def since(tick: int) -> float:
-        """Seconds since the fight window started (replay ticks), for the playback."""
+        """In-game seconds since the fight window started, for the playback.
+
+        Pause-aware, like the clock times the narration shows; raw replay ticks
+        only when the replay has no game clock.
+        """
+        now_s = clock.game_time_at(tick) if clock is not None else None
+        if now_s is not None and start_s is not None:
+            return round(now_s - start_s, 1)
         return round((tick - fight.start_tick) / TICKS_PER_SECOND, 1)
 
     totals = {"radiant": {"gold": 0, "xp": 0}, "dire": {"gold": 0, "xp": 0}}
@@ -303,8 +318,8 @@ def fight_snapshot(match: ParsedMatch) -> dict | None:
             for player, run in near
         ],
         "deaths_at": [
-            {"hero": hero, "team": team, "at": at, "t": since(tick)}
-            for hero, team, at, tick in deaths
+            {"hero": hero, "team": team, "at": _project(*spot), "t": since(tick)}
+            for hero, team, spot, tick in deaths
         ],
         "events": [
             {"time": _clock(match, tick), "t": since(tick), "team": team, "text": text}
