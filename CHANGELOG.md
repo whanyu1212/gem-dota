@@ -24,6 +24,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `m_flMaxMana`); JSON files written by older versions load with the lists
   empty, and their DataFrame columns are missing values rather than 0.
 
+- **Fight timeline (experimental)** (HY-122). `gem.build_fight_timeline(match,
+  start_tick, end_tick)` turns a window's combat log into typed records: each
+  ability and item use with the heroes it hit and the damage it did to each,
+  damage on heroes in half-second bursts (credited to the owner for summons and
+  illusions), modifier windows (buffs, debuffs, stuns), deaths with the gold
+  lost and the damage taken in the last ten seconds, the kill gold and XP paid
+  on each death tick, and buybacks with their cost. A cast's hits are the one
+  derived field: the heroes its own ability damaged or debuffed within three
+  seconds. See the new Fight Timeline page.
+
 ### Changed
 
 - **Docs site** (HY-110). The documentation at

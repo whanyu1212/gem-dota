@@ -111,6 +111,7 @@
 /experimental/farming-patterns
 /experimental/farming-patterns-calibration
 /experimental/fight-positioning
+/experimental/fight-timeline
 /experimental/map-annotations
 /experimental/rosh-conversion
 /experimental/rosh-conversion-calibration

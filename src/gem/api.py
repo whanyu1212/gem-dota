@@ -56,6 +56,10 @@ Public API
 ``build_fight_positioning(match)``
     Build bounded spatial and visibility snapshots for detected fights.
 
+``build_fight_timeline(match, start_tick, end_tick)``
+    Turn a window's combat log into casts with their hits, damage, modifiers,
+    deaths, kill rewards and buybacks.
+
 ``analyze(match)``
     Run every default post-parse analysis and return a ``MatchAnalysis``.
 
@@ -98,6 +102,7 @@ from gem.analysis import (
     FarmingRouteSegment,
     FightPositioning,
     FightPositionSnapshot,
+    FightTimeline,
     HeroPositionEvidence,
     MatchAnalysis,
     PointVisionAssessment,
@@ -122,6 +127,7 @@ from gem.analysis import (
     assess_point_vision,
     build_farming_routes,
     build_fight_positioning,
+    build_fight_timeline,
     build_rosh_conversions,
     build_smoke_analysis,
     bundle as _bundle,
@@ -551,6 +557,8 @@ __all__ = [
     "build_rosh_conversions",
     "build_smoke_analysis",
     "build_fight_positioning",
+    "FightTimeline",
+    "build_fight_timeline",
     "MatchAnalysis",
     "analyze",
     "resolve_pick_team",
