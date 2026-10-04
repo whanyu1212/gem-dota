@@ -8,6 +8,7 @@
  * or prefers reduced motion; then it waits on the final frame for play.
  */
 import {
+  buybackAfter,
   castParts,
   castText,
   clockAt,
@@ -301,26 +302,42 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
     const death = row.death!;
     const victim = death.victim;
     const lead = html("span", { class: "row-body" }, html("span", { class: "death-mark", "aria-hidden": "true" }, "✕"), iconImg(victim), html("b", {}, death.aegis ? "died to" : "killed by"), death.killer !== null ? iconImg(death.killer) : tag(death.killer_name));
+    const others = (death.tick_victims ?? []).filter((v) => v !== victim);
     if (death.aegis) lead.append(tag("Aegis · no gold lost"));
     else {
       lead.append(html("span", { class: "loss" }, `−${number(death.gold_lost)}`));
       for (const [hero, gold] of death.gold) lead.append(html("span", { class: "hit" }, iconImg(hero), html("span", { class: "gain" }, `+${number(gold)}`)));
     }
+    // Same-tick deaths share one set of bounties: shown once, on the first death.
+    if (others.length) lead.append(tag(death.gold.length ? "bounties shared with" : "bounties with"), ...others.map(iconImg));
     const toggle = html("button", { type: "button", class: "recap-toggle", "aria-expanded": "false" }, lead);
     const recap = html("div", { class: "recap", hidden: "" });
-    const total = death.recent.reduce((sum, r) => sum + r[3], 0);
+    const total = death.recent_total;
+    const listed = death.recent.reduce((sum, r) => sum + r[3], 0);
     const barEl = html("span", { class: "recap-bar" });
     for (const [, , type, damage] of death.recent) barEl.append(html("i", { class: `dmg-fill dmg-fill--${type}`, style: `flex: ${damage}` }));
+    if (total > listed) barEl.append(html("i", { class: "dmg-fill dmg-fill--others", style: `flex: ${total - listed}` }));
     recap.append(html("p", { class: "recap-label" }, `Damage taken, last 10 s · ${number(total)}`), barEl);
     for (const [who, source, type, damage] of death.recent) {
       recap.append(html("p", { class: "recap-row" }, html("span", {}, `${who} · ${source} `, typeTag(type)), html("b", {}, number(damage))));
     }
+    if (total > listed) recap.append(html("p", { class: "recap-row" }, html("span", {}, "Other sources"), html("b", {}, number(total - listed))));
     const xp = death.xp[0]?.[1];
     recap.append(
       html("p", { class: "recap-label" }, "XP"),
-      html("p", {}, death.aegis ? "None: the Aegis brought the hero back." : xp ? `+${number(xp)} each to ${death.xp.map(([h]) => names[h]).join(", ")}` : "None"),
+      html(
+        "p",
+        {},
+        death.aegis
+          ? "None: the Aegis brought the hero back."
+          : xp
+            ? `+${number(xp)} each to ${death.xp.map(([h]) => names[h]).join(", ")}${others.length ? `, for this tick's ${others.length + 1} deaths` : ""}`
+            : others.length
+              ? `Shown with ${names[(death.tick_victims ?? [])[0]]}'s death, on the same tick.`
+              : "None",
+      ),
     );
-    const buyback = data.buybacks.find(([t, hero]) => hero === victim && t >= death.t);
+    const buyback = buybackAfter(data, death);
     if (buyback) recap.append(html("p", { class: "gain" }, `Bought back at ${clockAt(data.start, buyback[0])} for ${number(buyback[2])} gold`));
     toggle.addEventListener("click", () => {
       recap.hidden = !recap.hidden;

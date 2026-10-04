@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import fight from "../src/data/fight.json";
 import home from "../src/data/home.json";
 import {
+  buybackAfter,
   castText,
   clockAt,
   damagePerSecond,
@@ -56,8 +57,8 @@ const data: FightData = {
     [5, 8, 3, "blade_mail"],
   ],
   deaths: [
-    { t: 3, victim: 0, killer: 2, killer_name: "Ember Spirit", aegis: false, gold_lost: 210, gold: [[2, 326]], xp: [[2, 468]], recent: [] },
-    { t: 5, victim: 2, killer: 1, killer_name: "Tiny", aegis: true, gold_lost: 0, gold: [], xp: [], recent: [] },
+    { t: 3, victim: 0, killer: 2, killer_name: "Ember Spirit", aegis: false, gold_lost: 210, gold: [[2, 326]], xp: [[2, 468]], recent: [], recent_total: 0 },
+    { t: 5, victim: 2, killer: 1, killer_name: "Tiny", aegis: true, gold_lost: 0, gold: [], xp: [], recent: [], recent_total: 0 },
   ],
   buybacks: [[6, 0, 831]],
 };
@@ -148,6 +149,20 @@ describe("feed rows", () => {
     expect(rowShows(avalanche, on, null)).toBe(true);
     expect(rowShows(avalanche, on, 3)).toBe(true);
     expect(rowShows(avalanche, on, 0)).toBe(false);
+  });
+});
+
+describe("buybacks", () => {
+  const death = (t: number, aegis = false) => ({ t, victim: 0, killer: 2, killer_name: "", aegis, gold_lost: 0, gold: [], xp: [], recent: [], recent_total: 0 });
+
+  it("binds a buyback to the death just before it, not an earlier one", () => {
+    const deaths = [death(1, true), death(3), death(8)];
+    const fight: FightData = { ...data, deaths, buybacks: [[4, 0, 900], [9, 0, 1200]] };
+    expect(buybackAfter(fight, deaths[0])).toBeUndefined(); // Aegis
+    expect(buybackAfter(fight, deaths[1])?.[2]).toBe(900);
+    expect(buybackAfter(fight, deaths[2])?.[2]).toBe(1200);
+    const noBuyback: FightData = { ...fight, buybacks: [[9, 0, 1200]] };
+    expect(buybackAfter(noBuyback, deaths[1])).toBeUndefined();
   });
 });
 

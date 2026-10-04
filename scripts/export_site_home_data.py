@@ -94,6 +94,8 @@ BUFF_RINGS = {
     "modifier_item_satanic_unholy": "satanic",
     "modifier_item_aeon_disk_buff": "aeon_disk",
 }
+#: How many damage sources a death's recap lists (its total covers them all).
+RECAP_ROWS = 6
 #: Names for disables whose modifier doesn't name its ability.
 DISABLE_NAMES = {
     "modifier_stunned": "Stun",
@@ -471,33 +473,38 @@ def fight_playback(match: ParsedMatch) -> dict | None:
     deaths = []
     for death in timeline.deaths:
         rewards = timeline.rewards_at(death.tick)
-        deaths.append(
-            {
-                "t": since(death.tick),
-                "victim": index[death.victim],
-                "killer": hero(death.killer_hero),
-                "killer_name": _unit_name(death.killer),
-                "aegis": death.reincarnated,
-                "gold_lost": death.gold_lost,
-                "gold": [
-                    [index[h], g]
-                    for h, g in (rewards.gold if rewards else {}).items()
-                    if h in index
-                ],
-                "xp": [
-                    [index[h], x] for h, x in (rewards.xp if rewards else {}).items() if h in index
-                ],
-                "recent": [
-                    [
-                        _unit_name(taken.attacker_hero or taken.attacker),
-                        _source_name(taken.source),
-                        taken.damage_type,
-                        taken.damage,
-                    ]
-                    for taken in death.recent_damage[:6]
-                ],
-            }
-        )
+        # The log can't say which of several same-tick deaths a bounty paid for, so
+        # the shared rewards go on the tick's first death only, and every death on
+        # the tick lists the tick's victims.
+        first_on_tick = rewards is None or rewards.victims[0] == death.victim
+        entry: dict = {
+            "t": since(death.tick),
+            "victim": index[death.victim],
+            "killer": hero(death.killer_hero),
+            "killer_name": _unit_name(death.killer),
+            "aegis": death.reincarnated,
+            "gold_lost": death.gold_lost,
+            "gold": [[index[h], g] for h, g in rewards.gold.items() if h in index]
+            if rewards and first_on_tick
+            else [],
+            "xp": [[index[h], x] for h, x in rewards.xp.items() if h in index]
+            if rewards and first_on_tick
+            else [],
+            # The largest sources (the recap's rows), and the total over all of them.
+            "recent": [
+                [
+                    _unit_name(taken.attacker_hero or taken.attacker),
+                    _source_name(taken.source),
+                    taken.damage_type,
+                    taken.damage,
+                ]
+                for taken in death.recent_damage[:RECAP_ROWS]
+            ],
+            "recent_total": sum(taken.damage for taken in death.recent_damage),
+        }
+        if rewards and len(rewards.victims) > 1:
+            entry["tick_victims"] = [index[v] for v in rewards.victims if v in index]
+        deaths.append(entry)
     return {
         "start": _clock(match, start),
         "duration": since(end),

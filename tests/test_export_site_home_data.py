@@ -334,8 +334,35 @@ def test_fight_playback_indexes_heroes_and_carries_the_timeline() -> None:
     assert (death["t"], death["killer"], death["gold_lost"]) == (6.0, tiny, 210)
     assert death["gold"] == [[tiny, 326]] and death["xp"] == [[tiny, 468]]
     assert death["recent"][0] == ["Tiny", "Avalanche", "magical", 312]
+    assert death["recent_total"] == 312 and "tick_victims" not in death
     assert playback["buybacks"] == [[6.7, lion, 831]]
 
 
 def test_fight_playback_is_none_without_fights() -> None:
     assert export.fight_playback(ParsedMatch(match_id=1)) is None
+
+
+def test_fight_playback_puts_same_tick_rewards_on_one_death() -> None:
+    match = _playback_match()
+    lion, tiny = match.players
+    match.combat_log = sorted(
+        [
+            *match.combat_log,
+            CombatLogEntry(
+                tick=180,
+                log_type="DEATH",
+                attacker_name=lion.hero_name,
+                target_name=tiny.hero_name,
+                target_is_hero=True,
+            ),
+        ],
+        key=lambda e: e.tick,
+    )
+    playback = export.fight_playback(match)
+    assert playback is not None
+    on_tick = [d for d in playback["deaths"] if d["t"] == 6.0]
+    assert [d["victim"] for d in on_tick] == [0, 1]
+    assert all(d["tick_victims"] == [0, 1] for d in on_tick)
+    # The tick's bounty and XP appear once, on its first death.
+    assert on_tick[0]["gold"] == [[1, 326]] and on_tick[0]["xp"] == [[1, 468]]
+    assert on_tick[1]["gold"] == [] and on_tick[1]["xp"] == []

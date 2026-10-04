@@ -46,8 +46,15 @@ export interface Death {
   gold_lost: number;
   gold: [number, number][];
   xp: [number, number][];
-  /** Damage taken in the 10 s before: attacker, source, type, damage. */
+  /** The largest damage sources in the 10 s before: attacker, source, type, damage. */
   recent: [string, string, string, number][];
+  /** All damage taken in those 10 s (every source, not only the rows). */
+  recent_total: number;
+  /**
+   * The heroes that died on the same tick, when more than one did. Their shared
+   * gold and XP are on the first of them only.
+   */
+  tick_victims?: number[];
 }
 
 export interface FightData {
@@ -175,6 +182,16 @@ export function castText(cast: Cast, names: string[], teams: string[]): string {
     if (parts.sharedType && parts.sharedType !== "others") text += ` ${parts.sharedType}`;
   }
   return text;
+}
+
+/**
+ * The buyback that followed a death: the hero's first buyback after it and before
+ * its next death. None for an Aegis death, which needs no buyback.
+ */
+export function buybackAfter(data: FightData, death: Death): FightData["buybacks"][number] | undefined {
+  if (death.aegis) return undefined;
+  const next = data.deaths.find((d) => d.victim === death.victim && !d.aegis && d.t > death.t)?.t ?? Infinity;
+  return data.buybacks.find(([t, hero]) => hero === death.victim && t >= death.t && t < next);
 }
 
 /** Damage dealt per whole second of the fight, by team: the strip under the map. */
