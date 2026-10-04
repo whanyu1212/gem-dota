@@ -316,6 +316,9 @@
   fill: var(--camp-ring);
   fill-opacity: 0.22;
 }
+.map-dim--fight {
+  fill-opacity: 0.34;
+}
 
 /* Figure 2: wards */
 
@@ -371,11 +374,14 @@
 
 /* Figure 3: the fight, with its narration beside it */
 
-.fight-path {
+.fight-path,
+.fight-casing {
   fill: none;
   stroke-linejoin: round;
   stroke-linecap: round;
-  stroke-opacity: 0.7;
+}
+.fight-casing {
+  stroke: var(--map-halo);
 }
 .fight-path--radiant {
   stroke: var(--map-radiant-mark);
@@ -444,8 +450,10 @@
   min-height: 0;
   overflow-y: auto;
   margin: 0;
-  padding: 0;
+  padding: 0 0 24px;
   list-style: none;
+  /* A soft edge where the list scrolls on. */
+  mask-image: linear-gradient(to bottom, black calc(100% - 32px), transparent);
 }
 .event {
   display: grid;

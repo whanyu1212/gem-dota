@@ -5,13 +5,20 @@
 import { getImage } from "astro:assets";
 import fightSource from "../../assets/home-fight.jpg";
 import home from "../../data/home.json";
+import { fadeOpacity, fadedPieces, type Sample } from "../../lib/paths";
 
 const fight = home.fight!;
 const fightImage = await getImage({ src: fightSource, width: 1000, format: "webp", quality: 80 });
 const [x, y, size] = fight.box;
 // Marks are sized in screen pixels (the map renders about 370 px wide), whatever the zoom.
 const px = size / 370;
-const points = (list: number[][]) => list.map(([px, py]) => `${px},${py}`).join(" ");
+// Smooth trails that fade from the window's start to the last death. Each piece
+// is drawn twice: a dark casing first (all of them), then the team colour.
+// Newer pieces are also wider: 1.2 px for the oldest, 2.4 px for the newest.
+const width = (level: number) => (1.2 + (1.2 * level) / 5) * px;
+const trails = fight.paths.flatMap((path) =>
+  fadedPieces(path.points as Sample[], fight.duration_s).map((piece) => ({ ...piece, team: path.team })),
+);
 
 // One label per hero, at the end of its last path segment inside the frame.
 const labels = new Map<string, { team: string; at: number[] }>();
@@ -43,10 +50,15 @@ const footer =
   <figure class="fig">
     <svg class="map" viewBox={`${x} ${y} ${size} ${size}`} role="img" aria-labelledby="fight-caption">
       <image href={fightImage.src} x={x} y={y} width={size} height={size} preserveAspectRatio="xMidYMid slice"></image>
-      <rect class="map-dim" x={x} y={y} width={size} height={size}></rect>
-      {fight.paths.map((path) => (
-        <polyline class={`fight-path fight-path--${path.team}`} points={points(path.points)} stroke-width={1.6 * px}></polyline>
-      ))}
+      <rect class="map-dim map-dim--fight" x={x} y={y} width={size} height={size}></rect>
+      <g class="fight-trails">
+        {trails.map((piece) => (
+          <path class="fight-casing" d={piece.d} stroke-width={width(piece.level) + 2 * px} stroke-opacity={fadeOpacity(piece.level) * 0.55}></path>
+        ))}
+        {trails.map((piece) => (
+          <path class={`fight-path fight-path--${piece.team}`} d={piece.d} stroke-width={width(piece.level)} stroke-opacity={fadeOpacity(piece.level)}></path>
+        ))}
+      </g>
       {fight.deaths_at.map((death) => (
         <g class={`fight-death fight-death--${death.team}`} transform={`translate(${death.at[0]} ${death.at[1]}) scale(${px})`}>
           <path class="halo" d="M-5,-5 L5,5 M5,-5 L-5,5"></path>
@@ -61,9 +73,9 @@ const footer =
       ))}
     </svg>
     <figcaption id="fight-caption">
-      <b>Figure 3.</b> The match's biggest fight, {fight.start}–{fight.end}: each hero's path up to the last death
-      (sampled about once a second, broken at teleports and respawns), where each hero ended (●), and where heroes
-      died (✕, in the victim's team colour).
+      <b>Figure 3.</b> The match's biggest fight, {fight.start}–{fight.end}: each hero's path up to the last death,
+      fading from faint at the start to solid (a curve through positions sampled about once a second, broken at
+      teleports and respawns), where each hero ended (●), and where heroes died (✕, in the victim's team colour).
     </figcaption>
   </figure>
   <aside class="narration" aria-label="What happened in the fight">

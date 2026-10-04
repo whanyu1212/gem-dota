@@ -58,6 +58,7 @@ IMAGE_PX = 1200
 FIGHT_RADIUS = 2600
 #: A sampled jump longer than this (world units) is a teleport or respawn, not a path.
 PATH_JUMP = 900
+TICKS_PER_SECOND = 30
 #: Observer ward vision radius, as in gem's point-vision model (analysis/vision.py).
 OBSERVER_VISION = 1600
 TEAMS = {2: "radiant", 3: "dire"}
@@ -164,18 +165,19 @@ def wards_snapshot(match: ParsedMatch, tick: int | None) -> dict:
 
 
 Point = tuple[float, float]
+Sample = tuple[float, float, int]  # world x, world y, replay tick
 
 
-def _paths(player: ParsedPlayer, start: int, end: int) -> list[list[Point]]:
+def _paths(player: ParsedPlayer, start: int, end: int) -> list[list[Sample]]:
     """The player's sampled path in [start, end], split at teleports and respawns."""
-    runs: list[list[Point]] = []
+    runs: list[list[Sample]] = []
     last: Point | None = None
     for tick, x, y in player.position_log:
         if not start <= tick <= end:
             continue
         if last is None or math.dist(last, (x, y)) > PATH_JUMP:
             runs.append([])
-        runs[-1].append((x, y))
+        runs[-1].append((x, y, tick))
         last = (x, y)
     return runs
 
@@ -212,7 +214,7 @@ def fight_snapshot(match: ParsedMatch) -> dict | None:
     ]
     # Keep the paths near the fight: heroes elsewhere (or walking back from the
     # fountain) would stretch the crop to the whole map.
-    points = [point for _, run in paths for point in run]
+    points = [(x, y) for _, run in paths for x, y, _tick in run]
     if fight.centroid_x is not None and fight.centroid_y is not None:
         centre: Point = (fight.centroid_x, fight.centroid_y)
     elif points:
@@ -222,9 +224,14 @@ def fight_snapshot(match: ParsedMatch) -> dict | None:
     near = [
         (player, run)
         for player, run in paths
-        if any(math.dist(p, centre) <= FIGHT_RADIUS for p in run)
+        if any(math.dist((x, y), centre) <= FIGHT_RADIUS for x, y, _tick in run)
     ]
-    framed = [p for _, run in near for p in run if math.dist(p, centre) <= FIGHT_RADIUS] or [centre]
+    framed = [
+        (x, y)
+        for _, run in near
+        for x, y, _tick in run
+        if math.dist((x, y), centre) <= FIGHT_RADIUS
+    ] or [centre]
 
     events: list[tuple[int, str, str]] = []  # (tick, team colour, text)
     deaths = []
@@ -269,6 +276,7 @@ def fight_snapshot(match: ParsedMatch) -> dict | None:
     return {
         "first_death_tick": fight.first_death_tick,
         "first_death": _clock(match, fight.first_death_tick) if fight.first_death_tick else None,
+        "duration_s": round((last_death - fight.start_tick) / TICKS_PER_SECOND),
         "start": _clock(match, fight.start_tick),
         "end": _clock(match, fight.end_tick),
         "deaths": fight.deaths,
@@ -281,7 +289,11 @@ def fight_snapshot(match: ParsedMatch) -> dict | None:
             {
                 "hero": hero_display(player.hero_name),
                 "team": side(player),
-                "points": [_project(*p) for p in run],
+                # [x, y, seconds since the window's start]: the figure fades older samples.
+                "points": [
+                    [*_project(x, y), round((tick - fight.start_tick) / TICKS_PER_SECOND)]
+                    for x, y, tick in run
+                ],
             }
             for player, run in near
         ],
