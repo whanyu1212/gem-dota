@@ -415,6 +415,14 @@ def test_hero_runs_restart_after_an_aegis() -> None:
     assert [run[0][0] for run in runs] == [0.0, 5.0]
 
 
+def test_thin_handles_a_pause() -> None:
+    # A pause freezes the clock: samples share a time while the state holds.
+    samples = [[1.0, 100.0, 200.0, 500, 600, 50, 300]] * 3 + [
+        [1.1, 101.0, 200.0, 500, 600, 50, 300]
+    ]
+    assert export._thin(samples)[0] == samples[0] and export._thin(samples)[-1] == samples[-1]
+
+
 def test_thin_keeps_what_the_straight_lines_cannot_redraw() -> None:
     samples = [[t / 10, 100.0 + t, 200.0, 500, 600, 50, 300] for t in range(10)]
     # A straight walk is its two ends.

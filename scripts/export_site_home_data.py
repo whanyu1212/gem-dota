@@ -679,7 +679,8 @@ def _thin(samples: list[list[float]]) -> list[list[float]]:
 
     def reproduces(a: list[float], b: list[float], skipped: list[list[float]]) -> bool:
         for sample in skipped:
-            k = (sample[0] - a[0]) / (b[0] - a[0])
+            # Two samples at one time (a pause): the line holds its start, as drawn.
+            k = 0.0 if b[0] == a[0] else (sample[0] - a[0]) / (b[0] - a[0])
             for j in range(1, len(sample)):
                 if abs(a[j] + (b[j] - a[j]) * k - sample[j]) > tolerances[j]:
                     return False
@@ -1034,6 +1035,11 @@ def main(argv: list[str] | None = None) -> int:
     args.data.write_text(json.dumps(data, indent=1) + "\n")
     fight_ = biggest_fight(match)
     states = load_hero_states(args.replay, *playback_window(match, fight_)) if fight_ else None
+    missing = [
+        p.hero_name for p in match.players if states is not None and not states.get(p.player_id)
+    ]
+    if missing:
+        raise SystemExit(f"no hero readings in the playback window for {', '.join(missing)}")
     playback = fight_playback(match, states)
     args.fight_data.parent.mkdir(parents=True, exist_ok=True)
     # Compact: the playback is loaded by the browser, so every byte counts.
