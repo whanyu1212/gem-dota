@@ -374,21 +374,6 @@
 
 /* Figure 3: the fight, with its narration beside it */
 
-.fight-path,
-.fight-casing {
-  fill: none;
-  stroke-linejoin: round;
-  stroke-linecap: round;
-}
-.fight-casing {
-  stroke: var(--map-halo);
-}
-.fight-path--radiant {
-  stroke: var(--map-radiant-mark);
-}
-.fight-path--dire {
-  stroke: var(--map-dire-mark);
-}
 .fight-death path {
   fill: none;
   stroke-width: 2.6;
@@ -404,45 +389,25 @@
 .fight-death--dire path:not(.halo) {
   stroke: var(--map-dire-mark);
 }
-.fight-hero circle {
+
+/* Heroes: the minimap icon in a ring of its team's colour. */
+.hero-ring {
   stroke: var(--map-halo);
 }
-.fight-hero--radiant circle {
+.fight-hero--radiant .hero-ring {
   fill: var(--map-radiant-mark);
 }
-.fight-hero--dire circle {
+.fight-hero--dire .hero-ring {
   fill: var(--map-dire-mark);
 }
-.fight-hero text {
-  fill: var(--map-label);
-  font-family: var(--font-sans);
-  font-weight: 600;
-  paint-order: stroke;
-  stroke: var(--map-halo);
-}
 
-/* Playback: the static figure until it plays (or is scrubbed), then the live
-   layer. Deaths appear as the clock reaches them. */
-.fight-live {
-  display: none;
-}
-.is-live .fight-live {
-  display: inline;
-}
-.is-live .fight-static {
-  display: none;
-}
+/* Playback: deaths appear as the clock reaches them. */
 .is-live .fight-death {
   opacity: 0;
   transition: opacity 0.25s;
 }
 .is-live .fight-death.is-shown {
   opacity: 1;
-}
-.live-hero path {
-  fill: none;
-  stroke-linejoin: round;
-  stroke-linecap: round;
 }
 
 .playback {

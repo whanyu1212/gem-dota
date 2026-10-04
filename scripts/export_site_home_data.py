@@ -11,7 +11,10 @@ snapshot, so building the site never parses a replay:
   hero paths, deaths and events. Map positions are in the coordinates of a
   1000-unit square;
 - ``site/src/assets/home-map.jpg``: the plain map square the overlays sit on;
-- ``site/src/assets/home-fight.jpg``: a sharper crop of the map around the fight.
+- ``site/src/assets/home-fight.jpg``: a sharper crop of the map around the fight;
+- ``site/src/assets/icons/``: the observer and sentry icons, and the fight's hero
+  icons (``heroes/<name>.png``), copied from the icons that
+  ``scripts/fetch_item_icons.py`` and ``scripts/fetch_hero_icons.py`` download.
 
 Hero paths and death spots are sampled positions (about one per second); ward
 positions are exact.
@@ -30,6 +33,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import shutil
 import sys
 from pathlib import Path
 
@@ -49,7 +53,10 @@ DEFAULT_REPLAY = REPO_ROOT / "tests" / "fixtures" / "opendota" / "8856501050.dem
 DEFAULT_DATA = REPO_ROOT / "site" / "src" / "data" / "home.json"
 DEFAULT_MAP_IMAGE = REPO_ROOT / "site" / "src" / "assets" / "home-map.jpg"
 DEFAULT_FIGHT_IMAGE = REPO_ROOT / "site" / "src" / "assets" / "home-fight.jpg"
+DEFAULT_ICONS = REPO_ROOT / "site" / "src" / "assets" / "icons"
 SOURCE_MAP = REPO_ROOT / "assets" / "maps" / "Game_map_7.41.jpg"
+ITEM_ICONS = REPO_ROOT / "src" / "gem" / "data" / "item_icons"
+HERO_ICONS = REPO_ROOT / "src" / "gem" / "data" / "hero_icons"
 
 #: The overlay's coordinate square, and the map image's size in pixels.
 SIZE = 1000
@@ -288,8 +295,9 @@ def fight_snapshot(match: ParsedMatch) -> dict | None:
         "paths": [
             {
                 "hero": hero_display(player.hero_name),
+                "icon": player.hero_name.removeprefix("npc_dota_hero_"),
                 "team": side(player),
-                # [x, y, seconds since the window's start], for the fade and the playback.
+                # [x, y, seconds since the window's start], for the playback.
                 "points": [[*_project(x, y), since(tick)] for x, y, tick in run],
             }
             for player, run in near
@@ -303,6 +311,33 @@ def fight_snapshot(match: ParsedMatch) -> dict | None:
             for tick, team, text in events
         ],
     }
+
+
+def write_icons(icons_dir: Path, heroes: set[str]) -> None:
+    """Copy the ward icons and the given heroes' icons (``nevermore``, …) into the site.
+
+    Raises:
+        SystemExit: When an icon hasn't been downloaded yet.
+    """
+    copies = [
+        (ITEM_ICONS / f"{kind}.png", icons_dir / f"{kind}.png")
+        for kind in ("ward_observer", "ward_sentry")
+    ]
+    copies += [
+        (HERO_ICONS / f"{hero}.png", icons_dir / "heroes" / f"{hero}.png")
+        for hero in sorted(heroes)
+    ]
+    missing = [str(source) for source, _ in copies if not source.is_file()]
+    if missing:
+        raise SystemExit(
+            "Missing icons; run scripts/fetch_item_icons.py and scripts/fetch_hero_icons.py first:\n  "
+            + "\n  ".join(missing)
+        )
+    if (icons_dir / "heroes").is_dir():
+        shutil.rmtree(icons_dir / "heroes")  # drop heroes from an earlier match
+    for source, target in copies:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target)
 
 
 def match_snapshot(match: ParsedMatch) -> dict:
@@ -336,6 +371,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--data", type=Path, default=DEFAULT_DATA)
     parser.add_argument("--map-image", type=Path, default=DEFAULT_MAP_IMAGE)
     parser.add_argument("--fight-image", type=Path, default=DEFAULT_FIGHT_IMAGE)
+    parser.add_argument("--icons-dir", type=Path, default=DEFAULT_ICONS)
     args = parser.parse_args(argv)
 
     match = load_match(args.replay)
@@ -353,6 +389,8 @@ def main(argv: list[str] | None = None) -> int:
     if fight is not None:
         write_map_image(args.fight_image, fight["box"])
         written.append(args.fight_image)
+    write_icons(args.icons_dir, {path["icon"] for path in fight["paths"]} if fight else set())
+    written.append(args.icons_dir)
     print("Wrote " + ", ".join(str(path) for path in written))
     return 0
 

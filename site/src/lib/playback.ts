@@ -3,10 +3,13 @@
  * fight, from its sampled path. Between samples (about one a second) the
  * position is interpolated, for display only.
  */
-import type { Sample } from "./paths";
+/** A sampled position: map-square x, y, and seconds since the fight window started. */
+export type Sample = [number, number, number];
 
 export interface HeroTrack {
   hero: string;
+  /** The hero's icon name, e.g. "nevermore". */
+  icon: string;
   team: string;
   /** Path segments in time order, each broken at a teleport or respawn. */
   runs: Sample[][];
@@ -15,12 +18,18 @@ export interface HeroTrack {
 }
 
 export function tracks(
-  paths: { hero: string; team: string; points: number[][] }[],
+  paths: { hero: string; icon?: string; team: string; points: number[][] }[],
   deaths: { hero: string; t: number }[],
 ): HeroTrack[] {
   const byHero = new Map<string, HeroTrack>();
   for (const path of paths) {
-    const track = byHero.get(path.hero) ?? { hero: path.hero, team: path.team, runs: [], deaths: [] };
+    const track = byHero.get(path.hero) ?? {
+      hero: path.hero,
+      icon: path.icon ?? "",
+      team: path.team,
+      runs: [],
+      deaths: [],
+    };
     track.runs.push(path.points as Sample[]);
     byHero.set(path.hero, track);
   }
@@ -54,11 +63,20 @@ export function runUntil(run: Sample[], t: number): number[][] {
   return out;
 }
 
-/** Where the hero is at t, or null when it is dead or has no sample around t. */
+/** How long a hero stays at its last sample after a path segment ends (about one sample gap). */
+export const HOLD_S = 1.5;
+
+/**
+ * Where the hero is at t, or null when it is dead or has no sample around t.
+ * Just after a segment's last sample the hero stays there, so the last frame of
+ * the fight still shows everyone alive.
+ */
 export function headAt(track: HeroTrack, t: number): number[] | null {
   if (isDead(track, t)) return null;
   const run = track.runs.find((r) => r[0][2] <= t && t <= r[r.length - 1][2]);
-  return run ? runUntil(run, t).at(-1)! : null;
+  if (run) return runUntil(run, t).at(-1)!;
+  const ended = track.runs.filter((r) => r[r.length - 1][2] < t && t - r[r.length - 1][2] <= HOLD_S).at(-1);
+  return ended ? ended[ended.length - 1] : null;
 }
 
 /** "42:34" plus t seconds, as "mm:ss" (a negative clock is not expected here). */

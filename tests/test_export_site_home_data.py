@@ -46,6 +46,8 @@ def test_main_writes_to_paths_outside_the_repository(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     monkeypatch.setattr(export, "load_match", lambda replay: ParsedMatch(match_id=1))
+    # Icons are downloaded, not committed, so CI has none; copying them is tested below.
+    monkeypatch.setattr(export, "write_icons", lambda icons_dir, heroes: None)
     data, image = tmp_path / "home.json", tmp_path / "map.jpg"
     assert export.main(["replay.dem", "--data", str(data), "--map-image", str(image)]) == 0
     written = json.loads(data.read_text())
@@ -94,3 +96,26 @@ def test_wards_up_are_those_placed_and_not_yet_gone() -> None:
     assert all("vision_radius" in w for w in snapshot["up"])
     assert snapshot["totals"] == {"observer": 3, "sentry": 2}
     assert export.wards_snapshot(match, tick=None)["up"] == []
+
+
+def test_write_icons_copies_wards_and_the_fight_heroes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    items, heroes = tmp_path / "items", tmp_path / "heroes"
+    items.mkdir()
+    heroes.mkdir()
+    for name in ("ward_observer", "ward_sentry"):
+        (items / f"{name}.png").write_bytes(b"png")
+    (heroes / "lion.png").write_bytes(b"lion")
+    monkeypatch.setattr(export, "ITEM_ICONS", items)
+    monkeypatch.setattr(export, "HERO_ICONS", heroes)
+    out = tmp_path / "site-icons"
+    (out / "heroes").mkdir(parents=True)
+    (out / "heroes" / "stale.png").write_bytes(b"old match")
+
+    export.write_icons(out, {"lion"})
+    assert sorted(p.name for p in out.glob("*.png")) == ["ward_observer.png", "ward_sentry.png"]
+    assert [p.name for p in (out / "heroes").iterdir()] == ["lion.png"]
+
+    with pytest.raises(SystemExit, match="fetch_hero_icons"):
+        export.write_icons(out, {"nevermore"})

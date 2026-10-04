@@ -77,14 +77,19 @@ from. The snapshot holds:
   of the map around it. Every sample, death and event carries its seconds since
   the fight window started, for the playback.
 
-Figure 3 plays the fight back (`src/lib/playback.ts`): at 4×, on a loop, while
-  it is on screen, with the narration following the clock. Positions between
-  samples are interpolated for display. With reduced motion it waits for the
-  play button; without JavaScript it stays the static figure.
+Figure 3 plays the fight back (`src/lib/playback.ts`): each hero's minimap icon,
+ringed in its team's colour, moves along its sampled path at 4×, on a loop,
+while the figure is on screen, and the narration follows the clock. Positions
+between samples are interpolated for display. Paused, with reduced motion
+(until play is pressed) or without JavaScript, it shows where everyone was at
+the last death.
+
+The export also copies the observer, sentry and fight heroes' icons into
+`src/assets/icons/` from the icons that `scripts/fetch_item_icons.py` and
+`scripts/fetch_hero_icons.py` download (run those first).
 
 Ward positions are exact; hero paths and death spots are sampled positions.
-The ward icons in `src/assets/icons/` are copied from the item icons that
-`scripts/fetch_item_icons.py` downloads. Every paired diagram sits on one
+Every paired diagram sits on one
 two-column grid (`.pair`, `.figures`, `.fight` in `src/styles/home.css`), so
 their edges line up. The recipe cards quote their recipe pages
 (`src/data/recipes.ts`), and `tests/home.test.ts` fails if a quoted sentence is

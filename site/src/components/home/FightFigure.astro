@@ -1,96 +1,64 @@
 ---
 // Figure 3: the match's biggest fight on the map, with its events alongside.
-// From the committed snapshot (scripts/export_site_home_data.py): hero paths and
-// death spots are sampled positions (about one a second); events are the combat log.
+// From the committed snapshot (scripts/export_site_home_data.py): hero positions
+// and death spots are sampled (about one a second); events are the combat log.
 //
-// The figure plays the fight back: heroes move along their sampled paths (at 4x,
-// on a loop, while the figure is on screen) and the narration follows the clock.
-// Without JavaScript, or with reduced motion, it stays the static figure below
-// until the reader presses play.
+// The figure plays the fight back: each hero's icon moves along its sampled
+// path (at 4x, on a loop, while the figure is on screen) and the narration
+// follows the clock. Without JavaScript, or with reduced motion until the
+// reader presses play, it shows where everyone was at the last death.
+import type { ImageMetadata } from "astro";
 import { getImage } from "astro:assets";
 import fightSource from "../../assets/home-fight.jpg";
 import home from "../../data/home.json";
-import { fadeOpacity, fadedPieces, type Sample } from "../../lib/paths";
-import { clockAt, tracks } from "../../lib/playback";
+import { clockAt, headAt, tracks } from "../../lib/playback";
 
 const fight = home.fight!;
 const fightImage = await getImage({ src: fightSource, width: 1000, format: "webp", quality: 80 });
 const [x, y, size] = fight.box;
 // Marks are sized in screen pixels (the map renders about 370 px wide), whatever the zoom.
 const px = size / 370;
-// Smooth trails that fade from the window's start to the last death. Each piece
-// is drawn twice: a dark casing first (all of them), then the team colour.
-// Newer pieces are also wider: 1.2 px for the oldest, 2.4 px for the newest.
-const width = (level: number) => (1.2 + (1.2 * level) / 5) * px;
-const trails = fight.paths.flatMap((path) =>
-  fadedPieces(path.points as Sample[], fight.duration_s).map((piece) => ({ ...piece, team: path.team })),
-);
 const heroes = tracks(fight.paths, fight.deaths_at);
 
-// One label per hero, at the end of its last path segment inside the frame.
-const labels = new Map<string, { team: string; at: number[] }>();
-for (const path of fight.paths) {
-  const inside = path.points.filter(([px, py]) => px >= x && px <= x + size && py >= y && py <= y + size);
-  if (inside.length) labels.set(path.hero, { team: path.team, at: inside[inside.length - 1] });
-}
-// Place labels top to bottom, moving one down while it overlaps a label already
-// placed (label boxes estimated from the text length at 11 px).
-const placed: { x: number; y: number; w: number; h: number }[] = [];
-const labelAt = new Map<string, { x: number; y: number }>();
-for (const [hero, { at }] of [...labels].sort((a, b) => a[1].at[1] - b[1].at[1])) {
-  const box = { x: at[0] + 6 * px, y: at[1] - 14 * px, w: hero.length * 6.4 * px, h: 13 * px };
-  const overlaps = (o: typeof box) =>
-    box.x < o.x + o.w && o.x < box.x + box.w && box.y < o.y + o.h && o.y < box.y + box.h;
-  for (let i = 0; i < 12 && placed.some(overlaps); i++) box.y += 13 * px;
-  placed.push(box);
-  labelAt.set(hero, { x: box.x, y: box.y + 10 * px });
-}
+// Hero icons, copied in by the export script (32 px minimap portraits).
+const icons = import.meta.glob<ImageMetadata>("../../assets/icons/heroes/*.png", { eager: true, import: "default" });
+const iconSrc = (name: string) => icons[`../../assets/icons/heroes/${name}.png`]?.src ?? "";
+const BADGE = 11 * px; // badge radius
+// The final frame, shown until the playback starts: where each hero was at the last death.
+const finalAt = heroes.map((hero) => headAt(hero, fight.duration_s));
+
 const gold = (n: number) => n.toLocaleString("en-US");
 const winner = fight.winner === "radiant" ? "Radiant" : fight.winner === "dire" ? "Dire" : null;
 const { radiant, dire } = fight.totals;
 const footer =
   `${winner ? `${winner} had more kills.` : "Kills were even."} In the fight's window the heroes near it earned: ` +
   `Radiant ${gold(radiant.gold)} gold and ${gold(radiant.xp)} XP, Dire ${gold(dire.gold)} gold and ${gold(dire.xp)} XP.`;
-const playback = { start: fight.start, duration: fight.duration_s, px, paths: fight.paths, deaths: fight.deaths_at };
+const playback = { start: fight.start, duration: fight.duration_s, paths: fight.paths, deaths: fight.deaths_at };
 ---
 
 <div class="fight" data-fight>
   <figure class="fig">
     <svg class="map" viewBox={`${x} ${y} ${size} ${size}`} role="img" aria-labelledby="fight-caption">
+      <defs>
+        <clipPath id="hero-badge" clipPathUnits="userSpaceOnUse"><circle r={BADGE}></circle></clipPath>
+      </defs>
       <image href={fightImage.src} x={x} y={y} width={size} height={size} preserveAspectRatio="xMidYMid slice"></image>
       <rect class="map-dim map-dim--fight" x={x} y={y} width={size} height={size}></rect>
-      <g class="fight-static">
-        {trails.map((piece) => (
-          <path class="fight-casing" d={piece.d} stroke-width={width(piece.level) + 2 * px} stroke-opacity={fadeOpacity(piece.level) * 0.55}></path>
-        ))}
-        {trails.map((piece) => (
-          <path class={`fight-path fight-path--${piece.team}`} d={piece.d} stroke-width={width(piece.level)} stroke-opacity={fadeOpacity(piece.level)}></path>
-        ))}
-        {[...labels].map(([hero, { team, at }]) => (
-          <g class={`fight-hero fight-hero--${team}`}>
-            <circle cx={at[0]} cy={at[1]} r={3.5 * px} stroke-width={1.2 * px}></circle>
-            <text x={labelAt.get(hero)!.x} y={labelAt.get(hero)!.y} font-size={11 * px} stroke-width={3 * px}>{hero}</text>
-          </g>
-        ))}
-      </g>
-      <g class="fight-live" aria-hidden="true">
-        {heroes.map((hero) => (
-          <g class={`live-hero fight-hero--${hero.team}`}>
-            <path class="fight-casing live-history" stroke-width={3.2 * px} stroke-opacity="0.3"></path>
-            <path class={`fight-path fight-path--${hero.team} live-history`} stroke-width={1.2 * px} stroke-opacity="0.45"></path>
-            <path class="fight-casing live-tail" stroke-width={4.4 * px} stroke-opacity="0.55"></path>
-            <path class={`fight-path fight-path--${hero.team} live-tail`} stroke-width={2.4 * px}></path>
-            <g class="fight-hero live-head">
-              <circle r={4.5 * px} stroke-width={1.4 * px}></circle>
-              <text x={7 * px} y={-6 * px} font-size={10.5 * px} stroke-width={3 * px}>{hero.hero}</text>
-            </g>
-          </g>
-        ))}
-      </g>
       {fight.deaths_at.map((death) => (
         <g class={`fight-death fight-death--${death.team}`} data-t={death.t} transform={`translate(${death.at[0]} ${death.at[1]}) scale(${px})`}>
           <path class="halo" d="M-5,-5 L5,5 M5,-5 L-5,5"></path>
           <path d="M-5,-5 L5,5 M5,-5 L-5,5"></path>
+        </g>
+      ))}
+      {heroes.map((hero, i) => (
+        <g
+          class={`fight-hero fight-hero--${hero.team}`}
+          transform={finalAt[i] ? `translate(${finalAt[i]![0]} ${finalAt[i]![1]})` : undefined}
+          style={finalAt[i] ? undefined : "display: none"}
+        >
+          <title>{hero.hero}</title>
+          <circle class="hero-ring" r={BADGE + 2 * px} stroke-width={1.2 * px}></circle>
+          <image href={iconSrc(hero.icon)} x={-BADGE} y={-BADGE} width={BADGE * 2} height={BADGE * 2} clip-path="url(#hero-badge)"></image>
         </g>
       ))}
     </svg>
@@ -104,10 +72,10 @@ const playback = { start: fight.start, duration: fight.duration_s, px, paths: fi
       <span class="playback-speed">4×</span>
     </div>
     <figcaption id="fight-caption">
-      <b>Figure 3.</b> The match's biggest fight, {fight.start}–{fight.end}, played back at 4×: each hero moves along
-      its path (positions sampled about once a second, interpolated between samples for display, and broken at
-      teleports and respawns), and ✕ marks each death in the victim's team colour. Paused, the figure shows every path
-      at once, fading from the window's start to the last death.
+      <b>Figure 3.</b> The match's biggest fight, {fight.start}–{fight.end}, played back at 4×: each hero, ringed in
+      its team's colour, moves along its path (positions sampled about once a second and interpolated between samples
+      for display), and ✕ marks each death in the victim's team colour. Paused, it shows where everyone was at the
+      last death.
     </figcaption>
   </figure>
   <aside class="narration" aria-label="What happened in the fight">
@@ -129,11 +97,9 @@ const playback = { start: fight.start, duration: fight.duration_s, px, paths: fi
 </div>
 
 <script>
-  import { smoothPath } from "../../lib/paths";
-  import { clockAt, headAt, runUntil, tracks } from "../../lib/playback";
+  import { clockAt, headAt, tracks } from "../../lib/playback";
 
   const SPEED = 4; // fight seconds per real second
-  const TAIL_S = 8; // the bright tail behind each moving hero
   const HOLD_MS = 1800; // pause on the last frame before looping
 
   const root = document.querySelector<HTMLElement>("[data-fight]");
@@ -141,7 +107,7 @@ const playback = { start: fight.start, duration: fight.duration_s, px, paths: fi
   if (root && dataEl) {
     const data = JSON.parse(dataEl.textContent ?? "{}");
     const heroes = tracks(data.paths, data.deaths);
-    const heroEls = [...root.querySelectorAll<SVGGElement>(".live-hero")];
+    const heroEls = [...root.querySelectorAll<SVGGElement>(".fight-hero")];
     const deathEls = [...root.querySelectorAll<SVGGElement>(".fight-death")];
     const eventsList = root.querySelector<HTMLOListElement>("[data-events]")!;
     const eventEls = [...eventsList.querySelectorAll<HTMLLIElement>("li")];
@@ -154,50 +120,18 @@ const playback = { start: fight.start, duration: fight.duration_s, px, paths: fi
     let t = data.duration;
     let playing = false;
     let pausedByReader = reducedMotion;
-    let onScreen = false;
     let last = 0;
     let holdUntil = 0;
     let lastCurrent: HTMLLIElement | undefined;
 
     controls.hidden = false;
 
-    const labels = heroEls.map((el) => el.querySelector<SVGTextElement>(".live-head text")!);
-    const positions: (number[] | null)[] = heroes.map(() => null);
-    const px = data.px as number;
-
-    /** Nudge labels down, top to bottom, while one overlaps a label already placed. */
-    function placeLabels() {
-      const placed: { x: number; y: number; w: number; h: number }[] = [];
-      const order = positions.map((at, i) => ({ at, i })).filter((p) => p.at).sort((a, b) => a.at![1] - b.at![1]);
-      for (const { at, i } of order) {
-        const box = { x: at![0] + 7 * px, y: at![1] - 15 * px, w: heroes[i].hero.length * 6 * px, h: 12 * px };
-        const overlaps = (o: typeof box) =>
-          box.x < o.x + o.w && o.x < box.x + box.w && box.y < o.y + o.h && o.y < box.y + box.h;
-        for (let n = 0; n < 8 && placed.some(overlaps); n++) box.y += 12 * px;
-        placed.push(box);
-        labels[i].setAttribute("y", String(box.y - at![1] + 9 * px));
-      }
-    }
-
     function render() {
       heroes.forEach((hero, i) => {
-        const el = heroEls[i];
-        const [historyCasing, history, tailCasing, tail] = el.querySelectorAll<SVGPathElement>("path");
-        const head = el.querySelector<SVGGElement>(".live-head")!;
-        const done = hero.runs.map((run) => smoothPath(runUntil(run, t))).join("");
-        historyCasing.setAttribute("d", done);
-        history.setAttribute("d", done);
         const at = headAt(hero, t);
-        const current = at && hero.runs.find((run) => run[0][2] <= t && t <= run[run.length - 1][2]);
-        const recent = current ? runUntil(current, t).filter((p) => p[2] >= t - TAIL_S) : [];
-        const tailPath = smoothPath(recent);
-        tailCasing.setAttribute("d", tailPath);
-        tail.setAttribute("d", tailPath);
-        head.style.display = at ? "" : "none";
-        if (at) head.setAttribute("transform", `translate(${at[0]} ${at[1]})`);
-        positions[i] = at;
+        heroEls[i].style.display = at ? "" : "none";
+        if (at) heroEls[i].setAttribute("transform", `translate(${at[0]} ${at[1]})`);
       });
-      placeLabels();
       for (const el of deathEls) el.classList.toggle("is-shown", Number(el.dataset.t) <= t);
       let current: HTMLLIElement | undefined;
       for (const el of eventEls) {
@@ -274,9 +208,8 @@ const playback = { start: fight.start, duration: fight.duration_s, px, paths: fi
     // or prefers reduced motion.
     new IntersectionObserver(
       ([entry]) => {
-        onScreen = entry.isIntersecting;
-        if (onScreen && !pausedByReader) play();
-        else if (!onScreen) pause();
+        if (entry.isIntersecting && !pausedByReader) play();
+        else if (!entry.isIntersecting) pause();
       },
       { threshold: 0.35 },
     ).observe(root);

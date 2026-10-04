@@ -859,6 +859,7 @@
   "paths": [
    {
     "hero": "Tiny",
+    "icon": "tiny",
     "team": "radiant",
     "points": [
      [
@@ -935,6 +936,7 @@
    },
    {
     "hero": "Tiny",
+    "icon": "tiny",
     "team": "radiant",
     "points": [
      [
@@ -1111,6 +1113,7 @@
    },
    {
     "hero": "Sniper",
+    "icon": "sniper",
     "team": "radiant",
     "points": [
      [
@@ -1402,6 +1405,7 @@
    },
    {
     "hero": "Timbersaw",
+    "icon": "shredder",
     "team": "radiant",
     "points": [
      [
@@ -1453,6 +1457,7 @@
    },
    {
     "hero": "Timbersaw",
+    "icon": "shredder",
     "team": "radiant",
     "points": [
      [
@@ -1549,6 +1554,7 @@
    },
    {
     "hero": "Timbersaw",
+    "icon": "shredder",
     "team": "radiant",
     "points": [
      [
@@ -1650,6 +1656,7 @@
    },
    {
     "hero": "Timbersaw",
+    "icon": "shredder",
     "team": "radiant",
     "points": [
      [
@@ -1681,6 +1688,7 @@
    },
    {
     "hero": "Timbersaw",
+    "icon": "shredder",
     "team": "radiant",
     "points": [
      [
@@ -1697,6 +1705,7 @@
    },
    {
     "hero": "Lion",
+    "icon": "lion",
     "team": "radiant",
     "points": [
      [
@@ -1763,6 +1772,7 @@
    },
    {
     "hero": "Lion",
+    "icon": "lion",
     "team": "radiant",
     "points": [
      [
@@ -1789,6 +1799,7 @@
    },
    {
     "hero": "Lion",
+    "icon": "lion",
     "team": "radiant",
     "points": [
      [
@@ -1860,6 +1871,7 @@
    },
    {
     "hero": "Lion",
+    "icon": "lion",
     "team": "radiant",
     "points": [
      [
@@ -1986,6 +1998,7 @@
    },
    {
     "hero": "Ancient Apparition",
+    "icon": "ancient_apparition",
     "team": "radiant",
     "points": [
      [
@@ -2277,6 +2290,7 @@
    },
    {
     "hero": "Shadow Fiend",
+    "icon": "nevermore",
     "team": "dire",
     "points": [
      [
@@ -2353,6 +2367,7 @@
    },
    {
     "hero": "Shadow Fiend",
+    "icon": "nevermore",
     "team": "dire",
     "points": [
      [
@@ -2524,6 +2539,7 @@
    },
    {
     "hero": "Shadow Fiend",
+    "icon": "nevermore",
     "team": "dire",
     "points": [
      [
@@ -2580,6 +2596,7 @@
    },
    {
     "hero": "Ember Spirit",
+    "icon": "ember_spirit",
     "team": "dire",
     "points": [
      [
@@ -2661,6 +2678,7 @@
    },
    {
     "hero": "Ember Spirit",
+    "icon": "ember_spirit",
     "team": "dire",
     "points": [
      [
@@ -2727,6 +2745,7 @@
    },
    {
     "hero": "Ember Spirit",
+    "icon": "ember_spirit",
     "team": "dire",
     "points": [
      [
@@ -2758,6 +2777,7 @@
    },
    {
     "hero": "Ember Spirit",
+    "icon": "ember_spirit",
     "team": "dire",
     "points": [
      [
@@ -2834,6 +2854,7 @@
    },
    {
     "hero": "Ember Spirit",
+    "icon": "ember_spirit",
     "team": "dire",
     "points": [
      [
@@ -2885,6 +2906,7 @@
    },
    {
     "hero": "Pangolier",
+    "icon": "pangolier",
     "team": "dire",
     "points": [
      [
@@ -2966,6 +2988,7 @@
    },
    {
     "hero": "Pangolier",
+    "icon": "pangolier",
     "team": "dire",
     "points": [
      [
@@ -3182,6 +3205,7 @@
    },
    {
     "hero": "Rubick",
+    "icon": "rubick",
     "team": "dire",
     "points": [
      [
@@ -3253,6 +3277,7 @@
    },
    {
     "hero": "Rubick",
+    "icon": "rubick",
     "team": "dire",
     "points": [
      [
@@ -3364,6 +3389,7 @@
    },
    {
     "hero": "Rubick",
+    "icon": "rubick",
     "team": "dire",
     "points": [
      [
@@ -3485,6 +3511,7 @@
    },
    {
     "hero": "Treant Protector",
+    "icon": "treant",
     "team": "dire",
     "points": [
      [
@@ -3586,6 +3613,7 @@
    },
    {
     "hero": "Treant Protector",
+    "icon": "treant",
     "team": "dire",
     "points": [
      [
@@ -3637,6 +3665,7 @@
    },
    {
     "hero": "Treant Protector",
+    "icon": "treant",
     "team": "dire",
     "points": [
      [
