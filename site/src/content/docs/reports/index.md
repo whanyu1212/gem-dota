@@ -1,5 +1,11 @@
 # Match Reports
 
+> [!WARNING]
+> The HTML report is deprecated and will be removed in gem 0.14. Its views are
+> moving to the [Recipes](../cookbook/questions.md): each one answers a question from
+> the match's facts, with a figure and the code to run on your own replays.
+> `gem.reports` and `python -m gem reports` warn until then.
+
 gem can generate self-contained HTML reports from real `.dem` replay files.
 
 The report shows facts from the replay. It leaves interpretation, such as

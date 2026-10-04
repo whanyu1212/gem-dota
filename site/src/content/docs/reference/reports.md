@@ -2,6 +2,10 @@
 
 HTML report generation for parsed Dota 2 matches.
 
+> [!WARNING]
+> `gem.reports` is deprecated and will be removed in gem 0.14; importing it warns.
+> The report's views are moving to the [Recipes](../cookbook/questions.md).
+
 Use `gem.reports.build_html_report()` when you want the HTML string, or
 `gem.reports.write_html_report()` when writing a standalone report file. Map
 images and downloaded icon caches are optional local assets; provide them via the
