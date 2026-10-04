@@ -366,3 +366,53 @@ def test_fight_playback_puts_same_tick_rewards_on_one_death() -> None:
     # The tick's bounty and XP appear once, on its first death.
     assert on_tick[0]["gold"] == [[1, 326]] and on_tick[0]["xp"] == [[1, 468]]
     assert on_tick[1]["gold"] == [] and on_tick[1]["xp"] == []
+
+
+def test_fight_playback_starts_at_its_smoke_and_marks_who_the_enemy_couldnt_see(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from types import SimpleNamespace
+
+    from gem.results.models import HeroVisibilityEvent, VisibilityState
+
+    match = _playback_match()
+    lion, tiny = match.players  # Lion Dire (slot 0), Tiny Radiant (slot 5)
+    fight = match.fights[0]
+    smoke = SimpleNamespace(
+        activation_tick=-300,  # 10 s before the window opens at tick 0
+        team=2,
+        first_fight=fight,
+        members=[SimpleNamespace(hero_name=tiny.hero_name, applied_tick=-300, removed_tick=60)],
+    )
+    monkeypatch.setattr(export.gem, "build_smoke_analysis", lambda m: [smoke])
+    tiny.position_log = [(t, 16100.0, 16000.0) for t in range(-300, 241, 30)] + [
+        (270, 21000.0, 16000.0)
+    ]
+
+    def seen(tick: int, dire: VisibilityState, slot: int = 5, name: str = tiny.hero_name):
+        return HeroVisibilityEvent(
+            tick=tick,
+            player_id=slot,
+            hero_name=name,
+            entity_index=1,
+            entity_serial=1,
+            radiant_state=VisibilityState.VISIBLE,
+            dire_state=dire,
+        )
+
+    match.hero_visibility_events = [
+        seen(-400, VisibilityState.HIDDEN),  # hidden from Dire when the playback starts
+        seen(75, VisibilityState.VISIBLE),  # seen half a second after the smoke breaks
+        seen(150, VisibilityState.HIDDEN),
+        seen(160, VisibilityState.VISIBLE),  # a third of a second: fog flicker, left out
+    ]
+
+    playback = export.fight_playback(match)
+    assert playback is not None
+    assert playback["start_s"] == -10.0 and playback["duration"] == 21.0
+    tiny_i = 1  # by player slot: Lion 0, Tiny 5
+    # Smoked from the start to the break at tick 60; Dire saw him 0.5 s later.
+    assert playback["smokes"] == [["radiant", 0.0, [[tiny_i, 0.0, 12.0, 12.5]]]]
+    assert playback["hidden"] == [[tiny_i, 0.0, 12.5]]
+    # Clocks line up with the narration's window: the first death (tick 120) is 14 s in.
+    assert [d["t"] for d in playback["deaths"]][:1] == [14.0]

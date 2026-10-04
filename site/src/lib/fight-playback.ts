@@ -59,6 +59,8 @@ export interface Death {
 
 export interface FightData {
   start: string;
+  /** The start in game seconds (``start`` is whole seconds). */
+  start_s: number;
   duration: number;
   heroes: PlaybackHero[];
   casts: Cast[];
@@ -71,6 +73,26 @@ export interface FightData {
   deaths: Death[];
   /** t, hero, cost. */
   buybacks: [number, number, number][];
+  /**
+   * Smokes on the heroes: team, when it was used (null before the playback), and
+   * each member: hero, smoked from, smoke broke (null: still on at the end), and
+   * when the enemy saw the hero as it broke (null: not within a second).
+   */
+  smokes: [string, number | null, [number, number, number | null, number | null][]][];
+  /** hero, from, to: while the enemy team couldn't see the hero (replay visibility). */
+  hidden: [number, number, number][];
+}
+
+/** Whether the hero was smoked at t. */
+export function isSmoked(data: FightData, hero: number, t: number): boolean {
+  return data.smokes.some(([, , members]) =>
+    members.some(([h, from, broke]) => h === hero && from <= t && (broke === null || t < broke)),
+  );
+}
+
+/** Whether the enemy team couldn't see the hero at t. */
+export function isHidden(data: FightData, hero: number, t: number): boolean {
+  return data.hidden.some(([h, from, to]) => h === hero && from <= t && t < to);
 }
 
 /** Items whose use the feed and map leave out: toggles and sips, not plays. */
@@ -206,7 +228,7 @@ export function damagePerSecond(data: FightData): { radiant: number[]; dire: num
 }
 
 /** The feed's row kinds. */
-export type RowKind = "death" | "buyback" | "spell" | "item" | "disable" | "buff" | "attack";
+export type RowKind = "death" | "buyback" | "spell" | "item" | "disable" | "buff" | "smoke" | "attack";
 
 /** The feed's filter chips, and the row kinds each shows. */
 export const FILTERS: { key: string; label: string; kinds: RowKind[]; on: boolean }[] = [
@@ -214,7 +236,7 @@ export const FILTERS: { key: string; label: string; kinds: RowKind[]; on: boolea
   { key: "spells", label: "Spells", kinds: ["spell"], on: true },
   { key: "items", label: "Items", kinds: ["item"], on: true },
   { key: "disables", label: "Disables", kinds: ["disable"], on: true },
-  { key: "buffs", label: "Buffs", kinds: ["buff"], on: true },
+  { key: "buffs", label: "Buffs & smoke", kinds: ["buff", "smoke"], on: true },
   { key: "attacks", label: "Attacks", kinds: ["attack"], on: false },
 ];
 
@@ -232,6 +254,8 @@ export interface Row {
   buff?: FightData["buffs"][number];
   /** Right-click damage from one hero to another in one second. */
   attack?: { by: number; target: number; damage: number; type: string };
+  /** A hero's smoke breaking, and whether the enemy saw it then. */
+  smokeBreak?: { hero: number; seen: boolean };
 }
 
 /** The items that give each buff ring (export_site_home_data.BUFF_RINGS), so a buff folds into its own cast. */
@@ -288,6 +312,11 @@ export function feedRows(data: FightData): Row[] {
     rows.push({ t: death.t, kind: "death", heroes: [death.victim, ...(death.killer === null ? [] : [death.killer])], death });
   }
   for (const buyback of data.buybacks) rows.push({ t: buyback[0], kind: "buyback", heroes: [buyback[1]], buyback });
+  for (const [, , members] of data.smokes) {
+    for (const [hero, , broke, seen] of members) {
+      if (broke !== null) rows.push({ t: broke, kind: "smoke", heroes: [hero], smokeBreak: { hero, seen: seen !== null } });
+    }
+  }
   const attacks = new Map<string, Row>();
   for (const [t, by, target, damage, type, direct, source] of data.damage) {
     if (source !== "Attack" || !direct) continue;
@@ -311,9 +340,9 @@ export function castHeroes(cast: Cast): number[] {
   return [cast.by, ...(cast.target !== undefined ? [cast.target] : []), ...cast.hits.map(([hero]) => hero)];
 }
 
-/** "42:34" plus t seconds, as "mm:ss". */
-export function clockAt(start: string, t: number): string {
-  const [m, s] = start.split(":").map(Number);
-  const total = Math.max(0, Math.floor(m * 60 + s + t));
+/** A start ("42:34", or game seconds) plus t seconds, as "mm:ss". */
+export function clockAt(start: string | number, t: number): string {
+  const base = typeof start === "number" ? start : start.split(":").reduce((m, s) => Number(m) * 60 + Number(s), 0);
+  const total = Math.max(0, Math.floor(base + t + 1e-6));
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
 }

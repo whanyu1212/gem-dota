@@ -674,6 +674,16 @@
 .fight-legend i.swatch-ring--bkb {
   border-color: var(--buff-bkb);
 }
+.fight-legend i.swatch-ring--hidden {
+  border-style: dashed;
+  border-color: var(--muted);
+  opacity: 0.7;
+}
+.fight-legend i.swatch-smoke {
+  background: var(--map-smoke);
+  box-shadow: 0 0 4px 2px var(--map-smoke);
+  outline: 1px solid var(--line);
+}
 
 /* The map's layers. Sizes are set in map units by the script. */
 .fight-hero {
@@ -770,6 +780,35 @@
 }
 .gold-pop--loss {
   fill: var(--map-loss);
+}
+/* Smoked: a grey cloud behind the badge. Hidden from the enemy: a faded,
+   desaturated badge with a dashed ring (unlike following, which dims others). */
+.smoke-cloud,
+.hidden-ring {
+  display: none;
+}
+.is-smoked .smoke-cloud {
+  display: inline;
+  fill: var(--map-smoke);
+  opacity: 0.75;
+}
+.is-hidden .hidden-ring {
+  display: inline;
+  fill: none;
+  stroke: var(--map-label);
+  opacity: 0.85;
+}
+/* The portrait fades; the ring keeps its team colour, so both sides stay readable. */
+.is-hidden .hero-badge {
+  opacity: 0.45;
+  filter: grayscale(0.85);
+}
+.is-hidden .hero-ring {
+  opacity: 0.7;
+}
+.smoke-puff {
+  fill: none;
+  stroke: var(--map-smoke);
 }
 .fight-death--aegis path:not(.halo) {
   stroke: var(--buff-bkb);
