@@ -88,6 +88,7 @@ DEFAULT_WARDS_DATA = REPO_ROOT / "site" / "src" / "data" / "wards.json"
 DEFAULT_FIGHTS_DATA = REPO_ROOT / "site" / "src" / "data" / "fights"
 COOKBOOK = REPO_ROOT / "examples" / "cookbook"
 DEFAULT_OBJECTIVES_DATA = REPO_ROOT / "site" / "src" / "data" / "objectives.json"
+DEFAULT_LEAD_DATA = REPO_ROOT / "site" / "src" / "data" / "lead.json"
 DEFAULT_MAP_IMAGE = REPO_ROOT / "site" / "src" / "assets" / "home-map.jpg"
 DEFAULT_FIGHT_IMAGE = REPO_ROOT / "site" / "src" / "assets" / "home-fight.jpg"
 DEFAULT_ICONS = REPO_ROOT / "site" / "src" / "assets" / "icons"
@@ -610,6 +611,69 @@ def objectives_recipe(match: ParsedMatch, places: dict) -> dict:
         "tormentor_spawns": [_project(*s) for s in spawns],
         "objectives": objectives,
         "edges": edges,
+    }
+
+
+def lead_recipe(match: ParsedMatch) -> dict:
+    """The gold and XP lead by source for the lead recipe's figure.
+
+    From the recipe itself (``examples/cookbook/lead.py``): the game seconds of
+    every reading (each minute and the end of the game), and for gold and XP the
+    lead and each source's share of it (Radiant minus Dire, running totals, so a
+    stretch's change is one reading minus another). Each hero's running gold in
+    three groups (hero kills, lane and neutral creeps, everything else) and XP;
+    the fights (number, start and end seconds, deaths, the side with more kills)
+    and the objectives (kind, the side it counted for, seconds) for the strip.
+    """
+    recipe = _cookbook("lead")
+    side = {"radiant": "r", "dire": "d"}
+
+    def split(sources: pd.DataFrame) -> dict:
+        frame = recipe.lead_by_source(sources).sort_values("time_s")
+        names = [c for c in frame.columns if c not in ("match_id", "tick", "time_s", "lead")]
+        return {
+            "lead": [int(v) for v in frame["lead"]],
+            "sources": [[name, [int(v) for v in frame[name]]] for name in names],
+        }
+
+    gold, xp = recipe.gold_sources(match), recipe.xp_sources(match)
+    times = sorted(set(gold["time_s"]))
+    heroes = []
+    for player in sorted(match.players, key=lambda p: (p.team, p.player_id)):
+        mine = gold[gold["player_id"] == player.player_id].sort_values("time_s")
+        creeps = mine["lane_creeps"] + mine["neutral_creeps"]
+        heroes.append(
+            {
+                "name": hero_display(player.hero_name),
+                "side": side.get(TEAMS.get(player.team, ""), ""),
+                "gold": [
+                    [int(v) for v in mine["hero_kills"]],
+                    [int(v) for v in creeps],
+                    [int(v) for v in mine["total"] - mine["hero_kills"] - creeps],
+                ],
+                "xp": [
+                    int(v)
+                    for v in xp[xp["player_id"] == player.player_id].sort_values("time_s")["total"]
+                ],
+            }
+        )
+    fights = []
+    for number, fight in enumerate(sorted(match.fights, key=lambda f: f.start_tick), start=1):
+        r, d = fight.radiant_kills, fight.dire_kills
+        more = "r" if r > d else "d" if d > r else ""
+        start_s = _game_seconds(match, fight.start_tick)
+        fights.append([number, start_s, _game_seconds(match, fight.end_tick), fight.deaths, more])
+    table = _cookbook("objectives").objective_table(match)
+    return {
+        "times": [round(float(t), 1) for t in times],
+        "gold": split(gold),
+        "xp": split(xp),
+        "heroes": heroes,
+        "fights": fights,
+        "objectives": [
+            [row.kind, side.get(row.for_side or "", ""), round(float(row.time_s), 1)]
+            for row in table.itertuples(index=False)
+        ],
     }
 
 
@@ -1401,6 +1465,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--wards-data", type=Path, default=DEFAULT_WARDS_DATA)
     parser.add_argument("--fights-data", type=Path, default=DEFAULT_FIGHTS_DATA)
     parser.add_argument("--objectives-data", type=Path, default=DEFAULT_OBJECTIVES_DATA)
+    parser.add_argument("--lead-data", type=Path, default=DEFAULT_LEAD_DATA)
     parser.add_argument("--map-image", type=Path, default=DEFAULT_MAP_IMAGE)
     parser.add_argument("--fight-image", type=Path, default=DEFAULT_FIGHT_IMAGE)
     parser.add_argument("--icons-dir", type=Path, default=DEFAULT_ICONS)
@@ -1487,8 +1552,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     args.wards_data.parent.mkdir(parents=True, exist_ok=True)
     args.wards_data.write_text(json.dumps(wards_recipe(match), separators=(",", ":")) + "\n")
+    args.lead_data.parent.mkdir(parents=True, exist_ok=True)
+    args.lead_data.write_text(json.dumps(lead_recipe(match), separators=(",", ":")) + "\n")
     write_map_image(args.map_image)
     written = [args.data, args.fight_data, args.wards_data, args.fights_data, args.objectives_data]
+    written.append(args.lead_data)
     written.append(args.map_image)
     if fight is not None:
         write_map_image(args.fight_image, fight["box"])

@@ -60,12 +60,15 @@ def test_main_writes_to_paths_outside_the_repository(
         str(tmp_path / "fights"),
         "--objectives-data",
         str(tmp_path / "objectives.json"),
+        "--lead-data",
+        str(tmp_path / "lead.json"),
     ]
     assert export.main([*args, "--map-image", str(image)]) == 0
     assert (tmp_path / "figures" / "map.webp").stat().st_size > 0
     assert (tmp_path / "figures" / "ward_sentry.png").is_file()
     assert json.loads((tmp_path / "fights" / "index.json").read_text())["fights"] == []
     assert json.loads((tmp_path / "objectives.json").read_text())["objectives"] == []
+    assert json.loads((tmp_path / "lead.json").read_text())["times"] == []
     assert json.loads(playback.read_text()) is None
     assert json.loads(ward_data.read_text())["wards"] == []
     written = json.loads(data.read_text())
@@ -878,3 +881,65 @@ def test_objectives_recipe_places_each_objective_and_lists_the_edges() -> None:
     assert (
         aegis["team"] == "r" and aegis["outcome"] == "c" and aegis["took"] == ["Dire tier 4 tower"]
     )
+
+
+def test_lead_recipe_writes_running_totals_by_source_and_by_hero() -> None:
+    from gem.results.models import GoldLedger, GoldLedgerSnapshot
+    from gem.state.game_clock import GameClock
+
+    def player(
+        pid: int, team: int, hero: str, final: GoldLedgerSnapshot, total: int
+    ) -> ParsedPlayer:
+        return ParsedPlayer(
+            player_id=pid,
+            team=team,
+            hero_name=hero,
+            times=[0, 1_800, 1_860],
+            times_min=[0, 1_800],
+            total_earned_gold_t=[0, 0, total],
+            total_earned_gold_t_min=[0, 0],
+            total_earned_xp_t=[0, 0, 0],
+            total_earned_xp_t_min=[0, 0],
+            gold_ledger=GoldLedger(
+                per_minute=[GoldLedgerSnapshot(0, 0), GoldLedgerSnapshot(1_800, 60)], final=final
+            ),
+        )
+
+    axe = player(
+        0,
+        2,
+        "npc_dota_hero_axe",
+        GoldLedgerSnapshot(1_860, 62, hero_kill_gold=300, creep_kill_gold=100, income_gold=50),
+        450,
+    )
+    lina = player(
+        5, 3, "npc_dota_hero_lina", GoldLedgerSnapshot(1_860, 62, neutral_kill_gold=200), 200
+    )
+    match = ParsedMatch(
+        match_id=1,
+        game_start_tick=0,
+        game_clock=GameClock(game_start_tick=0),
+        players=[lina, axe],
+        fights=[
+            Fight(
+                start_tick=900,
+                end_tick=1_200,
+                last_death_tick=1_170,
+                deaths=2,
+                radiant_kills=1,
+                dire_kills=1,
+            )
+        ],
+    )
+    data = export.lead_recipe(match)
+
+    assert data["times"] == [0, 60, 62]
+    assert data["gold"]["lead"] == [0, 0, 250]
+    sources = dict(data["gold"]["sources"])
+    assert sources["hero_kills"] == [0, 0, 300] and sources["neutral_creeps"] == [0, 0, -200]
+    assert sources["unlisted"] == [0, 0, 0]
+    # Radiant first; gold in three groups: hero kills, creeps, the rest.
+    assert [(h["name"], h["side"]) for h in data["heroes"]] == [("Axe", "r"), ("Lina", "d")]
+    assert [g[-1] for g in data["heroes"][0]["gold"]] == [300, 100, 50]
+    assert data["fights"] == [[1, 30.0, 40.0, 2, ""]]
+    assert data["objectives"] == []
