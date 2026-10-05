@@ -53,6 +53,8 @@ from types import ModuleType
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
+import pandas as pd  # noqa: E402
+
 import gem  # noqa: E402
 from gem.analysis.fight_timeline import (  # noqa: E402
     FightTimeline,
@@ -84,7 +86,8 @@ DEFAULT_FIGHT_DATA = REPO_ROOT / "site" / "src" / "data" / "fight.json"
 DEFAULT_WARDS_DATA = REPO_ROOT / "site" / "src" / "data" / "wards.json"
 #: The fights recipe's figure: an index and one file per fight.
 DEFAULT_FIGHTS_DATA = REPO_ROOT / "site" / "src" / "data" / "fights"
-FIGHTS_RECIPE = REPO_ROOT / "examples" / "cookbook" / "fights.py"
+COOKBOOK = REPO_ROOT / "examples" / "cookbook"
+DEFAULT_OBJECTIVES_DATA = REPO_ROOT / "site" / "src" / "data" / "objectives.json"
 DEFAULT_MAP_IMAGE = REPO_ROOT / "site" / "src" / "assets" / "home-map.jpg"
 DEFAULT_FIGHT_IMAGE = REPO_ROOT / "site" / "src" / "assets" / "home-fight.jpg"
 DEFAULT_ICONS = REPO_ROOT / "site" / "src" / "assets" / "icons"
@@ -297,6 +300,61 @@ def load_hero_states(
     }
 
 
+#: Building, Roshan and Tormentor classes, for their places on the map.
+_BUILDING_CLASSES = ("CDOTA_BaseNPC_Tower", "CDOTA_BaseNPC_Barracks", "CDOTA_BaseNPC_Fort")
+_MOVING_CLASSES = {"CDOTA_Unit_Roshan": "roshan", "CDOTA_Unit_Miniboss": "tormentor"}
+
+
+def _building_key(entity_name: str) -> str:
+    """A building's EntityNames name as the combat log spells it (no npc_dota_ prefix).
+
+    ``dota_goodguys_tower1_bot`` is ``goodguys_tower1_bot``; barracks differ:
+    ``good_rax_melee_top`` is ``goodguys_melee_rax_top``. The two tier-4 towers
+    keep their ``_bot``/``_top`` (the combat log names both ``tower4``).
+    """
+    if rax := re.fullmatch(r"(good|bad)_rax_(melee|range)_(\w+)", entity_name):
+        return f"{rax.group(1)}guys_{rax.group(2)}_rax_{rax.group(3)}"
+    return entity_name.removeprefix("dota_")
+
+
+def load_map_places(replay: Path, until: int) -> dict:
+    """Where the buildings stand, and where Roshan and the Tormentors were, from the replay.
+
+    A pass over the replay's entities up to ``until``: every tower, barracks and
+    Ancient by its combat-log name, with its world position; and every position
+    update of Roshan and the Tormentors, as ``(tick, x, y)``. Kept separate so
+    tests can supply places.
+    """
+    from gem.extractors._snapshots import _ENTITY_NAME_FIELDS, _pos
+    from gem.parser import ReplayParser
+
+    parser = ReplayParser(replay)
+    buildings: dict[str, tuple[float, float]] = {}
+    moving: dict[str, list[tuple[int, float, float]]] = {"roshan": [], "tormentor": []}
+
+    def on_entity(entity, _op) -> None:  # type: ignore[no-untyped-def]
+        cls = entity.get_class_name()
+        if cls in _MOVING_CLASSES:
+            pos = _pos(entity)
+            if pos:
+                moving[_MOVING_CLASSES[cls]].append((parser.tick, pos[0], pos[1]))
+            return
+        if cls not in _BUILDING_CLASSES:
+            return
+        tables = parser.string_tables
+        names = tables.get_by_name("EntityNames") if tables is not None else None
+        index = entity._get_int32_resolved(entity._resolve_fields(_ENTITY_NAME_FIELDS)[0])
+        item = names.items.get(index) if names is not None and index is not None else None
+        pos = _pos(entity)
+        if item and pos:
+            buildings.setdefault(_building_key(item[0]), pos)
+
+    parser.on_entity(on_entity)
+    parser.stop_after_tick(until)
+    parser.parse()
+    return {"buildings": buildings, **moving}
+
+
 def match_hero_states(match: ParsedMatch) -> dict[int, list[HeroState]]:
     """The match's own once-a-second hero samples, for a match without its replay."""
     states: dict[int, list[HeroState]] = {}
@@ -341,8 +399,8 @@ def _ward_killer(npc_name: str) -> str:
 PLAYBACK_MIN_DEATHS = 3
 
 
-def _fights_recipe() -> ModuleType:  # the recipe, so the figure shows what it computes
-    spec = importlib.util.spec_from_file_location("cookbook_fights", FIGHTS_RECIPE)
+def _cookbook(name: str) -> ModuleType:  # a recipe, so a figure shows what it computes
+    spec = importlib.util.spec_from_file_location(f"cookbook_{name}", COOKBOOK / f"{name}.py")
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -394,7 +452,7 @@ def fights_recipe(
     ``fight.json`` for Figure 3's); ``boxes`` holds the map crop of each fight
     with a playback.
     """
-    table = _fights_recipe().fight_table(match)
+    table = _cookbook("fights").fight_table(match)
     by_number = dict(enumerate(sorted(match.fights, key=lambda f: f.start_tick), start=1))
     fights = []
     for row in table.itertuples(index=False):
@@ -429,6 +487,130 @@ def fights_recipe(
             entry["box"] = boxes[row.fight]
         fights.append(entry)
     return fights
+
+
+def _killer_name(npc_name: str) -> str:
+    """Who took an objective, for a reader: a hero, "a Radiant creep", "Dire siege"."""
+    if npc_name.startswith("npc_dota_creep_"):
+        return _ward_killer(npc_name)
+    return _unit_name(npc_name) if npc_name else "unknown"
+
+
+def objectives_recipe(match: ParsedMatch, places: dict) -> dict:
+    """Every objective and each team's edges for the objectives recipe's figure.
+
+    From the recipe itself (``examples/cookbook/objectives.py``), with places
+    from the replay (``load_map_places``): every building at its position (the
+    ones still standing too), Roshan where it was at each kill, and each
+    Tormentor at the spawn nearest its killer. A tier-4 tower is matched to the
+    one of its side's two nearest the last hit's hero. Positions are in the
+    map square; ``r``/``d`` is the side, ``c``/``o``/``n`` an edge's outcome
+    (converted, other side first, nothing).
+    """
+    recipe = _cookbook("objectives")
+    table = recipe.objective_table(match)
+    damage = recipe.building_damage(match)
+    edge_rows = recipe.edges(match, table)
+    side = {"radiant": "r", "dire": "d"}
+    heroes = {player.hero_name: player for player in match.players}
+    world = places.get("buildings", {})
+    standing = [
+        {
+            "key": key,
+            "kind": "tower" if "tower" in key else "barracks" if "rax" in key else "ancient",
+            "side": "r" if key.startswith("goodguys") else "d",
+            "at": _project(*xy),
+        }
+        for key, xy in sorted(world.items())
+    ]
+    spawns: list[Point] = []
+    for _tick, x, y in places.get("tormentor", []):
+        if all(math.dist((x, y), s) > 500 for s in spawns):
+            spawns.append((x, y))
+    roshan = sorted(places.get("roshan", []))
+
+    def hero_at(name: str, tick: int) -> Point | None:
+        player = heroes.get(name)
+        return gem.position_at_tick(player, tick) if player is not None else None
+
+    taken4: set[str] = set()
+    objectives = []
+    for row in table.itertuples(index=False):
+        at: list[float] | None = None
+        if row.kind in ("tower", "barracks"):
+            key = row.name
+            if key.endswith("tower4"):
+                pair = [k for k in (f"{key}_bot", f"{key}_top") if k in world and k not in taken4]
+                hero_spot = hero_at(row.last_hit, row.tick)
+                if hero_spot is not None:
+                    spot4: Point = hero_spot
+                    pair.sort(key=lambda k: math.dist(world[k], spot4))
+                key = pair[0] if pair else key
+                taken4.add(key)
+            at = _project(*world[key]) if key in world else None
+        elif row.kind == "roshan" and roshan:
+            before = [r for r in roshan if r[0] <= row.tick] or roshan[:1]
+            at = _project(before[-1][1], before[-1][2])
+        elif row.kind == "tormentor" and spawns:
+            near = hero_at(row.last_hit, row.tick)
+            spot = min(spawns, key=lambda s: math.dist(s, near)) if near is not None else spawns[0]
+            at = _project(*spot)
+        hits = damage[(damage["name"] == row.name) & (damage["time_s"] == row.time_s)]
+        objectives.append(
+            {
+                "kind": row.kind,
+                "name": _objective_name(row.name)
+                if row.kind in ("tower", "barracks")
+                else row.kind.capitalize(),
+                "for": side.get(row.for_side or "", ""),
+                "time_s": round(row.time_s, 1),
+                "time": row.time,
+                "at": at,
+                "last_hit": _killer_name(row.last_hit),
+                "damage": [
+                    [hero_display(h.attacker) if h.attacker in heroes else "Creeps", int(h.damage)]
+                    for h in hits.sort_values("damage", ascending=False).itertuples()
+                ],
+                "shared": bool(hits["shared"].any()) if len(hits) else False,
+                "after": (
+                    [int(row.after_fight), int(row.after_fight_s)]
+                    if not pd.isna(row.after_fight)
+                    else None
+                ),
+            }
+        )
+    fights = sorted(match.fights, key=lambda f: f.start_tick)
+    edges = []
+    for row in edge_rows.itertuples(index=False):
+        took = [
+            "Roshan" if name == "roshan" else _objective_name(name)
+            for name in (row.took.split("; ") if isinstance(row.took, str) else [])
+        ]
+        entry: dict = {
+            "team": side[row.team],
+            "edge": row.edge,
+            "number": int(row.number),
+            "time": _clock(match, int(row.tick)),
+            "outcome": {"converted": "c", "other side first": "o", "nothing": "n"}[row.outcome],
+            "took": took,
+            "after_s": None if pd.isna(row.after_s) else int(row.after_s),
+        }
+        if row.edge == "fight":
+            fight = fights[int(row.number) - 1]
+            entry["kills"] = [fight.radiant_kills, fight.dire_kills]
+            # Who the first objective counted for, when it was the other side's.
+            if row.outcome == "other side first":
+                entry["by"] = "d" if row.team == "radiant" else "r"
+        edges.append(entry)
+    end_tick = match.post_game_tick or match.game_end_tick or 0
+    return {
+        "start_s": -90.0,
+        "end_s": round(_game_seconds(match, end_tick), 1),
+        "buildings": standing,
+        "tormentor_spawns": [_project(*s) for s in spawns],
+        "objectives": objectives,
+        "edges": edges,
+    }
 
 
 #: The wards recipe's figure opens on Figure 3's fight, with this much on each
@@ -1218,6 +1400,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--fight-data", type=Path, default=DEFAULT_FIGHT_DATA)
     parser.add_argument("--wards-data", type=Path, default=DEFAULT_WARDS_DATA)
     parser.add_argument("--fights-data", type=Path, default=DEFAULT_FIGHTS_DATA)
+    parser.add_argument("--objectives-data", type=Path, default=DEFAULT_OBJECTIVES_DATA)
     parser.add_argument("--map-image", type=Path, default=DEFAULT_MAP_IMAGE)
     parser.add_argument("--fight-image", type=Path, default=DEFAULT_FIGHT_IMAGE)
     parser.add_argument("--icons-dir", type=Path, default=DEFAULT_ICONS)
@@ -1288,10 +1471,25 @@ def main(argv: list[str] | None = None) -> int:
         "fights": fights_recipe(match, files, boxes),
     }
     (args.fights_data / "index.json").write_text(json.dumps(index, separators=(",", ":")) + "\n")
+    # The objectives recipe: where the buildings stand and the bosses were,
+    # from one more pass over the replay's entities (up to the last objective).
+    last = max(
+        [t.tick for t in match.towers]
+        + [b.tick for b in match.barracks]
+        + [r.tick for r in match.roshans]
+        + [t.tick for t in match.tormentors],
+        default=None,
+    )
+    places = load_map_places(args.replay, last + 30) if last is not None else {}
+    args.objectives_data.parent.mkdir(parents=True, exist_ok=True)
+    args.objectives_data.write_text(
+        json.dumps(objectives_recipe(match, places), separators=(",", ":")) + "\n"
+    )
     args.wards_data.parent.mkdir(parents=True, exist_ok=True)
     args.wards_data.write_text(json.dumps(wards_recipe(match), separators=(",", ":")) + "\n")
     write_map_image(args.map_image)
-    written = [args.data, args.fight_data, args.wards_data, args.fights_data, args.map_image]
+    written = [args.data, args.fight_data, args.wards_data, args.fights_data, args.objectives_data]
+    written.append(args.map_image)
     if fight is not None:
         write_map_image(args.fight_image, fight["box"])
         written.append(args.fight_image)

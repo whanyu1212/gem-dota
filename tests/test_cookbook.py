@@ -511,7 +511,7 @@ def test_objectives_lists_each_objective_who_damaged_it_and_each_teams_edges() -
 
     table = objectives.objective_table(match)
     assert list(table["kind"]) == ["roshan", "tower", "barracks", "tormentor"]
-    assert list(table["for"]) == ["radiant", "radiant", "dire", "dire"]
+    assert list(table["for_side"]) == ["radiant", "radiant", "dire", "dire"]
     assert list(table["after_fight"].fillna(0)) == [1, 1, 2, 0]  # 0: no fight in the 120 s before
     damage = objectives.building_damage(match).set_index("attacker")["damage"].to_dict()
     assert damage == {axe: 500, "creeps": 100}

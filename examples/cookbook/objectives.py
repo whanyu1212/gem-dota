@@ -34,16 +34,26 @@ DAMAGE_S = 90  # how long before a building fell its damage counts
 TEAMS = {2: "radiant", 3: "dire"}
 OTHER = {2: 3, 3: 2}
 OBJECTIVE_COLUMNS = [
-    "match_id", "time_s", "time", "kind", "name", "for", "last_hit", "after_fight", "after_fight_s",
+    "match_id", "tick", "time_s", "time", "kind", "name", "for_side", "last_hit", "after_fight", "after_fight_s",
 ]  # fmt: skip
-EDGE_COLUMNS = ["match_id", "team", "edge", "number", "time_s", "outcome", "took", "after_s"]
+EDGE_COLUMNS = [
+    "match_id",
+    "team",
+    "edge",
+    "number",
+    "tick",
+    "time_s",
+    "outcome",
+    "took",
+    "after_s",
+]
 
 
 def objective_table(match: gem.ParsedMatch) -> pd.DataFrame:
     """Return every objective: when, what, for which side, the last hit and the fight before it.
 
     ``kind`` is ``tower``, ``barracks``, ``roshan`` or ``tormentor``; ``name``
-    the unit (``goodguys_tower1_bot``, ``roshan``); ``for`` the side it counted
+    the unit (``goodguys_tower1_bot``, ``roshan``); ``for_side`` the side it counted
     for. ``after_fight`` is the number of the last fight (``match.fights`` in
     time order, from 1) that ended within ``WINDOW_S`` before it, and
     ``after_fight_s`` how long before.
@@ -83,11 +93,12 @@ def objective_table(match: gem.ParsedMatch) -> pd.DataFrame:
         table.append(
             {
                 "match_id": match.match_id,
+                "tick": tick,
                 "time_s": time_s,
                 "time": clock.format_tick(tick),
                 "kind": kind,
                 "name": name.removeprefix("npc_dota_"),
-                "for": TEAMS.get(team) if team is not None else None,
+                "for_side": TEAMS.get(team) if team is not None else None,
                 "last_hit": killer,
                 "after_fight": number,
                 "after_fight_s": round(time_s - end) if end is not None else None,
@@ -184,7 +195,7 @@ def edges(match: gem.ParsedMatch, objectives: pd.DataFrame | None = None) -> pd.
             "nothing"
             if first is None
             else "converted"
-            if first["for"] == team
+            if first["for_side"] == team
             else "other side first"
         )
         rows.append(
@@ -193,6 +204,7 @@ def edges(match: gem.ParsedMatch, objectives: pd.DataFrame | None = None) -> pd.
                 "team": team,
                 "edge": "fight",
                 "number": number,
+                "tick": fight.start_tick,
                 "time_s": start_s,
                 "outcome": outcome,
                 "took": first["name"] if first is not None else None,
@@ -205,7 +217,7 @@ def edges(match: gem.ParsedMatch, objectives: pd.DataFrame | None = None) -> pd.
         if time_s is None or killer_team is None:
             continue
         mine = buildings[
-            (buildings["for"] == killer_team)
+            (buildings["for_side"] == killer_team)
             & (buildings["time_s"] >= time_s)
             & (buildings["time_s"] <= time_s + AEGIS_S)
         ]
@@ -215,6 +227,7 @@ def edges(match: gem.ParsedMatch, objectives: pd.DataFrame | None = None) -> pd.
                 "team": killer_team,
                 "edge": "aegis",
                 "number": roshan.kill_number,
+                "tick": roshan.tick,
                 "time_s": time_s,
                 "outcome": "converted" if len(mine) else "nothing",
                 "took": "; ".join(mine["name"]) if len(mine) else None,
@@ -245,7 +258,7 @@ def main(paths: list[str]) -> None:
     if table.empty:
         print("No objectives in these replays.")
         return
-    print(table.drop(columns=["time_s"]).to_string(index=False))
+    print(table.drop(columns=["tick", "time_s"]).to_string(index=False))
     edge_rows = pd.concat(
         [edges(match, o) for match, o in zip(matches, objectives, strict=True)], ignore_index=True
     )
