@@ -497,8 +497,13 @@ def test_objectives_lists_each_objective_who_damaged_it_and_each_teams_edges() -
             RoshanKill(tick=4_000, killer=axe, kill_number=1, killer_team=2)
         ],  # its Aegis: the tower at +57 s
         tormentors=[
+            # No player slot from the chat event: the protocol's team decides.
             TormentorKill(
-                tick=20_000, killer="npc_dota_hero_lina", killer_player_id=5, kill_number=1
+                tick=20_000,
+                killer="npc_dota_hero_lina",
+                killer_player_id=-1,
+                kill_number=1,
+                killer_team=3,
             )
         ],
         combat_log=[
@@ -532,3 +537,36 @@ def test_objectives_lists_each_objective_who_damaged_it_and_each_teams_edges() -
         summary.loc[("radiant", "fight"), "converted"] == 1
         and summary.loc[("radiant", "fight"), "nothing"] == 1
     )
+
+
+def test_objectives_damage_window_is_in_game_seconds() -> None:
+    # 100 s paused between the hit and the fall: 190 s of ticks, 90 s of game time.
+    match = ParsedMatch(
+        match_id=5,
+        game_start_tick=0,
+        game_clock=GameClock(
+            game_start_tick=0, pauses=[GamePause(start_tick=2_000, end_tick=5_000)]
+        ),
+        players=[ParsedPlayer(player_id=0, team=2, hero_name="npc_dota_hero_axe")],
+        towers=[
+            TowerKill(
+                tick=5_700,
+                team=3,
+                killer="npc_dota_hero_axe",
+                tower_name="npc_dota_badguys_tower1_mid",
+                killer_team=2,
+            )
+        ],
+        combat_log=[
+            CombatLogEntry(
+                tick=1_000,
+                log_type=CombatLogType.DAMAGE,
+                attacker_name="npc_dota_hero_axe",
+                damage_source_name="npc_dota_hero_axe",
+                target_name="npc_dota_badguys_tower1_mid",
+                value=250,
+            )
+        ],
+    )
+    damage = objectives.building_damage(match)
+    assert damage["damage"].tolist() == [250]

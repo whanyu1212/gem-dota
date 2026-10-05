@@ -653,6 +653,13 @@
 .obj-boss--dire circle:first-child {
   fill: var(--map-dire-mark);
 }
+.obj-boss--unknown circle:first-child,
+.obj-mark--unknown :is(polygon, rect) {
+  fill: var(--muted);
+}
+.obj-list-side--unknown {
+  color: var(--muted);
+}
 .obj-boss text {
   fill: var(--map-halo);
   font-family: var(--font-sans);

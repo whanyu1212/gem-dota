@@ -118,6 +118,9 @@ export function objectiveCard(o: Objective): { title: string; line: string; afte
   };
 }
 
+/** A side's class name; "unknown" when the replay didn't say whose it was. */
+export const sideClass = (side: Side | "") => (side === "r" ? "radiant" : side === "d" ? "dire" : "unknown");
+
 const escape = (text: string) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 
 /**
@@ -161,7 +164,7 @@ export function mapMarkup(data: ObjectivesData, range: TimeRange | null, shown: 
     const label = o.kind === "roshan" ? "R" : "T";
     const ring = i === selected ? `<circle class="obj-ring" cx="${x}" cy="${y}" r="26"></circle>` : "";
     parts.push(
-      `<g class="obj-boss obj-boss--${o.for === "r" ? "radiant" : "dire"}" data-objective="${i}" tabindex="0" role="button" aria-label="${escape(`${o.name}, ${o.time}`)}">` +
+      `<g class="obj-boss obj-boss--${sideClass(o.for)}" data-objective="${i}" tabindex="0" role="button" aria-label="${escape(`${o.name}, ${o.time}`)}">` +
         `<circle cx="${x}" cy="${y}" r="15"></circle><text x="${x}" y="${y + 6}" text-anchor="middle">${label}</text>${ring}</g>`,
     );
   }

@@ -74,7 +74,14 @@ def objective_table(match: gem.ParsedMatch) -> pd.DataFrame:
     ]
     rows += [(r.tick, "roshan", "roshan", r.killer_team, r.killer) for r in match.roshans]
     rows += [
-        (t.tick, "tormentor", "tormentor", team_of.get(t.killer_player_id), t.killer)
+        # The protocol's team; the chat event's player slot only when it's missing.
+        (
+            t.tick,
+            "tormentor",
+            "tormentor",
+            t.killer_team if t.killer_team is not None else team_of.get(t.killer_player_id),
+            t.killer,
+        )
         for t in match.tormentors
     ]
     fight_ends = sorted(
@@ -129,7 +136,13 @@ def building_damage(match: gem.ParsedMatch) -> pd.DataFrame:
     fallen = [(t.tick, t.tower_name) for t in match.towers] + [
         (b.tick, b.barracks_name) for b in match.barracks
     ]
-    window = DAMAGE_S * 30  # ticks; a pause inside the window only adds frozen time
+
+    # In-game seconds, so a pause inside the window doesn't shorten it; raw ticks
+    # only for a replay without a game clock.
+    def seconds(tick: int) -> float:
+        now = clock.game_time_at(tick) if clock is not None else None
+        return now if now is not None else tick / 30
+
     by_name: dict[str, list] = defaultdict(list)
     for entry in match.combat_log:
         if entry.log_type == "DAMAGE" and entry.value:
@@ -137,8 +150,9 @@ def building_damage(match: gem.ParsedMatch) -> pd.DataFrame:
     rows = []
     for tick, name in fallen:
         totals: dict[str, int] = defaultdict(int)
+        fell_s = seconds(tick)
         for entry in by_name.get(name, []):
-            if tick - window <= entry.tick <= tick:
+            if entry.tick <= tick and fell_s - DAMAGE_S <= seconds(entry.tick) <= fell_s:
                 source = entry.damage_source_name or entry.attacker_name
                 totals[source if source in heroes else "creeps"] += entry.value
         for attacker, damage in totals.items():

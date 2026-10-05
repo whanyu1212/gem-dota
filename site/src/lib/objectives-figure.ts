@@ -13,6 +13,7 @@ import {
   mapMarkup,
   objectiveCard,
   objectivesIn,
+  sideClass,
   tallyMarkup,
   TEAM,
   type Kind,
@@ -100,8 +101,7 @@ export function mountObjectivesFigure(figure: HTMLElement, data: ObjectivesData)
     const lost = o.for === "r" ? "d" : "r"; // a building is lost by the side it didn't count for
     const boss = o.kind === "roshan" || o.kind === "tormentor";
     const y = boss ? 36 : lost === "r" ? 14 : 58;
-    const team = o.for === "r" ? "radiant" : "dire";
-    const g = svgEl("g", { class: `obj-mark obj-mark--${team} obj-mark--${o.kind}`, "data-objective": i }, timeline);
+    const g = svgEl("g", { class: `obj-mark obj-mark--${sideClass(o.for)} obj-mark--${o.kind}`, "data-objective": i }, timeline);
     const cx = x(o.time_s);
     if (o.kind === "tower") svgEl("polygon", { points: `${cx},${y - 8} ${cx - 5},${y + 6} ${cx + 5},${y + 6}` }, g);
     else if (o.kind === "barracks") svgEl("rect", { x: cx - 4, y: y - 6, width: 8, height: 12 }, g);
@@ -237,7 +237,7 @@ export function mountObjectivesFigure(figure: HTMLElement, data: ObjectivesData)
             "button",
             { type: "button", "data-objective": String(i), "aria-pressed": String(i === selected) },
             el("time", {}, obj.time),
-            el("span", { class: `obj-list-side obj-list-side--${obj.for === "r" ? "radiant" : "dire"}` }, obj.for ? TEAM[obj.for] : ""),
+            el("span", { class: `obj-list-side obj-list-side--${sideClass(obj.for)}` }, obj.for ? TEAM[obj.for] : "unknown"),
             el("span", {}, `${obj.name} · ${obj.last_hit}${obj.after ? ` · after fight ${obj.after[0]}` : ""}`),
           ),
         );

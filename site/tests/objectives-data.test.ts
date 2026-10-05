@@ -62,6 +62,9 @@ describe("objectives in a stretch", () => {
     expect(after).toContain('class="obj obj--radiant is-fallen is-active" data-objective="0"');
     expect(after.match(/obj-boss /g)).toHaveLength(2); // both Roshans, nudged apart
     expect(after).toContain('class="obj-ring"');
+    // A boss kill the replay didn't attribute is drawn neutral, not as Dire's.
+    const unknown = { ...data, objectives: [objective("roshan", 500, [640, 675], { for: "" })] };
+    expect(mapMarkup(unknown, null, [0], null)).toContain("obj-boss--unknown");
   });
 
   it("tallies each team's edges and says what each led to", () => {
