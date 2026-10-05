@@ -6,6 +6,7 @@ import { unified } from "@astrojs/markdown-remark";
 import rehypeRaw from "rehype-raw";
 import type { Processor } from "unified";
 import type { VFile } from "vfile";
+import { fightsFigure } from "../figures/fights";
 import { wardsFigure } from "../figures/wards";
 import { preprocess, type PreprocessOptions } from "./preprocess";
 import rehypeHeadingIds from "./rehype-heading-ids";
@@ -30,7 +31,13 @@ export function docsMarkdown(options: DocsMarkdownOptions) {
     remarkPlugins: [
       [
         remarkPreprocess,
-        { importRoot: options.repoRoot, figures: { wards: () => wardsFigure(options.base) } },
+        {
+          importRoot: options.repoRoot,
+          figures: {
+            wards: () => wardsFigure(options.base),
+            fights: () => fightsFigure(options.base),
+          },
+        },
       ],
     ],
     rehypePlugins: [

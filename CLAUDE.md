@@ -684,7 +684,12 @@ its images in `site/public/figures/`; `DocLayout` loads its interactive part
 only on pages that have one, and figure styles shared with the home page live in
 `site/src/styles/figures.css`. Astro caches a page's rendered Markdown by the
 page's own text, so `npm run build` passes `--force`; `npm run dev` can show a
-stale figure until the `.md` changes. Navigation
+stale figure until the `.md` changes. The fights figure loads one file per fight
+(`site/src/data/fights/<n>.json`, indexed by `fights/index.json`; Figure 3's fight
+is `fight.json`) into Figure 3's player (`site/src/lib/fight-player.ts`, markup in
+`fight-markup.ts`, styles in `fight-player.css`). Fights with 3+ deaths carry
+per-packet hero states and a map crop (`site/public/figures/fights/`); the rest
+carry an empty `heroes[].runs` and play as a breakdown without the map. Navigation
 lives in `site/src/nav.ts`; every colour is a token in `site/src/styles/tokens.css`
 (`npm test` checks WCAG AA contrast for both themes). The home page
 (`site/src/pages/index.astro`) reads a committed snapshot written by

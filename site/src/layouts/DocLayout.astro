@@ -116,5 +116,11 @@ const proseClass = ["prose", reference ? "prose--reference" : "", data.pageClass
         figure.mountWardsFigure(wards, data.default as unknown as import("../lib/wards-data").WardsData),
       );
     }
+    const fights = document.querySelector<HTMLElement>('[data-recipe-figure="fights"]');
+    if (fights) {
+      Promise.all([import("../lib/fights-figure"), import("../data/fights/index.json")]).then(([figure, data]) =>
+        figure.mountFightsFigure(fights, data.default as unknown as import("../lib/fights-data").FightsData),
+      );
+    }
   </script>
 </BaseLayout>

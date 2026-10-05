@@ -1280,7 +1280,13 @@ def main(argv: list[str] | None = None) -> int:
         items |= (
             {cast["item"] for cast in data_file["casts"] if "item" in cast} if data_file else set()
         )
-    index = fights_recipe(match, files, boxes)
+    # The timeline spans the match, as the wards figure's does.
+    end_tick = match.post_game_tick or match.game_end_tick or 0
+    index = {
+        "start_s": -90.0,
+        "end_s": round(_game_seconds(match, end_tick), 1),
+        "fights": fights_recipe(match, files, boxes),
+    }
     (args.fights_data / "index.json").write_text(json.dumps(index, separators=(",", ":")) + "\n")
     args.wards_data.parent.mkdir(parents=True, exist_ok=True)
     args.wards_data.write_text(json.dumps(wards_recipe(match), separators=(",", ":")) + "\n")

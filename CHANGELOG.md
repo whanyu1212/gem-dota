@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Recipe: where were the fights, and who got the kills?** (HY-125).
+  `examples/cookbook/fights.py` lists every fight with the kills each side
+  scored, where its deaths were, each side's net gold, and the first building or
+  Roshan within 2 minutes after it. Across the 9 fixtures, the side with more
+  kills got 117 of the 161 that followed a fight. Its page has a figure of the
+  home page's match: every fight on the map, a timeline of kills, a size filter
+  and each fight's card; picking a fight opens it in Figure 3's player, as a
+  breakdown (activity log, death recaps, damage timeline) for every fight and a
+  map playback for fights with 3 or more deaths.
+
 - **`gem.analysis.vision.OBSERVER_VISION_RADIUS`**: the vision model's
   observer radius (1,600 world units), public so recipes and figures use the
   model's number instead of repeating it.

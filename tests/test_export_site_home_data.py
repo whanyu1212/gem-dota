@@ -59,7 +59,7 @@ def test_main_writes_to_paths_outside_the_repository(
     assert export.main([*args, "--map-image", str(image)]) == 0
     assert (tmp_path / "figures" / "map.webp").stat().st_size > 0
     assert (tmp_path / "figures" / "ward_sentry.png").is_file()
-    assert json.loads((tmp_path / "fights" / "index.json").read_text()) == []
+    assert json.loads((tmp_path / "fights" / "index.json").read_text())["fights"] == []
     assert json.loads(playback.read_text()) is None
     assert json.loads(ward_data.read_text())["wards"] == []
     written = json.loads(data.read_text())
