@@ -193,6 +193,30 @@ class TestOnEntityHeroTracking:
         ext._on_entity(e, EntityOp.CREATED)
         assert ext._hero_by_player_id[3] == "npc_dota_hero_lina"
 
+    def test_compound_hero_name_comes_from_entity_names(self):
+        # CDOTA_Unit_Hero_AncientApparition lowercased is "ancientapparition"; the
+        # EntityNames table has the name the combat log and players use.
+        from gem.state.string_table import StringTable, StringTables
+
+        entity_names = StringTable(index=0, name="EntityNames")
+        entity_names.items[9] = ("npc_dota_hero_ancient_apparition", b"")
+        tables = StringTables()
+        tables.add(entity_names)
+        ext, parser = _ward_extractor()
+        parser.string_tables = tables
+        e = _ent(
+            "CDOTA_Unit_Hero_AncientApparition",
+            **{"m_nPlayerID": 4, "m_iTeamNum": 2, "m_pEntity.m_nameStringTableIndex": 9},
+        )
+        ext._on_entity(e, EntityOp.CREATED)
+        assert ext._hero_by_player_id[2] == "npc_dota_hero_ancient_apparition"
+
+    def test_class_name_is_the_fallback_without_entity_names(self):
+        ext, _ = _ward_extractor()
+        e = _ent("CDOTA_Unit_Hero_AncientApparition", **{"m_nPlayerID": 4, "m_iTeamNum": 2})
+        ext._on_entity(e, EntityOp.CREATED)
+        assert ext._hero_by_player_id[2] == "npc_dota_hero_ancientapparition"
+
     def test_non_hero_entity_not_tracked(self):
         ext, _ = _ward_extractor()
         e = _ent("CDOTAGamerulesProxy")

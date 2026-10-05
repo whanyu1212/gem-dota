@@ -148,6 +148,15 @@ of answering questions from them, see the Recipes docs.
   until 0.14. The map calibration (`MAP_XMIN`…`MAP_YMAX`, `world_to_map_image`,
   `map_image_to_world`) moves to `gem.catalog.map`.
 
+### Fixed
+
+- **Ward placers have the hero's real name.** `WardEvent.placer` was the
+  hero's class name lowercased, so compound heroes came out wrong:
+  `npc_dota_hero_ancientapparition`, `npc_dota_hero_emberspirit`. It now
+  comes from the replay's `EntityNames` table, as `ParsedPlayer.hero_name`
+  does, so it matches the player and the combat log (221 of 221 wards on
+  8856501050). The class name is only the fallback before the table loads.
+
 ## [0.12.0] - 2026-10-03
 
 gem now presents replay facts and leaves interpretation to you. The tags, scores

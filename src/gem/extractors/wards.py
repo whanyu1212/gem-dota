@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal
 
 from gem.combat.log import CombatLogEntry
-from gem.extractors._snapshots import _player_id_from_entity, _pos
+from gem.extractors._snapshots import _hero_npc_name, _player_id_from_entity, _pos
 from gem.schema.sendtable.models import FieldAccessPlan
 from gem.state.entities import Entity, EntityOp
 
@@ -165,6 +165,8 @@ class WardsExtractor:
         self._pending_left: list[tuple[int, str, _SlotState, int]] = []
         # Hero NPC name by player_id — populated from entity stream
         self._hero_by_player_id: dict[int, str] = {}
+        # Hero class name -> NPC name from the EntityNames string table.
+        self._hero_names: dict[str, str] = {}
         # Completed placement records
         self.ward_events: list[WardEvent] = []
 
@@ -226,8 +228,7 @@ class WardsExtractor:
         if cls.startswith("CDOTA_Unit_Hero_"):
             pid = _player_id_from_entity(entity)
             if pid is not None:
-                npc = "npc_dota_hero_" + cls[len("CDOTA_Unit_Hero_") :].lower()
-                self._hero_by_player_id[pid] = npc
+                self._hero_by_player_id[pid] = self._hero_name(entity)
             return
 
         if cls not in _WARD_CLASSES:
@@ -258,6 +259,28 @@ class WardsExtractor:
         elif life_state == 1 and prev_ls == 0:
             self._on_ward_left(entity, cls, idx, tick)
 
+    def _hero_name(self, hero: Entity) -> str:
+        """The hero's NPC name, as the combat log and ``ParsedPlayer`` spell it.
+
+        Class names are ambiguous for compound heroes:
+        ``CDOTA_Unit_Hero_AncientApparition`` is
+        ``npc_dota_hero_ancient_apparition``, so the ``EntityNames`` string table
+        decides (as in ``PlayerExtractor``). The lowercased class name is only the
+        fallback before the table resolves, and is not cached.
+        """
+        cls = hero.get_class_name()
+        cached = self._hero_names.get(cls)
+        if cached is not None:
+            return cached
+        tables = getattr(self._parser, "string_tables", None)
+        resolved = _hero_npc_name(
+            hero, tables.get_by_name("EntityNames") if tables is not None else None
+        )
+        if resolved is None:
+            return "npc_dota_hero_" + cls[len("CDOTA_Unit_Hero_") :].lower()
+        self._hero_names[cls] = resolved
+        return resolved
+
     def _on_ward_placed(
         self,
         entity: Entity,
@@ -286,7 +309,7 @@ class WardsExtractor:
                 if owner is not None:
                     owner_cls = owner.get_class_name()
                     if owner_cls.startswith("CDOTA_Unit_Hero_"):
-                        placer_npc = "npc_dota_hero_" + owner_cls[len("CDOTA_Unit_Hero_") :].lower()
+                        placer_npc = self._hero_name(owner)
 
         state = _SlotState(
             spawn_tick=tick,

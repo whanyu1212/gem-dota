@@ -17,6 +17,7 @@ from gem.schema.sendtable.models import FieldAccessPlan
 
 if TYPE_CHECKING:
     from gem.state.entities import Entity
+    from gem.state.string_table import StringTable
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -24,6 +25,9 @@ if TYPE_CHECKING:
 
 _CELL_SIZE = 128  # Source 2 world units per grid cell
 _HERO_CLASS_PREFIX = "CDOTA_Unit_Hero_"
+_ENTITY_NAME_FIELDS = FieldAccessPlan(
+    ("m_pEntity.m_nameStringTableIndex", "m_pEntity.m_nameStringableIndex")
+)
 
 # Dota team ids on ``CDOTA_PlayerResource.m_vecPlayerData.*.m_iPlayerTeam``.
 # Spectators/coaches use other ids (1/14) and are skipped by the scan.
@@ -489,3 +493,31 @@ class PlayerTimeSeries:
     game_times_s: list[int] = field(default_factory=list)
     max_hp_t: list[int] = field(default_factory=list)
     max_mana_t: list[float] = field(default_factory=list)
+
+
+def _hero_npc_name(hero: Entity, entity_names: StringTable | None) -> str | None:
+    """Return a hero entity's NPC name from the ``EntityNames`` string table.
+
+    Class names are ambiguous for compound heroes: ``CDOTA_Unit_Hero_QueenOfPain``
+    is ``npc_dota_hero_queenofpain``, not ``npc_dota_hero_queen_of_pain``.
+    Current replays use ``m_nameStringTableIndex``; older ones
+    ``m_nameStringableIndex``. Reference: odota/parser Parse.java
+    ``getAbilityEntityStringTableIndex`` (same order).
+
+    Args:
+        hero: The hero entity.
+        entity_names: The ``EntityNames`` string table, if loaded.
+
+    Returns:
+        The NPC name, or ``None`` when it cannot be resolved.
+    """
+    if entity_names is None:
+        return None
+    name_fields = hero._resolve_fields(_ENTITY_NAME_FIELDS)
+    name_idx = hero._get_int32_resolved(name_fields[0])
+    if name_idx is None:
+        name_idx = hero._get_int32_resolved(name_fields[1])
+    if name_idx is None or name_idx < 0:
+        return None
+    item = entity_names.items.get(name_idx)
+    return item[0] if item is not None else None
