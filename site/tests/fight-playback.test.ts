@@ -329,9 +329,14 @@ describe("the committed fight playback", () => {
     const icons = (folder: string) =>
       new Set(readdirSync(new URL(`../src/assets/icons/${folder}/`, import.meta.url)).map((f) => f.replace(".png", "")));
     expect(new Set(playback.heroes.map((h) => h.icon))).toEqual(icons("heroes"));
-    const items = icons("items");
-    // An item without a downloaded icon is skipped by the export and shown by name.
-    for (const item of items) expect(playback.casts.some((c) => c.item === item)).toBe(true);
+    // Item icons cover every fight the fights recipe shows. An item without a
+    // downloaded icon is skipped by the export and shown by name.
+    const dir = new URL("../src/data/fights/", import.meta.url);
+    const fights = readdirSync(dir)
+      .filter((f) => /^\d+\.json$/.test(f))
+      .map((f) => JSON.parse(readFileSync(new URL(f, dir), "utf8")) as FightData);
+    const named = new Set([playback, ...fights].flatMap((f) => f.casts.map((c) => c.item)));
+    for (const item of icons("items")) expect(named.has(item)).toBe(true);
   });
 
   it("stays small, since the browser loads it", () => {

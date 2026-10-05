@@ -32,6 +32,7 @@ const RECIPES = [
   "/cookbook/roshan-next-fight",
   "/cookbook/core-farm",
   "/cookbook/smoke-to-kill",
+  "/cookbook/fights",
   "/cookbook/wards",
 ];
 
@@ -102,6 +103,7 @@ export const SECTIONS: Section[] = [
           { text: "Core Farm, 10 to 20 Minutes", link: "/cookbook/core-farm" },
           { text: "Smokes and Kills", link: "/cookbook/smoke-to-kill" },
           { text: "Wards and Vision", link: "/cookbook/wards" },
+          { text: "Fights and Kills", link: "/cookbook/fights" },
         ],
       },
     ],

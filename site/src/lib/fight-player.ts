@@ -39,7 +39,7 @@ import {
 } from "./fight-playback";
 import { attachRangePicker, placeRange } from "./range-picker";
 
-interface View {
+export interface View {
   box: [number, number, number];
   /** Map units per screen pixel the server assumed (used until the map is measured). */
   px: number;
@@ -120,13 +120,20 @@ export function mountFightPlayer(root: HTMLElement): void {
   ).observe(root);
 }
 
-function createPlayer(root: HTMLElement, view: View, data: FightData) {
+/**
+ * Play a fight in `root`, which holds the player's markup (fight-markup.ts and
+ * the `data-*` hooks). Figure 3 also has a static frame and a narration the
+ * player hides; a recipe panel doesn't. Without hero states (a fight's
+ * breakdown) there is no map: the feed, timeline and recaps still work.
+ */
+export function createPlayer(root: HTMLElement, view: View, data: FightData) {
   // Size marks in screen pixels for the map as drawn (wider on a desktop than a phone).
   const drawn = root.querySelector<SVGSVGElement>("[data-map]")!.getBoundingClientRect().width;
   const px = drawn > 0 ? view.box[2] / drawn : view.px;
   const badge = 11 * px;
   root.querySelector("#hero-badge circle")?.setAttribute("r", String(badge));
   const heroes = data.heroes;
+  const hasStates = heroes.some((hero) => hero.runs.length > 0);
   const names = heroes.map((h) => h.hero);
   const teams = heroes.map((h) => h.team);
   const deaths = deathTimes(data);
@@ -146,12 +153,18 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
 
   // --- Reveal the live figure; the static frame and narration step aside. ---
   const $ = <T extends Element>(selector: string) => root.querySelector<T>(selector)!;
-  $<SVGGElement>("[data-static]").remove();
-  $<HTMLOListElement>("[data-events]").hidden = true;
-  $<HTMLElement>("[data-caption-static]").hidden = true;
-  for (const selector of ["[data-layers]", "[data-playback]", "[data-strip]", "[data-legend]", "[data-status]", "[data-filters]", "[data-feed]", "[data-caption-live]"]) {
-    $<HTMLElement>(selector).hidden = false;
+  root.querySelector("[data-static]")?.remove();
+  for (const selector of ["[data-events]", "[data-caption-static]"]) {
+    const part = root.querySelector<HTMLElement>(selector);
+    if (part) part.hidden = true;
   }
+  const shown = ["[data-playback]", "[data-strip]", "[data-status]", "[data-filters]", "[data-feed]", "[data-caption-live]"];
+  for (const selector of hasStates ? [...shown, "[data-layers]", "[data-legend]"] : shown) {
+    const part = root.querySelector<HTMLElement>(selector);
+    if (part) part.hidden = false;
+  }
+  // A breakdown has nothing to draw on the map.
+  if (!hasStates) $<SVGSVGElement>("[data-map]").style.display = "none";
 
   const heroIcon = (i: number) => view.icons.heroes[heroes[i].icon] ?? "";
   const iconImg = (i: number) =>
@@ -312,6 +325,11 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
     const [manaBar, manaFill] = bar("fight-status-mana");
     const text = html("span", { class: "fight-status-text" });
     const box = html("button", { type: "button", class: `fight-status-hero fight-status-hero--${heroes[i].team}`, "aria-pressed": "false", title: `Follow ${names[i]}` }, iconImg(i), hpBar, manaBar, text);
+    // Without hero states there's no HP or mana to show: just who to follow.
+    if (!hasStates) {
+      hpBar.style.display = manaBar.style.display = "none";
+      text.textContent = names[i];
+    }
     box.addEventListener("click", () => setFollow(i));
     statusEl.append(box);
     return { i, box, hpFill, manaFill, text };
@@ -614,7 +632,7 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
       }
     }
 
-    for (const s of statusEls) {
+    for (const s of hasStates ? statusEls : []) {
       const state = states[s.i];
       s.box.classList.toggle("is-dead", !state);
       s.hpFill.style.width = state ? `${(100 * state.hp) / (state.maxHp || 1)}%` : "0%";
@@ -706,6 +724,13 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
     setVisible(visible: boolean) {
       if (visible && !pausedByReader) play();
       else if (!visible) pause();
+    },
+    play,
+    pause,
+    /** Stop the loop for good; the caller removes the markup. */
+    destroy() {
+      pausedByReader = true;
+      pause();
     },
   };
 }

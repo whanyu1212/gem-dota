@@ -55,9 +55,11 @@ def test_main_writes_to_paths_outside_the_repository(
     ward_data = tmp_path / "wards" / "wards.json"  # a folder that doesn't exist yet
     args = ["replay.dem", "--data", str(data), "--fight-data", str(playback)]
     args += ["--wards-data", str(ward_data), "--public-figures", str(tmp_path / "figures")]
+    args += ["--fights-data", str(tmp_path / "fights")]
     assert export.main([*args, "--map-image", str(image)]) == 0
     assert (tmp_path / "figures" / "map.webp").stat().st_size > 0
     assert (tmp_path / "figures" / "ward_sentry.png").is_file()
+    assert json.loads((tmp_path / "fights" / "index.json").read_text())["fights"] == []
     assert json.loads(playback.read_text()) is None
     assert json.loads(ward_data.read_text())["wards"] == []
     written = json.loads(data.read_text())
@@ -750,3 +752,37 @@ def test_wards_recipe_lists_every_ward_with_how_it_ended() -> None:
     assert data["end_s"] == 300.0 and data["start_s"] == -90.0
     assert data["range"] is None  # no fight to open on
     assert data["radius"] == round(1600 / (export.MAP_XMAX - export.MAP_XMIN) * SIZE, 1)
+
+
+def test_objective_names_read_as_a_reader_would() -> None:
+    name = export._objective_name
+    assert name("goodguys_tower1_bot") == "Radiant tier 1 bottom tower"
+    assert name("badguys_tower4") == "Dire tier 4 tower"
+    assert name("goodguys_range_rax_top") == "Radiant top ranged barracks"
+    assert name("badguys_melee_rax_mid") == "Dire middle melee barracks"
+    assert name("goodguys_fort") == "Radiant Ancient"
+    assert name("roshan") == "Roshan"
+
+
+def test_a_fights_breakdown_has_its_timeline_but_no_hero_states() -> None:
+    match = _playback_match()
+    fight = match.fights[0]
+    breakdown = export.fight_playback(match, {}, fight)
+    assert breakdown is not None
+    assert all(hero["runs"] == [] for hero in breakdown["heroes"])
+    assert [cast["what"] for cast in breakdown["casts"]] == ["Black King Bar", "Avalanche"]
+    assert breakdown["deaths"] and breakdown["damage"]
+
+
+def test_fights_recipe_indexes_every_fight_with_its_file() -> None:
+    from gem.state.game_clock import GameClock
+
+    match = _playback_match()
+    match.game_clock = GameClock(game_start_tick=0)
+    files = {1: "fight.json"}
+    index = export.fights_recipe(match, files, {1: [0.0, 0.0, 400.0]})
+    assert len(index) == len(match.fights) == 1
+    entry = index[0]
+    assert entry["file"] == "fight.json" and entry["box"] == [0.0, 0.0, 400.0]
+    assert entry["kills"] == [match.fights[0].radiant_kills, match.fights[0].dire_kills]
+    assert entry["more"] in {"r", "d", "x"} and entry["deaths"] == match.fights[0].deaths
