@@ -180,6 +180,8 @@ def test_recipes_run_on_a_replay_without_deprecation_warnings(canonical_parsed_m
         rosh = roshan_next_fight.roshan_next_fight(canonical_parsed_match)
         farm = core_farm_10_to_20.core_farm(canonical_parsed_match)
         smokes = smoke_to_kill.smoke_to_kill(canonical_parsed_match)
+        ward_rows = wards.ward_table(canonical_parsed_match)
+        samples = wards.circle_samples(canonical_parsed_match, ward_rows)
 
     assert len(rosh) == len(canonical_parsed_match.roshans)
     assert list(rosh.columns) == roshan_next_fight.COLUMNS
@@ -188,6 +190,11 @@ def test_recipes_run_on_a_replay_without_deprecation_warnings(canonical_parsed_m
     assert set(farm["role"]) <= {"carry", "mid", "offlane"}
     assert list(smokes.columns) == smoke_to_kill.COLUMNS
     assert len(smokes) > 0
+    placed = [w for w in canonical_parsed_match.wards if w.x is not None and w.team in (2, 3)]
+    assert list(ward_rows.columns) == wards.WARD_COLUMNS and len(ward_rows) == len(placed)
+    heroes = {p.hero_name for p in canonical_parsed_match.players}
+    assert set(ward_rows["placer"]) <= heroes
+    assert set(samples["state"]) <= set(wards.STATES) and (samples["distance"] <= 1600).all()
 
 
 def test_recipes_fall_back_to_hero_teams_without_combat_log_teams() -> None:
