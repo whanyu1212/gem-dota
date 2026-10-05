@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Recipe: when did each objective fall, and did teams convert their edges?**
+  (HY-131). `examples/cookbook/objectives.py` lists every tower, barracks,
+  Roshan and Tormentor kill with the side it counted for, the last hit, the
+  fight in the 2 minutes before it, and who damaged each building in the 90
+  seconds before it fell. It also counts each team's edges (fights it won on
+  kills, Aegis windows) by what they led to. Across the 9 fixtures, teams took
+  the next objective after 117 of the 303 fights they won on kills, and a
+  building followed 22 of the 31 Roshans. Its page has a figure of the home
+  page's match: every objective at its place on the map (the base as it stood
+  at the end of a picked stretch), each objective's card linking to its fight on
+  the fights page, and each team's conversion bars with the edges behind them.
+
 - **Recipe: where were the fights, and who got the kills?** (HY-125).
   `examples/cookbook/fights.py` lists every fight with the kills each side
   scored, where its deaths were, each side's net gold, and the first building or

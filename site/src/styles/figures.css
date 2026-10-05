@@ -548,3 +548,409 @@
 .fights-panel-feed .feed {
   max-height: 420px;
 }
+
+/* The objectives recipe's figure */
+.objectives-fig,
+.prose .objectives-fig {
+  margin: 24px 0;
+}
+.prose .objectives-fig :is(ul, ol, p) {
+  margin: 0;
+  padding: 0;
+}
+.prose .objectives-fig li + li {
+  margin-top: 0;
+}
+.prose .objectives-fig figcaption > p {
+  margin-top: 12px;
+}
+.prose .objectives-fig .legend {
+  margin-top: 10px;
+}
+.objectives-fig .legend-item {
+  text-transform: none;
+}
+.objectives-fig-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.objectives-fig-controls .range-pill {
+  margin-left: auto;
+}
+.objectives-fig-controls[hidden],
+.objectives-fig-side[hidden],
+.objectives-fig-strip[hidden],
+.objectives-fig-list[hidden],
+.objectives-fig [data-tally-hint][hidden],
+.objectives-fig [data-tally-list][hidden] {
+  display: none;
+}
+.objectives-fig-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.objectives-fig-body:has(> .objectives-fig-side[hidden]) {
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (max-width: 760px) {
+  .objectives-fig-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.obj :is(polygon, rect) {
+  stroke: var(--map-halo);
+  stroke-width: 2;
+}
+.obj--radiant :is(polygon, rect) {
+  fill: var(--map-radiant-mark);
+}
+.obj--dire :is(polygon, rect) {
+  fill: var(--map-dire-mark);
+}
+.obj.is-fallen :is(polygon, rect) {
+  fill: var(--paper);
+  fill-opacity: 0.85;
+}
+.obj--radiant.is-fallen :is(polygon, rect) {
+  stroke: var(--map-radiant-mark);
+}
+.obj--dire.is-fallen :is(polygon, rect) {
+  stroke: var(--map-dire-mark);
+}
+.obj:not(.is-active).is-fallen {
+  opacity: 0.55;
+}
+.obj-cross {
+  stroke: var(--ink);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.obj.is-active,
+.obj-boss {
+  cursor: pointer;
+  outline: none;
+}
+.obj.is-active :is(polygon, rect) {
+  stroke-width: 4;
+}
+.obj-ring {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 4;
+}
+.obj-boss circle:first-child {
+  stroke: var(--map-halo);
+  stroke-width: 2;
+}
+.obj-boss--radiant circle:first-child {
+  fill: var(--map-radiant-mark);
+}
+.obj-boss--dire circle:first-child {
+  fill: var(--map-dire-mark);
+}
+.obj-boss text {
+  fill: var(--map-halo);
+  font-family: var(--font-sans);
+  font-size: 17px;
+  font-weight: 700;
+  pointer-events: none;
+}
+.obj:focus-visible :is(polygon, rect),
+.obj-boss:focus-visible circle:first-child {
+  stroke: var(--ink);
+  stroke-width: 5;
+}
+.objectives-fig .legend-item i.swatch-tower {
+  width: 0;
+  height: 0;
+  border-right: 6px solid transparent;
+  border-bottom: 11px solid var(--muted);
+  border-left: 6px solid transparent;
+  border-radius: 0;
+  background: none;
+}
+.objectives-fig .legend-item i.swatch-barracks {
+  width: 10px;
+  height: 10px;
+  border-radius: 1px;
+  background: var(--muted);
+}
+.objectives-fig .legend-item i.swatch-boss {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  color: var(--paper);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  background: var(--muted);
+}
+.objectives-fig .legend-item i.swatch-fallen {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--muted);
+  border-radius: 1px;
+  background: linear-gradient(45deg, transparent 44%, var(--ink) 44% 56%, transparent 56%), linear-gradient(-45deg, transparent 44%, var(--ink) 44% 56%, transparent 56%);
+}
+.prose .objectives-fig .objectives-fig-side p {
+  margin: 0 0 6px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.prose .objectives-fig .obj-card-title {
+  color: var(--ink);
+  font-weight: 600;
+}
+.prose .objectives-fig .obj-card-note {
+  color: var(--muted);
+  font-size: 12px;
+}
+.obj-damage {
+  display: flex;
+  height: 10px;
+  margin: 2px 0 4px;
+  overflow: hidden;
+  border-radius: 3px;
+}
+.obj-damage i {
+  display: block;
+}
+.prose .objectives-fig .obj-damage-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  color: var(--body);
+  font-size: 12px;
+}
+.obj-damage-key i {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 4px;
+  border-radius: 1px;
+}
+.obj-damage-0 {
+  background: var(--accent);
+}
+.obj-damage-1 {
+  background: var(--map-dmg-magical);
+}
+.obj-damage-2 {
+  background: var(--warning);
+}
+.obj-damage-3 {
+  background: var(--map-dire-mark);
+}
+.obj-damage-4 {
+  background: var(--muted);
+}
+.obj-damage-5 {
+  background: var(--map-radiant-mark);
+}
+.objectives-fig-strip {
+  margin-top: 12px;
+}
+.objectives-fig-strip svg {
+  display: block;
+  width: 100%;
+  height: 60px;
+  aspect-ratio: auto;
+  cursor: crosshair;
+  touch-action: pan-y;
+}
+.obj-mark--radiant :is(polygon, rect) {
+  fill: var(--map-radiant-mark);
+}
+.obj-mark--dire :is(polygon, rect) {
+  fill: var(--map-dire-mark);
+}
+.obj-mark.is-out {
+  opacity: 0.15;
+}
+.obj-mark.is-selected :is(polygon, rect) {
+  stroke: var(--ink);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+.objectives-fig-list {
+  margin-top: 12px;
+}
+.obj-list {
+  max-height: 220px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  border-top: 1px solid var(--line);
+  list-style: none;
+  font-size: 13px;
+}
+.obj-list li {
+  margin: 0;
+}
+.obj-list-head {
+  padding: 4px 2px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+}
+.obj-list button {
+  display: grid;
+  grid-template-columns: 50px 62px minmax(0, 1fr);
+  gap: 6px;
+  align-items: baseline;
+  width: 100%;
+  padding: 4px 2px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.obj-list button:hover,
+.obj-list button[aria-pressed="true"] {
+  background: var(--accent-soft);
+}
+.obj-list time {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.obj-list-side--radiant,
+.tally-name--radiant,
+.tally-edge--radiant {
+  color: var(--map-radiant-mark);
+  font-weight: 600;
+}
+.obj-list-side--dire,
+.tally-name--dire,
+.tally-edge--dire {
+  color: var(--map-dire-mark);
+  font-weight: 600;
+}
+.objectives-fig-tally {
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.prose .objectives-fig .tally-head {
+  margin-bottom: 8px;
+  color: var(--ink);
+  font-weight: 600;
+}
+.tally-teams {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+}
+.prose .objectives-fig .tally-label {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  color: var(--body);
+  font-size: 12.5px;
+}
+.tally-label b {
+  color: var(--ink);
+}
+.tally-bar {
+  display: flex;
+  height: 26px;
+  margin-top: 3px;
+  overflow: hidden;
+  border-radius: 5px;
+  background: var(--line);
+}
+.tally-seg {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-right: 2px solid var(--paper);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.tally-seg:last-child {
+  border-right: 0;
+}
+.tally-seg--c.tally-seg--radiant {
+  background: var(--map-radiant-mark);
+  color: var(--paper);
+}
+.tally-seg--c.tally-seg--dire {
+  background: var(--map-dire-mark);
+  color: var(--paper);
+}
+.tally-seg--o {
+  background: var(--muted);
+  color: var(--paper);
+}
+.tally-seg--n {
+  background: var(--accent-soft);
+  color: var(--body);
+}
+.tally-seg[aria-pressed="true"] {
+  outline: 3px solid var(--ink);
+  outline-offset: -3px;
+}
+.tally-none {
+  padding: 4px 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.prose .objectives-fig .tally-hint {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.tally-list {
+  max-height: 240px;
+  margin: 6px 0 0;
+  padding: 0;
+  overflow-y: auto;
+  border-top: 1px solid var(--line);
+  list-style: none;
+  font-size: 12.5px;
+}
+.tally-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) auto minmax(0, 1.4fr);
+  gap: 8px;
+  align-items: baseline;
+  padding: 5px 2px;
+  border-bottom: 1px solid var(--line);
+}
+.tally-outcome {
+  padding: 0 7px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+.tally-outcome--c {
+  background: var(--accent);
+  color: var(--paper);
+}
+.tally-outcome--o {
+  background: var(--muted);
+  color: var(--paper);
+}
+.tally-outcome--n {
+  background: var(--accent-soft);
+  color: var(--body);
+}
+@media (max-width: 560px) {
+  .tally-list li {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .tally-list li > :last-child {
+    grid-column: 1 / -1;
+  }
+}

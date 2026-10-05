@@ -6,6 +6,7 @@
 /cookbook/bits-and-bytes-primer
 /cookbook/core-farm
 /cookbook/fights
+/cookbook/objectives
 /cookbook/proto-fields/
 /cookbook/proto-fields/base-gcmessages
 /cookbook/proto-fields/c-peer2peer-netmessages
