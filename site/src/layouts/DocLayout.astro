@@ -128,5 +128,11 @@ const proseClass = ["prose", reference ? "prose--reference" : "", data.pageClass
         figure.mountObjectivesFigure(objectives, data.default as unknown as import("../lib/objectives-data").ObjectivesData),
       );
     }
+    const lead = document.querySelector<HTMLElement>('[data-recipe-figure="lead"]');
+    if (lead) {
+      Promise.all([import("../lib/lead-figure"), import("../data/lead.json")]).then(([figure, data]) =>
+        figure.mountLeadFigure(lead, data.default as unknown as import("../lib/lead-data").LeadData),
+      );
+    }
   </script>
 </BaseLayout>
