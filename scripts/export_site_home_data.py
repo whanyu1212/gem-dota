@@ -82,6 +82,9 @@ DEFAULT_WARDS_DATA = REPO_ROOT / "site" / "src" / "data" / "wards.json"
 DEFAULT_MAP_IMAGE = REPO_ROOT / "site" / "src" / "assets" / "home-map.jpg"
 DEFAULT_FIGHT_IMAGE = REPO_ROOT / "site" / "src" / "assets" / "home-fight.jpg"
 DEFAULT_ICONS = REPO_ROOT / "site" / "src" / "assets" / "icons"
+#: Images the recipe figures use: Markdown pages can't go through Astro's image
+#: pipeline, so these are served as they are.
+DEFAULT_PUBLIC_FIGURES = REPO_ROOT / "site" / "public" / "figures"
 SOURCE_MAP = REPO_ROOT / "assets" / "maps" / "Game_map_7.41.jpg"
 ITEM_ICONS = REPO_ROOT / "src" / "gem" / "data" / "item_icons"
 HERO_ICONS = REPO_ROOT / "src" / "gem" / "data" / "hero_icons"
@@ -195,8 +198,10 @@ def map_overlay() -> dict:
     }
 
 
-def write_map_image(path: Path, box: list[float] | None = None) -> None:
-    """The map square (the report maps' window), or a ``[x, y, size]`` crop of it, as a JPEG."""
+def write_map_image(
+    path: Path, box: list[float] | None = None, *, px: int = IMAGE_PX, webp: bool = False
+) -> None:
+    """The map square (the report maps' window), or a ``[x, y, size]`` crop of it, as a JPEG (or WebP)."""
     from PIL import Image
 
     x, y, size = box or [0.0, 0.0, float(SIZE)]
@@ -211,9 +216,19 @@ def write_map_image(path: Path, box: list[float] | None = None) -> None:
             round((y + size) * scale),
         )
         square = image.convert("RGB").crop(region)
-        square = square.resize((IMAGE_PX, IMAGE_PX), Image.Resampling.LANCZOS)
+        square = square.resize((px, px), Image.Resampling.LANCZOS)
     path.parent.mkdir(parents=True, exist_ok=True)
-    square.save(path, "JPEG", quality=85, optimize=True, progressive=True)
+    if webp:
+        square.save(path, "WEBP", quality=80, method=6)
+    else:
+        square.save(path, "JPEG", quality=85, optimize=True, progressive=True)
+
+
+def write_public_figures(folder: Path, icons_dir: Path) -> None:
+    """The map and the ward icons the recipe figures draw with, served from ``site/public``."""
+    write_map_image(folder / "map.webp", px=1000, webp=True)
+    for kind in ("ward_observer", "ward_sentry"):
+        shutil.copyfile(icons_dir / f"{kind}.png", folder / f"{kind}.png")
 
 
 def load_match(replay: Path) -> ParsedMatch:
@@ -320,11 +335,12 @@ WARD_RANGE_PAD_S = 120
 def wards_recipe(match: ParsedMatch) -> dict:
     """Every ward for the wards recipe's figure (``site/src/data/wards.json``).
 
-    Each ward is ``[team, type, x, y, placed_s, ended_s, how, placer, killer]``:
-    ``r``/``d``, ``o``/``s``, the map-square position, the in-game seconds it
-    went up and ended (pauses excluded), ``k`` killed, ``e`` expired or ``u`` up
-    when the recording ended, the placer's hero (joined on the player slot) and
-    who killed it. A ward is up from ``placed_s`` until ``ended_s`` (half open).
+    Each ward is ``[team, type, x, y, placed_s, ended_s, how, placer, killer,
+    placed, ended]``: ``r``/``d``, ``o``/``s``, the map-square position, the
+    in-game seconds it went up and ended (pauses excluded), ``k`` killed, ``e``
+    expired or ``u`` up when the recording ended, the placer's hero (joined on
+    the player slot), who killed it, and gem's clock (``format_tick``) for the
+    two times. A ward is up from ``placed_s`` until ``ended_s`` (half open).
     """
     clock = match.game_clock
     heroes = {player.player_id: player.hero_name for player in match.players}
@@ -356,6 +372,8 @@ def wards_recipe(match: ParsedMatch) -> dict:
                 how,
                 hero_display(placer) if placer else "unknown",
                 _ward_killer(ward.killer) if how == "k" else "",
+                _clock(match, ward.tick),
+                _clock(match, ended),
             ]
         )
     fight = biggest_fight(match)
@@ -1095,6 +1113,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--map-image", type=Path, default=DEFAULT_MAP_IMAGE)
     parser.add_argument("--fight-image", type=Path, default=DEFAULT_FIGHT_IMAGE)
     parser.add_argument("--icons-dir", type=Path, default=DEFAULT_ICONS)
+    parser.add_argument("--public-figures", type=Path, default=DEFAULT_PUBLIC_FIGURES)
     args = parser.parse_args(argv)
 
     match = load_match(args.replay)
@@ -1128,6 +1147,8 @@ def main(argv: list[str] | None = None) -> int:
     items = {cast["item"] for cast in playback["casts"] if "item" in cast} if playback else set()
     write_icons(args.icons_dir, heroes, items)
     written.append(args.icons_dir)
+    write_public_figures(args.public_figures, args.icons_dir)
+    written.append(args.public_figures)
     print("Wrote " + ", ".join(str(path) for path in written))
     return 0
 

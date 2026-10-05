@@ -54,7 +54,10 @@ def test_main_writes_to_paths_outside_the_repository(
     data, playback, image = tmp_path / "home.json", tmp_path / "fight.json", tmp_path / "map.jpg"
     ward_data = tmp_path / "wards.json"
     args = ["replay.dem", "--data", str(data), "--fight-data", str(playback)]
-    assert export.main([*args, "--wards-data", str(ward_data), "--map-image", str(image)]) == 0
+    args += ["--wards-data", str(ward_data), "--public-figures", str(tmp_path / "figures")]
+    assert export.main([*args, "--map-image", str(image)]) == 0
+    assert (tmp_path / "figures" / "map.webp").stat().st_size > 0
+    assert (tmp_path / "figures" / "ward_sentry.png").is_file()
     assert json.loads(playback.read_text()) is None
     assert json.loads(ward_data.read_text())["wards"] == []
     written = json.loads(data.read_text())
@@ -743,6 +746,7 @@ def test_wards_recipe_lists_every_ward_with_how_it_ended() -> None:
     ]
     assert {w[7] for w in data["wards"]} == {"Ancient Apparition"}
     assert data["wards"][2][8] == "a Dire creep"
+    assert data["wards"][0][9:] == ["tick 0", "tick 10800"]  # gem's clock; ticks without one
     assert data["end_s"] == 300.0 and data["start_s"] == -90.0
     assert data["range"] is None  # no fight to open on
     assert data["radius"] == round(1600 / (export.MAP_XMAX - export.MAP_XMIN) * SIZE, 1)
