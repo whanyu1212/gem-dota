@@ -12,7 +12,7 @@ import pytest
 
 from gem.combat.log import CombatLogEntry, CombatLogType
 from gem.extractors.fights import Fight, FightPlayer
-from gem.extractors.objectives import AegisEvent, RoshanKill
+from gem.extractors.objectives import AegisEvent, BarracksKill, RoshanKill, TowerKill
 from gem.extractors.wards import WardEvent
 from gem.results.models import (
     HeroVisibilityEvent,
@@ -39,6 +39,7 @@ roshan_next_fight = _recipe("roshan_next_fight")
 core_farm_10_to_20 = _recipe("core_farm_10_to_20")
 smoke_to_kill = _recipe("smoke_to_kill")
 wards = _recipe("wards")
+fights = _recipe("fights")
 
 
 def _fight(first_death_tick: int, winner: str) -> Fight:
@@ -182,6 +183,7 @@ def test_recipes_run_on_a_replay_without_deprecation_warnings(canonical_parsed_m
         smokes = smoke_to_kill.smoke_to_kill(canonical_parsed_match)
         ward_rows = wards.ward_table(canonical_parsed_match)
         samples = wards.circle_samples(canonical_parsed_match, ward_rows)
+        fight_rows = fights.fight_table(canonical_parsed_match)
 
     assert len(rosh) == len(canonical_parsed_match.roshans)
     assert list(rosh.columns) == roshan_next_fight.COLUMNS
@@ -195,6 +197,9 @@ def test_recipes_run_on_a_replay_without_deprecation_warnings(canonical_parsed_m
     heroes = {p.hero_name for p in canonical_parsed_match.players}
     assert set(ward_rows["placer"]) <= heroes
     assert set(samples["state"]) <= set(wards.STATES) and (samples["distance"] <= 1600).all()
+    assert list(fight_rows.columns) == fights.COLUMNS
+    assert len(fight_rows) == len(canonical_parsed_match.fights)
+    assert set(fight_rows["more_kills"]) <= {"radiant", "dire", "even"}
 
 
 def test_recipes_fall_back_to_hero_teams_without_combat_log_teams() -> None:
@@ -350,3 +355,77 @@ def test_wards_checks_the_circle_against_the_replays_visibility() -> None:
     assert (
         bands.loc["0-400", "visible_pct"] == 100.0 and bands.loc["800-1200", "visible_pct"] == 0.0
     )
+
+
+def test_fights_lists_each_fight_and_what_fell_next() -> None:
+    def fight(start: int, end: int, radiant: int, dire: int) -> Fight:
+        return Fight(
+            start_tick=start,
+            end_tick=end,
+            last_death_tick=end - 30,
+            deaths=radiant + dire,
+            radiant_kills=radiant,
+            dire_kills=dire,
+            centroid_x=16000.0,
+            centroid_y=16000.0,
+            players=[
+                FightPlayer(player_id=0, gold_delta=300),
+                FightPlayer(player_id=5, gold_delta=-50),
+            ],
+        )
+
+    match = ParsedMatch(
+        match_id=3,
+        game_start_tick=0,
+        game_clock=GameClock(game_start_tick=0),
+        players=[
+            ParsedPlayer(player_id=0, team=2, hero_name="npc_dota_hero_axe"),
+            ParsedPlayer(player_id=5, team=3, hero_name="npc_dota_hero_lina"),
+        ],
+        fights=[
+            fight(9_000, 9_900, 0, 2),  # Dire more kills; nothing falls within 120 s
+            fight(3_000, 3_900, 2, 1),  # Radiant more kills; Dire's tower falls 60 s later
+            fight(6_000, 6_900, 1, 1),  # even
+        ],
+        towers=[
+            TowerKill(
+                tick=5_700,
+                team=3,
+                killer="npc_dota_hero_axe",
+                tower_name="npc_dota_badguys_tower1_mid",
+            )
+        ],
+        barracks=[
+            # Radiant denies its own barracks: it still counts for Dire.
+            BarracksKill(
+                tick=7_000,
+                team=2,
+                killer="npc_dota_hero_axe",
+                barracks_name="npc_dota_goodguys_melee_rax_mid",
+                killer_team=2,
+            )
+        ],
+        roshans=[
+            RoshanKill(tick=20_000, killer="npc_dota_hero_lina", kill_number=1, killer_team=3)
+        ],
+    )
+
+    table = fights.fight_table(match)
+
+    assert list(table["fight"]) == [1, 2, 3] and list(table["start"]) == ["01:40", "03:20", "05:00"]
+    assert list(table["more_kills"]) == ["radiant", "even", "dire"]
+    first = table.iloc[0]
+    assert (first["next"], first["next_for"], first["next_after_s"]) == (
+        "badguys_tower1_mid",
+        "radiant",
+        60,
+    )
+    assert table.iloc[1]["next_for"] == "dire"  # the deny, 3 s after the even fight
+    assert pd.isna(table.iloc[2]["next"])  # Roshan is too late
+    assert (first["radiant_gold"], first["dire_gold"]) == (300, -50)
+    assert fights.next_objective_summary(table) == {
+        "fights": 3,
+        "more_kills": 2,
+        "followed": 1,
+        "same_side": 1,
+    }
