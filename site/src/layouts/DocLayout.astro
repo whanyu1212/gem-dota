@@ -4,6 +4,7 @@
 import { render } from "astro:content";
 import "../styles/prose.css";
 import "../styles/architecture.css";
+import "../styles/figures.css";
 import BaseLayout from "./BaseLayout.astro";
 import Sidebar from "../components/Sidebar.astro";
 import Outline from "../components/Outline.astro";
@@ -103,6 +104,16 @@ const proseClass = ["prose", reference ? "prose--reference" : "", data.pageClass
         setTimeout(() => (button.textContent = "Copy"), 1500);
       });
       block.append(pre, button);
+    }
+  </script>
+  <script>
+    // A recipe figure (`::: figure name` in the Markdown) is drawn at build time;
+    // its interactive parts load only on the pages that have one.
+    const wards = document.querySelector<HTMLElement>('[data-recipe-figure="wards"]');
+    if (wards) {
+      Promise.all([import("../lib/wards-figure"), import("../data/wards.json")]).then(([figure, data]) =>
+        figure.mountWardsFigure(wards, data.default as unknown as import("../lib/wards-data").WardsData),
+      );
     }
   </script>
 </BaseLayout>

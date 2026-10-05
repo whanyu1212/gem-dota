@@ -57,6 +57,7 @@ from gem.analysis.fight_timeline import (  # noqa: E402
     build_fight_timeline,
 )
 from gem.analysis.smoke import SmokeAnalysis  # noqa: E402
+from gem.analysis.vision import OBSERVER_VISION_RADIUS  # noqa: E402
 from gem.catalog.abilities import ABILITIES, ability_display  # noqa: E402
 from gem.catalog.items import ITEMS, item_display  # noqa: E402
 from gem.catalog.map import (  # noqa: E402
@@ -77,9 +78,13 @@ from gem.results.models import ParsedMatch, ParsedPlayer  # noqa: E402
 DEFAULT_REPLAY = REPO_ROOT / "tests" / "fixtures" / "opendota" / "8856501050.dem"
 DEFAULT_DATA = REPO_ROOT / "site" / "src" / "data" / "home.json"
 DEFAULT_FIGHT_DATA = REPO_ROOT / "site" / "src" / "data" / "fight.json"
+DEFAULT_WARDS_DATA = REPO_ROOT / "site" / "src" / "data" / "wards.json"
 DEFAULT_MAP_IMAGE = REPO_ROOT / "site" / "src" / "assets" / "home-map.jpg"
 DEFAULT_FIGHT_IMAGE = REPO_ROOT / "site" / "src" / "assets" / "home-fight.jpg"
 DEFAULT_ICONS = REPO_ROOT / "site" / "src" / "assets" / "icons"
+#: Images the recipe figures use: Markdown pages can't go through Astro's image
+#: pipeline, so these are served as they are.
+DEFAULT_PUBLIC_FIGURES = REPO_ROOT / "site" / "public" / "figures"
 SOURCE_MAP = REPO_ROOT / "assets" / "maps" / "Game_map_7.41.jpg"
 ITEM_ICONS = REPO_ROOT / "src" / "gem" / "data" / "item_icons"
 HERO_ICONS = REPO_ROOT / "src" / "gem" / "data" / "hero_icons"
@@ -98,8 +103,8 @@ PATH_JUMP = 900
 POSITION_TOLERANCE = 0.1
 POINTS_TOLERANCE = 0.49
 TICKS_PER_SECOND = 30
-#: Observer ward vision radius, as in gem's point-vision model (analysis/vision.py).
-OBSERVER_VISION = 1600
+#: Observer ward vision radius: gem's point-vision model (analysis/vision.py).
+OBSERVER_VISION = OBSERVER_VISION_RADIUS
 TEAMS = {2: "radiant", 3: "dire"}
 #: The playback runs on this long after the last death, for an instant buyback
 #: and the last death's gold.
@@ -193,8 +198,10 @@ def map_overlay() -> dict:
     }
 
 
-def write_map_image(path: Path, box: list[float] | None = None) -> None:
-    """The map square (the report maps' window), or a ``[x, y, size]`` crop of it, as a JPEG."""
+def write_map_image(
+    path: Path, box: list[float] | None = None, *, px: int = IMAGE_PX, webp: bool = False
+) -> None:
+    """The map square (the report maps' window), or a ``[x, y, size]`` crop of it, as a JPEG (or WebP)."""
     from PIL import Image
 
     x, y, size = box or [0.0, 0.0, float(SIZE)]
@@ -209,9 +216,19 @@ def write_map_image(path: Path, box: list[float] | None = None) -> None:
             round((y + size) * scale),
         )
         square = image.convert("RGB").crop(region)
-        square = square.resize((IMAGE_PX, IMAGE_PX), Image.Resampling.LANCZOS)
+        square = square.resize((px, px), Image.Resampling.LANCZOS)
     path.parent.mkdir(parents=True, exist_ok=True)
-    square.save(path, "JPEG", quality=85, optimize=True, progressive=True)
+    if webp:
+        square.save(path, "WEBP", quality=80, method=6)
+    else:
+        square.save(path, "JPEG", quality=85, optimize=True, progressive=True)
+
+
+def write_public_figures(folder: Path, icons_dir: Path) -> None:
+    """The map and the ward icons the recipe figures draw with, served from ``site/public``."""
+    write_map_image(folder / "map.webp", px=1000, webp=True)
+    for kind in ("ward_observer", "ward_sentry"):
+        shutil.copyfile(icons_dir / f"{kind}.png", folder / f"{kind}.png")
 
 
 def load_match(replay: Path) -> ParsedMatch:
@@ -300,6 +317,80 @@ def _unit_name(npc_name: str) -> str:
     name = npc_name.removeprefix("npc_dota_")
     name = name.replace("goodguys", "radiant").replace("badguys", "dire")
     return name.replace("_", " ").strip().capitalize() or "Unknown"
+
+
+def _ward_killer(npc_name: str) -> str:
+    """Who killed a ward, for a reader: a hero, "a Radiant creep", or a tidied unit name."""
+    for side, team in (("goodguys", "Radiant"), ("badguys", "Dire")):
+        if npc_name.startswith(f"npc_dota_creep_{side}"):
+            return f"a {team} creep"
+    return _unit_name(npc_name) if npc_name else "unknown"
+
+
+#: The wards recipe's figure opens on Figure 3's fight, with this much on each
+#: side (whole minutes).
+WARD_RANGE_PAD_S = 120
+
+
+def wards_recipe(match: ParsedMatch) -> dict:
+    """Every ward for the wards recipe's figure (``site/src/data/wards.json``).
+
+    Each ward is ``[team, type, x, y, placed_s, ended_s, how, placer, killer,
+    placed, ended]``: ``r``/``d``, ``o``/``s``, the map-square position, the
+    in-game seconds it went up and ended (pauses excluded), ``k`` killed, ``e``
+    expired or ``u`` up when the recording ended, the placer's hero (joined on
+    the player slot), who killed it, and gem's clock (``format_tick``) for the
+    two times. A ward is up from ``placed_s`` until ``ended_s`` (half open).
+    """
+    clock = match.game_clock
+    heroes = {player.player_id: player.hero_name for player in match.players}
+    end_tick = match.post_game_tick or match.game_end_tick or 0
+
+    def seconds(tick: int) -> float:
+        return round(_game_seconds(match, tick), 1)
+
+    wards: list[list] = []
+    placed: list[float] = []
+    for ward in sorted(match.wards, key=lambda w: w.tick):
+        if ward.x is None or ward.y is None or ward.team not in TEAMS:
+            continue
+        if ward.killed_tick is not None:
+            ended, how = ward.killed_tick, "k"
+        elif ward.expires_tick is not None:
+            ended, how = ward.expires_tick, "e"
+        else:
+            ended, how = end_tick, "u"
+        placer = heroes.get(ward.player_id) or ward.placer
+        placed.append(seconds(ward.tick))
+        wards.append(
+            [
+                TEAMS[ward.team][0],
+                ward.ward_type[0],
+                *_project(ward.x, ward.y),
+                seconds(ward.tick),
+                seconds(ended),
+                how,
+                hero_display(placer) if placer else "unknown",
+                _ward_killer(ward.killer) if how == "k" else "",
+                _clock(match, ward.tick),
+                _clock(match, ended),
+            ]
+        )
+    fight = biggest_fight(match)
+    default = None
+    if fight is not None and clock is not None:
+        start, end = playback_window(match, fight)
+        default = [
+            math.floor((_game_seconds(match, start) - WARD_RANGE_PAD_S) / 60) * 60,
+            math.ceil((_game_seconds(match, end) + WARD_RANGE_PAD_S) / 60) * 60,
+        ]
+    return {
+        "start_s": min([-90.0, *placed]),
+        "end_s": seconds(end_tick),
+        "radius": round(OBSERVER_VISION / (MAP_XMAX - MAP_XMIN) * SIZE, 1),
+        "range": default,
+        "wards": wards,
+    }
 
 
 def _clock(match: ParsedMatch, tick: int) -> str:
@@ -1018,9 +1109,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("replay", nargs="?", type=Path, default=DEFAULT_REPLAY)
     parser.add_argument("--data", type=Path, default=DEFAULT_DATA)
     parser.add_argument("--fight-data", type=Path, default=DEFAULT_FIGHT_DATA)
+    parser.add_argument("--wards-data", type=Path, default=DEFAULT_WARDS_DATA)
     parser.add_argument("--map-image", type=Path, default=DEFAULT_MAP_IMAGE)
     parser.add_argument("--fight-image", type=Path, default=DEFAULT_FIGHT_IMAGE)
     parser.add_argument("--icons-dir", type=Path, default=DEFAULT_ICONS)
+    parser.add_argument("--public-figures", type=Path, default=DEFAULT_PUBLIC_FIGURES)
     args = parser.parse_args(argv)
 
     match = load_match(args.replay)
@@ -1044,8 +1137,10 @@ def main(argv: list[str] | None = None) -> int:
     args.fight_data.parent.mkdir(parents=True, exist_ok=True)
     # Compact: the playback is loaded by the browser, so every byte counts.
     args.fight_data.write_text(json.dumps(playback, separators=(",", ":")) + "\n")
+    args.wards_data.parent.mkdir(parents=True, exist_ok=True)
+    args.wards_data.write_text(json.dumps(wards_recipe(match), separators=(",", ":")) + "\n")
     write_map_image(args.map_image)
-    written = [args.data, args.fight_data, args.map_image]
+    written = [args.data, args.fight_data, args.wards_data, args.map_image]
     if fight is not None:
         write_map_image(args.fight_image, fight["box"])
         written.append(args.fight_image)
@@ -1053,6 +1148,8 @@ def main(argv: list[str] | None = None) -> int:
     items = {cast["item"] for cast in playback["casts"] if "item" in cast} if playback else set()
     write_icons(args.icons_dir, heroes, items)
     written.append(args.icons_dir)
+    write_public_figures(args.public_figures, args.icons_dir)
+    written.append(args.public_figures)
     print("Wrote " + ", ".join(str(path) for path in written))
     return 0
 

@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`gem.analysis.vision.OBSERVER_VISION_RADIUS`**: the vision model's
+  observer radius (1,600 world units), public so recipes and figures use the
+  model's number instead of repeating it.
+
+- **Recipe: where did each team ward, and what could the wards see?** (HY-126).
+  `examples/cookbook/wards.py` lists every ward and how it ended, how long
+  observers lasted on each side of the map, and how often the replay's own
+  visibility let the warding team see enemy heroes inside its observer circles.
+  Its page has a figure of the home page's match: every ward up in a stretch
+  you pick on a timeline of wards up each minute, filtered by team and type,
+  with each ward's story. Recipe pages can now carry a figure
+  (`::: figure name`). Figure 3's legend explains its dashed cast links.
+
 - **Docs: Recipes** (HY-102). Three pages that each answer one question from
   gem's facts and pandas, with no tags, scores or deprecated APIs: whether the
   team that killed Roshan won the next fight, how fast each core farmed from 10
@@ -147,6 +160,15 @@ of answering questions from them, see the Recipes docs.
   `import gem` no longer imports the report; `gem.reports` still works, and warns,
   until 0.14. The map calibration (`MAP_XMIN`…`MAP_YMAX`, `world_to_map_image`,
   `map_image_to_world`) moves to `gem.catalog.map`.
+
+### Fixed
+
+- **Ward placers have the hero's real name.** `WardEvent.placer` was the
+  hero's class name lowercased, so compound heroes came out wrong:
+  `npc_dota_hero_ancientapparition`, `npc_dota_hero_emberspirit`. It now
+  comes from the replay's `EntityNames` table, as `ParsedPlayer.hero_name`
+  does, so it matches the player and the combat log (221 of 221 wards on
+  8856501050). The class name is only the fallback before the table loads.
 
 ## [0.12.0] - 2026-10-03
 

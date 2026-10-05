@@ -32,6 +32,7 @@ const RECIPES = [
   "/cookbook/roshan-next-fight",
   "/cookbook/core-farm",
   "/cookbook/smoke-to-kill",
+  "/cookbook/wards",
 ];
 
 const startsWithAny = (path: string, prefixes: string[]) => prefixes.some((p) => path.startsWith(p));
@@ -100,6 +101,7 @@ export const SECTIONS: Section[] = [
           { text: "Roshan and the Next Fight", link: "/cookbook/roshan-next-fight" },
           { text: "Core Farm, 10 to 20 Minutes", link: "/cookbook/core-farm" },
           { text: "Smokes and Kills", link: "/cookbook/smoke-to-kill" },
+          { text: "Wards and Vision", link: "/cookbook/wards" },
         ],
       },
     ],

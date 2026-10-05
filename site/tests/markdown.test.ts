@@ -61,6 +61,19 @@ describe("callouts", () => {
   });
 });
 
+describe("figures", () => {
+  const figures = { demo: () => ({ open: '<figure class="demo"><figcaption>', close: "</figcaption></figure>" }) };
+
+  it("renders a figure around its caption, which stays Markdown", () => {
+    const out = preprocess("::: figure demo\n**Figure 1.** A *map*.\n:::", { ...pre, figures });
+    expect(out).toBe('\n<figure class="demo"><figcaption>\n\n**Figure 1.** A *map*.\n\n</figcaption></figure>\n');
+  });
+
+  it("refuses a figure it doesn't know", () => {
+    expect(() => preprocess("::: figure nope\n:::", { ...pre, figures })).toThrow("Unknown figure: ::: figure nope");
+  });
+});
+
 describe("GitHub alerts", () => {
   it("renders > [!IMPORTANT] as a callout, with Markdown inside", async () => {
     const { html } = await render("> [!IMPORTANT]\n> Experimental does **not** mean random.\n>\n> - a\n> - b\n\nAfter.\n");

@@ -1,0 +1,341 @@
+/* Figures shared by the home page and the recipe pages: the map, its legend,
+   wards and their vision, filter chips and the timeline strip. */
+
+.fig {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+.fig svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: 2px;
+}
+.map image {
+  filter: var(--image-filter);
+}
+.map-half {
+  fill: none;
+  stroke: var(--map-line);
+  stroke-opacity: 0.55;
+  stroke-width: 2;
+  stroke-dasharray: 12 9;
+}
+.legend {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-top: 8px;
+}
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: capitalize;
+}
+.legend-item i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--camp, var(--camp-small));
+}
+.map-dim {
+  fill: var(--camp-ring);
+  fill-opacity: 0.22;
+}
+.ward-vision {
+  stroke-width: 2;
+  fill-opacity: 0.14;
+  stroke-opacity: 0.85;
+}
+.ward-vision--radiant {
+  fill: var(--map-radiant-mark);
+  stroke: var(--map-radiant-mark);
+}
+.ward-vision--dire {
+  fill: var(--map-dire-mark);
+  stroke: var(--map-dire-mark);
+}
+.ward-ring {
+  stroke: var(--map-halo);
+  stroke-width: 2;
+}
+.ward--radiant .ward-ring {
+  fill: var(--map-radiant-mark);
+}
+.ward--dire .ward-ring {
+  fill: var(--map-dire-mark);
+}
+.legend-item img {
+  border-radius: 50%;
+  object-fit: cover;
+}
+.team-radiant i {
+  background: var(--map-radiant-mark);
+}
+.team-dire i {
+  background: var(--map-dire-mark);
+}
+.chip {
+  padding: 2px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--body);
+  font: inherit;
+  font-size: 12.5px;
+  line-height: 1.6;
+  cursor: pointer;
+}
+.chip:hover {
+  border-color: var(--accent);
+}
+.chip[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+.chip-label {
+  margin-right: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.strip-range {
+  fill: var(--accent-soft);
+  stroke: var(--accent);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+.strip-label {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0 0 2px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.strip-hint {
+  margin-left: auto;
+}
+.strip-key {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 5px;
+  border-radius: 1px;
+}
+.strip-key--radiant {
+  background: var(--map-radiant-mark);
+}
+.strip-key--dire {
+  background: var(--map-dire-mark);
+}
+.strip-radiant {
+  fill: var(--map-radiant-mark);
+}
+.strip-dire {
+  fill: var(--map-dire-mark);
+}
+.strip-axis {
+  stroke: var(--line);
+}
+
+/* The wards recipe's figure */
+.ward-fig,
+.prose .ward-fig {
+  margin: 24px 0;
+}
+/* The figure sits in a docs page: undo the prose spacing inside it. */
+.prose .ward-fig :is(ul, ol, p) {
+  margin: 0;
+  padding: 0;
+}
+.prose .ward-fig li + li {
+  margin-top: 0;
+}
+.prose .ward-fig figcaption > p {
+  margin-top: 12px;
+}
+.ward-fig-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.ward-fig-controls .range-pill {
+  margin-left: auto;
+}
+.chip-gap {
+  width: 6px;
+}
+.ward-fig-controls[hidden],
+.ward-fig-side[hidden],
+.ward-fig-list[hidden],
+.ward-fig-strip[hidden] {
+  display: none;
+}
+.ward-fig-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.ward-fig-body:has(> .ward-fig-side[hidden]) {
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (max-width: 760px) {
+  .ward-fig-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.ward {
+  cursor: pointer;
+  outline: none;
+}
+.ward:focus-visible .ward-ring,
+.ward.is-selected .ward-ring {
+  stroke: var(--ink);
+  stroke-width: 5;
+}
+.ward.is-killed .ward-ring {
+  stroke: var(--ink);
+  stroke-width: 3;
+  stroke-dasharray: 6 4;
+}
+.ward-vision.is-killed {
+  stroke-dasharray: 10 7;
+}
+.ward-vision.is-selected {
+  fill-opacity: 0.3;
+  stroke-width: 4;
+}
+.ward-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.ward-stat {
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: var(--accent-soft);
+}
+.ward-stat b {
+  display: block;
+  color: var(--ink);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.ward-stat span {
+  color: var(--muted);
+  font-size: 12px;
+}
+.prose .ward-fig .ward-story {
+  min-height: 3.2em;
+  margin: 10px 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.ward-fig-list {
+  margin-top: 12px;
+}
+.ward-list {
+  max-height: 240px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  border-top: 1px solid var(--line);
+  list-style: none;
+  font-size: 13px;
+}
+.ward-list li {
+  margin: 0;
+}
+.ward-list button {
+  display: grid;
+  grid-template-columns: 50px 14px minmax(0, 1fr);
+  gap: 6px;
+  align-items: baseline;
+  width: 100%;
+  padding: 4px 2px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.ward-list button:hover,
+.ward-list button[aria-pressed="true"] {
+  background: var(--accent-soft);
+}
+.ward-list time {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.ward-mark--radiant {
+  color: var(--map-radiant-mark);
+}
+.ward-mark--dire {
+  color: var(--map-dire-mark);
+}
+.ward-fig-strip {
+  margin-top: 12px;
+}
+.ward-fig-strip svg {
+  display: block;
+  width: 100%;
+  height: 56px;
+  aspect-ratio: auto;
+  cursor: crosshair;
+  touch-action: pan-y;
+}
+.ward-ticks {
+  position: relative;
+  height: 16px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.ward-ticks span {
+  position: absolute;
+  transform: translateX(-50%);
+}
+.ward-ticks span.ward-tick--edge {
+  transform: none;
+}
+@media (max-width: 560px) {
+  .ward-tick--minor {
+    display: none;
+  }
+}
+.ward-fig .legend-item {
+  text-transform: none;
+}
+.prose .ward-fig .legend {
+  margin-top: 10px;
+}
+.ward-fig .legend-item i.swatch-vision,
+.ward-fig .legend-item i.swatch-killed {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--muted);
+  background: none;
+}
+.ward-fig .legend-item i.swatch-killed {
+  border-style: dashed;
+  border-color: var(--ink);
+}

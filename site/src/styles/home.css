@@ -221,27 +221,6 @@
 /* Chapter 2: Figures 1-3. Each card is a column (square map, then caption), so
    paired cards keep their maps level and their captions start on one line. */
 
-.fig {
-  display: flex;
-  flex-direction: column;
-  margin: 0;
-  padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: var(--paper);
-  box-shadow: var(--shadow);
-}
-.fig svg {
-  display: block;
-  width: 100%;
-  height: auto;
-  aspect-ratio: 1;
-  border-radius: 2px;
-}
-
-.map image {
-  filter: var(--image-filter);
-}
 .map-dire {
   fill: var(--map-dire);
   fill-opacity: 0.14;
@@ -256,13 +235,6 @@
   stroke: var(--map-river-edge);
   stroke-width: 2.5;
   stroke-linejoin: round;
-}
-.map-half {
-  fill: none;
-  stroke: var(--map-line);
-  stroke-opacity: 0.55;
-  stroke-width: 2;
-  stroke-dasharray: 12 9;
 }
 .map-lotus {
   fill: var(--map-lotus);
@@ -295,31 +267,6 @@
   fill-opacity: 0.25;
   stroke: none;
 }
-.legend {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 14px;
-  margin-top: 8px;
-}
-.legend-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  text-transform: capitalize;
-}
-.legend-item i {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--camp, var(--camp-small));
-}
-
-.map-dim {
-  fill: var(--camp-ring);
-  fill-opacity: 0.22;
-}
 .map-dim--fight {
   fill-opacity: 0.34;
 }
@@ -341,39 +288,6 @@
   paint-order: stroke;
   stroke: var(--map-halo);
   stroke-width: 5px;
-}
-.ward-vision {
-  stroke-width: 2;
-  fill-opacity: 0.14;
-  stroke-opacity: 0.85;
-}
-.ward-vision--radiant {
-  fill: var(--map-radiant-mark);
-  stroke: var(--map-radiant-mark);
-}
-.ward-vision--dire {
-  fill: var(--map-dire-mark);
-  stroke: var(--map-dire-mark);
-}
-.ward-ring {
-  stroke: var(--map-halo);
-  stroke-width: 2;
-}
-.ward--radiant .ward-ring {
-  fill: var(--map-radiant-mark);
-}
-.ward--dire .ward-ring {
-  fill: var(--map-dire-mark);
-}
-.legend-item img {
-  border-radius: 50%;
-  object-fit: cover;
-}
-.team-radiant i {
-  background: var(--map-radiant-mark);
-}
-.team-dire i {
-  background: var(--map-dire-mark);
 }
 
 /* Figure 3: the fight, with its narration beside it */
@@ -554,25 +468,6 @@
 
 /* Figure 3's live playback (src/lib/fight-player.ts). Hidden without JavaScript. */
 
-.chip {
-  padding: 2px 10px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--paper);
-  color: var(--body);
-  font: inherit;
-  font-size: 12.5px;
-  line-height: 1.6;
-  cursor: pointer;
-}
-.chip:hover {
-  border-color: var(--accent);
-}
-.chip[aria-pressed="true"] {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--ink);
-}
 .fight-layers,
 .feed-filters,
 .playback-speeds {
@@ -592,13 +487,6 @@
 }
 .range-pill[hidden] {
   display: none;
-}
-.chip-label {
-  margin-right: 2px;
-  color: var(--muted);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 .playback-speeds {
   margin-left: auto;
@@ -626,50 +514,11 @@
   cursor: crosshair;
   touch-action: pan-y;
 }
-.strip-range {
-  fill: var(--accent-soft);
-  stroke: var(--accent);
-  stroke-width: 2;
-  vector-effect: non-scaling-stroke;
-}
 .fight-strip input[type="range"] {
   display: block;
   width: 100%;
   margin: 2px 0 0;
   accent-color: var(--accent);
-}
-.strip-label {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  margin: 0 0 2px;
-  color: var(--muted);
-  font-size: 12px;
-}
-.strip-hint {
-  margin-left: auto;
-}
-.strip-key {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  margin-right: 5px;
-  border-radius: 1px;
-}
-.strip-key--radiant {
-  background: var(--map-radiant-mark);
-}
-.strip-key--dire {
-  background: var(--map-dire-mark);
-}
-.strip-radiant {
-  fill: var(--map-radiant-mark);
-}
-.strip-dire {
-  fill: var(--map-dire-mark);
-}
-.strip-axis {
-  stroke: var(--line);
 }
 /* Deaths and buybacks beside the strip: Radiant's above, Dire's below. */
 .strip-row {
@@ -739,6 +588,19 @@
 }
 .fight-legend i.swatch-line--pure {
   background: var(--map-dmg-pure);
+}
+/* A cast's dashed link, in the caster's team colour: half Radiant, half Dire. */
+.fight-legend i.swatch-cast {
+  width: 18px;
+  height: 2px;
+  border-radius: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--map-radiant-mark) 0 4px,
+    transparent 4px 6px,
+    var(--map-dire-mark) 6px 10px,
+    transparent 10px 12px
+  );
 }
 .fight-legend i.swatch-ring {
   box-sizing: border-box;

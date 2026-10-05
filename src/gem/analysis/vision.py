@@ -34,6 +34,9 @@ _NIGHT_VISION: int = 800
 
 # Observer ward vision radius (constant, no items change it)
 _WARD_VISION: int = 1600
+#: The model's observer ward vision radius, in world units: a flat circle, with
+#: no terrain or trees (true sight from sentries is not map vision).
+OBSERVER_VISION_RADIUS: int = _WARD_VISION
 
 # Day/night cycle constants (ticks at 30 ticks/sec).
 # Dota's cycle is 10 minutes: day from 0:00, night from 5:00, repeating.

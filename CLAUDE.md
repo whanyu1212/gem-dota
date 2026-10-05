@@ -676,7 +676,15 @@ Key pages (under `site/src/content/docs/`): `architecture.md`, `guides/`, `deep-
 (`cd site && npm run build && npm run check-urls && npm run check-links`). The
 Markdown extras the pages use (`:::` callouts, GitHub `> [!NOTE]` alerts, code
 groups, `<<< @/examples/...` imports from the repository root, VitePress-style
-heading IDs, `.md` links) are handled by the plugins in `site/src/markdown/`. Navigation
+heading IDs, `.md` links, and `::: figure name` recipe figures) are handled by
+the plugins in `site/src/markdown/`. A recipe figure is drawn at build time by
+`site/src/figures/<name>.ts` around the block's Markdown (its caption), from a
+committed data file the export writes (e.g. `site/src/data/wards.json`), with
+its images in `site/public/figures/`; `DocLayout` loads its interactive part
+only on pages that have one, and figure styles shared with the home page live in
+`site/src/styles/figures.css`. Astro caches a page's rendered Markdown by the
+page's own text, so `npm run build` passes `--force`; `npm run dev` can show a
+stale figure until the `.md` changes. Navigation
 lives in `site/src/nav.ts`; every colour is a token in `site/src/styles/tokens.css`
 (`npm test` checks WCAG AA contrast for both themes). The home page
 (`site/src/pages/index.astro`) reads a committed snapshot written by

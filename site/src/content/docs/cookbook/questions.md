@@ -11,6 +11,7 @@ anything deprecated in 0.12.
 | [Did the Roshan team win the next fight?](./roshan-next-fight) | Roshan kills, Aegis events, fights, the game clock |
 | [How fast did each core farm from 10 to 20 minutes?](./core-farm) | Minute curves, neutral deaths in the combat log, positions and `gem.region_of` |
 | [How often did a smoke lead to a kill?](./smoke-to-kill) | `gem.build_smoke_analysis`, hero deaths in the combat log, fights |
+| [Where did each team ward, and what could the wards see?](./wards) | Wards, `gem.region_of`, hero positions and the replay's own visibility |
 
 ## How the recipes are laid out
 
@@ -34,8 +35,9 @@ matches and on a fixture replay, so the code on these pages runs as shown.
 
 ## The sample
 
-The outputs come from the TI match 8974053011 (MOUZ vs Natus Vincere) and, for
-the totals, the 9 local fixture replays (`tests/fixtures/opendota/`). Nine pro
+The outputs come from the TI match 8974053011 (MOUZ vs Natus Vincere; the wards
+recipe uses 8856501050, the home page's match) and, for the totals, the 9 local
+fixture replays (`tests/fixtures/opendota/`). Nine pro
 matches are enough to show the method, not to draw conclusions; run the same
 code over your own replays.
 

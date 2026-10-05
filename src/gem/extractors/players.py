@@ -13,12 +13,14 @@ from typing import TYPE_CHECKING
 
 from gem.combat.log import CombatLogEntry, CombatLogType
 from gem.extractors._snapshots import (
+    _ENTITY_NAME_FIELDS,
     _HERO_CLASS_PREFIX,
     TEAM_RADIANT,
     IntervalSample,
     PlayerStateSnapshot,
     PlayerTimeSeries,
     _build_hero_snapshot,
+    _hero_npc_name,
     _player_id_from_entity,
     _pos,
     _snapshot_hero,  # noqa: F401 — retained private compatibility import
@@ -31,7 +33,6 @@ from gem.state.entities import Entity, EntityOp
 
 if TYPE_CHECKING:
     from gem.parser import ReplayParser
-    from gem.state.string_table import StringTable
 
 # ---------------------------------------------------------------------------
 # Inventory constants
@@ -51,9 +52,6 @@ _ABILITY_SLOTS = 32  # m_hAbilities.0000-0031 per hero entity
 _NULL_HANDLE = 0xFFFFFF  # empty slot sentinel
 
 _CONTROLLER_FIELDS = FieldAccessPlan(("m_hAssignedHero",))
-_ENTITY_NAME_FIELDS = FieldAccessPlan(
-    ("m_pEntity.m_nameStringTableIndex", "m_pEntity.m_nameStringableIndex")
-)
 _ABILITY_ENTITY_FIELDS = FieldAccessPlan(
     ("m_pEntity.m_nameStringTableIndex", "m_pEntity.m_nameStringableIndex", "m_iLevel")
 )
@@ -1071,31 +1069,3 @@ class PlayerExtractor:
                 self._parser.combat_log._emit(entry)
                 emitted.append(entry)
         return emitted
-
-
-def _hero_npc_name(hero: Entity, entity_names: StringTable | None) -> str | None:
-    """Return a hero entity's NPC name from the ``EntityNames`` string table.
-
-    Class names are ambiguous for compound heroes: ``CDOTA_Unit_Hero_QueenOfPain``
-    is ``npc_dota_hero_queenofpain``, not ``npc_dota_hero_queen_of_pain``.
-    Current replays use ``m_nameStringTableIndex``; older ones
-    ``m_nameStringableIndex``. Reference: odota/parser Parse.java
-    ``getAbilityEntityStringTableIndex`` (same order).
-
-    Args:
-        hero: The hero entity.
-        entity_names: The ``EntityNames`` string table, if loaded.
-
-    Returns:
-        The NPC name, or ``None`` when it cannot be resolved.
-    """
-    if entity_names is None:
-        return None
-    name_fields = hero._resolve_fields(_ENTITY_NAME_FIELDS)
-    name_idx = hero._get_int32_resolved(name_fields[0])
-    if name_idx is None:
-        name_idx = hero._get_int32_resolved(name_fields[1])
-    if name_idx is None or name_idx < 0:
-        return None
-    item = entity_names.items.get(name_idx)
-    return item[0] if item is not None else None

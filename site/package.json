@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "npm run gen && astro dev",
-    "build": "npm run gen && astro build && pagefind",
+    "build": "npm run gen && astro build --force && pagefind",
     "preview": "astro preview",
     "check-urls": "node scripts/check-urls.mjs",
     "check": "astro check",
