@@ -59,7 +59,7 @@ Signature: `def WardsExtractor._tick(self) -> int`
 
 No docstring available.
 
-Source: [src/gem/extractors/wards.py:186](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/wards.py#L186)
+Source: [src/gem/extractors/wards.py:188](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/wards.py#L188)
 
 #### Methods
 
@@ -69,7 +69,7 @@ Signature: `def WardsExtractor.attach(self, parser: ReplayParser) -> None`
 
 Register callbacks with the parser.
 
-Source: [src/gem/extractors/wards.py:171](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/wards.py#L171)
+Source: [src/gem/extractors/wards.py:173](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/wards.py#L173)
 
 ##### `finalize`
 
@@ -77,4 +77,4 @@ Signature: `def WardsExtractor.finalize(self) -> list[WardEvent]`
 
 Back-fill placer names and return ward events.
 
-Source: [src/gem/extractors/wards.py:189](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/wards.py#L189)
+Source: [src/gem/extractors/wards.py:191](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/wards.py#L191)

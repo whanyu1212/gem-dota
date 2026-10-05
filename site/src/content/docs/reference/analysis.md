@@ -708,7 +708,7 @@ def is_daytime(game_start_tick: int | None, tick: int) -> bool
 
 Return True if it is daytime at the given absolute tick.
 
-Source: [src/gem/analysis/vision.py:213](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L213)
+Source: [src/gem/analysis/vision.py:216](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L216)
 
 ### `hero_visibility_at`
 
@@ -718,7 +718,7 @@ def hero_visibility_at(match: ParsedMatch, *, player_id: int, observing_team: in
 
 Return authoritative hero-entity visibility at or before ``tick``.
 
-Source: [src/gem/analysis/vision.py:240](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L240)
+Source: [src/gem/analysis/vision.py:243](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L243)
 
 ### `entity_visibility_at`
 
@@ -728,7 +728,7 @@ def entity_visibility_at(match: ParsedMatch, *, entity_index: int, entity_serial
 
 Return authoritative NPC-entity visibility at or before ``tick``.
 
-Source: [src/gem/analysis/vision.py:282](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L282)
+Source: [src/gem/analysis/vision.py:285](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L285)
 
 ### `assess_point_vision`
 
@@ -738,7 +738,7 @@ def assess_point_vision(match: ParsedMatch, team: int, tick: int, x: float, y: f
 
 Assess bounded modeled evidence for team vision of one map point.
 
-Source: [src/gem/analysis/vision.py:328](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L328)
+Source: [src/gem/analysis/vision.py:331](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L331)
 
 ### `ward_vision_impact`
 
@@ -748,7 +748,7 @@ def ward_vision_impact(ward: object, match: ParsedMatch) -> int
 
 Count distinct enemy heroes spotted by an observer ward during its lifetime.
 
-Source: [src/gem/analysis/vision.py:608](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L608)
+Source: [src/gem/analysis/vision.py:611](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L611)
 
 ### Top-level classes
 
@@ -760,7 +760,7 @@ class VisionSource
 
 One modeled geometry source covering a map point at a given tick.
 
-Source: [src/gem/analysis/vision.py:46](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L46)
+Source: [src/gem/analysis/vision.py:49](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L49)
 
 #### Dataclass fields
 
@@ -785,7 +785,7 @@ class PointVisionStatus(str, Enum)
 
 Modeled support state for an arbitrary map point.
 
-Source: [src/gem/analysis/vision.py:83](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L83)
+Source: [src/gem/analysis/vision.py:86](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L86)
 
 ### `PointVisionSource`
 
@@ -795,7 +795,7 @@ class PointVisionSource
 
 One bounded geometry source supporting point coverage.
 
-Source: [src/gem/analysis/vision.py:94](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L94)
+Source: [src/gem/analysis/vision.py:97](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L97)
 
 #### Dataclass fields
 
@@ -820,7 +820,7 @@ Signature: `def PointVisionSource.identity(self) -> str`
 
 Return the source name as its stable identity.
 
-Source: [src/gem/analysis/vision.py:122](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L122)
+Source: [src/gem/analysis/vision.py:125](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L125)
 
 ##### `radius`
 
@@ -828,7 +828,7 @@ Signature: `def PointVisionSource.radius(self) -> int`
 
 Return the modeled circular vision radius.
 
-Source: [src/gem/analysis/vision.py:127](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L127)
+Source: [src/gem/analysis/vision.py:130](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L130)
 
 ### `PointVisionGap`
 
@@ -838,7 +838,7 @@ class PointVisionGap
 
 One material omission or ambiguity in a point-vision assessment.
 
-Source: [src/gem/analysis/vision.py:133](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L133)
+Source: [src/gem/analysis/vision.py:136](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L136)
 
 #### Dataclass fields
 
@@ -855,7 +855,7 @@ class DirectTargetRevealEvidence
 
 Bounded direct-reveal evidence for the requested canonical hero.
 
-Source: [src/gem/analysis/vision.py:146](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L146)
+Source: [src/gem/analysis/vision.py:149](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L149)
 
 #### Dataclass fields
 
@@ -877,7 +877,7 @@ Signature: `def DirectTargetRevealEvidence.tick(self) -> int`
 
 Return the interval start using modifier-event terminology.
 
-Source: [src/gem/analysis/vision.py:171](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L171)
+Source: [src/gem/analysis/vision.py:174](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L174)
 
 ### `PointVisionAssessment`
 
@@ -887,7 +887,7 @@ class PointVisionAssessment
 
 Evidence-aware modeled coverage assessment for one arbitrary point.
 
-Source: [src/gem/analysis/vision.py:177](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L177)
+Source: [src/gem/analysis/vision.py:180](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L180)
 
 #### Dataclass fields
 
