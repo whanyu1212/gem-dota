@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `examples/cookbook/wards.py` lists every ward and how it ended, how long
   observers lasted on each side of the map, and how often the replay's own
   visibility let the warding team see enemy heroes inside its observer circles.
+  Its page has a figure of the home page's match: every ward up in a stretch
+  you pick on a timeline of wards up each minute, filtered by team and type,
+  with each ward's story. Recipe pages can now carry a figure
+  (`::: figure name`). Figure 3's legend explains its dashed cast links.
 
 - **Docs: Recipes** (HY-102). Three pages that each answer one question from
   gem's facts and pandas, with no tags, scores or deprecated APIs: whether the

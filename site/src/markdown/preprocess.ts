@@ -10,6 +10,8 @@
  *   radio-button tabs that work without JavaScript.
  * - `<<< @/path/to/file.py{python}` is replaced by the file's contents in a code
  *   block. `@` is the repository root, e.g. `<<< @/examples/cookbook/x.py{python}`.
+ * - `::: figure name` … `:::` renders a recipe figure (src/figures/) around the
+ *   block's Markdown, which becomes the figure's caption.
  *
  * Fenced code is left alone, so a `:::` or `<<<` line inside a code block stays
  * as written. Blank lines around the inserted HTML make CommonMark parse the
@@ -18,9 +20,14 @@
 import { readFileSync } from "node:fs";
 import { extname, resolve } from "node:path";
 
+/** A recipe figure's HTML: everything before its caption, and after it. */
+export type FigureRenderer = () => { open: string; close: string };
+
 export interface PreprocessOptions {
   /** Absolute path that `@` stands for in `<<< @/…` imports: the repository root. */
   importRoot: string;
+  /** The figures `::: figure name` can render, by name. */
+  figures?: Record<string, FigureRenderer>;
 }
 
 const FENCE_OPEN = /^ {0,3}(`{3,}|~{3,})(.*)$/;
@@ -72,6 +79,8 @@ export function escapeHtml(text: string): string {
 
 interface Frame {
   kind: string;
+  /** For a figure: the HTML that closes it. */
+  close?: string;
   /** For a code group: where its tab bar goes, and the tabs found so far. */
   tabsAt?: number;
   labels?: string[];
@@ -134,6 +143,8 @@ export function preprocess(source: string, options: PreprocessOptions): string {
       if (frame.labels) {
         out.splice(frame.tabsAt!, 0, ...codeGroupTabs(codeGroups++, frame.labels));
         out.push("", "</div>", "</div>", "");
+      } else if (frame.close !== undefined) {
+        out.push("", frame.close, "");
       } else {
         out.push("", frame.kind === "details" ? "</details>" : "</aside>", "");
       }
@@ -141,6 +152,14 @@ export function preprocess(source: string, options: PreprocessOptions): string {
     }
 
     const container = CONTAINER_OPEN.exec(line);
+    if (container?.[1] === "figure") {
+      const render = options.figures?.[container[2]];
+      if (!render) throw new Error(`Unknown figure: ::: figure ${container[2]}`);
+      const { open, close } = render();
+      out.push("", open, "");
+      stack.push({ kind: "figure", close });
+      continue;
+    }
     if (container && (container[1] === "code-group" || CALLOUT_KINDS.has(container[1]))) {
       const [, kind, title] = container;
       if (kind === "code-group") {

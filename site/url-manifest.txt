@@ -95,6 +95,7 @@
 /cookbook/questions
 /cookbook/roshan-next-fight
 /cookbook/smoke-to-kill
+/cookbook/wards
 /deep-dives/
 /deep-dives/entity-field-decoders
 /deep-dives/entity-field-paths
