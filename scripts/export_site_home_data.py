@@ -57,6 +57,7 @@ from gem.analysis.fight_timeline import (  # noqa: E402
     build_fight_timeline,
 )
 from gem.analysis.smoke import SmokeAnalysis  # noqa: E402
+from gem.analysis.vision import OBSERVER_VISION_RADIUS  # noqa: E402
 from gem.catalog.abilities import ABILITIES, ability_display  # noqa: E402
 from gem.catalog.items import ITEMS, item_display  # noqa: E402
 from gem.catalog.map import (  # noqa: E402
@@ -98,8 +99,8 @@ PATH_JUMP = 900
 POSITION_TOLERANCE = 0.1
 POINTS_TOLERANCE = 0.49
 TICKS_PER_SECOND = 30
-#: Observer ward vision radius, as in gem's point-vision model (analysis/vision.py).
-OBSERVER_VISION = 1600
+#: Observer ward vision radius: gem's point-vision model (analysis/vision.py).
+OBSERVER_VISION = OBSERVER_VISION_RADIUS
 TEAMS = {2: "radiant", 3: "dire"}
 #: The playback runs on this long after the last death, for an instant buyback
 #: and the last death's gold.

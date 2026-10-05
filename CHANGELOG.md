@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`gem.analysis.vision.OBSERVER_VISION_RADIUS`**: the vision model's
+  observer radius (1,600 world units), public so recipes and figures use the
+  model's number instead of repeating it.
+
+- **Recipe: where did each team ward, and what could the wards see?** (HY-126).
+  `examples/cookbook/wards.py` lists every ward and how it ended, how long
+  observers lasted on each side of the map, and how often the replay's own
+  visibility let the warding team see enemy heroes inside its observer circles.
+
 - **Docs: Recipes** (HY-102). Three pages that each answer one question from
   gem's facts and pandas, with no tags, scores or deprecated APIs: whether the
   team that killed Roshan won the next fight, how fast each core farmed from 10
