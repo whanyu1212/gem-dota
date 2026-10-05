@@ -52,9 +52,11 @@ def test_main_writes_to_paths_outside_the_repository(
     # Icons are downloaded, not committed, so CI has none; copying them is tested below.
     monkeypatch.setattr(export, "write_icons", lambda *args: None)
     data, playback, image = tmp_path / "home.json", tmp_path / "fight.json", tmp_path / "map.jpg"
+    ward_data = tmp_path / "wards.json"
     args = ["replay.dem", "--data", str(data), "--fight-data", str(playback)]
-    assert export.main([*args, "--map-image", str(image)]) == 0
+    assert export.main([*args, "--wards-data", str(ward_data), "--map-image", str(image)]) == 0
     assert json.loads(playback.read_text()) is None
+    assert json.loads(ward_data.read_text())["wards"] == []
     written = json.loads(data.read_text())
     assert written["match"]["match_id"] == 1
     # No fights: no fight figure, and no wards up.
@@ -702,3 +704,45 @@ def test_applied_seconds_ignores_the_no_duration_sentinel() -> None:
     assert export._applied_seconds(window(-1.0)) == 0.0
     assert export._applied_seconds(window(None)) == 0.0
     assert export._applied_seconds(window(-1.0, stun=1.2)) == 1.2
+
+
+def test_wards_recipe_lists_every_ward_with_how_it_ended() -> None:
+    lion = ParsedPlayer(player_id=0, hero_name="npc_dota_hero_ancient_apparition", team=2)
+
+    def ward(tick: int, **end: object) -> WardEvent:
+        return WardEvent(
+            tick=tick,
+            player_id=0,
+            placer="npc_dota_hero_ancientapparition",  # the slot decides, not this name
+            ward_type="observer",
+            team=2,
+            x=16000.0,
+            y=16000.0,
+            expires_tick=end.get("expires"),  # type: ignore[arg-type]
+            killed_tick=end.get("killed"),  # type: ignore[arg-type]
+            killer=str(end.get("killer", "")),
+        )
+
+    match = ParsedMatch(
+        match_id=1,
+        players=[lion],
+        post_game_tick=9_000,
+        wards=[
+            ward(300, killed=600, killer="npc_dota_creep_badguys_ranged_upgraded"),
+            ward(0, expires=10_800),
+            ward(30),
+        ],
+    )
+    data = export.wards_recipe(match)
+
+    # In placement order; no game clock, so seconds are raw ticks / 30.
+    assert [w[4:7] for w in data["wards"]] == [
+        [0.0, 360.0, "e"],
+        [1.0, 300.0, "u"],
+        [10.0, 20.0, "k"],
+    ]
+    assert {w[7] for w in data["wards"]} == {"Ancient Apparition"}
+    assert data["wards"][2][8] == "a Dire creep"
+    assert data["end_s"] == 300.0 and data["start_s"] == -90.0
+    assert data["range"] is None  # no fight to open on
+    assert data["radius"] == round(1600 / (export.MAP_XMAX - export.MAP_XMIN) * SIZE, 1)

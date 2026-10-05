@@ -78,6 +78,7 @@ from gem.results.models import ParsedMatch, ParsedPlayer  # noqa: E402
 DEFAULT_REPLAY = REPO_ROOT / "tests" / "fixtures" / "opendota" / "8856501050.dem"
 DEFAULT_DATA = REPO_ROOT / "site" / "src" / "data" / "home.json"
 DEFAULT_FIGHT_DATA = REPO_ROOT / "site" / "src" / "data" / "fight.json"
+DEFAULT_WARDS_DATA = REPO_ROOT / "site" / "src" / "data" / "wards.json"
 DEFAULT_MAP_IMAGE = REPO_ROOT / "site" / "src" / "assets" / "home-map.jpg"
 DEFAULT_FIGHT_IMAGE = REPO_ROOT / "site" / "src" / "assets" / "home-fight.jpg"
 DEFAULT_ICONS = REPO_ROOT / "site" / "src" / "assets" / "icons"
@@ -301,6 +302,77 @@ def _unit_name(npc_name: str) -> str:
     name = npc_name.removeprefix("npc_dota_")
     name = name.replace("goodguys", "radiant").replace("badguys", "dire")
     return name.replace("_", " ").strip().capitalize() or "Unknown"
+
+
+def _ward_killer(npc_name: str) -> str:
+    """Who killed a ward, for a reader: a hero, "a Radiant creep", or a tidied unit name."""
+    for side, team in (("goodguys", "Radiant"), ("badguys", "Dire")):
+        if npc_name.startswith(f"npc_dota_creep_{side}"):
+            return f"a {team} creep"
+    return _unit_name(npc_name) if npc_name else "unknown"
+
+
+#: The wards recipe's figure opens on Figure 3's fight, with this much on each
+#: side (whole minutes).
+WARD_RANGE_PAD_S = 120
+
+
+def wards_recipe(match: ParsedMatch) -> dict:
+    """Every ward for the wards recipe's figure (``site/src/data/wards.json``).
+
+    Each ward is ``[team, type, x, y, placed_s, ended_s, how, placer, killer]``:
+    ``r``/``d``, ``o``/``s``, the map-square position, the in-game seconds it
+    went up and ended (pauses excluded), ``k`` killed, ``e`` expired or ``u`` up
+    when the recording ended, the placer's hero (joined on the player slot) and
+    who killed it. A ward is up from ``placed_s`` until ``ended_s`` (half open).
+    """
+    clock = match.game_clock
+    heroes = {player.player_id: player.hero_name for player in match.players}
+    end_tick = match.post_game_tick or match.game_end_tick or 0
+
+    def seconds(tick: int) -> float:
+        return round(_game_seconds(match, tick), 1)
+
+    wards: list[list] = []
+    placed: list[float] = []
+    for ward in sorted(match.wards, key=lambda w: w.tick):
+        if ward.x is None or ward.y is None or ward.team not in TEAMS:
+            continue
+        if ward.killed_tick is not None:
+            ended, how = ward.killed_tick, "k"
+        elif ward.expires_tick is not None:
+            ended, how = ward.expires_tick, "e"
+        else:
+            ended, how = end_tick, "u"
+        placer = heroes.get(ward.player_id) or ward.placer
+        placed.append(seconds(ward.tick))
+        wards.append(
+            [
+                TEAMS[ward.team][0],
+                ward.ward_type[0],
+                *_project(ward.x, ward.y),
+                seconds(ward.tick),
+                seconds(ended),
+                how,
+                hero_display(placer) if placer else "unknown",
+                _ward_killer(ward.killer) if how == "k" else "",
+            ]
+        )
+    fight = biggest_fight(match)
+    default = None
+    if fight is not None and clock is not None:
+        start, end = playback_window(match, fight)
+        default = [
+            math.floor((_game_seconds(match, start) - WARD_RANGE_PAD_S) / 60) * 60,
+            math.ceil((_game_seconds(match, end) + WARD_RANGE_PAD_S) / 60) * 60,
+        ]
+    return {
+        "start_s": min([-90.0, *placed]),
+        "end_s": seconds(end_tick),
+        "radius": round(OBSERVER_VISION / (MAP_XMAX - MAP_XMIN) * SIZE, 1),
+        "range": default,
+        "wards": wards,
+    }
 
 
 def _clock(match: ParsedMatch, tick: int) -> str:
@@ -1019,6 +1091,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("replay", nargs="?", type=Path, default=DEFAULT_REPLAY)
     parser.add_argument("--data", type=Path, default=DEFAULT_DATA)
     parser.add_argument("--fight-data", type=Path, default=DEFAULT_FIGHT_DATA)
+    parser.add_argument("--wards-data", type=Path, default=DEFAULT_WARDS_DATA)
     parser.add_argument("--map-image", type=Path, default=DEFAULT_MAP_IMAGE)
     parser.add_argument("--fight-image", type=Path, default=DEFAULT_FIGHT_IMAGE)
     parser.add_argument("--icons-dir", type=Path, default=DEFAULT_ICONS)
@@ -1045,8 +1118,9 @@ def main(argv: list[str] | None = None) -> int:
     args.fight_data.parent.mkdir(parents=True, exist_ok=True)
     # Compact: the playback is loaded by the browser, so every byte counts.
     args.fight_data.write_text(json.dumps(playback, separators=(",", ":")) + "\n")
+    args.wards_data.write_text(json.dumps(wards_recipe(match), separators=(",", ":")) + "\n")
     write_map_image(args.map_image)
-    written = [args.data, args.fight_data, args.map_image]
+    written = [args.data, args.fight_data, args.wards_data, args.map_image]
     if fight is not None:
         write_map_image(args.fight_image, fight["box"])
         written.append(args.fight_image)
