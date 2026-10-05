@@ -9,7 +9,7 @@
 import { createPlayer, type View } from "./fight-player";
 import { damageStrip, fightLegend, playbackControls } from "./fight-markup";
 import type { FightData } from "./fight-playback";
-import { card, fightDots, fightsIn, score, type FightEntry, type FightsData } from "./fights-data";
+import { card, fightDots, fightsIn, pickShown, score, type FightEntry, type FightsData } from "./fights-data";
 import { attachRangePicker, placeRange, type TimeRange } from "./range-picker";
 import { clock } from "./wards-data";
 
@@ -193,9 +193,11 @@ export function mountFightsFigure(figure: HTMLElement, data: FightsData): void {
 
   function render() {
     const shown = fightsIn(data, range, minDeaths);
-    if (selected !== null && !shown.some((f) => f.n === selected) && shown.length) {
-      // The picked fight was filtered out: show the biggest one left.
-      selected = [...shown].sort((a, b) => b.deaths - a.deaths)[0].n;
+    // A picked fight the filters leave out gives way to the biggest one left, or
+    // to none (and an empty panel) when no fight is left.
+    const next = pickShown(selected, shown);
+    if (next !== selected) {
+      selected = next;
       openPanel();
     }
     dots.innerHTML = fightDots(shown, selected);
@@ -222,6 +224,8 @@ export function mountFightsFigure(figure: HTMLElement, data: FightsData): void {
         el("p", { class: "fights-card-line" }, c.next),
         el("p", { class: "fights-card-line" }, fight.box ? "Below: its playback and breakdown." : "Below: its breakdown."),
       );
+    } else {
+      side.append(el("p", { class: "fights-card-line" }, "No fights here. Pick another stretch, or a smaller size."));
     }
     const counts = { r: 0, d: 0, x: 0 };
     for (const f of shown) counts[f.more]++;

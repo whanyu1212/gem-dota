@@ -52,6 +52,16 @@ export function fightsIn(data: FightsData, range: TimeRange | null, minDeaths = 
   return data.fights.filter((f) => f.deaths >= minDeaths && overlaps(f, range));
 }
 
+/**
+ * The fight to show: the picked one while it's still shown, else the biggest one
+ * shown, or none when the filters leave no fights.
+ */
+export function pickShown(selected: number | null, shown: FightEntry[]): number | null {
+  if (!shown.length) return null;
+  if (shown.some((f) => f.n === selected)) return selected;
+  return [...shown].sort((a, b) => b.deaths - a.deaths)[0].n;
+}
+
 /** The fight's kills as "4–6". */
 export const score = (fight: FightEntry) => `${fight.kills[0]}–${fight.kills[1]}`;
 

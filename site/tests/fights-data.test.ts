@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { gzipSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 import committed from "../src/data/fights/index.json";
-import { card, fightDots, fightsIn, nextText, overlaps, type FightEntry, type FightsData } from "../src/lib/fights-data";
+import { card, fightDots, fightsIn, nextText, overlaps, pickShown, type FightEntry, type FightsData } from "../src/lib/fights-data";
 
 const fight = (n: number, start_s: number, deaths: number, kills: [number, number], extra: Partial<FightEntry> = {}): FightEntry => ({
   n,
@@ -31,6 +31,13 @@ describe("fights in a stretch", () => {
     expect(fightsIn(data, null).map((f) => f.n)).toEqual([1, 2, 3]);
     expect(fightsIn(data, null, 2).map((f) => f.n)).toEqual([2, 3]);
     expect(fightsIn(data, [150, 420], 1).map((f) => f.n)).toEqual([2, 3]);
+  });
+
+  it("keeps the picked fight while it's shown, else the biggest shown, else none", () => {
+    expect(pickShown(3, data.fights)).toBe(3);
+    expect(pickShown(1, fightsIn(data, null, 2))).toBe(2); // fight 1 filtered out
+    expect(pickShown(2, fightsIn(data, [500, 600]))).toBeNull(); // an empty stretch
+    expect(pickShown(null, data.fights)).toBe(2);
   });
 
   it("says what a fight's card says", () => {
