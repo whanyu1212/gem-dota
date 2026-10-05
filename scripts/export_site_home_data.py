@@ -39,13 +39,16 @@ Usage (defaults to the TI2026 fixture 8856501050, the committed snapshot)::
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import math
+import re
 import shutil
 import sys
 from collections import defaultdict
 from collections.abc import Callable, Iterable
 from pathlib import Path
+from types import ModuleType
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "src"))
@@ -79,6 +82,9 @@ DEFAULT_REPLAY = REPO_ROOT / "tests" / "fixtures" / "opendota" / "8856501050.dem
 DEFAULT_DATA = REPO_ROOT / "site" / "src" / "data" / "home.json"
 DEFAULT_FIGHT_DATA = REPO_ROOT / "site" / "src" / "data" / "fight.json"
 DEFAULT_WARDS_DATA = REPO_ROOT / "site" / "src" / "data" / "wards.json"
+#: The fights recipe's figure: an index and one file per fight.
+DEFAULT_FIGHTS_DATA = REPO_ROOT / "site" / "src" / "data" / "fights"
+FIGHTS_RECIPE = REPO_ROOT / "examples" / "cookbook" / "fights.py"
 DEFAULT_MAP_IMAGE = REPO_ROOT / "site" / "src" / "assets" / "home-map.jpg"
 DEFAULT_FIGHT_IMAGE = REPO_ROOT / "site" / "src" / "assets" / "home-fight.jpg"
 DEFAULT_ICONS = REPO_ROOT / "site" / "src" / "assets" / "icons"
@@ -241,10 +247,12 @@ def load_match(replay: Path) -> ParsedMatch:
 HeroState = tuple[int, float, float, int, int, float, float, int]
 
 
-def load_hero_states(replay: Path, start: int, end: int) -> dict[int, list[HeroState]]:
-    """Every hero's state at the end of each replay packet in [start, end], by player ID.
+def load_hero_states(
+    replay: Path, windows: Iterable[tuple[int, int]]
+) -> dict[int, list[HeroState]]:
+    """Every hero's state at the end of each replay packet in the windows, by player ID.
 
-    A second parse, stopped after ``end``. The replay sends entity updates once a
+    A second parse, stopped after the last window. The replay sends entity updates once a
     packet (every other tick); reading at the packet's end means the state
     includes everything the packet's combat-log entries describe. Heroes are
     resolved the way ``PlayerExtractor`` resolves them, so illusions are skipped.
@@ -253,6 +261,7 @@ def load_hero_states(replay: Path, start: int, end: int) -> dict[int, list[HeroS
     from gem.extractors.players import PlayerExtractor, _build_hero_snapshot
     from gem.parser import ReplayParser
 
+    spans = sorted(windows)
     parser = ReplayParser(replay)
     # Only for its hero resolution: one sample at the first tick, no minute marks.
     players = PlayerExtractor(sample_interval=sys.maxsize, minute_snapshots=False)
@@ -260,7 +269,7 @@ def load_hero_states(replay: Path, start: int, end: int) -> dict[int, list[HeroS
     states: dict[int, dict[int, HeroState]] = defaultdict(dict)
 
     def read(tick: int) -> None:
-        if not start <= tick <= end:
+        if not any(start <= tick <= end for start, end in spans):
             return
         for player_id, entity in players._select_heroes().items():
             snap = _build_hero_snapshot(entity, tick, player_id)
@@ -281,7 +290,7 @@ def load_hero_states(replay: Path, start: int, end: int) -> dict[int, list[HeroS
     # The completed-packet boundary: every delta and combat-log entry of the
     # packet has been applied (the parser's internal hook for a stable view).
     parser._on_packet_end(read)
-    parser.stop_after_tick(end)
+    parser.stop_after_tick(max((end for _, end in spans), default=0))
     parser.parse()
     return {
         player_id: [by_tick[t] for t in sorted(by_tick)] for player_id, by_tick in states.items()
@@ -325,6 +334,101 @@ def _ward_killer(npc_name: str) -> str:
         if npc_name.startswith(f"npc_dota_creep_{side}"):
             return f"a {team} creep"
     return _unit_name(npc_name) if npc_name else "unknown"
+
+
+#: Fights with this many deaths or more get a playback (hero states and the
+#: map) in the fights recipe; every fight gets its breakdown (the timeline).
+PLAYBACK_MIN_DEATHS = 3
+
+
+def _fights_recipe() -> ModuleType:  # the recipe, so the figure shows what it computes
+    spec = importlib.util.spec_from_file_location("cookbook_fights", FIGHTS_RECIPE)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+_LANES = {"top": "top", "mid": "middle", "bot": "bottom"}
+
+
+def _objective_name(what: str) -> str:
+    """A building or Roshan, for a reader: "Radiant tier 1 bottom tower", "Dire top ranged barracks"."""
+    if what == "roshan":
+        return "Roshan"
+    side, _, rest = what.partition("_")
+    team = {"goodguys": "Radiant", "badguys": "Dire"}.get(side, side.capitalize())
+    if tower := re.fullmatch(r"tower(\d)(?:_(\w+))?", rest):
+        lane = _LANES.get(tower.group(2) or "", "")
+        return f"{team} tier {tower.group(1)}{f' {lane}' if lane else ''} tower"
+    if rax := re.fullmatch(r"(melee|range)_rax_(\w+)", rest):
+        kind = "melee" if rax.group(1) == "melee" else "ranged"
+        return f"{team} {_LANES.get(rax.group(2), rax.group(2))} {kind} barracks"
+    return f"{team} {'Ancient' if rest == 'fort' else rest.replace('_', ' ')}"
+
+
+def fight_box(match: ParsedMatch, fight: Fight, states: dict[int, list[HeroState]]) -> list[float]:
+    """The map crop for a fight's playback: the heroes' readings near the fight, and its deaths' centre."""
+    start, end = playback_window(match, fight)
+    readings = [
+        (x, y) for runs in states.values() for tick, x, y, *_ in runs if start <= tick <= end
+    ]
+    if fight.centroid_x is not None and fight.centroid_y is not None:
+        centre: Point = (fight.centroid_x, fight.centroid_y)
+    elif readings:
+        centre = (
+            sum(p[0] for p in readings) / len(readings),
+            sum(p[1] for p in readings) / len(readings),
+        )
+    else:
+        return [0.0, 0.0, float(SIZE)]
+    return _crop([p for p in readings if math.dist(p, centre) <= FIGHT_RADIUS] + [centre])
+
+
+def fights_recipe(
+    match: ParsedMatch, files: dict[int, str], boxes: dict[int, list[float]]
+) -> list[dict]:
+    """Every fight for the fights recipe's figure, from the recipe itself (``fight_table``).
+
+    ``files`` names each fight's data file by fight number (``fights/7.json``, or
+    ``fight.json`` for Figure 3's); ``boxes`` holds the map crop of each fight
+    with a playback.
+    """
+    table = _fights_recipe().fight_table(match)
+    by_number = dict(enumerate(sorted(match.fights, key=lambda f: f.start_tick), start=1))
+    fights = []
+    for row in table.itertuples(index=False):
+        fight = by_number[row.fight]
+        at = (
+            _project(fight.centroid_x, fight.centroid_y)
+            if fight.centroid_x is not None and fight.centroid_y is not None
+            else None
+        )
+        entry: dict = {
+            "n": row.fight,
+            "file": files[row.fight],
+            "start": row.start,
+            "start_s": round(row.start_s, 2),
+            "duration": round(row.duration_s, 1),
+            "deaths": row.deaths,
+            "kills": [row.radiant_kills, row.dire_kills],
+            "more": {"radiant": "r", "dire": "d"}.get(row.more_kills, "x"),
+            "at": at,
+            "gold": [int(row.radiant_gold), int(row.dire_gold)],
+            "next": (
+                [
+                    _objective_name(row.next),
+                    {"radiant": "r", "dire": "d"}.get(row.next_for, ""),
+                    int(row.next_after_s),
+                ]
+                if isinstance(row.next, str)
+                else None
+            ),
+        }
+        if row.fight in boxes:
+            entry["box"] = boxes[row.fight]
+        fights.append(entry)
+    return fights
 
 
 #: The wards recipe's figure opens on Figure 3's fight, with this much on each
@@ -810,17 +914,20 @@ def playback_window(
 
 
 def fight_playback(
-    match: ParsedMatch, states: dict[int, list[HeroState]] | None = None
+    match: ParsedMatch,
+    states: dict[int, list[HeroState]] | None = None,
+    fight: Fight | None = None,
 ) -> dict | None:
-    """The biggest fight's playback: hero state and the fight's timeline.
+    """A fight's playback (the biggest by default): hero state and the fight's timeline.
 
     Heroes are referred to by their index in ``heroes``. Every ``t`` is seconds
     since the playback's ``start`` (the fight window's start, or the smoke that
     led into the fight when it came shortly before), to the hundredth so every
     tick is distinct. ``states`` are the heroes' readings by player ID
-    (``load_hero_states``); without them, the match's once-a-second samples.
+    (``load_hero_states``). An empty dict gives a breakdown with no hero states
+    (no map); ``None`` falls back to the match's once-a-second samples, for tests.
     """
-    fight = biggest_fight(match)
+    fight = fight or biggest_fight(match)
     if fight is None:
         return None
     smokes = gem.build_smoke_analysis(match)
@@ -1110,6 +1217,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--data", type=Path, default=DEFAULT_DATA)
     parser.add_argument("--fight-data", type=Path, default=DEFAULT_FIGHT_DATA)
     parser.add_argument("--wards-data", type=Path, default=DEFAULT_WARDS_DATA)
+    parser.add_argument("--fights-data", type=Path, default=DEFAULT_FIGHTS_DATA)
     parser.add_argument("--map-image", type=Path, default=DEFAULT_MAP_IMAGE)
     parser.add_argument("--fight-image", type=Path, default=DEFAULT_FIGHT_IMAGE)
     parser.add_argument("--icons-dir", type=Path, default=DEFAULT_ICONS)
@@ -1126,26 +1234,63 @@ def main(argv: list[str] | None = None) -> int:
     }
     args.data.parent.mkdir(parents=True, exist_ok=True)
     args.data.write_text(json.dumps(data, indent=1) + "\n")
-    fight_ = biggest_fight(match)
-    states = load_hero_states(args.replay, *playback_window(match, fight_)) if fight_ else None
-    missing = [
-        p.hero_name for p in match.players if states is not None and not states.get(p.player_id)
-    ]
-    if missing:
-        raise SystemExit(f"no hero readings in the playback window for {', '.join(missing)}")
-    playback = fight_playback(match, states)
+    # Figure 3's fight, and every fight big enough for a playback in the fights
+    # recipe: one more pass over the replay reads every hero in all their windows.
+    home_fight = biggest_fight(match)
+    in_order = sorted(match.fights, key=lambda f: f.start_tick)
+    played = [f for f in in_order if f.deaths >= PLAYBACK_MIN_DEATHS or f is home_fight]
+    windows = [playback_window(match, f) for f in played]
+    states = load_hero_states(args.replay, windows) if windows else {}
+    for start, end in windows:
+        missing = [
+            p.hero_name
+            for p in match.players
+            if not any(start <= reading[0] <= end for reading in states.get(p.player_id, []))
+        ]
+        if missing:
+            raise SystemExit(f"no hero readings in the playback window for {', '.join(missing)}")
+    playback = fight_playback(match, states, home_fight) if home_fight else None
     args.fight_data.parent.mkdir(parents=True, exist_ok=True)
     # Compact: the playback is loaded by the browser, so every byte counts.
     args.fight_data.write_text(json.dumps(playback, separators=(",", ":")) + "\n")
+    # The fights recipe: one file per fight (Figure 3's is fight.json). A fight
+    # with a playback gets the hero states and a map crop; the rest get an
+    # empty dict, so their breakdown has no map (never the once-a-second samples).
+    shutil.rmtree(args.fights_data, ignore_errors=True)
+    args.fights_data.mkdir(parents=True)
+    crops = args.public_figures / "fights"
+    shutil.rmtree(crops, ignore_errors=True)
+    files: dict[int, str] = {}
+    boxes: dict[int, list[float]] = {}
+    items: set[str] = set()
+    for number, each in enumerate(in_order, start=1):
+        has_playback = any(each is f for f in played)
+        if has_playback:
+            boxes[number] = fight_box(match, each, states)
+            write_map_image(crops / f"{number}.webp", boxes[number], px=800, webp=True)
+        if each is home_fight:
+            files[number] = "fight.json"
+            continue
+        data_file = fight_playback(match, states if has_playback else {}, each)
+        # Named from src/data, as the index and fight.json are.
+        files[number] = f"fights/{number}.json"
+        (args.fights_data / f"{number}.json").write_text(
+            json.dumps(data_file, separators=(",", ":")) + "\n"
+        )
+        items |= (
+            {cast["item"] for cast in data_file["casts"] if "item" in cast} if data_file else set()
+        )
+    index = fights_recipe(match, files, boxes)
+    (args.fights_data / "index.json").write_text(json.dumps(index, separators=(",", ":")) + "\n")
     args.wards_data.parent.mkdir(parents=True, exist_ok=True)
     args.wards_data.write_text(json.dumps(wards_recipe(match), separators=(",", ":")) + "\n")
     write_map_image(args.map_image)
-    written = [args.data, args.fight_data, args.wards_data, args.map_image]
+    written = [args.data, args.fight_data, args.wards_data, args.fights_data, args.map_image]
     if fight is not None:
         write_map_image(args.fight_image, fight["box"])
         written.append(args.fight_image)
     heroes = {hero["icon"] for hero in playback["heroes"]} if playback else set()
-    items = {cast["item"] for cast in playback["casts"] if "item" in cast} if playback else set()
+    items |= {cast["item"] for cast in playback["casts"] if "item" in cast} if playback else set()
     write_icons(args.icons_dir, heroes, items)
     written.append(args.icons_dir)
     write_public_figures(args.public_figures, args.icons_dir)
