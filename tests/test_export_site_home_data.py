@@ -52,7 +52,7 @@ def test_main_writes_to_paths_outside_the_repository(
     # Icons are downloaded, not committed, so CI has none; copying them is tested below.
     monkeypatch.setattr(export, "write_icons", lambda *args: None)
     data, playback, image = tmp_path / "home.json", tmp_path / "fight.json", tmp_path / "map.jpg"
-    ward_data = tmp_path / "wards.json"
+    ward_data = tmp_path / "wards" / "wards.json"  # a folder that doesn't exist yet
     args = ["replay.dem", "--data", str(data), "--fight-data", str(playback)]
     args += ["--wards-data", str(ward_data), "--public-figures", str(tmp_path / "figures")]
     assert export.main([*args, "--map-image", str(image)]) == 0

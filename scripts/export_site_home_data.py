@@ -1137,6 +1137,7 @@ def main(argv: list[str] | None = None) -> int:
     args.fight_data.parent.mkdir(parents=True, exist_ok=True)
     # Compact: the playback is loaded by the browser, so every byte counts.
     args.fight_data.write_text(json.dumps(playback, separators=(",", ":")) + "\n")
+    args.wards_data.parent.mkdir(parents=True, exist_ok=True)
     args.wards_data.write_text(json.dumps(wards_recipe(match), separators=(",", ":")) + "\n")
     write_map_image(args.map_image)
     written = [args.data, args.fight_data, args.wards_data, args.map_image]
