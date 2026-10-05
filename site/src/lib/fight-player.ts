@@ -37,6 +37,7 @@ import {
   type Row,
   type TimeRange,
 } from "./fight-playback";
+import { attachRangePicker, placeRange } from "./range-picker";
 
 interface View {
   box: [number, number, number];
@@ -277,42 +278,26 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
   const cursor = svg("line", { class: "strip-cursor", y1: 0, y2: 64 }, strip);
   // Drag across the strip to pick a range; a click without a drag clears it and
   // moves the playhead there.
-  const timeAt = (clientX: number) => {
-    const box = strip.getBoundingClientRect();
-    return Math.min(data.duration, Math.max(0, ((clientX - box.left) / (box.width || 1)) * data.duration));
-  };
-  let dragFrom: number | null = null;
-  strip.addEventListener("pointerdown", (event) => {
-    dragFrom = timeAt(event.clientX);
-    strip.setPointerCapture(event.pointerId);
-  });
-  strip.addEventListener("pointermove", (event) => {
-    if (dragFrom === null) return;
-    const to = timeAt(event.clientX);
-    if (Math.abs(to - dragFrom) >= MIN_RANGE_S) {
-      range = [Math.min(dragFrom, to), Math.max(dragFrom, to)];
-      render();
-    }
-  });
-  const endDrag = (event: PointerEvent) => {
-    if (dragFrom === null) return;
-    const to = timeAt(event.clientX);
-    const from = dragFrom;
-    dragFrom = null;
-    if (Math.abs(to - from) >= MIN_RANGE_S) {
-      setRange([Math.min(from, to), Math.max(from, to)], true);
-    } else {
+  attachRangePicker(strip, {
+    min: 0,
+    max: data.duration,
+    minSpan: MIN_RANGE_S,
+    onRange(picked, done) {
+      if (done) {
+        setRange(picked, true);
+      } else {
+        range = picked;
+        render();
+      }
+    },
+    onClick(at) {
       pausedByReader = true;
       pause();
       holdUntil = 0;
-      t = to;
+      t = at;
       setRange(null, false);
-    }
-  };
-  strip.addEventListener("pointerup", endDrag);
-  strip.addEventListener("pointercancel", () => {
-    dragFrom = null;
-    applyFilters();
+    },
+    onCancel: () => applyFilters(),
   });
 
   // --- Status boxes ---
@@ -661,11 +646,7 @@ function createPlayer(root: HTMLElement, view: View, data: FightData) {
       feed.scrollTo({ top: current.offsetTop - feed.clientHeight / 2, behavior: playing ? "smooth" : "auto" });
       lastCurrent = current;
     }
-    rangeRect.setAttribute("visibility", range ? "visible" : "hidden");
-    if (range) {
-      rangeRect.setAttribute("x", String((range[0] / data.duration) * 1000));
-      rangeRect.setAttribute("width", String(((range[1] - range[0]) / data.duration) * 1000));
-    }
+    placeRange(rangeRect, range, 0, data.duration);
     const x = (t / data.duration) * 1000;
     cursor.setAttribute("x1", String(x));
     cursor.setAttribute("x2", String(x));

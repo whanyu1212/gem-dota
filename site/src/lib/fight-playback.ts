@@ -357,7 +357,8 @@ export function feedRows(data: FightData): Row[] {
 }
 
 /** A stretch of the playback, [from, to] in seconds since its start. */
-export type TimeRange = [number, number];
+import type { TimeRange } from "./range-picker";
+export type { TimeRange };
 
 /** A death mark selects this long before the death, and after it. */
 export const DEATH_LEAD_S = 5;
