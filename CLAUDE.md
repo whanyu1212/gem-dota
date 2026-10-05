@@ -689,7 +689,11 @@ stale figure until the `.md` changes. The fights figure loads one file per fight
 is `fight.json`) into Figure 3's player (`site/src/lib/fight-player.ts`, markup in
 `fight-markup.ts`, styles in `fight-player.css`). Fights with 3+ deaths carry
 per-packet hero states and a map crop (`site/public/figures/fights/`); the rest
-carry an empty `heroes[].runs` and play as a breakdown without the map. Navigation
+carry an empty `heroes[].runs` and play as a breakdown without the map. The objectives
+figure reads `site/src/data/objectives.json`; the export places its buildings,
+Roshan and Tormentors from the replay's own entities (`load_map_places`, a pass of
+its own), since gem has no building-position catalog. The fights page opens the
+fight a link names (`/cookbook/fights#fight-6`). Navigation
 lives in `site/src/nav.ts`; every colour is a token in `site/src/styles/tokens.css`
 (`npm test` checks WCAG AA contrast for both themes). The home page
 (`site/src/pages/index.astro`) reads a committed snapshot written by

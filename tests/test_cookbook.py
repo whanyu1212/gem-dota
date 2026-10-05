@@ -12,7 +12,7 @@ import pytest
 
 from gem.combat.log import CombatLogEntry, CombatLogType
 from gem.extractors.fights import Fight, FightPlayer
-from gem.extractors.objectives import AegisEvent, BarracksKill, RoshanKill, TowerKill
+from gem.extractors.objectives import AegisEvent, BarracksKill, RoshanKill, TormentorKill, TowerKill
 from gem.extractors.wards import WardEvent
 from gem.results.models import (
     HeroVisibilityEvent,
@@ -40,6 +40,7 @@ core_farm_10_to_20 = _recipe("core_farm_10_to_20")
 smoke_to_kill = _recipe("smoke_to_kill")
 wards = _recipe("wards")
 fights = _recipe("fights")
+objectives = _recipe("objectives")
 
 
 def _fight(first_death_tick: int, winner: str) -> Fight:
@@ -184,6 +185,8 @@ def test_recipes_run_on_a_replay_without_deprecation_warnings(canonical_parsed_m
         ward_rows = wards.ward_table(canonical_parsed_match)
         samples = wards.circle_samples(canonical_parsed_match, ward_rows)
         fight_rows = fights.fight_table(canonical_parsed_match)
+        objective_rows = objectives.objective_table(canonical_parsed_match)
+        edge_rows = objectives.edges(canonical_parsed_match, objective_rows)
 
     assert len(rosh) == len(canonical_parsed_match.roshans)
     assert list(rosh.columns) == roshan_next_fight.COLUMNS
@@ -200,6 +203,12 @@ def test_recipes_run_on_a_replay_without_deprecation_warnings(canonical_parsed_m
     assert list(fight_rows.columns) == fights.COLUMNS
     assert len(fight_rows) == len(canonical_parsed_match.fights)
     assert set(fight_rows["more_kills"]) <= {"radiant", "dire", "even"}
+    assert list(objective_rows.columns) == objectives.OBJECTIVE_COLUMNS
+    match = canonical_parsed_match
+    assert len(objective_rows) == len(match.towers) + len(match.barracks) + len(
+        match.roshans
+    ) + len(match.tormentors)
+    assert set(edge_rows["outcome"]) <= {"converted", "other side first", "nothing"}
 
 
 def test_recipes_fall_back_to_hero_teams_without_combat_log_teams() -> None:
@@ -429,3 +438,135 @@ def test_fights_lists_each_fight_and_what_fell_next() -> None:
         "followed": 1,
         "same_side": 1,
     }
+
+
+def test_objectives_lists_each_objective_who_damaged_it_and_each_teams_edges() -> None:
+    def fight(start: int, end: int, radiant: int, dire: int) -> Fight:
+        return Fight(
+            start_tick=start,
+            end_tick=end,
+            last_death_tick=end - 30,
+            deaths=radiant + dire,
+            radiant_kills=radiant,
+            dire_kills=dire,
+        )
+
+    def hit(tick: int, source: str, attacker: str, value: int) -> CombatLogEntry:
+        return CombatLogEntry(
+            tick=tick,
+            log_type=CombatLogType.DAMAGE,
+            attacker_name=attacker,
+            damage_source_name=source,
+            target_name="npc_dota_badguys_tower1_mid",
+            value=value,
+        )
+
+    axe = "npc_dota_hero_axe"
+    match = ParsedMatch(
+        match_id=4,
+        game_start_tick=0,
+        game_clock=GameClock(game_start_tick=0),
+        players=[
+            ParsedPlayer(player_id=0, team=2, hero_name=axe),
+            ParsedPlayer(player_id=5, team=3, hero_name="npc_dota_hero_lina"),
+        ],
+        fights=[
+            fight(3_000, 3_900, 2, 0),  # Radiant ahead; Dire's tower falls 60 s later: converted
+            fight(6_000, 6_900, 0, 1),  # Dire ahead; Radiant denies its own barracks: still Dire's
+            fight(12_000, 12_900, 1, 0),  # Radiant ahead; nothing within 120 s
+        ],
+        towers=[
+            TowerKill(
+                tick=5_700,
+                team=3,
+                killer=axe,
+                tower_name="npc_dota_badguys_tower1_mid",
+                killer_team=2,
+            )
+        ],
+        barracks=[
+            BarracksKill(
+                tick=7_000,
+                team=2,
+                killer=axe,
+                barracks_name="npc_dota_goodguys_melee_rax_mid",
+                killer_team=2,
+            )
+        ],
+        roshans=[
+            RoshanKill(tick=4_000, killer=axe, kill_number=1, killer_team=2)
+        ],  # its Aegis: the tower at +57 s
+        tormentors=[
+            # No player slot from the chat event: the protocol's team decides.
+            TormentorKill(
+                tick=20_000,
+                killer="npc_dota_hero_lina",
+                killer_player_id=-1,
+                kill_number=1,
+                killer_team=3,
+            )
+        ],
+        combat_log=[
+            hit(5_000, axe, axe, 300),
+            hit(5_500, axe, "npc_dota_necronomicon_warrior_1", 200),  # a summon: its owner's
+            hit(5_600, "npc_dota_creep_goodguys_melee", "npc_dota_creep_goodguys_melee", 100),
+            hit(1_000, axe, axe, 999),  # more than 90 s before it fell
+        ],
+    )
+
+    table = objectives.objective_table(match)
+    assert list(table["kind"]) == ["roshan", "tower", "barracks", "tormentor"]
+    assert list(table["for_side"]) == ["radiant", "radiant", "dire", "dire"]
+    assert list(table["after_fight"].fillna(0)) == [1, 1, 2, 0]  # 0: no fight in the 120 s before
+    damage = objectives.building_damage(match).set_index("attacker")["damage"].to_dict()
+    assert damage == {axe: 500, "creeps": 100}
+
+    rows = objectives.edges(match, table)
+    fights_ = rows[rows["edge"] == "fight"]
+    assert list(fights_["outcome"]) == ["converted", "converted", "nothing"]
+    assert list(fights_["team"]) == ["radiant", "dire", "radiant"]
+    aegis = rows[rows["edge"] == "aegis"].iloc[0]
+    assert (aegis["team"], aegis["outcome"], aegis["took"], aegis["after_s"]) == (
+        "radiant",
+        "converted",
+        "badguys_tower1_mid",
+        57,
+    )
+    summary = objectives.conversion_summary(rows).set_index(["team", "edge"])
+    assert (
+        summary.loc[("radiant", "fight"), "converted"] == 1
+        and summary.loc[("radiant", "fight"), "nothing"] == 1
+    )
+
+
+def test_objectives_damage_window_is_in_game_seconds() -> None:
+    # 100 s paused between the hit and the fall: 190 s of ticks, 90 s of game time.
+    match = ParsedMatch(
+        match_id=5,
+        game_start_tick=0,
+        game_clock=GameClock(
+            game_start_tick=0, pauses=[GamePause(start_tick=2_000, end_tick=5_000)]
+        ),
+        players=[ParsedPlayer(player_id=0, team=2, hero_name="npc_dota_hero_axe")],
+        towers=[
+            TowerKill(
+                tick=5_700,
+                team=3,
+                killer="npc_dota_hero_axe",
+                tower_name="npc_dota_badguys_tower1_mid",
+                killer_team=2,
+            )
+        ],
+        combat_log=[
+            CombatLogEntry(
+                tick=1_000,
+                log_type=CombatLogType.DAMAGE,
+                attacker_name="npc_dota_hero_axe",
+                damage_source_name="npc_dota_hero_axe",
+                target_name="npc_dota_badguys_tower1_mid",
+                value=250,
+            )
+        ],
+    )
+    damage = objectives.building_damage(match)
+    assert damage["damage"].tolist() == [250]

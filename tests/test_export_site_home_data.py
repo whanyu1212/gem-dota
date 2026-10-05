@@ -55,11 +55,17 @@ def test_main_writes_to_paths_outside_the_repository(
     ward_data = tmp_path / "wards" / "wards.json"  # a folder that doesn't exist yet
     args = ["replay.dem", "--data", str(data), "--fight-data", str(playback)]
     args += ["--wards-data", str(ward_data), "--public-figures", str(tmp_path / "figures")]
-    args += ["--fights-data", str(tmp_path / "fights")]
+    args += [
+        "--fights-data",
+        str(tmp_path / "fights"),
+        "--objectives-data",
+        str(tmp_path / "objectives.json"),
+    ]
     assert export.main([*args, "--map-image", str(image)]) == 0
     assert (tmp_path / "figures" / "map.webp").stat().st_size > 0
     assert (tmp_path / "figures" / "ward_sentry.png").is_file()
     assert json.loads((tmp_path / "fights" / "index.json").read_text())["fights"] == []
+    assert json.loads((tmp_path / "objectives.json").read_text())["objectives"] == []
     assert json.loads(playback.read_text()) is None
     assert json.loads(ward_data.read_text())["wards"] == []
     written = json.loads(data.read_text())
@@ -786,3 +792,89 @@ def test_fights_recipe_indexes_every_fight_with_its_file() -> None:
     assert entry["file"] == "fight.json" and entry["box"] == [0.0, 0.0, 400.0]
     assert entry["kills"] == [match.fights[0].radiant_kills, match.fights[0].dire_kills]
     assert entry["more"] in {"r", "d", "x"} and entry["deaths"] == match.fights[0].deaths
+
+
+def test_objectives_recipe_places_each_objective_and_lists_the_edges() -> None:
+    from gem.extractors.objectives import RoshanKill, TormentorKill, TowerKill
+    from gem.state.game_clock import GameClock
+
+    axe = ParsedPlayer(player_id=0, hero_name="npc_dota_hero_axe", team=2)
+    lina = ParsedPlayer(player_id=5, hero_name="npc_dota_hero_lina", team=3)
+    axe.position_log = [
+        (t, 20000.0, 20000.0) for t in range(0, 30_001, 30)
+    ]  # near the "_top" tier 4
+    lina.position_log = [(t, 9000.0, 9000.0) for t in range(0, 30_001, 30)]
+    match = ParsedMatch(
+        match_id=1,
+        game_start_tick=0,
+        post_game_tick=30_000,
+        game_clock=GameClock(game_start_tick=0),
+        players=[axe, lina],
+        fights=[
+            Fight(
+                start_tick=3_000,
+                end_tick=3_900,
+                last_death_tick=3_870,
+                deaths=1,
+                radiant_kills=0,
+                dire_kills=1,
+            )
+        ],
+        towers=[
+            TowerKill(
+                tick=4_500,
+                team=2,
+                killer="npc_dota_hero_lina",
+                tower_name="npc_dota_goodguys_tower1_mid",
+                killer_team=3,
+            ),
+            TowerKill(
+                tick=18_000,
+                team=3,
+                killer="npc_dota_hero_axe",
+                tower_name="npc_dota_badguys_tower4",
+                killer_team=2,
+            ),
+        ],
+        roshans=[RoshanKill(tick=10_000, killer="npc_dota_hero_axe", kill_number=1, killer_team=2)],
+        tormentors=[
+            TormentorKill(
+                tick=12_000, killer="npc_dota_hero_lina", killer_player_id=5, kill_number=1
+            )
+        ],
+    )
+    places = {
+        "buildings": {
+            "goodguys_tower1_mid": (14000.0, 14000.0),
+            "badguys_tower4_bot": (23000.0, 19000.0),
+            "badguys_tower4_top": (20100.0, 20100.0),
+        },
+        "roshan": [
+            (0, 12000.0, 18000.0),
+            (9_000, 19000.0, 13000.0),
+        ],  # in the second pit by the kill
+        "tormentor": [(0, 9100.0, 9100.0), (100, 9150.0, 9100.0), (0, 24000.0, 24000.0)],
+    }
+
+    data = export.objectives_recipe(match, places)
+
+    assert [b["key"] for b in data["buildings"]] == [
+        "badguys_tower4_bot",
+        "badguys_tower4_top",
+        "goodguys_tower1_mid",
+    ]
+    assert len(data["tormentor_spawns"]) == 2  # nearby readings are one spawn
+    tower1, roshan, tormentor, tower4 = data["objectives"]
+    assert tower1["name"] == "Radiant tier 1 middle tower" and tower1["for"] == "d"
+    assert tower1["after"] == [1, 20] and tower1["last_hit"] == "Lina"
+    assert roshan["at"] == export._project(19000.0, 13000.0)
+    assert tormentor["at"] == export._project(9100.0, 9100.0)  # the spawn nearest its killer
+    assert tower4["at"] == export._project(
+        20100.0, 20100.0
+    )  # the tier 4 nearest the last hit's hero
+    fight_edge = next(e for e in data["edges"] if e["edge"] == "fight")
+    assert fight_edge["outcome"] == "c" and fight_edge["took"] == ["Radiant tier 1 middle tower"]
+    aegis = next(e for e in data["edges"] if e["edge"] == "aegis")
+    assert (
+        aegis["team"] == "r" and aegis["outcome"] == "c" and aegis["took"] == ["Dire tier 4 tower"]
+    )

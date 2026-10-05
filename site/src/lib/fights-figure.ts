@@ -54,8 +54,11 @@ export function mountFightsFigure(figure: HTMLElement, data: FightsData): void {
   const $ = <T extends Element>(selector: string) => figure.querySelector<T>(selector)!;
   let minDeaths = 1;
   let range: TimeRange | null = null;
-  // Open on the biggest fight: Figure 3's, on the home page.
-  let selected: number | null = [...data.fights].sort((a, b) => b.deaths - a.deaths)[0]?.n ?? null;
+  // Open on the fight a link names (#fight-6, from the objectives recipe), or the
+  // biggest: Figure 3's, on the home page.
+  const linked = /^#fight-(\d+)$/.exec(location.hash);
+  const named = linked ? data.fights.find((f) => f.n === Number(linked[1])) : undefined;
+  let selected: number | null = named?.n ?? [...data.fights].sort((a, b) => b.deaths - a.deaths)[0]?.n ?? null;
   let player: ReturnType<typeof createPlayer> | undefined;
   let loading = 0;
 
@@ -85,6 +88,8 @@ export function mountFightsFigure(figure: HTMLElement, data: FightsData): void {
   const pick = (n: number) => {
     if (n === selected) return;
     selected = n;
+    // Keep the address naming the open fight, so it can be shared.
+    history.replaceState(null, "", `#fight-${n}`);
     render();
     openPanel();
   };
@@ -250,4 +255,5 @@ export function mountFightsFigure(figure: HTMLElement, data: FightsData): void {
   for (const part of [controls, side, strip, listBox, panel]) part.hidden = false;
   render();
   openPanel();
+  if (named) figure.scrollIntoView({ block: "start" });
 }
