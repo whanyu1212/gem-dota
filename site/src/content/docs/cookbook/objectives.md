@@ -77,9 +77,9 @@ rows, then each team's edges:
 ```text
   match_id  time        kind                   name for_side                         last_hit  after_fight  after_fight_s
 8856501050 07:05 wisdom_rune       dire_wisdom_rune     dire             npc_dota_hero_rubick            2             61
-8856501050 07:14 wisdom_rune    radiant_wisdom_rune  radiant           npc_dota_hero_shredder            2             70
+8856501050 07:13 wisdom_rune    radiant_wisdom_rune  radiant           npc_dota_hero_shredder            2             69
 8856501050 13:24       tower    goodguys_tower1_bot     dire          npc_dota_hero_nevermore            6             10
-8856501050 14:59 wisdom_rune    radiant_wisdom_rune  radiant               npc_dota_hero_lion            7             37
+8856501050 14:59 wisdom_rune    radiant_wisdom_rune  radiant               npc_dota_hero_lion            7             36
 ...
 8856501050 92:14    barracks  badguys_range_rax_mid  radiant               npc_dota_hero_tiny           35             64
 8856501050 92:17    barracks  badguys_melee_rax_mid  radiant    npc_dota_creep_goodguys_melee           35             67

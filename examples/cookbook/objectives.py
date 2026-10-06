@@ -31,7 +31,8 @@ twice between two spawns.
 from __future__ import annotations
 
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
+from typing import Any
 
 import pandas as pd
 
@@ -105,13 +106,16 @@ def objective_table(match: gem.ParsedMatch) -> pd.DataFrame:
         (w["tick"], "wisdom_rune", f"{w['spot'] or 'unknown'}_wisdom_rune", w["team"], w["hero"])
         for w in wisdom_pickups(match)
     ]
+    # A rune pickup keeps its own time: OpenDota's clock for its chat event.
+    rune_time = {(w["tick"], w["hero"]): w["time_s"] for w in wisdom_pickups(match)}
     fight_ends = sorted(
         (clock.game_time_at(fight.end_tick), number)
         for number, fight in enumerate(sorted(match.fights, key=lambda f: f.start_tick), start=1)
     )
     table = []
     for tick, kind, name, team, killer in sorted(rows, key=lambda row: row[0]):
-        time_s = clock.game_time_at(tick)
+        time_s = rune_time.get((tick, killer)) if kind == "wisdom_rune" else None
+        time_s = time_s if time_s is not None else clock.game_time_at(tick)
         if time_s is None:
             continue
         before = [
@@ -123,7 +127,9 @@ def objective_table(match: gem.ParsedMatch) -> pd.DataFrame:
                 "match_id": match.match_id,
                 "tick": tick,
                 "time_s": time_s,
-                "time": clock.format_tick(tick),
+                "time": f"{int(time_s) // 60:02d}:{int(time_s) % 60:02d}"
+                if kind == "wisdom_rune"
+                else clock.format_tick(tick),
                 "kind": kind,
                 "name": name.removeprefix("npc_dota_"),
                 "for_side": TEAMS.get(team) if team is not None else None,
@@ -145,17 +151,16 @@ def wisdom_pickups(match: gem.ParsedMatch) -> list[dict]:
         match: A parsed match.
 
     Returns:
-        One dict per pickup, in time order: ``tick``, ``hero``, ``team`` (2 or
-        3), ``spot`` (``radiant``/``dire``: the half the hero was on, or ``""``)
-        and ``xp`` (the wisdom-rune XP the picker's team got on that tick).
+        One dict per pickup, in time order: ``tick``, ``time_s`` (the entry's own
+        ``game_time_s``, OpenDota's clock for the chat event; the game clock
+        when it has none), ``hero``, ``team`` (2 or 3), ``spot``
+        (``radiant``/``dire``: the half the hero was on, or ``""``) and ``xp``
+        (the wisdom-rune XP it gave the picker's team).
     """
+    clock = match.game_clock
     by_slot = {player.player_id: player for player in match.players}
     team_of = {player.hero_name: player.team for player in match.players}
-    xp_at: dict[int, list] = defaultdict(list)
-    for entry in match.combat_log:
-        if entry.log_type == "XP" and entry.xp_reason == XP_WISDOM:
-            xp_at[entry.tick].append(entry)
-    pickups = []
+    pickups: list[dict[str, Any]] = []
     for entry in match.combat_log:
         if entry.log_type != "PICKUP_RUNE" or entry.rune_type != WISDOM_RUNE:
             continue
@@ -164,23 +169,39 @@ def wisdom_pickups(match: gem.ParsedMatch) -> list[dict]:
             continue
         spot = gem.position_at_tick(player, entry.tick)
         half = gem.region_of(*spot) if spot is not None else None
-        # Both teams can take their runes on the same tick: keep the picker's team's XP.
-        xp = sum(
-            gained.value
-            for tick in range(entry.tick - PICKUP_TICKS, entry.tick + PICKUP_TICKS + 1)
-            for gained in xp_at.get(tick, [])
-            if team_of.get(gained.target_name) == player.team
-        )
+        time_s: float | None = entry.game_time_s
+        if time_s is None and clock is not None:
+            time_s = clock.game_time_at(entry.tick)
         pickups.append(
             {
                 "tick": entry.tick,
+                "time_s": time_s,
                 "hero": player.hero_name,
                 "team": player.team,
                 "spot": {"radiant_half": "radiant", "dire_half": "dire"}.get(half or "", ""),
-                "xp": xp,
+                "xp": 0,
             }
         )
-    return sorted(pickups, key=lambda p: p["tick"])
+    pickups.sort(key=lambda p: p["tick"])
+    # Each XP entry goes to the nearest pickup by its hero's team within
+    # PICKUP_TICKS. Both teams can take their runes on one tick, and so can one
+    # team take both: then the entries are shared out, each to the pickup that
+    # has had the fewest so far.
+    given: Counter[int] = Counter()
+    for entry in match.combat_log:
+        if entry.log_type != "XP" or entry.xp_reason != XP_WISDOM:
+            continue
+        team = team_of.get(entry.target_name)
+        near = [
+            i
+            for i, p in enumerate(pickups)
+            if p["team"] == team and abs(p["tick"] - entry.tick) <= PICKUP_TICKS
+        ]
+        if near:
+            i = min(near, key=lambda i: (abs(pickups[i]["tick"] - entry.tick), given[i]))
+            pickups[i]["xp"] += entry.value
+            given[i] += 1
+    return pickups
 
 
 def wisdom_runes(match: gem.ParsedMatch) -> pd.DataFrame:
@@ -206,11 +227,11 @@ def wisdom_runes(match: gem.ParsedMatch) -> pd.DataFrame:
         return pd.DataFrame(columns=WISDOM_COLUMNS)
     taken: dict[tuple[int, str], dict] = {}
     for found in wisdom_pickups(match):
-        time_s = clock.game_time_at(found["tick"])
+        time_s = found["time_s"]
         if time_s is None or time_s < WISDOM_FIRST_S or not found["spot"]:
             continue
         spawn = WISDOM_FIRST_S + (time_s - WISDOM_FIRST_S) // WISDOM_EVERY_S * WISDOM_EVERY_S
-        taken.setdefault((int(spawn), found["spot"]), found | {"time_s": time_s})
+        taken.setdefault((int(spawn), found["spot"]), found)
     rows = []
     for spawn in range(WISDOM_FIRST_S, int(end_s) + 1, WISDOM_EVERY_S):
         for spot in ("radiant", "dire"):

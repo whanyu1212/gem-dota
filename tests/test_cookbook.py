@@ -916,3 +916,88 @@ def test_objectives_lists_each_wisdom_rune_and_who_took_each_shrines() -> None:
     ]
     summary = objectives.wisdom_summary(spawns).set_index("spot")
     assert summary.loc["radiant", ["own side", "other side", "game ended"]].tolist() == [1, 1, 1]
+
+
+def test_objectives_times_a_wisdom_rune_by_its_own_chat_event_clock() -> None:
+    lion = "npc_dota_hero_lion"
+    shrine = (8296.0, 17152.0)
+    match = ParsedMatch(
+        match_id=11,
+        game_start_tick=0,
+        post_game_tick=1300 * 30,  # after the 21:00 spawn
+        game_clock=GameClock(game_start_tick=0),
+        players=[
+            ParsedPlayer(
+                player_id=0,
+                team=2,
+                hero_name=lion,
+                position_log=[(s * 30, *shrine) for s in range(0, 1301)],
+            )
+        ],
+        combat_log=[
+            # OpenDota's clock reads 433 and 839 for pickups whose ticks read 434 and 841.
+            CombatLogEntry(
+                tick=434 * 30,
+                log_type=CombatLogType.PICKUP_RUNE,
+                value=0,
+                rune_type=8,
+                game_time_s=433,
+            ),
+            CombatLogEntry(
+                tick=841 * 30,
+                log_type=CombatLogType.PICKUP_RUNE,
+                value=0,
+                rune_type=8,
+                game_time_s=839,
+            ),
+        ],
+    )
+    table = objectives.objective_table(match)
+    assert table[["time", "time_s"]].values.tolist() == [["07:13", 433], ["13:59", 839]]
+    # 13:59 is still the 7:00 spawn's window: no rune is taken twice in one.
+    runes = objectives.wisdom_runes(match)
+    radiant = runes[runes["spot"] == "radiant"]
+    assert radiant[["spawn_s", "outcome", "after_s"]].values.tolist() == [
+        [420, "own side", 13],
+        [840, "not taken", pd.NA],
+        [1260, "game ended", pd.NA],
+    ]
+
+
+def test_objectives_shares_wisdom_xp_when_one_team_takes_both_runes_at_once() -> None:
+    lion, tiny = "npc_dota_hero_lion", "npc_dota_hero_tiny"
+    match = ParsedMatch(
+        match_id=12,
+        game_start_tick=0,
+        game_clock=GameClock(game_start_tick=0),
+        players=[
+            ParsedPlayer(
+                player_id=0,
+                team=2,
+                hero_name=lion,
+                position_log=[(s * 30, 8296.0, 17152.0) for s in range(0, 500)],
+            ),
+            ParsedPlayer(
+                player_id=1,
+                team=2,
+                hero_name=tiny,
+                position_log=[(s * 30, 24551.0, 15241.0) for s in range(0, 500)],
+            ),
+        ],
+        combat_log=[
+            CombatLogEntry(tick=12_750, log_type=CombatLogType.PICKUP_RUNE, value=slot, rune_type=8)
+            for slot in (0, 1)
+        ]
+        + [
+            CombatLogEntry(
+                tick=12_751,
+                log_type=CombatLogType.XP,
+                target_name=hero,
+                xp_reason=4,
+                value=200,
+            )
+            for hero in (lion, tiny, lion, tiny)
+        ],
+    )
+    # Four entries of 200 for two runes: 400 each, not 800 each.
+    assert [p["xp"] for p in objectives.wisdom_pickups(match)] == [400, 400]
