@@ -116,6 +116,26 @@ def test_runes_take_a_recycled_slot_and_stacked_bounties(run) -> None:
     ]
 
 
+def test_runes_pair_nearby_events_as_a_group(run) -> None:
+    # Removals at 100 and 102, pickups at 102 and 104: nearest-first would give
+    # the 102 rune to the first pickup and leave the second without one.
+    first, second = _Entity(1, 5, (16979.0, 11724.0)), _Entity(2, 5, (8000.0, 8000.0))
+    runes = run(
+        [
+            (10, "entity", first, CREATED),
+            (20, "entity", second, CREATED),
+            (100, "entity", first, DELETED),
+            (102, "entity", second, DELETED),
+            (102, "chat", CHAT_MESSAGE_RUNE_PICKUP, 1, 5),
+            (104, "chat", CHAT_MESSAGE_RUNE_PICKUP, 7, 5),
+        ]
+    )
+    assert [(r.end_tick, r.outcome, r.player_id) for r in runes] == [
+        (100, "picked_up", 1),
+        (102, "picked_up", 7),
+    ]
+
+
 def test_runes_ignore_wisdom_runes_and_other_chat_events(run) -> None:
     runes = run(
         [

@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `still_there`, with the player slot. The bottle and deny chat events were not
   kept before, so a bottled rune showed only as a `PICKUP_RUNE` entry when it
   was used, away from its spot. On the 9 fixtures every rune chat event matches
-  a rune: 317 taken, 181 bottled (180 of them used later), 5 denied, 16 not taken.
+  a rune: 317 taken, 161 bottled (160 of them used later), 5 denied, 15 not taken.
   `PICKUP_RUNE` entries are unchanged (OpenDota counts bottle uses as pickups).
   Wisdom runes are no entity and stay `PICKUP_RUNE` entries.
 

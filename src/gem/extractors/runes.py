@@ -147,41 +147,107 @@ class RuneExtractor:
     def finalize(self) -> list[Rune]:
         """Match the chat events to the runes and return every rune, by spawn tick.
 
-        A chat event takes the rune of its type removed nearest its tick (within
-        ``_MATCH_TICKS``). A pickup with no such rune is a Bottle being used: it
-        sets ``used_tick`` on that player's latest bottled rune of the type not
-        yet used. A removed rune no chat event took was not taken.
+        Each type's chat events and removed runes are paired as a group (see
+        :func:`_pair`): a chat event takes a rune of its type removed within
+        ``_MATCH_TICKS`` of it. A pickup with no such rune is a Bottle being
+        used: it sets ``used_tick`` on that player's latest bottled rune of the
+        type not yet used. A removed rune no chat event took was not taken.
 
         Returns:
             Every rune, in spawn order.
         """
-        for tick, outcome, slot, rune_type in sorted(self._chats, key=lambda chat: chat[0]):
-            open_runes = [
+        chats = sorted(self._chats, key=lambda chat: chat[0])
+        removed = sorted(
+            (rune for rune in self._runes if rune.end_tick is not None),
+            key=lambda rune: (rune.end_tick, rune.spawn_tick),
+        )
+        matched: set[int] = set()
+        for rune_type in {chat[3] for chat in chats}:
+            type_chats = [i for i, chat in enumerate(chats) if chat[3] == rune_type]
+            type_runes = [rune for rune in removed if rune.rune_type == rune_type]
+            ticks = [chats[i][0] for i in type_chats]
+            for chat_at, rune in _pair(ticks, type_runes):
+                index = type_chats[chat_at]
+                rune.outcome, rune.player_id = chats[index][1], chats[index][2]
+                matched.add(index)
+        for index, (tick, outcome, slot, rune_type) in enumerate(chats):
+            if index in matched or outcome != "picked_up":
+                continue
+            bottled = [
                 rune
                 for rune in self._runes
-                if rune.end_tick is not None
-                and rune.player_id is None
+                if rune.outcome == "bottled"
+                and rune.player_id == slot
                 and rune.rune_type == rune_type
-                and abs(rune.end_tick - tick) <= _MATCH_TICKS
+                and rune.used_tick is None
+                and rune.end_tick is not None
+                and rune.end_tick <= tick
             ]
-            if open_runes:
-                rune = min(open_runes, key=lambda r: (abs((r.end_tick or 0) - tick), r.spawn_tick))
-                rune.outcome, rune.player_id = outcome, slot
-                continue
-            if outcome == "picked_up":
-                bottled = [
-                    rune
-                    for rune in self._runes
-                    if rune.outcome == "bottled"
-                    and rune.player_id == slot
-                    and rune.rune_type == rune_type
-                    and rune.used_tick is None
-                    and rune.end_tick is not None
-                    and rune.end_tick <= tick
-                ]
-                if bottled:
-                    max(bottled, key=lambda r: r.end_tick or 0).used_tick = tick
+            if bottled:
+                max(bottled, key=lambda r: r.end_tick or 0).used_tick = tick
         for rune in self._runes:
             if rune.end_tick is not None and rune.player_id is None:
                 rune.outcome = "not_taken"
         return sorted(self._runes, key=lambda rune: rune.spawn_tick)
+
+
+def _pair(ticks: list[int], runes: list[Rune]) -> list[tuple[int, Rune]]:
+    """Pair chat-event ticks with removed runes of one type, both in tick order.
+
+    Takes as many pairs within ``_MATCH_TICKS`` as possible, then the smallest
+    total tick gap, keeping both in order (crossed pairs are never needed). A
+    nearest-first match can't do this: with runes removed at ticks 100 and 102
+    and events at 102 and 104, the first event would take the rune at 102 and
+    leave the second none. The events and runes are split where nothing lies
+    within ``_MATCH_TICKS`` of the next, and each stretch is aligned on its own.
+
+    Returns:
+        ``(index into ticks, rune)`` for each pair.
+    """
+    items = sorted(
+        [(tick, 0, i) for i, tick in enumerate(ticks)]
+        + [(rune.end_tick or 0, 1, j) for j, rune in enumerate(runes)]
+    )
+    pairs: list[tuple[int, Rune]] = []
+    start = 0
+    for end in range(1, len(items) + 1):
+        if end < len(items) and items[end][0] - items[end - 1][0] <= _MATCH_TICKS:
+            continue
+        stretch = items[start:end]
+        start = end
+        chat_ids = [i for _, kind, i in stretch if kind == 0]
+        rune_ids = [j for _, kind, j in stretch if kind == 1]
+        if chat_ids and rune_ids:
+            pairs.extend(
+                _align([ticks[i] for i in chat_ids], [runes[j] for j in rune_ids], chat_ids)
+            )
+    return pairs
+
+
+def _align(ticks: list[int], runes: list[Rune], chat_ids: list[int]) -> list[tuple[int, Rune]]:
+    n, m = len(ticks), len(runes)
+    gap = [[abs(tick - (rune.end_tick or 0)) for rune in runes] for tick in ticks]
+    # best[i][j]: (pairs, -total gap) for the first i events and first j runes.
+    best = [[(0, 0)] * (m + 1) for _ in range(n + 1)]
+    for i in range(1, n + 1):
+        for j in range(1, m + 1):
+            score = max(best[i - 1][j], best[i][j - 1])
+            if gap[i - 1][j - 1] <= _MATCH_TICKS:
+                count, cost = best[i - 1][j - 1]
+                score = max(score, (count + 1, cost - gap[i - 1][j - 1]))
+            best[i][j] = score
+    pairs: list[tuple[int, Rune]] = []
+    i, j = n, m
+    while i and j:
+        count, cost = best[i - 1][j - 1]
+        if gap[i - 1][j - 1] <= _MATCH_TICKS and best[i][j] == (
+            count + 1,
+            cost - gap[i - 1][j - 1],
+        ):
+            pairs.append((chat_ids[i - 1], runes[j - 1]))
+            i, j = i - 1, j - 1
+        elif best[i][j] == best[i - 1][j]:
+            i -= 1
+        else:
+            j -= 1
+    return pairs
