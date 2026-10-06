@@ -697,7 +697,9 @@ fight a link names (`/cookbook/fights#fight-6`) from its script, so other
 figures add those links in the browser, not in the built HTML (the link check
 would find no `#fight-6` there). The lead figure reads `site/src/data/lead.json`:
 running totals by source at every minute and the end of the game, from the lead
-recipe. Navigation
+recipe. The lanes figure reads `site/src/data/lanes.json` (each lane at 6:00
+and 10:00); the recipe's lanes come from 0:00–6:00 positions, not
+`ParsedPlayer.lane`, which keeps OpenDota parity. Navigation
 lives in `site/src/nav.ts`; every colour is a token in `site/src/styles/tokens.css`
 (`npm test` checks WCAG AA contrast for both themes). The home page
 (`site/src/pages/index.astro`) reads a committed snapshot written by
