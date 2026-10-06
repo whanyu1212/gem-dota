@@ -89,6 +89,7 @@ DEFAULT_FIGHTS_DATA = REPO_ROOT / "site" / "src" / "data" / "fights"
 COOKBOOK = REPO_ROOT / "examples" / "cookbook"
 DEFAULT_OBJECTIVES_DATA = REPO_ROOT / "site" / "src" / "data" / "objectives.json"
 DEFAULT_LEAD_DATA = REPO_ROOT / "site" / "src" / "data" / "lead.json"
+DEFAULT_LANES_DATA = REPO_ROOT / "site" / "src" / "data" / "lanes.json"
 DEFAULT_MAP_IMAGE = REPO_ROOT / "site" / "src" / "assets" / "home-map.jpg"
 DEFAULT_FIGHT_IMAGE = REPO_ROOT / "site" / "src" / "assets" / "home-fight.jpg"
 DEFAULT_ICONS = REPO_ROOT / "site" / "src" / "assets" / "icons"
@@ -673,6 +674,69 @@ def lead_recipe(match: ParsedMatch) -> dict:
         "objectives": [
             [row.kind, side.get(row.for_side or "", ""), round(float(row.time_s), 1)]
             for row in table.itertuples(index=False)
+        ],
+    }
+
+
+def lanes_recipe(match: ParsedMatch) -> dict:
+    """Each lane's heroes, numbers and events for the lanes recipe's figure.
+
+    From the recipe itself (``examples/cookbook/lanes.py``): the readings (game
+    seconds), and for each lane each side's heroes (with the share of the
+    laning stage each spent there) and, at each reading, its net worth, XP,
+    last hits, denies and gold from lane creeps, hero kills, neutrals and the
+    rest. Then every event up to the last reading, ``jungle`` and ``""`` lanes
+    included (the figure lists those apart), and the heroes whose OpenDota
+    ``lane`` (over 10 minutes) is another.
+    """
+    recipe = _cookbook("lanes")
+    lanes = recipe.hero_lanes(match)
+    table = recipe.lane_table(match, lanes)
+    events = recipe.lane_events(match, lanes)
+    side = {"radiant": "r", "dire": "d"}
+    share = dict(zip(lanes["hero"], lanes["share"], strict=True))
+    numbers = [
+        "net_worth", "xp", "last_hits", "denies",
+        "lane_creep_gold", "hero_kill_gold", "neutral_gold", "other_gold",
+    ]  # fmt: skip
+    out_lanes = []
+    for lane in ("top", "mid", "bot"):
+        rows = table[table["lane"] == lane]
+        sides = {}
+        for name, key in side.items():
+            mine = rows[rows["side"] == name]
+            heroes = [h for h in (mine["heroes"].iloc[0].split(", ") if len(mine) else []) if h]
+            sides[key] = {
+                "heroes": [[hero_display(h), float(share[h])] for h in heroes],
+                "at": {
+                    str(int(row.reading_s)): [int(getattr(row, n)) for n in numbers]
+                    for row in mine.itertuples(index=False)
+                },
+            }
+        out_lanes.append({"lane": lane, "sides": sides})
+    # OpenDota's lane ids; 0 (no lane) is left out.
+    lane_names = {1: "bot", 2: "mid", 3: "top", 4: "jungle", 5: "jungle"}
+    home = dict(zip(lanes["hero"], lanes["lane"], strict=True))
+    return {
+        "readings": [recipe.LANE_S, recipe.COMPARE_S],
+        "lanes": out_lanes,
+        "events": [
+            [
+                int(e.time_s),
+                None if pd.isna(e.end_s) else int(e.end_s),
+                e.kind,
+                e.lane,
+                hero_display(e.hero),
+                side.get(e.side or "", ""),
+                _killer_name(e.by) if isinstance(e.by, str) and e.by else None,
+                e.from_lane if isinstance(e.from_lane, str) and e.from_lane else None,
+            ]
+            for e in events.itertuples(index=False)
+        ],
+        "opendota": [
+            [hero_display(p.hero_name), lane_names[p.lane], home[p.hero_name]]
+            for p in match.players
+            if p.lane in lane_names and lane_names[p.lane] != home.get(p.hero_name)
         ],
     }
 
@@ -1466,6 +1530,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--fights-data", type=Path, default=DEFAULT_FIGHTS_DATA)
     parser.add_argument("--objectives-data", type=Path, default=DEFAULT_OBJECTIVES_DATA)
     parser.add_argument("--lead-data", type=Path, default=DEFAULT_LEAD_DATA)
+    parser.add_argument("--lanes-data", type=Path, default=DEFAULT_LANES_DATA)
     parser.add_argument("--map-image", type=Path, default=DEFAULT_MAP_IMAGE)
     parser.add_argument("--fight-image", type=Path, default=DEFAULT_FIGHT_IMAGE)
     parser.add_argument("--icons-dir", type=Path, default=DEFAULT_ICONS)
@@ -1554,9 +1619,11 @@ def main(argv: list[str] | None = None) -> int:
     args.wards_data.write_text(json.dumps(wards_recipe(match), separators=(",", ":")) + "\n")
     args.lead_data.parent.mkdir(parents=True, exist_ok=True)
     args.lead_data.write_text(json.dumps(lead_recipe(match), separators=(",", ":")) + "\n")
+    args.lanes_data.parent.mkdir(parents=True, exist_ok=True)
+    args.lanes_data.write_text(json.dumps(lanes_recipe(match), separators=(",", ":")) + "\n")
     write_map_image(args.map_image)
     written = [args.data, args.fight_data, args.wards_data, args.fights_data, args.objectives_data]
-    written.append(args.lead_data)
+    written += [args.lead_data, args.lanes_data]
     written.append(args.map_image)
     if fight is not None:
         write_map_image(args.fight_image, fight["box"])
