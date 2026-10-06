@@ -37,10 +37,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   seconds before it fell. It also counts each team's edges (fights it won on
   kills, Aegis windows) by what they led to. Across the 9 fixtures, teams took
   the next objective after 117 of the 303 fights they won on kills, and a
-  building followed 22 of the 31 Roshans. Its page has a figure of the home
-  page's match: every objective at its place on the map (the base as it stood
-  at the end of a picked stretch), each objective's card linking to its fight on
-  the fights page, and each team's conversion bars with the edges behind them.
+  building followed 22 of the 31 Roshans. Wisdom runes are objectives too
+  (HY-149): every rune taken, at which side's shrine, and the XP it gave, and
+  for each spawn who took each shrine's rune (`wisdom_runes`); across the 9
+  fixtures each side took the other side's rune 23 times out of 126 spawns. Its
+  page has a figure of the home page's match: every objective at its place on
+  the map (the base as it stood at the end of a picked stretch, the wisdom runes
+  around their shrines), each objective's card linking to its fight on the
+  fights page, each team's conversion bars with the edges behind them, and who
+  took each shrine's runes.
 
 - **Recipe: where were the fights, and who got the kills?** (HY-125).
   `examples/cookbook/fights.py` lists every fight with the kills each side
