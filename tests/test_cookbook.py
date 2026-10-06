@@ -25,6 +25,7 @@ from gem.results.models import (
     VisibilityState,
 )
 from gem.state.game_clock import GameClock, GamePause
+from tests._lanes import MID as MID_CELL, TOP as TOP_CELL, lanes_match as _lanes_match
 
 COOKBOOK = Path(__file__).resolve().parent.parent / "examples" / "cookbook"
 
@@ -44,6 +45,7 @@ wards = _recipe("wards")
 fights = _recipe("fights")
 objectives = _recipe("objectives")
 lead = _recipe("lead")
+lanes = _recipe("lanes")
 
 
 def _fight(first_death_tick: int, winner: str) -> Fight:
@@ -192,6 +194,9 @@ def test_recipes_run_on_a_replay_without_deprecation_warnings(canonical_parsed_m
         edge_rows = objectives.edges(canonical_parsed_match, objective_rows)
         gold_lead = lead.lead_by_source(lead.gold_sources(canonical_parsed_match))
         xp_lead = lead.lead_by_source(lead.xp_sources(canonical_parsed_match))
+        hero_lanes = lanes.hero_lanes(canonical_parsed_match)
+        lane_rows = lanes.lane_table(canonical_parsed_match, hero_lanes)
+        lane_events = lanes.lane_events(canonical_parsed_match, hero_lanes)
 
     assert len(rosh) == len(canonical_parsed_match.roshans)
     assert list(rosh.columns) == roshan_next_fight.COLUMNS
@@ -220,6 +225,12 @@ def test_recipes_run_on_a_replay_without_deprecation_warnings(canonical_parsed_m
         assert (sources.sum(axis=1) == frame["lead"]).all()
         assert frame["lead"].tolist()[: len(curve)] == curve
     assert len(gold_lead) == len(match.radiant_gold_adv) + 1  # and the end of the game
+    # Every hero gets a lane; each lane and side has a row at both readings.
+    assert set(hero_lanes["lane"]) <= {"top", "mid", "bot"} and len(hero_lanes) == 10
+    assert list(lane_rows.columns) == lanes.LANE_COLUMNS and len(lane_rows) == 3 * 2 * 2
+    assert lane_rows["net_worth"].sum() > 0
+    assert list(lane_events.columns) == lanes.EVENT_COLUMNS
+    assert set(lane_events["kind"]) <= {"death", "teleport", "visit"}
 
 
 def test_recipes_fall_back_to_hero_teams_without_combat_log_teams() -> None:
@@ -729,3 +740,95 @@ def test_lead_is_empty_without_a_gold_ledger() -> None:
         "unlisted",
         "total",
     ]
+
+
+def test_lanes_puts_each_hero_where_it_spent_the_laning_stage() -> None:
+    hero_lanes = lanes.hero_lanes(_lanes_match()).set_index("hero")
+
+    assert hero_lanes["lane"].to_dict() == {
+        "npc_dota_hero_axe": "top",
+        "npc_dota_hero_lina": "mid",
+        "npc_dota_hero_pudge": "top",
+        "npc_dota_hero_nevermore": "mid",
+    }
+    # 65 of the 360 seconds in mid: walking out of base and the visit.
+    assert hero_lanes.loc["npc_dota_hero_axe", "share"] == round(295 / 360, 2)
+    assert hero_lanes.loc["npc_dota_hero_nevermore", "jungle"] == 21
+
+
+def test_lanes_reads_each_side_of_each_lane_at_both_readings() -> None:
+    table = lanes.lane_table(_lanes_match())
+    top = table[(table["lane"] == "top") & (table["side"] == "radiant")].set_index("reading_s")
+
+    assert top.loc[360, "heroes"] == "npc_dota_hero_axe"
+    assert (top.loc[360, "net_worth"], top.loc[600, "net_worth"]) == (1000 + 3600, 1000 + 6000)
+    assert (top.loc[360, "last_hits"], top.loc[360, "denies"]) == (36, 6)
+    # Earned 600 + 4 * 360 by 6:00: 720 from lane creeps, 180 from neutrals, the rest other.
+    assert (top.loc[360, "lane_creep_gold"], top.loc[360, "neutral_gold"]) == (720, 180)
+    assert top.loc[360, "other_gold"] == 600 + 4 * 360 - 720 - 180
+    gaps = lanes.lane_gaps(table).set_index("lane")
+    assert gaps.loc["mid", "gap_360"] == (1000 + 20 * 360) - (1000 + 70 * 360)
+
+
+def test_lanes_lists_deaths_teleports_and_visits_by_lane() -> None:
+    events = lanes.lane_events(_lanes_match())
+    rows = [
+        (e.time_s, e.kind, e.lane, e.hero, e.by, e.from_lane, None if pd.isna(e.end_s) else e.end_s)
+        for e in events.itertuples(index=False)
+    ]
+
+    assert rows == [
+        (100, "death", "jungle", "npc_dota_hero_nevermore", "npc_dota_hero_axe", "top", None),
+        (300, "visit", "mid", "npc_dota_hero_axe", None, "top", 340),
+        (400, "teleport", "top", "npc_dota_hero_lina", None, "mid", None),
+        (401, "visit", "top", "npc_dota_hero_lina", None, "mid", 431),
+        # A summon's kill counts for its owner, from the owner's lane.
+        (410, "death", "top", "npc_dota_hero_pudge", "npc_dota_hero_lina", "mid", None),
+    ]
+
+
+def test_lanes_rounds_cells_as_opendota_does() -> None:
+    # 90.46 cells is 91 for OpenDota (one decimal, then half up): mid, not top.
+    assert lanes.lane_at(90.46 * 128, 128 * 128) == "mid"
+
+
+def test_lanes_finds_a_teleport_that_lands_after_a_pause() -> None:
+    lina = "npc_dota_hero_lina"
+    match = ParsedMatch(
+        match_id=9,
+        game_start_tick=0,
+        # 30 s paused one second into the channel (cast at 6:40, tick 12,000).
+        game_clock=GameClock(
+            game_start_tick=0, pauses=[GamePause(start_tick=12_030, end_tick=12_930)]
+        ),
+        players=[
+            ParsedPlayer(
+                player_id=1,
+                team=2,
+                hero_name=lina,
+                position_log=[
+                    (t, *(TOP_CELL if t >= 12_960 else MID_CELL)) for t in range(0, 20_000, 30)
+                ],
+            )
+        ],
+        combat_log=[
+            CombatLogEntry(
+                tick=12_000,
+                log_type=CombatLogType.ITEM,
+                attacker_name=lina,
+                inflictor_name="item_tpscroll",
+            )
+        ],
+    )
+    events = lanes.lane_events(match)
+    teleports = events[events["kind"] == "teleport"]
+    assert teleports[["time_s", "lane"]].values.tolist() == [[400, "top"]]
+
+
+def test_lanes_reads_a_ledger_without_minute_readings() -> None:
+    match = _lanes_match()
+    for player in match.players:
+        assert player.gold_ledger is not None
+        player.gold_ledger = GoldLedger(final=player.gold_ledger.per_minute[-1])
+    table = lanes.lane_table(match)
+    assert table["net_worth"].sum() > 0 and table["lane_creep_gold"].sum() == 0

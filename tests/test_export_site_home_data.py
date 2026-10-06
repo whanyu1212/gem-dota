@@ -62,6 +62,8 @@ def test_main_writes_to_paths_outside_the_repository(
         str(tmp_path / "objectives.json"),
         "--lead-data",
         str(tmp_path / "lead.json"),
+        "--lanes-data",
+        str(tmp_path / "lanes.json"),
     ]
     assert export.main([*args, "--map-image", str(image)]) == 0
     assert (tmp_path / "figures" / "map.webp").stat().st_size > 0
@@ -69,6 +71,7 @@ def test_main_writes_to_paths_outside_the_repository(
     assert json.loads((tmp_path / "fights" / "index.json").read_text())["fights"] == []
     assert json.loads((tmp_path / "objectives.json").read_text())["objectives"] == []
     assert json.loads((tmp_path / "lead.json").read_text())["times"] == []
+    assert json.loads((tmp_path / "lanes.json").read_text())["events"] == []
     assert json.loads(playback.read_text()) is None
     assert json.loads(ward_data.read_text())["wards"] == []
     written = json.loads(data.read_text())
@@ -943,3 +946,24 @@ def test_lead_recipe_writes_running_totals_by_source_and_by_hero() -> None:
     assert [g[-1] for g in data["heroes"][0]["gold"]] == [300, 100, 50]
     assert data["fights"] == [[1, 30.0, 40.0, 2, ""]]
     assert data["objectives"] == []
+
+
+def test_lanes_recipe_writes_each_lane_with_shares_numbers_and_events() -> None:
+    from tests._lanes import lanes_match
+
+    match = lanes_match()
+    match.players[0].lane = 2  # OpenDota's lane (mid), which the recipe's (top) differs from
+    data = export.lanes_recipe(match)
+
+    assert data["readings"] == [360, 600] and data["min_visit_s"] == 20
+    top = data["lanes"][0]
+    assert top["lane"] == "top"
+    assert top["sides"]["r"]["heroes"] == [["Axe", 0.82]]
+    assert top["sides"]["d"]["at"]["360"][0] == 1000 + 60 * 360
+    assert [e[:4] for e in data["events"]][:2] == [
+        [100, None, "death", "jungle"],
+        [300, 340, "visit", "mid"],
+    ]
+    assert data["events"][4][6] == "Lina"  # the summon's owner
+    # Only heroes with an OpenDota lane (the others here have none) that differs.
+    assert data["opendota"] == [["Axe", "mid", "top"]]

@@ -1258,3 +1258,209 @@
     grid-template-columns: 110px minmax(0, 1fr) 44px;
   }
 }
+
+/* The lanes recipe's figure */
+.lanes-fig,
+.prose .lanes-fig {
+  margin: 24px 0;
+}
+.prose .lanes-fig :is(ul, ol, p) {
+  margin: 0;
+  padding: 0;
+}
+.prose .lanes-fig li + li {
+  margin-top: 0;
+}
+.prose .lanes-fig figcaption > p {
+  margin-top: 12px;
+}
+.prose .lanes-fig .legend {
+  margin-top: 10px;
+}
+.lanes-fig .legend-item {
+  text-transform: none;
+}
+.lanes-fig-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.lanes-fig-controls[hidden] {
+  display: none;
+}
+.lane-cards {
+  display: grid;
+  gap: 12px;
+}
+.lane-card {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+}
+.lane-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: baseline;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+.prose .lanes-fig .lane-name {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+}
+.lane-heroes--radiant::before,
+.lane-heroes--dire::after {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  content: "";
+}
+.lane-heroes--radiant::before {
+  margin-right: 6px;
+  background: var(--map-radiant-mark);
+}
+.lane-heroes--dire {
+  text-align: right;
+}
+.lane-heroes--dire::after {
+  margin-left: 6px;
+  background: var(--map-dire-mark);
+}
+.lane-share {
+  color: var(--muted);
+  font-size: 12px;
+}
+.lane-rows {
+  list-style: none;
+  font-size: 12.5px;
+}
+.lane-rows li {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) 92px minmax(0, 1fr) 52px;
+  gap: 6px;
+  align-items: center;
+  padding: 2px 0;
+}
+.lane-rows--gold {
+  color: var(--muted);
+  font-size: 12px;
+}
+.prose .lanes-fig .lane-sub {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-transform: uppercase;
+}
+.lane-v {
+  font-variant-numeric: tabular-nums;
+}
+.lane-v--dire {
+  text-align: right;
+}
+.lane-label {
+  color: var(--muted);
+  text-align: center;
+}
+.lane-bar {
+  display: flex;
+  height: 10px;
+}
+.lane-bar--radiant {
+  justify-content: flex-end;
+}
+.lane-bar i {
+  height: 10px;
+  border-radius: 2px;
+}
+.lane-bar--radiant i {
+  background: var(--map-radiant-mark);
+}
+.lane-bar--dire i {
+  background: var(--map-dire-mark);
+}
+.prose .lanes-fig .lane-gap {
+  margin: 4px 0 2px;
+  color: var(--ink);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-align: center;
+}
+.lane-events {
+  margin-top: 8px;
+  border-top: 1px solid var(--line);
+  list-style: none;
+  font-size: 12.5px;
+}
+.lane-events li {
+  display: grid;
+  grid-template-columns: 40px 64px minmax(0, 1fr);
+  gap: 6px;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--line);
+}
+.lane-events time {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.lane-ev-kind {
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.lane-ev-kind--death {
+  color: var(--danger);
+}
+.lane-events li.lane-none {
+  display: block;
+  color: var(--muted);
+}
+.lane-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 6px;
+  border-radius: 50%;
+  vertical-align: 1px;
+}
+.lane-dot--radiant {
+  background: var(--map-radiant-mark);
+}
+.lane-dot--dire {
+  background: var(--map-dire-mark);
+}
+.lane-dot--even {
+  background: var(--muted);
+}
+.prose .lanes-fig .lane-elsewhere-head {
+  margin-top: 14px;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+.prose .lanes-fig .lane-note {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+@media (max-width: 560px) {
+  .lane-rows li {
+    grid-template-columns: 44px minmax(0, 1fr) 70px minmax(0, 1fr) 44px;
+    gap: 4px;
+  }
+  .lane-head {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .lane-head .lane-name {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+}

@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Recipe: how did each lane go?** (HY-127). `examples/cookbook/lanes.py`
+  puts each hero in the lane it spent the most of the first 6 minutes in (from
+  its positions on OpenDota's lane grid), then reads each lane at 6:00, the end
+  of the laning stage, and at 10:00: each side's net worth, XP, last hits,
+  denies and earned gold by source, and the deaths, teleports and visits from
+  other lanes up to each reading. Across the 9 fixtures the side ahead in a
+  lane at 6:00 was still ahead at 10:00 in 22 of 27 lanes. Its page has a
+  figure of the home page's match with both readings.
+
 - **Recipe: what moved the gold and XP lead?** (HY-128).
   `examples/cookbook/lead.py` splits the gold lead into the game's own gold
   ledger sources (hero kills and assists, lane and neutral creeps, buildings,

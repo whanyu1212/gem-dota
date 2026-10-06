@@ -7,6 +7,7 @@ import rehypeRaw from "rehype-raw";
 import type { Processor } from "unified";
 import type { VFile } from "vfile";
 import { fightsFigure } from "../figures/fights";
+import { lanesFigure } from "../figures/lanes";
 import { leadFigure } from "../figures/lead";
 import { objectivesFigure } from "../figures/objectives";
 import { wardsFigure } from "../figures/wards";
@@ -40,6 +41,7 @@ export function docsMarkdown(options: DocsMarkdownOptions) {
             fights: () => fightsFigure(options.base),
             objectives: () => objectivesFigure(options.base),
             lead: () => leadFigure(options.base),
+            lanes: () => lanesFigure(),
           },
         },
       ],
