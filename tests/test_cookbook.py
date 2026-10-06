@@ -1080,7 +1080,8 @@ def test_runes_reads_each_power_runes_window_and_what_followed() -> None:
         "60",
         False,
     )
-    # The illusions lasted 100 s; the window stops at ILLUSION_S. Their damage counts for Axe.
+    # Axe's Aegis trigger at 7:05 is no kill. The rune's illusions lasted 30 and 100 s
+    # (the 9:50 illusion's remove isn't theirs); the window stops at ILLUSION_S.
     assert illusion["rune"] == "illusion" and illusion["from_bottle"]
     assert illusion["end_s"] - illusion["start_s"] == pytest.approx(runes.ILLUSION_S, abs=0.05)
     assert (illusion["roshan_damage"], illusion["took"], illusion["took_s"]) == (

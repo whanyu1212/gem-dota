@@ -57,6 +57,15 @@ def runes_match() -> ParsedMatch:
             target_is_hero=True,
         ),
         entry(420, CombatLogType.DEATH, attacker_name=SF, target_name=LINA, target_is_hero=True),
+        # Axe's Aegis triggers: not a death, so not a kill.
+        entry(
+            425,
+            CombatLogType.DEATH,
+            attacker_name=SF,
+            target_name=AXE,
+            target_is_hero=True,
+            will_reincarnate=True,
+        ),
         entry(
             430,
             CombatLogType.DAMAGE,
@@ -71,8 +80,9 @@ def runes_match() -> ParsedMatch:
             target_name=SF,
             target_is_hero=True,
         ),
-        # Axe uses a bottled illusion rune at 10:00: two illusions, gone after 100 s
-        # (capped at 75), one hitting Roshan; Radiant kills Roshan at 10:40.
+        # Axe uses a bottled illusion rune at 10:00: two illusions, one gone after
+        # 30 s and one after 100 s (capped at 75), one hitting Roshan; Radiant kills
+        # Roshan at 10:40. An illusion Axe had from 9:50 goes first, at 10:00.
         pickup(used, 0, 2, 600),
         *[
             entry(
@@ -95,14 +105,23 @@ def runes_match() -> ParsedMatch:
         ),
         *[
             entry(
-                used + 100,
+                used + 4 / 30 + lasted,
                 CombatLogType.MODIFIER_REMOVE,
                 inflictor_name="modifier_illusion",
                 target_name=AXE,
                 target_is_illusion=True,
+                modifier_elapsed_duration_s=lasted,
             )
-            for _ in range(2)
+            for lasted in (30.0, 100.0)
         ],
+        entry(
+            used + 4 / 30 + 10,
+            CombatLogType.MODIFIER_REMOVE,
+            inflictor_name="modifier_illusion",
+            target_name=AXE,
+            target_is_illusion=True,
+            modifier_elapsed_duration_s=20.0,
+        ),
     ]
     runes = [
         # The 0:00 bounties: Axe in Dire's jungle, Lina at the top river; Radiant's not taken.

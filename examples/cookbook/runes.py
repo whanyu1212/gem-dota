@@ -51,6 +51,7 @@ OPENING_SPAWN_S = 60  # a bounty that spawned before this is a 0:00 bounty
 AFTER_S = 30  # objectives this long after a power rune ended still count for it
 ILLUSION_S = 75  # an illusion rune's illusions last this long at most
 ILLUSION_TICKS = 6  # the illusions appear within this many ticks of the pickup
+ELAPSED_TOLERANCE_S = 0.5  # a remove's elapsed duration dates its add to within this
 BUFF_TICKS = 2  # a buff starts within this many ticks of the pickup
 PICKUP_TICKS = 2  # a PICKUP_RUNE entry is within this many ticks of its rune's removal
 TEAMS = {2: "radiant", 3: "dire"}
@@ -265,7 +266,12 @@ def opening_deaths(match: gem.ParsedMatch) -> pd.DataFrame:
     heroes = {p.hero_name: p for p in match.players}
     rows = []
     for entry in match.combat_log:
-        if entry.log_type != "DEATH" or entry.target_name not in heroes or entry.target_is_illusion:
+        if (
+            entry.log_type != "DEATH"
+            or entry.target_name not in heroes
+            or entry.target_is_illusion
+            or entry.will_reincarnate  # an Aegis or Reincarnation trigger, not a death
+        ):
             continue
         time_s = clock.game_time_at(entry.tick) if clock is not None else None
         if time_s is None or time_s > OPENING_S:
@@ -331,14 +337,27 @@ def _window(
         return None
     start_s = clock.game_time_at(adds[0])
     last = clock.tick_at(start_s + ILLUSION_S) if start_s is not None else None
-    removes = sorted(
-        e.tick
+    later = [
+        e
         for e in modifiers
         if e.log_type == "MODIFIER_REMOVE"
         and e.inflictor_name == "modifier_illusion"
         and e.target_name == hero
         and e.tick >= adds[0]
-    )[: len(adds)]
+    ]
+
+    # The hero may have other illusions (Manta Style, an ability): a remove is
+    # one of the rune's when its elapsed duration dates its add to theirs.
+    def theirs(e: CombatLogEntry) -> bool:
+        if e.modifier_elapsed_duration_s is None or start_s is None:
+            return True  # no elapsed duration (Source 1 replays): the first removes
+        removed_s = clock.game_time_at(e.tick)
+        return (
+            removed_s is not None
+            and abs(removed_s - e.modifier_elapsed_duration_s - start_s) <= ELAPSED_TOLERANCE_S
+        )
+
+    removes = sorted(e.tick for e in later if theirs(e))[: len(adds)]
     end = max(removes) if len(removes) == len(adds) else None
     if last is not None and (end is None or end > last):
         end = last
@@ -386,7 +405,10 @@ def rune_windows(match: gem.ParsedMatch) -> pd.DataFrame:
     deaths = [
         e
         for e in match.combat_log
-        if e.log_type == "DEATH" and e.target_name in team_of and not e.target_is_illusion
+        if e.log_type == "DEATH"
+        and e.target_name in team_of
+        and not e.target_is_illusion
+        and not e.will_reincarnate  # an Aegis or Reincarnation trigger, not a death
     ]
     damage = [
         e
