@@ -9,6 +9,7 @@
 /cookbook/objectives
 /cookbook/lead
 /cookbook/lanes
+/cookbook/runes
 /cookbook/proto-fields/
 /cookbook/proto-fields/base-gcmessages
 /cookbook/proto-fields/c-peer2peer-netmessages

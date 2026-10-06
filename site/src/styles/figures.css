@@ -1519,3 +1519,203 @@
 .wisdom-key:first-child {
   margin-left: 0;
 }
+/* The runes recipe's figure: counts by kind, the four spots, the 0:00 bounties, the power runes. */
+.runes-fig,
+.prose .runes-fig {
+  margin: 24px 0;
+}
+.prose .runes-fig :is(ul, ol, p) {
+  margin: 0;
+  padding: 0;
+}
+.prose .runes-fig li + li {
+  margin-top: 0;
+}
+.prose .runes-fig figcaption > p {
+  margin-top: 12px;
+}
+.prose .runes-fig .legend {
+  margin-top: 10px;
+}
+.runes-fig .legend-item {
+  text-transform: none;
+}
+.runes-fig-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.runes-fig-controls .range-pill {
+  margin-left: auto;
+}
+.runes-fig-controls[hidden],
+.runes-fig-strip[hidden] {
+  display: none;
+}
+.runes-fig-strip {
+  margin-bottom: 14px;
+}
+.runes-fig-strip svg {
+  display: block;
+  width: 100%;
+  height: 60px;
+  aspect-ratio: auto;
+  cursor: crosshair;
+  touch-action: pan-y;
+}
+.runes-mark--radiant {
+  fill: var(--map-radiant-mark);
+}
+.runes-mark--dire {
+  fill: var(--map-dire-mark);
+}
+.runes-mark:not(.runes-mark--power) {
+  fill-opacity: 0.55;
+}
+.runes-mark.is-out {
+  opacity: 0.15;
+}
+.runes-fig-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+@media (max-width: 680px) {
+  .runes-fig-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.prose .runes-fig .runes-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px minmax(0, 1fr);
+  margin-bottom: 4px;
+  font-size: 12.5px;
+}
+.runes-counts li {
+  grid-template-columns: 30px minmax(0, 1fr) 150px minmax(0, 1fr) 30px;
+  padding: 3px 0;
+}
+.prose .runes-fig .runes-note {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.rune-spot circle {
+  fill: var(--map-label);
+  stroke: var(--map-halo);
+  stroke-width: 4;
+}
+.rune-spot text {
+  font-family: var(--font-sans);
+  paint-order: stroke;
+  stroke: var(--map-halo);
+  stroke-width: 5px;
+  stroke-linejoin: round;
+}
+.rune-spot-label {
+  fill: var(--map-label);
+  font-size: 22px;
+  font-weight: 600;
+}
+.rune-spot-count {
+  font-size: 26px;
+  font-weight: 700;
+}
+.rune-spot-count--radiant {
+  fill: var(--map-radiant-mark);
+}
+.rune-spot-count--dire {
+  fill: var(--map-dire-mark);
+}
+.rune-spot-left {
+  fill: var(--map-label);
+  font-size: 18px;
+}
+.prose .runes-fig .runes-sub {
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  color: var(--ink);
+  font-weight: 600;
+}
+.runes-list {
+  margin-top: 6px;
+  list-style: none;
+  font-size: 13px;
+}
+.runes-list li {
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1.1fr) minmax(0, 1.4fr);
+  gap: 8px;
+  align-items: baseline;
+  padding: 5px 2px;
+  border-bottom: 1px solid var(--line);
+}
+.runes-list li.runes-muted {
+  display: block;
+}
+.runes-list time {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.runes-windows {
+  max-height: 340px;
+  overflow-y: auto;
+  border-top: 1px solid var(--line);
+}
+.runes-window--objective {
+  background: var(--accent-soft);
+}
+.runes-muted {
+  color: var(--muted);
+}
+.lane-dot--none {
+  background: var(--muted);
+}
+.runes-takers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 4px 20px;
+  margin-top: 6px;
+  list-style: none;
+  font-size: 13px;
+}
+.runes-takers li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 24px;
+  gap: 6px;
+  align-items: center;
+}
+.runes-taker-bar {
+  display: flex;
+  height: 9px;
+}
+.runes-taker-bar i {
+  height: 9px;
+  border-radius: 2px;
+}
+.runes-taker-bar--radiant i {
+  background: var(--map-radiant-mark);
+}
+.runes-taker-bar--dire i {
+  background: var(--map-dire-mark);
+}
+@media (max-width: 560px) {
+  .runes-counts li {
+    grid-template-columns: 26px minmax(0, 1fr) 128px minmax(0, 1fr) 26px;
+    font-size: 12px;
+  }
+  .prose .runes-fig .runes-head {
+    grid-template-columns: minmax(0, 1fr) 128px minmax(0, 1fr);
+  }
+  .runes-list li {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+  .runes-list li > :last-child {
+    grid-column: 2;
+  }
+}

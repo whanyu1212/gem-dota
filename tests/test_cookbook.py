@@ -26,6 +26,7 @@ from gem.results.models import (
 )
 from gem.state.game_clock import GameClock, GamePause
 from tests._lanes import MID as MID_CELL, TOP as TOP_CELL, lanes_match as _lanes_match
+from tests._runes import AXE, LINA, PUDGE, SF, runes_match as _runes_match
 
 COOKBOOK = Path(__file__).resolve().parent.parent / "examples" / "cookbook"
 
@@ -46,6 +47,7 @@ fights = _recipe("fights")
 objectives = _recipe("objectives")
 lead = _recipe("lead")
 lanes = _recipe("lanes")
+runes = _recipe("runes")
 
 
 def _fight(first_death_tick: int, winner: str) -> Fight:
@@ -197,6 +199,9 @@ def test_recipes_run_on_a_replay_without_deprecation_warnings(canonical_parsed_m
         hero_lanes = lanes.hero_lanes(canonical_parsed_match)
         lane_rows = lanes.lane_table(canonical_parsed_match, hero_lanes)
         lane_events = lanes.lane_events(canonical_parsed_match, hero_lanes)
+        rune_rows = runes.rune_table(canonical_parsed_match)
+        openers = runes.opening_bounties(canonical_parsed_match, rune_rows)
+        windows = runes.rune_windows(canonical_parsed_match)
 
     assert len(rosh) == len(canonical_parsed_match.roshans)
     assert list(rosh.columns) == roshan_next_fight.COLUMNS
@@ -220,10 +225,10 @@ def test_recipes_run_on_a_replay_without_deprecation_warnings(canonical_parsed_m
         match.roshans
     ) + len(match.tormentors) + len(pickups)
     # Every wisdom rune taken is on one of the two shrines' halves, with its XP.
-    runes = objectives.wisdom_runes(match)
-    assert runes["taken_by"].notna().sum() == len(pickups)
-    assert set(runes["outcome"]) <= {"own side", "other side", "not taken", "game ended"}
-    assert (runes.dropna(subset=["taken_by"])["xp"] > 0).all()
+    wisdom = objectives.wisdom_runes(match)
+    assert wisdom["taken_by"].notna().sum() == len(pickups)
+    assert set(wisdom["outcome"]) <= {"own side", "other side", "not taken", "game ended"}
+    assert (wisdom.dropna(subset=["taken_by"])["xp"] > 0).all()
     assert set(edge_rows["outcome"]) <= {"converted", "other side first", "nothing"}
     # The sources add up to the lead, which is the match's own curve at every minute.
     for frame, curve in ((gold_lead, match.radiant_gold_adv), (xp_lead, match.radiant_xp_adv)):
@@ -237,6 +242,19 @@ def test_recipes_run_on_a_replay_without_deprecation_warnings(canonical_parsed_m
     assert lane_rows["net_worth"].sum() > 0
     assert list(lane_events.columns) == lanes.EVENT_COLUMNS
     assert set(lane_events["kind"]) <= {"death", "teleport", "visit"}
+    # Every rune is at one of the four spots, and every pickup keeps its own time.
+    assert list(rune_rows.columns) == runes.RUNE_COLUMNS and len(rune_rows) == len(match.runes)
+    assert set(rune_rows["spot"]) <= {"top_river", "bot_river", "radiant_jungle", "dire_jungle"}
+    picked = [r for r in match.runes if r.outcome == "picked_up"]
+    used = [r for r in match.runes if r.used_tick is not None]
+    assert len(runes._pickup_times(match)) == len(picked) + len(used)
+    assert len(openers) == 4 and (openers["after_horn_s"] < 30).all()
+    # Every power rune taken or used from a Bottle has its window.
+    power = [
+        r for r in picked + used if r.rune_type in runes.BUFFS or r.rune_type == runes.ILLUSION
+    ]
+    assert list(windows.columns) == runes.WINDOW_COLUMNS and len(windows) == len(power)
+    assert (windows["end_s"] >= windows["start_s"]).all()
 
 
 def test_recipes_fall_back_to_hero_teams_without_combat_log_teams() -> None:
@@ -1001,3 +1019,80 @@ def test_objectives_shares_wisdom_xp_when_one_team_takes_both_runes_at_once() ->
     )
     # Four entries of 200 for two runes: 400 each, not 800 each.
     assert [p["xp"] for p in objectives.wisdom_pickups(match)] == [400, 400]
+
+
+def test_runes_lists_each_rune_with_its_spot_taker_and_time() -> None:
+    table = runes.rune_table(_runes_match())
+
+    assert list(table.columns) == runes.RUNE_COLUMNS
+    rows = table[["rune", "spot", "outcome", "hero", "whose", "time_s", "used_s", "stage"]]
+    assert rows.astype(object).where(rows.notna(), None).values.tolist() == [
+        ["bounty", "dire_jungle", "picked_up", AXE, "other", 3.0, None, "0:00-6:00"],
+        # The pickup's own time (the chat clock's 5), not the rune's removal at 5.1 s.
+        ["bounty", "top_river", "picked_up", LINA, "river", 5.0, None, "0:00-6:00"],
+        ["bounty", "radiant_jungle", "not_taken", None, None, 120.0, None, "0:00-6:00"],
+        ["water", "top_river", "picked_up", LINA, None, 125.0, None, "0:00-6:00"],
+        ["double_damage", "top_river", "picked_up", SF, None, 400.0, None, "6:00-20:00"],
+        ["illusion", "bot_river", "bottled", AXE, None, 500.0, 600.0, "6:00-20:00"],
+        ["shield", "bot_river", "denied", PUDGE, None, 1210.0, None, "20:00-end"],
+        ["haste", "top_river", "still_there", None, None, None, None, "20:00-end"],
+    ]
+
+
+def test_runes_counts_each_sides_runes_by_stage() -> None:
+    summary = runes.rune_summary(runes.rune_table(_runes_match())).set_index(["stage", "side"])
+
+    assert summary.loc[("0:00-6:00", "radiant")].drop("match_id").to_dict() == {
+        "power": 0,
+        "water": 1,
+        "bounty_own_jungle": 0,
+        "bounty_other_jungle": 1,
+        "bounty_river": 1,
+        "denied": 0,
+    }
+    assert summary.loc[("6:00-20:00", "radiant"), "power"] == 1  # the bottled illusion rune
+    assert summary.loc[("6:00-20:00", "dire"), "power"] == 1
+    assert summary.loc[("20:00-end", "dire"), "denied"] == 1
+
+
+def test_runes_lists_the_0_00_bounties_and_the_deaths_before_1_30() -> None:
+    match = _runes_match()
+    openers = runes.opening_bounties(match)
+    deaths = runes.opening_deaths(match)
+
+    assert openers[["hero", "whose", "after_horn_s", "enemies_near"]].values.tolist() == [
+        [AXE, "other", 3.0, PUDGE],
+        [LINA, "river", 5.0, ""],
+    ]
+    # Pudge's death before the horn counts; Lina's at 1:40 doesn't.
+    assert deaths[["time_s", "hero", "by"]].values.tolist() == [[-10.0, PUDGE, AXE]]
+
+
+def test_runes_reads_each_power_runes_window_and_what_followed() -> None:
+    windows = runes.rune_windows(_runes_match())
+
+    double, illusion = windows.to_dict("records")
+    assert (double["rune"], double["start_s"], double["end_s"]) == ("double_damage", 400.0, 445.0)
+    assert (double["kills"], double["killed"], double["building_damage"]) == (1, LINA, 300)
+    # The tower fell 15 s after the buff ended: within AFTER_S.
+    assert (double["took"], double["took_s"], double["died"]) == (
+        "goodguys_tower1_top",
+        "60",
+        False,
+    )
+    # Axe's Aegis trigger at 7:05 is no kill. The rune's illusions lasted 30 and 100 s
+    # (the 9:50 illusion's remove isn't theirs); the window stops at ILLUSION_S.
+    assert illusion["rune"] == "illusion" and illusion["from_bottle"]
+    assert illusion["end_s"] - illusion["start_s"] == pytest.approx(runes.ILLUSION_S, abs=0.05)
+    assert (illusion["roshan_damage"], illusion["took"], illusion["took_s"]) == (
+        200,
+        "roshan",
+        "40",
+    )
+
+
+def test_runes_puts_each_spot_on_the_map() -> None:
+    assert runes.spot_of(14700, 17500) == "top_river"
+    assert runes.spot_of(17600, 15200) == "bot_river"
+    assert runes.spot_of(15400, 20800) == "dire_jungle"
+    assert runes.spot_of(17000, 11700) == "radiant_jungle"

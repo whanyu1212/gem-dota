@@ -20,6 +20,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `PICKUP_RUNE` entries are unchanged (OpenDota counts bottle uses as pickups).
   Wisdom runes are no entity and stay `PICKUP_RUNE` entries.
 
+- **Recipe: who took each rune, and what happened while a power rune lasted?**
+  (HY-135). `examples/cookbook/runes.py` reads `match.runes`: each rune's
+  spot (the top or bottom river, or a side's jungle), who took it and when, or
+  how else it ended, counted by side over three stages (0:00–6:00, 6:00–20:00,
+  20:00 to the end). It lists the four 0:00 bounties with the enemy heroes near
+  each pickup and the deaths up to 1:30. For each power rune, taken or used
+  from a Bottle, it takes the buff's own window from the combat log (an illusion
+  rune's from its illusions) and lists the taker's kills, its damage to Roshan
+  and buildings, and the objectives its team took during it or within 30 s
+  after. On the 9 fixtures, 51 of the 192 power-rune windows were followed by
+  an objective. Its page has a figure of the home page's match with stage
+  chips and a timeline.
+
 - **Recipe: how did each lane go?** (HY-127). `examples/cookbook/lanes.py`
   puts each hero in the lane it spent the most of the first 6 minutes in (from
   its positions on OpenDota's lane grid), then reads each lane at 6:00, the end

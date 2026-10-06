@@ -64,6 +64,8 @@ def test_main_writes_to_paths_outside_the_repository(
         str(tmp_path / "lead.json"),
         "--lanes-data",
         str(tmp_path / "lanes.json"),
+        "--runes-data",
+        str(tmp_path / "runes.json"),
     ]
     assert export.main([*args, "--map-image", str(image)]) == 0
     assert (tmp_path / "figures" / "map.webp").stat().st_size > 0
@@ -72,6 +74,7 @@ def test_main_writes_to_paths_outside_the_repository(
     assert json.loads((tmp_path / "objectives.json").read_text())["objectives"] == []
     assert json.loads((tmp_path / "lead.json").read_text())["times"] == []
     assert json.loads((tmp_path / "lanes.json").read_text())["events"] == []
+    assert json.loads((tmp_path / "runes.json").read_text())["runes"] == []
     assert json.loads(playback.read_text()) is None
     assert json.loads(ward_data.read_text())["wards"] == []
     written = json.loads(data.read_text())
@@ -967,6 +970,39 @@ def test_lanes_recipe_writes_each_lane_with_shares_numbers_and_events() -> None:
     assert data["events"][4][6] == "Lina"  # the summon's owner
     # Only heroes with an OpenDota lane (the others here have none) that differs.
     assert data["opendota"] == [["Axe", "mid", "top"]]
+
+
+def test_runes_recipe_writes_each_rune_the_0_00_bounties_and_the_windows() -> None:
+    from tests._runes import runes_match
+
+    data = export.runes_recipe(runes_match())
+
+    assert data["stages"] == [
+        ["0:00-6:00", 0, 360],
+        ["6:00-20:00", 360, 1200],
+        ["20:00-end", 1200, None],
+    ]
+    assert set(data["spots"]) == {"top_river", "bot_river", "radiant_jungle", "dire_jungle"}
+    assert all(0 <= v <= 1000 for spot in data["spots"].values() for v in spot)
+    assert data["runes"][0] == [
+        3.0,
+        "bounty",
+        "dire_jungle",
+        "picked_up",
+        "Axe",
+        "r",
+        "other",
+        None,
+    ]
+    assert data["runes"][5] == [500.0, "illusion", "bot_river", "bottled", "Axe", "r", None, 600.0]
+    # A rune still there is placed at its spawn.
+    assert data["runes"][-1] == [1320.0, "haste", "top_river", "still_there", None, "", None, None]
+    assert data["openers"][0] == ["dire_jungle", "Axe", "r", "other", 3.0, ["Pudge"]]
+    assert data["deaths"] == [[-10.0, "Pudge", "d", "Axe"]]
+    double = data["windows"][0]
+    assert double[:7] == [400.0, 445.0, "double_damage", "Shadow Fiend", "d", False, False]
+    assert double[7:] == [["Lina"], 0, 300, [["Radiant tier 1 top tower", 60]]]
+    assert data["windows"][1][-1] == [["Roshan", 40]]
 
 
 def test_objectives_recipe_puts_each_wisdom_rune_at_its_shrine() -> None:
