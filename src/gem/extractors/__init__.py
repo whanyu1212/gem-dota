@@ -27,6 +27,7 @@ from gem.extractors.courier import CourierExtractor, CourierSnapshot
 from gem.extractors.draft import DraftEvent, DraftExtractor
 from gem.extractors.objectives import BarracksKill, ObjectivesExtractor, RoshanKill, TowerKill
 from gem.extractors.players import PlayerExtractor, PlayerStateSnapshot, PlayerTimeSeries
+from gem.extractors.runes import Rune, RuneExtractor
 from gem.extractors.wards import WardEvent, WardsExtractor
 
 __all__ = [
@@ -43,4 +44,6 @@ __all__ = [
     "CourierSnapshot",
     "DraftExtractor",
     "DraftEvent",
+    "RuneExtractor",
+    "Rune",
 ]

@@ -15,6 +15,7 @@ from gem.analysis.roshan import build_rosh_conversions
 from gem.combat.log import CombatLogEntry, CombatLogSource, CombatLogType
 from gem.extractors.fights import Fight, FightPlayer, OpenDotaTeamfight
 from gem.extractors.objectives import AegisEvent, RoshanKill
+from gem.extractors.runes import Rune
 from gem.results.models import (
     BuybackEvent,
     EntityVisibilityEvent,
@@ -360,6 +361,19 @@ def _awkward_match() -> ParsedMatch:
             game_start_time_s=1019.3,
             net_tick_offset=374,
         ),
+        runes=[
+            Rune(
+                spawn_tick=40,
+                rune_type=5,
+                x=15388.0,
+                y=20815.0,
+                end_tick=50,
+                outcome="bottled",
+                player_id=6,
+                used_tick=90,
+            ),
+            Rune(spawn_tick=60, rune_type=0, x=None, y=None),
+        ],
     )
 
 
@@ -382,6 +396,7 @@ class TestJsonRoundTrip:
         assert loaded.game_clock is not None
         assert loaded.game_clock.pauses[1] == GamePause(40_000, None)
         assert loaded.fights[0].players[0].item_uses == {"item_blink": 1}
+        assert loaded.runes[0].used_tick == 90 and loaded.runes[1].outcome == "still_there"
 
     def test_from_dict_accepts_bare_to_dict_payload(self):
         match = _awkward_match()

@@ -26,6 +26,7 @@ from gem.extractors.objectives import (
     TormentorKill,
     TowerKill,
 )
+from gem.extractors.runes import Rune
 from gem.extractors.wards import WardEvent
 from gem.state.game_clock import GameClock
 
@@ -1107,6 +1108,11 @@ class ParsedMatch:
             for a complete parse. Everything read before that point is kept.
         truncated_at_tick: The last tick read when the parse ended early, or
             ``None`` for a complete parse.
+        runes: Every power, bounty and water rune that spawned (its entity), in
+            spawn order: where, of which type, and how it ended (taken, put in a
+            Bottle and when it was used, denied, not taken, or still there).
+            Wisdom runes are no entity; they are ``PICKUP_RUNE`` entries in
+            ``combat_log``.
         duration: OpenDota-style match duration in seconds. Complete replays use
             the exact value from the embedded ``CMsgDOTAMatch`` postgame summary;
             otherwise this falls back to horn-anchored combat-log time at
@@ -1185,6 +1191,7 @@ class ParsedMatch:
     game_clock: GameClock | None = None
     parse_error: str | None = None
     truncated_at_tick: int | None = None
+    runes: list[Rune] = field(default_factory=list)
     # Internal provenance for match-level values copied from CMsgDOTAMatch.
     _match_details_fields: set[str] = field(
         default_factory=set,

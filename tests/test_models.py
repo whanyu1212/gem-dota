@@ -131,6 +131,7 @@ class TestParsedMatchFieldOrder:
         "game_clock",
         "parse_error",
         "truncated_at_tick",
+        "runes",
     ]
 
     def test_positional_order_is_append_only(self):
