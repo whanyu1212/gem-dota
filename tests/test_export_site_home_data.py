@@ -967,3 +967,47 @@ def test_lanes_recipe_writes_each_lane_with_shares_numbers_and_events() -> None:
     assert data["events"][4][6] == "Lina"  # the summon's owner
     # Only heroes with an OpenDota lane (the others here have none) that differs.
     assert data["opendota"] == [["Axe", "mid", "top"]]
+
+
+def test_objectives_recipe_puts_each_wisdom_rune_at_its_shrine() -> None:
+    from gem.combat.log import CombatLogType
+    from gem.state.game_clock import GameClock
+
+    radiant_shrine, dire_shrine = (8296.0, 17152.0), (24551.0, 15241.0)
+    rubick = "npc_dota_hero_rubick"
+    match = ParsedMatch(
+        match_id=1,
+        game_start_tick=0,
+        post_game_tick=900 * 30,
+        game_clock=GameClock(game_start_tick=0),
+        players=[
+            ParsedPlayer(
+                player_id=5,
+                team=3,
+                hero_name=rubick,
+                position_log=[(s * 30, *radiant_shrine) for s in range(0, 901)],
+            )
+        ],
+        combat_log=[
+            CombatLogEntry(tick=430 * 30, log_type=CombatLogType.PICKUP_RUNE, value=5, rune_type=8),
+            CombatLogEntry(
+                tick=430 * 30, log_type=CombatLogType.XP, target_name=rubick, xp_reason=4, value=400
+            ),
+        ],
+    )
+    data = export.objectives_recipe(match, {"wisdom": [radiant_shrine, dire_shrine]})
+
+    assert data["wisdom_spots"] == {
+        "r": export._project(*radiant_shrine),
+        "d": export._project(*dire_shrine),
+    }
+    (rune,) = data["objectives"]
+    assert (rune["name"], rune["for"], rune["spot"], rune["xp"]) == ("Wisdom rune", "d", "r", 400)
+    assert rune["at"] == export._project(*radiant_shrine) and rune["last_hit"] == "Rubick"
+    # Dire took Radiant's 7:00 rune; Dire's went untaken until the 14:00 spawn.
+    assert data["wisdom"] == [
+        [420, "r", "d", "Rubick", 10, "x"],
+        [420, "d", "", None, None, "n"],
+        [840, "r", "", None, None, "e"],
+        [840, "d", "", None, None, "e"],
+    ]
