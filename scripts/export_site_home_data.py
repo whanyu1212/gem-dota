@@ -90,6 +90,7 @@ COOKBOOK = REPO_ROOT / "examples" / "cookbook"
 DEFAULT_OBJECTIVES_DATA = REPO_ROOT / "site" / "src" / "data" / "objectives.json"
 DEFAULT_LEAD_DATA = REPO_ROOT / "site" / "src" / "data" / "lead.json"
 DEFAULT_LANES_DATA = REPO_ROOT / "site" / "src" / "data" / "lanes.json"
+DEFAULT_RUNES_DATA = REPO_ROOT / "site" / "src" / "data" / "runes.json"
 DEFAULT_MAP_IMAGE = REPO_ROOT / "site" / "src" / "assets" / "home-map.jpg"
 DEFAULT_FIGHT_IMAGE = REPO_ROOT / "site" / "src" / "assets" / "home-fight.jpg"
 DEFAULT_ICONS = REPO_ROOT / "site" / "src" / "assets" / "icons"
@@ -781,6 +782,107 @@ def lanes_recipe(match: ParsedMatch) -> dict:
             [hero_display(p.hero_name), lane_names[p.lane], home[p.hero_name]]
             for p in match.players
             if p.lane in lane_names and lane_names[p.lane] != home.get(p.hero_name)
+        ],
+    }
+
+
+def _rune_objective(name: str) -> str:
+    """An objective a power rune's window was followed by, for a reader."""
+    return "Tormentor" if name == "tormentor" else _objective_name(name)
+
+
+def runes_recipe(match: ParsedMatch) -> dict:
+    """Every rune, the 0:00 bounties and the power runes' windows for the runes recipe's figure.
+
+    From the recipe itself (``examples/cookbook/runes.py``). Each rune is
+    ``[time_s, rune, spot, outcome, hero, side, whose, used_s]``: the game
+    second it left the map (its spawn's for a rune still there), its name, its
+    spot, how it ended, the taker's hero and side (``r``/``d``), a bounty's
+    ``river``/``own``/``other``, and a bottled rune's use. Each spot is placed
+    on the map square at the mean of its runes' positions. Each window is
+    ``[start_s, end_s, rune, hero, side, from_bottle, died, killed, roshan
+    damage, building damage, [[objective, seconds after start_s], ...]]``.
+    """
+    recipe = _cookbook("runes")
+    table = recipe.rune_table(match)
+    side = {"radiant": "r", "dire": "d"}
+
+    def hero(name: object) -> str | None:
+        return hero_display(name) if isinstance(name, str) and name else None
+
+    # Down to the tenth, so a time reads on the figure's clock as it does in the recipe's.
+    def number(value: object) -> float | None:
+        if value is None or pd.isna(value):
+            return None
+        return math.floor(float(value) * 10) / 10  # type: ignore[arg-type]
+
+    spots = {
+        spot: _project(float(rows["x"].mean()), float(rows["y"].mean()))
+        for spot, rows in table.groupby("spot")
+    }
+    runes = [
+        [
+            number(r.time_s if r.time_s is not None and not pd.isna(r.time_s) else r.spawn_s),
+            r.rune,
+            r.spot,
+            r.outcome,
+            hero(r.hero),
+            side.get(r.side or "", ""),
+            r.whose if isinstance(r.whose, str) else None,
+            number(r.used_s),
+        ]
+        for r in table.itertuples(index=False)
+    ]
+    openers = recipe.opening_bounties(match, table)
+    deaths = recipe.opening_deaths(match)
+    windows = recipe.rune_windows(match)
+    end_tick = match.post_game_tick or match.game_end_tick or 0
+    return {
+        "start_s": 0.0,
+        "end_s": round(_game_seconds(match, end_tick), 1) if end_tick else 0.0,
+        "stages": [[name, start, end] for name, start, end in recipe.STAGES],
+        "near": recipe.NEAR,
+        "opening_s": recipe.OPENING_S,
+        "after_s": recipe.AFTER_S,
+        "spots": spots,
+        "runes": runes,
+        "openers": [
+            [
+                o.spot,
+                hero(o.hero),
+                side.get(o.side or "", ""),
+                o.whose,
+                number(o.after_horn_s),
+                [hero_display(h) for h in o.enemies_near.split(", ") if h],
+            ]
+            for o in openers.itertuples(index=False)
+        ],
+        "deaths": [
+            [number(d.time_s), hero(d.hero), side.get(d.side or "", ""), _killer_name(d.by)]
+            for d in deaths.itertuples(index=False)
+        ],
+        "windows": [
+            [
+                number(w.start_s),
+                number(w.end_s),
+                w.rune,
+                hero(w.hero),
+                side.get(w.side or "", ""),
+                bool(w.from_bottle),
+                bool(w.died),
+                [hero_display(h) for h in w.killed.split(", ") if h],
+                int(w.roshan_damage),
+                int(w.building_damage),
+                [
+                    [_rune_objective(name), int(after)]
+                    for name, after in zip(
+                        [n for n in w.took.split(", ") if n],
+                        [a for a in w.took_s.split(", ") if a],
+                        strict=True,
+                    )
+                ],
+            ]
+            for w in windows.itertuples(index=False)
         ],
     }
 
@@ -1575,6 +1677,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--objectives-data", type=Path, default=DEFAULT_OBJECTIVES_DATA)
     parser.add_argument("--lead-data", type=Path, default=DEFAULT_LEAD_DATA)
     parser.add_argument("--lanes-data", type=Path, default=DEFAULT_LANES_DATA)
+    parser.add_argument("--runes-data", type=Path, default=DEFAULT_RUNES_DATA)
     parser.add_argument("--map-image", type=Path, default=DEFAULT_MAP_IMAGE)
     parser.add_argument("--fight-image", type=Path, default=DEFAULT_FIGHT_IMAGE)
     parser.add_argument("--icons-dir", type=Path, default=DEFAULT_ICONS)
@@ -1665,9 +1768,11 @@ def main(argv: list[str] | None = None) -> int:
     args.lead_data.write_text(json.dumps(lead_recipe(match), separators=(",", ":")) + "\n")
     args.lanes_data.parent.mkdir(parents=True, exist_ok=True)
     args.lanes_data.write_text(json.dumps(lanes_recipe(match), separators=(",", ":")) + "\n")
+    args.runes_data.parent.mkdir(parents=True, exist_ok=True)
+    args.runes_data.write_text(json.dumps(runes_recipe(match), separators=(",", ":")) + "\n")
     write_map_image(args.map_image)
     written = [args.data, args.fight_data, args.wards_data, args.fights_data, args.objectives_data]
-    written += [args.lead_data, args.lanes_data]
+    written += [args.lead_data, args.lanes_data, args.runes_data]
     written.append(args.map_image)
     if fight is not None:
         write_map_image(args.fight_image, fight["box"])
